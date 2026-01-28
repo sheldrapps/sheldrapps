@@ -1,0 +1,80 @@
+/* Callout Component - Reusable UI component */
+
+.app-callout {
+  margin: 8px 12px 0 12px;
+  padding: var(--app-callout-padding-y) var(--app-callout-padding-x);
+  border-radius: var(--app-radius-md);
+
+  display: flex;
+  gap: var(--app-callout-gap);
+  align-items: flex-start;
+
+  box-shadow: var(--app-shadow-sm);
+
+  /* Micro-interaction safe */
+  transition: box-shadow var(--app-dur-med) var(--app-ease),
+              transform var(--app-dur-fast) var(--app-ease);
+}
+
+.app-callout:active {
+  transform: scale(0.995);
+}
+
+.app-callout__icon {
+  font-size: 18px;
+  margin-top: 2px;
+  flex: 0 0 auto;
+}
+
+.app-callout__title {
+  font-weight: 700;
+  font-size: var(--app-callout-title-size);
+  line-height: 1.1;
+  margin-bottom: 2px;
+}
+
+.app-callout__body {
+  font-size: var(--app-callout-body-size);
+  opacity: 0.92;
+  line-height: 1.2;
+}
+
+/* Variants */
+.app-callout--warning {
+  border-left: calc(var(--app-callout-border-w) + 1px) solid var(--app-callout-warning-border);
+  background: var(--app-callout-warning-bg);
+  color: var(--app-callout-warning-text);
+  box-shadow:
+    0 0 0 1px rgba(var(--ion-color-warning-rgb), 0.15),
+    var(--app-shadow-sm);
+}
+.app-callout--warning .app-callout__icon {
+  color: var(--app-callout-warning-icon);
+}
+
+.app-callout--info {
+  border-left: var(--app-callout-border-w) solid var(--app-callout-info-border);
+  background: var(--app-callout-info-bg);
+  color: var(--app-callout-info-text);
+}
+.app-callout--info .app-callout__icon {
+  color: var(--app-callout-info-icon);
+}
+
+.app-callout--success {
+  border-left: var(--app-callout-border-w) solid var(--app-callout-success-border);
+  background: var(--app-callout-success-bg);
+  color: var(--app-callout-success-text);
+}
+.app-callout--success .app-callout__icon {
+  color: var(--app-callout-success-icon);
+}
+
+.app-callout--error {
+  border-left: var(--app-callout-border-w) solid var(--app-callout-error-border);
+  background: var(--app-callout-error-bg);
+  color: var(--app-callout-error-text);
+}
+.app-callout--error .app-callout__icon {
+  color: var(--app-callout-error-icon);
+}

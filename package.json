@@ -1,0 +1,17 @@
+{
+  "name": "sheldrapps",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.28.2",
+  "scripts": {
+    "i": "pnpm install",
+    "dev:cover": "pnpm --filter cover-creator-for-kindle start",
+    "build:cover": "pnpm --filter cover-creator-for-kindle build",
+    "android:cover": "pnpm --filter cover-creator-for-kindle debugApk",
+    "dev:compress": "pnpm --filter compress-pdf start",
+    "build:compress": "pnpm --filter compress-pdf build",
+    "lint:compress": "pnpm --filter compress-pdf lint",
+    "lint": "pnpm -r lint",
+    "build": "pnpm -r build"
+  }
+}

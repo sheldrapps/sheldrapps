@@ -1,0 +1,12 @@
+/* Sheldrapps UI Theme - Design System
+ * Import this file in your global.scss to get the full design system:
+ * - Palette (colors for light/dark modes)
+ * - Design tokens (motion, radius, shadows)
+ * - Safe Ionic overrides (components styling)
+ * - Callouts and utility components
+ */
+
+@forward './palette';
+@forward './tokens';
+@forward './ionic-safe-overrides';
+@forward './callouts';

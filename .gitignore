@@ -1,0 +1,48 @@
+﻿# =============================
+# Node / pnpm
+# =============================
+node_modules/
+**/node_modules/
+
+pnpm-debug.log*
+npm-debug.log*
+yarn-error.log*
+
+# =============================
+# Angular / Ionic build output
+# =============================
+dist/
+www/
+build/
+coverage/
+
+# =============================
+# Capacitor / Android
+# =============================
+android/.gradle/
+android/build/
+android/app/build/
+android/captures/
+android/local.properties
+
+# =============================
+# Capacitor / iOS (future)
+# =============================
+ios/build/
+ios/DerivedData/
+Pods/
+
+# =============================
+# IDE / OS
+# =============================
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# =============================
+# Env / secrets
+# =============================
+.env
+.env.*

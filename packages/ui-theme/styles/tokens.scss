@@ -1,0 +1,55 @@
+/* Design Tokens - Shared across all Sheldrapps apps */
+
+:root {
+  /* Motion (kept subtle) */
+  --app-ease: cubic-bezier(.2,.8,.2,1);
+  --app-dur-fast: 140ms;
+  --app-dur-med: 220ms;
+
+  /* Focus ring (single, consistent) */
+  --app-focus-ring: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.22);
+
+  /* Font stack */
+  --ion-font-family: Inter, system-ui, -apple-system, "SF Pro Text", "Segoe UI", Roboto, Arial, sans-serif;
+
+  /* Radius tokens */
+  --app-radius-sm: 10px;
+  --app-radius-md: 12px;
+  --app-radius-lg: 16px;
+
+  /* Shadow tokens */
+  --app-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
+  --app-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.10);
+
+  /* Callout tokens */
+  --app-callout-padding-y: 12px;
+  --app-callout-padding-x: 14px;
+  --app-callout-gap: 12px;
+  --app-callout-border-w: 3px;
+  --app-callout-title-size: 15px;
+  --app-callout-body-size: 14px;
+
+  /* Callout - Warning */
+  --app-callout-warning-border: var(--ion-color-warning);
+  --app-callout-warning-bg: rgba(var(--ion-color-warning-rgb), 0.08);
+  --app-callout-warning-text: var(--ion-text-color);
+  --app-callout-warning-icon: var(--ion-color-warning);
+
+  /* Callout - Info */
+  --app-callout-info-border: var(--ion-color-primary);
+  --app-callout-info-bg: rgba(var(--ion-color-primary-rgb), 0.06);
+  --app-callout-info-text: var(--ion-text-color);
+  --app-callout-info-icon: var(--ion-color-primary);
+
+  /* Callout - Success */
+  --app-callout-success-border: var(--ion-color-success);
+  --app-callout-success-bg: rgba(var(--ion-color-success-rgb), 0.08);
+  --app-callout-success-text: var(--ion-text-color);
+  --app-callout-success-icon: var(--ion-color-success);
+
+  /* Callout - Error */
+  --app-callout-error-border: var(--ion-color-danger);
+  --app-callout-error-bg: rgba(var(--ion-color-danger-rgb), 0.08);
+  --app-callout-error-text: var(--ion-text-color);
+  --app-callout-error-icon: var(--ion-color-danger);
+}

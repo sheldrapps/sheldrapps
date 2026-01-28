@@ -1,0 +1,242 @@
+/* SAFE Ionic Component Overrides
+ * Only CSS variables + ::part(native) styling; no padding/margin/display changes on host
+ * Maintains fullscreen modal defaults and other Ionic layout expectations
+ */
+
+/* Global body styling */
+body {
+  color: var(--ion-text-color);
+  background: var(--ion-background-color);
+}
+
+/* Consistent focus without changing layout */
+:focus-visible {
+  outline: none;
+}
+
+/* Header / Toolbar */
+ion-header ion-toolbar {
+  --background: var(--ion-background-color);
+  --color: var(--ion-text-color);
+  border-bottom: 1px solid var(--ion-border-color);
+}
+
+/* Content */
+ion-content {
+  --background: var(--ion-background-color);
+}
+
+/* Tabs */
+ion-tab-bar {
+  --background: var(--ion-background-color);
+  border-top: 1px solid var(--ion-border-color);
+}
+
+/* Keep tab button layout intact; style only the native part */
+ion-tab-button {
+  --color: var(--ion-color-medium);
+  --color-selected: var(--ion-color-primary);
+}
+
+ion-tab-button::part(native) {
+  border-radius: var(--app-radius-md);
+  transition:
+    background-color var(--app-dur-med) var(--app-ease),
+    transform var(--app-dur-fast) var(--app-ease);
+}
+
+ion-tab-button.tab-selected::part(native) {
+  background: rgba(var(--ion-color-primary-rgb), 0.10);
+}
+
+ion-tab-button:active::part(native) {
+  transform: scale(0.98);
+}
+
+/* Buttons: keep Ionic sizing; style native surface */
+ion-button {
+  --border-radius: var(--app-radius-md);
+  --box-shadow: none;
+  font-weight: 650;
+  letter-spacing: 0.2px;
+}
+
+ion-button::part(native) {
+  box-shadow: var(--app-shadow-sm);
+  transition:
+    transform var(--app-dur-fast) var(--app-ease),
+    box-shadow var(--app-dur-med) var(--app-ease),
+    background-color var(--app-dur-med) var(--app-ease);
+}
+
+/* Hover only applies on desktop/web; on mobile it's basically ignored */
+ion-button:hover::part(native) {
+  box-shadow: var(--app-shadow-md);
+  transform: translateY(-1px);
+}
+
+ion-button:active::part(native) {
+  transform: translateY(0);
+  box-shadow: var(--app-shadow-sm);
+}
+
+/* Outline / clear: keep a consistent "premium utility" look */
+ion-button[fill="outline"] {
+  --border-color: rgba(var(--ion-color-primary-rgb), 0.55);
+  --color: var(--ion-color-primary);
+}
+
+ion-button[fill="clear"] {
+  --color: var(--ion-color-primary);
+}
+
+/* Back button */
+ion-back-button {
+  --color: var(--ion-color-primary);
+}
+
+/* Icons (don't force size globally unless you want it everywhere) */
+ion-icon {
+  vertical-align: middle;
+}
+
+/* Items: preserve structure; style native part + focus ring */
+ion-item {
+  --background: var(--ion-item-background);
+  --inner-border-width: 0px;
+  --min-height: 52px;
+  --highlight-color-focused: var(--ion-color-primary);
+}
+
+ion-item::part(native) {
+  border-radius: var(--app-radius-md);
+  transition:
+    box-shadow var(--app-dur-med) var(--app-ease),
+    background-color var(--app-dur-med) var(--app-ease);
+}
+
+/* Only add the "card-ish" feel when you opt in with a class */
+ion-item.app-item::part(native) {
+  box-shadow: var(--app-shadow-sm);
+}
+
+ion-item.ion-focused::part(native),
+ion-item:focus-within::part(native) {
+  box-shadow: var(--app-focus-ring);
+}
+
+ion-label {
+  color: var(--ion-text-color);
+}
+
+/* Select */
+ion-select {
+  --placeholder-color: var(--ion-color-medium);
+}
+
+/* Toggle: keep it calm and consistent */
+ion-toggle {
+  --handle-background: var(--ion-color-primary);
+  --track-background: rgba(var(--ion-color-medium-rgb), 0.35);
+}
+
+/* Range */
+ion-range {
+  --bar-background: rgba(var(--ion-color-medium-rgb), 0.25);
+  --bar-background-active: var(--ion-color-primary);
+  --knob-background: var(--ion-color-primary);
+  --pin-background: var(--ion-color-primary);
+  --pin-color: var(--ion-color-primary-contrast);
+}
+
+ion-range::part(knob) {
+  transition: transform var(--app-dur-fast) var(--app-ease);
+}
+
+ion-range:active::part(knob) {
+  transform: scale(1.10);
+}
+
+/* Lists */
+ion-list {
+  background: transparent;
+}
+
+ion-item-divider {
+  --background: rgba(var(--ion-color-medium-rgb), 0.10);
+  --color: var(--ion-color-medium);
+  font-weight: 700;
+}
+
+/* Cards */
+ion-card {
+  --background: var(--ion-card-background);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+  transition:
+    transform var(--app-dur-med) var(--app-ease),
+    box-shadow var(--app-dur-med) var(--app-ease);
+}
+
+ion-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--app-shadow-md);
+}
+
+/* Feedback */
+ion-spinner {
+  --color: var(--ion-color-primary);
+}
+
+/* Refresher */
+ion-refresher-content {
+  --refreshing-spinner-color: var(--ion-color-primary);
+  --pulling-icon-color: var(--ion-color-medium);
+  --pulling-text-color: var(--ion-color-medium);
+}
+
+/* Modals / Popovers – IMPORTANT: don't break fullscreen defaults */
+
+/* Default modal: DO NOT set --width/--height globally */
+ion-modal {
+  --background: var(--ion-card-background);
+}
+
+/* Card modal (opt-in). Use: cssClass: 'modal-card' */
+ion-modal.modal-card {
+  --width: min(560px, calc(100% - 24px));
+  --height: auto;
+  --border-radius: var(--app-radius-lg);
+  --box-shadow: var(--app-shadow-md);
+  --backdrop-opacity: 0.45;
+}
+
+ion-modal.modal-card::part(content) {
+  animation: modalCardIn var(--app-dur-med) var(--app-ease) both;
+}
+
+@keyframes modalCardIn {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Popover */
+ion-popover {
+  --background: var(--ion-card-background);
+  --border-radius: var(--app-radius-md);
+  --box-shadow: var(--app-shadow-md);
+}
+
+/* Small utility classes (opt-in, no surprises) */
+
+/* Standard page padding wrapper (use in templates as needed) */
+.app-page {
+  padding: 12px;
+}
+
+/* Use for items you want as "cards" without global layout changes */
+.app-surface {
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+  background: var(--ion-card-background);
+}

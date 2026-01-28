@@ -1,0 +1,16 @@
+{
+  "name": "@sheldrapps/ui-theme",
+  "version": "1.0.0",
+  "description": "Shared design system for Sheldrapps",
+  "main": "index.js",
+  "type": "module",
+  "exports": {
+    "./styles/*": "./styles/*"
+  },
+  "files": [
+    "styles"
+  ],
+  "keywords": ["design-system", "ionic", "scss"],
+  "author": "Sheldrapps",
+  "license": "MIT"
+}
