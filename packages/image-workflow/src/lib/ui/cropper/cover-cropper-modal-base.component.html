@@ -1,0 +1,197 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ title }}</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()">
+        {{ cancelLabel }}
+      </ion-button>
+
+      <ion-button [disabled]="!ready" (click)="use()">
+        {{ doneLabel }}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="cropper-content" [fullscreen]="true" [scrollY]="false">
+  <div class="stage">
+    <div class="frame-wrap">
+      <div
+        #frame
+        class="frame"
+        [style.--crop-ratio]="aspectRatio"
+        (dblclick)="reset()"
+        [attr.aria-label]="frameAriaLabel"
+      >
+        @if (imageUrl) {
+        <img
+          #img
+          class="img"
+          [src]="imageUrl"
+          alt=""
+          draggable="false"
+          (load)="onImgLoad($event)"
+        />
+        }
+
+        <div class="grid" aria-hidden="true"></div>
+
+        @if (!ready) {
+        <div class="frame-loader" aria-hidden="true">
+          <div class="frame-loader__card">
+            <ion-spinner name="crescent"></ion-spinner>
+            <div class="frame-loader__text">
+              {{ loadingLabel }}
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    @if (ready) {
+    <div class="hint">
+      {{ hintLabel }}
+    </div>
+    }
+  </div>
+
+  <div
+    class="bottom-bar"
+    role="toolbar"
+    [attr.aria-label]="controlsAriaLabel"
+  >
+    <ion-button
+      fill="clear"
+      class="ctrl"
+      (click)="zoomOut()"
+      [disabled]="scale <= minScale"
+      [attr.aria-label]="zoomOutAriaLabel"
+    >
+      <ion-icon name="remove-outline"></ion-icon>
+    </ion-button>
+
+    <ion-button
+      fill="clear"
+      class="ctrl"
+      (click)="reset()"
+      [attr.aria-label]="resetAriaLabel"
+    >
+      <ion-icon name="refresh-outline"></ion-icon>
+    </ion-button>
+
+    <ion-button
+      fill="clear"
+      class="ctrl"
+      (click)="zoomIn()"
+      [disabled]="scale >= maxScale"
+      [attr.aria-label]="zoomInAriaLabel"
+    >
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-button>
+
+    <div class="spacer"></div>
+
+    <ion-button
+      class="adjust-btn"
+      (click)="toggleAdjustments()"
+      [disabled]="!ready"
+    >
+      {{ adjustmentsLabel }}
+      <ion-icon
+        class="adjust-btn__icon"
+        [name]="adjustOpen ? 'close-outline' : 'chevron-up-outline'"
+      ></ion-icon>
+    </ion-button>
+  </div>
+
+  @if (adjustOpen) {
+  <div
+    class="sheet"
+    role="dialog"
+    [attr.aria-label]="adjustmentsAriaLabel"
+  >
+    <div class="sheet-head">
+      <div class="sheet-grabber" aria-hidden="true"></div>
+
+      <div class="sheet-title">
+        {{ adjustmentsLabel }}
+      </div>
+
+      <ion-button fill="clear" class="sheet-close" (click)="closeAdjustments()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </div>
+
+    <div class="sheet-body">
+      <ion-item lines="none" class="rot-item">
+        <ion-label>{{ rotateLabel }}</ion-label>
+
+        <ion-buttons slot="end" class="rot-actions">
+          <ion-button fill="clear" class="rot-btn" (click)="rotateLeft()">
+            <ion-icon slot="icon-only" name="return-up-back-outline"></ion-icon>
+          </ion-button>
+
+          <ion-button fill="clear" class="rot-btn" (click)="rotateRight()">
+            <ion-icon slot="icon-only" name="return-up-forward-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-label>{{ brightnessLabel }}</ion-label>
+        <ion-range
+          [min]="0.5"
+          [max]="1.5"
+          [step]="0.01"
+          [(ngModel)]="brightness"
+          (ionInput)="onAdjustChanged()"
+        ></ion-range>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-label>{{ saturationLabel }}</ion-label>
+        <ion-range
+          [min]="0"
+          [max]="2"
+          [step]="0.01"
+          [(ngModel)]="saturation"
+          (ionInput)="onAdjustChanged()"
+          [disabled]="bw"
+        ></ion-range>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-label>{{ contrastLabel }}</ion-label>
+        <ion-range
+          [min]="0.5"
+          [max]="1.8"
+          [step]="0.01"
+          [(ngModel)]="contrast"
+          (ionInput)="onAdjustChanged()"
+        ></ion-range>
+      </ion-item>
+
+      <ion-item lines="none" class="toggles">
+        <ion-label>{{ bwLabel }}</ion-label>
+        <ion-toggle
+          [(ngModel)]="bw"
+          (ionChange)="onAdjustChanged()"
+        ></ion-toggle>
+
+        <div class="row-spacer"></div>
+
+        <ion-label class="dither-label" [class.disabled]="!bw">
+          {{ ditherLabel }}
+        </ion-label>
+        <ion-toggle
+          [(ngModel)]="dither"
+          (ionChange)="onAdjustChanged()"
+          [disabled]="!bw"
+        ></ion-toggle>
+      </ion-item>
+    </div>
+  </div>
+  }
+</ion-content>

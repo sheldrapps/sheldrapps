@@ -13,5 +13,8 @@
     "lint:compress": "pnpm --filter compress-pdf lint",
     "lint": "pnpm -r lint",
     "build": "pnpm -r build"
+  },
+  "devDependencies": {
+    "ng-packagr": "^20.3.2"
   }
 }

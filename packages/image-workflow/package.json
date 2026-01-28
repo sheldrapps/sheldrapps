@@ -1,0 +1,34 @@
+{
+  "name": "@sheldrapps/image-workflow",
+  "version": "0.0.0",
+  "description": "Shared image workflow for Sheldrapps: validation, processing, cropping",
+  "main": "./src/public-api.ts",
+  "types": "./src/public-api.ts",
+  "exports": {
+    ".": "./src/public-api.ts",
+    "./capacitor": "./src/lib/adapters/capacitor/public-api.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "peerDependencies": {
+    "@angular/common": "^20.0.0",
+    "@angular/core": "^20.0.0",
+    "@angular/forms": "^20.0.0",
+    "@ionic/angular": "^8.0.0",
+    "@ngx-translate/core": "^17.0.0",
+    "ionicons": "^7.0.0",
+    "rxjs": "^7.8.0"
+  },
+  "peerDependenciesMeta": {
+    "@ionic/angular": {
+      "optional": false
+    }
+  },
+  "keywords": ["image", "crop", "workflow", "validation", "angular", "ionic"],
+  "author": "Sheldrapps",
+  "license": "MIT"
+}

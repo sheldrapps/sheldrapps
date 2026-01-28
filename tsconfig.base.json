@@ -1,0 +1,21 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": ".",
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "sourceMap": true,
+    "declaration": false,
+    "experimentalDecorators": true,
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@sheldrapps/image-workflow": ["packages/image-workflow/src/public-api.ts"],
+      "@sheldrapps/image-workflow/capacitor": ["packages/image-workflow/src/lib/adapters/capacitor/public-api.ts"],
+      "@sheldrapps/ui-theme": ["packages/ui-theme/src/index.ts"],
+      "@sheldrapps/ui-theme/styles/*": ["packages/ui-theme/styles/*"]
+    }
+  }
+}
