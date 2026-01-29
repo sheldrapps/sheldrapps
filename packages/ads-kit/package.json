@@ -1,0 +1,31 @@
+{
+  "name": "@sheldrapps/ads-kit",
+  "version": "1.0.0",
+  "description": "Reusable AdMob integration for Angular Capacitor apps",
+  "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
+  "module": "fesm2022/sheldrapps-ads-kit.mjs",
+  "main": "./fesm2022/sheldrapps-ads-kit.mjs",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./fesm2022/sheldrapps-ads-kit.mjs",
+      "types": "./index.d.ts",
+      "default": "./fesm2022/sheldrapps-ads-kit.mjs"
+    },
+    "./package.json": {
+      "default": "./package.json"
+    }
+  },
+  "peerDependencies": {
+    "@angular/core": "^20.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor-community/admob": "^8.0.0",
+    "rxjs": "~7.8.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "typings": "index.d.ts"
+}
