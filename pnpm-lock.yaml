@@ -89,6 +89,9 @@ importers:
       '@sheldrapps/ads-kit':
         specifier: workspace:*
         version: link:../../packages/ads-kit
+      '@sheldrapps/file-kit':
+        specifier: workspace:*
+        version: link:../../packages/file-kit
       '@sheldrapps/i18n-kit':
         specifier: workspace:*
         version: link:../../packages/i18n-kit
@@ -216,6 +219,22 @@ importers:
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
+
+  packages/file-kit:
+    dependencies:
+      '@angular/core':
+        specifier: ^20.0.0
+        version: 20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+    optionalDependencies:
+      '@capacitor/filesystem':
+        specifier: ^8.0.0
+        version: 8.1.0(@capacitor/core@8.0.0)
+      '@capacitor/share':
+        specifier: ^8.0.0
+        version: 8.0.0(@capacitor/core@8.0.0)
 
   packages/i18n-kit:
     dependencies:

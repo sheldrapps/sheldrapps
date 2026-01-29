@@ -1,0 +1,26 @@
+{
+  "name": "@sheldrapps/file-kit",
+  "version": "1.0.0",
+  "description": "Reusable file system and share kit for Angular apps with Capacitor integration",
+  "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
+  "peerDependencies": {
+    "@angular/core": "^20.0.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "optionalDependencies": {
+    "@capacitor/filesystem": "^8.0.0",
+    "@capacitor/share": "^8.0.0"
+  },
+  "keywords": [
+    "files",
+    "storage",
+    "filesystem",
+    "share",
+    "angular",
+    "capacitor"
+  ]
+}

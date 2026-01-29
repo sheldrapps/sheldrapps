@@ -15,6 +15,7 @@
       "@sheldrapps/i18n-kit": ["packages/i18n-kit/src/public-api.ts"],
       "@sheldrapps/ads-kit": ["packages/ads-kit/src/public-api.ts"],
       "@sheldrapps/settings-kit": ["packages/settings-kit/src/public-api.ts"],
+      "@sheldrapps/file-kit": ["packages/file-kit/src/public-api.ts"],
       "@sheldrapps/image-workflow": [
         "packages/image-workflow/src/public-api.ts"
       ],
