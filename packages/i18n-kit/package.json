@@ -1,0 +1,43 @@
+{
+  "name": "@sheldrapps/i18n-kit",
+  "version": "1.0.0",
+  "description": "Reusable i18n kit for Angular apps with language detection and persistence",
+  "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
+  "module": "fesm2022/sheldrapps-i18n-kit.mjs",
+  "main": "./fesm2022/sheldrapps-i18n-kit.mjs",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./fesm2022/sheldrapps-i18n-kit.mjs",
+      "types": "./index.d.ts",
+      "default": "./fesm2022/sheldrapps-i18n-kit.mjs"
+    },
+    "./package.json": {
+      "default": "./package.json"
+    }
+  },
+  "peerDependencies": {
+    "@angular/common": "^20.0.0",
+    "@angular/core": "^20.0.0",
+    "@ngx-translate/core": "^17.0.0",
+    "@ngx-translate/http-loader": "^17.0.0",
+    "rxjs": "~7.8.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "optionalDependencies": {
+    "@capacitor/device": "^6.0.0"
+  },
+  "keywords": [
+    "i18n",
+    "translation",
+    "angular",
+    "language",
+    "localization",
+    "internationalization"
+  ],
+  "typings": "index.d.ts"
+}

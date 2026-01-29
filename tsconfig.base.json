@@ -12,8 +12,13 @@
     "importHelpers": true,
     "skipLibCheck": true,
     "paths": {
-      "@sheldrapps/image-workflow": ["packages/image-workflow/src/public-api.ts"],
-      "@sheldrapps/image-workflow/capacitor": ["packages/image-workflow/src/lib/adapters/capacitor/public-api.ts"],
+      "@sheldrapps/i18n-kit": ["packages/i18n-kit/src/public-api.ts"],
+      "@sheldrapps/image-workflow": [
+        "packages/image-workflow/src/public-api.ts"
+      ],
+      "@sheldrapps/image-workflow/capacitor": [
+        "packages/image-workflow/src/lib/adapters/capacitor/public-api.ts"
+      ],
       "@sheldrapps/ui-theme": ["packages/ui-theme/src/index.ts"],
       "@sheldrapps/ui-theme/styles/*": ["packages/ui-theme/styles/*"]
     }
