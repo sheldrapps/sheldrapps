@@ -1,0 +1,26 @@
+{
+  "name": "@sheldrapps/settings-kit",
+  "version": "1.0.0",
+  "description": "Reusable settings persistence kit for Angular apps with async storage and migrations",
+  "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
+  "peerDependencies": {
+    "@angular/core": "^20.0.0",
+    "rxjs": "~7.8.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "optionalDependencies": {
+    "@capacitor/preferences": "^7.0.0"
+  },
+  "keywords": [
+    "settings",
+    "storage",
+    "angular",
+    "persistence",
+    "preferences",
+    "capacitor"
+  ]
+}
