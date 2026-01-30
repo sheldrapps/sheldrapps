@@ -11,10 +11,14 @@
     "dev:compress": "pnpm --filter compress-pdf start",
     "build:compress": "pnpm --filter compress-pdf build",
     "lint:compress": "pnpm --filter compress-pdf lint",
+    "dev:presupuesto": "pnpm --filter presupuesto-ninos start",
+    "build:presupuesto": "pnpm --filter presupuesto-ninos build",
+    "lint:presupuesto": "pnpm --filter presupuesto-ninos lint",
     "lint": "pnpm -r lint",
     "build": "pnpm -r build"
   },
   "devDependencies": {
-    "ng-packagr": "^20.3.2"
+    "ng-packagr": "^20.3.2",
+    "sharp": "0.32.6"
   }
 }

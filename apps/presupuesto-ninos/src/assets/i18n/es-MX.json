@@ -1,0 +1,10 @@
+{
+  "APP": {
+    "TITLE": "Presupuesto Niños"
+  },
+  "HOME": {
+    "TITLE": "Inicio",
+    "WELCOME": "¡Bienvenido!",
+    "DESCRIPTION": "Aprende a administrar tu dinero"
+  }
+}

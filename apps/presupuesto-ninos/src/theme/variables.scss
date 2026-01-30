@@ -1,0 +1,9 @@
+/* Palette and design tokens are imported from the shared theme */
+@use "@sheldrapps/ui-theme/styles/index" as *;
+
+/* Presupuesto Niños - Balance colors */
+:root {
+  --pn-positive: #5dd39e;
+  --pn-negative: #ff6b6b;
+  --pn-zero: #9aa0a6;
+}

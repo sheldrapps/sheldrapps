@@ -1,0 +1,17 @@
+.DS_Store
+Thumbs.db
+/node_modules
+/www
+/platforms
+/plugins
+/.vscode
+/.idea
+*.log
+*.swp
+*.swo
+*~
+.sass-cache
+*.css.map
+out-tsc/
+coverage/
+.angular/

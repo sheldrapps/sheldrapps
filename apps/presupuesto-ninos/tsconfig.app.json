@@ -1,0 +1,27 @@
+/* To learn more about this file see: https://angular.io/config/tsconfig. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/app",
+    "types": [],
+    "baseUrl": "./",
+    "paths": {
+      "@sheldrapps/i18n-kit": ["../../packages/i18n-kit/src/public-api.ts"],
+      "@sheldrapps/settings-kit": ["../../packages/settings-kit/src/public-api.ts"],
+      "@sheldrapps/file-kit": ["../../packages/file-kit/src/public-api.ts"],
+      "@sheldrapps/ui-theme": ["../../packages/ui-theme/src/index.ts"],
+      "@sheldrapps/ui-theme/styles/*": ["../../packages/ui-theme/styles/*"]
+    }
+  },
+  "files": [
+    "src/main.ts",
+    "src/polyfills.ts"
+  ],
+  "include": [
+    "src/**/*.d.ts",
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "src/**/*.spec.ts"
+  ]
+}

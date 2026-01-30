@@ -1,0 +1,7 @@
+{
+  "name": "Presupuesto Niños",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

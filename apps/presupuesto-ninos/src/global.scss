@@ -1,0 +1,45 @@
+/*
+ * App Global CSS
+ * Global rules for the entire app imported from @sheldrapps/ui-theme.
+ * Keep application-specific overrides minimal and localized.
+ */
+
+/* Sheldrapps Design System - MUST be before @import rules */
+@use "@sheldrapps/ui-theme/styles/index" as *;
+
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Optional CSS utils */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/* Ionic Dark Mode */
+@import "@ionic/angular/css/palettes/dark.system.css";
+
+/* Presupuesto Niños - Balance styling */
+.pn-balance {
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.pn-balance--positive {
+  color: var(--pn-positive);
+}
+
+.pn-balance--negative {
+  color: var(--pn-negative);
+}
+
+.pn-balance--zero {
+  color: var(--pn-zero);
+}

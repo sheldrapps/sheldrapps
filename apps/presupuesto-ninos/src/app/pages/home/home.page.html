@@ -1,0 +1,47 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Presupuestos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Presupuestos</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-list>
+    <ion-item
+      button
+      detail
+      *ngFor="let child of store.children()"
+      (click)="openChild(child.id)"
+    >
+      <ion-icon
+        slot="start"
+        [name]="child.gender === 'nina' ? 'woman' : 'man'"
+        aria-hidden="true"
+      ></ion-icon>
+      <ion-label>
+        <div class="pn-child__name">{{ child.name }}</div>
+        <div class="pn-child__sub">
+          Abono: {{ child.creditAmount | currency:'MXN':'symbol':'1.2-2' }}
+        </div>
+      </ion-label>
+      <div class="pn-balance" [ngClass]="getBalanceClass(child.balance)">
+        {{ child.balance | currency:'MXN':'symbol':'1.2-2' }}
+      </div>
+    </ion-item>
+  </ion-list>
+
+  <div class="empty-state" *ngIf="store.children().length === 0">
+    No hay niños registrados todavía.
+  </div>
+
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="addChild()">
+      <ion-icon name="add" aria-hidden="true"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

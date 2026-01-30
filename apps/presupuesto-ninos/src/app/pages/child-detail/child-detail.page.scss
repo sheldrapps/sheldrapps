@@ -1,0 +1,25 @@
+.pn-saldo-card {
+  margin-top: 12px;
+}
+
+.pn-saldo-amount {
+  font-size: 28px;
+  margin-top: 6px;
+}
+
+.pn-saldo-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.pn-expense-amount {
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--ion-color-medium);
+  margin: 24px 0 32px;
+  font-size: 0.95rem;
+}
