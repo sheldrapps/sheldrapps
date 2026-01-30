@@ -12,7 +12,7 @@ const DEFAULT_SETTINGS: AppSettings = {
 };
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: "root",
 })
 export class BudgetStore {
   private initialized = false;
@@ -37,15 +37,13 @@ export class BudgetStore {
 
     merged.creditDays = this.normalizeCreditDays(merged.creditDays);
     merged.februaryDayOverride = this.normalizeFebruaryOverride(
-      merged.februaryDayOverride
+      merged.februaryDayOverride,
     );
 
     this.settings.set(merged);
 
     const children = await this.repo.loadChildren();
-    this.children.set(
-      children.map((child) => this.normalizeChild(child))
-    );
+    this.children.set(children.map((child) => this.normalizeChild(child)));
 
     await this.persistSettings();
     await this.persistChildren();
@@ -59,11 +57,7 @@ export class BudgetStore {
         ? new Date(child.lastCreditAt)
         : new Date(child.createdAt);
 
-      const scheduled = getScheduledDatesBetween(
-        fromExclusive,
-        now,
-        settings
-      );
+      const scheduled = getScheduledDatesBetween(fromExclusive, now, settings);
 
       if (scheduled.length === 0) {
         return child;
@@ -82,7 +76,7 @@ export class BudgetStore {
     await this.persistChildren();
   }
 
-  async addChild(name: string, gender: ChildGender = 'nino'): Promise<void> {
+  async addChild(name: string, gender: ChildGender = "nino"): Promise<void> {
     const trimmed = name.trim();
     if (!trimmed) {
       return;
@@ -113,8 +107,8 @@ export class BudgetStore {
 
     this.children.set(
       this.children().map((child) =>
-        child.id === childId ? { ...child, name: trimmed } : child
-      )
+        child.id === childId ? { ...child, name: trimmed } : child,
+      ),
     );
     await this.persistChildren();
   }
@@ -124,8 +118,8 @@ export class BudgetStore {
 
     this.children.set(
       this.children().map((child) =>
-        child.id === childId ? { ...child, creditAmount: normalized } : child
-      )
+        child.id === childId ? { ...child, creditAmount: normalized } : child,
+      ),
     );
     await this.persistChildren();
   }
@@ -138,8 +132,8 @@ export class BudgetStore {
 
     this.children.set(
       this.children().map((child) =>
-        child.id === childId ? { ...child, balance: normalized } : child
-      )
+        child.id === childId ? { ...child, balance: normalized } : child,
+      ),
     );
     await this.persistChildren();
   }
@@ -147,13 +141,22 @@ export class BudgetStore {
   async setChildGender(childId: string, gender: ChildGender): Promise<void> {
     this.children.set(
       this.children().map((child) =>
-        child.id === childId ? { ...child, gender } : child
-      )
+        child.id === childId ? { ...child, gender } : child,
+      ),
     );
     await this.persistChildren();
   }
 
-  async addExpense(childId: string, label: string, amount: number): Promise<void> {
+  async deleteChild(childId: string): Promise<void> {
+    this.children.set(this.children().filter((child) => child.id !== childId));
+    await this.persistChildren();
+  }
+
+  async addExpense(
+    childId: string,
+    label: string,
+    amount: number,
+  ): Promise<void> {
     const trimmed = label.trim();
     if (!trimmed) {
       return;
@@ -182,7 +185,7 @@ export class BudgetStore {
           balance: child.balance - normalizedAmount,
           expenses: [...child.expenses, expense],
         };
-      })
+      }),
     );
     await this.persistChildren();
   }
@@ -190,7 +193,7 @@ export class BudgetStore {
   async editExpense(
     childId: string,
     expenseId: string,
-    patch: Partial<Pick<Expense, 'label' | 'amount'>>
+    patch: Partial<Pick<Expense, "label" | "amount">>,
   ): Promise<void> {
     this.children.set(
       this.children().map((child) => {
@@ -205,9 +208,7 @@ export class BudgetStore {
 
           const nextLabel = patch.label ?? expense.label;
           const nextAmount =
-            patch.amount !== undefined
-              ? Number(patch.amount)
-              : expense.amount;
+            patch.amount !== undefined ? Number(patch.amount) : expense.amount;
 
           const normalizedAmount =
             Number.isFinite(nextAmount) && nextAmount >= 0
@@ -235,7 +236,7 @@ export class BudgetStore {
           balance: child.balance - delta,
           expenses,
         };
-      })
+      }),
     );
     await this.persistChildren();
   }
@@ -248,7 +249,9 @@ export class BudgetStore {
         }
 
         const expense = child.expenses.find((item) => item.id === expenseId);
-        const nextExpenses = child.expenses.filter((item) => item.id !== expenseId);
+        const nextExpenses = child.expenses.filter(
+          (item) => item.id !== expenseId,
+        );
 
         if (!expense) {
           return child;
@@ -259,7 +262,7 @@ export class BudgetStore {
           balance: child.balance + expense.amount,
           expenses: nextExpenses,
         };
-      })
+      }),
     );
     await this.persistChildren();
   }
@@ -270,11 +273,14 @@ export class BudgetStore {
       ...patch,
     };
 
-    merged.defaultCreditAmount = Math.max(0, Number(merged.defaultCreditAmount) || 0);
+    merged.defaultCreditAmount = Math.max(
+      0,
+      Number(merged.defaultCreditAmount) || 0,
+    );
 
     merged.creditDays = this.normalizeCreditDays(merged.creditDays);
     merged.februaryDayOverride = this.normalizeFebruaryOverride(
-      merged.februaryDayOverride
+      merged.februaryDayOverride,
     );
 
     this.settings.set(merged);
@@ -308,9 +314,8 @@ export class BudgetStore {
     const now = new Date().toISOString();
     return {
       ...child,
-      gender: child.gender ?? 'nino',
-      creditAmount:
-        child.creditAmount ?? this.settings().defaultCreditAmount,
+      gender: child.gender ?? "nino",
+      creditAmount: child.creditAmount ?? this.settings().defaultCreditAmount,
       createdAt: child.createdAt ?? now,
       lastCreditAt: child.lastCreditAt ?? now,
       expenses: child.expenses ?? [],

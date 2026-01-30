@@ -8,7 +8,10 @@
     "sourceMap": true,
     "declaration": false,
     "experimentalDecorators": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "module": "ES2022",
+    "target": "ES2022",
+    "useDefineForClassFields": false,
     "importHelpers": true,
     "skipLibCheck": true,
     "paths": {
