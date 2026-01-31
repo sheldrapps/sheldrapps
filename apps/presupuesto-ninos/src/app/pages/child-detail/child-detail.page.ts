@@ -3,6 +3,7 @@ import { Component, Input, computed, effect, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
+  ActionSheetController,
   AlertController,
   IonBackButton,
   IonButton,
@@ -25,7 +26,9 @@ import {
   IonListHeader,
   IonTitle,
   IonToolbar,
+  IonLoading,
   ModalController,
+  ToastController,
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
 import {
@@ -38,6 +41,8 @@ import {
   personOutline,
   cameraOutline,
   timeOutline,
+  checkmark,
+  close,
 } from "ionicons/icons";
 import { BudgetStore } from "../../core/budget.store";
 import { Expense } from "../../core/models";
@@ -46,6 +51,8 @@ import {
   CropTarget,
   CoverCropState,
 } from "@sheldrapps/image-workflow";
+import { CreateExpenseGroupModalComponent } from "./create-expense-group-modal.component";
+import { SelectExpensesModalComponent } from "./select-expenses-modal.component";
 
 @Component({
   selector: "app-child-cropper-modal",
@@ -108,6 +115,7 @@ interface ExpenseGroup {
     IonInput,
     IonButton,
     IonIcon,
+    IonLoading,
   ],
 })
 export class ChildDetailPage {
@@ -115,6 +123,8 @@ export class ChildDetailPage {
   private router = inject(Router);
   private alertController = inject(AlertController);
   private modalController = inject(ModalController);
+  private actionSheetController = inject(ActionSheetController);
+  private toastController = inject(ToastController);
 
   readonly store = inject(BudgetStore);
   readonly childId = this.route.snapshot.paramMap.get("id") ?? "";
@@ -122,6 +132,8 @@ export class ChildDetailPage {
     () =>
       this.store.children().find((item) => item.id === this.childId) ?? null,
   );
+
+  isOpeningCropper = false;
 
   readonly expenseGroups = computed(() => {
     const child = this.child();
@@ -166,6 +178,8 @@ export class ChildDetailPage {
       trashOutline,
       trash,
       bookmark,
+      checkmark,
+      close,
     });
 
     effect(() => {
@@ -210,11 +224,12 @@ export class ChildDetailPage {
   }
 
   async openCropper(file: File): Promise<void> {
-    try {
-      // Dynamically import the component to avoid DI issues
-      const { CoverCropperModalComponent } =
-        await import("@sheldrapps/image-workflow");
+    this.isOpeningCropper = true;
 
+    let markReady!: () => void;
+    const readyPromise = new Promise<void>((resolve) => (markReady = resolve));
+
+    try {
       const modal = await this.modalController.create({
         component: ChildCropperModalComponent,
         componentProps: {
@@ -223,19 +238,36 @@ export class ChildDetailPage {
           title: "Editar imagen",
           cancelLabel: "Cancelar",
           doneLabel: "Guardar",
+          onReady: () => markReady(),
         },
       });
 
       await modal.present();
 
-      const { data, role } = await modal.onWillDismiss();
+      const dismissPromise = modal.onWillDismiss();
+
+      // Esperar a que la imagen esté renderizada antes de ocultar el loading
+      await Promise.race([readyPromise, dismissPromise.then(() => {})]);
+      this.isOpeningCropper = false;
+
+      const { data, role } = await dismissPromise;
 
       if (role === "done" && data?.file) {
         const croppedFile = data.file as File;
         await this.saveImageAsBase64(croppedFile);
+
+        // Mostrar toast de éxito
+        const toast = await this.toastController.create({
+          message: "Foto actualizada",
+          duration: 2000,
+          position: "bottom",
+          color: "success",
+        });
+        await toast.present();
       }
     } catch (error) {
       console.error("Error opening cropper:", error);
+      this.isOpeningCropper = false;
     }
   }
 
@@ -369,45 +401,117 @@ export class ChildDetailPage {
     expenseId: string,
     currentGroupName?: string,
   ): Promise<void> {
-    const alert = await this.alertController.create({
-      header: "Asignar grupo",
-      message: "Agrupa gastos similares para ver subtotales",
-      inputs: [
-        {
-          name: "groupName",
-          type: "text",
-          placeholder: "Nombre del grupo (opcional)",
-          value: currentGroupName || "",
+    const child = this.child();
+    if (!child) return;
+
+    // Obtener grupos existentes de los gastos
+    const existingGroups = Array.from(
+      new Set(
+        child.expenses.map((e) => e.groupName).filter((g): g is string => !!g),
+      ),
+    ).sort();
+
+    const buttons: any[] = [];
+
+    // Agregar botón para cada grupo existente
+    for (const group of existingGroups) {
+      buttons.push({
+        text: group,
+        icon: currentGroupName === group ? "checkmark" : undefined,
+        handler: async () => {
+          await this.store.editExpense(this.childId, expenseId, {
+            groupName: group,
+          });
         },
-      ],
-      buttons: [
-        {
-          text: "Cancelar",
-          role: "cancel",
-        },
-        {
-          text: "Quitar grupo",
-          role: "destructive",
-          handler: async () => {
-            await this.store.editExpense(this.childId, expenseId, {
-              groupName: undefined,
-            });
-          },
-        },
-        {
-          text: "Guardar",
-          role: "confirm",
-          handler: async (data) => {
-            const groupName = data?.groupName?.trim() || undefined;
-            await this.store.editExpense(this.childId, expenseId, {
-              groupName,
-            });
-          },
-        },
-      ],
+      });
+    }
+
+    // Botón para crear nuevo grupo
+    buttons.push({
+      text: "Crear nuevo grupo...",
+      icon: "add",
+      handler: async () => {
+        await this.createNewExpenseGroup(expenseId);
+      },
     });
 
-    await alert.present();
+    // Botón para quitar grupo
+    buttons.push({
+      text: "Sin grupo",
+      icon: currentGroupName === undefined ? "checkmark" : "close",
+      role: "destructive",
+      handler: async () => {
+        await this.store.editExpense(this.childId, expenseId, {
+          groupName: undefined,
+        });
+      },
+    });
+
+    // Botón cancelar
+    buttons.push({
+      text: "Cancelar",
+      role: "cancel",
+    });
+
+    const actionSheet = await this.actionSheetController.create({
+      header: "Asignar a grupo",
+      buttons,
+    });
+
+    await actionSheet.present();
+  }
+
+  private async createNewExpenseGroup(expenseId: string): Promise<void> {
+    const child = this.child();
+    if (!child) return;
+
+    // Obtener el grupo actual del gasto
+    const currentExpense = child.expenses.find((e) => e.id === expenseId);
+
+    // Primero mostrar lista de gastos para seleccionar
+    const expensesWithoutGroup = child.expenses.filter(
+      (e) => !e.groupName || e.groupName === currentExpense?.groupName,
+    );
+
+    const selectModal = await this.modalController.create({
+      component: SelectExpensesModalComponent,
+      componentProps: {
+        expenses: expensesWithoutGroup,
+        currentExpenseId: expenseId,
+      },
+      initialBreakpoint: 0.8,
+      breakpoints: [0, 0.8, 1],
+    });
+
+    await selectModal.present();
+
+    const { data: selectedExpenseIds, role: selectRole } =
+      await selectModal.onWillDismiss();
+    if (
+      selectRole !== "confirm" ||
+      !selectedExpenseIds ||
+      selectedExpenseIds.length === 0
+    ) {
+      return;
+    }
+
+    // Luego pedir el nombre del grupo
+    const nameModal = await this.modalController.create({
+      component: CreateExpenseGroupModalComponent,
+      initialBreakpoint: 0.4,
+      breakpoints: [0, 0.4],
+    });
+
+    await nameModal.present();
+
+    const { data: groupName, role: nameRole } = await nameModal.onWillDismiss();
+    if (nameRole === "confirm" && groupName) {
+      await this.store.assignGroupToMultipleExpenses(
+        this.childId,
+        selectedExpenseIds,
+        groupName,
+      );
+    }
   }
 
   openHistory(): void {

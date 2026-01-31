@@ -298,6 +298,29 @@ export class BudgetStore {
     await this.persistChildren();
   }
 
+  async assignGroupToMultipleExpenses(
+    childId: string,
+    expenseIds: string[],
+    groupName: string,
+  ): Promise<void> {
+    const idSet = new Set(expenseIds);
+    this.children.set(
+      this.children().map((child) => {
+        if (child.id !== childId) {
+          return child;
+        }
+
+        return {
+          ...child,
+          expenses: child.expenses.map((expense) =>
+            idSet.has(expense.id) ? { ...expense, groupName } : expense,
+          ),
+        };
+      }),
+    );
+    await this.persistChildren();
+  }
+
   async deleteExpense(childId: string, expenseId: string): Promise<void> {
     this.children.set(
       this.children().map((child) => {
