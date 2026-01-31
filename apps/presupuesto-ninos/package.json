@@ -38,6 +38,7 @@
     "@ngx-translate/core": "^17.0.0",
     "@ngx-translate/http-loader": "^17.0.0",
     "@sheldrapps/file-kit": "workspace:*",
+    "@sheldrapps/image-workflow": "workspace:*",
     "@sheldrapps/i18n-kit": "workspace:*",
     "@sheldrapps/settings-kit": "workspace:*",
     "@sheldrapps/ui-theme": "workspace:*",
@@ -75,5 +76,5 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.9.0"
   },
-  "description": "Presupuesto para Niños - Ionic Angular App"
+  "description": "Control presupuestal - Ionic Angular App"
 }

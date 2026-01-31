@@ -15,6 +15,19 @@
   </ion-header>
 
   <ng-container *ngIf="child() as current; else missing">
+    <!-- Avatar Section -->
+    <div class="pn-avatar-section">
+      <div class="pn-avatar-container" (click)="selectImage()">
+        <div class="pn-avatar" [class.pn-avatar--empty]="!current.imageThumb">
+          <img *ngIf="current.imageThumb" [src]="current.imageThumb" alt="Avatar" />
+          <ion-icon *ngIf="!current.imageThumb" name="person-outline" aria-hidden="true"></ion-icon>
+        </div>
+        <ion-button class="pn-avatar-edit" size="small" fill="clear">
+          <ion-icon name="camera-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+
     <ion-list>
       <ion-item>
         <ion-label position="stacked">Nombre</ion-label>
@@ -25,25 +38,8 @@
         ></ion-input>
       </ion-item>
 
-      <ion-item lines="none">
-        <ion-label position="stacked">Género</ion-label>
-        <ion-segment
-          [(ngModel)]="genderValue"
-          (ionChange)="updateGender($event.detail.value)"
-        >
-          <ion-segment-button value="nino">
-            <ion-icon name="man" aria-hidden="true"></ion-icon>
-            <ion-label>Niño</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="nina">
-            <ion-icon name="woman" aria-hidden="true"></ion-icon>
-            <ion-label>Niña</ion-label>
-          </ion-segment-button>
-        </ion-segment>
-      </ion-item>
-
       <ion-item>
-        <ion-label position="stacked">Abono por niño</ion-label>
+        <ion-label position="stacked">Abono por presupuesto</ion-label>
         <ion-input
           type="number"
           step="0.01"
@@ -72,25 +68,61 @@
           <ion-icon name="create-outline" slot="start" aria-hidden="true"></ion-icon>
           Editar saldo
         </ion-button>
+
+        <ion-button expand="block" fill="outline" (click)="openHistory()">
+          <ion-icon name="time-outline" slot="start" aria-hidden="true"></ion-icon>
+          Ver historial
+        </ion-button>
       </ion-card-content>
     </ion-card>
 
-    <ion-list>
-      <ion-item-sliding *ngFor="let expense of current.expenses">
-        <ion-item (click)="updateExpenseLabel(expense.id, expense.label)">
-          <ion-label>{{ expense.label }}</ion-label>
-          <div class="pn-expense-amount">
-            - {{ expense.amount | currency:'MXN':'symbol':'1.2-2' }}
+    <!-- Gastos agrupados con subtotales -->
+    <div *ngFor="let group of expenseGroups()">
+      <ion-list-header *ngIf="group.groupName">
+        <ion-label class="pn-group-header">
+          <div class="pn-group-name">{{ group.groupName }}</div>
+        </ion-label>
+      </ion-list-header>
+
+      <ion-list-header *ngIf="!group.groupName && expenseGroups().length > 1">
+        <ion-label class="pn-group-header">
+          <div class="pn-group-name">Sin grupo</div>
+        </ion-label>
+      </ion-list-header>
+
+      <ion-list>
+        <ion-item-sliding *ngFor="let expense of group.expenses">
+          <ion-item (click)="updateExpenseLabel(expense.id, expense.label)">
+            <ion-label>{{ expense.label }}</ion-label>
+            <div class="pn-expense-amount">
+              - {{ expense.amount | currency:'MXN':'symbol':'1.2-2' }}
+            </div>
+          </ion-item>
+
+          <ion-item-options side="start">
+            <ion-item-option color="tertiary" (click)="assignGroupToExpense(expense.id, expense.groupName)">
+              <ion-icon name="bookmark-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+            </ion-item-option>
+          </ion-item-options>
+
+          <ion-item-options side="end">
+            <ion-item-option color="danger" (click)="deleteExpense(expense.id)">
+              <ion-icon name="trash-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
+
+        <!-- Subtotal del grupo -->
+        <ion-item *ngIf="group.groupName || expenseGroups().length > 1" lines="none" class="pn-subtotal-item">
+          <ion-label class="pn-subtotal-label">
+            <strong>Subtotal {{ group.groupName || 'sin grupo' }}</strong>
+          </ion-label>
+          <div class="pn-subtotal-amount">
+            <strong>- {{ group.subtotal | currency:'MXN':'symbol':'1.2-2' }}</strong>
           </div>
         </ion-item>
-
-        <ion-item-options side="end">
-          <ion-item-option color="danger" (click)="deleteExpense(expense.id)">
-            <ion-icon name="trash-outline" slot="icon-only" aria-hidden="true"></ion-icon>
-          </ion-item-option>
-        </ion-item-options>
-      </ion-item-sliding>
-    </ion-list>
+      </ion-list>
+    </div>
   </ng-container>
 
   <ng-template #missing>

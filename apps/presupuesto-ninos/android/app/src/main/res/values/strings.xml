@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Presupuesto para Niños</string>
-    <string name="title_activity_main">Presupuesto para Niños</string>
+    <string name="app_name">Control presupuestal</string>
+    <string name="title_activity_main">Control presupuestal</string>
     <string name="package_name">com.sheldrapps.presupuestoninos</string>
     <string name="custom_url_scheme">com.sheldrapps.presupuestoninos</string>
 </resources>

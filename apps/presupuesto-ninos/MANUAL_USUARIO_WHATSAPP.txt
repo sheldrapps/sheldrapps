@@ -1,0 +1,367 @@
+📱 MANUAL DE USUARIO - CONTROL PRESUPUESTAL 📱
+Versión 2.0 | Enero 2026
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 ÍNDICE
+
+1. Introducción
+2. Pantalla Principal
+3. Gestión de Presupuestos
+4. Agrupación de Presupuestos
+5. Detalle de Presupuesto
+6. Gestión de Gastos
+7. Agrupación de Gastos
+8. Gestos y Controles
+9. Configuración
+10. Preguntas Frecuentes
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✨ INTRODUCCIÓN
+
+Control Presupuestal es una app para gestionar presupuestos individuales con abonos automáticos programados.
+
+🎯 Características principales:
+• Múltiples presupuestos independientes
+• Abonos automáticos programables
+• Agrupación de presupuestos
+• Registro de gastos con categorías
+• Avatares personalizados
+• Control de saldo en tiempo real
+• Subtotales por grupo
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🏠 PANTALLA PRINCIPAL
+
+La pantalla principal muestra todos tus presupuestos organizados por grupos.
+
+📌 Elementos:
+
+1️⃣ ENCABEZADO DE GRUPO
+Muestra el nombre del grupo (ej: "EDUCACIÓN") o "SIN GRUPO"
+
+2️⃣ TARJETA DE PRESUPUESTO
+Cada presupuesto muestra:
+• Avatar circular personalizado
+• Nombre del presupuesto
+• Abono: cantidad automática
+• Saldo: balance actual
+
+3️⃣ SUBTOTAL DE GRUPO
+Total de saldos del grupo
+
+4️⃣ BOTÓN "+"
+Botón flotante para agregar presupuesto
+
+🎨 Colores del saldo:
+🟢 Verde = Saldo positivo
+🔴 Rojo = Saldo negativo
+⚫ Gris = Saldo en cero
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+➕ GESTIÓN DE PRESUPUESTOS
+
+📝 AGREGAR UN PRESUPUESTO
+
+1. Toca el botón "+" (esquina inferior derecha)
+2. Aparece modal "Agregar"
+3. Ingresa el nombre
+4. Toca "Guardar"
+
+🗑️ ELIMINAR UN PRESUPUESTO
+
+1. Desliza HACIA LA IZQUIERDA ⬅️ sobre el presupuesto
+2. Aparece botón rojo 🔴
+3. Toca el botón de papelera
+4. Confirma
+
+⚠️ ADVERTENCIA: No se puede deshacer. Se pierden todos los gastos.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🗂️ AGRUPACIÓN DE PRESUPUESTOS
+
+Organiza presupuestos relacionados y ve subtotales.
+
+🔖 ASIGNAR A UN GRUPO
+
+1. Desliza HACIA LA DERECHA ➡️ sobre el presupuesto
+2. Aparece botón azul 🔵
+3. Toca el botón
+4. Elige opción:
+
+   a) SELECCIONAR GRUPO EXISTENTE
+      • Toca el nombre del grupo
+      • Se asigna inmediatamente
+      • ✓ indica grupo actual
+
+   b) CREAR NUEVO GRUPO
+      • Toca "Crear nuevo grupo..."
+      • Selecciona presupuestos a incluir ☑️
+      • Toca "Siguiente"
+      • Ingresa nombre del grupo
+      • Toca "Crear"
+
+   c) QUITAR DE GRUPO
+      • Toca "Sin grupo"
+      • Se mueve a "SIN GRUPO"
+
+✅ Ventajas:
+• Subtotales por categoría
+• Organización clara
+• Identificación rápida de estado
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 DETALLE DE PRESUPUESTO
+
+Al tocar un presupuesto se abre su detalle.
+
+📸 1. AVATAR / FOTO
+
+• Toca el avatar o botón de cámara 📷
+• Selecciona imagen de galería
+• Recorta en formato cuadrado 1:1
+• Ajusta zoom y posición
+• Toca "Guardar"
+
+✏️ 2. CAMPOS EDITABLES
+
+NOMBRE:
+• Toca para editar
+• Se guarda automáticamente
+
+ABONO POR PRESUPUESTO:
+• Ingresa valor numérico
+• Se aplica en fechas programadas
+
+💰 3. TARJETA DE SALDO
+
+Muestra saldo actual con colores:
+🟢 Verde = positivo
+🔴 Rojo = negativo
+⚫ Gris = cero
+
+Botones:
+• "Agregar gasto" → Registra gasto
+• "Editar saldo" → Ajuste manual
+
+📝 4. LISTA DE GASTOS
+
+Gastos agrupados por categoría.
+
+Cada gasto muestra:
+• Descripción
+• Monto (en rojo con -)
+
+Al final de cada grupo:
+• Subtotal de la categoría
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💸 GESTIÓN DE GASTOS
+
+➕ AGREGAR UN GASTO
+
+1. Toca "Agregar gasto"
+2. Ingresa:
+   • Concepto (ej: "Cine")
+   • Monto
+3. Toca "Guardar"
+
+El saldo se actualiza automáticamente.
+
+✏️ EDITAR UN GASTO
+
+1. Toca el gasto en la lista
+2. Modifica el concepto
+3. Toca "Guardar"
+
+🗑️ ELIMINAR UN GASTO
+
+1. Desliza HACIA LA IZQUIERDA ⬅️ sobre el gasto
+2. Aparece botón rojo 🔴
+3. Toca para eliminar
+4. El saldo se ajusta automáticamente
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🏷️ AGRUPACIÓN DE GASTOS
+
+Organiza gastos en categorías (ej: "Alimentación", "Transporte").
+
+🔖 ASIGNAR CATEGORÍA
+
+1. Desliza HACIA LA DERECHA ➡️ sobre el gasto
+2. Aparece botón azul 🔵
+3. Toca el botón
+4. Ingresa nombre de categoría
+5. Toca "Guardar"
+
+💡 Si la categoría existe, se agrega automáticamente. Si es nueva, se crea.
+
+❌ QUITAR CATEGORÍA
+
+1. Sigue los pasos anteriores
+2. Deja el campo VACÍO
+3. Toca "Sin grupo" o "Guardar"
+
+📈 Beneficios:
+• Gasto por categoría visible
+• Subtotales automáticos
+• Mejor control de hábitos
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👆 GESTOS Y CONTROLES
+
+La app usa gestos táctiles para agilizar la interacción.
+
+📱 SWIPE (DESLIZAR)
+
+🟦 DESLIZAR HACIA LA DERECHA ➡️
+• En presupuesto → Asignar a grupo
+• En gasto → Asignar categoría
+
+🟥 DESLIZAR HACIA LA IZQUIERDA ⬅️
+• En presupuesto → Eliminar
+• En gasto → Eliminar
+
+👉 TAP (TOCAR)
+
+TOQUE SIMPLE:
+• En presupuesto → Abrir detalle
+• En gasto → Editar
+• En avatar → Cambiar imagen
+• En campo → Editar
+
+BOTONES:
+• "+" → Agregar presupuesto
+• "Agregar gasto" → Nuevo gasto
+• "Editar saldo" → Ajustar saldo
+
+💡 CONSEJOS:
+• Los swipes no necesitan ser completos
+• Los botones aparecen inmediatamente
+• Toca fuera para cancelar un swipe
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚙️ CONFIGURACIÓN
+
+Accede desde el menú principal.
+
+🔧 Opciones:
+
+1️⃣ MONTO DE ABONO PREDETERMINADO
+Define cantidad por defecto al crear presupuesto.
+
+2️⃣ DÍAS DE ABONO
+Días del mes para abonos automáticos.
+
+Ejemplos:
+• 15, 30 = Días 15 y fin de mes
+• 1 = Primer día del mes
+• 7, 14, 21, 28 = Abonos semanales
+
+3️⃣ AJUSTE ESPECIAL DE FEBRERO
+Activa/desactiva ajuste para febrero (menos días).
+
+4️⃣ DÍA DE ABONO EN FEBRERO
+Define día específico (típicamente 28).
+
+⚡ FUNCIONAMIENTO DE ABONOS:
+
+La app revisa fechas y:
+1. Abona el monto
+2. Limpia los gastos (reset)
+3. Actualiza el saldo
+
+⚠️ IMPORTANTE: Los abonos se aplican cuando abres la app. Si no la abres, se acumulan.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❓ PREGUNTAS FRECUENTES
+
+❓ ¿Los gastos se guardan después de un abono?
+❌ No. Se limpian al aplicar el abono. Solo queda el saldo.
+
+❓ ¿Puedo ajustar el saldo manualmente?
+✅ Sí. Usa "Editar saldo" en la pantalla de detalle.
+
+❓ ¿Qué pasa si elimino un presupuesto?
+⚠️ Se pierde TODO: gastos, saldo, historial. No se puede deshacer.
+
+❓ ¿Puedo mover varios presupuestos a un grupo?
+✅ Sí. Al crear un NUEVO grupo puedes seleccionar múltiples con checkboxes.
+
+❓ ¿Los grupos de gastos y presupuestos están relacionados?
+❌ No. Son independientes:
+• Grupos de presupuestos = organizan presupuestos
+• Categorías de gastos = organizan gastos dentro de un presupuesto
+
+❓ ¿Cómo cambio el nombre de un grupo?
+🔄 Debes:
+1. Quitar presupuestos del grupo
+2. Crear nuevo grupo con nombre correcto
+3. Asignar presupuestos al nuevo grupo
+
+❓ ¿Por qué aparece aviso de seguridad al instalar?
+🔒 APK debug causa advertencia de Google Play Protect. Es normal en desarrollo.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 SOPORTE Y CONTACTO
+
+Desarrollador: Sheldrapps
+Versión: 2.0
+Compatibilidad: Android 7.0+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 REGISTRO DE CAMBIOS
+
+🆕 VERSIÓN 2.0 (Enero 2026)
+
+Nuevas funciones:
+✨ Agrupación de presupuestos
+✨ Avatares/fotos personalizadas
+✨ Subtotales por grupo
+✨ Modal mejorado para crear grupos
+✨ Agrupación de gastos por categoría
+
+Cambios:
+🔄 "Niños" → "Presupuestos"
+🔄 Gestos swipe optimizados
+
+Mejoras:
+🎨 Interfaz actualizada
+🐛 Problema del teclado corregido
+🐛 Identación de encabezados corregida
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎉 ¡GRACIAS POR USAR CONTROL PRESUPUESTAL!
+
+Para más información o reportar problemas, contacta al desarrollador.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 RESUMEN RÁPIDO:
+
+Agregar presupuesto: Botón "+"
+Ver detalle: Toca el presupuesto
+Agrupar presupuesto: Swipe derecha ➡️
+Eliminar presupuesto: Swipe izquierda ⬅️
+Agregar gasto: Botón en detalle
+Categorizar gasto: Swipe derecha ➡️
+Eliminar gasto: Swipe izquierda ⬅️
+Cambiar avatar: Toca la imagen
+Editar saldo: Botón en tarjeta de saldo
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+© 2026 Sheldrapps - Control Presupuestal v2.0

@@ -23,7 +23,7 @@ import {
   IonLabel,
   IonSpinner,
 } from '@ionic/angular/standalone';
-import { ModalController } from '@ionic/angular';
+import { ModalController } from "@ionic/angular/standalone";
 
 import { addIcons } from 'ionicons';
 import {

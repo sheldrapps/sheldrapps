@@ -1,4 +1,4 @@
-# Presupuesto para Niños
+# Control presupuestal
 
 Aplicación Ionic Angular standalone para enseñar a niños a administrar su presupuesto.
 

@@ -13,21 +13,21 @@ import {
 
 @Component({
   standalone: true,
-  selector: "app-add-child-modal",
+  selector: "app-create-group-modal",
   template: `
     <ion-header>
       <ion-toolbar>
         <ion-buttons slot="start">
           <ion-button (click)="cancel()">Cancelar</ion-button>
         </ion-buttons>
-        <ion-title>Agregar</ion-title>
+        <ion-title>Nuevo grupo</ion-title>
         <ion-buttons slot="end">
           <ion-button
             (click)="save()"
-            [disabled]="!nameValue.trim()"
+            [disabled]="!groupValue.trim()"
             color="primary"
           >
-            Guardar
+            Crear
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -36,13 +36,14 @@ import {
     <ion-content class="ion-padding">
       <div class="pn-modal-form">
         <div class="pn-form-group">
-          <label for="name-input">Nombre</label>
+          <label for="group-input">Nombre del grupo</label>
           <input
-            id="name-input"
+            id="group-input"
             type="text"
-            [(ngModel)]="nameValue"
-            placeholder="Ingresa el nombre"
+            [(ngModel)]="groupValue"
+            placeholder="Ej: Educación, Entretenimiento"
             class="pn-text-input"
+            (keyup.enter)="save()"
           />
         </div>
       </div>
@@ -65,22 +66,21 @@ import {
     .pn-form-group label {
       font-weight: 600;
       font-size: 14px;
-      color: var(--ion-text-color);
+      color: var(--ion-color-dark);
     }
 
     .pn-text-input {
       padding: 12px;
-      border: 1px solid var(--ion-border-color);
-      border-radius: 8px;
+      border: 1px solid var(--ion-color-medium);
+      border-radius: 4px;
       font-size: 16px;
       font-family: inherit;
-      background-color: var(--ion-background-color);
-      color: var(--ion-text-color);
     }
 
     .pn-text-input:focus {
       outline: none;
       border-color: var(--ion-color-primary);
+      box-shadow: 0 0 0 3px rgba(0, 121, 255, 0.1);
     }
   `,
   imports: [
@@ -94,23 +94,19 @@ import {
     IonContent,
   ],
 })
-export class AddChildModalComponent {
-  nameValue = "";
+export class CreateGroupModalComponent {
+  groupValue = "";
 
   constructor(private modalController: ModalController) {}
 
   cancel(): void {
-    void this.modalController.dismiss();
+    void this.modalController.dismiss(null, "cancel");
   }
 
   save(): void {
-    if (this.nameValue.trim()) {
-      void this.modalController.dismiss(
-        {
-          name: this.nameValue.trim(),
-        },
-        "confirm",
-      );
+    const trimmed = this.groupValue.trim();
+    if (trimmed) {
+      void this.modalController.dismiss(trimmed, "confirm");
     }
   }
 }

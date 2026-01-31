@@ -1,0 +1,82 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/nino/{{ childId }}"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Historial - {{ child()?.name }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Historial de Períodos</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div *ngIf="child() as current">
+    <!-- Períodos -->
+    <div *ngFor="let period of allPeriods()" class="pn-period-container">
+      <div
+        class="pn-period-header"
+        (click)="togglePeriod(period.id)"
+      >
+        <ion-icon
+          [name]="isPeriodExpanded(period.id) ? 'chevron-down' : 'chevron-forward'"
+          class="pn-period-icon"
+        ></ion-icon>
+        <div class="pn-period-title">
+          <div class="pn-period-dates">
+            <span *ngIf="period.id === 'current'" class="pn-current-badge">Actual: </span>
+            {{ formatDate(period.startDate) }} - {{ period.endDate ? formatDate(period.endDate) : 'En curso' }}
+          </div>
+          <div class="pn-period-summary">
+            Ingreso: +{{ period.creditAmount | currency:'MXN':'symbol':'1.2-2' }} |
+            Gastos: -{{ calculateTotalExpenses(period) | currency:'MXN':'symbol':'1.2-2' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="pn-period-content" *ngIf="isPeriodExpanded(period.id)">
+        <!-- Ingreso -->
+        <div class="pn-period-income">
+          <div class="pn-income-label">Ingreso (abono):</div>
+          <div class="pn-income-amount">
+            +{{ period.creditAmount | currency:'MXN':'symbol':'1.2-2' }}
+          </div>
+        </div>
+
+        <!-- Gastos -->
+        <ion-list *ngIf="period.expenses.length > 0" class="pn-period-expenses">
+          <ion-item-divider>
+            <ion-label>Gastos</ion-label>
+          </ion-item-divider>
+          <ion-item *ngFor="let expense of period.expenses">
+            <ion-label>
+              <div class="pn-expense-description">{{ expense.label }}</div>
+              <div class="pn-expense-date">{{ formatDate(expense.createdAt) }}</div>
+            </ion-label>
+            <div class="pn-expense-amount">
+              -{{ expense.amount | currency:'MXN':'symbol':'1.2-2' }}
+            </div>
+          </ion-item>
+        </ion-list>
+
+        <!-- Subtotal del período -->
+        <div class="pn-period-total">
+          <div class="pn-total-label">Subtotal del período:</div>
+          <div [ngClass]="getBalanceClass(calculatePeriodBalance(period))">
+            {{ calculatePeriodBalance(period) | currency:'MXN':'symbol':'1.2-2' }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensaje si no hay histórico ni gastos actuales -->
+    <div *ngIf="allPeriods().length === 0" class="pn-empty-history">
+      <p>No hay períodos ni gastos registrados aún.</p>
+      <p class="pn-empty-hint">Agrega gastos para ver el período actual, o espera al próximo abono para ver el historial.</p>
+    </div>
+  </div>
+</ion-content>

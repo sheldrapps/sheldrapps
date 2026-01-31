@@ -63,11 +63,24 @@ export class BudgetStore {
         return child;
       }
 
+      // Guardar período actual en histórico
+      const newPeriods = [...(child.periods ?? [])];
+      if (child.expenses.length > 0 || child.balance !== child.creditAmount) {
+        newPeriods.push({
+          id: createUuid(),
+          startDate: fromExclusive.toISOString(),
+          endDate: scheduled[scheduled.length - 1].toISOString(),
+          creditAmount: child.creditAmount * scheduled.length,
+          expenses: child.expenses,
+        });
+      }
+
       const lastApplied = scheduled[scheduled.length - 1];
       return {
         ...child,
         balance: child.balance + child.creditAmount * scheduled.length,
         expenses: [],
+        periods: newPeriods,
         lastCreditAt: lastApplied.toISOString(),
       };
     });
@@ -93,6 +106,7 @@ export class BudgetStore {
       createdAt: now.toISOString(),
       lastCreditAt: now.toISOString(),
       expenses: [],
+      periods: [],
     };
 
     this.children.set([...this.children(), next]);
@@ -147,6 +161,45 @@ export class BudgetStore {
     await this.persistChildren();
   }
 
+  async setChildImage(
+    childId: string,
+    imageThumb: string | undefined,
+  ): Promise<void> {
+    this.children.set(
+      this.children().map((child) =>
+        child.id === childId ? { ...child, imageThumb } : child,
+      ),
+    );
+    await this.persistChildren();
+  }
+
+  async assignGroupToChild(
+    childId: string,
+    groupName: string | null,
+  ): Promise<void> {
+    this.children.set(
+      this.children().map((child) =>
+        child.id === childId
+          ? { ...child, groupName: groupName ?? undefined }
+          : child,
+      ),
+    );
+    await this.persistChildren();
+  }
+
+  async assignGroupToMultipleChildren(
+    childIds: string[],
+    groupName: string,
+  ): Promise<void> {
+    const idSet = new Set(childIds);
+    this.children.set(
+      this.children().map((child) =>
+        idSet.has(child.id) ? { ...child, groupName } : child,
+      ),
+    );
+    await this.persistChildren();
+  }
+
   async deleteChild(childId: string): Promise<void> {
     this.children.set(this.children().filter((child) => child.id !== childId));
     await this.persistChildren();
@@ -193,7 +246,7 @@ export class BudgetStore {
   async editExpense(
     childId: string,
     expenseId: string,
-    patch: Partial<Pick<Expense, "label" | "amount">>,
+    patch: Partial<Pick<Expense, "label" | "amount" | "groupName">>,
   ): Promise<void> {
     this.children.set(
       this.children().map((child) => {
@@ -215,10 +268,14 @@ export class BudgetStore {
               ? nextAmount
               : expense.amount;
 
+          const nextGroupName =
+            patch.groupName !== undefined ? patch.groupName : expense.groupName;
+
           return {
             ...expense,
             label: nextLabel,
             amount: normalizedAmount,
+            groupName: nextGroupName,
           };
         });
 
@@ -319,6 +376,7 @@ export class BudgetStore {
       createdAt: child.createdAt ?? now,
       lastCreditAt: child.lastCreditAt ?? now,
       expenses: child.expenses ?? [],
+      periods: child.periods ?? [],
     };
   }
 

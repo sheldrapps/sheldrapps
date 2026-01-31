@@ -1,3 +1,58 @@
+.pn-avatar-section {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 16px;
+}
+
+.pn-avatar-container {
+  position: relative;
+  cursor: pointer;
+}
+
+.pn-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--ion-color-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--ion-color-primary);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  ion-icon {
+    font-size: 56px;
+    color: var(--ion-color-medium);
+  }
+
+  &.pn-avatar--empty {
+    background: var(--ion-color-light-tint);
+  }
+}
+
+.pn-avatar-edit {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ion-color-primary);
+  color: white;
+  --padding-start: 0;
+  --padding-end: 0;
+
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
 .pn-saldo-card {
   margin-top: 12px;
 }
@@ -14,6 +69,38 @@
 
 .pn-expense-amount {
   font-weight: 700;
+  opacity: 0.9;
+}
+
+.pn-group-header {
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ion-color-primary);
+}
+
+.pn-group-name {
+  margin: 8px 0 4px;
+}
+
+.pn-subtotal-item {
+  background-color: var(--ion-color-light);
+  margin-top: 4px;
+  margin-bottom: 16px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+}
+
+.pn-subtotal-label {
+  font-size: 0.95rem;
+  color: var(--ion-color-dark);
+}
+
+.pn-subtotal-amount {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--ion-color-dark);
   opacity: 0.9;
 }
 
