@@ -1,14 +1,23 @@
-import { Injectable, inject } from '@angular/core';
-import { AdMob, RewardAdOptions } from '@capacitor-community/admob';
-import { ConsentService } from './consent.service';
-import { ADS_KIT_CONFIG, type AdsUnits } from './types';
-import { isNative, isAndroid, getPlatform } from './adapters/platform';
+import { Injectable, inject, NgZone } from "@angular/core";
+import {
+  AdMob,
+  RewardAdOptions,
+  RewardAdPluginEvents,
+} from "@capacitor-community/admob";
+import type { PluginListenerHandle } from "@capacitor/core";
+import { ConsentService } from "./consent.service";
+import { ADS_KIT_CONFIG, type AdsUnits, type RewardedAdResult } from "./types";
+import { isNative, isAndroid, getPlatform } from "./adapters/platform";
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class AdsService {
   private initialized = false;
   private readonly config = inject(ADS_KIT_CONFIG);
   private readonly consent = inject(ConsentService);
+  private readonly zone = inject(NgZone);
+
+  // Listeners to clean up
+  private listeners: PluginListenerHandle[] = [];
 
   private get platform() {
     return getPlatform();
@@ -46,7 +55,7 @@ export class AdsService {
     if (!this.isNative) return;
 
     if (this.config.debug) {
-      console.log('[Ads] Initializing AdMob', {
+      console.log("[Ads] Initializing AdMob", {
         platform: this.platform,
         isTesting: this.isTesting,
       });
@@ -56,28 +65,125 @@ export class AdsService {
     this.initialized = true;
   }
 
-  async showRewarded(): Promise<boolean> {
+  async showRewarded(): Promise<RewardedAdResult> {
     await this.init();
-    if (!this.initialized) return false;
+    if (!this.initialized) {
+      return { rewardEarned: false, adClosed: false, failed: true };
+    }
 
     await this.consent.ready.catch(() => undefined);
-    if (!this.canShowAds()) return false;
+    if (!this.canShowAds()) {
+      return { rewardEarned: false, adClosed: false, failed: true };
+    }
 
     const opts: RewardAdOptions = {
       adId: this.units.rewarded,
       isTesting: this.isTesting,
     };
 
-    try {
-      if (this.config.debug) {
-        console.log('[Ads] Preparing rewarded ad', opts);
-      }
-      await AdMob.prepareRewardVideoAd(opts);
-      await AdMob.showRewardVideoAd();
-      return true;
-    } catch (e) {
-      console.warn('[Ads] rewarded failed', e);
-      return false;
-    }
+    // Reset flags for this new ad attempt
+    let rewardEarned = false;
+    let adClosed = false;
+    let resolved = false;
+
+    return new Promise<RewardedAdResult>((resolve) => {
+      const cleanup = () => {
+        // Remove all listeners
+        this.listeners.forEach((l) => l.remove());
+        this.listeners = [];
+      };
+
+      const tryResolve = () => {
+        if (resolved) return;
+
+        // Only resolve when BOTH events have occurred
+        if (rewardEarned && adClosed) {
+          resolved = true;
+          cleanup();
+          this.zone.run(() => {
+            resolve({ rewardEarned: true, adClosed: true, failed: false });
+          });
+        }
+      };
+
+      // Listen for Rewarded event
+      AdMob.addListener(RewardAdPluginEvents.Rewarded, (reward) => {
+        if (this.config.debug) {
+          console.log("[Ads] Reward earned", reward);
+        }
+        rewardEarned = true;
+        tryResolve();
+      }).then((handle) => this.listeners.push(handle));
+
+      // Listen for Dismissed event (ad closed)
+      AdMob.addListener(RewardAdPluginEvents.Dismissed, () => {
+        if (this.config.debug) {
+          console.log("[Ads] Ad dismissed");
+        }
+        adClosed = true;
+
+        // If ad closed without reward, resolve immediately with failure
+        if (!rewardEarned) {
+          if (!resolved) {
+            resolved = true;
+            cleanup();
+            this.zone.run(() => {
+              resolve({ rewardEarned: false, adClosed: true, failed: false });
+            });
+          }
+        } else {
+          // Otherwise, try to resolve (will succeed if reward already earned)
+          tryResolve();
+        }
+      }).then((handle) => this.listeners.push(handle));
+
+      // Listen for FailedToLoad
+      AdMob.addListener(RewardAdPluginEvents.FailedToLoad, (error) => {
+        if (this.config.debug) {
+          console.warn("[Ads] Failed to load rewarded ad", error);
+        }
+        if (!resolved) {
+          resolved = true;
+          cleanup();
+          this.zone.run(() => {
+            resolve({ rewardEarned: false, adClosed: false, failed: true });
+          });
+        }
+      }).then((handle) => this.listeners.push(handle));
+
+      // Listen for FailedToShow
+      AdMob.addListener(RewardAdPluginEvents.FailedToShow, (error) => {
+        if (this.config.debug) {
+          console.warn("[Ads] Failed to show rewarded ad", error);
+        }
+        if (!resolved) {
+          resolved = true;
+          cleanup();
+          this.zone.run(() => {
+            resolve({ rewardEarned: false, adClosed: false, failed: true });
+          });
+        }
+      }).then((handle) => this.listeners.push(handle));
+
+      // Now prepare and show the ad
+      (async () => {
+        try {
+          if (this.config.debug) {
+            console.log("[Ads] Preparing rewarded ad", opts);
+          }
+          await AdMob.prepareRewardVideoAd(opts);
+          await AdMob.showRewardVideoAd();
+        } catch (e) {
+          console.warn("[Ads] rewarded failed", e);
+          if (!resolved) {
+            resolved = true;
+            cleanup();
+            this.zone.run(() => {
+              resolve({ rewardEarned: false, adClosed: false, failed: true });
+            });
+          }
+        }
+      })();
+    });
   }
 }

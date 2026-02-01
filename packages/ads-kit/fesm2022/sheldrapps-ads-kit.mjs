@@ -1,6 +1,6 @@
 import * as i0 from '@angular/core';
-import { InjectionToken, Injectable, inject } from '@angular/core';
-import { AdMob } from '@capacitor-community/admob';
+import { InjectionToken, Injectable, inject, NgZone } from '@angular/core';
+import { AdMob, RewardAdPluginEvents } from '@capacitor-community/admob';
 import { Capacitor } from '@capacitor/core';
 
 /**
@@ -108,6 +108,9 @@ class AdsService {
     initialized = false;
     config = inject(ADS_KIT_CONFIG);
     consent = inject(ConsentService);
+    zone = inject(NgZone);
+    // Listeners to clean up
+    listeners = [];
     get platform() {
         return getPlatform();
     }
@@ -149,27 +152,115 @@ class AdsService {
     }
     async showRewarded() {
         await this.init();
-        if (!this.initialized)
-            return false;
+        if (!this.initialized) {
+            return { rewardEarned: false, adClosed: false, failed: true };
+        }
         await this.consent.ready.catch(() => undefined);
-        if (!this.canShowAds())
-            return false;
+        if (!this.canShowAds()) {
+            return { rewardEarned: false, adClosed: false, failed: true };
+        }
         const opts = {
             adId: this.units.rewarded,
             isTesting: this.isTesting,
         };
-        try {
-            if (this.config.debug) {
-                console.log('[Ads] Preparing rewarded ad', opts);
-            }
-            await AdMob.prepareRewardVideoAd(opts);
-            await AdMob.showRewardVideoAd();
-            return true;
-        }
-        catch (e) {
-            console.warn('[Ads] rewarded failed', e);
-            return false;
-        }
+        // Reset flags for this new ad attempt
+        let rewardEarned = false;
+        let adClosed = false;
+        let resolved = false;
+        return new Promise((resolve) => {
+            const cleanup = () => {
+                // Remove all listeners
+                this.listeners.forEach(l => l.remove());
+                this.listeners = [];
+            };
+            const tryResolve = () => {
+                if (resolved)
+                    return;
+                // Only resolve when BOTH events have occurred
+                if (rewardEarned && adClosed) {
+                    resolved = true;
+                    cleanup();
+                    this.zone.run(() => {
+                        resolve({ rewardEarned: true, adClosed: true, failed: false });
+                    });
+                }
+            };
+            // Listen for Rewarded event
+            AdMob.addListener(RewardAdPluginEvents.Rewarded, (reward) => {
+                if (this.config.debug) {
+                    console.log('[Ads] Reward earned', reward);
+                }
+                rewardEarned = true;
+                tryResolve();
+            }).then(handle => this.listeners.push(handle));
+            // Listen for Dismissed event (ad closed)
+            AdMob.addListener(RewardAdPluginEvents.Dismissed, () => {
+                if (this.config.debug) {
+                    console.log('[Ads] Ad dismissed');
+                }
+                adClosed = true;
+                // If ad closed without reward, resolve immediately with failure
+                if (!rewardEarned) {
+                    if (!resolved) {
+                        resolved = true;
+                        cleanup();
+                        this.zone.run(() => {
+                            resolve({ rewardEarned: false, adClosed: true, failed: false });
+                        });
+                    }
+                }
+                else {
+                    // Otherwise, try to resolve (will succeed if reward already earned)
+                    tryResolve();
+                }
+            }).then(handle => this.listeners.push(handle));
+            // Listen for FailedToLoad
+            AdMob.addListener(RewardAdPluginEvents.FailedToLoad, (error) => {
+                if (this.config.debug) {
+                    console.warn('[Ads] Failed to load rewarded ad', error);
+                }
+                if (!resolved) {
+                    resolved = true;
+                    cleanup();
+                    this.zone.run(() => {
+                        resolve({ rewardEarned: false, adClosed: false, failed: true });
+                    });
+                }
+            }).then(handle => this.listeners.push(handle));
+            // Listen for FailedToShow
+            AdMob.addListener(RewardAdPluginEvents.FailedToShow, (error) => {
+                if (this.config.debug) {
+                    console.warn('[Ads] Failed to show rewarded ad', error);
+                }
+                if (!resolved) {
+                    resolved = true;
+                    cleanup();
+                    this.zone.run(() => {
+                        resolve({ rewardEarned: false, adClosed: false, failed: true });
+                    });
+                }
+            }).then(handle => this.listeners.push(handle));
+            // Now prepare and show the ad
+            (async () => {
+                try {
+                    if (this.config.debug) {
+                        console.log('[Ads] Preparing rewarded ad', opts);
+                    }
+                    await AdMob.prepareRewardVideoAd(opts);
+                    await AdMob.showRewardVideoAd();
+                }
+                catch (e) {
+                    console.warn('[Ads] rewarded failed', e);
+                    if (!resolved) {
+                        resolved = true;
+                        cleanup();
+                        this.zone.run(() => {
+                            resolve({ rewardEarned: false, adClosed: false, failed: true });
+                        });
+                    }
+                }
+            })();
+        });
     }
     static ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "20.3.16", ngImport: i0, type: AdsService, deps: [], target: i0.ɵɵFactoryTarget.Injectable });
     static ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "20.3.16", ngImport: i0, type: AdsService, providedIn: 'root' });

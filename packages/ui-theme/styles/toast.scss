@@ -1,8 +1,10 @@
 /* Toast Component - Global Styles */
 
 ion-toast.cc-toast {
-  --background: rgba(var(--ion-text-color-rgb), 0.92);
-  --color: var(--ion-background-color);
+  --cc-toast-bg: var(--ion-color-step-900);
+  --cc-toast-fg: var(--ion-background-color);
+  --ion-color-base: var(--cc-toast-bg);
+  --ion-color-contrast: var(--cc-toast-fg);
   --border-radius: 14px;
   --box-shadow: var(--app-shadow-md);
   --max-width: min(80vw, 360px);
@@ -12,6 +14,12 @@ ion-toast.cc-toast {
   z-index: 99999;
   font-size: 0.95rem;
   text-align: center;
+}
+
+@media (prefers-color-scheme: dark) {
+  ion-toast.cc-toast {
+    --cc-toast-fg: var(--ion-text-color);
+  }
 }
 
 ion-toast.cc-toast.cc-toast--success {
@@ -30,8 +38,8 @@ ion-toast.cc-toast::part(container) {
   border: 1px solid var(--cc-toast-border-color);
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
-  background: var(--background);
-  color: var(--color);
+  background: var(--ion-color-base);
+  color: var(--ion-color-contrast);
   max-width: var(--max-width);
   min-width: var(--min-width);
   width: var(--width);
@@ -40,7 +48,7 @@ ion-toast.cc-toast::part(container) {
 }
 
 ion-toast.cc-toast::part(message) {
-  color: var(--color);
+  color: var(--ion-color-contrast);
   text-align: center;
   font-size: 0.98rem;
   line-height: 1.35;

@@ -57,7 +57,7 @@ import { addIcons } from 'ionicons';
 
 import { FileService } from '../../services/file.service';
 import { KindleCatalogService } from '../../services/kindle-catalog.service';
-import { AdsService } from '../../services/ads.service';
+import { AdsService, type RewardedAdResult } from '../../services/ads.service';
 import { playCircleOutline } from 'ionicons/icons';
 import { CoversEventsService } from '../../services/covers-events.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -144,7 +144,7 @@ export class CreatePage implements OnInit, OnDestroy {
     private popoverCtrl: PopoverController,
     private coversEvents: CoversEventsService,
     private translate: TranslateService,
-    private zone: NgZone
+    private zone: NgZone,
   ) {
     addIcons({
       chevronDown,
@@ -206,7 +206,7 @@ export class CreatePage implements OnInit, OnDestroy {
 
   private setBusy(
     kind: 'pick' | 'crop' | 'export' | 'none',
-    messageKey?: string
+    messageKey?: string,
   ) {
     this.zone.run(() => {
       this.isPickingImage = kind === 'pick';
@@ -305,10 +305,10 @@ export class CreatePage implements OnInit, OnDestroy {
     const baseDims = originalDims ?? this.selectedImageDims;
     if (!baseDims) return;
 
-    const params = this.imagePipe.getSmallWarnParams(
-      baseDims,
-      { width: this.selectedModel.width, height: this.selectedModel.height }
-    );
+    const params = this.imagePipe.getSmallWarnParams(baseDims, {
+      width: this.selectedModel.width,
+      height: this.selectedModel.height,
+    });
     if (!params) return;
 
     this.imageWarnKey = 'CREATE.IMAGE_WARN_SMALL';
@@ -336,7 +336,10 @@ export class CreatePage implements OnInit, OnDestroy {
         component: CoverCropperModalI18nComponent,
         componentProps: {
           file: sourceFile,
-          model: { width: this.selectedModel.width, height: this.selectedModel.height } as CropTarget,
+          model: {
+            width: this.selectedModel.width,
+            height: this.selectedModel.height,
+          } as CropTarget,
           initialState: this.cropState,
           onReady: () => markReady(),
         },
@@ -470,7 +473,7 @@ export class CreatePage implements OnInit, OnDestroy {
         await this.showHintOnce(
           'cc_hint_save_share_explain_shown',
           'CREATE.HINT_SAVE_SHARE_EXPLAIN',
-          2200
+          2200,
         );
       }
       return;
@@ -479,7 +482,7 @@ export class CreatePage implements OnInit, OnDestroy {
     await this.showHintOnce(
       'cc_hint_share_kindle_shown',
       'COMMON.SHARE_KINDLE_HINT',
-      2200
+      2200,
     );
 
     this.setBusy('export', 'CREATE.SAVING');
@@ -540,15 +543,15 @@ export class CreatePage implements OnInit, OnDestroy {
       err === 'UNSUPPORTED_TYPE'
         ? 'CREATE.IMAGE_ERROR_TYPE'
         : err === 'TOO_LARGE'
-        ? 'CREATE.IMAGE_ERROR_SIZE'
-        : 'CREATE.IMAGE_ERROR_CORRUPT';
+          ? 'CREATE.IMAGE_ERROR_SIZE'
+          : 'CREATE.IMAGE_ERROR_CORRUPT';
 
     this.imageErrorParams =
       err === 'UNSUPPORTED_TYPE'
         ? { type }
         : err === 'TOO_LARGE'
-        ? { maxSize: Math.floor(this.imagePipe.maxBytes / (1024 * 1024)) }
-        : {};
+          ? { maxSize: Math.floor(this.imagePipe.maxBytes / (1024 * 1024)) }
+          : {};
   }
 
   canGenerate(): boolean {
@@ -571,14 +574,30 @@ export class CreatePage implements OnInit, OnDestroy {
     this.setBusy('export', 'CREATE.GENERATING');
 
     try {
-      const ok = await this.ads.showRewarded();
+      const result: RewardedAdResult = await this.ads.showRewarded();
 
-      if (!ok) {
+      // Handle ad failure
+      if (result.failed) {
         await this.showToast(
           'CREATE.ADS_REQUIRED',
           { duration: 1800 },
-          'error'
+          'error',
         );
+        return;
+      }
+
+      // Handle ad closed without reward (user didn't watch it completely)
+      if (result.adClosed && !result.rewardEarned) {
+        await this.showToast(
+          'CREATE.ADS_REQUIRED',
+          { duration: 1800 },
+          'error',
+        );
+        return;
+      }
+
+      // Only proceed if BOTH reward earned AND ad closed
+      if (!result.rewardEarned || !result.adClosed) {
         return;
       }
 
@@ -607,11 +626,14 @@ export class CreatePage implements OnInit, OnDestroy {
       this.wasAutoSaved = true;
       this.lastSavedFilename = this.generatedEpubFilename;
 
-      await this.showToast(
-        'CREATE.COVER_CREATED',
-        { duration: 2200 },
-        'success'
-      );
+      // Show success toast ONLY when reward earned AND ad closed
+      await this.zone.run(async () => {
+        await this.showToast(
+          'CREATE.COVER_CREATED',
+          { duration: 2200 },
+          'success',
+        );
+      });
     } finally {
       this.zone.run(() => this.setBusy('none'));
     }
@@ -620,7 +642,7 @@ export class CreatePage implements OnInit, OnDestroy {
   private async showHintOnce(
     storageKey: string,
     i18nKey: string,
-    duration = 2200
+    duration = 2200,
   ) {
     const shown = localStorage.getItem(storageKey);
     if (shown === 'true') return;
@@ -658,7 +680,7 @@ export class CreatePage implements OnInit, OnDestroy {
   private async showToast(
     messageKey: string,
     opts: Partial<ToastOptions> = {},
-    variant: 'success' | 'error' | 'info' = 'success'
+    variant: 'success' | 'error' | 'info' = 'success',
   ) {
     const extra = opts.cssClass
       ? Array.isArray(opts.cssClass)

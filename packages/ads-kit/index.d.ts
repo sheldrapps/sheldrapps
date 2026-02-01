@@ -8,6 +8,17 @@ type AdsUnits = {
     rewarded: string;
 };
 /**
+ * Result of showing a rewarded ad
+ */
+type RewardedAdResult = {
+    /** Whether the user earned the reward by watching the ad */
+    rewardEarned: boolean;
+    /** Whether the ad was closed (dismissed) */
+    adClosed: boolean;
+    /** Whether there was an error loading or showing the ad */
+    failed: boolean;
+};
+/**
  * Platform-specific ad units
  */
 type PlatformUnits = {
@@ -51,6 +62,8 @@ declare class AdsService {
     private initialized;
     private readonly config;
     private readonly consent;
+    private readonly zone;
+    private listeners;
     private get platform();
     private get isNative();
     private get isAndroid();
@@ -58,7 +71,7 @@ declare class AdsService {
     private get units();
     private canShowAds;
     init(): Promise<void>;
-    showRewarded(): Promise<boolean>;
+    showRewarded(): Promise<RewardedAdResult>;
     static ɵfac: i0.ɵɵFactoryDeclaration<AdsService, never>;
     static ɵprov: i0.ɵɵInjectableDeclaration<AdsService>;
 }
@@ -125,4 +138,4 @@ declare function isIOS(): boolean;
 declare function isWeb(): boolean;
 
 export { ADS_KIT_CONFIG, AdsService, ConsentService, getPlatform, isAndroid, isIOS, isNative, isWeb, provideAdsKit };
-export type { AdsKitConfig, AdsUnits, ConsentResult, PlatformUnits };
+export type { AdsKitConfig, AdsUnits, ConsentResult, PlatformUnits, RewardedAdResult };

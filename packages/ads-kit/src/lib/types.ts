@@ -9,6 +9,18 @@ export type AdsUnits = {
 };
 
 /**
+ * Result of showing a rewarded ad
+ */
+export type RewardedAdResult = {
+  /** Whether the user earned the reward by watching the ad */
+  rewardEarned: boolean;
+  /** Whether the ad was closed (dismissed) */
+  adClosed: boolean;
+  /** Whether there was an error loading or showing the ad */
+  failed: boolean;
+};
+
+/**
  * Platform-specific ad units
  */
 export type PlatformUnits = {
