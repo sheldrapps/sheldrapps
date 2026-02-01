@@ -77,7 +77,8 @@ export class TabsPage {
     const toast = await this.toastCtrl.create({
       message: "Presiona atrás nuevamente para salir",
       duration: this.EXIT_WINDOW_MS,
-      position: "bottom",
+      position: "middle",
+      cssClass: ["cc-toast", "cc-toast--info"],
     });
 
     this.exitToast = toast;

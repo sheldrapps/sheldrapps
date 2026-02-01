@@ -1,0 +1,7 @@
+{
+  "name": "kindle-cover-creator",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

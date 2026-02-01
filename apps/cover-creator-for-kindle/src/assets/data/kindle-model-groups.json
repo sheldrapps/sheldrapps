@@ -1,0 +1,116 @@
+[
+  {
+    "id": "basic",
+    "i18nKey": "KINDLE_GROUPS.BASIC",
+    "items": [
+      {
+        "id": "kindle_basic_2019",
+        "i18nKey": "KINDLE_MODELS.KINDLE_BASIC_2019",
+        "width": 600,
+        "height": 800
+      },
+      {
+        "id": "kindle_basic_2022",
+        "i18nKey": "KINDLE_MODELS.KINDLE_BASIC_2022",
+        "width": 1072,
+        "height": 1448
+      },
+      {
+        "id": "kindle_basic_2024",
+        "i18nKey": "KINDLE_MODELS.KINDLE_BASIC_2024",
+        "width": 1072,
+        "height": 1448
+      }
+    ]
+  },
+  {
+    "id": "paperwhite",
+    "i18nKey": "KINDLE_GROUPS.PAPERWHITE",
+    "items": [
+      {
+        "id": "paperwhite_2015",
+        "i18nKey": "KINDLE_MODELS.PAPERWHITE_2015",
+        "width": 1072,
+        "height": 1448
+      },
+      {
+        "id": "paperwhite_2018",
+        "i18nKey": "KINDLE_MODELS.PAPERWHITE_2018",
+        "width": 1072,
+        "height": 1448
+      },
+      {
+        "id": "paperwhite_2021",
+        "i18nKey": "KINDLE_MODELS.PAPERWHITE_2021",
+        "width": 1236,
+        "height": 1648
+      },
+      {
+        "id": "paperwhite_signature_2021",
+        "i18nKey": "KINDLE_MODELS.PAPERWHITE_SIGNATURE_2021",
+        "width": 1236,
+        "height": 1648
+      },
+      {
+        "id": "paperwhite_2024",
+        "i18nKey": "KINDLE_MODELS.PAPERWHITE_2024",
+        "width": 1264,
+        "height": 1680
+      },
+      {
+        "id": "paperwhite_signature_2024",
+        "i18nKey": "KINDLE_MODELS.PAPERWHITE_SIGNATURE_2024",
+        "width": 1264,
+        "height": 1680
+      }
+    ]
+  },
+  {
+    "id": "oasis",
+    "i18nKey": "KINDLE_GROUPS.OASIS",
+    "items": [
+      {
+        "id": "oasis_2017_2019",
+        "i18nKey": "KINDLE_MODELS.OASIS_2017_2019",
+        "width": 1264,
+        "height": 1680
+      }
+    ]
+  },
+  {
+    "id": "scribe",
+    "i18nKey": "KINDLE_GROUPS.SCRIBE",
+    "items": [
+      {
+        "id": "scribe_2022",
+        "i18nKey": "KINDLE_MODELS.SCRIBE_2022",
+        "width": 1860,
+        "height": 2480
+      },
+      {
+        "id": "scribe_2024",
+        "i18nKey": "KINDLE_MODELS.SCRIBE_2024",
+        "width": 1860,
+        "height": 2480
+      }
+    ]
+  },
+  {
+    "id": "color",
+    "i18nKey": "KINDLE_GROUPS.COLOR",
+    "items": [
+      {
+        "id": "colorsoft_signature_2024",
+        "i18nKey": "KINDLE_MODELS.COLORSOFT_SIGNATURE_2024",
+        "width": 1264,
+        "height": 1680
+      },
+      {
+        "id": "colorsoft_2025",
+        "i18nKey": "KINDLE_MODELS.COLORSOFT_2025",
+        "width": 1264,
+        "height": 1680
+      }
+    ]
+  }
+]

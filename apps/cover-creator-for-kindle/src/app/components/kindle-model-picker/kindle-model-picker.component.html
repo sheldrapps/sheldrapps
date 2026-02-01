@@ -1,0 +1,35 @@
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>{{ 'CREATE.MODEL_PICKER.TITLE' | translate }}</ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="close()">{{ 'COMMON.CLOSE' | translate }}</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content class="kindle-modal__content">
+    <ion-list>
+      <ng-container *ngFor="let group of groups">
+        <ion-item-divider sticky="true">
+          {{ group.i18nKey | translate }}
+        </ion-item-divider>
+
+        <ion-item
+          button
+          detail="false"
+          *ngFor="let model of group.items"
+          (click)="pick(model)"
+        >
+          <ion-label>
+            <div class="title">{{ model.i18nKey | translate }}</div>
+          </ion-label>
+
+          <ion-icon
+            slot="end"
+            name="checkmark"
+            *ngIf="isSelected(model.id)"
+          ></ion-icon>
+        </ion-item>
+      </ng-container>
+    </ion-list>
+  </ion-content>

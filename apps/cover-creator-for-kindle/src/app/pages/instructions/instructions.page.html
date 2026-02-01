@@ -1,0 +1,52 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/settings"></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>{{ 'INSTRUCTIONS.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-list inset="true" class="steps">
+    <ion-item class="step">
+      <ion-label class="ion-text-wrap">
+        <h2 class="step-title">1) {{ 'INSTRUCTIONS.STEP_1' | translate }}</h2>
+      </ion-label>
+    </ion-item>
+
+    <ion-item class="step">
+      <ion-label class="ion-text-wrap">
+        <h2 class="step-title">2) {{ 'INSTRUCTIONS.STEP_2' | translate }}</h2>
+      </ion-label>
+    </ion-item>
+
+    <ion-item class="step">
+      <ion-label class="ion-text-wrap">
+        <h2 class="step-title">3) {{ 'INSTRUCTIONS.STEP_3' | translate }}</h2>
+      </ion-label>
+    </ion-item>
+
+    <ion-item class="step">
+      <ion-label class="ion-text-wrap">
+        <h2 class="step-title">4) {{ 'INSTRUCTIONS.STEP_4' | translate }}</h2>
+        <p class="step-desc">{{ 'INSTRUCTIONS.STEP_4_DESC' | translate }}</p>
+      </ion-label>
+    </ion-item>
+
+    <ion-item button detail="true" class="step step--link" (click)="openSendToKindle()">
+      <ion-label class="ion-text-wrap">
+        <h2 class="step-title">5) {{ 'INSTRUCTIONS.STEP_5' | translate }}</h2>
+        <p class="step-desc">{{ 'INSTRUCTIONS.STEP_5_DESC' | translate }}</p>
+      </ion-label>
+    </ion-item>
+
+    <ion-item lines="none" class="note">
+      <ion-label class="ion-text-wrap">
+        <div class="note-title">{{ 'INSTRUCTIONS.NOTE_TITLE' | translate }}</div>
+        <p class="note-body">{{ 'INSTRUCTIONS.TIP' | translate }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

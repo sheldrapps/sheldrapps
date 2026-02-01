@@ -1,0 +1,172 @@
+{
+  "APP": {
+    "TITLE": "Cover Creator for Kindle"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "Go back again to exit",
+    "CANCEL": "Cancel",
+    "CLOSE": "Close",
+    "DELETE": "Delete",
+    "DONE": "Done",
+    "ERROR": "Error",
+    "LOADING": "Loading…",
+    "SHARE": "Share",
+    "SHARE_KINDLE_HINT": "When sharing, select the Kindle app to send it to your device.",
+    "WARNING": "Warning"
+  },
+  "CREATE": {
+    "ADS_REQUIRED": "The ad could not be loaded. Check your network or ad blocker.",
+    "ARIA_CHANGE_IMAGE": "Change cover image. Current image: {{name}}",
+    "ARIA_CROP": "Adjust selected image",
+    "ARIA_SELECT_IMAGE": "Select cover image",
+    "ARIA_SELECT_MODEL": "Select Kindle model",
+    "ARIA_HELP": "Help and tips for saving and sharing",
+    "CROP_ACTION": "Adjust",
+    "COVER_CREATED": "Cover created. You can now save or share",
+    "CREATE_ACTION_REWARDED": "Create cover (watch ad)",
+    "GENERATE_ACTION_REWARDED": "Create cover (watch ad)",
+    "GENERATING": "Loading ad…",
+    "HINT_ADJUST_FIRST": "Adjust the image first to create the cover.",
+    "HINT_SAVE_SHARE_EXPLAIN": "Creating the cover does not save it automatically.",
+    "HINT_READY_EXPORT": "Ready. Use the buttons below to save or share.",
+    "HINT_REWARDED_REQUIRED": "A short ad will be shown to create the cover.",
+    "INFO": "Info",
+    "INFO_ARIA": "Information about creating cover",
+    "INFO_TITLE": "Information",
+    "INFO_NOT_SAVED": "Creating the cover does not save it automatically.",
+    "INFO_SHARE_KINDLE": "To send it to your Kindle, select the Kindle app when sharing.",
+    "INFO_FLOW_LABEL": "Recommended order:",
+    "INFO_FLOW_STEPS": "Adjust → Create cover → Save or Share",
+    "IMAGE_ERROR_CORRUPT": "The image could not be read. Please try another one.",
+    "IMAGE_ERROR_DIMENSIONS": "The image is too small for the selected Kindle model.",
+    "IMAGE_ERROR_SIZE": "The file is too large. Maximum {{maxSize}} MB.",
+    "IMAGE_ERROR_TYPE": "Unsupported format ({{type}}). Please select JPG, PNG, or WebP.",
+    "IMAGE_WARN_SMALL": "The image resolution is lower than the selected Kindle model. For better results, use a larger image.",
+    "LOADING_IMAGE": "Loading image…",
+    "OPENING_EDITOR": "Opening editor…",
+    "SAVING": "Saving cover…",
+    "SHARING": "Preparing to share…",
+    "SAVE_ACTION": "Save",
+    "SAVED_OK": "Cover saved",
+    "SAVE_RENAME_TITLE": "Save cover",
+    "SAVE_RENAME_MESSAGE": "Enter a name for the cover",
+    "SAVE_RENAME_PLACEHOLDER": "File name",
+    "SELECT_IMAGE_LABEL": "Cover image",
+    "SELECT_IMAGE_PLACEHOLDER": "Select an image",
+    "SELECT_MODEL_LABEL": "Kindle model",
+    "SELECT_MODEL_PLACEHOLDER": "Select your model",
+    "TAP_TO_CHANGE": "Tap to change/reset",
+    "TITLE": "Create cover",
+    "MODEL_PICKER": {
+      "SEARCH": "Search model",
+      "TITLE": "Choose your Kindle"
+    }
+  },
+  "COVERS": {
+    "DELETED": "Cover deleted",
+    "EMPTY": "No covers yet.",
+    "PLACEHOLDER": "Cover",
+    "PREVIEW_TITLE": "Preview",
+    "TITLE": "Covers",
+    "ACTIONS": {
+      "DELETE": "Delete",
+      "SHARE": "Share"
+    },
+    "DELETE": {
+      "MESSAGE": "Do you want to delete this cover?",
+      "TITLE": "Delete cover"
+    },
+    "ERROR": {
+      "DELETE": "Could not delete the cover. Please try again.",
+      "SHARE": "Could not share the cover. Please try again.",
+      "LOAD": "Could not load your covers. Pull down to refresh."
+    }
+  },
+  "CROPPER": {
+    "ADJUSTMENTS": "Adjustments",
+    "ADJUSTMENTS_ARIA": "Image adjustments",
+    "BRIGHTNESS": "Brightness",
+    "BW": "B/W",
+    "CONTRAST": "Contrast",
+    "CONTROLS_ARIA": "Controls",
+    "DITHER": "Dither",
+    "FRAME_ARIA": "Crop area",
+    "HINT": "Pinch to zoom · Drag to move",
+    "RESET_ARIA": "Reset",
+    "ROTATE": "Rotate",
+    "SATURATION": "Saturation",
+    "TITLE": "Crop",
+    "ZOOM_IN_ARIA": "Zoom in",
+    "ZOOM_OUT_ARIA": "Zoom out"
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "Note",
+    "STEP_1": "Select an image for your cover",
+    "STEP_2": "Adjust the image to your Kindle size",
+    "STEP_3": "Generate the cover by watching a short video",
+    "STEP_4": "Save or share the cover",
+    "STEP_4_DESC": "Once generated, you can save it to your device or share it directly with the Kindle app for a smoother transition.",
+    "STEP_5": "Send via web (Send to Kindle)",
+    "STEP_5_DESC": "You can also send it from your browser using the Send to Kindle web tool.",
+    "TIP": "For best results, use high-resolution images and make sure ads are disabled on your Kindle device.",
+    "TITLE": "How to create a cover for Kindle"
+  },
+  "KINDLE_GROUPS": {
+    "BASIC": "Basic",
+    "COLOR": "Colorsoft",
+    "OASIS": "Oasis",
+    "PAPERWHITE": "Paperwhite",
+    "SCRIBE": "Scribe"
+  },
+  "KINDLE_MODELS": {
+    "COLORSOFT_2025": "Colorsoft (2025)",
+    "COLORSOFT_SIGNATURE_2024": "Colorsoft Signature Edition (2024)",
+    "KINDLE_BASIC_2019": "Basic (2019 – 10th gen)",
+    "KINDLE_BASIC_2022": "Basic (2022 – 11th gen)",
+    "KINDLE_BASIC_2024": "Basic (2024)",
+    "OASIS_2017_2019": "Oasis (2017 / 2019)",
+    "PAPERWHITE_2015": "Paperwhite (2015 – 7th gen)",
+    "PAPERWHITE_2018": "Paperwhite (2018 – 10th gen)",
+    "PAPERWHITE_2021": "Paperwhite (2021 – 11th gen)",
+    "PAPERWHITE_2024": "Paperwhite (2024 – 12th gen)",
+    "PAPERWHITE_SIGNATURE_2021": "Paperwhite Signature Edition (2021)",
+    "PAPERWHITE_SIGNATURE_2024": "Paperwhite Signature Edition (2024)",
+    "SCRIBE_2022": "Scribe (2022)",
+    "SCRIBE_2024": "Scribe (2024)"
+  },
+  "REQUISITES": {
+    "ADS_DESC": "Ads must be disabled on the device for the cover to appear on the lock screen.",
+    "ADS_LINK": "Manage device ads",
+    "ADS_TITLE": "Ads disabled",
+    "APP_ANDROID": "Kindle app (Android)",
+    "APP_DESC": "The Kindle app is required to send and view the cover on the device.",
+    "APP_IOS": "Kindle app (iOS)",
+    "APP_TITLE": "Kindle app",
+    "COVER_DESC": "Enable the option to show the current book cover on the lock screen.",
+    "COVER_LINK": "Configure cover display",
+    "COVER_TITLE": "Show book cover",
+    "NOTE": "Cover Creator for Kindle is not an official app and does not modify the device software.",
+    "SEND_LINK": "Send to Kindle (web)",
+    "SEND_TITLE": "Send covers via web",
+    "TITLE": "Requirements to use Cover Creator for Kindle"
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "View instructions",
+    "INSTRUCTIONS_HINT": "How to create and send a cover for Kindle",
+    "INSTRUCTIONS_SECTION": "Instructions",
+    "LANGUAGE": "Language",
+    "PRIVACY_HINT": "Control how data and advertising are handled",
+    "PRIVACY_OPTIONS": "Privacy options",
+    "PRIVACY_POLICY": "Privacy policy",
+    "PRIVACY_SECTION": "Privacy",
+    "REQUISITES": "View requirements",
+    "REQUISITES_HINT": "Required settings for covers to work correctly on Kindle",
+    "REQUISITES_SECTION": "Requirements",
+    "TITLE": "Settings"
+  },
+  "TABS": {
+    "COVERS": "Covers",
+    "CREATE": "Create",
+    "SETTINGS": "Settings"
+  }
+}

@@ -1,0 +1,35 @@
+/* To learn more about this file see: https://angular.io/config/tsconfig. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/app",
+    "types": [],
+    "baseUrl": "./",
+    "paths": {
+      "@sheldrapps/ads-kit": ["../../packages/ads-kit/src/public-api.ts"],
+      "@sheldrapps/i18n-kit": ["../../packages/i18n-kit/src/public-api.ts"],
+      "@sheldrapps/settings-kit": ["../../packages/settings-kit/src/public-api.ts"],
+      "@sheldrapps/file-kit": ["../../packages/file-kit/src/public-api.ts"],
+      "@sheldrapps/image-workflow": ["../../packages/image-workflow/src/public-api.ts"],
+      "@sheldrapps/image-workflow/capacitor": ["../../packages/image-workflow/src/lib/adapters/capacitor/public-api.ts"],
+      "@sheldrapps/ui-theme": ["../../packages/ui-theme/src/index.ts"],
+      "@sheldrapps/ui-theme/styles/*": ["../../packages/ui-theme/styles/*"]
+    }
+  },
+  "files": [
+    "src/main.ts",
+    "src/polyfills.ts"
+  ],
+  "include": [
+    "src/**/*.d.ts",
+    "src/**/*.ts",
+    "../../packages/image-workflow/src/lib/types/**/*.ts",
+    "../../packages/image-workflow/src/lib/core/**/*.ts",
+    "../../packages/image-workflow/src/lib/ui/**/*.ts",
+    "../../packages/image-workflow/src/public-api.ts"
+  ],
+  "exclude": [
+    "src/**/*.spec.ts",
+    "../../packages/image-workflow/src/lib/adapters/**"
+  ]
+}

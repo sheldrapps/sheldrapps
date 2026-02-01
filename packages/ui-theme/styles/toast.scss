@@ -1,0 +1,48 @@
+/* Toast Component - Global Styles */
+
+ion-toast.cc-toast {
+  --background: rgba(var(--ion-text-color-rgb), 0.92);
+  --color: var(--ion-background-color);
+  --border-radius: 14px;
+  --box-shadow: var(--app-shadow-md);
+  --max-width: min(80vw, 360px);
+  --min-width: 120px;
+  --width: fit-content;
+  --cc-toast-border-color: transparent;
+  z-index: 99999;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+ion-toast.cc-toast.cc-toast--success {
+  --cc-toast-border-color: rgba(var(--ion-color-success-rgb), 0.45);
+}
+
+ion-toast.cc-toast.cc-toast--error {
+  --cc-toast-border-color: rgba(var(--ion-color-danger-rgb), 0.45);
+}
+
+ion-toast.cc-toast.cc-toast--info {
+  --cc-toast-border-color: rgba(var(--ion-color-primary-rgb), 0.45);
+}
+
+ion-toast.cc-toast::part(container) {
+  border: 1px solid var(--cc-toast-border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  background: var(--background);
+  color: var(--color);
+  max-width: var(--max-width);
+  min-width: var(--min-width);
+  width: var(--width);
+  text-align: center;
+  padding: 12px 14px;
+}
+
+ion-toast.cc-toast::part(message) {
+  color: var(--color);
+  text-align: center;
+  font-size: 0.98rem;
+  line-height: 1.35;
+  white-space: normal;
+}

@@ -1,5 +1,8 @@
 {
   "extends": "../../tsconfig.base.json",
+  "angularCompilerOptions": {
+    "strictTemplates": true
+  },
   "compilerOptions": {
     "outDir": "../../dist/out-tsc/lib",
     "declaration": true,

@@ -1,0 +1,163 @@
+{
+  "APP": {
+    "TITLE": "Cover Creator for Kindle"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "Volte novamente para sair",
+    "CANCEL": "Cancelar",
+    "CLOSE": "Fechar",
+    "DELETE": "Excluir",
+    "DONE": "Concluído",
+    "ERROR": "Erro",
+    "LOADING": "Carregando…",
+    "SHARE": "Compartilhar",
+    "SHARE_KINDLE_HINT": "Ao compartilhar, selecione o app Kindle para enviá-la ao dispositivo.",
+    "WARNING": "Aviso"
+  },
+  "CREATE": {
+    "ADS_REQUIRED": "Não foi possível carregar o anúncio. Verifique a rede ou o bloqueador de anúncios.",
+    "ARIA_CHANGE_IMAGE": "Alterar imagem da capa. Imagem atual: {{name}}",
+    "ARIA_CROP": "Ajustar imagem selecionada",
+    "ARIA_SELECT_IMAGE": "Selecionar imagem da capa",
+    "ARIA_SELECT_MODEL": "Selecionar modelo do Kindle",
+    "CROP_ACTION": "Ajustar",
+    "COVER_CREATED": "Capa criada. Agora você pode salvar ou compartilhar",
+    "GENERATE_ACTION_REWARDED": "Criar capa (ver anúncio)",
+    "GENERATING": "Carregando anúncio…",
+    "HINT_ADJUST_FIRST": "Ajuste a imagem primeiro para criar a capa.",
+    "HINT_SAVE_SHARE_EXPLAIN": "Criar a capa não a salva automaticamente.",
+    "HINT_READY_EXPORT": "Pronto. Use os botões para salvar ou compartilhar.",
+    "HINT_REWARDED_REQUIRED": "Um anúncio curto será exibido para criar a capa.",
+    "IMAGE_ERROR_CORRUPT": "Não foi possível ler a imagem. Tente outra.",
+    "IMAGE_ERROR_DIMENSIONS": "A imagem é pequena demais para o modelo de Kindle selecionado.",
+    "IMAGE_ERROR_SIZE": "O arquivo é muito grande. Máximo {{maxSize}} MB.",
+    "IMAGE_ERROR_TYPE": "Formato não compatível ({{type}}). Selecione JPG, PNG ou WebP.",
+    "IMAGE_WARN_SMALL": "A resolução da imagem é menor que a do modelo de Kindle selecionado. Para melhores resultados, use uma imagem maior.",
+    "LOADING_IMAGE": "Carregando imagem…",
+    "OPENING_EDITOR": "Abrindo editor…",
+    "SAVING": "Salvando capa…",
+    "SHARING": "Preparando para compartilhar…",
+    "SAVE_ACTION": "Salvar",
+    "SAVED_OK": "Capa salva",
+    "SAVE_RENAME_TITLE": "Salvar capa",
+    "SAVE_RENAME_MESSAGE": "Digite um nome para a capa",
+    "SAVE_RENAME_PLACEHOLDER": "Nome do arquivo",
+    "SELECT_IMAGE_LABEL": "Imagem da capa",
+    "SELECT_IMAGE_PLACEHOLDER": "Selecione uma imagem",
+    "SELECT_MODEL_LABEL": "Modelo do Kindle",
+    "SELECT_MODEL_PLACEHOLDER": "Selecione seu modelo",
+    "TAP_TO_CHANGE": "Toque para alterar/redefinir",
+    "TITLE": "Criar capa",
+    "MODEL_PICKER": {
+      "SEARCH": "Buscar modelo",
+      "TITLE": "Escolha seu Kindle"
+    }
+  },
+  "COVERS": {
+    "DELETED": "Capa excluída",
+    "EMPTY": "Nenhuma capa ainda.",
+    "PLACEHOLDER": "Capa",
+    "PREVIEW_TITLE": "Pré-visualização",
+    "TITLE": "Capas",
+    "ACTIONS": {
+      "DELETE": "Excluir",
+      "SHARE": "Compartilhar"
+    },
+    "DELETE": {
+      "MESSAGE": "Deseja excluir esta capa?",
+      "TITLE": "Excluir capa"
+    },
+    "ERROR": {
+      "DELETE": "Não foi possível excluir a capa. Tente novamente.",
+      "SHARE": "Não foi possível compartilhar a capa. Tente novamente.",
+      "LOAD": "Não foi possível carregar suas capas. Arraste para baixo para tentar novamente."
+    }
+  },
+  "CROPPER": {
+    "ADJUSTMENTS": "Ajustes",
+    "ADJUSTMENTS_ARIA": "Ajustes de imagem",
+    "BRIGHTNESS": "Brilho",
+    "BW": "P/B",
+    "CONTRAST": "Contraste",
+    "CONTROLS_ARIA": "Controles",
+    "DITHER": "Dither",
+    "FRAME_ARIA": "Área de recorte",
+    "HINT": "Aperte para zoom · Arraste para mover",
+    "RESET_ARIA": "Redefinir",
+    "ROTATE": "Girar",
+    "SATURATION": "Saturação",
+    "TITLE": "Recortar",
+    "ZOOM_IN_ARIA": "Aumentar zoom",
+    "ZOOM_OUT_ARIA": "Diminuir zoom"
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "Observação",
+    "STEP_1": "Selecione uma imagem para a sua capa",
+    "STEP_2": "Ajuste a imagem ao tamanho do seu Kindle",
+    "STEP_3": "Gere a capa assistindo a um vídeo curto",
+    "STEP_4": "Salve ou compartilhe a capa",
+    "STEP_4_DESC": "Depois de gerada, você pode salvá-la no dispositivo ou compartilhá-la diretamente com o app Kindle para uma transição mais suave.",
+    "STEP_5": "Enviar pela web (Send to Kindle)",
+    "STEP_5_DESC": "Você também pode enviá-la pelo navegador usando a ferramenta web Send to Kindle.",
+    "TIP": "Para melhores resultados, use imagens em alta resolução e certifique-se de que os anúncios estejam desativados no seu Kindle.",
+    "TITLE": "Como criar uma capa para Kindle"
+  },
+  "KINDLE_GROUPS": {
+    "BASIC": "Básico",
+    "COLOR": "Colorsoft",
+    "OASIS": "Oasis",
+    "PAPERWHITE": "Paperwhite",
+    "SCRIBE": "Scribe"
+  },
+  "KINDLE_MODELS": {
+    "COLORSOFT_2025": "Colorsoft (2025)",
+    "COLORSOFT_SIGNATURE_2024": "Colorsoft Signature Edition (2024)",
+    "KINDLE_BASIC_2019": "Básico (2019 – 10ª geração)",
+    "KINDLE_BASIC_2022": "Básico (2022 – 11ª geração)",
+    "KINDLE_BASIC_2024": "Básico (2024)",
+    "OASIS_2017_2019": "Oasis (2017 / 2019)",
+    "PAPERWHITE_2015": "Paperwhite (2015 – 7ª geração)",
+    "PAPERWHITE_2018": "Paperwhite (2018 – 10ª geração)",
+    "PAPERWHITE_2021": "Paperwhite (2021 – 11ª geração)",
+    "PAPERWHITE_2024": "Paperwhite (2024 – 12ª geração)",
+    "PAPERWHITE_SIGNATURE_2021": "Paperwhite Signature Edition (2021)",
+    "PAPERWHITE_SIGNATURE_2024": "Paperwhite Signature Edition (2024)",
+    "SCRIBE_2022": "Scribe (2022)",
+    "SCRIBE_2024": "Scribe (2024)"
+  },
+  "REQUISITES": {
+    "ADS_DESC": "Os anúncios precisam estar desativados no dispositivo para que a capa apareça na tela de bloqueio.",
+    "ADS_LINK": "Gerenciar anúncios do dispositivo",
+    "ADS_TITLE": "Anúncios desativados",
+    "APP_ANDROID": "App Kindle (Android)",
+    "APP_DESC": "O app Kindle é necessário para enviar e visualizar a capa no dispositivo.",
+    "APP_IOS": "App Kindle (iOS)",
+    "APP_TITLE": "Aplicativo Kindle",
+    "COVER_DESC": "Ative a opção para mostrar a capa do livro atual na tela de bloqueio.",
+    "COVER_LINK": "Configurar exibição da capa",
+    "COVER_TITLE": "Mostrar capa do livro",
+    "NOTE": "Cover Creator for Kindle não é um aplicativo oficial e não modifica o software do dispositivo.",
+    "SEND_LINK": "Send to Kindle (web)",
+    "SEND_TITLE": "Enviar capas pela web",
+    "TITLE": "Requisitos para usar o Cover Creator for Kindle"
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "Ver instruções",
+    "INSTRUCTIONS_HINT": "Como criar e enviar uma capa para Kindle",
+    "INSTRUCTIONS_SECTION": "Instruções",
+    "LANGUAGE": "Idioma",
+    "PRIVACY_HINT": "Controle como os dados e a publicidade são tratados",
+    "PRIVACY_OPTIONS": "Opções de privacidade",
+    "PRIVACY_POLICY": "Política de privacidade",
+    "PRIVACY_SECTION": "Privacidade",
+    "REQUISITES": "Ver requisitos",
+    "REQUISITES_HINT": "Configurações necessárias para que as capas funcionem corretamente no Kindle",
+    "REQUISITES_SECTION": "Requisitos",
+    "TITLE": "Configurações"
+  },
+  "TABS": {
+    "COVERS": "Capas",
+    "CREATE": "Criar",
+    "SETTINGS": "Configurações"
+  }
+}

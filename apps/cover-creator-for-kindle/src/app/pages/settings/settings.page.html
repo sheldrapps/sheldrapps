@@ -1,0 +1,81 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/create"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ 'SETTINGS.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Language -->
+  <ion-list inset="true">
+    <ion-item>
+      <ion-label>{{ 'SETTINGS.LANGUAGE' | translate }}</ion-label>
+      <ion-select
+        interface="alert"
+        [value]="lang.lang"
+        (ionChange)="onLangChange($event.detail.value)"
+        [cancelText]="'COMMON.CANCEL' | translate"
+        [okText]="'COMMON.DONE' | translate"
+      >
+        <ion-select-option
+          *ngFor="let l of supportedLangs; trackBy: trackByLang"
+          [value]="l.code"
+        >
+          {{ l.label }}
+        </ion-select-option>
+      </ion-select>
+      <!-- DEBUG: Show current lang value -->
+      <span style="display: none;" id="debug-lang">{{ lang.lang }}</span>
+    </ion-item>
+  </ion-list>
+
+  <!-- Privacy -->
+  <ion-list inset="true">
+    <ion-item lines="full">
+      <ion-label class="ion-text-wrap">
+        <h2>{{ 'SETTINGS.PRIVACY_SECTION' | translate }}</h2>
+        <p>{{ 'SETTINGS.PRIVACY_HINT' | translate }}</p>
+      </ion-label>
+    </ion-item>
+
+    @if (consent.state.umpReady && consent.state.privacyOptionsRequired) {
+      <ion-item button detail="true" (click)="openPrivacyOptions()">
+        <ion-label>{{ 'SETTINGS.PRIVACY_OPTIONS' | translate }}</ion-label>
+      </ion-item>
+    }
+
+    <ion-item button detail="true" (click)="openPrivacyPolicy()">
+      <ion-label>{{ 'SETTINGS.PRIVACY_POLICY' | translate }}</ion-label>
+    </ion-item>
+  </ion-list>
+
+  <!-- Requirements -->
+  <ion-list inset="true">
+    <ion-item lines="full">
+      <ion-label class="ion-text-wrap">
+        <h2>{{ 'SETTINGS.REQUISITES_SECTION' | translate }}</h2>
+        <p>{{ 'SETTINGS.REQUISITES_HINT' | translate }}</p>
+      </ion-label>
+    </ion-item>
+
+    <ion-item button detail="true" [routerLink]="['/tabs/settings/requisites']">
+      <ion-label>{{ 'SETTINGS.REQUISITES' | translate }}</ion-label>
+    </ion-item>
+  </ion-list>
+
+  <!-- Instructions -->
+  <ion-list inset="true">
+    <ion-item lines="full">
+      <ion-label class="ion-text-wrap">
+        <h2>{{ 'SETTINGS.INSTRUCTIONS_SECTION' | translate }}</h2>
+        <p>{{ 'SETTINGS.INSTRUCTIONS_HINT' | translate }}</p>
+      </ion-label>
+    </ion-item>
+
+    <ion-item button detail="true" [routerLink]="['/tabs/settings/instructions']">
+      <ion-label>{{ 'SETTINGS.INSTRUCTIONS' | translate }}</ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

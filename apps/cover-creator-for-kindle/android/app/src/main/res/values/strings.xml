@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Cover Creator for Kindle</string>
+    <string name="title_activity_main">Cover Creator for Kindle</string>
+    <string name="package_name">com.sheldrapps.covercreatorforkindle</string>
+    <string name="custom_url_scheme">com.sheldrapps.covercreatorforkindle</string>
+</resources>

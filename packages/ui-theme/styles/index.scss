@@ -10,3 +10,4 @@
 @forward './tokens';
 @forward './ionic-safe-overrides';
 @forward './callouts';
+@use './toast' as *;
