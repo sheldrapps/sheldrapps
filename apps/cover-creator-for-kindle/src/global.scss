@@ -7,6 +7,7 @@
 /* Sheldrapps Design System - MUST be before @import rules */
 @use "@sheldrapps/ui-theme/styles/index" as *;
 @use "@sheldrapps/ui-theme/styles/toast" as *;
+@use "../../../packages/ui-theme/styles/modal-kit" as *;
 
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
