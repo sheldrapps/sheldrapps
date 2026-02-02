@@ -160,6 +160,15 @@ export class CoverCropperModalComponent
     this.adjustOpen = false;
   }
 
+  resetAdjustments(): void {
+    this.brightness = 1;
+    this.saturation = 1;
+    this.contrast = 1;
+    this.bw = false;
+    this.dither = false;
+    this.onAdjustChanged();
+  }
+
   ngOnInit(): void {
     this.ready = false;
     this.didEmitReady = false;
@@ -180,7 +189,7 @@ export class CoverCropperModalComponent
           size: this.file?.size,
         });
         throw err;
-      }
+      },
     );
 
     if (this.initialState) {
@@ -188,7 +197,7 @@ export class CoverCropperModalComponent
         this.initialState.scale,
         this.minScale,
         this.maxScale,
-        1
+        1,
       );
       this.tx = Number(this.initialState.tx ?? 0);
       this.ty = Number(this.initialState.ty ?? 0);
@@ -197,19 +206,19 @@ export class CoverCropperModalComponent
         this.initialState.brightness ?? 1,
         0.5,
         1.5,
-        1
+        1,
       );
       this.saturation = this.sanitize(
         this.initialState.saturation ?? 1,
         0,
         2,
-        1
+        1,
       );
       this.contrast = this.sanitize(
         this.initialState.contrast ?? 1,
         0.5,
         1.8,
-        1
+        1,
       );
 
       this.bw = !!this.initialState.bw;
@@ -312,7 +321,7 @@ export class CoverCropperModalComponent
           this.gestureStart.startScale * ratio,
           this.minScale,
           this.maxScale,
-          this.minScale
+          this.minScale,
         );
 
         const mdx = mid.x - this.gestureStart.startMid.x;
@@ -710,7 +719,7 @@ export class CoverCropperModalComponent
 
     const quality = 0.92;
     const blob: Blob | null = await new Promise((resolve) =>
-      canvas.toBlob((bb) => resolve(bb), 'image/jpeg', quality)
+      canvas.toBlob((bb) => resolve(bb), 'image/jpeg', quality),
     );
 
     if (!blob) return;
@@ -722,7 +731,7 @@ export class CoverCropperModalComponent
 
     this.modalCtrl.dismiss(
       { file: croppedFile, state: this.getState() },
-      'done'
+      'done',
     );
   }
 
@@ -731,7 +740,7 @@ export class CoverCropperModalComponent
     syR: number,
     sWR: number,
     sHR: number,
-    rot: 0 | 90 | 180 | 270
+    rot: 0 | 90 | 180 | 270,
   ): { sx: number; sy: number; sWidth: number; sHeight: number } {
     const W = this.naturalW;
     const H = this.naturalH;
@@ -770,7 +779,7 @@ export class CoverCropperModalComponent
     v: number,
     min: number,
     max: number,
-    fallback: number
+    fallback: number,
   ): number {
     const n = Number(v);
     if (!Number.isFinite(n)) return fallback;

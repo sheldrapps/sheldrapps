@@ -92,6 +92,7 @@
     "DITHER": "Dither",
     "FRAME_ARIA": "Crop area",
     "HINT": "Pinch to zoom · Drag to move",
+    "RESET_ADJUSTMENTS_ARIA": "Reset adjustments",
     "RESET_ARIA": "Reset",
     "ROTATE": "Rotate",
     "SATURATION": "Saturation",
