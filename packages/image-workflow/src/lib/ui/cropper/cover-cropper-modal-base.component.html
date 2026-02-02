@@ -113,6 +113,15 @@
     [attr.aria-label]="adjustmentsAriaLabel"
   >
     <div class="sheet-head">
+      <ion-button
+        fill="clear"
+        class="sheet-reset"
+        (click)="resetAdjustments()"
+        [attr.aria-label]="resetAdjustmentsAriaLabel"
+      >
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+
       <div class="sheet-grabber" aria-hidden="true"></div>
 
       <div class="sheet-title">

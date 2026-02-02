@@ -192,7 +192,7 @@ export class ChildDetailPage {
     await this.store.renameChild(this.childId, this.nameValue);
   }
 
-  async updateCreditAmount(value: string | null): Promise<void> {
+  async updateCreditAmount(value: string | null | undefined): Promise<void> {
     await this.store.setChildCreditAmount(this.childId, Number(value ?? 0));
   }
 

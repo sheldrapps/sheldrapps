@@ -11,7 +11,9 @@
     "test": "ng test",
     "lint": "ng lint",
     "assets:android": "pnpm exec capacitor-assets generate --android",
-    "debugApk": "ionic build && npx cap sync android && cd android && .\\gradlew clean assembleDebug && copy .\\app\\build\\outputs\\apk\\debug\\app-debug.apk \"G:\\Mi unidad\\\" && cd .."
+    "debugApk": "ionic build && npx cap sync android && cd android && .\\gradlew clean assembleDebug && copy .\\app\\build\\outputs\\apk\\debug\\app-debug.apk \"G:\\Mi unidad\\\" && cd ..",
+    "releaseApk": "ionic build && npx cap sync android && cd android && .\\gradlew clean assembleRelease && copy .\\app\\build\\outputs\\apk\\release\\app-release.apk \"G:\\Mi unidad\\\" && cd ..",
+    "bundleRelease": "ionic build && npx cap sync android && cd android && .\\gradlew clean bundleRelease && cd .."
   },
   "private": true,
   "dependencies": {

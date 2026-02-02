@@ -45,7 +45,7 @@ type Pt = { x: number; y: number };
  * For use with ngx-translate, wrap this component or use it within a module that provides TranslateModule.
  */
 @Component({
-  selector: 'app-cover-cropper-modal',
+  selector: "app-cover-cropper-modal",
   standalone: true,
   imports: [
     CommonModule,
@@ -63,8 +63,8 @@ type Pt = { x: number; y: number };
     IonToggle,
     IonSpinner,
   ],
-  templateUrl: './cover-cropper-modal-base.component.html',
-  styleUrls: ['./cover-cropper-modal.component.scss'],
+  templateUrl: "./cover-cropper-modal-base.component.html",
+  styleUrls: ["./cover-cropper-modal.component.scss"],
 })
 export class CoverCropperModalComponent
   implements OnInit, AfterViewInit, OnDestroy
@@ -75,29 +75,30 @@ export class CoverCropperModalComponent
   @Input() onReady?: () => void;
 
   // i18n Labels - default to English
-  @Input() title = 'Edit Image';
-  @Input() cancelLabel = 'Cancel';
-  @Input() doneLabel = 'Done';
-  @Input() loadingLabel = 'Loading...';
-  @Input() hintLabel = 'Tap and drag to move, pinch to zoom';
-  @Input() adjustmentsLabel = 'Adjustments';
-  @Input() rotateLabel = 'Rotate';
-  @Input() brightnessLabel = 'Brightness';
-  @Input() saturationLabel = 'Saturation';
-  @Input() contrastLabel = 'Contrast';
-  @Input() bwLabel = 'Black & White';
-  @Input() ditherLabel = 'Dither';
+  @Input() title = "Edit Image";
+  @Input() cancelLabel = "Cancel";
+  @Input() doneLabel = "Done";
+  @Input() loadingLabel = "Loading...";
+  @Input() hintLabel = "Tap and drag to move, pinch to zoom";
+  @Input() adjustmentsLabel = "Adjustments";
+  @Input() resetAdjustmentsAriaLabel = "Reset adjustments";
+  @Input() rotateLabel = "Rotate";
+  @Input() brightnessLabel = "Brightness";
+  @Input() saturationLabel = "Saturation";
+  @Input() contrastLabel = "Contrast";
+  @Input() bwLabel = "Black & White";
+  @Input() ditherLabel = "Dither";
 
   // Aria labels
-  @Input() frameAriaLabel = 'Image crop frame';
-  @Input() controlsAriaLabel = 'Crop controls';
-  @Input() resetAriaLabel = 'Reset crop';
-  @Input() zoomOutAriaLabel = 'Zoom out';
-  @Input() zoomInAriaLabel = 'Zoom in';
-  @Input() adjustmentsAriaLabel = 'Image adjustments panel';
+  @Input() frameAriaLabel = "Image crop frame";
+  @Input() controlsAriaLabel = "Crop controls";
+  @Input() resetAriaLabel = "Reset crop";
+  @Input() zoomOutAriaLabel = "Zoom out";
+  @Input() zoomInAriaLabel = "Zoom in";
+  @Input() adjustmentsAriaLabel = "Image adjustments panel";
 
-  @ViewChild('frame', { read: ElementRef }) frameRef!: ElementRef<HTMLElement>;
-  @ViewChild('img', { read: ElementRef }) imgRef!: ElementRef<HTMLImageElement>;
+  @ViewChild("frame", { read: ElementRef }) frameRef!: ElementRef<HTMLElement>;
+  @ViewChild("img", { read: ElementRef }) imgRef!: ElementRef<HTMLImageElement>;
 
   readonly minScale = 1;
   readonly maxScale = 6;
@@ -105,7 +106,7 @@ export class CoverCropperModalComponent
 
   ready = false;
 
-  imageUrl = '';
+  imageUrl = "";
   private naturalW = 0;
   private naturalH = 0;
 
@@ -126,7 +127,7 @@ export class CoverCropperModalComponent
 
   private pointers = new Map<number, Pt>();
   private gestureStart?: {
-    type: 'pan' | 'pinch';
+    type: "pan" | "pinch";
     startScale: number;
     startTx: number;
     startTy: number;
@@ -167,6 +168,15 @@ export class CoverCropperModalComponent
     this.adjustOpen = false;
   }
 
+  resetAdjustments(): void {
+    this.brightness = 1;
+    this.saturation = 1;
+    this.contrast = 1;
+    this.bw = false;
+    this.dither = false;
+    this.onAdjustChanged();
+  }
+
   ngOnInit(): void {
     this.ready = false;
     this.didEmitReady = false;
@@ -181,13 +191,13 @@ export class CoverCropperModalComponent
         return b;
       },
       (err) => {
-        console.error('[cropper] createImageBitmap failed', err, {
+        console.error("[cropper] createImageBitmap failed", err, {
           name: this.file?.name,
           type: this.file?.type,
           size: this.file?.size,
         });
         throw err;
-      }
+      },
     );
 
     if (this.initialState) {
@@ -195,7 +205,7 @@ export class CoverCropperModalComponent
         this.initialState.scale,
         this.minScale,
         this.maxScale,
-        1
+        1,
       );
       this.tx = Number(this.initialState.tx ?? 0);
       this.ty = Number(this.initialState.ty ?? 0);
@@ -204,19 +214,19 @@ export class CoverCropperModalComponent
         this.initialState.brightness ?? 1,
         0.5,
         1.5,
-        1
+        1,
       );
       this.saturation = this.sanitize(
         this.initialState.saturation ?? 1,
         0,
         2,
-        1
+        1,
       );
       this.contrast = this.sanitize(
         this.initialState.contrast ?? 1,
         0.5,
         1.8,
-        1
+        1,
       );
 
       this.bw = !!this.initialState.bw;
@@ -258,7 +268,7 @@ export class CoverCropperModalComponent
 
       if (this.pointers.size === 1) {
         this.gestureStart = {
-          type: 'pan',
+          type: "pan",
           startScale: this.scale,
           startTx: this.tx,
           startTy: this.ty,
@@ -274,7 +284,7 @@ export class CoverCropperModalComponent
 
         const [a, b] = Array.from(this.pointers.values());
         this.gestureStart = {
-          type: 'pinch',
+          type: "pinch",
           startScale: this.scale,
           startTx: this.tx,
           startTy: this.ty,
@@ -292,7 +302,7 @@ export class CoverCropperModalComponent
       this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (!this.gestureStart) return;
 
-      if (this.pointers.size === 1 && this.gestureStart.type === 'pan') {
+      if (this.pointers.size === 1 && this.gestureStart.type === "pan") {
         const p = this.pointers.values().next().value as Pt;
         const dx = p.x - this.gestureStart.startMid.x;
         const dy = p.y - this.gestureStart.startMid.y;
@@ -319,7 +329,7 @@ export class CoverCropperModalComponent
           this.gestureStart.startScale * ratio,
           this.minScale,
           this.maxScale,
-          this.minScale
+          this.minScale,
         );
 
         const mdx = mid.x - this.gestureStart.startMid.x;
@@ -340,7 +350,7 @@ export class CoverCropperModalComponent
       if (this.pointers.size === 1) {
         const p = this.pointers.values().next().value as Pt;
         this.gestureStart = {
-          type: 'pan',
+          type: "pan",
           startScale: this.scale,
           startTx: this.tx,
           startTy: this.ty,
@@ -350,7 +360,7 @@ export class CoverCropperModalComponent
       } else if (this.pointers.size >= 2) {
         const [a, b] = Array.from(this.pointers.values());
         this.gestureStart = {
-          type: 'pinch',
+          type: "pinch",
           startScale: this.scale,
           startTx: this.tx,
           startTy: this.ty,
@@ -365,16 +375,16 @@ export class CoverCropperModalComponent
       e.preventDefault();
     };
 
-    frame.addEventListener('pointerdown', onPointerDown, { passive: false });
-    frame.addEventListener('pointermove', onPointerMove, { passive: false });
-    frame.addEventListener('pointerup', onPointerUp, { passive: false });
-    frame.addEventListener('pointercancel', onPointerUp, { passive: false });
+    frame.addEventListener("pointerdown", onPointerDown, { passive: false });
+    frame.addEventListener("pointermove", onPointerMove, { passive: false });
+    frame.addEventListener("pointerup", onPointerUp, { passive: false });
+    frame.addEventListener("pointercancel", onPointerUp, { passive: false });
 
     this.cleanup = () => {
-      frame.removeEventListener('pointerdown', onPointerDown as any);
-      frame.removeEventListener('pointermove', onPointerMove as any);
-      frame.removeEventListener('pointerup', onPointerUp as any);
-      frame.removeEventListener('pointercancel', onPointerUp as any);
+      frame.removeEventListener("pointerdown", onPointerDown as any);
+      frame.removeEventListener("pointermove", onPointerMove as any);
+      frame.removeEventListener("pointerup", onPointerUp as any);
+      frame.removeEventListener("pointercancel", onPointerUp as any);
     };
 
     this.tryReady();
@@ -527,7 +537,7 @@ export class CoverCropperModalComponent
   }
 
   cancel(): void {
-    this.modalCtrl.dismiss(null, 'cancel');
+    this.modalCtrl.dismiss(null, "cancel");
   }
 
   async use(): Promise<void> {
@@ -571,15 +581,15 @@ export class CoverCropperModalComponent
         ? await this.sourceBitmapPromise
         : await createImageBitmap(this.file));
 
-    const rotCanvas = document.createElement('canvas');
+    const rotCanvas = document.createElement("canvas");
     rotCanvas.width = rotW;
     rotCanvas.height = rotH;
 
-    const rctx = rotCanvas.getContext('2d');
+    const rctx = rotCanvas.getContext("2d");
     if (!rctx) return;
 
     rctx.imageSmoothingEnabled = true;
-    rctx.imageSmoothingQuality = 'high';
+    rctx.imageSmoothingQuality = "high";
 
     rctx.save();
     if (r === 0) {
@@ -599,18 +609,18 @@ export class CoverCropperModalComponent
     }
     rctx.restore();
 
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = outW;
     canvas.height = outH;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, outW, outH);
 
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
+    ctx.imageSmoothingQuality = "high";
 
     ctx.drawImage(rotCanvas, sxR, syR, sWidthR, sHeightR, 0, 0, outW, outH);
 
@@ -708,29 +718,29 @@ export class CoverCropperModalComponent
 
     const quality = 0.92;
     const blob: Blob | null = await new Promise((resolve) =>
-      canvas.toBlob((bb) => resolve(bb), 'image/jpeg', quality)
+      canvas.toBlob((bb) => resolve(bb), "image/jpeg", quality),
     );
 
     if (!blob) return;
 
     const name =
-      this.file.name.replace(/\.(png|jpg|jpeg|webp)$/i, '') + `_cropped.jpg`;
+      this.file.name.replace(/\.(png|jpg|jpeg|webp)$/i, "") + `_cropped.jpg`;
 
-    const croppedFile = new File([blob], name, { type: 'image/jpeg' });
+    const croppedFile = new File([blob], name, { type: "image/jpeg" });
 
     const result: CropperResult = {
       file: croppedFile,
       state: this.getState(),
     };
 
-    this.modalCtrl.dismiss(result, 'done');
+    this.modalCtrl.dismiss(result, "done");
   }
 
   private sanitize(
     v: number,
     min: number,
     max: number,
-    fallback: number
+    fallback: number,
   ): number {
     const n = Number(v);
     if (!Number.isFinite(n)) return fallback;

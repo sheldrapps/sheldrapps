@@ -67,7 +67,6 @@ interface BudgetGroup {
     IonItemSliding,
     IonItemOptions,
     IonItemOption,
-    IonListHeader,
   ],
 })
 export class HomePage {
