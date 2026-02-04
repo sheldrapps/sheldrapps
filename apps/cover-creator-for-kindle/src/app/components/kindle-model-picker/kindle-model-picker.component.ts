@@ -11,10 +11,10 @@ import {
   IonItem,
   IonLabel,
   IonItemDivider,
-  IonIcon
+  IonIcon,
+  ModalController,
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
-import { ModalController } from '@ionic/angular';
 
 import { checkmark } from 'ionicons/icons';
 import { addIcons } from 'ionicons';

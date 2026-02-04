@@ -22,8 +22,8 @@ import {
   IonItem,
   IonLabel,
   IonSpinner,
+  ModalController,
 } from '@ionic/angular/standalone';
-import { ModalController } from '@ionic/angular';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { addIcons } from 'ionicons';

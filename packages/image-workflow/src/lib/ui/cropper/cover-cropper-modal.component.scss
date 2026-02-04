@@ -81,6 +81,20 @@
   color: var(--ion-text-color);
 }
 
+.format-row {
+  padding: 2px 4px 8px 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.format-row ion-segment {
+  width: 100%;
+}
+
+.format-segment {
+  min-width: max-content;
+}
+
 .ctrl {
   --color: var(--ion-text-color);
   --border-radius: 12px;

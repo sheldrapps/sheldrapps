@@ -133,8 +133,25 @@
       </ion-button>
     </div>
 
-    <div class="sheet-body">
-      <ion-item lines="none" class="rot-item">
+  <div class="sheet-body">
+    @if (formatOptions?.length) {
+    <div class="format-row">
+      <ion-segment
+        class="format-segment"
+        [value]="selectedFormatId ?? ''"
+        (ionChange)="onFormatChange($event)"
+        scrollable="true"
+      >
+        @for (opt of (formatOptions ?? []); track opt.id) {
+        <ion-segment-button [value]="opt.id">
+          {{ opt.label }}
+        </ion-segment-button>
+        }
+      </ion-segment>
+    </div>
+    }
+
+    <ion-item lines="none" class="rot-item">
         <ion-label>{{ rotateLabel }}</ion-label>
 
         <ion-buttons slot="end" class="rot-actions">

@@ -205,6 +205,196 @@ importers:
         specifier: ~5.9.0
         version: 5.9.3
 
+  apps/epub-cover-changer:
+    dependencies:
+      '@angular/animations':
+        specifier: ^20.0.0
+        version: 20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
+      '@angular/common':
+        specifier: ^20.0.0
+        version: 20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@angular/compiler':
+        specifier: ^20.0.0
+        version: 20.3.16
+      '@angular/core':
+        specifier: ^20.0.0
+        version: 20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)
+      '@angular/forms':
+        specifier: ^20.0.0
+        version: 20.3.16(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.16(@angular/animations@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
+      '@angular/platform-browser':
+        specifier: ^20.0.0
+        version: 20.3.16(@angular/animations@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
+      '@angular/platform-browser-dynamic':
+        specifier: ^20.0.0
+        version: 20.3.16(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/compiler@20.3.16)(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.16(@angular/animations@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))
+      '@angular/router':
+        specifier: ^20.0.0
+        version: 20.3.16(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.16(@angular/animations@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
+      '@capacitor-community/admob':
+        specifier: ^8.0.0
+        version: 8.0.0
+      '@capacitor/android':
+        specifier: ^8.0.0
+        version: 8.0.2(@capacitor/core@8.0.0)
+      '@capacitor/app':
+        specifier: 8.0.0
+        version: 8.0.0(@capacitor/core@8.0.0)
+      '@capacitor/browser':
+        specifier: ^8.0.0
+        version: 8.0.0(@capacitor/core@8.0.0)
+      '@capacitor/core':
+        specifier: 8.0.0
+        version: 8.0.0
+      '@capacitor/device':
+        specifier: ^8.0.0
+        version: 8.0.0(@capacitor/core@8.0.0)
+      '@capacitor/filesystem':
+        specifier: ^8.0.0
+        version: 8.1.0(@capacitor/core@8.0.0)
+      '@capacitor/haptics':
+        specifier: 8.0.0
+        version: 8.0.0(@capacitor/core@8.0.0)
+      '@capacitor/ios':
+        specifier: ^8.0.0
+        version: 8.0.2(@capacitor/core@8.0.0)
+      '@capacitor/keyboard':
+        specifier: 8.0.0
+        version: 8.0.0(@capacitor/core@8.0.0)
+      '@capacitor/preferences':
+        specifier: ^8.0.0
+        version: 8.0.0(@capacitor/core@8.0.0)
+      '@capacitor/share':
+        specifier: ^8.0.0
+        version: 8.0.0(@capacitor/core@8.0.0)
+      '@capacitor/status-bar':
+        specifier: 8.0.0
+        version: 8.0.0(@capacitor/core@8.0.0)
+      '@ionic/angular':
+        specifier: ^8.0.0
+        version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
+      '@ngx-translate/core':
+        specifier: ^17.0.0
+        version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
+      '@ngx-translate/http-loader':
+        specifier: ^17.0.0
+        version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
+      '@sheldrapps/ads-kit':
+        specifier: workspace:*
+        version: link:../../packages/ads-kit
+      '@sheldrapps/file-kit':
+        specifier: workspace:*
+        version: link:../../packages/file-kit
+      '@sheldrapps/i18n-kit':
+        specifier: workspace:*
+        version: link:../../packages/i18n-kit
+      '@sheldrapps/image-workflow':
+        specifier: workspace:*
+        version: link:../../packages/image-workflow
+      '@sheldrapps/settings-kit':
+        specifier: workspace:*
+        version: link:../../packages/settings-kit
+      '@sheldrapps/ui-theme':
+        specifier: workspace:*
+        version: link:../../packages/ui-theme
+      ionicons:
+        specifier: ^7.0.0
+        version: 7.4.0
+      jszip:
+        specifier: ^3.10.1
+        version: 3.10.1
+      rxjs:
+        specifier: ~7.8.0
+        version: 7.8.2
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+      zone.js:
+        specifier: ~0.15.0
+        version: 0.15.1
+    devDependencies:
+      '@angular-devkit/build-angular':
+        specifier: ^20.0.0
+        version: 20.3.15(@angular/compiler-cli@20.3.16(@angular/compiler@20.3.16)(typescript@5.9.3))(@angular/compiler@20.3.16)(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.16(@angular/animations@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@25.0.10)(chokidar@4.0.3)(jiti@1.21.7)(karma@6.4.4)(ng-packagr@20.3.2(@angular/compiler-cli@20.3.16(@angular/compiler@20.3.16)(typescript@5.9.3))(tslib@2.8.1)(typescript@5.9.3))(typescript@5.9.3)
+      '@angular-eslint/builder':
+        specifier: ^20.0.0
+        version: 20.7.0(chokidar@4.0.3)(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3)
+      '@angular-eslint/eslint-plugin':
+        specifier: ^20.0.0
+        version: 20.7.0(@typescript-eslint/utils@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3)
+      '@angular-eslint/eslint-plugin-template':
+        specifier: ^20.0.0
+        version: 20.7.0(@angular-eslint/template-parser@20.7.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(@typescript-eslint/types@8.54.0)(@typescript-eslint/utils@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3)
+      '@angular-eslint/schematics':
+        specifier: ^20.0.0
+        version: 20.7.0(@angular-eslint/template-parser@20.7.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(@typescript-eslint/types@8.54.0)(@typescript-eslint/utils@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(chokidar@4.0.3)(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3)
+      '@angular-eslint/template-parser':
+        specifier: ^20.0.0
+        version: 20.7.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3)
+      '@angular/cli':
+        specifier: ^20.0.0
+        version: 20.3.15(@types/node@25.0.10)(chokidar@4.0.3)(hono@4.11.7)
+      '@angular/compiler-cli':
+        specifier: ^20.0.0
+        version: 20.3.16(@angular/compiler@20.3.16)(typescript@5.9.3)
+      '@angular/language-service':
+        specifier: ^20.0.0
+        version: 20.3.16
+      '@capacitor/assets':
+        specifier: ^3.0.5
+        version: 3.0.5(@types/node@25.0.10)(encoding@0.1.13)(typescript@5.9.3)
+      '@capacitor/cli':
+        specifier: 8.0.0
+        version: 8.0.0
+      '@ionic/angular-toolkit':
+        specifier: ^12.0.0
+        version: 12.3.0(chokidar@4.0.3)
+      '@types/jasmine':
+        specifier: ~5.1.0
+        version: 5.1.15
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.18.0
+        version: 8.54.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3)
+      '@typescript-eslint/parser':
+        specifier: ^8.18.0
+        version: 8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3)
+      eslint:
+        specifier: ^9.16.0
+        version: 9.39.2(jiti@1.21.7)
+      eslint-plugin-import:
+        specifier: ^2.29.1
+        version: 2.32.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.2(jiti@1.21.7))
+      eslint-plugin-jsdoc:
+        specifier: ^48.2.1
+        version: 48.11.0(eslint@9.39.2(jiti@1.21.7))
+      eslint-plugin-prefer-arrow:
+        specifier: 1.2.2
+        version: 1.2.2(eslint@9.39.2(jiti@1.21.7))
+      jasmine-core:
+        specifier: ~5.1.0
+        version: 5.1.2
+      jasmine-spec-reporter:
+        specifier: ~5.0.0
+        version: 5.0.2
+      karma:
+        specifier: ~6.4.0
+        version: 6.4.4
+      karma-chrome-launcher:
+        specifier: ~3.2.0
+        version: 3.2.0
+      karma-coverage:
+        specifier: ~2.2.0
+        version: 2.2.1
+      karma-jasmine:
+        specifier: ~5.1.0
+        version: 5.1.0(karma@6.4.4)
+      karma-jasmine-html-reporter:
+        specifier: ~2.1.0
+        version: 2.1.0(jasmine-core@5.1.2)(karma-jasmine@5.1.0(karma@6.4.4))(karma@6.4.4)
+      typescript:
+        specifier: ~5.9.0
+        version: 5.9.3
+
   apps/presupuesto-ninos:
     dependencies:
       '@angular/animations':
@@ -279,6 +469,9 @@ importers:
       '@sheldrapps/i18n-kit':
         specifier: workspace:*
         version: link:../../packages/i18n-kit
+      '@sheldrapps/image-workflow':
+        specifier: workspace:*
+        version: link:../../packages/image-workflow
       '@sheldrapps/settings-kit':
         specifier: workspace:*
         version: link:../../packages/settings-kit

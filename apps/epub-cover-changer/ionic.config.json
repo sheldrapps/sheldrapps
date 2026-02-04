@@ -1,0 +1,8 @@
+{
+  "name": "epub-cover-changer",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
+

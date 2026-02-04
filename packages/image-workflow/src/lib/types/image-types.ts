@@ -59,6 +59,21 @@ export interface ImageSource {
 export interface CropTarget {
   width: number;
   height: number;
+  /**
+   * Output sizing mode
+   * - 'target': export at target width/height (default)
+   * - 'source': export at source crop size (no rescale)
+   */
+  output?: 'target' | 'source';
+}
+
+/**
+ * Crop format option for UI selection
+ */
+export interface CropFormatOption {
+  id: string;
+  label: string;
+  target: CropTarget;
 }
 
 /**
@@ -92,6 +107,7 @@ export interface CropperInput {
 export interface CropperResult {
   file: File;
   state?: CoverCropState;
+  formatId?: string;
 }
 
 /**

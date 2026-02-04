@@ -129,7 +129,6 @@ class CoverCropperModalI18nComponent {
     IonGrid,
     IonPopover,
   ],
-  providers: [ModalController],
 })
 export class CreatePage implements OnInit, OnDestroy {
   @ViewChild('imageInput') imageInput!: ElementRef<HTMLInputElement>;

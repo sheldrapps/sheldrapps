@@ -1,0 +1,143 @@
+{
+  "APP": {
+    "TITLE": "EPUB Cover Changer"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "Gehe erneut zurück, um zu beenden",
+    "CANCEL": "Abbrechen",
+    "CLOSE": "Schließen",
+    "DELETE": "Löschen",
+    "DONE": "Fertig",
+    "ERROR": "Fehler",
+    "LOADING": "Wird geladen…",
+    "SHARE": "Teilen",
+    "SHARE_KINDLE_HINT": "Wähle beim Teilen die Kindle-App aus, um es an dein Gerät zu senden.",
+    "WARNING": "Warnung"
+  },
+  "CREATE": {
+    "ADS_REQUIRED": "Anzeige konnte nicht geladen werden. Prüfe dein Netzwerk oder den Werbeblocker.",
+    "ARIA_CHANGE_EPUB": "EPUB-Datei ändern. Aktuelle Datei: {{name}}",
+    "ARIA_CHANGE_IMAGE": "Coverbild ändern. Aktuelles Bild: {{name}}",
+    "ARIA_CROP": "Ausgewähltes Bild anpassen",
+    "ARIA_SELECT_EPUB": "EPUB-Datei auswählen",
+    "ARIA_SELECT_IMAGE": "Coverbild auswählen",
+    "CROP_ACTION": "Anpassen",
+    "COVER_CREATED": "Cover erstellt. Du kannst es jetzt speichern oder teilen",
+    "GENERATE_ACTION_REWARDED": "Cover erstellen (Werbung ansehen)",
+    "GENERATING": "Anzeige wird geladen…",
+    "HINT_ADJUST_FIRST": "Passe zuerst das Bild an, um das Cover zu erstellen.",
+    "HINT_SAVE_SHARE_EXPLAIN": "Das Erstellen des Covers speichert es nicht automatisch.",
+    "HINT_READY_EXPORT": "Fertig. Verwende die Schaltflächen zum Speichern oder Teilen.",
+    "HINT_REWARDED_REQUIRED": "Zum Erstellen des Covers wird eine kurze Werbung angezeigt.",
+    "EPUB_ERROR_CORRUPT": "Die EPUB-Datei ist leer oder beschädigt. Bitte versuche eine andere.",
+    "EPUB_ERROR_NO_FILE": "Keine EPUB-Datei ausgewählt.",
+    "EPUB_ERROR_SIZE": "Die EPUB-Datei ist zu groß. Maximal {{maxSize}} MB.",
+    "EPUB_ERROR_TYPE": "Ungültiger Dateityp. Bitte wähle eine gültige EPUB-Datei (.epub).",
+    "IMAGE_ERROR_CORRUPT": "Das Bild konnte nicht gelesen werden. Bitte versuche ein anderes.",
+    "IMAGE_ERROR_DIMENSIONS": "Das Bild ist zu klein für die ausgewählte Zielgröße.",
+    "IMAGE_ERROR_SIZE": "Die Datei ist zu groß. Maximal {{maxSize}} MB.",
+    "IMAGE_ERROR_TYPE": "Nicht unterstütztes Format ({{type}}). Bitte wähle JPG, PNG oder WebP.",
+    "IMAGE_WARN_SMALL": "Nicht mit einigen Geräten kompatibel. Für bessere Ergebnisse verwende ein größeres Bild.",
+    "LOADING_EPUB": "EPUB wird geladen…",
+    "LOADING_IMAGE": "Bild wird geladen…",
+    "OPENING_EDITOR": "Editor wird geöffnet…",
+    "SELECT_EPUB_LABEL": "EPUB-Datei",
+    "SELECT_EPUB_PLACEHOLDER": "EPUB-Datei auswählen",
+    "SAVING": "Cover wird gespeichert…",
+    "SAVED_OK": "Cover gespeichert",
+    "SAVE_RENAME_TITLE": "Cover speichern",
+    "SAVE_RENAME_MESSAGE": "Gib einen Namen für das Cover ein",
+    "SAVE_RENAME_PLACEHOLDER": "Dateiname",
+    "SHARING": "Teilen wird vorbereitet…",
+    "SAVE_ACTION": "Speichern",
+    "SELECT_IMAGE_LABEL": "Coverbild",
+    "SELECT_IMAGE_PLACEHOLDER": "Bild auswählen",
+    "TAP_TO_CHANGE": "Antippen zum Ändern/Zurücksetzen",
+    "TITLE": "Cover erstellen"
+  },
+  "COVERS": {
+    "DELETED": "Cover gelöscht",
+    "EMPTY": "Noch keine Cover vorhanden.",
+    "PLACEHOLDER": "Cover",
+    "PREVIEW_TITLE": "Vorschau",
+    "TITLE": "Cover",
+    "ACTIONS": {
+      "DELETE": "Löschen",
+      "SHARE": "Teilen"
+    },
+    "DELETE": {
+      "MESSAGE": "Möchtest du dieses Cover löschen?",
+      "TITLE": "Cover löschen"
+    },
+    "ERROR": {
+      "DELETE": "Cover konnte nicht gelöscht werden. Bitte versuche es erneut.",
+      "SHARE": "Cover konnte nicht geteilt werden. Bitte versuche es erneut.",
+      "LOAD": "Cover konnten nicht geladen werden. Zum Aktualisieren nach unten ziehen."
+    }
+  },
+  "CROPPER": {
+    "ADJUSTMENTS": "Anpassungen",
+    "ADJUSTMENTS_ARIA": "Bildanpassungen",
+    "BRIGHTNESS": "Helligkeit",
+    "BW": "S/W",
+    "CONTRAST": "Kontrast",
+    "CONTROLS_ARIA": "Steuerung",
+    "DITHER": "Dithering",
+    "FRAME_ARIA": "Zuschneidebereich",
+    "HINT": "Zum Zoomen ziehen · Zum Verschieben wischen",
+    "RESET_ADJUSTMENTS_ARIA": "Anpassungen zurücksetzen",
+    "RESET_ARIA": "Zurücksetzen",
+    "ROTATE": "Drehen",
+    "SATURATION": "Sättigung",
+    "TITLE": "Zuschneiden",
+    "ZOOM_IN_ARIA": "Vergrößern",
+    "ZOOM_OUT_ARIA": "Verkleinern"
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "Hinweis",
+    "STEP_1": "Wähle ein Bild für dein Cover aus",
+    "STEP_2": "Passe das Bild an die Größe deines Kindle an",
+    "STEP_3": "Erstelle das Cover durch Ansehen eines kurzen Videos",
+    "STEP_4": "Speichere oder teile das Cover",
+    "STEP_4_DESC": "Nach der Erstellung kannst du es auf deinem Gerät speichern oder direkt über die Kindle-App teilen, um einen reibungslosen Übergang zu erzielen.",
+    "STEP_5": "Über das Web senden (Send to Kindle)",
+    "STEP_5_DESC": "Du kannst sie auch über den Browser mit dem Web-Tool Send to Kindle senden.",
+    "TIP": "Für beste Ergebnisse verwende hochauflösende Bilder und stelle sicher, dass Werbung auf deinem Kindle deaktiviert ist.",
+    "TITLE": "So erstellst du ein Cover für Kindle"
+  },
+  "REQUISITES": {
+    "ADS_DESC": "Werbung muss auf dem Gerät deaktiviert sein, damit das Cover auf dem Sperrbildschirm angezeigt wird.",
+    "ADS_LINK": "Gerätewerbung verwalten",
+    "ADS_TITLE": "Werbung deaktiviert",
+    "APP_ANDROID": "Kindle-App (Android)",
+    "APP_DESC": "Die Kindle-App wird benötigt, um das Cover auf dem Gerät zu senden und anzuzeigen.",
+    "APP_IOS": "Kindle-App (iOS)",
+    "APP_TITLE": "Kindle-App",
+    "COVER_DESC": "Aktiviere die Option, das aktuelle Buchcover auf dem Sperrbildschirm anzuzeigen.",
+    "COVER_LINK": "Coveranzeige konfigurieren",
+    "COVER_TITLE": "Buchcover anzeigen",
+    "NOTE": "EPUB Cover Changer ist keine offizielle App und verändert nicht die Gerätesoftware.",
+    "SEND_LINK": "Send to Kindle (web)",
+    "SEND_TITLE": "Cover über das Web senden",
+    "TITLE": "Voraussetzungen für die Nutzung von EPUB Cover Changer"
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "Anleitung anzeigen",
+    "INSTRUCTIONS_HINT": "So erstellst und sendest du ein Cover für Kindle",
+    "INSTRUCTIONS_SECTION": "Anleitung",
+    "LANGUAGE": "Sprache",
+    "PRIVACY_HINT": "Lege fest, wie Daten und Werbung verarbeitet werden",
+    "PRIVACY_OPTIONS": "Datenschutzoptionen",
+    "PRIVACY_POLICY": "Datenschutzerklärung",
+    "PRIVACY_SECTION": "Datenschutz",
+    "REQUISITES": "Voraussetzungen anzeigen",
+    "REQUISITES_HINT": "Erforderliche Einstellungen, damit Cover korrekt auf Kindle funktionieren",
+    "REQUISITES_SECTION": "Voraussetzungen",
+    "TITLE": "Einstellungen"
+  },
+  "TABS": {
+    "COVERS": "Cover",
+    "CREATE": "Erstellen",
+    "SETTINGS": "Einstellungen"
+  }
+}

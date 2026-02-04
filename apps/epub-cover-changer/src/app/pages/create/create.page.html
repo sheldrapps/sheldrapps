@@ -1,0 +1,263 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>{{ 'CREATE.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <!-- EPUB File Selector -->
+  <ion-item
+    button
+    detail="false"
+    class="ion-margin-top"
+    (click)="openEpubPicker()"
+    [class.item-invalid]="!!epubErrorKey"
+    [attr.aria-invalid]="epubErrorKey ? 'true' : 'false'"
+    [attr.aria-describedby]="epubErrorKey ? 'epub-error' : null"
+    [attr.aria-label]="
+    selectedEpubName
+      ? ('CREATE.ARIA_CHANGE_EPUB' | translate:{ name: selectedEpubName })
+      : ('CREATE.ARIA_SELECT_EPUB' | translate)
+  "
+  >
+    <ion-label>
+      <div class="field-title">
+        {{ 'CREATE.SELECT_EPUB_LABEL' | translate }}
+      </div>
+
+      @if (selectedEpubName && !epubErrorKey) {
+      <div class="field-subtle">{{ 'CREATE.TAP_TO_CHANGE' | translate }}</div>
+      } @else {
+      <div class="field-placeholder">
+        {{ 'CREATE.SELECT_EPUB_PLACEHOLDER' | translate }}
+      </div>
+      }
+    </ion-label>
+
+    <div class="thumb-wrapper" slot="end" aria-hidden="true">
+      @if (selectedEpubName && !epubErrorKey) {
+      <ion-icon class="thumb-check" name="checkmark-circle"></ion-icon>
+      } @else {
+      <div class="thumb thumb--icon">
+        <ion-icon
+          class="thumb-icon"
+          [name]="epubErrorKey ? 'alert-circle-outline' : 'document-outline'"
+          aria-hidden="true"
+        ></ion-icon>
+      </div>
+      }
+    </div>
+  </ion-item>
+
+  @if (epubErrorKey) {
+  <div class="app-callout app-callout--error" aria-live="polite" role="status" id="epub-error">
+    <ion-icon
+      class="app-callout__icon"
+      name="close-circle-outline"
+      aria-hidden="true"
+    ></ion-icon>
+
+    <div>
+      <div class="app-callout__title">{{ "COMMON.ERROR" | translate }}</div>
+
+      <div class="app-callout__body">
+        {{ epubErrorKey | translate:epubErrorParams }}
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Image Selector -->
+  <ion-item
+    button
+    detail="false"
+    class="ion-margin-top"
+    (click)="openImagePicker()"
+    [disabled]="!hasValidEpub()"
+    [class.item-invalid]="!!imageErrorKey"
+    [attr.aria-invalid]="imageErrorKey ? 'true' : 'false'"
+    [attr.aria-describedby]="imageErrorKey ? 'image-error' : null"
+    [attr.aria-label]="
+    selectedImageName
+      ? ('CREATE.ARIA_CHANGE_IMAGE' | translate:{ name: selectedImageName })
+      : ('CREATE.ARIA_SELECT_IMAGE' | translate)
+  "
+  >
+    <ion-label>
+      <div class="field-title">
+        {{ 'CREATE.SELECT_IMAGE_LABEL' | translate }}
+      </div>
+
+      @if (previewUrl && !imageErrorKey) {
+      <div class="field-subtle">{{ 'CREATE.TAP_TO_CHANGE' | translate }}</div>
+      } @else {
+      <div class="field-placeholder">
+        {{ 'CREATE.SELECT_IMAGE_PLACEHOLDER' | translate }}
+      </div>
+      }
+    </ion-label>
+
+    <div class="thumb-wrapper" slot="end" aria-hidden="true">
+      @if (previewUrl && !imageErrorKey) {
+      <div class="thumb">
+        <img [src]="previewUrl" alt="" />
+      </div>
+      <ion-icon class="thumb-check" name="checkmark-circle"></ion-icon>
+      } @else {
+      <div class="thumb thumb--icon">
+        <ion-icon
+          class="thumb-icon"
+          [name]="imageErrorKey ? 'alert-circle-outline' : 'image-outline'"
+          aria-hidden="true"
+        ></ion-icon>
+      </div>
+      }
+    </div>
+  </ion-item>
+
+  @if (imageErrorKey) {
+  <div class="app-callout app-callout--error" aria-live="polite" role="status">
+    <ion-icon
+      class="app-callout__icon"
+      name="close-circle-outline"
+      aria-hidden="true"
+    ></ion-icon>
+
+    <div>
+      <div class="app-callout__title">{{ "COMMON.ERROR" | translate }}</div>
+
+      <div class="app-callout__body">
+        {{ imageErrorKey | translate:imageErrorParams }}
+      </div>
+    </div>
+  </div>
+
+  } @if (!imageErrorKey && imageWarnKey) {
+  <div
+    class="app-callout app-callout--warning"
+    aria-live="polite"
+    role="status"
+  >
+    <ion-icon
+      class="app-callout__icon"
+      name="alert-circle-outline"
+      aria-hidden="true"
+    ></ion-icon>
+
+    <div>
+      <div class="app-callout__title">{{ "COMMON.WARNING" | translate }}</div>
+
+      <div class="app-callout__body">
+        {{ imageWarnKey | translate:imageWarnParams }}
+      </div>
+    </div>
+  </div>
+  }
+
+  <ion-button
+    expand="block"
+    class="ion-margin-top"
+    fill="outline"
+    [disabled]="!canCrop()"
+    (click)="startCrop()"
+    aria-label="{{ 'CREATE.ARIA_CROP' | translate }}"
+  >
+    {{ 'CREATE.CROP_ACTION' | translate }}
+  </ion-button>
+
+  <div class="actions">
+    <ion-button
+      expand="block"
+      [disabled]="!canGenerate()"
+      (click)="onGenerate()"
+    >
+      <ion-icon slot="start" name="play-circle-outline"></ion-icon>
+      {{ 'CREATE.CREATE_ACTION_REWARDED' | translate }}
+    </ion-button>
+
+    <div class="cc-info-row">
+      <ion-button 
+        fill="clear" 
+        size="small" 
+        class="cc-info-btn" 
+        (click)="toggleInfo($event)"
+        [attr.aria-label]="'CREATE.INFO_ARIA' | translate"
+        [attr.aria-expanded]="infoOpen"
+      >
+        <ion-icon slot="start" name="information-circle-outline"></ion-icon>
+        {{ 'CREATE.INFO' | translate }}
+      </ion-button>
+    </div>
+  </div>
+  <ion-grid class="cc-action-grid">
+    <ion-row>
+      <ion-col size="6">
+        <ion-button
+          expand="block"
+          fill="outline"
+          [disabled]="!canSaveShare()"
+          (click)="onSave()"
+        >
+          <ion-icon slot="start" name="save-outline"></ion-icon>
+          {{ 'CREATE.SAVE_ACTION' | translate }}
+        </ion-button>
+      </ion-col>
+
+      <ion-col size="6">
+        <ion-button
+          expand="block"
+          fill="outline"
+          [disabled]="!canSaveShare()"
+          (click)="onShare()"
+        >
+          <ion-icon slot="start" name="share-social-outline"></ion-icon>
+          {{ 'COMMON.SHARE' | translate }}
+        </ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <ion-popover
+    [isOpen]="infoOpen"
+    [event]="infoEvent"
+    (didDismiss)="closeInfo()"
+    side="top"
+    alignment="start"
+  >
+    <ng-template>
+      <div class="cc-info-popover">
+        <div class="cc-info-title">{{ 'CREATE.INFO_TITLE' | translate }}</div>
+        <div class="cc-info-body">
+          <p class="cc-info-text">{{ 'CREATE.INFO_NOT_SAVED' | translate }}</p>
+          <p class="cc-info-text">{{ 'CREATE.INFO_SHARE_KINDLE' | translate }}</p>
+          <div class="cc-info-text">
+            <strong>{{ 'CREATE.INFO_FLOW_LABEL' | translate }}</strong><br>
+            {{ 'CREATE.INFO_FLOW_STEPS' | translate }}
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </ion-popover>
+
+  <ion-loading
+    [isOpen]="isPickingImage || isOpeningCropper || isExporting || isPickingEpub"
+    [message]="loadingMessageKey ? (loadingMessageKey | translate) : undefined"
+    backdropDismiss="false"
+  ></ion-loading>
+
+  <input
+    #epubInput
+    type="file"
+    accept=".epub,application/epub+zip"
+    hidden
+    (change)="onEpubSelected($event)"
+  />
+
+  <input
+    #imageInput
+    type="file"
+    accept="image/*"
+    hidden
+    (change)="onImageSelected($event)"
+  />
+</ion-content>

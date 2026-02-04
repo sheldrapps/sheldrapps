@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">EPUB Cover Changer</string>
+    <string name="title_activity_main">EPUB Cover Changer</string>
+    <string name="package_name">com.sheldrapps.epubcoverchanger</string>
+    <string name="custom_url_scheme">com.sheldrapps.epubcoverchanger</string>
+</resources>
+

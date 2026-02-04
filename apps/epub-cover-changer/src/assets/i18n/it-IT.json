@@ -1,0 +1,141 @@
+{
+  "APP": {
+    "TITLE": "EPUB Cover Changer"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "Torna indietro di nuovo per uscire",
+    "CANCEL": "Annulla",
+    "CLOSE": "Chiudi",
+    "DELETE": "Elimina",
+    "DONE": "Fatto",
+    "ERROR": "Errore",
+    "LOADING": "Caricamento…",
+    "SHARE": "Condividi",
+    "SHARE_KINDLE_HINT": "Durante la condivisione, seleziona l’app Kindle per inviarla al dispositivo.",
+    "WARNING": "Avviso"
+  },
+  "CREATE": {
+    "ADS_REQUIRED": "Impossibile caricare l’annuncio. Controlla la rete o il blocco annunci.",
+    "ARIA_CHANGE_EPUB": "Cambia file EPUB. File corrente: {{name}}",
+    "ARIA_CHANGE_IMAGE": "Cambia immagine della copertina. Immagine attuale: {{name}}",
+    "ARIA_CROP": "Regola l'immagine selezionata",
+    "ARIA_SELECT_EPUB": "Seleziona file EPUB",
+    "ARIA_SELECT_IMAGE": "Seleziona immagine di copertina",
+    "CROP_ACTION": "Regola",
+    "COVER_CREATED": "Copertina creata. Puoi ora salvare o condividere",
+    "GENERATE_ACTION_REWARDED": "Crea copertina (guarda annuncio)",
+    "GENERATING": "Caricamento annuncio…",
+    "HINT_ADJUST_FIRST": "Regola prima l’immagine per creare la copertina.",
+    "HINT_SAVE_SHARE_EXPLAIN": "La creazione della copertina non la salva automaticamente.",
+    "HINT_READY_EXPORT": "Pronto. Usa i pulsanti per salvare o condividere.",
+    "HINT_REWARDED_REQUIRED": "Verrà mostrato un breve annuncio per creare la copertina.",    "EPUB_ERROR_CORRUPT": "Il file EPUB è vuoto o corrotto. Prova con un altro.",
+    "EPUB_ERROR_NO_FILE": "Nessun file EPUB selezionato.",
+    "EPUB_ERROR_SIZE": "Il file EPUB è troppo grande. Massimo {{maxSize}} MB.",
+    "EPUB_ERROR_TYPE": "Tipo di file non valido. Seleziona un file EPUB valido (.epub).",    "IMAGE_ERROR_CORRUPT": "Impossibile leggere l’immagine. Prova con un’altra.",
+    "IMAGE_ERROR_DIMENSIONS": "L’immagine è troppo piccola per la dimensione selezionata.",
+    "IMAGE_ERROR_SIZE": "Il file è troppo grande. Massimo {{maxSize}} MB.",
+    "IMAGE_ERROR_TYPE": "Formato non supportato ({{type}}). Seleziona JPG, PNG o WebP.",
+    "IMAGE_WARN_SMALL": "Non compatibile con alcuni dispositivi. Per risultati migliori, usa un'immagine più grande.",
+    "LOADING_EPUB": "Caricamento EPUB…",
+    "LOADING_IMAGE": "Caricamento immagine…",
+    "OPENING_EDITOR": "Apertura editor…",
+    "SELECT_EPUB_LABEL": "File EPUB",
+    "SELECT_EPUB_PLACEHOLDER": "Seleziona un file EPUB",
+    "SAVING": "Salvataggio copertina…",
+    "SHARING": "Preparazione alla condivisione…",
+    "SAVE_ACTION": "Salva",
+    "SAVED_OK": "Copertina salvata",
+    "SAVE_RENAME_TITLE": "Salva copertina",
+    "SAVE_RENAME_MESSAGE": "Inserisci un nome per la copertina",
+    "SAVE_RENAME_PLACEHOLDER": "Nome del file",
+    "SELECT_IMAGE_LABEL": "Immagine di copertina",
+    "SELECT_IMAGE_PLACEHOLDER": "Seleziona un’immagine",
+    "TAP_TO_CHANGE": "Tocca per cambiare/reimpostare",
+    "TITLE": "Crea copertina"
+  },
+  "COVERS": {
+    "DELETED": "Copertina eliminata",
+    "EMPTY": "Nessuna copertina ancora.",
+    "PLACEHOLDER": "Copertina",
+    "PREVIEW_TITLE": "Anteprima",
+    "TITLE": "Copertine",
+    "ACTIONS": {
+      "DELETE": "Elimina",
+      "SHARE": "Condividi"
+    },
+    "DELETE": {
+      "MESSAGE": "Vuoi eliminare questa copertina?",
+      "TITLE": "Elimina copertina"
+    },
+    "ERROR": {
+      "DELETE": "Impossibile eliminare la copertina. Riprova.",
+      "SHARE": "Impossibile condividere la copertina. Riprova.",
+      "LOAD": "Impossibile caricare le copertine. Trascina verso il basso per riprovare."
+    }
+  },
+  "CROPPER": {
+    "ADJUSTMENTS": "Regolazioni",
+    "ADJUSTMENTS_ARIA": "Regolazioni immagine",
+    "BRIGHTNESS": "Luminosità",
+    "BW": "B/N",
+    "CONTRAST": "Contrasto",
+    "CONTROLS_ARIA": "Controlli",
+    "DITHER": "Dithering",
+    "FRAME_ARIA": "Area di ritaglio",
+    "HINT": "Pizzica per zoom · Trascina per spostare",
+    "RESET_ADJUSTMENTS_ARIA": "Ripristina regolazioni",
+    "RESET_ARIA": "Ripristina",
+    "ROTATE": "Ruota",
+    "SATURATION": "Saturazione",
+    "TITLE": "Ritaglia",
+    "ZOOM_IN_ARIA": "Ingrandisci",
+    "ZOOM_OUT_ARIA": "Riduci"
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "Nota",
+    "STEP_1": "Seleziona un'immagine per la copertina",
+    "STEP_2": "Regola l'immagine alle dimensioni del tuo Kindle",
+    "STEP_3": "Genera la copertina guardando un breve video",
+    "STEP_4": "Salva o condividi la copertina",
+    "STEP_4_DESC": "Una volta generata, puoi salvarla sul dispositivo o condividerla direttamente con l’app Kindle per una transizione più fluida.",
+    "STEP_5": "Invia via web (Send to Kindle)",
+    "STEP_5_DESC": "Puoi anche inviarla dal browser utilizzando lo strumento web Send to Kindle.",
+    "TIP": "Per risultati migliori, utilizza immagini ad alta risoluzione e assicurati che gli annunci siano disattivati sul tuo Kindle.",
+    "TITLE": "Come creare una copertina per Kindle"
+  },
+  "REQUISITES": {
+    "ADS_DESC": "Gli annunci devono essere disattivati sul dispositivo affinché la copertina venga mostrata nella schermata di blocco.",
+    "ADS_LINK": "Gestisci annunci del dispositivo",
+    "ADS_TITLE": "Annunci disattivati",
+    "APP_ANDROID": "App Kindle (Android)",
+    "APP_DESC": "L’app Kindle è necessaria per inviare e visualizzare la copertina sul dispositivo.",
+    "APP_IOS": "App Kindle (iOS)",
+    "APP_TITLE": "Applicazione Kindle",
+    "COVER_DESC": "Attiva l’opzione per mostrare la copertina del libro corrente nella schermata di blocco.",
+    "COVER_LINK": "Configura visualizzazione copertina",
+    "COVER_TITLE": "Mostra copertina del libro",
+    "NOTE": "EPUB Cover Changer non è un’applicazione ufficiale e non modifica il software del dispositivo.",
+    "SEND_LINK": "Send to Kindle (web)",
+    "SEND_TITLE": "Inviare copertine via web",
+    "TITLE": "Requisiti per usare EPUB Cover Changer"
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "Vedi istruzioni",
+    "INSTRUCTIONS_HINT": "Come creare e inviare una copertina per Kindle",
+    "INSTRUCTIONS_SECTION": "Istruzioni",
+    "LANGUAGE": "Lingua",
+    "PRIVACY_HINT": "Controlla come vengono gestiti dati e pubblicità",
+    "PRIVACY_OPTIONS": "Opzioni privacy",
+    "PRIVACY_POLICY": "Informativa sulla privacy",
+    "PRIVACY_SECTION": "Privacy",
+    "REQUISITES": "Vedi requisiti",
+    "REQUISITES_HINT": "Impostazioni necessarie per il corretto funzionamento delle copertine su Kindle",
+    "REQUISITES_SECTION": "Requisiti",
+    "TITLE": "Impostazioni"
+  },
+  "TABS": {
+    "COVERS": "Copertine",
+    "CREATE": "Crea",
+    "SETTINGS": "Impostazioni"
+  }
+}

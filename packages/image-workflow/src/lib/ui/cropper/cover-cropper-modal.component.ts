@@ -22,10 +22,16 @@ import {
   IonItem,
   IonLabel,
   IonSpinner,
-} from '@ionic/angular/standalone';
+  IonSegment,
+  IonSegmentButton,
+} from "@ionic/angular/standalone";
 import { ModalController } from "@ionic/angular/standalone";
+import type {
+  SegmentCustomEvent,
+  SegmentChangeEventDetail,
+} from "@ionic/angular";
 
-import { addIcons } from 'ionicons';
+import { addIcons } from "ionicons";
 import {
   addOutline,
   removeOutline,
@@ -34,9 +40,14 @@ import {
   closeOutline,
   returnUpBackOutline,
   returnUpForwardOutline,
-} from 'ionicons/icons';
+} from "ionicons/icons";
 
-import type { CoverCropState, CropTarget, CropperResult } from '../../types';
+import type {
+  CoverCropState,
+  CropTarget,
+  CropperResult,
+  CropFormatOption,
+} from "../../types";
 
 type Pt = { x: number; y: number };
 
@@ -62,6 +73,8 @@ type Pt = { x: number; y: number };
     IonRange,
     IonToggle,
     IonSpinner,
+    IonSegment,
+    IonSegmentButton,
   ],
   templateUrl: "./cover-cropper-modal-base.component.html",
   styleUrls: ["./cover-cropper-modal.component.scss"],
@@ -73,6 +86,8 @@ export class CoverCropperModalComponent
   @Input() model!: CropTarget;
   @Input() initialState?: CoverCropState;
   @Input() onReady?: () => void;
+  @Input() formatOptions?: CropFormatOption[];
+  @Input() formatId?: string;
 
   // i18n Labels - default to English
   @Input() title = "Edit Image";
@@ -143,6 +158,7 @@ export class CoverCropperModalComponent
 
   private didEmitReady = false;
   private imageLoaded = false;
+  selectedFormatId?: string;
 
   constructor(private modalCtrl: ModalController) {
     addIcons({
@@ -157,7 +173,8 @@ export class CoverCropperModalComponent
   }
 
   get aspectRatio(): number {
-    return this.model.width / this.model.height;
+    const t = this.getActiveTarget();
+    return t.width / t.height;
   }
 
   toggleAdjustments(): void {
@@ -182,6 +199,8 @@ export class CoverCropperModalComponent
     this.didEmitReady = false;
     this.imageLoaded = false;
     this.adjustOpen = false;
+    this.selectedFormatId =
+      this.formatId ?? this.formatOptions?.[0]?.id ?? undefined;
 
     this.imageUrl = URL.createObjectURL(this.file);
 
@@ -536,6 +555,23 @@ export class CoverCropperModalComponent
     };
   }
 
+  onFormatChange(ev: SegmentCustomEvent) {
+    const nextValue = (ev?.detail as SegmentChangeEventDetail | undefined)
+      ?.value;
+    const next =
+      typeof nextValue === "string"
+        ? nextValue
+        : nextValue != null
+          ? String(nextValue)
+          : undefined;
+    if (!next || next === this.selectedFormatId) return;
+    this.selectedFormatId = next;
+    this.scale = 1;
+    this.tx = 0;
+    this.ty = 0;
+    this.tryReady();
+  }
+
   cancel(): void {
     this.modalCtrl.dismiss(null, "cancel");
   }
@@ -543,8 +579,7 @@ export class CoverCropperModalComponent
   async use(): Promise<void> {
     if (!this.ready) return;
 
-    const outW = this.model.width;
-    const outH = this.model.height;
+    const target = this.getActiveTarget();
 
     const frameEl = this.frameRef.nativeElement;
     const fw = frameEl.clientWidth;
@@ -608,6 +643,12 @@ export class CoverCropperModalComponent
       rctx.drawImage(bitmap, 0, 0);
     }
     rctx.restore();
+
+    const outMode = target.output ?? "target";
+    const outW =
+      outMode === "source" ? Math.max(1, Math.round(sWidthR)) : target.width;
+    const outH =
+      outMode === "source" ? Math.max(1, Math.round(sHeightR)) : target.height;
 
     const canvas = document.createElement("canvas");
     canvas.width = outW;
@@ -731,6 +772,7 @@ export class CoverCropperModalComponent
     const result: CropperResult = {
       file: croppedFile,
       state: this.getState(),
+      formatId: this.selectedFormatId,
     };
 
     this.modalCtrl.dismiss(result, "done");
@@ -763,6 +805,17 @@ export class CoverCropperModalComponent
       return;
     }
     this.tryReady();
+  }
+
+  private getActiveTarget(): CropTarget {
+    if (this.formatOptions?.length) {
+      const match = this.formatOptions.find(
+        (opt) => opt.id === this.selectedFormatId,
+      );
+      if (match) return match.target;
+      return this.formatOptions[0].target;
+    }
+    return this.model;
   }
 }
 
