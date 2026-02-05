@@ -34,12 +34,18 @@ ion-toast.cc-toast.cc-toast--info {
   --cc-toast-border-color: rgba(var(--ion-color-primary-rgb), 0.45);
 }
 
+ion-toast.cc-toast {
+  --background: rgba(20, 24, 28, 0.65);
+  --color: rgba(255, 255, 255, 0.92);
+}
+
 ion-toast.cc-toast::part(container) {
-  border: 1px solid var(--cc-toast-border-color);
+  background: rgba(20, 24, 28, 0.65) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
-  background: var(--ion-color-base);
-  color: var(--ion-color-contrast);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
   max-width: var(--max-width);
   min-width: var(--min-width);
   width: var(--width);
@@ -47,10 +53,19 @@ ion-toast.cc-toast::part(container) {
   padding: 12px 14px;
 }
 
+ion-toast.cc-toast::part(wrapper) {
+  background: transparent !important;
+}
+
 ion-toast.cc-toast::part(message) {
-  color: var(--ion-color-contrast);
+  color: rgba(255, 255, 255, 0.92);
   text-align: center;
   font-size: 0.98rem;
   line-height: 1.35;
   white-space: normal;
+}
+
+ion-toast.cc-toast::part(button),
+ion-toast.cc-toast::part(icon) {
+  color: rgba(255, 255, 255, 0.92);
 }

@@ -229,6 +229,39 @@ ion-popover {
 
 /* Small utility classes (opt-in, no surprises) */
 
+ion-list.md.list-inset,
+ion-list.list-md.list-inset {
+  border-radius: var(--app-radius-lg);
+  overflow: hidden;
+}
+
+ion-list.md.list-inset ion-item::part(native),
+ion-list.list-md.list-inset ion-item::part(native) {
+  background: transparent;
+}
+
+ion-list.md.list-inset ion-item:first-child::part(native),
+ion-list.list-md.list-inset ion-item:first-child::part(native) {
+  border-top-left-radius: var(--app-radius-lg);
+  border-top-right-radius: var(--app-radius-lg);
+}
+
+ion-list.md.list-inset ion-item:last-child::part(native),
+ion-list.list-md.list-inset ion-item:last-child::part(native) {
+  border-bottom-left-radius: var(--app-radius-lg);
+  border-bottom-right-radius: var(--app-radius-lg);
+}
+
+ion-list.md.list-inset ion-item:only-child::part(native),
+ion-list.list-md.list-inset ion-item:only-child::part(native) {
+  border-radius: var(--app-radius-lg);
+}
+
+ion-list.md.list-inset ion-item:last-child,
+ion-list.list-md.list-inset ion-item:last-child {
+  --inner-border-width: 0;
+}
+
 /* Standard page padding wrapper (use in templates as needed) */
 .app-page {
   padding: 12px;

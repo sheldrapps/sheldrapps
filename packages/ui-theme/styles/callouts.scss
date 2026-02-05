@@ -1,5 +1,3 @@
-/* Callout Component - Reusable UI component */
-
 .app-callout {
   margin: 8px 12px 0 12px;
   padding: var(--app-callout-padding-y) var(--app-callout-padding-x);
@@ -39,7 +37,6 @@
   line-height: 1.2;
 }
 
-/* Variants */
 .app-callout--warning {
   border-left: calc(var(--app-callout-border-w) + 1px) solid var(--app-callout-warning-border);
   background: var(--app-callout-warning-bg);

@@ -1,4 +1,4 @@
-@import '@sheldrapps/ui-theme/styles/components';
+@use '@sheldrapps/ui-theme/styles/cropper' as *;
 
 :host {
   display: block;
@@ -7,7 +7,6 @@
 .cropper-content {
   --background: var(--ion-background-color);
 }
-
 
 .frame-wrap {
   width: 100%;
@@ -20,12 +19,11 @@
   left: 50%;
   top: 50%;
   transform-origin: center center;
+  user-select: none;;
   user-select: none;
   -webkit-user-drag: none;
   pointer-events: none;
-  will-change: transform;
-
-  max-width: none !important;
+  will-change: transform;  max-width: none !important;
   max-height: none !important;
   width: auto;
   height: auto;
@@ -194,15 +192,7 @@
   --padding-top: 0;
   --padding-bottom: 0;
 
-  --border-radius: 999px;
-  --background: rgba(255, 255, 255, 0.08);
-  --background-hover: rgba(255, 255, 255, 0.12);
-  --box-shadow: none;
-}
 
-.rot-btn ion-icon {
-  font-size: 18px;
-  opacity: 0.95;
 }
 
 
