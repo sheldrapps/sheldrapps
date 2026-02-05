@@ -114,22 +114,7 @@
     "TIP": "Para mejores resultados, usa imágenes en alta resolución y asegúrate de que los anuncios estén desactivados en tu Kindle.",
     "TITLE": "Cómo crear una portada para Kindle"
   },
-  "REQUISITES": {
-    "ADS_DESC": "Es necesario desactivar los anuncios en el dispositivo para que la portada se muestre en la pantalla de bloqueo.",
-    "ADS_LINK": "Gestionar anuncios del dispositivo",
-    "ADS_TITLE": "Anuncios desactivados",
-    "APP_ANDROID": "App Kindle (Android)",
-    "APP_DESC": "Se requiere la app Kindle para enviar y visualizar la portada en el dispositivo.",
-    "APP_IOS": "App Kindle (iOS)",
-    "APP_TITLE": "Aplicación Kindle",
-    "COVER_DESC": "Activa la opción para mostrar la portada del libro actual en la pantalla de bloqueo.",
-    "COVER_LINK": "Configurar visualización de portada",
-    "COVER_TITLE": "Mostrar portada del libro",
-    "NOTE": "EPUB Cover Changer no es una aplicación oficial y no modifica el software del dispositivo.",
-    "SEND_LINK": "Send to Kindle (web)",
-    "SEND_TITLE": "Enviar portadas vía web",
-    "TITLE": "Requisitos para usar EPUB Cover Changer"
-  },
+
   "SETTINGS": {
     "INSTRUCTIONS": "Ver instrucciones",
     "INSTRUCTIONS_HINT": "Cómo crear y enviar una portada a Kindle",
@@ -139,9 +124,7 @@
     "PRIVACY_OPTIONS": "Opciones de privacidad",
     "PRIVACY_POLICY": "Política de privacidad",
     "PRIVACY_SECTION": "Privacidad",
-    "REQUISITES": "Ver requisitos",
-    "REQUISITES_HINT": "Configuración necesaria para que la portada funcione correctamente en Kindle",
-    "REQUISITES_SECTION": "Requisitos",
+
     "TITLE": "Configuración"
   },
   "TABS": {

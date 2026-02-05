@@ -1,0 +1,57 @@
+// Shared component styles
+// Imported by multiple components to avoid duplication
+
+// Stage - used in covers preview and cropper modal
+.stage {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  box-sizing: border-box;
+  padding-bottom: calc(12px + 74px);
+}
+
+// Frame - used in cropper and preview
+.frame {
+  position: relative;
+  width: min(520px, 92vw);
+  aspect-ratio: var(--crop-ratio);
+  max-height: 72vh;
+  height: auto;
+
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.95);
+  border-radius: 14px;
+  box-sizing: border-box;
+  background: #000;
+
+  touch-action: none;
+  user-select: none;
+}
+
+// Hint text - used in multiple pages
+.hint {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  opacity: 0.75;
+  color: var(--ion-text-color);
+}
+
+// Control - used in multiple components
+.ctrl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  --color: var(--ion-text-color);
+  --border-radius: 12px;
+  height: 44px;
+  width: 44px;
+}
+
+@media (prefers-color-scheme: light) {
+  .frame {
+    border-color: rgba(0, 0, 0, 0.55);
+  }
+}

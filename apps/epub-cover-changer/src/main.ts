@@ -17,7 +17,7 @@ import { environment } from './environments/environment';
 
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
-import { CCFK_SETTINGS_SCHEMA } from './app/settings/ccfk-settings.schema';
+import { ECC_SETTINGS_SCHEMA } from './app/settings/ecc-settings.schema';
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -44,8 +44,8 @@ bootstrapApplication(AppComponent, {
     }),
 
     provideSettingsKit({
-      appId: 'ccfk',
-      schema: CCFK_SETTINGS_SCHEMA,
+      appId: 'ecc',
+      schema: ECC_SETTINGS_SCHEMA,
     }),
 
     provideFileKit(),

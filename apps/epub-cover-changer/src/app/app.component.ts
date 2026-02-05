@@ -5,7 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { ConsentService } from './services/consent.service';
-import { CcfkSettings } from './settings/ccfk-settings.schema';
+import { EccSettings } from './settings/ecc-settings.schema';
 @Component({
   standalone: true,
   selector: 'app-root',
@@ -18,7 +18,7 @@ export class AppComponent {
   private title = inject(Title);
   private consent = inject(ConsentService);
 
-  private settings = inject(SettingsStore<CcfkSettings>);
+  private settings = inject(SettingsStore<EccSettings>);
 
   constructor() {
     void this.init();
@@ -29,13 +29,13 @@ export class AppComponent {
   private async init() {
     // Load settings from storage (runs migrations if needed)
     await this.settings.load();
-    
+
     // Get the saved language from settings
     const currentSettings = this.settings.get();
-    
+
     // Set the language in LanguageService
     await this.lang.set(currentSettings.lang);
-    
+
     this.consentReady = this.consent
       .gatherConsent()
       .then(() => undefined)

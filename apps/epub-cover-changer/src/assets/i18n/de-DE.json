@@ -105,22 +105,7 @@
     "TIP": "Für beste Ergebnisse verwende hochauflösende Bilder und stelle sicher, dass Werbung auf deinem Kindle deaktiviert ist.",
     "TITLE": "So erstellst du ein Cover für Kindle"
   },
-  "REQUISITES": {
-    "ADS_DESC": "Werbung muss auf dem Gerät deaktiviert sein, damit das Cover auf dem Sperrbildschirm angezeigt wird.",
-    "ADS_LINK": "Gerätewerbung verwalten",
-    "ADS_TITLE": "Werbung deaktiviert",
-    "APP_ANDROID": "Kindle-App (Android)",
-    "APP_DESC": "Die Kindle-App wird benötigt, um das Cover auf dem Gerät zu senden und anzuzeigen.",
-    "APP_IOS": "Kindle-App (iOS)",
-    "APP_TITLE": "Kindle-App",
-    "COVER_DESC": "Aktiviere die Option, das aktuelle Buchcover auf dem Sperrbildschirm anzuzeigen.",
-    "COVER_LINK": "Coveranzeige konfigurieren",
-    "COVER_TITLE": "Buchcover anzeigen",
-    "NOTE": "EPUB Cover Changer ist keine offizielle App und verändert nicht die Gerätesoftware.",
-    "SEND_LINK": "Send to Kindle (web)",
-    "SEND_TITLE": "Cover über das Web senden",
-    "TITLE": "Voraussetzungen für die Nutzung von EPUB Cover Changer"
-  },
+
   "SETTINGS": {
     "INSTRUCTIONS": "Anleitung anzeigen",
     "INSTRUCTIONS_HINT": "So erstellst und sendest du ein Cover für Kindle",
@@ -130,9 +115,7 @@
     "PRIVACY_OPTIONS": "Datenschutzoptionen",
     "PRIVACY_POLICY": "Datenschutzerklärung",
     "PRIVACY_SECTION": "Datenschutz",
-    "REQUISITES": "Voraussetzungen anzeigen",
-    "REQUISITES_HINT": "Erforderliche Einstellungen, damit Cover korrekt auf Kindle funktionieren",
-    "REQUISITES_SECTION": "Voraussetzungen",
+
     "TITLE": "Einstellungen"
   },
   "TABS": {

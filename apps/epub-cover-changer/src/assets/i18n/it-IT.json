@@ -103,22 +103,7 @@
     "TIP": "Per risultati migliori, utilizza immagini ad alta risoluzione e assicurati che gli annunci siano disattivati sul tuo Kindle.",
     "TITLE": "Come creare una copertina per Kindle"
   },
-  "REQUISITES": {
-    "ADS_DESC": "Gli annunci devono essere disattivati sul dispositivo affinché la copertina venga mostrata nella schermata di blocco.",
-    "ADS_LINK": "Gestisci annunci del dispositivo",
-    "ADS_TITLE": "Annunci disattivati",
-    "APP_ANDROID": "App Kindle (Android)",
-    "APP_DESC": "L’app Kindle è necessaria per inviare e visualizzare la copertina sul dispositivo.",
-    "APP_IOS": "App Kindle (iOS)",
-    "APP_TITLE": "Applicazione Kindle",
-    "COVER_DESC": "Attiva l’opzione per mostrare la copertina del libro corrente nella schermata di blocco.",
-    "COVER_LINK": "Configura visualizzazione copertina",
-    "COVER_TITLE": "Mostra copertina del libro",
-    "NOTE": "EPUB Cover Changer non è un’applicazione ufficiale e non modifica il software del dispositivo.",
-    "SEND_LINK": "Send to Kindle (web)",
-    "SEND_TITLE": "Inviare copertine via web",
-    "TITLE": "Requisiti per usare EPUB Cover Changer"
-  },
+
   "SETTINGS": {
     "INSTRUCTIONS": "Vedi istruzioni",
     "INSTRUCTIONS_HINT": "Come creare e inviare una copertina per Kindle",
@@ -128,9 +113,7 @@
     "PRIVACY_OPTIONS": "Opzioni privacy",
     "PRIVACY_POLICY": "Informativa sulla privacy",
     "PRIVACY_SECTION": "Privacy",
-    "REQUISITES": "Vedi requisiti",
-    "REQUISITES_HINT": "Impostazioni necessarie per il corretto funzionamento delle copertine su Kindle",
-    "REQUISITES_SECTION": "Requisiti",
+
     "TITLE": "Impostazioni"
   },
   "TABS": {

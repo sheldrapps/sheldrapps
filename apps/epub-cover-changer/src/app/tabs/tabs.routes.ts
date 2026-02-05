@@ -28,21 +28,14 @@ export const routes: Routes = [
             path: '',
             loadComponent: () =>
               import('../pages/settings/settings.page').then(
-                (m) => m.SettingsPage
+                (m) => m.SettingsPage,
               ),
           },
           {
             path: 'instructions',
             loadComponent: () =>
               import('../pages/instructions/instructions.page').then(
-                (m) => m.InstructionsPage
-              ),
-          },
-          {
-            path: 'requisites',
-            loadComponent: () =>
-              import('../pages/requisites/requisites.page').then(
-                (m) => m.RequisitesPage
+                (m) => m.InstructionsPage,
               ),
           },
         ],

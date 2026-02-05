@@ -105,22 +105,7 @@
     "TIP": "Para melhores resultados, use imagens em alta resolução e certifique-se de que os anúncios estejam desativados no seu Kindle.",
     "TITLE": "Como criar uma capa para Kindle"
   },
-  "REQUISITES": {
-    "ADS_DESC": "Os anúncios precisam estar desativados no dispositivo para que a capa apareça na tela de bloqueio.",
-    "ADS_LINK": "Gerenciar anúncios do dispositivo",
-    "ADS_TITLE": "Anúncios desativados",
-    "APP_ANDROID": "App Kindle (Android)",
-    "APP_DESC": "O app Kindle é necessário para enviar e visualizar a capa no dispositivo.",
-    "APP_IOS": "App Kindle (iOS)",
-    "APP_TITLE": "Aplicativo Kindle",
-    "COVER_DESC": "Ative a opção para mostrar a capa do livro atual na tela de bloqueio.",
-    "COVER_LINK": "Configurar exibição da capa",
-    "COVER_TITLE": "Mostrar capa do livro",
-    "NOTE": "EPUB Cover Changer não é um aplicativo oficial e não modifica o software do dispositivo.",
-    "SEND_LINK": "Send to Kindle (web)",
-    "SEND_TITLE": "Enviar capas pela web",
-    "TITLE": "Requisitos para usar o EPUB Cover Changer"
-  },
+
   "SETTINGS": {
     "INSTRUCTIONS": "Ver instruções",
     "INSTRUCTIONS_HINT": "Como criar e enviar uma capa para Kindle",
@@ -130,9 +115,7 @@
     "PRIVACY_OPTIONS": "Opções de privacidade",
     "PRIVACY_POLICY": "Política de privacidade",
     "PRIVACY_SECTION": "Privacidade",
-    "REQUISITES": "Ver requisitos",
-    "REQUISITES_HINT": "Configurações necessárias para que as capas funcionem corretamente no Kindle",
-    "REQUISITES_SECTION": "Requisitos",
+
     "TITLE": "Configurações"
   },
   "TABS": {

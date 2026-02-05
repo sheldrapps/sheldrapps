@@ -13,8 +13,8 @@ export type CoverEntry = {
 export class FileService {
   private translate = inject(TranslateService);
 
-  private readonly EPUB_FOLDER = 'CoverCreator';
-  private readonly THUMB_FOLDER = 'CoverCreatorThumbs';
+  private readonly EPUB_FOLDER = 'EPUBCoverChanger';
+  private readonly THUMB_FOLDER = 'EPUBCoverChangerThumbs';
   private fileKit = inject(FileKitService);
 
   /**
@@ -22,7 +22,7 @@ export class FileService {
    */
   validateEpub(
     file: File,
-    maxSizeMB: number = 50
+    maxSizeMB: number = 50,
   ): { valid: boolean; errorKey?: string } {
     return this.fileKit.validateEpub(file, maxSizeMB);
   }
@@ -36,7 +36,7 @@ export class FileService {
     const lang = this.getEpubLang();
 
     const filename = this.ensureEpubExt(
-      this.sanitizeFilename(opts.filename ?? this.buildFilename(opts.modelId))
+      this.sanitizeFilename(opts.filename ?? this.buildFilename(opts.modelId)),
     );
 
     const epubPath = `${this.EPUB_FOLDER}/${filename}`;
@@ -116,11 +116,11 @@ export class FileService {
       // For file-kit, we need to read the directory
       // Since file-kit doesn't expose readdir yet, we'll use the old Filesystem API
       // This is acceptable as long as the core file operations use file-kit
-      
+
       // TODO: Consider adding readdir to file-kit if needed
       // For now, we maintain backward compatibility with Filesystem
       const { Filesystem, Directory } = await import('@capacitor/filesystem');
-      
+
       const list = await Filesystem.readdir({
         directory: Directory.Documents,
         path: this.EPUB_FOLDER,
@@ -204,7 +204,7 @@ export class FileService {
   }
 
   async getOrBuildThumbDataUrlForFilename(
-    filename: string
+    filename: string,
   ): Promise<string | null> {
     const thumbPath = this.getThumbPathForEpubFilename(filename);
 
@@ -236,7 +236,7 @@ export class FileService {
 
   private async tryRebuildThumbFromEpub(
     epubFilename: string,
-    thumbPath: string
+    thumbPath: string,
   ): Promise<string | null> {
     try {
       const extracted = await this.extractCoverFromEpub(epubFilename);
@@ -246,7 +246,7 @@ export class FileService {
         extracted.ab,
         extracted.name,
         320,
-        0.82
+        0.82,
       );
 
       const thumbBytes = this.fileKit.fromBase64(thumbBase64);
@@ -266,7 +266,7 @@ export class FileService {
   }
   private async tryReadBase64FromFilesystem(
     path: string,
-    dir: 'Data' | 'Documents' | 'Cache' = 'Data'
+    dir: 'Data' | 'Documents' | 'Cache' = 'Data',
   ): Promise<string | null> {
     try {
       const bytes = await this.fileKit.readBytes({
@@ -303,7 +303,7 @@ export class FileService {
     ab: ArrayBuffer,
     filename: string,
     maxWidth = 320,
-    quality = 0.82
+    quality = 0.82,
   ): Promise<string> {
     const mime = this.mimeFromFilename(filename);
     const blob = new Blob([ab], { type: mime });
@@ -409,78 +409,6 @@ export class FileService {
   </body>
 </html>`;
 
-    const thanksXhtml = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="${this.escapeXml(
-      params.lang
-    )}">
-  <head>
-    <meta charset="utf-8"/>
-    <title>Thanks</title>
-    <style>
-      body { font-family: serif; line-height: 1.4; padding: 8%; }
-      h1 { margin-top: 0; }
-      .small { opacity: 0.85; }
-      .lang { display: none; }
-      html[lang="en"] .lang-en,
-      html[lang="es"] .lang-es,
-      html[lang="de"] .lang-de,
-      html[lang="fr"] .lang-fr,
-      html[lang="it"] .lang-it,
-      html[lang="pt"] .lang-pt { display: block; }
-    </style>
-  </head>
-  <body>
-    <section class="lang lang-en">
-      <h1>Thanks for using ${this.escapeXml(params.appName)}!</h1>
-      <p class="small">
-        If this helped you, please recommend the app and leave a rating.
-        It really supports development.
-      </p>
-    </section>
-
-    <section class="lang lang-es">
-      <h1>¡Gracias por usar ${this.escapeXml(params.appName)}!</h1>
-      <p class="small">
-        Si te sirvió, recomiéndala y deja una reseña.
-        Eso apoya muchísimo el desarrollo.
-      </p>
-    </section>
-
-    <section class="lang lang-de">
-      <h1>Danke, dass du ${this.escapeXml(params.appName)} nutzt!</h1>
-      <p class="small">
-        Wenn es dir geholfen hat, empfehle die App weiter und hinterlasse una Bewertung.
-        Das unterstützt die Entwicklung sehr.
-      </p>
-    </section>
-
-    <section class="lang lang-fr">
-      <h1>Merci d&apos;avoir utilisé ${this.escapeXml(params.appName)} !</h1>
-      <p class="small">
-        Si ça t&apos;a aidé, recommande l&apos;app et laisse une note.
-        Ça soutient vraiment le développement.
-      </p>
-    </section>
-
-    <section class="lang lang-it">
-      <h1>Grazie per aver usato ${this.escapeXml(params.appName)}!</h1>
-      <p class="small">
-        Se ti è stato utile, consiglia l&apos;app e lascia una recensione.
-        Aiuta davvero lo sviluppo.
-      </p>
-    </section>
-
-    <section class="lang lang-pt">
-      <h1>Obrigado por usar ${this.escapeXml(params.appName)}!</h1>
-      <p class="small">
-        Se isso te ajudou, recomende o app e deixe uma avaliação.
-        Isso apoia muito o desenvolvimento.
-      </p>
-    </section>
-  </body>
-</html>`;
-
     const navXhtml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
@@ -492,7 +420,6 @@ export class FileService {
     <nav epub:type="toc" id="toc">
       <ol>
         <li><a href="cover.xhtml">Cover</a></li>
-        <li><a href="thanks.xhtml">Thanks</a></li>
       </ol>
     </nav>
   </body>
@@ -513,20 +440,17 @@ export class FileService {
   <manifest>
     <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>
     <item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>
-    <item id="thanks" href="thanks.xhtml" media-type="application/xhtml+xml"/>
     <item id="${coverId}" href="${coverFileName}" media-type="${coverMediaType}" properties="cover-image"/>
   </manifest>
 
   <spine>
     <itemref idref="cover"/>
-    <itemref idref="thanks"/>
   </spine>
 </package>`;
 
     zip.file('OEBPS/content.opf', contentOpf);
     zip.file('OEBPS/nav.xhtml', navXhtml);
     zip.file('OEBPS/cover.xhtml', coverXhtml);
-    zip.file('OEBPS/thanks.xhtml', thanksXhtml);
 
     const coverBytes = new Uint8Array(await params.coverFile.arrayBuffer());
     zip.file(`OEBPS/${coverFileName}`, coverBytes);
@@ -565,7 +489,7 @@ export class FileService {
   private async makeThumbnailBase64(
     file: File,
     maxWidth = 320,
-    quality = 0.82
+    quality = 0.82,
   ): Promise<string> {
     const img = await this.fileToImage(file);
 
@@ -653,7 +577,7 @@ export class FileService {
     const lang = this.getEpubLang();
 
     const filename = this.ensureEpubExt(
-      this.sanitizeFilename(opts.filename ?? this.buildFilename(opts.modelId))
+      this.sanitizeFilename(opts.filename ?? this.buildFilename(opts.modelId)),
     );
 
     const bytes = await this.buildEpub({
@@ -684,7 +608,7 @@ export class FileService {
 
     const thumb = await this.buildThumbFromFile(
       opts.coverFileForThumb,
-      filename
+      filename,
     );
 
     return {
@@ -697,9 +621,7 @@ export class FileService {
   }
 
   async renameGeneratedEpub(opts: { from: string; to: string }) {
-    const fromFilename = this.ensureEpubExt(
-      this.sanitizeFilename(opts.from)
-    );
+    const fromFilename = this.ensureEpubExt(this.sanitizeFilename(opts.from));
     const toFilename = this.ensureEpubExt(this.sanitizeFilename(opts.to));
 
     if (fromFilename === toFilename) {
@@ -739,8 +661,7 @@ export class FileService {
         dir: 'Documents',
         path: fromPath,
       });
-    } catch {
-    }
+    } catch {}
 
     const fromThumbPath = this.getThumbPathForEpubFilename(fromFilename);
     const toThumbPath = this.getThumbPathForEpubFilename(toFilename);
@@ -767,8 +688,7 @@ export class FileService {
           dir: 'Data',
           path: fromThumbPath,
         });
-      } catch {
-      }
+      } catch {}
     }
 
     return {
@@ -809,7 +729,7 @@ export class FileService {
   }
 
   async getCoverDataUrlForFilename(
-    epubFilename: string
+    epubFilename: string,
   ): Promise<string | null> {
     const extracted = await this.extractCoverFromEpub(epubFilename);
     if (!extracted) return null;
@@ -818,12 +738,15 @@ export class FileService {
   }
 
   private async extractCoverFromEpub(
-    epubFilename: string
+    epubFilename: string,
   ): Promise<{ ab: ArrayBuffer; name: string } | null> {
     try {
       const epubPath = `${this.EPUB_FOLDER}/${epubFilename}`;
 
-      const epubB64 = await this.tryReadBase64FromFilesystem(epubPath, 'Documents');
+      const epubB64 = await this.tryReadBase64FromFilesystem(
+        epubPath,
+        'Documents',
+      );
       if (!epubB64) {
         console.warn(`[file.service] Could not read EPUB file: ${epubPath}`);
         return null;

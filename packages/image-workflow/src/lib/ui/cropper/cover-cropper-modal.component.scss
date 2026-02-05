@@ -1,3 +1,5 @@
+@import '@sheldrapps/ui-theme/styles/components';
+
 :host {
   display: block;
 }
@@ -6,38 +8,11 @@
   --background: var(--ion-background-color);
 }
 
-.stage {
-  width: 100%;
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 12px;
-  box-sizing: border-box;
-  padding-bottom: calc(12px + 74px);
-}
 
 .frame-wrap {
   width: 100%;
   display: flex;
   justify-content: center;
-}
-
-.frame {
-  position: relative;
-  width: min(520px, 92vw);
-  aspect-ratio: var(--crop-ratio);
-  max-height: 72vh;
-  height: auto;
-
-  overflow: hidden;
-  border: 3px solid rgba(255, 255, 255, 0.95);
-  border-radius: 14px;
-  box-sizing: border-box;
-  background: #000;
-
-  touch-action: none;
-  user-select: none;
 }
 
 .img {
@@ -74,13 +49,6 @@
   pointer-events: none;
 }
 
-.hint {
-  margin-top: 10px;
-  font-size: 0.9rem;
-  opacity: 0.75;
-  color: var(--ion-text-color);
-}
-
 .format-row {
   padding: 2px 4px 8px 4px;
   overflow-x: auto;
@@ -93,13 +61,6 @@
 
 .format-segment {
   min-width: max-content;
-}
-
-.ctrl {
-  --color: var(--ion-text-color);
-  --border-radius: 12px;
-  height: 44px;
-  width: 44px;
 }
 
 .spacer {
@@ -245,8 +206,4 @@
 }
 
 
-@media (prefers-color-scheme: light) {
-  .frame {
-    border-color: rgba(0, 0, 0, 0.55);
-  }
-}
+

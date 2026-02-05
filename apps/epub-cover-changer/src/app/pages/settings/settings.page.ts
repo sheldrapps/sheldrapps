@@ -25,7 +25,7 @@ import {
 } from 'src/app/services/language.service';
 import { ConsentService } from 'src/app/services/consent.service';
 import { SettingsStore } from '@sheldrapps/settings-kit';
-import { CcfkSettings } from 'src/app/settings/ccfk-settings.schema';
+import { EccSettings } from 'src/app/settings/ecc-settings.schema';
 import { Browser } from '@capacitor/browser';
 
 @Component({
@@ -54,17 +54,26 @@ export class SettingsPage implements OnInit {
   lang = inject(LanguageService);
   consent = inject(ConsentService);
 
-  private settings = inject(SettingsStore<CcfkSettings>);
+  private settings = inject(SettingsStore<EccSettings>);
   readonly supportedLangs = LANG_OPTIONS;
 
   constructor() {
-    console.log('[SettingsPage] constructor - lang.lang value:', this.lang.lang);
-    console.log('[SettingsPage] constructor - supportedLangs:', this.supportedLangs);
+    console.log(
+      '[SettingsPage] constructor - lang.lang value:',
+      this.lang.lang,
+    );
+    console.log(
+      '[SettingsPage] constructor - supportedLangs:',
+      this.supportedLangs,
+    );
   }
 
   ngOnInit() {
     console.log('[SettingsPage] ngOnInit - lang.lang value:', this.lang.lang);
-    console.log('[SettingsPage] ngOnInit - currentLang:', this.lang['currentLang']);
+    console.log(
+      '[SettingsPage] ngOnInit - currentLang:',
+      this.lang['currentLang'],
+    );
   }
 
   private readonly privacyPolicyUrl =
@@ -74,15 +83,21 @@ export class SettingsPage implements OnInit {
 
   async onLangChange(v: Lang) {
     console.log('[SettingsPage] onLangChange called with value:', v);
-    console.log('[SettingsPage] onLangChange - current lang.lang before set():', this.lang.lang);
-    
+    console.log(
+      '[SettingsPage] onLangChange - current lang.lang before set():',
+      this.lang.lang,
+    );
+
     // First persist in settings-kit
     await this.settings.set({ lang: v });
     console.log('[SettingsPage] onLangChange - settings.set() completed');
-    
+
     // Then apply language change
     await this.lang.set(v);
-    console.log('[SettingsPage] onLangChange - lang.set() completed, new lang.lang:', this.lang.lang);
+    console.log(
+      '[SettingsPage] onLangChange - lang.set() completed, new lang.lang:',
+      this.lang.lang,
+    );
   }
 
   async openPrivacyOptions() {

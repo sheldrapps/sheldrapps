@@ -114,22 +114,7 @@
     "TIP": "For best results, use high-resolution images and make sure ads are disabled on your Kindle device.",
     "TITLE": "How to create a cover for Kindle"
   },
-  "REQUISITES": {
-    "ADS_DESC": "Ads must be disabled on the device for the cover to appear on the lock screen.",
-    "ADS_LINK": "Manage device ads",
-    "ADS_TITLE": "Ads disabled",
-    "APP_ANDROID": "Kindle app (Android)",
-    "APP_DESC": "The Kindle app is required to send and view the cover on the device.",
-    "APP_IOS": "Kindle app (iOS)",
-    "APP_TITLE": "Kindle app",
-    "COVER_DESC": "Enable the option to show the current book cover on the lock screen.",
-    "COVER_LINK": "Configure cover display",
-    "COVER_TITLE": "Show book cover",
-    "NOTE": "EPUB Cover Changer is not an official app and does not modify the device software.",
-    "SEND_LINK": "Send to Kindle (web)",
-    "SEND_TITLE": "Send covers via web",
-    "TITLE": "Requirements to use EPUB Cover Changer"
-  },
+
   "SETTINGS": {
     "INSTRUCTIONS": "View instructions",
     "INSTRUCTIONS_HINT": "How to create and send a cover for Kindle",
@@ -139,9 +124,7 @@
     "PRIVACY_OPTIONS": "Privacy options",
     "PRIVACY_POLICY": "Privacy policy",
     "PRIVACY_SECTION": "Privacy",
-    "REQUISITES": "View requirements",
-    "REQUISITES_HINT": "Required settings for covers to work correctly on Kindle",
-    "REQUISITES_SECTION": "Requirements",
+
     "TITLE": "Settings"
   },
   "TABS": {

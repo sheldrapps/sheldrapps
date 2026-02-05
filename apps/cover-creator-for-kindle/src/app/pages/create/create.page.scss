@@ -1,3 +1,5 @@
+@import '@sheldrapps/ui-theme/styles/components';
+
 .field-value {
   font-weight: 600;
 }
@@ -134,8 +136,6 @@ ion-item.item-invalid {
 
 .hint {
   margin-top: 6px;
-  font-size: 0.82rem;
-  opacity: 0.7;
   text-align: center;
 }
 
