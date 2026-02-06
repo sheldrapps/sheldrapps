@@ -140,8 +140,7 @@ try {
   await fileKit.readBytes({ dir: 'Documents', path: 'missing.txt' });
 } catch (error) {
   if (error instanceof FileKitError) {
-    console.log(error.code); // 'NOT_FOUND', 'READ_FAILED', etc.
-    console.log(error.message);
+    // handle error here
   }
 }
 ```

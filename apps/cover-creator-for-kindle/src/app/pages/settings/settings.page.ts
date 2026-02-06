@@ -55,13 +55,9 @@ export class SettingsPage {
   readonly supportedLangs = LANG_OPTIONS;
 
   constructor(public lang: LanguageService, public consent: ConsentService) {
-    console.log('[SettingsPage] constructor - lang.lang value:', this.lang.lang);
-    console.log('[SettingsPage] constructor - supportedLangs:', this.supportedLangs);
   }
 
   ngOnInit() {
-    console.log('[SettingsPage] ngOnInit - lang.lang value:', this.lang.lang);
-    console.log('[SettingsPage] ngOnInit - currentLang:', this.lang['currentLang']);
   }
 
   private readonly privacyPolicyUrl =
@@ -70,16 +66,11 @@ export class SettingsPage {
   trackByLang = (_: number, l: LangOption) => l.code;
 
   async onLangChange(v: Lang) {
-    console.log('[SettingsPage] onLangChange called with value:', v);
-    console.log('[SettingsPage] onLangChange - current lang.lang before set():', this.lang.lang);
-    
     // First persist in settings-kit
     await this.settings.set({ lang: v });
-    console.log('[SettingsPage] onLangChange - settings.set() completed');
-    
+
     // Then apply language change
     await this.lang.set(v);
-    console.log('[SettingsPage] onLangChange - lang.set() completed, new lang.lang:', this.lang.lang);
   }
 
   async openPrivacyOptions() {

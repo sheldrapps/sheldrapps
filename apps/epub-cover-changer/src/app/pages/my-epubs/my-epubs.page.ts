@@ -46,7 +46,7 @@ type UiCoverItem = {
 };
 
 @Component({
-  selector: 'app-covers',
+  selector: 'app-my-epubs',
   standalone: true,
   imports: [
     IonBackButton,
@@ -72,10 +72,10 @@ type UiCoverItem = {
     IonButtons,
     IonModal,
   ],
-  templateUrl: './covers.page.html',
-  styleUrls: ['./covers.page.scss'],
+  templateUrl: './my-epubs.page.html',
+  styleUrls: ['./my-epubs.page.scss'],
 })
-export class CoversPage implements OnInit, OnDestroy {
+export class MyEpubsPage implements OnInit, OnDestroy {
   private files = inject(FileService);
   private alertCtrl = inject(AlertController);
   private translate = inject(TranslateService);
@@ -427,6 +427,10 @@ export class CoversPage implements OnInit, OnDestroy {
 
   trackByFilename(_: number, item: UiCoverItem) {
     return item.filename;
+  }
+
+  getDisplayName(filename: string): string {
+    return filename.replace(/\.epub$/i, '');
   }
 
   async ionViewWillEnter() {

@@ -51,8 +51,6 @@ export interface FileKitConfig {
  * ```
  */
 export function provideFileKit(config?: FileKitConfig): Provider[] {
-  console.log('[file-kit] Providing file-kit');
-
   return [
     // Filesystem adapter
     {

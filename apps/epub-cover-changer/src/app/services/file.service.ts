@@ -27,6 +27,45 @@ export class FileService {
     return this.fileKit.validateEpub(file, maxSizeMB);
   }
 
+  async validateEpubStructure(file: File): Promise<boolean> {
+    try {
+      const zip = await JSZip.loadAsync(await file.arrayBuffer());
+      const mimetypeEntry = zip.file('mimetype');
+      const containerEntry = zip.file('META-INF/container.xml');
+      if (!mimetypeEntry || !containerEntry) return false;
+
+      const mimetype = (await mimetypeEntry.async('text')).trim();
+      if (mimetype !== 'application/epub+zip') return false;
+
+      const opfPath = await this.resolveOpfPath(zip);
+      if (!opfPath || !zip.file(opfPath)) return false;
+
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async extractCoverFromEpubFile(file: File): Promise<File | null> {
+    try {
+      const zip = await JSZip.loadAsync(await file.arrayBuffer());
+      const extracted = await this.extractCoverFromZip(zip);
+      if (!extracted) return null;
+
+      const ext = (extracted.name.split('.').pop() || 'jpg').toLowerCase();
+      const baseName = (file.name || 'epub')
+        .replace(/\.epub$/i, '')
+        .replace(/[^\w.-]/g, '_');
+      const coverName = `${baseName}_cover.${ext}`;
+
+      return new File([extracted.ab], coverName, {
+        type: this.mimeFromFilename(extracted.name),
+      });
+    } catch {
+      return null;
+    }
+  }
+
   async saveEpub(opts: {
     modelId: string;
     coverFile: File;
@@ -185,8 +224,6 @@ export class FileService {
       dir: 'Documents',
       path: epubPath,
     });
-
-    console.log(`[file.service] Sharing file: ${filename} from ${uri}`);
 
     const fileRef: FileRef = {
       uri,
@@ -590,6 +627,35 @@ export class FileService {
     return { bytes, filename };
   }
 
+  async generateEpubBytesFromSource(opts: {
+    sourceEpubFile: File;
+    coverFile: File;
+    filename?: string;
+  }): Promise<{ bytes: Uint8Array; filename: string }> {
+    const sourceZip = await JSZip.loadAsync(await opts.sourceEpubFile.arrayBuffer());
+    const coverPath = await this.findCoverPathInZip(sourceZip);
+    if (!coverPath) {
+      throw new Error('Could not locate cover image in source EPUB');
+    }
+
+    const coverBytes = new Uint8Array(await opts.coverFile.arrayBuffer());
+    sourceZip.file(coverPath, coverBytes);
+
+    const bytes = await sourceZip.generateAsync({
+      type: 'uint8array',
+      compression: 'DEFLATE',
+    });
+
+    const fallbackName = this.ensureEpubExt(
+      this.sanitizeFilename(opts.sourceEpubFile.name || this.buildFilename('epub')),
+    );
+    const filename = this.ensureEpubExt(
+      this.sanitizeFilename(opts.filename ?? fallbackName),
+    );
+
+    return { bytes, filename };
+  }
+
   async saveGeneratedEpub(opts: {
     bytes: Uint8Array;
     filename: string;
@@ -754,20 +820,160 @@ export class FileService {
 
       const epubBytes = this.base64ToUint8(epubB64);
       const zip = await JSZip.loadAsync(epubBytes);
-
-      const coverFile =
-        zip.file('OEBPS/cover.jpg') ??
-        zip.file('OEBPS/cover.jpeg') ??
-        zip.file('OEBPS/cover.png') ??
-        zip.file('OEBPS/cover.webp');
-
-      if (!coverFile) return null;
-
-      const coverAb = await coverFile.async('arraybuffer');
-      return { ab: coverAb, name: coverFile.name };
+      return this.extractCoverFromZip(zip);
     } catch {
       return null;
     }
+  }
+
+  private async extractCoverFromZip(
+    zip: JSZip,
+  ): Promise<{ ab: ArrayBuffer; name: string } | null> {
+    const opfPath = await this.resolveOpfPath(zip);
+    if (opfPath) {
+      const coverFromOpf = await this.findCoverFromOpf(zip, opfPath);
+      if (coverFromOpf) return coverFromOpf;
+    }
+
+    const commonCover = this.findCommonCoverFile(zip);
+    if (commonCover) {
+      const ab = await commonCover.async('arraybuffer');
+      return { ab, name: commonCover.name };
+    }
+
+    return null;
+  }
+
+  private async resolveOpfPath(zip: JSZip): Promise<string | null> {
+    const container = zip.file('META-INF/container.xml');
+    if (!container) return null;
+
+    const xml = await container.async('text');
+    const match = xml.match(/full-path\s*=\s*["']([^"']+)["']/i);
+    return match?.[1] ?? null;
+  }
+
+  private async findCoverFromOpf(
+    zip: JSZip,
+    opfPath: string,
+  ): Promise<{ ab: ArrayBuffer; name: string } | null> {
+    const coverPath = await this.findCoverPathFromOpf(zip, opfPath);
+    if (!coverPath) return null;
+
+    const coverEntry = zip.file(coverPath);
+    if (!coverEntry) return null;
+
+    const ab = await coverEntry.async('arraybuffer');
+    return { ab, name: coverEntry.name };
+  }
+
+  private async findCoverPathFromOpf(
+    zip: JSZip,
+    opfPath: string,
+  ): Promise<string | null> {
+    const opfEntry = zip.file(opfPath);
+    if (!opfEntry) return null;
+
+    const opfXml = await opfEntry.async('text');
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(opfXml, 'application/xml');
+
+    const items = Array.from(doc.getElementsByTagName('item'));
+    const coverByProperty = items.find((item) =>
+      (item.getAttribute('properties') || '')
+        .toLowerCase()
+        .split(/\s+/)
+        .includes('cover-image'),
+    );
+
+    let coverHref = coverByProperty?.getAttribute('href') ?? null;
+
+    if (!coverHref) {
+      const metas = Array.from(doc.getElementsByTagName('meta'));
+      const coverMeta = metas.find(
+        (meta) => (meta.getAttribute('name') || '').toLowerCase() === 'cover',
+      );
+      const coverId = coverMeta?.getAttribute('content');
+      if (coverId) {
+        coverHref =
+          items.find((item) => item.getAttribute('id') === coverId)?.getAttribute('href') ??
+          null;
+      }
+    }
+
+    if (!coverHref) {
+      const fallbackItem = items.find((item) => {
+        const href = (item.getAttribute('href') || '').toLowerCase();
+        const mediaType = (item.getAttribute('media-type') || '').toLowerCase();
+        return mediaType.startsWith('image/') && href.includes('cover');
+      });
+      coverHref = fallbackItem?.getAttribute('href') ?? null;
+    }
+
+    if (!coverHref) return null;
+
+    const opfDir = opfPath.includes('/') ? opfPath.slice(0, opfPath.lastIndexOf('/')) : '';
+    const resolvedPath = this.resolveRelativePath(opfDir, coverHref);
+    return zip.file(resolvedPath) ? resolvedPath : null;
+  }
+
+  private async findCoverPathInZip(zip: JSZip): Promise<string | null> {
+    const opfPath = await this.resolveOpfPath(zip);
+    if (opfPath) {
+      const coverPathFromOpf = await this.findCoverPathFromOpf(zip, opfPath);
+      if (coverPathFromOpf) return coverPathFromOpf;
+    }
+
+    const common = this.findCommonCoverFile(zip);
+    return common?.name ?? null;
+  }
+
+  private findCommonCoverFile(zip: JSZip) {
+    const commonPaths = [
+      'OEBPS/cover.jpg',
+      'OEBPS/cover.jpeg',
+      'OEBPS/cover.png',
+      'OEBPS/cover.webp',
+      'cover.jpg',
+      'cover.jpeg',
+      'cover.png',
+      'cover.webp',
+    ];
+
+    for (const path of commonPaths) {
+      const entry = zip.file(path);
+      if (entry) return entry;
+    }
+
+    const all = Object.values(zip.files);
+    const coverNamed = all.find((entry) => {
+      if (entry.dir) return false;
+      const name = entry.name.toLowerCase();
+      return (
+        /\.(jpg|jpeg|png|webp)$/i.test(name) &&
+        name.includes('cover')
+      );
+    });
+    if (coverNamed) return coverNamed;
+
+    return all.find((entry) => !entry.dir && /\.(jpg|jpeg|png|webp)$/i.test(entry.name));
+  }
+
+  private resolveRelativePath(baseDir: string, href: string): string {
+    const normalizedHref = href.replace(/\\/g, '/');
+    if (/^[a-z]+:\/\//i.test(normalizedHref)) return normalizedHref;
+
+    const merged = `${baseDir ? `${baseDir}/` : ''}${normalizedHref}`;
+    const out: string[] = [];
+    for (const part of merged.split('/')) {
+      if (!part || part === '.') continue;
+      if (part === '..') {
+        out.pop();
+        continue;
+      }
+      out.push(part);
+    }
+    return out.join('/');
   }
 
   private arrayBufferToDataUrl(ab: ArrayBuffer, filename: string): string {

@@ -7,7 +7,6 @@ const pkgRoot = path.join(__dirname, '..');
 const distDir = path.join(pkgRoot, 'dist');
 
 // Copy dist contents to root
-console.log('Copying dist files to root...');
 
 function copyRecursive(src, dest) {
   const files = fs.readdirSync(src);
@@ -53,4 +52,3 @@ delete mergedPkg.devDependencies;
 
 fs.writeFileSync(originalPkgPath, JSON.stringify(mergedPkg, null, 2) + '\n');
 
-console.log('✓ Postbuild: copied dist files to root and updated package.json');

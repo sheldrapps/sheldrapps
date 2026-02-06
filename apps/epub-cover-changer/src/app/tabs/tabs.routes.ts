@@ -4,7 +4,7 @@ import { TabsPage } from './tabs.page';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/tabs/create',
+    redirectTo: '/tabs/change',
     pathMatch: 'full',
   },
   {
@@ -12,14 +12,14 @@ export const routes: Routes = [
     component: TabsPage,
     children: [
       {
-        path: 'create',
+        path: 'change',
         loadComponent: () =>
-          import('../pages/create/create.page').then((m) => m.CreatePage),
+          import('../pages/change/change.page').then((m) => m.ChangePage),
       },
       {
-        path: 'covers',
+        path: 'my-epubs',
         loadComponent: () =>
-          import('../pages/covers/covers.page').then((m) => m.CoversPage),
+          import('../pages/my-epubs/my-epubs.page').then((m) => m.MyEpubsPage),
       },
       {
         path: 'settings',
@@ -42,7 +42,7 @@ export const routes: Routes = [
       },
       {
         path: '',
-        redirectTo: 'create',
+        redirectTo: 'change',
         pathMatch: 'full',
       },
     ],

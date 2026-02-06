@@ -21,9 +21,7 @@ export class CapacitorPreferencesAdapter implements StorageAdapter {
       const { Preferences } = await import('@capacitor/preferences');
       this.preferences = Preferences;
       this.isCapacitorAvailable = true;
-      console.log('[settings-kit] Using Capacitor Preferences');
     } catch (error) {
-      console.log('[settings-kit] Capacitor Preferences not available, using localStorage fallback');
       this.isCapacitorAvailable = false;
     }
   }

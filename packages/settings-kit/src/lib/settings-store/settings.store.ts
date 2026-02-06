@@ -40,11 +40,6 @@ export class SettingsStore<T> {
     this.storage = storage;
     this.subject = new BehaviorSubject<T>(schema.defaults);
 
-    console.log('[settings-kit] SettingsStore created:', {
-      appId: config.appId,
-      storageKey: this.storageKey,
-      version: schema.version,
-    });
   }
 
   /**
@@ -86,25 +81,20 @@ export class SettingsStore<T> {
   }
 
   private async _load(): Promise<T> {
-    console.log('[settings-kit] Loading settings from:', this.storageKey);
-
     try {
       // Try to read existing settings
       const rawJson = await this.storage.get(this.storageKey);
       
       if (rawJson) {
-        console.log('[settings-kit] Found existing settings');
         const payload = JSON.parse(rawJson) as SettingsPayload<T>;
 
         // If versions match, return data
         if (payload.version === this.schema.version) {
-          console.log('[settings-kit] Version matches, using stored data');
           this.subject.next(payload.data);
           return payload.data;
         }
 
         // Version mismatch - run migrations
-        console.log('[settings-kit] Version mismatch, running migrations');
         const migrated = await this.runMigrations(payload);
         await this.persist(migrated);
         this.subject.next(migrated);
@@ -112,13 +102,11 @@ export class SettingsStore<T> {
       }
 
       // No stored settings - check for legacy migrations
-      console.log('[settings-kit] No stored settings found');
       const legacyMigration = this.schema.migrations?.find(
         (m) => m.fromVersion === 'legacy'
       );
 
       if (legacyMigration) {
-        console.log('[settings-kit] Running legacy migration');
         const migrated = await this.runLegacyMigration(legacyMigration);
         await this.persist(migrated);
         this.subject.next(migrated);
@@ -126,7 +114,6 @@ export class SettingsStore<T> {
       }
 
       // No migrations, use defaults
-      console.log('[settings-kit] Using defaults');
       await this.persist(this.schema.defaults);
       this.subject.next(this.schema.defaults);
       return this.schema.defaults;
@@ -153,7 +140,6 @@ export class SettingsStore<T> {
 
     await this.persist(next);
     this.subject.next(next);
-    console.log('[settings-kit] Settings updated');
     return next;
   }
 
@@ -163,7 +149,6 @@ export class SettingsStore<T> {
   async reset(): Promise<T> {
     await this.persist(this.schema.defaults);
     this.subject.next(this.schema.defaults);
-    console.log('[settings-kit] Settings reset to defaults');
     return this.schema.defaults;
   }
 
@@ -183,7 +168,6 @@ export class SettingsStore<T> {
    */
   private async runMigrations(payload: SettingsPayload<T>): Promise<T> {
     if (!this.schema.migrations || this.schema.migrations.length === 0) {
-      console.log('[settings-kit] No migrations defined, using stored data');
       return payload.data;
     }
 
@@ -203,7 +187,6 @@ export class SettingsStore<T> {
     for (const migration of sortedMigrations) {
       const fromVer = typeof migration.fromVersion === 'number' ? migration.fromVersion : 0;
       if (fromVer === currentVersion && migration.toVersion <= this.schema.version) {
-        console.log(`[settings-kit] Running migration ${fromVer} -> ${migration.toVersion}`);
         const ctx: MigrationContext<T> = {
           rawJson: currentData,
           legacy: this.createLegacyReader(),
@@ -221,7 +204,6 @@ export class SettingsStore<T> {
    * Run legacy migration (from old non-versioned data)
    */
   private async runLegacyMigration(migration: Migration<T>): Promise<T> {
-    console.log('[settings-kit] Running legacy migration');
     const ctx: MigrationContext<T> = {
       legacy: this.createLegacyReader(),
     };

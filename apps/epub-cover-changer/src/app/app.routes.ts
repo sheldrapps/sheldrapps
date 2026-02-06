@@ -11,14 +11,14 @@ export const routes: Routes = [
       import('./pages/settings/settings.page').then((m) => m.SettingsPage),
   },
   {
-    path: 'create',
+    path: 'change',
     loadComponent: () =>
-      import('./pages/create/create.page').then((m) => m.CreatePage),
+      import('./pages/change/change.page').then((m) => m.ChangePage),
   },
   {
-    path: 'covers',
+    path: 'my-epubs',
     loadComponent: () =>
-      import('./pages/covers/covers.page').then((m) => m.CoversPage),
+      import('./pages/my-epubs/my-epubs.page').then((m) => m.MyEpubsPage),
   },
   {
     path: 'instructions',

@@ -1,6 +1,6 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>{{ 'CREATE.TITLE' | translate }}</ion-title>
+    <ion-title>{{ 'CHANGE.TITLE' | translate }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -16,20 +16,20 @@
     [attr.aria-describedby]="epubErrorKey ? 'epub-error' : null"
     [attr.aria-label]="
     selectedEpubName
-      ? ('CREATE.ARIA_CHANGE_EPUB' | translate:{ name: selectedEpubName })
-      : ('CREATE.ARIA_SELECT_EPUB' | translate)
+      ? ('CHANGE.ARIA_CHANGE_EPUB' | translate:{ name: selectedEpubName })
+      : ('CHANGE.ARIA_SELECT_EPUB' | translate)
   "
   >
     <ion-label>
       <div class="field-title">
-        {{ 'CREATE.SELECT_EPUB_LABEL' | translate }}
+        {{ 'CHANGE.SELECT_EPUB_LABEL' | translate }}
       </div>
 
       @if (selectedEpubName && !epubErrorKey) {
-      <div class="field-subtle">{{ 'CREATE.TAP_TO_CHANGE' | translate }}</div>
+      <div class="field-subtle">{{ 'CHANGE.TAP_TO_CHANGE' | translate }}</div>
       } @else {
       <div class="field-placeholder">
-        {{ 'CREATE.SELECT_EPUB_PLACEHOLDER' | translate }}
+        {{ 'CHANGE.SELECT_EPUB_PLACEHOLDER' | translate }}
       </div>
       }
     </ion-label>
@@ -79,20 +79,20 @@
     [attr.aria-describedby]="imageErrorKey ? 'image-error' : null"
     [attr.aria-label]="
     selectedImageName
-      ? ('CREATE.ARIA_CHANGE_IMAGE' | translate:{ name: selectedImageName })
-      : ('CREATE.ARIA_SELECT_IMAGE' | translate)
+      ? ('CHANGE.ARIA_CHANGE_IMAGE' | translate:{ name: selectedImageName })
+      : ('CHANGE.ARIA_SELECT_IMAGE' | translate)
   "
   >
     <ion-label>
       <div class="field-title">
-        {{ 'CREATE.SELECT_IMAGE_LABEL' | translate }}
+        {{ 'CHANGE.SELECT_IMAGE_LABEL' | translate }}
       </div>
 
       @if (previewUrl && !imageErrorKey) {
-      <div class="field-subtle">{{ 'CREATE.TAP_TO_CHANGE' | translate }}</div>
+      <div class="field-subtle">{{ 'CHANGE.TAP_TO_CHANGE' | translate }}</div>
       } @else {
       <div class="field-placeholder">
-        {{ 'CREATE.SELECT_IMAGE_PLACEHOLDER' | translate }}
+        {{ 'CHANGE.SELECT_IMAGE_PLACEHOLDER' | translate }}
       </div>
       }
     </ion-label>
@@ -160,9 +160,9 @@
     fill="outline"
     [disabled]="!canCrop()"
     (click)="startCrop()"
-    aria-label="{{ 'CREATE.ARIA_CROP' | translate }}"
+    aria-label="{{ 'CHANGE.ARIA_CROP' | translate }}"
   >
-    {{ 'CREATE.CROP_ACTION' | translate }}
+    {{ 'CHANGE.CROP_ACTION' | translate }}
   </ion-button>
 
   <div class="actions">
@@ -171,8 +171,8 @@
       [disabled]="!canGenerate()"
       (click)="onGenerate()"
     >
-      <ion-icon slot="start" name="play-circle-outline"></ion-icon>
-      {{ 'CREATE.CREATE_ACTION_REWARDED' | translate }}
+      <ion-icon slot="start" name="refresh-outline"></ion-icon>
+      {{ getChangeActionKey() | translate }}
     </ion-button>
 
     <div class="cc-info-row">
@@ -181,11 +181,11 @@
         size="small" 
         class="cc-info-btn" 
         (click)="toggleInfo($event)"
-        [attr.aria-label]="'CREATE.INFO_ARIA' | translate"
+        [attr.aria-label]="'CHANGE.INFO_ARIA' | translate"
         [attr.aria-expanded]="infoOpen"
       >
         <ion-icon slot="start" name="information-circle-outline"></ion-icon>
-        {{ 'CREATE.INFO' | translate }}
+        {{ 'CHANGE.INFO' | translate }}
       </ion-button>
     </div>
   </div>
@@ -199,7 +199,7 @@
           (click)="onSave()"
         >
           <ion-icon slot="start" name="save-outline"></ion-icon>
-          {{ 'CREATE.SAVE_ACTION' | translate }}
+          {{ 'CHANGE.SAVE_ACTION' | translate }}
         </ion-button>
       </ion-col>
 
@@ -226,13 +226,10 @@
   >
     <ng-template>
       <div class="cc-info-popover">
-        <div class="cc-info-title">{{ 'CREATE.INFO_TITLE' | translate }}</div>
         <div class="cc-info-body">
-          <p class="cc-info-text">{{ 'CREATE.INFO_NOT_SAVED' | translate }}</p>
-          <p class="cc-info-text">{{ 'CREATE.INFO_SHARE_KINDLE' | translate }}</p>
           <div class="cc-info-text">
-            <strong>{{ 'CREATE.INFO_FLOW_LABEL' | translate }}</strong><br>
-            {{ 'CREATE.INFO_FLOW_STEPS' | translate }}
+            <strong>{{ 'CHANGE.INFO_FLOW_LABEL' | translate }}</strong><br>
+            {{ 'CHANGE.INFO_FLOW_STEPS' | translate }}
           </div>
         </div>
       </div>

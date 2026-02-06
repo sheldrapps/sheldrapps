@@ -10,7 +10,7 @@ import {
   ToastController,
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { addOutline, imagesOutline, settingsOutline } from 'ionicons/icons';
+import { refreshOutline, libraryOutline, settingsOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { App } from '@capacitor/app';
 
@@ -42,7 +42,7 @@ export class TabsPage {
   private readonly EXIT_WINDOW_MS = 1500;
 
   constructor() {
-    addIcons({ addOutline, imagesOutline, settingsOutline });
+    addIcons({ refreshOutline, libraryOutline, settingsOutline });
 
     this.platform.backButton.subscribeWithPriority(5, async () => {
       if (!this.platform.is('android')) return;
@@ -54,12 +54,12 @@ export class TabsPage {
         return;
       }
 
-      if (url === '/tabs/covers' || url === '/tabs/settings') {
-        await this.router.navigateByUrl('/tabs/create');
+      if (url === '/tabs/my-epubs' || url === '/tabs/settings') {
+        await this.router.navigateByUrl('/tabs/change');
         return;
       }
 
-      if (url === '/tabs/create') {
+      if (url === '/tabs/change') {
         const now = Date.now();
 
         if (now - this.lastBackAt < this.EXIT_WINDOW_MS) {

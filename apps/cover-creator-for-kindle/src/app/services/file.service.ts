@@ -176,8 +176,6 @@ export class FileService {
       path: epubPath,
     });
 
-    console.log(`[file.service] Sharing file: ${filename} from ${uri}`);
-
     const fileRef: FileRef = {
       uri,
       filename,

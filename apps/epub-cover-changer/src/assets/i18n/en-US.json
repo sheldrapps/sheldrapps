@@ -14,7 +14,7 @@
     "SHARE_KINDLE_HINT": "When sharing, select the Kindle app to send it to your device.",
     "WARNING": "Warning"
   },
-  "CREATE": {
+  "CHANGE": {
     "ADS_REQUIRED": "The ad could not be loaded. Check your network or ad blocker.",
     "ARIA_CHANGE_EPUB": "Change EPUB file. Current file: {{name}}",
     "ARIA_CHANGE_IMAGE": "Change cover image. Current image: {{name}}",
@@ -23,21 +23,21 @@
     "ARIA_SELECT_IMAGE": "Select cover image",
     "ARIA_HELP": "Help and tips for saving and sharing",
     "CROP_ACTION": "Adjust",
-    "COVER_CREATED": "Cover created. You can now save or share",
-    "CREATE_ACTION_REWARDED": "Create cover (watch ad)",
-    "GENERATE_ACTION_REWARDED": "Create cover (watch ad)",
+    "COVER_CHANGED": "Cover changed. You can now save or share",
+    "CHANGE_ACTION_REWARDED": "Change cover (watch ad)",
+    "GENERATE_ACTION_REWARDED": "Change cover (watch ad)",
     "GENERATING": "Loading ad…",
-    "HINT_ADJUST_FIRST": "Adjust the image first to create the cover.",
-    "HINT_SAVE_SHARE_EXPLAIN": "Creating the cover does not save it automatically.",
+    "HINT_ADJUST_FIRST": "Adjust the image first to change the cover.",
+    "HINT_SAVE_SHARE_EXPLAIN": "Changing the cover does not save it automatically.",
     "HINT_READY_EXPORT": "Ready. Use the buttons below to save or share.",
-    "HINT_REWARDED_REQUIRED": "A short ad will be shown to create the cover.",
+    "HINT_REWARDED_REQUIRED": "A short ad will be shown to change the cover.",
     "INFO": "Info",
-    "INFO_ARIA": "Information about creating cover",
+    "INFO_ARIA": "Information about changing cover",
     "INFO_TITLE": "Information",
-    "INFO_NOT_SAVED": "Creating the cover does not save it automatically.",
+    "INFO_NOT_SAVED": "Changing the cover does not save it automatically.",
     "INFO_SHARE_KINDLE": "To send it to your Kindle, select the Kindle app when sharing.",
     "INFO_FLOW_LABEL": "Recommended order:",
-    "INFO_FLOW_STEPS": "Adjust → Create cover → Save or Share",
+    "INFO_FLOW_STEPS": "Select EPUB -> Cover preloads -> Adjust it or select a new one and adjust -> Watch ad to create -> Save or Share",
     "EPUB_ERROR_CORRUPT": "The EPUB file is empty or corrupt. Please try another one.",
     "EPUB_ERROR_NO_FILE": "No EPUB file selected.",
     "EPUB_ERROR_SIZE": "The EPUB file is too large. Maximum {{maxSize}} MB.",
@@ -46,7 +46,7 @@
     "IMAGE_ERROR_DIMENSIONS": "The image is too small for the selected target size.",
     "IMAGE_ERROR_SIZE": "The file is too large. Maximum {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Unsupported format ({{type}}). Please select JPG, PNG, or WebP.",
-    "IMAGE_WARN_SMALL": "Not compatible with some devices. For better results, use a larger image.",
+    "IMAGE_WARN_SMALL": "The image may be too small for some devices.",
     "LOADING_EPUB": "Loading EPUB…",
     "LOADING_IMAGE": "Loading image…",
     "OPENING_EDITOR": "Opening editor…",
@@ -62,26 +62,26 @@
     "SELECT_IMAGE_LABEL": "Cover image",
     "SELECT_IMAGE_PLACEHOLDER": "Select an image",
     "TAP_TO_CHANGE": "Tap to change/reset",
-    "TITLE": "Create cover"
+    "TITLE": "Change cover"
   },
   "COVERS": {
-    "DELETED": "Cover deleted",
-    "EMPTY": "No covers yet.",
-    "PLACEHOLDER": "Cover",
+    "DELETED": "EPUB deleted",
+    "EMPTY": "No EPUBs yet.",
+    "PLACEHOLDER": "EPUB",
     "PREVIEW_TITLE": "Preview",
-    "TITLE": "Covers",
+    "TITLE": "My EPUBs",
     "ACTIONS": {
       "DELETE": "Delete",
       "SHARE": "Share"
     },
     "DELETE": {
-      "MESSAGE": "Do you want to delete this cover?",
-      "TITLE": "Delete cover"
+      "MESSAGE": "Do you want to delete this EPUB?",
+      "TITLE": "Delete EPUB"
     },
     "ERROR": {
-      "DELETE": "Could not delete the cover. Please try again.",
-      "SHARE": "Could not share the cover. Please try again.",
-      "LOAD": "Could not load your covers. Pull down to refresh."
+      "DELETE": "Could not delete the EPUB. Please try again.",
+      "SHARE": "Could not share the EPUB. Please try again.",
+      "LOAD": "Could not load your EPUBs. Pull down to refresh."
     }
   },
   "CROPPER": {
@@ -104,20 +104,20 @@
   },
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Note",
-    "STEP_1": "Select an image for your cover",
-    "STEP_2": "Adjust the image to your Kindle size",
-    "STEP_3": "Generate the cover by watching a short video",
-    "STEP_4": "Save or share the cover",
-    "STEP_4_DESC": "Once generated, you can save it to your device or share it directly with the Kindle app for a smoother transition.",
+    "STEP_1": "Select an EPUB file (the current cover preloads)",
+    "STEP_2": "Adjust the loaded cover or choose a new image and adjust",
+    "STEP_3": "Watch the ad to change the cover in the EPUB",
+    "STEP_4": "Save or share the updated EPUB",
+    "STEP_4_DESC": "Once ready, you can save it to your device or share it directly with the Kindle app for a smoother transition.",
     "STEP_5": "Send via web (Send to Kindle)",
     "STEP_5_DESC": "You can also send it from your browser using the Send to Kindle web tool.",
     "TIP": "For best results, use high-resolution images and make sure ads are disabled on your Kindle device.",
-    "TITLE": "How to create a cover for Kindle"
+    "TITLE": "How to change a cover for Kindle"
   },
 
   "SETTINGS": {
     "INSTRUCTIONS": "View instructions",
-    "INSTRUCTIONS_HINT": "How to create and send a cover for Kindle",
+    "INSTRUCTIONS_HINT": "How to change and send a cover for Kindle",
     "INSTRUCTIONS_SECTION": "Instructions",
     "LANGUAGE": "Language",
     "PRIVACY_HINT": "Control how data and advertising are handled",
@@ -128,8 +128,8 @@
     "TITLE": "Settings"
   },
   "TABS": {
-    "COVERS": "Covers",
-    "CREATE": "Create",
+    "COVERS": "My EPUBs",
+    "CHANGE": "Change",
     "SETTINGS": "Settings"
   }
 }

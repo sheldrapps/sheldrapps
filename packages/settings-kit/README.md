@@ -87,7 +87,7 @@ export class AppComponent {
     
     // Get current snapshot
     const current = this.settings.get();
-    console.log('Current lang:', current.lang);
+    // handle current lang here
     
     // Update settings
     await this.settings.set({ lang: 'es-MX' });
@@ -97,7 +97,7 @@ export class AppComponent {
     
     // Subscribe to changes
     this.settings.changes$.subscribe(settings => {
-      console.log('Settings changed:', settings);
+      // handle settings change here
     });
   }
 }

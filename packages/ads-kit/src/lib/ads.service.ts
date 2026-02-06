@@ -54,13 +54,6 @@ export class AdsService {
     if (this.initialized) return;
     if (!this.isNative) return;
 
-    if (this.config.debug) {
-      console.log("[Ads] Initializing AdMob", {
-        platform: this.platform,
-        isTesting: this.isTesting,
-      });
-    }
-
     await AdMob.initialize();
     this.initialized = true;
   }
@@ -107,19 +100,13 @@ export class AdsService {
       };
 
       // Listen for Rewarded event
-      AdMob.addListener(RewardAdPluginEvents.Rewarded, (reward) => {
-        if (this.config.debug) {
-          console.log("[Ads] Reward earned", reward);
-        }
+      AdMob.addListener(RewardAdPluginEvents.Rewarded, (_reward) => {
         rewardEarned = true;
         tryResolve();
       }).then((handle) => this.listeners.push(handle));
 
       // Listen for Dismissed event (ad closed)
       AdMob.addListener(RewardAdPluginEvents.Dismissed, () => {
-        if (this.config.debug) {
-          console.log("[Ads] Ad dismissed");
-        }
         adClosed = true;
 
         // If ad closed without reward, resolve immediately with failure
@@ -168,9 +155,6 @@ export class AdsService {
       // Now prepare and show the ad
       (async () => {
         try {
-          if (this.config.debug) {
-            console.log("[Ads] Preparing rewarded ad", opts);
-          }
           await AdMob.prepareRewardVideoAd(opts);
           await AdMob.showRewardVideoAd();
         } catch (e) {

@@ -89,7 +89,6 @@ export interface ProvideSettingsKitConfig<T> {
 export function provideSettingsKit<T>(
   config: ProvideSettingsKitConfig<T>
 ): Provider[] {
-  console.log('[settings-kit] Providing settings-kit:', config.appId);
 
   return [
     // Config

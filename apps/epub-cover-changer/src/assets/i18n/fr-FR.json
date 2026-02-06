@@ -14,7 +14,7 @@
     "SHARE_KINDLE_HINT": "Lors du partage, sélectionne l’application Kindle pour l’envoyer à ton appareil.",
     "WARNING": "Avertissement"
   },
-  "CREATE": {
+  "CHANGE": {
     "ADS_REQUIRED": "Impossible de charger la publicité. Vérifiez votre réseau ou bloqueur de publicités.",
     "ARIA_CHANGE_EPUB": "Changer le fichier EPUB. Fichier actuel : {{name}}",
     "ARIA_CHANGE_IMAGE": "Changer l'image de couverture. Image actuelle : {{name}}",
@@ -22,20 +22,23 @@
     "ARIA_SELECT_EPUB": "Sélectionner un fichier EPUB",
     "ARIA_SELECT_IMAGE": "Sélectionner une image de couverture",
     "CROP_ACTION": "Ajuster",
-    "COVER_CREATED": "Couverture créée. Vous pouvez maintenant enregistrer ou partager",
-    "GENERATE_ACTION_REWARDED": "Créer la couverture (voir une publicité)",
+    "COVER_CHANGED": "Couverture changée. Vous pouvez maintenant enregistrer ou partager",
+    "CHANGE_ACTION_REWARDED": "Changer la couverture (voir une publicité)",
+    "GENERATE_ACTION_REWARDED": "Changer la couverture (voir une publicité)",
     "GENERATING": "Chargement de la publicité…",
-    "HINT_ADJUST_FIRST": "Ajuste d’abord l’image pour créer la couverture.",
-    "HINT_SAVE_SHARE_EXPLAIN": "Créer la couverture ne l’enregistre pas automatiquement.",
+    "HINT_ADJUST_FIRST": "Ajuste d’abord l’image pour Changer la couverture.",
+    "HINT_SAVE_SHARE_EXPLAIN": "Changer la couverture ne l’enregistre pas automatiquement.",
     "HINT_READY_EXPORT": "Prêt. Utilise les boutons pour enregistrer ou partager.",
-    "HINT_REWARDED_REQUIRED": "Une courte publicité sera affichée pour créer la couverture.",    "EPUB_ERROR_CORRUPT": "Le fichier EPUB est vide ou corrompu. Essayez-en un autre.",
+    "HINT_REWARDED_REQUIRED": "Une courte publicité sera affichée pour Changer la couverture.",
+    "EPUB_ERROR_CORRUPT": "Le fichier EPUB est vide ou corrompu. Essayez-en un autre.",
     "EPUB_ERROR_NO_FILE": "Aucun fichier EPUB sélectionné.",
     "EPUB_ERROR_SIZE": "Le fichier EPUB est trop volumineux. Maximum {{maxSize}} Mo.",
-    "EPUB_ERROR_TYPE": "Type de fichier invalide. Sélectionnez un fichier EPUB valide (.epub).",    "IMAGE_ERROR_CORRUPT": "Impossible de lire l’image. Essayez-en une autre.",
+    "EPUB_ERROR_TYPE": "Type de fichier invalide. Sélectionnez un fichier EPUB valide (.epub).",
+    "IMAGE_ERROR_CORRUPT": "Impossible de lire l’image. Essayez-en une autre.",
     "IMAGE_ERROR_DIMENSIONS": "L’image est trop petite pour la taille sélectionnée.",
     "IMAGE_ERROR_SIZE": "Le fichier est trop volumineux. Maximum {{maxSize}} Mo.",
     "IMAGE_ERROR_TYPE": "Format non pris en charge ({{type}}). Sélectionnez JPG, PNG ou WebP.",
-    "IMAGE_WARN_SMALL": "Incompatible avec certains appareils. Pour de meilleurs résultats, utilisez une image plus grande.",
+    "IMAGE_WARN_SMALL": "L'image peut être trop petite pour certains appareils.",
     "LOADING_EPUB": "Chargement de l'EPUB…",
     "LOADING_IMAGE": "Chargement de l'image…",
     "OPENING_EDITOR": "Ouverture de l'éditeur…",
@@ -51,26 +54,26 @@
     "SELECT_IMAGE_LABEL": "Image de couverture",
     "SELECT_IMAGE_PLACEHOLDER": "Sélectionnez une image",
     "TAP_TO_CHANGE": "Touchez pour changer/réinitialiser",
-    "TITLE": "Créer une couverture"
+    "TITLE": "Changer une couverture"
   },
   "COVERS": {
-    "DELETED": "Couverture supprimée",
-    "EMPTY": "Aucune couverture pour le moment.",
-    "PLACEHOLDER": "Couverture",
+    "DELETED": "EPUB supprimé",
+    "EMPTY": "Aucun EPUB pour le moment.",
+    "PLACEHOLDER": "EPUB",
     "PREVIEW_TITLE": "Aperçu",
-    "TITLE": "Couvertures",
+    "TITLE": "Mes EPUB",
     "ACTIONS": {
       "DELETE": "Supprimer",
       "SHARE": "Partager"
     },
     "DELETE": {
-      "MESSAGE": "Voulez-vous supprimer cette couverture ?",
-      "TITLE": "Supprimer la couverture"
+      "MESSAGE": "Voulez-vous supprimer cet EPUB ?",
+      "TITLE": "Supprimer l'EPUB"
     },
     "ERROR": {
-      "DELETE": "Impossible de supprimer la couverture. Réessaie.",
-      "SHARE": "Impossible de partager la couverture. Réessaie.",
-      "LOAD": "Impossible de charger les couvertures. Fais glisser vers le bas pour réessayer."
+      "DELETE": "Impossible de Supprimer l'EPUB. Réessaie.",
+      "SHARE": "Impossible de partager l'EPUB. Réessaie.",
+      "LOAD": "Impossible de charger vos EPUB. Fais glisser vers le bas pour réessayer."
     }
   },
   "CROPPER": {
@@ -93,15 +96,15 @@
   },
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Remarque",
-    "STEP_1": "Sélectionnez une image pour votre couverture",
-    "STEP_2": "Ajustez l’image à la taille de votre Kindle",
-    "STEP_3": "Générez la couverture en regardant une courte vidéo",
-    "STEP_4": "Enregistrez ou partagez la couverture",
-    "STEP_4_DESC": "Une fois générée, vous pouvez l’enregistrer sur votre appareil ou la partager directement avec l’application Kindle pour une transition plus fluide.",
+    "STEP_1": "Selectionne un fichier EPUB (la couverture actuelle se precharge)",
+    "STEP_2": "Ajuste la couverture chargee ou choisis une nouvelle image et ajuste",
+    "STEP_3": "Regarde la pub pour changer la couverture de l'EPUB",
+    "STEP_4": "Enregistre ou partage l'EPUB mis a jour",
+    "STEP_4_DESC": "Une fois pret, tu peux l'enregistrer sur ton appareil ou le partager directement avec l'app Kindle pour une transition plus fluide.",
     "STEP_5": "Envoyer via le web (Send to Kindle)",
     "STEP_5_DESC": "Vous pouvez également l’envoyer depuis le navigateur en utilisant l’outil web Send to Kindle.",
     "TIP": "Pour de meilleurs résultats, utilisez des images en haute résolution et assurez-vous que les publicités sont désactivées sur votre Kindle.",
-    "TITLE": "Comment créer une couverture pour Kindle"
+    "TITLE": "Comment Changer une couverture pour Kindle"
   },
   "REQUISITES": {
     "ADS_DESC": "Les publicités doivent être désactivées sur l’appareil pour que la couverture s’affiche sur l’écran de verrouillage.",
@@ -121,7 +124,7 @@
   },
   "SETTINGS": {
     "INSTRUCTIONS": "Voir les instructions",
-    "INSTRUCTIONS_HINT": "Comment créer et envoyer une couverture pour Kindle",
+    "INSTRUCTIONS_HINT": "Comment changer et envoyer une couverture pour Kindle",
     "INSTRUCTIONS_SECTION": "Instructions",
     "LANGUAGE": "Langue",
     "PRIVACY_HINT": "Contrôlez la manière dont les données et la publicité sont gérées",
@@ -132,8 +135,8 @@
     "TITLE": "Paramètres"
   },
   "TABS": {
-    "COVERS": "Couvertures",
-    "CREATE": "Créer",
+    "COVERS": "Mes EPUB",
+    "CHANGE": "Changer",
     "SETTINGS": "Paramètres"
   }
 }

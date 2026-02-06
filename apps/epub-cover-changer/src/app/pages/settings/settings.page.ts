@@ -57,24 +57,9 @@ export class SettingsPage implements OnInit {
   private settings = inject(SettingsStore<EccSettings>);
   readonly supportedLangs = LANG_OPTIONS;
 
-  constructor() {
-    console.log(
-      '[SettingsPage] constructor - lang.lang value:',
-      this.lang.lang,
-    );
-    console.log(
-      '[SettingsPage] constructor - supportedLangs:',
-      this.supportedLangs,
-    );
-  }
+  constructor() {}
 
-  ngOnInit() {
-    console.log('[SettingsPage] ngOnInit - lang.lang value:', this.lang.lang);
-    console.log(
-      '[SettingsPage] ngOnInit - currentLang:',
-      this.lang['currentLang'],
-    );
-  }
+  ngOnInit() {}
 
   private readonly privacyPolicyUrl =
     'https://sheldrapps.github.io/privacy-policies/epub-cover-changer/';
@@ -82,22 +67,11 @@ export class SettingsPage implements OnInit {
   trackByLang = (_: number, l: LangOption) => l.code;
 
   async onLangChange(v: Lang) {
-    console.log('[SettingsPage] onLangChange called with value:', v);
-    console.log(
-      '[SettingsPage] onLangChange - current lang.lang before set():',
-      this.lang.lang,
-    );
-
     // First persist in settings-kit
     await this.settings.set({ lang: v });
-    console.log('[SettingsPage] onLangChange - settings.set() completed');
 
     // Then apply language change
     await this.lang.set(v);
-    console.log(
-      '[SettingsPage] onLangChange - lang.set() completed, new lang.lang:',
-      this.lang.lang,
-    );
   }
 
   async openPrivacyOptions() {

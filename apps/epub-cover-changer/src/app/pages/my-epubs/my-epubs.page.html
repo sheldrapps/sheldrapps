@@ -1,7 +1,7 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/create"></ion-back-button>
+      <ion-back-button defaultHref="/tabs/change"></ion-back-button>
     </ion-buttons>
     <ion-title>{{ 'COVERS.TITLE' | translate }}</ion-title>
   </ion-toolbar>
@@ -51,12 +51,15 @@
           (pointerleave)="onPressCancel()"
         >
           @if (item.thumbDataUrl) {
-          <img class="thumb" [src]="item.thumbDataUrl" alt="cover" />
+          <img class="thumb" [src]="item.thumbDataUrl" alt="epub cover" />
           } @else {
           <div class="thumb placeholder">
             {{ 'COVERS.PLACEHOLDER' | translate }}
           </div>
           }
+          <div class="file-name" [title]="getDisplayName(item.filename)">
+            {{ getDisplayName(item.filename) }}
+          </div>
 
           <ion-button
             class="dots"
@@ -112,7 +115,7 @@
               fill="clear"
               size="small"
               (click)="toggleInfo($event)"
-              aria-label="{{ 'CREATE.INFO_ARIA' | translate }}"
+              aria-label="{{ 'CHANGE.INFO_ARIA' | translate }}"
             >
               <ion-icon slot="icon-only" name="information-circle-outline"></ion-icon>
             </ion-button>
@@ -186,7 +189,7 @@
       >
         <ng-template>
           <div class="preview-info-popover">
-            <div class="preview-info-title">{{ 'CREATE.INFO_TITLE' | translate }}</div>
+            <div class="preview-info-title">{{ 'CHANGE.INFO_TITLE' | translate }}</div>
             <div class="preview-info-body">
               {{ 'COMMON.SHARE_KINDLE_HINT' | translate }}
             </div>

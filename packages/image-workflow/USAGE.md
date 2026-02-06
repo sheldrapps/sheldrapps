@@ -26,7 +26,7 @@ const materialized = await materializeFile(file);
 
 // Get dimensions
 const dims = await getDimensions(materialized);
-console.log(`Image: ${dims.width}x${dims.height}`);
+// handle dimensions here
 
 // Prepare optimized working image
 const working = await prepareWorkingImage(materialized, {
@@ -49,7 +49,7 @@ async openCropper(imageFile: File, target: CropTarget) {
     componentProps: {
       file: imageFile,
       model: target,  // { width: 1236, height: 1648 }
-      onReady: () => console.log('Cropper ready'),
+      onReady: () => {},
     },
   });
 

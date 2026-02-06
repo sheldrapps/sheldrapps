@@ -14,7 +14,7 @@
     "SHARE_KINDLE_HINT": "Al compartir, selecciona la app Kindle para enviarla a tu dispositivo.",
     "WARNING": "Advertencia"
   },
-  "CREATE": {
+  "CHANGE": {
     "ADS_REQUIRED": "No se pudo cargar el anuncio. Revisa tu red o bloqueador de anuncios.",
     "ARIA_CHANGE_EPUB": "Cambiar archivo EPUB. Archivo actual: {{name}}",
     "ARIA_CHANGE_IMAGE": "Cambiar imagen de portada. Imagen actual: {{name}}",
@@ -23,21 +23,21 @@
     "ARIA_SELECT_IMAGE": "Seleccionar imagen de portada",
     "ARIA_HELP": "Ayuda y consejos para guardar y compartir",
     "CROP_ACTION": "Ajustar",
-    "COVER_CREATED": "Portada creada. Ya puedes guardar o compartir",
-    "CREATE_ACTION_REWARDED": "Crear portada (ver anuncio)",
-    "GENERATE_ACTION_REWARDED": "Crear portada (ver anuncio)",
+    "COVER_CHANGED": "Portada cambiada. Ya puedes guardar o compartir",
+    "CHANGE_ACTION_REWARDED": "Cambiar portada (ver anuncio)",
+    "GENERATE_ACTION_REWARDED": "Cambiar portada (ver anuncio)",
     "GENERATING": "Cargando anuncio…",
-    "HINT_ADJUST_FIRST": "Primero ajusta la imagen para crear la portada.",
-    "HINT_SAVE_SHARE_EXPLAIN": "Crear la portada no la guarda automáticamente.",
+    "HINT_ADJUST_FIRST": "Primero ajusta la imagen para cambiar la portada.",
+    "HINT_SAVE_SHARE_EXPLAIN": "cambiar la portada no la guarda automáticamente.",
     "HINT_READY_EXPORT": "Listo. Usa los botones para guardar o compartir.",
-    "HINT_REWARDED_REQUIRED": "Se mostrará un anuncio corto para crear la portada.",
+    "HINT_REWARDED_REQUIRED": "Se mostrará un anuncio corto para cambiar la portada.",
     "INFO": "Info",
-    "INFO_ARIA": "Información sobre crear portada",
+    "INFO_ARIA": "Información sobre Cambiar portada",
     "INFO_TITLE": "Información",
-    "INFO_NOT_SAVED": "Crear la portada no la guarda automáticamente.",
+    "INFO_NOT_SAVED": "cambiar la portada no la guarda automáticamente.",
     "INFO_SHARE_KINDLE": "Para enviarla a tu Kindle, al compartir elige la app Kindle.",
     "INFO_FLOW_LABEL": "Orden recomendado:",
-    "INFO_FLOW_STEPS": "Ajustar → Crear portada → Guardar o Compartir",
+    "INFO_FLOW_STEPS": "Seleccionar EPUB -> Se precarga la portada -> Ajustarla o seleccionar una nueva y ajustar -> Ver anuncio para crear -> Guardar o Compartir",
     "EPUB_ERROR_CORRUPT": "El archivo EPUB está vacío o corrupto. Prueba con otro.",
     "EPUB_ERROR_NO_FILE": "No se seleccionó ningún archivo EPUB.",
     "EPUB_ERROR_SIZE": "El archivo EPUB pesa demasiado. Máximo {{maxSize}} MB.",
@@ -46,7 +46,7 @@
     "IMAGE_ERROR_DIMENSIONS": "La imagen es demasiado pequeña para el tamaño seleccionado.",
     "IMAGE_ERROR_SIZE": "El archivo pesa demasiado. Máximo {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Formato no compatible ({{type}}). Selecciona JPG, PNG o WebP.",
-    "IMAGE_WARN_SMALL": "A algunos dispositivos no les es compatible. Para mejores resultados, usa una imagen más grande.",
+    "IMAGE_WARN_SMALL": "La imagen puede ser demasiado pequeña para algunos dispositivos",
     "LOADING_EPUB": "Cargando EPUB…",
     "LOADING_IMAGE": "Cargando imagen…",
     "OPENING_EDITOR": "Abriendo editor…",
@@ -62,26 +62,26 @@
     "SELECT_IMAGE_LABEL": "Imagen de portada",
     "SELECT_IMAGE_PLACEHOLDER": "Selecciona una imagen",
     "TAP_TO_CHANGE": "Toca para cambiar/reiniciar",
-    "TITLE": "Crear portada"
+    "TITLE": "Cambiar portada"
   },
   "COVERS": {
-    "DELETED": "Portada eliminada",
-    "EMPTY": "No hay portadas todavía.",
-    "PLACEHOLDER": "Portada",
+    "DELETED": "EPUB eliminado",
+    "EMPTY": "No hay EPUBs todavía.",
+    "PLACEHOLDER": "EPUB",
     "PREVIEW_TITLE": "Vista previa",
-    "TITLE": "Portadas",
+    "TITLE": "Mis EPUBs",
     "ACTIONS": {
       "DELETE": "Eliminar",
       "SHARE": "Compartir"
     },
     "DELETE": {
-      "MESSAGE": "¿Quieres eliminar esta portada?",
-      "TITLE": "Eliminar portada"
+      "MESSAGE": "¿Quieres eliminar este EPUB?",
+      "TITLE": "Eliminar EPUB"
     },
     "ERROR": {
-      "DELETE": "No se pudo eliminar la portada. Inténtalo de nuevo.",
-      "SHARE": "No se pudo compartir la portada. Inténtalo de nuevo.",
-      "LOAD": "No se pudieron cargar tus portadas. Arrastra hacia abajo para intentar de nuevo."
+      "DELETE": "No se pudo eliminar el EPUB. Inténtalo de nuevo.",
+      "SHARE": "No se pudo compartir el EPUB. Inténtalo de nuevo.",
+      "LOAD": "No se pudieron cargar tus EPUBs. Arrastra hacia abajo para intentar de nuevo."
     }
   },
   "CROPPER": {
@@ -104,20 +104,20 @@
   },
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Nota",
-    "STEP_1": "Selecciona una imagen para tu portada",
-    "STEP_2": "Ajusta la imagen al tamaño de tu Kindle",
-    "STEP_3": "Genera la portada viendo un video corto",
-    "STEP_4": "Guarda o comparte la portada",
-    "STEP_4_DESC": "Cuando esté lista, puedes guardarla en tu dispositivo o compartirla con la app Kindle para una transición más suave.",
+    "STEP_1": "Selecciona un archivo EPUB (se precarga la portada actual)",
+    "STEP_2": "Ajusta la portada cargada o elige una nueva imagen y ajusta",
+    "STEP_3": "Ve el anuncio para cambiar la portada del EPUB",
+    "STEP_4": "Guarda o comparte el EPUB actualizado",
+    "STEP_4_DESC": "Cuando este listo, puedes guardarlo en tu dispositivo o compartirlo con la app Kindle para una transicion mas suave.",
     "STEP_5": "Enviar vía web (Send to Kindle)",
     "STEP_5_DESC": "También puedes enviarla desde el navegador usando la herramienta web Send to Kindle.",
     "TIP": "Para mejores resultados, usa imágenes en alta resolución y asegúrate de que los anuncios estén desactivados en tu Kindle.",
-    "TITLE": "Cómo crear una portada para Kindle"
+    "TITLE": "Cómo cambiar una portada para Kindle"
   },
 
   "SETTINGS": {
     "INSTRUCTIONS": "Ver instrucciones",
-    "INSTRUCTIONS_HINT": "Cómo crear y enviar una portada a Kindle",
+    "INSTRUCTIONS_HINT": "Cómo cambiar y enviar una portada a Kindle",
     "INSTRUCTIONS_SECTION": "Instrucciones",
     "LANGUAGE": "Idioma",
     "PRIVACY_HINT": "Controla cómo se manejan los datos y la publicidad",
@@ -128,8 +128,8 @@
     "TITLE": "Configuración"
   },
   "TABS": {
-    "COVERS": "Portadas",
-    "CREATE": "Crear",
+    "COVERS": "Mis EPUBs",
+    "CHANGE": "Cambiar",
     "SETTINGS": "Configuración"
   }
 }

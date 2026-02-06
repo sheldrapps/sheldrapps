@@ -21,7 +21,7 @@ import { TranslateModule } from '@ngx-translate/core';
         <ion-buttons slot="start">
           <ion-button (click)="cancel()">{{ 'COMMON.CANCEL' | translate }}</ion-button>
         </ion-buttons>
-        <ion-title>{{ 'CREATE.SAVE_RENAME_TITLE' | translate }}</ion-title>
+        <ion-title>{{ 'CHANGE.SAVE_RENAME_TITLE' | translate }}</ion-title>
         <ion-buttons slot="end">
           <ion-button
             (click)="save()"
@@ -37,12 +37,12 @@ import { TranslateModule } from '@ngx-translate/core';
     <ion-content class="ion-padding">
       <div class="cc-modal-form">
         <div class="cc-form-group">
-          <label for="filename-input">{{ 'CREATE.SAVE_RENAME_MESSAGE' | translate }}</label>
+          <label for="filename-input">{{ 'CHANGE.SAVE_RENAME_MESSAGE' | translate }}</label>
           <input
             id="filename-input"
             type="text"
             [(ngModel)]="filenameValue"
-            [placeholder]="'CREATE.SAVE_RENAME_PLACEHOLDER' | translate"
+            [placeholder]="'CHANGE.SAVE_RENAME_PLACEHOLDER' | translate"
             class="cc-text-input"
             (keyup.enter)="save()"
             autofocus

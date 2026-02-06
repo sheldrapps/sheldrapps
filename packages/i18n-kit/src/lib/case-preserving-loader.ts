@@ -15,8 +15,6 @@ export class CasePreservingTranslateLoader implements TranslateLoader {
 
   getTranslation(lang: string): Observable<any> {
     const url = `${this.prefix}${lang}${this.suffix}`;
-    console.log('[i18n-kit] loader.getTranslation lang:', lang);
-    console.log('[i18n-kit] loader.getTranslation url:', url);
     return this.http.get<any>(url);
   }
 }

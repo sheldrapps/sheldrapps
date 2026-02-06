@@ -58,7 +58,7 @@ ion-toast.cc-toast::part(wrapper) {
 }
 
 ion-toast.cc-toast::part(message) {
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(255, 255, 255, 0.89);
   text-align: center;
   font-size: 0.98rem;
   line-height: 1.35;
@@ -67,5 +67,5 @@ ion-toast.cc-toast::part(message) {
 
 ion-toast.cc-toast::part(button),
 ion-toast.cc-toast::part(icon) {
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(255, 255, 255, 0.89);
 }

@@ -11,7 +11,7 @@ describe('SettingsPage', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it('should render', () => {
     expect(component).toBeTruthy();
   });
 });

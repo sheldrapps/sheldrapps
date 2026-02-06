@@ -41,7 +41,6 @@ export function provideI18nKit(
   config: LanguageConfig,
   storageAdapter?: StorageAdapter
 ): (Provider | EnvironmentProviders)[] {
-  console.log('[i18n-kit] USING i18n-kit v1.0.0');
   return [
     // Provide config via injection token
     { provide: LANGUAGE_CONFIG_TOKEN, useValue: config },

@@ -14,7 +14,7 @@
     "SHARE_KINDLE_HINT": "Durante la condivisione, seleziona l’app Kindle per inviarla al dispositivo.",
     "WARNING": "Avviso"
   },
-  "CREATE": {
+  "CHANGE": {
     "ADS_REQUIRED": "Impossibile caricare l’annuncio. Controlla la rete o il blocco annunci.",
     "ARIA_CHANGE_EPUB": "Cambia file EPUB. File corrente: {{name}}",
     "ARIA_CHANGE_IMAGE": "Cambia immagine della copertina. Immagine attuale: {{name}}",
@@ -22,20 +22,23 @@
     "ARIA_SELECT_EPUB": "Seleziona file EPUB",
     "ARIA_SELECT_IMAGE": "Seleziona immagine di copertina",
     "CROP_ACTION": "Regola",
-    "COVER_CREATED": "Copertina creata. Puoi ora salvare o condividere",
-    "GENERATE_ACTION_REWARDED": "Crea copertina (guarda annuncio)",
+    "COVER_CHANGED": "Copertina cambiata. Puoi ora salvare o condividere",
+    "CHANGE_ACTION_REWARDED": "Cambia copertina (guarda annuncio)",
+    "GENERATE_ACTION_REWARDED": "Cambia copertina (guarda annuncio)",
     "GENERATING": "Caricamento annuncio…",
-    "HINT_ADJUST_FIRST": "Regola prima l’immagine per creare la copertina.",
+    "HINT_ADJUST_FIRST": "Regola prima l’immagine per cambiare la copertina.",
     "HINT_SAVE_SHARE_EXPLAIN": "La creazione della copertina non la salva automaticamente.",
     "HINT_READY_EXPORT": "Pronto. Usa i pulsanti per salvare o condividere.",
-    "HINT_REWARDED_REQUIRED": "Verrà mostrato un breve annuncio per creare la copertina.",    "EPUB_ERROR_CORRUPT": "Il file EPUB è vuoto o corrotto. Prova con un altro.",
+    "HINT_REWARDED_REQUIRED": "Verrà mostrato un breve annuncio per cambiare la copertina.",
+    "EPUB_ERROR_CORRUPT": "Il file EPUB è vuoto o corrotto. Prova con un altro.",
     "EPUB_ERROR_NO_FILE": "Nessun file EPUB selezionato.",
     "EPUB_ERROR_SIZE": "Il file EPUB è troppo grande. Massimo {{maxSize}} MB.",
-    "EPUB_ERROR_TYPE": "Tipo di file non valido. Seleziona un file EPUB valido (.epub).",    "IMAGE_ERROR_CORRUPT": "Impossibile leggere l’immagine. Prova con un’altra.",
+    "EPUB_ERROR_TYPE": "Tipo di file non valido. Seleziona un file EPUB valido (.epub).",
+    "IMAGE_ERROR_CORRUPT": "Impossibile leggere l’immagine. Prova con un’altra.",
     "IMAGE_ERROR_DIMENSIONS": "L’immagine è troppo piccola per la dimensione selezionata.",
     "IMAGE_ERROR_SIZE": "Il file è troppo grande. Massimo {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Formato non supportato ({{type}}). Seleziona JPG, PNG o WebP.",
-    "IMAGE_WARN_SMALL": "Non compatibile con alcuni dispositivi. Per risultati migliori, usa un'immagine più grande.",
+    "IMAGE_WARN_SMALL": "L'immagine potrebbe essere troppo piccola per alcuni dispositivi.",
     "LOADING_EPUB": "Caricamento EPUB…",
     "LOADING_IMAGE": "Caricamento immagine…",
     "OPENING_EDITOR": "Apertura editor…",
@@ -51,26 +54,26 @@
     "SELECT_IMAGE_LABEL": "Immagine di copertina",
     "SELECT_IMAGE_PLACEHOLDER": "Seleziona un’immagine",
     "TAP_TO_CHANGE": "Tocca per cambiare/reimpostare",
-    "TITLE": "Crea copertina"
+    "TITLE": "Cambia copertina"
   },
   "COVERS": {
-    "DELETED": "Copertina eliminata",
+    "DELETED": "EPUB eliminato",
     "EMPTY": "Nessuna copertina ancora.",
-    "PLACEHOLDER": "Copertina",
+    "PLACEHOLDER": "EPUB",
     "PREVIEW_TITLE": "Anteprima",
-    "TITLE": "Copertine",
+    "TITLE": "I miei EPUB",
     "ACTIONS": {
       "DELETE": "Elimina",
       "SHARE": "Condividi"
     },
     "DELETE": {
-      "MESSAGE": "Vuoi eliminare questa copertina?",
-      "TITLE": "Elimina copertina"
+      "MESSAGE": "Vuoi eliminare questo EPUB?",
+      "TITLE": "Elimina EPUB"
     },
     "ERROR": {
-      "DELETE": "Impossibile eliminare la copertina. Riprova.",
-      "SHARE": "Impossibile condividere la copertina. Riprova.",
-      "LOAD": "Impossibile caricare le copertine. Trascina verso il basso per riprovare."
+      "DELETE": "Impossibile eliminare l'EPUB. Riprova.",
+      "SHARE": "Impossibile condividere l'EPUB. Riprova.",
+      "LOAD": "Impossibile caricare i tuoi EPUB. Trascina verso il basso per riprovare."
     }
   },
   "CROPPER": {
@@ -93,20 +96,20 @@
   },
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Nota",
-    "STEP_1": "Seleziona un'immagine per la copertina",
-    "STEP_2": "Regola l'immagine alle dimensioni del tuo Kindle",
-    "STEP_3": "Genera la copertina guardando un breve video",
-    "STEP_4": "Salva o condividi la copertina",
-    "STEP_4_DESC": "Una volta generata, puoi salvarla sul dispositivo o condividerla direttamente con l’app Kindle per una transizione più fluida.",
+    "STEP_1": "Seleziona un file EPUB (la copertina attuale si carica in automatico)",
+    "STEP_2": "Regola la copertina caricata o scegli una nuova immagine e regolala",
+    "STEP_3": "Guarda l'annuncio per cambiare la copertina nell'EPUB",
+    "STEP_4": "Salva o condividi l'EPUB aggiornato",
+    "STEP_4_DESC": "Una volta pronto, puoi salvarlo sul dispositivo o condividerlo direttamente con l'app Kindle per una transizione piu fluida.",
     "STEP_5": "Invia via web (Send to Kindle)",
     "STEP_5_DESC": "Puoi anche inviarla dal browser utilizzando lo strumento web Send to Kindle.",
     "TIP": "Per risultati migliori, utilizza immagini ad alta risoluzione e assicurati che gli annunci siano disattivati sul tuo Kindle.",
-    "TITLE": "Come creare una copertina per Kindle"
+    "TITLE": "Come cambiare una copertina per Kindle"
   },
 
   "SETTINGS": {
     "INSTRUCTIONS": "Vedi istruzioni",
-    "INSTRUCTIONS_HINT": "Come creare e inviare una copertina per Kindle",
+    "INSTRUCTIONS_HINT": "Come cambiare e inviare una copertina per Kindle",
     "INSTRUCTIONS_SECTION": "Istruzioni",
     "LANGUAGE": "Lingua",
     "PRIVACY_HINT": "Controlla come vengono gestiti dati e pubblicità",
@@ -117,8 +120,8 @@
     "TITLE": "Impostazioni"
   },
   "TABS": {
-    "COVERS": "Copertine",
-    "CREATE": "Crea",
+    "COVERS": "I miei EPUB",
+    "CHANGE": "Cambia",
     "SETTINGS": "Impostazioni"
   }
 }

@@ -42,20 +42,17 @@ import {
   closeCircleOutline,
   informationCircleOutline,
   documentOutline,
+  refreshOutline,
 } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
 import { FileService } from '../../services/file.service';
 import { AdsService, type RewardedAdResult } from '../../services/ads.service';
-import { playCircleOutline } from 'ionicons/icons';
 import { CoversEventsService } from '../../services/covers-events.service';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastOptions } from '@ionic/angular';
 import { SaveCoverModalComponent } from './save-cover-modal.component';
 
-/**
- * Wrapper component that adds i18n labels to CoverCropperModalComponent
- */
 @Component({
   selector: 'app-cover-cropper-modal-i18n',
   standalone: true,
@@ -99,9 +96,9 @@ class CoverCropperModalI18nComponent {
 }
 
 @Component({
-  selector: 'app-create',
-  templateUrl: './create.page.html',
-  styleUrls: ['./create.page.scss'],
+  selector: 'app-change',
+  templateUrl: './change.page.html',
+  styleUrls: ['./change.page.scss'],
   standalone: true,
   imports: [
     IonCol,
@@ -122,7 +119,7 @@ class CoverCropperModalI18nComponent {
     IonPopover,
   ],
 })
-export class CreatePage implements OnDestroy {
+export class ChangePage implements OnDestroy {
   private modalCtrl = inject(ModalController);
   private fileService = inject(FileService);
   private imagePipe = inject(ImagePipelineService);
@@ -143,12 +140,12 @@ export class CreatePage implements OnDestroy {
       checkmarkCircle,
       closeCircleOutline,
       alertCircleOutline,
-      playCircleOutline,
       saveOutline,
       shareSocialOutline,
       informationCircleOutline,
       imageOutline,
       documentOutline,
+      refreshOutline,
     });
   }
 
@@ -217,7 +214,7 @@ export class CreatePage implements OnDestroy {
     };
 
     return [
-      { id: 'epub', label: 'EPUB', target: epubTarget },
+      { id: 'epub', label: 'Kindle', target: epubTarget },
       { id: 'kobo', label: 'Kobo', target: { width: 1072, height: 1448, output: 'source' } },
       { id: 'three_four', label: '3:4', target: { width: 3, height: 4, output: 'source' } },
       { id: 'nine_sixteen', label: '9:16', target: { width: 9, height: 16, output: 'source' } },
@@ -235,13 +232,25 @@ export class CreatePage implements OnDestroy {
     const file = input.files?.[0];
     if (!file) return;
 
-    this.setBusy('epub', 'CREATE.LOADING_EPUB');
+    this.setBusy('epub', 'CHANGE.LOADING_EPUB');
 
     try {
       // Validate EPUB file
       const validation = this.fileService.validateEpub(file, 50);
       if (!validation.valid) {
         this.failEpub(validation.errorKey!, file);
+        return;
+      }
+
+      const hasValidStructure = await this.fileService.validateEpubStructure(file);
+      if (!hasValidStructure) {
+        this.failEpub('EPUB_ERROR_CORRUPT', file);
+        return;
+      }
+
+      const extractedCover = await this.fileService.extractCoverFromEpubFile(file);
+      if (!extractedCover) {
+        this.failEpub('EPUB_ERROR_CORRUPT', file);
         return;
       }
 
@@ -255,6 +264,12 @@ export class CreatePage implements OnDestroy {
       this.selectedEpubFile = file;
       this.selectedEpubName = file.name;
 
+      const coverLoaded = await this.applyImageSource(extractedCover, false);
+      if (!coverLoaded) {
+        this.failEpub('EPUB_ERROR_CORRUPT', file);
+        return;
+      }
+
     } finally {
       this.setBusy('none');
       input.value = '';
@@ -263,7 +278,7 @@ export class CreatePage implements OnDestroy {
 
   private failEpub(errorKey: string, file?: File) {
     this.zone.run(() => {
-      this.epubErrorKey = `CREATE.${errorKey}`;
+      this.epubErrorKey = `CHANGE.${errorKey}`;
       this.epubErrorParams = {
         maxSize: '50',
         name: file?.name || '',
@@ -314,51 +329,63 @@ export class CreatePage implements OnDestroy {
     const file = input.files?.[0];
     if (!file) return;
 
-    this.setBusy('pick', 'CREATE.LOADING_IMAGE');
+    this.setBusy('pick', 'CHANGE.LOADING_IMAGE');
 
     try {
-      this.cropState = undefined;
-      let source = file;
-
-      const basicErr = this.imagePipe.validateBasic(source);
-      if (basicErr) return this.failImage(basicErr, source);
-
-      source = await this.imagePipe.materializeFile(source);
-
-      let originalDims = await this.imagePipe.getDimensions(source);
-
-      if (!originalDims) {
-        const normalized = await this.imagePipe.normalizeFile(source);
-        if (normalized) {
-          source = normalized;
-          originalDims = await this.imagePipe.getDimensions(source);
-        }
-      }
-
-      if (!originalDims) return this.failImage('CORRUPT', source);
-
-      this.clearImageError();
-      this.clearImageWarn();
-
-      this.originalImageFile = source;
-
-      const working = await this.imagePipe.prepareWorkingImage(source);
-      this.workingImageFile = working;
-      this.exportImageFile = undefined;
-      this.cropState = undefined;
-
-      const workingDims = await this.imagePipe.getDimensions(working);
-      this.selectedImageDims = workingDims ?? originalDims;
-      this.selectedImageName = working.name;
-
-      this.applySmallWarn(originalDims);
-
-      this.revokePreviewUrl();
-      this.previewUrl = URL.createObjectURL(working);
+      await this.applyImageSource(file, true);
     } finally {
       this.setBusy('none');
       input.value = '';
     }
+  }
+
+  private async applyImageSource(file: File, setImageError: boolean): Promise<boolean> {
+    this.cropState = undefined;
+    let source = file;
+
+    const basicErr = this.imagePipe.validateBasic(source);
+    if (basicErr) {
+      if (setImageError) this.failImage(basicErr, source);
+      return false;
+    }
+
+    source = await this.imagePipe.materializeFile(source);
+
+    let originalDims = await this.imagePipe.getDimensions(source);
+
+    if (!originalDims) {
+      const normalized = await this.imagePipe.normalizeFile(source);
+      if (normalized) {
+        source = normalized;
+        originalDims = await this.imagePipe.getDimensions(source);
+      }
+    }
+
+    if (!originalDims) {
+      if (setImageError) this.failImage('CORRUPT', source);
+      return false;
+    }
+
+    this.clearImageError();
+    this.clearImageWarn();
+
+    this.originalImageFile = source;
+
+    const working = await this.imagePipe.prepareWorkingImage(source);
+    this.workingImageFile = working;
+    this.exportImageFile = undefined;
+    this.cropState = undefined;
+
+    const workingDims = await this.imagePipe.getDimensions(working);
+    this.selectedImageDims = workingDims ?? originalDims;
+    this.selectedImageName = working.name;
+
+    this.applySmallWarn(originalDims);
+
+    this.revokePreviewUrl();
+    this.previewUrl = URL.createObjectURL(working);
+
+    return true;
   }
 
   private applySmallWarn(originalDims?: { width: number; height: number }) {
@@ -372,7 +399,7 @@ export class CreatePage implements OnDestroy {
     });
     if (!params) return;
 
-    this.imageWarnKey = 'CREATE.IMAGE_WARN_SMALL';
+    this.imageWarnKey = 'CHANGE.IMAGE_WARN_SMALL';
     this.imageWarnParams = params;
   }
 
@@ -385,7 +412,7 @@ export class CreatePage implements OnDestroy {
     const sourceFile = this.workingImageFile;
     if (!sourceFile) return;
 
-    this.setBusy('crop', 'CREATE.OPENING_EDITOR');
+    this.setBusy('crop', 'CHANGE.OPENING_EDITOR');
 
     let markReady!: () => void;
     const readyPromise = new Promise<void>((resolve) => (markReady = resolve));
@@ -488,10 +515,10 @@ export class CreatePage implements OnDestroy {
   }
 
   private async performSave(filename: string) {
-    this.setBusy('export', 'CREATE.SAVING');
+    this.setBusy('export', 'CHANGE.SAVING');
     try {
       if (filename === this.lastSavedFilename) {
-        await this.showToast('CREATE.SAVED_OK', { duration: 1600 }, 'success');
+        await this.showToast('CHANGE.SAVED_OK', { duration: 1600 }, 'success');
         return;
       }
 
@@ -525,7 +552,7 @@ export class CreatePage implements OnDestroy {
         filename: filename,
       });
 
-      await this.showToast('CREATE.SAVED_OK', { duration: 1600 }, 'success');
+      await this.showToast('CHANGE.SAVED_OK', { duration: 1600 }, 'success');
     } finally {
       this.zone.run(() => this.setBusy('none'));
     }
@@ -536,7 +563,7 @@ export class CreatePage implements OnDestroy {
       if (this.canGenerate()) {
         await this.showHintOnce(
           'cc_hint_save_share_explain_shown',
-          'CREATE.HINT_SAVE_SHARE_EXPLAIN',
+          'CHANGE.HINT_SAVE_SHARE_EXPLAIN',
           2200,
         );
       }
@@ -549,7 +576,7 @@ export class CreatePage implements OnDestroy {
       2200,
     );
 
-    this.setBusy('export', 'CREATE.SAVING');
+    this.setBusy('export', 'CHANGE.SAVING');
     try {
       await this.fileService.shareGeneratedEpub({
         bytes: this.generatedEpubBytes!,
@@ -605,10 +632,10 @@ export class CreatePage implements OnDestroy {
 
     this.imageErrorKey =
       err === 'UNSUPPORTED_TYPE'
-        ? 'CREATE.IMAGE_ERROR_TYPE'
+        ? 'CHANGE.IMAGE_ERROR_TYPE'
         : err === 'TOO_LARGE'
-          ? 'CREATE.IMAGE_ERROR_SIZE'
-          : 'CREATE.IMAGE_ERROR_CORRUPT';
+          ? 'CHANGE.IMAGE_ERROR_SIZE'
+          : 'CHANGE.IMAGE_ERROR_CORRUPT';
 
     this.imageErrorParams =
       err === 'UNSUPPORTED_TYPE'
@@ -631,11 +658,15 @@ export class CreatePage implements OnDestroy {
     );
   }
 
+  getChangeActionKey(): string {
+    return 'CHANGE.CHANGE_ACTION_REWARDED';
+  }
+
   async onGenerate() {
     if (!this.canGenerate() || !this.exportImageFile)
       return;
 
-    this.setBusy('export', 'CREATE.GENERATING');
+    this.setBusy('export', 'CHANGE.GENERATING');
 
     try {
       const result: RewardedAdResult = await this.ads.showRewarded();
@@ -643,7 +674,7 @@ export class CreatePage implements OnDestroy {
       // Handle ad failure
       if (result.failed) {
         await this.showToast(
-          'CREATE.ADS_REQUIRED',
+          'CHANGE.ADS_REQUIRED',
           { duration: 1800 },
           'error',
         );
@@ -653,7 +684,7 @@ export class CreatePage implements OnDestroy {
       // Handle ad closed without reward (user didn't watch it completely)
       if (result.adClosed && !result.rewardEarned) {
         await this.showToast(
-          'CREATE.ADS_REQUIRED',
+          'CHANGE.ADS_REQUIRED',
           { duration: 1800 },
           'error',
         );
@@ -665,16 +696,36 @@ export class CreatePage implements OnDestroy {
         return;
       }
 
-      const res = await this.fileService.generateEpubBytes({
-        modelId: this.baseModelId,
-        coverFile: this.exportImageFile,
-        title: 'EPUB Cover',
-      });
+      const sourceEpub = this.selectedEpubFile;
+      const preferredFilename = this.selectedEpubName;
+
+      let res: { bytes: Uint8Array; filename: string };
+      if (sourceEpub) {
+        try {
+          res = await this.fileService.generateEpubBytesFromSource({
+            sourceEpubFile: sourceEpub,
+            coverFile: this.exportImageFile,
+            filename: preferredFilename,
+          });
+        } catch {
+          res = await this.fileService.generateEpubBytes({
+            modelId: this.baseModelId,
+            coverFile: this.exportImageFile,
+            title: 'EPUB Cover',
+          });
+        }
+      } else {
+        res = await this.fileService.generateEpubBytes({
+          modelId: this.baseModelId,
+          coverFile: this.exportImageFile,
+          title: 'EPUB Cover',
+        });
+      }
 
       this.generatedEpubBytes = res.bytes;
       this.generatedEpubFilename = res.filename;
 
-      this.setBusy('export', 'CREATE.SAVING');
+      this.setBusy('export', 'CHANGE.SAVING');
 
       await this.fileService.saveGeneratedEpub({
         bytes: this.generatedEpubBytes,
@@ -693,7 +744,7 @@ export class CreatePage implements OnDestroy {
       // Show success toast ONLY when reward earned AND ad closed
       await this.zone.run(async () => {
         await this.showToast(
-          'CREATE.COVER_CREATED',
+          'CHANGE.COVER_CHANGED',
           { duration: 2200 },
           'success',
         );
@@ -765,5 +816,3 @@ export class CreatePage implements OnDestroy {
     await toast.present();
   }
 }
-
-

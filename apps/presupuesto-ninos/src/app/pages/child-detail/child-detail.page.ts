@@ -210,7 +210,6 @@ export class ChildDetailPage {
             console.warn("No file selected");
             return;
           }
-          console.log("File selected:", file.name, file.size, file.type);
           await this.openCropper(file);
         } catch (error) {
           console.error("Error in file change handler:", error);

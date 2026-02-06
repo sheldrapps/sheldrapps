@@ -14,7 +14,7 @@
     "SHARE_KINDLE_HINT": "Wähle beim Teilen die Kindle-App aus, um es an dein Gerät zu senden.",
     "WARNING": "Warnung"
   },
-  "CREATE": {
+  "CHANGE": {
     "ADS_REQUIRED": "Anzeige konnte nicht geladen werden. Prüfe dein Netzwerk oder den Werbeblocker.",
     "ARIA_CHANGE_EPUB": "EPUB-Datei ändern. Aktuelle Datei: {{name}}",
     "ARIA_CHANGE_IMAGE": "Coverbild ändern. Aktuelles Bild: {{name}}",
@@ -22,13 +22,14 @@
     "ARIA_SELECT_EPUB": "EPUB-Datei auswählen",
     "ARIA_SELECT_IMAGE": "Coverbild auswählen",
     "CROP_ACTION": "Anpassen",
-    "COVER_CREATED": "Cover erstellt. Du kannst es jetzt speichern oder teilen",
-    "GENERATE_ACTION_REWARDED": "Cover erstellen (Werbung ansehen)",
+    "COVER_CHANGED": "Cover geändert. Du kannst es jetzt speichern oder teilen",
+    "CHANGE_ACTION_REWARDED": "Cover wechseln (Werbung ansehen)",
+    "GENERATE_ACTION_REWARDED": "Cover ändern (Werbung ansehen)",
     "GENERATING": "Anzeige wird geladen…",
-    "HINT_ADJUST_FIRST": "Passe zuerst das Bild an, um das Cover zu erstellen.",
-    "HINT_SAVE_SHARE_EXPLAIN": "Das Erstellen des Covers speichert es nicht automatisch.",
+    "HINT_ADJUST_FIRST": "Passe zuerst das Bild an, um das Cover zu ändern.",
+    "HINT_SAVE_SHARE_EXPLAIN": "Das ändern des Covers speichert es nicht automatisch.",
     "HINT_READY_EXPORT": "Fertig. Verwende die Schaltflächen zum Speichern oder Teilen.",
-    "HINT_REWARDED_REQUIRED": "Zum Erstellen des Covers wird eine kurze Werbung angezeigt.",
+    "HINT_REWARDED_REQUIRED": "Zum ändern des Covers wird eine kurze Werbung angezeigt.",
     "EPUB_ERROR_CORRUPT": "Die EPUB-Datei ist leer oder beschädigt. Bitte versuche eine andere.",
     "EPUB_ERROR_NO_FILE": "Keine EPUB-Datei ausgewählt.",
     "EPUB_ERROR_SIZE": "Die EPUB-Datei ist zu groß. Maximal {{maxSize}} MB.",
@@ -37,7 +38,7 @@
     "IMAGE_ERROR_DIMENSIONS": "Das Bild ist zu klein für die ausgewählte Zielgröße.",
     "IMAGE_ERROR_SIZE": "Die Datei ist zu groß. Maximal {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Nicht unterstütztes Format ({{type}}). Bitte wähle JPG, PNG oder WebP.",
-    "IMAGE_WARN_SMALL": "Nicht mit einigen Geräten kompatibel. Für bessere Ergebnisse verwende ein größeres Bild.",
+    "IMAGE_WARN_SMALL": "Das Bild kann für einige Geräte zu klein sein.",
     "LOADING_EPUB": "EPUB wird geladen…",
     "LOADING_IMAGE": "Bild wird geladen…",
     "OPENING_EDITOR": "Editor wird geöffnet…",
@@ -53,25 +54,25 @@
     "SELECT_IMAGE_LABEL": "Coverbild",
     "SELECT_IMAGE_PLACEHOLDER": "Bild auswählen",
     "TAP_TO_CHANGE": "Antippen zum Ändern/Zurücksetzen",
-    "TITLE": "Cover erstellen"
+    "TITLE": "Cover ändern"
   },
   "COVERS": {
-    "DELETED": "Cover gelöscht",
-    "EMPTY": "Noch keine Cover vorhanden.",
-    "PLACEHOLDER": "Cover",
+    "DELETED": "EPUB gelöscht",
+    "EMPTY": "Noch keine EPUBs.vorhanden.",
+    "PLACEHOLDER": "EPUB",
     "PREVIEW_TITLE": "Vorschau",
-    "TITLE": "Cover",
+    "TITLE": "Meine EPUBs",
     "ACTIONS": {
       "DELETE": "Löschen",
       "SHARE": "Teilen"
     },
     "DELETE": {
-      "MESSAGE": "Möchtest du dieses Cover löschen?",
-      "TITLE": "Cover löschen"
+      "MESSAGE": "Möchtest du dieses EPUB löschen?",
+      "TITLE": "EPUB löschen"
     },
     "ERROR": {
-      "DELETE": "Cover konnte nicht gelöscht werden. Bitte versuche es erneut.",
-      "SHARE": "Cover konnte nicht geteilt werden. Bitte versuche es erneut.",
+      "DELETE": "EPUB konnte nicht gelöscht werden. Bitte versuche es erneut.",
+      "SHARE": "EPUB konnte nicht geteilt werden. Bitte versuche es erneut.",
       "LOAD": "Cover konnten nicht geladen werden. Zum Aktualisieren nach unten ziehen."
     }
   },
@@ -95,11 +96,11 @@
   },
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Hinweis",
-    "STEP_1": "Wähle ein Bild für dein Cover aus",
-    "STEP_2": "Passe das Bild an die Größe deines Kindle an",
-    "STEP_3": "Erstelle das Cover durch Ansehen eines kurzen Videos",
-    "STEP_4": "Speichere oder teile das Cover",
-    "STEP_4_DESC": "Nach der Erstellung kannst du es auf deinem Gerät speichern oder direkt über die Kindle-App teilen, um einen reibungslosen Übergang zu erzielen.",
+    "STEP_1": "Wahle eine EPUB-Datei (das aktuelle Cover wird vorgeladen)",
+    "STEP_2": "Passe das geladene Cover an oder wahle ein neues Bild und passe es an",
+    "STEP_3": "Sieh dir die Werbung an, um das Cover im EPUB zu aendern",
+    "STEP_4": "Speichere oder teile das aktualisierte EPUB",
+    "STEP_4_DESC": "Sobald es bereit ist, kannst du es auf deinem Gerat speichern oder direkt mit der Kindle-App teilen, fur einen reibungsloseren Ubergang.",
     "STEP_5": "Über das Web senden (Send to Kindle)",
     "STEP_5_DESC": "Du kannst sie auch über den Browser mit dem Web-Tool Send to Kindle senden.",
     "TIP": "Für beste Ergebnisse verwende hochauflösende Bilder und stelle sicher, dass Werbung auf deinem Kindle deaktiviert ist.",
@@ -119,8 +120,8 @@
     "TITLE": "Einstellungen"
   },
   "TABS": {
-    "COVERS": "Cover",
-    "CREATE": "Erstellen",
+    "COVERS": "Meine EPUBs",
+    "CHANGE": "ändern",
     "SETTINGS": "Einstellungen"
   }
 }

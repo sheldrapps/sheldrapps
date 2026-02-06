@@ -14,7 +14,7 @@
     "SHARE_KINDLE_HINT": "Ao compartilhar, selecione o app Kindle para enviá-la ao dispositivo.",
     "WARNING": "Aviso"
   },
-  "CREATE": {
+  "CHANGE": {
     "ADS_REQUIRED": "Não foi possível carregar o anúncio. Verifique a rede ou o bloqueador de anúncios.",
     "ARIA_CHANGE_EPUB": "Alterar arquivo EPUB. Arquivo atual: {{name}}",
     "ARIA_CHANGE_IMAGE": "Alterar imagem da capa. Imagem atual: {{name}}",
@@ -22,13 +22,14 @@
     "ARIA_SELECT_EPUB": "Selecionar arquivo EPUB",
     "ARIA_SELECT_IMAGE": "Selecionar imagem da capa",
     "CROP_ACTION": "Ajustar",
-    "COVER_CREATED": "Capa criada. Agora você pode salvar ou compartilhar",
-    "GENERATE_ACTION_REWARDED": "Criar capa (ver anúncio)",
+    "COVER_CHANGED": "Capa alterada. Agora você pode salvar ou compartilhar",
+    "CHANGE_ACTION_REWARDED": "Trocar capa (ver anúncio)",
+    "GENERATE_ACTION_REWARDED": "Alterar capa (ver anúncio)",
     "GENERATING": "Carregando anúncio…",
-    "HINT_ADJUST_FIRST": "Ajuste a imagem primeiro para criar a capa.",
-    "HINT_SAVE_SHARE_EXPLAIN": "Criar a capa não a salva automaticamente.",
+    "HINT_ADJUST_FIRST": "Ajuste a imagem primeiro para alterar a capa.",
+    "HINT_SAVE_SHARE_EXPLAIN": "alterar a capa não a salva automaticamente.",
     "HINT_READY_EXPORT": "Pronto. Use os botões para salvar ou compartilhar.",
-    "HINT_REWARDED_REQUIRED": "Um anúncio curto será exibido para criar a capa.",
+    "HINT_REWARDED_REQUIRED": "Um anúncio curto será exibido para alterar a capa.",
     "EPUB_ERROR_CORRUPT": "O arquivo EPUB está vazio ou corrompido. Tente outro.",
     "EPUB_ERROR_NO_FILE": "Nenhum arquivo EPUB selecionado.",
     "EPUB_ERROR_SIZE": "O arquivo EPUB é muito grande. Máximo {{maxSize}} MB.",
@@ -37,7 +38,7 @@
     "IMAGE_ERROR_DIMENSIONS": "A imagem é pequena demais para o tamanho selecionado.",
     "IMAGE_ERROR_SIZE": "O arquivo é muito grande. Máximo {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Formato não compatível ({{type}}). Selecione JPG, PNG ou WebP.",
-    "IMAGE_WARN_SMALL": "Não compatível com alguns dispositivos. Para melhores resultados, use uma imagem maior.",
+    "IMAGE_WARN_SMALL": "A imagem pode ser pequena demais para alguns dispositivos.",
     "LOADING_EPUB": "Carregando EPUB…",
     "LOADING_IMAGE": "Carregando imagem…",
     "OPENING_EDITOR": "Abrindo editor…",
@@ -53,25 +54,25 @@
     "SELECT_IMAGE_LABEL": "Imagem da capa",
     "SELECT_IMAGE_PLACEHOLDER": "Selecione uma imagem",
     "TAP_TO_CHANGE": "Toque para alterar/redefinir",
-    "TITLE": "Criar capa"
+    "TITLE": "Alterar capa"
   },
   "COVERS": {
-    "DELETED": "Capa excluída",
-    "EMPTY": "Nenhuma capa ainda.",
-    "PLACEHOLDER": "Capa",
+    "DELETED": "EPUB excluído",
+    "EMPTY": "Nenhum EPUB ainda.",
+    "PLACEHOLDER": "EPUB",
     "PREVIEW_TITLE": "Pré-visualização",
-    "TITLE": "Capas",
+    "TITLE": "Meus EPUBs",
     "ACTIONS": {
       "DELETE": "Excluir",
       "SHARE": "Compartilhar"
     },
     "DELETE": {
-      "MESSAGE": "Deseja excluir esta capa?",
-      "TITLE": "Excluir capa"
+      "MESSAGE": "Deseja excluir este EPUB?",
+      "TITLE": "Excluir EPUB"
     },
     "ERROR": {
-      "DELETE": "Não foi possível excluir a capa. Tente novamente.",
-      "SHARE": "Não foi possível compartilhar a capa. Tente novamente.",
+      "DELETE": "Não foi possível excluir o EPUB. Tente novamente.",
+      "SHARE": "Não foi possível compartilhar o EPUB. Tente novamente.",
       "LOAD": "Não foi possível carregar suas capas. Arraste para baixo para tentar novamente."
     }
   },
@@ -95,20 +96,20 @@
   },
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Observação",
-    "STEP_1": "Selecione uma imagem para a sua capa",
-    "STEP_2": "Ajuste a imagem ao tamanho do seu Kindle",
-    "STEP_3": "Gere a capa assistindo a um vídeo curto",
-    "STEP_4": "Salve ou compartilhe a capa",
-    "STEP_4_DESC": "Depois de gerada, você pode salvá-la no dispositivo ou compartilhá-la diretamente com o app Kindle para uma transição mais suave.",
+    "STEP_1": "Selecione um arquivo EPUB (a capa atual e pre-carregada)",
+    "STEP_2": "Ajuste a capa carregada ou escolha uma nova imagem e ajuste",
+    "STEP_3": "Veja o anuncio para trocar a capa no EPUB",
+    "STEP_4": "Salve ou compartilhe o EPUB atualizado",
+    "STEP_4_DESC": "Quando estiver pronto, voce pode salva-lo no dispositivo ou compartilha-lo diretamente com o app Kindle para uma transicao mais suave.",
     "STEP_5": "Enviar pela web (Send to Kindle)",
     "STEP_5_DESC": "Você também pode enviá-la pelo navegador usando a ferramenta web Send to Kindle.",
     "TIP": "Para melhores resultados, use imagens em alta resolução e certifique-se de que os anúncios estejam desativados no seu Kindle.",
-    "TITLE": "Como criar uma capa para Kindle"
+    "TITLE": "Como alterar uma capa para Kindle"
   },
 
   "SETTINGS": {
     "INSTRUCTIONS": "Ver instruções",
-    "INSTRUCTIONS_HINT": "Como criar e enviar uma capa para Kindle",
+    "INSTRUCTIONS_HINT": "Como alterar e enviar uma capa para Kindle",
     "INSTRUCTIONS_SECTION": "Instruções",
     "LANGUAGE": "Idioma",
     "PRIVACY_HINT": "Controle como os dados e a publicidade são tratados",
@@ -119,8 +120,8 @@
     "TITLE": "Configurações"
   },
   "TABS": {
-    "COVERS": "Capas",
-    "CREATE": "Criar",
+    "COVERS": "Meus EPUBs",
+    "CHANGE": "Alterar",
     "SETTINGS": "Configurações"
   }
 }

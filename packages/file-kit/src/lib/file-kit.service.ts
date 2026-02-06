@@ -31,7 +31,6 @@ export class FileKitService {
     @Inject(SHARE_ADAPTER_TOKEN)
     private shareAdapter: ShareAdapter,
   ) {
-    console.log("[file-kit] FileKitService initialized");
   }
 
   /**
