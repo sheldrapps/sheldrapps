@@ -8,7 +8,6 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <!-- Language -->
   <ion-list inset="true">
     <ion-item>
       <ion-label>{{ 'SETTINGS.LANGUAGE' | translate }}</ion-label>
@@ -26,12 +25,9 @@
           {{ l.label }}
         </ion-select-option>
       </ion-select>
-      <!-- DEBUG: Show current lang value -->
-      <span style="display: none;" id="debug-lang">{{ lang.lang }}</span>
     </ion-item>
   </ion-list>
 
-  <!-- Privacy -->
   <ion-list inset="true">
     <ion-item lines="full">
       <ion-label class="ion-text-wrap">
@@ -51,7 +47,7 @@
     </ion-item>
   </ion-list>
 
-  <!-- Requirements -->
+
   <ion-list inset="true">
     <ion-item lines="full">
       <ion-label class="ion-text-wrap">
@@ -65,7 +61,7 @@
     </ion-item>
   </ion-list>
 
-  <!-- Instructions -->
+
   <ion-list inset="true">
     <ion-item lines="full">
       <ion-label class="ion-text-wrap">

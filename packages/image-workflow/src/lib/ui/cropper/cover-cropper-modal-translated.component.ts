@@ -7,7 +7,12 @@ import { Component, Input } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { TranslateModule } from "@ngx-translate/core";
 import { CoverCropperModalComponent } from "./cover-cropper-modal.component";
-import type { CoverCropState, CropTarget, CropFormatOption } from "../../types";
+import type {
+  CoverCropState,
+  CropTarget,
+  CropFormatOption,
+  CropperLabels,
+} from "../../types";
 
 /**
  * This is a convenience component that includes TranslateModule.
@@ -25,6 +30,13 @@ import type { CoverCropState, CropTarget, CropFormatOption } from "../../types";
       [formatId]="formatId"
       [initialState]="initialState"
       [onReady]="onReady"
+      [locale]="locale"
+      [labels]="labels"
+      [showAdjustments]="showAdjustments"
+      [showRotate]="showRotate"
+      [showFormatSelector]="showFormatSelector"
+      [showHint]="showHint"
+      [showGrid]="showGrid"
     ></app-cover-cropper-modal>
   `,
 })
@@ -35,4 +47,11 @@ export class CoverCropperModalTranslatedComponent {
   @Input() formatId?: string;
   @Input() initialState?: CoverCropState;
   @Input() onReady?: () => void;
+  @Input() locale?: string;
+  @Input() labels?: Partial<CropperLabels>;
+  @Input() showAdjustments = true;
+  @Input() showRotate = true;
+  @Input() showFormatSelector = true;
+  @Input() showHint = true;
+  @Input() showGrid = true;
 }

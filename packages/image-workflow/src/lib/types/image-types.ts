@@ -92,6 +92,31 @@ export interface CoverCropState {
 }
 
 /**
+ * Labels used by the cropper UI
+ */
+export interface CropperLabels {
+  title: string;
+  cancelLabel: string;
+  doneLabel: string;
+  loadingLabel: string;
+  hintLabel: string;
+  adjustmentsLabel: string;
+  resetAdjustmentsAriaLabel: string;
+  rotateLabel: string;
+  brightnessLabel: string;
+  saturationLabel: string;
+  contrastLabel: string;
+  bwLabel: string;
+  ditherLabel: string;
+  frameAriaLabel: string;
+  controlsAriaLabel: string;
+  resetAriaLabel: string;
+  zoomOutAriaLabel: string;
+  zoomInAriaLabel: string;
+  adjustmentsAriaLabel: string;
+}
+
+/**
  * Input for cropper component
  */
 export interface CropperInput {

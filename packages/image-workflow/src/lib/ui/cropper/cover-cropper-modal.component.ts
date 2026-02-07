@@ -3,12 +3,14 @@ import {
   Component,
   ElementRef,
   Input,
+  OnChanges,
   OnDestroy,
   OnInit,
+  SimpleChanges,
   ViewChild,
-} from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+} from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 import {
   IonHeader,
   IonToolbar,
@@ -47,6 +49,7 @@ import type {
   CropTarget,
   CropperResult,
   CropFormatOption,
+  CropperLabels,
 } from "../../types";
 
 type Pt = { x: number; y: number };
@@ -80,7 +83,7 @@ type Pt = { x: number; y: number };
   styleUrls: ["./cover-cropper-modal.component.scss"],
 })
 export class CoverCropperModalComponent
-  implements OnInit, AfterViewInit, OnDestroy
+  implements OnInit, OnChanges, AfterViewInit, OnDestroy
 {
   @Input() file!: File;
   @Input() model!: CropTarget;
@@ -89,28 +92,36 @@ export class CoverCropperModalComponent
   @Input() formatOptions?: CropFormatOption[];
   @Input() formatId?: string;
 
+  @Input() locale?: string;
+  @Input() labels?: Partial<CropperLabels>;
+  @Input() showAdjustments = true;
+  @Input() showRotate = true;
+  @Input() showFormatSelector = true;
+  @Input() showHint = true;
+  @Input() showGrid = true;
+
   // i18n Labels - default to English
-  @Input() title = "Edit Image";
-  @Input() cancelLabel = "Cancel";
-  @Input() doneLabel = "Done";
-  @Input() loadingLabel = "Loading...";
-  @Input() hintLabel = "Tap and drag to move, pinch to zoom";
-  @Input() adjustmentsLabel = "Adjustments";
-  @Input() resetAdjustmentsAriaLabel = "Reset adjustments";
-  @Input() rotateLabel = "Rotate";
-  @Input() brightnessLabel = "Brightness";
-  @Input() saturationLabel = "Saturation";
-  @Input() contrastLabel = "Contrast";
-  @Input() bwLabel = "Black & White";
-  @Input() ditherLabel = "Dither";
+  @Input() title?: string;
+  @Input() cancelLabel?: string;
+  @Input() doneLabel?: string;
+  @Input() loadingLabel?: string;
+  @Input() hintLabel?: string;
+  @Input() adjustmentsLabel?: string;
+  @Input() resetAdjustmentsAriaLabel?: string;
+  @Input() rotateLabel?: string;
+  @Input() brightnessLabel?: string;
+  @Input() saturationLabel?: string;
+  @Input() contrastLabel?: string;
+  @Input() bwLabel?: string;
+  @Input() ditherLabel?: string;
 
   // Aria labels
-  @Input() frameAriaLabel = "Image crop frame";
-  @Input() controlsAriaLabel = "Crop controls";
-  @Input() resetAriaLabel = "Reset crop";
-  @Input() zoomOutAriaLabel = "Zoom out";
-  @Input() zoomInAriaLabel = "Zoom in";
-  @Input() adjustmentsAriaLabel = "Image adjustments panel";
+  @Input() frameAriaLabel?: string;
+  @Input() controlsAriaLabel?: string;
+  @Input() resetAriaLabel?: string;
+  @Input() zoomOutAriaLabel?: string;
+  @Input() zoomInAriaLabel?: string;
+  @Input() adjustmentsAriaLabel?: string;
 
   @ViewChild("frame", { read: ElementRef }) frameRef!: ElementRef<HTMLElement>;
   @ViewChild("img", { read: ElementRef }) imgRef!: ElementRef<HTMLImageElement>;
@@ -159,6 +170,7 @@ export class CoverCropperModalComponent
   private didEmitReady = false;
   private imageLoaded = false;
   selectedFormatId?: string;
+  uiLabels: CropperLabels = DEFAULT_LABELS["en"];
 
   constructor(private modalCtrl: ModalController) {
     addIcons({
@@ -195,6 +207,7 @@ export class CoverCropperModalComponent
   }
 
   ngOnInit(): void {
+    this.refreshLabels();
     this.ready = false;
     this.didEmitReady = false;
     this.imageLoaded = false;
@@ -255,6 +268,10 @@ export class CoverCropperModalComponent
       this.rot = ((Number(this.initialState.rot ?? 0) % 360) + 360) % 360;
       if (this.rot % 90 !== 0) this.rot = 0;
     }
+  }
+
+  ngOnChanges(_changes: SimpleChanges): void {
+    this.refreshLabels();
   }
 
   ngAfterViewInit(): void {
@@ -510,7 +527,9 @@ export class CoverCropperModalComponent
   private clampAndRender(): void {
     if (!this.ready) return;
 
-    const fr = this.frameRef.nativeElement.getBoundingClientRect();
+    const frameEl = this.frameRef.nativeElement;
+    const frW = frameEl.clientWidth;
+    const frH = frameEl.clientHeight;
 
     const rn = this.getRotatedNaturalSize();
 
@@ -518,8 +537,8 @@ export class CoverCropperModalComponent
     const imgW = rn.w * dispScale;
     const imgH = rn.h * dispScale;
 
-    const maxTx = Math.max(0, (imgW - fr.width) / 2);
-    const maxTy = Math.max(0, (imgH - fr.height) / 2);
+    const maxTx = Math.max(0, (imgW - frW) / 2);
+    const maxTy = Math.max(0, (imgH - frH) / 2);
 
     this.tx = clamp(this.tx, -maxTx, maxTx);
     this.ty = clamp(this.ty, -maxTy, maxTy);
@@ -591,24 +610,25 @@ export class CoverCropperModalComponent
     const rotW = r === 90 || r === 270 ? this.naturalH : this.naturalW;
     const rotH = r === 90 || r === 270 ? this.naturalW : this.naturalH;
 
-    let sWidthR = fw / dispScale;
-    let sHeightR = fh / dispScale;
+    // Calculate crop dimensions and round to integers to avoid subpixel sampling
+    let sWidthR = Math.floor(fw / dispScale);
+    let sHeightR = Math.floor(fh / dispScale);
 
     sWidthR = Math.min(sWidthR, rotW);
     sHeightR = Math.min(sHeightR, rotH);
 
-    let sxR = rotW / 2 - sWidthR / 2 - this.tx / dispScale;
-    let syR = rotH / 2 - sHeightR / 2 - this.ty / dispScale;
+    let sxR = Math.round(rotW / 2 - sWidthR / 2 - this.tx / dispScale);
+    let syR = Math.round(rotH / 2 - sHeightR / 2 - this.ty / dispScale);
 
-    const eps = 1e-3;
     const maxSxR = Math.max(0, rotW - sWidthR);
     const maxSyR = Math.max(0, rotH - sHeightR);
 
     sxR = clamp(sxR, 0, maxSxR);
     syR = clamp(syR, 0, maxSyR);
 
-    if (sxR + sWidthR > rotW) sxR = Math.max(0, rotW - sWidthR - eps);
-    if (syR + sHeightR > rotH) syR = Math.max(0, rotH - sHeightR - eps);
+    // Ensure crop stays within bounds using integer math
+    if (sxR + sWidthR > rotW) sxR = rotW - sWidthR;
+    if (syR + sHeightR > rotH) syR = rotH - sHeightR;
 
     const bitmap =
       this.sourceBitmap ??
@@ -807,6 +827,34 @@ export class CoverCropperModalComponent
     this.tryReady();
   }
 
+  private refreshLabels(): void {
+    const resolvedLocale = resolveLocale(this.locale);
+    const base = DEFAULT_LABELS[resolvedLocale] ?? DEFAULT_LABELS["en"];
+    const inputOverrides: Partial<CropperLabels> = {
+      title: this.title,
+      cancelLabel: this.cancelLabel,
+      doneLabel: this.doneLabel,
+      loadingLabel: this.loadingLabel,
+      hintLabel: this.hintLabel,
+      adjustmentsLabel: this.adjustmentsLabel,
+      resetAdjustmentsAriaLabel: this.resetAdjustmentsAriaLabel,
+      rotateLabel: this.rotateLabel,
+      brightnessLabel: this.brightnessLabel,
+      saturationLabel: this.saturationLabel,
+      contrastLabel: this.contrastLabel,
+      bwLabel: this.bwLabel,
+      ditherLabel: this.ditherLabel,
+      frameAriaLabel: this.frameAriaLabel,
+      controlsAriaLabel: this.controlsAriaLabel,
+      resetAriaLabel: this.resetAriaLabel,
+      zoomOutAriaLabel: this.zoomOutAriaLabel,
+      zoomInAriaLabel: this.zoomInAriaLabel,
+      adjustmentsAriaLabel: this.adjustmentsAriaLabel,
+    };
+
+    this.uiLabels = applyLabelOverrides(base, this.labels, inputOverrides);
+  }
+
   private getActiveTarget(): CropTarget {
     if (this.formatOptions?.length) {
       const match = this.formatOptions.find(
@@ -831,4 +879,167 @@ function distance(a: Pt, b: Pt): number {
 
 function midpoint(a: Pt, b: Pt): Pt {
   return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+}
+
+const DEFAULT_LABELS: Record<string, CropperLabels> = {
+  en: {
+    title: "Crop",
+    cancelLabel: "Cancel",
+    doneLabel: "Done",
+    loadingLabel: "Loading…",
+    hintLabel: "Pinch to zoom · Drag to move",
+    adjustmentsLabel: "Adjustments",
+    resetAdjustmentsAriaLabel: "Reset adjustments",
+    rotateLabel: "Rotate",
+    brightnessLabel: "Brightness",
+    saturationLabel: "Saturation",
+    contrastLabel: "Contrast",
+    bwLabel: "B/W",
+    ditherLabel: "Dither",
+    frameAriaLabel: "Crop area",
+    controlsAriaLabel: "Controls",
+    resetAriaLabel: "Reset",
+    zoomOutAriaLabel: "Zoom out",
+    zoomInAriaLabel: "Zoom in",
+    adjustmentsAriaLabel: "Image adjustments",
+  },
+  es: {
+    title: "Recortar",
+    cancelLabel: "Cancelar",
+    doneLabel: "Listo",
+    loadingLabel: "Cargando…",
+    hintLabel: "Pellizca para hacer zoom · Arrastra para mover",
+    adjustmentsLabel: "Ajustes",
+    resetAdjustmentsAriaLabel: "Restablecer ajustes",
+    rotateLabel: "Rotar",
+    brightnessLabel: "Brillo",
+    saturationLabel: "Saturación",
+    contrastLabel: "Contraste",
+    bwLabel: "B/N",
+    ditherLabel: "Dither (tramado)",
+    frameAriaLabel: "Área de recorte",
+    controlsAriaLabel: "Controles",
+    resetAriaLabel: "Restablecer",
+    zoomOutAriaLabel: "Alejar",
+    zoomInAriaLabel: "Acercar",
+    adjustmentsAriaLabel: "Ajustes de imagen",
+  },
+  de: {
+    title: "Zuschneiden",
+    cancelLabel: "Abbrechen",
+    doneLabel: "Fertig",
+    loadingLabel: "Wird geladen…",
+    hintLabel: "Zum Zoomen ziehen · Zum Verschieben wischen",
+    adjustmentsLabel: "Anpassungen",
+    resetAdjustmentsAriaLabel: "Anpassungen zurücksetzen",
+    rotateLabel: "Drehen",
+    brightnessLabel: "Helligkeit",
+    saturationLabel: "Sättigung",
+    contrastLabel: "Kontrast",
+    bwLabel: "S/W",
+    ditherLabel: "Dithering",
+    frameAriaLabel: "Zuschneidebereich",
+    controlsAriaLabel: "Steuerung",
+    resetAriaLabel: "Zurücksetzen",
+    zoomOutAriaLabel: "Verkleinern",
+    zoomInAriaLabel: "Vergrößern",
+    adjustmentsAriaLabel: "Bildanpassungen",
+  },
+  pt: {
+    title: "Recortar",
+    cancelLabel: "Cancelar",
+    doneLabel: "Concluído",
+    loadingLabel: "Carregando…",
+    hintLabel: "Aperte para zoom · Arraste para mover",
+    adjustmentsLabel: "Ajustes",
+    resetAdjustmentsAriaLabel: "Redefinir ajustes",
+    rotateLabel: "Girar",
+    brightnessLabel: "Brilho",
+    saturationLabel: "Saturação",
+    contrastLabel: "Contraste",
+    bwLabel: "P/B",
+    ditherLabel: "Dither",
+    frameAriaLabel: "Área de recorte",
+    controlsAriaLabel: "Controles",
+    resetAriaLabel: "Redefinir",
+    zoomOutAriaLabel: "Diminuir zoom",
+    zoomInAriaLabel: "Aumentar zoom",
+    adjustmentsAriaLabel: "Ajustes de imagem",
+  },
+  it: {
+    title: "Ritaglia",
+    cancelLabel: "Annulla",
+    doneLabel: "Fatto",
+    loadingLabel: "Caricamento…",
+    hintLabel: "Pizzica per zoom · Trascina per spostare",
+    adjustmentsLabel: "Regolazioni",
+    resetAdjustmentsAriaLabel: "Ripristina regolazioni",
+    rotateLabel: "Ruota",
+    brightnessLabel: "Luminosità",
+    saturationLabel: "Saturazione",
+    contrastLabel: "Contrasto",
+    bwLabel: "B/N",
+    ditherLabel: "Dithering",
+    frameAriaLabel: "Area di ritaglio",
+    controlsAriaLabel: "Controlli",
+    resetAriaLabel: "Ripristina",
+    zoomOutAriaLabel: "Riduci",
+    zoomInAriaLabel: "Ingrandisci",
+    adjustmentsAriaLabel: "Regolazioni immagine",
+  },
+  fr: {
+    title: "Recadrer",
+    cancelLabel: "Annuler",
+    doneLabel: "Terminé",
+    loadingLabel: "Chargement…",
+    hintLabel: "Pincez pour zoomer · Glissez pour déplacer",
+    adjustmentsLabel: "Réglages",
+    resetAdjustmentsAriaLabel: "Réinitialiser les réglages",
+    rotateLabel: "Faire pivoter",
+    brightnessLabel: "Luminosité",
+    saturationLabel: "Saturation",
+    contrastLabel: "Contraste",
+    bwLabel: "N/B",
+    ditherLabel: "Tramage",
+    frameAriaLabel: "Zone de recadrage",
+    controlsAriaLabel: "Contrôles",
+    resetAriaLabel: "Réinitialiser",
+    zoomOutAriaLabel: "Dézoomer",
+    zoomInAriaLabel: "Zoomer",
+    adjustmentsAriaLabel: "Réglages de l'image",
+  },
+};
+
+function resolveLocale(input?: string): string {
+  const navLocale =
+    typeof navigator !== "undefined"
+      ? (navigator.languages?.[0] ?? navigator.language)
+      : undefined;
+  const raw = (input ?? navLocale ?? "en").trim().toLowerCase();
+  if (DEFAULT_LABELS[raw]) return raw;
+  const base = raw.split("-")[0];
+  if (DEFAULT_LABELS[base]) return base;
+  return "en";
+}
+
+function applyLabelOverrides(
+  base: CropperLabels,
+  overrides?: Partial<CropperLabels>,
+  inputOverrides?: Partial<CropperLabels>,
+): CropperLabels {
+  const merged: CropperLabels = { ...base };
+  assignDefined(merged, overrides);
+  assignDefined(merged, inputOverrides);
+  return merged;
+}
+
+function assignDefined(
+  target: CropperLabels,
+  src?: Partial<CropperLabels>,
+): void {
+  if (!src) return;
+  (Object.keys(src) as (keyof CropperLabels)[]).forEach((key) => {
+    const value = src[key];
+    if (value !== undefined) target[key] = value;
+  });
 }

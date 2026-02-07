@@ -64,9 +64,7 @@ import { SelectExpensesModalComponent } from "./select-expenses-modal.component"
       [model]="model!"
       [initialState]="initialState"
       [onReady]="onReady"
-      [title]="title"
-      [cancelLabel]="cancelLabel"
-      [doneLabel]="doneLabel"
+      [locale]="locale"
     ></app-cover-cropper-modal>
   `,
 })
@@ -75,9 +73,7 @@ export class ChildCropperModalComponent {
   @Input() model?: CropTarget;
   @Input() initialState?: CoverCropState;
   @Input() onReady?: () => void;
-  @Input() title = "Editar imagen";
-  @Input() cancelLabel = "Cancelar";
-  @Input() doneLabel = "Guardar";
+  @Input() locale = "es";
 }
 
 interface ExpenseGroup {

@@ -65,34 +65,23 @@ import { SaveCoverModalComponent } from './save-cover-modal.component';
       [formatId]="formatId"
       [initialState]="initialState"
       [onReady]="onReady"
-      [title]="'CROPPER.TITLE' | translate"
-      [cancelLabel]="'COMMON.CANCEL' | translate"
-      [doneLabel]="'COMMON.DONE' | translate"
-      [loadingLabel]="'COMMON.LOADING' | translate"
-      [hintLabel]="'CROPPER.HINT' | translate"
-      [adjustmentsLabel]="'CROPPER.ADJUSTMENTS' | translate"
-      [rotateLabel]="'CROPPER.ROTATE' | translate"
-      [brightnessLabel]="'CROPPER.BRIGHTNESS' | translate"
-      [saturationLabel]="'CROPPER.SATURATION' | translate"
-      [contrastLabel]="'CROPPER.CONTRAST' | translate"
-      [bwLabel]="'CROPPER.BW' | translate"
-      [ditherLabel]="'CROPPER.DITHER' | translate"
-      [frameAriaLabel]="'CROPPER.FRAME_ARIA' | translate"
-      [controlsAriaLabel]="'CROPPER.CONTROLS_ARIA' | translate"
-      [resetAriaLabel]="'CROPPER.RESET_ARIA' | translate"
-      [zoomOutAriaLabel]="'CROPPER.ZOOM_OUT_ARIA' | translate"
-      [zoomInAriaLabel]="'CROPPER.ZOOM_IN_ARIA' | translate"
-      [adjustmentsAriaLabel]="'CROPPER.ADJUSTMENTS_ARIA' | translate"
+      [locale]="locale"
     ></app-cover-cropper-modal>
   `,
 })
 class CoverCropperModalI18nComponent {
+  private translate = inject(TranslateService);
+
   file: File | undefined;
   model: CropTarget | undefined;
   formatOptions: CropFormatOption[] | undefined;
   formatId: string | undefined;
   initialState: CoverCropState | undefined;
   onReady: (() => void) | undefined;
+
+  get locale(): string {
+    return this.translate.currentLang || this.translate.defaultLang || 'en';
+  }
 }
 
 @Component({

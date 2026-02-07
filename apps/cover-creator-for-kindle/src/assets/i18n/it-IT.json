@@ -20,23 +20,27 @@
     "ARIA_CROP": "Regola l’immagine selezionata",
     "ARIA_SELECT_IMAGE": "Seleziona immagine di copertina",
     "ARIA_SELECT_MODEL": "Seleziona modello Kindle",
+
     "CROP_ACTION": "Regola",
     "COVER_CREATED": "Copertina creata. Puoi ora salvare o condividere",
-    "GENERATE_ACTION_REWARDED": "Crea copertina (guarda annuncio)",
+    "CREATE_ACTION_REWARDED": "Crea copertina (guarda annuncio)",
     "GENERATING": "Caricamento annuncio…",
-    "HINT_ADJUST_FIRST": "Regola prima l’immagine per creare la copertina.",
     "HINT_SAVE_SHARE_EXPLAIN": "La creazione della copertina non la salva automaticamente.",
-    "HINT_READY_EXPORT": "Pronto. Usa i pulsanti per salvare o condividere.",
-    "HINT_REWARDED_REQUIRED": "Verrà mostrato un breve annuncio per creare la copertina.",
+    "INFO": "Info",
+    "INFO_ARIA": "Informazioni sulla creazione della copertina",
+    "INFO_TITLE": "Informazione",
+    "INFO_NOT_SAVED": "Creare la copertina non la salva automaticamente.",
+    "INFO_SHARE_KINDLE": "Per inviarla al tuo Kindle, seleziona l'app Kindle durante la condivisione.",
+    "INFO_FLOW_LABEL": "Ordine consigliato:",
+    "INFO_FLOW_STEPS": "Regola → Crea copertina → Salva o Condividi",
     "IMAGE_ERROR_CORRUPT": "Impossibile leggere l’immagine. Prova con un’altra.",
-    "IMAGE_ERROR_DIMENSIONS": "L’immagine è troppo piccola per il modello Kindle selezionato.",
+
     "IMAGE_ERROR_SIZE": "Il file è troppo grande. Massimo {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Formato non supportato ({{type}}). Seleziona JPG, PNG o WebP.",
     "IMAGE_WARN_SMALL": "La risoluzione dell’immagine è inferiore a quella del modello Kindle selezionato. Per risultati migliori, usa un’immagine più grande.",
     "LOADING_IMAGE": "Caricamento immagine…",
     "OPENING_EDITOR": "Apertura editor…",
     "SAVING": "Salvataggio copertina…",
-    "SHARING": "Preparazione alla condivisione…",
     "SAVE_ACTION": "Salva",
     "SAVED_OK": "Copertina salvata",
     "SAVE_RENAME_TITLE": "Salva copertina",
@@ -49,7 +53,6 @@
     "TAP_TO_CHANGE": "Tocca per cambiare/reimpostare",
     "TITLE": "Crea copertina",
     "MODEL_PICKER": {
-      "SEARCH": "Cerca modello",
       "TITLE": "Scegli il tuo Kindle"
     }
   },
@@ -69,27 +72,10 @@
     },
     "ERROR": {
       "DELETE": "Impossibile eliminare la copertina. Riprova.",
-      "SHARE": "Impossibile condividere la copertina. Riprova.",
-      "LOAD": "Impossibile caricare le copertine. Trascina verso il basso per riprovare."
+      "LOAD": "Impossibile caricare le copertine. Trascina verso il basso per riprovare.",
+      "PREVIEW": "Impossibile caricare l'anteprima. Riprova.",
+      "SHARE": "Impossibile condividere la copertina. Riprova."
     }
-  },
-  "CROPPER": {
-    "ADJUSTMENTS": "Regolazioni",
-    "ADJUSTMENTS_ARIA": "Regolazioni immagine",
-    "BRIGHTNESS": "Luminosità",
-    "BW": "B/N",
-    "CONTRAST": "Contrasto",
-    "CONTROLS_ARIA": "Controlli",
-    "DITHER": "Dithering",
-    "FRAME_ARIA": "Area di ritaglio",
-    "HINT": "Pizzica per zoom · Trascina per spostare",
-    "RESET_ADJUSTMENTS_ARIA": "Ripristina regolazioni",
-    "RESET_ARIA": "Ripristina",
-    "ROTATE": "Ruota",
-    "SATURATION": "Saturazione",
-    "TITLE": "Ritaglia",
-    "ZOOM_IN_ARIA": "Ingrandisci",
-    "ZOOM_OUT_ARIA": "Riduci"
   },
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Nota",

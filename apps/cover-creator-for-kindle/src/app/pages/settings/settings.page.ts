@@ -54,11 +54,12 @@ export class SettingsPage {
   private settings = inject(SettingsStore<CcfkSettings>);
   readonly supportedLangs = LANG_OPTIONS;
 
-  constructor(public lang: LanguageService, public consent: ConsentService) {
-  }
+  constructor(
+    public lang: LanguageService,
+    public consent: ConsentService,
+  ) {}
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   private readonly privacyPolicyUrl =
     'https://sheldrapps.github.io/privacy-policies/cover-creator-for-kindle/';
@@ -66,17 +67,14 @@ export class SettingsPage {
   trackByLang = (_: number, l: LangOption) => l.code;
 
   async onLangChange(v: Lang) {
-    // First persist in settings-kit
     await this.settings.set({ lang: v });
 
-    // Then apply language change
     await this.lang.set(v);
   }
 
   async openPrivacyOptions() {
     const opened = await this.consent.showPrivacyOptionsIfAvailable();
     if (!opened) {
-      // opcional: toast "Not available"
     }
   }
 

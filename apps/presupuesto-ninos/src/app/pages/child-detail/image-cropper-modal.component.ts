@@ -3,7 +3,7 @@ import { ModalController } from '@ionic/angular/standalone';
 import { CoverCropperModalComponent, CropTarget, CropperResult } from '@sheldrapps/image-workflow';
 
 @Component({
-  selector: 'app-image-cropper-modal',
+  selector: "app-image-cropper-modal",
   standalone: true,
   imports: [CoverCropperModalComponent],
   template: `
@@ -12,9 +12,7 @@ import { CoverCropperModalComponent, CropTarget, CropperResult } from '@sheldrap
       [model]="model"
       [initialState]="initialState"
       [onReady]="onReady"
-      [title]="title"
-      [cancelLabel]="cancelLabel"
-      [doneLabel]="doneLabel"
+      [locale]="locale"
     ></app-cover-cropper-modal>
   `,
 })
@@ -23,9 +21,7 @@ export class ImageCropperModalComponent implements OnInit {
   @Input() model: CropTarget = { width: 256, height: 256 };
   @Input() initialState?: any;
   @Input() onReady?: () => void;
-  @Input() title = 'Edit Image';
-  @Input() cancelLabel = 'Cancel';
-  @Input() doneLabel = 'Done';
+  @Input() locale?: string;
 
   constructor(private modalController: ModalController) {}
 

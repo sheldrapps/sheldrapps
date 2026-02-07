@@ -33,14 +33,10 @@ export const CCFK_SETTINGS_SCHEMA: SettingsSchema<CcfkSettings> = {
       fromVersion: 'legacy',
       toVersion: 1,
       run: async (ctx: MigrationContext<CcfkSettings>) => {
-        // Try to read the old 'lang' key from localStorage
         const legacyLang = await ctx.legacy?.get('lang');
 
         if (legacyLang) {
-          // Validate it's a non-empty string
           if (typeof legacyLang === 'string' && legacyLang.trim().length > 0) {
-            // Remove the legacy key only after we've successfully read it
-            // The actual removal will happen after the new settings are persisted
             await ctx.legacy?.remove('lang');
 
             return { lang: legacyLang.trim() };

@@ -93,7 +93,6 @@ export class CoversPage implements OnInit, OnDestroy {
   private coversEventsSub?: Subscription;
   private localDeletedFilenames = new Set<string>();
 
-  // Preview Modal
   previewOpen = false;
   previewFilename: string | null = null;
   previewDataUrl: string | null = null;
@@ -111,14 +110,13 @@ export class CoversPage implements OnInit, OnDestroy {
   private readonly MOVE_TOLERANCE_Y_PX = 6;
   private isScrolling = false;
   private scrollEndTimer: any = null;
-  // Preview Modal
 
   constructor(
     private files: FileService,
     private alertCtrl: AlertController,
     private translate: TranslateService,
     private coversEvents: CoversEventsService,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
   ) {
     addIcons({
       closeCircleOutline,
@@ -185,7 +183,7 @@ export class CoversPage implements OnInit, OnDestroy {
         const idx = i++;
         const item = items[idx];
         const dataUrl = await this.files.getOrBuildThumbDataUrlForFilename(
-          item.filename
+          item.filename,
         );
         item.thumbDataUrl = dataUrl ?? undefined;
       }
@@ -306,9 +304,8 @@ export class CoversPage implements OnInit, OnDestroy {
     this.previewLoading = true;
 
     try {
-      this.previewDataUrl = await this.files.getCoverDataUrlForFilename(
-        filename
-      );
+      this.previewDataUrl =
+        await this.files.getCoverDataUrlForFilename(filename);
     } catch {
       this.pageErrorKey = 'COVERS.ERROR.PREVIEW';
     } finally {
@@ -456,7 +453,9 @@ export class CoversPage implements OnInit, OnDestroy {
 
   private async restoreScrollTop(scrollTop: number) {
     if (!this.content) return;
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve()),
+    );
     await this.content.scrollToPoint(0, scrollTop, 0);
   }
 }

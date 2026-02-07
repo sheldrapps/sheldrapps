@@ -22,14 +22,17 @@
     "ARIA_SELECT_MODEL": "Kindle-Modell auswählen",
     "CROP_ACTION": "Anpassen",
     "COVER_CREATED": "Cover erstellt. Du kannst es jetzt speichern oder teilen",
-    "GENERATE_ACTION_REWARDED": "Cover erstellen (Werbung ansehen)",
+    "CREATE_ACTION_REWARDED": "Cover erstellen (Werbung ansehen)",
     "GENERATING": "Anzeige wird geladen…",
-    "HINT_ADJUST_FIRST": "Passe zuerst das Bild an, um das Cover zu erstellen.",
     "HINT_SAVE_SHARE_EXPLAIN": "Das Erstellen des Covers speichert es nicht automatisch.",
-    "HINT_READY_EXPORT": "Fertig. Verwende die Schaltflächen zum Speichern oder Teilen.",
-    "HINT_REWARDED_REQUIRED": "Zum Erstellen des Covers wird eine kurze Werbung angezeigt.",
+    "INFO": "Info",
+    "INFO_ARIA": "Informationen über Cover-Erstellung",
+    "INFO_TITLE": "Information",
+    "INFO_NOT_SAVED": "Das Erstellen des Covers speichert es nicht automatisch.",
+    "INFO_SHARE_KINDLE": "Um es an dein Kindle zu senden, wähle beim Teilen die Kindle-App aus.",
+    "INFO_FLOW_LABEL": "Empfohlene Reihenfolge:",
+    "INFO_FLOW_STEPS": "Anpassen → Cover erstellen → Speichern oder Teilen",
     "IMAGE_ERROR_CORRUPT": "Das Bild konnte nicht gelesen werden. Bitte versuche ein anderes.",
-    "IMAGE_ERROR_DIMENSIONS": "Das Bild ist zu klein für das ausgewählte Kindle-Modell.",
     "IMAGE_ERROR_SIZE": "Die Datei ist zu groß. Maximal {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Nicht unterstütztes Format ({{type}}). Bitte wähle JPG, PNG oder WebP.",
     "IMAGE_WARN_SMALL": "Die Bildauflösung ist niedriger als die des ausgewählten Kindle-Modells. Für bessere Ergebnisse verwende ein größeres Bild.",
@@ -40,7 +43,6 @@
     "SAVE_RENAME_TITLE": "Cover speichern",
     "SAVE_RENAME_MESSAGE": "Gib einen Namen für das Cover ein",
     "SAVE_RENAME_PLACEHOLDER": "Dateiname",
-    "SHARING": "Teilen wird vorbereitet…",
     "SAVE_ACTION": "Speichern",
     "SELECT_IMAGE_LABEL": "Coverbild",
     "SELECT_IMAGE_PLACEHOLDER": "Bild auswählen",
@@ -49,7 +51,6 @@
     "TAP_TO_CHANGE": "Antippen zum Ändern/Zurücksetzen",
     "TITLE": "Cover erstellen",
     "MODEL_PICKER": {
-      "SEARCH": "Modell suchen",
       "TITLE": "Wähle dein Kindle"
     }
   },
@@ -69,27 +70,10 @@
     },
     "ERROR": {
       "DELETE": "Cover konnte nicht gelöscht werden. Bitte versuche es erneut.",
-      "SHARE": "Cover konnte nicht geteilt werden. Bitte versuche es erneut.",
-      "LOAD": "Cover konnten nicht geladen werden. Zum Aktualisieren nach unten ziehen."
+      "LOAD": "Cover konnten nicht geladen werden. Zum Aktualisieren nach unten ziehen.",
+      "PREVIEW": "Vorschau konnte nicht geladen werden. Bitte versuche es erneut.",
+      "SHARE": "Cover konnte nicht geteilt werden. Bitte versuche es erneut."
     }
-  },
-  "CROPPER": {
-    "ADJUSTMENTS": "Anpassungen",
-    "ADJUSTMENTS_ARIA": "Bildanpassungen",
-    "BRIGHTNESS": "Helligkeit",
-    "BW": "S/W",
-    "CONTRAST": "Kontrast",
-    "CONTROLS_ARIA": "Steuerung",
-    "DITHER": "Dithering",
-    "FRAME_ARIA": "Zuschneidebereich",
-    "HINT": "Zum Zoomen ziehen · Zum Verschieben wischen",
-    "RESET_ADJUSTMENTS_ARIA": "Anpassungen zurücksetzen",
-    "RESET_ARIA": "Zurücksetzen",
-    "ROTATE": "Drehen",
-    "SATURATION": "Sättigung",
-    "TITLE": "Zuschneiden",
-    "ZOOM_IN_ARIA": "Vergrößern",
-    "ZOOM_OUT_ARIA": "Verkleinern"
   },
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Hinweis",

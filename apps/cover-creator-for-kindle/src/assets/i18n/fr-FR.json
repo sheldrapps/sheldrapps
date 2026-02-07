@@ -20,23 +20,28 @@
     "ARIA_CROP": "Ajuster l’image sélectionnée",
     "ARIA_SELECT_IMAGE": "Sélectionner une image de couverture",
     "ARIA_SELECT_MODEL": "Sélectionner un modèle Kindle",
+
     "CROP_ACTION": "Ajuster",
     "COVER_CREATED": "Couverture créée. Vous pouvez maintenant enregistrer ou partager",
-    "GENERATE_ACTION_REWARDED": "Créer la couverture (voir une publicité)",
+    "CREATE_ACTION_REWARDED": "Créer la couverture (voir une publicité)",
     "GENERATING": "Chargement de la publicité…",
-    "HINT_ADJUST_FIRST": "Ajuste d’abord l’image pour créer la couverture.",
-    "HINT_SAVE_SHARE_EXPLAIN": "Créer la couverture ne l’enregistre pas automatiquement.",
-    "HINT_READY_EXPORT": "Prêt. Utilise les boutons pour enregistrer ou partager.",
-    "HINT_REWARDED_REQUIRED": "Une courte publicité sera affichée pour créer la couverture.",
+    "HINT_SAVE_SHARE_EXPLAIN": "Créer la couverture ne l'enregistre pas automatiquement.",
+    "INFO": "Info",
+    "INFO_ARIA": "Informations sur la création de couverture",
+    "INFO_TITLE": "Information",
+    "INFO_NOT_SAVED": "Créer la couverture ne l'enregistre pas automatiquement.",
+    "INFO_SHARE_KINDLE": "Pour l'envoyer à votre Kindle, sélectionnez l'application Kindle lors du partage.",
+    "INFO_FLOW_LABEL": "Ordre recommandé :",
+    "INFO_FLOW_STEPS": "Ajuster → Créer la couverture → Enregistrer ou Partager",
     "IMAGE_ERROR_CORRUPT": "Impossible de lire l’image. Essayez-en une autre.",
-    "IMAGE_ERROR_DIMENSIONS": "L’image est trop petite pour le modèle Kindle sélectionné.",
+
     "IMAGE_ERROR_SIZE": "Le fichier est trop volumineux. Maximum {{maxSize}} Mo.",
     "IMAGE_ERROR_TYPE": "Format non pris en charge ({{type}}). Sélectionnez JPG, PNG ou WebP.",
     "IMAGE_WARN_SMALL": "La résolution de l’image est inférieure à celle du modèle Kindle sélectionné. Pour de meilleurs résultats, utilisez une image plus grande.",
     "LOADING_IMAGE": "Chargement de l’image…",
     "OPENING_EDITOR": "Ouverture de l’éditeur…",
     "SAVING": "Enregistrement de la couverture…",
-    "SHARING": "Préparation du partage…",
+
     "SAVE_ACTION": "Enregistrer",
     "SAVED_OK": "Couverture enregistrée",
     "SAVE_RENAME_TITLE": "Enregistrer la couverture",
@@ -49,7 +54,6 @@
     "TAP_TO_CHANGE": "Touchez pour changer/réinitialiser",
     "TITLE": "Créer une couverture",
     "MODEL_PICKER": {
-      "SEARCH": "Rechercher un modèle",
       "TITLE": "Choisissez votre Kindle"
     }
   },
@@ -69,28 +73,12 @@
     },
     "ERROR": {
       "DELETE": "Impossible de supprimer la couverture. Réessaie.",
-      "SHARE": "Impossible de partager la couverture. Réessaie.",
-      "LOAD": "Impossible de charger les couvertures. Fais glisser vers le bas pour réessayer."
+      "LOAD": "Impossible de charger les couvertures. Fais glisser vers le bas pour réessayer.",
+      "PREVIEW": "Impossible de charger l'aperçu. Réessaie.",
+      "SHARE": "Impossible de partager la couverture. Réessaie."
     }
   },
-  "CROPPER": {
-    "ADJUSTMENTS": "Réglages",
-    "ADJUSTMENTS_ARIA": "Réglages de l’image",
-    "BRIGHTNESS": "Luminosité",
-    "BW": "N/B",
-    "CONTRAST": "Contraste",
-    "CONTROLS_ARIA": "Contrôles",
-    "DITHER": "Tramage",
-    "FRAME_ARIA": "Zone de recadrage",
-    "HINT": "Pincez pour zoomer · Glissez pour déplacer",
-    "RESET_ADJUSTMENTS_ARIA": "Réinitialiser les réglages",
-    "RESET_ARIA": "Réinitialiser",
-    "ROTATE": "Faire pivoter",
-    "SATURATION": "Saturation",
-    "TITLE": "Recadrer",
-    "ZOOM_IN_ARIA": "Zoomer",
-    "ZOOM_OUT_ARIA": "Dézoomer"
-  },
+
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Remarque",
     "STEP_1": "Sélectionnez une image pour votre couverture",

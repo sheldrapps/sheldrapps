@@ -17,7 +17,6 @@
   height: auto;
 
   overflow: hidden;
-  border: 3px solid rgba(255, 255, 255, 0.95);
   border-radius: 14px;
   box-sizing: border-box;
   background: #000;
@@ -74,7 +73,6 @@
   border-radius: 10px;
   overflow: hidden;
   background: var(--ion-color-step-100, #f2f2f2);
-  border: 1px solid var(--ion-color-step-150, #e6e6e6);
 }
 
 .thumb img {
@@ -115,11 +113,6 @@ ion-item.item-invalid {
   gap: 12px;
 }
 
-@media (prefers-color-scheme: light) {
-  .frame {
-    border-color: rgba(0, 0, 0, 0.55);
-  }
-}
 
 @media (pointer: coarse) {
   .thumb-icon {

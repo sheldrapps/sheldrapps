@@ -19,27 +19,19 @@ export class AppComponent {
     private lang: LanguageService,
     private t: TranslateService,
     private title: Title,
-    private consent: ConsentService
+    private consent: ConsentService,
   ) {
     void this.init();
   }
 
-  private consentReady: Promise<void> | null = null;
-
   private async init() {
-    // Load settings from storage (runs migrations if needed)
     await this.settings.load();
-    
-    // Get the saved language from settings
+
     const currentSettings = this.settings.get();
-    
-    // Set the language in LanguageService
+
     await this.lang.set(currentSettings.lang);
-    
-    this.consentReady = this.consent
-      .gatherConsent()
-      .then(() => undefined)
-      .catch(() => undefined);
+
+    await this.consent.gatherConsent();
     this.setDocumentTitle();
     this.t.onLangChange.subscribe(() => this.setDocumentTitle());
   }

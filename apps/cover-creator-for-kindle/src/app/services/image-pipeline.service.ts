@@ -26,9 +26,8 @@ export class ImagePipelineService {
   }
 
   async getDimensions(
-    file: File
+    file: File,
   ): Promise<{ width: number; height: number } | null> {
-    // 1) Prefer: createImageBitmap (suele ser más confiable en Android)
     try {
       const bmp = await createImageBitmap(file);
       try {
@@ -38,11 +37,8 @@ export class ImagePipelineService {
       } finally {
         bmp.close?.();
       }
-    } catch {
-      // fallback abajo
-    }
+    } catch {}
 
-    // 2) Fallback: HTMLImageElement (objectURL)
     return new Promise((resolve) => {
       const url = URL.createObjectURL(file);
       const img = new Image();
@@ -127,7 +123,7 @@ export class ImagePipelineService {
       ctx.drawImage(bitmap, 0, 0, outW, outH);
 
       const blob: Blob | null = await new Promise((resolve) =>
-        canvas.toBlob((b) => resolve(b), 'image/jpeg', this.workingJpegQuality)
+        canvas.toBlob((b) => resolve(b), 'image/jpeg', this.workingJpegQuality),
       );
       if (!blob) return file;
 
@@ -139,10 +135,10 @@ export class ImagePipelineService {
       bitmap.close?.();
     }
   }
-  
+
   getSmallWarnParams(
     originalDims: { width: number; height: number },
-    model: KindleModel
+    model: KindleModel,
   ) {
     const minW = Math.min(model.width, model.height);
     const minH = Math.max(model.width, model.height);

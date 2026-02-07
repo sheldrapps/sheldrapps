@@ -22,21 +22,23 @@
     "ARIA_SELECT_MODEL": "Selecionar modelo do Kindle",
     "CROP_ACTION": "Ajustar",
     "COVER_CREATED": "Capa criada. Agora você pode salvar ou compartilhar",
-    "GENERATE_ACTION_REWARDED": "Criar capa (ver anúncio)",
+    "CREATE_ACTION_REWARDED": "Criar capa (ver anúncio)",
     "GENERATING": "Carregando anúncio…",
-    "HINT_ADJUST_FIRST": "Ajuste a imagem primeiro para criar a capa.",
     "HINT_SAVE_SHARE_EXPLAIN": "Criar a capa não a salva automaticamente.",
-    "HINT_READY_EXPORT": "Pronto. Use os botões para salvar ou compartilhar.",
-    "HINT_REWARDED_REQUIRED": "Um anúncio curto será exibido para criar a capa.",
+    "INFO": "Info",
+    "INFO_ARIA": "Informações sobre criar capa",
+    "INFO_TITLE": "Informação",
+    "INFO_NOT_SAVED": "Criar a capa não a salva automaticamente.",
+    "INFO_SHARE_KINDLE": "Para enviá-la ao seu Kindle, selecione o app Kindle ao compartilhar.",
+    "INFO_FLOW_LABEL": "Ordem recomendada:",
+    "INFO_FLOW_STEPS": "Ajustar → Criar capa → Salvar ou Compartilhar",
     "IMAGE_ERROR_CORRUPT": "Não foi possível ler a imagem. Tente outra.",
-    "IMAGE_ERROR_DIMENSIONS": "A imagem é pequena demais para o modelo de Kindle selecionado.",
     "IMAGE_ERROR_SIZE": "O arquivo é muito grande. Máximo {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Formato não compatível ({{type}}). Selecione JPG, PNG ou WebP.",
     "IMAGE_WARN_SMALL": "A resolução da imagem é menor que a do modelo de Kindle selecionado. Para melhores resultados, use uma imagem maior.",
     "LOADING_IMAGE": "Carregando imagem…",
     "OPENING_EDITOR": "Abrindo editor…",
     "SAVING": "Salvando capa…",
-    "SHARING": "Preparando para compartilhar…",
     "SAVE_ACTION": "Salvar",
     "SAVED_OK": "Capa salva",
     "SAVE_RENAME_TITLE": "Salvar capa",
@@ -49,7 +51,6 @@
     "TAP_TO_CHANGE": "Toque para alterar/redefinir",
     "TITLE": "Criar capa",
     "MODEL_PICKER": {
-      "SEARCH": "Buscar modelo",
       "TITLE": "Escolha seu Kindle"
     }
   },
@@ -69,27 +70,10 @@
     },
     "ERROR": {
       "DELETE": "Não foi possível excluir a capa. Tente novamente.",
-      "SHARE": "Não foi possível compartilhar a capa. Tente novamente.",
-      "LOAD": "Não foi possível carregar suas capas. Arraste para baixo para tentar novamente."
+      "LOAD": "Não foi possível carregar suas capas. Arraste para baixo para tentar novamente.",
+      "PREVIEW": "Não foi possível carregar a pré-visualização. Tente novamente.",
+      "SHARE": "Não foi possível compartilhar a capa. Tente novamente."
     }
-  },
-  "CROPPER": {
-    "ADJUSTMENTS": "Ajustes",
-    "ADJUSTMENTS_ARIA": "Ajustes de imagem",
-    "BRIGHTNESS": "Brilho",
-    "BW": "P/B",
-    "CONTRAST": "Contraste",
-    "CONTROLS_ARIA": "Controles",
-    "DITHER": "Dither",
-    "FRAME_ARIA": "Área de recorte",
-    "HINT": "Aperte para zoom · Arraste para mover",
-    "RESET_ADJUSTMENTS_ARIA": "Redefinir ajustes",
-    "RESET_ARIA": "Redefinir",
-    "ROTATE": "Girar",
-    "SATURATION": "Saturação",
-    "TITLE": "Recortar",
-    "ZOOM_IN_ARIA": "Aumentar zoom",
-    "ZOOM_OUT_ARIA": "Diminuir zoom"
   },
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Observação",

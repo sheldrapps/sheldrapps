@@ -20,16 +20,11 @@
     "ARIA_CROP": "Ajustar imagen seleccionada",
     "ARIA_SELECT_IMAGE": "Seleccionar imagen de portada",
     "ARIA_SELECT_MODEL": "Seleccionar modelo de Kindle",
-    "ARIA_HELP": "Ayuda y consejos para guardar y compartir",
     "CROP_ACTION": "Ajustar",
     "COVER_CREATED": "Portada creada. Ya puedes guardar o compartir",
     "CREATE_ACTION_REWARDED": "Crear portada (ver anuncio)",
-    "GENERATE_ACTION_REWARDED": "Crear portada (ver anuncio)",
     "GENERATING": "Cargando anuncio…",
-    "HINT_ADJUST_FIRST": "Primero ajusta la imagen para crear la portada.",
     "HINT_SAVE_SHARE_EXPLAIN": "Crear la portada no la guarda automáticamente.",
-    "HINT_READY_EXPORT": "Listo. Usa los botones para guardar o compartir.",
-    "HINT_REWARDED_REQUIRED": "Se mostrará un anuncio corto para crear la portada.",
     "INFO": "Info",
     "INFO_ARIA": "Información sobre crear portada",
     "INFO_TITLE": "Información",
@@ -38,7 +33,6 @@
     "INFO_FLOW_LABEL": "Orden recomendado:",
     "INFO_FLOW_STEPS": "Ajustar → Crear portada → Guardar o Compartir",
     "IMAGE_ERROR_CORRUPT": "No se pudo leer la imagen. Prueba con otra.",
-    "IMAGE_ERROR_DIMENSIONS": "La imagen es demasiado pequeña para el modelo seleccionado.",
     "IMAGE_ERROR_SIZE": "El archivo pesa demasiado. Máximo {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Formato no compatible ({{type}}). Selecciona JPG, PNG o WebP.",
     "IMAGE_WARN_SMALL": "La resolución de la imagen es menor a la del Kindle seleccionado. Para mejores resultados, usa una imagen más grande.",
@@ -49,7 +43,6 @@
     "SAVE_RENAME_TITLE": "Guardar portada",
     "SAVE_RENAME_MESSAGE": "Ingresa el nombre para la portada",
     "SAVE_RENAME_PLACEHOLDER": "Nombre del archivo",
-    "SHARING": "Preparando para compartir…",
     "SAVE_ACTION": "Guardar",
     "SELECT_IMAGE_LABEL": "Imagen de portada",
     "SELECT_IMAGE_PLACEHOLDER": "Selecciona una imagen",
@@ -58,7 +51,6 @@
     "TAP_TO_CHANGE": "Toca para cambiar/reiniciar",
     "TITLE": "Crear portada",
     "MODEL_PICKER": {
-      "SEARCH": "Buscar modelo",
       "TITLE": "Elige tu Kindle"
     }
   },
@@ -78,27 +70,10 @@
     },
     "ERROR": {
       "DELETE": "No se pudo eliminar la portada. Inténtalo de nuevo.",
-      "SHARE": "No se pudo compartir la portada. Inténtalo de nuevo.",
-      "LOAD": "No se pudieron cargar tus portadas. Arrastra hacia abajo para intentar de nuevo."
+      "LOAD": "No se pudieron cargar tus portadas. Arrastra hacia abajo para intentar de nuevo.",
+      "PREVIEW": "No se pudo cargar la vista previa. Intenta de nuevo.",
+      "SHARE": "No se pudo compartir la portada. Inténtalo de nuevo."
     }
-  },
-  "CROPPER": {
-    "ADJUSTMENTS": "Ajustes",
-    "ADJUSTMENTS_ARIA": "Ajustes de imagen",
-    "BRIGHTNESS": "Brillo",
-    "BW": "B/N",
-    "CONTRAST": "Contraste",
-    "CONTROLS_ARIA": "Controles",
-    "DITHER": "Dither (tramado)",
-    "FRAME_ARIA": "Área de recorte",
-    "HINT": "Pellizca para hacer zoom · Arrastra para mover",
-    "RESET_ADJUSTMENTS_ARIA": "Restablecer ajustes",
-    "RESET_ARIA": "Restablecer",
-    "ROTATE": "Rotar",
-    "SATURATION": "Saturación",
-    "TITLE": "Recortar",
-    "ZOOM_IN_ARIA": "Acercar",
-    "ZOOM_OUT_ARIA": "Alejar"
   },
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Nota",

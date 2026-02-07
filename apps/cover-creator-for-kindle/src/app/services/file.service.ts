@@ -38,7 +38,6 @@ export class FileService {
       lang,
     });
 
-    // Use file-kit instead of direct Filesystem call
     const epubRef = await this.fileKit.writeBytes({
       dir: 'Documents',
       path: epubPath,
@@ -70,7 +69,6 @@ export class FileService {
       lang,
     });
 
-    // Use file-kit to write to cache
     const epubRef = await this.fileKit.writeBytes({
       dir: 'Cache',
       path: cachePath,
@@ -78,7 +76,6 @@ export class FileService {
       mimeType: 'application/epub+zip',
     });
 
-    // Use file-kit to share
     await this.fileKit.share(epubRef, {
       title: opts.title ?? 'Kindle Cover',
       text: 'EPUB cover generated with Cover creator for kindle',
@@ -103,12 +100,6 @@ export class FileService {
 
   async listCovers(): Promise<CoverEntry[]> {
     try {
-      // For file-kit, we need to read the directory
-      // Since file-kit doesn't expose readdir yet, we'll use the old Filesystem API
-      // This is acceptable as long as the core file operations use file-kit
-      
-      // TODO: Consider adding readdir to file-kit if needed
-      // For now, we maintain backward compatibility with Filesystem
       const { Filesystem, Directory } = await import('@capacitor/filesystem');
       
       const list = await Filesystem.readdir({
@@ -125,8 +116,7 @@ export class FileService {
         epubPath: `${this.EPUB_FOLDER}/${filename}`,
         thumbPath: this.getThumbPathForEpubFilename(filename),
       }));
-    } catch (error) {
-      console.warn('[file.service] listCovers failed:', error);
+    } catch {
       return [];
     }
   }
@@ -135,17 +125,14 @@ export class FileService {
     const epubPath = `${this.EPUB_FOLDER}/${filename}`;
     const thumbPath = this.getThumbPathForEpubFilename(filename);
 
-    // Use file-kit to delete EPUB
     try {
       await this.fileKit.delete({
         dir: 'Documents',
         path: epubPath,
       });
-    } catch (error) {
-      console.warn('[file.service] Failed to delete EPUB:', error);
+    } catch {
     }
 
-    // Use file-kit to delete thumbnail
     try {
       await this.fileKit.delete({
         dir: 'Data',
@@ -159,7 +146,6 @@ export class FileService {
   async shareCoverByFilename(filename: string) {
     const epubPath = `${this.EPUB_FOLDER}/${filename}`;
 
-    // Get URI via file-kit exists check, then share
     const exists = await this.fileKit.exists({
       dir: 'Documents',
       path: epubPath,
@@ -170,7 +156,6 @@ export class FileService {
       throw new Error(`File not found: ${epubPath}`);
     }
 
-    // Get the real URI from file-kit
     const uri = await this.fileKit.getUri({
       dir: 'Documents',
       path: epubPath,
@@ -211,7 +196,6 @@ export class FileService {
     const thumbBase64 = await this.makeThumbnailBase64(coverFile, 320, 0.82);
     const thumbBytes = this.fileKit.fromBase64(thumbBase64);
 
-    // Use file-kit to write thumbnail
     await this.fileKit.writeBytes({
       dir: 'Data',
       path: thumbPath,
@@ -239,7 +223,6 @@ export class FileService {
 
       const thumbBytes = this.fileKit.fromBase64(thumbBase64);
 
-      // Use file-kit to write
       await this.fileKit.writeBytes({
         dir: 'Data',
         path: thumbPath,
@@ -262,8 +245,7 @@ export class FileService {
         path,
       });
       return this.fileKit.toBase64(bytes);
-    } catch (error) {
-      console.warn(`[file.service] Failed to read ${path} from ${dir}:`, error);
+    } catch {
       return null;
     }
   }
@@ -662,7 +644,6 @@ export class FileService {
     const filename = this.ensureEpubExt(this.sanitizeFilename(opts.filename));
     const epubPath = `${this.EPUB_FOLDER}/${filename}`;
 
-    // Use file-kit to save EPUB
     const epubRef = await this.fileKit.writeBytes({
       dir: 'Documents',
       path: epubPath,
@@ -778,7 +759,6 @@ export class FileService {
     const filename = this.ensureEpubExt(this.sanitizeFilename(opts.filename));
     const cachePath = `${this.EPUB_FOLDER}/${filename}`;
 
-    // Use file-kit to write to cache
     const epubRef = await this.fileKit.writeBytes({
       dir: 'Cache',
       path: cachePath,
@@ -786,7 +766,6 @@ export class FileService {
       mimeType: 'application/epub+zip',
     });
 
-    // Use file-kit to share
     await this.fileKit.share(epubRef, {
       title: opts.title ?? 'Kindle Cover',
       text: 'EPUB cover generated with Cover creator for kindle',
@@ -813,7 +792,6 @@ export class FileService {
 
       const epubB64 = await this.tryReadBase64FromFilesystem(epubPath, 'Documents');
       if (!epubB64) {
-        console.warn(`[file.service] Could not read EPUB file: ${epubPath}`);
         return null;
       }
 

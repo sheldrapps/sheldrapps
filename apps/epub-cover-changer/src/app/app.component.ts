@@ -24,8 +24,6 @@ export class AppComponent {
     void this.init();
   }
 
-  private consentReady: Promise<void> | null = null;
-
   private async init() {
     // Load settings from storage (runs migrations if needed)
     await this.settings.load();
@@ -36,10 +34,7 @@ export class AppComponent {
     // Set the language in LanguageService
     await this.lang.set(currentSettings.lang);
 
-    this.consentReady = this.consent
-      .gatherConsent()
-      .then(() => undefined)
-      .catch(() => undefined);
+    await this.consent.gatherConsent();
     this.setDocumentTitle();
     this.t.onLangChange.subscribe(() => this.setDocumentTitle());
   }

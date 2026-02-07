@@ -5,6 +5,7 @@ import {
   ViewChild,
   ElementRef,
   NgZone,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -77,32 +78,21 @@ import { SaveCoverModalComponent } from './save-cover-modal.component';
       [model]="model!"
       [initialState]="initialState"
       [onReady]="onReady"
-      [title]="'CROPPER.TITLE' | translate"
-      [cancelLabel]="'COMMON.CANCEL' | translate"
-      [doneLabel]="'COMMON.DONE' | translate"
-      [loadingLabel]="'COMMON.LOADING' | translate"
-      [hintLabel]="'CROPPER.HINT' | translate"
-      [adjustmentsLabel]="'CROPPER.ADJUSTMENTS' | translate"
-      [rotateLabel]="'CROPPER.ROTATE' | translate"
-      [brightnessLabel]="'CROPPER.BRIGHTNESS' | translate"
-      [saturationLabel]="'CROPPER.SATURATION' | translate"
-      [contrastLabel]="'CROPPER.CONTRAST' | translate"
-      [bwLabel]="'CROPPER.BW' | translate"
-      [ditherLabel]="'CROPPER.DITHER' | translate"
-      [frameAriaLabel]="'CROPPER.FRAME_ARIA' | translate"
-      [controlsAriaLabel]="'CROPPER.CONTROLS_ARIA' | translate"
-      [resetAriaLabel]="'CROPPER.RESET_ARIA' | translate"
-      [zoomOutAriaLabel]="'CROPPER.ZOOM_OUT_ARIA' | translate"
-      [zoomInAriaLabel]="'CROPPER.ZOOM_IN_ARIA' | translate"
-      [adjustmentsAriaLabel]="'CROPPER.ADJUSTMENTS_ARIA' | translate"
+      [locale]="locale"
     ></app-cover-cropper-modal>
   `,
 })
 class CoverCropperModalI18nComponent {
+  private translate = inject(TranslateService);
+
   file: File | undefined;
   model: CropTarget | undefined;
   initialState: CoverCropState | undefined;
   onReady: (() => void) | undefined;
+
+  get locale(): string {
+    return this.translate.currentLang || this.translate.defaultLang || 'en';
+  }
 }
 
 @Component({
@@ -575,7 +565,6 @@ export class CreatePage implements OnInit, OnDestroy {
     try {
       const result: RewardedAdResult = await this.ads.showRewarded();
 
-      // Handle ad failure
       if (result.failed) {
         await this.showToast(
           'CREATE.ADS_REQUIRED',
@@ -585,7 +574,6 @@ export class CreatePage implements OnInit, OnDestroy {
         return;
       }
 
-      // Handle ad closed without reward (user didn't watch it completely)
       if (result.adClosed && !result.rewardEarned) {
         await this.showToast(
           'CREATE.ADS_REQUIRED',
@@ -595,7 +583,6 @@ export class CreatePage implements OnInit, OnDestroy {
         return;
       }
 
-      // Only proceed if BOTH reward earned AND ad closed
       if (!result.rewardEarned || !result.adClosed) {
         return;
       }
@@ -625,7 +612,6 @@ export class CreatePage implements OnInit, OnDestroy {
       this.wasAutoSaved = true;
       this.lastSavedFilename = this.generatedEpubFilename;
 
-      // Show success toast ONLY when reward earned AND ad closed
       await this.zone.run(async () => {
         await this.showToast(
           'CREATE.COVER_CREATED',

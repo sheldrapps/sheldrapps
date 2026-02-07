@@ -1,14 +1,14 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>{{ title }}</ion-title>
+    <ion-title>{{ uiLabels.title }}</ion-title>
 
     <ion-buttons slot="end">
       <ion-button (click)="cancel()">
-        {{ cancelLabel }}
+        {{ uiLabels.cancelLabel }}
       </ion-button>
 
       <ion-button [disabled]="!ready" (click)="use()">
-        {{ doneLabel }}
+        {{ uiLabels.doneLabel }}
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -22,7 +22,7 @@
         class="frame"
         [style.--crop-ratio]="aspectRatio"
         (dblclick)="reset()"
-        [attr.aria-label]="frameAriaLabel"
+        [attr.aria-label]="uiLabels.frameAriaLabel"
       >
         @if (imageUrl) {
         <img
@@ -35,14 +35,16 @@
         />
         }
 
+        @if (showGrid) {
         <div class="grid" aria-hidden="true"></div>
+        }
 
         @if (!ready) {
         <div class="frame-loader" aria-hidden="true">
           <div class="frame-loader__card">
             <ion-spinner name="crescent"></ion-spinner>
             <div class="frame-loader__text">
-              {{ loadingLabel }}
+              {{ uiLabels.loadingLabel }}
             </div>
           </div>
         </div>
@@ -50,9 +52,9 @@
       </div>
     </div>
 
-    @if (ready) {
+    @if (ready && showHint) {
     <div class="hint">
-      {{ hintLabel }}
+      {{ uiLabels.hintLabel }}
     </div>
     }
   </div>
@@ -60,14 +62,14 @@
   <div
     class="bottom-bar"
     role="toolbar"
-    [attr.aria-label]="controlsAriaLabel"
+    [attr.aria-label]="uiLabels.controlsAriaLabel"
   >
     <ion-button
       fill="clear"
       class="ctrl"
       (click)="zoomOut()"
       [disabled]="scale <= minScale"
-      [attr.aria-label]="zoomOutAriaLabel"
+      [attr.aria-label]="uiLabels.zoomOutAriaLabel"
     >
       <ion-icon name="remove-outline"></ion-icon>
     </ion-button>
@@ -76,7 +78,7 @@
       fill="clear"
       class="ctrl"
       (click)="reset()"
-      [attr.aria-label]="resetAriaLabel"
+      [attr.aria-label]="uiLabels.resetAriaLabel"
     >
       <ion-icon name="refresh-outline"></ion-icon>
     </ion-button>
@@ -86,38 +88,40 @@
       class="ctrl"
       (click)="zoomIn()"
       [disabled]="scale >= maxScale"
-      [attr.aria-label]="zoomInAriaLabel"
+      [attr.aria-label]="uiLabels.zoomInAriaLabel"
     >
       <ion-icon name="add-outline"></ion-icon>
     </ion-button>
 
     <div class="spacer"></div>
 
+    @if (showAdjustments) {
     <ion-button
       class="adjust-btn"
       (click)="toggleAdjustments()"
       [disabled]="!ready"
     >
-      {{ adjustmentsLabel }}
+      {{ uiLabels.adjustmentsLabel }}
       <ion-icon
         class="adjust-btn__icon"
         [name]="adjustOpen ? 'close-outline' : 'chevron-up-outline'"
       ></ion-icon>
     </ion-button>
+    }
   </div>
 
-  @if (adjustOpen) {
+  @if (adjustOpen && showAdjustments) {
   <div
     class="sheet"
     role="dialog"
-    [attr.aria-label]="adjustmentsAriaLabel"
+    [attr.aria-label]="uiLabels.adjustmentsAriaLabel"
   >
     <div class="sheet-head">
       <ion-button
         fill="clear"
         class="sheet-reset"
         (click)="resetAdjustments()"
-        [attr.aria-label]="resetAdjustmentsAriaLabel"
+        [attr.aria-label]="uiLabels.resetAdjustmentsAriaLabel"
       >
         <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
       </ion-button>
@@ -125,7 +129,7 @@
       <div class="sheet-grabber" aria-hidden="true"></div>
 
       <div class="sheet-title">
-        {{ adjustmentsLabel }}
+        {{ uiLabels.adjustmentsLabel }}
       </div>
 
       <ion-button fill="clear" class="sheet-close" (click)="closeAdjustments()">
@@ -134,7 +138,7 @@
     </div>
 
   <div class="sheet-body">
-    @if (formatOptions?.length) {
+    @if (formatOptions?.length && showFormatSelector) {
     <div class="format-row">
       <ion-segment
         class="format-segment"
@@ -151,8 +155,9 @@
     </div>
     }
 
+    @if (showRotate) {
     <ion-item lines="none" class="rot-item">
-        <ion-label>{{ rotateLabel }}</ion-label>
+      <ion-label>{{ uiLabels.rotateLabel }}</ion-label>
 
         <ion-buttons slot="end" class="rot-actions">
           <ion-button fill="clear" class="rot-btn" (click)="rotateLeft()">
@@ -164,9 +169,10 @@
           </ion-button>
         </ion-buttons>
       </ion-item>
+    }
 
       <ion-item lines="none">
-        <ion-label>{{ brightnessLabel }}</ion-label>
+        <ion-label>{{ uiLabels.brightnessLabel }}</ion-label>
         <ion-range
           [min]="0.5"
           [max]="1.5"
@@ -177,7 +183,7 @@
       </ion-item>
 
       <ion-item lines="none">
-        <ion-label>{{ saturationLabel }}</ion-label>
+        <ion-label>{{ uiLabels.saturationLabel }}</ion-label>
         <ion-range
           [min]="0"
           [max]="2"
@@ -189,7 +195,7 @@
       </ion-item>
 
       <ion-item lines="none">
-        <ion-label>{{ contrastLabel }}</ion-label>
+        <ion-label>{{ uiLabels.contrastLabel }}</ion-label>
         <ion-range
           [min]="0.5"
           [max]="1.8"
@@ -200,7 +206,7 @@
       </ion-item>
 
       <ion-item lines="none" class="toggles">
-        <ion-label>{{ bwLabel }}</ion-label>
+        <ion-label>{{ uiLabels.bwLabel }}</ion-label>
         <ion-toggle
           [(ngModel)]="bw"
           (ionChange)="onAdjustChanged()"
@@ -209,7 +215,7 @@
         <div class="row-spacer"></div>
 
         <ion-label class="dither-label" [class.disabled]="!bw">
-          {{ ditherLabel }}
+          {{ uiLabels.ditherLabel }}
         </ion-label>
         <ion-toggle
           [(ngModel)]="dither"

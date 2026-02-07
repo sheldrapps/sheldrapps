@@ -26,6 +26,12 @@
   user-select: none;
 }
 
+@media (prefers-color-scheme: light) {
+  .frame {
+    border-color: rgba(0, 0, 0, 0.55);
+  }
+}
+
 .hint {
   margin-top: 10px;
   font-size: 0.9rem;
@@ -43,8 +49,3 @@
   width: 44px;
 }
 
-@media (prefers-color-scheme: light) {
-  .frame {
-    border-color: rgba(0, 0, 0, 0.55);
-  }
-}
