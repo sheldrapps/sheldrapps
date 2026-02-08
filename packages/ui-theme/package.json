@@ -5,12 +5,18 @@
   "main": "index.js",
   "type": "module",
   "exports": {
-    "./styles/*": "./styles/*"
+    "./styles/*": "./styles/*",
+    "./assets/*": "./assets/*"
   },
   "files": [
-    "styles"
+    "styles",
+    "assets"
   ],
-  "keywords": ["design-system", "ionic", "scss"],
+  "keywords": [
+    "design-system",
+    "ionic",
+    "scss"
+  ],
   "author": "Sheldrapps",
   "license": "MIT"
 }

@@ -101,8 +101,15 @@ export interface CropperLabels {
   loadingLabel: string;
   hintLabel: string;
   adjustmentsLabel: string;
-  resetAdjustmentsAriaLabel: string;
+  toolsLabel: string;
+  modelLabel: string;
+  groupLabel: string;
+  generationLabel: string;
   rotateLabel: string;
+  rotateLeftLabel: string;
+  rotateRightLabel: string;
+  zoomLabel: string;
+  resetAdjustmentsAriaLabel: string;
   brightnessLabel: string;
   saturationLabel: string;
   contrastLabel: string;

@@ -26,6 +26,8 @@ import {
   IonSpinner,
   IonSegment,
   IonSegmentButton,
+  IonSelect,
+  IonSelectOption,
 } from "@ionic/angular/standalone";
 import { ModalController } from "@ionic/angular/standalone";
 import type {
@@ -40,8 +42,11 @@ import {
   refreshOutline,
   chevronUpOutline,
   closeOutline,
+  optionsOutline,
+  cropOutline,
   returnUpBackOutline,
   returnUpForwardOutline,
+  checkmarkOutline,
 } from "ionicons/icons";
 
 import type {
@@ -78,6 +83,8 @@ type Pt = { x: number; y: number };
     IonSpinner,
     IonSegment,
     IonSegmentButton,
+    IonSelect,
+    IonSelectOption,
   ],
   templateUrl: "./cover-cropper-modal-base.component.html",
   styleUrls: ["./cover-cropper-modal.component.scss"],
@@ -100,6 +107,14 @@ export class CoverCropperModalComponent
   @Input() showHint = true;
   @Input() showGrid = true;
 
+  // Kindle model selector support (optional)
+  @Input() kindleGroups?: any[]; // KindleGroup[], using any to avoid circular dependency
+  @Input() kindleGroupLabels?: Map<string, string>; // i18nKey -> label mappings for groups
+  @Input() kindleModelLabels?: Map<string, string>; // i18nKey -> label mappings for models
+  @Input() kindleSelectedGroupId?: string;
+  @Input() kindleSelectedModel?: any; // KindleModel, using any to avoid circular dependency
+  @Input() onKindleModelChange?: (model: any) => void; // Callback when model changes
+
   // i18n Labels - default to English
   @Input() title?: string;
   @Input() cancelLabel?: string;
@@ -109,6 +124,8 @@ export class CoverCropperModalComponent
   @Input() adjustmentsLabel?: string;
   @Input() resetAdjustmentsAriaLabel?: string;
   @Input() rotateLabel?: string;
+  @Input() rotateLeftLabel?: string;
+  @Input() rotateRightLabel?: string;
   @Input() brightnessLabel?: string;
   @Input() saturationLabel?: string;
   @Input() contrastLabel?: string;
@@ -150,6 +167,12 @@ export class CoverCropperModalComponent
   private baseScale = 1;
 
   adjustOpen = false;
+  toolsMode = false;
+  activeToolPanel: string | null = null;
+
+  // Kindle model selector state
+  internalKindleSelectedGroupId?: string;
+  internalKindleSelectedModel?: any;
 
   private pointers = new Map<number, Pt>();
   private gestureStart?: {
@@ -178,15 +201,51 @@ export class CoverCropperModalComponent
       refreshOutline,
       addOutline,
       closeOutline,
+      chevronUpOutline,
+      optionsOutline,
+      cropOutline,
       returnUpBackOutline,
       returnUpForwardOutline,
-      chevronUpOutline,
+      checkmarkOutline,
     });
   }
 
   get aspectRatio(): number {
     const t = this.getActiveTarget();
     return t.width / t.height;
+  }
+
+  get currentKindleModels(): any[] {
+    if (!this.internalKindleSelectedGroupId || !this.kindleGroups) return [];
+    const group = this.kindleGroups.find(
+      (g) => g.id === this.internalKindleSelectedGroupId,
+    );
+    return group?.items ?? [];
+  }
+
+  compareKindleModels(m1: any, m2: any): boolean {
+    return m1 && m2 ? m1.id === m2.id : m1 === m2;
+  }
+
+  onKindleGroupChange(): void {
+    // When group changes, reset the model selection
+    // and select the first model in the new group
+    if (this.internalKindleSelectedGroupId) {
+      const group = this.kindleGroups?.find(
+        (g) => g.id === this.internalKindleSelectedGroupId,
+      );
+      if (group && group.items.length > 0) {
+        this.internalKindleSelectedModel = group.items[0];
+        this.onKindleModelChangeInternal();
+      }
+    }
+  }
+
+  onKindleModelChangeInternal(): void {
+    // Update stored model and emit callback
+    if (this.internalKindleSelectedModel && this.onKindleModelChange) {
+      this.onKindleModelChange(this.internalKindleSelectedModel);
+    }
   }
 
   toggleAdjustments(): void {
@@ -206,14 +265,39 @@ export class CoverCropperModalComponent
     this.onAdjustChanged();
   }
 
+  toggleToolsMode(): void {
+    this.toolsMode = !this.toolsMode;
+    if (this.toolsMode) {
+      // Close adjustments panel when entering tools mode
+      this.adjustOpen = false;
+    } else {
+      // Close all tool panels when leaving tools mode
+      this.activeToolPanel = null;
+    }
+  }
+
+  togglePanel(panelName: string): void {
+    if (this.activeToolPanel === panelName) {
+      this.activeToolPanel = null;
+    } else {
+      this.activeToolPanel = panelName;
+    }
+  }
+
   ngOnInit(): void {
     this.refreshLabels();
     this.ready = false;
     this.didEmitReady = false;
     this.imageLoaded = false;
     this.adjustOpen = false;
+    this.toolsMode = false;
+    this.activeToolPanel = null;
     this.selectedFormatId =
       this.formatId ?? this.formatOptions?.[0]?.id ?? undefined;
+
+    // Initialize Kindle model selector state
+    this.internalKindleSelectedGroupId = this.kindleSelectedGroupId;
+    this.internalKindleSelectedModel = this.kindleSelectedModel;
 
     this.imageUrl = URL.createObjectURL(this.file);
 
@@ -839,6 +923,8 @@ export class CoverCropperModalComponent
       adjustmentsLabel: this.adjustmentsLabel,
       resetAdjustmentsAriaLabel: this.resetAdjustmentsAriaLabel,
       rotateLabel: this.rotateLabel,
+      rotateLeftLabel: this.rotateLeftLabel,
+      rotateRightLabel: this.rotateRightLabel,
       brightnessLabel: this.brightnessLabel,
       saturationLabel: this.saturationLabel,
       contrastLabel: this.contrastLabel,
@@ -885,12 +971,19 @@ const DEFAULT_LABELS: Record<string, CropperLabels> = {
   en: {
     title: "Crop",
     cancelLabel: "Cancel",
-    doneLabel: "Done",
+    doneLabel: "Apply",
     loadingLabel: "Loading…",
     hintLabel: "Pinch to zoom · Drag to move",
     adjustmentsLabel: "Adjustments",
-    resetAdjustmentsAriaLabel: "Reset adjustments",
+    toolsLabel: "Tools",
+    modelLabel: "Model",
+    groupLabel: "Group",
+    generationLabel: "Generation",
     rotateLabel: "Rotate",
+    rotateLeftLabel: "Left",
+    rotateRightLabel: "Right",
+    zoomLabel: "Zoom",
+    resetAdjustmentsAriaLabel: "Reset adjustments",
     brightnessLabel: "Brightness",
     saturationLabel: "Saturation",
     contrastLabel: "Contrast",
@@ -906,12 +999,19 @@ const DEFAULT_LABELS: Record<string, CropperLabels> = {
   es: {
     title: "Recortar",
     cancelLabel: "Cancelar",
-    doneLabel: "Listo",
+    doneLabel: "Aplicar",
     loadingLabel: "Cargando…",
     hintLabel: "Pellizca para hacer zoom · Arrastra para mover",
     adjustmentsLabel: "Ajustes",
-    resetAdjustmentsAriaLabel: "Restablecer ajustes",
+    toolsLabel: "Herramientas",
+    modelLabel: "Modelo",
+    groupLabel: "Grupo",
+    generationLabel: "Generación",
     rotateLabel: "Rotar",
+    rotateLeftLabel: "Izquierda",
+    rotateRightLabel: "Derecha",
+    zoomLabel: "Zoom",
+    resetAdjustmentsAriaLabel: "Restablecer ajustes",
     brightnessLabel: "Brillo",
     saturationLabel: "Saturación",
     contrastLabel: "Contraste",
@@ -927,12 +1027,19 @@ const DEFAULT_LABELS: Record<string, CropperLabels> = {
   de: {
     title: "Zuschneiden",
     cancelLabel: "Abbrechen",
-    doneLabel: "Fertig",
+    doneLabel: "Anwenden",
     loadingLabel: "Wird geladen…",
     hintLabel: "Zum Zoomen ziehen · Zum Verschieben wischen",
     adjustmentsLabel: "Anpassungen",
-    resetAdjustmentsAriaLabel: "Anpassungen zurücksetzen",
+    toolsLabel: "Werkzeuge",
+    modelLabel: "Modell",
+    groupLabel: "Gruppe",
+    generationLabel: "Generation",
     rotateLabel: "Drehen",
+    rotateLeftLabel: "Links",
+    rotateRightLabel: "Rechts",
+    zoomLabel: "Zoom",
+    resetAdjustmentsAriaLabel: "Anpassungen zurücksetzen",
     brightnessLabel: "Helligkeit",
     saturationLabel: "Sättigung",
     contrastLabel: "Kontrast",
@@ -948,12 +1055,19 @@ const DEFAULT_LABELS: Record<string, CropperLabels> = {
   pt: {
     title: "Recortar",
     cancelLabel: "Cancelar",
-    doneLabel: "Concluído",
+    doneLabel: "Aplicar",
     loadingLabel: "Carregando…",
     hintLabel: "Aperte para zoom · Arraste para mover",
     adjustmentsLabel: "Ajustes",
-    resetAdjustmentsAriaLabel: "Redefinir ajustes",
+    toolsLabel: "Ferramentas",
+    modelLabel: "Modelo",
+    groupLabel: "Grupo",
+    generationLabel: "Geração",
     rotateLabel: "Girar",
+    rotateLeftLabel: "Esquerda",
+    rotateRightLabel: "Direita",
+    zoomLabel: "Zoom",
+    resetAdjustmentsAriaLabel: "Redefinir ajustes",
     brightnessLabel: "Brilho",
     saturationLabel: "Saturação",
     contrastLabel: "Contraste",
@@ -969,12 +1083,19 @@ const DEFAULT_LABELS: Record<string, CropperLabels> = {
   it: {
     title: "Ritaglia",
     cancelLabel: "Annulla",
-    doneLabel: "Fatto",
+    doneLabel: "Applica",
     loadingLabel: "Caricamento…",
     hintLabel: "Pizzica per zoom · Trascina per spostare",
     adjustmentsLabel: "Regolazioni",
-    resetAdjustmentsAriaLabel: "Ripristina regolazioni",
+    toolsLabel: "Strumenti",
+    modelLabel: "Modello",
+    groupLabel: "Gruppo",
+    generationLabel: "Generazione",
     rotateLabel: "Ruota",
+    rotateLeftLabel: "Sinistra",
+    rotateRightLabel: "Destra",
+    zoomLabel: "Zoom",
+    resetAdjustmentsAriaLabel: "Ripristina regolazioni",
     brightnessLabel: "Luminosità",
     saturationLabel: "Saturazione",
     contrastLabel: "Contrasto",
@@ -990,12 +1111,19 @@ const DEFAULT_LABELS: Record<string, CropperLabels> = {
   fr: {
     title: "Recadrer",
     cancelLabel: "Annuler",
-    doneLabel: "Terminé",
+    doneLabel: "Appliquer",
     loadingLabel: "Chargement…",
     hintLabel: "Pincez pour zoomer · Glissez pour déplacer",
     adjustmentsLabel: "Réglages",
-    resetAdjustmentsAriaLabel: "Réinitialiser les réglages",
+    toolsLabel: "Outils",
+    modelLabel: "Modèle",
+    groupLabel: "Groupe",
+    generationLabel: "Génération",
     rotateLabel: "Faire pivoter",
+    rotateLeftLabel: "Gauche",
+    rotateRightLabel: "Droite",
+    zoomLabel: "Zoom",
+    resetAdjustmentsAriaLabel: "Réinitialiser les réglages",
     brightnessLabel: "Luminosité",
     saturationLabel: "Saturation",
     contrastLabel: "Contraste",

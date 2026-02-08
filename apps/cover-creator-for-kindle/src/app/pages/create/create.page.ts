@@ -23,6 +23,8 @@ import {
   IonCol,
   IonRow,
   IonPopover,
+  IonSelect,
+  IonSelectOption,
   ToastController,
   PopoverController,
   ModalController,
@@ -32,7 +34,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import {
   KindleGroup,
   KindleModel,
-  KindleModelPickerComponent,
 } from '../../components/kindle-model-picker/kindle-model-picker.component';
 
 import {
@@ -64,6 +65,8 @@ import { CoversEventsService } from '../../services/covers-events.service';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastOptions } from '@ionic/angular';
 import { SaveCoverModalComponent } from './save-cover-modal.component';
+import { SettingsStore } from '@sheldrapps/settings-kit';
+import { CcfkSettings } from '../../settings/ccfk-settings.schema';
 
 /**
  * Wrapper component that adds i18n labels to CoverCropperModalComponent
@@ -79,6 +82,12 @@ import { SaveCoverModalComponent } from './save-cover-modal.component';
       [initialState]="initialState"
       [onReady]="onReady"
       [locale]="locale"
+      [kindleGroups]="kindleGroups"
+      [kindleGroupLabels]="kindleGroupLabels"
+      [kindleModelLabels]="kindleModelLabels"
+      [kindleSelectedGroupId]="kindleSelectedGroupId"
+      [kindleSelectedModel]="kindleSelectedModel"
+      [onKindleModelChange]="onKindleModelChange"
     ></app-cover-cropper-modal>
   `,
 })
@@ -89,6 +98,12 @@ class CoverCropperModalI18nComponent {
   model: CropTarget | undefined;
   initialState: CoverCropState | undefined;
   onReady: (() => void) | undefined;
+  kindleGroups: KindleGroup[] | undefined;
+  kindleGroupLabels: Map<string, string> | undefined;
+  kindleModelLabels: Map<string, string> | undefined;
+  kindleSelectedGroupId: string | undefined;
+  kindleSelectedModel: KindleModel | undefined;
+  onKindleModelChange: ((model: KindleModel) => void) | undefined;
 
   get locale(): string {
     return this.translate.currentLang || this.translate.defaultLang || 'en';
@@ -118,6 +133,8 @@ class CoverCropperModalI18nComponent {
     IonRow,
     IonGrid,
     IonPopover,
+    IonSelect,
+    IonSelectOption,
   ],
 })
 export class CreatePage implements OnInit, OnDestroy {
@@ -134,6 +151,7 @@ export class CreatePage implements OnInit, OnDestroy {
     private coversEvents: CoversEventsService,
     private translate: TranslateService,
     private zone: NgZone,
+    private settings: SettingsStore<CcfkSettings>,
   ) {
     addIcons({
       chevronDown,
@@ -149,7 +167,14 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   groups: KindleGroup[] = [];
+  selectedGroupId?: string;
   selectedModel?: KindleModel;
+
+  get currentGroupModels(): KindleModel[] {
+    if (!this.selectedGroupId) return [];
+    const group = this.groups.find((g) => g.id === this.selectedGroupId);
+    return group?.items ?? [];
+  }
 
   originalImageFile?: File;
   selectedImageFile?: File;
@@ -183,9 +208,22 @@ export class CreatePage implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.groups = await this.catalog.getGroups();
+
+    // Load persisted settings and get the saved Kindle model ID
+    const settings = await this.settings.load();
+    const modelId = settings.kindleModelId || 'paperwhite_2021';
+
     this.selectedModel =
-      this.catalog.findModelById(this.groups, 'paperwhite_2021') ??
+      this.catalog.findModelById(this.groups, modelId) ??
       this.groups?.[0]?.items?.[0];
+
+    // Set the group based on the selected model
+    if (this.selectedModel) {
+      const group = this.groups.find((g) =>
+        g.items.some((item) => item.id === this.selectedModel!.id),
+      );
+      this.selectedGroupId = group?.id;
+    }
   }
 
   ngOnDestroy() {
@@ -205,29 +243,36 @@ export class CreatePage implements OnInit, OnDestroy {
     });
   }
 
-  async openModelPicker() {
-    const modal = await this.modalCtrl.create({
-      component: KindleModelPickerComponent,
-      componentProps: {
-        groups: this.groups,
-        selectedId: this.selectedModel?.id,
-      },
-      cssClass: 'kindle-modal',
-      handle: true,
-    });
+  compareModels(m1: KindleModel, m2: KindleModel): boolean {
+    return m1 && m2 ? m1.id === m2.id : m1 === m2;
+  }
 
-    await modal.present();
+  onGroupChange() {
+    // When group changes, reset the model selection
+    // and select the first model in the new group
+    if (this.selectedGroupId) {
+      const group = this.groups.find((g) => g.id === this.selectedGroupId);
+      if (group && group.items.length > 0) {
+        this.selectedModel = group.items[0];
+        this.onModelChange();
+      }
+    }
+  }
 
-    const res = await modal.onWillDismiss<KindleModel>();
-    if (res.role === 'selected' && res.data) {
-      this.selectedModel = res.data;
-      this.generatedEpubBytes = undefined;
-      this.generatedEpubFilename = undefined;
-      this.lastSavedFilename = undefined;
-      this.wasAutoSaved = false;
+  async onModelChange() {
+    // Clear generated files when model changes
+    this.generatedEpubBytes = undefined;
+    this.generatedEpubFilename = undefined;
+    this.lastSavedFilename = undefined;
+    this.wasAutoSaved = false;
 
-      if (this.selectedImageFile && this.selectedImageDims)
-        this.applySmallWarn();
+    // Save the selected model ID
+    if (this.selectedModel?.id) {
+      await this.settings.set({ kindleModelId: this.selectedModel.id });
+    }
+
+    if (this.selectedImageFile && this.selectedImageDims) {
+      this.applySmallWarn();
     }
   }
 
@@ -321,6 +366,26 @@ export class CreatePage implements OnInit, OnDestroy {
     const readyPromise = new Promise<void>((resolve) => (markReady = resolve));
 
     try {
+      // Build label maps for groups and models
+      const kindleGroupLabels = new Map<string, string>();
+      const kindleModelLabels = new Map<string, string>();
+
+      for (const group of this.groups) {
+        const groupLabel = await this.translate.get(group.i18nKey).toPromise();
+        if (typeof groupLabel === 'string') {
+          kindleGroupLabels.set(group.id, groupLabel);
+        }
+
+        for (const model of group.items) {
+          const modelLabel = await this.translate
+            .get(model.i18nKey)
+            .toPromise();
+          if (typeof modelLabel === 'string') {
+            kindleModelLabels.set(model.id, modelLabel);
+          }
+        }
+      }
+
       const modal = await this.modalCtrl.create({
         component: CoverCropperModalI18nComponent,
         componentProps: {
@@ -331,6 +396,21 @@ export class CreatePage implements OnInit, OnDestroy {
           } as CropTarget,
           initialState: this.cropState,
           onReady: () => markReady(),
+          kindleGroups: this.groups,
+          kindleGroupLabels,
+          kindleModelLabels,
+          kindleSelectedGroupId: this.selectedGroupId,
+          kindleSelectedModel: this.selectedModel,
+          onKindleModelChange: async (model: KindleModel) => {
+            this.selectedModel = model;
+            // Update selected group to reflect the new model's group
+            const group = this.groups.find((g) =>
+              g.items.some((item) => item.id === model.id),
+            );
+            this.selectedGroupId = group?.id;
+            // Persist the model change
+            await this.settings.set({ kindleModelId: model.id });
+          },
         },
         cssClass: 'cropper-modal',
         handle: true,

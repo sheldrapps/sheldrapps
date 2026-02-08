@@ -13,6 +13,10 @@ export interface CcfkSettings {
    * User's selected language
    */
   lang: string;
+  /**
+   * User's selected Kindle model ID (e.g., 'paperwhite_2021')
+   */
+  kindleModelId: string;
 }
 
 /**
@@ -20,13 +24,14 @@ export interface CcfkSettings {
  */
 const CCFK_DEFAULTS: CcfkSettings = {
   lang: 'es-MX',
+  kindleModelId: 'paperwhite_2021',
 };
 
 /**
  * Settings schema with legacy migration
  */
 export const CCFK_SETTINGS_SCHEMA: SettingsSchema<CcfkSettings> = {
-  version: 1,
+  version: 2,
   defaults: CCFK_DEFAULTS,
   migrations: [
     {
@@ -44,6 +49,16 @@ export const CCFK_SETTINGS_SCHEMA: SettingsSchema<CcfkSettings> = {
         }
 
         return {};
+      },
+    },
+    {
+      fromVersion: 1,
+      toVersion: 2,
+      run: async (ctx: MigrationContext<CcfkSettings>) => {
+        // Add kindleModelId to existing settings
+        return {
+          kindleModelId: CCFK_DEFAULTS.kindleModelId,
+        };
       },
     },
   ],

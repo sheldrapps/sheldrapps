@@ -46,16 +46,22 @@
         "height": 1648
       },
       {
-        "id": "paperwhite_signature_2021",
-        "i18nKey": "KINDLE_MODELS.PAPERWHITE_SIGNATURE_2021",
-        "width": 1236,
-        "height": 1648
-      },
-      {
         "id": "paperwhite_2024",
         "i18nKey": "KINDLE_MODELS.PAPERWHITE_2024",
         "width": 1264,
         "height": 1680
+      }
+    ]
+  },
+  {
+    "id": "paperwhite_signature",
+    "i18nKey": "KINDLE_GROUPS.PAPERWHITE_SIGNATURE",
+    "items": [
+      {
+        "id": "paperwhite_signature_2021",
+        "i18nKey": "KINDLE_MODELS.PAPERWHITE_SIGNATURE_2021",
+        "width": 1236,
+        "height": 1648
       },
       {
         "id": "paperwhite_signature_2024",
@@ -100,14 +106,20 @@
     "i18nKey": "KINDLE_GROUPS.COLOR",
     "items": [
       {
-        "id": "colorsoft_signature_2024",
-        "i18nKey": "KINDLE_MODELS.COLORSOFT_SIGNATURE_2024",
-        "width": 1264,
-        "height": 1680
-      },
-      {
         "id": "colorsoft_2025",
         "i18nKey": "KINDLE_MODELS.COLORSOFT_2025",
+        "width": 1264,
+        "height": 1680
+      }
+    ]
+  },
+  {
+    "id": "colorsoft_signature",
+    "i18nKey": "KINDLE_GROUPS.COLORSOFT_SIGNATURE",
+    "items": [
+      {
+        "id": "colorsoft_signature_2024",
+        "i18nKey": "KINDLE_MODELS.COLORSOFT_SIGNATURE_2024",
         "width": 1264,
         "height": 1680
       }

@@ -1,0 +1,119 @@
+/* Custom Icon Styles - Shared across all Sheldrapps apps
+ * 
+ * Available icons:
+ * - rotate-left.svg
+ * - rotate-right.svg
+ * - flip-vertical.svg
+ * - flip-horizontal.svg
+ * 
+ * All icons use currentColor for theme adaptability (light/dark mode).
+ * 
+ * Usage example (inline SVG):
+ * <span class="app-icon app-icon--md app-icon--primary">
+ *   <svg>...</svg>
+ * </span>
+ */
+
+:root {
+  /* Icon size tokens */
+  --app-icon-size-xs: 16px;
+  --app-icon-size-sm: 20px;
+  --app-icon-size-md: 24px;
+  --app-icon-size-lg: 32px;
+  --app-icon-size-xl: 48px;
+
+  /* Icon color tokens (themed) */
+  --app-icon-color-primary: var(--ion-color-primary);
+  --app-icon-color-secondary: var(--ion-color-secondary);
+  --app-icon-color-muted: var(--ion-color-medium);
+  --app-icon-color-default: var(--ion-text-color);
+
+  /* Icon + text label size */
+  --app-icon-text-size: 10px;
+}
+
+/* Base custom icon styling */
+.app-icon {
+  display: inline-block;
+  width: var(--app-icon-size-md);
+  height: var(--app-icon-size-md);
+  color: var(--app-icon-color-default);
+  
+  svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+}
+
+/* Icon size modifiers */
+.app-icon--xs {
+  width: var(--app-icon-size-xs);
+  height: var(--app-icon-size-xs);
+}
+
+.app-icon--sm {
+  width: var(--app-icon-size-sm);
+  height: var(--app-icon-size-sm);
+}
+
+.app-icon--md {
+  width: var(--app-icon-size-md);
+  height: var(--app-icon-size-md);
+}
+
+.app-icon--lg {
+  width: var(--app-icon-size-lg);
+  height: var(--app-icon-size-lg);
+}
+
+.app-icon--xl {
+  width: var(--app-icon-size-xl);
+  height: var(--app-icon-size-xl);
+}
+
+/* Icon color modifiers */
+.app-icon--primary {
+  color: var(--app-icon-color-primary);
+}
+
+.app-icon--secondary {
+  color: var(--app-icon-color-secondary);
+}
+
+.app-icon--muted {
+  color: var(--app-icon-color-muted);
+}
+
+/* Interactive states for clickable icons */
+.app-icon--interactive {
+  cursor: pointer;
+  transition: opacity var(--app-dur-fast) var(--app-ease),
+              transform var(--app-dur-fast) var(--app-ease);
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+/* Icon with text below (universal stack) */
+.app-icon-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.app-icon-text__icon {
+  font-size: var(--app-icon-size-md);
+}
+
+.app-icon-text__label {
+  font-size: var(--app-icon-text-size);
+  line-height: 1.2;
+  font-weight: 500;
+}

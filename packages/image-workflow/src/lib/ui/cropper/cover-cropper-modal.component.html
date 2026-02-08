@@ -12,6 +12,51 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+
+  <ion-toolbar class="top-toolbox">
+    <div class="top-toolbox__row">
+      <div class="top-toolbox__center">
+        <ion-button fill="clear" class="tool-btn">
+          <div class="app-icon-text">
+            <ion-icon
+              class="app-icon-text__icon"
+              name="return-up-back-outline"
+            ></ion-icon>
+            <span class="app-icon-text__label">Deshacer</span>
+          </div>
+        </ion-button>
+
+        <ion-button fill="clear" class="tool-btn">
+          <div class="app-icon-text">
+            <ion-icon
+              class="app-icon-text__icon"
+              name="return-up-forward-outline"
+            ></ion-icon>
+            <span class="app-icon-text__label">Rehacer</span>
+          </div>
+        </ion-button>
+      </div>
+
+      <div class="top-toolbox__right">
+        <ion-button fill="clear" class="tool-btn">
+          <div class="app-icon-text">
+            <ion-icon class="app-icon-text__icon" name="close-outline"></ion-icon>
+            <span class="app-icon-text__label">Descartar</span>
+          </div>
+        </ion-button>
+
+        <ion-button fill="clear" class="tool-btn">
+          <div class="app-icon-text">
+            <ion-icon
+              class="app-icon-text__icon"
+              name="checkmark-outline"
+            ></ion-icon>
+            <span class="app-icon-text__label">{{ doneLabel }}</span>
+          </div>
+        </ion-button>
+      </div>
+    </div>
+  </ion-toolbar>
 </ion-header>
 
 <ion-content class="cropper-content" [fullscreen]="true" [scrollY]="false">

@@ -5,30 +5,55 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
-  <ion-item
-    button
-    detail="false"
-    (click)="openModelPicker()"
-    aria-label="{{ 'CREATE.ARIA_SELECT_MODEL' | translate }}"
-  >
-    <ion-label>
-      <div class="field-title">
-        {{ 'CREATE.SELECT_MODEL_LABEL' | translate }}
-      </div>
+  <div class="field-section">
+    <div class="field-title">
+      {{ 'CREATE.SELECT_MODEL_LABEL' | translate }}
+    </div>
+    
+    <ion-grid class="selectors-grid">
+      <ion-row>
+        <ion-col size="6">
+          <div class="selector-label">
+            {{ 'CREATE.SELECT_GROUP_LABEL' | translate }}
+          </div>
+          <ion-item>
+            <ion-select
+              [(ngModel)]="selectedGroupId"
+              (ionChange)="onGroupChange()"
+              [placeholder]="'CREATE.SELECT_GROUP_PLACEHOLDER' | translate"
+              interface="popover"
+              aria-label="{{ 'CREATE.SELECT_GROUP_LABEL' | translate }}"
+            >
+              <ion-select-option *ngFor="let group of groups" [value]="group.id">
+                {{ group.i18nKey | translate }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ion-col>
 
-      <div class="field-value" *ngIf="selectedModel as m; else placeholder">
-        {{ m.i18nKey | translate }}
-      </div>
-
-      <ng-template #placeholder>
-        <div class="field-placeholder">
-          {{ 'CREATE.SELECT_MODEL_PLACEHOLDER' | translate }}
-        </div>
-      </ng-template>
-    </ion-label>
-
-    <ion-icon slot="end" name="chevron-down" aria-hidden="true"></ion-icon>
-  </ion-item>
+        <ion-col size="6">
+          <div class="selector-label">
+            {{ 'CREATE.SELECT_GENERATION_LABEL' | translate }}
+          </div>
+          <ion-item>
+            <ion-select
+              [(ngModel)]="selectedModel"
+              (ionChange)="onModelChange()"
+              [placeholder]="'CREATE.SELECT_GENERATION_PLACEHOLDER' | translate"
+              [compareWith]="compareModels"
+              interface="popover"
+              aria-label="{{ 'CREATE.SELECT_GENERATION_LABEL' | translate }}"
+              [disabled]="!selectedGroupId"
+            >
+              <ion-select-option *ngFor="let model of currentGroupModels" [value]="model">
+                {{ model.i18nKey | translate }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
 
   <ion-item
     button

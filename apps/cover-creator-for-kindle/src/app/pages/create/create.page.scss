@@ -1,5 +1,80 @@
 @use '@sheldrapps/ui-theme/styles/components' as *;
 
+.field-section {
+  margin-bottom: 16px;
+}
+
+.field-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  opacity: 0.95;
+}
+
+.selectors-grid {
+  margin-top: 8px;
+  --ion-grid-padding: 0;
+}
+
+.selectors-grid ion-row {
+  margin: 0;
+}
+
+.selectors-grid ion-col {
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.selectors-grid ion-col:first-child {
+  padding-left: 0;
+}
+
+.selectors-grid ion-col:last-child {
+  padding-right: 0;
+}
+
+.selector-label {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-bottom: 8px;
+  display: block;
+  font-weight: 500;
+}
+
+.selectors-grid ion-col ion-item {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --inner-padding-end: 8px;
+  --min-height: 48px;
+  --background: var(--ion-item-background);
+  margin-bottom: 0;
+  border-radius: var(--app-radius-md);
+  transition:
+    box-shadow var(--app-dur-med) var(--app-ease),
+    background-color var(--app-dur-med) var(--app-ease);
+}
+
+.selectors-grid ion-col ion-item::part(native) {
+  border-radius: var(--app-radius-md);
+  box-shadow: var(--app-shadow-sm);
+  transition:
+    box-shadow var(--app-dur-med) var(--app-ease),
+    background-color var(--app-dur-med) var(--app-ease);
+}
+
+.selectors-grid ion-col ion-item:focus-within::part(native) {
+  box-shadow: var(--app-focus-ring);
+}
+
+.selectors-grid ion-col ion-select {
+  --border-radius: var(--app-radius-md);
+  --placeholder-color: var(--ion-color-medium);
+  font-weight: 550;
+  letter-spacing: 0.15px;
+}
+
 .cc-action-grid {
   margin-top: 12px;
   --ion-grid-padding: 0;
