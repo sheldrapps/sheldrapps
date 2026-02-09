@@ -109,9 +109,7 @@
     role="toolbar"
     [attr.aria-label]="uiLabels.controlsAriaLabel"
   >
-    <div class="spacer"></div>
-
-    @if (!toolsMode) {
+    @if (!toolsMode && !adjustmentsMode) {
     <div class="tools-bar">
       <div class="tools-group">
         <div class="tools-buttons">
@@ -134,8 +132,7 @@
           <ion-button
             fill="clear"
             class="tool-btn"
-            [class.tool-btn--active]="adjustOpen"
-            (click)="toggleAdjustments()"
+            (click)="toggleAdjustmentsMode()"
             [disabled]="!ready"
           >
             <div class="app-icon-text">
@@ -150,7 +147,7 @@
         </div>
       </div>
     </div>
-    } @else {
+    } @else if (toolsMode) {
     <div class="tools-bar">
       <div class="tools-group">
         <div class="tools-buttons">
@@ -188,56 +185,82 @@
         </div>
       </div>
     </div>
+    } @else if (adjustmentsMode && showAdjustments) {
+    <div class="tools-bar">
+      <div class="tools-group">
+        <div class="tools-buttons">
+          <ion-button
+            fill="clear"
+            class="tool-btn"
+            [class.tool-btn--active]="activeAdjustPanel === 'brightness'"
+            (click)="toggleAdjustPanel('brightness')"
+            [disabled]="!ready"
+          >
+            <span>{{ uiLabels.brightnessLabel }}</span>
+          </ion-button>
+
+          <ion-button
+            fill="clear"
+            class="tool-btn"
+            [class.tool-btn--active]="activeAdjustPanel === 'saturation'"
+            (click)="toggleAdjustPanel('saturation')"
+            [disabled]="!ready"
+          >
+            <span>{{ uiLabels.saturationLabel }}</span>
+          </ion-button>
+
+          <ion-button
+            fill="clear"
+            class="tool-btn"
+            [class.tool-btn--active]="activeAdjustPanel === 'contrast'"
+            (click)="toggleAdjustPanel('contrast')"
+            [disabled]="!ready"
+          >
+            <span>{{ uiLabels.contrastLabel }}</span>
+          </ion-button>
+
+          <ion-button
+            fill="clear"
+            class="tool-btn"
+            [class.tool-btn--active]="activeAdjustPanel === 'bw'"
+            (click)="toggleAdjustPanel('bw')"
+            [disabled]="!ready"
+          >
+            <span>{{ uiLabels.bwLabel }}</span>
+          </ion-button>
+        </div>
+      </div>
+    </div>
     }
+
+    <div class="spacer"></div>
   </div>
 
-  @if (adjustOpen && showAdjustments) {
-  <div
-    class="sheet"
-    role="dialog"
-    [attr.aria-label]="uiLabels.adjustmentsAriaLabel"
-  >
+  @if (formatOptions?.length && showFormatSelector) {
+  <div class="format-row">
+    <ion-segment
+      class="format-segment"
+      [value]="selectedFormatId ?? ''"
+      (ionChange)="onFormatChange($event)"
+      scrollable="true"
+    >
+      @for (opt of (formatOptions ?? []); track opt.id) {
+      <ion-segment-button [value]="opt.id">
+        {{ opt.label }}
+      </ion-segment-button>
+      }
+    </ion-segment>
+  </div>
+  }
+
+  @if (activeAdjustPanel === 'brightness' && adjustmentsMode && showAdjustments) {
+  <div class="sheet" role="dialog" [attr.aria-label]="uiLabels.brightnessLabel">
     <div class="sheet-head">
-      <ion-button
-        fill="clear"
-        class="sheet-reset"
-        (click)="resetAdjustments()"
-        [attr.aria-label]="uiLabels.resetAdjustmentsAriaLabel"
-      >
-        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
-      </ion-button>
-
-      <div class="sheet-grabber" aria-hidden="true"></div>
-
-      <div class="sheet-title">
-        {{ uiLabels.adjustmentsLabel }}
-      </div>
-
-      <ion-button fill="clear" class="sheet-close" (click)="closeAdjustments()">
-        <ion-icon name="close-outline"></ion-icon>
-      </ion-button>
+      <h2>{{ uiLabels.brightnessLabel }}</h2>
     </div>
 
-  <div class="sheet-body">
-    @if (formatOptions?.length && showFormatSelector) {
-    <div class="format-row">
-      <ion-segment
-        class="format-segment"
-        [value]="selectedFormatId ?? ''"
-        (ionChange)="onFormatChange($event)"
-        scrollable="true"
-      >
-        @for (opt of (formatOptions ?? []); track opt.id) {
-        <ion-segment-button [value]="opt.id">
-          {{ opt.label }}
-        </ion-segment-button>
-        }
-      </ion-segment>
-    </div>
-    }
-
+    <div class="sheet-body">
       <ion-item lines="none">
-        <ion-label>{{ uiLabels.brightnessLabel }}</ion-label>
         <ion-range
           [min]="0.5"
           [max]="1.5"
@@ -246,9 +269,18 @@
           (ionInput)="onAdjustChanged()"
         ></ion-range>
       </ion-item>
+    </div>
+  </div>
+  }
 
+  @if (activeAdjustPanel === 'saturation' && adjustmentsMode && showAdjustments) {
+  <div class="sheet" role="dialog" [attr.aria-label]="uiLabels.saturationLabel">
+    <div class="sheet-head">
+      <h2>{{ uiLabels.saturationLabel }}</h2>
+    </div>
+
+    <div class="sheet-body">
       <ion-item lines="none">
-        <ion-label>{{ uiLabels.saturationLabel }}</ion-label>
         <ion-range
           [min]="0"
           [max]="2"
@@ -258,9 +290,18 @@
           [disabled]="bw"
         ></ion-range>
       </ion-item>
+    </div>
+  </div>
+  }
 
+  @if (activeAdjustPanel === 'contrast' && adjustmentsMode && showAdjustments) {
+  <div class="sheet" role="dialog" [attr.aria-label]="uiLabels.contrastLabel">
+    <div class="sheet-head">
+      <h2>{{ uiLabels.contrastLabel }}</h2>
+    </div>
+
+    <div class="sheet-body">
       <ion-item lines="none">
-        <ion-label>{{ uiLabels.contrastLabel }}</ion-label>
         <ion-range
           [min]="0.5"
           [max]="1.8"
@@ -269,13 +310,20 @@
           (ionInput)="onAdjustChanged()"
         ></ion-range>
       </ion-item>
+    </div>
+  </div>
+  }
 
+  @if (activeAdjustPanel === 'bw' && adjustmentsMode && showAdjustments) {
+  <div class="sheet" role="dialog" [attr.aria-label]="uiLabels.bwLabel">
+    <div class="sheet-head">
+      <h2>{{ uiLabels.bwLabel }}</h2>
+    </div>
+
+    <div class="sheet-body">
       <ion-item lines="none" class="toggles">
         <ion-label>{{ uiLabels.bwLabel }}</ion-label>
-        <ion-toggle
-          [(ngModel)]="bw"
-          (ionChange)="onAdjustChanged()"
-        ></ion-toggle>
+        <ion-toggle [(ngModel)]="bw" (ionChange)="onAdjustChanged()"></ion-toggle>
 
         <div class="row-spacer"></div>
 

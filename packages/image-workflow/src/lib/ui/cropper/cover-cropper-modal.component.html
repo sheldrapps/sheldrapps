@@ -136,8 +136,6 @@
       <ion-icon name="add-outline"></ion-icon>
     </ion-button>
 
-    <div class="spacer"></div>
-
     <ion-button
       class="adjust-btn"
       (click)="toggleAdjustments()"
@@ -149,6 +147,8 @@
         [name]="adjustOpen ? 'close-outline' : 'chevron-up-outline'"
       ></ion-icon>
     </ion-button>
+
+    <div class="spacer"></div>
   </div>
 
   @if (adjustOpen) {
@@ -174,21 +174,49 @@
     </div>
 
     <div class="sheet-body">
-      <ion-item lines="none" class="rot-item">
-  <ion-label>{{ "CROPPER.ROTATE" | translate }}</ion-label>
+      <div class="tools-bar adjustments-tools">
+        <div class="tools-group">
+          <div class="tools-buttons">
+            <ion-button
+              fill="clear"
+              class="tool-btn"
+              [class.tool-btn--active]="activeAdjustPanel === 'brightness'"
+              (click)="setAdjustPanel('brightness')"
+            >
+              <span>{{ "CROPPER.BRIGHTNESS" | translate }}</span>
+            </ion-button>
 
-  <ion-buttons slot="end" class="rot-actions">
-    <ion-button fill="clear" class="rot-btn" (click)="rotateLeft()">
-      <ion-icon slot="icon-only" name="return-up-back-outline"></ion-icon>
-    </ion-button>
+            <ion-button
+              fill="clear"
+              class="tool-btn"
+              [class.tool-btn--active]="activeAdjustPanel === 'saturation'"
+              (click)="setAdjustPanel('saturation')"
+            >
+              <span>{{ "CROPPER.SATURATION" | translate }}</span>
+            </ion-button>
 
-    <ion-button fill="clear" class="rot-btn" (click)="rotateRight()">
-      <ion-icon slot="icon-only" name="return-up-forward-outline"></ion-icon>
-    </ion-button>
-  </ion-buttons>
-</ion-item>
+            <ion-button
+              fill="clear"
+              class="tool-btn"
+              [class.tool-btn--active]="activeAdjustPanel === 'contrast'"
+              (click)="setAdjustPanel('contrast')"
+            >
+              <span>{{ "CROPPER.CONTRAST" | translate }}</span>
+            </ion-button>
 
+            <ion-button
+              fill="clear"
+              class="tool-btn"
+              [class.tool-btn--active]="activeAdjustPanel === 'bw'"
+              (click)="setAdjustPanel('bw')"
+            >
+              <span>{{ "CROPPER.BW" | translate }}</span>
+            </ion-button>
+          </div>
+        </div>
+      </div>
 
+      @if (activeAdjustPanel === 'brightness') {
       <ion-item lines="none">
         <ion-label>{{ "CROPPER.BRIGHTNESS" | translate }}</ion-label>
         <ion-range
@@ -199,7 +227,9 @@
           (ionInput)="onAdjustChanged()"
         ></ion-range>
       </ion-item>
+      }
 
+      @if (activeAdjustPanel === 'saturation') {
       <ion-item lines="none">
         <ion-label>{{ "CROPPER.SATURATION" | translate }}</ion-label>
         <ion-range
@@ -211,7 +241,9 @@
           [disabled]="bw"
         ></ion-range>
       </ion-item>
+      }
 
+      @if (activeAdjustPanel === 'contrast') {
       <ion-item lines="none">
         <ion-label>{{ "CROPPER.CONTRAST" | translate }}</ion-label>
         <ion-range
@@ -222,13 +254,12 @@
           (ionInput)="onAdjustChanged()"
         ></ion-range>
       </ion-item>
+      }
 
+      @if (activeAdjustPanel === 'bw') {
       <ion-item lines="none" class="toggles">
         <ion-label>{{ "CROPPER.BW" | translate }}</ion-label>
-        <ion-toggle
-          [(ngModel)]="bw"
-          (ionChange)="onAdjustChanged()"
-        ></ion-toggle>
+        <ion-toggle [(ngModel)]="bw" (ionChange)="onAdjustChanged()"></ion-toggle>
 
         <div class="row-spacer"></div>
 
@@ -241,6 +272,7 @@
           [disabled]="!bw"
         ></ion-toggle>
       </ion-item>
+      }
     </div>
   </div>
   }

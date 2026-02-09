@@ -58,6 +58,7 @@ import type {
 } from "../../types";
 
 type Pt = { x: number; y: number };
+type AdjustPanel = "brightness" | "saturation" | "contrast" | "bw";
 
 /**
  * Base Cropper Component (without i18n).
@@ -166,9 +167,10 @@ export class CoverCropperModalComponent
 
   private baseScale = 1;
 
-  adjustOpen = false;
   toolsMode = false;
+  adjustmentsMode = false;
   activeToolPanel: string | null = null;
+  activeAdjustPanel: AdjustPanel | null = null;
 
   // Kindle model selector state
   internalKindleSelectedGroupId?: string;
@@ -248,12 +250,15 @@ export class CoverCropperModalComponent
     }
   }
 
-  toggleAdjustments(): void {
-    this.adjustOpen = !this.adjustOpen;
-  }
-
-  closeAdjustments(): void {
-    this.adjustOpen = false;
+  toggleAdjustmentsMode(): void {
+    this.adjustmentsMode = !this.adjustmentsMode;
+    if (this.adjustmentsMode) {
+      this.toolsMode = false;
+      this.activeToolPanel = null;
+      this.activeAdjustPanel = this.activeAdjustPanel ?? "brightness";
+    } else {
+      this.activeAdjustPanel = null;
+    }
   }
 
   resetAdjustments(): void {
@@ -268,8 +273,8 @@ export class CoverCropperModalComponent
   toggleToolsMode(): void {
     this.toolsMode = !this.toolsMode;
     if (this.toolsMode) {
-      // Close adjustments panel when entering tools mode
-      this.adjustOpen = false;
+      this.adjustmentsMode = false;
+      this.activeAdjustPanel = null;
     } else {
       // Close all tool panels when leaving tools mode
       this.activeToolPanel = null;
@@ -284,14 +289,23 @@ export class CoverCropperModalComponent
     }
   }
 
+  toggleAdjustPanel(panel: AdjustPanel): void {
+    if (this.activeAdjustPanel === panel) {
+      this.activeAdjustPanel = null;
+    } else {
+      this.activeAdjustPanel = panel;
+    }
+  }
+
   ngOnInit(): void {
     this.refreshLabels();
     this.ready = false;
     this.didEmitReady = false;
     this.imageLoaded = false;
-    this.adjustOpen = false;
     this.toolsMode = false;
+    this.adjustmentsMode = false;
     this.activeToolPanel = null;
+    this.activeAdjustPanel = null;
     this.selectedFormatId =
       this.formatId ?? this.formatOptions?.[0]?.id ?? undefined;
 
