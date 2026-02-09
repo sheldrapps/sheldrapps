@@ -366,6 +366,21 @@ export class CreatePage implements OnInit, OnDestroy {
     const readyPromise = new Promise<void>((resolve) => (markReady = resolve));
 
     try {
+      // Reload the selected model from persisted settings to ensure it's up-to-date
+      const settings = await this.settings.load();
+      const modelId = settings.kindleModelId || 'paperwhite_2021';
+      this.selectedModel =
+        this.catalog.findModelById(this.groups, modelId) ??
+        this.groups?.[0]?.items?.[0];
+
+      // Update the group based on the reloaded model
+      if (this.selectedModel) {
+        const group = this.groups.find((g) =>
+          g.items.some((item) => item.id === this.selectedModel!.id),
+        );
+        this.selectedGroupId = group?.id;
+      }
+
       // Build label maps for groups and models
       const kindleGroupLabels = new Map<string, string>();
       const kindleModelLabels = new Map<string, string>();
@@ -410,6 +425,11 @@ export class CreatePage implements OnInit, OnDestroy {
             this.selectedGroupId = group?.id;
             // Persist the model change
             await this.settings.set({ kindleModelId: model.id });
+            // Clear generated files when model changes (same as onModelChange)
+            this.generatedEpubBytes = undefined;
+            this.generatedEpubFilename = undefined;
+            this.lastSavedFilename = undefined;
+            this.wasAutoSaved = false;
           },
         },
         cssClass: 'cropper-modal',

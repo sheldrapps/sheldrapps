@@ -105,7 +105,6 @@
 }
 
 
-/* Tools bar - horizontal scrollable */
 .tools-bar {
   display: flex;
   gap: 16px;
@@ -114,7 +113,6 @@
   padding: 4px 8px;
   scroll-snap-type: x proximity;
 
-  /* Hide scrollbar but keep functionality */
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
@@ -126,6 +124,15 @@
   flex-direction: column;
   gap: 6px;
   scroll-snap-align: start;
+
+  &--scrollable {
+    flex-direction: row;
+    flex: 1 1 auto;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    gap: 0;
+  }
 }
 
 .tools-label {
@@ -140,6 +147,19 @@
 .tools-buttons {
   display: flex;
   gap: 8px;
+
+  .tools-group--scrollable & {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    scrollbar-width: none;
+    width: max-content;
+    min-width: 100%;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 }
 
 .tool-btn {
@@ -151,6 +171,7 @@
   height: auto;
   min-width: 64px;
   margin: 0;
+  flex-shrink: 0;
 
   &:has(.tool-btn__icon) {
     min-width: 64px;
@@ -271,7 +292,6 @@
   padding: 4px 0;
 }
 
-/* Kindle model selectors */
 .kindle-selectors-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -303,10 +323,37 @@
   --color: var(--ion-text-color);
   font-weight: 550;
 
-  /* Focus state */
   &:focus-within {
     --background: rgba(var(--ion-color-primary-rgb), 0.08);
   }
+}
+
+.tabs-fade-left,
+.tabs-fade-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 24px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.tabs-fade-left {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    rgba(var(--ion-background-color-rgb), 1),
+    rgba(var(--ion-background-color-rgb), 0)
+  );
+}
+
+.tabs-fade-right {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    rgba(var(--ion-background-color-rgb), 1),
+    rgba(var(--ion-background-color-rgb), 0)
+  );
 }
 
 

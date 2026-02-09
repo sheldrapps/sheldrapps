@@ -1,14 +1,14 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>{{ title }}</ion-title>
+    <ion-title>{{ uiLabels.title }}</ion-title>
 
     <ion-buttons slot="end">
       <ion-button (click)="cancel()">
-        {{ cancelLabel }}
+        {{ uiLabels.cancelLabel }}
       </ion-button>
 
-      <ion-button [disabled]="!ready" (click)="use()">
-        {{ doneLabel }}
+      <ion-button [disabled]="!ready" (click)="done()">
+        {{ uiLabels.doneLabel }}
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -16,44 +16,61 @@
   <ion-toolbar class="top-toolbox">
     <div class="top-toolbox__row">
       <div class="top-toolbox__center">
-        <ion-button fill="clear" class="tool-btn">
+        <ion-button 
+          fill="clear" 
+          class="tool-btn"
+          [disabled]="!canUndo"
+          (click)="undo()">
           <div class="app-icon-text">
             <ion-icon
               class="app-icon-text__icon"
               name="return-up-back-outline"
             ></ion-icon>
-            <span class="app-icon-text__label">Deshacer</span>
+            <span class="app-icon-text__label">{{ uiLabels.undoLabel ?? 'Undo' }}</span>
           </div>
         </ion-button>
 
-        <ion-button fill="clear" class="tool-btn">
+        <ion-button 
+          fill="clear" 
+          class="tool-btn"
+          [disabled]="!canRedo"
+          (click)="redo()">
           <div class="app-icon-text">
             <ion-icon
               class="app-icon-text__icon"
               name="return-up-forward-outline"
             ></ion-icon>
-            <span class="app-icon-text__label">Rehacer</span>
+            <span class="app-icon-text__label">{{ uiLabels.redoLabel ?? 'Redo' }}</span>
           </div>
         </ion-button>
       </div>
 
       <div class="top-toolbox__right">
-        <ion-button fill="clear" class="tool-btn">
+        @if (showDiscardApply) {
+        <ion-button 
+          fill="clear" 
+          class="tool-btn"
+          (click)="discardBlockSession()">
           <div class="app-icon-text">
             <ion-icon class="app-icon-text__icon" name="close-outline"></ion-icon>
-            <span class="app-icon-text__label">Descartar</span>
+            <span class="app-icon-text__label">{{ uiLabels.discardLabel }}</span>
           </div>
         </ion-button>
 
-        <ion-button fill="clear" class="tool-btn">
+        <ion-button 
+          fill="clear" 
+          class="tool-btn"
+          [disabled]="!blockSessionDirty"
+          (click)="applyBlockSession()">
           <div class="app-icon-text">
             <ion-icon
               class="app-icon-text__icon"
               name="checkmark-outline"
             ></ion-icon>
-            <span class="app-icon-text__label">{{ doneLabel }}</span>
+            <span class="app-icon-text__label">{{ uiLabels.applyLabel }}</span>
           </div>
         </ion-button>
+        }
       </div>
     </div>
   </ion-toolbar>
@@ -67,7 +84,7 @@
         class="frame"
         [style.--crop-ratio]="aspectRatio"
         (dblclick)="reset()"
-        [attr.aria-label]="'CROPPER.FRAME_ARIA' | translate"
+        [attr.aria-label]="uiLabels.frameAriaLabel"
       >
         @if (imageUrl) {
         <img
@@ -87,7 +104,7 @@
           <div class="frame-loader__card">
             <ion-spinner name="crescent"></ion-spinner>
             <div class="frame-loader__text">
-              {{ "COMMON.LOADING" | translate }}
+              {{ uiLabels.loadingLabel }}
             </div>
           </div>
         </div>
@@ -97,7 +114,7 @@
 
     @if (ready) {
     <div class="hint">
-      {{ "CROPPER.HINT" | translate }}
+      {{ uiLabels.hintLabel }}
     </div>
     }
   </div>
@@ -105,14 +122,14 @@
   <div
     class="bottom-bar"
     role="toolbar"
-    [attr.aria-label]="'CROPPER.CONTROLS_ARIA' | translate"
+    [attr.aria-label]="uiLabels.controlsAriaLabel"
   >
     <ion-button
       fill="clear"
       class="ctrl"
       (click)="zoomOut()"
       [disabled]="scale <= minScale"
-      [attr.aria-label]="'CROPPER.ZOOM_OUT_ARIA' | translate"
+      [attr.aria-label]="uiLabels.zoomOutAriaLabel"
     >
       <ion-icon name="remove-outline"></ion-icon>
     </ion-button>
@@ -121,7 +138,7 @@
       fill="clear"
       class="ctrl"
       (click)="reset()"
-      [attr.aria-label]="'CROPPER.RESET_ARIA' | translate"
+      [attr.aria-label]="uiLabels.resetAriaLabel"
     >
       <ion-icon name="refresh-outline"></ion-icon>
     </ion-button>
@@ -131,7 +148,7 @@
       class="ctrl"
       (click)="zoomIn()"
       [disabled]="scale >= maxScale"
-      [attr.aria-label]="'CROPPER.ZOOM_IN_ARIA' | translate"
+      [attr.aria-label]="uiLabels.zoomInAriaLabel"
     >
       <ion-icon name="add-outline"></ion-icon>
     </ion-button>
@@ -141,7 +158,7 @@
       (click)="toggleAdjustments()"
       [disabled]="!ready"
     >
-      {{ "CROPPER.ADJUSTMENTS" | translate }}
+      {{ uiLabels.adjustmentsLabel }}
       <ion-icon
         class="adjust-btn__icon"
         [name]="adjustOpen ? 'close-outline' : 'chevron-up-outline'"
@@ -155,17 +172,17 @@
   <div
     class="sheet"
     role="dialog"
-    [attr.aria-label]="'CROPPER.ADJUSTMENTS_ARIA' | translate"
+    [attr.aria-label]="uiLabels.adjustmentsAriaLabel"
   >
     <div class="sheet-head">
-      <ion-button fill="clear" class="sheet-reset" (click)="resetAdjustments()" [attr.aria-label]="'CROPPER.RESET_ADJUSTMENTS_ARIA' | translate">
+      <ion-button fill="clear" class="sheet-reset" (click)="resetAdjustments()" [attr.aria-label]="uiLabels.resetAdjustmentsAriaLabel">
         <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
       </ion-button>
 
       <div class="sheet-grabber" aria-hidden="true"></div>
 
       <div class="sheet-title">
-        {{ "CROPPER.ADJUSTMENTS" | translate }}
+        {{ uiLabels.adjustmentsLabel }}
       </div>
 
       <ion-button fill="clear" class="sheet-close" (click)="closeAdjustments()">
@@ -175,15 +192,15 @@
 
     <div class="sheet-body">
       <div class="tools-bar adjustments-tools">
-        <div class="tools-group">
-          <div class="tools-buttons">
+        <div class="tools-group tools-group--scrollable">
+          <div class="tools-buttons" #adjustTabsContainer>
             <ion-button
               fill="clear"
               class="tool-btn"
               [class.tool-btn--active]="activeAdjustPanel === 'brightness'"
               (click)="setAdjustPanel('brightness')"
             >
-              <span>{{ "CROPPER.BRIGHTNESS" | translate }}</span>
+              <span>{{ uiLabels.brightnessLabel }}</span>
             </ion-button>
 
             <ion-button
@@ -192,7 +209,7 @@
               [class.tool-btn--active]="activeAdjustPanel === 'saturation'"
               (click)="setAdjustPanel('saturation')"
             >
-              <span>{{ "CROPPER.SATURATION" | translate }}</span>
+              <span>{{ uiLabels.saturationLabel }}</span>
             </ion-button>
 
             <ion-button
@@ -201,7 +218,7 @@
               [class.tool-btn--active]="activeAdjustPanel === 'contrast'"
               (click)="setAdjustPanel('contrast')"
             >
-              <span>{{ "CROPPER.CONTRAST" | translate }}</span>
+              <span>{{ uiLabels.contrastLabel }}</span>
             </ion-button>
 
             <ion-button
@@ -210,34 +227,46 @@
               [class.tool-btn--active]="activeAdjustPanel === 'bw'"
               (click)="setAdjustPanel('bw')"
             >
-              <span>{{ "CROPPER.BW" | translate }}</span>
+              <span>{{ uiLabels.bwLabel }}</span>
             </ion-button>
           </div>
+
+          @if (showFadeLeft) {
+          <div class="tabs-fade-left"></div>
+          }
+
+          @if (showFadeRight) {
+          <div class="tabs-fade-right"></div>
+          }
         </div>
       </div>
 
       @if (activeAdjustPanel === 'brightness') {
       <ion-item lines="none">
-        <ion-label>{{ "CROPPER.BRIGHTNESS" | translate }}</ion-label>
+        <ion-label>{{ uiLabels.brightnessLabel }}</ion-label>
         <ion-range
           [min]="0.5"
           [max]="1.5"
           [step]="0.01"
           [(ngModel)]="brightness"
+          (ionStart)="onSliderStart()"
           (ionInput)="onAdjustChanged()"
+          (ionSliderDidChange)="onSliderEnd()"
         ></ion-range>
       </ion-item>
       }
 
       @if (activeAdjustPanel === 'saturation') {
       <ion-item lines="none">
-        <ion-label>{{ "CROPPER.SATURATION" | translate }}</ion-label>
+        <ion-label>{{ uiLabels.saturationLabel }}</ion-label>
         <ion-range
           [min]="0"
           [max]="2"
           [step]="0.01"
           [(ngModel)]="saturation"
+          (ionStart)="onSliderStart()"
           (ionInput)="onAdjustChanged()"
+          (ionSliderDidChange)="onSliderEnd()"
           [disabled]="bw"
         ></ion-range>
       </ion-item>
@@ -245,26 +274,28 @@
 
       @if (activeAdjustPanel === 'contrast') {
       <ion-item lines="none">
-        <ion-label>{{ "CROPPER.CONTRAST" | translate }}</ion-label>
+        <ion-label>{{ uiLabels.contrastLabel }}</ion-label>
         <ion-range
           [min]="0.5"
           [max]="1.8"
           [step]="0.01"
           [(ngModel)]="contrast"
+          (ionStart)="onSliderStart()"
           (ionInput)="onAdjustChanged()"
+          (ionSliderDidChange)="onSliderEnd()"
         ></ion-range>
       </ion-item>
       }
 
       @if (activeAdjustPanel === 'bw') {
       <ion-item lines="none" class="toggles">
-        <ion-label>{{ "CROPPER.BW" | translate }}</ion-label>
+        <ion-label>{{ uiLabels.bwLabel }}</ion-label>
         <ion-toggle [(ngModel)]="bw" (ionChange)="onAdjustChanged()"></ion-toggle>
 
         <div class="row-spacer"></div>
 
         <ion-label class="dither-label" [class.disabled]="!bw">
-          {{ "CROPPER.DITHER" | translate }}
+          {{ uiLabels.ditherLabel }}
         </ion-label>
         <ion-toggle
           [(ngModel)]="dither"

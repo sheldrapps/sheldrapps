@@ -11,6 +11,7 @@ import {
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { Subscription } from "rxjs";
 import {
   IonHeader,
   IonToolbar,
@@ -24,16 +25,14 @@ import {
   IonItem,
   IonLabel,
   IonSpinner,
-  IonSegment,
-  IonSegmentButton,
   IonSelect,
   IonSelectOption,
 } from "@ionic/angular/standalone";
-import { ModalController } from "@ionic/angular/standalone";
-import type {
-  SegmentCustomEvent,
-  SegmentChangeEventDetail,
-} from "@ionic/angular";
+import {
+  ModalController,
+  AlertController,
+  Platform,
+} from "@ionic/angular/standalone";
 
 import { addIcons } from "ionicons";
 import {
@@ -60,10 +59,17 @@ import type {
 type Pt = { x: number; y: number };
 type AdjustPanel = "brightness" | "saturation" | "contrast" | "bw";
 
-/**
- * Base Cropper Component (without i18n).
- * For use with ngx-translate, wrap this component or use it within a module that provides TranslateModule.
- */
+interface HistoryEntry {
+  before: CoverCropState;
+  after: CoverCropState;
+}
+
+interface BlockSession {
+  baseSnapshot: CoverCropState;
+  draftState: CoverCropState;
+  commitSnapshot: CoverCropState;
+}
+
 @Component({
   selector: "app-cover-cropper-modal",
   standalone: true,
@@ -82,8 +88,6 @@ type AdjustPanel = "brightness" | "saturation" | "contrast" | "bw";
     IonRange,
     IonToggle,
     IonSpinner,
-    IonSegment,
-    IonSegmentButton,
     IonSelect,
     IonSelectOption,
   ],
@@ -108,18 +112,18 @@ export class CoverCropperModalComponent
   @Input() showHint = true;
   @Input() showGrid = true;
 
-  // Kindle model selector support (optional)
-  @Input() kindleGroups?: any[]; // KindleGroup[], using any to avoid circular dependency
-  @Input() kindleGroupLabels?: Map<string, string>; // i18nKey -> label mappings for groups
-  @Input() kindleModelLabels?: Map<string, string>; // i18nKey -> label mappings for models
+  @Input() kindleGroups?: any[];
+  @Input() kindleGroupLabels?: Map<string, string>;
+  @Input() kindleModelLabels?: Map<string, string>;
   @Input() kindleSelectedGroupId?: string;
-  @Input() kindleSelectedModel?: any; // KindleModel, using any to avoid circular dependency
-  @Input() onKindleModelChange?: (model: any) => void; // Callback when model changes
+  @Input() kindleSelectedModel?: any;
+  @Input() onKindleModelChange?: (model: any) => void;
 
-  // i18n Labels - default to English
   @Input() title?: string;
   @Input() cancelLabel?: string;
   @Input() doneLabel?: string;
+  @Input() applyLabel?: string;
+  @Input() discardLabel?: string;
   @Input() loadingLabel?: string;
   @Input() hintLabel?: string;
   @Input() adjustmentsLabel?: string;
@@ -133,7 +137,6 @@ export class CoverCropperModalComponent
   @Input() bwLabel?: string;
   @Input() ditherLabel?: string;
 
-  // Aria labels
   @Input() frameAriaLabel?: string;
   @Input() controlsAriaLabel?: string;
   @Input() resetAriaLabel?: string;
@@ -143,6 +146,10 @@ export class CoverCropperModalComponent
 
   @ViewChild("frame", { read: ElementRef }) frameRef!: ElementRef<HTMLElement>;
   @ViewChild("img", { read: ElementRef }) imgRef!: ElementRef<HTMLImageElement>;
+  @ViewChild("adjustTabsContainer", { read: ElementRef })
+  adjustTabsContainerRef?: ElementRef<HTMLElement>;
+  @ViewChild("cropTabsContainer", { read: ElementRef })
+  cropTabsContainerRef?: ElementRef<HTMLElement>;
 
   readonly minScale = 1;
   readonly maxScale = 6;
@@ -172,7 +179,50 @@ export class CoverCropperModalComponent
   activeToolPanel: string | null = null;
   activeAdjustPanel: AdjustPanel | null = null;
 
-  // Kindle model selector state
+  showFadeRight = false;
+  showFadeLeft = false;
+  private didNudgeTabsScroll = false;
+  private scrollHintSubscriptions: Subscription[] = [];
+
+  showCropFadeRight = false;
+  showCropFadeLeft = false;
+  private didNudgeCropTabsScroll = false;
+  private cropScrollHintSubscriptions: Subscription[] = [];
+
+  private globalUndoStack: HistoryEntry[] = [];
+  private globalRedoStack: HistoryEntry[] = [];
+  private gestureStartSnapshot: CoverCropState | null = null;
+  private sliderStartSnapshot: CoverCropState | null = null;
+
+  private originalOpenState: CoverCropState | null = null;
+
+  private blockSession: BlockSession | null = null;
+
+  get canUndo(): boolean {
+    return this.globalUndoStack.length > 0;
+  }
+
+  get canRedo(): boolean {
+    return this.globalRedoStack.length > 0;
+  }
+
+  get blockSessionDirty(): boolean {
+    if (!this.blockSession) return false;
+    return !this.isEqualEditorState(
+      this.blockSession.baseSnapshot,
+      this.blockSession.draftState,
+    );
+  }
+
+  get showDiscardApply(): boolean {
+    return this.blockSession !== null;
+  }
+
+  get hasUnsavedMainChanges(): boolean {
+    if (!this.originalOpenState) return false;
+    return !this.isEqualEditorState(this.originalOpenState, this.getState());
+  }
+
   internalKindleSelectedGroupId?: string;
   internalKindleSelectedModel?: any;
 
@@ -188,6 +238,7 @@ export class CoverCropperModalComponent
 
   private resizeObs?: ResizeObserver;
   private cleanup?: () => void;
+  private backButtonSub?: Subscription;
 
   private sourceBitmap?: ImageBitmap;
   private sourceBitmapPromise?: Promise<ImageBitmap>;
@@ -197,7 +248,11 @@ export class CoverCropperModalComponent
   selectedFormatId?: string;
   uiLabels: CropperLabels = DEFAULT_LABELS["en"];
 
-  constructor(private modalCtrl: ModalController) {
+  constructor(
+    private modalCtrl: ModalController,
+    private alertCtrl: AlertController,
+    private platform: Platform,
+  ) {
     addIcons({
       removeOutline,
       refreshOutline,
@@ -230,8 +285,6 @@ export class CoverCropperModalComponent
   }
 
   onKindleGroupChange(): void {
-    // When group changes, reset the model selection
-    // and select the first model in the new group
     if (this.internalKindleSelectedGroupId) {
       const group = this.kindleGroups?.find(
         (g) => g.id === this.internalKindleSelectedGroupId,
@@ -244,20 +297,40 @@ export class CoverCropperModalComponent
   }
 
   onKindleModelChangeInternal(): void {
-    // Update stored model and emit callback
     if (this.internalKindleSelectedModel && this.onKindleModelChange) {
       this.onKindleModelChange(this.internalKindleSelectedModel);
+      this.scale = 1;
+      this.tx = 0;
+      this.ty = 0;
+      this.tryReady();
     }
   }
 
+  onFormatOptionClick(formatId: string): void {
+    if (formatId === this.selectedFormatId) return;
+    this.selectedFormatId = formatId;
+    this.scale = 1;
+    this.tx = 0;
+    this.ty = 0;
+    this.tryReady();
+  }
+
   toggleAdjustmentsMode(): void {
-    this.adjustmentsMode = !this.adjustmentsMode;
     if (this.adjustmentsMode) {
+      this.adjustmentsMode = false;
+      this.activeAdjustPanel = null;
+      this.blockSession = null;
+    } else {
       this.toolsMode = false;
       this.activeToolPanel = null;
+      this.adjustmentsMode = true;
+      this.openBlockSession();
       this.activeAdjustPanel = this.activeAdjustPanel ?? "brightness";
-    } else {
-      this.activeAdjustPanel = null;
+
+      setTimeout(() => {
+        this.recalculateTabsOverflow();
+        this.nudgeTabsScroll();
+      }, 100);
     }
   }
 
@@ -271,13 +344,24 @@ export class CoverCropperModalComponent
   }
 
   toggleToolsMode(): void {
-    this.toolsMode = !this.toolsMode;
     if (this.toolsMode) {
+      this.toolsMode = false;
+      this.activeToolPanel = null;
+      this.blockSession = null;
+    } else {
       this.adjustmentsMode = false;
       this.activeAdjustPanel = null;
-    } else {
-      // Close all tool panels when leaving tools mode
-      this.activeToolPanel = null;
+      this.toolsMode = true;
+      this.openBlockSession();
+      if (this.formatOptions && this.formatOptions.length > 0) {
+        this.activeToolPanel = this.activeToolPanel ?? "crop";
+        setTimeout(() => {
+          this.recalculateCropTabsOverflow();
+          this.nudgeCropTabsScroll();
+        }, 100);
+      } else {
+        this.activeToolPanel = this.activeToolPanel ?? "model";
+      }
     }
   }
 
@@ -286,6 +370,12 @@ export class CoverCropperModalComponent
       this.activeToolPanel = null;
     } else {
       this.activeToolPanel = panelName;
+      if (panelName === "crop") {
+        setTimeout(() => {
+          this.recalculateCropTabsOverflow();
+          this.nudgeCropTabsScroll();
+        }, 100);
+      }
     }
   }
 
@@ -295,6 +385,156 @@ export class CoverCropperModalComponent
     } else {
       this.activeAdjustPanel = panel;
     }
+  }
+
+  private recalculateTabsOverflow(): void {
+    if (!this.adjustTabsContainerRef) return;
+
+    const container = this.adjustTabsContainerRef.nativeElement;
+    const hasOverflow = container.scrollWidth > container.clientWidth;
+
+    if (!hasOverflow) {
+      this.showFadeRight = false;
+      this.showFadeLeft = false;
+      return;
+    }
+
+    const atStart = container.scrollLeft <= 0;
+    const atEnd =
+      Math.ceil(container.scrollLeft + container.clientWidth) >=
+      container.scrollWidth - 1;
+
+    this.showFadeRight = !atEnd;
+    this.showFadeLeft = !atStart;
+  }
+
+  private onTabsScroll(): void {
+    this.recalculateTabsOverflow();
+  }
+
+  private nudgeTabsScroll(): void {
+    if (this.didNudgeTabsScroll || !this.adjustTabsContainerRef) return;
+
+    const container = this.adjustTabsContainerRef.nativeElement;
+    if (container.scrollWidth <= container.clientWidth) {
+      return;
+    }
+
+    this.didNudgeTabsScroll = true;
+
+    const nudgeDistance = 14;
+    const duration = 600;
+
+    const startTime = performance.now();
+    const startScroll = container.scrollLeft;
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      container.scrollLeft = startScroll + nudgeDistance * easeProgress;
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        const returnStartTime = performance.now();
+        const returnAnimate = (returnCurrentTime: number) => {
+          const returnElapsed = returnCurrentTime - returnStartTime;
+          const returnProgress = Math.min(returnElapsed / duration, 1);
+          const returnEaseProgress = 1 - Math.pow(1 - returnProgress, 3);
+
+          container.scrollLeft =
+            startScroll + nudgeDistance * (1 - returnEaseProgress);
+
+          if (returnProgress < 1) {
+            requestAnimationFrame(returnAnimate);
+          } else {
+            container.scrollLeft = startScroll;
+            this.recalculateTabsOverflow();
+          }
+        };
+
+        requestAnimationFrame(returnAnimate);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }
+
+  private recalculateCropTabsOverflow(): void {
+    if (!this.cropTabsContainerRef) return;
+
+    const container = this.cropTabsContainerRef.nativeElement;
+    const hasOverflow = container.scrollWidth > container.clientWidth;
+
+    if (!hasOverflow) {
+      this.showCropFadeRight = false;
+      this.showCropFadeLeft = false;
+      return;
+    }
+
+    const atStart = container.scrollLeft <= 0;
+    const atEnd =
+      Math.ceil(container.scrollLeft + container.clientWidth) >=
+      container.scrollWidth - 1;
+
+    this.showCropFadeRight = !atEnd;
+    this.showCropFadeLeft = !atStart;
+  }
+
+  private onCropTabsScroll(): void {
+    this.recalculateCropTabsOverflow();
+  }
+
+  private nudgeCropTabsScroll(): void {
+    if (this.didNudgeCropTabsScroll || !this.cropTabsContainerRef) return;
+
+    const container = this.cropTabsContainerRef.nativeElement;
+    if (container.scrollWidth <= container.clientWidth) {
+      return;
+    }
+
+    this.didNudgeCropTabsScroll = true;
+
+    const nudgeDistance = 14;
+    const duration = 600;
+
+    const startTime = performance.now();
+    const startScroll = container.scrollLeft;
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      container.scrollLeft = startScroll + nudgeDistance * easeProgress;
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        const returnStartTime = performance.now();
+        const returnAnimate = (returnCurrentTime: number) => {
+          const returnElapsed = returnCurrentTime - returnStartTime;
+          const returnProgress = Math.min(returnElapsed / duration, 1);
+          const returnEaseProgress = 1 - Math.pow(1 - returnProgress, 3);
+
+          container.scrollLeft =
+            startScroll + nudgeDistance * (1 - returnEaseProgress);
+
+          if (returnProgress < 1) {
+            requestAnimationFrame(returnAnimate);
+          } else {
+            container.scrollLeft = startScroll;
+            this.recalculateCropTabsOverflow();
+          }
+        };
+
+        requestAnimationFrame(returnAnimate);
+      }
+    };
+
+    requestAnimationFrame(animate);
   }
 
   ngOnInit(): void {
@@ -309,7 +549,6 @@ export class CoverCropperModalComponent
     this.selectedFormatId =
       this.formatId ?? this.formatOptions?.[0]?.id ?? undefined;
 
-    // Initialize Kindle model selector state
     this.internalKindleSelectedGroupId = this.kindleSelectedGroupId;
     this.internalKindleSelectedModel = this.kindleSelectedModel;
 
@@ -363,13 +602,46 @@ export class CoverCropperModalComponent
       this.dither = !!this.initialState.dither;
       if (!this.bw) this.dither = false;
 
-      this.rot = ((Number(this.initialState.rot ?? 0) % 360) + 360) % 360;
-      if (this.rot % 90 !== 0) this.rot = 0;
+      this.rot = this.normalizeRotation(Number(this.initialState.rot ?? 0));
     }
+
+    this.backButtonSub = this.platform.backButton.subscribeWithPriority(
+      999,
+      async () => {
+        if (this.blockSession) {
+          const canExit = await this.attemptExitBlock();
+          if (canExit) {
+            await this.attemptModalDismiss();
+          }
+        } else {
+          const canDismiss = await this.attemptModalDismiss();
+          if (canDismiss) {
+            this.modalCtrl.dismiss(null, "cancel");
+          }
+        }
+      },
+    );
+
+    this.originalOpenState = this.captureSnapshot();
   }
 
   ngOnChanges(_changes: SimpleChanges): void {
     this.refreshLabels();
+
+    // If kindleSelectedModel changes from parent, update internal state and reset view
+    if (
+      _changes["kindleSelectedModel"] &&
+      !_changes["kindleSelectedModel"].firstChange
+    ) {
+      this.internalKindleSelectedModel = this.kindleSelectedModel;
+      // Reset zoom and position when model changes
+      if (this.kindleSelectedModel && this.ready) {
+        this.scale = 1;
+        this.tx = 0;
+        this.ty = 0;
+        this.tryReady();
+      }
+    }
   }
 
   ngAfterViewInit(): void {
@@ -401,6 +673,7 @@ export class CoverCropperModalComponent
       capture(e.pointerId);
 
       if (this.pointers.size === 1) {
+        this.onGestureStart();
         this.gestureStart = {
           type: "pan",
           startScale: this.scale,
@@ -414,6 +687,7 @@ export class CoverCropperModalComponent
       }
 
       if (this.pointers.size >= 2) {
+        if (!this.gestureStart) this.onGestureStart();
         for (const id of this.pointers.keys()) capture(id);
 
         const [a, b] = Array.from(this.pointers.values());
@@ -502,6 +776,7 @@ export class CoverCropperModalComponent
           startMid: midpoint(a, b),
         };
       } else {
+        this.onGestureEnd();
         this.gestureStart = undefined;
       }
 
@@ -520,6 +795,42 @@ export class CoverCropperModalComponent
       frame.removeEventListener("pointerup", onPointerUp as any);
       frame.removeEventListener("pointercancel", onPointerUp as any);
     };
+
+    if (this.adjustTabsContainerRef) {
+      const tabsScroll = () => this.onTabsScroll();
+      const tabsResize = () => this.recalculateTabsOverflow();
+
+      const tabsContainer = this.adjustTabsContainerRef.nativeElement;
+      tabsContainer.addEventListener("scroll", tabsScroll, { passive: true });
+      window.addEventListener("resize", tabsResize, { passive: true });
+
+      const tabsCleanup = () => {
+        tabsContainer.removeEventListener("scroll", tabsScroll as any);
+        window.removeEventListener("resize", tabsResize as any);
+      };
+
+      this.scrollHintSubscriptions.push({
+        unsubscribe: tabsCleanup,
+      } as any);
+    }
+
+    if (this.cropTabsContainerRef) {
+      const cropScroll = () => this.onCropTabsScroll();
+      const cropResize = () => this.recalculateCropTabsOverflow();
+
+      const cropContainer = this.cropTabsContainerRef.nativeElement;
+      cropContainer.addEventListener("scroll", cropScroll, { passive: true });
+      window.addEventListener("resize", cropResize, { passive: true });
+
+      const cropCleanup = () => {
+        cropContainer.removeEventListener("scroll", cropScroll as any);
+        window.removeEventListener("resize", cropResize as any);
+      };
+
+      this.cropScrollHintSubscriptions.push({
+        unsubscribe: cropCleanup,
+      } as any);
+    }
 
     this.tryReady();
   }
@@ -547,22 +858,52 @@ export class CoverCropperModalComponent
 
   ngOnDestroy(): void {
     this.cleanup?.();
+    this.backButtonSub?.unsubscribe();
+    this.scrollHintSubscriptions.forEach((sub) => sub.unsubscribe?.());
+    this.cropScrollHintSubscriptions.forEach((sub) => sub.unsubscribe?.());
     this.resizeObs?.disconnect();
     this.sourceBitmap?.close?.();
     if (this.imageUrl) URL.revokeObjectURL(this.imageUrl);
   }
 
   zoomIn(): void {
+    const before = this.captureSnapshot();
     this.setScale(this.scale + this.step);
+    const after = this.getState();
+
+    if (this.blockSession) {
+      this.blockSession.draftState = after;
+    } else {
+      if (!this.isEqualEditorState(before, after)) {
+        this.globalUndoStack.push({ before, after });
+        this.globalRedoStack = [];
+      }
+    }
   }
 
   zoomOut(): void {
+    const before = this.captureSnapshot();
     this.setScale(this.scale - this.step);
+    const after = this.getState();
+
+    if (this.blockSession) {
+      this.blockSession.draftState = after;
+    } else {
+      if (!this.isEqualEditorState(before, after)) {
+        this.globalUndoStack.push({ before, after });
+        this.globalRedoStack = [];
+      }
+    }
   }
 
   onAdjustChanged(): void {
     if (!this.ready) return;
     if (!this.bw) this.dither = false;
+
+    if (this.blockSession) {
+      this.blockSession.draftState = this.getState();
+    }
+
     this.renderTransform();
   }
 
@@ -579,6 +920,255 @@ export class CoverCropperModalComponent
     this.rot = 0;
 
     this.clampAndRender();
+  }
+
+  private setState(state: CoverCropState): void {
+    this.scale = state.scale;
+    this.tx = state.tx;
+    this.ty = state.ty;
+    this.brightness = state.brightness;
+    this.saturation = state.saturation;
+    this.contrast = state.contrast;
+    this.bw = state.bw;
+    this.dither = state.dither;
+    this.rot = this.normalizeRotation(state.rot);
+    this.clampAndRender();
+  }
+
+  private normalizeRotation(degrees: number): number {
+    const normalized = degrees % 360;
+    const positive = normalized < 0 ? normalized + 360 : normalized;
+    return (Math.round(positive / 90) * 90) % 360;
+  }
+
+  private captureSnapshot(): CoverCropState {
+    return { ...this.getState() };
+  }
+
+  private isEqualEditorState(
+    s1: CoverCropState,
+    s2: CoverCropState,
+    tolerance = 0.001,
+  ): boolean {
+    const floatEqual = (a: number, b: number) => Math.abs(a - b) < tolerance;
+
+    return (
+      floatEqual(s1.scale, s2.scale) &&
+      floatEqual(s1.tx, s2.tx) &&
+      floatEqual(s1.ty, s2.ty) &&
+      floatEqual(s1.brightness, s2.brightness) &&
+      floatEqual(s1.saturation, s2.saturation) &&
+      floatEqual(s1.contrast, s2.contrast) &&
+      s1.bw === s2.bw &&
+      s1.dither === s2.dither &&
+      s1.rot === s2.rot
+    );
+  }
+
+  private statesEqual(s1: CoverCropState, s2: CoverCropState): boolean {
+    return this.isEqualEditorState(s1, s2);
+  }
+
+  private markDirtyIfNeeded(): void {}
+
+  openBlockSession(): void {
+    if (this.blockSession) return;
+    const snapshot = this.captureSnapshot();
+    this.blockSession = {
+      baseSnapshot: snapshot,
+      draftState: { ...snapshot },
+      commitSnapshot: snapshot,
+    };
+  }
+
+  closeBlockSession(apply: boolean): void {
+    if (!this.blockSession) return;
+
+    if (apply && this.blockSessionDirty) {
+      const finalState = this.getState();
+      if (
+        !this.isEqualEditorState(this.blockSession.commitSnapshot, finalState)
+      ) {
+        const entry: HistoryEntry = {
+          before: this.blockSession.commitSnapshot,
+          after: finalState,
+        };
+        this.globalUndoStack.push(entry);
+        this.globalRedoStack = [];
+      }
+    }
+
+    if (!apply) {
+      this.setState(this.blockSession.baseSnapshot);
+    }
+
+    this.blockSession = null;
+    this.toolsMode = false;
+    this.adjustmentsMode = false;
+    this.activeToolPanel = null;
+    this.activeAdjustPanel = null;
+  }
+
+  onGestureStart(): void {
+    this.gestureStartSnapshot = this.captureSnapshot();
+  }
+
+  onGestureEnd(): void {
+    if (!this.gestureStartSnapshot) return;
+
+    const currentState = this.getState();
+
+    if (this.blockSession) {
+      this.blockSession.draftState = currentState;
+    } else {
+      if (!this.isEqualEditorState(this.gestureStartSnapshot, currentState)) {
+        const entry: HistoryEntry = {
+          before: this.gestureStartSnapshot,
+          after: currentState,
+        };
+        this.globalUndoStack.push(entry);
+        this.globalRedoStack = [];
+      }
+    }
+
+    this.gestureStartSnapshot = null;
+  }
+
+  onSliderStart(): void {
+    this.sliderStartSnapshot = this.captureSnapshot();
+  }
+
+  onSliderEnd(): void {
+    if (!this.sliderStartSnapshot) return;
+
+    if (this.blockSession) {
+      this.blockSession.draftState = this.getState();
+    } else {
+      const currentState = this.getState();
+      if (!this.isEqualEditorState(this.sliderStartSnapshot, currentState)) {
+        const entry: HistoryEntry = {
+          before: this.sliderStartSnapshot,
+          after: currentState,
+        };
+        this.globalUndoStack.push(entry);
+        this.globalRedoStack = [];
+      }
+    }
+
+    this.sliderStartSnapshot = null;
+  }
+
+  async undo(): Promise<void> {
+    if (this.blockSession && this.blockSessionDirty) {
+      const confirmed = await this.showConfirmation(
+        "Tienes cambios sin aplicar en este bloque. ¿Descartar para continuar con deshacer global?",
+      );
+      if (!confirmed) return;
+      this.closeBlockSession(false);
+    }
+
+    if (this.globalUndoStack.length === 0) return;
+
+    const entry = this.globalUndoStack.pop()!;
+    this.globalRedoStack.push(entry);
+    this.setState(entry.before);
+  }
+
+  async redo(): Promise<void> {
+    if (this.blockSession && this.blockSessionDirty) {
+      const confirmed = await this.showConfirmation(
+        "Tienes cambios sin aplicar en este bloque. ¿Descartar para continuar con rehacer global?",
+      );
+      if (!confirmed) return;
+      this.closeBlockSession(false);
+    }
+
+    if (this.globalRedoStack.length === 0) return;
+
+    const entry = this.globalRedoStack.pop()!;
+    this.globalUndoStack.push(entry);
+    this.setState(entry.after);
+  }
+
+  async attemptExitBlock(): Promise<boolean> {
+    if (!this.blockSession) return true;
+
+    if (this.blockSessionDirty) {
+      const confirmed = await this.showConfirmation(
+        "¿Descartar cambios en este bloque?",
+        "Descartar",
+        "Cancelar",
+      );
+      if (!confirmed) return false;
+    }
+
+    this.closeBlockSession(false);
+    return false;
+  }
+
+  async attemptModalDismiss(): Promise<boolean> {
+    if (this.blockSession) {
+      return await this.attemptExitBlock();
+    }
+
+    if (this.hasUnsavedMainChanges) {
+      const confirmed = await this.showConfirmation(
+        "Tienes cambios sin guardar. ¿Descartar cambios y cerrar?",
+        "Descartar",
+        "Cancelar",
+      );
+      if (!confirmed) return false;
+
+      if (this.originalOpenState) {
+        this.setState(this.originalOpenState);
+      }
+      this.globalUndoStack = [];
+      this.globalRedoStack = [];
+    }
+
+    return true;
+  }
+
+  async canDismissModal(): Promise<boolean> {
+    return await this.attemptModalDismiss();
+  }
+
+  async discardBlockSession(): Promise<void> {
+    await this.attemptExitBlock();
+  }
+
+  async applyBlockSession(): Promise<void> {
+    if (!this.blockSession) return;
+    this.closeBlockSession(true);
+  }
+
+  private async showConfirmation(
+    message: string,
+    confirmText = "Continuar",
+    cancelText = "Cancelar",
+  ): Promise<boolean> {
+    const alert = await this.alertCtrl.create({
+      header: "Confirmación",
+      message: message,
+      buttons: [
+        {
+          text: cancelText,
+          role: "cancel",
+          handler: () => false,
+        },
+        {
+          text: confirmText,
+          role: "confirm",
+          handler: () => true,
+        },
+      ],
+    });
+
+    let result = false;
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role === "confirm") result = true;
+    return result;
   }
 
   private emitReadyOnce(): void {
@@ -668,32 +1258,51 @@ export class CoverCropperModalComponent
       contrast: this.contrast,
       bw: this.bw,
       dither: this.dither,
-      rot: this.rot,
+      rot: this.normalizeRotation(this.rot),
     };
   }
 
-  onFormatChange(ev: SegmentCustomEvent) {
-    const nextValue = (ev?.detail as SegmentChangeEventDetail | undefined)
-      ?.value;
-    const next =
-      typeof nextValue === "string"
-        ? nextValue
-        : nextValue != null
-          ? String(nextValue)
-          : undefined;
-    if (!next || next === this.selectedFormatId) return;
-    this.selectedFormatId = next;
-    this.scale = 1;
-    this.tx = 0;
-    this.ty = 0;
-    this.tryReady();
+  async cancel(): Promise<void> {
+    if (this.blockSession) {
+      await this.attemptExitBlock();
+      return;
+    }
+
+    const canDismiss = await this.attemptModalDismiss();
+    if (canDismiss) {
+      this.modalCtrl.dismiss(null, "cancel");
+    }
   }
 
-  cancel(): void {
-    this.modalCtrl.dismiss(null, "cancel");
+  async done(): Promise<void> {
+    if (this.blockSession) {
+      if (this.blockSessionDirty) {
+        const confirmed = await this.showConfirmation(
+          "Tienes cambios sin aplicar. Para incluirlos, presiona 'Aplicar'. ¿Descartar y continuar?",
+          "Descartar",
+          "Cancelar",
+        );
+        if (!confirmed) return;
+      }
+      this.closeBlockSession(false);
+    }
+
+    await this.use();
   }
 
   async use(): Promise<void> {
+    if (this.blockSession) {
+      if (this.blockSessionDirty) {
+        const confirmed = await this.showConfirmation(
+          "Tienes cambios sin aplicar. Para incluirlos en la imagen, presiona 'Aplicar'. ¿Descartar cambios y guardar?",
+          "Descartar",
+          "Cancelar",
+        );
+        if (!confirmed) return;
+      }
+      this.closeBlockSession(false);
+    }
+
     if (!this.ready) return;
 
     const target = this.getActiveTarget();
@@ -708,7 +1317,6 @@ export class CoverCropperModalComponent
     const rotW = r === 90 || r === 270 ? this.naturalH : this.naturalW;
     const rotH = r === 90 || r === 270 ? this.naturalW : this.naturalH;
 
-    // Calculate crop dimensions and round to integers to avoid subpixel sampling
     let sWidthR = Math.floor(fw / dispScale);
     let sHeightR = Math.floor(fh / dispScale);
 
@@ -724,7 +1332,6 @@ export class CoverCropperModalComponent
     sxR = clamp(sxR, 0, maxSxR);
     syR = clamp(syR, 0, maxSyR);
 
-    // Ensure crop stays within bounds using integer math
     if (sxR + sWidthR > rotW) sxR = rotW - sWidthR;
     if (syR + sHeightR > rotH) syR = rotH - sHeightR;
 
@@ -908,21 +1515,48 @@ export class CoverCropperModalComponent
   }
 
   rotateLeft(): void {
-    this.rot = (this.rot + 270) % 360;
-    this.onRotateApplied();
+    this.applyDiscreteAction(() => {
+      this.rot = (this.rot + 270) % 360;
+      this.scale = 1;
+      this.tx = 0;
+      this.ty = 0;
+    });
   }
 
   rotateRight(): void {
-    this.rot = (this.rot + 90) % 360;
-    this.onRotateApplied();
+    this.applyDiscreteAction(() => {
+      this.rot = (this.rot + 90) % 360;
+      this.scale = 1;
+      this.tx = 0;
+      this.ty = 0;
+    });
   }
 
-  private onRotateApplied(): void {
+  private applyDiscreteAction(action: () => void): void {
+    const beforeSnapshot = this.captureSnapshot();
+
+    action();
+
     if (!this.ready) {
       this.tryReady();
       return;
     }
     this.tryReady();
+
+    const afterSnapshot = this.getState();
+
+    if (this.blockSession) {
+      this.blockSession.draftState = afterSnapshot;
+    } else {
+      if (!this.isEqualEditorState(beforeSnapshot, afterSnapshot)) {
+        const entry: HistoryEntry = {
+          before: beforeSnapshot,
+          after: afterSnapshot,
+        };
+        this.globalUndoStack.push(entry);
+        this.globalRedoStack = [];
+      }
+    }
   }
 
   private refreshLabels(): void {
@@ -932,6 +1566,8 @@ export class CoverCropperModalComponent
       title: this.title,
       cancelLabel: this.cancelLabel,
       doneLabel: this.doneLabel,
+      applyLabel: this.applyLabel,
+      discardLabel: this.discardLabel,
       loadingLabel: this.loadingLabel,
       hintLabel: this.hintLabel,
       adjustmentsLabel: this.adjustmentsLabel,
@@ -963,6 +1599,12 @@ export class CoverCropperModalComponent
       if (match) return match.target;
       return this.formatOptions[0].target;
     }
+    if (this.kindleGroups?.length && this.internalKindleSelectedModel) {
+      return {
+        width: this.internalKindleSelectedModel.width,
+        height: this.internalKindleSelectedModel.height,
+      };
+    }
     return this.model;
   }
 }
@@ -985,12 +1627,15 @@ const DEFAULT_LABELS: Record<string, CropperLabels> = {
   en: {
     title: "Crop",
     cancelLabel: "Cancel",
-    doneLabel: "Apply",
+    doneLabel: "Done",
+    applyLabel: "Apply",
+    discardLabel: "Discard",
     loadingLabel: "Loading…",
     hintLabel: "Pinch to zoom · Drag to move",
     adjustmentsLabel: "Adjustments",
     toolsLabel: "Tools",
     modelLabel: "Model",
+    cropLabel: "Crop",
     groupLabel: "Group",
     generationLabel: "Generation",
     rotateLabel: "Rotate",
@@ -1013,12 +1658,15 @@ const DEFAULT_LABELS: Record<string, CropperLabels> = {
   es: {
     title: "Recortar",
     cancelLabel: "Cancelar",
-    doneLabel: "Aplicar",
+    doneLabel: "Listo",
+    applyLabel: "Aplicar",
+    discardLabel: "Descartar",
     loadingLabel: "Cargando…",
     hintLabel: "Pellizca para hacer zoom · Arrastra para mover",
     adjustmentsLabel: "Ajustes",
     toolsLabel: "Herramientas",
     modelLabel: "Modelo",
+    cropLabel: "Recorte",
     groupLabel: "Grupo",
     generationLabel: "Generación",
     rotateLabel: "Rotar",
@@ -1041,12 +1689,15 @@ const DEFAULT_LABELS: Record<string, CropperLabels> = {
   de: {
     title: "Zuschneiden",
     cancelLabel: "Abbrechen",
-    doneLabel: "Anwenden",
+    doneLabel: "Fertig",
+    applyLabel: "Anwenden",
+    discardLabel: "Verwerfen",
     loadingLabel: "Wird geladen…",
     hintLabel: "Zum Zoomen ziehen · Zum Verschieben wischen",
     adjustmentsLabel: "Anpassungen",
     toolsLabel: "Werkzeuge",
     modelLabel: "Modell",
+    cropLabel: "Zuschnitt",
     groupLabel: "Gruppe",
     generationLabel: "Generation",
     rotateLabel: "Drehen",
@@ -1069,12 +1720,15 @@ const DEFAULT_LABELS: Record<string, CropperLabels> = {
   pt: {
     title: "Recortar",
     cancelLabel: "Cancelar",
-    doneLabel: "Aplicar",
+    doneLabel: "Concluir",
+    applyLabel: "Aplicar",
+    discardLabel: "Descartar",
     loadingLabel: "Carregando…",
     hintLabel: "Aperte para zoom · Arraste para mover",
     adjustmentsLabel: "Ajustes",
     toolsLabel: "Ferramentas",
     modelLabel: "Modelo",
+    cropLabel: "Recorte",
     groupLabel: "Grupo",
     generationLabel: "Geração",
     rotateLabel: "Girar",
@@ -1097,12 +1751,15 @@ const DEFAULT_LABELS: Record<string, CropperLabels> = {
   it: {
     title: "Ritaglia",
     cancelLabel: "Annulla",
-    doneLabel: "Applica",
+    doneLabel: "Fatto",
+    applyLabel: "Applica",
+    discardLabel: "Scarta",
     loadingLabel: "Caricamento…",
     hintLabel: "Pizzica per zoom · Trascina per spostare",
     adjustmentsLabel: "Regolazioni",
     toolsLabel: "Strumenti",
     modelLabel: "Modello",
+    cropLabel: "Ritaglio",
     groupLabel: "Gruppo",
     generationLabel: "Generazione",
     rotateLabel: "Ruota",
@@ -1125,12 +1782,15 @@ const DEFAULT_LABELS: Record<string, CropperLabels> = {
   fr: {
     title: "Recadrer",
     cancelLabel: "Annuler",
-    doneLabel: "Appliquer",
+    doneLabel: "Terminé",
+    applyLabel: "Appliquer",
+    discardLabel: "Abandonner",
     loadingLabel: "Chargement…",
     hintLabel: "Pincez pour zoomer · Glissez pour déplacer",
     adjustmentsLabel: "Réglages",
     toolsLabel: "Outils",
     modelLabel: "Modèle",
+    cropLabel: "Recadrage",
     groupLabel: "Groupe",
     generationLabel: "Génération",
     rotateLabel: "Faire pivoter",

@@ -7,7 +7,7 @@
         {{ uiLabels.cancelLabel }}
       </ion-button>
 
-      <ion-button [disabled]="!ready" (click)="use()">
+      <ion-button [disabled]="!ready" (click)="done()">
         {{ uiLabels.doneLabel }}
       </ion-button>
     </ion-buttons>
@@ -16,44 +16,61 @@
   <ion-toolbar class="top-toolbox">
     <div class="top-toolbox__row">
       <div class="top-toolbox__center">
-        <ion-button fill="clear" class="tool-btn">
+        <ion-button 
+          fill="clear" 
+          class="tool-btn" 
+          [disabled]="!canUndo"
+          (click)="undo()">
           <div class="app-icon-text">
             <ion-icon
               class="app-icon-text__icon"
               name="return-up-back-outline"
             ></ion-icon>
-            <span class="app-icon-text__label">Deshacer</span>
+            <span class="app-icon-text__label">{{ uiLabels.undoLabel ?? 'Deshacer' }}</span>
           </div>
         </ion-button>
 
-        <ion-button fill="clear" class="tool-btn">
+        <ion-button 
+          fill="clear" 
+          class="tool-btn"
+          [disabled]="!canRedo"
+          (click)="redo()">
           <div class="app-icon-text">
             <ion-icon
               class="app-icon-text__icon"
               name="return-up-forward-outline"
             ></ion-icon>
-            <span class="app-icon-text__label">Rehacer</span>
+            <span class="app-icon-text__label">{{ uiLabels.redoLabel ?? 'Rehacer' }}</span>
           </div>
         </ion-button>
       </div>
 
       <div class="top-toolbox__right">
-        <ion-button fill="clear" class="tool-btn">
+        @if (showDiscardApply) {
+        <ion-button 
+          fill="clear" 
+          class="tool-btn"
+          (click)="discardBlockSession()">
           <div class="app-icon-text">
             <ion-icon class="app-icon-text__icon" name="close-outline"></ion-icon>
-            <span class="app-icon-text__label">Descartar</span>
+            <span class="app-icon-text__label">{{ uiLabels.discardLabel }}</span>
           </div>
         </ion-button>
 
-        <ion-button fill="clear" class="tool-btn">
+        <ion-button 
+          fill="clear" 
+          class="tool-btn"
+          [disabled]="!blockSessionDirty"
+          (click)="applyBlockSession()">
           <div class="app-icon-text">
             <ion-icon
               class="app-icon-text__icon"
               name="checkmark-outline"
             ></ion-icon>
-            <span class="app-icon-text__label">{{ uiLabels.doneLabel }}</span>
+            <span class="app-icon-text__label">{{ uiLabels.applyLabel }}</span>
           </div>
         </ion-button>
+        }
       </div>
     </div>
   </ion-toolbar>
@@ -151,6 +168,7 @@
     <div class="tools-bar">
       <div class="tools-group">
         <div class="tools-buttons">
+          @if (kindleGroups && kindleGroups.length > 0) {
           <ion-button
             fill="clear"
             class="tool-btn"
@@ -160,6 +178,18 @@
           >
             <span>{{ uiLabels.modelLabel }}</span>
           </ion-button>
+          }
+          @if (formatOptions && formatOptions.length > 0) {
+          <ion-button
+            fill="clear"
+            class="tool-btn"
+            [class.tool-btn--active]="activeToolPanel === 'crop'"
+            (click)="togglePanel('crop')"
+            [disabled]="!ready"
+          >
+            <span>{{ uiLabels.cropLabel }}</span>
+          </ion-button>
+          }
 
           @if (showRotate) {
           <ion-button
@@ -187,8 +217,8 @@
     </div>
     } @else if (adjustmentsMode && showAdjustments) {
     <div class="tools-bar">
-      <div class="tools-group">
-        <div class="tools-buttons">
+      <div class="tools-group tools-group--scrollable">
+        <div class="tools-buttons" #adjustTabsContainer>
           <ion-button
             fill="clear"
             class="tool-btn"
@@ -229,29 +259,20 @@
             <span>{{ uiLabels.bwLabel }}</span>
           </ion-button>
         </div>
+
+        @if (showFadeLeft) {
+        <div class="tabs-fade-left"></div>
+        }
+
+        @if (showFadeRight) {
+        <div class="tabs-fade-right"></div>
+        }
       </div>
     </div>
     }
 
     <div class="spacer"></div>
   </div>
-
-  @if (formatOptions?.length && showFormatSelector) {
-  <div class="format-row">
-    <ion-segment
-      class="format-segment"
-      [value]="selectedFormatId ?? ''"
-      (ionChange)="onFormatChange($event)"
-      scrollable="true"
-    >
-      @for (opt of (formatOptions ?? []); track opt.id) {
-      <ion-segment-button [value]="opt.id">
-        {{ opt.label }}
-      </ion-segment-button>
-      }
-    </ion-segment>
-  </div>
-  }
 
   @if (activeAdjustPanel === 'brightness' && adjustmentsMode && showAdjustments) {
   <div class="sheet" role="dialog" [attr.aria-label]="uiLabels.brightnessLabel">
@@ -266,7 +287,9 @@
           [max]="1.5"
           [step]="0.01"
           [(ngModel)]="brightness"
+          (ionStart)="onSliderStart()"
           (ionInput)="onAdjustChanged()"
+          (ionSliderDidChange)="onSliderEnd()"
         ></ion-range>
       </ion-item>
     </div>
@@ -286,7 +309,9 @@
           [max]="2"
           [step]="0.01"
           [(ngModel)]="saturation"
+          (ionStart)="onSliderStart()"
           (ionInput)="onAdjustChanged()"
+          (ionSliderDidChange)="onSliderEnd()"
           [disabled]="bw"
         ></ion-range>
       </ion-item>
@@ -307,7 +332,9 @@
           [max]="1.8"
           [step]="0.01"
           [(ngModel)]="contrast"
+          (ionStart)="onSliderStart()"
           (ionInput)="onAdjustChanged()"
+          (ionSliderDidChange)="onSliderEnd()"
         ></ion-range>
       </ion-item>
     </div>
@@ -336,6 +363,50 @@
           [disabled]="!bw"
         ></ion-toggle>
       </ion-item>
+    </div>
+  </div>
+  }
+
+  @if (activeToolPanel === 'crop' && toolsMode && formatOptions && formatOptions.length > 0) {
+  <div
+    class="sheet"
+    role="dialog"
+    [attr.aria-label]="uiLabels.cropLabel"
+  >
+    <div class="sheet-head">
+      <h2>{{ uiLabels.cropLabel }}</h2>
+
+      <ion-button fill="clear" class="sheet-close" (click)="togglePanel('crop')">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </div>
+
+    <div class="sheet-body">
+      <div class="tools-bar crop-tools">
+        <div class="tools-group tools-group--scrollable">
+          <div class="tools-buttons" #cropTabsContainer>
+            @for (format of formatOptions; track format.id) {
+            <ion-button
+              fill="clear"
+              class="tool-btn"
+              [class.tool-btn--active]="selectedFormatId === format.id"
+              (click)="onFormatOptionClick(format.id)"
+              [disabled]="!ready"
+            >
+              <span>{{ format.label }}</span>
+            </ion-button>
+            }
+          </div>
+
+          @if (showCropFadeLeft) {
+          <div class="tabs-fade-left"></div>
+          }
+
+          @if (showCropFadeRight) {
+          <div class="tabs-fade-right"></div>
+          }
+        </div>
+      </div>
     </div>
   </div>
   }

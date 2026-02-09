@@ -98,11 +98,14 @@ export interface CropperLabels {
   title: string;
   cancelLabel: string;
   doneLabel: string;
+  applyLabel: string;
+  discardLabel: string;
   loadingLabel: string;
   hintLabel: string;
   adjustmentsLabel: string;
   toolsLabel: string;
   modelLabel: string;
+  cropLabel: string;
   groupLabel: string;
   generationLabel: string;
   rotateLabel: string;
@@ -121,6 +124,8 @@ export interface CropperLabels {
   zoomOutAriaLabel: string;
   zoomInAriaLabel: string;
   adjustmentsAriaLabel: string;
+  undoLabel?: string;
+  redoLabel?: string;
 }
 
 /**
