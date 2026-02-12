@@ -162,30 +162,6 @@
   }
 }
 
-.tool-btn {
-  --padding-start: 12px;
-  --padding-end: 12px;
-  --padding-top: 8px;
-  --padding-bottom: 8px;
-  --border-radius: 12px;
-  height: auto;
-  min-width: 64px;
-  margin: 0;
-  flex-shrink: 0;
-
-  &:has(.tool-btn__icon) {
-    min-width: 64px;
-  }
-
-  &:not(:has(.tool-btn__icon)) {
-    min-width: 70px;
-    --padding-start: 16px;
-    --padding-end: 16px;
-    --padding-top: 12px;
-    --padding-bottom: 12px;
-  }
-}
-
 .sheet {
   position: fixed;
   left: 10px;

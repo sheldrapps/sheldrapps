@@ -140,7 +140,6 @@ export async function prepareWorkingImage(
   try {
     bitmap = await createImageBitmap(source);
   } catch (err) {
-    console.error('[pipeline] createImageBitmap failed', err);
     // Return as-is if can't process
     if (source instanceof File) return source;
     const name = `image_${Date.now()}.jpg`;

@@ -1,0 +1,34 @@
+<div class="sb" [attr.aria-label]="ariaLabel">
+  <div class="sb__viewport">
+    <div class="sb__scroll" #scrollEl>
+      <ion-button
+        *ngFor="let item of items; trackBy: trackById"
+        fill="clear"
+        class="tool-btn"
+        [class.tool-btn--active]="isActive(item.id)"
+        [disabled]="disabled"
+        (click)="onItemClick(item.id)"
+      >
+        <ng-container [ngSwitch]="variant">
+          <ng-container *ngSwitchCase="'iconText'">
+            <div class="app-icon-text">
+              <ion-icon
+                *ngIf="item.icon"
+                class="app-icon-text__icon"
+                [name]="item.icon"
+              ></ion-icon>
+              <span class="app-icon-text__label">{{ item.label }}</span>
+            </div>
+          </ng-container>
+
+          <ng-container *ngSwitchDefault>
+            <span>{{ item.label }}</span>
+          </ng-container>
+        </ng-container>
+      </ion-button>
+    </div>
+
+    <div class="sb__fade sb__fade--left" *ngIf="showFadeLeft"></div>
+    <div class="sb__fade sb__fade--right" *ngIf="showFadeRight"></div>
+  </div>
+</div>

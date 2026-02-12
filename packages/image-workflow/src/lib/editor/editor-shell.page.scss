@@ -1,0 +1,85 @@
+@use '@sheldrapps/ui-theme/styles/cropper' as *;
+
+:host {
+  display: block;
+}
+
+.cropper-content {
+  --background: var(--ion-background-color);
+}
+
+.frame-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: center center;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+  will-change: transform;
+  max-width: none !important;
+  max-height: none !important;
+  width: auto;
+  height: auto;
+}
+
+/* Top toolbox layout (shell-level only) */
+.top-toolbox {
+  --min-height: 52px;
+  --padding-top: 4px;
+  --padding-bottom: 6px;
+}
+
+.top-toolbox__row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.top-toolbox__center {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: center;
+}
+
+.top-toolbox__right {
+  grid-column: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: end;
+}
+
+/* Bottom entry toolbox (shell-level only) */
+.tools-bar {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 8px;
+  scrollbar-width: none;
+}
+.tools-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.tools-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tools-buttons {
+  display: flex;
+  gap: 8px;
+}

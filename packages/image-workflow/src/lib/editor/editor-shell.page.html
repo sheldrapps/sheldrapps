@@ -1,0 +1,90 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ uiLabels.title }}</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()">{{ uiLabels.cancelLabel }}</ion-button>
+      <ion-button [disabled]="!ready" (click)="done()">{{ uiLabels.doneLabel }}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <ion-toolbar class="top-toolbox">
+    <div class="top-toolbox__row">
+      <div class="top-toolbox__center">
+        <ion-button fill="clear" class="tool-btn" [disabled]="!canUndo" (click)="undo()">
+          <div class="app-icon-text">
+            <ion-icon class="app-icon-text__icon" name="return-up-back-outline"></ion-icon>
+            <span class="app-icon-text__label">{{ uiLabels.undoLabel }}</span>
+          </div>
+        </ion-button>
+
+        <ion-button fill="clear" class="tool-btn" [disabled]="!canRedo" (click)="redo()">
+          <div class="app-icon-text">
+            <ion-icon class="app-icon-text__icon" name="return-up-forward-outline"></ion-icon>
+            <span class="app-icon-text__label">{{ uiLabels.redoLabel }}</span>
+          </div>
+        </ion-button>
+      </div>
+
+      <div class="top-toolbox__right">
+        @if (showDiscardApply) {
+          <ion-button fill="clear" class="tool-btn" (click)="discardBlockSession()">
+            <div class="app-icon-text">
+              <ion-icon class="app-icon-text__icon" name="close-outline"></ion-icon>
+              <span class="app-icon-text__label">{{ uiLabels.discardLabel }}</span>
+            </div>
+          </ion-button>
+
+          <ion-button fill="clear" class="tool-btn" [disabled]="!blockSessionDirty" (click)="applyBlockSession()">
+            <div class="app-icon-text">
+              <ion-icon class="app-icon-text__icon" name="checkmark-outline"></ion-icon>
+              <span class="app-icon-text__label">{{ uiLabels.applyLabel }}</span>
+            </div>
+          </ion-button>
+        }
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="cropper-content" [fullscreen]="true" [scrollY]="false">
+  <div class="stage">
+    <div class="frame-wrap">
+      <div
+        #frame
+        class="frame"
+        [style.--crop-ratio]="aspectRatio"
+        (dblclick)="reset()"
+        [attr.aria-label]="uiLabels.frameAriaLabel"
+      >
+        @if (imageUrl) {
+          <img
+            #img
+            class="img"
+            [src]="imageUrl"
+            alt=""
+            draggable="false"
+            (load)="onImgLoad($event)"
+            (error)="onImgError($event)"
+          />
+        }
+
+        @if (!ready) {
+          <div class="frame-loader" aria-hidden="true">
+            <div class="frame-loader__card">
+              <ion-spinner name="crescent"></ion-spinner>
+              <div class="frame-loader__text">{{ uiLabels.loadingLabel }}</div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    @if (ready) {
+      <div class="hint">{{ uiLabels.hintLabel }}</div>
+    }
+  </div>
+
+  <!-- Router outlet for tools/adjustments panels -->
+  <router-outlet></router-outlet>
+</ion-content>

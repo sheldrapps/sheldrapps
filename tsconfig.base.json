@@ -25,6 +25,9 @@
       "@sheldrapps/image-workflow/capacitor": [
         "packages/image-workflow/src/lib/adapters/capacitor/public-api.ts"
       ],
+      "@sheldrapps/image-workflow/editor": [
+        "packages/image-workflow/src/editor/public-api.ts"
+      ],
       "@sheldrapps/ui-theme": ["packages/ui-theme/src/index.ts"],
       "@sheldrapps/ui-theme/styles/*": ["packages/ui-theme/styles/*"]
     }

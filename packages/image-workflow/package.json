@@ -6,7 +6,8 @@
   "types": "./src/public-api.ts",
   "exports": {
     ".": "./src/public-api.ts",
-    "./capacitor": "./src/lib/adapters/capacitor/public-api.ts"
+    "./capacitor": "./src/lib/adapters/capacitor/public-api.ts",
+    "./editor": "./src/editor/public-api.ts"
   },
   "files": [
     "src"
@@ -18,6 +19,7 @@
     "@angular/common": "^20.0.0",
     "@angular/core": "^20.0.0",
     "@angular/forms": "^20.0.0",
+    "@angular/router": "^20.0.0",
     "@ionic/angular": "^8.0.0",
     "@ngx-translate/core": "^17.0.0",
     "ionicons": "^7.0.0",
@@ -28,7 +30,14 @@
       "optional": false
     }
   },
-  "keywords": ["image", "crop", "workflow", "validation", "angular", "ionic"],
+  "keywords": [
+    "image",
+    "crop",
+    "workflow",
+    "validation",
+    "angular",
+    "ionic"
+  ],
   "author": "Sheldrapps",
   "license": "MIT"
 }

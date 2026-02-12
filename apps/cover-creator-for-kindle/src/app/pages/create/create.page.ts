@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import {
   IonContent,
   IonHeader,
@@ -44,6 +45,7 @@ import {
   ImageValidationError,
 } from '@sheldrapps/image-workflow';
 import type { CropTarget } from '@sheldrapps/image-workflow';
+import { EditorSessionService } from '@sheldrapps/image-workflow/editor';
 
 import {
   chevronDown,
@@ -152,6 +154,8 @@ export class CreatePage implements OnInit, OnDestroy {
     private translate: TranslateService,
     private zone: NgZone,
     private settings: SettingsStore<CcfkSettings>,
+    private router: Router,
+    private editorSession: EditorSessionService,
   ) {
     addIcons({
       chevronDown,
@@ -245,6 +249,20 @@ export class CreatePage implements OnInit, OnDestroy {
 
   compareModels(m1: KindleModel, m2: KindleModel): boolean {
     return m1 && m2 ? m1.id === m2.id : m1 === m2;
+  }
+
+  goToEditor() {
+    if (!this.workingImageFile || !this.selectedModel) return;
+
+    const sid = this.editorSession.createSession({
+      file: this.workingImageFile,
+      target: {
+        width: this.selectedModel.width,
+        height: this.selectedModel.height,
+      },
+    });
+
+    this.router.navigate(['/editor'], { queryParams: { sid } });
   }
 
   onGroupChange() {
