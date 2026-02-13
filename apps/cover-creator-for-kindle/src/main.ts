@@ -6,6 +6,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { provideI18nKit } from '@sheldrapps/i18n-kit';
+import { provideEditorI18n } from '@sheldrapps/image-workflow/editor';
 import { provideAdsKit } from '@sheldrapps/ads-kit';
 import { provideSettingsKit } from '@sheldrapps/settings-kit';
 import { provideFileKit } from '@sheldrapps/file-kit';
@@ -42,6 +43,7 @@ bootstrapApplication(AppComponent, {
         pt: 'pt-BR',
       },
     }),
+    provideEditorI18n(),
 
     provideSettingsKit({
       appId: 'ccfk',

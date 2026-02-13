@@ -54,24 +54,21 @@ export function provideI18nKit(
     // Provide HTTP client (required for HttpLoader)
     provideHttpClient(),
 
-    // Configure TranslateService with loader
     provideTranslateService({
       defaultLanguage: config.defaultLang,
+      lang: config.defaultLang,
+      loader: {
+        provide: TranslateLoader,
+        useFactory: (http: HttpClient) =>
+          createCasePreservingTranslateLoader(
+            http,
+            config.loader.prefix,
+            config.loader.suffix,
+          ),
+        deps: [HttpClient],
+      },
     }),
 
-    // Configure case-preserving TranslateLoader
-    {
-      provide: TranslateLoader,
-      useFactory: (http: HttpClient) =>
-        createCasePreservingTranslateLoader(
-          http,
-          config.loader.prefix,
-          config.loader.suffix
-        ),
-      deps: [HttpClient],
-    },
-
-    // Provide LanguageService
     LanguageService,
   ];
 }

@@ -15,6 +15,7 @@ import {
   NavigationEnd,
   RouterModule,
 } from "@angular/router";
+import { TranslateService } from "@ngx-translate/core";
 import {
   IonButton,
   IonButtons,
@@ -135,6 +136,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     readonly ui: EditorUiStateService,
     private editorState: EditorStateService,
     private zone: NgZone,
+    private translate: TranslateService,
   ) {
     addIcons({
       cropOutline,

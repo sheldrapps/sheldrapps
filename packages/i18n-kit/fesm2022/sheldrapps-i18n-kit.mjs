@@ -385,27 +385,32 @@ function createCasePreservingTranslateLoader(http, prefix, suffix) {
 function provideI18nKit(config, storageAdapter) {
     console.log('[i18n-kit] USING i18n-kit v1.0.0');
     return [
-        // Provide config via injection token
-        { provide: LANGUAGE_CONFIG_TOKEN, useValue: config },
-        // Provide custom storage or default
-        {
-            provide: STORAGE_ADAPTER_TOKEN,
-            useValue: storageAdapter || new LocalStorageAdapter(),
+      // Provide config via injection token
+      { provide: LANGUAGE_CONFIG_TOKEN, useValue: config },
+      // Provide custom storage or default
+      {
+        provide: STORAGE_ADAPTER_TOKEN,
+        useValue: storageAdapter || new LocalStorageAdapter(),
+      },
+      // Provide HTTP client (required for HttpLoader)
+      provideHttpClient(),
+      // Configure TranslateService with loader
+      provideTranslateService({
+        defaultLanguage: config.defaultLang,
+        lang: config.defaultLang,
+        loader: {
+          provide: TranslateLoader,
+          useFactory: (http) =>
+            createCasePreservingTranslateLoader(
+              http,
+              config.loader.prefix,
+              config.loader.suffix,
+            ),
+          deps: [HttpClient],
         },
-        // Provide HTTP client (required for HttpLoader)
-        provideHttpClient(),
-        // Configure TranslateService with loader
-        provideTranslateService({
-            defaultLanguage: config.defaultLang,
-        }),
-        // Configure case-preserving TranslateLoader
-        {
-            provide: TranslateLoader,
-            useFactory: (http) => createCasePreservingTranslateLoader(http, config.loader.prefix, config.loader.suffix),
-            deps: [HttpClient],
-        },
-        // Provide LanguageService
-        LanguageService,
+      }),
+      // Provide LanguageService
+      LanguageService,
     ];
 }
 
