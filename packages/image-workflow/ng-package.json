@@ -11,5 +11,7 @@
       "@ngx-translate/core": "@ngx-translate/core",
       "ionicons": "ionicons"
     }
-  }
+  },
+  "assets": []
 }
+

@@ -1,0 +1,42 @@
+<div class="crop-panel">
+  <!-- Kindle Model Selection Panel -->
+  <ion-grid class="selectors-grid">
+    <ion-row>
+      <ion-col size="12">
+        <div class="selector-label">Crop</div>
+        <ion-item>
+          <ion-select
+            [(ngModel)]="selectedGroupId"
+            (ionChange)="onGroupChange()"
+            placeholder="Select group"
+            interface="popover"
+          >
+            <ion-select-option *ngFor="let group of kindleGroups" [value]="group.id">
+              {{ group.label }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col size="12">
+        <div class="selector-label">Generation</div>
+        <ion-item>
+          <ion-select
+            [(ngModel)]="selectedModel"
+            (ionChange)="onModelChange()"
+            placeholder="Select model"
+            [compareWith]="compareModels"
+            interface="popover"
+            [disabled]="!selectedGroupId"
+          >
+            <ion-select-option *ngFor="let model of currentGroupModels" [value]="model">
+              {{ model.name }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</div>
+

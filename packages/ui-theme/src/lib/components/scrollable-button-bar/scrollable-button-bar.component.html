@@ -1,19 +1,42 @@
 <div class="sb" [attr.aria-label]="ariaLabel">
   <div class="sb__viewport">
-    <div class="sb__scroll" #scrollEl>
+    <div
+      class="sb__scroll"
+      [class.sb__scroll--center]="align === 'center'"
+      #scrollEl
+    >
       <ion-button
         *ngFor="let item of items; trackBy: trackById"
         fill="clear"
         class="tool-btn"
         [class.tool-btn--active]="isActive(item.id)"
-        [disabled]="disabled"
+        [disabled]="disabled || isItemDisabled(item.id)"
+        [attr.aria-label]="item.label"
         (click)="onItemClick(item.id)"
       >
         <ng-container [ngSwitch]="variant">
+          <ng-container *ngSwitchCase="'iconOnly'">
+            <ion-icon
+              *ngIf="item.svg"
+              class="app-icon-text__icon"
+              [src]="svgSrc(item)"
+            ></ion-icon>
+            <ion-icon
+              *ngIf="!item.svg && item.icon"
+              class="app-icon-text__icon"
+              [name]="item.icon"
+            ></ion-icon>
+          </ng-container>
+
           <ng-container *ngSwitchCase="'iconText'">
             <div class="app-icon-text">
               <ion-icon
-                *ngIf="item.icon"
+                *ngIf="item.svg"
+                class="app-icon-text__icon"
+                [src]="svgSrc(item)"
+              ></ion-icon>
+              <ion-icon
+                *ngIf="!item.svg && item.icon"
                 class="app-icon-text__icon"
                 [name]="item.icon"
               ></ion-icon>

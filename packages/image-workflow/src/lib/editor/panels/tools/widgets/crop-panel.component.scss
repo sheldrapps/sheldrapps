@@ -1,0 +1,23 @@
+.crop-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.selectors-grid {
+  padding: 0;
+  margin: 0;
+}
+
+.selector-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--ion-text-color, #000);
+}
+
+ion-item {
+  --padding-start: 0;
+  --padding-end: 0;
+}

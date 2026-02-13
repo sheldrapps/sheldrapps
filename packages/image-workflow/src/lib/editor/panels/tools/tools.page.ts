@@ -1,22 +1,35 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ScrollableButtonBarComponent, ScrollableBarItem } from '@sheldrapps/ui-theme';
+import { Component, inject, computed } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import {
+  ScrollableButtonBarComponent,
+  ScrollableBarItem,
+} from "@sheldrapps/ui-theme";
+import { EditorUiStateService } from "../../editor-ui-state.service";
 
 @Component({
-  selector: 'cc-tools-page',
+  selector: "cc-tools-page",
   standalone: true,
-  imports: [
-    CommonModule,
-    ScrollableButtonBarComponent,
-  ],
-  templateUrl: './tools.page.html',
-  styleUrls: ['./tools.page.scss'],
+  imports: [CommonModule, ScrollableButtonBarComponent],
+  templateUrl: "./tools.page.html",
+  styleUrls: ["./tools.page.scss"],
 })
 export class ToolsPage {
-  toolItems: ScrollableBarItem[] = [
-    { id: 'model', label: 'Model' },
-    { id: 'crop', label: 'Crop' },
-    { id: 'rotate', label: 'Rotate' },
-    { id: 'zoom', label: 'Zoom' },
-  ];
+  readonly ui = inject(EditorUiStateService);
+
+  readonly toolItems = computed(() => {
+    const config = this.ui.toolsConfig();
+    const cropLabel = config?.labels?.cropLabel ?? "Crop";
+    const rotateLabel = "Rotate";
+    const zoomLabel = "Zoom";
+
+    return [
+      { id: "crop", label: cropLabel },
+      { id: "rotate", label: rotateLabel },
+      { id: "zoom", label: zoomLabel },
+    ] as ScrollableBarItem[];
+  });
+
+  onSelectTool(panelId: string): void {
+    this.ui.togglePanel("tools", panelId);
+  }
 }

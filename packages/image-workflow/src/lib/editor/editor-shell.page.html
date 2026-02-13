@@ -87,4 +87,26 @@
 
   <!-- Router outlet for tools/adjustments panels -->
   <router-outlet></router-outlet>
+
+  @if (ui.isPanelOpen()) {
+    <sh-editor-panel
+      [title]="ui.panelTitle()"
+      [showReset]="ui.canReset()"
+      [showGrabber]="ui.showGrabber()"
+      resetAriaLabel="Reset"
+      closeAriaLabel="Close"
+      (close)="ui.closePanel()"
+      (reset)="onResetPanel()"
+    >
+      @if (ui.activePanelComponent()) {
+        <ng-container *ngComponentOutlet="ui.activePanelComponent(); injector: ui.activePanelInjector()">
+        </ng-container>
+      } @else {
+        <div class="panel-placeholder">
+          <p>Panel content: {{ ui.panelId() }}</p>
+          <p><small>TODO: Create component for this panel</small></p>
+        </div>
+      }
+    </sh-editor-panel>
+  }
 </ion-content>

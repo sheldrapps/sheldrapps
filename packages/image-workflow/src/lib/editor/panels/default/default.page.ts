@@ -14,10 +14,10 @@ import {
   styleUrls: ["./default.page.scss"],
 })
 export class DefaultPage {
-  bottomBarItems: ScrollableBarItem[] = [
+  readonly bottomBarItems = [
     { id: "tools", label: "Tools", icon: "crop-outline" },
     { id: "adjustments", label: "Adjustments", icon: "options-outline" },
-  ];
+  ] as ScrollableBarItem[];
 
   constructor(
     private router: Router,

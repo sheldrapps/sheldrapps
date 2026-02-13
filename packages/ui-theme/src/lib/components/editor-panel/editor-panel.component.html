@@ -1,0 +1,49 @@
+<div
+  class="cc-editor-panel"
+  role="dialog"
+  [attr.aria-label]="ariaLabel || title"
+>
+  <div class="cc-editor-panel__head">
+    <!-- Left slot (optional custom content) -->
+    <ng-content select="[panelHeaderLeft]"></ng-content>
+
+    <!-- Reset button (matches .sheet-reset positioning) -->
+    @if (showReset) {
+      <ion-button
+        fill="clear"
+        class="cc-editor-panel__reset"
+        (click)="reset.emit()"
+        [attr.aria-label]="resetAriaLabel"
+      >
+          <ion-icon slot="icon-only" name="refresh"></ion-icon>
+      </ion-button>
+    }
+
+    <!-- Grabber (matches .sheet-grabber positioning) -->
+    @if (showGrabber) {
+      <div class="cc-editor-panel__grabber" aria-hidden="true"></div>
+    }
+
+    <!-- Title (matches .sheet-title positioning) -->
+    <div class="cc-editor-panel__title">{{ title }}</div>
+
+    <!-- Right slot (optional custom content) -->
+    <ng-content select="[panelHeaderRight]"></ng-content>
+
+    <!-- Close button (matches .sheet-close positioning) -->
+    @if (showClose) {
+      <ion-button
+        fill="clear"
+        class="cc-editor-panel__close"
+        (click)="close.emit()"
+        [attr.aria-label]="closeAriaLabel"
+      >
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    }
+  </div>
+
+  <div class="cc-editor-panel__body">
+    <ng-content></ng-content>
+  </div>
+</div>

@@ -12,12 +12,14 @@ import {
 import { CommonModule } from "@angular/common";
 import { IonButton, IonIcon } from "@ionic/angular/standalone";
 
-export type ScrollableBarVariant = "text" | "iconText";
+export type ScrollableBarVariant = "text" | "iconText" | "iconOnly";
+export type ScrollableBarAlign = "start" | "center";
 
 export interface ScrollableBarItem {
   id: string;
   label: string;
   icon?: string; // ionicon name, e.g. 'crop-outline'
+  svg?: string; // raw svg string for custom icons
 }
 
 @Component({
@@ -32,7 +34,9 @@ export class ScrollableButtonBarComponent implements AfterViewInit, OnDestroy {
   @Input({ required: true }) items: ScrollableBarItem[] = [];
   @Input() activeId: string | null = null;
   @Input() disabled = false;
+  @Input() disabledIds: string[] = [];
   @Input() variant: ScrollableBarVariant = "text";
+  @Input() align: ScrollableBarAlign = "start";
   @Input() ariaLabel?: string;
 
   @Output() selectItem = new EventEmitter<string>();
@@ -78,12 +82,22 @@ export class ScrollableButtonBarComponent implements AfterViewInit, OnDestroy {
   }
 
   onItemClick(id: string): void {
-    if (this.disabled) return;
+    if (this.disabled || this.isItemDisabled(id)) return;
     this.selectItem.emit(id);
   }
 
   isActive(id: string): boolean {
     return !!this.activeId && this.activeId === id;
+  }
+
+  isItemDisabled(id: string): boolean {
+    return this.disabledIds.includes(id);
+  }
+
+  svgSrc(item: ScrollableBarItem): string | null {
+    if (!item.svg) return null;
+    const encoded = btoa(item.svg);
+    return `data:image/svg+xml;base64,${encoded}`;
   }
 
   private recalculateOverflow(): void {

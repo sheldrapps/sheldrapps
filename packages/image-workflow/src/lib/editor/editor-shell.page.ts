@@ -6,9 +6,15 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
+  effect,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { ActivatedRoute, Router, NavigationEnd, RouterModule } from "@angular/router";
+import { CommonModule, NgComponentOutlet } from "@angular/common";
+import {
+  ActivatedRoute,
+  Router,
+  NavigationEnd,
+  RouterModule,
+} from "@angular/router";
 import {
   IonButton,
   IonButtons,
@@ -19,6 +25,7 @@ import {
   IonTitle,
   IonToolbar,
 } from "@ionic/angular/standalone";
+import { EditorPanelComponent } from "@sheldrapps/ui-theme";
 import { addIcons } from "ionicons";
 import {
   cropOutline,
@@ -32,6 +39,7 @@ import { filter } from "rxjs";
 
 import { EditorSessionService, EditorSession } from "./editor-session.service";
 import { EditorUiStateService } from "./editor-ui-state.service";
+import { EditorStateService } from "./editor-state.service";
 
 export interface EditorLabels {
   title: string;
@@ -70,6 +78,7 @@ const DEFAULT_LABELS: EditorLabels = {
   standalone: true,
   imports: [
     CommonModule,
+    NgComponentOutlet,
     RouterModule,
     IonButton,
     IonButtons,
@@ -79,6 +88,7 @@ const DEFAULT_LABELS: EditorLabels = {
     IonSpinner,
     IonTitle,
     IonToolbar,
+    EditorPanelComponent,
   ],
   templateUrl: "./editor-shell.page.html",
   styleUrls: ["./editor-shell.page.scss"],
@@ -122,7 +132,8 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private editorSession: EditorSessionService,
-    private ui: EditorUiStateService,
+    readonly ui: EditorUiStateService,
+    private editorState: EditorStateService,
     private zone: NgZone,
   ) {
     addIcons({
@@ -133,6 +144,46 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       closeOutline,
       checkmarkOutline,
     });
+
+    // Listen to EditorStateService changes and update preview
+    effect(() => {
+      this.scale = this.editorState.scale();
+      this.tx = this.editorState.tx();
+      this.ty = this.editorState.ty();
+      this.rot = this.editorState.rot();
+      this.renderTransform();
+    });
+
+    effect(() => {
+      // Update CSS filters from adjustment signals
+      const img = this.imgRef?.nativeElement;
+      if (!img) return;
+
+      const brightness = this.editorState.brightness();
+      const saturation = this.editorState.saturation();
+      const contrast = this.editorState.contrast();
+      const bw = this.editorState.bw();
+
+      const filters: string[] = [];
+
+      if (brightness !== 1) {
+        filters.push(`brightness(${brightness})`);
+      }
+
+      if (saturation !== 1) {
+        filters.push(`saturate(${saturation})`);
+      }
+
+      if (contrast !== 1) {
+        filters.push(`contrast(${contrast})`);
+      }
+
+      if (bw) {
+        filters.push("grayscale(100%)");
+      }
+
+      img.style.filter = filters.length > 0 ? filters.join(" ") : "";
+    });
   }
 
   ngOnInit(): void {
@@ -141,6 +192,13 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
     if (!this.session?.file) return;
 
+    // Set session ID and tools configuration in UI state
+    this.ui.setSessionId(this.sid);
+
+    if (this.session.tools) {
+      this.ui.setToolsConfig(this.session.tools);
+    }
+
     this.objectUrl = URL.createObjectURL(this.session.file);
     this.imageUrl = this.objectUrl;
 
@@ -148,9 +206,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
     // Route detection
     this.router.events
-      .pipe(
-        filter((event) => event instanceof NavigationEnd),
-      )
+      .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe(() => {
         this.updateModeFromRoute();
       });
@@ -178,12 +234,12 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
   private updateModeFromRoute(): void {
     const url = this.router.url;
-    if (url.includes('/editor/tools')) {
-      this.ui.setMode('tools');
-    } else if (url.includes('/editor/adjustments')) {
-      this.ui.setMode('adjustments');
+    if (url.includes("/editor/tools")) {
+      this.ui.setMode("tools");
+    } else if (url.includes("/editor/adjustments")) {
+      this.ui.setMode("adjustments");
     } else {
-      this.ui.setMode('none');
+      this.ui.setMode("none");
     }
   }
 
@@ -202,21 +258,29 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   discardBlockSession(): void {}
   applyBlockSession(): void {}
 
+  // Panel actions
+  onResetPanel(): void {
+    const reset = this.ui.activePanelReset();
+    if (reset) {
+      reset(this.editorState);
+    }
+  }
+
   openTools(): void {
-    this.router.navigate(['tools'], { relativeTo: this.route });
+    this.router.navigate(["tools"], { relativeTo: this.route });
   }
 
   openAdjustments(): void {
-    this.router.navigate(['adjustments'], { relativeTo: this.route });
+    this.router.navigate(["adjustments"], { relativeTo: this.route });
   }
 
   // Handle bottom bar item selection
   onBottomBarItemClick(id: string): void {
     switch (id) {
-      case 'tools':
+      case "tools":
         this.openTools();
         break;
-      case 'adjustments':
+      case "adjustments":
         this.openAdjustments();
         break;
     }

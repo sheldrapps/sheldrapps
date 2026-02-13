@@ -1,6 +1,10 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ScrollableButtonBarComponent, ScrollableBarItem } from '@sheldrapps/ui-theme';
+import { Component, inject } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import {
+  ScrollableButtonBarComponent,
+  ScrollableBarItem,
+} from "@sheldrapps/ui-theme";
+import { EditorUiStateService } from "../../editor-ui-state.service";
 
 @Component({
   selector: "cc-adjustments-page",
@@ -10,10 +14,16 @@ import { ScrollableButtonBarComponent, ScrollableBarItem } from '@sheldrapps/ui-
   styleUrls: ["./adjustments.page.scss"],
 })
 export class AdjustmentsPage {
-  adjustmentItems: ScrollableBarItem[] = [
-    { id: 'brightness', label: 'Brightness' },
-    { id: 'saturation', label: 'Saturation' },
-    { id: 'contrast', label: 'Contrast' },
-    { id: 'bw', label: 'B/W' },
-  ];
+  readonly ui = inject(EditorUiStateService);
+
+  readonly adjustmentItems = [
+    { id: "brightness", label: "Brightness" },
+    { id: "saturation", label: "Saturation" },
+    { id: "contrast", label: "Contrast" },
+    { id: "bw", label: "B/W" },
+  ] as ScrollableBarItem[];
+
+  onSelectAdjustPanel(panelId: string): void {
+    this.ui.togglePanel("adjustments", panelId);
+  }
 }

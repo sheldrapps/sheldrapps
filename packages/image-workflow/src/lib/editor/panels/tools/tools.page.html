@@ -1,7 +1,8 @@
 <div class="bottom-bar" role="toolbar" aria-label="Tools">
   <sh-scrollable-button-bar
-    [items]="toolItems"
-    [activeId]="'model'"
+    [items]="toolItems()"
+    [activeId]="ui.panelId()"
     variant="text"
+    (selectItem)="onSelectTool($event)"
   ></sh-scrollable-button-bar>
 </div>

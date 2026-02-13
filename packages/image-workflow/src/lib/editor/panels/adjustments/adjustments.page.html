@@ -1,7 +1,8 @@
 <div class="bottom-bar" role="toolbar" aria-label="Adjustments">
 	<sh-scrollable-button-bar
 		[items]="adjustmentItems"
-		[activeId]="'brightness'"
+		[activeId]="ui.panelId()"
 		variant="text"
+		(selectItem)="onSelectAdjustPanel($event)"
 	></sh-scrollable-button-bar>
 </div>

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 /** Panel types available in the editor */
-export type ToolPanelType = 'zoom' | 'rotate' | 'crop' | 'model';
+export type ToolPanelType = "zoom" | "rotate" | "crop";
 
 /** Crop format with display aspect ratio */
 export interface CropFormatOption {

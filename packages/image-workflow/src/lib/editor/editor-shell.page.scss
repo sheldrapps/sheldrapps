@@ -83,3 +83,18 @@
   display: flex;
   gap: 8px;
 }
+
+/* Panel placeholder (temporary until components are created) */
+.panel-placeholder {
+  padding: 20px;
+  text-align: center;
+  color: var(--ion-color-medium);
+  
+  p {
+    margin: 8px 0;
+  }
+  
+  small {
+    opacity: 0.7;
+  }
+}
