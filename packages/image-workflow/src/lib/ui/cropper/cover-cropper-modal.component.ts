@@ -48,13 +48,67 @@ import {
   checkmarkOutline,
 } from "ionicons/icons";
 
+
 import type {
   CoverCropState,
   CropTarget,
   CropperResult,
   CropFormatOption,
-  CropperLabels,
 } from "../../types";
+
+// Local override: extend CropperLabels for all needed fields for this component
+type CropperLabels = {
+  title: string;
+  cancelLabel: string;
+  doneLabel: string;
+  applyLabel: string;
+  discardLabel: string;
+  loadingLabel: string;
+  hintLabel: string;
+  adjustmentsLabel: string;
+  toolsLabel: string;
+  modelLabel: string;
+  cropLabel: string;
+  groupLabel: string;
+  generationLabel: string;
+  rotateLabel: string;
+  rotateLeftLabel: string;
+  rotateRightLabel: string;
+  zoomLabel: string;
+  resetAdjustmentsAriaLabel: string;
+  brightnessLabel: string;
+  saturationLabel: string;
+  contrastLabel: string;
+  bwLabel: string;
+  ditherLabel: string;
+  frameAriaLabel: string;
+  controlsAriaLabel: string;
+  resetAriaLabel: string;
+  zoomOutAriaLabel: string;
+  zoomInAriaLabel: string;
+  adjustmentsAriaLabel: string;
+  undoLabel?: string;
+  redoLabel?: string;
+  // New fields for full localizability
+  confirmationTitle?: string;
+  continueLabel?: string;
+  unsavedBlockDiscardToUndoMessage?: string;
+  unsavedBlockDiscardToRedoMessage?: string;
+  discardBlockChangesMessage?: string;
+  unsavedMainDiscardAndCloseMessage?: string;
+  unsavedChangesInBlockToIncludeApplyMessage?: string;
+  unsavedChangesInBlockToSaveApplyMessage?: string;
+  // For new confirmation logic
+  confirmDiscardBlockForUndo?: string;
+  confirmDiscardBlockForRedo?: string;
+  confirmDiscardBlock?: string;
+  confirmDiscardMain?: string;
+  confirmDiscardBlockForDone?: string;
+  confirmDiscardBlockForUse?: string;
+  confirmDiscardButton?: string;
+  cancelButton?: string;
+  confirmHeader?: string;
+};
 
 type Pt = { x: number; y: number };
 type AdjustPanel = "brightness" | "saturation" | "contrast" | "bw";
@@ -1061,7 +1115,13 @@ export class CoverCropperModalComponent
   async undo(): Promise<void> {
     if (this.blockSession && this.blockSessionDirty) {
       const confirmed = await this.showConfirmation(
-        "Tienes cambios sin aplicar en este bloque. ¿Descartar para continuar con deshacer global?",
+        this.uiLabels.confirmDiscardBlockForUndo ||
+          this.uiLabels.unsavedBlockDiscardToUndoMessage ||
+          "",
+        this.uiLabels.confirmDiscardButton ||
+          this.uiLabels.discardLabel ||
+          "Discard",
+        this.uiLabels.cancelButton || this.uiLabels.cancelLabel || "Cancel",
       );
       if (!confirmed) return;
       this.closeBlockSession(false);
@@ -1077,7 +1137,13 @@ export class CoverCropperModalComponent
   async redo(): Promise<void> {
     if (this.blockSession && this.blockSessionDirty) {
       const confirmed = await this.showConfirmation(
-        "Tienes cambios sin aplicar en este bloque. ¿Descartar para continuar con rehacer global?",
+        this.uiLabels.confirmDiscardBlockForRedo ||
+          this.uiLabels.unsavedBlockDiscardToRedoMessage ||
+          "",
+        this.uiLabels.confirmDiscardButton ||
+          this.uiLabels.discardLabel ||
+          "Discard",
+        this.uiLabels.cancelButton || this.uiLabels.cancelLabel || "Cancel",
       );
       if (!confirmed) return;
       this.closeBlockSession(false);
@@ -1095,9 +1161,13 @@ export class CoverCropperModalComponent
 
     if (this.blockSessionDirty) {
       const confirmed = await this.showConfirmation(
-        "¿Descartar cambios en este bloque?",
-        "Descartar",
-        "Cancelar",
+        this.uiLabels.confirmDiscardBlock ||
+          this.uiLabels.discardBlockChangesMessage ||
+          "",
+        this.uiLabels.confirmDiscardButton ||
+          this.uiLabels.discardLabel ||
+          "Discard",
+        this.uiLabels.cancelButton || this.uiLabels.cancelLabel || "Cancel",
       );
       if (!confirmed) return false;
     }
@@ -1113,9 +1183,13 @@ export class CoverCropperModalComponent
 
     if (this.hasUnsavedMainChanges) {
       const confirmed = await this.showConfirmation(
-        "Tienes cambios sin guardar. ¿Descartar cambios y cerrar?",
-        "Descartar",
-        "Cancelar",
+        this.uiLabels.confirmDiscardMain ||
+          this.uiLabels.unsavedMainDiscardAndCloseMessage ||
+          "",
+        this.uiLabels.confirmDiscardButton ||
+          this.uiLabels.discardLabel ||
+          "Discard",
+        this.uiLabels.cancelButton || this.uiLabels.cancelLabel || "Cancel",
       );
       if (!confirmed) return false;
 
@@ -1144,11 +1218,11 @@ export class CoverCropperModalComponent
 
   private async showConfirmation(
     message: string,
-    confirmText = "Continuar",
-    cancelText = "Cancelar",
+    confirmText: string,
+    cancelText: string,
   ): Promise<boolean> {
     const alert = await this.alertCtrl.create({
-      header: "Confirmación",
+      header: this.uiLabels.confirmHeader,
       message: message,
       buttons: [
         {
@@ -1278,9 +1352,13 @@ export class CoverCropperModalComponent
     if (this.blockSession) {
       if (this.blockSessionDirty) {
         const confirmed = await this.showConfirmation(
-          "Tienes cambios sin aplicar. Para incluirlos, presiona 'Aplicar'. ¿Descartar y continuar?",
-          "Descartar",
-          "Cancelar",
+          this.uiLabels.confirmDiscardBlockForDone ||
+            this.uiLabels.unsavedChangesInBlockToIncludeApplyMessage ||
+            "",
+          this.uiLabels.confirmDiscardButton ||
+            this.uiLabels.discardLabel ||
+            "Discard",
+          this.uiLabels.cancelButton || this.uiLabels.cancelLabel || "Cancel",
         );
         if (!confirmed) return;
       }
@@ -1294,9 +1372,13 @@ export class CoverCropperModalComponent
     if (this.blockSession) {
       if (this.blockSessionDirty) {
         const confirmed = await this.showConfirmation(
-          "Tienes cambios sin aplicar. Para incluirlos en la imagen, presiona 'Aplicar'. ¿Descartar cambios y guardar?",
-          "Descartar",
-          "Cancelar",
+          this.uiLabels.confirmDiscardBlockForUse ||
+            this.uiLabels.unsavedChangesInBlockToSaveApplyMessage ||
+            "",
+          this.uiLabels.confirmDiscardButton ||
+            this.uiLabels.discardLabel ||
+            "Discard",
+          this.uiLabels.cancelButton || this.uiLabels.cancelLabel || "Cancel",
         );
         if (!confirmed) return;
       }
@@ -1625,6 +1707,21 @@ function midpoint(a: Pt, b: Pt): Pt {
 
 const DEFAULT_LABELS: Record<string, CropperLabels> = {
   en: {
+    undoLabel: "Undo",
+    redoLabel: "Redo",
+    confirmationTitle: "Confirmation",
+    continueLabel: "Continue",
+    unsavedBlockDiscardToUndoMessage:
+      "You have unsaved changes in this block. Discard to continue with global undo?",
+    unsavedBlockDiscardToRedoMessage:
+      "You have unsaved changes in this block. Discard to continue with global redo?",
+    discardBlockChangesMessage: "Discard changes in this block?",
+    unsavedMainDiscardAndCloseMessage:
+      "You have unsaved changes. Discard changes and close?",
+    unsavedChangesInBlockToIncludeApplyMessage:
+      "You have unsaved changes. To include them, press 'Apply'. Discard and continue?",
+    unsavedChangesInBlockToSaveApplyMessage:
+      "You have unsaved changes. To include them in the image, press 'Apply'. Discard changes and save?",
     title: "Crop",
     cancelLabel: "Cancel",
     doneLabel: "Done",
@@ -1656,6 +1753,21 @@ const DEFAULT_LABELS: Record<string, CropperLabels> = {
     adjustmentsAriaLabel: "Image adjustments",
   },
   es: {
+    undoLabel: "Deshacer",
+    redoLabel: "Rehacer",
+    confirmationTitle: "Confirmación",
+    continueLabel: "Continuar",
+    unsavedBlockDiscardToUndoMessage:
+      "Tienes cambios sin aplicar en este bloque. ¿Descartar para continuar con deshacer global?",
+    unsavedBlockDiscardToRedoMessage:
+      "Tienes cambios sin aplicar en este bloque. ¿Descartar para continuar con rehacer global?",
+    discardBlockChangesMessage: "¿Descartar cambios en este bloque?",
+    unsavedMainDiscardAndCloseMessage:
+      "Tienes cambios sin guardar. ¿Descartar cambios y cerrar?",
+    unsavedChangesInBlockToIncludeApplyMessage:
+      "Tienes cambios sin aplicar. Para incluirlos, presiona 'Aplicar'. ¿Descartar y continuar?",
+    unsavedChangesInBlockToSaveApplyMessage:
+      "Tienes cambios sin aplicar. Para incluirlos en la imagen, presiona 'Aplicar'. ¿Descartar cambios y guardar?",
     title: "Recortar",
     cancelLabel: "Cancelar",
     doneLabel: "Listo",
@@ -1687,6 +1799,21 @@ const DEFAULT_LABELS: Record<string, CropperLabels> = {
     adjustmentsAriaLabel: "Ajustes de imagen",
   },
   de: {
+    undoLabel: "Rückgängig",
+    redoLabel: "Wiederholen",
+    confirmationTitle: "Bestätigung",
+    continueLabel: "Fortfahren",
+    unsavedBlockDiscardToUndoMessage:
+      "Sie haben nicht gespeicherte Änderungen in diesem Block. Verwerfen, um mit globalem Rückgängig fortzufahren?",
+    unsavedBlockDiscardToRedoMessage:
+      "Sie haben nicht gespeicherte Änderungen in diesem Block. Verwerfen, um mit globalem Wiederholen fortzufahren?",
+    discardBlockChangesMessage: "Änderungen in diesem Block verwerfen?",
+    unsavedMainDiscardAndCloseMessage:
+      "Sie haben nicht gespeicherte Änderungen. Änderungen verwerfen und schließen?",
+    unsavedChangesInBlockToIncludeApplyMessage:
+      "Sie haben nicht gespeicherte Änderungen. Um sie einzubeziehen, drücken Sie 'Anwenden'. Verwerfen und fortfahren?",
+    unsavedChangesInBlockToSaveApplyMessage:
+      "Sie haben nicht gespeicherte Änderungen. Um sie im Bild zu speichern, drücken Sie 'Anwenden'. Änderungen verwerfen und speichern?",
     title: "Zuschneiden",
     cancelLabel: "Abbrechen",
     doneLabel: "Fertig",
@@ -1718,6 +1845,21 @@ const DEFAULT_LABELS: Record<string, CropperLabels> = {
     adjustmentsAriaLabel: "Bildanpassungen",
   },
   pt: {
+    undoLabel: "Desfazer",
+    redoLabel: "Refazer",
+    confirmationTitle: "Confirmação",
+    continueLabel: "Continuar",
+    unsavedBlockDiscardToUndoMessage:
+      "Você tem alterações não aplicadas neste bloco. Descartar para continuar com desfazer global?",
+    unsavedBlockDiscardToRedoMessage:
+      "Você tem alterações não aplicadas neste bloco. Descartar para continuar com refazer global?",
+    discardBlockChangesMessage: "Descartar alterações neste bloco?",
+    unsavedMainDiscardAndCloseMessage:
+      "Você tem alterações não salvas. Descartar alterações e fechar?",
+    unsavedChangesInBlockToIncludeApplyMessage:
+      "Você tem alterações não aplicadas. Para incluí-las, pressione 'Aplicar'. Descartar e continuar?",
+    unsavedChangesInBlockToSaveApplyMessage:
+      "Você tem alterações não aplicadas. Para incluí-las na imagem, pressione 'Aplicar'. Descartar alterações e salvar?",
     title: "Recortar",
     cancelLabel: "Cancelar",
     doneLabel: "Concluir",
@@ -1749,6 +1891,21 @@ const DEFAULT_LABELS: Record<string, CropperLabels> = {
     adjustmentsAriaLabel: "Ajustes de imagem",
   },
   it: {
+    undoLabel: "Annulla",
+    redoLabel: "Ripristina",
+    confirmationTitle: "Conferma",
+    continueLabel: "Continua",
+    unsavedBlockDiscardToUndoMessage:
+      "Hai modifiche non applicate in questo blocco. Scartare per continuare con annulla globale?",
+    unsavedBlockDiscardToRedoMessage:
+      "Hai modifiche non applicate in questo blocco. Scartare per continuare con ripristina globale?",
+    discardBlockChangesMessage: "Scartare le modifiche in questo blocco?",
+    unsavedMainDiscardAndCloseMessage:
+      "Hai modifiche non salvate. Scartare le modifiche e chiudere?",
+    unsavedChangesInBlockToIncludeApplyMessage:
+      "Hai modifiche non applicate. Per includerle, premi 'Applica'. Scartare e continuare?",
+    unsavedChangesInBlockToSaveApplyMessage:
+      "Hai modifiche non applicate. Per includerle nell'immagine, premi 'Applica'. Scartare le modifiche e salvare?",
     title: "Ritaglia",
     cancelLabel: "Annulla",
     doneLabel: "Fatto",
@@ -1780,6 +1937,21 @@ const DEFAULT_LABELS: Record<string, CropperLabels> = {
     adjustmentsAriaLabel: "Regolazioni immagine",
   },
   fr: {
+    undoLabel: "Annuler",
+    redoLabel: "Rétablir",
+    confirmationTitle: "Confirmation",
+    continueLabel: "Continuer",
+    unsavedBlockDiscardToUndoMessage:
+      "Vous avez des modifications non appliquées dans ce bloc. Abandonner pour continuer avec l'annulation globale ?",
+    unsavedBlockDiscardToRedoMessage:
+      "Vous avez des modifications non appliquées dans ce bloc. Abandonner pour continuer avec la réinitialisation globale ?",
+    discardBlockChangesMessage: "Abandonner les modifications dans ce bloc ?",
+    unsavedMainDiscardAndCloseMessage:
+      "Vous avez des modifications non enregistrées. Abandonner les modifications et fermer ?",
+    unsavedChangesInBlockToIncludeApplyMessage:
+      "Vous avez des modifications non appliquées. Pour les inclure, appuyez sur 'Appliquer'. Abandonner et continuer ?",
+    unsavedChangesInBlockToSaveApplyMessage:
+      "Vous avez des modifications non appliquées. Pour les inclure dans l'image, appuyez sur 'Appliquer'. Abandonner les modifications et enregistrer ?",
     title: "Recadrer",
     cancelLabel: "Annuler",
     doneLabel: "Terminé",

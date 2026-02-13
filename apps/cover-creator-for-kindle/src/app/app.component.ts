@@ -30,10 +30,27 @@ export class AppComponent {
     const currentSettings = this.settings.get();
 
     await this.lang.set(currentSettings.lang);
+    // DEBUG: i18n runtime snapshot (remove after diagnosis)
+    console.log('[i18n-debug] after lang.set', {
+      currentLang: this.t.currentLang,
+      defaultLang: this.t.defaultLang,
+      langs: this.t.getLangs(),
+      createTitle: this.t.instant('CREATE.TITLE'),
+    });
 
     await this.consent.gatherConsent();
     this.setDocumentTitle();
-    this.t.onLangChange.subscribe(() => this.setDocumentTitle());
+    this.t.onLangChange.subscribe((event) => {
+      // DEBUG: i18n onLangChange (remove after diagnosis)
+      console.log('[i18n-debug] onLangChange', {
+        lang: event.lang,
+        currentLang: this.t.currentLang,
+        defaultLang: this.t.defaultLang,
+        langs: this.t.getLangs(),
+        createTitle: this.t.instant('CREATE.TITLE'),
+      });
+      this.setDocumentTitle();
+    });
   }
 
   private setDocumentTitle() {

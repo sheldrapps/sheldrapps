@@ -41,6 +41,14 @@ export function provideI18nKit(
   config: LanguageConfig,
   storageAdapter?: StorageAdapter
 ): (Provider | EnvironmentProviders)[] {
+  // DEBUG: i18n kit config snapshot (remove after diagnosis)
+  console.log('[i18n-kit] config snapshot', {
+    defaultLang: config.defaultLang,
+    fallbackLang: config.fallbackLang,
+    supportedLangs: config.supportedLangs,
+    loader: config.loader,
+    normalizationMap: config.normalizationMap,
+  });
   return [
     // Provide config via injection token
     { provide: LANGUAGE_CONFIG_TOKEN, useValue: config },

@@ -176,15 +176,17 @@
     </div>
   </div>
 
-  <ion-button
-    expand="block"
-    class="ion-margin-top"
-    fill="outline"
-    (click)="goToEditor()"
-    aria-label="{{ 'CREATE.ARIA_CROP' | translate }}"
-  >
-    {{ 'CREATE.CROP_ACTION' | translate }}
-  </ion-button>
+  @if (showExperimentalEditor) {
+    <ion-button
+      expand="block"
+      class="ion-margin-top"
+      fill="outline"
+      (click)="goToEditor()"
+      aria-label="{{ 'CREATE.ARIA_CROP' | translate }}"
+    >
+      {{ 'CREATE.CROP_ACTION' | translate }}
+    </ion-button>
+  }
 
   <ion-grid class="cc-action-grid">
     <ion-row>

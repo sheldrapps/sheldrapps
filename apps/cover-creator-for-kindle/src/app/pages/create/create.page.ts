@@ -210,6 +210,8 @@ export class CreatePage implements OnInit, OnDestroy {
   infoOpen = false;
   infoEvent: Event | null = null;
 
+  readonly showExperimentalEditor = false;
+
   async ngOnInit() {
     this.groups = await this.catalog.getGroups();
 
