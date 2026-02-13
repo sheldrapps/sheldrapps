@@ -1,10 +1,10 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>{{ uiLabels.title }}</ion-title>
+    <ion-title>{{ 'EDITOR.SHELL.TITLE' | translate }}</ion-title>
 
     <ion-buttons slot="end">
-      <ion-button (click)="cancel()">{{ uiLabels.cancelLabel }}</ion-button>
-      <ion-button [disabled]="!ready" (click)="done()">{{ uiLabels.doneLabel }}</ion-button>
+      <ion-button (click)="cancel()">{{ 'EDITOR.SHELL.BUTTON.CANCEL' | translate }}</ion-button>
+      <ion-button [disabled]="!ready" (click)="done()">{{ 'EDITOR.SHELL.BUTTON.DONE' | translate }}</ion-button>
     </ion-buttons>
   </ion-toolbar>
 
@@ -14,14 +14,14 @@
         <ion-button fill="clear" class="tool-btn" [disabled]="!canUndo" (click)="undo()">
           <div class="app-icon-text">
             <ion-icon class="app-icon-text__icon" name="return-up-back-outline"></ion-icon>
-            <span class="app-icon-text__label">{{ uiLabels.undoLabel }}</span>
+            <span class="app-icon-text__label">{{ 'EDITOR.SHELL.BUTTON.UNDO' | translate }}</span>
           </div>
         </ion-button>
 
         <ion-button fill="clear" class="tool-btn" [disabled]="!canRedo" (click)="redo()">
           <div class="app-icon-text">
             <ion-icon class="app-icon-text__icon" name="return-up-forward-outline"></ion-icon>
-            <span class="app-icon-text__label">{{ uiLabels.redoLabel }}</span>
+            <span class="app-icon-text__label">{{ 'EDITOR.SHELL.BUTTON.REDO' | translate }}</span>
           </div>
         </ion-button>
       </div>
@@ -31,14 +31,14 @@
           <ion-button fill="clear" class="tool-btn" (click)="discardBlockSession()">
             <div class="app-icon-text">
               <ion-icon class="app-icon-text__icon" name="close-outline"></ion-icon>
-              <span class="app-icon-text__label">{{ uiLabels.discardLabel }}</span>
+              <span class="app-icon-text__label">{{ 'EDITOR.SHELL.BUTTON.DISCARD' | translate }}</span>
             </div>
           </ion-button>
 
           <ion-button fill="clear" class="tool-btn" [disabled]="!blockSessionDirty" (click)="applyBlockSession()">
             <div class="app-icon-text">
               <ion-icon class="app-icon-text__icon" name="checkmark-outline"></ion-icon>
-              <span class="app-icon-text__label">{{ uiLabels.applyLabel }}</span>
+              <span class="app-icon-text__label">{{ 'EDITOR.SHELL.BUTTON.APPLY' | translate }}</span>
             </div>
           </ion-button>
         }
@@ -55,7 +55,7 @@
         class="frame"
         [style.--crop-ratio]="aspectRatio"
         (dblclick)="reset()"
-        [attr.aria-label]="uiLabels.frameAriaLabel"
+        [attr.aria-label]="'EDITOR.SHELL.ARIA.CROP_FRAME' | translate"
       >
         @if (imageUrl) {
           <img
@@ -73,7 +73,7 @@
           <div class="frame-loader" aria-hidden="true">
             <div class="frame-loader__card">
               <ion-spinner name="crescent"></ion-spinner>
-              <div class="frame-loader__text">{{ uiLabels.loadingLabel }}</div>
+              <div class="frame-loader__text">{{ 'EDITOR.SHELL.LABEL.LOADING' | translate }}</div>
             </div>
           </div>
         }
@@ -81,7 +81,7 @@
     </div>
 
     @if (ready) {
-      <div class="hint">{{ uiLabels.hintLabel }}</div>
+      <div class="hint">{{ 'EDITOR.SHELL.HINT.PREVIEW' | translate }}</div>
     }
   </div>
 
@@ -93,8 +93,8 @@
       [title]="ui.panelTitle()"
       [showReset]="ui.canReset()"
       [showGrabber]="ui.showGrabber()"
-      resetAriaLabel="Reset"
-      closeAriaLabel="Close"
+      [resetAriaLabel]="'EDITOR.SHELL.ARIA.RESET' | translate"
+      [closeAriaLabel]="'EDITOR.SHELL.ARIA.CLOSE' | translate"
       (close)="ui.closePanel()"
       (reset)="onResetPanel()"
     >

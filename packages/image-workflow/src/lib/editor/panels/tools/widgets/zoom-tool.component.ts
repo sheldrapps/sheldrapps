@@ -1,20 +1,26 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { TranslateModule } from "@ngx-translate/core";
+import { CommonModule } from "@angular/common";
+import { TranslateModule } from "@ngx-translate/core";
 
 @Component({
-  selector: 'cc-zoom-tool',
+  selector: "cc-zoom-tool",
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   template: `
     <div class="tool-widget">
-      <h3>Zoom Tool</h3>
-      <p>Zoom functionality placeholder</p>
+      <h3>{{ "EDITOR.PANELS.TOOLS.WIDGETS.ZOOM_TOOL.TITLE" | translate }}</h3>
+      <p>
+        {{ "EDITOR.PANELS.TOOLS.WIDGETS.ZOOM_TOOL.PLACEHOLDER" | translate }}
+      </p>
     </div>
   `,
-  styles: [`
-    .tool-widget {
-      padding: 1rem;
-    }
-  `],
+  styles: [
+    `
+      .tool-widget {
+        padding: 1rem;
+      }
+    `,
+  ],
 })
 export class ZoomToolComponent {}

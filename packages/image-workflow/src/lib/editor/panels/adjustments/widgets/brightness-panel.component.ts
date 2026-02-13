@@ -5,29 +5,11 @@ import { EditorStateService } from '../../../editor-state.service';
 import { RangeCustomEvent } from '@ionic/angular';
 
 @Component({
-  selector: 'cc-brightness-panel',
+  selector: "cc-brightness-panel",
   standalone: true,
   imports: [CommonModule, IonRange, IonItem, IonLabel],
-  template: `
-    <ion-item>
-      <ion-label>Brightness</ion-label>
-      <ion-range 
-        min="0.5" 
-        max="1.5" 
-        step="0.01" 
-        [value]="editorState.brightness()"
-        (ionInput)="onBrightnessChange($event)"
-        (ionKnobMoveStart)="editorState.onSliderStart()"
-        (ionKnobMoveEnd)="editorState.onSliderEnd()"
-        aria-label="Brightness"
-      ></ion-range>
-    </ion-item>
-  `,
-  styles: [`
-    :host {
-      display: block;
-    }
-  `]
+  templateUrl: "./brightness-panel.component.html",
+  styleUrls: ["./brightness-panel.component.scss"],
 })
 export class BrightnessPanelComponent {
   readonly editorState = inject(EditorStateService);

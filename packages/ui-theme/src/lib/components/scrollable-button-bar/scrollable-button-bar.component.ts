@@ -17,7 +17,8 @@ export type ScrollableBarAlign = "start" | "center";
 
 export interface ScrollableBarItem {
   id: string;
-  label: string;
+  label?: string;
+  labelKey?: string;
   icon?: string; // ionicon name, e.g. 'crop-outline'
   svg?: string; // raw svg string for custom icons
 }

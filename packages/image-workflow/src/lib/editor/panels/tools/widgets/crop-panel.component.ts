@@ -1,12 +1,20 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { IonGrid, IonRow, IonCol, IonItem, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
-import { EditorSessionService } from '../../../editor-session.service';
-import { EDITOR_SESSION_ID } from '../../../editor-panel.tokens';
+import { TranslateModule } from "@ngx-translate/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import {
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonItem,
+  IonSelect,
+  IonSelectOption,
+} from "@ionic/angular/standalone";
+import { EditorSessionService } from "../../../editor-session.service";
+import { EDITOR_SESSION_ID } from "../../../editor-panel.tokens";
 
 @Component({
-  selector: 'cc-crop-panel',
+  selector: "cc-crop-panel",
   standalone: true,
   imports: [
     CommonModule,
@@ -17,9 +25,10 @@ import { EDITOR_SESSION_ID } from '../../../editor-panel.tokens';
     IonItem,
     IonSelect,
     IonSelectOption,
+    TranslateModule,
   ],
-  templateUrl: './crop-panel.component.html',
-  styleUrls: ['./crop-panel.component.scss'],
+  templateUrl: "./crop-panel.component.html",
+  styleUrls: ["./crop-panel.component.scss"],
 })
 export class CropPanelComponent implements OnInit {
   private editorSession = inject(EditorSessionService);
@@ -37,7 +46,7 @@ export class CropPanelComponent implements OnInit {
 
   ngOnInit(): void {
     if (!this.sid) {
-      console.warn('CropPanelComponent: No session ID provided');
+      console.warn("CropPanelComponent: No session ID provided");
       return;
     }
 
@@ -55,7 +64,9 @@ export class CropPanelComponent implements OnInit {
 
   onGroupChange(): void {
     if (this.selectedGroupId) {
-      const group = this.kindleGroups.find((g) => g.id === this.selectedGroupId);
+      const group = this.kindleGroups.find(
+        (g) => g.id === this.selectedGroupId,
+      );
       if (group && group.models.length > 0) {
         this.selectedModel = group.models[0];
         this.onModelChange();
@@ -64,9 +75,9 @@ export class CropPanelComponent implements OnInit {
   }
 
   onModelChange(): void {
-    // Model change handler - in a full implementation, 
+    // Model change handler - in a full implementation,
     // this would emit changes to parent or save to a store
-    console.log('Model changed:', this.selectedModel);
+    console.log("Model changed:", this.selectedModel);
   }
 }
 

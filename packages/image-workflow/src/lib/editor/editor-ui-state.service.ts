@@ -36,7 +36,8 @@ export interface PanelState {
 }
 
 export interface PanelConfig {
-  title: string;
+  title?: string;
+  titleKey?: string;
   canReset: boolean;
   showGrabber: boolean;
   component: Type<any> | null;
@@ -88,7 +89,8 @@ export class EditorUiStateService {
     // Look up config from registries based on mode
     let registryConfig:
       | {
-          title: string;
+          title?: string;
+          titleKey?: string;
           canReset: boolean;
           showGrabber: boolean;
           component: Type<any>;
@@ -105,6 +107,7 @@ export class EditorUiStateService {
     if (registryConfig) {
       return {
         title: registryConfig.title,
+        titleKey: registryConfig.titleKey,
         canReset: registryConfig.canReset,
         showGrabber: registryConfig.showGrabber,
         component: registryConfig.component,
@@ -115,6 +118,7 @@ export class EditorUiStateService {
     // Fallback if not found in registries
     return {
       title: id,
+      titleKey: undefined,
       canReset: false,
       showGrabber: true,
       component: null,
@@ -122,7 +126,10 @@ export class EditorUiStateService {
     };
   });
 
-  readonly panelTitle = computed(() => this.panelConfig().title);
+  readonly panelTitle = computed(() => {
+    const config = this.panelConfig();
+    return config.titleKey || config.title || "";
+  });
   readonly canReset = computed(() => this.panelConfig().canReset);
   readonly showGrabber = computed(() => this.panelConfig().showGrabber);
   readonly activePanelComponent = computed(() => this.panelConfig().component);

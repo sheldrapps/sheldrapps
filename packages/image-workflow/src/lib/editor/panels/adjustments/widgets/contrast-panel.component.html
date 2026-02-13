@@ -1,0 +1,13 @@
+<ion-item>
+  <ion-label>Contrast</ion-label>
+  <ion-range 
+    min="0.5" 
+    max="1.8" 
+    step="0.01" 
+    [value]="editorState.contrast()"
+    (ionInput)="onContrastChange($event)"
+    (ionKnobMoveStart)="editorState.onSliderStart()"
+    (ionKnobMoveEnd)="editorState.onSliderEnd()"
+    aria-label="Contrast"
+  ></ion-range>
+</ion-item>

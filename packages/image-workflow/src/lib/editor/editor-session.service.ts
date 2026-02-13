@@ -3,13 +3,9 @@ import { Injectable } from '@angular/core';
 /** Panel types available in the editor */
 export type ToolPanelType = "zoom" | "rotate" | "crop";
 
-/** Crop format with display aspect ratio */
-export interface CropFormatOption {
-  id: string;
-  label: string;
-  width: number;
-  height: number;
-}
+
+// Use CropFormatOption from types barrel
+import type { CropFormatOption } from '../types';
 
 /** Kindle device model */
 export interface KindleDeviceModel {

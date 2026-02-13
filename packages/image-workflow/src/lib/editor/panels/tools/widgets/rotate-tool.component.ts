@@ -1,20 +1,26 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { TranslateModule } from "@ngx-translate/core";
+import { CommonModule } from "@angular/common";
+import { TranslateModule } from "@ngx-translate/core";
 
 @Component({
-  selector: 'cc-rotate-tool',
+  selector: "cc-rotate-tool",
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   template: `
     <div class="tool-widget">
-      <h3>Rotate Tool</h3>
-      <p>Rotate functionality placeholder</p>
+      <h3>{{ "EDITOR.PANELS.TOOLS.WIDGETS.ROTATE_TOOL.TITLE" | translate }}</h3>
+      <p>
+        {{ "EDITOR.PANELS.TOOLS.WIDGETS.ROTATE_TOOL.PLACEHOLDER" | translate }}
+      </p>
     </div>
   `,
-  styles: [`
-    .tool-widget {
-      padding: 1rem;
-    }
-  `],
+  styles: [
+    `
+      .tool-widget {
+        padding: 1rem;
+      }
+    `,
+  ],
 })
 export class RotateToolComponent {}

@@ -12,6 +12,6 @@
       "ionicons": "ionicons"
     }
   },
-  "assets": []
+  "assets": ["src/assets/**/*"]
 }
 

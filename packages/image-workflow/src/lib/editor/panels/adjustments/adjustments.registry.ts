@@ -1,13 +1,16 @@
 import { Type } from '@angular/core';
 import { AdjustmentKey } from '../../editor-ui-state.service';
 import { EditorStateService } from "../../editor-state.service";
-import { BrightnessPanelComponent } from "./widgets/brightness-panel.component";
-import { SaturationPanelComponent } from "./widgets/saturation-panel.component";
-import { ContrastPanelComponent } from "./widgets/contrast-panel.component";
-import { BwPanelComponent } from "./widgets/bw-panel.component";
+import {
+  BrightnessPanelComponent,
+  SaturationPanelComponent,
+  ContrastPanelComponent,
+  BwPanelComponent,
+} from "./widgets";
 
 export interface AdjustmentPanelConfig {
-  title: string;
+  title?: string;
+  titleKey?: string;
   component: Type<any>;
   canReset: boolean;
   showGrabber: boolean;
@@ -19,35 +22,35 @@ export const ADJUSTMENTS_REGISTRY: Record<
   AdjustmentPanelConfig
 > = {
   brightness: {
-    title: "Brightness",
+    title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BRIGHTNESS",
     component: BrightnessPanelComponent,
     canReset: true,
     showGrabber: true,
     reset: (state) => state.resetAdjustments(),
   },
   saturation: {
-    title: "Saturation",
+    title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION",
     component: SaturationPanelComponent,
     canReset: true,
     showGrabber: true,
     reset: (state) => state.resetAdjustments(),
   },
   contrast: {
-    title: "Contrast",
+    title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST",
     component: ContrastPanelComponent,
     canReset: true,
     showGrabber: true,
     reset: (state) => state.resetAdjustments(),
   },
   bw: {
-    title: "B/W",
+    title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW",
     component: BwPanelComponent,
     canReset: false,
     showGrabber: true,
     reset: (state) => state.resetAdjustments(),
   },
   dither: {
-    title: "B/W",
+    title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER",
     component: BwPanelComponent, // Using same component as bw for now
     canReset: false,
     showGrabber: true,

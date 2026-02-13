@@ -1,5 +1,6 @@
 import { Component } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { TranslateModule } from "@ngx-translate/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
   ScrollableButtonBarComponent,
@@ -9,7 +10,7 @@ import {
 @Component({
   selector: "cc-default-page",
   standalone: true,
-  imports: [CommonModule, ScrollableButtonBarComponent],
+  imports: [CommonModule, ScrollableButtonBarComponent, TranslateModule],
   templateUrl: "./default.page.html",
   styleUrls: ["./default.page.scss"],
 })

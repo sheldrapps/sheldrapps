@@ -1,0 +1,13 @@
+<ion-item>
+  <ion-label>Saturation</ion-label>
+  <ion-range 
+    min="0" 
+    max="2" 
+    step="0.01" 
+    [value]="editorState.saturation()"
+    (ionInput)="onSaturationChange($event)"
+    (ionKnobMoveStart)="editorState.onSliderStart()"
+    (ionKnobMoveEnd)="editorState.onSliderEnd()"
+    aria-label="Saturation"
+  ></ion-range>
+</ion-item>

@@ -15,7 +15,7 @@ import {
   NavigationEnd,
   RouterModule,
 } from "@angular/router";
-import { TranslateService } from "@ngx-translate/core";
+import { TranslateService, TranslateModule } from "@ngx-translate/core";
 import {
   IonButton,
   IonButtons,
@@ -59,19 +59,19 @@ export interface EditorLabels {
 }
 
 const DEFAULT_LABELS: EditorLabels = {
-  title: "Editor",
-  cancelLabel: "Cancel",
-  doneLabel: "Done",
-  undoLabel: "Undo",
-  redoLabel: "Redo",
-  discardLabel: "Discard",
-  applyLabel: "Apply",
-  loadingLabel: "Loading...",
-  hintLabel: "Preview",
-  frameAriaLabel: "Crop frame",
-  controlsAriaLabel: "Editor controls",
-  toolsLabel: "Tools",
-  adjustmentsLabel: "Adjustments",
+  title: "EDITOR.SHELL.TITLE",
+  cancelLabel: "EDITOR.SHELL.BUTTON.CANCEL",
+  doneLabel: "EDITOR.SHELL.BUTTON.DONE",
+  undoLabel: "EDITOR.SHELL.BUTTON.UNDO",
+  redoLabel: "EDITOR.SHELL.BUTTON.REDO",
+  discardLabel: "EDITOR.SHELL.BUTTON.DISCARD",
+  applyLabel: "EDITOR.SHELL.BUTTON.APPLY",
+  loadingLabel: "EDITOR.SHELL.LABEL.LOADING",
+  hintLabel: "EDITOR.SHELL.HINT.PREVIEW",
+  frameAriaLabel: "EDITOR.SHELL.ARIA.CROP_FRAME",
+  controlsAriaLabel: "EDITOR.SHELL.ARIA.CONTROLS",
+  toolsLabel: "EDITOR.SHELL.LABEL.TOOLS",
+  adjustmentsLabel: "EDITOR.SHELL.LABEL.ADJUSTMENTS",
 };
 
 @Component({
@@ -90,6 +90,7 @@ const DEFAULT_LABELS: EditorLabels = {
     IonTitle,
     IonToolbar,
     EditorPanelComponent,
+    TranslateModule,
   ],
   templateUrl: "./editor-shell.page.html",
   styleUrls: ["./editor-shell.page.scss"],

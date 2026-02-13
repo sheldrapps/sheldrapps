@@ -27,3 +27,4 @@
 export { EDITOR_PANEL_ID, EDITOR_PANEL_MODE, EDITOR_SESSION_ID } from './editor-panel.tokens';
 export { EditorUiStateService } from './editor-ui-state.service';
 export { EditorSessionService } from './editor-session.service';
+export { provideEditorI18n } from "./i18n/provide-editor-i18n";
