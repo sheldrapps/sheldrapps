@@ -1,13 +1,15 @@
 <ion-item>
-  <ion-label>Saturation</ion-label>
-  <ion-range 
-    min="0" 
-    max="2" 
-    step="0.01" 
+  <ion-label>
+    {{ "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION" | translate }}
+  </ion-label>
+  <ion-range
+    min="0"
+    max="2"
+    step="0.01"
     [value]="editorState.saturation()"
     (ionInput)="onSaturationChange($event)"
     (ionKnobMoveStart)="editorState.onSliderStart()"
     (ionKnobMoveEnd)="editorState.onSliderEnd()"
-    aria-label="Saturation"
+    [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION' | translate"
   ></ion-range>
 </ion-item>

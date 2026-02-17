@@ -88,9 +88,9 @@
   <!-- Router outlet for tools/adjustments panels -->
   <router-outlet></router-outlet>
 
-  @if (ui.isPanelOpen()) {
+    @if (ui.isPanelOpen()) {
     <sh-editor-panel
-      [title]="ui.panelTitle()"
+      [title]="ui.panelTitle() | translate"
       [showReset]="ui.canReset()"
       [showGrabber]="ui.showGrabber()"
       [resetAriaLabel]="'EDITOR.SHELL.ARIA.RESET' | translate"

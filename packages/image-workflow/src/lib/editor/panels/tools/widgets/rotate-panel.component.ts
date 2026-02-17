@@ -1,10 +1,17 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ScrollableButtonBarComponent,
   ScrollableBarItem,
 } from '@sheldrapps/ui-theme';
 import { EditorStateService } from '../../../editor-state.service';
+import {
+  TranslateService,
+  TranslationChangeEvent,
+  LangChangeEvent,
+} from "@ngx-translate/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { merge, Observable } from "rxjs";
 
 const ROTATE_LEFT_SVG = `
 <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -80,11 +87,47 @@ const ROTATE_RIGHT_SVG = `
 })
 export class RotatePanelComponent {
   readonly editorState = inject(EditorStateService);
+  private readonly translate = inject(TranslateService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  readonly rotateItems: ScrollableBarItem[] = [
-    { id: 'left', label: 'Left', svg: ROTATE_LEFT_SVG },
-    { id: 'right', label: 'Right', svg: ROTATE_RIGHT_SVG },
-  ];
+  rotateItems: ScrollableBarItem[] = this.buildRotateItems();
+
+  constructor() {
+    merge(
+      this.translate.onLangChange as Observable<LangChangeEvent>,
+      this.translate.onTranslationChange as Observable<TranslationChangeEvent>,
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.rotateItems = this.buildRotateItems();
+      });
+  }
+
+  private buildRotateItems(): ScrollableBarItem[] {
+    const leftKey =
+      "EDITOR.PANELS.TOOLS.WIDGETS.ROTATE_PANEL.BUTTON.LEFT";
+    const rightKey =
+      "EDITOR.PANELS.TOOLS.WIDGETS.ROTATE_PANEL.BUTTON.RIGHT";
+
+    const leftLabel = this.translate.instant(leftKey);
+    const rightLabel = this.translate.instant(rightKey);
+
+    const makeItem = (id: string, label: string, svg: string) =>
+      ({
+        id,
+        label,
+        labelKey: label,
+        text: label,
+        title: label,
+        ariaLabel: label,
+        svg,
+      }) as unknown as ScrollableBarItem;
+
+    return [
+      makeItem('left', leftLabel, ROTATE_LEFT_SVG),
+      makeItem('right', rightLabel, ROTATE_RIGHT_SVG),
+    ];
+  }
 
   onSelectRotate(id: string): void {
     if (id === 'left') {

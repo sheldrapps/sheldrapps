@@ -1,6 +1,6 @@
 <div class="bottom-bar" role="toolbar" [attr.aria-label]="'EDITOR.PANELS.TOOLS.TOOLS.PAGE.ARIA.TOOLBAR' | translate">
   <sh-scrollable-button-bar
-    [items]="toolItems()"
+    [items]="toolItems"
     [activeId]="ui.panelId()"
     variant="text"
     (selectItem)="onSelectTool($event)"

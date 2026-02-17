@@ -1,8 +1,12 @@
-import { ENVIRONMENT_INITIALIZER, inject, makeEnvironmentProviders } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import {
+  ENVIRONMENT_INITIALIZER,
+  inject,
+  isDevMode,
+  makeEnvironmentProviders,
+} from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { firstValueFrom } from 'rxjs';
 import { EDITOR_I18N_OVERRIDES } from "./editor-i18n.tokens";
+import { EDITOR_TRANSLATIONS, type FlatDict } from "./editor.translations";
 
 /**
  * Provides editor i18n translations with optional app overrides.
@@ -17,21 +21,9 @@ export function provideEditorI18n() {
       multi: true,
       useValue: () => {
         const translate = inject(TranslateService);
-        const http = inject(HttpClient);
         const overrides = inject(EDITOR_I18N_OVERRIDES, { optional: true });
-
-        const languages = [
-          "es-MX",
-          "en-US",
-          "de-DE",
-          "fr-FR",
-          "it-IT",
-          "pt-BR",
-        ];
-
-        const editorPrefix = "./assets/i18n/editor/";
-        const editorSuffix = ".json";
-        const loaded = new Set<string>();
+        const sampleKey = "EDITOR.SHELL.TITLE";
+        const merged = new Set<string>();
 
         const applyOverridesForLang = (lang: string) => {
           if (!overrides) return;
@@ -58,49 +50,80 @@ export function provideEditorI18n() {
           }
         };
 
-        const loadEditorTranslations = async (lang: string) => {
-          if (!lang || loaded.has(lang)) return;
-          if (!languages.includes(lang)) return;
-          loaded.add(lang);
+        const resolveDictForLang = (lang: string): FlatDict | null => {
+          if (!lang) return null;
+          if (lang in EDITOR_TRANSLATIONS) {
+            return EDITOR_TRANSLATIONS[lang as keyof typeof EDITOR_TRANSLATIONS];
+          }
+          if (lang === "es-MX" && EDITOR_TRANSLATIONS["es-419"]) {
+            return EDITOR_TRANSLATIONS["es-419"];
+          }
+          return null;
+        };
 
-          const url = `${editorPrefix}${lang}${editorSuffix}`;
-          // DEBUG: editor i18n loader path (remove after diagnosis)
-          console.log("[editor-i18n] loading editor assets", {
-            lang,
-            url,
-          });
+        const mergeEditorTranslations = (lang: string, reason: string) => {
+          const dict = resolveDictForLang(lang);
+          if (!dict) return;
+          if (merged.has(lang)) return;
+          merged.add(lang);
 
-          try {
-            const dict =
-              (await firstValueFrom(
-                http.get<Record<string, string>>(url),
-              )) ?? {};
-            translate.setTranslation(lang, dict, true);
-            // DEBUG: editor i18n load result (remove after diagnosis)
-            console.log("[editor-i18n] loaded editor assets", {
+          translate.setTranslation(lang, dict, true);
+          applyOverridesForLang(lang);
+
+          if (isDevMode()) {
+            // DEBUG: editor i18n merge snapshot (remove after diagnosis)
+            console.log("[editor-i18n] merged editor translations", {
               lang,
+              reason,
               keys: Object.keys(dict).length,
-            });
-          } catch (err) {
-            console.warn("[editor-i18n] Failed to load editor assets:", {
-              lang,
-              url,
-              err,
+              sampleKey,
+              hasSampleKey: Object.prototype.hasOwnProperty.call(dict, sampleKey),
+              sampleValue: dict[sampleKey],
             });
           }
 
-          applyOverridesForLang(lang);
+          queueMicrotask(() => {
+            merged.delete(lang);
+          });
         };
 
         try {
+          if (isDevMode()) {
+            const resolvedLang =
+              translate.currentLang || translate.defaultLang || "unknown";
+            const resolvedValue = translate.instant(sampleKey);
+            // DEBUG: editor i18n initial resolve (remove after diagnosis)
+            console.log("[editor-i18n] resolve snapshot", {
+              lang: resolvedLang,
+              key: sampleKey,
+              value: resolvedValue,
+              isMissing: resolvedValue === sampleKey,
+            });
+          }
+
+          translate.onTranslationChange.subscribe((event) => {
+            if (
+              event.lang &&
+              !Object.prototype.hasOwnProperty.call(event.translations, sampleKey)
+            ) {
+              mergeEditorTranslations(event.lang, "onTranslationChange");
+            }
+          });
+
           translate.onLangChange.subscribe((event) => {
+            // Re-merge editor keys after app loaders set the base dictionary.
+            mergeEditorTranslations(event.lang, "onLangChange");
+            if (!isDevMode()) return;
+            const resolvedValue = translate.instant(sampleKey);
             // DEBUG: editor i18n onLangChange (remove after diagnosis)
             console.log("[editor-i18n] onLangChange", {
               lang: event.lang,
               currentLang: translate.currentLang,
               defaultLang: translate.defaultLang,
+              key: sampleKey,
+              value: resolvedValue,
+              isMissing: resolvedValue === sampleKey,
             });
-            void loadEditorTranslations(event.lang);
           });
         } catch (err) {
           // Log a single warning if registration fails

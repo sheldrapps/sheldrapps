@@ -7,6 +7,7 @@ import {
   OnInit,
   ViewChild,
   effect,
+  isDevMode,
 } from "@angular/core";
 import { CommonModule, NgComponentOutlet } from "@angular/common";
 import {
@@ -26,6 +27,7 @@ import {
   IonTitle,
   IonToolbar,
 } from "@ionic/angular/standalone";
+import { NavController } from "@ionic/angular";
 import { EditorPanelComponent } from "@sheldrapps/ui-theme";
 import { addIcons } from "ionicons";
 import {
@@ -104,6 +106,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   // Session
   sid = "";
   session: EditorSession | null = null;
+  private returnUrl: string | null = null;
   private objectUrl?: string;
 
   // Preview
@@ -133,6 +136,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
+    private navCtrl: NavController,
     private editorSession: EditorSessionService,
     readonly ui: EditorUiStateService,
     private editorState: EditorStateService,
@@ -192,6 +196,9 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.sid = this.route.snapshot.queryParamMap.get("sid") ?? "";
     this.session = this.sid ? this.editorSession.getSession(this.sid) : null;
+    this.returnUrl =
+      this.session?.returnUrl ??
+      this.route.snapshot.queryParamMap.get("returnUrl");
 
     if (!this.session?.file) return;
 
@@ -248,18 +255,43 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
   // Header actions
   cancel(): void {
-    this.router.navigate(["/create"]);
+    this.exitEditor("cancel");
   }
 
   done(): void {
     // Future: export/apply final result
+    this.exitEditor("done");
   }
 
   // Top toolbox (future wiring)
   undo(): void {}
   redo(): void {}
-  discardBlockSession(): void {}
-  applyBlockSession(): void {}
+  discardBlockSession(): void {
+    this.exitEditor("discard");
+  }
+  applyBlockSession(): void {
+    this.exitEditor("apply");
+  }
+
+  private exitEditor(reason: "cancel" | "done" | "discard" | "apply"): void {
+    const exitUrl = this.getExitUrl();
+    if (isDevMode()) {
+      // DEBUG: editor exit snapshot (remove after diagnosis)
+      console.log("[editor-exit]", {
+        reason,
+        sid: this.sid,
+        exitUrl,
+        hasSession: !!this.session?.file,
+      });
+    }
+    this.navCtrl.navigateBack(exitUrl, { replaceUrl: true });
+  }
+
+  private getExitUrl(): string {
+    const candidate = this.returnUrl ?? "";
+    if (candidate.startsWith("/tabs/")) return candidate;
+    return "/tabs/create";
+  }
 
   // Panel actions
   onResetPanel(): void {

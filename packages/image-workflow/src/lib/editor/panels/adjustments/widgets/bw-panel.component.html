@@ -1,19 +1,23 @@
 <ion-item>
-  <ion-label>Black &amp; White</ion-label>
-  <ion-toggle 
+  <ion-label>
+    {{ "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW" | translate }}
+  </ion-label>
+  <ion-toggle
     slot="end"
     [checked]="editorState.bw()"
     (ionChange)="onBwChange($event)"
-    aria-label="Black and White"
+    [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW' | translate"
   ></ion-toggle>
 </ion-item>
 <ion-item>
-  <ion-label>Dithering</ion-label>
-  <ion-toggle 
+  <ion-label>
+    {{ "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER" | translate }}
+  </ion-label>
+  <ion-toggle
     slot="end"
     [checked]="editorState.dither()"
     [disabled]="!editorState.bw()"
     (ionChange)="onDitherChange($event)"
-    aria-label="Dithering"
+    [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER' | translate"
   ></ion-toggle>
 </ion-item>

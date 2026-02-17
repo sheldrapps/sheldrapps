@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Optional } from '@angular/core';
+import { Router } from '@angular/router';
 
 /** Panel types available in the editor */
 export type ToolPanelType = "zoom" | "rotate" | "crop";
@@ -60,15 +61,25 @@ export type EditorSession = {
 
   /** Tools configuration (controls available panels) */
   tools?: EditorToolsConfig;
+
+  /** Optional return url for exiting the editor */
+  returnUrl?: string;
 };
 
 @Injectable({ providedIn: 'root' })
 export class EditorSessionService {
   private sessions = new Map<string, EditorSession>();
 
+  constructor(@Optional() private router?: Router) {}
+
   createSession(session: EditorSession): string {
     const sid = this.generateSessionId();
-    this.sessions.set(sid, session);
+    const returnUrl =
+      session.returnUrl ?? this.router?.url ?? this.getLocationUrl();
+    this.sessions.set(sid, {
+      ...session,
+      returnUrl: returnUrl ?? session.returnUrl,
+    });
     return sid;
   }
 
@@ -82,6 +93,12 @@ export class EditorSessionService {
       this.sessions.delete(id);
     }
     return session;
+  }
+
+  private getLocationUrl(): string | null {
+    if (typeof window === 'undefined') return null;
+    const { pathname, search, hash } = window.location;
+    return `${pathname}${search}${hash}`;
   }
 
   private generateSessionId(): string {
