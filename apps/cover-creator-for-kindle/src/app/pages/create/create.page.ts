@@ -266,7 +266,9 @@ export class CreatePage implements OnInit, OnDestroy {
     return m1 && m2 ? m1.id === m2.id : m1 === m2;
   }
 
-  goToEditor() {
+  onAdjustWithEditor() {
+    if (!this.canEdit()) return;
+
     if (!this.workingImageFile || !this.selectedModel) return;
 
     const sid = this.editorSession.createSession({
@@ -384,6 +386,12 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   canCrop(): boolean {
+    return (
+      !!this.selectedModel && !!this.workingImageFile && !this.imageErrorKey
+    );
+  }
+
+  canEdit(): boolean {
     return (
       !!this.selectedModel && !!this.workingImageFile && !this.imageErrorKey
     );

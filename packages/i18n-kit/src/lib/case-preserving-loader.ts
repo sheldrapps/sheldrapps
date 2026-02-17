@@ -15,11 +15,6 @@ export class CasePreservingTranslateLoader implements TranslateLoader {
 
   getTranslation(lang: string): Observable<any> {
     const url = `${this.prefix}${lang}${this.suffix}`;
-    // DEBUG: i18n loader request (remove after diagnosis)
-    console.log('[i18n-kit] loader.getTranslation', {
-      lang,
-      url,
-    });
     return this.http.get<any>(url);
   }
 }
@@ -27,9 +22,7 @@ export class CasePreservingTranslateLoader implements TranslateLoader {
 export function createCasePreservingTranslateLoader(
   http: HttpClient,
   prefix: string,
-  suffix: string
+  suffix: string,
 ): TranslateLoader {
-  // DEBUG: i18n loader config (remove after diagnosis)
-  console.log('[i18n-kit] loader config', { prefix, suffix });
   return new CasePreservingTranslateLoader(http, prefix, suffix);
 }

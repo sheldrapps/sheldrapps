@@ -39,16 +39,8 @@ import { createCasePreservingTranslateLoader } from './case-preserving-loader';
  */
 export function provideI18nKit(
   config: LanguageConfig,
-  storageAdapter?: StorageAdapter
+  storageAdapter?: StorageAdapter,
 ): (Provider | EnvironmentProviders)[] {
-  // DEBUG: i18n kit config snapshot (remove after diagnosis)
-  console.log('[i18n-kit] config snapshot', {
-    defaultLang: config.defaultLang,
-    fallbackLang: config.fallbackLang,
-    supportedLangs: config.supportedLangs,
-    loader: config.loader,
-    normalizationMap: config.normalizationMap,
-  });
   return [
     // Provide config via injection token
     { provide: LANGUAGE_CONFIG_TOKEN, useValue: config },
@@ -63,7 +55,7 @@ export function provideI18nKit(
     provideHttpClient(),
 
     provideTranslateService({
-      defaultLanguage: config.defaultLang,
+      fallbackLang: config.defaultLang,
       lang: config.defaultLang,
       loader: {
         provide: TranslateLoader,

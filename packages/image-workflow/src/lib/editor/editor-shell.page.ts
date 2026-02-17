@@ -8,7 +8,6 @@ import {
   OnInit,
   ViewChild,
   effect,
-  isDevMode,
 } from "@angular/core";
 import { CommonModule, NgComponentOutlet } from "@angular/common";
 import {
@@ -47,6 +46,17 @@ import { EditorStateService } from "./editor-state.service";
 import { buildCssFilter } from "./editor-adjustments";
 import { renderCroppedFile } from "../core/pipeline/cropper-export";
 import type { CropperResult } from "../types";
+
+type Pt = { x: number; y: number };
+
+type CanvasGestureStart = {
+  type: "pan" | "pinch";
+  startScale: number;
+  startTx: number;
+  startTy: number;
+  startDist: number;
+  startMid: Pt;
+};
 
 export interface EditorLabels {
   title: string;
@@ -120,6 +130,11 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   readonly cssFilter = computed(() =>
     buildCssFilter(this.editorState.adjustments()),
   );
+  readonly hintKey = computed(() =>
+    this.ui.activeMode() === "tools"
+      ? "EDITOR.SHELL.HINT.GESTURES"
+      : "EDITOR.SHELL.HINT.PREVIEW",
+  );
   private isExporting = false;
 
   // Top toolbox state (wired later)
@@ -140,6 +155,11 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   private rot = 0;
 
   private resizeObs?: ResizeObserver;
+  private gestureStart?: CanvasGestureStart;
+  private gesturesEnabled = false;
+  private readonly pointers = new Map<number, Pt>();
+  private readonly capturedPointers = new Set<number>();
+  private cleanupGestures?: () => void;
 
   constructor(
     private router: Router,
@@ -168,7 +188,6 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       this.rot = this.editorState.rot();
       this.renderTransform();
     });
-
   }
 
   ngOnInit(): void {
@@ -210,14 +229,164 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.resizeObs = new ResizeObserver(() => this.tryReady());
     this.resizeObs.observe(frameEl);
 
-    // NOTE: no gestures here; panels will handle interactions later.
-    // We only keep size recalculation here.
-    this.zone.runOutsideAngular(() => {});
+    const capture = (id: number) => {
+      if (this.capturedPointers.has(id)) return;
+      try {
+        frameEl.setPointerCapture(id);
+        this.capturedPointers.add(id);
+      } catch {}
+    };
+
+    const release = (id: number) => {
+      if (!this.capturedPointers.has(id)) return;
+      try {
+        frameEl.releasePointerCapture(id);
+      } catch {}
+      this.capturedPointers.delete(id);
+    };
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (!this.gesturesEnabled) return;
+      if (!this.ready) {
+        e.preventDefault();
+        return;
+      }
+
+      const wasEmpty = this.pointers.size === 0;
+      this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      capture(e.pointerId);
+
+      if (wasEmpty) {
+        this.editorState.onGestureStart();
+      }
+
+      if (this.pointers.size === 1) {
+        this.gestureStart = {
+          type: "pan",
+          startScale: this.editorState.scale(),
+          startTx: this.editorState.tx(),
+          startTy: this.editorState.ty(),
+          startDist: 0,
+          startMid: { x: e.clientX, y: e.clientY },
+        };
+        e.preventDefault();
+        return;
+      }
+
+      if (this.pointers.size >= 2) {
+        const [a, b] = Array.from(this.pointers.values());
+        this.gestureStart = {
+          type: "pinch",
+          startScale: this.editorState.scale(),
+          startTx: this.editorState.tx(),
+          startTy: this.editorState.ty(),
+          startDist: this.distance(a, b),
+          startMid: this.midpoint(a, b),
+        };
+        e.preventDefault();
+      }
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      if (!this.gesturesEnabled || !this.ready) return;
+      if (!this.pointers.has(e.pointerId)) return;
+
+      this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (!this.gestureStart) return;
+
+      if (this.pointers.size === 1 && this.gestureStart.type === "pan") {
+        const p = this.pointers.values().next().value as Pt;
+        const dx = p.x - this.gestureStart.startMid.x;
+        const dy = p.y - this.gestureStart.startMid.y;
+
+        this.editorState.setTranslation(
+          this.gestureStart.startTx + dx,
+          this.gestureStart.startTy + dy,
+        );
+        e.preventDefault();
+        return;
+      }
+
+      if (this.pointers.size >= 2) {
+        const [a, b] = Array.from(this.pointers.values());
+        const mid = this.midpoint(a, b);
+        const dist = this.distance(a, b);
+
+        const ratio =
+          this.gestureStart.startDist > 0
+            ? dist / this.gestureStart.startDist
+            : 1;
+
+        this.editorState.setScale(this.gestureStart.startScale * ratio);
+
+        const mdx = mid.x - this.gestureStart.startMid.x;
+        const mdy = mid.y - this.gestureStart.startMid.y;
+
+        this.editorState.setTranslation(
+          this.gestureStart.startTx + mdx,
+          this.gestureStart.startTy + mdy,
+        );
+        e.preventDefault();
+      }
+    };
+
+    const onPointerUp = (e: PointerEvent) => {
+      if (this.pointers.has(e.pointerId)) {
+        this.pointers.delete(e.pointerId);
+      }
+      release(e.pointerId);
+
+      if (!this.gesturesEnabled) return;
+
+      if (this.pointers.size === 1) {
+        const p = this.pointers.values().next().value as Pt;
+        this.gestureStart = {
+          type: "pan",
+          startScale: this.editorState.scale(),
+          startTx: this.editorState.tx(),
+          startTy: this.editorState.ty(),
+          startDist: 0,
+          startMid: { x: p.x, y: p.y },
+        };
+      } else if (this.pointers.size >= 2) {
+        const [a, b] = Array.from(this.pointers.values());
+        this.gestureStart = {
+          type: "pinch",
+          startScale: this.editorState.scale(),
+          startTx: this.editorState.tx(),
+          startTy: this.editorState.ty(),
+          startDist: this.distance(a, b),
+          startMid: this.midpoint(a, b),
+        };
+      } else {
+        this.endGesture();
+      }
+
+      e.preventDefault();
+    };
+
+    frameEl.addEventListener("pointerdown", onPointerDown, { passive: false });
+    frameEl.addEventListener("pointermove", onPointerMove, { passive: false });
+    frameEl.addEventListener("pointerup", onPointerUp, { passive: false });
+    frameEl.addEventListener("pointercancel", onPointerUp, {
+      passive: false,
+    });
+
+    this.cleanupGestures = () => {
+      frameEl.removeEventListener("pointerdown", onPointerDown as any);
+      frameEl.removeEventListener("pointermove", onPointerMove as any);
+      frameEl.removeEventListener("pointerup", onPointerUp as any);
+      frameEl.removeEventListener("pointercancel", onPointerUp as any);
+      this.cancelActivePointers();
+    };
+
+    this.updateCanvasGestures();
   }
 
   ngOnDestroy(): void {
     this.resizeObs?.disconnect();
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
+    this.cleanupGestures?.();
   }
 
   private updateModeFromRoute(): void {
@@ -229,6 +398,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     } else {
       this.ui.setMode("none");
     }
+    this.updateCanvasGestures();
   }
 
   // Header actions
@@ -295,15 +465,6 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
   private exitEditor(reason: "cancel" | "done" | "discard" | "apply"): void {
     const exitUrl = this.getExitUrl();
-    if (isDevMode()) {
-      // DEBUG: editor exit snapshot (remove after diagnosis)
-      console.log("[editor-exit]", {
-        reason,
-        sid: this.sid,
-        exitUrl,
-        hasSession: !!this.session?.file,
-      });
-    }
     this.navCtrl.navigateBack(exitUrl, { replaceUrl: true });
   }
 
@@ -311,6 +472,19 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     const candidate = this.returnUrl ?? "";
     if (candidate.startsWith("/tabs/")) return candidate;
     return "/tabs/create";
+  }
+
+  private updateCanvasGestures(): void {
+    const enabled = this.isToolsRouteActive();
+    if (this.gesturesEnabled === enabled) return;
+    this.gesturesEnabled = enabled;
+    if (!enabled) {
+      this.cancelActivePointers();
+    }
+  }
+
+  private isToolsRouteActive(): boolean {
+    return this.router.url.includes("/editor/tools");
   }
 
   // Panel actions
@@ -402,5 +576,38 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       `translate(calc(-50% + ${this.tx}px), calc(-50% + ${this.ty}px)) ` +
       `rotate(${this.rot}deg) ` +
       `scale(${dispScale})`;
+  }
+
+  private endGesture(): void {
+    if (!this.gestureStart) return;
+    this.gestureStart = undefined;
+    this.editorState.onGestureEnd();
+  }
+
+  private cancelActivePointers(): void {
+    const frameEl = this.frameRef?.nativeElement;
+
+    for (const id of this.capturedPointers) {
+      try {
+        frameEl?.releasePointerCapture(id);
+      } catch {}
+    }
+
+    this.capturedPointers.clear();
+    this.pointers.clear();
+
+    if (this.gestureStart) {
+      this.endGesture();
+    }
+  }
+
+  private distance(a: Pt, b: Pt): number {
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    return Math.hypot(dx, dy);
+  }
+
+  private midpoint(a: Pt, b: Pt): Pt {
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
   }
 }

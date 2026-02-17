@@ -1,10 +1,9 @@
 import {
   ENVIRONMENT_INITIALIZER,
   inject,
-  isDevMode,
   makeEnvironmentProviders,
-} from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+} from "@angular/core";
+import { TranslateService } from "@ngx-translate/core";
 import { EDITOR_I18N_OVERRIDES } from "./editor-i18n.tokens";
 import { EDITOR_TRANSLATIONS, type FlatDict } from "./editor.translations";
 
@@ -53,7 +52,9 @@ export function provideEditorI18n() {
         const resolveDictForLang = (lang: string): FlatDict | null => {
           if (!lang) return null;
           if (lang in EDITOR_TRANSLATIONS) {
-            return EDITOR_TRANSLATIONS[lang as keyof typeof EDITOR_TRANSLATIONS];
+            return EDITOR_TRANSLATIONS[
+              lang as keyof typeof EDITOR_TRANSLATIONS
+            ];
           }
           if (lang === "es-MX" && EDITOR_TRANSLATIONS["es-419"]) {
             return EDITOR_TRANSLATIONS["es-419"];
@@ -70,63 +71,29 @@ export function provideEditorI18n() {
           translate.setTranslation(lang, dict, true);
           applyOverridesForLang(lang);
 
-          if (isDevMode()) {
-            // DEBUG: editor i18n merge snapshot (remove after diagnosis)
-            console.log("[editor-i18n] merged editor translations", {
-              lang,
-              reason,
-              keys: Object.keys(dict).length,
-              sampleKey,
-              hasSampleKey: Object.prototype.hasOwnProperty.call(dict, sampleKey),
-              sampleValue: dict[sampleKey],
-            });
-          }
-
           queueMicrotask(() => {
             merged.delete(lang);
           });
         };
 
         try {
-          if (isDevMode()) {
-            const resolvedLang =
-              translate.currentLang || translate.defaultLang || "unknown";
-            const resolvedValue = translate.instant(sampleKey);
-            // DEBUG: editor i18n initial resolve (remove after diagnosis)
-            console.log("[editor-i18n] resolve snapshot", {
-              lang: resolvedLang,
-              key: sampleKey,
-              value: resolvedValue,
-              isMissing: resolvedValue === sampleKey,
-            });
-          }
-
           translate.onTranslationChange.subscribe((event) => {
             if (
               event.lang &&
-              !Object.prototype.hasOwnProperty.call(event.translations, sampleKey)
+              !Object.prototype.hasOwnProperty.call(
+                event.translations,
+                sampleKey,
+              )
             ) {
               mergeEditorTranslations(event.lang, "onTranslationChange");
             }
           });
 
           translate.onLangChange.subscribe((event) => {
-            // Re-merge editor keys after app loaders set the base dictionary.
             mergeEditorTranslations(event.lang, "onLangChange");
-            if (!isDevMode()) return;
             const resolvedValue = translate.instant(sampleKey);
-            // DEBUG: editor i18n onLangChange (remove after diagnosis)
-            console.log("[editor-i18n] onLangChange", {
-              lang: event.lang,
-              currentLang: translate.currentLang,
-              defaultLang: translate.defaultLang,
-              key: sampleKey,
-              value: resolvedValue,
-              isMissing: resolvedValue === sampleKey,
-            });
           });
         } catch (err) {
-          // Log a single warning if registration fails
           console.warn(
             "[editor-i18n] Failed to register editor translations:",
             err,
