@@ -15,13 +15,31 @@
     "sourceMap": true,
     "declaration": false,
     "experimentalDecorators": true,
-    "moduleResolution": "node",
     "importHelpers": true,
     "target": "es2022",
     "module": "es2020",
     "lib": ["es2018", "dom"],
     "skipLibCheck": true,
-    "useDefineForClassFields": false
+    "useDefineForClassFields": false,
+    "paths": {
+      "@sheldrapps/ads-kit": ["../../packages/ads-kit/src/public-api.ts"],
+      "@sheldrapps/i18n-kit": ["../../packages/i18n-kit/src/public-api.ts"],
+      "@sheldrapps/settings-kit": [
+        "../../packages/settings-kit/src/public-api.ts"
+      ],
+      "@sheldrapps/file-kit": ["../../packages/file-kit/src/public-api.ts"],
+      "@sheldrapps/image-workflow": [
+        "../../packages/image-workflow/src/public-api.ts"
+      ],
+      "@sheldrapps/image-workflow/capacitor": [
+        "../../packages/image-workflow/src/lib/adapters/capacitor/public-api.ts"
+      ],
+      "@sheldrapps/image-workflow/editor": [
+        "../../packages/image-workflow/src/editor/public-api.ts"
+      ],
+      "@sheldrapps/ui-theme": ["../../packages/ui-theme/src/index.ts"],
+      "@sheldrapps/ui-theme/styles/*": ["../../packages/ui-theme/styles/*"]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
