@@ -1,4 +1,8 @@
 import { Injectable, signal, computed } from '@angular/core';
+import {
+  DEFAULT_EDITOR_ADJUSTMENTS,
+  EditorAdjustmentsState,
+} from './editor-adjustments';
 
 /**
  * Editor state service - manages the preview transformation state
@@ -15,11 +19,19 @@ export class EditorStateService {
   readonly rot = signal(0);
 
   // Adjustment state
-  readonly brightness = signal(1);
-  readonly saturation = signal(1);
-  readonly contrast = signal(1);
-  readonly bw = signal(false);
-  readonly dither = signal(false);
+  readonly brightness = signal(DEFAULT_EDITOR_ADJUSTMENTS.brightness);
+  readonly saturation = signal(DEFAULT_EDITOR_ADJUSTMENTS.saturation);
+  readonly contrast = signal(DEFAULT_EDITOR_ADJUSTMENTS.contrast);
+  readonly bw = signal(DEFAULT_EDITOR_ADJUSTMENTS.bw);
+  readonly dither = signal(DEFAULT_EDITOR_ADJUSTMENTS.dither);
+
+  readonly adjustments = computed<EditorAdjustmentsState>(() => ({
+    brightness: this.brightness(),
+    contrast: this.contrast(),
+    saturation: this.saturation(),
+    bw: this.bw(),
+    dither: this.dither(),
+  }));
 
   // Gesture tracking (for history/undo)
   private sliderInProgress = signal(false);
@@ -45,14 +57,12 @@ export class EditorStateService {
   setBw(value: boolean): void {
     this.bw.set(value);
     if (!value) {
-      this.dither.set(false);
+      this.dither.set(DEFAULT_EDITOR_ADJUSTMENTS.dither);
     }
   }
 
   setDither(value: boolean): void {
-    if (this.bw()) {
-      this.dither.set(value);
-    }
+    this.dither.set(value && this.bw());
   }
 
   setScale(value: number): void {
@@ -102,12 +112,33 @@ export class EditorStateService {
   }
 
   // Reset methods
+  resetBrightness(): void {
+    this.brightness.set(DEFAULT_EDITOR_ADJUSTMENTS.brightness);
+  }
+
+  resetSaturation(): void {
+    this.saturation.set(DEFAULT_EDITOR_ADJUSTMENTS.saturation);
+  }
+
+  resetContrast(): void {
+    this.contrast.set(DEFAULT_EDITOR_ADJUSTMENTS.contrast);
+  }
+
+  resetBw(): void {
+    this.bw.set(DEFAULT_EDITOR_ADJUSTMENTS.bw);
+    this.dither.set(DEFAULT_EDITOR_ADJUSTMENTS.dither);
+  }
+
+  resetDither(): void {
+    this.dither.set(DEFAULT_EDITOR_ADJUSTMENTS.dither);
+  }
+
   resetAdjustments(): void {
-    this.brightness.set(1);
-    this.saturation.set(1);
-    this.contrast.set(1);
-    this.bw.set(false);
-    this.dither.set(false);
+    this.brightness.set(DEFAULT_EDITOR_ADJUSTMENTS.brightness);
+    this.saturation.set(DEFAULT_EDITOR_ADJUSTMENTS.saturation);
+    this.contrast.set(DEFAULT_EDITOR_ADJUSTMENTS.contrast);
+    this.bw.set(DEFAULT_EDITOR_ADJUSTMENTS.bw);
+    this.dither.set(DEFAULT_EDITOR_ADJUSTMENTS.dither);
   }
 
   resetTransform(): void {
@@ -147,7 +178,9 @@ export class EditorStateService {
     this.saturation.set(state.saturation);
     this.contrast.set(state.contrast);
     this.bw.set(state.bw);
-    this.dither.set(state.dither);
+    this.dither.set(
+      state.bw ? state.dither : DEFAULT_EDITOR_ADJUSTMENTS.dither,
+    );
   }
 
   // Utilities

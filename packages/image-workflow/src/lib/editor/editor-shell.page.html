@@ -62,6 +62,7 @@
             #img
             class="img"
             [src]="imageUrl"
+            [style.filter]="cssFilter()"
             alt=""
             draggable="false"
             (load)="onImgLoad($event)"

@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  computed,
   ElementRef,
   NgZone,
   OnDestroy,
@@ -43,6 +44,9 @@ import { filter } from "rxjs";
 import { EditorSessionService, EditorSession } from "./editor-session.service";
 import { EditorUiStateService } from "./editor-ui-state.service";
 import { EditorStateService } from "./editor-state.service";
+import { buildCssFilter } from "./editor-adjustments";
+import { renderCroppedFile } from "../core/pipeline/cropper-export";
+import type { CropperResult } from "../types";
 
 export interface EditorLabels {
   title: string;
@@ -113,6 +117,10 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   aspectRatio = "3 / 4";
   imageUrl: string | null = null;
   ready = false;
+  readonly cssFilter = computed(() =>
+    buildCssFilter(this.editorState.adjustments()),
+  );
+  private isExporting = false;
 
   // Top toolbox state (wired later)
   canUndo = false;
@@ -161,36 +169,6 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       this.renderTransform();
     });
 
-    effect(() => {
-      // Update CSS filters from adjustment signals
-      const img = this.imgRef?.nativeElement;
-      if (!img) return;
-
-      const brightness = this.editorState.brightness();
-      const saturation = this.editorState.saturation();
-      const contrast = this.editorState.contrast();
-      const bw = this.editorState.bw();
-
-      const filters: string[] = [];
-
-      if (brightness !== 1) {
-        filters.push(`brightness(${brightness})`);
-      }
-
-      if (saturation !== 1) {
-        filters.push(`saturate(${saturation})`);
-      }
-
-      if (contrast !== 1) {
-        filters.push(`contrast(${contrast})`);
-      }
-
-      if (bw) {
-        filters.push("grayscale(100%)");
-      }
-
-      img.style.filter = filters.length > 0 ? filters.join(" ") : "";
-    });
   }
 
   ngOnInit(): void {
@@ -258,9 +236,51 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.exitEditor("cancel");
   }
 
-  done(): void {
-    // Future: export/apply final result
-    this.exitEditor("done");
+  async done(): Promise<void> {
+    if (this.isExporting) return;
+
+    if (!this.ready || !this.session?.file) {
+      this.exitEditor("done");
+      return;
+    }
+
+    this.isExporting = true;
+    const wasReady = this.ready;
+    this.ready = false;
+    let shouldExit = false;
+
+    try {
+      const frameEl = this.frameRef?.nativeElement;
+      if (!frameEl) return;
+
+      const state = this.editorState.getState();
+      const croppedFile = await renderCroppedFile({
+        file: this.session.file,
+        target: this.session.target,
+        frameWidth: frameEl.clientWidth,
+        frameHeight: frameEl.clientHeight,
+        baseScale: this.baseScale,
+        naturalWidth: this.naturalW,
+        naturalHeight: this.naturalH,
+        state,
+      });
+
+      if (croppedFile) {
+        const result: CropperResult = {
+          file: croppedFile,
+          state,
+          formatId: this.session.tools?.formats?.selectedId,
+        };
+        this.editorSession.setResult(this.sid, result);
+        shouldExit = true;
+      }
+    } finally {
+      this.isExporting = false;
+      this.ready = wasReady;
+      if (shouldExit) {
+        this.exitEditor("done");
+      }
+    }
   }
 
   // Top toolbox (future wiring)

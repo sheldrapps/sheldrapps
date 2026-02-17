@@ -1,12 +1,10 @@
 import { Injectable, Optional } from '@angular/core';
 import { Router } from '@angular/router';
+import type { CropFormatOption, CropperResult } from '../types';
 
 /** Panel types available in the editor */
 export type ToolPanelType = "zoom" | "rotate" | "crop";
-
-
 // Use CropFormatOption from types barrel
-import type { CropFormatOption } from '../types';
 
 /** Kindle device model */
 export interface KindleDeviceModel {
@@ -64,11 +62,16 @@ export type EditorSession = {
 
   /** Optional return url for exiting the editor */
   returnUrl?: string;
+
+  /** Last export result (matches CropperResult shape) */
+  result?: CropperResult;
 };
 
 @Injectable({ providedIn: 'root' })
 export class EditorSessionService {
   private sessions = new Map<string, EditorSession>();
+  private results = new Map<string, CropperResult>();
+  private lastResultId: string | null = null;
 
   constructor(@Optional() private router?: Router) {}
 
@@ -85,6 +88,40 @@ export class EditorSessionService {
 
   getSession(id: string): EditorSession | null {
     return this.sessions.get(id) ?? null;
+  }
+
+  setResult(id: string, result: CropperResult): void {
+    this.results.set(id, result);
+    this.lastResultId = id;
+    const session = this.sessions.get(id);
+    if (session) {
+      session.file = result.file;
+      session.result = result;
+    }
+  }
+
+  getResult(id: string): CropperResult | null {
+    return this.results.get(id) ?? null;
+  }
+
+  consumeResult(id: string): CropperResult | null {
+    const result = this.results.get(id) ?? null;
+    if (result) {
+      this.results.delete(id);
+      if (this.lastResultId === id) {
+        this.lastResultId = null;
+      }
+      const session = this.sessions.get(id);
+      if (session) {
+        session.result = undefined;
+      }
+    }
+    return result;
+  }
+
+  consumeLatestResult(): CropperResult | null {
+    if (!this.lastResultId) return null;
+    return this.consumeResult(this.lastResultId);
   }
 
   consumeSession(id: string): EditorSession | null {

@@ -26,35 +26,35 @@ export const ADJUSTMENTS_REGISTRY: Record<
     component: BrightnessPanelComponent,
     canReset: true,
     showGrabber: true,
-    reset: (state) => state.resetAdjustments(),
+    reset: (state) => state.resetBrightness(),
   },
   saturation: {
     title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION",
     component: SaturationPanelComponent,
     canReset: true,
     showGrabber: true,
-    reset: (state) => state.resetAdjustments(),
+    reset: (state) => state.resetSaturation(),
   },
   contrast: {
     title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST",
     component: ContrastPanelComponent,
     canReset: true,
     showGrabber: true,
-    reset: (state) => state.resetAdjustments(),
+    reset: (state) => state.resetContrast(),
   },
   bw: {
     title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW",
     component: BwPanelComponent,
-    canReset: false,
+    canReset: true,
     showGrabber: true,
-    reset: (state) => state.resetAdjustments(),
+    reset: (state) => state.resetBw(),
   },
   dither: {
     title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER",
     component: BwPanelComponent, // Using same component as bw for now
-    canReset: false,
+    canReset: true,
     showGrabber: true,
-    reset: (state) => state.resetAdjustments(),
+    reset: (state) => state.resetDither(),
   },
 };
 

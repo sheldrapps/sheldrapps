@@ -9,7 +9,8 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
+import { Subscription, filter } from 'rxjs';
 import {
   IonContent,
   IonHeader,
@@ -187,6 +188,8 @@ export class CreatePage implements OnInit, OnDestroy {
 
   previewUrl?: string;
   cropState?: CoverCropState;
+  private lastEditorSessionId?: string;
+  private routerSub?: Subscription;
 
   imageErrorKey?: string;
   imageErrorParams: Record<string, any> = {};
@@ -230,11 +233,21 @@ export class CreatePage implements OnInit, OnDestroy {
       );
       this.selectedGroupId = group?.id;
     }
+
+    this.routerSub = this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event) => {
+        const url = (event as NavigationEnd).urlAfterRedirects;
+        if (url.startsWith('/tabs/create') || url === '/create') {
+          void this.consumeEditorResult();
+        }
+      });
   }
 
   ngOnDestroy() {
     this.closeInfo();
     this.revokePreviewUrl();
+    this.routerSub?.unsubscribe();
   }
 
   private setBusy(
@@ -264,6 +277,7 @@ export class CreatePage implements OnInit, OnDestroy {
       },
     });
 
+    this.lastEditorSessionId = sid;
     this.router.navigate(['/editor'], { queryParams: { sid } });
   }
 
@@ -466,29 +480,7 @@ export class CreatePage implements OnInit, OnDestroy {
       const res = await dismissPromise;
       if (res.role !== 'done' || !res.data?.file) return;
 
-      const newFile = res.data.file;
-      this.cropState = res.data.state ?? this.cropState;
-
-      const dims = await this.imagePipe.getDimensions(newFile);
-      if (!dims) return this.failImage('CORRUPT', newFile);
-
-      this.clearImageError();
-      this.clearImageWarn();
-
-      this.exportImageFile = newFile;
-
-      this.generatedEpubBytes = undefined;
-      this.generatedEpubFilename = undefined;
-      this.lastSavedFilename = undefined;
-      this.wasAutoSaved = false;
-
-      this.selectedImageName = newFile.name;
-      this.selectedImageDims = dims;
-
-      this.applySmallWarn();
-
-      this.revokePreviewUrl();
-      this.previewUrl = URL.createObjectURL(newFile);
+      await this.applyCropResult(res.data);
     } finally {
       this.setBusy('none');
     }
@@ -782,6 +774,10 @@ export class CreatePage implements OnInit, OnDestroy {
     this.closeInfo();
   }
 
+  ionViewWillEnter() {
+    this.consumeEditorResult();
+  }
+
   private async showToast(
     messageKey: string,
     opts: Partial<ToastOptions> = {},
@@ -804,6 +800,51 @@ export class CreatePage implements OnInit, OnDestroy {
     });
 
     await toast.present();
+  }
+
+  private async applyCropResult(result: CropperResult): Promise<void> {
+    const newFile = result.file;
+    if (!newFile) return;
+
+    this.cropState = result.state ?? this.cropState;
+
+    const dims = await this.imagePipe.getDimensions(newFile);
+    if (!dims) return this.failImage('CORRUPT', newFile);
+
+    this.clearImageError();
+    this.clearImageWarn();
+
+    this.exportImageFile = newFile;
+
+    this.generatedEpubBytes = undefined;
+    this.generatedEpubFilename = undefined;
+    this.lastSavedFilename = undefined;
+    this.wasAutoSaved = false;
+
+    this.selectedImageName = newFile.name;
+    this.selectedImageDims = dims;
+
+    this.applySmallWarn();
+
+    this.revokePreviewUrl();
+    this.previewUrl = URL.createObjectURL(newFile);
+  }
+
+  private async consumeEditorResult(): Promise<void> {
+    let result: CropperResult | null = null;
+
+    if (this.lastEditorSessionId) {
+      result = this.editorSession.consumeResult(this.lastEditorSessionId);
+      this.lastEditorSessionId = undefined;
+    }
+
+    if (!result) {
+      result = this.editorSession.consumeLatestResult();
+    }
+
+    if (result?.file) {
+      await this.applyCropResult(result);
+    }
   }
 }
 
