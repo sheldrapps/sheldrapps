@@ -140,18 +140,16 @@
   </div>
   }
 
-  @if (showExperimentalEditor) {
-    <ion-button
-      expand="block"
-      class="ion-margin-top"
-      fill="outline"
-      [disabled]="!canEdit()"
-      (click)="onAdjustWithEditor()"
-      aria-label="{{ 'CREATE.ARIA_CROP' | translate }}"
-    >
-      {{ 'CREATE.CROP_ACTION' | translate }}
-    </ion-button>
-  }
+  <ion-button
+    expand="block"
+    class="ion-margin-top"
+    fill="outline"
+    [disabled]="!canEdit()"
+    (click)="onAdjustWithEditor()"
+    aria-label="{{ 'CREATE.ARIA_CROP' | translate }}"
+  >
+    {{ 'CREATE.CROP_ACTION' | translate }}
+  </ion-button>
 
   <div class="actions">
     <ion-button
@@ -229,7 +227,7 @@
   </ion-popover>
 
   <ion-loading
-    [isOpen]="isPickingImage || isOpeningCropper || isExporting"
+    [isOpen]="isPickingImage || isExporting"
     [message]="loadingMessageKey ? (loadingMessageKey | translate) : undefined"
     backdropDismiss="false"
   ></ion-loading>

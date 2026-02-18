@@ -5,7 +5,6 @@ import {
   ViewChild,
   ElementRef,
   NgZone,
-  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -39,13 +38,10 @@ import {
 } from '../../components/kindle-model-picker/kindle-model-picker.component';
 
 import {
-  CoverCropperModalComponent,
   CoverCropState,
-  CropperResult,
   ImagePipelineService,
   ImageValidationError,
 } from '@sheldrapps/image-workflow';
-import type { CropTarget } from '@sheldrapps/image-workflow';
 import {
   EditorSessionService,
   type KindleDeviceModel,
@@ -74,47 +70,11 @@ import { SaveCoverModalComponent } from './save-cover-modal.component';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { CcfkSettings } from '../../settings/ccfk-settings.schema';
 
-/**
- * Wrapper component that adds i18n labels to CoverCropperModalComponent
- */
-@Component({
-  selector: 'app-cover-cropper-modal-i18n',
-  standalone: true,
-  imports: [TranslateModule, CoverCropperModalComponent],
-  template: `
-    <app-cover-cropper-modal
-      [file]="file!"
-      [model]="model!"
-      [initialState]="initialState"
-      [onReady]="onReady"
-      [locale]="locale"
-      [kindleGroups]="kindleGroups"
-      [kindleGroupLabels]="kindleGroupLabels"
-      [kindleModelLabels]="kindleModelLabels"
-      [kindleSelectedGroupId]="kindleSelectedGroupId"
-      [kindleSelectedModel]="kindleSelectedModel"
-      [onKindleModelChange]="onKindleModelChange"
-    ></app-cover-cropper-modal>
-  `,
-})
-class CoverCropperModalI18nComponent {
-  private translate = inject(TranslateService);
-
-  file: File | undefined;
-  model: CropTarget | undefined;
-  initialState: CoverCropState | undefined;
-  onReady: (() => void) | undefined;
-  kindleGroups: KindleGroup[] | undefined;
-  kindleGroupLabels: Map<string, string> | undefined;
-  kindleModelLabels: Map<string, string> | undefined;
-  kindleSelectedGroupId: string | undefined;
-  kindleSelectedModel: KindleModel | undefined;
-  onKindleModelChange: ((model: KindleModel) => void) | undefined;
-
-  get locale(): string {
-    return this.translate.currentLang || this.translate.defaultLang || 'en';
-  }
-}
+type EditorResult = {
+  file: File;
+  state?: CoverCropState;
+  formatId?: string;
+};
 
 @Component({
   selector: 'app-create',
@@ -201,7 +161,6 @@ export class CreatePage implements OnInit, OnDestroy {
   imageWarnParams: Record<string, any> = {};
 
   isPickingImage = false;
-  isOpeningCropper = false;
   isExporting = false;
   loadingMessageKey?: string;
 
@@ -215,8 +174,6 @@ export class CreatePage implements OnInit, OnDestroy {
 
   infoOpen = false;
   infoEvent: Event | null = null;
-
-  readonly showExperimentalEditor = true;
 
   async ngOnInit() {
     this.groups = await this.catalog.getGroups();
@@ -253,13 +210,9 @@ export class CreatePage implements OnInit, OnDestroy {
     this.routerSub?.unsubscribe();
   }
 
-  private setBusy(
-    kind: 'pick' | 'crop' | 'export' | 'none',
-    messageKey?: string,
-  ) {
+  private setBusy(kind: 'pick' | 'export' | 'none', messageKey?: string) {
     this.zone.run(() => {
       this.isPickingImage = kind === 'pick';
-      this.isOpeningCropper = kind === 'crop';
       this.isExporting = kind === 'export';
       this.loadingMessageKey = kind === 'none' ? undefined : messageKey;
     });
@@ -436,103 +389,11 @@ export class CreatePage implements OnInit, OnDestroy {
     this.imageWarnParams = params;
   }
 
-  canCrop(): boolean {
-    return (
-      !!this.selectedModel && !!this.workingImageFile && !this.imageErrorKey
-    );
-  }
-
   canEdit(): boolean {
     return (
       !!this.selectedModel && !!this.workingImageFile && !this.imageErrorKey
     );
   }
-  async startCrop() {
-    if (!this.canCrop() || !this.selectedModel) return;
-
-    const sourceFile = this.workingImageFile;
-    if (!sourceFile) return;
-
-    this.setBusy('crop', 'CREATE.OPENING_EDITOR');
-
-    let markReady!: () => void;
-    const readyPromise = new Promise<void>((resolve) => (markReady = resolve));
-
-    try {
-      // Reload the selected model from persisted settings to ensure it's up-to-date
-      const settings = await this.settings.load();
-      const modelId = settings.kindleModelId || 'paperwhite_2021';
-      this.selectedModel =
-        this.catalog.findModelById(this.groups, modelId) ??
-        this.groups?.[0]?.items?.[0];
-
-      // Update the group based on the reloaded model
-      if (this.selectedModel) {
-        const group = this.groups.find((g) =>
-          g.items.some((item) => item.id === this.selectedModel!.id),
-        );
-        this.selectedGroupId = group?.id;
-      }
-
-      // Build label maps for groups and models
-      const kindleGroupLabels = new Map<string, string>();
-      const kindleModelLabels = new Map<string, string>();
-
-      for (const group of this.groups) {
-        const groupLabel = await this.translate.get(group.i18nKey).toPromise();
-        if (typeof groupLabel === 'string') {
-          kindleGroupLabels.set(group.id, groupLabel);
-        }
-
-        for (const model of group.items) {
-          const modelLabel = await this.translate
-            .get(model.i18nKey)
-            .toPromise();
-          if (typeof modelLabel === 'string') {
-            kindleModelLabels.set(model.id, modelLabel);
-          }
-        }
-      }
-
-      const modal = await this.modalCtrl.create({
-        component: CoverCropperModalI18nComponent,
-        componentProps: {
-          file: sourceFile,
-          model: {
-            width: this.selectedModel.width,
-            height: this.selectedModel.height,
-          } as CropTarget,
-          initialState: this.cropState,
-          onReady: () => markReady(),
-          kindleGroups: this.groups,
-          kindleGroupLabels,
-          kindleModelLabels,
-          kindleSelectedGroupId: this.selectedGroupId,
-          kindleSelectedModel: this.selectedModel,
-          onKindleModelChange: (model: KindleDeviceModel) => {
-            void this.applyExternalModelChange(model);
-          },
-        },
-        cssClass: 'cropper-modal',
-        handle: true,
-      });
-
-      await modal.present();
-
-      const dismissPromise = modal.onWillDismiss<CropperResult>();
-
-      await Promise.race([readyPromise, dismissPromise.then(() => {})]);
-      this.setBusy('none');
-
-      const res = await dismissPromise;
-      if (res.role !== 'done' || !res.data?.file) return;
-
-      await this.applyCropResult(res.data);
-    } finally {
-      this.setBusy('none');
-    }
-  }
-
   canExport(): boolean {
     return (
       !!this.selectedModel &&
@@ -849,7 +710,7 @@ export class CreatePage implements OnInit, OnDestroy {
     await toast.present();
   }
 
-  private async applyCropResult(result: CropperResult): Promise<void> {
+  private async applyCropResult(result: EditorResult): Promise<void> {
     const newFile = result.file;
     if (!newFile) return;
 
@@ -878,7 +739,7 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   private async consumeEditorResult(): Promise<void> {
-    let result: CropperResult | null = null;
+    let result: EditorResult | null = null;
 
     if (this.lastEditorSessionId) {
       result = this.editorSession.consumeResult(this.lastEditorSessionId);
