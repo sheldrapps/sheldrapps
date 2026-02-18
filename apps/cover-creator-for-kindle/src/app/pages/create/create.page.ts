@@ -46,7 +46,10 @@ import {
   ImageValidationError,
 } from '@sheldrapps/image-workflow';
 import type { CropTarget } from '@sheldrapps/image-workflow';
-import { EditorSessionService } from '@sheldrapps/image-workflow/editor';
+import {
+  EditorSessionService,
+  type KindleDeviceModel,
+} from '@sheldrapps/image-workflow/editor';
 
 import {
   chevronDown,
@@ -266,16 +269,42 @@ export class CreatePage implements OnInit, OnDestroy {
     return m1 && m2 ? m1.id === m2.id : m1 === m2;
   }
 
-  onAdjustWithEditor() {
+  async onAdjustWithEditor() {
     if (!this.canEdit()) return;
 
-    if (!this.workingImageFile || !this.selectedModel) return;
+    if (!this.workingImageFile) return;
+
+    // Reload selected model from persisted settings before opening editor
+    const settings = await this.settings.load();
+    const modelId = settings.kindleModelId || 'paperwhite_2021';
+    this.selectedModel =
+      this.catalog.findModelById(this.groups, modelId) ??
+      this.groups?.[0]?.items?.[0];
+
+    if (this.selectedModel) {
+      const group = this.groups.find((g) =>
+        g.items.some((item) => item.id === this.selectedModel!.id),
+      );
+      this.selectedGroupId = group?.id;
+    }
+
+    if (!this.selectedModel) return;
 
     const sid = this.editorSession.createSession({
       file: this.workingImageFile,
       target: {
         width: this.selectedModel.width,
         height: this.selectedModel.height,
+      },
+      tools: {
+        kindle: {
+          modelCatalog: this.groups,
+          selectedGroupId: this.selectedGroupId,
+          selectedModel: this.selectedModel,
+          onKindleModelChange: (model: KindleDeviceModel) => {
+            void this.applyExternalModelChange(model);
+          },
+        },
       },
     });
 
@@ -296,6 +325,28 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   async onModelChange() {
+    await this.persistModelSelection({ applyWarn: true });
+  }
+
+  private async applyExternalModelChange(
+    model: KindleDeviceModel,
+  ): Promise<void> {
+    const resolvedModel =
+      this.catalog.findModelById(this.groups, model.id) ??
+      (model.i18nKey ? (model as KindleModel) : undefined);
+    if (!resolvedModel) return;
+
+    this.selectedModel = resolvedModel;
+
+    const group = this.groups.find((g) =>
+      g.items.some((item) => item.id === resolvedModel.id),
+    );
+    this.selectedGroupId = group?.id;
+
+    await this.persistModelSelection({ applyWarn: false });
+  }
+
+  private async persistModelSelection(opts: { applyWarn: boolean }) {
     // Clear generated files when model changes
     this.generatedEpubBytes = undefined;
     this.generatedEpubFilename = undefined;
@@ -307,7 +358,7 @@ export class CreatePage implements OnInit, OnDestroy {
       await this.settings.set({ kindleModelId: this.selectedModel.id });
     }
 
-    if (this.selectedImageFile && this.selectedImageDims) {
+    if (opts.applyWarn && this.selectedImageFile && this.selectedImageDims) {
       this.applySmallWarn();
     }
   }
@@ -458,20 +509,8 @@ export class CreatePage implements OnInit, OnDestroy {
           kindleModelLabels,
           kindleSelectedGroupId: this.selectedGroupId,
           kindleSelectedModel: this.selectedModel,
-          onKindleModelChange: async (model: KindleModel) => {
-            this.selectedModel = model;
-            // Update selected group to reflect the new model's group
-            const group = this.groups.find((g) =>
-              g.items.some((item) => item.id === model.id),
-            );
-            this.selectedGroupId = group?.id;
-            // Persist the model change
-            await this.settings.set({ kindleModelId: model.id });
-            // Clear generated files when model changes (same as onModelChange)
-            this.generatedEpubBytes = undefined;
-            this.generatedEpubFilename = undefined;
-            this.lastSavedFilename = undefined;
-            this.wasAutoSaved = false;
+          onKindleModelChange: (model: KindleDeviceModel) => {
+            void this.applyExternalModelChange(model);
           },
         },
         cssClass: 'cropper-modal',

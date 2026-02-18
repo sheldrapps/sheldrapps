@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { TranslateModule } from "@ngx-translate/core";
 import { CommonModule } from "@angular/common";
-import { TranslateModule } from "@ngx-translate/core";
 
 @Component({
   selector: "cc-rotate-tool",

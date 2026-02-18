@@ -6,19 +6,24 @@ import type { CropFormatOption, CropperResult } from '../types';
 export type ToolPanelType = "zoom" | "rotate" | "crop";
 // Use CropFormatOption from types barrel
 
-/** Kindle device model */
+/** Kindle device model (catalog-driven) */
 export interface KindleDeviceModel {
   id: string;
-  name: string;
+  i18nKey?: string;
+  name?: string;
+  labelKey?: string;
   width: number;
   height: number;
 }
 
-/** Kindle group (e.g., "Paperwhite", "Voyage") */
+/** Kindle group (matches app catalog JSON) */
 export interface KindleGroup {
   id: string;
-  label: string;
-  models: KindleDeviceModel[];
+  i18nKey?: string;
+  label?: string;
+  labelKey?: string;
+  items?: KindleDeviceModel[];
+  models?: KindleDeviceModel[];
 }
 
 /** Tools configuration - controls which panels/tabs appear */
@@ -37,9 +42,13 @@ export interface EditorToolsConfig {
 
   /** Kindle model selection (ccfk only) */
   kindle?: {
-    groups: KindleGroup[];
+    /** Full catalog JSON (preferred) */
+    modelCatalog?: KindleGroup[];
+    /** Legacy alias for catalog */
+    groups?: KindleGroup[];
     selectedGroupId?: string;
     selectedModel?: KindleDeviceModel;
+    onKindleModelChange?: (model: KindleDeviceModel) => void;
   };
 
   labels?: {

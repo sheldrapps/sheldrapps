@@ -12,6 +12,26 @@
     "styles",
     "assets"
   ],
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "peerDependencies": {
+    "@angular/common": "^20.0.0",
+    "@angular/core": "^20.0.0",
+    "@ionic/angular": "^8.0.0",
+    "ionicons": "^7.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@ionic/angular": {
+      "optional": false
+    }
+  },
+  "devDependencies": {
+    "@angular/common": "^20.0.0",
+    "@angular/core": "^20.0.0",
+    "@ionic/angular": "^8.0.0",
+    "ionicons": "^7.0.0"
+  },
   "keywords": [
     "design-system",
     "ionic",

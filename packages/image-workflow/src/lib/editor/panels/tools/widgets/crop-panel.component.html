@@ -2,7 +2,7 @@
   <!-- Kindle Model Selection Panel -->
   <ion-grid class="selectors-grid">
     <ion-row>
-      <ion-col size="12">
+      <ion-col size="6">
         <div class="selector-label">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP' | translate }}</div>
         <ion-item>
           <ion-select
@@ -12,14 +12,13 @@
             interface="popover"
           >
             <ion-select-option *ngFor="let group of kindleGroups" [value]="group.id">
-              {{ group.labelKey ? (group.labelKey | translate) : group.label }}
+              {{ (group.i18nKey || group.labelKey || group.label || group.id) | translate }}
             </ion-select-option>
           </ion-select>
         </ion-item>
       </ion-col>
-    </ion-row>
-    <ion-row>
-      <ion-col size="12">
+
+      <ion-col size="6">
         <div class="selector-label">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.GENERATION' | translate }}</div>
         <ion-item>
           <ion-select
@@ -31,7 +30,7 @@
             [disabled]="!selectedGroupId"
           >
             <ion-select-option *ngFor="let model of currentGroupModels" [value]="model">
-              {{ model.labelKey ? (model.labelKey | translate) : model.name }}
+              {{ (model.i18nKey || model.labelKey || model.name || model.id) | translate }}
             </ion-select-option>
           </ion-select>
         </ion-item>

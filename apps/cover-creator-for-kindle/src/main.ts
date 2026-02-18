@@ -6,7 +6,10 @@ import {
 } from '@ionic/angular/standalone';
 
 import { provideI18nKit } from '@sheldrapps/i18n-kit';
-import { provideEditorI18n } from '@sheldrapps/image-workflow/editor';
+import {
+  provideEditorI18n,
+  EDITOR_I18N_OVERRIDES,
+} from '@sheldrapps/image-workflow/editor';
 import { provideAdsKit } from '@sheldrapps/ads-kit';
 import { provideSettingsKit } from '@sheldrapps/settings-kit';
 import { provideFileKit } from '@sheldrapps/file-kit';
@@ -44,6 +47,29 @@ bootstrapApplication(AppComponent, {
       },
     }),
     provideEditorI18n(),
+    {
+      provide: EDITOR_I18N_OVERRIDES,
+      useValue: {
+        'es-MX': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'Modelo (Resolución)',
+        },
+        'en-US': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'Model (Resolution)',
+        },
+        'de-DE': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'Modell (Auflösung)',
+        },
+        'fr-FR': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'Modèle (Résolution)',
+        },
+        'it-IT': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'Modello (Risoluzione)',
+        },
+        'pt-BR': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'Modelo (Resolução)',
+        },
+      },
+    },
 
     provideSettingsKit({
       appId: 'ccfk',

@@ -45,6 +45,7 @@ import { EditorStateService } from "./editor-state.service";
 import { EditorHistoryService } from "./editor-history.service";
 import { EditorPanelExitService } from "./editor-panel-exit.service";
 import { EditorSessionExitService } from "./editor-session-exit.service";
+import { EditorKindleStateService } from "./editor-kindle-state.service";
 import { buildCssFilter } from "./editor-adjustments";
 import { renderCroppedFile } from "../core/pipeline/cropper-export";
 import type { CropperResult } from "../types";
@@ -176,6 +177,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     private panelExit: EditorPanelExitService,
     private sessionExit: EditorSessionExitService,
     private zone: NgZone,
+    private kindleState: EditorKindleStateService,
   ) {
     addIcons({
       cropOutline,
@@ -207,6 +209,21 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
       this.renderTransform();
     });
+
+    effect(() => {
+      const target = this.kindleState.target();
+      if (!this.session || !target) return;
+
+      this.session.target = target;
+      this.aspectRatio = `${target.width} / ${target.height}`;
+
+      if (this.session.tools?.kindle) {
+        this.session.tools.kindle.selectedGroupId =
+          this.kindleState.selectedGroupId() ?? undefined;
+        this.session.tools.kindle.selectedModel =
+          this.kindleState.selectedModel() ?? undefined;
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -218,12 +235,18 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.sessionExit.setReturnUrl(this.returnUrl ?? null);
 
+    this.kindleState.reset();
+
     if (!this.session?.file) return;
 
     this.history.startSession();
 
     // Set session ID and tools configuration in UI state
     this.ui.setSessionId(this.sid);
+
+    if (this.session.tools?.kindle) {
+      this.kindleState.initFromTools(this.session.tools.kindle);
+    }
 
     if (this.session.tools) {
       this.ui.setToolsConfig(this.session.tools);
@@ -233,6 +256,11 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.imageUrl = this.objectUrl;
 
     this.aspectRatio = `${this.session.target.width} / ${this.session.target.height}`;
+    const kindleTarget = this.kindleState.target();
+    if (kindleTarget) {
+      this.session.target = kindleTarget;
+      this.aspectRatio = `${kindleTarget.width} / ${kindleTarget.height}`;
+    }
 
     // Route detection
     this.router.events

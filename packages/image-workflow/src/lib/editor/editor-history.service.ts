@@ -1,5 +1,9 @@
 import { Injectable, computed, signal } from "@angular/core";
 import { EditorStateService } from "./editor-state.service";
+import {
+  EditorKindleStateService,
+  type KindleSelectionSnapshot,
+} from "./editor-kindle-state.service";
 import { DEFAULT_EDITOR_ADJUSTMENTS } from "./editor-adjustments";
 
 export type HistoryMode = "local" | "global";
@@ -41,6 +45,8 @@ export class EditorHistoryService {
   readonly mode = signal<HistoryMode>("global");
   private readonly panelScope = signal<PanelScope | null>(null);
   private readonly baselineSnapshot = signal<EditorSnapshot | null>(null);
+  private readonly baselineKindleSnapshot =
+    signal<KindleSelectionSnapshot | null>(null);
 
   private readonly localCommands = signal<EditorCommand[]>([]);
   private readonly localPointer = signal(0);
@@ -56,7 +62,10 @@ export class EditorHistoryService {
   private gestureActive = false;
   private gestureStart: { scale: number; tx: number; ty: number } | null = null;
 
-  constructor(private readonly editorState: EditorStateService) {}
+  constructor(
+    private readonly editorState: EditorStateService,
+    private readonly kindleState: EditorKindleStateService,
+  ) {}
 
   // Pass-through signals (read-only for UI)
   readonly scale = this.editorState.scale;
@@ -83,7 +92,15 @@ export class EditorHistoryService {
     if (scope === "tools") {
       const a = this.normalizeTransform(baseline);
       const b = this.normalizeTransform(current);
-      return !this.shallowEqual(a, b);
+      const transformDirty = !this.shallowEqual(a, b);
+
+      const baselineKindle = this.baselineKindleSnapshot();
+      const currentKindle = this.kindleState.captureSnapshot();
+      const ka = this.normalizeKindleSnapshot(baselineKindle);
+      const kb = this.normalizeKindleSnapshot(currentKindle);
+      const kindleDirty = !this.shallowEqual(ka, kb);
+
+      return transformDirty || kindleDirty;
     }
 
     const a = this.normalizeAdjustments(baseline);
@@ -113,6 +130,7 @@ export class EditorHistoryService {
     this.globalStack.set([]);
     this.globalRedoStack.set([]);
     this.baselineSnapshot.set(null);
+    this.baselineKindleSnapshot.set(null);
     this.panelScope.set(null);
     this.mode.set("global");
   }
@@ -129,6 +147,7 @@ export class EditorHistoryService {
     this.globalStack.set([]);
     this.globalRedoStack.set([]);
     this.baselineSnapshot.set(null);
+    this.baselineKindleSnapshot.set(null);
     this.panelScope.set(null);
     this.mode.set("global");
   }
@@ -145,6 +164,9 @@ export class EditorHistoryService {
     this.localCommands.set([]);
     this.localPointer.set(0);
     this.baselineSnapshot.set(this.editorState.getState());
+    this.baselineKindleSnapshot.set(
+      scope === "tools" ? this.kindleState.captureSnapshot() : null,
+    );
     this.sliderActive = false;
     this.pendingSliderCommand = null;
     this.gestureActive = false;
@@ -157,6 +179,7 @@ export class EditorHistoryService {
     this.localCommands.set([]);
     this.localPointer.set(0);
     this.baselineSnapshot.set(null);
+    this.baselineKindleSnapshot.set(null);
     this.sliderActive = false;
     this.pendingSliderCommand = null;
     this.gestureActive = false;
@@ -170,15 +193,20 @@ export class EditorHistoryService {
     this.flushPending();
 
     const commands = this.localCommands().slice(0, this.localPointer());
-    if (!commands.length) return false;
+    const globalCommands = commands.filter(
+      (cmd) => cmd.type !== "ChangeKindleModel",
+    );
 
-    const nextBlocks = [...this.globalStack(), { commands }];
-    this.globalStack.set(nextBlocks);
-    this.globalRedoStack.set([]);
+    if (globalCommands.length) {
+      const nextBlocks = [...this.globalStack(), { commands: globalCommands }];
+      this.globalStack.set(nextBlocks);
+      this.globalRedoStack.set([]);
+    }
 
     this.localCommands.set([]);
     this.localPointer.set(0);
     this.baselineSnapshot.set(null);
+    this.baselineKindleSnapshot.set(null);
     this.panelScope.set(null);
     this.mode.set("global");
     return true;
@@ -195,10 +223,15 @@ export class EditorHistoryService {
         this.editorState.setState(baseline);
       });
     }
+    const kindleBaseline = this.baselineKindleSnapshot();
+    if (kindleBaseline) {
+      this.kindleState.restoreSnapshot(kindleBaseline, { silent: false });
+    }
 
     this.localCommands.set([]);
     this.localPointer.set(0);
     this.baselineSnapshot.set(null);
+    this.baselineKindleSnapshot.set(null);
     this.panelScope.set(null);
     this.mode.set("global");
     return true;
@@ -418,6 +451,20 @@ export class EditorHistoryService {
     this.recordViewportIfChanged(prev);
   }
 
+  setKindleModel(groupId: string | undefined, modelId: string | undefined): void {
+    if (!modelId) return;
+    const changed = this.kindleState.selectByIds(groupId, modelId);
+    if (!changed) return;
+
+    this.editorState.resetViewToCover();
+
+    const snapshot = this.kindleState.captureSnapshot();
+    this.recordCommand({
+      type: "ChangeKindleModel",
+      payload: snapshot,
+    });
+  }
+
   getMinToolsScale(): number {
     return this.editorState.getMinToolsScale();
   }
@@ -467,6 +514,10 @@ export class EditorHistoryService {
     const commands = this.localCommands().slice(0, this.localPointer());
     this.replay(() => {
       this.editorState.setState(baseline);
+      const kindleBaseline = this.baselineKindleSnapshot();
+      if (this.panelScope() === "tools" && kindleBaseline) {
+        this.kindleState.restoreSnapshot(kindleBaseline, { silent: true });
+      }
       for (const cmd of commands) {
         this.applyCommand(cmd);
       }
@@ -527,6 +578,16 @@ export class EditorHistoryService {
         this.editorState.setScale(command.payload.scale);
         this.editorState.setTranslation(command.payload.tx, command.payload.ty);
         return;
+      case "ChangeKindleModel": {
+        const snapshot = command.payload as KindleSelectionSnapshot;
+        const changed = this.kindleState.restoreSnapshot(snapshot, {
+          silent: false,
+        });
+        if (changed) {
+          this.editorState.resetViewToCover();
+        }
+        return;
+      }
       default:
         console.warn("[editor-history] Unknown command:", command);
     }
@@ -604,6 +665,22 @@ export class EditorHistoryService {
       rot: this.normalizeRotation(state.rot),
       flipX: !!state.flipX,
       flipY: !!state.flipY,
+    };
+  }
+
+  private normalizeKindleSnapshot(
+    snapshot: KindleSelectionSnapshot | null,
+  ): {
+    groupId: string | null;
+    modelId: string | null;
+    width: number | null;
+    height: number | null;
+  } {
+    return {
+      groupId: snapshot?.groupId ?? null,
+      modelId: snapshot?.modelId ?? null,
+      width: snapshot?.width ?? null,
+      height: snapshot?.height ?? null,
     };
   }
 

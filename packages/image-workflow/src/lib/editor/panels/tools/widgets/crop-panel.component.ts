@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, effect, inject } from "@angular/core";
 import { TranslateModule } from "@ngx-translate/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -10,8 +10,12 @@ import {
   IonSelect,
   IonSelectOption,
 } from "@ionic/angular/standalone";
-import { EditorSessionService } from "../../../editor-session.service";
-import { EDITOR_SESSION_ID } from "../../../editor-panel.tokens";
+import { EditorHistoryService } from "../../../editor-history.service";
+import { EditorKindleStateService } from "../../../editor-kindle-state.service";
+import type {
+  KindleDeviceModel,
+  KindleGroup,
+} from "../../../editor-session.service";
 
 @Component({
   selector: "cc-crop-panel",
@@ -30,35 +34,32 @@ import { EDITOR_SESSION_ID } from "../../../editor-panel.tokens";
   templateUrl: "./crop-panel.component.html",
   styleUrls: ["./crop-panel.component.scss"],
 })
-export class CropPanelComponent implements OnInit {
-  private editorSession = inject(EditorSessionService);
-  private sid = inject(EDITOR_SESSION_ID, { optional: true });
+export class CropPanelComponent {
+  private readonly history = inject(EditorHistoryService);
+  private readonly kindleState = inject(EditorKindleStateService);
 
-  kindleGroups: any[] = [];
+  kindleGroups: KindleGroup[] = [];
   selectedGroupId?: string;
-  selectedModel?: any;
+  selectedModel?: KindleDeviceModel;
 
-  get currentGroupModels(): any[] {
+  constructor() {
+    effect(() => {
+      this.kindleGroups = this.kindleState.catalog();
+      this.selectedGroupId = this.kindleState.selectedGroupId() ?? undefined;
+      this.selectedModel = this.kindleState.selectedModel() ?? undefined;
+    });
+  }
+
+  get currentGroupModels(): KindleDeviceModel[] {
     if (!this.selectedGroupId) return [];
     const group = this.kindleGroups.find((g) => g.id === this.selectedGroupId);
-    return group?.models ?? [];
+    return this.getGroupModels(group);
   }
 
-  ngOnInit(): void {
-    if (!this.sid) {
-      console.warn("CropPanelComponent: No session ID provided");
-      return;
-    }
-
-    const session = this.editorSession.getSession(this.sid);
-    if (session?.tools?.kindle) {
-      this.kindleGroups = session.tools.kindle.groups || [];
-      this.selectedGroupId = session.tools.kindle.selectedGroupId;
-      this.selectedModel = session.tools.kindle.selectedModel;
-    }
-  }
-
-  compareModels(m1: any, m2: any): boolean {
+  compareModels(
+    m1: KindleDeviceModel | undefined,
+    m2: KindleDeviceModel | undefined,
+  ): boolean {
     return m1 && m2 ? m1.id === m2.id : m1 === m2;
   }
 
@@ -67,17 +68,21 @@ export class CropPanelComponent implements OnInit {
       const group = this.kindleGroups.find(
         (g) => g.id === this.selectedGroupId,
       );
-      if (group && group.models.length > 0) {
-        this.selectedModel = group.models[0];
-        this.onModelChange();
+      const models = this.getGroupModels(group);
+      if (models.length > 0) {
+        this.history.setKindleModel(this.selectedGroupId, models[0].id);
       }
     }
   }
 
   onModelChange(): void {
-    // Model change handler - in a full implementation,
-    // this would emit changes to parent or save to a store
-    console.log("Model changed:", this.selectedModel);
+    if (!this.selectedModel) return;
+    this.history.setKindleModel(this.selectedGroupId, this.selectedModel.id);
+  }
+
+  private getGroupModels(group?: KindleGroup): KindleDeviceModel[] {
+    if (!group) return [];
+    return group.items ?? group.models ?? [];
   }
 }
 

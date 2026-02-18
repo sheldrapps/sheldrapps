@@ -661,6 +661,13 @@ importers:
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
+    devDependencies:
+      '@capacitor/filesystem':
+        specifier: ^8.0.0
+        version: 8.1.0(@capacitor/core@8.0.0)
+      '@capacitor/share':
+        specifier: ^8.0.0
+        version: 8.0.0(@capacitor/core@8.0.0)
 
   packages/settings-kit:
     dependencies:
@@ -680,6 +687,10 @@ importers:
 
   packages/ui-theme:
     dependencies:
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+    devDependencies:
       '@angular/common':
         specifier: ^20.0.0
         version: 20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
@@ -692,12 +703,6 @@ importers:
       ionicons:
         specifier: ^7.0.0
         version: 7.4.0
-      rxjs:
-        specifier: ^7.8.0
-        version: 7.8.2
-      tslib:
-        specifier: ^2.3.0
-        version: 2.8.1
 
 packages:
 
