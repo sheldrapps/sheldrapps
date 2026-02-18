@@ -6,10 +6,10 @@
     min="0.5"
     max="1.5"
     step="0.01"
-    [value]="editorState.brightness()"
+    [value]="history.brightness()"
     (ionInput)="onBrightnessChange($event)"
-    (ionKnobMoveStart)="editorState.onSliderStart()"
-    (ionKnobMoveEnd)="editorState.onSliderEnd()"
+    (ionKnobMoveStart)="history.onSliderStart()"
+    (ionKnobMoveEnd)="history.onSliderEnd()"
     [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BRIGHTNESS' | translate"
   ></ion-range>
 </ion-item>

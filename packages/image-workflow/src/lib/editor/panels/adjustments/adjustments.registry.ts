@@ -1,6 +1,6 @@
 import { Type } from '@angular/core';
 import { AdjustmentKey } from '../../editor-ui-state.service';
-import { EditorStateService } from "../../editor-state.service";
+import type { EditorHistoryService } from "../../editor-history.service";
 import {
   BrightnessPanelComponent,
   SaturationPanelComponent,
@@ -14,7 +14,7 @@ export interface AdjustmentPanelConfig {
   component: Type<any>;
   canReset: boolean;
   showGrabber: boolean;
-  reset?: (state: EditorStateService) => void;
+  reset?: (history: EditorHistoryService) => void;
 }
 
 export const ADJUSTMENTS_REGISTRY: Record<
@@ -26,35 +26,28 @@ export const ADJUSTMENTS_REGISTRY: Record<
     component: BrightnessPanelComponent,
     canReset: true,
     showGrabber: true,
-    reset: (state) => state.resetBrightness(),
+    reset: (history) => history.resetBrightness(),
   },
   saturation: {
     title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION",
     component: SaturationPanelComponent,
     canReset: true,
     showGrabber: true,
-    reset: (state) => state.resetSaturation(),
+    reset: (history) => history.resetSaturation(),
   },
   contrast: {
     title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST",
     component: ContrastPanelComponent,
     canReset: true,
     showGrabber: true,
-    reset: (state) => state.resetContrast(),
+    reset: (history) => history.resetContrast(),
   },
   bw: {
     title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW",
     component: BwPanelComponent,
     canReset: true,
     showGrabber: true,
-    reset: (state) => state.resetBw(),
-  },
-  dither: {
-    title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER",
-    component: BwPanelComponent, // Using same component as bw for now
-    canReset: true,
-    showGrabber: true,
-    reset: (state) => state.resetDither(),
+    reset: (history) => history.resetBw(),
   },
 };
 
@@ -67,5 +60,4 @@ export const ADJUSTMENT_LOADERS: Record<
   contrast: async () => ContrastPanelComponent,
   saturation: async () => SaturationPanelComponent,
   bw: async () => BwPanelComponent,
-  dither: async () => BwPanelComponent,
 };

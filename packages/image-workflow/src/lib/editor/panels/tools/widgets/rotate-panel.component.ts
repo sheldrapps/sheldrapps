@@ -4,8 +4,7 @@ import {
   ScrollableButtonBarComponent,
   ScrollableBarItem,
 } from '@sheldrapps/ui-theme';
-import { addIcons } from "ionicons";
-import { EditorStateService } from '../../../editor-state.service';
+import { EditorHistoryService } from "../../../editor-history.service";
 import {
   TranslateService,
   TranslationChangeEvent,
@@ -135,20 +134,13 @@ const FLIP_V_SVG = `
   `]
 })
 export class RotatePanelComponent {
-  readonly editorState = inject(EditorStateService);
+  readonly history = inject(EditorHistoryService);
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
   rotateItems: ScrollableBarItem[] = this.buildRotateItems();
 
   constructor() {
-    addIcons({
-      "rotate-left": ROTATE_LEFT_SVG,
-      "rotate-right": ROTATE_RIGHT_SVG,
-      "flip-h": FLIP_H_SVG,
-      "flip-v": FLIP_V_SVG,
-    });
-
     merge(
       this.translate.onLangChange as Observable<LangChangeEvent>,
       this.translate.onTranslationChange as Observable<TranslationChangeEvent>,
@@ -174,7 +166,7 @@ export class RotatePanelComponent {
     const flipHLabel = this.translate.instant(flipHKey);
     const flipVLabel = this.translate.instant(flipVKey);
 
-    const makeItem = (id: string, label: string, icon: string) =>
+    const makeItem = (id: string, label: string, svg: string) =>
       ({
         id,
         label,
@@ -182,35 +174,35 @@ export class RotatePanelComponent {
         text: label,
         title: label,
         ariaLabel: label,
-        icon,
+        svg,
       }) as unknown as ScrollableBarItem;
 
     return [
-      makeItem('left', leftLabel, "rotate-left"),
-      makeItem('right', rightLabel, "rotate-right"),
-      makeItem('flip-h', flipHLabel, "flip-h"),
-      makeItem('flip-v', flipVLabel, "flip-v"),
+      makeItem("left", leftLabel, ROTATE_LEFT_SVG),
+      makeItem("right", rightLabel, ROTATE_RIGHT_SVG),
+      makeItem("flip-h", flipHLabel, FLIP_H_SVG),
+      makeItem("flip-v", flipVLabel, FLIP_V_SVG),
     ];
   }
 
   onSelectRotate(id: string): void {
     if (id === 'left') {
-      this.editorState.rotateLeft();
+      this.history.rotateLeft();
       return;
     }
 
     if (id === 'right') {
-      this.editorState.rotateRight();
+      this.history.rotateRight();
       return;
     }
 
     if (id === 'flip-h') {
-      this.editorState.toggleFlipX();
+      this.history.toggleFlipX();
       return;
     }
 
     if (id === 'flip-v') {
-      this.editorState.toggleFlipY();
+      this.history.toggleFlipY();
     }
   }
 }

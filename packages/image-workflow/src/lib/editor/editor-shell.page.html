@@ -2,23 +2,25 @@
   <ion-toolbar>
     <ion-title>{{ 'EDITOR.SHELL.TITLE' | translate }}</ion-title>
 
-    <ion-buttons slot="end">
-      <ion-button (click)="cancel()">{{ 'EDITOR.SHELL.BUTTON.CANCEL' | translate }}</ion-button>
-      <ion-button [disabled]="!ready" (click)="done()">{{ 'EDITOR.SHELL.BUTTON.DONE' | translate }}</ion-button>
-    </ion-buttons>
+    @if (showSessionActions()) {
+      <ion-buttons slot="end">
+        <ion-button (click)="cancel()">{{ 'EDITOR.SHELL.BUTTON.CANCEL' | translate }}</ion-button>
+        <ion-button [disabled]="!ready" (click)="done()">{{ 'EDITOR.SHELL.BUTTON.DONE' | translate }}</ion-button>
+      </ion-buttons>
+    }
   </ion-toolbar>
 
   <ion-toolbar class="top-toolbox">
     <div class="top-toolbox__row">
       <div class="top-toolbox__center">
-        <ion-button fill="clear" class="tool-btn" [disabled]="!canUndo" (click)="undo()">
+        <ion-button fill="clear" class="tool-btn" [disabled]="!history.canUndo()" (click)="undo()">
           <div class="app-icon-text">
             <ion-icon class="app-icon-text__icon" name="return-up-back-outline"></ion-icon>
             <span class="app-icon-text__label">{{ 'EDITOR.SHELL.BUTTON.UNDO' | translate }}</span>
           </div>
         </ion-button>
 
-        <ion-button fill="clear" class="tool-btn" [disabled]="!canRedo" (click)="redo()">
+        <ion-button fill="clear" class="tool-btn" [disabled]="!history.canRedo()" (click)="redo()">
           <div class="app-icon-text">
             <ion-icon class="app-icon-text__icon" name="return-up-forward-outline"></ion-icon>
             <span class="app-icon-text__label">{{ 'EDITOR.SHELL.BUTTON.REDO' | translate }}</span>
@@ -27,15 +29,15 @@
       </div>
 
       <div class="top-toolbox__right">
-        @if (showDiscardApply) {
-          <ion-button fill="clear" class="tool-btn" (click)="discardBlockSession()">
+        @if (showDiscardApply()) {
+          <ion-button fill="clear" class="tool-btn" (click)="discardPanel()">
             <div class="app-icon-text">
               <ion-icon class="app-icon-text__icon" name="close-outline"></ion-icon>
               <span class="app-icon-text__label">{{ 'EDITOR.SHELL.BUTTON.DISCARD' | translate }}</span>
             </div>
           </ion-button>
 
-          <ion-button fill="clear" class="tool-btn" [disabled]="!blockSessionDirty" (click)="applyBlockSession()">
+          <ion-button fill="clear" class="tool-btn" [disabled]="!history.isDirty()" (click)="applyPanel()">
             <div class="app-icon-text">
               <ion-icon class="app-icon-text__icon" name="checkmark-outline"></ion-icon>
               <span class="app-icon-text__label">{{ 'EDITOR.SHELL.BUTTON.APPLY' | translate }}</span>

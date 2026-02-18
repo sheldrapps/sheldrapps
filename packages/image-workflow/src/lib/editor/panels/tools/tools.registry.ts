@@ -1,6 +1,6 @@
 import { Type } from '@angular/core';
 import { ToolKey } from '../../editor-ui-state.service';
-import { EditorStateService } from "../../editor-state.service";
+import type { EditorHistoryService } from "../../editor-history.service";
 import { CropPanelComponent } from "./widgets/crop-panel.component";
 import { RotatePanelComponent } from "./widgets/rotate-panel.component";
 import { ZoomPanelComponent } from "./widgets/zoom-panel.component";
@@ -11,7 +11,7 @@ export interface ToolPanelConfig {
   component: Type<any>;
   canReset: boolean;
   showGrabber: boolean;
-  reset?: (state: EditorStateService) => void;
+  reset?: (history: EditorHistoryService) => void;
 }
 
 export const TOOLS_REGISTRY: Record<ToolKey, ToolPanelConfig> = {
@@ -26,14 +26,14 @@ export const TOOLS_REGISTRY: Record<ToolKey, ToolPanelConfig> = {
     component: RotatePanelComponent,
     canReset: true,
     showGrabber: true,
-    reset: (state) => state.rot.set(0),
+    reset: (history) => history.setRotation(0),
   },
   zoom: {
     titleKey: "EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.ZOOM",
     component: ZoomPanelComponent,
     canReset: true,
     showGrabber: true,
-    reset: (state) => state.scale.set(1),
+    reset: (history) => history.setScale(1),
   },
 };
 

@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonToggle, IonItem, IonLabel } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
-import { EditorStateService } from '../../../editor-state.service';
+import { EditorHistoryService } from "../../../editor-history.service";
 import { CheckboxCustomEvent } from '@ionic/angular';
 
 @Component({
@@ -13,15 +13,15 @@ import { CheckboxCustomEvent } from '@ionic/angular';
   styleUrls: ["./bw-panel.component.scss"],
 })
 export class BwPanelComponent {
-  readonly editorState = inject(EditorStateService);
+  readonly history = inject(EditorHistoryService);
 
   onBwChange(event: Event): void {
     const checked = (event as CheckboxCustomEvent).detail.checked;
-    this.editorState.setBw(checked);
+    this.history.setBw(checked);
   }
 
   onDitherChange(event: Event): void {
     const checked = (event as CheckboxCustomEvent).detail.checked;
-    this.editorState.setDither(checked);
+    this.history.setDither(checked);
   }
 }

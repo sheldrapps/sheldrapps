@@ -4,7 +4,7 @@
   </ion-label>
   <ion-toggle
     slot="end"
-    [checked]="editorState.bw()"
+    [checked]="history.bw()"
     (ionChange)="onBwChange($event)"
     [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW' | translate"
   ></ion-toggle>
@@ -15,8 +15,8 @@
   </ion-label>
   <ion-toggle
     slot="end"
-    [checked]="editorState.dither()"
-    [disabled]="!editorState.bw()"
+    [checked]="history.dither()"
+    [disabled]="!history.bw()"
     (ionChange)="onDitherChange($event)"
     [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER' | translate"
   ></ion-toggle>

@@ -17,7 +17,7 @@ import {
   EditorSessionService,
   EditorToolsConfig,
 } from "./editor-session.service";
-import { EditorStateService } from "./editor-state.service";
+import type { EditorHistoryService } from "./editor-history.service";
 
 export type EditorMode = "none" | "tools" | "adjustments";
 export type PanelMode = "tools" | "adjustments" | null;
@@ -27,8 +27,7 @@ export type AdjustmentKey =
   | "brightness"
   | "contrast"
   | "saturation"
-  | "bw"
-  | "dither";
+  | "bw";
 
 export interface PanelState {
   mode: PanelMode;
@@ -41,7 +40,7 @@ export interface PanelConfig {
   canReset: boolean;
   showGrabber: boolean;
   component: Type<any> | null;
-  reset?: (state: EditorStateService) => void;
+  reset?: (history: EditorHistoryService) => void;
 }
 
 @Injectable({
@@ -94,7 +93,7 @@ export class EditorUiStateService {
           canReset: boolean;
           showGrabber: boolean;
           component: Type<any>;
-          reset?: (state: EditorStateService) => void;
+          reset?: (history: EditorHistoryService) => void;
         }
       | undefined;
 

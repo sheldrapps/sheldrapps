@@ -4,7 +4,7 @@ import { ScrollableButtonBarComponent } from "@sheldrapps/ui-theme";
 import type { ScrollableBarItem } from "@sheldrapps/ui-theme";
 import { addIcons } from "ionicons";
 import { addOutline, removeOutline } from "ionicons/icons";
-import { EditorStateService } from "../../../editor-state.service";
+import { EditorHistoryService } from "../../../editor-history.service";
 import {
   TranslateService,
   TranslationChangeEvent,
@@ -21,15 +21,15 @@ import { merge, Observable } from "rxjs";
   styleUrls: ["./zoom-panel.component.scss"],
 })
 export class ZoomPanelComponent {
-  readonly editorState = inject(EditorStateService);
+  readonly history = inject(EditorHistoryService);
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
   zoomItems: ScrollableBarItem[] = this.buildZoomItems();
 
   get disabledZoomIds(): string[] {
-    const scale = this.editorState.scale();
-    const min = this.editorState.getMinToolsScale(); // <- clave (en tools puede ser < 1)
+    const scale = this.history.scale();
+    const min = this.history.getMinToolsScale(); // <- clave (en tools puede ser < 1)
     const max = 6;
 
     // Tolerancia para evitar que el botón se “muera” por floats
@@ -79,12 +79,12 @@ export class ZoomPanelComponent {
 
   onSelectZoom(id: string): void {
     if (id === "out") {
-      this.editorState.zoomOut();
+      this.history.zoomOut();
       return;
     }
 
     if (id === "in") {
-      this.editorState.zoomIn();
+      this.history.zoomIn();
     }
   }
 }

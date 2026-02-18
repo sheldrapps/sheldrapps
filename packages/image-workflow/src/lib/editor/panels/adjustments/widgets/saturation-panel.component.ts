@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonRange, IonItem, IonLabel } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
-import { EditorStateService } from '../../../editor-state.service';
+import { EditorHistoryService } from "../../../editor-history.service";
 import { RangeCustomEvent } from '@ionic/angular';
 
 @Component({
@@ -13,10 +13,10 @@ import { RangeCustomEvent } from '@ionic/angular';
   styleUrls: ["./saturation-panel.component.scss"],
 })
 export class SaturationPanelComponent {
-  readonly editorState = inject(EditorStateService);
+  readonly history = inject(EditorHistoryService);
 
   onSaturationChange(event: Event): void {
     const value = (event as RangeCustomEvent).detail.value as number;
-    this.editorState.setSaturation(value);
+    this.history.setSaturation(value);
   }
 }

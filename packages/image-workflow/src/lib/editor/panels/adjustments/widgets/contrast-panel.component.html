@@ -6,10 +6,10 @@
     min="0.5"
     max="1.8"
     step="0.01"
-    [value]="editorState.contrast()"
+    [value]="history.contrast()"
     (ionInput)="onContrastChange($event)"
-    (ionKnobMoveStart)="editorState.onSliderStart()"
-    (ionKnobMoveEnd)="editorState.onSliderEnd()"
+    (ionKnobMoveStart)="history.onSliderStart()"
+    (ionKnobMoveEnd)="history.onSliderEnd()"
     [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST' | translate"
   ></ion-range>
 </ion-item>

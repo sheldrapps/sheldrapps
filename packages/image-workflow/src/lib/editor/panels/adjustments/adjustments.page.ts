@@ -47,14 +47,11 @@ export class AdjustmentsPage {
     const contrastKey =
       "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST";
     const bwKey = "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW";
-    const ditherKey =
-      "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER";
 
     const brightnessLabel = this.translate.instant(brightnessKey);
     const saturationLabel = this.translate.instant(saturationKey);
     const contrastLabel = this.translate.instant(contrastKey);
     const bwLabel = this.translate.instant(bwKey);
-    const ditherLabel = this.translate.instant(ditherKey);
 
     const makeItem = (id: string, label: string) =>
       ({
@@ -71,7 +68,6 @@ export class AdjustmentsPage {
       makeItem("saturation", saturationLabel),
       makeItem("contrast", contrastLabel),
       makeItem("bw", bwLabel),
-      makeItem("dither", ditherLabel),
     ];
   }
 

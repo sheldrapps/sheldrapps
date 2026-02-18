@@ -16,7 +16,7 @@ import {
   NavigationEnd,
   RouterModule,
 } from "@angular/router";
-import { TranslateService, TranslateModule } from "@ngx-translate/core";
+import { TranslateModule } from "@ngx-translate/core";
 import {
   IonButton,
   IonButtons,
@@ -27,7 +27,6 @@ import {
   IonTitle,
   IonToolbar,
 } from "@ionic/angular/standalone";
-import { NavController } from "@ionic/angular";
 import { EditorPanelComponent } from "@sheldrapps/ui-theme";
 import { addIcons } from "ionicons";
 import {
@@ -43,6 +42,9 @@ import { filter } from "rxjs";
 import { EditorSessionService, EditorSession } from "./editor-session.service";
 import { EditorUiStateService } from "./editor-ui-state.service";
 import { EditorStateService } from "./editor-state.service";
+import { EditorHistoryService } from "./editor-history.service";
+import { EditorPanelExitService } from "./editor-panel-exit.service";
+import { EditorSessionExitService } from "./editor-session-exit.service";
 import { buildCssFilter } from "./editor-adjustments";
 import { renderCroppedFile } from "../core/pipeline/cropper-export";
 import type { CropperResult } from "../types";
@@ -137,11 +139,10 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   );
   private isExporting = false;
 
-  // Top toolbox state (wired later)
-  canUndo = false;
-  canRedo = false;
-  showDiscardApply = false;
-  blockSessionDirty = false;
+  readonly showDiscardApply = computed(() => this.history.mode() === "local");
+  readonly showSessionActions = computed(
+    () => this.history.mode() === "global",
+  );
 
   // Minimal sizing state (kept here because shell owns the preview)
   private imageLoaded = false;
@@ -168,12 +169,13 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private navCtrl: NavController,
     private editorSession: EditorSessionService,
     readonly ui: EditorUiStateService,
     private editorState: EditorStateService,
+    readonly history: EditorHistoryService,
+    private panelExit: EditorPanelExitService,
+    private sessionExit: EditorSessionExitService,
     private zone: NgZone,
-    private translate: TranslateService,
   ) {
     addIcons({
       cropOutline,
@@ -214,7 +216,11 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       this.session?.returnUrl ??
       this.route.snapshot.queryParamMap.get("returnUrl");
 
+    this.sessionExit.setReturnUrl(this.returnUrl ?? null);
+
     if (!this.session?.file) return;
+
+    this.history.startSession();
 
     // Set session ID and tools configuration in UI state
     this.ui.setSessionId(this.sid);
@@ -274,7 +280,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       capture(e.pointerId);
 
       if (wasEmpty) {
-        this.editorState.onGestureStart();
+        this.history.onGestureStart();
       }
 
       if (this.pointers.size === 1) {
@@ -316,7 +322,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         const dx = p.x - this.gestureStart.startMid.x;
         const dy = p.y - this.gestureStart.startMid.y;
 
-        this.editorState.setTranslation(
+        this.history.setTranslation(
           this.gestureStart.startTx + dx,
           this.gestureStart.startTy + dy,
         );
@@ -334,12 +340,12 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
             ? dist / this.gestureStart.startDist
             : 1;
 
-        this.editorState.setScale(this.gestureStart.startScale * ratio);
+        this.history.setScale(this.gestureStart.startScale * ratio);
 
         const mdx = mid.x - this.gestureStart.startMid.x;
         const mdy = mid.y - this.gestureStart.startMid.y;
 
-        this.editorState.setTranslation(
+        this.history.setTranslation(
           this.gestureStart.startTx + mdx,
           this.gestureStart.startTy + mdy,
         );
@@ -375,9 +381,9 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
             this.lastTapAt = 0;
             this.lastTapPos = null;
             this.cancelActivePointers();
-            this.editorState.onGestureStart();
-            this.editorState.resetViewToCover();
-            this.editorState.onGestureEnd();
+            this.history.onGestureStart();
+            this.history.resetViewToCover();
+            this.history.onGestureEnd();
             return;
           }
 
@@ -433,6 +439,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.resizeObs?.disconnect();
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
     this.cleanupGestures?.();
+    this.sessionExit.clearReturnUrl();
   }
 
   private updateModeFromRoute(): void {
@@ -446,17 +453,28 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     }
     this.updateCanvasGestures();
     this.updateConstraintsContext();
+    this.updateHistoryMode();
+  }
+
+  private updateHistoryMode(): void {
+    const mode = this.ui.activeMode();
+    if (mode === "tools" || mode === "adjustments") {
+      this.history.enterPanel(mode);
+      return;
+    }
+    this.ui.closePanel();
+    this.history.exitPanel();
   }
 
   cancel(): void {
-    this.exitEditor("cancel");
+    void this.sessionExit.cancelSession();
   }
 
   async done(): Promise<void> {
     if (this.isExporting) return;
 
     if (!this.ready || !this.session?.file) {
-      this.exitEditor("done");
+      this.sessionExit.exitAfterDone();
       return;
     }
 
@@ -494,29 +512,35 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       this.isExporting = false;
       this.ready = wasReady;
       if (shouldExit) {
-        this.exitEditor("done");
+        this.sessionExit.exitAfterDone();
       }
     }
   }
 
-  undo(): void {}
-  redo(): void {}
-  discardBlockSession(): void {
-    this.exitEditor("discard");
-  }
-  applyBlockSession(): void {
-    this.exitEditor("apply");
+  undo(): void {
+    this.history.undo();
   }
 
-  private exitEditor(reason: "cancel" | "done" | "discard" | "apply"): void {
-    const exitUrl = this.getExitUrl();
-    this.navCtrl.navigateBack(exitUrl, { replaceUrl: true });
+  redo(): void {
+    this.history.redo();
   }
 
-  private getExitUrl(): string {
-    const candidate = this.returnUrl ?? "";
-    if (candidate.startsWith("/tabs/")) return candidate;
-    return "/tabs/create";
+  async discardPanel(): Promise<void> {
+    if (this.history.mode() !== "local") return;
+    const canExit = await this.panelExit.discardPanelIfNeeded();
+    if (!canExit) return;
+    this.router.navigate(["./"], { relativeTo: this.route });
+  }
+
+  applyPanel(): void {
+    if (this.history.mode() !== "local") return;
+    if (!this.history.isDirty()) return;
+
+    const applied = this.history.applyPanel();
+    if (!applied) return;
+
+    this.ui.closePanel();
+    this.router.navigate(["./"], { relativeTo: this.route });
   }
 
   private updateCanvasGestures(): void {
@@ -537,7 +561,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   onResetPanel(): void {
     const reset = this.ui.activePanelReset();
     if (reset) {
-      reset(this.editorState);
+      reset(this.history);
     }
   }
 
@@ -561,12 +585,8 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   reset(): void {
-    this.scale = 1;
-    this.tx = 0;
-    this.ty = 0;
-    this.rot = 0;
-    this.tryReady();
-    this.renderTransform();
+    if (this.history.mode() !== "local") return;
+    this.history.resetViewToCover();
   }
 
   onImgLoad(ev: Event): void {
@@ -659,7 +679,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   private endGesture(): void {
     if (!this.gestureStart) return;
     this.gestureStart = undefined;
-    this.editorState.onGestureEnd();
+    this.history.onGestureEnd();
   }
 
   private cancelActivePointers(): void {

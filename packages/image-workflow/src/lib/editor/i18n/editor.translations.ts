@@ -42,6 +42,10 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.SHELL.BUTTON.APPLY": "Aplicar",
     "EDITOR.SHELL.BUTTON.CANCEL": "Cancelar",
     "EDITOR.SHELL.BUTTON.DISCARD": "Descartar",
+    "EDITOR.SHELL.CONFIRM.CANCEL_SESSION":
+      "Esto cancelará la edición y descartará todos los cambios de esta sesión.",
+    "EDITOR.SHELL.CONFIRM.DISCARD_PANEL":
+      "Esto descartará los cambios hechos en este panel desde que lo abriste. Los cambios previamente aplicados no se perderán.",
     "EDITOR.SHELL.BUTTON.DONE": "Listo",
     "EDITOR.SHELL.BUTTON.REDO": "Rehacer",
     "EDITOR.SHELL.BUTTON.UNDO": "Deshacer",
@@ -92,6 +96,10 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.SHELL.BUTTON.APPLY": "Apply",
     "EDITOR.SHELL.BUTTON.CANCEL": "Cancel",
     "EDITOR.SHELL.BUTTON.DISCARD": "Discard",
+    "EDITOR.SHELL.CONFIRM.CANCEL_SESSION":
+      "This will cancel editing and discard all changes from this session.",
+    "EDITOR.SHELL.CONFIRM.DISCARD_PANEL":
+      "This will discard the changes you made in this panel since you opened it. Previously applied changes will not be lost.",
     "EDITOR.SHELL.BUTTON.DONE": "Done",
     "EDITOR.SHELL.BUTTON.REDO": "Redo",
     "EDITOR.SHELL.BUTTON.UNDO": "Undo",
@@ -143,6 +151,10 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.SHELL.BUTTON.APPLY": "Anwenden",
     "EDITOR.SHELL.BUTTON.CANCEL": "Abbrechen",
     "EDITOR.SHELL.BUTTON.DISCARD": "Verwerfen",
+    "EDITOR.SHELL.CONFIRM.CANCEL_SESSION":
+      "Dadurch wird die Bearbeitung abgebrochen und alle Änderungen dieser Sitzung verworfen.",
+    "EDITOR.SHELL.CONFIRM.DISCARD_PANEL":
+      "Damit werden die Änderungen verworfen, die du in diesem Panel seit dem Öffnen vorgenommen hast. Zuvor angewendete Änderungen gehen nicht verloren.",
     "EDITOR.SHELL.BUTTON.DONE": "Fertig",
     "EDITOR.SHELL.BUTTON.REDO": "Wiederholen",
     "EDITOR.SHELL.BUTTON.UNDO": "Rückgängig",
@@ -197,6 +209,10 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.SHELL.BUTTON.APPLY": "Appliquer",
     "EDITOR.SHELL.BUTTON.CANCEL": "Annuler",
     "EDITOR.SHELL.BUTTON.DISCARD": "Ignorer",
+    "EDITOR.SHELL.CONFIRM.CANCEL_SESSION":
+      "Cela annulera l’édition et ignorera toutes les modifications de cette session.",
+    "EDITOR.SHELL.CONFIRM.DISCARD_PANEL":
+      "Cela annulera les modifications apportées dans ce panneau depuis son ouverture. Les modifications déjà appliquées ne seront pas perdues.",
     "EDITOR.SHELL.BUTTON.DONE": "OK",
     "EDITOR.SHELL.BUTTON.REDO": "Rétablir",
     "EDITOR.SHELL.BUTTON.UNDO": "Annuler",
@@ -249,6 +265,10 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.SHELL.BUTTON.APPLY": "Applica",
     "EDITOR.SHELL.BUTTON.CANCEL": "Annulla",
     "EDITOR.SHELL.BUTTON.DISCARD": "Scarta",
+    "EDITOR.SHELL.CONFIRM.CANCEL_SESSION":
+      "Questo annullerà la modifica e scarterà tutte le modifiche di questa sessione.",
+    "EDITOR.SHELL.CONFIRM.DISCARD_PANEL":
+      "Questo annullerà le modifiche fatte in questo pannello da quando lo hai aperto. Le modifiche già applicate non andranno perse.",
     "EDITOR.SHELL.BUTTON.DONE": "Fatto",
     "EDITOR.SHELL.BUTTON.REDO": "Ripeti",
     "EDITOR.SHELL.BUTTON.UNDO": "Annulla",
@@ -300,6 +320,10 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.SHELL.BUTTON.APPLY": "Aplicar",
     "EDITOR.SHELL.BUTTON.CANCEL": "Cancelar",
     "EDITOR.SHELL.BUTTON.DISCARD": "Descartar",
+    "EDITOR.SHELL.CONFIRM.CANCEL_SESSION":
+      "Isso cancelará a edição e descartará todas as alterações desta sessão.",
+    "EDITOR.SHELL.CONFIRM.DISCARD_PANEL":
+      "Isso descartará as alterações feitas neste painel desde que você o abriu. As alterações aplicadas anteriormente não serão perdidas.",
     "EDITOR.SHELL.BUTTON.DONE": "Concluir",
     "EDITOR.SHELL.BUTTON.REDO": "Refazer",
     "EDITOR.SHELL.BUTTON.UNDO": "Desfazer",
