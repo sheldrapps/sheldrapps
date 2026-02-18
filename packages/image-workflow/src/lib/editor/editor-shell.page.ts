@@ -153,9 +153,13 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   private tx = 0;
   private ty = 0;
   private rot = 0;
+  private flipX = false;
+  private flipY = false;
 
   private resizeObs?: ResizeObserver;
   private gestureStart?: CanvasGestureStart;
+  private lastTapAt = 0;
+  private lastTapPos: Pt | null = null;
   private gesturesEnabled = false;
   private readonly pointers = new Map<number, Pt>();
   private readonly capturedPointers = new Set<number>();
@@ -182,10 +186,23 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
     // Listen to EditorStateService changes and update preview
     effect(() => {
+      const nextRot = this.editorState.rot();
+      const rotChanged = this.rot !== nextRot;
+      const nextFlipX = this.editorState.flipX();
+      const nextFlipY = this.editorState.flipY();
+
       this.scale = this.editorState.scale();
       this.tx = this.editorState.tx();
       this.ty = this.editorState.ty();
-      this.rot = this.editorState.rot();
+      this.rot = nextRot;
+      this.flipX = nextFlipX;
+      this.flipY = nextFlipY;
+
+      if (rotChanged) {
+        // Recompute baseScale (cover) when rotation changes
+        this.tryReady();
+      }
+
       this.renderTransform();
     });
   }
@@ -338,6 +355,37 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
       if (!this.gesturesEnabled) return;
 
+      const isPointerUp = e.type === "pointerup";
+      const isSingleRelease = this.pointers.size === 0;
+
+      if (isPointerUp && isSingleRelease) {
+        if (this.gestureStart?.type === "pinch") {
+          this.lastTapAt = 0;
+          this.lastTapPos = null;
+        } else {
+          const now = Date.now();
+          const pos = { x: e.clientX, y: e.clientY };
+          const withinTime = now - this.lastTapAt <= 280;
+          const withinDist = this.lastTapPos
+            ? this.distance(this.lastTapPos, pos) <= 24
+            : false;
+
+          if (withinTime && withinDist) {
+            e.preventDefault();
+            this.lastTapAt = 0;
+            this.lastTapPos = null;
+            this.cancelActivePointers();
+            this.editorState.onGestureStart();
+            this.editorState.resetViewToCover();
+            this.editorState.onGestureEnd();
+            return;
+          }
+
+          this.lastTapAt = now;
+          this.lastTapPos = pos;
+        }
+      }
+
       if (this.pointers.size === 1) {
         const p = this.pointers.values().next().value as Pt;
         this.gestureStart = {
@@ -368,9 +416,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     frameEl.addEventListener("pointerdown", onPointerDown, { passive: false });
     frameEl.addEventListener("pointermove", onPointerMove, { passive: false });
     frameEl.addEventListener("pointerup", onPointerUp, { passive: false });
-    frameEl.addEventListener("pointercancel", onPointerUp, {
-      passive: false,
-    });
+    frameEl.addEventListener("pointercancel", onPointerUp, { passive: false });
 
     this.cleanupGestures = () => {
       frameEl.removeEventListener("pointerdown", onPointerDown as any);
@@ -399,9 +445,9 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       this.ui.setMode("none");
     }
     this.updateCanvasGestures();
+    this.updateConstraintsContext();
   }
 
-  // Header actions
   cancel(): void {
     this.exitEditor("cancel");
   }
@@ -453,7 +499,6 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // Top toolbox (future wiring)
   undo(): void {}
   redo(): void {}
   discardBlockSession(): void {
@@ -480,6 +525,8 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.gesturesEnabled = enabled;
     if (!enabled) {
       this.cancelActivePointers();
+      this.lastTapAt = 0;
+      this.lastTapPos = null;
     }
   }
 
@@ -487,7 +534,6 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     return this.router.url.includes("/editor/tools");
   }
 
-  // Panel actions
   onResetPanel(): void {
     const reset = this.ui.activePanelReset();
     if (reset) {
@@ -503,7 +549,6 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.router.navigate(["adjustments"], { relativeTo: this.route });
   }
 
-  // Handle bottom bar item selection
   onBottomBarItemClick(id: string): void {
     switch (id) {
       case "tools":
@@ -515,7 +560,6 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // Preview logic
   reset(): void {
     this.scale = 1;
     this.tx = 0;
@@ -552,12 +596,16 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     if (!this.imageLoaded || !this.naturalW || !this.naturalH) return;
     if (w <= 0 || h <= 0) return;
 
+    // baseScale = COVER (no black by default), based on ROTATED natural
     const rn = this.getRotatedNaturalSize();
     const needW = w / rn.w;
     const needH = h / rn.h;
     this.baseScale = Math.max(needW, needH);
 
     if (!this.ready) this.ready = true;
+
+    // Push ctx on every sizing/rotation change
+    this.updateConstraintsContext();
     this.renderTransform();
   }
 
@@ -567,15 +615,45 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     return { w: this.naturalW, h: this.naturalH };
   }
 
+  private updateConstraintsContext(): void {
+    const frameEl = this.frameRef?.nativeElement;
+    if (!frameEl) return;
+    if (!this.imageLoaded || !this.naturalW || !this.naturalH) return;
+
+    const w = frameEl.clientWidth;
+    const h = frameEl.clientHeight;
+    if (w <= 0 || h <= 0) return;
+
+    this.editorState.setConstraintsContext({
+      frameW: w,
+      frameH: h,
+      naturalW: this.naturalW, // IMPORTANT: UNROTATED real natural
+      naturalH: this.naturalH, // IMPORTANT: UNROTATED real natural
+      baseScale: this.baseScale,
+      mode: this.isToolsRouteActive() ? "tools" : "other",
+      virtualSquare: this.isToolsRouteActive(), // only in Tools we allow terrain rules
+    });
+    console.log("CTX_SET", {
+      mode: this.isToolsRouteActive() ? "tools" : "other",
+      frameW: w,
+      frameH: h,
+      naturalW: this.naturalW,
+      naturalH: this.naturalH,
+      baseScale: this.baseScale,
+    });
+  }
+
   private renderTransform(): void {
     const img = this.imgRef?.nativeElement;
     if (!img) return;
 
     const dispScale = this.baseScale * this.scale;
+    const sx = this.flipX ? -1 : 1;
+    const sy = this.flipY ? -1 : 1;
     img.style.transform =
       `translate(calc(-50% + ${this.tx}px), calc(-50% + ${this.ty}px)) ` +
       `rotate(${this.rot}deg) ` +
-      `scale(${dispScale})`;
+      `scale(${dispScale * sx}, ${dispScale * sy})`;
   }
 
   private endGesture(): void {

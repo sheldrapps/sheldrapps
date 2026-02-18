@@ -4,6 +4,7 @@ import {
   ScrollableButtonBarComponent,
   ScrollableBarItem,
 } from '@sheldrapps/ui-theme';
+import { addIcons } from "ionicons";
 import { EditorStateService } from '../../../editor-state.service';
 import {
   TranslateService,
@@ -61,6 +62,54 @@ const ROTATE_RIGHT_SVG = `
 </svg>
 `;
 
+const FLIP_H_SVG = `
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="4.74716" y="4" width="20" height="39.2406" rx="0.548512" fill="currentColor" fill-opacity="0.43"/>
+<rect x="4.74716" y="4" width="20" height="39.2406" rx="0.548512" stroke="currentColor" style="mix-blend-mode:screen" stroke-width="0.548512" stroke-dasharray="1.1 1.1"/>
+<path d="M12 24L18 18V21H30V18L36 24L30 30V27H18V30L12 24Z" fill="currentColor"/>
+<g filter="url(#flip_h_filter)">
+<rect x="4" y="24.3797" width="40" height="19.6203" rx="0.548512" fill="currentColor"/>
+<rect x="3.72574" y="24.1055" width="40.5485" height="20.1688" rx="0.822768" stroke="currentColor" stroke-width="0.548512"/>
+</g>
+<defs>
+<filter id="flip_h_filter" x="3.01267" y="23.8312" width="41.9746" height="21.5949" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="0.43881"/>
+<feGaussianBlur stdDeviation="0.219405"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+</filter>
+</defs>
+</svg>
+`;
+
+const FLIP_V_SVG = `
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="4.74716" y="4" width="20" height="39.2406" rx="0.548512" fill="currentColor" fill-opacity="0.43"/>
+<rect x="4.74716" y="4" width="20" height="39.2406" rx="0.548512" stroke="currentColor" style="mix-blend-mode:screen" stroke-width="0.548512" stroke-dasharray="1.1 1.1"/>
+<path d="M24 12L30 18H27V30H30L24 36L18 30H21V18H18L24 12Z" fill="currentColor"/>
+<g filter="url(#flip_v_filter)">
+<rect x="4" y="24.3797" width="40" height="19.6203" rx="0.548512" fill="currentColor"/>
+<rect x="3.72574" y="24.1055" width="40.5485" height="20.1688" rx="0.822768" stroke="currentColor" stroke-width="0.548512"/>
+</g>
+<defs>
+<filter id="flip_v_filter" x="3.01267" y="23.8312" width="41.9746" height="21.5949" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="0.43881"/>
+<feGaussianBlur stdDeviation="0.219405"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+</filter>
+</defs>
+</svg>
+`;
+
 @Component({
   selector: 'cc-rotate-panel',
   standalone: true,
@@ -93,6 +142,13 @@ export class RotatePanelComponent {
   rotateItems: ScrollableBarItem[] = this.buildRotateItems();
 
   constructor() {
+    addIcons({
+      "rotate-left": ROTATE_LEFT_SVG,
+      "rotate-right": ROTATE_RIGHT_SVG,
+      "flip-h": FLIP_H_SVG,
+      "flip-v": FLIP_V_SVG,
+    });
+
     merge(
       this.translate.onLangChange as Observable<LangChangeEvent>,
       this.translate.onTranslationChange as Observable<TranslationChangeEvent>,
@@ -108,11 +164,17 @@ export class RotatePanelComponent {
       "EDITOR.PANELS.TOOLS.WIDGETS.ROTATE_PANEL.BUTTON.LEFT";
     const rightKey =
       "EDITOR.PANELS.TOOLS.WIDGETS.ROTATE_PANEL.BUTTON.RIGHT";
+    const flipHKey =
+      "EDITOR.PANELS.TOOLS.WIDGETS.ROTATE_PANEL.BUTTON.FLIP_H";
+    const flipVKey =
+      "EDITOR.PANELS.TOOLS.WIDGETS.ROTATE_PANEL.BUTTON.FLIP_V";
 
     const leftLabel = this.translate.instant(leftKey);
     const rightLabel = this.translate.instant(rightKey);
+    const flipHLabel = this.translate.instant(flipHKey);
+    const flipVLabel = this.translate.instant(flipVKey);
 
-    const makeItem = (id: string, label: string, svg: string) =>
+    const makeItem = (id: string, label: string, icon: string) =>
       ({
         id,
         label,
@@ -120,12 +182,14 @@ export class RotatePanelComponent {
         text: label,
         title: label,
         ariaLabel: label,
-        svg,
+        icon,
       }) as unknown as ScrollableBarItem;
 
     return [
-      makeItem('left', leftLabel, ROTATE_LEFT_SVG),
-      makeItem('right', rightLabel, ROTATE_RIGHT_SVG),
+      makeItem('left', leftLabel, "rotate-left"),
+      makeItem('right', rightLabel, "rotate-right"),
+      makeItem('flip-h', flipHLabel, "flip-h"),
+      makeItem('flip-v', flipVLabel, "flip-v"),
     ];
   }
 
@@ -137,6 +201,16 @@ export class RotatePanelComponent {
 
     if (id === 'right') {
       this.editorState.rotateRight();
+      return;
+    }
+
+    if (id === 'flip-h') {
+      this.editorState.toggleFlipX();
+      return;
+    }
+
+    if (id === 'flip-v') {
+      this.editorState.toggleFlipY();
     }
   }
 }

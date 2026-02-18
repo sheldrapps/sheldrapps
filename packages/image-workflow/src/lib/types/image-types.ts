@@ -89,6 +89,8 @@ export interface CoverCropState {
   bw: boolean;
   dither: boolean;
   rot: number;
+  flipX?: boolean;
+  flipY?: boolean;
 }
 
 /**

@@ -113,7 +113,28 @@ export async function renderCroppedFile(
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 
-  ctx.drawImage(rotCanvas, sxR, syR, sWidthR, sHeightR, 0, 0, outW, outH);
+  const flipX = !!state.flipX;
+  const flipY = !!state.flipY;
+
+  if (flipX || flipY) {
+    ctx.save();
+    ctx.translate(outW / 2, outH / 2);
+    ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+    ctx.drawImage(
+      rotCanvas,
+      sxR,
+      syR,
+      sWidthR,
+      sHeightR,
+      -outW / 2,
+      -outH / 2,
+      outW,
+      outH,
+    );
+    ctx.restore();
+  } else {
+    ctx.drawImage(rotCanvas, sxR, syR, sWidthR, sHeightR, 0, 0, outW, outH);
+  }
 
   const imgData = ctx.getImageData(0, 0, outW, outH);
   const d = imgData.data;

@@ -1,5 +1,5 @@
-import { Component, inject, DestroyRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, DestroyRef } from "@angular/core";
+import { CommonModule } from "@angular/common";
 import { ScrollableButtonBarComponent } from "@sheldrapps/ui-theme";
 import type { ScrollableBarItem } from "@sheldrapps/ui-theme";
 import { addIcons } from "ionicons";
@@ -29,9 +29,15 @@ export class ZoomPanelComponent {
 
   get disabledZoomIds(): string[] {
     const scale = this.editorState.scale();
+    const min = this.editorState.getMinToolsScale(); // <- clave (en tools puede ser < 1)
+    const max = 6;
+
+    // Tolerancia para evitar que el botón se “muera” por floats
+    const eps = 1e-3;
+
     const ids: string[] = [];
-    if (scale <= 1) ids.push("out");
-    if (scale >= 6) ids.push("in");
+    if (scale <= min + eps) ids.push("out");
+    if (scale >= max - eps) ids.push("in");
     return ids;
   }
 
