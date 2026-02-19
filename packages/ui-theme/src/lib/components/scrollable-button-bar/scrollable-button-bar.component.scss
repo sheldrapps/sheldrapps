@@ -33,6 +33,27 @@
   }
 }
 
+.tool-btn--swatch {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+  min-width: 48px;
+}
+
+.sb-color {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+.tool-btn--swatch.tool-btn--active .sb-color {
+  outline: 2px solid rgba(0, 0, 0, 0.85);
+  outline-offset: 2px;
+}
+
 .sb__scroll--center {
   justify-content: center;
 }

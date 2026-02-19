@@ -1,4 +1,4 @@
-import { Component, inject, DestroyRef } from "@angular/core";
+import { Component, inject, DestroyRef, computed } from "@angular/core";
 import {
   TranslateModule,
   TranslateService,
@@ -11,6 +11,7 @@ import {
   ScrollableBarItem,
 } from "@sheldrapps/ui-theme";
 import { EditorUiStateService } from "../../editor-ui-state.service";
+import { EditorStateService } from "../../editor-state.service";
 import { TOOLS_REGISTRY } from "./tools.registry";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { merge, Observable } from "rxjs";
@@ -24,10 +25,14 @@ import { merge, Observable } from "rxjs";
 })
 export class ToolsPage {
   readonly ui = inject(EditorUiStateService);
+  private readonly editorState = inject(EditorStateService);
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
   toolItems: ScrollableBarItem[] = this.buildToolItems();
+  readonly disabledToolIds = computed(() =>
+    this.editorState.hasBackgroundSpace() ? [] : ["fill"],
+  );
 
   constructor() {
     merge(
@@ -50,10 +55,14 @@ export class ToolsPage {
     const zoomKey =
       TOOLS_REGISTRY.zoom.titleKey ??
       "EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.ZOOM";
+    const fillKey =
+      TOOLS_REGISTRY.fill.titleKey ??
+      "EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.FILL";
 
     const cropLabel = this.translate.instant(cropKey);
     const rotateLabel = this.translate.instant(rotateKey);
     const zoomLabel = this.translate.instant(zoomKey);
+    const fillLabel = this.translate.instant(fillKey);
 
     const makeItem = (id: string, label: string) =>
       ({
@@ -69,10 +78,14 @@ export class ToolsPage {
       makeItem("crop", cropLabel),
       makeItem("rotate", rotateLabel),
       makeItem("zoom", zoomLabel),
+      makeItem("fill", fillLabel),
     ];
   }
 
   onSelectTool(panelId: string): void {
+    if (panelId === "fill" && !this.editorState.hasBackgroundSpace()) {
+      return;
+    }
     this.ui.togglePanel("tools", panelId);
   }
 }

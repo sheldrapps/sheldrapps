@@ -21,6 +21,8 @@ export interface ScrollableBarItem {
   labelKey?: string;
   icon?: string; // ionicon name, e.g. 'crop-outline'
   svg?: string; // raw svg string for custom icons
+  type?: "default" | "color";
+  colorHex?: string;
 }
 
 @Component({
@@ -93,6 +95,10 @@ export class ScrollableButtonBarComponent implements AfterViewInit, OnDestroy {
 
   isItemDisabled(id: string): boolean {
     return this.disabledIds.includes(id);
+  }
+
+  itemAriaLabel(item: ScrollableBarItem): string | null {
+    return item.label || item.labelKey || item.colorHex || item.id || null;
   }
 
   svgSrc(item: ScrollableBarItem): string | null {

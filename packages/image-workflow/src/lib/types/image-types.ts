@@ -77,6 +77,12 @@ export interface CropFormatOption {
 }
 
 /**
+ * Background settings for composition
+ */
+export type BackgroundMode = "transparent" | "color" | "blur";
+export type BackgroundSource = "same-image";
+
+/**
  * Crop state for persistence and restoration
  */
 export interface CoverCropState {
@@ -91,6 +97,24 @@ export interface CoverCropState {
   rot: number;
   flipX?: boolean;
   flipY?: boolean;
+  backgroundMode?: BackgroundMode;
+  backgroundColor?: string;
+  backgroundSource?: BackgroundSource;
+  backgroundBlur?: number;
+  frameWidth?: number;
+  frameHeight?: number;
+}
+
+/**
+ * Composition model for rendering/preview/export
+ */
+export interface CompositionModel {
+  cropWidth: number;
+  cropHeight: number;
+  imageState: CoverCropState;
+  backgroundMode?: BackgroundMode;
+  backgroundColor?: string;
+  backgroundSource?: BackgroundSource;
 }
 
 /**

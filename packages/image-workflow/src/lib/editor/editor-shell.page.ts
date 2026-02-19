@@ -6,6 +6,7 @@ import {
   NgZone,
   OnDestroy,
   OnInit,
+  signal,
   ViewChild,
   effect,
 } from "@angular/core";
@@ -36,6 +37,7 @@ import {
   returnUpForwardOutline,
   closeOutline,
   checkmarkOutline,
+  eyedropOutline,
 } from "ionicons/icons";
 import { filter } from "rxjs";
 
@@ -46,9 +48,10 @@ import { EditorHistoryService } from "./editor-history.service";
 import { EditorPanelExitService } from "./editor-panel-exit.service";
 import { EditorSessionExitService } from "./editor-session-exit.service";
 import { EditorKindleStateService } from "./editor-kindle-state.service";
+import { EditorColorSamplerService } from "./editor-color-sampler.service";
 import { buildCssFilter } from "./editor-adjustments";
-import { renderCroppedFile } from "../core/pipeline/cropper-export";
-import type { CropperResult } from "../types";
+import { renderCompositionToCanvas } from "../core/pipeline/composition-render";
+import type { CoverCropState, CropperResult } from "../types";
 
 type Pt = { x: number; y: number };
 
@@ -93,6 +96,11 @@ const DEFAULT_LABELS: EditorLabels = {
   adjustmentsLabel: "EDITOR.SHELL.LABEL.ADJUSTMENTS",
 };
 
+const DEFAULT_PICKER_SIZE = 120;
+const PICKER_TIP_RATIO_X = 0.085;
+const PICKER_TIP_RATIO_Y = 0.085;
+const MAX_BG_BLUR_PX = 40;
+
 @Component({
   selector: "cc-editor-shell-page",
   standalone: true,
@@ -119,6 +127,8 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild("frame", { read: ElementRef }) frameRef!: ElementRef<HTMLElement>;
   @ViewChild("img", { read: ElementRef }) imgRef!: ElementRef<HTMLImageElement>;
+  @ViewChild("picker", { read: ElementRef })
+  pickerRef?: ElementRef<HTMLDivElement>;
 
   // Session
   sid = "";
@@ -133,6 +143,22 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   readonly cssFilter = computed(() =>
     buildCssFilter(this.editorState.adjustments()),
   );
+  readonly isSampling = computed(() => this.colorSampler.active());
+  readonly isDraggingSample = signal(false);
+  readonly showSampleConfirm = computed(
+    () => this.colorSampler.confirming() && !this.isDraggingSample(),
+  );
+  readonly displaySampleHex = computed(
+    () => this.colorSampler.proposedHex() ?? this.colorSampler.sampleHex(),
+  );
+  readonly backgroundMode = computed(() => this.editorState.backgroundMode());
+  readonly backgroundColor = computed(() => this.editorState.backgroundColor());
+  readonly backgroundBlur = computed(() => this.editorState.backgroundBlur());
+  readonly backgroundBlurPx = computed(() =>
+    `${this.blurToPx(this.backgroundBlur())}px`,
+  );
+  readonly pickerPos = signal<Pt | null>(null);
+  readonly pickerTip = signal<Pt>({ x: 0, y: 0 });
   readonly hintKey = computed(() =>
     this.ui.activeMode() === "tools"
       ? "EDITOR.SHELL.HINT.GESTURES"
@@ -158,6 +184,14 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   private flipX = false;
   private flipY = false;
 
+  private samplingCanvas?: HTMLCanvasElement;
+  private samplingCtx: CanvasRenderingContext2D | null = null;
+  private samplingPointerId: number | null = null;
+  private samplingWasActive = false;
+  private pickerDragOffset: Pt | null = null;
+  private lastSamplePos: Pt | null = null;
+  private pickerTipOffset: Pt = { x: 0, y: 0 };
+
   private resizeObs?: ResizeObserver;
   private gestureStart?: CanvasGestureStart;
   private lastTapAt = 0;
@@ -178,6 +212,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     private sessionExit: EditorSessionExitService,
     private zone: NgZone,
     private kindleState: EditorKindleStateService,
+    private colorSampler: EditorColorSamplerService,
   ) {
     addIcons({
       cropOutline,
@@ -186,6 +221,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       returnUpForwardOutline,
       closeOutline,
       checkmarkOutline,
+      eyedropOutline,
     });
 
     // Listen to EditorStateService changes and update preview
@@ -208,6 +244,34 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       }
 
       this.renderTransform();
+    });
+
+    effect(() => {
+      const active = this.colorSampler.active();
+      if (!active) {
+        this.samplingWasActive = false;
+        this.samplingCanvas = undefined;
+        this.samplingCtx = null;
+        this.samplingPointerId = null;
+        this.pickerDragOffset = null;
+        this.lastSamplePos = null;
+        this.isDraggingSample.set(false);
+        this.pickerPos.set(null);
+        return;
+      }
+      if (!this.samplingWasActive) {
+        this.samplingWasActive = true;
+        this.centerPicker();
+        this.updatePickerMetrics();
+        requestAnimationFrame(() => this.updatePickerMetrics());
+      }
+      void this.prepareSamplingCanvas();
+    });
+
+    effect(() => {
+      if (this.colorSampler.active() && this.ui.panelId() === "fill") {
+        this.ui.closePanel();
+      }
     });
 
     effect(() => {
@@ -238,6 +302,10 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.kindleState.reset();
 
     if (!this.session?.file) return;
+
+    if (this.session.initialState) {
+      this.editorState.setState(this.session.initialState);
+    }
 
     this.history.startSession();
 
@@ -297,6 +365,20 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     };
 
     const onPointerDown = (e: PointerEvent) => {
+      if (this.colorSampler.active()) {
+        if (!this.isPointerInPicker(e)) return;
+        if (this.colorSampler.confirming()) {
+          this.colorSampler.clearProposal();
+        }
+        this.samplingPointerId = e.pointerId;
+        this.pickerDragOffset = this.getPickerDragOffset(e);
+        this.lastSamplePos = null;
+        this.isDraggingSample.set(true);
+        capture(e.pointerId);
+        this.updatePickerPositionFromPointer(e);
+        e.preventDefault();
+        return;
+      }
       if (!this.gesturesEnabled) return;
       if (!this.ready) {
         e.preventDefault();
@@ -339,6 +421,18 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     };
 
     const onPointerMove = (e: PointerEvent) => {
+      if (this.colorSampler.active()) {
+        if (this.colorSampler.confirming()) {
+          return;
+        }
+        if (this.samplingPointerId !== e.pointerId) return;
+        if (!this.isDraggingSample()) {
+          this.isDraggingSample.set(true);
+        }
+        this.updatePickerPositionFromPointer(e);
+        e.preventDefault();
+        return;
+      }
       if (!this.gesturesEnabled || !this.ready) return;
       if (!this.pointers.has(e.pointerId)) return;
 
@@ -382,6 +476,21 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     };
 
     const onPointerUp = (e: PointerEvent) => {
+      if (this.colorSampler.active()) {
+        if (this.samplingPointerId !== e.pointerId) return;
+        this.samplingPointerId = null;
+        this.pickerDragOffset = null;
+        release(e.pointerId);
+        this.isDraggingSample.set(false);
+        if (!this.colorSampler.confirming()) {
+          if (this.lastSamplePos) {
+            this.sampleAt(this.lastSamplePos.x, this.lastSamplePos.y);
+          }
+          this.colorSampler.propose();
+        }
+        e.preventDefault();
+        return;
+      }
       if (this.pointers.has(e.pointerId)) {
         this.pointers.delete(e.pointerId);
       }
@@ -468,6 +577,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
     this.cleanupGestures?.();
     this.sessionExit.clearReturnUrl();
+    this.colorSampler.stop();
   }
 
   private updateModeFromRoute(): void {
@@ -512,30 +622,21 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     let shouldExit = false;
 
     try {
+      const state: CoverCropState = {
+        ...this.editorState.getState(),
+      };
       const frameEl = this.frameRef?.nativeElement;
-      if (!frameEl) return;
-
-      const state = this.editorState.getState();
-      const croppedFile = await renderCroppedFile({
-        file: this.session.file,
-        target: this.session.target,
-        frameWidth: frameEl.clientWidth,
-        frameHeight: frameEl.clientHeight,
-        baseScale: this.baseScale,
-        naturalWidth: this.naturalW,
-        naturalHeight: this.naturalH,
-        state,
-      });
-
-      if (croppedFile) {
-        const result: CropperResult = {
-          file: croppedFile,
-          state,
-          formatId: this.session.tools?.formats?.selectedId,
-        };
-        this.editorSession.setResult(this.sid, result);
-        shouldExit = true;
+      if (frameEl) {
+        state.frameWidth = frameEl.clientWidth;
+        state.frameHeight = frameEl.clientHeight;
       }
+      const result: CropperResult = {
+        file: this.session.file,
+        state,
+        formatId: this.session.tools?.formats?.selectedId,
+      };
+      this.editorSession.setResult(this.sid, result);
+      shouldExit = true;
     } finally {
       this.isExporting = false;
       this.ready = wasReady;
@@ -655,6 +756,19 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     // Push ctx on every sizing/rotation change
     this.updateConstraintsContext();
     this.renderTransform();
+    if (this.colorSampler.active()) {
+      const currentPos = this.pickerPos();
+      this.updatePickerMetrics();
+      if (!currentPos) {
+        this.centerPicker();
+      } else {
+        const clamped = this.clampPickerPos(currentPos);
+        if (clamped.x !== currentPos.x || clamped.y !== currentPos.y) {
+          this.pickerPos.set(clamped);
+        }
+      }
+      void this.prepareSamplingCanvas();
+    }
   }
 
   private getRotatedNaturalSize(): { w: number; h: number } {
@@ -702,6 +816,201 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       `translate(calc(-50% + ${this.tx}px), calc(-50% + ${this.ty}px)) ` +
       `rotate(${this.rot}deg) ` +
       `scale(${dispScale * sx}, ${dispScale * sy})`;
+  }
+
+  private async prepareSamplingCanvas(): Promise<void> {
+    const frameEl = this.frameRef?.nativeElement;
+    if (!frameEl || !this.session?.target) return;
+
+    const scale = frameEl.clientWidth / this.session.target.width;
+    const canvas = await this.buildSamplingCanvas(scale);
+    if (!canvas) return;
+    this.samplingCanvas = canvas;
+    this.samplingCtx = canvas.getContext("2d");
+    const pos = this.pickerPos();
+    if (pos) {
+      this.sampleAt(pos.x, pos.y);
+    }
+  }
+
+  private sampleAt(x: number, y: number): void {
+    const frameEl = this.frameRef?.nativeElement;
+    if (!frameEl || !this.samplingCtx || !this.samplingCanvas) return;
+
+    const fw = frameEl.clientWidth;
+    const fh = frameEl.clientHeight;
+    if (!fw || !fh) return;
+
+    const tip = this.pickerTipOffset;
+    const sampleX = this.clamp(x + tip.x, 0, fw);
+    const sampleY = this.clamp(y + tip.y, 0, fh);
+    const sx = Math.round(
+      this.clamp(
+        (sampleX / fw) * this.samplingCanvas.width,
+        0,
+        this.samplingCanvas.width - 1,
+      ),
+    );
+    const sy = Math.round(
+      this.clamp(
+        (sampleY / fh) * this.samplingCanvas.height,
+        0,
+        this.samplingCanvas.height - 1,
+      ),
+    );
+    const data = this.samplingCtx.getImageData(sx, sy, 1, 1).data;
+
+    const rgba = {
+      r: data[0],
+      g: data[1],
+      b: data[2],
+      a: data[3] / 255,
+    };
+
+    this.colorSampler.setSample(rgba, { x: sampleX, y: sampleY });
+  }
+
+  private centerPicker(): void {
+    const frameEl = this.frameRef?.nativeElement;
+    if (!frameEl) return;
+    const fw = frameEl.clientWidth;
+    const fh = frameEl.clientHeight;
+    if (!fw || !fh) return;
+
+    const next = this.clampPickerPos({ x: fw / 2, y: fh / 2 });
+    this.pickerPos.set(next);
+    this.lastSamplePos = next;
+    this.sampleAt(next.x, next.y);
+  }
+
+  private updatePickerPositionFromPointer(e: PointerEvent): void {
+    const point = this.pointerToFramePoint(e);
+    if (!point) return;
+    const offset = this.pickerDragOffset ?? { x: 0, y: 0 };
+    const next = this.clampPickerPos({
+      x: point.x - offset.x,
+      y: point.y - offset.y,
+    });
+    this.pickerPos.set(next);
+    this.lastSamplePos = next;
+    this.sampleAt(next.x, next.y);
+  }
+
+  private pointerToFramePoint(e: PointerEvent): Pt | null {
+    const frameEl = this.frameRef?.nativeElement;
+    if (!frameEl) return null;
+    const rect = frameEl.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
+  }
+
+  private isPointerInPicker(e: PointerEvent): boolean {
+    const pos = this.pickerPos();
+    if (!pos) return false;
+    const point = this.pointerToFramePoint(e);
+    if (!point) return false;
+    const r = this.getPickerRadius();
+    const dx = point.x - pos.x;
+    const dy = point.y - pos.y;
+    return Math.hypot(dx, dy) <= r;
+  }
+
+  private getPickerDragOffset(e: PointerEvent): Pt {
+    const pos = this.pickerPos();
+    const point = this.pointerToFramePoint(e);
+    if (!pos || !point) return { x: 0, y: 0 };
+    return { x: point.x - pos.x, y: point.y - pos.y };
+  }
+
+  private clampPickerPos(pos: Pt): Pt {
+    const frameEl = this.frameRef?.nativeElement;
+    if (!frameEl) return pos;
+    const fw = frameEl.clientWidth;
+    const fh = frameEl.clientHeight;
+    const tip = this.pickerTipOffset;
+
+    return {
+      x: this.clamp(pos.x, 0 - tip.x, fw - tip.x),
+      y: this.clamp(pos.y, 0 - tip.y, fh - tip.y),
+    };
+  }
+
+  private getPickerRadius(): number {
+    const size = this.getPickerSize();
+    return size / 2;
+  }
+
+  private getPickerSize(): number {
+    const el = this.pickerRef?.nativeElement;
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 0) return rect.width;
+    }
+    return DEFAULT_PICKER_SIZE;
+  }
+
+  private updatePickerMetrics(): void {
+    const size = this.getPickerSize();
+    const nextTip = {
+      x: size * PICKER_TIP_RATIO_X,
+      y: size * PICKER_TIP_RATIO_Y,
+    };
+    this.pickerTipOffset = nextTip;
+    this.pickerTip.set(nextTip);
+    if (this.colorSampler.active() && this.lastSamplePos) {
+      this.sampleAt(this.lastSamplePos.x, this.lastSamplePos.y);
+    }
+  }
+
+  confirmSample(): void {
+    const proposed =
+      this.colorSampler.proposedHex() ?? this.colorSampler.sampleHex();
+    this.history.setBackground({ mode: "color", color: proposed });
+    this.colorSampler.stop();
+    this.isDraggingSample.set(false);
+    this.ui.openPanel("tools", "fill");
+  }
+
+  cancelSample(): void {
+    this.colorSampler.clearProposal();
+    this.isDraggingSample.set(false);
+  }
+
+
+  private async buildSamplingCanvas(
+    outputScale: number,
+  ): Promise<HTMLCanvasElement | null> {
+    if (!this.session?.file) return null;
+    const frameEl = this.frameRef?.nativeElement;
+    if (!frameEl) return null;
+
+    return renderCompositionToCanvas(
+      {
+        file: this.session.file,
+        target: this.session.target,
+        frameWidth: frameEl.clientWidth,
+        frameHeight: frameEl.clientHeight,
+        baseScale: this.baseScale,
+        naturalWidth: this.naturalW,
+        naturalHeight: this.naturalH,
+        state: this.editorState.getState(),
+      },
+      {
+        mode: "preview",
+        outputScale,
+      },
+    );
+  }
+
+  private clamp(value: number, min: number, max: number): number {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  private blurToPx(value: number): number {
+    const clamped = this.clamp(value ?? 0, 0, 100);
+    return (clamped / 100) * MAX_BG_BLUR_PX;
   }
 
   private endGesture(): void {

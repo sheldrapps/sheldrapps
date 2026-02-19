@@ -49,40 +49,91 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="cropper-content" [fullscreen]="true" [scrollY]="false">
+<ion-content class="cropper-content shell-bg" [fullscreen]="true" [scrollY]="false">
   <div class="stage">
-    <div class="frame-wrap">
-      <div
-        #frame
-        class="frame"
-        [style.--crop-ratio]="aspectRatio"
-        (dblclick)="reset()"
-        [attr.aria-label]="'EDITOR.SHELL.ARIA.CROP_FRAME' | translate"
-      >
-        @if (imageUrl) {
-          <img
-            #img
-            class="img"
-            [src]="imageUrl"
-            [style.filter]="cssFilter()"
-            alt=""
-            draggable="false"
-            (load)="onImgLoad($event)"
-            (error)="onImgError($event)"
-          />
-        }
+    <div class="stage-content">
+      <div class="stage-bg" [class.stage-bg--checker]="backgroundMode() === 'transparent'"></div>
+      <div class="frame-wrap">
+        <div
+          #frame
+          class="frame"
+          [class.frame--sampling]="isSampling()"
+          [style.--crop-ratio]="aspectRatio"
+          (dblclick)="reset()"
+          [attr.aria-label]="'EDITOR.SHELL.ARIA.CROP_FRAME' | translate"
+        >
+        <div class="frame-content" [style.filter]="cssFilter()">
+          <div
+            class="frame-bg"
+            [class.frame-bg--blur]="backgroundMode() === 'blur'"
+            [style.backgroundColor]="backgroundMode() === 'color' ? backgroundColor() : null"
+            [style.backgroundImage]="backgroundMode() === 'blur' && imageUrl ? 'url(' + imageUrl + ')' : null"
+            [style.--bg-blur]="backgroundBlurPx()"
+            aria-hidden="true"
+          ></div>
+          @if (imageUrl) {
+            <img
+              #img
+              class="img"
+              [src]="imageUrl"
+              alt=""
+              draggable="false"
+              (load)="onImgLoad($event)"
+              (error)="onImgError($event)"
+            />
+          }
+        </div>
 
-        @if (!ready) {
-          <div class="frame-loader" aria-hidden="true">
-            <div class="frame-loader__card">
-              <ion-spinner name="crescent"></ion-spinner>
-              <div class="frame-loader__text">{{ 'EDITOR.SHELL.LABEL.LOADING' | translate }}</div>
+          @if (isSampling()) {
+            <div
+              class="picker-overlay"
+              [style.--picker-x]="(pickerPos()?.x ?? 0) + 'px'"
+              [style.--picker-y]="(pickerPos()?.y ?? 0) + 'px'"
+              [style.--picker-color]="displaySampleHex()"
+            [style.--picker-tip-x]="pickerTip().x + 'px'"
+            [style.--picker-tip-y]="pickerTip().y + 'px'"
+            >
+              <div #picker class="color-picker" aria-hidden="true">
+                <div class="color-picker__ring"></div>
+                <div class="color-picker__center">
+                  <ion-icon name="eyedrop-outline"></ion-icon>
+                </div>
+                <div class="color-picker__crosshair" aria-hidden="true"></div>
+              </div>
+              @if (showSampleConfirm()) {
+                <div class="picker-confirm">
+                  <ion-button
+                    fill="solid"
+                    class="picker-confirm__btn"
+                    (click)="confirmSample()"
+                    aria-label="Confirm color"
+                  >
+                    <ion-icon slot="icon-only" name="checkmark-outline"></ion-icon>
+                  </ion-button>
+                  <ion-button
+                    fill="solid"
+                    class="picker-confirm__btn"
+                    (click)="cancelSample()"
+                    aria-label="Keep sampling"
+                  >
+                    <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+                  </ion-button>
+                </div>
+              }
             </div>
-          </div>
-        }
+          }
+
+          @if (!ready) {
+            <div class="frame-loader" aria-hidden="true">
+              <div class="frame-loader__card">
+                <ion-spinner name="crescent"></ion-spinner>
+                <div class="frame-loader__text">{{ 'EDITOR.SHELL.LABEL.LOADING' | translate }}</div>
+              </div>
+            </div>
+          }
+        </div>
       </div>
     </div>
-
     @if (ready) {
       <div class="hint">{{ hintKey() | translate }}</div>
     }

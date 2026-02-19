@@ -10,26 +10,17 @@
         fill="clear"
         class="tool-btn"
         [class.tool-btn--active]="isActive(item.id)"
+        [class.tool-btn--swatch]="item.type === 'color'"
         [disabled]="disabled || isItemDisabled(item.id)"
-        [attr.aria-label]="item.label"
+        [attr.aria-label]="itemAriaLabel(item)"
         (click)="onItemClick(item.id)"
       >
-        <ng-container [ngSwitch]="variant">
-          <ng-container *ngSwitchCase="'iconOnly'">
-            <ion-icon
-              *ngIf="item.svg"
-              class="app-icon-text__icon"
-              [src]="svgSrc(item)"
-            ></ion-icon>
-            <ion-icon
-              *ngIf="!item.svg && item.icon"
-              class="app-icon-text__icon"
-              [name]="item.icon"
-            ></ion-icon>
-          </ng-container>
-
-          <ng-container *ngSwitchCase="'iconText'">
-            <div class="app-icon-text">
+        <ng-container *ngIf="item.type === 'color'; else defaultItem">
+          <span class="sb-color" [style.background]="item.colorHex || '#000'"></span>
+        </ng-container>
+        <ng-template #defaultItem>
+          <ng-container [ngSwitch]="variant">
+            <ng-container *ngSwitchCase="'iconOnly'">
               <ion-icon
                 *ngIf="item.svg"
                 class="app-icon-text__icon"
@@ -40,14 +31,29 @@
                 class="app-icon-text__icon"
                 [name]="item.icon"
               ></ion-icon>
-              <span class="app-icon-text__label">{{ item.label }}</span>
-            </div>
-          </ng-container>
+            </ng-container>
 
-          <ng-container *ngSwitchDefault>
-            <span>{{ item.label }}</span>
+            <ng-container *ngSwitchCase="'iconText'">
+              <div class="app-icon-text">
+                <ion-icon
+                  *ngIf="item.svg"
+                  class="app-icon-text__icon"
+                  [src]="svgSrc(item)"
+                ></ion-icon>
+                <ion-icon
+                  *ngIf="!item.svg && item.icon"
+                  class="app-icon-text__icon"
+                  [name]="item.icon"
+                ></ion-icon>
+                <span class="app-icon-text__label">{{ item.label }}</span>
+              </div>
+            </ng-container>
+
+            <ng-container *ngSwitchDefault>
+              <span>{{ item.label }}</span>
+            </ng-container>
           </ng-container>
-        </ng-container>
+        </ng-template>
       </ion-button>
     </div>
 

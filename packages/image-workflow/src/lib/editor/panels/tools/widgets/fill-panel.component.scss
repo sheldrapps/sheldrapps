@@ -1,0 +1,35 @@
+.fill-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+.fill-tabs {
+  padding: 4px 0;
+}
+
+.fill-subheader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fill-subheader__back {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  --padding-top: 6px;
+  --padding-bottom: 6px;
+  --border-radius: 10px;
+  min-width: 36px;
+}
+
+.fill-subheader__title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--ion-text-color, #222);
+}
+
+.fill-subpanel {
+  padding: 4px 0;
+}

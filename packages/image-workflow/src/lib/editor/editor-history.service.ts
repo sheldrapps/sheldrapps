@@ -5,6 +5,7 @@ import {
   type KindleSelectionSnapshot,
 } from "./editor-kindle-state.service";
 import { DEFAULT_EDITOR_ADJUSTMENTS } from "./editor-adjustments";
+import type { BackgroundMode, BackgroundSource } from "../types";
 
 export type HistoryMode = "local" | "global";
 export type PanelScope = "tools" | "adjustments";
@@ -36,6 +37,12 @@ type NormalizedTransform = {
   rot: number;
   flipX: boolean;
   flipY: boolean;
+  bw: boolean;
+  dither: boolean;
+  backgroundMode: BackgroundMode;
+  backgroundColor: string;
+  backgroundSource: BackgroundSource | null;
+  backgroundBlur: number;
 };
 
 @Injectable({
@@ -79,6 +86,10 @@ export class EditorHistoryService {
   readonly contrast = this.editorState.contrast;
   readonly bw = this.editorState.bw;
   readonly dither = this.editorState.dither;
+  readonly backgroundMode = this.editorState.backgroundMode;
+  readonly backgroundColor = this.editorState.backgroundColor;
+  readonly backgroundSource = this.editorState.backgroundSource;
+  readonly backgroundBlur = this.editorState.backgroundBlur;
   readonly adjustments = this.editorState.adjustments;
   readonly isAdjusting = this.editorState.isAdjusting;
 
@@ -355,6 +366,68 @@ export class EditorHistoryService {
     this.recordCommand({ type: "SetDither", payload: { value: next } });
   }
 
+  setBackgroundMode(mode: BackgroundMode): void {
+    const prev = this.captureBackgroundPolicy();
+    this.editorState.setBackgroundMode(mode);
+    const nextBackground = this.captureBackground();
+    const next = this.applyFillPolicy(nextBackground);
+    if (this.backgroundPolicyEqual(prev, next)) return;
+    this.recordCommand({
+      type: "CHANGE_BACKGROUND",
+      payload: next,
+    });
+  }
+
+  setBackgroundColor(color: string): void {
+    const prev = this.captureBackgroundPolicy();
+    this.editorState.setBackgroundColor(color);
+    const nextBackground = this.captureBackground();
+    const next = this.applyFillPolicy(nextBackground);
+    if (this.backgroundPolicyEqual(prev, next)) return;
+    this.recordCommand({
+      type: "CHANGE_BACKGROUND",
+      payload: next,
+    });
+  }
+
+  setBackground(opts: {
+    mode?: BackgroundMode;
+    color?: string;
+    source?: BackgroundSource;
+    blur?: number;
+  }): void {
+    const prev = this.captureBackgroundPolicy();
+    this.editorState.setBackground(opts);
+    const nextBackground = this.captureBackground();
+    const next = this.applyFillPolicy(nextBackground);
+    if (this.backgroundPolicyEqual(prev, next)) return;
+    this.recordCommand({
+      type: "CHANGE_BACKGROUND",
+      payload: next,
+    });
+  }
+
+  setBackgroundBlur(value: number): void {
+    const prev = this.captureBackgroundPolicy();
+    this.editorState.setBackground({
+      mode: "blur",
+      source: "same-image",
+      blur: value,
+    });
+    const nextBackground = this.captureBackground();
+    const next = this.applyFillPolicy(nextBackground);
+    if (this.backgroundPolicyEqual(prev, next)) return;
+    const command = {
+      type: "CHANGE_BACKGROUND",
+      payload: next,
+    };
+    if (this.sliderActive) {
+      this.pendingSliderCommand = command;
+      return;
+    }
+    this.recordCommand(command);
+  }
+
   resetBrightness(): void {
     this.setBrightness(DEFAULT_EDITOR_ADJUSTMENTS.brightness);
   }
@@ -588,6 +661,29 @@ export class EditorHistoryService {
         }
         return;
       }
+      case "CHANGE_BACKGROUND": {
+        const payload = command.payload as {
+          mode?: BackgroundMode;
+          color?: string;
+          source?: BackgroundSource;
+          blur?: number;
+          bw?: boolean;
+          dither?: boolean;
+        };
+        this.editorState.setBackground({
+          mode: payload.mode,
+          color: payload.color,
+          source: payload.source,
+          blur: payload.blur,
+        });
+        if (payload.bw !== undefined) {
+          this.editorState.setBw(!!payload.bw);
+        }
+        if (payload.dither !== undefined) {
+          this.editorState.setDither(!!payload.dither);
+        }
+        return;
+      }
       default:
         console.warn("[editor-history] Unknown command:", command);
     }
@@ -665,6 +761,13 @@ export class EditorHistoryService {
       rot: this.normalizeRotation(state.rot),
       flipX: !!state.flipX,
       flipY: !!state.flipY,
+      bw: !!state.bw,
+      dither: !!state.dither,
+      backgroundMode: (state.backgroundMode ?? "transparent") as BackgroundMode,
+      backgroundColor: this.normalizeHex(state.backgroundColor),
+      backgroundSource:
+        (state.backgroundSource as BackgroundSource | undefined) ?? null,
+      backgroundBlur: this.normalizeBlur(state.backgroundBlur),
     };
   }
 
@@ -698,6 +801,103 @@ export class EditorHistoryService {
     const normalized = degrees % 360;
     const positive = normalized < 0 ? normalized + 360 : normalized;
     return (Math.round(positive / 90) * 90) % 360;
+  }
+
+  private normalizeHex(value: string | undefined): string {
+    const trimmed = (value || "").trim();
+    if (!trimmed) return "#000000";
+    if (!trimmed.startsWith("#")) return `#${trimmed}`;
+    return trimmed.toLowerCase();
+  }
+
+  private captureBackground(): {
+    mode: BackgroundMode;
+    color: string;
+    source?: BackgroundSource;
+    blur?: number;
+  } {
+    return {
+      mode: (this.editorState.backgroundMode() ?? "transparent") as BackgroundMode,
+      color: this.normalizeHex(this.editorState.backgroundColor()),
+      source: this.editorState.backgroundSource() ?? undefined,
+      blur: this.normalizeBlur(this.editorState.backgroundBlur()),
+    };
+  }
+
+  private captureBackgroundPolicy(): {
+    mode: BackgroundMode;
+    color: string;
+    source?: BackgroundSource;
+    blur?: number;
+    bw: boolean;
+    dither: boolean;
+  } {
+    const background = this.captureBackground();
+    return {
+      ...background,
+      bw: !!this.editorState.bw(),
+      dither: !!this.editorState.dither(),
+    };
+  }
+
+  private applyFillPolicy(nextBackground: {
+    mode: BackgroundMode;
+    color: string;
+    source?: BackgroundSource;
+    blur?: number;
+  }): {
+    mode: BackgroundMode;
+    color: string;
+    source?: BackgroundSource;
+    blur?: number;
+    bw: boolean;
+    dither: boolean;
+  } {
+    if (nextBackground.mode !== "transparent") {
+      if (this.editorState.bw() || this.editorState.dither()) {
+        this.editorState.setBw(false);
+      }
+    }
+
+    return {
+      ...nextBackground,
+      bw: !!this.editorState.bw(),
+      dither: !!this.editorState.dither(),
+    };
+  }
+
+  private backgroundPolicyEqual(
+    a: {
+      mode: BackgroundMode;
+      color: string;
+      source?: BackgroundSource;
+      blur?: number;
+      bw: boolean;
+      dither: boolean;
+    },
+    b: {
+      mode: BackgroundMode;
+      color: string;
+      source?: BackgroundSource;
+      blur?: number;
+      bw: boolean;
+      dither: boolean;
+    },
+  ): boolean {
+    return (
+      a.mode === b.mode &&
+      a.color === b.color &&
+      a.source === b.source &&
+      this.normalizeBlur(a.blur) === this.normalizeBlur(b.blur) &&
+      a.bw === b.bw &&
+      a.dither === b.dither
+    );
+  }
+
+  private normalizeBlur(value: number | undefined): number {
+    if (!Number.isFinite(value)) return 80;
+    const clamped = Math.max(0, Math.min(100, value as number));
+    return Math.round(clamped);
   }
 
   private shallowEqual<T extends Record<string, any>>(a: T, b: T): boolean {

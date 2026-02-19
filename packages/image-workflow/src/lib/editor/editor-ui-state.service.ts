@@ -22,7 +22,7 @@ import type { EditorHistoryService } from "./editor-history.service";
 export type EditorMode = "none" | "tools" | "adjustments";
 export type PanelMode = "tools" | "adjustments" | null;
 export type GestureMode = "none" | "pan" | "pinch" | "pan+pinch";
-export type ToolKey = "crop" | "rotate" | "zoom";
+export type ToolKey = "crop" | "rotate" | "zoom" | "fill";
 export type AdjustmentKey =
   | "brightness"
   | "contrast"

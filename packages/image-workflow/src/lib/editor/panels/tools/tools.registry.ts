@@ -2,6 +2,7 @@ import { Type } from '@angular/core';
 import { ToolKey } from '../../editor-ui-state.service';
 import type { EditorHistoryService } from "../../editor-history.service";
 import { CropPanelComponent } from "./widgets/crop-panel.component";
+import { FillPanelComponent } from "./widgets/fill-panel.component";
 import { RotatePanelComponent } from "./widgets/rotate-panel.component";
 import { ZoomPanelComponent } from "./widgets/zoom-panel.component";
 
@@ -35,6 +36,13 @@ export const TOOLS_REGISTRY: Record<ToolKey, ToolPanelConfig> = {
     showGrabber: true,
     reset: (history) => history.setScale(1),
   },
+  fill: {
+    titleKey: "EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.FILL",
+    component: FillPanelComponent,
+    canReset: true,
+    showGrabber: true,
+    reset: (history) => history.setBackgroundMode("transparent"),
+  },
 };
 
 // Legacy async loaders (kept for compatibility, but prefer sync TOOLS_REGISTRY)
@@ -42,4 +50,5 @@ export const TOOL_LOADERS: Record<ToolKey, () => Promise<Type<any>>> = {
   crop: async () => CropPanelComponent,
   rotate: async () => RotatePanelComponent,
   zoom: async () => ZoomPanelComponent,
+  fill: async () => FillPanelComponent,
 };

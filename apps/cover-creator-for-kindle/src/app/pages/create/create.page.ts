@@ -41,6 +41,8 @@ import {
   CoverCropState,
   ImagePipelineService,
   ImageValidationError,
+  renderCompositionToCanvas,
+  renderCompositionToFile,
 } from '@sheldrapps/image-workflow';
 import {
   EditorSessionService,
@@ -249,6 +251,7 @@ export class CreatePage implements OnInit, OnDestroy {
         width: this.selectedModel.width,
         height: this.selectedModel.height,
       },
+      initialState: this.cropState,
       tools: {
         kindle: {
           modelCatalog: this.groups,
@@ -305,6 +308,7 @@ export class CreatePage implements OnInit, OnDestroy {
     this.generatedEpubFilename = undefined;
     this.lastSavedFilename = undefined;
     this.wasAutoSaved = false;
+    this.exportImageFile = undefined;
 
     // Save the selected model ID
     if (this.selectedModel?.id) {
@@ -397,14 +401,14 @@ export class CreatePage implements OnInit, OnDestroy {
   canExport(): boolean {
     return (
       !!this.selectedModel &&
-      !!this.exportImageFile &&
+      !!this.workingImageFile &&
       !this.imageErrorKey &&
       !!this.cropState
     );
   }
 
   async onSave() {
-    if (!this.canSaveShare() || !this.exportImageFile) return;
+    if (!this.canSaveShare()) return;
 
     const currentFilename = this.generatedEpubFilename || 'kindle_cover';
     const nameWithoutExt = currentFilename.replace(/\.epub$/i, '');
@@ -435,6 +439,9 @@ export class CreatePage implements OnInit, OnDestroy {
   private async performSave(filename: string) {
     this.setBusy('export', 'CREATE.SAVING');
     try {
+      const exportFile = await this.ensureExportImageFile();
+      if (!exportFile) return;
+
       if (filename === this.lastSavedFilename) {
         await this.showToast('CREATE.SAVED_OK', { duration: 1600 }, 'success');
         return;
@@ -450,7 +457,7 @@ export class CreatePage implements OnInit, OnDestroy {
           await this.fileService.saveGeneratedEpub({
             bytes: this.generatedEpubBytes!,
             filename: filename,
-            coverFileForThumb: this.exportImageFile!,
+            coverFileForThumb: exportFile,
           });
           await this.fileService.deleteGeneratedEpub(this.lastSavedFilename);
         }
@@ -458,7 +465,7 @@ export class CreatePage implements OnInit, OnDestroy {
         await this.fileService.saveGeneratedEpub({
           bytes: this.generatedEpubBytes!,
           filename: filename,
-          coverFileForThumb: this.exportImageFile!,
+          coverFileForThumb: exportFile,
         });
       }
 
@@ -577,8 +584,7 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   async onGenerate() {
-    if (!this.canGenerate() || !this.selectedModel || !this.exportImageFile)
-      return;
+    if (!this.canGenerate() || !this.selectedModel) return;
 
     this.setBusy('export', 'CREATE.GENERATING');
 
@@ -607,9 +613,12 @@ export class CreatePage implements OnInit, OnDestroy {
         return;
       }
 
+      const exportFile = await this.ensureExportImageFile();
+      if (!exportFile) return;
+
       const res = await this.fileService.generateEpubBytes({
         modelId: this.selectedModel.id,
-        coverFile: this.exportImageFile,
+        coverFile: exportFile,
         title: 'Kindle Cover',
       });
 
@@ -621,7 +630,7 @@ export class CreatePage implements OnInit, OnDestroy {
       await this.fileService.saveGeneratedEpub({
         bytes: this.generatedEpubBytes,
         filename: this.generatedEpubFilename,
-        coverFileForThumb: this.exportImageFile,
+        coverFileForThumb: exportFile,
       });
 
       this.coversEvents.emit({
@@ -716,13 +725,11 @@ export class CreatePage implements OnInit, OnDestroy {
 
     this.cropState = result.state ?? this.cropState;
 
-    const dims = await this.imagePipe.getDimensions(newFile);
-    if (!dims) return this.failImage('CORRUPT', newFile);
-
     this.clearImageError();
     this.clearImageWarn();
 
-    this.exportImageFile = newFile;
+    this.workingImageFile = newFile;
+    this.exportImageFile = undefined;
 
     this.generatedEpubBytes = undefined;
     this.generatedEpubFilename = undefined;
@@ -730,12 +737,108 @@ export class CreatePage implements OnInit, OnDestroy {
     this.wasAutoSaved = false;
 
     this.selectedImageName = newFile.name;
-    this.selectedImageDims = dims;
+    if (!this.selectedImageDims) {
+      const dims = await this.imagePipe.getDimensions(newFile);
+      if (!dims) return this.failImage('CORRUPT', newFile);
+      this.selectedImageDims = dims;
+    }
 
     this.applySmallWarn();
 
+    await this.updatePreviewFromComposition();
+  }
+
+  private computeBaseScale(
+    frameW: number,
+    frameH: number,
+    naturalW: number,
+    naturalH: number,
+    rot: number,
+  ): number {
+    const rr = (((rot % 360) + 360) % 360) as 0 | 90 | 180 | 270;
+    const rnW = rr === 90 || rr === 270 ? naturalH : naturalW;
+    const rnH = rr === 90 || rr === 270 ? naturalW : naturalH;
+    const needW = frameW / rnW;
+    const needH = frameH / rnH;
+    return Math.max(needW, needH);
+  }
+
+  private buildCompositionInput() {
+    if (
+      !this.cropState ||
+      !this.workingImageFile ||
+      !this.selectedModel ||
+      !this.selectedImageDims
+    ) {
+      return null;
+    }
+
+    const frameW = this.cropState.frameWidth ?? this.selectedModel.width;
+    const frameH = this.cropState.frameHeight ?? this.selectedModel.height;
+    if (!frameW || !frameH) return null;
+
+    const baseScale = this.computeBaseScale(
+      frameW,
+      frameH,
+      this.selectedImageDims.width,
+      this.selectedImageDims.height,
+      this.cropState.rot,
+    );
+
+    return {
+      file: this.workingImageFile,
+      target: {
+        width: this.selectedModel.width,
+        height: this.selectedModel.height,
+      },
+      frameWidth: frameW,
+      frameHeight: frameH,
+      baseScale,
+      naturalWidth: this.selectedImageDims.width,
+      naturalHeight: this.selectedImageDims.height,
+      state: this.cropState,
+    };
+  }
+
+  private async updatePreviewFromComposition(): Promise<void> {
+    const input = this.buildCompositionInput();
+    if (!input) return;
+
+    const maxSide = 640;
+    const scale =
+      maxSide > 0
+        ? Math.min(
+            1,
+            maxSide / Math.max(input.target.width, input.target.height),
+          )
+        : 1;
+
+    const canvas = await renderCompositionToCanvas(input, {
+      mode: 'preview',
+      outputScale: scale,
+    });
+    if (!canvas) return;
+
+    const blob: Blob | null = await new Promise((resolve) =>
+      canvas.toBlob((bb) => resolve(bb), 'image/jpeg', 0.9),
+    );
+    if (!blob) return;
+
     this.revokePreviewUrl();
-    this.previewUrl = URL.createObjectURL(newFile);
+    this.previewUrl = URL.createObjectURL(blob);
+  }
+
+  private async ensureExportImageFile(): Promise<File | null> {
+    if (this.exportImageFile) return this.exportImageFile;
+
+    const input = this.buildCompositionInput();
+    if (!input) return null;
+
+    const file = await renderCompositionToFile(input, { mode: 'export' });
+    if (!file) return null;
+
+    this.exportImageFile = file;
+    return file;
   }
 
   private async consumeEditorResult(): Promise<void> {

@@ -1,6 +1,6 @@
 import { Injectable, Optional } from '@angular/core';
 import { Router } from '@angular/router';
-import type { CropFormatOption, CropperResult } from '../types';
+import type { CoverCropState, CropFormatOption, CropperResult } from '../types';
 
 /** Panel types available in the editor */
 export type ToolPanelType = "zoom" | "rotate" | "crop";
@@ -68,6 +68,9 @@ export type EditorSession = {
 
   /** Tools configuration (controls available panels) */
   tools?: EditorToolsConfig;
+
+  /** Optional initial editor state */
+  initialState?: CoverCropState;
 
   /** Optional return url for exiting the editor */
   returnUrl?: string;

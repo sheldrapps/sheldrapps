@@ -1,0 +1,60 @@
+<div class="fill-panel">
+  @if (activeView() === "root") {
+    <div class="fill-tabs">
+      <sh-scrollable-button-bar
+        [items]="toolItems"
+        [activeId]="activeItem()"
+        variant="iconText"
+        align="center"
+        (selectItem)="onSelectTool($event)"
+      ></sh-scrollable-button-bar>
+    </div>
+  } @else {
+    <div class="fill-subheader">
+      <ion-button fill="clear" class="fill-subheader__back" (click)="goRoot()">
+        <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+      </ion-button>
+      <div class="fill-subheader__title">
+        @if (activeView() === "blur") {
+          {{ "EDITOR.PANELS.TOOLS.WIDGETS.FILL_PANEL.TAB.IMAGE" | translate }}
+        } @else if (activeView() === "colors") {
+          {{ "EDITOR.PANELS.TOOLS.WIDGETS.FILL_PANEL.TAB.COLORS" | translate }}
+        } @else {
+          {{ "EDITOR.PANELS.TOOLS.WIDGETS.FILL_PANEL.TAB.PICKER" | translate }}
+        }
+      </div>
+    </div>
+  }
+
+  @if (activeView() === "blur") {
+    <div class="fill-subpanel">
+      <ion-item>
+        <ion-label>
+          {{ "EDITOR.PANELS.TOOLS.WIDGETS.FILL_PANEL.LABEL.BLUR" | translate }}
+        </ion-label>
+        <ion-range
+          min="0"
+          max="100"
+          step="1"
+          [value]="blur()"
+          (ionInput)="onBlurChange($event)"
+          (ionKnobMoveStart)="history.onSliderStart()"
+          (ionKnobMoveEnd)="history.onSliderEnd()"
+          [attr.aria-label]="'EDITOR.PANELS.TOOLS.WIDGETS.FILL_PANEL.LABEL.BLUR' | translate"
+        ></ion-range>
+      </ion-item>
+    </div>
+  }
+
+  @if (activeView() === "colors") {
+    <div class="fill-subpanel">
+      <sh-scrollable-button-bar
+        [items]="colorItems"
+        [activeId]="activeColorId()"
+        variant="iconOnly"
+        align="start"
+        (selectItem)="onSelectColor($event)"
+      ></sh-scrollable-button-bar>
+    </div>
+  }
+</div>

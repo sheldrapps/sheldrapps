@@ -2,6 +2,7 @@
   <sh-scrollable-button-bar
     [items]="toolItems"
     [activeId]="ui.panelId()"
+    [disabledIds]="disabledToolIds()"
     variant="text"
     (selectItem)="onSelectTool($event)"
   ></sh-scrollable-button-bar>
