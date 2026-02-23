@@ -288,6 +288,29 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
           this.kindleState.selectedModel() ?? undefined;
       }
     });
+
+    effect(() => {
+      const tools = this.ui.toolsConfig();
+      const formats = tools?.formats?.options ?? [];
+      const hasKindleCatalog =
+        !!tools?.kindle?.modelCatalog?.length || !!tools?.kindle?.groups?.length;
+      if (!this.session || !formats.length || hasKindleCatalog) return;
+
+      const selectedId = tools?.formats?.selectedId ?? formats[0]?.id;
+      const selected =
+        formats.find((format) => format.id === selectedId) ?? formats[0];
+      if (!selected) return;
+
+      this.session.target = {
+        width: selected.target.width,
+        height: selected.target.height,
+      };
+      this.aspectRatio = `${selected.target.width} / ${selected.target.height}`;
+
+      if (this.session.tools?.formats) {
+        this.session.tools.formats.selectedId = selected.id;
+      }
+    });
   }
 
   ngOnInit(): void {

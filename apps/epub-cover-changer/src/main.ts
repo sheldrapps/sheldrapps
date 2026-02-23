@@ -6,7 +6,10 @@ import {
 } from '@ionic/angular/standalone';
 
 import { provideI18nKit } from '@sheldrapps/i18n-kit';
-import { provideEditorI18n } from '@sheldrapps/image-workflow/editor';
+import {
+  provideEditorI18n,
+  EDITOR_I18N_OVERRIDES,
+} from '@sheldrapps/image-workflow/editor';
 import { provideAdsKit } from '@sheldrapps/ads-kit';
 import { provideSettingsKit } from '@sheldrapps/settings-kit';
 import { provideFileKit } from '@sheldrapps/file-kit';
@@ -44,6 +47,47 @@ bootstrapApplication(AppComponent, {
       },
     }),
     provideEditorI18n(),
+    {
+      provide: EDITOR_I18N_OVERRIDES,
+      useValue: {
+        'es-MX': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
+            'Recortar (Proporción)',
+          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
+            'Recortar (Proporción)',
+        },
+        'en-US': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
+            'Crop (Ratio)',
+          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
+            'Crop (Ratio)',
+        },
+        'de-DE': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
+            'Zuschneiden (Ratio)',
+          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
+            'Zuschneiden (Ratio)',
+        },
+        'fr-FR': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
+            'Recadrer (Ratio)',
+          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
+            'Recadrer (Ratio)',
+        },
+        'it-IT': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
+            'Ritaglia (Rapporto)',
+          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
+            'Ritaglia (Rapporto)',
+        },
+        'pt-BR': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
+            'Recortar (Proporção)',
+          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
+            'Recortar (Proporção)',
+        },
+      },
+    },
 
     provideSettingsKit({
       appId: 'ecc',

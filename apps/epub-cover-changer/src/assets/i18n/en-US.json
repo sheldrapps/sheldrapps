@@ -30,7 +30,12 @@
     "INFO_ARIA": "Information about changing cover",
     "INFO_TITLE": "Information",
     "INFO_FLOW_LABEL": "Recommended order:",
-    "INFO_FLOW_STEPS": "Select EPUB -> Cover preloads -> Adjust it or select a new one and adjust -> Watch ad to change -> Save or Share",
+    "INFO_STEP_1": "Select EPUB.",
+    "INFO_STEP_1_1": "1.1. The original cover is preloaded.",
+    "INFO_STEP_1_2": "1.2. Change the image or keep the original.",
+    "INFO_STEP_2": "Adjust the image in the editor.",
+    "INFO_STEP_3": "Watch the ad to save the cover.",
+    "INFO_STEP_4": "Save or share.",
     "IMAGE_ERROR_CORRUPT": "The image could not be read. Please try another one.",
     "IMAGE_ERROR_SIZE": "The file is too large. Maximum {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Unsupported format ({{type}}). Please select JPG, PNG, or WebP.",
@@ -49,6 +54,7 @@
     "SELECT_IMAGE_LABEL": "Cover image",
     "SELECT_IMAGE_PLACEHOLDER": "Select an image",
     "TAP_TO_CHANGE": "Tap to change/reset",
+    "TAP_TO_CHANGE_IMAGE": "Tap to change",
     "TITLE": "Change cover"
   },
   "COVERS": {

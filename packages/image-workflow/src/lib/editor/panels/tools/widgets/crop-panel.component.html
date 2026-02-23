@@ -1,4 +1,16 @@
 <div class="crop-panel">
+  @if (hasFormatOptions) {
+  <div class="format-bar">
+    <sh-scrollable-button-bar
+      [items]="formatItems"
+      [activeId]="selectedFormatId ?? null"
+      variant="text"
+      align="center"
+      [ariaLabel]="'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP' | translate"
+      (selectItem)="onFormatSelect($event)"
+    ></sh-scrollable-button-bar>
+  </div>
+  } @else {
   <!-- Kindle Model Selection Panel -->
   <ion-grid class="selectors-grid">
     <ion-row>
@@ -37,5 +49,6 @@
       </ion-col>
     </ion-row>
   </ion-grid>
+  }
 </div>
 

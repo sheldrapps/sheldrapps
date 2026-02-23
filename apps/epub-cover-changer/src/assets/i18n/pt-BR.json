@@ -30,7 +30,12 @@
     "INFO_ARIA": "Informações sobre alterar capa",
     "INFO_TITLE": "Informação",
     "INFO_FLOW_LABEL": "Ordem recomendada:",
-    "INFO_FLOW_STEPS": "Selecionar EPUB -> A capa é pré-carregada -> Ajustá-la ou escolher uma nova e ajustar -> Ver anúncio para alterar -> Salvar ou Compartilhar",
+    "INFO_STEP_1": "Selecionar EPUB.",
+    "INFO_STEP_1_1": "1.1. A capa original é pré-carregada.",
+    "INFO_STEP_1_2": "1.2. Troque a imagem ou mantenha a original.",
+    "INFO_STEP_2": "Ajustar a imagem no editor.",
+    "INFO_STEP_3": "Ver anúncio para salvar a capa.",
+    "INFO_STEP_4": "Salvar ou compartilhar.",
     "IMAGE_ERROR_CORRUPT": "Não foi possível ler a imagem. Tente outra.",
     "IMAGE_ERROR_SIZE": "O arquivo é muito grande. Máximo {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Formato não compatível ({{type}}). Selecione JPG, PNG ou WebP.",
@@ -49,6 +54,7 @@
     "SELECT_IMAGE_LABEL": "Imagem da capa",
     "SELECT_IMAGE_PLACEHOLDER": "Selecione uma imagem",
     "TAP_TO_CHANGE": "Toque para alterar/redefinir",
+    "TAP_TO_CHANGE_IMAGE": "Toque para alterar",
     "TITLE": "Alterar capa"
   },
   "COVERS": {

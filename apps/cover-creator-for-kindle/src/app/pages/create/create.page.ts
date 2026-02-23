@@ -15,11 +15,13 @@ import {
   IonHeader,
   IonTitle,
   IonToolbar,
+  IonButtons,
   IonItem,
   IonLabel,
   IonIcon,
   IonButton,
   IonLoading,
+  IonModal,
   IonGrid,
   IonCol,
   IonRow,
@@ -57,7 +59,7 @@ import {
   saveOutline,
   shareSocialOutline,
   closeCircleOutline,
-  informationCircleOutline,
+  helpCircleOutline,
 } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
@@ -93,6 +95,7 @@ type EditorResult = {
     IonHeader,
     IonTitle,
     IonToolbar,
+    IonButtons,
     IonItem,
     IonLabel,
     IonIcon,
@@ -103,6 +106,7 @@ type EditorResult = {
     IonPopover,
     IonSelect,
     IonSelectOption,
+    IonModal,
   ],
 })
 export class CreatePage implements OnInit, OnDestroy {
@@ -131,7 +135,7 @@ export class CreatePage implements OnInit, OnDestroy {
       playCircleOutline,
       saveOutline,
       shareSocialOutline,
-      informationCircleOutline,
+      helpCircleOutline,
       imageOutline,
     });
   }
@@ -176,6 +180,9 @@ export class CreatePage implements OnInit, OnDestroy {
 
   infoOpen = false;
   infoEvent: Event | null = null;
+  previewOpen = false;
+  private previewLongPressTimer: ReturnType<typeof setTimeout> | null = null;
+  private suppressNextImagePick = false;
 
   async ngOnInit() {
     this.groups = await this.catalog.getGroups();
@@ -208,6 +215,7 @@ export class CreatePage implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.closeInfo();
+    this.clearPreviewLongPress();
     this.revokePreviewUrl();
     this.routerSub?.unsubscribe();
   }
@@ -321,6 +329,10 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   openImagePicker() {
+    if (this.suppressNextImagePick) {
+      this.suppressNextImagePick = false;
+      return;
+    }
     this.imageInput.nativeElement.click();
   }
 
@@ -685,6 +697,46 @@ export class CreatePage implements OnInit, OnDestroy {
   closeInfo() {
     this.infoOpen = false;
     this.infoEvent = null;
+  }
+
+  openPreview() {
+    if (!this.previewUrl) return;
+    this.previewOpen = true;
+  }
+
+  closePreview() {
+    this.previewOpen = false;
+    this.suppressNextImagePick = false;
+  }
+
+  onPreviewPressStart() {
+    if (!this.previewUrl) return;
+    this.clearPreviewLongPress();
+    this.previewLongPressTimer = setTimeout(() => {
+      this.suppressNextImagePick = true;
+      this.openPreview();
+    }, 450);
+  }
+
+  onPreviewPressEnd() {
+    this.clearPreviewLongPress();
+  }
+
+  private clearPreviewLongPress() {
+    if (this.previewLongPressTimer) {
+      clearTimeout(this.previewLongPressTimer);
+      this.previewLongPressTimer = null;
+    }
+  }
+
+  getPreviewRatio(): string {
+    if (this.cropState?.frameWidth && this.cropState?.frameHeight) {
+      return `${this.cropState.frameWidth} / ${this.cropState.frameHeight}`;
+    }
+    if (this.selectedModel) {
+      return `${this.selectedModel.width} / ${this.selectedModel.height}`;
+    }
+    return '3 / 4';
   }
 
   ionViewWillLeave() {

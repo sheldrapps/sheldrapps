@@ -30,7 +30,12 @@
     "INFO_ARIA": "Informazioni sul cambio copertina",
     "INFO_TITLE": "Informazione",
     "INFO_FLOW_LABEL": "Ordine consigliato:",
-    "INFO_FLOW_STEPS": "Seleziona EPUB -> La copertina si carica automaticamente -> Regolala o scegli una nuova e regola -> Guarda l'annuncio per cambiare -> Salva o Condividi",
+    "INFO_STEP_1": "Seleziona un EPUB.",
+    "INFO_STEP_1_1": "1.1. La copertina originale viene precaricata.",
+    "INFO_STEP_1_2": "1.2. Cambia l’immagine oppure mantieni l’originale.",
+    "INFO_STEP_2": "Regola l’immagine nell’editor.",
+    "INFO_STEP_3": "Guarda l’annuncio per salvare la copertina.",
+    "INFO_STEP_4": "Salva o condividi.",
     "IMAGE_ERROR_CORRUPT": "Impossibile leggere l'immagine. Prova con un'altra.",
     "IMAGE_ERROR_SIZE": "Il file è troppo grande. Massimo {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Formato non supportato ({{type}}). Seleziona JPG, PNG o WebP.",
@@ -49,6 +54,7 @@
     "SELECT_IMAGE_LABEL": "Immagine di copertina",
     "SELECT_IMAGE_PLACEHOLDER": "Seleziona un’immagine",
     "TAP_TO_CHANGE": "Tocca per cambiare/reimpostare",
+    "TAP_TO_CHANGE_IMAGE": "Tocca per cambiare",
     "TITLE": "Cambia copertina"
   },
   "COVERS": {

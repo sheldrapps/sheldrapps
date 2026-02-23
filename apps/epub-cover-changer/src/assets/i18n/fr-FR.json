@@ -30,7 +30,12 @@
     "INFO_ARIA": "Informations sur le changement de couverture",
     "INFO_TITLE": "Information",
     "INFO_FLOW_LABEL": "Ordre recommandé :",
-    "INFO_FLOW_STEPS": "Sélectionner EPUB -> La couverture se précharge -> L'ajuster ou en sélectionner une nouvelle et ajuster -> Regarder la pub pour changer -> Enregistrer ou Partager",
+    "INFO_STEP_1": "Sélectionner un EPUB.",
+    "INFO_STEP_1_1": "1.1. La couverture originale se précharge.",
+    "INFO_STEP_1_2": "1.2. Changer l’image ou garder l’originale.",
+    "INFO_STEP_2": "Ajuster l’image dans l’éditeur.",
+    "INFO_STEP_3": "Regarder la pub pour enregistrer la couverture.",
+    "INFO_STEP_4": "Enregistrer ou partager.",
     "IMAGE_ERROR_CORRUPT": "Impossible de lire l'image. Essayez-en une autre.",
     "IMAGE_ERROR_SIZE": "Le fichier est trop volumineux. Maximum {{maxSize}} Mo.",
     "IMAGE_ERROR_TYPE": "Format non pris en charge ({{type}}). Sélectionnez JPG, PNG ou WebP.",
@@ -49,6 +54,7 @@
     "SELECT_IMAGE_LABEL": "Image de couverture",
     "SELECT_IMAGE_PLACEHOLDER": "Sélectionnez une image",
     "TAP_TO_CHANGE": "Touchez pour changer/réinitialiser",
+    "TAP_TO_CHANGE_IMAGE": "Touchez pour changer",
     "TITLE": "Changer une couverture"
   },
   "COVERS": {

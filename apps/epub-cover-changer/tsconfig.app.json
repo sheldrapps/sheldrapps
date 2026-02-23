@@ -12,6 +12,7 @@
       "@sheldrapps/file-kit": ["../../packages/file-kit/src/public-api.ts"],
       "@sheldrapps/image-workflow": ["../../packages/image-workflow/src/public-api.ts"],
       "@sheldrapps/image-workflow/capacitor": ["../../packages/image-workflow/src/lib/adapters/capacitor/public-api.ts"],
+      "@sheldrapps/image-workflow/editor": ["../../packages/image-workflow/src/editor/public-api.ts"],
       "@sheldrapps/ui-theme": ["../../packages/ui-theme/src/index.ts"],
       "@sheldrapps/ui-theme/styles/*": ["../../packages/ui-theme/styles/*"]
     }
@@ -23,6 +24,7 @@
   "include": [
     "src/**/*.d.ts",
     "src/**/*.ts",
+    "../../packages/image-workflow/src/editor/**/*.ts",
     "../../packages/image-workflow/src/lib/types/**/*.ts",
     "../../packages/image-workflow/src/lib/core/**/*.ts",
     "../../packages/image-workflow/src/lib/ui/**/*.ts",

@@ -30,7 +30,12 @@
     "INFO_ARIA": "Información sobre cambiar portada",
     "INFO_TITLE": "Información",
     "INFO_FLOW_LABEL": "Orden recomendado:",
-    "INFO_FLOW_STEPS": "Seleccionar EPUB -> Se precarga la portada -> Ajustarla o seleccionar una nueva y ajustar -> Ver anuncio para cambiar -> Guardar o Compartir",
+    "INFO_STEP_1": "Seleccionar EPUB.",
+    "INFO_STEP_1_1": "1.1. Se precarga la portada original.",
+    "INFO_STEP_1_2": "1.2. Cambiar la imagen o continuar con la original.",
+    "INFO_STEP_2": "Ajustar imagen en el editor.",
+    "INFO_STEP_3": "Ver anuncio para guardar portada.",
+    "INFO_STEP_4": "Guardar o compartir.",
     "IMAGE_ERROR_CORRUPT": "No se pudo leer la imagen. Prueba con otra.",
     "IMAGE_ERROR_SIZE": "El archivo pesa demasiado. Máximo {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Formato no compatible ({{type}}). Selecciona JPG, PNG o WebP.",
@@ -49,6 +54,7 @@
     "SELECT_IMAGE_LABEL": "Imagen de portada",
     "SELECT_IMAGE_PLACEHOLDER": "Selecciona una imagen",
     "TAP_TO_CHANGE": "Toca para cambiar/reiniciar",
+    "TAP_TO_CHANGE_IMAGE": "Toca para cambiar",
     "TITLE": "Cambiar portada"
   },
   "COVERS": {

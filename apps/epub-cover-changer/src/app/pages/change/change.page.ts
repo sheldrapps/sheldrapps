@@ -1,16 +1,28 @@
-import { Component, OnDestroy, ViewChild, ElementRef, NgZone, inject } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ElementRef,
+  NgZone,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { NavigationEnd, Router } from '@angular/router';
+import { Subscription, filter } from 'rxjs';
 import {
   IonContent,
   IonHeader,
   IonTitle,
   IonToolbar,
+  IonButtons,
   IonItem,
   IonLabel,
   IonIcon,
   IonButton,
   IonLoading,
+  IonModal,
   IonGrid,
   IonCol,
   IonRow,
@@ -22,16 +34,17 @@ import {
 import { TranslateModule } from '@ngx-translate/core';
 
 import {
-  CoverCropperModalComponent,
   CoverCropState,
-  CropperResult,
   ImagePipelineService,
   ImageValidationError,
+  renderCompositionToCanvas,
+  renderCompositionToFile,
 } from '@sheldrapps/image-workflow';
 import type {
   CropTarget,
   CropFormatOption,
 } from '@sheldrapps/image-workflow';
+import { EditorSessionService } from '@sheldrapps/image-workflow/editor';
 
 import {
   imageOutline,
@@ -40,7 +53,7 @@ import {
   saveOutline,
   shareSocialOutline,
   closeCircleOutline,
-  informationCircleOutline,
+  helpCircleOutline,
   documentOutline,
   refreshOutline,
 } from 'ionicons/icons';
@@ -53,36 +66,11 @@ import { TranslateService } from '@ngx-translate/core';
 import { ToastOptions } from '@ionic/angular';
 import { SaveCoverModalComponent } from './save-cover-modal.component';
 
-@Component({
-  selector: 'app-cover-cropper-modal-i18n',
-  standalone: true,
-  imports: [TranslateModule, CoverCropperModalComponent],
-  template: `
-    <app-cover-cropper-modal
-      [file]="file!"
-      [model]="model!"
-      [formatOptions]="formatOptions"
-      [formatId]="formatId"
-      [initialState]="initialState"
-      [onReady]="onReady"
-      [locale]="locale"
-    ></app-cover-cropper-modal>
-  `,
-})
-class CoverCropperModalI18nComponent {
-  private translate = inject(TranslateService);
-
-  file: File | undefined;
-  model: CropTarget | undefined;
-  formatOptions: CropFormatOption[] | undefined;
-  formatId: string | undefined;
-  initialState: CoverCropState | undefined;
-  onReady: (() => void) | undefined;
-
-  get locale(): string {
-    return this.translate.currentLang || this.translate.defaultLang || 'en';
-  }
-}
+type EditorResult = {
+  file: File;
+  state?: CoverCropState;
+  formatId?: string;
+};
 
 @Component({
   selector: 'app-change',
@@ -99,6 +87,7 @@ class CoverCropperModalI18nComponent {
     IonHeader,
     IonTitle,
     IonToolbar,
+    IonButtons,
     IonItem,
     IonLabel,
     IonIcon,
@@ -106,9 +95,10 @@ class CoverCropperModalI18nComponent {
     IonRow,
     IonGrid,
     IonPopover,
+    IonModal,
   ],
 })
-export class ChangePage implements OnDestroy {
+export class ChangePage implements OnInit, OnDestroy {
   private modalCtrl = inject(ModalController);
   private fileService = inject(FileService);
   private imagePipe = inject(ImagePipelineService);
@@ -118,8 +108,15 @@ export class ChangePage implements OnDestroy {
   private coversEvents = inject(CoversEventsService);
   private translate = inject(TranslateService);
   private zone = inject(NgZone);
+  private router = inject(Router);
+  private editorSession = inject(EditorSessionService);
   private readonly baseTarget = { width: 1236, height: 1648 };
   private readonly baseModelId = 'epub';
+  private readonly formatOptions = this.buildFormatOptions();
+  private routerSub?: Subscription;
+  private lastEditorSessionId?: string;
+  private previewLongPressTimer: ReturnType<typeof setTimeout> | null = null;
+  private suppressNextImagePick = false;
 
   @ViewChild('epubInput') epubInput!: ElementRef<HTMLInputElement>;
   @ViewChild('imageInput') imageInput!: ElementRef<HTMLInputElement>;
@@ -129,13 +126,13 @@ export class ChangePage implements OnDestroy {
       checkmarkCircle,
       closeCircleOutline,
       alertCircleOutline,
-      saveOutline,
-      shareSocialOutline,
-      informationCircleOutline,
-      imageOutline,
-      documentOutline,
-      refreshOutline,
-    });
+    saveOutline,
+    shareSocialOutline,
+    helpCircleOutline,
+    imageOutline,
+    documentOutline,
+    refreshOutline,
+  });
   }
 
   // EPUB state
@@ -162,7 +159,6 @@ export class ChangePage implements OnDestroy {
   imageWarnParams: Record<string, any> = {};
 
   isPickingImage = false;
-  isOpeningCropper = false;
   isExporting = false;
   loadingMessageKey?: string;
 
@@ -176,19 +172,29 @@ export class ChangePage implements OnDestroy {
 
   infoOpen = false;
   infoEvent: Event | null = null;
+  previewOpen = false;
+
+  ngOnInit() {
+    this.routerSub = this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event) => {
+        const url = (event as NavigationEnd).urlAfterRedirects;
+        if (url.startsWith('/tabs/change') || url === '/change') {
+          void this.consumeEditorResult();
+        }
+      });
+  }
 
   ngOnDestroy() {
     this.closeInfo();
+    this.clearPreviewLongPress();
     this.revokePreviewUrl();
+    this.routerSub?.unsubscribe();
   }
 
-  private setBusy(
-    kind: 'pick' | 'crop' | 'export' | 'epub' | 'none',
-    messageKey?: string,
-  ) {
+  private setBusy(kind: 'pick' | 'export' | 'epub' | 'none', messageKey?: string) {
     this.zone.run(() => {
       this.isPickingImage = kind === 'pick';
-      this.isOpeningCropper = kind === 'crop';
       this.isExporting = kind === 'export';
       this.isPickingEpub = kind === 'epub';
       this.loadingMessageKey = kind === 'none' ? undefined : messageKey;
@@ -204,10 +210,21 @@ export class ChangePage implements OnDestroy {
 
     return [
       { id: 'epub', label: 'Kindle', target: epubTarget },
-      { id: 'kobo', label: 'Kobo', target: { width: 1072, height: 1448, output: 'source' } },
-      { id: 'three_four', label: '3:4', target: { width: 3, height: 4, output: 'source' } },
-      { id: 'nine_sixteen', label: '9:16', target: { width: 9, height: 16, output: 'source' } },
-      { id: 'square', label: '1:1', target: { width: 1, height: 1, output: 'source' } },
+      {
+        id: 'kobo',
+        label: 'Kobo',
+        target: { width: 1072, height: 1448, output: 'source' },
+      },
+      {
+        id: 'three_four',
+        label: '3:4',
+        target: { width: 3, height: 4, output: 'source' },
+      },
+      {
+        id: 'nine_sixteen',
+        label: '9:16',
+        target: { width: 9, height: 16, output: 'source' },
+      },
     ];
   }
 
@@ -310,6 +327,10 @@ export class ChangePage implements OnDestroy {
 
   // Image handling methods
   openImagePicker() {
+    if (this.suppressNextImagePick) {
+      this.suppressNextImagePick = false;
+      return;
+    }
     this.imageInput.nativeElement.click();
   }
 
@@ -401,81 +422,218 @@ export class ChangePage implements OnDestroy {
     const sourceFile = this.workingImageFile;
     if (!sourceFile) return;
 
-    this.setBusy('crop', 'CHANGE.OPENING_EDITOR');
+    const selected = this.getSelectedFormatOption();
+    if (!selected) return;
 
-    let markReady!: () => void;
-    const readyPromise = new Promise<void>((resolve) => (markReady = resolve));
-
-    try {
-      const modal = await this.modalCtrl.create({
-        component: CoverCropperModalI18nComponent,
-        componentProps: {
-          file: sourceFile,
-          model: {
-            width: this.baseTarget.width,
-            height: this.baseTarget.height,
-          } as CropTarget,
-          formatOptions: this.buildFormatOptions(),
-          formatId: this.selectedFormatId,
-          initialState: this.cropState,
-          onReady: () => markReady(),
+    const sid = this.editorSession.createSession({
+      file: sourceFile,
+      target: {
+        width: selected.target.width,
+        height: selected.target.height,
+      },
+      initialState: this.cropState,
+      tools: {
+        formats: {
+          options: this.formatOptions,
+          selectedId: selected.id,
         },
-        cssClass: 'cropper-modal',
-        handle: true,
-      });
+      },
+      returnUrl: this.getEditorReturnUrl(),
+    });
 
-      await modal.present();
+    this.lastEditorSessionId = sid;
+    this.router.navigate(['/editor'], { queryParams: { sid } });
+  }
 
-      const dismissPromise = modal.onWillDismiss<CropperResult>();
-
-      await Promise.race([readyPromise, dismissPromise.then(() => {})]);
-      this.setBusy('none');
-
-      const res = await dismissPromise;
-      if (res.role !== 'done' || !res.data?.file) return;
-
-      if (res.data?.formatId) {
-        this.selectedFormatId = res.data.formatId;
-      }
-
-      const newFile = res.data.file;
-      this.cropState = res.data.state ?? this.cropState;
-
-      const dims = await this.imagePipe.getDimensions(newFile);
-      if (!dims) return this.failImage('CORRUPT', newFile);
-
-      this.clearImageError();
-      this.clearImageWarn();
-
-      this.exportImageFile = newFile;
-
-      this.generatedEpubBytes = undefined;
-      this.generatedEpubFilename = undefined;
-      this.lastSavedFilename = undefined;
-      this.wasAutoSaved = false;
-
-      this.selectedImageName = newFile.name;
-      this.selectedImageDims = dims;
-
-      this.applySmallWarn();
-
-      this.revokePreviewUrl();
-      this.previewUrl = URL.createObjectURL(newFile);
-    } finally {
-      this.setBusy('none');
+  private getSelectedFormatOption(): CropFormatOption | null {
+    if (!this.formatOptions.length) return null;
+    const selected =
+      this.formatOptions.find((opt) => opt.id === this.selectedFormatId) ??
+      this.formatOptions[0];
+    if (selected && selected.id !== this.selectedFormatId) {
+      this.selectedFormatId = selected.id;
     }
+    return selected ?? null;
+  }
+
+  private getEditorReturnUrl(): string {
+    const current = this.router.url;
+    if (current.startsWith('/tabs/')) return current;
+    return '/tabs/change';
   }
 
   canExport(): boolean {
-    return (
-      !!this.exportImageFile &&
-      !this.imageErrorKey &&
-      !!this.cropState
+    return !!this.workingImageFile && !!this.cropState && !this.imageErrorKey;
+  }
+
+  private async applyCropResult(result: EditorResult): Promise<void> {
+    const newFile = result.file;
+    if (!newFile) return;
+
+    if (result.formatId) {
+      this.selectedFormatId = result.formatId;
+    }
+
+    this.cropState = result.state ?? this.cropState;
+
+    this.clearImageError();
+    this.clearImageWarn();
+
+    this.workingImageFile = newFile;
+    this.exportImageFile = undefined;
+
+    this.generatedEpubBytes = undefined;
+    this.generatedEpubFilename = undefined;
+    this.lastSavedFilename = undefined;
+    this.wasAutoSaved = false;
+
+    this.selectedImageName = newFile.name;
+    if (!this.selectedImageDims) {
+      const dims = await this.imagePipe.getDimensions(newFile);
+      if (!dims) return this.failImage('CORRUPT', newFile);
+      this.selectedImageDims = dims;
+    }
+
+    this.applySmallWarn();
+
+    await this.updatePreviewFromComposition();
+  }
+
+  private computeBaseScale(
+    frameW: number,
+    frameH: number,
+    naturalW: number,
+    naturalH: number,
+    rot: number,
+  ): number {
+    const rr = (((rot % 360) + 360) % 360) as 0 | 90 | 180 | 270;
+    const rnW = rr === 90 || rr === 270 ? naturalH : naturalW;
+    const rnH = rr === 90 || rr === 270 ? naturalW : naturalH;
+    const needW = frameW / rnW;
+    const needH = frameH / rnH;
+    return Math.max(needW, needH);
+  }
+
+  private resolveOutputTarget(
+    target: CropTarget,
+    frameW: number,
+    frameH: number,
+    baseScale: number,
+    naturalW: number,
+    naturalH: number,
+    state: CoverCropState,
+  ): CropTarget {
+    if (target.output !== 'source') return target;
+
+    const dispScale = baseScale * state.scale;
+    if (!Number.isFinite(dispScale) || dispScale <= 0) return target;
+
+    const rr = (((state.rot % 360) + 360) % 360) as 0 | 90 | 180 | 270;
+    const rotW = rr === 90 || rr === 270 ? naturalH : naturalW;
+    const rotH = rr === 90 || rr === 270 ? naturalW : naturalH;
+
+    let sWidthR = Math.floor(frameW / dispScale);
+    let sHeightR = Math.floor(frameH / dispScale);
+
+    sWidthR = Math.min(sWidthR, rotW);
+    sHeightR = Math.min(sHeightR, rotH);
+
+    return {
+      ...target,
+      width: Math.max(1, Math.round(sWidthR)),
+      height: Math.max(1, Math.round(sHeightR)),
+    };
+  }
+
+  private buildCompositionInput() {
+    if (!this.cropState || !this.workingImageFile || !this.selectedImageDims) {
+      return null;
+    }
+
+    const selected = this.getSelectedFormatOption();
+    if (!selected) return null;
+
+    const rawTarget = selected.target;
+    const frameW = this.cropState.frameWidth ?? rawTarget.width;
+    const frameH = this.cropState.frameHeight ?? rawTarget.height;
+    if (!frameW || !frameH) return null;
+
+    const baseScale = this.computeBaseScale(
+      frameW,
+      frameH,
+      this.selectedImageDims.width,
+      this.selectedImageDims.height,
+      this.cropState.rot,
     );
+
+    const target = this.resolveOutputTarget(
+      rawTarget,
+      frameW,
+      frameH,
+      baseScale,
+      this.selectedImageDims.width,
+      this.selectedImageDims.height,
+      this.cropState,
+    );
+
+    return {
+      file: this.workingImageFile,
+      target,
+      frameWidth: frameW,
+      frameHeight: frameH,
+      baseScale,
+      naturalWidth: this.selectedImageDims.width,
+      naturalHeight: this.selectedImageDims.height,
+      state: this.cropState,
+    };
+  }
+
+  private async updatePreviewFromComposition(): Promise<void> {
+    const input = this.buildCompositionInput();
+    if (!input) return;
+
+    const maxSide = 640;
+    const scale =
+      maxSide > 0
+        ? Math.min(
+            1,
+            maxSide / Math.max(input.target.width, input.target.height),
+          )
+        : 1;
+
+    const canvas = await renderCompositionToCanvas(input, {
+      mode: 'preview',
+      outputScale: scale,
+    });
+    if (!canvas) return;
+
+    const blob: Blob | null = await new Promise((resolve) =>
+      canvas.toBlob((bb) => resolve(bb), 'image/jpeg', 0.9),
+    );
+    if (!blob) return;
+
+    this.revokePreviewUrl();
+    this.previewUrl = URL.createObjectURL(blob);
+  }
+
+  private async ensureExportImageFile(): Promise<File | null> {
+    if (this.exportImageFile) return this.exportImageFile;
+
+    const input = this.buildCompositionInput();
+    if (!input) return null;
+
+    const file = await renderCompositionToFile(input, { mode: 'export' });
+    if (!file) return null;
+
+    this.exportImageFile = file;
+    return file;
   }
 
   async onSave() {
-    if (!this.canSaveShare() || !this.exportImageFile) return;
+    if (!this.canSaveShare()) return;
+
+    const exportFile = await this.ensureExportImageFile();
+    if (!exportFile) return;
 
     const currentFilename = this.generatedEpubFilename || 'epub_cover';
     const nameWithoutExt = currentFilename.replace(/\.epub$/i, '');
@@ -511,6 +669,9 @@ export class ChangePage implements OnDestroy {
         return;
       }
 
+      const exportFile = await this.ensureExportImageFile();
+      if (!exportFile) return;
+
       if (this.lastSavedFilename) {
         try {
           await this.fileService.renameGeneratedEpub({
@@ -521,7 +682,7 @@ export class ChangePage implements OnDestroy {
           await this.fileService.saveGeneratedEpub({
             bytes: this.generatedEpubBytes!,
             filename: filename,
-            coverFileForThumb: this.exportImageFile!,
+            coverFileForThumb: exportFile,
           });
           await this.fileService.deleteGeneratedEpub(this.lastSavedFilename);
         }
@@ -529,7 +690,7 @@ export class ChangePage implements OnDestroy {
         await this.fileService.saveGeneratedEpub({
           bytes: this.generatedEpubBytes!,
           filename: filename,
-          coverFileForThumb: this.exportImageFile!,
+          coverFileForThumb: exportFile,
         });
       }
 
@@ -652,8 +813,7 @@ export class ChangePage implements OnDestroy {
   }
 
   async onGenerate() {
-    if (!this.canGenerate() || !this.exportImageFile)
-      return;
+    if (!this.canGenerate()) return;
 
     this.setBusy('export', 'CHANGE.GENERATING');
 
@@ -685,6 +845,9 @@ export class ChangePage implements OnDestroy {
         return;
       }
 
+      const exportFile = await this.ensureExportImageFile();
+      if (!exportFile) return;
+
       const sourceEpub = this.selectedEpubFile;
       const preferredFilename = this.selectedEpubName;
 
@@ -693,20 +856,20 @@ export class ChangePage implements OnDestroy {
         try {
           res = await this.fileService.generateEpubBytesFromSource({
             sourceEpubFile: sourceEpub,
-            coverFile: this.exportImageFile,
+            coverFile: exportFile,
             filename: preferredFilename,
           });
         } catch {
           res = await this.fileService.generateEpubBytes({
             modelId: this.baseModelId,
-            coverFile: this.exportImageFile,
+            coverFile: exportFile,
             title: 'EPUB Cover',
           });
         }
       } else {
         res = await this.fileService.generateEpubBytes({
           modelId: this.baseModelId,
-          coverFile: this.exportImageFile,
+          coverFile: exportFile,
           title: 'EPUB Cover',
         });
       }
@@ -719,7 +882,7 @@ export class ChangePage implements OnDestroy {
       await this.fileService.saveGeneratedEpub({
         bytes: this.generatedEpubBytes,
         filename: this.generatedEpubFilename,
-        coverFileForThumb: this.exportImageFile,
+        coverFileForThumb: exportFile,
       });
 
       this.coversEvents.emit({
@@ -777,8 +940,70 @@ export class ChangePage implements OnDestroy {
     this.infoEvent = null;
   }
 
+  openPreview() {
+    if (!this.previewUrl) return;
+    this.previewOpen = true;
+  }
+
+  closePreview() {
+    this.previewOpen = false;
+    this.suppressNextImagePick = false;
+  }
+
+  onPreviewPressStart() {
+    if (!this.previewUrl) return;
+    this.clearPreviewLongPress();
+    this.previewLongPressTimer = setTimeout(() => {
+      this.suppressNextImagePick = true;
+      this.openPreview();
+    }, 450);
+  }
+
+  onPreviewPressEnd() {
+    this.clearPreviewLongPress();
+  }
+
+  private clearPreviewLongPress() {
+    if (this.previewLongPressTimer) {
+      clearTimeout(this.previewLongPressTimer);
+      this.previewLongPressTimer = null;
+    }
+  }
+
+  getPreviewRatio(): string {
+    if (this.cropState?.frameWidth && this.cropState?.frameHeight) {
+      return `${this.cropState.frameWidth} / ${this.cropState.frameHeight}`;
+    }
+    const selected = this.getSelectedFormatOption();
+    if (selected) {
+      return `${selected.target.width} / ${selected.target.height}`;
+    }
+    return '3 / 4';
+  }
+
   ionViewWillLeave() {
     this.closeInfo();
+  }
+
+  ionViewWillEnter() {
+    this.consumeEditorResult();
+  }
+
+  private async consumeEditorResult(): Promise<void> {
+    let result: EditorResult | null = null;
+
+    if (this.lastEditorSessionId) {
+      result = this.editorSession.consumeResult(this.lastEditorSessionId);
+      this.lastEditorSessionId = undefined;
+    }
+
+    if (!result) {
+      result = this.editorSession.consumeLatestResult();
+    }
+
+    if (result?.file) {
+      await this.applyCropResult(result);
+    }
   }
 
   private async showToast(
