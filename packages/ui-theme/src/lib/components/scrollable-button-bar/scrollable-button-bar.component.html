@@ -1,60 +1,43 @@
 <div class="sb" [attr.aria-label]="ariaLabel">
-  <div class="sb__viewport">
+  <div class="sb__viewport" #viewportEl>
     <div
       class="sb__scroll"
-      [class.sb__scroll--center]="align === 'center'"
+      [class.sb__scroll--center]="align === 'center' && edge !== 'end'"
+      [class.sb__scroll--end-no-overflow]="edge === 'end' && !hasOverflow"
+      [class.sb__scroll--draggable]="hasOverflow"
+      [class.sb__scroll--dragging]="isDragging"
       #scrollEl
     >
-      <ion-button
-        *ngFor="let item of items; trackBy: trackById"
-        fill="clear"
-        class="tool-btn"
-        [class.tool-btn--active]="isActive(item.id)"
-        [class.tool-btn--swatch]="item.type === 'color'"
-        [disabled]="disabled || isItemDisabled(item.id)"
-        [attr.aria-label]="itemAriaLabel(item)"
-        (click)="onItemClick(item.id)"
-      >
-        <ng-container *ngIf="item.type === 'color'; else defaultItem">
-          <span class="sb-color" [style.background]="item.colorHex || '#000'"></span>
-        </ng-container>
-        <ng-template #defaultItem>
-          <ng-container [ngSwitch]="variant">
-            <ng-container *ngSwitchCase="'iconOnly'">
-              <ion-icon
-                *ngIf="item.svg"
-                class="app-icon-text__icon"
-                [src]="svgSrc(item)"
-              ></ion-icon>
-              <ion-icon
-                *ngIf="!item.svg && item.icon"
-                class="app-icon-text__icon"
-                [name]="item.icon"
-              ></ion-icon>
-            </ng-container>
-
-            <ng-container *ngSwitchCase="'iconText'">
-              <div class="app-icon-text">
-                <ion-icon
-                  *ngIf="item.svg"
-                  class="app-icon-text__icon"
-                  [src]="svgSrc(item)"
-                ></ion-icon>
-                <ion-icon
-                  *ngIf="!item.svg && item.icon"
-                  class="app-icon-text__icon"
-                  [name]="item.icon"
-                ></ion-icon>
-                <span class="app-icon-text__label">{{ item.label }}</span>
-              </div>
-            </ng-container>
-
-            <ng-container *ngSwitchDefault>
-              <span>{{ item.label }}</span>
-            </ng-container>
+      <div class="sb__track" [class.sb__track--reverse]="order === 'reverse'" #trackEl>
+        <ion-button *ngFor="let item of items; trackBy: trackById" fill="clear" class="tool-btn"
+          [class.tool-btn--active]="isActive(item.id)" [class.tool-btn--swatch]="item.type === 'color'"
+          [disabled]="disabled || isItemDisabled(item.id)" [attr.aria-label]="itemAriaLabel(item)"
+          (click)="onItemClick(item.id)">
+          <ng-container *ngIf="item.type === 'color'; else defaultItem">
+            <span class="sb-color" [style.background]="item.colorHex || '#000'"></span>
           </ng-container>
-        </ng-template>
-      </ion-button>
+          <ng-template #defaultItem>
+            <ng-container [ngSwitch]="variant">
+              <ng-container *ngSwitchCase="'iconOnly'">
+                <ion-icon *ngIf="item.svg" class="app-icon-text__icon" [src]="svgSrc(item)"></ion-icon>
+                <ion-icon *ngIf="!item.svg && item.icon" class="app-icon-text__icon" [name]="item.icon"></ion-icon>
+              </ng-container>
+
+              <ng-container *ngSwitchCase="'iconText'">
+                <div class="app-icon-text">
+                  <ion-icon *ngIf="item.svg" class="app-icon-text__icon" [src]="svgSrc(item)"></ion-icon>
+                  <ion-icon *ngIf="!item.svg && item.icon" class="app-icon-text__icon" [name]="item.icon"></ion-icon>
+                  <span class="app-icon-text__label">{{ item.label }}</span>
+                </div>
+              </ng-container>
+
+              <ng-container *ngSwitchDefault>
+                <span>{{ item.label }}</span>
+              </ng-container>
+            </ng-container>
+          </ng-template>
+        </ion-button>
+      </div>
     </div>
 
     <div class="sb__fade sb__fade--left" *ngIf="showFadeLeft"></div>

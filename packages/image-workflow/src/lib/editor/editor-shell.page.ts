@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   Component,
   computed,
+  DestroyRef,
   ElementRef,
   NgZone,
   OnDestroy,
@@ -17,7 +18,7 @@ import {
   NavigationEnd,
   RouterModule,
 } from "@angular/router";
-import { TranslateModule } from "@ngx-translate/core";
+import { TranslateModule, TranslateService } from "@ngx-translate/core";
 import {
   IonButton,
   IonButtons,
@@ -28,7 +29,11 @@ import {
   IonTitle,
   IonToolbar,
 } from "@ionic/angular/standalone";
-import { EditorPanelComponent } from "@sheldrapps/ui-theme";
+import {
+  EditorPanelComponent,
+  ScrollableBarItem,
+  ScrollableButtonBarComponent,
+} from "@sheldrapps/ui-theme";
 import { addIcons } from "ionicons";
 import {
   cropOutline,
@@ -39,7 +44,8 @@ import {
   checkmarkOutline,
   eyedropOutline,
 } from "ionicons/icons";
-import { filter } from "rxjs";
+import { filter, merge } from "rxjs";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 import { EditorSessionService, EditorSession } from "./editor-session.service";
 import { EditorUiStateService } from "./editor-ui-state.service";
@@ -80,6 +86,13 @@ export interface EditorLabels {
   adjustmentsLabel: string;
 }
 
+type TopBarLabelSet = {
+  undo: string;
+  redo: string;
+  discard: string;
+  apply: string;
+};
+
 const DEFAULT_LABELS: EditorLabels = {
   title: "EDITOR.SHELL.TITLE",
   cancelLabel: "EDITOR.SHELL.BUTTON.CANCEL",
@@ -117,6 +130,7 @@ const MAX_BG_BLUR_PX = 40;
     IonTitle,
     IonToolbar,
     EditorPanelComponent,
+    ScrollableButtonBarComponent,
     TranslateModule,
   ],
   templateUrl: "./editor-shell.page.html",
@@ -170,6 +184,51 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   readonly showSessionActions = computed(
     () => this.history.mode() === "global",
   );
+  private readonly topBarLabels = signal<TopBarLabelSet>({
+    undo: "",
+    redo: "",
+    discard: "",
+    apply: "",
+  });
+  readonly topBarItems = computed<ScrollableBarItem[]>(() => {
+    const labels = this.topBarLabels();
+    const items: ScrollableBarItem[] = [
+      {
+        id: "redo",
+        label: labels.redo,
+        icon: "return-up-forward-outline",
+      },
+      {
+        id: "undo",
+        label: labels.undo,
+        icon: "return-up-back-outline",
+      },
+    ];
+
+    if (this.showDiscardApply()) {
+      items.push(
+        {
+          id: "discard",
+          label: labels.discard,
+          icon: "close-outline",
+        },
+        {
+          id: "apply",
+          label: labels.apply,
+          icon: "checkmark-outline",
+        },
+      );
+    }
+
+    return items;
+  });
+  readonly topBarDisabledIds = computed(() => {
+    const ids: string[] = [];
+    if (!this.history.canUndo()) ids.push("undo");
+    if (!this.history.canRedo()) ids.push("redo");
+    if (this.showDiscardApply() && !this.history.isDirty()) ids.push("apply");
+    return ids;
+  });
 
   // Minimal sizing state (kept here because shell owns the preview)
   private imageLoaded = false;
@@ -213,6 +272,8 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     private zone: NgZone,
     private kindleState: EditorKindleStateService,
     private colorSampler: EditorColorSamplerService,
+    private translate: TranslateService,
+    private destroyRef: DestroyRef,
   ) {
     addIcons({
       cropOutline,
@@ -223,6 +284,14 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       checkmarkOutline,
       eyedropOutline,
     });
+
+    this.refreshTopBarLabels();
+    merge(
+      this.translate.onLangChange,
+      this.translate.onTranslationChange,
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.refreshTopBarLabels());
 
     // Listen to EditorStateService changes and update preview
     effect(() => {
@@ -1001,6 +1070,24 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.isDraggingSample.set(false);
   }
 
+  onTopBarItemClick(id: string): void {
+    switch (id) {
+      case "undo":
+        this.undo();
+        break;
+      case "redo":
+        this.redo();
+        break;
+      case "discard":
+        void this.discardPanel();
+        break;
+      case "apply":
+        this.applyPanel();
+        break;
+      default:
+        break;
+    }
+  }
 
   private async buildSamplingCanvas(
     outputScale: number,
@@ -1067,5 +1154,14 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
   private midpoint(a: Pt, b: Pt): Pt {
     return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  }
+
+  private refreshTopBarLabels(): void {
+    this.topBarLabels.set({
+      undo: this.translate.instant(this.uiLabels.undoLabel),
+      redo: this.translate.instant(this.uiLabels.redoLabel),
+      discard: this.translate.instant(this.uiLabels.discardLabel),
+      apply: this.translate.instant(this.uiLabels.applyLabel),
+    });
   }
 }

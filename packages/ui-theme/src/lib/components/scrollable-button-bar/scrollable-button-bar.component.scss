@@ -12,25 +12,34 @@
   position: relative;
   overflow: hidden; /* needed for fades */
   width: 100%;
+  min-width: 0;
 }
 
 /* The actual horizontal scroll area (this replaces .tools-buttons inside scrollable group) */
 .sb__scroll {
-  display: flex;
-  gap: 8px;
-
   overflow-x: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  white-space: nowrap;
+  touch-action: pan-x;
 
   width: 100%;
-
-  padding: 4px 8px;
+  max-width: 100%;
+  min-width: 0;
 
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+.sb__track {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  gap: 8px;
+  padding: 4px 8px;
+  width: max-content;
+  flex: 0 0 auto;
 }
 
 .tool-btn--swatch {
@@ -54,8 +63,36 @@
   outline-offset: 2px;
 }
 
+.sb__track--reverse {
+  flex-direction: row-reverse;
+}
+
 .sb__scroll--center {
-  justify-content: center;
+  text-align: center;
+}
+
+.sb__scroll--end-no-overflow {
+  text-align: right;
+}
+
+.sb__scroll--draggable {
+  cursor: grab;
+}
+
+.sb__scroll--dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.sb__track > ion-button,
+.sb__track > ion-button.tool-btn,
+.tool-btn {
+  flex: 0 0 auto;
+  min-width: max-content;
+}
+
+.app-icon-text__label {
+  white-space: nowrap;
 }
 
 /* Fade overlays (ported 1:1) */

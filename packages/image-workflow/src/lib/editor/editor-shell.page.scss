@@ -263,33 +263,11 @@
 
 /* Top toolbox layout (shell-level only) */
 .top-toolbox {
-  --min-height: 52px;
-  --padding-top: 4px;
-  --padding-bottom: 6px;
-}
-
-.top-toolbox__row {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-}
-
-.top-toolbox__center {
-  grid-column: 2;
+  min-height: 52px;
+  padding: 4px 8px 6px;
+  background: var(--ion-background-color);
   display: flex;
   align-items: center;
-  gap: 8px;
-  justify-self: center;
-}
-
-.top-toolbox__right {
-  grid-column: 3;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-self: end;
 }
 
 /* Bottom entry toolbox (shell-level only) */
