@@ -1,0 +1,8 @@
+<div class="bottom-bar" role="toolbar" [attr.aria-label]="'EDITOR.PANELS.TEXT.TEXT.PAGE.ARIA.TOOLBAR' | translate">
+  <sh-scrollable-button-bar
+    [items]="textItems"
+    [activeId]="ui.panelId()"
+    variant="text"
+    (selectItem)="onSelectTextPanel($event)"
+  ></sh-scrollable-button-bar>
+</div>

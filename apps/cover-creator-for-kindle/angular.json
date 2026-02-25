@@ -36,6 +36,11 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "**/*",
+                "input": "../../packages/image-workflow/src/assets",
+                "output": "assets"
               }
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss"],
@@ -109,6 +114,11 @@
               {
                 "glob": "**/*",
                 "input": "src/assets",
+                "output": "assets"
+              },
+              {
+                "glob": "**/*",
+                "input": "../../packages/image-workflow/src/assets",
                 "output": "assets"
               }
             ],

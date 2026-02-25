@@ -1,0 +1,116 @@
+:host {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.text-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.text-layer {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: inline-block;
+  white-space: pre-wrap;
+  width: max-content;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-align: center;
+  line-height: 1;
+  padding: 0;
+  margin: 0;
+  user-select: none;
+  touch-action: none;
+  cursor: grab;
+  -webkit-text-stroke-linejoin: round;
+  paint-order: stroke fill;
+}
+
+.text-layer--dragging {
+  cursor: grabbing;
+}
+
+.text-layer--editor {
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  pointer-events: auto;
+  cursor: text;
+  user-select: text;
+  touch-action: auto;
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+  line-height: 1;
+}
+
+.text-selection {
+  position: absolute;
+  border: 1px dashed rgba(255, 255, 255, 0.9);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.text-selection__handle {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  transform: translate(-50%, -50%);
+  cursor: nwse-resize;
+  pointer-events: auto;
+  z-index: 3;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #111111;
+  font-size: 12px;
+}
+
+.text-selection__handle--horizontal {
+  width: 20px;
+  height: 16px;
+  cursor: ew-resize;
+  z-index: 5;
+}
+
+.guides {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.guide {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.35);
+  opacity: 0.35;
+}
+
+.guide--stage.active,
+.guide.active {
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.guide--v {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+
+.guide--h {
+  left: 0;
+  right: 0;
+  height: 1px;
+}

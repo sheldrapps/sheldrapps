@@ -8,6 +8,7 @@ import {
 } from "@angular/core";
 import { ADJUSTMENTS_REGISTRY } from "./panels/adjustments/adjustments.registry";
 import { TOOLS_REGISTRY } from "./panels/tools/tools.registry";
+import { TEXT_REGISTRY } from "./panels/text/text.registry";
 import {
   EDITOR_PANEL_ID,
   EDITOR_PANEL_MODE,
@@ -19,8 +20,8 @@ import {
 } from "./editor-session.service";
 import type { EditorHistoryService } from "./editor-history.service";
 
-export type EditorMode = "none" | "tools" | "adjustments";
-export type PanelMode = "tools" | "adjustments" | null;
+export type EditorMode = "none" | "tools" | "adjustments" | "text";
+export type PanelMode = "tools" | "adjustments" | "text" | null;
 export type GestureMode = "none" | "pan" | "pinch" | "pan+pinch";
 export type ToolKey = "crop" | "rotate" | "zoom" | "fill";
 export type AdjustmentKey =
@@ -28,6 +29,7 @@ export type AdjustmentKey =
   | "contrast"
   | "saturation"
   | "bw";
+export type TextKey = "text";
 
 export interface PanelState {
   mode: PanelMode;
@@ -101,6 +103,8 @@ export class EditorUiStateService {
       registryConfig = ADJUSTMENTS_REGISTRY[id as AdjustmentKey];
     } else if (mode === "tools") {
       registryConfig = TOOLS_REGISTRY[id as ToolKey];
+    } else if (mode === "text") {
+      registryConfig = TEXT_REGISTRY[id as TextKey];
     }
 
     if (registryConfig) {
@@ -168,6 +172,9 @@ export class EditorUiStateService {
         this.gestureMode.set("pan+pinch");
         break;
       case "adjustments":
+        this.gestureMode.set("none");
+        break;
+      case "text":
         this.gestureMode.set("none");
         break;
       default:

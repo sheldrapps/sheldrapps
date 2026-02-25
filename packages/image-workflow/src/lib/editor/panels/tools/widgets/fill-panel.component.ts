@@ -228,7 +228,7 @@ export class FillPanelComponent {
 
   startSampling(): void {
     if (this.sampler.active()) return;
-    this.sampler.start();
+    this.sampler.start("background", { mode: "tools", panelId: "fill" });
     this.ui.closePanel();
   }
 

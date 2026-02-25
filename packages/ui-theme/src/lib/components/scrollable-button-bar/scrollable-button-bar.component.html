@@ -27,12 +27,12 @@
                 <div class="app-icon-text">
                   <ion-icon *ngIf="item.svg" class="app-icon-text__icon" [src]="svgSrc(item)"></ion-icon>
                   <ion-icon *ngIf="!item.svg && item.icon" class="app-icon-text__icon" [name]="item.icon"></ion-icon>
-                  <span class="app-icon-text__label">{{ item.label }}</span>
+                  <span class="app-icon-text__label" [style.fontFamily]="item.fontFamily || null">{{ item.label }}</span>
                 </div>
               </ng-container>
 
               <ng-container *ngSwitchDefault>
-                <span>{{ item.label }}</span>
+                <span [style.fontFamily]="item.fontFamily || null">{{ item.label }}</span>
               </ng-container>
             </ng-container>
           </ng-template>

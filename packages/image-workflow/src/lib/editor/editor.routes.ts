@@ -31,6 +31,13 @@ export const EDITOR_ROUTES: Routes = [
         canActivate: [EditorPanelEntryGuard],
         canDeactivate: [EditorPanelExitGuard],
       },
+      {
+        path: 'text',
+        loadComponent: () =>
+          import('./panels/text/text.page').then((m) => m.TextPage),
+        canActivate: [EditorPanelEntryGuard],
+        canDeactivate: [EditorPanelExitGuard],
+      },
     ],
   },
 ];

@@ -8,6 +8,11 @@ export type SamplerColor = {
   a: number;
   hex: string;
 };
+export type SamplerTarget = "background" | "text-fill" | "text-stroke";
+export type SamplerReturnPanel = {
+  mode: "tools" | "adjustments" | "text";
+  panelId: string;
+};
 
 @Injectable({ providedIn: "root" })
 export class EditorColorSamplerService {
@@ -17,11 +22,15 @@ export class EditorColorSamplerService {
   readonly proposedHex = signal<string | null>(null);
   readonly sampleRgba = signal({ r: 0, g: 0, b: 0, a: 1 });
   readonly samplePos = signal<SamplerPoint | null>(null);
+  readonly target = signal<SamplerTarget>("background");
+  readonly returnPanel = signal<SamplerReturnPanel | null>(null);
 
-  start(): void {
+  start(target: SamplerTarget = "background", returnPanel?: SamplerReturnPanel): void {
     this.active.set(true);
     this.confirming.set(false);
     this.proposedHex.set(null);
+    this.target.set(target);
+    this.returnPanel.set(returnPanel ?? null);
   }
 
   stop(): void {
@@ -29,6 +38,8 @@ export class EditorColorSamplerService {
     this.confirming.set(false);
     this.proposedHex.set(null);
     this.samplePos.set(null);
+    this.target.set("background");
+    this.returnPanel.set(null);
   }
 
   setSample(color: Omit<SamplerColor, "hex">, pos?: SamplerPoint): void {

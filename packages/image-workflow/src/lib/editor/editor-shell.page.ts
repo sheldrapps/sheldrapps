@@ -43,6 +43,7 @@ import {
   closeOutline,
   checkmarkOutline,
   eyedropOutline,
+  textOutline,
 } from "ionicons/icons";
 import { filter, merge } from "rxjs";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
@@ -55,9 +56,11 @@ import { EditorPanelExitService } from "./editor-panel-exit.service";
 import { EditorSessionExitService } from "./editor-session-exit.service";
 import { EditorKindleStateService } from "./editor-kindle-state.service";
 import { EditorColorSamplerService } from "./editor-color-sampler.service";
+import { EditorTextEditService } from "./editor-text-edit.service";
 import { buildCssFilter } from "./editor-adjustments";
 import { renderCompositionToCanvas } from "../core/pipeline/composition-render";
 import type { CoverCropState, CropperResult } from "../types";
+import { TextOverlayComponent } from "./components/text-overlay.component";
 
 type Pt = { x: number; y: number };
 
@@ -132,6 +135,7 @@ const MAX_BG_BLUR_PX = 40;
     EditorPanelComponent,
     ScrollableButtonBarComponent,
     TranslateModule,
+    TextOverlayComponent,
   ],
   templateUrl: "./editor-shell.page.html",
   styleUrls: ["./editor-shell.page.scss"],
@@ -192,6 +196,20 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   });
   readonly topBarItems = computed<ScrollableBarItem[]>(() => {
     const labels = this.topBarLabels();
+    if (this.textEdit.isEditing()) {
+      return [
+        {
+          id: "discard",
+          label: labels.discard,
+          icon: "close-outline",
+        },
+        {
+          id: "apply",
+          label: labels.apply,
+          icon: "checkmark-outline",
+        },
+      ];
+    }
     const items: ScrollableBarItem[] = [
       {
         id: "redo",
@@ -223,6 +241,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     return items;
   });
   readonly topBarDisabledIds = computed(() => {
+    if (this.textEdit.isEditing()) return [];
     const ids: string[] = [];
     if (!this.history.canUndo()) ids.push("undo");
     if (!this.history.canRedo()) ids.push("redo");
@@ -272,6 +291,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     private zone: NgZone,
     private kindleState: EditorKindleStateService,
     private colorSampler: EditorColorSamplerService,
+    private textEdit: EditorTextEditService,
     private translate: TranslateService,
     private destroyRef: DestroyRef,
   ) {
@@ -283,6 +303,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       closeOutline,
       checkmarkOutline,
       eyedropOutline,
+      textOutline,
     });
 
     this.refreshTopBarLabels();
@@ -338,8 +359,18 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     });
 
     effect(() => {
-      if (this.colorSampler.active() && this.ui.panelId() === "fill") {
+      const panelId = this.ui.panelId();
+      if (
+        this.colorSampler.active() &&
+        (panelId === "fill" || panelId === "text")
+      ) {
         this.ui.closePanel();
+      }
+    });
+
+    effect(() => {
+      if (this.ui.activeMode() !== "text" && this.textEdit.isEditing()) {
+        this.textEdit.discard();
       }
     });
 
@@ -678,6 +709,8 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       this.ui.setMode("tools");
     } else if (url.includes("/editor/adjustments")) {
       this.ui.setMode("adjustments");
+    } else if (url.includes("/editor/text")) {
+      this.ui.setMode("text");
     } else {
       this.ui.setMode("none");
     }
@@ -688,7 +721,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
   private updateHistoryMode(): void {
     const mode = this.ui.activeMode();
-    if (mode === "tools" || mode === "adjustments") {
+    if (mode === "tools" || mode === "adjustments" || mode === "text") {
       this.history.enterPanel(mode);
       return;
     }
@@ -794,6 +827,10 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.router.navigate(["adjustments"], { relativeTo: this.route });
   }
 
+  openText(): void {
+    this.router.navigate(["text"], { relativeTo: this.route });
+  }
+
   onBottomBarItemClick(id: string): void {
     switch (id) {
       case "tools":
@@ -801,6 +838,9 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         break;
       case "adjustments":
         this.openAdjustments();
+        break;
+      case "text":
+        this.openText();
         break;
     }
   }
@@ -1059,10 +1099,25 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   confirmSample(): void {
     const proposed =
       this.colorSampler.proposedHex() ?? this.colorSampler.sampleHex();
-    this.history.setBackground({ mode: "color", color: proposed });
+    const target = this.colorSampler.target();
+    const selectedId = this.textEdit.selectedTextId();
+    if (target === "text-fill") {
+      if (selectedId) {
+        this.history.setTextFillColor(selectedId, proposed);
+      }
+    } else if (target === "text-stroke") {
+      if (selectedId) {
+        this.history.setTextStrokeColor(selectedId, proposed);
+      }
+    } else {
+      this.history.setBackground({ mode: "color", color: proposed });
+    }
+    const returnPanel = this.colorSampler.returnPanel();
     this.colorSampler.stop();
     this.isDraggingSample.set(false);
-    this.ui.openPanel("tools", "fill");
+    if (returnPanel) {
+      this.ui.openPanel(returnPanel.mode, returnPanel.panelId);
+    }
   }
 
   cancelSample(): void {
@@ -1071,6 +1126,17 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onTopBarItemClick(id: string): void {
+    if (this.textEdit.isEditing()) {
+      if (id === "apply") {
+        this.textEdit.apply();
+      } else if (id === "discard") {
+        this.textEdit.discard();
+      }
+      return;
+    }
+    if (this.ui.activeMode() === "text" && this.textEdit.justExited()) {
+      return;
+    }
     switch (id) {
       case "undo":
         this.undo();

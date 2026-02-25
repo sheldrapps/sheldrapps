@@ -8,7 +8,7 @@ import { DEFAULT_EDITOR_ADJUSTMENTS } from "./editor-adjustments";
 import type { BackgroundMode, BackgroundSource } from "../types";
 
 export type HistoryMode = "local" | "global";
-export type PanelScope = "tools" | "adjustments";
+export type PanelScope = "tools" | "adjustments" | "text";
 
 export interface EditorCommand {
   type: string;
@@ -45,6 +45,21 @@ type NormalizedTransform = {
   backgroundBlur: number;
 };
 
+type NormalizedTextLayer = {
+  id: string;
+  content: string;
+  x: number;
+  y: number;
+  fontFamily: string;
+  fontSizePx: number;
+  fillColor: string;
+  strokeColor: string;
+  strokeWidthPx: number;
+  maxWidthPx: number | null;
+};
+
+type NormalizedTextLayers = NormalizedTextLayer[];
+
 @Injectable({
   providedIn: "root",
 })
@@ -68,6 +83,8 @@ export class EditorHistoryService {
 
   private gestureActive = false;
   private gestureStart: { scale: number; tx: number; ty: number } | null = null;
+  private textDragActiveId: string | null = null;
+  private textDragStart: EditorSnapshot["textLayers"] | null = null;
 
   constructor(
     private readonly editorState: EditorStateService,
@@ -92,6 +109,7 @@ export class EditorHistoryService {
   readonly backgroundBlur = this.editorState.backgroundBlur;
   readonly adjustments = this.editorState.adjustments;
   readonly isAdjusting = this.editorState.isAdjusting;
+  readonly textLayers = this.editorState.textLayers;
 
   readonly isDirty = computed(() => {
     if (this.mode() !== "local") return false;
@@ -112,6 +130,12 @@ export class EditorHistoryService {
       const kindleDirty = !this.shallowEqual(ka, kb);
 
       return transformDirty || kindleDirty;
+    }
+
+    if (scope === "text") {
+      const a = this.normalizeTextLayers(baseline);
+      const b = this.normalizeTextLayers(current);
+      return !this.textLayersEqual(a, b);
     }
 
     const a = this.normalizeAdjustments(baseline);
@@ -182,6 +206,8 @@ export class EditorHistoryService {
     this.pendingSliderCommand = null;
     this.gestureActive = false;
     this.gestureStart = null;
+    this.textDragActiveId = null;
+    this.textDragStart = null;
   }
 
   exitPanel(): void {
@@ -195,6 +221,8 @@ export class EditorHistoryService {
     this.pendingSliderCommand = null;
     this.gestureActive = false;
     this.gestureStart = null;
+    this.textDragActiveId = null;
+    this.textDragStart = null;
   }
 
   applyPanel(): boolean {
@@ -220,6 +248,8 @@ export class EditorHistoryService {
     this.baselineKindleSnapshot.set(null);
     this.panelScope.set(null);
     this.mode.set("global");
+    this.textDragActiveId = null;
+    this.textDragStart = null;
     return true;
   }
 
@@ -245,6 +275,8 @@ export class EditorHistoryService {
     this.baselineKindleSnapshot.set(null);
     this.panelScope.set(null);
     this.mode.set("global");
+    this.textDragActiveId = null;
+    this.textDragStart = null;
     return true;
   }
 
@@ -308,6 +340,34 @@ export class EditorHistoryService {
     this.recordCommand({
       type: "SetViewport",
       payload: next,
+    });
+  }
+
+  onTextDragStart(id: string): void {
+    if (this.textDragActiveId) return;
+    this.textDragActiveId = id;
+    const current = this.editorState.textLayers();
+    this.textDragStart = current.map((layer) => ({ ...layer }));
+  }
+
+  onTextDragEnd(id: string): void {
+    if (!this.textDragActiveId || this.textDragActiveId !== id) return;
+    this.textDragActiveId = null;
+
+    const start = this.textDragStart;
+    this.textDragStart = null;
+    if (!start) return;
+
+    const next = this.editorState.textLayers();
+    const changed = !this.textLayersEqual(
+      this.normalizeTextLayers(start),
+      this.normalizeTextLayers(next),
+    );
+    if (!changed) return;
+
+    this.recordCommand({
+      type: "SetTextLayers",
+      payload: next.map((layer) => ({ ...layer })),
     });
   }
 
@@ -426,6 +486,62 @@ export class EditorHistoryService {
       return;
     }
     this.recordCommand(command);
+  }
+
+  setTextLayers(layers: EditorSnapshot["textLayers"]): void {
+    const prev = this.editorState.textLayers();
+    const next = (layers ?? []).map((layer) => ({ ...layer }));
+    if (
+      this.textLayersEqual(
+        this.normalizeTextLayers(prev),
+        this.normalizeTextLayers(next),
+      )
+    ) {
+      return;
+    }
+    this.editorState.setTextLayers(next);
+    this.recordCommand({
+      type: "SetTextLayers",
+      payload: next,
+    });
+  }
+
+  addTextLayer(layer: NonNullable<EditorSnapshot["textLayers"]>[number]): void {
+    const next = [...this.editorState.textLayers(), { ...layer }];
+    this.setTextLayers(next);
+  }
+
+  setTextContent(id: string, value: string): void {
+    this.updateTextLayer(id, { content: value ?? "" });
+  }
+
+  setTextFontFamily(id: string, value: string): void {
+    this.updateTextLayer(id, { fontFamily: value });
+  }
+
+  setTextFontSize(id: string, value: number): void {
+    this.updateTextLayer(id, { fontSizePx: value }, { useSlider: true });
+  }
+
+  setTextFillColor(id: string, value: string): void {
+    this.updateTextLayer(id, { fillColor: this.normalizeHex(value) });
+  }
+
+  setTextStrokeColor(id: string, value: string): void {
+    this.updateTextLayer(id, { strokeColor: this.normalizeHex(value) });
+  }
+
+  setTextStrokeWidth(id: string, value: number): void {
+    this.updateTextLayer(id, { strokeWidthPx: value }, { useSlider: true });
+  }
+
+  setTextMaxWidth(id: string, value: number): void {
+    const normalized = Number.isFinite(value) ? value : undefined;
+    this.updateTextLayer(id, { maxWidthPx: normalized }, { useSlider: true });
+  }
+
+  setTextPosition(id: string, x: number, y: number): void {
+    this.updateTextLayer(id, { x, y }, { skipRecord: this.textDragActiveId === id });
   }
 
   resetBrightness(): void {
@@ -684,6 +800,17 @@ export class EditorHistoryService {
         }
         return;
       }
+      case "SetTextLayers": {
+        const next = (command.payload as EditorSnapshot["textLayers"]) ?? [];
+        this.editorState.setTextLayers(next.map((layer) => ({ ...layer })));
+        return;
+      }
+      case "SetTextLayer": {
+        const next = command.payload as EditorSnapshot["textLayer"] | null;
+        const layers = next ? [{ ...next }] : [];
+        this.editorState.setTextLayers(layers);
+        return;
+      }
       default:
         console.warn("[editor-history] Unknown command:", command);
     }
@@ -709,6 +836,43 @@ export class EditorHistoryService {
     });
   }
 
+  private updateTextLayer(
+    id: string,
+    patch: Partial<NonNullable<EditorSnapshot["textLayers"]>[number]>,
+    opts?: { useSlider?: boolean; skipRecord?: boolean },
+  ): void {
+    const current = this.editorState.textLayers();
+    const idx = current.findIndex((layer) => layer.id === id);
+    if (idx < 0) return;
+
+    const next = [...current];
+    next[idx] = { ...next[idx], ...patch, id };
+    if (
+      this.textLayersEqual(
+        this.normalizeTextLayers(current),
+        this.normalizeTextLayers(next),
+      )
+    ) {
+      return;
+    }
+
+    this.editorState.setTextLayers(next);
+
+    if (opts?.skipRecord) return;
+
+    const command = {
+      type: "SetTextLayers",
+      payload: next.map((layer) => ({ ...layer })),
+    };
+
+    if (opts?.useSlider && this.sliderActive) {
+      this.pendingSliderCommand = command;
+      return;
+    }
+
+    this.recordCommand(command);
+  }
+
   private recordCommand(command: EditorCommand): void {
     if (this.isReplaying || this.mode() !== "local") return;
 
@@ -727,6 +891,9 @@ export class EditorHistoryService {
     }
     if (this.gestureActive) {
       this.onGestureEnd();
+    }
+    if (this.textDragActiveId) {
+      this.onTextDragEnd(this.textDragActiveId);
     }
   }
 
@@ -769,6 +936,58 @@ export class EditorHistoryService {
         (state.backgroundSource as BackgroundSource | undefined) ?? null,
       backgroundBlur: this.normalizeBlur(state.backgroundBlur),
     };
+  }
+
+  private normalizeTextLayers(
+    input:
+      | EditorSnapshot
+      | EditorSnapshot["textLayers"]
+      | EditorSnapshot["textLayer"]
+      | null
+      | undefined,
+  ): NormalizedTextLayers {
+    const layers = this.extractTextLayers(input);
+    return layers.map((layer) => ({
+      id: layer.id ?? "",
+      content: layer.content ?? "",
+      x: this.roundTo(layer.x ?? 0, FLOAT_PRECISION),
+      y: this.roundTo(layer.y ?? 0, FLOAT_PRECISION),
+      fontFamily: layer.fontFamily ?? "",
+      fontSizePx: this.roundTo(layer.fontSizePx ?? 0, FLOAT_PRECISION),
+      fillColor: this.normalizeHex(layer.fillColor),
+      strokeColor: this.normalizeHex(layer.strokeColor),
+      strokeWidthPx: this.roundTo(layer.strokeWidthPx ?? 0, FLOAT_PRECISION),
+      maxWidthPx: Number.isFinite(layer.maxWidthPx)
+        ? this.roundTo(layer.maxWidthPx as number, FLOAT_PRECISION)
+        : null,
+    }));
+  }
+
+  private extractTextLayers(
+    input:
+      | EditorSnapshot
+      | EditorSnapshot["textLayers"]
+      | EditorSnapshot["textLayer"]
+      | null
+      | undefined,
+  ): NonNullable<EditorSnapshot["textLayers"]> {
+    if (!input) return [];
+    if (Array.isArray(input)) return input as NonNullable<EditorSnapshot["textLayers"]>;
+    if (typeof (input as EditorSnapshot).scale === "number") {
+      const state = input as EditorSnapshot;
+      if (Array.isArray(state.textLayers)) return state.textLayers;
+      if (state.textLayer) return [state.textLayer];
+      return [];
+    }
+    return [input as NonNullable<EditorSnapshot["textLayers"]>[number]];
+  }
+
+  private textLayersEqual(a: NormalizedTextLayers, b: NormalizedTextLayers): boolean {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i += 1) {
+      if (!this.shallowEqual(a[i], b[i])) return false;
+    }
+    return true;
   }
 
   private normalizeKindleSnapshot(

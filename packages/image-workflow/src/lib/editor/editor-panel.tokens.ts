@@ -10,9 +10,9 @@ export const EDITOR_PANEL_ID = new InjectionToken<string>('EDITOR_PANEL_ID');
 /**
  * Token to inject the current panel mode into panel widgets
  * @example
- * constructor(@Inject(EDITOR_PANEL_MODE) private mode: 'tools' | 'adjustments') {}
+ * constructor(@Inject(EDITOR_PANEL_MODE) private mode: 'tools' | 'adjustments' | 'text') {}
  */
-export const EDITOR_PANEL_MODE = new InjectionToken<'tools' | 'adjustments'>('EDITOR_PANEL_MODE');
+export const EDITOR_PANEL_MODE = new InjectionToken<'tools' | 'adjustments' | 'text'>('EDITOR_PANEL_MODE');
 
 /**
  * Token to inject the editor session ID into panel widgets

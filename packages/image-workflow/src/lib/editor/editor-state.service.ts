@@ -3,7 +3,12 @@ import {
   DEFAULT_EDITOR_ADJUSTMENTS,
   EditorAdjustmentsState,
 } from "./editor-adjustments";
-import type { BackgroundMode, BackgroundSource, CoverCropState } from "../types";
+import type {
+  BackgroundMode,
+  BackgroundSource,
+  CoverCropState,
+  TextLayer,
+} from "../types";
 
 type ConstraintsCtx = {
   frameW: number;
@@ -34,6 +39,7 @@ export class EditorStateService {
   readonly flipY = signal(false);
 
   private readonly ctx = signal<ConstraintsCtx | null>(null);
+  readonly constraintsContext = computed(() => this.ctx());
 
   // Adjustment state
   readonly brightness = signal(DEFAULT_EDITOR_ADJUSTMENTS.brightness);
@@ -53,6 +59,8 @@ export class EditorStateService {
   readonly backgroundBlur = signal<number>(
     EditorStateService.DEFAULT_BACKGROUND_BLUR,
   );
+
+  readonly textLayers = signal<TextLayer[]>([]);
 
   readonly adjustments = computed<EditorAdjustmentsState>(() => ({
     brightness: this.brightness(),
@@ -189,6 +197,63 @@ export class EditorStateService {
     if (opts.mode === "blur" && !Number.isFinite(this.backgroundBlur())) {
       this.backgroundBlur.set(EditorStateService.DEFAULT_BACKGROUND_BLUR);
     }
+  }
+
+  setTextLayers(layers: TextLayer[]): void {
+    const next = layers.map((layer) => this.ensureTextLayerId(layer));
+    this.textLayers.set(next);
+  }
+
+  addTextLayer(layer: TextLayer): void {
+    const next = [...this.textLayers(), this.ensureTextLayerId(layer)];
+    this.textLayers.set(next);
+  }
+
+  updateTextLayer(id: string, patch: Partial<TextLayer>): void {
+    const current = this.textLayers();
+    const idx = current.findIndex((layer) => layer.id === id);
+    if (idx < 0) return;
+    const next = [...current];
+    next[idx] = { ...next[idx], ...patch, id };
+    this.textLayers.set(next);
+  }
+
+  setTextContent(id: string, value: string): void {
+    this.updateTextLayer(id, { content: value ?? "" });
+  }
+
+  setTextPosition(id: string, x: number, y: number): void {
+    this.updateTextLayer(id, { x, y });
+  }
+
+  setTextFontFamily(id: string, value: string): void {
+    this.updateTextLayer(id, { fontFamily: value });
+  }
+
+  setTextFontSize(id: string, value: number): void {
+    if (!Number.isFinite(value)) return;
+    this.updateTextLayer(id, { fontSizePx: value });
+  }
+
+  setTextFillColor(id: string, value: string): void {
+    this.updateTextLayer(id, { fillColor: this.normalizeHex(value) });
+  }
+
+  setTextStrokeColor(id: string, value: string): void {
+    this.updateTextLayer(id, { strokeColor: this.normalizeHex(value) });
+  }
+
+  setTextStrokeWidth(id: string, value: number): void {
+    const clamped = this.clamp(value, 0, 100);
+    this.updateTextLayer(id, { strokeWidthPx: clamped });
+  }
+
+  setTextMaxWidth(id: string, value?: number | null): void {
+    if (!Number.isFinite(value as number)) {
+      this.updateTextLayer(id, { maxWidthPx: undefined });
+      return;
+    }
+    this.updateTextLayer(id, { maxWidthPx: value as number });
   }
 
   setScale(value: number): void {
@@ -352,6 +417,7 @@ export class EditorStateService {
     this.backgroundColor.set(EditorStateService.DEFAULT_BACKGROUND_COLOR);
     this.backgroundSource.set(undefined);
     this.backgroundBlur.set(EditorStateService.DEFAULT_BACKGROUND_BLUR);
+    this.textLayers.set([]);
   }
 
   // Get snapshot for history/export
@@ -372,6 +438,7 @@ export class EditorStateService {
       backgroundColor: this.backgroundColor(),
       backgroundSource: this.backgroundSource(),
       backgroundBlur: this.backgroundBlur(),
+      textLayers: this.textLayers(),
     };
   }
 
@@ -404,6 +471,12 @@ export class EditorStateService {
         ? (state.backgroundBlur as number)
         : EditorStateService.DEFAULT_BACKGROUND_BLUR,
     );
+    const nextLayers = Array.isArray(state.textLayers)
+      ? state.textLayers.map((layer) => this.ensureTextLayerId(layer))
+      : state.textLayer
+        ? [this.ensureTextLayerId(state.textLayer)]
+        : [];
+    this.textLayers.set(nextLayers);
     if (
       this.backgroundMode() === "blur" &&
       !this.backgroundSource()
@@ -504,5 +577,22 @@ export class EditorStateService {
     const rr = (((r % 360) + 360) % 360) as 0 | 90 | 180 | 270;
     if (rr === 90 || rr === 270) return { w: c.naturalH, h: c.naturalW };
     return { w: c.naturalW, h: c.naturalH };
+  }
+
+  private ensureTextLayerId(layer: TextLayer): TextLayer {
+    const id = layer.id || this.createTextLayerId();
+    return { ...layer, id };
+  }
+
+  private createTextLayerId(): string {
+    const crypto = (globalThis as any)?.crypto;
+    if (crypto?.randomUUID) {
+      try {
+        return crypto.randomUUID();
+      } catch {
+        // fall through to fallback
+      }
+    }
+    return `text-${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
   }
 }

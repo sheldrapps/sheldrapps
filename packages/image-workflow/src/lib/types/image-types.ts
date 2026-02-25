@@ -83,6 +83,22 @@ export type BackgroundMode = "transparent" | "color" | "blur";
 export type BackgroundSource = "same-image";
 
 /**
+ * Text layer for editor overlays
+ */
+export interface TextLayer {
+  id: string;
+  content: string;
+  x: number;
+  y: number;
+  fontFamily: string;
+  fontSizePx: number;
+  fillColor: string;
+  strokeColor: string;
+  strokeWidthPx: number;
+  maxWidthPx?: number;
+}
+
+/**
  * Crop state for persistence and restoration
  */
 export interface CoverCropState {
@@ -101,6 +117,8 @@ export interface CoverCropState {
   backgroundColor?: string;
   backgroundSource?: BackgroundSource;
   backgroundBlur?: number;
+  textLayers?: TextLayer[];
+  textLayer?: TextLayer | null;
   frameWidth?: number;
   frameHeight?: number;
 }

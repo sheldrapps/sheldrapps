@@ -27,6 +27,7 @@ export interface ScrollableBarItem {
   svg?: string; // raw svg string for custom icons
   type?: "default" | "color";
   colorHex?: string;
+  fontFamily?: string;
 }
 
 @Component({
@@ -40,8 +41,7 @@ export interface ScrollableBarItem {
 export class ScrollableButtonBarComponent
   implements AfterViewInit, OnChanges, OnDestroy
 {
-  // TODO: Remove debug logging after overflow verification.
-  debug = true;
+  debug = false;
 
   @Input({ required: true }) items: ScrollableBarItem[] = [];
   @Input() activeId: string | null = null;

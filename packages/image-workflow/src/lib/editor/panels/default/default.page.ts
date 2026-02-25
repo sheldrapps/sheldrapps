@@ -44,9 +44,11 @@ export class DefaultPage {
   private buildBottomBarItems(): ScrollableBarItem[] {
     const toolsKey = "EDITOR.SHELL.LABEL.TOOLS";
     const adjustmentsKey = "EDITOR.SHELL.LABEL.ADJUSTMENTS";
+    const textKey = "EDITOR.SHELL.LABEL.TEXT";
 
     const toolsLabel = this.translate.instant(toolsKey);
     const adjustmentsLabel = this.translate.instant(adjustmentsKey);
+    const textLabel = this.translate.instant(textKey);
 
     const makeItem = (id: string, label: string, icon: string) =>
       ({
@@ -62,6 +64,7 @@ export class DefaultPage {
     return [
       makeItem("tools", toolsLabel, "crop-outline"),
       makeItem("adjustments", adjustmentsLabel, "options-outline"),
+      makeItem("text", textLabel, "text-outline"),
     ];
   }
 
@@ -72,6 +75,9 @@ export class DefaultPage {
         break;
       case "adjustments":
         this.router.navigate(["adjustments"], { relativeTo: this.route });
+        break;
+      case "text":
+        this.router.navigate(["text"], { relativeTo: this.route });
         break;
     }
   }

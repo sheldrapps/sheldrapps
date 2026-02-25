@@ -137,6 +137,18 @@ export async function renderCompositionToCanvas(
     drawCheckerboard(ctx, scaledW, scaledH);
     ctx.restore();
   }
+
+  drawTextLayers(ctx, {
+    layers: Array.isArray(state.textLayers)
+      ? state.textLayers
+      : state.textLayer
+        ? [state.textLayer]
+        : [],
+    frameWidth,
+    frameHeight,
+    outputWidth: scaledW,
+    outputHeight: scaledH,
+  });
   return canvas;
 }
 
@@ -347,4 +359,120 @@ function applyAdjustments(
   }
 
   ctx.putImageData(imgData, 0, 0);
+}
+
+function drawTextLayers(
+  ctx: CanvasRenderingContext2D,
+  opts: {
+    layers: NonNullable<CoverCropState["textLayers"]>;
+    frameWidth: number;
+    frameHeight: number;
+    outputWidth: number;
+    outputHeight: number;
+  },
+): void {
+  const { layers, frameWidth, frameHeight, outputWidth, outputHeight } = opts;
+  if (!layers?.length) return;
+  if (!frameWidth || !frameHeight) return;
+
+  const scale = Number.isFinite(outputWidth / frameWidth)
+    ? outputWidth / frameWidth
+    : 1;
+
+  for (const layer of layers) {
+    if (!layer || !layer.content) continue;
+
+    const x = (layer.x ?? 0.5) * outputWidth;
+    const y = (layer.y ?? 0.5) * outputHeight;
+
+    const fontSize = Math.max(1, (layer.fontSizePx || 1) * scale);
+    const strokeWidth = Math.max(0, (layer.strokeWidthPx || 0) * scale);
+    const maxWidth =
+      Number.isFinite(layer.maxWidthPx) && (layer.maxWidthPx ?? 0) > 0
+        ? (layer.maxWidthPx as number) * scale
+        : null;
+
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineJoin = "round";
+    ctx.font = `${fontSize}px ${layer.fontFamily || "sans-serif"}`;
+
+    const lines = wrapTextLines(ctx, layer.content, maxWidth);
+    const lineHeight = fontSize;
+    const totalHeight = lineHeight * lines.length;
+    const startY = y - totalHeight / 2 + lineHeight / 2;
+
+    if (strokeWidth > 0) {
+      ctx.lineWidth = strokeWidth;
+      ctx.strokeStyle = layer.strokeColor || "#000000";
+      lines.forEach((line, idx) => {
+        ctx.strokeText(line, x, startY + idx * lineHeight);
+      });
+    }
+
+    ctx.fillStyle = layer.fillColor || "#ffffff";
+    lines.forEach((line, idx) => {
+      ctx.fillText(line, x, startY + idx * lineHeight);
+    });
+    ctx.restore();
+  }
+}
+
+function wrapTextLines(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number | null,
+): string[] {
+  const rawLines = text.split(/\r?\n/);
+  if (!maxWidth || maxWidth <= 0) return rawLines;
+
+  const lines: string[] = [];
+
+  for (const raw of rawLines) {
+    const words = raw.split(" ");
+    let line = "";
+
+    for (const word of words) {
+      const candidate = line ? `${line} ${word}` : word;
+      if (ctx.measureText(candidate).width <= maxWidth || !line) {
+        line = candidate;
+        continue;
+      }
+
+      lines.push(line);
+      line = word;
+
+      if (ctx.measureText(line).width > maxWidth) {
+        const split = splitLongWord(ctx, line, maxWidth);
+        lines.push(...split.slice(0, -1));
+        line = split[split.length - 1] ?? "";
+      }
+    }
+
+    if (line) lines.push(line);
+    if (!line && raw === "") lines.push("");
+  }
+
+  return lines.length ? lines : [""];
+}
+
+function splitLongWord(
+  ctx: CanvasRenderingContext2D,
+  word: string,
+  maxWidth: number,
+): string[] {
+  const parts: string[] = [];
+  let current = "";
+  for (const ch of word) {
+    const candidate = current + ch;
+    if (ctx.measureText(candidate).width <= maxWidth || !current) {
+      current = candidate;
+      continue;
+    }
+    parts.push(current);
+    current = ch;
+  }
+  if (current) parts.push(current);
+  return parts;
 }

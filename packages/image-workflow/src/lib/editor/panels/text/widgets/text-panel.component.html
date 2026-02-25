@@ -1,0 +1,151 @@
+<div class="text-panel">
+  @if (!hasSelectedText() && !isEditing()) {
+    <div class="text-add text-add--empty">
+      <ion-button
+        expand="block"
+        fill="solid"
+        class="text-add__button"
+        (click)="onAddText()"
+      >
+        {{ "EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.BUTTON.ADD" | translate }}
+      </ion-button>
+    </div>
+  }
+
+  @if (hasSelectedText() && !isEditing()) {
+    @if (subpanel() === "root") {
+      <div class="text-tabs">
+        <sh-scrollable-button-bar
+          [items]="sectionItems"
+          variant="text"
+          align="center"
+          (selectItem)="onSelectSection($event)"
+        ></sh-scrollable-button-bar>
+      </div>
+    } @else {
+      <div class="text-subheader">
+        <ion-button fill="clear" class="text-subheader__back" (click)="onBack()">
+          <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+        </ion-button>
+        <div class="text-subheader__title">
+          @if (subpanel() === "font") {
+            {{ "EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.SECTION.FONT" | translate }}
+          } @else if (subpanel() === "color") {
+            {{ "EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.SECTION.COLOR" | translate }}
+          } @else if (subpanel() === "stroke") {
+            {{ "EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.SECTION.STROKE" | translate }}
+          } @else if (subpanel() === "strokeColor") {
+            {{ "EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.STROKE.COLOR" | translate }}
+          } @else if (subpanel() === "strokeWidth") {
+            {{ "EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.STROKE.WIDTH" | translate }}
+          } @else {
+            {{ "EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.SECTION.SIZE" | translate }}
+          }
+        </div>
+      </div>
+    }
+
+    @if (subpanel() === "font") {
+      <div class="text-subpanel">
+        <sh-scrollable-button-bar
+          [items]="fontItems"
+          [activeId]="activeFontId()"
+          variant="text"
+          align="start"
+          (selectItem)="onSelectFont($event)"
+        ></sh-scrollable-button-bar>
+      </div>
+    }
+
+    @if (subpanel() === "color") {
+      <div class="text-subpanel">
+        <div class="text-picker">
+          <ion-button fill="clear" class="text-picker__btn" (click)="startSampling('fill')">
+            <ion-icon slot="start" name="eyedrop-outline"></ion-icon>
+            <span>{{ "EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.COLOR.PICKER" | translate }}</span>
+          </ion-button>
+        </div>
+        <sh-scrollable-button-bar
+          [items]="colorItems"
+          [activeId]="activeColorId()"
+          variant="iconOnly"
+          align="start"
+          (selectItem)="onSelectColor($event)"
+        ></sh-scrollable-button-bar>
+      </div>
+    }
+
+    @if (subpanel() === "stroke") {
+      <div class="text-subpanel">
+        <div class="text-tabs text-tabs--sub">
+          <sh-scrollable-button-bar
+            [items]="strokeItems"
+            variant="text"
+            align="center"
+            (selectItem)="onSelectStrokeSection($event)"
+          ></sh-scrollable-button-bar>
+        </div>
+      </div>
+    }
+
+    @if (subpanel() === "strokeColor") {
+      <div class="text-subpanel">
+        <div class="text-picker">
+          <ion-button fill="clear" class="text-picker__btn" (click)="startSampling('stroke')">
+            <ion-icon slot="start" name="eyedrop-outline"></ion-icon>
+            <span>{{ "EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.COLOR.PICKER" | translate }}</span>
+          </ion-button>
+        </div>
+        <sh-scrollable-button-bar
+          [items]="colorItems"
+          [activeId]="activeStrokeColorId()"
+          variant="iconOnly"
+          align="start"
+          (selectItem)="onSelectStrokeColor($event)"
+        ></sh-scrollable-button-bar>
+      </div>
+    }
+
+    @if (subpanel() === "strokeWidth") {
+      <div class="text-subpanel">
+        <ion-item>
+          <ion-label>
+            {{ "EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.STROKE.WIDTH" | translate }}
+          </ion-label>
+          <ion-range
+            [min]="STROKE_WIDTH_MIN"
+            [max]="STROKE_WIDTH_MAX"
+            step="1"
+            [value]="selectedText()?.strokeWidthPx ?? 0"
+            (ionInput)="onStrokeWidthChange($event)"
+            (ionKnobMoveStart)="history.onSliderStart()"
+            (ionKnobMoveEnd)="history.onSliderEnd()"
+            [attr.aria-label]="'EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.STROKE.WIDTH' | translate"
+          ></ion-range>
+        </ion-item>
+        <div class="text-value">{{ strokeWidthLabel() }}</div>
+      </div>
+    }
+
+    @if (subpanel() === "size") {
+      <div class="text-subpanel">
+        <ion-item>
+          <ion-label>
+            {{ "EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.SECTION.SIZE" | translate }}
+          </ion-label>
+          <ion-range
+            [min]="FONT_SIZE_MIN"
+            [max]="FONT_SIZE_MAX"
+            step="1"
+            [value]="selectedText()?.fontSizePx ?? 48"
+            (ionInput)="onFontSizeChange($event)"
+            (ionKnobMoveStart)="history.onSliderStart()"
+            (ionKnobMoveEnd)="history.onSliderEnd()"
+            [attr.aria-label]="'EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.SECTION.SIZE' | translate"
+          ></ion-range>
+        </ion-item>
+        <div class="text-value">{{ fontSizeLabel() }}</div>
+      </div>
+    }
+  }
+</div>

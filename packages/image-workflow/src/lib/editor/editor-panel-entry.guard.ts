@@ -18,7 +18,8 @@ export class EditorPanelEntryGuard implements CanActivate {
     const currentUrl = this.router.url;
     const inShell =
       !currentUrl.includes("/editor/tools") &&
-      !currentUrl.includes("/editor/adjustments");
+      !currentUrl.includes("/editor/adjustments") &&
+      !currentUrl.includes("/editor/text");
     if (
       nav?.trigger === "popstate" &&
       inShell &&

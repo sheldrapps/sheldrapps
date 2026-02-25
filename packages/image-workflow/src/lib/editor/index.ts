@@ -19,7 +19,7 @@
  * 
  * Available tokens:
  * - EDITOR_PANEL_ID: string - The current panel ID (e.g., 'brightness', 'crop')
- * - EDITOR_PANEL_MODE: 'tools' | 'adjustments' - The current panel mode
+ * - EDITOR_PANEL_MODE: 'tools' | 'adjustments' | 'text' - The current panel mode
  * - EDITOR_SESSION_ID: string - The current editor session ID
  * - EditorSessionService: Access to the active editor session
  */
