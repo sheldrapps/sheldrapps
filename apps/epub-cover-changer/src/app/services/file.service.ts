@@ -77,8 +77,8 @@ export class FileService {
     const filename = this.ensureEpubExt(
       this.sanitizeFilename(opts.filename ?? this.buildFilename(opts.modelId)),
     );
-
-    const epubPath = `${this.EPUB_FOLDER}/${filename}`;
+    const uniqueFilename = await this.getUniqueDocumentFilename(filename);
+    const epubPath = `${this.EPUB_FOLDER}/${uniqueFilename}`;
 
     const epubBytes = await this.buildEpub({
       appName: 'EPUB Cover Changer',
@@ -95,12 +95,12 @@ export class FileService {
       mimeType: 'application/epub+zip',
     });
 
-    const thumb = await this.buildThumbFromFile(opts.coverFile, filename);
+    const thumb = await this.buildThumbFromFile(opts.coverFile, uniqueFilename);
 
     return {
       path: epubPath,
       uri: epubRef.uri,
-      filename,
+      filename: uniqueFilename,
       thumbPath: thumb.thumbPath,
       thumbFilename: thumb.thumbFilename,
     };
@@ -662,7 +662,8 @@ export class FileService {
     coverFileForThumb: File;
   }) {
     const filename = this.ensureEpubExt(this.sanitizeFilename(opts.filename));
-    const epubPath = `${this.EPUB_FOLDER}/${filename}`;
+    const uniqueFilename = await this.getUniqueDocumentFilename(filename);
+    const epubPath = `${this.EPUB_FOLDER}/${uniqueFilename}`;
 
     // Use file-kit to save EPUB
     const epubRef = await this.fileKit.writeBytes({
@@ -674,13 +675,13 @@ export class FileService {
 
     const thumb = await this.buildThumbFromFile(
       opts.coverFileForThumb,
-      filename,
+      uniqueFilename,
     );
 
     return {
       path: epubPath,
       uri: epubRef.uri,
-      filename,
+      filename: uniqueFilename,
       thumbPath: thumb.thumbPath,
       thumbFilename: thumb.thumbFilename,
     };
@@ -688,7 +689,10 @@ export class FileService {
 
   async renameGeneratedEpub(opts: { from: string; to: string }) {
     const fromFilename = this.ensureEpubExt(this.sanitizeFilename(opts.from));
-    const toFilename = this.ensureEpubExt(this.sanitizeFilename(opts.to));
+    const toFilenameRaw = this.ensureEpubExt(this.sanitizeFilename(opts.to));
+    const toFilename = await this.getUniqueDocumentFilename(toFilenameRaw, '.epub', {
+      ignoreFilename: fromFilename,
+    });
 
     if (fromFilename === toFilename) {
       return {
@@ -762,6 +766,36 @@ export class FileService {
       path: toPath,
       thumbPath: toThumbPath,
     };
+  }
+
+  async existsInDocuments(path: string): Promise<boolean> {
+    return this.fileKit.exists({
+      dir: 'Documents',
+      path,
+    });
+  }
+
+  async getUniqueDocumentFilename(
+    baseName: string,
+    ext = '.epub',
+    opts?: { ignoreFilename?: string },
+  ): Promise<string> {
+    const cleanExt = ext.startsWith('.') ? ext : `.${ext}`;
+    const sanitized = this.ensureEpubExt(this.sanitizeFilename(baseName));
+    let base = sanitized.replace(new RegExp(`${cleanExt.replace('.', '\\.')}$`, 'i'), '');
+    base = base.trim() || 'epub_cover';
+
+    const ignore = opts?.ignoreFilename?.toLowerCase?.() ?? null;
+    let candidate = `${base}${cleanExt}`;
+    let idx = 1;
+    while (true) {
+      const exists = await this.existsInDocuments(`${this.EPUB_FOLDER}/${candidate}`);
+      if (!exists || (ignore && candidate.toLowerCase() === ignore)) {
+        return candidate;
+      }
+      candidate = `${base} (${idx})${cleanExt}`;
+      idx += 1;
+    }
   }
 
   async deleteGeneratedEpub(filename: string) {

@@ -92,10 +92,15 @@ export interface TextLayer {
   y: number;
   fontFamily: string;
   fontSizePx: number;
+  manualFontSizePx?: number;
   fillColor: string;
   strokeColor: string;
   strokeWidthPx: number;
   maxWidthPx?: number;
+  boxWidthPx?: number;
+  boxHeightPx?: number;
+  autoFitLocked?: boolean;
+  userBoxTouched?: boolean;
 }
 
 /**
@@ -189,6 +194,10 @@ export interface CropperResult {
   file: File;
   state?: CoverCropState;
   formatId?: string;
+  renderedBlob?: Blob;
+  renderedWidth?: number;
+  renderedHeight?: number;
+  renderedMimeType?: string;
 }
 
 /**

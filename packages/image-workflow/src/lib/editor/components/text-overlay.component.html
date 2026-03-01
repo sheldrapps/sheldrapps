@@ -1,58 +1,66 @@
-<div #overlay class="text-overlay">
+<div #overlay class="text-overlay" [attr.data-redraw]="redrawTick()">
   @for (view of textViews(); track view.layer.id) {
-    @if (!isEditing(view.layer.id)) {
+    <div
+      class="text-layer"
+      [class.text-layer--editing]="view.isEditingActive"
+      [class.text-layer--autoedit]="isEditing(view.layer.id) && !view.layer.userBoxTouched"
+      [class.text-layer--fixed]="!!view.layer.maxWidthPx"
+      [class.text-layer--dragging]="draggingId() === view.layer.id"
+      [class.text-layer--interactive]="canInteract() && !view.isEditingActive"
+      [style.left.px]="view.x"
+      [style.top.px]="view.y"
+      [style.fontFamily]="view.layer.fontFamily"
+      [style.fontSize.px]="view.layer.fontSizePx"
+      [style.color]="view.layer.fillColor"
+      [style.width.px]="view.displayWidth"
+      [style.height.px]="(view.isEditingActive && !view.layer.userBoxTouched) ? 150 : view.displayHeight"
+      [attr.data-text-id]="view.layer.id"
+      [style.pointer-events]="canInteract() || view.isEditingActive ? 'auto' : 'none'"
+      (pointerdown)="onPointerDown($event, view.layer.id)"
+      (pointermove)="onPointerMove($event, view.layer.id)"
+      (pointerup)="onPointerUp($event, view.layer.id)"
+      (pointercancel)="onPointerUp($event, view.layer.id)"
+      (dblclick)="onDblClick($event, view.layer.id)"
+    >
       <div
-        class="text-layer"
-        [class.text-layer--dragging]="draggingId() === view.layer.id"
-        [class.text-layer--interactive]="canInteract()"
-        [style.left.px]="view.x"
-        [style.top.px]="view.y"
-        [style.fontFamily]="view.layer.fontFamily"
-        [style.fontSize.px]="view.layer.fontSizePx"
-        [style.color]="view.layer.fillColor"
-        [style.width.px]="view.layer.maxWidthPx"
+        class="text-layer__content"
+        [class.is-hidden]="view.isEditingActive"
+        [style.maxWidth.px]="view.effectiveContentMaxWidth"
         [ngStyle]="{
           '-webkit-text-stroke-color': view.layer.strokeColor,
           '-webkit-text-stroke-width': view.layer.strokeWidthPx + 'px'
         }"
-        [attr.data-text-id]="view.layer.id"
-        [style.pointer-events]="canInteract() ? 'auto' : 'none'"
-        (pointerdown)="onPointerDown($event, view.layer.id)"
-        (pointermove)="onPointerMove($event, view.layer.id)"
-        (pointerup)="onPointerUp($event, view.layer.id)"
-        (pointercancel)="onPointerUp($event, view.layer.id)"
-        (dblclick)="onDblClick($event, view.layer.id)"
       >
-        {{ view.layer.content }}
+        {{ view.isEditingActive ? draftContent(view.layer.id) : view.layer.content }}
       </div>
-    } @else {
-      <input
-        #editor
-        type="text"
-        class="text-layer text-layer--editor"
-        [value]="draftContent(view.layer.id)"
-        [style.left.px]="view.x"
-        [style.top.px]="view.y"
-        [style.fontFamily]="view.layer.fontFamily"
-        [style.fontSize.px]="view.layer.fontSizePx"
-        [style.color]="view.layer.fillColor"
-        [style.width.px]="view.layer.maxWidthPx"
+      <textarea
+        class="text-layer__editor"
+        [class.is-hidden]="!view.isEditingActive"
+        [attr.data-editor-for]="view.layer.id"
+        [attr.wrap]="view.effectiveContentMaxWidth ? 'soft' : 'off'"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        [style.maxWidth.px]="view.effectiveContentMaxWidth"
+        [style.height.px]="(view.isEditingActive && !view.layer.userBoxTouched) ? 150 : null"
+        [style.maxHeight.px]="(view.isEditingActive && !view.layer.userBoxTouched) ? 150 : view.displayHeight"
         [ngStyle]="{
           '-webkit-text-stroke-color': view.layer.strokeColor,
           '-webkit-text-stroke-width': view.layer.strokeWidthPx + 'px'
         }"
-        [attr.data-text-id]="view.layer.id"
         (input)="onDraftInput($event, view.layer.id)"
         (keydown)="onEditorKeydown($event)"
         (blur)="onEditorBlur()"
         (pointerdown)="$event.stopPropagation()"
-      />
-    }
+      ></textarea>
+    </div>
   }
 
   @if (selectedRect()) {
     <div
       class="text-selection"
+      [class.text-selection--hidden]="!!resizingId()"
       [style.left.px]="selectedRect()?.x"
       [style.top.px]="selectedRect()?.y"
       [style.width.px]="selectedRect()?.w"
@@ -62,12 +70,12 @@
       class="text-selection__handle"
       [style.left.px]="(selectedRect()?.x ?? 0) + (selectedRect()?.w ?? 0)"
       [style.top.px]="(selectedRect()?.y ?? 0) + (selectedRect()?.h ?? 0)"
-      (pointerdown)="onResizeStart($event)"
-      (pointermove)="onResizeMove($event)"
-      (pointerup)="onResizeEnd($event)"
-      (pointercancel)="onResizeEnd($event)"
+      (pointerdown)="onBoxResizeStart($event)"
+      (pointermove)="onBoxResizeMove($event)"
+      (pointerup)="onBoxResizeEnd($event)"
+      (pointercancel)="onBoxResizeEnd($event)"
     >
-      <ion-icon name="resize-outline" aria-hidden="true"></ion-icon>
+      <ion-icon name="resize-outline" class="text-selection__icon text-selection__icon--expand" aria-hidden="true"></ion-icon>
     </div>
     <div
       class="text-selection__handle text-selection__handle--horizontal"
@@ -80,6 +88,17 @@
     >
       <ion-icon name="swap-horizontal-outline" aria-hidden="true"></ion-icon>
     </div>
+    <button
+      type="button"
+      class="text-selection__handle text-selection__handle--delete"
+      [style.left.px]="(selectedRect()?.x ?? 0) + (selectedRect()?.w ?? 0)"
+      [style.top.px]="selectedRect()?.y"
+      aria-label="Delete text"
+      (pointerdown)="$event.stopPropagation()"
+      (click)="onDeleteClick($event, selectedTextId())"
+    >
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+    </button>
   }
 
   @if (guides().draggingId) {

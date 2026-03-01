@@ -40,6 +40,8 @@ export class EditorStateService {
 
   private readonly ctx = signal<ConstraintsCtx | null>(null);
   readonly constraintsContext = computed(() => this.ctx());
+  private readonly frameWidth = signal(0);
+  private readonly frameHeight = signal(0);
 
   // Adjustment state
   readonly brightness = signal(DEFAULT_EDITOR_ADJUSTMENTS.brightness);
@@ -232,7 +234,7 @@ export class EditorStateService {
 
   setTextFontSize(id: string, value: number): void {
     if (!Number.isFinite(value)) return;
-    this.updateTextLayer(id, { fontSizePx: value });
+    this.updateTextLayer(id, { fontSizePx: value, manualFontSizePx: value });
   }
 
   setTextFillColor(id: string, value: string): void {
@@ -266,6 +268,14 @@ export class EditorStateService {
   setTranslation(tx: number, ty: number): void {
     this.tx.set(tx);
     this.ty.set(ty);
+    this.clampTranslationToCtx();
+  }
+
+  setViewportRaw(scale: number, tx: number, ty: number): void {
+    this.scale.set(scale);
+    this.tx.set(tx);
+    this.ty.set(ty);
+    this.clampScaleToCtx();
     this.clampTranslationToCtx();
   }
 
@@ -320,6 +330,8 @@ export class EditorStateService {
 
   setConstraintsContext(ctx: ConstraintsCtx): void {
     this.ctx.set(ctx);
+    if (ctx.frameW > 0) this.frameWidth.set(ctx.frameW);
+    if (ctx.frameH > 0) this.frameHeight.set(ctx.frameH);
     // When ctx changes, re-clamp existing state in tools
     this.clampScaleToCtx();
     this.clampTranslationToCtx();
@@ -340,16 +352,6 @@ export class EditorStateService {
 
     const contain = Math.min(c.frameW / rn.w, c.frameH / rn.h);
     const min = contain / c.baseScale;
-
-    // debug duro
-    console.log("MIN_SCALE", {
-      frameW: c.frameW,
-      frameH: c.frameH,
-      rn,
-      baseScale: c.baseScale,
-      contain,
-      minBeforeClamp: min,
-    });
 
     return this.clamp(min, 0.05, 1);
   }
@@ -418,6 +420,8 @@ export class EditorStateService {
     this.backgroundSource.set(undefined);
     this.backgroundBlur.set(EditorStateService.DEFAULT_BACKGROUND_BLUR);
     this.textLayers.set([]);
+    this.frameWidth.set(0);
+    this.frameHeight.set(0);
   }
 
   // Get snapshot for history/export
@@ -439,6 +443,8 @@ export class EditorStateService {
       backgroundSource: this.backgroundSource(),
       backgroundBlur: this.backgroundBlur(),
       textLayers: this.textLayers(),
+      frameWidth: this.frameWidth(),
+      frameHeight: this.frameHeight(),
     };
   }
 
@@ -477,6 +483,12 @@ export class EditorStateService {
         ? [this.ensureTextLayerId(state.textLayer)]
         : [];
     this.textLayers.set(nextLayers);
+    if (Number.isFinite(state.frameWidth as number)) {
+      this.frameWidth.set(state.frameWidth as number);
+    }
+    if (Number.isFinite(state.frameHeight as number)) {
+      this.frameHeight.set(state.frameHeight as number);
+    }
     if (
       this.backgroundMode() === "blur" &&
       !this.backgroundSource()
@@ -502,11 +514,15 @@ export class EditorStateService {
 
     const rangeX = Math.abs(imgDispW - c.frameW);
     const rangeY = Math.abs(imgDispH - c.frameH);
+    const minRangeX = c.frameW * 0.5;
+    const minRangeY = c.frameH * 0.5;
+    const spanX = Math.max(rangeX, minRangeX);
+    const spanY = Math.max(rangeY, minRangeY);
 
-    const minX = -rangeX / 2;
-    const maxX = rangeX / 2;
-    const minY = -rangeY / 2;
-    const maxY = rangeY / 2;
+    const minX = -spanX / 2;
+    const maxX = spanX / 2;
+    const minY = -spanY / 2;
+    const maxY = spanY / 2;
 
     const currentTx = this.tx();
     const currentTy = this.ty();
@@ -560,14 +576,10 @@ export class EditorStateService {
    */
   private getVirtualNaturalSize(): { w: number; h: number } {
     const rn = this.getRotatedNaturalSizeFromCtx();
+    if (!this.ctx()?.virtualSquare) return rn;
 
-    // Si tu regla virtualSquare está activa:
-    // cuadrado basado en el lado LARGO
+    // virtualSquare: cuadrado basado en el lado LARGO
     const long = Math.max(rn.w, rn.h);
-
-    // Si no quieres siempre square, puedes condicionar con un flag del ctx:
-    // if (!this.ctx()?.virtualSquare) return rn;
-
     return { w: long, h: long };
   }
 
@@ -581,7 +593,12 @@ export class EditorStateService {
 
   private ensureTextLayerId(layer: TextLayer): TextLayer {
     const id = layer.id || this.createTextLayerId();
-    return { ...layer, id };
+    return {
+      ...layer,
+      id,
+      manualFontSizePx: layer.manualFontSizePx ?? layer.fontSizePx,
+      userBoxTouched: layer.userBoxTouched ?? false,
+    };
   }
 
   private createTextLayerId(): string {
@@ -596,3 +613,4 @@ export class EditorStateService {
     return `text-${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
   }
 }
+

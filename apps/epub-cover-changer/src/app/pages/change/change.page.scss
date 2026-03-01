@@ -97,6 +97,12 @@
 
 .preview-content {
   --background: var(--ion-background-color);
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+ion-content.preview-content::part(scroll) {
+  height: 100%;
 }
 
 ion-modal.cover-preview-modal {
@@ -126,22 +132,26 @@ ion-modal.cover-preview-modal {
     line-height: 1;
   }
 
-  .stage {
-    padding-bottom: 12px;
-  }
 }
 
-.preview-frame {
-  @extend .frame;
-  --crop-ratio: 3 / 4;
+/* Ensure extreme ratios show full composition in the selection thumb */
+:host .thumb img {
+  object-fit: contain;
+}
+
+.preview-box {
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: var(--target-aspect);
 }
 
 .preview-img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  object-position: center;
   display: block;
+  object-fit: fill;
+  border-radius: 0;
+  background: transparent;
   user-select: none;
   -webkit-user-drag: none;
 }

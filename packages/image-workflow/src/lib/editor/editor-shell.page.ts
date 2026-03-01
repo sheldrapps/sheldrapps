@@ -58,7 +58,11 @@ import { EditorKindleStateService } from "./editor-kindle-state.service";
 import { EditorColorSamplerService } from "./editor-color-sampler.service";
 import { EditorTextEditService } from "./editor-text-edit.service";
 import { buildCssFilter } from "./editor-adjustments";
-import { renderCompositionToCanvas } from "../core/pipeline/composition-render";
+import {
+  renderCompositionToCanvas,
+  measureTextLayer,
+  type CompositionRenderInput,
+} from "../core/pipeline/composition-render";
 import type { CoverCropState, CropperResult } from "../types";
 import { TextOverlayComponent } from "./components/text-overlay.component";
 
@@ -71,6 +75,46 @@ type CanvasGestureStart = {
   startTy: number;
   startDist: number;
   startMid: Pt;
+};
+
+type ImageGuideState = {
+  active: boolean;
+  stageCenterX: number;
+  stageCenterY: number;
+  stageVActive: boolean;
+  stageHActive: boolean;
+};
+
+type EditViewportLockState = {
+  windowScrollX: number;
+  windowScrollY: number;
+  documentOverflow: string;
+  bodyOverflow: string;
+  bodyPosition: string;
+  bodyTop: string;
+  bodyWidth: string;
+  bodyLeft: string;
+  bodyRight: string;
+  scrollEl: HTMLElement | null;
+  scrollTop: number;
+  scrollOverflow: string;
+  scrollOverscrollBehavior: string;
+};
+
+type EditShiftSnapshot = {
+  windowScrollY: number;
+  documentScrollTop: number | null;
+  ionContentScrollTop: number | null;
+  visualViewportHeight: number | null;
+  visualViewportOffsetTop: number | null;
+  frameTop: number | null;
+  stageTop: number | null;
+  activeTag: string | null;
+  activeClass: string | null;
+  activeRectTop: number | null;
+  activeRectLeft: number | null;
+  activeRectWidth: number | null;
+  activeRectHeight: number | null;
 };
 
 export interface EditorLabels {
@@ -113,9 +157,13 @@ const DEFAULT_LABELS: EditorLabels = {
 };
 
 const DEFAULT_PICKER_SIZE = 120;
-const PICKER_TIP_RATIO_X = 0.085;
-const PICKER_TIP_RATIO_Y = 0.085;
+const PICKER_ICON_RATIO = 0.17;
+const PICKER_TIP_RATIO_X = -PICKER_ICON_RATIO / 2;
+const PICKER_TIP_RATIO_Y = PICKER_ICON_RATIO / 2;
 const MAX_BG_BLUR_PX = 40;
+const DEBUG_EDIT_VIEWPORT_LOCK = false;
+const DEBUG_ANDROID_SHIFT_DETECTOR = true;
+const EDIT_SHIFT_PROBE_EVENT = "__cc_text_edit_shift_probe__";
 
 @Component({
   selector: "cc-editor-shell-page",
@@ -143,6 +191,7 @@ const MAX_BG_BLUR_PX = 40;
 export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   uiLabels: EditorLabels = DEFAULT_LABELS;
 
+  @ViewChild(IonContent) contentRef?: IonContent;
   @ViewChild("frame", { read: ElementRef }) frameRef!: ElementRef<HTMLElement>;
   @ViewChild("img", { read: ElementRef }) imgRef!: ElementRef<HTMLImageElement>;
   @ViewChild("picker", { read: ElementRef })
@@ -177,12 +226,22 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   );
   readonly pickerPos = signal<Pt | null>(null);
   readonly pickerTip = signal<Pt>({ x: 0, y: 0 });
+  readonly pickerConfirmPos = signal<Pt | null>(null);
+  readonly imageGuides = signal<ImageGuideState>({
+    active: false,
+    stageCenterX: 0,
+    stageCenterY: 0,
+    stageVActive: false,
+    stageHActive: false,
+  });
   readonly hintKey = computed(() =>
     this.ui.activeMode() === "tools"
       ? "EDITOR.SHELL.HINT.GESTURES"
       : "EDITOR.SHELL.HINT.PREVIEW",
   );
   private isExporting = false;
+  private readonly measureCanvas = document.createElement("canvas");
+  private readonly measureCtx = this.measureCanvas.getContext("2d");
 
   readonly showDiscardApply = computed(() => this.history.mode() === "local");
   readonly showSessionActions = computed(
@@ -278,6 +337,14 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   private readonly pointers = new Map<number, Pt>();
   private readonly capturedPointers = new Set<number>();
   private cleanupGestures?: () => void;
+  private cleanupViewportLock?: () => void;
+  private editViewportLock: EditViewportLockState | null = null;
+  private editViewportLockVersion = 0;
+  private cleanupShiftDetector?: () => void;
+  private editShiftDetectorVersion = 0;
+  private lastEditShiftSnapshot: EditShiftSnapshot | null = null;
+  private hasLoggedFirstShift = false;
+  private readonly loggedShiftCallTags = new Set<string>();
 
   constructor(
     private router: Router,
@@ -347,8 +414,11 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         this.lastSamplePos = null;
         this.isDraggingSample.set(false);
         this.pickerPos.set(null);
+        this.pickerConfirmPos.set(null);
+        this.setImageGuidesInactive();
         return;
       }
+      this.setImageGuidesInactive();
       if (!this.samplingWasActive) {
         this.samplingWasActive = true;
         this.centerPicker();
@@ -372,6 +442,16 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       if (this.ui.activeMode() !== "text" && this.textEdit.isEditing()) {
         this.textEdit.discard();
       }
+    });
+
+    effect(() => {
+      const isEditing = this.textEdit.isEditing();
+      void this.syncEditViewportLock(isEditing);
+    });
+
+    effect(() => {
+      const isEditing = this.textEdit.isEditing();
+      void this.syncAndroidShiftDetector(isEditing);
     });
 
     effect(() => {
@@ -411,6 +491,10 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         this.session.tools.formats.selectedId = selected.id;
       }
     });
+  }
+
+  isEditingText(): boolean {
+    return this.textEdit.isEditing();
   }
 
   ngOnInit(): void {
@@ -502,6 +586,9 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         e.preventDefault();
         return;
       }
+      if (!this.isPointerOnImage(e)) {
+        return;
+      }
       if (!this.gesturesEnabled) return;
       if (!this.ready) {
         e.preventDefault();
@@ -525,6 +612,11 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
           startDist: 0,
           startMid: { x: e.clientX, y: e.clientY },
         };
+        this.updateImageGuidesFromTxTy(
+          this.gestureStart.startTx,
+          this.gestureStart.startTy,
+          e.pointerType,
+        );
         e.preventDefault();
         return;
       }
@@ -539,6 +631,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
           startDist: this.distance(a, b),
           startMid: this.midpoint(a, b),
         };
+        this.setImageGuidesInactive();
         e.preventDefault();
       }
     };
@@ -566,16 +659,23 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         const p = this.pointers.values().next().value as Pt;
         const dx = p.x - this.gestureStart.startMid.x;
         const dy = p.y - this.gestureStart.startMid.y;
-
+        const nextTx = this.gestureStart.startTx + dx;
+        const nextTy = this.gestureStart.startTy + dy;
         this.history.setTranslation(
-          this.gestureStart.startTx + dx,
-          this.gestureStart.startTy + dy,
+          nextTx,
+          nextTy,
+        );
+        this.updateImageGuidesFromTxTy(
+          nextTx,
+          nextTy,
+          e.pointerType,
         );
         e.preventDefault();
         return;
       }
 
       if (this.pointers.size >= 2) {
+        this.setImageGuidesInactive();
         const [a, b] = Array.from(this.pointers.values());
         const mid = this.midpoint(a, b);
         const dist = this.distance(a, b);
@@ -650,6 +750,19 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
           this.lastTapAt = now;
           this.lastTapPos = pos;
         }
+
+        if (this.gestureStart?.type === "pan") {
+          const currentTx = this.editorState.tx();
+          const currentTy = this.editorState.ty();
+          const snapped = this.snapTranslationToCenter(
+            currentTx,
+            currentTy,
+            e.pointerType,
+          );
+          if (snapped.tx !== currentTx || snapped.ty !== currentTy) {
+            this.history.setTranslation(snapped.tx, snapped.ty);
+          }
+        }
       }
 
       if (this.pointers.size === 1) {
@@ -675,6 +788,9 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       } else {
         this.endGesture();
       }
+      if (this.pointers.size === 0) {
+        this.setImageGuidesInactive();
+      }
 
       e.preventDefault();
     };
@@ -693,12 +809,15 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     };
 
     this.updateCanvasGestures();
+    void this.syncEditViewportLock(this.textEdit.isEditing());
   }
 
   ngOnDestroy(): void {
     this.resizeObs?.disconnect();
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
     this.cleanupGestures?.();
+    this.unlockEditViewportLock();
+    this.stopAndroidShiftDetector();
     this.sessionExit.clearReturnUrl();
     this.colorSampler.stop();
   }
@@ -717,6 +836,461 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.updateCanvasGestures();
     this.updateConstraintsContext();
     this.updateHistoryMode();
+  }
+
+  private async syncEditViewportLock(isEditing: boolean): Promise<void> {
+    const version = ++this.editViewportLockVersion;
+    if (!this.shouldLockViewportDuringTextEdit()) {
+      if (!isEditing) {
+        this.unlockEditViewportLock();
+      }
+      return;
+    }
+    if (!isEditing) {
+      this.unlockEditViewportLock();
+      return;
+    }
+    await this.lockEditViewport(version);
+  }
+
+  private async syncAndroidShiftDetector(isEditing: boolean): Promise<void> {
+    const version = ++this.editShiftDetectorVersion;
+    if (!this.shouldRunAndroidShiftDetector()) {
+      this.stopAndroidShiftDetector();
+      return;
+    }
+    if (!isEditing) {
+      this.stopAndroidShiftDetector();
+      return;
+    }
+    await this.startAndroidShiftDetector(version);
+  }
+
+  private shouldLockViewportDuringTextEdit(): boolean {
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      return false;
+    }
+    const cap = (globalThis as any).Capacitor;
+    const platform =
+      typeof cap?.getPlatform === "function" ? cap.getPlatform() : null;
+    if (platform === "android") return true;
+    return /Android/i.test(window.navigator?.userAgent ?? "");
+  }
+
+  private shouldRunAndroidShiftDetector(): boolean {
+    return DEBUG_ANDROID_SHIFT_DETECTOR && this.shouldLockViewportDuringTextEdit();
+  }
+
+  private async lockEditViewport(version: number): Promise<void> {
+    if (this.editViewportLock) {
+      this.restoreLockedViewportPosition();
+      return;
+    }
+    const scrollEl =
+      (await this.contentRef?.getScrollElement().catch(() => null)) ?? null;
+    if (
+      version !== this.editViewportLockVersion ||
+      !this.textEdit.isEditing() ||
+      !this.shouldLockViewportDuringTextEdit()
+    ) {
+      return;
+    }
+
+    const docEl = document.documentElement;
+    const body = document.body;
+    this.editViewportLock = {
+      windowScrollX: window.scrollX,
+      windowScrollY: window.scrollY,
+      documentOverflow: docEl.style.overflow,
+      bodyOverflow: body.style.overflow,
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      bodyWidth: body.style.width,
+      bodyLeft: body.style.left,
+      bodyRight: body.style.right,
+      scrollEl,
+      scrollTop: scrollEl?.scrollTop ?? 0,
+      scrollOverflow: scrollEl?.style.overflow ?? "",
+      scrollOverscrollBehavior: scrollEl?.style.overscrollBehavior ?? "",
+    };
+
+    docEl.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${this.editViewportLock.windowScrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+
+    if (scrollEl) {
+      scrollEl.style.overflow = "hidden";
+      scrollEl.style.overscrollBehavior = "none";
+      scrollEl.scrollTop = this.editViewportLock.scrollTop;
+    }
+
+    this.installViewportLockListeners();
+    this.restoreLockedViewportPosition();
+    void this.logEditViewportDiagnostics("[EDIT_VIEWPORT_LOCK]");
+    requestAnimationFrame(() => {
+      if (
+        version !== this.editViewportLockVersion ||
+        !this.editViewportLock ||
+        !this.textEdit.isEditing()
+      ) {
+        return;
+      }
+      this.restoreLockedViewportPosition();
+      void this.logEditViewportDiagnostics("[EDIT_VIEWPORT_LOCK_RAF1]");
+    });
+  }
+
+  private async startAndroidShiftDetector(version: number): Promise<void> {
+    if (this.cleanupShiftDetector) return;
+    const scrollEl =
+      (await this.contentRef?.getScrollElement().catch(() => null)) ?? null;
+    if (
+      version !== this.editShiftDetectorVersion ||
+      !this.textEdit.isEditing() ||
+      !this.shouldRunAndroidShiftDetector()
+    ) {
+      return;
+    }
+
+    this.lastEditShiftSnapshot = this.captureEditShiftSnapshot(scrollEl);
+    this.hasLoggedFirstShift = false;
+    this.loggedShiftCallTags.clear();
+
+    const patchCleanups: Array<() => void> = [];
+    const listeners: Array<() => void> = [];
+    const owner = this;
+    const capture = (reason: string) => this.logEditShiftDiff(reason, scrollEl);
+    const captureWithRafs = (reason: string) => {
+      capture(reason);
+      requestAnimationFrame(() => {
+        if (!this.textEdit.isEditing()) return;
+        capture(`${reason}:raf1`);
+        requestAnimationFrame(() => {
+          if (!this.textEdit.isEditing()) return;
+          capture(`${reason}:raf2`);
+        });
+      });
+    };
+
+    const addListener = (
+      target: EventTarget | null | undefined,
+      type: string,
+      handler: EventListenerOrEventListenerObject,
+      options?: AddEventListenerOptions | boolean,
+    ) => {
+      if (!target) return;
+      target.addEventListener(type, handler, options);
+      listeners.push(() => target.removeEventListener(type, handler, options));
+    };
+
+    const patchFn = <T extends object, K extends keyof T>(
+      obj: T,
+      key: K,
+      wrap: (orig: any) => any,
+    ) => {
+      const orig = (obj as any)[key];
+      if (typeof orig !== "function") return;
+      (obj as any)[key] = wrap(orig);
+      patchCleanups.push(() => {
+        (obj as any)[key] = orig;
+      });
+    };
+
+    const logCall = (tag: string, extra?: unknown) => {
+      if (this.loggedShiftCallTags.has(tag)) return;
+      this.loggedShiftCallTags.add(tag);
+      console.warn(tag, extra ?? "", new Error().stack);
+      captureWithRafs(`${tag}:after`);
+    };
+
+    patchFn(window as Window & typeof globalThis, "scrollTo", (orig) =>
+      (...args: any[]) => {
+        logCall("[SHIFT] window.scrollTo", args);
+        return orig.apply(window, args);
+      },
+    );
+    patchFn(window as Window & typeof globalThis, "scrollBy", (orig) =>
+      (...args: any[]) => {
+        logCall("[SHIFT] window.scrollBy", args);
+        return orig.apply(window, args);
+      },
+    );
+    patchFn(Element.prototype as Element, "scrollIntoView", (orig) =>
+      function (this: Element, ...args: any[]) {
+        logCall("[SHIFT] scrollIntoView", {
+          el: owner.describeShiftElement(this),
+          args,
+        });
+        return orig.apply(this, args);
+      },
+    );
+    patchFn(Element.prototype as any, "scrollTo", (orig) =>
+      function (this: Element, ...args: any[]) {
+        logCall("[SHIFT] element.scrollTo", {
+          el: owner.describeShiftElement(this),
+          args,
+        });
+        return orig.apply(this, args);
+      },
+    );
+    patchFn(Element.prototype as any, "scrollBy", (orig) =>
+      function (this: Element, ...args: any[]) {
+        logCall("[SHIFT] element.scrollBy", {
+          el: owner.describeShiftElement(this),
+          args,
+        });
+        return orig.apply(this, args);
+      },
+    );
+
+    const scrollTopProto =
+      Object.getOwnPropertyDescriptor(HTMLElement.prototype, "scrollTop") ??
+      Object.getOwnPropertyDescriptor(Element.prototype, "scrollTop");
+    if (scrollTopProto?.get && scrollTopProto.set) {
+      const targetProto = Object.prototype.hasOwnProperty.call(
+        HTMLElement.prototype,
+        "scrollTop",
+      )
+        ? HTMLElement.prototype
+        : Element.prototype;
+      try {
+        Object.defineProperty(targetProto, "scrollTop", {
+          configurable: true,
+          enumerable: scrollTopProto.enumerable ?? false,
+          get: scrollTopProto.get,
+          set(this: Element, value: number) {
+            logCall("[SHIFT] scrollTop=", {
+              el: owner.describeShiftElement(this),
+              value,
+            });
+            scrollTopProto.set!.call(this, value);
+          },
+        });
+        patchCleanups.push(() =>
+          Object.defineProperty(targetProto, "scrollTop", scrollTopProto),
+        );
+      } catch {
+        // ignore descriptor patch failures on OEM WebViews
+      }
+    }
+
+    const onProbe = (event: Event) => {
+      const detail = (event as CustomEvent<{ label?: string }>).detail;
+      captureWithRafs(detail?.label ?? EDIT_SHIFT_PROBE_EVENT);
+    };
+
+    addListener(window, "scroll", () => capture("window:scroll"), {
+      passive: true,
+    });
+    addListener(scrollEl, "scroll", () => capture("ion-content:scroll"), {
+      passive: true,
+    });
+    addListener(window.visualViewport, "resize", () =>
+      capture("visualViewport:resize"),
+    );
+    addListener(window.visualViewport, "scroll", () =>
+      capture("visualViewport:scroll"),
+    );
+    addListener(window, EDIT_SHIFT_PROBE_EVENT, onProbe as EventListener);
+
+    captureWithRafs("shift-detector:start");
+
+    this.cleanupShiftDetector = () => {
+      for (const cleanup of listeners.splice(0)) cleanup();
+      for (const cleanup of patchCleanups.splice(0)) cleanup();
+      this.cleanupShiftDetector = undefined;
+      this.lastEditShiftSnapshot = null;
+      this.hasLoggedFirstShift = false;
+      this.loggedShiftCallTags.clear();
+    };
+  }
+
+  private installViewportLockListeners(): void {
+    this.cleanupViewportLock?.();
+    const restore = () => this.restoreLockedViewportPosition();
+    window.addEventListener("scroll", restore, { passive: true });
+    window.visualViewport?.addEventListener("resize", restore);
+    window.visualViewport?.addEventListener("scroll", restore);
+    this.cleanupViewportLock = () => {
+      window.removeEventListener("scroll", restore);
+      window.visualViewport?.removeEventListener("resize", restore);
+      window.visualViewport?.removeEventListener("scroll", restore);
+      this.cleanupViewportLock = undefined;
+    };
+  }
+
+  private restoreLockedViewportPosition(): void {
+    const lock = this.editViewportLock;
+    if (!lock) return;
+    if (window.scrollX !== lock.windowScrollX || window.scrollY !== lock.windowScrollY) {
+      window.scrollTo(lock.windowScrollX, lock.windowScrollY);
+    }
+    if (lock.scrollEl && lock.scrollEl.scrollTop !== lock.scrollTop) {
+      lock.scrollEl.scrollTop = lock.scrollTop;
+    }
+    const desiredTop = `-${lock.windowScrollY}px`;
+    if (document.body.style.top !== desiredTop) {
+      document.body.style.top = desiredTop;
+    }
+  }
+
+  private unlockEditViewportLock(): void {
+    const lock = this.editViewportLock;
+    this.cleanupViewportLock?.();
+    if (!lock) return;
+
+    document.documentElement.style.overflow = lock.documentOverflow;
+    document.body.style.overflow = lock.bodyOverflow;
+    document.body.style.position = lock.bodyPosition;
+    document.body.style.top = lock.bodyTop;
+    document.body.style.width = lock.bodyWidth;
+    document.body.style.left = lock.bodyLeft;
+    document.body.style.right = lock.bodyRight;
+
+    if (lock.scrollEl) {
+      lock.scrollEl.style.overflow = lock.scrollOverflow;
+      lock.scrollEl.style.overscrollBehavior = lock.scrollOverscrollBehavior;
+      lock.scrollEl.scrollTop = lock.scrollTop;
+    }
+
+    this.editViewportLock = null;
+    window.scrollTo(lock.windowScrollX, lock.windowScrollY);
+    void this.logEditViewportDiagnostics("[EDIT_VIEWPORT_UNLOCK]");
+  }
+
+  private stopAndroidShiftDetector(): void {
+    this.cleanupShiftDetector?.();
+  }
+
+  private logEditShiftDiff(reason: string, scrollEl: HTMLElement | null): void {
+    const next = this.captureEditShiftSnapshot(scrollEl);
+    const prev = this.lastEditShiftSnapshot;
+    this.lastEditShiftSnapshot = next;
+    if (!prev) return;
+    const diff = this.diffEditShiftSnapshots(prev, next);
+    if (!diff) return;
+    if (!this.hasLoggedFirstShift) {
+      this.hasLoggedFirstShift = true;
+      console.warn("[SHIFT_DIFF]", {
+        reason,
+        diff,
+        snapshot: next,
+      });
+    }
+  }
+
+  private captureEditShiftSnapshot(
+    scrollEl: HTMLElement | null,
+  ): EditShiftSnapshot {
+    const vv = window.visualViewport;
+    const frameRect = this.frameRef?.nativeElement?.getBoundingClientRect() ?? null;
+    const stageRect =
+      this.frameRef?.nativeElement?.closest(".stage")?.getBoundingClientRect() ?? null;
+    const activeEl = document.activeElement instanceof Element
+      ? document.activeElement
+      : null;
+    const activeRect =
+      activeEl instanceof HTMLElement || activeEl instanceof SVGElement
+        ? activeEl.getBoundingClientRect()
+        : null;
+    return {
+      windowScrollY: window.scrollY,
+      documentScrollTop: document.scrollingElement?.scrollTop ?? null,
+      ionContentScrollTop: scrollEl?.scrollTop ?? null,
+      visualViewportHeight: vv?.height ?? null,
+      visualViewportOffsetTop: vv?.offsetTop ?? null,
+      frameTop: frameRect ? Math.round(frameRect.top * 10) / 10 : null,
+      stageTop: stageRect ? Math.round(stageRect.top * 10) / 10 : null,
+      activeTag: activeEl?.tagName ?? null,
+      activeClass:
+        activeEl instanceof HTMLElement ? activeEl.className || null : null,
+      activeRectTop: activeRect ? Math.round(activeRect.top * 10) / 10 : null,
+      activeRectLeft: activeRect ? Math.round(activeRect.left * 10) / 10 : null,
+      activeRectWidth: activeRect ? Math.round(activeRect.width * 10) / 10 : null,
+      activeRectHeight: activeRect ? Math.round(activeRect.height * 10) / 10 : null,
+    };
+  }
+
+  private diffEditShiftSnapshots(
+    prev: EditShiftSnapshot,
+    next: EditShiftSnapshot,
+  ): Record<string, { from: unknown; to: unknown }> | null {
+    const diff: Record<string, { from: unknown; to: unknown }> = {};
+    const pushNumberDiff = (
+      key: keyof EditShiftSnapshot,
+      threshold: number,
+    ) => {
+      const from = prev[key];
+      const to = next[key];
+      if (typeof from !== "number" || typeof to !== "number") {
+        if (from !== to) diff[String(key)] = { from, to };
+        return;
+      }
+      if (Math.abs(from - to) > threshold) {
+        diff[String(key)] = { from, to };
+      }
+    };
+    pushNumberDiff("windowScrollY", 0.5);
+    pushNumberDiff("documentScrollTop", 0.5);
+    pushNumberDiff("ionContentScrollTop", 0.5);
+    pushNumberDiff("visualViewportHeight", 0.5);
+    pushNumberDiff("visualViewportOffsetTop", 0.5);
+    pushNumberDiff("frameTop", 0.5);
+    pushNumberDiff("stageTop", 0.5);
+    pushNumberDiff("activeRectTop", 0.5);
+    pushNumberDiff("activeRectLeft", 0.5);
+    pushNumberDiff("activeRectWidth", 0.5);
+    pushNumberDiff("activeRectHeight", 0.5);
+    if (prev.activeTag !== next.activeTag) {
+      diff["activeTag"] = { from: prev.activeTag, to: next.activeTag };
+    }
+    if (prev.activeClass !== next.activeClass) {
+      diff["activeClass"] = { from: prev.activeClass, to: next.activeClass };
+    }
+    return Object.keys(diff).length ? diff : null;
+  }
+
+  private describeShiftElement(el: Element | null): {
+    tagName: string | null;
+    className: string | null;
+    top: number | null;
+    left: number | null;
+    width: number | null;
+    height: number | null;
+  } {
+    const rect =
+      el instanceof HTMLElement || el instanceof SVGElement
+        ? el.getBoundingClientRect()
+        : null;
+    return {
+      tagName: el?.tagName ?? null,
+      className: el instanceof HTMLElement ? el.className || null : null,
+      top: rect ? Math.round(rect.top * 10) / 10 : null,
+      left: rect ? Math.round(rect.left * 10) / 10 : null,
+      width: rect ? Math.round(rect.width * 10) / 10 : null,
+      height: rect ? Math.round(rect.height * 10) / 10 : null,
+    };
+  }
+
+  private async logEditViewportDiagnostics(label: string): Promise<void> {
+    if (!DEBUG_EDIT_VIEWPORT_LOCK) return;
+    const scrollEl =
+      this.editViewportLock?.scrollEl ??
+      ((await this.contentRef?.getScrollElement().catch(() => null)) ?? null);
+    const vv = window.visualViewport;
+    const stageRect = this.frameRef?.nativeElement?.getBoundingClientRect() ?? null;
+    console.warn(label, {
+      editingId: this.textEdit.editingTextId(),
+      windowScrollY: window.scrollY,
+      ionContentScrollTop: scrollEl?.scrollTop ?? null,
+      visualViewportHeight: vv?.height ?? null,
+      visualViewportOffsetTop: vv?.offsetTop ?? null,
+      stageTop: stageRect ? Math.round(stageRect.top * 10) / 10 : null,
+    });
   }
 
   private updateHistoryMode(): void {
@@ -750,15 +1324,70 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       const state: CoverCropState = {
         ...this.editorState.getState(),
       };
+      const ctx = this.editorState.constraintsContext();
+      const frameSize = this.getFrameSize();
       const frameEl = this.frameRef?.nativeElement;
-      if (frameEl) {
-        state.frameWidth = frameEl.clientWidth;
-        state.frameHeight = frameEl.clientHeight;
+      const fw =
+        (Number.isFinite(ctx?.frameW) ? ctx?.frameW : undefined) ??
+        frameSize?.width ??
+        frameEl?.clientWidth;
+      const fh =
+        (Number.isFinite(ctx?.frameH) ? ctx?.frameH : undefined) ??
+        frameSize?.height ??
+        frameEl?.clientHeight;
+      if (fw && fh) {
+        state.frameWidth = fw;
+        state.frameHeight = fh;
       }
+      const target = this.session.target;
+      let renderedBlob: Blob | undefined;
+      let renderedWidth: number | undefined;
+      let renderedHeight: number | undefined;
+      let renderedMimeType: string | undefined;
+
+      const renderInput = this.buildRenderInput(state);
+      if (renderInput) {
+        const canvas = await renderCompositionToCanvas(renderInput, {
+          mode: "export",
+          outputScale: 1,
+        });
+        if (canvas) {
+          const tryBlob = async (
+            mimeType: string,
+            quality?: number,
+          ): Promise<Blob | null> =>
+            new Promise((resolve) =>
+              canvas.toBlob((bb) => resolve(bb), mimeType, quality),
+            );
+
+          const preferredMime = "image/png";
+          const png = await tryBlob(preferredMime);
+          if (png) {
+            renderedBlob = png;
+            renderedMimeType = preferredMime;
+            renderedWidth = canvas.width;
+            renderedHeight = canvas.height;
+          } else {
+            const jpegMime = "image/jpeg";
+            const jpg = await tryBlob(jpegMime, 0.93);
+            if (jpg) {
+              renderedBlob = jpg;
+              renderedMimeType = jpegMime;
+              renderedWidth = canvas.width;
+              renderedHeight = canvas.height;
+            }
+          }
+        }
+      }
+
       const result: CropperResult = {
         file: this.session.file,
         state,
         formatId: this.session.tools?.formats?.selectedId,
+        renderedBlob,
+        renderedWidth,
+        renderedHeight,
+        renderedMimeType,
       };
       this.editorSession.setResult(this.sid, result);
       shouldExit = true;
@@ -781,6 +1410,12 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
   async discardPanel(): Promise<void> {
     if (this.history.mode() !== "local") return;
+    if (this.colorSampler.active()) {
+      this.colorSampler.stop();
+      this.isDraggingSample.set(false);
+      this.pickerPos.set(null);
+      this.pickerConfirmPos.set(null);
+    }
     const canExit = await this.panelExit.discardPanelIfNeeded();
     if (!canExit) return;
     this.router.navigate(["./"], { relativeTo: this.route });
@@ -805,6 +1440,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       this.cancelActivePointers();
       this.lastTapAt = 0;
       this.lastTapPos = null;
+      this.setImageGuidesInactive();
     }
   }
 
@@ -872,8 +1508,9 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     const frameEl = this.frameRef?.nativeElement;
     if (!frameEl) return;
 
-    const w = frameEl.clientWidth;
-    const h = frameEl.clientHeight;
+    const frameSize = this.getFrameSize();
+    const w = frameSize?.width ?? frameEl.clientWidth;
+    const h = frameSize?.height ?? frameEl.clientHeight;
     if (!this.imageLoaded || !this.naturalW || !this.naturalH) return;
     if (w <= 0 || h <= 0) return;
 
@@ -898,6 +1535,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         if (clamped.x !== currentPos.x || clamped.y !== currentPos.y) {
           this.pickerPos.set(clamped);
         }
+        this.updatePickerConfirmPosition(clamped);
       }
       void this.prepareSamplingCanvas();
     }
@@ -914,8 +1552,9 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     if (!frameEl) return;
     if (!this.imageLoaded || !this.naturalW || !this.naturalH) return;
 
-    const w = frameEl.clientWidth;
-    const h = frameEl.clientHeight;
+    const frameSize = this.getFrameSize();
+    const w = frameSize?.width ?? frameEl.clientWidth;
+    const h = frameSize?.height ?? frameEl.clientHeight;
     if (w <= 0 || h <= 0) return;
 
     this.editorState.setConstraintsContext({
@@ -925,15 +1564,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       naturalH: this.naturalH, // IMPORTANT: UNROTATED real natural
       baseScale: this.baseScale,
       mode: this.isToolsRouteActive() ? "tools" : "other",
-      virtualSquare: this.isToolsRouteActive(), // only in Tools we allow terrain rules
-    });
-    console.log("CTX_SET", {
-      mode: this.isToolsRouteActive() ? "tools" : "other",
-      frameW: w,
-      frameH: h,
-      naturalW: this.naturalW,
-      naturalH: this.naturalH,
-      baseScale: this.baseScale,
+      virtualSquare: false,
     });
   }
 
@@ -954,7 +1585,9 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     const frameEl = this.frameRef?.nativeElement;
     if (!frameEl || !this.session?.target) return;
 
-    const scale = frameEl.clientWidth / this.session.target.width;
+    const frameSize = this.getFrameSize();
+    const fw = frameSize?.width ?? frameEl.clientWidth;
+    const scale = fw / this.session.target.width;
     const canvas = await this.buildSamplingCanvas(scale);
     if (!canvas) return;
     this.samplingCanvas = canvas;
@@ -969,8 +1602,9 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     const frameEl = this.frameRef?.nativeElement;
     if (!frameEl || !this.samplingCtx || !this.samplingCanvas) return;
 
-    const fw = frameEl.clientWidth;
-    const fh = frameEl.clientHeight;
+    const frameSize = this.getFrameSize();
+    const fw = frameSize?.width ?? frameEl.clientWidth;
+    const fh = frameSize?.height ?? frameEl.clientHeight;
     if (!fw || !fh) return;
 
     const tip = this.pickerTipOffset;
@@ -1011,6 +1645,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
     const next = this.clampPickerPos({ x: fw / 2, y: fh / 2 });
     this.pickerPos.set(next);
+    this.updatePickerConfirmPosition(next);
     this.lastSamplePos = next;
     this.sampleAt(next.x, next.y);
   }
@@ -1024,6 +1659,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       y: point.y - offset.y,
     });
     this.pickerPos.set(next);
+    this.updatePickerConfirmPosition(next);
     this.lastSamplePos = next;
     this.sampleAt(next.x, next.y);
   }
@@ -1091,9 +1727,115 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     };
     this.pickerTipOffset = nextTip;
     this.pickerTip.set(nextTip);
+    this.updatePickerConfirmPosition();
     if (this.colorSampler.active() && this.lastSamplePos) {
       this.sampleAt(this.lastSamplePos.x, this.lastSamplePos.y);
     }
+  }
+
+  private updatePickerConfirmPosition(pos?: Pt | null): void {
+    const frameEl = this.frameRef?.nativeElement;
+    const nextPos = pos ?? this.pickerPos();
+    if (!frameEl || !nextPos) {
+      this.pickerConfirmPos.set(null);
+      return;
+    }
+    const fw = frameEl.clientWidth;
+    const fh = frameEl.clientHeight;
+    if (!fw || !fh) {
+      this.pickerConfirmPos.set(null);
+      return;
+    }
+
+    const size = this.getPickerSize();
+    const radius = size / 2;
+    const gap = 12;
+    const btnSize = 36;
+    const btnGap = 8;
+    const boxW = btnSize * 2 + btnGap;
+    const boxH = btnSize;
+
+    // Default: top-right of the picker
+    let x = nextPos.x + radius + gap;
+    let y = nextPos.y - radius - gap - boxH;
+
+    // Reposition only if outside stage
+    if (x + boxW > fw) {
+      x = nextPos.x - radius - gap - boxW;
+    }
+    if (x < 0) {
+      x = 0;
+    }
+
+    if (y < 0) {
+      y = nextPos.y + radius + gap;
+    }
+    if (y + boxH > fh) {
+      y = fh - boxH;
+    }
+
+    this.pickerConfirmPos.set({ x, y });
+  }
+
+  private updateImageGuidesFromTxTy(
+    tx: number,
+    ty: number,
+    pointerType?: string,
+  ): void {
+    const frameEl = this.frameRef?.nativeElement;
+    if (!frameEl) return;
+    const w = frameEl.clientWidth;
+    const h = frameEl.clientHeight;
+    if (!w || !h) return;
+    const threshold = pointerType === "mouse" ? 6 : 10;
+    this.imageGuides.set({
+      active: true,
+      stageCenterX: w / 2,
+      stageCenterY: h / 2,
+      stageVActive: Math.abs(tx) <= threshold,
+      stageHActive: Math.abs(ty) <= threshold,
+    });
+  }
+
+  private isPointerOnImage(e: PointerEvent): boolean {
+    const img = this.imgRef?.nativeElement;
+    if (!img) return false;
+    const rect = img.getBoundingClientRect();
+    if (!rect.width || !rect.height) return false;
+    const x = e.clientX;
+    const y = e.clientY;
+    return (
+      x >= rect.left &&
+      x <= rect.right &&
+      y >= rect.top &&
+      y <= rect.bottom
+    );
+  }
+
+  private snapTranslationToCenter(
+    tx: number,
+    ty: number,
+    pointerType?: string,
+  ): { tx: number; ty: number } {
+    const frameEl = this.frameRef?.nativeElement;
+    if (!frameEl) return { tx, ty };
+    const w = frameEl.clientWidth;
+    const h = frameEl.clientHeight;
+    if (!w || !h) return { tx, ty };
+    const threshold = pointerType === "mouse" ? 6 : 10;
+    const snappedTx = Math.abs(tx) <= threshold ? 0 : tx;
+    const snappedTy = Math.abs(ty) <= threshold ? 0 : ty;
+    return { tx: snappedTx, ty: snappedTy };
+  }
+
+  private setImageGuidesInactive(): void {
+    this.imageGuides.set({
+      active: false,
+      stageCenterX: 0,
+      stageCenterY: 0,
+      stageVActive: false,
+      stageHActive: false,
+    });
   }
 
   confirmSample(): void {
@@ -1158,26 +1900,58 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   private async buildSamplingCanvas(
     outputScale: number,
   ): Promise<HTMLCanvasElement | null> {
-    if (!this.session?.file) return null;
+    const input = this.buildRenderInput(this.editorState.getState());
+    if (!input) return null;
+    return renderCompositionToCanvas(input, {
+      mode: "preview",
+      outputScale,
+    });
+  }
+
+  private buildRenderInput(state: CoverCropState): CompositionRenderInput | null {
+    if (!this.session?.file || !this.session?.target) return null;
+    const target = this.session.target;
+    const ctx = this.editorState.constraintsContext();
+    const frameSize = this.getFrameSize();
+    const frameEl = this.frameRef?.nativeElement;
+    const frameWidth =
+      (Number.isFinite(state.frameWidth as number)
+        ? (state.frameWidth as number)
+        : undefined) ??
+      (Number.isFinite(ctx?.frameW) ? ctx?.frameW : undefined) ??
+      frameSize?.width ??
+      frameEl?.clientWidth;
+    const frameHeight =
+      (Number.isFinite(state.frameHeight as number)
+        ? (state.frameHeight as number)
+        : undefined) ??
+      (Number.isFinite(ctx?.frameH) ? ctx?.frameH : undefined) ??
+      frameSize?.height ??
+      frameEl?.clientHeight;
+    if (!frameWidth || !frameHeight || !this.naturalW || !this.naturalH) {
+      return null;
+    }
+
+    return {
+      file: this.session.file,
+      target: { width: target.width, height: target.height },
+      frameWidth,
+      frameHeight,
+      baseScale: this.baseScale,
+      naturalWidth: this.naturalW,
+      naturalHeight: this.naturalH,
+      state,
+    };
+  }
+
+  private getFrameSize(): { width: number; height: number } | null {
     const frameEl = this.frameRef?.nativeElement;
     if (!frameEl) return null;
-
-    return renderCompositionToCanvas(
-      {
-        file: this.session.file,
-        target: this.session.target,
-        frameWidth: frameEl.clientWidth,
-        frameHeight: frameEl.clientHeight,
-        baseScale: this.baseScale,
-        naturalWidth: this.naturalW,
-        naturalHeight: this.naturalH,
-        state: this.editorState.getState(),
-      },
-      {
-        mode: "preview",
-        outputScale,
-      },
-    );
+    const overlay =
+      frameEl.querySelector<HTMLElement>(".text-overlay") ?? frameEl;
+    const rect = overlay.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    return { width: rect.width, height: rect.height };
   }
 
   private clamp(value: number, min: number, max: number): number {

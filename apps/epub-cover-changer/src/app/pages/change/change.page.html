@@ -120,7 +120,10 @@
     <div class="thumb-wrapper" slot="end" aria-hidden="true">
       @if (previewUrl && !imageErrorKey) {
       <div class="thumb">
-        <img [src]="previewUrl" alt="" />
+        <img
+          [src]="previewThumbUrl ?? (previewUrl ? previewUrl + '#v=' + previewNonce : null)"
+          alt=""
+        />
       </div>
       <ion-icon class="thumb-check" name="checkmark-circle"></ion-icon>
       } @else {
@@ -257,7 +260,7 @@
   <ion-modal
     [isOpen]="previewOpen"
     (didDismiss)="closePreview()"
-    class="cover-preview-modal"
+    class="cover-preview-modal ecc-preview-modal"
   >
     <ng-template>
       <ion-header>
@@ -272,14 +275,16 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-content class="preview-content" [fullscreen]="true" [scrollY]="false">
-        <div class="stage">
-          <div class="preview-frame" [style.--crop-ratio]="getPreviewRatio()">
-            @if (previewUrl) {
-            <img class="preview-img" [src]="previewUrl" alt="cover preview" />
-            }
-          </div>
+      <ion-content class="preview-content" [fullscreen]="true">
+        @if (previewUrl) {
+        <div class="preview-box" [style.--target-aspect]="targetAspect">
+          <img
+            class="preview-img"
+            [src]="previewUrlWithNonce"
+            alt="cover preview"
+          />
         </div>
+        }
       </ion-content>
     </ng-template>
   </ion-modal>

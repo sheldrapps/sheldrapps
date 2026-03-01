@@ -51,7 +51,7 @@ type ColorPreset = {
 };
 
 const DEFAULT_FONT_SIZE = 48;
-const DEFAULT_STROKE_WIDTH = 0;
+const DEFAULT_STROKE_WIDTH = 3;
 const FONT_SIZE_MIN = 12;
 const FONT_SIZE_MAX = 150;
 const STROKE_WIDTH_MIN = 0;
@@ -192,6 +192,7 @@ const TEXT_PRESET_COLORS: ColorPreset[] = [
   { id: "lavender", hex: "#B8A9D9" },
   { id: "brown", hex: "#6F4E37" },
 ];
+const DEFAULT_STROKE_COLOR = TEXT_PRESET_COLORS[0]?.hex ?? "#000000";
 
 @Component({
   selector: "cc-text-panel",
@@ -323,8 +324,9 @@ export class TextPanelComponent {
       y: this.defaultY(),
       fontFamily: FONT_PRESETS[0]?.family ?? "'Inter', system-ui, sans-serif",
       fontSizePx: DEFAULT_FONT_SIZE,
+      manualFontSizePx: DEFAULT_FONT_SIZE,
       fillColor: "#ffffff",
-      strokeColor: "#000000",
+      strokeColor: DEFAULT_STROKE_COLOR,
       strokeWidthPx: DEFAULT_STROKE_WIDTH,
     };
 

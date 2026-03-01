@@ -23,8 +23,8 @@
     ></sh-scrollable-button-bar>
   </div>
 
-  <div class="stage">
-    <div class="stage-content">
+  <div class="stage" [class.stage--editing]="isEditingText()">
+    <div class="stage-content" [class.stage-content--editing]="isEditingText()">
       <div class="stage-bg" [class.stage-bg--checker]="backgroundMode() === 'transparent'"></div>
       <div class="frame-wrap">
         <div
@@ -57,6 +57,28 @@
           }
         </div>
 
+        <div class="stage-guides stage-guides--grid" aria-hidden="true">
+          <div class="stage-guide stage-guide--v stage-guide--grid" style="left: 33.3333%"></div>
+          <div class="stage-guide stage-guide--v stage-guide--grid" style="left: 66.6667%"></div>
+          <div class="stage-guide stage-guide--h stage-guide--grid" style="top: 33.3333%"></div>
+          <div class="stage-guide stage-guide--h stage-guide--grid" style="top: 66.6667%"></div>
+        </div>
+
+        @if (imageGuides().active) {
+          <div class="stage-guides" aria-hidden="true">
+            <div
+              class="stage-guide stage-guide--v"
+              [class.active]="imageGuides().stageVActive"
+              [style.left.px]="imageGuides().stageCenterX"
+            ></div>
+            <div
+              class="stage-guide stage-guide--h"
+              [class.active]="imageGuides().stageHActive"
+              [style.top.px]="imageGuides().stageCenterY"
+            ></div>
+          </div>
+        }
+
         <cc-text-overlay></cc-text-overlay>
 
           @if (isSampling()) {
@@ -76,7 +98,11 @@
                 <div class="color-picker__crosshair" aria-hidden="true"></div>
               </div>
               @if (showSampleConfirm()) {
-                <div class="picker-confirm">
+                <div
+                  class="picker-confirm"
+                  [style.left.px]="pickerConfirmPos()?.x ?? 0"
+                  [style.top.px]="pickerConfirmPos()?.y ?? 0"
+                >
                   <ion-button
                     fill="solid"
                     class="picker-confirm__btn"

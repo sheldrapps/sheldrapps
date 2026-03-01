@@ -17,6 +17,8 @@ export {
   getSmallWarnParams,
   DEFAULT_VALIDATION_OPTIONS,
   DEFAULT_WORKING_OPTIONS,
+  buildCompositionInput,
+  computeBaseScale,
   renderCompositionToCanvas,
   renderCompositionToFile,
 } from "./lib/core/pipeline";

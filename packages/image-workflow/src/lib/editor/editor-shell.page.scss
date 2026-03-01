@@ -130,6 +130,10 @@
   position: relative;
 }
 
+.stage--editing {
+  overflow: hidden;
+}
+
 .stage-bg {
   position: absolute;
   inset: 0;
@@ -146,6 +150,10 @@
   z-index: 1;
 }
 
+.stage-content--editing {
+  overflow: hidden;
+}
+
 .stage-content > :not(.stage-bg) {
   position: relative;
   z-index: 1;
@@ -160,12 +168,65 @@
 .frame {
   position: relative;
   background: transparent;
+  border-radius: 0;
+  border: none;
+  box-shadow: 0 0 0 3px rgba(var(--ion-text-color-rgb), 0.9);
 }
 
 .frame-content {
   position: absolute;
   inset: 0;
   z-index: 1;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+.stage-guides {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.stage-guides--grid {
+  z-index: 1;
+}
+
+.stage-guide {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.35);
+  opacity: 0.35;
+}
+
+.stage-guide.active {
+  opacity: 1;
+  background: rgba(var(--ion-color-primary-rgb), 0.95);
+  box-shadow: 0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.25);
+}
+
+.stage-guide--grid {
+  background: rgba(var(--ion-color-primary-rgb), 0.5);
+  opacity: 0.5;
+}
+
+.stage-guide--v {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+
+.stage-guide--h {
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+
+.stage-guides--grid .stage-guide--v {
+  width: 0.5px;
+}
+
+.stage-guides--grid .stage-guide--h {
+  height: 0.5px;
 }
 
 .frame--sampling {
@@ -349,8 +410,8 @@
 
 .picker-confirm {
   position: absolute;
-  left: calc(var(--picker-x) + (var(--picker-size) / 2) + 12px);
-  top: calc(var(--picker-y) - (var(--picker-size) / 2) - 6px);
+  left: 0;
+  top: 0;
   display: flex;
   gap: 8px;
   pointer-events: auto;
@@ -360,7 +421,7 @@
 .picker-confirm__btn {
   --background: rgba(var(--ion-background-color-rgb), 0.88);
   --background-activated: rgba(var(--ion-background-color-rgb), 1);
-  --color: var(--ion-text-color);
+  --color: var(--ion-color-primary);
   --border-radius: 10px;
   --padding-start: 0;
   --padding-end: 0;

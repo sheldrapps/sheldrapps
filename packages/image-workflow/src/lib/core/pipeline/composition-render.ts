@@ -26,6 +26,8 @@ export interface CompositionRenderOptions {
   backgroundFallbackColor?: string;
   mimeType?: string;
   quality?: number;
+  debug?: boolean;
+  debugLabel?: string;
 }
 
 const DEFAULT_EXPORT_QUALITY = 0.92;
@@ -34,6 +36,8 @@ const DEFAULT_EXPORT_MIME_TRANSPARENT = "image/png";
 const DEFAULT_BACKGROUND = "#000000";
 const DEFAULT_BLUR_STRENGTH = 80;
 const MAX_BLUR_PX = 40;
+const TEXT_STAGE_EDGE_PAD = 15;
+const TEXT_HANDLE_PAD_RIGHT = 12;
 
 export async function renderCompositionToCanvas(
   input: CompositionRenderInput,
@@ -59,9 +63,22 @@ export async function renderCompositionToCanvas(
   const outH = Math.max(1, Math.round(target.height));
   if (!outW || !outH) return null;
 
+  const previewMode = options.mode === "preview";
+
   const outputScale = options.outputScale ?? 1;
-  const scaledW = Math.max(1, Math.round(outW * outputScale));
-  const scaledH = Math.max(1, Math.round(outH * outputScale));
+
+  // Layout size: always the real target size
+  const layoutW = outW;
+  const layoutH = outH;
+
+  // Raster size: preview does not downscale here
+  const scaledW = previewMode
+    ? layoutW
+    : Math.max(1, Math.round(layoutW * outputScale));
+
+  const scaledH = previewMode
+    ? layoutH
+    : Math.max(1, Math.round(layoutH * outputScale));
 
   const dispScale = baseScale * state.scale;
   if (!Number.isFinite(dispScale) || dispScale <= 0) return null;
@@ -93,7 +110,6 @@ export async function renderCompositionToCanvas(
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 
-  const previewMode = options.mode === "preview";
   const shouldDrawCheckerAfter = previewMode && backgroundMode === "transparent";
 
   drawBackground(ctx, {
@@ -115,6 +131,35 @@ export async function renderCompositionToCanvas(
   const rot = ((state.rot || 0) * Math.PI) / 180;
   const flipX = !!state.flipX;
   const flipY = !!state.flipY;
+  const shouldDebug = (options.debug || options.debugLabel) && previewMode;
+  if (shouldDebug) {
+    const label = options.debugLabel ?? "composition-render";
+    const anchorX = scaledW / 2;
+    const anchorY = scaledH / 2;
+    console.log(`[${label}] layout`, {
+      mode: options.mode,
+      canvasW: scaledW,
+      canvasH: scaledH,
+      layoutW,
+      layoutH,
+      frame: {
+        width: frameWidth,
+        height: frameHeight,
+        padding: 0,
+        radius: 0,
+      },
+      transform: {
+        scale,
+        translateX: anchorX + tx,
+        translateY: anchorY + ty,
+        anchorX,
+        anchorY,
+        rotationDeg: state.rot || 0,
+        flipX,
+        flipY,
+      },
+    });
+  }
 
   ctx.save();
   ctx.translate(scaledW / 2 + tx, scaledH / 2 + ty);
@@ -138,12 +183,16 @@ export async function renderCompositionToCanvas(
     ctx.restore();
   }
 
+  const textLayers = Array.isArray(state.textLayers)
+    ? state.textLayers
+    : state.textLayer
+      ? [state.textLayer]
+      : [];
+
+  await ensureFontsLoaded(textLayers);
+
   drawTextLayers(ctx, {
-    layers: Array.isArray(state.textLayers)
-      ? state.textLayers
-      : state.textLayer
-        ? [state.textLayer]
-        : [],
+    layers: textLayers,
     frameWidth,
     frameHeight,
     outputWidth: scaledW,
@@ -375,33 +424,54 @@ function drawTextLayers(
   if (!layers?.length) return;
   if (!frameWidth || !frameHeight) return;
 
-  const scale = Number.isFinite(outputWidth / frameWidth)
+  const frameScale = Number.isFinite(outputWidth / frameWidth)
     ? outputWidth / frameWidth
     : 1;
+  const scaledFrameW = frameWidth * frameScale;
+  const scaledFrameH = frameHeight * frameScale;
+  const offsetX = (outputWidth - scaledFrameW) / 2;
+  const offsetY = (outputHeight - scaledFrameH) / 2;
+
+  ctx.save();
+  // Draw in frame space, scale uniformly to match image mapping.
+  ctx.translate(offsetX, offsetY);
+  ctx.scale(frameScale, frameScale);
 
   for (const layer of layers) {
     if (!layer || !layer.content) continue;
 
-    const x = (layer.x ?? 0.5) * outputWidth;
-    const y = (layer.y ?? 0.5) * outputHeight;
+    const x = (layer.x ?? 0.5) * frameWidth;
+    const y = (layer.y ?? 0.5) * frameHeight;
 
-    const fontSize = Math.max(1, (layer.fontSizePx || 1) * scale);
-    const strokeWidth = Math.max(0, (layer.strokeWidthPx || 0) * scale);
-    const maxWidth =
+    const fontSize = Math.max(1, layer.fontSizePx || 1);
+    const strokeWidth = Math.max(0, layer.strokeWidthPx || 0);
+    const rawMaxWidth =
       Number.isFinite(layer.maxWidthPx) && (layer.maxWidthPx ?? 0) > 0
-        ? (layer.maxWidthPx as number) * scale
+        ? (layer.maxWidthPx as number)
         : null;
+    const autoMaxWidth = computeAutoMaxWidth(
+      frameWidth,
+      layer.x ?? 0.5,
+    );
+    const contentAutoMaxWidth = autoMaxWidth
+      ? Math.max(1, autoMaxWidth - strokeWidth * 2)
+      : null;
+    const effectiveMaxWidth = rawMaxWidth && contentAutoMaxWidth
+      ? Math.min(rawMaxWidth, contentAutoMaxWidth)
+      : rawMaxWidth ?? contentAutoMaxWidth ?? null;
+
+    const measurement = measureTextLayer(ctx, layer, effectiveMaxWidth);
+    const lines = measurement.lines;
+    const font = measurement.font;
 
     ctx.save();
     ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
+    ctx.textBaseline = "top";
     ctx.lineJoin = "round";
-    ctx.font = `${fontSize}px ${layer.fontFamily || "sans-serif"}`;
-
-    const lines = wrapTextLines(ctx, layer.content, maxWidth);
-    const lineHeight = fontSize;
+    ctx.font = font;
+    const lineHeight = measurement.lineHeight || fontSize;
     const totalHeight = lineHeight * lines.length;
-    const startY = y - totalHeight / 2 + lineHeight / 2;
+    const startY = y - totalHeight / 2;
 
     if (strokeWidth > 0) {
       ctx.lineWidth = strokeWidth;
@@ -417,6 +487,65 @@ function drawTextLayers(
     });
     ctx.restore();
   }
+
+  ctx.restore();
+}
+
+function computeAutoMaxWidth(frameWidth: number, normX: number): number | null {
+  if (!frameWidth) return null;
+  const centerX = normX * frameWidth;
+  const leftSpace = Math.max(0, centerX - TEXT_STAGE_EDGE_PAD);
+  const rightSpace = Math.max(
+    0,
+    frameWidth - centerX - TEXT_STAGE_EDGE_PAD - TEXT_HANDLE_PAD_RIGHT,
+  );
+  const half = Math.min(leftSpace, rightSpace);
+  const maxWidth = Math.floor(half * 2);
+  return maxWidth > 0 ? maxWidth : null;
+}
+
+export type TextMeasureResult = {
+  lines: string[];
+  width: number;
+  height: number;
+  lineHeight: number;
+  font: string;
+};
+
+export function measureTextLayer(
+  ctx: CanvasRenderingContext2D,
+  layer: {
+    content?: string | null;
+    fontFamily?: string | null;
+    fontSizePx?: number | null;
+    strokeWidthPx?: number | null;
+  },
+  maxWidth?: number | null,
+): TextMeasureResult {
+  const fontSize = Math.max(1, Number(layer.fontSizePx) || 1);
+  const strokeWidth = Math.max(0, Number(layer.strokeWidthPx) || 0);
+  const family = layer.fontFamily || "sans-serif";
+  const fontFamily = family.includes(",") ? family : `"${family}"`;
+  const font = `${fontSize}px ${fontFamily}`;
+
+  const prevFont = ctx.font;
+  ctx.font = font;
+  const lines = wrapTextLines(ctx, layer.content ?? "", maxWidth ?? null);
+  let width = 0;
+  for (const line of lines) {
+    width = Math.max(width, ctx.measureText(line).width);
+  }
+  const lineHeight = fontSize;
+  const height = lineHeight * (lines.length || 1);
+  ctx.font = prevFont;
+
+  return {
+    lines,
+    width: width + strokeWidth * 2,
+    height: height + strokeWidth * 2,
+    lineHeight,
+    font,
+  };
 }
 
 function wrapTextLines(
@@ -475,4 +604,31 @@ function splitLongWord(
   }
   if (current) parts.push(current);
   return parts;
+}
+
+async function ensureFontsLoaded(
+  layers: NonNullable<CoverCropState["textLayers"]>,
+): Promise<void> {
+  if (!layers?.length) return;
+  const fonts = (document as any)?.fonts as FontFaceSet | undefined;
+  if (!fonts?.load) return;
+
+  const families = new Set<string>();
+  for (const layer of layers) {
+    const family = extractPrimaryFontFamily(layer?.fontFamily);
+    if (family) families.add(family);
+  }
+  if (!families.size) return;
+
+  const loads = Array.from(families, (family) =>
+    fonts.load(`16px "${family}"`).catch(() => null),
+  );
+  await Promise.allSettled(loads);
+}
+
+function extractPrimaryFontFamily(value?: string | null): string | null {
+  if (!value) return null;
+  const first = value.split(",")[0]?.trim();
+  if (!first) return null;
+  return first.replace(/^['"]|['"]$/g, "");
 }

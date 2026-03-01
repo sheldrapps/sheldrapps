@@ -199,6 +199,7 @@ ion-modal.cover-preview-modal {
 .preview-frame {
   @extend .frame;
   --crop-ratio: 3 / 4;
+  border-radius: 0;
 }
 
 .preview-img {
@@ -208,4 +209,5 @@ ion-modal.cover-preview-modal {
   object-position: center;
   display: block;
   -webkit-user-drag: none;
+  border-radius: 0;
 }

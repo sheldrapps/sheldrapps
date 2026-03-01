@@ -52,10 +52,14 @@ type NormalizedTextLayer = {
   y: number;
   fontFamily: string;
   fontSizePx: number;
+  manualFontSizePx: number;
   fillColor: string;
   strokeColor: string;
   strokeWidthPx: number;
   maxWidthPx: number | null;
+  boxWidthPx: number | null;
+  boxHeightPx: number | null;
+  userBoxTouched: boolean;
 };
 
 type NormalizedTextLayers = NormalizedTextLayer[];
@@ -507,7 +511,14 @@ export class EditorHistoryService {
   }
 
   addTextLayer(layer: NonNullable<EditorSnapshot["textLayers"]>[number]): void {
-    const next = [...this.editorState.textLayers(), { ...layer }];
+    const next = [
+      ...this.editorState.textLayers(),
+      {
+        ...layer,
+        manualFontSizePx: layer.manualFontSizePx ?? layer.fontSizePx,
+        userBoxTouched: layer.userBoxTouched ?? false,
+      },
+    ];
     this.setTextLayers(next);
   }
 
@@ -519,8 +530,17 @@ export class EditorHistoryService {
     this.updateTextLayer(id, { fontFamily: value });
   }
 
-  setTextFontSize(id: string, value: number): void {
-    this.updateTextLayer(id, { fontSizePx: value }, { useSlider: true });
+  setTextFontSize(
+    id: string,
+    value: number,
+    opts?: { autoFitLocked?: boolean },
+  ): void {
+    const autoFitLocked = opts?.autoFitLocked ?? true;
+    this.updateTextLayer(
+      id,
+      { fontSizePx: value, manualFontSizePx: value, autoFitLocked },
+      { useSlider: true },
+    );
   }
 
   setTextFillColor(id: string, value: string): void {
@@ -535,9 +555,45 @@ export class EditorHistoryService {
     this.updateTextLayer(id, { strokeWidthPx: value }, { useSlider: true });
   }
 
-  setTextMaxWidth(id: string, value: number): void {
+  setTextMaxWidth(
+    id: string,
+    value: number,
+    opts?: { autoFitLocked?: boolean; userBoxTouched?: boolean },
+  ): void {
     const normalized = Number.isFinite(value) ? value : undefined;
-    this.updateTextLayer(id, { maxWidthPx: normalized }, { useSlider: true });
+    this.updateTextLayer(
+      id,
+      {
+        maxWidthPx: normalized,
+        autoFitLocked: opts?.autoFitLocked,
+        ...(opts?.userBoxTouched !== undefined
+          ? { userBoxTouched: opts.userBoxTouched }
+          : {}),
+      },
+      { useSlider: true },
+    );
+  }
+
+  setTextBoxSize(
+    id: string,
+    width: number,
+    height: number,
+    opts?: { autoFitLocked?: boolean; userBoxTouched?: boolean },
+  ): void {
+    const nextW = Number.isFinite(width) ? width : undefined;
+    const nextH = Number.isFinite(height) ? height : undefined;
+    this.updateTextLayer(
+      id,
+      {
+        maxWidthPx: nextW,
+        boxHeightPx: nextH,
+        autoFitLocked: opts?.autoFitLocked ?? true,
+        ...(opts?.userBoxTouched !== undefined
+          ? { userBoxTouched: opts.userBoxTouched }
+          : {}),
+      },
+      { useSlider: true },
+    );
   }
 
   setTextPosition(id: string, x: number, y: number): void {
@@ -764,8 +820,11 @@ export class EditorHistoryService {
         return;
       }
       case "SetViewport":
-        this.editorState.setScale(command.payload.scale);
-        this.editorState.setTranslation(command.payload.tx, command.payload.ty);
+        this.editorState.setViewportRaw(
+          command.payload.scale,
+          command.payload.tx,
+          command.payload.ty,
+        );
         return;
       case "ChangeKindleModel": {
         const snapshot = command.payload as KindleSelectionSnapshot;
@@ -954,12 +1013,30 @@ export class EditorHistoryService {
       y: this.roundTo(layer.y ?? 0, FLOAT_PRECISION),
       fontFamily: layer.fontFamily ?? "",
       fontSizePx: this.roundTo(layer.fontSizePx ?? 0, FLOAT_PRECISION),
+      manualFontSizePx: this.roundTo(
+        layer.manualFontSizePx ?? layer.fontSizePx ?? 0,
+        FLOAT_PRECISION,
+      ),
       fillColor: this.normalizeHex(layer.fillColor),
       strokeColor: this.normalizeHex(layer.strokeColor),
       strokeWidthPx: this.roundTo(layer.strokeWidthPx ?? 0, FLOAT_PRECISION),
       maxWidthPx: Number.isFinite(layer.maxWidthPx)
         ? this.roundTo(layer.maxWidthPx as number, FLOAT_PRECISION)
         : null,
+      boxWidthPx:
+        !!layer.autoFitLocked &&
+        Number.isFinite(layer.maxWidthPx) &&
+        Number.isFinite(layer.boxHeightPx) &&
+        Number.isFinite(layer.boxWidthPx)
+          ? this.roundTo(layer.boxWidthPx as number, FLOAT_PRECISION)
+          : null,
+      boxHeightPx:
+        !!layer.autoFitLocked &&
+        Number.isFinite(layer.maxWidthPx) &&
+        Number.isFinite(layer.boxHeightPx)
+          ? this.roundTo(layer.boxHeightPx as number, FLOAT_PRECISION)
+          : null,
+      userBoxTouched: !!layer.userBoxTouched,
     }));
   }
 

@@ -43,6 +43,7 @@ import {
   CoverCropState,
   ImagePipelineService,
   ImageValidationError,
+  buildCompositionInput,
   renderCompositionToCanvas,
   renderCompositionToFile,
 } from '@sheldrapps/image-workflow';
@@ -800,21 +801,6 @@ export class CreatePage implements OnInit, OnDestroy {
     await this.updatePreviewFromComposition();
   }
 
-  private computeBaseScale(
-    frameW: number,
-    frameH: number,
-    naturalW: number,
-    naturalH: number,
-    rot: number,
-  ): number {
-    const rr = (((rot % 360) + 360) % 360) as 0 | 90 | 180 | 270;
-    const rnW = rr === 90 || rr === 270 ? naturalH : naturalW;
-    const rnH = rr === 90 || rr === 270 ? naturalW : naturalH;
-    const needW = frameW / rnW;
-    const needH = frameH / rnH;
-    return Math.max(needW, needH);
-  }
-
   private buildCompositionInput() {
     if (
       !this.cropState ||
@@ -825,54 +811,30 @@ export class CreatePage implements OnInit, OnDestroy {
       return null;
     }
 
-    const frameW = this.cropState.frameWidth ?? this.selectedModel.width;
-    const frameH = this.cropState.frameHeight ?? this.selectedModel.height;
-    if (!frameW || !frameH) return null;
-
-    const baseScale = this.computeBaseScale(
-      frameW,
-      frameH,
-      this.selectedImageDims.width,
-      this.selectedImageDims.height,
-      this.cropState.rot,
-    );
-
-    return {
+    return buildCompositionInput({
       file: this.workingImageFile,
-      target: {
-        width: this.selectedModel.width,
-        height: this.selectedModel.height,
-      },
-      frameWidth: frameW,
-      frameHeight: frameH,
-      baseScale,
+      target: { width: this.selectedModel.width, height: this.selectedModel.height },
+      state: this.cropState,
       naturalWidth: this.selectedImageDims.width,
       naturalHeight: this.selectedImageDims.height,
-      state: this.cropState,
-    };
+      frameFallback: { width: this.selectedModel.width, height: this.selectedModel.height },
+    });
   }
 
   private async updatePreviewFromComposition(): Promise<void> {
     const input = this.buildCompositionInput();
     if (!input) return;
 
-    const maxSide = 640;
-    const scale =
-      maxSide > 0
-        ? Math.min(
-            1,
-            maxSide / Math.max(input.target.width, input.target.height),
-          )
-        : 1;
-
-    const canvas = await renderCompositionToCanvas(input, {
+    const fullCanvas = await renderCompositionToCanvas(input, {
       mode: 'preview',
-      outputScale: scale,
+      outputScale: 1,
     });
-    if (!canvas) return;
+    if (!fullCanvas) return;
+
+    const modalCanvas = this.downscaleCanvas(fullCanvas, 1280);
 
     const blob: Blob | null = await new Promise((resolve) =>
-      canvas.toBlob((bb) => resolve(bb), 'image/jpeg', 0.9),
+      modalCanvas.toBlob((bb) => resolve(bb), 'image/jpeg', 0.9),
     );
     if (!blob) return;
 
@@ -891,6 +853,32 @@ export class CreatePage implements OnInit, OnDestroy {
 
     this.exportImageFile = file;
     return file;
+  }
+
+  private downscaleCanvas(
+    src: HTMLCanvasElement,
+    maxSide: number,
+  ): HTMLCanvasElement {
+    if (!maxSide || maxSide <= 0) return src;
+
+    const sw = src.width;
+    const sh = src.height;
+    const sMax = Math.max(sw, sh);
+    if (sMax <= maxSide) return src;
+
+    const scale = maxSide / sMax;
+    const dw = Math.max(1, Math.round(sw * scale));
+    const dh = Math.max(1, Math.round(sh * scale));
+
+    const dst = document.createElement('canvas');
+    dst.width = dw;
+    dst.height = dh;
+    const dctx = dst.getContext('2d');
+    if (!dctx) return src;
+    dctx.imageSmoothingEnabled = true;
+    dctx.imageSmoothingQuality = 'high';
+    dctx.drawImage(src, 0, 0, dw, dh);
+    return dst;
   }
 
   private async consumeEditorResult(): Promise<void> {
