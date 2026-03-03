@@ -4,6 +4,7 @@ import { Title } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
 import { detectSupportedLocale, LanguageService } from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
+import { EdgeToEdgeService } from '@sheldrapps/ui-theme';
 import { ConsentService } from './services/consent.service';
 import { CcfkSettings } from './settings/ccfk-settings.schema';
 
@@ -19,6 +20,7 @@ import { filter, Subscription } from 'rxjs';
 export class AppComponent implements OnDestroy {
   private settings = inject(SettingsStore<CcfkSettings>);
   private router = inject(Router);
+  private edgeToEdge = inject(EdgeToEdgeService);
 
   private navSub?: Subscription;
   private langSub?: Subscription;
@@ -29,6 +31,8 @@ export class AppComponent implements OnDestroy {
     private title: Title,
     private consent: ConsentService,
   ) {
+    void this.edgeToEdge.initEdgeToEdge();
+
     // Release focus before Ionic hides the previous page with aria-hidden
     this.navSub = this.router.events
       .pipe(filter((e): e is NavigationStart => e instanceof NavigationStart))

@@ -1,0 +1,75 @@
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --keyboard-inset-bottom: 0px;
+}
+
+.sh-safe-area-probe {
+  position: fixed;
+  inset: 0 auto auto 0;
+  width: 0;
+  height: 0;
+  padding:
+    env(safe-area-inset-top, 0px)
+    env(safe-area-inset-right, 0px)
+    env(safe-area-inset-bottom, 0px)
+    env(safe-area-inset-left, 0px);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+html.sh-edge-to-edge,
+html.sh-edge-to-edge body {
+  background: var(--ion-background-color);
+}
+
+ion-app.edge-to-edge-shell {
+  padding-inline-start: var(--safe-left);
+  padding-inline-end: var(--safe-right);
+  box-sizing: border-box;
+}
+
+ion-app.edge-to-edge-shell ion-tab-bar {
+  padding-inline-start: var(--safe-left);
+  padding-inline-end: var(--safe-right);
+  padding-bottom: var(--safe-bottom);
+  min-height: calc(50px + var(--safe-bottom));
+}
+
+.safe-top {
+  padding-top: var(--safe-top) !important;
+}
+
+.safe-right {
+  padding-right: var(--safe-right) !important;
+}
+
+.safe-bottom {
+  padding-bottom: var(--safe-bottom) !important;
+}
+
+.safe-left {
+  padding-left: var(--safe-left) !important;
+}
+
+.safe-x {
+  padding-inline-start: var(--safe-left) !important;
+  padding-inline-end: var(--safe-right) !important;
+}
+
+.safe-all {
+  padding-top: var(--safe-top) !important;
+  padding-right: var(--safe-right) !important;
+  padding-bottom: var(--safe-bottom) !important;
+  padding-left: var(--safe-left) !important;
+}
+
+.safe-top-toolbar {
+  padding-top: var(--safe-top) !important;
+}
+
+.safe-bottom-bar {
+  padding-bottom: calc(var(--safe-bottom) + var(--safe-bottom-offset, 0px)) !important;
+}
