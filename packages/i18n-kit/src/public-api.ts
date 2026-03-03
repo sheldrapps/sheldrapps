@@ -9,6 +9,7 @@ export * from './lib/language-normalizer';
 export * from './lib/translate.providers';
 export * from './lib/case-preserving-loader';
 export * from './lib/storage';
+export * from './lib/locale-detection.service';
 
 // Adapter exports
 export * from './lib/adapters/device-lang';

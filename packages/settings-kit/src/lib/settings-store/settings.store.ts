@@ -22,10 +22,11 @@ import {
 } from '../providers';
 
 @Injectable()
-export class SettingsStore<T> {
+export class SettingsStore<T extends object> {
   private readonly storageKey: string;
   private readonly schema: SettingsSchema<T>;
   private readonly storage: StorageAdapter;
+  private readonly legacyStorage: StorageAdapter;
   private readonly subject: BehaviorSubject<T>;
   private loaded = false;
   private loading: Promise<T> | null = null;
@@ -38,6 +39,7 @@ export class SettingsStore<T> {
     this.storageKey = config.storageKey || `${config.appId}.settings`;
     this.schema = schema;
     this.storage = storage;
+    this.legacyStorage = config.legacyStorageAdapter || storage;
     this.subject = new BehaviorSubject<T>(schema.defaults);
 
   }
@@ -90,15 +92,17 @@ export class SettingsStore<T> {
 
         // If versions match, return data
         if (payload.version === this.schema.version) {
-          this.subject.next(payload.data);
-          return payload.data;
+          const hydrated = this.hydrate(payload.data);
+          this.subject.next(hydrated);
+          return hydrated;
         }
 
         // Version mismatch - run migrations
         const migrated = await this.runMigrations(payload);
         await this.persist(migrated);
-        this.subject.next(migrated);
-        return migrated;
+        const hydrated = this.hydrate(migrated);
+        this.subject.next(hydrated);
+        return hydrated;
       }
 
       // No stored settings - check for legacy migrations
@@ -109,12 +113,12 @@ export class SettingsStore<T> {
       if (legacyMigration) {
         const migrated = await this.runLegacyMigration(legacyMigration);
         await this.persist(migrated);
-        this.subject.next(migrated);
-        return migrated;
+        const hydrated = this.hydrate(migrated);
+        this.subject.next(hydrated);
+        return hydrated;
       }
 
       // No migrations, use defaults
-      await this.persist(this.schema.defaults);
       this.subject.next(this.schema.defaults);
       return this.schema.defaults;
     } catch (error) {
@@ -138,16 +142,17 @@ export class SettingsStore<T> {
         ? update(current)
         : { ...current, ...update };
 
-    await this.persist(next);
-    this.subject.next(next);
-    return next;
+    const hydrated = this.hydrate(next);
+    await this.persist(hydrated);
+    this.subject.next(hydrated);
+    return hydrated;
   }
 
   /**
    * Reset settings to defaults
    */
   async reset(): Promise<T> {
-    await this.persist(this.schema.defaults);
+    await this.storage.remove(this.storageKey);
     this.subject.next(this.schema.defaults);
     return this.schema.defaults;
   }
@@ -156,9 +161,15 @@ export class SettingsStore<T> {
    * Persist settings to storage
    */
   private async persist(data: T): Promise<void> {
+    const persistedData = this.dehydrate(data);
+    if (this.isEmptyObject(persistedData)) {
+      await this.storage.remove(this.storageKey);
+      return;
+    }
+
     const payload: SettingsPayload<T> = {
       version: this.schema.version,
-      data,
+      data: persistedData,
     };
     await this.storage.set(this.storageKey, JSON.stringify(payload));
   }
@@ -168,11 +179,11 @@ export class SettingsStore<T> {
    */
   private async runMigrations(payload: SettingsPayload<T>): Promise<T> {
     if (!this.schema.migrations || this.schema.migrations.length === 0) {
-      return payload.data;
+      return this.hydrate(payload.data);
     }
 
     let currentVersion = payload.version;
-    let currentData = payload.data;
+    let currentData = this.hydrate(payload.data);
 
     // Sort migrations by toVersion
     const sortedMigrations = [...this.schema.migrations]
@@ -192,7 +203,7 @@ export class SettingsStore<T> {
           legacy: this.createLegacyReader(),
         };
         const migrated = await migration.run(ctx);
-        currentData = { ...currentData, ...migrated };
+        currentData = this.hydrate({ ...currentData, ...migrated });
         currentVersion = migration.toVersion;
       }
     }
@@ -208,7 +219,7 @@ export class SettingsStore<T> {
       legacy: this.createLegacyReader(),
     };
     const migrated = await migration.run(ctx);
-    return { ...this.schema.defaults, ...migrated };
+    return this.hydrate(migrated);
   }
 
   /**
@@ -217,11 +228,65 @@ export class SettingsStore<T> {
   private createLegacyReader(): LegacyReader {
     return {
       get: async (key: string) => {
-        return this.storage.get(key);
+        return this.legacyStorage.get(key);
       },
       remove: async (key: string) => {
-        return this.storage.remove(key);
+        return this.legacyStorage.remove(key);
       },
     };
+  }
+
+  private hydrate(data?: Partial<T> | T): T {
+    return { ...this.schema.defaults, ...(data ?? {}) } as T;
+  }
+
+  private dehydrate(data: T): Partial<T> {
+    const stripped = this.stripDefaults(data, this.schema.defaults);
+    if (!stripped || !this.isPlainObject(stripped)) {
+      return {};
+    }
+
+    return stripped as Partial<T>;
+  }
+
+  private stripDefaults(value: unknown, defaults: unknown): unknown {
+    if (this.isPlainObject(value)) {
+      const defaultRecord = this.isPlainObject(defaults) ? defaults : {};
+      const result: Record<string, unknown> = {};
+
+      for (const [key, entry] of Object.entries(value)) {
+        const stripped = this.stripDefaults(
+          entry,
+          (defaultRecord as Record<string, unknown>)[key]
+        );
+        if (stripped !== undefined) {
+          result[key] = stripped;
+        }
+      }
+
+      return Object.keys(result).length > 0 ? result : undefined;
+    }
+
+    if (Array.isArray(value)) {
+      return this.valuesEqual(value, defaults) ? undefined : value;
+    }
+
+    return this.valuesEqual(value, defaults) ? undefined : value;
+  }
+
+  private valuesEqual(left: unknown, right: unknown): boolean {
+    if (Array.isArray(left) || Array.isArray(right)) {
+      return JSON.stringify(left) === JSON.stringify(right);
+    }
+
+    return left === right;
+  }
+
+  private isEmptyObject(value: unknown): boolean {
+    return this.isPlainObject(value) && Object.keys(value).length === 0;
+  }
+
+  private isPlainObject(value: unknown): value is Record<string, unknown> {
+    return !!value && typeof value === 'object' && !Array.isArray(value);
   }
 }

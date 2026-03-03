@@ -67,9 +67,8 @@ export class SettingsPage {
   trackByLang = (_: number, l: LangOption) => l.code;
 
   async onLangChange(v: Lang) {
-    await this.settings.set({ lang: v });
-
     await this.lang.set(v);
+    await this.settings.set({ locale: v });
   }
 
   async openPrivacyOptions() {

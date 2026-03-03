@@ -2,7 +2,7 @@ import { Component, inject, OnDestroy } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { Title } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '@sheldrapps/i18n-kit';
+import { detectSupportedLocale, LanguageService } from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { ConsentService } from './services/consent.service';
 import { CcfkSettings } from './settings/ccfk-settings.schema';
@@ -49,8 +49,10 @@ export class AppComponent implements OnDestroy {
     await this.settings.load();
 
     const currentSettings = this.settings.get();
+    const locale = currentSettings.locale ?? (await detectSupportedLocale());
 
-    await this.lang.set(currentSettings.lang);
+    this.t.setDefaultLang('en-US');
+    await this.lang.set(locale);
 
     await this.consent.gatherConsent();
     this.setDocumentTitle();

@@ -5,13 +5,19 @@ import {
   IonicRouteStrategy,
 } from '@ionic/angular/standalone';
 
-import { provideI18nKit } from '@sheldrapps/i18n-kit';
+import { MemoryStorageAdapter, provideI18nKit } from '@sheldrapps/i18n-kit';
 import {
   provideEditorI18n,
   EDITOR_I18N_OVERRIDES,
 } from '@sheldrapps/image-workflow/editor';
 import { provideAdsKit } from '@sheldrapps/ads-kit';
-import { provideSettingsKit } from '@sheldrapps/settings-kit';
+import {
+  CapacitorPreferencesAdapter,
+  CompositeStorageAdapter,
+  ConfigJsonFileAdapter,
+  WebLocalStorageAdapter,
+  provideSettingsKit,
+} from '@sheldrapps/settings-kit';
 import { provideFileKit } from '@sheldrapps/file-kit';
 import {
   ADS_UNITS_ANDROID_PROD,
@@ -23,6 +29,8 @@ import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
 import { CCFK_SETTINGS_SCHEMA } from './app/settings/ccfk-settings.schema';
 
+const CCFK_SETTINGS_STORAGE_KEY = 'ccfk.settings';
+
 bootstrapApplication(AppComponent, {
   providers: [
     provideIonicAngular(),
@@ -30,7 +38,7 @@ bootstrapApplication(AppComponent, {
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
 
     provideI18nKit({
-      defaultLang: 'es-MX',
+      defaultLang: 'en-US',
       fallbackLang: 'en-US',
       supportedLangs: ['es-MX', 'en-US', 'de-DE', 'fr-FR', 'it-IT', 'pt-BR'],
       loader: {
@@ -44,8 +52,9 @@ bootstrapApplication(AppComponent, {
         fr: 'fr-FR',
         it: 'it-IT',
         pt: 'pt-BR',
+        pr: 'pt-BR',
       },
-    }),
+    }, new MemoryStorageAdapter()),
     provideEditorI18n(),
     {
       provide: EDITOR_I18N_OVERRIDES,
@@ -73,7 +82,16 @@ bootstrapApplication(AppComponent, {
 
     provideSettingsKit({
       appId: 'ccfk',
+      storageKey: CCFK_SETTINGS_STORAGE_KEY,
       schema: CCFK_SETTINGS_SCHEMA,
+      storageAdapter: new ConfigJsonFileAdapter({
+        primaryKey: CCFK_SETTINGS_STORAGE_KEY,
+        fallbackAdapter: new WebLocalStorageAdapter(),
+      }),
+      legacyStorageAdapter: new CompositeStorageAdapter([
+        new CapacitorPreferencesAdapter(),
+        new WebLocalStorageAdapter(),
+      ]),
     }),
 
     provideFileKit(),

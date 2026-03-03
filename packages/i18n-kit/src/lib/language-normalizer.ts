@@ -57,10 +57,14 @@ export function normalizeLanguage(
 
   // Extract base and try mapping
   const base = canonical.split('-')[0].toLowerCase();
-  const mapped = normalizationMap?.[base];
+  const aliases = getBaseAliases(canonical, base);
 
-  if (mapped && isLanguageSupported(mapped, supportedLangs)) {
-    return mapped;
+  for (const alias of aliases) {
+    const mapped = normalizationMap?.[alias];
+
+    if (mapped && isLanguageSupported(mapped, supportedLangs)) {
+      return mapped;
+    }
   }
 
   return null;
@@ -97,4 +101,12 @@ export function buildDefaultNormalizationMap(
   }
 
   return map;
+}
+
+function getBaseAliases(canonical: string, base: string): string[] {
+  if (base === 'pr' && canonical.toLowerCase().endsWith('-br')) {
+    return ['pr', 'pt'];
+  }
+
+  return [base];
 }

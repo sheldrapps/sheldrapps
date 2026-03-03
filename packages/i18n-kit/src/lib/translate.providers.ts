@@ -55,7 +55,7 @@ export function provideI18nKit(
     provideHttpClient(),
 
     provideTranslateService({
-      fallbackLang: config.defaultLang,
+      fallbackLang: config.fallbackLang,
       lang: config.defaultLang,
       loader: {
         provide: TranslateLoader,

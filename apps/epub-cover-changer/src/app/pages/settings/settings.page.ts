@@ -67,11 +67,8 @@ export class SettingsPage implements OnInit {
   trackByLang = (_: number, l: LangOption) => l.code;
 
   async onLangChange(v: Lang) {
-    // First persist in settings-kit
-    await this.settings.set({ lang: v });
-
-    // Then apply language change
     await this.lang.set(v);
+    await this.settings.set({ locale: v });
   }
 
   async openPrivacyOptions() {

@@ -671,12 +671,19 @@ export class CreatePage implements OnInit, OnDestroy {
     i18nKey: string,
     duration = 2200,
   ) {
-    const shown = localStorage.getItem(storageKey);
-    if (shown === 'true') return;
+    const settings = await this.settings.load();
+    const shown = settings.preferences?.[storageKey] === true;
+    if (shown) return;
 
     await this.showToast(i18nKey, { duration }, 'success');
 
-    localStorage.setItem(storageKey, 'true');
+    await this.settings.set((prev) => ({
+      ...prev,
+      preferences: {
+        ...(prev.preferences ?? {}),
+        [storageKey]: true,
+      },
+    }));
   }
 
   openInfo(ev: Event) {

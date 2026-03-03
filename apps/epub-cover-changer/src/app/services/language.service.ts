@@ -3,11 +3,11 @@
  * Actual implementation comes from @sheldrapps/i18n-kit
  */
 
-import { LanguageService as BaseLanguageService } from '@sheldrapps/i18n-kit';
+import type { SupportedLocale } from '@sheldrapps/i18n-kit';
 
 export { LanguageService } from '@sheldrapps/i18n-kit';
 
-export type Lang = 'es-MX' | 'en-US' | 'de-DE' | 'fr-FR' | 'it-IT' | 'pt-BR';
+export type Lang = SupportedLocale;
 
 export type LangOption = { code: Lang; label: string };
 

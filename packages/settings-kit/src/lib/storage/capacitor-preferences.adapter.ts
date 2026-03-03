@@ -10,9 +10,10 @@ export class CapacitorPreferencesAdapter implements StorageAdapter {
   private fallback = new WebLocalStorageAdapter();
   private preferences: any = null;
   private isCapacitorAvailable = false;
+  private initPromise: Promise<void>;
 
   constructor() {
-    this.initCapacitor();
+    this.initPromise = this.initCapacitor();
   }
 
   private async initCapacitor(): Promise<void> {
@@ -27,6 +28,8 @@ export class CapacitorPreferencesAdapter implements StorageAdapter {
   }
 
   async get(key: string): Promise<string | null> {
+    await this.initPromise;
+
     if (this.isCapacitorAvailable && this.preferences) {
       try {
         const result = await this.preferences.get({ key });
@@ -40,6 +43,8 @@ export class CapacitorPreferencesAdapter implements StorageAdapter {
   }
 
   async set(key: string, value: string): Promise<void> {
+    await this.initPromise;
+
     if (this.isCapacitorAvailable && this.preferences) {
       try {
         await this.preferences.set({ key, value });
@@ -53,6 +58,8 @@ export class CapacitorPreferencesAdapter implements StorageAdapter {
   }
 
   async remove(key: string): Promise<void> {
+    await this.initPromise;
+
     if (this.isCapacitorAvailable && this.preferences) {
       try {
         await this.preferences.remove({ key });

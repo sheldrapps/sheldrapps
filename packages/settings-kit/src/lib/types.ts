@@ -87,5 +87,5 @@ export interface SettingsPayload<T> {
   /**
    * Settings data
    */
-  data: T;
+  data: Partial<T> | T;
 }

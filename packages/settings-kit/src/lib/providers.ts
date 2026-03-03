@@ -21,6 +21,12 @@ export interface SettingsKitConfig {
    * Default: `${appId}.settings`
    */
   storageKey?: string;
+
+  /**
+   * Optional legacy storage adapter used only for migrations.
+   * Defaults to the main storage adapter when omitted.
+   */
+  legacyStorageAdapter?: StorageAdapter;
 }
 
 /**
@@ -69,6 +75,12 @@ export interface ProvideSettingsKitConfig<T> {
    * Default: CapacitorPreferencesAdapter
    */
   storageAdapter?: StorageAdapter;
+
+  /**
+   * Optional legacy storage adapter used only for migrations.
+   * Defaults to the main storage adapter when omitted.
+   */
+  legacyStorageAdapter?: StorageAdapter;
 }
 
 /**
@@ -97,6 +109,7 @@ export function provideSettingsKit<T>(
       useValue: {
         appId: config.appId,
         storageKey: config.storageKey,
+        legacyStorageAdapter: config.legacyStorageAdapter,
       } as SettingsKitConfig,
     },
 

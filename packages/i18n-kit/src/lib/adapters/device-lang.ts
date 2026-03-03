@@ -10,7 +10,17 @@
  */
 export async function getDeviceLanguage(): Promise<string> {
   try {
-    // Try Capacitor Device API
+    // Try the most specific Capacitor Device API first.
+    const { Device } = await import('@capacitor/device');
+    const tag = await Device.getLanguageTag();
+    const localeTag = tag?.value || '';
+    if (localeTag) return localeTag;
+  } catch {
+    // Capacitor not available or failed
+  }
+
+  try {
+    // Fall back to the base language code.
     const { Device } = await import('@capacitor/device');
     const info = await Device.getLanguageCode();
     const code = info?.value || '';
@@ -21,7 +31,7 @@ export async function getDeviceLanguage(): Promise<string> {
 
   // Fallback to browser navigator
   try {
-    return navigator.language || ''; // No toLowerCase - preserve raw format
+    return navigator.languages?.[0] || navigator.language || '';
   } catch {
     return '';
   }

@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { Title } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '@sheldrapps/i18n-kit';
+import { detectSupportedLocale, LanguageService } from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { ConsentService } from './services/consent.service';
 import { EccSettings } from './settings/ecc-settings.schema';
@@ -30,9 +30,11 @@ export class AppComponent {
 
     // Get the saved language from settings
     const currentSettings = this.settings.get();
+    const locale = currentSettings.locale ?? (await detectSupportedLocale());
 
     // Set the language in LanguageService
-    await this.lang.set(currentSettings.lang);
+    this.t.setDefaultLang('en-US');
+    await this.lang.set(locale);
 
     await this.consent.gatherConsent();
     this.setDocumentTitle();

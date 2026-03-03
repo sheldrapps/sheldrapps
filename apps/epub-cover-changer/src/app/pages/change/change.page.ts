@@ -66,7 +66,9 @@ import { AdsService, type RewardedAdResult } from '../../services/ads.service';
 import { CoversEventsService } from '../../services/covers-events.service';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastOptions } from '@ionic/angular';
+import { SettingsStore } from '@sheldrapps/settings-kit';
 import { SaveCoverModalComponent } from './save-cover-modal.component';
+import { EccSettings } from '../../settings/ecc-settings.schema';
 
 type EditorResult = {
   file: File;
@@ -119,6 +121,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private zone = inject(NgZone);
   private router = inject(Router);
   private editorSession = inject(EditorSessionService);
+  private settings = inject(SettingsStore<EccSettings>);
   private readonly baseTarget = { width: 1236, height: 1648 };
   private readonly baseModelId = 'epub';
   private readonly formatOptions = this.buildFormatOptions();
@@ -127,6 +130,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private previewLongPressTimer: ReturnType<typeof setTimeout> | null = null;
   private suppressNextImagePick = false;
   private workingMaxSideApplied: boolean | null = null;
+  private persistedCropTargetId = 'epub';
 
   @ViewChild('epubInput') epubInput!: ElementRef<HTMLInputElement>;
   @ViewChild('imageInput') imageInput!: ElementRef<HTMLInputElement>;
@@ -226,7 +230,11 @@ export class ChangePage implements OnInit, OnDestroy {
     return this.baseTarget.width / this.baseTarget.height;
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    const settings = await this.settings.load();
+    this.selectedFormatId = this.resolveFormatId(settings.cropTargetId);
+    this.persistedCropTargetId = this.selectedFormatId;
+
     this.routerSub = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event) => {
@@ -381,7 +389,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private resetWorkflow() {
-    this.selectedFormatId = 'epub';
+    this.selectedFormatId = this.persistedCropTargetId;
     this.closeInfo();
     this.closePreview();
     this.clearPreviewLongPress();
@@ -627,6 +635,9 @@ export class ChangePage implements OnInit, OnDestroy {
       this.selectedFormatId = result.formatId;
     }
     const selected = this.getSelectedFormatOption();
+    if (selected?.id && selected.id !== this.persistedCropTargetId) {
+      await this.persistCropTargetId(selected.id);
+    }
     const outW = selected?.target.width;
     const outH = selected?.target.height;
     this.targetWidth = outW ?? selected?.target.width ?? this.baseTarget.width;
@@ -1286,12 +1297,19 @@ export class ChangePage implements OnInit, OnDestroy {
     i18nKey: string,
     duration = 2200,
   ) {
-    const shown = localStorage.getItem(storageKey);
-    if (shown === 'true') return;
+    const settings = await this.settings.load();
+    const shown = settings.preferences?.[storageKey] === true;
+    if (shown) return;
 
     await this.showToast(i18nKey, { duration }, 'success');
 
-    localStorage.setItem(storageKey, 'true');
+    await this.settings.set((prev) => ({
+      ...prev,
+      preferences: {
+        ...(prev.preferences ?? {}),
+        [storageKey]: true,
+      },
+    }));
   }
 
   openInfo(ev: Event) {
@@ -1458,5 +1476,19 @@ export class ChangePage implements OnInit, OnDestroy {
         this.originalImageFile?.name ||
         'cover')?.replace(/\.(png|jpg|jpeg|webp)$/i, '') || 'cover';
     return new File([blob], `${baseName}_rendered.${ext}`, { type });
+  }
+
+  private resolveFormatId(formatId?: string): string {
+    if (formatId && this.formatOptions.some((option) => option.id === formatId)) {
+      return formatId;
+    }
+
+    return this.formatOptions[0]?.id ?? 'epub';
+  }
+
+  private async persistCropTargetId(formatId: string): Promise<void> {
+    const resolved = this.resolveFormatId(formatId);
+    this.persistedCropTargetId = resolved;
+    await this.settings.set({ cropTargetId: resolved });
   }
 }
