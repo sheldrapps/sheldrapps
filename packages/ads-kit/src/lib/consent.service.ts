@@ -1,5 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { AdMob } from '@capacitor-community/admob';
+import { ADS_KIT_CONFIG } from './types';
+import { toDebugString } from './adapters/debug';
+import { isNative, isNativeDebugBuild } from './adapters/platform';
 import type { ConsentResult } from './types';
 
 @Injectable({ providedIn: 'root' })
@@ -7,11 +10,16 @@ export class ConsentService {
   private canRequestAds = false;
   private privacyOptionsRequired = false;
   private umpReady = false;
+  private readonly config = inject(ADS_KIT_CONFIG);
 
   private readyResolve!: () => void;
   readonly ready = new Promise<void>(
     (resolve) => (this.readyResolve = resolve)
   );
+
+  private get debugEnabled(): boolean {
+    return !!this.config.debug || (isNative() && isNativeDebugBuild());
+  }
 
   get state(): ConsentResult {
     return {
@@ -29,15 +37,25 @@ export class ConsentService {
       const info = await AdMob.requestConsentInfo({});
 
       this.umpReady = true;
-      this.canRequestAds = info.status !== 'REQUIRED';
+      this.canRequestAds = !!info.canRequestAds;
       this.privacyOptionsRequired =
         info.privacyOptionsRequirementStatus === 'REQUIRED';
 
+      if (this.debugEnabled) {
+        console.info(
+          `[Consent] requestConsentInfo ${toDebugString(info)}`
+        );
+      }
+
       if (info.isConsentFormAvailable && info.status === 'REQUIRED') {
         const after = await AdMob.showConsentForm();
-        this.canRequestAds = after.status !== 'REQUIRED';
+        this.canRequestAds = !!after.canRequestAds;
         this.privacyOptionsRequired =
           after.privacyOptionsRequirementStatus === 'REQUIRED';
+
+        if (this.debugEnabled) {
+          console.info(`[Consent] showConsentForm ${toDebugString(after)}`);
+        }
       }
 
       return this.state;

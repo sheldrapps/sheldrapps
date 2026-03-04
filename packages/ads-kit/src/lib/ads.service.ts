@@ -7,7 +7,13 @@ import {
 import type { PluginListenerHandle } from "@capacitor/core";
 import { ConsentService } from "./consent.service";
 import { ADS_KIT_CONFIG, type AdsUnits, type RewardedAdResult } from "./types";
-import { isNative, isAndroid, getPlatform } from "./adapters/platform";
+import {
+  isNative,
+  isAndroid,
+  getPlatform,
+  isNativeDebugBuild,
+} from "./adapters/platform";
+import { toDebugString } from "./adapters/debug";
 
 @Injectable({ providedIn: "root" })
 export class AdsService {
@@ -35,6 +41,10 @@ export class AdsService {
     return this.config.isTesting;
   }
 
+  private get debugEnabled(): boolean {
+    return !!this.config.debug || (this.isNative && isNativeDebugBuild());
+  }
+
   private get units(): AdsUnits {
     if (this.isAndroid) {
       const androidUnits = this.config.units.android;
@@ -56,6 +66,18 @@ export class AdsService {
 
     await AdMob.initialize();
     this.initialized = true;
+
+    if (this.debugEnabled) {
+      console.info(
+        `[Ads] initialized ${toDebugString({
+          platform: this.platform,
+          native: this.isNative,
+          nativeDebugBuild: isNativeDebugBuild(),
+          configuredTesting: this.config.isTesting,
+          effectiveTesting: this.isTesting,
+        })}`
+      );
+    }
   }
 
   async showRewarded(): Promise<RewardedAdResult> {
@@ -73,6 +95,16 @@ export class AdsService {
       adId: this.units.rewarded,
       isTesting: this.isTesting,
     };
+
+    if (this.debugEnabled) {
+      console.info(
+        `[Ads] showRewarded ${toDebugString({
+          adId: opts.adId,
+          effectiveTesting: opts.isTesting,
+          consent: this.consent.state,
+        })}`
+      );
+    }
 
     // Reset flags for this new ad attempt
     let rewardEarned = false;
@@ -126,8 +158,10 @@ export class AdsService {
 
       // Listen for FailedToLoad
       AdMob.addListener(RewardAdPluginEvents.FailedToLoad, (error) => {
-        if (this.config.debug) {
-          console.warn("[Ads] Failed to load rewarded ad", error);
+        if (this.debugEnabled) {
+          console.warn(
+            `[Ads] Failed to load rewarded ad ${toDebugString(error)}`
+          );
         }
         if (!resolved) {
           resolved = true;
@@ -140,8 +174,10 @@ export class AdsService {
 
       // Listen for FailedToShow
       AdMob.addListener(RewardAdPluginEvents.FailedToShow, (error) => {
-        if (this.config.debug) {
-          console.warn("[Ads] Failed to show rewarded ad", error);
+        if (this.debugEnabled) {
+          console.warn(
+            `[Ads] Failed to show rewarded ad ${toDebugString(error)}`
+          );
         }
         if (!resolved) {
           resolved = true;
@@ -158,7 +194,7 @@ export class AdsService {
           await AdMob.prepareRewardVideoAd(opts);
           await AdMob.showRewardVideoAd();
         } catch (e) {
-          console.warn("[Ads] rewarded failed", e);
+          console.warn(`[Ads] rewarded failed ${toDebugString(e)}`);
           if (!resolved) {
             resolved = true;
             cleanup();

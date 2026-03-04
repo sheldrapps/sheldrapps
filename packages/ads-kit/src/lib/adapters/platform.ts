@@ -1,5 +1,14 @@
 import { Capacitor } from '@capacitor/core';
 
+type SheldrappsNativeRuntime = {
+  isDebugBuild?: () => boolean;
+};
+
+type SheldrappsGlobal = typeof globalThis & {
+  SheldrappsRuntime?: SheldrappsNativeRuntime;
+  __SHELDRAPPS_NATIVE_DEBUG__?: boolean;
+};
+
 /**
  * Get current Capacitor platform
  */
@@ -34,4 +43,21 @@ export function isIOS(): boolean {
  */
 export function isWeb(): boolean {
   return getPlatform() === 'web';
+}
+
+/**
+ * Check whether the native container is a debug build.
+ */
+export function isNativeDebugBuild(): boolean {
+  const runtime = globalThis as SheldrappsGlobal;
+
+  if (typeof runtime.__SHELDRAPPS_NATIVE_DEBUG__ === 'boolean') {
+    return runtime.__SHELDRAPPS_NATIVE_DEBUG__;
+  }
+
+  try {
+    return !!runtime.SheldrappsRuntime?.isDebugBuild?.();
+  } catch {
+    return false;
+  }
 }

@@ -15,6 +15,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import java.lang.reflect.Method;
 
 public class StatusBar {
 
@@ -31,7 +32,7 @@ public class StatusBar {
         this.listener = listener;
 
         if (canUseStatusBarColor()) {
-            this.currentStatusBarColor = getStatusBarColorDeprecated();
+            this.currentStatusBarColor = getStatusBarColorCompat();
         }
 
         setBackgroundColor(config.getBackgroundColor());
@@ -76,7 +77,7 @@ public class StatusBar {
         Window window = activity.getWindow();
         clearTranslucentStatusFlagDeprecated();
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        setStatusBarColorDeprecated(color);
+        setStatusBarColorCompat(color);
 
         if (currentStyle.equals("DEFAULT")) {
             boolean isLightColor = ColorUtils.calculateLuminance(color) > 0.5;
@@ -110,8 +111,8 @@ public class StatusBar {
             uiOptions = uiOptions | getSystemUiFlagLayoutStableDeprecated() | getSystemUiFlagLayoutFullscreenDeprecated();
             setSystemUiVisibilityDeprecated(decorView, uiOptions);
             if (canUseStatusBarColor()) {
-                currentStatusBarColor = getStatusBarColorDeprecated();
-                setStatusBarColorDeprecated(Color.TRANSPARENT);
+                currentStatusBarColor = getStatusBarColorCompat();
+                setStatusBarColorCompat(Color.TRANSPARENT);
             } else {
                 currentStatusBarColor = Color.TRANSPARENT;
             }
@@ -119,7 +120,7 @@ public class StatusBar {
             uiOptions = uiOptions & ~getSystemUiFlagLayoutStableDeprecated() & ~getSystemUiFlagLayoutFullscreenDeprecated();
             setSystemUiVisibilityDeprecated(decorView, uiOptions);
             if (canUseStatusBarColor()) {
-                setStatusBarColorDeprecated(currentStatusBarColor);
+                setStatusBarColorCompat(currentStatusBarColor);
             }
         }
         listener.onChange(statusBarOverlayChanged, getInfo());
@@ -201,14 +202,24 @@ public class StatusBar {
         void onChange(String eventName, StatusBarInfo info);
     }
 
-    @SuppressWarnings("deprecation")
-    private int getStatusBarColorDeprecated() {
-        return activity.getWindow().getStatusBarColor();
+    private int getStatusBarColorCompat() {
+        try {
+            Method method = Window.class.getMethod("getStatusBarColor");
+            Object value = method.invoke(activity.getWindow());
+            if (value instanceof Integer) {
+                return (Integer) value;
+            }
+        } catch (Exception ignored) {
+        }
+        return currentStatusBarColor;
     }
 
-    @SuppressWarnings("deprecation")
-    private void setStatusBarColorDeprecated(int color) {
-        activity.getWindow().setStatusBarColor(color);
+    private void setStatusBarColorCompat(int color) {
+        try {
+            Method method = Window.class.getMethod("setStatusBarColor", Integer.TYPE);
+            method.invoke(activity.getWindow(), color);
+        } catch (Exception ignored) {
+        }
     }
 
     @SuppressWarnings("deprecation")

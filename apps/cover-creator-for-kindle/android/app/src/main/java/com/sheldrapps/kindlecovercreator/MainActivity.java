@@ -2,20 +2,51 @@ package com.sheldrapps.covercreatorforkindle;
 
 import android.os.Bundle;
 import android.os.Build;
+import android.content.pm.ApplicationInfo;
 import android.content.res.Configuration;
 import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
 
 import com.getcapacitor.BridgeActivity;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 public class MainActivity extends BridgeActivity {
+    private static final class RuntimeBridge {
+        private final boolean debugBuild;
+
+        private RuntimeBridge(boolean debugBuild) {
+            this.debugBuild = debugBuild;
+        }
+
+        @JavascriptInterface
+        public boolean isDebugBuild() {
+            return debugBuild;
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        exposeRuntimeFlags();
         enableEdgeToEdge();
         forceSoftInputAdjustNothing();
     }
+
+    private void exposeRuntimeFlags() {
+        if (bridge == null || bridge.getWebView() == null) {
+            return;
+        }
+
+        boolean debugBuild =
+            (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+
+        bridge.getWebView().addJavascriptInterface(
+            new RuntimeBridge(debugBuild),
+            "SheldrappsRuntime"
+        );
+    }
+    
 
     private void enableEdgeToEdge() {
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
