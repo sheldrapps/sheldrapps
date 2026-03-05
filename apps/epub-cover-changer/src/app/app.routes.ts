@@ -26,6 +26,13 @@ export const routes: Routes = [
       import('./pages/my-epubs/my-epubs.page').then((m) => m.MyEpubsPage),
   },
   {
+    path: 'recommended-apps',
+    loadChildren: () =>
+      import('@sheldrapps/recommended-apps').then(
+        (m) => m.RECOMMENDED_APPS_ROUTES
+      ),
+  },
+  {
     path: 'instructions',
     loadComponent: () =>
       import('./pages/instructions/instructions.page').then(

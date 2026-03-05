@@ -1,18 +1,14 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>{{ 'CHANGE.TITLE' | translate }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button
-        fill="clear"
-        size="small"
-        class="cc-info-btn"
-        (click)="toggleInfo($event)"
-        [attr.aria-label]="'CHANGE.INFO_ARIA' | translate"
-        [attr.aria-expanded]="infoOpen"
-      >
-        <ion-icon slot="start" name="help-circle-outline"></ion-icon>
-        {{ 'CHANGE.INFO' | translate }}
-      </ion-button>
+    <ion-title>{{ 'TABS.CHANGE' | translate }}</ion-title>
+    <ion-buttons slot="end" class="cc-header-tools">
+      <sh-scrollable-button-bar
+        [items]="headerItems"
+        variant="iconText"
+        align="start"
+        edge="end"
+        (selectItem)="onHeaderItemClick($event)"
+      ></sh-scrollable-button-bar>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -234,7 +230,6 @@
 
   <ion-popover
     [isOpen]="infoOpen"
-    [event]="infoEvent"
     (didDismiss)="closeInfo()"
     side="bottom"
     alignment="end"

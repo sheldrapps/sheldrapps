@@ -61,6 +61,8 @@ import {
   shareSocialOutline,
   closeCircleOutline,
   helpCircleOutline,
+  appsOutline,
+  informationCircleOutline,
 } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
@@ -71,8 +73,18 @@ import { playCircleOutline } from 'ionicons/icons';
 import { CoversEventsService } from '../../services/covers-events.service';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastOptions } from '@ionic/angular';
-import { SaveCoverModalComponent } from '@sheldrapps/ui-theme';
+import {
+  SaveCoverModalComponent,
+  ScrollableBarItem,
+  ScrollableButtonBarComponent,
+} from '@sheldrapps/ui-theme';
 import { SettingsStore } from '@sheldrapps/settings-kit';
+import {
+  RecommendedApp,
+  RecommendedAppsService,
+  buildHomeHeaderItems,
+  handleHomeHeaderAction,
+} from '@sheldrapps/recommended-apps';
 import { CcfkSettings } from '../../settings/ccfk-settings.schema';
 
 type EditorResult = {
@@ -110,6 +122,7 @@ type EditorResult = {
     IonSelect,
     IonSelectOption,
     IonModal,
+    ScrollableButtonBarComponent,
   ],
 })
 export class CreatePage implements OnInit, OnDestroy {
@@ -129,6 +142,7 @@ export class CreatePage implements OnInit, OnDestroy {
     private settings: SettingsStore<CcfkSettings>,
     private router: Router,
     private editorSession: EditorSessionService,
+    private recommendedAppsService: RecommendedAppsService,
   ) {
     addIcons({
       chevronDown,
@@ -139,9 +153,15 @@ export class CreatePage implements OnInit, OnDestroy {
       saveOutline,
       shareSocialOutline,
       helpCircleOutline,
+      appsOutline,
+      informationCircleOutline,
       imageOutline,
     });
   }
+
+  headerItems: ScrollableBarItem[] = [];
+  recommendedApps: RecommendedApp[] = [];
+  showRecommended = false;
 
   groups: KindleGroup[] = [];
   selectedGroupId?: string;
@@ -189,6 +209,7 @@ export class CreatePage implements OnInit, OnDestroy {
   private readonly warnDebugKey = 'cc_warn_debug';
 
   async ngOnInit() {
+    await this.refreshHeaderItems();
     this.groups = await this.catalog.getGroups();
 
     // Load persisted settings and get the saved Kindle model ID
@@ -724,18 +745,16 @@ export class CreatePage implements OnInit, OnDestroy {
     }));
   }
 
-  openInfo(ev: Event) {
-    ev.stopPropagation();
-    this.infoEvent = ev;
+  openInfo() {
+    this.infoEvent = null;
     this.infoOpen = true;
   }
 
-  toggleInfo(ev: Event) {
-    ev.stopPropagation();
+  toggleInfo() {
     if (this.infoOpen) {
       this.closeInfo();
     } else {
-      this.infoEvent = ev;
+      this.infoEvent = null;
       this.infoOpen = true;
     }
   }
@@ -791,6 +810,31 @@ export class CreatePage implements OnInit, OnDestroy {
 
   ionViewWillEnter() {
     this.consumeEditorResult();
+    void this.refreshHeaderItems();
+  }
+
+  private async refreshHeaderItems(): Promise<void> {
+    this.recommendedApps = await this.recommendedAppsService.getRecommendedApps();
+    this.showRecommended = this.recommendedApps.length > 0;
+    console.info('[recommended-apps][host:ccfk] header state', {
+      showRecommended: this.showRecommended,
+      recommendedAppsLength: this.recommendedApps.length,
+      recommendedPackageNames: this.recommendedApps.map((app) => app.packageName),
+    });
+    this.headerItems = buildHomeHeaderItems(this.showRecommended, {
+      appsLabel: this.translate.instant('ARR.TOOLS.APPS'),
+      guideLabel: this.translate.instant('ARR.TOOLS.GUIDE'),
+    });
+  }
+
+  async onHeaderItemClick(id: string): Promise<void> {
+    await handleHomeHeaderAction(id, {
+      closeInfo: () => this.closeInfo(),
+      toggleInfo: () => this.toggleInfo(),
+      navigateToRecommended: async () => {
+        await this.router.navigateByUrl('/recommended-apps');
+      },
+    });
   }
 
   private async showToast(

@@ -63,7 +63,7 @@
   },
   "COVERS": {
     "DELETED": "Portada eliminada",
-    "EMPTY": "No hay portadas todavía.",
+    "EMPTY": "No hay portadas todavï¿½a.",
     "GETTING_COVER": "Obteniendo portada",
     "LOADING_PREVIEW": "Cargando vista previa...",
     "PLACEHOLDER": "Portada",
@@ -155,8 +155,13 @@
     "COVERS": "Portadas",
     "CREATE": "Crear",
     "SETTINGS": "ConfiguraciÃ³n"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "Recomendadas",
+      "INFO": "Info",
+      "APPS": "Apps",
+      "GUIDE": "Gu\u00EDa"
+    }
   }
 }
-
-
-

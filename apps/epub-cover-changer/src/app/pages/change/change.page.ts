@@ -59,6 +59,8 @@ import {
   helpCircleOutline,
   documentOutline,
   refreshOutline,
+  appsOutline,
+  informationCircleOutline,
 } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
@@ -73,7 +75,17 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { ToastOptions } from '@ionic/angular';
 import { SettingsStore } from '@sheldrapps/settings-kit';
-import { SaveCoverModalComponent } from '@sheldrapps/ui-theme';
+import {
+  SaveCoverModalComponent,
+  ScrollableBarItem,
+  ScrollableButtonBarComponent,
+} from '@sheldrapps/ui-theme';
+import {
+  RecommendedApp,
+  RecommendedAppsService,
+  buildHomeHeaderItems,
+  handleHomeHeaderAction,
+} from '@sheldrapps/recommended-apps';
 import { EccSettings } from '../../settings/ecc-settings.schema';
 
 type EditorResult = {
@@ -111,6 +123,7 @@ type EditorResult = {
     IonGrid,
     IonPopover,
     IonModal,
+    ScrollableButtonBarComponent,
   ],
 })
 export class ChangePage implements OnInit, OnDestroy {
@@ -130,6 +143,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private router = inject(Router);
   private editorSession = inject(EditorSessionService);
   private settings = inject(SettingsStore<EccSettings>);
+  private recommendedAppsService = inject(RecommendedAppsService);
   private readonly baseTarget = { width: 1236, height: 1648 };
   private readonly baseModelId = 'epub';
   private readonly maxEpubSizeMB = 500;
@@ -151,14 +165,20 @@ export class ChangePage implements OnInit, OnDestroy {
       checkmarkCircle,
       closeCircleOutline,
       alertCircleOutline,
-    saveOutline,
-    shareSocialOutline,
-    helpCircleOutline,
-    imageOutline,
-    documentOutline,
-    refreshOutline,
-  });
+      saveOutline,
+      shareSocialOutline,
+      helpCircleOutline,
+      imageOutline,
+      documentOutline,
+      refreshOutline,
+      appsOutline,
+      informationCircleOutline,
+    });
   }
+
+  headerItems: ScrollableBarItem[] = [];
+  recommendedApps: RecommendedApp[] = [];
+  showRecommended = false;
 
   // EPUB state
   sourceEpubFile?: File;
@@ -292,6 +312,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    await this.refreshHeaderItems();
     const settings = await this.settings.load();
     this.selectedFormatId = this.resolveFormatId(settings.cropTargetId);
     this.persistedCropTargetId = this.selectedFormatId;
@@ -1819,18 +1840,16 @@ export class ChangePage implements OnInit, OnDestroy {
     }));
   }
 
-  openInfo(ev: Event) {
-    ev.stopPropagation();
-    this.infoEvent = ev;
+  openInfo() {
+    this.infoEvent = null;
     this.infoOpen = true;
   }
 
-  toggleInfo(ev: Event) {
-    ev.stopPropagation();
+  toggleInfo() {
     if (this.infoOpen) {
       this.closeInfo();
     } else {
-      this.infoEvent = ev;
+      this.infoEvent = null;
       this.infoOpen = true;
     }
   }
@@ -1887,6 +1906,31 @@ export class ChangePage implements OnInit, OnDestroy {
 
   ionViewWillEnter() {
     this.consumeEditorResult();
+    void this.refreshHeaderItems();
+  }
+
+  private async refreshHeaderItems(): Promise<void> {
+    this.recommendedApps = await this.recommendedAppsService.getRecommendedApps();
+    this.showRecommended = this.recommendedApps.length > 0;
+    console.info('[recommended-apps][host:ecc] header state', {
+      showRecommended: this.showRecommended,
+      recommendedAppsLength: this.recommendedApps.length,
+      recommendedPackageNames: this.recommendedApps.map((app) => app.packageName),
+    });
+    this.headerItems = buildHomeHeaderItems(this.showRecommended, {
+      appsLabel: this.translate.instant('ARR.TOOLS.APPS'),
+      guideLabel: this.translate.instant('ARR.TOOLS.GUIDE'),
+    });
+  }
+
+  async onHeaderItemClick(id: string): Promise<void> {
+    await handleHomeHeaderAction(id, {
+      closeInfo: () => this.closeInfo(),
+      toggleInfo: () => this.toggleInfo(),
+      navigateToRecommended: async () => {
+        await this.router.navigateByUrl('/recommended-apps');
+      },
+    });
   }
 
   private async consumeEditorResult(): Promise<void> {

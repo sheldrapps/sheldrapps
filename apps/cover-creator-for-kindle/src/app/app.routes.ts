@@ -26,6 +26,13 @@ export const routes: Routes = [
       import('./pages/covers/covers.page').then((m) => m.CoversPage),
   },
   {
+    path: 'recommended-apps',
+    loadChildren: () =>
+      import('@sheldrapps/recommended-apps').then(
+        (m) => m.RECOMMENDED_APPS_ROUTES
+      ),
+  },
+  {
     path: 'requisites',
     loadComponent: () =>
       import('./pages/requisites/requisites.page').then(

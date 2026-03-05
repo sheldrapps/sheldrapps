@@ -1,0 +1,33 @@
+{
+  "allowedAppScssFiles": [
+    "apps/cover-creator-for-kindle/src/app/app.component.scss",
+    "apps/cover-creator-for-kindle/src/app/components/kindle-model-picker/kindle-model-picker.component.scss",
+    "apps/cover-creator-for-kindle/src/app/explore-container/explore-container.component.scss",
+    "apps/cover-creator-for-kindle/src/app/pages/covers/covers.page.scss",
+    "apps/cover-creator-for-kindle/src/app/pages/create/create.page.scss",
+    "apps/cover-creator-for-kindle/src/app/pages/instructions/instructions.page.scss",
+    "apps/cover-creator-for-kindle/src/app/pages/requisites/requisites.page.scss",
+    "apps/cover-creator-for-kindle/src/app/pages/settings/settings.page.scss",
+    "apps/cover-creator-for-kindle/src/app/tabs/tabs.page.scss",
+    "apps/cover-creator-for-kindle/src/global.scss",
+    "apps/cover-creator-for-kindle/src/theme/variables.scss",
+    "apps/epub-cover-changer/src/app/app.component.scss",
+    "apps/epub-cover-changer/src/app/components/kindle-model-picker/kindle-model-picker.component.scss",
+    "apps/epub-cover-changer/src/app/explore-container/explore-container.component.scss",
+    "apps/epub-cover-changer/src/app/pages/change/change.page.scss",
+    "apps/epub-cover-changer/src/app/pages/instructions/instructions.page.scss",
+    "apps/epub-cover-changer/src/app/pages/my-epubs/my-epubs.page.scss",
+    "apps/epub-cover-changer/src/app/pages/settings/settings.page.scss",
+    "apps/epub-cover-changer/src/app/tabs/tabs.page.scss",
+    "apps/epub-cover-changer/src/global.scss",
+    "apps/epub-cover-changer/src/theme/variables.scss",
+    "apps/presupuesto-ninos/src/app/app.component.scss",
+    "apps/presupuesto-ninos/src/app/pages/child-detail/child-detail.page.scss",
+    "apps/presupuesto-ninos/src/app/pages/history-period/history-period.page.scss",
+    "apps/presupuesto-ninos/src/app/pages/home/home.page.scss",
+    "apps/presupuesto-ninos/src/app/pages/settings/settings.page.scss",
+    "apps/presupuesto-ninos/src/app/pages/tabs/tabs.page.scss",
+    "apps/presupuesto-ninos/src/global.scss",
+    "apps/presupuesto-ninos/src/theme/variables.scss"
+  ]
+}

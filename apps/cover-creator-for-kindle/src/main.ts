@@ -19,6 +19,7 @@ import {
   provideSettingsKit,
 } from '@sheldrapps/settings-kit';
 import { provideFileKit } from '@sheldrapps/file-kit';
+import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
 import {
   ADS_UNITS_ANDROID_PROD,
   ADS_UNITS_ANDROID_TEST,
@@ -95,6 +96,10 @@ bootstrapApplication(AppComponent, {
     }),
 
     provideFileKit(),
+    {
+      provide: RECOMMENDED_APPS_CURRENT_PACKAGE,
+      useValue: 'com.sheldrapps.covercreatorforkindle',
+    },
 
     provideAdsKit({
       isTesting: !environment.production,

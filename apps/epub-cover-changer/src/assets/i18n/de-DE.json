@@ -110,5 +110,13 @@
     "COVERS": "Meine EPUBs",
     "CHANGE": "Ã¤ndern",
     "SETTINGS": "Einstellungen"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "Empfohlen",
+      "INFO": "Info",
+      "APPS": "Apps",
+      "GUIDE": "Anleitung"
+    }
   }
 }

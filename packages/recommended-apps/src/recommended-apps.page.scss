@@ -1,0 +1,87 @@
+:host {
+  .recommended-item-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding-block: 4px;
+  }
+
+  .recommended-item-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 10px;
+    row-gap: 8px;
+  }
+
+  .recommended-app-title {
+    width: 100%;
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .recommended-app-description {
+    width: 100%;
+    margin: 0;
+    color: var(--ion-text-color);
+    text-decoration: none;
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .recommended-app-icon {
+    width: 52px;
+    height: 52px;
+    margin: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: start;
+  }
+
+  .recommended-app-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .recommended-store-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: 0;
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .recommended-store-action-button {
+    --padding-start: 0;
+    --padding-end: 0;
+    --color: var(--ion-text-color);
+    margin: 0;
+    min-height: 24px;
+    min-width: 24px;
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: 0.9rem;
+    font-weight: 400;
+  }
+
+  .recommended-store-action-label {
+    font-size: 0.9rem;
+    color: var(--ion-color-medium);
+    margin-right: 6px;
+  }
+
+  .recommended-store-icon {
+    color: currentColor;
+    font-size: 1.2rem;
+  }
+}

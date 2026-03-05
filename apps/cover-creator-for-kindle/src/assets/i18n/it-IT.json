@@ -20,7 +20,6 @@
     "ARIA_CROP": "Regola l’immagine selezionata",
     "ARIA_SELECT_IMAGE": "Seleziona immagine di copertina",
     "ARIA_SELECT_MODEL": "Seleziona modello Kindle",
-
     "CROP_ACTION": "Regola",
     "COVER_CREATED": "Copertina creata. Puoi ora salvare o condividere",
     "CREATE_ACTION_REWARDED": "Crea copertina (guarda annuncio)",
@@ -37,7 +36,6 @@
     "INFO_STEP_4": "Salva o condividi.",
     "INFO_NOTE_LABEL": "Nota:",
     "IMAGE_ERROR_CORRUPT": "Impossibile leggere l'immagine. Prova con un'altra.",
-
     "IMAGE_ERROR_SIZE": "Il file è troppo grande. Massimo {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Formato non supportato ({{type}}). Seleziona JPG, PNG o WebP.",
     "IMAGE_WARN_SMALL": "La risoluzione dell’immagine è inferiore a quella del modello Kindle selezionato. Per risultati migliori, usa un’immagine più grande.",
@@ -157,5 +155,13 @@
     "COVERS": "Copertine",
     "CREATE": "Crea",
     "SETTINGS": "Impostazioni"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "Consigliate",
+      "INFO": "Info",
+      "APPS": "Apps",
+      "GUIDE": "Guida"
+    }
   }
 }

@@ -155,5 +155,13 @@
     "COVERS": "Cover",
     "CREATE": "Erstellen",
     "SETTINGS": "Einstellungen"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "Empfohlen",
+      "INFO": "Info",
+      "APPS": "Apps",
+      "GUIDE": "Anleitung"
+    }
   }
 }

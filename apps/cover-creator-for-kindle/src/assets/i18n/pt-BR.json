@@ -65,7 +65,7 @@
     "DELETED": "Capa excluída",
     "EMPTY": "Nenhuma capa ainda.",
     "GETTING_COVER": "Obtendo capa",
-    "LOADING_PREVIEW": "Carregando pr�-visualiza��o...",
+    "LOADING_PREVIEW": "Carregando pr�-visualiza��o...",
     "PLACEHOLDER": "Capa",
     "PREVIEW_TITLE": "Pré-visualização",
     "TITLE": "Capas",
@@ -155,5 +155,13 @@
     "COVERS": "Capas",
     "CREATE": "Criar",
     "SETTINGS": "Configurações"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "Recomendados",
+      "INFO": "Info",
+      "APPS": "Apps",
+      "GUIDE": "Guia"
+    }
   }
 }

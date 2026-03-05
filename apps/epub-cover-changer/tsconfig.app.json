@@ -9,6 +9,7 @@
       "@sheldrapps/ads-kit": ["../../packages/ads-kit/src/public-api.ts"],
       "@sheldrapps/i18n-kit": ["../../packages/i18n-kit/src/public-api.ts"],
       "@sheldrapps/settings-kit": ["../../packages/settings-kit/src/public-api.ts"],
+      "@sheldrapps/recommended-apps": ["../../packages/recommended-apps/src/public-api.ts"],
       "@sheldrapps/file-kit": ["../../packages/file-kit/src/public-api.ts"],
       "@sheldrapps/image-workflow": ["../../packages/image-workflow/src/public-api.ts"],
       "@sheldrapps/image-workflow/capacitor": ["../../packages/image-workflow/src/lib/adapters/capacitor/public-api.ts"],

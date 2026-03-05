@@ -15,6 +15,7 @@
     "dev:presupuesto": "pnpm --filter presupuesto-ninos start",
     "build:presupuesto": "pnpm --filter presupuesto-ninos build",
     "lint:presupuesto": "pnpm --filter presupuesto-ninos lint",
+    "test": "node --test --test-isolation=none tools/guardrails/**/*.test.mjs tools/settings-kit/**/*.test.mjs packages/recommended-apps/tests/**/*.test.mjs",
     "lint": "pnpm -r lint",
     "build": "pnpm -r build"
   },

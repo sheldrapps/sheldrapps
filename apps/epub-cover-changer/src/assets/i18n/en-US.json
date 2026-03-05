@@ -106,7 +106,6 @@
     "TIP": "For best results, use high-resolution images and make sure ads are disabled on your Kindle device.",
     "TITLE": "How to change a cover for Kindle"
   },
-
   "SETTINGS": {
     "INSTRUCTIONS": "View instructions",
     "INSTRUCTIONS_HINT": "How to change and send a cover for Kindle",
@@ -116,12 +115,19 @@
     "PRIVACY_OPTIONS": "Privacy options",
     "PRIVACY_POLICY": "Privacy policy",
     "PRIVACY_SECTION": "Privacy",
-
     "TITLE": "Settings"
   },
   "TABS": {
     "COVERS": "My EPUBs",
     "CHANGE": "Change",
     "SETTINGS": "Settings"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "Recommended",
+      "INFO": "Info",
+      "APPS": "Apps",
+      "GUIDE": "Guide"
+    }
   }
 }

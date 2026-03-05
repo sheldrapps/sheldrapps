@@ -92,6 +92,7 @@ export class LanguageService {
         : this.config.defaultLang;
 
     this.currentLang = valid;
+    this.updateDocumentLanguage(valid);
     const key = this.config.storageKey || 'lang';
     this.storage.setItem(key, valid);
     await lastValueFrom(this.translateService.use(valid));
@@ -135,6 +136,16 @@ export class LanguageService {
    */
   private normalize(code: string): string | null {
     return normalizeLanguage(code, this.config.supportedLangs, this.normMap);
+  }
+
+  private updateDocumentLanguage(lang: string): void {
+    try {
+      if (typeof document !== 'undefined' && document.documentElement) {
+        document.documentElement.lang = lang;
+      }
+    } catch {
+      // Ignore non-browser environments.
+    }
   }
 
   /**

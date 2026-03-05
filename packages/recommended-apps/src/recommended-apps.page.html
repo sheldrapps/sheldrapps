@@ -1,0 +1,57 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ t.TITLE }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  @if (loading) {
+    <ion-list inset="true">
+      <ion-item>
+        <ion-label>...</ion-label>
+      </ion-item>
+    </ion-list>
+  } @else if (recommendedApps.length === 0) {
+    <ion-list inset="true">
+      <ion-item>
+        <ion-label class="ion-text-wrap">
+          <h2>{{ t.EMPTY_STATE }}</h2>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  } @else {
+    <ion-list lines="full">
+      @for (app of recommendedApps; track app.packageName) {
+        <ion-item>
+          <div class="recommended-item-content">
+            <h1 class="recommended-app-title">{{ app.appName }}</h1>
+            <div class="recommended-item-grid">
+              <div class="recommended-app-icon">
+                <img [src]="app.icon" [alt]="app.appName" />
+              </div>
+              <p class="recommended-app-description">{{ getDescription(app) }}</p>
+              <div class="recommended-store-row">
+                <ion-button
+                  class="recommended-store-action-button"
+                  fill="clear"
+                  size="small"
+                  (click)="openUrl(app.playStoreUrl)"
+                  [attr.aria-label]="t.OPEN_PLAY_STORE + ' - ' + app.appName"
+                >
+                  <span class="recommended-store-action-label">{{ t.OPEN_PLAY_STORE }}:</span>
+                  <ion-icon
+                    class="recommended-store-icon"
+                    [src]="playStoreIconSrc"
+                  ></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+          </div>
+        </ion-item>
+      }
+    </ion-list>
+  }
+</ion-content>

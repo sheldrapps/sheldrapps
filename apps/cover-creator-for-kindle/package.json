@@ -46,6 +46,7 @@
     "@sheldrapps/file-kit": "workspace:*",
     "@sheldrapps/i18n-kit": "workspace:*",
     "@sheldrapps/image-workflow": "workspace:*",
+    "@sheldrapps/recommended-apps": "workspace:*",
     "@sheldrapps/settings-kit": "workspace:*",
     "@sheldrapps/ui-theme": "workspace:*",
     "ionicons": "^7.0.0",
