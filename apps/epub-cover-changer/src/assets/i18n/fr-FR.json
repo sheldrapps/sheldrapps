@@ -1,4 +1,4 @@
-﻿{
+{
   "APP": {
     "TITLE": "EPUB Cover Changer"
   },
@@ -43,6 +43,8 @@
     "LOADING_EPUB": "Chargement de l'EPUB",
     "LOADING_IMAGE": "Chargement de l'image",
     "OPENING_EDITOR": "Ouverture de l'éditeur",
+    "CHANGING_COVER": "Changement de couverture...",
+    "GETTING_COVER": "Obtention de la couverture",
     "SELECT_EPUB_LABEL": "Fichier EPUB",
     "SELECT_EPUB_PLACEHOLDER": "Sélectionnez un fichier EPUB",
     "SAVING": "Enregistrement de la couverture",
@@ -55,7 +57,8 @@
     "SELECT_IMAGE_PLACEHOLDER": "Sélectionnez une image",
     "TAP_TO_CHANGE": "Touchez pour changer/réinitialiser",
     "TAP_TO_CHANGE_IMAGE": "Touchez pour changer",
-    "TITLE": "Changer une couverture"
+    "TITLE": "Changer une couverture",
+    "INVALID_COVER_TAP_TO_CHANGE": "Invalid cover, tap to change"
   },
   "COVERS": {
     "DELETED": "EPUB supprimé",
@@ -76,9 +79,10 @@
       "SHARE": "Impossible de partager l'EPUB. Réessaie.",
       "LOAD": "Impossible de charger vos EPUB. Fais glisser vers le bas pour réessayer.",
       "PREVIEW": "Impossible de charger l'aperçu. Réessaye."
-    }
+    },
+    "GENERATE_THUMB": "Generate thumbnail",
+    "PREVIEW_UNAVAILABLE": "Preview unavailable."
   },
-
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Remarque",
     "STEP_1": "Selectionne un fichier EPUB (la couverture actuelle se precharge)",
@@ -91,7 +95,6 @@
     "TIP": "Pour de meilleurs résultats, utilisez des images en haute résolution et assurez-vous que les publicités sont désactivées sur votre Kindle.",
     "TITLE": "Comment Changer une couverture pour Kindle"
   },
-
   "SETTINGS": {
     "INSTRUCTIONS": "Voir les instructions",
     "INSTRUCTIONS_HINT": "Comment changer et envoyer une couverture pour Kindle",
@@ -101,7 +104,6 @@
     "PRIVACY_OPTIONS": "Options de confidentialité",
     "PRIVACY_POLICY": "Politique de confidentialité",
     "PRIVACY_SECTION": "Confidentialité",
-
     "TITLE": "Paramètres"
   },
   "TABS": {

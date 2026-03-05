@@ -64,6 +64,8 @@
   "COVERS": {
     "DELETED": "Cover gelöscht",
     "EMPTY": "Noch keine Cover vorhanden.",
+    "GETTING_COVER": "Cover wird geladen",
+    "LOADING_PREVIEW": "Vorschau wird geladen...",
     "PLACEHOLDER": "Cover",
     "PREVIEW_TITLE": "Vorschau",
     "TITLE": "Cover",

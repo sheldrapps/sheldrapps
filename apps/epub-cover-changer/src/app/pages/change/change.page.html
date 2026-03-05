@@ -110,6 +110,10 @@
       <div class="field-subtle">
         {{ 'CHANGE.TAP_TO_CHANGE_IMAGE' | translate }}
       </div>
+      } @else if (showInvalidCoverFallback) {
+      <div class="field-subtle">
+        {{ 'CHANGE.INVALID_COVER_TAP_TO_CHANGE' | translate }}
+      </div>
       } @else {
       <div class="field-placeholder">
         {{ 'CHANGE.SELECT_IMAGE_PLACEHOLDER' | translate }}
@@ -199,6 +203,7 @@
     </ion-button>
 
   </div>
+
   <ion-grid class="cc-action-grid">
     <ion-row>
       <ion-col size="6">
@@ -289,9 +294,19 @@
     </ng-template>
   </ion-modal>
 
+  @if (showNativeLoadOverlay) {
+  <div class="native-load-overlay" aria-live="polite" role="status">
+    <div class="native-load-card">
+      <ion-spinner name="crescent"></ion-spinner>
+      <div class="native-load-title">{{ nativeLoadTitleKey | translate }}</div>
+      <div class="native-load-percent">{{ nativeLoadPercentLabel }}</div>
+    </div>
+  </div>
+  }
+
   <ion-loading
-    [isOpen]="isPickingImage || isExporting || isPickingEpub"
-    [message]="loadingMessageKey ? (loadingMessageKey | translate) : undefined"
+    [isOpen]="isPickingImage || (isPickingEpub && !showNativeLoadOverlay) || (isExporting && !isNativeRewriteInProgress)"
+    [message]="loadingMessage"
     backdropDismiss="false"
   ></ion-loading>
 

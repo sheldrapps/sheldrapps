@@ -43,7 +43,6 @@
                 "output": "assets"
               }
             ],
-            "allowedCommonJsDependencies": ["jszip"],
             "styles": ["src/global.scss", "src/theme/variables.scss"],
             "scripts": [],
             "browser": "src/main.ts"

@@ -144,6 +144,12 @@ export class EditorSessionService {
     return session;
   }
 
+  clearSessions(): void {
+    this.sessions.clear();
+    this.results.clear();
+    this.lastResultId = null;
+  }
+
   private getLocationUrl(): string | null {
     if (typeof window === 'undefined') return null;
     const { pathname, search, hash } = window.location;

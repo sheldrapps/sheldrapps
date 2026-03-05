@@ -8,6 +8,7 @@ import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 
 import com.getcapacitor.BridgeActivity;
+import com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
@@ -27,6 +28,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        registerPlugin(EpubRewritePlugin.class);
         super.onCreate(savedInstanceState);
         exposeRuntimeFlags();
         enableEdgeToEdge();

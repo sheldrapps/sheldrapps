@@ -5,6 +5,39 @@
   --ion-grid-padding: 0;
 }
 
+.native-load-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, #000 24%, transparent);
+  backdrop-filter: blur(1px);
+}
+
+.native-load-card {
+  min-width: 220px;
+  max-width: 88vw;
+  padding: 20px 18px 16px;
+  border-radius: 14px;
+  text-align: center;
+  background: var(--ion-card-background, #fff);
+  color: var(--ion-text-color, #111);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.native-load-title {
+  margin-top: 10px;
+  font-size: 0.96rem;
+  font-weight: 600;
+}
+
+.native-load-percent {
+  margin-top: 6px;
+  font-size: 0.9rem;
+  opacity: 0.82;
+}
+
 .cc-action-grid ion-row {
   margin: 0;
 }

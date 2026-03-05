@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import JSZip from 'jszip';
-import { FileKitService, FileRef, FileKitError } from '@sheldrapps/file-kit';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+import { FileKitService, FileRef } from '@sheldrapps/file-kit';
 import { TranslateService } from '@ngx-translate/core';
+import { EpubRewriteError, EpubRewriteService } from './epub-rewrite.service';
 
 export type CoverEntry = {
   filename: string;
@@ -9,13 +10,30 @@ export type CoverEntry = {
   thumbPath: string;
 };
 
+export type PreviewCoverResult = {
+  dataUrl: string | null;
+  source: 'cover-export' | 'thumb-fallback' | 'unavailable';
+};
+
+export type CoverAssetsResult = {
+  coverDataUrl: string | null;
+  thumbDataUrl: string | null;
+  previewDataUrl: string | null;
+};
+
 @Injectable({ providedIn: 'root' })
 export class FileService {
   private translate = inject(TranslateService);
 
   private readonly EPUB_FOLDER = 'EPUBCoverChanger';
+  private readonly COVER_FOLDER = 'EPUBCoverChangerCovers';
   private readonly THUMB_FOLDER = 'EPUBCoverChangerThumbs';
+  private readonly THUMB_MAX_WIDTH = 320;
+  private readonly THUMB_QUALITY = 0.82;
+  private readonly COVER_EXTRACT_MAX_BYTES = 30 * 1024 * 1024;
+  private readonly APP_NAME = 'EPUB Cover Changer';
   private fileKit = inject(FileKitService);
+  private epubRewrite = inject(EpubRewriteService);
 
   /**
    * Validate an EPUB file
@@ -28,41 +46,65 @@ export class FileService {
   }
 
   async validateEpubStructure(file: File): Promise<boolean> {
+    if (!this.epubRewrite.isSupported()) return false;
+    const tempName = `validate_${Date.now()}_${file.name || 'epub'}`;
+    const tempPath = `${this.EPUB_FOLDER}/${tempName}`;
     try {
-      const zip = await JSZip.loadAsync(await file.arrayBuffer());
-      const mimetypeEntry = zip.file('mimetype');
-      const containerEntry = zip.file('META-INF/container.xml');
-      if (!mimetypeEntry || !containerEntry) return false;
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      await this.fileKit.writeBytes({
+        dir: 'Cache',
+        path: tempPath,
+        bytes,
+        mimeType: 'application/epub+zip',
+      });
 
-      const mimetype = (await mimetypeEntry.async('text')).trim();
-      if (mimetype !== 'application/epub+zip') return false;
-
-      const opfPath = await this.resolveOpfPath(zip);
-      if (!opfPath || !zip.file(opfPath)) return false;
-
-      return true;
+      const uri = await this.fileKit.getUri({
+        dir: 'Cache',
+        path: tempPath,
+      });
+      const inspected = await this.epubRewrite.inspectEpub(uri);
+      return inspected.success;
     } catch {
       return false;
+    } finally {
+      try {
+        await this.fileKit.delete({ dir: 'Cache', path: tempPath });
+      } catch {
+        // best effort
+      }
     }
   }
 
   async extractCoverFromEpubFile(file: File): Promise<File | null> {
+    if (!this.epubRewrite.isSupported()) return null;
+    const tempName = `extract_${Date.now()}_${file.name || 'epub'}`;
+    const tempPath = `${this.EPUB_FOLDER}/${tempName}`;
     try {
-      const zip = await JSZip.loadAsync(await file.arrayBuffer());
-      const extracted = await this.extractCoverFromZip(zip);
-      if (!extracted) return null;
-
-      const ext = (extracted.name.split('.').pop() || 'jpg').toLowerCase();
-      const baseName = (file.name || 'epub')
-        .replace(/\.epub$/i, '')
-        .replace(/[^\w.-]/g, '_');
-      const coverName = `${baseName}_cover.${ext}`;
-
-      return new File([extracted.ab], coverName, {
-        type: this.mimeFromFilename(extracted.name),
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      await this.fileKit.writeBytes({
+        dir: 'Cache',
+        path: tempPath,
+        bytes,
+        mimeType: 'application/epub+zip',
       });
+      const uri = await this.fileKit.getUri({
+        dir: 'Cache',
+        path: tempPath,
+      });
+      const extracted = await this.epubRewrite.extractCoverAssetFile({
+        epubPath: uri,
+        maxBytes: this.COVER_EXTRACT_MAX_BYTES,
+        epubName: file.name || 'epub',
+      });
+      return extracted.file;
     } catch {
       return null;
+    } finally {
+      try {
+        await this.fileKit.delete({ dir: 'Cache', path: tempPath });
+      } catch {
+        // best effort
+      }
     }
   }
 
@@ -72,69 +114,21 @@ export class FileService {
     title?: string;
     filename?: string;
   }) {
-    const lang = this.getEpubLang();
-
-    const filename = this.ensureEpubExt(
-      this.sanitizeFilename(opts.filename ?? this.buildFilename(opts.modelId)),
-    );
-    const uniqueFilename = await this.getUniqueDocumentFilename(filename);
-    const epubPath = `${this.EPUB_FOLDER}/${uniqueFilename}`;
-
-    const epubBytes = await this.buildEpub({
-      appName: 'EPUB Cover Changer',
-      coverFile: opts.coverFile,
-      title: opts.title ?? 'EPUB Cover',
-      lang,
+    const generated = await this.generateEpubBytes(opts);
+    return this.saveGeneratedEpub({
+      bytes: generated.bytes,
+      filename: generated.filename,
+      coverFileForThumb: opts.coverFile,
     });
-
-    // Use file-kit instead of direct Filesystem call
-    const epubRef = await this.fileKit.writeBytes({
-      dir: 'Documents',
-      path: epubPath,
-      bytes: epubBytes,
-      mimeType: 'application/epub+zip',
-    });
-
-    const thumb = await this.buildThumbFromFile(opts.coverFile, uniqueFilename);
-
-    return {
-      path: epubPath,
-      uri: epubRef.uri,
-      filename: uniqueFilename,
-      thumbPath: thumb.thumbPath,
-      thumbFilename: thumb.thumbFilename,
-    };
   }
 
   async shareEpub(opts: { modelId: string; coverFile: File; title?: string }) {
-    const lang = this.getEpubLang();
-
-    const filename = this.buildFilename(opts.modelId);
-    const cachePath = `${this.EPUB_FOLDER}/${filename}`;
-
-    const epubBytes = await this.buildEpub({
-      appName: 'EPUB Cover Changer',
-      coverFile: opts.coverFile,
-      title: opts.title ?? 'EPUB Cover',
-      lang,
+    const generated = await this.generateEpubBytes(opts);
+    return this.shareGeneratedEpub({
+      bytes: generated.bytes,
+      filename: generated.filename,
+      title: opts.title,
     });
-
-    // Use file-kit to write to cache
-    const epubRef = await this.fileKit.writeBytes({
-      dir: 'Cache',
-      path: cachePath,
-      bytes: epubBytes,
-      mimeType: 'application/epub+zip',
-    });
-
-    // Use file-kit to share
-    await this.fileKit.share(epubRef, {
-      title: opts.title ?? 'EPUB Cover',
-      text: 'EPUB cover generated with EPUB Cover Changer',
-      dialogTitle: 'Share EPUB',
-    });
-
-    return { uri: epubRef.uri, filename };
   }
 
   getEpubFolder() {
@@ -203,6 +197,19 @@ export class FileService {
     } catch {
       // ignore thumb missing
     }
+
+    const coverBaseName = this.getBaseNameFromEpubFilename(filename);
+    const coverCandidates = this.getCoverExportCandidates(coverBaseName);
+    for (const candidate of coverCandidates) {
+      try {
+        await this.fileKit.delete({
+          dir: 'Data',
+          path: candidate.path,
+        });
+      } catch {
+        // ignore missing cover export variants
+      }
+    }
   }
 
   async shareCoverByFilename(filename: string) {
@@ -243,24 +250,106 @@ export class FileService {
   async getOrBuildThumbDataUrlForFilename(
     filename: string,
   ): Promise<string | null> {
-    const thumbPath = this.getThumbPathForEpubFilename(filename);
-
-    const existingB64 = await this.tryReadBase64FromFilesystem(thumbPath);
-    if (existingB64) return `data:image/jpeg;base64,${existingB64}`;
-
-    const rebuiltB64 = await this.tryRebuildThumbFromEpub(filename, thumbPath);
-    return rebuiltB64 ? `data:image/jpeg;base64,${rebuiltB64}` : null;
+    const assets = await this.ensureCoverAssets(filename, {
+      allowNativeExtract: false,
+    });
+    return assets.thumbDataUrl;
   }
 
-  private async buildThumbFromFile(coverFile: File, epubFilename: string) {
-    const baseName = epubFilename.replace(/\.epub$/i, '');
-    const thumbFilename = `${baseName}.jpg`;
-    const thumbPath = `${this.THUMB_FOLDER}/${thumbFilename}`;
+  async getBestPreviewCoverDataUrl(
+    filename: string,
+    opts?: { forceRebuildThumb?: boolean; allowNativeExtract?: boolean },
+  ): Promise<PreviewCoverResult> {
+    const assets = await this.ensureCoverAssets(filename, {
+      forceThumbRebuild: !!opts?.forceRebuildThumb,
+      allowNativeExtract: opts?.allowNativeExtract ?? true,
+    });
 
-    const thumbBase64 = await this.makeThumbnailBase64(coverFile, 320, 0.82);
+    if (assets.coverDataUrl) {
+      return {
+        dataUrl: assets.coverDataUrl,
+        source: 'cover-export',
+      };
+    }
+
+    if (assets.thumbDataUrl) {
+      return {
+        dataUrl: assets.thumbDataUrl,
+        source: 'thumb-fallback',
+      };
+    }
+
+    return { dataUrl: null, source: 'unavailable' };
+  }
+
+  async ensureCoverAssets(
+    epubFilename: string,
+    opts?: { forceThumbRebuild?: boolean; allowNativeExtract?: boolean },
+  ): Promise<CoverAssetsResult> {
+    let cover = await this.readCoverExport(epubFilename);
+    const thumbPath = this.getThumbPathForEpubFilename(epubFilename);
+    let thumbBase64 =
+      !opts?.forceThumbRebuild
+        ? await this.tryReadBase64FromFilesystem(thumbPath)
+        : null;
+
+    if (cover && (!thumbBase64 || opts?.forceThumbRebuild)) {
+      thumbBase64 = await this.persistThumbFromCoverExport(epubFilename, cover);
+    }
+
+    if (!cover && !thumbBase64) {
+      thumbBase64 = await this.tryReadBase64FromFilesystem(thumbPath);
+    }
+
+    if (!cover && (opts?.allowNativeExtract ?? true)) {
+      const extractedCover = await this.extractAndPersistCoverFromEpub(epubFilename);
+      if (extractedCover) {
+        cover = extractedCover;
+        if (!thumbBase64 || opts?.forceThumbRebuild) {
+          thumbBase64 = await this.persistThumbFromCoverExport(epubFilename, cover);
+        }
+      }
+    }
+
+    const thumbDataUrl = thumbBase64
+      ? `data:image/jpeg;base64,${thumbBase64}`
+      : null;
+    const coverDataUrl = cover
+      ? `data:${cover.mimeType};base64,${cover.base64}`
+      : null;
+
+    return {
+      coverDataUrl,
+      thumbDataUrl,
+      previewDataUrl: coverDataUrl ?? thumbDataUrl,
+    };
+  }
+
+  async hasCoverExportForFilename(epubFilename: string): Promise<boolean> {
+    const baseName = this.getBaseNameFromEpubFilename(epubFilename);
+    const candidates = this.getCoverExportCandidates(baseName);
+    for (const candidate of candidates) {
+      const exists = await this.fileKit.exists({
+        dir: 'Data',
+        path: candidate.path,
+      });
+      if (exists) return true;
+    }
+    return false;
+  }
+
+  private async persistCoverAssetsFromFile(coverFile: File, epubFilename: string) {
+    const cover = await this.persistCoverExportFromFile(coverFile, epubFilename);
+    const thumbBase64 = await this.arrayBufferToJpegThumbBase64(
+      this.toStrictArrayBuffer(cover.bytes),
+      cover.filename,
+      this.THUMB_MAX_WIDTH,
+      this.THUMB_QUALITY,
+    );
+    const thumbPath = this.getThumbPathForEpubFilename(epubFilename);
+    const thumbFilename = thumbPath.split('/').pop() || '';
     const thumbBytes = this.fileKit.fromBase64(thumbBase64);
 
-    // Use file-kit to write thumbnail
     await this.fileKit.writeBytes({
       dir: 'Data',
       path: thumbPath,
@@ -271,24 +360,23 @@ export class FileService {
     return { thumbPath, thumbFilename };
   }
 
-  private async tryRebuildThumbFromEpub(
+  private async persistThumbFromCoverExport(
     epubFilename: string,
-    thumbPath: string,
+    cover: { base64: string; mimeType: string; filename: string },
   ): Promise<string | null> {
     try {
-      const extracted = await this.extractCoverFromEpub(epubFilename);
-      if (!extracted) return null;
-
+      const coverBytes = this.base64ToUint8(cover.base64);
+      const coverArrayBuffer = this.toStrictArrayBuffer(coverBytes);
       const thumbBase64 = await this.arrayBufferToJpegThumbBase64(
-        extracted.ab,
-        extracted.name,
-        320,
-        0.82,
+        coverArrayBuffer,
+        cover.filename,
+        this.THUMB_MAX_WIDTH,
+        this.THUMB_QUALITY,
       );
+      const thumbPath = this.getThumbPathForEpubFilename(epubFilename);
 
       const thumbBytes = this.fileKit.fromBase64(thumbBase64);
 
-      // Use file-kit to write
       await this.fileKit.writeBytes({
         dir: 'Data',
         path: thumbPath,
@@ -334,6 +422,12 @@ export class FileService {
     }
 
     return btoa(binary);
+  }
+
+  private toStrictArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+    const out = new Uint8Array(bytes.byteLength);
+    out.set(bytes);
+    return out.buffer;
   }
 
   private async arrayBufferToJpegThumbBase64(
@@ -407,94 +501,6 @@ export class FileService {
     return trimmed.replace(/[\\/:*?"<>|\u0000-\u001F]/g, '_').slice(0, 120);
   }
 
-  private async buildEpub(params: {
-    appName: string;
-    coverFile: File;
-    title: string;
-    lang: string;
-  }) {
-    const zip = new JSZip();
-    zip.file('mimetype', 'application/epub+zip', { compression: 'STORE' });
-
-    const containerXml = `<?xml version="1.0" encoding="UTF-8"?>
-<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
-  <rootfiles>
-    <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
-  </rootfiles>
-</container>`;
-    zip.file('META-INF/container.xml', containerXml);
-
-    const coverExt = this.coverExtFromMime(params.coverFile.type);
-    const coverMediaType = this.coverMediaTypeFromMime(params.coverFile.type);
-    const coverFileName = `cover.${coverExt}`;
-    const coverId = 'cover-image';
-
-    const coverXhtml = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta charset="utf-8"/>
-    <title>Cover</title>
-    <style>
-      html, body { margin:0; padding:0; height:100%; }
-      body { display:flex; align-items:center; justify-content:center; }
-      img { max-width:100%; max-height:100%; }
-    </style>
-  </head>
-  <body>
-    <img src="${coverFileName}" alt="Cover"/>
-  </body>
-</html>`;
-
-    const navXhtml = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
-  <head>
-    <meta charset="utf-8"/>
-    <title>Navigation</title>
-  </head>
-  <body>
-    <nav epub:type="toc" id="toc">
-      <ol>
-        <li><a href="cover.xhtml">Cover</a></li>
-      </ol>
-    </nav>
-  </body>
-</html>`;
-
-    const contentOpf = `<?xml version="1.0" encoding="UTF-8"?>
-<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="3.0">
-  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-    <dc:identifier id="bookid">urn:uuid:${crypto.randomUUID()}</dc:identifier>
-    <dc:title>${this.escapeXml(params.title)}</dc:title>
-    <dc:language>${this.escapeXml(params.lang)}</dc:language>
-    <meta property="dcterms:modified">${new Date()
-      .toISOString()
-      .replace(/\.\d+Z$/, 'Z')}</meta>
-    <meta name="cover" content="${coverId}"/>
-  </metadata>
-
-  <manifest>
-    <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>
-    <item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>
-    <item id="${coverId}" href="${coverFileName}" media-type="${coverMediaType}" properties="cover-image"/>
-  </manifest>
-
-  <spine>
-    <itemref idref="cover"/>
-  </spine>
-</package>`;
-
-    zip.file('OEBPS/content.opf', contentOpf);
-    zip.file('OEBPS/nav.xhtml', navXhtml);
-    zip.file('OEBPS/cover.xhtml', coverXhtml);
-
-    const coverBytes = new Uint8Array(await params.coverFile.arrayBuffer());
-    zip.file(`OEBPS/${coverFileName}`, coverBytes);
-
-    return zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE' });
-  }
-
   private coverExtFromMime(mime: string): 'jpg' | 'png' | 'webp' {
     if (mime === 'image/png') return 'png';
     if (mime === 'image/webp') return 'webp';
@@ -565,25 +571,6 @@ export class FileService {
     });
   }
 
-  private escapeXml(s: string): string {
-    return s.replace(/[&<>"']/g, (ch) => {
-      switch (ch) {
-        case '&':
-          return '&amp;';
-        case '<':
-          return '&lt;';
-        case '>':
-          return '&gt;';
-        case '"':
-          return '&quot;';
-        case "'":
-          return '&apos;';
-        default:
-          return ch;
-      }
-    });
-  }
-
   private getEpubLang(): string {
     const raw =
       this.translate.currentLang ||
@@ -611,20 +598,62 @@ export class FileService {
     title?: string;
     filename?: string;
   }): Promise<{ bytes: Uint8Array; filename: string }> {
-    const lang = this.getEpubLang();
+    if (!this.epubRewrite.isSupported()) {
+      throw new Error('Native EPUB generation is only supported on Android.');
+    }
 
     const filename = this.ensureEpubExt(
       this.sanitizeFilename(opts.filename ?? this.buildFilename(opts.modelId)),
     );
 
-    const bytes = await this.buildEpub({
-      appName: 'EPUB Cover Changer',
-      coverFile: opts.coverFile,
-      title: opts.title ?? 'EPUB Cover',
-      lang,
-    });
+    const coverMime = opts.coverFile.type || this.mimeFromFilename(opts.coverFile.name);
+    const coverExt = this.coverExtFromMime(coverMime);
+    const nonce = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const tempCoverPath = `${this.EPUB_FOLDER}/tmp_cover_${nonce}.${coverExt}`;
+    const tempOutputPath = `${this.EPUB_FOLDER}/tmp_epub_${nonce}.epub`;
 
-    return { bytes, filename };
+    try {
+      const coverBytes = new Uint8Array(await opts.coverFile.arrayBuffer());
+      await this.fileKit.writeBytes({
+        dir: 'Cache',
+        path: tempCoverPath,
+        bytes: coverBytes,
+        mimeType: this.coverMediaTypeFromMime(coverMime),
+      });
+
+      await this.fileKit.writeBytes({
+        dir: 'Cache',
+        path: tempOutputPath,
+        bytes: new Uint8Array(),
+        mimeType: 'application/epub+zip',
+      });
+
+      const coverUri = await this.fileKit.getUri({
+        dir: 'Cache',
+        path: tempCoverPath,
+      });
+      const outputUri = await this.fileKit.getUri({
+        dir: 'Cache',
+        path: tempOutputPath,
+      });
+
+      await this.epubRewrite.createEpubFromCover({
+        coverPath: coverUri,
+        outputPath: outputUri,
+        title: opts.title ?? 'EPUB Cover',
+        lang: this.getEpubLang(),
+        appName: this.APP_NAME,
+      });
+
+      const bytes = await this.fileKit.readBytes({
+        dir: 'Cache',
+        path: tempOutputPath,
+      });
+
+      return { bytes, filename };
+    } finally {
+      await this.cleanupCachePaths([tempCoverPath, tempOutputPath]);
+    }
   }
 
   async generateEpubBytesFromSource(opts: {
@@ -632,28 +661,86 @@ export class FileService {
     coverFile: File;
     filename?: string;
   }): Promise<{ bytes: Uint8Array; filename: string }> {
-    const sourceZip = await JSZip.loadAsync(await opts.sourceEpubFile.arrayBuffer());
-    const coverPath = await this.findCoverPathInZip(sourceZip);
-    if (!coverPath) {
-      throw new Error('Could not locate cover image in source EPUB');
+    if (!this.epubRewrite.isSupported()) {
+      throw new Error('Native EPUB rewrite is only supported on Android.');
     }
 
-    const coverBytes = new Uint8Array(await opts.coverFile.arrayBuffer());
-    sourceZip.file(coverPath, coverBytes);
-
-    const bytes = await sourceZip.generateAsync({
-      type: 'uint8array',
-      compression: 'DEFLATE',
-    });
-
-    const fallbackName = this.ensureEpubExt(
-      this.sanitizeFilename(opts.sourceEpubFile.name || this.buildFilename('epub')),
-    );
+    const sourceName = opts.sourceEpubFile?.name || 'epub_cover.epub';
     const filename = this.ensureEpubExt(
-      this.sanitizeFilename(opts.filename ?? fallbackName),
+      this.sanitizeFilename(opts.filename ?? sourceName),
     );
+    const coverMime = opts.coverFile.type || this.mimeFromFilename(opts.coverFile.name);
+    const coverExt = this.coverExtFromMime(coverMime);
+    const nonce = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const tempSourcePath = `${this.EPUB_FOLDER}/tmp_source_${nonce}.epub`;
+    const tempCoverPath = `${this.EPUB_FOLDER}/tmp_cover_${nonce}.${coverExt}`;
+    const tempOutputPath = `${this.EPUB_FOLDER}/tmp_output_${nonce}.epub`;
 
-    return { bytes, filename };
+    try {
+      const [sourceBytes, coverBytes] = await Promise.all([
+        opts.sourceEpubFile.arrayBuffer(),
+        opts.coverFile.arrayBuffer(),
+      ]);
+
+      await Promise.all([
+        this.fileKit.writeBytes({
+          dir: 'Cache',
+          path: tempSourcePath,
+          bytes: new Uint8Array(sourceBytes),
+          mimeType: 'application/epub+zip',
+        }),
+        this.fileKit.writeBytes({
+          dir: 'Cache',
+          path: tempCoverPath,
+          bytes: new Uint8Array(coverBytes),
+          mimeType: this.coverMediaTypeFromMime(coverMime),
+        }),
+        this.fileKit.writeBytes({
+          dir: 'Cache',
+          path: tempOutputPath,
+          bytes: new Uint8Array(),
+          mimeType: 'application/epub+zip',
+        }),
+      ]);
+
+      const [sourceUri, coverUri, outputUri] = await Promise.all([
+        this.fileKit.getUri({ dir: 'Cache', path: tempSourcePath }),
+        this.fileKit.getUri({ dir: 'Cache', path: tempCoverPath }),
+        this.fileKit.getUri({ dir: 'Cache', path: tempOutputPath }),
+      ]);
+
+      const inspected = await this.epubRewrite.inspectEpub(sourceUri);
+      if (!inspected.success || !inspected.coverEntryPath) {
+        throw new EpubRewriteError(inspected.error ?? 'NO_COVER', {
+          message: inspected.message,
+          stage: inspected.stage,
+        });
+      }
+
+      const rewritten = await this.epubRewrite.rewriteCover({
+        inputPath: sourceUri,
+        outputPath: outputUri,
+        coverEntryPath: inspected.coverEntryPath,
+        newCoverPath: coverUri,
+      });
+
+      if (!rewritten.success) {
+        throw new EpubRewriteError(rewritten.error ?? 'REWRITE_FAILED', {
+          message: rewritten.message,
+          stage: rewritten.stage,
+          coverEntryPath: inspected.coverEntryPath,
+        });
+      }
+
+      const bytes = await this.fileKit.readBytes({
+        dir: 'Cache',
+        path: tempOutputPath,
+      });
+
+      return { bytes, filename };
+    } finally {
+      await this.cleanupCachePaths([tempSourcePath, tempCoverPath, tempOutputPath]);
+    }
   }
 
   async saveGeneratedEpub(opts: {
@@ -673,7 +760,7 @@ export class FileService {
       mimeType: 'application/epub+zip',
     });
 
-    const thumb = await this.buildThumbFromFile(
+    const assets = await this.persistCoverAssetsFromFile(
       opts.coverFileForThumb,
       uniqueFilename,
     );
@@ -682,8 +769,44 @@ export class FileService {
       path: epubPath,
       uri: epubRef.uri,
       filename: uniqueFilename,
-      thumbPath: thumb.thumbPath,
-      thumbFilename: thumb.thumbFilename,
+      thumbPath: assets.thumbPath,
+      thumbFilename: assets.thumbFilename,
+    };
+  }
+
+  async saveGeneratedEpubFromPath(opts: {
+    sourcePath: string;
+    sourceDir: 'Data' | 'Documents' | 'Cache';
+    filename: string;
+    coverFileForThumb: File;
+  }) {
+    const filename = this.ensureEpubExt(this.sanitizeFilename(opts.filename));
+    const uniqueFilename = await this.getUniqueDocumentFilename(filename);
+    const epubPath = `${this.EPUB_FOLDER}/${uniqueFilename}`;
+
+    await Filesystem.copy({
+      from: opts.sourcePath,
+      directory: this.mapDirectory(opts.sourceDir),
+      to: epubPath,
+      toDirectory: Directory.Documents,
+    });
+
+    const uri = await this.fileKit.getUri({
+      dir: 'Documents',
+      path: epubPath,
+    });
+
+    const assets = await this.persistCoverAssetsFromFile(
+      opts.coverFileForThumb,
+      uniqueFilename,
+    );
+
+    return {
+      path: epubPath,
+      uri,
+      filename: uniqueFilename,
+      thumbPath: assets.thumbPath,
+      thumbFilename: assets.thumbFilename,
     };
   }
 
@@ -714,24 +837,12 @@ export class FileService {
       throw new Error(`File not found: ${fromPath}`);
     }
 
-    const epubBytes = await this.fileKit.readBytes({
-      dir: 'Documents',
-      path: fromPath,
+    await Filesystem.rename({
+      from: fromPath,
+      to: toPath,
+      directory: Directory.Documents,
+      toDirectory: Directory.Documents,
     });
-
-    await this.fileKit.writeBytes({
-      dir: 'Documents',
-      path: toPath,
-      bytes: epubBytes,
-      mimeType: 'application/epub+zip',
-    });
-
-    try {
-      await this.fileKit.delete({
-        dir: 'Documents',
-        path: fromPath,
-      });
-    } catch {}
 
     const fromThumbPath = this.getThumbPathForEpubFilename(fromFilename);
     const toThumbPath = this.getThumbPathForEpubFilename(toFilename);
@@ -741,24 +852,35 @@ export class FileService {
     });
 
     if (thumbExists) {
-      const thumbBytes = await this.fileKit.readBytes({
-        dir: 'Data',
-        path: fromThumbPath,
+      await Filesystem.rename({
+        from: fromThumbPath,
+        to: toThumbPath,
+        directory: Directory.Data,
+        toDirectory: Directory.Data,
       });
+    }
 
-      await this.fileKit.writeBytes({
+    const fromCoverBase = this.getBaseNameFromEpubFilename(fromFilename);
+    const toCoverBase = this.getBaseNameFromEpubFilename(toFilename);
+    const fromCovers = this.getCoverExportCandidates(fromCoverBase);
+    const toCovers = this.getCoverExportCandidates(toCoverBase);
+
+    for (const fromCover of fromCovers) {
+      const exists = await this.fileKit.exists({
         dir: 'Data',
-        path: toThumbPath,
-        bytes: thumbBytes,
-        mimeType: 'image/jpeg',
+        path: fromCover.path,
       });
+      if (!exists) continue;
 
-      try {
-        await this.fileKit.delete({
-          dir: 'Data',
-          path: fromThumbPath,
-        });
-      } catch {}
+      const toCover = toCovers.find((candidate) => candidate.ext === fromCover.ext);
+      if (!toCover) continue;
+
+      await Filesystem.rename({
+        from: fromCover.path,
+        to: toCover.path,
+        directory: Directory.Data,
+        toDirectory: Directory.Data,
+      });
     }
 
     return {
@@ -802,6 +924,51 @@ export class FileService {
     await this.deleteCoverByFilename(filename);
   }
 
+  async shareGeneratedEpubFromPath(opts: {
+    sourcePath: string;
+    sourceDir: 'Data' | 'Documents' | 'Cache';
+    filename: string;
+    title?: string;
+  }) {
+    const filename = this.ensureEpubExt(this.sanitizeFilename(opts.filename));
+    const cachePath = `${this.EPUB_FOLDER}/${filename}`;
+
+    try {
+      await this.fileKit.delete({
+        dir: 'Cache',
+        path: cachePath,
+      });
+    } catch {
+      // cache file may not exist yet
+    }
+
+    await Filesystem.copy({
+      from: opts.sourcePath,
+      directory: this.mapDirectory(opts.sourceDir),
+      to: cachePath,
+      toDirectory: Directory.Cache,
+    });
+
+    const uri = await this.fileKit.getUri({
+      dir: 'Cache',
+      path: cachePath,
+    });
+
+    const fileRef: FileRef = {
+      uri,
+      filename,
+      mimeType: 'application/epub+zip',
+    };
+
+    await this.fileKit.share(fileRef, {
+      title: opts.title ?? 'EPUB Cover',
+      text: 'EPUB cover generated with EPUB Cover Changer',
+      dialogTitle: 'Share EPUB',
+    });
+
+    return { uri, filename };
+  }
+
   async shareGeneratedEpub(opts: {
     bytes: Uint8Array;
     filename: string;
@@ -831,189 +998,152 @@ export class FileService {
   async getCoverDataUrlForFilename(
     epubFilename: string,
   ): Promise<string | null> {
-    const extracted = await this.extractCoverFromEpub(epubFilename);
-    if (!extracted) return null;
-
-    return this.arrayBufferToDataUrl(extracted.ab, extracted.name);
+    const preview = await this.getBestPreviewCoverDataUrl(epubFilename);
+    return preview.dataUrl;
   }
 
-  private async extractCoverFromEpub(
-    epubFilename: string,
-  ): Promise<{ ab: ArrayBuffer; name: string } | null> {
-    try {
-      const epubPath = `${this.EPUB_FOLDER}/${epubFilename}`;
+  private async persistCoverExportFromFile(coverFile: File, epubFilename: string) {
+    const ext = this.coverExtFromMime(coverFile.type || this.mimeFromFilename(coverFile.name));
+    const filename = `${this.getBaseNameFromEpubFilename(epubFilename)}.${ext}`;
+    const coverPath = `${this.COVER_FOLDER}/${filename}`;
+    const mimeType = this.coverMediaTypeFromMime(coverFile.type);
+    const bytes = new Uint8Array(await coverFile.arrayBuffer());
 
-      const epubB64 = await this.tryReadBase64FromFilesystem(
-        epubPath,
-        'Documents',
-      );
-      if (!epubB64) {
-        console.warn(`[file.service] Could not read EPUB file: ${epubPath}`);
-        return null;
-      }
+    await this.fileKit.writeBytes({
+      dir: 'Data',
+      path: coverPath,
+      bytes,
+      mimeType,
+    });
 
-      const epubBytes = this.base64ToUint8(epubB64);
-      const zip = await JSZip.loadAsync(epubBytes);
-      return this.extractCoverFromZip(zip);
-    } catch {
-      return null;
-    }
+    await this.removeOtherCoverExportVariants(epubFilename, ext);
+
+    return { coverPath, filename, mimeType, bytes };
   }
 
-  private async extractCoverFromZip(
-    zip: JSZip,
-  ): Promise<{ ab: ArrayBuffer; name: string } | null> {
-    const opfPath = await this.resolveOpfPath(zip);
-    if (opfPath) {
-      const coverFromOpf = await this.findCoverFromOpf(zip, opfPath);
-      if (coverFromOpf) return coverFromOpf;
-    }
+  private async readCoverExport(epubFilename: string): Promise<{
+    path: string;
+    filename: string;
+    base64: string;
+    mimeType: string;
+  } | null> {
+    const baseName = this.getBaseNameFromEpubFilename(epubFilename);
+    const candidates = this.getCoverExportCandidates(baseName);
 
-    const commonCover = this.findCommonCoverFile(zip);
-    if (commonCover) {
-      const ab = await commonCover.async('arraybuffer');
-      return { ab, name: commonCover.name };
+    for (const candidate of candidates) {
+      const exists = await this.fileKit.exists({
+        dir: 'Data',
+        path: candidate.path,
+      });
+      if (!exists) continue;
+      const base64 = await this.tryReadBase64FromFilesystem(candidate.path);
+      if (!base64) continue;
+      return {
+        path: candidate.path,
+        filename: candidate.filename,
+        base64,
+        mimeType: candidate.mimeType,
+      };
     }
 
     return null;
   }
 
-  private async resolveOpfPath(zip: JSZip): Promise<string | null> {
-    const container = zip.file('META-INF/container.xml');
-    if (!container) return null;
+  private async extractAndPersistCoverFromEpub(epubFilename: string): Promise<{
+    path: string;
+    filename: string;
+    base64: string;
+    mimeType: string;
+  } | null> {
+    if (!this.epubRewrite.isSupported()) return null;
 
-    const xml = await container.async('text');
-    const match = xml.match(/full-path\s*=\s*["']([^"']+)["']/i);
-    return match?.[1] ?? null;
-  }
-
-  private async findCoverFromOpf(
-    zip: JSZip,
-    opfPath: string,
-  ): Promise<{ ab: ArrayBuffer; name: string } | null> {
-    const coverPath = await this.findCoverPathFromOpf(zip, opfPath);
-    if (!coverPath) return null;
-
-    const coverEntry = zip.file(coverPath);
-    if (!coverEntry) return null;
-
-    const ab = await coverEntry.async('arraybuffer');
-    return { ab, name: coverEntry.name };
-  }
-
-  private async findCoverPathFromOpf(
-    zip: JSZip,
-    opfPath: string,
-  ): Promise<string | null> {
-    const opfEntry = zip.file(opfPath);
-    if (!opfEntry) return null;
-
-    const opfXml = await opfEntry.async('text');
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(opfXml, 'application/xml');
-
-    const items = Array.from(doc.getElementsByTagName('item'));
-    const coverByProperty = items.find((item) =>
-      (item.getAttribute('properties') || '')
-        .toLowerCase()
-        .split(/\s+/)
-        .includes('cover-image'),
-    );
-
-    let coverHref = coverByProperty?.getAttribute('href') ?? null;
-
-    if (!coverHref) {
-      const metas = Array.from(doc.getElementsByTagName('meta'));
-      const coverMeta = metas.find(
-        (meta) => (meta.getAttribute('name') || '').toLowerCase() === 'cover',
-      );
-      const coverId = coverMeta?.getAttribute('content');
-      if (coverId) {
-        coverHref =
-          items.find((item) => item.getAttribute('id') === coverId)?.getAttribute('href') ??
-          null;
-      }
-    }
-
-    if (!coverHref) {
-      const fallbackItem = items.find((item) => {
-        const href = (item.getAttribute('href') || '').toLowerCase();
-        const mediaType = (item.getAttribute('media-type') || '').toLowerCase();
-        return mediaType.startsWith('image/') && href.includes('cover');
+    const epubPath = `${this.EPUB_FOLDER}/${epubFilename}`;
+    try {
+      const epubUri = await this.fileKit.getUri({
+        dir: 'Documents',
+        path: epubPath,
       });
-      coverHref = fallbackItem?.getAttribute('href') ?? null;
+
+      const extracted = await this.epubRewrite.extractCoverAssetFile({
+        epubPath: epubUri,
+        maxBytes: this.COVER_EXTRACT_MAX_BYTES,
+        epubName: epubFilename,
+      });
+
+      await this.persistCoverAssetsFromFile(extracted.file, epubFilename);
+      return this.readCoverExport(epubFilename);
+    } catch (error) {
+      console.warn(
+        `[file.service] Native cover extraction failed for ${epubFilename}:`,
+        error,
+      );
+      return null;
     }
-
-    if (!coverHref) return null;
-
-    const opfDir = opfPath.includes('/') ? opfPath.slice(0, opfPath.lastIndexOf('/')) : '';
-    const resolvedPath = this.resolveRelativePath(opfDir, coverHref);
-    return zip.file(resolvedPath) ? resolvedPath : null;
   }
 
-  private async findCoverPathInZip(zip: JSZip): Promise<string | null> {
-    const opfPath = await this.resolveOpfPath(zip);
-    if (opfPath) {
-      const coverPathFromOpf = await this.findCoverPathFromOpf(zip, opfPath);
-      if (coverPathFromOpf) return coverPathFromOpf;
-    }
-
-    const common = this.findCommonCoverFile(zip);
-    return common?.name ?? null;
-  }
-
-  private findCommonCoverFile(zip: JSZip) {
-    const commonPaths = [
-      'OEBPS/cover.jpg',
-      'OEBPS/cover.jpeg',
-      'OEBPS/cover.png',
-      'OEBPS/cover.webp',
-      'cover.jpg',
-      'cover.jpeg',
-      'cover.png',
-      'cover.webp',
+  private getCoverExportCandidates(baseName: string): Array<{
+    path: string;
+    filename: string;
+    mimeType: string;
+    ext: 'jpg' | 'png' | 'webp';
+  }> {
+    const variants: Array<{ ext: 'jpg' | 'png' | 'webp'; mimeType: string }> = [
+      { ext: 'jpg', mimeType: 'image/jpeg' },
+      { ext: 'png', mimeType: 'image/png' },
+      { ext: 'webp', mimeType: 'image/webp' },
     ];
 
-    for (const path of commonPaths) {
-      const entry = zip.file(path);
-      if (entry) return entry;
-    }
-
-    const all = Object.values(zip.files);
-    const coverNamed = all.find((entry) => {
-      if (entry.dir) return false;
-      const name = entry.name.toLowerCase();
-      return (
-        /\.(jpg|jpeg|png|webp)$/i.test(name) &&
-        name.includes('cover')
-      );
+    return variants.map((variant) => {
+      const filename = `${baseName}.${variant.ext}`;
+      return {
+        ...variant,
+        filename,
+        path: `${this.COVER_FOLDER}/${filename}`,
+      };
     });
-    if (coverNamed) return coverNamed;
-
-    return all.find((entry) => !entry.dir && /\.(jpg|jpeg|png|webp)$/i.test(entry.name));
   }
 
-  private resolveRelativePath(baseDir: string, href: string): string {
-    const normalizedHref = href.replace(/\\/g, '/');
-    if (/^[a-z]+:\/\//i.test(normalizedHref)) return normalizedHref;
+  private async removeOtherCoverExportVariants(
+    epubFilename: string,
+    keepExt: 'jpg' | 'png' | 'webp',
+  ): Promise<void> {
+    const baseName = this.getBaseNameFromEpubFilename(epubFilename);
+    const candidates = this.getCoverExportCandidates(baseName).filter(
+      (candidate) => candidate.ext !== keepExt,
+    );
 
-    const merged = `${baseDir ? `${baseDir}/` : ''}${normalizedHref}`;
-    const out: string[] = [];
-    for (const part of merged.split('/')) {
-      if (!part || part === '.') continue;
-      if (part === '..') {
-        out.pop();
-        continue;
+    for (const candidate of candidates) {
+      try {
+        await this.fileKit.delete({
+          dir: 'Data',
+          path: candidate.path,
+        });
+      } catch {
+        // best effort cleanup
       }
-      out.push(part);
     }
-    return out.join('/');
   }
 
-  private arrayBufferToDataUrl(ab: ArrayBuffer, filename: string): string {
-    const mime = this.mimeFromFilename(filename);
-    const b64 = this.arrayBufferToBase64(ab);
-    return `data:${mime};base64,${b64}`;
+  private getBaseNameFromEpubFilename(epubFilename: string): string {
+    return epubFilename.replace(/\.epub$/i, '');
+  }
+
+  private async cleanupCachePaths(paths: string[]): Promise<void> {
+    await Promise.all(
+      paths.map(async (path) => {
+        try {
+          await this.fileKit.delete({ dir: 'Cache', path });
+        } catch {
+          // best effort cleanup
+        }
+      }),
+    );
+  }
+
+  private mapDirectory(dir: 'Data' | 'Documents' | 'Cache'): Directory {
+    if (dir === 'Data') return Directory.Data;
+    if (dir === 'Cache') return Directory.Cache;
+    return Directory.Documents;
   }
 }
 

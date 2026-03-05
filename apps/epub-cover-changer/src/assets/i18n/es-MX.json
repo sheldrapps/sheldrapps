@@ -3,13 +3,13 @@
     "TITLE": "EPUB Cover Changer"
   },
   "COMMON": {
-    "BACK_AGAIN_TO_EXIT": "Vuelve atrás de nuevo para salir",
+    "BACK_AGAIN_TO_EXIT": "Vuelve atras de nuevo para salir",
     "CANCEL": "Cancelar",
     "CLOSE": "Cerrar",
     "DELETE": "Eliminar",
     "DONE": "Listo",
     "ERROR": "Error",
-    "LOADING": "Cargando…",
+    "LOADING": "Cargando...",
     "SHARE": "Compartir",
     "SHARE_KINDLE_HINT": "Al compartir, selecciona la app Kindle para enviarla a tu dispositivo.",
     "WARNING": "Advertencia"
@@ -24,11 +24,16 @@
     "CROP_ACTION": "Ajustar",
     "COVER_CHANGED": "Portada cambiada. Ya puedes guardar o compartir",
     "CHANGE_ACTION_REWARDED": "Cambiar portada (ver anuncio)",
-    "GENERATING": "Cargando anuncio…",
-    "HINT_SAVE_SHARE_EXPLAIN": "cambiar la portada no la guarda automáticamente.",
+    "EPUB_ERROR_CORRUPT": "No se pudo leer el EPUB. Prueba con otro archivo.",
+    "EPUB_ERROR_NO_COVER": "Este EPUB no tiene una portada reemplazable.",
+    "EPUB_ERROR_REWRITE": "No se pudo procesar el EPUB. Intentalo de nuevo.",
+    "EPUB_ERROR_SIZE": "El archivo pesa demasiado. Maximo {{maxSize}} MB.",
+    "EPUB_ERROR_TYPE": "Archivo EPUB no compatible.",
+    "GENERATING": "Cargando anuncio...",
+    "HINT_SAVE_SHARE_EXPLAIN": "Cambiar la portada no la guarda automaticamente.",
     "INFO": "Info",
-    "INFO_ARIA": "Información sobre cambiar portada",
-    "INFO_TITLE": "Información",
+    "INFO_ARIA": "Informacion sobre cambiar portada",
+    "INFO_TITLE": "Informacion",
     "INFO_FLOW_LABEL": "Orden recomendado:",
     "INFO_STEP_1": "Seleccionar EPUB.",
     "INFO_STEP_1_1": "1.1. Se precarga la portada original.",
@@ -37,15 +42,22 @@
     "INFO_STEP_3": "Ver anuncio para guardar portada.",
     "INFO_STEP_4": "Guardar o compartir.",
     "IMAGE_ERROR_CORRUPT": "No se pudo leer la imagen. Prueba con otra.",
-    "IMAGE_ERROR_SIZE": "El archivo pesa demasiado. Máximo {{maxSize}} MB.",
+    "IMAGE_ERROR_SIZE": "El archivo pesa demasiado. Maximo {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Formato no compatible ({{type}}). Selecciona JPG, PNG o WebP.",
-    "IMAGE_WARN_SMALL": "La imagen puede ser demasiado pequeña para algunos dispositivos",
-    "LOADING_EPUB": "Cargando EPUB…",
-    "LOADING_IMAGE": "Cargando imagen…",
-    "OPENING_EDITOR": "Abriendo editor…",
+    "IMAGE_WARN_SMALL": "La imagen puede ser demasiado pequena para algunos dispositivos",
+    "IMAGE_WARN_INVALID_EPUB_COVER": "Portada invalida en el EPUB. Toca para elegir una nueva imagen.",
+    "LOADING_EPUB": "Cargando EPUB...",
+    "EPUB_LOADING_COPY": "Copiando EPUB grande...",
+    "EPUB_LOADING_INSPECT": "Analizando estructura del EPUB...",
+    "LOADING_IMAGE": "Cargando imagen...",
+    "OPENING_EDITOR": "Abriendo editor...",
+    "CHANGING_COVER": "Cambiando portada...",
+    "GETTING_COVER": "Obteniendo portada",
+    "PROCESSING_LARGE_EPUB": "Procesando EPUB grande...",
+    "PROCESS_CANCELLED": "Proceso cancelado",
     "SELECT_EPUB_LABEL": "Archivo EPUB",
     "SELECT_EPUB_PLACEHOLDER": "Selecciona un archivo EPUB",
-    "SAVING": "Guardando portada…",
+    "SAVING": "Guardando portada...",
     "SAVED_OK": "Portada guardada",
     "SAVE_RENAME_TITLE": "Guardar portada",
     "SAVE_RENAME_MESSAGE": "Ingresa el nombre para la portada",
@@ -53,14 +65,18 @@
     "SAVE_ACTION": "Guardar",
     "SELECT_IMAGE_LABEL": "Imagen de portada",
     "SELECT_IMAGE_PLACEHOLDER": "Selecciona una imagen",
+    "INVALID_COVER_TAP_TO_CHANGE": "Portada invalida, toca para cambiar",
     "TAP_TO_CHANGE": "Toca para cambiar/reiniciar",
     "TAP_TO_CHANGE_IMAGE": "Toca para cambiar",
     "TITLE": "Cambiar portada"
   },
   "COVERS": {
     "DELETED": "EPUB eliminado",
-    "EMPTY": "No hay EPUBs todavía.",
+    "EMPTY": "No hay EPUBs todavia.",
+    "GENERATE_THUMB": "Generar miniatura",
+    "LOADING_PREVIEW": "Cargando vista previa...",
     "PLACEHOLDER": "EPUB",
+    "PREVIEW_UNAVAILABLE": "Vista previa no disponible.",
     "PREVIEW_TITLE": "Vista previa",
     "TITLE": "Mis EPUBs",
     "ACTIONS": {
@@ -68,12 +84,12 @@
       "SHARE": "Compartir"
     },
     "DELETE": {
-      "MESSAGE": "¿Quieres eliminar este EPUB?",
+      "MESSAGE": "Quieres eliminar este EPUB?",
       "TITLE": "Eliminar EPUB"
     },
     "ERROR": {
-      "DELETE": "No se pudo eliminar el EPUB. Inténtalo de nuevo.",
-      "SHARE": "No se pudo compartir el EPUB. Inténtalo de nuevo.",
+      "DELETE": "No se pudo eliminar el EPUB. Intentalo de nuevo.",
+      "SHARE": "No se pudo compartir el EPUB. Intentalo de nuevo.",
       "LOAD": "No se pudieron cargar tus EPUBs. Arrastra hacia abajo para intentar de nuevo.",
       "PREVIEW": "No se pudo cargar la vista previa. Intenta de nuevo."
     }
@@ -85,27 +101,25 @@
     "STEP_3": "Ve el anuncio para cambiar la portada del EPUB",
     "STEP_4": "Guarda o comparte el EPUB actualizado",
     "STEP_4_DESC": "Cuando este listo, puedes guardarlo en tu dispositivo o compartirlo con la app Kindle para una transicion mas suave.",
-    "STEP_5": "Enviar vía web (Send to Kindle)",
-    "STEP_5_DESC": "También puedes enviarla desde el navegador usando la herramienta web Send to Kindle.",
-    "TIP": "Para mejores resultados, usa imágenes en alta resolución y asegúrate de que los anuncios estén desactivados en tu Kindle.",
-    "TITLE": "Cómo cambiar una portada para Kindle"
+    "STEP_5": "Enviar via web (Send to Kindle)",
+    "STEP_5_DESC": "Tambien puedes enviarla desde el navegador usando la herramienta web Send to Kindle.",
+    "TIP": "Para mejores resultados, usa imagenes en alta resolucion y asegurate de que los anuncios esten desactivados en tu Kindle.",
+    "TITLE": "Como cambiar una portada para Kindle"
   },
-
   "SETTINGS": {
     "INSTRUCTIONS": "Ver instrucciones",
-    "INSTRUCTIONS_HINT": "Cómo cambiar y enviar una portada a Kindle",
+    "INSTRUCTIONS_HINT": "Como cambiar y enviar una portada a Kindle",
     "INSTRUCTIONS_SECTION": "Instrucciones",
     "LANGUAGE": "Idioma",
-    "PRIVACY_HINT": "Controla cómo se manejan los datos y la publicidad",
+    "PRIVACY_HINT": "Controla como se manejan los datos y la publicidad",
     "PRIVACY_OPTIONS": "Opciones de privacidad",
-    "PRIVACY_POLICY": "Política de privacidad",
+    "PRIVACY_POLICY": "Politica de privacidad",
     "PRIVACY_SECTION": "Privacidad",
-
-    "TITLE": "Configuración"
+    "TITLE": "Configuracion"
   },
   "TABS": {
     "COVERS": "Mis EPUBs",
     "CHANGE": "Cambiar",
-    "SETTINGS": "Configuración"
+    "SETTINGS": "Configuracion"
   }
 }

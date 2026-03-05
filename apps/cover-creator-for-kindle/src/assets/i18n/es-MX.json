@@ -63,7 +63,9 @@
   },
   "COVERS": {
     "DELETED": "Portada eliminada",
-    "EMPTY": "No hay portadas todavía.",
+    "EMPTY": "No hay portadas todav�a.",
+    "GETTING_COVER": "Obteniendo portada",
+    "LOADING_PREVIEW": "Cargando vista previa...",
     "PLACEHOLDER": "Portada",
     "PREVIEW_TITLE": "Vista previa",
     "TITLE": "Portadas",
@@ -155,3 +157,6 @@
     "SETTINGS": "Configuración"
   }
 }
+
+
+

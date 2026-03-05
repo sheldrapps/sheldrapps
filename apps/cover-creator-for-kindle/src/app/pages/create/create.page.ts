@@ -71,7 +71,7 @@ import { playCircleOutline } from 'ionicons/icons';
 import { CoversEventsService } from '../../services/covers-events.service';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastOptions } from '@ionic/angular';
-import { SaveCoverModalComponent } from './save-cover-modal.component';
+import { SaveCoverModalComponent } from '@sheldrapps/ui-theme';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { CcfkSettings } from '../../settings/ccfk-settings.schema';
 
@@ -79,6 +79,8 @@ type EditorResult = {
   file: File;
   state?: CoverCropState;
   formatId?: string;
+  renderedWidth?: number;
+  renderedHeight?: number;
 };
 
 @Component({
@@ -184,6 +186,7 @@ export class CreatePage implements OnInit, OnDestroy {
   previewOpen = false;
   private previewLongPressTimer: ReturnType<typeof setTimeout> | null = null;
   private suppressNextImagePick = false;
+  private readonly warnDebugKey = 'cc_warn_debug';
 
   async ngOnInit() {
     this.groups = await this.catalog.getGroups();
@@ -324,8 +327,8 @@ export class CreatePage implements OnInit, OnDestroy {
       await this.settings.set({ kindleModelId: this.selectedModel.id });
     }
 
-    if (opts.applyWarn && this.selectedImageFile && this.selectedImageDims) {
-      this.applySmallWarn();
+    if (opts.applyWarn && this.workingImageFile && this.selectedImageDims) {
+      await this.applySmallWarn('model-change');
     }
   }
 
@@ -379,7 +382,7 @@ export class CreatePage implements OnInit, OnDestroy {
       this.selectedImageDims = workingDims ?? originalDims;
       this.selectedImageName = working.name;
 
-      this.applySmallWarn(originalDims);
+      await this.applySmallWarn('image-selected', originalDims);
 
       this.revokePreviewUrl();
       this.previewUrl = URL.createObjectURL(working);
@@ -389,16 +392,46 @@ export class CreatePage implements OnInit, OnDestroy {
     }
   }
 
-  private applySmallWarn(originalDims?: { width: number; height: number }) {
+  private async applySmallWarn(
+    reason: 'image-selected' | 'editor-apply' | 'model-change',
+    legacyDimsHint?: { width: number; height: number },
+    exportDimsHint?: { width: number; height: number },
+  ): Promise<void> {
     this.clearImageWarn();
     if (!this.selectedModel) return;
 
-    const baseDims = originalDims ?? this.selectedImageDims;
-    if (!baseDims) return;
-
-    const params = this.imagePipe.getSmallWarnParams(baseDims, {
+    const target = {
       width: this.selectedModel.width,
       height: this.selectedModel.height,
+    };
+    const legacyDims = legacyDimsHint ?? this.selectedImageDims ?? null;
+    const exportDims =
+      exportDimsHint ??
+      (await this.resolveExportDimsForSmallWarn());
+
+    // Enforce export-based validation only.
+    if (!exportDims) {
+      this.debugSmallWarn({
+        reason,
+        modelId: this.selectedModel.id,
+        target,
+        exportDims,
+        legacyDims,
+        usedDims: null,
+        willWarn: false,
+      });
+      return;
+    }
+
+    const params = this.imagePipe.getSmallWarnParams(exportDims, target);
+    this.debugSmallWarn({
+      reason,
+      modelId: this.selectedModel.id,
+      target,
+      exportDims,
+      legacyDims,
+      usedDims: exportDims,
+      willWarn: !!params,
     });
     if (!params) return;
 
@@ -430,6 +463,11 @@ export class CreatePage implements OnInit, OnDestroy {
       component: SaveCoverModalComponent,
       componentProps: {
         initialFilename: nameWithoutExt,
+        title: this.translate.instant('CREATE.SAVE_RENAME_TITLE'),
+        message: this.translate.instant('CREATE.SAVE_RENAME_MESSAGE'),
+        placeholder: this.translate.instant('CREATE.SAVE_RENAME_PLACEHOLDER'),
+        cancelText: this.translate.instant('COMMON.CANCEL'),
+        confirmText: this.translate.instant('COMMON.DONE'),
       },
       initialBreakpoint: 0.6,
       breakpoints: [0, 0.6, 1],
@@ -803,9 +841,59 @@ export class CreatePage implements OnInit, OnDestroy {
       this.selectedImageDims = dims;
     }
 
-    this.applySmallWarn();
+    const exportDimsFromEditor = this.extractEditorExportDims(result);
+    await this.applySmallWarn('editor-apply', undefined, exportDimsFromEditor);
 
     await this.updatePreviewFromComposition();
+  }
+
+  private extractEditorExportDims(
+    result: EditorResult,
+  ): { width: number; height: number } | undefined {
+    if (
+      Number.isFinite(result.renderedWidth) &&
+      Number.isFinite(result.renderedHeight)
+    ) {
+      return {
+        width: Math.max(1, Math.round(result.renderedWidth as number)),
+        height: Math.max(1, Math.round(result.renderedHeight as number)),
+      };
+    }
+    return undefined;
+  }
+
+  private async resolveExportDimsForSmallWarn(): Promise<{
+    width: number;
+    height: number;
+  } | null> {
+    const exportFile = this.exportImageFile ?? (await this.ensureExportImageFile());
+    if (!exportFile) return null;
+    const dims = await this.imagePipe.getDimensions(exportFile);
+    return dims ?? null;
+  }
+
+  private debugSmallWarn(data: {
+    reason: string;
+    modelId?: string;
+    target: { width: number; height: number };
+    exportDims: { width: number; height: number } | null;
+    legacyDims: { width: number; height: number } | null;
+    usedDims: { width: number; height: number } | null;
+    willWarn: boolean;
+  }): void {
+    if (!this.isSmallWarnDebugEnabled()) return;
+    console.info('[CCFK][SMALL_WARN_DEBUG]', data);
+  }
+
+  private isSmallWarnDebugEnabled(): boolean {
+    if (typeof window === 'undefined') return false;
+    const w = window as Window & { __CC_WARN_DEBUG__?: boolean };
+    if (w.__CC_WARN_DEBUG__ === true) return true;
+    try {
+      return localStorage.getItem(this.warnDebugKey) === '1';
+    } catch {
+      return false;
+    }
   }
 
   private buildCompositionInput() {

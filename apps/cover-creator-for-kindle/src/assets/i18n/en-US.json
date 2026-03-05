@@ -64,6 +64,8 @@
   "COVERS": {
     "DELETED": "Cover deleted",
     "EMPTY": "No covers yet.",
+    "GETTING_COVER": "Getting cover",
+    "LOADING_PREVIEW": "Loading preview...",
     "PLACEHOLDER": "Cover",
     "PREVIEW_TITLE": "Preview",
     "TITLE": "Covers",

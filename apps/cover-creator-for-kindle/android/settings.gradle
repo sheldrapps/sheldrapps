@@ -1,2 +1,4 @@
 include ':app'
+include ':epub-rewrite'
+project(':epub-rewrite').projectDir = new File('../../../plugins/epub-rewrite/android')
 apply from: 'capacitor.settings.gradle'

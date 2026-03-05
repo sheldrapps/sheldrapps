@@ -67,6 +67,8 @@
   "COVERS": {
     "DELETED": "Couverture supprimée",
     "EMPTY": "Aucune couverture pour le moment.",
+    "GETTING_COVER": "Obtention de la couverture",
+    "LOADING_PREVIEW": "Chargement de l'aper�u...",
     "PLACEHOLDER": "Couverture",
     "PREVIEW_TITLE": "Aperçu",
     "TITLE": "Couvertures",

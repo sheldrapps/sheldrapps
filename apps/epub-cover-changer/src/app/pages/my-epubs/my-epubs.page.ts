@@ -104,6 +104,8 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   previewFilename: string | null = null;
   previewDataUrl: string | null = null;
   previewLoading = false;
+  previewUnavailable = false;
+  previewGettingCover = false;
 
   infoOpen = false;
   infoEvent: Event | null = null;
@@ -300,19 +302,57 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   }
 
   async openPreview(filename: string) {
+    const fallbackThumb =
+      this.items.find((item) => item.filename === filename)?.thumbDataUrl ?? null;
+
     this.previewOpen = true;
     this.previewFilename = filename;
-    this.previewDataUrl = null;
+    this.previewDataUrl = fallbackThumb;
     this.previewLoading = true;
+    this.previewUnavailable = false;
+    this.previewGettingCover = false;
 
     try {
-      this.previewDataUrl = await this.files.getCoverDataUrlForFilename(
-        filename
-      );
+      const hasCoverExport = await this.files.hasCoverExportForFilename(filename);
+      this.previewGettingCover = !hasCoverExport;
+
+      const preview = await this.files.getBestPreviewCoverDataUrl(filename, {
+        allowNativeExtract: true,
+      });
+      this.previewDataUrl = preview.dataUrl ?? fallbackThumb;
+      this.previewUnavailable = !this.previewDataUrl;
     } catch {
+      this.previewDataUrl = this.previewDataUrl ?? fallbackThumb;
+      this.previewUnavailable = !this.previewDataUrl;
       this.pageErrorKey = 'COVERS.ERROR.PREVIEW';
     } finally {
       this.previewLoading = false;
+      this.previewGettingCover = false;
+    }
+  }
+
+  async regeneratePreviewThumb() {
+    const filename = this.previewFilename;
+    if (!filename || this.previewLoading) return;
+
+    this.previewLoading = true;
+    this.previewUnavailable = false;
+    this.previewGettingCover = true;
+    this.previewDataUrl = null;
+
+    try {
+      const preview = await this.files.getBestPreviewCoverDataUrl(filename, {
+        forceRebuildThumb: true,
+        allowNativeExtract: true,
+      });
+      this.previewDataUrl = preview.dataUrl;
+      this.previewUnavailable = !preview.dataUrl;
+    } catch {
+      this.previewUnavailable = true;
+      this.pageErrorKey = 'COVERS.ERROR.PREVIEW';
+    } finally {
+      this.previewLoading = false;
+      this.previewGettingCover = false;
     }
   }
 
@@ -368,6 +408,8 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     this.previewFilename = null;
     this.previewDataUrl = null;
     this.previewLoading = false;
+    this.previewUnavailable = false;
+    this.previewGettingCover = false;
   }
 
   async shareActive() {

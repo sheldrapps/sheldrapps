@@ -9,13 +9,13 @@
     "DELETE": "Elimina",
     "DONE": "Fatto",
     "ERROR": "Errore",
-    "LOADING": "Caricamento…",
+    "LOADING": "Caricamentoâ€¦",
     "SHARE": "Condividi",
-    "SHARE_KINDLE_HINT": "Durante la condivisione, seleziona l’app Kindle per inviarla al dispositivo.",
+    "SHARE_KINDLE_HINT": "Durante la condivisione, seleziona lâ€™app Kindle per inviarla al dispositivo.",
     "WARNING": "Avviso"
   },
   "CHANGE": {
-    "ADS_REQUIRED": "Impossibile caricare l’annuncio. Controlla la rete o il blocco annunci.",
+    "ADS_REQUIRED": "Impossibile caricare lâ€™annuncio. Controlla la rete o il blocco annunci.",
     "ARIA_CHANGE_EPUB": "Cambia file EPUB. File corrente: {{name}}",
     "ARIA_CHANGE_IMAGE": "Cambia immagine della copertina. Immagine attuale: {{name}}",
     "ARIA_CROP": "Regola l'immagine selezionata",
@@ -24,7 +24,7 @@
     "CROP_ACTION": "Regola",
     "COVER_CHANGED": "Copertina cambiata. Puoi ora salvare o condividere",
     "CHANGE_ACTION_REWARDED": "Cambia copertina (guarda annuncio)",
-    "GENERATING": "Caricamento annuncio…",
+    "GENERATING": "Caricamento annuncioâ€¦",
     "HINT_SAVE_SHARE_EXPLAIN": "La creazione della copertina non la salva automaticamente.",
     "INFO": "Info",
     "INFO_ARIA": "Informazioni sul cambio copertina",
@@ -32,30 +32,33 @@
     "INFO_FLOW_LABEL": "Ordine consigliato:",
     "INFO_STEP_1": "Seleziona un EPUB.",
     "INFO_STEP_1_1": "1.1. La copertina originale viene precaricata.",
-    "INFO_STEP_1_2": "1.2. Cambia l’immagine oppure mantieni l’originale.",
-    "INFO_STEP_2": "Regola l’immagine nell’editor.",
-    "INFO_STEP_3": "Guarda l’annuncio per salvare la copertina.",
+    "INFO_STEP_1_2": "1.2. Cambia lâ€™immagine oppure mantieni lâ€™originale.",
+    "INFO_STEP_2": "Regola lâ€™immagine nellâ€™editor.",
+    "INFO_STEP_3": "Guarda lâ€™annuncio per salvare la copertina.",
     "INFO_STEP_4": "Salva o condividi.",
     "IMAGE_ERROR_CORRUPT": "Impossibile leggere l'immagine. Prova con un'altra.",
-    "IMAGE_ERROR_SIZE": "Il file è troppo grande. Massimo {{maxSize}} MB.",
+    "IMAGE_ERROR_SIZE": "Il file Ã¨ troppo grande. Massimo {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Formato non supportato ({{type}}). Seleziona JPG, PNG o WebP.",
     "IMAGE_WARN_SMALL": "L'immagine potrebbe essere troppo piccola per alcuni dispositivi.",
-    "LOADING_EPUB": "Caricamento EPUB…",
-    "LOADING_IMAGE": "Caricamento immagine…",
-    "OPENING_EDITOR": "Apertura editor…",
+    "LOADING_EPUB": "Caricamento EPUBâ€¦",
+    "LOADING_IMAGE": "Caricamento immagineâ€¦",
+    "OPENING_EDITOR": "Apertura editorâ€¦",
+    "CHANGING_COVER": "Modifica copertina...",
+    "GETTING_COVER": "Recupero copertina",
     "SELECT_EPUB_LABEL": "File EPUB",
     "SELECT_EPUB_PLACEHOLDER": "Seleziona un file EPUB",
-    "SAVING": "Salvataggio copertina…",
+    "SAVING": "Salvataggio copertinaâ€¦",
     "SAVE_ACTION": "Salva",
     "SAVED_OK": "Copertina salvata",
     "SAVE_RENAME_TITLE": "Salva copertina",
     "SAVE_RENAME_MESSAGE": "Inserisci un nome per la copertina",
     "SAVE_RENAME_PLACEHOLDER": "Nome del file",
     "SELECT_IMAGE_LABEL": "Immagine di copertina",
-    "SELECT_IMAGE_PLACEHOLDER": "Seleziona un’immagine",
+    "SELECT_IMAGE_PLACEHOLDER": "Seleziona unâ€™immagine",
     "TAP_TO_CHANGE": "Tocca per cambiare/reimpostare",
     "TAP_TO_CHANGE_IMAGE": "Tocca per cambiare",
-    "TITLE": "Cambia copertina"
+    "TITLE": "Cambia copertina",
+    "INVALID_COVER_TAP_TO_CHANGE": "Invalid cover, tap to change"
   },
   "COVERS": {
     "DELETED": "EPUB eliminato",
@@ -76,7 +79,9 @@
       "SHARE": "Impossibile condividere l'EPUB. Riprova.",
       "LOAD": "Impossibile caricare i tuoi EPUB. Trascina verso il basso per riprovare.",
       "PREVIEW": "Impossibile caricare l'anteprima. Riprova."
-    }
+    },
+    "GENERATE_THUMB": "Generate thumbnail",
+    "PREVIEW_UNAVAILABLE": "Preview unavailable."
   },
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Nota",
@@ -90,17 +95,15 @@
     "TIP": "Per risultati migliori, utilizza immagini ad alta risoluzione e assicurati che gli annunci siano disattivati sul tuo Kindle.",
     "TITLE": "Come cambiare una copertina per Kindle"
   },
-
   "SETTINGS": {
     "INSTRUCTIONS": "Vedi istruzioni",
     "INSTRUCTIONS_HINT": "Come cambiare e inviare una copertina per Kindle",
     "INSTRUCTIONS_SECTION": "Istruzioni",
     "LANGUAGE": "Lingua",
-    "PRIVACY_HINT": "Controlla come vengono gestiti dati e pubblicità",
+    "PRIVACY_HINT": "Controlla come vengono gestiti dati e pubblicitÃ ",
     "PRIVACY_OPTIONS": "Opzioni privacy",
     "PRIVACY_POLICY": "Informativa sulla privacy",
     "PRIVACY_SECTION": "Privacy",
-
     "TITLE": "Impostazioni"
   },
   "TABS": {

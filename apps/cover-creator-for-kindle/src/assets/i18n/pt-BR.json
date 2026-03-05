@@ -64,6 +64,8 @@
   "COVERS": {
     "DELETED": "Capa exclu√≠da",
     "EMPTY": "Nenhuma capa ainda.",
+    "GETTING_COVER": "Obtendo capa",
+    "LOADING_PREVIEW": "Carregando prÈ-visualizaÁ„o...",
     "PLACEHOLDER": "Capa",
     "PREVIEW_TITLE": "Pr√©-visualiza√ß√£o",
     "TITLE": "Capas",

@@ -141,12 +141,26 @@
             <div class="frame">
               @if (previewDataUrl) {
               <img class="preview-img" [src]="previewDataUrl" alt="cover preview" />
+              } @else if (!previewLoading && previewUnavailable) {
+              <div class="preview-unavailable">
+                <div class="preview-unavailable__text">
+                  {{ 'COVERS.PREVIEW_UNAVAILABLE' | translate }}
+                </div>
+                <ion-button
+                  size="small"
+                  fill="outline"
+                  (click)="regeneratePreviewThumb()"
+                  [disabled]="previewLoading || !previewFilename"
+                >
+                  {{ 'COVERS.GENERATE_THUMB' | translate }}
+                </ion-button>
+              </div>
               } @if (previewLoading) {
               <div class="frame-loader" aria-hidden="true">
                 <div class="frame-loader__card">
                   <ion-spinner name="crescent"></ion-spinner>
                   <div class="frame-loader__text">
-                    {{ 'COMMON.LOADING' | translate }}
+                    {{ (previewGettingCover ? 'CHANGE.GETTING_COVER' : 'COVERS.LOADING_PREVIEW') | translate }}
                   </div>
                 </div>
               </div>

@@ -66,6 +66,8 @@
   "COVERS": {
     "DELETED": "Copertina eliminata",
     "EMPTY": "Nessuna copertina ancora.",
+    "GETTING_COVER": "Recupero copertina",
+    "LOADING_PREVIEW": "Caricamento anteprima...",
     "PLACEHOLDER": "Copertina",
     "PREVIEW_TITLE": "Anteprima",
     "TITLE": "Copertine",

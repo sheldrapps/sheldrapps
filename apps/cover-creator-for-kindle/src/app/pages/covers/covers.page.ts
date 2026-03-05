@@ -97,6 +97,7 @@ export class CoversPage implements OnInit, OnDestroy {
   previewFilename: string | null = null;
   previewDataUrl: string | null = null;
   previewLoading = false;
+  previewGettingCover = false;
 
   infoOpen = false;
   infoEvent: Event | null = null;
@@ -298,18 +299,29 @@ export class CoversPage implements OnInit, OnDestroy {
   }
 
   async openPreview(filename: string) {
+    const fallbackThumb =
+      this.items.find((item) => item.filename === filename)?.thumbDataUrl ?? null;
+
     this.previewOpen = true;
     this.previewFilename = filename;
-    this.previewDataUrl = null;
+    this.previewDataUrl = fallbackThumb;
     this.previewLoading = true;
+    this.previewGettingCover = false;
 
     try {
-      this.previewDataUrl =
-        await this.files.getCoverDataUrlForFilename(filename);
+      const hasCoverExport = await this.files.hasCoverExportForFilename(filename);
+      this.previewGettingCover = !hasCoverExport;
+
+      const preview = await this.files.getBestPreviewCoverDataUrl(filename, {
+        allowNativeExtract: true,
+      });
+      this.previewDataUrl = preview.dataUrl ?? fallbackThumb;
     } catch {
+      this.previewDataUrl = this.previewDataUrl ?? fallbackThumb;
       this.pageErrorKey = 'COVERS.ERROR.PREVIEW';
     } finally {
       this.previewLoading = false;
+      this.previewGettingCover = false;
     }
   }
 
@@ -365,6 +377,7 @@ export class CoversPage implements OnInit, OnDestroy {
     this.previewFilename = null;
     this.previewDataUrl = null;
     this.previewLoading = false;
+    this.previewGettingCover = false;
   }
 
   async shareActive() {
