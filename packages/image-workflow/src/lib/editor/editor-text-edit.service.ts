@@ -9,6 +9,7 @@ export class EditorTextEditService implements OnDestroy {
   readonly selectedTextId = signal<string | null>(null);
   readonly editingTextId = signal<string | null>(null);
   readonly draftContentById = signal<Record<string, string>>({});
+  readonly editSelectedRequestSeq = signal(0);
   readonly isEditing = computed(() => this.editingTextId() !== null);
   readonly keyboardHeightPx = signal(0);
   private restoreKeyboardMode: KeyboardMode | null = null;
@@ -38,6 +39,10 @@ export class EditorTextEditService implements OnDestroy {
       this.apply();
     }
     this.selectedTextId.set(id);
+  }
+
+  requestEditSelected(): void {
+    this.editSelectedRequestSeq.update((seq) => seq + 1);
   }
 
   enterEdit(id: string, content: string): void {

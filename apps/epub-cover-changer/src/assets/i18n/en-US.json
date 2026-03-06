@@ -44,6 +44,7 @@
     "EPUB_ERROR_CORRUPT": "The EPUB could not be read. Try another file.",
     "EPUB_ERROR_NO_COVER": "This EPUB does not contain a replaceable cover.",
     "EPUB_ERROR_REWRITE": "The EPUB could not be processed. Please try again.",
+    "EPUB_ERROR_STORAGE": "Not enough storage space. Need {{requiredMB}} MB, available {{availableMB}} MB.",
     "EPUB_ERROR_SIZE": "The file is too large. Maximum {{maxSize}} MB.",
     "EPUB_ERROR_TYPE": "Unsupported EPUB file.",
     "LOADING_EPUB": "Loading EPUB…",

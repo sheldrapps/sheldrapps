@@ -1,6 +1,5 @@
 import { Injectable, inject } from '@angular/core';
 import {
-  AppendFileOptions,
   Directory,
   Filesystem,
 } from '@capacitor/filesystem';
@@ -40,6 +39,7 @@ export type NativeTempFile = {
 @Injectable({ providedIn: 'root' })
 export class EpubWorkingCopyService {
   private readonly WORK_FOLDER = 'EPUBCoverChangerWork';
+  private readonly DEFAULT_MIME_TYPE = 'application/epub+zip';
   private fileKit = inject(FileKitService);
 
   async startCycle(sourceFile: File): Promise<EpubWorkingCopy> {
@@ -87,7 +87,7 @@ export class EpubWorkingCopyService {
     const workingName = await this.getUniqueWorkingName(outputBaseName);
     const workingPath = `${this.WORK_FOLDER}/${workingName}`;
 
-    await this.streamFileToDataPath(sourceFile, workingPath, onProgress);
+    await this.writeFileToDataPath(sourceFile, workingPath, onProgress);
 
     return {
       workingPath,
@@ -109,7 +109,7 @@ export class EpubWorkingCopyService {
   ): Promise<NativeTempFile> {
     const ext = this.coverExtensionFromNameOrType(coverFile);
     const path = `${this.WORK_FOLDER}/${outputBaseName}_cover.${ext}`;
-    await this.streamFileToDataPath(coverFile, path);
+    await this.writeFileToDataPath(coverFile, path);
     return {
       path,
       nativePath: await this.getNativeDataPath(path),
@@ -140,52 +140,26 @@ export class EpubWorkingCopyService {
     return this.WORK_FOLDER;
   }
 
-  private async streamFileToDataPath(
+  private async writeFileToDataPath(
     file: File,
     path: string,
     onProgress?: (percent: number) => void,
   ): Promise<void> {
-    const stream = file.stream();
-    const reader = stream.getReader();
-
     try {
-      await Filesystem.writeFile({
+      onProgress?.(5);
+
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const mimeType = file.type || this.DEFAULT_MIME_TYPE;
+      await this.fileKit.writeBytes({
+        dir: 'Data',
         path,
-        directory: Directory.Data,
-        data: '',
-        recursive: true,
+        bytes,
+        mimeType,
       });
-
-      const total = Math.max(1, file.size || 1);
-      let written = 0;
-      let lastPercent = -1;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (!value || value.byteLength === 0) continue;
-
-        await Filesystem.appendFile({
-          path,
-          directory: Directory.Data,
-          data: this.fileKit.toBase64(value),
-        } satisfies AppendFileOptions);
-
-        written += value.byteLength;
-        const percent = Math.max(
-          0,
-          Math.min(100, Math.round((written / total) * 100)),
-        );
-        if (percent !== lastPercent) {
-          onProgress?.(percent);
-          lastPercent = percent;
-        }
-      }
+      onProgress?.(100);
     } catch (error) {
       await this.cleanupWorkingCopy(path);
       throw error;
-    } finally {
-      reader.releaseLock();
     }
   }
 

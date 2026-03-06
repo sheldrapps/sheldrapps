@@ -239,6 +239,8 @@ export class TextOverlayComponent implements AfterViewInit, OnDestroy {
   private lastEnterEditTs = 0;
   private initialScrollY = 0;
   private initialScrollX = 0;
+  private lastEditRequestSeq = 0;
+  private reopenTextPanelAfterDrag = false;
   private preventScrollBound = (e: Event) => this.preventAutoEditScroll(e);
 
   constructor() {
@@ -277,6 +279,15 @@ export class TextOverlayComponent implements AfterViewInit, OnDestroy {
     effect(() => {
       this.textLayers();
       this.scheduleMeasure();
+    });
+
+    effect(() => {
+      const requestSeq = this.textEdit.editSelectedRequestSeq();
+      if (requestSeq <= this.lastEditRequestSeq) return;
+      this.lastEditRequestSeq = requestSeq;
+      const selectedId = this.textEdit.selectedTextId();
+      if (!selectedId) return;
+      this.enterEditMode(selectedId);
     });
 
     const fonts = (document as any)?.fonts as FontFaceSet | undefined;
@@ -807,6 +818,7 @@ export class TextOverlayComponent implements AfterViewInit, OnDestroy {
     this.draggingId.set(null);
     this.clearGuides();
     this.history.onTextDragEnd(id);
+    this.restoreTextPanelAfterDrag();
 
     e.preventDefault();
     e.stopPropagation();
@@ -1515,6 +1527,15 @@ export class TextOverlayComponent implements AfterViewInit, OnDestroy {
     this.draggingId.set(layer.id);
     this.history.onTextDragStart(layer.id);
 
+    const isTextPanelOpen =
+      this.ui.isPanelOpen() &&
+      this.ui.panelMode() === "text" &&
+      this.ui.panelId() === "text";
+    this.reopenTextPanelAfterDrag = isTextPanelOpen;
+    if (isTextPanelOpen) {
+      this.ui.closePanel();
+    }
+
     this.dragContext = this.buildDragContext(layer.id, rect);
     this.guides.set({
       draggingId: layer.id,
@@ -1548,6 +1569,14 @@ export class TextOverlayComponent implements AfterViewInit, OnDestroy {
     } else if (this.ui.panelMode() !== "text" || this.ui.panelId() !== "text") {
       this.ui.openPanel("text", "text");
     }
+  }
+
+  private restoreTextPanelAfterDrag(): void {
+    if (!this.reopenTextPanelAfterDrag) return;
+    this.reopenTextPanelAfterDrag = false;
+    if (this.textEdit.isEditing()) return;
+    if (!this.canInteract()) return;
+    this.ui.openPanel("text", "text");
   }
 
   private enterEditMode(id: string): void {

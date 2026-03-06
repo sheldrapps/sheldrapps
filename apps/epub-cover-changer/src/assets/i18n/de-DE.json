@@ -40,6 +40,7 @@
     "IMAGE_ERROR_SIZE": "Die Datei ist zu groÃŸ. Maximal {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Nicht unterstÃ¼tztes Format ({{type}}). Bitte wÃ¤hle JPG, PNG oder WebP.",
     "IMAGE_WARN_SMALL": "Das Bild kann fÃ¼r einige GerÃ¤te zu klein sein.",
+    "EPUB_ERROR_STORAGE": "Nicht genug Speicherplatz. Benoetigt {{requiredMB}} MB, verfuegbar {{availableMB}} MB.",
     "LOADING_EPUB": "EPUB wird geladenâ€¦",
     "LOADING_IMAGE": "Bild wird geladenâ€¦",
     "OPENING_EDITOR": "Editor wird geÃ¶ffnetâ€¦",

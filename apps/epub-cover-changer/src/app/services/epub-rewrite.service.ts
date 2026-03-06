@@ -13,11 +13,13 @@ type InspectEpubResult = {
   error?: string;
   message?: string;
   stage?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
 };
 
 type RewriteCoverOptions = {
   inputPath: string;
-  outputPath: string;
+  outputPath?: string;
   coverEntryPath: string;
   newCoverPath: string;
 };
@@ -35,6 +37,8 @@ type CreateEpubFromCoverResult = {
   error?: string;
   message?: string;
   stage?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
 };
 
 type RewriteCoverResult = {
@@ -42,6 +46,9 @@ type RewriteCoverResult = {
   error?: string;
   message?: string;
   stage?: string;
+  outputPath?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
 };
 
 type ExtractCoverAssetOptions = {
@@ -58,6 +65,31 @@ type ExtractCoverAssetResult = {
   error?: string;
   message?: string;
   stage?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
+};
+
+type PickAndPrepareEpubOptions = {
+  maxBytes?: number;
+};
+
+type PickAndPrepareEpubResult = {
+  success: boolean;
+  selectedName?: string;
+  sourceSize?: number;
+  sourceLastModified?: number;
+  sourceMimeType?: string;
+  workingPath?: string;
+  workingName?: string;
+  workingNativePath?: string;
+  outputBaseName?: string;
+  coverEntryPath?: string;
+  extractedCoverPath?: string;
+  error?: string;
+  message?: string;
+  stage?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
 };
 
 type RewriteProgressEvent = {
@@ -65,6 +97,9 @@ type RewriteProgressEvent = {
 };
 
 type EpubRewritePlugin = Plugin & {
+  pickAndPrepareEpub(
+    options: PickAndPrepareEpubOptions,
+  ): Promise<PickAndPrepareEpubResult>;
   inspectEpub(options: { inputPath: string }): Promise<InspectEpubResult>;
   rewriteCover(options: RewriteCoverOptions): Promise<RewriteCoverResult>;
   createEpubFromCover(
@@ -85,6 +120,8 @@ export class EpubRewriteError extends Error {
       message?: string;
       stage?: string;
       coverEntryPath?: string;
+      requiredBytes?: number;
+      availableBytes?: number;
     },
   ) {
     super(details?.message ? `${code}: ${details.message}` : code);
@@ -107,19 +144,74 @@ export class EpubRewriteService {
     return EpubRewrite.addListener('rewriteProgress', listener);
   }
 
-  async inspectEpub(inputPath: string): Promise<InspectEpubResult> {
-    const result = await EpubRewrite.inspectEpub({ inputPath });
-    console.info(
-      `[ECC] inspectEpub result ${JSON.stringify({
-        success: result.success,
-        error: result.error,
-        stage: result.stage,
+  async pickAndPrepareEpub(options: PickAndPrepareEpubOptions): Promise<{
+    selectedName: string;
+    sourceSize: number;
+    sourceLastModified: number;
+    sourceMimeType: string;
+    workingPath: string;
+    workingName: string;
+    workingNativePath: string;
+    outputBaseName: string;
+    coverEntryPath?: string;
+    file?: File;
+  }> {
+    const result = await EpubRewrite.pickAndPrepareEpub(options);
+    if (
+      !result.success ||
+      !result.workingPath ||
+      !result.workingName ||
+      !result.workingNativePath ||
+      !result.outputBaseName
+    ) {
+      throw new EpubRewriteError(result.error ?? 'PICK_FAILED', {
         message: result.message,
-        hasCoverEntryPath: !!result.coverEntryPath,
-        hasExtractedCoverPath: !!result.extractedCoverPath,
-      })}`,
-    );
-    return result;
+        stage: result.stage,
+        coverEntryPath: result.coverEntryPath,
+        requiredBytes: result.requiredBytes,
+        availableBytes: result.availableBytes,
+      });
+    }
+
+    let file: File | undefined;
+    if (result.extractedCoverPath && result.coverEntryPath) {
+      try {
+        file = await this.readExtractedFile(
+          result.extractedCoverPath,
+          result.coverEntryPath,
+          result.selectedName || result.workingName,
+        );
+      } catch (error) {
+        if (error instanceof EpubRewriteError) {
+          throw new EpubRewriteError(error.code, {
+            ...error.details,
+            coverEntryPath: result.coverEntryPath,
+          });
+        }
+        throw new EpubRewriteError('EXTRACT_READ_FAILED', {
+          message: error instanceof Error ? error.message : String(error),
+          stage: 'extract_read',
+          coverEntryPath: result.coverEntryPath,
+        });
+      }
+    }
+
+    return {
+      selectedName: result.selectedName || result.workingName,
+      sourceSize: result.sourceSize ?? 0,
+      sourceLastModified: result.sourceLastModified ?? Date.now(),
+      sourceMimeType: result.sourceMimeType || 'application/epub+zip',
+      workingPath: result.workingPath,
+      workingName: result.workingName,
+      workingNativePath: result.workingNativePath,
+      outputBaseName: result.outputBaseName,
+      coverEntryPath: result.coverEntryPath,
+      file,
+    };
+  }
+
+  async inspectEpub(inputPath: string): Promise<InspectEpubResult> {
+    return EpubRewrite.inspectEpub({ inputPath });
   }
 
   async createEpubFromCover(options: CreateEpubFromCoverOptions): Promise<void> {
@@ -135,23 +227,7 @@ export class EpubRewriteService {
   async rewriteCover(
     options: RewriteCoverOptions,
   ): Promise<RewriteCoverResult> {
-    console.info(
-      `[ECC] rewriteCover start ${JSON.stringify({
-        inputPath: options.inputPath,
-        outputPath: options.outputPath,
-        coverEntryPath: options.coverEntryPath,
-      })}`,
-    );
-    const result = await EpubRewrite.rewriteCover(options);
-    console.info(
-      `[ECC] rewriteCover result ${JSON.stringify({
-        success: result.success,
-        error: result.error,
-        stage: result.stage,
-        message: result.message,
-      })}`,
-    );
-    return result;
+    return EpubRewrite.rewriteCover(options);
   }
 
   async extractCoverAsset(
@@ -163,6 +239,8 @@ export class EpubRewriteService {
         message: result.message,
         stage: result.stage,
         coverEntryPath: result.coverEntryPath,
+        requiredBytes: result.requiredBytes,
+        availableBytes: result.availableBytes,
       });
     }
 
@@ -202,6 +280,8 @@ export class EpubRewriteService {
       throw new EpubRewriteError(result.error ?? 'REWRITE_FAILED', {
         message: result.message,
         stage: result.stage,
+        requiredBytes: result.requiredBytes,
+        availableBytes: result.availableBytes,
       });
     }
 
@@ -256,16 +336,6 @@ export class EpubRewriteService {
     try {
       response = await fetch(uri);
     } catch (error) {
-      console.error(
-        `[ECC] readExtractedFile fetch failed ${JSON.stringify({
-          extractedCoverPath,
-          uri,
-          error:
-            error instanceof Error
-              ? { name: error.name, message: error.message, stack: error.stack ?? null }
-              : String(error),
-        })}`,
-      );
       throw new EpubRewriteError('EXTRACT_READ_FAILED', {
         message: error instanceof Error ? error.message : String(error),
         stage: 'extract_read',
@@ -282,16 +352,6 @@ export class EpubRewriteService {
     try {
       blob = await response.blob();
     } catch (error) {
-      console.error(
-        `[ECC] readExtractedFile blob conversion failed ${JSON.stringify({
-          extractedCoverPath,
-          uri,
-          error:
-            error instanceof Error
-              ? { name: error.name, message: error.message, stack: error.stack ?? null }
-              : String(error),
-        })}`,
-      );
       throw new EpubRewriteError('EXTRACT_READ_FAILED', {
         message: error instanceof Error ? error.message : String(error),
         stage: 'extract_read',

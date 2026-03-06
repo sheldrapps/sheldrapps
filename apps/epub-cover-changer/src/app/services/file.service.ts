@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
-import { FileKitService, FileRef } from '@sheldrapps/file-kit';
+import { EpubPublicStore, FileKitService, FileRef } from '@sheldrapps/file-kit';
 import { TranslateService } from '@ngx-translate/core';
 import { EpubRewriteError, EpubRewriteService } from './epub-rewrite.service';
 
@@ -21,6 +21,12 @@ export type CoverAssetsResult = {
   previewDataUrl: string | null;
 };
 
+export type NativeDocumentOutputTarget = {
+  filename: string;
+  relativePath: string;
+  nativePath: string;
+};
+
 @Injectable({ providedIn: 'root' })
 export class FileService {
   private translate = inject(TranslateService);
@@ -34,6 +40,16 @@ export class FileService {
   private readonly APP_NAME = 'EPUB Cover Changer';
   private fileKit = inject(FileKitService);
   private epubRewrite = inject(EpubRewriteService);
+  private readonly thumbDataUrlCache = new Map<string, string>();
+  private thumbFileNamesCache: Set<string> | null = null;
+  private thumbFileNamesCachePromise: Promise<Set<string>> | null = null;
+  private readonly DEBUG_IO = false;
+  private readonly epubStore = new EpubPublicStore(this.fileKit, {
+    epubFolder: this.EPUB_FOLDER,
+    publicDocumentsRoot: '/storage/emulated/0/Documents',
+    debug: this.DEBUG_IO,
+    logPrefix: 'ECC:file-kit',
+  });
 
   /**
    * Validate an EPUB file
@@ -146,22 +162,9 @@ export class FileService {
 
   async listCovers(): Promise<CoverEntry[]> {
     try {
-      // For file-kit, we need to read the directory
-      // Since file-kit doesn't expose readdir yet, we'll use the old Filesystem API
-      // This is acceptable as long as the core file operations use file-kit
-
-      // TODO: Consider adding readdir to file-kit if needed
-      // For now, we maintain backward compatibility with Filesystem
-      const { Filesystem, Directory } = await import('@capacitor/filesystem');
-
-      const list = await Filesystem.readdir({
-        directory: Directory.Documents,
-        path: this.EPUB_FOLDER,
-      });
-
-      const files = (list.files ?? [])
-        .map((f: any) => (typeof f === 'string' ? f : f.name))
-        .filter((name: string) => name.toLowerCase().endsWith('.epub'));
+      await this.ensurePublicDocumentsEpubFolderReady();
+      const files = await this.listEpubsFromPublicDocuments();
+      this.debugLog('listCovers', { count: files.length });
 
       return files.map((filename) => ({
         filename,
@@ -175,18 +178,15 @@ export class FileService {
   }
 
   async deleteCoverByFilename(filename: string) {
+    await this.ensurePublicDocumentsEpubFolderReady();
+    this.debugLog('deleteCoverByFilename:start', { filename });
     const epubPath = `${this.EPUB_FOLDER}/${filename}`;
     const thumbPath = this.getThumbPathForEpubFilename(filename);
+    this.clearThumbCache(filename);
+    this.markThumbMissing(filename);
 
-    // Use file-kit to delete EPUB
-    try {
-      await this.fileKit.delete({
-        dir: 'Documents',
-        path: epubPath,
-      });
-    } catch (error) {
-      console.warn('[file.service] Failed to delete EPUB:', error);
-    }
+    await this.deletePublicEpub(filename);
+    await this.deleteDocumentEpubIfExists(epubPath);
 
     // Use file-kit to delete thumbnail
     try {
@@ -210,27 +210,13 @@ export class FileService {
         // ignore missing cover export variants
       }
     }
+    this.debugLog('deleteCoverByFilename:done', { filename });
   }
 
   async shareCoverByFilename(filename: string) {
-    const epubPath = `${this.EPUB_FOLDER}/${filename}`;
-
-    // Get URI via file-kit exists check, then share
-    const exists = await this.fileKit.exists({
-      dir: 'Documents',
-      path: epubPath,
-    });
-
-    if (!exists) {
-      console.error(`[file.service] Share failed: File not found: ${epubPath}`);
-      throw new Error(`File not found: ${epubPath}`);
-    }
-
-    // Get the real URI from file-kit
-    const uri = await this.fileKit.getUri({
-      dir: 'Documents',
-      path: epubPath,
-    });
+    await this.ensurePublicDocumentsEpubFolderReady();
+    const uri = await this.getPublicEpubFileUriOrThrow(filename);
+    this.debugLog('shareCoverByFilename', { filename, uri });
 
     const fileRef: FileRef = {
       uri,
@@ -250,10 +236,35 @@ export class FileService {
   async getOrBuildThumbDataUrlForFilename(
     filename: string,
   ): Promise<string | null> {
-    const assets = await this.ensureCoverAssets(filename, {
-      allowNativeExtract: false,
-    });
-    return assets.thumbDataUrl;
+    const cached = this.getThumbCache(filename);
+    if (cached) {
+      return cached;
+    }
+
+    const thumbPath = this.getThumbPathForEpubFilename(filename);
+    if (await this.hasThumbForFilename(filename)) {
+      const thumbBase64 = await this.tryReadBase64FromFilesystem(thumbPath);
+      if (thumbBase64) {
+        const dataUrl = `data:image/jpeg;base64,${thumbBase64}`;
+        this.setThumbCache(filename, dataUrl);
+        return dataUrl;
+      }
+      this.markThumbMissing(filename);
+    }
+
+    const cover = await this.readCoverExport(filename);
+    if (!cover) {
+      return null;
+    }
+
+    const builtThumbBase64 = await this.persistThumbFromCoverExport(filename, cover);
+    if (!builtThumbBase64) {
+      return null;
+    }
+
+    const dataUrl = `data:image/jpeg;base64,${builtThumbBase64}`;
+    this.setThumbCache(filename, dataUrl);
+    return dataUrl;
   }
 
   async getBestPreviewCoverDataUrl(
@@ -318,6 +329,10 @@ export class FileService {
       ? `data:${cover.mimeType};base64,${cover.base64}`
       : null;
 
+    if (thumbDataUrl) {
+      this.setThumbCache(epubFilename, thumbDataUrl);
+    }
+
     return {
       coverDataUrl,
       thumbDataUrl,
@@ -356,6 +371,8 @@ export class FileService {
       bytes: thumbBytes,
       mimeType: 'image/jpeg',
     });
+    this.markThumbPresent(epubFilename);
+    this.setThumbCache(epubFilename, `data:image/jpeg;base64,${thumbBase64}`);
 
     return { thumbPath, thumbFilename };
   }
@@ -383,25 +400,112 @@ export class FileService {
         bytes: thumbBytes,
         mimeType: 'image/jpeg',
       });
+      this.markThumbPresent(epubFilename);
+      this.setThumbCache(epubFilename, `data:image/jpeg;base64,${thumbBase64}`);
 
       return thumbBase64;
     } catch {
       return null;
     }
   }
+
+  private thumbCacheKey(filename: string): string {
+    return (filename || '').trim().toLowerCase();
+  }
+
+  private getThumbCache(filename: string): string | null {
+    return this.thumbDataUrlCache.get(this.thumbCacheKey(filename)) ?? null;
+  }
+
+  private setThumbCache(filename: string, dataUrl: string): void {
+    this.thumbDataUrlCache.set(this.thumbCacheKey(filename), dataUrl);
+  }
+
+  private clearThumbCache(filename: string): void {
+    this.thumbDataUrlCache.delete(this.thumbCacheKey(filename));
+  }
+
+  private renameThumbCache(fromFilename: string, toFilename: string): void {
+    const cached = this.getThumbCache(fromFilename);
+    if (!cached) {
+      this.clearThumbCache(toFilename);
+      return;
+    }
+    this.setThumbCache(toFilename, cached);
+    this.clearThumbCache(fromFilename);
+  }
+
+  private getThumbFilenameFromEpubFilename(epubFilename: string): string {
+    return `${this.getBaseNameFromEpubFilename(epubFilename)}.jpg`.toLowerCase();
+  }
+
+  private async getThumbFileNamesCache(): Promise<Set<string>> {
+    if (this.thumbFileNamesCache) {
+      return this.thumbFileNamesCache;
+    }
+    if (!this.thumbFileNamesCachePromise) {
+      this.thumbFileNamesCachePromise = this.listDirectoryFileNames(
+        this.THUMB_FOLDER,
+        'Data',
+      ).then((names) => {
+        this.thumbFileNamesCache = new Set(names.map((name) => name.toLowerCase()));
+        return this.thumbFileNamesCache;
+      });
+    }
+    return this.thumbFileNamesCachePromise;
+  }
+
+  private async hasThumbForFilename(epubFilename: string): Promise<boolean> {
+    const names = await this.getThumbFileNamesCache();
+    return names.has(this.getThumbFilenameFromEpubFilename(epubFilename));
+  }
+
+  private markThumbPresent(epubFilename: string): void {
+    if (!this.thumbFileNamesCache) return;
+    this.thumbFileNamesCache.add(this.getThumbFilenameFromEpubFilename(epubFilename));
+  }
+
+  private markThumbMissing(epubFilename: string): void {
+    if (!this.thumbFileNamesCache) return;
+    this.thumbFileNamesCache.delete(this.getThumbFilenameFromEpubFilename(epubFilename));
+  }
+
+  private renameThumbPresence(fromFilename: string, toFilename: string): void {
+    if (!this.thumbFileNamesCache) return;
+    const fromThumb = this.getThumbFilenameFromEpubFilename(fromFilename);
+    const toThumb = this.getThumbFilenameFromEpubFilename(toFilename);
+    if (this.thumbFileNamesCache.has(fromThumb)) {
+      this.thumbFileNamesCache.delete(fromThumb);
+      this.thumbFileNamesCache.add(toThumb);
+      return;
+    }
+    this.thumbFileNamesCache.delete(toThumb);
+  }
+
   private async tryReadBase64FromFilesystem(
     path: string,
     dir: 'Data' | 'Documents' | 'Cache' = 'Data',
   ): Promise<string | null> {
     try {
-      const bytes = await this.fileKit.readBytes({
-        dir,
+      const { data } = await Filesystem.readFile({
         path,
+        directory: this.mapDirectory(dir),
       });
-      return this.fileKit.toBase64(bytes);
-    } catch (error) {
-      console.warn(`[file.service] Failed to read ${path} from ${dir}:`, error);
-      return null;
+      if (typeof data === 'string') {
+        return this.normalizeBase64Data(data);
+      }
+      const ab = await data.arrayBuffer();
+      return this.arrayBufferToBase64(ab);
+    } catch {
+      try {
+        const bytes = await this.fileKit.readBytes({
+          dir,
+          path,
+        });
+        return this.fileKit.toBase64(bytes);
+      } catch {
+        return null;
+      }
     }
   }
 
@@ -752,13 +856,9 @@ export class FileService {
     const uniqueFilename = await this.getUniqueDocumentFilename(filename);
     const epubPath = `${this.EPUB_FOLDER}/${uniqueFilename}`;
 
-    // Use file-kit to save EPUB
-    const epubRef = await this.fileKit.writeBytes({
-      dir: 'Documents',
-      path: epubPath,
-      bytes: opts.bytes,
-      mimeType: 'application/epub+zip',
-    });
+    await this.writePublicEpub(uniqueFilename, opts.bytes);
+    const uri = await this.getPublicEpubFileUriOrThrow(uniqueFilename);
+    this.debugLog('saveGeneratedEpub', { filename: uniqueFilename, bytes: opts.bytes.byteLength });
 
     const assets = await this.persistCoverAssetsFromFile(
       opts.coverFileForThumb,
@@ -767,7 +867,7 @@ export class FileService {
 
     return {
       path: epubPath,
-      uri: epubRef.uri,
+      uri,
       filename: uniqueFilename,
       thumbPath: assets.thumbPath,
       thumbFilename: assets.thumbFilename,
@@ -784,16 +884,79 @@ export class FileService {
     const uniqueFilename = await this.getUniqueDocumentFilename(filename);
     const epubPath = `${this.EPUB_FOLDER}/${uniqueFilename}`;
 
-    await Filesystem.copy({
-      from: opts.sourcePath,
-      directory: this.mapDirectory(opts.sourceDir),
-      to: epubPath,
-      toDirectory: Directory.Documents,
+    const bytes = await this.readBytesFromSource(opts.sourcePath, opts.sourceDir);
+    await this.writePublicEpub(uniqueFilename, bytes);
+    const uri = await this.getPublicEpubFileUriOrThrow(uniqueFilename);
+    this.debugLog('saveGeneratedEpubFromPath', {
+      sourceDir: opts.sourceDir,
+      sourcePath: opts.sourcePath,
+      filename: uniqueFilename,
+      bytes: bytes.byteLength,
     });
 
-    const uri = await this.fileKit.getUri({
-      dir: 'Documents',
+    const assets = await this.persistCoverAssetsFromFile(
+      opts.coverFileForThumb,
+      uniqueFilename,
+    );
+
+    return {
       path: epubPath,
+      uri,
+      filename: uniqueFilename,
+      thumbPath: assets.thumbPath,
+      thumbFilename: assets.thumbFilename,
+    };
+  }
+
+  async reserveNativeDocumentOutput(
+    requestedFilename: string,
+  ): Promise<NativeDocumentOutputTarget> {
+    const filename = this.ensureEpubExt(this.sanitizeFilename(requestedFilename));
+    const uniqueFilename = await this.getUniqueDocumentFilename(filename);
+    const relativePath = `${this.EPUB_FOLDER}/${uniqueFilename}`;
+    await this.ensurePublicDocumentsEpubFolderReady();
+    const nativePath = this.publicDocumentsEpubPath(uniqueFilename);
+
+    return {
+      filename: uniqueFilename,
+      relativePath,
+      nativePath,
+    };
+  }
+
+  async persistCoverAssetsForGeneratedFilename(opts: {
+    filename: string;
+    coverFileForThumb: File;
+  }): Promise<{ thumbPath: string; thumbFilename: string }> {
+    await this.ensurePublicDocumentsEpubFolderReady();
+    return this.persistCoverAssetsFromFile(opts.coverFileForThumb, opts.filename);
+  }
+
+  async saveGeneratedEpubFromExistingDocument(opts: {
+    sourceFilename: string;
+    filename: string;
+    coverFileForThumb: File;
+  }) {
+    await this.ensurePublicDocumentsEpubFolderReady();
+    const sourceFilename = this.ensureEpubExt(this.sanitizeFilename(opts.sourceFilename));
+    const sourcePath = `${this.EPUB_FOLDER}/${sourceFilename}`;
+
+    const filename = this.ensureEpubExt(this.sanitizeFilename(opts.filename));
+    const uniqueFilename = await this.getUniqueDocumentFilename(filename, '.epub', {
+      ignoreFilename: sourceFilename,
+    });
+    const epubPath = `${this.EPUB_FOLDER}/${uniqueFilename}`;
+
+    if (sourcePath !== epubPath) {
+      const bytes = await this.readPublicEpubBytes(sourceFilename);
+      await this.writePublicEpub(uniqueFilename, bytes);
+    }
+
+    const uri = await this.getPublicEpubFileUriOrThrow(uniqueFilename);
+    this.debugLog('saveGeneratedEpubFromExistingDocument', {
+      sourceFilename,
+      filename: uniqueFilename,
+      copied: sourcePath !== epubPath,
     });
 
     const assets = await this.persistCoverAssetsFromFile(
@@ -811,6 +974,7 @@ export class FileService {
   }
 
   async renameGeneratedEpub(opts: { from: string; to: string }) {
+    await this.ensurePublicDocumentsEpubFolderReady();
     const fromFilename = this.ensureEpubExt(this.sanitizeFilename(opts.from));
     const toFilenameRaw = this.ensureEpubExt(this.sanitizeFilename(opts.to));
     const toFilename = await this.getUniqueDocumentFilename(toFilenameRaw, '.epub', {
@@ -828,21 +992,18 @@ export class FileService {
     const fromPath = `${this.EPUB_FOLDER}/${fromFilename}`;
     const toPath = `${this.EPUB_FOLDER}/${toFilename}`;
 
-    const exists = await this.fileKit.exists({
-      dir: 'Documents',
-      path: fromPath,
-    });
+    const exists = await this.existsInPublicDocuments(fromFilename);
 
     if (!exists) {
       throw new Error(`File not found: ${fromPath}`);
     }
 
     await Filesystem.rename({
-      from: fromPath,
-      to: toPath,
-      directory: Directory.Documents,
-      toDirectory: Directory.Documents,
+      from: this.publicDocumentsEpubPath(fromFilename),
+      to: this.publicDocumentsEpubPath(toFilename),
     });
+    await this.deleteDocumentEpubIfExists(fromPath);
+    this.debugLog('renameGeneratedEpub', { from: fromFilename, to: toFilename });
 
     const fromThumbPath = this.getThumbPathForEpubFilename(fromFilename);
     const toThumbPath = this.getThumbPathForEpubFilename(toFilename);
@@ -882,6 +1043,8 @@ export class FileService {
         toDirectory: Directory.Data,
       });
     }
+    this.renameThumbCache(fromFilename, toFilename);
+    this.renameThumbPresence(fromFilename, toFilename);
 
     return {
       filename: toFilename,
@@ -891,10 +1054,8 @@ export class FileService {
   }
 
   async existsInDocuments(path: string): Promise<boolean> {
-    return this.fileKit.exists({
-      dir: 'Documents',
-      path,
-    });
+    const filename = path.split('/').pop() || path;
+    return this.existsInPublicDocuments(filename);
   }
 
   async getUniqueDocumentFilename(
@@ -911,8 +1072,8 @@ export class FileService {
     let candidate = `${base}${cleanExt}`;
     let idx = 1;
     while (true) {
-      const exists = await this.existsInDocuments(`${this.EPUB_FOLDER}/${candidate}`);
-      if (!exists || (ignore && candidate.toLowerCase() === ignore)) {
+      const exists = await this.existsInPublicDocuments(candidate);
+      if ((!exists) || (ignore && candidate.toLowerCase() === ignore)) {
         return candidate;
       }
       candidate = `${base} (${idx})${cleanExt}`;
@@ -1057,12 +1218,8 @@ export class FileService {
   } | null> {
     if (!this.epubRewrite.isSupported()) return null;
 
-    const epubPath = `${this.EPUB_FOLDER}/${epubFilename}`;
     try {
-      const epubUri = await this.fileKit.getUri({
-        dir: 'Documents',
-        path: epubPath,
-      });
+      const epubUri = await this.getPublicEpubUri(epubFilename);
 
       const extracted = await this.epubRewrite.extractCoverAssetFile({
         epubPath: epubUri,
@@ -1128,6 +1285,80 @@ export class FileService {
     return epubFilename.replace(/\.epub$/i, '');
   }
 
+  private normalizeBase64Data(data: string): string {
+    const commaIdx = data.indexOf(',');
+    if (commaIdx > -1) {
+      return data.slice(commaIdx + 1);
+    }
+    return data;
+  }
+
+  private async listDirectoryFileNames(
+    path: string,
+    dir: 'Data' | 'Documents' | 'Cache',
+  ): Promise<string[]> {
+    try {
+      const list = await Filesystem.readdir({
+        path,
+        directory: this.mapDirectory(dir),
+      });
+      return (list.files ?? [])
+        .map((entry) => (typeof entry === 'string' ? entry : entry.name))
+        .filter((name): name is string => !!name);
+    } catch {
+      return [];
+    }
+  }
+
+  private publicDocumentsEpubPath(filename: string): string {
+    return this.epubStore.pathFor(filename);
+  }
+
+  private async listEpubsFromPublicDocuments(): Promise<string[]> {
+    return this.epubStore.listEpubs();
+  }
+
+  private async writePublicEpub(filename: string, bytes: Uint8Array): Promise<void> {
+    await this.epubStore.writeEpub(filename, bytes);
+  }
+
+  private async deletePublicEpub(filename: string): Promise<void> {
+    await this.epubStore.deleteEpub(filename);
+  }
+
+  private async deleteDocumentEpubIfExists(relativePath: string): Promise<void> {
+    await this.epubStore.deleteDocumentEpubIfExists(relativePath);
+  }
+
+  private async existsInPublicDocuments(filename: string): Promise<boolean> {
+    return this.epubStore.exists(filename);
+  }
+
+  private async readPublicEpubBytes(filename: string): Promise<Uint8Array> {
+    return this.epubStore.readBytes(filename);
+  }
+
+  private async getPublicEpubFileUriOrThrow(filename: string): Promise<string> {
+    const uri = await this.epubStore.getUriOrThrow(filename);
+    this.debugLog('getPublicEpubFileUriOrThrow', { filename, uri });
+    return uri;
+  }
+
+  private async getPublicEpubUri(filename: string): Promise<string> {
+    return this.getPublicEpubFileUriOrThrow(filename);
+  }
+
+  private async ensurePublicDocumentsEpubFolderReady(): Promise<void> {
+    await this.epubStore.ensureReady();
+  }
+
+  private async readBytesFromSource(
+    path: string,
+    dir: 'Data' | 'Documents' | 'Cache',
+  ): Promise<Uint8Array> {
+    return this.fileKit.readBytes({ dir, path });
+  }
+
   private async cleanupCachePaths(paths: string[]): Promise<void> {
     await Promise.all(
       paths.map(async (path) => {
@@ -1145,5 +1376,12 @@ export class FileService {
     if (dir === 'Cache') return Directory.Cache;
     return Directory.Documents;
   }
+
+  private debugLog(event: string, payload?: Record<string, unknown>): void {
+    if (!this.DEBUG_IO) return;
+    const suffix = payload ? ` ${JSON.stringify(payload)}` : '';
+    console.info(`[ECC:file.service] ${event}${suffix}`);
+  }
+
 }
 

@@ -337,6 +337,10 @@ export class TextPanelComponent {
 
   onSelectSection(id: string): void {
     if (!this.selectedText()) return;
+    if (id === "edit") {
+      this.textEdit.requestEditSelected();
+      return;
+    }
     this.subpanel.set(id as TextSubpanel);
   }
 
@@ -403,6 +407,9 @@ export class TextPanelComponent {
   }
 
   private buildSectionItems(): ScrollableBarItem[] {
+    const editLabel = this.translate.instant(
+      "EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.SECTION.EDIT",
+    );
     const fontLabel = this.translate.instant(
       "EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.SECTION.FONT",
     );
@@ -427,6 +434,7 @@ export class TextPanelComponent {
       }) as unknown as ScrollableBarItem;
 
     return [
+      makeItem("edit", editLabel),
       makeItem("font", fontLabel),
       makeItem("color", colorLabel),
       makeItem("stroke", strokeLabel),

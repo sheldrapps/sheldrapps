@@ -7,8 +7,8 @@ android {
         applicationId "com.sheldrapps.covercreatorforkindle"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 16
-        versionName "Improve support for epub files"
+        versionCode 17
+        versionName "Improve text dragging and selection"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

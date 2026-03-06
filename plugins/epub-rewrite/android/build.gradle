@@ -21,5 +21,6 @@ repositories {
 
 dependencies {
     implementation project(':capacitor-android')
+    implementation 'androidx.activity:activity:1.9.3'
     implementation 'net.lingala.zip4j:zip4j:2.11.5'
 }

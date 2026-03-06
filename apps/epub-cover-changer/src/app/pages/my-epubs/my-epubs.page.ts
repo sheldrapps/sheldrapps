@@ -98,6 +98,10 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   private readonly SCROLL_END_DELAY_MS = 160;
   private coversEventsSub?: Subscription;
   private localDeletedFilenames = new Set<string>();
+  private thumbsLoadToken = 0;
+  private hasLoadedOnce = false;
+  private needsReload = true;
+  private isViewActive = false;
 
   // Preview Modal
   previewOpen = false;
@@ -137,7 +141,6 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.load();
     this.coversEventsSub = this.coversEvents.events$
       .pipe(filter((e) => e.type === 'saved' || e.type === 'deleted'))
       .subscribe((event) => {
@@ -152,7 +155,10 @@ export class MyEpubsPage implements OnInit, OnDestroy {
           return;
         }
 
-        void this.load();
+        this.needsReload = true;
+        if (this.isViewActive) {
+          void this.load();
+        }
       });
   }
 
@@ -160,6 +166,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     this.loading = !ev;
     this.pageErrorKey = null;
     this.pageErrorParams = null;
+    const loadToken = ++this.thumbsLoadToken;
 
     try {
       const entries = await this.files.listCovers();
@@ -167,34 +174,43 @@ export class MyEpubsPage implements OnInit, OnDestroy {
         filename: e.filename,
       }));
       this.items = items;
-
-      await this.loadThumbsResilient(items);
+      this.hasLoadedOnce = true;
+      this.needsReload = false;
+      this.loading = false;
+      ev?.target && (ev.target as any).complete();
+      void this.loadThumbsResilient(items, loadToken);
     } catch {
       this.items = [];
       this.pageErrorKey = 'COVERS.ERROR.LOAD';
-    } finally {
       this.loading = false;
       ev?.target && (ev.target as any).complete();
     }
   }
 
-  private async loadThumbsResilient(items: UiCoverItem[]) {
-    const concurrency = 4;
+  private async loadThumbsResilient(items: UiCoverItem[], loadToken: number) {
+    const concurrency = 6;
     let i = 0;
 
     const worker = async () => {
       while (i < items.length) {
+        if (loadToken !== this.thumbsLoadToken) return;
         const idx = i++;
         const item = items[idx];
         const dataUrl = await this.files.getOrBuildThumbDataUrlForFilename(
           item.filename
         );
         item.thumbDataUrl = dataUrl ?? undefined;
+
+        if (idx % 4 === 0 && loadToken === this.thumbsLoadToken) {
+          this.items = [...items];
+        }
       }
     };
 
     await Promise.all(Array.from({ length: concurrency }, () => worker()));
-    this.items = [...items];
+    if (loadToken === this.thumbsLoadToken) {
+      this.items = [...items];
+    }
   }
 
   showMenu(ev: Event, filename: string) {
@@ -476,7 +492,14 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   }
 
   async ionViewWillEnter() {
-    await this.load();
+    this.isViewActive = true;
+    if (!this.hasLoadedOnce || this.needsReload) {
+      await this.load();
+    }
+  }
+
+  ionViewDidLeave() {
+    this.isViewActive = false;
   }
 
   private isFromDots(ev: Event): boolean {

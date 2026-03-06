@@ -9,6 +9,8 @@ import type {
   ExtractCoverAssetResult,
   InspectEpubOptions,
   InspectEpubResult,
+  PickAndPrepareEpubOptions,
+  PickAndPrepareEpubResult,
   RewriteCoverOptions,
   RewriteCoverResult,
 } from './definitions';
@@ -17,6 +19,12 @@ export class EpubRewriteWeb
   extends WebPlugin
   implements EpubRewritePlugin
 {
+  async pickAndPrepareEpub(
+    _options: PickAndPrepareEpubOptions,
+  ): Promise<PickAndPrepareEpubResult> {
+    throw this.unimplemented('Epub rewrite is only available on Android.');
+  }
+
   async inspectEpub(_options: InspectEpubOptions): Promise<InspectEpubResult> {
     throw this.unimplemented('Epub rewrite is only available on Android.');
   }

@@ -146,7 +146,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private recommendedAppsService = inject(RecommendedAppsService);
   private readonly baseTarget = { width: 1236, height: 1648 };
   private readonly baseModelId = 'epub';
-  private readonly maxEpubSizeMB = 500;
+  private readonly maxEpubSizeMB = 1024;
   private readonly formatOptions = this.buildFormatOptions();
   private routerSub?: Subscription;
   private rewriteProgressSub?: PluginListenerHandle;
@@ -387,6 +387,10 @@ export class ChangePage implements OnInit, OnDestroy {
 
   // EPUB handling methods
   openEpubPicker() {
+    if (this.usesNativeRewrite()) {
+      void this.pickNativeEpub();
+      return;
+    }
     this.epubInput.nativeElement.click();
   }
 
@@ -399,11 +403,6 @@ export class ChangePage implements OnInit, OnDestroy {
     this.setBusy('epub', 'CHANGE.LOADING_EPUB');
 
     try {
-      if (this.usesNativeRewrite()) {
-        await this.onNativeEpubSelected(file);
-        return;
-      }
-
       await this.resetWorkflowForNewEpub();
 
       // Validate EPUB file
@@ -417,7 +416,7 @@ export class ChangePage implements OnInit, OnDestroy {
       let cycle: Awaited<ReturnType<EpubWorkingCopyService['startCycle']>>;
       try {
         cycle = await this.workingCopy.startCycle(file);
-      } catch {
+      } catch (error) {
         this.failEpub('EPUB_ERROR_CORRUPT', file);
         return;
       }
@@ -460,72 +459,56 @@ export class ChangePage implements OnInit, OnDestroy {
     }
   }
 
-  private async onNativeEpubSelected(file: File) {
-    await this.resetWorkflowForNewEpub();
+  private async pickNativeEpub() {
+    this.resetEpubLoadProgress();
+    this.setBusy('epub', 'CHANGE.LOADING_EPUB');
     this.epubLoadStage = 'copy';
     this.epubLoadProgressPercent = 0;
 
-    const validation = this.fileService.validateEpub(file, this.maxEpubSizeMB);
-    if (!validation.valid) {
-      this.failEpub(validation.errorKey!, file);
-      return;
-    }
-
-    let cycle: Awaited<ReturnType<EpubWorkingCopyService['startStreamingCycle']>>;
     try {
-      cycle = await this.workingCopy.startStreamingCycle(file, (percent) => {
-        const scaled = Math.max(0, Math.min(90, Math.round(percent * 0.9)));
-        this.zone.run(() => {
-          this.epubLoadProgressPercent = scaled;
-        });
+      const prepared = await this.epubRewrite.pickAndPrepareEpub({
+        maxBytes: this.maxEpubSizeMB * 1024 * 1024,
       });
+      await this.resetWorkflowForNewEpub();
+      this.epubLoadStage = 'inspect';
+      this.epubLoadProgressPercent = 92;
+
+      this.sourceEpubFile = undefined;
+      this.sourceEpubMeta = {
+        name: prepared.selectedName,
+        size: prepared.sourceSize,
+        lastModified: prepared.sourceLastModified,
+        type: prepared.sourceMimeType,
+      };
+      this.workingEpubFile = undefined;
+      this.workingEpubPath = prepared.workingPath;
+      this.workingEpubNativePath = prepared.workingNativePath;
+      this.workingEpubName = prepared.workingName;
+      this.outputBaseName = prepared.outputBaseName;
+      this.selectedEpubName = prepared.selectedName;
+      this.coverEntryPath = prepared.coverEntryPath;
+      this.clearEpubError();
+
+      if (!prepared.file) {
+        this.activateInvalidCoverFallback();
+        this.epubLoadProgressPercent = 100;
+        return;
+      }
+
+      try {
+        const coverLoaded = await this.applyImageSource(prepared.file, false);
+        if (!coverLoaded) {
+          this.activateInvalidCoverFallback();
+          return;
+        }
+        this.epubLoadProgressPercent = 100;
+      } catch {
+        this.activateInvalidCoverFallback();
+      }
     } catch (error) {
-      console.error(
-        `[ECC] Native EPUB load failed during streaming copy ${JSON.stringify({
-          name: file.name,
-          size: file.size,
-          error: this.serializeError(error),
-        })}`,
-      );
-      this.failEpub('EPUB_ERROR_CORRUPT', file);
-      return;
-    }
-
-    this.epubLoadStage = 'inspect';
-    this.epubLoadProgressPercent = Math.max(92, this.epubLoadProgressPercent);
-
-    this.sourceEpubFile = file;
-    this.sourceEpubMeta = cycle.sourceMeta;
-    this.workingEpubPath = cycle.workingPath;
-    this.workingEpubNativePath = cycle.workingNativePath;
-    this.workingEpubName = cycle.workingName;
-    this.outputBaseName = cycle.outputBaseName;
-    this.selectedEpubName = file.name;
-
-    let extracted: Awaited<ReturnType<EpubRewriteService['extractCoverFile']>>;
-    try {
-      console.info(
-        `[ECC] Native EPUB inspect started ${JSON.stringify({
-          name: file.name,
-          size: file.size,
-          path: cycle.workingNativePath,
-        })}`,
-      );
-      extracted = await this.epubRewrite.extractCoverFile(
-        cycle.workingNativePath,
-        file.name,
-      );
-    } catch (error) {
-      console.error(
-        `[ECC] Native EPUB load failed during cover extraction ${JSON.stringify(
-          {
-            name: file.name,
-            size: file.size,
-            stage: this.epubLoadStage,
-            error: this.serializeError(error),
-          },
-        )}`,
-      );
+      if (error instanceof EpubRewriteError && error.code === 'PICK_CANCELLED') {
+        return;
+      }
 
       if (
         error instanceof EpubRewriteError &&
@@ -538,39 +521,30 @@ export class ChangePage implements OnInit, OnDestroy {
         return;
       }
 
-      this.failEpub(this.mapNativeEpubError(error), file);
-      await this.cleanupWorkingCopy();
-      return;
-    }
-
-    this.coverEntryPath = extracted.coverEntryPath;
-    this.clearEpubError();
-
-    try {
-      const coverLoaded = await this.applyImageSource(extracted.file, false);
-      if (!coverLoaded) {
-        this.activateInvalidCoverFallback();
-        return;
-      }
-      this.epubLoadProgressPercent = 100;
-    } catch (error) {
-      console.warn(
-        `[ECC] Native EPUB cover preview preload skipped ${JSON.stringify({
-          name: file.name,
-          size: file.size,
-          error: this.serializeError(error),
-        })}`,
+      const mappedErrorKey = this.mapNativeEpubError(error);
+      this.failEpub(
+        mappedErrorKey,
+        this.sourceEpubMeta,
+        this.buildNativeStorageErrorParams(error),
       );
-      this.activateInvalidCoverFallback();
+      await this.cleanupWorkingCopy();
+    } finally {
+      this.resetEpubLoadProgress();
+      this.setBusy('none');
     }
   }
 
-  private failEpub(errorKey: string, file?: File) {
+  private failEpub(
+    errorKey: string,
+    file?: { name?: string },
+    extraParams: Record<string, unknown> = {},
+  ) {
     this.zone.run(() => {
       this.epubErrorKey = `CHANGE.${errorKey}`;
       this.epubErrorParams = {
         maxSize: String(this.maxEpubSizeMB),
         name: file?.name || '',
+        ...extraParams,
       };
       this.sourceEpubFile = undefined;
       this.sourceEpubMeta = undefined;
@@ -1127,13 +1101,19 @@ export class ChangePage implements OnInit, OnDestroy {
           this.generatedEpubFilename = renamed.filename;
           this.lastSavedFilename = renamed.filename;
         } catch {
-          const saved = this.usesNativeRewrite() && this.generatedEpubPath
-            ? await this.fileService.saveGeneratedEpubFromPath({
-                sourcePath: this.generatedEpubPath,
-                sourceDir: 'Data',
-                filename,
-                coverFileForThumb: exportFile,
-              })
+          const saved = this.usesNativeRewrite()
+            ? this.generatedEpubPath
+              ? await this.fileService.saveGeneratedEpubFromPath({
+                  sourcePath: this.generatedEpubPath,
+                  sourceDir: 'Data',
+                  filename,
+                  coverFileForThumb: exportFile,
+                })
+              : await this.fileService.saveGeneratedEpubFromExistingDocument({
+                  sourceFilename: this.lastSavedFilename,
+                  filename,
+                  coverFileForThumb: exportFile,
+                })
             : await this.fileService.saveGeneratedEpub({
                 bytes: this.generatedEpubBytes!,
                 filename,
@@ -1499,7 +1479,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
   private cleanupGeneratedTempOutput() {
     const path = this.generatedEpubPath;
-    if (!path) return;
+    if (!path || path === this.workingEpubPath) return;
     void this.workingCopy.cleanupWorkingCopy(path);
   }
 
@@ -1560,7 +1540,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
   canSaveShare(): boolean {
     const hasGeneratedOutput = this.usesNativeRewrite()
-      ? !!this.generatedEpubPath
+      ? !!(this.generatedEpubPath || this.lastSavedFilename)
       : !!this.generatedEpubBytes;
 
     return (
@@ -1689,7 +1669,7 @@ export class ChangePage implements OnInit, OnDestroy {
     exportFile: File,
     preferredFilename?: string,
   ) {
-    if (!this.workingEpubNativePath || !this.coverEntryPath) {
+    if (!this.workingEpubNativePath || !this.workingEpubPath || !this.coverEntryPath) {
       throw new EpubRewriteError('REWRITE_UNAVAILABLE');
     }
 
@@ -1699,7 +1679,12 @@ export class ChangePage implements OnInit, OnDestroy {
       rewriteCoverFile,
       outputBaseName,
     );
-    const output = await this.workingCopy.buildOutputFile(outputBaseName);
+    const requestedFilename = this.ensureEpubExtension(
+      preferredFilename || `${outputBaseName}.epub`,
+    );
+    const outputTarget = await this.fileService.reserveNativeDocumentOutput(
+      requestedFilename,
+    );
 
     this.isNativeRewriteInProgress = true;
     this.isCancellingNativeRewrite = false;
@@ -1708,7 +1693,7 @@ export class ChangePage implements OnInit, OnDestroy {
     try {
       const result = await this.epubRewrite.rewriteCover({
         inputPath: this.workingEpubNativePath,
-        outputPath: output.nativePath,
+        outputPath: outputTarget.nativePath,
         coverEntryPath: this.coverEntryPath,
         newCoverPath: tempCover.nativePath,
       });
@@ -1726,36 +1711,30 @@ export class ChangePage implements OnInit, OnDestroy {
         throw new EpubRewriteError(result.error ?? 'REWRITE_FAILED', {
           message: result.message,
           stage: result.stage,
+          requiredBytes: result.requiredBytes,
+          availableBytes: result.availableBytes,
         });
       }
 
-      const nextFilename = this.ensureEpubExtension(
-        preferredFilename || `${outputBaseName}.epub`,
-      );
-
       this.generatedEpubBytes = undefined;
-      this.generatedEpubPath = output.path;
-      this.generatedEpubNativePath = output.nativePath;
-      this.generatedEpubFilename = nextFilename;
+      this.generatedEpubPath = undefined;
+      this.generatedEpubNativePath = outputTarget.nativePath;
+      this.generatedEpubFilename = outputTarget.filename;
       this.rewriteProgressPercent = 100;
 
       this.setBusy('export', 'CHANGE.SAVING');
-
-      const saved = await this.fileService.saveGeneratedEpubFromPath({
-        sourcePath: this.generatedEpubPath,
-        sourceDir: 'Data',
-        filename: nextFilename,
+      await this.fileService.persistCoverAssetsForGeneratedFilename({
+        filename: outputTarget.filename,
         coverFileForThumb: rewriteCoverFile,
       });
 
-      this.generatedEpubFilename = saved.filename;
       this.coversEvents.emit({
         type: 'saved',
-        filename: saved.filename,
+        filename: outputTarget.filename,
       });
 
       this.wasAutoSaved = true;
-      this.lastSavedFilename = saved.filename;
+      this.lastSavedFilename = outputTarget.filename;
 
       await this.showToast(
         'CHANGE.COVER_CHANGED',
@@ -1764,10 +1743,12 @@ export class ChangePage implements OnInit, OnDestroy {
       );
     } catch (error) {
       if (!(error instanceof EpubRewriteError) || error.code !== 'CANCELLED') {
+        const toastMessage = this.mapNativeRewriteToast(error);
         await this.showToast(
-          this.mapNativeRewriteToastKey(error),
+          toastMessage.key,
           { duration: 2200 },
           'error',
+          toastMessage.params,
         );
       }
     } finally {
@@ -1784,40 +1765,61 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private mapNativeEpubError(error: unknown): string {
+    if (error instanceof EpubRewriteError && error.code === 'EPUB_TOO_LARGE') {
+      return 'EPUB_ERROR_SIZE';
+    }
+    if (error instanceof EpubRewriteError && error.code === 'NO_SPACE') {
+      return 'EPUB_ERROR_STORAGE';
+    }
     if (error instanceof EpubRewriteError && error.code === 'NO_COVER') {
       return 'EPUB_ERROR_NO_COVER';
     }
     return 'EPUB_ERROR_CORRUPT';
   }
 
-  private mapNativeRewriteToastKey(error: unknown): string {
+  private mapNativeRewriteToast(
+    error: unknown,
+  ): { key: string; params?: Record<string, unknown> } {
     if (
       error instanceof EpubRewriteError &&
       (error.code === 'NO_COVER' || error.code === 'COVER_NOT_FOUND')
     ) {
-      return 'CHANGE.EPUB_ERROR_NO_COVER';
+      return { key: 'CHANGE.EPUB_ERROR_NO_COVER' };
     }
 
-    return 'CHANGE.EPUB_ERROR_REWRITE';
+    if (error instanceof EpubRewriteError && error.code === 'NO_SPACE') {
+      return {
+        key: 'CHANGE.EPUB_ERROR_STORAGE',
+        params: this.buildNativeStorageErrorParams(error),
+      };
+    }
+
+    return { key: 'CHANGE.EPUB_ERROR_REWRITE' };
   }
 
-  private serializeError(error: unknown): Record<string, unknown> | string {
-    if (error instanceof EpubRewriteError) {
-      return {
-        type: 'EpubRewriteError',
-        code: error.code,
-        details: error.details ?? null,
-        message: error.message,
-      };
+  private buildNativeStorageErrorParams(
+    error: unknown,
+  ): Record<string, unknown> {
+    if (!(error instanceof EpubRewriteError)) {
+      return {};
     }
-    if (error instanceof Error) {
-      return {
-        type: error.name || 'Error',
-        message: error.message,
-        stack: error.stack ?? null,
-      };
+
+    const requiredBytes = error.details?.requiredBytes;
+    const availableBytes = error.details?.availableBytes;
+    if (
+      !Number.isFinite(requiredBytes as number) ||
+      !Number.isFinite(availableBytes as number)
+    ) {
+      return {};
     }
-    return String(error);
+
+    const requiredMB = Math.ceil((requiredBytes as number) / (1024 * 1024));
+    const availableMB = Math.max(
+      0,
+      Math.floor((availableBytes as number) / (1024 * 1024)),
+    );
+
+    return { requiredMB, availableMB };
   }
 
   private async showHintOnce(
@@ -1912,11 +1914,6 @@ export class ChangePage implements OnInit, OnDestroy {
   private async refreshHeaderItems(): Promise<void> {
     this.recommendedApps = await this.recommendedAppsService.getRecommendedApps();
     this.showRecommended = this.recommendedApps.length > 0;
-    console.info('[recommended-apps][host:ecc] header state', {
-      showRecommended: this.showRecommended,
-      recommendedAppsLength: this.recommendedApps.length,
-      recommendedPackageNames: this.recommendedApps.map((app) => app.packageName),
-    });
     this.headerItems = buildHomeHeaderItems(this.showRecommended, {
       appsLabel: this.translate.instant('ARR.TOOLS.APPS'),
       guideLabel: this.translate.instant('ARR.TOOLS.GUIDE'),
@@ -1954,6 +1951,7 @@ export class ChangePage implements OnInit, OnDestroy {
     messageKey: string,
     opts: Partial<ToastOptions> = {},
     variant: 'success' | 'error' | 'info' = 'success',
+    params?: Record<string, unknown>,
   ) {
     const extra = opts.cssClass
       ? Array.isArray(opts.cssClass)
@@ -1963,7 +1961,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
     const toast = await this.toastCtrl.create({
       ...opts,
-      message: this.translate.instant(messageKey),
+      message: this.translate.instant(messageKey, params),
       position: 'middle',
       duration: opts.duration ?? 1800,
       animated: true,

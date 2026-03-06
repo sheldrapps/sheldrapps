@@ -27,6 +27,7 @@
     "EPUB_ERROR_CORRUPT": "No se pudo leer el EPUB. Prueba con otro archivo.",
     "EPUB_ERROR_NO_COVER": "Este EPUB no tiene una portada reemplazable.",
     "EPUB_ERROR_REWRITE": "No se pudo procesar el EPUB. Intentalo de nuevo.",
+    "EPUB_ERROR_STORAGE": "No hay espacio suficiente. Se requieren {{requiredMB}} MB y hay {{availableMB}} MB disponibles.",
     "EPUB_ERROR_SIZE": "El archivo pesa demasiado. Maximo {{maxSize}} MB.",
     "EPUB_ERROR_TYPE": "Archivo EPUB no compatible.",
     "GENERATING": "Cargando anuncio...",

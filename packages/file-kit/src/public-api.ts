@@ -14,6 +14,7 @@ export { makeSafeFilename } from './lib/name';
 
 // Service
 export * from './lib/file-kit.service';
+export * from './lib/epub-public-store';
 
 // Providers
 export * from './lib/providers';

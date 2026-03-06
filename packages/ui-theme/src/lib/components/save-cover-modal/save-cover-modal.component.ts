@@ -38,6 +38,15 @@ import {
     <ion-header>
       <ion-toolbar>
         <ion-title>{{ title }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button
+            color="primary"
+            (click)="save()"
+            [disabled]="!filenameValue.trim()"
+          >
+            {{ confirmText }}
+          </ion-button>
+        </ion-buttons>
       </ion-toolbar>
     </ion-header>
 

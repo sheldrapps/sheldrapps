@@ -9,11 +9,15 @@ export interface InspectEpubResult {
   coverEntryPath?: string;
   extractedCoverPath?: string;
   error?: string;
+  message?: string;
+  stage?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
 }
 
 export interface RewriteCoverOptions {
   inputPath: string;
-  outputPath: string;
+  outputPath?: string;
   coverEntryPath: string;
   newCoverPath: string;
 }
@@ -21,6 +25,11 @@ export interface RewriteCoverOptions {
 export interface RewriteCoverResult {
   success: boolean;
   error?: string;
+  message?: string;
+  stage?: string;
+  outputPath?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
 }
 
 export interface ExtractCoverAssetOptions {
@@ -35,6 +44,10 @@ export interface ExtractCoverAssetResult {
   mimeType?: string;
   coverEntryPath?: string;
   error?: string;
+  message?: string;
+  stage?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
 }
 
 export interface CreateEpubFromCoverOptions {
@@ -48,10 +61,37 @@ export interface CreateEpubFromCoverOptions {
 export interface CreateEpubFromCoverResult {
   success: boolean;
   error?: string;
+  message?: string;
+  stage?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
 }
 
 export interface RewriteProgressEvent {
   percent: number;
+}
+
+export interface PickAndPrepareEpubOptions {
+  maxBytes?: number;
+}
+
+export interface PickAndPrepareEpubResult {
+  success: boolean;
+  selectedName?: string;
+  sourceSize?: number;
+  sourceLastModified?: number;
+  sourceMimeType?: string;
+  workingPath?: string;
+  workingName?: string;
+  workingNativePath?: string;
+  outputBaseName?: string;
+  coverEntryPath?: string;
+  extractedCoverPath?: string;
+  error?: string;
+  message?: string;
+  stage?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
 }
 
 export interface CancelRewriteResult {
@@ -59,6 +99,9 @@ export interface CancelRewriteResult {
 }
 
 export interface EpubRewritePlugin extends Plugin {
+  pickAndPrepareEpub(
+    options: PickAndPrepareEpubOptions,
+  ): Promise<PickAndPrepareEpubResult>;
   inspectEpub(options: InspectEpubOptions): Promise<InspectEpubResult>;
   rewriteCover(options: RewriteCoverOptions): Promise<RewriteCoverResult>;
   extractCoverAsset(

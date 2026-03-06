@@ -40,6 +40,7 @@
     "IMAGE_ERROR_SIZE": "Le fichier est trop volumineux. Maximum {{maxSize}} Mo.",
     "IMAGE_ERROR_TYPE": "Format non pris en charge ({{type}}). Sélectionnez JPG, PNG ou WebP.",
     "IMAGE_WARN_SMALL": "L'image peut être trop petite pour certains appareils.",
+    "EPUB_ERROR_STORAGE": "Espace de stockage insuffisant. {{requiredMB}} MB requis, {{availableMB}} MB disponibles.",
     "LOADING_EPUB": "Chargement de l'EPUB",
     "LOADING_IMAGE": "Chargement de l'image",
     "OPENING_EDITOR": "Ouverture de l'éditeur",
