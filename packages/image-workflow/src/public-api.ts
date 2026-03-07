@@ -26,5 +26,3 @@ export {
 // Angular Service (for DI compatibility)
 export { ImagePipelineService } from "./lib/core/pipeline/image-pipeline.service";
 
-// UI Components
-export { CoverCropperModalComponent } from "./lib/ui/cropper";

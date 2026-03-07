@@ -1,120 +1,21 @@
 @use '@sheldrapps/ui-theme/styles/cropper' as *;
+@use './editor-fonts' as editorFonts;
 
-@font-face {
-  font-family: 'Inter';
-  src: url('/assets/fonts/Inter-400.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Inter';
-  src: url('/assets/fonts/Inter-700.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Playfair Display';
-  src: url('/assets/fonts/PlayfairDisplay-400.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Playfair Display';
-  src: url('/assets/fonts/PlayfairDisplay-700.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Cinzel Decorative';
-  src: url('/assets/fonts/CinzelDecorative-400.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Bebas Neue';
-  src: url('/assets/fonts/BebasNeue-400.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Black Ops One';
-  src: url('/assets/fonts/BlackOpsOne-400.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Bangers';
-  src: url('/assets/fonts/Bangers-400.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Comic Neue';
-  src: url('/assets/fonts/ComicNeue-400.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Caveat';
-  src: url('/assets/fonts/Caveat-400.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Pacifico';
-  src: url('/assets/fonts/Pacifico-400.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Great Vibes';
-  src: url('/assets/fonts/GreatVibes-400.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Press Start 2P';
-  src: url('/assets/fonts/PressStart2P-400.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Rubik Glitch';
-  src: url('/assets/fonts/RubikGlitch-400.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Orbitron';
-  src: url('/assets/fonts/Orbitron-400.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'VT323';
-  src: url('/assets/fonts/VT323-400.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
+@include editorFonts.load-editor-fonts;
 
 :host {
   display: block;
+}
+
+.editor-shell-toolbar {
+  --border-width: 0;
+  --box-shadow: none;
+  border-bottom: none;
+  box-shadow: none;
+}
+
+.editor-shell-toolbar ion-title {
+  text-shadow: none;
 }
 
 .cropper-content {
@@ -212,21 +113,21 @@
 .stage-guide--v {
   top: 0;
   bottom: 0;
-  width: 1px;
+  width: var(--app-editor-guide-line-size);
 }
 
 .stage-guide--h {
   left: 0;
   right: 0;
-  height: 1px;
+  height: var(--app-editor-guide-line-size);
 }
 
 .stage-guides--grid .stage-guide--v {
-  width: 0.5px;
+  width: var(--app-editor-guide-line-size-fine);
 }
 
 .stage-guides--grid .stage-guide--h {
-  height: 0.5px;
+  height: var(--app-editor-guide-line-size-fine);
 }
 
 .frame--sampling {
@@ -302,7 +203,7 @@
   inset: 0;
   pointer-events: none;
   z-index: 3;
-  --picker-size: 120px;
+  --picker-size: var(--app-editor-picker-size);
   --picker-x: 0px;
   --picker-y: 0px;
   --picker-color: #000000;
@@ -310,13 +211,13 @@
 
 @media (max-width: 680px) {
   .picker-overlay {
-    --picker-size: 96px;
+    --picker-size: var(--app-editor-picker-size-sm);
   }
 }
 
 @media (min-width: 1100px) {
   .picker-overlay {
-    --picker-size: 132px;
+    --picker-size: var(--app-editor-picker-size-lg);
   }
 }
 
@@ -428,44 +329,48 @@
   --padding-top: 0;
   --padding-bottom: 0;
   --box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
-  min-width: 36px;
-  min-height: 36px;
-  height: 36px;
-  width: 36px;
+  min-width: var(--app-editor-compact-touch-target);
+  min-height: var(--app-editor-compact-touch-target);
+  height: var(--app-editor-compact-touch-target);
+  width: var(--app-editor-compact-touch-target);
+}
+
+.frame-loader {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 5;
+}
+
+.frame-loader__card {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-4);
+  padding: var(--app-space-4) var(--app-space-5);
+  border-radius: 14px;
+  background: rgba(var(--ion-background-color-rgb), 0.92);
+  color: var(--ion-text-color);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.frame-loader__text {
+  font-size: 0.92rem;
+  opacity: 0.9;
+  white-space: nowrap;
 }
 
 
 /* Top toolbox layout (shell-level only) */
 .top-toolbox {
-  min-height: 52px;
+  min-height: var(--app-editor-top-toolbox-min-height);
   padding: var(--app-space-1) var(--app-space-3) var(--app-space-2);
   background: var(--ion-background-color);
   display: flex;
   align-items: center;
-}
-
-/* Bottom entry toolbox (shell-level only) */
-.tools-bar {
-  display: flex;
-  gap: var(--app-space-7);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: var(--app-space-1) var(--app-space-3);
-  scrollbar-width: none;
-}
-.tools-bar::-webkit-scrollbar {
-  display: none;
-}
-
-.tools-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--app-space-2);
-}
-
-.tools-buttons {
-  display: flex;
-  gap: var(--app-space-3);
 }
 
 /* Panel placeholder (temporary until components are created) */

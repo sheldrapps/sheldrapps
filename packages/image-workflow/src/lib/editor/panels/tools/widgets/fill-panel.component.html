@@ -1,6 +1,6 @@
 <div class="fill-panel">
   @if (activeView() === "root") {
-    <div class="fill-tabs">
+    <div class="fill-tabs app-panel-tabs">
       <sh-scrollable-button-bar
         [items]="toolItems"
         [activeId]="activeItem()"
@@ -10,11 +10,11 @@
       ></sh-scrollable-button-bar>
     </div>
   } @else {
-    <div class="fill-subheader">
-      <ion-button fill="clear" class="fill-subheader__back" (click)="goRoot()">
+    <div class="fill-subheader app-panel-subheader">
+      <ion-button fill="clear" class="fill-subheader__back app-panel-subheader__back" (click)="goRoot()">
         <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
       </ion-button>
-      <div class="fill-subheader__title">
+      <div class="fill-subheader__title app-panel-subheader__title">
         @if (activeView() === "blur") {
           {{ "EDITOR.PANELS.TOOLS.WIDGETS.FILL_PANEL.TAB.IMAGE" | translate }}
         } @else if (activeView() === "colors") {
@@ -27,7 +27,7 @@
   }
 
   @if (activeView() === "blur") {
-    <div class="fill-subpanel">
+    <div class="fill-subpanel app-panel-subpanel">
       <ion-item>
         <ion-label>
           {{ "EDITOR.PANELS.TOOLS.WIDGETS.FILL_PANEL.LABEL.BLUR" | translate }}
@@ -47,7 +47,7 @@
   }
 
   @if (activeView() === "colors") {
-    <div class="fill-subpanel">
+    <div class="fill-subpanel app-panel-subpanel">
       <sh-scrollable-button-bar
         [items]="colorItems"
         [activeId]="activeColorId()"

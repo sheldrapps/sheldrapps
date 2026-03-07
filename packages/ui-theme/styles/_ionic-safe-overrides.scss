@@ -18,7 +18,28 @@ body {
 ion-header ion-toolbar {
   --background: var(--ion-background-color);
   --color: var(--ion-text-color);
+  border-bottom: none;
+  box-shadow: none;
+}
+
+ion-header::after {
+  display: none;
+  background-image: none;
+}
+
+/* MD header hairline: replace default shadow with a clean 1px divider */
+ion-header.header-md {
   border-bottom: 1px solid var(--ion-border-color);
+  box-shadow: none;
+}
+
+ion-header.header-md::after {
+  display: none;
+  background-image: none;
+}
+
+ion-title {
+  text-shadow: none;
 }
 
 /* Content */

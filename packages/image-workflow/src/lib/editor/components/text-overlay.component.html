@@ -6,7 +6,6 @@
       [class.text-layer--autoedit]="isEditing(view.layer.id) && !view.layer.userBoxTouched"
       [class.text-layer--fixed]="!!view.layer.maxWidthPx"
       [class.text-layer--dragging]="draggingId() === view.layer.id"
-      [class.text-layer--interactive]="canInteract() && !view.isEditingActive"
       [style.left.px]="view.x"
       [style.top.px]="view.y"
       [style.fontFamily]="view.layer.fontFamily"

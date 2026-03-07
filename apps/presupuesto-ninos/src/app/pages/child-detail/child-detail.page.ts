@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, Input, computed, effect, inject } from "@angular/core";
+import { Component, computed, effect, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
@@ -46,35 +46,8 @@ import {
 } from "ionicons/icons";
 import { BudgetStore } from "../../core/budget.store";
 import { Expense } from "../../core/models";
-import {
-  CoverCropperModalComponent,
-  CropTarget,
-  CoverCropState,
-} from "@sheldrapps/image-workflow";
 import { CreateExpenseGroupModalComponent } from "./create-expense-group-modal.component";
 import { SelectExpensesModalComponent } from "./select-expenses-modal.component";
-
-@Component({
-  selector: "app-child-cropper-modal",
-  standalone: true,
-  imports: [CoverCropperModalComponent],
-  template: `
-    <app-cover-cropper-modal
-      [file]="file!"
-      [model]="model!"
-      [initialState]="initialState"
-      [onReady]="onReady"
-      [locale]="locale"
-    ></app-cover-cropper-modal>
-  `,
-})
-export class ChildCropperModalComponent {
-  @Input() file?: File;
-  @Input() model?: CropTarget;
-  @Input() initialState?: CoverCropState;
-  @Input() onReady?: () => void;
-  @Input() locale = "es";
-}
 
 interface ExpenseGroup {
   groupName: string | null;
@@ -206,63 +179,26 @@ export class ChildDetailPage {
             console.warn("No file selected");
             return;
           }
-          await this.openCropper(file);
+          this.isOpeningCropper = true;
+          await this.saveImageAsBase64(file);
+
+          const toast = await this.toastController.create({
+            message: "Foto actualizada",
+            duration: 2000,
+            position: "bottom",
+            color: "success",
+          });
+          await toast.present();
         } catch (error) {
           console.error("Error in file change handler:", error);
+        } finally {
+          this.isOpeningCropper = false;
         }
       };
 
       input.click();
     } catch (error) {
       console.error("Error selecting image:", error);
-    }
-  }
-
-  async openCropper(file: File): Promise<void> {
-    this.isOpeningCropper = true;
-
-    let markReady!: () => void;
-    const readyPromise = new Promise<void>((resolve) => (markReady = resolve));
-
-    try {
-      const modal = await this.modalController.create({
-        component: ChildCropperModalComponent,
-        componentProps: {
-          file,
-          model: { width: 256, height: 256 }, // 1:1 ratio for thumbnail
-          title: "Editar imagen",
-          cancelLabel: "Cancelar",
-          doneLabel: "Guardar",
-          onReady: () => markReady(),
-        },
-      });
-
-      await modal.present();
-
-      const dismissPromise = modal.onWillDismiss();
-
-      // Esperar a que la imagen esté renderizada antes de ocultar el loading
-      await Promise.race([readyPromise, dismissPromise.then(() => {})]);
-      this.isOpeningCropper = false;
-
-      const { data, role } = await dismissPromise;
-
-      if (role === "done" && data?.file) {
-        const croppedFile = data.file as File;
-        await this.saveImageAsBase64(croppedFile);
-
-        // Mostrar toast de éxito
-        const toast = await this.toastController.create({
-          message: "Foto actualizada",
-          duration: 2000,
-          position: "bottom",
-          color: "success",
-        });
-        await toast.present();
-      }
-    } catch (error) {
-      console.error("Error opening cropper:", error);
-      this.isOpeningCropper = false;
     }
   }
 

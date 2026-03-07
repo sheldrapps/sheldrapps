@@ -1,6 +1,6 @@
 <div class="text-panel">
   @if (!hasSelectedText() && !isEditing()) {
-    <div class="text-add text-add--empty">
+    <div class="text-add">
       <ion-button
         expand="block"
         fill="solid"
@@ -14,7 +14,7 @@
 
   @if (hasSelectedText() && !isEditing()) {
     @if (subpanel() === "root") {
-      <div class="text-tabs">
+      <div class="text-tabs app-panel-tabs">
         <sh-scrollable-button-bar
           [items]="sectionItems"
           variant="text"
@@ -23,11 +23,11 @@
         ></sh-scrollable-button-bar>
       </div>
     } @else {
-      <div class="text-subheader">
-        <ion-button fill="clear" class="text-subheader__back" (click)="onBack()">
+      <div class="text-subheader app-panel-subheader">
+        <ion-button fill="clear" class="text-subheader__back app-panel-subheader__back" (click)="onBack()">
           <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
         </ion-button>
-        <div class="text-subheader__title">
+        <div class="text-subheader__title app-panel-subheader__title">
           @if (subpanel() === "font") {
             {{ "EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.SECTION.FONT" | translate }}
           } @else if (subpanel() === "color") {
@@ -46,7 +46,7 @@
     }
 
     @if (subpanel() === "font") {
-      <div class="text-subpanel">
+      <div class="text-subpanel app-panel-subpanel">
         <sh-scrollable-button-bar
           [items]="fontItems"
           [activeId]="activeFontId()"
@@ -58,7 +58,7 @@
     }
 
     @if (subpanel() === "color") {
-      <div class="text-subpanel">
+      <div class="text-subpanel app-panel-subpanel">
         <div class="text-picker">
           <ion-button fill="clear" class="text-picker__btn" (click)="startSampling('fill')">
             <ion-icon slot="start" name="eyedrop-outline"></ion-icon>
@@ -76,8 +76,8 @@
     }
 
     @if (subpanel() === "stroke") {
-      <div class="text-subpanel">
-        <div class="text-tabs text-tabs--sub">
+      <div class="text-subpanel app-panel-subpanel">
+        <div class="text-tabs text-tabs--sub app-panel-tabs">
           <sh-scrollable-button-bar
             [items]="strokeItems"
             variant="text"
@@ -89,7 +89,7 @@
     }
 
     @if (subpanel() === "strokeColor") {
-      <div class="text-subpanel">
+      <div class="text-subpanel app-panel-subpanel">
         <div class="text-picker">
           <ion-button fill="clear" class="text-picker__btn" (click)="startSampling('stroke')">
             <ion-icon slot="start" name="eyedrop-outline"></ion-icon>
@@ -107,7 +107,7 @@
     }
 
     @if (subpanel() === "strokeWidth") {
-      <div class="text-subpanel">
+      <div class="text-subpanel app-panel-subpanel">
         <ion-item>
           <ion-label>
             {{ "EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.STROKE.WIDTH" | translate }}
@@ -128,7 +128,7 @@
     }
 
     @if (subpanel() === "size") {
-      <div class="text-subpanel">
+      <div class="text-subpanel app-panel-subpanel">
         <ion-item>
           <ion-label>
             {{ "EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.SECTION.SIZE" | translate }}

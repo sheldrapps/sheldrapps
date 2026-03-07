@@ -14,37 +14,10 @@
   overflow: auto;
 }
 
-.text-tabs {
-  padding: var(--app-space-1) 0;
-}
-
 .text-tabs--sub {
   padding-top: 0;
 }
-
-.text-subheader {
-  display: flex;
-  align-items: center;
-  gap: var(--app-space-3);
-}
-
-.text-subheader__back {
-  --padding-start: var(--app-space-3);
-  --padding-end: var(--app-space-3);
-  --padding-top: var(--app-space-2);
-  --padding-bottom: var(--app-space-2);
-  --border-radius: var(--app-radius-sm);
-  min-width: 36px;
-}
-
-.text-subheader__title {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: var(--ion-text-color, #222);
-}
-
 .text-subpanel {
-  padding: var(--app-space-1) 0;
   display: flex;
   flex-direction: column;
   gap: var(--app-space-4);
@@ -78,6 +51,6 @@
 
 .text-value {
   padding: 0 var(--app-space-7);
-  font-size: 0.85rem;
+  font-size: var(--app-text-sm);
   color: var(--ion-color-medium);
 }

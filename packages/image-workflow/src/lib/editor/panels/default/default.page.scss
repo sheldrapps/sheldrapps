@@ -1,4 +1,3 @@
-:host {
-  display: block;
-  padding-bottom: calc(var(--app-space-5) + var(--app-space-4) + var(--app-tool-min-width-icon) + var(--safe-bottom));
-}
+@use "../panel-page-host" as panelPageHost;
+
+@include panelPageHost.panel-page-host-padding;
