@@ -6,6 +6,66 @@
   --app-dur-fast: 140ms;
   --app-dur-med: 220ms;
 
+  /* Typography scale */
+  --app-text-2xs: 0.75rem;
+  --app-text-xs: 0.82rem;
+  --app-text-sm: 0.85rem;
+  --app-text-md: 0.9rem;
+  --app-text-lg: 0.95rem;
+  --app-text-xl: 1rem;
+
+  /* Font weights */
+  --app-font-medium: 500;
+  --app-font-semibold: 600;
+  --app-font-strong: 650;
+
+  /* Text emphasis */
+  --app-text-strong: 0.95;
+  --app-text-soft: 0.82;
+  --app-text-medium: 0.85;
+  --app-text-muted: 0.75;
+  --app-text-subtle: 0.7;
+  --app-text-faint: 0.55;
+
+  /* Spacing scale */
+  --app-space-hairline: 2px;
+  --app-space-1: 4px;
+  --app-space-2: 6px;
+  --app-space-3: 8px;
+  --app-space-4: 10px;
+  --app-space-5: 12px;
+  --app-space-6: 14px;
+  --app-space-7: 16px;
+  --app-space-8: 18px;
+  --app-space-9: 20px;
+  --app-space-10: 24px;
+
+  /* Common component sizing */
+  --app-touch-target: 44px;
+  --app-control-min-height: 48px;
+  --app-toolbar-min-height: 56px;
+  --app-header-tools-width: min(280px, 62vw);
+  --app-tool-min-width-icon: 64px;
+  --app-tool-min-width-text: 70px;
+  --app-sheet-max-width: 560px;
+  --app-card-min-width: 220px;
+  --app-preview-min-height: 240px;
+
+  /* Button standards */
+  --app-btn-gap-inline: var(--app-space-2);
+  --app-btn-gap-stack: var(--app-space-1);
+  --app-btn-pad-x: var(--app-space-5);
+  --app-btn-pad-y: var(--app-space-3);
+  --app-btn-pad-text-x: var(--app-space-7);
+  --app-btn-pad-text-y: var(--app-space-5);
+  --app-btn-pad-icon: var(--app-space-3);
+
+  /* Icon sizing */
+  --app-icon-sm: 18px;
+  --app-icon-md: 20px;
+  --app-icon-lg: 22px;
+  --app-icon-xl: 24px;
+
   /* Focus ring (single, consistent) */
   --app-focus-ring: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.22);
 

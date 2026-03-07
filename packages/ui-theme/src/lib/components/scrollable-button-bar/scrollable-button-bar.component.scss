@@ -36,18 +36,18 @@
   display: inline-flex;
   flex-wrap: nowrap;
   white-space: nowrap;
-  gap: 8px;
-  padding: 4px 8px;
+  gap: var(--app-space-3);
+  padding: var(--app-space-1) var(--app-space-3);
   width: max-content;
   flex: 0 0 auto;
 }
 
 .tool-btn--swatch {
-  --padding-start: 8px;
-  --padding-end: 8px;
-  --padding-top: 8px;
-  --padding-bottom: 8px;
-  min-width: 48px;
+  --padding-start: var(--app-space-3);
+  --padding-end: var(--app-space-3);
+  --padding-top: var(--app-space-3);
+  --padding-bottom: var(--app-space-3);
+  min-width: var(--app-control-min-height);
 }
 
 .sb-color {
@@ -59,8 +59,8 @@
 }
 
 .tool-btn--swatch.tool-btn--active .sb-color {
-  outline: 2px solid rgba(0, 0, 0, 0.85);
-  outline-offset: 2px;
+  outline: var(--app-space-hairline) solid rgba(0, 0, 0, 0.85);
+  outline-offset: var(--app-space-hairline);
 }
 
 .sb__track--reverse {
@@ -100,7 +100,7 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 24px;
+  width: var(--app-space-10);
   pointer-events: none;
   z-index: 10;
 }

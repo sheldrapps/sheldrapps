@@ -33,6 +33,13 @@ When in doubt, default to kits and only keep app-specific wiring in `apps/*`.
 - App SCSS is allowed only for justified overrides tied to that app.
 - Guardrail test enforces this with an allowlist from current repo state.
 
+## UI Theme First Visual Rule
+
+- Always implement visual language in `packages/ui-theme` first (tokens, shared components, utilities).
+- In `apps/*`, use only lightweight local overrides for host-specific differences.
+- Do not introduce hardcoded visual values in page SCSS (`font-size`, `opacity`, spacing, interactive sizes) when an equivalent ui-theme token exists.
+- If a hardcoded value is truly necessary, keep it local and add a short comment explaining why it cannot be tokenized yet.
+
 ## New App Rule
 
 Standard new app baseline:

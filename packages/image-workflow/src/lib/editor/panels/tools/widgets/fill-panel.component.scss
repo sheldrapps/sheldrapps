@@ -1,26 +1,26 @@
 .fill-panel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 6px 0;
+  gap: var(--app-space-5);
+  padding: var(--app-space-2) 0;
 }
 
 .fill-tabs {
-  padding: 4px 0;
+  padding: var(--app-space-1) 0;
 }
 
 .fill-subheader {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--app-space-3);
 }
 
 .fill-subheader__back {
-  --padding-start: 8px;
-  --padding-end: 8px;
-  --padding-top: 6px;
-  --padding-bottom: 6px;
-  --border-radius: 10px;
+  --padding-start: var(--app-space-3);
+  --padding-end: var(--app-space-3);
+  --padding-top: var(--app-space-2);
+  --padding-bottom: var(--app-space-2);
+  --border-radius: var(--app-radius-sm);
   min-width: 36px;
 }
 
@@ -31,5 +31,5 @@
 }
 
 .fill-subpanel {
-  padding: 4px 0;
+  padding: var(--app-space-1) 0;
 }

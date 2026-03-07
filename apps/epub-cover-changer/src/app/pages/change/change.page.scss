@@ -1,10 +1,3 @@
-@use '@sheldrapps/ui-theme/styles/components' as *;
-
-.cc-action-grid {
-  margin-top: 12px;
-  --ion-grid-padding: 0;
-}
-
 .native-load-overlay {
   position: fixed;
   inset: 0;
@@ -16,9 +9,9 @@
 }
 
 .native-load-card {
-  min-width: 220px;
+  min-width: var(--app-card-min-width);
   max-width: 88vw;
-  padding: 20px 18px 16px;
+  padding: var(--app-space-9) var(--app-space-8) var(--app-space-7);
   border-radius: 14px;
   text-align: center;
   background: var(--ion-card-background, #fff);
@@ -27,139 +20,24 @@
 }
 
 .native-load-title {
-  margin-top: 10px;
-  font-size: 0.96rem;
-  font-weight: 600;
+  margin-top: var(--app-space-4);
+  font-size: var(--app-text-lg);
+  font-weight: var(--app-font-semibold);
 }
 
 .native-load-percent {
-  margin-top: 6px;
-  font-size: 0.9rem;
-  opacity: 0.82;
-}
-
-.cc-action-grid ion-row {
-  margin: 0;
-}
-
-.cc-action-grid ion-col {
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 6px;
-  padding-right: 6px;
-}
-
-.cc-action-grid ion-col:first-child {
-  padding-left: 0;
-}
-
-.cc-action-grid ion-col:last-child {
-  padding-right: 0;
-}
-
-.hint {
-  margin-top: 6px;
-  font-size: 0.82rem;
-  opacity: 0.7;
-  text-align: center;
-}
-
-.hint--ok {
-  opacity: 0.85;
-}
-
-.cc-header-tools {
-  width: min(280px, 62vw);
-}
-
-.cc-info-popover {
-  max-width: 320px;
-  padding: 18px 20px;
-  background: var(--ion-background-color, #1e1e1e);
-}
-
-.cc-info-title {
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 14px;
-  opacity: 0.95;
-}
-
-.cc-info-body {
-  font-size: 14px;
-  line-height: 1.6;
-  opacity: 0.85;
-}
-
-.cc-info-text {
-  margin: 0 0 14px 0;
-}
-
-.cc-info-steps {
-  margin: 8px 0 0 18px;
-  padding: 0;
-}
-
-.cc-info-steps > li {
-  margin: 6px 0;
-}
-
-.cc-info-substeps {
-  margin: 6px 0 0 0;
-  padding-left: 16px;
-  font-size: 0.92em;
-  opacity: 0.85;
-  display: grid;
-  gap: 4px;
-}
-
-.cc-info-text:last-child {
-  margin-bottom: 0;
-}
-
-.cc-info-text strong {
-  display: block;
-  margin-bottom: 4px;
-  opacity: 0.95;
+  margin-top: var(--app-space-2);
+  font-size: var(--app-text-md);
+  opacity: var(--app-text-soft);
 }
 
 .preview-content {
-  --background: var(--ion-background-color);
   --padding-top: 0;
   --padding-bottom: 0;
 }
 
 ion-content.preview-content::part(scroll) {
   height: 100%;
-}
-
-ion-modal.cover-preview-modal {
-  .preview-toolbar {
-    --min-height: 56px;
-    align-items: center;
-  }
-
-  .preview-toolbar ion-buttons {
-    align-items: center;
-  }
-
-  .preview-toolbar ion-buttons ion-button {
-    height: 44px;
-    min-height: 44px;
-    min-width: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-  }
-
-  .preview-cancel {
-    height: 44px;
-    display: flex;
-    align-items: center;
-    line-height: 1;
-  }
-
 }
 
 /* Ensure extreme ratios show full composition in the selection thumb */
@@ -174,22 +52,6 @@ ion-modal.cover-preview-modal {
 }
 
 .preview-img {
-  width: 100%;
-  height: 100%;
-  display: block;
   object-fit: fill;
-  border-radius: 0;
   background: transparent;
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
-.field-filename {
-  margin-top: 2px;
-  font-size: 0.92rem;
-  font-weight: 500;
-  opacity: 0.9;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }

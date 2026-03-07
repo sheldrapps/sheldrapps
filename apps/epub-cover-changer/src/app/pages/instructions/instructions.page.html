@@ -9,43 +9,43 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <ion-list inset="true" class="steps">
-    <ion-item class="step">
+  <ion-list inset="true" class="app-instructions">
+    <ion-item class="app-instructions__step">
       <ion-label class="ion-text-wrap">
-        <h2 class="step-title">1) {{ 'INSTRUCTIONS.STEP_1' | translate }}</h2>
+        <h2 class="app-instructions__step-title">1) {{ 'INSTRUCTIONS.STEP_1' | translate }}</h2>
       </ion-label>
     </ion-item>
 
-    <ion-item class="step">
+    <ion-item class="app-instructions__step">
       <ion-label class="ion-text-wrap">
-        <h2 class="step-title">2) {{ 'INSTRUCTIONS.STEP_2' | translate }}</h2>
+        <h2 class="app-instructions__step-title">2) {{ 'INSTRUCTIONS.STEP_2' | translate }}</h2>
       </ion-label>
     </ion-item>
 
-    <ion-item class="step">
+    <ion-item class="app-instructions__step">
       <ion-label class="ion-text-wrap">
-        <h2 class="step-title">3) {{ 'INSTRUCTIONS.STEP_3' | translate }}</h2>
+        <h2 class="app-instructions__step-title">3) {{ 'INSTRUCTIONS.STEP_3' | translate }}</h2>
       </ion-label>
     </ion-item>
 
-    <ion-item class="step">
+    <ion-item class="app-instructions__step">
       <ion-label class="ion-text-wrap">
-        <h2 class="step-title">4) {{ 'INSTRUCTIONS.STEP_4' | translate }}</h2>
-        <p class="step-desc">{{ 'INSTRUCTIONS.STEP_4_DESC' | translate }}</p>
+        <h2 class="app-instructions__step-title">4) {{ 'INSTRUCTIONS.STEP_4' | translate }}</h2>
+        <p class="app-instructions__step-desc">{{ 'INSTRUCTIONS.STEP_4_DESC' | translate }}</p>
       </ion-label>
     </ion-item>
 
-    <ion-item button detail="true" class="step step--link" (click)="openSendToKindle()">
+    <ion-item button detail="true" class="app-instructions__step app-instructions__step--link" (click)="openSendToKindle()">
       <ion-label class="ion-text-wrap">
-        <h2 class="step-title">5) {{ 'INSTRUCTIONS.STEP_5' | translate }}</h2>
-        <p class="step-desc">{{ 'INSTRUCTIONS.STEP_5_DESC' | translate }}</p>
+        <h2 class="app-instructions__step-title">5) {{ 'INSTRUCTIONS.STEP_5' | translate }}</h2>
+        <p class="app-instructions__step-desc">{{ 'INSTRUCTIONS.STEP_5_DESC' | translate }}</p>
       </ion-label>
     </ion-item>
 
-    <ion-item lines="none" class="note">
+    <ion-item lines="none" class="app-instructions__note">
       <ion-label class="ion-text-wrap">
-        <div class="note-title">{{ 'INSTRUCTIONS.NOTE_TITLE' | translate }}</div>
-        <p class="note-body">{{ 'INSTRUCTIONS.TIP' | translate }}</p>
+        <div class="app-instructions__note-title">{{ 'INSTRUCTIONS.NOTE_TITLE' | translate }}</div>
+        <p class="app-instructions__note-body">{{ 'INSTRUCTIONS.TIP' | translate }}</p>
       </ion-label>
     </ion-item>
   </ion-list>

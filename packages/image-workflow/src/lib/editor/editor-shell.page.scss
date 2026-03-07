@@ -413,7 +413,7 @@
   left: 0;
   top: 0;
   display: flex;
-  gap: 8px;
+  gap: var(--app-space-3);
   pointer-events: auto;
   z-index: 4;
 }
@@ -422,7 +422,7 @@
   --background: rgba(var(--ion-background-color-rgb), 0.88);
   --background-activated: rgba(var(--ion-background-color-rgb), 1);
   --color: var(--ion-color-primary);
-  --border-radius: 10px;
+  --border-radius: var(--app-radius-sm);
   --padding-start: 0;
   --padding-end: 0;
   --padding-top: 0;
@@ -438,7 +438,7 @@
 /* Top toolbox layout (shell-level only) */
 .top-toolbox {
   min-height: 52px;
-  padding: 4px 8px 6px;
+  padding: var(--app-space-1) var(--app-space-3) var(--app-space-2);
   background: var(--ion-background-color);
   display: flex;
   align-items: center;
@@ -447,10 +447,10 @@
 /* Bottom entry toolbox (shell-level only) */
 .tools-bar {
   display: flex;
-  gap: 16px;
+  gap: var(--app-space-7);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 4px 8px;
+  padding: var(--app-space-1) var(--app-space-3);
   scrollbar-width: none;
 }
 .tools-bar::-webkit-scrollbar {
@@ -460,22 +460,22 @@
 .tools-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--app-space-2);
 }
 
 .tools-buttons {
   display: flex;
-  gap: 8px;
+  gap: var(--app-space-3);
 }
 
 /* Panel placeholder (temporary until components are created) */
 .panel-placeholder {
-  padding: 20px;
+  padding: var(--app-space-9);
   text-align: center;
   color: var(--ion-color-medium);
   
   p {
-    margin: 8px 0;
+    margin: var(--app-space-3) 0;
   }
   
   small {

@@ -35,31 +35,33 @@
         (pointercancel)="onCardPressCancel()"
         (pointerleave)="onCardPressCancel()"
       >
-        @if (item.thumbDataUrl) {
-        <img class="thumb" [src]="item.thumbDataUrl" [alt]="thumbAlt" />
-        } @else {
-        <div class="thumb placeholder">
-          {{ placeholderKey | translate }}
+        <div class="thumb-wrap">
+          @if (item.thumbDataUrl) {
+          <img class="thumb" [src]="item.thumbDataUrl" [alt]="thumbAlt" />
+          } @else {
+          <div class="thumb placeholder">
+            {{ placeholderKey | translate }}
+          </div>
+          }
+
+          <ion-button
+            class="dots"
+            fill="clear"
+            size="small"
+            (pointerdown)="$event.stopPropagation()"
+            (pointerup)="$event.stopPropagation()"
+            (pointercancel)="$event.stopPropagation()"
+            (click)="onDotsClick($event, item)"
+          >
+            <ion-icon name="ellipsis-vertical"></ion-icon>
+          </ion-button>
         </div>
-        }
 
         @if (showFileName) {
         <div class="file-name" [title]="displayFilename(item)">
           {{ displayFilename(item) }}
         </div>
         }
-
-        <ion-button
-          class="dots"
-          fill="clear"
-          size="small"
-          (pointerdown)="$event.stopPropagation()"
-          (pointerup)="$event.stopPropagation()"
-          (pointercancel)="$event.stopPropagation()"
-          (click)="onDotsClick($event, item)"
-        >
-          <ion-icon name="ellipsis-vertical"></ion-icon>
-        </ion-button>
       </ion-card>
     </ion-col>
     } @if (items.length === 0) {

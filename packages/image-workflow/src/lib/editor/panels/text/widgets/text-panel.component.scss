@@ -8,14 +8,14 @@
 .text-panel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 6px 0;
+  gap: var(--app-space-5);
+  padding: var(--app-space-2) 0;
   height: 100%;
   overflow: auto;
 }
 
 .text-tabs {
-  padding: 4px 0;
+  padding: var(--app-space-1) 0;
 }
 
 .text-tabs--sub {
@@ -25,15 +25,15 @@
 .text-subheader {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--app-space-3);
 }
 
 .text-subheader__back {
-  --padding-start: 8px;
-  --padding-end: 8px;
-  --padding-top: 6px;
-  --padding-bottom: 6px;
-  --border-radius: 10px;
+  --padding-start: var(--app-space-3);
+  --padding-end: var(--app-space-3);
+  --padding-top: var(--app-space-2);
+  --padding-bottom: var(--app-space-2);
+  --border-radius: var(--app-radius-sm);
   min-width: 36px;
 }
 
@@ -44,22 +44,22 @@
 }
 
 .text-subpanel {
-  padding: 4px 0;
+  padding: var(--app-space-1) 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--app-space-4);
 }
 
 .text-add {
-  padding: 12px 0;
+  padding: var(--app-space-5) 0;
   display: flex;
   justify-content: center;
 }
 
 .text-add__button {
   --border-radius: 12px;
-  --padding-start: 18px;
-  --padding-end: 18px;
+  --padding-start: var(--app-space-8);
+  --padding-end: var(--app-space-8);
 }
 
 .text-picker {
@@ -68,16 +68,16 @@
 }
 
 .text-picker__btn {
-  --padding-start: 8px;
-  --padding-end: 10px;
-  --padding-top: 6px;
-  --padding-bottom: 6px;
-  --border-radius: 10px;
+  --padding-start: var(--app-space-3);
+  --padding-end: var(--app-space-4);
+  --padding-top: var(--app-space-2);
+  --padding-bottom: var(--app-space-2);
+  --border-radius: var(--app-radius-sm);
   font-weight: 500;
 }
 
 .text-value {
-  padding: 0 16px;
+  padding: 0 var(--app-space-7);
   font-size: 0.85rem;
   color: var(--ion-color-medium);
 }

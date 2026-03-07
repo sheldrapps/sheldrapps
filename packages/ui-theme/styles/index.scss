@@ -12,4 +12,6 @@
 @forward './ionic-safe-overrides';
 @forward './callouts';
 @forward './icons';
+@use './buttons' as *;
 @use './toast' as *;
+@use './components' as *;

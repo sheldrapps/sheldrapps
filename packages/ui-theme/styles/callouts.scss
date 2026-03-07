@@ -1,5 +1,5 @@
 .app-callout {
-  margin: 8px 12px 0 12px;
+  margin: var(--app-space-3) var(--app-space-5) 0 var(--app-space-5);
   padding: var(--app-callout-padding-y) var(--app-callout-padding-x);
   border-radius: var(--app-radius-md);
 
@@ -20,7 +20,7 @@
 
 .app-callout__icon {
   font-size: 18px;
-  margin-top: 2px;
+  margin-top: var(--app-space-hairline);
   flex: 0 0 auto;
 }
 
@@ -28,7 +28,7 @@
   font-weight: 700;
   font-size: var(--app-callout-title-size);
   line-height: 1.1;
-  margin-bottom: 2px;
+  margin-bottom: var(--app-space-hairline);
 }
 
 .app-callout__body {

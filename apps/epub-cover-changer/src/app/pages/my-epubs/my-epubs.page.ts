@@ -7,8 +7,6 @@ import {
   IonTitle,
   IonToolbar,
   AlertController,
-  IonBackButton,
-  IonButtons,
   ToastController,
 } from '@ionic/angular/standalone';
 
@@ -44,7 +42,6 @@ type UiCoverItem = {
   selector: 'app-my-epubs',
   standalone: true,
   imports: [
-    IonBackButton,
     CommonModule,
     TranslateModule,
     CoverListContentComponent,
@@ -52,7 +49,6 @@ type UiCoverItem = {
     IonToolbar,
     IonTitle,
     IonContent,
-    IonButtons,
     CoverPreviewModalComponent,
   ],
   templateUrl: './my-epubs.page.html',

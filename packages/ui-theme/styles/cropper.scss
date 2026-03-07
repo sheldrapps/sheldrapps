@@ -4,9 +4,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 12px;
+  padding: var(--app-space-5);
   box-sizing: border-box;
-  padding-bottom: calc(12px + 74px);
+  padding-bottom: calc(var(--app-space-5) + var(--app-space-4) + var(--app-tool-min-width-icon));
 }
 
 .frame {
@@ -33,7 +33,7 @@
 }
 
 .hint {
-  margin-top: 10px;
+  margin-top: var(--app-space-4);
   font-size: 0.9rem;
   opacity: 0.75;
   color: var(--ion-text-color);
@@ -42,10 +42,10 @@
 .ctrl {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--app-space-3);
   --color: var(--ion-text-color);
   --border-radius: 12px;
-  height: 44px;
-  width: 44px;
+  height: var(--app-touch-target);
+  width: var(--app-touch-target);
 }
 

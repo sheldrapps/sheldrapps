@@ -1,0 +1,83 @@
+/* Button Standards
+ * 1) text: .app-btn--text
+ * 2) icon: .app-btn--icon
+ * 3) icon + text horizontal: .app-btn--icon-row + .app-icon-row
+ * 4) icon + text vertical: .app-btn--icon-stack + .app-icon-text
+ *
+ * Legacy alias kept for migration: .tool-btn
+ */
+
+ion-button.app-btn,
+ion-button.tool-btn {
+  --border-radius: var(--app-radius-md);
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* Legacy default for existing tool-btn usages */
+ion-button.tool-btn {
+  --padding-start: var(--app-btn-pad-text-x);
+  --padding-end: var(--app-btn-pad-text-x);
+  --padding-top: var(--app-btn-pad-text-y);
+  --padding-bottom: var(--app-btn-pad-text-y);
+  min-width: var(--app-tool-min-width-text);
+}
+
+ion-button.app-btn--text,
+ion-button.tool-btn.tool-btn--text {
+  --padding-start: var(--app-btn-pad-text-x);
+  --padding-end: var(--app-btn-pad-text-x);
+  --padding-top: var(--app-btn-pad-text-y);
+  --padding-bottom: var(--app-btn-pad-text-y);
+  min-width: var(--app-tool-min-width-text);
+}
+
+ion-button.app-btn--icon,
+ion-button.tool-btn.tool-btn--icon {
+  --padding-start: var(--app-btn-pad-icon);
+  --padding-end: var(--app-btn-pad-icon);
+  --padding-top: var(--app-btn-pad-icon);
+  --padding-bottom: var(--app-btn-pad-icon);
+  width: var(--app-touch-target);
+  min-width: var(--app-touch-target);
+  height: var(--app-touch-target);
+  min-height: var(--app-touch-target);
+}
+
+ion-button.app-btn--icon-row,
+ion-button.tool-btn.tool-btn--icon-row {
+  --padding-start: var(--app-btn-pad-x);
+  --padding-end: var(--app-btn-pad-x);
+  --padding-top: var(--app-btn-pad-y);
+  --padding-bottom: var(--app-btn-pad-y);
+  min-width: var(--app-tool-min-width-text);
+}
+
+ion-button.app-btn--icon-stack,
+ion-button.tool-btn.tool-btn--icon-stack {
+  --padding-start: var(--app-btn-pad-x);
+  --padding-end: var(--app-btn-pad-x);
+  --padding-top: var(--app-btn-pad-y);
+  --padding-bottom: var(--app-btn-pad-y);
+  min-width: var(--app-tool-min-width-icon);
+}
+
+ion-button.app-btn--icon ion-icon,
+ion-button.tool-btn.tool-btn--icon ion-icon,
+.app-icon-row__icon {
+  font-size: var(--app-icon-size-md);
+  line-height: 1;
+}
+
+.app-icon-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--app-btn-gap-inline);
+}
+
+.app-icon-row__label {
+  font-size: var(--app-text-sm);
+  line-height: 1.2;
+  font-weight: var(--app-font-medium);
+  white-space: nowrap;
+}

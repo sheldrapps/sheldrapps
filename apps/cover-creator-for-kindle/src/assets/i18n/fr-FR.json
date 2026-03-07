@@ -98,7 +98,7 @@
     "STEP_5": "Envoyer via le web (Send to Kindle)",
     "STEP_5_DESC": "Vous pouvez également l’envoyer depuis le navigateur en utilisant l’outil web Send to Kindle.",
     "TIP": "Pour de meilleurs résultats, utilisez des images en haute résolution et assurez-vous que les publicités sont désactivées sur votre Kindle.",
-    "TITLE": "Comment créer une couverture pour Kindle"
+    "TITLE": "Instructions"
   },
   "KINDLE_GROUPS": {
     "BASIC": "Basique",
@@ -139,7 +139,7 @@
     "NOTE": "Cover Creator for Kindle n’est pas une application officielle et ne modifie pas le logiciel de l’appareil.",
     "SEND_LINK": "Send to Kindle (web)",
     "SEND_TITLE": "Envoyer des couvertures via le web",
-    "TITLE": "Conditions requises pour utiliser Cover Creator for Kindle"
+    "TITLE": "Prérequis"
   },
   "SETTINGS": {
     "INSTRUCTIONS": "Voir les instructions",

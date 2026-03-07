@@ -8,8 +8,6 @@ import {
   IonToolbar,
   IonPopover,
   AlertController,
-  IonBackButton,
-  IonButtons,
   ToastController,
 } from '@ionic/angular/standalone';
 
@@ -45,7 +43,6 @@ type UiCoverItem = {
   selector: 'app-covers',
   standalone: true,
   imports: [
-    IonBackButton,
     CommonModule,
     TranslateModule,
     CoverListContentComponent,
@@ -54,7 +51,6 @@ type UiCoverItem = {
     IonTitle,
     IonContent,
     IonPopover,
-    IonButtons,
     CoverPreviewModalComponent,
   ],
   templateUrl: './covers.page.html',

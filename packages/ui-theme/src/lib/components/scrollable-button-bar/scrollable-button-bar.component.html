@@ -9,8 +9,14 @@
       #scrollEl
     >
       <div class="sb__track" [class.sb__track--reverse]="order === 'reverse'" #trackEl>
-        <ion-button *ngFor="let item of items; trackBy: trackById" fill="clear" class="tool-btn"
+        <ion-button *ngFor="let item of items; trackBy: trackById" fill="clear" class="tool-btn app-btn"
           [class.tool-btn--active]="isActive(item.id)" [class.tool-btn--swatch]="item.type === 'color'"
+          [class.app-btn--icon]="item.type === 'color' || variant === 'iconOnly'"
+          [class.app-btn--icon-stack]="item.type !== 'color' && variant === 'iconText'"
+          [class.app-btn--text]="item.type !== 'color' && variant === 'text'"
+          [class.tool-btn--icon]="item.type === 'color' || variant === 'iconOnly'"
+          [class.tool-btn--icon-stack]="item.type !== 'color' && variant === 'iconText'"
+          [class.tool-btn--text]="item.type !== 'color' && variant === 'text'"
           [disabled]="disabled || isItemDisabled(item.id)" [attr.aria-label]="itemAriaLabel(item)"
           (click)="onItemClick(item.id)">
           <ng-container *ngIf="item.type === 'color'; else defaultItem">

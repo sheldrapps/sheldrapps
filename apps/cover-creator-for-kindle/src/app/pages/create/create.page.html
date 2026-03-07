@@ -1,7 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>{{ 'TABS.CREATE' | translate }}</ion-title>
-    <ion-buttons slot="end" class="cc-header-tools">
+    <ion-buttons slot="end" class="app-header-tools">
       <sh-scrollable-button-bar
         [items]="headerItems"
         variant="iconText"
@@ -19,10 +19,10 @@
       {{ 'CREATE.SELECT_MODEL_LABEL' | translate }}
     </div>
     
-    <ion-grid class="selectors-grid">
+    <ion-grid class="app-select-grid">
       <ion-row>
         <ion-col size="6">
-          <div class="selector-label">
+          <div class="app-select-label">
             {{ 'CREATE.SELECT_GROUP_LABEL' | translate }}
           </div>
           <ion-item>
@@ -41,7 +41,7 @@
         </ion-col>
 
         <ion-col size="6">
-          <div class="selector-label">
+          <div class="app-select-label">
             {{ 'CREATE.SELECT_GENERATION_LABEL' | translate }}
           </div>
           <ion-item>
@@ -176,7 +176,7 @@
 
   </div>
 
-  <ion-grid class="cc-action-grid">
+  <ion-grid class="app-action-grid">
     <ion-row>
       <ion-col size="6">
         <ion-button
@@ -211,24 +211,27 @@
     alignment="end"
   >
     <ng-template>
-      <div class="cc-info-popover">
-        <div class="cc-info-body">
-          <div class="cc-info-text">
-            <strong>{{ 'CREATE.INFO_FLOW_LABEL' | translate }}</strong><br>
-            <ol class="cc-info-steps">
+      <div class="app-guide-popover">
+        
+        <div class="app-guide-body">
+          <div class="app-guide-text">
+            <strong>{{ 'CREATE.INFO_FLOW_LABEL' | translate }}</strong>
+            <ol class="app-guide-steps">
               <li>{{ 'CREATE.INFO_STEP_1' | translate }}</li>
               <li>{{ 'CREATE.INFO_STEP_2' | translate }}</li>
               <li>{{ 'CREATE.INFO_STEP_3' | translate }}</li>
               <li>{{ 'CREATE.INFO_STEP_4' | translate }}</li>
             </ol>
           </div>
-          <div class="cc-info-text">
-            <strong>{{ 'CREATE.INFO_NOTE_LABEL' | translate }}</strong><br>
+          <br>
+          <div class="app-guide-text">
+            <strong>{{ 'CREATE.INFO_NOTE_LABEL' | translate }}</strong>
             {{ 'CREATE.INFO_SHARE_KINDLE' | translate }}
           </div>
-          <div class="cc-info-text">
-            <strong>{{ 'CREATE.INFO_REQUIREMENTS_LABEL' | translate }}</strong><br>
-            <ul class="cc-info-steps">
+          <br>
+          <div class="app-guide-text">
+            <strong>{{ 'CREATE.INFO_REQUIREMENTS_LABEL' | translate }}</strong>
+            <ul class="app-guide-steps">
               <li>{{ 'CREATE.INFO_REQUIREMENT_DISABLE_ADS' | translate }}</li>
               <li>{{ 'CREATE.INFO_REQUIREMENT_ENABLE_COVER_DISPLAY' | translate }}</li>
             </ul>
@@ -258,7 +261,7 @@
 
       <ion-content class="preview-content" [fullscreen]="true" [scrollY]="false">
         <div class="stage">
-          <div class="preview-frame" [style.--crop-ratio]="getPreviewRatio()">
+          <div class="frame preview-frame" [style.--crop-ratio]="getPreviewRatio()">
             @if (previewUrl) {
             <img class="preview-img" [src]="previewUrl" alt="cover preview" />
             }

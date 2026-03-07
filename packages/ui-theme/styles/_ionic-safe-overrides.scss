@@ -62,22 +62,18 @@ ion-button {
 }
 
 ion-button::part(native) {
-  box-shadow: var(--app-shadow-sm);
   transition:
     transform var(--app-dur-fast) var(--app-ease),
-    box-shadow var(--app-dur-med) var(--app-ease),
     background-color var(--app-dur-med) var(--app-ease);
 }
 
 /* Hover only applies on desktop/web; on mobile it's basically ignored */
 ion-button:hover::part(native) {
-  box-shadow: var(--app-shadow-md);
   transform: translateY(-1px);
 }
 
 ion-button:active::part(native) {
   transform: translateY(0);
-  box-shadow: var(--app-shadow-sm);
 }
 
 /* Outline / clear: keep a consistent "premium utility" look */
@@ -264,7 +260,7 @@ ion-list.list-md.list-inset ion-item:last-child {
 
 /* Standard page padding wrapper (use in templates as needed) */
 .app-page {
-  padding: 12px;
+  padding: var(--app-space-5);
 }
 
 /* Use for items you want as "cards" without global layout changes */

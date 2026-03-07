@@ -1,8 +1,5 @@
 <ion-header>
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/create"></ion-back-button>
-    </ion-buttons>
     <ion-title>{{ 'COVERS.TITLE' | translate }}</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -46,15 +43,16 @@
         alignment="end"
       >
         <ng-template>
-          <div class="cc-info-popover">
-            <div class="cc-info-title">{{ 'CREATE.INFO_SEND_TITLE' | translate }}</div>
-            <div class="cc-info-body">
-              <div class="cc-info-text">
+          <div class="app-guide-popover">
+            <div class="app-guide-title">{{ 'CREATE.INFO_SEND_TITLE' | translate }}</div>
+            <div class="app-guide-body">
+              <div class="app-guide-text">
                 {{ 'COMMON.SHARE_KINDLE_HINT' | translate }}
               </div>
-              <div class="cc-info-text">
-                <strong>{{ 'CREATE.INFO_REQUIREMENTS_LABEL' | translate }}</strong><br>
-                <ul class="cc-info-steps">
+              <br>
+              <div class="app-guide-text">
+                <strong>{{ 'CREATE.INFO_REQUIREMENTS_LABEL' | translate }}</strong>
+                <ul class="app-guide-steps">
                   <li>{{ 'CREATE.INFO_REQUIREMENT_DISABLE_ADS' | translate }}</li>
                   <li>{{ 'CREATE.INFO_REQUIREMENT_ENABLE_COVER_DISPLAY' | translate }}</li>
                 </ul>

@@ -12,8 +12,6 @@ import {
   IonLabel,
   IonSelect,
   IonSelectOption,
-  IonBackButton,
-  IonButtons,
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -33,7 +31,6 @@ import { Browser } from '@capacitor/browser';
   templateUrl: './settings.page.html',
   standalone: true,
   imports: [
-    IonBackButton,
     CommonModule,
     FormsModule,
     RouterLink,
@@ -47,7 +44,6 @@ import { Browser } from '@capacitor/browser';
     IonLabel,
     IonSelect,
     IonSelectOption,
-    IonButtons,
   ],
 })
 export class SettingsPage implements OnInit {

@@ -1,7 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>{{ 'TABS.CHANGE' | translate }}</ion-title>
-    <ion-buttons slot="end" class="cc-header-tools">
+    <ion-buttons slot="end" class="app-header-tools">
       <sh-scrollable-button-bar
         [items]="headerItems"
         variant="iconText"
@@ -200,7 +200,7 @@
 
   </div>
 
-  <ion-grid class="cc-action-grid">
+  <ion-grid class="app-action-grid">
     <ion-row>
       <ion-col size="6">
         <ion-button
@@ -235,14 +235,15 @@
     alignment="end"
   >
     <ng-template>
-      <div class="cc-info-popover">
-        <div class="cc-info-body">
-          <div class="cc-info-text">
-            <strong>{{ 'CHANGE.INFO_FLOW_LABEL' | translate }}</strong><br>
-            <ol class="cc-info-steps">
+      <div class="app-guide-popover">
+        <div class="app-guide-body">
+          <br>
+          <div class="app-guide-text">
+            <strong>{{ 'CHANGE.INFO_FLOW_LABEL' | translate }}</strong>
+            <ol class="app-guide-steps">
               <li>
                 {{ 'CHANGE.INFO_STEP_1' | translate }}
-                <div class="cc-info-substeps">
+                <div class="app-guide-substeps">
                   <div>{{ 'CHANGE.INFO_STEP_1_1' | translate }}</div>
                   <div>{{ 'CHANGE.INFO_STEP_1_2' | translate }}</div>
                 </div>

@@ -1,16 +1,16 @@
 .crop-panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--app-space-7);
   padding: 0;
 }
 
 .format-bar {
-  padding: 8px 0;
+  padding: var(--app-space-3) 0;
 }
 
 .selectors-grid {
-  margin-top: 8px;
+  margin-top: var(--app-space-3);
   --ion-grid-padding: 0;
   --ion-grid-padding-xs: 0;
   --ion-grid-padding-sm: 0;
@@ -30,8 +30,8 @@
 .selectors-grid ion-col {
   padding-top: 0;
   padding-bottom: 0;
-  padding-left: 6px;
-  padding-right: 6px;
+  padding-left: var(--app-space-2);
+  padding-right: var(--app-space-2);
 }
 
 .selectors-grid ion-col:first-child {
@@ -45,16 +45,16 @@
 .selector-label {
   font-size: 12px;
   opacity: 0.75;
-  margin-bottom: 8px;
+  margin-bottom: var(--app-space-3);
   display: block;
   font-weight: 500;
 }
 
 .selectors-grid ion-col ion-item {
-  --padding-start: 12px;
-  --padding-end: 12px;
-  --inner-padding-end: 8px;
-  --min-height: 48px;
+  --padding-start: var(--app-space-5);
+  --padding-end: var(--app-space-5);
+  --inner-padding-end: var(--app-space-3);
+  --min-height: var(--app-control-min-height);
   --background: var(--ion-item-background);
   margin-bottom: 0;
   border-radius: var(--app-radius-md);

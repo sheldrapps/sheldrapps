@@ -50,7 +50,7 @@ ion-toast.cc-toast::part(container) {
   min-width: var(--min-width);
   width: var(--width);
   text-align: center;
-  padding: 12px 14px;
+  padding: var(--app-space-5) var(--app-space-6);
 }
 
 ion-toast.cc-toast::part(wrapper) {

@@ -1,101 +1,61 @@
-@use '@sheldrapps/ui-theme/styles/components' as *;
-
 ion-modal.cover-preview-modal {
-  .preview-toolbar {
-    --min-height: 56px;
-    align-items: center;
-  }
-
-  .preview-toolbar ion-buttons {
-    align-items: center;
-  }
-
-  .preview-toolbar ion-buttons ion-button {
-    height: 44px;
-    min-height: 44px;
-    min-width: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-  }
-
   .preview-toolbar ion-button ion-icon[slot='icon-only'] {
-    font-size: 20px;
+    font-size: var(--app-icon-md);
     line-height: 1;
   }
 
   .preview-guide-btn {
-    min-width: 64px;
+    min-width: var(--app-tool-min-width-icon);
   }
 
   .preview-guide-btn .app-icon-text__icon {
-    font-size: 20px;
+    font-size: var(--app-icon-md);
     line-height: 1;
   }
 
   .preview-guide-btn .app-icon-text__label {
     white-space: nowrap;
   }
-
-  .preview-cancel {
-    height: 44px;
-    display: flex;
-    align-items: center;
-    line-height: 1;
-  }
 }
 
 .preview-content {
-  --background: var(--ion-background-color);
-  --padding-bottom: calc(12px + 74px);
+  --padding-bottom: calc(var(--app-space-5) + var(--app-space-4) + var(--app-tool-min-width-icon));
 }
 
 .preview-frame {
-  @extend .frame;
   aspect-ratio: 3 / 4;
-}
-
-.preview-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center;
-  display: block;
-  user-select: none;
-  -webkit-user-drag: none;
 }
 
 .preview-unavailable {
   width: 100%;
   height: 100%;
-  min-height: 240px;
+  min-height: var(--app-preview-min-height);
   display: grid;
   place-content: center;
-  gap: 10px;
+  gap: var(--app-space-4);
   text-align: center;
-  padding: 18px;
+  padding: var(--app-space-8);
 }
 
 .preview-unavailable__text {
-  font-size: 0.95rem;
-  opacity: 0.82;
+  font-size: var(--app-text-lg);
+  opacity: var(--app-text-soft);
 }
 
 .ctrl-text {
-  font-size: 13px;
+  font-size: var(--app-text-xs);
 }
 
 .ctrl.danger {
-  opacity: 0.95;
+  opacity: var(--app-text-strong);
 }
 
 .bottom-inner {
-  max-width: 560px;
+  max-width: var(--app-sheet-max-width);
   margin: 0 auto;
   width: 100%;
   display: flex;
-  gap: 12px;
+  gap: var(--app-space-5);
   align-items: center;
   justify-content: space-between;
 }

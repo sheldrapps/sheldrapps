@@ -9,7 +9,11 @@
           <ion-button
             [fill]="action.fill ?? 'clear'"
             [size]="action.size ?? 'default'"
-            [class]="action.cssClass"
+            [class]="(action.cssClass || '') + ' app-btn'"
+            [class.app-btn--icon]="action.layout === 'icon'"
+            [class.app-btn--text]="action.layout === 'text'"
+            [class.app-btn--icon-stack]="action.layout === 'app-icon-text'"
+            [class.app-btn--icon-row]="action.layout === 'icon-text'"
             [disabled]="!!action.disabled"
             [attr.aria-label]="action.ariaLabelKey ? (action.ariaLabelKey | translate) : null"
             (click)="onHeaderActionClick(action, $event)"
@@ -29,11 +33,13 @@
               }
             </div>
             } @else {
-            @if (action.icon) {
-            <ion-icon [name]="action.icon"></ion-icon>
-            } @if (action.labelKey) {
-            <span class="ctrl-text">{{ action.labelKey | translate }}</span>
-            }
+            <span class="app-icon-row">
+              @if (action.icon) {
+              <ion-icon class="app-icon-row__icon" [name]="action.icon"></ion-icon>
+              } @if (action.labelKey) {
+              <span class="app-icon-row__label">{{ action.labelKey | translate }}</span>
+              }
+            </span>
             }
           </ion-button>
           }
@@ -56,16 +62,18 @@
               <ion-button
                 [fill]="unavailableAction.fill ?? 'outline'"
                 [size]="unavailableAction.size ?? 'small'"
-                [class]="unavailableAction.cssClass"
+                [class]="(unavailableAction.cssClass || '') + ' app-btn app-btn--icon-row'"
                 [disabled]="!!unavailableAction.disabled"
                 [attr.aria-label]="unavailableAction.ariaLabelKey ? (unavailableAction.ariaLabelKey | translate) : null"
                 (click)="onUnavailableActionClick(unavailableAction, $event)"
               >
-                @if (unavailableAction.icon) {
-                <ion-icon [name]="unavailableAction.icon"></ion-icon>
-                } @if (unavailableAction.labelKey) {
-                {{ unavailableAction.labelKey | translate }}
-                }
+                <span class="app-icon-row">
+                  @if (unavailableAction.icon) {
+                  <ion-icon class="app-icon-row__icon" [name]="unavailableAction.icon"></ion-icon>
+                  } @if (unavailableAction.labelKey) {
+                  <span class="app-icon-row__label">{{ unavailableAction.labelKey | translate }}</span>
+                  }
+                </span>
               </ion-button>
               }
             </div>
@@ -89,7 +97,11 @@
           <ion-button
             [fill]="action.fill ?? 'clear'"
             [size]="action.size ?? 'default'"
-            [class]="action.cssClass || 'ctrl'"
+            [class]="(action.cssClass || 'ctrl') + ' app-btn'"
+            [class.app-btn--icon]="action.layout === 'icon'"
+            [class.app-btn--text]="action.layout === 'text'"
+            [class.app-btn--icon-stack]="action.layout === 'app-icon-text'"
+            [class.app-btn--icon-row]="action.layout === 'icon-text'"
             [disabled]="!!action.disabled"
             [attr.aria-label]="action.ariaLabelKey ? (action.ariaLabelKey | translate) : null"
             (click)="onFooterActionClick(action, $event)"
@@ -101,11 +113,13 @@
             <span class="ctrl-text">{{ action.labelKey | translate }}</span>
             }
             } @else {
-            @if (action.icon) {
-            <ion-icon [name]="action.icon"></ion-icon>
-            } @if (action.labelKey) {
-            <span class="ctrl-text">{{ action.labelKey | translate }}</span>
-            }
+            <span class="app-icon-row">
+              @if (action.icon) {
+              <ion-icon class="app-icon-row__icon" [name]="action.icon"></ion-icon>
+              } @if (action.labelKey) {
+              <span class="app-icon-row__label">{{ action.labelKey | translate }}</span>
+              }
+            </span>
             }
           </ion-button>
           }
