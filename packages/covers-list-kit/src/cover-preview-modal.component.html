@@ -1,0 +1,118 @@
+<ion-modal [isOpen]="isOpen" (didDismiss)="onDidDismiss()" class="cover-preview-modal">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar class="preview-toolbar">
+        <ion-title class="preview-title">{{ titleKey | translate }}</ion-title>
+
+        <ion-buttons slot="end">
+          @for (action of visibleActions(headerActions); track action.id) {
+          <ion-button
+            [fill]="action.fill ?? 'clear'"
+            [size]="action.size ?? 'default'"
+            [class]="action.cssClass"
+            [disabled]="!!action.disabled"
+            [attr.aria-label]="action.ariaLabelKey ? (action.ariaLabelKey | translate) : null"
+            (click)="onHeaderActionClick(action, $event)"
+          >
+            @if (action.layout === 'icon') {
+            <ion-icon [name]="action.icon ?? ''" slot="icon-only"></ion-icon>
+            } @else if (action.layout === 'text') {
+            @if (action.labelKey) {
+            {{ action.labelKey | translate }}
+            }
+            } @else if (action.layout === 'app-icon-text') {
+            <div class="app-icon-text">
+              @if (action.icon) {
+              <ion-icon class="app-icon-text__icon" [name]="action.icon"></ion-icon>
+              } @if (action.labelKey) {
+              <span class="app-icon-text__label">{{ action.labelKey | translate }}</span>
+              }
+            </div>
+            } @else {
+            @if (action.icon) {
+            <ion-icon [name]="action.icon"></ion-icon>
+            } @if (action.labelKey) {
+            <span class="ctrl-text">{{ action.labelKey | translate }}</span>
+            }
+            }
+          </ion-button>
+          }
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="preview-content" [fullscreen]="true" [scrollY]="false">
+      <div class="stage">
+        <div class="frame-wrap">
+          <div class="frame preview-frame">
+            @if (imageDataUrl) {
+            <img class="preview-img" [src]="imageDataUrl" [alt]="imageAlt" />
+            } @else if (!loading && unavailableConfig?.visible) {
+            <div class="preview-unavailable">
+              <div class="preview-unavailable__text">
+                {{ unavailableConfig?.textKey | translate }}
+              </div>
+              @if (visibleUnavailableAction(); as unavailableAction) {
+              <ion-button
+                [fill]="unavailableAction.fill ?? 'outline'"
+                [size]="unavailableAction.size ?? 'small'"
+                [class]="unavailableAction.cssClass"
+                [disabled]="!!unavailableAction.disabled"
+                [attr.aria-label]="unavailableAction.ariaLabelKey ? (unavailableAction.ariaLabelKey | translate) : null"
+                (click)="onUnavailableActionClick(unavailableAction, $event)"
+              >
+                @if (unavailableAction.icon) {
+                <ion-icon [name]="unavailableAction.icon"></ion-icon>
+                } @if (unavailableAction.labelKey) {
+                {{ unavailableAction.labelKey | translate }}
+                }
+              </ion-button>
+              }
+            </div>
+            } @if (loading) {
+            <div class="frame-loader" aria-hidden="true">
+              <div class="frame-loader__card">
+                <ion-spinner name="crescent"></ion-spinner>
+                <div class="frame-loader__text">
+                  {{ (gettingCover ? gettingCoverTextKey : loadingTextKey) | translate }}
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-bar" role="toolbar">
+        <div class="bottom-inner">
+          @for (action of visibleActions(footerActions); track action.id) {
+          <ion-button
+            [fill]="action.fill ?? 'clear'"
+            [size]="action.size ?? 'default'"
+            [class]="action.cssClass || 'ctrl'"
+            [disabled]="!!action.disabled"
+            [attr.aria-label]="action.ariaLabelKey ? (action.ariaLabelKey | translate) : null"
+            (click)="onFooterActionClick(action, $event)"
+          >
+            @if (action.layout === 'icon') {
+            <ion-icon [name]="action.icon ?? ''" slot="icon-only"></ion-icon>
+            } @else if (action.layout === 'text') {
+            @if (action.labelKey) {
+            <span class="ctrl-text">{{ action.labelKey | translate }}</span>
+            }
+            } @else {
+            @if (action.icon) {
+            <ion-icon [name]="action.icon"></ion-icon>
+            } @if (action.labelKey) {
+            <span class="ctrl-text">{{ action.labelKey | translate }}</span>
+            }
+            }
+          </ion-button>
+          }
+        </div>
+      </div>
+    </ion-content>
+
+    <ng-content select="[shPreviewOverlay]"></ng-content>
+  </ng-template>
+</ion-modal>

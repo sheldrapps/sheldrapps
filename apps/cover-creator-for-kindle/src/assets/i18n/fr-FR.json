@@ -28,6 +28,7 @@
     "INFO": "Info",
     "INFO_ARIA": "Informations sur la création de couverture",
     "INFO_TITLE": "Information",
+    "INFO_SEND_TITLE": "Envoyer vers Kindle",
     "INFO_SHARE_KINDLE": "Pour l'envoyer à votre Kindle, sélectionnez l'application Kindle lors du partage.",
     "INFO_FLOW_LABEL": "Ordre recommandé :",
     "INFO_STEP_1": "Sélectionner une image.",
@@ -59,13 +60,16 @@
     "TITLE": "Créer une couverture",
     "MODEL_PICKER": {
       "TITLE": "Choisissez votre Kindle"
-    }
+    },
+    "INFO_REQUIREMENTS_LABEL": "Exigences :",
+    "INFO_REQUIREMENT_DISABLE_ADS": "Desactiver les pubs sur Kindle.",
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Activer \"Ecran et luminosite > Afficher les couvertures sur ecran de verrouillage\" sur Kindle."
   },
   "COVERS": {
     "DELETED": "Couverture supprimée",
     "EMPTY": "Aucune couverture pour le moment.",
     "GETTING_COVER": "Obtention de la couverture",
-    "LOADING_PREVIEW": "Chargement de l'aper�u...",
+    "LOADING_PREVIEW": "Chargement de l'aperçu...",
     "PLACEHOLDER": "Couverture",
     "PREVIEW_TITLE": "Aperçu",
     "TITLE": "Couvertures",

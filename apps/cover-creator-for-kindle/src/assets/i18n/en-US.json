@@ -28,6 +28,7 @@
     "INFO": "Info",
     "INFO_ARIA": "Information about creating cover",
     "INFO_TITLE": "Information",
+    "INFO_SEND_TITLE": "Send to Kindle",
     "INFO_SHARE_KINDLE": "To send it to your Kindle, select the Kindle app when sharing.",
     "INFO_FLOW_LABEL": "Recommended order:",
     "INFO_STEP_1": "Select an image.",
@@ -59,7 +60,10 @@
     "TITLE": "Create cover",
     "MODEL_PICKER": {
       "TITLE": "Choose your Kindle"
-    }
+    },
+    "INFO_REQUIREMENTS_LABEL": "Requirements:",
+    "INFO_REQUIREMENT_DISABLE_ADS": "Disable ads on Kindle.",
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Enable \"Screen and brightness > Show covers on lock screen\" on Kindle."
   },
   "COVERS": {
     "DELETED": "Cover deleted",

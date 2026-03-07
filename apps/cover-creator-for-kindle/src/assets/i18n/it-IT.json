@@ -28,6 +28,7 @@
     "INFO": "Info",
     "INFO_ARIA": "Informazioni sulla creazione della copertina",
     "INFO_TITLE": "Informazione",
+    "INFO_SEND_TITLE": "Invia a Kindle",
     "INFO_SHARE_KINDLE": "Per inviarla al tuo Kindle, seleziona l'app Kindle durante la condivisione.",
     "INFO_FLOW_LABEL": "Ordine consigliato:",
     "INFO_STEP_1": "Seleziona un’immagine.",
@@ -59,7 +60,10 @@
     "TITLE": "Crea copertina",
     "MODEL_PICKER": {
       "TITLE": "Scegli il tuo Kindle"
-    }
+    },
+    "INFO_REQUIREMENTS_LABEL": "Requisiti:",
+    "INFO_REQUIREMENT_DISABLE_ADS": "Disattivare gli annunci su Kindle.",
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Attivare \"Schermo e luminosita > Mostra copertine nella schermata di blocco\" su Kindle."
   },
   "COVERS": {
     "DELETED": "Copertina eliminata",

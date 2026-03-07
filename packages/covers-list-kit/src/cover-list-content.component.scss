@@ -1,0 +1,67 @@
+:host {
+  display: block;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding-top: 24px;
+}
+
+.empty {
+  opacity: 0.7;
+  text-align: center;
+  padding: 24px 0;
+}
+
+.cover-card {
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.thumb {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  display: block;
+}
+
+.file-name {
+  font-size: 12px;
+  padding: 8px 10px 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+}
+
+.dots {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  z-index: 2;
+  --padding-start: 6px;
+  --padding-end: 6px;
+  --padding-top: 6px;
+  --padding-bottom: 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(6px);
+}
+
+:host-context(.ion-color-scheme-light) .dots,
+:host-context(.md) .dots {
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.35);
+}

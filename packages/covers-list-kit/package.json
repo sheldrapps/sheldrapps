@@ -1,0 +1,33 @@
+{
+  "name": "@sheldrapps/covers-list-kit",
+  "version": "0.0.0",
+  "description": "Host-driven reusable covers list content for Sheldrapps Ionic apps",
+  "main": "./src/public-api.ts",
+  "types": "./src/public-api.ts",
+  "exports": {
+    ".": "./src/public-api.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "peerDependencies": {
+    "@angular/common": "^20.0.0",
+    "@angular/core": "^20.0.0",
+    "@ionic/angular": "^8.0.0",
+    "@ngx-translate/core": "^17.0.0",
+    "ionicons": "^7.0.0",
+    "rxjs": "^7.8.0"
+  },
+  "keywords": [
+    "covers",
+    "list",
+    "ionic",
+    "angular",
+    "kit"
+  ],
+  "author": "Sheldrapps",
+  "license": "MIT"
+}

@@ -212,7 +212,6 @@
   >
     <ng-template>
       <div class="cc-info-popover">
-        <div class="cc-info-title">{{ 'CREATE.INFO_TITLE' | translate }}</div>
         <div class="cc-info-body">
           <div class="cc-info-text">
             <strong>{{ 'CREATE.INFO_FLOW_LABEL' | translate }}</strong><br>
@@ -226,6 +225,13 @@
           <div class="cc-info-text">
             <strong>{{ 'CREATE.INFO_NOTE_LABEL' | translate }}</strong><br>
             {{ 'CREATE.INFO_SHARE_KINDLE' | translate }}
+          </div>
+          <div class="cc-info-text">
+            <strong>{{ 'CREATE.INFO_REQUIREMENTS_LABEL' | translate }}</strong><br>
+            <ul class="cc-info-steps">
+              <li>{{ 'CREATE.INFO_REQUIREMENT_DISABLE_ADS' | translate }}</li>
+              <li>{{ 'CREATE.INFO_REQUIREMENT_ENABLE_COVER_DISPLAY' | translate }}</li>
+            </ul>
           </div>
         </div>
       </div>

@@ -1,0 +1,106 @@
+@use '@sheldrapps/ui-theme/styles/components' as *;
+
+ion-modal.cover-preview-modal {
+  .preview-toolbar {
+    --min-height: 56px;
+    align-items: center;
+  }
+
+  .preview-toolbar ion-buttons {
+    align-items: center;
+  }
+
+  .preview-toolbar ion-buttons ion-button {
+    height: 44px;
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  .preview-toolbar ion-button ion-icon[slot='icon-only'] {
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .preview-guide-btn {
+    min-width: 64px;
+  }
+
+  .preview-guide-btn .app-icon-text__icon {
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .preview-guide-btn .app-icon-text__label {
+    white-space: nowrap;
+  }
+
+  .preview-cancel {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+  }
+}
+
+.preview-content {
+  --background: var(--ion-background-color);
+  --padding-bottom: calc(12px + 74px);
+}
+
+.preview-frame {
+  @extend .frame;
+  aspect-ratio: 3 / 4;
+}
+
+.preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.preview-unavailable {
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  display: grid;
+  place-content: center;
+  gap: 10px;
+  text-align: center;
+  padding: 18px;
+}
+
+.preview-unavailable__text {
+  font-size: 0.95rem;
+  opacity: 0.82;
+}
+
+.ctrl-text {
+  font-size: 13px;
+}
+
+.ctrl.danger {
+  opacity: 0.95;
+}
+
+.bottom-inner {
+  max-width: 560px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bottom-inner .ctrl {
+  flex: 1 1 0;
+  justify-content: center;
+}

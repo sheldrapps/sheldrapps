@@ -28,6 +28,7 @@
     "INFO": "Info",
     "INFO_ARIA": "Informações sobre criar capa",
     "INFO_TITLE": "Informação",
+    "INFO_SEND_TITLE": "Enviar para o Kindle",
     "INFO_SHARE_KINDLE": "Para enviá-la ao seu Kindle, ao compartilhar, escolha o app Kindle.",
     "INFO_FLOW_LABEL": "Ordem recomendada:",
     "INFO_STEP_1": "Selecionar imagem.",
@@ -59,13 +60,16 @@
     "TITLE": "Criar capa",
     "MODEL_PICKER": {
       "TITLE": "Escolha seu Kindle"
-    }
+    },
+    "INFO_REQUIREMENTS_LABEL": "Requisitos:",
+    "INFO_REQUIREMENT_DISABLE_ADS": "Desativar anuncios no Kindle.",
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Ativar \"Tela e brilho > Mostrar capas na tela de bloqueio\" no Kindle."
   },
   "COVERS": {
     "DELETED": "Capa excluída",
     "EMPTY": "Nenhuma capa ainda.",
     "GETTING_COVER": "Obtendo capa",
-    "LOADING_PREVIEW": "Carregando pr�-visualiza��o...",
+    "LOADING_PREVIEW": "Carregando pré-visualização...",
     "PLACEHOLDER": "Capa",
     "PREVIEW_TITLE": "Pré-visualização",
     "TITLE": "Capas",

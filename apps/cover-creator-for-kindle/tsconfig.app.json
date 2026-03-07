@@ -14,6 +14,9 @@
       "@sheldrapps/recommended-apps": [
         "../../packages/recommended-apps/src/public-api.ts"
       ],
+      "@sheldrapps/covers-list-kit": [
+        "../../packages/covers-list-kit/src/public-api.ts"
+      ],
       "@sheldrapps/file-kit": ["../../packages/file-kit/src/public-api.ts"],
       "@sheldrapps/image-workflow": [
         "../../packages/image-workflow/src/public-api.ts"
@@ -36,7 +39,8 @@
     "../../packages/image-workflow/src/lib/types/**/*.ts",
     "../../packages/image-workflow/src/lib/core/**/*.ts",
     "../../packages/image-workflow/src/lib/ui/**/*.ts",
-    "../../packages/image-workflow/src/public-api.ts"
+    "../../packages/image-workflow/src/public-api.ts",
+    "../../packages/covers-list-kit/src/**/*.ts"
   ],
   "exclude": [
     "src/**/*.spec.ts",

@@ -6,23 +6,10 @@ import {
   IonHeader,
   IonTitle,
   IonToolbar,
-  IonGrid,
-  IonRow,
-  IonCol,
-  IonCard,
-  IonButton,
-  IonIcon,
-  IonSpinner,
-  IonRefresher,
-  IonRefresherContent,
   IonPopover,
-  IonList,
-  IonItem,
-  IonLabel,
   AlertController,
   IonBackButton,
   IonButtons,
-  IonModal,
   ToastController,
 } from '@ionic/angular/standalone';
 
@@ -35,10 +22,19 @@ import {
   trashOutline,
   closeCircleOutline,
   alertCircleOutline,
-  informationCircleOutline,
+  helpCircleOutline,
 } from 'ionicons/icons';
 import { FileService } from '../../services/file.service';
 import { CoversEventsService } from '../../services/covers-events.service';
+import {
+  CoverListAction,
+  CoverListActionEvent,
+  CoverListContentComponent,
+  CoverListItem,
+  CoverPreviewModalComponent,
+  PreviewAction,
+  PreviewActionClickEvent,
+} from '@sheldrapps/covers-list-kit';
 
 type UiCoverItem = {
   filename: string;
@@ -52,44 +48,40 @@ type UiCoverItem = {
     IonBackButton,
     CommonModule,
     TranslateModule,
+    CoverListContentComponent,
     IonHeader,
     IonToolbar,
     IonTitle,
     IonContent,
-    IonGrid,
-    IonRow,
-    IonCol,
-    IonCard,
-    IonButton,
-    IonIcon,
-    IonSpinner,
-    IonRefresher,
-    IonRefresherContent,
     IonPopover,
-    IonList,
-    IonItem,
-    IonLabel,
     IonButtons,
-    IonModal,
+    CoverPreviewModalComponent,
   ],
   templateUrl: './covers.page.html',
   styleUrls: ['./covers.page.scss'],
 })
 export class CoversPage implements OnInit, OnDestroy {
   @ViewChild(IonContent) content!: IonContent;
+  @ViewChild(CoverListContentComponent) listContent?: CoverListContentComponent;
   loading = true;
   items: UiCoverItem[] = [];
-
-  openPopover = false;
-  activeFilename: string | null = null;
-  popoverEvent: Event | null = null;
 
   pageErrorKey: string | null = null;
   pageErrorParams: Record<string, any> | null = null;
 
-  private pressTimer: any = null;
-  private readonly LONG_PRESS_MS = 420;
-  private readonly SCROLL_END_DELAY_MS = 160;
+  readonly listActions: CoverListAction[] = [
+    {
+      id: 'share',
+      labelKey: 'COVERS.ACTIONS.SHARE',
+      icon: 'share-outline',
+    },
+    {
+      id: 'delete',
+      labelKey: 'COVERS.ACTIONS.DELETE',
+      icon: 'trash-outline',
+    },
+  ];
+
   private coversEventsSub?: Subscription;
   private localDeletedFilenames = new Set<string>();
   private thumbsLoadToken = 0;
@@ -104,17 +96,7 @@ export class CoversPage implements OnInit, OnDestroy {
   previewGettingCover = false;
 
   infoOpen = false;
-  infoEvent: Event | null = null;
-
-  private longPressFired = false;
-  private moved = false;
-  private scrollDuringPress = false;
-  private startX = 0;
-  private startY = 0;
-  private readonly MOVE_TOLERANCE_X_PX = 10;
-  private readonly MOVE_TOLERANCE_Y_PX = 6;
-  private isScrolling = false;
-  private scrollEndTimer: any = null;
+  showPreviewGuideButton = true;
 
   constructor(
     private files: FileService,
@@ -128,7 +110,7 @@ export class CoversPage implements OnInit, OnDestroy {
       ellipsisVertical,
       shareOutline,
       trashOutline,
-      informationCircleOutline,
+      helpCircleOutline,
       alertCircleOutline,
     });
   }
@@ -210,108 +192,105 @@ export class CoversPage implements OnInit, OnDestroy {
     }
   }
 
-  showMenu(ev: Event, filename: string) {
-    this.activeFilename = filename;
-    this.popoverEvent = ev;
-    this.openPopover = true;
-  }
-
   toggleInfo(ev: Event) {
     ev.stopPropagation();
     if (this.infoOpen) {
       this.closeInfo();
     } else {
-      this.infoEvent = ev;
       this.infoOpen = true;
     }
   }
 
   closeInfo() {
     this.infoOpen = false;
-    this.infoEvent = null;
   }
 
-  onScrollStart() {
-    this.isScrolling = true;
-    this.scrollDuringPress = true;
-    this.cancelPress();
-
-    if (this.scrollEndTimer) {
-      clearTimeout(this.scrollEndTimer);
-      this.scrollEndTimer = null;
-    }
+  onPreviewGuideClick(ev: Event) {
+    this.toggleInfo(ev);
   }
 
-  onScrollEnd() {
-    if (this.scrollEndTimer) clearTimeout(this.scrollEndTimer);
-    this.scrollEndTimer = setTimeout(() => {
-      this.isScrolling = false;
-      this.scrollEndTimer = null;
-    }, this.SCROLL_END_DELAY_MS);
+  get previewHeaderActions(): PreviewAction[] {
+    return [
+      {
+        id: 'guide',
+        labelKey: 'ARR.TOOLS.GUIDE',
+        icon: 'help-circle-outline',
+        layout: 'app-icon-text',
+        cssClass: 'tool-btn preview-guide-btn',
+        ariaLabelKey: 'CREATE.INFO_ARIA',
+        hidden: !this.showPreviewGuideButton,
+      },
+      {
+        id: 'close',
+        labelKey: 'COMMON.CLOSE',
+        layout: 'text',
+        cssClass: 'preview-cancel',
+      },
+    ];
   }
 
-  onPressStart(ev: PointerEvent, filename: string) {
-    if (this.isFromDots(ev)) return;
-    if (this.isScrolling) return;
-    this.clearPress();
-
-    this.longPressFired = false;
-    this.moved = false;
-    this.scrollDuringPress = false;
-    this.startX = ev.clientX;
-    this.startY = ev.clientY;
-
-    this.pressTimer = setTimeout(() => {
-      this.longPressFired = true;
-      this.showMenu(ev, filename);
-    }, this.LONG_PRESS_MS);
+  get previewFooterActions(): PreviewAction[] {
+    const disabled = this.previewLoading || !this.previewFilename;
+    return [
+      {
+        id: 'share',
+        labelKey: 'COMMON.SHARE',
+        icon: 'share-outline',
+        layout: 'icon-text',
+        cssClass: 'ctrl',
+        disabled,
+      },
+      {
+        id: 'delete',
+        labelKey: 'COMMON.DELETE',
+        icon: 'trash-outline',
+        layout: 'icon-text',
+        cssClass: 'ctrl',
+        disabled,
+      },
+    ];
   }
 
-  onPressMove(ev: PointerEvent) {
-    if (this.isScrolling) {
-      this.cancelPress();
+  onPreviewAction(event: PreviewActionClickEvent) {
+    if (event.actionId === 'guide') {
+      if (event.nativeEvent) {
+        this.onPreviewGuideClick(event.nativeEvent);
+      }
       return;
     }
-    if (!this.pressTimer) return;
-
-    const dx = Math.abs(ev.clientX - this.startX);
-    const dy = Math.abs(ev.clientY - this.startY);
-
-    if (dy > this.MOVE_TOLERANCE_Y_PX || dx > this.MOVE_TOLERANCE_X_PX) {
-      this.moved = true;
-      this.clearPress();
-    }
-  }
-
-  onPressEnd(ev: PointerEvent, filename: string) {
-    if (this.isFromDots(ev)) return;
-    if (this.isScrolling || this.scrollDuringPress) {
-      this.cancelPress();
+    if (event.actionId === 'close') {
+      this.closePreview();
       return;
     }
-    const isTap = !!this.pressTimer && !this.longPressFired && !this.moved;
-    this.clearPress();
-
-    if (isTap) {
-      void this.openPreview(filename);
+    if (event.actionId === 'share') {
+      void this.sharePreview();
+      return;
+    }
+    if (event.actionId === 'delete') {
+      void this.deletePreview();
     }
   }
 
-  onPressCancel() {
-    this.cancelPress();
+  onListScrollStart() {
+    this.listContent?.onHostScrollStart();
   }
 
-  private clearPress() {
-    if (this.pressTimer) {
-      clearTimeout(this.pressTimer);
-      this.pressTimer = null;
+  onListScrollEnd() {
+    this.listContent?.onHostScrollEnd();
+  }
+
+  onListItemClick(item: CoverListItem) {
+    void this.openPreview(item.filename);
+  }
+
+  onListAction(event: CoverListActionEvent) {
+    if (event.actionId === 'share') {
+      void this.shareByFilename(event.item.filename);
+      return;
     }
-  }
-
-  private cancelPress() {
-    this.clearPress();
-    this.moved = true;
-    this.longPressFired = false;
+    if (event.actionId === 'delete') {
+      void this.deleteFromList(event.item.filename);
+    }
   }
 
   async openPreview(filename: string) {
@@ -344,15 +323,7 @@ export class CoversPage implements OnInit, OnDestroy {
   async sharePreview() {
     const filename = this.previewFilename;
     if (!filename) return;
-
-    this.pageErrorKey = null;
-    this.pageErrorParams = null;
-
-    try {
-      await this.files.shareCoverByFilename(filename);
-    } catch {
-      this.pageErrorKey = 'COVERS.ERROR.SHARE';
-    }
+    await this.shareByFilename(filename);
   }
 
   async deletePreview() {
@@ -368,18 +339,8 @@ export class CoversPage implements OnInit, OnDestroy {
           text: this.translate.instant('COMMON.DELETE'),
           role: 'destructive',
           handler: async () => {
-            this.pageErrorKey = null;
-            this.pageErrorParams = null;
-
-            try {
-              await this.files.deleteCoverByFilename(filename);
-              this.items = this.items.filter((x) => x.filename !== filename);
-              this.coversEvents.emit({ type: 'deleted', filename });
-              this.closePreview();
-              await this.showToast('COVERS.DELETED');
-            } catch {
-              this.pageErrorKey = 'COVERS.ERROR.DELETE';
-            }
+            await this.deleteByFilename(filename);
+            this.closePreview();
           },
         },
       ],
@@ -396,27 +357,7 @@ export class CoversPage implements OnInit, OnDestroy {
     this.previewGettingCover = false;
   }
 
-  async shareActive() {
-    const filename = this.activeFilename;
-    this.openPopover = false;
-    this.activeFilename = null;
-    if (!filename) return;
-
-    this.pageErrorKey = null;
-    this.pageErrorParams = null;
-
-    try {
-      await this.files.shareCoverByFilename(filename);
-    } catch {
-      this.pageErrorKey = 'COVERS.ERROR.SHARE';
-    }
-  }
-
-  async deleteActive() {
-    const filename = this.activeFilename;
-    this.openPopover = false;
-    if (!filename) return;
-
+  async deleteFromList(filename: string) {
     const scrollTop = await this.getScrollTop();
 
     const alert = await this.alertCtrl.create({
@@ -428,31 +369,14 @@ export class CoversPage implements OnInit, OnDestroy {
           text: this.translate.instant('COMMON.DELETE'),
           role: 'destructive',
           handler: async () => {
-            this.pageErrorKey = null;
-            this.pageErrorParams = null;
-
-            try {
-              await this.files.deleteCoverByFilename(filename);
-              this.items = this.items.filter((x) => x.filename !== filename);
-              this.localDeletedFilenames.add(filename);
-              this.coversEvents.emit({ type: 'deleted', filename });
-              await this.restoreScrollTop(scrollTop);
-              await this.showToast('COVERS.DELETED');
-            } catch {
-              this.pageErrorKey = 'COVERS.ERROR.DELETE';
-            } finally {
-              this.activeFilename = null;
-            }
+            await this.deleteByFilename(filename, { markLocalDelete: true });
+            await this.restoreScrollTop(scrollTop);
           },
         },
       ],
     });
 
     await alert.present();
-  }
-
-  trackByFilename(_: number, item: UiCoverItem) {
-    return item.filename;
   }
 
   async ionViewWillEnter() {
@@ -466,9 +390,35 @@ export class CoversPage implements OnInit, OnDestroy {
     this.isViewActive = false;
   }
 
-  private isFromDots(ev: Event): boolean {
-    const t = ev.target as HTMLElement | null;
-    return !!t?.closest?.('.dots');
+  private async shareByFilename(filename: string): Promise<void> {
+    this.pageErrorKey = null;
+    this.pageErrorParams = null;
+
+    try {
+      await this.files.shareCoverByFilename(filename);
+    } catch {
+      this.pageErrorKey = 'COVERS.ERROR.SHARE';
+    }
+  }
+
+  private async deleteByFilename(
+    filename: string,
+    opts?: { markLocalDelete?: boolean },
+  ): Promise<void> {
+    this.pageErrorKey = null;
+    this.pageErrorParams = null;
+
+    try {
+      await this.files.deleteCoverByFilename(filename);
+      this.items = this.items.filter((x) => x.filename !== filename);
+      if (opts?.markLocalDelete) {
+        this.localDeletedFilenames.add(filename);
+      }
+      this.coversEvents.emit({ type: 'deleted', filename });
+      await this.showToast('COVERS.DELETED');
+    } catch {
+      this.pageErrorKey = 'COVERS.ERROR.DELETE';
+    }
   }
 
   private async showToast(messageKey: string, duration = 1600) {

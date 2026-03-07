@@ -53,6 +53,22 @@ Standard new app baseline:
 - `pnpm lint` passes.
 - `pnpm build` passes.
 
+## Android Device Install Rule
+
+- When installing an updated app on a phone, always run this full sequence:
+  1. `pnpm --filter <app-name> build`
+  2. `npx cap sync android` (from `apps/<app-name>`)
+  3. `.\gradlew.bat clean :app:assembleDebug` (from `apps/<app-name>/android`)
+  4. `adb -s <device-id> install -r "<absolute-path-to-app-debug.apk>"`
+- Do not skip steps.
+- Run all steps sequentially (never in parallel).
+
+## Text And i18n Rule
+
+- Any requested text change must be implemented via i18n keys, never hardcoded UI text.
+- Update translations in all supported app locales in the same change.
+- For CCFK and ECC, this means updating every file under each app `src/assets/i18n/` locale set.
+
 ## Unclear Ownership
 
 If you are unsure where code belongs, place reusable behavior in a kit first and wire it from the app.

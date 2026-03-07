@@ -28,6 +28,7 @@
     "INFO": "Info",
     "INFO_ARIA": "Informationen über Cover-Erstellung",
     "INFO_TITLE": "Information",
+    "INFO_SEND_TITLE": "An Kindle senden",
     "INFO_SHARE_KINDLE": "Um es an dein Kindle zu senden, wähle beim Teilen die Kindle-App aus.",
     "INFO_FLOW_LABEL": "Empfohlene Reihenfolge:",
     "INFO_STEP_1": "Bild auswählen.",
@@ -59,7 +60,10 @@
     "TITLE": "Cover erstellen",
     "MODEL_PICKER": {
       "TITLE": "Wähle dein Kindle"
-    }
+    },
+    "INFO_REQUIREMENTS_LABEL": "Voraussetzungen:",
+    "INFO_REQUIREMENT_DISABLE_ADS": "Ads auf Kindle deaktivieren.",
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Auf Kindle \"Bildschirm und Helligkeit > Cover auf dem Sperrbildschirm anzeigen\" aktivieren."
   },
   "COVERS": {
     "DELETED": "Cover gelöscht",

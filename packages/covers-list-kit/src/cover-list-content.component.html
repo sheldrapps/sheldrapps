@@ -1,0 +1,91 @@
+@if (pageErrorKey) {
+<div class="app-callout app-callout--error" aria-live="polite" role="status">
+  <ion-icon
+    class="app-callout__icon"
+    name="close-circle-outline"
+    aria-hidden="true"
+  ></ion-icon>
+  <div>
+    <div class="app-callout__title">{{ 'COMMON.ERROR' | translate }}</div>
+    <div class="app-callout__body">
+      {{ pageErrorKey | translate:pageErrorParams }}
+    </div>
+  </div>
+</div>
+}
+
+<ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+  <ion-refresher-content></ion-refresher-content>
+</ion-refresher>
+
+@if (loading) {
+<div class="loading">
+  <ion-spinner></ion-spinner>
+</div>
+} @else {
+<ion-grid>
+  <ion-row>
+    @for (item of items; track trackByFilename($index, item)) {
+    <ion-col size="6" size-md="4">
+      <ion-card
+        class="cover-card"
+        (pointerdown)="onCardPressStart($event, item)"
+        (pointermove)="onCardPressMove($event)"
+        (pointerup)="onCardPressEnd($event, item)"
+        (pointercancel)="onCardPressCancel()"
+        (pointerleave)="onCardPressCancel()"
+      >
+        @if (item.thumbDataUrl) {
+        <img class="thumb" [src]="item.thumbDataUrl" [alt]="thumbAlt" />
+        } @else {
+        <div class="thumb placeholder">
+          {{ placeholderKey | translate }}
+        </div>
+        }
+
+        @if (showFileName) {
+        <div class="file-name" [title]="displayFilename(item)">
+          {{ displayFilename(item) }}
+        </div>
+        }
+
+        <ion-button
+          class="dots"
+          fill="clear"
+          size="small"
+          (pointerdown)="$event.stopPropagation()"
+          (pointerup)="$event.stopPropagation()"
+          (pointercancel)="$event.stopPropagation()"
+          (click)="onDotsClick($event, item)"
+        >
+          <ion-icon name="ellipsis-vertical"></ion-icon>
+        </ion-button>
+      </ion-card>
+    </ion-col>
+    } @if (items.length === 0) {
+    <ion-col size="12">
+      <div class="empty">{{ emptyKey | translate }}</div>
+    </ion-col>
+    }
+  </ion-row>
+</ion-grid>
+}
+
+<ion-popover
+  [isOpen]="openPopover"
+  [event]="popoverEvent"
+  (didDismiss)="onPopoverDismiss()"
+>
+  <ng-template>
+    <ion-list lines="none">
+      @for (action of activeActions; track action.id) {
+      <ion-item button [disabled]="isActionDisabled(action)" (click)="onActionSelect(action)">
+        @if (action.icon) {
+        <ion-icon slot="start" [name]="action.icon"></ion-icon>
+        }
+        <ion-label>{{ action.labelKey | translate }}</ion-label>
+      </ion-item>
+      }
+    </ion-list>
+  </ng-template>
+</ion-popover>

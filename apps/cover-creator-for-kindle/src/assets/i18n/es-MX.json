@@ -28,6 +28,7 @@
     "INFO": "Info",
     "INFO_ARIA": "Información sobre crear portada",
     "INFO_TITLE": "Información",
+    "INFO_SEND_TITLE": "Enviar a Kindle",
     "INFO_SHARE_KINDLE": "Para enviarla a tu Kindle, al compartir, elige la app Kindle.",
     "INFO_FLOW_LABEL": "Orden recomendado:",
     "INFO_STEP_1": "Seleccionar imagen.",
@@ -59,11 +60,14 @@
     "TITLE": "Crear portada",
     "MODEL_PICKER": {
       "TITLE": "Elige tu Kindle"
-    }
+    },
+    "INFO_REQUIREMENTS_LABEL": "Requisitos:",
+    "INFO_REQUIREMENT_DISABLE_ADS": "Desactivar ads en Kindle.",
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Activar \"Pantalla y brillo > Mostrar portadas en la pantalla del dispositivo\" en Kindle."
   },
   "COVERS": {
     "DELETED": "Portada eliminada",
-    "EMPTY": "No hay portadas todav�a.",
+    "EMPTY": "No hay portadas todavía.",
     "GETTING_COVER": "Obteniendo portada",
     "LOADING_PREVIEW": "Cargando vista previa...",
     "PLACEHOLDER": "Portada",
@@ -161,7 +165,7 @@
       "RECOMMENDED": "Recomendadas",
       "INFO": "Info",
       "APPS": "Apps",
-      "GUIDE": "Gu\u00EDa"
+      "GUIDE": "Guía"
     }
   }
 }

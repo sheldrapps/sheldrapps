@@ -6,23 +6,9 @@ import {
   IonHeader,
   IonTitle,
   IonToolbar,
-  IonGrid,
-  IonRow,
-  IonCol,
-  IonCard,
-  IonButton,
-  IonIcon,
-  IonSpinner,
-  IonRefresher,
-  IonRefresherContent,
-  IonPopover,
-  IonList,
-  IonItem,
-  IonLabel,
   AlertController,
   IonBackButton,
   IonButtons,
-  IonModal,
   ToastController,
 } from '@ionic/angular/standalone';
 
@@ -35,10 +21,19 @@ import {
   trashOutline,
   closeCircleOutline,
   alertCircleOutline,
-  informationCircleOutline,
 } from 'ionicons/icons';
 import { FileService } from '../../services/file.service';
 import { CoversEventsService } from '../../services/covers-events.service';
+import {
+  CoverListAction,
+  CoverListActionEvent,
+  CoverListContentComponent,
+  CoverListItem,
+  CoverPreviewModalComponent,
+  PreviewAction,
+  PreviewActionClickEvent,
+  PreviewUnavailableConfig,
+} from '@sheldrapps/covers-list-kit';
 
 type UiCoverItem = {
   filename: string;
@@ -52,25 +47,13 @@ type UiCoverItem = {
     IonBackButton,
     CommonModule,
     TranslateModule,
+    CoverListContentComponent,
     IonHeader,
     IonToolbar,
     IonTitle,
     IonContent,
-    IonGrid,
-    IonRow,
-    IonCol,
-    IonCard,
-    IonButton,
-    IonIcon,
-    IonSpinner,
-    IonRefresher,
-    IonRefresherContent,
-    IonPopover,
-    IonList,
-    IonItem,
-    IonLabel,
     IonButtons,
-    IonModal,
+    CoverPreviewModalComponent,
   ],
   templateUrl: './my-epubs.page.html',
   styleUrls: ['./my-epubs.page.scss'],
@@ -83,19 +66,28 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   private toastCtrl = inject(ToastController);
 
   @ViewChild(IonContent) content!: IonContent;
+  @ViewChild(CoverListContentComponent) listContent?: CoverListContentComponent;
   loading = true;
   items: UiCoverItem[] = [];
-
-  openPopover = false;
-  activeFilename: string | null = null;
-  popoverEvent: Event | null = null;
 
   pageErrorKey: string | null = null;
   pageErrorParams: Record<string, any> | null = null;
 
-  private pressTimer: any = null;
-  private readonly LONG_PRESS_MS = 420;
-  private readonly SCROLL_END_DELAY_MS = 160;
+  readonly listActions: CoverListAction[] = [
+    {
+      id: 'share',
+      labelKey: 'COVERS.ACTIONS.SHARE',
+      icon: 'share-outline',
+    },
+    {
+      id: 'delete',
+      labelKey: 'COVERS.ACTIONS.DELETE',
+      icon: 'trash-outline',
+    },
+  ];
+  readonly displayFilename = (filename: string): string =>
+    filename.replace(/\.epub$/i, '');
+
   private coversEventsSub?: Subscription;
   private localDeletedFilenames = new Set<string>();
   private thumbsLoadToken = 0;
@@ -110,19 +102,6 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   previewLoading = false;
   previewUnavailable = false;
   previewGettingCover = false;
-
-  infoOpen = false;
-  infoEvent: Event | null = null;
-
-  private longPressFired = false;
-  private moved = false;
-  private scrollDuringPress = false;
-  private startX = 0;
-  private startY = 0;
-  private readonly MOVE_TOLERANCE_X_PX = 10;
-  private readonly MOVE_TOLERANCE_Y_PX = 6;
-  private isScrolling = false;
-  private scrollEndTimer: any = null;
   // Preview Modal
 
   constructor() {
@@ -131,7 +110,6 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       ellipsisVertical,
       shareOutline,
       trashOutline,
-      informationCircleOutline,
       alertCircleOutline,
     });
   }
@@ -213,108 +191,91 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     }
   }
 
-  showMenu(ev: Event, filename: string) {
-    this.activeFilename = filename;
-    this.popoverEvent = ev;
-    this.openPopover = true;
+  onListScrollStart() {
+    this.listContent?.onHostScrollStart();
   }
 
-  toggleInfo(ev: Event) {
-    ev.stopPropagation();
-    if (this.infoOpen) {
-      this.closeInfo();
-    } else {
-      this.infoEvent = ev;
-      this.infoOpen = true;
-    }
+  onListScrollEnd() {
+    this.listContent?.onHostScrollEnd();
   }
 
-  closeInfo() {
-    this.infoOpen = false;
-    this.infoEvent = null;
+  onListItemClick(item: CoverListItem) {
+    void this.openPreview(item.filename);
   }
 
-  onScrollStart() {
-    this.isScrolling = true;
-    this.scrollDuringPress = true;
-    this.cancelPress();
-
-    if (this.scrollEndTimer) {
-      clearTimeout(this.scrollEndTimer);
-      this.scrollEndTimer = null;
-    }
-  }
-
-  onScrollEnd() {
-    if (this.scrollEndTimer) clearTimeout(this.scrollEndTimer);
-    this.scrollEndTimer = setTimeout(() => {
-      this.isScrolling = false;
-      this.scrollEndTimer = null;
-    }, this.SCROLL_END_DELAY_MS);
-  }
-
-  onPressStart(ev: PointerEvent, filename: string) {
-    if (this.isFromDots(ev)) return;
-    if (this.isScrolling) return;
-    this.clearPress();
-
-    this.longPressFired = false;
-    this.moved = false;
-    this.scrollDuringPress = false;
-    this.startX = ev.clientX;
-    this.startY = ev.clientY;
-
-    this.pressTimer = setTimeout(() => {
-      this.longPressFired = true;
-      this.showMenu(ev, filename);
-    }, this.LONG_PRESS_MS);
-  }
-
-  onPressMove(ev: PointerEvent) {
-    if (this.isScrolling) {
-      this.cancelPress();
+  onListAction(event: CoverListActionEvent) {
+    if (event.actionId === 'share') {
+      void this.shareByFilename(event.item.filename);
       return;
     }
-    if (!this.pressTimer) return;
-
-    const dx = Math.abs(ev.clientX - this.startX);
-    const dy = Math.abs(ev.clientY - this.startY);
-
-    if (dy > this.MOVE_TOLERANCE_Y_PX || dx > this.MOVE_TOLERANCE_X_PX) {
-      this.moved = true;
-      this.clearPress();
+    if (event.actionId === 'delete') {
+      void this.deleteFromList(event.item.filename);
     }
   }
 
-  onPressEnd(ev: PointerEvent, filename: string) {
-    if (this.isFromDots(ev)) return;
-    if (this.isScrolling || this.scrollDuringPress) {
-      this.cancelPress();
+  get previewHeaderActions(): PreviewAction[] {
+    return [
+      {
+        id: 'close',
+        labelKey: 'COMMON.CLOSE',
+        layout: 'text',
+        cssClass: 'preview-cancel',
+      },
+    ];
+  }
+
+  get previewFooterActions(): PreviewAction[] {
+    const disabled = this.previewLoading || !this.previewFilename;
+    return [
+      {
+        id: 'share',
+        labelKey: 'COMMON.SHARE',
+        icon: 'share-outline',
+        layout: 'icon-text',
+        cssClass: 'ctrl',
+        disabled,
+      },
+      {
+        id: 'delete',
+        labelKey: 'COMMON.DELETE',
+        icon: 'trash-outline',
+        layout: 'icon-text',
+        cssClass: 'ctrl',
+        disabled,
+      },
+    ];
+  }
+
+  get previewUnavailableConfig(): PreviewUnavailableConfig {
+    return {
+      visible: this.previewUnavailable,
+      textKey: 'COVERS.PREVIEW_UNAVAILABLE',
+      action: {
+        id: 'regenerate-thumb',
+        labelKey: 'COVERS.GENERATE_THUMB',
+        fill: 'outline',
+        size: 'small',
+        disabled: this.previewLoading || !this.previewFilename,
+      },
+    };
+  }
+
+  onPreviewAction(event: PreviewActionClickEvent) {
+    if (event.actionId === 'close') {
+      this.closePreview();
       return;
     }
-    const isTap = !!this.pressTimer && !this.longPressFired && !this.moved;
-    this.clearPress();
-
-    if (isTap) {
-      void this.openPreview(filename);
+    if (event.actionId === 'share') {
+      void this.sharePreview();
+      return;
     }
-  }
-
-  onPressCancel() {
-    this.cancelPress();
-  }
-
-  private clearPress() {
-    if (this.pressTimer) {
-      clearTimeout(this.pressTimer);
-      this.pressTimer = null;
+    if (event.actionId === 'delete') {
+      void this.deletePreview();
+      return;
     }
-  }
-
-  private cancelPress() {
-    this.clearPress();
-    this.moved = true;
-    this.longPressFired = false;
+    if (event.actionId === 'regenerate-thumb') {
+      void this.regeneratePreviewThumb();
+    }
   }
 
   async openPreview(filename: string) {
@@ -375,15 +336,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   async sharePreview() {
     const filename = this.previewFilename;
     if (!filename) return;
-
-    this.pageErrorKey = null;
-    this.pageErrorParams = null;
-
-    try {
-      await this.files.shareCoverByFilename(filename);
-    } catch {
-      this.pageErrorKey = 'COVERS.ERROR.SHARE';
-    }
+    await this.shareByFilename(filename);
   }
 
   async deletePreview() {
@@ -399,18 +352,8 @@ export class MyEpubsPage implements OnInit, OnDestroy {
           text: this.translate.instant('COMMON.DELETE'),
           role: 'destructive',
           handler: async () => {
-            this.pageErrorKey = null;
-            this.pageErrorParams = null;
-
-            try {
-              await this.files.deleteCoverByFilename(filename);
-              this.items = this.items.filter((x) => x.filename !== filename);
-              this.coversEvents.emit({ type: 'deleted', filename });
-              this.closePreview();
-              await this.showToast('COVERS.DELETED');
-            } catch {
-              this.pageErrorKey = 'COVERS.ERROR.DELETE';
-            }
+            await this.deleteByFilename(filename);
+            this.closePreview();
           },
         },
       ],
@@ -428,27 +371,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     this.previewGettingCover = false;
   }
 
-  async shareActive() {
-    const filename = this.activeFilename;
-    this.openPopover = false;
-    this.activeFilename = null;
-    if (!filename) return;
-
-    this.pageErrorKey = null;
-    this.pageErrorParams = null;
-
-    try {
-      await this.files.shareCoverByFilename(filename);
-    } catch {
-      this.pageErrorKey = 'COVERS.ERROR.SHARE';
-    }
-  }
-
-  async deleteActive() {
-    const filename = this.activeFilename;
-    this.openPopover = false;
-    if (!filename) return;
-
+  async deleteFromList(filename: string) {
     const scrollTop = await this.getScrollTop();
 
     const alert = await this.alertCtrl.create({
@@ -460,35 +383,14 @@ export class MyEpubsPage implements OnInit, OnDestroy {
           text: this.translate.instant('COMMON.DELETE'),
           role: 'destructive',
           handler: async () => {
-            this.pageErrorKey = null;
-            this.pageErrorParams = null;
-
-            try {
-              await this.files.deleteCoverByFilename(filename);
-              this.items = this.items.filter((x) => x.filename !== filename);
-              this.localDeletedFilenames.add(filename);
-              this.coversEvents.emit({ type: 'deleted', filename });
-              await this.restoreScrollTop(scrollTop);
-              await this.showToast('COVERS.DELETED');
-            } catch {
-              this.pageErrorKey = 'COVERS.ERROR.DELETE';
-            } finally {
-              this.activeFilename = null;
-            }
+            await this.deleteByFilename(filename, { markLocalDelete: true });
+            await this.restoreScrollTop(scrollTop);
           },
         },
       ],
     });
 
     await alert.present();
-  }
-
-  trackByFilename(_: number, item: UiCoverItem) {
-    return item.filename;
-  }
-
-  getDisplayName(filename: string): string {
-    return filename.replace(/\.epub$/i, '');
   }
 
   async ionViewWillEnter() {
@@ -502,9 +404,35 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     this.isViewActive = false;
   }
 
-  private isFromDots(ev: Event): boolean {
-    const t = ev.target as HTMLElement | null;
-    return !!t?.closest?.('.dots');
+  private async shareByFilename(filename: string): Promise<void> {
+    this.pageErrorKey = null;
+    this.pageErrorParams = null;
+
+    try {
+      await this.files.shareCoverByFilename(filename);
+    } catch {
+      this.pageErrorKey = 'COVERS.ERROR.SHARE';
+    }
+  }
+
+  private async deleteByFilename(
+    filename: string,
+    opts?: { markLocalDelete?: boolean },
+  ): Promise<void> {
+    this.pageErrorKey = null;
+    this.pageErrorParams = null;
+
+    try {
+      await this.files.deleteCoverByFilename(filename);
+      this.items = this.items.filter((x) => x.filename !== filename);
+      if (opts?.markLocalDelete) {
+        this.localDeletedFilenames.add(filename);
+      }
+      this.coversEvents.emit({ type: 'deleted', filename });
+      await this.showToast('COVERS.DELETED');
+    } catch {
+      this.pageErrorKey = 'COVERS.ERROR.DELETE';
+    }
   }
 
   private async showToast(messageKey: string, duration = 1600) {
