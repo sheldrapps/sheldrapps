@@ -7,6 +7,7 @@ import {
 } from '@ionic/angular/standalone';
 import { provideAdsKit } from '@sheldrapps/ads-kit';
 import { MemoryStorageAdapter, provideI18nKit } from '@sheldrapps/i18n-kit';
+import { provideNativeSqlite } from '@sheldrapps/native-sqlite-kit';
 import {
   CapacitorPreferencesAdapter,
   CompositeStorageAdapter,
@@ -22,6 +23,7 @@ import {
   ADS_UNITS_ANDROID_PROD,
   ADS_UNITS_ANDROID_TEST,
 } from './app/services/ads.config';
+import { nextStepMigrations } from './app/database/migrations/next-step-sqlite.migrations';
 import { ConfigService } from './config/config.service';
 import { environment } from './environments/environment';
 
@@ -74,6 +76,13 @@ bootstrapApplication(AppComponent, {
           prod: ADS_UNITS_ANDROID_PROD,
         },
       },
+    }),
+    ...provideNativeSqlite({
+      databaseName: 'next-step.db',
+      migrations: nextStepMigrations,
+      seeders: [],
+      debug: false,
+      initializeOnAppBootstrap: false,
     }),
     provideAppInitializer(() => {
       const config = inject(ConfigService);

@@ -4,7 +4,7 @@ export const routes: Routes = [
   {
     path: 'new',
     loadComponent: () =>
-      import('../create-task/create-task.page').then((m) => m.CreateTaskPage),
+      import('./create-task/create-task.page').then((m) => m.CreateTaskPage),
   },
   {
     path: ':id',

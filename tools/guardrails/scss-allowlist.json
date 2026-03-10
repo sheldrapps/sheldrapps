@@ -29,7 +29,19 @@
     "apps/presupuesto-ninos/src/app/pages/tabs/tabs.page.scss",
     "apps/presupuesto-ninos/src/global.scss",
     "apps/presupuesto-ninos/src/theme/variables.scss",
+    "apps/next-step/src/app/app.component.scss",
+    "apps/next-step/src/app/progress/progress.page.scss",
+    "apps/next-step/src/app/task/create-task/create-task.page.scss",
+    "apps/next-step/src/app/tabs/agenda/agenda.page.scss",
+    "apps/next-step/src/app/tabs/reflection/reflection.page.scss",
+    "apps/next-step/src/app/tabs/settings/instructions.page.scss",
+    "apps/next-step/src/app/tabs/settings/settings.page.scss",
+    "apps/next-step/src/app/tabs/tabs.page.scss",
+    "apps/next-step/src/app/tabs/tasks/tasks.page.scss",
+    "apps/next-step/src/app/tabs/today/today.page.scss",
+    "apps/next-step/src/app/task/task.page.scss",
     "apps/next-step/src/global.scss",
-    "apps/next-step/src/theme/global.scss"
+    "apps/next-step/src/theme/global.scss",
+    "apps/next-step/src/theme/variables.scss"
   ]
 }

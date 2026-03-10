@@ -2,7 +2,12 @@
 import { Title } from '@angular/platform-browser';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { TranslateService } from '@ngx-translate/core';
+import { Capacitor } from '@capacitor/core';
 import { EdgeToEdgeService } from '@sheldrapps/ui-theme';
+import {
+  NativeSqliteManager,
+  SqliteBootstrapService,
+} from '@sheldrapps/native-sqlite-kit';
 import { ConsentService } from './services/consent.service';
 import { ConfigService } from '../config/config.service';
 
@@ -19,6 +24,8 @@ export class AppComponent {
   private readonly translate = inject(TranslateService);
   private readonly edgeToEdge = inject(EdgeToEdgeService);
   private readonly consent = inject(ConsentService);
+  private readonly sqliteBootstrap = inject(SqliteBootstrapService);
+  private readonly sqliteManager = inject(NativeSqliteManager);
 
   constructor() {
     void this.edgeToEdge.initEdgeToEdge();
@@ -27,6 +34,10 @@ export class AppComponent {
 
   private async init(): Promise<void> {
     await this.config.initialize();
+    if (Capacitor.getPlatform() === 'android') {
+      await this.sqliteBootstrap.bootstrap();
+      await this.sqliteManager.execute('PRAGMA foreign_keys = ON;');
+    }
     await this.consent.gatherConsent();
     this.setDocumentTitle();
     this.translate.onLangChange.subscribe(() => this.setDocumentTitle());

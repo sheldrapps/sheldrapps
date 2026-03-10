@@ -34,6 +34,7 @@
     "@ngx-translate/http-loader": "^17.0.0",
     "@sheldrapps/ads-kit": "workspace:*",
     "@sheldrapps/i18n-kit": "workspace:*",
+    "@sheldrapps/native-sqlite-kit": "workspace:*",
     "@sheldrapps/settings-kit": "workspace:*",
     "@sheldrapps/ui-theme": "workspace:*",
     "ionicons": "^7.0.0",
