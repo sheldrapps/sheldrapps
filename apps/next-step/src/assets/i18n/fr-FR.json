@@ -1,0 +1,95 @@
+﻿{
+    "APP":  {
+                "TITLE":  "Next Step"
+            },
+    "TABS":  {
+                 "TODAY":  "Aujourd\u0027hui",
+                 "AGENDA":  "Agenda",
+                 "TASKS":  "Taches",
+                 "REFLECTION":  "Reflexion",
+                 "SETTINGS":  "ParamÃ¨tres"
+             },
+    "TODAY":  {
+                  "TITLE":  "Aujourd\u0027hui",
+                  "TASKS_SUMMARY":  "Resume des taches du jour (espace reserve)",
+                  "PROGRESS_SUMMARY":  "Resume des progres du jour (espace reserve)",
+                  "REFLECTION_PROMPT":  "Question rapide de reflexion (espace reserve)"
+              },
+    "AGENDA":  {
+                   "TITLE":  "Agenda",
+                   "PLACEHOLDER":  "Calendrier et planning (espace reserve)"
+               },
+    "TASKS":  {
+                  "TITLE":  "Taches",
+                  "NEW_TASK":  "+ Nouvelle tache",
+                  "PLACEHOLDER":  "Liste des taches (espace reserve)",
+                  "SAMPLE_TASK":  "Ouvrir une tache exemple",
+                  "OPEN_PROGRESS":  "Voir la progression dans le temps"
+              },
+    "REFLECTION":  {
+                       "TITLE":  "Reflexion",
+                       "PROMPT":  "Ecris une courte reflexion pour aujourd\u0027hui.",
+                       "PLACEHOLDER":  "Comment s\u0027est passee ta journee ?"
+                   },
+    "TASK_DETAIL":  {
+                        "TITLE":  "Detail de la tache",
+                        "ID":  "ID",
+                        "DESCRIPTION":  "Description de la tache (espace reserve)",
+                        "PROGRESS":  "Progression de la tache (espace reserve)",
+                        "EDIT":  "Modifier"
+                    },
+    "CREATE_TASK":  {
+                        "TITLE":  "Creer une tache",
+                        "FIELD_TITLE":  "Titre",
+                        "FIELD_DESCRIPTION":  "Description",
+                        "FIELD_DATE":  "Date",
+                        "FIELD_PRIORITY":  "Priorite",
+                        "PRIORITY_LOW":  "Basse",
+                        "PRIORITY_MEDIUM":  "Moyenne",
+                        "PRIORITY_HIGH":  "Haute",
+                        "SUBMIT":  "Enregistrer et revenir"
+                    },
+    "PROGRESS":  {
+                     "TITLE":  "Progression dans le temps",
+                     "PLACEHOLDER":  "Graphique de progression (espace reserve)"
+                 },
+    "COMMON":  {
+                   "BACK_AGAIN_TO_EXIT":  "Revenez en arriÃ¨re pour quitter",
+                   "CANCEL":  "Annuler",
+                   "CLOSE":  "Fermer",
+                   "DELETE":  "Supprimer",
+                   "DONE":  "TerminÃ©",
+                   "ERROR":  "Erreur",
+                   "LOADING":  "Chargement",
+                   "SHARE":  "Partager",
+                   "SHARE_KINDLE_HINT":  "Lors du partage, sÃ©lectionne l\u0027application Kindle pour l\u0027envoyer Ã  ton appareil.",
+                   "WARNING":  "Avertissement"
+               },
+    "SETTINGS":  {
+                     "INSTRUCTIONS":  "Voir les instructions",
+                     "INSTRUCTIONS_HINT":  "Comment changer et envoyer une couverture pour Kindle",
+                     "INSTRUCTIONS_SECTION":  "Instructions",
+                     "LANGUAGE":  "Langue",
+                     "PRIVACY_HINT":  "ContrÃ´lez la maniÃ¨re dont les donnÃ©es et la publicitÃ© sont gÃ©rÃ©es",
+                     "PRIVACY_OPTIONS":  "Options de confidentialitÃ©",
+                     "PRIVACY_POLICY":  "Politique de confidentialitÃ©",
+                     "PRIVACY_SECTION":  "ConfidentialitÃ©",
+                     "TITLE":  "ParamÃ¨tres",
+                     "THEME":  "Theme",
+                     "THEME_SYSTEM":  "Systeme",
+                     "THEME_LIGHT":  "Clair",
+                     "THEME_DARK":  "Sombre"
+                 },
+    "INSTRUCTIONS":  {
+                         "NOTE_TITLE":  "Remarque",
+                         "STEP_1":  "Selectionne un fichier EPUB (la couverture actuelle se precharge)",
+                         "STEP_2":  "Ajuste la couverture chargee ou choisis une nouvelle image et ajuste",
+                         "STEP_3":  "Regarde la pub pour changer la couverture de l\u0027EPUB",
+                         "STEP_4":  "Enregistre ou partage l\u0027EPUB mis a jour",
+                         "STEP_4_DESC":  "Une fois pret, tu peux l\u0027enregistrer sur ton appareil ou le partager directement avec l\u0027app Kindle pour une transition plus fluide.",
+                         "STEP_5":  "Envoyer via le web (Send to Kindle)",
+                         "STEP_5_DESC":  "Vous pouvez Ã©galement l\u0027envoyer depuis le navigateur en utilisant l\u0027outil web Send to Kindle.",
+                         "TIP":  "Pour de meilleurs rÃ©sultats, utilisez des images en haute rÃ©solution et assurez-vous que les publicitÃ©s sont dÃ©sactivÃ©es sur votre Kindle.",
+                         "TITLE":  "Instructions"
+                     }
+}

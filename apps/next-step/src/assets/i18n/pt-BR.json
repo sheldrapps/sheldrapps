@@ -1,0 +1,95 @@
+﻿{
+    "APP":  {
+                "TITLE":  "Next Step"
+            },
+    "TABS":  {
+                 "TODAY":  "Hoje",
+                 "AGENDA":  "Agenda",
+                 "TASKS":  "Tarefas",
+                 "REFLECTION":  "Reflexao",
+                 "SETTINGS":  "ConfiguraÃ§Ãµes"
+             },
+    "TODAY":  {
+                  "TITLE":  "Hoje",
+                  "TASKS_SUMMARY":  "Resumo das tarefas de hoje (placeholder)",
+                  "PROGRESS_SUMMARY":  "Resumo do progresso de hoje (placeholder)",
+                  "REFLECTION_PROMPT":  "Pergunta rapida de reflexao (placeholder)"
+              },
+    "AGENDA":  {
+                   "TITLE":  "Agenda",
+                   "PLACEHOLDER":  "Calendario e agenda (placeholder)"
+               },
+    "TASKS":  {
+                  "TITLE":  "Tarefas",
+                  "NEW_TASK":  "+ Nova tarefa",
+                  "PLACEHOLDER":  "Lista de tarefas (placeholder)",
+                  "SAMPLE_TASK":  "Abrir tarefa de exemplo",
+                  "OPEN_PROGRESS":  "Abrir progresso ao longo do tempo"
+              },
+    "REFLECTION":  {
+                       "TITLE":  "Reflexao",
+                       "PROMPT":  "Escreva uma reflexao curta para hoje.",
+                       "PLACEHOLDER":  "Como foi seu dia?"
+                   },
+    "TASK_DETAIL":  {
+                        "TITLE":  "Detalhe da tarefa",
+                        "ID":  "ID",
+                        "DESCRIPTION":  "Descricao da tarefa (placeholder)",
+                        "PROGRESS":  "Progresso da tarefa (placeholder)",
+                        "EDIT":  "Editar"
+                    },
+    "CREATE_TASK":  {
+                        "TITLE":  "Criar tarefa",
+                        "FIELD_TITLE":  "Titulo",
+                        "FIELD_DESCRIPTION":  "Descricao",
+                        "FIELD_DATE":  "Data",
+                        "FIELD_PRIORITY":  "Prioridade",
+                        "PRIORITY_LOW":  "Baixa",
+                        "PRIORITY_MEDIUM":  "Media",
+                        "PRIORITY_HIGH":  "Alta",
+                        "SUBMIT":  "Salvar e voltar"
+                    },
+    "PROGRESS":  {
+                     "TITLE":  "Progresso ao longo do tempo",
+                     "PLACEHOLDER":  "Grafico de progresso (placeholder)"
+                 },
+    "COMMON":  {
+                   "BACK_AGAIN_TO_EXIT":  "Volte novamente para sair",
+                   "CANCEL":  "Cancelar",
+                   "CLOSE":  "Fechar",
+                   "DELETE":  "Excluir",
+                   "DONE":  "ConcluÃ­do",
+                   "ERROR":  "Erro",
+                   "LOADING":  "Carregandoâ€¦",
+                   "SHARE":  "Compartilhar",
+                   "SHARE_KINDLE_HINT":  "Ao compartilhar, selecione o app Kindle para enviÃ¡-la ao dispositivo.",
+                   "WARNING":  "Aviso"
+               },
+    "SETTINGS":  {
+                     "INSTRUCTIONS":  "Ver instruÃ§Ãµes",
+                     "INSTRUCTIONS_HINT":  "Como alterar e enviar uma capa para Kindle",
+                     "INSTRUCTIONS_SECTION":  "InstruÃ§Ãµes",
+                     "LANGUAGE":  "Idioma",
+                     "PRIVACY_HINT":  "Controle como os dados e a publicidade sÃ£o tratados",
+                     "PRIVACY_OPTIONS":  "OpÃ§Ãµes de privacidade",
+                     "PRIVACY_POLICY":  "PolÃ­tica de privacidade",
+                     "PRIVACY_SECTION":  "Privacidade",
+                     "TITLE":  "ConfiguraÃ§Ãµes",
+                     "THEME":  "Tema",
+                     "THEME_SYSTEM":  "Sistema",
+                     "THEME_LIGHT":  "Claro",
+                     "THEME_DARK":  "Escuro"
+                 },
+    "INSTRUCTIONS":  {
+                         "NOTE_TITLE":  "ObservaÃ§Ã£o",
+                         "STEP_1":  "Selecione um arquivo EPUB (a capa atual e pre-carregada)",
+                         "STEP_2":  "Ajuste a capa carregada ou escolha uma nova imagem e ajuste",
+                         "STEP_3":  "Veja o anuncio para trocar a capa no EPUB",
+                         "STEP_4":  "Salve ou compartilhe o EPUB atualizado",
+                         "STEP_4_DESC":  "Quando estiver pronto, voce pode salva-lo no dispositivo ou compartilha-lo diretamente com o app Kindle para uma transicao mais suave.",
+                         "STEP_5":  "Enviar pela web (Send to Kindle)",
+                         "STEP_5_DESC":  "VocÃª tambÃ©m pode enviÃ¡-la pelo navegador usando a ferramenta web Send to Kindle.",
+                         "TIP":  "Para melhores resultados, use imagens em alta resoluÃ§Ã£o e certifique-se de que os anÃºncios estejam desativados no seu Kindle.",
+                         "TITLE":  "InstruÃ§Ãµes"
+                     }
+}

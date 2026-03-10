@@ -1,0 +1,19 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'TASK_DETAIL.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-content>
+      <p><strong>{{ 'TASK_DETAIL.ID' | translate }}:</strong> {{ taskId }}</p>
+      <p>{{ 'TASK_DETAIL.DESCRIPTION' | translate }}</p>
+      <p>{{ 'TASK_DETAIL.PROGRESS' | translate }}</p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-button fill="outline" [routerLink]="['/tabs/tasks']">
+    {{ 'TASK_DETAIL.EDIT' | translate }}
+  </ion-button>
+</ion-content>

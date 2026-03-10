@@ -1,0 +1,39 @@
+﻿/* To learn more about this file see: https://angular.io/config/tsconfig. */
+{
+  "extends": "../../tsconfig.base.json",
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./dist/out-tsc",
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "sourceMap": true,
+    "declaration": false,
+    "experimentalDecorators": true,
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "target": "es2022",
+    "module": "es2020",
+    "lib": ["es2020", "dom"],
+    "skipLibCheck": true,
+    "useDefineForClassFields": false,
+    "paths": {
+      "@sheldrapps/ads-kit": ["../../packages/ads-kit/src/public-api.ts"],
+      "@sheldrapps/i18n-kit": ["../../packages/i18n-kit/src/public-api.ts"],
+      "@sheldrapps/settings-kit": ["../../packages/settings-kit/src/public-api.ts"],
+      "@sheldrapps/ui-theme": ["../../packages/ui-theme/src/index.ts"],
+      "@sheldrapps/ui-theme/styles/*": ["../../packages/ui-theme/styles/*"]
+    }
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  }
+}

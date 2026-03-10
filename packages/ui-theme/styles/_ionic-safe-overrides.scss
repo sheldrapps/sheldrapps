@@ -5,8 +5,8 @@
 
 /* Global body styling */
 body {
-  color: var(--ion-text-color);
-  background: var(--ion-background-color);
+  color: var(--app-text-primary);
+  background: var(--app-background);
 }
 
 /* Consistent focus without changing layout */
@@ -16,8 +16,8 @@ body {
 
 /* Header / Toolbar */
 ion-header ion-toolbar {
-  --background: var(--ion-background-color);
-  --color: var(--ion-text-color);
+  --background: var(--app-background);
+  --color: var(--app-text-primary);
   border-bottom: none;
   box-shadow: none;
 }
@@ -44,13 +44,13 @@ ion-title {
 
 /* Content */
 ion-content {
-  --background: var(--ion-background-color);
+  --background: var(--app-background);
 }
 
 /* Tabs */
 ion-tab-bar {
-  --background: var(--ion-background-color);
-  border-top: 1px solid var(--ion-border-color);
+  --background: var(--app-background);
+  border-top: 1px solid var(--app-divider);
 }
 
 /* Keep tab button layout intact; style only the native part */
@@ -119,7 +119,11 @@ ion-icon {
 
 /* Items: preserve structure; style native part + focus ring */
 ion-item {
-  --background: var(--ion-item-background);
+  --background: var(--app-surface);
+  --color: var(--app-text-primary);
+  --border-color: var(--app-divider);
+  --detail-icon-color: var(--app-text-secondary);
+  --detail-icon-opacity: 1;
   --inner-border-width: 0px;
   --min-height: 52px;
   --highlight-color-focused: var(--ion-color-primary);
@@ -143,12 +147,25 @@ ion-item:focus-within::part(native) {
 }
 
 ion-label {
-  color: var(--ion-text-color);
+  color: var(--app-text-primary);
+  opacity: 1;
+}
+
+ion-label p {
+  color: var(--app-text-secondary);
+  opacity: 1;
 }
 
 /* Select */
 ion-select {
-  --placeholder-color: var(--ion-color-medium);
+  --color: var(--app-text-primary);
+  --placeholder-color: var(--app-text-secondary);
+  --placeholder-opacity: 1;
+  --highlight-color-focused: var(--ion-color-primary);
+}
+
+ion-select::part(icon) {
+  color: var(--app-text-secondary);
 }
 
 /* Toggle: keep it calm and consistent */
@@ -181,13 +198,13 @@ ion-list {
 
 ion-item-divider {
   --background: rgba(var(--ion-color-medium-rgb), 0.10);
-  --color: var(--ion-color-medium);
+  --color: var(--app-text-secondary);
   font-weight: 700;
 }
 
 /* Cards */
 ion-card {
-  --background: var(--ion-card-background);
+  --background: var(--app-surface);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-shadow-sm);
   transition:
@@ -216,7 +233,7 @@ ion-refresher-content {
 
 /* Default modal: DO NOT set --width/--height globally */
 ion-modal {
-  --background: var(--ion-card-background);
+  --background: var(--app-surface);
 }
 
 /* Card modal (opt-in). Use: cssClass: 'modal-card' */
@@ -239,7 +256,7 @@ ion-modal.modal-card::part(content) {
 
 /* Popover */
 ion-popover {
-  --background: var(--ion-card-background);
+  --background: var(--app-surface);
   --border-radius: var(--app-radius-md);
   --box-shadow: var(--app-shadow-md);
 }
@@ -288,5 +305,50 @@ ion-list.list-md.list-inset ion-item:last-child {
 .app-surface {
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-shadow-sm);
-  background: var(--ion-card-background);
+  background: var(--app-surface);
+}
+
+/* Keep alert/select text readable across light/dark themes. */
+ion-alert {
+  --background: var(--app-surface);
+  --color: var(--app-text-primary);
+}
+
+ion-alert .alert-wrapper,
+ion-alert .alert-head,
+ion-alert .alert-radio-group,
+ion-alert .alert-button-group,
+ion-alert .alert-message,
+ion-alert .alert-title,
+ion-alert .alert-sub-title,
+ion-alert .alert-radio-label,
+ion-alert .alert-button-inner {
+  color: var(--app-text-primary) !important;
+  opacity: 1;
+}
+
+ion-alert .alert-radio-icon {
+  border-color: var(--app-text-secondary) !important;
+}
+
+ion-alert .alert-radio-inner {
+  background: var(--ion-color-primary) !important;
+}
+
+ion-alert .alert-button {
+  color: var(--ion-color-primary) !important;
+}
+
+ion-alert .alert-radio-button[disabled] .alert-radio-label,
+ion-alert .alert-button[disabled] .alert-button-inner {
+  color: var(--app-text-secondary) !important;
+  opacity: 0.55;
+}
+
+ion-item[disabled],
+ion-select[disabled],
+ion-input[disabled],
+ion-textarea[disabled] {
+  --color: var(--app-text-secondary);
+  opacity: 0.6;
 }

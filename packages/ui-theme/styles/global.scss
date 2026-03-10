@@ -1,0 +1,9 @@
+﻿/* Alias entrypoint for app-wide shared UI styles. */
+
+@forward './palette';
+@forward './edge-to-edge';
+@forward './callouts';
+@forward './icons';
+@use './buttons' as *;
+@use './toast' as *;
+@use './components' as *;

@@ -15,6 +15,16 @@ dist/
 www/
 build/
 coverage/
+**/.angular/
+**/.ionic/
+**/out-tsc/
+**/.sass-cache/
+**/.nx/
+**/.nx/cache/
+apps/*/.sourcemaps/
+apps/*/.versions/
+apps/*/platforms/
+apps/*/plugins/
 
 # =============================
 # Capacitor / Android

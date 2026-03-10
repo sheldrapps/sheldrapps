@@ -1,0 +1,43 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'CREATE_TASK.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-item>
+    <ion-label position="stacked">{{ 'CREATE_TASK.FIELD_TITLE' | translate }}</ion-label>
+    <ion-input [(ngModel)]="form.title"></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked"
+      >{{ 'CREATE_TASK.FIELD_DESCRIPTION' | translate }}</ion-label
+    >
+    <ion-textarea [(ngModel)]="form.description" autoGrow="true"></ion-textarea>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">{{ 'CREATE_TASK.FIELD_DATE' | translate }}</ion-label>
+    <ion-datetime presentation="date" [(ngModel)]="form.date"></ion-datetime>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">{{ 'CREATE_TASK.FIELD_PRIORITY' | translate }}</ion-label>
+    <ion-select interface="popover" [(ngModel)]="form.priority">
+      <ion-select-option value="low"
+        >{{ 'CREATE_TASK.PRIORITY_LOW' | translate }}</ion-select-option
+      >
+      <ion-select-option value="medium"
+        >{{ 'CREATE_TASK.PRIORITY_MEDIUM' | translate }}</ion-select-option
+      >
+      <ion-select-option value="high"
+        >{{ 'CREATE_TASK.PRIORITY_HIGH' | translate }}</ion-select-option
+      >
+    </ion-select>
+  </ion-item>
+
+  <ion-button expand="block" (click)="submit()">
+    {{ 'CREATE_TASK.SUBMIT' | translate }}
+  </ion-button>
+</ion-content>

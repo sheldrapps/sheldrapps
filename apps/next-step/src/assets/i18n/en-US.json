@@ -1,0 +1,95 @@
+﻿{
+    "APP":  {
+                "TITLE":  "Next Step"
+            },
+    "TABS":  {
+                 "TODAY":  "Today",
+                 "AGENDA":  "Agenda",
+                 "TASKS":  "Tasks",
+                 "REFLECTION":  "Reflection",
+                 "SETTINGS":  "Settings"
+             },
+    "TODAY":  {
+                  "TITLE":  "Today",
+                  "TASKS_SUMMARY":  "Today\u0027s tasks summary (placeholder)",
+                  "PROGRESS_SUMMARY":  "Today\u0027s progress summary (placeholder)",
+                  "REFLECTION_PROMPT":  "Quick reflection prompt (placeholder)"
+              },
+    "AGENDA":  {
+                   "TITLE":  "Agenda",
+                   "PLACEHOLDER":  "Calendar and schedule (placeholder)"
+               },
+    "TASKS":  {
+                  "TITLE":  "Tasks",
+                  "NEW_TASK":  "+ New Task",
+                  "PLACEHOLDER":  "Task list (placeholder)",
+                  "SAMPLE_TASK":  "Open sample task",
+                  "OPEN_PROGRESS":  "Open progress over time"
+              },
+    "REFLECTION":  {
+                       "TITLE":  "Reflection",
+                       "PROMPT":  "Write a short reflection for today.",
+                       "PLACEHOLDER":  "How did your day go?"
+                   },
+    "TASK_DETAIL":  {
+                        "TITLE":  "Task Detail",
+                        "ID":  "ID",
+                        "DESCRIPTION":  "Task description (placeholder)",
+                        "PROGRESS":  "Task progress (placeholder)",
+                        "EDIT":  "Edit"
+                    },
+    "CREATE_TASK":  {
+                        "TITLE":  "Create Task",
+                        "FIELD_TITLE":  "Title",
+                        "FIELD_DESCRIPTION":  "Description",
+                        "FIELD_DATE":  "Date",
+                        "FIELD_PRIORITY":  "Priority",
+                        "PRIORITY_LOW":  "Low",
+                        "PRIORITY_MEDIUM":  "Medium",
+                        "PRIORITY_HIGH":  "High",
+                        "SUBMIT":  "Save and return"
+                    },
+    "PROGRESS":  {
+                     "TITLE":  "Progress Over Time",
+                     "PLACEHOLDER":  "Progress chart (placeholder)"
+                 },
+    "COMMON":  {
+                   "BACK_AGAIN_TO_EXIT":  "Go back again to exit",
+                   "CANCEL":  "Cancel",
+                   "CLOSE":  "Close",
+                   "DELETE":  "Delete",
+                   "DONE":  "Done",
+                   "ERROR":  "Error",
+                   "LOADING":  "Loadingâ€¦",
+                   "SHARE":  "Share",
+                   "SHARE_KINDLE_HINT":  "When sharing, select the Kindle app to send it to your device.",
+                   "WARNING":  "Warning"
+               },
+    "SETTINGS":  {
+                     "INSTRUCTIONS":  "View instructions",
+                     "INSTRUCTIONS_HINT":  "How to change and send a cover for Kindle",
+                     "INSTRUCTIONS_SECTION":  "Instructions",
+                     "LANGUAGE":  "Language",
+                     "PRIVACY_HINT":  "Control how data and advertising are handled",
+                     "PRIVACY_OPTIONS":  "Privacy options",
+                     "PRIVACY_POLICY":  "Privacy policy",
+                     "PRIVACY_SECTION":  "Privacy",
+                     "TITLE":  "Settings",
+                     "THEME":  "Theme",
+                     "THEME_SYSTEM":  "System",
+                     "THEME_LIGHT":  "Light",
+                     "THEME_DARK":  "Dark"
+                 },
+    "INSTRUCTIONS":  {
+                         "NOTE_TITLE":  "Note",
+                         "STEP_1":  "Select an EPUB file (the current cover preloads)",
+                         "STEP_2":  "Adjust the loaded cover or choose a new image and adjust",
+                         "STEP_3":  "Watch the ad to change the cover in the EPUB",
+                         "STEP_4":  "Save or share the updated EPUB",
+                         "STEP_4_DESC":  "Once ready, you can save it to your device or share it directly with the Kindle app for a smoother transition.",
+                         "STEP_5":  "Send via web (Send to Kindle)",
+                         "STEP_5_DESC":  "You can also send it from your browser using the Send to Kindle web tool.",
+                         "TIP":  "For best results, use high-resolution images and make sure ads are disabled on your Kindle device.",
+                         "TITLE":  "Instructions"
+                     }
+}

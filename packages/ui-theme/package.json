@@ -5,10 +5,16 @@
   "main": "index.js",
   "type": "module",
   "exports": {
+    "./tokens": "./tokens.scss",
+    "./global": "./global.scss",
+    "./ionic-overrides": "./ionic-overrides.scss",
     "./styles/*": "./styles/*",
     "./assets/*": "./assets/*"
   },
   "files": [
+    "tokens.scss",
+    "global.scss",
+    "ionic-overrides.scss",
     "styles",
     "assets"
   ],

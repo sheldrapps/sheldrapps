@@ -1,0 +1,95 @@
+﻿{
+    "APP":  {
+                "TITLE":  "Next Step"
+            },
+    "TABS":  {
+                 "TODAY":  "Heute",
+                 "AGENDA":  "Agenda",
+                 "TASKS":  "Aufgaben",
+                 "REFLECTION":  "Reflexion",
+                 "SETTINGS":  "Einstellungen"
+             },
+    "TODAY":  {
+                  "TITLE":  "Heute",
+                  "TASKS_SUMMARY":  "Zusammenfassung der heutigen Aufgaben (Platzhalter)",
+                  "PROGRESS_SUMMARY":  "Zusammenfassung des heutigen Fortschritts (Platzhalter)",
+                  "REFLECTION_PROMPT":  "Kurze Reflexionsfrage (Platzhalter)"
+              },
+    "AGENDA":  {
+                   "TITLE":  "Agenda",
+                   "PLACEHOLDER":  "Kalender und Zeitplan (Platzhalter)"
+               },
+    "TASKS":  {
+                  "TITLE":  "Aufgaben",
+                  "NEW_TASK":  "+ Neue Aufgabe",
+                  "PLACEHOLDER":  "Aufgabenliste (Platzhalter)",
+                  "SAMPLE_TASK":  "Beispielaufgabe offnen",
+                  "OPEN_PROGRESS":  "Fortschritt im Zeitverlauf"
+              },
+    "REFLECTION":  {
+                       "TITLE":  "Reflexion",
+                       "PROMPT":  "Schreibe eine kurze Reflexion fur heute.",
+                       "PLACEHOLDER":  "Wie war dein Tag?"
+                   },
+    "TASK_DETAIL":  {
+                        "TITLE":  "Aufgabendetails",
+                        "ID":  "ID",
+                        "DESCRIPTION":  "Aufgabenbeschreibung (Platzhalter)",
+                        "PROGRESS":  "Aufgabenfortschritt (Platzhalter)",
+                        "EDIT":  "Bearbeiten"
+                    },
+    "CREATE_TASK":  {
+                        "TITLE":  "Aufgabe erstellen",
+                        "FIELD_TITLE":  "Titel",
+                        "FIELD_DESCRIPTION":  "Beschreibung",
+                        "FIELD_DATE":  "Datum",
+                        "FIELD_PRIORITY":  "Prioritat",
+                        "PRIORITY_LOW":  "Niedrig",
+                        "PRIORITY_MEDIUM":  "Mittel",
+                        "PRIORITY_HIGH":  "Hoch",
+                        "SUBMIT":  "Speichern und zuruck"
+                    },
+    "PROGRESS":  {
+                     "TITLE":  "Fortschritt im Zeitverlauf",
+                     "PLACEHOLDER":  "Fortschrittsdiagramm (Platzhalter)"
+                 },
+    "COMMON":  {
+                   "BACK_AGAIN_TO_EXIT":  "Gehe erneut zurÃ¼ck, um zu beenden",
+                   "CANCEL":  "Abbrechen",
+                   "CLOSE":  "SchlieÃŸen",
+                   "DELETE":  "LÃ¶schen",
+                   "DONE":  "Fertig",
+                   "ERROR":  "Fehler",
+                   "LOADING":  "Wird geladenâ€¦",
+                   "SHARE":  "Teilen",
+                   "SHARE_KINDLE_HINT":  "WÃ¤hle beim Teilen die Kindle-App aus, um es an dein GerÃ¤t zu senden.",
+                   "WARNING":  "Warnung"
+               },
+    "SETTINGS":  {
+                     "INSTRUCTIONS":  "Anleitung anzeigen",
+                     "INSTRUCTIONS_HINT":  "So erstellst und sendest du ein Cover fÃ¼r Kindle",
+                     "INSTRUCTIONS_SECTION":  "Anleitung",
+                     "LANGUAGE":  "Sprache",
+                     "PRIVACY_HINT":  "Lege fest, wie Daten und Werbung verarbeitet werden",
+                     "PRIVACY_OPTIONS":  "Datenschutzoptionen",
+                     "PRIVACY_POLICY":  "DatenschutzerklÃ¤rung",
+                     "PRIVACY_SECTION":  "Datenschutz",
+                     "TITLE":  "Einstellungen",
+                     "THEME":  "Design",
+                     "THEME_SYSTEM":  "System",
+                     "THEME_LIGHT":  "Hell",
+                     "THEME_DARK":  "Dunkel"
+                 },
+    "INSTRUCTIONS":  {
+                         "NOTE_TITLE":  "Hinweis",
+                         "STEP_1":  "Wahle eine EPUB-Datei (das aktuelle Cover wird vorgeladen)",
+                         "STEP_2":  "Passe das geladene Cover an oder wahle ein neues Bild und passe es an",
+                         "STEP_3":  "Sieh dir die Werbung an, um das Cover im EPUB zu aendern",
+                         "STEP_4":  "Speichere oder teile das aktualisierte EPUB",
+                         "STEP_4_DESC":  "Sobald es bereit ist, kannst du es auf deinem Gerat speichern oder direkt mit der Kindle-App teilen, fur einen reibungsloseren Ubergang.",
+                         "STEP_5":  "Ãœber das Web senden (Send to Kindle)",
+                         "STEP_5_DESC":  "Du kannst sie auch Ã¼ber den Browser mit dem Web-Tool Send to Kindle senden.",
+                         "TIP":  "FÃ¼r beste Ergebnisse verwende hochauflÃ¶sende Bilder und stelle sicher, dass Werbung auf deinem Kindle deaktiviert ist.",
+                         "TITLE":  "Anleitung"
+                     }
+}

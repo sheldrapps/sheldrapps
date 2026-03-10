@@ -1,0 +1,25 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'TASKS.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-button expand="block" [routerLink]="['/task/new']">
+    {{ 'TASKS.NEW_TASK' | translate }}
+  </ion-button>
+
+  <ion-card>
+    <ion-card-content>{{ 'TASKS.PLACEHOLDER' | translate }}</ion-card-content>
+  </ion-card>
+
+  <ion-list inset>
+    <ion-item [routerLink]="['/task', 'sample-task']">
+      <ion-label>{{ 'TASKS.SAMPLE_TASK' | translate }}</ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-button fill="outline" expand="block" [routerLink]="['/progress']">
+    {{ 'TASKS.OPEN_PROGRESS' | translate }}
+  </ion-button>
+</ion-content>

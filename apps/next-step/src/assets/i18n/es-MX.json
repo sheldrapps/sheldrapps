@@ -1,0 +1,95 @@
+﻿{
+    "APP":  {
+                "TITLE":  "Next Step"
+            },
+    "TABS":  {
+                 "TODAY":  "Hoy",
+                 "AGENDA":  "Agenda",
+                 "TASKS":  "Tareas",
+                 "REFLECTION":  "Reflexion",
+                 "SETTINGS":  "Configuracion"
+             },
+    "TODAY":  {
+                  "TITLE":  "Hoy",
+                  "TASKS_SUMMARY":  "Resumen de tareas de hoy (placeholder)",
+                  "PROGRESS_SUMMARY":  "Resumen de progreso de hoy (placeholder)",
+                  "REFLECTION_PROMPT":  "Pregunta rapida de reflexion (placeholder)"
+              },
+    "AGENDA":  {
+                   "TITLE":  "Agenda",
+                   "PLACEHOLDER":  "Calendario y programacion (placeholder)"
+               },
+    "TASKS":  {
+                  "TITLE":  "Tareas",
+                  "NEW_TASK":  "+ Nueva tarea",
+                  "PLACEHOLDER":  "Lista de tareas (placeholder)",
+                  "SAMPLE_TASK":  "Ver tarea de ejemplo",
+                  "OPEN_PROGRESS":  "Ver progreso en el tiempo"
+              },
+    "REFLECTION":  {
+                       "TITLE":  "Reflexion",
+                       "PROMPT":  "Escribe una breve reflexion del dia.",
+                       "PLACEHOLDER":  "Como te fue hoy?"
+                   },
+    "TASK_DETAIL":  {
+                        "TITLE":  "Detalle de tarea",
+                        "ID":  "ID",
+                        "DESCRIPTION":  "Descripcion de la tarea (placeholder)",
+                        "PROGRESS":  "Progreso de la tarea (placeholder)",
+                        "EDIT":  "Editar"
+                    },
+    "CREATE_TASK":  {
+                        "TITLE":  "Crear tarea",
+                        "FIELD_TITLE":  "Titulo",
+                        "FIELD_DESCRIPTION":  "Descripcion",
+                        "FIELD_DATE":  "Fecha",
+                        "FIELD_PRIORITY":  "Prioridad",
+                        "PRIORITY_LOW":  "Baja",
+                        "PRIORITY_MEDIUM":  "Media",
+                        "PRIORITY_HIGH":  "Alta",
+                        "SUBMIT":  "Guardar y volver"
+                    },
+    "PROGRESS":  {
+                     "TITLE":  "Progreso en el tiempo",
+                     "PLACEHOLDER":  "Grafica de progreso (placeholder)"
+                 },
+    "COMMON":  {
+                   "BACK_AGAIN_TO_EXIT":  "Vuelve atras de nuevo para salir",
+                   "CANCEL":  "Cancelar",
+                   "CLOSE":  "Cerrar",
+                   "DELETE":  "Eliminar",
+                   "DONE":  "Listo",
+                   "ERROR":  "Error",
+                   "LOADING":  "Cargando...",
+                   "SHARE":  "Compartir",
+                   "SHARE_KINDLE_HINT":  "Al compartir, selecciona la app Kindle para enviarla a tu dispositivo.",
+                   "WARNING":  "Advertencia"
+               },
+    "SETTINGS":  {
+                     "INSTRUCTIONS":  "Ver instrucciones",
+                     "INSTRUCTIONS_HINT":  "Como cambiar y enviar una portada a Kindle",
+                     "INSTRUCTIONS_SECTION":  "Instrucciones",
+                     "LANGUAGE":  "Idioma",
+                     "PRIVACY_HINT":  "Controla como se manejan los datos y la publicidad",
+                     "PRIVACY_OPTIONS":  "Opciones de privacidad",
+                     "PRIVACY_POLICY":  "Politica de privacidad",
+                     "PRIVACY_SECTION":  "Privacidad",
+                     "TITLE":  "Configuracion",
+                     "THEME":  "Tema",
+                     "THEME_SYSTEM":  "Sistema",
+                     "THEME_LIGHT":  "Claro",
+                     "THEME_DARK":  "Oscuro"
+                 },
+    "INSTRUCTIONS":  {
+                         "NOTE_TITLE":  "Nota",
+                         "STEP_1":  "Selecciona un archivo EPUB (se precarga la portada actual)",
+                         "STEP_2":  "Ajusta la portada cargada o elige una nueva imagen y ajusta",
+                         "STEP_3":  "Ve el anuncio para cambiar la portada del EPUB",
+                         "STEP_4":  "Guarda o comparte el EPUB actualizado",
+                         "STEP_4_DESC":  "Cuando este listo, puedes guardarlo en tu dispositivo o compartirlo con la app Kindle para una transicion mas suave.",
+                         "STEP_5":  "Enviar via web (Send to Kindle)",
+                         "STEP_5_DESC":  "Tambien puedes enviarla desde el navegador usando la herramienta web Send to Kindle.",
+                         "TIP":  "Para mejores resultados, usa imagenes en alta resolucion y asegurate de que los anuncios esten desactivados en tu Kindle.",
+                         "TITLE":  "Instrucciones"
+                     }
+}

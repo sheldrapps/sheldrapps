@@ -28,6 +28,8 @@
     "apps/presupuesto-ninos/src/app/pages/settings/settings.page.scss",
     "apps/presupuesto-ninos/src/app/pages/tabs/tabs.page.scss",
     "apps/presupuesto-ninos/src/global.scss",
-    "apps/presupuesto-ninos/src/theme/variables.scss"
+    "apps/presupuesto-ninos/src/theme/variables.scss",
+    "apps/next-step/src/global.scss",
+    "apps/next-step/src/theme/global.scss"
   ]
 }
