@@ -1,0 +1,23 @@
+@use '../picker-shell' as picker-shell;
+
+@include picker-shell.picker-shell();
+
+.picker-sheet--date {
+  max-height: 420px;
+}
+
+.picker-sheet--date .picker-sheet__body {
+  min-height: 316px;
+  overflow: hidden;
+}
+
+.date-picker-calendar {
+  --background: transparent;
+  --background-rgb: var(--ion-background-color-rgb, 247, 246, 242);
+  --title-color: var(--app-text-primary, var(--ion-text-color));
+  --wheel-highlight-background: rgba(var(--ion-text-color-rgb), 0.08);
+  --wheel-fade-background-rgb: var(--ion-background-color-rgb, 247, 246, 242);
+  --background-focused: transparent;
+  width: 100%;
+  margin: 4px 0 6px;
+}

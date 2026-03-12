@@ -8,305 +8,445 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-    <ion-list inset="true" class="section-list">
-      <ion-list-header>
-        <ion-label>{{ 'CREATE_TASK.SECTION_BASIC' | translate }}</ion-label>
-      </ion-list-header>
-
-      <ion-item>
-        <ion-label position="stacked">{{ 'CREATE_TASK.FIELD_TITLE' | translate }}</ion-label>
-        <ion-input formControlName="title" maxlength="120"></ion-input>
-      </ion-item>
-      @if (hasControlError(form.controls.title, 'required')) {
-        <ion-note color="danger" class="field-error">
-          {{ 'CREATE_TASK.VALIDATION_TITLE_REQUIRED' | translate }}
-        </ion-note>
-      }
-      @if (hasControlError(form.controls.title, 'maxlength')) {
-        <ion-note color="danger" class="field-error">
-          {{ 'CREATE_TASK.VALIDATION_TITLE_MAX' | translate }}
-        </ion-note>
-      }
-
-      <ion-item>
-        <ion-label position="stacked">
-          {{ 'CREATE_TASK.FIELD_DESCRIPTION' | translate }}
-        </ion-label>
-        <ion-textarea formControlName="description" autoGrow="true"></ion-textarea>
-      </ion-item>
-    </ion-list>
-
-    <ion-list inset="true" class="section-list">
-      <ion-list-header>
-        <ion-label>{{ 'CREATE_TASK.SECTION_MODE' | translate }}</ion-label>
-      </ion-list-header>
-
-      <ion-item lines="none">
-        <ion-label>{{ 'CREATE_TASK.FIELD_MODE' | translate }}</ion-label>
-      </ion-item>
-
-      <ion-segment formControlName="mode">
-        <ion-segment-button value="check">
-          <ion-label>{{ 'CREATE_TASK.MODE_CHECK' | translate }}</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="duration">
-          <ion-label>{{ 'CREATE_TASK.MODE_DURATION' | translate }}</ion-label>
-        </ion-segment-button>
-      </ion-segment>
-
-      @if (isDurationMode) {
-        <ion-item>
-          <ion-label position="stacked">
-            {{ 'CREATE_TASK.FIELD_ESTIMATED_DURATION' | translate }}
-          </ion-label>
+  <form class="task-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="task-form-sections">
+      <section class="task-section-card task-intent-layout">
+        <div class="form-field">
+          <div class="form-prompt">{{ 'CREATE_TASK.INTENT_PROMPT' | translate }}</div>
           <ion-input
-            type="number"
-            inputmode="numeric"
-            formControlName="estimatedDurationMin"
+            #titleInput
+            class="form-control-text"
+            formControlName="title"
+            maxlength="120"
+            [placeholder]="'CREATE_TASK.TITLE_PLACEHOLDER' | translate"
+            [attr.aria-label]="'CREATE_TASK.ARIA_TITLE' | translate"
+            enterkeyhint="next"
+            autofocus="true"
+            (keydown.enter)="onTitleEnter($event)"
+            (ionBlur)="onTitleBlur()"
           ></ion-input>
-        </ion-item>
-        @if (hasControlError(form.controls.estimatedDurationMin, 'required')) {
-          <ion-note color="danger" class="field-error">
-            {{ 'CREATE_TASK.VALIDATION_DURATION_REQUIRED' | translate }}
-          </ion-note>
-        }
-        @if (hasControlError(form.controls.estimatedDurationMin, 'min')) {
-          <ion-note color="danger" class="field-error">
-            {{ 'CREATE_TASK.VALIDATION_DURATION_MIN' | translate }}
-          </ion-note>
-        }
-      }
-    </ion-list>
-
-    <ion-list inset="true" class="section-list">
-      <ion-list-header>
-        <ion-label>{{ 'CREATE_TASK.SECTION_CATEGORY' | translate }}</ion-label>
-      </ion-list-header>
-
-      <ion-item>
-        <ion-label>{{ 'CREATE_TASK.FIELD_CATEGORY' | translate }}</ion-label>
-        <ion-select
-          interface="alert"
-          formControlName="categoryId"
-          [cancelText]="'COMMON.CANCEL' | translate"
-          [okText]="'COMMON.DONE' | translate"
-        >
-          <ion-select-option [value]="null">
-            {{ 'CREATE_TASK.CATEGORY_NONE' | translate }}
-          </ion-select-option>
-          @for (category of categories; track category.id) {
-            <ion-select-option [value]="category.id">
-              {{ category.name }}
-            </ion-select-option>
+          @if (titleRequiredError) {
+            <ion-note color="danger" class="form-error form-feedback">
+              {{ 'CREATE_TASK.VALIDATION_TITLE_REQUIRED' | translate }}
+            </ion-note>
           }
-        </ion-select>
-      </ion-item>
-    </ion-list>
+          @if (titleMaxError) {
+            <ion-note color="danger" class="form-error form-feedback">
+              {{ 'CREATE_TASK.VALIDATION_TITLE_MAX' | translate }}
+            </ion-note>
+          }
+        </div>
 
-    <ion-list inset="true" class="section-list">
-      <ion-list-header>
-        <ion-label>{{ 'CREATE_TASK.SECTION_RECURRENCE' | translate }}</ion-label>
-      </ion-list-header>
+        <div class="form-field">
+          <div class="form-label">
+            {{ 'CREATE_TASK.DESCRIPTION_PROMPT' | translate }}
+          </div>
+          <ion-textarea
+            #descriptionInput
+            class="form-control-text"
+            formControlName="description"
+            autoGrow="true"
+            [placeholder]="'CREATE_TASK.DESCRIPTION_PLACEHOLDER' | translate"
+            [attr.aria-label]="'CREATE_TASK.ARIA_DESCRIPTION' | translate"
+            (ionBlur)="onDescriptionBlur()"
+          ></ion-textarea>
+        </div>
+      </section>
 
-      <ion-item>
-        <ion-label>{{ 'CREATE_TASK.ENABLE_RECURRENCE' | translate }}</ion-label>
-        <ion-toggle formControlName="recurrenceEnabled"></ion-toggle>
-      </ion-item>
+      <ion-list class="section-list task-section-card tracking-category-card">
+        <ion-item class="tracking-toggle-item">
+          <ion-label class="form-prompt">{{ 'CREATE_TASK.TRACK_HAS_DURATION' | translate }}</ion-label>
+          <ion-toggle
+            [checked]="isDurationTrackingEnabled"
+            (ionChange)="onDurationTrackingToggle($event.detail.checked)"
+          ></ion-toggle>
+        </ion-item>
 
-      @if (recurrenceEnabled) {
-        <ion-item>
-          <ion-label>{{ 'CREATE_TASK.FIELD_RECURRENCE_TYPE' | translate }}</ion-label>
+        @if (isDurationTrackingEnabled) {
+          <ion-item class="duration-dependent-item">
+            <ion-label position="stacked" class="form-label">
+              {{ 'CREATE_TASK.TRACK_DURATION_MINUTES' | translate }}
+            </ion-label>
+            <ion-input
+              class="form-control-text"
+              type="number"
+              inputmode="numeric"
+              formControlName="estimatedDurationMin"
+              [placeholder]="'CREATE_TASK.ESTIMATED_DURATION_PLACEHOLDER' | translate"
+            ></ion-input>
+          </ion-item>
+          @if (hasControlError(form.controls.estimatedDurationMin, 'required')) {
+            <ion-note color="danger" class="form-error form-feedback duration-dependent-feedback">
+              {{ 'CREATE_TASK.TRACK_DURATION_ERROR' | translate }}
+            </ion-note>
+          }
+          @if (hasControlError(form.controls.estimatedDurationMin, 'min')) {
+            <ion-note color="danger" class="form-error form-feedback duration-dependent-feedback">
+              {{ 'CREATE_TASK.VALIDATION_DURATION_MIN' | translate }}
+            </ion-note>
+          }
+        }
+        <ion-item class="category-field-item">
+          <ion-label position="stacked" class="form-label">
+            {{ 'CREATE_TASK.FIELD_CATEGORY' | translate }}
+          </ion-label>
           <ion-select
+            class="form-control-text"
             interface="alert"
-            formControlName="recurrenceType"
+            formControlName="categoryId"
             [cancelText]="'COMMON.CANCEL' | translate"
             [okText]="'COMMON.DONE' | translate"
+            (ionChange)="onCategoryChange($event)"
           >
-            <ion-select-option value="none">
-              {{ 'CREATE_TASK.RECURRENCE_NONE' | translate }}
+            <ion-select-option [value]="null">
+              {{ 'CREATE_TASK.CATEGORY_NONE' | translate }}
             </ion-select-option>
-            <ion-select-option value="daily">
-              {{ 'CREATE_TASK.RECURRENCE_DAILY' | translate }}
-            </ion-select-option>
-            <ion-select-option value="weekly">
-              {{ 'CREATE_TASK.RECURRENCE_WEEKLY' | translate }}
-            </ion-select-option>
-            <ion-select-option value="monthly">
-              {{ 'CREATE_TASK.RECURRENCE_MONTHLY' | translate }}
-            </ion-select-option>
-            <ion-select-option value="yearly">
-              {{ 'CREATE_TASK.RECURRENCE_YEARLY' | translate }}
-            </ion-select-option>
-            <ion-select-option value="interval">
-              {{ 'CREATE_TASK.RECURRENCE_INTERVAL' | translate }}
+            @for (category of categories; track category.id) {
+              <ion-select-option [value]="category.id">
+                {{ category.name }}
+              </ion-select-option>
+            }
+            <ion-select-option [value]="createCategoryOptionValue">
+              {{ 'CREATE_TASK.CATEGORY_CREATE_OPTION' | translate }}
             </ion-select-option>
           </ion-select>
         </ion-item>
+      </ion-list>
 
+      <ion-list class="section-list task-section-card">
         <ion-item>
-          <ion-label position="stacked">
-            {{ 'CREATE_TASK.FIELD_START_DATE' | translate }}
-          </ion-label>
-          <ion-datetime presentation="date" formControlName="recurrenceStartDate"></ion-datetime>
-        </ion-item>
-        @if (hasControlError(form.controls.recurrenceStartDate, 'required')) {
-          <ion-note color="danger" class="field-error">
-            {{ 'CREATE_TASK.VALIDATION_START_DATE_REQUIRED' | translate }}
-          </ion-note>
-        }
-
-        <ion-item>
-          <ion-label position="stacked">
-            {{ 'CREATE_TASK.FIELD_END_DATE' | translate }}
-          </ion-label>
-          <ion-datetime presentation="date" formControlName="recurrenceEndDate"></ion-datetime>
+          <ion-label class="form-prompt">{{ 'CREATE_TASK.ENABLE_RECURRENCE' | translate }}</ion-label>
+          <ion-toggle formControlName="recurrenceEnabled"></ion-toggle>
         </ion-item>
 
-        @if (recurrenceType === 'interval') {
+        @if (recurrenceEnabled) {
           <ion-item>
-            <ion-label position="stacked">
-              {{ 'CREATE_TASK.FIELD_INTERVAL_DAYS' | translate }}
+            <ion-label position="stacked" class="form-prompt">
+              {{ 'CREATE_TASK.RECURRENCE_PATTERN_PROMPT' | translate }}
             </ion-label>
-            <ion-input
-              type="number"
-              inputmode="numeric"
-              formControlName="recurrenceIntervalValue"
-            ></ion-input>
+            <ion-select
+              class="form-control-text"
+              interface="alert"
+              formControlName="recurrencePattern"
+              [cancelText]="'COMMON.CANCEL' | translate"
+              [okText]="'COMMON.DONE' | translate"
+            >
+              <ion-select-option value="daily">
+                {{ 'CREATE_TASK.REPEAT_PATTERN_DAILY' | translate }}
+              </ion-select-option>
+              <ion-select-option value="selected_weekdays">
+                {{ 'CREATE_TASK.REPEAT_PATTERN_SELECTED_WEEKDAYS' | translate }}
+              </ion-select-option>
+              <ion-select-option value="monthly">
+                {{ 'CREATE_TASK.REPEAT_PATTERN_MONTHLY' | translate }}
+              </ion-select-option>
+              <ion-select-option value="yearly">
+                {{ 'CREATE_TASK.REPEAT_PATTERN_YEARLY' | translate }}
+              </ion-select-option>
+            </ion-select>
           </ion-item>
-        }
 
-        @if (recurrenceType === 'monthly' || recurrenceType === 'yearly') {
+          @if (recurrencePattern === 'selected_weekdays') {
+            <div class="recurrence-weekdays">
+              @for (day of weekdays; track day.bit) {
+                <ion-button
+                  type="button"
+                  size="small"
+                  [fill]="isWeekdaySelected(day.bit) ? 'solid' : 'outline'"
+                  (click)="onWeekdayToggle(day.bit)"
+                >
+                  {{ day.shortLabelKey | translate }}
+                </ion-button>
+              }
+            </div>
+            @if (showSelectedWeekdayError) {
+              <ion-note color="danger" class="form-error form-feedback">
+                {{ 'CREATE_TASK.VALIDATION_WEEKLY_REQUIRED' | translate }}
+              </ion-note>
+            }
+          }
+
+          @if (recurrencePattern === 'monthly') {
+            <ion-item>
+              <ion-label position="stacked" class="form-label">
+                {{ 'CREATE_TASK.RECURRENCE_MONTH_DAY_PROMPT' | translate }}
+              </ion-label>
+              <ion-select
+                class="form-control-text"
+                interface="alert"
+                formControlName="recurrenceDayOfMonth"
+                [cancelText]="'COMMON.CANCEL' | translate"
+                [okText]="'COMMON.DONE' | translate"
+              >
+                @for (dayNumber of monthDays; track dayNumber) {
+                  <ion-select-option [value]="dayNumber">{{ dayNumber }}</ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
+            @if (hasControlError(form.controls.recurrenceDayOfMonth, 'required')) {
+              <ion-note color="danger" class="form-error form-feedback">
+                {{ 'CREATE_TASK.VALIDATION_MONTH_DAY_REQUIRED' | translate }}
+              </ion-note>
+            }
+          }
+
+          @if (recurrencePattern === 'yearly') {
+            <ion-item>
+              <ion-label position="stacked" class="form-label">
+                {{ 'CREATE_TASK.RECURRENCE_YEAR_MONTH_PROMPT' | translate }}
+              </ion-label>
+              <ion-select
+                class="form-control-text"
+                interface="alert"
+                formControlName="recurrenceYearMonth"
+                [cancelText]="'COMMON.CANCEL' | translate"
+                [okText]="'COMMON.DONE' | translate"
+              >
+                @for (monthNumber of monthNumbers; track monthNumber) {
+                  <ion-select-option [value]="monthNumber">{{ monthNumber }}</ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
+            @if (hasControlError(form.controls.recurrenceYearMonth, 'required')) {
+              <ion-note color="danger" class="form-error form-feedback">
+                {{ 'CREATE_TASK.VALIDATION_YEAR_MONTH_REQUIRED' | translate }}
+              </ion-note>
+            }
+
+            <ion-item>
+              <ion-label position="stacked" class="form-label">
+                {{ 'CREATE_TASK.RECURRENCE_YEAR_DAY_PROMPT' | translate }}
+              </ion-label>
+              <ion-select
+                class="form-control-text"
+                interface="alert"
+                formControlName="recurrenceYearDay"
+                [cancelText]="'COMMON.CANCEL' | translate"
+                [okText]="'COMMON.DONE' | translate"
+              >
+                @for (dayNumber of monthDays; track dayNumber) {
+                  <ion-select-option [value]="dayNumber">{{ dayNumber }}</ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
+            @if (hasControlError(form.controls.recurrenceYearDay, 'required')) {
+              <ion-note color="danger" class="form-error form-feedback">
+                {{ 'CREATE_TASK.VALIDATION_YEAR_DAY_REQUIRED' | translate }}
+              </ion-note>
+            }
+          }
+
           <ion-item>
-            <ion-label position="stacked">
-              {{ 'CREATE_TASK.FIELD_DAY_OF_MONTH' | translate }}
+            <ion-label class="form-prompt">
+              {{ 'CREATE_TASK.RECURRENCE_HAS_TIME' | translate }}
             </ion-label>
-            <ion-input
-              type="number"
-              inputmode="numeric"
-              formControlName="recurrenceDayOfMonth"
-            ></ion-input>
+            <ion-toggle formControlName="recurrenceHasTime"></ion-toggle>
           </ion-item>
-        }
 
-        @if (recurrenceType === 'yearly') {
-          <ion-item>
-            <ion-label position="stacked">
-              {{ 'CREATE_TASK.FIELD_MONTH_OF_YEAR' | translate }}
-            </ion-label>
-            <ion-input
-              type="number"
-              inputmode="numeric"
-              formControlName="recurrenceMonthOfYear"
-            ></ion-input>
-          </ion-item>
-        }
-
-        @if (recurrenceType === 'weekly') {
-          <ion-item lines="none">
-            <ion-label>{{ 'CREATE_TASK.FIELD_WEEKDAYS' | translate }}</ion-label>
-          </ion-item>
-          @for (day of weekdays; track day.bit) {
-            <ion-item lines="none">
-              <ion-checkbox
-                slot="start"
-                [checked]="isWeekdaySelected(day.bit)"
-                (ionChange)="onWeekdayToggle(day.bit, $event.detail.checked)"
-              ></ion-checkbox>
-              <ion-label>{{ day.labelKey | translate }}</ion-label>
+          @if (recurrenceHasTime && recurrencePattern === 'selected_weekdays') {
+            <ion-item>
+              <ion-label class="form-label">
+                {{ 'CREATE_TASK.RECURRENCE_SAME_TIME_ALL_DAYS' | translate }}
+              </ion-label>
+              <ion-toggle formControlName="recurrenceSameTimeForSelectedDays"></ion-toggle>
             </ion-item>
           }
-          @if (showWeeklyDayError) {
-            <ion-note color="danger" class="field-error">
-              {{ 'CREATE_TASK.VALIDATION_WEEKLY_REQUIRED' | translate }}
-            </ion-note>
+
+          @if (
+            recurrenceHasTime &&
+            (recurrencePattern !== 'selected_weekdays' || recurrenceSameTimeForSelectedDays)
+          ) {
+            <div class="recurrence-time-field">
+              <div class="form-label">
+                {{ 'CREATE_TASK.RECURRENCE_TIME_LABEL' | translate }}
+              </div>
+              <app-time-picker
+                formControlName="recurrenceTime"
+                [placeholder]="'CREATE_TASK.RECURRENCE_TIME_PLACEHOLDER' | translate"
+                [locale]="activeLocale"
+                [cancelText]="'COMMON.CANCEL' | translate"
+                [doneText]="'COMMON.DONE' | translate"
+              ></app-time-picker>
+            </div>
+            @if (showCommonRecurrenceTimeError) {
+              <ion-note color="danger" class="form-error form-feedback">
+                {{ 'CREATE_TASK.VALIDATION_RECURRENCE_TIME_REQUIRED' | translate }}
+              </ion-note>
+            }
           }
-        }
-      }
-    </ion-list>
 
-    <ion-list inset="true" class="section-list">
-      <ion-list-header>
-        <ion-label>{{ 'CREATE_TASK.SECTION_NOTIFICATIONS' | translate }}</ion-label>
-      </ion-list-header>
+          @if (
+            recurrencePattern === 'selected_weekdays' &&
+            recurrenceHasTime &&
+            !recurrenceSameTimeForSelectedDays
+          ) {
+            <div class="recurrence-day-times">
+              @for (day of selectedWeekdays; track day.bit) {
+                <div class="recurrence-day-time-item">
+                  <div class="form-label">
+                    {{ day.labelKey | translate }}
+                  </div>
+                  <app-time-picker
+                    [formControlName]="day.timeControlName"
+                    [placeholder]="'CREATE_TASK.RECURRENCE_TIME_PLACEHOLDER' | translate"
+                    [locale]="activeLocale"
+                    [cancelText]="'COMMON.CANCEL' | translate"
+                    [doneText]="'COMMON.DONE' | translate"
+                  ></app-time-picker>
+                </div>
+                @if (showWeekdayTimeRequiredError(day.timeControlName)) {
+                  <ion-note color="danger" class="form-error form-feedback recurrence-day-time-feedback">
+                    {{ 'CREATE_TASK.VALIDATION_RECURRENCE_DAY_TIME_REQUIRED' | translate }}
+                  </ion-note>
+                }
+              }
+            </div>
+          }
 
-      <ion-item>
-        <ion-label>{{ 'CREATE_TASK.ENABLE_NOTIFICATIONS' | translate }}</ion-label>
-        <ion-toggle formControlName="notificationsEnabled"></ion-toggle>
-      </ion-item>
-
-      @if (notificationsEnabled) {
-        <ion-item>
-          <ion-label>{{ 'CREATE_TASK.FIELD_NOTIFICATION_TYPE' | translate }}</ion-label>
-          <ion-select
-            interface="alert"
-            formControlName="notificationType"
-            [cancelText]="'COMMON.CANCEL' | translate"
-            [okText]="'COMMON.DONE' | translate"
-          >
-            <ion-select-option value="tts">
-              {{ 'CREATE_TASK.NOTIFICATION_TTS' | translate }}
-            </ion-select-option>
-            <ion-select-option value="sound">
-              {{ 'CREATE_TASK.NOTIFICATION_SOUND' | translate }}
-            </ion-select-option>
-            <ion-select-option value="vibration">
-              {{ 'CREATE_TASK.NOTIFICATION_VIBRATION' | translate }}
-            </ion-select-option>
-            <ion-select-option value="popup">
-              {{ 'CREATE_TASK.NOTIFICATION_POPUP' | translate }}
-            </ion-select-option>
-            <ion-select-option value="fullscreen">
-              {{ 'CREATE_TASK.NOTIFICATION_FULLSCREEN' | translate }}
-            </ion-select-option>
-            <ion-select-option value="none">
-              {{ 'CREATE_TASK.NOTIFICATION_NONE' | translate }}
-            </ion-select-option>
-          </ion-select>
-        </ion-item>
-
-        <ion-item>
-          <ion-label>{{ 'CREATE_TASK.FIELD_TRIGGER_MODE' | translate }}</ion-label>
-          <ion-select
-            interface="alert"
-            formControlName="notificationTriggerMode"
-            [cancelText]="'COMMON.CANCEL' | translate"
-            [okText]="'COMMON.DONE' | translate"
-          >
-            <ion-select-option value="at_time">
-              {{ 'CREATE_TASK.TRIGGER_AT_TIME' | translate }}
-            </ion-select-option>
-            <ion-select-option value="before">
-              {{ 'CREATE_TASK.TRIGGER_BEFORE' | translate }}
-            </ion-select-option>
-            <ion-select-option value="manual_only">
-              {{ 'CREATE_TASK.TRIGGER_MANUAL_ONLY' | translate }}
-            </ion-select-option>
-          </ion-select>
-        </ion-item>
-
-        @if (notificationTriggerMode === 'before') {
           <ion-item>
-            <ion-label position="stacked">
-              {{ 'CREATE_TASK.FIELD_MINUTES_BEFORE' | translate }}
+            <ion-label class="form-prompt">
+              {{ 'CREATE_TASK.RECURRENCE_STARTS_TODAY' | translate }}
             </ion-label>
-            <ion-input
-              type="number"
-              inputmode="numeric"
-              formControlName="notificationMinutesBefore"
-            ></ion-input>
+            <ion-toggle formControlName="recurrenceStartsToday"></ion-toggle>
           </ion-item>
-          @if (hasControlError(form.controls.notificationMinutesBefore, 'required')) {
-            <ion-note color="danger" class="field-error">
-              {{ 'CREATE_TASK.VALIDATION_MINUTES_BEFORE_REQUIRED' | translate }}
-            </ion-note>
+
+          @if (!recurrenceStartsToday) {
+            <ion-item>
+              <ion-label position="stacked" class="form-label">
+                {{ 'CREATE_TASK.RECURRENCE_START_DATE_PROMPT' | translate }}
+              </ion-label>
+              <app-date-picker
+                formControlName="recurrenceStartDate"
+                [locale]="activeLocale"
+                [placeholder]="'CREATE_TASK.RECURRENCE_START_DATE_PROMPT' | translate"
+                [ariaLabel]="'CREATE_TASK.RECURRENCE_START_DATE_PROMPT' | translate"
+                [cancelText]="'COMMON.CANCEL' | translate"
+                [doneText]="'COMMON.DONE' | translate"
+              ></app-date-picker>
+            </ion-item>
+            @if (hasControlError(form.controls.recurrenceStartDate, 'required')) {
+              <ion-note color="danger" class="form-error form-feedback">
+                {{ 'CREATE_TASK.VALIDATION_START_DATE_REQUIRED' | translate }}
+              </ion-note>
+            }
+          }
+
+          <ion-item>
+            <ion-label class="form-label">
+              {{ 'CREATE_TASK.RECURRENCE_HAS_END_DATE' | translate }}
+            </ion-label>
+            <ion-toggle formControlName="recurrenceHasEndDate"></ion-toggle>
+          </ion-item>
+
+          @if (form.controls.recurrenceHasEndDate.value) {
+            <ion-item>
+              <ion-label position="stacked" class="form-label">
+                {{ 'CREATE_TASK.RECURRENCE_END_LABEL' | translate }}
+              </ion-label>
+              <app-date-picker
+                formControlName="recurrenceEndDate"
+                [locale]="activeLocale"
+                [placeholder]="'CREATE_TASK.RECURRENCE_START_DATE_PROMPT' | translate"
+                [ariaLabel]="'CREATE_TASK.RECURRENCE_END_LABEL' | translate"
+                [cancelText]="'COMMON.CANCEL' | translate"
+                [doneText]="'COMMON.DONE' | translate"
+              ></app-date-picker>
+            </ion-item>
+            @if (hasControlError(form.controls.recurrenceEndDate, 'required')) {
+              <ion-note color="danger" class="form-error form-feedback">
+                {{ 'CREATE_TASK.VALIDATION_END_DATE_REQUIRED' | translate }}
+              </ion-note>
+            }
           }
         }
-      }
-    </ion-list>
+
+        <ion-item>
+          <ion-label class="form-prompt">{{ 'CREATE_TASK.ENABLE_NOTIFICATIONS' | translate }}</ion-label>
+          <ion-toggle formControlName="notificationsEnabled"></ion-toggle>
+        </ion-item>
+
+        @if (notificationsEnabled) {
+          <ion-item>
+            <ion-label>{{ 'CREATE_TASK.FIELD_NOTIFICATION_TYPE' | translate }}</ion-label>
+            <ion-select
+              interface="alert"
+              formControlName="notificationType"
+              [cancelText]="'COMMON.CANCEL' | translate"
+              [okText]="'COMMON.DONE' | translate"
+            >
+              <ion-select-option value="tts">
+                {{ 'CREATE_TASK.NOTIFICATION_TTS' | translate }}
+              </ion-select-option>
+              <ion-select-option value="sound">
+                {{ 'CREATE_TASK.NOTIFICATION_SOUND' | translate }}
+              </ion-select-option>
+              <ion-select-option value="vibration">
+                {{ 'CREATE_TASK.NOTIFICATION_VIBRATION' | translate }}
+              </ion-select-option>
+              <ion-select-option value="popup">
+                {{ 'CREATE_TASK.NOTIFICATION_POPUP' | translate }}
+              </ion-select-option>
+              <ion-select-option value="fullscreen">
+                {{ 'CREATE_TASK.NOTIFICATION_FULLSCREEN' | translate }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item>
+            <ion-label class="form-prompt">
+              {{ 'CREATE_TASK.NOTIFICATION_WHEN_PROMPT' | translate }}
+            </ion-label>
+            <ion-select
+              class="form-control-text"
+              interface="alert"
+              formControlName="notificationTriggerMode"
+              [cancelText]="'COMMON.CANCEL' | translate"
+              [okText]="'COMMON.DONE' | translate"
+            >
+              <ion-select-option value="at_time">
+                {{ 'CREATE_TASK.TRIGGER_AT_TIME' | translate }}
+              </ion-select-option>
+              <ion-select-option value="before">
+                {{ 'CREATE_TASK.TRIGGER_BEFORE' | translate }}
+              </ion-select-option>
+              <ion-select-option value="manual_only">
+                {{ 'CREATE_TASK.TRIGGER_NO_AUTOMATIC' | translate }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          @if (notificationTriggerMode === 'before') {
+            <div class="notification-lead-time-field">
+              <div class="form-label">
+                {{ 'CREATE_TASK.NOTIFICATION_LEAD_TIME_PROMPT' | translate }}
+              </div>
+              <div class="notification-lead-time-options">
+                @for (preset of notificationLeadTimePresets; track preset.value) {
+                  <ion-button
+                    type="button"
+                    size="small"
+                    [fill]="isNotificationLeadTimeSelected(preset.value) ? 'solid' : 'outline'"
+                    [class.lead-time-selected]="isNotificationLeadTimeSelected(preset.value)"
+                    [class.lead-time-unselected]="!isNotificationLeadTimeSelected(preset.value)"
+                    (click)="onNotificationLeadTimeSelect(preset.value)"
+                  >
+                    {{ preset.labelKey | translate }}
+                  </ion-button>
+                }
+              </div>
+            </div>
+            @if (hasControlError(form.controls.notificationOffsets, 'required')) {
+              <ion-note color="danger" class="form-error form-feedback">
+                {{ 'CREATE_TASK.VALIDATION_MINUTES_BEFORE_REQUIRED' | translate }}
+              </ion-note>
+            }
+          }
+        }
+      </ion-list>
+    </div>
 
     @if (saveFailed) {
-      <ion-note color="danger" class="field-error">
+      <ion-note color="danger" class="form-error form-feedback">
         {{ 'CREATE_TASK.ERROR_SAVE' | translate }}
       </ion-note>
     }

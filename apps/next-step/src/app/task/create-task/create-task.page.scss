@@ -1,13 +1,138 @@
-.section-list + .section-list {
-  margin-top: 16px;
+.task-form-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-7);
 }
 
-.field-error {
+.task-section-card {
+  margin: 0;
+  border-radius: var(--app-radius-lg);
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow-sm);
+  overflow: hidden;
+}
+
+.task-intent-layout {
+  padding: var(--app-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-7);
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+}
+
+.task-intent-layout .form-feedback {
+  padding: 0;
+}
+
+.task-intent-layout ion-input,
+.task-intent-layout ion-textarea {
+  --highlight-color-focused: transparent;
+  --border-color: transparent;
+}
+
+.tracking-category-card .tracking-toggle-item {
+  margin-top: var(--app-space-2);
+}
+
+.tracking-category-card .tracking-toggle-item .form-prompt {
+  margin: 0;
+}
+
+.tracking-category-card .duration-dependent-item {
+  margin-top: var(--app-space-2);
+  --padding-start: var(--app-space-3);
+}
+
+.tracking-category-card .duration-dependent-feedback {
   display: block;
-  padding: 0 16px 12px;
+  margin-top: var(--app-space-2);
+  margin-inline-start: var(--app-space-3);
+}
+
+.tracking-category-card .category-field-item {
+  margin-top: var(--app-space-2);
+}
+
+.recurrence-weekdays {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-2);
+  padding: 0 var(--app-space-5) var(--app-space-2);
+}
+
+.recurrence-day-times {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+  padding: 0 var(--app-space-5);
+}
+
+.recurrence-day-time-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+}
+
+.recurrence-time-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+  padding: 0 var(--app-space-5);
+}
+
+.recurrence-time-field .form-label,
+.recurrence-day-time-item .form-label {
+  margin: 0;
+}
+
+.recurrence-day-time-feedback {
+  margin-inline-start: var(--app-space-8);
+}
+
+.notification-lead-time-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+  padding: 0 var(--app-space-5);
+}
+
+.notification-lead-time-field .form-label {
+  margin: 0;
+}
+
+.notification-lead-time-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-2);
+}
+
+.notification-lead-time-options ion-button {
+  --border-radius: 999px;
+  --padding-start: var(--app-space-3);
+  --padding-end: var(--app-space-3);
+}
+
+.notification-lead-time-options ion-button.lead-time-selected {
+  --background: var(--ion-color-primary);
+  --border-color: var(--ion-color-primary);
+  --color: #ffffff;
+}
+
+.notification-lead-time-options ion-button.lead-time-unselected {
+  --background: transparent;
+  --border-color: var(--ion-color-primary);
 }
 
 .submit-button {
-  margin-top: 20px;
-  margin-bottom: 24px;
+  margin-top: var(--app-space-6);
+  margin-bottom: var(--app-space-6);
+}
+
+.submit-button::part(native) {
+  text-transform: none;
 }

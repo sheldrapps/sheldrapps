@@ -1,0 +1,73 @@
+/* Semantic form primitives (opt-in) */
+
+.form-field {
+  --placeholder-color: var(--app-form-placeholder-color);
+  --placeholder-opacity: var(--app-form-placeholder-opacity);
+}
+
+.form-prompt {
+  margin: 0 0 var(--app-form-space-prompt-control) 0;
+  color: var(--app-text-primary);
+  font-size: var(--app-form-prompt-size);
+  font-weight: var(--app-form-prompt-weight);
+  line-height: 1.3;
+  opacity: var(--app-text-strong);
+}
+
+.form-label {
+  margin: 0 0 var(--app-form-space-label-control) 0;
+  color: var(--app-text-primary);
+  font-size: var(--app-form-label-size);
+  font-weight: var(--app-form-label-weight);
+  line-height: 1.3;
+  opacity: var(--app-text-subtle);
+}
+
+.form-control-text {
+  --color: var(--app-text-primary);
+  --placeholder-color: var(--app-form-placeholder-color);
+  --placeholder-opacity: var(--app-form-placeholder-opacity);
+  font-size: var(--app-form-control-size);
+  font-weight: var(--app-form-control-weight);
+  line-height: 1.35;
+}
+
+.form-control-text::part(native),
+.form-control-text::part(text),
+.form-control-text::part(placeholder) {
+  font-size: var(--app-form-control-size);
+  font-weight: var(--app-form-control-weight);
+  line-height: 1.35;
+}
+
+.form-control-text::part(text) {
+  color: var(--app-text-primary);
+}
+
+.form-control-text::part(placeholder) {
+  color: var(--app-form-placeholder-color);
+  opacity: var(--app-form-placeholder-opacity);
+}
+
+.form-helper {
+  display: block;
+  margin-top: var(--app-form-space-control-helper);
+  color: var(--app-text-secondary);
+  font-size: var(--app-form-helper-size);
+  font-weight: var(--app-form-helper-weight);
+  line-height: 1.3;
+  opacity: var(--app-text-medium);
+}
+
+.form-error {
+  display: block;
+  margin-top: var(--app-form-space-control-error);
+  color: var(--ion-color-danger);
+  font-size: var(--app-form-error-size);
+  font-weight: var(--app-form-error-weight);
+  line-height: 1.35;
+}
+
+.form-feedback {
+  padding: 0 var(--app-space-7) var(--app-space-5);
+}

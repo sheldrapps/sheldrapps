@@ -1,0 +1,62 @@
+<div class="picker-field">
+  @if (label) {
+    <div class="picker-label">{{ label }}</div>
+  }
+
+  <button
+    type="button"
+    class="picker-trigger"
+    [class.picker-trigger--placeholder]="!value"
+    [disabled]="disabled"
+    (click)="open()"
+  >
+    {{ displayValue }}
+  </button>
+</div>
+
+<ion-modal
+  class="picker-modal"
+  [isOpen]="isOpen"
+  [breakpoints]="sheetBreakpoints"
+  [initialBreakpoint]="sheetInitialBreakpoint"
+  [backdropDismiss]="true"
+  (didDismiss)="onModalDismiss()"
+>
+  <ng-template>
+    <div class="picker-sheet picker-sheet--time">
+      <div class="picker-sheet__handle"></div>
+
+      @if (label) {
+        <div class="picker-sheet__title">{{ label }}</div>
+      }
+
+      <div class="picker-sheet__body">
+        <ion-datetime
+          class="time-picker-wheel"
+          presentation="time"
+          hour-cycle="h23"
+          [preferWheel]="true"
+          [showDefaultButtons]="false"
+          [locale]="locale"
+          [value]="draftValue"
+          (ionChange)="onDatetimeChange($event)"
+        ></ion-datetime>
+      </div>
+
+      <div class="picker-sheet__actions">
+        <ion-button
+          type="button"
+          fill="clear"
+          class="picker-sheet__cancel"
+          (click)="cancel()"
+        >
+          {{ cancelText }}
+        </ion-button>
+
+        <ion-button type="button" class="picker-sheet__done" (click)="confirm()">
+          {{ doneText }}
+        </ion-button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>

@@ -10,6 +10,28 @@ function toRepoRelative(path) {
   return relative(repoRoot, path).split(sep).join("/");
 }
 
+function collectStrings(value, into = []) {
+  if (typeof value === "string") {
+    into.push(value);
+    return into;
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectStrings(item, into);
+    }
+    return into;
+  }
+
+  if (value && typeof value === "object") {
+    for (const item of Object.values(value)) {
+      collectStrings(item, into);
+    }
+  }
+
+  return into;
+}
+
 test("guardrail: no new SCSS files in apps outside allowlist", () => {
   const allowlist = JSON.parse(
     readFileSync("tools/guardrails/scss-allowlist.json", "utf8")
@@ -78,6 +100,87 @@ test("guardrail note: kits-first duplicate UI scan is not automated yet", () => 
     content,
     /Kits-First Rule/,
     "Root AGENTS.md must include Kits-first rule until duplicate-UI scanner exists"
+  );
+});
+
+test("guardrail: locale files have no mojibake and preserve locale diacritics", () => {
+  const localeFiles = globSync("apps/**/src/assets/i18n/*.json", {
+    cwd: repoRoot,
+  })
+    .map((p) => p.split(sep).join("/"))
+    .filter((p) => !p.includes("/editor/"))
+    .sort();
+
+  const localeSignature = {
+    "de-DE": /[äöüÄÖÜß]/u,
+    "es-MX": /[áéíóúñÁÉÍÓÚÑ¿¡]/u,
+    "fr-FR": /[àâçéèêëîïôûùüÿœæÀÂÇÉÈÊËÎÏÔÛÙÜŸŒÆ]/u,
+    "it-IT": /[àèéìíîòóùÀÈÉÌÍÎÒÓÙ]/u,
+    "pt-BR": /[áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ]/u,
+  };
+
+  const mojibakeIssues = [];
+  const signatureIssues = [];
+
+  for (const file of localeFiles) {
+    const raw = readFileSync(file, "utf8").replace(/^\uFEFF/, "");
+    const json = JSON.parse(raw);
+    const strings = collectStrings(json);
+
+    const hasMojibake = strings.some((s) =>
+      /\u00C3[\u0080-\u00BF]|\u00C2[\u0080-\u00BF]|\u00E2\u20AC.|\uFFFD/u.test(
+        s
+      )
+    );
+    if (hasMojibake) {
+      mojibakeIssues.push(file);
+    }
+
+    const locale = file.split("/").pop();
+    const signature = localeSignature[locale];
+    if (!signature) {
+      continue;
+    }
+
+    const joined = strings.join(" ");
+    const alphaChars = joined.replace(/[^A-Za-zÀ-ÿ]/g, "").length;
+    if (alphaChars >= 80 && !signature.test(joined)) {
+      signatureIssues.push(file);
+    }
+  }
+
+  assert.deepEqual(
+    mojibakeIssues,
+    [],
+    `Mojibake detected in locale files:\n${mojibakeIssues.join("\n")}`
+  );
+
+  assert.deepEqual(
+    signatureIssues,
+    [],
+    `Likely diacritic stripping detected in locale files:\n${signatureIssues.join(
+      "\n"
+    )}`
+  );
+});
+
+test("guardrail: app index.html declares utf-8 charset", () => {
+  const indexFiles = globSync("apps/**/src/index.html", { cwd: repoRoot })
+    .map((p) => p.split(sep).join("/"))
+    .sort();
+
+  const missing = [];
+  for (const file of indexFiles) {
+    const html = readFileSync(file, "utf8");
+    if (!/<meta\s+charset=["']utf-8["']\s*\/?>/i.test(html)) {
+      missing.push(file);
+    }
+  }
+
+  assert.deepEqual(
+    missing,
+    [],
+    `Missing UTF-8 charset declaration in index.html:\n${missing.join("\n")}`
   );
 });
 

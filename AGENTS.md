@@ -76,6 +76,45 @@ Standard new app baseline:
 - Update translations in all supported app locales in the same change.
 - For CCFK and ECC, this means updating every file under each app `src/assets/i18n/` locale set.
 
+### Encoding And Diacritics Safety (Critical)
+
+- Never remove diacritics or locale-specific characters from translations (`á`, `é`, `í`, `ó`, `ú`, `ü`, `ñ`, `ç`, `ã`, `õ`, `ê`, etc.).
+- Never use `?` as a replacement character inside words in translation values (for example: `descripci?n`, `t?tulo`, `m?chtest`).
+- Never serialize translation values using Unicode escape sequences such as `\u00e9`, `\u00f3`, `\u00e7`. Keep readable UTF-8 characters directly in JSON.
+- Keep translation JSON files as UTF-8 and valid JSON.
+- Prefer targeted edits with `apply_patch`; avoid full-file i18n reserialization unless explicitly requested.
+- Do not use shell rewrite flows that may corrupt encoding for i18n JSON (for example redirection from `git show` into files, or `Set-Content` without strict UTF-8 handling).
+- If scripting is needed, use Node `fs.readFileSync(..., 'utf8')` and `fs.writeFileSync(..., 'utf8')`.
+
+### Text Generation Fidelity Rule (Critical)
+
+When generating or editing any user-facing text in any supported locale:
+
+- Generate final text with correct native characters from the first edit.
+- Do not substitute accented characters or locale punctuation with ASCII approximations.
+- Treat any replacement `?` or mojibake (`Ã`, `Â`, `�`) as a hard failure to fix before completion.
+- Before applying a patch, re-read every newly added translation value and confirm it uses readable UTF-8 characters.
+
+Examples:
+- Correct: `Medir por duración`
+- Incorrect: `Medir por duraci?n`
+- Incorrect: `Medir por duraci\u00f3n`
+- Correct: `¿Qué quieres hacer?`
+- Incorrect: `Que quieres hacer?`
+- Incorrect: `?Qué quieres hacer?`
+
+If correct characters cannot be produced reliably, stop and report the issue instead of writing degraded text.
+
+### Mandatory i18n checks before completion
+
+After any i18n edit, run checks on `apps/*/src/assets/i18n/*.json`:
+
+1. No replacement-question-mark artifacts inside words: pattern `[A-Za-zÀ-ÿ]\?[A-Za-zÀ-ÿ]`
+2. No mojibake artifacts: patterns `Ã|Â|�`
+3. No Unicode escape sequences in values: pattern `\\u[0-9a-fA-F]{4}`
+
+If any check fails, fix before reporting completion.
+
 ## Unclear Ownership
 
 If you are unsure where code belongs, place reusable behavior in a kit first and wire it from the app.

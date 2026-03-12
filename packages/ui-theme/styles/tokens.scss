@@ -27,6 +27,28 @@
   --app-text-subtle: 0.7;
   --app-text-faint: 0.55;
 
+  /* Form semantic typography */
+  --app-form-prompt-size: var(--app-text-xl);
+  --app-form-control-size: var(--app-text-lg);
+  --app-form-label-size: var(--app-text-md);
+  --app-form-helper-size: var(--app-text-xs);
+  --app-form-error-size: var(--app-text-sm);
+  --app-form-prompt-weight: var(--app-font-semibold);
+  --app-form-control-weight: var(--app-font-medium);
+  --app-form-label-weight: var(--app-font-medium);
+  --app-form-helper-weight: var(--app-font-medium);
+  --app-form-error-weight: var(--app-font-medium);
+
+  /* Form semantic tone */
+  --app-form-placeholder-color: var(--app-text-secondary);
+  --app-form-placeholder-opacity: var(--app-text-subtle);
+
+  /* Form vertical rhythm */
+  --app-form-space-prompt-control: var(--app-space-2);
+  --app-form-space-label-control: var(--app-space-2);
+  --app-form-space-control-helper: var(--app-space-1);
+  --app-form-space-control-error: var(--app-space-2);
+
   /* Spacing scale */
   --app-space-hairline: 2px;
   --app-space-1: 4px;

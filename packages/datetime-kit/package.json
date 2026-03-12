@@ -1,0 +1,32 @@
+{
+  "name": "@sheldrapps/datetime-kit",
+  "version": "1.0.0",
+  "description": "Reusable Ionic date and time pickers for Angular standalone apps",
+  "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
+  "main": "./src/public-api.ts",
+  "types": "./src/public-api.ts",
+  "exports": {
+    ".": "./src/public-api.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "peerDependencies": {
+    "@angular/common": "^20.0.0",
+    "@angular/core": "^20.0.0",
+    "@angular/forms": "^20.0.0",
+    "@ionic/angular": "^8.0.0"
+  },
+  "keywords": [
+    "datetime",
+    "date-picker",
+    "time-picker",
+    "ionic",
+    "angular"
+  ]
+}

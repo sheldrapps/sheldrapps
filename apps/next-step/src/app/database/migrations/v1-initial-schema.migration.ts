@@ -2,7 +2,7 @@ import { SqliteMigration } from '@sheldrapps/native-sqlite-kit';
 
 export const v1InitialSchemaMigration: SqliteMigration = {
   version: 1,
-  name: 'initial-schema',
+  name: 'task-core-clean-schema',
   up: async (db) => {
     await db.execute('PRAGMA foreign_keys = ON;');
 
@@ -10,10 +10,8 @@ export const v1InitialSchemaMigration: SqliteMigration = {
       CREATE TABLE categories (
         id TEXT PRIMARY KEY NOT NULL,
         name TEXT NOT NULL,
-        icon TEXT,
-        color TEXT,
-        sort_order INTEGER NOT NULL DEFAULT 0,
-        created_at TEXT NOT NULL
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
       );
     `);
 
@@ -22,45 +20,32 @@ export const v1InitialSchemaMigration: SqliteMigration = {
         id TEXT PRIMARY KEY NOT NULL,
         title TEXT NOT NULL,
         description TEXT,
-        mode TEXT NOT NULL,
-        estimated_duration_min INTEGER,
-        is_active INTEGER NOT NULL DEFAULT 1,
         category_id TEXT,
+        tracking_mode TEXT NOT NULL CHECK(tracking_mode IN ('check', 'duration')),
+        estimated_duration_min INTEGER,
+        is_recurrence_enabled INTEGER NOT NULL DEFAULT 0 CHECK(is_recurrence_enabled IN (0, 1)),
+        is_notifications_enabled INTEGER NOT NULL DEFAULT 0 CHECK(is_notifications_enabled IN (0, 1)),
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
-        archived_at TEXT,
-        FOREIGN KEY(category_id) REFERENCES categories(id)
+        FOREIGN KEY(category_id) REFERENCES categories(id) ON DELETE SET NULL
       );
     `);
 
     await db.execute(`
-      CREATE TABLE task_recurrences (
-        id TEXT PRIMARY KEY NOT NULL,
-        task_id TEXT NOT NULL,
-        type TEXT NOT NULL,
-        interval_value INTEGER,
-        days_of_week_mask INTEGER,
-        day_of_month INTEGER,
-        month_of_year INTEGER,
-        time_of_day TEXT,
+      CREATE TABLE task_recurrence (
+        task_id TEXT PRIMARY KEY NOT NULL,
+        pattern TEXT NOT NULL CHECK(pattern IN ('daily', 'selected_weekdays', 'monthly', 'yearly')),
+        has_time INTEGER NOT NULL DEFAULT 0 CHECK(has_time IN (0, 1)),
+        same_time_for_selected_days INTEGER NOT NULL DEFAULT 1 CHECK(same_time_for_selected_days IN (0, 1)),
+        common_time TEXT,
+        starts_today INTEGER NOT NULL DEFAULT 1 CHECK(starts_today IN (0, 1)),
         start_date TEXT NOT NULL,
+        has_end_date INTEGER NOT NULL DEFAULT 0 CHECK(has_end_date IN (0, 1)),
         end_date TEXT,
+        day_of_month INTEGER,
+        year_month INTEGER,
+        year_day INTEGER,
         timezone TEXT,
-        is_active INTEGER NOT NULL DEFAULT 1,
-        FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
-      );
-    `);
-
-    await db.execute(`
-      CREATE TABLE task_occurrences (
-        id TEXT PRIMARY KEY NOT NULL,
-        task_id TEXT NOT NULL,
-        scheduled_date TEXT NOT NULL,
-        scheduled_time TEXT,
-        status TEXT NOT NULL,
-        source TEXT NOT NULL,
-        completed_at TEXT,
-        moved_to_occurrence_id TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
@@ -68,30 +53,26 @@ export const v1InitialSchemaMigration: SqliteMigration = {
     `);
 
     await db.execute(`
-      CREATE TABLE focus_sessions (
+      CREATE TABLE task_recurrence_weekdays (
         id TEXT PRIMARY KEY NOT NULL,
-        occurrence_id TEXT NOT NULL,
-        started_at TEXT NOT NULL,
-        ended_at TEXT,
-        duration_sec INTEGER,
-        mode TEXT NOT NULL,
-        was_completed INTEGER NOT NULL DEFAULT 0,
+        task_id TEXT NOT NULL,
+        weekday_index INTEGER NOT NULL CHECK(weekday_index BETWEEN 1 AND 7),
+        time_value TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY(occurrence_id) REFERENCES task_occurrences(id) ON DELETE CASCADE
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+        UNIQUE(task_id, weekday_index)
       );
     `);
 
     await db.execute(`
       CREATE TABLE task_notifications (
-        id TEXT PRIMARY KEY NOT NULL,
-        task_id TEXT NOT NULL,
-        notification_type TEXT NOT NULL,
-        trigger_mode TEXT NOT NULL,
-        minutes_before INTEGER,
-        is_enabled INTEGER NOT NULL DEFAULT 1,
+        task_id TEXT PRIMARY KEY NOT NULL,
+        notification_type TEXT NOT NULL CHECK(notification_type IN ('tts', 'sound', 'vibration', 'popup', 'fullscreen')),
+        trigger_mode TEXT NOT NULL CHECK(trigger_mode IN ('at_time', 'before', 'manual_only')),
         sound_name TEXT,
         tts_text TEXT,
-        repeat_if_missed INTEGER NOT NULL DEFAULT 0,
+        repeat_if_missed INTEGER NOT NULL DEFAULT 0 CHECK(repeat_if_missed IN (0, 1)),
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
@@ -99,32 +80,21 @@ export const v1InitialSchemaMigration: SqliteMigration = {
     `);
 
     await db.execute(`
-      CREATE TABLE app_config (
-        id INTEGER PRIMARY KEY CHECK(id = 1),
-        language TEXT,
-        theme TEXT,
-        onboarding_completed INTEGER DEFAULT 0,
-        default_notification_type TEXT,
-        daily_review_enabled INTEGER DEFAULT 1,
-        gentle_mode_enabled INTEGER DEFAULT 0,
-        week_starts_on INTEGER,
-        timezone TEXT,
-        updated_at TEXT
+      CREATE TABLE task_notification_offsets (
+        id TEXT PRIMARY KEY NOT NULL,
+        task_id TEXT NOT NULL,
+        offset_minutes INTEGER NOT NULL CHECK(offset_minutes > 0),
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+        UNIQUE(task_id, offset_minutes)
       );
     `);
 
     await db.execute(`
-      CREATE TABLE daily_reflections (
-        id TEXT PRIMARY KEY NOT NULL,
-        date TEXT NOT NULL,
-        energy_level INTEGER,
-        note TEXT,
-        what_worked TEXT,
-        what_was_hard TEXT,
-        intention_for_tomorrow TEXT,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      );
+      CREATE UNIQUE INDEX idx_categories_name_ci
+      ON categories(name COLLATE NOCASE);
     `);
 
     await db.execute(`
@@ -133,28 +103,23 @@ export const v1InitialSchemaMigration: SqliteMigration = {
     `);
 
     await db.execute(`
-      CREATE INDEX idx_occurrences_task
-      ON task_occurrences(task_id);
+      CREATE INDEX idx_tasks_updated_at
+      ON tasks(updated_at DESC);
     `);
 
     await db.execute(`
-      CREATE INDEX idx_occurrences_date
-      ON task_occurrences(scheduled_date);
+      CREATE INDEX idx_task_recurrence_weekdays_task
+      ON task_recurrence_weekdays(task_id);
     `);
 
     await db.execute(`
-      CREATE INDEX idx_sessions_occurrence
-      ON focus_sessions(occurrence_id);
+      CREATE INDEX idx_task_notification_offsets_task
+      ON task_notification_offsets(task_id);
     `);
 
     await db.execute(`
-      CREATE INDEX idx_recurrence_task
-      ON task_recurrences(task_id);
-    `);
-
-    await db.execute(`
-      CREATE INDEX idx_reflections_date
-      ON daily_reflections(date);
+      CREATE INDEX idx_task_notification_offsets_sort
+      ON task_notification_offsets(task_id, sort_order);
     `);
   },
 };

@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "next-step",
   "version": "0.0.1",
   "author": "Ionic Framework",
@@ -33,6 +33,7 @@
     "@ngx-translate/core": "^17.0.0",
     "@ngx-translate/http-loader": "^17.0.0",
     "@sheldrapps/ads-kit": "workspace:*",
+    "@sheldrapps/datetime-kit": "workspace:*",
     "@sheldrapps/i18n-kit": "workspace:*",
     "@sheldrapps/native-sqlite-kit": "workspace:*",
     "@sheldrapps/settings-kit": "workspace:*",

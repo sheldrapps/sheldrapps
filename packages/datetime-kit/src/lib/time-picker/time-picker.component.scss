@@ -1,0 +1,23 @@
+@use '../picker-shell' as picker-shell;
+
+@include picker-shell.picker-shell();
+
+.picker-sheet--time {
+  max-height: 324px;
+}
+
+.picker-sheet--time .picker-sheet__body {
+  min-height: 232px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.time-picker-wheel {
+  --background: transparent;
+  --wheel-highlight-background: rgba(var(--ion-text-color-rgb), 0.08);
+  --wheel-fade-background-rgb: var(--ion-background-color-rgb, 247, 246, 242);
+  width: 100%;
+  min-height: 212px;
+  margin: 4px 0 6px;
+}
