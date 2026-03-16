@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   IonHeader,
   IonToolbar,
@@ -12,8 +13,9 @@ import {
   IonLabel,
   IonSelect,
   IonSelectOption,
+  ToastController,
 } from '@ionic/angular/standalone';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import {
   Lang,
@@ -25,6 +27,9 @@ import { ConsentService } from 'src/app/services/consent.service';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { CcfkSettings } from 'src/app/settings/ccfk-settings.schema';
 import { Browser } from '@capacitor/browser';
+import { restartForLanguageChange } from '@sheldrapps/i18n-kit';
+import { TourService } from 'src/app/shared/tour/tour.service';
+import { HOME_TOUR_ID } from 'src/app/shared/tour/home-tour.definition';
 
 @Component({
   selector: 'app-settings',
@@ -48,7 +53,14 @@ import { Browser } from '@capacitor/browser';
 })
 export class SettingsPage {
   private settings = inject(SettingsStore<CcfkSettings>);
+  private toastCtrl = inject(ToastController);
+  private translate = inject(TranslateService);
+  private router = inject(Router);
+  private tour = inject(TourService);
   readonly supportedLangs = LANG_OPTIONS;
+  selectedLanguage = this.lang.lang as Lang;
+  private isRestartingLanguage = false;
+  private readonly languageRestartToastMs = 1500;
 
   constructor(
     public lang: LanguageService,
@@ -63,8 +75,21 @@ export class SettingsPage {
   trackByLang = (_: number, l: LangOption) => l.code;
 
   async onLangChange(v: Lang) {
-    await this.lang.set(v);
-    await this.settings.set({ locale: v });
+    if (!v || v === this.lang.lang || this.isRestartingLanguage) {
+      return;
+    }
+
+    this.isRestartingLanguage = true;
+
+    try {
+      this.selectedLanguage = v;
+      await this.settings.set({ language: v });
+      await this.lang.set(v);
+      await this.showLanguageRestartToast();
+      await restartForLanguageChange(v);
+    } finally {
+      this.isRestartingLanguage = false;
+    }
   }
 
   async openPrivacyOptions() {
@@ -75,5 +100,41 @@ export class SettingsPage {
 
   async openPrivacyPolicy() {
     await Browser.open({ url: this.privacyPolicyUrl });
+  }
+
+  async startHomeTour() {
+    this.tour.requestManualStart(HOME_TOUR_ID);
+    await this.router.navigateByUrl('/tabs/create');
+  }
+
+  private async showLanguageRestartToast() {
+    const toast = await this.toastCtrl.create({
+      message: this.translate.instant('SETTINGS.LANGUAGE_RESTART_NOTICE'),
+      duration: this.languageRestartToastMs,
+      position: 'bottom',
+      cssClass: ['cc-toast', 'cc-toast--info'],
+    });
+
+    await toast.present();
+    await this.waitForToastToRender();
+  }
+
+  private async waitForToastToRender(): Promise<void> {
+    if (typeof requestAnimationFrame !== 'function') {
+      await this.delay(32);
+      return;
+    }
+
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => resolve());
+      });
+    });
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
   }
 }

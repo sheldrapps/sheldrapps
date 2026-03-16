@@ -96,11 +96,45 @@
     "TIP": "Per risultati migliori, utilizza immagini ad alta risoluzione e assicurati che gli annunci siano disattivati sul tuo Kindle.",
     "TITLE": "Istruzioni"
   },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "Indietro",
+      "FINISH": "Fine",
+      "INTERACT_HINT": "Interagisci con l'elemento evidenziato per continuare.",
+      "NEXT": "Avanti",
+      "PROGRESS": "{{current}} di {{total}}",
+      "SKIP": "Salta"
+    },
+    "STEPS": {
+      "EPUB": {
+        "TITLE": "File EPUB",
+        "DESCRIPTION": "Seleziona il file EPUB che vuoi aggiornare."
+      },
+      "IMAGE": {
+        "TITLE": "Immagine di copertina",
+        "DESCRIPTION": "Seleziona l'immagine per la tua copertina."
+      },
+      "ADJUST": {
+        "TITLE": "Aggiusta",
+        "DESCRIPTION": "Aggiusta l'immagine nell'editor e tocca Fatto."
+      },
+      "CREATE": {
+        "TITLE": "Cambia copertina",
+        "DESCRIPTION": "Genera qui la copertina aggiornata."
+      },
+      "RESULTS": {
+        "TITLE": "Salva o condividi",
+        "DESCRIPTION": "Salva o condividi il tuo EPUB aggiornato."
+      }
+    }
+  },
   "SETTINGS": {
+    "VIEW_TOUR": "Vedi il tour",
     "INSTRUCTIONS": "Vedi istruzioni",
     "INSTRUCTIONS_HINT": "Come cambiare e inviare una copertina per Kindle",
     "INSTRUCTIONS_SECTION": "Istruzioni",
     "LANGUAGE": "Lingua",
+    "LANGUAGE_RESTART_NOTICE": "Lingua cambiata. L'app si riavvierà per applicare le modifiche.",
     "PRIVACY_HINT": "Controlla come vengono gestiti dati e pubblicità",
     "PRIVACY_OPTIONS": "Opzioni privacy",
     "PRIVACY_POLICY": "Informativa sulla privacy",

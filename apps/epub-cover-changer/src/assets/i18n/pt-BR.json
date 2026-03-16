@@ -96,11 +96,45 @@
     "TIP": "Para melhores resultados, use imagens em alta resolução e certifique-se de que os anúncios estejam desativados no seu Kindle.",
     "TITLE": "Instruções"
   },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "Voltar",
+      "FINISH": "Finalizar",
+      "INTERACT_HINT": "Interaja com o elemento destacado para continuar.",
+      "NEXT": "Próximo",
+      "PROGRESS": "{{current}} de {{total}}",
+      "SKIP": "Pular"
+    },
+    "STEPS": {
+      "EPUB": {
+        "TITLE": "Arquivo EPUB",
+        "DESCRIPTION": "Selecione o arquivo EPUB que você quer atualizar."
+      },
+      "IMAGE": {
+        "TITLE": "Imagem da capa",
+        "DESCRIPTION": "Selecione a imagem para sua capa."
+      },
+      "ADJUST": {
+        "TITLE": "Ajustar",
+        "DESCRIPTION": "Ajuste a imagem no editor e toque em Concluir."
+      },
+      "CREATE": {
+        "TITLE": "Alterar capa",
+        "DESCRIPTION": "Gere aqui a capa atualizada."
+      },
+      "RESULTS": {
+        "TITLE": "Salvar ou compartilhar",
+        "DESCRIPTION": "Salve ou compartilhe seu EPUB atualizado."
+      }
+    }
+  },
   "SETTINGS": {
+    "VIEW_TOUR": "Ver tour",
     "INSTRUCTIONS": "Ver instruções",
     "INSTRUCTIONS_HINT": "Como alterar e enviar uma capa para Kindle",
     "INSTRUCTIONS_SECTION": "Instruções",
     "LANGUAGE": "Idioma",
+    "LANGUAGE_RESTART_NOTICE": "Idioma alterado. O app será reiniciado para aplicar as mudanças.",
     "PRIVACY_HINT": "Controle como os dados e a publicidade são tratados",
     "PRIVACY_OPTIONS": "Opções de privacidade",
     "PRIVACY_POLICY": "Política de privacidade",

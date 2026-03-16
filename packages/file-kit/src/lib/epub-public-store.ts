@@ -1,26 +1,47 @@
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { FileKitService } from './file-kit.service';
 
+const DEFAULT_PUBLIC_DOCUMENTS_ROOTS = [
+  '/storage/emulated/0/Documents',
+  '/storage/self/primary/Documents',
+  '/sdcard/Documents',
+] as const;
+
+type ListingSource = 'absolute' | 'documents-directory';
+
+type ListingAttempt = {
+  source: ListingSource;
+  path: string;
+  directory?: Directory;
+};
+
 export type EpubPublicStoreOptions = {
   epubFolder: string;
   publicDocumentsRoot?: string;
+  publicDocumentsRoots?: string[];
   debug?: boolean;
   logPrefix?: string;
 };
 
 export class EpubPublicStore {
-  private readonly publicDocumentsRoot: string;
+  private readonly publicDocumentsRoots: string[];
   private readonly debug: boolean;
   private readonly logPrefix: string;
   private hasMigratedDocumentsToPublic = false;
+  private activePublicDocumentsRoot: string;
 
   constructor(
     private readonly fileKit: FileKitService,
     private readonly options: EpubPublicStoreOptions,
   ) {
-    this.publicDocumentsRoot = options.publicDocumentsRoot ?? '/storage/emulated/0/Documents';
+    this.publicDocumentsRoots = this.resolvePublicDocumentsRoots(options);
+    this.activePublicDocumentsRoot = this.publicDocumentsRoots[0];
     this.debug = !!options.debug;
     this.logPrefix = options.logPrefix ?? 'EpubPublicStore';
+    this.debugLog('init', {
+      epubFolder: this.options.epubFolder,
+      publicDocumentsRoots: this.publicDocumentsRoots,
+    });
   }
 
   get folder(): string {
@@ -28,7 +49,11 @@ export class EpubPublicStore {
   }
 
   get publicFolderPath(): string {
-    return `${this.publicDocumentsRoot}/${this.options.epubFolder}`;
+    return this.buildPublicFolderPath(this.activePublicDocumentsRoot);
+  }
+
+  get publicFolderPaths(): string[] {
+    return this.publicDocumentsRoots.map((root) => this.buildPublicFolderPath(root));
   }
 
   pathFor(filename: string): string {
@@ -45,81 +70,167 @@ export class EpubPublicStore {
   }
 
   async listEpubs(): Promise<string[]> {
-    try {
-      const list = await Filesystem.readdir({
-        path: this.publicFolderPath,
-      });
-      return (list.files ?? [])
-        .map((f: any) => (typeof f === 'string' ? f : f.name))
-        .filter((name: string) => name.toLowerCase().endsWith('.epub'));
-    } catch {
-      return [];
+    const attempts = this.buildListingAttempts();
+    const merged = new Set<string>();
+    let hadSuccess = false;
+    const failures: Array<{
+      source: ListingSource;
+      path: string;
+      directory?: Directory;
+      error: Record<string, unknown>;
+    }> = [];
+
+    for (const attempt of attempts) {
+      try {
+        const raw = await this.readdirForAttempt(attempt);
+        const normalizedEntries = this.normalizeDirectoryEntries(raw?.files);
+        const filtered = this.filterEpubNames(normalizedEntries);
+        filtered.forEach((filename) => merged.add(filename));
+        hadSuccess = true;
+
+        if (attempt.source === 'absolute') {
+          const resolvedRoot = this.publicDocumentsRoots.find(
+            (root) => this.buildPublicFolderPath(root) === attempt.path,
+          );
+          if (resolvedRoot) {
+            this.activePublicDocumentsRoot = resolvedRoot;
+          }
+        }
+
+        this.debugLog('listEpubs:readdir:success', {
+          source: attempt.source,
+          resolvedFolderPath: attempt.path,
+          directory: attempt.directory,
+          rawReaddirResponse: raw,
+          filteredResult: filtered,
+        });
+      } catch (error) {
+        const errorDetails = this.errorDetails(error);
+        failures.push({
+          source: attempt.source,
+          path: attempt.path,
+          directory: attempt.directory,
+          error: errorDetails,
+        });
+        console.warn(`[${this.logPrefix}] listEpubs:readdir:failed`, {
+          source: attempt.source,
+          resolvedFolderPath: attempt.path,
+          directory: attempt.directory,
+          error: errorDetails,
+        });
+      }
     }
+
+    const result = Array.from(merged).sort((a, b) => a.localeCompare(b));
+    this.debugLog('listEpubs:result', {
+      attemptedPaths: attempts.map((attempt) => ({
+        source: attempt.source,
+        path: attempt.path,
+        directory: attempt.directory,
+      })),
+      filteredResult: result,
+      hadSuccess,
+      failureCount: failures.length,
+    });
+
+    if (hadSuccess) {
+      return result;
+    }
+
+    throw new Error(
+      `[${this.logPrefix}] listEpubs failed for all discovery attempts (${attempts.length})`,
+    );
   }
 
   async writeEpub(filename: string, bytes: Uint8Array): Promise<void> {
     await this.ensureReady();
+    const targetPath = this.pathFor(filename);
     await Filesystem.writeFile({
-      path: this.pathFor(filename),
+      path: targetPath,
       data: this.fileKit.toBase64(bytes),
       recursive: true,
     });
-    this.debugLog('writeEpub', { filename, bytes: bytes.byteLength });
+    this.debugLog('writeEpub', {
+      filename,
+      bytes: bytes.byteLength,
+      targetPath,
+      writeCompletedAt: new Date().toISOString(),
+    });
   }
 
   async deleteEpub(filename: string): Promise<void> {
-    try {
-      await Filesystem.deleteFile({
-        path: this.pathFor(filename),
-      });
-      this.debugLog('deleteEpub', { filename });
-    } catch {
-      // ignore missing public file
+    for (const path of this.buildFilePathCandidates(filename)) {
+      try {
+        await Filesystem.deleteFile({ path });
+        this.debugLog('deleteEpub', { filename, path });
+        return;
+      } catch (error) {
+        if (this.isNotFoundError(error)) {
+          continue;
+        }
+        console.warn(`[${this.logPrefix}] deleteEpub failed`, {
+          filename,
+          path,
+          error: this.errorDetails(error),
+        });
+      }
     }
+    this.debugLog('deleteEpub:notFound', {
+      filename,
+      attemptedPaths: this.buildFilePathCandidates(filename),
+    });
   }
 
   async renameEpub(fromFilename: string, toFilename: string): Promise<void> {
     await this.ensureReady();
+    const fromPath = await this.resolveExistingPath(fromFilename);
+    if (!fromPath) {
+      throw new Error(`File not found: ${fromFilename}`);
+    }
+    const folderPath = fromPath.slice(0, fromPath.lastIndexOf('/'));
+    const toPath = `${folderPath}/${toFilename}`;
+
     await Filesystem.rename({
-      from: this.pathFor(fromFilename),
-      to: this.pathFor(toFilename),
+      from: fromPath,
+      to: toPath,
     });
-    this.debugLog('renameEpub', { from: fromFilename, to: toFilename });
+    this.debugLog('renameEpub', {
+      from: fromFilename,
+      to: toFilename,
+      fromPath,
+      toPath,
+    });
   }
 
   async exists(filename: string): Promise<boolean> {
-    try {
-      await Filesystem.stat({
-        path: this.pathFor(filename),
-      });
-      return true;
-    } catch {
-      return false;
-    }
+    const existingPath = await this.resolveExistingPath(filename);
+    return !!existingPath;
   }
 
   async readBytes(filename: string): Promise<Uint8Array> {
+    const path = await this.resolveExistingPath(filename);
+    if (!path) {
+      throw new Error(`File not found: ${filename}`);
+    }
+
     const raw = await Filesystem.readFile({
-      path: this.pathFor(filename),
+      path,
     });
     const base64 = typeof raw.data === 'string'
       ? raw.data
       : this.fileKit.toBase64(new Uint8Array(await raw.data.arrayBuffer()));
+    this.debugLog('readBytes', { filename, path });
     return this.fileKit.fromBase64(this.normalizeBase64Data(base64));
   }
 
   async getUriOrThrow(filename: string): Promise<string> {
-    const absolutePath = this.pathFor(filename);
-    try {
-      await Filesystem.stat({
-        path: absolutePath,
-      });
-      const uri = `file://${absolutePath}`;
-      this.debugLog('getUriOrThrow', { filename, uri });
-      return uri;
-    } catch {
-      throw new Error(`File not found: ${absolutePath}`);
+    const absolutePath = await this.resolveExistingPath(filename);
+    if (!absolutePath) {
+      throw new Error(`File not found: ${filename}`);
     }
+    const uri = `file://${absolutePath}`;
+    this.debugLog('getUriOrThrow', { filename, absolutePath, uri });
+    return uri;
   }
 
   async deleteDocumentEpubIfExists(relativePath: string): Promise<void> {
@@ -135,10 +246,25 @@ export class EpubPublicStore {
   }
 
   private async ensurePublicFolderExists(): Promise<void> {
-    await Filesystem.mkdir({
-      path: this.publicFolderPath,
-      recursive: true,
-    }).catch(() => undefined);
+    for (const root of this.publicDocumentsRoots) {
+      const folderPath = this.buildPublicFolderPath(root);
+      try {
+        await Filesystem.mkdir({
+          path: folderPath,
+          recursive: true,
+        });
+        this.activePublicDocumentsRoot = root;
+        this.debugLog('ensurePublicFolderExists:ok', {
+          resolvedFolderPath: folderPath,
+        });
+        return;
+      } catch (error) {
+        console.warn(`[${this.logPrefix}] ensurePublicFolderExists failed`, {
+          resolvedFolderPath: folderPath,
+          error: this.errorDetails(error),
+        });
+      }
+    }
   }
 
   private async migrateDocumentsEpubsToPublicOnce(): Promise<void> {
@@ -148,7 +274,12 @@ export class EpubPublicStore {
     this.hasMigratedDocumentsToPublic = true;
 
     const documentFiles = await this.listDirectoryDocumentsEpubs();
-    this.debugLog('migrate:start', { count: documentFiles.length });
+    const migrated: string[] = [];
+    const failed: string[] = [];
+    this.debugLog('migrate:start', {
+      sourceListingResult: documentFiles,
+      count: documentFiles.length,
+    });
 
     for (const filename of documentFiles) {
       const alreadyInPublic = await this.exists(filename);
@@ -168,13 +299,26 @@ export class EpubPublicStore {
           recursive: true,
         });
         await this.deleteDocumentEpubIfExists(relativePath);
-        this.debugLog('migrate:migrated', { filename, bytes: bytes.byteLength });
-      } catch {
-        this.debugLog('migrate:failed', { filename });
+        migrated.push(filename);
+        this.debugLog('migrate:migrated', {
+          filename,
+          bytes: bytes.byteLength,
+          destinationPath: this.pathFor(filename),
+        });
+      } catch (error) {
+        failed.push(filename);
+        console.warn(`[${this.logPrefix}] migrate:failed`, {
+          filename,
+          error: this.errorDetails(error),
+        });
       }
     }
 
-    this.debugLog('migrate:done');
+    this.debugLog('migrate:done', {
+      sourceCount: documentFiles.length,
+      migratedFilenames: migrated,
+      migrationFailures: failed,
+    });
   }
 
   private async listDirectoryDocumentsEpubs(): Promise<string[]> {
@@ -183,12 +327,156 @@ export class EpubPublicStore {
         directory: Directory.Documents,
         path: this.options.epubFolder,
       });
-      return (list.files ?? [])
-        .map((f: any) => (typeof f === 'string' ? f : f.name))
-        .filter((name: string) => name.toLowerCase().endsWith('.epub'));
-    } catch {
+      const names = this.normalizeDirectoryEntries(list.files);
+      const filtered = this.filterEpubNames(names);
+      this.debugLog('migrate:listDirectoryDocumentsEpubs:success', {
+        sourcePath: this.options.epubFolder,
+        rawReaddirResponse: list,
+        filteredResult: filtered,
+      });
+      return filtered;
+    } catch (error) {
+      console.warn(`[${this.logPrefix}] migrate:listDirectoryDocumentsEpubs:failed`, {
+        sourcePath: this.options.epubFolder,
+        directory: Directory.Documents,
+        error: this.errorDetails(error),
+      });
       return [];
     }
+  }
+
+  private resolvePublicDocumentsRoots(options: EpubPublicStoreOptions): string[] {
+    const configuredRoots = options.publicDocumentsRoots?.length
+      ? options.publicDocumentsRoots
+      : options.publicDocumentsRoot
+        ? [options.publicDocumentsRoot]
+        : [...DEFAULT_PUBLIC_DOCUMENTS_ROOTS];
+    const merged = [...configuredRoots, ...DEFAULT_PUBLIC_DOCUMENTS_ROOTS];
+    const normalized = merged
+      .map((path) => this.trimTrailingSlash(path))
+      .filter((path) => !!path);
+    return Array.from(new Set(normalized));
+  }
+
+  private trimTrailingSlash(path: string): string {
+    return path.replace(/[\\/]+$/, '');
+  }
+
+  private buildPublicFolderPath(root: string): string {
+    return `${this.trimTrailingSlash(root)}/${this.options.epubFolder}`;
+  }
+
+  private buildListingAttempts(): ListingAttempt[] {
+    const absoluteAttempts: ListingAttempt[] = this.publicFolderPaths.map((path) => ({
+      source: 'absolute',
+      path,
+    }));
+    const documentsAttempt: ListingAttempt = {
+      source: 'documents-directory',
+      path: this.options.epubFolder,
+      directory: Directory.Documents,
+    };
+    return [...absoluteAttempts, documentsAttempt];
+  }
+
+  private async readdirForAttempt(attempt: ListingAttempt): Promise<any> {
+    if (attempt.directory) {
+      return Filesystem.readdir({
+        directory: attempt.directory,
+        path: attempt.path,
+      });
+    }
+    return Filesystem.readdir({
+      path: attempt.path,
+    });
+  }
+
+  private normalizeDirectoryEntries(files: unknown): string[] {
+    if (!Array.isArray(files)) {
+      return [];
+    }
+    return files
+      .map((entry) => this.resolveDirectoryEntryName(entry))
+      .filter((name): name is string => !!name);
+  }
+
+  private resolveDirectoryEntryName(entry: unknown): string | null {
+    if (typeof entry === 'string') {
+      return entry.trim() || null;
+    }
+
+    if (!entry || typeof entry !== 'object') {
+      return null;
+    }
+
+    const byName = (entry as { name?: unknown }).name;
+    if (typeof byName === 'string' && byName.trim()) {
+      return byName.trim();
+    }
+
+    const byPath = (entry as { path?: unknown }).path;
+    if (typeof byPath === 'string' && byPath.trim()) {
+      const name = byPath.split('/').pop();
+      return name?.trim() || null;
+    }
+
+    const byUri = (entry as { uri?: unknown }).uri;
+    if (typeof byUri === 'string' && byUri.trim()) {
+      const name = byUri.split('/').pop();
+      return name?.trim() || null;
+    }
+
+    return null;
+  }
+
+  private filterEpubNames(names: string[]): string[] {
+    return names.filter((name) => name.toLowerCase().endsWith('.epub'));
+  }
+
+  private buildFilePathCandidates(filename: string): string[] {
+    return this.publicFolderPaths.map((folderPath) => `${folderPath}/${filename}`);
+  }
+
+  private async resolveExistingPath(filename: string): Promise<string | null> {
+    for (const candidate of this.buildFilePathCandidates(filename)) {
+      try {
+        await Filesystem.stat({ path: candidate });
+        return candidate;
+      } catch {
+        // continue
+      }
+    }
+    return null;
+  }
+
+  private isNotFoundError(error: unknown): boolean {
+    const haystack = [
+      (error as { message?: string })?.message,
+      (error as { code?: string | number })?.code,
+      String(error),
+    ]
+      .filter((part) => part !== undefined && part !== null)
+      .join(' ')
+      .toLowerCase();
+    return haystack.includes('not found') || haystack.includes('enoent');
+  }
+
+  private errorDetails(error: unknown): Record<string, unknown> {
+    if (error && typeof error === 'object') {
+      const e = error as {
+        name?: unknown;
+        message?: unknown;
+        code?: unknown;
+        stack?: unknown;
+      };
+      return {
+        name: typeof e.name === 'string' ? e.name : undefined,
+        message: typeof e.message === 'string' ? e.message : undefined,
+        code: typeof e.code === 'string' || typeof e.code === 'number' ? e.code : undefined,
+        stack: typeof e.stack === 'string' ? e.stack : undefined,
+      };
+    }
+    return { message: String(error) };
   }
 
   private normalizeBase64Data(data: string): string {

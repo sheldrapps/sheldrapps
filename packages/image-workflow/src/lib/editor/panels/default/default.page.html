@@ -1,4 +1,9 @@
-<div class="bottom-bar" role="toolbar" [attr.aria-label]="'EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR' | translate">
+<div
+  class="bottom-bar"
+  role="toolbar"
+  data-tour-id="editor-bottom-bar"
+  [attr.aria-label]="'EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR' | translate"
+>
   <sh-scrollable-button-bar
     [items]="bottomBarItems"
     variant="iconText"

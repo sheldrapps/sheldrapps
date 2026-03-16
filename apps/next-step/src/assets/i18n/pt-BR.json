@@ -22,6 +22,7 @@
   "TASKS": {
     "TITLE": "Tarefas",
     "NEW_TASK": "+ Nova tarefa",
+    "MANAGE_CATEGORIES": "Gerenciar categorias",
     "PLACEHOLDER": "Lista de tarefas (placeholder)",
     "SAMPLE_TASK": "Abrir tarefa de exemplo",
     "OPEN_PROGRESS": "Abrir progresso ao longo do tempo"
@@ -152,6 +153,9 @@
     "CATEGORY_CREATE_OPTION": "+ Criar categoria",
     "CATEGORY_CREATE_TITLE": "Nova categoria",
     "CATEGORY_CREATE_PLACEHOLDER": "Nome da categoria",
+    "CATEGORY_CUSTOM_NAME_LABEL": "Categoria personalizada",
+    "VALIDATION_CATEGORY_NAME_REQUIRED": "Informe um nome de categoria.",
+    "VALIDATION_CATEGORY_NAME_DUPLICATE": "Essa categoria já existe.",
     "DEFAULT_CATEGORY_PERSONAL": "Pessoal",
     "DEFAULT_CATEGORY_WORK": "Trabalho",
     "DEFAULT_CATEGORY_HEALTH": "Saúde",
@@ -172,6 +176,32 @@
     "VALIDATION_YEAR_MONTH_REQUIRED": "Selecione o mês.",
     "VALIDATION_YEAR_DAY_REQUIRED": "Selecione o dia.",
     "RECURRENCE_TIME_PLACEHOLDER": "--:--"
+  },
+  "CATEGORY_VALIDATION": {
+    "EMPTY": "O nome da categoria não pode estar vazio",
+    "DUPLICATE": "A categoria já existe",
+    "TOO_LONG": "O nome da categoria é muito longo"
+  },
+  "CATEGORIES": {
+    "TITLE": "Categorias",
+    "NEW_CATEGORY": "+ Nova categoria",
+    "EMPTY": "Ainda não há categorias.",
+    "EDIT": "Editar",
+    "DELETE": "Excluir",
+    "DELETE_CONFIRM_TITLE": "Excluir a categoria \"{{name}}\"?",
+    "DELETE_CONFIRM_MESSAGE": "As tarefas que usam esta categoria perderão a categoria.",
+    "ERROR_LOAD": "Não foi possível carregar as categorias.",
+    "ERROR_DELETE": "Não foi possível excluir a categoria."
+  },
+  "CATEGORY_FORM": {
+    "NEW_TITLE": "Criar categoria",
+    "EDIT_TITLE": "Editar categoria",
+    "NAME_LABEL": "Nome da categoria",
+    "NAME_PLACEHOLDER": "Nome da categoria",
+    "CREATE_ACTION": "Criar categoria",
+    "UPDATE_ACTION": "Salvar alterações",
+    "ERROR_SAVE": "Não foi possível salvar a categoria.",
+    "ERROR_NOT_FOUND": "Categoria não encontrada."
   },
   "PROGRESS": {
     "TITLE": "Progresso ao longo do tempo",

@@ -39,6 +39,12 @@ import {
   TaskCategory,
 } from '../../database/repositories/category.repository';
 import {
+  CategoryNameValidationException,
+  CategoryNameValidationError,
+  CategoryNameValidationResult,
+  validateCategoryName,
+} from '../../database/repositories/category-name.validation';
+import {
   CreateTaskInput,
   CreateTaskRecurrenceInput,
   NotificationTriggerMode,
@@ -49,6 +55,7 @@ import {
 import { NextStepSettings } from '../../settings/next-step-settings.schema';
 
 type RecurrencePattern = 'daily' | 'selected_weekdays' | 'monthly' | 'yearly';
+type CategoryMode = 'existing' | 'custom';
 type WeekdayTimeControlName =
   | 'recurrenceDayTimeMon'
   | 'recurrenceDayTimeTue'
@@ -69,6 +76,13 @@ interface WeekdayOption {
 interface NotificationLeadTimePreset {
   value: number;
   labelKey: string;
+}
+
+interface CategorySelectionState {
+  mode: CategoryMode;
+  categoryId: string | null;
+  customCategoryName: string;
+  lastSelectedCategoryId: string | null;
 }
 
 @Component({
@@ -249,7 +263,9 @@ export class CreateTaskPage {
     description: [''],
     mode: this.fb.nonNullable.control<TaskMode>('check'),
     estimatedDurationMin: this.fb.control<number | null>(null),
+    categoryMode: this.fb.nonNullable.control<CategoryMode>('existing'),
     categoryId: this.fb.control<string | null>(null),
+    customCategoryName: this.fb.nonNullable.control(''),
     recurrenceEnabled: this.fb.nonNullable.control(false),
     recurrencePattern:
       this.fb.nonNullable.control<RecurrencePattern>('daily'),
@@ -283,6 +299,7 @@ export class CreateTaskPage {
   selectedWeekdayMask = 0;
   titleTouched = false;
   descriptionTouched = false;
+  customCategoryTouched = false;
   submitAttempted = false;
   isSaving = false;
   saveFailed = false;
@@ -390,7 +407,61 @@ export class CreateTaskPage {
   }
 
   get saveDisabled(): boolean {
-    return this.isSaving || this.form.invalid || this.showSelectedWeekdayError;
+    return (
+      this.isSaving ||
+      this.form.invalid ||
+      this.showSelectedWeekdayError ||
+      this.hasCustomCategoryValidationError
+    );
+  }
+
+  get isCustomCategoryMode(): boolean {
+    return this.form.controls.categoryMode.value === 'custom';
+  }
+
+  get normalizedCustomCategoryName(): string {
+    return this.customCategoryValidation.normalizedName;
+  }
+
+  get customCategoryValidationError(): CategoryNameValidationError | null {
+    return this.customCategoryValidation.error;
+  }
+
+  get showCustomCategoryNameRequiredError(): boolean {
+    if (!this.isCustomCategoryMode) {
+      return false;
+    }
+
+    return (
+      this.customCategoryValidationError === 'empty' &&
+      (this.customCategoryTouched || this.submitAttempted)
+    );
+  }
+
+  get showCustomCategoryNameDuplicateError(): boolean {
+    if (!this.isCustomCategoryMode) {
+      return false;
+    }
+
+    return (
+      this.customCategoryValidationError === 'duplicate' &&
+      (this.customCategoryTouched || this.submitAttempted)
+    );
+  }
+
+  get showCustomCategoryNameTooLongError(): boolean {
+    if (!this.isCustomCategoryMode) {
+      return false;
+    }
+
+    return (
+      this.customCategoryValidationError === 'too_long' &&
+      (this.customCategoryTouched || this.submitAttempted)
+    );
+  }
+
+  get hasCustomCategoryValidationError(): boolean {
+    return this.isCustomCategoryMode && this.customCategoryValidationError !== null;
   }
 
   onTitleEnter(event: Event): void {
@@ -406,6 +477,10 @@ export class CreateTaskPage {
     this.descriptionTouched = true;
   }
 
+  onCustomCategoryNameBlur(): void {
+    this.customCategoryTouched = true;
+  }
+
   onDurationTrackingToggle(enabled: boolean): void {
     this.form.controls.mode.setValue(enabled ? 'duration' : 'check');
   }
@@ -413,14 +488,19 @@ export class CreateTaskPage {
   onCategoryChange(event: CustomEvent<{ value: string | null }>): void {
     const selectedValue = (event.detail.value ?? null) as string | null;
     if (selectedValue !== this.createCategoryOptionValue) {
-      this.lastSelectedCategoryId = selectedValue;
+      this.setExistingCategorySelection(selectedValue);
       return;
     }
 
-    this.form.controls.categoryId.setValue(this.lastSelectedCategoryId, {
+    const previousSelection = this.captureCategorySelectionState();
+    const fallbackCategoryId =
+      previousSelection.mode === 'existing'
+        ? previousSelection.categoryId
+        : previousSelection.lastSelectedCategoryId;
+    this.form.controls.categoryId.setValue(fallbackCategoryId, {
       emitEvent: false,
     });
-    void this.openCreateCategoryAlert();
+    void this.openCreateCategoryAlert(previousSelection);
   }
 
   isNotificationLeadTimeSelected(value: number): boolean {
@@ -460,10 +540,15 @@ export class CreateTaskPage {
   async submit(): Promise<void> {
     this.submitAttempted = true;
     this.titleTouched = true;
+    this.customCategoryTouched = this.customCategoryTouched || this.isCustomCategoryMode;
     this.saveFailed = false;
     this.normalizeTimeControlsBeforeSubmit();
 
-    if (this.form.invalid || this.showSelectedWeekdayError) {
+    if (
+      this.form.invalid ||
+      this.showSelectedWeekdayError ||
+      this.hasCustomCategoryValidationError
+    ) {
       this.form.markAllAsTouched();
       return;
     }
@@ -471,12 +556,28 @@ export class CreateTaskPage {
     this.isSaving = true;
     try {
       await this.persistNotificationLeadTimeFromCurrentForm();
-      await this.taskRepository.createTask(
-        this.sanitizeCreateTaskPayload(this.buildCreateTaskInput())
-      );
+      const payload = this.sanitizeCreateTaskPayload(this.buildCreateTaskInput());
+      const categoryMode = this.form.controls.categoryMode.value;
+
+      if (categoryMode === 'custom') {
+        await this.taskRepository.createTaskWithCustomCategory(
+          payload,
+          this.normalizedCustomCategoryName
+        );
+      } else {
+        await this.taskRepository.createTask(payload);
+      }
+
       await this.router.navigate(['/tabs/tasks']);
-    } catch {
-      this.saveFailed = true;
+    } catch (error: unknown) {
+      if (error instanceof CategoryNameValidationException) {
+        if (error.code === 'duplicate') {
+          await this.loadCategories();
+        }
+        this.customCategoryTouched = true;
+      } else {
+        this.saveFailed = true;
+      }
     } finally {
       this.isSaving = false;
     }
@@ -1005,6 +1106,8 @@ export class CreateTaskPage {
 
   private buildCreateTaskInput(): CreateTaskInput {
     const values = this.form.getRawValue();
+    const categoryId =
+      values.categoryMode === 'existing' ? values.categoryId || null : null;
 
     return {
       title: values.title.trim(),
@@ -1012,7 +1115,7 @@ export class CreateTaskPage {
       mode: values.mode,
       estimatedDurationMin:
         values.mode === 'duration' ? values.estimatedDurationMin : null,
-      categoryId: values.categoryId || null,
+      categoryId,
       recurrence: values.recurrenceEnabled
         ? this.buildRecurrenceInput(values)
         : undefined,
@@ -1637,7 +1740,9 @@ export class CreateTaskPage {
     return [...values].sort((a, b) => a - b);
   }
 
-  private async openCreateCategoryAlert(): Promise<void> {
+  private async openCreateCategoryAlert(
+    previousSelection: CategorySelectionState
+  ): Promise<void> {
     const alert = await this.alertController.create({
       header: this.translate.instant('CREATE_TASK.CATEGORY_CREATE_TITLE'),
       inputs: [
@@ -1666,25 +1771,71 @@ export class CreateTaskPage {
       values?: { name?: string };
     }>();
     if (role !== 'confirm') {
+      this.restoreCategorySelectionState(previousSelection);
       return;
     }
 
-    const categoryName = data?.values?.name?.trim() ?? '';
-    if (!categoryName) {
+    const categoryName = data?.values?.name ?? '';
+    const validation = this.resolveCustomCategoryValidation(categoryName);
+    if (validation.error === 'empty') {
+      this.restoreCategorySelectionState(previousSelection);
       return;
     }
 
-    try {
-      const created = await this.categoryRepository.createCategory(categoryName);
-      this.categories = await this.categoryRepository.listCategories();
-      this.lastSelectedCategoryId = created.id;
-      this.form.controls.categoryId.setValue(created.id, { emitEvent: false });
-    } catch {
-      // Keeps the previous selection when creation fails.
-      this.form.controls.categoryId.setValue(this.lastSelectedCategoryId, {
-        emitEvent: false,
-      });
+    this.setCustomCategorySelection(validation.normalizedName);
+    if (validation.error) {
+      this.customCategoryTouched = true;
+      return;
     }
+
+    this.customCategoryTouched = false;
+  }
+
+  private captureCategorySelectionState(): CategorySelectionState {
+    return {
+      mode: this.form.controls.categoryMode.value,
+      categoryId: this.form.controls.categoryId.value,
+      customCategoryName: this.form.controls.customCategoryName.value,
+      lastSelectedCategoryId: this.lastSelectedCategoryId,
+    };
+  }
+
+  private restoreCategorySelectionState(state: CategorySelectionState): void {
+    this.form.controls.categoryMode.setValue(state.mode, { emitEvent: false });
+    this.form.controls.categoryId.setValue(state.categoryId, { emitEvent: false });
+    this.form.controls.customCategoryName.setValue(state.customCategoryName, {
+      emitEvent: false,
+    });
+    this.lastSelectedCategoryId = state.lastSelectedCategoryId;
+  }
+
+  private setExistingCategorySelection(categoryId: string | null): void {
+    this.form.controls.categoryMode.setValue('existing', { emitEvent: false });
+    this.form.controls.categoryId.setValue(categoryId, { emitEvent: false });
+    this.form.controls.customCategoryName.setValue('', { emitEvent: false });
+    this.lastSelectedCategoryId = categoryId;
+    this.customCategoryTouched = false;
+  }
+
+  private setCustomCategorySelection(name: string): void {
+    this.form.controls.categoryMode.setValue('custom', { emitEvent: false });
+    this.form.controls.categoryId.setValue(null, { emitEvent: false });
+    this.form.controls.customCategoryName.setValue(name, { emitEvent: false });
+  }
+
+  private resolveCustomCategoryValidation(
+    candidateName: string
+  ): CategoryNameValidationResult {
+    return validateCategoryName(
+      candidateName,
+      this.categories.map((category) => category.name)
+    );
+  }
+
+  private get customCategoryValidation(): CategoryNameValidationResult {
+    return this.resolveCustomCategoryValidation(
+      this.form.controls.customCategoryName.value
+    );
   }
 
   private resolveTimezone(): string | null {

@@ -19,7 +19,6 @@ import {
 } from './language-normalizer';
 import { StorageAdapter, LocalStorageAdapter } from './storage';
 import { getDeviceLanguage } from './adapters/device-lang';
-
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
   private currentLang: string;

@@ -22,6 +22,7 @@
   "TASKS": {
     "TITLE": "Tâches",
     "NEW_TASK": "+ Nouvelle tâche",
+    "MANAGE_CATEGORIES": "Gérer les catégories",
     "PLACEHOLDER": "Liste des tâches (espace reserve)",
     "SAMPLE_TASK": "Ouvrir une tâche exemple",
     "OPEN_PROGRESS": "Voir la progrèssion dans le temps"
@@ -152,6 +153,9 @@
     "CATEGORY_CREATE_OPTION": "+ Créer une catégorie",
     "CATEGORY_CREATE_TITLE": "Nouvelle catégorie",
     "CATEGORY_CREATE_PLACEHOLDER": "Nom de la catégorie",
+    "CATEGORY_CUSTOM_NAME_LABEL": "Catégorie personnalisée",
+    "VALIDATION_CATEGORY_NAME_REQUIRED": "Saisis un nom de catégorie.",
+    "VALIDATION_CATEGORY_NAME_DUPLICATE": "Cette catégorie existe déjà.",
     "DEFAULT_CATEGORY_PERSONAL": "Personnel",
     "DEFAULT_CATEGORY_WORK": "Travail",
     "DEFAULT_CATEGORY_HEALTH": "Santé",
@@ -172,6 +176,32 @@
     "VALIDATION_YEAR_MONTH_REQUIRED": "Sélectionne le mois.",
     "VALIDATION_YEAR_DAY_REQUIRED": "Sélectionne le jour.",
     "RECURRENCE_TIME_PLACEHOLDER": "--:--"
+  },
+  "CATEGORY_VALIDATION": {
+    "EMPTY": "Le nom de la catégorie ne peut pas être vide",
+    "DUPLICATE": "La catégorie existe déjà",
+    "TOO_LONG": "Le nom de la catégorie est trop long"
+  },
+  "CATEGORIES": {
+    "TITLE": "Catégories",
+    "NEW_CATEGORY": "+ Nouvelle catégorie",
+    "EMPTY": "Aucune catégorie pour le moment.",
+    "EDIT": "Modifier",
+    "DELETE": "Supprimer",
+    "DELETE_CONFIRM_TITLE": "Supprimer la catégorie \"{{name}}\" ?",
+    "DELETE_CONFIRM_MESSAGE": "Les tâches qui utilisent cette catégorie perdront leur catégorie.",
+    "ERROR_LOAD": "Impossible de charger les catégories.",
+    "ERROR_DELETE": "Impossible de supprimer la catégorie."
+  },
+  "CATEGORY_FORM": {
+    "NEW_TITLE": "Créer une catégorie",
+    "EDIT_TITLE": "Modifier la catégorie",
+    "NAME_LABEL": "Nom de la catégorie",
+    "NAME_PLACEHOLDER": "Nom de la catégorie",
+    "CREATE_ACTION": "Créer la catégorie",
+    "UPDATE_ACTION": "Enregistrer les modifications",
+    "ERROR_SAVE": "Impossible d'enregistrer la catégorie.",
+    "ERROR_NOT_FOUND": "Catégorie introuvable."
   },
   "PROGRESS": {
     "TITLE": "Progression dans le temps",

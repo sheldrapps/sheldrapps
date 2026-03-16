@@ -2,6 +2,12 @@
 <resources>
     <string name="app_name">EPUB Cover Changer</string>
     <string name="title_activity_main">EPUB Cover Changer</string>
+    <string name="app_name_en">EPUB Cover Changer</string>
+    <string name="app_name_es">Cambiar portada a EPUB</string>
+    <string name="app_name_fr">Changer couverture EPUB</string>
+    <string name="app_name_it">Cambiare copertina EPUB</string>
+    <string name="app_name_pt">Alterar capa do EPUB</string>
+    <string name="app_name_de">EPUB Cover ändern</string>
     <string name="package_name">com.sheldrapps.epubcoverchanger</string>
     <string name="custom_url_scheme">com.sheldrapps.epubcoverchanger</string>
 </resources>

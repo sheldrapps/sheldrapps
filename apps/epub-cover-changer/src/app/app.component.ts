@@ -2,7 +2,11 @@ import { Component, inject } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { Title } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
-import { detectSupportedLocale, LanguageService } from '@sheldrapps/i18n-kit';
+import {
+  detectSupportedLocale,
+  LanguageService,
+  syncLauncherAlias,
+} from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService } from '@sheldrapps/ui-theme';
 import { ConsentService } from './services/consent.service';
@@ -31,13 +35,12 @@ export class AppComponent {
     // Load settings from storage (runs migrations if needed)
     await this.settings.load();
 
-    // Get the saved language from settings
     const currentSettings = this.settings.get();
-    const locale = currentSettings.locale ?? (await detectSupportedLocale());
+    const language = currentSettings.language ?? (await detectSupportedLocale());
 
-    // Set the language in LanguageService
+    await syncLauncherAlias(language);
     this.t.setDefaultLang('en-US');
-    await this.lang.set(locale);
+    await this.lang.set(language);
 
     await this.consent.gatherConsent();
     this.setDocumentTitle();

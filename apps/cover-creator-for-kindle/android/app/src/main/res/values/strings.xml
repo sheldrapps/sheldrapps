@@ -1,7 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Cover Creator for Kindle</string>
-    <string name="title_activity_main">Cover Creator for Kindle</string>
+    <string name="app_name">E-Reader Cover Creator</string>
+    <string name="title_activity_main">E-Reader Cover Creator</string>
+    <string name="app_name_en">E-Reader Cover Creator</string>
+    <string name="app_name_es">Creador de portadas e-reader</string>
+    <string name="app_name_fr">Créateur couvertures e-reader</string>
+    <string name="app_name_it">Creatore copertine e-reader</string>
+    <string name="app_name_pt">Criador de capas e-reader</string>
+    <string name="app_name_de">E-Reader Cover Creator</string>
     <string name="package_name">com.sheldrapps.covercreatorforkindle</string>
     <string name="custom_url_scheme">com.sheldrapps.covercreatorforkindle</string>
 </resources>

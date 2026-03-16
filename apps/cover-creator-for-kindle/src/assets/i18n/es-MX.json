@@ -19,7 +19,7 @@
     "ARIA_CHANGE_IMAGE": "Cambiar imagen de portada. Imagen actual: {{name}}",
     "ARIA_CROP": "Ajustar imagen seleccionada",
     "ARIA_SELECT_IMAGE": "Seleccionar imagen de portada",
-    "ARIA_SELECT_MODEL": "Seleccionar modelo de Kindle",
+    "ARIA_SELECT_MODEL": "Seleccionar modelo del dispositivo",
     "CROP_ACTION": "Ajustar",
     "COVER_CREATED": "Portada creada. Ya puedes guardar o compartir",
     "CREATE_ACTION_REWARDED": "Crear portada (ver anuncio)",
@@ -32,8 +32,8 @@
     "INFO_SHARE_KINDLE": "Para enviarla a tu Kindle, al compartir, elige la app Kindle.",
     "INFO_FLOW_LABEL": "Orden recomendado:",
     "INFO_STEP_1": "Seleccionar imagen.",
-    "INFO_STEP_2": "Ajustar imagen en el editor.",
-    "INFO_STEP_3": "Ver anuncio para crear portada.",
+    "INFO_STEP_2": "Ajustar la imagen en el editor y tocar Listo para aplicarla.",
+    "INFO_STEP_3": "Crear la portada después de aplicar el ajuste.",
     "INFO_STEP_4": "Guardar o compartir.",
     "INFO_NOTE_LABEL": "Nota:",
     "IMAGE_ERROR_CORRUPT": "No se pudo leer la imagen. Prueba con otra.",
@@ -50,12 +50,14 @@
     "SAVE_ACTION": "Guardar",
     "SELECT_IMAGE_LABEL": "Imagen de portada",
     "SELECT_IMAGE_PLACEHOLDER": "Selecciona una imagen",
-    "SELECT_GROUP_LABEL": "Modelo",
-    "SELECT_GROUP_PLACEHOLDER": "Selecciona el modelo",
-    "SELECT_GENERATION_LABEL": "Generación",
-    "SELECT_GENERATION_PLACEHOLDER": "Selecciona la generación",
-    "SELECT_MODEL_LABEL": "Modelo de Kindle",
-    "SELECT_MODEL_PLACEHOLDER": "Selecciona tu modelo",
+    "SELECT_BRAND_LABEL": "Marca",
+    "SELECT_BRAND_PLACEHOLDER": "Selecciona una marca",
+    "SELECT_GROUP_LABEL": "Grupo",
+    "SELECT_GROUP_PLACEHOLDER": "Selecciona un grupo",
+    "SELECT_GENERATION_LABEL": "Modelo",
+    "SELECT_GENERATION_PLACEHOLDER": "Selecciona un modelo",
+    "SELECT_MODEL_LABEL": "Modelo del dispositivo",
+    "SELECT_MODEL_PLACEHOLDER": "Selecciona tu dispositivo",
     "TAP_TO_CHANGE": "Toca para cambiar/reiniciar",
     "TITLE": "Crear portada",
     "MODEL_PICKER": {
@@ -91,39 +93,97 @@
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Nota",
     "STEP_1": "Selecciona una imagen para tu portada",
-    "STEP_2": "Ajusta la imagen al tamaño de tu Kindle",
-    "STEP_3": "Genera la portada viendo un video corto",
+    "STEP_2": "Ajusta la imagen en el editor y toca Listo para aplicarla",
+    "STEP_3": "Crea la portada después de aplicar el ajuste",
     "STEP_4": "Guarda o comparte la portada",
-    "STEP_4_DESC": "Cuando esté lista, puedes guardarla en tu dispositivo o compartirla con la app Kindle para una transición más suave.",
+    "STEP_4_DESC": "Cuando esté lista, puedes guardarla en tu dispositivo o compartirla con la app Kindle para un flujo más simple.",
     "STEP_5": "Enviar vía web (Send to Kindle)",
-    "STEP_5_DESC": "También puedes enviarla desde el navegador usando la herramienta web Send to Kindle.",
+    "STEP_5_DESC": "También puedes enviarla desde el navegador con la herramienta web Send to Kindle.",
     "TIP": "Para mejores resultados, usa imágenes en alta resolución y asegúrate de que los anuncios estén desactivados en tu Kindle.",
     "TITLE": "Instrucciones"
   },
+  "KINDLE_BRANDS": {
+    "KINDLE": "Kindle"
+  },
   "KINDLE_GROUPS": {
-    "BASIC": "Básico",
-    "COLOR": "Colorsoft",
-    "COLORSOFT_SIGNATURE": "Colorsoft Signature",
+    "BASIC": "Basic",
     "OASIS": "Oasis",
     "PAPERWHITE": "Paperwhite",
     "PAPERWHITE_SIGNATURE": "Paperwhite Signature",
-    "SCRIBE": "Scribe"
+    "SCRIBE": "Scribe",
+    "VOYAGE": "Voyage",
+    "COLORSOFT": "Colorsoft",
+    "COLORSOFT_SIGNATURE": "Colorsoft Signature"
   },
   "KINDLE_MODELS": {
-    "COLORSOFT_2025": "2025",
-    "COLORSOFT_SIGNATURE_2024": "2024",
-    "KINDLE_BASIC_2019": "2019 – 10ª gen",
-    "KINDLE_BASIC_2022": "2022 – 11ª gen",
-    "KINDLE_BASIC_2024": "2024",
-    "OASIS_2017_2019": "2017 / 2019",
-    "PAPERWHITE_2015": "2015 – 7ª gen",
-    "PAPERWHITE_2018": "2018 – 10ª gen",
-    "PAPERWHITE_2021": "2021 – 11ª gen",
-    "PAPERWHITE_2024": "2024 – 12ª gen",
-    "PAPERWHITE_SIGNATURE_2021": "2021 – 11ª gen",
-    "PAPERWHITE_SIGNATURE_2024": "2024 – 12ª gen",
-    "SCRIBE_2022": "2022",
-    "SCRIBE_2024": "2024"
+    "BASIC_2010_2019": "Kindle Basic (2010-2019)",
+    "BASIC_2022_2024": "Kindle Basic (2022-2024)",
+    "OASIS_2016": "Kindle Oasis (2016)",
+    "OASIS_2017_2019": "Kindle Oasis (2017-2019)",
+    "PAPERWHITE_2012_2013": "Kindle Paperwhite (2012-2013)",
+    "PAPERWHITE_2015_2019": "Kindle Paperwhite (2015-2019)",
+    "PAPERWHITE_2021": "Kindle Paperwhite (2021)",
+    "PAPERWHITE_2024": "Kindle Paperwhite (2024)",
+    "PAPERWHITE_SIGNATURE_2021": "Kindle Paperwhite Signature Edition (2021)",
+    "PAPERWHITE_SIGNATURE_2024": "Kindle Paperwhite Signature Edition (2024)",
+    "SCRIBE_2022_2024": "Kindle Scribe (2022-2024)",
+    "VOYAGE_2014": "Kindle Voyage (2014)",
+    "COLORSOFT": "2025",
+    "COLORSOFT_SIGNATURE_EDITION": "2024"
+  },
+  "KOBO_BRANDS": {
+    "KOBO": "Kobo"
+  },
+  "KOBO_GROUPS": {
+    "CLARA": "Clara",
+    "ELIPSA": "Elipsa",
+    "LIBRA": "Libra",
+    "NIA": "Nia",
+    "SAGE": "Sage"
+  },
+  "KOBO_MODELS": {
+    "CLARA_ALL": "Kobo Clara (HD / 2E / BW / Colour)",
+    "ELIPSA_ALL": "Kobo Elipsa (Elipsa / 2E)",
+    "LIBRA_ALL": "Kobo Libra (H2O / 2 / Colour)",
+    "NIA": "Kobo Nia",
+    "SAGE": "Kobo Sage"
+  },
+  "NOOK_BRANDS": {
+    "NOOK": "Nook"
+  },
+  "NOOK_GROUPS": {
+    "GLOWLIGHT": "GlowLight"
+  },
+  "NOOK_MODELS": {
+    "GLOWLIGHT_2013_2015": "Nook GlowLight (2013-2015)",
+    "GLOWLIGHT_2019_2023": "Nook GlowLight (2019-2023)"
+  },
+  "POCKETBOOK_BRANDS": {
+    "POCKETBOOK": "PocketBook"
+  },
+  "POCKETBOOK_GROUPS": {
+    "ERA": "Era",
+    "INKPAD": "InkPad",
+    "VERSE": "Verse"
+  },
+  "POCKETBOOK_MODELS": {
+    "ERA": "PocketBook Era",
+    "INKPAD_ALL": "PocketBook InkPad (All models)",
+    "VERSE": "PocketBook Verse",
+    "VERSE_PRO": "PocketBook Verse Pro"
+  },
+  "TOLINO_BRANDS": {
+    "TOLINO": "Tolino"
+  },
+  "TOLINO_GROUPS": {
+    "SHINE": "Shine",
+    "VISION": "Vision"
+  },
+  "TOLINO_MODELS": {
+    "SHINE_2014_2018": "Tolino Shine (2014-2018)",
+    "SHINE_HD": "Tolino Shine HD",
+    "VISION_2015_2018": "Tolino Vision (2015-2018)",
+    "VISION_2021_2024": "Tolino Vision (2021-2024)"
   },
   "REQUISITES": {
     "ADS_DESC": "Es necesario desactivar los anuncios en el dispositivo para que la portada se muestre en la pantalla de bloqueo.",
@@ -141,11 +201,60 @@
     "SEND_TITLE": "Enviar portadas vía web",
     "TITLE": "Requisitos"
   },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "Atrás",
+      "FINISH": "Finalizar",
+      "INTERACT_HINT": "Interactúa con el elemento resaltado para continuar.",
+      "NEXT": "Siguiente",
+      "PROGRESS": "{{current}} de {{total}}",
+      "SKIP": "Omitir"
+    },
+    "STEPS": {
+      "DEVICE": {
+        "TITLE": "Dispositivo",
+        "DESCRIPTION": "Primero selecciona tu dispositivo.\nAsí la portada se crea con la resolución correcta."
+      },
+      "BRAND": {
+        "TITLE": "Marca",
+        "DESCRIPTION": "Elige la marca de tu eReader."
+      },
+      "GROUP": {
+        "TITLE": "Grupo",
+        "DESCRIPTION": "Selecciona la línea de tu dispositivo."
+      },
+      "MODEL": {
+        "TITLE": "Modelo",
+        "DESCRIPTION": "Elige el modelo exacto."
+      },
+      "IMAGE": {
+        "TITLE": "Imagen de portada",
+        "DESCRIPTION": "Selecciona la imagen para tu portada."
+      },
+      "ADJUST": {
+        "TITLE": "Ajustar",
+        "DESCRIPTION": "Ajusta la imagen en el editor y toca Listo."
+      },
+      "CREATE": {
+        "TITLE": "Crear portada",
+        "DESCRIPTION": "Genera aquí la portada."
+      },
+      "RESULTS": {
+        "TITLE": "Guardar o compartir",
+        "DESCRIPTION": "Guarda o comparte tu portada."
+      },
+      "DONE": {
+        "TITLE": "Listo",
+        "DESCRIPTION": "Listo.\nYa sabes cómo crear portadas con CCFK."
+      }
+    }
+  },
   "SETTINGS": {
     "INSTRUCTIONS": "Ver instrucciones",
     "INSTRUCTIONS_HINT": "Cómo crear y enviar una portada a Kindle",
     "INSTRUCTIONS_SECTION": "Instrucciones",
     "LANGUAGE": "Idioma",
+    "LANGUAGE_RESTART_NOTICE": "Idioma cambiado. La app se reiniciará para aplicar los cambios.",
     "PRIVACY_HINT": "Controla cómo se manejan los datos y la publicidad",
     "PRIVACY_OPTIONS": "Opciones de privacidad",
     "PRIVACY_POLICY": "Política de privacidad",
@@ -153,7 +262,8 @@
     "REQUISITES": "Ver requisitos",
     "REQUISITES_HINT": "Configuración necesaria para que la portada funcione correctamente en Kindle",
     "REQUISITES_SECTION": "Requisitos",
-    "TITLE": "Configuración"
+    "TITLE": "Configuración",
+    "VIEW_TOUR": "Ver tour"
   },
   "TABS": {
     "COVERS": "Portadas",

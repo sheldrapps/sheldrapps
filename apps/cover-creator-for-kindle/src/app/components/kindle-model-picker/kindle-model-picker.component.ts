@@ -27,6 +27,7 @@ export interface KindleModel {
 }
 
 export interface KindleGroup {
+  brandId?: string;
   id: string;
   i18nKey: string;
   items: KindleModel[];

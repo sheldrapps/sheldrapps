@@ -5,6 +5,10 @@ import {
   NativeSqliteManager,
   SqliteTransactionContext,
 } from '@sheldrapps/native-sqlite-kit';
+import {
+  CategoryNameValidationException,
+  validateCategoryName,
+} from './category-name.validation';
 
 export type TaskMode = 'check' | 'duration';
 export type RecurrenceMode = 'simple' | 'weekly_schedule';
@@ -192,6 +196,68 @@ export class TaskRepository {
       await this.insertTask(tx, taskId, normalizedInput, nowIso);
       await this.persistTaskBranches(tx, taskId, normalizedInput, nowIso);
     });
+
+    return taskId;
+  }
+
+  async createTaskWithCustomCategory(
+    input: CreateTaskInput,
+    customCategoryName: string
+  ): Promise<string> {
+    await this.ensureSqliteReady();
+
+    const categoryNames = await this.listCategoryNames();
+    const validation = validateCategoryName(customCategoryName, categoryNames);
+    if (validation.error) {
+      throw new CategoryNameValidationException(validation.error);
+    }
+    const normalizedCategoryName = validation.normalizedName;
+
+    const normalizedInput = this.sanitizeCreateTaskInput({
+      ...input,
+      categoryId: null,
+    });
+    const taskId = this.createUuid('task');
+    const categoryId = this.createUuid('cat');
+    const nowIso = new Date().toISOString();
+
+    try {
+      // Keep category and task creation atomic to avoid orphan categories.
+      await this.sqliteManager.runInTransaction(async (tx) => {
+        await tx.execute(
+          `
+            INSERT INTO categories (id, name, created_at, updated_at)
+            VALUES (?, ?, ?, ?)
+          `,
+          [categoryId, normalizedCategoryName, nowIso, nowIso]
+        );
+
+        await this.insertTask(
+          tx,
+          taskId,
+          {
+            ...normalizedInput,
+            categoryId,
+          },
+          nowIso
+        );
+        await this.persistTaskBranches(
+          tx,
+          taskId,
+          {
+            ...normalizedInput,
+            categoryId,
+          },
+          nowIso
+        );
+      });
+    } catch (error: unknown) {
+      if (this.isCategoryDuplicateConstraintError(error)) {
+        throw new CategoryNameValidationException('duplicate');
+      }
+
+      throw error;
+    }
 
     return taskId;
   }
@@ -430,6 +496,28 @@ export class TaskRepository {
     if (!this.sqliteManager.isReady()) {
       await this.sqliteManager.initialize();
     }
+  }
+
+  private async listCategoryNames(): Promise<string[]> {
+    const rows = await this.sqliteManager.query<{ name: string }>(
+      `
+        SELECT name
+        FROM categories
+      `
+    );
+    return rows.map((row) => row.name);
+  }
+
+  private isCategoryDuplicateConstraintError(error: unknown): boolean {
+    if (!(error instanceof Error)) {
+      return false;
+    }
+
+    const message = error.message.toLowerCase();
+    return (
+      message.includes('unique constraint failed: categories.name') ||
+      message.includes('idx_categories_name_ci')
+    );
   }
 
   private sanitizeCreateTaskInput(input: CreateTaskInput): CreateTaskInput {

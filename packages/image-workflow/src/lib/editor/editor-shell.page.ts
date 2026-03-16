@@ -117,6 +117,18 @@ type EditShiftSnapshot = {
   activeRectHeight: number | null;
 };
 
+type EditorTourPlacement = "top" | "bottom" | "center";
+
+type EditorTourStep = {
+  id: string;
+  target: string | null;
+  titleKey: string;
+  descriptionKey: string;
+  placement: EditorTourPlacement;
+  progressCurrent?: number;
+  progressTotal?: number;
+};
+
 export interface EditorLabels {
   title: string;
   cancelLabel: string;
@@ -164,6 +176,25 @@ const MAX_BG_BLUR_PX = 40;
 const DEBUG_EDIT_VIEWPORT_LOCK = false;
 const DEBUG_ANDROID_SHIFT_DETECTOR = true;
 const EDIT_SHIFT_PROBE_EVENT = "__cc_text_edit_shift_probe__";
+const DEFAULT_EDITOR_TOUR_CURRENT = 6;
+const DEFAULT_EDITOR_TOUR_TOTAL = 8;
+
+function buildEditorTourSteps(
+  progressCurrent = DEFAULT_EDITOR_TOUR_CURRENT,
+  progressTotal = DEFAULT_EDITOR_TOUR_TOTAL
+): EditorTourStep[] {
+  return [
+    {
+      id: "edit-info",
+      target: "editor-done-button",
+      titleKey: "EDITOR.TOUR.STEPS.STAGE.TITLE",
+      descriptionKey: "EDITOR.TOUR.STEPS.STAGE.DESCRIPTION",
+      placement: "bottom",
+      progressCurrent,
+      progressTotal,
+    },
+  ];
+}
 
 @Component({
   selector: "cc-editor-shell-page",
@@ -194,6 +225,10 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(IonContent) contentRef?: IonContent;
   @ViewChild("frame", { read: ElementRef }) frameRef!: ElementRef<HTMLElement>;
   @ViewChild("img", { read: ElementRef }) imgRef!: ElementRef<HTMLImageElement>;
+  @ViewChild("editorTourOverlay", { read: ElementRef })
+  editorTourOverlayRef?: ElementRef<HTMLElement>;
+  @ViewChild("editorTourTooltip", { read: ElementRef })
+  editorTourTooltipRef?: ElementRef<HTMLElement>;
   @ViewChild("picker", { read: ElementRef })
   pickerRef?: ElementRef<HTMLDivElement>;
 
@@ -345,6 +380,39 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   private lastEditShiftSnapshot: EditShiftSnapshot | null = null;
   private hasLoggedFirstShift = false;
   private readonly loggedShiftCallTags = new Set<string>();
+  private readonly editorTourIndex = signal(0);
+  private readonly editorTourActive = signal(false);
+  private readonly editorTourSpotlight = signal<{
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+  } | null>(null);
+  private readonly editorTourTooltipStyle = signal<Record<string, string>>({
+    top: "max(16px, env(safe-area-inset-top, 0px))",
+    left: "12px",
+    width: "min(320px, calc(100vw - 24px))",
+  });
+  private shouldAutoStartEditorTour = false;
+  private editorTourSteps = buildEditorTourSteps();
+  private hasStartedEditorTour = false;
+  readonly editorTourState = computed(() => {
+    const currentIndex = this.editorTourIndex();
+    const step = this.editorTourSteps[currentIndex] ?? null;
+    const totalSteps = this.editorTourSteps.length;
+    return {
+      active: this.editorTourActive() && !!step,
+      currentIndex,
+      totalSteps,
+      displayCurrent: step?.progressCurrent ?? currentIndex + 1,
+      displayTotal: step?.progressTotal ?? totalSteps,
+      step,
+      canGoBack: currentIndex > 0,
+      isLastStep: currentIndex === totalSteps - 1,
+      spotlight: this.editorTourSpotlight(),
+      tooltipStyle: this.editorTourTooltipStyle(),
+    };
+  });
 
   constructor(
     private router: Router,
@@ -361,6 +429,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     private textEdit: EditorTextEditService,
     private translate: TranslateService,
     private destroyRef: DestroyRef,
+    private hostRef: ElementRef<HTMLElement>,
   ) {
     addIcons({
       cropOutline,
@@ -503,6 +572,18 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.returnUrl =
       this.session?.returnUrl ??
       this.route.snapshot.queryParamMap.get("returnUrl");
+    this.shouldAutoStartEditorTour =
+      this.route.snapshot.queryParamMap.get("tour") === "1";
+    this.editorTourSteps = buildEditorTourSteps(
+      this.parseEditorTourParam(
+        this.route.snapshot.queryParamMap.get("tourCurrent"),
+        DEFAULT_EDITOR_TOUR_CURRENT
+      ),
+      this.parseEditorTourParam(
+        this.route.snapshot.queryParamMap.get("tourTotal"),
+        DEFAULT_EDITOR_TOUR_TOTAL
+      )
+    );
 
     this.sessionExit.setReturnUrl(this.returnUrl ?? null);
 
@@ -552,7 +633,12 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     const frameEl = this.frameRef?.nativeElement;
     if (!frameEl) return;
 
-    this.resizeObs = new ResizeObserver(() => this.tryReady());
+    this.resizeObs = new ResizeObserver(() => {
+      this.tryReady();
+      if (this.editorTourActive()) {
+        void this.syncEditorTour();
+      }
+    });
     this.resizeObs.observe(frameEl);
 
     const capture = (id: number) => {
@@ -813,6 +899,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.stopEditorTour();
     this.resizeObs?.disconnect();
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
     this.cleanupGestures?.();
@@ -1304,6 +1391,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   cancel(): void {
+    this.stopEditorTour();
     void this.sessionExit.cancelSession();
   }
 
@@ -1311,6 +1399,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     if (this.isExporting) return;
 
     if (!this.ready || !this.session?.file) {
+      this.stopEditorTour();
       this.sessionExit.exitAfterDone();
       return;
     }
@@ -1395,6 +1484,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       this.isExporting = false;
       this.ready = wasReady;
       if (shouldExit) {
+        this.stopEditorTour();
         this.sessionExit.exitAfterDone();
       }
     }
@@ -1481,6 +1571,25 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  async prevEditorTourStep(): Promise<void> {
+    const state = this.editorTourState();
+    if (!state.active || !state.canGoBack) return;
+
+    this.editorTourIndex.set(state.currentIndex - 1);
+    await this.syncEditorTour();
+  }
+
+  stopEditorTour(): void {
+    this.editorTourActive.set(false);
+    this.editorTourIndex.set(0);
+    this.editorTourSpotlight.set(null);
+    this.editorTourTooltipStyle.set({
+      top: "max(16px, env(safe-area-inset-top, 0px))",
+      left: "12px",
+      width: "min(320px, calc(100vw - 24px))",
+    });
+  }
+
   reset(): void {
     if (this.history.mode() !== "local") return;
     this.history.resetViewToCover();
@@ -1521,6 +1630,12 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.baseScale = Math.max(needW, needH);
 
     if (!this.ready) this.ready = true;
+    if (this.ready && this.shouldAutoStartEditorTour && !this.hasStartedEditorTour) {
+      this.hasStartedEditorTour = true;
+      queueMicrotask(() => {
+        void this.startEditorTour();
+      });
+    }
 
     // Push ctx on every sizing/rotation change
     this.updateConstraintsContext();
@@ -1539,6 +1654,244 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       }
       void this.prepareSamplingCanvas();
     }
+  }
+
+  private async startEditorTour(): Promise<void> {
+    this.editorTourIndex.set(0);
+    this.editorTourActive.set(true);
+    await this.waitForEditorTourLayout();
+    await this.syncEditorTour();
+  }
+
+  private async syncEditorTour(): Promise<void> {
+    const step = this.editorTourState().step;
+    if (!step) return;
+
+    if (!step.target) {
+      this.editorTourSpotlight.set(null);
+      this.editorTourTooltipStyle.set({
+        top: "max(16px, env(safe-area-inset-top, 0px))",
+        left: "12px",
+        width: "min(320px, calc(100vw - 24px))",
+      });
+      return;
+    }
+
+    const target = this.findEditorTourTarget(step.target);
+    if (!target) {
+      this.editorTourSpotlight.set(null);
+      this.editorTourTooltipStyle.set({
+        top: "max(16px, env(safe-area-inset-top, 0px))",
+        left: "12px",
+        width: "min(320px, calc(100vw - 24px))",
+      });
+      return;
+    }
+
+    const targetRect = target.getBoundingClientRect();
+    const overlayRect =
+      this.editorTourOverlayRef?.nativeElement.getBoundingClientRect() ?? null;
+    const padding = 8;
+    const relativeTop =
+      targetRect.top - (overlayRect?.top ?? 0) - padding;
+    const relativeLeft =
+      targetRect.left - (overlayRect?.left ?? 0) - padding;
+    const spotlight = {
+      top: Math.max(8, relativeTop),
+      left: Math.max(8, relativeLeft),
+      width: targetRect.width + padding * 2,
+      height: targetRect.height + padding * 2,
+    };
+    this.editorTourSpotlight.set(spotlight);
+    this.editorTourTooltipStyle.set({
+      ...this.buildEditorTourTooltipStyle(step.placement, spotlight, overlayRect),
+      visibility: "hidden",
+    });
+    await this.waitForEditorTourLayout();
+    this.editorTourTooltipStyle.set(
+      this.buildEditorTourTooltipStyle(
+        step.placement,
+        spotlight,
+        overlayRect,
+        this.editorTourTooltipRef?.nativeElement.getBoundingClientRect()
+      )
+    );
+  }
+
+  private findEditorTourTarget(targetId: string): HTMLElement | null {
+    const selector = `[data-tour-id="${targetId}"]`;
+    const hostTarget =
+      this.hostRef.nativeElement.querySelector<HTMLElement>(selector);
+    if (this.isEditorTourTargetVisible(hostTarget)) {
+      return hostTarget;
+    }
+
+    if (typeof document === "undefined") {
+      return null;
+    }
+
+    const fallbackTargets = Array.from(
+      document.querySelectorAll<HTMLElement>(selector)
+    );
+    for (const fallbackTarget of fallbackTargets) {
+      if (this.isEditorTourTargetVisible(fallbackTarget)) {
+        return fallbackTarget;
+      }
+    }
+
+    return null;
+  }
+
+  private isEditorTourTargetVisible(
+    target: HTMLElement | null
+  ): target is HTMLElement {
+    if (!target) {
+      return false;
+    }
+
+    const hiddenIonPage = target.closest(".ion-page.ion-page-hidden");
+    if (hiddenIonPage) {
+      return false;
+    }
+
+    if (typeof window === "undefined") {
+      return true;
+    }
+
+    const style = window.getComputedStyle(target);
+    if (style.display === "none" || style.visibility === "hidden") {
+      return false;
+    }
+
+    const rect = target.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  }
+
+  private buildEditorTourTooltipStyle(
+    placement: EditorTourPlacement,
+    rect: { top: number; left: number; width: number; height: number } | null,
+    overlayRect: DOMRect | null,
+    tooltipRect?: DOMRect
+  ): Record<string, string> {
+    const viewport = window.visualViewport;
+    const baseWidth = Math.max(
+      0,
+      Math.round(overlayRect?.width ?? viewport?.width ?? window.innerWidth)
+    );
+    const baseHeight = Math.max(
+      0,
+      Math.round(overlayRect?.height ?? viewport?.height ?? window.innerHeight)
+    );
+    const viewportWidth = Math.max(
+      0,
+      baseWidth
+    );
+    const viewportHeight = Math.max(
+      0,
+      baseHeight
+    );
+    const viewportTop = 0;
+    const viewportLeft = 0;
+    const safeTop = viewportTop + 16;
+    const safeBottom = viewportTop + viewportHeight - 16;
+    const safeLeft = viewportLeft + 12;
+    const safeRight = viewportLeft + viewportWidth - 12;
+    const width = Math.max(220, Math.min(320, viewportWidth - 24));
+    const tooltipHeight = tooltipRect?.height ?? 160;
+
+    if (!rect || placement === "center") {
+      return {
+        top: `${Math.max(safeTop, viewportTop + (viewportHeight - tooltipHeight) / 2)}px`,
+        left: `${Math.max(safeLeft, viewportLeft + (viewportWidth - width) / 2)}px`,
+        width: "min(320px, calc(100vw - 24px))",
+      };
+    }
+
+    const centerX = Math.min(
+      Math.max(rect.left + rect.width / 2, safeLeft + width / 2),
+      safeRight - width / 2
+    );
+    const resolvedLeft = Math.max(
+      safeLeft,
+      Math.min(centerX - width / 2, safeRight - width)
+    );
+    const topGap = 12;
+    const intersectsSpotlight = (
+      tooltipTop: number,
+      tooltipLeft: number,
+      tooltipW: number,
+      tooltipH: number,
+    ): boolean => {
+      if (!rect) return false;
+      return !(
+        tooltipLeft + tooltipW <= rect.left ||
+        rect.left + rect.width <= tooltipLeft ||
+        tooltipTop + tooltipH <= rect.top ||
+        rect.top + rect.height <= tooltipTop
+      );
+    };
+
+    if (placement === "top") {
+      const preferredTop = rect.top - tooltipHeight - topGap;
+      const fallbackBottom = rect.top + rect.height + topGap;
+      let resolvedTop =
+        preferredTop >= safeTop
+          ? preferredTop
+          : Math.min(fallbackBottom, safeBottom - tooltipHeight);
+      if (intersectsSpotlight(resolvedTop, resolvedLeft, width, tooltipHeight)) {
+        const belowTop = rect.top + rect.height + topGap;
+        if (belowTop + tooltipHeight <= safeBottom) {
+          resolvedTop = belowTop;
+        }
+      }
+      return {
+        top: `${Math.max(safeTop, resolvedTop)}px`,
+        left: `${resolvedLeft}px`,
+        width: `${width}px`,
+      };
+    }
+
+    const preferredTop = rect.top + rect.height + topGap;
+    const fallbackTop = rect.top - tooltipHeight - topGap;
+    let resolvedTop =
+      preferredTop + tooltipHeight <= safeBottom
+        ? preferredTop
+        : Math.max(safeTop, fallbackTop);
+    if (intersectsSpotlight(resolvedTop, resolvedLeft, width, tooltipHeight)) {
+      const aboveTop = rect.top - tooltipHeight - topGap;
+      if (aboveTop >= safeTop) {
+        resolvedTop = aboveTop;
+      }
+    }
+    return {
+      top: `${Math.min(safeBottom - tooltipHeight, resolvedTop)}px`,
+      left: `${resolvedLeft}px`,
+      width: `${width}px`,
+    };
+  }
+
+  private async waitForEditorTourLayout(): Promise<void> {
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => resolve());
+      });
+    });
+  }
+
+  private parseEditorTourParam(
+    value: string | null,
+    fallback: number
+  ): number {
+    if (!value) {
+      return fallback;
+    }
+
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return fallback;
+    }
+
+    return Math.round(parsed);
   }
 
   private getRotatedNaturalSize(): { w: number; h: number } {

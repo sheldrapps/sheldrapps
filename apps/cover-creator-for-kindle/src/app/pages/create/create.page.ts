@@ -67,7 +67,11 @@ import {
 import { addIcons } from 'ionicons';
 
 import { FileService } from '../../services/file.service';
-import { KindleCatalogService } from '../../services/kindle-catalog.service';
+import {
+  KindleBrand,
+  KindleCatalogService,
+  type ResolvedKindleSelection,
+} from '../../services/kindle-catalog.service';
 import { AdsService, type RewardedAdResult } from '../../services/ads.service';
 import { playCircleOutline } from 'ionicons/icons';
 import { CoversEventsService } from '../../services/covers-events.service';
@@ -86,6 +90,14 @@ import {
   handleHomeHeaderAction,
 } from '@sheldrapps/recommended-apps';
 import { CcfkSettings } from '../../settings/ccfk-settings.schema';
+import { TourOverlayComponent } from '../../shared/tour/tour-overlay.component';
+import { TourService } from '../../shared/tour/tour.service';
+import {
+  buildHomeTourDefinition,
+  CURRENT_HOME_TOUR_VERSION,
+  HOME_TOUR_ID,
+} from '../../shared/tour/home-tour.definition';
+import type { TourCompletionReason } from '../../shared/tour/tour.types';
 
 type EditorResult = {
   file: File;
@@ -123,9 +135,11 @@ type EditorResult = {
     IonSelectOption,
     IonModal,
     ScrollableButtonBarComponent,
+    TourOverlayComponent,
   ],
 })
 export class CreatePage implements OnInit, OnDestroy {
+  @ViewChild(IonContent) content?: IonContent;
   @ViewChild('imageInput') imageInput!: ElementRef<HTMLInputElement>;
 
   constructor(
@@ -143,6 +157,7 @@ export class CreatePage implements OnInit, OnDestroy {
     private router: Router,
     private editorSession: EditorSessionService,
     private recommendedAppsService: RecommendedAppsService,
+    private homeTour: TourService,
   ) {
     addIcons({
       chevronDown,
@@ -163,7 +178,9 @@ export class CreatePage implements OnInit, OnDestroy {
   recommendedApps: RecommendedApp[] = [];
   showRecommended = false;
 
+  brands: KindleBrand[] = [];
   groups: KindleGroup[] = [];
+  selectedBrandId?: string;
   selectedGroupId?: string;
   selectedModel?: KindleModel;
 
@@ -182,6 +199,7 @@ export class CreatePage implements OnInit, OnDestroy {
   cropState?: CoverCropState;
   private lastEditorSessionId?: string;
   private routerSub?: Subscription;
+  private coversEventsSub?: Subscription;
 
   imageErrorKey?: string;
   imageErrorParams: Record<string, any> = {};
@@ -206,27 +224,23 @@ export class CreatePage implements OnInit, OnDestroy {
   previewOpen = false;
   private previewLongPressTimer: ReturnType<typeof setTimeout> | null = null;
   private suppressNextImagePick = false;
+  private brandSelectCanceled = false;
+  private groupSelectCanceled = false;
+  private modelSelectCanceled = false;
   private readonly warnDebugKey = 'cc_warn_debug';
+  private readonly editorTourSeenVersionKey = 'cc_editor_tour_seen_version';
+  private readonly currentEditorTourVersion = 4;
 
   async ngOnInit() {
     await this.refreshHeaderItems();
-    this.groups = await this.catalog.getGroups();
-
-    // Load persisted settings and get the saved Kindle model ID
+    this.brands = await this.catalog.getBrands();
     const settings = await this.settings.load();
-    const modelId = settings.kindleModelId || 'paperwhite_2021';
-
-    this.selectedModel =
-      this.catalog.findModelById(this.groups, modelId) ??
-      this.groups?.[0]?.items?.[0];
-
-    // Set the group based on the selected model
-    if (this.selectedModel) {
-      const group = this.groups.find((g) =>
-        g.items.some((item) => item.id === this.selectedModel!.id),
-      );
-      this.selectedGroupId = group?.id;
-    }
+    this.applyResolvedSelection(
+      this.catalog.resolveSelection(this.brands, {
+        brandId: settings.brandId,
+        modelId: settings.modelId,
+      }),
+    );
 
     this.routerSub = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
@@ -236,6 +250,15 @@ export class CreatePage implements OnInit, OnDestroy {
           void this.consumeEditorResult();
         }
       });
+
+    this.coversEventsSub = this.coversEvents.events$
+      .pipe(filter((event) => event.type === 'deleted'))
+      .subscribe((event) => {
+        if (!event.filename) return;
+        if (event.filename !== this.lastSavedFilename) return;
+        this.lastSavedFilename = undefined;
+        this.wasAutoSaved = false;
+      });
   }
 
   ngOnDestroy() {
@@ -243,6 +266,7 @@ export class CreatePage implements OnInit, OnDestroy {
     this.clearPreviewLongPress();
     this.revokePreviewUrl();
     this.routerSub?.unsubscribe();
+    this.coversEventsSub?.unsubscribe();
   }
 
   private setBusy(kind: 'pick' | 'export' | 'none', messageKey?: string) {
@@ -262,34 +286,23 @@ export class CreatePage implements OnInit, OnDestroy {
 
     if (!this.workingImageFile) return;
 
-    // Reload selected model from persisted settings before opening editor
-    const settings = await this.settings.load();
-    const modelId = settings.kindleModelId || 'paperwhite_2021';
-    this.selectedModel =
-      this.catalog.findModelById(this.groups, modelId) ??
-      this.groups?.[0]?.items?.[0];
-
-    if (this.selectedModel) {
-      const group = this.groups.find((g) =>
-        g.items.some((item) => item.id === this.selectedModel!.id),
-      );
-      this.selectedGroupId = group?.id;
-    }
-
-    if (!this.selectedModel) return;
+    const selection = this.resolveCurrentSelection();
+    if (!selection) return;
+    this.applyResolvedSelection(selection);
 
     const sid = this.editorSession.createSession({
       file: this.workingImageFile,
       target: {
-        width: this.selectedModel.width,
-        height: this.selectedModel.height,
+        width: selection.model.width,
+        height: selection.model.height,
       },
       initialState: this.cropState,
       tools: {
         kindle: {
           modelCatalog: this.groups,
+          selectedBrandId: selection.brandId,
           selectedGroupId: this.selectedGroupId,
-          selectedModel: this.selectedModel,
+          selectedModel: selection.model,
           onKindleModelChange: (model: KindleDeviceModel) => {
             void this.applyExternalModelChange(model);
           },
@@ -298,23 +311,103 @@ export class CreatePage implements OnInit, OnDestroy {
     });
 
     this.lastEditorSessionId = sid;
-    this.router.navigate(['/editor'], { queryParams: { sid } });
+    const shouldShowEditorTour =
+      this.homeTour.isActive() || (await this.shouldShowEditorTour());
+    if (shouldShowEditorTour) {
+      await this.settings.set((prev) => ({
+        ...prev,
+        preferences: {
+          ...(prev.preferences ?? {}),
+          [this.editorTourSeenVersionKey]: this.currentEditorTourVersion,
+        },
+      }));
+    }
+
+    this.router.navigate(['/editor'], {
+      queryParams: {
+        sid,
+        ...(shouldShowEditorTour ? { tour: '1' } : {}),
+      },
+    });
   }
 
-  onGroupChange() {
+  async onBrandChange() {
+    const selection =
+      this.catalog.resolveFirstSelectionInBrand(this.brands, this.selectedBrandId) ??
+      this.catalog.getDefaultSelection(this.brands);
+    this.applyResolvedSelection(selection);
+    await this.onModelChange();
+  }
+
+  async onGroupChange() {
     // When group changes, reset the model selection
     // and select the first model in the new group
     if (this.selectedGroupId) {
       const group = this.groups.find((g) => g.id === this.selectedGroupId);
       if (group && group.items.length > 0) {
         this.selectedModel = group.items[0];
-        this.onModelChange();
+        await this.onModelChange();
       }
     }
   }
 
   async onModelChange() {
     await this.persistModelSelection({ applyWarn: true });
+  }
+
+  onBrandSelectOpen(): void {
+    this.brandSelectCanceled = false;
+  }
+
+  onBrandSelectCancel(): void {
+    this.brandSelectCanceled = true;
+  }
+
+  async onBrandSelectDismiss(): Promise<void> {
+    if (this.brandSelectCanceled || !this.selectedBrandId) {
+      this.brandSelectCanceled = false;
+      return;
+    }
+    this.brandSelectCanceled = false;
+    await this.homeTour.completeInteraction('brand-select');
+  }
+
+  onGroupSelectOpen(): void {
+    this.groupSelectCanceled = false;
+  }
+
+  onGroupSelectCancel(): void {
+    this.groupSelectCanceled = true;
+  }
+
+  async onGroupSelectDismiss(): Promise<void> {
+    if (this.groupSelectCanceled || !this.selectedGroupId) {
+      this.groupSelectCanceled = false;
+      return;
+    }
+    this.groupSelectCanceled = false;
+    await this.homeTour.completeInteraction('group-select');
+  }
+
+  onModelSelectOpen(): void {
+    this.modelSelectCanceled = false;
+  }
+
+  onModelSelectCancel(): void {
+    this.modelSelectCanceled = true;
+  }
+
+  async onModelSelectDismiss(): Promise<void> {
+    if (this.modelSelectCanceled || !this.selectedModel) {
+      this.modelSelectCanceled = false;
+      return;
+    }
+    this.modelSelectCanceled = false;
+    await this.homeTour.completeInteraction('model-select');
+  }
+
+  onTourInteraction(interactionId: string): void {
+    void this.homeTour.completeInteraction(interactionId);
   }
 
   private async applyExternalModelChange(
@@ -343,9 +436,12 @@ export class CreatePage implements OnInit, OnDestroy {
     this.wasAutoSaved = false;
     this.exportImageFile = undefined;
 
-    // Save the selected model ID
-    if (this.selectedModel?.id) {
-      await this.settings.set({ kindleModelId: this.selectedModel.id });
+    const selection = this.resolveCurrentSelection();
+    if (selection) {
+      await this.settings.set({
+        brandId: selection.brandId,
+        modelId: selection.modelId,
+      });
     }
 
     if (opts.applyWarn && this.workingImageFile && this.selectedImageDims) {
@@ -407,6 +503,7 @@ export class CreatePage implements OnInit, OnDestroy {
 
       this.revokePreviewUrl();
       this.previewUrl = URL.createObjectURL(working);
+      await this.homeTour.completeInteraction('cover-image-selected');
     } finally {
       this.setBusy('none');
       input.value = '';
@@ -515,14 +612,20 @@ export class CreatePage implements OnInit, OnDestroy {
       if (!exportFile) return;
 
       if (filename === this.lastSavedFilename) {
-        await this.showToast('CREATE.SAVED_OK', { duration: 1600 }, 'success');
-        return;
+        const alreadySaved = await this.fileService.hasCoverByFilename(filename);
+        if (alreadySaved) {
+          await this.showToast('CREATE.SAVED_OK', { duration: 1600 }, 'success');
+          return;
+        }
+        this.lastSavedFilename = undefined;
+        this.wasAutoSaved = false;
       }
 
       if (this.lastSavedFilename) {
+        const staleFilename = this.lastSavedFilename;
         try {
           await this.fileService.renameGeneratedEpub({
-            from: this.lastSavedFilename,
+            from: staleFilename,
             to: filename,
           });
         } catch {
@@ -531,13 +634,32 @@ export class CreatePage implements OnInit, OnDestroy {
             filename: filename,
             coverFileForThumb: exportFile,
           });
-          await this.fileService.deleteGeneratedEpub(this.lastSavedFilename);
+          this.logSaveFlow('finalWriteComplete', {
+            flow: 'performSave',
+            filename,
+            writeCompletedAt: new Date().toISOString(),
+          });
+          if (
+            staleFilename &&
+            staleFilename.toLowerCase() !== filename.toLowerCase()
+          ) {
+            try {
+              await this.fileService.deleteGeneratedEpub(staleFilename);
+            } catch {
+              // ignore missing stale filename
+            }
+          }
         }
       } else {
         await this.fileService.saveGeneratedEpub({
           bytes: this.generatedEpubBytes!,
           filename: filename,
           coverFileForThumb: exportFile,
+        });
+        this.logSaveFlow('finalWriteComplete', {
+          flow: 'performSave',
+          filename,
+          writeCompletedAt: new Date().toISOString(),
         });
       }
 
@@ -547,6 +669,11 @@ export class CreatePage implements OnInit, OnDestroy {
       this.coversEvents.emit({
         type: 'saved',
         filename: filename,
+      });
+      this.logSaveFlow('savedEventEmitted', {
+        flow: 'performSave',
+        filename,
+        emittedAt: new Date().toISOString(),
       });
 
       await this.showToast('CREATE.SAVED_OK', { duration: 1600 }, 'success');
@@ -567,22 +694,17 @@ export class CreatePage implements OnInit, OnDestroy {
       return;
     }
 
-    await this.showHintOnce(
-      'cc_hint_share_kindle_shown',
+    await this.showToast(
       'COMMON.SHARE_KINDLE_HINT',
-      2200,
+      { duration: 2200 },
+      'info',
     );
 
-    this.setBusy('export', 'CREATE.SAVING');
-    try {
-      await this.fileService.shareGeneratedEpub({
-        bytes: this.generatedEpubBytes!,
-        filename: this.generatedEpubFilename!,
-        title: 'Kindle Cover',
-      });
-    } finally {
-      this.zone.run(() => this.setBusy('none'));
-    }
+    await this.fileService.shareGeneratedEpub({
+      bytes: this.generatedEpubBytes!,
+      filename: this.generatedEpubFilename!,
+      title: 'Kindle Cover',
+    });
   }
 
   private failImage(err: ImageValidationError | 'CORRUPT', file: File) {
@@ -704,10 +826,20 @@ export class CreatePage implements OnInit, OnDestroy {
         filename: this.generatedEpubFilename,
         coverFileForThumb: exportFile,
       });
+      this.logSaveFlow('finalWriteComplete', {
+        flow: 'onGenerate',
+        filename: this.generatedEpubFilename,
+        writeCompletedAt: new Date().toISOString(),
+      });
 
       this.coversEvents.emit({
         type: 'saved',
         filename: this.generatedEpubFilename,
+      });
+      this.logSaveFlow('savedEventEmitted', {
+        flow: 'onGenerate',
+        filename: this.generatedEpubFilename,
+        emittedAt: new Date().toISOString(),
       });
 
       this.wasAutoSaved = true;
@@ -720,6 +852,7 @@ export class CreatePage implements OnInit, OnDestroy {
           'success',
         );
       });
+      await this.homeTour.completeInteraction('cover-created');
     } finally {
       this.zone.run(() => this.setBusy('none'));
     }
@@ -813,6 +946,17 @@ export class CreatePage implements OnInit, OnDestroy {
     void this.refreshHeaderItems();
   }
 
+  async ionViewDidEnter() {
+    this.homeTour.registerContent(this.content);
+    await this.maybeStartHomeTour(
+      this.homeTour.consumePendingManualStart(HOME_TOUR_ID)
+    );
+  }
+
+  onTourContentScroll() {
+    this.homeTour.requestSync();
+  }
+
   private async refreshHeaderItems(): Promise<void> {
     this.recommendedApps = await this.recommendedAppsService.getRecommendedApps();
     this.showRecommended = this.recommendedApps.length > 0;
@@ -889,6 +1033,7 @@ export class CreatePage implements OnInit, OnDestroy {
     await this.applySmallWarn('editor-apply', undefined, exportDimsFromEditor);
 
     await this.updatePreviewFromComposition();
+    await this.homeTour.completeInteraction('editor-apply');
   }
 
   private extractEditorExportDims(
@@ -1035,6 +1180,70 @@ export class CreatePage implements OnInit, OnDestroy {
     if (result?.file) {
       await this.applyCropResult(result);
     }
+  }
+
+  private logSaveFlow(event: string, payload?: Record<string, unknown>): void {
+    const suffix = payload ? ` ${JSON.stringify(payload)}` : '';
+    console.info(`[CCFK:create:save-flow] ${event}${suffix}`);
+  }
+
+  private resolveCurrentSelection(): ResolvedKindleSelection | null {
+    if (!this.brands.length) {
+      return null;
+    }
+
+    return this.catalog.resolveSelection(this.brands, {
+      brandId: this.selectedBrandId,
+      modelId: this.selectedModel?.id,
+    });
+  }
+
+  private applyResolvedSelection(selection: ResolvedKindleSelection): void {
+    this.selectedBrandId = selection.brandId;
+    this.groups = this.catalog.getGroupsForBrand(this.brands, selection.brandId);
+    this.selectedGroupId = selection.groupId;
+    this.selectedModel = selection.model;
+  }
+
+  private async maybeStartHomeTour(force = false): Promise<void> {
+    if (this.homeTour.isActive()) {
+      return;
+    }
+
+    const settings = await this.settings.load();
+    if (!force && !this.shouldAutoStartHomeTour(settings)) {
+      return;
+    }
+
+    this.closeInfo();
+    await this.homeTour.start(buildHomeTourDefinition(this.translate), {
+      onComplete: async (reason: TourCompletionReason) => {
+        await this.markHomeTourSeen(reason);
+      },
+    });
+  }
+
+  private shouldAutoStartHomeTour(settings: CcfkSettings): boolean {
+    return (settings.homeTourVersion ?? 0) < CURRENT_HOME_TOUR_VERSION;
+  }
+
+  private async markHomeTourSeen(
+    _reason: TourCompletionReason
+  ): Promise<void> {
+    await this.settings.set({
+      homeTourSeen: true,
+      homeTourVersion: CURRENT_HOME_TOUR_VERSION,
+      homeTourSeenAt: new Date().toISOString(),
+    });
+  }
+
+  private async shouldShowEditorTour(): Promise<boolean> {
+    const settings = await this.settings.load();
+    const seenVersion = settings.preferences?.[this.editorTourSeenVersionKey];
+    return (
+      typeof seenVersion !== 'number' ||
+      seenVersion < this.currentEditorTourVersion
+    );
   }
 }
 

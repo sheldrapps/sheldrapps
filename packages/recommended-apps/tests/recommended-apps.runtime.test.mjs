@@ -13,12 +13,12 @@ import {
 } from "../src/recommended-apps.runtime.js";
 
 const CCFK = {
-  appName: "Cover Creator for Kindle",
+  appName: "E-Reader Cover Creator",
   packageName: "com.sheldrapps.covercreatorforkindle",
   icon: "assets/apps/ccfk/icon.png",
   playStoreUrl:
     "https://play.google.com/store/apps/details?id=com.sheldrapps.covercreatorforkindle",
-  description: "Create Kindle-ready covers from your images.",
+  description: "Create e-reader covers from your images in just a few taps.",
 };
 
 const ECC_INVALID_NO_URL = {

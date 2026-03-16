@@ -12,14 +12,21 @@ type PreferenceValue = boolean | number | string | null;
 
 type LegacyEccSettings = {
   lang?: string;
+  language?: string;
   locale?: string;
   cropTargetId?: string;
+  homeTourSeen?: boolean;
+  homeTourVersion?: number;
+  homeTourSeenAt?: string;
   preferences?: Record<string, PreferenceValue>;
 };
 
 export interface EccSettings {
-  locale?: SupportedLocale;
+  language?: SupportedLocale;
   cropTargetId?: string;
+  homeTourSeen: boolean;
+  homeTourVersion: number;
+  homeTourSeenAt?: string;
   preferences: Record<string, PreferenceValue>;
 }
 
@@ -28,11 +35,14 @@ const LEGACY_HINT_KEYS = [
   'cc_hint_save_share_explain_shown',
   'cc_hint_share_kindle_shown',
 ] as const;
-const ECC_SETTINGS_VERSION = 3;
+const ECC_SETTINGS_VERSION = 6;
 
 const ECC_DEFAULTS: EccSettings = {
-  locale: undefined,
+  language: undefined,
   cropTargetId: undefined,
+  homeTourSeen: false,
+  homeTourVersion: 0,
+  homeTourSeenAt: undefined,
   preferences: {},
 };
 
@@ -49,8 +59,9 @@ export const ECC_SETTINGS_SCHEMA: SettingsSchema<EccSettings> = {
           LEGACY_SETTINGS_KEY
         );
         const directLegacyLang = await ctx.legacy?.get('lang');
-        const locale = await resolveStoredLocale(
-          pickNonEmptyString(legacySettings?.locale) ||
+        const language = await resolveStoredLocale(
+          pickNonEmptyString(legacySettings?.language) ||
+            pickNonEmptyString(legacySettings?.locale) ||
             pickNonEmptyString(legacySettings?.lang) ||
             pickNonEmptyString(directLegacyLang)
         );
@@ -60,8 +71,11 @@ export const ECC_SETTINGS_SCHEMA: SettingsSchema<EccSettings> = {
         };
 
         return {
-          locale,
+          language,
           cropTargetId: pickNonEmptyString(legacySettings?.cropTargetId),
+          homeTourSeen: pickBoolean(legacySettings?.homeTourSeen) ?? false,
+          homeTourVersion: pickNumber(legacySettings?.homeTourVersion) ?? 0,
+          homeTourSeenAt: pickNonEmptyString(legacySettings?.homeTourSeenAt),
           preferences,
         };
       },
@@ -74,6 +88,24 @@ export const ECC_SETTINGS_SCHEMA: SettingsSchema<EccSettings> = {
     },
     {
       fromVersion: 2,
+      toVersion: ECC_SETTINGS_VERSION,
+      run: async (ctx: MigrationContext<EccSettings>) =>
+        migrateVersionedSettings(ctx.rawJson),
+    },
+    {
+      fromVersion: 3,
+      toVersion: ECC_SETTINGS_VERSION,
+      run: async (ctx: MigrationContext<EccSettings>) =>
+        migrateVersionedSettings(ctx.rawJson),
+    },
+    {
+      fromVersion: 4,
+      toVersion: ECC_SETTINGS_VERSION,
+      run: async (ctx: MigrationContext<EccSettings>) =>
+        migrateVersionedSettings(ctx.rawJson),
+    },
+    {
+      fromVersion: 5,
       toVersion: ECC_SETTINGS_VERSION,
       run: async (ctx: MigrationContext<EccSettings>) =>
         migrateVersionedSettings(ctx.rawJson),
@@ -112,13 +144,18 @@ async function migrateVersionedSettings(
   rawSettings: unknown
 ): Promise<EccSettings> {
   const stored = asRecord(rawSettings);
-  const locale = await resolveStoredLocale(
-    pickNonEmptyString(stored?.['locale']) || pickNonEmptyString(stored?.['lang'])
+  const language = await resolveStoredLocale(
+    pickNonEmptyString(stored?.['language']) ||
+      pickNonEmptyString(stored?.['locale']) ||
+      pickNonEmptyString(stored?.['lang'])
   );
 
   return {
-    locale,
+    language,
     cropTargetId: pickNonEmptyString(stored?.['cropTargetId']),
+    homeTourSeen: pickBoolean(stored?.['homeTourSeen']) ?? false,
+    homeTourVersion: pickNumber(stored?.['homeTourVersion']) ?? 0,
+    homeTourSeenAt: pickNonEmptyString(stored?.['homeTourSeenAt']),
     preferences: normalizePreferences(stored?.['preferences']),
   };
 }
@@ -156,6 +193,14 @@ function pickNonEmptyString(value: unknown): string | undefined {
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function pickBoolean(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
+}
+
+function pickNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
 
 function normalizePreferences(value: unknown): Record<string, PreferenceValue> {

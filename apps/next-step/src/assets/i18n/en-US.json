@@ -22,6 +22,7 @@
   "TASKS": {
     "TITLE": "Tasks",
     "NEW_TASK": "+ New Task",
+    "MANAGE_CATEGORIES": "Manage categories",
     "PLACEHOLDER": "Task list (placeholder)",
     "SAMPLE_TASK": "Open sample task",
     "OPEN_PROGRESS": "Open progress over time"
@@ -152,6 +153,9 @@
     "CATEGORY_CREATE_OPTION": "+ Create category",
     "CATEGORY_CREATE_TITLE": "New category",
     "CATEGORY_CREATE_PLACEHOLDER": "Category name",
+    "CATEGORY_CUSTOM_NAME_LABEL": "Custom category",
+    "VALIDATION_CATEGORY_NAME_REQUIRED": "Enter a category name.",
+    "VALIDATION_CATEGORY_NAME_DUPLICATE": "This category already exists.",
     "DEFAULT_CATEGORY_PERSONAL": "Personal",
     "DEFAULT_CATEGORY_WORK": "Work",
     "DEFAULT_CATEGORY_HEALTH": "Health",
@@ -172,6 +176,32 @@
     "VALIDATION_YEAR_MONTH_REQUIRED": "Select the month.",
     "VALIDATION_YEAR_DAY_REQUIRED": "Select the day.",
     "RECURRENCE_TIME_PLACEHOLDER": "--:--"
+  },
+  "CATEGORY_VALIDATION": {
+    "EMPTY": "Category name cannot be empty",
+    "DUPLICATE": "Category already exists",
+    "TOO_LONG": "Category name is too long"
+  },
+  "CATEGORIES": {
+    "TITLE": "Categories",
+    "NEW_CATEGORY": "+ New Category",
+    "EMPTY": "No categories yet.",
+    "EDIT": "Edit",
+    "DELETE": "Delete",
+    "DELETE_CONFIRM_TITLE": "Delete category \"{{name}}\"?",
+    "DELETE_CONFIRM_MESSAGE": "Tasks using this category will lose their category.",
+    "ERROR_LOAD": "Unable to load categories.",
+    "ERROR_DELETE": "Unable to delete category."
+  },
+  "CATEGORY_FORM": {
+    "NEW_TITLE": "Create Category",
+    "EDIT_TITLE": "Edit Category",
+    "NAME_LABEL": "Category name",
+    "NAME_PLACEHOLDER": "Category name",
+    "CREATE_ACTION": "Create category",
+    "UPDATE_ACTION": "Save changes",
+    "ERROR_SAVE": "Unable to save category.",
+    "ERROR_NOT_FOUND": "Category not found."
   },
   "PROGRESS": {
     "TITLE": "Progress Over Time",

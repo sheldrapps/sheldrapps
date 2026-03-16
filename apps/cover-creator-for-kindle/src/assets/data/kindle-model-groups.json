@@ -1,41 +1,37 @@
 [
   {
+    "brandId": "kindle",
     "id": "basic",
     "i18nKey": "KINDLE_GROUPS.BASIC",
     "items": [
       {
-        "id": "kindle_basic_2019",
-        "i18nKey": "KINDLE_MODELS.KINDLE_BASIC_2019",
+        "id": "basic_2010_2019",
+        "i18nKey": "KINDLE_MODELS.BASIC_2010_2019",
         "width": 600,
         "height": 800
       },
       {
-        "id": "kindle_basic_2022",
-        "i18nKey": "KINDLE_MODELS.KINDLE_BASIC_2022",
-        "width": 1072,
-        "height": 1448
-      },
-      {
-        "id": "kindle_basic_2024",
-        "i18nKey": "KINDLE_MODELS.KINDLE_BASIC_2024",
+        "id": "basic_2022_2024",
+        "i18nKey": "KINDLE_MODELS.BASIC_2022_2024",
         "width": 1072,
         "height": 1448
       }
     ]
   },
   {
+    "brandId": "kindle",
     "id": "paperwhite",
     "i18nKey": "KINDLE_GROUPS.PAPERWHITE",
     "items": [
       {
-        "id": "paperwhite_2015",
-        "i18nKey": "KINDLE_MODELS.PAPERWHITE_2015",
-        "width": 1072,
-        "height": 1448
+        "id": "paperwhite_2012_2013",
+        "i18nKey": "KINDLE_MODELS.PAPERWHITE_2012_2013",
+        "width": 768,
+        "height": 1024
       },
       {
-        "id": "paperwhite_2018",
-        "i18nKey": "KINDLE_MODELS.PAPERWHITE_2018",
+        "id": "paperwhite_2015_2019",
+        "i18nKey": "KINDLE_MODELS.PAPERWHITE_2015_2019",
         "width": 1072,
         "height": 1448
       },
@@ -54,6 +50,7 @@
     ]
   },
   {
+    "brandId": "kindle",
     "id": "paperwhite_signature",
     "i18nKey": "KINDLE_GROUPS.PAPERWHITE_SIGNATURE",
     "items": [
@@ -72,9 +69,55 @@
     ]
   },
   {
+    "brandId": "kindle",
+    "id": "colorsoft",
+    "i18nKey": "KINDLE_GROUPS.COLORSOFT",
+    "items": [
+      {
+        "id": "colorsoft",
+        "i18nKey": "KINDLE_MODELS.COLORSOFT",
+        "width": 1264,
+        "height": 1680
+      }
+    ]
+  },
+  {
+    "brandId": "kindle",
+    "id": "colorsoft_signature",
+    "i18nKey": "KINDLE_GROUPS.COLORSOFT_SIGNATURE",
+    "items": [
+      {
+        "id": "colorsoft_signature_edition",
+        "i18nKey": "KINDLE_MODELS.COLORSOFT_SIGNATURE_EDITION",
+        "width": 1264,
+        "height": 1680
+      }
+    ]
+  },
+  {
+    "brandId": "kindle",
+    "id": "voyage",
+    "i18nKey": "KINDLE_GROUPS.VOYAGE",
+    "items": [
+      {
+        "id": "voyage_2014",
+        "i18nKey": "KINDLE_MODELS.VOYAGE_2014",
+        "width": 1072,
+        "height": 1448
+      }
+    ]
+  },
+  {
+    "brandId": "kindle",
     "id": "oasis",
     "i18nKey": "KINDLE_GROUPS.OASIS",
     "items": [
+      {
+        "id": "oasis_2016",
+        "i18nKey": "KINDLE_MODELS.OASIS_2016",
+        "width": 1080,
+        "height": 1440
+      },
       {
         "id": "oasis_2017_2019",
         "i18nKey": "KINDLE_MODELS.OASIS_2017_2019",
@@ -84,42 +127,180 @@
     ]
   },
   {
+    "brandId": "kindle",
     "id": "scribe",
     "i18nKey": "KINDLE_GROUPS.SCRIBE",
     "items": [
       {
-        "id": "scribe_2022",
-        "i18nKey": "KINDLE_MODELS.SCRIBE_2022",
-        "width": 1860,
-        "height": 2480
-      },
-      {
-        "id": "scribe_2024",
-        "i18nKey": "KINDLE_MODELS.SCRIBE_2024",
+        "id": "scribe_2022_2024",
+        "i18nKey": "KINDLE_MODELS.SCRIBE_2022_2024",
         "width": 1860,
         "height": 2480
       }
     ]
   },
   {
-    "id": "color",
-    "i18nKey": "KINDLE_GROUPS.COLOR",
+    "brandId": "kobo",
+    "id": "clara",
+    "i18nKey": "KOBO_GROUPS.CLARA",
     "items": [
       {
-        "id": "colorsoft_2025",
-        "i18nKey": "KINDLE_MODELS.COLORSOFT_2025",
+        "id": "clara_all",
+        "i18nKey": "KOBO_MODELS.CLARA_ALL",
+        "width": 1072,
+        "height": 1448
+      }
+    ]
+  },
+  {
+    "brandId": "kobo",
+    "id": "libra",
+    "i18nKey": "KOBO_GROUPS.LIBRA",
+    "items": [
+      {
+        "id": "libra_all",
+        "i18nKey": "KOBO_MODELS.LIBRA_ALL",
         "width": 1264,
         "height": 1680
       }
     ]
   },
   {
-    "id": "colorsoft_signature",
-    "i18nKey": "KINDLE_GROUPS.COLORSOFT_SIGNATURE",
+    "brandId": "kobo",
+    "id": "sage",
+    "i18nKey": "KOBO_GROUPS.SAGE",
     "items": [
       {
-        "id": "colorsoft_signature_2024",
-        "i18nKey": "KINDLE_MODELS.COLORSOFT_SIGNATURE_2024",
+        "id": "sage",
+        "i18nKey": "KOBO_MODELS.SAGE",
+        "width": 1440,
+        "height": 1920
+      }
+    ]
+  },
+  {
+    "brandId": "kobo",
+    "id": "elipsa",
+    "i18nKey": "KOBO_GROUPS.ELIPSA",
+    "items": [
+      {
+        "id": "elipsa_all",
+        "i18nKey": "KOBO_MODELS.ELIPSA_ALL",
+        "width": 1404,
+        "height": 1872
+      }
+    ]
+  },
+  {
+    "brandId": "kobo",
+    "id": "nia",
+    "i18nKey": "KOBO_GROUPS.NIA",
+    "items": [
+      {
+        "id": "nia",
+        "i18nKey": "KOBO_MODELS.NIA",
+        "width": 758,
+        "height": 1024
+      }
+    ]
+  },
+  {
+    "brandId": "nook",
+    "id": "glowlight",
+    "i18nKey": "NOOK_GROUPS.GLOWLIGHT",
+    "items": [
+      {
+        "id": "glowlight_2013_2015",
+        "i18nKey": "NOOK_MODELS.GLOWLIGHT_2013_2015",
+        "width": 758,
+        "height": 1024
+      },
+      {
+        "id": "glowlight_2019_2023",
+        "i18nKey": "NOOK_MODELS.GLOWLIGHT_2019_2023",
+        "width": 1072,
+        "height": 1448
+      }
+    ]
+  },
+  {
+    "brandId": "pocketbook",
+    "id": "verse",
+    "i18nKey": "POCKETBOOK_GROUPS.VERSE",
+    "items": [
+      {
+        "id": "verse",
+        "i18nKey": "POCKETBOOK_MODELS.VERSE",
+        "width": 758,
+        "height": 1024
+      },
+      {
+        "id": "verse_pro",
+        "i18nKey": "POCKETBOOK_MODELS.VERSE_PRO",
+        "width": 1072,
+        "height": 1448
+      }
+    ]
+  },
+  {
+    "brandId": "pocketbook",
+    "id": "era",
+    "i18nKey": "POCKETBOOK_GROUPS.ERA",
+    "items": [
+      {
+        "id": "era",
+        "i18nKey": "POCKETBOOK_MODELS.ERA",
+        "width": 1264,
+        "height": 1680
+      }
+    ]
+  },
+  {
+    "brandId": "pocketbook",
+    "id": "inkpad",
+    "i18nKey": "POCKETBOOK_GROUPS.INKPAD",
+    "items": [
+      {
+        "id": "inkpad_all",
+        "i18nKey": "POCKETBOOK_MODELS.INKPAD_ALL",
+        "width": 1404,
+        "height": 1872
+      }
+    ]
+  },
+  {
+    "brandId": "tolino",
+    "id": "shine",
+    "i18nKey": "TOLINO_GROUPS.SHINE",
+    "items": [
+      {
+        "id": "shine_2014_2018",
+        "i18nKey": "TOLINO_MODELS.SHINE_2014_2018",
+        "width": 758,
+        "height": 1024
+      },
+      {
+        "id": "shine_hd",
+        "i18nKey": "TOLINO_MODELS.SHINE_HD",
+        "width": 1072,
+        "height": 1448
+      }
+    ]
+  },
+  {
+    "brandId": "tolino",
+    "id": "vision",
+    "i18nKey": "TOLINO_GROUPS.VISION",
+    "items": [
+      {
+        "id": "vision_2015_2018",
+        "i18nKey": "TOLINO_MODELS.VISION_2015_2018",
+        "width": 1072,
+        "height": 1448
+      },
+      {
+        "id": "vision_2021_2024",
+        "i18nKey": "TOLINO_MODELS.VISION_2021_2024",
         "width": 1264,
         "height": 1680
       }

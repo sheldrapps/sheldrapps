@@ -13,12 +13,18 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
+<ion-content
+  [fullscreen]="true"
+  class="ion-padding"
+  [scrollEvents]="true"
+  (ionScroll)="onTourContentScroll()"
+>
   <!-- EPUB File Selector -->
   <ion-item
     button
     detail="false"
     class="ion-margin-top"
+    data-tour-id="epub-picker"
     (click)="openEpubPicker()"
     [class.item-invalid]="!!epubErrorKey"
     [attr.aria-invalid]="epubErrorKey ? 'true' : 'false'"
@@ -82,6 +88,7 @@
     button
     detail="false"
     class="ion-margin-top"
+    data-tour-id="cover-image-picker"
     (click)="openImagePicker()"
     (pointerdown)="onPreviewPressStart()"
     (pointerup)="onPreviewPressEnd()"
@@ -181,6 +188,7 @@
     expand="block"
     class="ion-margin-top"
     fill="outline"
+    data-tour-id="adjust-button"
     [disabled]="!canCrop()"
     (click)="startCrop()"
     aria-label="{{ 'CHANGE.ARIA_CROP' | translate }}"
@@ -191,6 +199,7 @@
   <div class="actions">
     <ion-button
       expand="block"
+      data-tour-id="create-button"
       [disabled]="!canGenerate()"
       (click)="onGenerate()"
     >
@@ -200,7 +209,7 @@
 
   </div>
 
-  <ion-grid class="app-action-grid">
+  <ion-grid class="app-action-grid" data-tour-id="result-actions">
     <ion-row>
       <ion-col size="6">
         <ion-button
@@ -305,6 +314,8 @@
     [message]="loadingMessage"
     backdropDismiss="false"
   ></ion-loading>
+
+  <app-tour-overlay></app-tour-overlay>
 
   <input
     #epubInput

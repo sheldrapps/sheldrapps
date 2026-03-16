@@ -36,10 +36,10 @@ export class FileService {
   private readonly thumbDataUrlCache = new Map<string, string>();
   private thumbFileNamesCache: Set<string> | null = null;
   private thumbFileNamesCachePromise: Promise<Set<string>> | null = null;
-  private readonly DEBUG_IO = false;
+  // Temporary instrumentation for robust public EPUB discovery validation.
+  private readonly DEBUG_IO = true;
   private readonly epubStore = new EpubPublicStore(this.fileKit, {
     epubFolder: this.EPUB_FOLDER,
-    publicDocumentsRoot: '/storage/emulated/0/Documents',
     debug: this.DEBUG_IO,
     logPrefix: 'CCFK:file-kit',
   });
@@ -83,19 +83,24 @@ export class FileService {
   }
 
   async listCovers(): Promise<CoverEntry[]> {
-    try {
-      await this.ensurePublicDocumentsEpubFolderReady();
-      const files = await this.listEpubsFromPublicDocuments();
-      this.debugLog('listCovers', { count: files.length });
+    await this.ensurePublicDocumentsEpubFolderReady();
+    const files = await this.listEpubsFromPublicDocuments();
+    this.debugLog('listCovers', {
+      reloadAt: new Date().toISOString(),
+      count: files.length,
+      files,
+    });
 
-      return files.map((filename) => ({
-        filename,
-        epubPath: `${this.EPUB_FOLDER}/${filename}`,
-        thumbPath: this.getThumbPathForEpubFilename(filename),
-      }));
-    } catch {
-      return [];
-    }
+    return files.map((filename) => ({
+      filename,
+      epubPath: `${this.EPUB_FOLDER}/${filename}`,
+      thumbPath: this.getThumbPathForEpubFilename(filename),
+    }));
+  }
+
+  async hasCoverByFilename(filename: string): Promise<boolean> {
+    await this.ensurePublicDocumentsEpubFolderReady();
+    return this.existsInPublicDocuments(filename);
   }
 
   async deleteCoverByFilename(filename: string) {
@@ -339,6 +344,11 @@ export class FileService {
     const epubPath = `${this.EPUB_FOLDER}/${filename}`;
 
     await this.writePublicEpub(filename, opts.bytes);
+    this.debugLog('saveGeneratedEpub:finalWriteComplete', {
+      filename,
+      writeCompletedAt: new Date().toISOString(),
+      bytes: opts.bytes.byteLength,
+    });
     const uri = await this.getPublicEpubFileUriOrThrow(filename);
     this.debugLog('saveGeneratedEpub', { filename, bytes: opts.bytes.byteLength });
 
@@ -899,7 +909,12 @@ export class FileService {
       return (list.files ?? [])
         .map((entry) => (typeof entry === 'string' ? entry : entry.name))
         .filter((name): name is string => !!name);
-    } catch {
+    } catch (error) {
+      console.warn('[CCFK:file.service] listDirectoryFileNames failed', {
+        path,
+        dir,
+        error: this.errorDetails(error),
+      });
       return [];
     }
   }
@@ -909,7 +924,17 @@ export class FileService {
   }
 
   private async listEpubsFromPublicDocuments(): Promise<string[]> {
-    return this.epubStore.listEpubs();
+    this.debugLog('listEpubsFromPublicDocuments:start', {
+      reloadAt: new Date().toISOString(),
+      resolvedFolderPath: this.epubStore.publicFolderPath,
+      pathCandidates: this.epubStore.publicFolderPaths,
+    });
+    const files = await this.epubStore.listEpubs();
+    this.debugLog('listEpubsFromPublicDocuments:done', {
+      count: files.length,
+      files,
+    });
+    return files;
   }
 
   private async writePublicEpub(filename: string, bytes: Uint8Array): Promise<void> {
@@ -940,6 +965,10 @@ export class FileService {
 
   private async ensurePublicDocumentsEpubFolderReady(): Promise<void> {
     await this.epubStore.ensureReady();
+    this.debugLog('ensurePublicDocumentsEpubFolderReady', {
+      resolvedFolderPath: this.epubStore.publicFolderPath,
+      pathCandidates: this.epubStore.publicFolderPaths,
+    });
   }
 
   private mapDirectory(dir: 'Data' | 'Documents' | 'Cache'): Directory {
@@ -952,5 +981,23 @@ export class FileService {
     if (!this.DEBUG_IO) return;
     const suffix = payload ? ` ${JSON.stringify(payload)}` : '';
     console.info(`[CCFK:file.service] ${event}${suffix}`);
+  }
+
+  private errorDetails(error: unknown): Record<string, unknown> {
+    if (error && typeof error === 'object') {
+      const e = error as {
+        name?: unknown;
+        message?: unknown;
+        code?: unknown;
+        stack?: unknown;
+      };
+      return {
+        name: typeof e.name === 'string' ? e.name : undefined,
+        message: typeof e.message === 'string' ? e.message : undefined,
+        code: typeof e.code === 'string' || typeof e.code === 'number' ? e.code : undefined,
+        stack: typeof e.stack === 'string' ? e.stack : undefined,
+      };
+    }
+    return { message: String(error) };
   }
 }

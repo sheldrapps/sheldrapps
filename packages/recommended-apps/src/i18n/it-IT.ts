@@ -4,6 +4,8 @@ export const IT_IT: RecommendedAppsTranslations = {
   TITLE: 'App consigliate',
   OPEN_PLAY_STORE: 'Vedi nel Play Store',
   EMPTY_STATE: 'Nessuna app consigliata disponibile',
-  APP_DESC_CCFK: 'Crea copertine pronte per Kindle dalle tue immagini.',
+  APP_NAME_CCFK: 'Creatore copertine e-reader',
+  APP_NAME_ECC: 'Cambiare copertina EPUB',
+  APP_DESC_CCFK: 'Crea copertine per e-reader dalle tue immagini in pochi passaggi.',
   APP_DESC_ECC: 'Sostituisci le copertine EPUB ed esporta i file aggiornati.',
 };

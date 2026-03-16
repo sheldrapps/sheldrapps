@@ -12,14 +12,24 @@ type PreferenceValue = boolean | number | string | null;
 
 type LegacyCcfkSettings = {
   lang?: string;
+  language?: string;
   locale?: string;
+  brandId?: string;
+  modelId?: string;
   kindleModelId?: string;
+  homeTourSeen?: boolean;
+  homeTourVersion?: number;
+  homeTourSeenAt?: string;
   preferences?: Record<string, PreferenceValue>;
 };
 
 export interface CcfkSettings {
-  locale?: SupportedLocale;
-  kindleModelId?: string;
+  language?: SupportedLocale;
+  brandId?: string;
+  modelId?: string;
+  homeTourSeen: boolean;
+  homeTourVersion: number;
+  homeTourSeenAt?: string;
   preferences: Record<string, PreferenceValue>;
 }
 
@@ -28,11 +38,15 @@ const LEGACY_HINT_KEYS = [
   'cc_hint_save_share_explain_shown',
   'cc_hint_share_kindle_shown',
 ] as const;
-const CCFK_SETTINGS_VERSION = 3;
+const CCFK_SETTINGS_VERSION = 7;
 
 const CCFK_DEFAULTS: CcfkSettings = {
-  locale: undefined,
-  kindleModelId: undefined,
+  language: undefined,
+  brandId: undefined,
+  modelId: undefined,
+  homeTourSeen: false,
+  homeTourVersion: 0,
+  homeTourSeenAt: undefined,
   preferences: {},
 };
 
@@ -49,8 +63,9 @@ export const CCFK_SETTINGS_SCHEMA: SettingsSchema<CcfkSettings> = {
           LEGACY_SETTINGS_KEY
         );
         const directLegacyLang = await ctx.legacy?.get('lang');
-        const locale = await resolveStoredLocale(
-          pickNonEmptyString(legacySettings?.locale) ||
+        const language = await resolveStoredLocale(
+          pickNonEmptyString(legacySettings?.language) ||
+            pickNonEmptyString(legacySettings?.locale) ||
             pickNonEmptyString(legacySettings?.lang) ||
             pickNonEmptyString(directLegacyLang)
         );
@@ -60,8 +75,19 @@ export const CCFK_SETTINGS_SCHEMA: SettingsSchema<CcfkSettings> = {
         };
 
         return {
-          locale,
-          kindleModelId: pickNonEmptyString(legacySettings?.kindleModelId),
+          language,
+          brandId:
+            pickNonEmptyString(legacySettings?.brandId) ||
+            (pickNonEmptyString(legacySettings?.modelId) ||
+            pickNonEmptyString(legacySettings?.kindleModelId)
+              ? 'kindle'
+              : undefined),
+          modelId:
+            pickNonEmptyString(legacySettings?.modelId) ||
+            pickNonEmptyString(legacySettings?.kindleModelId),
+          homeTourSeen: pickBoolean(legacySettings?.homeTourSeen) ?? false,
+          homeTourVersion: pickNumber(legacySettings?.homeTourVersion) ?? 0,
+          homeTourSeenAt: pickNonEmptyString(legacySettings?.homeTourSeenAt),
           preferences,
         };
       },
@@ -74,6 +100,30 @@ export const CCFK_SETTINGS_SCHEMA: SettingsSchema<CcfkSettings> = {
     },
     {
       fromVersion: 2,
+      toVersion: CCFK_SETTINGS_VERSION,
+      run: async (ctx: MigrationContext<CcfkSettings>) =>
+        migrateVersionedSettings(ctx.rawJson),
+    },
+    {
+      fromVersion: 3,
+      toVersion: CCFK_SETTINGS_VERSION,
+      run: async (ctx: MigrationContext<CcfkSettings>) =>
+        migrateVersionedSettings(ctx.rawJson),
+    },
+    {
+      fromVersion: 4,
+      toVersion: CCFK_SETTINGS_VERSION,
+      run: async (ctx: MigrationContext<CcfkSettings>) =>
+        migrateVersionedSettings(ctx.rawJson),
+    },
+    {
+      fromVersion: 5,
+      toVersion: CCFK_SETTINGS_VERSION,
+      run: async (ctx: MigrationContext<CcfkSettings>) =>
+        migrateVersionedSettings(ctx.rawJson),
+    },
+    {
+      fromVersion: 6,
       toVersion: CCFK_SETTINGS_VERSION,
       run: async (ctx: MigrationContext<CcfkSettings>) =>
         migrateVersionedSettings(ctx.rawJson),
@@ -112,13 +162,26 @@ async function migrateVersionedSettings(
   rawSettings: unknown
 ): Promise<CcfkSettings> {
   const stored = asRecord(rawSettings);
-  const locale = await resolveStoredLocale(
-    pickNonEmptyString(stored?.['locale']) || pickNonEmptyString(stored?.['lang'])
+  const language = await resolveStoredLocale(
+    pickNonEmptyString(stored?.['language']) ||
+      pickNonEmptyString(stored?.['locale']) ||
+      pickNonEmptyString(stored?.['lang'])
   );
 
   return {
-    locale,
-    kindleModelId: pickNonEmptyString(stored?.['kindleModelId']),
+    language,
+    brandId:
+      pickNonEmptyString(stored?.['brandId']) ||
+      (pickNonEmptyString(stored?.['modelId']) ||
+      pickNonEmptyString(stored?.['kindleModelId'])
+        ? 'kindle'
+        : undefined),
+    modelId:
+      pickNonEmptyString(stored?.['modelId']) ||
+      pickNonEmptyString(stored?.['kindleModelId']),
+    homeTourSeen: pickBoolean(stored?.['homeTourSeen']) ?? false,
+    homeTourVersion: pickNumber(stored?.['homeTourVersion']) ?? 0,
+    homeTourSeenAt: pickNonEmptyString(stored?.['homeTourSeenAt']),
     preferences: normalizePreferences(stored?.['preferences']),
   };
 }
@@ -156,6 +219,14 @@ function pickNonEmptyString(value: unknown): string | undefined {
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function pickBoolean(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
+}
+
+function pickNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
 
 function normalizePreferences(value: unknown): Record<string, PreferenceValue> {

@@ -53,6 +53,9 @@ export class CropPanelComponent {
   private readonly sid = inject(EDITOR_SESSION_ID, { optional: true });
 
   kindleGroups: KindleGroup[] = [];
+  brands: Array<{ id: string; i18nKey: string; groups: KindleGroup[] }> = [];
+  visibleGroups: KindleGroup[] = [];
+  selectedBrandId?: string;
   selectedGroupId?: string;
   selectedModel?: KindleDeviceModel;
 
@@ -79,6 +82,9 @@ export class CropPanelComponent {
       this.kindleGroups = this.kindleState.catalog();
       this.selectedGroupId = this.kindleState.selectedGroupId() ?? undefined;
       this.selectedModel = this.kindleState.selectedModel() ?? undefined;
+      this.brands = this.buildBrands(this.kindleGroups);
+      this.selectedBrandId = this.resolveSelectedBrandId();
+      this.visibleGroups = this.getGroupsForBrand(this.selectedBrandId);
     });
   }
 
@@ -88,7 +94,7 @@ export class CropPanelComponent {
 
   get currentGroupModels(): KindleDeviceModel[] {
     if (!this.selectedGroupId) return [];
-    const group = this.kindleGroups.find((g) => g.id === this.selectedGroupId);
+    const group = this.visibleGroups.find((g) => g.id === this.selectedGroupId);
     return this.getGroupModels(group);
   }
 
@@ -99,9 +105,20 @@ export class CropPanelComponent {
     return m1 && m2 ? m1.id === m2.id : m1 === m2;
   }
 
+  onBrandChange(): void {
+    this.visibleGroups = this.getGroupsForBrand(this.selectedBrandId);
+    const firstGroup = this.visibleGroups[0];
+    const firstModel = this.getGroupModels(firstGroup)[0];
+    if (!firstGroup || !firstModel) {
+      return;
+    }
+
+    this.history.setKindleModel(firstGroup.id, firstModel.id);
+  }
+
   onGroupChange(): void {
     if (this.selectedGroupId) {
-      const group = this.kindleGroups.find(
+      const group = this.visibleGroups.find(
         (g) => g.id === this.selectedGroupId,
       );
       const models = this.getGroupModels(group);
@@ -156,6 +173,67 @@ export class CropPanelComponent {
   private getGroupModels(group?: KindleGroup): KindleDeviceModel[] {
     if (!group) return [];
     return group.items ?? group.models ?? [];
+  }
+
+  private buildBrands(
+    groups: KindleGroup[],
+  ): Array<{ id: string; i18nKey: string; groups: KindleGroup[] }> {
+    const brandMap = new Map<
+      string,
+      { id: string; i18nKey: string; groups: KindleGroup[] }
+    >();
+
+    for (const group of groups) {
+      const brandId = group.brandId?.trim() || "kindle";
+      const existing = brandMap.get(brandId);
+      if (existing) {
+        existing.groups.push(group);
+        continue;
+      }
+
+      brandMap.set(brandId, {
+        id: brandId,
+        i18nKey: this.getBrandI18nKey(brandId),
+        groups: [group],
+      });
+    }
+
+    return Array.from(brandMap.values());
+  }
+
+  private getGroupsForBrand(brandId?: string): KindleGroup[] {
+    if (!brandId) {
+      return [];
+    }
+
+    return this.brands.find((brand) => brand.id === brandId)?.groups ?? [];
+  }
+
+  private resolveSelectedBrandId(): string | undefined {
+    const selectedGroup = this.kindleGroups.find(
+      (group) => group.id === this.selectedGroupId,
+    );
+    const sessionBrandId =
+      this.getSession()?.tools?.kindle?.selectedBrandId?.trim() || undefined;
+
+    return selectedGroup?.brandId ?? sessionBrandId ?? this.brands[0]?.id;
+  }
+
+  private getBrandI18nKey(brandId: string): string {
+    switch (brandId) {
+      case "kindle":
+        return "KINDLE_BRANDS.KINDLE";
+      case "kobo":
+        return "KOBO_BRANDS.KOBO";
+      case "nook":
+        return "NOOK_BRANDS.NOOK";
+      case "pocketbook":
+        return "POCKETBOOK_BRANDS.POCKETBOOK";
+      case "tolino":
+        return "TOLINO_BRANDS.TOLINO";
+      default:
+        return `DEVICE_BRANDS.${brandId.toUpperCase()}`;
+    }
   }
 }
 

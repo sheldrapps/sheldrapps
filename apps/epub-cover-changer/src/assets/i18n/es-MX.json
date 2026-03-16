@@ -107,15 +107,49 @@
     "TIP": "Para mejores resultados, usa imágenes en alta resolución y asegúrate de que los anuncios estén desactivados en tu Kindle.",
     "TITLE": "Instrucciones"
   },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "Atrás",
+      "FINISH": "Finalizar",
+      "INTERACT_HINT": "Interactúa con el elemento resaltado para continuar.",
+      "NEXT": "Siguiente",
+      "PROGRESS": "{{current}} de {{total}}",
+      "SKIP": "Omitir"
+    },
+    "STEPS": {
+      "EPUB": {
+        "TITLE": "Archivo EPUB",
+        "DESCRIPTION": "Selecciona el archivo EPUB que quieres actualizar."
+      },
+      "IMAGE": {
+        "TITLE": "Imagen de portada",
+        "DESCRIPTION": "Selecciona la imagen para tu portada."
+      },
+      "ADJUST": {
+        "TITLE": "Ajustar",
+        "DESCRIPTION": "Ajusta la imagen en el editor y toca Listo."
+      },
+      "CREATE": {
+        "TITLE": "Cambiar portada",
+        "DESCRIPTION": "Genera aquí la portada actualizada."
+      },
+      "RESULTS": {
+        "TITLE": "Guardar o compartir",
+        "DESCRIPTION": "Guarda o comparte tu EPUB actualizado."
+      }
+    }
+  },
   "SETTINGS": {
     "INSTRUCTIONS": "Ver instrucciones",
     "INSTRUCTIONS_HINT": "Cómo cambiar y enviar una portada a Kindle",
     "INSTRUCTIONS_SECTION": "Instrucciones",
     "LANGUAGE": "Idioma",
+    "LANGUAGE_RESTART_NOTICE": "Idioma cambiado. La app se reiniciará para aplicar los cambios.",
     "PRIVACY_HINT": "Controla cómo se manejan los datos y la publicidad",
     "PRIVACY_OPTIONS": "Opciones de privacidad",
     "PRIVACY_POLICY": "Política de privacidad",
     "PRIVACY_SECTION": "Privacidad",
+    "VIEW_TOUR": "Ver tour",
     "TITLE": "Configuración"
   },
   "TABS": {

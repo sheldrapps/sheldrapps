@@ -22,6 +22,7 @@
   "TASKS": {
     "TITLE": "Attività",
     "NEW_TASK": "+ Nuova attività",
+    "MANAGE_CATEGORIES": "Gestisci categorie",
     "PLACEHOLDER": "Elenco attività (segnaposto)",
     "SAMPLE_TASK": "Apri attività di esempio",
     "OPEN_PROGRESS": "Apri progresso nel tempo"
@@ -152,6 +153,9 @@
     "CATEGORY_CREATE_OPTION": "+ Crea categoria",
     "CATEGORY_CREATE_TITLE": "Nuova categoria",
     "CATEGORY_CREATE_PLACEHOLDER": "Nome della categoria",
+    "CATEGORY_CUSTOM_NAME_LABEL": "Categoria personalizzata",
+    "VALIDATION_CATEGORY_NAME_REQUIRED": "Inserisci un nome categoria.",
+    "VALIDATION_CATEGORY_NAME_DUPLICATE": "Questa categoria esiste già.",
     "DEFAULT_CATEGORY_PERSONAL": "Personale",
     "DEFAULT_CATEGORY_WORK": "Lavoro",
     "DEFAULT_CATEGORY_HEALTH": "Salute",
@@ -172,6 +176,32 @@
     "VALIDATION_YEAR_MONTH_REQUIRED": "Seleziona il mese.",
     "VALIDATION_YEAR_DAY_REQUIRED": "Seleziona il giorno.",
     "RECURRENCE_TIME_PLACEHOLDER": "--:--"
+  },
+  "CATEGORY_VALIDATION": {
+    "EMPTY": "Il nome della categoria non può essere vuoto",
+    "DUPLICATE": "La categoria esiste già",
+    "TOO_LONG": "Il nome della categoria è troppo lungo"
+  },
+  "CATEGORIES": {
+    "TITLE": "Categorie",
+    "NEW_CATEGORY": "+ Nuova categoria",
+    "EMPTY": "Nessuna categoria disponibile.",
+    "EDIT": "Modifica",
+    "DELETE": "Elimina",
+    "DELETE_CONFIRM_TITLE": "Eliminare la categoria \"{{name}}\"?",
+    "DELETE_CONFIRM_MESSAGE": "Le attività che usano questa categoria perderanno la categoria.",
+    "ERROR_LOAD": "Impossibile caricare le categorie.",
+    "ERROR_DELETE": "Impossibile eliminare la categoria."
+  },
+  "CATEGORY_FORM": {
+    "NEW_TITLE": "Crea categoria",
+    "EDIT_TITLE": "Modifica categoria",
+    "NAME_LABEL": "Nome categoria",
+    "NAME_PLACEHOLDER": "Nome categoria",
+    "CREATE_ACTION": "Crea categoria",
+    "UPDATE_ACTION": "Salva modifiche",
+    "ERROR_SAVE": "Impossibile salvare la categoria.",
+    "ERROR_NOT_FOUND": "Categoria non trovata."
   },
   "PROGRESS": {
     "TITLE": "Progresso nel tempo",

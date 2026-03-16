@@ -1,5 +1,6 @@
 package com.sheldrapps.epubcoverchanger;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Build;
 import android.content.pm.ApplicationInfo;
@@ -26,6 +27,20 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
+    private final class LauncherAliasBridge {
+        @JavascriptInterface
+        public void setActiveLocale(String localeTag) {
+            LauncherAliasManager.applyLocale(MainActivity.this, localeTag);
+        }
+    }
+
+    private final class AppControlBridge {
+        @JavascriptInterface
+        public void restartApp() {
+            runOnUiThread(() -> relaunchApp());
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(EpubRewritePlugin.class);
@@ -46,6 +61,14 @@ public class MainActivity extends BridgeActivity {
         bridge.getWebView().addJavascriptInterface(
             new RuntimeBridge(debugBuild),
             "SheldrappsRuntime"
+        );
+        bridge.getWebView().addJavascriptInterface(
+            new LauncherAliasBridge(),
+            "SheldrappsLauncherAlias"
+        );
+        bridge.getWebView().addJavascriptInterface(
+            new AppControlBridge(),
+            "SheldrappsAppControl"
         );
     }
 
@@ -75,6 +98,22 @@ public class MainActivity extends BridgeActivity {
         getWindow().setSoftInputMode(
             preservedState | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
         );
+    }
+
+    private void relaunchApp() {
+        Intent launchIntent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+        if (launchIntent == null) {
+            recreate();
+            return;
+        }
+
+        launchIntent.addFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK |
+            Intent.FLAG_ACTIVITY_CLEAR_TOP |
+            Intent.FLAG_ACTIVITY_CLEAR_TASK
+        );
+        startActivity(launchIntent);
+        finishAffinity();
     }
 }
 

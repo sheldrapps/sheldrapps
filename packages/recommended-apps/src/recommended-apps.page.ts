@@ -36,6 +36,10 @@ const APP_DESCRIPTION_KEYS: Record<string, keyof RecommendedAppsTranslations> = 
   'com.sheldrapps.covercreatorforkindle': 'APP_DESC_CCFK',
   'com.sheldrapps.epubcoverchanger': 'APP_DESC_ECC',
 };
+const APP_NAME_KEYS: Record<string, keyof RecommendedAppsTranslations> = {
+  'com.sheldrapps.covercreatorforkindle': 'APP_NAME_CCFK',
+  'com.sheldrapps.epubcoverchanger': 'APP_NAME_ECC',
+};
 
 @Component({
   selector: 'recommended-apps-page',
@@ -92,6 +96,15 @@ export class RecommendedAppsPage {
     }
 
     return this.t[descriptionKey];
+  }
+
+  getAppName(app: RecommendedApp): string {
+    const nameKey = APP_NAME_KEYS[app.packageName];
+    if (!nameKey) {
+      return app.appName;
+    }
+
+    return this.t[nameKey];
   }
 
   private async loadTranslations(): Promise<void> {

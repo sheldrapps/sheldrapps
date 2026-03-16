@@ -18,6 +18,7 @@ export interface KindleDeviceModel {
 
 /** Kindle group (matches app catalog JSON) */
 export interface KindleGroup {
+  brandId?: string;
   id: string;
   i18nKey?: string;
   label?: string;
@@ -46,6 +47,7 @@ export interface EditorToolsConfig {
     modelCatalog?: KindleGroup[];
     /** Legacy alias for catalog */
     groups?: KindleGroup[];
+    selectedBrandId?: string;
     selectedGroupId?: string;
     selectedModel?: KindleDeviceModel;
     onKindleModelChange?: (model: KindleDeviceModel) => void;

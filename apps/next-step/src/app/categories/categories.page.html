@@ -1,0 +1,52 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/tasks"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ 'CATEGORIES.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-button expand="block" [routerLink]="['/categories/new']">
+    {{ 'CATEGORIES.NEW_CATEGORY' | translate }}
+  </ion-button>
+
+  @if (loadFailed) {
+    <ion-note color="danger">{{ 'CATEGORIES.ERROR_LOAD' | translate }}</ion-note>
+  }
+
+  @if (deleteFailed) {
+    <ion-note color="danger">{{ 'CATEGORIES.ERROR_DELETE' | translate }}</ion-note>
+  }
+
+  @if (!isLoading && !loadFailed && categories.length === 0) {
+    <ion-note>{{ 'CATEGORIES.EMPTY' | translate }}</ion-note>
+  }
+
+  @if (categories.length > 0) {
+    <ion-list inset>
+      @for (category of categories; track category.id) {
+        <ion-item>
+          <ion-label>{{ category.name }}</ion-label>
+          <ion-button
+            slot="end"
+            fill="clear"
+            [routerLink]="['/categories', category.id, 'edit']"
+          >
+            {{ 'CATEGORIES.EDIT' | translate }}
+          </ion-button>
+          <ion-button
+            slot="end"
+            fill="clear"
+            color="danger"
+            (click)="confirmDeleteCategory(category)"
+          >
+            {{ 'CATEGORIES.DELETE' | translate }}
+          </ion-button>
+        </ion-item>
+      }
+    </ion-list>
+  }
+</ion-content>
+

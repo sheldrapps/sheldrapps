@@ -111,6 +111,34 @@
             </ion-select-option>
           </ion-select>
         </ion-item>
+        @if (isCustomCategoryMode) {
+          <ion-item class="category-field-item">
+            <ion-label position="stacked" class="form-label">
+              {{ 'CREATE_TASK.CATEGORY_CUSTOM_NAME_LABEL' | translate }}
+            </ion-label>
+            <ion-input
+              class="form-control-text"
+              formControlName="customCategoryName"
+              [placeholder]="'CREATE_TASK.CATEGORY_CREATE_PLACEHOLDER' | translate"
+              (ionBlur)="onCustomCategoryNameBlur()"
+            ></ion-input>
+          </ion-item>
+          @if (showCustomCategoryNameRequiredError) {
+            <ion-note color="danger" class="form-error form-feedback duration-dependent-feedback">
+              {{ 'CATEGORY_VALIDATION.EMPTY' | translate }}
+            </ion-note>
+          }
+          @if (showCustomCategoryNameDuplicateError) {
+            <ion-note color="danger" class="form-error form-feedback duration-dependent-feedback">
+              {{ 'CATEGORY_VALIDATION.DUPLICATE' | translate }}
+            </ion-note>
+          }
+          @if (showCustomCategoryNameTooLongError) {
+            <ion-note color="danger" class="form-error form-feedback duration-dependent-feedback">
+              {{ 'CATEGORY_VALIDATION.TOO_LONG' | translate }}
+            </ion-note>
+          }
+        }
       </ion-list>
 
       <ion-list class="section-list task-section-card">

@@ -22,6 +22,7 @@
   "TASKS": {
     "TITLE": "Aufgaben",
     "NEW_TASK": "+ Neue Aufgabe",
+    "MANAGE_CATEGORIES": "Kategorien verwalten",
     "PLACEHOLDER": "Aufgabenliste (Platzhalter)",
     "SAMPLE_TASK": "Beispielaufgabe öffnen",
     "OPEN_PROGRESS": "Fortschritt im Zeitverlauf"
@@ -152,6 +153,9 @@
     "CATEGORY_CREATE_OPTION": "+ Kategorie erstellen",
     "CATEGORY_CREATE_TITLE": "Neue Kategorie",
     "CATEGORY_CREATE_PLACEHOLDER": "Name der Kategorie",
+    "CATEGORY_CUSTOM_NAME_LABEL": "Benutzerdefinierte Kategorie",
+    "VALIDATION_CATEGORY_NAME_REQUIRED": "Gib einen Kategorienamen ein.",
+    "VALIDATION_CATEGORY_NAME_DUPLICATE": "Diese Kategorie existiert bereits.",
     "DEFAULT_CATEGORY_PERSONAL": "Privat",
     "DEFAULT_CATEGORY_WORK": "Arbeit",
     "DEFAULT_CATEGORY_HEALTH": "Gesundheit",
@@ -172,6 +176,32 @@
     "VALIDATION_YEAR_MONTH_REQUIRED": "Wähle den Monat.",
     "VALIDATION_YEAR_DAY_REQUIRED": "Wähle den Tag.",
     "RECURRENCE_TIME_PLACEHOLDER": "--:--"
+  },
+  "CATEGORY_VALIDATION": {
+    "EMPTY": "Der Kategoriename darf nicht leer sein",
+    "DUPLICATE": "Kategorie existiert bereits",
+    "TOO_LONG": "Der Kategoriename ist zu lang"
+  },
+  "CATEGORIES": {
+    "TITLE": "Kategorien",
+    "NEW_CATEGORY": "+ Neue Kategorie",
+    "EMPTY": "Noch keine Kategorien vorhanden.",
+    "EDIT": "Bearbeiten",
+    "DELETE": "Löschen",
+    "DELETE_CONFIRM_TITLE": "Kategorie \"{{name}}\" löschen?",
+    "DELETE_CONFIRM_MESSAGE": "Aufgaben mit dieser Kategorie verlieren ihre Kategorie.",
+    "ERROR_LOAD": "Kategorien konnten nicht geladen werden.",
+    "ERROR_DELETE": "Kategorie konnte nicht gelöscht werden."
+  },
+  "CATEGORY_FORM": {
+    "NEW_TITLE": "Kategorie erstellen",
+    "EDIT_TITLE": "Kategorie bearbeiten",
+    "NAME_LABEL": "Kategoriename",
+    "NAME_PLACEHOLDER": "Kategoriename",
+    "CREATE_ACTION": "Kategorie erstellen",
+    "UPDATE_ACTION": "Änderungen speichern",
+    "ERROR_SAVE": "Kategorie konnte nicht gespeichert werden.",
+    "ERROR_NOT_FOUND": "Kategorie nicht gefunden."
   },
   "PROGRESS": {
     "TITLE": "Fortschritt im Zeitverlauf",

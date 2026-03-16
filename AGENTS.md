@@ -46,7 +46,7 @@ Standard new app baseline:
 
 - Ionic Angular app inside this monorepo (`apps/<new-app>`).
 - Tabs navigation pattern.
-- Tab #3 must be Settings when the app has at least 3 tabs.
+- Settings must always be the last tab in apps that use tabs navigation.
 - Settings should consume `@sheldrapps/settings-kit`.
 - Persistent settings should use `config.json` where implemented today:
   - Current reference wiring: `ConfigJsonFileAdapter` in

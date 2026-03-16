@@ -90,6 +90,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   private hasLoadedOnce = false;
   private needsReload = true;
   private isViewActive = false;
+  private readonly logPrefix = 'ECC:my-epubs';
 
   // Preview Modal
   previewOpen = false;
@@ -130,6 +131,11 @@ export class MyEpubsPage implements OnInit, OnDestroy {
         }
 
         this.needsReload = true;
+        this.logInfo('libraryReload:trigger', {
+          reason: `covers-event:${event.type}`,
+          filename,
+          triggeredAt: new Date().toISOString(),
+        });
         if (this.isViewActive) {
           void this.load();
         }
@@ -137,6 +143,10 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   }
 
   async load(ev?: CustomEvent) {
+    this.logInfo('libraryReload:start', {
+      reason: ev ? 'pull-to-refresh' : 'view-load',
+      triggeredAt: new Date().toISOString(),
+    });
     this.loading = !ev;
     this.pageErrorKey = null;
     this.pageErrorParams = null;
@@ -144,6 +154,10 @@ export class MyEpubsPage implements OnInit, OnDestroy {
 
     try {
       const entries = await this.files.listCovers();
+      this.logInfo('libraryReload:listCoversResult', {
+        count: entries.length,
+        filenames: entries.map((entry) => entry.filename),
+      });
       const items: UiCoverItem[] = entries.map((e) => ({
         filename: e.filename,
       }));
@@ -153,7 +167,11 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       this.loading = false;
       ev?.target && (ev.target as any).complete();
       void this.loadThumbsResilient(items, loadToken);
-    } catch {
+    } catch (error) {
+      this.logInfo('libraryReload:failed', {
+        triggeredAt: new Date().toISOString(),
+        error: this.errorDetails(error),
+      });
       this.items = [];
       this.pageErrorKey = 'COVERS.ERROR.LOAD';
       this.loading = false;
@@ -391,9 +409,12 @@ export class MyEpubsPage implements OnInit, OnDestroy {
 
   async ionViewWillEnter() {
     this.isViewActive = true;
-    if (!this.hasLoadedOnce || this.needsReload) {
-      await this.load();
-    }
+    this.needsReload = true;
+    this.logInfo('libraryReload:trigger', {
+      reason: 'ionViewWillEnter',
+      triggeredAt: new Date().toISOString(),
+    });
+    await this.load();
   }
 
   ionViewDidLeave() {
@@ -451,5 +472,28 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     if (!this.content) return;
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     await this.content.scrollToPoint(0, scrollTop, 0);
+  }
+
+  private logInfo(event: string, payload?: Record<string, unknown>): void {
+    const suffix = payload ? ` ${JSON.stringify(payload)}` : '';
+    console.info(`[${this.logPrefix}] ${event}${suffix}`);
+  }
+
+  private errorDetails(error: unknown): Record<string, unknown> {
+    if (error && typeof error === 'object') {
+      const e = error as {
+        name?: unknown;
+        message?: unknown;
+        code?: unknown;
+        stack?: unknown;
+      };
+      return {
+        name: typeof e.name === 'string' ? e.name : undefined,
+        message: typeof e.message === 'string' ? e.message : undefined,
+        code: typeof e.code === 'string' || typeof e.code === 'number' ? e.code : undefined,
+        stack: typeof e.stack === 'string' ? e.stack : undefined,
+      };
+    }
+    return { message: String(error) };
   }
 }

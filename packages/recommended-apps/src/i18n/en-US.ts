@@ -4,6 +4,8 @@ export const EN_US: RecommendedAppsTranslations = {
   TITLE: 'Recommended apps',
   OPEN_PLAY_STORE: 'View on Play Store',
   EMPTY_STATE: 'No recommended apps available',
-  APP_DESC_CCFK: 'Create Kindle-ready covers from your images.',
+  APP_NAME_CCFK: 'E-Reader Cover Creator',
+  APP_NAME_ECC: 'EPUB Cover Changer',
+  APP_DESC_CCFK: 'Create e-reader covers from your images in just a few taps.',
   APP_DESC_ECC: 'Replace EPUB covers and export updated files.',
 };

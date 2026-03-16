@@ -15,6 +15,30 @@ export const routes: Routes = [
     loadChildren: () => import('./task/task.routes').then((m) => m.routes),
   },
   {
+    path: 'categories',
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./categories/categories.page').then((m) => m.CategoriesPage),
+      },
+      {
+        path: 'new',
+        loadComponent: () =>
+          import('./categories/category-create.page').then(
+            (m) => m.CategoryCreatePage
+          ),
+      },
+      {
+        path: ':id/edit',
+        loadComponent: () =>
+          import('./categories/category-edit.page').then(
+            (m) => m.CategoryEditPage
+          ),
+      },
+    ],
+  },
+  {
     path: 'progress',
     loadComponent: () =>
       import('./progress/progress.page').then((m) => m.ProgressPage),

@@ -14,16 +14,35 @@
   <!-- Kindle Model Selection Panel -->
   <ion-grid class="selectors-grid">
     <ion-row>
+      <ion-col size="12">
+        <div class="selector-label">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.BRAND' | translate }}</div>
+        <ion-item>
+          <ion-select
+            [(ngModel)]="selectedBrandId"
+            (ionChange)="onBrandChange()"
+            [placeholder]="'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.PLACEHOLDER.SELECT_BRAND' | translate"
+            interface="popover"
+          >
+            <ion-select-option *ngFor="let brand of brands" [value]="brand.id">
+              {{ brand.i18nKey | translate }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+
+    <ion-row>
       <ion-col size="6">
-        <div class="selector-label">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP' | translate }}</div>
+        <div class="selector-label">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.GROUP' | translate }}</div>
         <ion-item>
           <ion-select
             [(ngModel)]="selectedGroupId"
             (ionChange)="onGroupChange()"
             [placeholder]="'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.PLACEHOLDER.SELECT_GROUP' | translate"
             interface="popover"
+            [disabled]="!selectedBrandId"
           >
-            <ion-select-option *ngFor="let group of kindleGroups" [value]="group.id">
+            <ion-select-option *ngFor="let group of visibleGroups" [value]="group.id">
               {{ (group.i18nKey || group.labelKey || group.label || group.id) | translate }}
             </ion-select-option>
           </ion-select>
@@ -31,7 +50,7 @@
       </ion-col>
 
       <ion-col size="6">
-        <div class="selector-label">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.GENERATION' | translate }}</div>
+        <div class="selector-label">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.MODEL' | translate }}</div>
         <ion-item>
           <ion-select
             [(ngModel)]="selectedModel"

@@ -13,25 +13,62 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
-  <div class="field-section">
+<ion-content
+  [fullscreen]="true"
+  class="ion-padding"
+  [scrollEvents]="true"
+  (ionScroll)="onTourContentScroll()"
+>
+  <div class="field-section" data-tour-id="device-section">
     <div class="field-title">
       {{ 'CREATE.SELECT_MODEL_LABEL' | translate }}
     </div>
     
     <ion-grid class="app-select-grid">
       <ion-row>
+        <ion-col size="12">
+          <div class="app-select-label">
+            {{ 'CREATE.SELECT_BRAND_LABEL' | translate }}
+          </div>
+          <ion-item
+            data-tour-id="brand-select"
+          >
+            <ion-select
+              [(ngModel)]="selectedBrandId"
+              (ionChange)="onBrandChange()"
+              (ionFocus)="onBrandSelectOpen()"
+              (ionCancel)="onBrandSelectCancel()"
+              (ionDismiss)="onBrandSelectDismiss()"
+              [placeholder]="'CREATE.SELECT_BRAND_PLACEHOLDER' | translate"
+              interface="popover"
+              aria-label="{{ 'CREATE.SELECT_BRAND_LABEL' | translate }}"
+            >
+              <ion-select-option *ngFor="let brand of brands" [value]="brand.id">
+                {{ brand.i18nKey | translate }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
         <ion-col size="6">
           <div class="app-select-label">
             {{ 'CREATE.SELECT_GROUP_LABEL' | translate }}
           </div>
-          <ion-item>
+          <ion-item
+            data-tour-id="group-select"
+          >
             <ion-select
               [(ngModel)]="selectedGroupId"
               (ionChange)="onGroupChange()"
+              (ionFocus)="onGroupSelectOpen()"
+              (ionCancel)="onGroupSelectCancel()"
+              (ionDismiss)="onGroupSelectDismiss()"
               [placeholder]="'CREATE.SELECT_GROUP_PLACEHOLDER' | translate"
               interface="popover"
               aria-label="{{ 'CREATE.SELECT_GROUP_LABEL' | translate }}"
+              [disabled]="!selectedBrandId"
             >
               <ion-select-option *ngFor="let group of groups" [value]="group.id">
                 {{ group.i18nKey | translate }}
@@ -44,10 +81,15 @@
           <div class="app-select-label">
             {{ 'CREATE.SELECT_GENERATION_LABEL' | translate }}
           </div>
-          <ion-item>
+          <ion-item
+            data-tour-id="model-select"
+          >
             <ion-select
               [(ngModel)]="selectedModel"
               (ionChange)="onModelChange()"
+              (ionFocus)="onModelSelectOpen()"
+              (ionCancel)="onModelSelectCancel()"
+              (ionDismiss)="onModelSelectDismiss()"
               [placeholder]="'CREATE.SELECT_GENERATION_PLACEHOLDER' | translate"
               [compareWith]="compareModels"
               interface="popover"
@@ -68,6 +110,7 @@
     button
     detail="false"
     class="ion-margin-top"
+    data-tour-id="cover-image-picker"
     (click)="openImagePicker()"
     (pointerdown)="onPreviewPressStart()"
     (pointerup)="onPreviewPressEnd()"
@@ -157,6 +200,7 @@
     expand="block"
     class="ion-margin-top"
     fill="outline"
+    data-tour-id="adjust-button"
     [disabled]="!canEdit()"
     (click)="onAdjustWithEditor()"
     aria-label="{{ 'CREATE.ARIA_CROP' | translate }}"
@@ -167,6 +211,7 @@
   <div class="actions">
     <ion-button
       expand="block"
+      data-tour-id="create-button"
       [disabled]="!canGenerate()"
       (click)="onGenerate()"
     >
@@ -176,7 +221,7 @@
 
   </div>
 
-  <ion-grid class="app-action-grid">
+  <ion-grid class="app-action-grid" data-tour-id="result-actions">
     <ion-row>
       <ion-col size="6">
         <ion-button
@@ -276,6 +321,8 @@
     [message]="loadingMessageKey ? (loadingMessageKey | translate) : undefined"
     backdropDismiss="false"
   ></ion-loading>
+
+  <app-tour-overlay></app-tour-overlay>
 
   <input
     #imageInput

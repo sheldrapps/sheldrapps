@@ -19,7 +19,7 @@
     "ARIA_CHANGE_IMAGE": "Cambia immagine della copertina. Immagine attuale: {{name}}",
     "ARIA_CROP": "Regola l’immagine selezionata",
     "ARIA_SELECT_IMAGE": "Seleziona immagine di copertina",
-    "ARIA_SELECT_MODEL": "Seleziona modello Kindle",
+    "ARIA_SELECT_MODEL": "Seleziona il modello del dispositivo",
     "CROP_ACTION": "Regola",
     "COVER_CREATED": "Copertina creata. Puoi ora salvare o condividere",
     "CREATE_ACTION_REWARDED": "Crea copertina (guarda annuncio)",
@@ -32,8 +32,8 @@
     "INFO_SHARE_KINDLE": "Per inviarla al tuo Kindle, seleziona l'app Kindle durante la condivisione.",
     "INFO_FLOW_LABEL": "Ordine consigliato:",
     "INFO_STEP_1": "Seleziona un’immagine.",
-    "INFO_STEP_2": "Regola l’immagine nell’editor.",
-    "INFO_STEP_3": "Guarda l’annuncio per creare la copertina.",
+    "INFO_STEP_2": "Regola l’immagine nell’editor e tocca Fatto per applicarla.",
+    "INFO_STEP_3": "Crea la copertina dopo aver applicato la modifica.",
     "INFO_STEP_4": "Salva o condividi.",
     "INFO_NOTE_LABEL": "Nota:",
     "IMAGE_ERROR_CORRUPT": "Impossibile leggere l'immagine. Prova con un'altra.",
@@ -50,12 +50,14 @@
     "SAVE_RENAME_PLACEHOLDER": "Nome del file",
     "SELECT_IMAGE_LABEL": "Immagine di copertina",
     "SELECT_IMAGE_PLACEHOLDER": "Seleziona un’immagine",
-    "SELECT_GROUP_LABEL": "Modello",
-    "SELECT_GROUP_PLACEHOLDER": "Seleziona un modello",
-    "SELECT_GENERATION_LABEL": "Generazione",
-    "SELECT_GENERATION_PLACEHOLDER": "Seleziona la generazione",
-    "SELECT_MODEL_LABEL": "Modello Kindle",
-    "SELECT_MODEL_PLACEHOLDER": "Seleziona il tuo modello",
+    "SELECT_BRAND_LABEL": "Marca",
+    "SELECT_BRAND_PLACEHOLDER": "Seleziona una marca",
+    "SELECT_GROUP_LABEL": "Gruppo",
+    "SELECT_GROUP_PLACEHOLDER": "Seleziona un gruppo",
+    "SELECT_GENERATION_LABEL": "Modello",
+    "SELECT_GENERATION_PLACEHOLDER": "Seleziona un modello",
+    "SELECT_MODEL_LABEL": "Modello del dispositivo",
+    "SELECT_MODEL_PLACEHOLDER": "Seleziona il tuo dispositivo",
     "TAP_TO_CHANGE": "Tocca per cambiare/reimpostare",
     "TITLE": "Crea copertina",
     "MODEL_PICKER": {
@@ -90,40 +92,98 @@
   },
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Nota",
-    "STEP_1": "Seleziona un'immagine per la copertina",
-    "STEP_2": "Regola l'immagine alle dimensioni del tuo Kindle",
-    "STEP_3": "Genera la copertina guardando un breve video",
+    "STEP_1": "Seleziona un’immagine per la tua copertina",
+    "STEP_2": "Regola l’immagine nell’editor e tocca Fatto per applicarla",
+    "STEP_3": "Crea la copertina dopo aver applicato la modifica",
     "STEP_4": "Salva o condividi la copertina",
-    "STEP_4_DESC": "Una volta generata, puoi salvarla sul dispositivo o condividerla direttamente con l’app Kindle per una transizione più fluida.",
-    "STEP_5": "Invia via web (Send to Kindle)",
-    "STEP_5_DESC": "Puoi anche inviarla dal browser utilizzando lo strumento web Send to Kindle.",
-    "TIP": "Per risultati migliori, utilizza immagini ad alta risoluzione e assicurati che gli annunci siano disattivati sul tuo Kindle.",
+    "STEP_4_DESC": "Quando è pronta, puoi salvarla sul dispositivo o condividerla con l’app Kindle per un flusso più semplice.",
+    "STEP_5": "Inviare via web (Send to Kindle)",
+    "STEP_5_DESC": "Puoi anche inviarla dal browser con lo strumento web Send to Kindle.",
+    "TIP": "Per risultati migliori, usa immagini ad alta risoluzione e assicurati che gli annunci siano disattivati sul tuo Kindle.",
     "TITLE": "Istruzioni"
   },
+  "KINDLE_BRANDS": {
+    "KINDLE": "Kindle"
+  },
   "KINDLE_GROUPS": {
-    "BASIC": "Base",
-    "COLOR": "Colorsoft",
-    "COLORSOFT_SIGNATURE": "Colorsoft Signature",
+    "BASIC": "Basic",
     "OASIS": "Oasis",
     "PAPERWHITE": "Paperwhite",
     "PAPERWHITE_SIGNATURE": "Paperwhite Signature",
-    "SCRIBE": "Scribe"
+    "SCRIBE": "Scribe",
+    "VOYAGE": "Voyage",
+    "COLORSOFT": "Colorsoft",
+    "COLORSOFT_SIGNATURE": "Colorsoft Signature"
   },
   "KINDLE_MODELS": {
-    "COLORSOFT_2025": "2025",
-    "COLORSOFT_SIGNATURE_2024": "2024",
-    "KINDLE_BASIC_2019": "2019 – 10ª generazione",
-    "KINDLE_BASIC_2022": "2022 – 11ª generazione",
-    "KINDLE_BASIC_2024": "2024",
-    "OASIS_2017_2019": "2017 / 2019",
-    "PAPERWHITE_2015": "2015 – 7ª generazione",
-    "PAPERWHITE_2018": "2018 – 10ª generazione",
-    "PAPERWHITE_2021": "2021 – 11ª generazione",
-    "PAPERWHITE_2024": "2024 – 12ª generazione",
-    "PAPERWHITE_SIGNATURE_2021": "2021 – 11ª generazione",
-    "PAPERWHITE_SIGNATURE_2024": "2024 – 12ª generazione",
-    "SCRIBE_2022": "2022",
-    "SCRIBE_2024": "2024"
+    "BASIC_2010_2019": "Kindle Basic (2010-2019)",
+    "BASIC_2022_2024": "Kindle Basic (2022-2024)",
+    "OASIS_2016": "Kindle Oasis (2016)",
+    "OASIS_2017_2019": "Kindle Oasis (2017-2019)",
+    "PAPERWHITE_2012_2013": "Kindle Paperwhite (2012-2013)",
+    "PAPERWHITE_2015_2019": "Kindle Paperwhite (2015-2019)",
+    "PAPERWHITE_2021": "Kindle Paperwhite (2021)",
+    "PAPERWHITE_2024": "Kindle Paperwhite (2024)",
+    "PAPERWHITE_SIGNATURE_2021": "Kindle Paperwhite Signature Edition (2021)",
+    "PAPERWHITE_SIGNATURE_2024": "Kindle Paperwhite Signature Edition (2024)",
+    "SCRIBE_2022_2024": "Kindle Scribe (2022-2024)",
+    "VOYAGE_2014": "Kindle Voyage (2014)",
+    "COLORSOFT": "2025",
+    "COLORSOFT_SIGNATURE_EDITION": "2024"
+  },
+  "KOBO_BRANDS": {
+    "KOBO": "Kobo"
+  },
+  "KOBO_GROUPS": {
+    "CLARA": "Clara",
+    "ELIPSA": "Elipsa",
+    "LIBRA": "Libra",
+    "NIA": "Nia",
+    "SAGE": "Sage"
+  },
+  "KOBO_MODELS": {
+    "CLARA_ALL": "Kobo Clara (HD / 2E / BW / Colour)",
+    "ELIPSA_ALL": "Kobo Elipsa (Elipsa / 2E)",
+    "LIBRA_ALL": "Kobo Libra (H2O / 2 / Colour)",
+    "NIA": "Kobo Nia",
+    "SAGE": "Kobo Sage"
+  },
+  "NOOK_BRANDS": {
+    "NOOK": "Nook"
+  },
+  "NOOK_GROUPS": {
+    "GLOWLIGHT": "GlowLight"
+  },
+  "NOOK_MODELS": {
+    "GLOWLIGHT_2013_2015": "Nook GlowLight (2013-2015)",
+    "GLOWLIGHT_2019_2023": "Nook GlowLight (2019-2023)"
+  },
+  "POCKETBOOK_BRANDS": {
+    "POCKETBOOK": "PocketBook"
+  },
+  "POCKETBOOK_GROUPS": {
+    "ERA": "Era",
+    "INKPAD": "InkPad",
+    "VERSE": "Verse"
+  },
+  "POCKETBOOK_MODELS": {
+    "ERA": "PocketBook Era",
+    "INKPAD_ALL": "PocketBook InkPad (All models)",
+    "VERSE": "PocketBook Verse",
+    "VERSE_PRO": "PocketBook Verse Pro"
+  },
+  "TOLINO_BRANDS": {
+    "TOLINO": "Tolino"
+  },
+  "TOLINO_GROUPS": {
+    "SHINE": "Shine",
+    "VISION": "Vision"
+  },
+  "TOLINO_MODELS": {
+    "SHINE_2014_2018": "Tolino Shine (2014-2018)",
+    "SHINE_HD": "Tolino Shine HD",
+    "VISION_2015_2018": "Tolino Vision (2015-2018)",
+    "VISION_2021_2024": "Tolino Vision (2021-2024)"
   },
   "REQUISITES": {
     "ADS_DESC": "Gli annunci devono essere disattivati sul dispositivo affinché la copertina venga mostrata nella schermata di blocco.",
@@ -141,11 +201,60 @@
     "SEND_TITLE": "Inviare copertine via web",
     "TITLE": "Requisiti"
   },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "Indietro",
+      "FINISH": "Fine",
+      "NEXT": "Avanti",
+      "PROGRESS": "{{current}} di {{total}}",
+      "SKIP": "Salta",
+      "INTERACT_HINT": "Interagisci con l’elemento evidenziato per continuare."
+    },
+    "STEPS": {
+      "DEVICE": {
+        "TITLE": "Dispositivo",
+        "DESCRIPTION": "Per prima cosa seleziona il tuo dispositivo.\nIn questo modo la copertina viene creata con la risoluzione corretta."
+      },
+      "BRAND": {
+        "TITLE": "Marca",
+        "DESCRIPTION": "Scegli la marca del tuo eReader."
+      },
+      "GROUP": {
+        "TITLE": "Gruppo",
+        "DESCRIPTION": "Seleziona la linea del tuo dispositivo."
+      },
+      "MODEL": {
+        "TITLE": "Modello",
+        "DESCRIPTION": "Scegli il modello esatto."
+      },
+      "IMAGE": {
+        "TITLE": "Immagine di copertina",
+        "DESCRIPTION": "Seleziona l’immagine per la copertina."
+      },
+      "ADJUST": {
+        "TITLE": "Regola",
+        "DESCRIPTION": "Regola l’immagine nell’editor e tocca Fatto."
+      },
+      "CREATE": {
+        "TITLE": "Crea copertina",
+        "DESCRIPTION": "Genera qui la copertina."
+      },
+      "RESULTS": {
+        "TITLE": "Salva o condividi",
+        "DESCRIPTION": "Salva o condividi la tua copertina."
+      },
+      "DONE": {
+        "TITLE": "Fatto",
+        "DESCRIPTION": "Fatto.\nOra sai come creare copertine con CCFK."
+      }
+    }
+  },
   "SETTINGS": {
     "INSTRUCTIONS": "Vedi istruzioni",
     "INSTRUCTIONS_HINT": "Come creare e inviare una copertina per Kindle",
     "INSTRUCTIONS_SECTION": "Istruzioni",
     "LANGUAGE": "Lingua",
+    "LANGUAGE_RESTART_NOTICE": "Lingua cambiata. L'app si riavvierà per applicare le modifiche.",
     "PRIVACY_HINT": "Controlla come vengono gestiti dati e pubblicità",
     "PRIVACY_OPTIONS": "Opzioni privacy",
     "PRIVACY_POLICY": "Informativa sulla privacy",
@@ -153,7 +262,8 @@
     "REQUISITES": "Vedi requisiti",
     "REQUISITES_HINT": "Impostazioni necessarie per il corretto funzionamento delle copertine su Kindle",
     "REQUISITES_SECTION": "Requisiti",
-    "TITLE": "Impostazioni"
+    "TITLE": "Impostazioni",
+    "VIEW_TOUR": "Vedi il tour"
   },
   "TABS": {
     "COVERS": "Copertine",

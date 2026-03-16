@@ -27,10 +27,10 @@
       @for (app of recommendedApps; track app.packageName) {
         <ion-item>
           <div class="recommended-item-content">
-            <h1 class="recommended-app-title">{{ app.appName }}</h1>
+            <h1 class="recommended-app-title">{{ getAppName(app) }}</h1>
             <div class="recommended-item-grid">
               <div class="recommended-app-icon">
-                <img [src]="app.icon" [alt]="app.appName" />
+                <img [src]="app.icon" [alt]="getAppName(app)" />
               </div>
               <p class="recommended-app-description">{{ getDescription(app) }}</p>
               <div class="recommended-store-row">
@@ -39,7 +39,7 @@
                   fill="clear"
                   size="small"
                   (click)="openUrl(app.playStoreUrl)"
-                  [attr.aria-label]="t.OPEN_PLAY_STORE + ' - ' + app.appName"
+                  [attr.aria-label]="t.OPEN_PLAY_STORE + ' - ' + getAppName(app)"
                 >
                   <span class="recommended-store-action-label">{{ t.OPEN_PLAY_STORE }}:</span>
                   <ion-icon

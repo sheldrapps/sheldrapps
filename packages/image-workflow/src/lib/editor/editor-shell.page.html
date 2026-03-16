@@ -5,7 +5,11 @@
     @if (showSessionActions()) {
       <ion-buttons slot="end">
         <ion-button (click)="cancel()">{{ 'EDITOR.SHELL.BUTTON.CANCEL' | translate }}</ion-button>
-        <ion-button [disabled]="!ready" (click)="done()">{{ 'EDITOR.SHELL.BUTTON.DONE' | translate }}</ion-button>
+        <ion-button
+          data-tour-id="editor-done-button"
+          [disabled]="!ready"
+          (click)="done()"
+        >{{ 'EDITOR.SHELL.BUTTON.DONE' | translate }}</ion-button>
       </ion-buttons>
     }
   </ion-toolbar>
@@ -23,7 +27,11 @@
     ></sh-scrollable-button-bar>
   </div>
 
-  <div class="stage" [class.stage--editing]="isEditingText()">
+    <div
+      class="stage"
+      data-tour-id="editor-stage"
+      [class.stage--editing]="isEditingText()"
+    >
     <div class="stage-content" [class.stage-content--editing]="isEditingText()">
       <div class="stage-bg" [class.stage-bg--checker]="backgroundMode() === 'transparent'"></div>
       <div class="frame-wrap">
@@ -164,4 +172,61 @@
       }
     </sh-editor-panel>
   }
+
 </ion-content>
+
+@if (editorTourState().active) {
+  <div
+    #editorTourOverlay
+    class="editor-tour-overlay"
+    aria-live="polite"
+    role="dialog"
+  >
+    @if (editorTourState().spotlight; as rect) {
+      <div
+        class="editor-tour-spotlight"
+        [style.top.px]="rect.top"
+        [style.left.px]="rect.left"
+        [style.width.px]="rect.width"
+        [style.height.px]="rect.height"
+      ></div>
+    }
+
+    <div
+      #editorTourTooltip
+      class="editor-tour-tooltip"
+      [ngStyle]="editorTourState().tooltipStyle"
+    >
+      <div class="editor-tour-progress">
+        {{
+          'EDITOR.TOUR.CONTROLS.PROGRESS'
+            | translate:{ current: editorTourState().displayCurrent, total: editorTourState().displayTotal }
+        }}
+      </div>
+      <h3 class="editor-tour-title">
+        {{ editorTourState().step!.titleKey | translate }}
+      </h3>
+      <p class="editor-tour-description">
+        {{ editorTourState().step!.descriptionKey | translate }}
+      </p>
+
+      <div class="editor-tour-actions">
+        @if (editorTourState().canGoBack) {
+          <ion-button
+            fill="clear"
+            size="small"
+            (click)="prevEditorTourStep()"
+          >
+            {{ 'EDITOR.TOUR.CONTROLS.BACK' | translate }}
+          </ion-button>
+        }
+
+        <div class="editor-tour-actions-spacer"></div>
+
+        <ion-button fill="clear" size="small" (click)="stopEditorTour()">
+          {{ 'EDITOR.TOUR.CONTROLS.SKIP' | translate }}
+        </ion-button>
+      </div>
+    </div>
+  </div>
+}

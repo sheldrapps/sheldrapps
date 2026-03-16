@@ -96,11 +96,45 @@
     "TIP": "Pour de meilleurs résultats, utilisez des images en haute résolution et assurez-vous que les publicités sont désactivées sur votre Kindle.",
     "TITLE": "Instructions"
   },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "Retour",
+      "FINISH": "Terminer",
+      "INTERACT_HINT": "Interagissez avec l’élément mis en évidence pour continuer.",
+      "NEXT": "Suivant",
+      "PROGRESS": "{{current}} sur {{total}}",
+      "SKIP": "Passer"
+    },
+    "STEPS": {
+      "EPUB": {
+        "TITLE": "Fichier EPUB",
+        "DESCRIPTION": "Sélectionnez le fichier EPUB que vous souhaitez mettre à jour."
+      },
+      "IMAGE": {
+        "TITLE": "Image de couverture",
+        "DESCRIPTION": "Sélectionnez l’image pour votre couverture."
+      },
+      "ADJUST": {
+        "TITLE": "Ajuster",
+        "DESCRIPTION": "Ajustez l’image dans l’éditeur puis touchez Terminé."
+      },
+      "CREATE": {
+        "TITLE": "Changer la couverture",
+        "DESCRIPTION": "Générez ici la couverture mise à jour."
+      },
+      "RESULTS": {
+        "TITLE": "Enregistrer ou partager",
+        "DESCRIPTION": "Enregistrez ou partagez votre EPUB mis à jour."
+      }
+    }
+  },
   "SETTINGS": {
+    "VIEW_TOUR": "Voir le tour",
     "INSTRUCTIONS": "Voir les instructions",
     "INSTRUCTIONS_HINT": "Comment changer et envoyer une couverture pour Kindle",
     "INSTRUCTIONS_SECTION": "Instructions",
     "LANGUAGE": "Langue",
+    "LANGUAGE_RESTART_NOTICE": "Langue modifiée. L’application va redémarrer pour appliquer les changements.",
     "PRIVACY_HINT": "Contrôlez la manière dont les données et la publicité sont gérées",
     "PRIVACY_OPTIONS": "Options de confidentialité",
     "PRIVACY_POLICY": "Politique de confidentialité",

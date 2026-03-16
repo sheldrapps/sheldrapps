@@ -107,16 +107,50 @@
     "TIP": "For best results, use high-resolution images and make sure ads are disabled on your Kindle device.",
     "TITLE": "Instructions"
   },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "Back",
+      "FINISH": "Finish",
+      "INTERACT_HINT": "Interact with the highlighted element to continue.",
+      "NEXT": "Next",
+      "PROGRESS": "{{current}} of {{total}}",
+      "SKIP": "Skip"
+    },
+    "STEPS": {
+      "EPUB": {
+        "TITLE": "EPUB file",
+        "DESCRIPTION": "Select the EPUB file you want to update."
+      },
+      "IMAGE": {
+        "TITLE": "Cover image",
+        "DESCRIPTION": "Select the image for your cover."
+      },
+      "ADJUST": {
+        "TITLE": "Adjust",
+        "DESCRIPTION": "Adjust the image in the editor and tap Done."
+      },
+      "CREATE": {
+        "TITLE": "Change cover",
+        "DESCRIPTION": "Generate the new cover here."
+      },
+      "RESULTS": {
+        "TITLE": "Save or share",
+        "DESCRIPTION": "Save or share your updated EPUB."
+      }
+    }
+  },
   "SETTINGS": {
     "INSTRUCTIONS": "View instructions",
     "INSTRUCTIONS_HINT": "How to change and send a cover for Kindle",
     "INSTRUCTIONS_SECTION": "Instructions",
     "LANGUAGE": "Language",
+    "LANGUAGE_RESTART_NOTICE": "Language changed. The app will restart to apply changes.",
     "PRIVACY_HINT": "Control how data and advertising are handled",
     "PRIVACY_OPTIONS": "Privacy options",
     "PRIVACY_POLICY": "Privacy policy",
     "PRIVACY_SECTION": "Privacy",
-    "TITLE": "Settings"
+    "TITLE": "Settings",
+    "VIEW_TOUR": "View tour"
   },
   "TABS": {
     "COVERS": "My EPUBs",
