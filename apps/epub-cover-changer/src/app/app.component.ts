@@ -9,7 +9,6 @@ import {
 } from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService } from '@sheldrapps/ui-theme';
-import { ConsentService } from './services/consent.service';
 import { EccSettings } from './settings/ecc-settings.schema';
 @Component({
   standalone: true,
@@ -21,7 +20,6 @@ export class AppComponent {
   private lang = inject(LanguageService);
   private t = inject(TranslateService);
   private title = inject(Title);
-  private consent = inject(ConsentService);
   private edgeToEdge = inject(EdgeToEdgeService);
 
   private settings = inject(SettingsStore<EccSettings>);
@@ -36,13 +34,13 @@ export class AppComponent {
     await this.settings.load();
 
     const currentSettings = this.settings.get();
-    const language = currentSettings.language ?? (await detectSupportedLocale());
+    const language =
+      currentSettings.language ?? (await detectSupportedLocale());
 
     await syncLauncherAlias(language);
     this.t.setDefaultLang('en-US');
     await this.lang.set(language);
 
-    await this.consent.gatherConsent();
     this.setDocumentTitle();
     this.t.onLangChange.subscribe(() => this.setDocumentTitle());
   }

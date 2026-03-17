@@ -86,6 +86,8 @@ export class AdsService {
       return { rewardEarned: false, adClosed: false, failed: true };
     }
 
+    // Gather consent lazily at first ad use to avoid native init during app startup.
+    await this.consent.gatherConsent().catch(() => undefined);
     await this.consent.ready.catch(() => undefined);
     if (!this.canShowAds()) {
       return { rewardEarned: false, adClosed: false, failed: true };

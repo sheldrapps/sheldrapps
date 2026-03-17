@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "622655785340",
+    "project_id": "e-reader-cover-creator",
+    "storage_bucket": "e-reader-cover-creator.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:622655785340:android:39b289212c2cc459e9fcf9",
+        "android_client_info": {
+          "package_name": "com.sheldrapps.covercreatorforkindle"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQXKdj7N2aFWl_4Zac15sha5oqH2GHLvw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:622655785340:android:78497a304ea14ae4e9fcf9",
+        "android_client_info": {
+          "package_name": "com.sheldrapps.epubcoverchanger"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQXKdj7N2aFWl_4Zac15sha5oqH2GHLvw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -9,7 +9,6 @@ import {
 } from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService } from '@sheldrapps/ui-theme';
-import { ConsentService } from './services/consent.service';
 import { CcfkSettings } from './settings/ccfk-settings.schema';
 
 import { Router, NavigationStart } from '@angular/router';
@@ -33,7 +32,6 @@ export class AppComponent implements OnDestroy {
     private lang: LanguageService,
     private t: TranslateService,
     private title: Title,
-    private consent: ConsentService,
   ) {
     void this.edgeToEdge.initEdgeToEdge();
 
@@ -57,13 +55,13 @@ export class AppComponent implements OnDestroy {
     await this.settings.load();
 
     const currentSettings = this.settings.get();
-    const language = currentSettings.language ?? (await detectSupportedLocale());
+    const language =
+      currentSettings.language ?? (await detectSupportedLocale());
 
     await syncLauncherAlias(language);
     this.t.setDefaultLang('en-US');
     await this.lang.set(language);
 
-    await this.consent.gatherConsent();
     this.setDocumentTitle();
 
     this.langSub = this.t.onLangChange.subscribe(() => {
