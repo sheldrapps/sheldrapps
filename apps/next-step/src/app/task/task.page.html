@@ -4,16 +4,212 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <ion-card>
-    <ion-card-content>
-      <p><strong>{{ 'TASK_DETAIL.ID' | translate }}:</strong> {{ taskId }}</p>
-      <p>{{ 'TASK_DETAIL.DESCRIPTION' | translate }}</p>
-      <p>{{ 'TASK_DETAIL.PROGRESS' | translate }}</p>
-    </ion-card-content>
-  </ion-card>
+<ion-content>
+  <div class="app-page">
+    @if (loadFailed && !isLoading) {
+      <ion-note color="danger" [style.display]="'block'" [style.margin-bottom]="'var(--app-space-8)'">
+        {{ 'COMMON.ERROR' | translate }}
+      </ion-note>
+    }
 
-  <ion-button fill="outline" [routerLink]="['/tabs/tasks']">
-    {{ 'TASK_DETAIL.EDIT' | translate }}
-  </ion-button>
+    @if (updateFailed) {
+      <ion-note color="danger" [style.display]="'block'" [style.margin-bottom]="'var(--app-space-8)'">
+        {{ 'COMMON.ERROR' | translate }}
+      </ion-note>
+    }
+
+    @if (task; as taskDetail) {
+      <ion-list inset="true">
+        <div
+          class="app-preview-surface"
+          [style.border]="taskSurfaceBorderStyle"
+          [style.background]="taskSurfaceBackgroundStyle"
+          [style.box-shadow]="taskSurfaceShadowStyle"
+          [style.border-radius.px]="14"
+        >
+          <div [style.padding]="'var(--app-space-8) var(--app-space-7)'">
+            <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+              <div class="form-prompt">{{ 'CREATE_TASK.INTENT_PROMPT' | translate }}</div>
+              <div class="field-value">{{ taskDetail.title }}</div>
+            </div>
+
+            @if (taskDetail.description) {
+              <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+                <div class="field-title">{{ 'CREATE_TASK.DESCRIPTION_PROMPT' | translate }}</div>
+                <div class="field-value">{{ taskDetail.description }}</div>
+              </div>
+            }
+
+            <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+              <div class="field-title">{{ 'CREATE_TASK.FIELD_MODE' | translate }}</div>
+              <div class="field-value">{{ trackingModeKey | translate }}</div>
+            </div>
+
+            @if (taskDetail.trackingMode === 'duration') {
+              <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+                <div class="field-title">{{ 'CREATE_TASK.TRACK_DURATION_MINUTES' | translate }}</div>
+                <div class="field-value">{{ taskDetail.estimatedDurationMin }}</div>
+              </div>
+            }
+
+            <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+              <div class="field-title">{{ 'CREATE_TASK.FIELD_CATEGORY' | translate }}</div>
+              <div class="field-value">
+                {{ taskDetail.categoryName ?? ('CREATE_TASK.CATEGORY_NONE' | translate) }}
+              </div>
+            </div>
+
+            <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+              <div class="field-title">{{ 'CREATE_TASK.ENABLE_RECURRENCE' | translate }}</div>
+              <div class="field-value">{{ booleanGlyph(taskDetail.recurrenceEnabled) }}</div>
+            </div>
+
+            @if (taskDetail.recurrence; as recurrence) {
+              <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+                <div class="field-title">{{ 'CREATE_TASK.RECURRENCE_PATTERN_PROMPT' | translate }}</div>
+                <div class="field-value">{{ recurrencePatternKey | translate }}</div>
+              </div>
+
+              <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+                <div class="field-title">{{ 'CREATE_TASK.RECURRENCE_MONTH_DAY_PROMPT' | translate }}</div>
+                <div class="field-value">{{ recurrence.dayOfMonth ?? '-' }}</div>
+              </div>
+
+              <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+                <div class="field-title">{{ 'CREATE_TASK.RECURRENCE_YEAR_MONTH_PROMPT' | translate }}</div>
+                <div class="field-value">{{ recurrence.yearMonth ?? '-' }}</div>
+              </div>
+
+              <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+                <div class="field-title">{{ 'CREATE_TASK.RECURRENCE_YEAR_DAY_PROMPT' | translate }}</div>
+                <div class="field-value">{{ recurrence.yearDay ?? '-' }}</div>
+              </div>
+
+              <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+                <div class="field-title">{{ 'CREATE_TASK.RECURRENCE_HAS_TIME' | translate }}</div>
+                <div class="field-value">{{ booleanGlyph(recurrence.hasTime) }}</div>
+              </div>
+
+              <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+                <div class="field-title">{{ 'CREATE_TASK.RECURRENCE_SAME_TIME_ALL_DAYS' | translate }}</div>
+                <div class="field-value">{{ booleanGlyph(recurrence.sameTimeForSelectedDays) }}</div>
+              </div>
+
+              <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+                <div class="field-title">{{ 'CREATE_TASK.RECURRENCE_TIME_LABEL' | translate }}</div>
+                <div class="field-value">{{ recurrence.commonTime ?? '-' }}</div>
+              </div>
+
+              <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+                <div class="field-title">{{ 'CREATE_TASK.RECURRENCE_STARTS_TODAY' | translate }}</div>
+                <div class="field-value">{{ booleanGlyph(recurrence.startsToday) }}</div>
+              </div>
+
+              <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+                <div class="field-title">{{ 'CREATE_TASK.RECURRENCE_START_DATE_PROMPT' | translate }}</div>
+                <div class="field-value">{{ formatDateTime(recurrence.startDate) }}</div>
+              </div>
+
+              <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+                <div class="field-title">{{ 'CREATE_TASK.RECURRENCE_HAS_END_DATE' | translate }}</div>
+                <div class="field-value">{{ booleanGlyph(recurrence.hasEndDate) }}</div>
+              </div>
+
+              <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+                <div class="field-title">{{ 'CREATE_TASK.RECURRENCE_END_LABEL' | translate }}</div>
+                <div class="field-value">{{ formatDateTime(recurrence.endDate) }}</div>
+              </div>
+
+              @if (recurrence.weekdays.length > 0) {
+                <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+                  <div class="field-title">{{ 'CREATE_TASK.WEEKLY_SCHEDULE_TITLE' | translate }}</div>
+                  <div [style.display]="'grid'" [style.gap]="'var(--app-space-2)'">
+                    @for (weekday of recurrence.weekdays; track weekday.dayOfWeek) {
+                      <div
+                        [style.display]="'flex'"
+                        [style.justify-content]="'space-between'"
+                        [style.gap]="'var(--app-space-3)'"
+                      >
+                        <span class="field-subtle">{{ weekdayLabelKey(weekday.dayOfWeek) | translate }}</span>
+                        <span class="field-value">{{ weekday.timeValue ?? '-' }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            }
+
+            <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+              <div class="field-title">{{ 'CREATE_TASK.ENABLE_NOTIFICATIONS' | translate }}</div>
+              <div class="field-value">{{ booleanGlyph(taskDetail.notificationsEnabled) }}</div>
+            </div>
+
+            @if (taskDetail.notification; as notification) {
+              <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+                <div class="field-title">{{ 'CREATE_TASK.FIELD_NOTIFICATION_TYPE' | translate }}</div>
+                <div class="field-value">{{ notificationTypeKey | translate }}</div>
+              </div>
+
+              <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+                <div class="field-title">{{ 'CREATE_TASK.NOTIFICATION_WHEN_PROMPT' | translate }}</div>
+                <div class="field-value">{{ notificationTriggerModeKey | translate }}</div>
+              </div>
+
+              <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+                <div class="field-title">{{ 'CREATE_TASK.NOTIFICATION_LEAD_TIME_PROMPT' | translate }}</div>
+                <div [style.display]="'flex'" [style.flex-wrap]="'wrap'" [style.gap]="'var(--app-space-2)'">
+                  @for (offset of notification.offsets; track offset) {
+                    <span
+                      [style.padding]="'var(--app-space-1) var(--app-space-3)'"
+                      [style.border-radius]="'var(--app-radius-sm)'"
+                      [style.background]="'rgba(var(--ion-color-primary-rgb), 0.12)'"
+                      [style.font-weight]="600"
+                    >
+                      {{ offset }}
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+
+            <div class="field-section">
+              <div [style.display]="'flex'" [style.align-items]="'center'" [style.gap]="'var(--app-space-1)'">
+                <ion-button
+                  fill="clear"
+                  size="small"
+                  [routerLink]="['/tasks/view', taskDetail.id]"
+                  [queryParams]="{ mode: 'edit' }"
+                  [disabled]="isSampleTask"
+                  [attr.aria-label]="'TASK_DETAIL.EDIT' | translate"
+                >
+                  <ion-icon name="create-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+                </ion-button>
+                @if (!isSampleTask) {
+                  <ion-button fill="clear" size="small" (click)="toggleArchived()">
+                    <ion-icon name="archive-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+                  </ion-button>
+                  <ion-button fill="clear" size="small" (click)="toggleActive()">
+                    <ion-icon
+                      [name]="taskDetail.isActive ? 'pause-outline' : 'play-outline'"
+                      slot="icon-only"
+                      aria-hidden="true"
+                    ></ion-icon>
+                  </ion-button>
+                  <ion-button fill="clear" size="small" color="danger" (click)="confirmDeleteTask()">
+                    <ion-icon name="trash-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+                  </ion-button>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </ion-list>
+    }
+
+    <div [style.margin-top]="'var(--app-space-8)'" [style.padding]="'0 var(--app-space-7) var(--app-space-8)'">
+      <ion-button class="app-btn" fill="outline" expand="block" [routerLink]="['/tabs/tasks']">
+        {{ 'COMMON.CLOSE' | translate }}
+      </ion-button>
+    </div>
+  </div>
 </ion-content>

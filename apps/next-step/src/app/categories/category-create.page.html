@@ -7,37 +7,420 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content>
   <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-    <ion-list>
-      <ion-item>
-        <ion-label position="stacked">
-          {{ 'CATEGORY_FORM.NAME_LABEL' | translate }}
-        </ion-label>
-        <ion-input
-          formControlName="name"
-          [placeholder]="'CATEGORY_FORM.NAME_PLACEHOLDER' | translate"
-          maxlength="64"
-          (ionBlur)="onNameBlur()"
-        ></ion-input>
-      </ion-item>
+    <ion-list inset="true">
+      <div [style.padding]="'var(--app-space-8) var(--app-space-7)'">
+      <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+        <div class="form-prompt">{{ 'CATEGORY_FORM.NAME_LABEL' | translate }}</div>
+        <ion-item class="app-input-surface" lines="none">
+          <ion-input
+            class="form-control-text"
+            formControlName="name"
+            [autofocus]="true"
+            [placeholder]="'CATEGORY_FORM.NAME_PLACEHOLDER' | translate"
+            maxlength="64"
+            (ionInput)="onNameInput()"
+            (ionBlur)="onNameBlur()"
+          ></ion-input>
+        </ion-item>
+      </div>
+
+      <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+        <div class="field-title">{{ 'CATEGORY_FORM.COLOR_LABEL' | translate }}</div>
+        <ion-grid class="app-select-grid" [style.--app-select-grid-gap-x]="'var(--app-space-hairline)'">
+          <ion-row>
+            @for (color of quickColorPalette; track color) {
+              <ion-col size="3">
+                <ion-button
+                  type="button"
+                  fill="clear"
+                  class="app-btn"
+                  expand="block"
+                  (click)="selectColor(color)"
+                  [attr.aria-label]="'CATEGORY_FORM.COLOR_CHIP_ARIA' | translate : { color: color }"
+                  [style.height.px]="quickColorButtonHeightPx"
+                  [style.min-height.px]="quickColorButtonHeightPx"
+                  [style.--padding-start]="'var(--app-space-1)'"
+                  [style.--padding-end]="'var(--app-space-1)'"
+                  [style.--padding-top]="'var(--app-space-1)'"
+                  [style.--padding-bottom]="'var(--app-space-1)'"
+                  [style.--border-radius]="'var(--app-radius-md)'"
+                  [style.--box-shadow]="'none'"
+                  [style.--background]="'transparent'"
+                  [style.--background-hover]="'transparent'"
+                  [style.--background-focused]="'transparent'"
+                  [style.--background-activated]="'transparent'"
+                  [style.--color]="'var(--ion-text-color)'"
+                  [style.transform]="selectedColor === color ? 'scale(1.03)' : 'scale(1)'"
+                >
+                  <span
+                    [style.display]="'inline-flex'"
+                    [style.align-items]="'center'"
+                    [style.justify-content]="'center'"
+                    [style.width.%]="100"
+                    [style.height.%]="100"
+                    [style.border-radius]="'var(--app-radius-sm)'"
+                    [style.border]="pickerTileBorderStyle()"
+                    [style.box-shadow]="pickerTileInsetShadowStyle()"
+                    [style.background]="color"
+                    [style.outline]="colorTileOutline(color)"
+                    [style.outline-offset]="'var(--app-space-hairline)'"
+                    [style.color]="selectedColor === color ? 'var(--ion-color-dark)' : 'transparent'"
+                    [style.font-weight]="700"
+                  >
+                    &#10003;
+                  </span>
+                </ion-button>
+              </ion-col>
+            }
+            <ion-col size="3">
+              <ion-button
+                type="button"
+                fill="clear"
+                class="app-btn"
+                expand="block"
+                (click)="openColorPicker()"
+                [attr.aria-label]="'CATEGORY_FORM.COLOR_VIEW_MORE_ARIA' | translate"
+                [style.height.px]="quickColorButtonHeightPx"
+                [style.min-height.px]="quickColorButtonHeightPx"
+                [style.--padding-start]="'var(--app-space-1)'"
+                [style.--padding-end]="'var(--app-space-1)'"
+                [style.--padding-top]="'var(--app-space-1)'"
+                [style.--padding-bottom]="'var(--app-space-1)'"
+                [style.--border-radius]="'var(--app-radius-md)'"
+                [style.--box-shadow]="'none'"
+                [style.--background]="'transparent'"
+                [style.--background-hover]="'transparent'"
+                [style.--background-focused]="'transparent'"
+                [style.--background-activated]="'transparent'"
+                [style.--color]="'var(--ion-text-color)'"
+              >
+                <span
+                  [style.display]="'inline-flex'"
+                  [style.align-items]="'center'"
+                  [style.justify-content]="'center'"
+                  [style.width.%]="100"
+                  [style.height.%]="100"
+                  [style.border-radius]="'var(--app-radius-sm)'"
+                  [style.border]="pickerTileBorderStyle()"
+                  [style.box-shadow]="pickerTileInsetShadowStyle()"
+                  [style.background]="'var(--ion-color-step-50, #f8fafc)'"
+                  [style.font-size]="'var(--app-icon-sm)'"
+                  [style.font-weight]="700"
+                >
+                  &#8942;
+                </span>
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
+
+      <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+        <div class="field-title">{{ 'CATEGORY_FORM.ICON_LABEL' | translate }}</div>
+        <ion-grid class="app-select-grid" [style.--app-select-grid-gap-x]="'var(--app-space-hairline)'">
+          <ion-row>
+            @for (icon of quickIconOptions; track icon) {
+              <ion-col size="3">
+                <ion-button
+                  type="button"
+                  fill="clear"
+                  class="app-btn"
+                  expand="block"
+                  (click)="toggleIcon(icon)"
+                  [attr.aria-label]="'CATEGORY_FORM.ICON_CHIP_ARIA' | translate : { icon: icon }"
+                  [style.height.px]="quickIconButtonHeightPx"
+                  [style.min-height.px]="quickIconButtonHeightPx"
+                  [style.--padding-start]="'var(--app-space-1)'"
+                  [style.--padding-end]="'var(--app-space-1)'"
+                  [style.--padding-top]="'var(--app-space-1)'"
+                  [style.--padding-bottom]="'var(--app-space-1)'"
+                  [style.--border-radius]="'var(--app-radius-md)'"
+                  [style.--box-shadow]="'none'"
+                  [style.--background]="'transparent'"
+                  [style.--background-hover]="'transparent'"
+                  [style.--background-focused]="'transparent'"
+                  [style.--background-activated]="'transparent'"
+                  [style.--color]="'var(--ion-text-color)'"
+                >
+                  <span
+                    [style.display]="'inline-flex'"
+                    [style.align-items]="'center'"
+                    [style.justify-content]="'center'"
+                    [style.width.%]="100"
+                    [style.height.%]="100"
+                    [style.padding]="'var(--app-space-2)'"
+                    [style.border-radius]="'var(--app-radius-sm)'"
+                    [style.border]="pickerTileBorderStyle()"
+                    [style.box-shadow]="pickerTileInsetShadowStyle()"
+                    [style.background]="iconTileBackground(icon)"
+                    [style.outline]="iconTileOutline(icon)"
+                    [style.outline-offset]="'var(--app-space-hairline)'"
+                  >
+                    <span [style.font-size]="'var(--app-icon-lg)'" [style.line-height]="'1'">{{ icon }}</span>
+                  </span>
+                </ion-button>
+              </ion-col>
+            }
+            <ion-col size="3">
+              <ion-button
+                type="button"
+                fill="clear"
+                class="app-btn"
+                expand="block"
+                (click)="openEmojiPicker()"
+                [attr.aria-label]="'CATEGORY_FORM.ICON_CUSTOM_ARIA' | translate"
+                [style.height.px]="quickIconButtonHeightPx"
+                [style.min-height.px]="quickIconButtonHeightPx"
+                [style.--padding-start]="'var(--app-space-1)'"
+                [style.--padding-end]="'var(--app-space-1)'"
+                [style.--padding-top]="'var(--app-space-1)'"
+                [style.--padding-bottom]="'var(--app-space-1)'"
+                [style.--border-radius]="'var(--app-radius-md)'"
+                [style.--box-shadow]="'none'"
+                [style.--background]="'transparent'"
+                [style.--background-hover]="'transparent'"
+                [style.--background-focused]="'transparent'"
+                [style.--background-activated]="'transparent'"
+                [style.--color]="'var(--ion-text-color)'"
+              >
+                <span
+                  [style.display]="'inline-flex'"
+                  [style.align-items]="'center'"
+                  [style.justify-content]="'center'"
+                  [style.width.%]="100"
+                  [style.height.%]="100"
+                  [style.padding]="'var(--app-space-2)'"
+                  [style.border-radius]="'var(--app-radius-sm)'"
+                  [style.border]="pickerTileBorderStyle()"
+                  [style.box-shadow]="pickerTileInsetShadowStyle()"
+                  [style.background]="'var(--ion-color-step-50, #f8fafc)'"
+                  [style.gap]="'var(--app-space-1)'"
+                  [style.white-space]="'normal'"
+                  [style.flex-direction]="'column'"
+                  [style.line-height]="'1'"
+                >
+                  <span [style.font-size]="'var(--app-icon-sm)'">&#10010;</span>
+                  <span [style.font-size]="'var(--app-text-2xs)'">{{ 'CATEGORY_FORM.CUSTOM_ICON' | translate }}</span>
+                </span>
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
+
+      <div class="field-section" [style.margin-bottom]="'var(--app-space-10)'">
+        <div class="field-title">{{ 'CATEGORY_FORM.DESCRIPTION_LABEL' | translate }}</div>
+        <ion-item [style.--padding-start]="'0'" [style.--inner-padding-end]="'0'" lines="none">
+          <ion-textarea
+            formControlName="description"
+            [placeholder]="'CATEGORY_FORM.DESCRIPTION_PLACEHOLDER' | translate"
+            autoGrow="true"
+          ></ion-textarea>
+        </ion-item>
+      </div>
+
+      <div class="field-section" [style.margin-bottom]="'var(--app-space-8)'">
+        <div class="field-title">{{ 'CATEGORY_FORM.PREVIEW_TITLE' | translate }}</div>
+        <div
+          class="app-preview-surface"
+          [style.border]="previewBorderStyle"
+          [style.background]="previewBackgroundStyle"
+          [style.box-shadow]="previewShadowStyle"
+          [style.border-radius.px]="14"
+        >
+          <div
+            [style.display]="'flex'"
+            [style.align-items]="'center'"
+            [style.gap.px]="8"
+            [style.font-weight]="600"
+            [style.margin-bottom.px]="previewDescription ? 8 : 0"
+          >
+            @if (selectedIcon) {
+              <span
+                [style.display]="'inline-flex'"
+                [style.align-items]="'center'"
+                [style.justify-content]="'center'"
+                [style.width.px]="32"
+                [style.height.px]="32"
+                [style.border-radius.%]="50"
+                [style.background]="previewIconBackgroundStyle"
+              >
+                <span [style.font-size.px]="20">{{ selectedIcon }}</span>
+              </span>
+            }
+            <span>
+              {{
+                previewName.length > 0
+                  ? previewName
+                  : ('CATEGORY_FORM.PREVIEW_NAME_PLACEHOLDER' | translate)
+              }}
+            </span>
+          </div>
+          @if (previewDescription) {
+            <div [style.opacity]="0.78">
+              {{ previewDescription }}
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (validationMessageKey) {
+        <ion-note color="danger" [style.display]="'block'">{{ validationMessageKey | translate }}</ion-note>
+      }
+
+      @if (loadFailed) {
+        <ion-note color="danger" [style.display]="'block'">{{ 'CATEGORIES.ERROR_LOAD' | translate }}</ion-note>
+      }
+
+      @if (saveFailed) {
+        <ion-note color="danger" [style.display]="'block'">{{ 'CATEGORY_FORM.ERROR_SAVE' | translate }}</ion-note>
+      }
+      </div>
     </ion-list>
 
-    @if (validationMessageKey) {
-      <ion-note color="danger">{{ validationMessageKey | translate }}</ion-note>
-    }
-
-    @if (loadFailed) {
-      <ion-note color="danger">{{ 'CATEGORIES.ERROR_LOAD' | translate }}</ion-note>
-    }
-
-    @if (saveFailed) {
-      <ion-note color="danger">{{ 'CATEGORY_FORM.ERROR_SAVE' | translate }}</ion-note>
-    }
-
-    <ion-button expand="block" type="submit" [disabled]="saveDisabled">
-      {{ 'CATEGORY_FORM.CREATE_ACTION' | translate }}
-    </ion-button>
+    <div [style.margin-top]="'var(--app-space-8)'" [style.padding]="'0 var(--app-space-5) var(--app-space-8)'">
+      <ion-button expand="block" type="submit" [disabled]="saveDisabled">
+        {{ 'CATEGORY_FORM.CREATE_ACTION' | translate }}
+      </ion-button>
+    </div>
   </form>
 </ion-content>
 
+<ion-modal class="app-modal" [isOpen]="isColorPickerOpen" (didDismiss)="closeColorPicker()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar class="app-modal-toolbar">
+        <div class="app-modal-header">
+          <div class="app-modal-header__side app-modal-header__side--start">
+            <ion-button class="app-modal-header__action" fill="clear" (click)="closeColorPicker()">
+              {{ 'COMMON.CANCEL' | translate }}
+            </ion-button>
+          </div>
+          <div class="app-modal-header__title">
+            {{ 'CATEGORY_FORM.COLOR_MODAL_TITLE' | translate }}
+          </div>
+          <div class="app-modal-header__side app-modal-header__side--end" aria-hidden="true">
+            <ion-button
+              class="app-modal-header__ghost app-modal-header__action"
+              fill="clear"
+              [disabled]="true"
+              tabindex="-1"
+            >
+              {{ 'COMMON.CANCEL' | translate }}
+            </ion-button>
+          </div>
+        </div>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="app-modal-content">
+      <ion-grid class="app-select-grid app-modal-grid">
+        <ion-row>
+          @for (color of allColorPalette; track color) {
+            <ion-col size="3">
+              <ion-button
+                type="button"
+                fill="clear"
+                class="app-btn app-tile app-tile--color"
+                [class.app-tile--selected]="selectedColor === color"
+                expand="block"
+                (click)="selectExpandedColor(color)"
+                [attr.aria-label]="'CATEGORY_FORM.COLOR_CHIP_ARIA' | translate : { color: color }"
+                [style.--app-tile-bg]="color"
+              >
+                <span class="app-tile__face">
+                  <span class="app-tile__check">&#10003;</span>
+                </span>
+              </ion-button>
+            </ion-col>
+          }
+        </ion-row>
+      </ion-grid>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<ion-modal
+  class="app-modal"
+  [isOpen]="isEmojiPickerOpen"
+  (didDismiss)="closeEmojiPicker()"
+  (didPresent)="focusEmojiInput()"
+>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar class="app-modal-toolbar">
+        <div class="app-modal-header">
+          <div class="app-modal-header__side app-modal-header__side--start">
+            <ion-button class="app-modal-header__action" fill="clear" (click)="closeEmojiPicker()">
+              {{ 'COMMON.CANCEL' | translate }}
+            </ion-button>
+          </div>
+          <div class="app-modal-header__title">
+            {{ 'CATEGORY_FORM.ICON_MODAL_TITLE' | translate }}
+          </div>
+          <div class="app-modal-header__side app-modal-header__side--end" aria-hidden="true">
+            <ion-button
+              class="app-modal-header__ghost app-modal-header__action"
+              fill="clear"
+              [disabled]="true"
+              tabindex="-1"
+            >
+              {{ 'COMMON.CANCEL' | translate }}
+            </ion-button>
+          </div>
+        </div>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="app-modal-content">
+      <ion-list inset="true" class="app-modal-section">
+        <ion-item>
+          <ion-label position="stacked">
+            {{ 'CATEGORY_FORM.EMOJI_LABEL' | translate }}
+          </ion-label>
+          <ion-input
+            #emojiInput
+            [value]="emojiDraft"
+            [placeholder]="'CATEGORY_FORM.EMOJI_PLACEHOLDER' | translate"
+            type="text"
+            inputmode="text"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            [class.ion-invalid]="emojiValidationError !== 'none'"
+            [class.ion-touched]="emojiValidationError !== 'none'"
+            (ionInput)="onEmojiDraftInput($event)"
+          ></ion-input>
+        </ion-item>
+      </ion-list>
+
+      <ion-note class="form-helper">{{ 'CATEGORY_FORM.EMOJI_HELP' | translate }}</ion-note>
+      @if (emojiValidationMessageKey) {
+        <ion-note class="form-error">{{ emojiValidationMessageKey | translate }}</ion-note>
+      }
+      @if (emojiDraftPreview) {
+        <div class="app-modal-emoji-preview">
+          <span class="app-modal-emoji-preview__value">{{ emojiDraftPreview }}</span>
+        </div>
+      }
+
+      <ion-grid class="app-action-grid app-modal-actions">
+        <ion-row>
+          <ion-col size="6">
+            <ion-button expand="block" fill="outline" (click)="clearIconSelection()">
+              {{ 'CATEGORY_FORM.EMOJI_CLEAR' | translate }}
+            </ion-button>
+          </ion-col>
+          <ion-col size="6">
+            <ion-button expand="block" (click)="applyEmojiSelection()">
+              {{ 'COMMON.DONE' | translate }}
+            </ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-content>
+  </ng-template>
+</ion-modal>

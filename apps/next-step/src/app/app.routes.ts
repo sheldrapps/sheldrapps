@@ -15,6 +15,10 @@ export const routes: Routes = [
     loadChildren: () => import('./task/task.routes').then((m) => m.routes),
   },
   {
+    path: 'tasks/view/:id',
+    loadComponent: () => import('./task/task.page').then((m) => m.TaskPage),
+  },
+  {
     path: 'categories',
     children: [
       {

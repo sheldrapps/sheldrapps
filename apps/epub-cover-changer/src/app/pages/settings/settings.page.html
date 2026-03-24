@@ -65,4 +65,10 @@
       <ion-label>{{ 'SETTINGS.VIEW_TOUR' | translate }}</ion-label>
     </ion-item>
   </ion-list>
+
+  <ion-loading
+    [isOpen]="isLanguageRestartLoading"
+    [message]="'SETTINGS.LANGUAGE_PREPARING_COUNTDOWN' | translate:{ count: languageRestartCountdown }"
+    backdropDismiss="false"
+  ></ion-loading>
 </ion-content>

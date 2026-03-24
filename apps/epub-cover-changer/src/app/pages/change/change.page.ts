@@ -10,7 +10,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
-import { Subscription, filter } from 'rxjs';
+import { Subscription, filter, firstValueFrom } from 'rxjs';
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import {
   IonContent,
@@ -75,6 +75,7 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { ToastOptions } from '@ionic/angular';
 import { SettingsStore } from '@sheldrapps/settings-kit';
+import { detectSupportedLocale } from '@sheldrapps/i18n-kit';
 import {
   SaveCoverModalComponent,
   ScrollableBarItem,
@@ -2198,12 +2199,22 @@ export class ChangePage implements OnInit, OnDestroy {
       return;
     }
 
+    await this.ensureTourLocaleReady(settings);
     this.closeInfo();
     await this.homeTour.start(buildHomeTourDefinition(this.translate), {
       onComplete: async (reason: TourCompletionReason) => {
         await this.markHomeTourSeen(reason);
       },
     });
+  }
+
+  private async ensureTourLocaleReady(settings: EccSettings): Promise<void> {
+    const expectedLanguage = settings.language ?? (await detectSupportedLocale());
+    if (this.translate.currentLang === expectedLanguage) {
+      return;
+    }
+
+    await firstValueFrom(this.translate.use(expectedLanguage));
   }
 
   private shouldAutoStartHomeTour(settings: EccSettings): boolean {

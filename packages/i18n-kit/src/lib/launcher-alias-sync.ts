@@ -10,13 +10,14 @@ type LauncherAliasBridge = {
 };
 
 export async function syncLauncherAlias(locale: string): Promise<void> {
-  const bridge = getLauncherAliasBridge();
+  const bridge = await waitForLauncherAliasBridge();
+  const mappedLocale = mapToSupportedLocale(locale);
   if (!bridge) {
     return;
   }
 
   try {
-    bridge.setActiveLocale(mapToSupportedLocale(locale));
+    bridge.setActiveLocale(mappedLocale);
   } catch (error) {
     console.warn('[i18n-kit] launcher alias sync failed:', error);
   }
@@ -35,4 +36,52 @@ function getLauncherAliasBridge(): LauncherAliasBridge | null {
     scope.window?.SheldrappsLauncherAlias ??
     null
   );
+}
+
+async function waitForLauncherAliasBridge(
+  timeoutMs = 5000,
+  intervalMs = 50
+): Promise<LauncherAliasBridge | null> {
+  const startedAt = Date.now();
+  let bridge = getLauncherAliasBridge();
+  const effectiveTimeoutMs = isNativePlatformRuntime() ? timeoutMs : 150;
+
+  while (!bridge && Date.now() - startedAt < effectiveTimeoutMs) {
+    await wait(intervalMs);
+    bridge = getLauncherAliasBridge();
+  }
+
+  return bridge;
+}
+
+function isNativePlatformRuntime(): boolean {
+  const scope = globalThis as typeof globalThis & {
+    Capacitor?: {
+      isNativePlatform?: () => boolean;
+    };
+    window?: {
+      Capacitor?: {
+        isNativePlatform?: () => boolean;
+      };
+    };
+  };
+
+  const detector =
+    scope.Capacitor?.isNativePlatform ?? scope.window?.Capacitor?.isNativePlatform;
+
+  if (!detector) {
+    return false;
+  }
+
+  try {
+    return !!detector();
+  } catch {
+    return false;
+  }
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }

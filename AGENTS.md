@@ -40,6 +40,18 @@ When in doubt, default to kits and only keep app-specific wiring in `apps/*`.
 - Do not introduce hardcoded visual values in page SCSS (`font-size`, `opacity`, spacing, interactive sizes) when an equivalent ui-theme token exists.
 - If a hardcoded value is truly necessary, keep it local and add a short comment explaining why it cannot be tokenized yet.
 
+## Layout Alignment Rule (Critical)
+
+- For pages that mix action buttons and inset cards/lists, horizontal alignment must be identical.
+- Use this exact wrapper for top/bottom full-width action buttons:
+  - container style: `padding: 0 var(--app-space-7)` (and optional bottom spacing with `var(--app-space-8)`).
+  - button: `class="app-btn" expand="block"`.
+- Use `ion-list inset="true"` for card/list content sections.
+- Inside inset cards/lists, keep content padding as `var(--app-space-8) var(--app-space-7)` unless the user explicitly requests a different value.
+- Before finishing, visually verify (or compare computed layout structure in template) that:
+  - action button left/right edges match card/list content edges,
+  - no section uses extra horizontal padding that makes width drift by a few pixels.
+
 ## New App Rule
 
 Standard new app baseline:

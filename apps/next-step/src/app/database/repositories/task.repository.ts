@@ -9,6 +9,7 @@ import {
   CategoryNameValidationException,
   validateCategoryName,
 } from './category-name.validation';
+import { CategoryRepository } from './category.repository';
 
 export type TaskMode = 'check' | 'duration';
 export type RecurrenceMode = 'simple' | 'weekly_schedule';
@@ -74,6 +75,7 @@ export interface TaskListFilters {
   searchText?: string | null;
   limit?: number | null;
   offset?: number | null;
+  includeDeleted?: boolean;
 }
 
 export interface TaskListItem {
@@ -83,6 +85,11 @@ export interface TaskListItem {
   trackingMode: TaskMode;
   estimatedDurationMin: number | null;
   categoryId: string | null;
+  categoryName: string | null;
+  categoryColor: string | null;
+  isActive: boolean;
+  isArchived: boolean;
+  deletedAt: string | null;
   recurrenceEnabled: boolean;
   notificationsEnabled: boolean;
   createdAt: string;
@@ -120,8 +127,13 @@ interface TaskRow extends Record<string, unknown> {
   title: string;
   description: string | null;
   category_id: string | null;
+  category_name: string | null;
+  category_color: string | null;
   tracking_mode: string;
   estimated_duration_min: number | null;
+  is_active: number;
+  is_archived: number;
+  deleted_at: string | null;
   is_recurrence_enabled: number;
   is_notifications_enabled: number;
   created_at: string;
@@ -181,11 +193,18 @@ interface PersistedRecurrenceState {
   weekdays: PersistedRecurrenceWeekday[];
 }
 
+const TASKS_BROWSER_STORAGE_KEY = 'next-step.tasks.browser.v1';
+
 @Injectable({ providedIn: 'root' })
 export class TaskRepository {
   private readonly sqliteManager = inject(NativeSqliteManager);
+  private readonly categoryRepository = inject(CategoryRepository);
 
   async createTask(input: CreateTaskInput): Promise<string> {
+    if (!this.isNativeRuntime()) {
+      return this.createTaskBrowser(input);
+    }
+
     await this.ensureSqliteReady();
 
     const normalizedInput = this.sanitizeCreateTaskInput(input);
@@ -204,6 +223,10 @@ export class TaskRepository {
     input: CreateTaskInput,
     customCategoryName: string
   ): Promise<string> {
+    if (!this.isNativeRuntime()) {
+      return this.createTaskWithCustomCategoryBrowser(input, customCategoryName);
+    }
+
     await this.ensureSqliteReady();
 
     const categoryNames = await this.listCategoryNames();
@@ -220,16 +243,40 @@ export class TaskRepository {
     const taskId = this.createUuid('task');
     const categoryId = this.createUuid('cat');
     const nowIso = new Date().toISOString();
+    const defaultColor = '#6366F1';
 
     try {
       // Keep category and task creation atomic to avoid orphan categories.
       await this.sqliteManager.runInTransaction(async (tx) => {
+        const sortOrderRows = await tx.query<{ max_sort_order: number | null }>(
+          `
+            SELECT COALESCE(MAX(sort_order), -1) AS max_sort_order
+            FROM categories
+            WHERE deleted_at IS NULL AND is_archived = 0
+          `
+        );
+        const maxSortOrder = Number(sortOrderRows[0]?.max_sort_order ?? -1);
+        const nextSortOrder = Number.isFinite(maxSortOrder) ? maxSortOrder + 1 : 0;
+
         await tx.execute(
           `
-            INSERT INTO categories (id, name, created_at, updated_at)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO categories (
+              id,
+              name,
+              color,
+              icon,
+              description,
+              sort_order,
+              is_archived,
+              origin,
+              seed_key,
+              created_at,
+              updated_at,
+              deleted_at
+            )
+            VALUES (?, ?, ?, NULL, NULL, ?, 0, 'user', NULL, ?, ?, NULL)
           `,
-          [categoryId, normalizedCategoryName, nowIso, nowIso]
+          [categoryId, normalizedCategoryName, defaultColor, nextSortOrder, nowIso, nowIso]
         );
 
         await this.insertTask(
@@ -263,6 +310,10 @@ export class TaskRepository {
   }
 
   async updateTask(taskId: string, input: UpdateTaskInput): Promise<void> {
+    if (!this.isNativeRuntime()) {
+      return this.updateTaskBrowser(taskId, input);
+    }
+
     await this.ensureSqliteReady();
     const normalizedTaskId = taskId.trim();
     if (!normalizedTaskId) {
@@ -273,7 +324,7 @@ export class TaskRepository {
       `
         SELECT id
         FROM tasks
-        WHERE id = ?
+        WHERE id = ? AND deleted_at IS NULL
         LIMIT 1
       `,
       [normalizedTaskId]
@@ -293,6 +344,10 @@ export class TaskRepository {
   }
 
   async getTaskById(taskId: string): Promise<PersistedTaskAggregate | null> {
+    if (!this.isNativeRuntime()) {
+      return this.getTaskByIdBrowser(taskId);
+    }
+
     await this.ensureSqliteReady();
     const normalizedTaskId = taskId.trim();
     if (!normalizedTaskId) {
@@ -307,21 +362,30 @@ export class TaskRepository {
   }
 
   async listTasks(filters: TaskListFilters = {}): Promise<TaskListItem[]> {
+    if (!this.isNativeRuntime()) {
+      return this.listTasksBrowser(filters);
+    }
+
     await this.ensureSqliteReady();
 
     const whereClauses: string[] = [];
     const params: unknown[] = [];
     const categoryId = this.normalizeNullableText(filters.categoryId);
     const searchText = this.normalizeNullableText(filters.searchText);
+    const includeDeleted = filters.includeDeleted === true;
+
+    if (!includeDeleted) {
+      whereClauses.push('t.deleted_at IS NULL');
+    }
 
     if (categoryId) {
-      whereClauses.push('category_id = ?');
+      whereClauses.push('t.category_id = ?');
       params.push(categoryId);
     }
 
     if (searchText) {
       const searchLike = `%${searchText}%`;
-      whereClauses.push('(title LIKE ? OR description LIKE ?)');
+      whereClauses.push('(t.title LIKE ? OR t.description LIKE ?)');
       params.push(searchLike, searchLike);
     }
     const limit = this.sanitizeBoundedInteger(filters.limit, 1, 500) ?? 100;
@@ -331,19 +395,27 @@ export class TaskRepository {
     const rows = await this.sqliteManager.query<TaskRow>(
       `
         SELECT
-          id,
-          title,
-          description,
-          category_id,
-          tracking_mode,
-          estimated_duration_min,
-          is_recurrence_enabled,
-          is_notifications_enabled,
-          created_at,
-          updated_at
-        FROM tasks
+          t.id,
+          t.title,
+          t.description,
+          t.category_id,
+          c.name AS category_name,
+          c.color AS category_color,
+          t.tracking_mode,
+          t.estimated_duration_min,
+          t.is_active,
+          t.is_archived,
+          t.deleted_at,
+          t.is_recurrence_enabled,
+          t.is_notifications_enabled,
+          t.created_at,
+          t.updated_at
+        FROM tasks t
+        LEFT JOIN categories c
+          ON c.id = t.category_id
+          AND c.deleted_at IS NULL
         ${whereSql}
-        ORDER BY updated_at DESC, created_at DESC
+        ORDER BY t.updated_at DESC, t.created_at DESC
         LIMIT ?
         OFFSET ?
       `,
@@ -354,39 +426,95 @@ export class TaskRepository {
   }
 
   async deleteTask(taskId: string): Promise<void> {
+    if (!this.isNativeRuntime()) {
+      return this.deleteTaskBrowser(taskId);
+    }
+
     await this.ensureSqliteReady();
     const normalizedTaskId = taskId.trim();
     if (!normalizedTaskId) {
       return;
     }
 
-    await this.sqliteManager.runInTransaction(async (tx) => {
-      await tx.execute(
-        `
-          DELETE FROM tasks
-          WHERE id = ?
-        `,
-        [normalizedTaskId]
-      );
-    });
+    const nowIso = new Date().toISOString();
+    await this.sqliteManager.execute(
+      `
+        UPDATE tasks
+        SET
+          deleted_at = ?,
+          is_archived = 1,
+          is_active = 0,
+          updated_at = ?
+        WHERE id = ? AND deleted_at IS NULL
+      `,
+      [nowIso, nowIso, normalizedTaskId]
+    );
+  }
+
+  async archiveTask(taskId: string): Promise<void> {
+    if (!this.isNativeRuntime()) {
+      return this.setTaskArchivedStateBrowser(taskId, true);
+    }
+
+    await this.setTaskArchivedState(taskId, true);
+  }
+
+  async unarchiveTask(taskId: string): Promise<void> {
+    if (!this.isNativeRuntime()) {
+      return this.setTaskArchivedStateBrowser(taskId, false);
+    }
+
+    await this.setTaskArchivedState(taskId, false);
+  }
+
+  async setTaskActive(taskId: string, isActive: boolean): Promise<void> {
+    if (!this.isNativeRuntime()) {
+      return this.setTaskActiveBrowser(taskId, isActive);
+    }
+
+    await this.ensureSqliteReady();
+    const normalizedTaskId = taskId.trim();
+    if (!normalizedTaskId) {
+      return;
+    }
+
+    const nowIso = new Date().toISOString();
+    await this.sqliteManager.execute(
+      `
+        UPDATE tasks
+        SET
+          is_active = ?,
+          updated_at = ?
+        WHERE id = ? AND deleted_at IS NULL
+      `,
+      [isActive ? 1 : 0, nowIso, normalizedTaskId]
+    );
   }
 
   private async loadTaskAggregate(taskId: string): Promise<PersistedTaskAggregate | null> {
     const taskRows = await this.sqliteManager.query<TaskRow>(
       `
         SELECT
-          id,
-          title,
-          description,
-          category_id,
-          tracking_mode,
-          estimated_duration_min,
-          is_recurrence_enabled,
-          is_notifications_enabled,
-          created_at,
-          updated_at
-        FROM tasks
-        WHERE id = ?
+          t.id,
+          t.title,
+          t.description,
+          t.category_id,
+          c.name AS category_name,
+          c.color AS category_color,
+          t.tracking_mode,
+          t.estimated_duration_min,
+          t.is_active,
+          t.is_archived,
+          t.deleted_at,
+          t.is_recurrence_enabled,
+          t.is_notifications_enabled,
+          t.created_at,
+          t.updated_at
+        FROM tasks t
+        LEFT JOIN categories c
+          ON c.id = t.category_id
+          AND c.deleted_at IS NULL
+        WHERE t.id = ? AND t.deleted_at IS NULL
         LIMIT 1
       `,
       [taskId]
@@ -481,6 +609,11 @@ export class TaskRepository {
       trackingMode: this.normalizeTaskMode(row.tracking_mode),
       estimatedDurationMin: this.toNullableNumber(row.estimated_duration_min),
       categoryId: this.normalizeNullableText(row.category_id),
+      categoryName: this.normalizeNullableText(row.category_name),
+      categoryColor: this.normalizeNullableText(row.category_color),
+      isActive: this.toBooleanFlag(row.is_active),
+      isArchived: this.toBooleanFlag(row.is_archived),
+      deletedAt: this.normalizeNullableText(row.deleted_at),
       recurrenceEnabled: this.toBooleanFlag(row.is_recurrence_enabled),
       notificationsEnabled: this.toBooleanFlag(row.is_notifications_enabled),
       createdAt: this.resolveIsoDate(row.created_at) ?? new Date(0).toISOString(),
@@ -488,9 +621,368 @@ export class TaskRepository {
     };
   }
 
+  private async setTaskArchivedState(taskId: string, isArchived: boolean): Promise<void> {
+    await this.ensureSqliteReady();
+    const normalizedTaskId = taskId.trim();
+    if (!normalizedTaskId) {
+      return;
+    }
+
+    const nowIso = new Date().toISOString();
+    await this.sqliteManager.execute(
+      `
+        UPDATE tasks
+        SET
+          is_archived = ?,
+          updated_at = ?
+        WHERE id = ? AND deleted_at IS NULL
+      `,
+      [isArchived ? 1 : 0, nowIso, normalizedTaskId]
+    );
+  }
+
+  private async createTaskBrowser(input: CreateTaskInput): Promise<string> {
+    const normalizedInput = this.sanitizeCreateTaskInput(input);
+    const taskId = this.createUuid('task');
+    const nowIso = new Date().toISOString();
+    const categorySnapshot = await this.resolveCategorySnapshot(normalizedInput.categoryId);
+    const tasks = this.readBrowserTasks();
+    tasks.push(
+      this.buildBrowserAggregate(taskId, normalizedInput, nowIso, categorySnapshot)
+    );
+    this.writeBrowserTasks(tasks);
+    return taskId;
+  }
+
+  private async createTaskWithCustomCategoryBrowser(
+    input: CreateTaskInput,
+    customCategoryName: string
+  ): Promise<string> {
+    const existingCategoryNames = this.readBrowserTasks()
+      .map((task) => task.categoryName)
+      .filter((name): name is string => typeof name === 'string' && name.trim().length > 0);
+    const validation = validateCategoryName(customCategoryName, existingCategoryNames);
+    if (validation.error) {
+      throw new CategoryNameValidationException(validation.error);
+    }
+
+    const normalizedInput = this.sanitizeCreateTaskInput({
+      ...input,
+      categoryId: this.createUuid('cat'),
+    });
+
+    const taskId = this.createUuid('task');
+    const nowIso = new Date().toISOString();
+    const aggregate = this.buildBrowserAggregate(taskId, normalizedInput, nowIso, {
+      name: validation.normalizedName,
+      color: '#6366F1',
+    });
+    aggregate.categoryName = validation.normalizedName;
+    aggregate.categoryColor = '#6366F1';
+
+    const tasks = this.readBrowserTasks();
+    tasks.push(aggregate);
+    this.writeBrowserTasks(tasks);
+    return taskId;
+  }
+
+  private async updateTaskBrowser(taskId: string, input: UpdateTaskInput): Promise<void> {
+    const normalizedTaskId = taskId.trim();
+    if (!normalizedTaskId) {
+      throw new Error('Task id is required.');
+    }
+
+    const tasks = this.readBrowserTasks();
+    const index = tasks.findIndex(
+      (candidate) => candidate.id === normalizedTaskId && candidate.deletedAt === null
+    );
+    if (index < 0) {
+      throw new Error(`Task not found: ${normalizedTaskId}`);
+    }
+
+    const existing = tasks[index];
+    const normalizedInput = this.sanitizeCreateTaskInput(input);
+    const categorySnapshot = await this.resolveCategorySnapshot(normalizedInput.categoryId);
+    const updated = this.buildBrowserAggregate(
+      normalizedTaskId,
+      normalizedInput,
+      existing.createdAt,
+      categorySnapshot
+    );
+    updated.updatedAt = new Date().toISOString();
+    updated.isActive = existing.isActive;
+    updated.isArchived = existing.isArchived;
+    updated.deletedAt = existing.deletedAt;
+    if (updated.categoryId === existing.categoryId) {
+      updated.categoryName = existing.categoryName;
+      updated.categoryColor = existing.categoryColor;
+    }
+
+    tasks[index] = updated;
+    this.writeBrowserTasks(tasks);
+  }
+
+  private async getTaskByIdBrowser(taskId: string): Promise<PersistedTaskAggregate | null> {
+    const normalizedTaskId = taskId.trim();
+    if (!normalizedTaskId) {
+      return null;
+    }
+
+    const tasks = this.readBrowserTasks();
+    return (
+      tasks.find((task) => task.id === normalizedTaskId && task.deletedAt === null) ?? null
+    );
+  }
+
+  private async listTasksBrowser(filters: TaskListFilters): Promise<TaskListItem[]> {
+    const categoryId = this.normalizeNullableText(filters.categoryId);
+    const searchText = this.normalizeNullableText(filters.searchText);
+    const includeDeleted = filters.includeDeleted === true;
+
+    let tasks = this.readBrowserTasks();
+    if (!includeDeleted) {
+      tasks = tasks.filter((task) => task.deletedAt === null);
+    }
+    if (categoryId) {
+      tasks = tasks.filter((task) => task.categoryId === categoryId);
+    }
+    if (searchText) {
+      const searchValue = searchText.toLowerCase();
+      tasks = tasks.filter((task) => {
+        const title = task.title.toLowerCase();
+        const description = (task.description ?? '').toLowerCase();
+        return title.includes(searchValue) || description.includes(searchValue);
+      });
+    }
+
+    const sorted = [...tasks].sort((a, b) => {
+      if (a.updatedAt !== b.updatedAt) {
+        return a.updatedAt < b.updatedAt ? 1 : -1;
+      }
+      return a.createdAt < b.createdAt ? 1 : -1;
+    });
+
+    const limit = this.sanitizeBoundedInteger(filters.limit, 1, 500) ?? 100;
+    const offset = this.sanitizeBoundedInteger(filters.offset, 0, 1_000_000) ?? 0;
+    return sorted.slice(offset, offset + limit).map((task) => ({ ...task }));
+  }
+
+  private async deleteTaskBrowser(taskId: string): Promise<void> {
+    const normalizedTaskId = taskId.trim();
+    if (!normalizedTaskId) {
+      return;
+    }
+
+    const tasks = this.readBrowserTasks();
+    const index = tasks.findIndex(
+      (candidate) => candidate.id === normalizedTaskId && candidate.deletedAt === null
+    );
+    if (index < 0) {
+      return;
+    }
+
+    const nowIso = new Date().toISOString();
+    tasks[index] = {
+      ...tasks[index],
+      isActive: false,
+      isArchived: true,
+      deletedAt: nowIso,
+      updatedAt: nowIso,
+    };
+    this.writeBrowserTasks(tasks);
+  }
+
+  private async setTaskArchivedStateBrowser(
+    taskId: string,
+    isArchived: boolean
+  ): Promise<void> {
+    const normalizedTaskId = taskId.trim();
+    if (!normalizedTaskId) {
+      return;
+    }
+
+    const tasks = this.readBrowserTasks();
+    const index = tasks.findIndex(
+      (candidate) => candidate.id === normalizedTaskId && candidate.deletedAt === null
+    );
+    if (index < 0) {
+      return;
+    }
+
+    tasks[index] = {
+      ...tasks[index],
+      isArchived,
+      updatedAt: new Date().toISOString(),
+    };
+    this.writeBrowserTasks(tasks);
+  }
+
+  private async setTaskActiveBrowser(taskId: string, isActive: boolean): Promise<void> {
+    const normalizedTaskId = taskId.trim();
+    if (!normalizedTaskId) {
+      return;
+    }
+
+    const tasks = this.readBrowserTasks();
+    const index = tasks.findIndex(
+      (candidate) => candidate.id === normalizedTaskId && candidate.deletedAt === null
+    );
+    if (index < 0) {
+      return;
+    }
+
+    tasks[index] = {
+      ...tasks[index],
+      isActive,
+      updatedAt: new Date().toISOString(),
+    };
+    this.writeBrowserTasks(tasks);
+  }
+
+  private buildBrowserAggregate(
+    taskId: string,
+    input: CreateTaskInput,
+    createdAt: string,
+    categorySnapshot?: { name: string | null; color: string | null }
+  ): PersistedTaskAggregate {
+    const nowIso = new Date().toISOString();
+    const recurrencePersisted = input.recurrence
+      ? this.resolveRecurrencePersistenceState(input.recurrence)
+      : undefined;
+    const notificationPersisted = input.notification
+      ? this.resolveNotificationPersistenceState(input.notification)
+      : undefined;
+
+    return {
+      id: taskId,
+      title: input.title.trim(),
+      description: this.normalizeNullableText(input.description),
+      trackingMode: input.mode,
+      estimatedDurationMin:
+        input.mode === 'duration' ? input.estimatedDurationMin ?? null : null,
+      categoryId: this.normalizeNullableText(input.categoryId),
+      categoryName: categorySnapshot?.name ?? null,
+      categoryColor: categorySnapshot?.color ?? null,
+      isActive: true,
+      isArchived: false,
+      deletedAt: null,
+      recurrenceEnabled: recurrencePersisted !== undefined,
+      notificationsEnabled: notificationPersisted !== undefined,
+      createdAt,
+      updatedAt: nowIso,
+      recurrence: recurrencePersisted
+        ? {
+            pattern: recurrencePersisted.pattern,
+            hasTime: recurrencePersisted.hasTime,
+            sameTimeForSelectedDays: recurrencePersisted.sameTimeForSelectedDays,
+            commonTime: recurrencePersisted.commonTime,
+            startsToday: recurrencePersisted.startsToday,
+            startDate: recurrencePersisted.startDate,
+            hasEndDate: recurrencePersisted.hasEndDate,
+            endDate: recurrencePersisted.endDate,
+            dayOfMonth: recurrencePersisted.dayOfMonth,
+            yearMonth: recurrencePersisted.yearMonth,
+            yearDay: recurrencePersisted.yearDay,
+            timezone: recurrencePersisted.timezone,
+            weekdays: recurrencePersisted.weekdays.map((weekday) => ({
+              dayOfWeek: weekday.dayOfWeek,
+              weekdayBit: this.dayOfWeekToMask(weekday.dayOfWeek),
+              timeValue: weekday.timeValue,
+            })),
+          }
+        : undefined,
+      notification: notificationPersisted,
+    };
+  }
+
+  private resolveNotificationPersistenceState(
+    notification: CreateTaskNotificationInput
+  ): PersistedTaskAggregate['notification'] {
+    const notificationType = this.normalizeNotificationType(
+      notification.notificationType
+    );
+    const triggerMode = this.normalizeTriggerMode(notification.triggerMode);
+    const offsets =
+      triggerMode === 'before'
+        ? this.resolveNotificationOffsets(notification)
+        : [];
+
+    return {
+      notificationType,
+      triggerMode,
+      offsets,
+      soundName: this.normalizeNullableText(notification.soundName),
+      ttsText: this.normalizeNullableText(notification.ttsText),
+      repeatIfMissed: Boolean(notification.repeatIfMissed),
+    };
+  }
+
+  private readBrowserTasks(): PersistedTaskAggregate[] {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return [];
+    }
+
+    const raw = window.localStorage.getItem(TASKS_BROWSER_STORAGE_KEY);
+    if (!raw) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed
+        .filter((value): value is PersistedTaskAggregate => {
+          return typeof value === 'object' && value !== null;
+        })
+        .map((task) => ({
+          ...task,
+          categoryName: this.normalizeNullableText(task.categoryName),
+          categoryColor: this.normalizeNullableText(task.categoryColor),
+          deletedAt: this.normalizeNullableText(task.deletedAt),
+          description: this.normalizeNullableText(task.description),
+        }));
+    } catch {
+      return [];
+    }
+  }
+
+  private writeBrowserTasks(tasks: PersistedTaskAggregate[]): void {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return;
+    }
+
+    window.localStorage.setItem(TASKS_BROWSER_STORAGE_KEY, JSON.stringify(tasks));
+  }
+
+  private isNativeRuntime(): boolean {
+    return Capacitor.getPlatform() === 'android';
+  }
+
+  private async resolveCategorySnapshot(
+    categoryId: string | null | undefined
+  ): Promise<{ name: string | null; color: string | null }> {
+    const normalizedCategoryId = this.normalizeNullableText(categoryId);
+    if (!normalizedCategoryId) {
+      return { name: null, color: null };
+    }
+
+    try {
+      const category = await this.categoryRepository.getCategoryById(normalizedCategoryId);
+      return {
+        name: category?.name ?? null,
+        color: category?.color ?? null,
+      };
+    } catch {
+      return { name: null, color: null };
+    }
+  }
+
   private async ensureSqliteReady(): Promise<void> {
-    if (Capacitor.getPlatform() !== 'android') {
-      throw new Error('Native SQLite is only available on Android runtime.');
+    if (!this.isNativeRuntime()) {
+      return;
     }
 
     if (!this.sqliteManager.isReady()) {
@@ -503,6 +995,7 @@ export class TaskRepository {
       `
         SELECT name
         FROM categories
+        WHERE deleted_at IS NULL AND is_archived = 0
       `
     );
     return rows.map((row) => row.name);
@@ -678,11 +1171,14 @@ export class TaskRepository {
           category_id,
           tracking_mode,
           estimated_duration_min,
+          is_active,
+          is_archived,
+          deleted_at,
           is_recurrence_enabled,
           is_notifications_enabled,
           created_at,
           updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         taskId,
@@ -691,6 +1187,9 @@ export class TaskRepository {
         this.normalizeNullableText(input.categoryId),
         input.mode,
         input.mode === 'duration' ? input.estimatedDurationMin ?? null : null,
+        1,
+        0,
+        null,
         input.recurrence ? 1 : 0,
         input.notification ? 1 : 0,
         nowIso,
@@ -717,7 +1216,7 @@ export class TaskRepository {
           is_recurrence_enabled = ?,
           is_notifications_enabled = ?,
           updated_at = ?
-        WHERE id = ?
+        WHERE id = ? AND deleted_at IS NULL
       `,
       [
         input.title.trim(),

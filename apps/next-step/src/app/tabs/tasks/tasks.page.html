@@ -4,26 +4,125 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <ion-button expand="block" [routerLink]="['/task/new']">
-    {{ 'TASKS.NEW_TASK' | translate }}
-  </ion-button>
+<ion-content>
+  <div [style.padding]="'0 var(--app-space-7)'">
+    <ion-grid class="app-action-grid">
+      <ion-row>
+        <ion-col size="6">
+          <ion-button class="app-btn" expand="block" [routerLink]="['/task/new']">
+            {{ 'TASKS.NEW_TASK' | translate }}
+          </ion-button>
+        </ion-col>
+        <ion-col size="6">
+          <ion-button class="app-btn" fill="outline" expand="block" [routerLink]="['/categories']">
+            {{ 'TASKS.MANAGE_CATEGORIES' | translate }}
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
 
-  <ion-button fill="outline" expand="block" [routerLink]="['/categories']">
-    {{ 'TASKS.MANAGE_CATEGORIES' | translate }}
-  </ion-button>
+  <ion-list inset="true">
+    <div [style.padding]="'var(--app-space-8) var(--app-space-7)'">
+      @if (loadFailed) {
+        <ion-note color="danger" [style.display]="'block'" [style.margin-bottom]="'var(--app-space-10)'">
+          {{ 'COMMON.ERROR' | translate }}
+        </ion-note>
+      }
 
-  <ion-card>
-    <ion-card-content>{{ 'TASKS.PLACEHOLDER' | translate }}</ion-card-content>
-  </ion-card>
+      @if (deleteFailed) {
+        <ion-note color="danger" [style.display]="'block'" [style.margin-bottom]="'var(--app-space-10)'">
+          {{ 'COMMON.ERROR' | translate }}
+        </ion-note>
+      }
 
-  <ion-list inset>
-    <ion-item [routerLink]="['/task', 'sample-task']">
-      <ion-label>{{ 'TASKS.SAMPLE_TASK' | translate }}</ion-label>
-    </ion-item>
+      @if (!isLoading && tasks.length === 0) {
+        <ion-note [style.display]="'block'">{{ 'TASKS.PLACEHOLDER' | translate }}</ion-note>
+      }
+
+      @if (tasks.length > 0) {
+        @for (task of tasks; track task.id; let isLast = $last) {
+          <div class="field-section" [style.margin-bottom]="isLast ? '0' : 'var(--app-space-10)'">
+            <div
+              class="app-preview-surface"
+              [style.border]="taskBorderStyle(task)"
+              [style.background]="taskBackgroundStyle(task)"
+              [style.box-shadow]="taskShadowStyle(task)"
+              [style.border-radius.px]="14"
+            >
+              <div
+                [style.display]="'flex'"
+                [style.align-items]="'flex-start'"
+                [style.justify-content]="'space-between'"
+                [style.gap]="'var(--app-space-2)'"
+                [style.margin-bottom.px]="task.description ? 8 : 0"
+              >
+                <div
+                  [style.font-weight]="600"
+                  [style.flex]="'1'"
+                  [style.min-width]="'0'"
+                  [style.word-break]="'break-word'"
+                >
+                  {{ taskDisplayTitle(task) }}
+                </div>
+
+                <div
+                  [style.display]="'flex'"
+                  [style.align-items]="'center'"
+                  [style.gap]="'var(--app-space-1)'"
+                  [style.flex-shrink]="0"
+                >
+                  <ion-button
+                    fill="clear"
+                    size="small"
+                    [routerLink]="['/tasks/view', task.id]"
+                    [attr.aria-label]="'TASK_DETAIL.TITLE' | translate"
+                  >
+                    <ion-icon name="eye-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+                  </ion-button>
+                  <ion-button
+                    fill="clear"
+                    size="small"
+                    [routerLink]="['/tasks/view', task.id]"
+                    [queryParams]="{ mode: 'edit' }"
+                    [disabled]="task.isSample"
+                    [attr.aria-label]="'TASK_DETAIL.EDIT' | translate"
+                  >
+                    <ion-icon name="create-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+                  </ion-button>
+                  <ion-button
+                    fill="clear"
+                    size="small"
+                    color="danger"
+                    [disabled]="task.isSample"
+                    (click)="confirmDeleteTask(task)"
+                    [attr.aria-label]="'COMMON.DELETE' | translate"
+                  >
+                    <ion-icon name="trash-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+                  </ion-button>
+                </div>
+              </div>
+              @if (task.description) {
+                <div [style.opacity]="0.78">
+                  {{ task.description }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
   </ion-list>
 
-  <ion-button fill="outline" expand="block" [routerLink]="['/progress']">
-    {{ 'TASKS.OPEN_PROGRESS' | translate }}
-  </ion-button>
+  <div [style.padding]="'0 var(--app-space-7)'">
+    <ion-grid class="app-action-grid">
+      <ion-row>
+        <ion-col size="12">
+          <ion-button class="app-btn" fill="outline" expand="block" [routerLink]="['/progress']">
+            {{ 'TASKS.OPEN_PROGRESS' | translate }}
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
 </ion-content>

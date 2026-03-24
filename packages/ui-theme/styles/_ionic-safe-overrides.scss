@@ -45,6 +45,14 @@ ion-title {
 /* Content */
 ion-content {
   --background: var(--app-background);
+  /*
+   * Keep form pages scrollable while the native keyboard is open.
+   * EdgeToEdgeService updates --keyboard-inset-bottom on keyboard show/hide.
+   */
+  --keyboard-offset: max(
+    var(--keyboard-inset-bottom, 0px),
+    env(keyboard-inset-height, 0px)
+  );
 }
 
 /* Tabs */

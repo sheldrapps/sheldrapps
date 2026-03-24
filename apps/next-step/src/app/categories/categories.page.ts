@@ -8,14 +8,15 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
-  IonItem,
-  IonLabel,
+  IonIcon,
   IonList,
   IonNote,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { addIcons } from 'ionicons';
+import { createOutline, trashOutline } from 'ionicons/icons';
 import {
   CategoryRepository,
   TaskCategory,
@@ -36,8 +37,7 @@ import {
     IonTitle,
     IonContent,
     IonList,
-    IonItem,
-    IonLabel,
+    IonIcon,
     IonButton,
     IonNote,
   ],
@@ -47,10 +47,30 @@ export class CategoriesPage {
   private readonly alertController = inject(AlertController);
   private readonly translate = inject(TranslateService);
 
+  constructor() {
+    addIcons({ createOutline, trashOutline });
+  }
+
   categories: TaskCategory[] = [];
   isLoading = false;
   loadFailed = false;
   deleteFailed = false;
+
+  categoryBorderStyle(category: TaskCategory): string {
+    return `2px solid ${category.color}`;
+  }
+
+  categoryBackgroundStyle(category: TaskCategory): string {
+    return this.withAlpha(category.color, 0.11);
+  }
+
+  categoryShadowStyle(category: TaskCategory): string {
+    return `0 0 0 1px ${this.withAlpha(category.color, 0.12)}`;
+  }
+
+  categoryIconBackgroundStyle(category: TaskCategory): string {
+    return this.withAlpha(category.color, 0.2);
+  }
 
   async ionViewWillEnter(): Promise<void> {
     await this.loadCategories();
@@ -103,5 +123,21 @@ export class CategoriesPage {
       this.isLoading = false;
     }
   }
-}
 
+  private withAlpha(hexColor: string, alpha: number): string {
+    const normalized = hexColor.trim();
+    const hex = normalized.startsWith('#') ? normalized.slice(1) : normalized;
+    if (hex.length !== 6) {
+      return 'rgba(0, 0, 0, 0.08)';
+    }
+
+    const red = Number.parseInt(hex.slice(0, 2), 16);
+    const green = Number.parseInt(hex.slice(2, 4), 16);
+    const blue = Number.parseInt(hex.slice(4, 6), 16);
+    if ([red, green, blue].some((value) => Number.isNaN(value))) {
+      return 'rgba(0, 0, 0, 0.08)';
+    }
+
+    return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+  }
+}

@@ -100,7 +100,7 @@
     "STEP_5": "Enviar pela web (Send to Kindle)",
     "STEP_5_DESC": "Você também pode enviá-la pelo navegador usando a ferramenta web Send to Kindle.",
     "TIP": "Para melhores resultados, use imagens em alta resolução e verifique se os anúncios estão desativados no seu Kindle.",
-    "TITLE": "Instru??es"
+    "TITLE": "Instruções"
   },
   "KINDLE_BRANDS": {
     "KINDLE": "Kindle"
@@ -255,6 +255,7 @@
     "INSTRUCTIONS_SECTION": "Instruções",
     "LANGUAGE": "Idioma",
     "LANGUAGE_RESTART_NOTICE": "Idioma alterado. O app será reiniciado para aplicar as mudanças.",
+    "LANGUAGE_PREPARING_COUNTDOWN": "Preparando tudo no seu idioma ({{count}})",
     "PRIVACY_HINT": "Controle como os dados e a publicidade são tratados",
     "PRIVACY_OPTIONS": "Opções de privacidade",
     "PRIVACY_POLICY": "Política de privacidade",

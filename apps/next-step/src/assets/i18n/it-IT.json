@@ -22,10 +22,10 @@
   "TASKS": {
     "TITLE": "Attività",
     "NEW_TASK": "+ Nuova attività",
-    "MANAGE_CATEGORIES": "Gestisci categorie",
+    "MANAGE_CATEGORIES": "Categorie",
     "PLACEHOLDER": "Elenco attività (segnaposto)",
     "SAMPLE_TASK": "Apri attività di esempio",
-    "OPEN_PROGRESS": "Apri progresso nel tempo"
+    "OPEN_PROGRESS": "Progresso"
   },
   "REFLECTION": {
     "TITLE": "Riflessione",
@@ -194,14 +194,37 @@
     "ERROR_DELETE": "Impossibile eliminare la categoria."
   },
   "CATEGORY_FORM": {
-    "NEW_TITLE": "Crea categoria",
+    "NEW_TITLE": "Nuova categoria",
     "EDIT_TITLE": "Modifica categoria",
-    "NAME_LABEL": "Nome categoria",
-    "NAME_PLACEHOLDER": "Nome categoria",
+    "NAME_LABEL": "Come vuoi chiamarla?",
+    "NAME_PLACEHOLDER": "Scrivi un nome...",
     "CREATE_ACTION": "Crea categoria",
     "UPDATE_ACTION": "Salva modifiche",
     "ERROR_SAVE": "Impossibile salvare la categoria.",
-    "ERROR_NOT_FOUND": "Categoria non trovata."
+    "ERROR_NOT_FOUND": "Categoria non trovata.",
+    "COLOR_LABEL": "Colore",
+    "COLOR_CHIP_ARIA": "Seleziona colore {{color}}",
+    "VIEW_MORE": "Vedi altro",
+    "COLOR_VIEW_MORE_ARIA": "Apri tavolozza colori estesa",
+    "ICON_LABEL": "Icona (opzionale)",
+    "ICON_CHIP_ARIA": "Attiva icona {{icon}}",
+    "CUSTOM_ICON": "Custom",
+    "ICON_CUSTOM_ARIA": "Apri input emoji personalizzato",
+    "ICON_VIEW_MORE_ARIA": "Apri selettore emoji",
+    "COLOR_MODAL_TITLE": "Scegli un colore",
+    "ICON_MODAL_TITLE": "Scegli un'icona",
+    "EMOJI_LABEL": "Emoji",
+    "EMOJI_PLACEHOLDER": "Scegli un emoji",
+    "EMOJI_HELP": "Usa la tastiera emoji del telefono.",
+    "EMOJI_MULTIPLE": "È consentito solo un emoji.",
+    "EMOJI_INVALID": "Inserisci un emoji valido.",
+    "EMOJI_CLEAR": "Rimuovi icona",
+    "DESCRIPTION_LABEL": "Descrizione (opzionale)",
+    "DESCRIPTION_PLACEHOLDER": "Aggiungi una descrizione breve",
+    "PREVIEW_TITLE": "Anteprima",
+    "PREVIEW_NAME_PLACEHOLDER": "Categoria",
+    "SUCCESS_CREATED": "Categoria creata",
+    "ERROR_CREATE": "Impossibile creare la categoria."
   },
   "PROGRESS": {
     "TITLE": "Progresso nel tempo",

@@ -135,6 +135,7 @@
     "INSTRUCTIONS_SECTION": "Instruções",
     "LANGUAGE": "Idioma",
     "LANGUAGE_RESTART_NOTICE": "Idioma alterado. O app será reiniciado para aplicar as mudanças.",
+    "LANGUAGE_PREPARING_COUNTDOWN": "Preparando tudo no seu idioma ({{count}})",
     "PRIVACY_HINT": "Controle como os dados e a publicidade são tratados",
     "PRIVACY_OPTIONS": "Opções de privacidade",
     "PRIVACY_POLICY": "Política de privacidade",

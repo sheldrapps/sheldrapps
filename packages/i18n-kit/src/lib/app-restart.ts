@@ -1,7 +1,8 @@
-import { syncLauncherAlias } from './launcher-alias-sync';
+import { mapToSupportedLocale } from './locale-detection.service';
 
 type AppControlBridge = {
   restartApp(): void;
+  restartForLocale?(locale: string): void;
 };
 
 const DEFAULT_LANGUAGE_RESTART_DELAY_MS = 900;
@@ -11,7 +12,14 @@ export async function restartForLanguageChange(
   delayMs = DEFAULT_LANGUAGE_RESTART_DELAY_MS
 ): Promise<void> {
   await wait(delayMs);
-  await syncLauncherAlias(locale);
+  const bridge = await waitForAppControlBridge();
+  const supportedLocale = mapToSupportedLocale(locale);
+
+  if (bridge?.restartForLocale) {
+    bridge.restartForLocale(supportedLocale);
+    return;
+  }
+
   restartApp();
 }
 
@@ -44,4 +52,46 @@ function getAppControlBridge(): AppControlBridge | null {
   };
 
   return scope.SheldrappsAppControl ?? scope.window?.SheldrappsAppControl ?? null;
+}
+
+async function waitForAppControlBridge(
+  timeoutMs = 5000,
+  intervalMs = 50
+): Promise<AppControlBridge | null> {
+  const startedAt = Date.now();
+  let bridge = getAppControlBridge();
+  const effectiveTimeoutMs = isNativePlatformRuntime() ? timeoutMs : 150;
+
+  while (!bridge && Date.now() - startedAt < effectiveTimeoutMs) {
+    await wait(intervalMs);
+    bridge = getAppControlBridge();
+  }
+
+  return bridge;
+}
+
+function isNativePlatformRuntime(): boolean {
+  const scope = globalThis as typeof globalThis & {
+    Capacitor?: {
+      isNativePlatform?: () => boolean;
+    };
+    window?: {
+      Capacitor?: {
+        isNativePlatform?: () => boolean;
+      };
+    };
+  };
+
+  const detector =
+    scope.Capacitor?.isNativePlatform ?? scope.window?.Capacitor?.isNativePlatform;
+
+  if (!detector) {
+    return false;
+  }
+
+  try {
+    return !!detector();
+  } catch {
+    return false;
+  }
 }

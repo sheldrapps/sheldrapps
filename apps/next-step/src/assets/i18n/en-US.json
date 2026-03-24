@@ -1,4 +1,4 @@
-﻿{
+{
   "APP": {
     "TITLE": "Next Step"
   },
@@ -22,10 +22,10 @@
   "TASKS": {
     "TITLE": "Tasks",
     "NEW_TASK": "+ New Task",
-    "MANAGE_CATEGORIES": "Manage categories",
+    "MANAGE_CATEGORIES": "Categories",
     "PLACEHOLDER": "Task list (placeholder)",
     "SAMPLE_TASK": "Open sample task",
-    "OPEN_PROGRESS": "Open progress over time"
+    "OPEN_PROGRESS": "Progress"
   },
   "REFLECTION": {
     "TITLE": "Reflection",
@@ -194,12 +194,35 @@
     "ERROR_DELETE": "Unable to delete category."
   },
   "CATEGORY_FORM": {
-    "NEW_TITLE": "Create Category",
+    "NEW_TITLE": "New Category",
     "EDIT_TITLE": "Edit Category",
-    "NAME_LABEL": "Category name",
-    "NAME_PLACEHOLDER": "Category name",
-    "CREATE_ACTION": "Create category",
+    "NAME_LABEL": "What do you want to call it?",
+    "NAME_PLACEHOLDER": "Type a name...",
+    "COLOR_LABEL": "Color",
+    "COLOR_CHIP_ARIA": "Select color {{color}}",
+    "VIEW_MORE": "View more",
+    "COLOR_VIEW_MORE_ARIA": "Open expanded color palette",
+    "ICON_LABEL": "Icon (optional)",
+    "ICON_CHIP_ARIA": "Toggle icon {{icon}}",
+    "CUSTOM_ICON": "Custom",
+    "ICON_CUSTOM_ARIA": "Open custom emoji input",
+    "ICON_VIEW_MORE_ARIA": "Open emoji picker",
+    "COLOR_MODAL_TITLE": "Choose a color",
+    "ICON_MODAL_TITLE": "Choose an icon",
+    "EMOJI_LABEL": "Emoji",
+    "EMOJI_PLACEHOLDER": "Choose an emoji",
+    "EMOJI_HELP": "Use your phone emoji keyboard.",
+    "EMOJI_MULTIPLE": "Only one emoji is allowed.",
+    "EMOJI_INVALID": "Enter one valid emoji.",
+    "EMOJI_CLEAR": "Remove icon",
+    "DESCRIPTION_LABEL": "Description (optional)",
+    "DESCRIPTION_PLACEHOLDER": "Add a short description",
+    "PREVIEW_TITLE": "Preview",
+    "PREVIEW_NAME_PLACEHOLDER": "Category",
+    "CREATE_ACTION": "Create Category",
     "UPDATE_ACTION": "Save changes",
+    "SUCCESS_CREATED": "Category created",
+    "ERROR_CREATE": "Could not create category.",
     "ERROR_SAVE": "Unable to save category.",
     "ERROR_NOT_FOUND": "Category not found."
   },

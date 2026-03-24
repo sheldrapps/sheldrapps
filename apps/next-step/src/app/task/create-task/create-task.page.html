@@ -7,9 +7,10 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <form class="task-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
-    <div class="task-form-sections">
+<ion-content>
+  <div class="app-page">
+    <form class="task-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="task-form-sections">
       <section class="task-section-card task-intent-layout">
         <div class="form-field">
           <div class="form-prompt">{{ 'CREATE_TASK.INTENT_PROMPT' | translate }}</div>
@@ -473,20 +474,21 @@
       </ion-list>
     </div>
 
-    @if (saveFailed) {
-      <ion-note color="danger" class="form-error form-feedback">
-        {{ 'CREATE_TASK.ERROR_SAVE' | translate }}
-      </ion-note>
-    }
+      @if (saveFailed) {
+        <ion-note color="danger" class="form-error form-feedback">
+          {{ 'CREATE_TASK.ERROR_SAVE' | translate }}
+        </ion-note>
+      }
 
-    <ion-button
-      expand="block"
-      type="submit"
-      [disabled]="saveDisabled"
-      [attr.aria-label]="'CREATE_TASK.SUBMIT' | translate"
-      class="submit-button"
-    >
-      {{ 'CREATE_TASK.SUBMIT' | translate }}
-    </ion-button>
-  </form>
+      <ion-button
+        expand="block"
+        type="submit"
+        [disabled]="saveDisabled"
+        [attr.aria-label]="'CREATE_TASK.SUBMIT' | translate"
+        class="submit-button"
+      >
+        {{ 'CREATE_TASK.SUBMIT' | translate }}
+      </ion-button>
+    </form>
+  </div>
 </ion-content>

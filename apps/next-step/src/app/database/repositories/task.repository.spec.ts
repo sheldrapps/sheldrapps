@@ -14,6 +14,7 @@ describe('TaskRepository', () => {
     initialize: jasmine.Spy;
     runInTransaction: jasmine.Spy;
     query: jasmine.Spy;
+    execute: jasmine.Spy;
   };
 
   beforeEach(() => {
@@ -29,6 +30,7 @@ describe('TaskRepository', () => {
           await fn(tx);
         }),
       query: jasmine.createSpy('query').and.resolveTo([]),
+      execute: executeSpy,
     };
 
     spyOn(Capacitor, 'getPlatform').and.returnValue('android');
@@ -126,12 +128,17 @@ describe('TaskRepository', () => {
             title: 'Task E',
             description: null,
             category_id: null,
-            tracking_mode: 'check',
-            estimated_duration_min: null,
-            is_recurrence_enabled: 1,
-            is_notifications_enabled: 1,
-            created_at: '2026-03-10T09:00:00.000Z',
-            updated_at: '2026-03-12T09:00:00.000Z',
+            category_name: null,
+            category_color: null,
+          tracking_mode: 'check',
+          estimated_duration_min: null,
+          is_active: 1,
+          is_archived: 0,
+          deleted_at: null,
+          is_recurrence_enabled: 1,
+          is_notifications_enabled: 1,
+          created_at: '2026-03-10T09:00:00.000Z',
+          updated_at: '2026-03-12T09:00:00.000Z',
           },
         ];
       }
@@ -201,8 +208,13 @@ describe('TaskRepository', () => {
         title: 'Pago anual',
         description: null,
         category_id: 'cat-1',
+        category_name: 'Salud',
+        category_color: '#10B981',
         tracking_mode: 'check',
         estimated_duration_min: null,
+        is_active: 1,
+        is_archived: 0,
+        deleted_at: null,
         is_recurrence_enabled: 1,
         is_notifications_enabled: 1,
         created_at: '2026-03-01T09:00:00.000Z',
@@ -275,14 +287,27 @@ describe('TaskRepository', () => {
     ).toBeFalse();
   });
 
-  it('deletes task with a single root delete (children handled by cascade)', async () => {
+  it('soft-deletes task preserving branch rows for history integrity', async () => {
     await repository.deleteTask('task-delete');
 
-    const deleteCalls = executeSpy
+    const lifecycleUpdateCalls = executeSpy
       .calls
       .allArgs()
-      .filter((args) => String(args[0]).includes('DELETE FROM tasks'));
-    expect(deleteCalls.length).toBe(1);
+      .filter((args) => String(args[0]).includes('UPDATE tasks'));
+    expect(lifecycleUpdateCalls.length).toBe(1);
+    expect(String(lifecycleUpdateCalls[0][0])).toContain('deleted_at = ?');
+    expect(String(lifecycleUpdateCalls[0][0])).toContain('is_archived = 1');
+    expect(String(lifecycleUpdateCalls[0][0])).toContain('is_active = 0');
+  });
+
+  it('archives and toggles active state without deleting task rows', async () => {
+    await repository.archiveTask('task-archive');
+    await repository.setTaskActive('task-archive', false);
+    await repository.unarchiveTask('task-archive');
+
+    const calls = executeSpy.calls.allArgs().map((args) => String(args[0]));
+    expect(calls.some((sql) => sql.includes('is_archived = ?'))).toBeTrue();
+    expect(calls.some((sql) => sql.includes('is_active = ?'))).toBeTrue();
   });
 
   it('sanitizes incompatible branches before write', async () => {
@@ -323,4 +348,3 @@ describe('TaskRepository', () => {
     expect(offsetInsertExists).toBeFalse();
   });
 });
-

@@ -1,17 +1,13 @@
-import { Component, inject, OnDestroy } from '@angular/core';
+﻿import { Component, OnDestroy, inject } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { Title } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
-import {
-  detectSupportedLocale,
-  LanguageService,
-  syncLauncherAlias,
-} from '@sheldrapps/i18n-kit';
+import { detectSupportedLocale, LanguageService } from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService } from '@sheldrapps/ui-theme';
 import { CcfkSettings } from './settings/ccfk-settings.schema';
 
-import { Router, NavigationStart } from '@angular/router';
+import { NavigationStart, Router } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 
 @Component({
@@ -55,15 +51,18 @@ export class AppComponent implements OnDestroy {
     await this.settings.load();
 
     const currentSettings = this.settings.get();
-    const language =
-      currentSettings.language ?? (await detectSupportedLocale());
+    const storedLanguage = currentSettings.language;
+    const language = storedLanguage ?? (await detectSupportedLocale());
 
-    await syncLauncherAlias(language);
     this.t.setDefaultLang('en-US');
+
+    if (!storedLanguage) {
+      await this.settings.set({ language });
+    }
+
     await this.lang.set(language);
 
     this.setDocumentTitle();
-
     this.langSub = this.t.onLangChange.subscribe(() => {
       this.setDocumentTitle();
     });

@@ -13,9 +13,9 @@ import {
   IonLabel,
   IonSelect,
   IonSelectOption,
-  ToastController,
+  IonLoading,
 } from '@ionic/angular/standalone';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 
 import {
   Lang,
@@ -49,6 +49,7 @@ import { HOME_TOUR_ID } from 'src/app/shared/tour/home-tour.definition';
     IonLabel,
     IonSelect,
     IonSelectOption,
+    IonLoading,
   ],
 })
 export class SettingsPage implements OnInit {
@@ -56,14 +57,14 @@ export class SettingsPage implements OnInit {
   consent = inject(ConsentService);
 
   private settings = inject(SettingsStore<EccSettings>);
-  private toastCtrl = inject(ToastController);
-  private translate = inject(TranslateService);
   private router = inject(Router);
   private tour = inject(TourService);
   readonly supportedLangs = LANG_OPTIONS;
   selectedLanguage = this.lang.lang as Lang;
   private isRestartingLanguage = false;
-  private readonly languageRestartToastMs = 1500;
+  isLanguageRestartLoading = false;
+  languageRestartCountdown = 3;
+  private readonly languageRestartCountdownStart = 3;
 
   constructor() {}
 
@@ -85,9 +86,10 @@ export class SettingsPage implements OnInit {
       this.selectedLanguage = v;
       await this.settings.set({ language: v });
       await this.lang.set(v);
-      await this.showLanguageRestartToast();
-      await restartForLanguageChange(v);
+      await this.showLanguageRestartCountdown();
+      await restartForLanguageChange(v, 0);
     } finally {
+      this.isLanguageRestartLoading = false;
       this.isRestartingLanguage = false;
     }
   }
@@ -108,19 +110,20 @@ export class SettingsPage implements OnInit {
     await this.router.navigateByUrl('/tabs/change');
   }
 
-  private async showLanguageRestartToast() {
-    const toast = await this.toastCtrl.create({
-      message: this.translate.instant('SETTINGS.LANGUAGE_RESTART_NOTICE'),
-      duration: this.languageRestartToastMs,
-      position: 'bottom',
-      cssClass: ['cc-toast', 'cc-toast--info'],
-    });
+  private async showLanguageRestartCountdown() {
+    this.languageRestartCountdown = this.languageRestartCountdownStart;
+    this.isLanguageRestartLoading = true;
+    await this.waitForLoadingToRender();
 
-    await toast.present();
-    await this.waitForToastToRender();
+    for (let remaining = this.languageRestartCountdownStart; remaining > 1; remaining--) {
+      await this.delay(1000);
+      this.languageRestartCountdown = remaining - 1;
+    }
+
+    await this.delay(1000);
   }
 
-  private async waitForToastToRender(): Promise<void> {
+  private async waitForLoadingToRender(): Promise<void> {
     if (typeof requestAnimationFrame !== 'function') {
       await this.delay(32);
       return;

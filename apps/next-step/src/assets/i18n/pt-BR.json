@@ -22,10 +22,10 @@
   "TASKS": {
     "TITLE": "Tarefas",
     "NEW_TASK": "+ Nova tarefa",
-    "MANAGE_CATEGORIES": "Gerenciar categorias",
+    "MANAGE_CATEGORIES": "Categorias",
     "PLACEHOLDER": "Lista de tarefas (placeholder)",
     "SAMPLE_TASK": "Abrir tarefa de exemplo",
-    "OPEN_PROGRESS": "Abrir progresso ao longo do tempo"
+    "OPEN_PROGRESS": "Progresso"
   },
   "REFLECTION": {
     "TITLE": "Reflexão",
@@ -194,14 +194,37 @@
     "ERROR_DELETE": "Não foi possível excluir a categoria."
   },
   "CATEGORY_FORM": {
-    "NEW_TITLE": "Criar categoria",
+    "NEW_TITLE": "Nova categoria",
     "EDIT_TITLE": "Editar categoria",
-    "NAME_LABEL": "Nome da categoria",
-    "NAME_PLACEHOLDER": "Nome da categoria",
+    "NAME_LABEL": "Como você quer chamá-la?",
+    "NAME_PLACEHOLDER": "Digite um nome...",
     "CREATE_ACTION": "Criar categoria",
     "UPDATE_ACTION": "Salvar alterações",
     "ERROR_SAVE": "Não foi possível salvar a categoria.",
-    "ERROR_NOT_FOUND": "Categoria não encontrada."
+    "ERROR_NOT_FOUND": "Categoria não encontrada.",
+    "COLOR_LABEL": "Cor",
+    "COLOR_CHIP_ARIA": "Selecionar cor {{color}}",
+    "VIEW_MORE": "Ver mais",
+    "COLOR_VIEW_MORE_ARIA": "Abrir paleta de cores expandida",
+    "ICON_LABEL": "Icone (opcional)",
+    "ICON_CHIP_ARIA": "Ativar icone {{icon}}",
+    "CUSTOM_ICON": "Custom",
+    "ICON_CUSTOM_ARIA": "Abrir entrada personalizada de emoji",
+    "ICON_VIEW_MORE_ARIA": "Abrir seletor de emoji",
+    "COLOR_MODAL_TITLE": "Escolher cor",
+    "ICON_MODAL_TITLE": "Escolher ícone",
+    "EMOJI_LABEL": "Emoji",
+    "EMOJI_PLACEHOLDER": "Escolha um emoji",
+    "EMOJI_HELP": "Use o teclado de emojis do seu celular.",
+    "EMOJI_MULTIPLE": "Só é permitido um emoji.",
+    "EMOJI_INVALID": "Digite um emoji válido.",
+    "EMOJI_CLEAR": "Remover ícone",
+    "DESCRIPTION_LABEL": "Descricao (opcional)",
+    "DESCRIPTION_PLACEHOLDER": "Adicione uma descricao curta",
+    "PREVIEW_TITLE": "Previa",
+    "PREVIEW_NAME_PLACEHOLDER": "Categoria",
+    "SUCCESS_CREATED": "Categoria criada",
+    "ERROR_CREATE": "Nao foi possivel criar a categoria."
   },
   "PROGRESS": {
     "TITLE": "Progresso ao longo do tempo",

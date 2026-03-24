@@ -1,19 +1,22 @@
 package com.sheldrapps.epubcoverchanger;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.os.Build;
+import android.os.Bundle;
 import android.content.pm.ApplicationInfo;
 import android.content.res.Configuration;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 
-import com.getcapacitor.BridgeActivity;
-import com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
+import com.getcapacitor.BridgeActivity;
+import com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin;
+
 public class MainActivity extends BridgeActivity {
+    private boolean runtimeFlagsExposed = false;
+
     private static final class RuntimeBridge {
         private final boolean debugBuild;
 
@@ -27,16 +30,14 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
-    private final class LauncherAliasBridge {
-        @JavascriptInterface
-        public void setActiveLocale(String localeTag) {
-            LauncherAliasManager.applyLocale(MainActivity.this, localeTag);
-        }
-    }
-
     private final class AppControlBridge {
         @JavascriptInterface
         public void restartApp() {
+            runOnUiThread(() -> relaunchApp());
+        }
+
+        @JavascriptInterface
+        public void restartForLocale(String localeTag) {
             runOnUiThread(() -> relaunchApp());
         }
     }
@@ -50,7 +51,23 @@ public class MainActivity extends BridgeActivity {
         forceSoftInputAdjustNothing();
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        exposeRuntimeFlags();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        exposeRuntimeFlags();
+    }
+
     private void exposeRuntimeFlags() {
+        if (runtimeFlagsExposed) {
+            return;
+        }
+
         if (bridge == null || bridge.getWebView() == null) {
             return;
         }
@@ -63,13 +80,10 @@ public class MainActivity extends BridgeActivity {
             "SheldrappsRuntime"
         );
         bridge.getWebView().addJavascriptInterface(
-            new LauncherAliasBridge(),
-            "SheldrappsLauncherAlias"
-        );
-        bridge.getWebView().addJavascriptInterface(
             new AppControlBridge(),
             "SheldrappsAppControl"
         );
+        runtimeFlagsExposed = true;
     }
 
     private void enableEdgeToEdge() {
@@ -105,17 +119,17 @@ public class MainActivity extends BridgeActivity {
     private void relaunchApp() {
         Intent launchIntent = getPackageManager().getLaunchIntentForPackage(getPackageName());
         if (launchIntent == null) {
-            recreate();
-            return;
+            launchIntent = new Intent(this, MainActivity.class);
+            launchIntent.setAction(Intent.ACTION_MAIN);
+            launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
         }
 
         launchIntent.addFlags(
             Intent.FLAG_ACTIVITY_NEW_TASK |
-            Intent.FLAG_ACTIVITY_CLEAR_TOP |
             Intent.FLAG_ACTIVITY_CLEAR_TASK
         );
+
         startActivity(launchIntent);
-        finishAffinity();
+        Runtime.getRuntime().exit(0);
     }
 }
-

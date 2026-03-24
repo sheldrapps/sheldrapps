@@ -22,10 +22,10 @@
   "TASKS": {
     "TITLE": "Aufgaben",
     "NEW_TASK": "+ Neue Aufgabe",
-    "MANAGE_CATEGORIES": "Kategorien verwalten",
+    "MANAGE_CATEGORIES": "Kategorien",
     "PLACEHOLDER": "Aufgabenliste (Platzhalter)",
     "SAMPLE_TASK": "Beispielaufgabe öffnen",
-    "OPEN_PROGRESS": "Fortschritt im Zeitverlauf"
+    "OPEN_PROGRESS": "Fortschritt"
   },
   "REFLECTION": {
     "TITLE": "Reflexion",
@@ -194,14 +194,37 @@
     "ERROR_DELETE": "Kategorie konnte nicht gelöscht werden."
   },
   "CATEGORY_FORM": {
-    "NEW_TITLE": "Kategorie erstellen",
+    "NEW_TITLE": "Neue Kategorie",
     "EDIT_TITLE": "Kategorie bearbeiten",
-    "NAME_LABEL": "Kategoriename",
-    "NAME_PLACEHOLDER": "Kategoriename",
+    "NAME_LABEL": "Wie möchtest du sie nennen?",
+    "NAME_PLACEHOLDER": "Gib einen Namen ein...",
     "CREATE_ACTION": "Kategorie erstellen",
     "UPDATE_ACTION": "Änderungen speichern",
     "ERROR_SAVE": "Kategorie konnte nicht gespeichert werden.",
-    "ERROR_NOT_FOUND": "Kategorie nicht gefunden."
+    "ERROR_NOT_FOUND": "Kategorie nicht gefunden.",
+    "COLOR_LABEL": "Farbe",
+    "COLOR_CHIP_ARIA": "Farbe {{color}} auswahlen",
+    "VIEW_MORE": "Mehr anzeigen",
+    "COLOR_VIEW_MORE_ARIA": "Erweiterte Farbpalette öffnen",
+    "ICON_LABEL": "Icon (optional)",
+    "ICON_CHIP_ARIA": "Icon {{icon}} umschalten",
+    "CUSTOM_ICON": "Custom",
+    "ICON_CUSTOM_ARIA": "Benutzerdefinierte Emoji-Eingabe öffnen",
+    "ICON_VIEW_MORE_ARIA": "Emoji-Auswahl öffnen",
+    "COLOR_MODAL_TITLE": "Farbe wählen",
+    "ICON_MODAL_TITLE": "Symbol wählen",
+    "EMOJI_LABEL": "Emoji",
+    "EMOJI_PLACEHOLDER": "Wähle ein Emoji",
+    "EMOJI_HELP": "Nutze die Emoji-Tastatur deines Telefons.",
+    "EMOJI_MULTIPLE": "Es ist nur ein Emoji erlaubt.",
+    "EMOJI_INVALID": "Gib ein gültiges Emoji ein.",
+    "EMOJI_CLEAR": "Symbol entfernen",
+    "DESCRIPTION_LABEL": "Beschreibung (optional)",
+    "DESCRIPTION_PLACEHOLDER": "Kurze Beschreibung hinzufugen",
+    "PREVIEW_TITLE": "Vorschau",
+    "PREVIEW_NAME_PLACEHOLDER": "Kategorie",
+    "SUCCESS_CREATED": "Kategorie erstellt",
+    "ERROR_CREATE": "Kategorie konnte nicht erstellt werden."
   },
   "PROGRESS": {
     "TITLE": "Fortschritt im Zeitverlauf",

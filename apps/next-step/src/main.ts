@@ -81,7 +81,7 @@ bootstrapApplication(AppComponent, {
       databaseName: 'next-step.db',
       migrations: nextStepMigrations,
       seeders: [],
-      debug: false,
+      debug: environment.debugDatabase,
       initializeOnAppBootstrap: false,
     }),
     provideAppInitializer(() => {

@@ -22,10 +22,10 @@
   "TASKS": {
     "TITLE": "Tâches",
     "NEW_TASK": "+ Nouvelle tâche",
-    "MANAGE_CATEGORIES": "Gérer les catégories",
+    "MANAGE_CATEGORIES": "Catégories",
     "PLACEHOLDER": "Liste des tâches (espace reserve)",
     "SAMPLE_TASK": "Ouvrir une tâche exemple",
-    "OPEN_PROGRESS": "Voir la progrèssion dans le temps"
+    "OPEN_PROGRESS": "Progrès"
   },
   "REFLECTION": {
     "TITLE": "Réflexion",
@@ -194,14 +194,37 @@
     "ERROR_DELETE": "Impossible de supprimer la catégorie."
   },
   "CATEGORY_FORM": {
-    "NEW_TITLE": "Créer une catégorie",
+    "NEW_TITLE": "Nouvelle categorie",
     "EDIT_TITLE": "Modifier la catégorie",
-    "NAME_LABEL": "Nom de la catégorie",
-    "NAME_PLACEHOLDER": "Nom de la catégorie",
-    "CREATE_ACTION": "Créer la catégorie",
+    "NAME_LABEL": "Comment veux-tu l'appeler ?",
+    "NAME_PLACEHOLDER": "Écris un nom...",
+    "CREATE_ACTION": "Creer categorie",
     "UPDATE_ACTION": "Enregistrer les modifications",
     "ERROR_SAVE": "Impossible d'enregistrer la catégorie.",
-    "ERROR_NOT_FOUND": "Catégorie introuvable."
+    "ERROR_NOT_FOUND": "Catégorie introuvable.",
+    "COLOR_LABEL": "Couleur",
+    "COLOR_CHIP_ARIA": "Selectionner la couleur {{color}}",
+    "VIEW_MORE": "Voir plus",
+    "COLOR_VIEW_MORE_ARIA": "Ouvrir la palette de couleurs étendue",
+    "ICON_LABEL": "Icone (optionnel)",
+    "ICON_CHIP_ARIA": "Activer icone {{icon}}",
+    "CUSTOM_ICON": "Custom",
+    "ICON_CUSTOM_ARIA": "Ouvrir la saisie emoji personnalisée",
+    "ICON_VIEW_MORE_ARIA": "Ouvrir le sélecteur d'emoji",
+    "COLOR_MODAL_TITLE": "Choisir une couleur",
+    "ICON_MODAL_TITLE": "Choisir une icône",
+    "EMOJI_LABEL": "Emoji",
+    "EMOJI_PLACEHOLDER": "Choisis un emoji",
+    "EMOJI_HELP": "Utilise le clavier emoji de ton téléphone.",
+    "EMOJI_MULTIPLE": "Un seul emoji est autorisé.",
+    "EMOJI_INVALID": "Saisis un emoji valide.",
+    "EMOJI_CLEAR": "Retirer l'icône",
+    "DESCRIPTION_LABEL": "Description (optionnelle)",
+    "DESCRIPTION_PLACEHOLDER": "Ajouter une courte description",
+    "PREVIEW_TITLE": "Apercu",
+    "PREVIEW_NAME_PLACEHOLDER": "Categorie",
+    "SUCCESS_CREATED": "Categorie creee",
+    "ERROR_CREATE": "Impossible de creer la categorie."
   },
   "PROGRESS": {
     "TITLE": "Progression dans le temps",

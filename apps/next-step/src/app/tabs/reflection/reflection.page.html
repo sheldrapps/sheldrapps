@@ -4,10 +4,12 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <p>{{ 'REFLECTION.PROMPT' | translate }}</p>
-  <ion-textarea
-    [placeholder]="'REFLECTION.PLACEHOLDER' | translate"
-    autoGrow="true"
-  ></ion-textarea>
+<ion-content>
+  <div class="app-page">
+    <p>{{ 'REFLECTION.PROMPT' | translate }}</p>
+    <ion-textarea
+      [placeholder]="'REFLECTION.PLACEHOLDER' | translate"
+      autoGrow="true"
+    ></ion-textarea>
+  </div>
 </ion-content>
