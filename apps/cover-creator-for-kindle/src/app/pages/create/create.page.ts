@@ -72,7 +72,11 @@ import {
   KindleCatalogService,
   type ResolvedKindleSelection,
 } from '../../services/kindle-catalog.service';
-import { AdsService, type RewardedAdResult } from '../../services/ads.service';
+import {
+  AdsService,
+  BillingService,
+  type RewardedAdResult,
+} from '../../services/ads.service';
 import { playCircleOutline } from 'ionicons/icons';
 import { CoversEventsService } from '../../services/covers-events.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -149,6 +153,7 @@ export class CreatePage implements OnInit, OnDestroy {
     private catalog: KindleCatalogService,
     private imagePipe: ImagePipelineService,
     private ads: AdsService,
+    private billing: BillingService,
     private toastCtrl: ToastController,
     private popoverCtrl: PopoverController,
     private coversEvents: CoversEventsService,
@@ -178,6 +183,12 @@ export class CreatePage implements OnInit, OnDestroy {
   headerItems: ScrollableBarItem[] = [];
   recommendedApps: RecommendedApp[] = [];
   showRecommended = false;
+  adsRemoved = false;
+  removeAdsPriceFormatted: string | null = null;
+  removeAdsPulseActive = false;
+  purchaseModalOpen = false;
+  purchaseBusy = false;
+  isOnline = true;
 
   brands: KindleBrand[] = [];
   groups: KindleGroup[] = [];
@@ -201,6 +212,17 @@ export class CreatePage implements OnInit, OnDestroy {
   private lastEditorSessionId?: string;
   private routerSub?: Subscription;
   private coversEventsSub?: Subscription;
+  private adsRemovedSub?: Subscription;
+  private removeAdsPriceSub?: Subscription;
+  private readonly onlineHandler = () => {
+    this.isOnline = true;
+  };
+  private readonly offlineHandler = () => {
+    this.isOnline = false;
+  };
+  private removeAdsPulseInterval: ReturnType<typeof setInterval> | null = null;
+  private removeAdsPulseResetTimeout: ReturnType<typeof setTimeout> | null = null;
+  private removeAdsCtaImpressionTracked = false;
 
   imageErrorKey?: string;
   imageErrorParams: Record<string, any> = {};
@@ -234,6 +256,24 @@ export class CreatePage implements OnInit, OnDestroy {
 
   async ngOnInit() {
     await this.refreshHeaderItems();
+    this.isOnline =
+      typeof navigator === 'undefined' ? true : navigator.onLine;
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', this.onlineHandler);
+      window.addEventListener('offline', this.offlineHandler);
+    }
+    await this.billing.initializeSafe();
+    this.adsRemoved = this.billing.isAdsRemoved();
+    this.adsRemovedSub = this.billing.adsRemoved$.subscribe((value) => {
+      this.adsRemoved = value;
+      this.syncRemoveAdsPulse();
+    });
+    this.removeAdsPriceFormatted = this.billing.getRemoveAdsPriceFormatted();
+    this.removeAdsPriceSub = this.billing.removeAdsPrice$.subscribe((value) => {
+      this.removeAdsPriceFormatted = value;
+    });
+    this.syncRemoveAdsPulse();
+
     this.brands = await this.catalog.getBrands();
     const settings = await this.settings.load();
     this.applyResolvedSelection(
@@ -264,10 +304,18 @@ export class CreatePage implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.closeInfo();
+    this.closePurchaseModal();
     this.clearPreviewLongPress();
     this.revokePreviewUrl();
     this.routerSub?.unsubscribe();
     this.coversEventsSub?.unsubscribe();
+    this.adsRemovedSub?.unsubscribe();
+    this.removeAdsPriceSub?.unsubscribe();
+    this.clearRemoveAdsPulse();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('online', this.onlineHandler);
+      window.removeEventListener('offline', this.offlineHandler);
+    }
   }
 
   private setBusy(kind: 'pick' | 'export' | 'none', messageKey?: string) {
@@ -312,8 +360,7 @@ export class CreatePage implements OnInit, OnDestroy {
     });
 
     this.lastEditorSessionId = sid;
-    const shouldShowEditorTour =
-      this.homeTour.isActive() || (await this.shouldShowEditorTour());
+    const shouldShowEditorTour = await this.shouldShowEditorTour();
     if (shouldShowEditorTour) {
       await this.settings.set((prev) => ({
         ...prev,
@@ -769,6 +816,199 @@ export class CreatePage implements OnInit, OnDestroy {
     return this.canExport() && !this.isExporting;
   }
 
+  getGenerateActionKey(): string {
+    return this.adsRemoved
+      ? 'CREATE.CREATE_ACTION'
+      : 'CREATE.CREATE_ACTION_REWARDED';
+  }
+
+  canShowRemoveAdsEntryPoint(): boolean {
+    return !this.adsRemoved && this.billing.canShowRemoveAdsEntryPoint();
+  }
+
+  getRemoveAdsCtaSubtitleKey(): string {
+    return this.removeAdsPriceFormatted
+      ? 'COMMON.REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE'
+      : 'COMMON.REMOVE_ADS_CTA_SUBTITLE';
+  }
+
+  getRemoveAdsPriceParams(): Record<string, string> {
+    return this.removeAdsPriceFormatted
+      ? { price: this.removeAdsPriceFormatted }
+      : {};
+  }
+
+  getRemoveAdsPurchaseState(): 'ready' | 'unavailable' {
+    return this.billing.isBillingAvailable() && this.isOnline
+      ? 'ready'
+      : 'unavailable';
+  }
+
+  getRemoveAdsModalDescriptionKey(): string {
+    return this.getRemoveAdsPurchaseState() === 'ready'
+      ? 'COMMON.REMOVE_ADS_DESCRIPTION'
+      : 'COMMON.BILLING_UNAVAILABLE';
+  }
+
+  shouldShowRemoveAdsModalPrice(): boolean {
+    return (
+      this.getRemoveAdsPurchaseState() === 'ready' &&
+      !!this.removeAdsPriceFormatted
+    );
+  }
+
+  canPurchaseRemoveAds(): boolean {
+    return (
+      this.canShowRemoveAdsEntryPoint() &&
+      this.getRemoveAdsPurchaseState() === 'ready' &&
+      !this.purchaseBusy
+    );
+  }
+
+  canRestoreRemoveAds(): boolean {
+    return (
+      this.canShowRemoveAdsEntryPoint() &&
+      this.getRemoveAdsPurchaseState() === 'ready' &&
+      !this.purchaseBusy
+    );
+  }
+
+  private syncRemoveAdsPulse(): void {
+    this.maybeTrackRemoveAdsCtaImpression();
+    const shouldAnimate = this.canShowRemoveAdsEntryPoint();
+    if (!shouldAnimate || typeof globalThis.setInterval !== 'function') {
+      this.clearRemoveAdsPulse();
+      return;
+    }
+
+    if (this.removeAdsPulseInterval) {
+      return;
+    }
+
+    this.triggerRemoveAdsPulse();
+    this.removeAdsPulseInterval = setInterval(() => {
+      this.triggerRemoveAdsPulse();
+    }, 8000);
+  }
+
+  private triggerRemoveAdsPulse(): void {
+    this.removeAdsPulseActive = true;
+
+    if (this.removeAdsPulseResetTimeout) {
+      clearTimeout(this.removeAdsPulseResetTimeout);
+    }
+
+    this.removeAdsPulseResetTimeout = setTimeout(() => {
+      this.removeAdsPulseActive = false;
+      this.removeAdsPulseResetTimeout = null;
+    }, 800);
+  }
+
+  private clearRemoveAdsPulse(): void {
+    if (this.removeAdsPulseInterval) {
+      clearInterval(this.removeAdsPulseInterval);
+      this.removeAdsPulseInterval = null;
+    }
+
+    if (this.removeAdsPulseResetTimeout) {
+      clearTimeout(this.removeAdsPulseResetTimeout);
+      this.removeAdsPulseResetTimeout = null;
+    }
+
+    this.removeAdsPulseActive = false;
+  }
+
+  private maybeTrackRemoveAdsCtaImpression(): void {
+    if (this.removeAdsCtaImpressionTracked || !this.canShowRemoveAdsEntryPoint()) {
+      return;
+    }
+
+    this.removeAdsCtaImpressionTracked = true;
+    this.trackRemoveAdsEvent('remove_ads_cta_impression', {
+      price: this.removeAdsPriceFormatted,
+    });
+  }
+
+  private trackRemoveAdsEvent(
+    eventName: string,
+    payload: Record<string, unknown> = {},
+  ): void {
+    const suffix = Object.keys(payload).length > 0 ? ` ${JSON.stringify(payload)}` : '';
+    console.info(`[CCFK:remove-ads] ${eventName}${suffix}`);
+  }
+
+  openPurchaseModal(): void {
+    if (!this.canShowRemoveAdsEntryPoint()) {
+      return;
+    }
+
+    this.trackRemoveAdsEvent('remove_ads_cta_click', {
+      price: this.removeAdsPriceFormatted,
+    });
+    this.trackRemoveAdsEvent('remove_ads_modal_open', {
+      price: this.removeAdsPriceFormatted,
+    });
+    this.purchaseModalOpen = true;
+  }
+
+  closePurchaseModal(): void {
+    this.purchaseModalOpen = false;
+  }
+
+  async onPurchaseRemoveAds(): Promise<void> {
+    if (!this.canPurchaseRemoveAds()) {
+      return;
+    }
+
+    this.purchaseBusy = true;
+    try {
+      const success = await this.billing.purchaseRemoveAds();
+      if (!success) {
+        return;
+      }
+
+      this.closePurchaseModal();
+      this.trackRemoveAdsEvent('remove_ads_purchase_success', {
+        price: this.removeAdsPriceFormatted,
+      });
+      await this.showToast(
+        'COMMON.REMOVE_ADS_PURCHASED',
+        { duration: 1800 },
+        'success',
+      );
+    } catch {
+      await this.showToast('COMMON.PURCHASE_ERROR', { duration: 1800 }, 'error');
+    } finally {
+      this.purchaseBusy = false;
+    }
+  }
+
+  async onRestorePurchases(): Promise<void> {
+    if (!this.canRestoreRemoveAds()) {
+      return;
+    }
+
+    this.purchaseBusy = true;
+    try {
+      const restored = await this.billing.restorePurchases();
+      if (!restored) {
+        await this.showToast('COMMON.RESTORE_ERROR', { duration: 1800 }, 'error');
+        return;
+      }
+
+      this.closePurchaseModal();
+      await this.showToast(
+        'COMMON.REMOVE_ADS_RESTORED',
+        { duration: 1800 },
+        'success',
+      );
+    } catch {
+      await this.showToast('COMMON.RESTORE_ERROR', { duration: 1800 }, 'error');
+    } finally {
+      this.purchaseBusy = false;
+    }
+  }
+
   canSaveShare(): boolean {
     return (
       this.canExport() &&
@@ -784,79 +1024,91 @@ export class CreatePage implements OnInit, OnDestroy {
     this.setBusy('export', 'CREATE.GENERATING');
 
     try {
-      const result: RewardedAdResult = await this.ads.showRewarded();
+      if (!this.billing.isAdsRemoved()) {
+        const result: RewardedAdResult = await this.ads.showRewarded();
 
-      if (result.failed) {
-        await this.showToast(
-          'CREATE.ADS_REQUIRED',
-          { duration: 1800 },
-          'error',
-        );
-        return;
+        if (result.failed) {
+          await this.showToast(
+            'CREATE.ADS_REQUIRED',
+            { duration: 1800 },
+            'error',
+          );
+          return;
+        }
+
+        if (result.adClosed && !result.rewardEarned) {
+          await this.showToast(
+            'CREATE.ADS_REQUIRED',
+            { duration: 1800 },
+            'error',
+          );
+          return;
+        }
+
+        if (!result.rewardEarned || !result.adClosed) {
+          return;
+        }
+
+        this.trackRemoveAdsEvent('rewarded_generate_completed');
       }
 
-      if (result.adClosed && !result.rewardEarned) {
-        await this.showToast(
-          'CREATE.ADS_REQUIRED',
-          { duration: 1800 },
-          'error',
-        );
-        return;
-      }
-
-      if (!result.rewardEarned || !result.adClosed) {
-        return;
-      }
-
-      const exportFile = await this.ensureExportImageFile();
-      if (!exportFile) return;
-
-      const res = await this.fileService.generateEpubBytes({
-        modelId: this.selectedModel.id,
-        coverFile: exportFile,
-        title: 'Kindle Cover',
-      });
-
-      this.generatedEpubBytes = res.bytes;
-      this.generatedEpubFilename = res.filename;
-
-      this.setBusy('export', 'CREATE.SAVING');
-
-      await this.fileService.saveGeneratedEpub({
-        bytes: this.generatedEpubBytes,
-        filename: this.generatedEpubFilename,
-        coverFileForThumb: exportFile,
-      });
-      this.logSaveFlow('finalWriteComplete', {
-        flow: 'onGenerate',
-        filename: this.generatedEpubFilename,
-        writeCompletedAt: new Date().toISOString(),
-      });
-
-      this.coversEvents.emit({
-        type: 'saved',
-        filename: this.generatedEpubFilename,
-      });
-      this.logSaveFlow('savedEventEmitted', {
-        flow: 'onGenerate',
-        filename: this.generatedEpubFilename,
-        emittedAt: new Date().toISOString(),
-      });
-
-      this.wasAutoSaved = true;
-      this.lastSavedFilename = this.generatedEpubFilename;
-
-      await this.zone.run(async () => {
-        await this.showToast(
-          'CREATE.COVER_CREATED',
-          { duration: 2200 },
-          'success',
-        );
-      });
-      await this.homeTour.completeInteraction('cover-created');
+      await this.generateCoverWithCurrentSelection();
     } finally {
       this.zone.run(() => this.setBusy('none'));
     }
+  }
+
+  private async generateCoverWithCurrentSelection(): Promise<void> {
+    if (!this.selectedModel) {
+      return;
+    }
+
+    const exportFile = await this.ensureExportImageFile();
+    if (!exportFile) return;
+
+    const res = await this.fileService.generateEpubBytes({
+      modelId: this.selectedModel.id,
+      coverFile: exportFile,
+      title: 'Kindle Cover',
+    });
+
+    this.generatedEpubBytes = res.bytes;
+    this.generatedEpubFilename = res.filename;
+
+    this.setBusy('export', 'CREATE.SAVING');
+
+    await this.fileService.saveGeneratedEpub({
+      bytes: this.generatedEpubBytes,
+      filename: this.generatedEpubFilename,
+      coverFileForThumb: exportFile,
+    });
+    this.logSaveFlow('finalWriteComplete', {
+      flow: 'onGenerate',
+      filename: this.generatedEpubFilename,
+      writeCompletedAt: new Date().toISOString(),
+    });
+
+    this.coversEvents.emit({
+      type: 'saved',
+      filename: this.generatedEpubFilename,
+    });
+    this.logSaveFlow('savedEventEmitted', {
+      flow: 'onGenerate',
+      filename: this.generatedEpubFilename,
+      emittedAt: new Date().toISOString(),
+    });
+
+    this.wasAutoSaved = true;
+    this.lastSavedFilename = this.generatedEpubFilename;
+
+    await this.zone.run(async () => {
+      await this.showToast(
+        'CREATE.COVER_CREATED',
+        { duration: 2200 },
+        'success',
+      );
+    });
+    await this.homeTour.completeInteraction('cover-created');
   }
 
   private async showHintOnce(
@@ -1241,11 +1493,16 @@ export class CreatePage implements OnInit, OnDestroy {
   private async markHomeTourSeen(
     _reason: TourCompletionReason
   ): Promise<void> {
-    await this.settings.set({
+    await this.settings.set((prev) => ({
+      ...prev,
       homeTourSeen: true,
       homeTourVersion: CURRENT_HOME_TOUR_VERSION,
       homeTourSeenAt: new Date().toISOString(),
-    });
+      preferences: {
+        ...(prev.preferences ?? {}),
+        [this.editorTourSeenVersionKey]: this.currentEditorTourVersion,
+      },
+    }));
   }
 
   private async shouldShowEditorTour(): Promise<boolean> {

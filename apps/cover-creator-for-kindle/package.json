@@ -26,6 +26,7 @@
     "@angular/platform-browser": "^20.0.0",
     "@angular/platform-browser-dynamic": "^20.0.0",
     "@angular/router": "^20.0.0",
+    "@capgo/native-purchases": "^8.0.0",
     "@capacitor-community/admob": "8.0.0",
     "@capacitor/android": "^8.0.0",
     "@capacitor/app": "8.0.0",

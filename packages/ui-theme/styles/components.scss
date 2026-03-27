@@ -133,6 +133,97 @@ ion-item.item-invalid {
   gap: var(--app-space-5);
 }
 
+.primary-actions {
+  margin-top: var(--app-space-5);
+}
+
+.secondary-actions {
+  margin-top: var(--app-space-5);
+}
+
+.secondary-actions .app-action-grid,
+.secondary-actions .cc-action-grid {
+  margin-top: 0;
+}
+
+.upgrade-actions {
+  margin-top: var(--app-space-8);
+}
+
+.app-cta-stack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--app-space-1);
+  text-align: left;
+}
+
+.app-cta-stack__title {
+  font-weight: var(--app-font-semibold);
+  line-height: 1.15;
+}
+
+.app-cta-stack__subtitle {
+  font-size: var(--app-text-2xs);
+  line-height: 1.2;
+  opacity: var(--app-text-soft);
+}
+
+.app-modal-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+}
+
+.app-modal-copy--purchase {
+  gap: var(--app-space-2);
+}
+
+ion-button.premium-upgrade-cta {
+  --background: transparent;
+  --background-hover: var(--ion-color-step-100);
+  --background-activated: var(--ion-color-step-100);
+  --color: var(--ion-color-primary);
+  --border-color: var(--ion-color-primary);
+  --border-width: 2px;
+  --border-radius: var(--app-radius-md);
+  --padding-start: var(--app-btn-pad-text-x);
+  --padding-end: var(--app-btn-pad-text-x);
+  --padding-top: var(--app-btn-pad-text-y);
+  --padding-bottom: var(--app-btn-pad-text-y);
+  --premium-upgrade-shadow-base: 0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.20);
+  --premium-upgrade-shadow-pulse:
+    0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.34),
+    0 0 0 4px rgba(var(--ion-color-primary-rgb), 0.24),
+    0 0 14px 2px rgba(var(--ion-color-primary-rgb), 0.14);
+  overflow: visible;
+}
+
+ion-button.premium-upgrade-cta::part(native) {
+  box-shadow: var(--premium-upgrade-shadow-base);
+  transition: box-shadow 380ms ease-in-out;
+  will-change: box-shadow;
+}
+
+ion-button.premium-upgrade-cta .app-cta-stack__subtitle {
+  opacity: var(--app-text-medium);
+}
+
+ion-button.premium-upgrade-cta--pulse::part(native) {
+  box-shadow: var(--premium-upgrade-shadow-pulse);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ion-button.premium-upgrade-cta::part(native) {
+    transition: none;
+  }
+
+  ion-button.premium-upgrade-cta--pulse::part(native) {
+    box-shadow: var(--premium-upgrade-shadow-base);
+  }
+}
+
 .hint--ok {
   opacity: var(--app-text-medium);
 }
@@ -236,6 +327,13 @@ ion-modal.app-modal {
 
 .app-modal-actions {
   margin-top: var(--app-space-7);
+}
+
+.app-modal-actions--stack {
+  margin-top: var(--app-space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-4);
 }
 
 .app-modal-grid {

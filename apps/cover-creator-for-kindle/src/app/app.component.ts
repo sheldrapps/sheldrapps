@@ -3,6 +3,7 @@ import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { Title } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
 import { detectSupportedLocale, LanguageService } from '@sheldrapps/i18n-kit';
+import { BillingService } from '@sheldrapps/ads-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService } from '@sheldrapps/ui-theme';
 import { CcfkSettings } from './settings/ccfk-settings.schema';
@@ -20,6 +21,7 @@ export class AppComponent implements OnDestroy {
   private settings = inject(SettingsStore<CcfkSettings>);
   private router = inject(Router);
   private edgeToEdge = inject(EdgeToEdgeService);
+  private billing = inject(BillingService);
 
   private navSub?: Subscription;
   private langSub?: Subscription;
@@ -38,6 +40,16 @@ export class AppComponent implements OnDestroy {
         const el = document.activeElement as HTMLElement | null;
         el?.blur?.();
       });
+
+    if (typeof globalThis.queueMicrotask === 'function') {
+      globalThis.queueMicrotask(() => {
+        this.billing.startPostBootstrapSync();
+      });
+    } else {
+      setTimeout(() => {
+        this.billing.startPostBootstrapSync();
+      }, 0);
+    }
 
     void this.init();
   }

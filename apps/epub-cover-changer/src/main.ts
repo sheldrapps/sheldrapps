@@ -1,3 +1,4 @@
+import { APP_INITIALIZER } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, RouteReuseStrategy } from '@angular/router';
 import {
@@ -10,7 +11,7 @@ import {
   provideEditorI18n,
   EDITOR_I18N_OVERRIDES,
 } from '@sheldrapps/image-workflow/editor';
-import { provideAdsKit } from '@sheldrapps/ads-kit';
+import { BillingService, provideAdsKit } from '@sheldrapps/ads-kit';
 import {
   CapacitorPreferencesAdapter,
   CompositeStorageAdapter,
@@ -127,6 +128,15 @@ bootstrapApplication(AppComponent, {
           prod: ADS_UNITS_ANDROID_PROD,
         },
       },
+      billing: {
+        removeAdsProductId: 'ecc_remove_ads_forever',
+      },
     }),
+    {
+      provide: APP_INITIALIZER,
+      multi: true,
+      deps: [BillingService],
+      useFactory: (billing: BillingService) => () => billing.initializeSafe(),
+    },
   ],
 });

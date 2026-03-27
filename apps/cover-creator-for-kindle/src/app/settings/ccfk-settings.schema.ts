@@ -17,6 +17,7 @@ type LegacyCcfkSettings = {
   brandId?: string;
   modelId?: string;
   kindleModelId?: string;
+  adsRemoved?: boolean;
   homeTourSeen?: boolean;
   homeTourVersion?: number;
   homeTourSeenAt?: string;
@@ -27,6 +28,7 @@ export interface CcfkSettings {
   language?: SupportedLocale;
   brandId?: string;
   modelId?: string;
+  adsRemoved: boolean;
   homeTourSeen: boolean;
   homeTourVersion: number;
   homeTourSeenAt?: string;
@@ -44,6 +46,7 @@ const CCFK_DEFAULTS: CcfkSettings = {
   language: undefined,
   brandId: undefined,
   modelId: undefined,
+  adsRemoved: false,
   homeTourSeen: false,
   homeTourVersion: 0,
   homeTourSeenAt: undefined,
@@ -85,6 +88,7 @@ export const CCFK_SETTINGS_SCHEMA: SettingsSchema<CcfkSettings> = {
           modelId:
             pickNonEmptyString(legacySettings?.modelId) ||
             pickNonEmptyString(legacySettings?.kindleModelId),
+          adsRemoved: pickBoolean(legacySettings?.adsRemoved) ?? false,
           homeTourSeen: pickBoolean(legacySettings?.homeTourSeen) ?? false,
           homeTourVersion: pickNumber(legacySettings?.homeTourVersion) ?? 0,
           homeTourSeenAt: pickNonEmptyString(legacySettings?.homeTourSeenAt),
@@ -179,6 +183,7 @@ async function migrateVersionedSettings(
     modelId:
       pickNonEmptyString(stored?.['modelId']) ||
       pickNonEmptyString(stored?.['kindleModelId']),
+    adsRemoved: pickBoolean(stored?.['adsRemoved']) ?? false,
     homeTourSeen: pickBoolean(stored?.['homeTourSeen']) ?? false,
     homeTourVersion: pickNumber(stored?.['homeTourVersion']) ?? 0,
     homeTourSeenAt: pickNonEmptyString(stored?.['homeTourSeenAt']),

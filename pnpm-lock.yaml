@@ -80,6 +80,9 @@ importers:
       '@capacitor/status-bar':
         specifier: 8.0.0
         version: 8.0.0(@capacitor/core@8.0.0)
+      '@capgo/native-purchases':
+        specifier: ^8.0.0
+        version: 8.2.5(@capacitor/core@8.0.0)
       '@ionic/angular':
         specifier: ^8.0.0
         version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
@@ -270,6 +273,9 @@ importers:
       '@capacitor/status-bar':
         specifier: 8.0.0
         version: 8.0.0(@capacitor/core@8.0.0)
+      '@capgo/native-purchases':
+        specifier: ^8.0.0
+        version: 8.2.5(@capacitor/core@8.0.0)
       '@ionic/angular':
         specifier: ^8.0.0
         version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
@@ -753,6 +759,12 @@ importers:
       '@capacitor/core':
         specifier: ^8.0.0
         version: 8.0.0
+      '@capgo/native-purchases':
+        specifier: ^8.0.0
+        version: 8.2.5(@capacitor/core@8.0.0)
+      '@sheldrapps/settings-kit':
+        specifier: workspace:*
+        version: link:../settings-kit
       rxjs:
         specifier: ~7.8.0
         version: 7.8.2
@@ -1894,6 +1906,11 @@ packages:
 
   '@capacitor/synapse@1.0.4':
     resolution: {integrity: sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw==}
+
+  '@capgo/native-purchases@8.2.5':
+    resolution: {integrity: sha512-gzUpSf6/4+J38Ry+JbnaOcnr4JE62UnXWjMtwM9BYwkti3K1u65900T0aOmKpspExPS038ZYqgM42UV4d2uP/w==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
 
   '@colors/colors@1.5.0':
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
@@ -8778,6 +8795,10 @@ snapshots:
       '@capacitor/core': 8.0.0
 
   '@capacitor/synapse@1.0.4': {}
+
+  '@capgo/native-purchases@8.2.5(@capacitor/core@8.0.0)':
+    dependencies:
+      '@capacitor/core': 8.0.0
 
   '@colors/colors@1.5.0': {}
 

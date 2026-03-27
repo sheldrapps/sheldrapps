@@ -2,6 +2,7 @@
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { Title } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
+import { BillingService } from '@sheldrapps/ads-kit';
 import { detectSupportedLocale, LanguageService } from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService } from '@sheldrapps/ui-theme';
@@ -20,11 +21,21 @@ export class AppComponent implements OnDestroy {
   private title = inject(Title);
   private edgeToEdge = inject(EdgeToEdgeService);
   private settings = inject(SettingsStore<EccSettings>);
+  private billing = inject(BillingService);
 
   private langSub?: Subscription;
 
   constructor() {
     void this.edgeToEdge.initEdgeToEdge();
+    if (typeof globalThis.queueMicrotask === 'function') {
+      globalThis.queueMicrotask(() => {
+        this.billing.startPostBootstrapSync();
+      });
+    } else {
+      setTimeout(() => {
+        this.billing.startPostBootstrapSync();
+      }, 0);
+    }
     void this.init();
   }
 

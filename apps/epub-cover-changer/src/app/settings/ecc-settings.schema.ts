@@ -15,6 +15,7 @@ type LegacyEccSettings = {
   language?: string;
   locale?: string;
   cropTargetId?: string;
+  adsRemoved?: boolean;
   homeTourSeen?: boolean;
   homeTourVersion?: number;
   homeTourSeenAt?: string;
@@ -24,6 +25,7 @@ type LegacyEccSettings = {
 export interface EccSettings {
   language?: SupportedLocale;
   cropTargetId?: string;
+  adsRemoved: boolean;
   homeTourSeen: boolean;
   homeTourVersion: number;
   homeTourSeenAt?: string;
@@ -40,6 +42,7 @@ const ECC_SETTINGS_VERSION = 6;
 const ECC_DEFAULTS: EccSettings = {
   language: undefined,
   cropTargetId: undefined,
+  adsRemoved: false,
   homeTourSeen: false,
   homeTourVersion: 0,
   homeTourSeenAt: undefined,
@@ -73,6 +76,7 @@ export const ECC_SETTINGS_SCHEMA: SettingsSchema<EccSettings> = {
         return {
           language,
           cropTargetId: pickNonEmptyString(legacySettings?.cropTargetId),
+          adsRemoved: pickBoolean(legacySettings?.adsRemoved) ?? false,
           homeTourSeen: pickBoolean(legacySettings?.homeTourSeen) ?? false,
           homeTourVersion: pickNumber(legacySettings?.homeTourVersion) ?? 0,
           homeTourSeenAt: pickNonEmptyString(legacySettings?.homeTourSeenAt),
@@ -153,6 +157,7 @@ async function migrateVersionedSettings(
   return {
     language,
     cropTargetId: pickNonEmptyString(stored?.['cropTargetId']),
+    adsRemoved: pickBoolean(stored?.['adsRemoved']) ?? false,
     homeTourSeen: pickBoolean(stored?.['homeTourSeen']) ?? false,
     homeTourVersion: pickNumber(stored?.['homeTourVersion']) ?? 0,
     homeTourSeenAt: pickNonEmptyString(stored?.['homeTourSeenAt']),

@@ -1,0 +1,56 @@
+[33m>[39m Building...
+[1m[33mOne or more browsers which are configured in the project's Browserslist configuration fall outside Angular's browser support for this version.
+Unsupported browsers:
+chrome 106, chrome 105, chrome 104, chrome 103, chrome 102, chrome 101, chrome 100, chrome 99, chrome 98, chrome 97, chrome 96, chrome 95, chrome 94, chrome 93, chrome 92, chrome 91, chrome 90, chrome 89, chrome 88, chrome 87, chrome 86, chrome 85, chrome 84, chrome 83, chrome 81, chrome 80, chrome 79, chrome 78, chrome 77, chrome 76, chrome 75, chrome 74[39m[22m
+[32m√[39m Building...
+[1mInitial chunk files[22m              [2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mchunk-NQZZWYGE.js[39m                [2m | [22m[2m-[22m                    [2m | [22m[36m285.49 kB[39m[2m | [22m
+[32mchunk-WIOUOY7D.js[39m                [2m | [22m[2m-[22m                    [2m | [22m[36m227.05 kB[39m[2m | [22m
+[32mstyles.css[39m                       [2m | [22m[2mstyles[22m               [2m | [22m[36m153.99 kB[39m[2m | [22m
+[32mchunk-WEW2F7QJ.js[39m                [2m | [22m[2m-[22m                    [2m | [22m [36m77.07 kB[39m[2m | [22m
+[32mchunk-B3LFSIAY.js[39m                [2m | [22m[2m-[22m                    [2m | [22m [36m66.67 kB[39m[2m | [22m
+[32mchunk-CQEKXY6M.js[39m                [2m | [22m[2m-[22m                    [2m | [22m [36m47.41 kB[39m[2m | [22m
+[32mchunk-Z3TIAQD7.js[39m                [2m | [22m[2m-[22m                    [2m | [22m [36m32.73 kB[39m[2m | [22m
+[32mchunk-GY74JHJV.js[39m                [2m | [22m[2m-[22m                    [2m | [22m [36m31.42 kB[39m[2m | [22m
+[32mmain.js[39m                          [2m | [22m[2mmain[22m                 [2m | [22m [36m17.18 kB[39m[2m | [22m
+[32mchunk-VQ2TB7ZI.js[39m                [2m | [22m[2m-[22m                    [2m | [22m  [36m8.30 kB[39m[2m | [22m
+[32mchunk-BAIH37FG.js[39m                [2m | [22m[2m-[22m                    [2m | [22m  [36m7.92 kB[39m[2m | [22m
+[32mchunk-CRWGUQOA.js[39m                [2m | [22m[2m-[22m                    [2m | [22m  [36m1.99 kB[39m[2m | [22m
+[32mchunk-DRIKUCD2.js[39m                [2m | [22m[2m-[22m                    [2m | [22m  [36m1.24 kB[39m[2m | [22m
+[32mpolyfills.js[39m                     [2m | [22m[2mpolyfills[22m            [2m | [22m[36m143 bytes[39m[2m | [22m
+
+[1m [22m                                [2m | [22m[1mInitial total[22m        [2m | [22m[1m958.59 kB[22m
+
+[1mLazy chunk files[22m                 [2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mchange.page-Z2LGEHFM.js[39m          [2m | [22m[2mchange-page[22m          [2m | [22m[36m161.85 kB[39m[2m | [22m
+[32mmy-epubs.page-5ANNXJ4C.js[39m        [2m | [22m[2mmy-epubs-page[22m        [2m | [22m [36m86.68 kB[39m[2m | [22m
+[32mchunk-ROPXKDVK.js[39m                [2m | [22m[2m-[22m                    [2m | [22m [36m60.41 kB[39m[2m | [22m
+[32msettings.page-2E25ED62.js[39m        [2m | [22m[2msettings-page[22m        [2m | [22m [36m18.16 kB[39m[2m | [22m
+[32mchunk-NQWK3W62.js[39m                [2m | [22m[2m-[22m                    [2m | [22m [36m14.60 kB[39m[2m | [22m
+[32minstructions.page-VOLXFI6G.js[39m    [2m | [22m[2minstructions-page[22m    [2m | [22m [36m10.30 kB[39m[2m | [22m
+[32mtabs.routes-YEOIBES2.js[39m          [2m | [22m[2mtabs-routes[22m          [2m | [22m  [36m8.15 kB[39m[2m | [22m
+[32mdefault.page-FXTBXWUC.js[39m         [2m | [22m[2mdefault-page[22m         [2m | [22m  [36m7.95 kB[39m[2m | [22m
+[32mtext.page-TVS5AZ45.js[39m            [2m | [22m[2mtext-page[22m            [2m | [22m  [36m7.19 kB[39m[2m | [22m
+[32mpublic-api-ZHM2L3TY.js[39m           [2m | [22m[2mpublic-api[22m           [2m | [22m  [36m1.08 kB[39m[2m | [22m
+[32mpublic-api-NYWTX2QB.js[39m           [2m | [22m[2mpublic-api[22m           [2m | [22m[36m875 bytes[39m[2m | [22m
+[32meditor-shell.page-SX3QEVUB.js[39m    [2m | [22m[2meditor-shell-page[22m    [2m | [22m[36m284 bytes[39m[2m | [22m
+[32madjustments.page-MKC5QZ5B.js[39m     [2m | [22m[2madjustments-page[22m     [2m | [22m[36m281 bytes[39m[2m | [22m
+[32mtools.page-RKLJS224.js[39m           [2m | [22m[2mtools-page[22m           [2m | [22m[36m251 bytes[39m[2m | [22m
+[32mrecommended-apps.page-AWPNXSND.js[39m[2m | [22m[2mrecommended-apps-page[22m[2m | [22m[36m244 bytes[39m[2m | [22m
+
+Application bundle generation complete. [4.783 seconds] - 2026-03-27T03:41:42.033Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+[1m[33mOne or more browsers which are configured in the project's Browserslist configuration fall outside Angular's browser support for this version.
+Unsupported browsers:
+chrome 106, chrome 105, chrome 104, chrome 103, chrome 102, chrome 101, chrome 100, chrome 99, chrome 98, chrome 97, chrome 96, chrome 95, chrome 94, chrome 93, chrome 92, chrome 91, chrome 90, chrome 89, chrome 88, chrome 87, chrome 86, chrome 85, chrome 84, chrome 83, chrome 81, chrome 80, chrome 79, chrome 78, chrome 77, chrome 76, chrome 75, chrome 74[39m[22m
+[2m9:41:42 p.m.[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m Re-optimizing dependencies because lockfile has changed
+[2m9:41:42 p.m.[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because lockfile has changed
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m4302[22m/[39m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+undefined
+C:\apps\sheldrapps\apps\epub-cover-changer:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command "ng" not found
+
+Did you mean "pnpm exec ngc"?

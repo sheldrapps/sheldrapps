@@ -46,6 +46,26 @@ export interface AdsKitConfig {
   };
 
   /**
+   * Optional billing configuration for "remove ads forever" purchases.
+   */
+  billing?: BillingKitConfig;
+
+  /**
+   * Optional debug logging
+   */
+  debug?: boolean;
+}
+
+/**
+ * Billing configuration
+ */
+export interface BillingKitConfig {
+  /**
+   * Android product identifier for the non-consumable remove-ads purchase.
+   */
+  removeAdsProductId?: string;
+
+  /**
    * Optional debug logging
    */
   debug?: boolean;

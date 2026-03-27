@@ -66,7 +66,11 @@ import { addIcons } from 'ionicons';
 
 import { FileService } from '../../services/file.service';
 import { EpubWorkingCopyService } from '../../services/epub-working-copy.service';
-import { AdsService, type RewardedAdResult } from '../../services/ads.service';
+import {
+  AdsService,
+  BillingService,
+  type RewardedAdResult,
+} from '../../services/ads.service';
 import { CoversEventsService } from '../../services/covers-events.service';
 import {
   EpubRewriteError,
@@ -145,6 +149,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private epubRewrite = inject(EpubRewriteService);
   private imagePipe = inject(ImagePipelineService);
   private ads = inject(AdsService);
+  private billing = inject(BillingService);
   private toastCtrl = inject(ToastController);
   private popoverCtrl = inject(PopoverController);
   private coversEvents = inject(CoversEventsService);
@@ -170,6 +175,17 @@ export class ChangePage implements OnInit, OnDestroy {
   private readonly warnDebugKey = 'cc_warn_debug';
   private readonly editorTourSeenVersionKey = 'ecc_editor_tour_seen_version';
   private readonly currentEditorTourVersion = 4;
+  private adsRemovedSub?: Subscription;
+  private removeAdsPriceSub?: Subscription;
+  private readonly onlineHandler = () => {
+    this.isOnline = true;
+  };
+  private readonly offlineHandler = () => {
+    this.isOnline = false;
+  };
+  private removeAdsPulseInterval: ReturnType<typeof setInterval> | null = null;
+  private removeAdsPulseResetTimeout: ReturnType<typeof setTimeout> | null = null;
+  private removeAdsCtaImpressionTracked = false;
 
   @ViewChild(IonContent) content?: IonContent;
   @ViewChild('epubInput') epubInput!: ElementRef<HTMLInputElement>;
@@ -194,6 +210,12 @@ export class ChangePage implements OnInit, OnDestroy {
   headerItems: ScrollableBarItem[] = [];
   recommendedApps: RecommendedApp[] = [];
   showRecommended = false;
+  adsRemoved = false;
+  removeAdsPriceFormatted: string | null = null;
+  removeAdsPulseActive = false;
+  purchaseModalOpen = false;
+  purchaseBusy = false;
+  isOnline = true;
 
   // EPUB state
   sourceEpubFile?: File;
@@ -328,6 +350,24 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async ngOnInit() {
     await this.refreshHeaderItems();
+    this.isOnline =
+      typeof navigator === 'undefined' ? true : navigator.onLine;
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', this.onlineHandler);
+      window.addEventListener('offline', this.offlineHandler);
+    }
+    await this.billing.initializeSafe();
+    this.adsRemoved = this.billing.isAdsRemoved();
+    this.adsRemovedSub = this.billing.adsRemoved$.subscribe((value) => {
+      this.adsRemoved = value;
+      this.syncRemoveAdsPulse();
+    });
+    this.removeAdsPriceFormatted = this.billing.getRemoveAdsPriceFormatted();
+    this.removeAdsPriceSub = this.billing.removeAdsPrice$.subscribe((value) => {
+      this.removeAdsPriceFormatted = value;
+    });
+    this.syncRemoveAdsPulse();
+
     const settings = await this.settings.load();
     this.selectedFormatId = this.resolveFormatId(settings.cropTargetId);
     this.persistedCropTargetId = this.selectedFormatId;
@@ -367,10 +407,18 @@ export class ChangePage implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.closeInfo();
+    this.closePurchaseModal();
     this.clearPreviewLongPress();
     this.revokePreviewUrl();
     this.routerSub?.unsubscribe();
     this.coversEventsSub?.unsubscribe();
+    this.adsRemovedSub?.unsubscribe();
+    this.removeAdsPriceSub?.unsubscribe();
+    this.clearRemoveAdsPulse();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('online', this.onlineHandler);
+      window.removeEventListener('offline', this.offlineHandler);
+    }
     void this.rewriteProgressSub?.remove();
   }
 
@@ -859,8 +907,7 @@ export class ChangePage implements OnInit, OnDestroy {
     });
 
     this.lastEditorSessionId = sid;
-    const shouldShowEditorTour =
-      this.homeTour.isActive() || (await this.shouldShowEditorTour());
+    const shouldShowEditorTour = await this.shouldShowEditorTour();
     if (shouldShowEditorTour) {
       await this.settings.set((prev) => ({
         ...prev,
@@ -1618,6 +1665,193 @@ export class ChangePage implements OnInit, OnDestroy {
     return this.canExport() && !this.isExporting;
   }
 
+  canShowRemoveAdsEntryPoint(): boolean {
+    return !this.adsRemoved && this.billing.canShowRemoveAdsEntryPoint();
+  }
+
+  getRemoveAdsCtaSubtitleKey(): string {
+    return this.removeAdsPriceFormatted
+      ? 'COMMON.REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE'
+      : 'COMMON.REMOVE_ADS_CTA_SUBTITLE';
+  }
+
+  getRemoveAdsPriceParams(): Record<string, string> {
+    return this.removeAdsPriceFormatted
+      ? { price: this.removeAdsPriceFormatted }
+      : {};
+  }
+
+  getRemoveAdsPurchaseState(): 'ready' | 'unavailable' {
+    return this.billing.isBillingAvailable() && this.isOnline
+      ? 'ready'
+      : 'unavailable';
+  }
+
+  getRemoveAdsModalDescriptionKey(): string {
+    return this.getRemoveAdsPurchaseState() === 'ready'
+      ? 'COMMON.REMOVE_ADS_DESCRIPTION'
+      : 'COMMON.BILLING_UNAVAILABLE';
+  }
+
+  shouldShowRemoveAdsModalPrice(): boolean {
+    return (
+      this.getRemoveAdsPurchaseState() === 'ready' &&
+      !!this.removeAdsPriceFormatted
+    );
+  }
+
+  canPurchaseRemoveAds(): boolean {
+    return (
+      this.canShowRemoveAdsEntryPoint() &&
+      this.getRemoveAdsPurchaseState() === 'ready' &&
+      !this.purchaseBusy
+    );
+  }
+
+  canRestoreRemoveAds(): boolean {
+    return (
+      this.canShowRemoveAdsEntryPoint() &&
+      this.getRemoveAdsPurchaseState() === 'ready' &&
+      !this.purchaseBusy
+    );
+  }
+
+  private syncRemoveAdsPulse(): void {
+    this.maybeTrackRemoveAdsCtaImpression();
+    const shouldAnimate = this.canShowRemoveAdsEntryPoint();
+    if (!shouldAnimate || typeof globalThis.setInterval !== 'function') {
+      this.clearRemoveAdsPulse();
+      return;
+    }
+
+    if (this.removeAdsPulseInterval) {
+      return;
+    }
+
+    this.triggerRemoveAdsPulse();
+    this.removeAdsPulseInterval = setInterval(() => {
+      this.triggerRemoveAdsPulse();
+    }, 8000);
+  }
+
+  private triggerRemoveAdsPulse(): void {
+    this.removeAdsPulseActive = true;
+
+    if (this.removeAdsPulseResetTimeout) {
+      clearTimeout(this.removeAdsPulseResetTimeout);
+    }
+
+    this.removeAdsPulseResetTimeout = setTimeout(() => {
+      this.removeAdsPulseActive = false;
+      this.removeAdsPulseResetTimeout = null;
+    }, 800);
+  }
+
+  private clearRemoveAdsPulse(): void {
+    if (this.removeAdsPulseInterval) {
+      clearInterval(this.removeAdsPulseInterval);
+      this.removeAdsPulseInterval = null;
+    }
+
+    if (this.removeAdsPulseResetTimeout) {
+      clearTimeout(this.removeAdsPulseResetTimeout);
+      this.removeAdsPulseResetTimeout = null;
+    }
+
+    this.removeAdsPulseActive = false;
+  }
+
+  private maybeTrackRemoveAdsCtaImpression(): void {
+    if (this.removeAdsCtaImpressionTracked || !this.canShowRemoveAdsEntryPoint()) {
+      return;
+    }
+
+    this.removeAdsCtaImpressionTracked = true;
+    this.trackRemoveAdsEvent('remove_ads_cta_impression', {
+      price: this.removeAdsPriceFormatted,
+    });
+  }
+
+  private trackRemoveAdsEvent(
+    eventName: string,
+    payload: Record<string, unknown> = {},
+  ): void {
+    const suffix = Object.keys(payload).length > 0 ? ` ${JSON.stringify(payload)}` : '';
+    console.info(`[ECC:remove-ads] ${eventName}${suffix}`);
+  }
+
+  openPurchaseModal(): void {
+    if (!this.canShowRemoveAdsEntryPoint()) {
+      return;
+    }
+
+    this.trackRemoveAdsEvent('remove_ads_cta_click', {
+      price: this.removeAdsPriceFormatted,
+    });
+    this.trackRemoveAdsEvent('remove_ads_modal_open', {
+      price: this.removeAdsPriceFormatted,
+    });
+    this.purchaseModalOpen = true;
+  }
+
+  closePurchaseModal(): void {
+    this.purchaseModalOpen = false;
+  }
+
+  async onPurchaseRemoveAds(): Promise<void> {
+    if (!this.canPurchaseRemoveAds()) {
+      return;
+    }
+
+    this.purchaseBusy = true;
+    try {
+      const success = await this.billing.purchaseRemoveAds();
+      if (!success) {
+        return;
+      }
+
+      this.closePurchaseModal();
+      this.trackRemoveAdsEvent('remove_ads_purchase_success', {
+        price: this.removeAdsPriceFormatted,
+      });
+      await this.showToast(
+        'COMMON.REMOVE_ADS_PURCHASED',
+        { duration: 1800 },
+        'success',
+      );
+    } catch {
+      await this.showToast('COMMON.PURCHASE_ERROR', { duration: 1800 }, 'error');
+    } finally {
+      this.purchaseBusy = false;
+    }
+  }
+
+  async onRestorePurchases(): Promise<void> {
+    if (!this.canRestoreRemoveAds()) {
+      return;
+    }
+
+    this.purchaseBusy = true;
+    try {
+      const restored = await this.billing.restorePurchases();
+      if (!restored) {
+        await this.showToast('COMMON.RESTORE_ERROR', { duration: 1800 }, 'error');
+        return;
+      }
+
+      this.closePurchaseModal();
+      await this.showToast(
+        'COMMON.REMOVE_ADS_RESTORED',
+        { duration: 1800 },
+        'success',
+      );
+    } catch {
+      await this.showToast('COMMON.RESTORE_ERROR', { duration: 1800 }, 'error');
+    } finally {
+      this.purchaseBusy = false;
+    }
+  }
+
   canSaveShare(): boolean {
     const hasGeneratedOutput = this.usesNativeRewrite()
       ? !!(this.generatedEpubPath || this.lastSavedFilename)
@@ -1632,7 +1866,9 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   getChangeActionKey(): string {
-    return 'CHANGE.CHANGE_ACTION_REWARDED';
+    return this.adsRemoved
+      ? 'CHANGE.CHANGE_ACTION'
+      : 'CHANGE.CHANGE_ACTION_REWARDED';
   }
 
   async onGenerate() {
@@ -1641,111 +1877,119 @@ export class ChangePage implements OnInit, OnDestroy {
     this.setBusy('export', 'CHANGE.GENERATING');
 
     try {
-      const result: RewardedAdResult = await this.ads.showRewarded();
+      if (!this.billing.isAdsRemoved()) {
+        const result: RewardedAdResult = await this.ads.showRewarded();
 
-      // Handle ad failure
-      if (result.failed) {
-        await this.showToast(
-          'CHANGE.ADS_REQUIRED',
-          { duration: 1800 },
-          'error',
-        );
-        return;
-      }
-
-      // Handle ad closed without reward (user didn't watch it completely)
-      if (result.adClosed && !result.rewardEarned) {
-        await this.showToast(
-          'CHANGE.ADS_REQUIRED',
-          { duration: 1800 },
-          'error',
-        );
-        return;
-      }
-
-      // Only proceed if BOTH reward earned AND ad closed
-      if (!result.rewardEarned || !result.adClosed) {
-        return;
-      }
-
-      const exportFile = await this.ensureExportImageFile();
-      if (!exportFile) return;
-
-      const preferredFilename =
-        this.outputBaseName ? `${this.outputBaseName}.epub` : this.selectedEpubName;
-
-      if (this.usesNativeRewrite()) {
-        await this.generateWithNativeRewrite(exportFile, preferredFilename);
-        await this.homeTour.completeInteraction('cover-created');
-        return;
-      }
-
-      const sourceEpub = this.workingEpubFile;
-      let res: { bytes: Uint8Array; filename: string };
-      if (sourceEpub) {
-        try {
-          res = await this.fileService.generateEpubBytesFromSource({
-            sourceEpubFile: sourceEpub,
-            coverFile: exportFile,
-            filename: preferredFilename,
-          });
-        } catch {
-          res = await this.fileService.generateEpubBytes({
-            modelId: this.baseModelId,
-            coverFile: exportFile,
-            title: 'EPUB Cover',
-          });
+        // Handle ad failure
+        if (result.failed) {
+          await this.showToast(
+            'CHANGE.ADS_REQUIRED',
+            { duration: 1800 },
+            'error',
+          );
+          return;
         }
-      } else {
+
+        // Handle ad closed without reward (user didn't watch it completely)
+        if (result.adClosed && !result.rewardEarned) {
+          await this.showToast(
+            'CHANGE.ADS_REQUIRED',
+            { duration: 1800 },
+            'error',
+          );
+          return;
+        }
+
+        // Only proceed if BOTH reward earned AND ad closed
+        if (!result.rewardEarned || !result.adClosed) {
+          return;
+        }
+
+        this.trackRemoveAdsEvent('rewarded_generate_completed');
+      }
+
+      await this.generateChangedCover();
+    } finally {
+      this.zone.run(() => this.setBusy('none'));
+    }
+  }
+
+  private async generateChangedCover(): Promise<void> {
+    const exportFile = await this.ensureExportImageFile();
+    if (!exportFile) return;
+
+    const preferredFilename =
+      this.outputBaseName ? `${this.outputBaseName}.epub` : this.selectedEpubName;
+
+    if (this.usesNativeRewrite()) {
+      await this.generateWithNativeRewrite(exportFile, preferredFilename);
+      await this.homeTour.completeInteraction('cover-created');
+      return;
+    }
+
+    const sourceEpub = this.workingEpubFile;
+    let res: { bytes: Uint8Array; filename: string };
+    if (sourceEpub) {
+      try {
+        res = await this.fileService.generateEpubBytesFromSource({
+          sourceEpubFile: sourceEpub,
+          coverFile: exportFile,
+          filename: preferredFilename,
+        });
+      } catch {
         res = await this.fileService.generateEpubBytes({
           modelId: this.baseModelId,
           coverFile: exportFile,
           title: 'EPUB Cover',
         });
       }
-
-      this.generatedEpubBytes = res.bytes;
-      this.generatedEpubFilename = res.filename;
-
-      this.setBusy('export', 'CHANGE.SAVING');
-
-      const saved = await this.fileService.saveGeneratedEpub({
-        bytes: this.generatedEpubBytes,
-        filename: this.generatedEpubFilename,
-        coverFileForThumb: exportFile,
+    } else {
+      res = await this.fileService.generateEpubBytes({
+        modelId: this.baseModelId,
+        coverFile: exportFile,
+        title: 'EPUB Cover',
       });
-      this.logSaveFlow('finalWriteComplete', {
-        flow: 'onGenerate',
-        filename: saved.filename,
-        writeCompletedAt: new Date().toISOString(),
-      });
-
-      this.generatedEpubFilename = saved.filename;
-
-      this.coversEvents.emit({
-        type: 'saved',
-        filename: saved.filename,
-      });
-      this.logSaveFlow('savedEventEmitted', {
-        flow: 'onGenerate',
-        filename: saved.filename,
-        emittedAt: new Date().toISOString(),
-      });
-
-      this.wasAutoSaved = true;
-      this.lastSavedFilename = saved.filename;
-
-      await this.zone.run(async () => {
-        await this.showToast(
-          'CHANGE.COVER_CHANGED',
-          { duration: 2200 },
-          'success',
-        );
-      });
-      await this.homeTour.completeInteraction('cover-created');
-    } finally {
-      this.zone.run(() => this.setBusy('none'));
     }
+
+    this.generatedEpubBytes = res.bytes;
+    this.generatedEpubFilename = res.filename;
+
+    this.setBusy('export', 'CHANGE.SAVING');
+
+    const saved = await this.fileService.saveGeneratedEpub({
+      bytes: this.generatedEpubBytes,
+      filename: this.generatedEpubFilename,
+      coverFileForThumb: exportFile,
+    });
+    this.logSaveFlow('finalWriteComplete', {
+      flow: 'onGenerate',
+      filename: saved.filename,
+      writeCompletedAt: new Date().toISOString(),
+    });
+
+    this.generatedEpubFilename = saved.filename;
+
+    this.coversEvents.emit({
+      type: 'saved',
+      filename: saved.filename,
+    });
+    this.logSaveFlow('savedEventEmitted', {
+      flow: 'onGenerate',
+      filename: saved.filename,
+      emittedAt: new Date().toISOString(),
+    });
+
+    this.wasAutoSaved = true;
+    this.lastSavedFilename = saved.filename;
+
+    await this.zone.run(async () => {
+      await this.showToast(
+        'CHANGE.COVER_CHANGED',
+        { duration: 2200 },
+        'success',
+      );
+    });
+    await this.homeTour.completeInteraction('cover-created');
   }
 
   async cancelNativeRewrite() {
@@ -2224,11 +2468,16 @@ export class ChangePage implements OnInit, OnDestroy {
   private async markHomeTourSeen(
     _reason: TourCompletionReason
   ): Promise<void> {
-    await this.settings.set({
+    await this.settings.set((prev) => ({
+      ...prev,
       homeTourSeen: true,
       homeTourVersion: CURRENT_HOME_TOUR_VERSION,
       homeTourSeenAt: new Date().toISOString(),
-    });
+      preferences: {
+        ...(prev.preferences ?? {}),
+        [this.editorTourSeenVersionKey]: this.currentEditorTourVersion,
+      },
+    }));
   }
 
   private async shouldShowEditorTour(): Promise<boolean> {
