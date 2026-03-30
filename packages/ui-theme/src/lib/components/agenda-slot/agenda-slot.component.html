@@ -1,0 +1,104 @@
+<div [ngClass]="rootClassMap">
+  <div
+    class="agenda-slot__boundary agenda-slot__boundary--top"
+    [class.agenda-slot__boundary--visible]="showTopLabel"
+    aria-hidden="true"
+  >
+    <span
+      class="agenda-slot__boundary-time agenda-slot__boundary-time--top agenda-segment-time agenda-segment-time-slot agenda-segment-time-slot--top"
+      [class.agenda-segment-time-slot--has-label]="showTopLabel"
+    >
+      @if (showTopLabel) {
+        <sh-time-display
+          class="agenda-slot__time-label agenda-slot__time-label--top agenda-segment-time-top"
+          [value]="startTime"
+          size="sm"
+          tone="accent"
+          align="right"
+        ></sh-time-display>
+      }
+    </span>
+
+    <span class="agenda-slot__boundary-joint agenda-slot__boundary-joint--top" aria-hidden="true"></span>
+
+    <span
+      class="agenda-slot__boundary-line-wrap agenda-slot__boundary-line-wrap--top"
+      [class.agenda-slot__boundary-line-wrap--visible]="showTopLabel"
+    >
+      <span class="agenda-slot__boundary-line agenda-slot__boundary-line--top"></span>
+    </span>
+  </div>
+
+  <div class="agenda-slot__body-row">
+    <span class="agenda-slot__time-spacer agenda-segment-time" aria-hidden="true"></span>
+    <span class="agenda-slot__divider agenda-segment-gutter" aria-hidden="true">
+      <span class="agenda-slot__divider-line agenda-slot__rail-line"></span>
+    </span>
+
+    <div class="agenda-slot__content agenda-segment-content">
+      @if (type === 'event') {
+        @if (interactive) {
+          <button
+            type="button"
+            class="agenda-slot__body agenda-slot__body--event agenda-event-body app-accent-surface app-timeline-event agenda-task-block"
+            [style.--agenda-slot-accent-color]="resolvedAccentColor"
+            [style.--app-accent-border-color]="resolvedAccentColor"
+            [style.--app-accent-background-color]="accentBackgroundColor"
+            [style.--app-accent-shadow-color]="accentShadowColor"
+            [attr.aria-label]="ariaLabel"
+            (click)="onSlotActivate()"
+          >
+            <span class="agenda-slot__title agenda-task-title app-timeline-event__title">{{ title }}</span>
+          </button>
+        } @else {
+          <div
+            class="agenda-slot__body agenda-slot__body--event agenda-event-body app-accent-surface app-timeline-event agenda-task-block"
+            [style.--agenda-slot-accent-color]="resolvedAccentColor"
+            [style.--app-accent-border-color]="resolvedAccentColor"
+            [style.--app-accent-background-color]="accentBackgroundColor"
+            [style.--app-accent-shadow-color]="accentShadowColor"
+            [attr.aria-label]="ariaLabel"
+          >
+            <span class="agenda-slot__title agenda-task-title app-timeline-event__title">{{ title }}</span>
+          </div>
+        }
+      } @else {
+        <div class="agenda-slot__body agenda-slot__body--empty agenda-empty-body" [attr.aria-label]="ariaLabel">
+          @if (hint) {
+            <span class="agenda-slot__hint agenda-empty-microcopy app-supporting-text">{{ hint }}</span>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <div
+    class="agenda-slot__boundary agenda-slot__boundary--bottom"
+    [class.agenda-slot__boundary--visible]="showBottomLabel"
+    aria-hidden="true"
+  >
+    <span
+      class="agenda-slot__boundary-time agenda-slot__boundary-time--bottom agenda-segment-time agenda-segment-time-slot agenda-segment-time-slot--bottom"
+      [class.agenda-segment-time-slot--has-label]="showBottomLabel"
+    >
+      @if (showBottomLabel) {
+        <sh-time-display
+          class="agenda-slot__time-label agenda-slot__time-label--bottom agenda-segment-time-bottom"
+          [value]="endTime"
+          size="sm"
+          tone="accent"
+          align="right"
+        ></sh-time-display>
+      }
+    </span>
+
+    <span class="agenda-slot__boundary-joint agenda-slot__boundary-joint--bottom" aria-hidden="true"></span>
+
+    <span
+      class="agenda-slot__boundary-line-wrap agenda-slot__boundary-line-wrap--bottom"
+      [class.agenda-slot__boundary-line-wrap--visible]="showBottomLabel"
+    >
+      <span class="agenda-slot__boundary-line agenda-slot__boundary-line--bottom"></span>
+    </span>
+  </div>
+</div>

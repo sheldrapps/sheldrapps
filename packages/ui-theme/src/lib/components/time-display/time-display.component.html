@@ -1,0 +1,12 @@
+<span [ngClass]="rootClassMap">
+  @for (slot of slots; track $index) {
+    <span
+      class="app-time-display__slot"
+      [class.app-time-display__slot--digit]="slot.kind === 'digit'"
+      [class.app-time-display__slot--separator]="slot.kind === 'separator'"
+      [class.app-time-display__separator]="slot.kind === 'separator'"
+      [class.app-time-display__slot--empty]="slot.kind === 'digit' && !slot.value"
+      aria-hidden="true"
+    >{{ slot.value }}</span>
+  }
+</span>

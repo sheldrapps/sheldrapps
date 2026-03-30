@@ -1,0 +1,93 @@
+:host {
+  display: inline-block;
+  min-width: 0;
+}
+
+.app-time-display {
+  --time-display-font-size: 0.82rem;
+  --time-display-digit-slot-width: 0.74em;
+  --time-display-separator-slot-width: 0.54em;
+  --time-display-slot-height: 1em;
+  --time-display-inline-size: calc(
+    (var(--time-display-digit-slot-width) * 4) + var(--time-display-separator-slot-width)
+  );
+
+  display: grid;
+  grid-template-columns:
+    var(--time-display-digit-slot-width)
+    var(--time-display-digit-slot-width)
+    var(--time-display-separator-slot-width)
+    var(--time-display-digit-slot-width)
+    var(--time-display-digit-slot-width);
+  justify-content: start;
+  align-items: center;
+  min-width: var(--time-display-inline-size);
+  width: 100%;
+  font-family: 'E1234', sans-serif;
+  font-size: var(--time-display-font-size);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: inherit;
+  white-space: nowrap;
+  text-rendering: geometricPrecision;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.app-time-display--sm {
+  --time-display-font-size: 0.82rem;
+}
+
+.app-time-display--md {
+  --time-display-font-size: 0.96rem;
+  --time-display-digit-slot-width: 0.76em;
+  --time-display-separator-slot-width: 0.56em;
+}
+
+.app-time-display--lg {
+  --time-display-font-size: 1.45rem;
+  --time-display-digit-slot-width: 0.8em;
+  --time-display-separator-slot-width: 0.62em;
+}
+
+.app-time-display--default {
+  color: inherit;
+}
+
+.app-time-display--muted {
+  color: rgba(var(--ion-color-step-600-rgb), 0.82);
+}
+
+.app-time-display--accent {
+  color: rgba(var(--ion-color-primary-rgb), 0.72);
+}
+
+.app-time-display--left {
+  justify-content: start;
+}
+
+.app-time-display--center {
+  justify-content: center;
+}
+
+.app-time-display--right {
+  justify-content: end;
+}
+
+.app-time-display__slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 100%;
+  block-size: var(--time-display-slot-height);
+}
+
+.app-time-display__slot--separator,
+.app-time-display__separator {
+  transform: translateY(-0.02em);
+}
+
+.app-time-display__slot--empty {
+  opacity: 0;
+}

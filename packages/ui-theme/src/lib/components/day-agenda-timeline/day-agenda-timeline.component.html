@@ -1,0 +1,98 @@
+<div class="agenda-day-timeline">
+  @for (boundary of boundaries; track boundaryTrackKey($index, boundary)) {
+    <div
+      class="agenda-day-timeline__boundary-row"
+      [attr.data-boundary-key]="boundary.key"
+      [attr.data-boundary-minutes]="boundary.minutes"
+    >
+      <span class="agenda-day-timeline__time agenda-segment-time">
+        <sh-time-display
+          class="agenda-day-timeline__time-label"
+          [value]="boundary.label"
+          size="sm"
+          tone="accent"
+          align="right"
+        ></sh-time-display>
+      </span>
+
+      <span class="agenda-day-timeline__ruler" aria-hidden="true">
+        <span class="agenda-day-timeline__ruler-line agenda-day-timeline__boundary-line"></span>
+      </span>
+    </div>
+
+    @if ($index < segments.length) {
+      @let segment = segments[$index];
+      <div
+        class="agenda-day-timeline__body-row agenda-segment-row"
+        [class.agenda-day-timeline__body-row--event]="segment.type === 'event'"
+        [class.agenda-day-timeline__body-row--empty]="segment.type === 'empty'"
+        [class.agenda-day-timeline__body-row--current]="segment.isCurrent"
+        [class.agenda-segment-row--event]="segment.type === 'event'"
+        [class.agenda-segment-row--empty]="segment.type === 'empty'"
+        [class.agenda-segment-row--current]="segment.isCurrent"
+        [style.--agenda-body-row-height.px]="segment.visualHeightPx"
+        [attr.data-segment-key]="segment.key"
+      >
+        <span class="agenda-day-timeline__time-spacer agenda-segment-time" aria-hidden="true"></span>
+
+        <span class="agenda-day-timeline__divider agenda-segment-gutter" aria-hidden="true">
+          <span class="agenda-day-timeline__divider-line"></span>
+        </span>
+
+        <div class="agenda-day-timeline__content agenda-segment-content">
+          @if (isEventSegment(segment)) {
+            @let eventItems = visibleEventItemsForSegment(segment);
+            @let overflowCount = overflowCountForSegment(segment);
+            <div
+              class="agenda-day-timeline__event-grid"
+              [style.--agenda-event-columns]="eventColumnCount(segment)"
+            >
+              @for (eventItem of eventItems; track eventItem.key) {
+                @if (isInteractiveSegment(segment)) {
+                  <button
+                    type="button"
+                    class="agenda-day-timeline__body agenda-day-timeline__body--event agenda-event-body app-accent-surface app-timeline-event agenda-task-block"
+                    [style.--app-accent-border-color]="resolveEventItemAccentColor(eventItem)"
+                    [style.--app-accent-background-color]="resolveEventItemAccentBackgroundColor(eventItem)"
+                    [style.--app-accent-shadow-color]="resolveEventItemAccentShadowColor(eventItem)"
+                    [attr.aria-label]="eventItem.ariaLabel || null"
+                    (click)="onEventItemActivate(segment, eventItem)"
+                  >
+                    <span class="agenda-day-timeline__title agenda-task-title app-timeline-event__title">{{ eventItem.title }}</span>
+                  </button>
+                } @else {
+                  <div
+                    class="agenda-day-timeline__body agenda-day-timeline__body--event agenda-event-body app-accent-surface app-timeline-event agenda-task-block"
+                    [style.--app-accent-border-color]="resolveEventItemAccentColor(eventItem)"
+                    [style.--app-accent-background-color]="resolveEventItemAccentBackgroundColor(eventItem)"
+                    [style.--app-accent-shadow-color]="resolveEventItemAccentShadowColor(eventItem)"
+                    [attr.aria-label]="eventItem.ariaLabel || null"
+                  >
+                    <span class="agenda-day-timeline__title agenda-task-title app-timeline-event__title">{{ eventItem.title }}</span>
+                  </div>
+                }
+              }
+
+              @if (overflowCount > 0) {
+                <button
+                  type="button"
+                  class="agenda-day-timeline__overflow agenda-day-timeline__body agenda-event-body"
+                  [attr.aria-label]="segment.ariaLabel || null"
+                  (click)="onOverflowActivate(segment)"
+                >
+                  +{{ overflowCount }}
+                </button>
+              }
+            </div>
+          } @else {
+            <div class="agenda-day-timeline__body agenda-day-timeline__body--empty agenda-empty-body" [attr.aria-label]="segment.ariaLabel || null">
+              @if (segment.hint) {
+                <span class="agenda-day-timeline__hint agenda-empty-microcopy app-supporting-text">{{ segment.hint }}</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

@@ -1,0 +1,191 @@
+:host {
+  display: block;
+}
+
+.agenda-slot {
+  --agenda-time-col-width: 3.75rem;
+  --agenda-divider-col-width: 1rem;
+  --agenda-slot-body-height: 84px;
+  --agenda-slot-rule-color-empty: rgba(var(--ion-color-step-500-rgb), 0.26);
+  --agenda-slot-rule-color-event: rgba(var(--ion-color-step-500-rgb), 0.34);
+  --agenda-slot-rule-color: var(--agenda-slot-rule-color-empty);
+
+  position: relative;
+  display: grid;
+  grid-template-rows: 0 minmax(var(--agenda-slot-body-height), auto) 0;
+  grid-template-columns:
+    var(--agenda-time-col-width)
+    var(--agenda-divider-col-width)
+    minmax(0, 1fr);
+  row-gap: 0;
+  column-gap: 0;
+  min-height: var(--agenda-slot-body-height);
+}
+
+.agenda-slot--tier-empty-sm {
+  --agenda-slot-body-height: 64px;
+}
+
+.agenda-slot--tier-empty-md {
+  --agenda-slot-body-height: 84px;
+}
+
+.agenda-slot--tier-event-sm {
+  --agenda-slot-body-height: 64px;
+}
+
+.agenda-slot--tier-event-md {
+  --agenda-slot-body-height: 76px;
+}
+
+.agenda-slot--tier-event-lg {
+  --agenda-slot-body-height: 92px;
+}
+
+.agenda-slot--event {
+  --agenda-slot-rule-color: var(--agenda-slot-rule-color-event);
+}
+
+.agenda-slot__boundary {
+  display: none;
+  grid-template-columns:
+    var(--agenda-time-col-width)
+    var(--agenda-divider-col-width)
+    minmax(0, 1fr);
+  align-items: center;
+  min-height: 0;
+  grid-row: 2;
+  grid-column: 1 / -1;
+  position: relative;
+  z-index: 3;
+  pointer-events: none;
+  height: 0;
+  overflow: visible;
+}
+
+.agenda-slot__boundary--visible {
+  display: grid;
+}
+
+.agenda-slot__boundary--top {
+  align-self: start;
+}
+
+.agenda-slot__boundary--bottom {
+  align-self: end;
+}
+
+.agenda-slot__boundary-time {
+  grid-column: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-right: var(--app-space-2);
+  position: relative;
+  z-index: 5;
+  background: var(--ion-background-color, #fff);
+}
+
+.agenda-slot__time-label {
+  display: block;
+  min-width: 100%;
+}
+
+.agenda-slot__boundary-joint {
+  grid-column: 2;
+  justify-self: center;
+  align-self: center;
+  width: 1px;
+  height: 10px;
+  background: var(--agenda-slot-rule-color);
+  opacity: 0.9;
+}
+
+.agenda-slot__boundary-line-wrap {
+  grid-column: 2 / -1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 1px;
+}
+
+.agenda-slot__boundary-line {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: var(--agenda-slot-rule-color);
+}
+
+.agenda-slot__body-row {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns:
+    var(--agenda-time-col-width)
+    var(--agenda-divider-col-width)
+    minmax(0, 1fr);
+  min-height: var(--agenda-slot-body-height);
+  position: relative;
+  z-index: 1;
+}
+
+.agenda-slot__time-spacer {
+  grid-column: 1;
+}
+
+.agenda-slot__divider {
+  grid-column: 2;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  position: relative;
+}
+
+.agenda-slot__divider-line {
+  width: 1px;
+  height: 100%;
+  background: var(--agenda-slot-rule-color);
+}
+
+.agenda-slot__content {
+  grid-column: 3;
+  display: flex;
+  align-items: stretch;
+  min-height: var(--agenda-slot-body-height);
+  padding-left: var(--app-space-2);
+}
+
+.agenda-slot__body {
+  width: 100%;
+  height: 100%;
+  min-height: var(--agenda-slot-body-height);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--app-space-3);
+  border-radius: var(--app-radius-lg);
+  margin: 0;
+}
+
+.agenda-slot__body--event {
+  justify-content: flex-start;
+  border-left: 3px solid var(--agenda-slot-accent-color, rgba(var(--ion-color-primary-rgb), 0.65));
+}
+
+.agenda-slot__body--empty {
+  background: rgba(var(--ion-color-step-200-rgb), 0.22);
+  box-shadow: inset 0 0 0 1px rgba(var(--ion-color-step-300-rgb), 0.2);
+}
+
+.agenda-slot--current.agenda-slot--empty .agenda-slot__body--empty {
+  background: rgba(var(--ion-color-primary-rgb), 0.12);
+}
+
+.agenda-slot__hint {
+  max-width: 20ch;
+  line-height: 1.3;
+  opacity: 0.78;
+}
+
+.agenda-slot__title {
+  padding: 0;
+}

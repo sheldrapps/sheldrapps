@@ -2,22 +2,288 @@
 
 @include picker-shell.picker-shell();
 
-.picker-sheet--time {
-  max-height: 324px;
+:host {
+  --tp-item-height: 44px;
+  --tp-visible-rows: 5;
+  --tp-track-height: calc(var(--tp-visible-rows) * var(--tp-item-height));
+  --tp-selected-band-offset-y: 0px;
+  --tp-glyph-nudge-y: 0em;
 }
 
-.picker-sheet--time .picker-sheet__body {
-  min-height: 232px;
-  display: flex;
+// ── Trigger button typography for digital time display ─────────────────────
+// Uses standard font with OpenType tabular numbers for consistent digit widths.
+// No monospace hack; font-variant-numeric: tabular-nums ensures alignment.
+.picker-trigger--time {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.picker-trigger--time .app-time-display {
+  --time-display-font-size: 0.96rem;
+  --time-display-digit-slot-width: 0.76em;
+  --time-display-separator-slot-width: 0.56em;
+  --time-display-slot-height: 1em;
+  --time-display-inline-size: calc(
+    (var(--time-display-digit-slot-width) * 4) + var(--time-display-separator-slot-width)
+  );
+
+  display: grid;
+  grid-template-columns:
+    var(--time-display-digit-slot-width)
+    var(--time-display-digit-slot-width)
+    var(--time-display-separator-slot-width)
+    var(--time-display-digit-slot-width)
+    var(--time-display-digit-slot-width);
+  align-items: center;
+  justify-content: center;
+  inline-size: auto;
+  min-inline-size: var(--time-display-inline-size);
+  font-family: 'E1234', sans-serif;
+  font-size: var(--time-display-font-size);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: rgba(var(--ion-color-primary-rgb), 0.72);
+  white-space: nowrap;
+  text-rendering: geometricPrecision;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.picker-trigger--time .app-time-display__slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 100%;
+  block-size: var(--time-display-slot-height);
+}
+
+.picker-trigger--time .app-time-display__slot--separator,
+.picker-trigger--time .app-time-display__separator {
+  transform: translateY(-0.02em);
+}
+
+.picker-trigger--time .app-time-display__slot--empty {
+  opacity: 0;
+}
+
+.picker-trigger__placeholder {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-.time-picker-wheel {
-  --background: transparent;
-  --wheel-highlight-background: rgba(var(--ion-text-color-rgb), 0.08);
-  --wheel-fade-background-rgb: var(--ion-background-color-rgb, 247, 246, 242);
-  width: 100%;
-  min-height: 212px;
-  margin: 4px 0 6px;
+// ── Full-page overlay ───────────────────────────────────────────────────────
+// Sits above the invoking page. The blur is applied here, directly, with no
+// dependency on Shadow DOM or ::backdrop pseudo-element.
+.tp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  // Layer 1: blur + dim on the invoking page via backdrop-filter on the overlay
+  background: rgba(var(--ion-color-step-950-rgb, 0, 0, 0), 0.35);
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+
+  padding: var(--app-space-7);
+}
+
+// ── Picker card ─────────────────────────────────────────────────────────────
+.tp-card {
+  width: min(280px, 100%);
+  background: var(--app-surface, var(--ion-background-color, #fff));
+  border-radius: var(--app-radius-lg, 20px);
+  box-shadow: var(--app-shadow-lg, 0 12px 40px rgba(0, 0, 0, 0.2));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tp-title {
+  font-size: 0.82rem;
+  font-weight: var(--app-font-medium, 500);
+  color: var(--app-text-secondary, var(--ion-color-step-600, #999));
+  text-align: center;
+  padding: var(--app-space-5) var(--app-space-7) 0;
+}
+
+// ── Wheel area ───────────────────────────────────────────────────────────────
+.tp-wheels {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--app-space-5) var(--app-space-7) var(--app-space-4);
+  position: relative;
+  gap: 0;
+}
+
+// Center selection band visible behind both lanes
+.tp-wheels::before {
+  content: '';
+  position: absolute;
+  left: var(--app-space-7);
+  right: var(--app-space-7);
+  top: calc(
+    50% - (var(--tp-item-height) / 2) + var(--tp-selected-band-offset-y)
+  );
+  height: var(--tp-item-height);
+  border-radius: 10px;
+  background: rgba(var(--ion-color-primary-rgb), 0.07);
+  pointer-events: none;
+}
+
+// ── Lane (wrapper provides relative context for fades) ───────────────────────
+.tp-lane {
+  flex: 1;
+  height: var(--tp-track-height);
+  position: relative;
+  overflow: hidden;
+}
+
+// Fade gradients using the surface background color so items dissolve into card
+.tp-lane__fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: calc(var(--tp-item-height) * 2);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.tp-lane__fade--top {
+  top: 0;
+  background: linear-gradient(
+    to bottom,
+    var(--app-surface, var(--ion-background-color, #fff)),
+    transparent
+  );
+}
+
+.tp-lane__fade--bottom {
+  bottom: 0;
+  background: linear-gradient(
+    to top,
+    var(--app-surface, var(--ion-background-color, #fff)),
+    transparent
+  );
+}
+
+// ── Scrollable track ─────────────────────────────────────────────────────────
+.tp-track {
+  height: var(--tp-track-height);
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  outline: none;
+  font-family: 'E1234', sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  text-rendering: geometricPrecision;
+}
+
+.tp-track::-webkit-scrollbar {
+  display: none;
+}
+
+// ── Pad rows (spacers above/below items) ─────────────────────────────────────
+.tp-pad {
+  height: var(--tp-item-height);
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+// ── Item rows ────────────────────────────────────────────────────────────────
+.tp-item {
+  height: var(--tp-item-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  scroll-snap-align: center;
+  position: relative;
+  z-index: 1;
+
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  user-select: none;
+  font-family: 'E1234', sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  text-rendering: geometricPrecision;
+  transform: translateY(var(--tp-glyph-nudge-y));
+
+  // Subdued non-center items
+  color: rgba(var(--ion-color-primary-rgb), 0.28);
+  transition: color 80ms ease, font-size 80ms ease;
+}
+
+// Center item: accent blue matching .time-digital-display source of truth
+.tp-item--center {
+  color: rgba(var(--ion-color-primary-rgb), 0.72);
+  font-size: 1.32rem;
+}
+
+// ── Separator `:` ────────────────────────────────────────────────────────────
+.tp-sep {
+  font-size: 1.5rem;
+  line-height: 1;
+  font-weight: 700;
+  color: rgba(var(--ion-color-primary-rgb), 0.45);
+  padding: 0 var(--app-space-1);
+  user-select: none;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 3; // above lane fades
+  font-family: 'E1234', sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  text-rendering: geometricPrecision;
+  transform: translateY(var(--tp-glyph-nudge-y));
+}
+
+// ── Action buttons ────────────────────────────────────────────────────────────
+.tp-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--app-space-3) var(--app-space-7) var(--app-space-6);
+  gap: var(--app-space-4);
+}
+
+.tp-btn {
+  appearance: none;
+  background: none;
+  border: none;
+  margin: 0;
+  padding: var(--app-space-3) var(--app-space-5);
+  border-radius: var(--app-radius-md, 12px);
+  font-size: 0.88rem;
+  font-weight: var(--app-font-medium, 500);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.tp-btn--cancel {
+  color: var(--app-text-secondary, var(--ion-color-step-600, #999));
+}
+
+.tp-btn--confirm {
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast, #fff);
+  font-weight: 600;
+  min-width: 72px;
+  text-align: center;
 }

@@ -4,6 +4,7 @@
 @forward './edge-to-edge';
 @forward './callouts';
 @forward './icons';
+@use './fonts';
 @use './buttons' as *;
 @use './toast' as *;
 @use './components' as *;

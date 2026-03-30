@@ -1,0 +1,219 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'AGENDA.TITLE' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        fill="clear"
+        (click)="openQuickCreate()"
+        [attr.aria-label]="'TASKS.NEW_TASK' | translate"
+      >
+        <ion-icon name="add-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="app-page agenda-page">
+    @if (loadFailed) {
+      <ion-note color="danger" class="app-state-note agenda-state-note">
+        {{ 'COMMON.ERROR' | translate }}
+      </ion-note>
+    }
+
+    <div class="agenda-controls">
+      <ion-segment [value]="currentView" (ionChange)="onViewModeChange($event)">
+        <ion-segment-button value="day">
+          <ion-label>{{ 'AGENDA.VIEW_DAY' | translate }}</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="month">
+          <ion-label>{{ 'AGENDA.VIEW_MONTH' | translate }}</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="year">
+          <ion-label>{{ 'AGENDA.VIEW_YEAR' | translate }}</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    @if (currentView === 'day') {
+      <div class="agenda-scope-shell">
+        <div class="agenda-scope-header">
+          <ion-button
+            class="agenda-nav-btn"
+            fill="clear"
+            (click)="onDayShift(-1)"
+            [attr.aria-label]="'AGENDA.PREVIOUS' | translate"
+          >
+            <ion-icon name="chevron-back-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+          </ion-button>
+
+          <div class="agenda-scope-title agenda-scope-title--day">
+            <span class="agenda-day-title-weekday">{{ dayHeaderWeekdayLabel }}</span>
+            <span class="agenda-day-title-date">{{ dayHeaderDateLabel }}</span>
+          </div>
+
+          <ion-button
+            class="agenda-nav-btn"
+            fill="clear"
+            (click)="onDayShift(1)"
+            [attr.aria-label]="'AGENDA.NEXT' | translate"
+          >
+            <ion-icon name="chevron-forward-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+          </ion-button>
+        </div>
+
+        <div class="agenda-date-rail app-date-chip-rail" #dateRailRef>
+          @for (day of railDays; track day.key) {
+            <button
+              type="button"
+              class="agenda-date-chip app-date-chip"
+              [class.app-date-chip--today]="day.isToday"
+              [class.app-date-chip--selected]="day.isSelected"
+              (click)="selectRailDay(day)"
+              [attr.aria-label]="fullDateAriaLabel(day.date)"
+            >
+              <span class="agenda-date-chip-weekday app-date-chip__weekday">{{ day.weekdayLabel }}</span>
+              <span class="agenda-date-chip-day app-date-chip__day">{{ day.dayNumberLabel }}</span>
+            </button>
+          }
+        </div>
+
+        @if (daySegments.length > 0) {
+          <div class="agenda-day-view">
+            <div class="agenda-timeline-wrap">
+              <div #timelineRef class="agenda-timeline agenda-segment-list">
+                <sh-day-agenda-timeline
+                  class="agenda-day-timeline"
+                  [boundaries]="dayTimelineBoundaries"
+                  [segments]="dayTimelineSegments"
+                  (segmentClick)="onDayTimelineSegmentClick($event)"
+                ></sh-day-agenda-timeline>
+
+                @if (dayOpenMessageVisible) {
+                  <div class="agenda-day-open-message app-supporting-text">{{ 'AGENDA.DAY_OPEN' | translate }}</div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (dayUntimedTasks.length > 0) {
+          <section class="agenda-untimed-section">
+            <div class="agenda-untimed-title app-section-label">{{ 'AGENDA.UNTIMED_SECTION' | translate }}</div>
+            <div class="agenda-untimed-list">
+              @for (task of dayUntimedTasks; track task.taskId) {
+                <button
+                  type="button"
+                  class="agenda-untimed-item app-task-card app-task-card--compact app-task-card--accented"
+                  [style.--app-accent-border-color]="task.accentBorderColor"
+                  [style.--app-accent-background-color]="task.accentBackgroundColor"
+                  [style.--app-accent-shadow-color]="task.accentBackgroundColor"
+                  (click)="openUntimedTask(task)"
+                >
+                  <span class="agenda-untimed-check app-task-card__leading app-task-card__check" aria-hidden="true">✓</span>
+                  <span class="agenda-untimed-content app-task-card__content">
+                    <span class="agenda-untimed-task-title app-task-card__title">{{ task.title }}</span>
+                  </span>
+                </button>
+              }
+            </div>
+          </section>
+        }
+      </div>
+    } @else if (currentView === 'month') {
+      <div class="agenda-scope-shell">
+        <div class="agenda-scope-header">
+          <ion-button
+            class="agenda-nav-btn"
+            fill="clear"
+            (click)="onMonthShift(-1)"
+            [attr.aria-label]="'AGENDA.PREVIOUS' | translate"
+          >
+            <ion-icon name="chevron-back-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+          </ion-button>
+
+          <div class="agenda-scope-title">{{ monthHeaderLabel }}</div>
+
+          <ion-button
+            class="agenda-nav-btn"
+            fill="clear"
+            (click)="onMonthShift(1)"
+            [attr.aria-label]="'AGENDA.NEXT' | translate"
+          >
+            <ion-icon name="chevron-forward-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+          </ion-button>
+        </div>
+
+        <div class="agenda-month-weekdays" aria-hidden="true">
+          @for (label of monthWeekdayLabels; track label) {
+            <div class="agenda-month-weekday">{{ label }}</div>
+          }
+        </div>
+
+        <div class="agenda-month-grid">
+          @for (cell of monthCells; track cell.key) {
+            @if (cell.date) {
+              <button
+                type="button"
+                class="agenda-month-cell"
+                [class.agenda-month-cell--today]="cell.isToday"
+                [class.agenda-month-cell--selected]="cell.isSelected"
+                [class.agenda-month-cell--with-tasks]="cell.densityLevel > 0"
+                (click)="openDayFromMonth(cell)"
+                [attr.aria-label]="fullDateAriaLabel(cell.date)"
+              >
+                <span class="agenda-month-cell-day">{{ cell.dayNumberLabel }}</span>
+                @if (cell.densityLevel > 0) {
+                  <span class="agenda-month-task-dot" aria-hidden="true"></span>
+                }
+              </button>
+            } @else {
+              <div class="agenda-month-cell-empty" aria-hidden="true"></div>
+            }
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="agenda-scope-shell">
+        <div class="agenda-scope-header">
+          <ion-button
+            class="agenda-nav-btn"
+            fill="clear"
+            (click)="onYearShift(-1)"
+            [attr.aria-label]="'AGENDA.PREVIOUS' | translate"
+          >
+            <ion-icon name="chevron-back-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+          </ion-button>
+
+          <div class="agenda-scope-title">{{ yearHeaderLabel }}</div>
+
+          <ion-button
+            class="agenda-nav-btn"
+            fill="clear"
+            (click)="onYearShift(1)"
+            [attr.aria-label]="'AGENDA.NEXT' | translate"
+          >
+            <ion-icon name="chevron-forward-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+          </ion-button>
+        </div>
+
+        <div class="agenda-year-grid">
+          @for (month of yearMonths; track month.key) {
+            <button
+              type="button"
+              class="app-surface agenda-year-month"
+              [class.agenda-year-month--today]="month.isCurrentMonth"
+              [class.agenda-year-month--selected]="month.isSelectedMonth"
+              (click)="openMonthFromYear(month)"
+            >
+              <span class="agenda-year-month-label">{{ month.monthLabel }}</span>
+              @if (month.densityLevel > 0) {
+                <span class="agenda-density agenda-density--{{ month.densityLevel }}"></span>
+              }
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</ion-content>

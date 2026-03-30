@@ -1,0 +1,166 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/tasks"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ 'TASK_DETAIL.TITLE' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        class="task-toolbar-edit-btn"
+        fill="clear"
+        [routerLink]="['/task', taskId, 'edit']"
+        [disabled]="isSampleTask"
+        [attr.aria-label]="'TASK_DETAIL.EDIT' | translate"
+      >
+        <ion-icon name="create-outline" slot="start" aria-hidden="true"></ion-icon>
+        {{ 'TASK_DETAIL.EDIT' | translate }}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="app-page">
+    @if (loadFailed && !isLoading) {
+      <ion-note color="danger" class="app-state-note task-state-note">
+        {{ 'COMMON.ERROR' | translate }}
+      </ion-note>
+    }
+
+    @if (updateFailed) {
+      <ion-note color="danger" class="app-state-note task-state-note">
+        {{ 'COMMON.ERROR' | translate }}
+      </ion-note>
+    }
+
+    @if (task; as taskDetail) {
+      @if (visualModel; as vm) {
+        <div class="app-sections-stack task-sections-stack">
+          <div class="task-section-list">
+            <div
+              class="app-accent-surface task-section-card"
+              [style.--app-accent-border-color]="taskSurfaceBorderColor"
+              [style.--app-accent-background-color]="taskSurfaceBackgroundColor"
+              [style.--app-accent-shadow-color]="taskSurfaceShadowColor"
+            >
+              <div class="app-accent-card-body task-card-body task-header-card-body">
+                <div class="task-intent-title">{{ vm.title }}</div>
+
+                @if (taskDetail.description) {
+                  <div class="field-subtle task-description-inline">{{ taskDetail.description }}</div>
+                }
+
+                <div class="task-meta-inline task-meta-row--tertiary">
+                  <span>{{ vm.categoryLabel }}</span>
+                  <span class="task-meta-inline-sep">·</span>
+                  <span>{{ 'TASK.PRIORITY.LABEL' | translate }} {{ vm.priorityCode }} · {{ vm.priorityLabel }}</span>
+                  @if (vm.durationLabel) {
+                    <span class="task-meta-inline-sep">·</span>
+                    <span class="app-digital-clock">{{ vm.durationLabel }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="task-section-list">
+            <div
+              class="app-accent-surface task-section-card"
+              [style.--app-accent-border-color]="taskSurfaceBorderColor"
+              [style.--app-accent-background-color]="taskSurfaceBackgroundColor"
+              [style.--app-accent-shadow-color]="taskSurfaceShadowColor"
+            >
+              <div class="app-accent-card-body task-card-body">
+                <div class="schedule-header">
+                  <div class="field-title">{{ 'TASK_DETAIL.SECTION_SCHEDULE' | translate }}</div>
+                </div>
+
+                <div class="schedule-facts">
+                  <div class="schedule-fact-line">
+                    <span class="schedule-fact-label">{{ 'TASK_DETAIL.LABEL_RECURRENCE' | translate }}:</span>
+                    <span class="schedule-fact-value">{{ vm.schedulePatternLabel }}</span>
+                  </div>
+
+                  @if (vm.scheduleRuleLabel) {
+                    <div class="schedule-fact-line">
+                      <span class="schedule-fact-label">{{ 'TASK_DETAIL.LABEL_DAYS' | translate }}:</span>
+                      <span class="schedule-fact-value">{{ vm.scheduleRuleLabel }}</span>
+                    </div>
+                  }
+
+                  <div class="schedule-fact-line">
+                    <span class="schedule-fact-label">{{ 'TASK_DETAIL.LABEL_MAIN_TIME' | translate }}:</span>
+                    <span class="schedule-fact-value app-digital-clock">{{ vm.scheduleTimeLabel }}</span>
+                  </div>
+                </div>
+
+                @if (vm.showPerDayTimes) {
+                  <div class="time-grid">
+                    @for (day of vm.scheduleCells; track day.dayOfWeek) {
+                      @if (day.time) {
+                        <div class="time-cell">
+                          <span class="time-cell-day">{{ day.shortLabel }}</span>
+                          <span class="schedule-fact-value app-digital-clock">{{ day.time }}</span>
+                        </div>
+                      }
+                    }
+                  </div>
+                }
+
+                <div class="schedule-validity-block">
+                  <div class="schedule-validity-title">{{ 'TASK_DETAIL.SECTION_VALIDITY' | translate }}</div>
+                  <div class="schedule-validity-line field-subtle">
+                    <span class="schedule-validity-label">{{ 'TASK_DETAIL.LABEL_FROM_SHORT' | translate }}:</span>
+                    <span class="schedule-validity-item app-digital-clock">{{ vm.validity.startLabel }}</span>
+                    <span class="schedule-validity-sep">·</span>
+                    <span class="schedule-validity-label">{{ 'TASK_DETAIL.LABEL_TO_SHORT' | translate }}:</span>
+                    <span class="schedule-validity-item app-digital-clock">{{ vm.validity.endLabel }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="task-section-list">
+            <div
+              class="app-accent-surface task-section-card"
+              [style.--app-accent-border-color]="taskSurfaceBorderColor"
+              [style.--app-accent-background-color]="taskSurfaceBackgroundColor"
+              [style.--app-accent-shadow-color]="taskSurfaceShadowColor"
+            >
+              <div class="app-accent-card-body task-card-body reminder-card-body">
+                <div class="field-title">{{ 'TASK_DETAIL.SECTION_REMINDER' | translate }}</div>
+
+                @if (!vm.reminderHasNotifications) {
+                  <div class="reminder-none-line">🔕 {{ 'TASK_DETAIL.REMINDER_NONE' | translate }}</div>
+                } @else {
+                  <div class="reminder-inline">
+                    <div class="reminder-type-line">🔔 <span class="reminder-type-name">{{ vm.reminderTypeLabel }}</span></div>
+
+                    @if (vm.reminderOffsets.length > 0) {
+                      <div class="notification-lead-time-options notification-lead-time-options--readonly">
+                        @for (offset of vm.reminderOffsets; track offset.value) {
+                          <ion-button
+                            type="button"
+                            size="small"
+                            fill="outline"
+                            class="lead-time-unselected"
+                            tabindex="-1"
+                          >
+                            {{ offset.displayLabel || (offset.labelKey | translate) }}
+                          </ion-button>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+      }
+    }
+
+  </div>
+</ion-content>

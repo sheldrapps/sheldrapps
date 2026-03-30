@@ -1,0 +1,86 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/tasks"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ 'CATEGORIES.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="app-page categories-page">
+    <div class="categories-create-action">
+      <ion-button class="app-btn" expand="block" [routerLink]="['/categories/new']">
+        {{ 'CATEGORIES.NEW_CATEGORY' | translate }}
+      </ion-button>
+    </div>
+
+    @if (loadFailed) {
+      <ion-note color="danger" class="app-state-note categories-state-note">
+        {{ 'CATEGORIES.ERROR_LOAD' | translate }}
+      </ion-note>
+    }
+
+    @if (deleteFailed) {
+      <ion-note color="danger" class="app-state-note categories-state-note">
+        {{ 'CATEGORIES.ERROR_DELETE' | translate }}
+      </ion-note>
+    }
+
+    @if (!isLoading && !loadFailed && categories.length === 0) {
+      <ion-note class="app-state-note categories-state-note">{{ 'CATEGORIES.EMPTY' | translate }}</ion-note>
+    }
+
+    @if (categories.length > 0) {
+      <div class="app-sections-stack categories-stack">
+        @for (category of categories; track category.id) {
+          <div
+            class="app-accent-surface category-card"
+            [style.--app-accent-border-color]="categoryBorderColor(category)"
+            [style.--app-accent-background-color]="categoryBackgroundColor(category)"
+            [style.--app-accent-shadow-color]="categoryShadowColor(category)"
+          >
+            <div class="app-accent-card-body category-card-body">
+              <div class="category-card-header" [class.category-card-header--with-description]="!!category.description">
+                <div class="category-main">
+                  @if (category.icon) {
+                    <span class="category-icon-wrap" [style.background]="categoryIconBackgroundStyle(category)">
+                      <span class="category-icon">{{ category.icon }}</span>
+                    </span>
+                  }
+                  <span class="category-name">{{ category.name }}</span>
+                </div>
+
+                <div class="category-actions">
+                  <ion-button
+                    fill="clear"
+                    size="small"
+                    [routerLink]="['/categories', category.id, 'edit']"
+                    [attr.aria-label]="'CATEGORIES.EDIT' | translate"
+                  >
+                    <ion-icon name="create-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+                  </ion-button>
+                  <ion-button
+                    fill="clear"
+                    size="small"
+                    color="danger"
+                    (click)="confirmDeleteCategory(category)"
+                    [attr.aria-label]="'CATEGORIES.DELETE' | translate"
+                  >
+                    <ion-icon name="trash-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+                  </ion-button>
+                </div>
+              </div>
+
+              @if (category.description) {
+                <div class="category-description">
+                  {{ category.description }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</ion-content>

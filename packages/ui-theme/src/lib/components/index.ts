@@ -1,3 +1,6 @@
 export * from "./scrollable-button-bar/scrollable-button-bar.component";
 export * from "./editor-panel/editor-panel.component";
 export * from "./save-cover-modal/save-cover-modal.component";
+export * from "./time-display/time-display.component";
+export * from "./agenda-slot/agenda-slot.component";
+export * from "./day-agenda-timeline/day-agenda-timeline.component";

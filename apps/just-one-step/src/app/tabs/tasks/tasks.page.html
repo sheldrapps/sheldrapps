@@ -1,0 +1,103 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'TASKS.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="app-page tasks-page">
+    <div class="tasks-top-actions">
+      <ion-button class="app-btn" expand="block" [routerLink]="['/task/new']">
+        {{ 'TASKS.NEW_TASK' | translate }}
+      </ion-button>
+      <ion-button class="app-btn" fill="outline" expand="block" [routerLink]="['/categories']">
+        {{ 'TASKS.MANAGE_CATEGORIES' | translate }}
+      </ion-button>
+    </div>
+
+    @if (loadFailed) {
+      <ion-note color="danger" class="tasks-state-note">
+        {{ 'COMMON.ERROR' | translate }}
+      </ion-note>
+    }
+
+    @if (deleteFailed) {
+      <ion-note color="danger" class="tasks-state-note">
+        {{ 'COMMON.ERROR' | translate }}
+      </ion-note>
+    }
+
+    @if (!isLoading && tasks.length === 0) {
+      <ion-note class="tasks-state-note">{{ 'TASKS.PLACEHOLDER' | translate }}</ion-note>
+    }
+
+    @if (tasks.length > 0) {
+      <div class="tasks-list-stack">
+        @for (task of tasks; track task.id) {
+          <div
+            class="app-accent-surface task-list-card"
+            [style.--app-accent-border-color]="taskBorderStyle(task)"
+            [style.--app-accent-background-color]="taskBackgroundStyle(task)"
+            [style.--app-accent-shadow-color]="taskShadowStyle(task)"
+          >
+            <div class="task-list-card-body">
+              <div class="task-list-card-header">
+                <div class="task-list-main">
+                  <div class="task-list-title">{{ taskDisplayTitle(task) }}</div>
+                  @if (taskMetaLabel(task); as metaLabel) {
+                    <div class="task-list-meta">{{ metaLabel }}</div>
+                  }
+                </div>
+
+                <div class="task-list-actions">
+                  <ion-button
+                    class="task-list-action-btn"
+                    fill="clear"
+                    size="small"
+                    [routerLink]="['/tasks/view', task.id]"
+                    [attr.aria-label]="'TASK_DETAIL.TITLE' | translate"
+                  >
+                    <ion-icon name="eye-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+                  </ion-button>
+                  <ion-button
+                    class="task-list-action-btn"
+                    fill="clear"
+                    size="small"
+                    [routerLink]="['/tasks/view', task.id]"
+                    [queryParams]="{ mode: 'edit' }"
+                    [disabled]="task.isSample"
+                    [attr.aria-label]="'TASK_DETAIL.EDIT' | translate"
+                  >
+                    <ion-icon name="create-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+                  </ion-button>
+                  <ion-button
+                    class="task-list-action-btn task-list-action-btn--danger"
+                    fill="clear"
+                    size="small"
+                    [disabled]="task.isSample"
+                    (click)="confirmDeleteTask(task)"
+                    [attr.aria-label]="'COMMON.DELETE' | translate"
+                  >
+                    <ion-icon name="trash-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+                  </ion-button>
+                </div>
+              </div>
+
+              @if (task.description) {
+                <div class="task-list-description">
+                  {{ task.description }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <div class="tasks-progress-action">
+      <ion-button class="app-btn" fill="outline" expand="block" [routerLink]="['/progress']">
+        {{ 'TASKS.OPEN_PROGRESS' | translate }}
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

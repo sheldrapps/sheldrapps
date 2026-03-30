@@ -1,0 +1,192 @@
+:host {
+  display: block;
+}
+
+.agenda-day-timeline {
+  --agenda-time-col-width: 3.75rem;
+  --agenda-divider-col-width: 1rem;
+  --agenda-content-gap: var(--app-space-1);
+  --agenda-boundary-row-height: 24px;
+  --agenda-rule-color: rgba(var(--ion-color-step-500-rgb, 174, 183, 201), 0.34);
+
+  position: relative;
+  display: grid;
+  grid-template-columns:
+    var(--agenda-time-col-width)
+    var(--agenda-divider-col-width)
+    minmax(0, 1fr);
+  row-gap: 0;
+  column-gap: 0;
+  isolation: isolate;
+}
+
+.agenda-day-timeline::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--agenda-boundary-row-height) / 2);
+  bottom: calc(var(--agenda-boundary-row-height) / 2);
+  left: calc(
+    var(--agenda-time-col-width) + (var(--agenda-divider-col-width) / 2)
+  );
+  width: 1px;
+  transform: translateX(-50%);
+  background: rgba(var(--ion-color-step-500-rgb, 174, 183, 201), 0.34);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.agenda-day-timeline__boundary-row,
+.agenda-day-timeline__body-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: inherit;
+  column-gap: 0;
+}
+
+.agenda-day-timeline__boundary-row {
+  min-height: var(--agenda-boundary-row-height);
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.agenda-day-timeline__time {
+  grid-column: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-right: var(--app-space-2);
+  position: relative;
+  z-index: 3;
+  background: var(--ion-background-color, #fff);
+}
+
+.agenda-day-timeline__time::after {
+  content: '';
+  position: absolute;
+  right: calc(-1 * var(--agenda-divider-col-width));
+  top: 50%;
+  width: var(--agenda-divider-col-width);
+  height: 1px;
+  transform: translateY(-50%);
+  background: var(--agenda-rule-color);
+}
+
+.agenda-day-timeline__time-label {
+  display: block;
+  min-width: 100%;
+}
+
+.agenda-day-timeline__ruler {
+  grid-column: 2 / -1;
+  display: flex;
+  align-self: center;
+  align-items: center;
+  height: 1px;
+  z-index: 2;
+}
+
+.agenda-day-timeline__ruler-line {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: var(--agenda-rule-color);
+}
+
+.agenda-day-timeline__body-row {
+  --agenda-body-row-height: 32px;
+
+  min-height: var(--agenda-body-row-height);
+  align-items: stretch;
+  position: relative;
+  z-index: 1;
+}
+
+.agenda-day-timeline__time-spacer {
+  grid-column: 1;
+  min-height: var(--agenda-body-row-height);
+}
+
+.agenda-day-timeline__divider {
+  grid-column: 2;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.agenda-day-timeline__divider-line {
+  width: 1px;
+  height: 100%;
+  background: transparent;
+}
+
+.agenda-day-timeline__content {
+  grid-column: 3;
+  min-height: var(--agenda-body-row-height);
+  display: flex;
+  align-items: stretch;
+  padding-left: var(--agenda-content-gap);
+}
+
+.agenda-day-timeline__event-grid {
+  width: 100%;
+  min-height: var(--agenda-body-row-height);
+  display: grid;
+  grid-template-columns: repeat(var(--agenda-event-columns, 1), minmax(0, 1fr));
+  align-items: stretch;
+  gap: var(--app-space-1);
+  min-width: 0;
+}
+
+.agenda-day-timeline__event-grid > * {
+  min-width: 0;
+}
+
+.agenda-day-timeline__body {
+  width: 100%;
+  min-height: var(--agenda-body-row-height);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0 var(--app-space-2);
+  border-radius: var(--app-radius-lg);
+}
+
+.agenda-day-timeline__body--event {
+  justify-content: flex-start;
+  border-left: 3px solid var(--app-accent-border-color, rgba(var(--ion-color-primary-rgb), 0.65));
+}
+
+.agenda-day-timeline__body--empty {
+  background: rgba(var(--ion-color-step-200-rgb, 226, 228, 234), 0.16);
+  box-shadow: inset 0 0 0 1px rgba(var(--ion-color-step-300-rgb, 213, 217, 225), 0.18);
+}
+
+.agenda-day-timeline__hint {
+  max-width: 20ch;
+  line-height: 1.3;
+  opacity: 0.78;
+}
+
+.agenda-day-timeline__title {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0;
+}
+
+.agenda-day-timeline__overflow {
+  border-radius: var(--app-radius-lg);
+  border: 1px dashed rgba(var(--ion-color-step-500-rgb, 174, 183, 201), 0.45);
+  background: rgba(var(--ion-color-step-200-rgb, 226, 228, 234), 0.18);
+  color: rgba(var(--ion-color-step-850-rgb, 50, 55, 68), 0.92);
+  font: var(--app-font-label-sm);
+  justify-content: center;
+  cursor: pointer;
+}

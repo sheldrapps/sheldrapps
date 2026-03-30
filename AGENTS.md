@@ -26,6 +26,29 @@ Before adding code in any app, check kits first.
 
 When in doubt, default to kits and only keep app-specific wiring in `apps/*`.
 
+## Reuse Promotion Rule (Critical)
+
+- Any element with cross-app reuse potential must be promoted to a shared implementation.
+- If the user says "hazlo como en..." (or equivalent), treat that as an explicit signal to extract and reuse.
+- If a pattern appears in more than one app, do not duplicate it again in `apps/*`.
+- Reusable UI must be extracted to `packages/ui-theme` (component, utility, token, or shared style).
+- Reusable non-visual behavior must be extracted to the corresponding kit under `packages/*`.
+- App code should only keep thin integration and host-specific wiring.
+- If extraction is blocked by scope, stop and report the blocker instead of shipping a new duplicated implementation.
+
+## Architecture And Code Quality Rule (Critical)
+
+- New and modified code must follow SOLID principles.
+- Apply Clean Code defaults: small focused functions, intention-revealing naming, and low cyclomatic/cognitive complexity.
+- Avoid god functions and deep branching; prefer composition and explicit collaborators.
+- Respect Clean Architecture boundaries:
+  - domain logic isolated from framework/IO details,
+  - app layers depend inward on abstractions,
+  - adapters/infrastructure stay at the edges.
+- Prefer dependency inversion for external services and platform APIs.
+- Any touched "complex" function should be simplified in the same change when feasible (extract methods, split responsibilities, reduce nesting).
+- If simplification cannot be completed safely in scope, add a short TODO with reason and propose the next extraction step in the final report.
+
 ## SCSS Rule
 
 - Do not add new SCSS files in apps by default.
@@ -71,6 +94,71 @@ Standard new app baseline:
 - `pnpm test` passes.
 - `pnpm lint` passes.
 - `pnpm build` passes.
+
+## Execution Protocol (Anti-Loop)
+
+### Scope Lock (Mandatory before edits)
+
+- Define target scope before coding: affected app/kit, acceptance criteria, and explicit non-goals.
+- Keep plan short (max 3 steps) and execute smallest-diff-first.
+- Avoid opportunistic refactors outside scope unless required for correctness.
+
+### Requirement Clarification Gate (Mandatory)
+
+- If the request is vague, ambiguous, or underspecified, do not make behavioral decisions implicitly.
+- Ask concise blocking questions until scope, acceptance criteria, constraints, and expected output are explicit.
+- Do not start implementation until those answers are available, except for clearly reversible preparation work.
+- Before coding, restate the agreed requirement in a short checklist and use it as the implementation contract.
+
+### Retry Cap (Hard Stop)
+
+- If the same error or failure repeats 2 times, stop blind retries.
+- Report root cause hypothesis and provide exactly 2 concrete options with tradeoffs.
+- Do not keep rerunning expensive/global commands without a material code or config change.
+
+### Validation Ladder (Time/Token Efficiency)
+
+- Validate local/focused scope first (changed file/module/app).
+- Run global workspace validations (`pnpm lint`, `pnpm test`, `pnpm build`) once near the end, when required by Definition Of Done.
+- Do not run full-monorepo validations early when the change is still unstable.
+
+### Escalation Gate
+
+- If a decision has non-obvious behavioral impact, ask one concise blocking question before proceeding.
+- If impact is low, choose the minimal safe assumption and continue.
+
+### Risk And Failure Disclosure (Mandatory)
+
+- For non-trivial changes, explicitly report key risks and likely failure modes before or during implementation.
+- Include at least: functional risk, regression risk, performance risk, and integration risk.
+- For each identified risk, state mitigation or validation strategy.
+- Never close a task without disclosing unresolved risks.
+
+### Proof-Of-Work Output (Mandatory)
+
+- Every completion report must include:
+  - files changed,
+  - commands run and pass/fail status,
+  - pending risks or follow-ups.
+- Without this block, the task is not considered complete.
+
+### Teaching Mode In Delivery (Mandatory)
+
+- Delivery is not only execution; it must also teach the reasoning behind the implementation.
+- Whenever a change includes RxJS (streams, operators, subscriptions) or any external library, the final report must explain:
+  - what each relevant primitive/operator/library is for,
+  - why it was chosen over alternatives,
+  - subscription lifecycle strategy and leak prevention,
+  - expected data flow and error-handling behavior.
+- For architecture-relevant changes, explain boundaries, responsibilities, and dependency direction.
+- For algorithmic changes, explain the algorithm used, why it fits, and relevant complexity/tradeoffs when applicable.
+- Explanations must be concrete and tied to the exact code that was changed, so the report can be used as study material.
+
+### Token Budget Rule
+
+- Prefer targeted reads/searches (`rg`, focused file snippets, diffs) over repeated full-file dumps.
+- Do not re-read unchanged files repeatedly.
+- Minimize command/output repetition when prior output already answers the question.
 
 ## Android Device Install Rule
 

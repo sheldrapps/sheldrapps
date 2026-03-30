@@ -1,0 +1,97 @@
+.tasks-page {
+	display: grid;
+	gap: var(--app-space-5);
+	padding: var(--app-space-8) var(--app-space-7) var(--app-space-8);
+}
+
+.tasks-top-actions {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--app-space-3);
+}
+
+.tasks-state-note {
+	display: block;
+	margin: 0;
+}
+
+.tasks-list-stack {
+	display: grid;
+	gap: var(--app-space-5);
+}
+
+.task-list-card {
+	margin: 0;
+}
+
+.task-list-card-body {
+	display: grid;
+	gap: var(--app-space-2);
+	padding: var(--app-space-6) var(--app-space-7);
+}
+
+.task-list-card-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--app-space-2);
+}
+
+.task-list-main {
+	display: grid;
+	gap: var(--app-space-1);
+	min-width: 0;
+	flex: 1;
+}
+
+.task-list-title {
+	font-weight: var(--app-font-semibold);
+	line-height: 1.35;
+	word-break: break-word;
+}
+
+.task-list-meta {
+	font-size: var(--app-text-sm);
+	font-weight: var(--app-font-medium);
+	line-height: 1.3;
+	opacity: 0.72;
+}
+
+.task-list-actions {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--app-space-1);
+	flex: 0 0 auto;
+}
+
+.task-list-action-btn {
+	--color: rgba(var(--ion-color-step-700-rgb), 0.66);
+	--padding-start: var(--app-space-1);
+	--padding-end: var(--app-space-1);
+	opacity: 0.88;
+	min-width: 2.25rem;
+	min-height: 2.25rem;
+}
+
+.task-list-action-btn ion-icon {
+	font-size: 1rem;
+}
+
+.task-list-action-btn--danger {
+	--color: rgba(var(--ion-color-danger-rgb), 0.72);
+}
+
+.task-list-action-btn:disabled {
+	opacity: 0.4;
+}
+
+.task-list-description {
+	margin-top: var(--app-space-1);
+	line-height: 1.35;
+	opacity: 0.82;
+}
+
+.tasks-progress-action {
+	margin-top: var(--app-space-4);
+}
+

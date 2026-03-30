@@ -5,58 +5,132 @@
 
   <button
     type="button"
-    class="picker-trigger"
-    [class.picker-trigger--placeholder]="!value"
+    class="picker-trigger picker-trigger--time"
+    [class.picker-trigger--placeholder]="!hasValue"
     [disabled]="disabled"
     (click)="open()"
   >
-    {{ displayValue }}
+    @if (hasValue) {
+      <span
+        class="app-time-display app-time-display--md app-time-display--accent app-time-display--center"
+        aria-hidden="true"
+      >
+        @for (slot of timeDisplaySlots; track $index) {
+          <span
+            class="app-time-display__slot"
+            [class.app-time-display__slot--digit]="slot.kind === 'digit'"
+            [class.app-time-display__slot--separator]="slot.kind === 'separator'"
+            [class.app-time-display__separator]="slot.kind === 'separator'"
+            [class.app-time-display__slot--empty]="slot.kind === 'digit' && !slot.value"
+          >
+            {{ slot.value }}
+          </span>
+        }
+      </span>
+    } @else {
+      <span class="picker-trigger__placeholder app-digital-clock">{{ displayValue }}</span>
+    }
   </button>
 </div>
 
-<ion-modal
-  class="picker-modal"
-  [isOpen]="isOpen"
-  [breakpoints]="sheetBreakpoints"
-  [initialBreakpoint]="sheetInitialBreakpoint"
-  [backdropDismiss]="true"
-  (didDismiss)="onModalDismiss()"
->
-  <ng-template>
-    <div class="picker-sheet picker-sheet--time">
-      <div class="picker-sheet__handle"></div>
+@if (isOpen) {
+  <!-- Full-page overlay: blur layer + card -->
+  <div
+    class="tp-overlay"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="resolvedDialogAriaLabel"
+    (click)="onOverlayClick($event)"
+    (keydown.escape)="cancel()"
+  >
+    <div class="tp-card" (click)="$event.stopPropagation()">
 
       @if (label) {
-        <div class="picker-sheet__title">{{ label }}</div>
+        <div class="tp-title">{{ label }}</div>
       }
 
-      <div class="picker-sheet__body">
-        <ion-datetime
-          class="time-picker-wheel"
-          presentation="time"
-          hour-cycle="h23"
-          [preferWheel]="true"
-          [showDefaultButtons]="false"
-          [locale]="locale"
-          [value]="draftValue"
-          (ionChange)="onDatetimeChange($event)"
-        ></ion-datetime>
-      </div>
+      <!-- Wheel lanes -->
+      <div class="tp-wheels">
 
-      <div class="picker-sheet__actions">
-        <ion-button
+        <!-- Hour lane -->
+        <div class="tp-lane" [attr.aria-label]="resolvedHoursAriaLabel">
+          <div class="tp-lane__fade tp-lane__fade--top" aria-hidden="true"></div>
+          <div
+            class="tp-track"
+            #hourTrack
+            role="listbox"
+            tabindex="0"
+            [attr.aria-label]="resolvedHoursAriaLabel"
+            (scroll)="onHourScroll()"
+            (keydown)="onHourKey($event)"
+          >
+            @for (_ of pads; track $index) {
+              <div class="tp-pad" aria-hidden="true"></div>
+            }
+            @for (h of hours; track h.value) {
+              <div
+                class="tp-item app-digital-clock"
+                role="option"
+                [class.tp-item--center]="h.value === centerHour"
+                [attr.aria-selected]="h.value === centerHour"
+              >{{ h.label }}</div>
+            }
+            @for (_ of pads; track $index) {
+              <div class="tp-pad" aria-hidden="true"></div>
+            }
+          </div>
+          <div class="tp-lane__fade tp-lane__fade--bottom" aria-hidden="true"></div>
+        </div>
+
+        <!-- Separator -->
+        <div class="tp-sep app-digital-clock" aria-hidden="true">:</div>
+
+        <!-- Minute lane -->
+        <div class="tp-lane" [attr.aria-label]="resolvedMinutesAriaLabel">
+          <div class="tp-lane__fade tp-lane__fade--top" aria-hidden="true"></div>
+          <div
+            class="tp-track"
+            #minuteTrack
+            role="listbox"
+            tabindex="0"
+            [attr.aria-label]="resolvedMinutesAriaLabel"
+            (scroll)="onMinuteScroll()"
+            (keydown)="onMinuteKey($event)"
+          >
+            @for (_ of pads; track $index) {
+              <div class="tp-pad" aria-hidden="true"></div>
+            }
+            @for (m of minutes; track m.value) {
+              <div
+                class="tp-item app-digital-clock"
+                role="option"
+                [class.tp-item--center]="m.value === centerMinute"
+                [attr.aria-selected]="m.value === centerMinute"
+              >{{ m.label }}</div>
+            }
+            @for (_ of pads; track $index) {
+              <div class="tp-pad" aria-hidden="true"></div>
+            }
+          </div>
+          <div class="tp-lane__fade tp-lane__fade--bottom" aria-hidden="true"></div>
+        </div>
+
+      </div><!-- /tp-wheels -->
+
+      <!-- Actions -->
+      <div class="tp-actions">
+        <button
           type="button"
-          fill="clear"
-          class="picker-sheet__cancel"
+          class="tp-btn tp-btn--cancel"
           (click)="cancel()"
-        >
-          {{ cancelText }}
-        </ion-button>
-
-        <ion-button type="button" class="picker-sheet__done" (click)="confirm()">
-          {{ doneText }}
-        </ion-button>
+        >{{ cancelText }}</button>
+        <button
+          type="button"
+          class="tp-btn tp-btn--confirm"
+          (click)="confirm()"
+        >{{ doneText }}</button>
       </div>
-    </div>
-  </ng-template>
-</ion-modal>
+
+    </div><!-- /tp-card -->
+  </div><!-- /tp-overlay -->
+}
