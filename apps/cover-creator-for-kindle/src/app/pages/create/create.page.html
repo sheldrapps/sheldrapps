@@ -384,11 +384,12 @@
     </ng-template>
   </ion-modal>
 
-  <ion-loading
-    [isOpen]="isPickingImage || isExporting"
-    [message]="loadingMessageKey ? (loadingMessageKey | translate) : undefined"
-    backdropDismiss="false"
-  ></ion-loading>
+  @if (isPickingImage || isExporting) {
+    <sh-loading-state
+      variant="fullscreen"
+      [label]="(loadingMessageKey || 'COMMON.LOADING') | translate"
+    ></sh-loading-state>
+  }
 
   <app-tour-overlay></app-tour-overlay>
 

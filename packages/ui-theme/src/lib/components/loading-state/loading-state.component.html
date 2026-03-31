@@ -1,0 +1,17 @@
+<div [ngClass]="rootClassMap" aria-live="polite" role="status">
+  <div class="sh-loading-state__card">
+    <ion-spinner [name]="spinnerName"></ion-spinner>
+
+    @if (label) {
+      <div class="sh-loading-state__label">
+        {{ label }}
+      </div>
+    }
+
+    @if (detail) {
+      <div class="sh-loading-state__detail">
+        {{ detail }}
+      </div>
+    }
+  </div>
+</div>

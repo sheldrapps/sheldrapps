@@ -1,5 +1,16 @@
 ﻿import { CommonModule } from '@angular/common';
-import { Component, ElementRef, OnDestroy, ViewChild, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ComponentRef,
+  ElementRef,
+  OnDestroy,
+  Type,
+  ViewChild,
+  ViewContainerRef,
+  ViewEncapsulation,
+  inject,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import {
   IonButton,
@@ -7,20 +18,26 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
-  IonLabel,
   IonNote,
-  IonSegment,
-  IonSegmentButton,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
-  DayAgendaTimelineComponent,
+  LoadingStateComponent,
   type DayAgendaTimelineBoundary,
   type DayAgendaTimelineHeightTier,
   type DayAgendaTimelineSegment,
 } from '@sheldrapps/ui-theme';
+import {
+  formatCalendarDate,
+  getDeviceTimezone,
+  getWeekday,
+  isAfter,
+  isBefore,
+  parseCalendarDate,
+  toCalendarDate,
+} from '../../shared/calendar';
 import { addIcons } from 'ionicons';
 import {
   addOutline,
@@ -30,8 +47,11 @@ import {
 import {
   PersistedTaskAggregate,
   TaskPriority,
+  TaskMonthDayCategorySummary,
   TaskRepository,
 } from '../../database/repositories/task.repository';
+import { Subscription } from 'rxjs';
+import { AgendaControlsComponent } from './components/agenda-controls.component';
 
 type AgendaViewMode = 'day' | 'month' | 'year';
 interface AgendaTimelineTask {
@@ -50,7 +70,7 @@ interface AgendaTimelineTask {
   accentShadowColor: string;
 }
 
-interface AgendaUntimedTask {
+export interface AgendaUntimedTask {
   taskId: string;
   title: string;
   description: string | null;
@@ -105,7 +125,12 @@ interface AgendaDayTimelineViewModel {
   segments: DayAgendaTimelineSegment[];
 }
 
-interface AgendaRailDay {
+interface AgendaMonthDayTaskSummary {
+  taskCount: number;
+  categoryDotColors: string[];
+}
+
+export interface AgendaRailDay {
   key: string;
   date: Date;
   weekdayLabel: string;
@@ -115,17 +140,22 @@ interface AgendaRailDay {
   isSelected: boolean;
 }
 
-interface AgendaMonthCell {
+export interface AgendaMonthCell {
   key: string;
   date: Date | null;
   dayNumberLabel: string;
   densityLevel: number;
+  categoryDotColors: string[];
+  categoryDotTopColors: string[];
+  categoryDotMiddleColors: string[];
+  categoryDotBottomColors: string[];
+  categoryDotOverflow: number;
   isToday: boolean;
   isSelected: boolean;
   isCurrentMonth: boolean;
 }
 
-interface AgendaYearMonth {
+export interface AgendaYearMonth {
   key: string;
   monthIndex: number;
   monthLabel: string;
@@ -145,12 +175,16 @@ const EVENT_SEGMENT_HEIGHT_MD_PX = 40;
 const EVENT_SEGMENT_HEIGHT_LG_PX = 48;
 const DEFAULT_GAP_DURATION_MIN = 30;
 const DAY_RAIL_RANGE = 4;
+const MONTH_DOT_MAX_VISIBLE = 9;
+const MONTH_DOT_VISIBLE_WITH_OVERFLOW = 8;
+const MONTH_DOT_ROW_CAPACITY = 3;
 
 @Component({
   standalone: true,
   selector: 'app-agenda',
   templateUrl: './agenda.page.html',
   styleUrls: ['./agenda.page.scss'],
+  encapsulation: ViewEncapsulation.None,
   imports: [
     CommonModule,
     IonHeader,
@@ -160,15 +194,13 @@ const DAY_RAIL_RANGE = 4;
     IonContent,
     IonButton,
     IonIcon,
-    IonSegment,
-    IonSegmentButton,
-    IonLabel,
     IonNote,
     TranslateModule,
-    DayAgendaTimelineComponent,
+    LoadingStateComponent,
+    AgendaControlsComponent,
   ],
 })
-export class AgendaPage implements OnDestroy {
+export class AgendaPage implements AfterViewInit, OnDestroy {
   private readonly taskRepository = inject(TaskRepository);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
@@ -182,11 +214,23 @@ export class AgendaPage implements OnDestroy {
   @ViewChild(IonContent)
   private content?: IonContent;
 
-  @ViewChild('timelineRef')
-  private timelineRef?: ElementRef<HTMLElement>;
+  @ViewChild(IonContent, { read: ElementRef })
+  private contentElementRef?: ElementRef<HTMLElement>;
 
-  @ViewChild('dateRailRef')
-  private dateRailRef?: ElementRef<HTMLElement>;
+  @ViewChild('agendaViewHost', { read: ViewContainerRef })
+  private agendaViewHost?: ViewContainerRef;
+
+  private viewRef: ComponentRef<unknown> | null = null;
+  private viewRefMode: AgendaViewMode | null = null;
+  private viewRenderToken = 0;
+  private dayRenderRecoveryToken = 0;
+  private viewSubscriptions: Subscription[] = [];
+  private readonly lazyViewCache = new Map<AgendaViewMode, Type<unknown>>();
+  private readonly monthSummaryCache = new Map<
+    string,
+    Map<string, AgendaMonthDayTaskSummary>
+  >();
+  private readonly monthSummaryLoading = new Set<string>();
 
   currentView: AgendaViewMode = 'day';
   selectedDate = this.dateAtLocalNoon(new Date());
@@ -262,54 +306,87 @@ export class AgendaPage implements OnDestroy {
   }
 
   async ionViewWillEnter(): Promise<void> {
+    this.beginLoadingOverlay();
     this.selectedDate = this.dateAtLocalNoon(new Date());
     this.startNowTicker();
-    await this.loadAgendaTasks();
-    this.queueScrollNearNow();
-    this.queueScrollRailToToday();
+    try {
+      await this.loadAgendaTasks();
+      await this.ensureMonthSummaryForDate(this.selectedDate);
+      this.queueScrollNearNow();
+      this.queueScrollRailToToday();
+    } finally {
+      this.endLoadingOverlay();
+    }
+  }
+
+  ngAfterViewInit(): void {
+    this.renderCurrentView();
   }
 
   ionViewDidLeave(): void {
     this.stopNowTicker();
   }
 
+  ionViewDidEnter(): void {
+    this.renderCurrentView();
+    this.scheduleDayRenderRecovery();
+  }
+
   ngOnDestroy(): void {
+    this.destroyRenderedView();
     this.stopNowTicker();
   }
 
-  onViewModeChange(event: CustomEvent): void {
-    const nextView = `${event.detail?.value ?? ''}`;
-    if (!this.isAgendaViewMode(nextView)) {
+  onViewModeSelected(nextView: AgendaViewMode): void {
+    this.currentView = nextView;
+    this.renderCurrentView();
+    if (nextView === 'month') {
+      void this.ensureMonthSummaryForDate(this.selectedDate);
+    }
+  }
+
+  onScopeShift(delta: number): void {
+    if (this.currentView === 'day') {
+      this.onDayShift(delta);
       return;
     }
 
-    this.currentView = nextView;
-    if (nextView === 'day') {
-      this.queueScrollNearNow();
-      this.queueScrollRailToToday();
+    if (this.currentView === 'month') {
+      this.onMonthShift(delta);
+      return;
     }
+
+    this.onYearShift(delta);
   }
 
   onDayShift(deltaDays: number): void {
+    const previousDate = this.selectedDate;
     this.selectedDate = this.addDays(this.selectedDate, deltaDays);
     this.refreshViewModels();
     this.queueScrollNearNow();
+    this.queueMonthSummaryLoad(previousDate, this.selectedDate);
   }
 
   onMonthShift(deltaMonths: number): void {
+    const previousDate = this.selectedDate;
     this.selectedDate = this.shiftMonth(this.selectedDate, deltaMonths);
     this.refreshViewModels();
+    this.queueMonthSummaryLoad(previousDate, this.selectedDate);
   }
 
   onYearShift(deltaYears: number): void {
+    const previousDate = this.selectedDate;
     this.selectedDate = this.shiftYear(this.selectedDate, deltaYears);
     this.refreshViewModels();
+    this.queueMonthSummaryLoad(previousDate, this.selectedDate);
   }
 
   selectRailDay(day: AgendaRailDay): void {
+    const previousDate = this.selectedDate;
     this.selectedDate = this.cloneDate(day.date);
     this.refreshViewModels();
     this.queueScrollNearNow();
+    this.queueMonthSummaryLoad(previousDate, this.selectedDate);
     if (day.isToday) {
       this.queueScrollRailToToday();
     }
@@ -320,16 +397,20 @@ export class AgendaPage implements OnDestroy {
       return;
     }
 
+    const previousDate = this.selectedDate;
     this.selectedDate = this.cloneDate(cell.date);
     this.currentView = 'day';
     this.refreshViewModels();
     this.queueScrollNearNow();
+    this.queueMonthSummaryLoad(previousDate, this.selectedDate);
   }
 
   openMonthFromYear(month: AgendaYearMonth): void {
+    const previousDate = this.selectedDate;
     this.selectedDate = this.withMonth(this.selectedDate, month.monthIndex);
     this.currentView = 'month';
     this.refreshViewModels();
+    this.queueMonthSummaryLoad(previousDate, this.selectedDate);
   }
 
   async openQuickCreate(): Promise<void> {
@@ -377,6 +458,161 @@ export class AgendaPage implements OnDestroy {
     void this.openTask(source.task);
   }
 
+  private renderCurrentView(): void {
+    const host = this.agendaViewHost;
+    if (!host) {
+      return;
+    }
+
+    const mode = this.currentView;
+    const cachedComponent = this.lazyViewCache.get(mode);
+    if (cachedComponent) {
+      this.applyResolvedView(mode, cachedComponent);
+      return;
+    }
+
+    const renderToken = ++this.viewRenderToken;
+    void this.resolveViewComponent(mode).then((componentType) => {
+      if (renderToken !== this.viewRenderToken || !this.agendaViewHost) {
+        return;
+      }
+
+      this.applyResolvedView(mode, componentType);
+    });
+  }
+
+  private async resolveViewComponent(mode: AgendaViewMode): Promise<Type<unknown>> {
+    const cached = this.lazyViewCache.get(mode);
+    if (cached) {
+      return cached;
+    }
+
+    let componentType: Type<unknown>;
+    switch (mode) {
+      case 'day': {
+        componentType = (await import('./components/agenda-day.component')).AgendaDayComponent;
+        break;
+      }
+      case 'month': {
+        componentType = (await import('./components/agenda-month.component')).AgendaMonthComponent;
+        break;
+      }
+      default: {
+        componentType = (await import('./components/agenda-year.component')).AgendaYearComponent;
+        break;
+      }
+    }
+
+    this.lazyViewCache.set(mode, componentType);
+    return componentType;
+  }
+
+  private applyResolvedView(mode: AgendaViewMode, componentType: Type<unknown>): void {
+    if (!this.viewRef || this.viewRefMode !== mode) {
+      this.destroyRenderedView();
+      this.viewRef = this.agendaViewHost?.createComponent(componentType) ?? null;
+      this.viewRefMode = mode;
+      if (!this.viewRef) {
+        return;
+      }
+
+      this.bindViewOutputs(mode, this.viewRef.instance as Record<string, unknown>);
+    }
+
+    this.bindViewInputs(mode);
+
+    if (mode === 'day') {
+      this.queueScrollNearNow();
+      this.queueScrollRailToToday();
+    }
+  }
+
+  private bindViewInputs(mode: AgendaViewMode): void {
+    if (!this.viewRef) {
+      return;
+    }
+
+    switch (mode) {
+      case 'day': {
+        this.viewRef.setInput('activeLocale', this.activeLocale);
+        this.viewRef.setInput('railDays', this.railDays);
+        this.viewRef.setInput('daySegments', this.daySegments);
+        this.viewRef.setInput('dayTimelineBoundaries', this.dayTimelineBoundaries);
+        this.viewRef.setInput('dayTimelineSegments', this.dayTimelineSegments);
+        this.viewRef.setInput('dayOpenMessageVisible', this.dayOpenMessageVisible);
+        this.viewRef.setInput('dayUntimedTasks', this.dayUntimedTasks);
+        break;
+      }
+      case 'month': {
+        this.viewRef.setInput('activeLocale', this.activeLocale);
+        this.viewRef.setInput('monthWeekdayLabels', this.monthWeekdayLabels);
+        this.viewRef.setInput('monthCells', this.monthCells);
+        break;
+      }
+      default: {
+        this.viewRef.setInput('yearMonths', this.yearMonths);
+        break;
+      }
+    }
+  }
+
+  private bindViewOutputs(mode: AgendaViewMode, instance: Record<string, unknown>): void {
+    this.clearViewSubscriptions();
+
+    if (mode === 'day') {
+      const selectRailDay = instance['selectRailDay'] as {
+        subscribe: (cb: (day: AgendaRailDay) => void) => Subscription;
+      };
+      const timelineSegmentClick = instance['timelineSegmentClick'] as {
+        subscribe: (cb: (segment: DayAgendaTimelineSegment) => void) => Subscription;
+      };
+      const openUntimedTask = instance['openUntimedTask'] as {
+        subscribe: (cb: (task: AgendaUntimedTask) => void) => Subscription;
+      };
+
+      this.viewSubscriptions.push(selectRailDay.subscribe((day) => this.selectRailDay(day)));
+      this.viewSubscriptions.push(
+        timelineSegmentClick.subscribe((segment) => this.onDayTimelineSegmentClick(segment))
+      );
+      this.viewSubscriptions.push(
+        openUntimedTask.subscribe((task) => {
+          void this.openUntimedTask(task);
+        })
+      );
+      return;
+    }
+
+    if (mode === 'month') {
+      const openDay = instance['openDay'] as {
+        subscribe: (cb: (cell: AgendaMonthCell) => void) => Subscription;
+      };
+
+      this.viewSubscriptions.push(openDay.subscribe((cell) => this.openDayFromMonth(cell)));
+      return;
+    }
+
+    const openMonth = instance['openMonth'] as {
+      subscribe: (cb: (month: AgendaYearMonth) => void) => Subscription;
+    };
+
+    this.viewSubscriptions.push(openMonth.subscribe((month) => this.openMonthFromYear(month)));
+  }
+
+  private clearViewSubscriptions(): void {
+    for (const subscription of this.viewSubscriptions) {
+      subscription.unsubscribe();
+    }
+    this.viewSubscriptions = [];
+  }
+
+  private destroyRenderedView(): void {
+    this.clearViewSubscriptions();
+    this.viewRef?.destroy();
+    this.viewRef = null;
+    this.viewRefMode = null;
+    this.agendaViewHost?.clear();
+  }
+
   private resolveEmptySegmentHint(): string {
     return this.translate.instant('AGENDA.EMPTY_HINT_FREE_TIME');
   }
@@ -401,8 +637,9 @@ export class AgendaPage implements OnDestroy {
   }
 
   private async loadAgendaTasks(): Promise<void> {
-    this.isLoading = true;
     this.loadFailed = false;
+    this.monthSummaryCache.clear();
+    this.monthSummaryLoading.clear();
 
     try {
       const taskRows = await this.taskRepository.listTasks();
@@ -427,7 +664,6 @@ export class AgendaPage implements OnDestroy {
       this.scheduledTasks = [this.buildSampleTaskAggregate()];
       this.loadFailed = false;
     } finally {
-      this.isLoading = false;
       this.refreshViewModels();
     }
   }
@@ -444,6 +680,11 @@ export class AgendaPage implements OnDestroy {
       timedTasks.length === 0 && this.dayUntimedTasks.length > 0
         ? []
         : this.buildDaySegments(timedTasks);
+
+    if (this.daySegments.length === 0 && this.dayUntimedTasks.length === 0) {
+      this.daySegments = this.buildDaySegments([]);
+    }
+
     const dayTimeline = this.buildDayTimelineViewModel(this.daySegments);
     this.dayTimelineBoundaries = dayTimeline.boundaries;
     this.dayTimelineSegments = dayTimeline.segments;
@@ -452,6 +693,135 @@ export class AgendaPage implements OnDestroy {
 
     this.monthCells = this.buildMonthCells(this.selectedDate);
     this.yearMonths = this.buildYearMonths(this.selectedDate);
+    this.renderCurrentView();
+    this.scheduleDayRenderRecovery();
+  }
+
+  private scheduleDayRenderRecovery(): void {
+    if (this.currentView !== 'day' || this.isLoading || !this.agendaViewHost) {
+      return;
+    }
+
+    const token = ++this.dayRenderRecoveryToken;
+    window.setTimeout(() => {
+      if (token !== this.dayRenderRecoveryToken) {
+        return;
+      }
+
+      if (this.currentView !== 'day' || this.isLoading || !this.agendaViewHost) {
+        return;
+      }
+
+      const hasRail = !!this.queryAgendaElement<HTMLElement>('.agenda-date-rail');
+      const hasTimeline = !!this.queryAgendaElement<HTMLElement>('.agenda-timeline');
+      const hasUntimedList =
+        !!this.queryAgendaElement<HTMLElement>('.agenda-untimed-list');
+
+      if (!hasRail || (!hasTimeline && !hasUntimedList)) {
+        this.renderCurrentView();
+      }
+    }, 32);
+  }
+
+  private beginLoadingOverlay(): void {
+    this.isLoading = true;
+  }
+
+  private endLoadingOverlay(): void {
+    this.isLoading = false;
+  }
+
+  private queueMonthSummaryLoad(previousDate: Date, nextDate: Date): void {
+    if (this.monthSummaryKey(previousDate) === this.monthSummaryKey(nextDate)) {
+      return;
+    }
+
+    void this.ensureMonthSummaryForDate(nextDate);
+  }
+
+  private async ensureMonthSummaryForDate(date: Date): Promise<void> {
+    const monthSummaryLoader = (
+      this.taskRepository as Partial<TaskRepository>
+    ).listMonthDayCategorySummaries;
+
+    if (typeof monthSummaryLoader !== 'function') {
+      return;
+    }
+
+    const monthKey = this.monthSummaryKey(date);
+    if (this.monthSummaryCache.has(monthKey) || this.monthSummaryLoading.has(monthKey)) {
+      return;
+    }
+
+    this.monthSummaryLoading.add(monthKey);
+
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const monthStart = this.dateKey(this.createDate(year, month, 1));
+    const monthEnd = this.dateKey(
+      this.createDate(year, month, this.daysInMonth(year, month))
+    );
+
+    try {
+      const summaries = await monthSummaryLoader.call(
+        this.taskRepository,
+        monthStart,
+        monthEnd
+      );
+      if (!summaries) {
+        return;
+      }
+
+      this.monthSummaryCache.set(monthKey, this.mapMonthSummaryRows(summaries));
+
+      if (this.monthSummaryKey(this.selectedDate) === monthKey) {
+        this.monthCells = this.buildMonthCells(this.selectedDate);
+        if (this.currentView === 'month') {
+          this.renderCurrentView();
+        }
+      }
+    } catch {
+      this.monthSummaryCache.delete(monthKey);
+    } finally {
+      this.monthSummaryLoading.delete(monthKey);
+    }
+  }
+
+  private mapMonthSummaryRows(
+    rows: readonly TaskMonthDayCategorySummary[]
+  ): Map<string, AgendaMonthDayTaskSummary> {
+    const mapped = new Map<string, AgendaMonthDayTaskSummary>();
+
+    for (const row of rows) {
+      const dateKey = row.dateKey.trim();
+      if (dateKey.length === 0) {
+        continue;
+      }
+
+      const uniqueColors: string[] = [];
+      const seenColors = new Set<string>();
+      for (const rawColor of row.categoryColors) {
+        const color = rawColor.trim();
+        if (color.length === 0) {
+          continue;
+        }
+
+        const colorKey = color.toLowerCase();
+        if (seenColors.has(colorKey)) {
+          continue;
+        }
+
+        seenColors.add(colorKey);
+        uniqueColors.push(color);
+      }
+
+      mapped.set(dateKey, {
+        taskCount: Math.max(0, Math.round(row.taskCount)),
+        categoryDotColors: uniqueColors,
+      });
+    }
+
+    return mapped;
   }
 
   private logLoadedTasksForDate(date: Date): void {
@@ -687,8 +1057,17 @@ export class AgendaPage implements OnDestroy {
     window.setTimeout(() => this.scrollRailToToday(), 0);
   }
 
+  private queryAgendaElement<T extends HTMLElement>(selector: string): T | null {
+    const host = this.contentElementRef?.nativeElement;
+    if (!host) {
+      return null;
+    }
+
+    return host.querySelector<T>(selector);
+  }
+
   private scrollRailToToday(): void {
-    const rail = this.dateRailRef?.nativeElement;
+    const rail = this.queryAgendaElement<HTMLElement>('.agenda-date-rail');
     if (!rail) {
       return;
     }
@@ -706,7 +1085,7 @@ export class AgendaPage implements OnDestroy {
 
   private async scrollTimelineNearNow(): Promise<void> {
     const content = this.content;
-    const timelineElement = this.timelineRef?.nativeElement;
+    const timelineElement = this.queryAgendaElement<HTMLElement>('.agenda-timeline');
     if (!content || !timelineElement) {
       return;
     }
@@ -1172,6 +1551,11 @@ export class AgendaPage implements OnDestroy {
         date: null,
         dayNumberLabel: '',
         densityLevel: 0,
+        categoryDotColors: [],
+        categoryDotTopColors: [],
+        categoryDotMiddleColors: [],
+        categoryDotBottomColors: [],
+        categoryDotOverflow: 0,
         isToday: false,
         isSelected: false,
         isCurrentMonth: false,
@@ -1180,12 +1564,18 @@ export class AgendaPage implements OnDestroy {
 
     for (let day = 1; day <= daysInMonth; day += 1) {
       const cellDate = this.createDate(year, month, day);
-      const taskCount = this.countTasksForDate(cellDate);
+      const daySummary = this.buildMonthCellTaskSummary(cellDate);
+      const dotLayout = this.buildMonthCellDotLayout(daySummary.categoryDotColors);
       cells.push({
         key: this.dateKey(cellDate),
         date: cellDate,
         dayNumberLabel: `${day}`,
-        densityLevel: this.toDensityLevel(taskCount),
+        densityLevel: this.toDensityLevel(daySummary.taskCount),
+        categoryDotColors: daySummary.categoryDotColors,
+        categoryDotTopColors: dotLayout.topColors,
+        categoryDotMiddleColors: dotLayout.middleColors,
+        categoryDotBottomColors: dotLayout.bottomColors,
+        categoryDotOverflow: dotLayout.overflowCount,
         isToday: this.isSameDay(cellDate, new Date()),
         isSelected: this.isSameDay(cellDate, this.selectedDate),
         isCurrentMonth: true,
@@ -1198,6 +1588,11 @@ export class AgendaPage implements OnDestroy {
         date: null,
         dayNumberLabel: '',
         densityLevel: 0,
+        categoryDotColors: [],
+        categoryDotTopColors: [],
+        categoryDotMiddleColors: [],
+        categoryDotBottomColors: [],
+        categoryDotOverflow: 0,
         isToday: false,
         isSelected: false,
         isCurrentMonth: false,
@@ -1252,18 +1647,105 @@ export class AgendaPage implements OnDestroy {
     return count;
   }
 
+  private buildMonthCellTaskSummary(date: Date): {
+    taskCount: number;
+    categoryDotColors: string[];
+  } {
+    const monthSummary = this.monthSummaryCache.get(this.monthSummaryKey(date));
+    if (monthSummary) {
+      const cachedSummary = monthSummary.get(this.dateKey(date));
+      if (cachedSummary) {
+        return {
+          taskCount: cachedSummary.taskCount,
+          categoryDotColors: [...cachedSummary.categoryDotColors],
+        };
+      }
+
+      return {
+        taskCount: 0,
+        categoryDotColors: [],
+      };
+    }
+
+    let taskCount = 0;
+    const categoryDotColors: string[] = [];
+    const seenCategoryColors = new Set<string>();
+
+    for (const task of this.scheduledTasks) {
+      if (!this.taskOccursOnDate(task, date)) {
+        continue;
+      }
+
+      taskCount += 1;
+      const categoryColor = this.resolveTaskColor(task).trim();
+      if (!categoryColor) {
+        continue;
+      }
+
+      const colorKey = categoryColor.toLowerCase();
+      if (seenCategoryColors.has(colorKey)) {
+        continue;
+      }
+
+      seenCategoryColors.add(colorKey);
+      categoryDotColors.push(categoryColor);
+    }
+
+    return {
+      taskCount,
+      categoryDotColors,
+    };
+  }
+
+  private buildMonthCellDotLayout(categoryDotColors: readonly string[]): {
+    topColors: string[];
+    middleColors: string[];
+    bottomColors: string[];
+    overflowCount: number;
+  } {
+    if (categoryDotColors.length <= MONTH_DOT_MAX_VISIBLE) {
+      return {
+        topColors: categoryDotColors.slice(0, MONTH_DOT_ROW_CAPACITY),
+        middleColors: categoryDotColors.slice(
+          MONTH_DOT_ROW_CAPACITY,
+          MONTH_DOT_ROW_CAPACITY * 2
+        ),
+        bottomColors: categoryDotColors.slice(
+          MONTH_DOT_ROW_CAPACITY * 2,
+          MONTH_DOT_ROW_CAPACITY * 3
+        ),
+        overflowCount: 0,
+      };
+    }
+
+    const visibleColors = categoryDotColors.slice(0, MONTH_DOT_VISIBLE_WITH_OVERFLOW);
+    return {
+      topColors: visibleColors.slice(0, MONTH_DOT_ROW_CAPACITY),
+      middleColors: visibleColors.slice(
+        MONTH_DOT_ROW_CAPACITY,
+        MONTH_DOT_ROW_CAPACITY * 2
+      ),
+      bottomColors: visibleColors.slice(MONTH_DOT_ROW_CAPACITY * 2),
+      overflowCount: categoryDotColors.length - MONTH_DOT_VISIBLE_WITH_OVERFLOW,
+    };
+  }
+
   private taskOccursOnDate(task: PersistedTaskAggregate, date: Date): boolean {
     return this.resolveOccurrence(task, date).occurs;
   }
 
   private resolveOccurrence(task: PersistedTaskAggregate, date: Date): AgendaOccurrenceDecision {
+    const dateKey = this.resolveTaskDateKey(date);
+
     if (task.scheduleType === 'one_time') {
-      const oneTimeDate = this.parseStoredDate(task.oneTimeDate ?? '');
+      const oneTimeDate =
+        this.normalizeLocalDateKey(task.startLocalDate) ??
+        this.resolveLocalDateKeyFromIso(task.oneTimeDate, this.resolveTaskTimezone(task));
       if (!oneTimeDate) {
         return { occurs: false, reason: 'invalid_one_time_date' };
       }
 
-      return this.isSameDay(oneTimeDate, date)
+      return oneTimeDate === dateKey
         ? { occurs: true, reason: 'one_time_date_match' }
         : { occurs: false, reason: 'one_time_date_mismatch' };
     }
@@ -1273,35 +1755,41 @@ export class AgendaPage implements OnDestroy {
       return { occurs: false, reason: 'no_recurrence' };
     }
 
-    const startDate = this.parseStoredDate(recurrence.startDate);
-    if (startDate && this.compareDateOnly(date, startDate) < 0) {
+    const startDate =
+      this.normalizeLocalDateKey(task.startLocalDate) ??
+      this.resolveLocalDateKeyFromIso(recurrence.startDate, this.resolveTaskTimezone(task));
+    if (startDate && isBefore(dateKey, startDate)) {
       return { occurs: false, reason: 'before_start_date' };
     }
 
     if (recurrence.hasEndDate && recurrence.endDate) {
-      const endDate = this.parseStoredDate(recurrence.endDate);
-      if (endDate && this.compareDateOnly(date, endDate) > 0) {
+      const endDate =
+        this.normalizeLocalDateKey(task.endLocalDate) ??
+        this.resolveLocalDateKeyFromIso(recurrence.endDate, this.resolveTaskTimezone(task));
+      if (endDate && isAfter(dateKey, endDate)) {
         return { occurs: false, reason: 'after_end_date' };
       }
     }
 
+    const dateParts = parseCalendarDate(dateKey);
+    const weekday = getWeekday(dateKey, 'UTC');
     switch (recurrence.pattern) {
       case 'daily':
         return { occurs: true, reason: 'daily' };
       case 'selected_weekdays':
         return recurrence.weekdays.some(
-          (weekday) => weekday.dayOfWeek === this.toMondayBasedDay(date)
+          (entry) => entry.dayOfWeek === weekday
         )
           ? { occurs: true, reason: 'weekday_match' }
           : { occurs: false, reason: 'weekday_not_selected' };
       case 'monthly':
-        return recurrence.dayOfMonth === date.getDate()
+        return recurrence.dayOfMonth === dateParts.day
           ? { occurs: true, reason: 'monthly_day_match' }
           : { occurs: false, reason: 'monthly_day_mismatch' };
       case 'yearly':
         return (
-          recurrence.yearMonth === date.getMonth() + 1 &&
-          recurrence.yearDay === date.getDate()
+          recurrence.yearMonth === dateParts.month &&
+          recurrence.yearDay === dateParts.day
         )
           ? { occurs: true, reason: 'yearly_day_match' }
           : { occurs: false, reason: 'yearly_day_mismatch' };
@@ -1335,13 +1823,14 @@ export class AgendaPage implements OnDestroy {
 
     let resolvedTime: string | null = null;
     let source: AgendaResolvedTime['source'] = 'none';
+    const weekday = getWeekday(this.resolveTaskDateKey(date), 'UTC');
 
     if (recurrence.pattern === 'selected_weekdays') {
-      const weekday = recurrence.weekdays.find(
-        (item) => item.dayOfWeek === this.toMondayBasedDay(date)
+      const weekdayConfig = recurrence.weekdays.find(
+        (item) => item.dayOfWeek === weekday
       );
-      if (weekday?.timeValue) {
-        resolvedTime = weekday.timeValue;
+      if (weekdayConfig?.timeValue) {
+        resolvedTime = weekdayConfig.timeValue;
         source = 'weekly_schedule.weeklyDayTimes';
       } else if (recurrence.commonTime) {
         resolvedTime = recurrence.commonTime;
@@ -1375,7 +1864,7 @@ export class AgendaPage implements OnDestroy {
 
     const recurrence = task.recurrenceEnabled ? task.recurrence : undefined;
     if (recurrence?.pattern === 'selected_weekdays') {
-      const dayOfWeek = this.toMondayBasedDay(date);
+      const dayOfWeek = getWeekday(this.resolveTaskDateKey(date), 'UTC');
       const weekday = recurrence.weekdays.find((entry) => entry.dayOfWeek === dayOfWeek);
       if (weekday?.durationMin && weekday.durationMin > 0) {
         return weekday.durationMin;
@@ -1502,6 +1991,67 @@ export class AgendaPage implements OnDestroy {
     return `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, '0')}-${`${date.getDate()}`.padStart(2, '0')}`;
   }
 
+  private monthSummaryKey(date: Date): string {
+    return `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, '0')}`;
+  }
+
+  private resolveTaskTimezone(task: PersistedTaskAggregate): string {
+    const fallback = getDeviceTimezone();
+    const candidate = task.timezone?.trim() || task.recurrence?.timezone?.trim() || fallback;
+    try {
+      new Intl.DateTimeFormat('en-CA', { timeZone: candidate }).format(new Date());
+      return candidate;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private resolveTaskDateKey(date: Date): string {
+    return this.dateKey(date);
+  }
+
+  private normalizeLocalDateKey(value: string | null | undefined): string | null {
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    try {
+      return formatCalendarDate(parseCalendarDate(trimmed));
+    } catch {
+      return null;
+    }
+  }
+
+  private resolveLocalDateKeyFromIso(
+    value: string | null | undefined,
+    timezone: string
+  ): string | null {
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const parsed = new Date(trimmed);
+    if (Number.isNaN(parsed.getTime())) {
+      return null;
+    }
+
+    try {
+      return formatCalendarDate(toCalendarDate(parsed, timezone));
+    } catch {
+      return null;
+    }
+  }
+
   private compareDateOnly(left: Date, right: Date): number {
     const leftKey = this.dateKey(left);
     const rightKey = this.dateKey(right);
@@ -1531,15 +2081,6 @@ export class AgendaPage implements OnDestroy {
     }
 
     return 3;
-  }
-
-  private parseStoredDate(value: string): Date | null {
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) {
-      return null;
-    }
-
-    return this.dateAtLocalNoon(parsed);
   }
 
   private resolveTaskColor(task: PersistedTaskAggregate): string {

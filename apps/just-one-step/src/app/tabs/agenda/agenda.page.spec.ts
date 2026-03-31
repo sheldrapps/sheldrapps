@@ -1,6 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { TranslateService } from '@ngx-translate/core';
 import { AgendaPage } from './agenda.page';
+import { AgendaDayComponent } from './components/agenda-day.component';
+import { AgendaMonthComponent } from './components/agenda-month.component';
+import { AgendaYearComponent } from './components/agenda-year.component';
 import {
   PersistedTaskAggregate,
   TaskRepository,
@@ -40,6 +43,10 @@ function buildTask(overrides: Partial<PersistedTaskAggregate>): PersistedTaskAgg
     priority: overrides.priority ?? 'B',
     scheduleType,
     durationMode: overrides.durationMode ?? 'single',
+    startLocalDate: overrides.startLocalDate ?? null,
+    endLocalDate: overrides.endLocalDate ?? null,
+    localTime: overrides.localTime ?? null,
+    timezone: overrides.timezone ?? null,
     oneTimeDate: overrides.oneTimeDate ?? null,
     oneTimeTime: overrides.oneTimeTime ?? null,
     estimatedDurationMin:
@@ -107,6 +114,12 @@ describe('AgendaPage day verification', () => {
 
     fixture = TestBed.createComponent(AgendaPage);
     component = fixture.componentInstance;
+    const lazyViewCache = (component as unknown as {
+      lazyViewCache: Map<string, unknown>;
+    }).lazyViewCache;
+    lazyViewCache.set('day', AgendaDayComponent);
+    lazyViewCache.set('month', AgendaMonthComponent);
+    lazyViewCache.set('year', AgendaYearComponent);
   });
 
   function renderDay(tasks: PersistedTaskAggregate[], date: Date): void {
@@ -146,6 +159,133 @@ describe('AgendaPage day verification', () => {
       .map((label) => label.textContent?.replace(/\s+/g, ' ').trim() ?? '')
       .filter((label) => label.length > 0);
   }
+
+  it('renders one month dot per category color and deduplicates repeated colors', () => {
+    const sameDayIso = '2026-03-15T12:00:00.000Z';
+    const tasks = [
+      buildTask({
+        id: 'task-color-red-a',
+        scheduleType: 'one_time',
+        recurrenceEnabled: false,
+        recurrence: undefined,
+        oneTimeDate: sameDayIso,
+        oneTimeTime: null,
+        categoryColor: '#EF4444',
+      }),
+      buildTask({
+        id: 'task-color-red-b',
+        scheduleType: 'one_time',
+        recurrenceEnabled: false,
+        recurrence: undefined,
+        oneTimeDate: sameDayIso,
+        oneTimeTime: null,
+        categoryColor: '#EF4444',
+      }),
+      buildTask({
+        id: 'task-color-green',
+        scheduleType: 'one_time',
+        recurrenceEnabled: false,
+        recurrence: undefined,
+        oneTimeDate: sameDayIso,
+        oneTimeTime: null,
+        categoryColor: '#22C55E',
+      }),
+    ];
+
+    renderDay(tasks, new Date(2026, 2, 15, 12, 0, 0, 0));
+    component.currentView = 'month';
+    (component as unknown as { renderCurrentView: () => void }).renderCurrentView();
+    fixture.detectChanges();
+
+    const dayCell = component.monthCells.find(
+      (cell) => cell.date !== null && cell.date.getDate() === 15
+    );
+    expect(dayCell?.categoryDotColors).toEqual(['#EF4444', '#22C55E']);
+
+    const dots = Array.from(
+      fixture.nativeElement.querySelectorAll('.agenda-month-cell--selected .agenda-month-task-dot')
+    ) as HTMLElement[];
+    expect(dots.length).toBe(2);
+    expect(dots.map((dot) => dot.style.getPropertyValue('--agenda-month-dot-color'))).toEqual([
+      '#EF4444',
+      '#22C55E',
+    ]);
+  });
+
+  it('shows the same local-date one-time task in daily and monthly views', () => {
+    const localDateTask = buildTask({
+      id: 'task-local-date-sync',
+      scheduleType: 'one_time',
+      recurrenceEnabled: false,
+      recurrence: undefined,
+      startLocalDate: '2026-03-20',
+      oneTimeDate: null,
+      oneTimeTime: null,
+      categoryColor: '#22C55E',
+    });
+
+    renderDay([localDateTask], new Date(2026, 2, 20, 12, 0, 0, 0));
+    expect(component.dayUntimedTasks.length).toBe(1);
+    expect(component.dayUntimedTasks[0].taskId).toBe('task-local-date-sync');
+
+    component.currentView = 'month';
+    (component as unknown as { renderCurrentView: () => void }).renderCurrentView();
+    fixture.detectChanges();
+
+    const monthCell = component.monthCells.find(
+      (cell) => cell.date !== null && cell.date.getDate() === 20
+    );
+    expect(monthCell?.categoryDotColors).toEqual(['#22C55E']);
+  });
+
+  it('limits month dots to 9 visible (3x3) and shows +N stack after overflow', () => {
+    const sameDayIso = '2026-03-16T12:00:00.000Z';
+    const colors = [
+      '#0EA5E9',
+      '#22C55E',
+      '#F97316',
+      '#A855F7',
+      '#EF4444',
+      '#14B8A6',
+      '#EAB308',
+      '#3B82F6',
+      '#F43F5E',
+      '#84CC16',
+    ];
+
+    const tasks = colors.map((color, index) =>
+      buildTask({
+        id: `task-color-overflow-${index}`,
+        scheduleType: 'one_time',
+        recurrenceEnabled: false,
+        recurrence: undefined,
+        oneTimeDate: sameDayIso,
+        oneTimeTime: null,
+        categoryColor: color,
+      })
+    );
+
+    renderDay(tasks, new Date(2026, 2, 16, 12, 0, 0, 0));
+    component.currentView = 'month';
+    (component as unknown as { renderCurrentView: () => void }).renderCurrentView();
+    fixture.detectChanges();
+
+    const dayCell = component.monthCells.find(
+      (cell) => cell.date !== null && cell.date.getDate() === 16
+    );
+
+    expect(dayCell?.categoryDotTopColors).toEqual(['#0EA5E9', '#22C55E', '#F97316']);
+    expect(dayCell?.categoryDotMiddleColors).toEqual(['#A855F7', '#EF4444', '#14B8A6']);
+    expect(dayCell?.categoryDotBottomColors).toEqual(['#EAB308', '#3B82F6']);
+    expect(dayCell?.categoryDotOverflow).toBe(2);
+
+    const selectedCell = fixture.nativeElement.querySelector('.agenda-month-cell--selected') as HTMLElement;
+    const dots = Array.from(selectedCell.querySelectorAll('.agenda-month-task-dot')) as HTMLElement[];
+    expect(dots.length).toBe(8);
+
+    const stack = selectedCell.querySelector('.agenda-month-task-stack') as HTMLElement | null;
+    expect(stack?.textContent?.trim()).toBe('+2');
+  });
 
   it('keeps monthly check with time as point event on 2026-03-28', () => {
     const monthlyCheck = buildTask({
@@ -1238,6 +1378,12 @@ describe('Digital Clock recipe regression in Agenda', () => {
 
     fixture = TestBed.createComponent(AgendaPage);
     component = fixture.componentInstance;
+    const lazyViewCache = (component as unknown as {
+      lazyViewCache: Map<string, unknown>;
+    }).lazyViewCache;
+    lazyViewCache.set('day', AgendaDayComponent);
+    lazyViewCache.set('month', AgendaMonthComponent);
+    lazyViewCache.set('year', AgendaYearComponent);
   });
 
   function renderDay(tasks: PersistedTaskAggregate[], date: Date): void {

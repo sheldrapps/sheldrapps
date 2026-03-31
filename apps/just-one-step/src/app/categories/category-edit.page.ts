@@ -17,6 +17,7 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
+import { LoadingStateComponent } from '@sheldrapps/ui-theme';
 import {
   CategoryNameValidationError,
   CategoryNameValidationException,
@@ -48,6 +49,7 @@ import {
     IonInput,
     IonNote,
     IonButton,
+    LoadingStateComponent,
   ],
 })
 export class CategoryEditPage {

@@ -1,0 +1,59 @@
+<div class="agenda-scope-shell">
+  <div class="agenda-date-rail app-date-chip-rail">
+    @for (day of railDays; track day.key) {
+      <button
+        type="button"
+        class="agenda-date-chip app-date-chip"
+        [class.app-date-chip--today]="day.isToday"
+        [class.app-date-chip--selected]="day.isSelected"
+        (click)="selectRailDay.emit(day)"
+        [attr.aria-label]="fullDateAriaLabel(day.date)"
+      >
+        <span class="agenda-date-chip-weekday app-date-chip__weekday">{{ day.weekdayLabel }}</span>
+        <span class="agenda-date-chip-day app-date-chip__day">{{ day.dayNumberLabel }}</span>
+      </button>
+    }
+  </div>
+
+  @if (daySegments.length > 0) {
+    <div class="agenda-day-view">
+      <div class="agenda-timeline-wrap">
+        <div class="agenda-timeline agenda-segment-list">
+          <sh-day-agenda-timeline
+            class="agenda-day-timeline"
+            [boundaries]="dayTimelineBoundaries"
+            [segments]="dayTimelineSegments"
+            (segmentClick)="timelineSegmentClick.emit($event)"
+          ></sh-day-agenda-timeline>
+
+          @if (dayOpenMessageVisible) {
+            <div class="agenda-day-open-message app-supporting-text">{{ 'AGENDA.DAY_OPEN' | translate }}</div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (dayUntimedTasks.length > 0) {
+    <section class="agenda-untimed-section">
+      <div class="agenda-untimed-title app-section-label">{{ 'AGENDA.UNTIMED_SECTION' | translate }}</div>
+      <div class="agenda-untimed-list">
+        @for (task of dayUntimedTasks; track task.taskId) {
+          <button
+            type="button"
+            class="agenda-untimed-item app-task-card app-task-card--compact app-task-card--accented"
+            [style.--app-accent-border-color]="task.accentBorderColor"
+            [style.--app-accent-background-color]="task.accentBackgroundColor"
+            [style.--app-accent-shadow-color]="task.accentBackgroundColor"
+            (click)="openUntimedTask.emit(task)"
+          >
+            <span class="agenda-untimed-check app-task-card__leading app-task-card__check" aria-hidden="true">&#10003;</span>
+            <span class="agenda-untimed-content app-task-card__content">
+              <span class="agenda-untimed-task-title app-task-card__title">{{ task.title }}</span>
+            </span>
+          </button>
+        }
+      </div>
+    </section>
+  }
+</div>

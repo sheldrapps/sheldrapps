@@ -1,0 +1,180 @@
+.agenda-scope-shell {
+	display: grid;
+	gap: var(--app-space-4);
+	animation: agenda-scope-enter 180ms ease;
+}
+
+.agenda-month-weekdays {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 0;
+	border: 1px solid rgba(var(--ion-color-step-300-rgb), 0.45);
+	border-radius: var(--app-radius-lg);
+	overflow: hidden;
+}
+
+.agenda-month-weekday {
+	text-align: center;
+	font-size: 0.7rem;
+	font-weight: 650;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: rgba(var(--ion-color-step-600-rgb), 0.85);
+	padding: var(--app-space-2) 0;
+	border-right: 1px solid rgba(var(--ion-color-step-300-rgb), 0.4);
+}
+
+.agenda-month-weekday:nth-child(7n) {
+	border-right: 0;
+}
+
+.agenda-month-grid {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 0;
+	border: 1px solid rgba(var(--ion-color-step-300-rgb), 0.45);
+	border-radius: var(--app-radius-lg);
+	overflow: hidden;
+}
+
+.agenda-month-cell,
+.agenda-month-cell-empty {
+	min-height: 5.1rem;
+	border-right: 1px solid rgba(var(--ion-color-step-300-rgb), 0.38);
+	border-bottom: 1px solid rgba(var(--ion-color-step-300-rgb), 0.38);
+}
+
+.agenda-month-cell:nth-child(7n),
+.agenda-month-cell-empty:nth-child(7n) {
+	border-right: 0;
+}
+
+.agenda-month-cell {
+	display: grid;
+	grid-template-rows: auto 1fr;
+	align-content: stretch;
+	justify-items: start;
+	gap: var(--app-space-2);
+	padding: var(--app-space-2);
+	border-radius: 0;
+	border-top: 0;
+	border-left: 0;
+	background: transparent;
+	transition: border-color 140ms ease;
+	container-type: inline-size;
+}
+
+.agenda-month-cell-empty {
+	background: rgba(var(--ion-color-step-100-rgb), 0.36);
+}
+
+.agenda-month-cell--selected {
+	border-color: rgba(var(--ion-color-primary-rgb), 0.62);
+}
+
+.agenda-month-cell--today {
+	border-color: rgba(var(--ion-color-primary-rgb), 0.48);
+}
+
+.agenda-month-cell--with-tasks {
+	border-bottom-color: rgba(var(--ion-color-primary-rgb), 0.5);
+}
+
+.agenda-month-cell-day {
+	font-weight: 700;
+	line-height: 1;
+	color: rgba(var(--ion-color-step-800-rgb), 0.92);
+	font-variant-numeric: tabular-nums;
+}
+
+.agenda-month-cell--selected .agenda-month-cell-day,
+.agenda-month-cell--today .agenda-month-cell-day {
+	color: rgba(var(--ion-color-step-900-rgb), 0.98);
+}
+
+.agenda-month-dot-wrapper {
+	display: grid;
+	--agenda-month-dot-size: 0.36rem;
+	--agenda-month-dot-gap: var(--app-space-1);
+	--agenda-month-stack-height: 0.78rem;
+	--agenda-month-stack-min-width: 1.05rem;
+	--agenda-month-stack-font-size: 0.58rem;
+	--agenda-month-stack-padding-x: 0.22rem;
+	gap: var(--agenda-month-dot-gap);
+	align-self: end;
+	width: 100%;
+	margin-top: auto;
+}
+
+.agenda-month-dot-row {
+	display: flex;
+	align-items: center;
+	gap: var(--agenda-month-dot-gap);
+	min-height: var(--agenda-month-dot-size);
+}
+
+.agenda-month-task-dot {
+	width: var(--agenda-month-dot-size);
+	height: var(--agenda-month-dot-size);
+	border-radius: 999px;
+	background: var(--agenda-month-dot-color, rgba(var(--ion-color-primary-rgb), 0.74));
+}
+
+.agenda-month-task-stack {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: var(--agenda-month-stack-height);
+	min-width: var(--agenda-month-stack-min-width);
+	padding: 0 var(--agenda-month-stack-padding-x);
+	border-radius: 999px;
+	background: rgba(var(--ion-color-step-700-rgb), 0.16);
+	color: rgba(var(--ion-color-step-800-rgb), 0.9);
+	font-size: var(--agenda-month-stack-font-size);
+	font-weight: 700;
+	line-height: 1;
+}
+
+@container (max-width: 4.6rem) {
+	.agenda-month-dot-wrapper {
+		--agenda-month-dot-size: 0.31rem;
+		--agenda-month-dot-gap: 0.14rem;
+		--agenda-month-stack-height: 0.68rem;
+		--agenda-month-stack-min-width: 0.94rem;
+		--agenda-month-stack-font-size: 0.52rem;
+		--agenda-month-stack-padding-x: 0.16rem;
+	}
+}
+
+@container (max-width: 4rem) {
+	.agenda-month-dot-wrapper {
+		--agenda-month-dot-size: 0.26rem;
+		--agenda-month-dot-gap: 0.1rem;
+		--agenda-month-stack-height: 0.62rem;
+		--agenda-month-stack-min-width: 0.84rem;
+		--agenda-month-stack-font-size: 0.48rem;
+		--agenda-month-stack-padding-x: 0.13rem;
+	}
+}
+
+@media (max-width: 540px) {
+	.agenda-month-cell,
+	.agenda-month-cell-empty {
+		min-height: 4.45rem;
+	}
+
+	.agenda-month-cell {
+		padding: var(--app-space-2) var(--app-space-1);
+	}
+}
+
+@keyframes agenda-scope-enter {
+	from {
+		opacity: 0;
+		transform: scale(0.99);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}

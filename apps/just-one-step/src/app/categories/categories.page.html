@@ -27,11 +27,15 @@
       </ion-note>
     }
 
+    @if (isLoading) {
+      <sh-loading-state variant="inline" [label]="'COMMON.LOADING' | translate"></sh-loading-state>
+    }
+
     @if (!isLoading && !loadFailed && categories.length === 0) {
       <ion-note class="app-state-note categories-state-note">{{ 'CATEGORIES.EMPTY' | translate }}</ion-note>
     }
 
-    @if (categories.length > 0) {
+    @if (!isLoading && categories.length > 0) {
       <div class="app-sections-stack categories-stack">
         @for (category of categories; track category.id) {
           <div

@@ -78,14 +78,10 @@
               }
             </div>
             } @if (loading) {
-            <div class="frame-loader" aria-hidden="true">
-              <div class="frame-loader__card">
-                <ion-spinner name="crescent"></ion-spinner>
-                <div class="frame-loader__text">
-                  {{ (gettingCover ? gettingCoverTextKey : loadingTextKey) | translate }}
-                </div>
-              </div>
-            </div>
+            <sh-loading-state
+              variant="overlay"
+              [label]="(gettingCover ? gettingCoverTextKey : loadingTextKey) | translate"
+            ></sh-loading-state>
             }
           </div>
         </div>

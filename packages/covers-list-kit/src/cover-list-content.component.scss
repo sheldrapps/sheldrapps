@@ -2,12 +2,6 @@
   display: block;
 }
 
-.loading {
-  display: flex;
-  justify-content: center;
-  padding-top: var(--app-space-10);
-}
-
 .empty {
   opacity: var(--app-text-subtle);
   text-align: center;

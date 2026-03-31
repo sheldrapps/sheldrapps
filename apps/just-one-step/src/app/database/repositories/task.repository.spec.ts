@@ -75,9 +75,29 @@ describe('TaskRepository', () => {
     const params = taskInsert?.[1] as unknown[];
     expect(params[5]).toBe('A');
     expect(params[6]).toBe('one_time');
-    expect(params[8]).toBe('2026-03-28T12:00:00.000Z');
-    expect(params[9]).toBe('12:30');
-    expect(params[14]).toBe(0);
+    expect(params[8]).toBe('2026-03-28');
+    expect(params[12]).toBe('2026-03-28T12:00:00.000Z');
+    expect(params[13]).toBe('12:30');
+    expect(params[18]).toBe(0);
+  });
+
+  it('keeps one-time local date stable when payload uses YYYY-MM-DD', async () => {
+    await repository.createTask({
+      title: 'One-time local date',
+      mode: 'check',
+      scheduleType: 'one_time',
+      oneTimeDate: '2026-03-31',
+      oneTimeTime: null,
+    });
+
+    const taskInsert = executeSpy.calls
+      .allArgs()
+      .find((args) => String(args[0]).includes('INSERT INTO tasks'));
+    expect(taskInsert).toBeDefined();
+
+    const params = taskInsert?.[1] as unknown[];
+    expect(params[8]).toBe('2026-03-31');
+    expect(params[12]).toBe('2026-03-31T12:00:00.000Z');
   });
 
   it('creates a daily recurrence branch', async () => {
@@ -326,6 +346,130 @@ describe('TaskRepository', () => {
     expect(queryArgs).toEqual(['cat-1', '%Pago%', '%Pago%', 20, 5]);
   });
 
+  it('lists month day category summaries with distinct colors', async () => {
+    sqliteManagerMock.query.and.callFake(async (sql: string) => {
+      if (sql.includes('FROM task_recurrence_weekdays')) {
+        return [];
+      }
+
+      return [
+        {
+          task_id: 'task-1',
+          schedule_type: 'one_time',
+          start_local_date: '2026-03-10',
+          end_local_date: null,
+          pattern: null,
+          day_of_month: null,
+          year_month: null,
+          year_day: null,
+          category_color: '#22C55E',
+        },
+        {
+          task_id: 'task-2',
+          schedule_type: 'one_time',
+          start_local_date: '2026-03-10',
+          end_local_date: null,
+          pattern: null,
+          day_of_month: null,
+          year_month: null,
+          year_day: null,
+          category_color: '#EF4444',
+        },
+        {
+          task_id: 'task-3',
+          schedule_type: 'one_time',
+          start_local_date: '2026-03-10',
+          end_local_date: null,
+          pattern: null,
+          day_of_month: null,
+          year_month: null,
+          year_day: null,
+          category_color: '#0EA5E9',
+        },
+        {
+          task_id: 'task-4',
+          schedule_type: 'one_time',
+          start_local_date: '2026-03-11',
+          end_local_date: null,
+          pattern: null,
+          day_of_month: null,
+          year_month: null,
+          year_day: null,
+          category_color: null,
+        },
+      ];
+    });
+
+    const summaries = await repository.listMonthDayCategorySummaries(
+      '2026-03-01T12:00:00.000Z',
+      '2026-03-31T12:00:00.000Z'
+    );
+
+    expect(sqliteManagerMock.query).toHaveBeenCalled();
+    const queryArgs = sqliteManagerMock.query.calls.argsFor(0)[1] as unknown[];
+    expect(queryArgs).toEqual(['2026-03-01', '2026-03-31', '2026-03-31', '2026-03-01']);
+    expect(summaries).toEqual([
+      {
+        dateKey: '2026-03-10',
+        taskCount: 3,
+        categoryColors: ['#22C55E', '#EF4444', '#0EA5E9'],
+      },
+      {
+        dateKey: '2026-03-11',
+        taskCount: 1,
+        categoryColors: [],
+      },
+    ]);
+  });
+
+  it('keeps selected-weekdays recurrence stable across DST boundaries in summaries', async () => {
+    sqliteManagerMock.query.and.callFake(async (sql: string) => {
+      if (sql.includes('FROM task_recurrence_weekdays')) {
+        return [{ task_id: 'task-weekly', weekday_index: 1 }];
+      }
+
+      return [
+        {
+          task_id: 'task-weekly',
+          schedule_type: 'recurring',
+          start_local_date: '2026-03-01',
+          end_local_date: null,
+          pattern: 'selected_weekdays',
+          day_of_month: null,
+          year_month: null,
+          year_day: null,
+          category_color: '#22C55E',
+        },
+      ];
+    });
+
+    const summaries = await repository.listMonthDayCategorySummaries(
+      '2026-03-08',
+      '2026-03-10'
+    );
+
+    expect(summaries).toEqual([
+      {
+        dateKey: '2026-03-09',
+        taskCount: 1,
+        categoryColors: ['#22C55E'],
+      },
+    ]);
+  });
+
+  it('returns empty month summaries in browser runtime', async () => {
+    (Capacitor.getPlatform as jasmine.Spy).and.returnValue('web');
+
+    const summaries = await repository.listMonthDayCategorySummaries(
+      '2026-03-01T12:00:00.000Z',
+      '2026-03-31T12:00:00.000Z'
+    );
+
+    expect(summaries).toBeNull();
+    expect(sqliteManagerMock.query).not.toHaveBeenCalled();
+    (Capacitor.getPlatform as jasmine.Spy).and.returnValue('android');
+  });
+
   it('updates task and cleans incompatible recurrence branch when pattern changes', async () => {
     sqliteManagerMock.query.and.resolveTo([{ id: 'task-1' }]);
 
@@ -498,5 +642,34 @@ describe('TaskRepository', () => {
     const recurrenceParams = recurrenceInsert?.[1] as unknown[];
     expect(recurrenceParams[6]).toBe(1);
     expect(recurrenceParams[7]).not.toBe('2026-01-01T00:00:00.000Z');
+  });
+
+  it('clamps forward-only recurrence end date to today when past end date is provided', async () => {
+    sqliteManagerMock.query.and.resolveTo([{ id: 'task-forward-only-past-end' }]);
+
+    await repository.updateTask('task-forward-only-past-end', {
+      title: 'Task forward clamp',
+      mode: 'check',
+      recurrence: {
+        mode: 'simple',
+        simpleType: 'daily',
+        hasTime: false,
+        startsToday: false,
+        hasEndDate: true,
+        startDate: '2026-01-01T00:00:00.000Z',
+        endDate: '2000-01-01T00:00:00.000Z',
+        timezone: 'America/Mexico_City',
+      },
+    });
+
+    const recurrenceInsert = executeSpy
+      .calls
+      .allArgs()
+      .find((args) => String(args[0]).includes('INSERT INTO task_recurrence'));
+    expect(recurrenceInsert).toBeDefined();
+
+    const recurrenceParams = recurrenceInsert?.[1] as unknown[];
+    expect(recurrenceParams[6]).toBe(1);
+    expect(recurrenceParams[9]).toBe(recurrenceParams[7]);
   });
 });

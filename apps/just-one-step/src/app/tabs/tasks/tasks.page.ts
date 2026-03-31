@@ -11,6 +11,7 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { LoadingStateComponent } from '@sheldrapps/ui-theme';
 import { addIcons } from 'ionicons';
 import { createOutline, eyeOutline, trashOutline } from 'ionicons/icons';
 import {
@@ -37,6 +38,7 @@ interface TaskListView extends TaskListItem {
     IonNote,
     RouterLink,
     TranslateModule,
+    LoadingStateComponent,
   ],
 })
 export class TasksPage {

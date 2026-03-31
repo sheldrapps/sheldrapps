@@ -20,7 +20,6 @@ import {
   IonLabel,
   IonIcon,
   IonButton,
-  IonLoading,
   IonModal,
   IonGrid,
   IonCol,
@@ -82,6 +81,7 @@ import { CoversEventsService } from '../../services/covers-events.service';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastOptions } from '@ionic/angular';
 import {
+  LoadingStateComponent,
   SaveCoverModalComponent,
   ScrollableBarItem,
   ScrollableButtonBarComponent,
@@ -119,7 +119,6 @@ type EditorResult = {
   standalone: true,
   imports: [
     IonCol,
-    IonLoading,
     CommonModule,
     FormsModule,
     TranslateModule,
@@ -139,6 +138,7 @@ type EditorResult = {
     IonSelect,
     IonSelectOption,
     IonModal,
+    LoadingStateComponent,
     ScrollableButtonBarComponent,
     TourOverlayComponent,
   ],

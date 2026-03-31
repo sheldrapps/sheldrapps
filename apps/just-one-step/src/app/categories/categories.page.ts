@@ -14,6 +14,7 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { LoadingStateComponent } from '@sheldrapps/ui-theme';
 import { addIcons } from 'ionicons';
 import { createOutline, trashOutline } from 'ionicons/icons';
 import {
@@ -39,6 +40,7 @@ import {
     IonIcon,
     IonButton,
     IonNote,
+    LoadingStateComponent,
   ],
 })
 export class CategoriesPage {

@@ -366,20 +366,19 @@
   </ion-modal>
 
   @if (showNativeLoadOverlay) {
-  <div class="native-load-overlay" aria-live="polite" role="status">
-    <div class="native-load-card">
-      <ion-spinner name="crescent"></ion-spinner>
-      <div class="native-load-title">{{ nativeLoadTitleKey | translate }}</div>
-      <div class="native-load-percent">{{ nativeLoadPercentLabel }}</div>
-    </div>
-  </div>
+  <sh-loading-state
+    variant="fullscreen"
+    [label]="nativeLoadTitleKey | translate"
+    [detail]="nativeLoadPercentLabel"
+  ></sh-loading-state>
   }
 
-  <ion-loading
-    [isOpen]="isPickingImage || (isPickingEpub && !showNativeLoadOverlay) || (isExporting && !isNativeRewriteInProgress)"
-    [message]="loadingMessage"
-    backdropDismiss="false"
-  ></ion-loading>
+  @if (isPickingImage || (isPickingEpub && !showNativeLoadOverlay) || (isExporting && !isNativeRewriteInProgress)) {
+    <sh-loading-state
+      variant="fullscreen"
+      [label]="loadingMessage || ('COMMON.LOADING' | translate)"
+    ></sh-loading-state>
+  }
 
   <app-tour-overlay></app-tour-overlay>
 

@@ -10,6 +10,17 @@ import {
   validateCategoryName,
 } from './category-name.validation';
 import { CategoryRepository } from './category.repository';
+import {
+  addDays,
+  formatCalendarDate,
+  getDeviceTimezone,
+  getToday,
+  getWeekday,
+  isAfter,
+  isBefore,
+  parseCalendarDate,
+  toCalendarDate,
+} from '../../shared/calendar';
 
 export type TaskMode = 'check' | 'duration';
 export type TaskPriority = 'S' | 'A' | 'B' | 'C';
@@ -96,6 +107,10 @@ export interface TaskListItem {
   priority: TaskPriority;
   scheduleType: TaskScheduleType;
   durationMode: TaskDurationMode;
+  startLocalDate?: string | null;
+  endLocalDate?: string | null;
+  localTime?: string | null;
+  timezone?: string | null;
   oneTimeDate: string | null;
   oneTimeTime: string | null;
   estimatedDurationMin: number | null;
@@ -109,6 +124,12 @@ export interface TaskListItem {
   notificationsEnabled: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TaskMonthDayCategorySummary {
+  dateKey: string;
+  taskCount: number;
+  categoryColors: string[];
 }
 
 export interface PersistedTaskAggregate extends TaskListItem {
@@ -154,6 +175,10 @@ interface TaskRow extends Record<string, unknown> {
   priority: string;
   schedule_type: string;
   duration_mode: string;
+  start_local_date: string | null;
+  end_local_date: string | null;
+  local_time: string | null;
+  timezone: string | null;
   one_time_date: string | null;
   one_time_time: string | null;
   estimated_duration_min: number | null;
@@ -200,6 +225,23 @@ interface TaskNotificationOffsetRow extends Record<string, unknown> {
   offset_minutes: number;
 }
 
+interface TaskMonthCalendarCandidateRow extends Record<string, unknown> {
+  task_id: string;
+  schedule_type: string;
+  start_local_date: string | null;
+  end_local_date: string | null;
+  pattern: string | null;
+  day_of_month: number | null;
+  year_month: number | null;
+  year_day: number | null;
+  category_color: string | null;
+}
+
+interface TaskRecurrenceWeekdaySummaryRow extends Record<string, unknown> {
+  task_id: string;
+  weekday_index: number;
+}
+
 interface PersistedRecurrenceWeekday {
   dayOfWeek: number;
   timeValue: string | null;
@@ -221,6 +263,15 @@ interface PersistedRecurrenceState {
   yearDay: number | null;
   timezone: string | null;
   weekdays: PersistedRecurrenceWeekday[];
+}
+
+interface TaskCalendarPersistenceFields {
+  startLocalDate: string;
+  endLocalDate: string | null;
+  localTime: string | null;
+  timezone: string;
+  legacyOneTimeDate: string | null;
+  legacyOneTimeTime: string | null;
 }
 
 const TASKS_BROWSER_STORAGE_KEY = 'just-one-step.tasks.browser.v1';
@@ -436,6 +487,10 @@ export class TaskRepository {
           t.priority,
           t.schedule_type,
           t.duration_mode,
+          t.start_local_date,
+          t.end_local_date,
+          t.local_time,
+          t.timezone,
           t.one_time_date,
           t.one_time_time,
           t.estimated_duration_min,
@@ -459,6 +514,150 @@ export class TaskRepository {
     );
 
     return rows.map((row) => this.mapTaskListItem(row));
+  }
+
+  async listMonthDayCategorySummaries(
+    monthStartIso: string,
+    monthEndIso: string
+  ): Promise<TaskMonthDayCategorySummary[] | null> {
+    if (!this.isNativeRuntime()) {
+      return null;
+    }
+
+    await this.ensureSqliteReady();
+
+    const rangeStart = this.toCalendarDateKey(monthStartIso);
+    const rangeEnd = this.toCalendarDateKey(monthEndIso);
+    if (!rangeStart || !rangeEnd) {
+      return [];
+    }
+
+    const [normalizedStart, normalizedEnd] =
+      rangeStart <= rangeEnd ? [rangeStart, rangeEnd] : [rangeEnd, rangeStart];
+
+    const candidates = await this.sqliteManager.query<TaskMonthCalendarCandidateRow>(
+      `
+        SELECT
+          t.id AS task_id,
+          t.schedule_type,
+          t.start_local_date,
+          t.end_local_date,
+          tr.pattern,
+          tr.day_of_month,
+          tr.year_month,
+          tr.year_day,
+          c.color AS category_color
+        FROM tasks t
+        LEFT JOIN task_recurrence tr
+          ON tr.task_id = t.id
+        LEFT JOIN categories c
+          ON c.id = t.category_id
+          AND c.deleted_at IS NULL
+        WHERE
+          t.deleted_at IS NULL
+          AND t.is_archived = 0
+          AND t.is_active = 1
+          AND (
+            (
+              t.schedule_type = 'one_time'
+              AND t.start_local_date >= ?
+              AND t.start_local_date <= ?
+            )
+            OR (
+              t.schedule_type = 'recurring'
+              AND t.start_local_date <= ?
+              AND (t.end_local_date IS NULL OR t.end_local_date >= ?)
+            )
+          )
+      `,
+      [normalizedStart, normalizedEnd, normalizedEnd, normalizedStart]
+    );
+
+    if (candidates.length === 0) {
+      return [];
+    }
+
+    const weekdayRows = await this.sqliteManager.query<TaskRecurrenceWeekdaySummaryRow>(
+      `
+        SELECT
+          task_id,
+          weekday_index
+        FROM task_recurrence_weekdays
+      `
+    );
+    const recurrenceWeekdaysByTask = new Map<string, Set<number>>();
+    for (const row of weekdayRows) {
+      const taskId = row.task_id?.trim();
+      if (!taskId) {
+        continue;
+      }
+
+      const weekday = Math.round(Number(row.weekday_index) || 0);
+      if (weekday < 1 || weekday > 7) {
+        continue;
+      }
+
+      if (!recurrenceWeekdaysByTask.has(taskId)) {
+        recurrenceWeekdaysByTask.set(taskId, new Set<number>());
+      }
+
+      recurrenceWeekdaysByTask.get(taskId)?.add(weekday);
+    }
+
+    const dailySummary = new Map<
+      string,
+      { taskIds: Set<string>; categoryColors: string[]; seenColors: Set<string> }
+    >();
+
+    for (
+      let day = normalizedStart;
+      !isAfter(day, normalizedEnd);
+      day = formatCalendarDate(addDays(day, 1))
+    ) {
+      for (const candidate of candidates) {
+        if (
+          !this.candidateOccursOnLocalDate(
+            candidate,
+            day,
+            recurrenceWeekdaysByTask
+          )
+        ) {
+          continue;
+        }
+
+        if (!dailySummary.has(day)) {
+          dailySummary.set(day, {
+            taskIds: new Set<string>(),
+            categoryColors: [],
+            seenColors: new Set<string>(),
+          });
+        }
+
+        const daySummary = dailySummary.get(day)!;
+        daySummary.taskIds.add(candidate.task_id);
+
+        const categoryColor = this.normalizeNullableText(candidate.category_color);
+        if (!categoryColor) {
+          continue;
+        }
+
+        const colorKey = categoryColor.toLowerCase();
+        if (daySummary.seenColors.has(colorKey)) {
+          continue;
+        }
+
+        daySummary.seenColors.add(colorKey);
+        daySummary.categoryColors.push(categoryColor);
+      }
+    }
+
+    return [...dailySummary.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([dateKey, summary]) => ({
+        dateKey,
+        taskCount: summary.taskIds.size,
+        categoryColors: summary.categoryColors,
+      }));
   }
 
   async deleteTask(taskId: string): Promise<void> {
@@ -541,6 +740,10 @@ export class TaskRepository {
           t.priority,
           t.schedule_type,
           t.duration_mode,
+          t.start_local_date,
+          t.end_local_date,
+          t.local_time,
+          t.timezone,
           t.one_time_date,
           t.one_time_time,
           t.estimated_duration_min,
@@ -647,19 +850,39 @@ export class TaskRepository {
   }
 
   private mapTaskListItem(row: TaskRow): TaskListItem {
+    const scheduleType = this.normalizeScheduleType(
+      row.schedule_type,
+      this.toBooleanFlag(row.is_recurrence_enabled)
+    );
+    const timezone = this.resolveTimezoneOrDevice(row.timezone);
+    const startLocalDate =
+      this.normalizeLocalDateKey(row.start_local_date) ??
+      this.resolveLocalDateKeyFromIso(row.one_time_date, timezone);
+    const endLocalDate = this.normalizeLocalDateKey(row.end_local_date);
+    const localTime = this.normalizeTimeValue(`${row.local_time ?? ''}`);
+    const legacyOneTimeDate =
+      scheduleType === 'one_time'
+        ? this.resolveIsoDate(row.one_time_date) ??
+          this.localDateToLegacyIso(startLocalDate)
+        : null;
+
     return {
       id: row.id,
       title: row.title,
       description: this.normalizeNullableText(row.description),
       trackingMode: this.normalizeTaskMode(row.tracking_mode),
       priority: this.normalizeTaskPriority(row.priority),
-      scheduleType: this.normalizeScheduleType(
-        row.schedule_type,
-        this.toBooleanFlag(row.is_recurrence_enabled)
-      ),
+      scheduleType,
       durationMode: this.normalizeDurationMode(row.duration_mode),
-      oneTimeDate: this.resolveIsoDate(row.one_time_date) ?? null,
-      oneTimeTime: this.normalizeTimeValue(`${row.one_time_time ?? ''}`),
+      startLocalDate,
+      endLocalDate,
+      localTime,
+      timezone,
+      oneTimeDate: legacyOneTimeDate,
+      oneTimeTime:
+        scheduleType === 'one_time'
+          ? this.normalizeTimeValue(`${row.one_time_time ?? ''}`) ?? localTime
+          : null,
       estimatedDurationMin: this.toNullableNumber(row.estimated_duration_min),
       categoryId: this.normalizeNullableText(row.category_id),
       categoryName: this.normalizeNullableText(row.category_name),
@@ -900,6 +1123,7 @@ export class TaskRepository {
     categorySnapshot?: { name: string | null; color: string | null }
   ): PersistedTaskAggregate {
     const nowIso = new Date().toISOString();
+    const calendarFields = this.resolveCalendarPersistenceFields(input);
     const recurrencePersisted = input.recurrence
       ? this.resolveRecurrencePersistenceState(input.recurrence)
       : undefined;
@@ -915,8 +1139,12 @@ export class TaskRepository {
       priority: this.normalizeTaskPriority(input.priority),
       scheduleType: this.normalizeScheduleType(input.scheduleType, input.recurrence),
       durationMode: this.normalizeDurationMode(input.durationMode),
-      oneTimeDate: this.resolveIsoDate(input.oneTimeDate ?? null),
-      oneTimeTime: this.normalizeTimeValue(input.oneTimeTime ?? ''),
+      startLocalDate: calendarFields.startLocalDate,
+      endLocalDate: calendarFields.endLocalDate,
+      localTime: calendarFields.localTime,
+      timezone: calendarFields.timezone,
+      oneTimeDate: calendarFields.legacyOneTimeDate,
+      oneTimeTime: calendarFields.legacyOneTimeTime,
       estimatedDurationMin:
         input.mode === 'duration' ? input.estimatedDurationMin ?? null : null,
       categoryId: this.normalizeNullableText(input.categoryId),
@@ -1005,6 +1233,12 @@ export class TaskRepository {
           priority: this.normalizeTaskPriority(task.priority),
           scheduleType: this.normalizeScheduleType(task.scheduleType, task.recurrence),
           durationMode: this.normalizeDurationMode(task.durationMode),
+          startLocalDate:
+            this.normalizeLocalDateKey(task.startLocalDate) ??
+            this.resolveLocalDateKeyFromIso(task.oneTimeDate, this.resolveTimezoneOrDevice(task.timezone)),
+          endLocalDate: this.normalizeLocalDateKey(task.endLocalDate),
+          localTime: this.normalizeTimeValue(`${task.localTime ?? ''}`),
+          timezone: this.resolveTimezoneOrDevice(task.timezone),
           oneTimeDate: this.resolveIsoDate(task.oneTimeDate) ?? null,
           oneTimeTime: this.normalizeTimeValue(`${task.oneTimeTime ?? ''}`),
           categoryName: this.normalizeNullableText(task.categoryName),
@@ -1109,15 +1343,16 @@ export class TaskRepository {
     const priority = this.normalizeTaskPriority(input.priority);
     const scheduleType = this.normalizeScheduleType(input.scheduleType, input.recurrence);
     const durationMode = this.normalizeDurationMode(input.durationMode);
+    const timezone = this.resolveTimezoneOrDevice(input.recurrence?.timezone ?? null);
     const estimatedDurationMin =
       mode === 'duration'
         ? this.sanitizeBoundedInteger(input.estimatedDurationMin, 1, 1440)
         : null;
     const oneTimeDateSeed =
-      scheduleType === 'one_time' ? this.resolveIsoDate(input.oneTimeDate ?? null) : null;
-    const oneTimeDate = oneTimeDateSeed
-      ? this.normalizeCalendarDateIso(oneTimeDateSeed, null)
-      : null;
+      scheduleType === 'one_time'
+        ? this.resolveLegacyIsoForCalendarInput(input.oneTimeDate ?? null, timezone)
+        : null;
+    const oneTimeDate = oneTimeDateSeed ?? null;
     const oneTimeTime =
       scheduleType === 'one_time'
         ? this.normalizeTimeValue(input.oneTimeTime ?? '')
@@ -1151,18 +1386,31 @@ export class TaskRepository {
       return input;
     }
 
-    const nowIso = new Date().toISOString();
+    const timezone = this.resolveTimezoneOrDevice(input.recurrence.timezone);
+    const todayLocalDate = formatCalendarDate(getToday(timezone));
+    const todayLegacyIso =
+      this.localDateToLegacyIso(todayLocalDate) ?? new Date().toISOString();
+    const normalizedEndDate = this.resolveLegacyIsoForCalendarInput(
+      input.recurrence.endDate ?? null,
+      timezone
+    );
+    const normalizedEndDateKey = this.resolveLocalDateKeyFromIso(
+      normalizedEndDate,
+      timezone
+    );
     const effectiveEndDate =
-      input.recurrence.hasEndDate && input.recurrence.endDate
-        ? (input.recurrence.endDate < nowIso ? nowIso : input.recurrence.endDate)
-        : input.recurrence.endDate;
+      input.recurrence.hasEndDate && normalizedEndDateKey
+        ? isBefore(normalizedEndDateKey, todayLocalDate)
+          ? todayLegacyIso
+          : normalizedEndDate
+        : normalizedEndDate;
 
     return {
       ...input,
       recurrence: {
         ...input.recurrence,
         startsToday: true,
-        startDate: nowIso,
+        startDate: todayLegacyIso,
         endDate: effectiveEndDate,
       },
     };
@@ -1175,18 +1423,21 @@ export class TaskRepository {
       return undefined;
     }
 
-    const timezone = this.normalizeNullableText(recurrence.timezone);
-    const startDateSeed = this.resolveIsoDate(recurrence.startDate);
-    const startsToday = recurrence.startsToday ?? this.isTodayDate(startDateSeed);
+    const timezone = this.resolveTimezoneOrDevice(recurrence.timezone);
+    const startDateSeed = this.resolveLegacyIsoForCalendarInput(
+      recurrence.startDate,
+      timezone
+    );
+    const startsToday = recurrence.startsToday ?? this.isTodayDate(startDateSeed, timezone);
     const startDate = this.resolvePersistedStartDate(
       startsToday,
       startDateSeed,
       timezone
     );
-    const parsedEndDate = this.resolveIsoDate(recurrence.endDate ?? null);
-    const normalizedEndDate = parsedEndDate
-      ? this.normalizeCalendarDateIso(parsedEndDate, timezone)
-      : null;
+    const normalizedEndDate = this.resolveLegacyIsoForCalendarInput(
+      recurrence.endDate ?? null,
+      timezone
+    );
     const hasEndDate =
       (recurrence.hasEndDate ?? normalizedEndDate !== null) &&
       normalizedEndDate !== null;
@@ -1313,12 +1564,58 @@ export class TaskRepository {
     return normalized;
   }
 
+  private resolveCalendarPersistenceFields(
+    input: CreateTaskInput
+  ): TaskCalendarPersistenceFields {
+    const timezone = this.resolveTimezoneOrDevice(input.recurrence?.timezone ?? null);
+    const fallbackStartDate = formatCalendarDate(getToday(timezone));
+
+    if (input.scheduleType === 'one_time') {
+      const startLocalDate =
+        this.resolveLocalDateKeyFromIso(input.oneTimeDate, timezone) ?? fallbackStartDate;
+      const oneTimeTime = this.normalizeTimeValue(input.oneTimeTime ?? '');
+      return {
+        startLocalDate,
+        endLocalDate: null,
+        localTime: oneTimeTime,
+        timezone,
+        legacyOneTimeDate: this.localDateToLegacyIso(startLocalDate),
+        legacyOneTimeTime: oneTimeTime,
+      };
+    }
+
+    const recurrence = input.recurrence;
+    const startLocalDate =
+      this.resolveLocalDateKeyFromIso(recurrence?.startDate, timezone) ??
+      fallbackStartDate;
+    const endLocalDate =
+      recurrence?.hasEndDate === true
+        ? this.resolveLocalDateKeyFromIso(recurrence.endDate ?? null, timezone)
+        : null;
+    const localTime =
+      recurrence?.hasTime === true
+        ? recurrence.mode === 'weekly_schedule'
+          ? null
+          : this.normalizeTimeValue(recurrence.timeOfDay ?? '')
+        : null;
+
+    return {
+      startLocalDate,
+      endLocalDate,
+      localTime,
+      timezone,
+      legacyOneTimeDate: null,
+      legacyOneTimeTime: null,
+    };
+  }
+
   private async insertTask(
     tx: SqliteTransactionContext,
     taskId: string,
     input: CreateTaskInput,
     nowIso: string
   ): Promise<void> {
+    const calendarFields = this.resolveCalendarPersistenceFields(input);
     await tx.execute(
       `
         INSERT INTO tasks (
@@ -1330,6 +1627,10 @@ export class TaskRepository {
           priority,
           schedule_type,
           duration_mode,
+          start_local_date,
+          end_local_date,
+          local_time,
+          timezone,
           one_time_date,
           one_time_time,
           estimated_duration_min,
@@ -1340,7 +1641,7 @@ export class TaskRepository {
           is_notifications_enabled,
           created_at,
           updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         taskId,
@@ -1351,8 +1652,12 @@ export class TaskRepository {
         this.normalizeTaskPriority(input.priority),
         this.normalizeScheduleType(input.scheduleType, input.recurrence),
         this.normalizeDurationMode(input.durationMode),
-        this.resolveIsoDate(input.oneTimeDate ?? null),
-        this.normalizeTimeValue(input.oneTimeTime ?? ''),
+        calendarFields.startLocalDate,
+        calendarFields.endLocalDate,
+        calendarFields.localTime,
+        calendarFields.timezone,
+        calendarFields.legacyOneTimeDate,
+        calendarFields.legacyOneTimeTime,
         input.mode === 'duration' ? input.estimatedDurationMin ?? null : null,
         1,
         0,
@@ -1371,6 +1676,7 @@ export class TaskRepository {
     input: CreateTaskInput,
     nowIso: string
   ): Promise<void> {
+    const calendarFields = this.resolveCalendarPersistenceFields(input);
     await tx.execute(
       `
         UPDATE tasks
@@ -1382,6 +1688,10 @@ export class TaskRepository {
           priority = ?,
           schedule_type = ?,
           duration_mode = ?,
+          start_local_date = ?,
+          end_local_date = ?,
+          local_time = ?,
+          timezone = ?,
           one_time_date = ?,
           one_time_time = ?,
           estimated_duration_min = ?,
@@ -1398,8 +1708,12 @@ export class TaskRepository {
         this.normalizeTaskPriority(input.priority),
         this.normalizeScheduleType(input.scheduleType, input.recurrence),
         this.normalizeDurationMode(input.durationMode),
-        this.resolveIsoDate(input.oneTimeDate ?? null),
-        this.normalizeTimeValue(input.oneTimeTime ?? ''),
+        calendarFields.startLocalDate,
+        calendarFields.endLocalDate,
+        calendarFields.localTime,
+        calendarFields.timezone,
+        calendarFields.legacyOneTimeDate,
+        calendarFields.legacyOneTimeTime,
         input.mode === 'duration' ? input.estimatedDurationMin ?? null : null,
         input.scheduleType === 'recurring' && input.recurrence ? 1 : 0,
         input.notification ? 1 : 0,
@@ -1542,17 +1856,22 @@ export class TaskRepository {
   private resolveRecurrencePersistenceState(
     recurrence: CreateTaskRecurrenceInput
   ): PersistedRecurrenceState {
-    const timezone = this.normalizeNullableText(recurrence.timezone);
-    const startsToday = recurrence.startsToday ?? this.isTodayDate(recurrence.startDate);
-    const startDate = this.resolvePersistedStartDate(
-      startsToday,
+    const timezone = this.resolveTimezoneOrDevice(recurrence.timezone);
+    const normalizedStartDate = this.resolveLegacyIsoForCalendarInput(
       recurrence.startDate,
       timezone
     );
-    const endDate = this.resolveIsoDate(recurrence.endDate ?? null);
-    const normalizedEndDate = endDate
-      ? this.normalizeCalendarDateIso(endDate, timezone)
-      : null;
+    const startsToday =
+      recurrence.startsToday ?? this.isTodayDate(normalizedStartDate, timezone);
+    const startDate = this.resolvePersistedStartDate(
+      startsToday,
+      normalizedStartDate,
+      timezone
+    );
+    const normalizedEndDate = this.resolveLegacyIsoForCalendarInput(
+      recurrence.endDate ?? null,
+      timezone
+    );
     const hasEndDate =
       (recurrence.hasEndDate ?? normalizedEndDate !== null) &&
       normalizedEndDate !== null;
@@ -1734,13 +2053,13 @@ export class TaskRepository {
       1440
     );
     const startsToday = this.toBooleanFlag(recurrenceRow.starts_today);
+    const timezone = this.resolveTimezoneOrDevice(recurrenceRow.timezone);
     const startDate =
       this.resolveIsoDate(recurrenceRow.start_date) ??
-      this.resolvePersistedStartDate(startsToday, null);
+      this.resolvePersistedStartDate(startsToday, null, timezone);
     const rawEndDate = this.resolveIsoDate(recurrenceRow.end_date);
     const hasEndDate = this.toBooleanFlag(recurrenceRow.has_end_date) && rawEndDate !== null;
     const endDate = hasEndDate ? rawEndDate : null;
-    const timezone = this.normalizeNullableText(recurrenceRow.timezone);
 
     let weekdays = this.normalizePersistedWeekdays(weekdayRows);
     if (pattern !== 'selected_weekdays') {
@@ -1906,10 +2225,12 @@ export class TaskRepository {
       return { dayOfMonth: null, monthOfYear: null };
     }
 
-    const parts = this.resolveCalendarDateParts(startDateIso, timezone);
-    if (!parts) {
+    const resolvedTimezone = this.resolveTimezoneOrDevice(timezone);
+    const localDate = this.resolveCalendarDateKey(startDateIso, resolvedTimezone);
+    if (!localDate) {
       return { dayOfMonth: null, monthOfYear: null };
     }
+    const parts = parseCalendarDate(localDate);
 
     const dayOfMonth = parts.day;
     const monthOfYear = parts.month;
@@ -2076,22 +2397,18 @@ export class TaskRepository {
     }
   }
 
-  private isTodayDate(value: string | null): boolean {
+  private isTodayDate(value: string | null, timezone: string): boolean {
     if (!value) {
       return false;
     }
 
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) {
+    const localDate = this.resolveCalendarDateKey(value, timezone);
+    if (!localDate) {
       return false;
     }
 
-    const now = new Date();
-    return (
-      parsed.getUTCFullYear() === now.getUTCFullYear() &&
-      parsed.getUTCMonth() === now.getUTCMonth() &&
-      parsed.getUTCDate() === now.getUTCDate()
-    );
+    const today = formatCalendarDate(getToday(timezone));
+    return localDate === today;
   }
 
   private resolvePersistedStartDate(
@@ -2099,85 +2416,163 @@ export class TaskRepository {
     value: string | null,
     timezone: string | null = null
   ): string {
+    const resolvedTimezone = this.resolveTimezoneOrDevice(timezone);
+    const todayLocalDate = formatCalendarDate(getToday(resolvedTimezone));
+    const todayLegacyIso =
+      this.localDateToLegacyIso(todayLocalDate) ?? new Date().toISOString();
+
     if (startsToday) {
-      return new Date().toISOString();
+      return todayLegacyIso;
     }
 
-    const parsed = this.resolveIsoDate(value);
-    if (parsed) {
-      return this.normalizeCalendarDateIso(parsed, timezone);
+    const normalizedValue = this.resolveLegacyIsoForCalendarInput(
+      value,
+      resolvedTimezone
+    );
+    if (normalizedValue) {
+      return normalizedValue;
     }
 
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return this.normalizeCalendarDateIso(tomorrow.toISOString(), timezone);
+    const tomorrowLocalDate = formatCalendarDate(addDays(todayLocalDate, 1));
+    return (
+      this.localDateToLegacyIso(tomorrowLocalDate) ?? new Date().toISOString()
+    );
   }
 
-  private normalizeCalendarDateIso(value: string, timezone: string | null): string {
-    const parts = this.resolveCalendarDateParts(value, timezone);
-    if (!parts) {
-      return value;
+  private candidateOccursOnLocalDate(
+    candidate: TaskMonthCalendarCandidateRow,
+    dateKey: string,
+    recurrenceWeekdaysByTask: ReadonlyMap<string, ReadonlySet<number>>
+  ): boolean {
+    const scheduleType = this.normalizeScheduleType(
+      candidate.schedule_type,
+      candidate.pattern !== null
+    );
+    const startLocalDate = this.normalizeLocalDateKey(candidate.start_local_date);
+    if (!startLocalDate) {
+      return false;
     }
 
-    return new Date(Date.UTC(parts.year, parts.month - 1, parts.day, 12, 0, 0, 0)).toISOString();
+    if (scheduleType === 'one_time') {
+      return startLocalDate === dateKey;
+    }
+
+    if (isBefore(dateKey, startLocalDate)) {
+      return false;
+    }
+
+    const endLocalDate = this.normalizeLocalDateKey(candidate.end_local_date);
+    if (endLocalDate && isAfter(dateKey, endLocalDate)) {
+      return false;
+    }
+
+    const dateParts = parseCalendarDate(dateKey);
+    const pattern = this.normalizeSimplePattern(candidate.pattern);
+    switch (pattern) {
+      case 'daily':
+        return true;
+      case 'selected_weekdays': {
+        const taskId = candidate.task_id.trim();
+        const selectedWeekdays = recurrenceWeekdaysByTask.get(taskId);
+        if (!selectedWeekdays || selectedWeekdays.size === 0) {
+          return false;
+        }
+
+        return selectedWeekdays.has(getWeekday(dateKey, 'UTC'));
+      }
+      case 'monthly':
+        return Number(candidate.day_of_month) === dateParts.day;
+      case 'yearly':
+        return (
+          Number(candidate.year_month) === dateParts.month &&
+          Number(candidate.year_day) === dateParts.day
+        );
+      default:
+        return false;
+    }
   }
 
-  private resolveCalendarDateParts(
-    value: string,
-    timezone: string | null
-  ): { year: number; month: number; day: number } | null {
-    const trimmed = value.trim();
-    const parsed = new Date(trimmed);
-    if (Number.isNaN(parsed.getTime())) {
+  private normalizeLocalDateKey(value: unknown): string | null {
+    if (typeof value !== 'string') {
       return null;
     }
 
-    if (timezone) {
-      try {
-        const formatter = new Intl.DateTimeFormat('en-CA', {
-          timeZone: timezone,
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        });
-        const year = Number.parseInt(
-          formatter.formatToParts(parsed).find((part) => part.type === 'year')?.value ??
-            '',
-          10
-        );
-        const month = Number.parseInt(
-          formatter.formatToParts(parsed).find((part) => part.type === 'month')?.value ??
-            '',
-          10
-        );
-        const day = Number.parseInt(
-          formatter.formatToParts(parsed).find((part) => part.type === 'day')?.value ??
-            '',
-          10
-        );
-
-        if (
-          Number.isFinite(year) &&
-          Number.isFinite(month) &&
-          Number.isFinite(day) &&
-          year > 0 &&
-          month >= 1 &&
-          month <= 12 &&
-          day >= 1 &&
-          day <= 31
-        ) {
-          return { year, month, day };
-        }
-      } catch {
-        // Falls back to local date parts when timezone is invalid at runtime.
-      }
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
     }
 
-    return {
-      year: parsed.getFullYear(),
-      month: parsed.getMonth() + 1,
-      day: parsed.getDate(),
-    };
+    try {
+      return formatCalendarDate(parseCalendarDate(trimmed));
+    } catch {
+      return null;
+    }
+  }
+
+  private resolveLocalDateKeyFromIso(
+    value: string | null | undefined,
+    timezone: string
+  ): string | null {
+    const directLocalDate = this.normalizeLocalDateKey(value);
+    if (directLocalDate) {
+      return directLocalDate;
+    }
+
+    const iso = this.resolveIsoDate(value);
+    if (!iso) {
+      return null;
+    }
+
+    try {
+      return formatCalendarDate(toCalendarDate(new Date(iso), timezone));
+    } catch {
+      return null;
+    }
+  }
+
+  private resolveCalendarDateKey(
+    value: string | null | undefined,
+    timezone: string
+  ): string | null {
+    const directLocalDate = this.normalizeLocalDateKey(value);
+    if (directLocalDate) {
+      return directLocalDate;
+    }
+
+    return this.resolveLocalDateKeyFromIso(value, timezone);
+  }
+
+  private resolveLegacyIsoForCalendarInput(
+    value: string | null | undefined,
+    timezone: string
+  ): string | null {
+    const localDate = this.resolveCalendarDateKey(value, timezone);
+    if (!localDate) {
+      return null;
+    }
+
+    return this.localDateToLegacyIso(localDate);
+  }
+
+  private localDateToLegacyIso(localDate: string | null | undefined): string | null {
+    const normalized = this.normalizeLocalDateKey(localDate);
+    if (!normalized) {
+      return null;
+    }
+
+    const parsed = parseCalendarDate(normalized);
+    return new Date(Date.UTC(parsed.year, parsed.month - 1, parsed.day, 12, 0, 0, 0)).toISOString();
+  }
+
+  private resolveTimezoneOrDevice(value: unknown): string {
+    const fallback = getDeviceTimezone();
+    const candidate = this.normalizeNullableText(value) ?? fallback;
+    try {
+      new Intl.DateTimeFormat('en-CA', { timeZone: candidate }).format(new Date());
+      return candidate;
+    } catch {
+      return fallback;
+    }
   }
 
   private resolveIsoDate(value: string | null | undefined): string | null {
@@ -2196,6 +2591,24 @@ export class TaskRepository {
     }
 
     return parsed.toISOString();
+  }
+
+  private toCalendarDateKey(value: string | null | undefined): string | null {
+    const direct = this.normalizeLocalDateKey(value);
+    if (direct) {
+      return direct;
+    }
+
+    const iso = this.resolveIsoDate(value);
+    if (!iso) {
+      return null;
+    }
+
+    try {
+      return formatCalendarDate(toCalendarDate(new Date(iso), getDeviceTimezone()));
+    } catch {
+      return iso.slice(0, 10);
+    }
   }
 
   private normalizeTimeValue(value: string): string | null {

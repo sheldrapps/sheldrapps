@@ -12,37 +12,43 @@
     @if (notFound) {
       <ion-note color="danger">{{ 'CATEGORY_FORM.ERROR_NOT_FOUND' | translate }}</ion-note>
     } @else {
-      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-        <ion-list>
-          <ion-item>
-            <ion-label position="stacked">
-              {{ 'CATEGORY_FORM.NAME_LABEL' | translate }}
-            </ion-label>
-            <ion-input
-              formControlName="name"
-              [placeholder]="'CATEGORY_FORM.NAME_PLACEHOLDER' | translate"
-              maxlength="64"
-              (ionBlur)="onNameBlur()"
-            ></ion-input>
-          </ion-item>
-        </ion-list>
+      @if (isLoading) {
+        <sh-loading-state variant="inline" [label]="'COMMON.LOADING' | translate"></sh-loading-state>
+      }
 
-        @if (validationMessageKey) {
-          <ion-note color="danger">{{ validationMessageKey | translate }}</ion-note>
-        }
+      @if (!isLoading) {
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <ion-list>
+            <ion-item>
+              <ion-label position="stacked">
+                {{ 'CATEGORY_FORM.NAME_LABEL' | translate }}
+              </ion-label>
+              <ion-input
+                formControlName="name"
+                [placeholder]="'CATEGORY_FORM.NAME_PLACEHOLDER' | translate"
+                maxlength="64"
+                (ionBlur)="onNameBlur()"
+              ></ion-input>
+            </ion-item>
+          </ion-list>
 
-        @if (loadFailed) {
-          <ion-note color="danger">{{ 'CATEGORIES.ERROR_LOAD' | translate }}</ion-note>
-        }
+          @if (validationMessageKey) {
+            <ion-note color="danger">{{ validationMessageKey | translate }}</ion-note>
+          }
 
-        @if (saveFailed) {
-          <ion-note color="danger">{{ 'CATEGORY_FORM.ERROR_SAVE' | translate }}</ion-note>
-        }
+          @if (loadFailed) {
+            <ion-note color="danger">{{ 'CATEGORIES.ERROR_LOAD' | translate }}</ion-note>
+          }
 
-        <ion-button expand="block" type="submit" [disabled]="saveDisabled">
-          {{ 'CATEGORY_FORM.UPDATE_ACTION' | translate }}
-        </ion-button>
-      </form>
+          @if (saveFailed) {
+            <ion-note color="danger">{{ 'CATEGORY_FORM.ERROR_SAVE' | translate }}</ion-note>
+          }
+
+          <ion-button expand="block" type="submit" [disabled]="saveDisabled">
+            {{ 'CATEGORY_FORM.UPDATE_ACTION' | translate }}
+          </ion-button>
+        </form>
+      }
     }
   </div>
 </ion-content>

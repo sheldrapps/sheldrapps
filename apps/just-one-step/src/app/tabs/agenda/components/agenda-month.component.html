@@ -1,0 +1,49 @@
+<div class="agenda-scope-shell">
+  <div class="agenda-month-weekdays" aria-hidden="true">
+    @for (label of monthWeekdayLabels; track label) {
+      <div class="agenda-month-weekday">{{ label }}</div>
+    }
+  </div>
+
+  <div class="agenda-month-grid">
+    @for (cell of monthCells; track cell.key) {
+      @if (cell.date) {
+        <button
+          type="button"
+          class="agenda-month-cell"
+          [class.agenda-month-cell--today]="cell.isToday"
+          [class.agenda-month-cell--selected]="cell.isSelected"
+          [class.agenda-month-cell--with-tasks]="cell.densityLevel > 0"
+          (click)="openDay.emit(cell)"
+          [attr.aria-label]="fullDateAriaLabel(cell.date)"
+        >
+          <span class="agenda-month-cell-day">{{ cell.dayNumberLabel }}</span>
+          @if (cell.categoryDotColors.length > 0) {
+            <span class="agenda-month-dot-wrapper" aria-hidden="true">
+              <span class="agenda-month-dot-row agenda-month-dot-row--top">
+                @for (dotColor of cell.categoryDotTopColors; track dotColor + '-' + $index) {
+                  <span class="agenda-month-task-dot" [style.--agenda-month-dot-color]="dotColor"></span>
+                }
+              </span>
+              <span class="agenda-month-dot-row agenda-month-dot-row--middle">
+                @for (dotColor of cell.categoryDotMiddleColors; track dotColor + '-' + $index) {
+                  <span class="agenda-month-task-dot" [style.--agenda-month-dot-color]="dotColor"></span>
+                }
+              </span>
+              <span class="agenda-month-dot-row agenda-month-dot-row--bottom">
+                @for (dotColor of cell.categoryDotBottomColors; track dotColor + '-' + $index) {
+                  <span class="agenda-month-task-dot" [style.--agenda-month-dot-color]="dotColor"></span>
+                }
+                @if (cell.categoryDotOverflow > 0) {
+                  <span class="agenda-month-task-stack">+{{ cell.categoryDotOverflow }}</span>
+                }
+              </span>
+            </span>
+          }
+        </button>
+      } @else {
+        <div class="agenda-month-cell-empty" aria-hidden="true"></div>
+      }
+    }
+  </div>
+</div>

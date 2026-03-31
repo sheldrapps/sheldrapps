@@ -13,6 +13,7 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { LoadingStateComponent } from '@sheldrapps/ui-theme';
 import { addIcons } from 'ionicons';
 import {
   createOutline,
@@ -104,6 +105,7 @@ const REMINDER_YEARLY_PRESETS: readonly NotificationLeadTimePreset[] = [
     IonNote,
     RouterLink,
     TranslateModule,
+    LoadingStateComponent,
   ],
 })
 export class TaskPage {

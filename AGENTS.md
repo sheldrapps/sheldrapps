@@ -56,6 +56,13 @@ When in doubt, default to kits and only keep app-specific wiring in `apps/*`.
 - App SCSS is allowed only for justified overrides tied to that app.
 - Guardrail test enforces this with an allowlist from current repo state.
 
+## Component Structure Rule (Critical)
+
+- For Angular UI modules, use `components` folders; do not create new `views` folders.
+- Do not keep component templates/styles inline in `.ts` files.
+- Components must use `templateUrl` and `styleUrls` with dedicated `.html` and `.scss` files.
+- Inline templates/styles are only acceptable for explicit user-requested exceptions.
+
 ## UI Theme First Visual Rule
 
 - Always implement visual language in `packages/ui-theme` first (tokens, shared components, utilities).

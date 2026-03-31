@@ -22,8 +22,6 @@ import {
   IonLabel,
   IonIcon,
   IonButton,
-  IonLoading,
-  IonSpinner,
   IonModal,
   IonGrid,
   IonCol,
@@ -81,6 +79,7 @@ import { ToastOptions } from '@ionic/angular';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { detectSupportedLocale } from '@sheldrapps/i18n-kit';
 import {
+  LoadingStateComponent,
   SaveCoverModalComponent,
   ScrollableBarItem,
   ScrollableButtonBarComponent,
@@ -118,8 +117,6 @@ type EditorResult = {
   standalone: true,
   imports: [
     IonCol,
-    IonLoading,
-    IonSpinner,
     CommonModule,
     FormsModule,
     TranslateModule,
@@ -136,6 +133,7 @@ type EditorResult = {
     IonGrid,
     IonPopover,
     IonModal,
+    LoadingStateComponent,
     ScrollableButtonBarComponent,
     TourOverlayComponent,
   ],

@@ -19,9 +19,7 @@
 </ion-refresher>
 
 @if (loading) {
-<div class="loading">
-  <ion-spinner></ion-spinner>
-</div>
+<sh-loading-state variant="inline" [label]="'COMMON.LOADING' | translate"></sh-loading-state>
 } @else {
 <ion-grid>
   <ion-row>

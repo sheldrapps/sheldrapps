@@ -27,11 +27,15 @@
       </ion-note>
     }
 
+    @if (isLoading) {
+      <sh-loading-state variant="inline" [label]="'COMMON.LOADING' | translate"></sh-loading-state>
+    }
+
     @if (!isLoading && tasks.length === 0) {
       <ion-note class="tasks-state-note">{{ 'TASKS.PLACEHOLDER' | translate }}</ion-note>
     }
 
-    @if (tasks.length > 0) {
+    @if (!isLoading && tasks.length > 0) {
       <div class="tasks-list-stack">
         @for (task of tasks; track task.id) {
           <div

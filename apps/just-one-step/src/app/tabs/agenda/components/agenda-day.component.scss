@@ -1,0 +1,104 @@
+.agenda-scope-shell {
+	display: grid;
+	gap: var(--app-space-4);
+	animation: agenda-scope-enter 180ms ease;
+}
+
+.agenda-day-view {
+	display: block;
+}
+
+.agenda-untimed-section {
+	position: relative;
+	margin-top: var(--app-space-6);
+	display: grid;
+	gap: var(--app-space-3);
+	padding: 0;
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+}
+
+.agenda-untimed-section::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: calc(-1 * var(--app-space-4));
+	height: 1px;
+	background: linear-gradient(
+		90deg,
+		rgba(var(--ion-color-step-300-rgb), 0) 0%,
+		rgba(var(--ion-color-step-300-rgb), 0.34) 18%,
+		rgba(var(--ion-color-step-300-rgb), 0.34) 82%,
+		rgba(var(--ion-color-step-300-rgb), 0) 100%
+	);
+}
+
+.agenda-untimed-list {
+	display: grid;
+	gap: var(--app-space-2);
+}
+
+.agenda-untimed-item.app-task-card--accented {
+	background: transparent;
+	border-color: var(--app-accent-border-color, rgba(var(--ion-color-step-300-rgb), 0.45));
+	box-shadow: none;
+}
+
+.agenda-timeline-wrap {
+	position: relative;
+	min-width: 0;
+	padding-left: 0;
+}
+
+.agenda-timeline {
+	--agenda-time-col-width: 3.75rem;
+	--agenda-divider-col-width: 1rem;
+
+	position: relative;
+	display: grid;
+	gap: 0;
+	padding: var(--app-space-2) var(--app-space-2) var(--app-space-3);
+	border-radius: var(--app-radius-xl);
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+	overflow: visible;
+}
+
+.agenda-segment-list {
+	display: grid;
+	gap: 10px;
+}
+
+.agenda-segment-row {
+	display: block;
+}
+
+.agenda-day-open-message {
+	margin-left: calc(var(--agenda-time-col-width) + var(--agenda-divider-col-width));
+	padding: var(--app-space-2) var(--app-space-1) 0;
+}
+
+@media (max-width: 540px) {
+	.agenda-day-view {
+		display: block;
+	}
+
+	.agenda-timeline {
+		--agenda-time-col-width: 3.2rem;
+		--agenda-divider-col-width: 0.85rem;
+	}
+}
+
+@keyframes agenda-scope-enter {
+	from {
+		opacity: 0;
+		transform: scale(0.99);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}

@@ -13,11 +13,11 @@ import {
   IonHeader,
   IonIcon,
   IonModal,
-  IonSpinner,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
+import { LoadingStateComponent } from '@sheldrapps/ui-theme';
 
 export type PreviewActionRegion = 'header' | 'footer' | 'unavailable';
 
@@ -58,9 +58,9 @@ export interface PreviewActionClickEvent {
     IonHeader,
     IonIcon,
     IonModal,
-    IonSpinner,
     IonTitle,
     IonToolbar,
+    LoadingStateComponent,
   ],
   templateUrl: './cover-preview-modal.component.html',
   styleUrls: ['./cover-preview-modal.component.scss'],

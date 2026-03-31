@@ -36,6 +36,14 @@ import {
   TimePickerComponent,
 } from '@sheldrapps/datetime-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
+import {
+  addDays as addCalendarDays,
+  formatCalendarDate,
+  getDeviceTimezone,
+  getToday,
+  parseCalendarDate,
+  toCalendarDate,
+} from '../../shared/calendar';
 import { startWith } from 'rxjs';
 import {
   CategoryRepository,
@@ -294,7 +302,7 @@ export class CreateTaskPage {
     categoryMode: this.fb.nonNullable.control<CategoryMode>('existing'),
     categoryId: this.fb.control<string | null>(null),
     customCategoryName: this.fb.nonNullable.control(''),
-    oneTimeDate: this.fb.nonNullable.control(new Date().toISOString()),
+    oneTimeDate: this.fb.nonNullable.control(this.resolveTodayIso()),
     oneTimeHasTime: this.fb.nonNullable.control(false),
     oneTimeTime: this.fb.nonNullable.control(''),
     recurrenceEnabled: this.fb.nonNullable.control(false),
@@ -307,7 +315,7 @@ export class CreateTaskPage {
     recurrenceTime: this.fb.nonNullable.control(''),
     recurrenceStartsToday: this.fb.nonNullable.control(true),
     recurrenceStartDate: this.fb.nonNullable.control(
-      this.addDays(new Date(), 1).toISOString()
+      this.resolveTomorrowIso()
     ),
     recurrenceHasEndDate: this.fb.nonNullable.control(false),
     recurrenceEndDate: this.fb.control<string | null>(null),
@@ -1007,7 +1015,7 @@ export class CreateTaskPage {
       categoryMode: 'existing',
       categoryId: task.categoryId,
       customCategoryName: '',
-      oneTimeDate: task.oneTimeDate ?? new Date().toISOString(),
+      oneTimeDate: task.oneTimeDate ?? this.resolveTodayIso(),
       oneTimeHasTime: Boolean(task.oneTimeTime),
       oneTimeTime: task.oneTimeTime ?? '',
       recurrenceEnabled: isRecurring,
@@ -1031,7 +1039,7 @@ export class CreateTaskPage {
             ? recurrence.commonTime ?? ''
             : '',
       recurrenceStartsToday: recurrence?.startsToday ?? true,
-      recurrenceStartDate: recurrence?.startDate ?? this.addDays(new Date(), 1).toISOString(),
+      recurrenceStartDate: recurrence?.startDate ?? this.resolveTomorrowIso(),
       recurrenceHasEndDate: recurrence?.hasEndDate ?? false,
       recurrenceEndDate: recurrence?.hasEndDate ? recurrence.endDate : null,
       recurrenceDayOfMonth: recurrence?.pattern === 'monthly' ? recurrence.dayOfMonth : null,
@@ -1197,7 +1205,7 @@ export class CreateTaskPage {
       const trimmedStartDate = controls.recurrenceStartDate.value.trim();
       if (trimmedStartDate.length === 0) {
         controls.recurrenceStartDate.setValue(
-          this.addDays(new Date(), 1).toISOString(),
+          this.resolveTomorrowIso(),
           { emitEvent: false }
         );
         this.markControlsAsAutoReset(controls.recurrenceStartDate);
@@ -1577,7 +1585,7 @@ export class CreateTaskPage {
     controls.recurrenceTime.setValue('', { emitEvent: false });
     controls.recurrenceStartsToday.setValue(true, { emitEvent: false });
     controls.recurrenceStartDate.setValue(
-      this.addDays(new Date(), 1).toISOString(),
+      this.resolveTomorrowIso(),
       { emitEvent: false }
     );
     controls.recurrenceHasEndDate.setValue(false, { emitEvent: false });
@@ -1670,12 +1678,13 @@ export class CreateTaskPage {
   private buildRecurrenceInput(
     values: ReturnType<CreateTaskPage['form']['getRawValue']>
   ): CreateTaskRecurrenceInput {
+    const timezone = this.resolveTimezone();
     const startDate = this.resolveStartDate(
       values.recurrenceStartsToday,
-      values.recurrenceStartDate
+      values.recurrenceStartDate,
+      timezone
     );
     const endDate = values.recurrenceHasEndDate ? values.recurrenceEndDate : null;
-    const timezone = this.resolveTimezone();
 
     if (
       values.recurrencePattern === 'selected_weekdays' &&
@@ -1737,9 +1746,13 @@ export class CreateTaskPage {
     };
   }
 
-  private resolveStartDate(startsToday: boolean, selectedStartDate: string): string {
+  private resolveStartDate(
+    startsToday: boolean,
+    selectedStartDate: string,
+    timezone: string
+  ): string {
     if (startsToday) {
-      return new Date().toISOString();
+      return this.resolveTodayIsoForTimezone(timezone);
     }
 
     const trimmed = selectedStartDate.trim();
@@ -1747,14 +1760,18 @@ export class CreateTaskPage {
       return trimmed;
     }
 
-    return this.addDays(new Date(), 1).toISOString();
+    return this.resolveTomorrowIsoForTimezone(timezone);
   }
 
   private resolveDefaultRecurrenceEndDate(
     startsToday: boolean,
     selectedStartDate: string
   ): string {
-    const baseDateValue = this.resolveStartDate(startsToday, selectedStartDate);
+    const baseDateValue = this.resolveStartDate(
+      startsToday,
+      selectedStartDate,
+      this.resolveTimezone()
+    );
     const baseDate = this.parseDate(baseDateValue) ?? new Date();
     return this.addOneMonth(baseDate).toISOString();
   }
@@ -1818,7 +1835,7 @@ export class CreateTaskPage {
         candidate.getMonth() === month &&
         candidate.getDate() === day
       ) {
-        return candidate.toISOString();
+        return this.calendarDateToIsoNoon(`${simpleDateMatch[1]}-${simpleDateMatch[2]}-${simpleDateMatch[3]}`);
       }
     }
 
@@ -2022,6 +2039,7 @@ export class CreateTaskPage {
   }
 
   private sanitizeCreateTaskPayload(input: CreateTaskInput): CreateTaskInput {
+    const deviceTimezone = this.resolveTimezone();
     const scheduleType: TaskScheduleType =
       input.scheduleType === 'recurring' ? 'recurring' : 'one_time';
     const durationMode: TaskDurationMode =
@@ -2032,7 +2050,11 @@ export class CreateTaskPage {
         : null;
     const oneTimeDate =
       scheduleType === 'one_time'
-        ? this.resolveSafeIsoDate(input.oneTimeDate ?? '', new Date().toISOString())
+        ? this.resolveSafeIsoDate(
+            input.oneTimeDate ?? '',
+            this.resolveTodayIsoForTimezone(deviceTimezone),
+            deviceTimezone
+          )
         : null;
     const recurrence =
       scheduleType === 'recurring'
@@ -2081,15 +2103,16 @@ export class CreateTaskPage {
       return undefined;
     }
 
+    const timezone = recurrence.timezone ?? this.resolveTimezone();
     const startDate = this.resolveSafeIsoDate(
       recurrence.startDate,
-      new Date().toISOString()
+      this.resolveTodayIsoForTimezone(timezone),
+      timezone
     );
-    const rawEndDate = this.resolveSafeIsoDateOrNull(recurrence.endDate);
+    const rawEndDate = this.resolveSafeIsoDateOrNull(recurrence.endDate, timezone);
     const hasEndDate = recurrence.hasEndDate ?? rawEndDate !== null;
     const endDate = hasEndDate ? rawEndDate : null;
-    const timezone = recurrence.timezone ?? null;
-    const startsToday = recurrence.startsToday ?? this.isTodayDate(startDate);
+    const startsToday = recurrence.startsToday ?? this.isTodayDate(startDate, timezone);
 
     if (recurrence.mode === 'weekly_schedule') {
       const weeklyDayTimes = (recurrence.weeklyDayTimes ?? [])
@@ -2227,41 +2250,44 @@ export class CreateTaskPage {
     };
   }
 
-  private resolveSafeIsoDate(value: string, fallback: string): string {
-    const parsed = this.parseDate(value);
-    if (parsed) {
-      return parsed.toISOString();
+  private resolveSafeIsoDate(
+    value: string,
+    fallback: string,
+    timezone = this.resolveTimezone()
+  ): string {
+    const resolvedDate = this.resolveCalendarDateKey(value, timezone);
+    if (resolvedDate) {
+      return this.calendarDateToIsoNoon(resolvedDate);
     }
 
-    const fallbackDate = this.parseDate(fallback);
+    const fallbackDate = this.resolveCalendarDateKey(fallback, timezone);
     if (fallbackDate) {
-      return fallbackDate.toISOString();
+      return this.calendarDateToIsoNoon(fallbackDate);
     }
 
-    return new Date().toISOString();
+    return this.resolveTodayIsoForTimezone(timezone);
   }
 
-  private isTodayDate(value: string): boolean {
-    const parsed = this.parseDate(value);
-    if (!parsed) {
+  private isTodayDate(value: string, timezone: string): boolean {
+    const localDate = this.resolveCalendarDateKey(value, timezone);
+    if (!localDate) {
       return false;
     }
 
-    const now = new Date();
-    return (
-      parsed.getUTCFullYear() === now.getUTCFullYear() &&
-      parsed.getUTCMonth() === now.getUTCMonth() &&
-      parsed.getUTCDate() === now.getUTCDate()
-    );
+    const today = formatCalendarDate(getToday(timezone));
+    return localDate === today;
   }
 
-  private resolveSafeIsoDateOrNull(value: string | null | undefined): string | null {
+  private resolveSafeIsoDateOrNull(
+    value: string | null | undefined,
+    timezone = this.resolveTimezone()
+  ): string | null {
     if (!value) {
       return null;
     }
 
-    const parsed = this.parseDate(value);
-    return parsed ? parsed.toISOString() : null;
+    const resolvedDate = this.resolveCalendarDateKey(value, timezone);
+    return resolvedDate ? this.calendarDateToIsoNoon(resolvedDate) : null;
   }
 
   private sanitizeBoundedInteger(
@@ -2528,12 +2554,67 @@ export class CreateTaskPage {
     );
   }
 
-  private resolveTimezone(): string | null {
+  private resolveTimezone(): string {
     try {
-      return Intl.DateTimeFormat().resolvedOptions().timeZone ?? null;
+      return Intl.DateTimeFormat().resolvedOptions().timeZone ?? getDeviceTimezone();
     } catch {
+      return getDeviceTimezone();
+    }
+  }
+
+  private resolveTodayIso(): string {
+    return this.resolveTodayIsoForTimezone(this.resolveTimezone());
+  }
+
+  private resolveTomorrowIso(): string {
+    return this.resolveTomorrowIsoForTimezone(this.resolveTimezone());
+  }
+
+  private resolveTodayIsoForTimezone(timezone: string): string {
+    const today = formatCalendarDate(getToday(timezone));
+    return this.calendarDateToIsoNoon(today);
+  }
+
+  private resolveTomorrowIsoForTimezone(timezone: string): string {
+    const today = formatCalendarDate(getToday(timezone));
+    const tomorrow = formatCalendarDate(addCalendarDays(today, 1));
+    return this.calendarDateToIsoNoon(tomorrow);
+  }
+
+  private resolveCalendarDateKey(
+    value: string | null | undefined,
+    timezone: string
+  ): string | null {
+    if (typeof value !== 'string') {
       return null;
     }
+
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    try {
+      return formatCalendarDate(parseCalendarDate(trimmed));
+    } catch {
+      const parsed = this.parseDate(trimmed);
+      if (!parsed) {
+        return null;
+      }
+
+      try {
+        return formatCalendarDate(toCalendarDate(parsed, timezone));
+      } catch {
+        return null;
+      }
+    }
+  }
+
+  private calendarDateToIsoNoon(value: string): string {
+    const parsed = parseCalendarDate(value);
+    return new Date(
+      Date.UTC(parsed.year, parsed.month - 1, parsed.day, 12, 0, 0, 0)
+    ).toISOString();
   }
 
   private normalizeTimeValue(value: string): string | null {

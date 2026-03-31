@@ -1,0 +1,42 @@
+<div class="agenda-controls">
+  <ion-segment [value]="currentView" (ionChange)="onViewModeChange($event)">
+    <ion-segment-button value="day">
+      <ion-label>{{ 'AGENDA.VIEW_DAY' | translate }}</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="month">
+      <ion-label>{{ 'AGENDA.VIEW_MONTH' | translate }}</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="year">
+      <ion-label>{{ 'AGENDA.VIEW_YEAR' | translate }}</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+</div>
+
+<div class="agenda-scope-header">
+  <ion-button
+    class="agenda-nav-btn"
+    fill="clear"
+    (click)="shiftScope.emit(-1)"
+    [attr.aria-label]="'AGENDA.PREVIOUS' | translate"
+  >
+    <ion-icon name="chevron-back-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+  </ion-button>
+
+  @if (currentView === 'day') {
+    <div class="agenda-scope-title agenda-scope-title--day">
+      <span class="agenda-day-title-weekday">{{ dayHeaderWeekdayLabel }}</span>
+      <span class="agenda-day-title-date">{{ dayHeaderDateLabel }}</span>
+    </div>
+  } @else {
+    <div class="agenda-scope-title">{{ scopeTitleLabel }}</div>
+  }
+
+  <ion-button
+    class="agenda-nav-btn"
+    fill="clear"
+    (click)="shiftScope.emit(1)"
+    [attr.aria-label]="'AGENDA.NEXT' | translate"
+  >
+    <ion-icon name="chevron-forward-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+  </ion-button>
+</div>

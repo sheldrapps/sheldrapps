@@ -1,0 +1,18 @@
+<div class="agenda-scope-shell">
+  <div class="agenda-year-grid">
+    @for (month of yearMonths; track month.key) {
+      <button
+        type="button"
+        class="app-surface agenda-year-month"
+        [class.agenda-year-month--today]="month.isCurrentMonth"
+        [class.agenda-year-month--selected]="month.isSelectedMonth"
+        (click)="openMonth.emit(month)"
+      >
+        <span class="agenda-year-month-label">{{ month.monthLabel }}</span>
+        @if (month.densityLevel > 0) {
+          <span class="agenda-density agenda-density--{{ month.densityLevel }}"></span>
+        }
+      </button>
+    }
+  </div>
+</div>

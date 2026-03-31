@@ -33,7 +33,11 @@
       </ion-note>
     }
 
-    @if (task; as taskDetail) {
+    @if (isLoading) {
+      <sh-loading-state variant="inline" [label]="'COMMON.LOADING' | translate"></sh-loading-state>
+    }
+
+    @if (!isLoading && task; as taskDetail) {
       @if (visualModel; as vm) {
         <div class="app-sections-stack task-sections-stack">
           <div class="task-section-list">

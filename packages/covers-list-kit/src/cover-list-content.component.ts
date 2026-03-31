@@ -19,9 +19,9 @@ import {
   IonRefresher,
   IonRefresherContent,
   IonRow,
-  IonSpinner,
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
+import { LoadingStateComponent } from '@sheldrapps/ui-theme';
 
 export interface CoverListItem {
   filename: string;
@@ -59,7 +59,7 @@ export interface CoverListActionEvent {
     IonRefresher,
     IonRefresherContent,
     IonRow,
-    IonSpinner,
+    LoadingStateComponent,
   ],
   templateUrl: './cover-list-content.component.html',
   styleUrls: ['./cover-list-content.component.scss'],
