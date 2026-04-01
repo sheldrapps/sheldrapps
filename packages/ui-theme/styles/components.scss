@@ -191,6 +191,11 @@ ion-item.app-input-surface::part(native) {
   gap: var(--app-space-5);
 }
 
+.app-section {
+  display: grid;
+  gap: var(--app-space-2);
+}
+
 .app-state-note {
   display: block;
   margin: 0;
@@ -199,6 +204,28 @@ ion-item.app-input-surface::part(native) {
 .app-accent-card-body {
   display: grid;
   gap: var(--app-space-2);
+}
+
+.app-task-accent-surface {
+  --app-accent-border-color: var(--app-task-accent-border-color, var(--app-task-color, var(--ion-color-primary)));
+  --app-accent-background-color: var(--app-task-accent-background-color, rgba(var(--ion-color-primary-rgb), 0.14));
+  --app-accent-shadow-color: var(--app-task-accent-shadow-color, rgba(var(--ion-color-primary-rgb), 0.22));
+}
+
+.app-duration-tier-sm {
+  --app-duration-tier-min-height: 32px;
+}
+
+.app-duration-tier-md {
+  --app-duration-tier-min-height: 40px;
+}
+
+.app-duration-tier-lg {
+  --app-duration-tier-min-height: 48px;
+}
+
+.app-duration-tier-target {
+  min-height: var(--app-duration-tier-min-height, 40px);
 }
 
 .time-digital-display {

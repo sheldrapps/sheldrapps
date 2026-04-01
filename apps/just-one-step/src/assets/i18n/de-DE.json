@@ -10,10 +10,59 @@
     "SETTINGS": "Einstellungen"
   },
   "TODAY": {
+    "TODAY_TASKS": {
+      "TITLE": "Aufgaben heute"
+    },
     "TITLE": "Heute",
-    "TASKS_SUMMARY": "Zusammenfassung der heutigen Aufgaben (Platzhalter)",
-    "PROGRESS_SUMMARY": "Zusammenfassung des heutigen Fortschritts (Platzhalter)",
-    "REFLECTION_PROMPT": "Kurze Reflexionsfrage (Platzhalter)"
+    "RELOAD": "Neu laden",
+    "SECTION_NOW": "Jetzt",
+    "SECTION_NEXT": "Nächster Schritt",
+    "SECTION_GAPS": "Nutzbare Lücken",
+    "SECTION_BACKLOG": "Offen für heute",
+    "SUGGESTIONS": {
+      "TITLE": "Dieser Moment könnte passen für..."
+    },
+    "FREE_SPACES": {
+      "TITLE": "Nächste freie Zeiten"
+    },
+    "OPPORTUNITIES": {
+      "TITLE": "Dieser Moment könnte passen für...",
+      "HEADER": "Dir bleiben {{duration}}",
+      "HOUR_SHORT": "h"
+    },
+    "RUNNING": "Läuft",
+    "NOW_CTA_PLAY": "Wenn du magst",
+    "NOW_CTA_FIVE_MIN": "Wenn es passt, 5 Min",
+    "NOW_CTA_RESCHEDULE": "Wenn du willst, neu planen",
+    "NOW_CTA_POSTPONE": "Verschieben",
+    "EMPTY_TITLE": "Gerade keine Aufgaben",
+    "EMPTY_HINT": "Du musst nicht alles heute schaffen. Ein Schritt reicht.",
+    "NOW_FREE_TITLE": "Du bist gerade frei",
+    "NOW_FREE_MAIN": "Du bist gerade frei",
+    "NOW_FREE_HINT": "Dieser Moment könnte passen für:",
+    "CATEGORY_NONE": "Keine Kategorie",
+    "NOW_CONTEXT_CURRENT": "Gerade aktiv",
+    "NOW_CONTEXT_NEXT": "Als Nächstes",
+    "NOW_CONTEXT_BACKLOG": "Beste nächste Aufgabe",
+    "GAP_DURATION": "{{minutes}} Min frei",
+    "QUOTES": {
+      "0": {
+        "LINE_1": "Du musst nicht alles schaffen.",
+        "LINE_2": "Nur ein Schritt mehr."
+      },
+      "1": {
+        "LINE_1": "Fang klein an.",
+        "LINE_2": "Aber fang an."
+      },
+      "2": {
+        "LINE_1": "Ein bisschen heute.",
+        "LINE_2": "Viel morgen."
+      },
+      "3": {
+        "LINE_1": "Nicht perfekt.",
+        "LINE_2": "Nur erledigt."
+      }
+    }
   },
   "AGENDA": {
     "TITLE": "Agenda",
@@ -233,6 +282,7 @@
     "CATEGORY_CUSTOM_NAME_LABEL": "Benutzerdefinierte Kategorie",
     "VALIDATION_CATEGORY_NAME_REQUIRED": "Gib einen Kategorienamen ein.",
     "VALIDATION_CATEGORY_NAME_DUPLICATE": "Diese Kategorie existiert bereits.",
+    "VALIDATION_CATEGORY_REQUIRED": "Wähle eine Kategorie aus.",
     "DEFAULT_CATEGORY_PERSONAL": "Privat",
     "DEFAULT_CATEGORY_WORK": "Arbeit",
     "DEFAULT_CATEGORY_HEALTH": "Gesundheit",

@@ -6,61 +6,85 @@ type TimeDisplayTone = 'default' | 'muted' | 'accent';
 type TimeDisplayAlign = 'left' | 'center' | 'right';
 
 interface TimeDisplaySlot {
-  kind: 'digit' | 'separator';
+  kind: "digit" | "separator" | "range-separator";
   value: string;
 }
 
 @Component({
-  selector: 'sh-time-display, app-time-display',
+  selector: "sh-time-display, app-time-display",
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './time-display.component.html',
-  styleUrls: ['./time-display.component.scss'],
+  templateUrl: "./time-display.component.html",
+  styleUrls: ["./time-display.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    '[attr.aria-label]': 'screenReaderLabel',
-    'role': 'text',
+    "[attr.aria-label]": "screenReaderLabel",
+    role: "text",
   },
 })
 export class TimeDisplayComponent {
   private static readonly TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
+  private static readonly RANGE_PATTERN =
+    /^([01]\d|2[0-3]):([0-5]\d)\s*-\s*([01]\d|2[0-3]):([0-5]\d)$/;
 
   @Input() value: string | null = null;
 
-  @Input() size: TimeDisplaySize = 'md';
+  @Input() size: TimeDisplaySize = "md";
 
-  @Input() tone: TimeDisplayTone = 'default';
+  @Input() tone: TimeDisplayTone = "default";
 
-  @Input() align: TimeDisplayAlign = 'left';
+  @Input() align: TimeDisplayAlign = "left";
 
   get slots(): TimeDisplaySlot[] {
+    const parsedRange = this.parseRange(this.value);
+    if (parsedRange) {
+      return [
+        { kind: "digit", value: parsedRange.start[0] },
+        { kind: "digit", value: parsedRange.start[1] },
+        { kind: "separator", value: ":" },
+        { kind: "digit", value: parsedRange.start[3] },
+        { kind: "digit", value: parsedRange.start[4] },
+        { kind: "range-separator", value: " - " },
+        { kind: "digit", value: parsedRange.end[0] },
+        { kind: "digit", value: parsedRange.end[1] },
+        { kind: "separator", value: ":" },
+        { kind: "digit", value: parsedRange.end[3] },
+        { kind: "digit", value: parsedRange.end[4] },
+      ];
+    }
+
     const parsed = this.parseTime(this.value);
     if (!parsed) {
       return [
-        { kind: 'digit', value: '' },
-        { kind: 'digit', value: '' },
-        { kind: 'separator', value: ':' },
-        { kind: 'digit', value: '' },
-        { kind: 'digit', value: '' },
+        { kind: "digit", value: "" },
+        { kind: "digit", value: "" },
+        { kind: "separator", value: ":" },
+        { kind: "digit", value: "" },
+        { kind: "digit", value: "" },
       ];
     }
 
     return [
-      { kind: 'digit', value: parsed[0] },
-      { kind: 'digit', value: parsed[1] },
-      { kind: 'separator', value: ':' },
-      { kind: 'digit', value: parsed[3] },
-      { kind: 'digit', value: parsed[4] },
+      { kind: "digit", value: parsed[0] },
+      { kind: "digit", value: parsed[1] },
+      { kind: "separator", value: ":" },
+      { kind: "digit", value: parsed[3] },
+      { kind: "digit", value: parsed[4] },
     ];
   }
 
   get screenReaderLabel(): string | null {
+    const parsedRange = this.parseRange(this.value);
+    if (parsedRange) {
+      return `${parsedRange.start} - ${parsedRange.end}`;
+    }
+
     return this.parseTime(this.value);
   }
 
   get rootClassMap(): Record<string, boolean> {
     return {
-      'app-time-display': true,
+      "app-time-display": true,
       [`app-time-display--${this.size}`]: true,
       [`app-time-display--${this.tone}`]: true,
       [`app-time-display--${this.align}`]: true,
@@ -81,5 +105,23 @@ export class TimeDisplayComponent {
     const hours = match[1];
     const minutes = match[2];
     return `${hours}:${minutes}`;
+  }
+
+  private parseRange(
+    value: string | null,
+  ): { start: string; end: string } | null {
+    const trimmed = value?.trim() ?? null;
+    if (!trimmed) {
+      return null;
+    }
+
+    const match = trimmed.match(TimeDisplayComponent.RANGE_PATTERN);
+    if (!match) {
+      return null;
+    }
+
+    const start = `${match[1]}:${match[2]}`;
+    const end = `${match[3]}:${match[4]}`;
+    return { start, end };
   }
 }

@@ -10,10 +10,59 @@
     "SETTINGS": "Impostazioni"
   },
   "TODAY": {
+    "TODAY_TASKS": {
+      "TITLE": "Attività di oggi"
+    },
     "TITLE": "Oggi",
-    "TASKS_SUMMARY": "Riepilogo delle attività di oggi (segnaposto)",
-    "PROGRESS_SUMMARY": "Riepilogo dei progressi di oggi (segnaposto)",
-    "REFLECTION_PROMPT": "Domanda rapida di riflessione (segnaposto)"
+    "RELOAD": "Ricarica",
+    "SECTION_NOW": "Adesso",
+    "SECTION_NEXT": "Prossimo passo",
+    "SECTION_GAPS": "Spazi utili",
+    "SECTION_BACKLOG": "In sospeso oggi",
+    "SUGGESTIONS": {
+      "TITLE": "Questo momento può servire per..."
+    },
+    "FREE_SPACES": {
+      "TITLE": "Prossimi tempi liberi"
+    },
+    "OPPORTUNITIES": {
+      "TITLE": "Questo momento può servire per...",
+      "HEADER": "Ti restano {{duration}}",
+      "HOUR_SHORT": "h"
+    },
+    "RUNNING": "In corso",
+    "NOW_CTA_PLAY": "Quando vuoi",
+    "NOW_CTA_FIVE_MIN": "Se aiuta, 5 min",
+    "NOW_CTA_RESCHEDULE": "Se preferisci, riprogramma",
+    "NOW_CTA_POSTPONE": "Posticipa",
+    "EMPTY_TITLE": "Nessuna attivit? al momento",
+    "EMPTY_HINT": "Non devi fare tutto oggi. Un passo basta.",
+    "NOW_FREE_TITLE": "Ora sei libero",
+    "NOW_FREE_MAIN": "Ora sei libero",
+    "NOW_FREE_HINT": "Questo momento può servire per:",
+    "CATEGORY_NONE": "Senza categoria",
+    "NOW_CONTEXT_CURRENT": "In corso ora",
+    "NOW_CONTEXT_NEXT": "Subito dopo",
+    "NOW_CONTEXT_BACKLOG": "Migliore prossimo passo",
+    "GAP_DURATION": "{{minutes}} min liberi",
+    "QUOTES": {
+      "0": {
+        "LINE_1": "Non devi fare tutto.",
+        "LINE_2": "Solo un passo in più."
+      },
+      "1": {
+        "LINE_1": "Inizia in piccolo.",
+        "LINE_2": "Ma inizia."
+      },
+      "2": {
+        "LINE_1": "Un po' oggi.",
+        "LINE_2": "Molto domani."
+      },
+      "3": {
+        "LINE_1": "Non perfetto.",
+        "LINE_2": "Solo fatto."
+      }
+    }
   },
   "AGENDA": {
     "TITLE": "Agenda",
@@ -233,6 +282,7 @@
     "CATEGORY_CUSTOM_NAME_LABEL": "Categoria personalizzata",
     "VALIDATION_CATEGORY_NAME_REQUIRED": "Inserisci un nome categoria.",
     "VALIDATION_CATEGORY_NAME_DUPLICATE": "Questa categoria esiste già.",
+    "VALIDATION_CATEGORY_REQUIRED": "Seleziona una categoria.",
     "DEFAULT_CATEGORY_PERSONAL": "Personale",
     "DEFAULT_CATEGORY_WORK": "Lavoro",
     "DEFAULT_CATEGORY_HEALTH": "Salute",

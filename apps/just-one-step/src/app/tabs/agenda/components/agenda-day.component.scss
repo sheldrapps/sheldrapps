@@ -40,12 +40,6 @@
 	gap: var(--app-space-2);
 }
 
-.agenda-untimed-item.app-task-card--accented {
-	background: transparent;
-	border-color: var(--app-accent-border-color, rgba(var(--ion-color-step-300-rgb), 0.45));
-	box-shadow: none;
-}
-
 .agenda-timeline-wrap {
 	position: relative;
 	min-width: 0;

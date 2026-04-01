@@ -1,0 +1,19 @@
+@if (upcomingFreeSpaces.length > 0) {
+  <section class="app-section today-section today-section--free-spaces">
+    <h2 class="today-section__title today-section__title--secondary">{{ 'TODAY.FREE_SPACES.TITLE' | translate }}</h2>
+    <div class="today-list">
+      @for (space of upcomingFreeSpaces; track space.key) {
+        <div
+          class="today-free-space-item app-duration-tier-target"
+          [class.app-duration-tier-sm]="space.sizeTier === 'sm'"
+          [class.app-duration-tier-md]="space.sizeTier === 'md'"
+          [class.app-duration-tier-lg]="space.sizeTier === 'lg'"
+        >
+          <sh-time-display [value]="space.rangeLabel" size="sm" tone="muted"></sh-time-display>
+          <span class="today-meta-divider" aria-hidden="true">•</span>
+          <span class="today-free-space-item__duration">{{ space.durationLabel }}</span>
+        </div>
+      }
+    </div>
+  </section>
+}

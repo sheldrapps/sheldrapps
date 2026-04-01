@@ -8,6 +8,7 @@ import {
   PersistedTaskAggregate,
   TaskRepository,
 } from '../../database/repositories/task.repository';
+import { CategoryRepository } from '../../database/repositories/category.repository';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
 
@@ -83,6 +84,9 @@ describe('AgendaPage day verification', () => {
     const routerMock: Pick<Router, 'navigate'> = {
       navigate: jasmine.createSpy('navigate').and.resolveTo(true),
     };
+    const categoryRepositoryMock: Pick<CategoryRepository, 'listCategories'> = {
+      listCategories: jasmine.createSpy('listCategories').and.resolveTo([]),
+    };
 
     const translateMock: Partial<TranslateService> = {
       instant: (key: string) => {
@@ -107,6 +111,7 @@ describe('AgendaPage day verification', () => {
       imports: [AgendaPage],
       providers: [
         { provide: TaskRepository, useValue: taskRepositoryMock },
+        { provide: CategoryRepository, useValue: categoryRepositoryMock },
         { provide: Router, useValue: routerMock },
         { provide: TranslateService, useValue: translateMock },
       ],
@@ -160,41 +165,305 @@ describe('AgendaPage day verification', () => {
       .filter((label) => label.length > 0);
   }
 
-  it('renders one month dot per category color and deduplicates repeated colors', () => {
-    const sameDayIso = '2026-03-15T12:00:00.000Z';
-    const tasks = [
+  it('cancels scheduled warm-up when agenda view leaves the screen', () => {
+    const internal = component as unknown as {
+      prewarmSummaryCachesInBackground: (date: Date) => void;
+      summaryWarmupHandle: number | null;
+    };
+    const windowAny = window as any;
+    const originalRequestIdle = windowAny.requestIdleCallback;
+    const originalCancelIdle = windowAny.cancelIdleCallback;
+    const setTimeoutSpy = spyOn(window, 'setTimeout').and.callFake(() => 77);
+    const clearTimeoutSpy = spyOn(window, 'clearTimeout').and.callThrough();
+
+    windowAny.requestIdleCallback = undefined;
+    windowAny.cancelIdleCallback = undefined;
+
+    try {
+      internal.prewarmSummaryCachesInBackground(new Date(2026, 2, 31, 12, 0, 0, 0));
+      expect(setTimeoutSpy).toHaveBeenCalled();
+      expect(internal.summaryWarmupHandle).toBe(77);
+
+      component.ionViewDidLeave();
+
+      expect(clearTimeoutSpy).toHaveBeenCalledWith(77);
+      expect(internal.summaryWarmupHandle).toBeNull();
+    } finally {
+      windowAny.requestIdleCallback = originalRequestIdle;
+      windowAny.cancelIdleCallback = originalCancelIdle;
+    }
+  });
+
+  it('throttles repeated warm-up attempts for the same month scope', () => {
+    const internal = component as unknown as {
+      buildSummaryWarmupSnapshot: (date: Date) => {
+        monthKey: string;
+        yearKey: string;
+        todayKey: string;
+      };
+      summaryRefreshScopeKey: (scope: 'month' | 'year', scopeKey: string) => string;
+      recordSummaryWarmupAttempt: (compositeScopeKey: string, nowTimestamp: number) => void;
+      shouldWarmMonthSummary: (snapshot: {
+        monthKey: string;
+        yearKey: string;
+        todayKey: string;
+      }) => boolean;
+    };
+    const snapshot = internal.buildSummaryWarmupSnapshot(
+      new Date(2026, 2, 31, 12, 0, 0, 0)
+    );
+    const scopeKey = internal.summaryRefreshScopeKey('month', snapshot.monthKey);
+    const nowSpy = spyOn(Date, 'now');
+
+    nowSpy.and.returnValue(100_000);
+    internal.recordSummaryWarmupAttempt(scopeKey, Date.now());
+    expect(internal.shouldWarmMonthSummary(snapshot)).toBeFalse();
+
+    nowSpy.and.returnValue(121_000);
+    expect(internal.shouldWarmMonthSummary(snapshot)).toBeTrue();
+  });
+
+  it('applies failure backoff and prunes warm-up state maps', () => {
+    const internal = component as unknown as {
+      buildSummaryWarmupSnapshot: (date: Date) => {
+        monthKey: string;
+        yearKey: string;
+        todayKey: string;
+      };
+      summaryRefreshScopeKey: (scope: 'month' | 'year', scopeKey: string) => string;
+      recordSummaryWarmupFailure: (compositeScopeKey: string, nowTimestamp: number) => void;
+      recordSummaryWarmupAttempt: (compositeScopeKey: string, nowTimestamp: number) => void;
+      shouldWarmYearSummary: (snapshot: {
+        monthKey: string;
+        yearKey: string;
+        todayKey: string;
+      }) => boolean;
+      summaryWarmupAttemptAtByScope: Map<string, number>;
+    };
+    const snapshot = internal.buildSummaryWarmupSnapshot(
+      new Date(2026, 2, 31, 12, 0, 0, 0)
+    );
+    const scopeKey = internal.summaryRefreshScopeKey('year', snapshot.yearKey);
+    const nowSpy = spyOn(Date, 'now');
+
+    nowSpy.and.returnValue(200_000);
+    internal.recordSummaryWarmupFailure(scopeKey, Date.now());
+    expect(internal.shouldWarmYearSummary(snapshot)).toBeFalse();
+
+    nowSpy.and.returnValue(321_000);
+    expect(internal.shouldWarmYearSummary(snapshot)).toBeTrue();
+
+    for (let index = 0; index < 160; index += 1) {
+      internal.recordSummaryWarmupAttempt(`month:${index}`, 1_000 + index);
+    }
+
+    expect(internal.summaryWarmupAttemptAtByScope.size).toBeLessThanOrEqual(96);
+  });
+
+  it('resolves category colors case-insensitively by category id', () => {
+    const internal = component as unknown as {
+      categoryColorById: Map<string, string>;
+      resolveCategoryColorsFromIds: (categoryIds: readonly string[]) => string[];
+    };
+
+    internal.categoryColorById = new Map([['cat-case-insensitive', '#A855F7']]);
+    expect(internal.resolveCategoryColorsFromIds(['CAT-CASE-INSENSITIVE'])).toEqual([
+      '#A855F7',
+    ]);
+  });
+
+  it('falls back to loaded task color when category map misses the category id', () => {
+    const internal = component as unknown as {
+      categoryColorById: Map<string, string>;
+      resolveCategoryColorsFromIds: (categoryIds: readonly string[]) => string[];
+    };
+    const storageKey = 'just-one-step.agenda.category-color-map.v1';
+    const previousValue = window.localStorage.getItem(storageKey);
+
+    try {
+      internal.categoryColorById = new Map();
+      component.scheduledTasks = [
+        buildTask({
+          id: 'task-category-color-fallback',
+          scheduleType: 'one_time',
+          recurrenceEnabled: false,
+          recurrence: undefined,
+          oneTimeDate: '2026-03-31T12:00:00.000Z',
+          oneTimeTime: null,
+          categoryId: 'cat-fallback',
+          categoryColor: '#22C55E',
+        }),
+      ];
+
+      expect(internal.resolveCategoryColorsFromIds(['CAT-FALLBACK'])).toEqual(['#22C55E']);
+      expect(internal.categoryColorById.get('cat-fallback')).toBe('#22C55E');
+    } finally {
+      if (previousValue === null) {
+        window.localStorage.removeItem(storageKey);
+      } else {
+        window.localStorage.setItem(storageKey, previousValue);
+      }
+    }
+  });
+
+  it('does not build month dots from day tasks when month summary is missing', () => {
+    const internal = component as unknown as {
+      buildMonthCellTaskSummary: (date: Date) => {
+        taskCount: number;
+        categoryDotColors: string[];
+      };
+    };
+    component.scheduledTasks = [
       buildTask({
-        id: 'task-color-red-a',
+        id: 'task-month-independence',
         scheduleType: 'one_time',
         recurrenceEnabled: false,
         recurrence: undefined,
-        oneTimeDate: sameDayIso,
+        oneTimeDate: '2026-03-31T12:00:00.000Z',
         oneTimeTime: null,
-        categoryColor: '#EF4444',
+        categoryId: 'cat-month',
+        categoryColor: '#6366F1',
       }),
+    ];
+
+    const summary = internal.buildMonthCellTaskSummary(
+      new Date(2026, 2, 31, 12, 0, 0, 0)
+    );
+    expect(summary.taskCount).toBe(0);
+    expect(summary.categoryDotColors).toEqual([]);
+  });
+
+  it('does not build year bars from day tasks when year summary is missing', () => {
+    const internal = component as unknown as {
+      buildYearMonths: (date: Date) => Array<{ categoryBarGradient: string | null }>;
+    };
+    component.scheduledTasks = [
       buildTask({
-        id: 'task-color-red-b',
-        scheduleType: 'one_time',
-        recurrenceEnabled: false,
-        recurrence: undefined,
-        oneTimeDate: sameDayIso,
-        oneTimeTime: null,
-        categoryColor: '#EF4444',
-      }),
-      buildTask({
-        id: 'task-color-green',
-        scheduleType: 'one_time',
-        recurrenceEnabled: false,
-        recurrence: undefined,
-        oneTimeDate: sameDayIso,
-        oneTimeTime: null,
+        id: 'task-year-independence',
+        recurrence: {
+          pattern: 'daily',
+          hasTime: true,
+          sameTimeForSelectedDays: true,
+          commonTime: '08:00',
+          startsToday: true,
+          startDate: '2026-03-01T12:00:00.000Z',
+          hasEndDate: false,
+          endDate: null,
+          dayOfMonth: null,
+          yearMonth: null,
+          yearDay: null,
+          timezone: null,
+          weekdays: [],
+        },
+        categoryId: 'cat-year',
         categoryColor: '#22C55E',
       }),
     ];
 
-    renderDay(tasks, new Date(2026, 2, 15, 12, 0, 0, 0));
+    const months = internal.buildYearMonths(new Date(2026, 2, 31, 12, 0, 0, 0));
+    expect(months.every((month) => month.categoryBarGradient === null)).toBeTrue();
+  });
+
+  it('keeps previous month mutable while an active timer crosses month boundary', () => {
+    const internal = component as unknown as {
+      refreshActiveTimerMutableScopes: (referenceNow: Date) => boolean;
+      isMonthKeyImmutable: (monthKey: string, todayKey: string) => boolean;
+    };
+    const storageKey = 'just-one-step.timer.active-windows.v1';
+    const previousValue = window.localStorage.getItem(storageKey);
+
+    try {
+      window.localStorage.setItem(
+        storageKey,
+        JSON.stringify([
+          {
+            startedAt: '2026-03-31T23:00:00',
+            expectedEndAt: '2026-04-01T02:00:00',
+            status: 'running',
+          },
+        ])
+      );
+
+      internal.refreshActiveTimerMutableScopes(new Date(2026, 3, 1, 0, 30, 0, 0));
+      expect(internal.isMonthKeyImmutable('2026-03', '2026-04-01')).toBeFalse();
+
+      internal.refreshActiveTimerMutableScopes(new Date(2026, 3, 1, 2, 30, 0, 0));
+      expect(internal.isMonthKeyImmutable('2026-03', '2026-04-01')).toBeTrue();
+    } finally {
+      if (previousValue === null) {
+        window.localStorage.removeItem(storageKey);
+      } else {
+        window.localStorage.setItem(storageKey, previousValue);
+      }
+    }
+  });
+
+  it('keeps previous year mutable while an active timer crosses year boundary', () => {
+    const internal = component as unknown as {
+      refreshActiveTimerMutableScopes: (referenceNow: Date) => boolean;
+      isYearKeyImmutable: (yearKey: string, todayKey: string) => boolean;
+    };
+    const storageKey = 'just-one-step.timer.active-windows.v1';
+    const previousValue = window.localStorage.getItem(storageKey);
+
+    try {
+      window.localStorage.setItem(
+        storageKey,
+        JSON.stringify([
+          {
+            startedAt: '2026-12-31T23:00:00',
+            expectedEndAt: '2027-01-01T01:00:00',
+            status: 'running',
+          },
+        ])
+      );
+
+      internal.refreshActiveTimerMutableScopes(new Date(2027, 0, 1, 0, 30, 0, 0));
+      expect(internal.isYearKeyImmutable('2026', '2027-01-01')).toBeFalse();
+
+      internal.refreshActiveTimerMutableScopes(new Date(2027, 0, 1, 1, 30, 0, 0));
+      expect(internal.isYearKeyImmutable('2026', '2027-01-01')).toBeTrue();
+    } finally {
+      if (previousValue === null) {
+        window.localStorage.removeItem(storageKey);
+      } else {
+        window.localStorage.setItem(storageKey, previousValue);
+      }
+    }
+  });
+
+  it('renders one month dot per category color and deduplicates repeated colors', () => {
+    const selectedDate = new Date(2026, 2, 15, 12, 0, 0, 0);
+    const internal = component as unknown as {
+      categoryColorById: Map<string, string>;
+      monthSummaryCache: Map<string, Map<string, { taskCount: number; categoryIds: string[] }>>;
+      monthSummaryKey: (date: Date) => string;
+      dateKey: (date: Date) => string;
+      refreshViewModels: () => void;
+      renderCurrentView: () => void;
+    };
+
+    component.selectedDate = selectedDate;
+    internal.categoryColorById = new Map([
+      ['cat-red-a', '#EF4444'],
+      ['cat-red-b', '#EF4444'],
+      ['cat-green', '#22C55E'],
+    ]);
+    internal.monthSummaryCache.set(
+      internal.monthSummaryKey(selectedDate),
+      new Map([
+        [
+          internal.dateKey(selectedDate),
+          {
+            taskCount: 3,
+            categoryIds: ['cat-red-a', 'cat-red-b', 'cat-green'],
+          },
+        ],
+      ])
+    );
+    internal.refreshViewModels();
     component.currentView = 'month';
-    (component as unknown as { renderCurrentView: () => void }).renderCurrentView();
+    internal.renderCurrentView();
     fixture.detectChanges();
 
     const dayCell = component.monthCells.find(
@@ -228,8 +497,31 @@ describe('AgendaPage day verification', () => {
     expect(component.dayUntimedTasks.length).toBe(1);
     expect(component.dayUntimedTasks[0].taskId).toBe('task-local-date-sync');
 
+    const internal = component as unknown as {
+      categoryColorById: Map<string, string>;
+      monthSummaryCache: Map<string, Map<string, { taskCount: number; categoryIds: string[] }>>;
+      monthSummaryKey: (date: Date) => string;
+      dateKey: (date: Date) => string;
+      refreshViewModels: () => void;
+      renderCurrentView: () => void;
+    };
+    internal.categoryColorById = new Map([['cat-local', '#22C55E']]);
+    internal.monthSummaryCache.set(
+      internal.monthSummaryKey(component.selectedDate),
+      new Map([
+        [
+          internal.dateKey(component.selectedDate),
+          {
+            taskCount: 1,
+            categoryIds: ['cat-local'],
+          },
+        ],
+      ])
+    );
+    internal.refreshViewModels();
+
     component.currentView = 'month';
-    (component as unknown as { renderCurrentView: () => void }).renderCurrentView();
+    internal.renderCurrentView();
     fixture.detectChanges();
 
     const monthCell = component.monthCells.find(
@@ -239,7 +531,7 @@ describe('AgendaPage day verification', () => {
   });
 
   it('limits month dots to 9 visible (3x3) and shows +N stack after overflow', () => {
-    const sameDayIso = '2026-03-16T12:00:00.000Z';
+    const selectedDate = new Date(2026, 2, 16, 12, 0, 0, 0);
     const colors = [
       '#0EA5E9',
       '#22C55E',
@@ -252,22 +544,34 @@ describe('AgendaPage day verification', () => {
       '#F43F5E',
       '#84CC16',
     ];
-
-    const tasks = colors.map((color, index) =>
-      buildTask({
-        id: `task-color-overflow-${index}`,
-        scheduleType: 'one_time',
-        recurrenceEnabled: false,
-        recurrence: undefined,
-        oneTimeDate: sameDayIso,
-        oneTimeTime: null,
-        categoryColor: color,
-      })
+    const internal = component as unknown as {
+      categoryColorById: Map<string, string>;
+      monthSummaryCache: Map<string, Map<string, { taskCount: number; categoryIds: string[] }>>;
+      monthSummaryKey: (date: Date) => string;
+      dateKey: (date: Date) => string;
+      refreshViewModels: () => void;
+      renderCurrentView: () => void;
+    };
+    const categoryIds = colors.map((_, index) => `cat-overflow-${index}`);
+    internal.categoryColorById = new Map(
+      categoryIds.map((categoryId, index) => [categoryId, colors[index]])
     );
-
-    renderDay(tasks, new Date(2026, 2, 16, 12, 0, 0, 0));
+    component.selectedDate = selectedDate;
+    internal.monthSummaryCache.set(
+      internal.monthSummaryKey(selectedDate),
+      new Map([
+        [
+          internal.dateKey(selectedDate),
+          {
+            taskCount: categoryIds.length,
+            categoryIds,
+          },
+        ],
+      ])
+    );
+    internal.refreshViewModels();
     component.currentView = 'month';
-    (component as unknown as { renderCurrentView: () => void }).renderCurrentView();
+    internal.renderCurrentView();
     fixture.detectChanges();
 
     const dayCell = component.monthCells.find(
@@ -1348,6 +1652,9 @@ describe('Digital Clock recipe regression in Agenda', () => {
     const routerMock: Pick<Router, 'navigate'> = {
       navigate: jasmine.createSpy('navigate').and.resolveTo(true),
     };
+    const categoryRepositoryMock: Pick<CategoryRepository, 'listCategories'> = {
+      listCategories: jasmine.createSpy('listCategories').and.resolveTo([]),
+    };
 
     const translateMock: Partial<TranslateService> = {
       instant: (key: string) => {
@@ -1371,6 +1678,7 @@ describe('Digital Clock recipe regression in Agenda', () => {
       imports: [AgendaPage],
       providers: [
         { provide: TaskRepository, useValue: taskRepositoryMock },
+        { provide: CategoryRepository, useValue: categoryRepositoryMock },
         { provide: Router, useValue: routerMock },
         { provide: TranslateService, useValue: translateMock },
       ],

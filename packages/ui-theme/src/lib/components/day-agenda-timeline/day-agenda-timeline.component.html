@@ -51,10 +51,10 @@
                 @if (isInteractiveSegment(segment)) {
                   <button
                     type="button"
-                    class="agenda-day-timeline__body agenda-day-timeline__body--event agenda-event-body app-accent-surface app-timeline-event agenda-task-block"
-                    [style.--app-accent-border-color]="resolveEventItemAccentColor(eventItem)"
-                    [style.--app-accent-background-color]="resolveEventItemAccentBackgroundColor(eventItem)"
-                    [style.--app-accent-shadow-color]="resolveEventItemAccentShadowColor(eventItem)"
+                    class="agenda-day-timeline__body agenda-day-timeline__body--event agenda-event-body app-accent-surface app-task-accent-surface app-timeline-event agenda-task-block"
+                    [style.--app-task-accent-border-color]="resolveEventItemAccentColor(eventItem)"
+                    [style.--app-task-accent-background-color]="resolveEventItemAccentBackgroundColor(eventItem)"
+                    [style.--app-task-accent-shadow-color]="resolveEventItemAccentShadowColor(eventItem)"
                     [attr.aria-label]="eventItem.ariaLabel || null"
                     (click)="onEventItemActivate(segment, eventItem)"
                   >
@@ -62,10 +62,10 @@
                   </button>
                 } @else {
                   <div
-                    class="agenda-day-timeline__body agenda-day-timeline__body--event agenda-event-body app-accent-surface app-timeline-event agenda-task-block"
-                    [style.--app-accent-border-color]="resolveEventItemAccentColor(eventItem)"
-                    [style.--app-accent-background-color]="resolveEventItemAccentBackgroundColor(eventItem)"
-                    [style.--app-accent-shadow-color]="resolveEventItemAccentShadowColor(eventItem)"
+                    class="agenda-day-timeline__body agenda-day-timeline__body--event agenda-event-body app-accent-surface app-task-accent-surface app-timeline-event agenda-task-block"
+                    [style.--app-task-accent-border-color]="resolveEventItemAccentColor(eventItem)"
+                    [style.--app-task-accent-background-color]="resolveEventItemAccentBackgroundColor(eventItem)"
+                    [style.--app-task-accent-shadow-color]="resolveEventItemAccentShadowColor(eventItem)"
                     [attr.aria-label]="eventItem.ariaLabel || null"
                   >
                     <span class="agenda-day-timeline__title agenda-task-title app-timeline-event__title">{{ eventItem.title }}</span>

@@ -9,8 +9,11 @@
         (click)="openMonth.emit(month)"
       >
         <span class="agenda-year-month-label">{{ month.monthLabel }}</span>
-        @if (month.densityLevel > 0) {
-          <span class="agenda-density agenda-density--{{ month.densityLevel }}"></span>
+        @if (month.categoryBarGradient) {
+          <span
+            class="agenda-density agenda-density--{{ month.densityLevel }}"
+            [style.background]="month.categoryBarGradient"
+          ></span>
         }
       </button>
     }

@@ -50,7 +50,7 @@ test("guardrail: no new SCSS files in apps outside allowlist", () => {
   );
 });
 
-test("guardrail: settings tab is third tab where app has 3+ tabs", () => {
+test("guardrail: settings tab is last tab where app has 3+ tabs", () => {
   const tabsHtmlFiles = globSync("apps/**/tabs.page.html", { cwd: repoRoot })
     .map((p) => p.split(sep).join("/"))
     .sort();
@@ -69,16 +69,16 @@ test("guardrail: settings tab is third tab where app has 3+ tabs", () => {
       continue;
     }
 
-    const third = matches[2];
-    if (third !== "settings") {
-      nonCompliant.push(`${file} (third tab: ${third})`);
+    const last = matches[matches.length - 1];
+    if (last !== "settings") {
+      nonCompliant.push(`${file} (last tab: ${last})`);
     }
   }
 
   assert.deepEqual(
     nonCompliant,
     [],
-    `Third tab must be "settings" for 3+ tabs:\n${nonCompliant.join("\n")}`
+    `Last tab must be "settings" for 3+ tabs:\n${nonCompliant.join("\n")}`
   );
 
   const expectedNotApplicable = new Set([

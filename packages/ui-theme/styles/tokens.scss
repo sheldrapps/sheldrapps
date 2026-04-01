@@ -111,6 +111,17 @@
   --app-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
   --app-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.10);
 
+  /* Priority semantic colors */
+  --app-priority-s: #d4af37;
+  --app-priority-s-border: #c39f2a;
+  --app-priority-s-glow-rgb: 212, 175, 55;
+  --app-priority-a: #7c6ae6;
+  --app-priority-a-border: #6f5ed5;
+  --app-priority-b: #4a90e2;
+  --app-priority-b-border: #3d82d3;
+  --app-priority-c: #6b7280;
+  --app-priority-c-border: #5f6673;
+
   /* Callout tokens */
   --app-callout-padding-y: 12px;
   --app-callout-padding-x: 14px;

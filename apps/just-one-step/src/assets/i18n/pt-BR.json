@@ -10,10 +10,59 @@
     "SETTINGS": "Configurações"
   },
   "TODAY": {
+    "TODAY_TASKS": {
+      "TITLE": "Tarefas de hoje"
+    },
     "TITLE": "Hoje",
-    "TASKS_SUMMARY": "Resumo das tarefas de hoje (placeholder)",
-    "PROGRESS_SUMMARY": "Resumo do progresso de hoje (placeholder)",
-    "REFLECTION_PROMPT": "Pergunta rápida de reflexão (placeholder)"
+    "RELOAD": "Recarregar",
+    "SECTION_NOW": "Agora",
+    "SECTION_NEXT": "Próximo passo",
+    "SECTION_GAPS": "Janelas aproveitáveis",
+    "SECTION_BACKLOG": "Pendentes de hoje",
+    "SUGGESTIONS": {
+      "TITLE": "Este momento pode servir para..."
+    },
+    "FREE_SPACES": {
+      "TITLE": "Próximos tempos livres"
+    },
+    "OPPORTUNITIES": {
+      "TITLE": "Este momento pode servir para...",
+      "HEADER": "Você tem {{duration}} restantes",
+      "HOUR_SHORT": "h"
+    },
+    "RUNNING": "Em andamento",
+    "NOW_CTA_PLAY": "Quando você quiser",
+    "NOW_CTA_FIVE_MIN": "Se ajudar, 5 min",
+    "NOW_CTA_RESCHEDULE": "Se preferir, reprogramar",
+    "NOW_CTA_POSTPONE": "Adiar",
+    "EMPTY_TITLE": "Sem tarefas no momento",
+    "EMPTY_HINT": "Você não precisa fazer tudo hoje. Um passo já conta.",
+    "NOW_FREE_TITLE": "Agora você está livre",
+    "NOW_FREE_MAIN": "Agora você está livre",
+    "NOW_FREE_HINT": "Este momento pode servir para:",
+    "CATEGORY_NONE": "Sem categoria",
+    "NOW_CONTEXT_CURRENT": "Em andamento agora",
+    "NOW_CONTEXT_NEXT": "Próximo na fila",
+    "NOW_CONTEXT_BACKLOG": "Melhor próximo passo",
+    "GAP_DURATION": "{{minutes}} min livres",
+    "QUOTES": {
+      "0": {
+        "LINE_1": "Você não precisa fazer tudo.",
+        "LINE_2": "Só mais um passo."
+      },
+      "1": {
+        "LINE_1": "Comece pequeno.",
+        "LINE_2": "Mas comece."
+      },
+      "2": {
+        "LINE_1": "Um pouco hoje.",
+        "LINE_2": "Muito amanhã."
+      },
+      "3": {
+        "LINE_1": "Não perfeito.",
+        "LINE_2": "Só feito."
+      }
+    }
   },
   "AGENDA": {
     "TITLE": "Agenda",
@@ -233,6 +282,7 @@
     "CATEGORY_CUSTOM_NAME_LABEL": "Categoria personalizada",
     "VALIDATION_CATEGORY_NAME_REQUIRED": "Informe um nome de categoria.",
     "VALIDATION_CATEGORY_NAME_DUPLICATE": "Essa categoria já existe.",
+    "VALIDATION_CATEGORY_REQUIRED": "Selecione uma categoria.",
     "DEFAULT_CATEGORY_PERSONAL": "Pessoal",
     "DEFAULT_CATEGORY_WORK": "Trabalho",
     "DEFAULT_CATEGORY_HEALTH": "Saúde",

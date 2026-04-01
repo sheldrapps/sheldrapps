@@ -1,0 +1,44 @@
+@if (todayItems.length > 0) {
+  <section class="app-section today-section today-section--tasks">
+    <h2 class="today-section__title">{{ 'TODAY.TODAY_TASKS.TITLE' | translate }}</h2>
+    <div class="today-list">
+      @for (item of todayItems; track item.taskId) {
+        <button
+          type="button"
+          class="today-list-item app-accent-surface app-task-accent-surface app-timeline-event app-duration-tier-target"
+          [class.today-list-item--primary]="$first"
+          [class.today-list-item--secondary]="!$first"
+          [class.today-list-item--completed]="item.completed"
+          [class.app-duration-tier-sm]="item.sizeTier === 'sm'"
+          [class.app-duration-tier-md]="item.sizeTier === 'md'"
+          [class.app-duration-tier-lg]="item.sizeTier === 'lg'"
+          [style.--app-task-accent-border-color]="itemBorderColor(item)"
+          [style.--app-task-accent-background-color]="itemBackgroundColor(item)"
+          [style.--app-task-accent-shadow-color]="itemShadowColor(item)"
+          (click)="taskSelected.emit(item)"
+        >
+          <div class="today-list-item__content">
+            <p class="today-list-item__title app-timeline-event__title">{{ item.title }}</p>
+            <p class="today-list-item__meta app-timeline-event__time">
+              @if (item.timeLabel) {
+                <sh-time-display [value]="item.timeLabel" size="sm" tone="muted"></sh-time-display>
+                <span class="today-meta-divider" [style.color]="item.color" aria-hidden="true">•</span>
+              }
+              <span>{{ item.durationLabel }}</span>
+            </p>
+          </div>
+          <span
+            class="today-priority-badge"
+            [class.today-priority-badge--s]="item.priorityCode === 'S'"
+            [class.today-priority-badge--a]="item.priorityCode === 'A'"
+            [class.today-priority-badge--b]="item.priorityCode === 'B'"
+            [class.today-priority-badge--c]="item.priorityCode === 'C'"
+            [class.today-priority-badge--glow]="item.priorityCode === 'S' && !item.completed"
+            [attr.aria-label]="item.priorityLabel"
+            >{{ item.priorityCode }}</span
+          >
+        </button>
+      }
+    </div>
+  </section>
+}

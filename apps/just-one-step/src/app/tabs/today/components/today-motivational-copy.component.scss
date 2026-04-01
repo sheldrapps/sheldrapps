@@ -1,0 +1,12 @@
+.today-intent {
+  display: grid;
+  gap: var(--app-space-hairline);
+  padding: 0 var(--app-space-1);
+}
+
+.today-intent__line {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(var(--ion-color-step-700-rgb), 0.9);
+}

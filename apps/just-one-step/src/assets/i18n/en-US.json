@@ -10,10 +10,59 @@
     "SETTINGS": "Settings"
   },
   "TODAY": {
+    "TODAY_TASKS": {
+      "TITLE": "Today tasks"
+    },
     "TITLE": "Today",
-    "TASKS_SUMMARY": "Today's tasks summary (placeholder)",
-    "PROGRESS_SUMMARY": "Today's progress summary (placeholder)",
-    "REFLECTION_PROMPT": "Quick reflection prompt (placeholder)"
+    "RELOAD": "Reload",
+    "SECTION_NOW": "Now",
+    "SECTION_NEXT": "Next step",
+    "SECTION_GAPS": "Useful gaps",
+    "SECTION_BACKLOG": "Today's pending",
+    "SUGGESTIONS": {
+      "TITLE": "This moment can work for..."
+    },
+    "FREE_SPACES": {
+      "TITLE": "Upcoming free times"
+    },
+    "OPPORTUNITIES": {
+      "TITLE": "This moment can work for...",
+      "HEADER": "You have {{duration}} left",
+      "HOUR_SHORT": "h"
+    },
+    "RUNNING": "Running",
+    "NOW_CTA_PLAY": "Whenever you want",
+    "NOW_CTA_FIVE_MIN": "If it helps, 5 min",
+    "NOW_CTA_RESCHEDULE": "If you prefer, reschedule",
+    "NOW_CTA_POSTPONE": "Postpone",
+    "EMPTY_TITLE": "No tasks right now",
+    "EMPTY_HINT": "You don't need to do everything today. One step is enough.",
+    "NOW_FREE_TITLE": "You are free right now",
+    "NOW_FREE_MAIN": "You are free right now",
+    "NOW_FREE_HINT": "This moment can work for:",
+    "CATEGORY_NONE": "No category",
+    "NOW_CONTEXT_CURRENT": "In progress now",
+    "NOW_CONTEXT_NEXT": "Coming up next",
+    "NOW_CONTEXT_BACKLOG": "Best next pick",
+    "GAP_DURATION": "{{minutes}} min free",
+    "QUOTES": {
+      "0": {
+        "LINE_1": "You don't need to do everything.",
+        "LINE_2": "Just one more step."
+      },
+      "1": {
+        "LINE_1": "Start small.",
+        "LINE_2": "But start."
+      },
+      "2": {
+        "LINE_1": "A little today.",
+        "LINE_2": "A lot tomorrow."
+      },
+      "3": {
+        "LINE_1": "Not perfect.",
+        "LINE_2": "Just done."
+      }
+    }
   },
   "AGENDA": {
     "TITLE": "Agenda",
@@ -233,6 +282,7 @@
     "CATEGORY_CUSTOM_NAME_LABEL": "Custom category",
     "VALIDATION_CATEGORY_NAME_REQUIRED": "Enter a category name.",
     "VALIDATION_CATEGORY_NAME_DUPLICATE": "This category already exists.",
+    "VALIDATION_CATEGORY_REQUIRED": "Select a category.",
     "DEFAULT_CATEGORY_PERSONAL": "Personal",
     "DEFAULT_CATEGORY_WORK": "Work",
     "DEFAULT_CATEGORY_HEALTH": "Health",
@@ -317,7 +367,7 @@
     "DELETE": "Delete",
     "DONE": "Done",
     "ERROR": "Error",
-    "LOADING": "Loadingâ€¦",
+    "LOADING": "Loading...",
     "SHARE": "Share",
     "SHARE_KINDLE_HINT": "When sharing, select the Kindle app to send it to your device.",
     "WARNING": "Warning"

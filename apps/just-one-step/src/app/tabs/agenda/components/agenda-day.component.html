@@ -41,10 +41,10 @@
         @for (task of dayUntimedTasks; track task.taskId) {
           <button
             type="button"
-            class="agenda-untimed-item app-task-card app-task-card--compact app-task-card--accented"
-            [style.--app-accent-border-color]="task.accentBorderColor"
-            [style.--app-accent-background-color]="task.accentBackgroundColor"
-            [style.--app-accent-shadow-color]="task.accentBackgroundColor"
+            class="agenda-untimed-item app-task-card app-task-card--compact app-task-card--accented app-task-accent-surface"
+            [style.--app-task-accent-border-color]="task.accentBorderColor"
+            [style.--app-task-accent-background-color]="task.accentBackgroundColor"
+            [style.--app-task-accent-shadow-color]="task.accentBackgroundColor"
             (click)="openUntimedTask.emit(task)"
           >
             <span class="agenda-untimed-check app-task-card__leading app-task-card__check" aria-hidden="true">&#10003;</span>

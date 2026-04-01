@@ -48,12 +48,22 @@ import {
   PersistedTaskAggregate,
   TaskPriority,
   TaskMonthDayCategorySummary,
+  TaskYearMonthCategorySummary,
   TaskRepository,
 } from '../../database/repositories/task.repository';
+import { CategoryRepository } from '../../database/repositories/category.repository';
 import { Subscription } from 'rxjs';
 import { AgendaControlsComponent } from './components/agenda-controls.component';
+import {
+  createEmptySegment,
+  createEventSegment,
+} from './agenda-day-segments';
 
 type AgendaViewMode = 'day' | 'month' | 'year';
+interface ScopeReloadOptions {
+  scrollNearNow?: boolean;
+  scrollRailToToday?: boolean;
+}
 interface AgendaTimelineTask {
   taskId: string;
   title: string;
@@ -127,7 +137,29 @@ interface AgendaDayTimelineViewModel {
 
 interface AgendaMonthDayTaskSummary {
   taskCount: number;
-  categoryDotColors: string[];
+  categoryIds: string[];
+}
+
+interface AgendaYearMonthTaskSummary {
+  taskCount: number;
+  categoryIds: string[];
+}
+
+type AgendaSummaryWarmupScope = 'month' | 'year';
+type AgendaWarmupScheduleMode = 'idle' | 'timeout';
+
+interface AgendaSummaryWarmupSnapshot {
+  monthKey: string;
+  yearKey: string;
+  todayKey: string;
+}
+
+interface AgendaActiveTimerWindowRecord {
+  startedAt: string;
+  expectedEndAt?: string | null;
+  endedAt?: string | null;
+  completedAt?: string | null;
+  status?: string | null;
 }
 
 export interface AgendaRailDay {
@@ -160,6 +192,7 @@ export interface AgendaYearMonth {
   monthIndex: number;
   monthLabel: string;
   densityLevel: number;
+  categoryBarGradient: string | null;
   isCurrentMonth: boolean;
   isSelectedMonth: boolean;
 }
@@ -178,6 +211,29 @@ const DAY_RAIL_RANGE = 4;
 const MONTH_DOT_MAX_VISIBLE = 9;
 const MONTH_DOT_VISIBLE_WITH_OVERFLOW = 8;
 const MONTH_DOT_ROW_CAPACITY = 3;
+const MONTH_SUMMARY_CACHE_STORAGE_KEY = 'just-one-step.agenda.month-summary.v2';
+const YEAR_SUMMARY_CACHE_STORAGE_KEY = 'just-one-step.agenda.year-summary.v2';
+const CATEGORY_COLOR_CACHE_STORAGE_KEY = 'just-one-step.agenda.category-color-map.v1';
+const CATEGORY_COLOR_CACHE_MAX_ENTRIES = 512;
+const SUMMARY_WARMUP_IDLE_TIMEOUT_MS = 1_200;
+const SUMMARY_WARMUP_FALLBACK_DELAY_MS = 180;
+const SUMMARY_WARMUP_MIN_INTERVAL_MS = 20_000;
+const SUMMARY_WARMUP_FAILURE_BACKOFF_MS = 120_000;
+const SUMMARY_WARMUP_STATE_KEY_LIMIT = 96;
+const ACTIVE_TIMER_WINDOWS_STORAGE_KEY = 'just-one-step.timer.active-windows.v1';
+const MAX_ACTIVE_TIMER_SPAN_DAYS = 370;
+const CATEGORY_COLOR_FALLBACK_PALETTE = [
+  '#2563EB',
+  '#10B981',
+  '#F59E0B',
+  '#EF4444',
+  '#8B5CF6',
+  '#14B8A6',
+  '#EC4899',
+  '#22C55E',
+  '#3B82F6',
+  '#F97316',
+] as const;
 
 @Component({
   standalone: true,
@@ -202,12 +258,16 @@ const MONTH_DOT_ROW_CAPACITY = 3;
 })
 export class AgendaPage implements AfterViewInit, OnDestroy {
   private readonly taskRepository = inject(TaskRepository);
+  private readonly categoryRepository = inject(CategoryRepository);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
   private readonly debugDayClassification = false;
 
   constructor() {
     addIcons({ addOutline, chevronBackOutline, chevronForwardOutline });
+    this.loadPersistedSummaryCaches();
+    this.loadPersistedCategoryColorMap();
+    this.refreshActiveTimerMutableScopes(new Date());
     this.refreshViewModels();
   }
 
@@ -231,6 +291,32 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
     Map<string, AgendaMonthDayTaskSummary>
   >();
   private readonly monthSummaryLoading = new Set<string>();
+  private readonly yearSummaryCache = new Map<
+    string,
+    Map<number, AgendaYearMonthTaskSummary>
+  >();
+  private readonly yearSummaryLoading = new Set<string>();
+  private readonly persistedMonthSummaryCache = new Map<
+    string,
+    Map<string, AgendaMonthDayTaskSummary>
+  >();
+  private readonly persistedYearSummaryCache = new Map<
+    string,
+    Map<number, AgendaYearMonthTaskSummary>
+  >();
+  private readonly summaryRefreshDayByScope = new Map<string, string>();
+  private readonly summaryWarmupAttemptAtByScope = new Map<string, number>();
+  private readonly summaryWarmupBlockedUntilByScope = new Map<string, number>();
+  private readonly activeTimerMutableDateKeys = new Set<string>();
+  private readonly activeTimerMutableMonthKeys = new Set<string>();
+  private readonly activeTimerMutableYearKeys = new Set<string>();
+  private activeTimerMutableScopesSignature = '';
+  private summaryWarmupHandle: number | null = null;
+  private summaryWarmupScheduleMode: AgendaWarmupScheduleMode | null = null;
+  private summaryWarmupToken = 0;
+  private categoryColorById = new Map<string, string>();
+  private scopeLoadInFlight = false;
+  private pendingScopeReload: ScopeReloadOptions | null = null;
 
   currentView: AgendaViewMode = 'day';
   selectedDate = this.dateAtLocalNoon(new Date());
@@ -239,6 +325,16 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
   loadFailed = false;
   now = new Date();
   private nowTickerId: number | null = null;
+  private isDestroyed = false;
+  private readonly onStorageEvent = (event: StorageEvent): void => {
+    if (event.key !== ACTIVE_TIMER_WINDOWS_STORAGE_KEY || this.isDestroyed) {
+      return;
+    }
+
+    if (this.refreshActiveTimerMutableScopes(new Date())) {
+      void this.reloadCurrentScopeWithLoader();
+    }
+  };
 
   railDays: AgendaRailDay[] = [];
   monthWeekdayLabels: string[] = [];
@@ -306,17 +402,13 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
   }
 
   async ionViewWillEnter(): Promise<void> {
-    this.beginLoadingOverlay();
+    window.addEventListener('storage', this.onStorageEvent);
     this.selectedDate = this.dateAtLocalNoon(new Date());
     this.startNowTicker();
-    try {
-      await this.loadAgendaTasks();
-      await this.ensureMonthSummaryForDate(this.selectedDate);
-      this.queueScrollNearNow();
-      this.queueScrollRailToToday();
-    } finally {
-      this.endLoadingOverlay();
-    }
+    await this.reloadCurrentScopeWithLoader({
+      scrollNearNow: true,
+      scrollRailToToday: true,
+    });
   }
 
   ngAfterViewInit(): void {
@@ -324,6 +416,8 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
   }
 
   ionViewDidLeave(): void {
+    window.removeEventListener('storage', this.onStorageEvent);
+    this.cancelScheduledSummaryWarmup();
     this.stopNowTicker();
   }
 
@@ -333,16 +427,20 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.isDestroyed = true;
+    window.removeEventListener('storage', this.onStorageEvent);
+    this.cancelScheduledSummaryWarmup();
     this.destroyRenderedView();
     this.stopNowTicker();
   }
 
   onViewModeSelected(nextView: AgendaViewMode): void {
-    this.currentView = nextView;
-    this.renderCurrentView();
-    if (nextView === 'month') {
-      void this.ensureMonthSummaryForDate(this.selectedDate);
+    if (this.currentView === nextView) {
+      return;
     }
+
+    this.currentView = nextView;
+    void this.reloadCurrentScopeWithLoader();
   }
 
   onScopeShift(delta: number): void {
@@ -360,36 +458,29 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
   }
 
   onDayShift(deltaDays: number): void {
-    const previousDate = this.selectedDate;
     this.selectedDate = this.addDays(this.selectedDate, deltaDays);
-    this.refreshViewModels();
-    this.queueScrollNearNow();
-    this.queueMonthSummaryLoad(previousDate, this.selectedDate);
+    void this.reloadCurrentScopeWithLoader({
+      scrollNearNow: true,
+      scrollRailToToday: this.isSelectedDayToday,
+    });
   }
 
   onMonthShift(deltaMonths: number): void {
-    const previousDate = this.selectedDate;
     this.selectedDate = this.shiftMonth(this.selectedDate, deltaMonths);
-    this.refreshViewModels();
-    this.queueMonthSummaryLoad(previousDate, this.selectedDate);
+    void this.reloadCurrentScopeWithLoader();
   }
 
   onYearShift(deltaYears: number): void {
-    const previousDate = this.selectedDate;
     this.selectedDate = this.shiftYear(this.selectedDate, deltaYears);
-    this.refreshViewModels();
-    this.queueMonthSummaryLoad(previousDate, this.selectedDate);
+    void this.reloadCurrentScopeWithLoader();
   }
 
   selectRailDay(day: AgendaRailDay): void {
-    const previousDate = this.selectedDate;
     this.selectedDate = this.cloneDate(day.date);
-    this.refreshViewModels();
-    this.queueScrollNearNow();
-    this.queueMonthSummaryLoad(previousDate, this.selectedDate);
-    if (day.isToday) {
-      this.queueScrollRailToToday();
-    }
+    void this.reloadCurrentScopeWithLoader({
+      scrollNearNow: true,
+      scrollRailToToday: day.isToday,
+    });
   }
 
   openDayFromMonth(cell: AgendaMonthCell): void {
@@ -397,20 +488,18 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
       return;
     }
 
-    const previousDate = this.selectedDate;
     this.selectedDate = this.cloneDate(cell.date);
     this.currentView = 'day';
-    this.refreshViewModels();
-    this.queueScrollNearNow();
-    this.queueMonthSummaryLoad(previousDate, this.selectedDate);
+    void this.reloadCurrentScopeWithLoader({
+      scrollNearNow: true,
+      scrollRailToToday: this.isSelectedDayToday,
+    });
   }
 
   openMonthFromYear(month: AgendaYearMonth): void {
-    const previousDate = this.selectedDate;
     this.selectedDate = this.withMonth(this.selectedDate, month.monthIndex);
     this.currentView = 'month';
-    this.refreshViewModels();
-    this.queueMonthSummaryLoad(previousDate, this.selectedDate);
+    void this.reloadCurrentScopeWithLoader();
   }
 
   async openQuickCreate(): Promise<void> {
@@ -459,6 +548,10 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
   }
 
   private renderCurrentView(): void {
+    if (this.isDestroyed || this.isLoading) {
+      return;
+    }
+
     const host = this.agendaViewHost;
     if (!host) {
       return;
@@ -636,36 +729,604 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
     }).format(date);
   }
 
-  private async loadAgendaTasks(): Promise<void> {
+  private async reloadCurrentScopeWithLoader(options?: ScopeReloadOptions): Promise<void> {
+    if (this.scopeLoadInFlight) {
+      this.pendingScopeReload = this.mergeScopeReloadOptions(
+        this.pendingScopeReload,
+        options
+      );
+      return;
+    }
+
+    this.scopeLoadInFlight = true;
+    this.beginLoadingOverlay();
     this.loadFailed = false;
-    this.monthSummaryCache.clear();
-    this.monthSummaryLoading.clear();
 
     try {
-      const taskRows = await this.taskRepository.listTasks();
-      if (taskRows.length === 0) {
-        this.scheduledTasks = [];
+      this.refreshActiveTimerMutableScopes(new Date());
+      await this.loadCategoryColorMap();
+      await this.loadDataForCurrentScope(this.selectedDate);
+      if (this.isDestroyed) {
         return;
       }
 
-      const aggregates = await Promise.all(
-        taskRows.map((task) => this.taskRepository.getTaskAggregate(task.id))
-      );
-
-      this.scheduledTasks = aggregates.filter(
-        (task): task is PersistedTaskAggregate =>
-          !!task &&
-          task.isActive &&
-          !task.isArchived &&
-          task.deletedAt === null &&
-          (task.scheduleType === 'one_time' || !!task.recurrence)
-      );
-    } catch {
-      this.scheduledTasks = [this.buildSampleTaskAggregate()];
-      this.loadFailed = false;
-    } finally {
       this.refreshViewModels();
+
+      if (options?.scrollNearNow && this.currentView === 'day') {
+        this.queueScrollNearNow();
+      }
+
+      if (options?.scrollRailToToday && this.currentView === 'day') {
+        this.queueScrollRailToToday();
+      }
+    } catch {
+      if (this.isDestroyed) {
+        return;
+      }
+
+      this.loadFailed = true;
+      if (this.currentView === 'day') {
+        this.scheduledTasks = [];
+      }
+      this.refreshViewModels();
+    } finally {
+      this.scopeLoadInFlight = false;
+      if (!this.isDestroyed) {
+        this.endLoadingOverlay();
+      }
+
+      if (this.pendingScopeReload) {
+        const pendingOptions = this.pendingScopeReload;
+        this.pendingScopeReload = null;
+        void this.reloadCurrentScopeWithLoader(pendingOptions);
+      } else {
+        this.prewarmSummaryCachesInBackground(this.cloneDate(this.selectedDate));
+      }
     }
+  }
+
+  private async loadCategoryColorMap(): Promise<void> {
+    try {
+      const categories = await this.categoryRepository.listCategories({
+        includeArchived: true,
+        includeDeleted: true,
+      });
+      const mappedColors = new Map<string, string>();
+      for (const category of categories) {
+        const categoryId = category.id.trim();
+        const categoryColor = category.color.trim();
+        if (!categoryId || !categoryColor) {
+          continue;
+        }
+
+        mappedColors.set(categoryId.toLowerCase(), categoryColor);
+      }
+
+      if (mappedColors.size > 0) {
+        this.categoryColorById = mappedColors;
+        this.writePersistedCategoryColorMap();
+      }
+    } catch {
+      // Keep current map when category loading fails.
+      if (this.categoryColorById.size === 0) {
+        this.loadPersistedCategoryColorMap();
+      }
+    }
+  }
+
+  private prewarmSummaryCachesInBackground(date: Date): void {
+    if (this.isDestroyed) {
+      return;
+    }
+
+    const warmupDate = this.cloneDate(date);
+    const snapshot = this.buildSummaryWarmupSnapshot(warmupDate);
+    if (!this.shouldWarmAnySummary(snapshot)) {
+      return;
+    }
+
+    const token = ++this.summaryWarmupToken;
+    this.cancelScheduledSummaryWarmup();
+
+    const executeWarmup = (): void => {
+      this.summaryWarmupHandle = null;
+      this.summaryWarmupScheduleMode = null;
+      if (!this.canRunSummaryWarmup(token)) {
+        return;
+      }
+
+      void this.runSummaryWarmup(token, warmupDate, snapshot);
+    };
+
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (
+        callback: () => void,
+        options?: { timeout: number }
+      ) => number;
+    };
+    if (typeof idleWindow.requestIdleCallback === 'function') {
+      this.summaryWarmupScheduleMode = 'idle';
+      this.summaryWarmupHandle = idleWindow.requestIdleCallback(executeWarmup, {
+        timeout: SUMMARY_WARMUP_IDLE_TIMEOUT_MS,
+      });
+      return;
+    }
+
+    this.summaryWarmupScheduleMode = 'timeout';
+    this.summaryWarmupHandle = window.setTimeout(
+      executeWarmup,
+      SUMMARY_WARMUP_FALLBACK_DELAY_MS
+    );
+  }
+
+  private async runSummaryWarmup(
+    token: number,
+    date: Date,
+    snapshot: AgendaSummaryWarmupSnapshot
+  ): Promise<void> {
+    const nowTimestamp = Date.now();
+    if (this.shouldWarmMonthSummary(snapshot) && this.canRunSummaryWarmup(token)) {
+      const monthScopeKey = this.summaryRefreshScopeKey('month', snapshot.monthKey);
+      this.recordSummaryWarmupAttempt(monthScopeKey, nowTimestamp);
+      const loadedMonth = await this.ensureMonthSummaryForDate(date);
+      if (!loadedMonth && this.canRunSummaryWarmup(token)) {
+        this.recordSummaryWarmupFailure(monthScopeKey, nowTimestamp);
+      }
+    }
+
+    if (this.shouldWarmYearSummary(snapshot) && this.canRunSummaryWarmup(token)) {
+      const yearScopeKey = this.summaryRefreshScopeKey('year', snapshot.yearKey);
+      this.recordSummaryWarmupAttempt(yearScopeKey, nowTimestamp);
+      const loadedYear = await this.ensureYearSummaryForDate(date);
+      if (!loadedYear && this.canRunSummaryWarmup(token)) {
+        this.recordSummaryWarmupFailure(yearScopeKey, nowTimestamp);
+      }
+    }
+  }
+
+  private canRunSummaryWarmup(token: number): boolean {
+    return (
+      token === this.summaryWarmupToken &&
+      !this.isDestroyed &&
+      !this.scopeLoadInFlight &&
+      !this.pendingScopeReload
+    );
+  }
+
+  private cancelScheduledSummaryWarmup(): void {
+    if (this.summaryWarmupHandle === null) {
+      return;
+    }
+
+    const handle = this.summaryWarmupHandle;
+    const scheduleMode = this.summaryWarmupScheduleMode;
+    this.summaryWarmupHandle = null;
+    this.summaryWarmupScheduleMode = null;
+
+    if (scheduleMode === 'idle') {
+      const idleWindow = window as Window & {
+        cancelIdleCallback?: (id: number) => void;
+      };
+      if (typeof idleWindow.cancelIdleCallback === 'function') {
+        idleWindow.cancelIdleCallback(handle);
+        return;
+      }
+    }
+
+    window.clearTimeout(handle);
+  }
+
+  private buildSummaryWarmupSnapshot(date: Date): AgendaSummaryWarmupSnapshot {
+    const normalizedDate = this.dateAtLocalNoon(date);
+    return {
+      monthKey: this.monthSummaryKey(normalizedDate),
+      yearKey: this.yearSummaryKey(normalizedDate),
+      todayKey: this.dateKey(this.dateAtLocalNoon(new Date())),
+    };
+  }
+
+  private shouldWarmAnySummary(snapshot: AgendaSummaryWarmupSnapshot): boolean {
+    return (
+      this.shouldWarmMonthSummary(snapshot) || this.shouldWarmYearSummary(snapshot)
+    );
+  }
+
+  private shouldWarmMonthSummary(snapshot: AgendaSummaryWarmupSnapshot): boolean {
+    if (this.monthSummaryLoading.has(snapshot.monthKey)) {
+      return false;
+    }
+    const monthScopeKey = this.summaryRefreshScopeKey('month', snapshot.monthKey);
+    if (this.isSummaryWarmupThrottled(monthScopeKey, Date.now())) {
+      return false;
+    }
+
+    const immutableMonth = this.isMonthKeyImmutable(
+      snapshot.monthKey,
+      snapshot.todayKey
+    );
+    if (immutableMonth) {
+      return (
+        !this.monthSummaryCache.has(snapshot.monthKey) &&
+        !this.persistedMonthSummaryCache.has(snapshot.monthKey)
+      );
+    }
+
+    if (!this.monthSummaryCache.has(snapshot.monthKey)) {
+      return true;
+    }
+
+    return (
+      this.summaryRefreshDayByScope.get(monthScopeKey) !== snapshot.todayKey
+    );
+  }
+
+  private shouldWarmYearSummary(snapshot: AgendaSummaryWarmupSnapshot): boolean {
+    if (this.yearSummaryLoading.has(snapshot.yearKey)) {
+      return false;
+    }
+    const yearScopeKey = this.summaryRefreshScopeKey('year', snapshot.yearKey);
+    if (this.isSummaryWarmupThrottled(yearScopeKey, Date.now())) {
+      return false;
+    }
+
+    if (this.isYearKeyImmutable(snapshot.yearKey, snapshot.todayKey)) {
+      return (
+        !this.yearSummaryCache.has(snapshot.yearKey) &&
+        !this.persistedYearSummaryCache.has(snapshot.yearKey)
+      );
+    }
+
+    if (!this.yearSummaryCache.has(snapshot.yearKey)) {
+      return true;
+    }
+
+    return (
+      this.summaryRefreshDayByScope.get(yearScopeKey) !== snapshot.todayKey
+    );
+  }
+
+  private summaryRefreshScopeKey(
+    scope: AgendaSummaryWarmupScope,
+    scopeKey: string
+  ): string {
+    return `${scope}:${scopeKey}`;
+  }
+
+  private markSummaryRefreshedToday(
+    scope: AgendaSummaryWarmupScope,
+    scopeKey: string
+  ): void {
+    const compositeScopeKey = this.summaryRefreshScopeKey(scope, scopeKey);
+    this.setRecencyMapValue(
+      this.summaryRefreshDayByScope,
+      compositeScopeKey,
+      this.dateKey(this.dateAtLocalNoon(new Date()))
+    );
+    this.summaryWarmupBlockedUntilByScope.delete(compositeScopeKey);
+    this.pruneSummaryWarmupState();
+  }
+
+  private isSummaryWarmupThrottled(
+    compositeScopeKey: string,
+    nowTimestamp: number
+  ): boolean {
+    const blockedUntil = this.summaryWarmupBlockedUntilByScope.get(compositeScopeKey);
+    if (blockedUntil && blockedUntil > nowTimestamp) {
+      return true;
+    }
+    if (blockedUntil && blockedUntil <= nowTimestamp) {
+      this.summaryWarmupBlockedUntilByScope.delete(compositeScopeKey);
+    }
+
+    const lastAttempt = this.summaryWarmupAttemptAtByScope.get(compositeScopeKey);
+    return (
+      typeof lastAttempt === 'number' &&
+      nowTimestamp - lastAttempt < SUMMARY_WARMUP_MIN_INTERVAL_MS
+    );
+  }
+
+  private recordSummaryWarmupAttempt(
+    compositeScopeKey: string,
+    nowTimestamp: number
+  ): void {
+    this.setRecencyMapValue(
+      this.summaryWarmupAttemptAtByScope,
+      compositeScopeKey,
+      nowTimestamp
+    );
+    this.pruneSummaryWarmupState();
+  }
+
+  private recordSummaryWarmupFailure(
+    compositeScopeKey: string,
+    nowTimestamp: number
+  ): void {
+    this.setRecencyMapValue(
+      this.summaryWarmupBlockedUntilByScope,
+      compositeScopeKey,
+      nowTimestamp + SUMMARY_WARMUP_FAILURE_BACKOFF_MS
+    );
+    this.pruneSummaryWarmupState();
+  }
+
+  private setRecencyMapValue<T>(map: Map<string, T>, key: string, value: T): void {
+    if (map.has(key)) {
+      map.delete(key);
+    }
+    map.set(key, value);
+  }
+
+  private pruneSummaryWarmupState(): void {
+    this.pruneMapToLimit(this.summaryRefreshDayByScope, SUMMARY_WARMUP_STATE_KEY_LIMIT);
+    this.pruneMapToLimit(this.summaryWarmupAttemptAtByScope, SUMMARY_WARMUP_STATE_KEY_LIMIT);
+    this.pruneMapToLimit(
+      this.summaryWarmupBlockedUntilByScope,
+      SUMMARY_WARMUP_STATE_KEY_LIMIT
+    );
+  }
+
+  private pruneMapToLimit<T>(map: Map<string, T>, limit: number): void {
+    while (map.size > limit) {
+      const oldestKey = map.keys().next().value as string | undefined;
+      if (!oldestKey) {
+        break;
+      }
+      map.delete(oldestKey);
+    }
+  }
+
+  private refreshActiveTimerMutableScopes(referenceNow: Date): boolean {
+    const normalizedNow = new Date(referenceNow);
+    const nowTimestamp = normalizedNow.getTime();
+    if (!Number.isFinite(nowTimestamp)) {
+      return false;
+    }
+
+    const mutableDateKeys = new Set<string>();
+    const mutableMonthKeys = new Set<string>();
+    const mutableYearKeys = new Set<string>();
+    const timerWindows = this.readActiveTimerWindowRecords();
+
+    for (const timerWindow of timerWindows) {
+      const mutableRange = this.resolveActiveTimerWindowDateRange(
+        timerWindow,
+        normalizedNow
+      );
+      if (!mutableRange) {
+        continue;
+      }
+
+      this.collectMutableDateKeysFromRange(
+        mutableRange.startDate,
+        mutableRange.endDate,
+        mutableDateKeys,
+        mutableMonthKeys,
+        mutableYearKeys
+      );
+    }
+
+    const nextSignature = [...mutableDateKeys].sort().join('|');
+    if (nextSignature === this.activeTimerMutableScopesSignature) {
+      return false;
+    }
+
+    this.activeTimerMutableScopesSignature = nextSignature;
+    this.replaceSet(this.activeTimerMutableDateKeys, mutableDateKeys);
+    this.replaceSet(this.activeTimerMutableMonthKeys, mutableMonthKeys);
+    this.replaceSet(this.activeTimerMutableYearKeys, mutableYearKeys);
+    return true;
+  }
+
+  private readActiveTimerWindowRecords(): AgendaActiveTimerWindowRecord[] {
+    try {
+      const rawPayload = window.localStorage.getItem(ACTIVE_TIMER_WINDOWS_STORAGE_KEY);
+      if (!rawPayload) {
+        return [];
+      }
+
+      const parsedPayload = JSON.parse(rawPayload) as unknown;
+      const records = this.normalizeActiveTimerWindowPayload(parsedPayload);
+      return records.filter((record) => this.isAgendaActiveTimerWindowRecord(record));
+    } catch {
+      return [];
+    }
+  }
+
+  private normalizeActiveTimerWindowPayload(
+    payload: unknown
+  ): AgendaActiveTimerWindowRecord[] {
+    if (Array.isArray(payload)) {
+      return payload as AgendaActiveTimerWindowRecord[];
+    }
+
+    if (!payload || typeof payload !== 'object') {
+      return [];
+    }
+
+    const container = payload as {
+      windows?: unknown;
+      items?: unknown;
+      active?: unknown;
+    } & AgendaActiveTimerWindowRecord;
+    if (Array.isArray(container.windows)) {
+      return container.windows as AgendaActiveTimerWindowRecord[];
+    }
+    if (Array.isArray(container.items)) {
+      return container.items as AgendaActiveTimerWindowRecord[];
+    }
+    if (Array.isArray(container.active)) {
+      return container.active as AgendaActiveTimerWindowRecord[];
+    }
+
+    return [container];
+  }
+
+  private isAgendaActiveTimerWindowRecord(
+    value: unknown
+  ): value is AgendaActiveTimerWindowRecord {
+    return !!value && typeof value === 'object' && 'startedAt' in value;
+  }
+
+  private resolveActiveTimerWindowDateRange(
+    timerWindow: AgendaActiveTimerWindowRecord,
+    now: Date
+  ): { startDate: Date; endDate: Date } | null {
+    const startTimestamp = this.parseTimestamp(timerWindow.startedAt);
+    if (startTimestamp === null || startTimestamp > now.getTime()) {
+      return null;
+    }
+
+    const status = (timerWindow.status ?? '').trim().toLowerCase();
+    if (
+      status === 'completed' ||
+      status === 'done' ||
+      status === 'stopped' ||
+      status === 'cancelled' ||
+      status === 'canceled'
+    ) {
+      return null;
+    }
+
+    const completedAtTimestamp = this.parseTimestamp(timerWindow.completedAt ?? null);
+    if (completedAtTimestamp !== null && completedAtTimestamp <= now.getTime()) {
+      return null;
+    }
+
+    const endedAtTimestamp = this.parseTimestamp(timerWindow.endedAt ?? null);
+    if (endedAtTimestamp !== null && endedAtTimestamp <= now.getTime()) {
+      return null;
+    }
+
+    const expectedEndTimestamp = this.parseTimestamp(timerWindow.expectedEndAt ?? null);
+    if (expectedEndTimestamp !== null && expectedEndTimestamp <= now.getTime()) {
+      return null;
+    }
+
+    return {
+      startDate: new Date(startTimestamp),
+      endDate: now,
+    };
+  }
+
+  private collectMutableDateKeysFromRange(
+    startDate: Date,
+    endDate: Date,
+    mutableDateKeys: Set<string>,
+    mutableMonthKeys: Set<string>,
+    mutableYearKeys: Set<string>
+  ): void {
+    let cursor = this.dateAtLocalNoon(startDate);
+    const normalizedEnd = this.dateAtLocalNoon(endDate);
+    let guard = 0;
+    while (cursor.getTime() <= normalizedEnd.getTime() && guard < MAX_ACTIVE_TIMER_SPAN_DAYS) {
+      const dateKey = this.dateKey(cursor);
+      mutableDateKeys.add(dateKey);
+      mutableMonthKeys.add(dateKey.slice(0, 7));
+      mutableYearKeys.add(dateKey.slice(0, 4));
+      cursor = this.addDays(cursor, 1);
+      guard += 1;
+    }
+  }
+
+  private replaceSet(target: Set<string>, source: Set<string>): void {
+    target.clear();
+    for (const item of source) {
+      target.add(item);
+    }
+  }
+
+  private parseTimestamp(value: string | null | undefined): number | null {
+    if (!value) {
+      return null;
+    }
+
+    const normalized = value.trim();
+    if (!normalized) {
+      return null;
+    }
+
+    const parsed = Date.parse(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private isMonthKeyImmutable(monthKey: string, todayKey: string): boolean {
+    return (
+      monthKey < todayKey.slice(0, 7) &&
+      !this.activeTimerMutableMonthKeys.has(monthKey)
+    );
+  }
+
+  private isYearKeyImmutable(yearKey: string, todayKey: string): boolean {
+    return (
+      yearKey < todayKey.slice(0, 4) &&
+      !this.activeTimerMutableYearKeys.has(yearKey)
+    );
+  }
+
+  private mergeScopeReloadOptions(
+    current: ScopeReloadOptions | null,
+    incoming?: ScopeReloadOptions
+  ): ScopeReloadOptions {
+    return {
+      scrollNearNow: Boolean(current?.scrollNearNow || incoming?.scrollNearNow),
+      scrollRailToToday: Boolean(
+        current?.scrollRailToToday || incoming?.scrollRailToToday
+      ),
+    };
+  }
+
+  private async loadDataForCurrentScope(date: Date): Promise<void> {
+    if (this.currentView === 'day') {
+      await this.ensureDayTasksForDate(date);
+      return;
+    }
+
+    if (this.currentView === 'month') {
+      await this.ensureMonthSummaryForDate(date);
+      return;
+    }
+
+    await this.ensureYearSummaryForDate(date);
+  }
+
+  private async ensureDayTasksForDate(date: Date): Promise<void> {
+    const dayTaskLoader = (
+      this.taskRepository as Partial<TaskRepository>
+    ).listTaskAggregatesForDate;
+
+    if (typeof dayTaskLoader === 'function') {
+      const dayTasks = await dayTaskLoader.call(
+        this.taskRepository,
+        this.dateKey(date)
+      );
+      if (dayTasks) {
+        this.scheduledTasks = dayTasks;
+        return;
+      }
+    }
+
+    this.scheduledTasks = await this.loadDayTasksFallback(date);
+  }
+
+  private async loadDayTasksFallback(date: Date): Promise<PersistedTaskAggregate[]> {
+    const taskRows = await this.taskRepository.listTasks();
+    if (taskRows.length === 0) {
+      return [];
+    }
+
+    const aggregates = await Promise.all(
+      taskRows.map((task) => this.taskRepository.getTaskAggregate(task.id))
+    );
+
+    return aggregates.filter(
+      (task): task is PersistedTaskAggregate =>
+        !!task &&
+        task.isActive &&
+        !task.isArchived &&
+        task.deletedAt === null &&
+        (task.scheduleType === 'one_time' || !!task.recurrence) &&
+        this.taskOccursOnDate(task, date)
+    );
   }
 
   private refreshViewModels(): void {
@@ -724,33 +1385,33 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
   }
 
   private beginLoadingOverlay(): void {
+    this.cancelScheduledSummaryWarmup();
     this.isLoading = true;
+    this.destroyRenderedView();
   }
 
   private endLoadingOverlay(): void {
     this.isLoading = false;
+    this.renderCurrentView();
+    this.scheduleDayRenderRecovery();
   }
 
-  private queueMonthSummaryLoad(previousDate: Date, nextDate: Date): void {
-    if (this.monthSummaryKey(previousDate) === this.monthSummaryKey(nextDate)) {
-      return;
-    }
-
-    void this.ensureMonthSummaryForDate(nextDate);
-  }
-
-  private async ensureMonthSummaryForDate(date: Date): Promise<void> {
+  private async ensureMonthSummaryForDate(date: Date): Promise<boolean> {
     const monthSummaryLoader = (
       this.taskRepository as Partial<TaskRepository>
     ).listMonthDayCategorySummaries;
 
     if (typeof monthSummaryLoader !== 'function') {
-      return;
+      return false;
     }
 
     const monthKey = this.monthSummaryKey(date);
-    if (this.monthSummaryCache.has(monthKey) || this.monthSummaryLoading.has(monthKey)) {
-      return;
+    const immutableMonth = this.isImmutableMonth(date);
+    if (
+      (immutableMonth && this.monthSummaryCache.has(monthKey)) ||
+      this.monthSummaryLoading.has(monthKey)
+    ) {
+      return true;
     }
 
     this.monthSummaryLoading.add(monthKey);
@@ -758,21 +1419,79 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
     const year = date.getFullYear();
     const month = date.getMonth();
     const monthStart = this.dateKey(this.createDate(year, month, 1));
-    const monthEnd = this.dateKey(
-      this.createDate(year, month, this.daysInMonth(year, month))
-    );
+    const monthEnd = this.dateKey(this.createDate(year, month, this.daysInMonth(year, month)));
 
     try {
-      const summaries = await monthSummaryLoader.call(
-        this.taskRepository,
-        monthStart,
-        monthEnd
-      );
-      if (!summaries) {
-        return;
+      const persistedSummary = this.persistedMonthSummaryCache.get(monthKey);
+      if (immutableMonth && persistedSummary) {
+        this.monthSummaryCache.set(monthKey, this.cloneMonthSummaryMap(persistedSummary));
+        return true;
       }
 
-      this.monthSummaryCache.set(monthKey, this.mapMonthSummaryRows(summaries));
+      let monthSummary = new Map<string, AgendaMonthDayTaskSummary>();
+      if (this.isCurrentMonth(date) && persistedSummary) {
+        monthSummary = this.cloneMonthSummaryMap(persistedSummary);
+      }
+
+      const todayKey = this.dateKey(this.dateAtLocalNoon(new Date()));
+      const isTargetCurrentMonth = todayKey.slice(0, 7) === monthKey;
+      if (isTargetCurrentMonth && !immutableMonth) {
+        const todayDay = Number(todayKey.slice(8, 10));
+        if (todayDay > 1 && monthSummary.size === 0) {
+          const previousDay = this.dateKey(this.createDate(year, month, todayDay - 1));
+          const pastRows = await monthSummaryLoader.call(
+            this.taskRepository,
+            monthStart,
+            previousDay
+          );
+          if (pastRows && !this.isDestroyed) {
+            const pastSummary = this.mapMonthSummaryRows(pastRows);
+            monthSummary = this.mergeMonthSummaryMaps(monthSummary, pastSummary);
+            this.persistMonthSummary(monthKey, pastSummary);
+          }
+        }
+
+        const dynamicRows = await monthSummaryLoader.call(
+          this.taskRepository,
+          todayKey,
+          monthEnd
+        );
+        if (!dynamicRows || this.isDestroyed) {
+          return false;
+        }
+
+        const dynamicSummary = this.mapMonthSummaryRows(dynamicRows);
+        monthSummary = this.mergeMonthSummaryMaps(monthSummary, dynamicSummary);
+        const immutableSlice = this.extractImmutableMonthDays(monthKey, monthSummary);
+        if (immutableSlice.size > 0) {
+          this.persistMonthSummary(monthKey, immutableSlice);
+        }
+      } else {
+        const rows = await monthSummaryLoader.call(
+          this.taskRepository,
+          monthStart,
+          monthEnd
+        );
+        if (!rows || this.isDestroyed) {
+          return false;
+        }
+
+        monthSummary = this.mapMonthSummaryRows(rows);
+      }
+
+      if (
+        !(await this.ensureCategoryColorsForIds(
+          this.collectCategoryIdsFromMonthSummary(monthSummary)
+        ))
+      ) {
+        return false;
+      }
+
+      this.monthSummaryCache.set(monthKey, monthSummary);
+      if (immutableMonth) {
+        this.persistMonthSummary(monthKey, monthSummary);
+      }
+      this.markSummaryRefreshedToday('month', monthKey);
 
       if (this.monthSummaryKey(this.selectedDate) === monthKey) {
         this.monthCells = this.buildMonthCells(this.selectedDate);
@@ -780,8 +1499,12 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
           this.renderCurrentView();
         }
       }
+      return true;
     } catch {
-      this.monthSummaryCache.delete(monthKey);
+      if (immutableMonth) {
+        this.monthSummaryCache.delete(monthKey);
+      }
+      return false;
     } finally {
       this.monthSummaryLoading.delete(monthKey);
     }
@@ -798,30 +1521,668 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
         continue;
       }
 
-      const uniqueColors: string[] = [];
-      const seenColors = new Set<string>();
-      for (const rawColor of row.categoryColors) {
-        const color = rawColor.trim();
-        if (color.length === 0) {
-          continue;
-        }
-
-        const colorKey = color.toLowerCase();
-        if (seenColors.has(colorKey)) {
-          continue;
-        }
-
-        seenColors.add(colorKey);
-        uniqueColors.push(color);
-      }
-
       mapped.set(dateKey, {
         taskCount: Math.max(0, Math.round(row.taskCount)),
-        categoryDotColors: uniqueColors,
+        categoryIds: this.normalizeUniqueCategoryIds(row.categoryIds),
       });
     }
 
     return mapped;
+  }
+
+  private collectCategoryIdsFromMonthSummary(
+    summary: ReadonlyMap<string, AgendaMonthDayTaskSummary>
+  ): string[] {
+    const categoryIds: string[] = [];
+    for (const row of summary.values()) {
+      categoryIds.push(...row.categoryIds);
+    }
+    return this.normalizeUniqueCategoryIds(categoryIds);
+  }
+
+  private async ensureYearSummaryForDate(date: Date): Promise<boolean> {
+    const yearSummaryLoader = (
+      this.taskRepository as Partial<TaskRepository>
+    ).listYearMonthCategorySummaries;
+
+    if (typeof yearSummaryLoader !== 'function') {
+      return false;
+    }
+
+    const yearKey = this.yearSummaryKey(date);
+    const immutableYear = this.isImmutableYear(date);
+    if (
+      (immutableYear && this.yearSummaryCache.has(yearKey)) ||
+      this.yearSummaryLoading.has(yearKey)
+    ) {
+      return true;
+    }
+
+    this.yearSummaryLoading.add(yearKey);
+
+    const year = date.getFullYear();
+    const yearStart = this.dateKey(this.createDate(year, 0, 1));
+    const yearEnd = this.dateKey(this.createDate(year, 11, this.daysInMonth(year, 11)));
+
+    try {
+      const persistedSummary = this.persistedYearSummaryCache.get(yearKey);
+      if (immutableYear && persistedSummary) {
+        this.yearSummaryCache.set(yearKey, this.cloneYearSummaryMap(persistedSummary));
+        return true;
+      }
+
+      let yearSummary = new Map<number, AgendaYearMonthTaskSummary>();
+      if (this.isCurrentYear(date) && persistedSummary) {
+        yearSummary = this.cloneYearSummaryMap(persistedSummary);
+      }
+
+      const currentDate = this.dateAtLocalNoon(new Date());
+      const currentYear = currentDate.getFullYear();
+      const currentMonthIndex = currentDate.getMonth();
+      const shouldSplitCurrentYear =
+        !immutableYear &&
+        this.isCurrentYear(date) &&
+        currentYear === year;
+
+      if (shouldSplitCurrentYear) {
+        if (currentMonthIndex > 0 && yearSummary.size === 0) {
+          const pastYearEnd = this.dateKey(
+            this.createDate(year, currentMonthIndex - 1, this.daysInMonth(year, currentMonthIndex - 1))
+          );
+          const pastRows = await yearSummaryLoader.call(
+            this.taskRepository,
+            yearStart,
+            pastYearEnd
+          );
+          if (pastRows && !this.isDestroyed) {
+            const pastSummary = this.mapYearSummaryRows(pastRows, year);
+            yearSummary = this.mergeYearSummaryMaps(yearSummary, pastSummary);
+            this.persistYearSummary(yearKey, pastSummary);
+          }
+        }
+
+        const dynamicYearStart = this.dateKey(this.createDate(year, currentMonthIndex, 1));
+        const dynamicRows = await yearSummaryLoader.call(
+          this.taskRepository,
+          dynamicYearStart,
+          yearEnd
+        );
+        if (!dynamicRows || this.isDestroyed) {
+          return false;
+        }
+
+        const dynamicSummary = this.mapYearSummaryRows(dynamicRows, year);
+        yearSummary = this.mergeYearSummaryMaps(yearSummary, dynamicSummary);
+        const immutableSlice = this.extractImmutableYearMonths(yearSummary);
+        if (immutableSlice.size > 0) {
+          this.persistYearSummary(yearKey, immutableSlice);
+        }
+      } else {
+        const rows = await yearSummaryLoader.call(
+          this.taskRepository,
+          yearStart,
+          yearEnd
+        );
+        if (!rows || this.isDestroyed) {
+          return false;
+        }
+
+        yearSummary = this.mapYearSummaryRows(rows, year);
+      }
+
+      if (
+        !(await this.ensureCategoryColorsForIds(
+          this.collectCategoryIdsFromYearSummary(yearSummary)
+        ))
+      ) {
+        return false;
+      }
+
+      this.yearSummaryCache.set(yearKey, yearSummary);
+      if (immutableYear) {
+        this.persistYearSummary(yearKey, yearSummary);
+      }
+      this.markSummaryRefreshedToday('year', yearKey);
+
+      if (this.yearSummaryKey(this.selectedDate) === yearKey) {
+        this.yearMonths = this.buildYearMonths(this.selectedDate);
+        if (this.currentView === 'year') {
+          this.renderCurrentView();
+        }
+      }
+      return true;
+    } catch {
+      if (immutableYear) {
+        this.yearSummaryCache.delete(yearKey);
+      }
+      return false;
+    } finally {
+      this.yearSummaryLoading.delete(yearKey);
+    }
+  }
+
+  private mapYearSummaryRows(
+    rows: readonly TaskYearMonthCategorySummary[],
+    expectedYear: number
+  ): Map<number, AgendaYearMonthTaskSummary> {
+    const mapped = new Map<number, AgendaYearMonthTaskSummary>();
+
+    for (const row of rows) {
+      const parsedMonth = this.parseYearMonthKey(row.monthKey);
+      if (!parsedMonth || parsedMonth.year !== expectedYear) {
+        continue;
+      }
+
+      mapped.set(parsedMonth.monthIndex, {
+        taskCount: Math.max(0, Math.round(row.taskCount)),
+        categoryIds: this.normalizeUniqueCategoryIds(row.categoryIds),
+      });
+    }
+
+    return mapped;
+  }
+
+  private collectCategoryIdsFromYearSummary(
+    summary: ReadonlyMap<number, AgendaYearMonthTaskSummary>
+  ): string[] {
+    const categoryIds: string[] = [];
+    for (const row of summary.values()) {
+      categoryIds.push(...row.categoryIds);
+    }
+    return this.normalizeUniqueCategoryIds(categoryIds);
+  }
+
+  private async ensureCategoryColorsForIds(
+    categoryIds: readonly string[]
+  ): Promise<boolean> {
+    const normalizedCategoryIds = this.normalizeUniqueCategoryIds(
+      categoryIds.map((categoryId) => categoryId.trim().toLowerCase())
+    );
+    if (normalizedCategoryIds.length === 0) {
+      return true;
+    }
+
+    const hasMissingColor = normalizedCategoryIds.some(
+      (categoryId) => !this.categoryColorById.has(categoryId)
+    );
+    if (!hasMissingColor) {
+      return true;
+    }
+
+    await this.loadCategoryColorMap();
+
+    const unresolvedCategoryIds = normalizedCategoryIds.filter(
+      (categoryId) => !this.categoryColorById.has(categoryId)
+    );
+    if (unresolvedCategoryIds.length > 0) {
+      for (const categoryId of unresolvedCategoryIds) {
+        this.categoryColorById.set(
+          categoryId,
+          this.resolveCategoryColorFallback(categoryId)
+        );
+      }
+      this.writePersistedCategoryColorMap();
+    }
+
+    return true;
+  }
+
+  private parseYearMonthKey(
+    monthKey: string
+  ): { year: number; monthIndex: number } | null {
+    const normalizedMonthKey = monthKey.trim();
+    const monthKeyMatch = /^(\d{4})-(\d{2})$/.exec(normalizedMonthKey);
+    if (!monthKeyMatch) {
+      return null;
+    }
+
+    const year = Number(monthKeyMatch[1]);
+    const month = Number(monthKeyMatch[2]);
+    if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
+      return null;
+    }
+
+    return {
+      year,
+      monthIndex: month - 1,
+    };
+  }
+
+  private normalizeUniqueColors(colors: readonly string[]): string[] {
+    const uniqueColors: string[] = [];
+    const seenColors = new Set<string>();
+    for (const rawColor of colors) {
+      const color = rawColor.trim();
+      if (color.length === 0) {
+        continue;
+      }
+
+      const colorKey = color.toLowerCase();
+      if (seenColors.has(colorKey)) {
+        continue;
+      }
+
+      seenColors.add(colorKey);
+      uniqueColors.push(color);
+    }
+
+    return uniqueColors;
+  }
+
+  private normalizeUniqueCategoryIds(categoryIds: readonly string[]): string[] {
+    const uniqueCategoryIds: string[] = [];
+    const seenCategoryIds = new Set<string>();
+    for (const rawCategoryId of categoryIds) {
+      const categoryId = rawCategoryId.trim();
+      if (categoryId.length === 0 || seenCategoryIds.has(categoryId)) {
+        continue;
+      }
+
+      seenCategoryIds.add(categoryId);
+      uniqueCategoryIds.push(categoryId);
+    }
+
+    return uniqueCategoryIds;
+  }
+
+  private resolveCategoryColorsFromIds(categoryIds: readonly string[]): string[] {
+    const resolvedColors: string[] = [];
+    const seenColors = new Set<string>();
+    for (const categoryId of categoryIds) {
+      const normalizedCategoryId = categoryId.trim().toLowerCase();
+      let color = this.categoryColorById.get(normalizedCategoryId)?.trim() ?? '';
+      if (!color) {
+        color = this.resolveCategoryColorFromLoadedTasks(normalizedCategoryId) ?? '';
+      }
+      if (!color && normalizedCategoryId) {
+        color = this.resolveCategoryColorFallback(normalizedCategoryId);
+      }
+      if (color && normalizedCategoryId) {
+        this.categoryColorById.set(normalizedCategoryId, color);
+        this.writePersistedCategoryColorMap();
+      }
+      if (!color) {
+        continue;
+      }
+
+      const colorKey = color.toLowerCase();
+      if (seenColors.has(colorKey)) {
+        continue;
+      }
+
+      seenColors.add(colorKey);
+      resolvedColors.push(color);
+    }
+
+    return resolvedColors;
+  }
+
+  private resolveCategoryColorFallback(categoryId: string): string {
+    let hash = 0;
+    for (let index = 0; index < categoryId.length; index += 1) {
+      hash = (hash * 31 + categoryId.charCodeAt(index)) >>> 0;
+    }
+
+    return CATEGORY_COLOR_FALLBACK_PALETTE[
+      hash % CATEGORY_COLOR_FALLBACK_PALETTE.length
+    ];
+  }
+
+  private resolveCategoryColorFromLoadedTasks(categoryId: string): string | null {
+    if (!categoryId) {
+      return null;
+    }
+
+    for (const task of this.scheduledTasks) {
+      const taskCategoryId = task.categoryId?.trim().toLowerCase() ?? '';
+      if (!taskCategoryId || taskCategoryId !== categoryId) {
+        continue;
+      }
+
+      const taskColor = this.resolveTaskColor(task).trim();
+      if (taskColor) {
+        return taskColor;
+      }
+    }
+
+    return null;
+  }
+
+  private loadPersistedCategoryColorMap(): void {
+    try {
+      const rawPayload = window.localStorage.getItem(CATEGORY_COLOR_CACHE_STORAGE_KEY);
+      if (!rawPayload) {
+        return;
+      }
+
+      const parsedPayload = JSON.parse(rawPayload) as Record<string, string>;
+      const mappedColors = new Map<string, string>();
+      for (const [rawCategoryId, rawColor] of Object.entries(parsedPayload)) {
+        const categoryId = rawCategoryId.trim().toLowerCase();
+        const color = `${rawColor ?? ''}`.trim();
+        if (!categoryId || !color) {
+          continue;
+        }
+
+        mappedColors.set(categoryId, color);
+        if (mappedColors.size >= CATEGORY_COLOR_CACHE_MAX_ENTRIES) {
+          break;
+        }
+      }
+
+      if (mappedColors.size > 0) {
+        this.categoryColorById = mappedColors;
+      }
+    } catch {
+      // ignore malformed storage payload
+    }
+  }
+
+  private writePersistedCategoryColorMap(): void {
+    try {
+      const serializable: Record<string, string> = {};
+      let count = 0;
+      for (const [categoryId, color] of this.categoryColorById.entries()) {
+        const normalizedCategoryId = categoryId.trim().toLowerCase();
+        const normalizedColor = color.trim();
+        if (!normalizedCategoryId || !normalizedColor) {
+          continue;
+        }
+
+        serializable[normalizedCategoryId] = normalizedColor;
+        count += 1;
+        if (count >= CATEGORY_COLOR_CACHE_MAX_ENTRIES) {
+          break;
+        }
+      }
+
+      window.localStorage.setItem(
+        CATEGORY_COLOR_CACHE_STORAGE_KEY,
+        JSON.stringify(serializable)
+      );
+    } catch {
+      // ignore storage write failures
+    }
+  }
+
+  private loadPersistedSummaryCaches(): void {
+    this.persistedMonthSummaryCache.clear();
+    this.persistedYearSummaryCache.clear();
+
+    try {
+      const monthRaw = window.localStorage.getItem(MONTH_SUMMARY_CACHE_STORAGE_KEY);
+      if (monthRaw) {
+        const parsed = JSON.parse(monthRaw) as Record<
+          string,
+          Record<string, { taskCount: number; categoryIds?: string[] }>
+        >;
+        for (const [monthKey, monthEntry] of Object.entries(parsed)) {
+          const mappedMonth = new Map<string, AgendaMonthDayTaskSummary>();
+          for (const [dateKey, summary] of Object.entries(monthEntry ?? {})) {
+            if (!Array.isArray(summary.categoryIds)) {
+              continue;
+            }
+
+            mappedMonth.set(dateKey, {
+              taskCount: Math.max(0, Math.round(Number(summary.taskCount) || 0)),
+              categoryIds: this.normalizeUniqueCategoryIds(summary.categoryIds),
+            });
+          }
+          if (mappedMonth.size > 0) {
+            this.persistedMonthSummaryCache.set(monthKey, mappedMonth);
+          }
+        }
+      }
+    } catch {
+      this.persistedMonthSummaryCache.clear();
+    }
+
+    try {
+      const yearRaw = window.localStorage.getItem(YEAR_SUMMARY_CACHE_STORAGE_KEY);
+      if (yearRaw) {
+        const parsed = JSON.parse(yearRaw) as Record<
+          string,
+          Record<string, { taskCount: number; categoryIds?: string[] }>
+        >;
+        for (const [yearKey, yearEntry] of Object.entries(parsed)) {
+          const mappedYear = new Map<number, AgendaYearMonthTaskSummary>();
+          for (const [monthIndexKey, summary] of Object.entries(yearEntry ?? {})) {
+            const monthIndex = Number(monthIndexKey);
+            if (!Number.isFinite(monthIndex) || monthIndex < 0 || monthIndex > 11) {
+              continue;
+            }
+            if (!Array.isArray(summary.categoryIds)) {
+              continue;
+            }
+
+            mappedYear.set(monthIndex, {
+              taskCount: Math.max(0, Math.round(Number(summary.taskCount) || 0)),
+              categoryIds: this.normalizeUniqueCategoryIds(summary.categoryIds),
+            });
+          }
+          if (mappedYear.size > 0) {
+            this.persistedYearSummaryCache.set(yearKey, mappedYear);
+          }
+        }
+      }
+    } catch {
+      this.persistedYearSummaryCache.clear();
+    }
+  }
+
+  private persistMonthSummary(
+    monthKey: string,
+    monthSummary: ReadonlyMap<string, AgendaMonthDayTaskSummary>
+  ): void {
+    if (monthSummary.size === 0) {
+      return;
+    }
+
+    const existing = this.persistedMonthSummaryCache.get(monthKey);
+    const merged = existing
+      ? this.mergeMonthSummaryMaps(existing, monthSummary)
+      : this.cloneMonthSummaryMap(monthSummary);
+    this.persistedMonthSummaryCache.set(monthKey, merged);
+    this.writePersistedMonthSummaryCache();
+  }
+
+  private persistYearSummary(
+    yearKey: string,
+    yearSummary: ReadonlyMap<number, AgendaYearMonthTaskSummary>
+  ): void {
+    if (yearSummary.size === 0) {
+      return;
+    }
+
+    const existing = this.persistedYearSummaryCache.get(yearKey);
+    const merged = existing
+      ? this.mergeYearSummaryMaps(existing, yearSummary)
+      : this.cloneYearSummaryMap(yearSummary);
+    this.persistedYearSummaryCache.set(yearKey, merged);
+    this.writePersistedYearSummaryCache();
+  }
+
+  private writePersistedMonthSummaryCache(): void {
+    try {
+      const serializable: Record<
+        string,
+        Record<string, { taskCount: number; categoryIds: string[] }>
+      > = {};
+      for (const [monthKey, monthSummary] of this.persistedMonthSummaryCache.entries()) {
+        serializable[monthKey] = {};
+        for (const [dateKey, summary] of monthSummary.entries()) {
+          serializable[monthKey][dateKey] = {
+            taskCount: summary.taskCount,
+            categoryIds: [...summary.categoryIds],
+          };
+        }
+      }
+
+      window.localStorage.setItem(
+        MONTH_SUMMARY_CACHE_STORAGE_KEY,
+        JSON.stringify(serializable)
+      );
+    } catch {
+      // ignore storage write failures
+    }
+  }
+
+  private writePersistedYearSummaryCache(): void {
+    try {
+      const serializable: Record<
+        string,
+        Record<string, { taskCount: number; categoryIds: string[] }>
+      > = {};
+      for (const [yearKey, yearSummary] of this.persistedYearSummaryCache.entries()) {
+        serializable[yearKey] = {};
+        for (const [monthIndex, summary] of yearSummary.entries()) {
+          serializable[yearKey][`${monthIndex}`] = {
+            taskCount: summary.taskCount,
+            categoryIds: [...summary.categoryIds],
+          };
+        }
+      }
+
+      window.localStorage.setItem(
+        YEAR_SUMMARY_CACHE_STORAGE_KEY,
+        JSON.stringify(serializable)
+      );
+    } catch {
+      // ignore storage write failures
+    }
+  }
+
+  private mergeMonthSummaryMaps(
+    base: ReadonlyMap<string, AgendaMonthDayTaskSummary>,
+    patch: ReadonlyMap<string, AgendaMonthDayTaskSummary>
+  ): Map<string, AgendaMonthDayTaskSummary> {
+    const merged = this.cloneMonthSummaryMap(base);
+    for (const [dateKey, summary] of patch.entries()) {
+      merged.set(dateKey, {
+        taskCount: summary.taskCount,
+        categoryIds: [...summary.categoryIds],
+      });
+    }
+
+    return merged;
+  }
+
+  private mergeYearSummaryMaps(
+    base: ReadonlyMap<number, AgendaYearMonthTaskSummary>,
+    patch: ReadonlyMap<number, AgendaYearMonthTaskSummary>
+  ): Map<number, AgendaYearMonthTaskSummary> {
+    const merged = this.cloneYearSummaryMap(base);
+    for (const [monthIndex, summary] of patch.entries()) {
+      merged.set(monthIndex, {
+        taskCount: summary.taskCount,
+        categoryIds: [...summary.categoryIds],
+      });
+    }
+
+    return merged;
+  }
+
+  private cloneMonthSummaryMap(
+    source: ReadonlyMap<string, AgendaMonthDayTaskSummary>
+  ): Map<string, AgendaMonthDayTaskSummary> {
+    const cloned = new Map<string, AgendaMonthDayTaskSummary>();
+    for (const [dateKey, summary] of source.entries()) {
+      cloned.set(dateKey, {
+        taskCount: summary.taskCount,
+        categoryIds: [...summary.categoryIds],
+      });
+    }
+
+    return cloned;
+  }
+
+  private cloneYearSummaryMap(
+    source: ReadonlyMap<number, AgendaYearMonthTaskSummary>
+  ): Map<number, AgendaYearMonthTaskSummary> {
+    const cloned = new Map<number, AgendaYearMonthTaskSummary>();
+    for (const [monthIndex, summary] of source.entries()) {
+      cloned.set(monthIndex, {
+        taskCount: summary.taskCount,
+        categoryIds: [...summary.categoryIds],
+      });
+    }
+
+    return cloned;
+  }
+
+  private extractImmutableMonthDays(
+    monthKey: string,
+    monthSummary: ReadonlyMap<string, AgendaMonthDayTaskSummary>
+  ): Map<string, AgendaMonthDayTaskSummary> {
+    const immutableDays = new Map<string, AgendaMonthDayTaskSummary>();
+    const todayKey = this.dateKey(this.dateAtLocalNoon(new Date()));
+    if (todayKey.slice(0, 7) !== monthKey) {
+      return immutableDays;
+    }
+
+    for (const [dateKey, summary] of monthSummary.entries()) {
+      if (dateKey >= todayKey) {
+        continue;
+      }
+      if (this.activeTimerMutableDateKeys.has(dateKey)) {
+        continue;
+      }
+
+      immutableDays.set(dateKey, {
+        taskCount: summary.taskCount,
+        categoryIds: [...summary.categoryIds],
+      });
+    }
+
+    return immutableDays;
+  }
+
+  private extractImmutableYearMonths(
+    yearSummary: ReadonlyMap<number, AgendaYearMonthTaskSummary>
+  ): Map<number, AgendaYearMonthTaskSummary> {
+    const immutableMonths = new Map<number, AgendaYearMonthTaskSummary>();
+    const now = this.dateAtLocalNoon(new Date());
+    const currentMonthIndex = now.getMonth();
+    const currentYear = now.getFullYear();
+    for (const [monthIndex, summary] of yearSummary.entries()) {
+      if (monthIndex >= currentMonthIndex) {
+        continue;
+      }
+      const monthDate = this.createDate(currentYear, monthIndex, 1);
+      const monthKey = this.monthSummaryKey(monthDate);
+      if (this.activeTimerMutableMonthKeys.has(monthKey)) {
+        continue;
+      }
+
+      immutableMonths.set(monthIndex, {
+        taskCount: summary.taskCount,
+        categoryIds: [...summary.categoryIds],
+      });
+    }
+
+    return immutableMonths;
+  }
+
+  private isCurrentMonth(date: Date): boolean {
+    const today = this.dateAtLocalNoon(new Date());
+    return (
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth()
+    );
+  }
+
+  private isImmutableMonth(date: Date): boolean {
+    const todayKey = this.dateKey(this.dateAtLocalNoon(new Date()));
+    return this.isMonthKeyImmutable(this.monthSummaryKey(date), todayKey);
+  }
+
+  private isCurrentYear(date: Date): boolean {
+    return date.getFullYear() === this.dateAtLocalNoon(new Date()).getFullYear();
+  }
+
+  private isImmutableYear(date: Date): boolean {
+    const todayKey = this.dateKey(this.dateAtLocalNoon(new Date()));
+    return this.isYearKeyImmutable(this.yearSummaryKey(date), todayKey);
   }
 
   private logLoadedTasksForDate(date: Date): void {
@@ -1032,6 +2393,12 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
 
     this.nowTickerId = window.setInterval(() => {
       this.now = new Date();
+      const mutableScopeChanged = this.refreshActiveTimerMutableScopes(this.now);
+      if (mutableScopeChanged) {
+        void this.reloadCurrentScopeWithLoader();
+        return;
+      }
+
       this.refreshViewModels();
     }, 60_000);
   }
@@ -1399,25 +2766,12 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
     endMinutes: number,
     nowMinutes: number | null
   ): AgendaDaySegment {
-    const durationMinutes = Math.max(0, endMinutes - startMinutes);
-    const heightTier = this.resolveEmptyHeightTier(durationMinutes);
-    const displayHint = this.resolveEmptySegmentHint();
-    return {
-      key: `empty-${startMinutes}-${endMinutes}`,
-      type: 'empty',
-      startMinutes,
-      endMinutes,
-      durationMinutes,
-      heightTier,
-      visualHeightPx: this.resolveTierVisualHeight(heightTier),
-      timeTopLabel: this.formatMinutes(startMinutes),
-      timeBottomLabel: this.formatTimelineBoundaryMinutes(endMinutes),
-      isCurrent: this.isNowInRange(startMinutes, endMinutes, nowMinutes),
-      displayTitle: null,
-      displayHint,
-      displayAccentColor: null,
-      emptyHint: displayHint,
-    };
+    return createEmptySegment(startMinutes, endMinutes, nowMinutes, {
+      emptyHint: this.resolveEmptySegmentHint(),
+      formatMinutes: (minutes) => this.formatMinutes(minutes),
+      formatTimelineBoundaryMinutes: (minutes) =>
+        this.formatTimelineBoundaryMinutes(minutes),
+    });
   }
 
   private createEventSegment(
@@ -1426,27 +2780,12 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
     endMinutes: number,
     nowMinutes: number | null
   ): AgendaDaySegment {
-    const primaryTask = tasks[0];
-    const durationMinutes = Math.max(0, endMinutes - startMinutes);
-    const heightTier = this.resolveEventHeightTier(durationMinutes);
-    return {
-      key: `event-${tasks.map((task) => task.taskId).join('-')}-${startMinutes}`,
-      type: 'event',
-      startMinutes,
-      endMinutes,
-      durationMinutes,
-      heightTier,
-      visualHeightPx: this.resolveTierVisualHeight(heightTier),
-      timeTopLabel: this.formatMinutes(startMinutes),
-      timeBottomLabel: this.formatTimelineBoundaryMinutes(endMinutes),
-      isCurrent: this.isNowInTaskRange(startMinutes, endMinutes, nowMinutes),
-      displayTitle: primaryTask?.title ?? null,
-      displayHint: null,
-      displayAccentColor: primaryTask?.accentBorderColor ?? null,
-      emptyHint: null,
-      items: [...tasks],
-      task: primaryTask,
-    };
+    return createEventSegment(tasks, startMinutes, endMinutes, nowMinutes, {
+      emptyHint: this.resolveEmptySegmentHint(),
+      formatMinutes: (minutes) => this.formatMinutes(minutes),
+      formatTimelineBoundaryMinutes: (minutes) =>
+        this.formatTimelineBoundaryMinutes(minutes),
+    });
   }
 
   private resolveEmptyHeightTier(durationMinutes: number): DayAgendaTimelineHeightTier {
@@ -1605,17 +2944,23 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
   private buildYearMonths(date: Date): AgendaYearMonth[] {
     const year = date.getFullYear();
     const today = new Date();
+    const cachedYearSummary = this.yearSummaryCache.get(this.yearSummaryKey(date));
 
     return Array.from({ length: 12 }, (_, monthIndex) => {
       const monthDate = this.createDate(year, monthIndex, 1);
-      const taskCount = this.countTasksForMonth(year, monthIndex);
+      const cachedMonthSummary = cachedYearSummary?.get(monthIndex);
       return {
         key: `${year}-${monthIndex + 1}`,
         monthIndex,
         monthLabel: new Intl.DateTimeFormat(this.activeLocale, {
           month: 'long',
         }).format(monthDate),
-        densityLevel: this.toDensityLevel(taskCount),
+        densityLevel: this.toDensityLevel(cachedMonthSummary?.taskCount ?? 0),
+        categoryBarGradient: this.buildCategoryBarGradient(
+          cachedMonthSummary
+            ? this.resolveCategoryColorsFromIds(cachedMonthSummary.categoryIds)
+            : []
+        ),
         isCurrentMonth:
           today.getFullYear() === year && today.getMonth() === monthIndex,
         isSelectedMonth:
@@ -1625,26 +2970,26 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
     });
   }
 
-  private countTasksForDate(date: Date): number {
-    let count = 0;
-    for (const task of this.scheduledTasks) {
-      if (this.taskOccursOnDate(task, date)) {
-        count += 1;
-      }
+  private buildCategoryBarGradient(categoryBarColors: readonly string[]): string | null {
+    const uniqueColors = this.normalizeUniqueColors(categoryBarColors);
+    if (uniqueColors.length === 0) {
+      return null;
     }
 
-    return count;
-  }
-
-  private countTasksForMonth(year: number, month: number): number {
-    const daysInMonth = this.daysInMonth(year, month);
-    let count = 0;
-
-    for (let day = 1; day <= daysInMonth; day += 1) {
-      count += this.countTasksForDate(this.createDate(year, month, day));
+    if (uniqueColors.length === 1) {
+      return uniqueColors[0];
     }
 
-    return count;
+    const stopWidth = 100 / uniqueColors.length;
+    const gradientStops = uniqueColors
+      .map((color, index) => {
+        const start = (index * stopWidth).toFixed(2);
+        const end = ((index + 1) * stopWidth).toFixed(2);
+        return `${color} ${start}%, ${color} ${end}%`;
+      })
+      .join(', ');
+
+    return `linear-gradient(90deg, ${gradientStops})`;
   }
 
   private buildMonthCellTaskSummary(date: Date): {
@@ -1657,7 +3002,9 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
       if (cachedSummary) {
         return {
           taskCount: cachedSummary.taskCount,
-          categoryDotColors: [...cachedSummary.categoryDotColors],
+          categoryDotColors: this.resolveCategoryColorsFromIds(
+            cachedSummary.categoryIds
+          ),
         };
       }
 
@@ -1666,34 +3013,9 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
         categoryDotColors: [],
       };
     }
-
-    let taskCount = 0;
-    const categoryDotColors: string[] = [];
-    const seenCategoryColors = new Set<string>();
-
-    for (const task of this.scheduledTasks) {
-      if (!this.taskOccursOnDate(task, date)) {
-        continue;
-      }
-
-      taskCount += 1;
-      const categoryColor = this.resolveTaskColor(task).trim();
-      if (!categoryColor) {
-        continue;
-      }
-
-      const colorKey = categoryColor.toLowerCase();
-      if (seenCategoryColors.has(colorKey)) {
-        continue;
-      }
-
-      seenCategoryColors.add(colorKey);
-      categoryDotColors.push(categoryColor);
-    }
-
     return {
-      taskCount,
-      categoryDotColors,
+      taskCount: 0,
+      categoryDotColors: [],
     };
   }
 
@@ -1993,6 +3315,10 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
 
   private monthSummaryKey(date: Date): string {
     return `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, '0')}`;
+  }
+
+  private yearSummaryKey(date: Date): string {
+    return `${date.getFullYear()}`;
   }
 
   private resolveTaskTimezone(task: PersistedTaskAggregate): string {

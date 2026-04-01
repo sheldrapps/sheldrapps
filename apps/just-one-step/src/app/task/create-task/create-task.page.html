@@ -184,9 +184,6 @@
             [okText]="'COMMON.DONE' | translate"
             (ionChange)="onCategoryChange($event)"
           >
-            <ion-select-option [value]="null">
-              {{ 'CREATE_TASK.CATEGORY_NONE' | translate }}
-            </ion-select-option>
             @for (category of categories; track category.id) {
               <ion-select-option [value]="category.id">
                 {{ category.name }}
@@ -197,6 +194,11 @@
             </ion-select-option>
           </ion-select>
         </ion-item>
+        @if (showCategoryRequiredError) {
+          <ion-note color="danger" class="form-error form-feedback duration-dependent-feedback">
+            {{ 'CREATE_TASK.VALIDATION_CATEGORY_REQUIRED' | translate }}
+          </ion-note>
+        }
         @if (isCustomCategoryMode) {
           <ion-item class="category-field-item stacked-field-item">
             <ion-label position="stacked" class="form-label">

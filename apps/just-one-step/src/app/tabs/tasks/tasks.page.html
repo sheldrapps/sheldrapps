@@ -39,10 +39,10 @@
       <div class="tasks-list-stack">
         @for (task of tasks; track task.id) {
           <div
-            class="app-accent-surface task-list-card"
-            [style.--app-accent-border-color]="taskBorderStyle(task)"
-            [style.--app-accent-background-color]="taskBackgroundStyle(task)"
-            [style.--app-accent-shadow-color]="taskShadowStyle(task)"
+            class="app-accent-surface app-task-accent-surface task-list-card"
+            [style.--app-task-accent-border-color]="taskBorderStyle(task)"
+            [style.--app-task-accent-background-color]="taskBackgroundStyle(task)"
+            [style.--app-task-accent-shadow-color]="taskShadowStyle(task)"
           >
             <div class="task-list-card-body">
               <div class="task-list-card-header">

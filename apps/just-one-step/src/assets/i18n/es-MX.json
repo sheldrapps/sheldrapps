@@ -10,10 +10,59 @@
     "SETTINGS": "Configuración"
   },
   "TODAY": {
+    "TODAY_TASKS": {
+      "TITLE": "Tareas de hoy"
+    },
     "TITLE": "Hoy",
-    "TASKS_SUMMARY": "Resumen de tareas de hoy (placeholder)",
-    "PROGRESS_SUMMARY": "Resumen de progreso de hoy (placeholder)",
-    "REFLECTION_PROMPT": "Pregunta rápida de reflexión (placeholder)"
+    "RELOAD": "Recargar",
+    "SECTION_NOW": "Ahora",
+    "SECTION_NEXT": "Siguiente paso",
+    "SECTION_GAPS": "Huecos aprovechables",
+    "SECTION_BACKLOG": "Pendientes de hoy",
+    "SUGGESTIONS": {
+      "TITLE": "Este momento puede servir para..."
+    },
+    "FREE_SPACES": {
+      "TITLE": "Próximos tiempos libres"
+    },
+    "OPPORTUNITIES": {
+      "TITLE": "Este momento puede servir para...",
+      "HEADER": "Te quedan {{duration}}",
+      "HOUR_SHORT": "h"
+    },
+    "RUNNING": "En curso",
+    "NOW_CTA_PLAY": "Cuando quieras",
+    "NOW_CTA_FIVE_MIN": "Si te sirve, 5 min",
+    "NOW_CTA_RESCHEDULE": "Si prefieres, reprogramar",
+    "NOW_CTA_POSTPONE": "Posponer",
+    "EMPTY_TITLE": "No hay tareas por ahora",
+    "EMPTY_HINT": "No necesitas hacerlo todo hoy. Empieza con un paso.",
+    "NOW_FREE_TITLE": "Ahora estás libre",
+    "NOW_FREE_MAIN": "Ahora estás libre",
+    "NOW_FREE_HINT": "Este momento puede servir para:",
+    "CATEGORY_NONE": "Sin categoría",
+    "NOW_CONTEXT_CURRENT": "En curso ahora",
+    "NOW_CONTEXT_NEXT": "Sigue esto",
+    "NOW_CONTEXT_BACKLOG": "Mejor siguiente paso",
+    "GAP_DURATION": "{{minutes}} min libres",
+    "QUOTES": {
+      "0": {
+        "LINE_1": "No necesitas hacerlo todo.",
+        "LINE_2": "Solo un paso más."
+      },
+      "1": {
+        "LINE_1": "Empieza pequeño.",
+        "LINE_2": "Pero empieza."
+      },
+      "2": {
+        "LINE_1": "Un poco hoy.",
+        "LINE_2": "Mucho mañana."
+      },
+      "3": {
+        "LINE_1": "No perfecto.",
+        "LINE_2": "Solo hecho."
+      }
+    }
   },
   "AGENDA": {
     "TITLE": "Agenda",
@@ -233,6 +282,7 @@
     "CATEGORY_CUSTOM_NAME_LABEL": "Categoría personalizada",
     "VALIDATION_CATEGORY_NAME_REQUIRED": "Ingresa un nombre de categoría.",
     "VALIDATION_CATEGORY_NAME_DUPLICATE": "Esta categoría ya existe.",
+    "VALIDATION_CATEGORY_REQUIRED": "Selecciona una categoría.",
     "DEFAULT_CATEGORY_PERSONAL": "Personal",
     "DEFAULT_CATEGORY_WORK": "Trabajo",
     "DEFAULT_CATEGORY_HEALTH": "Salud",

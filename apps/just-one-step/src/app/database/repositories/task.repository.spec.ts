@@ -346,7 +346,7 @@ describe('TaskRepository', () => {
     expect(queryArgs).toEqual(['cat-1', '%Pago%', '%Pago%', 20, 5]);
   });
 
-  it('lists month day category summaries with distinct colors', async () => {
+  it('lists month day category summaries with distinct category ids', async () => {
     sqliteManagerMock.query.and.callFake(async (sql: string) => {
       if (sql.includes('FROM task_recurrence_weekdays')) {
         return [];
@@ -355,6 +355,7 @@ describe('TaskRepository', () => {
       return [
         {
           task_id: 'task-1',
+          category_id: 'cat-green',
           schedule_type: 'one_time',
           start_local_date: '2026-03-10',
           end_local_date: null,
@@ -362,10 +363,10 @@ describe('TaskRepository', () => {
           day_of_month: null,
           year_month: null,
           year_day: null,
-          category_color: '#22C55E',
         },
         {
           task_id: 'task-2',
+          category_id: 'cat-red',
           schedule_type: 'one_time',
           start_local_date: '2026-03-10',
           end_local_date: null,
@@ -373,10 +374,10 @@ describe('TaskRepository', () => {
           day_of_month: null,
           year_month: null,
           year_day: null,
-          category_color: '#EF4444',
         },
         {
           task_id: 'task-3',
+          category_id: 'cat-blue',
           schedule_type: 'one_time',
           start_local_date: '2026-03-10',
           end_local_date: null,
@@ -384,10 +385,10 @@ describe('TaskRepository', () => {
           day_of_month: null,
           year_month: null,
           year_day: null,
-          category_color: '#0EA5E9',
         },
         {
           task_id: 'task-4',
+          category_id: null,
           schedule_type: 'one_time',
           start_local_date: '2026-03-11',
           end_local_date: null,
@@ -395,7 +396,6 @@ describe('TaskRepository', () => {
           day_of_month: null,
           year_month: null,
           year_day: null,
-          category_color: null,
         },
       ];
     });
@@ -412,12 +412,12 @@ describe('TaskRepository', () => {
       {
         dateKey: '2026-03-10',
         taskCount: 3,
-        categoryColors: ['#22C55E', '#EF4444', '#0EA5E9'],
+        categoryIds: ['cat-green', 'cat-red', 'cat-blue'],
       },
       {
         dateKey: '2026-03-11',
         taskCount: 1,
-        categoryColors: [],
+        categoryIds: [],
       },
     ]);
   });
@@ -431,6 +431,7 @@ describe('TaskRepository', () => {
       return [
         {
           task_id: 'task-weekly',
+          category_id: 'cat-green',
           schedule_type: 'recurring',
           start_local_date: '2026-03-01',
           end_local_date: null,
@@ -438,7 +439,6 @@ describe('TaskRepository', () => {
           day_of_month: null,
           year_month: null,
           year_day: null,
-          category_color: '#22C55E',
         },
       ];
     });
@@ -452,22 +452,216 @@ describe('TaskRepository', () => {
       {
         dateKey: '2026-03-09',
         taskCount: 1,
-        categoryColors: ['#22C55E'],
+        categoryIds: ['cat-green'],
       },
     ]);
   });
 
-  it('returns empty month summaries in browser runtime', async () => {
+  it('builds month summaries in browser runtime without sqlite queries', async () => {
     (Capacitor.getPlatform as jasmine.Spy).and.returnValue('web');
+    const storageKey = 'just-one-step.tasks.browser.v1';
+    const previousValue = window.localStorage.getItem(storageKey);
+    const nowIso = '2026-03-01T08:00:00.000Z';
 
-    const summaries = await repository.listMonthDayCategorySummaries(
-      '2026-03-01T12:00:00.000Z',
-      '2026-03-31T12:00:00.000Z'
+    window.localStorage.setItem(
+      storageKey,
+      JSON.stringify([
+        {
+          id: 'browser-task-1',
+          title: 'Browser Task',
+          description: null,
+          trackingMode: 'check',
+          priority: 'B',
+          scheduleType: 'one_time',
+          durationMode: 'single',
+          startLocalDate: '2026-03-10',
+          endLocalDate: null,
+          localTime: null,
+          timezone: 'UTC',
+          oneTimeDate: '2026-03-10T12:00:00.000Z',
+          oneTimeTime: null,
+          estimatedDurationMin: null,
+          categoryId: 'cat-browser-a',
+          categoryName: 'A',
+          categoryColor: '#22C55E',
+          isActive: true,
+          isArchived: false,
+          deletedAt: null,
+          recurrenceEnabled: false,
+          notificationsEnabled: false,
+          createdAt: nowIso,
+          updatedAt: nowIso,
+        },
+        {
+          id: 'browser-task-2',
+          title: 'Browser Task 2',
+          description: null,
+          trackingMode: 'check',
+          priority: 'B',
+          scheduleType: 'one_time',
+          durationMode: 'single',
+          startLocalDate: '2026-03-10',
+          endLocalDate: null,
+          localTime: null,
+          timezone: 'UTC',
+          oneTimeDate: '2026-03-10T12:00:00.000Z',
+          oneTimeTime: null,
+          estimatedDurationMin: null,
+          categoryId: 'cat-browser-b',
+          categoryName: 'B',
+          categoryColor: '#F97316',
+          isActive: true,
+          isArchived: false,
+          deletedAt: null,
+          recurrenceEnabled: false,
+          notificationsEnabled: false,
+          createdAt: nowIso,
+          updatedAt: nowIso,
+        },
+      ])
     );
 
-    expect(summaries).toBeNull();
-    expect(sqliteManagerMock.query).not.toHaveBeenCalled();
-    (Capacitor.getPlatform as jasmine.Spy).and.returnValue('android');
+    try {
+      const summaries = await repository.listMonthDayCategorySummaries(
+        '2026-03-01T12:00:00.000Z',
+        '2026-03-31T12:00:00.000Z'
+      );
+
+      expect(summaries).toEqual([
+        {
+          dateKey: '2026-03-10',
+          taskCount: 2,
+          categoryIds: ['cat-browser-a', 'cat-browser-b'],
+        },
+      ]);
+      expect(sqliteManagerMock.query).not.toHaveBeenCalled();
+    } finally {
+      if (previousValue === null) {
+        window.localStorage.removeItem(storageKey);
+      } else {
+        window.localStorage.setItem(storageKey, previousValue);
+      }
+      (Capacitor.getPlatform as jasmine.Spy).and.returnValue('android');
+    }
+  });
+
+  it('returns day task aggregates in browser runtime without per-task fetch fan-out', async () => {
+    (Capacitor.getPlatform as jasmine.Spy).and.returnValue('web');
+    const storageKey = 'just-one-step.tasks.browser.v1';
+    const previousValue = window.localStorage.getItem(storageKey);
+    const nowIso = '2026-03-01T08:00:00.000Z';
+
+    window.localStorage.setItem(
+      storageKey,
+      JSON.stringify([
+        {
+          id: 'browser-day-task',
+          title: 'Browser Day Task',
+          description: null,
+          trackingMode: 'check',
+          priority: 'B',
+          scheduleType: 'one_time',
+          durationMode: 'single',
+          startLocalDate: '2026-03-11',
+          endLocalDate: null,
+          localTime: null,
+          timezone: 'UTC',
+          oneTimeDate: '2026-03-11T12:00:00.000Z',
+          oneTimeTime: null,
+          estimatedDurationMin: null,
+          categoryId: 'cat-browser-day',
+          categoryName: 'Day',
+          categoryColor: '#06B6D4',
+          isActive: true,
+          isArchived: false,
+          deletedAt: null,
+          recurrenceEnabled: false,
+          notificationsEnabled: false,
+          createdAt: nowIso,
+          updatedAt: nowIso,
+        },
+      ])
+    );
+
+    try {
+      const tasks = await repository.listTaskAggregatesForDate('2026-03-11');
+      expect(tasks?.map((task) => task.id)).toEqual(['browser-day-task']);
+      expect(sqliteManagerMock.query).not.toHaveBeenCalled();
+    } finally {
+      if (previousValue === null) {
+        window.localStorage.removeItem(storageKey);
+      } else {
+        window.localStorage.setItem(storageKey, previousValue);
+      }
+      (Capacitor.getPlatform as jasmine.Spy).and.returnValue('android');
+    }
+  });
+
+  it('resolves recurring browser tasks from recurrence dates when local date fields are missing', async () => {
+    (Capacitor.getPlatform as jasmine.Spy).and.returnValue('web');
+    const storageKey = 'just-one-step.tasks.browser.v1';
+    const previousValue = window.localStorage.getItem(storageKey);
+    const nowIso = '2026-03-01T08:00:00.000Z';
+
+    window.localStorage.setItem(
+      storageKey,
+      JSON.stringify([
+        {
+          id: 'browser-recurring-legacy',
+          title: 'Legacy recurring',
+          description: null,
+          trackingMode: 'check',
+          priority: 'B',
+          scheduleType: 'recurring',
+          durationMode: 'single',
+          startLocalDate: null,
+          endLocalDate: null,
+          localTime: null,
+          timezone: 'UTC',
+          oneTimeDate: null,
+          oneTimeTime: null,
+          estimatedDurationMin: null,
+          categoryId: 'cat-recurring-legacy',
+          categoryName: 'Legacy',
+          categoryColor: '#A855F7',
+          isActive: true,
+          isArchived: false,
+          deletedAt: null,
+          recurrenceEnabled: true,
+          notificationsEnabled: false,
+          createdAt: nowIso,
+          updatedAt: nowIso,
+          recurrence: {
+            pattern: 'daily',
+            hasTime: false,
+            sameTimeForSelectedDays: true,
+            commonTime: null,
+            startsToday: false,
+            startDate: '2026-03-01T00:00:00.000Z',
+            hasEndDate: false,
+            endDate: null,
+            dayOfMonth: null,
+            yearMonth: null,
+            yearDay: null,
+            timezone: 'UTC',
+            weekdays: [],
+          },
+        },
+      ])
+    );
+
+    try {
+      const tasks = await repository.listTaskAggregatesForDate('2026-03-15');
+      expect(tasks?.map((task) => task.id)).toEqual(['browser-recurring-legacy']);
+      expect(sqliteManagerMock.query).not.toHaveBeenCalled();
+    } finally {
+      if (previousValue === null) {
+        window.localStorage.removeItem(storageKey);
+      } else {
+        window.localStorage.setItem(storageKey, previousValue);
+      }
+      (Capacitor.getPlatform as jasmine.Spy).and.returnValue('android');
+    }
   });
 
   it('updates task and cleans incompatible recurrence branch when pattern changes', async () => {

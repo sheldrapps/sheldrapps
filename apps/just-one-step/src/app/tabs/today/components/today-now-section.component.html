@@ -1,0 +1,104 @@
+<section class="app-section today-section today-section--now-hero">
+  <div class="today-section__header">
+    <h2 class="today-section__title">{{ 'TODAY.SECTION_NOW' | translate }}</h2>
+    @if (nowCard && isRunning) {
+      <span class="today-running-chip">{{ 'TODAY.RUNNING' | translate }}</span>
+    }
+  </div>
+
+  @if (nowCard; as now) {
+    <div
+      class="app-accent-surface app-task-accent-surface today-now-card"
+      [style.--app-task-accent-border-color]="now.color"
+      [style.--app-task-accent-background-color]="withAlpha(now.color, 0.14)"
+      [style.--app-task-accent-shadow-color]="withAlpha(now.color, 0.2)"
+    >
+      <div class="app-accent-card-body today-now-card__body">
+        <div class="today-now-card__content">
+          <div class="today-now-card__title-row">
+            <h3 class="today-now-card__title">{{ now.title }}</h3>
+            <span
+              class="today-priority-badge"
+              [class.today-priority-badge--s]="now.task.priority === 'S'"
+              [class.today-priority-badge--a]="now.task.priority === 'A'"
+              [class.today-priority-badge--b]="now.task.priority === 'B'"
+              [class.today-priority-badge--c]="now.task.priority === 'C'"
+              [class.today-priority-badge--glow]="now.task.priority === 'S'"
+              [attr.aria-label]="now.priorityLabel"
+            >{{ now.task.priority }}</span>
+          </div>
+          <p class="today-now-card__meta">
+            <span>{{ now.categoryLabel }}</span>
+            <span class="today-dot-separator">·</span>
+            <span>{{ now.durationLabel }}</span>
+          </p>
+          @if (now.timeLabel) {
+            <sh-time-display [value]="now.timeLabel" size="sm" tone="muted"></sh-time-display>
+          }
+        </div>
+
+        @if (now.task.trackingMode === 'duration' && now.showPercentRing) {
+          <div
+            class="today-progress-ring"
+            [style.--today-progress-percent]="now.progressPercent + '%'"
+            [style.--today-progress-color]="now.color"
+          >
+            <div class="today-progress-ring__inner">
+              <span class="today-progress-ring__value">{{ now.progressPercent }}%</span>
+            </div>
+          </div>
+        }
+
+        @if (now.task.trackingMode === 'duration' && now.timerLabel) {
+          <p class="today-now-card__time app-digital-clock">{{ now.timerLabel }}</p>
+        }
+      </div>
+
+      <div class="today-now-actions">
+        @if (now.task.trackingMode === 'check') {
+          <ion-grid class="app-action-grid today-now-actions__grid">
+            <ion-row>
+              <ion-col size="6">
+                <ion-button expand="block" fill="outline" (click)="completeNowCheckTask.emit()">
+                  {{ 'COMMON.DONE' | translate }}
+                </ion-button>
+              </ion-col>
+              <ion-col size="6">
+                <ion-button expand="block" fill="outline" (click)="postponeNowCheckTask.emit()">
+                  {{ 'TODAY.NOW_CTA_POSTPONE' | translate }}
+                </ion-button>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        } @else {
+          <ion-button class="app-btn" expand="block" (click)="executeNow.emit()">
+            {{ 'TODAY.NOW_CTA_PLAY' | translate }}
+          </ion-button>
+          <ion-grid class="app-action-grid today-now-actions__grid">
+            <ion-row>
+              <ion-col size="6">
+                <ion-button expand="block" fill="outline" (click)="executeNowFiveMinutes.emit()">
+                  {{ 'TODAY.NOW_CTA_FIVE_MIN' | translate }}
+                </ion-button>
+              </ion-col>
+              <ion-col size="6">
+                <ion-button expand="block" fill="outline" (click)="reprogramNow.emit()">
+                  {{ 'TODAY.NOW_CTA_RESCHEDULE' | translate }}
+                </ion-button>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="today-free-card app-accent-surface">
+      <div class="app-accent-card-body today-free-card__body">
+        <h3 class="today-free-card__title">{{ 'AGENDA.EMPTY_HINT_FREE_TIME' | translate }}</h3>
+        @if (nowFreeRangeLabel) {
+          <sh-time-display [value]="nowFreeRangeLabel" size="sm" tone="muted"></sh-time-display>
+        }
+      </div>
+    </div>
+  }
+</section>

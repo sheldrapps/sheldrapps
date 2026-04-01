@@ -5,17 +5,58 @@
 </ion-header>
 
 <ion-content>
-  <div class="app-page">
-    <ion-card>
-      <ion-card-content>{{ 'TODAY.TASKS_SUMMARY' | translate }}</ion-card-content>
-    </ion-card>
+  <div class="app-page today-page">
+    @if (loadFailed && !isLoading) {
+      <ion-note color="danger" class="app-state-note today-state-note">
+        {{ 'COMMON.ERROR' | translate }}
+      </ion-note>
+      <ion-button fill="outline" size="small" (click)="reloadTodayData()">
+        <ion-icon name="refresh-outline" slot="start" aria-hidden="true"></ion-icon>
+        {{ 'TODAY.RELOAD' | translate }}
+      </ion-button>
+    }
 
-    <ion-card>
-      <ion-card-content>{{ 'TODAY.PROGRESS_SUMMARY' | translate }}</ion-card-content>
-    </ion-card>
+    @if (isLoading) {
+      <sh-loading-state variant="fullscreen" [label]="'COMMON.LOADING' | translate"></sh-loading-state>
+    }
 
-    <ion-card>
-      <ion-card-content>{{ 'TODAY.REFLECTION_PROMPT' | translate }}</ion-card-content>
-    </ion-card>
+    @if (!isLoading && !loadFailed) {
+      <div class="app-sections-stack today-sections">
+        <app-today-motivational-copy
+          [line1]="dailyIntentLine1"
+          [line2]="dailyIntentLine2"
+        ></app-today-motivational-copy>
+
+        <app-today-now-section
+          [nowCard]="nowCard"
+          [nowFreeRangeLabel]="nowFreeRangeLabel"
+          [isRunning]="!!(nowCard && isTaskRunning(nowCard.taskId))"
+          (executeNow)="executeNow()"
+          (executeNowFiveMinutes)="executeNowFiveMinutes()"
+          (reprogramNow)="reprogramNow()"
+          (completeNowCheckTask)="completeNowCheckTask()"
+          (postponeNowCheckTask)="postponeNowCheckTask()"
+        ></app-today-now-section>
+
+        <app-today-free-times-section
+          [upcomingFreeSpaces]="upcomingFreeSpaces"
+        ></app-today-free-times-section>
+
+        <app-today-tasks-section
+          [todayItems]="todayItems"
+          (taskSelected)="executeTodayTask($event)"
+        ></app-today-tasks-section>
+
+        @if (!hasNowCard && !hasTodayItems && !hasUpcomingFreeSpaces) {
+          <section class="app-section today-empty">
+            <p class="today-empty__title">{{ 'TODAY.EMPTY_TITLE' | translate }}</p>
+            <p class="today-empty__hint">{{ 'TODAY.EMPTY_HINT' | translate }}</p>
+            <ion-button class="app-btn" expand="block" (click)="createTask()">
+              {{ 'TASKS.NEW_TASK' | translate }}
+            </ion-button>
+          </section>
+        }
+      </div>
+    }
   </div>
 </ion-content>

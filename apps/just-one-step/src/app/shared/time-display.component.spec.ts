@@ -9,6 +9,9 @@ import { TimeDisplayComponent } from '@sheldrapps/ui-theme';
     <div id="t00"><sh-time-display value="00:00"></sh-time-display></div>
     <div id="t11"><sh-time-display value="11:11"></sh-time-display></div>
     <div id="t12"><sh-time-display value="12:15"></sh-time-display></div>
+    <div id="trange">
+      <sh-time-display value="12:15 - 12:30"></sh-time-display>
+    </div>
     <div id="t23"><sh-time-display value="23:59"></sh-time-display></div>
     <div id="alias"><app-time-display value="12:15"></app-time-display></div>
     <div id="invalid"><sh-time-display value="nope"></sh-time-display></div>
@@ -95,5 +98,32 @@ describe('TimeDisplayComponent', () => {
     const slots = root.querySelectorAll('.app-time-display__slot');
 
     expect(slots.length).toBe(5);
+  });
+
+  it("renders HH:mm - HH:mm as a range with range separator slot", async () => {
+    const fixture = await setup();
+    const root = getRoot(fixture, "trange");
+    const slots = Array.from(
+      root.querySelectorAll(".app-time-display__slot"),
+    ).map((node) => (node as HTMLElement).textContent ?? "");
+    const rangeSeparator = root.querySelector(
+      ".app-time-display__slot--range-separator",
+    );
+
+    expect(slots).toEqual([
+      "1",
+      "2",
+      ":",
+      "1",
+      "5",
+      " - ",
+      "1",
+      "2",
+      ":",
+      "3",
+      "0",
+    ]);
+    expect(slots.length).toBe(11);
+    expect(rangeSeparator).not.toBeNull();
   });
 });

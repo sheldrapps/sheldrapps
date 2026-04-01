@@ -534,6 +534,13 @@ export class CreateTaskPage {
     return this.customCategoryValidation.error;
   }
 
+  get showCategoryRequiredError(): boolean {
+    return (
+      !this.isCustomCategoryMode &&
+      this.hasControlError(this.form.controls.categoryId, 'required')
+    );
+  }
+
   get showCustomCategoryNameRequiredError(): boolean {
     if (!this.isCustomCategoryMode) {
       return false;
@@ -761,8 +768,11 @@ export class CreateTaskPage {
       const defaultNames = this.resolveDefaultCategoryNames();
       this.categories =
         await this.categoryRepository.ensureDefaultCategories(defaultNames);
+      this.ensureExistingCategorySelection();
+      this.applyCategoryValidation();
     } catch {
       this.categories = [];
+      this.applyCategoryValidation();
     }
   }
 
@@ -783,6 +793,15 @@ export class CreateTaskPage {
   }
 
   private registerDynamicValidation(): void {
+    this.form.controls.categoryMode.valueChanges
+      .pipe(
+        startWith(this.form.controls.categoryMode.value),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        this.applyCategoryValidation();
+      });
+
     this.form.controls.mode.valueChanges
       .pipe(
         startWith(this.form.controls.mode.value),
@@ -910,6 +929,7 @@ export class CreateTaskPage {
           if (wasEditing) {
             this.selectedWeekdayMask = 0;
             this.form.reset(this.initialFormValue, { emitEvent: false });
+            this.applyCategoryValidation();
             this.applyModeValidation(this.form.controls.mode.value);
             this.applyOneTimeStateRules();
             this.applyRecurrenceStateRules();
@@ -954,6 +974,7 @@ export class CreateTaskPage {
     this.customCategoryTouched = false;
     this.lastSelectedCategoryId = mapped.value.categoryId;
 
+    this.applyCategoryValidation();
     this.applyModeValidation(this.form.controls.mode.value);
     this.applyOneTimeStateRules();
     this.applyRecurrenceStateRules();
@@ -1067,6 +1088,43 @@ export class CreateTaskPage {
     };
 
     return { value, selectedWeekdayMask };
+  }
+
+  private applyCategoryValidation(): void {
+    const categoryIdControl = this.form.controls.categoryId;
+    const isCustomMode = this.form.controls.categoryMode.value === 'custom';
+    if (isCustomMode) {
+      categoryIdControl.clearValidators();
+      categoryIdControl.updateValueAndValidity({ emitEvent: false });
+      return;
+    }
+
+    this.ensureExistingCategorySelection();
+    categoryIdControl.setValidators([Validators.required]);
+    categoryIdControl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private ensureExistingCategorySelection(): void {
+    if (this.form.controls.categoryMode.value === 'custom') {
+      return;
+    }
+
+    if (this.categories.length === 0) {
+      this.form.controls.categoryId.setValue(null, { emitEvent: false });
+      return;
+    }
+
+    const currentCategoryId = this.form.controls.categoryId.value;
+    const hasCurrentCategory =
+      typeof currentCategoryId === 'string' &&
+      this.categories.some((category) => category.id === currentCategoryId);
+    if (hasCurrentCategory) {
+      return;
+    }
+
+    const fallbackCategoryId = this.categories[0].id;
+    this.form.controls.categoryId.setValue(fallbackCategoryId, { emitEvent: false });
+    this.lastSelectedCategoryId = fallbackCategoryId;
   }
 
   private applyModeValidation(mode: TaskMode): void {
@@ -2523,20 +2581,27 @@ export class CreateTaskPage {
       emitEvent: false,
     });
     this.lastSelectedCategoryId = state.lastSelectedCategoryId;
+    this.applyCategoryValidation();
   }
 
   private setExistingCategorySelection(categoryId: string | null): void {
+    const normalizedCategoryId =
+      typeof categoryId === 'string' && categoryId.trim().length > 0
+        ? categoryId
+        : this.categories[0]?.id ?? null;
     this.form.controls.categoryMode.setValue('existing', { emitEvent: false });
-    this.form.controls.categoryId.setValue(categoryId, { emitEvent: false });
+    this.form.controls.categoryId.setValue(normalizedCategoryId, { emitEvent: false });
     this.form.controls.customCategoryName.setValue('', { emitEvent: false });
-    this.lastSelectedCategoryId = categoryId;
+    this.lastSelectedCategoryId = normalizedCategoryId;
     this.customCategoryTouched = false;
+    this.applyCategoryValidation();
   }
 
   private setCustomCategorySelection(name: string): void {
     this.form.controls.categoryMode.setValue('custom', { emitEvent: false });
     this.form.controls.categoryId.setValue(null, { emitEvent: false });
     this.form.controls.customCategoryName.setValue(name, { emitEvent: false });
+    this.applyCategoryValidation();
   }
 
   private resolveCustomCategoryValidation(

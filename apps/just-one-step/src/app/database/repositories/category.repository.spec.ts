@@ -308,14 +308,15 @@ function runCategoryContractSuite(platform: 'android' | 'web'): void {
       const activeAfterDelete = await repository.listCategories({
         includeArchived: true,
       });
-      expect(activeAfterDelete.length).toBe(0);
+      expect(activeAfterDelete.length).toBe(1);
+      expect(activeAfterDelete[0].isArchived).toBeTrue();
 
       const withDeleted = await repository.listCategories({
         includeArchived: true,
         includeDeleted: true,
       });
       expect(withDeleted.length).toBe(1);
-      expect(withDeleted[0].deletedAt).not.toBeNull();
+      expect(withDeleted[0].deletedAt).toBeNull();
     });
 
     it('assigns sort order based on max(active) + 1', async () => {

@@ -514,24 +514,15 @@ export class CategoryRepository {
                 `,
                 [targetCategoryId, normalizedId]
               );
-            } else {
-              await tx.execute(
-                `
-                  UPDATE tasks
-                  SET category_id = NULL
-                  WHERE category_id = ?
-                `,
-                [normalizedId]
-              );
             }
 
             await tx.execute(
               `
                 UPDATE categories
-                SET deleted_at = ?, is_archived = 1, updated_at = ?
+                SET is_archived = 1, updated_at = ?
                 WHERE id = ? AND deleted_at IS NULL
               `,
-              [nowIso, nowIso, normalizedId]
+              [nowIso, normalizedId]
             );
           });
           return;
@@ -546,7 +537,7 @@ export class CategoryRepository {
           ...category,
           isArchived: true,
           updatedAt: nowIso,
-          deletedAt: nowIso,
+          deletedAt: null,
         });
       }
     );

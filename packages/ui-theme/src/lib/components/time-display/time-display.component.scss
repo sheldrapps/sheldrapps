@@ -7,22 +7,13 @@
   --time-display-font-size: 0.82rem;
   --time-display-digit-slot-width: 0.74em;
   --time-display-separator-slot-width: 0.54em;
+  --time-display-range-separator-slot-width: 1.4em;
   --time-display-slot-height: 1em;
-  --time-display-inline-size: calc(
-    (var(--time-display-digit-slot-width) * 4) + var(--time-display-separator-slot-width)
-  );
 
-  display: grid;
-  grid-template-columns:
-    var(--time-display-digit-slot-width)
-    var(--time-display-digit-slot-width)
-    var(--time-display-separator-slot-width)
-    var(--time-display-digit-slot-width)
-    var(--time-display-digit-slot-width);
-  justify-content: start;
+  display: inline-flex;
+  justify-content: flex-start;
   align-items: center;
-  min-width: var(--time-display-inline-size);
-  width: 100%;
+  min-width: 0;
   font-family: 'E1234', sans-serif;
   font-size: var(--time-display-font-size);
   line-height: 1;
@@ -79,13 +70,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  inline-size: 100%;
+  inline-size: var(--time-display-digit-slot-width);
   block-size: var(--time-display-slot-height);
 }
 
 .app-time-display__slot--separator,
 .app-time-display__separator {
+  inline-size: var(--time-display-separator-slot-width);
   transform: translateY(-0.02em);
+}
+
+.app-time-display__slot--range-separator {
+  inline-size: var(--time-display-range-separator-slot-width);
 }
 
 .app-time-display__slot--empty {

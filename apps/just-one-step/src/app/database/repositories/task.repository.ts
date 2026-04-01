@@ -129,7 +129,13 @@ export interface TaskListItem {
 export interface TaskMonthDayCategorySummary {
   dateKey: string;
   taskCount: number;
-  categoryColors: string[];
+  categoryIds: string[];
+}
+
+export interface TaskYearMonthCategorySummary {
+  monthKey: string;
+  taskCount: number;
+  categoryIds: string[];
 }
 
 export interface PersistedTaskAggregate extends TaskListItem {
@@ -227,6 +233,7 @@ interface TaskNotificationOffsetRow extends Record<string, unknown> {
 
 interface TaskMonthCalendarCandidateRow extends Record<string, unknown> {
   task_id: string;
+  category_id: string | null;
   schedule_type: string;
   start_local_date: string | null;
   end_local_date: string | null;
@@ -234,12 +241,33 @@ interface TaskMonthCalendarCandidateRow extends Record<string, unknown> {
   day_of_month: number | null;
   year_month: number | null;
   year_day: number | null;
-  category_color: string | null;
 }
 
 interface TaskRecurrenceWeekdaySummaryRow extends Record<string, unknown> {
   task_id: string;
   weekday_index: number;
+}
+
+interface TaskDateCategorySummaryAccumulator {
+  taskIds: Set<string>;
+  categoryIds: string[];
+  seenCategoryIds: Set<string>;
+}
+
+interface TaskRecurrenceBatchRow extends TaskRecurrenceRow {
+  task_id: string;
+}
+
+interface TaskRecurrenceWeekdayBatchRow extends TaskRecurrenceWeekdayRow {
+  task_id: string;
+}
+
+interface TaskNotificationBatchRow extends TaskNotificationRow {
+  task_id: string;
+}
+
+interface TaskNotificationOffsetBatchRow extends TaskNotificationOffsetRow {
+  task_id: string;
 }
 
 interface PersistedRecurrenceWeekday {
@@ -521,38 +549,175 @@ export class TaskRepository {
     monthEndIso: string
   ): Promise<TaskMonthDayCategorySummary[] | null> {
     if (!this.isNativeRuntime()) {
-      return null;
+      return this.listMonthDayCategorySummariesBrowser(monthStartIso, monthEndIso);
     }
 
     await this.ensureSqliteReady();
 
-    const rangeStart = this.toCalendarDateKey(monthStartIso);
-    const rangeEnd = this.toCalendarDateKey(monthEndIso);
-    if (!rangeStart || !rangeEnd) {
+    const normalizedRange = this.resolveSummaryRange(monthStartIso, monthEndIso);
+    if (!normalizedRange) {
       return [];
+    }
+
+    const summaryContext = await this.loadDateCategorySummaryContext(
+      normalizedRange.normalizedStart,
+      normalizedRange.normalizedEnd
+    );
+    if (summaryContext.candidates.length === 0) {
+      return [];
+    }
+
+    const dailySummary = this.buildDateCategorySummary(
+      normalizedRange.normalizedStart,
+      normalizedRange.normalizedEnd,
+      summaryContext.candidates,
+      summaryContext.recurrenceWeekdaysByTask
+    );
+
+    return [...dailySummary.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([dateKey, summary]) => ({
+        dateKey,
+        taskCount: summary.taskIds.size,
+        categoryIds: summary.categoryIds,
+      }));
+  }
+
+  async listYearMonthCategorySummaries(
+    yearStartIso: string,
+    yearEndIso: string
+  ): Promise<TaskYearMonthCategorySummary[] | null> {
+    if (!this.isNativeRuntime()) {
+      return this.listYearMonthCategorySummariesBrowser(yearStartIso, yearEndIso);
+    }
+
+    await this.ensureSqliteReady();
+
+    const normalizedRange = this.resolveSummaryRange(yearStartIso, yearEndIso);
+    if (!normalizedRange) {
+      return [];
+    }
+
+    const summaryContext = await this.loadDateCategorySummaryContext(
+      normalizedRange.normalizedStart,
+      normalizedRange.normalizedEnd
+    );
+    if (summaryContext.candidates.length === 0) {
+      return [];
+    }
+
+    const dailySummary = this.buildDateCategorySummary(
+      normalizedRange.normalizedStart,
+      normalizedRange.normalizedEnd,
+      summaryContext.candidates,
+      summaryContext.recurrenceWeekdaysByTask
+    );
+    const monthlySummary = this.aggregateDateSummaryByMonth(dailySummary);
+
+    return [...monthlySummary.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([monthKey, summary]) => ({
+        monthKey,
+        taskCount: summary.taskIds.size,
+        categoryIds: summary.categoryIds,
+      }));
+  }
+
+  async listTaskAggregatesForDate(
+    dateIso: string
+  ): Promise<PersistedTaskAggregate[] | null> {
+    if (!this.isNativeRuntime()) {
+      return this.listTaskAggregatesForDateBrowser(dateIso);
+    }
+
+    await this.ensureSqliteReady();
+
+    const dateKey = this.toCalendarDateKey(dateIso);
+    if (!dateKey) {
+      return [];
+    }
+
+    const summaryContext = await this.loadDateCategorySummaryContext(
+      dateKey,
+      dateKey
+    );
+    if (summaryContext.candidates.length === 0) {
+      return [];
+    }
+
+    const taskIds = new Set<string>();
+    for (const candidate of summaryContext.candidates) {
+      if (
+        !this.candidateOccursOnLocalDate(
+          candidate,
+          dateKey,
+          summaryContext.recurrenceWeekdaysByTask
+        )
+      ) {
+        continue;
+      }
+
+      const taskId = candidate.task_id.trim();
+      if (!taskId) {
+        continue;
+      }
+
+      taskIds.add(taskId);
+    }
+
+    if (taskIds.size === 0) {
+      return [];
+    }
+
+    const aggregates = await this.loadTaskAggregatesByIds([...taskIds]);
+
+    return aggregates.filter(
+      (task): task is PersistedTaskAggregate =>
+        !!task &&
+        task.isActive &&
+        !task.isArchived &&
+        task.deletedAt === null &&
+        (task.scheduleType === 'one_time' || !!task.recurrence)
+    );
+  }
+
+  private resolveSummaryRange(
+    rangeStartIso: string,
+    rangeEndIso: string
+  ): { normalizedStart: string; normalizedEnd: string } | null {
+    const rangeStart = this.toCalendarDateKey(rangeStartIso);
+    const rangeEnd = this.toCalendarDateKey(rangeEndIso);
+    if (!rangeStart || !rangeEnd) {
+      return null;
     }
 
     const [normalizedStart, normalizedEnd] =
       rangeStart <= rangeEnd ? [rangeStart, rangeEnd] : [rangeEnd, rangeStart];
+    return { normalizedStart, normalizedEnd };
+  }
 
+  private async loadDateCategorySummaryContext(
+    normalizedStart: string,
+    normalizedEnd: string
+  ): Promise<{
+    candidates: TaskMonthCalendarCandidateRow[];
+    recurrenceWeekdaysByTask: Map<string, Set<number>>;
+  }> {
     const candidates = await this.sqliteManager.query<TaskMonthCalendarCandidateRow>(
       `
-        SELECT
+        SELECT DISTINCT
           t.id AS task_id,
+          t.category_id AS category_id,
           t.schedule_type,
           t.start_local_date,
           t.end_local_date,
           tr.pattern,
           tr.day_of_month,
           tr.year_month,
-          tr.year_day,
-          c.color AS category_color
+          tr.year_day
         FROM tasks t
         LEFT JOIN task_recurrence tr
           ON tr.task_id = t.id
-        LEFT JOIN categories c
-          ON c.id = t.category_id
-          AND c.deleted_at IS NULL
         WHERE
           t.deleted_at IS NULL
           AND t.is_archived = 0
@@ -574,17 +739,19 @@ export class TaskRepository {
     );
 
     if (candidates.length === 0) {
-      return [];
+      return {
+        candidates: [],
+        recurrenceWeekdaysByTask: new Map<string, Set<number>>(),
+      };
     }
 
-    const weekdayRows = await this.sqliteManager.query<TaskRecurrenceWeekdaySummaryRow>(
-      `
-        SELECT
-          task_id,
-          weekday_index
-        FROM task_recurrence_weekdays
-      `
-    );
+    const candidateTaskIds = [...new Set(
+      candidates
+        .map((candidate) => candidate.task_id?.trim() ?? '')
+        .filter((taskId) => taskId.length > 0)
+    )];
+    const weekdayRows = await this.loadRecurrenceWeekdaySummaryRows(candidateTaskIds);
+
     const recurrenceWeekdaysByTask = new Map<string, Set<number>>();
     for (const row of weekdayRows) {
       const taskId = row.task_id?.trim();
@@ -604,10 +771,39 @@ export class TaskRepository {
       recurrenceWeekdaysByTask.get(taskId)?.add(weekday);
     }
 
-    const dailySummary = new Map<
-      string,
-      { taskIds: Set<string>; categoryColors: string[]; seenColors: Set<string> }
-    >();
+    return {
+      candidates,
+      recurrenceWeekdaysByTask,
+    };
+  }
+
+  private async loadRecurrenceWeekdaySummaryRows(
+    taskIds: readonly string[]
+  ): Promise<TaskRecurrenceWeekdaySummaryRow[]> {
+    if (taskIds.length === 0) {
+      return [];
+    }
+
+    const placeholders = taskIds.map(() => '?').join(', ');
+    return this.sqliteManager.query<TaskRecurrenceWeekdaySummaryRow>(
+      `
+        SELECT
+          task_id,
+          weekday_index
+        FROM task_recurrence_weekdays
+        WHERE task_id IN (${placeholders})
+      `,
+      [...taskIds]
+    );
+  }
+
+  private buildDateCategorySummary(
+    normalizedStart: string,
+    normalizedEnd: string,
+    candidates: readonly TaskMonthCalendarCandidateRow[],
+    recurrenceWeekdaysByTask: ReadonlyMap<string, ReadonlySet<number>>
+  ): Map<string, TaskDateCategorySummaryAccumulator> {
+    const dateSummary = new Map<string, TaskDateCategorySummaryAccumulator>();
 
     for (
       let day = normalizedStart;
@@ -625,39 +821,303 @@ export class TaskRepository {
           continue;
         }
 
-        if (!dailySummary.has(day)) {
-          dailySummary.set(day, {
-            taskIds: new Set<string>(),
-            categoryColors: [],
-            seenColors: new Set<string>(),
-          });
+        const currentSummary =
+          dateSummary.get(day) ?? this.createDateCategorySummaryAccumulator();
+
+        currentSummary.taskIds.add(candidate.task_id);
+        const categoryId = this.normalizeNullableText(candidate.category_id);
+        if (categoryId && !currentSummary.seenCategoryIds.has(categoryId)) {
+          currentSummary.seenCategoryIds.add(categoryId);
+          currentSummary.categoryIds.push(categoryId);
         }
 
-        const daySummary = dailySummary.get(day)!;
-        daySummary.taskIds.add(candidate.task_id);
-
-        const categoryColor = this.normalizeNullableText(candidate.category_color);
-        if (!categoryColor) {
-          continue;
-        }
-
-        const colorKey = categoryColor.toLowerCase();
-        if (daySummary.seenColors.has(colorKey)) {
-          continue;
-        }
-
-        daySummary.seenColors.add(colorKey);
-        daySummary.categoryColors.push(categoryColor);
+        dateSummary.set(day, currentSummary);
       }
     }
+
+    return dateSummary;
+  }
+
+  private aggregateDateSummaryByMonth(
+    dailySummary: ReadonlyMap<string, TaskDateCategorySummaryAccumulator>
+  ): Map<string, TaskDateCategorySummaryAccumulator> {
+    const monthlySummary = new Map<string, TaskDateCategorySummaryAccumulator>();
+
+    for (const [dateKey, summary] of dailySummary.entries()) {
+      const monthKey = dateKey.slice(0, 7);
+      const currentSummary =
+        monthlySummary.get(monthKey) ?? this.createDateCategorySummaryAccumulator();
+
+      for (const taskId of summary.taskIds) {
+        currentSummary.taskIds.add(taskId);
+      }
+
+      for (const categoryId of summary.categoryIds) {
+        if (currentSummary.seenCategoryIds.has(categoryId)) {
+          continue;
+        }
+
+        currentSummary.seenCategoryIds.add(categoryId);
+        currentSummary.categoryIds.push(categoryId);
+      }
+
+      monthlySummary.set(monthKey, currentSummary);
+    }
+
+    return monthlySummary;
+  }
+
+  private createDateCategorySummaryAccumulator(): TaskDateCategorySummaryAccumulator {
+    return {
+      taskIds: new Set<string>(),
+      categoryIds: [],
+      seenCategoryIds: new Set<string>(),
+    };
+  }
+
+  private async listMonthDayCategorySummariesBrowser(
+    monthStartIso: string,
+    monthEndIso: string
+  ): Promise<TaskMonthDayCategorySummary[]> {
+    const normalizedRange = this.resolveSummaryRange(monthStartIso, monthEndIso);
+    if (!normalizedRange) {
+      return [];
+    }
+
+    const summaryContext = this.loadDateCategorySummaryContextFromBrowserTasks(
+      normalizedRange.normalizedStart,
+      normalizedRange.normalizedEnd
+    );
+    if (summaryContext.candidates.length === 0) {
+      return [];
+    }
+
+    const dailySummary = this.buildDateCategorySummary(
+      normalizedRange.normalizedStart,
+      normalizedRange.normalizedEnd,
+      summaryContext.candidates,
+      summaryContext.recurrenceWeekdaysByTask
+    );
 
     return [...dailySummary.entries()]
       .sort(([left], [right]) => left.localeCompare(right))
       .map(([dateKey, summary]) => ({
         dateKey,
         taskCount: summary.taskIds.size,
-        categoryColors: summary.categoryColors,
+        categoryIds: summary.categoryIds,
       }));
+  }
+
+  private async listYearMonthCategorySummariesBrowser(
+    yearStartIso: string,
+    yearEndIso: string
+  ): Promise<TaskYearMonthCategorySummary[]> {
+    const normalizedRange = this.resolveSummaryRange(yearStartIso, yearEndIso);
+    if (!normalizedRange) {
+      return [];
+    }
+
+    const summaryContext = this.loadDateCategorySummaryContextFromBrowserTasks(
+      normalizedRange.normalizedStart,
+      normalizedRange.normalizedEnd
+    );
+    if (summaryContext.candidates.length === 0) {
+      return [];
+    }
+
+    const dailySummary = this.buildDateCategorySummary(
+      normalizedRange.normalizedStart,
+      normalizedRange.normalizedEnd,
+      summaryContext.candidates,
+      summaryContext.recurrenceWeekdaysByTask
+    );
+    const monthlySummary = this.aggregateDateSummaryByMonth(dailySummary);
+
+    return [...monthlySummary.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([monthKey, summary]) => ({
+        monthKey,
+        taskCount: summary.taskIds.size,
+        categoryIds: summary.categoryIds,
+      }));
+  }
+
+  private async listTaskAggregatesForDateBrowser(
+    dateIso: string
+  ): Promise<PersistedTaskAggregate[]> {
+    const dateKey = this.toCalendarDateKey(dateIso);
+    if (!dateKey) {
+      return [];
+    }
+
+    const summaryContext = this.loadDateCategorySummaryContextFromBrowserTasks(
+      dateKey,
+      dateKey
+    );
+    if (summaryContext.candidates.length === 0) {
+      return [];
+    }
+
+    const taskIds = new Set<string>();
+    for (const candidate of summaryContext.candidates) {
+      if (
+        !this.candidateOccursOnLocalDate(
+          candidate,
+          dateKey,
+          summaryContext.recurrenceWeekdaysByTask
+        )
+      ) {
+        continue;
+      }
+
+      const taskId = candidate.task_id.trim();
+      if (!taskId) {
+        continue;
+      }
+
+      taskIds.add(taskId);
+    }
+
+    if (taskIds.size === 0) {
+      return [];
+    }
+
+    return this.readBrowserTasks().filter(
+      (task) =>
+        taskIds.has(task.id) &&
+        task.isActive &&
+        !task.isArchived &&
+        task.deletedAt === null &&
+        (task.scheduleType === 'one_time' || !!task.recurrence)
+    );
+  }
+
+  private loadDateCategorySummaryContextFromBrowserTasks(
+    normalizedStart: string,
+    normalizedEnd: string
+  ): {
+    candidates: TaskMonthCalendarCandidateRow[];
+    recurrenceWeekdaysByTask: Map<string, Set<number>>;
+  } {
+    const tasks = this.readBrowserTasks().filter(
+      (task) =>
+        task.isActive &&
+        !task.isArchived &&
+        task.deletedAt === null &&
+        (task.scheduleType === 'one_time' || !!task.recurrence)
+    );
+
+    const candidates: TaskMonthCalendarCandidateRow[] = [];
+    const recurrenceWeekdaysByTask = new Map<string, Set<number>>();
+
+    for (const task of tasks) {
+      const candidate = this.toSummaryCandidateFromAggregate(task);
+      if (!candidate) {
+        continue;
+      }
+
+      const scheduleType = this.normalizeScheduleType(
+        candidate.schedule_type,
+        candidate.pattern !== null
+      );
+      if (scheduleType === 'one_time') {
+        const startLocalDate = this.normalizeLocalDateKey(candidate.start_local_date);
+        if (
+          !startLocalDate ||
+          isBefore(startLocalDate, normalizedStart) ||
+          isAfter(startLocalDate, normalizedEnd)
+        ) {
+          continue;
+        }
+      } else {
+        const startLocalDate = this.normalizeLocalDateKey(candidate.start_local_date);
+        if (!startLocalDate || isAfter(startLocalDate, normalizedEnd)) {
+          continue;
+        }
+
+        const endLocalDate = this.normalizeLocalDateKey(candidate.end_local_date);
+        if (endLocalDate && isBefore(endLocalDate, normalizedStart)) {
+          continue;
+        }
+      }
+
+      candidates.push(candidate);
+      if (
+        candidate.pattern !== 'selected_weekdays' ||
+        !task.recurrence ||
+        !Array.isArray(task.recurrence.weekdays)
+      ) {
+        continue;
+      }
+
+      const taskId = candidate.task_id.trim();
+      if (!taskId) {
+        continue;
+      }
+
+      const weekdays = new Set<number>();
+      for (const weekday of task.recurrence.weekdays) {
+        const normalizedWeekday = this.sanitizeBoundedInteger(
+          weekday.dayOfWeek,
+          1,
+          7
+        );
+        if (!normalizedWeekday) {
+          continue;
+        }
+
+        weekdays.add(normalizedWeekday);
+      }
+
+      if (weekdays.size > 0) {
+        recurrenceWeekdaysByTask.set(taskId, weekdays);
+      }
+    }
+
+    return {
+      candidates,
+      recurrenceWeekdaysByTask,
+    };
+  }
+
+  private toSummaryCandidateFromAggregate(
+    task: PersistedTaskAggregate
+  ): TaskMonthCalendarCandidateRow | null {
+    const taskId = task.id.trim();
+    if (!taskId) {
+      return null;
+    }
+
+    const timezone = this.resolveTimezoneOrDevice(task.timezone);
+    const scheduleType = this.normalizeScheduleType(task.scheduleType, task.recurrence);
+    const recurrence = task.recurrence;
+    const startLocalDate =
+      this.normalizeLocalDateKey(task.startLocalDate) ??
+      this.resolveLocalDateKeyFromIso(recurrence?.startDate, timezone) ??
+      this.resolveLocalDateKeyFromIso(task.oneTimeDate, timezone);
+    if (!startLocalDate) {
+      return null;
+    }
+
+    const pattern =
+      scheduleType === 'recurring' && recurrence
+        ? this.normalizeSimplePattern(recurrence.pattern)
+        : null;
+    const endLocalDate =
+      this.normalizeLocalDateKey(task.endLocalDate) ??
+      this.resolveLocalDateKeyFromIso(recurrence?.endDate, timezone);
+
+    return {
+      task_id: taskId,
+      category_id: this.normalizeNullableText(task.categoryId),
+      schedule_type: scheduleType,
+      start_local_date: startLocalDate,
+      end_local_date: endLocalDate,
+      pattern,
+      day_of_month: recurrence?.dayOfMonth ?? null,
+      year_month: recurrence?.yearMonth ?? null,
+      year_day: recurrence?.yearDay ?? null,
+    };
   }
 
   async deleteTask(taskId: string): Promise<void> {
@@ -915,6 +1375,176 @@ export class TaskRepository {
       `,
       [isArchived ? 1 : 0, nowIso, normalizedTaskId]
     );
+  }
+
+  private async loadTaskAggregatesByIds(
+    taskIds: readonly string[]
+  ): Promise<PersistedTaskAggregate[]> {
+    const normalizedTaskIds = [...new Set(
+      taskIds
+        .map((taskId) => taskId.trim())
+        .filter((taskId) => taskId.length > 0)
+    )];
+    if (normalizedTaskIds.length === 0) {
+      return [];
+    }
+
+    const placeholders = normalizedTaskIds.map(() => '?').join(', ');
+    const taskRows = await this.sqliteManager.query<TaskRow>(
+      `
+        SELECT
+          t.id,
+          t.title,
+          t.description,
+          t.category_id,
+          c.name AS category_name,
+          c.color AS category_color,
+          t.tracking_mode,
+          t.priority,
+          t.schedule_type,
+          t.duration_mode,
+          t.start_local_date,
+          t.end_local_date,
+          t.local_time,
+          t.timezone,
+          t.one_time_date,
+          t.one_time_time,
+          t.estimated_duration_min,
+          t.is_active,
+          t.is_archived,
+          t.deleted_at,
+          t.is_recurrence_enabled,
+          t.is_notifications_enabled,
+          t.created_at,
+          t.updated_at
+        FROM tasks t
+        LEFT JOIN categories c
+          ON c.id = t.category_id
+          AND c.deleted_at IS NULL
+        WHERE t.id IN (${placeholders}) AND t.deleted_at IS NULL
+        ORDER BY t.updated_at DESC, t.created_at DESC
+      `,
+      [...normalizedTaskIds]
+    );
+    if (taskRows.length === 0) {
+      return [];
+    }
+
+    const loadedTaskIds = taskRows.map((row) => row.id);
+    const loadedPlaceholders = loadedTaskIds.map(() => '?').join(', ');
+
+    const recurrenceRows = await this.sqliteManager.query<TaskRecurrenceBatchRow>(
+      `
+        SELECT
+          task_id,
+          pattern,
+          has_time,
+          same_time_for_selected_days,
+          common_time,
+          common_duration_min,
+          starts_today,
+          start_date,
+          has_end_date,
+          end_date,
+          day_of_month,
+          year_month,
+          year_day,
+          timezone
+        FROM task_recurrence
+        WHERE task_id IN (${loadedPlaceholders})
+      `,
+      [...loadedTaskIds]
+    );
+
+    const recurrenceWeekdayRows = await this.sqliteManager.query<TaskRecurrenceWeekdayBatchRow>(
+      `
+        SELECT
+          task_id,
+          weekday_index,
+          time_value,
+          duration_min
+        FROM task_recurrence_weekdays
+        WHERE task_id IN (${loadedPlaceholders})
+        ORDER BY task_id ASC, weekday_index ASC
+      `,
+      [...loadedTaskIds]
+    );
+
+    const notificationRows = await this.sqliteManager.query<TaskNotificationBatchRow>(
+      `
+        SELECT
+          task_id,
+          notification_type,
+          trigger_mode,
+          sound_name,
+          tts_text,
+          repeat_if_missed
+        FROM task_notifications
+        WHERE task_id IN (${loadedPlaceholders})
+      `,
+      [...loadedTaskIds]
+    );
+
+    const notificationOffsetRows =
+      await this.sqliteManager.query<TaskNotificationOffsetBatchRow>(
+        `
+          SELECT
+            task_id,
+            offset_minutes
+          FROM task_notification_offsets
+          WHERE task_id IN (${loadedPlaceholders})
+          ORDER BY task_id ASC, sort_order ASC, offset_minutes ASC
+        `,
+        [...loadedTaskIds]
+      );
+
+    const recurrenceByTask = this.groupRowsByTaskId(recurrenceRows);
+    const recurrenceWeekdaysByTask = this.groupRowsByTaskId(recurrenceWeekdayRows);
+    const notificationByTask = this.groupRowsByTaskId(notificationRows);
+    const notificationOffsetsByTask = this.groupRowsByTaskId(notificationOffsetRows);
+
+    return taskRows.map((taskRow) => {
+      const recurrence = this.buildCanonicalRecurrence(
+        recurrenceByTask.get(taskRow.id)?.[0],
+        recurrenceWeekdaysByTask.get(taskRow.id) ?? []
+      );
+      const notification = this.buildCanonicalNotification(
+        notificationByTask.get(taskRow.id)?.[0],
+        notificationOffsetsByTask.get(taskRow.id) ?? []
+      );
+
+      return {
+        ...this.mapTaskListItem(taskRow),
+        recurrenceEnabled:
+          this.normalizeScheduleType(taskRow.schedule_type, recurrence !== undefined) ===
+            'recurring' && recurrence !== undefined,
+        notificationsEnabled: notification !== undefined,
+        recurrence,
+        notification,
+      };
+    });
+  }
+
+  private groupRowsByTaskId<T extends { task_id: string }>(
+    rows: readonly T[]
+  ): Map<string, T[]> {
+    const grouped = new Map<string, T[]>();
+    for (const row of rows) {
+      const taskId = row.task_id?.trim();
+      if (!taskId) {
+        continue;
+      }
+
+      const existingRows = grouped.get(taskId);
+      if (existingRows) {
+        existingRows.push(row);
+        continue;
+      }
+
+      grouped.set(taskId, [row]);
+    }
+
+    return grouped;
   }
 
   private async createTaskBrowser(input: CreateTaskInput): Promise<string> {
