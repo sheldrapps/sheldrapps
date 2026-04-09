@@ -10,13 +10,20 @@ function buildAggregate(
   overrides: Partial<PersistedTaskAggregate>
 ): PersistedTaskAggregate {
   const nowIso = '2026-03-29T12:00:00.000Z';
+  const scheduleType = overrides.scheduleType ?? 'one_time';
+  const recurrence =
+    scheduleType === 'recurring' ? overrides.recurrence ?? undefined : undefined;
+  const recurrenceType =
+    overrides.recurrenceType ??
+    (scheduleType === 'recurring' ? recurrence?.pattern ?? 'daily' : 'none');
   return {
     id: overrides.id ?? 'task-1',
     title: overrides.title ?? 'Task',
     description: overrides.description ?? null,
     trackingMode: overrides.trackingMode ?? 'check',
     priority: overrides.priority ?? 'B',
-    scheduleType: overrides.scheduleType ?? 'one_time',
+    scheduleType,
+    recurrenceType,
     durationMode: overrides.durationMode ?? 'single',
     oneTimeDate: overrides.oneTimeDate ?? '2026-03-29T12:00:00.000Z',
     oneTimeTime: overrides.oneTimeTime ?? '09:00',
@@ -34,7 +41,7 @@ function buildAggregate(
     notificationsEnabled: overrides.notificationsEnabled ?? false,
     createdAt: overrides.createdAt ?? nowIso,
     updatedAt: overrides.updatedAt ?? nowIso,
-    recurrence: overrides.recurrence,
+    recurrence,
     notification: overrides.notification,
   };
 }

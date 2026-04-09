@@ -32,6 +32,7 @@ export type SimpleRecurrenceType =
   | 'selected_weekdays'
   | 'monthly'
   | 'yearly';
+export type RecurrenceType = 'none' | SimpleRecurrenceType;
 export type NotificationType =
   | 'tts'
   | 'sound'
@@ -79,6 +80,7 @@ export interface CreateTaskInput {
   description?: string | null;
   mode: TaskMode;
   priority?: TaskPriority;
+  recurrenceType?: RecurrenceType;
   scheduleType?: TaskScheduleType;
   durationMode?: TaskDurationMode;
   oneTimeDate?: string | null;
@@ -139,6 +141,7 @@ export interface TaskYearMonthCategorySummary {
 }
 
 export interface PersistedTaskAggregate extends TaskListItem {
+  recurrenceType: RecurrenceType;
   recurrence?: {
     pattern: SimpleRecurrenceType;
     hasTime: boolean;
@@ -1101,7 +1104,7 @@ export class TaskRepository {
 
     const pattern =
       scheduleType === 'recurring' && recurrence
-        ? this.normalizeSimplePattern(recurrence.pattern)
+        ? this.parseSimplePattern(task.recurrenceType) ?? recurrence.pattern
         : null;
     const endLocalDate =
       this.normalizeLocalDateKey(task.endLocalDate) ??
@@ -1297,12 +1300,16 @@ export class TaskRepository {
       notificationRows[0],
       notificationOffsetRows
     );
+    const recurrenceEnabled =
+      this.normalizeScheduleType(taskRow.schedule_type, recurrence !== undefined) ===
+        'recurring' && recurrence !== undefined;
+    const recurrenceType: RecurrenceType =
+      recurrenceEnabled && recurrence ? recurrence.pattern : 'none';
 
     return {
       ...this.mapTaskListItem(taskRow),
-      recurrenceEnabled:
-        this.normalizeScheduleType(taskRow.schedule_type, recurrence !== undefined) ===
-          'recurring' && recurrence !== undefined,
+      recurrenceType,
+      recurrenceEnabled,
       notificationsEnabled: notification !== undefined,
       recurrence,
       notification,
@@ -1512,12 +1519,16 @@ export class TaskRepository {
         notificationByTask.get(taskRow.id)?.[0],
         notificationOffsetsByTask.get(taskRow.id) ?? []
       );
+      const recurrenceEnabled =
+        this.normalizeScheduleType(taskRow.schedule_type, recurrence !== undefined) ===
+          'recurring' && recurrence !== undefined;
+      const recurrenceType: RecurrenceType =
+        recurrenceEnabled && recurrence ? recurrence.pattern : 'none';
 
       return {
         ...this.mapTaskListItem(taskRow),
-        recurrenceEnabled:
-          this.normalizeScheduleType(taskRow.schedule_type, recurrence !== undefined) ===
-            'recurring' && recurrence !== undefined,
+        recurrenceType,
+        recurrenceEnabled,
         notificationsEnabled: notification !== undefined,
         recurrence,
         notification,
@@ -1760,6 +1771,9 @@ export class TaskRepository {
     const notificationPersisted = input.notification
       ? this.resolveNotificationPersistenceState(input.notification)
       : undefined;
+    const recurrenceType: RecurrenceType = recurrencePersisted
+      ? recurrencePersisted.pattern
+      : 'none';
 
     return {
       id: taskId,
@@ -1783,6 +1797,7 @@ export class TaskRepository {
       isActive: true,
       isArchived: false,
       deletedAt: null,
+      recurrenceType,
       recurrenceEnabled:
         this.normalizeScheduleType(input.scheduleType, input.recurrence) ===
           'recurring' && recurrencePersisted !== undefined,
@@ -1858,26 +1873,12 @@ export class TaskRepository {
         .filter((value): value is PersistedTaskAggregate => {
           return typeof value === 'object' && value !== null;
         })
-        .map((task) => ({
-          ...task,
-          priority: this.normalizeTaskPriority(task.priority),
-          scheduleType: this.normalizeScheduleType(task.scheduleType, task.recurrence),
-          durationMode: this.normalizeDurationMode(task.durationMode),
-          startLocalDate:
-            this.normalizeLocalDateKey(task.startLocalDate) ??
-            this.resolveLocalDateKeyFromIso(task.oneTimeDate, this.resolveTimezoneOrDevice(task.timezone)),
-          endLocalDate: this.normalizeLocalDateKey(task.endLocalDate),
-          localTime: this.normalizeTimeValue(`${task.localTime ?? ''}`),
-          timezone: this.resolveTimezoneOrDevice(task.timezone),
-          oneTimeDate: this.resolveIsoDate(task.oneTimeDate) ?? null,
-          oneTimeTime: this.normalizeTimeValue(`${task.oneTimeTime ?? ''}`),
-          categoryName: this.normalizeNullableText(task.categoryName),
-          categoryColor: this.normalizeNullableText(task.categoryColor),
-          deletedAt: this.normalizeNullableText(task.deletedAt),
-          description: this.normalizeNullableText(task.description),
-          recurrence: task.recurrence
+        .map((task) => {
+          const scheduleType = this.normalizeScheduleType(task.scheduleType, task.recurrence);
+          const recurrence = task.recurrence
             ? {
                 ...task.recurrence,
+                pattern: this.normalizeSimplePattern(task.recurrence.pattern),
                 commonDurationMin: this.sanitizeBoundedInteger(
                   task.recurrence.commonDurationMin,
                   1,
@@ -1892,8 +1893,39 @@ export class TaskRepository {
                   ),
                 })),
               }
-            : undefined,
-        }));
+            : undefined;
+          const recurrenceType: RecurrenceType =
+            scheduleType === 'recurring' && recurrence
+              ? recurrence.pattern
+              : 'none';
+
+          return {
+            ...task,
+            recurrenceType,
+            priority: this.normalizeTaskPriority(task.priority),
+            scheduleType,
+            durationMode: this.normalizeDurationMode(task.durationMode),
+            startLocalDate:
+              this.normalizeLocalDateKey(task.startLocalDate) ??
+              this.resolveLocalDateKeyFromIso(
+                task.oneTimeDate,
+                this.resolveTimezoneOrDevice(task.timezone)
+              ),
+            endLocalDate: this.normalizeLocalDateKey(task.endLocalDate),
+            localTime: this.normalizeTimeValue(`${task.localTime ?? ''}`),
+            timezone: this.resolveTimezoneOrDevice(task.timezone),
+            oneTimeDate: this.resolveIsoDate(task.oneTimeDate) ?? null,
+            oneTimeTime: this.normalizeTimeValue(`${task.oneTimeTime ?? ''}`),
+            categoryName: this.normalizeNullableText(task.categoryName),
+            categoryColor: this.normalizeNullableText(task.categoryColor),
+            deletedAt: this.normalizeNullableText(task.deletedAt),
+            description: this.normalizeNullableText(task.description),
+            recurrenceEnabled:
+              scheduleType === 'recurring' && recurrence !== undefined,
+            notificationsEnabled: task.notification !== undefined,
+            recurrence,
+          };
+        });
     } catch {
       return [];
     }
@@ -1971,8 +2003,14 @@ export class TaskRepository {
 
     const mode = this.normalizeTaskMode(input.mode);
     const priority = this.normalizeTaskPriority(input.priority);
-    const scheduleType = this.normalizeScheduleType(input.scheduleType, input.recurrence);
-    const durationMode = this.normalizeDurationMode(input.durationMode);
+    const recurrenceType = this.resolveInputRecurrenceType(input);
+    const scheduleType: TaskScheduleType =
+      recurrenceType === 'none' ? 'one_time' : 'recurring';
+    const requestedDurationMode = this.normalizeDurationMode(input.durationMode);
+    const durationMode: TaskDurationMode =
+      mode === 'duration' && scheduleType === 'recurring'
+        ? requestedDurationMode
+        : 'single';
     const timezone = this.resolveTimezoneOrDevice(input.recurrence?.timezone ?? null);
     const estimatedDurationMin =
       mode === 'duration'
@@ -1988,9 +2026,19 @@ export class TaskRepository {
         ? this.normalizeTimeValue(input.oneTimeTime ?? '')
         : null;
     const recurrence =
-      scheduleType === 'recurring'
-        ? this.sanitizeRecurrenceInput(input.recurrence)
-        : undefined;
+      recurrenceType === 'none'
+        ? undefined
+        : this.sanitizeRecurrenceInput(input.recurrence, recurrenceType)
+    ;
+    if (recurrenceType !== 'none' && !recurrence) {
+      throw new Error('Recurring tasks require recurrence settings.');
+    }
+    const resolvedRecurrenceType: RecurrenceType = recurrence
+      ? this.resolveRecurrenceTypeFromRecurrenceInput(recurrence)
+      : 'none';
+    if (resolvedRecurrenceType !== recurrenceType) {
+      throw new Error('Recurrence type does not match recurrence settings.');
+    }
     const hasTimedOccurrence =
       (scheduleType === 'one_time' && oneTimeTime !== null) ||
       (recurrence?.hasTime ?? false);
@@ -2000,6 +2048,7 @@ export class TaskRepository {
       description: this.normalizeNullableText(input.description),
       mode,
       priority,
+      recurrenceType: resolvedRecurrenceType,
       scheduleType,
       durationMode,
       oneTimeDate,
@@ -2011,43 +2060,55 @@ export class TaskRepository {
     };
   }
 
-  private enforceForwardOnlyRecurrenceOnUpdate(input: CreateTaskInput): CreateTaskInput {
-    if (input.scheduleType === 'one_time' || !input.recurrence) {
-      return input;
+  private resolveInputRecurrenceType(input: CreateTaskInput): RecurrenceType {
+    const explicit = this.parseRecurrenceType(input.recurrenceType);
+    if (explicit) {
+      return explicit;
     }
 
-    const timezone = this.resolveTimezoneOrDevice(input.recurrence.timezone);
-    const todayLocalDate = formatCalendarDate(getToday(timezone));
-    const todayLegacyIso =
-      this.localDateToLegacyIso(todayLocalDate) ?? new Date().toISOString();
-    const normalizedEndDate = this.resolveLegacyIsoForCalendarInput(
-      input.recurrence.endDate ?? null,
-      timezone
-    );
-    const normalizedEndDateKey = this.resolveLocalDateKeyFromIso(
-      normalizedEndDate,
-      timezone
-    );
-    const effectiveEndDate =
-      input.recurrence.hasEndDate && normalizedEndDateKey
-        ? isBefore(normalizedEndDateKey, todayLocalDate)
-          ? todayLegacyIso
-          : normalizedEndDate
-        : normalizedEndDate;
+    const scheduleType = this.normalizeScheduleType(input.scheduleType, input.recurrence);
+    if (scheduleType === 'one_time') {
+      return 'none';
+    }
 
-    return {
-      ...input,
-      recurrence: {
-        ...input.recurrence,
-        startsToday: true,
-        startDate: todayLegacyIso,
-        endDate: effectiveEndDate,
-      },
-    };
+    if (!input.recurrence) {
+      return 'daily';
+    }
+
+    return this.resolveRecurrenceTypeFromRecurrenceInput(input.recurrence);
+  }
+
+  private resolveRecurrenceTypeFromRecurrenceInput(
+    recurrence: CreateTaskRecurrenceInput
+  ): SimpleRecurrenceType {
+    if (recurrence.mode === 'weekly_schedule') {
+      if (
+        recurrence.simpleType !== 'daily' &&
+        recurrence.simpleType !== 'selected_weekdays'
+      ) {
+        throw new Error(
+          'Weekly schedule recurrence requires simpleType daily or selected_weekdays.'
+        );
+      }
+
+      return recurrence.simpleType;
+    }
+
+    if (recurrence.mode !== 'simple') {
+      throw new Error('Unsupported recurrence mode.');
+    }
+
+    const simpleType = this.parseSimplePattern(recurrence.simpleType);
+    if (!simpleType) {
+      throw new Error('Simple recurrence requires a valid recurrence type.');
+    }
+
+    return simpleType;
   }
 
   private sanitizeRecurrenceInput(
-    recurrence?: CreateTaskRecurrenceInput
+    recurrence: CreateTaskRecurrenceInput | undefined,
+    expectedType: SimpleRecurrenceType
   ): CreateTaskRecurrenceInput | undefined {
     if (!recurrence) {
       return undefined;
@@ -2072,13 +2133,28 @@ export class TaskRepository {
       (recurrence.hasEndDate ?? normalizedEndDate !== null) &&
       normalizedEndDate !== null;
     if (recurrence.mode === 'weekly_schedule') {
+      if (expectedType !== 'daily' && expectedType !== 'selected_weekdays') {
+        throw new Error('Weekly schedule recurrence only supports daily or selected_weekdays.');
+      }
+      if (recurrence.simpleType !== expectedType) {
+        throw new Error('Weekly schedule recurrence type does not match expected type.');
+      }
       const weeklyDayTimes = this.normalizeWeeklyDayTimes(recurrence.weeklyDayTimes ?? []);
       if (weeklyDayTimes.length === 0) {
         throw new Error('Selected weekdays recurrence requires at least one day.');
       }
+      if (
+        expectedType === 'daily' &&
+        !this.hasAllWeekdaysSelected(
+          weeklyDayTimes.map((weekday) => weekday.dayOfWeek)
+        )
+      ) {
+        throw new Error('Daily recurrence with per-day time requires all weekdays.');
+      }
 
       return {
         mode: 'weekly_schedule',
+        simpleType: expectedType,
         weeklyDayTimes: weeklyDayTimes.map((entry) => ({
           dayOfWeek: entry.dayOfWeek,
           time: entry.timeValue ?? '',
@@ -2099,7 +2175,16 @@ export class TaskRepository {
       };
     }
 
-    const simpleType = this.normalizeSimplePattern(recurrence.simpleType);
+    if (recurrence.mode !== 'simple') {
+      throw new Error('Unsupported recurrence mode.');
+    }
+    const simpleType = this.parseSimplePattern(recurrence.simpleType);
+    if (!simpleType) {
+      throw new Error('Simple recurrence requires a valid recurrence type.');
+    }
+    if (simpleType !== expectedType) {
+      throw new Error('Simple recurrence type does not match expected type.');
+    }
     const normalizedTime = this.normalizeTimeValue(recurrence.timeOfDay ?? '');
     const hasTime = recurrence.hasTime === true && normalizedTime !== null;
     const sameTimeForSelectedDays =
@@ -2153,6 +2238,40 @@ export class TaskRepository {
       startDate,
       endDate: hasEndDate ? normalizedEndDate : null,
       timezone,
+    };
+  }
+  private enforceForwardOnlyRecurrenceOnUpdate(input: CreateTaskInput): CreateTaskInput {
+    if (input.scheduleType === 'one_time' || !input.recurrence) {
+      return input;
+    }
+
+    const timezone = this.resolveTimezoneOrDevice(input.recurrence.timezone);
+    const todayLocalDate = formatCalendarDate(getToday(timezone));
+    const todayLegacyIso =
+      this.localDateToLegacyIso(todayLocalDate) ?? new Date().toISOString();
+    const normalizedEndDate = this.resolveLegacyIsoForCalendarInput(
+      input.recurrence.endDate ?? null,
+      timezone
+    );
+    const normalizedEndDateKey = this.resolveLocalDateKeyFromIso(
+      normalizedEndDate,
+      timezone
+    );
+    const effectiveEndDate =
+      input.recurrence.hasEndDate && normalizedEndDateKey
+        ? isBefore(normalizedEndDateKey, todayLocalDate)
+          ? todayLegacyIso
+          : normalizedEndDate
+        : normalizedEndDate;
+
+    return {
+      ...input,
+      recurrence: {
+        ...input.recurrence,
+        startsToday: true,
+        startDate: todayLegacyIso,
+        endDate: effectiveEndDate,
+      },
     };
   }
 
@@ -2453,7 +2572,7 @@ export class TaskRepository {
       ]
     );
 
-    if (persisted.pattern !== 'selected_weekdays') {
+    if (persisted.weekdays.length === 0) {
       return;
     }
 
@@ -2516,9 +2635,17 @@ export class TaskRepository {
       if (weekdays.length === 0) {
         throw new Error('Selected weekdays recurrence requires at least one day.');
       }
+      const pattern: SimpleRecurrenceType =
+        recurrence.simpleType === 'daily' ? 'daily' : 'selected_weekdays';
+      if (
+        pattern === 'daily' &&
+        !this.hasAllWeekdaysSelected(weekdays.map((weekday) => weekday.dayOfWeek))
+      ) {
+        throw new Error('Daily recurrence with per-day time requires all weekdays.');
+      }
 
       return {
-        pattern: 'selected_weekdays',
+        pattern,
         hasTime: true,
         sameTimeForSelectedDays: false,
         commonTime: null,
@@ -2671,7 +2798,7 @@ export class TaskRepository {
     let pattern = this.normalizeSimplePattern(recurrenceRow.pattern);
     const hasTime = this.toBooleanFlag(recurrenceRow.has_time);
     let sameTimeForSelectedDays =
-      pattern === 'selected_weekdays'
+      (pattern === 'selected_weekdays' || pattern === 'daily')
         ? this.toBooleanFlag(recurrenceRow.same_time_for_selected_days)
         : true;
     let commonTime = hasTime
@@ -2692,7 +2819,7 @@ export class TaskRepository {
     const endDate = hasEndDate ? rawEndDate : null;
 
     let weekdays = this.normalizePersistedWeekdays(weekdayRows);
-    if (pattern !== 'selected_weekdays') {
+    if (pattern !== 'selected_weekdays' && pattern !== 'daily') {
       weekdays = [];
       sameTimeForSelectedDays = true;
     }
@@ -2703,15 +2830,27 @@ export class TaskRepository {
     if (!hasTime) {
       commonTime = null;
       sameTimeForSelectedDays = true;
-      weekdays = weekdays.map((weekday) => ({ ...weekday, timeValue: null }));
+      weekdays =
+        pattern === 'selected_weekdays'
+          ? weekdays.map((weekday) => ({ ...weekday, timeValue: null }))
+          : [];
     } else if (sameTimeForSelectedDays) {
-      weekdays = weekdays.map((weekday) => ({ ...weekday, timeValue: null }));
+      weekdays =
+        pattern === 'selected_weekdays'
+          ? weekdays.map((weekday) => ({ ...weekday, timeValue: null }))
+          : [];
     } else {
       commonTime = null;
       weekdays = weekdays.map((weekday) => ({
         ...weekday,
         timeValue: this.normalizeTimeValue(weekday.timeValue ?? ''),
       }));
+      if (
+        pattern === 'daily' &&
+        !this.hasAllWeekdaysSelected(weekdays.map((weekday) => weekday.dayOfWeek))
+      ) {
+        pattern = 'selected_weekdays';
+      }
     }
 
     return {
@@ -2815,6 +2954,17 @@ export class TaskRepository {
     }
 
     return [...byDay.values()].sort((a, b) => a.dayOfWeek - b.dayOfWeek);
+  }
+
+  private hasAllWeekdaysSelected(daysOfWeek: Iterable<number>): boolean {
+    const selectedDays = new Set<number>();
+    for (const dayOfWeek of daysOfWeek) {
+      if (Number.isInteger(dayOfWeek) && dayOfWeek >= 1 && dayOfWeek <= 7) {
+        selectedDays.add(dayOfWeek);
+      }
+    }
+
+    return selectedDays.size === 7;
   }
 
   private resolveNotificationOffsets(
@@ -2950,6 +3100,27 @@ export class TaskRepository {
     }
 
     return 'daily';
+  }
+
+  private parseSimplePattern(value: unknown): SimpleRecurrenceType | null {
+    if (
+      value === 'daily' ||
+      value === 'selected_weekdays' ||
+      value === 'monthly' ||
+      value === 'yearly'
+    ) {
+      return value;
+    }
+
+    return null;
+  }
+
+  private parseRecurrenceType(value: unknown): RecurrenceType | null {
+    if (value === 'none') {
+      return 'none';
+    }
+
+    return this.parseSimplePattern(value);
   }
 
   private normalizeTriggerMode(value: unknown): NotificationTriggerMode {
@@ -3105,7 +3276,7 @@ export class TaskRepository {
         const taskId = candidate.task_id.trim();
         const selectedWeekdays = recurrenceWeekdaysByTask.get(taskId);
         if (!selectedWeekdays || selectedWeekdays.size === 0) {
-          return false;
+          return true;
         }
 
         return selectedWeekdays.has(getWeekday(dateKey, 'UTC'));

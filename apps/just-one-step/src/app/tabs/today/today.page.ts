@@ -693,7 +693,7 @@ export class TodayPage {
       }
 
       const task = tasksById.get(windowRecord.taskId);
-      if (!task || task.scheduleType === "recurring") {
+      if (!task) {
         continue;
       }
 
@@ -807,7 +807,10 @@ export class TodayPage {
 
     const weekday = getWeekday(this.currentDateKey, "UTC");
     let resolvedTime: string | null = null;
-    if (recurrence.pattern === "selected_weekdays") {
+    if (
+      recurrence.pattern === "selected_weekdays" ||
+      (recurrence.pattern === "daily" && !recurrence.sameTimeForSelectedDays)
+    ) {
       const weekdayTime = recurrence.weekdays.find(
         (weekdayConfig) => weekdayConfig.dayOfWeek === weekday,
       )?.timeValue;
@@ -833,7 +836,10 @@ export class TodayPage {
     }
 
     const recurrence = task.recurrenceEnabled ? task.recurrence : undefined;
-    if (recurrence?.pattern === "selected_weekdays") {
+    if (
+      recurrence?.pattern === "selected_weekdays" ||
+      (recurrence?.pattern === "daily" && !recurrence.sameTimeForSelectedDays)
+    ) {
       const weekday = getWeekday(this.currentDateKey, "UTC");
       const weekdayDuration = recurrence.weekdays.find(
         (entry) => entry.dayOfWeek === weekday,
@@ -1059,6 +1065,7 @@ export class TodayPage {
       description: task.description,
       mode: task.trackingMode,
       priority: task.priority,
+      recurrenceType: task.recurrenceType,
       scheduleType: task.scheduleType,
       durationMode: task.durationMode,
       oneTimeDate: task.oneTimeDate,
@@ -1079,12 +1086,14 @@ export class TodayPage {
 
     const recurrence = task.recurrence;
     if (
-      recurrence.pattern === "selected_weekdays" &&
+      (recurrence.pattern === "selected_weekdays" ||
+        recurrence.pattern === "daily") &&
       recurrence.hasTime &&
       !recurrence.sameTimeForSelectedDays
     ) {
       return {
         mode: "weekly_schedule",
+        simpleType: recurrence.pattern,
         weeklyDayTimes: recurrence.weekdays.map((entry) => ({
           dayOfWeek: entry.dayOfWeek,
           time: entry.timeValue ?? recurrence.commonTime ?? "00:00",

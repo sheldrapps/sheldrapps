@@ -422,7 +422,7 @@
             <ion-toggle formControlName="recurrenceHasTime"></ion-toggle>
           </ion-item>
 
-          @if (recurrenceHasTime && recurrencePattern === 'selected_weekdays') {
+          @if (recurrenceHasTime && recurrenceSupportsPerDayTime) {
             <ion-item>
               <ion-label class="form-label">
                 {{ 'CREATE_TASK.RECURRENCE_SAME_TIME_ALL_DAYS' | translate }}
@@ -433,7 +433,7 @@
 
           @if (
             recurrenceHasTime &&
-            (recurrencePattern !== 'selected_weekdays' || recurrenceSameTimeForSelectedDays)
+            (!recurrenceSupportsPerDayTime || recurrenceSameTimeForSelectedDays)
           ) {
             <div class="recurrence-time-field">
               <div class="form-label">
@@ -458,8 +458,8 @@
           }
 
           @if (
-            recurrencePattern === 'selected_weekdays' &&
             recurrenceHasTime &&
+            recurrenceSupportsPerDayTime &&
             !recurrenceSameTimeForSelectedDays
           ) {
             @if (isDurationTrackingEnabled) {
@@ -475,7 +475,7 @@
             }
 
             <div class="recurrence-day-times">
-              @for (day of selectedWeekdays; track day.bit) {
+              @for (day of recurrenceTimeDays; track day.bit) {
                 <div class="recurrence-day-time-item">
                   <div class="form-label">
                     {{ day.labelKey | translate }}

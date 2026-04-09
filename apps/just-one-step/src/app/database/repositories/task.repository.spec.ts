@@ -157,6 +157,7 @@ describe('TaskRepository', () => {
       mode: 'check',
       recurrence: {
         mode: 'weekly_schedule',
+        simpleType: 'selected_weekdays',
         weeklyDayTimes: [
           { dayOfWeek: 1, time: '09:00' },
           { dayOfWeek: 5, time: '18:30' },
@@ -174,6 +175,40 @@ describe('TaskRepository', () => {
     expect((weekdayCalls[1][1] as unknown[])[3]).toBe('18:30');
   });
 
+  it('persists daily per-day recurrence as daily pattern with weekday times', async () => {
+    await repository.createTask({
+      title: 'Task Daily Per-Day',
+      mode: 'check',
+      recurrence: {
+        mode: 'weekly_schedule',
+        simpleType: 'daily',
+        weeklyDayTimes: [
+          { dayOfWeek: 1, time: '08:00' },
+          { dayOfWeek: 2, time: '08:05' },
+          { dayOfWeek: 3, time: '08:10' },
+          { dayOfWeek: 4, time: '08:15' },
+          { dayOfWeek: 5, time: '08:20' },
+          { dayOfWeek: 6, time: '08:25' },
+          { dayOfWeek: 7, time: '08:30' },
+        ],
+        startDate: '2026-03-20T09:00:00.000Z',
+      },
+    });
+
+    const recurrenceInsert = executeSpy.calls
+      .allArgs()
+      .find((args) => String(args[0]).includes('INSERT INTO task_recurrence'));
+    expect(recurrenceInsert).toBeDefined();
+    const recurrenceParams = recurrenceInsert?.[1] as unknown[];
+    expect(recurrenceParams[1]).toBe('daily');
+
+    const weekdayCalls = executeSpy
+      .calls
+      .allArgs()
+      .filter((args) => String(args[0]).includes('INSERT INTO task_recurrence_weekdays'));
+    expect(weekdayCalls.length).toBe(7);
+  });
+
   it('persists per-weekday duration for weekly schedules', async () => {
     await repository.createTask({
       title: 'Task Weekdays Duration',
@@ -181,6 +216,7 @@ describe('TaskRepository', () => {
       estimatedDurationMin: 25,
       recurrence: {
         mode: 'weekly_schedule',
+        simpleType: 'selected_weekdays',
         weeklyDayTimes: [
           { dayOfWeek: 1, time: '07:00', durationMin: 20 },
           { dayOfWeek: 3, time: '18:00', durationMin: 45 },
@@ -305,6 +341,82 @@ describe('TaskRepository', () => {
     expect(aggregate?.recurrence?.sameTimeForSelectedDays).toBeTrue();
     expect(aggregate?.recurrence?.weekdays[0].dayOfWeek).toBe(1);
     expect(aggregate?.recurrence?.weekdays[0].timeValue).toBeNull();
+  });
+
+  it('maps daily recurrence with per-day times from persisted weekdays', async () => {
+    sqliteManagerMock.query.and.callFake(async (sql: string) => {
+      if (sql.includes('FROM tasks')) {
+        return [
+          {
+            id: 'task-daily-per-day',
+            title: 'Task Daily Flag',
+            description: null,
+            category_id: null,
+            category_name: null,
+            category_color: null,
+            priority: 'B',
+            tracking_mode: 'check',
+            schedule_type: 'recurring',
+            duration_mode: 'single',
+            estimated_duration_min: null,
+            is_active: 1,
+            is_archived: 0,
+            deleted_at: null,
+            is_recurrence_enabled: 1,
+            is_notifications_enabled: 0,
+            created_at: '2026-03-10T09:00:00.000Z',
+            updated_at: '2026-03-12T09:00:00.000Z',
+            start_local_date: '2026-03-22',
+            end_local_date: null,
+            local_time: null,
+            timezone: 'UTC',
+            one_time_date: null,
+            one_time_time: null,
+          },
+        ];
+      }
+
+      if (sql.includes('FROM task_recurrence\n')) {
+        return [
+          {
+            pattern: 'daily',
+            has_time: 1,
+            same_time_for_selected_days: 0,
+            common_time: null,
+            common_duration_min: null,
+            starts_today: 1,
+            start_date: '2026-03-22T00:00:00.000Z',
+            has_end_date: 0,
+            end_date: null,
+            day_of_month: null,
+            year_month: null,
+            year_day: null,
+            timezone: 'UTC',
+          },
+        ];
+      }
+
+      if (sql.includes('FROM task_recurrence_weekdays')) {
+        return [
+          { weekday_index: 1, time_value: '08:00', duration_min: null },
+          { weekday_index: 2, time_value: '08:05', duration_min: null },
+          { weekday_index: 3, time_value: '08:10', duration_min: null },
+          { weekday_index: 4, time_value: '08:15', duration_min: null },
+          { weekday_index: 5, time_value: '08:20', duration_min: null },
+          { weekday_index: 6, time_value: '08:25', duration_min: null },
+          { weekday_index: 7, time_value: '08:30', duration_min: null },
+        ];
+      }
+
+      return [];
+    });
+
+    const aggregate = await repository.getTaskById('task-daily-per-day');
+
+    expect(aggregate).not.toBeNull();
+    expect(aggregate?.recurrence?.pattern).toBe('daily');
+    expect(aggregate?.recurrence?.sameTimeForSelectedDays).toBeFalse();
+    expect(aggregate?.recurrence?.weekdays.length).toBe(7);
   });
 
   it('lists tasks as summary rows', async () => {

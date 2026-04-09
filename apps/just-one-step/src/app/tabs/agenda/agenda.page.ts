@@ -2732,7 +2732,7 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
           visualHeightPx: segment.visualHeightPx,
           title: segment.displayTitle,
           hint: segment.displayHint,
-          timeLabel: segment.displayTimeLabel,
+          timeLabel: segment.type === 'empty' ? null : segment.displayTimeLabel,
           durationLabel: segment.displayDurationLabel,
           accentColor: segment.displayAccentColor,
           accentBackgroundColor: segment.task?.accentBackgroundColor ?? null,
@@ -3176,7 +3176,10 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
     let source: AgendaResolvedTime['source'] = 'none';
     const weekday = getWeekday(this.resolveTaskDateKey(date), 'UTC');
 
-    if (recurrence.pattern === 'selected_weekdays') {
+    if (
+      recurrence.pattern === 'selected_weekdays' ||
+      (recurrence.pattern === 'daily' && !recurrence.sameTimeForSelectedDays)
+    ) {
       const weekdayConfig = recurrence.weekdays.find(
         (item) => item.dayOfWeek === weekday
       );
@@ -3214,7 +3217,10 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
     }
 
     const recurrence = task.recurrenceEnabled ? task.recurrence : undefined;
-    if (recurrence?.pattern === 'selected_weekdays') {
+    if (
+      recurrence?.pattern === 'selected_weekdays' ||
+      (recurrence?.pattern === 'daily' && !recurrence.sameTimeForSelectedDays)
+    ) {
       const dayOfWeek = getWeekday(this.resolveTaskDateKey(date), 'UTC');
       const weekday = recurrence.weekdays.find((entry) => entry.dayOfWeek === dayOfWeek);
       if (weekday?.durationMin && weekday.durationMin > 0) {
@@ -3477,6 +3483,7 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
       trackingMode: 'duration',
       priority: 'B',
       scheduleType: 'recurring',
+      recurrenceType: 'selected_weekdays',
       durationMode: 'single',
       oneTimeDate: null,
       oneTimeTime: null,

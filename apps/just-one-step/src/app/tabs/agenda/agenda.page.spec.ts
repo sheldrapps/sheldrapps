@@ -43,6 +43,9 @@ function buildTask(overrides: Partial<PersistedTaskAggregate>): PersistedTaskAgg
     trackingMode: overrides.trackingMode ?? 'check',
     priority: overrides.priority ?? 'B',
     scheduleType,
+    recurrenceType:
+      overrides.recurrenceType ??
+      (scheduleType === 'recurring' ? recurrenceValue?.pattern ?? 'daily' : 'none'),
     durationMode: overrides.durationMode ?? 'single',
     startLocalDate: overrides.startLocalDate ?? null,
     endLocalDate: overrides.endLocalDate ?? null,
@@ -1178,7 +1181,7 @@ describe('AgendaPage day verification', () => {
     expect(eventGrid?.querySelector('.agenda-event-body')).toBe(eventBody);
     expect(eventBody?.classList.contains('agenda-task-block')).toBeTrue();
     const eventStyle = eventBody?.getAttribute('style') ?? '';
-    expect(eventStyle.includes('--app-accent-border-color')).toBeTrue();
+    expect(eventStyle.includes('--app-task-accent-border-color')).toBeTrue();
     const borderLeftWidth = Number.parseFloat(
       window.getComputedStyle(eventBody as HTMLElement).borderLeftWidth || '0'
     );
@@ -1847,7 +1850,7 @@ describe('Digital Clock recipe regression in Agenda', () => {
     expect(labels.length).toBeGreaterThan(0);
   });
 
-  it('renders every agenda time label as five fixed slots', () => {
+  it('renders agenda time labels as fixed slots for simple and range formats', () => {
     const task = buildTask({
       id: 'task-five-slots',
       title: 'Five slots',
@@ -1880,7 +1883,11 @@ describe('Digital Clock recipe regression in Agenda', () => {
 
     for (const label of labels) {
       const slots = label.querySelectorAll('.app-time-display__slot');
-      expect(slots.length).toBe(5);
+      const rangeSeparator = label.querySelector(
+        '.app-time-display__slot--range-separator'
+      );
+      const expectedSlots = rangeSeparator ? 11 : 5;
+      expect(slots.length).toBe(expectedSlots);
     }
   });
 

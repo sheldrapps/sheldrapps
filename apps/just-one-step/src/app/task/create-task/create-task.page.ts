@@ -61,6 +61,7 @@ import {
   NotificationTriggerMode,
   NotificationType,
   PersistedTaskAggregate,
+  RecurrenceType,
   TaskPriority,
   TaskDurationMode,
   TaskMode,
@@ -427,6 +428,14 @@ export class CreateTaskPage {
     return this.form.controls.recurrenceSameTimeForSelectedDays.value;
   }
 
+  get recurrenceSupportsPerDayTime(): boolean {
+    return this.isPatternWithPerDayTime(this.recurrencePattern);
+  }
+
+  get recurrenceTimeDays(): readonly WeekdayOption[] {
+    return this.resolvePerDayTimeOptions(this.recurrencePattern);
+  }
+
   get recurrenceDurationMode(): TaskDurationMode {
     return this.form.controls.recurrenceDurationMode.value;
   }
@@ -435,7 +444,9 @@ export class CreateTaskPage {
     return (
       this.isDurationTrackingEnabled &&
       this.recurrenceEnabled &&
-      this.recurrencePattern === 'selected_weekdays' &&
+      this.recurrenceSupportsPerDayTime &&
+      this.recurrenceHasTime &&
+      !this.recurrenceSameTimeForSelectedDays &&
       this.recurrenceDurationMode === 'per_occurrence'
     );
   }
@@ -504,8 +515,7 @@ export class CreateTaskPage {
     if (
       !this.recurrenceEnabled ||
       !this.recurrenceHasTime ||
-      (this.recurrencePattern === 'selected_weekdays' &&
-        !this.recurrenceSameTimeForSelectedDays)
+      (this.recurrenceSupportsPerDayTime && !this.recurrenceSameTimeForSelectedDays)
     ) {
       return false;
     }
@@ -985,9 +995,15 @@ export class CreateTaskPage {
     value: ReturnType<CreateTaskPage['form']['getRawValue']>;
     selectedWeekdayMask: number;
   } {
-    const recurrence = task.recurrenceEnabled ? task.recurrence : undefined;
+    const recurrence = task.recurrenceType !== 'none' ? task.recurrence : undefined;
     const notification = task.notificationsEnabled ? task.notification : undefined;
-    const isRecurring = task.scheduleType !== 'one_time' && Boolean(task.recurrenceEnabled && recurrence);
+    const isRecurring =
+      task.recurrenceType !== 'none' ||
+      (task.scheduleType !== 'one_time' && Boolean(task.recurrenceEnabled && recurrence));
+    const recurrencePattern = this.resolvePatternFromPersistedRecurrence(
+      recurrence,
+      task.recurrenceType
+    );
 
     let selectedWeekdayMask = 0;
     const perDayTimes: Record<WeekdayTimeControlName, string> = {
@@ -1009,7 +1025,7 @@ export class CreateTaskPage {
       recurrenceDayDurationSun: null,
     };
 
-    if (recurrence?.pattern === 'selected_weekdays') {
+    if (recurrence && this.isPatternWithPerDayTime(recurrencePattern)) {
       for (const day of recurrence.weekdays) {
         selectedWeekdayMask |= day.weekdayBit;
         const weekdayOption = this.weekdays.find((item) => item.dayOfWeek === day.dayOfWeek);
@@ -1040,14 +1056,14 @@ export class CreateTaskPage {
       oneTimeHasTime: Boolean(task.oneTimeTime),
       oneTimeTime: task.oneTimeTime ?? '',
       recurrenceEnabled: isRecurring,
-      recurrencePattern: recurrence?.pattern ?? 'daily',
+      recurrencePattern,
       recurrenceHasTime: Boolean(recurrence?.hasTime),
       recurrenceSameTimeForSelectedDays:
-        recurrence?.pattern === 'selected_weekdays'
+        recurrence && this.isPatternWithPerDayTime(recurrencePattern)
           ? recurrence.sameTimeForSelectedDays
           : true,
       recurrenceDurationMode:
-        recurrence?.pattern === 'selected_weekdays' &&
+        this.isPatternWithPerDayTime(recurrencePattern) &&
         recurrence?.weekdays.some(
           (weekday) => typeof weekday.durationMin === 'number' && weekday.durationMin > 0
         )
@@ -1056,7 +1072,7 @@ export class CreateTaskPage {
       recurrenceTime:
         recurrence?.hasTime && recurrence.sameTimeForSelectedDays
           ? recurrence.commonTime ?? ''
-          : recurrence?.hasTime && recurrence?.pattern !== 'selected_weekdays'
+          : recurrence?.hasTime && !this.isPatternWithPerDayTime(recurrencePattern)
             ? recurrence.commonTime ?? ''
             : '',
       recurrenceStartsToday: recurrence?.startsToday ?? true,
@@ -1357,7 +1373,7 @@ export class CreateTaskPage {
   private applyRecurrencePatternRules(pattern: RecurrencePattern): void {
     const controls = this.form.controls;
 
-    if (pattern !== 'selected_weekdays') {
+    if (!this.isPatternWithPerDayTime(pattern)) {
       this.selectedWeekdayMask = 0;
       this.clearAllWeekdayTimes();
       controls.recurrenceDurationMode.setValue('single', { emitEvent: false });
@@ -1436,9 +1452,13 @@ export class CreateTaskPage {
       const usesPerDayDuration =
         this.isDurationTrackingEnabled &&
         controls.recurrenceDurationMode.value === 'per_occurrence' &&
-        controls.recurrencePattern.value === 'selected_weekdays' &&
+        this.isPatternWithPerDayTime(controls.recurrencePattern.value) &&
         controls.recurrenceHasTime.value &&
         !controls.recurrenceSameTimeForSelectedDays.value;
+      const activePerDayTimeOptions = this.resolvePerDayTimeOptions(
+        controls.recurrencePattern.value
+      );
+      const activeWeekdayBits = new Set(activePerDayTimeOptions.map((day) => day.bit));
 
       if (!usesPerDayDuration) {
         resetPerDayDurations();
@@ -1447,7 +1467,7 @@ export class CreateTaskPage {
 
       for (const day of this.weekdays) {
         const durationControl = controls[day.durationControlName];
-        if (this.isWeekdaySelected(day.bit)) {
+        if (activeWeekdayBits.has(day.bit)) {
           this.setControlEnabled(durationControl, true);
         } else {
           durationControl.setValue(null, { emitEvent: false });
@@ -1479,7 +1499,7 @@ export class CreateTaskPage {
       return;
     }
 
-    if (controls.recurrencePattern.value !== 'selected_weekdays') {
+    if (!this.isPatternWithPerDayTime(controls.recurrencePattern.value)) {
       controls.recurrenceSameTimeForSelectedDays.setValue(true, {
         emitEvent: false,
       });
@@ -1523,9 +1543,13 @@ export class CreateTaskPage {
     controls.recurrenceTime.setValue('', { emitEvent: false });
     this.markControlsAsAutoReset(controls.recurrenceTime);
     this.setControlEnabled(controls.recurrenceTime, false);
+    const activePerDayTimeOptions = this.resolvePerDayTimeOptions(
+      controls.recurrencePattern.value
+    );
+    const activeWeekdayBits = new Set(activePerDayTimeOptions.map((day) => day.bit));
     for (const day of this.weekdays) {
       const dayControl = controls[day.timeControlName];
-      if (this.isWeekdaySelected(day.bit)) {
+      if (activeWeekdayBits.has(day.bit)) {
         this.setControlEnabled(dayControl, true);
       } else {
         dayControl.setValue('', { emitEvent: false });
@@ -1564,10 +1588,10 @@ export class CreateTaskPage {
 
     if (controls.recurrenceHasTime.value) {
       if (
-        controls.recurrencePattern.value === 'selected_weekdays' &&
+        this.isPatternWithPerDayTime(controls.recurrencePattern.value) &&
         !controls.recurrenceSameTimeForSelectedDays.value
       ) {
-        for (const day of this.selectedWeekdays) {
+        for (const day of this.resolvePerDayTimeOptions(controls.recurrencePattern.value)) {
           controls[day.timeControlName].setValidators([Validators.required]);
         }
       } else {
@@ -1577,12 +1601,12 @@ export class CreateTaskPage {
 
     if (
       this.isDurationTrackingEnabled &&
-      controls.recurrencePattern.value === 'selected_weekdays' &&
+      this.isPatternWithPerDayTime(controls.recurrencePattern.value) &&
       controls.recurrenceHasTime.value &&
       !controls.recurrenceSameTimeForSelectedDays.value &&
       controls.recurrenceDurationMode.value === 'per_occurrence'
     ) {
-      for (const day of this.selectedWeekdays) {
+      for (const day of this.resolvePerDayTimeOptions(controls.recurrencePattern.value)) {
         controls[day.durationControlName].setValidators([
           Validators.required,
           Validators.min(1),
@@ -1690,9 +1714,11 @@ export class CreateTaskPage {
     const values = this.form.getRawValue();
     const categoryId =
       values.categoryMode === 'existing' ? values.categoryId || null : null;
-    const scheduleType: TaskScheduleType = values.recurrenceEnabled
-      ? 'recurring'
-      : 'one_time';
+    const recurrenceType: RecurrenceType = values.recurrenceEnabled
+      ? values.recurrencePattern
+      : 'none';
+    const scheduleType: TaskScheduleType =
+      recurrenceType === 'none' ? 'one_time' : 'recurring';
     const hasTimedSchedule = values.recurrenceEnabled
       ? values.recurrenceHasTime
       : values.oneTimeHasTime;
@@ -1702,6 +1728,7 @@ export class CreateTaskPage {
       description: values.description.trim() || null,
       mode: values.mode,
       priority: values.priority,
+      recurrenceType,
       scheduleType,
       durationMode:
         values.mode === 'duration' && values.recurrenceEnabled
@@ -1745,13 +1772,14 @@ export class CreateTaskPage {
     const endDate = values.recurrenceHasEndDate ? values.recurrenceEndDate : null;
 
     if (
-      values.recurrencePattern === 'selected_weekdays' &&
       values.recurrenceHasTime &&
+      this.isPatternWithPerDayTime(values.recurrencePattern) &&
       !values.recurrenceSameTimeForSelectedDays
     ) {
       return {
         mode: 'weekly_schedule',
-        weeklyDayTimes: this.selectedWeekdays.map((day) => ({
+        simpleType: values.recurrencePattern,
+        weeklyDayTimes: this.resolvePerDayTimeOptions(values.recurrencePattern).map((day) => ({
           dayOfWeek: day.dayOfWeek,
           time: values[day.timeControlName],
           durationMin:
@@ -1776,7 +1804,7 @@ export class CreateTaskPage {
       simpleType: values.recurrencePattern,
       hasTime: values.recurrenceHasTime,
       sameTimeForSelectedDays:
-        values.recurrencePattern === 'selected_weekdays'
+        this.isPatternWithPerDayTime(values.recurrencePattern)
           ? values.recurrenceSameTimeForSelectedDays
           : true,
       commonDurationMin:
@@ -1802,6 +1830,53 @@ export class CreateTaskPage {
       endDate,
       timezone,
     };
+  }
+
+  private isPatternWithPerDayTime(pattern: RecurrencePattern): boolean {
+    return pattern === 'daily' || pattern === 'selected_weekdays';
+  }
+
+  private resolvePerDayTimeOptions(pattern: RecurrencePattern): readonly WeekdayOption[] {
+    if (pattern === 'daily') {
+      return this.weekdays;
+    }
+
+    if (pattern === 'selected_weekdays') {
+      return this.selectedWeekdays;
+    }
+
+    return [];
+  }
+
+  private resolvePatternFromPersistedRecurrence(
+    recurrence?: PersistedTaskAggregate['recurrence'],
+    recurrenceType: RecurrenceType = 'none'
+  ): RecurrencePattern {
+    if (
+      recurrenceType === 'daily' ||
+      recurrenceType === 'selected_weekdays' ||
+      recurrenceType === 'monthly' ||
+      recurrenceType === 'yearly'
+    ) {
+      return recurrenceType;
+    }
+
+    if (!recurrence) {
+      return 'daily';
+    }
+
+    return recurrence.pattern;
+  }
+
+  private areAllWeekdaysSelected(daysOfWeek: Iterable<number>): boolean {
+    const selectedWeekdays = new Set<number>();
+    for (const dayOfWeek of daysOfWeek) {
+      if (Number.isInteger(dayOfWeek) && dayOfWeek >= 1 && dayOfWeek <= 7) {
+        selectedWeekdays.add(dayOfWeek);
+      }
+    }
+
+    return selectedWeekdays.size === 7;
   }
 
   private resolveStartDate(
@@ -2047,8 +2122,20 @@ export class CreateTaskPage {
   private resolveReminderPatternFromRecurrence(
     recurrence?: CreateTaskRecurrenceInput
   ): RecurrencePattern {
-    if (!recurrence || recurrence.mode !== 'simple') {
-      return recurrence?.mode === 'weekly_schedule' ? 'selected_weekdays' : 'daily';
+    if (!recurrence) {
+      return 'daily';
+    }
+
+    if (recurrence.mode === 'weekly_schedule') {
+      if (recurrence.simpleType === 'daily') {
+        return 'daily';
+      }
+
+      return 'selected_weekdays';
+    }
+
+    if (recurrence.mode !== 'simple') {
+      return 'daily';
     }
 
     switch (recurrence.simpleType) {
@@ -2098,10 +2185,15 @@ export class CreateTaskPage {
 
   private sanitizeCreateTaskPayload(input: CreateTaskInput): CreateTaskInput {
     const deviceTimezone = this.resolveTimezone();
+    const recurrenceType = this.resolveInputRecurrenceType(input);
     const scheduleType: TaskScheduleType =
-      input.scheduleType === 'recurring' ? 'recurring' : 'one_time';
-    const durationMode: TaskDurationMode =
+      recurrenceType === 'none' ? 'one_time' : 'recurring';
+    const requestedDurationMode: TaskDurationMode =
       input.durationMode === 'per_occurrence' ? 'per_occurrence' : 'single';
+    const durationMode: TaskDurationMode =
+      input.mode === 'duration' && scheduleType === 'recurring'
+        ? requestedDurationMode
+        : 'single';
     const oneTimeTime =
       scheduleType === 'one_time'
         ? this.normalizeTimeValue(input.oneTimeTime ?? '')
@@ -2114,10 +2206,20 @@ export class CreateTaskPage {
             deviceTimezone
           )
         : null;
+    const expectedRecurrenceType: RecurrencePattern | null =
+      recurrenceType === 'none' ? null : recurrenceType;
     const recurrence =
-      scheduleType === 'recurring'
-        ? this.sanitizeRecurrenceInput(input.recurrence)
+      scheduleType === 'recurring' && expectedRecurrenceType
+        ? this.sanitizeRecurrenceInput(input.recurrence, expectedRecurrenceType)
         : undefined;
+    if (scheduleType === 'recurring' && !recurrence) {
+      throw new Error('Recurring tasks require recurrence settings.');
+    }
+    const resolvedRecurrenceType: RecurrenceType =
+      recurrence ? this.resolveRecurrenceTypeFromRecurrenceInput(recurrence) : 'none';
+    if (resolvedRecurrenceType !== recurrenceType) {
+      throw new Error('Recurrence type does not match recurrence settings.');
+    }
     const hasTimedSchedule =
       (scheduleType === 'one_time' && oneTimeTime !== null) ||
       (scheduleType === 'recurring' && Boolean(recurrence?.hasTime));
@@ -2127,6 +2229,7 @@ export class CreateTaskPage {
       title: input.title.trim(),
       description: input.description?.trim() || null,
       priority: this.normalizeTaskPriority(input.priority),
+      recurrenceType: resolvedRecurrenceType,
       scheduleType,
       durationMode,
       oneTimeDate,
@@ -2154,8 +2257,77 @@ export class CreateTaskPage {
     return 'B';
   }
 
+  private resolveInputRecurrenceType(input: CreateTaskInput): RecurrenceType {
+    const explicit = this.parseRecurrenceType(input.recurrenceType);
+    if (explicit) {
+      return explicit;
+    }
+
+    const scheduleType: TaskScheduleType =
+      input.scheduleType === 'recurring' ? 'recurring' : 'one_time';
+    if (scheduleType === 'one_time') {
+      return 'none';
+    }
+
+    if (!input.recurrence) {
+      return 'daily';
+    }
+
+    return this.resolveRecurrenceTypeFromRecurrenceInput(input.recurrence);
+  }
+
+  private resolveRecurrenceTypeFromRecurrenceInput(
+    recurrence: CreateTaskRecurrenceInput
+  ): RecurrencePattern {
+    if (recurrence.mode === 'weekly_schedule') {
+      if (
+        recurrence.simpleType !== 'daily' &&
+        recurrence.simpleType !== 'selected_weekdays'
+      ) {
+        throw new Error(
+          'Weekly schedule recurrence requires simpleType daily or selected_weekdays.'
+        );
+      }
+
+      return recurrence.simpleType;
+    }
+
+    if (recurrence.mode !== 'simple') {
+      throw new Error('Unsupported recurrence mode.');
+    }
+
+    const simpleType = this.parseSimpleRecurrencePattern(recurrence.simpleType);
+    if (!simpleType) {
+      throw new Error('Simple recurrence requires a valid recurrence type.');
+    }
+
+    return simpleType;
+  }
+
+  private parseSimpleRecurrencePattern(value: unknown): RecurrencePattern | null {
+    if (
+      value === 'daily' ||
+      value === 'selected_weekdays' ||
+      value === 'monthly' ||
+      value === 'yearly'
+    ) {
+      return value;
+    }
+
+    return null;
+  }
+
+  private parseRecurrenceType(value: unknown): RecurrenceType | null {
+    if (value === 'none') {
+      return 'none';
+    }
+
+    return this.parseSimpleRecurrencePattern(value);
+  }
+
   private sanitizeRecurrenceInput(
-    recurrence?: CreateTaskRecurrenceInput
+    recurrence: CreateTaskRecurrenceInput | undefined,
+    expectedType: RecurrencePattern
   ): CreateTaskRecurrenceInput | undefined {
     if (!recurrence) {
       return undefined;
@@ -2173,6 +2345,13 @@ export class CreateTaskPage {
     const startsToday = recurrence.startsToday ?? this.isTodayDate(startDate, timezone);
 
     if (recurrence.mode === 'weekly_schedule') {
+      if (expectedType !== 'daily' && expectedType !== 'selected_weekdays') {
+        throw new Error('Weekly schedule recurrence only supports daily or selected_weekdays.');
+      }
+      if (recurrence.simpleType !== expectedType) {
+        throw new Error('Weekly schedule recurrence type does not match expected type.');
+      }
+
       const weeklyDayTimes = (recurrence.weeklyDayTimes ?? [])
         .map((slot) => ({
           dayOfWeek: Math.trunc(slot.dayOfWeek),
@@ -2183,9 +2362,19 @@ export class CreateTaskPage {
           (slot) =>
             slot.dayOfWeek >= 1 && slot.dayOfWeek <= 7 && slot.time.length > 0
         );
+      if (weeklyDayTimes.length === 0) {
+        throw new Error('Selected weekdays recurrence requires at least one day.');
+      }
+      if (
+        expectedType === 'daily' &&
+        !this.areAllWeekdaysSelected(weeklyDayTimes.map((slot) => slot.dayOfWeek))
+      ) {
+        throw new Error('Daily recurrence with per-day time requires all weekdays.');
+      }
 
       return {
         mode: 'weekly_schedule',
+        simpleType: expectedType,
         weeklyDayTimes,
         hasTime: true,
         sameTimeForSelectedDays: false,
@@ -2202,7 +2391,18 @@ export class CreateTaskPage {
       };
     }
 
-    const simpleType = recurrence.simpleType ?? 'daily';
+    if (recurrence.mode !== 'simple') {
+      throw new Error('Unsupported recurrence mode.');
+    }
+
+    const simpleType = this.parseSimpleRecurrencePattern(recurrence.simpleType);
+    if (!simpleType) {
+      throw new Error('Simple recurrence requires a valid recurrence type.');
+    }
+    if (simpleType !== expectedType) {
+      throw new Error('Simple recurrence type does not match expected type.');
+    }
+
     const requestedHasTime =
       recurrence.hasTime ??
       (typeof recurrence.timeOfDay === 'string' &&
@@ -2236,8 +2436,14 @@ export class CreateTaskPage {
     };
 
     if (simpleType === 'selected_weekdays') {
-      const mask = recurrence.daysOfWeekMask ?? 0;
-      sanitizedSimple.daysOfWeekMask = mask > 0 ? mask : null;
+      sanitizedSimple.daysOfWeekMask = this.sanitizeBoundedInteger(
+        recurrence.daysOfWeekMask,
+        1,
+        127
+      );
+      if (!sanitizedSimple.daysOfWeekMask) {
+        throw new Error('Selected weekdays recurrence requires at least one day.');
+      }
       return sanitizedSimple;
     }
 

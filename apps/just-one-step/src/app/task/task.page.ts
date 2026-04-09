@@ -257,6 +257,7 @@ export class TaskPage {
       trackingMode: 'duration',
       priority: 'B',
       scheduleType: 'recurring',
+      recurrenceType: 'selected_weekdays',
       durationMode: 'single',
       oneTimeDate: null,
       oneTimeTime: null,
@@ -313,7 +314,7 @@ export class TaskPage {
     const recurrence = task.recurrenceEnabled ? task.recurrence : undefined;
     const reminderOffsets = this.collectReminderOffsets(task);
     const showPerDayTimes =
-      recurrence?.pattern === 'selected_weekdays' &&
+      (recurrence?.pattern === 'selected_weekdays' || recurrence?.pattern === 'daily') &&
       recurrence.hasTime &&
       !recurrence.sameTimeForSelectedDays &&
       scheduleCells.length > 0;
