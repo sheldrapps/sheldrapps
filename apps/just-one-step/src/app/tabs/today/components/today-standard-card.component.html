@@ -1,0 +1,64 @@
+<div
+  class="today-standard-card app-accent-surface app-task-accent-surface app-timeline-event app-duration-tier-target"
+  [class.today-standard-card--completed]="completed"
+  [class.today-standard-card--expanded]="expanded"
+  [class.today-standard-card--interactive]="interactive"
+  [class.app-duration-tier-sm]="sizeTier === 'sm'"
+  [class.app-duration-tier-md]="sizeTier === 'md'"
+  [class.app-duration-tier-lg]="sizeTier === 'lg'"
+  [style.--app-task-accent-border-color]="borderColor"
+  [style.--app-task-accent-background-color]="backgroundColor"
+  [style.--app-task-accent-shadow-color]="shadowColor"
+>
+  @if (interactive) {
+    <button type="button" class="today-standard-card__header" (click)="cardClick.emit()">
+      <div class="today-standard-card__content">
+        <p class="today-standard-card__title app-timeline-event__title">{{ title }}</p>
+        <p class="today-standard-card__meta app-timeline-event__time">
+          @if (timeLabel) {
+            <sh-time-display [value]="timeLabel" size="sm" tone="accent"></sh-time-display>
+            @if (durationLabel) {
+              <span class="today-standard-card__divider" [style.color]="'var(--app-accent-border-color)'" aria-hidden="true">•</span>
+            }
+          }
+          @if (durationLabel) {
+            <span class="today-standard-card__duration">{{ durationLabel }}</span>
+          }
+        </p>
+      </div>
+
+      @if (priorityCode) {
+        <app-today-priority-badge
+          [priority]="priorityCode"
+          [ariaLabel]="priorityLabel"
+        ></app-today-priority-badge>
+      }
+    </button>
+  } @else {
+    <div class="today-standard-card__header today-standard-card__header--static">
+      <div class="today-standard-card__content">
+        <p class="today-standard-card__title app-timeline-event__title">{{ title }}</p>
+        <p class="today-standard-card__meta app-timeline-event__time">
+          @if (timeLabel) {
+            <sh-time-display [value]="timeLabel" size="sm" tone="accent"></sh-time-display>
+            @if (durationLabel) {
+              <span class="today-standard-card__divider" [style.color]="'var(--app-accent-border-color)'" aria-hidden="true">•</span>
+            }
+          }
+          @if (durationLabel) {
+            <span class="today-standard-card__duration">{{ durationLabel }}</span>
+          }
+        </p>
+      </div>
+
+      @if (priorityCode) {
+        <app-today-priority-badge
+          [priority]="priorityCode"
+          [ariaLabel]="priorityLabel"
+        ></app-today-priority-badge>
+      }
+    </div>
+  }
+
+  <ng-content select="[todayCardActions]"></ng-content>
+</div>

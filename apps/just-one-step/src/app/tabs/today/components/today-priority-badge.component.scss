@@ -1,0 +1,84 @@
+:host {
+  display: contents;
+}
+
+.today-priority-badge {
+  flex: 0 0 auto;
+  margin-inline-start: var(--app-space-3);
+}
+
+/* S — Oro */
+.today-priority-badge--s {
+  --badge-rim-light: #fff0ae;
+  --badge-rim-mid: #d4a63a;
+  --badge-rim-dark: #7e5713;
+
+  --badge-core-light: #fff7d6;
+  --badge-core-mid: #dbb44a;
+  --badge-core-dark: #91660f;
+
+  --badge-text: #3a2806;
+}
+
+/* A — Plata */
+.today-priority-badge--a {
+  --badge-rim-light: #f5f7fa;
+  --badge-rim-mid: #c9d0d8;
+  --badge-rim-dark: #7c8794;
+
+  --badge-core-light: #ffffff;
+  --badge-core-mid: #d6dde6;
+  --badge-core-dark: #8a96a3;
+
+  --badge-text: #2c3138;
+}
+
+/* B — Bronce */
+.today-priority-badge--b {
+  --badge-rim-light: #ffd7b0;
+  --badge-rim-mid: #c47a3a;
+  --badge-rim-dark: #7a3f14;
+
+  --badge-core-light: #ffe6cc;
+  --badge-core-mid: #d0894d;
+  --badge-core-dark: #8a4a1f;
+
+  --badge-text: #3a1f0f;
+}
+
+/* C — Hierro pavonado (legible sobre fondos oscuros) */
+.today-priority-badge--c {
+  --badge-rim-light: #eef3f8;
+  --badge-rim-mid: #9aa4af;
+  --badge-rim-dark: #343b43;
+
+  --badge-core-light: #dbe2ea;
+  --badge-core-mid: #87919d;
+  --badge-core-dark: #2a3037;
+
+  --badge-text: #f5f8fb;
+
+  /* Separación exterior discreta — sin glow, solo contorno */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.54),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.28),
+    0 2px 4px rgba(0, 0, 0, 0.32),
+    0 0 0 1px rgba(210, 220, 232, 0.12);
+}
+
+/* Label de C: acuñada pero visible sobre campo oscuro */
+.today-priority-badge--c .today-priority-badge__label {
+  color: #f5f8fb;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18),
+    0 -1px 0 rgba(0, 0, 0, 0.42),
+    0 0 1px rgba(0, 0, 0, 0.16);
+  -webkit-text-stroke: 0.12px rgba(20, 24, 30, 0.28);
+}
+
+/* Glow — solo S, aura estática */
+.today-priority-badge--glow {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 8px rgba(255, 210, 80, 0.2);
+}

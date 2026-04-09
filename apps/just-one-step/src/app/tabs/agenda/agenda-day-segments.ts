@@ -21,7 +21,7 @@ export interface AgendaDaySegmentModel<
   TTask extends AgendaSegmentTask = AgendaSegmentTask,
 > {
   key: string;
-  type: 'empty' | 'event';
+  type: "empty" | "event";
   startMinutes: number;
   endMinutes: number;
   durationMinutes: number;
@@ -32,6 +32,8 @@ export interface AgendaDaySegmentModel<
   isCurrent: boolean;
   displayTitle: string | null;
   displayHint: string | null;
+  displayTimeLabel: string | null;
+  displayDurationLabel: string | null;
   displayAccentColor: string | null;
   emptyHint: string | null;
   items?: TTask[];
@@ -42,6 +44,7 @@ interface AgendaSegmentFormatterOptions {
   emptyHint: string;
   formatMinutes: (minutes: number) => string;
   formatTimelineBoundaryMinutes: (minutes: number) => string;
+  formatDuration: (minutes: number) => string | null;
 }
 
 export function buildAgendaDaySegments<TTask extends AgendaSegmentTask>(
@@ -49,8 +52,8 @@ export function buildAgendaDaySegments<TTask extends AgendaSegmentTask>(
   visibleStart: number,
   visibleEnd: number,
   nowMinutes: number | null,
-  formatters: AgendaSegmentFormatterOptions
-) : AgendaDaySegmentModel<TTask>[] {
+  formatters: AgendaSegmentFormatterOptions,
+): AgendaDaySegmentModel<TTask>[] {
   const segments: AgendaDaySegmentModel<TTask>[] = [];
   const normalizedTasks = tasks
     .map((task) => {
@@ -58,7 +61,9 @@ export function buildAgendaDaySegments<TTask extends AgendaSegmentTask>(
       const taskEndRaw = Math.min(visibleEnd, task.endMinutes);
       const taskEndForOverlap = Math.min(
         visibleEnd,
-        task.endMinutes > task.startMinutes ? task.endMinutes : task.startMinutes + 1
+        task.endMinutes > task.startMinutes
+          ? task.endMinutes
+          : task.startMinutes + 1,
       );
       return {
         task,
@@ -72,14 +77,14 @@ export function buildAgendaDaySegments<TTask extends AgendaSegmentTask>(
       (left, right) =>
         left.taskStart - right.taskStart ||
         left.taskEndForOverlap - right.taskEndForOverlap ||
-        left.task.title.localeCompare(right.task.title)
+        left.task.title.localeCompare(right.task.title),
     );
 
   const overlapGroups: Array<{
     startMinutes: number;
     endMinutes: number;
     overlapEndMinutes: number;
-      tasks: TTask[];
+    tasks: TTask[];
   }> = [];
 
   for (const entry of normalizedTasks) {
@@ -98,7 +103,7 @@ export function buildAgendaDaySegments<TTask extends AgendaSegmentTask>(
       lastGroup.endMinutes = Math.max(lastGroup.endMinutes, entry.taskEndRaw);
       lastGroup.overlapEndMinutes = Math.max(
         lastGroup.overlapEndMinutes,
-        entry.taskEndForOverlap
+        entry.taskEndForOverlap,
       );
       lastGroup.tasks.push(entry.task);
       continue;
@@ -116,7 +121,7 @@ export function buildAgendaDaySegments<TTask extends AgendaSegmentTask>(
   for (const group of overlapGroups) {
     if (group.startMinutes > cursor) {
       segments.push(
-        createEmptySegment(cursor, group.startMinutes, nowMinutes, formatters)
+        createEmptySegment(cursor, group.startMinutes, nowMinutes, formatters),
       );
     }
 
@@ -126,19 +131,21 @@ export function buildAgendaDaySegments<TTask extends AgendaSegmentTask>(
         group.startMinutes,
         group.endMinutes,
         nowMinutes,
-        formatters
-      )
+        formatters,
+      ),
     );
     cursor = Math.max(cursor, group.endMinutes);
   }
 
   if (cursor < visibleEnd) {
-    segments.push(createEmptySegment(cursor, visibleEnd, nowMinutes, formatters));
+    segments.push(
+      createEmptySegment(cursor, visibleEnd, nowMinutes, formatters),
+    );
   }
 
   if (segments.length === 0) {
     segments.push(
-      createEmptySegment(visibleStart, visibleEnd, nowMinutes, formatters)
+      createEmptySegment(visibleStart, visibleEnd, nowMinutes, formatters),
     );
   }
 
@@ -149,13 +156,13 @@ export function createEmptySegment<TTask extends AgendaSegmentTask>(
   startMinutes: number,
   endMinutes: number,
   nowMinutes: number | null,
-  formatters: AgendaSegmentFormatterOptions
+  formatters: AgendaSegmentFormatterOptions,
 ): AgendaDaySegmentModel<TTask> {
   const durationMinutes = Math.max(0, endMinutes - startMinutes);
   const heightTier = resolveEmptyHeightTier(durationMinutes);
   return {
     key: `empty-${startMinutes}-${endMinutes}`,
-    type: 'empty',
+    type: "empty",
     startMinutes,
     endMinutes,
     durationMinutes,
@@ -166,6 +173,8 @@ export function createEmptySegment<TTask extends AgendaSegmentTask>(
     isCurrent: isNowInRange(startMinutes, endMinutes, nowMinutes),
     displayTitle: null,
     displayHint: formatters.emptyHint,
+    displayTimeLabel: `${formatters.formatMinutes(startMinutes)} - ${formatters.formatMinutes(endMinutes)}`,
+    displayDurationLabel: formatters.formatDuration(durationMinutes),
     displayAccentColor: null,
     emptyHint: formatters.emptyHint,
   };
@@ -176,14 +185,14 @@ export function createEventSegment<TTask extends AgendaSegmentTask>(
   startMinutes: number,
   endMinutes: number,
   nowMinutes: number | null,
-  formatters: AgendaSegmentFormatterOptions
+  formatters: AgendaSegmentFormatterOptions,
 ): AgendaDaySegmentModel<TTask> {
   const primaryTask = tasks[0];
   const durationMinutes = Math.max(0, endMinutes - startMinutes);
   const heightTier = resolveEventHeightTier(durationMinutes);
   return {
-    key: `event-${tasks.map((task) => task.taskId).join('-')}-${startMinutes}`,
-    type: 'event',
+    key: `event-${tasks.map((task) => task.taskId).join("-")}-${startMinutes}`,
+    type: "event",
     startMinutes,
     endMinutes,
     durationMinutes,
@@ -194,6 +203,8 @@ export function createEventSegment<TTask extends AgendaSegmentTask>(
     isCurrent: isNowInTaskRange(startMinutes, endMinutes, nowMinutes),
     displayTitle: primaryTask?.title ?? null,
     displayHint: null,
+    displayTimeLabel: null,
+    displayDurationLabel: null,
     displayAccentColor: primaryTask?.accentBorderColor ?? null,
     emptyHint: null,
     items: [...tasks],

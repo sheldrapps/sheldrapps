@@ -6,7 +6,7 @@
     "TODAY": "Heute",
     "AGENDA": "Agenda",
     "TASKS": "Aufgaben",
-    "REFLECTION": "Reflexion",
+    "REFLECTION": "Fortschritt",
     "SETTINGS": "Einstellungen"
   },
   "TODAY": {
@@ -31,13 +31,18 @@
       "HOUR_SHORT": "h"
     },
     "RUNNING": "Läuft",
-    "NOW_CTA_PLAY": "Wenn du magst",
-    "NOW_CTA_FIVE_MIN": "Wenn es passt, 5 Min",
-    "NOW_CTA_RESCHEDULE": "Wenn du willst, neu planen",
-    "NOW_CTA_POSTPONE": "Verschieben",
+    "NOW_CTA_PLAY": "Starten",
+    "NOW_CTA_FIVE_MIN": "Nur 5 Min",
+    "NOW_CTA_RESCHEDULE": "Neu planen",
+    "NOW_CTA_POSTPONE": "Auslassen",
+    "NOW_CTA_DONE": "Als erledigt markieren",
+    "NOW_STATE_UPCOMING": "Startet in {{minutes}} Min",
+    "NOW_STATE_ONGOING": "Läuft",
+    "NOW_STATE_EXPIRED": "Endete vor {{minutes}} Min",
     "EMPTY_TITLE": "Gerade keine Aufgaben",
     "EMPTY_HINT": "Du musst nicht alles heute schaffen. Ein Schritt reicht.",
     "NOW_FREE_TITLE": "Du bist gerade frei",
+    "FREE_TIME_TITLE": "Freie Zeit",
     "NOW_FREE_MAIN": "Du bist gerade frei",
     "NOW_FREE_HINT": "Dieser Moment könnte passen für:",
     "CATEGORY_NONE": "Keine Kategorie",
@@ -62,7 +67,12 @@
         "LINE_1": "Nicht perfekt.",
         "LINE_2": "Nur erledigt."
       }
-    }
+    },
+    "UPCOMING_TASKS": {
+      "TITLE": "Demnächst"
+    },
+    "UPCOMING_START_NOW": "Jetzt starten",
+    "START_NOW_BLOCKED_RUNNING": "Es läuft bereits eine Aufgabe"
   },
   "AGENDA": {
     "TITLE": "Agenda",
@@ -98,7 +108,7 @@
     "OPEN_PROGRESS": "Fortschritt"
   },
   "REFLECTION": {
-    "TITLE": "Reflexion",
+    "TITLE": "Fortschritt",
     "PROMPT": "Schreibe eine kurze Reflexion für heute.",
     "PLACEHOLDER": "Wie war dein Tag?"
   },

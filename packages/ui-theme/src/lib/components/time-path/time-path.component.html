@@ -1,0 +1,24 @@
+<div class="time-path" [class.time-path--upcoming]="state === 'upcoming'" [class.time-path--ongoing]="state === 'ongoing'" [class.time-path--expired]="state === 'expired'">
+  <div class="time-path__rail" aria-hidden="true">
+    <span class="time-path__fill" [style.width]="progressPercent"></span>
+    <span
+      class="time-path__actor"
+      [class.time-path__actor--step]="isStepAnimating"
+      [style.left]="progressPercent"
+    >
+      @switch (actorVariant) {
+        @case ('dot') {
+          <span class="time-path__actor-dot"></span>
+        }
+        @default {
+          <span class="time-path__actor-dot"></span>
+        }
+      }
+    </span>
+  </div>
+
+  <div class="time-path__labels" aria-hidden="true">
+    <span class="time-path__label">{{ startLabel }}</span>
+    <span class="time-path__label">{{ endLabel }}</span>
+  </div>
+</div>

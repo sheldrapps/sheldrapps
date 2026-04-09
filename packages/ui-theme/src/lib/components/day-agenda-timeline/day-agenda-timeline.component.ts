@@ -34,7 +34,7 @@ export interface DayAgendaTimelineEventItem {
 
 export interface DayAgendaTimelineSegment {
   key: string;
-  type: 'empty' | 'event';
+  type: "empty" | "event";
   startMinutes: number;
   endMinutes: number;
   startBoundaryIndex: number;
@@ -43,6 +43,8 @@ export interface DayAgendaTimelineSegment {
   visualHeightPx: number;
   title?: string | null;
   hint?: string | null;
+  timeLabel?: string | null;
+  durationLabel?: string | null;
   accentColor?: string | null;
   accentBackgroundColor?: string | null;
   accentShadowColor?: string | null;

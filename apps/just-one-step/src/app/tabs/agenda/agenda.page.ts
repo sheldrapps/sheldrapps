@@ -113,7 +113,7 @@ interface AgendaResolvedTime {
 
 interface AgendaDaySegment {
   key: string;
-  type: 'empty' | 'event';
+  type: "empty" | "event";
   startMinutes: number;
   endMinutes: number;
   durationMinutes: number;
@@ -124,6 +124,8 @@ interface AgendaDaySegment {
   isCurrent: boolean;
   displayTitle: string | null;
   displayHint: string | null;
+  displayTimeLabel: string | null;
+  displayDurationLabel: string | null;
   displayAccentColor: string | null;
   emptyHint: string | null;
   items?: AgendaTimelineTask[];
@@ -2730,6 +2732,8 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
           visualHeightPx: segment.visualHeightPx,
           title: segment.displayTitle,
           hint: segment.displayHint,
+          timeLabel: segment.displayTimeLabel,
+          durationLabel: segment.displayDurationLabel,
           accentColor: segment.displayAccentColor,
           accentBackgroundColor: segment.task?.accentBackgroundColor ?? null,
           accentShadowColor: segment.task?.accentShadowColor ?? null,
@@ -2771,6 +2775,7 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
       formatMinutes: (minutes) => this.formatMinutes(minutes),
       formatTimelineBoundaryMinutes: (minutes) =>
         this.formatTimelineBoundaryMinutes(minutes),
+      formatDuration: (minutes) => this.formatDurationLabel(minutes),
     });
   }
 
@@ -2785,7 +2790,31 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
       formatMinutes: (minutes) => this.formatMinutes(minutes),
       formatTimelineBoundaryMinutes: (minutes) =>
         this.formatTimelineBoundaryMinutes(minutes),
+      formatDuration: (minutes) => this.formatDurationLabel(minutes),
     });
+  }
+
+  private formatDurationLabel(durationMinutes: number): string | null {
+    const safeMinutes = Math.max(0, Math.floor(durationMinutes));
+    if (safeMinutes <= 0) {
+      return null;
+    }
+
+    const hourShort =
+      this.translate.instant('TODAY.OPPORTUNITIES.HOUR_SHORT') || 'h';
+    const minuteShort = this.translate.instant('TASK_DETAIL.MINUTES_SHORT');
+    const hours = Math.floor(safeMinutes / 60);
+    const minutes = safeMinutes % 60;
+
+    if (hours === 0) {
+      return `${minutes} ${minuteShort}`;
+    }
+
+    if (minutes === 0) {
+      return `${hours} ${hourShort}`;
+    }
+
+    return `${hours} ${hourShort} ${minutes} ${minuteShort}`;
   }
 
   private resolveEmptyHeightTier(durationMinutes: number): DayAgendaTimelineHeightTier {

@@ -30,24 +30,24 @@
         <app-today-now-section
           [nowCard]="nowCard"
           [nowFreeRangeLabel]="nowFreeRangeLabel"
-          [isRunning]="!!(nowCard && isTaskRunning(nowCard.taskId))"
-          (executeNow)="executeNow()"
-          (executeNowFiveMinutes)="executeNowFiveMinutes()"
+          [nowFreeDurationLabel]="nowFreeDurationLabel"
           (reprogramNow)="reprogramNow()"
-          (completeNowCheckTask)="completeNowCheckTask()"
-          (postponeNowCheckTask)="postponeNowCheckTask()"
+          (skipNowTask)="skipNowTask()"
         ></app-today-now-section>
 
-        <app-today-free-times-section
-          [upcomingFreeSpaces]="upcomingFreeSpaces"
-        ></app-today-free-times-section>
+        <app-today-upcoming-section
+          [proximateItems]="proximateItems"
+          [startNowDisabled]="hasRunningTaskSession"
+          (startNow)="startNow($event)"
+        ></app-today-upcoming-section>
 
         <app-today-tasks-section
           [todayItems]="todayItems"
+          [startNowDisabled]="hasRunningTaskSession"
           (taskSelected)="executeTodayTask($event)"
         ></app-today-tasks-section>
 
-        @if (!hasNowCard && !hasTodayItems && !hasUpcomingFreeSpaces) {
+        @if (!hasNowCard && !hasTodayItems && !hasProximateItems) {
           <section class="app-section today-empty">
             <p class="today-empty__title">{{ 'TODAY.EMPTY_TITLE' | translate }}</p>
             <p class="today-empty__hint">{{ 'TODAY.EMPTY_HINT' | translate }}</p>

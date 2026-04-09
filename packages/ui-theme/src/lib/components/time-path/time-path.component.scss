@@ -1,0 +1,94 @@
+:host {
+  display: block;
+}
+
+.time-path {
+  --time-path-height: 6px;
+  --time-path-track: var(--app-surface-3, rgba(var(--ion-color-step-300-rgb), 0.52));
+  --time-path-fill: var(--app-accent-primary, var(--ion-color-primary));
+  --time-path-fill-current: var(--time-path-fill);
+  --time-path-rail-border-width: 0px;
+  --time-path-rail-border-color: transparent;
+  --time-path-rail-shadow: none;
+  --time-path-actor-size: 12px;
+
+  display: grid;
+  gap: var(--app-space-2);
+}
+
+.time-path--upcoming {
+  --time-path-fill-current: var(--time-path-fill-upcoming, var(--app-surface-4, rgba(var(--ion-color-step-400-rgb), 0.72)));
+}
+
+.time-path--ongoing {
+  --time-path-fill-current: var(--time-path-fill-ongoing, var(--time-path-fill));
+}
+
+.time-path--expired {
+  --time-path-fill-current: var(--time-path-fill-expired, var(--app-surface-2, rgba(var(--ion-color-step-500-rgb), 0.42)));
+}
+
+.time-path__rail {
+  position: relative;
+  width: 100%;
+  height: var(--time-path-height);
+  border-radius: 999px;
+  background: var(--time-path-track);
+  border: var(--time-path-rail-border-width) solid var(--time-path-rail-border-color);
+  box-shadow: var(--time-path-rail-shadow);
+  overflow: visible;
+}
+
+.time-path__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  border-radius: 999px;
+  background: var(--time-path-fill-current);
+}
+
+.time-path__actor {
+  position: absolute;
+  top: 50%;
+  width: var(--time-path-actor-size);
+  height: var(--time-path-actor-size);
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+}
+
+.time-path__actor-dot {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--time-path-fill-current);
+  box-shadow: 0 0 0 2px rgba(var(--ion-color-step-50-rgb), 0.96);
+}
+
+.time-path__actor--step {
+  animation: time-path-step 260ms ease-out;
+}
+
+.time-path__labels {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--app-space-2);
+}
+
+.time-path__label {
+  font-size: var(--app-text-2xs);
+  font-weight: var(--app-font-medium);
+  color: rgba(var(--ion-color-step-700-rgb), 0.86);
+}
+
+@keyframes time-path-step {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -58%) scale(1.08);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}

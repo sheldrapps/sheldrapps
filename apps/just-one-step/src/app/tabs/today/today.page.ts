@@ -19,19 +19,23 @@ import {
   timerOutline,
 } from "ionicons/icons";
 import {
+  CreateTaskNotificationInput,
+  CreateTaskRecurrenceInput,
   PersistedTaskAggregate,
   type UpdateTaskInput,
   TaskRepository,
 } from "../../database/repositories/task.repository";
 import {
+  ProximateItem,
+  ProximateTaskItem,
+  ScheduledState,
   TodayNowCard,
   TodayTaskListItem,
-  TodayUpcomingGap,
 } from "./today.models";
 import { TodayMotivationalCopyComponent } from "./components/today-motivational-copy.component";
 import { TodayNowSectionComponent } from "./components/today-now-section.component";
-import { TodayFreeTimesSectionComponent } from "./components/today-free-times-section.component";
 import { TodayTasksSectionComponent } from "./components/today-tasks-section.component";
+import { TodayUpcomingSectionComponent } from "./components/today-upcoming-section.component";
 import {
   buildGaps,
   rankBacklog,
@@ -66,6 +70,17 @@ interface TodayRunningSession {
   expectedEndAt: string;
   durationMin: number;
   status: "running" | "completed";
+  sessionKind: "full" | "quick";
+}
+
+interface SessionHistoryRecord {
+  taskId: string;
+  dateKey: string;
+  startedAt: string;
+  completedAt: string;
+  plannedDurationMin: number;
+  actualDurationMin: number;
+  sessionKind: "full" | "quick";
 }
 
 interface ActiveTimerWindowRecord {
@@ -82,11 +97,11 @@ const TODAY_RUNNING_SESSION_STORAGE_KEY =
   "just-one-step.today.running-session.v1";
 const ACTIVE_TIMER_WINDOWS_STORAGE_KEY =
   "just-one-step.timer.active-windows.v1";
+const SESSION_HISTORY_STORAGE_KEY = "just-one-step.session-history.v1";
 const DEFAULT_DURATION_MIN = 25;
 const DEFAULT_CHECK_DURATION_MIN = 10;
-const DEFAULT_FIVE_MIN_DURATION = 5;
 const DEFAULT_POSTPONE_MINUTES = 30;
-const MAX_UPCOMING_FREE_SPACES = 2;
+const MAX_PROXIMATE_ITEMS = 2;
 const TODAY_QUOTES: ReadonlyArray<readonly [string, string]> = [
   ["TODAY.QUOTES.0.LINE_1", "TODAY.QUOTES.0.LINE_2"],
   ["TODAY.QUOTES.1.LINE_1", "TODAY.QUOTES.1.LINE_2"],
@@ -111,8 +126,8 @@ const TODAY_QUOTES: ReadonlyArray<readonly [string, string]> = [
     LoadingStateComponent,
     TodayMotivationalCopyComponent,
     TodayNowSectionComponent,
-    TodayFreeTimesSectionComponent,
     TodayTasksSectionComponent,
+    TodayUpcomingSectionComponent,
   ],
 })
 export class TodayPage {
@@ -126,7 +141,8 @@ export class TodayPage {
   nowCard: TodayNowCard | null = null;
   nowMode: "active" | "free" = "free";
   nowFreeRangeLabel: string | null = null;
-  upcomingFreeSpaces: TodayUpcomingGap[] = [];
+  nowFreeDurationLabel: string | null = null;
+  proximateItems: ProximateItem[] = [];
   todayItems: TodayTaskListItem[] = [];
   runningTaskId: string | null = null;
   dailyIntentLine1 = "";
@@ -155,36 +171,20 @@ export class TodayPage {
     return this.nowCard !== null;
   }
 
-  get hasUpcomingFreeSpaces(): boolean {
-    return this.upcomingFreeSpaces.length > 0;
+  get hasProximateItems(): boolean {
+    return this.proximateItems.length > 0;
   }
 
   get hasTodayItems(): boolean {
     return this.todayItems.length > 0;
   }
 
+  get hasRunningTaskSession(): boolean {
+    return !!this.runningTaskId;
+  }
+
   async reloadTodayData(): Promise<void> {
     await this.loadTodayData();
-  }
-
-  async executeNow(): Promise<void> {
-    if (!this.nowCard) {
-      return;
-    }
-
-    this.triggerTapFeedback();
-    this.startTaskSession(this.nowCard.taskId, this.nowCard.durationMin);
-    this.refreshComputedSections();
-  }
-
-  async executeNowFiveMinutes(): Promise<void> {
-    if (!this.nowCard) {
-      return;
-    }
-
-    this.triggerTapFeedback();
-    this.startTaskSession(this.nowCard.taskId, DEFAULT_FIVE_MIN_DURATION);
-    this.refreshComputedSections();
   }
 
   async reprogramNow(): Promise<void> {
@@ -200,6 +200,10 @@ export class TodayPage {
   }
 
   executeTodayTask(item: TodayTaskListItem): void {
+    if (this.hasRunningTaskSession) {
+      return;
+    }
+
     this.triggerTapFeedback();
     this.startTaskSession(item.taskId, item.durationMin);
     this.refreshComputedSections();
@@ -209,8 +213,12 @@ export class TodayPage {
     return this.runningTaskId === taskId;
   }
 
-  async completeNowCheckTask(): Promise<void> {
-    if (!this.nowCard || this.nowCard.task.trackingMode !== "check") {
+  async completeNowTask(): Promise<void> {
+    if (!this.nowCard) {
+      return;
+    }
+
+    if (this.nowCard.task.scheduleType === "recurring") {
       return;
     }
 
@@ -218,40 +226,15 @@ export class TodayPage {
     await this.loadTodayData();
   }
 
-  async postponeNowCheckTask(): Promise<void> {
+  async skipNowTask(): Promise<void> {
     if (!this.nowCard) {
       return;
     }
 
-    if (this.nowCard.task.trackingMode !== "check") {
-      await this.reprogramNow();
-      return;
-    }
-
-    if (this.nowCard.task.scheduleType !== "one_time") {
-      await this.reprogramNow();
-      return;
-    }
-
-    const postponed = new Date(Date.now() + DEFAULT_POSTPONE_MINUTES * 60_000);
-    const nextTime = this.minutesToTime(
-      postponed.getHours() * 60 + postponed.getMinutes(),
+    await this.postponeTaskKeepingDuration(
+      this.nowCard.task,
+      this.nowCard.taskId,
     );
-    const nextDateIso = new Date(
-      postponed.getFullYear(),
-      postponed.getMonth(),
-      postponed.getDate(),
-      12,
-      0,
-      0,
-      0,
-    ).toISOString();
-
-    await this.taskRepository.updateTask(this.nowCard.taskId, {
-      ...this.toUpdateTaskInput(this.nowCard.task),
-      oneTimeDate: nextDateIso,
-      oneTimeTime: nextTime,
-    });
     await this.loadTodayData();
   }
 
@@ -287,7 +270,8 @@ export class TodayPage {
       this.nowCard = null;
       this.nowMode = "free";
       this.nowFreeRangeLabel = null;
-      this.upcomingFreeSpaces = [];
+      this.nowFreeDurationLabel = null;
+      this.proximateItems = [];
       this.todayItems = [];
       this.runningTaskId = null;
       this.loadFailed = true;
@@ -317,11 +301,11 @@ export class TodayPage {
 
     const nowMinutes = this.now.getHours() * 60 + this.now.getMinutes();
     const normalizedTasks = items.map((item) => this.toTaskAggregate(item));
-    const currentTask = this.findCurrentTask(normalizedTasks, nowMinutes);
+    const focusTask = this.findFocusTask(normalizedTasks, nowMinutes);
 
-    this.nowMode = currentTask ? "active" : "free";
+    this.nowMode = focusTask ? "active" : "free";
     this.nowCard = this.toNowCardFromCurrentTask(
-      currentTask,
+      focusTask,
       byTaskId,
       nowMinutes,
     );
@@ -329,23 +313,31 @@ export class TodayPage {
       normalizedTasks,
       nowMinutes,
     );
+    this.nowFreeDurationLabel = this.resolveNowFreeDurationLabel(
+      normalizedTasks,
+      nowMinutes,
+    );
 
-    this.upcomingFreeSpaces = buildGaps(normalizedTasks, nowMinutes)
-      .slice(0, MAX_UPCOMING_FREE_SPACES)
-      .map((gap) => ({
-        key: `${gap.startMinutes}-${gap.endMinutes}`,
-        rangeLabel: `${this.minutesToTime(gap.startMinutes)} - ${this.minutesToTime(
-          gap.endMinutes,
-        )}`,
-        durationLabel: this.formatDuration(gap.durationMinutes),
-        sizeTier: this.resolveTaskSizeTier(gap.durationMinutes),
-      }));
+    const completedTaskIds = this.resolveCompletedTaskIdsForToday();
+    this.proximateItems = this.buildProximateItems(
+      normalizedTasks,
+      nowMinutes,
+      byTaskId,
+      focusTask?.id ?? null,
+      completedTaskIds,
+    );
 
+    const excludeFromList = new Set<string>([
+      ...(focusTask ? [focusTask.id] : []),
+      ...this.proximateItems
+        .filter((item): item is ProximateTaskItem => item.kind === "task")
+        .map((item) => item.taskItem.taskId),
+    ]);
     this.todayItems = this.buildTodayItems(
       normalizedTasks,
-      currentTask?.id ?? null,
+      excludeFromList,
       byTaskId,
-      this.resolveCompletedTaskIdsForToday(),
+      completedTaskIds,
     );
 
     const runningSession = this.readRunningSession();
@@ -365,19 +357,24 @@ export class TodayPage {
     };
   }
 
-  private findCurrentTask(
+  private findFocusTask(
     tasks: readonly TaskAggregate[],
     nowMinutes: number,
   ): TaskAggregate | null {
     return (
-      tasks.find(
-        (task) =>
-          task.hasTime &&
-          typeof task.startMinutes === "number" &&
-          typeof task.endMinutes === "number" &&
-          task.startMinutes <= nowMinutes &&
-          nowMinutes < task.endMinutes,
-      ) ?? null
+      tasks
+        .filter(
+          (task) =>
+            task.hasTime &&
+            typeof task.startMinutes === "number" &&
+            typeof task.endMinutes === "number" &&
+            (task.startMinutes as number) <= nowMinutes &&
+            nowMinutes < (task.endMinutes as number),
+        )
+        .sort(
+          (left, right) =>
+            (left.endMinutes as number) - (right.endMinutes as number),
+        )[0] ?? null
     );
   }
 
@@ -401,8 +398,17 @@ export class TodayPage {
   private toNowCard(item: TodayTaskItem, nowMinutes: number): TodayNowCard {
     const task = item.task;
     const color = this.resolveTaskColor(task);
-    const progressPercent = this.resolveNowProgress(item, nowMinutes);
-    const hasExplicitDuration = this.hasExplicitDuration(task);
+    const scheduledState = this.resolveScheduledState(item, nowMinutes);
+    const progress = this.resolveTimelineProgress(
+      item,
+      scheduledState,
+      nowMinutes,
+    );
+    const stateLabel = this.resolveStateLabel(scheduledState, item, nowMinutes);
+    const startMinutes = item.startMinutes ?? nowMinutes;
+    const endMinutes =
+      item.endMinutes ?? startMinutes + Math.max(item.durationMin, 1);
+
     return {
       taskId: task.id,
       title: task.title,
@@ -410,75 +416,90 @@ export class TodayPage {
         task.categoryName?.trim() ||
         this.translate.instant("TODAY.CATEGORY_NONE"),
       priorityLabel: this.translate.instant(`TASK.PRIORITY.${task.priority}`),
-      durationLabel: this.formatDuration(item.durationMin),
-      contextLabel: this.translate.instant("TODAY.NOW_CONTEXT_CURRENT"),
+      stateLabel,
+      scheduledState,
       timeLabel: item.timeLabel,
       color,
-      progressPercent,
-      showPercentRing: !hasExplicitDuration,
-      timerLabel: hasExplicitDuration
-        ? `${item.durationMin} ${this.translate.instant("TASK_DETAIL.MINUTES_SHORT")}`
-        : null,
+      progress,
+      startMinutes,
+      endMinutes,
       durationMin: item.durationMin,
       task,
     };
   }
 
-  private hasExplicitDuration(task: PersistedTaskAggregate): boolean {
-    if ((task.estimatedDurationMin ?? 0) > 0) {
-      return true;
+  private resolveScheduledState(
+    item: TodayTaskItem,
+    nowMinutes: number,
+  ): ScheduledState {
+    const startMinutes = item.startMinutes ?? nowMinutes;
+    const endMinutes =
+      item.endMinutes ?? startMinutes + Math.max(item.durationMin, 1);
+
+    if (nowMinutes < startMinutes) {
+      return "upcoming";
     }
 
-    const recurrence = task.recurrence;
-    if (!recurrence) {
-      return false;
+    if (nowMinutes >= endMinutes) {
+      return "expired";
     }
 
-    if ((recurrence.commonDurationMin ?? 0) > 0) {
-      return true;
-    }
-
-    return recurrence.weekdays.some(
-      (weekday) => (weekday.durationMin ?? 0) > 0,
-    );
+    return "ongoing";
   }
 
-  private resolveNowProgress(item: TodayTaskItem, nowMinutes: number): number {
-    const runningSession = this.readRunningSession();
-    if (runningSession && runningSession.taskId === item.task.id) {
-      const startedAt = new Date(runningSession.startedAt).getTime();
-      const expectedEndAt = new Date(runningSession.expectedEndAt).getTime();
-      if (
-        Number.isFinite(startedAt) &&
-        Number.isFinite(expectedEndAt) &&
-        expectedEndAt > startedAt
-      ) {
-        const nowTimestamp = Date.now();
-        const raw =
-          ((nowTimestamp - startedAt) / (expectedEndAt - startedAt)) * 100;
-        return this.clampPercent(raw);
-      }
-    }
-
-    if (item.startMinutes === null || item.endMinutes === null) {
+  private resolveTimelineProgress(
+    item: TodayTaskItem,
+    state: ScheduledState,
+    nowMinutes: number,
+  ): number {
+    if (state === "upcoming") {
       return 0;
     }
 
+    if (state === "expired") {
+      return 1;
+    }
+
+    const startMinutes = item.startMinutes ?? nowMinutes;
+    const endMinutes =
+      item.endMinutes ?? startMinutes + Math.max(item.durationMin, 1);
     const raw =
-      ((nowMinutes - item.startMinutes) /
-        Math.max(1, item.endMinutes - item.startMinutes)) *
-      100;
-    return this.clampPercent(raw);
+      (nowMinutes - startMinutes) / Math.max(1, endMinutes - startMinutes);
+    return this.clamp(raw, 0, 1);
+  }
+
+  private resolveStateLabel(
+    state: ScheduledState,
+    item: TodayTaskItem,
+    nowMinutes: number,
+  ): string {
+    const startMinutes = item.startMinutes ?? nowMinutes;
+    const endMinutes =
+      item.endMinutes ?? startMinutes + Math.max(item.durationMin, 1);
+
+    if (state === "ongoing") {
+      return this.translate.instant("TODAY.NOW_STATE_ONGOING");
+    }
+
+    if (state === "upcoming") {
+      return this.translate.instant("TODAY.NOW_STATE_UPCOMING", {
+        minutes: Math.max(0, startMinutes - nowMinutes),
+      });
+    }
+
+    return this.translate.instant("TODAY.NOW_STATE_EXPIRED", {
+      minutes: Math.max(0, nowMinutes - endMinutes),
+    });
   }
 
   private buildTodayItems(
     tasks: readonly TaskAggregate[],
-    currentTaskId: string | null,
+    excludeIds: ReadonlySet<string>,
     byTaskId: ReadonlyMap<string, TodayTaskItem>,
     completedTaskIds: ReadonlySet<string>,
   ): TodayTaskListItem[] {
     return tasks
-      .filter((task) => task.id !== currentTaskId)
+      .filter((task) => !excludeIds.has(task.id))
       .sort((left, right) => {
         const leftCompleted = completedTaskIds.has(left.id);
         const rightCompleted = completedTaskIds.has(right.id);
@@ -519,9 +540,133 @@ export class TodayPage {
       }));
   }
 
+  private buildProximateItems(
+    tasks: readonly TaskAggregate[],
+    nowMinutes: number,
+    byTaskId: ReadonlyMap<string, TodayTaskItem>,
+    focusTaskId: string | null,
+    completedTaskIds: ReadonlySet<string>,
+  ): ProximateItem[] {
+    const taskItems: ProximateItem[] = tasks
+      .filter(
+        (task) =>
+          task.id !== focusTaskId &&
+          task.hasTime &&
+          typeof task.startMinutes === "number" &&
+          (task.startMinutes as number) > nowMinutes &&
+          !completedTaskIds.has(task.id),
+      )
+      .map((task): ProximateItem | null => {
+        const item = byTaskId.get(task.id);
+        if (!item) return null;
+        return {
+          kind: "task",
+          startMinutes: task.startMinutes as number,
+          taskItem: {
+            taskId: item.task.id,
+            priorityCode: item.task.priority,
+            title: item.task.title,
+            priorityLabel: this.translate.instant(
+              `TASK.PRIORITY.${item.task.priority}`,
+            ),
+            completed: false,
+            durationLabel: this.formatDuration(item.durationMin),
+            timeLabel: item.timeLabel,
+            color: this.resolveTaskColor(item.task),
+            sizeTier: this.resolveTaskSizeTier(item.durationMin),
+            durationMin: item.durationMin,
+            task: item.task,
+          },
+        };
+      })
+      .filter((item): item is ProximateItem => item !== null);
+
+    const gapItems: ProximateItem[] = buildGaps([...tasks], nowMinutes)
+      .filter((gap) => {
+        // When "Now" already shows free time, skip duplicating the same gap in
+        // "Upcoming". Keep future gaps visible.
+        if (focusTaskId !== null) {
+          return true;
+        }
+
+        return gap.startMinutes > nowMinutes;
+      })
+      .map(
+        (gap): ProximateItem => ({
+          kind: "gap",
+          startMinutes: gap.startMinutes,
+          key: `${gap.startMinutes}-${gap.endMinutes}`,
+          rangeLabel: `${this.minutesToTime(gap.startMinutes)} - ${this.minutesToTime(gap.endMinutes)}`,
+          durationLabel: this.formatDuration(gap.durationMinutes),
+          sizeTier: this.resolveTaskSizeTier(gap.durationMinutes),
+        }),
+      );
+
+    return [...taskItems, ...gapItems]
+      .sort((a, b) => a.startMinutes - b.startMinutes)
+      .slice(0, MAX_PROXIMATE_ITEMS);
+  }
+
+  async startNow(item: TodayTaskListItem): Promise<void> {
+    if (this.hasRunningTaskSession) {
+      return;
+    }
+
+    const now = new Date();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const nowTime = this.minutesToTime(nowMinutes);
+    const task = item.task;
+    const taskId = item.taskId;
+    const payload = this.toUpdateTaskInput(task);
+
+    if (task.scheduleType === "one_time") {
+      const todayIso = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        12,
+        0,
+        0,
+        0,
+      ).toISOString();
+      await this.taskRepository.updateTask(taskId, {
+        ...payload,
+        oneTimeDate: todayIso,
+        oneTimeTime: nowTime,
+      });
+    } else {
+      if (!payload.recurrence) {
+        return;
+      }
+
+      if (payload.recurrence.mode === "weekly_schedule") {
+        const weekday = getWeekday(this.currentDateKey, "UTC");
+        payload.recurrence = {
+          ...payload.recurrence,
+          weeklyDayTimes: payload.recurrence.weeklyDayTimes?.map((entry) =>
+            entry.dayOfWeek === weekday ? { ...entry, time: nowTime } : entry,
+          ),
+        };
+      } else {
+        payload.recurrence = {
+          ...payload.recurrence,
+          hasTime: true,
+          timeOfDay: nowTime,
+        };
+      }
+
+      await this.taskRepository.updateTask(taskId, payload);
+    }
+
+    await this.loadTodayData();
+  }
+
   private resolveCompletedTaskIdsForToday(): Set<string> {
     const todayKey = this.currentDateKey;
     const completed = new Set<string>();
+    const tasksById = new Map(
+      this.todayTasks.map((task) => [task.id, task] as const),
+    );
     for (const windowRecord of this.readActiveTimerWindows()) {
       if (!windowRecord.taskId || windowRecord.source !== "today") {
         continue;
@@ -544,6 +689,11 @@ export class TodayPage {
       }
 
       if (this.resolveDateKey(completedDate) !== todayKey) {
+        continue;
+      }
+
+      const task = tasksById.get(windowRecord.taskId);
+      if (!task || task.scheduleType === "recurring") {
         continue;
       }
 
@@ -827,6 +977,82 @@ export class TodayPage {
     return `${this.minutesToTime(nowMinutes)} - ${this.minutesToTime(end)}`;
   }
 
+  private resolveNowFreeDurationLabel(
+    tasks: readonly TaskAggregate[],
+    nowMinutes: number,
+  ): string {
+    const upcomingTimed = tasks
+      .filter(
+        (task) =>
+          task.hasTime &&
+          typeof task.startMinutes === "number" &&
+          task.startMinutes > nowMinutes,
+      )
+      .sort(
+        (left, right) =>
+          (left.startMinutes as number) - (right.startMinutes as number),
+      )[0];
+
+    const end = upcomingTimed?.startMinutes ?? 24 * 60;
+    const durationMinutes = Math.max(1, end - nowMinutes);
+    return this.formatDuration(durationMinutes);
+  }
+
+  private clamp(value: number, min: number, max: number): number {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  private async postponeTaskKeepingDuration(
+    task: PersistedTaskAggregate,
+    taskId: string,
+  ): Promise<void> {
+    const postponed = new Date(Date.now() + DEFAULT_POSTPONE_MINUTES * 60_000);
+    const nextMinutes = postponed.getHours() * 60 + postponed.getMinutes();
+    const nextTime = this.minutesToTime(nextMinutes);
+    const nextDateIso = new Date(
+      postponed.getFullYear(),
+      postponed.getMonth(),
+      postponed.getDate(),
+      12,
+      0,
+      0,
+      0,
+    ).toISOString();
+
+    const payload = this.toUpdateTaskInput(task);
+
+    if (task.scheduleType === "one_time") {
+      await this.taskRepository.updateTask(taskId, {
+        ...payload,
+        oneTimeDate: nextDateIso,
+        oneTimeTime: nextTime,
+      });
+      return;
+    }
+
+    if (!payload.recurrence) {
+      return;
+    }
+
+    if (payload.recurrence.mode === "weekly_schedule") {
+      const weekday = getWeekday(this.currentDateKey, "UTC");
+      payload.recurrence = {
+        ...payload.recurrence,
+        weeklyDayTimes: payload.recurrence.weeklyDayTimes?.map((entry) =>
+          entry.dayOfWeek === weekday ? { ...entry, time: nextTime } : entry,
+        ),
+      };
+    } else {
+      payload.recurrence = {
+        ...payload.recurrence,
+        hasTime: true,
+        timeOfDay: nextTime,
+      };
+    }
+
+    await this.taskRepository.updateTask(taskId, payload);
+  }
+
   private toUpdateTaskInput(task: PersistedTaskAggregate): UpdateTaskInput {
     return {
       title: task.title,
@@ -839,6 +1065,89 @@ export class TodayPage {
       oneTimeTime: task.oneTimeTime,
       estimatedDurationMin: task.estimatedDurationMin,
       categoryId: task.categoryId,
+      recurrence: this.toRecurrenceInput(task),
+      notification: this.toNotificationInput(task),
+    };
+  }
+
+  private toRecurrenceInput(
+    task: PersistedTaskAggregate,
+  ): CreateTaskRecurrenceInput | undefined {
+    if (task.scheduleType !== "recurring" || !task.recurrence) {
+      return undefined;
+    }
+
+    const recurrence = task.recurrence;
+    if (
+      recurrence.pattern === "selected_weekdays" &&
+      recurrence.hasTime &&
+      !recurrence.sameTimeForSelectedDays
+    ) {
+      return {
+        mode: "weekly_schedule",
+        weeklyDayTimes: recurrence.weekdays.map((entry) => ({
+          dayOfWeek: entry.dayOfWeek,
+          time: entry.timeValue ?? recurrence.commonTime ?? "00:00",
+          durationMin: entry.durationMin ?? null,
+        })),
+        hasTime: true,
+        sameTimeForSelectedDays: false,
+        commonDurationMin: recurrence.commonDurationMin ?? null,
+        startsToday: recurrence.startsToday,
+        hasEndDate: recurrence.hasEndDate,
+        startDate: recurrence.startDate,
+        endDate: recurrence.endDate,
+        timezone: recurrence.timezone,
+      };
+    }
+
+    return {
+      mode: "simple",
+      simpleType: recurrence.pattern,
+      hasTime: recurrence.hasTime,
+      sameTimeForSelectedDays:
+        recurrence.pattern === "selected_weekdays"
+          ? recurrence.sameTimeForSelectedDays
+          : true,
+      commonDurationMin: recurrence.commonDurationMin ?? null,
+      startsToday: recurrence.startsToday,
+      hasEndDate: recurrence.hasEndDate,
+      daysOfWeekMask:
+        recurrence.pattern === "selected_weekdays"
+          ? recurrence.weekdays.reduce(
+              (mask, entry) => mask | entry.weekdayBit,
+              0,
+            )
+          : null,
+      dayOfMonth:
+        recurrence.pattern === "monthly"
+          ? recurrence.dayOfMonth
+          : recurrence.yearDay,
+      monthOfYear:
+        recurrence.pattern === "yearly" ? recurrence.yearMonth : null,
+      timeOfDay: recurrence.hasTime
+        ? (recurrence.commonTime ?? recurrence.weekdays[0]?.timeValue ?? null)
+        : null,
+      startDate: recurrence.startDate,
+      endDate: recurrence.endDate,
+      timezone: recurrence.timezone,
+    };
+  }
+
+  private toNotificationInput(
+    task: PersistedTaskAggregate,
+  ): CreateTaskNotificationInput | undefined {
+    if (!task.notification) {
+      return undefined;
+    }
+
+    return {
+      notificationType: task.notification.notificationType,
+      triggerMode: task.notification.triggerMode,
+      notificationOffsets: task.notification.offsets,
+      soundName: task.notification.soundName,
+      ttsText: task.notification.ttsText,
+      repeatIfMissed: task.notification.repeatIfMissed,
     };
   }
 
@@ -927,11 +1236,12 @@ export class TodayPage {
     }
   }
 
-  private startTaskSession(taskId: string, durationMin: number): void {
-    const normalizedDuration = Math.max(
-      DEFAULT_FIVE_MIN_DURATION,
-      Math.round(durationMin),
-    );
+  private startTaskSession(
+    taskId: string,
+    durationMin: number,
+    sessionKind: "full" | "quick" = "full",
+  ): void {
+    const normalizedDuration = Math.max(5, Math.round(durationMin));
     const now = new Date();
     const expectedEndAt = new Date(now.getTime() + normalizedDuration * 60_000);
     const session: TodayRunningSession = {
@@ -940,6 +1250,7 @@ export class TodayPage {
       expectedEndAt: expectedEndAt.toISOString(),
       durationMin: normalizedDuration,
       status: "running",
+      sessionKind,
     };
 
     window.localStorage.setItem(
@@ -999,6 +1310,24 @@ export class TodayPage {
       // Ignore storage errors for completed sessions.
     }
 
+    const actualDurationMin = Math.max(
+      1,
+      Math.round(
+        (new Date(finishedAt).getTime() -
+          new Date(session.startedAt).getTime()) /
+          60_000,
+      ),
+    );
+    this.writeSessionHistoryRecord({
+      taskId: session.taskId,
+      dateKey: this.resolveDateKey(new Date(session.startedAt)),
+      startedAt: session.startedAt,
+      completedAt: finishedAt,
+      plannedDurationMin: session.durationMin,
+      actualDurationMin,
+      sessionKind: session.sessionKind ?? "full",
+    });
+
     this.writeActiveTimerWindow({
       startedAt: session.startedAt,
       expectedEndAt: session.expectedEndAt,
@@ -1037,6 +1366,45 @@ export class TodayPage {
       );
     } catch {
       // Ignore storage errors for timer windows.
+    }
+  }
+
+  private writeSessionHistoryRecord(record: SessionHistoryRecord): void {
+    try {
+      const existing = this.readSessionHistory();
+      existing.push(record);
+      window.localStorage.setItem(
+        SESSION_HISTORY_STORAGE_KEY,
+        JSON.stringify(existing),
+      );
+    } catch {
+      // Ignore storage errors.
+    }
+  }
+
+  readSessionHistory(): SessionHistoryRecord[] {
+    try {
+      const raw = window.localStorage.getItem(SESSION_HISTORY_STORAGE_KEY);
+      if (!raw) {
+        return [];
+      }
+
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed.filter(
+        (value): value is SessionHistoryRecord =>
+          !!value &&
+          typeof value === "object" &&
+          typeof value.taskId === "string" &&
+          typeof value.dateKey === "string" &&
+          typeof value.startedAt === "string" &&
+          typeof value.completedAt === "string",
+      );
+    } catch {
+      return [];
     }
   }
 

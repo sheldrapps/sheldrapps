@@ -122,6 +122,18 @@
   --app-priority-c: #6b7280;
   --app-priority-c-border: #5f6673;
 
+  /* Metal badge tokens */
+  --badge-rim-light: #d9ebff;
+  --badge-rim-mid: #6ba4e8;
+  --badge-rim-dark: #2f5ea4;
+
+  --badge-core-light: #eef6ff;
+  --badge-core-mid: #78aae6;
+  --badge-core-dark: #3a67a9;
+
+  --badge-text: #ffffff;
+  --badge-glow-rgb: var(--app-priority-s-glow-rgb);
+
   /* Callout tokens */
   --app-callout-padding-y: 12px;
   --app-callout-padding-x: 14px;

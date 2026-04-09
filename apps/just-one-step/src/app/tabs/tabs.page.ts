@@ -13,7 +13,9 @@ import {
   createOutline,
   listOutline,
   settingsOutline,
-} from 'ionicons/icons';
+  statsChartOutline,
+  analyticsOutline,
+} from "ionicons/icons";
 import { addIcons } from 'ionicons';
 
 @Component({
@@ -36,8 +38,10 @@ export class TabsPage {
       calendarOutline,
       listOutline,
       checkboxOutline,
-      createOutline,
+      analyticsOutline,
       settingsOutline,
+      statsChartOutline,
+      createOutline,
     });
   }
 }

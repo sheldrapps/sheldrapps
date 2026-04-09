@@ -85,10 +85,29 @@
               }
             </div>
           } @else {
-            <div class="agenda-day-timeline__body agenda-day-timeline__body--empty agenda-empty-body" [attr.aria-label]="segment.ariaLabel || null">
-              @if (segment.hint) {
-                <span class="agenda-day-timeline__hint agenda-empty-microcopy app-supporting-text">{{ segment.hint }}</span>
-              }
+            <div
+              class="agenda-day-timeline__body agenda-day-timeline__body--empty agenda-empty-body app-accent-surface app-task-accent-surface app-timeline-event app-duration-tier-target"
+              [style.--app-duration-tier-min-height.px]="segment.visualHeightPx"
+              [attr.aria-label]="segment.ariaLabel || null"
+            >
+              <div class="agenda-day-timeline__empty-content">
+                @if (segment.hint) {
+                  <span class="agenda-day-timeline__hint agenda-empty-microcopy app-timeline-event__title">{{ segment.hint }}</span>
+                }
+                @if (segment.timeLabel || segment.durationLabel) {
+                  <p class="agenda-day-timeline__empty-meta app-timeline-event__time">
+                    @if (segment.timeLabel) {
+                      <sh-time-display [value]="segment.timeLabel" size="sm" tone="accent"></sh-time-display>
+                      @if (segment.durationLabel) {
+                        <span class="agenda-day-timeline__empty-divider" aria-hidden="true">•</span>
+                      }
+                    }
+                    @if (segment.durationLabel) {
+                      <span class="agenda-day-timeline__empty-duration">{{ segment.durationLabel }}</span>
+                    }
+                  </p>
+                }
+              </div>
             </div>
           }
         </div>

@@ -228,6 +228,146 @@ ion-item.app-input-surface::part(native) {
   min-height: var(--app-duration-tier-min-height, 40px);
 }
 
+// ── Medal badge ─────────────────────────────────────────────────────────────
+// Physical medal / coin aesthetic: flat-pressed face, machined rim, inner ring
+// separating rim from field, wide oblique reflection instead of glossy spot.
+// Palettes (--badge-rim-* / --badge-core-* / --badge-text) are set per-variant
+// in the consuming component; the base only defines structure and lighting.
+
+.app-medal-badge {
+  position: relative;
+  width: 1.65rem;
+  height: 1.65rem;
+  border-radius: 50%;
+  isolation: isolate;
+  overflow: hidden;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
+
+  color: var(--badge-text);
+
+  // Rim: conic sweep simulates machined edge lighting.
+  // The small radial-gradient is kept very faint (0.22) so it reads as
+  // a surface sheen, not a glossy spot.
+  background:
+    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.22), transparent 40%),
+    conic-gradient(
+      from 210deg,
+      var(--badge-rim-light),
+      var(--badge-rim-mid),
+      var(--badge-rim-dark),
+      var(--badge-rim-mid),
+      var(--badge-rim-light)
+    );
+
+  // Outer drop shadow only — no convex inset shadows on the rim itself.
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+// Inner field: "struck / pressed" disc.
+// Uses a very shallow radial so the face reads flat, not domed.
+// The inner box-shadow ring (inset 0 0 0 1px) simulates the acuñado groove
+// between the rim and the field — this is the key "medal reads as medal" cue.
+.app-medal-badge::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.16) 0%,
+      rgba(255, 255, 255, 0.04) 22%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at center,
+      var(--badge-core-light) 0%,
+      var(--badge-core-mid) 58%,
+      var(--badge-core-dark) 100%
+    );
+
+  // Inner ring cue — very fine, concentric, separates rim from field
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.14);
+}
+
+// Sweeping reflection band — works on ALL badge colors because it creates
+// contrast through MOVEMENT (position change), not opacity change.
+// Opacity-based animations are invisible on light-colored badges (gold, silver,
+// bronze) where white-on-white has no contrast. A positional traverse is always
+// visible regardless of base hue.
+//
+// Band is ~50% wide (diffuse, not sharp) and rotated 22deg so it reads as
+// natural oblique light, not a UI button shine.
+// Parent overflow:hidden clips the band to the circle shape.
+.app-medal-badge::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -65%;
+  width: 50%;
+  height: 140%;
+  pointer-events: none;
+
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.55) 42%,
+    rgba(255, 255, 255, 0.55) 58%,
+    transparent 100%
+  );
+
+  opacity: 0;
+  transform: rotate(22deg);
+  animation: app-medal-sweep 6.5s ease-in-out infinite;
+}
+
+@keyframes app-medal-sweep {
+  // Band starts off the left edge, invisible
+  0%, 18% {
+    transform: rotate(22deg) translateX(0%);
+    opacity: 0;
+  }
+  // Fades in as it enters the disc
+  26% {
+    opacity: 1;
+  }
+  // Fades out as it exits the right edge
+  64% {
+    opacity: 1;
+  }
+  // Off the right side, invisible — stays here until next cycle
+  72%, 100% {
+    transform: rotate(22deg) translateX(480%);
+    opacity: 0;
+  }
+}
+
+// Label: stamped / engraved feel.
+// Kept subtle so the letter integrates with the metal surface.
+.app-medal-badge__label {
+  position: relative;
+  z-index: 2;
+
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18),
+    0 -1px 0 rgba(0, 0, 0, 0.24);
+
+  -webkit-text-stroke: 0.1px rgba(0, 0, 0, 0.18);
+}
+
 .time-digital-display {
   display: inline-flex;
   align-items: center;

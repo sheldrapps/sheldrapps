@@ -6,7 +6,7 @@
     "TODAY": "Today",
     "AGENDA": "Agenda",
     "TASKS": "Tasks",
-    "REFLECTION": "Reflection",
+    "REFLECTION": "Progress",
     "SETTINGS": "Settings"
   },
   "TODAY": {
@@ -31,13 +31,18 @@
       "HOUR_SHORT": "h"
     },
     "RUNNING": "Running",
-    "NOW_CTA_PLAY": "Whenever you want",
-    "NOW_CTA_FIVE_MIN": "If it helps, 5 min",
-    "NOW_CTA_RESCHEDULE": "If you prefer, reschedule",
-    "NOW_CTA_POSTPONE": "Postpone",
+    "NOW_CTA_PLAY": "Start",
+    "NOW_CTA_FIVE_MIN": "Just 5 min",
+    "NOW_CTA_RESCHEDULE": "Reschedule",
+    "NOW_CTA_POSTPONE": "Skip",
+    "NOW_CTA_DONE": "Mark as done",
+    "NOW_STATE_UPCOMING": "Starts in {{minutes}} min",
+    "NOW_STATE_ONGOING": "In progress",
+    "NOW_STATE_EXPIRED": "Ended {{minutes}} min ago",
     "EMPTY_TITLE": "No tasks right now",
     "EMPTY_HINT": "You don't need to do everything today. One step is enough.",
     "NOW_FREE_TITLE": "You are free right now",
+    "FREE_TIME_TITLE": "Free time",
     "NOW_FREE_MAIN": "You are free right now",
     "NOW_FREE_HINT": "This moment can work for:",
     "CATEGORY_NONE": "No category",
@@ -62,7 +67,12 @@
         "LINE_1": "Not perfect.",
         "LINE_2": "Just done."
       }
-    }
+    },
+    "UPCOMING_TASKS": {
+      "TITLE": "Coming up"
+    },
+    "UPCOMING_START_NOW": "Start now",
+    "START_NOW_BLOCKED_RUNNING": "A task is already running"
   },
   "AGENDA": {
     "TITLE": "Agenda",
@@ -98,7 +108,7 @@
     "OPEN_PROGRESS": "Progress"
   },
   "REFLECTION": {
-    "TITLE": "Reflection",
+    "TITLE": "Progress",
     "PROMPT": "Write a short reflection for today.",
     "PLACEHOLDER": "How did your day go?"
   },

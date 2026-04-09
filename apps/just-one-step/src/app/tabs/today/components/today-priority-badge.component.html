@@ -1,0 +1,9 @@
+<span
+  class="today-priority-badge app-medal-badge"
+  [class.today-priority-badge--s]="priority === 'S'"
+  [class.today-priority-badge--a]="priority === 'A'"
+  [class.today-priority-badge--b]="priority === 'B'"
+  [class.today-priority-badge--c]="priority === 'C'"
+  [class.today-priority-badge--glow]="priority === 'S'"
+  [attr.aria-label]="ariaLabel || null"
+><span class="today-priority-badge__label app-medal-badge__label">{{ priority }}</span></span>

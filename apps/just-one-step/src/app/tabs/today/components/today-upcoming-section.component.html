@@ -1,0 +1,48 @@
+@if (proximateItems.length > 0) {
+  <section class="app-section today-section today-section--upcoming">
+    <h2 class="today-section__title">{{ 'TODAY.UPCOMING_TASKS.TITLE' | translate }}</h2>
+    <div class="today-list">
+      @for (item of proximateItems; track item.kind === 'task' ? item.taskItem.taskId : item.key) {
+        @if (item.kind === 'task') {
+          <app-today-standard-card
+            [title]="item.taskItem.title"
+            [durationLabel]="item.taskItem.durationLabel"
+            [timeLabel]="item.taskItem.timeLabel"
+            [color]="item.taskItem.color"
+            [priorityCode]="item.taskItem.priorityCode"
+            [priorityLabel]="item.taskItem.priorityLabel"
+            [sizeTier]="item.taskItem.sizeTier"
+            [interactive]="true"
+            [expanded]="expandedTaskId === item.taskItem.taskId"
+            (cardClick)="toggleExpand(item.taskItem.taskId)"
+          >
+            @if (expandedTaskId === item.taskItem.taskId) {
+              <div todayCardActions class="today-upcoming-item__actions">
+                <ion-button
+                  class="app-btn"
+                  expand="block"
+                  [disabled]="startNowDisabled"
+                  (click)="onStartNow(item)"
+                >
+                  {{ 'TODAY.UPCOMING_START_NOW' | translate }}
+                </ion-button>
+                @if (startNowDisabled) {
+                  <p class="today-start-now-hint">
+                    {{ 'TODAY.START_NOW_BLOCKED_RUNNING' | translate }}
+                  </p>
+                }
+              </div>
+            }
+          </app-today-standard-card>
+        } @else {
+          <app-today-standard-card
+            [title]="'TODAY.FREE_TIME_TITLE' | translate"
+            [durationLabel]="item.durationLabel"
+            [timeLabel]="item.rangeLabel"
+            [sizeTier]="item.sizeTier"
+          ></app-today-standard-card>
+        }
+      }
+    </div>
+  </section>
+}

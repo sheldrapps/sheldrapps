@@ -6,7 +6,7 @@
     "TODAY": "Oggi",
     "AGENDA": "Agenda",
     "TASKS": "Attività",
-    "REFLECTION": "Riflessione",
+    "REFLECTION": "Progresso",
     "SETTINGS": "Impostazioni"
   },
   "TODAY": {
@@ -31,13 +31,18 @@
       "HOUR_SHORT": "h"
     },
     "RUNNING": "In corso",
-    "NOW_CTA_PLAY": "Quando vuoi",
-    "NOW_CTA_FIVE_MIN": "Se aiuta, 5 min",
-    "NOW_CTA_RESCHEDULE": "Se preferisci, riprogramma",
-    "NOW_CTA_POSTPONE": "Posticipa",
+    "NOW_CTA_PLAY": "Inizia",
+    "NOW_CTA_FIVE_MIN": "Solo 5 min",
+    "NOW_CTA_RESCHEDULE": "Riprogramma",
+    "NOW_CTA_POSTPONE": "Salta",
+    "NOW_CTA_DONE": "Segna come fatto",
+    "NOW_STATE_UPCOMING": "Inizia tra {{minutes}} min",
+    "NOW_STATE_ONGOING": "In corso",
+    "NOW_STATE_EXPIRED": "Finita da {{minutes}} min",
     "EMPTY_TITLE": "Nessuna attivit? al momento",
     "EMPTY_HINT": "Non devi fare tutto oggi. Un passo basta.",
     "NOW_FREE_TITLE": "Ora sei libero",
+    "FREE_TIME_TITLE": "Tempo libero",
     "NOW_FREE_MAIN": "Ora sei libero",
     "NOW_FREE_HINT": "Questo momento può servire per:",
     "CATEGORY_NONE": "Senza categoria",
@@ -62,7 +67,12 @@
         "LINE_1": "Non perfetto.",
         "LINE_2": "Solo fatto."
       }
-    }
+    },
+    "UPCOMING_TASKS": {
+      "TITLE": "Prossimamente"
+    },
+    "UPCOMING_START_NOW": "Inizia ora",
+    "START_NOW_BLOCKED_RUNNING": "C'è già un'attività in corso"
   },
   "AGENDA": {
     "TITLE": "Agenda",
@@ -98,7 +108,7 @@
     "OPEN_PROGRESS": "Progresso"
   },
   "REFLECTION": {
-    "TITLE": "Riflessione",
+    "TITLE": "Progresso",
     "PROMPT": "Scrivi una breve riflessione per oggi.",
     "PLACEHOLDER": "Com'e andata la giornata?"
   },

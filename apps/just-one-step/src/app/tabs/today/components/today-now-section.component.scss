@@ -21,37 +21,45 @@
   line-height: 1.2;
 }
 
-.today-running-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--app-space-1) var(--app-space-3);
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: rgba(var(--ion-color-primary-rgb), 0.92);
-  background: rgba(var(--ion-color-primary-rgb), 0.12);
-}
-
 .today-now-card {
+  --card-padding: var(--app-space-7);
+  --section-gap: var(--app-space-5);
+  --element-gap: var(--app-space-2);
+
   display: grid;
-  gap: var(--app-space-3);
+  gap: var(--section-gap);
   min-height: 13.2rem;
   box-shadow: var(--app-shadow-md);
   border-width: 2px;
 }
 
-.today-now-card__body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  gap: var(--app-space-4);
-  padding: var(--app-space-7) var(--app-space-8) var(--app-space-5);
+.today-now-card--upcoming {
+  opacity: 0.85;
 }
 
-.today-now-card__content {
+.today-now-card--ongoing {
+  box-shadow:
+    0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.2),
+    0 0 12px rgba(var(--ion-color-primary-rgb), 0.2),
+    var(--app-shadow-md);
+}
+
+.today-now-card--expired {
+  opacity: 0.6;
+  filter: saturate(0.7);
+}
+
+.today-now-card__body {
   display: grid;
-  gap: var(--app-space-2);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--section-gap);
+  padding: var(--card-padding) var(--card-padding) var(--app-space-6);
+}
+
+.today-now-card__header-block {
+  display: grid;
+  gap: var(--element-gap);
   min-width: 0;
 }
 
@@ -76,58 +84,40 @@
   font-size: 1.2rem;
   font-weight: 800;
   line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .today-now-card__meta {
   margin: 0;
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: var(--app-space-1);
   font-size: 0.86rem;
-  font-weight: 600;
-  color: rgba(var(--ion-color-step-700-rgb), 0.86);
+  font-weight: 500;
+  color: rgba(var(--ion-color-step-700-rgb), 0.72);
 }
 
-.today-now-card__time {
+.today-now-card__state {
   margin: 0;
-  font-size: 0.92rem;
+  font-size: var(--app-text-sm);
   font-weight: 700;
-  color: rgba(var(--ion-color-step-800-rgb), 0.94);
+  color: rgba(var(--ion-color-step-800-rgb), 0.92);
 }
 
-.today-progress-ring {
-  --today-progress-percent: 0%;
-  --today-progress-color: rgba(var(--ion-color-primary-rgb), 0.95);
-  width: 4.75rem;
-  height: 4.75rem;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  justify-self: end;
-  background: conic-gradient(
-    var(--today-progress-color) var(--today-progress-percent),
-    rgba(var(--ion-color-step-300-rgb), 0.32) var(--today-progress-percent)
-  );
-}
-
-.today-progress-ring__inner {
-  width: 3.65rem;
-  height: 3.65rem;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  background: rgba(var(--ion-color-step-50-rgb), 0.96);
-}
-
-.today-progress-ring__value {
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: rgba(var(--ion-color-step-800-rgb), 0.94);
+.today-now-card__timeline {
+  display: block;
+  --time-path-track: var(--app-task-accent-background-color);
+  --time-path-fill: var(--app-accent-border-color);
+  --time-path-fill-ongoing: var(--app-accent-border-color);
+  --time-path-fill-upcoming: var(--app-accent-border-color);
+  --time-path-fill-expired: var(--app-accent-border-color);
+  --time-path-rail-border-width: 1px;
+  --time-path-rail-border-color: var(--app-accent-border-color);
+  --time-path-rail-shadow: 0 0 0 1px var(--app-task-accent-shadow-color);
 }
 
 .today-now-actions {
   display: grid;
-  gap: var(--app-space-2);
+  gap: var(--section-gap);
   padding: 0 var(--app-space-6) var(--app-space-5);
 }
 
@@ -135,101 +125,30 @@
   margin: 0;
 }
 
-.today-now-actions__grid {
+.today-now-actions__row {
   margin-top: 0;
-}
-
-.today-free-card {
-  border: 1px solid rgba(var(--ion-color-step-300-rgb), 0.34);
-  background: rgba(var(--ion-color-step-100-rgb), 0.26);
-  box-shadow: none;
-  opacity: 0.86;
-}
-
-.today-free-card__body {
+  width: 100%;
   display: grid;
-  gap: var(--app-space-1);
-  padding: var(--app-space-5) var(--app-space-6);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--app-space-2);
 }
 
-.today-free-card__title {
-  margin: 0;
-  font-size: 1.02rem;
-  font-weight: 700;
-  color: rgba(var(--ion-color-step-700-rgb), 0.86);
+.today-now-actions__row--single-secondary {
+  grid-template-columns: 1fr;
 }
 
-.today-free-card__range {
+.today-now-actions__row ion-button {
   margin: 0;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: rgba(var(--ion-color-step-600-rgb), 0.72);
 }
 
 .today-dot-separator {
   color: rgba(var(--ion-color-step-500-rgb), 0.55);
 }
 
-.today-priority-badge {
-  width: 1.2rem;
-  height: 1.2rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  border: 1px solid transparent;
-  flex: 0 0 auto;
-  margin-inline-start: var(--app-space-3);
-  font-size: var(--app-text-2xs);
-  font-weight: var(--app-font-strong);
-  line-height: 1;
-  color: rgba(var(--ion-color-step-50-rgb), 0.98);
-  text-shadow: 0 1px 1px rgba(var(--ion-color-step-900-rgb), 0.24);
-  box-shadow: inset 0 0 0 1px rgba(var(--ion-color-step-50-rgb), 0.18);
-}
-
-.today-priority-badge--s {
-  background: var(--app-priority-s);
-  border-color: var(--app-priority-s-border);
-}
-
-.today-priority-badge--a {
-  background: var(--app-priority-a);
-  border-color: var(--app-priority-a-border);
-}
-
-.today-priority-badge--b {
-  background: var(--app-priority-b);
-  border-color: var(--app-priority-b-border);
-}
-
-.today-priority-badge--c {
-  background: var(--app-priority-c);
-  border-color: var(--app-priority-c-border);
-}
-
-.today-priority-badge--glow {
-  animation: today-soft-glow 8s ease-in-out infinite;
-}
-
-@keyframes today-soft-glow {
-  0% {
-    box-shadow: 0 0 0 0 rgba(var(--app-priority-s-glow-rgb), 0.15);
-    opacity: 0.9;
-  }
-  50% {
-    box-shadow: 0 0 0 var(--app-space-1) rgba(var(--app-priority-s-glow-rgb), 0.08);
-    opacity: 1;
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(var(--app-priority-s-glow-rgb), 0.15);
-    opacity: 0.9;
-  }
-}
-
 @media (max-width: 540px) {
   .today-now-card__body {
-    padding: var(--app-space-6) var(--app-space-6) var(--app-space-4);
+    --card-padding: var(--app-space-6);
+    padding: var(--card-padding) var(--card-padding) var(--app-space-4);
   }
 
   .today-now-actions {
