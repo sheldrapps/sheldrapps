@@ -12,7 +12,7 @@
 
 .task-toolbar-edit-btn {
   opacity: 0.8;
-  --color: rgba(var(--ion-color-step-700-rgb), 0.9);
+  --color: var(--app-toolbar-icon);
 }
 
 .task-toolbar-edit-btn ion-icon {
@@ -52,12 +52,12 @@
 }
 
 .task-meta-inline-sep {
-  color: rgba(var(--ion-color-step-500-rgb), 0.55);
+  color: var(--app-muted-text-color);
 }
 
 .task-description-inline {
   margin-top: var(--app-space-2);
-  color: rgba(var(--ion-color-step-600-rgb), 0.95);
+  color: var(--app-body-text-color);
   line-height: 1.35;
 }
 
@@ -86,14 +86,14 @@
 .schedule-fact-label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: rgba(var(--ion-color-step-600-rgb), 0.9);
+  color: var(--app-muted-text-color);
 }
 
 .schedule-fact-value {
   font-size: 0.95rem;
   font-weight: 600;
   line-height: 1.3;
-  color: rgba(var(--ion-color-step-800-rgb), 0.95);
+  color: var(--app-page-title-color);
 }
 
 .schedule-summary {
@@ -101,7 +101,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--app-space-2);
-  color: rgba(var(--ion-color-step-600-rgb), 0.96);
+  color: var(--app-body-text-color);
   font-size: 0.95rem;
   font-weight: 600;
 }
@@ -116,7 +116,7 @@
 .schedule-validity-block {
   margin-top: var(--app-space-4);
   padding-top: var(--app-space-3);
-  border-top: 1px solid rgba(var(--ion-color-step-300-rgb), 0.4);
+  border-top: 1px solid var(--app-divider);
   display: grid;
   gap: var(--app-space-2);
 }
@@ -124,7 +124,7 @@
 .schedule-validity-title {
   font-size: 0.88rem;
   font-weight: 700;
-  color: rgba(var(--ion-color-step-700-rgb), 0.92);
+  color: var(--app-section-title-color);
 }
 
 .schedule-validity-item {
@@ -132,7 +132,7 @@
 }
 
 .schedule-validity-sep {
-  color: rgba(var(--ion-color-step-500-rgb), 0.55);
+  color: var(--app-muted-text-color);
 }
 
 .time-grid {
@@ -154,7 +154,7 @@
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: capitalize;
-  color: rgba(var(--ion-color-step-500-rgb), 0.72);
+  color: var(--app-muted-text-color);
 }
 
 .schedule-single {
@@ -167,7 +167,7 @@
 .schedule-single-label {
   font-size: 0.88rem;
   font-weight: 600;
-  color: rgba(var(--ion-color-step-500-rgb), 0.95);
+  color: var(--app-muted-text-color);
 }
 
 .reminder-card-body {
@@ -215,7 +215,7 @@
   gap: var(--app-space-1);
   font-weight: 600;
   line-height: 1.35;
-  color: rgba(var(--ion-color-step-700-rgb), 0.92);
+  color: var(--app-body-text-color);
 }
 
 .reminder-type-name {
@@ -225,7 +225,7 @@
 .reminder-none-line {
   font-weight: 500;
   line-height: 1.35;
-  color: rgba(var(--ion-color-step-500-rgb), 0.82);
+  color: var(--app-muted-text-color);
 }
 
 .schedule-validity-label {

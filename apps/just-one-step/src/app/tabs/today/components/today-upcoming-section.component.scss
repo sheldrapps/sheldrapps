@@ -12,7 +12,7 @@
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.2;
-  color: rgba(var(--ion-color-step-900-rgb), 0.92);
+  color: var(--app-page-title-color);
 }
 
 .today-list {
@@ -30,5 +30,5 @@
   margin: 0;
   font-size: var(--app-text-xs);
   font-weight: var(--app-font-medium);
-  color: rgba(var(--ion-color-step-700-rgb), 0.82);
+  color: var(--app-muted-text-color);
 }

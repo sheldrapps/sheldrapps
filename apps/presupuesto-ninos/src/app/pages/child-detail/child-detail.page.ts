@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, computed, effect, inject } from "@angular/core";
+import { Component, ElementRef, ViewChild, computed, effect, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
@@ -30,6 +30,13 @@ import {
   ModalController,
   ToastController,
 } from "@ionic/angular/standalone";
+import {
+  type CoverCropState,
+  type CropFormatOption,
+  type CropperResult,
+  ImagePipelineService,
+} from "@sheldrapps/image-workflow";
+import { EditorSessionService } from "@sheldrapps/image-workflow/editor";
 import { addIcons } from "ionicons";
 import {
   add,
@@ -54,6 +61,16 @@ interface ExpenseGroup {
   expenses: Expense[];
   subtotal: number;
 }
+
+const AVATAR_FORMAT: CropFormatOption = {
+  id: "avatar-square",
+  label: "1:1",
+  target: {
+    // Keep enough detail for the circular UI while limiting persisted base64 size.
+    width: 512,
+    height: 512,
+  },
+};
 
 @Component({
   standalone: true,
@@ -88,12 +105,16 @@ interface ExpenseGroup {
   ],
 })
 export class ChildDetailPage {
+  @ViewChild("imageInput") imageInput?: ElementRef<HTMLInputElement>;
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private alertController = inject(AlertController);
   private modalController = inject(ModalController);
   private actionSheetController = inject(ActionSheetController);
   private toastController = inject(ToastController);
+  private editorSession = inject(EditorSessionService);
+  private imagePipe = inject(ImagePipelineService);
 
   readonly store = inject(BudgetStore);
   readonly childId = this.route.snapshot.paramMap.get("id") ?? "";
@@ -103,6 +124,10 @@ export class ChildDetailPage {
   );
 
   isOpeningCropper = false;
+  private lastEditorSessionId?: string;
+  private workingImageFile?: File;
+  private editorSourceFile?: File;
+  private cropState?: CoverCropState;
 
   readonly expenseGroups = computed(() => {
     const child = this.child();
@@ -165,61 +190,158 @@ export class ChildDetailPage {
     await this.store.setChildCreditAmount(this.childId, Number(value ?? 0));
   }
 
-  async selectImage(): Promise<void> {
+  selectImage(): void {
+    this.imageInput?.nativeElement.click();
+  }
+
+  ionViewWillEnter(): void {
+    void this.consumeEditorResult();
+  }
+
+  async onImageSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    let shouldOpenEditor = false;
+    this.setBusy(true);
+
     try {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-
-      input.onchange = async (event: Event) => {
-        try {
-          const target = event.target as HTMLInputElement;
-          const file = target.files?.[0];
-          if (!file) {
-            console.warn("No file selected");
-            return;
-          }
-          this.isOpeningCropper = true;
-          await this.saveImageAsBase64(file);
-
-          const toast = await this.toastController.create({
-            message: "Foto actualizada",
-            duration: 2000,
-            position: "bottom",
-            color: "success",
-          });
-          await toast.present();
-        } catch (error) {
-          console.error("Error in file change handler:", error);
-        } finally {
-          this.isOpeningCropper = false;
-        }
-      };
-
-      input.click();
+      shouldOpenEditor = await this.applyImageSource(file);
     } catch (error) {
-      console.error("Error selecting image:", error);
+      console.error("Error in file change handler:", error);
+    } finally {
+      this.setBusy(false);
+      input.value = "";
+    }
+
+    if (shouldOpenEditor) {
+      await this.startCrop();
     }
   }
 
-  async saveImageAsBase64(file: File): Promise<void> {
-    try {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        try {
-          const base64 = reader.result as string;
-          await this.store.setChildImage(this.childId, base64);
-        } catch (error) {
-          console.error("Error saving image:", error);
-        }
-      };
-      reader.onerror = () => {
-        console.error("Error reading file:", reader.error);
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      console.error("Error in saveImageAsBase64:", error);
+  private async applyImageSource(file: File): Promise<boolean> {
+    this.cropState = undefined;
+    let source = file;
+
+    const basicErr = this.imagePipe.validateBasic(source);
+    if (basicErr) {
+      return false;
     }
+
+    source = await this.imagePipe.materializeFile(source);
+
+    let originalDims = await this.imagePipe.getDimensions(source);
+    if (!originalDims) {
+      const normalized = await this.imagePipe.normalizeFile(source);
+      if (normalized) {
+        source = normalized;
+        originalDims = await this.imagePipe.getDimensions(source);
+      }
+    }
+
+    if (!originalDims) {
+      return false;
+    }
+
+    const working = await this.imagePipe.prepareWorkingImage(source);
+    this.workingImageFile = working;
+    this.editorSourceFile = working;
+    return true;
+  }
+
+  private async startCrop(): Promise<void> {
+    const sourceFile = this.editorSourceFile ?? this.workingImageFile;
+    if (!sourceFile) return;
+
+    const sid = this.editorSession.createSession({
+      file: sourceFile,
+      target: {
+        width: AVATAR_FORMAT.target.width,
+        height: AVATAR_FORMAT.target.height,
+      },
+      initialState: this.cropState,
+      tools: {
+        formats: {
+          options: [AVATAR_FORMAT],
+          selectedId: AVATAR_FORMAT.id,
+        },
+        fill: false,
+        adjustments: false,
+        text: false,
+      },
+      preview: {
+        maskShape: "circle",
+      },
+      returnUrl: this.getEditorReturnUrl(),
+    });
+
+    this.lastEditorSessionId = sid;
+    await this.router.navigate(["/editor/tools"], {
+      queryParams: { sid },
+    });
+  }
+
+  private getEditorReturnUrl(): string {
+    const current = this.router.url;
+    if (current.startsWith("/tabs/")) return current;
+    return `/tabs/nino/${this.childId}`;
+  }
+
+  private async consumeEditorResult(): Promise<void> {
+    let result: CropperResult | null = null;
+
+    if (this.lastEditorSessionId) {
+      result = this.editorSession.consumeResult(this.lastEditorSessionId);
+      this.lastEditorSessionId = undefined;
+    }
+
+    if (!result) {
+      result = this.editorSession.consumeLatestResult();
+    }
+
+    if (result) {
+      await this.applyEditorResult(result);
+    }
+  }
+
+  private async applyEditorResult(result: CropperResult): Promise<void> {
+    if (result.state) {
+      this.cropState = result.state;
+    }
+    this.workingImageFile = result.file;
+    const imageSource = result.renderedBlob ?? result.file;
+    await this.saveImageAsBase64(imageSource);
+
+    const toast = await this.toastController.create({
+      message: "Foto actualizada",
+      duration: 2000,
+      position: "bottom",
+      color: "success",
+    });
+    await toast.present();
+  }
+
+  private async saveImageAsBase64(source: Blob): Promise<void> {
+    try {
+      const base64 = await this.readAsDataUrl(source);
+      await this.store.setChildImage(this.childId, base64);
+    } catch (error) {
+      console.error("Error saving image:", error);
+    }
+  }
+
+  private readAsDataUrl(source: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result ?? ""));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(source);
+    });
+  }
+
+  private setBusy(next: boolean): void {
+    this.isOpeningCropper = next;
   }
 
   async addExpense(): Promise<void> {

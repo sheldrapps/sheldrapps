@@ -16,10 +16,23 @@ body {
 
 /* Header / Toolbar */
 ion-header ion-toolbar {
-  --background: var(--app-background);
-  --color: var(--app-text-primary);
+  --background: var(--app-toolbar-background);
+  --color: var(--app-toolbar-text);
   border-bottom: none;
   box-shadow: none;
+}
+
+ion-toolbar ion-title,
+ion-toolbar ion-button,
+ion-toolbar ion-back-button,
+ion-toolbar ion-menu-button {
+  color: var(--app-toolbar-text);
+}
+
+ion-toolbar ion-button,
+ion-toolbar ion-back-button,
+ion-toolbar ion-menu-button {
+  --color: var(--app-toolbar-icon);
 }
 
 ion-header::after {
@@ -29,7 +42,7 @@ ion-header::after {
 
 /* MD header hairline: replace default shadow with a clean 1px divider */
 ion-header.header-md {
-  border-bottom: 1px solid var(--ion-border-color);
+  border-bottom: 1px solid var(--app-toolbar-border);
   box-shadow: none;
 }
 
@@ -39,6 +52,7 @@ ion-header.header-md::after {
 }
 
 ion-title {
+  color: var(--app-page-title-color);
   text-shadow: none;
 }
 
@@ -57,25 +71,27 @@ ion-content {
 
 /* Tabs */
 ion-tab-bar {
-  --background: var(--app-background);
-  border-top: 1px solid var(--app-divider);
+  --background: var(--app-tabbar-background);
+  border-top: 1px solid var(--app-tabbar-border);
 }
 
 /* Keep tab button layout intact; style only the native part */
 ion-tab-button {
-  --color: var(--ion-color-medium);
-  --color-selected: var(--ion-color-primary);
+  --color: var(--app-tabbar-inactive-color);
+  --color-selected: var(--app-tabbar-active-color);
 }
 
 ion-tab-button::part(native) {
   border-radius: var(--app-radius-md);
   transition:
     background-color var(--app-dur-med) var(--app-ease),
+    color var(--app-dur-med) var(--app-ease),
     transform var(--app-dur-fast) var(--app-ease);
 }
 
 ion-tab-button.tab-selected::part(native) {
-  background: rgba(var(--ion-color-primary-rgb), 0.10);
+  background: var(--app-tabbar-active-background);
+  box-shadow: var(--app-tabbar-active-shadow);
 }
 
 ion-tab-button:active::part(native) {
@@ -86,8 +102,16 @@ ion-tab-button:active::part(native) {
 ion-button {
   --border-radius: var(--app-radius-md);
   --box-shadow: none;
+  --ripple-color: rgba(var(--ion-color-primary-rgb), 0.18);
   font-weight: 650;
   letter-spacing: 0.2px;
+}
+
+ion-button:not([fill]),
+ion-button[fill="solid"] {
+  --background: var(--app-button-primary-background);
+  --color: var(--app-button-primary-text);
+  --box-shadow: var(--app-button-primary-shadow, none);
 }
 
 ion-button::part(native) {
@@ -107,30 +131,34 @@ ion-button:active::part(native) {
 
 /* Outline / clear: keep a consistent "premium utility" look */
 ion-button[fill="outline"] {
-  --border-color: rgba(var(--ion-color-primary-rgb), 0.55);
-  --color: var(--ion-color-primary);
+  --border-color: var(--app-button-outline-border);
+  --color: var(--app-button-outline-text);
+  --background-hover: var(--app-button-outline-background-hover);
+  --background-activated: var(--app-button-outline-background-hover);
+  --box-shadow: var(--app-button-outline-shadow);
 }
 
 ion-button[fill="clear"] {
-  --color: var(--ion-color-primary);
+  --color: var(--app-button-outline-icon);
 }
 
 /* Back button */
 ion-back-button {
-  --color: var(--ion-color-primary);
+  --color: var(--app-toolbar-icon);
 }
 
 /* Icons (don't force size globally unless you want it everywhere) */
 ion-icon {
+  color: currentColor;
   vertical-align: middle;
 }
 
 /* Items: preserve structure; style native part + focus ring */
 ion-item {
-  --background: var(--app-surface);
+  --background: var(--app-control-background);
   --color: var(--app-text-primary);
   --border-color: var(--app-divider);
-  --detail-icon-color: var(--app-text-secondary);
+  --detail-icon-color: var(--app-control-icon);
   --detail-icon-opacity: 1;
   --inner-border-width: 0px;
   --min-height: 52px;
@@ -155,25 +183,39 @@ ion-item:focus-within::part(native) {
 }
 
 ion-label {
-  color: var(--app-text-primary);
+  color: var(--app-body-text-color);
   opacity: 1;
 }
 
 ion-label p {
-  color: var(--app-text-secondary);
+  color: var(--app-muted-text-color);
   opacity: 1;
+}
+
+ion-input,
+ion-textarea {
+  --color: var(--app-control-text);
+  --placeholder-color: var(--app-control-placeholder);
+  --placeholder-opacity: var(--app-form-placeholder-opacity);
+  --highlight-color-focused: var(--ion-color-primary);
+}
+
+ion-input::part(placeholder),
+ion-textarea::part(placeholder) {
+  color: var(--app-control-placeholder);
+  opacity: var(--app-form-placeholder-opacity);
 }
 
 /* Select */
 ion-select {
-  --color: var(--app-text-primary);
-  --placeholder-color: var(--app-text-secondary);
+  --color: var(--app-control-text);
+  --placeholder-color: var(--app-control-placeholder);
   --placeholder-opacity: 1;
   --highlight-color-focused: var(--ion-color-primary);
 }
 
 ion-select::part(icon) {
-  color: var(--app-text-secondary);
+  color: var(--app-control-icon);
 }
 
 /* Toggle: keep it calm and consistent */
@@ -213,6 +255,7 @@ ion-item-divider {
 /* Cards */
 ion-card {
   --background: var(--app-surface);
+  border: 1px solid var(--app-divider);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-shadow-sm);
   transition:
@@ -233,8 +276,8 @@ ion-spinner {
 /* Refresher */
 ion-refresher-content {
   --refreshing-spinner-color: var(--ion-color-primary);
-  --pulling-icon-color: var(--ion-color-medium);
-  --pulling-text-color: var(--ion-color-medium);
+  --pulling-icon-color: var(--app-muted-text-color);
+  --pulling-text-color: var(--app-muted-text-color);
 }
 
 /* Modals / Popovers – IMPORTANT: don't break fullscreen defaults */
@@ -242,6 +285,7 @@ ion-refresher-content {
 /* Default modal: DO NOT set --width/--height globally */
 ion-modal {
   --background: var(--app-surface);
+  --color: var(--app-text-primary);
 }
 
 /* Card modal (opt-in). Use: cssClass: 'modal-card' */
@@ -265,6 +309,7 @@ ion-modal.modal-card::part(content) {
 /* Popover */
 ion-popover {
   --background: var(--app-surface);
+  --color: var(--app-text-primary);
   --border-radius: var(--app-radius-md);
   --box-shadow: var(--app-shadow-md);
 }
@@ -349,14 +394,32 @@ ion-alert .alert-button {
 
 ion-alert .alert-radio-button[disabled] .alert-radio-label,
 ion-alert .alert-button[disabled] .alert-button-inner {
-  color: var(--app-text-secondary) !important;
-  opacity: 0.55;
+  color: var(--app-control-disabled-text) !important;
+  opacity: 1;
 }
 
 ion-item[disabled],
 ion-select[disabled],
 ion-input[disabled],
 ion-textarea[disabled] {
-  --color: var(--app-text-secondary);
-  opacity: 0.6;
+  --background: var(--app-control-disabled-background);
+  --color: var(--app-control-disabled-text);
+  opacity: 1;
+}
+
+ion-item[disabled]::part(native) {
+  background: var(--app-control-disabled-background);
+}
+
+ion-button[disabled] {
+  --color: var(--app-control-disabled-text);
+  opacity: 1;
+}
+
+ion-button[fill="outline"][disabled] {
+  --border-color: rgba(var(--ion-color-medium-rgb), 0.34);
+}
+
+ion-button:not([fill="outline"]):not([fill="clear"])[disabled] {
+  --background: var(--app-control-disabled-background);
 }

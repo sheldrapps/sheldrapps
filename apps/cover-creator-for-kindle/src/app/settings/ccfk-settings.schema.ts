@@ -7,6 +7,7 @@ import {
   type SupportedLocale,
 } from '@sheldrapps/i18n-kit';
 import { SettingsSchema, type MigrationContext } from '@sheldrapps/settings-kit';
+import { normalizeAppThemeMode, type AppThemeMode } from '@sheldrapps/ui-theme';
 
 type PreferenceValue = boolean | number | string | null;
 
@@ -14,6 +15,7 @@ type LegacyCcfkSettings = {
   lang?: string;
   language?: string;
   locale?: string;
+  theme?: string;
   brandId?: string;
   modelId?: string;
   kindleModelId?: string;
@@ -26,6 +28,7 @@ type LegacyCcfkSettings = {
 
 export interface CcfkSettings {
   language?: SupportedLocale;
+  theme: AppThemeMode;
   brandId?: string;
   modelId?: string;
   adsRemoved: boolean;
@@ -40,10 +43,11 @@ const LEGACY_HINT_KEYS = [
   'cc_hint_save_share_explain_shown',
   'cc_hint_share_kindle_shown',
 ] as const;
-const CCFK_SETTINGS_VERSION = 7;
+const CCFK_SETTINGS_VERSION = 8;
 
 const CCFK_DEFAULTS: CcfkSettings = {
   language: undefined,
+  theme: 'system',
   brandId: undefined,
   modelId: undefined,
   adsRemoved: false,
@@ -79,6 +83,7 @@ export const CCFK_SETTINGS_SCHEMA: SettingsSchema<CcfkSettings> = {
 
         return {
           language,
+          theme: normalizeAppThemeMode(legacySettings?.['theme']) ?? 'system',
           brandId:
             pickNonEmptyString(legacySettings?.brandId) ||
             (pickNonEmptyString(legacySettings?.modelId) ||
@@ -132,6 +137,12 @@ export const CCFK_SETTINGS_SCHEMA: SettingsSchema<CcfkSettings> = {
       run: async (ctx: MigrationContext<CcfkSettings>) =>
         migrateVersionedSettings(ctx.rawJson),
     },
+    {
+      fromVersion: 7,
+      toVersion: CCFK_SETTINGS_VERSION,
+      run: async (ctx: MigrationContext<CcfkSettings>) =>
+        migrateVersionedSettings(ctx.rawJson),
+    },
   ],
 };
 
@@ -174,6 +185,7 @@ async function migrateVersionedSettings(
 
   return {
     language,
+    theme: normalizeAppThemeMode(stored?.['theme']) ?? 'system',
     brandId:
       pickNonEmptyString(stored?.['brandId']) ||
       (pickNonEmptyString(stored?.['modelId']) ||

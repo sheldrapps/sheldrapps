@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   IonButton,
@@ -65,17 +65,17 @@ import {
     .pn-form-group label {
       font-weight: 600;
       font-size: 14px;
-      color: var(--ion-text-color);
+      color: var(--app-text-primary);
     }
 
     .pn-text-input {
       padding: 12px;
-      border: 1px solid var(--ion-border-color);
+      border: 1px solid var(--app-divider);
       border-radius: 8px;
       font-size: 16px;
       font-family: inherit;
-      background-color: var(--ion-background-color);
-      color: var(--ion-text-color);
+      background-color: var(--app-control-background);
+      color: var(--app-control-text);
     }
 
     .pn-text-input:focus {
@@ -95,9 +95,8 @@ import {
   ],
 })
 export class AddChildModalComponent {
+  private modalController = inject(ModalController);
   nameValue = "";
-
-  constructor(private modalController: ModalController) {}
 
   cancel(): void {
     void this.modalController.dismiss();

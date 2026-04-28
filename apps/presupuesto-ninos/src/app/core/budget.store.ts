@@ -1,26 +1,37 @@
-import { Injectable, signal } from '@angular/core';
-import { AppSettings, ChildBudget, ChildGender, Expense } from './models';
+import { Injectable, inject, signal } from '@angular/core';
+import {
+  Account,
+  AccountEntry,
+  AppSettings,
+  BiweeklySecondPayDay,
+  ChildBudget,
+  ChildGender,
+  CreditScheduleType,
+  Expense,
+} from './models';
 import { StorageRepo } from './storage.repo';
 import { getScheduledDatesBetween } from './credit-engine';
 import { createUuid } from './uuid';
 
 const DEFAULT_SETTINGS: AppSettings = {
   defaultCreditAmount: 20,
+  creditScheduleType: 'biweekly',
   creditDays: [15, 30],
-  useFebruaryOverride: true,
-  februaryDayOverride: 28,
+  monthlyCreditDay: 15,
+  weeklyCreditDay: 1,
+  biweeklySecondPayDay: 30,
 };
 
 @Injectable({
   providedIn: "root",
 })
 export class BudgetStore {
+  private repo = inject(StorageRepo);
   private initialized = false;
 
   readonly settings = signal<AppSettings>({ ...DEFAULT_SETTINGS });
+  readonly accounts = signal<Account[]>([]);
   readonly children = signal<ChildBudget[]>([]);
-
-  constructor(private repo: StorageRepo) {}
 
   async init(): Promise<void> {
     if (this.initialized) {
@@ -30,28 +41,36 @@ export class BudgetStore {
     this.initialized = true;
 
     const loadedSettings = (await this.repo.loadSettings()) ?? {};
-    const merged = {
+    const merged = this.normalizeSettings({
       ...DEFAULT_SETTINGS,
       ...loadedSettings,
-    };
-
-    merged.creditDays = this.normalizeCreditDays(merged.creditDays);
-    merged.februaryDayOverride = this.normalizeFebruaryOverride(
-      merged.februaryDayOverride,
-    );
+    });
 
     this.settings.set(merged);
+
+    const accounts = await this.repo.loadAccounts();
+    this.accounts.set(accounts.map((account) => this.normalizeAccount(account)));
 
     const children = await this.repo.loadChildren();
     this.children.set(children.map((child) => this.normalizeChild(child)));
 
     await this.persistSettings();
+    await this.persistAccounts();
     await this.persistChildren();
     await this.runCreditSweep();
   }
 
   async runCreditSweep(now: Date = new Date()): Promise<void> {
     const settings = this.settings();
+    const nextAccounts = new Map(
+      this.accounts().map((account) => [
+        account.id,
+        {
+          ...account,
+          entries: [...(account.entries ?? [])],
+        },
+      ]),
+    );
     const updated = this.children().map((child) => {
       const fromExclusive = child.lastCreditAt
         ? new Date(child.lastCreditAt)
@@ -76,6 +95,24 @@ export class BudgetStore {
       }
 
       const lastApplied = scheduled[scheduled.length - 1];
+      if (child.accountId) {
+        const account = nextAccounts.get(child.accountId);
+        if (account) {
+          for (const appliedAt of scheduled) {
+            account.balance -= child.creditAmount;
+            account.entries.push(
+              this.createAccountEntry({
+                type: 'credit',
+                label: `Abono: ${child.name}`,
+                amount: child.creditAmount,
+                createdAt: appliedAt.toISOString(),
+                childId: child.id,
+              }),
+            );
+          }
+        }
+      }
+
       return {
         ...child,
         balance: child.balance + child.creditAmount * scheduled.length,
@@ -85,7 +122,9 @@ export class BudgetStore {
       };
     });
 
+    this.accounts.set(Array.from(nextAccounts.values()));
     this.children.set(updated);
+    await this.persistAccounts();
     await this.persistChildren();
   }
 
@@ -168,6 +207,96 @@ export class BudgetStore {
     this.children.set(
       this.children().map((child) =>
         child.id === childId ? { ...child, imageThumb } : child,
+      ),
+    );
+    await this.persistChildren();
+  }
+
+  async addAccount(name: string): Promise<string | null> {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const next: Account = {
+      id: createUuid(),
+      name: trimmed,
+      balance: 0,
+      createdAt: new Date().toISOString(),
+      entries: [],
+    };
+
+    this.accounts.set([...this.accounts(), next]);
+    await this.persistAccounts();
+    return next.id;
+  }
+
+  async renameAccount(accountId: string, name: string): Promise<void> {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    this.accounts.set(
+      this.accounts().map((account) =>
+        account.id === accountId ? { ...account, name: trimmed } : account,
+      ),
+    );
+    await this.persistAccounts();
+  }
+
+  async setAccountBalance(accountId: string, newBalance: number): Promise<void> {
+    const normalized = Number(newBalance);
+    if (!Number.isFinite(normalized)) {
+      return;
+    }
+
+    this.accounts.set(
+      this.accounts().map((account) =>
+        account.id === accountId ? { ...account, balance: normalized } : account,
+      ),
+    );
+    await this.persistAccounts();
+  }
+
+  async addAccountIncome(
+    accountId: string,
+    label: string,
+    amount: number,
+  ): Promise<void> {
+    await this.appendAccountEntry(accountId, 'income', label, amount);
+  }
+
+  async addAccountExpense(
+    accountId: string,
+    label: string,
+    amount: number,
+  ): Promise<void> {
+    await this.appendAccountEntry(accountId, 'expense', label, amount);
+  }
+
+  async assignAccountToChild(
+    childId: string,
+    accountId: string | null,
+  ): Promise<void> {
+    this.children.set(
+      this.children().map((child) =>
+        child.id === childId
+          ? { ...child, accountId: accountId ?? undefined }
+          : child,
+      ),
+    );
+    await this.persistChildren();
+  }
+
+  async assignAccountToMultipleChildren(
+    childIds: string[],
+    accountId: string,
+  ): Promise<void> {
+    const idSet = new Set(childIds);
+    this.children.set(
+      this.children().map((child) =>
+        idSet.has(child.id) ? { ...child, accountId } : child,
       ),
     );
     await this.persistChildren();
@@ -348,27 +477,37 @@ export class BudgetStore {
   }
 
   async updateSettings(patch: Partial<AppSettings>): Promise<void> {
-    const merged: AppSettings = {
+    const merged = this.normalizeSettings({
       ...this.settings(),
       ...patch,
-    };
-
-    merged.defaultCreditAmount = Math.max(
-      0,
-      Number(merged.defaultCreditAmount) || 0,
-    );
-
-    merged.creditDays = this.normalizeCreditDays(merged.creditDays);
-    merged.februaryDayOverride = this.normalizeFebruaryOverride(
-      merged.februaryDayOverride,
-    );
+    });
 
     this.settings.set(merged);
     await this.persistSettings();
     await this.runCreditSweep();
   }
 
-  private normalizeCreditDays(days: number[]): number[] {
+  private normalizeSettings(raw: Partial<AppSettings>): AppSettings {
+    const creditDays = this.normalizeCreditDays(raw.creditDays);
+    const creditScheduleType = this.normalizeCreditScheduleType(
+      raw.creditScheduleType,
+      creditDays,
+    );
+
+    return {
+      defaultCreditAmount: Math.max(0, Number(raw.defaultCreditAmount) || 0),
+      creditScheduleType,
+      creditDays,
+      monthlyCreditDay: this.normalizeMonthDay(raw.monthlyCreditDay),
+      weeklyCreditDay: this.normalizeWeekday(raw.weeklyCreditDay),
+      biweeklySecondPayDay: this.normalizeBiweeklySecondPayDay(
+        raw.biweeklySecondPayDay,
+        creditDays,
+      ),
+    };
+  }
+
+  private normalizeCreditDays(days: number[] | undefined): number[] {
     const unique = new Set<number>();
     for (const day of days ?? []) {
       const normalized = Math.max(1, Math.min(31, Math.floor(Number(day))));
@@ -381,19 +520,68 @@ export class BudgetStore {
     return values.length > 0 ? values : [...DEFAULT_SETTINGS.creditDays];
   }
 
-  private normalizeFebruaryOverride(value: number): number {
+  private normalizeMonthDay(value: number | undefined): number {
     const normalized = Math.floor(Number(value));
     if (!Number.isFinite(normalized)) {
-      return DEFAULT_SETTINGS.februaryDayOverride;
+      return DEFAULT_SETTINGS.monthlyCreditDay;
     }
 
-    return Math.max(1, Math.min(28, normalized));
+    return Math.max(1, Math.min(31, normalized));
+  }
+
+  private normalizeWeekday(value: number | undefined): number {
+    const normalized = Math.floor(Number(value));
+    if (!Number.isFinite(normalized)) {
+      return DEFAULT_SETTINGS.weeklyCreditDay;
+    }
+
+    return Math.max(1, Math.min(7, normalized));
+  }
+
+  private normalizeBiweeklySecondPayDay(
+    value: number | undefined,
+    creditDays: number[],
+  ): BiweeklySecondPayDay {
+    if (Number(value) === 31) {
+      return 31;
+    }
+
+    if (creditDays.length === 2 && creditDays[0] === 15 && creditDays[1] === 31) {
+      return 31;
+    }
+
+    return 30;
+  }
+
+  private normalizeCreditScheduleType(
+    value: CreditScheduleType | undefined,
+    creditDays: number[],
+  ): CreditScheduleType {
+    if (
+      value === 'specific_days' ||
+      value === 'biweekly' ||
+      value === 'monthly' ||
+      value === 'weekly'
+    ) {
+      return value;
+    }
+
+    if (creditDays.length === 2 && creditDays[0] === 15 && creditDays[1] === 30) {
+      return 'biweekly';
+    }
+
+    if (creditDays.length === 2 && creditDays[0] === 15 && creditDays[1] === 31) {
+      return 'biweekly';
+    }
+
+    return 'specific_days';
   }
 
   private normalizeChild(child: ChildBudget): ChildBudget {
     const now = new Date().toISOString();
     return {
       ...child,
+      accountId: child.accountId ?? undefined,
       gender: child.gender ?? "nino",
       creditAmount: child.creditAmount ?? this.settings().defaultCreditAmount,
       createdAt: child.createdAt ?? now,
@@ -403,8 +591,86 @@ export class BudgetStore {
     };
   }
 
+  private normalizeAccount(account: Account): Account {
+    const now = new Date().toISOString();
+    return {
+      ...account,
+      name: (account.name ?? '').trim() || 'Cuenta',
+      balance: Number(account.balance) || 0,
+      createdAt: account.createdAt ?? now,
+      entries: Array.isArray(account.entries)
+        ? account.entries.map((entry) => this.normalizeAccountEntry(entry))
+        : [],
+    };
+  }
+
+  private normalizeAccountEntry(entry: AccountEntry): AccountEntry {
+    return {
+      ...entry,
+      type:
+        entry.type === 'income' || entry.type === 'expense' || entry.type === 'credit'
+          ? entry.type
+          : 'expense',
+      label: (entry.label ?? '').trim() || 'Movimiento',
+      amount: Math.max(0, Number(entry.amount) || 0),
+      createdAt: entry.createdAt ?? new Date().toISOString(),
+      childId: entry.childId ?? undefined,
+    };
+  }
+
+  private createAccountEntry(
+    entry: Omit<AccountEntry, 'id'>,
+  ): AccountEntry {
+    return {
+      id: createUuid(),
+      ...entry,
+    };
+  }
+
+  private async appendAccountEntry(
+    accountId: string,
+    type: 'income' | 'expense',
+    label: string,
+    amount: number,
+  ): Promise<void> {
+    const trimmed = label.trim();
+    const normalizedAmount = Number(amount);
+    if (!trimmed || !Number.isFinite(normalizedAmount) || normalizedAmount < 0) {
+      return;
+    }
+
+    this.accounts.set(
+      this.accounts().map((account) => {
+        if (account.id !== accountId) {
+          return account;
+        }
+
+        const nextEntry = this.createAccountEntry({
+          type,
+          label: trimmed,
+          amount: normalizedAmount,
+          createdAt: new Date().toISOString(),
+        });
+
+        return {
+          ...account,
+          balance:
+            type === 'income'
+              ? account.balance + normalizedAmount
+              : account.balance - normalizedAmount,
+          entries: [...account.entries, nextEntry],
+        };
+      }),
+    );
+    await this.persistAccounts();
+  }
+
   private async persistSettings(): Promise<void> {
     await this.repo.saveSettings(this.settings());
+  }
+
+  private async persistAccounts(): Promise<void> {
+    await this.repo.saveAccounts(this.accounts());
   }
 
   private async persistChildren(): Promise<void> {

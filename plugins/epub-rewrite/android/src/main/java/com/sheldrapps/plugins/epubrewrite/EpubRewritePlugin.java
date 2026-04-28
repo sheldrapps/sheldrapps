@@ -21,6 +21,7 @@ import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.CompressionMethod;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -46,9 +47,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.CRC32;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import net.lingala.zip4j.model.enums.CompressionMethod;
 import androidx.activity.result.ActivityResult;
 
 @CapacitorPlugin(name = "EpubRewritePlugin")
@@ -60,14 +58,11 @@ public class EpubRewritePlugin extends Plugin {
     private static final String WORK_FOLDER = "EPUBCoverChangerWork";
     private static final DateTimeFormatter WORK_TIMESTAMP_FORMAT =
         DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss", Locale.US);
-    private static final Pattern CONTAINER_OPF_PATTERN =
-        Pattern.compile("full-path\\s*=\\s*[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
-    private static final Pattern XML_TAG_PATTERN =
-        Pattern.compile("<(item|meta)\\b[^>]*>", Pattern.CASE_INSENSITIVE);
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final AtomicBoolean busy = new AtomicBoolean(false);
     private final AtomicBoolean cancelRequested = new AtomicBoolean(false);
+    private final EpubCoverLocator coverLocator = new EpubCoverLocator();
 
     @PluginMethod
     public void inspectEpub(PluginCall call) {
@@ -972,160 +967,7 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     private String findCoverEntryPath(ZipFile zipFile, List<FileHeader> headers) throws IOException {
-        String opfPath = resolveOpfPath(zipFile, headers);
-        if (opfPath != null) {
-            String opfCoverPath = findCoverPathFromOpf(zipFile, headers, opfPath);
-            if (opfCoverPath != null) {
-                return opfCoverPath;
-            }
-        }
-
-        for (String commonPath : new String[] {
-            "OEBPS/cover.jpg",
-            "OEBPS/cover.jpeg",
-            "OEBPS/cover.png",
-            "OEBPS/cover.webp",
-            "cover.jpg",
-            "cover.jpeg",
-            "cover.png",
-            "cover.webp"
-        }) {
-            if (findHeader(headers, commonPath) != null) {
-                return commonPath;
-            }
-        }
-
-        for (FileHeader header : headers) {
-            if (header == null || header.isDirectory()) {
-                continue;
-            }
-
-            String lower = normalizeZipPath(header.getFileName()).toLowerCase(Locale.US);
-            if (isImagePath(lower) && lower.contains("cover")) {
-                return normalizeZipPath(header.getFileName());
-            }
-        }
-
-        for (FileHeader header : headers) {
-            if (header == null || header.isDirectory()) {
-                continue;
-            }
-
-            String lower = normalizeZipPath(header.getFileName()).toLowerCase(Locale.US);
-            if (isImagePath(lower)) {
-                return normalizeZipPath(header.getFileName());
-            }
-        }
-
-        return null;
-    }
-
-    private String resolveOpfPath(ZipFile zipFile, List<FileHeader> headers) throws IOException {
-        FileHeader containerHeader = findHeader(headers, "META-INF/container.xml");
-        if (containerHeader == null) {
-            return null;
-        }
-
-        String containerXml = readEntryAsUtf8(zipFile, containerHeader);
-        Matcher matcher = CONTAINER_OPF_PATTERN.matcher(containerXml);
-        if (!matcher.find()) {
-            return null;
-        }
-
-        String opfPath = normalizeZipPath(matcher.group(1));
-        return findHeader(headers, opfPath) == null ? null : opfPath;
-    }
-
-    private String findCoverPathFromOpf(ZipFile zipFile, List<FileHeader> headers, String opfPath)
-        throws IOException {
-        FileHeader opfHeader = findHeader(headers, opfPath);
-        if (opfHeader == null) {
-            return null;
-        }
-
-        String opfXml = readEntryAsUtf8(zipFile, opfHeader);
-        String coverHref = null;
-        String coverId = null;
-
-        Matcher matcher = XML_TAG_PATTERN.matcher(opfXml);
-        while (matcher.find()) {
-            String tagName = matcher.group(1).toLowerCase(Locale.US);
-            String tag = matcher.group();
-
-            if ("item".equals(tagName)) {
-                String properties = attr(tag, "properties");
-                if (properties != null) {
-                    for (String property : properties.toLowerCase(Locale.US).split("\\s+")) {
-                        if ("cover-image".equals(property.trim())) {
-                            coverHref = attr(tag, "href");
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (coverHref == null && "meta".equals(tagName)) {
-                String metaName = attr(tag, "name");
-                if ("cover".equalsIgnoreCase(metaName)) {
-                    coverId = attr(tag, "content");
-                }
-            }
-        }
-
-        if (coverHref == null && coverId != null) {
-            Matcher itemMatcher = XML_TAG_PATTERN.matcher(opfXml);
-            while (itemMatcher.find()) {
-                if (!"item".equalsIgnoreCase(itemMatcher.group(1))) {
-                    continue;
-                }
-                String itemTag = itemMatcher.group();
-                if (coverId.equals(attr(itemTag, "id"))) {
-                    coverHref = attr(itemTag, "href");
-                    break;
-                }
-            }
-        }
-
-        if (coverHref == null) {
-            Matcher itemMatcher = XML_TAG_PATTERN.matcher(opfXml);
-            while (itemMatcher.find()) {
-                if (!"item".equalsIgnoreCase(itemMatcher.group(1))) {
-                    continue;
-                }
-                String itemTag = itemMatcher.group();
-                String href = attr(itemTag, "href");
-                String mediaType = attr(itemTag, "media-type");
-                if (href == null || mediaType == null) {
-                    continue;
-                }
-                if (mediaType.toLowerCase(Locale.US).startsWith("image/")
-                    && href.toLowerCase(Locale.US).contains("cover")) {
-                    coverHref = href;
-                    break;
-                }
-            }
-        }
-
-        if (coverHref == null) {
-            return null;
-        }
-
-        String opfDir = "";
-        int slashIndex = opfPath.lastIndexOf('/');
-        if (slashIndex >= 0) {
-            opfDir = opfPath.substring(0, slashIndex);
-        }
-
-        String resolved = resolveRelativePath(opfDir, coverHref);
-        return findHeader(headers, resolved) == null ? null : resolved;
-    }
-
-    private String readEntryAsUtf8(ZipFile zipFile, FileHeader header) throws IOException {
-        try (InputStream inputStream = new BufferedInputStream(zipFile.getInputStream(header))) {
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
-            copyStream(inputStream, output);
-            return output.toString(StandardCharsets.UTF_8);
-        }
+        return coverLocator.findCoverEntryPath(zipFile, headers);
     }
 
     private Path buildExtractedCoverPath(String coverEntryPath) throws IOException {
@@ -1160,55 +1002,6 @@ public class EpubRewritePlugin extends Plugin {
             }
         }
         return null;
-    }
-
-    private String resolveRelativePath(String baseDir, String href) {
-        String normalizedHref = normalizeZipPath(href);
-        if (normalizedHref.matches("^[a-zA-Z]+://.*$")) {
-            return normalizedHref;
-        }
-
-        String merged = baseDir == null || baseDir.isBlank()
-            ? normalizedHref
-            : baseDir + "/" + normalizedHref;
-
-        String[] parts = merged.split("/");
-        StringBuilder out = new StringBuilder();
-        for (String part : parts) {
-            if (part == null || part.isBlank() || ".".equals(part)) {
-                continue;
-            }
-            if ("..".equals(part)) {
-                int lastSlash = out.lastIndexOf("/");
-                if (lastSlash >= 0) {
-                    out.delete(lastSlash, out.length());
-                } else {
-                    out.setLength(0);
-                }
-                continue;
-            }
-            if (!out.isEmpty()) {
-                out.append('/');
-            }
-            out.append(part);
-        }
-        return out.toString();
-    }
-
-    private String attr(String tag, String attributeName) {
-        Pattern pattern = Pattern.compile(
-            attributeName + "\\s*=\\s*[\"']([^\"']+)[\"']",
-            Pattern.CASE_INSENSITIVE
-        );
-        Matcher matcher = pattern.matcher(tag);
-        return matcher.find() ? matcher.group(1) : null;
-    }
-
-    private boolean isImagePath(String path) {
-        return path.endsWith(".jpg")
-            || path.endsWith(".jpeg")
-            || path.endsWith(".png")
-            || path.endsWith(".webp");
     }
 
     private String extensionFromPath(String path) {

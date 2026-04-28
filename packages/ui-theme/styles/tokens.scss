@@ -99,6 +99,83 @@
   /* Focus ring (single, consistent) */
   --app-focus-ring: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.22);
 
+  /* Glow shadows — default off; themes can activate */
+  --app-tabbar-active-shadow: none;
+  --app-button-outline-shadow: none;
+
+  /* App chrome */
+  --app-toolbar-background: var(--app-surface);
+  --app-toolbar-text: var(--app-text-primary);
+  --app-toolbar-icon: var(--app-text-primary);
+  --app-toolbar-border: var(--app-divider);
+
+  --app-tabbar-background: var(--app-surface);
+  --app-tabbar-border: var(--app-divider);
+  --app-tabbar-active-background: rgba(var(--ion-color-primary-rgb), 0.14);
+  --app-tabbar-active-color: var(--ion-color-primary);
+  --app-tabbar-inactive-color: var(--app-text-secondary);
+
+  /* Shared semantic text roles */
+  --app-page-title-color: var(--app-text-primary);
+  --app-section-title-color: var(--app-text-primary);
+  --app-body-text-color: var(--app-text-primary);
+  --app-muted-text-color: var(--app-text-secondary);
+  --app-disabled-text-color: var(--app-control-disabled-text);
+
+  /* Controls */
+  --app-control-background: var(--app-surface);
+  --app-control-text: var(--app-text-primary);
+  --app-control-placeholder: var(--app-form-placeholder-color);
+  --app-control-icon: var(--app-text-secondary);
+  --app-control-disabled-background: rgba(var(--ion-color-medium-rgb), 0.12);
+  --app-control-disabled-text: rgba(var(--ion-color-medium-rgb), 0.88);
+  --app-control-disabled-icon: var(--app-control-disabled-text);
+
+  /* Buttons / CTAs */
+  --app-button-primary-background: var(--ion-color-primary);
+  --app-button-primary-text: var(--ion-color-primary-contrast);
+  --app-button-outline-border: rgba(var(--ion-color-primary-rgb), 0.62);
+  --app-button-outline-text: var(--ion-color-primary);
+  --app-button-outline-icon: var(--app-button-outline-text);
+  --app-button-outline-background-hover: rgba(var(--ion-color-primary-rgb), 0.08);
+  --app-premium-border: rgba(var(--ion-color-primary-rgb), 0.84);
+  --app-premium-text: var(--ion-color-primary);
+  --app-premium-background: rgba(var(--ion-color-primary-rgb), 0.08);
+
+  /* Accent fallbacks for task/category-driven surfaces */
+  --app-accent-fallback-color: var(--ion-color-primary);
+  --app-accent-border-fallback: rgba(var(--ion-color-primary-rgb), 0.68);
+  --app-accent-background-fallback: rgba(var(--ion-color-primary-rgb), 0.12);
+  --app-accent-shadow-fallback: rgba(var(--ion-color-primary-rgb), 0.18);
+
+  /* Shared icon containers */
+  --app-icon-container-border: var(--app-divider);
+  --app-icon-container-highlight: rgba(var(--ion-color-primary-rgb), 0.9);
+  --app-icon-container-shadow: inset 0 0 0 1px rgba(var(--ion-color-step-50-rgb), 0.2);
+  --app-icon-container-check-background: var(--app-surface);
+  --app-icon-container-check-color: var(--ion-color-success);
+
+  /* Editor surfaces */
+  --app-editor-background: var(--app-background);
+  --app-editor-surface: var(--app-surface);
+  --app-editor-toolbar-background: var(--app-toolbar-background);
+  --app-editor-toolbar-text: var(--app-toolbar-text);
+  --app-editor-toolbar-icon: var(--app-toolbar-icon);
+  --app-editor-grid-line: rgba(var(--ion-color-primary-rgb), 0.28);
+  --app-editor-preview-border: var(--app-divider);
+  --app-editor-helper-text: var(--app-text-secondary);
+  --app-editor-checker-light: rgba(var(--ion-color-step-50-rgb), 0.94);
+  --app-editor-checker-dark: rgba(var(--ion-color-step-150-rgb), 0.92);
+
+  /* Overlays */
+  --app-overlay-scrim: rgba(10, 14, 24, 0.52);
+  --app-overlay-scrim-strong: rgba(10, 14, 24, 0.24);
+  --app-overlay-card-background: rgba(var(--ion-background-color-rgb), 0.94);
+  --app-overlay-card-shadow: 0 8px 24px rgba(10, 14, 24, 0.22);
+  --app-toast-background: rgba(20, 24, 28, 0.68);
+  --app-toast-text: rgba(255, 255, 255, 0.92);
+  --app-toast-border: rgba(255, 255, 255, 0.12);
+
   /* Font stack */
   --ion-font-family: Inter, system-ui, -apple-system, "SF Pro Text", "Segoe UI", Roboto, Arial, sans-serif;
 

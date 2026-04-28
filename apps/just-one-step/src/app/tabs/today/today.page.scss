@@ -10,7 +10,7 @@
   display: grid;
   gap: var(--app-space-2);
   padding: var(--app-space-6) var(--app-space-7);
-  border: 1px dashed rgba(var(--ion-color-step-400-rgb), 0.55);
+  border: 1px dashed var(--app-divider);
   border-radius: var(--app-radius-md);
 }
 
@@ -23,5 +23,5 @@
 .today-empty__hint {
   margin: 0;
   font-size: var(--app-text-md);
-  color: rgba(var(--ion-color-step-600-rgb), 0.9);
+  color: var(--app-muted-text-color);
 }

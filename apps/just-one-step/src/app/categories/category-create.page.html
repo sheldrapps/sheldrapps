@@ -51,7 +51,7 @@
                   [style.--background-hover]="'transparent'"
                   [style.--background-focused]="'transparent'"
                   [style.--background-activated]="'transparent'"
-                  [style.--color]="'var(--ion-text-color)'"
+                  [style.--color]="'var(--app-text-primary)'"
                   [style.transform]="selectedColor === color ? 'scale(1.03)' : 'scale(1)'"
                 >
                   <span
@@ -66,7 +66,7 @@
                     [style.background]="color"
                     [style.outline]="colorTileOutline(color)"
                     [style.outline-offset]="'var(--app-space-hairline)'"
-                    [style.color]="selectedColor === color ? 'var(--ion-color-dark)' : 'transparent'"
+                    [style.color]="selectedColor === color ? 'var(--app-text-primary)' : 'transparent'"
                     [style.font-weight]="700"
                   >
                     &#10003;
@@ -94,7 +94,7 @@
                 [style.--background-hover]="'transparent'"
                 [style.--background-focused]="'transparent'"
                 [style.--background-activated]="'transparent'"
-                [style.--color]="'var(--ion-text-color)'"
+                [style.--color]="'var(--app-text-primary)'"
               >
                 <span
                   [style.display]="'inline-flex'"
@@ -105,7 +105,7 @@
                   [style.border-radius]="'var(--app-radius-sm)'"
                   [style.border]="pickerTileBorderStyle()"
                   [style.box-shadow]="pickerTileInsetShadowStyle()"
-                  [style.background]="'var(--ion-color-step-50, #f8fafc)'"
+                  [style.background]="'var(--app-control-background)'"
                   [style.font-size]="'var(--app-icon-sm)'"
                   [style.font-weight]="700"
                 >
@@ -142,7 +142,7 @@
                   [style.--background-hover]="'transparent'"
                   [style.--background-focused]="'transparent'"
                   [style.--background-activated]="'transparent'"
-                  [style.--color]="'var(--ion-text-color)'"
+                  [style.--color]="'var(--app-text-primary)'"
                 >
                   <span
                     [style.display]="'inline-flex'"
@@ -183,7 +183,7 @@
                 [style.--background-hover]="'transparent'"
                 [style.--background-focused]="'transparent'"
                 [style.--background-activated]="'transparent'"
-                [style.--color]="'var(--ion-text-color)'"
+                [style.--color]="'var(--app-text-primary)'"
               >
                 <span
                   [style.display]="'inline-flex'"
@@ -195,7 +195,7 @@
                   [style.border-radius]="'var(--app-radius-sm)'"
                   [style.border]="pickerTileBorderStyle()"
                   [style.box-shadow]="pickerTileInsetShadowStyle()"
-                  [style.background]="'var(--ion-color-step-50, #f8fafc)'"
+                  [style.background]="'var(--app-control-background)'"
                   [style.gap]="'var(--app-space-1)'"
                   [style.white-space]="'normal'"
                   [style.flex-direction]="'column'"

@@ -18,8 +18,8 @@
 	align-content: stretch;
 	min-height: 5.2rem;
 	padding: var(--app-space-5);
-	border: 1px solid rgba(var(--ion-color-step-300-rgb), 0.72);
-	background: rgba(var(--ion-color-step-50-rgb), 0.92);
+	border: 1px solid var(--app-divider);
+	background: var(--app-surface);
 	transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
 }
 

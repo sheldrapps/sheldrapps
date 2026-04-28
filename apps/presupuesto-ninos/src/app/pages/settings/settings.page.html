@@ -1,25 +1,27 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Configuración</ion-title>
+    <ion-title>{{ 'SETTINGS.TITLE' | translate }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">Configuración</ion-title>
+      <ion-title size="large">{{ 'SETTINGS.TITLE' | translate }}</ion-title>
     </ion-toolbar>
   </ion-header>
 
   <ion-card>
     <ion-card-header>
-      <ion-card-title>Reglas de abono</ion-card-title>
+      <ion-card-title>{{ 'SETTINGS.CREDIT_RULES.TITLE' | translate }}</ion-card-title>
     </ion-card-header>
 
     <ion-card-content>
       <ion-list>
         <ion-item>
-          <ion-label position="stacked">Abono por defecto</ion-label>
+          <ion-label position="stacked">
+            {{ 'SETTINGS.CREDIT_RULES.DEFAULT_AMOUNT' | translate }}
+          </ion-label>
           <ion-input
             type="number"
             step="0.01"
@@ -30,44 +32,123 @@
         </ion-item>
 
         <ion-item>
-          <ion-label position="stacked">Días de abono (ej. 15,30)</ion-label>
+          <ion-label position="stacked">
+            {{ 'SETTINGS.CREDIT_RULES.SCHEDULE_TYPE' | translate }}
+          </ion-label>
+          <ion-select
+            [(ngModel)]="form.creditScheduleType"
+            (ionChange)="saveSettings()"
+          >
+            <ion-select-option value="specific_days">
+              {{ 'SETTINGS.CREDIT_RULES.SCHEDULE_OPTION.SPECIFIC_DAYS' | translate }}
+            </ion-select-option>
+            <ion-select-option value="biweekly">
+              {{ 'SETTINGS.CREDIT_RULES.SCHEDULE_OPTION.BIWEEKLY' | translate }}
+            </ion-select-option>
+            <ion-select-option value="monthly">
+              {{ 'SETTINGS.CREDIT_RULES.SCHEDULE_OPTION.MONTHLY' | translate }}
+            </ion-select-option>
+            <ion-select-option value="weekly">
+              {{ 'SETTINGS.CREDIT_RULES.SCHEDULE_OPTION.WEEKLY' | translate }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-list>
+
+      @if (isSpecificDaysSchedule) {
+        <ion-item>
+          <ion-label position="stacked">
+            {{ 'SETTINGS.CREDIT_RULES.SPECIFIC_DAYS_LABEL' | translate }}
+          </ion-label>
           <ion-input
             type="text"
             [(ngModel)]="form.creditDaysText"
             (ionBlur)="saveSettings()"
           ></ion-input>
         </ion-item>
+        <ion-note class="settings-helper-text">
+          {{ 'SETTINGS.CREDIT_RULES.SPECIFIC_DAYS_HINT' | translate }}
+        </ion-note>
+      }
 
+      @if (isBiweeklySchedule) {
         <ion-item>
-          <ion-label>Usar regla especial de febrero</ion-label>
+          <ion-label>
+            {{ 'SETTINGS.CREDIT_RULES.BIWEEKLY_USE_31' | translate }}
+          </ion-label>
           <ion-toggle
-            [(ngModel)]="form.useFebruaryOverride"
+            [(ngModel)]="form.biweeklyUse31"
             (ionChange)="saveSettings()"
           ></ion-toggle>
         </ion-item>
+        <ion-note class="settings-helper-text">
+          {{ 'SETTINGS.CREDIT_RULES.BIWEEKLY_HINT' | translate }}
+        </ion-note>
+      }
 
-        <ion-item
-          [disabled]="!form.useFebruaryOverride"
-          [class.pn-disabled-row]="!form.useFebruaryOverride"
-        >
-          <ion-label position="stacked">Día de febrero</ion-label>
-          <ion-input
-            type="number"
-            step="1"
-            [(ngModel)]="form.februaryDayOverride"
-            (ionBlur)="saveSettings()"
-          ></ion-input>
-        </ion-item>
-      </ion-list>
+      @if (isMonthlySchedule) {
+        <div class="monthly-day-stepper-field">
+          <div class="form-label">
+            {{ 'SETTINGS.CREDIT_RULES.MONTHLY_DAY_LABEL' | translate }}
+          </div>
+          <div
+            class="monthly-day-stepper"
+            role="group"
+            [attr.aria-label]="'SETTINGS.CREDIT_RULES.MONTHLY_DAY_LABEL' | translate"
+          >
+            <ion-button
+              type="button"
+              fill="outline"
+              size="small"
+              (click)="onAdjustMonthlyCreditDay(-1)"
+              [disabled]="form.monthlyCreditDay <= 1"
+            >
+              -
+            </ion-button>
+            <div class="monthly-day-stepper-value">{{ form.monthlyCreditDay }}</div>
+            <ion-button
+              type="button"
+              fill="outline"
+              size="small"
+              (click)="onAdjustMonthlyCreditDay(1)"
+              [disabled]="form.monthlyCreditDay >= 31"
+            >
+              +
+            </ion-button>
+          </div>
+        </div>
+        <ion-note class="settings-helper-text">
+          {{ 'SETTINGS.CREDIT_RULES.MONTHLY_HINT' | translate }}
+        </ion-note>
+      }
+
+      @if (isWeeklySchedule) {
+        <div class="recurrence-weekdays">
+          @for (day of weekdays; track day.value) {
+            <ion-button
+              type="button"
+              size="small"
+              [fill]="form.weeklyCreditDay === day.value ? 'solid' : 'outline'"
+              (click)="onWeeklyDaySelect(day.value)"
+              [attr.aria-label]="day.longLabelKey | translate"
+            >
+              {{ day.shortLabelKey | translate }}
+            </ion-button>
+          }
+        </div>
+        <ion-note class="settings-helper-text">
+          {{ 'SETTINGS.CREDIT_RULES.WEEKLY_HINT' | translate }}
+        </ion-note>
+      }
     </ion-card-content>
   </ion-card>
 
   <div class="ion-padding">
     <ion-button expand="block" (click)="recalculate()">
-      Recalcular abonos
+      {{ 'SETTINGS.CREDIT_RULES.RECALCULATE' | translate }}
     </ion-button>
     <div class="pn-hint">
-      Aplica abonos pendientes según la configuración actual.
+      {{ 'SETTINGS.CREDIT_RULES.RECALCULATE_HINT' | translate }}
     </div>
   </div>
 </ion-content>

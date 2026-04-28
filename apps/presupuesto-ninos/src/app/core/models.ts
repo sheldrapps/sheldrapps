@@ -8,6 +8,25 @@ export interface Expense {
   groupName?: string;
 }
 
+export type AccountEntryType = "income" | "expense" | "credit";
+
+export interface AccountEntry {
+  id: string;
+  type: AccountEntryType;
+  label: string;
+  amount: number;
+  createdAt: IsoDate;
+  childId?: string;
+}
+
+export interface Account {
+  id: string;
+  name: string;
+  balance: number;
+  createdAt: IsoDate;
+  entries: AccountEntry[];
+}
+
 export interface BudgetPeriod {
   id: string;
   startDate: IsoDate;
@@ -17,11 +36,18 @@ export interface BudgetPeriod {
 }
 
 export type ChildGender = "nino" | "nina";
+export type CreditScheduleType =
+  | "specific_days"
+  | "biweekly"
+  | "monthly"
+  | "weekly";
+export type BiweeklySecondPayDay = 30 | 31;
 
 export interface ChildBudget {
   id: string;
   name: string;
   gender: ChildGender;
+  accountId?: string;
   balance: number;
   creditAmount: number;
   createdAt: IsoDate;
@@ -34,7 +60,9 @@ export interface ChildBudget {
 
 export interface AppSettings {
   defaultCreditAmount: number;
+  creditScheduleType: CreditScheduleType;
   creditDays: number[];
-  useFebruaryOverride: boolean;
-  februaryDayOverride: number;
+  monthlyCreditDay: number;
+  weeklyCreditDay: number;
+  biweeklySecondPayDay: BiweeklySecondPayDay;
 }

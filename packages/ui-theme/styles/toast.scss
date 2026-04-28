@@ -1,8 +1,8 @@
 /* Toast Component - Global Styles */
 
 ion-toast.cc-toast {
-  --cc-toast-bg: var(--ion-color-step-900);
-  --cc-toast-fg: var(--ion-background-color);
+  --cc-toast-bg: var(--app-toast-background);
+  --cc-toast-fg: var(--app-toast-text);
   --ion-color-base: var(--cc-toast-bg);
   --ion-color-contrast: var(--cc-toast-fg);
   --border-radius: 14px;
@@ -10,16 +10,10 @@ ion-toast.cc-toast {
   --max-width: min(80vw, 360px);
   --min-width: 120px;
   --width: fit-content;
-  --cc-toast-border-color: transparent;
+  --cc-toast-border-color: var(--app-toast-border);
   z-index: 99999;
   font-size: 0.95rem;
   text-align: center;
-}
-
-@media (prefers-color-scheme: dark) {
-  ion-toast.cc-toast {
-    --cc-toast-fg: var(--ion-text-color);
-  }
 }
 
 ion-toast.cc-toast.cc-toast--success {
@@ -35,17 +29,17 @@ ion-toast.cc-toast.cc-toast--info {
 }
 
 ion-toast.cc-toast {
-  --background: rgba(20, 24, 28, 0.65);
-  --color: rgba(255, 255, 255, 0.92);
+  --background: var(--app-toast-background);
+  --color: var(--app-toast-text);
 }
 
 ion-toast.cc-toast::part(container) {
-  background: rgba(20, 24, 28, 0.65) !important;
+  background: var(--app-toast-background) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid var(--cc-toast-border-color);
   border-radius: var(--border-radius);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--app-overlay-card-shadow);
   max-width: var(--max-width);
   min-width: var(--min-width);
   width: var(--width);
@@ -58,7 +52,7 @@ ion-toast.cc-toast::part(wrapper) {
 }
 
 ion-toast.cc-toast::part(message) {
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--app-toast-text);
   text-align: center;
   font-size: 0.98rem;
   line-height: 1.35;
@@ -67,5 +61,5 @@ ion-toast.cc-toast::part(message) {
 
 ion-toast.cc-toast::part(button),
 ion-toast.cc-toast::part(icon) {
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--app-toast-text);
 }

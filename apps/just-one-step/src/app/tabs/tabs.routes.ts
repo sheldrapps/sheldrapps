@@ -3,50 +3,55 @@ import { TabsPage } from './tabs.page';
 
 export const routes: Routes = [
   {
-    path: '',
+    path: "",
     component: TabsPage,
     children: [
       {
-        path: 'today',
+        path: "today",
         loadComponent: () =>
-          import('./today/today.page').then((m) => m.TodayPage),
+          import("./today/today.page").then((m) => m.TodayPage),
       },
       {
-        path: 'agenda',
+        path: "agenda",
         loadComponent: () =>
-          import('./agenda/agenda.page').then((m) => m.AgendaPage),
+          import("./agenda/agenda.page").then((m) => m.AgendaPage),
       },
       {
-        path: 'settings',
+        path: "settings",
         children: [
           {
-            path: '',
+            path: "",
             loadComponent: () =>
-              import('./settings/settings.page').then((m) => m.SettingsPage),
+              import("./settings/settings.page").then((m) => m.SettingsPage),
           },
           {
-            path: 'instructions',
+            path: "instructions",
             loadComponent: () =>
-              import('./settings/instructions.page').then(
-                (m) => m.InstructionsPage
+              import("./settings/instructions.page").then(
+                (m) => m.InstructionsPage,
               ),
+          },
+          {
+            path: "theme",
+            loadComponent: () =>
+              import("./settings/theme.page").then((m) => m.ThemePage),
           },
         ],
       },
       {
-        path: 'tasks',
+        path: "tasks",
         loadComponent: () =>
-          import('./tasks/tasks.page').then((m) => m.TasksPage),
+          import("./tasks/tasks.page").then((m) => m.TasksPage),
       },
       {
-        path: 'reflection',
+        path: "reflection",
         loadComponent: () =>
-          import('./reflection/reflection.page').then((m) => m.ReflectionPage),
+          import("./reflection/reflection.page").then((m) => m.ReflectionPage),
       },
       {
-        path: '',
-        redirectTo: 'today',
-        pathMatch: 'full',
+        path: "",
+        redirectTo: "today",
+        pathMatch: "full",
       },
     ],
   },

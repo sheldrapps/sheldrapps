@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
-import { AppSettings, ChildBudget } from './models';
+import { Account, AppSettings, ChildBudget } from './models';
 
 export const PN_SETTINGS = 'PN_SETTINGS';
 export const PN_CHILDREN = 'PN_CHILDREN';
+export const PN_ACCOUNTS = 'PN_ACCOUNTS';
 
 @Injectable({
   providedIn: 'root',
@@ -30,6 +31,18 @@ export class StorageRepo {
     await Preferences.set({
       key: PN_CHILDREN,
       value: JSON.stringify(children),
+    });
+  }
+
+  async loadAccounts(): Promise<Account[]> {
+    const result = await Preferences.get({ key: PN_ACCOUNTS });
+    return this.parseJson<Account[]>(result.value) ?? [];
+  }
+
+  async saveAccounts(accounts: Account[]): Promise<void> {
+    await Preferences.set({
+      key: PN_ACCOUNTS,
+      value: JSON.stringify(accounts),
     });
   }
 

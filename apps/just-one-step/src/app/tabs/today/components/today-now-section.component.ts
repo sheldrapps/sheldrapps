@@ -1,7 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { IonButton } from "@ionic/angular/standalone";
 import { TranslateModule } from "@ngx-translate/core";
-import { TimePathComponent } from "@sheldrapps/ui-theme";
+import {
+  THEME_ACCENT_BACKGROUND_FALLBACK,
+  TimePathComponent,
+  withThemeAlpha,
+} from "@sheldrapps/ui-theme";
 import { ScheduledState, TodayNowCard } from "../today.models";
 import { TodayPriorityBadgeComponent } from "./today-priority-badge.component";
 import { TodayStandardCardComponent } from "./today-standard-card.component";
@@ -32,19 +36,6 @@ export class TodayNowSectionComponent {
   }
 
   withAlpha(hexColor: string, alpha: number): string {
-    const normalized = hexColor.trim();
-    const hex = normalized.startsWith("#") ? normalized.slice(1) : normalized;
-    if (hex.length !== 6) {
-      return "rgba(0, 0, 0, 0.08)";
-    }
-
-    const red = Number.parseInt(hex.slice(0, 2), 16);
-    const green = Number.parseInt(hex.slice(2, 4), 16);
-    const blue = Number.parseInt(hex.slice(4, 6), 16);
-    if ([red, green, blue].some((channel) => Number.isNaN(channel))) {
-      return "rgba(0, 0, 0, 0.08)";
-    }
-
-    return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+    return withThemeAlpha(hexColor, alpha, THEME_ACCENT_BACKGROUND_FALLBACK);
   }
 }

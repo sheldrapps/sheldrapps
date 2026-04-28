@@ -25,8 +25,8 @@
   /* Icon color tokens (themed) */
   --app-icon-color-primary: var(--ion-color-primary);
   --app-icon-color-secondary: var(--ion-color-secondary);
-  --app-icon-color-muted: var(--ion-color-medium);
-  --app-icon-color-default: var(--ion-text-color);
+  --app-icon-color-muted: var(--app-text-secondary);
+  --app-icon-color-default: var(--app-text-primary);
 
   /* Icon + text label size */
   --app-icon-text-size: 10px;

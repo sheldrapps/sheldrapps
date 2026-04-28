@@ -155,6 +155,18 @@
     "PRIVACY_OPTIONS": "Options de confidentialité",
     "PRIVACY_POLICY": "Politique de confidentialité",
     "PRIVACY_SECTION": "Confidentialité",
+    "THEME": "Thème",
+    "THEME_SYSTEM": "Système",
+    "THEME_LIGHT": "Clair naturel",
+    "THEME_DARK": "Sombre classique",
+    "THEME_WARM_READING": "Lecture chaleureuse",
+    "THEME_POP_ROSE": "Rose pop",
+    "THEME_NOCTURNE_VIOLET": "Violet nocturne",
+    "THEME_OBSIDIAN_RED": "Rouge obsidienne",
+    "THEME_TERMINAL_GREEN": "Vert terminal",
+    "THEME_MINT_FRESH": "Vert Menthe",
+    "THEME_SILVER_TECH": "Silver",
+    "THEME_GOLD_LUXE": "Oro",
     "TITLE": "Paramètres"
   },
   "TABS": {

@@ -1,75 +1,114 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Presupuestos</ion-title>
+    <ion-title>{{ 'HOME.TITLE' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openAddMenu()">
+        {{ 'HOME.ADD_BUTTON' | translate }}
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">Presupuestos</ion-title>
+      <ion-title size="large">{{ 'HOME.TITLE' | translate }}</ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <div *ngFor="let group of budgetGroups()">
-    <div *ngIf="group.groupName || budgetGroups().length > 1" class="budget-group-header">
-      {{ group.groupName || 'Sin grupo' }}
+  <div *ngFor="let accountGroup of budgetAccountGroups()">
+    <button
+      *ngIf="accountGroup.accountId || budgetAccountGroups().length > 1"
+      type="button"
+      class="account-group-header"
+      [class.account-group-header--actionable]="!!accountGroup.accountId"
+      (click)="openAccountActions(accountGroup.accountId)"
+    >
+      <div class="account-group-header__text">
+        {{ accountGroup.accountName || ('HOME.ACCOUNT.NONE' | translate) }}
+      </div>
+      <div
+        *ngIf="accountGroup.accountBalance !== null"
+        class="account-group-header__balance pn-balance"
+        [ngClass]="getBalanceClass(accountGroup.accountBalance)"
+      >
+        {{ accountGroup.accountBalance | currency:'MXN':'symbol':'1.2-2' }}
+      </div>
+    </button>
+
+    <div *ngIf="accountGroup.budgetGroups.length > 0" class="account-group-summary">
+      <span>{{ 'HOME.ACCOUNT.BUDGET_SUMMARY' | translate }}</span>
+      <strong
+        class="pn-balance"
+        [ngClass]="getBalanceClass(accountGroup.budgetsTotalBalance)"
+      >
+        {{ accountGroup.budgetsTotalBalance | currency:'MXN':'symbol':'1.2-2' }}
+      </strong>
     </div>
 
-    <ion-list class="pn-list-items">
-      <ion-item-sliding *ngFor="let budget of group.budgets">
-        <ion-item
-          button
-          detail
-          (click)="openBudget(budget.id)"
-        >
-          <div slot="start" class="pn-home-avatar">
-            <img *ngIf="budget.imageThumb" [src]="budget.imageThumb" alt="" />
-            <ion-icon *ngIf="!budget.imageThumb" name="person-outline" aria-hidden="true"></ion-icon>
-          </div>
-          <ion-label>
-            <div class="pn-child__name">{{ budget.name }}</div>
-            <div class="pn-child__sub">
-              Abono: {{ budget.creditAmount | currency:'MXN':'symbol':'1.2-2' }}
-            </div>
-          </ion-label>
-          <div class="pn-balance" [ngClass]="getBalanceClass(budget.balance)">
-            {{ budget.balance | currency:'MXN':'symbol':'1.2-2' }}
-          </div>
-        </ion-item>
+    <div *ngIf="accountGroup.accountId && accountGroup.budgetGroups.length === 0" class="account-group-empty">
+      {{ 'HOME.ACCOUNT.EMPTY_BUDGETS' | translate }}
+    </div>
 
-        <ion-item-options side="start">
-          <ion-item-option color="tertiary" (click)="assignGroupToBudget(budget.id, budget.groupName)">
-            <ion-icon name="bookmark-outline" slot="icon-only" aria-hidden="true"></ion-icon>
-          </ion-item-option>
-        </ion-item-options>
-
-        <ion-item-options side="end">
-          <ion-item-option color="danger" (click)="deleteBudget(budget.id, budget.name)">
-            <ion-icon name="trash-outline" slot="icon-only" aria-hidden="true"></ion-icon>
-          </ion-item-option>
-        </ion-item-options>
-      </ion-item-sliding>
-    </ion-list>
-
-    <!-- Subtotal del grupo -->
-    <ion-item *ngIf="group.groupName || budgetGroups().length > 1" lines="none" class="pn-group-subtotal-item">
-      <ion-label class="pn-group-subtotal-label">
-        <strong>Subtotal {{ group.groupName || 'sin grupo' }}</strong>
-      </ion-label>
-      <div class="pn-group-subtotal-amount">
-        <strong [ngClass]="getBalanceClass(group.totalBalance)">{{ group.totalBalance | currency:'MXN':'symbol':'1.2-2' }}</strong>
+    <div *ngFor="let group of accountGroup.budgetGroups">
+      <div *ngIf="group.groupName || accountGroup.budgetGroups.length > 1" class="budget-group-header">
+        {{ group.groupName || ('HOME.GROUP.NONE' | translate) }}
       </div>
-    </ion-item>
+
+      <ion-list class="pn-list-items">
+        <ion-item-sliding *ngFor="let budget of group.budgets">
+          <ion-item
+            button
+            detail
+            (click)="openBudget(budget.id)"
+          >
+            <div slot="start" class="pn-home-avatar">
+              <img *ngIf="budget.imageThumb" [src]="budget.imageThumb" alt="" />
+              <ion-icon *ngIf="!budget.imageThumb" name="person-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <ion-label>
+              <div class="pn-child__name">{{ budget.name }}</div>
+              <div class="pn-child__sub">
+                {{ 'HOME.CREDIT_AMOUNT' | translate }}:
+                {{ budget.creditAmount | currency:'MXN':'symbol':'1.2-2' }}
+              </div>
+            </ion-label>
+            <div class="pn-balance" [ngClass]="getBalanceClass(budget.balance)">
+              {{ budget.balance | currency:'MXN':'symbol':'1.2-2' }}
+            </div>
+          </ion-item>
+
+          <ion-item-options side="start">
+            <ion-item-option color="medium" (click)="assignAccountToBudget(budget.id, budget.accountId)">
+              <ion-icon name="card-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+            </ion-item-option>
+            <ion-item-option color="tertiary" (click)="assignGroupToBudget(budget.id, budget.groupName)">
+              <ion-icon name="bookmark-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+            </ion-item-option>
+          </ion-item-options>
+
+          <ion-item-options side="end">
+            <ion-item-option color="danger" (click)="deleteBudget(budget.id, budget.name)">
+              <ion-icon name="trash-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
+      </ion-list>
+
+      <ion-item *ngIf="group.groupName || accountGroup.budgetGroups.length > 1" lines="none" class="pn-group-subtotal-item">
+        <ion-label class="pn-group-subtotal-label">
+          <strong>
+            {{ 'HOME.GROUP.SUBTOTAL' | translate:{ name: group.groupName || ('HOME.GROUP.NONE_LOWER' | translate) } }}
+          </strong>
+        </ion-label>
+        <div class="pn-group-subtotal-amount">
+          <strong [ngClass]="getBalanceClass(group.totalBalance)">{{ group.totalBalance | currency:'MXN':'symbol':'1.2-2' }}</strong>
+        </div>
+      </ion-item>
+    </div>
   </div>
 
-  <div class="empty-state" *ngIf="store.children().length === 0">
-    No hay presupuestos registrados todavía.
+  <div class="empty-state" *ngIf="store.children().length === 0 && store.accounts().length === 0">
+    {{ 'HOME.EMPTY_STATE' | translate }}
   </div>
-
-  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
-    <ion-fab-button (click)="addBudget()">
-      <ion-icon name="add" aria-hidden="true"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
 </ion-content>

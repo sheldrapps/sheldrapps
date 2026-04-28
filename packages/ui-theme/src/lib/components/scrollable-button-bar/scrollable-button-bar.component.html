@@ -20,7 +20,7 @@
           [disabled]="disabled || isItemDisabled(item.id)" [attr.aria-label]="itemAriaLabel(item)"
           (click)="onItemClick(item.id)">
           <ng-container *ngIf="item.type === 'color'; else defaultItem">
-            <span class="sb-color" [style.background]="item.colorHex || '#000'"></span>
+            <span class="sb-color" [style.background]="item.colorHex || 'var(--app-accent-fallback-color)'"></span>
           </ng-container>
           <ng-template #defaultItem>
             <ng-container [ngSwitch]="variant">

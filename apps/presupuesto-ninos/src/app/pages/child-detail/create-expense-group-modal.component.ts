@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   IonButton,
@@ -66,15 +66,17 @@ import {
     .pn-form-group label {
       font-weight: 600;
       font-size: 14px;
-      color: var(--ion-color-dark);
+      color: var(--app-text-primary);
     }
 
     .pn-text-input {
       padding: 12px;
-      border: 1px solid var(--ion-color-medium);
+      border: 1px solid var(--app-divider);
       border-radius: 4px;
       font-size: 16px;
       font-family: inherit;
+      background: var(--app-control-background);
+      color: var(--app-control-text);
     }
 
     .pn-text-input:focus {
@@ -95,9 +97,8 @@ import {
   ],
 })
 export class CreateExpenseGroupModalComponent {
+  private modalController = inject(ModalController);
   groupValue = "";
-
-  constructor(private modalController: ModalController) {}
 
   cancel(): void {
     void this.modalController.dismiss(null, "cancel");

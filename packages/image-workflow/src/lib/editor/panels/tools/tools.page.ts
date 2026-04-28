@@ -1,4 +1,4 @@
-import { Component, inject, DestroyRef, computed } from "@angular/core";
+import { Component, inject, DestroyRef, computed, effect } from "@angular/core";
 import {
   TranslateModule,
   TranslateService,
@@ -35,6 +35,11 @@ export class ToolsPage {
   );
 
   constructor() {
+    effect(() => {
+      this.ui.toolsConfig();
+      this.toolItems = this.buildToolItems();
+    });
+
     merge(
       this.translate.onLangChange as Observable<LangChangeEvent>,
       this.translate.onTranslationChange as Observable<TranslationChangeEvent>,
@@ -46,6 +51,7 @@ export class ToolsPage {
   }
 
   private buildToolItems(): ScrollableBarItem[] {
+    const toolsConfig = this.ui.toolsConfig();
     const cropKey =
       TOOLS_REGISTRY.crop.titleKey ??
       "EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP";
@@ -74,12 +80,21 @@ export class ToolsPage {
         ariaLabel: label,
       }) as unknown as ScrollableBarItem;
 
-    return [
-      makeItem("crop", cropLabel),
-      makeItem("rotate", rotateLabel),
-      makeItem("zoom", zoomLabel),
-      makeItem("fill", fillLabel),
-    ];
+    const items: ScrollableBarItem[] = [makeItem("crop", cropLabel)];
+
+    if (toolsConfig?.rotate !== false) {
+      items.push(makeItem("rotate", rotateLabel));
+    }
+
+    if (toolsConfig?.zoom !== false) {
+      items.push(makeItem("zoom", zoomLabel));
+    }
+
+    if (toolsConfig?.fill !== false) {
+      items.push(makeItem("fill", fillLabel));
+    }
+
+    return items;
   }
 
   onSelectTool(panelId: string): void {

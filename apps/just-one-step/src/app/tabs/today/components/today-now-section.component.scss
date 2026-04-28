@@ -76,7 +76,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: rgba(var(--ion-color-step-700-rgb), 0.72);
+  color: var(--app-muted-text-color);
 }
 
 .today-now-card__title {
@@ -93,14 +93,14 @@
   margin: 0;
   font-size: 0.86rem;
   font-weight: 500;
-  color: rgba(var(--ion-color-step-700-rgb), 0.72);
+  color: var(--app-muted-text-color);
 }
 
 .today-now-card__state {
   margin: 0;
   font-size: var(--app-text-sm);
   font-weight: 700;
-  color: rgba(var(--ion-color-step-800-rgb), 0.92);
+  color: var(--app-page-title-color);
 }
 
 .today-now-card__timeline {
@@ -142,7 +142,7 @@
 }
 
 .today-dot-separator {
-  color: rgba(var(--ion-color-step-500-rgb), 0.55);
+  color: var(--app-muted-text-color);
 }
 
 @media (max-width: 540px) {

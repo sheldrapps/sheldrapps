@@ -7,6 +7,13 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TimeDisplayComponent } from '../time-display/time-display.component';
+import {
+  THEME_ACCENT_BACKGROUND_FALLBACK,
+  THEME_ACCENT_BORDER_FALLBACK,
+  THEME_ACCENT_SHADOW_FALLBACK,
+  resolveThemeAccentColor,
+  withThemeAlpha,
+} from '../../theme';
 
 export interface DayAgendaTimelineBoundary {
   key: string;
@@ -169,55 +176,38 @@ export class DayAgendaTimelineComponent {
   }
 
   resolveAccentColor(segment: DayAgendaTimelineSegment): string {
-    return segment.accentColor?.trim() || '#64748B';
+    return resolveThemeAccentColor(segment.accentColor, THEME_ACCENT_BORDER_FALLBACK);
   }
 
   resolveEventItemAccentColor(item: DayAgendaTimelineEventItem): string {
-    return item.accentColor?.trim() || '#64748B';
+    return resolveThemeAccentColor(item.accentColor, THEME_ACCENT_BORDER_FALLBACK);
   }
 
   resolveEventItemAccentBackgroundColor(item: DayAgendaTimelineEventItem): string {
     return (
       item.accentBackgroundColor?.trim() ||
-      this.withAlpha(this.resolveEventItemAccentColor(item), 0.14)
+      withThemeAlpha(item.accentColor, 0.14, THEME_ACCENT_BACKGROUND_FALLBACK)
     );
   }
 
   resolveEventItemAccentShadowColor(item: DayAgendaTimelineEventItem): string {
     return (
       item.accentShadowColor?.trim() ||
-      this.withAlpha(this.resolveEventItemAccentColor(item), 0.22)
+      withThemeAlpha(item.accentColor, 0.22, THEME_ACCENT_SHADOW_FALLBACK)
     );
   }
 
   resolveAccentBackgroundColor(segment: DayAgendaTimelineSegment): string {
     return (
       segment.accentBackgroundColor?.trim() ||
-      this.withAlpha(this.resolveAccentColor(segment), 0.14)
+      withThemeAlpha(segment.accentColor, 0.14, THEME_ACCENT_BACKGROUND_FALLBACK)
     );
   }
 
   resolveAccentShadowColor(segment: DayAgendaTimelineSegment): string {
     return (
       segment.accentShadowColor?.trim() ||
-      this.withAlpha(this.resolveAccentColor(segment), 0.22)
+      withThemeAlpha(segment.accentColor, 0.22, THEME_ACCENT_SHADOW_FALLBACK)
     );
-  }
-
-  private withAlpha(hexColor: string, alpha: number): string {
-    const normalized = hexColor.trim();
-    const hex = normalized.startsWith('#') ? normalized.slice(1) : normalized;
-    if (hex.length !== 6) {
-      return 'rgba(0, 0, 0, 0.08)';
-    }
-
-    const red = Number.parseInt(hex.slice(0, 2), 16);
-    const green = Number.parseInt(hex.slice(2, 4), 16);
-    const blue = Number.parseInt(hex.slice(4, 6), 16);
-    if ([red, green, blue].some((value) => Number.isNaN(value))) {
-      return 'rgba(0, 0, 0, 0.08)';
-    }
-
-    return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
   }
 }

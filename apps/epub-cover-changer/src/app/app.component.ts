@@ -5,7 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { BillingService } from '@sheldrapps/ads-kit';
 import { detectSupportedLocale, LanguageService } from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
-import { EdgeToEdgeService } from '@sheldrapps/ui-theme';
+import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
 import { Subscription } from 'rxjs';
 import { EccSettings } from './settings/ecc-settings.schema';
 
@@ -20,13 +20,13 @@ export class AppComponent implements OnDestroy {
   private t = inject(TranslateService);
   private title = inject(Title);
   private edgeToEdge = inject(EdgeToEdgeService);
+  private theme = inject(ThemeService);
   private settings = inject(SettingsStore<EccSettings>);
   private billing = inject(BillingService);
 
   private langSub?: Subscription;
 
   constructor() {
-    void this.edgeToEdge.initEdgeToEdge();
     if (typeof globalThis.queueMicrotask === 'function') {
       globalThis.queueMicrotask(() => {
         this.billing.startPostBootstrapSync();
@@ -44,7 +44,8 @@ export class AppComponent implements OnDestroy {
   }
 
   private async init() {
-    await this.settings.load();
+    await this.edgeToEdge.initEdgeToEdge();
+    await this.theme.initialize();
 
     const currentSettings = this.settings.get();
     const storedLanguage = currentSettings.language;

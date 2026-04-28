@@ -5,7 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { detectSupportedLocale, LanguageService } from '@sheldrapps/i18n-kit';
 import { BillingService } from '@sheldrapps/ads-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
-import { EdgeToEdgeService } from '@sheldrapps/ui-theme';
+import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
 import { CcfkSettings } from './settings/ccfk-settings.schema';
 
 import { NavigationStart, Router } from '@angular/router';
@@ -22,17 +22,15 @@ export class AppComponent implements OnDestroy {
   private router = inject(Router);
   private edgeToEdge = inject(EdgeToEdgeService);
   private billing = inject(BillingService);
+  private lang = inject(LanguageService);
+  private t = inject(TranslateService);
+  private title = inject(Title);
+  private theme = inject(ThemeService);
 
   private navSub?: Subscription;
   private langSub?: Subscription;
 
-  constructor(
-    private lang: LanguageService,
-    private t: TranslateService,
-    private title: Title,
-  ) {
-    void this.edgeToEdge.initEdgeToEdge();
-
+  constructor() {
     // Release focus before Ionic hides the previous page with aria-hidden
     this.navSub = this.router.events
       .pipe(filter((e): e is NavigationStart => e instanceof NavigationStart))
@@ -60,7 +58,8 @@ export class AppComponent implements OnDestroy {
   }
 
   private async init() {
-    await this.settings.load();
+    await this.edgeToEdge.initEdgeToEdge();
+    await this.theme.initialize();
 
     const currentSettings = this.settings.get();
     const storedLanguage = currentSettings.language;

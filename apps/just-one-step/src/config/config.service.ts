@@ -5,13 +5,13 @@ import {
   detectSupportedLocale,
 } from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
+import { ThemeService } from '@sheldrapps/ui-theme';
 import {
   JustOneStepSettings,
   JustOneStepTheme,
   PreferenceValue,
 } from '../app/settings/just-one-step-settings.schema';
 import { Lang } from '../app/services/language.service';
-import { ThemeService } from '../app/services/theme.service';
 
 @Injectable({ providedIn: 'root' })
 export class ConfigService {

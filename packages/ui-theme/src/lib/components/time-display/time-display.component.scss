@@ -47,11 +47,11 @@
 }
 
 .app-time-display--muted {
-  color: rgba(var(--ion-color-step-600-rgb), 0.82);
+  color: var(--app-muted-text-color);
 }
 
 .app-time-display--accent {
-  color: rgba(var(--ion-color-primary-rgb), 0.72);
+  color: var(--ion-color-primary);
 }
 
 .app-time-display--left {

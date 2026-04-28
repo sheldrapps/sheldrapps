@@ -24,6 +24,10 @@ import {
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
+  THEME_ACCENT_BACKGROUND_FALLBACK,
+  withThemeAlpha,
+} from '@sheldrapps/ui-theme';
+import {
   CategoryNameValidationError,
   CategoryNameValidationException,
   categoryNameValidationErrorToI18nKey,
@@ -285,29 +289,29 @@ export class CategoryCreatePage {
   }
 
   pickerTileBorderStyle(): string {
-    return '1px solid rgba(0, 0, 0, 0.25)';
+    return '1px solid var(--app-icon-container-border)';
   }
 
   pickerTileInsetShadowStyle(): string {
-    return 'inset 0 0 0 1px rgba(255, 255, 255, 0.25)';
+    return 'inset 0 0 0 1px var(--app-icon-container-shadow)';
   }
 
   colorTileOutline(color: CategoryColor): string {
     return this.selectedColor === color
-      ? 'var(--app-space-hairline) solid rgba(0, 0, 0, 0.85)'
+      ? 'var(--app-space-hairline) solid var(--app-icon-container-highlight)'
       : 'none';
   }
 
   iconTileOutline(icon: string): string {
     return this.selectedIcon === icon
-      ? 'var(--app-space-hairline) solid rgba(0, 0, 0, 0.85)'
+      ? 'var(--app-space-hairline) solid var(--app-icon-container-highlight)'
       : 'none';
   }
 
   iconTileBackground(icon: string): string {
     return this.selectedIcon === icon
       ? this.withAlpha(this.selectedColor, 0.2)
-      : 'var(--ion-color-step-50, #f3f4f6)';
+      : 'var(--app-control-background)';
   }
 
   async submit(): Promise<void> {
@@ -415,20 +419,7 @@ export class CategoryCreatePage {
   }
 
   private withAlpha(hexColor: string, alpha: number): string {
-    const normalized = hexColor.trim();
-    const hex = normalized.startsWith('#') ? normalized.slice(1) : normalized;
-    if (hex.length !== 6) {
-      return 'rgba(0, 0, 0, 0.08)';
-    }
-
-    const red = Number.parseInt(hex.slice(0, 2), 16);
-    const green = Number.parseInt(hex.slice(2, 4), 16);
-    const blue = Number.parseInt(hex.slice(4, 6), 16);
-    if ([red, green, blue].some((value) => Number.isNaN(value))) {
-      return 'rgba(0, 0, 0, 0.08)';
-    }
-
-    return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+    return withThemeAlpha(hexColor, alpha, THEME_ACCENT_BACKGROUND_FALLBACK);
   }
 
   private updateEmojiDraftState(options: { showInvalid: boolean }): EmojiDraftAnalysis {

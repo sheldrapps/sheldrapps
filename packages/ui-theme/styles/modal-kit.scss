@@ -4,7 +4,7 @@
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--app-overlay-scrim);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   z-index: 5;
@@ -16,9 +16,9 @@
   gap: var(--app-space-4);
   padding: var(--app-space-4) var(--app-space-5);
   border-radius: 14px;
-  background: rgba(var(--ion-background-color-rgb), 0.92);
-  color: var(--ion-text-color);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  background: var(--app-overlay-card-background);
+  color: var(--app-text-primary);
+  box-shadow: var(--app-overlay-card-shadow);
 }
 
 .frame-loader__text {
@@ -38,8 +38,8 @@
   align-items: center;
   gap: var(--app-space-4);
 
-  background: rgba(var(--ion-background-color-rgb), 0.86);
-  color: var(--ion-text-color);
+  background: var(--app-editor-toolbar-background);
+  color: var(--app-editor-toolbar-text);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 
@@ -53,6 +53,6 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: rgba(var(--ion-text-color-rgb), 0.08);
+  background: var(--app-divider);
   pointer-events: none;
 }

@@ -7,40 +7,25 @@
 <ion-content>
   <div class="app-page">
     <ion-list inset="true">
-      <ion-item>
-        <ion-label>{{ 'SETTINGS.LANGUAGE' | translate }}</ion-label>
-        <ion-select
-          interface="alert"
-          [value]="currentLanguage"
-          (ionChange)="onLangChange($event.detail.value)"
-          [cancelText]="'COMMON.CANCEL' | translate"
-          [okText]="'COMMON.DONE' | translate"
-        >
-          <ion-select-option
-            *ngFor="let l of supportedLangs; trackBy: trackByLang"
-            [value]="l.code"
-          >
-            {{ l.label }}
-          </ion-select-option>
-        </ion-select>
+      <ion-item button detail="true" (click)="openLanguageModal()">
+        <ion-label class="ion-text-wrap">
+          <h2>{{ 'SETTINGS.LANGUAGE' | translate }}</h2>
+          <p>
+            <span
+              class="app-language-option__flag"
+              [ngClass]="currentLanguageOption?.flagClass"
+              aria-hidden="true"
+            ></span>
+            {{ currentLanguageOption?.label }}
+          </p>
+        </ion-label>
       </ion-item>
 
-      <ion-item>
-        <ion-label>{{ 'SETTINGS.THEME' | translate }}</ion-label>
-        <ion-select
-          interface="alert"
-          [value]="currentTheme"
-          (ionChange)="onThemeChange($event.detail.value)"
-          [cancelText]="'COMMON.CANCEL' | translate"
-          [okText]="'COMMON.DONE' | translate"
-        >
-          <ion-select-option
-            *ngFor="let t of supportedThemes; trackBy: trackByTheme"
-            [value]="t.code"
-          >
-            {{ t.labelKey | translate }}
-          </ion-select-option>
-        </ion-select>
+      <ion-item button detail="true" [routerLink]="['/tabs/settings/theme']">
+        <ion-label class="ion-text-wrap">
+          <h2>{{ 'SETTINGS.THEME' | translate }}</h2>
+          <p>{{ currentThemeLabelKey | translate }}</p>
+        </ion-label>
       </ion-item>
     </ion-list>
 
@@ -75,5 +60,40 @@
         <ion-label>{{ 'SETTINGS.INSTRUCTIONS' | translate }}</ion-label>
       </ion-item>
     </ion-list>
+
+    <ion-modal [isOpen]="isLanguageModalOpen" (didDismiss)="closeLanguageModal()">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-buttons slot="start">
+              <ion-button fill="clear" (click)="closeLanguageModal()">
+                {{ 'COMMON.CANCEL' | translate }}
+              </ion-button>
+            </ion-buttons>
+            <ion-title>{{ 'SETTINGS.LANGUAGE' | translate }}</ion-title>
+            <ion-buttons slot="end">
+              <ion-button fill="clear" (click)="confirmLanguageModal()">
+                {{ 'COMMON.DONE' | translate }}
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+
+        <ion-content>
+          <ion-list>
+            <ion-radio-group
+              [value]="languageDraft"
+              (ionChange)="onLanguageDraftChange($event.detail.value)"
+            >
+              <ion-item *ngFor="let l of supportedLangs; trackBy: trackByLang">
+                <ion-radio slot="start" [value]="l.code"></ion-radio>
+                <span class="app-language-option__flag" [ngClass]="l.flagClass" aria-hidden="true"></span>
+                <ion-label>{{ l.label }}</ion-label>
+              </ion-item>
+            </ion-radio-group>
+          </ion-list>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
   </div>
 </ion-content>

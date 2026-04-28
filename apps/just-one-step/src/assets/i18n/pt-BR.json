@@ -394,8 +394,16 @@
     "TITLE": "Configurações",
     "THEME": "Tema",
     "THEME_SYSTEM": "Sistema",
-    "THEME_LIGHT": "Claro",
-    "THEME_DARK": "Escuro"
+    "THEME_LIGHT": "Claro natural",
+    "THEME_DARK": "Escuro clássico",
+    "THEME_WARM_READING": "Leitura acolhedora",
+    "THEME_POP_ROSE": "Rosa pop",
+    "THEME_NOCTURNE_VIOLET": "Violeta noturno",
+    "THEME_OBSIDIAN_RED": "Vermelho obsidiana",
+    "THEME_TERMINAL_GREEN": "Verde terminal",
+    "THEME_MINT_FRESH": "Menta Fresca",
+    "THEME_SILVER_TECH": "Silver",
+    "THEME_GOLD_LUXE": "Oro"
   },
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Observação",

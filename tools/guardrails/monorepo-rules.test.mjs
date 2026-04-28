@@ -32,6 +32,10 @@ function collectStrings(value, into = []) {
   return into;
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 test("guardrail: no new SCSS files in apps outside allowlist", () => {
   const allowlist = JSON.parse(
     readFileSync("tools/guardrails/scss-allowlist.json", "utf8")
@@ -182,6 +186,210 @@ test("guardrail: app index.html declares utf-8 charset", () => {
     [],
     `Missing UTF-8 charset declaration in index.html:\n${missing.join("\n")}`
   );
+});
+
+test("guardrail: ui-theme palettes expose the full theme token contract", () => {
+  const palette = readFileSync(
+    "packages/ui-theme/styles/_palette.scss",
+    "utf8",
+  );
+  const themeMixins = [
+    "light",
+    "dark",
+    "warm-reading",
+    "pop-rose",
+    "nocturne-violet",
+    "obsidian-red",
+    "terminal-green",
+    "mint-fresh",
+    "silver-tech",
+    "gold-luxe",
+  ];
+  const semanticTokens = [
+    "--app-background",
+    "--app-surface",
+    "--app-text-primary",
+    "--app-text-secondary",
+    "--app-divider",
+    "--ion-color-primary",
+    "--ion-color-primary-rgb",
+    "--ion-color-primary-contrast",
+    "--ion-color-primary-contrast-rgb",
+    "--ion-color-primary-shade",
+    "--ion-color-primary-shade-rgb",
+    "--ion-color-primary-tint",
+    "--ion-color-primary-tint-rgb",
+    "--ion-color-secondary",
+    "--ion-color-secondary-rgb",
+    "--ion-color-secondary-contrast",
+    "--ion-color-secondary-contrast-rgb",
+    "--ion-color-secondary-shade",
+    "--ion-color-secondary-shade-rgb",
+    "--ion-color-secondary-tint",
+    "--ion-color-secondary-tint-rgb",
+    "--ion-color-tertiary",
+    "--ion-color-tertiary-rgb",
+    "--ion-color-tertiary-contrast",
+    "--ion-color-tertiary-contrast-rgb",
+    "--ion-color-tertiary-shade",
+    "--ion-color-tertiary-shade-rgb",
+    "--ion-color-tertiary-tint",
+    "--ion-color-tertiary-tint-rgb",
+    "--ion-color-success",
+    "--ion-color-success-rgb",
+    "--ion-color-success-contrast",
+    "--ion-color-success-contrast-rgb",
+    "--ion-color-success-shade",
+    "--ion-color-success-shade-rgb",
+    "--ion-color-success-tint",
+    "--ion-color-success-tint-rgb",
+    "--ion-color-warning",
+    "--ion-color-warning-rgb",
+    "--ion-color-warning-contrast",
+    "--ion-color-warning-contrast-rgb",
+    "--ion-color-warning-shade",
+    "--ion-color-warning-shade-rgb",
+    "--ion-color-warning-tint",
+    "--ion-color-warning-tint-rgb",
+    "--ion-color-danger",
+    "--ion-color-danger-rgb",
+    "--ion-color-danger-contrast",
+    "--ion-color-danger-contrast-rgb",
+    "--ion-color-danger-shade",
+    "--ion-color-danger-shade-rgb",
+    "--ion-color-danger-tint",
+    "--ion-color-danger-tint-rgb",
+  ];
+  const stepTokens = [
+    "--ion-color-step-50",
+    "--ion-color-step-50-rgb",
+    "--ion-color-step-100",
+    "--ion-color-step-100-rgb",
+    "--ion-color-step-150",
+    "--ion-color-step-150-rgb",
+    "--ion-color-step-200",
+    "--ion-color-step-200-rgb",
+    "--ion-color-step-250",
+    "--ion-color-step-250-rgb",
+    "--ion-color-step-300",
+    "--ion-color-step-300-rgb",
+    "--ion-color-step-350",
+    "--ion-color-step-350-rgb",
+    "--ion-color-step-400",
+    "--ion-color-step-400-rgb",
+    "--ion-color-step-450",
+    "--ion-color-step-450-rgb",
+    "--ion-color-step-500",
+    "--ion-color-step-500-rgb",
+    "--ion-color-step-550",
+    "--ion-color-step-550-rgb",
+    "--ion-color-step-600",
+    "--ion-color-step-600-rgb",
+    "--ion-color-step-650",
+    "--ion-color-step-650-rgb",
+    "--ion-color-step-700",
+    "--ion-color-step-700-rgb",
+    "--ion-color-step-750",
+    "--ion-color-step-750-rgb",
+    "--ion-color-step-800",
+    "--ion-color-step-800-rgb",
+    "--ion-color-step-850",
+    "--ion-color-step-850-rgb",
+    "--ion-color-step-900",
+    "--ion-color-step-900-rgb",
+  ];
+
+  for (const theme of themeMixins) {
+    const match = palette.match(
+      new RegExp(
+        `@mixin\\s+palette-${escapeRegExp(theme)}\\s*\\{([\\s\\S]*?)\\n\\}`,
+        "m",
+      ),
+    );
+    assert.ok(match, `Missing palette mixin for theme "${theme}"`);
+
+    const body = match[1];
+    for (const token of [...semanticTokens, ...stepTokens]) {
+      assert.match(
+        body,
+        new RegExp(`${escapeRegExp(token)}\\s*:`),
+        `Theme "${theme}" is missing token "${token}"`,
+      );
+    }
+  }
+
+  const selectors = [
+    ":root.theme-light",
+    ":root.theme-dark",
+    ":root.theme-warm-reading",
+    ":root.theme-pop-rose",
+    ":root.theme-nocturne-violet",
+    ":root.theme-obsidian-red",
+    ":root.theme-terminal-green",
+    ":root.theme-mint-fresh",
+    ":root.theme-silver-tech",
+    ":root.theme-gold-luxe",
+  ];
+
+  for (const selector of selectors) {
+    assert.match(
+      palette,
+      new RegExp(escapeRegExp(selector)),
+      `Missing root selector for "${selector}"`,
+    );
+  }
+});
+
+test("guardrail: ui-theme shared semantic chrome tokens exist", () => {
+  const tokens = readFileSync("packages/ui-theme/styles/tokens.scss", "utf8");
+  const requiredTokens = [
+    "--app-toolbar-background",
+    "--app-toolbar-text",
+    "--app-toolbar-icon",
+    "--app-toolbar-border",
+    "--app-tabbar-background",
+    "--app-tabbar-border",
+    "--app-tabbar-active-background",
+    "--app-tabbar-active-color",
+    "--app-tabbar-inactive-color",
+    "--app-page-title-color",
+    "--app-section-title-color",
+    "--app-body-text-color",
+    "--app-muted-text-color",
+    "--app-disabled-text-color",
+    "--app-control-background",
+    "--app-control-text",
+    "--app-control-placeholder",
+    "--app-control-disabled-background",
+    "--app-control-disabled-text",
+    "--app-control-disabled-icon",
+    "--app-control-icon",
+    "--app-button-primary-background",
+    "--app-button-primary-text",
+    "--app-button-outline-border",
+    "--app-button-outline-text",
+    "--app-button-outline-icon",
+    "--app-premium-border",
+    "--app-premium-text",
+    "--app-premium-background",
+    "--app-editor-background",
+    "--app-editor-surface",
+    "--app-editor-toolbar-background",
+    "--app-editor-toolbar-text",
+    "--app-editor-toolbar-icon",
+    "--app-editor-grid-line",
+    "--app-editor-preview-border",
+    "--app-editor-helper-text",
+    "--app-focus-ring",
+  ];
+
+  for (const token of requiredTokens) {
+    assert.match(
+      tokens,
+      new RegExp(`${escapeRegExp(token)}\\s*:`),
+      `Missing shared semantic token "${token}"`,
+    );
+  }
 });
 
 test("guardrail: discovery note exists with concrete repo paths", () => {

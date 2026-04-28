@@ -39,6 +39,7 @@
           #frame
           class="frame"
           [class.frame--sampling]="isSampling()"
+          [class.frame--circle]="previewMaskShape === 'circle'"
           [style.--crop-ratio]="aspectRatio"
           (dblclick)="reset()"
           [attr.aria-label]="'EDITOR.SHELL.ARIA.CROP_FRAME' | translate"

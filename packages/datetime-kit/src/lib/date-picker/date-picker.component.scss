@@ -14,8 +14,8 @@
 .date-picker-calendar {
   --background: transparent;
   --background-rgb: var(--ion-background-color-rgb, 247, 246, 242);
-  --title-color: var(--app-text-primary, var(--ion-text-color));
-  --wheel-highlight-background: rgba(var(--ion-text-color-rgb), 0.08);
+  --title-color: var(--app-page-title-color, var(--app-text-primary, var(--ion-text-color)));
+  --wheel-highlight-background: var(--app-accent-background-fallback);
   --wheel-fade-background-rgb: var(--ion-background-color-rgb, 247, 246, 242);
   --background-focused: transparent;
   width: 100%;

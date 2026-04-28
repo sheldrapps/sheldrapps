@@ -1,5 +1,5 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import {
   IonButton,
   IonButtons,
@@ -62,7 +62,7 @@ import { Expense } from '../../core/models';
   styles: `
     .pn-select-info {
       font-size: 14px;
-      color: var(--ion-color-medium);
+      color: var(--app-muted-text-color);
       margin-bottom: 16px;
     }
 
@@ -96,13 +96,12 @@ import { Expense } from '../../core/models';
     IonList,
   ],
 })
-export class SelectExpensesModalComponent {
+export class SelectExpensesModalComponent implements OnInit {
+  private modalController = inject(ModalController);
   @Input() expenses: Expense[] = [];
   @Input() currentExpenseId?: string;
 
   selectedExpenses = new Set<string>();
-
-  constructor(private modalController: ModalController) {}
 
   ngOnInit(): void {
     // Preseleccionar el gasto actual si existe

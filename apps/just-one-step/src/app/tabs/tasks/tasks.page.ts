@@ -11,7 +11,12 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { LoadingStateComponent } from '@sheldrapps/ui-theme';
+import {
+  LoadingStateComponent,
+  THEME_ACCENT_BACKGROUND_FALLBACK,
+  THEME_ACCENT_COLOR_FALLBACK,
+  withThemeAlpha,
+} from '@sheldrapps/ui-theme';
 import { addIcons } from 'ionicons';
 import { createOutline, eyeOutline, trashOutline } from 'ionicons/icons';
 import {
@@ -215,7 +220,7 @@ export class TasksPage {
   }
 
   private resolveTaskColor(task: TaskListView): string {
-    return task.categoryColor ?? '#64748B';
+    return task.categoryColor ?? THEME_ACCENT_COLOR_FALLBACK;
   }
 
   private durationLabel(task: TaskListView): string {
@@ -232,19 +237,6 @@ export class TasksPage {
   }
 
   private withAlpha(hexColor: string, alpha: number): string {
-    const normalized = hexColor.trim();
-    const hex = normalized.startsWith('#') ? normalized.slice(1) : normalized;
-    if (hex.length !== 6) {
-      return 'rgba(0, 0, 0, 0.08)';
-    }
-
-    const red = Number.parseInt(hex.slice(0, 2), 16);
-    const green = Number.parseInt(hex.slice(2, 4), 16);
-    const blue = Number.parseInt(hex.slice(4, 6), 16);
-    if ([red, green, blue].some((value) => Number.isNaN(value))) {
-      return 'rgba(0, 0, 0, 0.08)';
-    }
-
-    return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+    return withThemeAlpha(hexColor, alpha, THEME_ACCENT_BACKGROUND_FALLBACK);
   }
 }

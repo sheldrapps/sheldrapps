@@ -15,8 +15,8 @@
   display: flex;
   align-items: center;
   gap: var(--app-space-4);
-  background: rgba(var(--ion-background-color-rgb), 0.86);
-  color: var(--ion-text-color);
+  background: var(--app-editor-toolbar-background);
+  color: var(--app-editor-toolbar-text);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   z-index: 30;
@@ -29,6 +29,6 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: rgba(var(--ion-text-color-rgb), 0.08);
+  background: var(--app-divider);
   pointer-events: none;
 }

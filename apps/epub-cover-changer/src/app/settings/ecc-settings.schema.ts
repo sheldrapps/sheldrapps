@@ -7,6 +7,7 @@ import {
   type SupportedLocale,
 } from '@sheldrapps/i18n-kit';
 import { SettingsSchema, type MigrationContext } from '@sheldrapps/settings-kit';
+import { normalizeAppThemeMode, type AppThemeMode } from '@sheldrapps/ui-theme';
 
 type PreferenceValue = boolean | number | string | null;
 
@@ -14,6 +15,7 @@ type LegacyEccSettings = {
   lang?: string;
   language?: string;
   locale?: string;
+  theme?: string;
   cropTargetId?: string;
   adsRemoved?: boolean;
   homeTourSeen?: boolean;
@@ -24,6 +26,7 @@ type LegacyEccSettings = {
 
 export interface EccSettings {
   language?: SupportedLocale;
+  theme: AppThemeMode;
   cropTargetId?: string;
   adsRemoved: boolean;
   homeTourSeen: boolean;
@@ -37,10 +40,11 @@ const LEGACY_HINT_KEYS = [
   'cc_hint_save_share_explain_shown',
   'cc_hint_share_kindle_shown',
 ] as const;
-const ECC_SETTINGS_VERSION = 6;
+const ECC_SETTINGS_VERSION = 7;
 
 const ECC_DEFAULTS: EccSettings = {
   language: undefined,
+  theme: 'system',
   cropTargetId: undefined,
   adsRemoved: false,
   homeTourSeen: false,
@@ -75,6 +79,7 @@ export const ECC_SETTINGS_SCHEMA: SettingsSchema<EccSettings> = {
 
         return {
           language,
+          theme: normalizeAppThemeMode(legacySettings?.['theme']) ?? 'system',
           cropTargetId: pickNonEmptyString(legacySettings?.cropTargetId),
           adsRemoved: pickBoolean(legacySettings?.adsRemoved) ?? false,
           homeTourSeen: pickBoolean(legacySettings?.homeTourSeen) ?? false,
@@ -110,6 +115,12 @@ export const ECC_SETTINGS_SCHEMA: SettingsSchema<EccSettings> = {
     },
     {
       fromVersion: 5,
+      toVersion: ECC_SETTINGS_VERSION,
+      run: async (ctx: MigrationContext<EccSettings>) =>
+        migrateVersionedSettings(ctx.rawJson),
+    },
+    {
+      fromVersion: 6,
       toVersion: ECC_SETTINGS_VERSION,
       run: async (ctx: MigrationContext<EccSettings>) =>
         migrateVersionedSettings(ctx.rawJson),
@@ -156,6 +167,7 @@ async function migrateVersionedSettings(
 
   return {
     language,
+    theme: normalizeAppThemeMode(stored?.['theme']) ?? 'system',
     cropTargetId: pickNonEmptyString(stored?.['cropTargetId']),
     adsRemoved: pickBoolean(stored?.['adsRemoved']) ?? false,
     homeTourSeen: pickBoolean(stored?.['homeTourSeen']) ?? false,

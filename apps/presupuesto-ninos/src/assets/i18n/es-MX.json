@@ -1,5 +1,89 @@
 {
   "APP": {
     "TITLE": "Presupuesto Niños"
+  },
+  "COMMON": {
+    "CANCEL": "Cancelar",
+    "SAVE": "Guardar"
+  },
+  "HOME": {
+    "TITLE": "Presupuestos",
+    "ADD_BUTTON": "Agregar",
+    "ADD_MENU": {
+      "TITLE": "Agregar",
+      "BUDGET": "Nuevo presupuesto",
+      "ACCOUNT": "Nueva cuenta"
+    },
+    "CREDIT_AMOUNT": "Abono",
+    "EMPTY_STATE": "No hay presupuestos ni cuentas registradas todavía.",
+    "DELETE_BUDGET": {
+      "TITLE": "Eliminar presupuesto",
+      "MESSAGE": "¿Estás seguro de que quieres eliminar el presupuesto de {{name}}? Esta acción no se puede deshacer.",
+      "CONFIRM": "Eliminar"
+    },
+    "ACCOUNT": {
+      "NONE": "Sin cuenta",
+      "ASSIGN_TITLE": "Asignar a cuenta",
+      "CREATE_NEW": "Crear nueva cuenta...",
+      "NEW_TITLE": "Nueva cuenta",
+      "NAME_PLACEHOLDER": "Nombre de la cuenta",
+      "BUDGET_SUMMARY": "Suma de presupuestos",
+      "EMPTY_BUDGETS": "Sin presupuestos asignados.",
+      "ADD_INCOME": "Agregar ingreso",
+      "ADD_EXPENSE": "Agregar gasto",
+      "EDIT_BALANCE": "Editar saldo",
+      "BALANCE_PLACEHOLDER": "Saldo actual",
+      "RENAME": "Renombrar cuenta",
+      "MOVEMENT_LABEL_PLACEHOLDER": "Concepto",
+      "MOVEMENT_AMOUNT_PLACEHOLDER": "Monto"
+    },
+    "GROUP": {
+      "NONE": "Sin grupo",
+      "NONE_LOWER": "sin grupo",
+      "ASSIGN_TITLE": "Asignar a grupo",
+      "CREATE_NEW": "Crear nuevo grupo...",
+      "SUBTOTAL": "Subtotal {{name}}"
+    }
+  },
+  "SETTINGS": {
+    "TITLE": "Configuración",
+    "CREDIT_RULES": {
+      "TITLE": "Reglas de abono",
+      "DEFAULT_AMOUNT": "Abono por defecto",
+      "SCHEDULE_TYPE": "Periodicidad de pago",
+      "SCHEDULE_OPTION": {
+        "SPECIFIC_DAYS": "Días específicos",
+        "BIWEEKLY": "Quincenal",
+        "MONTHLY": "Mensual",
+        "WEEKLY": "Semanal"
+      },
+      "SPECIFIC_DAYS_LABEL": "Días específicos",
+      "SPECIFIC_DAYS_HINT": "Escribe uno o varios días separados por coma. Ejemplo: 15,30.",
+      "BIWEEKLY_USE_31": "Usar el 31 cuando el mes lo tenga",
+      "BIWEEKLY_HINT": "El abono quincenal se calcula el 15 y el 30 o último día del mes. Si cae en sábado o domingo, se adelanta al viernes anterior.",
+      "MONTHLY_DAY_LABEL": "Día del mes",
+      "MONTHLY_HINT": "Si el mes no tiene ese día, se usa el último día disponible.",
+      "WEEKLY_HINT": "Selecciona el día de la semana en que se realizará el abono.",
+      "WEEKDAY": {
+        "MON": "Lunes",
+        "TUE": "Martes",
+        "WED": "Miércoles",
+        "THU": "Jueves",
+        "FRI": "Viernes",
+        "SAT": "Sábado",
+        "SUN": "Domingo"
+      },
+      "WEEKDAY_SHORT": {
+        "MON": "Lun",
+        "TUE": "Mar",
+        "WED": "Mié",
+        "THU": "Jue",
+        "FRI": "Vie",
+        "SAT": "Sáb",
+        "SUN": "Dom"
+      },
+      "RECALCULATE": "Recalcular abonos",
+      "RECALCULATE_HINT": "Aplica abonos pendientes según la configuración actual."
+    }
   }
 }

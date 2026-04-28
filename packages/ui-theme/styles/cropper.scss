@@ -17,33 +17,27 @@
   height: auto;
 
   overflow: hidden;
-  border: 3px solid rgba(255, 255, 255, 0.95);
+  border: 3px solid var(--app-editor-preview-border);
   border-radius: 14px;
   box-sizing: border-box;
-  background: #000;
+  background: var(--app-editor-surface);
 
   touch-action: none;
   user-select: none;
-}
-
-@media (prefers-color-scheme: light) {
-  .frame {
-    border-color: rgba(0, 0, 0, 0.55);
-  }
 }
 
 .hint {
   margin-top: var(--app-space-4);
   font-size: 0.9rem;
   opacity: 0.75;
-  color: var(--ion-text-color);
+  color: var(--app-editor-helper-text);
 }
 
 .ctrl {
   display: flex;
   align-items: center;
   gap: var(--app-space-3);
-  --color: var(--ion-text-color);
+  --color: var(--app-editor-toolbar-icon);
   --border-radius: 12px;
   height: var(--app-touch-target);
   width: var(--app-touch-target);

@@ -38,6 +38,11 @@ export const routes: Routes = [
                 (m) => m.InstructionsPage,
               ),
           },
+          {
+            path: 'theme',
+            loadComponent: () =>
+              import('../pages/settings/theme.page').then((m) => m.ThemePage),
+          },
         ],
       },
       {

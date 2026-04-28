@@ -8,27 +8,26 @@ import {
   IonItem,
   IonLabel,
   IonList,
-  IonSelect,
-  IonSelectOption,
+  IonRadio,
+  IonRadioGroup,
+  IonModal,
+  IonButtons,
+  IonButton,
   IonTitle,
   IonToolbar,
-} from '@ionic/angular/standalone';
+} from "@ionic/angular/standalone";
 import { Browser } from '@capacitor/browser';
 import { TranslateModule } from '@ngx-translate/core';
+import { THEME_OPTIONS, type Theme } from "@sheldrapps/ui-theme";
 
 import { Lang, LangOption, LANG_OPTIONS } from '../../services/language.service';
 import { ConsentService } from '../../services/consent.service';
-import { ConfigService } from '../../../config/config.service';
-import {
-  Theme,
-  ThemeOption,
-  THEME_OPTIONS,
-} from '../../services/theme.service';
+import { ConfigService } from "../../../config/config.service";
 
 @Component({
-  selector: 'app-settings',
-  templateUrl: './settings.page.html',
-  styleUrls: ['./settings.page.scss'],
+  selector: "app-settings",
+  templateUrl: "./settings.page.html",
+  styleUrls: ["./settings.page.scss"],
   standalone: true,
   imports: [
     CommonModule,
@@ -42,8 +41,11 @@ import {
     IonList,
     IonItem,
     IonLabel,
-    IonSelect,
-    IonSelectOption,
+    IonRadio,
+    IonRadioGroup,
+    IonModal,
+    IonButtons,
+    IonButton,
   ],
 })
 export class SettingsPage {
@@ -52,27 +54,59 @@ export class SettingsPage {
   readonly consent = inject(ConsentService);
   readonly supportedLangs = LANG_OPTIONS;
   readonly supportedThemes = THEME_OPTIONS;
+  isLanguageModalOpen = false;
+  languageDraft: Lang = "en-US";
 
   private readonly privacyPolicyUrl =
-    'https://sheldrapps.github.io/privacy-policies/just-one-step/';
+    "https://sheldrapps.github.io/privacy-policies/just-one-step/";
 
   get currentLanguage(): Lang {
-    return this.config.snapshot().language ?? 'en-US';
+    return this.config.snapshot().language ?? "en-US";
   }
 
   get currentTheme(): Theme {
     return this.config.snapshot().theme;
   }
 
-  trackByLang = (_: number, l: LangOption) => l.code;
-  trackByTheme = (_: number, t: ThemeOption) => t.code;
-
-  async onLangChange(v: Lang): Promise<void> {
-    await this.config.setLanguage(v);
+  get currentThemeLabelKey(): string {
+    return (
+      this.supportedThemes.find((option) => option.code === this.currentTheme)
+        ?.labelKey ?? "SETTINGS.THEME_SYSTEM"
+    );
   }
 
-  async onThemeChange(v: Theme): Promise<void> {
-    await this.config.setTheme(v);
+  get currentLanguageOption(): LangOption | undefined {
+    return this.supportedLangs.find(
+      (option) => option.code === this.currentLanguage,
+    );
+  }
+
+  openLanguageModal(): void {
+    this.languageDraft = this.currentLanguage;
+    this.isLanguageModalOpen = true;
+  }
+
+  closeLanguageModal(): void {
+    this.isLanguageModalOpen = false;
+  }
+
+  onLanguageDraftChange(value: Lang): void {
+    this.languageDraft = value;
+  }
+
+  async confirmLanguageModal(): Promise<void> {
+    const nextLanguage = this.languageDraft;
+    this.closeLanguageModal();
+    await this.onLangChange(nextLanguage);
+  }
+
+  trackByLang = (_: number, l: LangOption) => l.code;
+
+  async onLangChange(v: Lang): Promise<void> {
+    if (!v || v === this.currentLanguage) {
+      return;
+    }
+    await this.config.setLanguage(v);
   }
 
   async openPrivacyOptions(): Promise<void> {

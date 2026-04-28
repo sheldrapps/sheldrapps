@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import {
   IonButton,
   IonButtons,
@@ -70,7 +70,7 @@ import { ChildBudget } from '../../core/models';
   styles: `
     .pn-select-info {
       font-size: 14px;
-      color: var(--ion-color-medium);
+      color: var(--app-muted-text-color);
       margin-bottom: 16px;
     }
 
@@ -79,7 +79,7 @@ import { ChildBudget } from '../../core/models';
       height: 48px;
       border-radius: 50%;
       overflow: hidden;
-      background: var(--ion-color-light);
+      background: var(--app-control-background);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -94,7 +94,7 @@ import { ChildBudget } from '../../core/models';
 
       ion-icon {
         font-size: 24px;
-        color: var(--ion-color-medium);
+        color: var(--app-control-icon);
       }
     }
 
@@ -129,12 +129,13 @@ import { ChildBudget } from '../../core/models';
   ],
 })
 export class SelectBudgetsModalComponent {
+  private modalController = inject(ModalController);
   @Input() budgets: ChildBudget[] = [];
   @Input() currentBudgetId?: string;
 
   selectedBudgets = new Set<string>();
 
-  constructor(private modalController: ModalController) {
+  constructor() {
     addIcons({ personOutline });
   }
 

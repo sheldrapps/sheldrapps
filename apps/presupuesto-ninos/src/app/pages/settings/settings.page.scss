@@ -2,12 +2,54 @@ ion-item {
   --inner-padding-end: 12px;
 }
 
-.pn-disabled-row {
-  opacity: 0.45;
+.settings-helper-text {
+  display: block;
+  margin-top: var(--app-space-3);
+  margin-inline-start: var(--app-space-3);
 }
 
 .pn-hint {
   opacity: 0.6;
   font-size: 12px;
   margin-top: 8px;
+}
+
+.recurrence-weekdays {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-2);
+  padding: var(--app-space-2) var(--app-space-5) var(--app-space-3);
+}
+
+.monthly-day-stepper-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+  padding: var(--app-space-2) var(--app-space-5) 0;
+}
+
+.form-label {
+  margin: 0;
+}
+
+.monthly-day-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--app-space-2);
+}
+
+.monthly-day-stepper ion-button {
+  --border-radius: 999px;
+  --padding-start: var(--app-space-3);
+  --padding-end: var(--app-space-3);
+  min-width: 2.25rem;
+}
+
+.monthly-day-stepper-value {
+  min-width: 2.5rem;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: rgba(var(--ion-color-step-800-rgb), 0.95);
 }

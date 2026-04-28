@@ -19,6 +19,14 @@
     message="Abriendo editor..."
   ></ion-loading>
 
+  <input
+    #imageInput
+    hidden
+    type="file"
+    accept="image/*"
+    (change)="onImageSelected($event)"
+  />
+
   <ng-container *ngIf="child() as current; else missing">
     <!-- Avatar Section -->
     <div class="pn-avatar-section">

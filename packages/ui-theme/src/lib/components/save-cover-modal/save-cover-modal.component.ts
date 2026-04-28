@@ -110,18 +110,18 @@ import {
     .rename-label {
       font-weight: 600;
       font-size: 14px;
-      color: var(--ion-color-dark);
+      color: var(--app-text-primary);
     }
 
     .rename-input {
       width: 100%;
       padding: 12px;
-      border: 1px solid var(--ion-color-medium);
+      border: 1px solid var(--app-divider);
       border-radius: 8px;
       font-size: 16px;
       font-family: inherit;
-      background: var(--ion-color-light, #fff);
-      color: var(--ion-text-color, #111);
+      background: var(--app-control-background);
+      color: var(--app-control-text);
     }
 
     .rename-input:focus {

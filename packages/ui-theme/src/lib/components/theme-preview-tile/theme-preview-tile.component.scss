@@ -1,0 +1,54 @@
+:host {
+  display: block;
+}
+
+.app-theme-preview {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--preview-border);
+  background: var(--preview-background);
+  padding: var(--app-space-2);
+  display: grid;
+  gap: var(--app-space-2);
+  min-height: 88px;
+}
+
+.app-theme-preview__chrome {
+  height: 10px;
+  border-radius: 8px;
+  background: var(--preview-toolbar);
+}
+
+.app-theme-preview__surface {
+  border-radius: 8px;
+  border: 1px solid var(--preview-border);
+  background: var(--preview-surface);
+  padding: var(--app-space-2);
+  display: grid;
+  gap: var(--app-space-1);
+}
+
+.app-theme-preview__title {
+  width: 70%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--preview-text);
+  opacity: 0.92;
+}
+
+.app-theme-preview__text {
+  width: 48%;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--preview-muted);
+  opacity: 0.88;
+}
+
+.app-theme-preview__button {
+  margin-top: var(--app-space-1);
+  width: 54%;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--preview-primary);
+  box-shadow: none;
+}

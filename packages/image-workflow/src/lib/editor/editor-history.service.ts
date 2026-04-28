@@ -162,6 +162,12 @@ export class EditorHistoryService {
     return this.globalRedoStack().length > 0;
   });
 
+  readonly canApplyPanel = computed(() => {
+    if (this.mode() !== "local") return false;
+    if (this.isDirty()) return true;
+    return this.panelScope() === "tools";
+  });
+
   startSession(): void {
     this.initialSnapshot = this.editorState.getState();
     this.localCommands.set([]);
@@ -231,7 +237,7 @@ export class EditorHistoryService {
 
   applyPanel(): boolean {
     if (this.mode() !== "local") return false;
-    if (!this.isDirty()) return false;
+    if (!this.canApplyPanel()) return false;
 
     this.flushPending();
 
@@ -246,14 +252,7 @@ export class EditorHistoryService {
       this.globalRedoStack.set([]);
     }
 
-    this.localCommands.set([]);
-    this.localPointer.set(0);
-    this.baselineSnapshot.set(null);
-    this.baselineKindleSnapshot.set(null);
-    this.panelScope.set(null);
-    this.mode.set("global");
-    this.textDragActiveId = null;
-    this.textDragStart = null;
+    this.finalizePanelApply();
     return true;
   }
 
@@ -282,6 +281,17 @@ export class EditorHistoryService {
     this.textDragActiveId = null;
     this.textDragStart = null;
     return true;
+  }
+
+  private finalizePanelApply(): void {
+    this.localCommands.set([]);
+    this.localPointer.set(0);
+    this.baselineSnapshot.set(null);
+    this.baselineKindleSnapshot.set(null);
+    this.panelScope.set(null);
+    this.mode.set("global");
+    this.textDragActiveId = null;
+    this.textDragStart = null;
   }
 
   undo(): void {

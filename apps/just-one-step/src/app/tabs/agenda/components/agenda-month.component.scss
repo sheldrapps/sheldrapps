@@ -8,7 +8,7 @@
 	display: grid;
 	grid-template-columns: repeat(7, minmax(0, 1fr));
 	gap: 0;
-	border: 1px solid rgba(var(--ion-color-step-300-rgb), 0.45);
+	border: 1px solid var(--app-divider);
 	border-radius: var(--app-radius-lg);
 	overflow: hidden;
 }
@@ -19,9 +19,9 @@
 	font-weight: 650;
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
-	color: rgba(var(--ion-color-step-600-rgb), 0.85);
+	color: var(--app-muted-text-color);
 	padding: var(--app-space-2) 0;
-	border-right: 1px solid rgba(var(--ion-color-step-300-rgb), 0.4);
+	border-right: 1px solid var(--app-divider);
 }
 
 .agenda-month-weekday:nth-child(7n) {
@@ -32,7 +32,7 @@
 	display: grid;
 	grid-template-columns: repeat(7, minmax(0, 1fr));
 	gap: 0;
-	border: 1px solid rgba(var(--ion-color-step-300-rgb), 0.45);
+	border: 1px solid var(--app-divider);
 	border-radius: var(--app-radius-lg);
 	overflow: hidden;
 }
@@ -40,8 +40,8 @@
 .agenda-month-cell,
 .agenda-month-cell-empty {
 	min-height: 5.1rem;
-	border-right: 1px solid rgba(var(--ion-color-step-300-rgb), 0.38);
-	border-bottom: 1px solid rgba(var(--ion-color-step-300-rgb), 0.38);
+	border-right: 1px solid var(--app-divider);
+	border-bottom: 1px solid var(--app-divider);
 }
 
 .agenda-month-cell:nth-child(7n),
@@ -65,7 +65,7 @@
 }
 
 .agenda-month-cell-empty {
-	background: rgba(var(--ion-color-step-100-rgb), 0.36);
+	background: var(--app-control-background);
 }
 
 .agenda-month-cell--selected {
@@ -83,13 +83,13 @@
 .agenda-month-cell-day {
 	font-weight: 700;
 	line-height: 1;
-	color: rgba(var(--ion-color-step-800-rgb), 0.92);
+	color: var(--app-body-text-color);
 	font-variant-numeric: tabular-nums;
 }
 
 .agenda-month-cell--selected .agenda-month-cell-day,
 .agenda-month-cell--today .agenda-month-cell-day {
-	color: rgba(var(--ion-color-step-900-rgb), 0.98);
+	color: var(--app-page-title-color);
 }
 
 .agenda-month-dot-wrapper {
@@ -128,8 +128,8 @@
 	min-width: var(--agenda-month-stack-min-width);
 	padding: 0 var(--agenda-month-stack-padding-x);
 	border-radius: 999px;
-	background: rgba(var(--ion-color-step-700-rgb), 0.16);
-	color: rgba(var(--ion-color-step-800-rgb), 0.9);
+	background: var(--app-accent-background-fallback);
+	color: var(--app-page-title-color);
 	font-size: var(--agenda-month-stack-font-size);
 	font-weight: 700;
 	line-height: 1;

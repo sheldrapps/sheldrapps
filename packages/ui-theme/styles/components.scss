@@ -19,7 +19,7 @@
   overflow: hidden;
   border-radius: 14px;
   box-sizing: border-box;
-  background: #000;
+  background: var(--app-control-background);
 
   touch-action: none;
   user-select: none;
@@ -29,14 +29,14 @@
   margin-top: var(--app-space-4);
   font-size: var(--app-text-md);
   opacity: var(--app-text-muted);
-  color: var(--ion-text-color);
+  color: var(--app-muted-text-color);
 }
 
 .ctrl {
   display: flex;
   align-items: center;
   gap: var(--app-space-3);
-  --color: var(--ion-text-color);
+  --color: var(--app-control-icon);
   --border-radius: var(--app-radius-md);
   height: var(--app-touch-target);
   width: var(--app-touch-target);
@@ -94,30 +94,30 @@ ion-item.app-input-surface::part(native) {
   gap: var(--app-space-3);
   padding: var(--app-space-4);
   border-radius: var(--app-radius-lg);
-  border: 1px solid rgba(var(--ion-color-step-300-rgb), 0.35);
-  background: rgba(var(--ion-color-step-50-rgb), 0.8);
-  box-shadow: inset 0 1px 0 rgba(var(--ion-color-step-50-rgb), 0.72);
+  border: 1px solid var(--app-divider);
+  background: var(--app-surface);
+  box-shadow: inset 0 1px 0 rgba(var(--ion-color-step-50-rgb), 0.46);
 }
 
 .app-section-label {
   font-size: var(--app-text-sm);
   font-weight: var(--app-font-semibold);
   line-height: 1.2;
-  color: rgba(var(--ion-color-step-700-rgb), 0.82);
+  color: var(--app-text-secondary);
 }
 
 .app-meta-text {
   font-size: 0.76rem;
   font-weight: var(--app-font-medium);
   line-height: 1.2;
-  color: rgba(var(--ion-color-step-600-rgb), 0.78);
+  color: var(--app-text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
 .app-supporting-text {
   font-size: var(--app-text-sm);
   line-height: 1.2;
-  color: rgba(var(--ion-color-step-600-rgb), 0.8);
+  color: var(--app-text-secondary);
 }
 
 .app-task-card {
@@ -177,13 +177,13 @@ ion-item.app-input-surface::part(native) {
   font-size: var(--app-text-lg);
   font-weight: var(--app-font-medium);
   line-height: 1.2;
-  color: rgba(var(--ion-color-step-800-rgb), 0.95);
+  color: var(--app-text-primary);
 }
 
 .app-task-card__description {
   font-size: var(--app-text-sm);
   line-height: 1.2;
-  color: rgba(var(--ion-color-step-600-rgb), 0.8);
+  color: var(--app-text-secondary);
 }
 
 .app-sections-stack {
@@ -226,6 +226,47 @@ ion-item.app-input-surface::part(native) {
 
 .app-duration-tier-target {
   min-height: var(--app-duration-tier-min-height, 40px);
+}
+
+.app-language-option__flag {
+  width: 1.5rem;
+  height: 1rem;
+  margin-inline-end: 0.5rem;
+  border-radius: 2px;
+  border: 1px solid var(--ion-color-step-300);
+  flex: 0 0 auto;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.app-language-option__flag--mx {
+  background: linear-gradient(to right, #006847 33.33%, #ffffff 33.33%, #ffffff 66.66%, #ce1126 66.66%);
+}
+
+.app-language-option__flag--us {
+  background:
+    linear-gradient(#3c3b6e, #3c3b6e) left top / 40% 55% no-repeat,
+    repeating-linear-gradient(to bottom, #b22234 0 7.69%, #ffffff 7.69% 15.38%);
+}
+
+.app-language-option__flag--de {
+  background: linear-gradient(to bottom, #000000 33.33%, #dd0000 33.33%, #dd0000 66.66%, #ffce00 66.66%);
+}
+
+.app-language-option__flag--fr {
+  background: linear-gradient(to right, #0055a4 33.33%, #ffffff 33.33%, #ffffff 66.66%, #ef4135 66.66%);
+}
+
+.app-language-option__flag--it {
+  background: linear-gradient(to right, #009246 33.33%, #ffffff 33.33%, #ffffff 66.66%, #ce2b37 66.66%);
+}
+
+.app-language-option__flag--br {
+  background:
+    radial-gradient(circle at center, #002776 0 28%, transparent 28%),
+    linear-gradient(135deg, transparent 25%, #ffdf00 25% 75%, transparent 75%),
+    #009c3b;
 }
 
 // ── Medal badge ─────────────────────────────────────────────────────────────
@@ -737,7 +778,7 @@ ion-item.app-input-surface::part(native) {
   height: 100%;
   border-radius: var(--app-radius-sm);
   overflow: hidden;
-  background: var(--ion-color-step-100, #f2f2f2);
+  background: var(--app-control-background);
 }
 
 .thumb img {
@@ -762,10 +803,10 @@ ion-item.app-input-surface::part(native) {
   bottom: calc(-1 * var(--app-space-2));
   right: calc(-1 * var(--app-space-2));
   font-size: var(--app-icon-sm);
-  color: var(--ion-color-success);
-  background: #fff;
+  color: var(--app-icon-container-check-color);
+  background: var(--app-icon-container-check-background);
   border-radius: 50%;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
 }
 
 ion-item.item-invalid {
@@ -827,21 +868,21 @@ ion-item.item-invalid {
 
 ion-button.premium-upgrade-cta {
   --background: transparent;
-  --background-hover: var(--ion-color-step-100);
-  --background-activated: var(--ion-color-step-100);
-  --color: var(--ion-color-primary);
-  --border-color: var(--ion-color-primary);
+  --background-hover: var(--app-premium-background);
+  --background-activated: var(--app-premium-background);
+  --color: var(--app-premium-text);
+  --border-color: var(--app-premium-border);
   --border-width: 2px;
   --border-radius: var(--app-radius-md);
   --padding-start: var(--app-btn-pad-text-x);
   --padding-end: var(--app-btn-pad-text-x);
   --padding-top: var(--app-btn-pad-text-y);
   --padding-bottom: var(--app-btn-pad-text-y);
-  --premium-upgrade-shadow-base: 0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.20);
+  --premium-upgrade-shadow-base: 0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.24);
   --premium-upgrade-shadow-pulse:
-    0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.34),
-    0 0 0 4px rgba(var(--ion-color-primary-rgb), 0.24),
-    0 0 14px 2px rgba(var(--ion-color-primary-rgb), 0.14);
+    0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.42),
+    0 0 0 4px rgba(var(--ion-color-primary-rgb), 0.26),
+    0 0 16px 2px rgba(var(--ion-color-primary-rgb), 0.18);
   overflow: visible;
 }
 
@@ -996,7 +1037,7 @@ ion-button.app-tile {
   --background-hover: transparent;
   --background-focused: transparent;
   --background-activated: transparent;
-  --color: var(--ion-text-color);
+  --color: var(--app-text-primary);
   height: var(--app-modal-tile-height, var(--app-control-min-height));
   min-height: var(--app-modal-tile-height, var(--app-control-min-height));
 }
@@ -1012,16 +1053,16 @@ ion-button.app-tile .app-tile__face {
   align-items: center;
   justify-content: center;
   border-radius: var(--app-radius-sm);
-  border: 1px solid rgba(0, 0, 0, 0.25);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  border: 1px solid var(--app-icon-container-border);
+  box-shadow: var(--app-icon-container-shadow);
 }
 
 ion-button.app-tile--color .app-tile__face {
-  background: var(--app-tile-bg, var(--ion-color-step-100, #f2f2f2));
+  background: var(--app-tile-bg, var(--app-control-background));
 }
 
 ion-button.app-tile--surface .app-tile__face {
-  background: var(--ion-color-step-50, #f8fafc);
+  background: var(--app-surface);
 }
 
 ion-button.app-tile--icon .app-tile__face {
@@ -1029,7 +1070,7 @@ ion-button.app-tile--icon .app-tile__face {
 }
 
 ion-button.app-tile--selected .app-tile__face {
-  outline: var(--app-space-hairline) solid rgba(0, 0, 0, 0.85);
+  outline: var(--app-space-hairline) solid var(--app-icon-container-highlight);
   outline-offset: var(--app-space-hairline);
 }
 
@@ -1039,7 +1080,7 @@ ion-button.app-tile--selected .app-tile__face {
 }
 
 ion-button.app-tile--selected .app-tile__check {
-  color: var(--ion-color-dark);
+  color: var(--app-icon-container-highlight);
 }
 
 .app-modal-emoji-preview {
@@ -1155,7 +1196,7 @@ ion-button.app-tile--selected .app-tile__check {
 .app-select-grid ion-col ion-select,
 .selectors-grid ion-col ion-select {
   --border-radius: var(--app-radius-md);
-  --placeholder-color: var(--ion-color-medium);
+  --placeholder-color: var(--app-control-placeholder);
   font-weight: 550;
   letter-spacing: 0.15px;
 }
@@ -1182,7 +1223,7 @@ ion-button.app-tile--selected .app-tile__check {
 .app-panel-subheader__title {
   font-weight: var(--app-font-semibold);
   font-size: var(--app-text-lg);
-  color: var(--ion-text-color, #222);
+  color: var(--app-text-primary);
 }
 
 .app-panel-subpanel {
@@ -1193,7 +1234,7 @@ ion-button.app-tile--selected .app-tile__check {
 .cc-info-popover {
   max-width: 320px;
   padding: var(--app-space-8) var(--app-space-9);
-  background: var(--ion-background-color, #1e1e1e);
+  background: var(--app-overlay-card-background);
 }
 
 .app-guide-title,
@@ -1335,7 +1376,7 @@ ion-modal.cover-preview-modal {
 }
 
 .preview-content {
-  --background: var(--ion-background-color);
+  --background: var(--app-background);
 }
 
 .preview-img {
@@ -1363,4 +1404,56 @@ ion-modal.cover-preview-modal {
   .thumb-icon {
     font-size: var(--app-icon-xl);
   }
+}
+
+.app-theme-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
+  gap: var(--app-space-3);
+}
+
+.app-theme-selector-grid--two-columns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.app-theme-selector-card {
+  appearance: none;
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-md);
+  padding: var(--app-space-2);
+  background: var(--app-surface);
+  display: grid;
+  gap: var(--app-space-2);
+  text-align: left;
+  color: var(--app-text-primary);
+  transition:
+    border-color var(--app-dur-fast) var(--app-ease),
+    box-shadow var(--app-dur-fast) var(--app-ease),
+    transform var(--app-dur-fast) var(--app-ease);
+}
+
+.app-theme-selector-card:active {
+  transform: translateY(1px);
+}
+
+.app-theme-selector-card:focus-visible {
+  outline: none;
+  box-shadow: var(--app-focus-ring);
+}
+
+.app-theme-selector-card--selected {
+  border-color: var(--app-premium-border);
+  box-shadow:
+    0 0 0 1px var(--app-premium-border),
+    var(--app-button-outline-shadow);
+}
+
+.app-theme-selector-card__label {
+  font: var(--app-font-label-sm);
+  color: var(--app-page-title-color);
+}
+
+.app-theme-selector-card__meta {
+  font-size: var(--app-text-2xs);
+  color: var(--app-muted-text-color);
 }

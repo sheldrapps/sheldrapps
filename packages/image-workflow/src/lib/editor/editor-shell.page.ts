@@ -48,7 +48,11 @@ import {
 import { filter, merge } from "rxjs";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
-import { EditorSessionService, EditorSession } from "./editor-session.service";
+import {
+  EditorSessionService,
+  EditorSession,
+  type EditorPreviewMaskShape,
+} from "./editor-session.service";
 import { EditorUiStateService } from "./editor-ui-state.service";
 import { EditorStateService } from "./editor-state.service";
 import { EditorHistoryService } from "./editor-history.service";
@@ -240,6 +244,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
   // Preview
   aspectRatio = "3 / 4";
+  previewMaskShape: EditorPreviewMaskShape = "rect";
   imageUrl: string | null = null;
   ready = false;
   readonly cssFilter = computed(() =>
@@ -339,7 +344,9 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     const ids: string[] = [];
     if (!this.history.canUndo()) ids.push("undo");
     if (!this.history.canRedo()) ids.push("redo");
-    if (this.showDiscardApply() && !this.history.isDirty()) ids.push("apply");
+    if (this.showDiscardApply() && !this.history.canApplyPanel()) {
+      ids.push("apply");
+    }
     return ids;
   });
 
@@ -612,6 +619,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.imageUrl = this.objectUrl;
 
     this.aspectRatio = `${this.session.target.width} / ${this.session.target.height}`;
+    this.previewMaskShape = this.session.preview?.maskShape ?? "rect";
     const kindleTarget = this.kindleState.target();
     if (kindleTarget) {
       this.session.target = kindleTarget;
@@ -1513,7 +1521,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
   applyPanel(): void {
     if (this.history.mode() !== "local") return;
-    if (!this.history.isDirty()) return;
+    if (!this.history.canApplyPanel()) return;
 
     const applied = this.history.applyPanel();
     if (!applied) return;

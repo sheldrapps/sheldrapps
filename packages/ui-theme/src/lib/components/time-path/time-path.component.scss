@@ -4,7 +4,7 @@
 
 .time-path {
   --time-path-height: 6px;
-  --time-path-track: var(--app-surface-3, rgba(var(--ion-color-step-300-rgb), 0.52));
+  --time-path-track: var(--app-divider);
   --time-path-fill: var(--app-accent-primary, var(--ion-color-primary));
   --time-path-fill-current: var(--time-path-fill);
   --time-path-rail-border-width: 0px;
@@ -17,7 +17,7 @@
 }
 
 .time-path--upcoming {
-  --time-path-fill-current: var(--time-path-fill-upcoming, var(--app-surface-4, rgba(var(--ion-color-step-400-rgb), 0.72)));
+  --time-path-fill-current: var(--time-path-fill-upcoming, var(--app-accent-border-fallback));
 }
 
 .time-path--ongoing {
@@ -25,7 +25,7 @@
 }
 
 .time-path--expired {
-  --time-path-fill-current: var(--time-path-fill-expired, var(--app-surface-2, rgba(var(--ion-color-step-500-rgb), 0.42)));
+  --time-path-fill-current: var(--time-path-fill-expired, var(--app-muted-text-color));
 }
 
 .time-path__rail {
@@ -62,7 +62,7 @@
   height: 100%;
   border-radius: 50%;
   background: var(--time-path-fill-current);
-  box-shadow: 0 0 0 2px rgba(var(--ion-color-step-50-rgb), 0.96);
+  box-shadow: 0 0 0 2px var(--app-surface);
 }
 
 .time-path__actor--step {
@@ -78,7 +78,7 @@
 .time-path__label {
   font-size: var(--app-text-2xs);
   font-weight: var(--app-font-medium);
-  color: rgba(var(--ion-color-step-700-rgb), 0.86);
+  color: var(--app-muted-text-color);
 }
 
 @keyframes time-path-step {

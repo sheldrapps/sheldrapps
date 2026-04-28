@@ -1,9 +1,10 @@
 ﻿import type { SupportedLocale } from '@sheldrapps/i18n-kit';
 import { SettingsSchema } from '@sheldrapps/settings-kit';
+import { isAppThemeMode, type AppThemeMode } from '@sheldrapps/ui-theme';
 
 export type PreferenceValue = boolean | number | string | null;
 
-export type JustOneStepTheme = 'system' | 'light' | 'dark';
+export type JustOneStepTheme = AppThemeMode;
 
 export interface JustOneStepSettings {
   language?: SupportedLocale;
@@ -23,5 +24,5 @@ export const JUST_ONE_STEP_SETTINGS_SCHEMA: SettingsSchema<JustOneStepSettings> 
 };
 
 export function isJustOneStepTheme(value: string): value is JustOneStepTheme {
-  return value === 'system' || value === 'light' || value === 'dark';
+  return isAppThemeMode(value);
 }

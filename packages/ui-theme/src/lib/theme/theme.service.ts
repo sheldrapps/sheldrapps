@@ -1,28 +1,22 @@
 import { DOCUMENT } from '@angular/common';
 import { Injectable, OnDestroy, inject } from '@angular/core';
 import { SettingsStore } from '@sheldrapps/settings-kit';
+import { EdgeToEdgeService } from '../edge-to-edge';
 import {
-  JustOneStepSettings,
-  JustOneStepTheme,
-} from '../settings/just-one-step-settings.schema';
-
-export type Theme = JustOneStepTheme;
-
-export type ThemeOption = {
-  code: Theme;
-  labelKey: string;
-};
-
-export const THEME_OPTIONS: readonly ThemeOption[] = [
-  { code: 'system', labelKey: 'SETTINGS.THEME_SYSTEM' },
-  { code: 'light', labelKey: 'SETTINGS.THEME_LIGHT' },
-  { code: 'dark', labelKey: 'SETTINGS.THEME_DARK' },
-] as const;
+  THEME_CLASS_NAMES,
+  getThemeDefinition,
+  normalizeAppThemeMode,
+  resolveThemeMode,
+  type AppThemeMode,
+  type ResolvedTheme,
+  type Theme,
+} from './theme.models';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService implements OnDestroy {
-  private readonly settings = inject(SettingsStore<JustOneStepSettings>);
+  private readonly settings = inject(SettingsStore<{ theme?: AppThemeMode }>);
   private readonly document = inject(DOCUMENT);
+  private readonly edgeToEdge = inject(EdgeToEdgeService);
 
   private mediaQuery: MediaQueryList | null = null;
   private mediaListener?: (event: MediaQueryListEvent) => void;
@@ -35,18 +29,18 @@ export class ThemeService implements OnDestroy {
 
   async initialize(): Promise<void> {
     if (this.initialized) {
-      this.applyTheme(this.currentTheme);
+      await this.applyTheme(this.mode);
       return;
     }
 
     await this.settings.load();
     this.bindSystemThemeListener();
 
-    const storedTheme = this.settings.get().theme ?? 'system';
+    const storedTheme = normalizeAppThemeMode(this.settings.get().theme) ?? 'system';
     this.mode = storedTheme;
-    this.applyTheme(storedTheme);
+    await this.applyTheme(storedTheme);
 
-    if (!this.settings.get().theme) {
+    if (this.settings.get().theme !== storedTheme) {
       await this.settings.set({ theme: storedTheme });
     }
 
@@ -54,9 +48,19 @@ export class ThemeService implements OnDestroy {
   }
 
   async setTheme(theme: Theme): Promise<void> {
-    this.mode = theme;
-    this.applyTheme(theme);
-    await this.settings.set({ theme });
+    const normalizedTheme = normalizeAppThemeMode(theme) ?? 'system';
+    this.mode = normalizedTheme;
+    await this.applyTheme(normalizedTheme);
+    await this.settings.set({ theme: normalizedTheme });
+  }
+
+  async previewTheme(theme: Theme): Promise<void> {
+    const normalizedTheme = normalizeAppThemeMode(theme) ?? 'system';
+    await this.applyTheme(normalizedTheme);
+  }
+
+  async restorePersistedTheme(): Promise<void> {
+    await this.applyTheme(this.mode);
   }
 
   ngOnDestroy(): void {
@@ -70,9 +74,13 @@ export class ThemeService implements OnDestroy {
 
     this.mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     this.mediaListener = (event: MediaQueryListEvent) => {
-      if (this.mode === 'system') {
-        this.applyResolvedTheme(event.matches ? 'dark' : 'light');
+      if (this.mode !== 'system') {
+        return;
       }
+
+      const resolvedTheme = this.resolveTheme(this.mode, event.matches);
+      this.applyResolvedTheme(resolvedTheme);
+      void this.syncSystemBars(resolvedTheme);
     };
 
     if (typeof this.mediaQuery.addEventListener === 'function') {
@@ -95,7 +103,7 @@ export class ThemeService implements OnDestroy {
     }
   }
 
-  private applyTheme(theme: Theme): void {
+  private async applyTheme(theme: Theme): Promise<void> {
     const root = this.document.documentElement;
     if (!root) {
       return;
@@ -103,29 +111,45 @@ export class ThemeService implements OnDestroy {
 
     root.setAttribute('data-theme', theme);
 
-    if (theme === 'system') {
-      this.applyResolvedTheme(this.prefersDark() ? 'dark' : 'light');
-      return;
-    }
+    const resolvedTheme = this.resolveTheme(theme);
 
-    this.applyResolvedTheme(theme);
+    this.applyResolvedTheme(resolvedTheme);
+    await this.syncSystemBars(resolvedTheme);
   }
 
-  private applyResolvedTheme(theme: 'light' | 'dark'): void {
+  private applyResolvedTheme(theme: ResolvedTheme): void {
     const root = this.document.documentElement;
     if (!root) {
       return;
     }
 
     root.classList.remove(
-      'theme-light',
-      'theme-dark',
+      ...THEME_CLASS_NAMES,
       'app-theme-light',
       'app-theme-dark',
       'ion-palette-dark'
     );
-    root.classList.add(theme === 'dark' ? 'theme-dark' : 'theme-light');
-    root.style.colorScheme = theme;
+    const definition = getThemeDefinition(theme);
+    root.classList.add(definition.className);
+    root.style.colorScheme = definition.appearance;
+    root.setAttribute('data-resolved-theme', theme);
+    root.setAttribute('data-resolved-appearance', definition.appearance);
+  }
+
+  private async syncSystemBars(theme: ResolvedTheme): Promise<void> {
+    const definition = getThemeDefinition(theme);
+    const iconTone = definition.appearance === 'dark' ? 'light' : 'dark';
+    await this.edgeToEdge.setSystemBarAppearance({
+      statusBarIcons: iconTone,
+      navBarIcons: iconTone,
+    });
+  }
+
+  private resolveTheme(
+    theme: Theme,
+    prefersDark = this.prefersDark()
+  ): ResolvedTheme {
+    return resolveThemeMode(theme, prefersDark ? 'dark' : 'light');
   }
 
   private prefersDark(): boolean {

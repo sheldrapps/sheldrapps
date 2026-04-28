@@ -46,7 +46,7 @@
   line-height: 1;
   font-weight: 700;
   letter-spacing: 0;
-  color: rgba(var(--ion-color-primary-rgb), 0.72);
+  color: var(--ion-color-primary);
   white-space: nowrap;
   text-rendering: geometricPrecision;
   font-variant-numeric: tabular-nums;
@@ -89,7 +89,7 @@
   justify-content: center;
 
   // Layer 1: blur + dim on the invoking page via backdrop-filter on the overlay
-  background: rgba(var(--ion-color-step-950-rgb, 0, 0, 0), 0.35);
+  background: var(--app-overlay-scrim);
   backdrop-filter: blur(1px);
   -webkit-backdrop-filter: blur(1px);
 
@@ -101,7 +101,7 @@
   width: min(280px, 100%);
   background: var(--app-surface, var(--ion-background-color, #fff));
   border-radius: var(--app-radius-lg, 20px);
-  box-shadow: var(--app-shadow-lg, 0 12px 40px rgba(0, 0, 0, 0.2));
+  box-shadow: var(--app-overlay-card-shadow);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -110,7 +110,7 @@
 .tp-title {
   font-size: 0.82rem;
   font-weight: var(--app-font-medium, 500);
-  color: var(--app-text-secondary, var(--ion-color-step-600, #999));
+  color: var(--app-muted-text-color, var(--app-text-secondary, var(--ion-color-step-600, #999)));
   text-align: center;
   padding: var(--app-space-5) var(--app-space-7) 0;
 }
@@ -136,7 +136,7 @@
   );
   height: var(--tp-item-height);
   border-radius: 10px;
-  background: rgba(var(--ion-color-primary-rgb), 0.07);
+  background: var(--app-accent-background-fallback);
   pointer-events: none;
 }
 
@@ -225,13 +225,13 @@
   transform: translateY(var(--tp-glyph-nudge-y));
 
   // Subdued non-center items
-  color: rgba(var(--ion-color-primary-rgb), 0.28);
+  color: rgba(var(--ion-color-primary-rgb), 0.42);
   transition: color 80ms ease, font-size 80ms ease;
 }
 
 // Center item: accent blue matching .time-digital-display source of truth
 .tp-item--center {
-  color: rgba(var(--ion-color-primary-rgb), 0.72);
+  color: var(--ion-color-primary);
   font-size: 1.32rem;
 }
 
@@ -240,7 +240,7 @@
   font-size: 1.5rem;
   line-height: 1;
   font-weight: 700;
-  color: rgba(var(--ion-color-primary-rgb), 0.45);
+  color: var(--app-control-icon);
   padding: 0 var(--app-space-1);
   user-select: none;
   flex-shrink: 0;
@@ -277,12 +277,12 @@
 }
 
 .tp-btn--cancel {
-  color: var(--app-text-secondary, var(--ion-color-step-600, #999));
+  color: var(--app-muted-text-color, var(--app-text-secondary, var(--ion-color-step-600, #999)));
 }
 
 .tp-btn--confirm {
-  background: var(--ion-color-primary);
-  color: var(--ion-color-primary-contrast, #fff);
+  background: var(--app-button-primary-background);
+  color: var(--app-button-primary-text);
   font-weight: 600;
   min-width: 72px;
   text-align: center;

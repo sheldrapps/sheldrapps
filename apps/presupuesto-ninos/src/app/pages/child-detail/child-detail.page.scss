@@ -14,7 +14,7 @@
   height: 120px;
   border-radius: 50%;
   overflow: hidden;
-  background: var(--ion-color-light);
+  background: var(--app-control-background);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -28,11 +28,11 @@
 
   ion-icon {
     font-size: 56px;
-    color: var(--ion-color-medium);
+    color: var(--app-control-icon);
   }
 
   &.pn-avatar--empty {
-    background: var(--ion-color-light-tint);
+    background: var(--app-control-disabled-background);
   }
 }
 
@@ -44,7 +44,7 @@
   height: 36px;
   border-radius: 50%;
   background: var(--ion-color-primary);
-  color: white;
+  color: var(--app-button-primary-text);
   --padding-start: 0;
   --padding-end: 0;
 
@@ -85,7 +85,7 @@
 }
 
 .pn-subtotal-item {
-  background-color: var(--ion-color-light);
+  background-color: var(--app-control-background);
   margin-top: 4px;
   margin-bottom: 16px;
   --padding-start: 16px;
@@ -94,19 +94,19 @@
 
 .pn-subtotal-label {
   font-size: 0.95rem;
-  color: var(--ion-color-dark);
+  color: var(--app-text-primary);
 }
 
 .pn-subtotal-amount {
   font-weight: 700;
   font-size: 1.05rem;
-  color: var(--ion-color-dark);
+  color: var(--app-text-primary);
   opacity: 0.9;
 }
 
 .empty-state {
   text-align: center;
-  color: var(--ion-color-medium);
+  color: var(--app-muted-text-color);
   margin: 24px 0 32px;
   font-size: 0.95rem;
 }

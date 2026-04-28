@@ -29,7 +29,7 @@
   top: 50%;
   height: 1.5px;
   border-radius: 999px;
-  background: rgba(var(--ion-color-step-950-rgb), 0.36);
+  background: var(--app-muted-text-color);
   transform: translateY(-50%);
   pointer-events: none;
 }
@@ -75,7 +75,7 @@ button.today-standard-card__header:active,
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: rgba(var(--ion-color-step-950-rgb), 0.96);
+  color: var(--app-page-title-color);
   font-weight: var(--app-font-semibold);
 }
 
@@ -85,7 +85,7 @@ button.today-standard-card__header:active,
   align-items: center;
   flex-wrap: wrap;
   gap: var(--app-space-1);
-  color: rgba(var(--ion-color-step-700-rgb), 0.72);
+  color: var(--app-muted-text-color);
 }
 
 .today-standard-card__divider {
@@ -93,7 +93,7 @@ button.today-standard-card__header:active,
   align-items: center;
   justify-content: center;
   vertical-align: middle;
-  color: var(--app-accent-border-color, var(--app-task-accent-border-color, rgba(var(--ion-color-step-350-rgb), 0.92))) !important;
+  color: var(--app-accent-border-color, var(--app-task-accent-border-color, var(--app-accent-border-fallback))) !important;
   font-size: 0.9rem;
   font-weight: 900;
   line-height: 1;
@@ -102,6 +102,6 @@ button.today-standard-card__header:active,
 
 .today-standard-card__duration {
   font-size: var(--app-text-xs);
-  color: rgba(var(--ion-color-step-700-rgb), 0.72);
+  color: var(--app-muted-text-color);
   font-weight: 600;
 }

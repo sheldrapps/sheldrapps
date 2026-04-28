@@ -4,6 +4,7 @@ import type { CoverCropState, CropFormatOption, CropperResult } from '../types';
 
 /** Panel types available in the editor */
 export type ToolPanelType = "zoom" | "rotate" | "crop";
+export type EditorPreviewMaskShape = "rect" | "circle";
 // Use CropFormatOption from types barrel
 
 /** Kindle device model (catalog-driven) */
@@ -34,6 +35,15 @@ export interface EditorToolsConfig {
 
   /** Allow rotate panel */
   rotate?: boolean;
+
+  /** Allow fill/background panel */
+  fill?: boolean;
+
+  /** Allow adjustments mode */
+  adjustments?: boolean;
+
+  /** Allow text mode */
+  text?: boolean;
 
   /** Crop/Format selection options */
   formats?: {
@@ -73,6 +83,11 @@ export type EditorSession = {
 
   /** Optional initial editor state */
   initialState?: CoverCropState;
+
+  /** Optional preview configuration for app-specific framing */
+  preview?: {
+    maskShape?: EditorPreviewMaskShape;
+  };
 
   /** Optional return url for exiting the editor */
   returnUrl?: string;

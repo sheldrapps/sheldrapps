@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject } from "@angular/core";
+import { Component, DestroyRef, effect, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import {
   TranslateModule,
@@ -11,6 +11,7 @@ import {
   ScrollableButtonBarComponent,
   ScrollableBarItem,
 } from "@sheldrapps/ui-theme";
+import { EditorUiStateService } from "../../editor-ui-state.service";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { merge, Observable } from "rxjs";
 
@@ -24,6 +25,7 @@ import { merge, Observable } from "rxjs";
 export class DefaultPage {
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly ui = inject(EditorUiStateService);
 
   bottomBarItems: ScrollableBarItem[] = this.buildBottomBarItems();
 
@@ -31,6 +33,11 @@ export class DefaultPage {
     private router: Router,
     private route: ActivatedRoute,
   ) {
+    effect(() => {
+      this.ui.toolsConfig();
+      this.bottomBarItems = this.buildBottomBarItems();
+    });
+
     merge(
       this.translate.onLangChange as Observable<LangChangeEvent>,
       this.translate.onTranslationChange as Observable<TranslationChangeEvent>,
@@ -42,6 +49,7 @@ export class DefaultPage {
   }
 
   private buildBottomBarItems(): ScrollableBarItem[] {
+    const toolsConfig = this.ui.toolsConfig();
     const toolsKey = "EDITOR.SHELL.LABEL.TOOLS";
     const adjustmentsKey = "EDITOR.SHELL.LABEL.ADJUSTMENTS";
     const textKey = "EDITOR.SHELL.LABEL.TEXT";
@@ -61,11 +69,17 @@ export class DefaultPage {
         icon,
       }) as unknown as ScrollableBarItem;
 
-    return [
-      makeItem("tools", toolsLabel, "crop-outline"),
-      makeItem("adjustments", adjustmentsLabel, "options-outline"),
-      makeItem("text", textLabel, "text-outline"),
-    ];
+    const items = [makeItem("tools", toolsLabel, "crop-outline")];
+
+    if (toolsConfig?.adjustments !== false) {
+      items.push(makeItem("adjustments", adjustmentsLabel, "options-outline"));
+    }
+
+    if (toolsConfig?.text !== false) {
+      items.push(makeItem("text", textLabel, "text-outline"));
+    }
+
+    return items;
   }
 
   onBottomBarItemClick(id: string): void {

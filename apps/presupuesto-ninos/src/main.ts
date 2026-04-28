@@ -8,6 +8,7 @@ import {
 import { provideI18nKit } from '@sheldrapps/i18n-kit';
 import { provideSettingsKit } from '@sheldrapps/settings-kit';
 import { provideFileKit } from '@sheldrapps/file-kit';
+import { provideEditorI18n } from '@sheldrapps/image-workflow/editor';
 
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
@@ -31,6 +32,7 @@ bootstrapApplication(AppComponent, {
         es: 'es-MX',
       },
     }),
+    provideEditorI18n(),
 
     provideSettingsKit({
       appId: 'presupuesto-ninos',

@@ -3,7 +3,7 @@
   height: 48px;
   border-radius: 50%;
   overflow: hidden;
-  background: var(--ion-color-light);
+  background: var(--app-control-background);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -17,7 +17,7 @@
 
   ion-icon {
     font-size: 28px;
-    color: var(--ion-color-medium);
+    color: var(--app-control-icon);
   }
 }
 
@@ -33,9 +33,58 @@
 
 .empty-state {
 	text-align: center;
-	color: var(--ion-color-medium);
+	color: var(--app-muted-text-color);
 	margin: 24px 0 32px;
 	font-size: 0.95rem;
+}
+
+.account-group-header {
+  width: 100%;
+  border: 0;
+  padding: 12px 16px;
+  margin: 0;
+  text-align: left;
+  background: var(--app-surface-raised, var(--app-control-background));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.account-group-header--actionable {
+  cursor: pointer;
+}
+
+.account-group-header__text {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--app-text-primary);
+}
+
+.account-group-header__balance {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.account-group-empty {
+  padding: 8px 16px 12px;
+  color: var(--app-muted-text-color);
+  font-size: 0.9rem;
+}
+
+.account-group-summary {
+  padding: 8px 16px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--app-surface-raised, var(--app-control-background));
+  color: var(--app-muted-text-color);
+  font-size: 0.88rem;
+
+  strong {
+    font-size: 0.95rem;
+  }
 }
 
 .budget-group-header {
@@ -45,16 +94,17 @@
   font-weight: 700;
   font-size: 14px;
   text-transform: uppercase;
-  color: var(--ion-color-medium-shade);
+  color: var(--app-muted-text-color);
   letter-spacing: 0.5px;
-  background: var(--ion-color-light);
+  background: var(--app-control-background);
   min-height: 44px;
   display: flex;
   align-items: center;
+  border-top: 1px solid rgba(var(--ion-color-step-300-rgb), 0.35);
 }
 
 .pn-group-subtotal-item {
-  background: var(--ion-color-light);
+  background: var(--app-control-background);
   --padding-start: 16px;
   --padding-end: 16px;
   --inner-padding-end: 0;
@@ -63,7 +113,7 @@
 .pn-group-subtotal-label {
   font-size: 13px;
   font-weight: 600;
-  color: var(--ion-color-medium);
+  color: var(--app-muted-text-color);
 }
 
 .pn-group-subtotal-amount {

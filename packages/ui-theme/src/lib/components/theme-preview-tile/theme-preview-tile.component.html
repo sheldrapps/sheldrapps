@@ -1,0 +1,14 @@
+<div
+  class="app-theme-preview"
+  [ngStyle]="previewStyle"
+  [attr.aria-label]="displayName"
+  [attr.data-selected]="selected ? 'true' : 'false'"
+  aria-hidden="true"
+>
+  <div class="app-theme-preview__chrome"></div>
+  <div class="app-theme-preview__surface">
+    <div class="app-theme-preview__title"></div>
+    <div class="app-theme-preview__text"></div>
+    <div class="app-theme-preview__button"></div>
+  </div>
+</div>

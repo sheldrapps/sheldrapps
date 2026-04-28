@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -11,11 +11,15 @@ import {
   IonList,
   IonItem,
   IonLabel,
-  IonSelect,
-  IonSelectOption,
+  IonRadio,
+  IonRadioGroup,
+  IonModal,
+  IonButtons,
+  IonButton,
   IonLoading,
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
+import { THEME_OPTIONS, ThemeService, type Theme } from '@sheldrapps/ui-theme';
 
 import {
   Lang,
@@ -47,33 +51,75 @@ import { HOME_TOUR_ID } from 'src/app/shared/tour/home-tour.definition';
     IonList,
     IonItem,
     IonLabel,
-    IonSelect,
-    IonSelectOption,
+    IonRadio,
+    IonRadioGroup,
+    IonModal,
+    IonButtons,
+    IonButton,
     IonLoading,
   ],
 })
-export class SettingsPage implements OnInit {
+export class SettingsPage {
   lang = inject(LanguageService);
   consent = inject(ConsentService);
+  private theme = inject(ThemeService);
 
   private settings = inject(SettingsStore<EccSettings>);
   private router = inject(Router);
   private tour = inject(TourService);
   readonly supportedLangs = LANG_OPTIONS;
-  selectedLanguage = this.lang.lang as Lang;
+  readonly supportedThemes = THEME_OPTIONS;
   private isRestartingLanguage = false;
+  isLanguageModalOpen = false;
+  languageDraft: Lang = 'en-US';
   isLanguageRestartLoading = false;
   languageRestartCountdown = 3;
   private readonly languageRestartCountdownStart = 3;
-
-  constructor() {}
-
-  ngOnInit() {}
 
   private readonly privacyPolicyUrl =
     'https://sheldrapps.github.io/privacy-policies/epub-cover-changer/';
 
   trackByLang = (_: number, l: LangOption) => l.code;
+
+  get selectedLanguage(): Lang {
+    return this.lang.lang as Lang;
+  }
+
+  get currentTheme(): Theme {
+    return this.theme.currentTheme;
+  }
+
+  get currentThemeLabelKey(): string {
+    return (
+      this.supportedThemes.find((option) => option.code === this.currentTheme)
+        ?.labelKey ?? 'SETTINGS.THEME_SYSTEM'
+    );
+  }
+
+  get currentLanguageOption(): LangOption | undefined {
+    return this.supportedLangs.find(
+      (option) => option.code === this.selectedLanguage,
+    );
+  }
+
+  openLanguageModal() {
+    this.languageDraft = this.selectedLanguage;
+    this.isLanguageModalOpen = true;
+  }
+
+  closeLanguageModal() {
+    this.isLanguageModalOpen = false;
+  }
+
+  onLanguageDraftChange(value: Lang) {
+    this.languageDraft = value;
+  }
+
+  async confirmLanguageModal() {
+    const nextLanguage = this.languageDraft;
+    this.closeLanguageModal();
+    await this.onLangChange(nextLanguage);
+  }
 
   async onLangChange(v: Lang) {
     if (!v || v === this.lang.lang || this.isRestartingLanguage) {
@@ -83,7 +129,6 @@ export class SettingsPage implements OnInit {
     this.isRestartingLanguage = true;
 
     try {
-      this.selectedLanguage = v;
       await this.settings.set({ language: v });
       await this.lang.set(v);
       await this.showLanguageRestartCountdown();
@@ -92,6 +137,10 @@ export class SettingsPage implements OnInit {
       this.isLanguageRestartLoading = false;
       this.isRestartingLanguage = false;
     }
+  }
+
+  async onThemeChange(theme: Theme): Promise<void> {
+    await this.theme.setTheme(theme);
   }
 
   async openPrivacyOptions() {
@@ -115,7 +164,11 @@ export class SettingsPage implements OnInit {
     this.isLanguageRestartLoading = true;
     await this.waitForLoadingToRender();
 
-    for (let remaining = this.languageRestartCountdownStart; remaining > 1; remaining--) {
+    for (
+      let remaining = this.languageRestartCountdownStart;
+      remaining > 1;
+      remaining--
+    ) {
       await this.delay(1000);
       this.languageRestartCountdown = remaining - 1;
     }
@@ -142,4 +195,3 @@ export class SettingsPage implements OnInit {
     });
   }
 }
-
