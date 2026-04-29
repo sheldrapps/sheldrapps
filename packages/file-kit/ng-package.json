@@ -3,6 +3,6 @@
   "lib": {
     "entryFile": "src/public-api.ts"
   },
-  "allowedNonPeerDependencies": ["tslib"],
+  "allowedNonPeerDependencies": ["tslib", "@capacitor/core"],
   "dest": "./dist"
 }

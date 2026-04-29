@@ -27,6 +27,9 @@ export const routes: Routes = [
   },
   {
     path: 'recommended-apps',
+    data: {
+      backHref: '/tabs/create',
+    },
     loadChildren: () =>
       import('@sheldrapps/recommended-apps').then(
         (m) => m.RECOMMENDED_APPS_ROUTES

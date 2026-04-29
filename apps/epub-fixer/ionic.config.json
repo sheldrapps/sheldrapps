@@ -1,0 +1,7 @@
+{
+  "name": "epub-fixer",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

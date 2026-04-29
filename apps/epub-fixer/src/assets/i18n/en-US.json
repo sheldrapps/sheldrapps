@@ -1,0 +1,94 @@
+{
+  "APP": {
+    "TITLE": "EPUB Fixer"
+  },
+  "ARR": {
+    "TOOLS": {
+      "APPS": "Apps",
+      "GUIDE": "Guide"
+    }
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "Go back again to exit",
+    "CANCEL": "Cancel",
+    "DONE": "Done",
+    "ERROR": "Error",
+    "LOADING": "Loading"
+  },
+  "FIX": {
+    "TITLE": "Fix",
+    "SELECT_EPUB_LABEL": "EPUB file",
+    "SELECT_EPUB_PLACEHOLDER": "Choose an EPUB to inspect",
+    "TAP_TO_CHANGE": "Tap to choose another EPUB",
+    "ARIA_CHANGE_EPUB": "Change EPUB file {{name}}",
+    "ARIA_SELECT_EPUB": "Select EPUB file",
+    "EPUB_READY_TITLE": "EPUB loaded",
+    "EPUB_READY_WITH_COVER": "The file was read successfully and its current cover is ready to preview.",
+    "EPUB_READY_NO_COVER": "The file was read successfully. A preview cover is not available for this EPUB on this device.",
+    "COVER_PREVIEW_TITLE": "Current cover",
+    "COVER_PREVIEW_BODY": "This is the cover currently detected inside the EPUB.",
+    "COVER_PREVIEW_ALT": "Current EPUB cover",
+    "NO_COVER_TITLE": "No preview cover available",
+    "NO_COVER_BODY": "The EPUB is loaded, but the app could not extract a cover preview. You can still continue with the repair workflow when it is connected.",
+    "INTRO_TITLE": "Shared baseline ready",
+    "INTRO_BODY": "This screen now uses the same EPUB intake pattern as ECC: header tools, file validation, working copy creation, and cover extraction when available.",
+    "NEXT_STEPS_TITLE": "Next steps",
+    "NEXT_STEP_1": "Connect the actual repair actions on top of the prepared working EPUB.",
+    "NEXT_STEP_2": "Keep reusable EPUB behavior in shared kits and leave only app-specific repair logic here.",
+    "NEXT_STEP_3": "Use My EPUBs for recent files, repaired outputs, or repair history.",
+    "INFO_FLOW_LABEL": "How it works",
+    "INFO_STEP_1": "Select an EPUB from your device.",
+    "INFO_STEP_2": "The app validates the file and creates a working copy.",
+    "INFO_STEP_3": "If the EPUB exposes a readable cover, the app extracts it for preview.",
+    "INFO_STEP_4": "Once the repair flow is connected, this prepared EPUB can move into the next fixing steps.",
+    "READING_EPUB": "Reading EPUB",
+    "EPUB_ERROR_CORRUPT": "The EPUB could not be read. Try another file.",
+    "EPUB_ERROR_NO_COVER": "This EPUB does not contain a replaceable cover.",
+    "EPUB_ERROR_REWRITE": "The EPUB could not be processed. Please try again.",
+    "EPUB_ERROR_STORAGE": "Not enough storage space. Need {{requiredMB}} MB, available {{availableMB}} MB.",
+    "EPUB_ERROR_SIZE": "The file is too large. Maximum {{maxSize}} MB.",
+    "EPUB_ERROR_TYPE": "Unsupported EPUB file."
+  },
+  "MY_EPUBS": {
+    "TITLE": "My EPUBs",
+    "EMPTY_TITLE": "No EPUBs yet",
+    "EMPTY_BODY": "Your repaired or imported files will appear here once the fixer workflow is connected.",
+    "GO_TO_FIXER": "Go to fixer"
+  },
+  "INSTRUCTIONS": {
+    "TITLE": "Instructions",
+    "INTRO_TITLE": "How this shell is meant to work",
+    "INTRO_BODY": "EPUB Fixer is ready for the same app-level experience as ECC, without the image editor.",
+    "STEP_1": "Select and validate EPUBs in the Fix tab.",
+    "STEP_2": "Reuse file-kit for local files and settings-kit for persisted preferences.",
+    "STEP_3": "Keep language, themes, and shared UI in sync through the shared kits.",
+    "STEP_4": "When the repair workflow is ready, surface outputs or history in My EPUBs.",
+    "NOTE_TITLE": "Note",
+    "NOTE_BODY": "This screen is intentionally lightweight so we can plug in the real repair logic without reworking the shell later."
+  },
+  "SETTINGS": {
+    "TITLE": "Settings",
+    "LANGUAGE": "Language",
+    "LANGUAGE_PREPARING_COUNTDOWN": "Preparing everything in your language ({{count}})",
+    "INSTRUCTIONS": "View instructions",
+    "INSTRUCTIONS_SECTION": "Instructions",
+    "INSTRUCTIONS_HINT": "How EPUB Fixer is organized right now",
+    "THEME": "Theme",
+    "THEME_SYSTEM": "System",
+    "THEME_LIGHT": "Natural Light",
+    "THEME_DARK": "Classic Dark",
+    "THEME_WARM_READING": "Warm Reading",
+    "THEME_POP_ROSE": "Pop Rose",
+    "THEME_NOCTURNE_VIOLET": "Nocturne Violet",
+    "THEME_OBSIDIAN_RED": "Obsidian Red",
+    "THEME_TERMINAL_GREEN": "Terminal Green",
+    "THEME_MINT_FRESH": "Mint Fresh",
+    "THEME_SILVER_TECH": "Silver",
+    "THEME_GOLD_LUXE": "Gold"
+  },
+  "TABS": {
+    "FIX": "Fix",
+    "MY_EPUBS": "My EPUBs",
+    "SETTINGS": "Settings"
+  }
+}

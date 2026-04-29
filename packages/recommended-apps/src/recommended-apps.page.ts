@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader,
@@ -62,9 +63,11 @@ const APP_NAME_KEYS: Record<string, keyof RecommendedAppsTranslations> = {
   ],
 })
 export class RecommendedAppsPage {
+  private readonly route = inject(ActivatedRoute);
   private readonly recommendedAppsService = inject(RecommendedAppsService);
   t: RecommendedAppsTranslations = getRecommendedAppsTranslations('en-US');
   private locale: RecommendedAppsLocale = 'en-US';
+  readonly backHref = this.resolveBackHref();
   readonly playStoreIconSrc = `data:image/svg+xml;base64,${btoa(
     LOGO_GOOGLE_PLAYSTORE_ICON
   )}`;
@@ -110,5 +113,19 @@ export class RecommendedAppsPage {
   private async loadTranslations(): Promise<void> {
     this.locale = await detectRecommendedAppsLocaleAsync();
     this.t = await getRecommendedAppsTranslationsAsync(this.locale);
+  }
+
+  private resolveBackHref(): string {
+    const configuredBackHrefs = this.route.snapshot.pathFromRoot
+      .map((routeSnapshot) => routeSnapshot.data['backHref'])
+      .filter(
+        (value): value is string =>
+          typeof value === 'string' && value.trim().length > 0
+      );
+
+    const configuredBackHref =
+      configuredBackHrefs[configuredBackHrefs.length - 1];
+
+    return configuredBackHref ?? '/';
   }
 }

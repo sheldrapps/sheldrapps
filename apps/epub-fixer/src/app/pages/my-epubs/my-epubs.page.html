@@ -1,0 +1,22 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'MY_EPUBS.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="my-epubs-page ion-padding">
+  <ion-list inset="true">
+    <ion-item>
+      <ion-label class="ion-text-wrap">
+        <h2>{{ 'MY_EPUBS.EMPTY_TITLE' | translate }}</h2>
+        <p>{{ 'MY_EPUBS.EMPTY_BODY' | translate }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <div class="my-epubs-page__actions">
+    <ion-button class="app-btn" expand="block" [routerLink]="['/tabs/fix']">
+      {{ 'MY_EPUBS.GO_TO_FIXER' | translate }}
+    </ion-button>
+  </div>
+</ion-content>

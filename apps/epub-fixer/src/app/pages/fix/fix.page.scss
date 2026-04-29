@@ -1,0 +1,19 @@
+.fix-page__preview {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: var(--app-space-4) 0;
+}
+
+.fix-page__preview-image {
+  display: block;
+  width: min(100%, 240px);
+  height: auto;
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-md);
+  object-fit: contain;
+}
+
+.fix-page__preview-list {
+  margin-top: var(--app-space-5);
+}

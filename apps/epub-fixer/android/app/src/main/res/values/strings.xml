@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">EPUB Fixer</string>
+    <string name="title_activity_main">EPUB Fixer</string>
+    <string name="package_name">com.sheldrapps.epubfixer</string>
+    <string name="custom_url_scheme">com.sheldrapps.epubfixer</string>
+</resources>

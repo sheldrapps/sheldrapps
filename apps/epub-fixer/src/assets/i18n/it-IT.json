@@ -1,0 +1,94 @@
+{
+  "APP": {
+    "TITLE": "EPUB Fixer"
+  },
+  "ARR": {
+    "TOOLS": {
+      "APPS": "Apps",
+      "GUIDE": "Guida"
+    }
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "Premi ancora indietro per uscire",
+    "CANCEL": "Annulla",
+    "DONE": "Fatto",
+    "ERROR": "Errore",
+    "LOADING": "Caricamento"
+  },
+  "FIX": {
+    "TITLE": "Ripara",
+    "SELECT_EPUB_LABEL": "File EPUB",
+    "SELECT_EPUB_PLACEHOLDER": "Scegli un EPUB da ispezionare",
+    "TAP_TO_CHANGE": "Tocca per scegliere un altro EPUB",
+    "ARIA_CHANGE_EPUB": "Cambia file EPUB {{name}}",
+    "ARIA_SELECT_EPUB": "Seleziona file EPUB",
+    "EPUB_READY_TITLE": "EPUB caricato",
+    "EPUB_READY_WITH_COVER": "Il file è stato letto correttamente e la sua copertina attuale è pronta per l’anteprima.",
+    "EPUB_READY_NO_COVER": "Il file è stato letto correttamente. Su questo dispositivo non è disponibile un’anteprima della copertina per questo EPUB.",
+    "COVER_PREVIEW_TITLE": "Copertina attuale",
+    "COVER_PREVIEW_BODY": "Questa è la copertina attualmente rilevata dentro l’EPUB.",
+    "COVER_PREVIEW_ALT": "Copertina attuale dell’EPUB",
+    "NO_COVER_TITLE": "Anteprima copertina non disponibile",
+    "NO_COVER_BODY": "L’EPUB è caricato, ma l’app non è riuscita a estrarre un’anteprima della copertina. Potrai comunque continuare con il flusso di riparazione quando sarà collegato.",
+    "INTRO_TITLE": "Base condivisa pronta",
+    "INTRO_BODY": "Questa schermata ora usa lo stesso schema di ingresso EPUB di ECC: strumenti nell’header, validazione file, creazione della working copy ed estrazione della copertina quando disponibile.",
+    "NEXT_STEPS_TITLE": "Passi successivi",
+    "NEXT_STEP_1": "Collega le vere azioni di riparazione sopra l’EPUB di lavoro già preparato.",
+    "NEXT_STEP_2": "Mantieni il comportamento EPUB riutilizzabile nei kit condivisi e lascia qui solo la logica specifica del fixer.",
+    "NEXT_STEP_3": "Usa I miei EPUB per file recenti, output riparati o cronologia delle riparazioni.",
+    "INFO_FLOW_LABEL": "Come funziona",
+    "INFO_STEP_1": "Seleziona un EPUB dal tuo dispositivo.",
+    "INFO_STEP_2": "L’app valida il file e crea una copia di lavoro.",
+    "INFO_STEP_3": "Se l’EPUB espone una copertina leggibile, l’app la estrae per l’anteprima.",
+    "INFO_STEP_4": "Quando il flusso di riparazione sarà collegato, questo EPUB preparato potrà passare allo step successivo.",
+    "READING_EPUB": "Lettura EPUB",
+    "EPUB_ERROR_CORRUPT": "Non è stato possibile leggere l’EPUB. Prova con un altro file.",
+    "EPUB_ERROR_NO_COVER": "Questo EPUB non contiene una copertina sostituibile.",
+    "EPUB_ERROR_REWRITE": "Non è stato possibile elaborare l’EPUB. Riprova.",
+    "EPUB_ERROR_STORAGE": "Spazio di archiviazione insufficiente. Servono {{requiredMB}} MB, disponibili {{availableMB}} MB.",
+    "EPUB_ERROR_SIZE": "Il file è troppo grande. Massimo {{maxSize}} MB.",
+    "EPUB_ERROR_TYPE": "File EPUB non supportato."
+  },
+  "MY_EPUBS": {
+    "TITLE": "I miei EPUB",
+    "EMPTY_TITLE": "Nessun EPUB per ora",
+    "EMPTY_BODY": "I tuoi file riparati o importati appariranno qui quando il flusso del fixer sarà collegato.",
+    "GO_TO_FIXER": "Vai al fixer"
+  },
+  "INSTRUCTIONS": {
+    "TITLE": "Istruzioni",
+    "INTRO_TITLE": "Come dovrebbe funzionare questa shell",
+    "INTRO_BODY": "EPUB Fixer è pronto a offrire la stessa esperienza applicativa di ECC, senza l’editor di immagini.",
+    "STEP_1": "Seleziona e valida EPUB nella scheda Ripara.",
+    "STEP_2": "Riusa file-kit per i file locali e settings-kit per le preferenze persistenti.",
+    "STEP_3": "Mantieni lingua, temi e UI condivisa sincronizzati tramite i kit condivisi.",
+    "STEP_4": "Quando il flusso di riparazione sarà pronto, mostra output o cronologia in I miei EPUB.",
+    "NOTE_TITLE": "Nota",
+    "NOTE_BODY": "Questa schermata è volutamente leggera così potremo collegare la logica reale di riparazione senza rifare più tardi la shell."
+  },
+  "SETTINGS": {
+    "TITLE": "Impostazioni",
+    "LANGUAGE": "Lingua",
+    "LANGUAGE_PREPARING_COUNTDOWN": "Sto preparando tutto nella tua lingua ({{count}})",
+    "INSTRUCTIONS": "Vedi istruzioni",
+    "INSTRUCTIONS_SECTION": "Istruzioni",
+    "INSTRUCTIONS_HINT": "Come è organizzato EPUB Fixer in questo momento",
+    "THEME": "Tema",
+    "THEME_SYSTEM": "Sistema",
+    "THEME_LIGHT": "Luce naturale",
+    "THEME_DARK": "Scuro classico",
+    "THEME_WARM_READING": "Lettura calda",
+    "THEME_POP_ROSE": "Rosa pop",
+    "THEME_NOCTURNE_VIOLET": "Viola notturno",
+    "THEME_OBSIDIAN_RED": "Rosso ossidiana",
+    "THEME_TERMINAL_GREEN": "Verde terminale",
+    "THEME_MINT_FRESH": "Menta fresca",
+    "THEME_SILVER_TECH": "Argento",
+    "THEME_GOLD_LUXE": "Oro"
+  },
+  "TABS": {
+    "FIX": "Ripara",
+    "MY_EPUBS": "I miei EPUB",
+    "SETTINGS": "Impostazioni"
+  }
+}

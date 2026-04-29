@@ -1,0 +1,52 @@
+0 verbose cli C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js
+1 info using npm@11.6.2
+2 info using node@v24.12.0
+3 silly config load:file:C:\Program Files\nodejs\node_modules\npm\npmrc
+4 silly config load:file:C:\apps\sheldrapps\apps\epub-cover-changer\.npmrc
+5 silly config load:file:C:\Users\sheld\.npmrc
+6 silly config load:file:C:\Users\sheld\AppData\Roaming\npm\etc\npmrc
+7 verbose title npm exec capacitor-assets generate --android
+8 verbose argv "exec" "--yes" "--package" "@capacitor/assets" "--" "capacitor-assets" "generate" "--android"
+9 verbose logfile logs-max:10 dir:C:\apps\sheldrapps\.npm-cache\_logs\2026-04-29T01_20_56_489Z-
+10 verbose logfile C:\apps\sheldrapps\.npm-cache\_logs\2026-04-29T01_20_56_489Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:4496293888 maxSize:1124073472 maxEntrySize:562036736
+13 http fetch GET https://registry.npmjs.org/@capacitor%2fassets attempt 1 failed with EACCES
+14 http fetch GET https://registry.npmjs.org/@capacitor%2fassets attempt 2 failed with EACCES
+15 http fetch GET https://registry.npmjs.org/@capacitor%2fassets attempt 3 failed with EACCES
+16 verbose type system
+17 verbose stack FetchError: request to https://registry.npmjs.org/@capacitor%2fassets failed, reason: 
+17 verbose stack     at ClientRequest.<anonymous> (C:\Program Files\nodejs\node_modules\npm\node_modules\minipass-fetch\lib\index.js:130:14)
+17 verbose stack     at ClientRequest.emit (node:events:508:28)
+17 verbose stack     at emitErrorEvent (node:_http_client:108:11)
+17 verbose stack     at _destroy (node:_http_client:962:9)
+17 verbose stack     at onSocketNT (node:_http_client:982:5)
+17 verbose stack     at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+18 error code EACCES
+19 error errno EACCES
+20 error FetchError: request to https://registry.npmjs.org/@capacitor%2fassets failed, reason: 
+20 error     at ClientRequest.<anonymous> (C:\Program Files\nodejs\node_modules\npm\node_modules\minipass-fetch\lib\index.js:130:14)
+20 error     at ClientRequest.emit (node:events:508:28)
+20 error     at emitErrorEvent (node:_http_client:108:11)
+20 error     at _destroy (node:_http_client:962:9)
+20 error     at onSocketNT (node:_http_client:982:5)
+20 error     at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+20 error   code: 'EACCES',
+20 error   errno: 'EACCES',
+20 error   type: 'system'
+20 error }
+21 error
+21 error The operation was rejected by your operating system.
+21 error It's possible that the file was already in use (by a text editor or antivirus),
+21 error or that you lack permissions to access it.
+21 error
+21 error If you believe this might be a permissions issue, please double-check the
+21 error permissions of the file and its containing directories, or try running
+21 error the command again as root/Administrator.
+22 verbose cwd C:\apps\sheldrapps\apps\epub-cover-changer
+23 verbose os Windows_NT 10.0.26200
+24 verbose node v24.12.0
+25 verbose npm  v11.6.2
+26 verbose exit 1
+27 verbose code 1
+28 error A complete log of this run can be found in: C:\apps\sheldrapps\.npm-cache\_logs\2026-04-29T01_20_56_489Z-debug-0.log
