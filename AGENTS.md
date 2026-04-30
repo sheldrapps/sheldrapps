@@ -76,7 +76,10 @@ When in doubt, default to kits and only keep app-specific wiring in `apps/*`.
 - Use this exact wrapper for top/bottom full-width action buttons:
   - container style: `padding: 0 var(--app-space-7)` (and optional bottom spacing with `var(--app-space-8)`).
   - button: `class="app-btn" expand="block"`.
-- Use `ion-list inset="true"` for card/list content sections.
+- For JOS-style card layouts, prefer tokenized surfaces from `ui-theme` such as `app-accent-surface` + `app-accent-card-body` or `app-secondary-surface`.
+- For workflow/status screens that follow the JOS card pattern, do not use `ion-list` as a generic card container.
+- Use `ion-list inset="true"` only for genuine list content sections that are semantically lists.
+- When a page defines local spacing, expose local CSS custom properties that point to `--app-space-*` tokens for both horizontal and vertical rhythm instead of scattering raw token references throughout the file.
 - Inside inset cards/lists, keep content padding as `var(--app-space-8) var(--app-space-7)` unless the user explicitly requests a different value.
 - Before finishing, visually verify (or compare computed layout structure in template) that:
   - action button left/right edges match card/list content edges,

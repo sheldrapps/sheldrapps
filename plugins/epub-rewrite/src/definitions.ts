@@ -4,6 +4,29 @@ export interface InspectEpubOptions {
   inputPath: string;
 }
 
+export interface PrepareEpubOptions {
+  uri: string;
+  displayName?: string;
+  maxBytes?: number;
+};
+
+export interface PrepareEpubResult {
+  success: boolean;
+  sessionId?: string;
+  originalName?: string;
+  originalSize?: number;
+  isZipReadable?: boolean;
+  workingPath?: string;
+  workingName?: string;
+  workingNativePath?: string;
+  outputBaseName?: string;
+  error?: string;
+  message?: string;
+  stage?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
+}
+
 export interface InspectEpubResult {
   success: boolean;
   coverEntryPath?: string;
@@ -73,10 +96,16 @@ export interface RewriteProgressEvent {
 
 export interface PickAndPrepareEpubOptions {
   maxBytes?: number;
+  requireCover?: boolean;
+  includeCoverPreview?: boolean;
 }
 
 export interface PickAndPrepareEpubResult {
   success: boolean;
+  sessionId?: string;
+  originalName?: string;
+  originalSize?: number;
+  isZipReadable?: boolean;
   selectedName?: string;
   sourceSize?: number;
   sourceLastModified?: number;
@@ -99,6 +128,7 @@ export interface CancelRewriteResult {
 }
 
 export interface EpubRewritePlugin extends Plugin {
+  prepare(options: PrepareEpubOptions): Promise<PrepareEpubResult>;
   pickAndPrepareEpub(
     options: PickAndPrepareEpubOptions,
   ): Promise<PickAndPrepareEpubResult>;
@@ -110,6 +140,7 @@ export interface EpubRewritePlugin extends Plugin {
   createEpubFromCover(
     options: CreateEpubFromCoverOptions,
   ): Promise<CreateEpubFromCoverResult>;
+  cleanup(options: { sessionId: string }): Promise<void>;
   cancelRewrite(): Promise<CancelRewriteResult>;
   addListener(
     eventName: 'rewriteProgress',

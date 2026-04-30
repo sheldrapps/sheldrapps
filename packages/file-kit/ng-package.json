@@ -3,6 +3,6 @@
   "lib": {
     "entryFile": "src/public-api.ts"
   },
-  "allowedNonPeerDependencies": ["tslib", "@capacitor/core"],
+  "allowedNonPeerDependencies": ["tslib", "@capacitor/core", "jszip"],
   "dest": "./dist"
 }

@@ -12,7 +12,7 @@ import {
   WebLocalStorageAdapter,
   provideSettingsKit,
 } from '@sheldrapps/settings-kit';
-import { provideFileKit } from '@sheldrapps/file-kit';
+import { provideEpubFixerPort, provideFileKit } from '@sheldrapps/file-kit';
 import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
 
 import { routes } from './app/app.routes';
@@ -65,6 +65,7 @@ bootstrapApplication(AppComponent, {
     }),
 
     provideFileKit(),
+    provideEpubFixerPort(),
     {
       provide: RECOMMENDED_APPS_CURRENT_PACKAGE,
       useValue: EPUB_FIXER_PACKAGE_ID,

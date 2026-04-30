@@ -9,13 +9,14 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import {
+  IonButtons,
+  IonButton,
+  IonBadge,
   IonContent,
   IonHeader,
-  IonButtons,
   IonIcon,
   IonItem,
   IonLabel,
-  IonList,
   IonPopover,
   IonTitle,
   IonToolbar,
@@ -31,10 +32,10 @@ import {
   informationCircleOutline,
 } from 'ionicons/icons';
 import {
-  EpubReadService,
+  EpubDiagnosticResult,
+  EpubFixerPortError,
   EpubRewriteError,
-  EpubRewriteService,
-  EpubWorkingCopyService,
+  EpubRepairResult,
 } from '@sheldrapps/file-kit';
 import {
   LoadingStateComponent,
@@ -48,6 +49,8 @@ import {
   handleHomeHeaderAction,
 } from '@sheldrapps/recommended-apps';
 
+import { EpubFixerWorkflowService } from '../../services/epub-fixer-workflow.service';
+
 @Component({
   selector: 'app-fix-page',
   standalone: true,
@@ -56,13 +59,14 @@ import {
   imports: [
     CommonModule,
     TranslateModule,
+    IonBadge,
+    IonButton,
     IonContent,
     IonHeader,
     IonButtons,
     IonIcon,
     IonItem,
     IonLabel,
-    IonList,
     IonPopover,
     IonTitle,
     IonToolbar,
@@ -71,13 +75,10 @@ import {
   ],
 })
 export class FixPage implements OnInit, OnDestroy {
-  private readonly epubRead = inject(EpubReadService);
-  private readonly epubRewrite = inject(EpubRewriteService);
-  private readonly workingCopy = inject(EpubWorkingCopyService);
+  private readonly workflow = inject(EpubFixerWorkflowService);
   private readonly recommendedAppsService = inject(RecommendedAppsService);
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
-  private readonly maxEpubSizeMB = 1024;
 
   @ViewChild('epubInput') epubInput!: ElementRef<HTMLInputElement>;
 
@@ -96,41 +97,140 @@ export class FixPage implements OnInit, OnDestroy {
   recommendedApps: RecommendedApp[] = [];
   showRecommended = false;
 
-  sourceEpubFile?: File;
-  workingEpubFile?: File;
-  workingEpubPath?: string;
-  workingEpubNativePath?: string;
-  workingEpubName?: string;
-  coverEntryPath?: string;
-  outputBaseName?: string;
+  preparedSessionId?: string;
   selectedEpubName?: string;
-  coverPreviewUrl?: string;
-
   sourceEpubMeta?: {
     name: string;
     size: number;
     lastModified: number;
     type: string;
   };
+  diagnosis?: EpubDiagnosticResult;
+  repairResult?: EpubRepairResult;
+  exportResult?: {
+    size: number;
+    outputName: string;
+  };
 
+  viewState:
+    | 'idle'
+    | 'prepared'
+    | 'diagnosing'
+    | 'diagnosed'
+    | 'repairing'
+    | 'repaired'
+    | 'failed' = 'idle';
   epubErrorKey?: string;
   epubErrorParams: Record<string, unknown> = {};
-  isPickingEpub = false;
-  epubLoadProgressPercent = 0;
+  busyAction?: 'prepare' | 'diagnose' | 'repair' | 'export';
 
   infoOpen = false;
   infoEvent: Event | null = null;
 
-  get showNativeLoadOverlay(): boolean {
-    return this.isPickingEpub && this.usesNativeRewrite();
+  get isBusy(): boolean {
+    return !!this.busyAction;
   }
 
-  get nativeLoadPercentLabel(): string {
-    const percent = Math.max(
-      0,
-      Math.min(100, Math.round(this.epubLoadProgressPercent)),
+  get loadingLabelKey(): string {
+    if (this.busyAction === 'diagnose') {
+      return 'FIX.LOADING_DIAGNOSE';
+    }
+    if (this.busyAction === 'repair') {
+      return 'FIX.LOADING_REPAIR';
+    }
+    if (this.busyAction === 'export') {
+      return 'FIX.LOADING_EXPORT';
+    }
+    return 'FIX.READING_EPUB';
+  }
+
+  get isWebDevMode(): boolean {
+    return this.workflow.isWebDevMode();
+  }
+
+  get supportsFullWorkflow(): boolean {
+    return this.workflow.supportsFullWorkflow();
+  }
+
+  get showLargeFileWarning(): boolean {
+    return this.workflow.shouldWarnForLargeWebFile(this.sourceEpubMeta?.size);
+  }
+
+  get recommendedWebSizeMB(): number {
+    return this.workflow.recommendedWebSizeMB;
+  }
+
+  get hasSelectedEpub(): boolean {
+    return !!this.selectedEpubName && !this.epubErrorKey;
+  }
+
+  get canDiagnose(): boolean {
+    return (
+      !!this.preparedSessionId &&
+      !this.isBusy &&
+      this.supportsFullWorkflow &&
+      this.viewState === 'prepared'
     );
-    return `${percent}%`;
+  }
+
+  get canRepair(): boolean {
+    return (
+      !!this.preparedSessionId &&
+      !this.isBusy &&
+      this.supportsFullWorkflow &&
+      this.viewState === 'diagnosed' &&
+      this.diagnosis?.status === 'repairable'
+    );
+  }
+
+  get canExport(): boolean {
+    return (
+      !!this.preparedSessionId &&
+      !this.isBusy &&
+      this.supportsFullWorkflow &&
+      (this.viewState === 'repaired' || this.diagnosis?.status === 'valid')
+    );
+  }
+
+  get showPreparedActionCard(): boolean {
+    return (
+      this.hasValidEpub() &&
+      (this.viewState === 'prepared' || this.viewState === 'diagnosing')
+    );
+  }
+
+  get showReviewChecklist(): boolean {
+    return this.hasValidEpub() && this.viewState === 'prepared';
+  }
+
+  get showDiagnosisSummary(): boolean {
+    return (
+      this.hasValidEpub() &&
+      !!this.diagnosis &&
+      (this.viewState === 'diagnosed' || this.viewState === 'repairing' || this.viewState === 'repaired')
+    );
+  }
+
+  get showIssuesList(): boolean {
+    return this.showDiagnosisSummary && this.diagnosis!.issues.length > 0;
+  }
+
+  get diagnosisIssueCount(): number {
+    return this.diagnosis?.issues.length ?? 0;
+  }
+
+  get diagnosisFixableCount(): number {
+    return this.diagnosis?.issues.filter((issue) => issue.fixable).length ?? 0;
+  }
+
+  get resultPrimaryActionKey(): string | null {
+    if (this.canRepair) {
+      return 'FIX.ACTION_REPAIR';
+    }
+    if (this.canExport) {
+      return 'FIX.ACTION_EXPORT';
+    }
+    return null;
   }
 
   async ngOnInit(): Promise<void> {
@@ -139,8 +239,7 @@ export class FixPage implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.closeInfo();
-    this.revokeCoverPreview();
-    void this.cleanupWorkingCopy();
+    void this.cleanupPreparedEpub();
   }
 
   ionViewWillEnter(): void {
@@ -152,7 +251,7 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   openEpubPicker(): void {
-    if (this.usesNativeRewrite()) {
+    if (this.usesNativePrepare()) {
       void this.pickNativeEpub();
       return;
     }
@@ -164,57 +263,117 @@ export class FixPage implements OnInit, OnDestroy {
     const file = input.files?.[0];
     if (!file) return;
 
-    this.isPickingEpub = true;
+    this.busyAction = 'prepare';
     try {
       await this.resetWorkflowForNewEpub();
+      const prepared = await this.workflow.prepareFromFile(file);
 
-      const validation = this.epubRead.validateEpub(file, this.maxEpubSizeMB);
-      if (!validation.valid) {
-        this.failEpub(validation.errorKey!, file);
-        return;
-      }
-
-      let cycle: Awaited<ReturnType<EpubWorkingCopyService['startCycle']>>;
-      try {
-        cycle = await this.workingCopy.startCycle(file);
-      } catch {
-        this.failEpub('EPUB_ERROR_CORRUPT', file);
-        return;
-      }
-
-      this.sourceEpubFile = file;
-      this.sourceEpubMeta = cycle.sourceMeta;
-      this.workingEpubFile = cycle.workingFile;
-      this.workingEpubPath = cycle.workingPath;
-      this.workingEpubName = cycle.workingName;
-      this.outputBaseName = cycle.outputBaseName;
+      this.preparedSessionId = prepared.sessionId;
       this.selectedEpubName = file.name;
-
-      const hasValidStructure = await this.epubRead.validateEpubStructure(
-        this.workingEpubFile,
-      );
-      if (!hasValidStructure) {
-        this.failEpub('EPUB_ERROR_CORRUPT', file);
-        await this.cleanupWorkingCopy();
-        return;
-      }
-
+      this.sourceEpubMeta = {
+        name: prepared.originalName,
+        size: prepared.originalSize,
+        lastModified: file.lastModified,
+        type: file.type || 'application/epub+zip',
+      };
+      this.viewState = 'prepared';
       this.clearEpubError();
-
-      const extractedCover = await this.epubRead.extractCoverFromEpubFile(
-        this.workingEpubFile,
-      );
-      if (extractedCover) {
-        this.applyCoverPreview(extractedCover);
-      }
+    } catch (error) {
+      this.failEpub(this.mapPrepareError(error), file);
+      await this.cleanupPreparedEpub();
     } finally {
-      this.isPickingEpub = false;
+      this.busyAction = undefined;
       input.value = '';
     }
   }
 
   hasValidEpub(): boolean {
-    return !!(this.workingEpubFile || this.workingEpubNativePath) && !this.epubErrorKey;
+    return !!this.preparedSessionId && !this.epubErrorKey;
+  }
+
+  formatFileSize(bytes?: number): string {
+    if (!Number.isFinite(bytes as number) || !bytes) {
+      return '';
+    }
+
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let value = bytes as number;
+    let unitIndex = 0;
+    while (value >= 1024 && unitIndex < units.length - 1) {
+      value /= 1024;
+      unitIndex += 1;
+    }
+
+    const digits = unitIndex === 0 ? 0 : value >= 100 ? 0 : 1;
+    return `${new Intl.NumberFormat(undefined, {
+      maximumFractionDigits: digits,
+      minimumFractionDigits: 0,
+    }).format(value)} ${units[unitIndex]}`;
+  }
+
+  async runDiagnosis(): Promise<void> {
+    if (!this.preparedSessionId || !this.canDiagnose) {
+      return;
+    }
+
+    this.busyAction = 'diagnose';
+    this.viewState = 'diagnosing';
+    try {
+      this.repairResult = undefined;
+      this.exportResult = undefined;
+      this.diagnosis = await this.workflow.diagnoseCurrentEpub();
+      this.viewState = 'diagnosed';
+      this.clearEpubError();
+    } catch (error) {
+      this.failWorkflow('EPUB_ERROR_REWRITE', error);
+    } finally {
+      this.busyAction = undefined;
+    }
+  }
+
+  async runRepair(): Promise<void> {
+    if (!this.preparedSessionId || !this.canRepair) {
+      return;
+    }
+
+    this.busyAction = 'repair';
+    this.viewState = 'repairing';
+    try {
+      this.exportResult = undefined;
+      this.repairResult = await this.workflow.repairCurrentEpub();
+      if (!this.repairResult.success) {
+        this.failWorkflow('EPUB_ERROR_REWRITE');
+      } else {
+        this.clearEpubError();
+        this.diagnosis = await this.workflow.diagnoseCurrentEpub();
+        this.viewState = 'repaired';
+      }
+    } catch (error) {
+      this.failWorkflow('EPUB_ERROR_REWRITE', error);
+    } finally {
+      this.busyAction = undefined;
+    }
+  }
+
+  async exportFixed(): Promise<void> {
+    if (!this.preparedSessionId || !this.canExport) {
+      return;
+    }
+
+    this.busyAction = 'export';
+    try {
+      const outputName = this.workflow.buildFixedOutputName(this.selectedEpubName);
+      const exported = await this.workflow.exportCurrentEpub(outputName);
+      this.exportResult = {
+        size: exported.size,
+        outputName,
+      };
+      this.clearEpubError();
+    } catch (error) {
+      this.failWorkflow('EPUB_ERROR_REWRITE', error);
+    } finally {
+      this.busyAction = undefined;
+    }
   }
 
   async onHeaderItemClick(id: string): Promise<void> {
@@ -255,88 +414,69 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   private async pickNativeEpub(): Promise<void> {
-    this.isPickingEpub = true;
-    this.epubLoadProgressPercent = 0;
+    this.busyAction = 'prepare';
 
     try {
-      const prepared = await this.epubRewrite.pickAndPrepareEpub({
-        maxBytes: this.maxEpubSizeMB * 1024 * 1024,
-      });
       await this.resetWorkflowForNewEpub();
+      const prepared = await this.workflow.pickAndPrepareNative();
 
-      this.epubLoadProgressPercent = 92;
-      this.sourceEpubFile = undefined;
+      this.preparedSessionId = prepared.sessionId;
+      this.selectedEpubName = prepared.originalName;
       this.sourceEpubMeta = {
-        name: prepared.selectedName,
-        size: prepared.sourceSize,
-        lastModified: prepared.sourceLastModified,
-        type: prepared.sourceMimeType,
+        name: prepared.originalName,
+        size: prepared.originalSize,
+        lastModified: Date.now(),
+        type: 'application/epub+zip',
       };
-      this.workingEpubFile = undefined;
-      this.workingEpubPath = prepared.workingPath;
-      this.workingEpubNativePath = prepared.workingNativePath;
-      this.workingEpubName = prepared.workingName;
-      this.outputBaseName = prepared.outputBaseName;
-      this.selectedEpubName = prepared.selectedName;
-      this.coverEntryPath = prepared.coverEntryPath;
+      this.viewState = 'prepared';
       this.clearEpubError();
-
-      if (prepared.file) {
-        this.applyCoverPreview(prepared.file);
-      }
-
-      this.epubLoadProgressPercent = 100;
     } catch (error) {
       if (error instanceof EpubRewriteError && error.code === 'PICK_CANCELLED') {
         return;
       }
 
       this.failEpub(
-        this.mapNativeEpubError(error),
+        this.mapPrepareError(error),
         this.sourceEpubMeta,
         this.buildNativeStorageErrorParams(error),
       );
-      await this.cleanupWorkingCopy();
+      await this.cleanupPreparedEpub();
     } finally {
-      this.epubLoadProgressPercent = 0;
-      this.isPickingEpub = false;
+      this.busyAction = undefined;
     }
   }
 
   private async resetWorkflowForNewEpub(): Promise<void> {
-    await this.cleanupWorkingCopy();
-    this.revokeCoverPreview();
+    await this.cleanupPreparedEpub();
     this.clearEpubError();
 
-    this.sourceEpubFile = undefined;
-    this.workingEpubFile = undefined;
-    this.workingEpubPath = undefined;
-    this.workingEpubNativePath = undefined;
-    this.workingEpubName = undefined;
-    this.coverEntryPath = undefined;
-    this.outputBaseName = undefined;
+    this.preparedSessionId = undefined;
     this.selectedEpubName = undefined;
     this.sourceEpubMeta = undefined;
+    this.diagnosis = undefined;
+    this.repairResult = undefined;
+    this.exportResult = undefined;
+    this.viewState = 'idle';
   }
 
-  private async cleanupWorkingCopy(): Promise<void> {
-    const path = this.workingEpubPath;
-    this.workingEpubPath = undefined;
-    this.workingEpubNativePath = undefined;
-    this.workingEpubFile = undefined;
-    if (!path) return;
-    await this.workingCopy.cleanupWorkingCopy(path);
-  }
+  private async cleanupPreparedEpub(): Promise<void> {
+    const sessionId = this.preparedSessionId;
+    this.preparedSessionId = undefined;
 
-  private applyCoverPreview(file: File): void {
-    this.revokeCoverPreview();
-    this.coverPreviewUrl = URL.createObjectURL(file);
-  }
+    if (sessionId) {
+      try {
+        await this.workflow.cleanup(sessionId);
+      } catch {
+        // Best-effort cleanup.
+      }
+      return;
+    }
 
-  private revokeCoverPreview(): void {
-    if (!this.coverPreviewUrl) return;
-    URL.revokeObjectURL(this.coverPreviewUrl);
-    this.coverPreviewUrl = undefined;
+    try {
+      await this.workflow.cleanupCurrentEpub();
+    } catch {
+      // Best-effort cleanup.
+    }
   }
 
   private failEpub(
@@ -344,22 +484,19 @@ export class FixPage implements OnInit, OnDestroy {
     file?: { name?: string },
     extraParams: Record<string, unknown> = {},
   ): void {
-    this.revokeCoverPreview();
     this.epubErrorKey = `FIX.${errorKey}`;
     this.epubErrorParams = {
-      maxSize: String(this.maxEpubSizeMB),
+      maxSize: String(this.workflow.maxNativeSizeMB),
       name: file?.name || '',
       ...extraParams,
     };
-    this.sourceEpubFile = undefined;
+    this.preparedSessionId = undefined;
     this.sourceEpubMeta = undefined;
-    this.workingEpubFile = undefined;
-    this.workingEpubPath = undefined;
-    this.workingEpubNativePath = undefined;
-    this.workingEpubName = undefined;
-    this.coverEntryPath = undefined;
-    this.outputBaseName = undefined;
     this.selectedEpubName = undefined;
+    this.diagnosis = undefined;
+    this.repairResult = undefined;
+    this.exportResult = undefined;
+    this.viewState = 'failed';
   }
 
   private clearEpubError(): void {
@@ -367,21 +504,33 @@ export class FixPage implements OnInit, OnDestroy {
     this.epubErrorParams = {};
   }
 
-  private usesNativeRewrite(): boolean {
-    return this.epubRewrite.isSupported();
+  private usesNativePrepare(): boolean {
+    return this.workflow.usesNativePicker();
   }
 
-  private mapNativeEpubError(error: unknown): string {
+  private mapPrepareError(error: unknown): string {
+    if (
+      error instanceof EpubFixerPortError &&
+      error.code === 'ZIP_UNREADABLE'
+    ) {
+      return 'EPUB_ERROR_CORRUPT';
+    }
     if (error instanceof EpubRewriteError && error.code === 'EPUB_TOO_LARGE') {
       return 'EPUB_ERROR_SIZE';
     }
     if (error instanceof EpubRewriteError && error.code === 'NO_SPACE') {
       return 'EPUB_ERROR_STORAGE';
     }
-    if (error instanceof EpubRewriteError && error.code === 'NO_COVER') {
-      return 'EPUB_ERROR_NO_COVER';
-    }
     return 'EPUB_ERROR_CORRUPT';
+  }
+
+  private failWorkflow(errorKey: string, error?: unknown): void {
+    this.epubErrorKey = `FIX.${errorKey}`;
+    this.epubErrorParams = {};
+    this.viewState = 'failed';
+    if (error) {
+      console.error('[epub-fixer] workflow action failed', error);
+    }
   }
 
   private buildNativeStorageErrorParams(

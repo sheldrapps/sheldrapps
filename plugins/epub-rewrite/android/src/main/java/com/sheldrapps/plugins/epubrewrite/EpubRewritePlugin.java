@@ -39,6 +39,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -47,6 +48,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.CRC32;
+import java.util.stream.Stream;
 import androidx.activity.result.ActivityResult;
 
 @CapacitorPlugin(name = "EpubRewritePlugin")
@@ -56,6 +58,7 @@ public class EpubRewritePlugin extends Plugin {
     private static final int BUFFER_SIZE = 32 * 1024;
     private static final long STORAGE_MARGIN_BYTES = 64L * 1024L * 1024L;
     private static final String WORK_FOLDER = "EPUBCoverChangerWork";
+    private static final String FIXER_SESSION_FOLDER = "EpubFixerSessions";
     private static final DateTimeFormatter WORK_TIMESTAMP_FORMAT =
         DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss", Locale.US);
 
@@ -63,6 +66,11 @@ public class EpubRewritePlugin extends Plugin {
     private final AtomicBoolean busy = new AtomicBoolean(false);
     private final AtomicBoolean cancelRequested = new AtomicBoolean(false);
     private final EpubCoverLocator coverLocator = new EpubCoverLocator();
+
+    @PluginMethod
+    public void prepare(PluginCall call) {
+        runExclusive(call, "prepare", this::prepareInternal);
+    }
 
     @PluginMethod
     public void inspectEpub(PluginCall call) {
@@ -182,6 +190,11 @@ public class EpubRewritePlugin extends Plugin {
         JSObject result = new JSObject();
         result.put("cancelled", true);
         call.resolve(result);
+    }
+
+    @PluginMethod
+    public void cleanup(PluginCall call) {
+        runExclusive(call, "cleanup", this::cleanupInternal);
     }
 
     @Override
@@ -431,34 +444,95 @@ public class EpubRewritePlugin extends Plugin {
         }
     }
 
-    private JSObject pickAndPrepareEpubInternal(PluginCall call, Uri sourceUri) throws Exception {
-        ensureNotCancelled();
+    private void prepareInternal(PluginCall call) throws Exception {
+        String rawUri = requireString(call, "uri");
+        Uri sourceUri = resolveSourceUri(rawUri);
+        String displayName = call.getString("displayName");
         Long maxBytesOpt = call.getLong("maxBytes");
         long maxBytes = maxBytesOpt == null ? 0L : Math.max(0L, maxBytesOpt);
-        SourceMeta sourceMeta = readSourceMeta(sourceUri);
-        String selectedName = sourceMeta.displayName;
-        String outputBaseName = sanitizeBaseName(stripExtension(selectedName)) + "_" + formatWorkTimestamp();
+
+        PreparedSession prepared = prepareSession(
+            sourceUri,
+            readSourceMeta(sourceUri, displayName),
+            maxBytes,
+            false,
+            false,
+            "prepare"
+        );
+        call.resolve(toPrepareResult(prepared));
+    }
+
+    private JSObject pickAndPrepareEpubInternal(PluginCall call, Uri sourceUri) throws Exception {
+        Long maxBytesOpt = call.getLong("maxBytes");
+        long maxBytes = maxBytesOpt == null ? 0L : Math.max(0L, maxBytesOpt);
+        boolean requireCover = readBoolean(call, "requireCover", true);
+        boolean includeCoverPreview = readBoolean(call, "includeCoverPreview", requireCover);
+
+        SourceMeta sourceMeta = readSourceMeta(sourceUri, null);
+        PreparedSession prepared = prepareSession(
+            sourceUri,
+            sourceMeta,
+            maxBytes,
+            requireCover,
+            includeCoverPreview,
+            "pick_prepare"
+        );
+
+        JSObject result = toPrepareResult(prepared);
+        result.put("selectedName", sourceMeta.displayName);
+        result.put("sourceSize", sourceMeta.size > 0 ? sourceMeta.size : prepared.originalSize);
+        result.put("sourceLastModified", sourceMeta.lastModified);
+        result.put("sourceMimeType", sourceMeta.mimeType);
+        if (prepared.coverEntryPath != null) {
+            result.put("coverEntryPath", prepared.coverEntryPath);
+        }
+        if (prepared.extractedCoverPath != null) {
+            result.put("extractedCoverPath", prepared.extractedCoverPath.toString());
+        }
+        return result;
+    }
+
+    private void cleanupInternal(PluginCall call) throws Exception {
+        String sessionId = requireString(call, "sessionId").trim();
+        validateSessionId(sessionId);
+        deleteRecursively(resolveSessionDir(sessionId));
+        call.resolve(new JSObject());
+    }
+
+    private PreparedSession prepareSession(
+        Uri sourceUri,
+        SourceMeta sourceMeta,
+        long maxBytes,
+        boolean requireCover,
+        boolean includeCoverPreview,
+        String stage
+    ) throws Exception {
+        ensureNotCancelled();
+        String originalName = sourceMeta.displayName;
+        String outputBaseName = sanitizeBaseName(stripExtension(originalName)) + "_" + formatWorkTimestamp();
         if (maxBytes > 0 && sourceMeta.size > maxBytes) {
             throw new PluginErrorException(
                 "EPUB_TOO_LARGE",
                 "Selected EPUB exceeds allowed max bytes",
-                "pick_prepare"
+                stage
             );
         }
 
-        Path workDir = getContext().getFilesDir().toPath().resolve(WORK_FOLDER);
-        Files.createDirectories(workDir);
-        Path workingPath = resolveUniqueWorkPath(workDir, outputBaseName);
+        String sessionId = UUID.randomUUID().toString();
+        Path sessionDir = resolveSessionDir(sessionId);
+        Files.createDirectories(sessionDir);
+        Path workingPath = resolveUniqueWorkPath(sessionDir, outputBaseName);
         long startedAt = System.currentTimeMillis();
         long sourceSize = Math.max(0L, sourceMeta.size);
         long requiredBytes = safeAdd(sourceSize, STORAGE_MARGIN_BYTES);
-        ensureSufficientSpace(workingPath, requiredBytes, "pick_prepare");
+        ensureSufficientSpace(workingPath, requiredBytes, stage);
 
         debugIo(
-            "pick_prepare start selectedName=" + selectedName
+            stage + " start originalName=" + originalName
                 + " maxBytes=" + maxBytes
                 + " requiredBytes=" + requiredBytes
                 + " workingPath=" + workingPath
+                + " sessionId=" + sessionId
         );
 
         long copiedBytes;
@@ -466,69 +540,81 @@ public class EpubRewritePlugin extends Plugin {
             copiedBytes = copyUriToPath(sourceUri, workingPath, maxBytes);
             ensureNotCancelled();
         } catch (Exception ex) {
-            try {
-                deleteIfExists(workingPath);
-            } catch (IOException ignored) {
-                // best effort cleanup
-            }
+            deleteRecursively(sessionDir);
             throw ex;
         }
 
         try (ZipFile zipFile = new ZipFile(workingPath.toFile())) {
             List<FileHeader> headers = zipFile.getFileHeaders();
             if (headers == null || headers.isEmpty()) {
-                deleteIfExists(workingPath);
-                return errorResult("INVALID_EPUB", null, "pick_prepare");
+                throw new PluginErrorException("INVALID_EPUB", null, stage);
             }
 
-            String coverEntryPath = findCoverEntryPath(zipFile, headers);
-            if (coverEntryPath == null) {
-                deleteIfExists(workingPath);
-                return errorResult("NO_COVER", "cover entry not found", "pick_prepare");
+            String coverEntryPath = null;
+            Path extractedCoverPath = null;
+            if (requireCover || includeCoverPreview) {
+                coverEntryPath = findCoverEntryPath(zipFile, headers);
+                if (coverEntryPath == null && requireCover) {
+                    throw new PluginErrorException("NO_COVER", "cover entry not found", stage);
+                }
+
+                if (coverEntryPath != null && includeCoverPreview) {
+                    FileHeader coverHeader = findHeader(headers, coverEntryPath);
+                    if (coverHeader == null) {
+                        if (requireCover) {
+                            throw new PluginErrorException("NO_COVER", "cover header missing", stage);
+                        }
+                    } else {
+                        extractedCoverPath = buildExtractedCoverPath(coverEntryPath);
+                        extractEntry(zipFile, coverHeader, extractedCoverPath);
+                    }
+                }
             }
-
-            FileHeader coverHeader = findHeader(headers, coverEntryPath);
-            if (coverHeader == null) {
-                deleteIfExists(workingPath);
-                return errorResult("NO_COVER", "cover header missing", "pick_prepare");
-            }
-
-            Path extractedCoverPath = buildExtractedCoverPath(coverEntryPath);
-            extractEntry(zipFile, coverHeader, extractedCoverPath);
-
-            JSObject result = new JSObject();
-            result.put("success", true);
-            result.put("selectedName", selectedName);
-            result.put("sourceSize", sourceMeta.size > 0 ? sourceMeta.size : copiedBytes);
-            result.put("sourceLastModified", sourceMeta.lastModified);
-            result.put("sourceMimeType", sourceMeta.mimeType);
-            result.put("workingPath", WORK_FOLDER + "/" + workingPath.getFileName().toString());
-            result.put("workingName", workingPath.getFileName().toString());
-            result.put("workingNativePath", workingPath.toString());
-            result.put("outputBaseName", stripExtension(workingPath.getFileName().toString()));
-            result.put("coverEntryPath", coverEntryPath);
-            result.put("extractedCoverPath", extractedCoverPath.toString());
 
             debugIo(
-                "pick_prepare success elapsedMs=" + (System.currentTimeMillis() - startedAt)
+                stage + " success elapsedMs=" + (System.currentTimeMillis() - startedAt)
                     + " sourceBytes=" + (sourceMeta.size > 0 ? sourceMeta.size : copiedBytes)
                     + " workingPath=" + workingPath
-                    + " coverEntryPath=" + coverEntryPath
+                    + " sessionId=" + sessionId
             );
-            return result;
+
+            return new PreparedSession(
+                sessionId,
+                originalName,
+                sourceMeta.size > 0 ? sourceMeta.size : copiedBytes,
+                true,
+                sessionRelativePath(sessionId, workingPath.getFileName().toString()),
+                workingPath.getFileName().toString(),
+                workingPath.toString(),
+                stripExtension(workingPath.getFileName().toString()),
+                coverEntryPath,
+                extractedCoverPath
+            );
         } catch (Exception ex) {
-            try {
-                deleteIfExists(workingPath);
-            } catch (IOException ignored) {
-                // best effort cleanup
-            }
+            deleteRecursively(sessionDir);
             throw ex;
         }
     }
 
-    private SourceMeta readSourceMeta(Uri sourceUri) {
+    private JSObject toPrepareResult(PreparedSession prepared) {
+        JSObject result = new JSObject();
+        result.put("success", true);
+        result.put("sessionId", prepared.sessionId);
+        result.put("originalName", prepared.originalName);
+        result.put("originalSize", prepared.originalSize);
+        result.put("isZipReadable", prepared.isZipReadable);
+        result.put("workingPath", prepared.workingPath);
+        result.put("workingName", prepared.workingName);
+        result.put("workingNativePath", prepared.workingNativePath);
+        result.put("outputBaseName", prepared.outputBaseName);
+        return result;
+    }
+
+    private SourceMeta readSourceMeta(Uri sourceUri, String displayNameOverride) {
         ContentResolver resolver = getContext().getContentResolver();
-        String displayName = "selected.epub";
+        String displayName = displayNameOverride == null || displayNameOverride.trim().isEmpty()
+            ? "selected.epub"
+            : displayNameOverride.trim();
         long size = -1L;
         long lastModified = System.currentTimeMillis();
         String mimeType = resolver.getType(sourceUri);
@@ -556,10 +642,27 @@ public class EpubRewritePlugin extends Plugin {
                 }
             }
         } catch (Exception ex) {
-            debugIo("pick_prepare metadata lookup failed: " + ex.getMessage());
+            debugIo("source metadata lookup failed: " + ex.getMessage());
         } finally {
             if (cursor != null) {
                 cursor.close();
+            }
+        }
+
+        Path filePath = tryResolveFilePath(sourceUri);
+        if (filePath != null) {
+            try {
+                if ("selected.epub".equals(displayName) || displayName.isBlank()) {
+                    Path fileName = filePath.getFileName();
+                    if (fileName != null) {
+                        displayName = fileName.toString();
+                    }
+                }
+                if (size < 0L && Files.exists(filePath)) {
+                    size = Files.size(filePath);
+                }
+            } catch (Exception ex) {
+                debugIo("source file metadata fallback failed: " + ex.getMessage());
             }
         }
 
@@ -572,18 +675,13 @@ public class EpubRewritePlugin extends Plugin {
 
     private long copyUriToPath(Uri sourceUri, Path targetPath, long maxBytes) throws Exception {
         Files.createDirectories(targetPath.getParent());
-        ContentResolver resolver = getContext().getContentResolver();
         byte[] buffer = new byte[BUFFER_SIZE];
         long totalBytes = 0L;
 
         try (
-            InputStream source = resolver.openInputStream(sourceUri);
+            InputStream source = openInputStream(sourceUri);
             OutputStream output = new BufferedOutputStream(Files.newOutputStream(targetPath))
         ) {
-            if (source == null) {
-                throw new PluginErrorException("PICK_FAILED", "Unable to open selected file");
-            }
-
             int read;
             while ((read = source.read(buffer)) != -1) {
                 ensureNotCancelled();
@@ -600,6 +698,96 @@ public class EpubRewritePlugin extends Plugin {
         }
 
         return totalBytes;
+    }
+
+    private Uri resolveSourceUri(String rawUri) {
+        Uri parsed = Uri.parse(rawUri);
+        if (parsed.getScheme() == null || parsed.getScheme().isBlank()) {
+            return Uri.fromFile(new java.io.File(rawUri));
+        }
+        return parsed;
+    }
+
+    private InputStream openInputStream(Uri sourceUri) throws Exception {
+        Path filePath = tryResolveFilePath(sourceUri);
+        if (filePath != null) {
+            return new BufferedInputStream(Files.newInputStream(filePath));
+        }
+
+        InputStream source = getContext().getContentResolver().openInputStream(sourceUri);
+        if (source == null) {
+            throw new PluginErrorException("PICK_FAILED", "Unable to open selected file");
+        }
+        return source;
+    }
+
+    private Path tryResolveFilePath(Uri sourceUri) {
+        if (sourceUri == null) {
+            return null;
+        }
+        String scheme = sourceUri.getScheme();
+        if (scheme == null || scheme.isBlank()) {
+            try {
+                return Paths.get(sourceUri.toString());
+            } catch (InvalidPathException ignored) {
+                return null;
+            }
+        }
+        if (!"file".equalsIgnoreCase(scheme) || sourceUri.getPath() == null) {
+            return null;
+        }
+        try {
+            return Paths.get(sourceUri.getPath());
+        } catch (InvalidPathException ignored) {
+            return null;
+        }
+    }
+
+    private boolean readBoolean(PluginCall call, String key, boolean fallback) {
+        Boolean value = call.getBoolean(key);
+        return value == null ? fallback : value;
+    }
+
+    private Path resolveSessionDir(String sessionId) {
+        return getContext()
+            .getFilesDir()
+            .toPath()
+            .resolve(WORK_FOLDER)
+            .resolve(FIXER_SESSION_FOLDER)
+            .resolve(sessionId);
+    }
+
+    private String sessionRelativePath(String sessionId, String filename) {
+        return WORK_FOLDER + "/" + FIXER_SESSION_FOLDER + "/" + sessionId + "/" + filename;
+    }
+
+    private void validateSessionId(String sessionId) throws IOException {
+        if (sessionId == null || !sessionId.matches("[A-Za-z0-9-]{8,80}")) {
+            throw new IOException("Invalid sessionId");
+        }
+    }
+
+    private void deleteRecursively(Path path) throws IOException {
+        if (path == null || !Files.exists(path)) {
+            return;
+        }
+
+        try (Stream<Path> stream = Files.walk(path)) {
+            stream
+                .sorted(Comparator.reverseOrder())
+                .forEach(candidate -> {
+                    try {
+                        Files.deleteIfExists(candidate);
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                });
+        } catch (RuntimeException ex) {
+            if (ex.getCause() instanceof IOException) {
+                throw (IOException) ex.getCause();
+            }
+            throw ex;
+        }
     }
 
     private Path resolveUniqueWorkPath(Path workDir, String outputBaseName) throws IOException {
@@ -1340,6 +1528,43 @@ public class EpubRewritePlugin extends Plugin {
             this.size = size;
             this.lastModified = lastModified;
             this.mimeType = mimeType;
+        }
+    }
+
+    private static final class PreparedSession {
+        final String sessionId;
+        final String originalName;
+        final long originalSize;
+        final boolean isZipReadable;
+        final String workingPath;
+        final String workingName;
+        final String workingNativePath;
+        final String outputBaseName;
+        final String coverEntryPath;
+        final Path extractedCoverPath;
+
+        PreparedSession(
+            String sessionId,
+            String originalName,
+            long originalSize,
+            boolean isZipReadable,
+            String workingPath,
+            String workingName,
+            String workingNativePath,
+            String outputBaseName,
+            String coverEntryPath,
+            Path extractedCoverPath
+        ) {
+            this.sessionId = sessionId;
+            this.originalName = originalName;
+            this.originalSize = originalSize;
+            this.isZipReadable = isZipReadable;
+            this.workingPath = workingPath;
+            this.workingName = workingName;
+            this.workingNativePath = workingNativePath;
+            this.outputBaseName = outputBaseName;
+            this.coverEntryPath = coverEntryPath;
+            this.extractedCoverPath = extractedCoverPath;
         }
     }
 

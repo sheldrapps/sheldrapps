@@ -17,6 +17,23 @@ type InspectEpubResult = {
   availableBytes?: number;
 };
 
+export type PrepareEpubOptions = {
+  uri: string;
+  displayName?: string;
+  maxBytes?: number;
+};
+
+export type PrepareEpubResult = {
+  sessionId: string;
+  originalName: string;
+  originalSize: number;
+  isZipReadable: boolean;
+  workingPath?: string;
+  workingName?: string;
+  workingNativePath?: string;
+  outputBaseName?: string;
+};
+
 type RewriteCoverOptions = {
   inputPath: string;
   outputPath?: string;
@@ -71,10 +88,16 @@ type ExtractCoverAssetResult = {
 
 type PickAndPrepareEpubOptions = {
   maxBytes?: number;
+  requireCover?: boolean;
+  includeCoverPreview?: boolean;
 };
 
 type PickAndPrepareEpubResult = {
   success: boolean;
+  sessionId?: string;
+  originalName?: string;
+  originalSize?: number;
+  isZipReadable?: boolean;
   selectedName?: string;
   sourceSize?: number;
   sourceLastModified?: number;
@@ -97,6 +120,22 @@ type RewriteProgressEvent = {
 };
 
 type EpubRewritePlugin = Plugin & {
+  prepare(options: PrepareEpubOptions): Promise<{
+    success: boolean;
+    sessionId?: string;
+    originalName?: string;
+    originalSize?: number;
+    isZipReadable?: boolean;
+    workingPath?: string;
+    workingName?: string;
+    workingNativePath?: string;
+    outputBaseName?: string;
+    error?: string;
+    message?: string;
+    stage?: string;
+    requiredBytes?: number;
+    availableBytes?: number;
+  }>;
   pickAndPrepareEpub(
     options: PickAndPrepareEpubOptions,
   ): Promise<PickAndPrepareEpubResult>;
@@ -108,6 +147,7 @@ type EpubRewritePlugin = Plugin & {
   extractCoverAsset(
     options: ExtractCoverAssetOptions,
   ): Promise<ExtractCoverAssetResult>;
+  cleanup(options: { sessionId: string }): Promise<void>;
   cancelRewrite(): Promise<{ cancelled: boolean }>;
 };
 
@@ -144,7 +184,16 @@ export class EpubRewriteService {
     return EpubRewrite.addListener('rewriteProgress', listener);
   }
 
+  async prepare(options: PrepareEpubOptions): Promise<PrepareEpubResult> {
+    const result = await EpubRewrite.prepare(options);
+    return this.requirePreparedResult(result, result.originalName);
+  }
+
   async pickAndPrepareEpub(options: PickAndPrepareEpubOptions): Promise<{
+    sessionId: string;
+    originalName: string;
+    originalSize: number;
+    isZipReadable: boolean;
     selectedName: string;
     sourceSize: number;
     sourceLastModified: number;
@@ -157,21 +206,10 @@ export class EpubRewriteService {
     file?: File;
   }> {
     const result = await EpubRewrite.pickAndPrepareEpub(options);
-    if (
-      !result.success ||
-      !result.workingPath ||
-      !result.workingName ||
-      !result.workingNativePath ||
-      !result.outputBaseName
-    ) {
-      throw new EpubRewriteError(result.error ?? 'PICK_FAILED', {
-        message: result.message,
-        stage: result.stage,
-        coverEntryPath: result.coverEntryPath,
-        requiredBytes: result.requiredBytes,
-        availableBytes: result.availableBytes,
-      });
-    }
+    const prepared = this.requirePreparedResult(
+      result,
+      result.selectedName ?? result.originalName,
+    );
 
     let file: File | undefined;
     if (result.extractedCoverPath && result.coverEntryPath) {
@@ -179,7 +217,7 @@ export class EpubRewriteService {
         file = await this.readExtractedFile(
           result.extractedCoverPath,
           result.coverEntryPath,
-          result.selectedName || result.workingName,
+          result.selectedName || prepared.originalName,
         );
       } catch (error) {
         if (error instanceof EpubRewriteError) {
@@ -197,14 +235,18 @@ export class EpubRewriteService {
     }
 
     return {
-      selectedName: result.selectedName || result.workingName,
+      sessionId: prepared.sessionId,
+      originalName: prepared.originalName,
+      originalSize: prepared.originalSize,
+      isZipReadable: prepared.isZipReadable,
+      selectedName: result.selectedName || prepared.originalName,
       sourceSize: result.sourceSize ?? 0,
       sourceLastModified: result.sourceLastModified ?? Date.now(),
       sourceMimeType: result.sourceMimeType || 'application/epub+zip',
-      workingPath: result.workingPath,
-      workingName: result.workingName,
-      workingNativePath: result.workingNativePath,
-      outputBaseName: result.outputBaseName,
+      workingPath: prepared.workingPath || '',
+      workingName: prepared.workingName || '',
+      workingNativePath: prepared.workingNativePath || '',
+      outputBaseName: prepared.outputBaseName || '',
       coverEntryPath: result.coverEntryPath,
       file,
     };
@@ -269,6 +311,11 @@ export class EpubRewriteService {
   async cancelRewrite(): Promise<void> {
     if (!this.isSupported()) return;
     await EpubRewrite.cancelRewrite();
+  }
+
+  async cleanup(sessionId: string): Promise<void> {
+    if (!this.isSupported() || !sessionId) return;
+    await EpubRewrite.cleanup({ sessionId });
   }
 
   toNativePath(uriOrPath: string): string {
@@ -342,5 +389,55 @@ export class EpubRewriteService {
     if (ext === 'png') return 'image/png';
     if (ext === 'webp') return 'image/webp';
     return 'image/jpeg';
+  }
+
+  private requirePreparedResult(
+    result: {
+      success: boolean;
+      sessionId?: string;
+      originalName?: string;
+      originalSize?: number;
+      isZipReadable?: boolean;
+      workingPath?: string;
+      workingName?: string;
+      workingNativePath?: string;
+      outputBaseName?: string;
+      error?: string;
+      message?: string;
+      stage?: string;
+      requiredBytes?: number;
+      availableBytes?: number;
+      coverEntryPath?: string;
+    },
+    fallbackName?: string,
+  ): PrepareEpubResult {
+    if (
+      !result.success ||
+      !result.sessionId ||
+      !result.originalName ||
+      !result.workingPath ||
+      !result.workingName ||
+      !result.workingNativePath ||
+      !result.outputBaseName
+    ) {
+      throw new EpubRewriteError(result.error ?? 'PREPARE_FAILED', {
+        message: result.message,
+        stage: result.stage,
+        coverEntryPath: result.coverEntryPath,
+        requiredBytes: result.requiredBytes,
+        availableBytes: result.availableBytes,
+      });
+    }
+
+    return {
+      sessionId: result.sessionId,
+      originalName: result.originalName || fallbackName || result.workingName,
+      originalSize: result.originalSize ?? 0,
+      isZipReadable: result.isZipReadable !== false,
+      workingPath: result.workingPath,
+      workingName: result.workingName,
+      workingNativePath: result.workingNativePath,
+      outputBaseName: result.outputBaseName,
+    };
   }
 }
