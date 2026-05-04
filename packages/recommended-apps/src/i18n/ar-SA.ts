@@ -1,0 +1,11 @@
+import type { RecommendedAppsTranslations } from './types';
+
+export const AR_SA: RecommendedAppsTranslations = {
+  TITLE: 'التطبيقات الموصى بها',
+  OPEN_PLAY_STORE: 'عرض على Play Store',
+  EMPTY_STATE: 'لا توجد تطبيقات موصى بها',
+  APP_NAME_CCFK: 'منشئ أغلفة القارئ الإلكتروني',
+  APP_NAME_ECC: 'تغيير غلاف EPUB',
+  APP_DESC_CCFK: 'أنشئ أغلفة للقارئ الإلكتروني من صورك في خطوات قليلة.',
+  APP_DESC_ECC: 'استبدل أغلفة EPUB وصدّر الملفات المحدّثة.',
+};

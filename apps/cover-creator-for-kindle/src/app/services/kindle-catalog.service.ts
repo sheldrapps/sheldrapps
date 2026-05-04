@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import type {
@@ -48,8 +48,7 @@ export interface ResolvedKindleSelection {
 @Injectable({ providedIn: 'root' })
 export class KindleCatalogService {
   private cached?: KindleGroup[];
-
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   async getGroups(): Promise<KindleGroup[]> {
     if (this.cached) return this.cached;

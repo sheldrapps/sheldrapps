@@ -45,4 +45,39 @@ export const LANG_OPTIONS: readonly LangOption[] = [
     label: 'Português (Brasil)',
     flagClass: 'app-language-option__flag--br',
   },
+  {
+    code: 'zh-TW',
+    label: '繁體中文',
+    flagClass: 'app-language-option__flag--tw',
+  },
+  {
+    code: 'hi-IN',
+    label: 'हिन्दी',
+    flagClass: 'app-language-option__flag--in',
+  },
+  {
+    code: 'ar-SA',
+    label: 'العربية',
+    flagClass: 'app-language-option__flag--sa',
+  },
+  {
+    code: 'ja-JP',
+    label: '日本語',
+    flagClass: 'app-language-option__flag--jp',
+  },
+  {
+    code: 'ko-KR',
+    label: '한국어',
+    flagClass: 'app-language-option__flag--kr',
+  },
+  {
+    code: 'zh-CN',
+    label: '简体中文',
+    flagClass: 'app-language-option__flag--cn',
+  },
+  {
+    code: 'ru-RU',
+    label: 'Русский',
+    flagClass: 'app-language-option__flag--ru',
+  },
 ] as const;

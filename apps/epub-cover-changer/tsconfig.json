@@ -28,6 +28,7 @@
       "@sheldrapps/settings-kit": [
         "../../packages/settings-kit/src/public-api.ts"
       ],
+      "@sheldrapps/rating-kit": ["../../packages/rating-kit/src/public-api.ts"],
       "@sheldrapps/recommended-apps": [
         "../../packages/recommended-apps/src/public-api.ts"
       ],

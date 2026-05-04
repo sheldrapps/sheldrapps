@@ -1,0 +1,43 @@
+<section
+  class="rating-prompt-shell"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="rating-prompt-title"
+  aria-describedby="rating-prompt-message"
+>
+  <div class="rating-prompt-card">
+    <div class="rating-prompt-header">
+      <span class="rating-prompt-icon" aria-hidden="true">⭐</span>
+    </div>
+
+    <div class="rating-prompt-copy">
+      <h2 id="rating-prompt-title" class="rating-prompt-title">
+        {{ 'RATING.PROMPT.TITLE' | translate }}
+      </h2>
+      <p id="rating-prompt-message" class="rating-prompt-message">
+        {{ 'RATING.PROMPT.MESSAGE' | translate }}
+      </p>
+    </div>
+
+    <div class="rating-prompt-actions">
+      <ion-button
+        expand="block"
+        class="app-btn rating-prompt-button"
+        (click)="onRate()"
+      >
+        {{ 'RATING.PROMPT.RATE' | translate }}
+      </ion-button>
+      <ion-button
+        expand="block"
+        fill="outline"
+        class="rating-prompt-button"
+        (click)="onProblem()"
+      >
+        {{ 'RATING.PROMPT.PROBLEM' | translate }}
+      </ion-button>
+      <button type="button" class="rating-prompt-later" (click)="onLater()">
+        {{ 'RATING.PROMPT.LATER' | translate }}
+      </button>
+    </div>
+  </div>
+</section>

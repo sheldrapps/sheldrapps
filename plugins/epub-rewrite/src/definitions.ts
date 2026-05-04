@@ -41,8 +41,9 @@ export interface InspectEpubResult {
 export interface RewriteCoverOptions {
   inputPath: string;
   outputPath?: string;
-  coverEntryPath: string;
+  coverEntryPath?: string;
   newCoverPath: string;
+  replacementCoverEntryPath?: string;
 }
 
 export interface RewriteCoverResult {
@@ -51,6 +52,8 @@ export interface RewriteCoverResult {
   message?: string;
   stage?: string;
   outputPath?: string;
+  coverEntryPath?: string;
+  coverInserted?: boolean;
   requiredBytes?: number;
   availableBytes?: number;
 }

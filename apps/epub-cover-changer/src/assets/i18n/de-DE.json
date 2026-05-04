@@ -55,6 +55,7 @@
     "IMAGE_ERROR_SIZE": "Die Datei ist zu groß. Maximal {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Nicht unterstütztes Format ({{type}}). Bitte wähle JPG, PNG oder WebP.",
     "IMAGE_WARN_SMALL": "Das Bild kann für einige Geräte zu klein sein.",
+    "NO_COVER_DETECTED_ADDED": "Kein Cover erkannt. Ein neues Cover wurde zu diesem EPUB hinzugefügt.",
     "EPUB_ERROR_STORAGE": "Nicht genug Speicherplatz. Benoetigt {{requiredMB}} MB, verfuegbar {{availableMB}} MB.",
     "LOADING_EPUB": "EPUB wird geladen…",
     "LOADING_IMAGE": "Bild wird geladen…",
@@ -78,7 +79,7 @@
   },
   "COVERS": {
     "DELETED": "EPUB gelöscht",
-    "EMPTY": "Noch keine EPUBs.vorhanden.",
+    "EMPTY": "Noch keine EPUBs. Zum Aktualisieren nach unten ziehen. Um ältere Dateien zu suchen, kann die App zusätzliche Berechtigungen anfordern.",
     "PLACEHOLDER": "EPUB",
     "PREVIEW_TITLE": "Vorschau",
     "TITLE": "Meine EPUBs",

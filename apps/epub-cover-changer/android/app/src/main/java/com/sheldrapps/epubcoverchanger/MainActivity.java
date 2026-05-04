@@ -3,7 +3,9 @@ package com.sheldrapps.epubcoverchanger;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.content.ComponentName;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
@@ -14,8 +16,20 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
 import com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class MainActivity extends BridgeActivity {
     private boolean runtimeFlagsExposed = false;
+    private static final String ALIAS_PREFIX = "com.sheldrapps.epubcoverchanger.MainActivityAlias_";
+    private static final List<String> ALL_ALIAS_LOCALES = Arrays.asList(
+        "en",
+        "es",
+        "fr",
+        "it",
+        "pt",
+        "de"
+    );
 
     private static final class RuntimeBridge {
         private final boolean debugBuild;
@@ -38,13 +52,24 @@ public class MainActivity extends BridgeActivity {
 
         @JavascriptInterface
         public void restartForLocale(String localeTag) {
-            runOnUiThread(() -> relaunchApp());
+            runOnUiThread(() -> {
+                setActiveLauncherAliasLocale(localeTag);
+                relaunchApp();
+            });
+        }
+    }
+
+    private final class LauncherAliasBridge {
+        @JavascriptInterface
+        public void setActiveLocale(String localeTag) {
+            runOnUiThread(() -> setActiveLauncherAliasLocale(localeTag));
         }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(EpubRewritePlugin.class);
+        registerPlugin(EpubExternalFilesPlugin.class);
         super.onCreate(savedInstanceState);
         exposeRuntimeFlags();
         enableEdgeToEdge();
@@ -82,6 +107,10 @@ public class MainActivity extends BridgeActivity {
         bridge.getWebView().addJavascriptInterface(
             new AppControlBridge(),
             "SheldrappsAppControl"
+        );
+        bridge.getWebView().addJavascriptInterface(
+            new LauncherAliasBridge(),
+            "SheldrappsLauncherAlias"
         );
         runtimeFlagsExposed = true;
     }
@@ -131,5 +160,23 @@ public class MainActivity extends BridgeActivity {
 
         startActivity(launchIntent);
         Runtime.getRuntime().exit(0);
+    }
+
+    private void setActiveLauncherAliasLocale(String localeTag) {
+        final String lang = localeTag != null && localeTag.contains("-")
+            ? localeTag.split("-")[0]
+            : localeTag;
+        final String targetLocale = ALL_ALIAS_LOCALES.contains(lang) ? lang : "en";
+
+        PackageManager pm = getPackageManager();
+        String pkg = getPackageName();
+
+        for (String locale : ALL_ALIAS_LOCALES) {
+            ComponentName component = new ComponentName(pkg, ALIAS_PREFIX + locale);
+            int state = locale.equals(targetLocale)
+                ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+            pm.setComponentEnabledSetting(component, state, PackageManager.DONT_KILL_APP);
+        }
     }
 }

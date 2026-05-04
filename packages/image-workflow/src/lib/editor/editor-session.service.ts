@@ -89,6 +89,11 @@ export type EditorSession = {
     maskShape?: EditorPreviewMaskShape;
   };
 
+  /** Optional output behavior for the apply action */
+  output?: {
+    includeRenderedBlob?: boolean;
+  };
+
   /** Optional return url for exiting the editor */
   returnUrl?: string;
 

@@ -44,7 +44,7 @@ export class FileService {
     logPrefix: 'CCFK:file-kit',
   });
 
-  constructor(private translate: TranslateService) {}
+  private translate = inject(TranslateService);
 
   async saveEpub(opts: {
     modelId: string;

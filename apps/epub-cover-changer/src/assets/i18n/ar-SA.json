@@ -1,0 +1,197 @@
+{
+  "APP": {
+    "TITLE": "EPUB Cover Changer"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "اضغط مرة أخرى للخروج",
+    "CANCEL": "إلغاء",
+    "CLOSE": "إغلاق",
+    "DELETE": "حذف",
+    "DONE": "تم",
+    "ERROR": "خطأ",
+    "LOADING": "جارٍ التحميل…",
+    "BILLING_UNAVAILABLE": "المشتريات غير متاحة حالياً.",
+    "PURCHASE_ERROR": "تعذّر إتمام الشراء. يرجى المحاولة مجدداً.",
+    "REMOVE_ADS_BUY": "شراء",
+    "REMOVE_ADS_DESCRIPTION": "أزل الإعلانات للأبد بدفعة واحدة.",
+    "REMOVE_ADS_PURCHASED": "تمت إزالة الإعلانات للأبد.",
+    "REMOVE_ADS_RESTORE": "استعادة الشراء",
+    "REMOVE_ADS_RESTORED": "تمت استعادة الشراء بنجاح.",
+    "REMOVE_ADS_TITLE": "إزالة الإعلانات",
+    "REMOVE_ADS_CTA_TITLE": "إزالة الإعلانات",
+    "REMOVE_ADS_CTA_SUBTITLE": "دفعة واحدة • للأبد",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "دفعة واحدة • {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "السعر: {{price}} • بدون اشتراك",
+    "RESTORE_ERROR": "تعذّرت استعادة المشتريات. يرجى المحاولة مجدداً.",
+    "WATCH_AD_SUBTITLE": "مشاهدة الإعلان",
+    "SHARE": "مشاركة",
+    "SHARE_KINDLE_HINT": "عند المشاركة، اختر تطبيق Kindle لإرساله إلى جهازك.",
+    "WARNING": "تحذير"
+  },
+  "CHANGE": {
+    "ADS_REQUIRED": "تعذّر تحميل الإعلان. تحقق من الشبكة أو حاجب الإعلانات.",
+    "ARIA_CHANGE_EPUB": "تغيير ملف EPUB. الملف الحالي: {{name}}",
+    "ARIA_CHANGE_IMAGE": "تغيير صورة الغلاف. الصورة الحالية: {{name}}",
+    "ARIA_CROP": "ضبط الصورة المحددة",
+    "ARIA_SELECT_EPUB": "تحديد ملف EPUB",
+    "ARIA_SELECT_IMAGE": "تحديد صورة الغلاف",
+    "CROP_ACTION": "ضبط",
+    "COVER_CHANGED": "تم تغيير الغلاف. يمكنك الآن الحفظ أو المشاركة",
+    "CHANGE_ACTION": "تغيير الغلاف",
+    "CHANGE_ACTION_REWARDED": "تغيير الغلاف (مشاهدة إعلان)",
+    "GENERATING": "جارٍ تحديث الغلاف…",
+    "HINT_SAVE_SHARE_EXPLAIN": "تغيير الغلاف لا يحفظه تلقائياً.",
+    "INFO": "معلومات",
+    "INFO_ARIA": "معلومات حول تغيير الغلاف",
+    "INFO_TITLE": "معلومات",
+    "INFO_FLOW_LABEL": "الترتيب الموصى به:",
+    "INFO_STEP_1": "حدد ملف EPUB.",
+    "INFO_STEP_1_1": "1.1. يُحمَّل الغلاف الأصلي مسبقاً.",
+    "INFO_STEP_1_2": "1.2. غيّر الصورة أو احتفظ بالأصلية.",
+    "INFO_STEP_2": "اضبط الصورة في المحرر.",
+    "INFO_STEP_3": "شاهد الإعلان لحفظ الغلاف.",
+    "INFO_STEP_4": "احفظ أو شارك.",
+    "IMAGE_ERROR_CORRUPT": "تعذّرت قراءة الصورة. يرجى تجربة صورة أخرى.",
+    "IMAGE_ERROR_SIZE": "الملف كبير جداً. الحد الأقصى {{maxSize}} ميغابايت.",
+    "IMAGE_ERROR_TYPE": "تنسيق غير مدعوم ({{type}}). يرجى تحديد JPG أو PNG أو WebP.",
+    "IMAGE_WARN_SMALL": "قد تكون الصورة صغيرة جداً لبعض الأجهزة.",
+    "IMAGE_WARN_INVALID_EPUB_COVER": "غلاف EPUB غير صالح. اضغط لاختيار صورة جديدة.",
+    "EPUB_ERROR_CORRUPT": "تعذّرت قراءة ملف EPUB. جرّب ملفاً آخر.",
+    "EPUB_ERROR_NO_COVER": "لا يحتوي هذا الملف على غلاف قابل للاستبدال.",
+    "NO_COVER_DETECTED_ADDED": "لم يُعثر على غلاف. تمت إضافة غلاف جديد لهذا الملف.",
+    "EPUB_ERROR_REWRITE": "تعذّرت معالجة ملف EPUB. يرجى المحاولة مجدداً.",
+    "EPUB_ERROR_STORAGE": "مساحة التخزين غير كافية. مطلوب {{requiredMB}} ميغابايت، متاح {{availableMB}} ميغابايت.",
+    "EPUB_ERROR_SIZE": "الملف كبير جداً. الحد الأقصى {{maxSize}} ميغابايت.",
+    "EPUB_ERROR_TYPE": "ملف EPUB غير مدعوم.",
+    "LOADING_EPUB": "جارٍ تحميل EPUB…",
+    "EPUB_LOADING_COPY": "جارٍ نسخ ملف EPUB الكبير...",
+    "EPUB_LOADING_INSPECT": "جارٍ فحص بنية EPUB...",
+    "LOADING_IMAGE": "جارٍ تحميل الصورة…",
+    "OPENING_EDITOR": "جارٍ فتح المحرر…",
+    "CHANGING_COVER": "جارٍ تغيير الغلاف...",
+    "GETTING_COVER": "جارٍ الحصول على الغلاف",
+    "SAVING": "جارٍ حفظ الغلاف…",
+    "SELECT_EPUB_LABEL": "ملف EPUB",
+    "PROCESSING_LARGE_EPUB": "جارٍ معالجة ملف EPUB الكبير...",
+    "PROCESS_CANCELLED": "تم إلغاء المعالجة",
+    "SELECT_EPUB_PLACEHOLDER": "حدد ملف EPUB",
+    "SAVE_ACTION": "حفظ",
+    "SAVED_OK": "تم حفظ الغلاف",
+    "SAVE_RENAME_TITLE": "حفظ الغلاف",
+    "SAVE_RENAME_MESSAGE": "أدخل اسماً للغلاف",
+    "SAVE_RENAME_PLACEHOLDER": "اسم الملف",
+    "SELECT_IMAGE_LABEL": "صورة الغلاف",
+    "SELECT_IMAGE_PLACEHOLDER": "حدد صورة",
+    "INVALID_COVER_TAP_TO_CHANGE": "غلاف غير صالح، اضغط للتغيير",
+    "TAP_TO_CHANGE": "اضغط للتغيير/الإعادة",
+    "TAP_TO_CHANGE_IMAGE": "اضغط للتغيير",
+    "TITLE": "تغيير الغلاف"
+  },
+  "COVERS": {
+    "DELETED": "تم حذف ملف EPUB",
+    "EMPTY": "لا توجد ملفات EPUB بعد. اسحب للأسفل للتحديث. للبحث عن الملفات السابقة، قد يطلب التطبيق أذونات إضافية.",
+    "GENERATE_THUMB": "إنشاء صورة مصغّرة",
+    "LOADING_PREVIEW": "جارٍ تحميل المعاينة...",
+    "PLACEHOLDER": "EPUB",
+    "PREVIEW_UNAVAILABLE": "المعاينة غير متاحة.",
+    "PREVIEW_TITLE": "معاينة",
+    "TITLE": "ملفات EPUB",
+    "ACTIONS": {
+      "DELETE": "حذف",
+      "SHARE": "مشاركة"
+    },
+    "DELETE": {
+      "MESSAGE": "هل تريد حذف هذا الملف؟",
+      "TITLE": "حذف EPUB"
+    },
+    "ERROR": {
+      "DELETE": "تعذّر حذف الملف. يرجى المحاولة مجدداً.",
+      "SHARE": "تعذّرت مشاركة الملف. يرجى المحاولة مجدداً.",
+      "LOAD": "تعذّر تحميل ملفاتك. اسحب للأسفل للتحديث.",
+      "PREVIEW": "تعذّر تحميل المعاينة. يرجى المحاولة مجدداً."
+    }
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "ملاحظة",
+    "STEP_1": "حدد ملف EPUB (يُحمَّل الغلاف الحالي مسبقاً)",
+    "STEP_2": "اضبط الغلاف المحمَّل أو اختر صورة جديدة واضبطها",
+    "STEP_3": "شاهد الإعلان لتغيير الغلاف في ملف EPUB",
+    "STEP_4": "احفظ أو شارك ملف EPUB المحدَّث",
+    "STEP_4_DESC": "بعد الانتهاء، يمكنك حفظه على جهازك أو مشاركته مباشرةً عبر تطبيق Kindle.",
+    "STEP_5": "الإرسال عبر الويب (Send to Kindle)",
+    "STEP_5_DESC": "يمكنك أيضاً إرساله من المتصفح باستخدام أداة Send to Kindle على الويب.",
+    "TIP": "للحصول على أفضل النتائج، استخدم صوراً عالية الدقة وتأكد من تعطيل الإعلانات على جهاز Kindle.",
+    "TITLE": "التعليمات"
+  },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "رجوع",
+      "FINISH": "إنهاء",
+      "INTERACT_HINT": "تفاعل مع العنصر المميز للمتابعة.",
+      "NEXT": "التالي",
+      "PROGRESS": "{{current}} من {{total}}",
+      "SKIP": "تخطي"
+    },
+    "STEPS": {
+      "EPUB": {
+        "TITLE": "ملف EPUB",
+        "DESCRIPTION": "حدد ملف EPUB الذي تريد تحديثه."
+      },
+      "IMAGE": {
+        "TITLE": "صورة الغلاف",
+        "DESCRIPTION": "حدد الصورة التي ستستخدمها غلافاً."
+      },
+      "ADJUST": {
+        "TITLE": "ضبط",
+        "DESCRIPTION": "اضبط الصورة في المحرر ثم اضغط تم."
+      },
+      "CREATE": {
+        "TITLE": "تغيير الغلاف",
+        "DESCRIPTION": "أنشئ الغلاف الجديد من هنا."
+      },
+      "RESULTS": {
+        "TITLE": "حفظ أو مشاركة",
+        "DESCRIPTION": "احفظ ملف EPUB المحدَّث أو شاركه."
+      }
+    }
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "عرض التعليمات",
+    "INSTRUCTIONS_HINT": "كيفية تغيير الغلاف وإرساله إلى Kindle",
+    "INSTRUCTIONS_SECTION": "التعليمات",
+    "LANGUAGE": "اللغة",
+    "LANGUAGE_RESTART_NOTICE": "تم تغيير اللغة. سيُعاد تشغيل التطبيق لتطبيق التغييرات.",
+    "LANGUAGE_PREPARING_COUNTDOWN": "جارٍ تجهيز كل شيء بلغتك ({{count}})",
+    "PRIVACY_HINT": "تحكّم في كيفية معالجة البيانات والإعلانات",
+    "PRIVACY_OPTIONS": "خيارات الخصوصية",
+    "PRIVACY_POLICY": "سياسة الخصوصية",
+    "PRIVACY_SECTION": "الخصوصية",
+    "THEME": "السمة",
+    "THEME_SYSTEM": "النظام",
+    "THEME_LIGHT": "الضوء الطبيعي",
+    "THEME_DARK": "الداكن الكلاسيكي",
+    "THEME_WARM_READING": "القراءة الدافئة",
+    "THEME_POP_ROSE": "وردي منبثق",
+    "THEME_NOCTURNE_VIOLET": "بنفسجي ليلي",
+    "THEME_OBSIDIAN_RED": "أحمر أوبسيديان",
+    "THEME_TERMINAL_GREEN": "أخضر طرفية",
+    "THEME_MINT_FRESH": "نعناعي منعش",
+    "THEME_SILVER_TECH": "فضي",
+    "THEME_GOLD_LUXE": "ذهبي",
+    "TITLE": "الإعدادات",
+    "VIEW_TOUR": "عرض الجولة"
+  },
+  "TABS": {
+    "COVERS": "ملفات EPUB",
+    "CHANGE": "تغيير",
+    "SETTINGS": "الإعدادات"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "موصى به",
+      "INFO": "معلومات",
+      "APPS": "التطبيقات",
+      "GUIDE": "الدليل"
+    }
+  }
+}

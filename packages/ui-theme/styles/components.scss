@@ -229,6 +229,8 @@ ion-item.app-input-surface::part(native) {
 }
 
 .app-language-option__flag {
+  display: inline-block;
+  vertical-align: middle;
   width: 1.5rem;
   height: 1rem;
   margin-inline-end: 0.5rem;
@@ -241,7 +243,9 @@ ion-item.app-input-surface::part(native) {
 }
 
 .app-language-option__flag--mx {
-  background: linear-gradient(to right, #006847 33.33%, #ffffff 33.33%, #ffffff 66.66%, #ce1126 66.66%);
+  background:
+    radial-gradient(circle at center, #5c4b1e 0 18%, transparent 18%),
+    linear-gradient(to right, #006847 33.33%, #ffffff 33.33%, #ffffff 66.66%, #ce1126 66.66%);
 }
 
 .app-language-option__flag--us {
@@ -267,6 +271,44 @@ ion-item.app-input-surface::part(native) {
     radial-gradient(circle at center, #002776 0 28%, transparent 28%),
     linear-gradient(135deg, transparent 25%, #ffdf00 25% 75%, transparent 75%),
     #009c3b;
+}
+
+.app-language-option__flag--tw {
+  background:
+    radial-gradient(circle at 18.75% 25%, #ffffff 0 8%, transparent 8%),
+    linear-gradient(#000095, #000095) left top / 37.5% 50% no-repeat,
+    #fe0000;
+}
+
+.app-language-option__flag--in {
+  background: linear-gradient(to bottom, #ff9933 33.33%, #ffffff 33.33%, #ffffff 66.66%, #138808 66.66%);
+}
+
+.app-language-option__flag--sa {
+  background: linear-gradient(#006c35, #006c35);
+}
+
+.app-language-option__flag--jp {
+  background:
+    radial-gradient(circle at center, #bc002d 0 35%, transparent 35%),
+    #ffffff;
+}
+
+.app-language-option__flag--kr {
+  background:
+    linear-gradient(#cd2e3a, #cd2e3a) left top / 50% 50% no-repeat,
+    linear-gradient(#0047a0, #0047a0) right bottom / 50% 50% no-repeat,
+    #ffffff;
+}
+
+.app-language-option__flag--cn {
+  background:
+    radial-gradient(circle at 25% 50%, #ffde00 0 15%, transparent 15%),
+    #de2910;
+}
+
+.app-language-option__flag--ru {
+  background: linear-gradient(to bottom, #ffffff 33.33%, #0039a6 33.33%, #0039a6 66.66%, #d52b1e 66.66%);
 }
 
 // ── Medal badge ─────────────────────────────────────────────────────────────

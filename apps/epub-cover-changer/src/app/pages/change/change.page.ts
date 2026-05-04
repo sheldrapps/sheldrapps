@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription, filter, firstValueFrom } from 'rxjs';
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
+import { Device } from '@capacitor/device';
 import {
   IonContent,
   IonHeader,
@@ -37,14 +38,12 @@ import {
   CoverCropState,
   ImagePipelineService,
   ImageValidationError,
-  buildCompositionInput,
+  buildCompositionInputForPurpose,
+  computeSourceCropDims,
   renderCompositionToCanvas,
   renderCompositionToFile,
 } from '@sheldrapps/image-workflow';
-import type {
-  CropTarget,
-  CropFormatOption,
-} from '@sheldrapps/image-workflow';
+import type { CropTarget, CropFormatOption } from '@sheldrapps/image-workflow';
 import { EditorSessionService } from '@sheldrapps/image-workflow/editor';
 
 import {
@@ -78,6 +77,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { ToastOptions } from '@ionic/angular';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { detectSupportedLocale } from '@sheldrapps/i18n-kit';
+import { RatingService } from '@sheldrapps/rating-kit';
 import {
   LoadingStateComponent,
   SaveCoverModalComponent,
@@ -156,6 +156,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private router = inject(Router);
   private editorSession = inject(EditorSessionService);
   private settings = inject(SettingsStore<EccSettings>);
+  private ratingService = inject(RatingService);
   private recommendedAppsService = inject(RecommendedAppsService);
   private homeTour = inject(TourService);
   private readonly baseTarget = { width: 1236, height: 1648 };
@@ -182,8 +183,11 @@ export class ChangePage implements OnInit, OnDestroy {
     this.isOnline = false;
   };
   private removeAdsPulseInterval: ReturnType<typeof setInterval> | null = null;
-  private removeAdsPulseResetTimeout: ReturnType<typeof setTimeout> | null = null;
+  private removeAdsPulseResetTimeout: ReturnType<typeof setTimeout> | null =
+    null;
   private removeAdsCtaImpressionTracked = false;
+  private nativeRewriteSessionDisabled = false;
+  private nativeRewriteSdkBlocked = false;
 
   @ViewChild(IonContent) content?: IonContent;
   @ViewChild('epubInput') epubInput!: ElementRef<HTMLInputElement>;
@@ -238,7 +242,8 @@ export class ChangePage implements OnInit, OnDestroy {
   originalImageFile?: File;
   selectedImageFile?: File;
   selectedImageName?: string;
-  selectedImageDims?: { width: number; height: number };
+  originalImageDims?: { width: number; height: number };
+  workingImageDims?: { width: number; height: number };
 
   previewUrl?: string;
   previewThumbUrl?: string;
@@ -347,9 +352,9 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    await this.initializeNativeRewriteSafetyGate();
     await this.refreshHeaderItems();
-    this.isOnline =
-      typeof navigator === 'undefined' ? true : navigator.onLine;
+    this.isOnline = typeof navigator === 'undefined' ? true : navigator.onLine;
     if (typeof window !== 'undefined') {
       window.addEventListener('online', this.onlineHandler);
       window.addEventListener('offline', this.offlineHandler);
@@ -357,7 +362,11 @@ export class ChangePage implements OnInit, OnDestroy {
     await this.billing.initializeSafe();
     this.adsRemoved = this.billing.isAdsRemoved();
     this.adsRemovedSub = this.billing.adsRemoved$.subscribe((value) => {
+      const tierChanged = this.adsRemoved !== value;
       this.adsRemoved = value;
+      if (tierChanged) {
+        this.exportImageFile = undefined;
+      }
       this.syncRemoveAdsPulse();
     });
     this.removeAdsPriceFormatted = this.billing.getRemoveAdsPriceFormatted();
@@ -420,7 +429,10 @@ export class ChangePage implements OnInit, OnDestroy {
     void this.rewriteProgressSub?.remove();
   }
 
-  private setBusy(kind: 'pick' | 'export' | 'epub' | 'none', messageKey?: string) {
+  private setBusy(
+    kind: 'pick' | 'export' | 'epub' | 'none',
+    messageKey?: string,
+  ) {
     this.zone.run(() => {
       this.isPickingImage = kind === 'pick';
       this.isExporting = kind === 'export';
@@ -477,7 +489,10 @@ export class ChangePage implements OnInit, OnDestroy {
       await this.resetWorkflowForNewEpub();
 
       // Validate EPUB file
-      const validation = this.fileService.validateEpub(file, this.maxEpubSizeMB);
+      const validation = this.fileService.validateEpub(
+        file,
+        this.maxEpubSizeMB,
+      );
       if (!validation.valid) {
         this.failEpub(validation.errorKey!, file);
         return;
@@ -542,6 +557,8 @@ export class ChangePage implements OnInit, OnDestroy {
     try {
       const prepared = await this.epubRewrite.pickAndPrepareEpub({
         maxBytes: this.maxEpubSizeMB * 1024 * 1024,
+        requireCover: false,
+        includeCoverPreview: true,
       });
       await this.resetWorkflowForNewEpub();
       this.epubLoadStage = 'inspect';
@@ -584,7 +601,10 @@ export class ChangePage implements OnInit, OnDestroy {
         await this.homeTour.completeInteraction('epub-selected');
       }
     } catch (error) {
-      if (error instanceof EpubRewriteError && error.code === 'PICK_CANCELLED') {
+      if (
+        error instanceof EpubRewriteError &&
+        error.code === 'PICK_CANCELLED'
+      ) {
         return;
       }
 
@@ -598,6 +618,8 @@ export class ChangePage implements OnInit, OnDestroy {
         this.activateInvalidCoverFallback();
         return;
       }
+
+      this.maybeDisableNativeRewriteForSession(error, 'pick_epub');
 
       const mappedErrorKey = this.mapNativeEpubError(error);
       this.failEpub(
@@ -644,7 +666,10 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   hasValidEpub(): boolean {
-    return !!(this.workingEpubFile || this.workingEpubNativePath) && !this.epubErrorKey;
+    return (
+      !!(this.workingEpubFile || this.workingEpubNativePath) &&
+      !this.epubErrorKey
+    );
   }
 
   private resetEpubLoadProgress() {
@@ -662,7 +687,8 @@ export class ChangePage implements OnInit, OnDestroy {
     this.originalImageFile = undefined;
     this.selectedImageFile = undefined;
     this.selectedImageName = undefined;
-    this.selectedImageDims = undefined;
+    this.originalImageDims = undefined;
+    this.workingImageDims = undefined;
     this.workingImageFile = undefined;
     this.exportImageFile = undefined;
     this.editorSourceFile = undefined;
@@ -749,7 +775,10 @@ export class ChangePage implements OnInit, OnDestroy {
     }
   }
 
-  private async applyImageSource(file: File, setImageError: boolean): Promise<boolean> {
+  private async applyImageSource(
+    file: File,
+    setImageError: boolean,
+  ): Promise<boolean> {
     this.cropState = undefined;
     let source = file;
 
@@ -791,7 +820,8 @@ export class ChangePage implements OnInit, OnDestroy {
     this.renderedImageInfo = undefined;
 
     const workingDims = await this.imagePipe.getDimensions(working);
-    this.selectedImageDims = workingDims ?? originalDims;
+    this.originalImageDims = originalDims;
+    this.workingImageDims = workingDims ?? originalDims;
     this.selectedImageName = working.name;
     if (workingDims) {
       const originalMax = Math.max(originalDims.width, originalDims.height);
@@ -837,10 +867,9 @@ export class ChangePage implements OnInit, OnDestroy {
       width: selected.target.width,
       height: selected.target.height,
     };
-    const legacyDims = legacyDimsHint ?? this.selectedImageDims ?? null;
+    const legacyDims = legacyDimsHint ?? this.workingImageDims ?? null;
     const exportDims =
-      exportDimsHint ??
-      (await this.resolveExportDimsForSmallWarn());
+      (await this.resolveExportDimsForSmallWarn()) ?? exportDimsHint ?? null;
 
     // Enforce export-based validation only.
     if (!exportDims) {
@@ -901,6 +930,9 @@ export class ChangePage implements OnInit, OnDestroy {
           selectedId: selected.id,
         },
       },
+      output: {
+        includeRenderedBlob: false,
+      },
       returnUrl: this.getEditorReturnUrl(),
     });
 
@@ -944,7 +976,11 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   canExport(): boolean {
-    return !!this.workingImageFile && !!this.cropState && !this.imageErrorKey;
+    return (
+      !!(this.originalImageFile ?? this.workingImageFile) &&
+      !!this.cropState &&
+      !this.imageErrorKey
+    );
   }
 
   private async applyCropResult(result: EditorResult): Promise<void> {
@@ -954,7 +990,8 @@ export class ChangePage implements OnInit, OnDestroy {
     this.isApplyingFromEditor = true;
     this.previewGenerationToken += 1;
 
-    const editorSource = this.editorSourceFile ?? this.workingImageFile ?? newFile;
+    const editorSource =
+      this.editorSourceFile ?? this.workingImageFile ?? newFile;
     if (!this.editorSourceFile) {
       this.editorSourceFile = editorSource;
     }
@@ -969,7 +1006,8 @@ export class ChangePage implements OnInit, OnDestroy {
     const outW = selected?.target.width;
     const outH = selected?.target.height;
     this.targetWidth = outW ?? selected?.target.width ?? this.baseTarget.width;
-    this.targetHeight = outH ?? selected?.target.height ?? this.baseTarget.height;
+    this.targetHeight =
+      outH ?? selected?.target.height ?? this.baseTarget.height;
 
     if (result.state) {
       const nextLayers = Array.isArray(result.state.textLayers)
@@ -1000,10 +1038,10 @@ export class ChangePage implements OnInit, OnDestroy {
     this.wasAutoSaved = false;
 
     this.selectedImageName = newFile.name;
-    if (!this.selectedImageDims) {
+    if (!this.workingImageDims) {
       const dims = await this.imagePipe.getDimensions(newFile);
       if (!dims) return this.failImage('CORRUPT', newFile);
-      this.selectedImageDims = dims;
+      this.workingImageDims = dims;
     }
 
     try {
@@ -1016,15 +1054,19 @@ export class ChangePage implements OnInit, OnDestroy {
         this.renderedImageFile = renderedFile;
         this.renderedImageBlob = renderedBlob;
         this.renderedImageInfo = renderedInfo;
-        this.workingImageFile = renderedFile;
-        this.exportImageFile = renderedFile;
-        this.selectedImageName = renderedFile.name;
 
         const url = URL.createObjectURL(renderedBlob);
         this.setPreviewUrl(url);
-        const thumb = await this.buildThumbFromBlob(renderedBlob, ChangePage.THUMB_SIZE);
+        const thumb = await this.buildThumbFromBlob(
+          renderedBlob,
+          ChangePage.THUMB_SIZE,
+        );
         this.setPreviewThumbUrl(thumb ?? url);
-        await this.applySmallWarn('editor-apply', undefined, renderedInfo ?? undefined);
+        await this.applySmallWarn(
+          'editor-apply',
+          undefined,
+          renderedInfo ?? undefined,
+        );
         this.isApplyingFromEditor = false;
         this.zone.run(() => {
           this.previewNonce += 1;
@@ -1036,14 +1078,14 @@ export class ChangePage implements OnInit, OnDestroy {
         await this.updatePreviewFromComposition();
       }
     } finally {
-    this.isApplyingFromEditor = false;
-    await this.homeTour.completeInteraction('editor-apply');
-  }
+      this.isApplyingFromEditor = false;
+      await this.homeTour.completeInteraction('editor-apply');
+    }
   }
 
-  private buildCompositionInput() {
-    const sourceFile = this.editorSourceFile ?? this.workingImageFile;
-    if (!sourceFile || !this.selectedImageDims) {
+  private buildCompositionInput(purpose: 'preview' | 'export' = 'preview') {
+    const workingFile = this.editorSourceFile ?? this.workingImageFile;
+    if (!workingFile || !this.workingImageDims) {
       return null;
     }
 
@@ -1054,12 +1096,25 @@ export class ChangePage implements OnInit, OnDestroy {
     const rawTarget = selected.target;
     const layoutState = this.applyLayoutBase(state, rawTarget);
 
-    return buildCompositionInput({
-      file: sourceFile,
+    return buildCompositionInputForPurpose({
+      purpose,
+      sources: {
+        working: {
+          file: workingFile,
+          naturalWidth: this.workingImageDims.width,
+          naturalHeight: this.workingImageDims.height,
+        },
+        original:
+          this.originalImageFile && this.originalImageDims
+            ? {
+                file: this.originalImageFile,
+                naturalWidth: this.originalImageDims.width,
+                naturalHeight: this.originalImageDims.height,
+              }
+            : undefined,
+      },
       target: { width: rawTarget.width, height: rawTarget.height },
       state: layoutState,
-      naturalWidth: this.selectedImageDims.width,
-      naturalHeight: this.selectedImageDims.height,
       frameFallback: { width: rawTarget.width, height: rawTarget.height },
     });
   }
@@ -1068,7 +1123,7 @@ export class ChangePage implements OnInit, OnDestroy {
     if (this.isApplyingFromEditor) return;
     if (this.renderedImageBlob) return;
     const token = ++this.previewGenerationToken;
-    const input = this.buildCompositionInput();
+    const input = this.buildCompositionInput('preview');
     if (!input) return;
 
     const baseCanvas = await renderCompositionToCanvas(input, {
@@ -1093,55 +1148,40 @@ export class ChangePage implements OnInit, OnDestroy {
     const url = URL.createObjectURL(blob);
     this.setPreviewUrl(url);
 
-    const thumb = this.buildThumbFromCanvas(
-      baseCanvas,
-      ChangePage.THUMB_SIZE,
-    );
+    const thumb = this.buildThumbFromCanvas(baseCanvas, ChangePage.THUMB_SIZE);
     if (token !== this.previewGenerationToken) return;
     this.setPreviewThumbUrl(thumb ?? url);
   }
 
   private async ensureExportImageFile(): Promise<File | null> {
-    const selected = this.getSelectedFormatOption();
-    if (this.exportImageFile) {
-      if (
-        !this.renderedImageFile ||
-        !this.renderedImageInfo ||
-        this.exportImageFile !== this.renderedImageFile
-      ) {
-        return this.exportImageFile;
-      }
-      if (
-        !selected ||
-        (this.renderedImageInfo.formatId === selected.id &&
-          this.renderedImageInfo.width === selected.target.width &&
-          this.renderedImageInfo.height === selected.target.height)
-      ) {
-        return this.exportImageFile;
-      }
-      this.exportImageFile = undefined;
-    }
+    if (this.exportImageFile) return this.exportImageFile;
 
-    if (
-      this.renderedImageFile &&
-      this.renderedImageInfo &&
-      (!selected ||
-        (this.renderedImageInfo.formatId === selected.id &&
-          this.renderedImageInfo.width === selected.target.width &&
-          this.renderedImageInfo.height === selected.target.height))
-    ) {
-      this.exportImageFile = this.renderedImageFile;
-      return this.renderedImageFile;
-    }
-
-    const input = this.buildCompositionInput();
+    const input = this.buildCompositionInput('export');
     if (!input) return null;
 
-    const file = await renderCompositionToFile(input, { mode: 'export' });
+    const file = await renderCompositionToFile(input, {
+      mode: 'export',
+      mimeType: this.resolveExportMimeType(),
+      quality: this.resolveExportQuality(),
+    });
     if (!file) return null;
 
     this.exportImageFile = file;
     return file;
+  }
+
+  private resolveExportMimeType(): string | undefined {
+    if (this.adsRemoved) {
+      return 'image/png';
+    }
+    return undefined;
+  }
+
+  private resolveExportQuality(): number | undefined {
+    if (this.adsRemoved) {
+      return undefined;
+    }
+    return 1;
   }
 
   async onSave() {
@@ -1185,9 +1225,14 @@ export class ChangePage implements OnInit, OnDestroy {
     this.setBusy('export', 'CHANGE.SAVING');
     try {
       if (filename === this.lastSavedFilename) {
-        const alreadySaved = await this.fileService.hasCoverByFilename(filename);
+        const alreadySaved =
+          await this.fileService.hasCoverByFilename(filename);
         if (alreadySaved) {
-          await this.showToast('CHANGE.SAVED_OK', { duration: 1600 }, 'success');
+          await this.showToast(
+            'CHANGE.SAVED_OK',
+            { duration: 1600 },
+            'success',
+          );
           return;
         }
         this.lastSavedFilename = undefined;
@@ -1244,18 +1289,19 @@ export class ChangePage implements OnInit, OnDestroy {
           this.lastSavedFilename = saved.filename;
         }
       } else {
-        const saved = this.usesNativeRewrite() && this.generatedEpubPath
-          ? await this.fileService.saveGeneratedEpubFromPath({
-              sourcePath: this.generatedEpubPath,
-              sourceDir: 'Data',
-              filename,
-              coverFileForThumb: exportFile,
-            })
-          : await this.fileService.saveGeneratedEpub({
-              bytes: this.generatedEpubBytes!,
-              filename,
-              coverFileForThumb: exportFile,
-            });
+        const saved =
+          this.usesNativeRewrite() && this.generatedEpubPath
+            ? await this.fileService.saveGeneratedEpubFromPath({
+                sourcePath: this.generatedEpubPath,
+                sourceDir: 'Data',
+                filename,
+                coverFileForThumb: exportFile,
+              })
+            : await this.fileService.saveGeneratedEpub({
+                bytes: this.generatedEpubBytes!,
+                filename,
+                coverFileForThumb: exportFile,
+              });
         this.logSaveFlow('finalWriteComplete', {
           flow: 'performSave',
           filename: saved.filename,
@@ -1325,7 +1371,8 @@ export class ChangePage implements OnInit, OnDestroy {
   private resetSelectedImage() {
     this.selectedImageFile = undefined;
     this.selectedImageName = undefined;
-    this.selectedImageDims = undefined;
+    this.originalImageDims = undefined;
+    this.workingImageDims = undefined;
     this.originalImageFile = undefined;
     this.cropState = undefined;
     this.workingImageFile = undefined;
@@ -1480,9 +1527,7 @@ export class ChangePage implements OnInit, OnDestroy {
     return dst;
   }
 
-  private async loadImageFromBlob(
-    blob: Blob,
-  ): Promise<{
+  private async loadImageFromBlob(blob: Blob): Promise<{
     width: number;
     height: number;
     draw: (
@@ -1546,9 +1591,23 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private async ensureNativeRewriteCoverFile(file: File): Promise<File> {
-    const targetMime = this.coverEntryMimeType();
-    if (!targetMime || !file.type || file.type === targetMime) {
-      return file;
+    const targetMime = this.nativeRewriteTargetMimeType();
+    const targetExt = this.nativeRewriteTargetExtension();
+    if (!targetMime) {
+      return targetExt
+        ? new File([file], this.renameFileExtension(file.name, targetExt), {
+            type: file.type,
+          })
+        : file;
+    }
+
+    // If MIME is missing, force a re-encode to the target format instead of only renaming.
+    if (file.type === targetMime) {
+      return targetExt
+        ? new File([file], this.renameFileExtension(file.name, targetExt), {
+            type: targetMime,
+          })
+        : file;
     }
 
     const loaded = await this.loadImageFromBlob(file);
@@ -1576,9 +1635,31 @@ export class ChangePage implements OnInit, OnDestroy {
 
     return new File(
       [blob],
-      this.renameFileExtension(file.name, this.coverEntryExtension() || 'jpg'),
+      this.renameFileExtension(file.name, targetExt || 'jpg'),
       { type: targetMime },
     );
+  }
+
+  private nativeRewriteTargetExtension(): 'jpg' | 'png' | 'webp' | null {
+    if (this.adsRemoved) {
+      return 'png';
+    }
+    return this.coverEntryExtension();
+  }
+
+  private nativeRewriteTargetMimeType(): string | null {
+    const ext = this.nativeRewriteTargetExtension();
+    if (ext === 'png') return 'image/png';
+    if (ext === 'webp') return 'image/webp';
+    if (ext === 'jpg') return 'image/jpeg';
+    return null;
+  }
+
+  private nativeRewriteTargetCoverEntryPath(): string | null {
+    if (!this.coverEntryPath) return null;
+    const targetExt = this.nativeRewriteTargetExtension();
+    if (!targetExt) return this.coverEntryPath;
+    return this.renameFileExtension(this.coverEntryPath, targetExt);
   }
 
   private coverEntryExtension(): 'jpg' | 'png' | 'webp' | null {
@@ -1614,7 +1695,8 @@ export class ChangePage implements OnInit, OnDestroy {
     this.originalImageFile = undefined;
     this.selectedImageFile = undefined;
     this.selectedImageName = undefined;
-    this.selectedImageDims = undefined;
+    this.originalImageDims = undefined;
+    this.workingImageDims = undefined;
     this.workingImageFile = undefined;
     this.exportImageFile = undefined;
     this.editorSourceFile = undefined;
@@ -1760,7 +1842,10 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private maybeTrackRemoveAdsCtaImpression(): void {
-    if (this.removeAdsCtaImpressionTracked || !this.canShowRemoveAdsEntryPoint()) {
+    if (
+      this.removeAdsCtaImpressionTracked ||
+      !this.canShowRemoveAdsEntryPoint()
+    ) {
       return;
     }
 
@@ -1774,7 +1859,8 @@ export class ChangePage implements OnInit, OnDestroy {
     eventName: string,
     payload: Record<string, unknown> = {},
   ): void {
-    const suffix = Object.keys(payload).length > 0 ? ` ${JSON.stringify(payload)}` : '';
+    const suffix =
+      Object.keys(payload).length > 0 ? ` ${JSON.stringify(payload)}` : '';
     console.info(`[ECC:remove-ads] ${eventName}${suffix}`);
   }
 
@@ -1818,7 +1904,11 @@ export class ChangePage implements OnInit, OnDestroy {
         'success',
       );
     } catch {
-      await this.showToast('COMMON.PURCHASE_ERROR', { duration: 1800 }, 'error');
+      await this.showToast(
+        'COMMON.PURCHASE_ERROR',
+        { duration: 1800 },
+        'error',
+      );
     } finally {
       this.purchaseBusy = false;
     }
@@ -1833,7 +1923,11 @@ export class ChangePage implements OnInit, OnDestroy {
     try {
       const restored = await this.billing.restorePurchases();
       if (!restored) {
-        await this.showToast('COMMON.RESTORE_ERROR', { duration: 1800 }, 'error');
+        await this.showToast(
+          'COMMON.RESTORE_ERROR',
+          { duration: 1800 },
+          'error',
+        );
         return;
       }
 
@@ -1916,8 +2010,9 @@ export class ChangePage implements OnInit, OnDestroy {
     const exportFile = await this.ensureExportImageFile();
     if (!exportFile) return;
 
-    const preferredFilename =
-      this.outputBaseName ? `${this.outputBaseName}.epub` : this.selectedEpubName;
+    const preferredFilename = this.outputBaseName
+      ? `${this.outputBaseName}.epub`
+      : this.selectedEpubName;
 
     if (this.usesNativeRewrite()) {
       await this.generateWithNativeRewrite(exportFile, preferredFilename);
@@ -1987,6 +2082,7 @@ export class ChangePage implements OnInit, OnDestroy {
         'success',
       );
     });
+    await this.maybeAskForRatingAfterSuccessfulSave('web');
     await this.homeTour.completeInteraction('cover-created');
   }
 
@@ -2003,12 +2099,13 @@ export class ChangePage implements OnInit, OnDestroy {
     exportFile: File,
     preferredFilename?: string,
   ) {
-    if (!this.workingEpubNativePath || !this.workingEpubPath || !this.coverEntryPath) {
+    if (!this.workingEpubNativePath || !this.workingEpubPath) {
       throw new EpubRewriteError('REWRITE_UNAVAILABLE');
     }
 
     const outputBaseName = this.outputBaseName || 'epub';
-    const rewriteCoverFile = await this.ensureNativeRewriteCoverFile(exportFile);
+    const rewriteCoverFile =
+      await this.ensureNativeRewriteCoverFile(exportFile);
     const tempCover = await this.workingCopy.writeTempCoverFile(
       rewriteCoverFile,
       outputBaseName,
@@ -2016,9 +2113,8 @@ export class ChangePage implements OnInit, OnDestroy {
     const requestedFilename = this.ensureEpubExtension(
       preferredFilename || `${outputBaseName}.epub`,
     );
-    const outputTarget = await this.fileService.reserveNativeDocumentOutput(
-      requestedFilename,
-    );
+    const outputTarget =
+      await this.fileService.reserveNativeDocumentOutput(requestedFilename);
 
     this.isNativeRewriteInProgress = true;
     this.isCancellingNativeRewrite = false;
@@ -2030,6 +2126,8 @@ export class ChangePage implements OnInit, OnDestroy {
         outputPath: outputTarget.nativePath,
         coverEntryPath: this.coverEntryPath,
         newCoverPath: tempCover.nativePath,
+        replacementCoverEntryPath:
+          this.nativeRewriteTargetCoverEntryPath() ?? undefined,
       });
 
       if (!result.success) {
@@ -2048,6 +2146,18 @@ export class ChangePage implements OnInit, OnDestroy {
           requiredBytes: result.requiredBytes,
           availableBytes: result.availableBytes,
         });
+      }
+
+      if (result.coverEntryPath) {
+        this.coverEntryPath = result.coverEntryPath;
+      }
+
+      if (result.coverInserted) {
+        await this.showToast(
+          'CHANGE.NO_COVER_DETECTED_ADDED',
+          { duration: 2000 },
+          'info',
+        );
       }
 
       this.generatedEpubBytes = undefined;
@@ -2086,7 +2196,9 @@ export class ChangePage implements OnInit, OnDestroy {
         { duration: 2200 },
         'success',
       );
+      await this.maybeAskForRatingAfterSuccessfulSave('native');
     } catch (error) {
+      this.maybeDisableNativeRewriteForSession(error, 'rewrite_cover');
       if (!(error instanceof EpubRewriteError) || error.code !== 'CANCELLED') {
         const toastMessage = this.mapNativeRewriteToast(error);
         await this.showToast(
@@ -2105,8 +2217,87 @@ export class ChangePage implements OnInit, OnDestroy {
 
   private usesNativeRewrite(): boolean {
     return (
-      Capacitor.getPlatform() === 'android' && this.epubRewrite.isSupported()
+      Capacitor.getPlatform() === 'android' &&
+      this.epubRewrite.isSupported() &&
+      !this.nativeRewriteSessionDisabled &&
+      !this.nativeRewriteSdkBlocked
     );
+  }
+
+  private async initializeNativeRewriteSafetyGate(): Promise<void> {
+    if (Capacitor.getPlatform() !== 'android') {
+      this.nativeRewriteSdkBlocked = false;
+      return;
+    }
+
+    try {
+      const info = await Device.getInfo();
+      const sdk = this.resolveAndroidSdk(info);
+      // The native EPUB plugin uses Java APIs that are riskier on API 24/25.
+      this.nativeRewriteSdkBlocked = sdk !== null && sdk < 26;
+    } catch {
+      // If we cannot read device info, keep native enabled and let runtime checks decide.
+      this.nativeRewriteSdkBlocked = false;
+    }
+  }
+
+  private resolveAndroidSdk(info: unknown): number | null {
+    if (!info || typeof info !== 'object') {
+      return null;
+    }
+
+    const maybeInfo = info as {
+      androidSDKVersion?: number;
+      osVersion?: string;
+    };
+
+    if (typeof maybeInfo.androidSDKVersion === 'number') {
+      return Number.isFinite(maybeInfo.androidSDKVersion)
+        ? maybeInfo.androidSDKVersion
+        : null;
+    }
+
+    const osVersion = maybeInfo.osVersion;
+    if (!osVersion) {
+      return null;
+    }
+
+    const major = Number.parseInt(osVersion.split('.')[0], 10);
+    if (!Number.isFinite(major)) {
+      return null;
+    }
+
+    // Fallback heuristic only when sdk is unavailable.
+    if (major <= 7) return 24;
+    if (major === 8) return 26;
+    if (major === 9) return 28;
+    if (major === 10) return 29;
+    if (major === 11) return 30;
+    if (major === 12) return 31;
+    if (major === 13) return 33;
+    if (major >= 14) return 34;
+    return null;
+  }
+
+  private maybeDisableNativeRewriteForSession(
+    error: unknown,
+    _stage: 'pick_epub' | 'rewrite_cover',
+  ): void {
+    if (error instanceof EpubRewriteError) {
+      // User/content/storage errors should not permanently disable native in-session.
+      if (
+        error.code === 'PICK_CANCELLED' ||
+        error.code === 'CANCELLED' ||
+        error.code === 'EPUB_TOO_LARGE' ||
+        error.code === 'NO_SPACE' ||
+        error.code === 'NO_COVER' ||
+        error.code === 'COVER_NOT_FOUND'
+      ) {
+        return;
+      }
+    }
+
+    this.nativeRewriteSessionDisabled = true;
   }
 
   private mapNativeEpubError(error: unknown): string {
@@ -2122,9 +2313,10 @@ export class ChangePage implements OnInit, OnDestroy {
     return 'EPUB_ERROR_CORRUPT';
   }
 
-  private mapNativeRewriteToast(
-    error: unknown,
-  ): { key: string; params?: Record<string, unknown> } {
+  private mapNativeRewriteToast(error: unknown): {
+    key: string;
+    params?: Record<string, unknown>;
+  } {
     if (
       error instanceof EpubRewriteError &&
       (error.code === 'NO_COVER' || error.code === 'COVER_NOT_FOUND')
@@ -2259,7 +2451,7 @@ export class ChangePage implements OnInit, OnDestroy {
   async ionViewDidEnter() {
     this.homeTour.registerContent(this.content);
     await this.maybeStartHomeTour(
-      this.homeTour.consumePendingManualStart(HOME_TOUR_ID)
+      this.homeTour.consumePendingManualStart(HOME_TOUR_ID),
     );
   }
 
@@ -2268,7 +2460,8 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private async refreshHeaderItems(): Promise<void> {
-    this.recommendedApps = await this.recommendedAppsService.getRecommendedApps();
+    this.recommendedApps =
+      await this.recommendedAppsService.getRecommendedApps();
     this.showRecommended = this.recommendedApps.length > 0;
     this.headerItems = buildHomeHeaderItems(this.showRecommended, {
       appsLabel: this.translate.instant('ARR.TOOLS.APPS'),
@@ -2357,9 +2550,12 @@ export class ChangePage implements OnInit, OnDestroy {
     return next;
   }
 
-  private normalizeRenderedInfo(
-    result: EditorResult,
-  ): { width: number; height: number; mimeType: string; formatId?: string } | null {
+  private normalizeRenderedInfo(result: EditorResult): {
+    width: number;
+    height: number;
+    mimeType: string;
+    formatId?: string;
+  } | null {
     const width = result.renderedWidth;
     const height = result.renderedHeight;
     if (!Number.isFinite(width) || !Number.isFinite(height)) return null;
@@ -2377,14 +2573,19 @@ export class ChangePage implements OnInit, OnDestroy {
     const type = mimeType || blob.type || 'image/png';
     const ext = type === 'image/png' ? 'png' : 'jpg';
     const baseName =
-      (this.selectedImageName ||
+      (
+        this.selectedImageName ||
         this.originalImageFile?.name ||
-        'cover')?.replace(/\.(png|jpg|jpeg|webp)$/i, '') || 'cover';
+        'cover'
+      )?.replace(/\.(png|jpg|jpeg|webp)$/i, '') || 'cover';
     return new File([blob], `${baseName}_rendered.${ext}`, { type });
   }
 
   private resolveFormatId(formatId?: string): string {
-    if (formatId && this.formatOptions.some((option) => option.id === formatId)) {
+    if (
+      formatId &&
+      this.formatOptions.some((option) => option.id === formatId)
+    ) {
       return formatId;
     }
 
@@ -2395,7 +2596,16 @@ export class ChangePage implements OnInit, OnDestroy {
     width: number;
     height: number;
   } | null> {
-    const exportFile = this.exportImageFile ?? (await this.ensureExportImageFile());
+    const compositionInput = this.buildCompositionInput('export');
+    const croppedSourceDims = compositionInput
+      ? computeSourceCropDims(compositionInput)
+      : null;
+    if (croppedSourceDims) {
+      return croppedSourceDims;
+    }
+
+    const exportFile =
+      this.exportImageFile ?? (await this.ensureExportImageFile());
     if (!exportFile) return null;
     const dims = await this.imagePipe.getDimensions(exportFile);
     return dims ?? null;
@@ -2431,6 +2641,16 @@ export class ChangePage implements OnInit, OnDestroy {
     await this.settings.set({ cropTargetId: resolved });
   }
 
+  private async maybeAskForRatingAfterSuccessfulSave(
+    flow: 'native' | 'web',
+  ): Promise<void> {
+    await this.ratingService.trackSuccessEvent('epub_saved');
+    await this.ratingService.maybeAskForRating({
+      source: 'save-success',
+      metadata: { flow },
+    });
+  }
+
   private async maybeStartHomeTour(force = false): Promise<void> {
     if (this.homeTour.isActive()) {
       return;
@@ -2451,7 +2671,8 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private async ensureTourLocaleReady(settings: EccSettings): Promise<void> {
-    const expectedLanguage = settings.language ?? (await detectSupportedLocale());
+    const expectedLanguage =
+      settings.language ?? (await detectSupportedLocale());
     if (this.translate.currentLang === expectedLanguage) {
       return;
     }
@@ -2463,9 +2684,7 @@ export class ChangePage implements OnInit, OnDestroy {
     return (settings.homeTourVersion ?? 0) < CURRENT_HOME_TOUR_VERSION;
   }
 
-  private async markHomeTourSeen(
-    _reason: TourCompletionReason
-  ): Promise<void> {
+  private async markHomeTourSeen(_reason: TourCompletionReason): Promise<void> {
     await this.settings.set((prev) => ({
       ...prev,
       homeTourSeen: true,

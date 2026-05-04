@@ -400,3 +400,45 @@ test("guardrail: discovery note exists with concrete repo paths", () => {
   assert.match(content, /apps\/epub-cover-changer\/src\/main\.ts/);
   assert.match(content, /config\.json/);
 });
+
+test("regression: rating-kit must not eagerly register all locale translations on initialize", () => {
+  // Root cause of the i18n bug: calling setTranslation for every locale at startup marked
+  // all locales as "already loaded" in ngx-translate, preventing the HTTP loader from
+  // fetching the app's own JSON files when the user switched language.
+  const source = readFileSync(
+    "packages/rating-kit/src/lib/rating.service.ts",
+    "utf8",
+  );
+
+  // The bad pattern: iterating over ALL RATING_KIT_TRANSLATIONS entries and calling
+  // setTranslation for each one inside initialize() or registerTranslations().
+  const badPatternAllEntries =
+    /for\s*\(.*Object\.entries\(RATING_KIT_TRANSLATIONS\).*\)\s*\{[^}]*setTranslation/s;
+  assert.ok(
+    !badPatternAllEntries.test(source),
+    "rating.service.ts must not iterate over all RATING_KIT_TRANSLATIONS and call setTranslation in bulk. " +
+      "This blocks ngx-translate from loading the app's own locale JSON files.",
+  );
+});
+
+test("regression: rating-kit must register translations only for active locale and on language change", () => {
+  // After the fix, registerTranslations() must:
+  // 1. Register only the currently active locale (currentLang / defaultLang).
+  // 2. Subscribe to onLangChange to register when the user switches language.
+  const source = readFileSync(
+    "packages/rating-kit/src/lib/rating.service.ts",
+    "utf8",
+  );
+
+  assert.match(
+    source,
+    /translate\.currentLang|translate\.defaultLang/,
+    "registerTranslations must read the active locale from translateService.currentLang or defaultLang",
+  );
+
+  assert.match(
+    source,
+    /onLangChange/,
+    "registerTranslations must subscribe to translateService.onLangChange to handle language switches",
+  );
+});

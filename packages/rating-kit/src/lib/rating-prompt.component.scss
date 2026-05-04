@@ -1,0 +1,180 @@
+:host {
+  display: block;
+}
+
+ion-modal.rating-prompt-modal {
+  --width: min(420px, calc(100% - (var(--app-space-3) * 2)));
+  --min-width: min(320px, calc(100% - (var(--app-space-3) * 2)));
+  --height: auto;
+  --max-height: 80vh;
+  --border-radius: 22px;
+  --box-shadow: var(--app-overlay-card-shadow);
+  --backdrop-opacity: 0.85;
+  --background: transparent;
+}
+
+ion-modal.rating-prompt-modal::part(backdrop) {
+  background: var(--app-overlay-scrim);
+  opacity: 1;
+}
+
+ion-modal.rating-prompt-modal::part(content) {
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
+  animation: ratingPromptCardIn var(--app-dur-med) var(--app-ease) both;
+}
+
+.rating-prompt-shell {
+  width: 100%;
+}
+
+.rating-prompt-card {
+  display: grid;
+  gap: var(--app-space-7);
+  padding:
+    var(--app-space-9)
+    var(--app-space-8)
+    calc(var(--app-space-8) + env(safe-area-inset-bottom));
+  border: 1px solid var(--app-divider);
+  border-radius: 22px;
+  background-color: var(--app-surface, var(--ion-background-color, #081712));
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(var(--ion-color-primary-rgb), 0.16) 0%,
+      rgba(var(--ion-color-primary-rgb), 0.1) 22%,
+      rgba(var(--ion-color-primary-rgb), 0.04) 38%,
+      rgba(0, 0, 0, 0) 54%
+    );
+  box-shadow: var(--app-overlay-card-shadow);
+  color: var(--app-text-primary);
+  isolation: isolate;
+}
+
+.rating-prompt-header {
+  display: flex;
+  justify-content: center;
+}
+
+.rating-prompt-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(var(--ion-color-primary-rgb), 0.12);
+  box-shadow: inset 0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.14);
+  font-size: 32px;
+}
+
+.rating-prompt-copy {
+  display: grid;
+  gap: var(--app-space-5);
+  text-align: center;
+}
+
+.rating-prompt-title {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  font-weight: var(--app-font-strong);
+  color: var(--app-text-primary);
+}
+
+.rating-prompt-message {
+  margin: 0;
+  color: var(--app-text-secondary);
+  font-size: var(--app-text-lg);
+  line-height: 1.55;
+  text-wrap: balance;
+}
+
+.rating-prompt-actions {
+  display: grid;
+  gap: var(--app-space-4);
+}
+
+.rating-prompt-button {
+  min-height: var(--app-touch-target);
+}
+
+.rating-prompt-button::part(native) {
+  min-height: var(--app-touch-target);
+}
+
+.rating-prompt-later {
+  min-height: var(--app-touch-target);
+  border: 0;
+  background: none;
+  color: var(--app-text-secondary);
+  font: inherit;
+  font-size: var(--app-text-sm);
+  font-weight: var(--app-font-medium);
+  opacity: var(--app-text-soft);
+  transition:
+    opacity var(--app-dur-fast) var(--app-ease),
+    transform var(--app-dur-fast) var(--app-ease);
+}
+
+.rating-prompt-later:hover,
+.rating-prompt-later:focus-visible {
+  opacity: 1;
+}
+
+.rating-prompt-later:active {
+  transform: translateY(1px);
+}
+
+.rating-prompt-later:focus-visible {
+  border-radius: var(--app-radius-md);
+  box-shadow: var(--app-focus-ring);
+}
+
+@media (max-width: 767px) {
+  ion-modal.rating-prompt-modal {
+    --width: calc(100% - (var(--app-space-3) * 2));
+    --min-width: 0;
+    --border-radius: 22px;
+  }
+
+  ion-modal.rating-prompt-modal::part(content) {
+    width: calc(100% - (var(--app-space-3) * 2));
+    max-height: 80vh;
+  }
+
+  .rating-prompt-card {
+    border-radius: 22px;
+    padding:
+      var(--app-space-8)
+      var(--app-space-7)
+      calc(var(--app-space-7) + env(safe-area-inset-bottom));
+  }
+}
+
+@media (min-width: 768px) {
+  ion-modal.rating-prompt-modal::part(content) {
+    width: min(420px, calc(100% - (var(--app-space-3) * 2)));
+    max-height: 80vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ion-modal.rating-prompt-modal::part(content),
+  .rating-prompt-later {
+    animation: none;
+    transition: none;
+  }
+}
+
+@keyframes ratingPromptCardIn {
+  from {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

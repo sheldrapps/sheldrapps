@@ -50,6 +50,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.CRC32;
 import java.util.stream.Stream;
 import androidx.activity.result.ActivityResult;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 @CapacitorPlugin(name = "EpubRewritePlugin")
 public class EpubRewritePlugin extends Plugin {
@@ -118,7 +131,8 @@ public class EpubRewritePlugin extends Plugin {
         } catch (Exception ex) {
             cancelRequested.set(false);
             busy.set(false);
-            call.resolve(errorResult("PICK_FAILED", ex.getMessage(), "pick_prepare"));
+            reportNonFatalFailure("PICK_FAILED", ex.getMessage(), "pick_prepare", ex);
+            call.resolve(errorResult("PICK_FAILED", ex.getMessage(), "pick_prepare", null, null, false));
         }
     }
 
@@ -176,7 +190,9 @@ public class EpubRewritePlugin extends Plugin {
                 call.resolve(errorResult("CANCELLED", cancelled.getMessage(), "pick_prepare"));
             } catch (Exception ex) {
                 Log.e(TAG, "pickAndPrepareEpub failed", ex);
-                call.resolve(errorResult(normalizeError(ex), ex.getMessage(), "pick_prepare"));
+                String errorCode = normalizeError(ex);
+                reportNonFatalFailure(errorCode, ex.getMessage(), "pick_prepare", ex);
+                call.resolve(errorResult(errorCode, ex.getMessage(), "pick_prepare", null, null, false));
             } finally {
                 cancelRequested.set(false);
                 busy.set(false);
@@ -228,7 +244,9 @@ public class EpubRewritePlugin extends Plugin {
                 call.resolve(errorResult("CANCELLED", cancelled.getMessage(), stage));
             } catch (Exception ex) {
                 Log.e(TAG, "Plugin work failed at stage=" + stage, ex);
-                call.resolve(errorResult(normalizeError(ex), ex.getMessage(), stage));
+                String errorCode = normalizeError(ex);
+                reportNonFatalFailure(errorCode, ex.getMessage(), stage, ex);
+                call.resolve(errorResult(errorCode, ex.getMessage(), stage, null, null, false));
             } finally {
                 cancelRequested.set(false);
                 busy.set(false);
@@ -276,7 +294,17 @@ public class EpubRewritePlugin extends Plugin {
         Path inputPath = requireReadablePath(call.getString("inputPath"));
         Path outputPath = resolveOptionalWritablePath(call.getString("outputPath"));
         Path newCoverPath = requireReadablePath(call.getString("newCoverPath"));
-        String coverEntryPath = normalizeZipPath(requireString(call, "coverEntryPath"));
+        String coverEntryPath = normalizeZipPath(call.getString("coverEntryPath"));
+        if (CompatStrings.isBlank(coverEntryPath)) {
+            coverEntryPath = null;
+        }
+        String replacementCoverEntryPath =
+            normalizeZipPath(call.getString("replacementCoverEntryPath"));
+        if (CompatStrings.isBlank(replacementCoverEntryPath)) {
+            replacementCoverEntryPath = null;
+        }
+        boolean coverInserted = false;
+        String primaryOpfPath = null;
         boolean inPlaceMode = outputPath == null || Objects.equals(inputPath, outputPath);
         Path effectiveOutputPath = inPlaceMode ? inputPath : outputPath;
         if (!inPlaceMode && effectiveOutputPath.getParent() != null) {
@@ -296,18 +324,45 @@ public class EpubRewritePlugin extends Plugin {
 
         try (ZipFile sourceZip = new ZipFile(inputPath.toFile())) {
             List<FileHeader> headers = sourceZip.getFileHeaders();
-            if (findHeader(headers, coverEntryPath) == null) {
-                Log.w(TAG, "rewriteCover COVER_NOT_FOUND for " + coverEntryPath);
-                call.resolve(errorResult("COVER_NOT_FOUND", null, "rewrite"));
-                return;
+            primaryOpfPath = findPrimaryOpfPath(sourceZip, headers);
+
+            if (coverEntryPath != null && findHeader(headers, coverEntryPath) == null) {
+                coverEntryPath = findCoverEntryPath(sourceZip, headers);
+            }
+
+            if (coverEntryPath == null) {
+                coverInserted = true;
+                if (replacementCoverEntryPath == null) {
+                    replacementCoverEntryPath = buildDefaultCoverEntryPath(newCoverPath);
+                }
+                if (findHeader(headers, replacementCoverEntryPath) != null) {
+                    replacementCoverEntryPath = buildUniqueCoverEntryPath(headers, newCoverPath);
+                }
+            } else if (replacementCoverEntryPath == null) {
+                replacementCoverEntryPath = coverEntryPath;
             }
         }
 
         emitProgress(0);
         if (inPlaceMode) {
-            rewriteCoverInPlace(inputPath, newCoverPath, coverEntryPath, startedAt);
+            rewriteCoverInPlace(
+                inputPath,
+                newCoverPath,
+                coverEntryPath,
+                replacementCoverEntryPath,
+                primaryOpfPath,
+                startedAt
+            );
         } else {
-            rewriteCoverToOutput(inputPath, effectiveOutputPath, newCoverPath, coverEntryPath, startedAt);
+            rewriteCoverToOutput(
+                inputPath,
+                effectiveOutputPath,
+                newCoverPath,
+                coverEntryPath,
+                replacementCoverEntryPath,
+                primaryOpfPath,
+                startedAt
+            );
         }
 
         emitProgress(100);
@@ -321,6 +376,8 @@ public class EpubRewritePlugin extends Plugin {
         JSObject result = new JSObject();
         result.put("success", true);
         result.put("outputPath", effectiveOutputPath.toString());
+        result.put("coverEntryPath", replacementCoverEntryPath);
+        result.put("coverInserted", coverInserted);
         call.resolve(result);
     }
 
@@ -405,7 +462,7 @@ public class EpubRewritePlugin extends Plugin {
             FileHeader coverHeader = null;
             String coverEntryPath = null;
 
-            if (preferCoverEntryPath != null && !preferCoverEntryPath.isBlank()) {
+            if (CompatStrings.isNotBlank(preferCoverEntryPath)) {
                 coverHeader = findHeader(headers, preferCoverEntryPath);
                 if (coverHeader != null) {
                     coverEntryPath = normalizeZipPath(coverHeader.getFileName());
@@ -652,7 +709,7 @@ public class EpubRewritePlugin extends Plugin {
         Path filePath = tryResolveFilePath(sourceUri);
         if (filePath != null) {
             try {
-                if ("selected.epub".equals(displayName) || displayName.isBlank()) {
+                if ("selected.epub".equals(displayName) || CompatStrings.isBlank(displayName)) {
                     Path fileName = filePath.getFileName();
                     if (fileName != null) {
                         displayName = fileName.toString();
@@ -666,7 +723,7 @@ public class EpubRewritePlugin extends Plugin {
             }
         }
 
-        if (mimeType == null || mimeType.isBlank()) {
+        if (CompatStrings.isBlank(mimeType)) {
             mimeType = "application/epub+zip";
         }
 
@@ -702,7 +759,7 @@ public class EpubRewritePlugin extends Plugin {
 
     private Uri resolveSourceUri(String rawUri) {
         Uri parsed = Uri.parse(rawUri);
-        if (parsed.getScheme() == null || parsed.getScheme().isBlank()) {
+        if (CompatStrings.isBlank(parsed.getScheme())) {
             return Uri.fromFile(new java.io.File(rawUri));
         }
         return parsed;
@@ -726,7 +783,7 @@ public class EpubRewritePlugin extends Plugin {
             return null;
         }
         String scheme = sourceUri.getScheme();
-        if (scheme == null || scheme.isBlank()) {
+        if (CompatStrings.isBlank(scheme)) {
             try {
                 return Paths.get(sourceUri.toString());
             } catch (InvalidPathException ignored) {
@@ -831,7 +888,14 @@ public class EpubRewritePlugin extends Plugin {
         return LocalDateTime.now().format(WORK_TIMESTAMP_FORMAT);
     }
 
-    private void rewriteCoverInPlace(Path inputPath, Path newCoverPath, String coverEntryPath, long startedAt)
+    private void rewriteCoverInPlace(
+        Path inputPath,
+        Path newCoverPath,
+        String coverEntryPath,
+        String replacementCoverEntryPath,
+        String primaryOpfPath,
+        long startedAt
+    )
         throws Exception {
         Path backupPath = inputPath.resolveSibling(inputPath.getFileName() + ".bak");
         Path tempOutputPath = inputPath.resolveSibling(inputPath.getFileName() + ".tmp");
@@ -845,7 +909,16 @@ public class EpubRewritePlugin extends Plugin {
 
         try {
             long rewriteStart = System.currentTimeMillis();
-            rewriteArchiveReplacingCover(backupPath, tempOutputPath, coverEntryPath, newCoverPath, 5, 90);
+            rewriteArchiveReplacingCover(
+                backupPath,
+                tempOutputPath,
+                coverEntryPath,
+                replacementCoverEntryPath,
+                primaryOpfPath,
+                newCoverPath,
+                5,
+                90
+            );
             debugIo("rewriteCover in_place rewriteMs=" + (System.currentTimeMillis() - rewriteStart));
             ensureNotCancelled();
 
@@ -873,6 +946,8 @@ public class EpubRewritePlugin extends Plugin {
         Path outputPath,
         Path newCoverPath,
         String coverEntryPath,
+        String replacementCoverEntryPath,
+        String primaryOpfPath,
         long startedAt
     ) throws Exception {
         Path tempOutputPath = outputPath.resolveSibling(outputPath.getFileName() + ".tmp");
@@ -880,7 +955,16 @@ public class EpubRewritePlugin extends Plugin {
 
         try {
             long rewriteStart = System.currentTimeMillis();
-            rewriteArchiveReplacingCover(inputPath, tempOutputPath, coverEntryPath, newCoverPath, 5, 95);
+            rewriteArchiveReplacingCover(
+                inputPath,
+                tempOutputPath,
+                coverEntryPath,
+                replacementCoverEntryPath,
+                primaryOpfPath,
+                newCoverPath,
+                5,
+                95
+            );
             debugIo("rewriteCover output rewriteMs=" + (System.currentTimeMillis() - rewriteStart));
             ensureNotCancelled();
             moveFileAtomicWithFallback(tempOutputPath, outputPath);
@@ -897,6 +981,8 @@ public class EpubRewritePlugin extends Plugin {
         Path sourceZipPath,
         Path outputZipPath,
         String coverEntryPath,
+        String replacementCoverEntryPath,
+        String primaryOpfPath,
         Path newCoverPath,
         int progressStart,
         int progressEnd
@@ -930,13 +1016,32 @@ public class EpubRewritePlugin extends Plugin {
                 String entryPath = normalizeZipPath(header.getFileName());
                 ZipParameters parameters = buildParametersFromHeader(header, entryPath, null);
 
-                if (entryPath.equals(coverEntryPath)) {
-                    parameters = buildParametersFromHeader(header, coverEntryPath, newCoverPath);
+                if (coverEntryPath != null && entryPath.equals(coverEntryPath)) {
+                    parameters = buildParametersFromHeader(
+                        header,
+                        replacementCoverEntryPath,
+                        newCoverPath
+                    );
                     outputZip.addFile(newCoverPath.toFile(), parameters);
                     coverReplaced = true;
                 } else {
-                    try (InputStream entryInput = new BufferedInputStream(sourceZip.getInputStream(header))) {
-                        outputZip.addStream(entryInput, parameters);
+                    byte[] rewrittenText = rewriteCoverReferenceEntry(
+                        sourceZip,
+                        header,
+                        entryPath,
+                        coverEntryPath,
+                        replacementCoverEntryPath,
+                        primaryOpfPath
+                    );
+                    if (rewrittenText != null) {
+                        parameters = buildParametersFromBytes(header, entryPath, rewrittenText);
+                        try (InputStream entryInput = new ByteArrayInputStream(rewrittenText)) {
+                            outputZip.addStream(entryInput, parameters);
+                        }
+                    } else {
+                        try (InputStream entryInput = new BufferedInputStream(sourceZip.getInputStream(header))) {
+                            outputZip.addStream(entryInput, parameters);
+                        }
                     }
                 }
 
@@ -945,7 +1050,13 @@ public class EpubRewritePlugin extends Plugin {
             }
 
             if (!coverReplaced) {
-                throw new IOException("Cover entry not found in source archive");
+                if (coverEntryPath != null) {
+                    throw new IOException("Cover entry not found in source archive");
+                }
+
+                ZipParameters addCoverParams = new ZipParameters();
+                addCoverParams.setFileNameInZip(replacementCoverEntryPath);
+                outputZip.addFile(newCoverPath.toFile(), addCoverParams);
             }
         }
     }
@@ -977,6 +1088,26 @@ public class EpubRewritePlugin extends Plugin {
         return parameters;
     }
 
+    private ZipParameters buildParametersFromBytes(
+        FileHeader header,
+        String fileNameInZip,
+        byte[] contentBytes
+    ) {
+        ZipParameters parameters = new ZipParameters();
+        parameters.setFileNameInZip(fileNameInZip);
+        parameters.setCompressionMethod(header.getCompressionMethod());
+        parameters.setLastModifiedFileTime(header.getLastModifiedTime());
+        parameters.setFileComment(header.getFileComment());
+
+        if (header.getCompressionMethod() == CompressionMethod.STORE) {
+            parameters.setEntrySize(Math.max(0, contentBytes.length));
+            parameters.setEntryCRC(computeCrc(contentBytes));
+            parameters.setWriteExtendedLocalFileHeader(false);
+        }
+
+        return parameters;
+    }
+
     private long computeCrc(Path filePath) throws IOException {
         CRC32 crc = new CRC32();
         byte[] buffer = new byte[BUFFER_SIZE];
@@ -988,6 +1119,12 @@ public class EpubRewritePlugin extends Plugin {
             }
         }
 
+        return crc.getValue();
+    }
+
+    private long computeCrc(byte[] contentBytes) {
+        CRC32 crc = new CRC32();
+        crc.update(contentBytes, 0, contentBytes.length);
         return crc.getValue();
     }
 
@@ -1154,6 +1291,327 @@ public class EpubRewritePlugin extends Plugin {
         outputStream.flush();
     }
 
+    private byte[] rewriteCoverReferenceEntry(
+        ZipFile sourceZip,
+        FileHeader header,
+        String entryPath,
+        String originalCoverEntryPath,
+        String replacementCoverEntryPath,
+        String primaryOpfPath
+    ) throws IOException {
+        if (entryPath.equals(replacementCoverEntryPath) || !isTextEntryPath(entryPath)) {
+            return null;
+        }
+
+        byte[] originalBytes = readEntryBytes(sourceZip, header);
+        String originalText = new String(originalBytes, StandardCharsets.UTF_8);
+        String nextText = originalText;
+
+        if (entryPath.toLowerCase(Locale.US).endsWith(".opf")) {
+            if (CompatStrings.isNotBlank(originalCoverEntryPath)) {
+                nextText = rewriteOpfCoverEntry(
+                    nextText,
+                    entryPath,
+                    originalCoverEntryPath,
+                    replacementCoverEntryPath
+                );
+            } else if (entryPath.equals(primaryOpfPath)) {
+                nextText = rewriteOpfForInsertedCover(nextText, entryPath, replacementCoverEntryPath);
+            }
+        }
+
+        if (CompatStrings.isNotBlank(originalCoverEntryPath)) {
+            nextText = rewriteRelativeCoverRefs(
+                nextText,
+                entryPath,
+                originalCoverEntryPath,
+                replacementCoverEntryPath
+            );
+        }
+        if (nextText.equals(originalText)) {
+            return null;
+        }
+
+        return nextText.getBytes(StandardCharsets.UTF_8);
+    }
+
+    private byte[] readEntryBytes(ZipFile zipFile, FileHeader header) throws IOException {
+        try (
+            InputStream inputStream = new BufferedInputStream(zipFile.getInputStream(header));
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream()
+        ) {
+            copyStream(inputStream, outputStream);
+            return outputStream.toByteArray();
+        }
+    }
+
+    private String rewriteOpfCoverEntry(
+        String xml,
+        String entryPath,
+        String originalCoverEntryPath,
+        String replacementCoverEntryPath
+    ) throws IOException {
+        try {
+            Document document = parseXmlUtf8(xml);
+            String entryDir = parentZipPath(entryPath);
+            String replacementHref = relativizeZipPath(entryDir, replacementCoverEntryPath);
+            String replacementMime = mimeFromPath(replacementCoverEntryPath);
+            boolean changed = false;
+
+            NodeList items = document.getElementsByTagNameNS("*", "item");
+            for (int i = 0; i < items.getLength(); i++) {
+                if (!(items.item(i) instanceof Element)) {
+                    continue;
+                }
+                Element item = (Element) items.item(i);
+                String href = item.getAttribute("href");
+                if (CompatStrings.isBlank(href)) {
+                    continue;
+                }
+                String resolvedHref = resolveRelativeZipPath(entryDir, href);
+                if (!originalCoverEntryPath.equals(resolvedHref)) {
+                    continue;
+                }
+                item.setAttribute("href", replacementHref);
+                item.setAttribute("media-type", replacementMime);
+                changed = true;
+            }
+
+            return changed ? serializeXml(document) : xml;
+        } catch (ParserConfigurationException | SAXException | TransformerException ex) {
+            throw new IOException("Unable to rewrite OPF cover references", ex);
+        }
+    }
+
+    private String rewriteOpfForInsertedCover(
+        String xml,
+        String entryPath,
+        String replacementCoverEntryPath
+    ) throws IOException {
+        try {
+            Document document = parseXmlUtf8(xml);
+            String entryDir = parentZipPath(entryPath);
+            String replacementHref = relativizeZipPath(entryDir, replacementCoverEntryPath);
+            String replacementMime = mimeFromPath(replacementCoverEntryPath);
+
+            Element packageElement = document.getDocumentElement();
+            String opfNs = packageElement == null ? null : packageElement.getNamespaceURI();
+
+            Element manifest = firstElementByName(document, "manifest");
+            if (manifest == null && packageElement != null) {
+                manifest = opfNs == null
+                    ? document.createElement("manifest")
+                    : document.createElementNS(opfNs, "manifest");
+                packageElement.appendChild(manifest);
+            }
+
+            Element metadata = firstElementByName(document, "metadata");
+            if (metadata == null && packageElement != null) {
+                metadata = opfNs == null
+                    ? document.createElement("metadata")
+                    : document.createElementNS(opfNs, "metadata");
+                packageElement.insertBefore(metadata, packageElement.getFirstChild());
+            }
+
+            if (manifest == null || metadata == null) {
+                return xml;
+            }
+
+            String coverId = ensureManifestCoverItem(
+                document,
+                manifest,
+                replacementHref,
+                replacementMime,
+                opfNs
+            );
+            ensureCoverMetaTag(document, metadata, coverId, opfNs);
+
+            return serializeXml(document);
+        } catch (ParserConfigurationException | SAXException | TransformerException ex) {
+            throw new IOException("Unable to add OPF cover metadata", ex);
+        }
+    }
+
+    private String ensureManifestCoverItem(
+        Document document,
+        Element manifest,
+        String replacementHref,
+        String replacementMime,
+        String opfNs
+    ) {
+        NodeList items = manifest.getElementsByTagNameNS("*", "item");
+        Element coverCandidate = null;
+        for (int i = 0; i < items.getLength(); i++) {
+            if (!(items.item(i) instanceof Element)) {
+                continue;
+            }
+            Element item = (Element) items.item(i);
+            String href = item.getAttribute("href");
+            String properties = item.getAttribute("properties");
+            if (replacementHref.equals(href) || containsCoverImageProperty(properties)) {
+                coverCandidate = item;
+                break;
+            }
+        }
+
+        if (coverCandidate == null) {
+            coverCandidate = opfNs == null
+                ? document.createElement("item")
+                : document.createElementNS(opfNs, "item");
+            manifest.appendChild(coverCandidate);
+        }
+
+        String coverId = coverCandidate.getAttribute("id");
+        if (CompatStrings.isBlank(coverId)) {
+            coverId = buildUniqueCoverId(manifest, "cover-image-generated");
+            coverCandidate.setAttribute("id", coverId);
+        }
+
+        coverCandidate.setAttribute("href", replacementHref);
+        coverCandidate.setAttribute("media-type", replacementMime);
+        coverCandidate.setAttribute("properties", "cover-image");
+        return coverId;
+    }
+
+    private boolean containsCoverImageProperty(String properties) {
+        if (CompatStrings.isBlank(properties)) {
+            return false;
+        }
+        for (String part : properties.toLowerCase(Locale.US).split("\\s+")) {
+            if ("cover-image".equals(part.trim())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String buildUniqueCoverId(Element manifest, String baseId) {
+        java.util.HashSet<String> ids = new java.util.HashSet<>();
+        NodeList items = manifest.getElementsByTagNameNS("*", "item");
+        for (int i = 0; i < items.getLength(); i++) {
+            if (!(items.item(i) instanceof Element)) {
+                continue;
+            }
+            String existingId = ((Element) items.item(i)).getAttribute("id");
+            if (CompatStrings.isNotBlank(existingId)) {
+                ids.add(existingId);
+            }
+        }
+
+        if (!ids.contains(baseId)) {
+            return baseId;
+        }
+
+        int suffix = 2;
+        while (ids.contains(baseId + "-" + suffix)) {
+            suffix += 1;
+        }
+        return baseId + "-" + suffix;
+    }
+
+    private void ensureCoverMetaTag(Document document, Element metadata, String coverId, String opfNs) {
+        NodeList metas = metadata.getElementsByTagNameNS("*", "meta");
+        for (int i = 0; i < metas.getLength(); i++) {
+            if (!(metas.item(i) instanceof Element)) {
+                continue;
+            }
+            Element meta = (Element) metas.item(i);
+            if ("cover".equalsIgnoreCase(meta.getAttribute("name"))) {
+                meta.setAttribute("content", coverId);
+                return;
+            }
+        }
+
+        Element meta = opfNs == null
+            ? document.createElement("meta")
+            : document.createElementNS(opfNs, "meta");
+        meta.setAttribute("name", "cover");
+        meta.setAttribute("content", coverId);
+        metadata.appendChild(meta);
+    }
+
+    private String rewriteRelativeCoverRefs(
+        String content,
+        String entryPath,
+        String originalCoverEntryPath,
+        String replacementCoverEntryPath
+    ) {
+        String entryDir = parentZipPath(entryPath);
+        String oldRef = relativizeZipPath(entryDir, originalCoverEntryPath);
+        String newRef = relativizeZipPath(entryDir, replacementCoverEntryPath);
+        if (oldRef.equals(newRef) || !content.contains(oldRef)) {
+            return content;
+        }
+        return content.replace(oldRef, newRef);
+    }
+
+    private Document parseXmlUtf8(String xml)
+        throws ParserConfigurationException, IOException, SAXException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        configureSecureXmlFactory(factory);
+        try (InputStream inputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))) {
+            Document document = factory.newDocumentBuilder().parse(inputStream);
+            document.getDocumentElement().normalize();
+            return document;
+        }
+    }
+
+    private void configureSecureXmlFactory(DocumentBuilderFactory factory)
+        throws ParserConfigurationException {
+        safeSetFeature(factory, XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        safeSetFeature(factory, "http://apache.org/xml/features/disallow-doctype-decl", true);
+        safeSetFeature(factory, "http://xml.org/sax/features/external-general-entities", false);
+        safeSetFeature(factory, "http://xml.org/sax/features/external-parameter-entities", false);
+        safeSetAttribute(factory, "http://javax.xml.XMLConstants/property/accessExternalDTD", "");
+        safeSetAttribute(factory, "http://javax.xml.XMLConstants/property/accessExternalSchema", "");
+        safeSetExpandEntityReferences(factory, false);
+        safeSetXIncludeAware(factory, false);
+    }
+
+    private void safeSetFeature(DocumentBuilderFactory factory, String name, boolean value)
+        throws ParserConfigurationException {
+        try {
+            factory.setFeature(name, value);
+        } catch (Exception ignored) {
+            // Best effort: Android XML implementations differ by API level.
+        }
+    }
+
+    private void safeSetAttribute(DocumentBuilderFactory factory, String name, String value) {
+        try {
+            factory.setAttribute(name, value);
+        } catch (Exception ignored) {
+            // Best effort: Android XML implementations differ by API level.
+        }
+    }
+
+    private void safeSetExpandEntityReferences(DocumentBuilderFactory factory, boolean value) {
+        try {
+            factory.setExpandEntityReferences(value);
+        } catch (Exception ignored) {
+            // Best effort.
+        }
+    }
+
+    private void safeSetXIncludeAware(DocumentBuilderFactory factory, boolean value) {
+        try {
+            factory.setXIncludeAware(value);
+        } catch (Exception ignored) {
+            // Best effort.
+        }
+    }
+
+    private String serializeXml(Document document) throws TransformerException {
+        TransformerFactory factory = TransformerFactory.newInstance();
+        Transformer transformer = factory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        transformer.transform(new DOMSource(document), new StreamResult(output));
+        return new String(output.toByteArray(), StandardCharsets.UTF_8);
+    }
+
     private String findCoverEntryPath(ZipFile zipFile, List<FileHeader> headers) throws IOException {
         return coverLocator.findCoverEntryPath(zipFile, headers);
     }
@@ -1168,7 +1626,7 @@ public class EpubRewritePlugin extends Plugin {
         }
 
         String baseName = stripExtension(Paths.get(coverEntryPath).getFileName().toString());
-        if (baseName.isBlank()) {
+        if (CompatStrings.isBlank(baseName)) {
             baseName = "cover";
         }
 
@@ -1190,6 +1648,153 @@ public class EpubRewritePlugin extends Plugin {
             }
         }
         return null;
+    }
+
+    private Element firstElementByName(Document document, String localName) {
+        NodeList wildcardMatches = document.getElementsByTagNameNS("*", localName);
+        for (int i = 0; i < wildcardMatches.getLength(); i++) {
+            if (wildcardMatches.item(i) instanceof Element) {
+                return (Element) wildcardMatches.item(i);
+            }
+        }
+        NodeList directMatches = document.getElementsByTagName(localName);
+        for (int i = 0; i < directMatches.getLength(); i++) {
+            if (directMatches.item(i) instanceof Element) {
+                return (Element) directMatches.item(i);
+            }
+        }
+        return null;
+    }
+
+    private String findPrimaryOpfPath(ZipFile zipFile, List<FileHeader> headers) {
+        try {
+            FileHeader containerHeader = findHeader(headers, "META-INF/container.xml");
+            if (containerHeader == null) {
+                return null;
+            }
+
+            byte[] containerBytes = readEntryBytes(zipFile, containerHeader);
+            Document containerDoc = parseXmlUtf8(new String(containerBytes, StandardCharsets.UTF_8));
+            Element rootfile = firstElementByName(containerDoc, "rootfile");
+            if (rootfile == null) {
+                return null;
+            }
+            String opfPath = normalizeZipPath(rootfile.getAttribute("full-path"));
+            if (CompatStrings.isBlank(opfPath)) {
+                return null;
+            }
+            return findHeader(headers, opfPath) == null ? null : opfPath;
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private String buildDefaultCoverEntryPath(Path newCoverPath) {
+        String ext = normalizeCoverExt(extensionFromPath(newCoverPath.getFileName().toString()));
+        return "OEBPS/images/cover." + ext;
+    }
+
+    private String buildUniqueCoverEntryPath(List<FileHeader> headers, Path newCoverPath) {
+        String ext = normalizeCoverExt(extensionFromPath(newCoverPath.getFileName().toString()));
+        int suffix = 1;
+        while (true) {
+            String candidate = "OEBPS/images/cover-added-" + suffix + "." + ext;
+            if (findHeader(headers, candidate) == null) {
+                return candidate;
+            }
+            suffix += 1;
+        }
+    }
+
+    private String parentZipPath(String path) {
+        String normalized = normalizeZipPath(path);
+        int slashIndex = normalized.lastIndexOf('/');
+        return slashIndex < 0 ? "" : normalized.substring(0, slashIndex);
+    }
+
+    private String resolveRelativeZipPath(String baseDir, String href) {
+        String normalizedHref = normalizeZipPath(href);
+        if (normalizedHref.matches("^[a-zA-Z]+://.*$")) {
+            return normalizedHref;
+        }
+
+        String merged = CompatStrings.isBlank(baseDir)
+            ? normalizedHref
+            : baseDir + "/" + normalizedHref;
+
+        String[] parts = merged.split("/");
+        java.util.ArrayList<String> resolved = new java.util.ArrayList<>();
+        for (String part : parts) {
+            if (CompatStrings.isBlank(part) || ".".equals(part)) {
+                continue;
+            }
+            if ("..".equals(part)) {
+                if (!resolved.isEmpty()) {
+                    resolved.remove(resolved.size() - 1);
+                }
+                continue;
+            }
+            resolved.add(part);
+        }
+        return String.join("/", resolved);
+    }
+
+    private String relativizeZipPath(String fromDir, String toPath) {
+        String normalizedFrom = normalizeZipPath(fromDir);
+        String normalizedTo = normalizeZipPath(toPath);
+        if (CompatStrings.isBlank(normalizedFrom)) {
+            return normalizedTo;
+        }
+
+        String[] fromParts = normalizedFrom.split("/");
+        String[] toParts = normalizedTo.split("/");
+        int common = 0;
+        while (
+            common < fromParts.length
+                && common < toParts.length
+                && fromParts[common].equals(toParts[common])
+        ) {
+            common += 1;
+        }
+
+        StringBuilder relative = new StringBuilder();
+        for (int i = common; i < fromParts.length; i++) {
+            if (CompatStrings.isBlank(fromParts[i])) {
+                continue;
+            }
+            if (relative.length() > 0) {
+                relative.append('/');
+            }
+            relative.append("..");
+        }
+
+        for (int i = common; i < toParts.length; i++) {
+            if (CompatStrings.isBlank(toParts[i])) {
+                continue;
+            }
+            if (relative.length() > 0) {
+                relative.append('/');
+            }
+            relative.append(toParts[i]);
+        }
+
+        if (relative.length() > 0) {
+            return relative.toString();
+        }
+        int slashIndex = normalizedTo.lastIndexOf('/');
+        return slashIndex < 0 ? normalizedTo : normalizedTo.substring(slashIndex + 1);
+    }
+
+    private boolean isTextEntryPath(String path) {
+        String lower = normalizeZipPath(path).toLowerCase(Locale.US);
+        return lower.endsWith(".opf")
+            || lower.endsWith(".xml")
+            || lower.endsWith(".xhtml")
+            || lower.endsWith(".html")
+            || lower.endsWith(".htm")
+            || lower.endsWith(".ncx")
+            || lower.endsWith(".svg")
+            || lower.endsWith(".css");
     }
 
     private String extensionFromPath(String path) {
@@ -1413,7 +2018,7 @@ public class EpubRewritePlugin extends Plugin {
         try {
             Uri uri = Uri.parse(trimmed);
             String scheme = uri.getScheme();
-            if (scheme == null || scheme.isBlank()) {
+            if (CompatStrings.isBlank(scheme)) {
                 return Paths.get(trimmed);
             }
             if ("file".equalsIgnoreCase(scheme) && uri.getPath() != null) {
@@ -1451,7 +2056,7 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     private JSObject errorResult(String error, String message, String stage) {
-        return errorResult(error, message, stage, null, null);
+        return errorResult(error, message, stage, null, null, true);
     }
 
     private JSObject errorResult(
@@ -1461,13 +2066,28 @@ public class EpubRewritePlugin extends Plugin {
         Long requiredBytes,
         Long availableBytes
     ) {
+        return errorResult(error, message, stage, requiredBytes, availableBytes, true);
+    }
+
+    private JSObject errorResult(
+        String error,
+        String message,
+        String stage,
+        Long requiredBytes,
+        Long availableBytes,
+        boolean shouldReport
+    ) {
+        if (shouldReport) {
+            reportNonFatalFailure(error, message, stage, null);
+        }
+
         JSObject result = new JSObject();
         result.put("success", false);
         result.put("error", error);
-        if (message != null && !message.isBlank()) {
+        if (CompatStrings.isNotBlank(message)) {
             result.put("message", message);
         }
-        if (stage != null && !stage.isBlank()) {
+        if (CompatStrings.isNotBlank(stage)) {
             result.put("stage", stage);
         }
         if (requiredBytes != null && requiredBytes >= 0) {
@@ -1477,6 +2097,73 @@ public class EpubRewritePlugin extends Plugin {
             result.put("availableBytes", availableBytes);
         }
         return result;
+    }
+
+    private boolean shouldReportNonFatal(String error) {
+        if (error == null) {
+            return false;
+        }
+        switch (error) {
+            case "BUSY":
+            case "CANCELLED":
+            case "PICK_CANCELLED":
+                return false;
+            default:
+                return true;
+        }
+    }
+
+    private void reportNonFatalFailure(
+        String error,
+        String message,
+        String stage,
+        Throwable throwable
+    ) {
+        if (!shouldReportNonFatal(error)) {
+            return;
+        }
+
+        try {
+            Class<?> crashlyticsClass = Class.forName(
+                "com.google.firebase.crashlytics.FirebaseCrashlytics"
+            );
+            Object crashlytics = crashlyticsClass.getMethod("getInstance").invoke(null);
+
+            String safeError = error == null ? "UNKNOWN" : error;
+            String safeStage = stage == null ? "unknown_stage" : stage;
+            String safeMessage = message == null ? "" : message;
+
+            crashlyticsClass
+                .getMethod("setCustomKey", String.class, String.class)
+                .invoke(crashlytics, "epub_error_code", safeError);
+            crashlyticsClass
+                .getMethod("setCustomKey", String.class, String.class)
+                .invoke(crashlytics, "epub_error_stage", safeStage);
+            crashlyticsClass
+                .getMethod("log", String.class)
+                .invoke(
+                    crashlytics,
+                    "epub-rewrite failure code="
+                        + safeError
+                        + " stage="
+                        + safeStage
+                        + " message="
+                        + safeMessage
+                );
+
+            Throwable reportThrowable = throwable;
+            if (reportThrowable == null) {
+                reportThrowable = new RuntimeException(
+                    "epub-rewrite non-fatal code=" + safeError + " stage=" + safeStage + " message=" + safeMessage
+                );
+            }
+
+            crashlyticsClass
+                .getMethod("recordException", Throwable.class)
+                .invoke(crashlytics, reportThrowable);
+        } catch (Exception ignored) {
+            // Best effort: keep plugin behavior unchanged if Crashlytics is unavailable.
+        }
     }
 
     private String normalizeError(Exception ex) {
@@ -1496,7 +2183,7 @@ public class EpubRewritePlugin extends Plugin {
     private void scanPathForMediaStore(Path path) {
         if (path == null) return;
         String absolutePath = path.toAbsolutePath().toString();
-        if (absolutePath.isBlank()) return;
+        if (CompatStrings.isBlank(absolutePath)) return;
 
         try {
             MediaScannerConnection.scanFile(

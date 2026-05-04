@@ -58,6 +58,7 @@
     "IMAGE_WARN_INVALID_EPUB_COVER": "Invalid EPUB cover. Tap to choose a new image.",
     "EPUB_ERROR_CORRUPT": "The EPUB could not be read. Try another file.",
     "EPUB_ERROR_NO_COVER": "This EPUB does not contain a replaceable cover.",
+    "NO_COVER_DETECTED_ADDED": "No cover detected. A new cover was added to this EPUB.",
     "EPUB_ERROR_REWRITE": "The EPUB could not be processed. Please try again.",
     "EPUB_ERROR_STORAGE": "Not enough storage space. Need {{requiredMB}} MB, available {{availableMB}} MB.",
     "EPUB_ERROR_SIZE": "The file is too large. Maximum {{maxSize}} MB.",
@@ -88,7 +89,7 @@
   },
   "COVERS": {
     "DELETED": "EPUB deleted",
-    "EMPTY": "No EPUBs yet.",
+    "EMPTY": "No EPUBs yet. Pull down to refresh. To look for older files, the app may request extra permissions.",
     "GENERATE_THUMB": "Generate thumbnail",
     "LOADING_PREVIEW": "Loading preview...",
     "PLACEHOLDER": "EPUB",

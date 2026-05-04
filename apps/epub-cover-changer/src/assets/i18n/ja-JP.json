@@ -1,0 +1,197 @@
+{
+  "APP": {
+    "TITLE": "EPUB Cover Changer"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "もう一度戻るで終了",
+    "CANCEL": "キャンセル",
+    "CLOSE": "閉じる",
+    "DELETE": "削除",
+    "DONE": "完了",
+    "ERROR": "エラー",
+    "LOADING": "読み込み中…",
+    "BILLING_UNAVAILABLE": "現在、購入できません。",
+    "PURCHASE_ERROR": "購入を完了できませんでした。もう一度お試しください。",
+    "REMOVE_ADS_BUY": "購入",
+    "REMOVE_ADS_DESCRIPTION": "一度の支払いで広告を永久に削除します。",
+    "REMOVE_ADS_PURCHASED": "広告を永久に削除しました。",
+    "REMOVE_ADS_RESTORE": "購入を復元",
+    "REMOVE_ADS_RESTORED": "購入を正常に復元しました。",
+    "REMOVE_ADS_TITLE": "広告を削除",
+    "REMOVE_ADS_CTA_TITLE": "広告を削除",
+    "REMOVE_ADS_CTA_SUBTITLE": "一回払い • 永久有効",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "一回払い • {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "価格: {{price}} • サブスクなし",
+    "RESTORE_ERROR": "購入を復元できませんでした。もう一度お試しください。",
+    "WATCH_AD_SUBTITLE": "広告を見る",
+    "SHARE": "共有",
+    "SHARE_KINDLE_HINT": "共有時に Kindle アプリを選択してデバイスに送信してください。",
+    "WARNING": "警告"
+  },
+  "CHANGE": {
+    "ADS_REQUIRED": "広告を読み込めませんでした。ネットワークまたは広告ブロッカーを確認してください。",
+    "ARIA_CHANGE_EPUB": "EPUBファイルを変更。現在のファイル: {{name}}",
+    "ARIA_CHANGE_IMAGE": "表紙画像を変更。現在の画像: {{name}}",
+    "ARIA_CROP": "選択した画像を調整",
+    "ARIA_SELECT_EPUB": "EPUBファイルを選択",
+    "ARIA_SELECT_IMAGE": "表紙画像を選択",
+    "CROP_ACTION": "調整",
+    "COVER_CHANGED": "表紙を変更しました。保存または共有できます",
+    "CHANGE_ACTION": "表紙を変更",
+    "CHANGE_ACTION_REWARDED": "表紙を変更（広告を見る）",
+    "GENERATING": "表紙を更新中…",
+    "HINT_SAVE_SHARE_EXPLAIN": "表紙の変更は自動的に保存されません。",
+    "INFO": "情報",
+    "INFO_ARIA": "表紙変更に関する情報",
+    "INFO_TITLE": "情報",
+    "INFO_FLOW_LABEL": "推奨される手順:",
+    "INFO_STEP_1": "EPUBを選択してください。",
+    "INFO_STEP_1_1": "1.1. 元の表紙が事前に読み込まれます。",
+    "INFO_STEP_1_2": "1.2. 画像を変更するか、元の画像を保持します。",
+    "INFO_STEP_2": "エディタで画像を調整してください。",
+    "INFO_STEP_3": "広告を見て表紙を保存してください。",
+    "INFO_STEP_4": "保存または共有してください。",
+    "IMAGE_ERROR_CORRUPT": "画像を読み込めませんでした。別の画像をお試しください。",
+    "IMAGE_ERROR_SIZE": "ファイルが大きすぎます。最大 {{maxSize}} MB。",
+    "IMAGE_ERROR_TYPE": "非対応の形式 ({{type}})。JPG、PNG、または WebP を選択してください。",
+    "IMAGE_WARN_SMALL": "この画像は一部のデバイスには小さすぎる可能性があります。",
+    "IMAGE_WARN_INVALID_EPUB_COVER": "無効なEPUB表紙です。新しい画像を選択するにはタップしてください。",
+    "EPUB_ERROR_CORRUPT": "EPUBを読み込めませんでした。別のファイルをお試しください。",
+    "EPUB_ERROR_NO_COVER": "このEPUBには置き換え可能な表紙が含まれていません。",
+    "NO_COVER_DETECTED_ADDED": "表紙が見つかりませんでした。このEPUBに新しい表紙を追加しました。",
+    "EPUB_ERROR_REWRITE": "EPUBを処理できませんでした。もう一度お試しください。",
+    "EPUB_ERROR_STORAGE": "ストレージ容量が不足しています。必要: {{requiredMB}} MB、空き: {{availableMB}} MB。",
+    "EPUB_ERROR_SIZE": "ファイルが大きすぎます。最大 {{maxSize}} MB。",
+    "EPUB_ERROR_TYPE": "非対応のEPUBファイルです。",
+    "LOADING_EPUB": "EPUBを読み込み中…",
+    "EPUB_LOADING_COPY": "大きなEPUBをコピー中...",
+    "EPUB_LOADING_INSPECT": "EPUB構造を確認中...",
+    "LOADING_IMAGE": "画像を読み込み中…",
+    "OPENING_EDITOR": "エディタを開いています…",
+    "CHANGING_COVER": "表紙を変更中...",
+    "GETTING_COVER": "表紙を取得中",
+    "SAVING": "表紙を保存中…",
+    "SELECT_EPUB_LABEL": "EPUBファイル",
+    "PROCESSING_LARGE_EPUB": "大きなEPUBを処理中...",
+    "PROCESS_CANCELLED": "処理がキャンセルされました",
+    "SELECT_EPUB_PLACEHOLDER": "EPUBファイルを選択",
+    "SAVE_ACTION": "保存",
+    "SAVED_OK": "表紙を保存しました",
+    "SAVE_RENAME_TITLE": "表紙を保存",
+    "SAVE_RENAME_MESSAGE": "表紙の名前を入力してください",
+    "SAVE_RENAME_PLACEHOLDER": "ファイル名",
+    "SELECT_IMAGE_LABEL": "表紙画像",
+    "SELECT_IMAGE_PLACEHOLDER": "画像を選択",
+    "INVALID_COVER_TAP_TO_CHANGE": "無効な表紙です。タップして変更",
+    "TAP_TO_CHANGE": "タップして変更/リセット",
+    "TAP_TO_CHANGE_IMAGE": "タップして変更",
+    "TITLE": "表紙を変更"
+  },
+  "COVERS": {
+    "DELETED": "EPUBを削除しました",
+    "EMPTY": "まだEPUBがありません。下に引いて更新してください。以前のファイルを探すには、追加の権限が必要になる場合があります。",
+    "GENERATE_THUMB": "サムネイルを生成",
+    "LOADING_PREVIEW": "プレビューを読み込み中...",
+    "PLACEHOLDER": "EPUB",
+    "PREVIEW_UNAVAILABLE": "プレビューは利用できません。",
+    "PREVIEW_TITLE": "プレビュー",
+    "TITLE": "マイEPUB",
+    "ACTIONS": {
+      "DELETE": "削除",
+      "SHARE": "共有"
+    },
+    "DELETE": {
+      "MESSAGE": "このEPUBを削除しますか？",
+      "TITLE": "EPUBを削除"
+    },
+    "ERROR": {
+      "DELETE": "EPUBを削除できませんでした。もう一度お試しください。",
+      "SHARE": "EPUBを共有できませんでした。もう一度お試しください。",
+      "LOAD": "EPUBを読み込めませんでした。下に引っ張って更新してください。",
+      "PREVIEW": "プレビューを読み込めませんでした。もう一度お試しください。"
+    }
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "注意",
+    "STEP_1": "EPUBファイルを選択します（現在の表紙が事前に読み込まれます）",
+    "STEP_2": "読み込まれた表紙を調整するか、新しい画像を選んで調整します",
+    "STEP_3": "EPUBの表紙を変更するために広告を見ます",
+    "STEP_4": "更新されたEPUBを保存または共有します",
+    "STEP_4_DESC": "準備ができたら、デバイスに保存するか、Kindleアプリで直接共有できます。",
+    "STEP_5": "ウェブ経由で送信（Send to Kindle）",
+    "STEP_5_DESC": "ブラウザからSend to KindleウェブツールでEPUBを送信することもできます。",
+    "TIP": "最良の結果を得るには、高解像度の画像を使用し、Kindleデバイスで広告を無効にしてください。",
+    "TITLE": "使い方"
+  },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "戻る",
+      "FINISH": "完了",
+      "INTERACT_HINT": "ハイライトされた要素を操作して続けてください。",
+      "NEXT": "次へ",
+      "PROGRESS": "{{current}} / {{total}}",
+      "SKIP": "スキップ"
+    },
+    "STEPS": {
+      "EPUB": {
+        "TITLE": "EPUBファイル",
+        "DESCRIPTION": "更新したいEPUBファイルを選択してください。"
+      },
+      "IMAGE": {
+        "TITLE": "表紙画像",
+        "DESCRIPTION": "表紙に使用する画像を選択してください。"
+      },
+      "ADJUST": {
+        "TITLE": "調整",
+        "DESCRIPTION": "エディタで画像を調整し、完了をタップしてください。"
+      },
+      "CREATE": {
+        "TITLE": "表紙を変更",
+        "DESCRIPTION": "ここで新しい表紙を生成します。"
+      },
+      "RESULTS": {
+        "TITLE": "保存または共有",
+        "DESCRIPTION": "更新されたEPUBを保存または共有してください。"
+      }
+    }
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "使い方を見る",
+    "INSTRUCTIONS_HINT": "Kindle用の表紙を変更して送信する方法",
+    "INSTRUCTIONS_SECTION": "使い方",
+    "LANGUAGE": "言語",
+    "LANGUAGE_RESTART_NOTICE": "言語が変更されました。変更を適用するためにアプリを再起動します。",
+    "LANGUAGE_PREPARING_COUNTDOWN": "ご利用の言語で準備中 ({{count}})",
+    "PRIVACY_HINT": "データと広告の扱いを管理します",
+    "PRIVACY_OPTIONS": "プライバシー設定",
+    "PRIVACY_POLICY": "プライバシーポリシー",
+    "PRIVACY_SECTION": "プライバシー",
+    "THEME": "テーマ",
+    "THEME_SYSTEM": "システム",
+    "THEME_LIGHT": "ナチュラルライト",
+    "THEME_DARK": "クラシックダーク",
+    "THEME_WARM_READING": "ウォームリーディング",
+    "THEME_POP_ROSE": "ポップローズ",
+    "THEME_NOCTURNE_VIOLET": "ノクターンバイオレット",
+    "THEME_OBSIDIAN_RED": "オブシディアンレッド",
+    "THEME_TERMINAL_GREEN": "ターミナルグリーン",
+    "THEME_MINT_FRESH": "ミントフレッシュ",
+    "THEME_SILVER_TECH": "シルバー",
+    "THEME_GOLD_LUXE": "ゴールド",
+    "TITLE": "設定",
+    "VIEW_TOUR": "ツアーを見る"
+  },
+  "TABS": {
+    "COVERS": "マイEPUB",
+    "CHANGE": "変更",
+    "SETTINGS": "設定"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "おすすめ",
+      "INFO": "情報",
+      "APPS": "アプリ",
+      "GUIDE": "ガイド"
+    }
+  }
+}

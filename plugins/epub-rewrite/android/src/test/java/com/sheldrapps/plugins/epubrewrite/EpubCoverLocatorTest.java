@@ -93,6 +93,68 @@ public class EpubCoverLocatorTest {
     }
 
     @Test
+    public void ignoresBlankManifestHrefAndFallsBackToAnotherValidImage() throws Exception {
+        ZipFile zipFile = buildZip(
+            orderedEntries(
+                "META-INF/container.xml", utf8(containerXml("OEBPS/content.opf")),
+                "OEBPS/content.opf", utf8(
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\">\n"
+                        + "  <manifest>\n"
+                        + "    <item id=\"cover\" href=\"   \" media-type=\"image/png\" properties=\"cover-image\"/>\n"
+                        + "    <item id=\"fallback\" href=\"images/cover-real.png\" media-type=\"image/png\"/>\n"
+                        + "  </manifest>\n"
+                        + "</package>"
+                ),
+                "OEBPS/images/cover-real.png", imageBytes()
+            )
+        );
+
+        String coverPath = locator.findCoverEntryPath(zipFile, zipFile.getFileHeaders());
+
+        assertEquals("OEBPS/images/cover-real.png", coverPath);
+    }
+
+    @Test
+    public void ignoresBlankMediaTypeAndStillFindsCoverByPathFallback() throws Exception {
+        ZipFile zipFile = buildZip(
+            orderedEntries(
+                "META-INF/container.xml", utf8(containerXml("OEBPS/content.opf")),
+                "OEBPS/content.opf", utf8(
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\">\n"
+                        + "  <manifest>\n"
+                        + "    <item id=\"cover\" href=\"images/cover-by-name.png\" media-type=\"   \"/>\n"
+                        + "    <item id=\"other\" href=\"images/other.jpg\" media-type=\"image/jpeg\"/>\n"
+                        + "  </manifest>\n"
+                        + "</package>"
+                ),
+                "OEBPS/images/cover-by-name.png", imageBytes(),
+                "OEBPS/images/other.jpg", imageBytes()
+            )
+        );
+
+        String coverPath = locator.findCoverEntryPath(zipFile, zipFile.getFileHeaders());
+
+        assertEquals("OEBPS/images/cover-by-name.png", coverPath);
+    }
+
+    @Test
+    public void ignoresBlankRootfilePathAndUsesCommonCoverFallback() throws Exception {
+        ZipFile zipFile = buildZip(
+            orderedEntries(
+                "META-INF/container.xml", utf8(containerXml("   ")),
+                "cover.png", imageBytes(),
+                "images/other.jpg", imageBytes()
+            )
+        );
+
+        String coverPath = locator.findCoverEntryPath(zipFile, zipFile.getFileHeaders());
+
+        assertEquals("cover.png", coverPath);
+    }
+
+    @Test
     public void rejectsContainerXmlWithDoctype() throws Exception {
         ZipFile zipFile = buildZip(
             orderedEntries(

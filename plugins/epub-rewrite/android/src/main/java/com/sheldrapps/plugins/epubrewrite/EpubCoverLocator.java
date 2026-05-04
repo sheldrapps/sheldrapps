@@ -83,7 +83,7 @@ final class EpubCoverLocator {
         }
 
         String opfPath = normalizeZipPath(rootfile.getAttribute("full-path"));
-        if (opfPath.isBlank()) {
+        if (CompatStrings.isBlank(opfPath)) {
             return null;
         }
         return findHeader(headers, opfPath) == null ? null : opfPath;
@@ -121,13 +121,13 @@ final class EpubCoverLocator {
     private String coverHrefFromProperty(Document opfDocument) {
         for (Element item : elementsByName(opfDocument, "item")) {
             String properties = item.getAttribute("properties");
-            if (properties == null || properties.isBlank()) {
+            if (CompatStrings.isBlank(properties)) {
                 continue;
             }
             for (String property : properties.toLowerCase(Locale.US).split("\\s+")) {
                 if ("cover-image".equals(property.trim())) {
                     String href = item.getAttribute("href");
-                    if (href != null && !href.isBlank()) {
+                    if (CompatStrings.isNotBlank(href)) {
                         return href;
                     }
                 }
@@ -142,7 +142,7 @@ final class EpubCoverLocator {
             String metaName = meta.getAttribute("name");
             if ("cover".equalsIgnoreCase(metaName)) {
                 String content = meta.getAttribute("content");
-                if (content != null && !content.isBlank()) {
+                if (CompatStrings.isNotBlank(content)) {
                     coverId = content;
                     break;
                 }
@@ -155,7 +155,7 @@ final class EpubCoverLocator {
         for (Element item : elementsByName(opfDocument, "item")) {
             if (coverId.equals(item.getAttribute("id"))) {
                 String href = item.getAttribute("href");
-                if (href != null && !href.isBlank()) {
+                if (CompatStrings.isNotBlank(href)) {
                     return href;
                 }
                 break;
@@ -168,7 +168,7 @@ final class EpubCoverLocator {
         for (Element item : elementsByName(opfDocument, "item")) {
             String href = item.getAttribute("href");
             String mediaType = item.getAttribute("media-type");
-            if (href == null || href.isBlank() || mediaType == null || mediaType.isBlank()) {
+            if (CompatStrings.isBlank(href) || CompatStrings.isBlank(mediaType)) {
                 continue;
             }
             if (mediaType.toLowerCase(Locale.US).startsWith("image/")
@@ -200,16 +200,14 @@ final class EpubCoverLocator {
         safeSetFeature(factory, "http://xml.org/sax/features/external-parameter-entities", false);
         safeSetAttribute(factory, "http://javax.xml.XMLConstants/property/accessExternalDTD", "");
         safeSetAttribute(factory, "http://javax.xml.XMLConstants/property/accessExternalSchema", "");
-        factory.setExpandEntityReferences(false);
-        factory.setXIncludeAware(false);
+        safeSetExpandEntityReferences(factory, false);
+        safeSetXIncludeAware(factory, false);
     }
 
     private void safeSetFeature(DocumentBuilderFactory factory, String name, boolean value)
         throws ParserConfigurationException {
         try {
             factory.setFeature(name, value);
-        } catch (ParserConfigurationException ex) {
-            throw ex;
         } catch (Exception ignored) {
             // Best effort: some Android XML implementations do not expose every feature.
         }
@@ -220,6 +218,22 @@ final class EpubCoverLocator {
             factory.setAttribute(name, value);
         } catch (Exception ignored) {
             // Best effort: some Android XML implementations do not expose every attribute.
+        }
+    }
+
+    private void safeSetExpandEntityReferences(DocumentBuilderFactory factory, boolean value) {
+        try {
+            factory.setExpandEntityReferences(value);
+        } catch (Exception ignored) {
+            // Best effort: some Android XML implementations do not expose every setting.
+        }
+    }
+
+    private void safeSetXIncludeAware(DocumentBuilderFactory factory, boolean value) {
+        try {
+            factory.setXIncludeAware(value);
+        } catch (Exception ignored) {
+            // Best effort: some Android XML implementations do not expose every setting.
         }
     }
 
@@ -270,14 +284,14 @@ final class EpubCoverLocator {
             return normalizedHref;
         }
 
-        String merged = baseDir == null || baseDir.isBlank()
+        String merged = CompatStrings.isBlank(baseDir)
             ? normalizedHref
             : baseDir + "/" + normalizedHref;
 
         String[] parts = merged.split("/");
         StringBuilder out = new StringBuilder();
         for (String part : parts) {
-            if (part == null || part.isBlank() || ".".equals(part)) {
+            if (CompatStrings.isBlank(part) || ".".equals(part)) {
                 continue;
             }
             if ("..".equals(part)) {
@@ -289,7 +303,7 @@ final class EpubCoverLocator {
                 }
                 continue;
             }
-            if (!out.isEmpty()) {
+            if (out.length() > 0) {
                 out.append('/');
             }
             out.append(part);
@@ -307,4 +321,5 @@ final class EpubCoverLocator {
     private String normalizeZipPath(String path) {
         return path == null ? "" : path.replace('\\', '/');
     }
+
 }

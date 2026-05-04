@@ -1443,7 +1443,8 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       let renderedMimeType: string | undefined;
 
       const renderInput = this.buildRenderInput(state);
-      if (renderInput) {
+      const includeRenderedBlob = this.session.output?.includeRenderedBlob ?? true;
+      if (renderInput && includeRenderedBlob) {
         const canvas = await renderCompositionToCanvas(renderInput, {
           mode: "export",
           outputScale: 1,

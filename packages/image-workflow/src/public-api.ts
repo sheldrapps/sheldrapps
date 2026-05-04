@@ -18,7 +18,9 @@ export {
   DEFAULT_VALIDATION_OPTIONS,
   DEFAULT_WORKING_OPTIONS,
   buildCompositionInput,
+  buildCompositionInputForPurpose,
   computeBaseScale,
+  computeSourceCropDims,
   renderCompositionToCanvas,
   renderCompositionToFile,
 } from "./lib/core/pipeline";

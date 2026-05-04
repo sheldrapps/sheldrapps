@@ -161,6 +161,12 @@ export async function prepareWorkingImage(
       }
     }
 
+    // Keep the original file when no resize is needed so the working copy
+    // stays cheap and we avoid unnecessary re-encoding before export.
+    if (scale === 1 && source instanceof File) {
+      return source;
+    }
+
     const outW = Math.max(1, Math.round(srcW * scale));
     const outH = Math.max(1, Math.round(srcH * scale));
 

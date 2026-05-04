@@ -1,0 +1,197 @@
+{
+  "APP": {
+    "TITLE": "EPUB Cover Changer"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "再按一次返回以退出",
+    "CANCEL": "取消",
+    "CLOSE": "關閉",
+    "DELETE": "刪除",
+    "DONE": "完成",
+    "ERROR": "錯誤",
+    "LOADING": "載入中…",
+    "BILLING_UNAVAILABLE": "目前無法購買。",
+    "PURCHASE_ERROR": "無法完成購買，請再試一次。",
+    "REMOVE_ADS_BUY": "購買",
+    "REMOVE_ADS_DESCRIPTION": "透過一次性付款永久移除廣告。",
+    "REMOVE_ADS_PURCHASED": "廣告已永久移除。",
+    "REMOVE_ADS_RESTORE": "恢復購買",
+    "REMOVE_ADS_RESTORED": "購買已成功恢復。",
+    "REMOVE_ADS_TITLE": "移除廣告",
+    "REMOVE_ADS_CTA_TITLE": "移除廣告",
+    "REMOVE_ADS_CTA_SUBTITLE": "一次性付款 • 永久有效",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "一次性付款 • {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "價格：{{price}} • 無訂閱",
+    "RESTORE_ERROR": "無法恢復購買，請再試一次。",
+    "WATCH_AD_SUBTITLE": "觀看廣告",
+    "SHARE": "分享",
+    "SHARE_KINDLE_HINT": "分享時，請選擇 Kindle 應用程式以傳送至您的裝置。",
+    "WARNING": "警告"
+  },
+  "CHANGE": {
+    "ADS_REQUIRED": "廣告無法載入，請檢查您的網路或廣告攔截器。",
+    "ARIA_CHANGE_EPUB": "更換 EPUB 檔案。目前檔案：{{name}}",
+    "ARIA_CHANGE_IMAGE": "更換封面圖片。目前圖片：{{name}}",
+    "ARIA_CROP": "調整選取的圖片",
+    "ARIA_SELECT_EPUB": "選取 EPUB 檔案",
+    "ARIA_SELECT_IMAGE": "選取封面圖片",
+    "CROP_ACTION": "調整",
+    "COVER_CHANGED": "封面已更換，您現在可以儲存或分享",
+    "CHANGE_ACTION": "更換封面",
+    "CHANGE_ACTION_REWARDED": "更換封面（觀看廣告）",
+    "GENERATING": "正在更新封面…",
+    "HINT_SAVE_SHARE_EXPLAIN": "更換封面不會自動儲存。",
+    "INFO": "資訊",
+    "INFO_ARIA": "關於更換封面的資訊",
+    "INFO_TITLE": "資訊",
+    "INFO_FLOW_LABEL": "建議順序：",
+    "INFO_STEP_1": "選取 EPUB。",
+    "INFO_STEP_1_1": "1.1. 原始封面會預先載入。",
+    "INFO_STEP_1_2": "1.2. 更換圖片或保留原始圖片。",
+    "INFO_STEP_2": "在編輯器中調整圖片。",
+    "INFO_STEP_3": "觀看廣告以儲存封面。",
+    "INFO_STEP_4": "儲存或分享。",
+    "IMAGE_ERROR_CORRUPT": "無法讀取圖片，請嘗試其他圖片。",
+    "IMAGE_ERROR_SIZE": "檔案過大，最大 {{maxSize}} MB。",
+    "IMAGE_ERROR_TYPE": "不支援的格式（{{type}}），請選取 JPG、PNG 或 WebP。",
+    "IMAGE_WARN_SMALL": "此圖片對某些裝置可能太小。",
+    "IMAGE_WARN_INVALID_EPUB_COVER": "無效的 EPUB 封面，請點擊選取新圖片。",
+    "EPUB_ERROR_CORRUPT": "無法讀取 EPUB，請嘗試其他檔案。",
+    "EPUB_ERROR_NO_COVER": "此 EPUB 不包含可替換的封面。",
+    "NO_COVER_DETECTED_ADDED": "未偵測到封面，已為此 EPUB 新增封面。",
+    "EPUB_ERROR_REWRITE": "無法處理 EPUB，請再試一次。",
+    "EPUB_ERROR_STORAGE": "儲存空間不足，需要 {{requiredMB}} MB，可用 {{availableMB}} MB。",
+    "EPUB_ERROR_SIZE": "檔案過大，最大 {{maxSize}} MB。",
+    "EPUB_ERROR_TYPE": "不支援的 EPUB 檔案。",
+    "LOADING_EPUB": "正在載入 EPUB…",
+    "EPUB_LOADING_COPY": "正在複製大型 EPUB...",
+    "EPUB_LOADING_INSPECT": "正在檢查 EPUB 結構...",
+    "LOADING_IMAGE": "正在載入圖片…",
+    "OPENING_EDITOR": "正在開啟編輯器…",
+    "CHANGING_COVER": "正在更換封面...",
+    "GETTING_COVER": "正在取得封面",
+    "SAVING": "正在儲存封面…",
+    "SELECT_EPUB_LABEL": "EPUB 檔案",
+    "PROCESSING_LARGE_EPUB": "正在處理大型 EPUB...",
+    "PROCESS_CANCELLED": "處理已取消",
+    "SELECT_EPUB_PLACEHOLDER": "選取 EPUB 檔案",
+    "SAVE_ACTION": "儲存",
+    "SAVED_OK": "封面已儲存",
+    "SAVE_RENAME_TITLE": "儲存封面",
+    "SAVE_RENAME_MESSAGE": "請輸入封面的名稱",
+    "SAVE_RENAME_PLACEHOLDER": "檔案名稱",
+    "SELECT_IMAGE_LABEL": "封面圖片",
+    "SELECT_IMAGE_PLACEHOLDER": "選取圖片",
+    "INVALID_COVER_TAP_TO_CHANGE": "無效封面，請點擊更換",
+    "TAP_TO_CHANGE": "點擊以更換／重設",
+    "TAP_TO_CHANGE_IMAGE": "點擊以更換",
+    "TITLE": "更換封面"
+  },
+  "COVERS": {
+    "DELETED": "EPUB 已刪除",
+    "EMPTY": "目前沒有 EPUB。下拉即可重新整理。若要尋找先前的檔案，應用程式可能需要額外權限。",
+    "GENERATE_THUMB": "產生縮圖",
+    "LOADING_PREVIEW": "正在載入預覽...",
+    "PLACEHOLDER": "EPUB",
+    "PREVIEW_UNAVAILABLE": "預覽無法使用。",
+    "PREVIEW_TITLE": "預覽",
+    "TITLE": "我的 EPUB",
+    "ACTIONS": {
+      "DELETE": "刪除",
+      "SHARE": "分享"
+    },
+    "DELETE": {
+      "MESSAGE": "確定要刪除此 EPUB？",
+      "TITLE": "刪除 EPUB"
+    },
+    "ERROR": {
+      "DELETE": "無法刪除 EPUB，請再試一次。",
+      "SHARE": "無法分享 EPUB，請再試一次。",
+      "LOAD": "無法載入您的 EPUB，請下拉以重新整理。",
+      "PREVIEW": "無法載入預覽，請再試一次。"
+    }
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "注意",
+    "STEP_1": "選取 EPUB 檔案（目前封面會預先載入）",
+    "STEP_2": "調整已載入的封面，或選取新圖片並進行調整",
+    "STEP_3": "觀看廣告以更換 EPUB 中的封面",
+    "STEP_4": "儲存或分享更新後的 EPUB",
+    "STEP_4_DESC": "完成後，您可以將其儲存至裝置，或直接透過 Kindle 應用程式分享，以獲得更順暢的體驗。",
+    "STEP_5": "透過網頁傳送（Send to Kindle）",
+    "STEP_5_DESC": "您也可以在瀏覽器中使用 Send to Kindle 網頁工具傳送。",
+    "TIP": "為獲得最佳效果，請使用高解析度圖片，並確保 Kindle 裝置上的廣告已停用。",
+    "TITLE": "使用說明"
+  },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "返回",
+      "FINISH": "完成",
+      "INTERACT_HINT": "與醒目顯示的元素互動以繼續。",
+      "NEXT": "下一步",
+      "PROGRESS": "{{current}} / {{total}}",
+      "SKIP": "略過"
+    },
+    "STEPS": {
+      "EPUB": {
+        "TITLE": "EPUB 檔案",
+        "DESCRIPTION": "選取您要更新的 EPUB 檔案。"
+      },
+      "IMAGE": {
+        "TITLE": "封面圖片",
+        "DESCRIPTION": "選取封面圖片。"
+      },
+      "ADJUST": {
+        "TITLE": "調整",
+        "DESCRIPTION": "在編輯器中調整圖片，然後點擊完成。"
+      },
+      "CREATE": {
+        "TITLE": "更換封面",
+        "DESCRIPTION": "在此產生新封面。"
+      },
+      "RESULTS": {
+        "TITLE": "儲存或分享",
+        "DESCRIPTION": "儲存或分享您更新後的 EPUB。"
+      }
+    }
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "查看說明",
+    "INSTRUCTIONS_HINT": "如何為 Kindle 更換並傳送封面",
+    "INSTRUCTIONS_SECTION": "說明",
+    "LANGUAGE": "語言",
+    "LANGUAGE_RESTART_NOTICE": "語言已變更，應用程式將重新啟動以套用變更。",
+    "LANGUAGE_PREPARING_COUNTDOWN": "正在以您的語言準備一切（{{count}}）",
+    "PRIVACY_HINT": "控制資料和廣告的處理方式",
+    "PRIVACY_OPTIONS": "隱私選項",
+    "PRIVACY_POLICY": "隱私權政策",
+    "PRIVACY_SECTION": "隱私",
+    "THEME": "主題",
+    "THEME_SYSTEM": "系統",
+    "THEME_LIGHT": "自然亮色",
+    "THEME_DARK": "經典暗色",
+    "THEME_WARM_READING": "溫暖閱讀",
+    "THEME_POP_ROSE": "玫瑰粉",
+    "THEME_NOCTURNE_VIOLET": "夜曲紫",
+    "THEME_OBSIDIAN_RED": "黑曜紅",
+    "THEME_TERMINAL_GREEN": "終端綠",
+    "THEME_MINT_FRESH": "薄荷清新",
+    "THEME_SILVER_TECH": "銀色",
+    "THEME_GOLD_LUXE": "金色",
+    "TITLE": "設定",
+    "VIEW_TOUR": "查看導覽"
+  },
+  "TABS": {
+    "COVERS": "我的 EPUB",
+    "CHANGE": "更換",
+    "SETTINGS": "設定"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "推薦",
+      "INFO": "資訊",
+      "APPS": "應用程式",
+      "GUIDE": "指南"
+    }
+  }
+}

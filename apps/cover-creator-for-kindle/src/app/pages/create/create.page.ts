@@ -5,6 +5,7 @@ import {
   ViewChild,
   ElementRef,
   NgZone,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -42,7 +43,8 @@ import {
   CoverCropState,
   ImagePipelineService,
   ImageValidationError,
-  buildCompositionInput,
+  buildCompositionInputForPurpose,
+  computeSourceCropDims,
   renderCompositionToCanvas,
   renderCompositionToFile,
 } from '@sheldrapps/image-workflow';
@@ -146,25 +148,24 @@ type EditorResult = {
 export class CreatePage implements OnInit, OnDestroy {
   @ViewChild(IonContent) content?: IonContent;
   @ViewChild('imageInput') imageInput!: ElementRef<HTMLInputElement>;
+  private modalCtrl = inject(ModalController);
+  private fileService = inject(FileService);
+  private catalog = inject(KindleCatalogService);
+  private imagePipe = inject(ImagePipelineService);
+  private ads = inject(AdsService);
+  private billing = inject(BillingService);
+  private toastCtrl = inject(ToastController);
+  private popoverCtrl = inject(PopoverController);
+  private coversEvents = inject(CoversEventsService);
+  private translate = inject(TranslateService);
+  private zone = inject(NgZone);
+  private settings = inject(SettingsStore<CcfkSettings>);
+  private router = inject(Router);
+  private editorSession = inject(EditorSessionService);
+  private recommendedAppsService = inject(RecommendedAppsService);
+  private homeTour = inject(TourService);
 
-  constructor(
-    private modalCtrl: ModalController,
-    private fileService: FileService,
-    private catalog: KindleCatalogService,
-    private imagePipe: ImagePipelineService,
-    private ads: AdsService,
-    private billing: BillingService,
-    private toastCtrl: ToastController,
-    private popoverCtrl: PopoverController,
-    private coversEvents: CoversEventsService,
-    private translate: TranslateService,
-    private zone: NgZone,
-    private settings: SettingsStore<CcfkSettings>,
-    private router: Router,
-    private editorSession: EditorSessionService,
-    private recommendedAppsService: RecommendedAppsService,
-    private homeTour: TourService,
-  ) {
+  constructor() {
     addIcons({
       chevronDown,
       checkmarkCircle,
@@ -205,7 +206,8 @@ export class CreatePage implements OnInit, OnDestroy {
   originalImageFile?: File;
   selectedImageFile?: File;
   selectedImageName?: string;
-  selectedImageDims?: { width: number; height: number };
+  originalImageDims?: { width: number; height: number };
+  workingImageDims?: { width: number; height: number };
 
   previewUrl?: string;
   cropState?: CoverCropState;
@@ -265,7 +267,11 @@ export class CreatePage implements OnInit, OnDestroy {
     await this.billing.initializeSafe();
     this.adsRemoved = this.billing.isAdsRemoved();
     this.adsRemovedSub = this.billing.adsRemoved$.subscribe((value) => {
+      const tierChanged = this.adsRemoved !== value;
       this.adsRemoved = value;
+      if (tierChanged) {
+        this.exportImageFile = undefined;
+      }
       this.syncRemoveAdsPulse();
     });
     this.removeAdsPriceFormatted = this.billing.getRemoveAdsPriceFormatted();
@@ -356,6 +362,9 @@ export class CreatePage implements OnInit, OnDestroy {
             void this.applyExternalModelChange(model);
           },
         },
+      },
+      output: {
+        includeRenderedBlob: false,
       },
     });
 
@@ -492,7 +501,7 @@ export class CreatePage implements OnInit, OnDestroy {
       });
     }
 
-    if (opts.applyWarn && this.workingImageFile && this.selectedImageDims) {
+    if (opts.applyWarn && this.workingImageFile && this.workingImageDims) {
       await this.applySmallWarn('model-change');
     }
   }
@@ -544,7 +553,8 @@ export class CreatePage implements OnInit, OnDestroy {
       this.cropState = undefined;
 
       const workingDims = await this.imagePipe.getDimensions(working);
-      this.selectedImageDims = workingDims ?? originalDims;
+      this.originalImageDims = originalDims;
+      this.workingImageDims = workingDims ?? originalDims;
       this.selectedImageName = working.name;
 
       await this.applySmallWarn('image-selected', originalDims);
@@ -570,10 +580,11 @@ export class CreatePage implements OnInit, OnDestroy {
       width: this.selectedModel.width,
       height: this.selectedModel.height,
     };
-    const legacyDims = legacyDimsHint ?? this.selectedImageDims ?? null;
+    const legacyDims = legacyDimsHint ?? this.workingImageDims ?? null;
     const exportDims =
+      (await this.resolveExportDimsForSmallWarn()) ??
       exportDimsHint ??
-      (await this.resolveExportDimsForSmallWarn());
+      null;
 
     // Enforce export-based validation only.
     if (!exportDims) {
@@ -763,7 +774,8 @@ export class CreatePage implements OnInit, OnDestroy {
   private resetSelectedImage() {
     this.selectedImageFile = undefined;
     this.selectedImageName = undefined;
-    this.selectedImageDims = undefined;
+    this.originalImageDims = undefined;
+    this.workingImageDims = undefined;
     this.originalImageFile = undefined;
     this.cropState = undefined;
     this.workingImageFile = undefined;
@@ -1276,10 +1288,10 @@ export class CreatePage implements OnInit, OnDestroy {
     this.wasAutoSaved = false;
 
     this.selectedImageName = newFile.name;
-    if (!this.selectedImageDims) {
+    if (!this.workingImageDims) {
       const dims = await this.imagePipe.getDimensions(newFile);
       if (!dims) return this.failImage('CORRUPT', newFile);
-      this.selectedImageDims = dims;
+      this.workingImageDims = dims;
     }
 
     const exportDimsFromEditor = this.extractEditorExportDims(result);
@@ -1308,6 +1320,14 @@ export class CreatePage implements OnInit, OnDestroy {
     width: number;
     height: number;
   } | null> {
+    const compositionInput = this.buildCompositionInput('export');
+    const croppedSourceDims = compositionInput
+      ? computeSourceCropDims(compositionInput)
+      : null;
+    if (croppedSourceDims) {
+      return croppedSourceDims;
+    }
+
     const exportFile = this.exportImageFile ?? (await this.ensureExportImageFile());
     if (!exportFile) return null;
     const dims = await this.imagePipe.getDimensions(exportFile);
@@ -1338,28 +1358,41 @@ export class CreatePage implements OnInit, OnDestroy {
     }
   }
 
-  private buildCompositionInput() {
+  private buildCompositionInput(purpose: 'preview' | 'export' = 'preview') {
     if (
       !this.cropState ||
       !this.workingImageFile ||
       !this.selectedModel ||
-      !this.selectedImageDims
+      !this.workingImageDims
     ) {
       return null;
     }
 
-    return buildCompositionInput({
-      file: this.workingImageFile,
+    return buildCompositionInputForPurpose({
+      purpose,
+      sources: {
+        working: {
+          file: this.workingImageFile,
+          naturalWidth: this.workingImageDims.width,
+          naturalHeight: this.workingImageDims.height,
+        },
+        original:
+          this.originalImageFile && this.originalImageDims
+            ? {
+                file: this.originalImageFile,
+                naturalWidth: this.originalImageDims.width,
+                naturalHeight: this.originalImageDims.height,
+              }
+            : undefined,
+      },
       target: { width: this.selectedModel.width, height: this.selectedModel.height },
       state: this.cropState,
-      naturalWidth: this.selectedImageDims.width,
-      naturalHeight: this.selectedImageDims.height,
       frameFallback: { width: this.selectedModel.width, height: this.selectedModel.height },
     });
   }
 
   private async updatePreviewFromComposition(): Promise<void> {
-    const input = this.buildCompositionInput();
+    const input = this.buildCompositionInput('preview');
     if (!input) return;
 
     const fullCanvas = await renderCompositionToCanvas(input, {
@@ -1382,14 +1415,32 @@ export class CreatePage implements OnInit, OnDestroy {
   private async ensureExportImageFile(): Promise<File | null> {
     if (this.exportImageFile) return this.exportImageFile;
 
-    const input = this.buildCompositionInput();
+    const input = this.buildCompositionInput('export');
     if (!input) return null;
 
-    const file = await renderCompositionToFile(input, { mode: 'export' });
+    const file = await renderCompositionToFile(input, {
+      mode: 'export',
+      mimeType: this.resolveExportMimeType(),
+      quality: this.resolveExportQuality(),
+    });
     if (!file) return null;
 
     this.exportImageFile = file;
     return file;
+  }
+
+  private resolveExportMimeType(): string | undefined {
+    if (this.adsRemoved) {
+      return 'image/png';
+    }
+    return undefined;
+  }
+
+  private resolveExportQuality(): number | undefined {
+    if (this.adsRemoved) {
+      return undefined;
+    }
+    return 1;
   }
 
   private downscaleCanvas(

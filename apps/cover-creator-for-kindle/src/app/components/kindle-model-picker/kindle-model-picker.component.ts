@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader,
@@ -57,8 +57,9 @@ export interface KindleGroup {
 export class KindleModelPickerComponent {
   @Input({ required: true }) groups: KindleGroup[] = [];
   @Input() selectedId?: string;
+  private modalCtrl = inject(ModalController);
 
-  constructor(private modalCtrl: ModalController) {
+  constructor() {
     addIcons({ checkmark });
   }
 

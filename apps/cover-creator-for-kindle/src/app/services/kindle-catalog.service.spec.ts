@@ -1,4 +1,5 @@
-import { HttpClient } from '@angular/common/http';
+import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import {
   DEFAULT_DEVICE_BRAND_ID,
@@ -12,7 +13,10 @@ describe('KindleCatalogService', () => {
   let brands: KindleBrand[];
 
   beforeEach(() => {
-    service = new KindleCatalogService({} as HttpClient);
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+    });
+    service = TestBed.inject(KindleCatalogService);
     brands = [
       {
         id: DEFAULT_DEVICE_BRAND_ID,

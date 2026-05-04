@@ -1,5 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, inject } from '@angular/core';
 import { Subscription, filter } from 'rxjs';
+import { App } from '@capacitor/app';
+import { PluginListenerHandle } from '@capacitor/core';
 import { CommonModule } from '@angular/common';
 import {
   IonContent,
@@ -85,11 +87,13 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     filename.replace(/\.epub$/i, '');
 
   private coversEventsSub?: Subscription;
+  private appStateListener?: PluginListenerHandle;
   private localDeletedFilenames = new Set<string>();
   private thumbsLoadToken = 0;
   private hasLoadedOnce = false;
   private needsReload = true;
   private isViewActive = false;
+  private isLoadInProgress = false;
   private readonly logPrefix = 'ECC:my-epubs';
 
   // Preview Modal
@@ -113,9 +117,20 @@ export class MyEpubsPage implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.coversEventsSub?.unsubscribe();
+    void this.appStateListener?.remove();
   }
 
   ngOnInit() {
+    void App.addListener('appStateChange', ({ isActive }) => {
+      if (isActive && this.isViewActive) {
+        // Silent: no loading spinner. We only came back from background
+        // (e.g. returning from Settings after granting permission).
+        void this.load(undefined, { silent: true });
+      }
+    }).then((handle) => {
+      this.appStateListener = handle;
+    });
+
     this.coversEventsSub = this.coversEvents.events$
       .pipe(filter((e) => e.type === 'saved' || e.type === 'deleted'))
       .subscribe((event) => {
@@ -142,18 +157,40 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       });
   }
 
-  async load(ev?: CustomEvent) {
+  async load(ev?: CustomEvent, opts?: { silent?: boolean }) {
+    // Skip concurrent automatic loads; pull-to-refresh always runs.
+    if (!ev && this.isLoadInProgress) {
+      this.logInfo('libraryReload:skipped', {
+        reason: 'already-in-progress',
+        triggeredAt: new Date().toISOString(),
+      });
+      return;
+    }
+
+    this.isLoadInProgress = true;
+    const silent = !!opts?.silent;
     this.logInfo('libraryReload:start', {
-      reason: ev ? 'pull-to-refresh' : 'view-load',
+      reason: ev
+        ? 'pull-to-refresh'
+        : silent
+          ? 'app-state-change'
+          : 'view-load',
       triggeredAt: new Date().toISOString(),
     });
-    this.loading = !ev;
+    // Only show spinner for explicit view-load or pull-to-refresh, not
+    // silent background refreshes (e.g. returning from Android Settings).
+    if (!silent) {
+      this.loading = !ev;
+    }
     this.pageErrorKey = null;
     this.pageErrorParams = null;
     const loadToken = ++this.thumbsLoadToken;
 
     try {
-      const entries = await this.files.listCovers();
+      const entries = await this.files.listCovers({
+        allowAllFilesAccessPrompt: !!ev,
+        includeAndroidExternalFallback: false,
+      });
       this.logInfo('libraryReload:listCoversResult', {
         count: entries.length,
         filenames: entries.map((entry) => entry.filename),
@@ -167,6 +204,8 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       this.loading = false;
       ev?.target && (ev.target as any).complete();
       void this.loadThumbsResilient(items, loadToken);
+      // Prompt only on explicit pull-to-refresh (ev present).
+      void this.loadExternalFallbackInBackground(loadToken, !!ev);
     } catch (error) {
       this.logInfo('libraryReload:failed', {
         triggeredAt: new Date().toISOString(),
@@ -176,6 +215,48 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       this.pageErrorKey = 'COVERS.ERROR.LOAD';
       this.loading = false;
       ev?.target && (ev.target as any).complete();
+    } finally {
+      this.isLoadInProgress = false;
+    }
+  }
+
+  private async loadExternalFallbackInBackground(
+    loadToken: number,
+    allowPrompt: boolean,
+  ): Promise<void> {
+    try {
+      const entries = await this.files.listCoversFromAndroidExternalFallback({
+        allowAllFilesAccessPrompt: allowPrompt,
+      });
+      if (loadToken !== this.thumbsLoadToken || entries.length === 0) {
+        return;
+      }
+
+      const existing = new Set(
+        this.items.map((item) => item.filename.trim().toLowerCase()),
+      );
+      const newItems = entries
+        .filter((entry) => !existing.has(entry.filename.trim().toLowerCase()))
+        .map((entry) => ({ filename: entry.filename }));
+
+      if (newItems.length === 0 || loadToken !== this.thumbsLoadToken) {
+        return;
+      }
+
+      this.items = [...this.items, ...newItems].sort((a, b) =>
+        a.filename.localeCompare(b.filename),
+      );
+      this.logInfo('libraryReload:externalFallbackMerged', {
+        added: newItems.length,
+        total: this.items.length,
+        filenames: newItems.map((item) => item.filename),
+      });
+
+      void this.loadThumbsForItemsResilient(newItems, loadToken);
+    } catch (error) {
+      this.logInfo('libraryReload:externalFallbackFailed', {
+        error: this.errorDetails(error),
+      });
     }
   }
 
@@ -189,7 +270,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
         const idx = i++;
         const item = items[idx];
         const dataUrl = await this.files.getOrBuildThumbDataUrlForFilename(
-          item.filename
+          item.filename,
         );
         item.thumbDataUrl = dataUrl ?? undefined;
 
@@ -202,6 +283,35 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     await Promise.all(Array.from({ length: concurrency }, () => worker()));
     if (loadToken === this.thumbsLoadToken) {
       this.items = [...items];
+    }
+  }
+
+  private async loadThumbsForItemsResilient(
+    targets: UiCoverItem[],
+    loadToken: number,
+  ): Promise<void> {
+    const concurrency = 4;
+    let i = 0;
+
+    const worker = async () => {
+      while (i < targets.length) {
+        if (loadToken !== this.thumbsLoadToken) return;
+        const idx = i++;
+        const item = targets[idx];
+        const dataUrl = await this.files.getOrBuildThumbDataUrlForFilename(
+          item.filename,
+        );
+        item.thumbDataUrl = dataUrl ?? undefined;
+
+        if (idx % 2 === 0 && loadToken === this.thumbsLoadToken) {
+          this.items = [...this.items];
+        }
+      }
+    };
+
+    await Promise.all(Array.from({ length: concurrency }, () => worker()));
+    if (loadToken === this.thumbsLoadToken) {
+      this.items = [...this.items];
     }
   }
 
@@ -294,7 +404,8 @@ export class MyEpubsPage implements OnInit, OnDestroy {
 
   async openPreview(filename: string) {
     const fallbackThumb =
-      this.items.find((item) => item.filename === filename)?.thumbDataUrl ?? null;
+      this.items.find((item) => item.filename === filename)?.thumbDataUrl ??
+      null;
 
     this.previewOpen = true;
     this.previewFilename = filename;
@@ -304,7 +415,8 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     this.previewGettingCover = false;
 
     try {
-      const hasCoverExport = await this.files.hasCoverExportForFilename(filename);
+      const hasCoverExport =
+        await this.files.hasCoverExportForFilename(filename);
       this.previewGettingCover = !hasCoverExport;
 
       const preview = await this.files.getBestPreviewCoverDataUrl(filename, {
@@ -470,7 +582,9 @@ export class MyEpubsPage implements OnInit, OnDestroy {
 
   private async restoreScrollTop(scrollTop: number) {
     if (!this.content) return;
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve()),
+    );
     await this.content.scrollToPoint(0, scrollTop, 0);
   }
 
@@ -490,7 +604,10 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       return {
         name: typeof e.name === 'string' ? e.name : undefined,
         message: typeof e.message === 'string' ? e.message : undefined,
-        code: typeof e.code === 'string' || typeof e.code === 'number' ? e.code : undefined,
+        code:
+          typeof e.code === 'string' || typeof e.code === 'number'
+            ? e.code
+            : undefined,
         stack: typeof e.stack === 'string' ? e.stack : undefined,
       };
     }

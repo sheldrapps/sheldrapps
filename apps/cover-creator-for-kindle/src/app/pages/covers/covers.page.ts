@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, inject } from '@angular/core';
 import { Subscription, filter } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import {
@@ -94,14 +94,13 @@ export class CoversPage implements OnInit, OnDestroy {
 
   infoOpen = false;
   showPreviewGuideButton = true;
+  private files = inject(FileService);
+  private alertCtrl = inject(AlertController);
+  private translate = inject(TranslateService);
+  private coversEvents = inject(CoversEventsService);
+  private toastCtrl = inject(ToastController);
 
-  constructor(
-    private files: FileService,
-    private alertCtrl: AlertController,
-    private translate: TranslateService,
-    private coversEvents: CoversEventsService,
-    private toastCtrl: ToastController,
-  ) {
+  constructor() {
     addIcons({
       closeCircleOutline,
       ellipsisVertical,

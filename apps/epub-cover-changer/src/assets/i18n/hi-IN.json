@@ -1,0 +1,197 @@
+{
+  "APP": {
+    "TITLE": "EPUB Cover Changer"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "बाहर निकलने के लिए फिर से वापस जाएँ",
+    "CANCEL": "रद्द करें",
+    "CLOSE": "बंद करें",
+    "DELETE": "हटाएँ",
+    "DONE": "हो गया",
+    "ERROR": "त्रुटि",
+    "LOADING": "लोड हो रहा है…",
+    "BILLING_UNAVAILABLE": "अभी खरीदारी उपलब्ध नहीं है।",
+    "PURCHASE_ERROR": "खरीदारी पूरी नहीं हो सकी। कृपया फिर से कोशिश करें।",
+    "REMOVE_ADS_BUY": "खरीदें",
+    "REMOVE_ADS_DESCRIPTION": "एक बार के भुगतान से विज्ञापन हमेशा के लिए हटाएँ।",
+    "REMOVE_ADS_PURCHASED": "विज्ञापन हमेशा के लिए हटा दिए गए।",
+    "REMOVE_ADS_RESTORE": "खरीदारी पुनः प्राप्त करें",
+    "REMOVE_ADS_RESTORED": "खरीदारी सफलतापूर्वक पुनः प्राप्त की गई।",
+    "REMOVE_ADS_TITLE": "विज्ञापन हटाएँ",
+    "REMOVE_ADS_CTA_TITLE": "विज्ञापन हटाएँ",
+    "REMOVE_ADS_CTA_SUBTITLE": "एकमुश्त भुगतान • हमेशा के लिए",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "एकमुश्त भुगतान • {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "मूल्य: {{price}} • कोई सदस्यता नहीं",
+    "RESTORE_ERROR": "खरीदारी पुनः प्राप्त नहीं हो सकी। कृपया फिर से कोशिश करें।",
+    "WATCH_AD_SUBTITLE": "विज्ञापन देखें",
+    "SHARE": "साझा करें",
+    "SHARE_KINDLE_HINT": "साझा करते समय, इसे अपने डिवाइस पर भेजने के लिए Kindle ऐप चुनें।",
+    "WARNING": "चेतावनी"
+  },
+  "CHANGE": {
+    "ADS_REQUIRED": "विज्ञापन लोड नहीं हो सका। अपना नेटवर्क या विज्ञापन अवरोधक जाँचें।",
+    "ARIA_CHANGE_EPUB": "EPUB फ़ाइल बदलें। वर्तमान फ़ाइल: {{name}}",
+    "ARIA_CHANGE_IMAGE": "कवर छवि बदलें। वर्तमान छवि: {{name}}",
+    "ARIA_CROP": "चयनित छवि समायोजित करें",
+    "ARIA_SELECT_EPUB": "EPUB फ़ाइल चुनें",
+    "ARIA_SELECT_IMAGE": "कवर छवि चुनें",
+    "CROP_ACTION": "समायोजित करें",
+    "COVER_CHANGED": "कवर बदल गया। अब आप सहेज या साझा कर सकते हैं",
+    "CHANGE_ACTION": "कवर बदलें",
+    "CHANGE_ACTION_REWARDED": "कवर बदलें (विज्ञापन देखें)",
+    "GENERATING": "कवर अपडेट हो रहा है…",
+    "HINT_SAVE_SHARE_EXPLAIN": "कवर बदलने से वह स्वतः सहेजा नहीं जाता।",
+    "INFO": "जानकारी",
+    "INFO_ARIA": "कवर बदलने के बारे में जानकारी",
+    "INFO_TITLE": "जानकारी",
+    "INFO_FLOW_LABEL": "अनुशंसित क्रम:",
+    "INFO_STEP_1": "EPUB चुनें।",
+    "INFO_STEP_1_1": "1.1. मूल कवर पहले से लोड हो जाएगा।",
+    "INFO_STEP_1_2": "1.2. छवि बदलें या मूल रखें।",
+    "INFO_STEP_2": "संपादक में छवि समायोजित करें।",
+    "INFO_STEP_3": "कवर सहेजने के लिए विज्ञापन देखें।",
+    "INFO_STEP_4": "सहेजें या साझा करें।",
+    "IMAGE_ERROR_CORRUPT": "छवि पढ़ी नहीं जा सकी। कृपया कोई अन्य छवि आज़माएँ।",
+    "IMAGE_ERROR_SIZE": "फ़ाइल बहुत बड़ी है। अधिकतम {{maxSize}} MB।",
+    "IMAGE_ERROR_TYPE": "असमर्थित प्रारूप ({{type}})। कृपया JPG, PNG या WebP चुनें।",
+    "IMAGE_WARN_SMALL": "यह छवि कुछ डिवाइस के लिए बहुत छोटी हो सकती है।",
+    "IMAGE_WARN_INVALID_EPUB_COVER": "अमान्य EPUB कवर। नई छवि चुनने के लिए टैप करें।",
+    "EPUB_ERROR_CORRUPT": "EPUB पढ़ी नहीं जा सकी। कोई अन्य फ़ाइल आज़माएँ।",
+    "EPUB_ERROR_NO_COVER": "इस EPUB में बदला जाने योग्य कोई कवर नहीं है।",
+    "NO_COVER_DETECTED_ADDED": "कोई कवर नहीं मिला। इस EPUB में एक नया कवर जोड़ा गया।",
+    "EPUB_ERROR_REWRITE": "EPUB प्रोसेस नहीं हो सकी। कृपया फिर से कोशिश करें।",
+    "EPUB_ERROR_STORAGE": "पर्याप्त संग्रहण स्थान नहीं है। आवश्यक {{requiredMB}} MB, उपलब्ध {{availableMB}} MB।",
+    "EPUB_ERROR_SIZE": "फ़ाइल बहुत बड़ी है। अधिकतम {{maxSize}} MB।",
+    "EPUB_ERROR_TYPE": "असमर्थित EPUB फ़ाइल।",
+    "LOADING_EPUB": "EPUB लोड हो रही है…",
+    "EPUB_LOADING_COPY": "बड़ी EPUB कॉपी हो रही है...",
+    "EPUB_LOADING_INSPECT": "EPUB संरचना जाँची जा रही है...",
+    "LOADING_IMAGE": "छवि लोड हो रही है…",
+    "OPENING_EDITOR": "संपादक खुल रहा है…",
+    "CHANGING_COVER": "कवर बदला जा रहा है...",
+    "GETTING_COVER": "कवर प्राप्त किया जा रहा है",
+    "SAVING": "कवर सहेजा जा रहा है…",
+    "SELECT_EPUB_LABEL": "EPUB फ़ाइल",
+    "PROCESSING_LARGE_EPUB": "बड़ी EPUB प्रोसेस हो रही है...",
+    "PROCESS_CANCELLED": "प्रक्रिया रद्द की गई",
+    "SELECT_EPUB_PLACEHOLDER": "EPUB फ़ाइल चुनें",
+    "SAVE_ACTION": "सहेजें",
+    "SAVED_OK": "कवर सहेजा गया",
+    "SAVE_RENAME_TITLE": "कवर सहेजें",
+    "SAVE_RENAME_MESSAGE": "कवर के लिए एक नाम दर्ज करें",
+    "SAVE_RENAME_PLACEHOLDER": "फ़ाइल का नाम",
+    "SELECT_IMAGE_LABEL": "कवर छवि",
+    "SELECT_IMAGE_PLACEHOLDER": "छवि चुनें",
+    "INVALID_COVER_TAP_TO_CHANGE": "अमान्य कवर, बदलने के लिए टैप करें",
+    "TAP_TO_CHANGE": "बदलने/रीसेट करने के लिए टैप करें",
+    "TAP_TO_CHANGE_IMAGE": "बदलने के लिए टैप करें",
+    "TITLE": "कवर बदलें"
+  },
+  "COVERS": {
+    "DELETED": "EPUB हटाई गई",
+    "EMPTY": "अभी कोई EPUB नहीं है। रिफ्रेश करने के लिए नीचे खींचें। पुराने फ़ाइल ढूँढने के लिए ऐप अतिरिक्त अनुमति मांग सकता है।",
+    "GENERATE_THUMB": "थंबनेल बनाएँ",
+    "LOADING_PREVIEW": "प्रीव्यू लोड हो रहा है...",
+    "PLACEHOLDER": "EPUB",
+    "PREVIEW_UNAVAILABLE": "प्रीव्यू उपलब्ध नहीं है।",
+    "PREVIEW_TITLE": "प्रीव्यू",
+    "TITLE": "मेरी EPUBs",
+    "ACTIONS": {
+      "DELETE": "हटाएँ",
+      "SHARE": "साझा करें"
+    },
+    "DELETE": {
+      "MESSAGE": "क्या आप इस EPUB को हटाना चाहते हैं?",
+      "TITLE": "EPUB हटाएँ"
+    },
+    "ERROR": {
+      "DELETE": "EPUB हटाई नहीं जा सकी। कृपया फिर से कोशिश करें।",
+      "SHARE": "EPUB साझा नहीं हो सकी। कृपया फिर से कोशिश करें।",
+      "LOAD": "आपकी EPUBs लोड नहीं हो सकीं। रीफ्रेश करने के लिए नीचे खींचें।",
+      "PREVIEW": "प्रीव्यू लोड नहीं हो सका। फिर से कोशिश करें।"
+    }
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "नोट",
+    "STEP_1": "EPUB फ़ाइल चुनें (वर्तमान कवर पहले से लोड हो जाएगा)",
+    "STEP_2": "लोड किया कवर समायोजित करें या नई छवि चुनकर समायोजित करें",
+    "STEP_3": "EPUB में कवर बदलने के लिए विज्ञापन देखें",
+    "STEP_4": "अपडेट की गई EPUB सहेजें या साझा करें",
+    "STEP_4_DESC": "तैयार होने पर, इसे अपने डिवाइस पर सहेजें या सुचारू परिवर्तन के लिए सीधे Kindle ऐप से साझा करें।",
+    "STEP_5": "वेब के ज़रिए भेजें (Send to Kindle)",
+    "STEP_5_DESC": "आप इसे ब्राउज़र से Send to Kindle वेब टूल का उपयोग करके भी भेज सकते हैं।",
+    "TIP": "सर्वोत्तम परिणामों के लिए, उच्च-रिज़ॉल्यूशन छवियाँ उपयोग करें और सुनिश्चित करें कि आपके Kindle डिवाइस पर विज्ञापन अक्षम हैं।",
+    "TITLE": "निर्देश"
+  },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "वापस",
+      "FINISH": "समाप्त",
+      "INTERACT_HINT": "जारी रखने के लिए हाइलाइट किए गए तत्व से इंटरेक्ट करें।",
+      "NEXT": "अगला",
+      "PROGRESS": "{{current}} / {{total}}",
+      "SKIP": "छोड़ें"
+    },
+    "STEPS": {
+      "EPUB": {
+        "TITLE": "EPUB फ़ाइल",
+        "DESCRIPTION": "वह EPUB फ़ाइल चुनें जिसे आप अपडेट करना चाहते हैं।"
+      },
+      "IMAGE": {
+        "TITLE": "कवर छवि",
+        "DESCRIPTION": "अपने कवर के लिए छवि चुनें।"
+      },
+      "ADJUST": {
+        "TITLE": "समायोजित करें",
+        "DESCRIPTION": "संपादक में छवि समायोजित करें और हो गया टैप करें।"
+      },
+      "CREATE": {
+        "TITLE": "कवर बदलें",
+        "DESCRIPTION": "यहाँ नया कवर बनाएँ।"
+      },
+      "RESULTS": {
+        "TITLE": "सहेजें या साझा करें",
+        "DESCRIPTION": "अपनी अपडेट की गई EPUB सहेजें या साझा करें।"
+      }
+    }
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "निर्देश देखें",
+    "INSTRUCTIONS_HINT": "Kindle के लिए कवर कैसे बदलें और भेजें",
+    "INSTRUCTIONS_SECTION": "निर्देश",
+    "LANGUAGE": "भाषा",
+    "LANGUAGE_RESTART_NOTICE": "भाषा बदल गई। परिवर्तन लागू करने के लिए ऐप पुनः शुरू होगा।",
+    "LANGUAGE_PREPARING_COUNTDOWN": "आपकी भाषा में सब कुछ तैयार किया जा रहा है ({{count}})",
+    "PRIVACY_HINT": "डेटा और विज्ञापन प्रबंधन नियंत्रित करें",
+    "PRIVACY_OPTIONS": "गोपनीयता विकल्प",
+    "PRIVACY_POLICY": "गोपनीयता नीति",
+    "PRIVACY_SECTION": "गोपनीयता",
+    "THEME": "थीम",
+    "THEME_SYSTEM": "सिस्टम",
+    "THEME_LIGHT": "प्राकृतिक प्रकाश",
+    "THEME_DARK": "क्लासिक डार्क",
+    "THEME_WARM_READING": "वॉर्म रीडिंग",
+    "THEME_POP_ROSE": "पॉप रोज़",
+    "THEME_NOCTURNE_VIOLET": "नोक्टर्न वायलेट",
+    "THEME_OBSIDIAN_RED": "ऑब्सीडियन रेड",
+    "THEME_TERMINAL_GREEN": "टर्मिनल ग्रीन",
+    "THEME_MINT_FRESH": "मिंट फ्रेश",
+    "THEME_SILVER_TECH": "सिल्वर",
+    "THEME_GOLD_LUXE": "गोल्ड",
+    "TITLE": "सेटिंग्स",
+    "VIEW_TOUR": "टूर देखें"
+  },
+  "TABS": {
+    "COVERS": "मेरी EPUBs",
+    "CHANGE": "बदलें",
+    "SETTINGS": "सेटिंग्स"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "अनुशंसित",
+      "INFO": "जानकारी",
+      "APPS": "ऐप्स",
+      "GUIDE": "गाइड"
+    }
+  }
+}

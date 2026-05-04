@@ -1,9 +1,13 @@
-﻿import { Component, OnDestroy, inject } from '@angular/core';
+import { Component, OnDestroy, inject } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { Title } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
 import { BillingService } from '@sheldrapps/ads-kit';
-import { detectSupportedLocale, LanguageService } from '@sheldrapps/i18n-kit';
+import {
+  detectSupportedLocale,
+  LanguageService,
+} from '@sheldrapps/i18n-kit';
+import { RatingService } from '@sheldrapps/rating-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
 import { Subscription } from 'rxjs';
@@ -23,6 +27,7 @@ export class AppComponent implements OnDestroy {
   private theme = inject(ThemeService);
   private settings = inject(SettingsStore<EccSettings>);
   private billing = inject(BillingService);
+  private rating = inject(RatingService);
 
   private langSub?: Subscription;
 
@@ -58,6 +63,7 @@ export class AppComponent implements OnDestroy {
     }
 
     await this.lang.set(language);
+    await this.rating.initialize();
 
     this.setDocumentTitle();
     this.langSub = this.t.onLangChange.subscribe(() => this.setDocumentTitle());

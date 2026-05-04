@@ -9,9 +9,16 @@ export interface RecommendedAppsTranslations {
 }
 
 export type RecommendedAppsLocale =
-  | 'es-MX'
-  | 'en-US'
-  | 'de-DE'
-  | 'fr-FR'
-  | 'it-IT'
-  | 'pt-BR';
+  | "es-MX"
+  | "en-US"
+  | "de-DE"
+  | "fr-FR"
+  | "it-IT"
+  | "pt-BR"
+  | "ar-SA"
+  | "hi-IN"
+  | "ja-JP"
+  | "ko-KR"
+  | "ru-RU"
+  | "zh-CN"
+  | "zh-TW";

@@ -20,8 +20,9 @@ type InspectEpubResult = {
 type RewriteCoverOptions = {
   inputPath: string;
   outputPath?: string;
-  coverEntryPath: string;
+  coverEntryPath?: string;
   newCoverPath: string;
+  replacementCoverEntryPath?: string;
 };
 
 type CreateEpubFromCoverOptions = {
@@ -47,6 +48,8 @@ type RewriteCoverResult = {
   message?: string;
   stage?: string;
   outputPath?: string;
+  coverEntryPath?: string;
+  coverInserted?: boolean;
   requiredBytes?: number;
   availableBytes?: number;
 };
@@ -71,6 +74,8 @@ type ExtractCoverAssetResult = {
 
 type PickAndPrepareEpubOptions = {
   maxBytes?: number;
+  requireCover?: boolean;
+  includeCoverPreview?: boolean;
 };
 
 type PickAndPrepareEpubResult = {
