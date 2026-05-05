@@ -79,7 +79,7 @@
   },
   "COVERS": {
     "DELETED": "EPUB eliminato",
-    "EMPTY": "Nessun EPUB per ora. Trascina verso il basso per aggiornare. Per cercare file precedenti, l'app potrebbe richiedere autorizzazioni aggiuntive.",
+    "EMPTY": "Nessuna copertina trovata nell'app. I file creati prima della reinstallazione potrebbero non comparire a causa delle restrizioni di sistema.",
     "PLACEHOLDER": "EPUB",
     "PREVIEW_TITLE": "Anteprima",
     "TITLE": "I miei EPUB",

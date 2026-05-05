@@ -89,7 +89,7 @@
   },
   "COVERS": {
     "DELETED": "EPUB 已刪除",
-    "EMPTY": "目前沒有 EPUB。下拉即可重新整理。若要尋找先前的檔案，應用程式可能需要額外權限。",
+    "EMPTY": "應用程式中找不到封面。重新安裝前建立的檔案可能因系統限制而無法顯示。",
     "GENERATE_THUMB": "產生縮圖",
     "LOADING_PREVIEW": "正在載入預覽...",
     "PLACEHOLDER": "EPUB",

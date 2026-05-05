@@ -73,7 +73,7 @@ export class SettingsPage {
   readonly supportedThemes = THEME_OPTIONS;
   private isRestartingLanguage = false;
   isLanguageModalOpen = false;
-  languageDraft: Lang = 'en-US';
+  private _languageDraft: Lang | null = null;
   isLanguageRestartLoading = false;
   languageRestartCountdown = 3;
   private readonly languageRestartCountdownStart = 3;
@@ -85,6 +85,10 @@ export class SettingsPage {
 
   get selectedLanguage(): Lang {
     return this.lang.lang as Lang;
+  }
+
+  get languageDraft(): Lang {
+    return this._languageDraft ?? (this.lang.lang as Lang);
   }
 
   get currentTheme(): Theme {
@@ -105,8 +109,8 @@ export class SettingsPage {
   }
 
   openLanguageModal() {
-    this.languageDraft = this.selectedLanguage;
     this.isLanguageModalOpen = true;
+    this._languageDraft = null;
   }
 
   closeLanguageModal() {
@@ -114,11 +118,12 @@ export class SettingsPage {
   }
 
   onLanguageDraftChange(value: Lang) {
-    this.languageDraft = value;
+    this._languageDraft = value;
   }
 
   async confirmLanguageModal() {
     const nextLanguage = this.languageDraft;
+    this._languageDraft = null;
     this.closeLanguageModal();
     await this.onLangChange(nextLanguage);
   }

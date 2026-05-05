@@ -89,7 +89,7 @@
   },
   "COVERS": {
     "DELETED": "EPUB deleted",
-    "EMPTY": "No EPUBs yet. Pull down to refresh. To look for older files, the app may request extra permissions.",
+    "EMPTY": "No covers found in the app. Files created before reinstalling may not appear due to system restrictions.",
     "GENERATE_THUMB": "Generate thumbnail",
     "LOADING_PREVIEW": "Loading preview...",
     "PLACEHOLDER": "EPUB",

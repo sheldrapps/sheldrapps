@@ -89,7 +89,7 @@
   },
   "COVERS": {
     "DELETED": "EPUB eliminado",
-    "EMPTY": "No hay EPUBs todavía. Desliza hacia abajo para actualizar. Para buscar archivos anteriores, puede que se soliciten más permisos.",
+    "EMPTY": "No se encontraron portadas en la app. Los archivos creados antes de reinstalar pueden no aparecer por restricciones del sistema.",
     "GENERATE_THUMB": "Generar miniatura",
     "LOADING_PREVIEW": "Cargando vista previa...",
     "PLACEHOLDER": "EPUB",

@@ -79,7 +79,7 @@
   },
   "COVERS": {
     "DELETED": "EPUB excluído",
-    "EMPTY": "Ainda não há EPUBs. Puxe para baixo para atualizar. Para buscar arquivos antigos, o app pode solicitar permissões extras.",
+    "EMPTY": "Nenhuma capa encontrada no app. Arquivos criados antes de reinstalar podem não aparecer devido a restrições do sistema.",
     "PLACEHOLDER": "EPUB",
     "PREVIEW_TITLE": "Pré-visualização",
     "TITLE": "Meus EPUBs",

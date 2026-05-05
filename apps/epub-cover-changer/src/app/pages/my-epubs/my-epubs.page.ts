@@ -187,10 +187,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     const loadToken = ++this.thumbsLoadToken;
 
     try {
-      const entries = await this.files.listCovers({
-        allowAllFilesAccessPrompt: !!ev,
-        includeAndroidExternalFallback: false,
-      });
+      const entries = await this.files.listCovers();
       this.logInfo('libraryReload:listCoversResult', {
         count: entries.length,
         filenames: entries.map((entry) => entry.filename),
@@ -204,8 +201,6 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       this.loading = false;
       ev?.target && (ev.target as any).complete();
       void this.loadThumbsResilient(items, loadToken);
-      // Prompt only on explicit pull-to-refresh (ev present).
-      void this.loadExternalFallbackInBackground(loadToken, !!ev);
     } catch (error) {
       this.logInfo('libraryReload:failed', {
         triggeredAt: new Date().toISOString(),
@@ -217,46 +212,6 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       ev?.target && (ev.target as any).complete();
     } finally {
       this.isLoadInProgress = false;
-    }
-  }
-
-  private async loadExternalFallbackInBackground(
-    loadToken: number,
-    allowPrompt: boolean,
-  ): Promise<void> {
-    try {
-      const entries = await this.files.listCoversFromAndroidExternalFallback({
-        allowAllFilesAccessPrompt: allowPrompt,
-      });
-      if (loadToken !== this.thumbsLoadToken || entries.length === 0) {
-        return;
-      }
-
-      const existing = new Set(
-        this.items.map((item) => item.filename.trim().toLowerCase()),
-      );
-      const newItems = entries
-        .filter((entry) => !existing.has(entry.filename.trim().toLowerCase()))
-        .map((entry) => ({ filename: entry.filename }));
-
-      if (newItems.length === 0 || loadToken !== this.thumbsLoadToken) {
-        return;
-      }
-
-      this.items = [...this.items, ...newItems].sort((a, b) =>
-        a.filename.localeCompare(b.filename),
-      );
-      this.logInfo('libraryReload:externalFallbackMerged', {
-        added: newItems.length,
-        total: this.items.length,
-        filenames: newItems.map((item) => item.filename),
-      });
-
-      void this.loadThumbsForItemsResilient(newItems, loadToken);
-    } catch (error) {
-      this.logInfo('libraryReload:externalFallbackFailed', {
-        error: this.errorDetails(error),
-      });
     }
   }
 
@@ -283,35 +238,6 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     await Promise.all(Array.from({ length: concurrency }, () => worker()));
     if (loadToken === this.thumbsLoadToken) {
       this.items = [...items];
-    }
-  }
-
-  private async loadThumbsForItemsResilient(
-    targets: UiCoverItem[],
-    loadToken: number,
-  ): Promise<void> {
-    const concurrency = 4;
-    let i = 0;
-
-    const worker = async () => {
-      while (i < targets.length) {
-        if (loadToken !== this.thumbsLoadToken) return;
-        const idx = i++;
-        const item = targets[idx];
-        const dataUrl = await this.files.getOrBuildThumbDataUrlForFilename(
-          item.filename,
-        );
-        item.thumbDataUrl = dataUrl ?? undefined;
-
-        if (idx % 2 === 0 && loadToken === this.thumbsLoadToken) {
-          this.items = [...this.items];
-        }
-      }
-    };
-
-    await Promise.all(Array.from({ length: concurrency }, () => worker()));
-    if (loadToken === this.thumbsLoadToken) {
-      this.items = [...this.items];
     }
   }
 

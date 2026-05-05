@@ -1,5 +1,4 @@
 import { Injectable, inject } from '@angular/core';
-import { Capacitor, Plugin, registerPlugin } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { EpubPublicStore, FileKitService, FileRef } from '@sheldrapps/file-kit';
 import { TranslateService } from '@ngx-translate/core';
@@ -28,27 +27,6 @@ export type NativeDocumentOutputTarget = {
   nativePath: string;
 };
 
-type ExternalEpubFileEntry = {
-  name: string;
-  path: string;
-  size?: number;
-  lastModified?: number;
-};
-
-type EpubExternalFilesPlugin = Plugin & {
-  listEpubs(options: { folders: string[] }): Promise<{
-    files?: ExternalEpubFileEntry[];
-  }>;
-  readFileBase64(options: { path: string }): Promise<{ data: string }>;
-  deleteFile(options: { path: string }): Promise<{ deleted: boolean }>;
-  isAllFilesAccessGranted(): Promise<{ granted: boolean }>;
-  openAllFilesAccessSettings(): Promise<{ opened: boolean }>;
-};
-
-const EpubExternalFiles = registerPlugin<EpubExternalFilesPlugin>(
-  'EpubExternalFilesPlugin',
-);
-
 @Injectable({ providedIn: 'root' })
 export class FileService {
   private translate = inject(TranslateService);
@@ -66,8 +44,6 @@ export class FileService {
   private readonly thumbDataUrlCache = new Map<string, string>();
   private thumbFileNamesCache: Set<string> | null = null;
   private thumbFileNamesCachePromise: Promise<Set<string>> | null = null;
-  private readonly externalPathByFilename = new Map<string, string>();
-  private hasPromptedForAllFilesAccess = false;
   private legacyMigrationBackgroundPromise: Promise<void> | null = null;
   // Temporary instrumentation for robust public EPUB discovery validation.
   private readonly DEBUG_IO = true;
@@ -195,44 +171,17 @@ export class FileService {
     return `${this.THUMB_FOLDER}/${baseName}.jpg`;
   }
 
-  async listCovers(opts?: {
-    allowAllFilesAccessPrompt?: boolean;
-    includeAndroidExternalFallback?: boolean;
-  }): Promise<CoverEntry[]> {
+  async listCovers(): Promise<CoverEntry[]> {
     await this.ensurePublicDocumentsEpubFolderReady({
       skipLegacyMigration: true,
     });
-    const files = await this.listEpubsFromPublicDocuments({
-      allowAllFilesAccessPrompt: opts?.allowAllFilesAccessPrompt ?? false,
-      includeAndroidExternalFallback:
-        opts?.includeAndroidExternalFallback ?? true,
-    });
+    const files = await this.listEpubsFromPublicDocuments();
     this.debugLog('listCovers', {
       reloadAt: new Date().toISOString(),
       count: files.length,
       files,
     });
 
-    return files.map((filename) => ({
-      filename,
-      epubPath: `${this.EPUB_FOLDER}/${filename}`,
-      thumbPath: this.getThumbPathForEpubFilename(filename),
-    }));
-  }
-
-  async listCoversFromAndroidExternalFallback(opts?: {
-    allowAllFilesAccessPrompt?: boolean;
-  }): Promise<CoverEntry[]> {
-    await this.ensurePublicDocumentsEpubFolderReady({
-      skipLegacyMigration: true,
-    });
-    const fallbackFiles = await this.listEpubsFromAndroidExternalFallback({
-      promptIfEmpty: opts?.allowAllFilesAccessPrompt ?? false,
-    });
-
-    const files = Array.from(new Set(fallbackFiles)).sort((a, b) =>
-      a.localeCompare(b),
-    );
     return files.map((filename) => ({
       filename,
       epubPath: `${this.EPUB_FOLDER}/${filename}`,
@@ -1468,34 +1417,18 @@ export class FileService {
     return this.epubStore.pathFor(filename);
   }
 
-  private async listEpubsFromPublicDocuments(opts?: {
-    allowAllFilesAccessPrompt?: boolean;
-    includeAndroidExternalFallback?: boolean;
-  }): Promise<string[]> {
+  private async listEpubsFromPublicDocuments(): Promise<string[]> {
     this.debugLog('listEpubsFromPublicDocuments:start', {
       reloadAt: new Date().toISOString(),
       resolvedFolderPath: this.epubStore.publicFolderPath,
       pathCandidates: this.epubStore.publicFolderPaths,
     });
     const files = await this.epubStore.listEpubs();
-    this.syncExternalPathMap(files);
-
-    const fallbackFiles =
-      opts?.includeAndroidExternalFallback === false
-        ? []
-        : await this.listEpubsFromAndroidExternalFallback({
-            promptIfEmpty:
-              files.length === 0 && (opts?.allowAllFilesAccessPrompt ?? false),
-          });
-    const merged = new Set(files);
-    fallbackFiles.forEach((filename) => merged.add(filename));
-    const result = Array.from(merged).sort((a, b) => a.localeCompare(b));
+    const result = Array.from(files).sort((a, b) => a.localeCompare(b));
 
     this.debugLog('listEpubsFromPublicDocuments:done', {
       count: result.length,
       files: result,
-      fromStoreCount: files.length,
-      fallbackCount: fallbackFiles.length,
     });
     return result;
   }
@@ -1509,25 +1442,6 @@ export class FileService {
 
   private async deletePublicEpub(filename: string): Promise<void> {
     await this.epubStore.deleteEpub(filename);
-
-    const externalPath = this.getExternalPathForFilename(filename);
-    if (externalPath && this.isAndroidExternalFilesPluginSupported()) {
-      try {
-        await EpubExternalFiles.deleteFile({ path: externalPath });
-        this.debugLog('deletePublicEpub:externalFallbackDelete', {
-          filename,
-          externalPath,
-        });
-      } catch (error) {
-        this.debugLog('deletePublicEpub:externalFallbackDeleteFailed', {
-          filename,
-          externalPath,
-          error: this.errorDetails(error),
-        });
-      }
-    }
-
-    this.externalPathByFilename.delete(this.externalPathKey(filename));
   }
 
   private async deleteDocumentEpubIfExists(
@@ -1537,126 +1451,21 @@ export class FileService {
   }
 
   private async existsInPublicDocuments(filename: string): Promise<boolean> {
-    if (await this.epubStore.exists(filename)) {
-      return true;
-    }
-
-    return this.getExternalPathForFilename(filename) !== null;
+    return this.epubStore.exists(filename);
   }
 
   private async readPublicEpubBytes(filename: string): Promise<Uint8Array> {
-    try {
-      return await this.epubStore.readBytes(filename);
-    } catch {
-      const externalPath = this.getExternalPathForFilename(filename);
-      if (!externalPath || !this.isAndroidExternalFilesPluginSupported()) {
-        throw new Error(`File not found: ${filename}`);
-      }
-
-      const result = await EpubExternalFiles.readFileBase64({
-        path: externalPath,
-      });
-      return this.fileKit.fromBase64(this.normalizeBase64Data(result.data));
-    }
+    return this.epubStore.readBytes(filename);
   }
 
   private async getPublicEpubFileUriOrThrow(filename: string): Promise<string> {
-    let uri: string;
-    try {
-      uri = await this.epubStore.getUriOrThrow(filename);
-    } catch {
-      const externalPath = this.getExternalPathForFilename(filename);
-      if (!externalPath) {
-        throw new Error(`File not found: ${filename}`);
-      }
-      uri = `file://${externalPath}`;
-    }
-
+    const uri = await this.epubStore.getUriOrThrow(filename);
     this.debugLog('getPublicEpubFileUriOrThrow', { filename, uri });
     return uri;
   }
 
   private async getPublicEpubUri(filename: string): Promise<string> {
     return this.getPublicEpubFileUriOrThrow(filename);
-  }
-
-  private async listEpubsFromAndroidExternalFallback(opts?: {
-    promptIfEmpty?: boolean;
-  }): Promise<string[]> {
-    if (!this.isAndroidExternalFilesPluginSupported()) {
-      return [];
-    }
-
-    try {
-      const permission = await EpubExternalFiles.isAllFilesAccessGranted();
-      if (
-        !permission.granted &&
-        !this.hasPromptedForAllFilesAccess &&
-        (opts?.promptIfEmpty ?? true)
-      ) {
-        this.hasPromptedForAllFilesAccess = true;
-        try {
-          await EpubExternalFiles.openAllFilesAccessSettings();
-          this.debugLog('allFilesAccess:prompted');
-        } catch (error) {
-          this.debugLog('allFilesAccess:promptFailed', {
-            error: this.errorDetails(error),
-          });
-        }
-      }
-    } catch (error) {
-      this.debugLog('allFilesAccess:statusFailed', {
-        error: this.errorDetails(error),
-      });
-    }
-
-    try {
-      const response = await EpubExternalFiles.listEpubs({
-        folders: this.epubStore.publicFolderPaths,
-      });
-      const files = Array.isArray(response.files) ? response.files : [];
-      const names: string[] = [];
-      for (const entry of files) {
-        if (!entry?.name || !entry?.path) continue;
-        const key = this.externalPathKey(entry.name);
-        this.externalPathByFilename.set(key, entry.path);
-        names.push(entry.name);
-      }
-      return names;
-    } catch (error) {
-      this.debugLog('listEpubsFromAndroidExternalFallback:failed', {
-        error: this.errorDetails(error),
-      });
-      return [];
-    }
-  }
-
-  private syncExternalPathMap(fileNames: string[]): void {
-    const validKeys = new Set(
-      fileNames.map((name) => this.externalPathKey(name)),
-    );
-    for (const key of Array.from(this.externalPathByFilename.keys())) {
-      if (!validKeys.has(key)) {
-        this.externalPathByFilename.delete(key);
-      }
-    }
-  }
-
-  private externalPathKey(filename: string): string {
-    return (filename || '').trim().toLowerCase();
-  }
-
-  private getExternalPathForFilename(filename: string): string | null {
-    return (
-      this.externalPathByFilename.get(this.externalPathKey(filename)) ?? null
-    );
-  }
-
-  private isAndroidExternalFilesPluginSupported(): boolean {
-    return (
-      Capacitor.getPlatform() === 'android' &&
-      Capacitor.isPluginAvailable('EpubExternalFilesPlugin')
-    );
   }
 
   private async ensurePublicDocumentsEpubFolderReady(opts?: {
@@ -1797,4 +1606,3 @@ export class FileService {
     return { message: String(error) };
   }
 }
-

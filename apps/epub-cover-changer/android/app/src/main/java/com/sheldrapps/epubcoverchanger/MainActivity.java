@@ -69,7 +69,6 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(EpubRewritePlugin.class);
-        registerPlugin(EpubExternalFilesPlugin.class);
         super.onCreate(savedInstanceState);
         exposeRuntimeFlags();
         enableEdgeToEdge();

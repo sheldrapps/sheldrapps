@@ -79,7 +79,7 @@
   },
   "COVERS": {
     "DELETED": "EPUB gelöscht",
-    "EMPTY": "Noch keine EPUBs. Zum Aktualisieren nach unten ziehen. Um ältere Dateien zu suchen, kann die App zusätzliche Berechtigungen anfordern.",
+    "EMPTY": "Keine Dateien in der App gefunden. Vor einer Neuinstallation erstellte Dateien sind möglicherweise aufgrund von Systembeschränkungen nicht sichtbar.",
     "PLACEHOLDER": "EPUB",
     "PREVIEW_TITLE": "Vorschau",
     "TITLE": "Meine EPUBs",
