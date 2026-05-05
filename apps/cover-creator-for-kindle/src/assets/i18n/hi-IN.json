@@ -1,0 +1,309 @@
+{
+  "APP": {
+    "TITLE": "Cover Creator for Kindle"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "बाहर निकलने के लिए फिर से वापस जाएँ",
+    "CANCEL": "रद्द करें",
+    "CLOSE": "बंद करें",
+    "DELETE": "हटाएँ",
+    "DONE": "हो गया",
+    "ERROR": "त्रुटि",
+    "LOADING": "लोड हो रहा है…",
+    "BILLING_UNAVAILABLE": "अभी खरीदारी उपलब्ध नहीं है।",
+    "PURCHASE_ERROR": "खरीदारी पूरी नहीं हो सकी। कृपया फिर से कोशिश करें।",
+    "REMOVE_ADS_BUY": "खरीदें",
+    "REMOVE_ADS_DESCRIPTION": "एक बार के भुगतान से विज्ञापन हमेशा के लिए हटाएँ।",
+    "REMOVE_ADS_PURCHASED": "विज्ञापन हमेशा के लिए हटा दिए गए।",
+    "REMOVE_ADS_RESTORE": "खरीदारी पुनः प्राप्त करें",
+    "REMOVE_ADS_RESTORED": "खरीदारी सफलतापूर्वक पुनः प्राप्त की गई।",
+    "REMOVE_ADS_TITLE": "विज्ञापन हटाएँ",
+    "REMOVE_ADS_CTA_TITLE": "विज्ञापन हटाएँ",
+    "REMOVE_ADS_CTA_SUBTITLE": "एकमुश्त भुगतान • हमेशा के लिए",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "एकमुश्त भुगतान • {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "मूल्य: {{price}} • कोई सदस्यता नहीं",
+    "RESTORE_ERROR": "खरीदारी पुनः प्राप्त नहीं हो सकी। कृपया फिर से कोशिश करें।",
+    "WATCH_AD_SUBTITLE": "विज्ञापन देखें",
+    "SHARE": "साझा करें",
+    "SHARE_KINDLE_HINT": "साझा करते समय, इसे अपने डिवाइस पर भेजने के लिए Kindle ऐप चुनें।",
+    "WARNING": "चेतावनी"
+  },
+  "CREATE": {
+    "ADS_REQUIRED": "विज्ञापन लोड नहीं हो सका। अपना नेटवर्क या विज्ञापन अवरोधक जाँचें।",
+    "ARIA_CHANGE_IMAGE": "कवर छवि बदलें। वर्तमान छवि: {{name}}",
+    "ARIA_CROP": "चयनित छवि समायोजित करें",
+    "ARIA_SELECT_IMAGE": "कवर छवि चुनें",
+    "ARIA_SELECT_MODEL": "डिवाइस मॉडल चुनें",
+    "CROP_ACTION": "समायोजित करें",
+    "COVER_CREATED": "कवर बन गया। अब आप सहेज या साझा कर सकते हैं",
+    "CREATE_ACTION": "कवर बनाएँ",
+    "CREATE_ACTION_REWARDED": "कवर बनाएँ (विज्ञापन देखें)",
+    "GENERATING": "कवर बनाया जा रहा है…",
+    "HINT_SAVE_SHARE_EXPLAIN": "कवर बनाने से वह स्वतः सहेजा नहीं जाता।",
+    "INFO": "जानकारी",
+    "INFO_ARIA": "कवर बनाने के बारे में जानकारी",
+    "INFO_TITLE": "जानकारी",
+    "INFO_SEND_TITLE": "Kindle पर भेजें",
+    "INFO_SHARE_KINDLE": "इसे अपने Kindle पर भेजने के लिए, साझा करते समय Kindle ऐप चुनें।",
+    "INFO_FLOW_LABEL": "अनुशंसित क्रम:",
+    "INFO_STEP_1": "एक छवि चुनें।",
+    "INFO_STEP_2": "संपादक में छवि समायोजित करें और लागू करने के लिए हो गया टैप करें।",
+    "INFO_STEP_3": "समायोजन लागू होने के बाद कवर बनाएँ।",
+    "INFO_STEP_4": "सहेजें या साझा करें।",
+    "INFO_NOTE_LABEL": "नोट:",
+    "IMAGE_ERROR_CORRUPT": "छवि पढ़ी नहीं जा सकी। कृपया कोई अन्य छवि आज़माएँ।",
+    "IMAGE_ERROR_SIZE": "फ़ाइल बहुत बड़ी है। अधिकतम {{maxSize}} MB।",
+    "IMAGE_ERROR_TYPE": "असमर्थित प्रारूप ({{type}})। कृपया JPG, PNG या WebP चुनें।",
+    "IMAGE_WARN_SMALL": "छवि का रिज़ॉल्यूशन चुने हुए Kindle मॉडल से कम है। बेहतर परिणामों के लिए बड़ी छवि उपयोग करें।",
+    "LOADING_IMAGE": "छवि लोड हो रही है…",
+    "OPENING_EDITOR": "संपादक खुल रहा है…",
+    "SAVING": "कवर सहेजा जा रहा है…",
+    "SAVE_ACTION": "सहेजें",
+    "SAVED_OK": "कवर सहेजा गया",
+    "SAVE_RENAME_TITLE": "कवर सहेजें",
+    "SAVE_RENAME_MESSAGE": "कवर के लिए एक नाम दर्ज करें",
+    "SAVE_RENAME_PLACEHOLDER": "फ़ाइल का नाम",
+    "SELECT_IMAGE_LABEL": "कवर छवि",
+    "SELECT_IMAGE_PLACEHOLDER": "एक छवि चुनें",
+    "SELECT_BRAND_LABEL": "ब्रांड",
+    "SELECT_BRAND_PLACEHOLDER": "ब्रांड चुनें",
+    "SELECT_GROUP_LABEL": "समूह",
+    "SELECT_GROUP_PLACEHOLDER": "समूह चुनें",
+    "SELECT_GENERATION_LABEL": "मॉडल",
+    "SELECT_GENERATION_PLACEHOLDER": "मॉडल चुनें",
+    "SELECT_MODEL_LABEL": "डिवाइस मॉडल",
+    "SELECT_MODEL_PLACEHOLDER": "अपना डिवाइस चुनें",
+    "TAP_TO_CHANGE": "बदलने/रीसेट करने के लिए टैप करें",
+    "TITLE": "कवर बनाएँ",
+    "MODEL_PICKER": {
+      "TITLE": "अपना Kindle चुनें"
+    },
+    "INFO_REQUIREMENTS_LABEL": "आवश्यकताएँ:",
+    "INFO_REQUIREMENT_DISABLE_ADS": "Kindle पर विज्ञापन अक्षम करें।",
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Kindle पर \"स्क्रीन और चमक > लॉक स्क्रीन पर कवर दिखाएँ\" सक्षम करें।"
+  },
+  "COVERS": {
+    "DELETED": "कवर हटाया गया",
+    "EMPTY": "अभी तक कोई कवर नहीं है।",
+    "GETTING_COVER": "कवर प्राप्त किया जा रहा है",
+    "LOADING_PREVIEW": "प्रीव्यू लोड हो रहा है...",
+    "PLACEHOLDER": "कवर",
+    "PREVIEW_TITLE": "प्रीव्यू",
+    "TITLE": "कवर",
+    "ACTIONS": {
+      "DELETE": "हटाएँ",
+      "SHARE": "साझा करें"
+    },
+    "DELETE": {
+      "MESSAGE": "क्या आप इस कवर को हटाना चाहते हैं?",
+      "TITLE": "कवर हटाएँ"
+    },
+    "ERROR": {
+      "DELETE": "कवर हटाया नहीं जा सका। कृपया फिर से कोशिश करें।",
+      "LOAD": "आपके कवर लोड नहीं हो सके। रीफ्रेश करने के लिए नीचे खींचें।",
+      "PREVIEW": "प्रीव्यू लोड नहीं हो सका। फिर से कोशिश करें।",
+      "SHARE": "कवर साझा नहीं हो सका। कृपया फिर से कोशिश करें।"
+    }
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "नोट",
+    "STEP_1": "अपने कवर के लिए एक छवि चुनें",
+    "STEP_2": "संपादक में छवि समायोजित करें और लागू करने के लिए हो गया टैप करें",
+    "STEP_3": "समायोजन लागू होने के बाद कवर बनाएँ",
+    "STEP_4": "कवर सहेजें या साझा करें",
+    "STEP_4_DESC": "तैयार होने पर, इसे अपने डिवाइस पर सहेजें या सुचारू परिवर्तन के लिए Kindle ऐप से साझा करें।",
+    "STEP_5": "वेब के ज़रिए भेजें (Send to Kindle)",
+    "STEP_5_DESC": "आप इसे ब्राउज़र से Send to Kindle वेब टूल का उपयोग करके भी भेज सकते हैं।",
+    "TIP": "सर्वोत्तम परिणामों के लिए, उच्च-रिज़ॉल्यूशन छवियाँ उपयोग करें और सुनिश्चित करें कि आपके Kindle पर विज्ञापन अक्षम हैं।",
+    "TITLE": "निर्देश"
+  },
+  "KINDLE_BRANDS": {
+    "KINDLE": "Kindle"
+  },
+  "KINDLE_GROUPS": {
+    "BASIC": "Basic",
+    "OASIS": "Oasis",
+    "PAPERWHITE": "Paperwhite",
+    "PAPERWHITE_SIGNATURE": "Paperwhite Signature",
+    "SCRIBE": "Scribe",
+    "VOYAGE": "Voyage",
+    "COLORSOFT": "Colorsoft",
+    "COLORSOFT_SIGNATURE": "Colorsoft Signature"
+  },
+  "KINDLE_MODELS": {
+    "BASIC_2010_2019": "Kindle Basic (2010-2019)",
+    "BASIC_2022_2024": "Kindle Basic (2022-2024)",
+    "OASIS_2016": "Kindle Oasis (2016)",
+    "OASIS_2017_2019": "Kindle Oasis (2017-2019)",
+    "PAPERWHITE_2012_2013": "Kindle Paperwhite (2012-2013)",
+    "PAPERWHITE_2015_2019": "Kindle Paperwhite (2015-2019)",
+    "PAPERWHITE_2021": "Kindle Paperwhite (2021)",
+    "PAPERWHITE_2024": "Kindle Paperwhite (2024)",
+    "PAPERWHITE_SIGNATURE_2021": "Kindle Paperwhite Signature Edition (2021)",
+    "PAPERWHITE_SIGNATURE_2024": "Kindle Paperwhite Signature Edition (2024)",
+    "SCRIBE_2022_2024": "Kindle Scribe (2022-2024)",
+    "VOYAGE_2014": "Kindle Voyage (2014)",
+    "COLORSOFT": "2025",
+    "COLORSOFT_SIGNATURE_EDITION": "2024"
+  },
+  "KOBO_BRANDS": {
+    "KOBO": "Kobo"
+  },
+  "KOBO_GROUPS": {
+    "CLARA": "Clara",
+    "ELIPSA": "Elipsa",
+    "LIBRA": "Libra",
+    "NIA": "Nia",
+    "SAGE": "Sage"
+  },
+  "KOBO_MODELS": {
+    "CLARA_ALL": "Kobo Clara (HD / 2E / BW / Colour)",
+    "ELIPSA_ALL": "Kobo Elipsa (Elipsa / 2E)",
+    "LIBRA_ALL": "Kobo Libra (H2O / 2 / Colour)",
+    "NIA": "Kobo Nia",
+    "SAGE": "Kobo Sage"
+  },
+  "NOOK_BRANDS": {
+    "NOOK": "Nook"
+  },
+  "NOOK_GROUPS": {
+    "GLOWLIGHT": "GlowLight"
+  },
+  "NOOK_MODELS": {
+    "GLOWLIGHT_2013_2015": "Nook GlowLight (2013-2015)",
+    "GLOWLIGHT_2019_2023": "Nook GlowLight (2019-2023)"
+  },
+  "POCKETBOOK_BRANDS": {
+    "POCKETBOOK": "PocketBook"
+  },
+  "POCKETBOOK_GROUPS": {
+    "ERA": "Era",
+    "INKPAD": "InkPad",
+    "VERSE": "Verse"
+  },
+  "POCKETBOOK_MODELS": {
+    "ERA": "PocketBook Era",
+    "INKPAD_ALL": "PocketBook InkPad (All models)",
+    "VERSE": "PocketBook Verse",
+    "VERSE_PRO": "PocketBook Verse Pro"
+  },
+  "TOLINO_BRANDS": {
+    "TOLINO": "Tolino"
+  },
+  "TOLINO_GROUPS": {
+    "SHINE": "Shine",
+    "VISION": "Vision"
+  },
+  "TOLINO_MODELS": {
+    "SHINE_2014_2018": "Tolino Shine (2014-2018)",
+    "SHINE_HD": "Tolino Shine HD",
+    "VISION_2015_2018": "Tolino Vision (2015-2018)",
+    "VISION_2021_2024": "Tolino Vision (2021-2024)"
+  },
+  "REQUISITES": {
+    "ADS_DESC": "कवर को लॉक स्क्रीन पर दिखाने के लिए डिवाइस पर विज्ञापन अक्षम होने चाहिए।",
+    "ADS_LINK": "डिवाइस विज्ञापन प्रबंधित करें",
+    "ADS_TITLE": "विज्ञापन अक्षम",
+    "APP_ANDROID": "Kindle ऐप (Android)",
+    "APP_DESC": "डिवाइस पर कवर भेजने और देखने के लिए Kindle ऐप आवश्यक है।",
+    "APP_IOS": "Kindle ऐप (iOS)",
+    "APP_TITLE": "Kindle ऐप",
+    "COVER_DESC": "लॉक स्क्रीन पर वर्तमान पुस्तक का कवर दिखाने का विकल्प सक्षम करें।",
+    "COVER_LINK": "कवर प्रदर्शन कॉन्फ़िगर करें",
+    "COVER_TITLE": "पुस्तक कवर दिखाएँ",
+    "NOTE": "Cover Creator for Kindle कोई आधिकारिक ऐप नहीं है और डिवाइस सॉफ़्टवेयर में कोई बदलाव नहीं करता।",
+    "SEND_LINK": "Send to Kindle (वेब)",
+    "SEND_TITLE": "वेब के ज़रिए कवर भेजें",
+    "TITLE": "आवश्यकताएँ"
+  },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "वापस",
+      "FINISH": "समाप्त",
+      "INTERACT_HINT": "जारी रखने के लिए हाइलाइट किए गए तत्व से इंटरेक्ट करें।",
+      "NEXT": "अगला",
+      "PROGRESS": "{{current}} / {{total}}",
+      "SKIP": "छोड़ें"
+    },
+    "STEPS": {
+      "DEVICE": {
+        "TITLE": "डिवाइस",
+        "DESCRIPTION": "पहले, अपना डिवाइस चुनें।\nइससे सुनिश्चित होता है कि कवर सही रिज़ॉल्यूशन पर बनाया जाए।"
+      },
+      "BRAND": {
+        "TITLE": "ब्रांड",
+        "DESCRIPTION": "अपने eReader का ब्रांड चुनें।"
+      },
+      "GROUP": {
+        "TITLE": "समूह",
+        "DESCRIPTION": "अपनी डिवाइस श्रृंखला चुनें।"
+      },
+      "MODEL": {
+        "TITLE": "मॉडल",
+        "DESCRIPTION": "सटीक मॉडल चुनें।"
+      },
+      "IMAGE": {
+        "TITLE": "कवर छवि",
+        "DESCRIPTION": "अपने कवर के लिए छवि चुनें।"
+      },
+      "ADJUST": {
+        "TITLE": "समायोजित करें",
+        "DESCRIPTION": "संपादक में छवि समायोजित करें और हो गया टैप करें।"
+      },
+      "CREATE": {
+        "TITLE": "कवर बनाएँ",
+        "DESCRIPTION": "यहाँ कवर बनाएँ।"
+      },
+      "RESULTS": {
+        "TITLE": "सहेजें या साझा करें",
+        "DESCRIPTION": "अपना कवर सहेजें या साझा करें।"
+      },
+      "DONE": {
+        "TITLE": "सब तैयार है",
+        "DESCRIPTION": "हो गया।\nअब आप CCFK से कवर बनाना जानते हैं।"
+      }
+    }
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "निर्देश देखें",
+    "INSTRUCTIONS_HINT": "Kindle के लिए कवर कैसे बनाएँ और भेजें",
+    "INSTRUCTIONS_SECTION": "निर्देश",
+    "LANGUAGE": "भाषा",
+    "LANGUAGE_RESTART_NOTICE": "भाषा बदल गई। परिवर्तन लागू करने के लिए ऐप पुनः शुरू होगा।",
+    "LANGUAGE_PREPARING_COUNTDOWN": "आपकी भाषा में सब कुछ तैयार किया जा रहा है ({{count}})",
+    "PRIVACY_HINT": "डेटा और विज्ञापन प्रबंधन नियंत्रित करें",
+    "PRIVACY_OPTIONS": "गोपनीयता विकल्प",
+    "PRIVACY_POLICY": "गोपनीयता नीति",
+    "PRIVACY_SECTION": "गोपनीयता",
+    "REQUISITES": "आवश्यकताएँ देखें",
+    "REQUISITES_HINT": "Kindle पर कवर सही तरह काम करने के लिए आवश्यक सेटिंग्स",
+    "REQUISITES_SECTION": "आवश्यकताएँ",
+    "THEME": "थीम",
+    "THEME_SYSTEM": "सिस्टम",
+    "THEME_LIGHT": "प्राकृतिक प्रकाश",
+    "THEME_DARK": "क्लासिक डार्क",
+    "THEME_WARM_READING": "वॉर्म रीडिंग",
+    "THEME_POP_ROSE": "पॉप रोज़",
+    "THEME_NOCTURNE_VIOLET": "नोक्टर्न वायलेट",
+    "THEME_OBSIDIAN_RED": "ऑब्सीडियन रेड",
+    "THEME_TERMINAL_GREEN": "टर्मिनल ग्रीन",
+    "THEME_MINT_FRESH": "मिंट फ्रेश",
+    "THEME_SILVER_TECH": "सिल्वर",
+    "THEME_GOLD_LUXE": "गोल्ड",
+    "TITLE": "सेटिंग्स",
+    "VIEW_TOUR": "टूर देखें"
+  },
+  "TABS": {
+    "COVERS": "कवर",
+    "CREATE": "बनाएँ",
+    "SETTINGS": "सेटिंग्स"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "अनुशंसित",
+      "INFO": "जानकारी",
+      "APPS": "ऐप्स",
+      "GUIDE": "गाइड"
+    }
+  }
+}

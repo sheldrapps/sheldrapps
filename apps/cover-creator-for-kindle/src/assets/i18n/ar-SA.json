@@ -1,0 +1,309 @@
+{
+  "APP": {
+    "TITLE": "Cover Creator for Kindle"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "اضغط مرة أخرى للخروج",
+    "CANCEL": "إلغاء",
+    "CLOSE": "إغلاق",
+    "DELETE": "حذف",
+    "DONE": "تم",
+    "ERROR": "خطأ",
+    "LOADING": "جارٍ التحميل…",
+    "BILLING_UNAVAILABLE": "المشتريات غير متاحة حالياً.",
+    "PURCHASE_ERROR": "تعذّر إتمام الشراء. يرجى المحاولة مجدداً.",
+    "REMOVE_ADS_BUY": "شراء",
+    "REMOVE_ADS_DESCRIPTION": "أزل الإعلانات للأبد بدفعة واحدة.",
+    "REMOVE_ADS_PURCHASED": "تمت إزالة الإعلانات للأبد.",
+    "REMOVE_ADS_RESTORE": "استعادة الشراء",
+    "REMOVE_ADS_RESTORED": "تمت استعادة الشراء بنجاح.",
+    "REMOVE_ADS_TITLE": "إزالة الإعلانات",
+    "REMOVE_ADS_CTA_TITLE": "إزالة الإعلانات",
+    "REMOVE_ADS_CTA_SUBTITLE": "دفعة واحدة • للأبد",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "دفعة واحدة • {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "السعر: {{price}} • بدون اشتراك",
+    "RESTORE_ERROR": "تعذّرت استعادة المشتريات. يرجى المحاولة مجدداً.",
+    "WATCH_AD_SUBTITLE": "مشاهدة الإعلان",
+    "SHARE": "مشاركة",
+    "SHARE_KINDLE_HINT": "عند المشاركة، اختر تطبيق Kindle لإرساله إلى جهازك.",
+    "WARNING": "تحذير"
+  },
+  "CREATE": {
+    "ADS_REQUIRED": "تعذّر تحميل الإعلان. تحقق من الشبكة أو حاجب الإعلانات.",
+    "ARIA_CHANGE_IMAGE": "تغيير صورة الغلاف. الصورة الحالية: {{name}}",
+    "ARIA_CROP": "ضبط الصورة المحددة",
+    "ARIA_SELECT_IMAGE": "تحديد صورة الغلاف",
+    "ARIA_SELECT_MODEL": "تحديد طراز الجهاز",
+    "CROP_ACTION": "ضبط",
+    "COVER_CREATED": "تم إنشاء الغلاف. يمكنك الآن الحفظ أو المشاركة",
+    "CREATE_ACTION": "إنشاء غلاف",
+    "CREATE_ACTION_REWARDED": "إنشاء غلاف (مشاهدة إعلان)",
+    "GENERATING": "جارٍ إنشاء الغلاف…",
+    "HINT_SAVE_SHARE_EXPLAIN": "إنشاء الغلاف لا يحفظه تلقائياً.",
+    "INFO": "معلومات",
+    "INFO_ARIA": "معلومات حول إنشاء الغلاف",
+    "INFO_TITLE": "معلومات",
+    "INFO_SEND_TITLE": "الإرسال إلى Kindle",
+    "INFO_SHARE_KINDLE": "لإرساله إلى جهاز Kindle، اختر تطبيق Kindle عند المشاركة.",
+    "INFO_FLOW_LABEL": "الترتيب الموصى به:",
+    "INFO_STEP_1": "اختر صورة.",
+    "INFO_STEP_2": "اضبط الصورة في المحرر ثم اضغط تم لتطبيقها.",
+    "INFO_STEP_3": "أنشئ الغلاف بعد تطبيق الضبط.",
+    "INFO_STEP_4": "احفظ أو شارك.",
+    "INFO_NOTE_LABEL": "ملاحظة:",
+    "IMAGE_ERROR_CORRUPT": "تعذّرت قراءة الصورة. يرجى تجربة صورة أخرى.",
+    "IMAGE_ERROR_SIZE": "الملف كبير جداً. الحد الأقصى {{maxSize}} ميغابايت.",
+    "IMAGE_ERROR_TYPE": "تنسيق غير مدعوم ({{type}}). يرجى تحديد JPG أو PNG أو WebP.",
+    "IMAGE_WARN_SMALL": "دقة الصورة أقل من طراز الجهاز المحدد. للحصول على نتائج أفضل، استخدم صورة أكبر.",
+    "LOADING_IMAGE": "جارٍ تحميل الصورة…",
+    "OPENING_EDITOR": "جارٍ فتح المحرر…",
+    "SAVING": "جارٍ حفظ الغلاف…",
+    "SAVE_ACTION": "حفظ",
+    "SAVED_OK": "تم حفظ الغلاف",
+    "SAVE_RENAME_TITLE": "حفظ الغلاف",
+    "SAVE_RENAME_MESSAGE": "أدخل اسماً للغلاف",
+    "SAVE_RENAME_PLACEHOLDER": "اسم الملف",
+    "SELECT_IMAGE_LABEL": "صورة الغلاف",
+    "SELECT_IMAGE_PLACEHOLDER": "اختر صورة",
+    "SELECT_BRAND_LABEL": "الماركة",
+    "SELECT_BRAND_PLACEHOLDER": "اختر ماركة",
+    "SELECT_GROUP_LABEL": "المجموعة",
+    "SELECT_GROUP_PLACEHOLDER": "اختر مجموعة",
+    "SELECT_GENERATION_LABEL": "الطراز",
+    "SELECT_GENERATION_PLACEHOLDER": "اختر طراز",
+    "SELECT_MODEL_LABEL": "طراز الجهاز",
+    "SELECT_MODEL_PLACEHOLDER": "اختر جهازك",
+    "TAP_TO_CHANGE": "اضغط للتغيير/الإعادة",
+    "TITLE": "إنشاء غلاف",
+    "MODEL_PICKER": {
+      "TITLE": "اختر جهاز Kindle"
+    },
+    "INFO_REQUIREMENTS_LABEL": "المتطلبات:",
+    "INFO_REQUIREMENT_DISABLE_ADS": "تعطيل الإعلانات على Kindle.",
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "تفعيل \"الشاشة والسطوع > عرض الأغلفة على شاشة القفل\" على Kindle."
+  },
+  "COVERS": {
+    "DELETED": "تم حذف الغلاف",
+    "EMPTY": "لا توجد أغلفة بعد.",
+    "GETTING_COVER": "جارٍ الحصول على الغلاف",
+    "LOADING_PREVIEW": "جارٍ تحميل المعاينة...",
+    "PLACEHOLDER": "غلاف",
+    "PREVIEW_TITLE": "معاينة",
+    "TITLE": "الأغلفة",
+    "ACTIONS": {
+      "DELETE": "حذف",
+      "SHARE": "مشاركة"
+    },
+    "DELETE": {
+      "MESSAGE": "هل تريد حذف هذا الغلاف؟",
+      "TITLE": "حذف الغلاف"
+    },
+    "ERROR": {
+      "DELETE": "تعذّر حذف الغلاف. يرجى المحاولة مجدداً.",
+      "LOAD": "تعذّر تحميل أغلفتك. اسحب للأسفل للتحديث.",
+      "PREVIEW": "تعذّر تحميل المعاينة. يرجى المحاولة مجدداً.",
+      "SHARE": "تعذّرت مشاركة الغلاف. يرجى المحاولة مجدداً."
+    }
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "ملاحظة",
+    "STEP_1": "اختر صورة لغلافك",
+    "STEP_2": "اضبط الصورة في المحرر ثم اضغط تم لتطبيقها",
+    "STEP_3": "أنشئ الغلاف بعد تطبيق الضبط",
+    "STEP_4": "احفظ أو شارك الغلاف",
+    "STEP_4_DESC": "بعد الانتهاء، يمكنك حفظه على جهازك أو مشاركته عبر تطبيق Kindle للحصول على تجربة أسلس.",
+    "STEP_5": "الإرسال عبر الويب (Send to Kindle)",
+    "STEP_5_DESC": "يمكنك أيضاً إرساله من المتصفح باستخدام أداة Send to Kindle على الويب.",
+    "TIP": "للحصول على أفضل النتائج، استخدم صوراً عالية الدقة وتأكد من تعطيل الإعلانات على جهاز Kindle.",
+    "TITLE": "التعليمات"
+  },
+  "KINDLE_BRANDS": {
+    "KINDLE": "Kindle"
+  },
+  "KINDLE_GROUPS": {
+    "BASIC": "Basic",
+    "OASIS": "Oasis",
+    "PAPERWHITE": "Paperwhite",
+    "PAPERWHITE_SIGNATURE": "Paperwhite Signature",
+    "SCRIBE": "Scribe",
+    "VOYAGE": "Voyage",
+    "COLORSOFT": "Colorsoft",
+    "COLORSOFT_SIGNATURE": "Colorsoft Signature"
+  },
+  "KINDLE_MODELS": {
+    "BASIC_2010_2019": "Kindle Basic (2010-2019)",
+    "BASIC_2022_2024": "Kindle Basic (2022-2024)",
+    "OASIS_2016": "Kindle Oasis (2016)",
+    "OASIS_2017_2019": "Kindle Oasis (2017-2019)",
+    "PAPERWHITE_2012_2013": "Kindle Paperwhite (2012-2013)",
+    "PAPERWHITE_2015_2019": "Kindle Paperwhite (2015-2019)",
+    "PAPERWHITE_2021": "Kindle Paperwhite (2021)",
+    "PAPERWHITE_2024": "Kindle Paperwhite (2024)",
+    "PAPERWHITE_SIGNATURE_2021": "Kindle Paperwhite Signature Edition (2021)",
+    "PAPERWHITE_SIGNATURE_2024": "Kindle Paperwhite Signature Edition (2024)",
+    "SCRIBE_2022_2024": "Kindle Scribe (2022-2024)",
+    "VOYAGE_2014": "Kindle Voyage (2014)",
+    "COLORSOFT": "2025",
+    "COLORSOFT_SIGNATURE_EDITION": "2024"
+  },
+  "KOBO_BRANDS": {
+    "KOBO": "Kobo"
+  },
+  "KOBO_GROUPS": {
+    "CLARA": "Clara",
+    "ELIPSA": "Elipsa",
+    "LIBRA": "Libra",
+    "NIA": "Nia",
+    "SAGE": "Sage"
+  },
+  "KOBO_MODELS": {
+    "CLARA_ALL": "Kobo Clara (HD / 2E / BW / Colour)",
+    "ELIPSA_ALL": "Kobo Elipsa (Elipsa / 2E)",
+    "LIBRA_ALL": "Kobo Libra (H2O / 2 / Colour)",
+    "NIA": "Kobo Nia",
+    "SAGE": "Kobo Sage"
+  },
+  "NOOK_BRANDS": {
+    "NOOK": "Nook"
+  },
+  "NOOK_GROUPS": {
+    "GLOWLIGHT": "GlowLight"
+  },
+  "NOOK_MODELS": {
+    "GLOWLIGHT_2013_2015": "Nook GlowLight (2013-2015)",
+    "GLOWLIGHT_2019_2023": "Nook GlowLight (2019-2023)"
+  },
+  "POCKETBOOK_BRANDS": {
+    "POCKETBOOK": "PocketBook"
+  },
+  "POCKETBOOK_GROUPS": {
+    "ERA": "Era",
+    "INKPAD": "InkPad",
+    "VERSE": "Verse"
+  },
+  "POCKETBOOK_MODELS": {
+    "ERA": "PocketBook Era",
+    "INKPAD_ALL": "PocketBook InkPad (All models)",
+    "VERSE": "PocketBook Verse",
+    "VERSE_PRO": "PocketBook Verse Pro"
+  },
+  "TOLINO_BRANDS": {
+    "TOLINO": "Tolino"
+  },
+  "TOLINO_GROUPS": {
+    "SHINE": "Shine",
+    "VISION": "Vision"
+  },
+  "TOLINO_MODELS": {
+    "SHINE_2014_2018": "Tolino Shine (2014-2018)",
+    "SHINE_HD": "Tolino Shine HD",
+    "VISION_2015_2018": "Tolino Vision (2015-2018)",
+    "VISION_2021_2024": "Tolino Vision (2021-2024)"
+  },
+  "REQUISITES": {
+    "ADS_DESC": "يجب تعطيل الإعلانات على الجهاز لكي يظهر الغلاف على شاشة القفل.",
+    "ADS_LINK": "إدارة إعلانات الجهاز",
+    "ADS_TITLE": "الإعلانات معطّلة",
+    "APP_ANDROID": "تطبيق Kindle (Android)",
+    "APP_DESC": "يلزم توفر تطبيق Kindle لإرسال الغلاف وعرضه على الجهاز.",
+    "APP_IOS": "تطبيق Kindle (iOS)",
+    "APP_TITLE": "تطبيق Kindle",
+    "COVER_DESC": "فعّل خيار عرض غلاف الكتاب الحالي على شاشة القفل.",
+    "COVER_LINK": "ضبط عرض الغلاف",
+    "COVER_TITLE": "عرض غلاف الكتاب",
+    "NOTE": "Cover Creator for Kindle ليس تطبيقاً رسمياً ولا يعدّل برامج الجهاز.",
+    "SEND_LINK": "Send to Kindle (ويب)",
+    "SEND_TITLE": "إرسال الأغلفة عبر الويب",
+    "TITLE": "المتطلبات"
+  },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "رجوع",
+      "FINISH": "إنهاء",
+      "INTERACT_HINT": "تفاعل مع العنصر المميز للمتابعة.",
+      "NEXT": "التالي",
+      "PROGRESS": "{{current}} من {{total}}",
+      "SKIP": "تخطي"
+    },
+    "STEPS": {
+      "DEVICE": {
+        "TITLE": "الجهاز",
+        "DESCRIPTION": "أولاً، اختر جهازك.\nهذا يضمن إنشاء الغلاف بالدقة الصحيحة."
+      },
+      "BRAND": {
+        "TITLE": "الماركة",
+        "DESCRIPTION": "اختر ماركة قارئ الكتب الإلكترونية."
+      },
+      "GROUP": {
+        "TITLE": "المجموعة",
+        "DESCRIPTION": "اختر سلسلة جهازك."
+      },
+      "MODEL": {
+        "TITLE": "الطراز",
+        "DESCRIPTION": "اختر الطراز الدقيق."
+      },
+      "IMAGE": {
+        "TITLE": "صورة الغلاف",
+        "DESCRIPTION": "اختر الصورة التي ستستخدمها غلافاً."
+      },
+      "ADJUST": {
+        "TITLE": "ضبط",
+        "DESCRIPTION": "اضبط الصورة في المحرر ثم اضغط تم."
+      },
+      "CREATE": {
+        "TITLE": "إنشاء غلاف",
+        "DESCRIPTION": "أنشئ الغلاف من هنا."
+      },
+      "RESULTS": {
+        "TITLE": "حفظ أو مشاركة",
+        "DESCRIPTION": "احفظ أو شارك غلافك."
+      },
+      "DONE": {
+        "TITLE": "كل شيء جاهز",
+        "DESCRIPTION": "تم.\nأنت تعرف الآن كيفية إنشاء الأغلفة باستخدام CCFK."
+      }
+    }
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "عرض التعليمات",
+    "INSTRUCTIONS_HINT": "كيفية إنشاء غلاف وإرساله إلى Kindle",
+    "INSTRUCTIONS_SECTION": "التعليمات",
+    "LANGUAGE": "اللغة",
+    "LANGUAGE_RESTART_NOTICE": "تم تغيير اللغة. سيُعاد تشغيل التطبيق لتطبيق التغييرات.",
+    "LANGUAGE_PREPARING_COUNTDOWN": "جارٍ تجهيز كل شيء بلغتك ({{count}})",
+    "PRIVACY_HINT": "تحكّم في كيفية معالجة البيانات والإعلانات",
+    "PRIVACY_OPTIONS": "خيارات الخصوصية",
+    "PRIVACY_POLICY": "سياسة الخصوصية",
+    "PRIVACY_SECTION": "الخصوصية",
+    "REQUISITES": "عرض المتطلبات",
+    "REQUISITES_HINT": "الإعدادات المطلوبة لكي تعمل الأغلفة بشكل صحيح على Kindle",
+    "REQUISITES_SECTION": "المتطلبات",
+    "THEME": "السمة",
+    "THEME_SYSTEM": "النظام",
+    "THEME_LIGHT": "الضوء الطبيعي",
+    "THEME_DARK": "الداكن الكلاسيكي",
+    "THEME_WARM_READING": "القراءة الدافئة",
+    "THEME_POP_ROSE": "وردي منبثق",
+    "THEME_NOCTURNE_VIOLET": "بنفسجي ليلي",
+    "THEME_OBSIDIAN_RED": "أحمر أوبسيديان",
+    "THEME_TERMINAL_GREEN": "أخضر طرفية",
+    "THEME_MINT_FRESH": "نعناعي منعش",
+    "THEME_SILVER_TECH": "فضي",
+    "THEME_GOLD_LUXE": "ذهبي",
+    "TITLE": "الإعدادات",
+    "VIEW_TOUR": "عرض الجولة"
+  },
+  "TABS": {
+    "COVERS": "الأغلفة",
+    "CREATE": "إنشاء",
+    "SETTINGS": "الإعدادات"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "موصى به",
+      "INFO": "معلومات",
+      "APPS": "التطبيقات",
+      "GUIDE": "الدليل"
+    }
+  }
+}

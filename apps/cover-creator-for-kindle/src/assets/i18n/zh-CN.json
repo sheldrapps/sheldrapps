@@ -1,0 +1,309 @@
+{
+  "APP": {
+    "TITLE": "Cover Creator for Kindle"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "再次返回以退出",
+    "CANCEL": "取消",
+    "CLOSE": "关闭",
+    "DELETE": "删除",
+    "DONE": "完成",
+    "ERROR": "错误",
+    "LOADING": "加载中…",
+    "BILLING_UNAVAILABLE": "当前无法购买。",
+    "PURCHASE_ERROR": "无法完成购买，请重试。",
+    "REMOVE_ADS_BUY": "购买",
+    "REMOVE_ADS_DESCRIPTION": "一次性付款，永久去除广告。",
+    "REMOVE_ADS_PURCHASED": "广告已永久去除。",
+    "REMOVE_ADS_RESTORE": "恢复购买",
+    "REMOVE_ADS_RESTORED": "购买已成功恢复。",
+    "REMOVE_ADS_TITLE": "去除广告",
+    "REMOVE_ADS_CTA_TITLE": "去除广告",
+    "REMOVE_ADS_CTA_SUBTITLE": "一次性付款 • 永久有效",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "一次性付款 • {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "价格：{{price}} • 无订阅",
+    "RESTORE_ERROR": "无法恢复购买，请重试。",
+    "WATCH_AD_SUBTITLE": "观看广告",
+    "SHARE": "分享",
+    "SHARE_KINDLE_HINT": "分享时，请选择 Kindle 应用以发送到您的设备。",
+    "WARNING": "警告"
+  },
+  "CREATE": {
+    "ADS_REQUIRED": "广告加载失败，请检查网络或广告拦截器。",
+    "ARIA_CHANGE_IMAGE": "更换封面图片。当前图片：{{name}}",
+    "ARIA_CROP": "调整选中图片",
+    "ARIA_SELECT_IMAGE": "选择封面图片",
+    "ARIA_SELECT_MODEL": "选择设备型号",
+    "CROP_ACTION": "调整",
+    "COVER_CREATED": "封面已创建，您现在可以保存或分享",
+    "CREATE_ACTION": "创建封面",
+    "CREATE_ACTION_REWARDED": "创建封面（观看广告）",
+    "GENERATING": "正在生成封面…",
+    "HINT_SAVE_SHARE_EXPLAIN": "创建封面不会自动保存。",
+    "INFO": "信息",
+    "INFO_ARIA": "关于创建封面的信息",
+    "INFO_TITLE": "信息",
+    "INFO_SEND_TITLE": "发送到 Kindle",
+    "INFO_SHARE_KINDLE": "要发送到 Kindle，请在分享时选择 Kindle 应用。",
+    "INFO_FLOW_LABEL": "建议顺序：",
+    "INFO_STEP_1": "选择图片。",
+    "INFO_STEP_2": "在编辑器中调整图片，然后点击完成以应用。",
+    "INFO_STEP_3": "应用调整后创建封面。",
+    "INFO_STEP_4": "保存或分享。",
+    "INFO_NOTE_LABEL": "注意：",
+    "IMAGE_ERROR_CORRUPT": "无法读取图片，请尝试其他图片。",
+    "IMAGE_ERROR_SIZE": "文件过大，最大 {{maxSize}} MB。",
+    "IMAGE_ERROR_TYPE": "不支持的格式（{{type}}），请选择 JPG、PNG 或 WebP。",
+    "IMAGE_WARN_SMALL": "图片分辨率低于所选 Kindle 型号，建议使用更大的图片以获得更好的效果。",
+    "LOADING_IMAGE": "正在加载图片…",
+    "OPENING_EDITOR": "正在打开编辑器…",
+    "SAVING": "正在保存封面…",
+    "SAVE_ACTION": "保存",
+    "SAVED_OK": "封面已保存",
+    "SAVE_RENAME_TITLE": "保存封面",
+    "SAVE_RENAME_MESSAGE": "请输入封面名称",
+    "SAVE_RENAME_PLACEHOLDER": "文件名",
+    "SELECT_IMAGE_LABEL": "封面图片",
+    "SELECT_IMAGE_PLACEHOLDER": "选择图片",
+    "SELECT_BRAND_LABEL": "品牌",
+    "SELECT_BRAND_PLACEHOLDER": "选择品牌",
+    "SELECT_GROUP_LABEL": "系列",
+    "SELECT_GROUP_PLACEHOLDER": "选择系列",
+    "SELECT_GENERATION_LABEL": "型号",
+    "SELECT_GENERATION_PLACEHOLDER": "选择型号",
+    "SELECT_MODEL_LABEL": "设备型号",
+    "SELECT_MODEL_PLACEHOLDER": "选择您的设备",
+    "TAP_TO_CHANGE": "点击更换/重置",
+    "TITLE": "创建封面",
+    "MODEL_PICKER": {
+      "TITLE": "选择您的 Kindle"
+    },
+    "INFO_REQUIREMENTS_LABEL": "要求：",
+    "INFO_REQUIREMENT_DISABLE_ADS": "在 Kindle 上禁用广告。",
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "在 Kindle 上启用「屏幕与亮度 > 在锁屏上显示封面」。"
+  },
+  "COVERS": {
+    "DELETED": "封面已删除",
+    "EMPTY": "暂无封面。",
+    "GETTING_COVER": "正在获取封面",
+    "LOADING_PREVIEW": "正在加载预览...",
+    "PLACEHOLDER": "封面",
+    "PREVIEW_TITLE": "预览",
+    "TITLE": "封面",
+    "ACTIONS": {
+      "DELETE": "删除",
+      "SHARE": "分享"
+    },
+    "DELETE": {
+      "MESSAGE": "确定要删除此封面吗？",
+      "TITLE": "删除封面"
+    },
+    "ERROR": {
+      "DELETE": "无法删除封面，请重试。",
+      "LOAD": "无法加载封面，请下拉刷新。",
+      "PREVIEW": "无法加载预览，请重试。",
+      "SHARE": "无法分享封面，请重试。"
+    }
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "注意",
+    "STEP_1": "选择封面图片",
+    "STEP_2": "在编辑器中调整图片，然后点击完成以应用",
+    "STEP_3": "应用调整后创建封面",
+    "STEP_4": "保存或分享封面",
+    "STEP_4_DESC": "准备好后，您可以将其保存到设备，或通过 Kindle 应用分享以获得更顺畅的体验。",
+    "STEP_5": "通过网页发送（Send to Kindle）",
+    "STEP_5_DESC": "您也可以在浏览器中使用 Send to Kindle 网页工具发送。",
+    "TIP": "为获得最佳效果，请使用高分辨率图片，并确保 Kindle 上的广告已禁用。",
+    "TITLE": "使用说明"
+  },
+  "KINDLE_BRANDS": {
+    "KINDLE": "Kindle"
+  },
+  "KINDLE_GROUPS": {
+    "BASIC": "Basic",
+    "OASIS": "Oasis",
+    "PAPERWHITE": "Paperwhite",
+    "PAPERWHITE_SIGNATURE": "Paperwhite Signature",
+    "SCRIBE": "Scribe",
+    "VOYAGE": "Voyage",
+    "COLORSOFT": "Colorsoft",
+    "COLORSOFT_SIGNATURE": "Colorsoft Signature"
+  },
+  "KINDLE_MODELS": {
+    "BASIC_2010_2019": "Kindle Basic (2010-2019)",
+    "BASIC_2022_2024": "Kindle Basic (2022-2024)",
+    "OASIS_2016": "Kindle Oasis (2016)",
+    "OASIS_2017_2019": "Kindle Oasis (2017-2019)",
+    "PAPERWHITE_2012_2013": "Kindle Paperwhite (2012-2013)",
+    "PAPERWHITE_2015_2019": "Kindle Paperwhite (2015-2019)",
+    "PAPERWHITE_2021": "Kindle Paperwhite (2021)",
+    "PAPERWHITE_2024": "Kindle Paperwhite (2024)",
+    "PAPERWHITE_SIGNATURE_2021": "Kindle Paperwhite Signature Edition (2021)",
+    "PAPERWHITE_SIGNATURE_2024": "Kindle Paperwhite Signature Edition (2024)",
+    "SCRIBE_2022_2024": "Kindle Scribe (2022-2024)",
+    "VOYAGE_2014": "Kindle Voyage (2014)",
+    "COLORSOFT": "2025",
+    "COLORSOFT_SIGNATURE_EDITION": "2024"
+  },
+  "KOBO_BRANDS": {
+    "KOBO": "Kobo"
+  },
+  "KOBO_GROUPS": {
+    "CLARA": "Clara",
+    "ELIPSA": "Elipsa",
+    "LIBRA": "Libra",
+    "NIA": "Nia",
+    "SAGE": "Sage"
+  },
+  "KOBO_MODELS": {
+    "CLARA_ALL": "Kobo Clara (HD / 2E / BW / Colour)",
+    "ELIPSA_ALL": "Kobo Elipsa (Elipsa / 2E)",
+    "LIBRA_ALL": "Kobo Libra (H2O / 2 / Colour)",
+    "NIA": "Kobo Nia",
+    "SAGE": "Kobo Sage"
+  },
+  "NOOK_BRANDS": {
+    "NOOK": "Nook"
+  },
+  "NOOK_GROUPS": {
+    "GLOWLIGHT": "GlowLight"
+  },
+  "NOOK_MODELS": {
+    "GLOWLIGHT_2013_2015": "Nook GlowLight (2013-2015)",
+    "GLOWLIGHT_2019_2023": "Nook GlowLight (2019-2023)"
+  },
+  "POCKETBOOK_BRANDS": {
+    "POCKETBOOK": "PocketBook"
+  },
+  "POCKETBOOK_GROUPS": {
+    "ERA": "Era",
+    "INKPAD": "InkPad",
+    "VERSE": "Verse"
+  },
+  "POCKETBOOK_MODELS": {
+    "ERA": "PocketBook Era",
+    "INKPAD_ALL": "PocketBook InkPad (All models)",
+    "VERSE": "PocketBook Verse",
+    "VERSE_PRO": "PocketBook Verse Pro"
+  },
+  "TOLINO_BRANDS": {
+    "TOLINO": "Tolino"
+  },
+  "TOLINO_GROUPS": {
+    "SHINE": "Shine",
+    "VISION": "Vision"
+  },
+  "TOLINO_MODELS": {
+    "SHINE_2014_2018": "Tolino Shine (2014-2018)",
+    "SHINE_HD": "Tolino Shine HD",
+    "VISION_2015_2018": "Tolino Vision (2015-2018)",
+    "VISION_2021_2024": "Tolino Vision (2021-2024)"
+  },
+  "REQUISITES": {
+    "ADS_DESC": "要在锁屏上显示封面，必须在设备上禁用广告。",
+    "ADS_LINK": "管理设备广告",
+    "ADS_TITLE": "已禁用广告",
+    "APP_ANDROID": "Kindle 应用（Android）",
+    "APP_DESC": "需要 Kindle 应用才能将封面发送到设备并查看。",
+    "APP_IOS": "Kindle 应用（iOS）",
+    "APP_TITLE": "Kindle 应用",
+    "COVER_DESC": "启用在锁屏上显示当前书籍封面的选项。",
+    "COVER_LINK": "配置封面显示",
+    "COVER_TITLE": "显示书籍封面",
+    "NOTE": "Cover Creator for Kindle 不是官方应用，不会修改设备软件。",
+    "SEND_LINK": "Send to Kindle（网页版）",
+    "SEND_TITLE": "通过网页发送封面",
+    "TITLE": "使用要求"
+  },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "返回",
+      "FINISH": "完成",
+      "INTERACT_HINT": "与高亮元素互动以继续。",
+      "NEXT": "下一步",
+      "PROGRESS": "{{current}} / {{total}}",
+      "SKIP": "跳过"
+    },
+    "STEPS": {
+      "DEVICE": {
+        "TITLE": "设备",
+        "DESCRIPTION": "首先选择您的设备。\n这将确保以正确的分辨率创建封面。"
+      },
+      "BRAND": {
+        "TITLE": "品牌",
+        "DESCRIPTION": "选择您的电子书阅读器品牌。"
+      },
+      "GROUP": {
+        "TITLE": "系列",
+        "DESCRIPTION": "选择您的设备系列。"
+      },
+      "MODEL": {
+        "TITLE": "型号",
+        "DESCRIPTION": "选择精确型号。"
+      },
+      "IMAGE": {
+        "TITLE": "封面图片",
+        "DESCRIPTION": "选择封面图片。"
+      },
+      "ADJUST": {
+        "TITLE": "调整",
+        "DESCRIPTION": "在编辑器中调整图片，然后点击完成。"
+      },
+      "CREATE": {
+        "TITLE": "创建封面",
+        "DESCRIPTION": "在此生成封面。"
+      },
+      "RESULTS": {
+        "TITLE": "保存或分享",
+        "DESCRIPTION": "保存或分享您的封面。"
+      },
+      "DONE": {
+        "TITLE": "一切就绪",
+        "DESCRIPTION": "完成。\n您现在已了解如何使用 CCFK 创建封面。"
+      }
+    }
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "查看说明",
+    "INSTRUCTIONS_HINT": "如何为 Kindle 创建并发送封面",
+    "INSTRUCTIONS_SECTION": "说明",
+    "LANGUAGE": "语言",
+    "LANGUAGE_RESTART_NOTICE": "语言已更改，应用将重启以应用更改。",
+    "LANGUAGE_PREPARING_COUNTDOWN": "正在用您的语言准备一切（{{count}}）",
+    "PRIVACY_HINT": "控制数据和广告的处理方式",
+    "PRIVACY_OPTIONS": "隐私选项",
+    "PRIVACY_POLICY": "隐私政策",
+    "PRIVACY_SECTION": "隐私",
+    "REQUISITES": "查看要求",
+    "REQUISITES_HINT": "封面在 Kindle 上正确工作所需的设置",
+    "REQUISITES_SECTION": "使用要求",
+    "THEME": "主题",
+    "THEME_SYSTEM": "系统",
+    "THEME_LIGHT": "自然亮色",
+    "THEME_DARK": "经典暗色",
+    "THEME_WARM_READING": "暖色阅读",
+    "THEME_POP_ROSE": "玫瑰粉",
+    "THEME_NOCTURNE_VIOLET": "夜曲紫",
+    "THEME_OBSIDIAN_RED": "黑曜红",
+    "THEME_TERMINAL_GREEN": "终端绿",
+    "THEME_MINT_FRESH": "薄荷清新",
+    "THEME_SILVER_TECH": "银色",
+    "THEME_GOLD_LUXE": "金色",
+    "TITLE": "设置",
+    "VIEW_TOUR": "查看导览"
+  },
+  "TABS": {
+    "COVERS": "封面",
+    "CREATE": "创建",
+    "SETTINGS": "设置"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "推荐",
+      "INFO": "信息",
+      "APPS": "应用",
+      "GUIDE": "指南"
+    }
+  }
+}

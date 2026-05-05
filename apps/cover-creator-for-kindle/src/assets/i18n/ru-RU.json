@@ -1,0 +1,309 @@
+{
+  "APP": {
+    "TITLE": "Cover Creator for Kindle"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "Нажмите ещё раз для выхода",
+    "CANCEL": "Отмена",
+    "CLOSE": "Закрыть",
+    "DELETE": "Удалить",
+    "DONE": "Готово",
+    "ERROR": "Ошибка",
+    "LOADING": "Загрузка…",
+    "BILLING_UNAVAILABLE": "Покупки временно недоступны.",
+    "PURCHASE_ERROR": "Не удалось завершить покупку. Попробуйте ещё раз.",
+    "REMOVE_ADS_BUY": "Купить",
+    "REMOVE_ADS_DESCRIPTION": "Уберите рекламу навсегда одним платежом.",
+    "REMOVE_ADS_PURCHASED": "Реклама убрана навсегда.",
+    "REMOVE_ADS_RESTORE": "Восстановить покупку",
+    "REMOVE_ADS_RESTORED": "Покупка успешно восстановлена.",
+    "REMOVE_ADS_TITLE": "Убрать рекламу",
+    "REMOVE_ADS_CTA_TITLE": "Убрать рекламу",
+    "REMOVE_ADS_CTA_SUBTITLE": "Разовый платёж • Навсегда",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Разовый платёж • {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "Цена: {{price}} • Без подписки",
+    "RESTORE_ERROR": "Не удалось восстановить покупку. Попробуйте ещё раз.",
+    "WATCH_AD_SUBTITLE": "Смотреть рекламу",
+    "SHARE": "Поделиться",
+    "SHARE_KINDLE_HINT": "При отправке выберите приложение Kindle, чтобы передать файл на устройство.",
+    "WARNING": "Предупреждение"
+  },
+  "CREATE": {
+    "ADS_REQUIRED": "Не удалось загрузить рекламу. Проверьте сеть или блокировщик рекламы.",
+    "ARIA_CHANGE_IMAGE": "Изменить изображение обложки. Текущее изображение: {{name}}",
+    "ARIA_CROP": "Настроить выбранное изображение",
+    "ARIA_SELECT_IMAGE": "Выбрать изображение обложки",
+    "ARIA_SELECT_MODEL": "Выбрать модель устройства",
+    "CROP_ACTION": "Настроить",
+    "COVER_CREATED": "Обложка создана. Теперь можно сохранить или поделиться",
+    "CREATE_ACTION": "Создать обложку",
+    "CREATE_ACTION_REWARDED": "Создать обложку (смотреть рекламу)",
+    "GENERATING": "Создание обложки…",
+    "HINT_SAVE_SHARE_EXPLAIN": "Создание обложки не сохраняет её автоматически.",
+    "INFO": "Информация",
+    "INFO_ARIA": "Информация о создании обложки",
+    "INFO_TITLE": "Информация",
+    "INFO_SEND_TITLE": "Отправить на Kindle",
+    "INFO_SHARE_KINDLE": "Чтобы отправить на Kindle, выберите приложение Kindle при публикации.",
+    "INFO_FLOW_LABEL": "Рекомендуемый порядок:",
+    "INFO_STEP_1": "Выберите изображение.",
+    "INFO_STEP_2": "Настройте изображение в редакторе и нажмите «Готово» для применения.",
+    "INFO_STEP_3": "Создайте обложку после применения настройки.",
+    "INFO_STEP_4": "Сохраните или поделитесь.",
+    "INFO_NOTE_LABEL": "Примечание:",
+    "IMAGE_ERROR_CORRUPT": "Не удалось прочитать изображение. Попробуйте другое.",
+    "IMAGE_ERROR_SIZE": "Файл слишком большой. Максимум {{maxSize}} МБ.",
+    "IMAGE_ERROR_TYPE": "Неподдерживаемый формат ({{type}}). Выберите JPG, PNG или WebP.",
+    "IMAGE_WARN_SMALL": "Разрешение изображения ниже, чем у выбранной модели Kindle. Для лучшего результата используйте изображение большего размера.",
+    "LOADING_IMAGE": "Загрузка изображения…",
+    "OPENING_EDITOR": "Открытие редактора…",
+    "SAVING": "Сохранение обложки…",
+    "SAVE_ACTION": "Сохранить",
+    "SAVED_OK": "Обложка сохранена",
+    "SAVE_RENAME_TITLE": "Сохранить обложку",
+    "SAVE_RENAME_MESSAGE": "Введите название для обложки",
+    "SAVE_RENAME_PLACEHOLDER": "Имя файла",
+    "SELECT_IMAGE_LABEL": "Изображение обложки",
+    "SELECT_IMAGE_PLACEHOLDER": "Выберите изображение",
+    "SELECT_BRAND_LABEL": "Бренд",
+    "SELECT_BRAND_PLACEHOLDER": "Выберите бренд",
+    "SELECT_GROUP_LABEL": "Группа",
+    "SELECT_GROUP_PLACEHOLDER": "Выберите группу",
+    "SELECT_GENERATION_LABEL": "Модель",
+    "SELECT_GENERATION_PLACEHOLDER": "Выберите модель",
+    "SELECT_MODEL_LABEL": "Модель устройства",
+    "SELECT_MODEL_PLACEHOLDER": "Выберите устройство",
+    "TAP_TO_CHANGE": "Нажмите для замены/сброса",
+    "TITLE": "Создать обложку",
+    "MODEL_PICKER": {
+      "TITLE": "Выберите Kindle"
+    },
+    "INFO_REQUIREMENTS_LABEL": "Требования:",
+    "INFO_REQUIREMENT_DISABLE_ADS": "Отключите рекламу на Kindle.",
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Включите «Экран и яркость > Показывать обложки на экране блокировки» на Kindle."
+  },
+  "COVERS": {
+    "DELETED": "Обложка удалена",
+    "EMPTY": "Обложек пока нет.",
+    "GETTING_COVER": "Получение обложки",
+    "LOADING_PREVIEW": "Загрузка предпросмотра...",
+    "PLACEHOLDER": "Обложка",
+    "PREVIEW_TITLE": "Предпросмотр",
+    "TITLE": "Обложки",
+    "ACTIONS": {
+      "DELETE": "Удалить",
+      "SHARE": "Поделиться"
+    },
+    "DELETE": {
+      "MESSAGE": "Удалить эту обложку?",
+      "TITLE": "Удалить обложку"
+    },
+    "ERROR": {
+      "DELETE": "Не удалось удалить обложку. Попробуйте ещё раз.",
+      "LOAD": "Не удалось загрузить обложки. Потяните вниз для обновления.",
+      "PREVIEW": "Не удалось загрузить предпросмотр. Попробуйте ещё раз.",
+      "SHARE": "Не удалось поделиться обложкой. Попробуйте ещё раз."
+    }
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "Примечание",
+    "STEP_1": "Выберите изображение для обложки",
+    "STEP_2": "Настройте изображение в редакторе и нажмите «Готово» для применения",
+    "STEP_3": "Создайте обложку после применения настройки",
+    "STEP_4": "Сохраните или поделитесь обложкой",
+    "STEP_4_DESC": "После готовности сохраните файл на устройстве или поделитесь через приложение Kindle для удобной передачи.",
+    "STEP_5": "Отправить через веб (Send to Kindle)",
+    "STEP_5_DESC": "Также можно отправить файл из браузера с помощью веб-инструмента Send to Kindle.",
+    "TIP": "Для наилучшего результата используйте изображения высокого разрешения и убедитесь, что реклама отключена на Kindle.",
+    "TITLE": "Инструкция"
+  },
+  "KINDLE_BRANDS": {
+    "KINDLE": "Kindle"
+  },
+  "KINDLE_GROUPS": {
+    "BASIC": "Basic",
+    "OASIS": "Oasis",
+    "PAPERWHITE": "Paperwhite",
+    "PAPERWHITE_SIGNATURE": "Paperwhite Signature",
+    "SCRIBE": "Scribe",
+    "VOYAGE": "Voyage",
+    "COLORSOFT": "Colorsoft",
+    "COLORSOFT_SIGNATURE": "Colorsoft Signature"
+  },
+  "KINDLE_MODELS": {
+    "BASIC_2010_2019": "Kindle Basic (2010-2019)",
+    "BASIC_2022_2024": "Kindle Basic (2022-2024)",
+    "OASIS_2016": "Kindle Oasis (2016)",
+    "OASIS_2017_2019": "Kindle Oasis (2017-2019)",
+    "PAPERWHITE_2012_2013": "Kindle Paperwhite (2012-2013)",
+    "PAPERWHITE_2015_2019": "Kindle Paperwhite (2015-2019)",
+    "PAPERWHITE_2021": "Kindle Paperwhite (2021)",
+    "PAPERWHITE_2024": "Kindle Paperwhite (2024)",
+    "PAPERWHITE_SIGNATURE_2021": "Kindle Paperwhite Signature Edition (2021)",
+    "PAPERWHITE_SIGNATURE_2024": "Kindle Paperwhite Signature Edition (2024)",
+    "SCRIBE_2022_2024": "Kindle Scribe (2022-2024)",
+    "VOYAGE_2014": "Kindle Voyage (2014)",
+    "COLORSOFT": "2025",
+    "COLORSOFT_SIGNATURE_EDITION": "2024"
+  },
+  "KOBO_BRANDS": {
+    "KOBO": "Kobo"
+  },
+  "KOBO_GROUPS": {
+    "CLARA": "Clara",
+    "ELIPSA": "Elipsa",
+    "LIBRA": "Libra",
+    "NIA": "Nia",
+    "SAGE": "Sage"
+  },
+  "KOBO_MODELS": {
+    "CLARA_ALL": "Kobo Clara (HD / 2E / BW / Colour)",
+    "ELIPSA_ALL": "Kobo Elipsa (Elipsa / 2E)",
+    "LIBRA_ALL": "Kobo Libra (H2O / 2 / Colour)",
+    "NIA": "Kobo Nia",
+    "SAGE": "Kobo Sage"
+  },
+  "NOOK_BRANDS": {
+    "NOOK": "Nook"
+  },
+  "NOOK_GROUPS": {
+    "GLOWLIGHT": "GlowLight"
+  },
+  "NOOK_MODELS": {
+    "GLOWLIGHT_2013_2015": "Nook GlowLight (2013-2015)",
+    "GLOWLIGHT_2019_2023": "Nook GlowLight (2019-2023)"
+  },
+  "POCKETBOOK_BRANDS": {
+    "POCKETBOOK": "PocketBook"
+  },
+  "POCKETBOOK_GROUPS": {
+    "ERA": "Era",
+    "INKPAD": "InkPad",
+    "VERSE": "Verse"
+  },
+  "POCKETBOOK_MODELS": {
+    "ERA": "PocketBook Era",
+    "INKPAD_ALL": "PocketBook InkPad (All models)",
+    "VERSE": "PocketBook Verse",
+    "VERSE_PRO": "PocketBook Verse Pro"
+  },
+  "TOLINO_BRANDS": {
+    "TOLINO": "Tolino"
+  },
+  "TOLINO_GROUPS": {
+    "SHINE": "Shine",
+    "VISION": "Vision"
+  },
+  "TOLINO_MODELS": {
+    "SHINE_2014_2018": "Tolino Shine (2014-2018)",
+    "SHINE_HD": "Tolino Shine HD",
+    "VISION_2015_2018": "Tolino Vision (2015-2018)",
+    "VISION_2021_2024": "Tolino Vision (2021-2024)"
+  },
+  "REQUISITES": {
+    "ADS_DESC": "Для отображения обложки на экране блокировки реклама на устройстве должна быть отключена.",
+    "ADS_LINK": "Управление рекламой устройства",
+    "ADS_TITLE": "Реклама отключена",
+    "APP_ANDROID": "Приложение Kindle (Android)",
+    "APP_DESC": "Приложение Kindle необходимо для отправки и просмотра обложки на устройстве.",
+    "APP_IOS": "Приложение Kindle (iOS)",
+    "APP_TITLE": "Приложение Kindle",
+    "COVER_DESC": "Включите опцию отображения обложки текущей книги на экране блокировки.",
+    "COVER_LINK": "Настроить отображение обложки",
+    "COVER_TITLE": "Показывать обложку книги",
+    "NOTE": "Cover Creator for Kindle — неофициальное приложение и не изменяет программное обеспечение устройства.",
+    "SEND_LINK": "Send to Kindle (веб)",
+    "SEND_TITLE": "Отправить обложки через веб",
+    "TITLE": "Требования"
+  },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "Назад",
+      "FINISH": "Завершить",
+      "INTERACT_HINT": "Нажмите на выделенный элемент, чтобы продолжить.",
+      "NEXT": "Далее",
+      "PROGRESS": "{{current}} из {{total}}",
+      "SKIP": "Пропустить"
+    },
+    "STEPS": {
+      "DEVICE": {
+        "TITLE": "Устройство",
+        "DESCRIPTION": "Сначала выберите устройство.\nЭто обеспечит создание обложки с правильным разрешением."
+      },
+      "BRAND": {
+        "TITLE": "Бренд",
+        "DESCRIPTION": "Выберите бренд вашего ридера."
+      },
+      "GROUP": {
+        "TITLE": "Группа",
+        "DESCRIPTION": "Выберите серию устройства."
+      },
+      "MODEL": {
+        "TITLE": "Модель",
+        "DESCRIPTION": "Выберите точную модель."
+      },
+      "IMAGE": {
+        "TITLE": "Изображение обложки",
+        "DESCRIPTION": "Выберите изображение для обложки."
+      },
+      "ADJUST": {
+        "TITLE": "Настроить",
+        "DESCRIPTION": "Настройте изображение в редакторе и нажмите «Готово»."
+      },
+      "CREATE": {
+        "TITLE": "Создать обложку",
+        "DESCRIPTION": "Создайте обложку здесь."
+      },
+      "RESULTS": {
+        "TITLE": "Сохранить или поделиться",
+        "DESCRIPTION": "Сохраните или поделитесь обложкой."
+      },
+      "DONE": {
+        "TITLE": "Всё готово",
+        "DESCRIPTION": "Готово.\nТеперь вы знаете, как создавать обложки с помощью CCFK."
+      }
+    }
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "Посмотреть инструкцию",
+    "INSTRUCTIONS_HINT": "Как создать и отправить обложку для Kindle",
+    "INSTRUCTIONS_SECTION": "Инструкция",
+    "LANGUAGE": "Язык",
+    "LANGUAGE_RESTART_NOTICE": "Язык изменён. Приложение перезапустится для применения изменений.",
+    "LANGUAGE_PREPARING_COUNTDOWN": "Подготовка на вашем языке ({{count}})",
+    "PRIVACY_HINT": "Управляйте обработкой данных и рекламы",
+    "PRIVACY_OPTIONS": "Настройки конфиденциальности",
+    "PRIVACY_POLICY": "Политика конфиденциальности",
+    "PRIVACY_SECTION": "Конфиденциальность",
+    "REQUISITES": "Посмотреть требования",
+    "REQUISITES_HINT": "Необходимые настройки для правильной работы обложек на Kindle",
+    "REQUISITES_SECTION": "Требования",
+    "THEME": "Тема",
+    "THEME_SYSTEM": "Системная",
+    "THEME_LIGHT": "Естественный свет",
+    "THEME_DARK": "Классическая тёмная",
+    "THEME_WARM_READING": "Тёплое чтение",
+    "THEME_POP_ROSE": "Поп-роуз",
+    "THEME_NOCTURNE_VIOLET": "Ночной фиолетовый",
+    "THEME_OBSIDIAN_RED": "Обсидиановый красный",
+    "THEME_TERMINAL_GREEN": "Терминальный зелёный",
+    "THEME_MINT_FRESH": "Мятная свежесть",
+    "THEME_SILVER_TECH": "Серебряный",
+    "THEME_GOLD_LUXE": "Золотой",
+    "TITLE": "Настройки",
+    "VIEW_TOUR": "Смотреть тур"
+  },
+  "TABS": {
+    "COVERS": "Обложки",
+    "CREATE": "Создать",
+    "SETTINGS": "Настройки"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "Рекомендуем",
+      "INFO": "Информация",
+      "APPS": "Приложения",
+      "GUIDE": "Гид"
+    }
+  }
+}

@@ -1,0 +1,309 @@
+{
+  "APP": {
+    "TITLE": "Cover Creator for Kindle"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "もう一度戻るで終了",
+    "CANCEL": "キャンセル",
+    "CLOSE": "閉じる",
+    "DELETE": "削除",
+    "DONE": "完了",
+    "ERROR": "エラー",
+    "LOADING": "読み込み中…",
+    "BILLING_UNAVAILABLE": "現在、購入できません。",
+    "PURCHASE_ERROR": "購入を完了できませんでした。もう一度お試しください。",
+    "REMOVE_ADS_BUY": "購入",
+    "REMOVE_ADS_DESCRIPTION": "一度の支払いで広告を永久に削除します。",
+    "REMOVE_ADS_PURCHASED": "広告を永久に削除しました。",
+    "REMOVE_ADS_RESTORE": "購入を復元",
+    "REMOVE_ADS_RESTORED": "購入を正常に復元しました。",
+    "REMOVE_ADS_TITLE": "広告を削除",
+    "REMOVE_ADS_CTA_TITLE": "広告を削除",
+    "REMOVE_ADS_CTA_SUBTITLE": "一回払い • 永久有効",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "一回払い • {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "価格: {{price}} • サブスクなし",
+    "RESTORE_ERROR": "購入を復元できませんでした。もう一度お試しください。",
+    "WATCH_AD_SUBTITLE": "広告を見る",
+    "SHARE": "共有",
+    "SHARE_KINDLE_HINT": "共有時に Kindle アプリを選択してデバイスに送信してください。",
+    "WARNING": "警告"
+  },
+  "CREATE": {
+    "ADS_REQUIRED": "広告を読み込めませんでした。ネットワークまたは広告ブロッカーを確認してください。",
+    "ARIA_CHANGE_IMAGE": "表紙画像を変更。現在の画像: {{name}}",
+    "ARIA_CROP": "選択した画像を調整",
+    "ARIA_SELECT_IMAGE": "表紙画像を選択",
+    "ARIA_SELECT_MODEL": "デバイスモデルを選択",
+    "CROP_ACTION": "調整",
+    "COVER_CREATED": "表紙を作成しました。保存または共有できます",
+    "CREATE_ACTION": "表紙を作成",
+    "CREATE_ACTION_REWARDED": "表紙を作成（広告を見る）",
+    "GENERATING": "表紙を生成中…",
+    "HINT_SAVE_SHARE_EXPLAIN": "表紙の作成は自動的に保存されません。",
+    "INFO": "情報",
+    "INFO_ARIA": "表紙作成に関する情報",
+    "INFO_TITLE": "情報",
+    "INFO_SEND_TITLE": "Kindleに送信",
+    "INFO_SHARE_KINDLE": "Kindleに送信するには、共有時にKindleアプリを選択してください。",
+    "INFO_FLOW_LABEL": "推奨される手順:",
+    "INFO_STEP_1": "画像を選択してください。",
+    "INFO_STEP_2": "エディタで画像を調整し、完了をタップして適用してください。",
+    "INFO_STEP_3": "調整が適用された後に表紙を作成してください。",
+    "INFO_STEP_4": "保存または共有してください。",
+    "INFO_NOTE_LABEL": "注意:",
+    "IMAGE_ERROR_CORRUPT": "画像を読み込めませんでした。別の画像をお試しください。",
+    "IMAGE_ERROR_SIZE": "ファイルが大きすぎます。最大 {{maxSize}} MB。",
+    "IMAGE_ERROR_TYPE": "非対応の形式 ({{type}})。JPG、PNG、または WebP を選択してください。",
+    "IMAGE_WARN_SMALL": "画像の解像度が選択したKindleモデルより低くなっています。より良い結果を得るには、大きな画像を使用してください。",
+    "LOADING_IMAGE": "画像を読み込み中…",
+    "OPENING_EDITOR": "エディタを開いています…",
+    "SAVING": "表紙を保存中…",
+    "SAVE_ACTION": "保存",
+    "SAVED_OK": "表紙を保存しました",
+    "SAVE_RENAME_TITLE": "表紙を保存",
+    "SAVE_RENAME_MESSAGE": "表紙の名前を入力してください",
+    "SAVE_RENAME_PLACEHOLDER": "ファイル名",
+    "SELECT_IMAGE_LABEL": "表紙画像",
+    "SELECT_IMAGE_PLACEHOLDER": "画像を選択",
+    "SELECT_BRAND_LABEL": "ブランド",
+    "SELECT_BRAND_PLACEHOLDER": "ブランドを選択",
+    "SELECT_GROUP_LABEL": "グループ",
+    "SELECT_GROUP_PLACEHOLDER": "グループを選択",
+    "SELECT_GENERATION_LABEL": "モデル",
+    "SELECT_GENERATION_PLACEHOLDER": "モデルを選択",
+    "SELECT_MODEL_LABEL": "デバイスモデル",
+    "SELECT_MODEL_PLACEHOLDER": "デバイスを選択",
+    "TAP_TO_CHANGE": "タップして変更/リセット",
+    "TITLE": "表紙を作成",
+    "MODEL_PICKER": {
+      "TITLE": "Kindleを選択"
+    },
+    "INFO_REQUIREMENTS_LABEL": "必要条件:",
+    "INFO_REQUIREMENT_DISABLE_ADS": "Kindleで広告を無効にしてください。",
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Kindleで「画面と明るさ > ロック画面に表紙を表示」を有効にしてください。"
+  },
+  "COVERS": {
+    "DELETED": "表紙を削除しました",
+    "EMPTY": "まだ表紙がありません。",
+    "GETTING_COVER": "表紙を取得中",
+    "LOADING_PREVIEW": "プレビューを読み込み中...",
+    "PLACEHOLDER": "表紙",
+    "PREVIEW_TITLE": "プレビュー",
+    "TITLE": "表紙",
+    "ACTIONS": {
+      "DELETE": "削除",
+      "SHARE": "共有"
+    },
+    "DELETE": {
+      "MESSAGE": "この表紙を削除しますか？",
+      "TITLE": "表紙を削除"
+    },
+    "ERROR": {
+      "DELETE": "表紙を削除できませんでした。もう一度お試しください。",
+      "LOAD": "表紙を読み込めませんでした。下に引っ張って更新してください。",
+      "PREVIEW": "プレビューを読み込めませんでした。もう一度お試しください。",
+      "SHARE": "表紙を共有できませんでした。もう一度お試しください。"
+    }
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "注意",
+    "STEP_1": "表紙用の画像を選択します",
+    "STEP_2": "エディタで画像を調整し、完了をタップして適用します",
+    "STEP_3": "調整が適用された後に表紙を作成します",
+    "STEP_4": "表紙を保存または共有します",
+    "STEP_4_DESC": "準備ができたら、デバイスに保存するか、よりスムーズな操作のためにKindleアプリで共有できます。",
+    "STEP_5": "ウェブ経由で送信（Send to Kindle）",
+    "STEP_5_DESC": "ブラウザからSend to KindleウェブツールでEPUBを送信することもできます。",
+    "TIP": "最良の結果を得るには、高解像度の画像を使用し、Kindleで広告を無効にしてください。",
+    "TITLE": "使い方"
+  },
+  "KINDLE_BRANDS": {
+    "KINDLE": "Kindle"
+  },
+  "KINDLE_GROUPS": {
+    "BASIC": "Basic",
+    "OASIS": "Oasis",
+    "PAPERWHITE": "Paperwhite",
+    "PAPERWHITE_SIGNATURE": "Paperwhite Signature",
+    "SCRIBE": "Scribe",
+    "VOYAGE": "Voyage",
+    "COLORSOFT": "Colorsoft",
+    "COLORSOFT_SIGNATURE": "Colorsoft Signature"
+  },
+  "KINDLE_MODELS": {
+    "BASIC_2010_2019": "Kindle Basic (2010-2019)",
+    "BASIC_2022_2024": "Kindle Basic (2022-2024)",
+    "OASIS_2016": "Kindle Oasis (2016)",
+    "OASIS_2017_2019": "Kindle Oasis (2017-2019)",
+    "PAPERWHITE_2012_2013": "Kindle Paperwhite (2012-2013)",
+    "PAPERWHITE_2015_2019": "Kindle Paperwhite (2015-2019)",
+    "PAPERWHITE_2021": "Kindle Paperwhite (2021)",
+    "PAPERWHITE_2024": "Kindle Paperwhite (2024)",
+    "PAPERWHITE_SIGNATURE_2021": "Kindle Paperwhite Signature Edition (2021)",
+    "PAPERWHITE_SIGNATURE_2024": "Kindle Paperwhite Signature Edition (2024)",
+    "SCRIBE_2022_2024": "Kindle Scribe (2022-2024)",
+    "VOYAGE_2014": "Kindle Voyage (2014)",
+    "COLORSOFT": "2025",
+    "COLORSOFT_SIGNATURE_EDITION": "2024"
+  },
+  "KOBO_BRANDS": {
+    "KOBO": "Kobo"
+  },
+  "KOBO_GROUPS": {
+    "CLARA": "Clara",
+    "ELIPSA": "Elipsa",
+    "LIBRA": "Libra",
+    "NIA": "Nia",
+    "SAGE": "Sage"
+  },
+  "KOBO_MODELS": {
+    "CLARA_ALL": "Kobo Clara (HD / 2E / BW / Colour)",
+    "ELIPSA_ALL": "Kobo Elipsa (Elipsa / 2E)",
+    "LIBRA_ALL": "Kobo Libra (H2O / 2 / Colour)",
+    "NIA": "Kobo Nia",
+    "SAGE": "Kobo Sage"
+  },
+  "NOOK_BRANDS": {
+    "NOOK": "Nook"
+  },
+  "NOOK_GROUPS": {
+    "GLOWLIGHT": "GlowLight"
+  },
+  "NOOK_MODELS": {
+    "GLOWLIGHT_2013_2015": "Nook GlowLight (2013-2015)",
+    "GLOWLIGHT_2019_2023": "Nook GlowLight (2019-2023)"
+  },
+  "POCKETBOOK_BRANDS": {
+    "POCKETBOOK": "PocketBook"
+  },
+  "POCKETBOOK_GROUPS": {
+    "ERA": "Era",
+    "INKPAD": "InkPad",
+    "VERSE": "Verse"
+  },
+  "POCKETBOOK_MODELS": {
+    "ERA": "PocketBook Era",
+    "INKPAD_ALL": "PocketBook InkPad (All models)",
+    "VERSE": "PocketBook Verse",
+    "VERSE_PRO": "PocketBook Verse Pro"
+  },
+  "TOLINO_BRANDS": {
+    "TOLINO": "Tolino"
+  },
+  "TOLINO_GROUPS": {
+    "SHINE": "Shine",
+    "VISION": "Vision"
+  },
+  "TOLINO_MODELS": {
+    "SHINE_2014_2018": "Tolino Shine (2014-2018)",
+    "SHINE_HD": "Tolino Shine HD",
+    "VISION_2015_2018": "Tolino Vision (2015-2018)",
+    "VISION_2021_2024": "Tolino Vision (2021-2024)"
+  },
+  "REQUISITES": {
+    "ADS_DESC": "ロック画面に表紙を表示するには、デバイスの広告を無効にする必要があります。",
+    "ADS_LINK": "デバイスの広告を管理",
+    "ADS_TITLE": "広告が無効",
+    "APP_ANDROID": "Kindleアプリ（Android）",
+    "APP_DESC": "デバイスに表紙を送信して表示するにはKindleアプリが必要です。",
+    "APP_IOS": "Kindleアプリ（iOS）",
+    "APP_TITLE": "Kindleアプリ",
+    "COVER_DESC": "ロック画面に現在の本の表紙を表示するオプションを有効にしてください。",
+    "COVER_LINK": "表紙表示を設定",
+    "COVER_TITLE": "本の表紙を表示",
+    "NOTE": "Cover Creator for Kindleは公式アプリではなく、デバイスのソフトウェアを変更しません。",
+    "SEND_LINK": "Send to Kindle（ウェブ）",
+    "SEND_TITLE": "ウェブ経由で表紙を送信",
+    "TITLE": "必要条件"
+  },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "戻る",
+      "FINISH": "完了",
+      "INTERACT_HINT": "ハイライトされた要素を操作して続けてください。",
+      "NEXT": "次へ",
+      "PROGRESS": "{{current}} / {{total}}",
+      "SKIP": "スキップ"
+    },
+    "STEPS": {
+      "DEVICE": {
+        "TITLE": "デバイス",
+        "DESCRIPTION": "まず、デバイスを選択してください。\nこれにより、正しい解像度で表紙が作成されます。"
+      },
+      "BRAND": {
+        "TITLE": "ブランド",
+        "DESCRIPTION": "eReaderのブランドを選択してください。"
+      },
+      "GROUP": {
+        "TITLE": "グループ",
+        "DESCRIPTION": "デバイスのシリーズを選択してください。"
+      },
+      "MODEL": {
+        "TITLE": "モデル",
+        "DESCRIPTION": "正確なモデルを選択してください。"
+      },
+      "IMAGE": {
+        "TITLE": "表紙画像",
+        "DESCRIPTION": "表紙に使用する画像を選択してください。"
+      },
+      "ADJUST": {
+        "TITLE": "調整",
+        "DESCRIPTION": "エディタで画像を調整し、完了をタップしてください。"
+      },
+      "CREATE": {
+        "TITLE": "表紙を作成",
+        "DESCRIPTION": "ここで表紙を生成します。"
+      },
+      "RESULTS": {
+        "TITLE": "保存または共有",
+        "DESCRIPTION": "表紙を保存または共有してください。"
+      },
+      "DONE": {
+        "TITLE": "準備完了",
+        "DESCRIPTION": "完了です。\nCCFKで表紙を作成する方法がわかりました。"
+      }
+    }
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "使い方を見る",
+    "INSTRUCTIONS_HINT": "Kindle用の表紙を作成して送信する方法",
+    "INSTRUCTIONS_SECTION": "使い方",
+    "LANGUAGE": "言語",
+    "LANGUAGE_RESTART_NOTICE": "言語が変更されました。変更を適用するためにアプリを再起動します。",
+    "LANGUAGE_PREPARING_COUNTDOWN": "ご利用の言語で準備中 ({{count}})",
+    "PRIVACY_HINT": "データと広告の扱いを管理します",
+    "PRIVACY_OPTIONS": "プライバシー設定",
+    "PRIVACY_POLICY": "プライバシーポリシー",
+    "PRIVACY_SECTION": "プライバシー",
+    "REQUISITES": "必要条件を見る",
+    "REQUISITES_HINT": "KindleでKindleが正しく動作するための必要な設定",
+    "REQUISITES_SECTION": "必要条件",
+    "THEME": "テーマ",
+    "THEME_SYSTEM": "システム",
+    "THEME_LIGHT": "ナチュラルライト",
+    "THEME_DARK": "クラシックダーク",
+    "THEME_WARM_READING": "ウォームリーディング",
+    "THEME_POP_ROSE": "ポップローズ",
+    "THEME_NOCTURNE_VIOLET": "ノクターンバイオレット",
+    "THEME_OBSIDIAN_RED": "オブシディアンレッド",
+    "THEME_TERMINAL_GREEN": "ターミナルグリーン",
+    "THEME_MINT_FRESH": "ミントフレッシュ",
+    "THEME_SILVER_TECH": "シルバー",
+    "THEME_GOLD_LUXE": "ゴールド",
+    "TITLE": "設定",
+    "VIEW_TOUR": "ツアーを見る"
+  },
+  "TABS": {
+    "COVERS": "表紙",
+    "CREATE": "作成",
+    "SETTINGS": "設定"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "おすすめ",
+      "INFO": "情報",
+      "APPS": "アプリ",
+      "GUIDE": "ガイド"
+    }
+  }
+}

@@ -39,30 +39,55 @@ bootstrapApplication(AppComponent, {
     provideRouter(routes),
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
 
-    provideI18nKit({
-      defaultLang: 'en-US',
-      fallbackLang: 'en-US',
-      supportedLangs: ['es-MX', 'en-US', 'de-DE', 'fr-FR', 'it-IT', 'pt-BR'],
-      loader: {
-        prefix: './assets/i18n/',
-        suffix: '.json',
+    provideI18nKit(
+      {
+        defaultLang: 'en-US',
+        fallbackLang: 'en-US',
+        supportedLangs: [
+          'es-MX',
+          'en-US',
+          'de-DE',
+          'fr-FR',
+          'it-IT',
+          'pt-BR',
+          'ar-SA',
+          'hi-IN',
+          'ja-JP',
+          'ko-KR',
+          'ru-RU',
+          'zh-CN',
+          'zh-TW',
+        ],
+        loader: {
+          prefix: './assets/i18n/',
+          suffix: '.json',
+        },
+        normalizationMap: {
+          es: 'es-MX',
+          en: 'en-US',
+          de: 'de-DE',
+          fr: 'fr-FR',
+          it: 'it-IT',
+          pt: 'pt-BR',
+          pr: 'pt-BR',
+          ar: 'ar-SA',
+          hi: 'hi-IN',
+          ja: 'ja-JP',
+          ko: 'ko-KR',
+          ru: 'ru-RU',
+          zh: 'zh-CN',
+          'zh-TW': 'zh-TW',
+        },
       },
-      normalizationMap: {
-        es: 'es-MX',
-        en: 'en-US',
-        de: 'de-DE',
-        fr: 'fr-FR',
-        it: 'it-IT',
-        pt: 'pt-BR',
-        pr: 'pt-BR',
-      },
-    }, new MemoryStorageAdapter()),
+      new MemoryStorageAdapter(),
+    ),
     provideEditorI18n(),
     {
       provide: EDITOR_I18N_OVERRIDES,
       useValue: {
         'es-MX': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'Modelo (Resolución)',
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
+            'Modelo (Resolución)',
         },
         'en-US': {
           'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'Model (Resolution)',
@@ -71,13 +96,36 @@ bootstrapApplication(AppComponent, {
           'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'Modell (Auflösung)',
         },
         'fr-FR': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'Modèle (Résolution)',
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
+            'Modèle (Résolution)',
         },
         'it-IT': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'Modello (Risoluzione)',
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
+            'Modello (Risoluzione)',
         },
         'pt-BR': {
           'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'Modelo (Resolução)',
+        },
+        'ar-SA': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'الطراز (الدقة)',
+        },
+        'hi-IN': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'मॉडल (रिज़ॉल्यूशन)',
+        },
+        'ja-JP': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'モデル（解像度）',
+        },
+        'ko-KR': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': '모델 (해상도)',
+        },
+        'ru-RU': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'Модель (Разрешение)',
+        },
+        'zh-CN': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': '型号（分辨率）',
+        },
+        'zh-TW': {
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': '型號（解析度）',
         },
       },
     },
