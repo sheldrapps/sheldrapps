@@ -9,8 +9,8 @@ android {
         applicationId "com.sheldrapps.epubcoverchanger"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 30
-        versionName "New languages support"
+        versionCode 31
+        versionName "Avoid crash en billing service"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

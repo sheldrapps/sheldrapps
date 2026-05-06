@@ -20,11 +20,12 @@ type BillingRuntimeState =
 @Injectable({ providedIn: 'root' })
 export class BillingService {
   private initPromise: Promise<void> | null = null;
+  private hydrateCachedStatePromise: Promise<void> | null = null;
   private operationQueue: Promise<void> = Promise.resolve();
   private refreshRetryHandle: ReturnType<typeof setTimeout> | null = null;
+  private hasHydratedCachedState = false;
   private isReady = false;
   private state: BillingRuntimeState = 'idle';
-  private postBootstrapSyncScheduled = false;
   private billingAvailable = false;
   private hasRemoveAdsEntitlement = false;
   private removeAdsPriceFormatted: string | null = null;
@@ -56,6 +57,30 @@ export class BillingService {
     });
   }
 
+  async hydrateCachedState(): Promise<void> {
+    if (this.hasHydratedCachedState) {
+      return;
+    }
+
+    if (this.hydrateCachedStatePromise) {
+      return this.hydrateCachedStatePromise;
+    }
+
+    this.hydrateCachedStatePromise = this.readCachedEntitlement()
+      .then((cachedEntitlement) => {
+        this.setEntitlement(cachedEntitlement);
+        this.hasHydratedCachedState = true;
+      })
+      .catch((error) => {
+        this.logDebug('load cached entitlement failed', error);
+      })
+      .finally(() => {
+        this.hydrateCachedStatePromise = null;
+      });
+
+    return this.hydrateCachedStatePromise;
+  }
+
   async initialize(): Promise<void> {
     if (this.isReady && this.state === 'ready') return;
     if (this.initPromise) return this.initPromise;
@@ -79,6 +104,17 @@ export class BillingService {
       });
 
     return this.initPromise;
+  }
+
+  async preparePurchaseUi(): Promise<void> {
+    await this.enqueue(async () => {
+      await this.ensureReady();
+      if (!this.canRunBillingOperations()) {
+        return;
+      }
+
+      await this.performEntitlementRefresh();
+    });
   }
 
   async purchaseRemoveAds(): Promise<boolean> {
@@ -152,16 +188,6 @@ export class BillingService {
     });
   }
 
-  startPostBootstrapSync(): void {
-    if (this.postBootstrapSyncScheduled) {
-      return;
-    }
-
-    this.postBootstrapSyncScheduled = true;
-    void this.loadProductsSafe();
-    void this.restorePurchasesSafe();
-  }
-
   isAdsRemoved(): boolean {
     return this.hasRemoveAdsEntitlement;
   }
@@ -188,8 +214,8 @@ export class BillingService {
   }
 
   private async doInitialize(): Promise<void> {
-    const cachedEntitlement = await this.readCachedEntitlement();
-    this.setEntitlement(cachedEntitlement);
+    await this.hydrateCachedState();
+    const cachedEntitlement = this.hasRemoveAdsEntitlement;
 
     if (!this.isBillingSupportedByPlatform() || !this.removeAdsProductId) {
       this.state = 'unavailable';
@@ -230,6 +256,7 @@ export class BillingService {
   }
 
   private async ensureReady(): Promise<void> {
+    await this.hydrateCachedState();
     if (this.isReady) {
       return;
     }

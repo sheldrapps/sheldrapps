@@ -264,7 +264,7 @@ export class CreatePage implements OnInit, OnDestroy {
       window.addEventListener('online', this.onlineHandler);
       window.addEventListener('offline', this.offlineHandler);
     }
-    await this.billing.initializeSafe();
+    await this.billing.hydrateCachedState();
     this.adsRemoved = this.billing.isAdsRemoved();
     this.adsRemovedSub = this.billing.adsRemoved$.subscribe((value) => {
       const tierChanged = this.adsRemoved !== value;
@@ -949,14 +949,30 @@ export class CreatePage implements OnInit, OnDestroy {
     console.info(`[CCFK:remove-ads] ${eventName}${suffix}`);
   }
 
-  openPurchaseModal(): void {
+  async openPurchaseModal(): Promise<void> {
     if (!this.canShowRemoveAdsEntryPoint()) {
+      return;
+    }
+
+    if (this.purchaseBusy) {
       return;
     }
 
     this.trackRemoveAdsEvent('remove_ads_cta_click', {
       price: this.removeAdsPriceFormatted,
     });
+
+    this.purchaseBusy = true;
+    try {
+      await this.billing.preparePurchaseUi();
+    } finally {
+      this.purchaseBusy = false;
+    }
+
+    if (!this.canShowRemoveAdsEntryPoint()) {
+      return;
+    }
+
     this.trackRemoveAdsEvent('remove_ads_modal_open', {
       price: this.removeAdsPriceFormatted,
     });

@@ -2,7 +2,6 @@ import { Component, OnDestroy, inject } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { Title } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
-import { BillingService } from '@sheldrapps/ads-kit';
 import {
   detectSupportedLocale,
   LanguageService,
@@ -26,21 +25,11 @@ export class AppComponent implements OnDestroy {
   private edgeToEdge = inject(EdgeToEdgeService);
   private theme = inject(ThemeService);
   private settings = inject(SettingsStore<EccSettings>);
-  private billing = inject(BillingService);
   private rating = inject(RatingService);
 
   private langSub?: Subscription;
 
   constructor() {
-    if (typeof globalThis.queueMicrotask === 'function') {
-      globalThis.queueMicrotask(() => {
-        this.billing.startPostBootstrapSync();
-      });
-    } else {
-      setTimeout(() => {
-        this.billing.startPostBootstrapSync();
-      }, 0);
-    }
     void this.init();
   }
 
