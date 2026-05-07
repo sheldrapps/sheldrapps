@@ -19,6 +19,7 @@ import {
   provideSettingsKit,
 } from '@sheldrapps/settings-kit';
 import { provideFileKit } from '@sheldrapps/file-kit';
+import { provideRatingKit } from '@sheldrapps/rating-kit';
 import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
 import {
   ADS_UNITS_ANDROID_PROD,
@@ -31,6 +32,8 @@ import { AppComponent } from './app/app.component';
 import { CCFK_SETTINGS_SCHEMA } from './app/settings/ccfk-settings.schema';
 
 const CCFK_SETTINGS_STORAGE_KEY = 'ccfk.settings';
+// Must match the key SettingsKitRatingStorageAdapter generates: `${storageKeyPrefix}.${appKey}`
+const CCFK_RATING_STORAGE_KEY = 'rating.cover-creator-for-kindle';
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -144,6 +147,19 @@ bootstrapApplication(AppComponent, {
     }),
 
     provideFileKit(),
+    provideRatingKit({
+      appKey: 'cover-creator-for-kindle',
+      appName: 'Cover Creator for Kindle',
+      packageName: 'com.sheldrapps.covercreatorforkindle',
+      minSuccessEvents: 2,
+      minLaunches: 2,
+      cooldownDays: 14,
+      storageAdapter: new ConfigJsonFileAdapter({
+        primaryKey: CCFK_RATING_STORAGE_KEY,
+        path: 'rating-state.json',
+        fallbackAdapter: new WebLocalStorageAdapter(),
+      }),
+    }),
     {
       provide: RECOMMENDED_APPS_CURRENT_PACKAGE,
       useValue: 'com.sheldrapps.covercreatorforkindle',

@@ -13,7 +13,7 @@
     "BILLING_UNAVAILABLE": "Покупки временно недоступны.",
     "PURCHASE_ERROR": "Не удалось завершить покупку. Попробуйте ещё раз.",
     "REMOVE_ADS_BUY": "Купить",
-    "REMOVE_ADS_DESCRIPTION": "Уберите рекламу навсегда одним платежом.",
+    "REMOVE_ADS_DESCRIPTION": "Уберите рекламу навсегда и откройте выбор между экспортом без потерь и сжатием.",
     "REMOVE_ADS_PURCHASED": "Реклама убрана навсегда.",
     "REMOVE_ADS_RESTORE": "Восстановить покупку",
     "REMOVE_ADS_RESTORED": "Покупка успешно восстановлена.",
@@ -85,7 +85,21 @@
     "INVALID_COVER_TAP_TO_CHANGE": "Недопустимая обложка, нажмите для замены",
     "TAP_TO_CHANGE": "Нажмите для замены/сброса",
     "TAP_TO_CHANGE_IMAGE": "Нажмите для замены",
-    "TITLE": "Изменить обложку"
+    "LONGPRESS_PREVIEW_HINT": "Удерживайте для предпросмотра",
+    "TITLE": "Изменить обложку",
+    "PREVIEW_ORIGINAL_LABEL": "Исходная обложка",
+    "PREVIEW_NEW_LABEL": "Новая обложка",
+    "PREVIEW_NEW_ONLY_LABEL": "Новая обложка",
+    "EXPORT_OPTIONS": {
+      "TITLE": "Качество экспорта",
+      "LOSSLESS_TITLE": "Лучшее качество",
+      "LOSSLESS_DESCRIPTION": "PNG без потерь. Сохраняет больше деталей, но EPUB может быть значительно больше.",
+      "OPTIMIZED_TITLE": "Сжатое",
+      "OPTIMIZED_DESCRIPTION": "Сжатое изображение. Отлично подходит, если обложка нужна только для миниатюр в библиотеке.",
+      "OPTIMIZED_BADGE": "Рекомендуется для миниатюр",
+      "SMALL_SOURCE_WARNING": "Исходное изображение довольно маленькое для этого кадрирования. Экспортированная обложка может выглядеть менее чёткой.",
+      "DITHERING_HINT": "Уменьшение артефактов может делать предпросмотр на экране телефона другим. Включайте это только если на финальном результате на ридере видны заметные артефакты."
+    }
   },
   "COVERS": {
     "DELETED": "EPUB удалён",
@@ -96,6 +110,7 @@
     "PREVIEW_UNAVAILABLE": "Предпросмотр недоступен.",
     "PREVIEW_TITLE": "Предпросмотр",
     "TITLE": "Мои EPUB",
+    "DITHERED_THUMBNAIL_NOTICE": "Обложки с уменьшением артефактов могут выглядеть иначе в миниатюрах. Откройте предпросмотр, чтобы увидеть более точный результат.",
     "ACTIONS": {
       "DELETE": "Удалить",
       "SHARE": "Поделиться"
@@ -109,6 +124,11 @@
       "SHARE": "Не удалось поделиться EPUB. Попробуйте ещё раз.",
       "LOAD": "Не удалось загрузить файлы EPUB. Потяните вниз для обновления.",
       "PREVIEW": "Не удалось загрузить предпросмотр. Попробуйте ещё раз."
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "Уменьшить предпросмотр ридера",
+      "ZOOM_IN_ARIA": "Увеличить предпросмотр ридера",
+      "ZOOM_RESET_ARIA": "Сбросить масштаб предпросмотра ридера"
     }
   },
   "INSTRUCTIONS": {
@@ -192,6 +212,26 @@
       "INFO": "Информация",
       "APPS": "Приложения",
       "GUIDE": "Гид"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

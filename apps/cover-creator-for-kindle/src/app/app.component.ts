@@ -3,6 +3,7 @@ import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { Title } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
 import { detectSupportedLocale, LanguageService } from '@sheldrapps/i18n-kit';
+import { RatingService } from '@sheldrapps/rating-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
 import { CcfkSettings } from './settings/ccfk-settings.schema';
@@ -24,6 +25,7 @@ export class AppComponent implements OnDestroy {
   private t = inject(TranslateService);
   private title = inject(Title);
   private theme = inject(ThemeService);
+  private rating = inject(RatingService);
 
   private navSub?: Subscription;
   private langSub?: Subscription;
@@ -60,6 +62,7 @@ export class AppComponent implements OnDestroy {
     }
 
     await this.lang.set(language);
+    await this.rating.initialize();
 
     this.setDocumentTitle();
     this.langSub = this.t.onLangChange.subscribe(() => {

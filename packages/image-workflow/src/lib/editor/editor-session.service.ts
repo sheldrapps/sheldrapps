@@ -72,6 +72,11 @@ export interface EditorToolsConfig {
 }
 
 /** Editor session - passed from app to editor */
+export interface ArtifactReductionInfoPreferencePort {
+  hasSeen(): Promise<boolean>;
+  markSeen(): Promise<void>;
+}
+
 export type EditorSession = {
   file: File;
 
@@ -96,6 +101,11 @@ export type EditorSession = {
 
   /** Optional return url for exiting the editor */
   returnUrl?: string;
+
+  /** Optional editor-only preference ports provided by host apps. */
+  preferences?: {
+    artifactReductionInfo?: ArtifactReductionInfoPreferencePort;
+  };
 
   /** Last export result (matches CropperResult shape) */
   result?: CropperResult;

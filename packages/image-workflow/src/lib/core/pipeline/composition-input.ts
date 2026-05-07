@@ -135,6 +135,7 @@ export function buildCompositionInput(
   const normalizedTarget: CropTarget = {
     width: target.width,
     height: target.height,
+    output: target.output,
   };
 
   return {

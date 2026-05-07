@@ -6,6 +6,7 @@ import {
 } from "./editor-kindle-state.service";
 import { DEFAULT_EDITOR_ADJUSTMENTS } from "./editor-adjustments";
 import type { BackgroundMode, BackgroundSource } from "../types";
+import { isArtifactReductionEnabled } from "../core/pipeline/artifact-reduction-state";
 
 export type HistoryMode = "local" | "global";
 export type PanelScope = "tools" | "adjustments" | "text";
@@ -107,6 +108,7 @@ export class EditorHistoryService {
   readonly contrast = this.editorState.contrast;
   readonly bw = this.editorState.bw;
   readonly dither = this.editorState.dither;
+  readonly artifactReductionEnabled = this.editorState.artifactReductionEnabled;
   readonly backgroundMode = this.editorState.backgroundMode;
   readonly backgroundColor = this.editorState.backgroundColor;
   readonly backgroundSource = this.editorState.backgroundSource;
@@ -433,11 +435,18 @@ export class EditorHistoryService {
   }
 
   setDither(value: boolean): void {
+    this.setArtifactReductionEnabled(value);
+  }
+
+  setArtifactReductionEnabled(value: boolean): void {
     const prev = this.editorState.dither();
-    this.editorState.setDither(value);
+    this.editorState.setArtifactReductionEnabled(value);
     const next = this.editorState.dither();
     if (prev === next) return;
-    this.recordCommand({ type: "SetDither", payload: { value: next } });
+    this.recordCommand({
+      type: "SetArtifactReduction",
+      payload: { value: next },
+    });
   }
 
   setBackgroundMode(mode: BackgroundMode): void {
@@ -624,9 +633,6 @@ export class EditorHistoryService {
 
   resetBw(): void {
     this.setBw(DEFAULT_EDITOR_ADJUSTMENTS.bw);
-    if (DEFAULT_EDITOR_ADJUSTMENTS.bw) {
-      this.setDither(DEFAULT_EDITOR_ADJUSTMENTS.dither);
-    }
   }
 
   resetDither(): void {
@@ -810,7 +816,10 @@ export class EditorHistoryService {
         this.editorState.setBw(command.payload.value);
         return;
       case "SetDither":
-        this.editorState.setDither(command.payload.value);
+        this.editorState.setArtifactReductionEnabled(command.payload.value);
+        return;
+      case "SetArtifactReduction":
+        this.editorState.setArtifactReductionEnabled(command.payload.value);
         return;
       case "SetRotation":
         this.editorState.setRotation(command.payload.value);
@@ -865,7 +874,7 @@ export class EditorHistoryService {
           this.editorState.setBw(!!payload.bw);
         }
         if (payload.dither !== undefined) {
-          this.editorState.setDither(!!payload.dither);
+          this.editorState.setArtifactReductionEnabled(!!payload.dither);
         }
         return;
       }
@@ -985,7 +994,7 @@ export class EditorHistoryService {
       contrast: this.roundToStep(state.contrast, SLIDER_STEP),
       saturation: this.roundToStep(state.saturation, SLIDER_STEP),
       bw: !!state.bw,
-      dither: !!state.dither,
+      dither: isArtifactReductionEnabled(state),
     };
   }
 
@@ -998,7 +1007,7 @@ export class EditorHistoryService {
       flipX: !!state.flipX,
       flipY: !!state.flipY,
       bw: !!state.bw,
-      dither: !!state.dither,
+      dither: isArtifactReductionEnabled(state),
       backgroundMode: (state.backgroundMode ?? "transparent") as BackgroundMode,
       backgroundColor: this.normalizeHex(state.backgroundColor),
       backgroundSource:
@@ -1142,7 +1151,7 @@ export class EditorHistoryService {
     return {
       ...background,
       bw: !!this.editorState.bw(),
-      dither: !!this.editorState.dither(),
+      dither: !!this.editorState.artifactReductionEnabled(),
     };
   }
 
@@ -1159,16 +1168,14 @@ export class EditorHistoryService {
     bw: boolean;
     dither: boolean;
   } {
-    if (nextBackground.mode !== "transparent") {
-      if (this.editorState.bw() || this.editorState.dither()) {
-        this.editorState.setBw(false);
-      }
+    if (nextBackground.mode !== "transparent" && this.editorState.bw()) {
+      this.editorState.setBw(false);
     }
 
     return {
       ...nextBackground,
       bw: !!this.editorState.bw(),
-      dither: !!this.editorState.dither(),
+      dither: !!this.editorState.artifactReductionEnabled(),
     };
   }
 

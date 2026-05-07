@@ -24,6 +24,7 @@
     "@capacitor/share": "^8.0.0",
     "@ionic/angular": "^8.0.0",
     "@ngx-translate/core": "^17.0.0",
+    "@sheldrapps/settings-kit": "workspace:*",
     "ionicons": "^7.0.0",
     "rxjs": "^7.8.0"
   },

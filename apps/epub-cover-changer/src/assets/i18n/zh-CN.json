@@ -13,7 +13,7 @@
     "BILLING_UNAVAILABLE": "当前无法购买。",
     "PURCHASE_ERROR": "无法完成购买，请重试。",
     "REMOVE_ADS_BUY": "购买",
-    "REMOVE_ADS_DESCRIPTION": "一次性付款，永久去除广告。",
+    "REMOVE_ADS_DESCRIPTION": "一次性付款，永久去除广告，并启用无损/压缩导出选择。",
     "REMOVE_ADS_PURCHASED": "广告已永久去除。",
     "REMOVE_ADS_RESTORE": "恢复购买",
     "REMOVE_ADS_RESTORED": "购买已成功恢复。",
@@ -85,7 +85,21 @@
     "INVALID_COVER_TAP_TO_CHANGE": "无效封面，点击更换",
     "TAP_TO_CHANGE": "点击更换/重置",
     "TAP_TO_CHANGE_IMAGE": "点击更换",
-    "TITLE": "更换封面"
+    "LONGPRESS_PREVIEW_HINT": "长按预览",
+    "TITLE": "更换封面",
+    "PREVIEW_ORIGINAL_LABEL": "原始封面",
+    "PREVIEW_NEW_LABEL": "新封面",
+    "PREVIEW_NEW_ONLY_LABEL": "新封面",
+    "EXPORT_OPTIONS": {
+      "TITLE": "导出质量",
+      "LOSSLESS_TITLE": "最佳画质",
+      "LOSSLESS_DESCRIPTION": "无损 PNG。可保留更多细节，但 EPUB 体积可能显著增大。",
+      "OPTIMIZED_TITLE": "压缩",
+      "OPTIMIZED_DESCRIPTION": "压缩图像。适合只需要在书库里显示封面缩略图时使用。",
+      "OPTIMIZED_BADGE": "推荐用于缩略图",
+      "SMALL_SOURCE_WARNING": "你的源图像对于此裁剪来说偏小，导出的封面可能会显得不够清晰。",
+      "DITHERING_HINT": "启用伪影减少后，手机上的预览可能与最终效果不同。仅当 e-reader 最终显示中出现明显伪影时再使用。"
+    }
   },
   "COVERS": {
     "DELETED": "EPUB 已删除",
@@ -96,6 +110,7 @@
     "PREVIEW_UNAVAILABLE": "预览不可用。",
     "PREVIEW_TITLE": "预览",
     "TITLE": "我的 EPUB",
+    "DITHERED_THUMBNAIL_NOTICE": "启用伪影减少的封面在缩略图中可能看起来不同。请打开预览查看更准确的效果。",
     "ACTIONS": {
       "DELETE": "删除",
       "SHARE": "分享"
@@ -109,6 +124,11 @@
       "SHARE": "无法分享 EPUB，请重试。",
       "LOAD": "无法加载您的 EPUB，请下拉刷新。",
       "PREVIEW": "无法加载预览，请重试。"
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "缩小电子阅读器预览",
+      "ZOOM_IN_ARIA": "放大电子阅读器预览",
+      "ZOOM_RESET_ARIA": "重置电子阅读器预览缩放"
     }
   },
   "INSTRUCTIONS": {
@@ -192,6 +212,26 @@
       "INFO": "信息",
       "APPS": "应用",
       "GUIDE": "指南"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

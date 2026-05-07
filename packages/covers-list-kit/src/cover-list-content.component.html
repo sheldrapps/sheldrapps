@@ -69,6 +69,11 @@
     }
   </ion-row>
 </ion-grid>
+@if (showNotice && noticeKey) {
+<p class="notice" aria-live="polite">
+  {{ noticeKey | translate }}
+</p>
+}
 }
 
 <ion-popover

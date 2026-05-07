@@ -208,6 +208,36 @@
       {{ 'CREATE.CROP_ACTION' | translate }}
     </ion-button>
 
+    @if (shouldShowExportOptions()) {
+    <section class="export-quality" aria-label="{{ 'CREATE.EXPORT_OPTIONS.TITLE' | translate }}">
+      <div class="field-title export-quality__title">
+        {{ 'CREATE.EXPORT_OPTIONS.TITLE' | translate }}
+      </div>
+      <div class="export-quality__item">
+        <span
+          class="export-quality__option"
+          [class.export-quality__option--active]="isCoverExportModeSelected('compressed')"
+          [class.export-quality__option--inactive]="!isCoverExportModeSelected('compressed')"
+        >
+          {{ 'CREATE.EXPORT_OPTIONS.OPTIMIZED_TITLE' | translate }}
+        </span>
+        <ion-toggle
+          [checked]="isCoverExportModeSelected('lossless')"
+          [disabled]="!canEditCoverExportMode()"
+          (ionChange)="onCoverExportQualityToggle($event)"
+          [attr.aria-label]="'CREATE.EXPORT_OPTIONS.TITLE' | translate"
+        ></ion-toggle>
+        <span
+          class="export-quality__option"
+          [class.export-quality__option--active]="isCoverExportModeSelected('lossless')"
+          [class.export-quality__option--inactive]="!isCoverExportModeSelected('lossless')"
+        >
+          {{ 'CREATE.EXPORT_OPTIONS.LOSSLESS_TITLE' | translate }}
+        </span>
+      </div>
+    </section>
+    }
+
     <div class="actions">
       <ion-button
         expand="block"
@@ -374,11 +404,18 @@
 
       <ion-content class="preview-content" [fullscreen]="true" [scrollY]="false">
         <div class="stage">
-          <div class="frame preview-frame" [style.--crop-ratio]="getPreviewRatio()">
-            @if (previewUrl) {
-            <img class="preview-img" [src]="previewUrl" alt="cover preview" />
-            }
-          </div>
+          @if (previewUrl) {
+          <app-e-reader-preview-frame
+            [imageSrc]="previewUrl"
+            [imageWidth]="selectedModel?.width ?? null"
+            [imageHeight]="selectedModel?.height ?? null"
+            alt="cover preview"
+            fit="contain"
+            renderMode="eReader"
+            [zoomEnabled]="false"
+            [isDithered]="isPreviewDithered()"
+          ></app-e-reader-preview-frame>
+          }
         </div>
       </ion-content>
     </ng-template>

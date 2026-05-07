@@ -13,7 +13,7 @@
     "BILLING_UNAVAILABLE": "Покупки временно недоступны.",
     "PURCHASE_ERROR": "Не удалось завершить покупку. Попробуйте ещё раз.",
     "REMOVE_ADS_BUY": "Купить",
-    "REMOVE_ADS_DESCRIPTION": "Уберите рекламу навсегда одним платежом.",
+    "REMOVE_ADS_DESCRIPTION": "Уберите рекламу навсегда и откройте выбор между экспортом без потерь и сжатием.",
     "REMOVE_ADS_PURCHASED": "Реклама убрана навсегда.",
     "REMOVE_ADS_RESTORE": "Восстановить покупку",
     "REMOVE_ADS_RESTORED": "Покупка успешно восстановлена.",
@@ -80,7 +80,17 @@
     },
     "INFO_REQUIREMENTS_LABEL": "Требования:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Отключите рекламу на Kindle.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Включите «Экран и яркость > Показывать обложки на экране блокировки» на Kindle."
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Включите «Экран и яркость > Показывать обложки на экране блокировки» на Kindle.",
+    "EXPORT_OPTIONS": {
+      "TITLE": "Качество экспорта",
+      "LOSSLESS_TITLE": "Лучшее качество",
+      "LOSSLESS_DESCRIPTION": "PNG без потерь. Сохраняет больше деталей, но EPUB может быть значительно больше.",
+      "OPTIMIZED_TITLE": "Сжатое",
+      "OPTIMIZED_DESCRIPTION": "Сжатое изображение. Отлично подходит, если обложка нужна только для миниатюр в библиотеке.",
+      "OPTIMIZED_BADGE": "Рекомендуется для миниатюр",
+      "SMALL_SOURCE_WARNING": "Исходное изображение довольно маленькое для этого кадрирования. Экспортированная обложка может выглядеть менее чёткой.",
+      "DITHERING_HINT": "Уменьшение артефактов может делать предпросмотр на экране телефона другим. Включайте это только если на финальном результате на ридере видны заметные артефакты."
+    }
   },
   "COVERS": {
     "DELETED": "Обложка удалена",
@@ -90,6 +100,7 @@
     "PLACEHOLDER": "Обложка",
     "PREVIEW_TITLE": "Предпросмотр",
     "TITLE": "Обложки",
+    "DITHERED_THUMBNAIL_NOTICE": "??????? ? ??????????? ?????????? ????? ????????? ????? ? ??????????. ???????? ????????????, ????? ??????? ????? ?????? ?????????.",
     "ACTIONS": {
       "DELETE": "Удалить",
       "SHARE": "Поделиться"
@@ -103,6 +114,11 @@
       "LOAD": "Не удалось загрузить обложки. Потяните вниз для обновления.",
       "PREVIEW": "Не удалось загрузить предпросмотр. Попробуйте ещё раз.",
       "SHARE": "Не удалось поделиться обложкой. Попробуйте ещё раз."
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "Уменьшить предпросмотр ридера",
+      "ZOOM_IN_ARIA": "Увеличить предпросмотр ридера",
+      "ZOOM_RESET_ARIA": "Сбросить масштаб предпросмотра ридера"
     }
   },
   "INSTRUCTIONS": {
@@ -304,6 +320,26 @@
       "INFO": "Информация",
       "APPS": "Приложения",
       "GUIDE": "Гид"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

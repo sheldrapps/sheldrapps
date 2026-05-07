@@ -6,6 +6,7 @@ import {
   SaturationPanelComponent,
   ContrastPanelComponent,
   BwPanelComponent,
+  ArtifactsPanelComponent,
 } from "./widgets";
 
 export interface AdjustmentPanelConfig {
@@ -49,6 +50,13 @@ export const ADJUSTMENTS_REGISTRY: Record<
     showGrabber: true,
     reset: (history) => history.resetBw(),
   },
+  artifacts: {
+    title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS",
+    component: ArtifactsPanelComponent,
+    canReset: true,
+    showGrabber: true,
+    reset: (history) => history.resetDither(),
+  },
 };
 
 // Legacy async loaders (kept for compatibility, but prefer sync ADJUSTMENTS_REGISTRY)
@@ -60,4 +68,5 @@ export const ADJUSTMENT_LOADERS: Record<
   contrast: async () => ContrastPanelComponent,
   saturation: async () => SaturationPanelComponent,
   bw: async () => BwPanelComponent,
+  artifacts: async () => ArtifactsPanelComponent,
 };

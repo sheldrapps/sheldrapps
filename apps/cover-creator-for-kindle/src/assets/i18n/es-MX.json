@@ -13,7 +13,7 @@
     "BILLING_UNAVAILABLE": "Las compras no están disponibles en este momento.",
     "PURCHASE_ERROR": "No se pudo completar la compra. Inténtalo de nuevo.",
     "REMOVE_ADS_BUY": "Comprar",
-    "REMOVE_ADS_DESCRIPTION": "Quita los anuncios para siempre con un solo pago.",
+    "REMOVE_ADS_DESCRIPTION": "Quita los anuncios para siempre y habilita la selección de exportación lossless/compressed.",
     "REMOVE_ADS_PURCHASED": "Anuncios eliminados para siempre.",
     "REMOVE_ADS_RESTORE": "Restaurar compra",
     "REMOVE_ADS_RESTORED": "Compra restaurada correctamente.",
@@ -80,7 +80,17 @@
     },
     "INFO_REQUIREMENTS_LABEL": "Requisitos:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Desactivar ads en Kindle.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Activar \"Pantalla y brillo > Mostrar portadas en la pantalla del dispositivo\" en Kindle."
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Activar \"Pantalla y brillo > Mostrar portadas en la pantalla del dispositivo\" en Kindle.",
+    "EXPORT_OPTIONS": {
+      "TITLE": "Calidad de exportación",
+      "LOSSLESS_TITLE": "Mejor calidad",
+      "LOSSLESS_DESCRIPTION": "PNG sin pérdida. Conserva más detalle, pero el EPUB puede ser mucho más grande.",
+      "OPTIMIZED_TITLE": "Comprimido",
+      "OPTIMIZED_DESCRIPTION": "Imagen comprimida. Ideal si solo necesitas la portada como miniatura en tu biblioteca.",
+      "OPTIMIZED_BADGE": "Recomendado para miniaturas",
+      "SMALL_SOURCE_WARNING": "La imagen original es algo pequeña para este recorte. La portada exportada podría verse menos nítida.",
+      "DITHERING_HINT": "La reducción de artefactos puede hacer que la vista previa se vea distinta en pantallas de teléfono. Úsala solo cuando el resultado final del e-reader muestre artefactos visibles."
+    }
   },
   "COVERS": {
     "DELETED": "Portada eliminada",
@@ -90,6 +100,7 @@
     "PLACEHOLDER": "Portada",
     "PREVIEW_TITLE": "Vista previa",
     "TITLE": "Portadas",
+    "DITHERED_THUMBNAIL_NOTICE": "Las portadas con reducción de artefactos pueden verse diferentes en miniatura. Abre la vista previa para ver un resultado más fiel.",
     "ACTIONS": {
       "DELETE": "Eliminar",
       "SHARE": "Compartir"
@@ -103,6 +114,11 @@
       "LOAD": "No se pudieron cargar tus portadas. Arrastra hacia abajo para intentar de nuevo.",
       "PREVIEW": "No se pudo cargar la vista previa. Intenta de nuevo.",
       "SHARE": "No se pudo compartir la portada. Inténtalo de nuevo."
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "Alejar vista previa del e-reader",
+      "ZOOM_IN_ARIA": "Acercar vista previa del e-reader",
+      "ZOOM_RESET_ARIA": "Restablecer zoom de la vista previa del e-reader"
     }
   },
   "INSTRUCTIONS": {
@@ -304,6 +320,26 @@
       "INFO": "Info",
       "APPS": "Apps",
       "GUIDE": "Guía"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Color del marco"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Genérico"
+    },
+    "COLOR": {
+      "BLACK": "Negro",
+      "WHITE": "Blanco",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Rosa",
+      "METALLIC_BLACK": "Negro metálico",
+      "METALLIC_JADE": "Jade metálico",
+      "METALLIC_PINK": "Rosa metálico"
     }
   }
 }

@@ -4,6 +4,7 @@ export interface EditorAdjustmentsState {
   saturation: number;
   bw: boolean;
   dither: boolean;
+  artifactReductionEnabled: boolean;
 }
 
 export const DEFAULT_EDITOR_ADJUSTMENTS: EditorAdjustmentsState = {
@@ -12,6 +13,7 @@ export const DEFAULT_EDITOR_ADJUSTMENTS: EditorAdjustmentsState = {
   saturation: 1,
   bw: false,
   dither: false,
+  artifactReductionEnabled: false,
 };
 
 const coerceNumber = (value: unknown, fallback: number): number => {

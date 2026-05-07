@@ -21,6 +21,7 @@ import {
   IonButtons,
   IonItem,
   IonLabel,
+  IonToggle,
   IonIcon,
   IonButton,
   IonModal,
@@ -35,13 +36,17 @@ import {
 import { TranslateModule } from '@ngx-translate/core';
 
 import {
+  buildDefaultCoverCropState,
   CoverCropState,
+  EReaderPreviewFrameComponent,
   ImagePipelineService,
   ImageValidationError,
   buildCompositionInputForPurpose,
   computeSourceCropDims,
   renderCompositionToCanvas,
   renderCompositionToFile,
+  resolveArtifactReductionMode,
+  resolveCoverColorMode,
 } from '@sheldrapps/image-workflow';
 import type { CropTarget, CropFormatOption } from '@sheldrapps/image-workflow';
 import { EditorSessionService } from '@sheldrapps/image-workflow/editor';
@@ -61,7 +66,15 @@ import {
 } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
-import { FileService } from '../../services/file.service';
+import {
+  CoverProcessingMetadataInput,
+  FileService,
+} from '../../services/file.service';
+import {
+  DEFAULT_PRO_COVER_EXPORT_MODE,
+  getCoverExportOptions,
+  type CoverExportMode,
+} from '../../services/cover-export-mode';
 import { EpubWorkingCopyService } from '../../services/epub-working-copy.service';
 import {
   AdsService,
@@ -74,7 +87,7 @@ import {
   EpubRewriteService,
 } from '../../services/epub-rewrite.service';
 import { TranslateService } from '@ngx-translate/core';
-import { ToastOptions } from '@ionic/angular';
+import { CheckboxCustomEvent, ToastOptions } from '@ionic/angular';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { detectSupportedLocale } from '@sheldrapps/i18n-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
@@ -127,6 +140,7 @@ type EditorResult = {
     IonButtons,
     IonItem,
     IonLabel,
+    IonToggle,
     IonIcon,
     IonButton,
     IonRow,
@@ -134,6 +148,7 @@ type EditorResult = {
     IonPopover,
     IonModal,
     LoadingStateComponent,
+    EReaderPreviewFrameComponent,
     ScrollableButtonBarComponent,
     TourOverlayComponent,
   ],
@@ -173,6 +188,8 @@ export class ChangePage implements OnInit, OnDestroy {
   private persistedCropTargetId = 'epub';
   private readonly warnDebugKey = 'cc_warn_debug';
   private readonly editorTourSeenVersionKey = 'ecc_editor_tour_seen_version';
+  private readonly artifactReductionInfoSeenKey =
+    'ecc_editor_artifact_reduction_info_seen';
   private readonly currentEditorTourVersion = 4;
   private adsRemovedSub?: Subscription;
   private removeAdsPriceSub?: Subscription;
@@ -248,8 +265,10 @@ export class ChangePage implements OnInit, OnDestroy {
   previewUrl?: string;
   previewThumbUrl?: string;
   previewNonce = 0;
+  originalEpubPreviewUrl: string | null = null;
   cropState?: CoverCropState;
   selectedFormatId = 'epub';
+  coverExportMode: CoverExportMode = DEFAULT_PRO_COVER_EXPORT_MODE;
   targetWidth?: number;
   targetHeight?: number;
 
@@ -292,23 +311,15 @@ export class ChangePage implements OnInit, OnDestroy {
   previewOpen = false;
   private isApplyingFromEditor = false;
   private previewGenerationToken = 0;
+  private currentPreviewOrigin:
+    | 'source-epub'
+    | 'replacement'
+    | 'edited'
+    | null = null;
   private readonly invalidCoverWarnKey = 'CHANGE.IMAGE_WARN_INVALID_EPUB_COVER';
 
   get previewUrlWithNonce(): string | null {
     return this.previewUrl ? `${this.previewUrl}#v=${this.previewNonce}` : null;
-  }
-
-  get targetAspect(): number {
-    const width = this.targetWidth;
-    const height = this.targetHeight;
-    if (Number.isFinite(width) && Number.isFinite(height) && height) {
-      return (width as number) / (height as number);
-    }
-    const selected = this.getSelectedFormatOption();
-    if (selected?.target.width && selected?.target.height) {
-      return selected.target.width / selected.target.height;
-    }
-    return this.baseTarget.width / this.baseTarget.height;
   }
 
   get nativeLoadMode(): 'epub' | 'rewrite' | null {
@@ -366,6 +377,7 @@ export class ChangePage implements OnInit, OnDestroy {
       this.adsRemoved = value;
       if (tierChanged) {
         this.exportImageFile = undefined;
+        this.invalidateGeneratedOutputState();
       }
       this.syncRemoveAdsPulse();
     });
@@ -378,6 +390,7 @@ export class ChangePage implements OnInit, OnDestroy {
     const settings = await this.settings.load();
     this.selectedFormatId = this.resolveFormatId(settings.cropTargetId);
     this.persistedCropTargetId = this.selectedFormatId;
+    this.coverExportMode = settings.coverExportMode;
 
     if (this.usesNativeRewrite()) {
       this.rewriteProgressSub = await this.epubRewrite.addProgressListener(
@@ -417,6 +430,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.closePurchaseModal();
     this.clearPreviewLongPress();
     this.revokePreviewUrl();
+    this.revokeOriginalEpubPreviewUrl();
     this.routerSub?.unsubscribe();
     this.coversEventsSub?.unsubscribe();
     this.adsRemovedSub?.unsubscribe();
@@ -700,6 +714,8 @@ export class ChangePage implements OnInit, OnDestroy {
     this.targetHeight = undefined;
     this.workingMaxSideApplied = null;
     this.revokePreviewUrl();
+    this.revokeOriginalEpubPreviewUrl();
+    this.currentPreviewOrigin = null;
     this.clearImageError();
     this.clearImageWarn();
 
@@ -808,6 +824,13 @@ export class ChangePage implements OnInit, OnDestroy {
     this.clearImageError();
     this.clearImageWarn();
 
+    if (!setImageError) {
+      this.setOriginalEpubPreviewUrl(source);
+      this.currentPreviewOrigin = 'source-epub';
+    } else {
+      this.currentPreviewOrigin = 'replacement';
+    }
+
     this.originalImageFile = source;
 
     const working = await this.imagePipe.prepareWorkingImage(source);
@@ -869,7 +892,7 @@ export class ChangePage implements OnInit, OnDestroy {
     };
     const legacyDims = legacyDimsHint ?? this.workingImageDims ?? null;
     const exportDims =
-      (await this.resolveExportDimsForSmallWarn()) ?? exportDimsHint ?? null;
+      exportDimsHint ?? (await this.resolveExportDimsForSmallWarn()) ?? null;
 
     // Enforce export-based validation only.
     if (!exportDims) {
@@ -885,7 +908,7 @@ export class ChangePage implements OnInit, OnDestroy {
       return;
     }
 
-    const params = this.imagePipe.getSmallWarnParams(exportDims, target);
+    const params = this.getSmallWarnParamsForExportDims(exportDims, target);
     this.debugSmallWarn({
       reason,
       targetId: selected.id,
@@ -897,8 +920,51 @@ export class ChangePage implements OnInit, OnDestroy {
     });
     if (!params) return;
 
-    this.imageWarnKey = 'CHANGE.IMAGE_WARN_SMALL';
+    this.imageWarnKey = 'CHANGE.EXPORT_OPTIONS.SMALL_SOURCE_WARNING';
     this.imageWarnParams = params;
+  }
+
+  private getSmallWarnParamsForExportDims(
+    exportDims: { width: number; height: number },
+    target: { width: number; height: number },
+  ): Record<string, number> | null {
+    const reference = this.getExportWarningReferenceDims(target);
+    const widthScale = reference.width / exportDims.width;
+    const heightScale = reference.height / exportDims.height;
+    const scaleFactor = Math.max(widthScale, heightScale);
+    const belowRecommendedWidth = exportDims.width < reference.width * 0.75;
+    const belowRecommendedHeight = exportDims.height < reference.height * 0.75;
+
+    if (
+      scaleFactor <= 1.5 &&
+      !belowRecommendedWidth &&
+      !belowRecommendedHeight
+    ) {
+      return null;
+    }
+
+    return {
+      imgW: exportDims.width,
+      imgH: exportDims.height,
+      minW: reference.width,
+      minH: reference.height,
+      scaleFactor: Number(scaleFactor.toFixed(2)),
+    };
+  }
+
+  private getExportWarningReferenceDims(target: {
+    width: number;
+    height: number;
+  }): { width: number; height: number } {
+    const scale = Math.min(
+      this.baseTarget.width / target.width,
+      this.baseTarget.height / target.height,
+    );
+
+    return {
+      width: Math.max(1, Math.round(target.width * scale)),
+      height: Math.max(1, Math.round(target.height * scale)),
+    };
   }
 
   canCrop(): boolean {
@@ -932,6 +998,25 @@ export class ChangePage implements OnInit, OnDestroy {
       },
       output: {
         includeRenderedBlob: false,
+      },
+      preferences: {
+        artifactReductionInfo: {
+          hasSeen: async () => {
+            const settings = await this.settings.load();
+            return (
+              settings.preferences?.[this.artifactReductionInfoSeenKey] === true
+            );
+          },
+          markSeen: async () => {
+            await this.settings.set((prev) => ({
+              ...prev,
+              preferences: {
+                ...(prev.preferences ?? {}),
+                [this.artifactReductionInfoSeenKey]: true,
+              },
+            }));
+          },
+        },
       },
       returnUrl: this.getEditorReturnUrl(),
     });
@@ -989,6 +1074,7 @@ export class ChangePage implements OnInit, OnDestroy {
     const renderedBlob = result.renderedBlob;
     this.isApplyingFromEditor = true;
     this.previewGenerationToken += 1;
+    this.currentPreviewOrigin = 'edited';
 
     const editorSource =
       this.editorSourceFile ?? this.workingImageFile ?? newFile;
@@ -1113,7 +1199,11 @@ export class ChangePage implements OnInit, OnDestroy {
               }
             : undefined,
       },
-      target: { width: rawTarget.width, height: rawTarget.height },
+      target: {
+        width: rawTarget.width,
+        height: rawTarget.height,
+        output: rawTarget.output,
+      },
       state: layoutState,
       frameFallback: { width: rawTarget.width, height: rawTarget.height },
     });
@@ -1133,14 +1223,17 @@ export class ChangePage implements OnInit, OnDestroy {
     });
     if (!baseCanvas) return;
 
-    const modalCanvas = this.downscaleCanvas(
-      baseCanvas,
-      ChangePage.PREVIEW_MAX_SIDE,
-      'preview',
-    );
+    const isDithered = this.isPreviewDithered();
+    const modalCanvas = isDithered
+      ? baseCanvas
+      : this.downscaleCanvas(baseCanvas, ChangePage.PREVIEW_MAX_SIDE, false);
 
     const blob: Blob | null = await new Promise((resolve) =>
-      modalCanvas.toBlob((bb) => resolve(bb), 'image/jpeg', 0.9),
+      modalCanvas.toBlob(
+        (bb) => resolve(bb),
+        isDithered ? 'image/png' : 'image/jpeg',
+        isDithered ? undefined : 0.9,
+      ),
     );
     if (!blob) return;
 
@@ -1159,10 +1252,16 @@ export class ChangePage implements OnInit, OnDestroy {
     const input = this.buildCompositionInput('export');
     if (!input) return null;
 
+    const selectedExportOptions = this.getSelectedCoverExportOptions();
+
     const file = await renderCompositionToFile(input, {
       mode: 'export',
       mimeType: this.resolveExportMimeType(),
       quality: this.resolveExportQuality(),
+      backgroundFallbackColor:
+        selectedExportOptions?.mimeType === 'image/jpeg'
+          ? '#ffffff'
+          : undefined,
     });
     if (!file) return null;
 
@@ -1171,17 +1270,73 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private resolveExportMimeType(): string | undefined {
-    if (this.adsRemoved) {
+    const selected = this.getSelectedCoverExportOptions();
+    if (selected) {
+      return selected.mimeType;
+    }
+    if (this.resolveInputImageMimeType() === 'image/png') {
       return 'image/png';
     }
     return undefined;
   }
 
   private resolveExportQuality(): number | undefined {
-    if (this.adsRemoved) {
+    const selected = this.getSelectedCoverExportOptions();
+    if (selected) {
+      return selected.quality;
+    }
+    if (this.resolveInputImageMimeType() === 'image/png') {
       return undefined;
     }
     return 1;
+  }
+
+  private getSelectedCoverExportOptions(): ReturnType<
+    typeof getCoverExportOptions
+  > | null {
+    return getCoverExportOptions(this.getEffectiveCoverExportMode());
+  }
+
+  private resolveInputImageMimeType(): 'image/png' | 'image/jpeg' | null {
+    const candidate =
+      this.editorSourceFile ??
+      this.workingImageFile ??
+      this.selectedImageFile ??
+      this.originalImageFile;
+    const byType = this.normalizeMimeType(candidate?.type);
+    if (byType) {
+      return byType;
+    }
+    return this.mimeTypeFromFilename(candidate?.name);
+  }
+
+  private normalizeMimeType(
+    mimeType?: string,
+  ): 'image/png' | 'image/jpeg' | null {
+    const normalized = (mimeType ?? '').trim().toLowerCase();
+    if (normalized === 'image/png') {
+      return 'image/png';
+    }
+    if (normalized === 'image/jpeg' || normalized === 'image/jpg') {
+      return 'image/jpeg';
+    }
+    return null;
+  }
+
+  private mimeTypeFromFilename(
+    name?: string,
+  ): 'image/png' | 'image/jpeg' | null {
+    if (!name) {
+      return null;
+    }
+    const lower = name.toLowerCase();
+    if (lower.endsWith('.png')) {
+      return 'image/png';
+    }
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) {
+      return 'image/jpeg';
+    }
+    return null;
   }
 
   async onSave() {
@@ -1259,16 +1414,19 @@ export class ChangePage implements OnInit, OnDestroy {
                   sourceDir: 'Data',
                   filename,
                   coverFileForThumb: exportFile,
+                  coverMetadata: this.buildCoverProcessingMetadata(),
                 })
               : await this.fileService.saveGeneratedEpubFromExistingDocument({
                   sourceFilename: staleFilename,
                   filename,
                   coverFileForThumb: exportFile,
+                  coverMetadata: this.buildCoverProcessingMetadata(),
                 })
             : await this.fileService.saveGeneratedEpub({
                 bytes: this.generatedEpubBytes!,
                 filename,
                 coverFileForThumb: exportFile,
+                coverMetadata: this.buildCoverProcessingMetadata(),
               });
           if (
             staleFilename &&
@@ -1296,11 +1454,13 @@ export class ChangePage implements OnInit, OnDestroy {
                 sourceDir: 'Data',
                 filename,
                 coverFileForThumb: exportFile,
+                coverMetadata: this.buildCoverProcessingMetadata(),
               })
             : await this.fileService.saveGeneratedEpub({
                 bytes: this.generatedEpubBytes!,
                 filename,
                 coverFileForThumb: exportFile,
+                coverMetadata: this.buildCoverProcessingMetadata(),
               });
         this.logSaveFlow('finalWriteComplete', {
           flow: 'performSave',
@@ -1418,23 +1578,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private buildDefaultCropState(): CoverCropState {
-    return {
-      scale: 1,
-      tx: 0,
-      ty: 0,
-      rot: 0,
-      flipX: false,
-      flipY: false,
-      brightness: 1,
-      contrast: 1,
-      saturation: 1,
-      bw: false,
-      dither: false,
-      backgroundMode: 'transparent',
-      backgroundColor: '#000000',
-      backgroundBlur: 80,
-      textLayers: [],
-    };
+    return buildDefaultCoverCropState();
   }
 
   private buildThumbFromCanvas(
@@ -1501,7 +1645,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private downscaleCanvas(
     src: HTMLCanvasElement,
     maxSide: number,
-    label?: string,
+    preserveHardEdges = false,
   ): HTMLCanvasElement {
     if (!maxSide || maxSide <= 0) return src;
 
@@ -1521,10 +1665,26 @@ export class ChangePage implements OnInit, OnDestroy {
     dst.height = dh;
     const dctx = dst.getContext('2d');
     if (!dctx) return src;
-    dctx.imageSmoothingEnabled = true;
-    dctx.imageSmoothingQuality = 'high';
+    dctx.imageSmoothingEnabled = !preserveHardEdges;
+    if (!preserveHardEdges) {
+      dctx.imageSmoothingQuality = 'high';
+    }
     dctx.drawImage(src, 0, 0, dw, dh);
     return dst;
+  }
+
+  private setOriginalEpubPreviewUrl(file: File): void {
+    const url = URL.createObjectURL(file);
+    this.revokeOriginalEpubPreviewUrl();
+    this.originalEpubPreviewUrl = url;
+  }
+
+  private revokeOriginalEpubPreviewUrl(): void {
+    if (!this.originalEpubPreviewUrl) {
+      return;
+    }
+    URL.revokeObjectURL(this.originalEpubPreviewUrl);
+    this.originalEpubPreviewUrl = null;
   }
 
   private async loadImageFromBlob(blob: Blob): Promise<{
@@ -1641,8 +1801,9 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private nativeRewriteTargetExtension(): 'jpg' | 'png' | 'webp' | null {
-    if (this.adsRemoved) {
-      return 'png';
+    const selected = this.getSelectedCoverExportOptions();
+    if (selected) {
+      return selected.extension;
     }
     return this.coverEntryExtension();
   }
@@ -1979,6 +2140,50 @@ export class ChangePage implements OnInit, OnDestroy {
       : 'CHANGE.CHANGE_ACTION_REWARDED';
   }
 
+  shouldShowExportOptions(): boolean {
+    return (
+      this.hasValidEpub() &&
+      !!(this.editorSourceFile ?? this.workingImageFile) &&
+      !this.imageErrorKey
+    );
+  }
+
+  canEditCoverExportMode(): boolean {
+    return this.adsRemoved;
+  }
+
+  private getEffectiveCoverExportMode(): CoverExportMode {
+    return this.adsRemoved ? this.coverExportMode : 'compressed';
+  }
+
+  isCoverExportModeSelected(mode: CoverExportMode): boolean {
+    return this.getEffectiveCoverExportMode() === mode;
+  }
+
+  shouldShowPreviewLongPressHint(): boolean {
+    return !!this.previewUrl && this.currentPreviewOrigin === 'edited';
+  }
+
+  async onCoverExportQualityToggle(event: Event): Promise<void> {
+    const checked = (event as CheckboxCustomEvent).detail.checked;
+    await this.onCoverExportModeChange(checked ? 'lossless' : 'compressed');
+  }
+
+  async onCoverExportModeChange(mode: CoverExportMode): Promise<void> {
+    if (!this.adsRemoved || this.coverExportMode === mode) {
+      return;
+    }
+
+    this.coverExportMode = mode;
+    this.exportImageFile = undefined;
+    this.invalidateGeneratedOutputState();
+    await this.settings.set({ coverExportMode: mode });
+  }
+
+  shouldShowDitheringHint(): boolean {
+    return this.isPreviewDithered();
+  }
+
   async onGenerate() {
     if (!this.canGenerate()) return;
 
@@ -2069,6 +2274,7 @@ export class ChangePage implements OnInit, OnDestroy {
       bytes: this.generatedEpubBytes,
       filename: this.generatedEpubFilename,
       coverFileForThumb: exportFile,
+      coverMetadata: this.buildCoverProcessingMetadata(),
     });
     this.logSaveFlow('finalWriteComplete', {
       flow: 'onGenerate',
@@ -2100,6 +2306,16 @@ export class ChangePage implements OnInit, OnDestroy {
     });
     await this.maybeAskForRatingAfterSuccessfulSave('web');
     await this.homeTour.completeInteraction('cover-created');
+  }
+
+  private invalidateGeneratedOutputState(): void {
+    this.cleanupGeneratedTempOutput();
+    this.generatedEpubBytes = undefined;
+    this.generatedEpubPath = undefined;
+    this.generatedEpubNativePath = undefined;
+    this.generatedEpubFilename = undefined;
+    this.lastSavedFilename = undefined;
+    this.wasAutoSaved = false;
   }
 
   async cancelNativeRewrite() {
@@ -2192,6 +2408,7 @@ export class ChangePage implements OnInit, OnDestroy {
       await this.fileService.persistCoverAssetsForGeneratedFilename({
         filename: outputTarget.filename,
         coverFileForThumb: rewriteCoverFile,
+        coverMetadata: this.buildCoverProcessingMetadata(),
       });
 
       this.coversEvents.emit({
@@ -2424,6 +2641,33 @@ export class ChangePage implements OnInit, OnDestroy {
     this.suppressNextImagePick = false;
   }
 
+  shouldShowComparePreview(): boolean {
+    return !!this.previewUrl && this.currentPreviewOrigin !== 'source-epub';
+  }
+
+  isPreviewDithered(): boolean {
+    return resolveArtifactReductionMode(this.cropState) !== 'none';
+  }
+
+  private buildCoverProcessingMetadata(): CoverProcessingMetadataInput {
+    const colorMode = resolveCoverColorMode(this.cropState);
+    const artifactReductionMode = resolveArtifactReductionMode(this.cropState);
+    const isDithered = artifactReductionMode !== 'none';
+    return {
+      colorMode,
+      artifactReductionEnabled:
+        !!this.cropState?.artifactReductionEnabled || !!this.cropState?.dither,
+      artifactReductionMode,
+      isDithered,
+      ditherAlgorithm:
+        artifactReductionMode === 'bw-dither'
+          ? 'floyd-steinberg'
+          : artifactReductionMode === 'adaptive-color'
+            ? 'adaptive-bayer-4x4'
+            : null,
+    };
+  }
+
   onPreviewPressStart() {
     if (!this.previewUrl) return;
     this.clearPreviewLongPress();
@@ -2442,17 +2686,6 @@ export class ChangePage implements OnInit, OnDestroy {
       clearTimeout(this.previewLongPressTimer);
       this.previewLongPressTimer = null;
     }
-  }
-
-  getPreviewRatio(): string {
-    if (this.cropState?.frameWidth && this.cropState?.frameHeight) {
-      return `${this.cropState.frameWidth} / ${this.cropState.frameHeight}`;
-    }
-    const selected = this.getSelectedFormatOption();
-    if (selected) {
-      return `${selected.target.width} / ${selected.target.height}`;
-    }
-    return '3 / 4';
   }
 
   ionViewWillLeave() {

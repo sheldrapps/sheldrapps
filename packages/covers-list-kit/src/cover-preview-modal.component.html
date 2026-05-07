@@ -50,9 +50,15 @@
     <ion-content class="preview-content" [fullscreen]="true" [scrollY]="false">
       <div class="stage">
         <div class="frame-wrap">
-          <div class="frame preview-frame">
+          <div class="preview-visual">
             @if (imageDataUrl) {
-            <img class="preview-img" [src]="imageDataUrl" [alt]="imageAlt" />
+            <app-e-reader-preview-frame
+              [imageSrc]="imageDataUrl"
+              [isDithered]="isDithered"
+              [alt]="imageAlt"
+              fit="contain"
+              renderMode="eReader"
+            ></app-e-reader-preview-frame>
             } @else if (!loading && unavailableConfig?.visible) {
             <div class="preview-unavailable">
               <div class="preview-unavailable__text">

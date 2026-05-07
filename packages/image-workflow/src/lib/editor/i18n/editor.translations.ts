@@ -23,11 +23,23 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST":
       "Contraste",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "Tramado",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS":
+      "Artefactos",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.TITLE":
       "Úsalo sólo para corregir artefactos",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.MESSAGE":
       "Activa el tramado sólo cuando necesites limpiar artefactos visibles. La miniatura puede no reflejar exactamente cómo se verá en un e-reader: allí suele verse más enfocada y con un tono más cálido.",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.BUTTON": "Entendido",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE":
+      "Reducir artefactos",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.HELPER":
+      "Úsalo solo cuando la imagen muestre artefactos visibles de conversión. Las miniaturas pueden verse distintas al resultado final en el e-reader.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_TITLE":
+      "Úsalo solo cuando haga falta",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_BODY":
+      "Actívalo solo si la imagen muestra artefactos visibles después de la conversión. Las miniaturas y vistas previas pueden verse distintas al resultado final en un e-reader, donde puede verse más nítido y natural.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_CTA":
+      "Entendido",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION":
       "Saturación",
     "EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR": "Barra de herramientas",
@@ -129,11 +141,23 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW": "Black & white",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST": "Contrast",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "Dithering",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS":
+      "Artifacts",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.TITLE":
       "Use it only to clean up artifacts",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.MESSAGE":
       "Turn dithering on only when you need to clean up visible artifacts. The thumbnail may not match the final image exactly as it will appear on an e-reader, where it usually looks sharper and a bit warmer.",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.BUTTON": "Got it",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE":
+      "Reduce artifacts",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.HELPER":
+      "Use only when the image shows visible conversion artifacts. Thumbnails may look different from the final e-reader result.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_TITLE":
+      "Use it only when needed",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_BODY":
+      "Turn this on only if the image shows visible artifacts after conversion. Thumbnails and previews may look different from the final result on an e-reader, where it can appear sharper and more natural.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_CTA":
+      "Got it",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION":
       "Saturation",
     "EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR": "Toolbar",
@@ -228,11 +252,23 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW": "Schwarzweiß",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST": "Kontrast",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "Dithering",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS":
+      "Artefakte",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.TITLE":
       "Nur zum Korrigieren von Artefakten verwenden",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.MESSAGE":
       "Aktiviere Dithering nur, wenn du sichtbare Artefakte bereinigen musst. Die Miniaturansicht zeigt nicht immer exakt, wie das Bild auf einem E-Reader aussieht, wo es meist schärfer und etwas wärmer wirkt.",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.BUTTON": "Verstanden",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE":
+      "Artefakte reduzieren",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.HELPER":
+      "Nur verwenden, wenn das Bild sichtbare Konvertierungsartefakte zeigt. Miniaturen können anders aussehen als das endgültige Ergebnis auf dem E-Reader.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_TITLE":
+      "Nur verwenden, wenn es nötig ist",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_BODY":
+      "Schalte dies nur ein, wenn das Bild nach der Konvertierung sichtbare Artefakte zeigt. Miniaturen und Vorschauen können anders aussehen als das endgültige Ergebnis auf einem E-Reader, wo es meist schärfer und natürlicher wirkt.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_CTA":
+      "Verstanden",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION":
       "Sättigung",
     "EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR": "Symbolleiste",
@@ -332,11 +368,23 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST":
       "Contraste",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "Tramage",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS":
+      "Artefacts",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.TITLE":
       "À utiliser seulement pour corriger les artefacts",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.MESSAGE":
       "Active le tramage seulement si tu dois corriger des artefacts visibles. La miniature peut ne pas refléter exactement le rendu final sur une liseuse, où l'image paraît généralement plus nette et un peu plus chaude.",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.BUTTON": "Compris",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE":
+      "Réduire les artefacts",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.HELPER":
+      "Utilisez ceci seulement si l'image montre des artefacts de conversion visibles. Les miniatures peuvent être différentes du résultat final sur une liseuse.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_TITLE":
+      "À utiliser seulement si nécessaire",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_BODY":
+      "Activez cette option seulement si l'image montre des artefacts visibles après la conversion. Les miniatures et aperçus peuvent être différents du résultat final sur une liseuse, où l'image paraît souvent plus nette et plus naturelle.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_CTA":
+      "Compris",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION":
       "Saturation",
     "EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR": "Barre d’outils",
@@ -438,11 +486,23 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST":
       "Contrasto",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "Dithering",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS":
+      "Artefatti",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.TITLE":
       "Usalo solo per correggere gli artefatti",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.MESSAGE":
       "Attiva il dithering solo quando devi pulire artefatti visibili. La miniatura potrebbe non riflettere esattamente la qualità finale su un e-reader, dove di solito appare più nitida e un po' più calda.",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.BUTTON": "Capito",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE":
+      "Riduci gli artefatti",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.HELPER":
+      "Usalo solo quando l'immagine mostra artefatti di conversione visibili. Le miniature possono apparire diverse dal risultato finale sull'e-reader.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_TITLE":
+      "Usalo solo quando serve",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_BODY":
+      "Attivalo solo se l'immagine mostra artefatti visibili dopo la conversione. Miniature e anteprime possono apparire diverse dal risultato finale su un e-reader, dove spesso risulta più nitido e naturale.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_CTA":
+      "Capito",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION":
       "Saturazione",
     "EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR": "Barra strumenti",
@@ -542,11 +602,23 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST":
       "Contraste",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "Dithering",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS":
+      "Artefatos",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.TITLE":
       "Use só para corrigir artefatos",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.MESSAGE":
       "Ative o dithering apenas quando precisar limpar artefatos visíveis. A miniatura pode não refletir exatamente como a imagem final aparecerá em um e-reader, onde ela costuma ficar mais nítida e um pouco mais quente.",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.BUTTON": "Entendi",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE":
+      "Reduzir artefatos",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.HELPER":
+      "Use apenas quando a imagem mostrar artefatos visíveis de conversão. As miniaturas podem ficar diferentes do resultado final no e-reader.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_TITLE":
+      "Use só quando precisar",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_BODY":
+      "Ative isso só se a imagem mostrar artefatos visíveis depois da conversão. Miniaturas e prévias podem ficar diferentes do resultado final em um e-reader, onde a imagem costuma parecer mais nítida e natural.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_CTA":
+      "Entendi",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION":
       "Saturação",
     "EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR": "Barra de ferramentas",
@@ -644,10 +716,20 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW": "黑白",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST": "對比",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "抖動",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS": "瑕疵",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.TITLE": "僅在修正雜訊時使用",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.MESSAGE":
       "只有在需要清除可見雜訊時才啟用抖動。縮圖可能不會完全反映電子閱讀器上的最終效果，在那裡通常會顯得更銳利、也稍微偏暖。",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.BUTTON": "知道了",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE": "減少瑕疵",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.HELPER":
+      "僅在影像出現明顯的轉換瑕疵時使用。縮圖可能會與電子閱讀器上的最終效果不同。",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_TITLE":
+      "只在需要時使用",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_BODY":
+      "只有在轉換後影像出現明顯瑕疵時才開啟。縮圖與預覽可能與電子閱讀器上的最終效果不同，而最終效果通常會更銳利、更自然。",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_CTA":
+      "知道了",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION": "飽和度",
     "EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR": "工具列",
     "EDITOR.PANELS.TOOLS.TOOLS.PAGE.ARIA.TOOLBAR": "工具列",
@@ -739,11 +821,23 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST":
       "कॉन्ट्रास्ट",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "डिथरिंग",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS":
+      "आर्टिफैक्ट्स",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.TITLE":
       "इसे केवल आर्टिफैक्ट ठीक करने के लिए उपयोग करें",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.MESSAGE":
       "डिथरिंग केवल तब चालू करें जब आपको दिखने वाले आर्टिफैक्ट साफ करने हों। थंबनेल अंतिम छवि को बिल्कुल वैसा नहीं दिखा सकता जैसा ई-रीडर पर दिखेगा, जहाँ यह आमतौर पर अधिक तेज और थोड़ा गर्म दिखता है।",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.BUTTON": "समझ गया",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE":
+      "आर्टिफैक्ट कम करें",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.HELPER":
+      "इसे केवल तब इस्तेमाल करें जब चित्र में रूपांतरण के स्पष्ट आर्टिफैक्ट दिखें। थंबनेल ई-रीडर पर दिखने वाले अंतिम परिणाम से अलग लग सकते हैं।",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_TITLE":
+      "इसे सिर्फ जरूरत पड़ने पर इस्तेमाल करें",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_BODY":
+      "इसे तभी चालू करें जब रूपांतरण के बाद चित्र में स्पष्ट आर्टिफैक्ट दिखें। थंबनेल और प्रीव्यू ई-रीडर पर दिखने वाले अंतिम परिणाम से अलग लग सकते हैं, जहाँ यह आम तौर पर ज्यादा तेज़ और स्वाभाविक दिखता है।",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_CTA":
+      "समझ गया",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION":
       "सैचुरेशन",
     "EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR": "टूलबार",
@@ -840,11 +934,23 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW": "أبيض وأسود",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST": "التباين",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "التنقيط",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS":
+      "العيوب",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.TITLE":
       "استخدمه فقط لتنظيف التشوهات",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.MESSAGE":
       "فعّل التنقيط فقط عندما تحتاج إلى تنظيف التشوهات الظاهرة. قد لا تعكس المعاينة المصغرة الشكل النهائي تمامًا كما سيظهر على قارئ الكتب الإلكترونية، حيث يبدو عادةً أكثر حدة وأدفأ قليلًا.",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.BUTTON": "فهمت",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE":
+      "تقليل العيوب",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.HELPER":
+      "استخدمه فقط عندما تُظهر الصورة عيوب تحويل مرئية. قد تبدو الصور المصغرة مختلفة عن النتيجة النهائية على القارئ الإلكتروني.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_TITLE":
+      "استخدمه فقط عند الحاجة",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_BODY":
+      "فعّل هذا فقط إذا أظهرت الصورة عيوبًا مرئية بعد التحويل. قد تبدو الصور المصغرة والمعاينات مختلفة عن النتيجة النهائية على القارئ الإلكتروني، حيث تبدو عادةً أكثر حدة وطبيعية.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_CTA":
+      "فهمت",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION": "التشبع",
     "EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR": "شريط الأدوات",
     "EDITOR.PANELS.TOOLS.TOOLS.PAGE.ARIA.TOOLBAR": "شريط الأدوات",
@@ -938,11 +1044,23 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
       "コントラスト",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER":
       "ディザリング",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS":
+      "アーティファクト",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.TITLE":
       "ノイズ補正が必要なときだけ使ってください",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.MESSAGE":
       "目立つノイズを除去する必要があるときだけディザリングを有効にしてください。サムネイルは電子書籍リーダー上での最終表示を完全には再現しない場合があり、実際にはより鮮明で少し暖かく見えることがあります。",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.BUTTON": "わかりました",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE":
+      "アーティファクトを減らす",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.HELPER":
+      "変換による目立つアーティファクトが見える場合にだけ使ってください。サムネイルは e-reader の最終表示と異なって見えることがあります。",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_TITLE":
+      "必要なときだけ使ってください",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_BODY":
+      "変換後に画像に目立つアーティファクトが見える場合にだけオンにしてください。サムネイルやプレビューは e-reader での最終結果と違って見えることがありますが、最終表示のほうが通常はよりシャープで自然に見えます。",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_CTA":
+      "わかりました",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION": "彩度",
     "EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR": "ツールバー",
     "EDITOR.PANELS.TOOLS.TOOLS.PAGE.ARIA.TOOLBAR": "ツールバー",
@@ -1033,11 +1151,23 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW": "흑백",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST": "대비",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "디더링",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS":
+      "아티팩트",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.TITLE":
       "아티팩트 정리에만 사용하세요",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.MESSAGE":
       "눈에 띄는 아티팩트를 정리해야 할 때만 디더링을 켜세요. 썸네일은 전자책 리더기에서 보이는 최종 이미지를 완전히 반영하지 않을 수 있으며, 실제로는 더 선명하고 약간 더 따뜻하게 보일 수 있습니다.",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.BUTTON": "확인",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE":
+      "아티팩트 줄이기",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.HELPER":
+      "이미지에 눈에 띄는 변환 아티팩트가 보일 때만 사용하세요. 썸네일은 e-reader의 최종 결과와 다르게 보일 수 있습니다.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_TITLE":
+      "필요할 때만 사용하세요",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_BODY":
+      "변환 후 이미지에 눈에 띄는 아티팩트가 보일 때만 켜세요. 썸네일과 미리보기는 e-reader의 최종 결과와 다르게 보일 수 있으며, 최종 결과는 보통 더 선명하고 자연스럽게 보입니다.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_CTA":
+      "확인",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION": "채도",
     "EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR": "도구 모음",
     "EDITOR.PANELS.TOOLS.TOOLS.PAGE.ARIA.TOOLBAR": "도구 모음",
@@ -1128,10 +1258,20 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW": "黑白",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST": "对比度",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "抖动",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS": "伪影",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.TITLE": "仅在清理伪影时使用",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.MESSAGE":
       "只有在需要清理可见伪影时才开启抖动。缩略图可能无法完全反映电子阅读器上的最终效果，实际显示通常会更清晰、也稍微更暖一些。",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.BUTTON": "知道了",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE": "减少伪影",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.HELPER":
+      "仅在图像出现明显的转换伪影时使用。缩略图可能与电子阅读器上的最终效果不同。",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_TITLE":
+      "只在需要时使用",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_BODY":
+      "只有在转换后图像出现明显伪影时才开启。缩略图和预览可能与电子阅读器上的最终效果不同，而最终效果通常会更清晰、更自然。",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_CTA":
+      "知道了",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION": "饱和度",
     "EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR": "工具栏",
     "EDITOR.PANELS.TOOLS.TOOLS.PAGE.ARIA.TOOLBAR": "工具栏",
@@ -1224,11 +1364,23 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW": "Чёрно-белое",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST": "Контраст",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "Дизеринг",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS":
+      "Артефакты",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.TITLE":
       "Используйте только для очистки артефактов",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.MESSAGE":
       "Включайте дизеринг только тогда, когда нужно убрать заметные артефакты. Миниатюра может не полностью совпадать с тем, как итоговое изображение будет выглядеть на ридере, где оно обычно выглядит резче и чуть теплее.",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.BUTTON": "Понятно",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE":
+      "Уменьшить артефакты",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.HELPER":
+      "Используйте только если на изображении видны артефакты после преобразования. Миниатюры могут выглядеть иначе, чем итоговый результат на ридере.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_TITLE":
+      "Используйте только при необходимости",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_BODY":
+      "Включайте это только если после преобразования на изображении видны артефакты. Миниатюры и предпросмотры могут отличаться от итогового результата на ридере, где изображение обычно выглядит резче и естественнее.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_CTA":
+      "Понятно",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION":
       "Насыщенность",
     "EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR": "Панель инструментов",

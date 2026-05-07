@@ -1,0 +1,26 @@
+<ion-item>
+  <ion-label>
+    {{
+      "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE" | translate
+    }}
+  </ion-label>
+  <ion-button
+    fill="clear"
+    size="small"
+    slot="end"
+    (click)="onInfoClick()"
+    [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_TITLE' | translate"
+  >
+    <ion-icon slot="icon-only" name="information-circle-outline"></ion-icon>
+  </ion-button>
+  <ion-toggle
+    slot="end"
+    [checked]="history.artifactReductionEnabled()"
+    (ionChange)="onArtifactReductionChange($event)"
+    [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE' | translate"
+  ></ion-toggle>
+</ion-item>
+
+<p class="artifacts-helper">
+  {{ "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.HELPER" | translate }}
+</p>

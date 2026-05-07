@@ -70,6 +70,8 @@ export class CoverListContentComponent {
   @Input() loading = false;
   @Input() pageErrorKey: string | null = null;
   @Input() pageErrorParams: Record<string, any> | null = null;
+  @Input() noticeKey: string | null = null;
+  @Input() showNotice = false;
   @Input() emptyKey = 'COVERS.EMPTY';
   @Input() placeholderKey = 'COVERS.PLACEHOLDER';
   @Input() showFileName = false;

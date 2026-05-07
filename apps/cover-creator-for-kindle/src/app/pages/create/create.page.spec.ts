@@ -64,4 +64,26 @@ describe('CreatePage', () => {
 
     expect(quality).toBe(1);
   });
+
+  it('allows generate without editor crop state when image and model exist', () => {
+    const ctx = {
+      selectedModel: { id: 'pw', width: 1072, height: 1448 },
+      workingImageFile: new File(['x'], 'cover.jpg', { type: 'image/jpeg' }),
+      imageErrorKey: undefined,
+    };
+
+    const canExport = (
+      CreatePage as unknown as {
+        prototype: {
+          canExport: (this: {
+            selectedModel?: unknown;
+            workingImageFile?: File;
+            imageErrorKey?: string;
+          }) => boolean;
+        };
+      }
+    ).prototype.canExport.call(ctx);
+
+    expect(canExport).toBeTrue();
+  });
 });

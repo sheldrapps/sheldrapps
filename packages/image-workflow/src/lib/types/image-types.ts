@@ -81,6 +81,12 @@ export interface CropFormatOption {
  */
 export type BackgroundMode = "transparent" | "color" | "blur";
 export type BackgroundSource = "same-image";
+export type CoverColorMode = "color" | "black-white" | "grayscale";
+export type ArtifactReductionMode =
+  | "none"
+  | "bw-dither"
+  | "adaptive-color"
+  | "adaptive-gray";
 
 /**
  * Text layer for editor overlays
@@ -115,6 +121,7 @@ export interface CoverCropState {
   contrast: number;
   bw: boolean;
   dither: boolean;
+  artifactReductionEnabled?: boolean;
   rot: number;
   flipX?: boolean;
   flipY?: boolean;

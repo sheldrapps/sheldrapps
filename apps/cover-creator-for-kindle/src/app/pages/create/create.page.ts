@@ -28,6 +28,7 @@ import {
   IonPopover,
   IonSelect,
   IonSelectOption,
+  IonToggle,
   ToastController,
   PopoverController,
   ModalController,
@@ -40,13 +41,17 @@ import {
 } from '../../components/kindle-model-picker/kindle-model-picker.component';
 
 import {
+  buildDefaultCoverCropState,
   CoverCropState,
+  EReaderPreviewFrameComponent,
   ImagePipelineService,
   ImageValidationError,
   buildCompositionInputForPurpose,
   computeSourceCropDims,
   renderCompositionToCanvas,
   renderCompositionToFile,
+  resolveArtifactReductionMode,
+  resolveCoverColorMode,
 } from '@sheldrapps/image-workflow';
 import {
   EditorSessionService,
@@ -67,7 +72,10 @@ import {
 } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
-import { FileService } from '../../services/file.service';
+import {
+  FileService,
+  type CoverProcessingMetadataInput,
+} from '../../services/file.service';
 import {
   KindleBrand,
   KindleCatalogService,
@@ -90,6 +98,7 @@ import {
 } from '@sheldrapps/ui-theme';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { detectSupportedLocale } from '@sheldrapps/i18n-kit';
+import { RatingService } from '@sheldrapps/rating-kit';
 import {
   RecommendedApp,
   RecommendedAppsService,
@@ -97,6 +106,11 @@ import {
   handleHomeHeaderAction,
 } from '@sheldrapps/recommended-apps';
 import { CcfkSettings } from '../../settings/ccfk-settings.schema';
+import {
+  DEFAULT_PRO_COVER_EXPORT_MODE,
+  getCoverExportOptions,
+  type CoverExportMode,
+} from '../../services/cover-export-mode';
 import { TourOverlayComponent } from '../../shared/tour/tour-overlay.component';
 import { TourService } from '../../shared/tour/tour.service';
 import {
@@ -139,8 +153,10 @@ type EditorResult = {
     IonPopover,
     IonSelect,
     IonSelectOption,
+    IonToggle,
     IonModal,
     LoadingStateComponent,
+    EReaderPreviewFrameComponent,
     ScrollableButtonBarComponent,
     TourOverlayComponent,
   ],
@@ -164,6 +180,7 @@ export class CreatePage implements OnInit, OnDestroy {
   private editorSession = inject(EditorSessionService);
   private recommendedAppsService = inject(RecommendedAppsService);
   private homeTour = inject(TourService);
+  private ratingService = inject(RatingService);
 
   constructor() {
     addIcons({
@@ -185,6 +202,7 @@ export class CreatePage implements OnInit, OnDestroy {
   recommendedApps: RecommendedApp[] = [];
   showRecommended = false;
   adsRemoved = false;
+  coverExportMode: CoverExportMode = DEFAULT_PRO_COVER_EXPORT_MODE;
   removeAdsPriceFormatted: string | null = null;
   removeAdsPulseActive = false;
   purchaseModalOpen = false;
@@ -223,7 +241,8 @@ export class CreatePage implements OnInit, OnDestroy {
     this.isOnline = false;
   };
   private removeAdsPulseInterval: ReturnType<typeof setInterval> | null = null;
-  private removeAdsPulseResetTimeout: ReturnType<typeof setTimeout> | null = null;
+  private removeAdsPulseResetTimeout: ReturnType<typeof setTimeout> | null =
+    null;
   private removeAdsCtaImpressionTracked = false;
 
   imageErrorKey?: string;
@@ -254,12 +273,13 @@ export class CreatePage implements OnInit, OnDestroy {
   private modelSelectCanceled = false;
   private readonly warnDebugKey = 'cc_warn_debug';
   private readonly editorTourSeenVersionKey = 'cc_editor_tour_seen_version';
+  private readonly artifactReductionInfoSeenKey =
+    'cc_editor_artifact_reduction_info_seen';
   private readonly currentEditorTourVersion = 4;
 
   async ngOnInit() {
     await this.refreshHeaderItems();
-    this.isOnline =
-      typeof navigator === 'undefined' ? true : navigator.onLine;
+    this.isOnline = typeof navigator === 'undefined' ? true : navigator.onLine;
     if (typeof window !== 'undefined') {
       window.addEventListener('online', this.onlineHandler);
       window.addEventListener('offline', this.offlineHandler);
@@ -288,6 +308,7 @@ export class CreatePage implements OnInit, OnDestroy {
         modelId: settings.modelId,
       }),
     );
+    this.coverExportMode = settings.coverExportMode;
 
     this.routerSub = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
@@ -366,6 +387,25 @@ export class CreatePage implements OnInit, OnDestroy {
       output: {
         includeRenderedBlob: false,
       },
+      preferences: {
+        artifactReductionInfo: {
+          hasSeen: async () => {
+            const settings = await this.settings.load();
+            return (
+              settings.preferences?.[this.artifactReductionInfoSeenKey] === true
+            );
+          },
+          markSeen: async () => {
+            await this.settings.set((prev) => ({
+              ...prev,
+              preferences: {
+                ...(prev.preferences ?? {}),
+                [this.artifactReductionInfoSeenKey]: true,
+              },
+            }));
+          },
+        },
+      },
     });
 
     this.lastEditorSessionId = sid;
@@ -390,8 +430,10 @@ export class CreatePage implements OnInit, OnDestroy {
 
   async onBrandChange() {
     const selection =
-      this.catalog.resolveFirstSelectionInBrand(this.brands, this.selectedBrandId) ??
-      this.catalog.getDefaultSelection(this.brands);
+      this.catalog.resolveFirstSelectionInBrand(
+        this.brands,
+        this.selectedBrandId,
+      ) ?? this.catalog.getDefaultSelection(this.brands);
     this.applyResolvedSelection(selection);
     await this.onModelChange();
   }
@@ -582,9 +624,7 @@ export class CreatePage implements OnInit, OnDestroy {
     };
     const legacyDims = legacyDimsHint ?? this.workingImageDims ?? null;
     const exportDims =
-      (await this.resolveExportDimsForSmallWarn()) ??
-      exportDimsHint ??
-      null;
+      (await this.resolveExportDimsForSmallWarn()) ?? exportDimsHint ?? null;
 
     // Enforce export-based validation only.
     if (!exportDims) {
@@ -623,10 +663,7 @@ export class CreatePage implements OnInit, OnDestroy {
   }
   canExport(): boolean {
     return (
-      !!this.selectedModel &&
-      !!this.workingImageFile &&
-      !this.imageErrorKey &&
-      !!this.cropState
+      !!this.selectedModel && !!this.workingImageFile && !this.imageErrorKey
     );
   }
 
@@ -671,9 +708,14 @@ export class CreatePage implements OnInit, OnDestroy {
       if (!exportFile) return;
 
       if (filename === this.lastSavedFilename) {
-        const alreadySaved = await this.fileService.hasCoverByFilename(filename);
+        const alreadySaved =
+          await this.fileService.hasCoverByFilename(filename);
         if (alreadySaved) {
-          await this.showToast('CREATE.SAVED_OK', { duration: 1600 }, 'success');
+          await this.showToast(
+            'CREATE.SAVED_OK',
+            { duration: 1600 },
+            'success',
+          );
           return;
         }
         this.lastSavedFilename = undefined;
@@ -692,6 +734,7 @@ export class CreatePage implements OnInit, OnDestroy {
             bytes: this.generatedEpubBytes!,
             filename: filename,
             coverFileForThumb: exportFile,
+            coverMetadata: this.buildCoverProcessingMetadata(),
           });
           this.logSaveFlow('finalWriteComplete', {
             flow: 'performSave',
@@ -714,6 +757,7 @@ export class CreatePage implements OnInit, OnDestroy {
           bytes: this.generatedEpubBytes!,
           filename: filename,
           coverFileForThumb: exportFile,
+          coverMetadata: this.buildCoverProcessingMetadata(),
         });
         this.logSaveFlow('finalWriteComplete', {
           flow: 'performSave',
@@ -931,7 +975,10 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   private maybeTrackRemoveAdsCtaImpression(): void {
-    if (this.removeAdsCtaImpressionTracked || !this.canShowRemoveAdsEntryPoint()) {
+    if (
+      this.removeAdsCtaImpressionTracked ||
+      !this.canShowRemoveAdsEntryPoint()
+    ) {
       return;
     }
 
@@ -945,7 +992,8 @@ export class CreatePage implements OnInit, OnDestroy {
     eventName: string,
     payload: Record<string, unknown> = {},
   ): void {
-    const suffix = Object.keys(payload).length > 0 ? ` ${JSON.stringify(payload)}` : '';
+    const suffix =
+      Object.keys(payload).length > 0 ? ` ${JSON.stringify(payload)}` : '';
     console.info(`[CCFK:remove-ads] ${eventName}${suffix}`);
   }
 
@@ -1005,7 +1053,11 @@ export class CreatePage implements OnInit, OnDestroy {
         'success',
       );
     } catch {
-      await this.showToast('COMMON.PURCHASE_ERROR', { duration: 1800 }, 'error');
+      await this.showToast(
+        'COMMON.PURCHASE_ERROR',
+        { duration: 1800 },
+        'error',
+      );
     } finally {
       this.purchaseBusy = false;
     }
@@ -1020,7 +1072,11 @@ export class CreatePage implements OnInit, OnDestroy {
     try {
       const restored = await this.billing.restorePurchases();
       if (!restored) {
-        await this.showToast('COMMON.RESTORE_ERROR', { duration: 1800 }, 'error');
+        await this.showToast(
+          'COMMON.RESTORE_ERROR',
+          { duration: 1800 },
+          'error',
+        );
         return;
       }
 
@@ -1044,6 +1100,34 @@ export class CreatePage implements OnInit, OnDestroy {
       !!this.generatedEpubFilename &&
       !this.isExporting
     );
+  }
+
+  shouldShowExportOptions(): boolean {
+    return this.canExport();
+  }
+
+  canEditCoverExportMode(): boolean {
+    return this.adsRemoved;
+  }
+
+  isCoverExportModeSelected(mode: CoverExportMode): boolean {
+    return this.getEffectiveCoverExportMode() === mode;
+  }
+
+  async onCoverExportQualityToggle(event: Event): Promise<void> {
+    const checked =
+      (event as CustomEvent<{ checked: boolean }>).detail?.checked ?? false;
+    await this.onCoverExportModeChange(checked ? 'lossless' : 'compressed');
+  }
+
+  async onCoverExportModeChange(mode: CoverExportMode): Promise<void> {
+    if (!this.adsRemoved || this.coverExportMode === mode) {
+      return;
+    }
+
+    this.coverExportMode = mode;
+    this.exportImageFile = undefined;
+    await this.settings.set({ coverExportMode: mode });
   }
 
   async onGenerate() {
@@ -1109,6 +1193,7 @@ export class CreatePage implements OnInit, OnDestroy {
       bytes: this.generatedEpubBytes,
       filename: this.generatedEpubFilename,
       coverFileForThumb: exportFile,
+      coverMetadata: this.buildCoverProcessingMetadata(),
     });
     this.logSaveFlow('finalWriteComplete', {
       flow: 'onGenerate',
@@ -1135,6 +1220,10 @@ export class CreatePage implements OnInit, OnDestroy {
         { duration: 2200 },
         'success',
       );
+    });
+    await this.ratingService.trackSuccessEvent('cover_created');
+    await this.ratingService.maybeAskForRating({
+      trigger: 'cover-created',
     });
     await this.homeTour.completeInteraction('cover-created');
   }
@@ -1188,6 +1277,30 @@ export class CreatePage implements OnInit, OnDestroy {
     this.suppressNextImagePick = false;
   }
 
+  isPreviewDithered(): boolean {
+    return resolveArtifactReductionMode(this.cropState) !== 'none';
+  }
+
+  private buildCoverProcessingMetadata(): CoverProcessingMetadataInput {
+    const colorMode = resolveCoverColorMode(this.cropState);
+    const artifactReductionMode = resolveArtifactReductionMode(this.cropState);
+    const isDithered = artifactReductionMode !== 'none';
+
+    return {
+      colorMode,
+      artifactReductionEnabled:
+        !!this.cropState?.artifactReductionEnabled || !!this.cropState?.dither,
+      artifactReductionMode,
+      isDithered,
+      ditherAlgorithm:
+        artifactReductionMode === 'bw-dither'
+          ? 'floyd-steinberg'
+          : artifactReductionMode === 'adaptive-color'
+            ? 'adaptive-bayer-4x4'
+            : null,
+    };
+  }
+
   onPreviewPressStart() {
     if (!this.previewUrl) return;
     this.clearPreviewLongPress();
@@ -1208,16 +1321,6 @@ export class CreatePage implements OnInit, OnDestroy {
     }
   }
 
-  getPreviewRatio(): string {
-    if (this.cropState?.frameWidth && this.cropState?.frameHeight) {
-      return `${this.cropState.frameWidth} / ${this.cropState.frameHeight}`;
-    }
-    if (this.selectedModel) {
-      return `${this.selectedModel.width} / ${this.selectedModel.height}`;
-    }
-    return '3 / 4';
-  }
-
   ionViewWillLeave() {
     this.closeInfo();
   }
@@ -1230,7 +1333,7 @@ export class CreatePage implements OnInit, OnDestroy {
   async ionViewDidEnter() {
     this.homeTour.registerContent(this.content);
     await this.maybeStartHomeTour(
-      this.homeTour.consumePendingManualStart(HOME_TOUR_ID)
+      this.homeTour.consumePendingManualStart(HOME_TOUR_ID),
     );
   }
 
@@ -1239,12 +1342,15 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   private async refreshHeaderItems(): Promise<void> {
-    this.recommendedApps = await this.recommendedAppsService.getRecommendedApps();
+    this.recommendedApps =
+      await this.recommendedAppsService.getRecommendedApps();
     this.showRecommended = this.recommendedApps.length > 0;
     console.info('[recommended-apps][host:ccfk] header state', {
       showRecommended: this.showRecommended,
       recommendedAppsLength: this.recommendedApps.length,
-      recommendedPackageNames: this.recommendedApps.map((app) => app.packageName),
+      recommendedPackageNames: this.recommendedApps.map(
+        (app) => app.packageName,
+      ),
     });
     this.headerItems = buildHomeHeaderItems(this.showRecommended, {
       appsLabel: this.translate.instant('ARR.TOOLS.APPS'),
@@ -1344,7 +1450,8 @@ export class CreatePage implements OnInit, OnDestroy {
       return croppedSourceDims;
     }
 
-    const exportFile = this.exportImageFile ?? (await this.ensureExportImageFile());
+    const exportFile =
+      this.exportImageFile ?? (await this.ensureExportImageFile());
     if (!exportFile) return null;
     const dims = await this.imagePipe.getDimensions(exportFile);
     return dims ?? null;
@@ -1376,7 +1483,6 @@ export class CreatePage implements OnInit, OnDestroy {
 
   private buildCompositionInput(purpose: 'preview' | 'export' = 'preview') {
     if (
-      !this.cropState ||
       !this.workingImageFile ||
       !this.selectedModel ||
       !this.workingImageDims
@@ -1401,9 +1507,15 @@ export class CreatePage implements OnInit, OnDestroy {
               }
             : undefined,
       },
-      target: { width: this.selectedModel.width, height: this.selectedModel.height },
-      state: this.cropState,
-      frameFallback: { width: this.selectedModel.width, height: this.selectedModel.height },
+      target: {
+        width: this.selectedModel.width,
+        height: this.selectedModel.height,
+      },
+      state: this.cropState ?? buildDefaultCoverCropState(),
+      frameFallback: {
+        width: this.selectedModel.width,
+        height: this.selectedModel.height,
+      },
     });
   }
 
@@ -1417,10 +1529,17 @@ export class CreatePage implements OnInit, OnDestroy {
     });
     if (!fullCanvas) return;
 
-    const modalCanvas = this.downscaleCanvas(fullCanvas, 1280);
+    const isDithered = this.isPreviewDithered();
+    const modalCanvas = isDithered
+      ? fullCanvas
+      : this.downscaleCanvas(fullCanvas, 1280, false);
 
     const blob: Blob | null = await new Promise((resolve) =>
-      modalCanvas.toBlob((bb) => resolve(bb), 'image/jpeg', 0.9),
+      modalCanvas.toBlob(
+        (bb) => resolve(bb),
+        isDithered ? 'image/png' : 'image/jpeg',
+        isDithered ? undefined : 0.9,
+      ),
     );
     if (!blob) return;
 
@@ -1446,22 +1565,21 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   private resolveExportMimeType(): string | undefined {
-    if (this.adsRemoved) {
-      return 'image/png';
-    }
-    return undefined;
+    return getCoverExportOptions(this.getEffectiveCoverExportMode()).mimeType;
   }
 
   private resolveExportQuality(): number | undefined {
-    if (this.adsRemoved) {
-      return undefined;
-    }
-    return 1;
+    return getCoverExportOptions(this.getEffectiveCoverExportMode()).quality;
+  }
+
+  private getEffectiveCoverExportMode(): CoverExportMode {
+    return this.adsRemoved ? this.coverExportMode : 'compressed';
   }
 
   private downscaleCanvas(
     src: HTMLCanvasElement,
     maxSide: number,
+    preserveHardEdges = false,
   ): HTMLCanvasElement {
     if (!maxSide || maxSide <= 0) return src;
 
@@ -1479,8 +1597,10 @@ export class CreatePage implements OnInit, OnDestroy {
     dst.height = dh;
     const dctx = dst.getContext('2d');
     if (!dctx) return src;
-    dctx.imageSmoothingEnabled = true;
-    dctx.imageSmoothingQuality = 'high';
+    dctx.imageSmoothingEnabled = !preserveHardEdges;
+    if (!preserveHardEdges) {
+      dctx.imageSmoothingQuality = 'high';
+    }
     dctx.drawImage(src, 0, 0, dw, dh);
     return dst;
   }
@@ -1520,7 +1640,10 @@ export class CreatePage implements OnInit, OnDestroy {
 
   private applyResolvedSelection(selection: ResolvedKindleSelection): void {
     this.selectedBrandId = selection.brandId;
-    this.groups = this.catalog.getGroupsForBrand(this.brands, selection.brandId);
+    this.groups = this.catalog.getGroupsForBrand(
+      this.brands,
+      selection.brandId,
+    );
     this.selectedGroupId = selection.groupId;
     this.selectedModel = selection.model;
   }
@@ -1545,7 +1668,8 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   private async ensureTourLocaleReady(settings: CcfkSettings): Promise<void> {
-    const expectedLanguage = settings.language ?? (await detectSupportedLocale());
+    const expectedLanguage =
+      settings.language ?? (await detectSupportedLocale());
     if (this.translate.currentLang === expectedLanguage) {
       return;
     }
@@ -1557,9 +1681,7 @@ export class CreatePage implements OnInit, OnDestroy {
     return (settings.homeTourVersion ?? 0) < CURRENT_HOME_TOUR_VERSION;
   }
 
-  private async markHomeTourSeen(
-    _reason: TourCompletionReason
-  ): Promise<void> {
+  private async markHomeTourSeen(_reason: TourCompletionReason): Promise<void> {
     await this.settings.set((prev) => ({
       ...prev,
       homeTourSeen: true,
@@ -1581,5 +1703,3 @@ export class CreatePage implements OnInit, OnDestroy {
     );
   }
 }
-
-

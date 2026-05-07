@@ -113,6 +113,11 @@
       <div class="field-subtle">
         {{ 'CHANGE.TAP_TO_CHANGE_IMAGE' | translate }}
       </div>
+      @if (shouldShowPreviewLongPressHint()) {
+      <div class="field-subtle">
+        {{ 'CHANGE.LONGPRESS_PREVIEW_HINT' | translate }}
+      </div>
+      }
       } @else if (showInvalidCoverFallback) {
       <div class="field-subtle">
         {{ 'CHANGE.INVALID_COVER_TAP_TO_CHANGE' | translate }}
@@ -195,6 +200,50 @@
     >
       {{ 'CHANGE.CROP_ACTION' | translate }}
     </ion-button>
+
+    @if (shouldShowExportOptions()) {
+    <section class="export-quality" aria-label="{{ 'CHANGE.EXPORT_OPTIONS.TITLE' | translate }}">
+      <div class="field-title export-quality__title">
+        {{ 'CHANGE.EXPORT_OPTIONS.TITLE' | translate }}
+      </div>
+      <div class="export-quality__item">
+        <span
+          class="export-quality__option"
+          [class.export-quality__option--active]="isCoverExportModeSelected('compressed')"
+          [class.export-quality__option--inactive]="!isCoverExportModeSelected('compressed')"
+        >
+          {{ 'CHANGE.EXPORT_OPTIONS.OPTIMIZED_TITLE' | translate }}
+        </span>
+        <ion-toggle
+          [checked]="isCoverExportModeSelected('lossless')"
+          [disabled]="!canEditCoverExportMode()"
+          (ionChange)="onCoverExportQualityToggle($event)"
+          [attr.aria-label]="'CHANGE.EXPORT_OPTIONS.TITLE' | translate"
+        ></ion-toggle>
+        <span
+          class="export-quality__option"
+          [class.export-quality__option--active]="isCoverExportModeSelected('lossless')"
+          [class.export-quality__option--inactive]="!isCoverExportModeSelected('lossless')"
+        >
+          {{ 'CHANGE.EXPORT_OPTIONS.LOSSLESS_TITLE' | translate }}
+        </span>
+      </div>
+    </section>
+    }
+
+    @if (shouldShowDitheringHint()) {
+    <div class="app-callout app-callout--info" aria-live="polite" role="status">
+      <ion-icon
+        class="app-callout__icon"
+        name="information-circle-outline"
+        aria-hidden="true"
+      ></ion-icon>
+
+      <div class="app-callout__body">
+        {{ 'CHANGE.EXPORT_OPTIONS.DITHERING_HINT' | translate }}
+      </div>
+    </div>
+    }
 
     <div class="actions">
       <ion-button
@@ -353,13 +402,29 @@
 
       <ion-content class="preview-content" [fullscreen]="true">
         @if (previewUrl) {
-        <div class="preview-box" [style.--target-aspect]="targetAspect">
-          <img
-            class="preview-img"
-            [src]="previewUrlWithNonce"
-            alt="cover preview"
-          />
-        </div>
+        <app-e-reader-preview-frame
+          [mode]="shouldShowComparePreview() ? 'compare' : 'single'"
+          [imageSrc]="previewUrlWithNonce"
+          [imageWidth]="targetWidth ?? null"
+          [imageHeight]="targetHeight ?? null"
+          [beforeSrc]="originalEpubPreviewUrl"
+          [afterSrc]="previewUrlWithNonce"
+          [beforeLabel]="
+            shouldShowComparePreview()
+              ? ('CHANGE.PREVIEW_ORIGINAL_LABEL' | translate)
+              : null
+          "
+          [afterLabel]="
+            shouldShowComparePreview()
+              ? ('CHANGE.PREVIEW_NEW_LABEL' | translate)
+              : ('CHANGE.PREVIEW_NEW_ONLY_LABEL' | translate)
+          "
+          alt="cover preview"
+          fit="contain"
+          renderMode="eReader"
+          [comparisonEnabled]="true"
+          [isDithered]="isPreviewDithered()"
+        ></app-e-reader-preview-frame>
         }
       </ion-content>
     </ng-template>

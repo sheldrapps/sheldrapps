@@ -13,7 +13,7 @@
     "BILLING_UNAVAILABLE": "Gli acquisti non sono disponibili al momento.",
     "PURCHASE_ERROR": "Impossibile completare l’acquisto. Riprova.",
     "REMOVE_ADS_BUY": "Acquista",
-    "REMOVE_ADS_DESCRIPTION": "Rimuovi gli annunci per sempre con un pagamento unico.",
+    "REMOVE_ADS_DESCRIPTION": "Rimuovi gli annunci per sempre e abilita la scelta tra esportazione senza perdita e compressa.",
     "REMOVE_ADS_PURCHASED": "Annunci rimossi per sempre.",
     "REMOVE_ADS_RESTORE": "Ripristina acquisto",
     "REMOVE_ADS_RESTORED": "Acquisto ripristinato con successo.",
@@ -80,7 +80,17 @@
     },
     "INFO_REQUIREMENTS_LABEL": "Requisiti:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Disattivare gli annunci su Kindle.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Attivare \"Schermo e luminosita > Mostra copertine nella schermata di blocco\" su Kindle."
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Attivare \"Schermo e luminosita > Mostra copertine nella schermata di blocco\" su Kindle.",
+    "EXPORT_OPTIONS": {
+      "TITLE": "Qualità di esportazione",
+      "LOSSLESS_TITLE": "Migliore qualità",
+      "LOSSLESS_DESCRIPTION": "PNG senza perdita. Mantiene più dettagli, ma l’EPUB può diventare molto più grande.",
+      "OPTIMIZED_TITLE": "Compresso",
+      "OPTIMIZED_DESCRIPTION": "Immagine compressa. Ottima se ti serve la copertina solo come miniatura nella libreria.",
+      "OPTIMIZED_BADGE": "Consigliato per miniature",
+      "SMALL_SOURCE_WARNING": "L’immagine sorgente è piuttosto piccola per questo ritaglio. La copertina esportata potrebbe apparire meno nitida.",
+      "DITHERING_HINT": "La riduzione degli artefatti può far apparire le anteprime diverse sugli schermi del telefono. Usala solo se il risultato finale sull’e-reader mostra artefatti visibili."
+    }
   },
   "COVERS": {
     "DELETED": "Copertina eliminata",
@@ -90,6 +100,7 @@
     "PLACEHOLDER": "Copertina",
     "PREVIEW_TITLE": "Anteprima",
     "TITLE": "Copertine",
+    "DITHERED_THUMBNAIL_NOTICE": "Le copertine con riduzione degli artefatti possono apparire diverse nelle miniature. Apri l'anteprima per vedere un risultato pi? fedele.",
     "ACTIONS": {
       "DELETE": "Elimina",
       "SHARE": "Condividi"
@@ -103,6 +114,11 @@
       "LOAD": "Impossibile caricare le copertine. Trascina verso il basso per riprovare.",
       "PREVIEW": "Impossibile caricare l'anteprima. Riprova.",
       "SHARE": "Impossibile condividere la copertina. Riprova."
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "Riduci anteprima e-reader",
+      "ZOOM_IN_ARIA": "Ingrandisci anteprima e-reader",
+      "ZOOM_RESET_ARIA": "Reimposta zoom anteprima e-reader"
     }
   },
   "INSTRUCTIONS": {
@@ -304,6 +320,26 @@
       "INFO": "Info",
       "APPS": "Apps",
       "GUIDE": "Guida"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

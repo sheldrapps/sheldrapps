@@ -13,7 +13,7 @@
     "BILLING_UNAVAILABLE": "Purchases are currently unavailable.",
     "PURCHASE_ERROR": "Could not complete the purchase. Please try again.",
     "REMOVE_ADS_BUY": "Buy",
-    "REMOVE_ADS_DESCRIPTION": "Remove ads forever with a one-time payment.",
+    "REMOVE_ADS_DESCRIPTION": "Remove ads forever and enable lossless/compressed export selection.",
     "REMOVE_ADS_PURCHASED": "Ads removed forever.",
     "REMOVE_ADS_RESTORE": "Restore purchase",
     "REMOVE_ADS_RESTORED": "Purchase restored successfully.",
@@ -85,7 +85,21 @@
     "INVALID_COVER_TAP_TO_CHANGE": "Invalid cover, tap to change",
     "TAP_TO_CHANGE": "Tap to change/reset",
     "TAP_TO_CHANGE_IMAGE": "Tap to change",
-    "TITLE": "Change cover"
+    "LONGPRESS_PREVIEW_HINT": "Long press to preview",
+    "TITLE": "Change cover",
+    "PREVIEW_ORIGINAL_LABEL": "Original cover",
+    "PREVIEW_NEW_LABEL": "New cover",
+    "PREVIEW_NEW_ONLY_LABEL": "New cover",
+    "EXPORT_OPTIONS": {
+      "TITLE": "Export quality",
+      "LOSSLESS_TITLE": "Best quality",
+      "LOSSLESS_DESCRIPTION": "Lossless PNG. Keeps more detail, but the EPUB can be much larger.",
+      "OPTIMIZED_TITLE": "Compressed",
+      "OPTIMIZED_DESCRIPTION": "Compressed image. Great when you only need the cover for library thumbnails.",
+      "OPTIMIZED_BADGE": "Recommended for thumbnails",
+      "SMALL_SOURCE_WARNING": "Your source image is quite small for this crop. The exported cover may look softer.",
+      "DITHERING_HINT": "Artifact reduction can make previews look different on phone screens. Use it only when the final e-reader result shows visible artifacts."
+    }
   },
   "COVERS": {
     "DELETED": "EPUB deleted",
@@ -96,6 +110,7 @@
     "PREVIEW_UNAVAILABLE": "Preview unavailable.",
     "PREVIEW_TITLE": "Preview",
     "TITLE": "My EPUBs",
+    "DITHERED_THUMBNAIL_NOTICE": "Covers with artifact reduction may look different in thumbnails. Open preview to see a more accurate result.",
     "ACTIONS": {
       "DELETE": "Delete",
       "SHARE": "Share"
@@ -109,6 +124,11 @@
       "SHARE": "Could not share the EPUB. Please try again.",
       "LOAD": "Could not load your EPUBs. Pull down to refresh.",
       "PREVIEW": "Could not load preview. Try again."
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "Zoom out e-reader preview",
+      "ZOOM_IN_ARIA": "Zoom in e-reader preview",
+      "ZOOM_RESET_ARIA": "Reset e-reader preview zoom"
     }
   },
   "INSTRUCTIONS": {
@@ -192,6 +212,26 @@
       "INFO": "Info",
       "APPS": "Apps",
       "GUIDE": "Guide"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

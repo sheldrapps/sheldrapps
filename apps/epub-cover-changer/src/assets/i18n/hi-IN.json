@@ -13,7 +13,7 @@
     "BILLING_UNAVAILABLE": "अभी खरीदारी उपलब्ध नहीं है।",
     "PURCHASE_ERROR": "खरीदारी पूरी नहीं हो सकी। कृपया फिर से कोशिश करें।",
     "REMOVE_ADS_BUY": "खरीदें",
-    "REMOVE_ADS_DESCRIPTION": "एक बार के भुगतान से विज्ञापन हमेशा के लिए हटाएँ।",
+    "REMOVE_ADS_DESCRIPTION": "एक बार के भुगतान से विज्ञापन हमेशा के लिए हटाएँ और लॉसलेस/कम्प्रेस्ड एक्सपोर्ट चयन सक्षम करें।",
     "REMOVE_ADS_PURCHASED": "विज्ञापन हमेशा के लिए हटा दिए गए।",
     "REMOVE_ADS_RESTORE": "खरीदारी पुनः प्राप्त करें",
     "REMOVE_ADS_RESTORED": "खरीदारी सफलतापूर्वक पुनः प्राप्त की गई।",
@@ -85,7 +85,21 @@
     "INVALID_COVER_TAP_TO_CHANGE": "अमान्य कवर, बदलने के लिए टैप करें",
     "TAP_TO_CHANGE": "बदलने/रीसेट करने के लिए टैप करें",
     "TAP_TO_CHANGE_IMAGE": "बदलने के लिए टैप करें",
-    "TITLE": "कवर बदलें"
+    "LONGPRESS_PREVIEW_HINT": "पूर्वावलोकन के लिए देर तक दबाएँ",
+    "TITLE": "कवर बदलें",
+    "PREVIEW_ORIGINAL_LABEL": "मूल कवर",
+    "PREVIEW_NEW_LABEL": "नया कवर",
+    "PREVIEW_NEW_ONLY_LABEL": "नया कवर",
+    "EXPORT_OPTIONS": {
+      "TITLE": "एक्सपोर्ट गुणवत्ता",
+      "LOSSLESS_TITLE": "सर्वोत्तम गुणवत्ता",
+      "LOSSLESS_DESCRIPTION": "लॉसलेस PNG। यह अधिक विवरण सुरक्षित रखता है, लेकिन EPUB का आकार काफी बड़ा हो सकता है।",
+      "OPTIMIZED_TITLE": "संपीड़ित",
+      "OPTIMIZED_DESCRIPTION": "संपीड़ित छवि। जब आपको लाइब्रेरी थंबनेल के लिए सिर्फ कवर चाहिए, तब यह बेहतर है।",
+      "OPTIMIZED_BADGE": "थंबनेल के लिए अनुशंसित",
+      "SMALL_SOURCE_WARNING": "इस क्रॉप के लिए आपकी स्रोत छवि थोड़ी छोटी है। एक्सपोर्ट की गई कवर कम शार्प दिख सकती है।",
+      "DITHERING_HINT": "आर्टिफैक्ट कम करने पर फ़ोन स्क्रीन पर प्रीव्यू अलग दिख सकता है। इसे तभी इस्तेमाल करें जब अंतिम e-reader परिणाम में स्पष्ट आर्टिफैक्ट दिखें।"
+    }
   },
   "COVERS": {
     "DELETED": "EPUB हटाई गई",
@@ -96,6 +110,7 @@
     "PREVIEW_UNAVAILABLE": "प्रीव्यू उपलब्ध नहीं है।",
     "PREVIEW_TITLE": "प्रीव्यू",
     "TITLE": "मेरी EPUBs",
+    "DITHERED_THUMBNAIL_NOTICE": "आर्टिफैक्ट कमी वाली कवर थंबनेल में अलग दिख सकती हैं। अधिक सटीक परिणाम देखने के लिए प्रीव्यू खोलें।",
     "ACTIONS": {
       "DELETE": "हटाएँ",
       "SHARE": "साझा करें"
@@ -109,6 +124,11 @@
       "SHARE": "EPUB साझा नहीं हो सकी। कृपया फिर से कोशिश करें।",
       "LOAD": "आपकी EPUBs लोड नहीं हो सकीं। रीफ्रेश करने के लिए नीचे खींचें।",
       "PREVIEW": "प्रीव्यू लोड नहीं हो सका। फिर से कोशिश करें।"
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "ई-रीडर प्रीव्यू को छोटा करें",
+      "ZOOM_IN_ARIA": "ई-रीडर प्रीव्यू को बड़ा करें",
+      "ZOOM_RESET_ARIA": "ई-रीडर प्रीव्यू का ज़ूम रीसेट करें"
     }
   },
   "INSTRUCTIONS": {
@@ -192,6 +212,26 @@
       "INFO": "जानकारी",
       "APPS": "ऐप्स",
       "GUIDE": "गाइड"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

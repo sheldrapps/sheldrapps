@@ -22,7 +22,10 @@ import {
   closeCircleOutline,
   alertCircleOutline,
 } from 'ionicons/icons';
-import { FileService } from '../../services/file.service';
+import {
+  FileService,
+  ResolvedCoverPreviewAsset,
+} from '../../services/file.service';
 import { CoversEventsService } from '../../services/covers-events.service';
 import {
   CoverListAction,
@@ -100,6 +103,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   previewOpen = false;
   previewFilename: string | null = null;
   previewDataUrl: string | null = null;
+  previewIsDithered = false;
   previewLoading = false;
   previewUnavailable = false;
   previewGettingCover = false;
@@ -336,6 +340,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     this.previewOpen = true;
     this.previewFilename = filename;
     this.previewDataUrl = fallbackThumb;
+    this.previewIsDithered = false;
     this.previewLoading = true;
     this.previewUnavailable = false;
     this.previewGettingCover = false;
@@ -345,10 +350,12 @@ export class MyEpubsPage implements OnInit, OnDestroy {
         await this.files.hasCoverExportForFilename(filename);
       this.previewGettingCover = !hasCoverExport;
 
-      const preview = await this.files.getBestPreviewCoverDataUrl(filename, {
-        allowNativeExtract: true,
-      });
-      this.previewDataUrl = preview.dataUrl ?? fallbackThumb;
+      const preview: ResolvedCoverPreviewAsset =
+        await this.files.resolveCoverPreviewAsset(filename, {
+          allowNativeExtract: true,
+        });
+      this.previewDataUrl = preview.src || fallbackThumb;
+      this.previewIsDithered = preview.isDithered;
       this.previewUnavailable = !this.previewDataUrl;
     } catch {
       this.previewDataUrl = this.previewDataUrl ?? fallbackThumb;
@@ -368,14 +375,17 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     this.previewUnavailable = false;
     this.previewGettingCover = true;
     this.previewDataUrl = null;
+    this.previewIsDithered = false;
 
     try {
-      const preview = await this.files.getBestPreviewCoverDataUrl(filename, {
+      const preview = await this.files.resolveCoverPreviewAsset(filename, {
         forceRebuildThumb: true,
         allowNativeExtract: true,
+        forceRefresh: true,
       });
-      this.previewDataUrl = preview.dataUrl;
-      this.previewUnavailable = !preview.dataUrl;
+      this.previewDataUrl = preview.src || null;
+      this.previewIsDithered = preview.isDithered;
+      this.previewUnavailable = !preview.src;
     } catch {
       this.previewUnavailable = true;
       this.pageErrorKey = 'COVERS.ERROR.PREVIEW';
@@ -418,6 +428,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     this.previewOpen = false;
     this.previewFilename = null;
     this.previewDataUrl = null;
+    this.previewIsDithered = false;
     this.previewLoading = false;
     this.previewUnavailable = false;
     this.previewGettingCover = false;

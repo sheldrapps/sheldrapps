@@ -13,7 +13,7 @@
     "BILLING_UNAVAILABLE": "Purchases are currently unavailable.",
     "PURCHASE_ERROR": "Could not complete the purchase. Please try again.",
     "REMOVE_ADS_BUY": "Buy",
-    "REMOVE_ADS_DESCRIPTION": "Remove ads forever with a one-time payment.",
+    "REMOVE_ADS_DESCRIPTION": "Remove ads forever and enable lossless/compressed export selection.",
     "REMOVE_ADS_PURCHASED": "Ads removed forever.",
     "REMOVE_ADS_RESTORE": "Restore purchase",
     "REMOVE_ADS_RESTORED": "Purchase restored successfully.",
@@ -80,7 +80,17 @@
     },
     "INFO_REQUIREMENTS_LABEL": "Requirements:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Disable ads on Kindle.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Enable \"Screen and brightness > Show covers on lock screen\" on Kindle."
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Enable \"Screen and brightness > Show covers on lock screen\" on Kindle.",
+    "EXPORT_OPTIONS": {
+      "TITLE": "Export quality",
+      "LOSSLESS_TITLE": "Best quality",
+      "LOSSLESS_DESCRIPTION": "Lossless PNG. Keeps more detail, but the EPUB can be much larger.",
+      "OPTIMIZED_TITLE": "Compressed",
+      "OPTIMIZED_DESCRIPTION": "Compressed image. Great when you only need the cover for library thumbnails.",
+      "OPTIMIZED_BADGE": "Recommended for thumbnails",
+      "SMALL_SOURCE_WARNING": "Your source image is quite small for this crop. The exported cover may look softer.",
+      "DITHERING_HINT": "Artifact reduction can make previews look different on phone screens. Use it only when the final e-reader result shows visible artifacts."
+    }
   },
   "COVERS": {
     "DELETED": "Cover deleted",
@@ -90,6 +100,7 @@
     "PLACEHOLDER": "Cover",
     "PREVIEW_TITLE": "Preview",
     "TITLE": "Covers",
+    "DITHERED_THUMBNAIL_NOTICE": "Covers with artifact reduction may look different in thumbnails. Open preview to see a more accurate result.",
     "ACTIONS": {
       "DELETE": "Delete",
       "SHARE": "Share"
@@ -103,6 +114,11 @@
       "LOAD": "Could not load your covers. Pull down to refresh.",
       "PREVIEW": "Could not load the preview. Please try again.",
       "SHARE": "Could not share the cover. Please try again."
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "Zoom out e-reader preview",
+      "ZOOM_IN_ARIA": "Zoom in e-reader preview",
+      "ZOOM_RESET_ARIA": "Reset e-reader preview zoom"
     }
   },
   "INSTRUCTIONS": {
@@ -304,6 +320,26 @@
       "INFO": "Info",
       "APPS": "Apps",
       "GUIDE": "Guide"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

@@ -16,6 +16,8 @@
     [loading]="loading"
     [pageErrorKey]="pageErrorKey"
     [pageErrorParams]="pageErrorParams"
+    [showNotice]="true"
+    noticeKey="COVERS.DITHERED_THUMBNAIL_NOTICE"
     [actions]="listActions"
     [showFileName]="true"
     [filenameFormatter]="displayFilename"
@@ -28,6 +30,7 @@
   <sh-cover-preview-modal
     [isOpen]="previewOpen"
     [imageDataUrl]="previewDataUrl"
+    [isDithered]="previewIsDithered"
     [loading]="previewLoading"
     [gettingCover]="previewGettingCover"
     gettingCoverTextKey="CHANGE.GETTING_COVER"

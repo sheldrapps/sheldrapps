@@ -49,6 +49,7 @@ export class EditorStateService {
   readonly contrast = signal(DEFAULT_EDITOR_ADJUSTMENTS.contrast);
   readonly bw = signal(DEFAULT_EDITOR_ADJUSTMENTS.bw);
   readonly dither = signal(DEFAULT_EDITOR_ADJUSTMENTS.dither);
+  readonly artifactReductionEnabled = this.dither;
 
   // Background/composition state
   readonly backgroundMode = signal<BackgroundMode>(
@@ -70,6 +71,7 @@ export class EditorStateService {
     saturation: this.saturation(),
     bw: this.bw(),
     dither: this.dither(),
+    artifactReductionEnabled: this.dither(),
   }));
 
   readonly hasBackgroundSpace = computed(() => {
@@ -143,13 +145,14 @@ export class EditorStateService {
 
   setBw(value: boolean): void {
     this.bw.set(value);
-    if (!value) {
-      this.dither.set(DEFAULT_EDITOR_ADJUSTMENTS.dither);
-    }
   }
 
   setDither(value: boolean): void {
-    this.dither.set(value && this.bw());
+    this.setArtifactReductionEnabled(value);
+  }
+
+  setArtifactReductionEnabled(value: boolean): void {
+    this.dither.set(!!value);
   }
 
   setBackgroundMode(mode: BackgroundMode): void {
@@ -388,7 +391,6 @@ export class EditorStateService {
 
   resetBw(): void {
     this.bw.set(DEFAULT_EDITOR_ADJUSTMENTS.bw);
-    this.dither.set(DEFAULT_EDITOR_ADJUSTMENTS.dither);
   }
 
   resetDither(): void {
@@ -438,6 +440,7 @@ export class EditorStateService {
       contrast: this.contrast(),
       bw: this.bw(),
       dither: this.dither(),
+      artifactReductionEnabled: this.dither(),
       backgroundMode: this.backgroundMode(),
       backgroundColor: this.backgroundColor(),
       backgroundSource: this.backgroundSource(),
@@ -461,7 +464,7 @@ export class EditorStateService {
     this.contrast.set(state.contrast);
     this.bw.set(state.bw);
     this.dither.set(
-      state.bw ? state.dither : DEFAULT_EDITOR_ADJUSTMENTS.dither,
+      state.artifactReductionEnabled ?? state.dither ?? DEFAULT_EDITOR_ADJUSTMENTS.dither,
     );
     this.backgroundMode.set(
       state.backgroundMode ?? EditorStateService.DEFAULT_BACKGROUND_MODE,

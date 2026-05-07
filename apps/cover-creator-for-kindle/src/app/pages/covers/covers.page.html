@@ -16,6 +16,8 @@
     [loading]="loading"
     [pageErrorKey]="pageErrorKey"
     [pageErrorParams]="pageErrorParams"
+    [showNotice]="true"
+    noticeKey="COVERS.DITHERED_THUMBNAIL_NOTICE"
     [actions]="listActions"
     thumbAlt="cover"
     (refreshRequested)="load($event)"
@@ -26,6 +28,7 @@
   <sh-cover-preview-modal
     [isOpen]="previewOpen"
     [imageDataUrl]="previewDataUrl"
+    [isDithered]="previewIsDithered"
     [loading]="previewLoading"
     [gettingCover]="previewGettingCover"
     gettingCoverTextKey="COVERS.GETTING_COVER"

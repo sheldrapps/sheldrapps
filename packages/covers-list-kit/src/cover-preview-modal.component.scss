@@ -22,8 +22,12 @@ ion-modal.cover-preview-modal {
   --padding-bottom: calc(var(--app-space-5) + var(--app-space-4) + var(--app-tool-min-width-icon));
 }
 
-.preview-frame {
-  aspect-ratio: 3 / 4;
+.preview-visual {
+  position: relative;
+  width: min(520px, 92vw);
+  max-height: 72vh;
+  display: grid;
+  justify-items: center;
 }
 
 .preview-unavailable {

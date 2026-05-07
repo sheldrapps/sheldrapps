@@ -1,7 +1,21 @@
 import { Injectable, inject } from '@angular/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
-import { EpubPublicStore, FileKitService, FileRef } from '@sheldrapps/file-kit';
+import {
+  EpubPublicStore,
+  FileKitService,
+  FileRef,
+  readSheldrCoverMetadata,
+  type SheldrCoverMetadata,
+  writeSheldrCoverMetadata,
+  WebEpubCoverService,
+} from '@sheldrapps/file-kit';
 import { TranslateService } from '@ngx-translate/core';
+import {
+  analyzeDitherPreview,
+  buildOptimizedPreviewDataUrl,
+  type ArtifactReductionMode,
+  type CoverColorMode,
+} from '@sheldrapps/image-workflow';
 import { EpubRewriteError, EpubRewriteService } from './epub-rewrite.service';
 
 export type CoverEntry = {
@@ -27,6 +41,42 @@ export type NativeDocumentOutputTarget = {
   nativePath: string;
 };
 
+export type ResolvedCoverPreviewAsset = {
+  src: string;
+  isDithered: boolean;
+  source:
+    | 'file'
+    | 'thumbnail'
+    | 'epub-metadata'
+    | 'generated-preview'
+    | 'inferred'
+    | 'unavailable';
+  width?: number;
+  height?: number;
+};
+
+export type CoverProcessingMetadataInput = {
+  colorMode?: CoverColorMode;
+  artifactReductionEnabled?: boolean;
+  artifactReductionMode?: ArtifactReductionMode | null;
+  isDithered?: boolean;
+  ditherAlgorithm?: string | null;
+};
+
+type DitherDetectionSource = 'local-metadata' | 'epub-metadata' | 'inferred';
+
+type ResolvedDitherMetadata = {
+  isDithered: boolean;
+  colorMode?: CoverColorMode;
+  artifactReductionEnabled?: boolean;
+  artifactReductionMode?: ArtifactReductionMode | null;
+  detectionSource: DitherDetectionSource;
+  ditherAlgorithm?: string | null;
+  renderKind?: string | null;
+  width?: number;
+  height?: number;
+};
+
 @Injectable({ providedIn: 'root' })
 export class FileService {
   private translate = inject(TranslateService);
@@ -41,12 +91,22 @@ export class FileService {
   private readonly LEGACY_EPUB_FOLDERS = ['CoverCreator'];
   private fileKit = inject(FileKitService);
   private epubRewrite = inject(EpubRewriteService);
+  private webEpubCover = inject(WebEpubCoverService);
   private readonly thumbDataUrlCache = new Map<string, string>();
   private thumbFileNamesCache: Set<string> | null = null;
   private thumbFileNamesCachePromise: Promise<Set<string>> | null = null;
   private legacyMigrationBackgroundPromise: Promise<void> | null = null;
+  private readonly resolvedPreviewCache = new Map<
+    string,
+    ResolvedCoverPreviewAsset
+  >();
+  private readonly ditherMetadataCache = new Map<
+    string,
+    ResolvedDitherMetadata
+  >();
   // Temporary instrumentation for robust public EPUB discovery validation.
   private readonly DEBUG_IO = true;
+  private readonly OPTIMIZED_PREVIEW_MAX_SIDE = 1600;
   private hasMigratedLegacyEpubFolders = false;
   private readonly epubStore = new EpubPublicStore(this.fileKit, {
     epubFolder: this.EPUB_FOLDER,
@@ -73,7 +133,9 @@ export class FileService {
   }
 
   async validateEpubStructure(file: File): Promise<boolean> {
-    if (!this.epubRewrite.isSupported()) return false;
+    if (!this.epubRewrite.isSupported()) {
+      return this.webEpubCover.isReadableEpub(file);
+    }
     const tempName = `validate_${Date.now()}_${file.name || 'epub'}`;
     const tempPath = `${this.EPUB_FOLDER}/${tempName}`;
     try {
@@ -103,7 +165,9 @@ export class FileService {
   }
 
   async extractCoverFromEpubFile(file: File): Promise<File | null> {
-    if (!this.epubRewrite.isSupported()) return null;
+    if (!this.epubRewrite.isSupported()) {
+      return this.webEpubCover.extractCover(file);
+    }
     const tempName = `extract_${Date.now()}_${file.name || 'epub'}`;
     const tempPath = `${this.EPUB_FOLDER}/${tempName}`;
     try {
@@ -175,7 +239,15 @@ export class FileService {
     await this.ensurePublicDocumentsEpubFolderReady({
       skipLegacyMigration: true,
     });
-    const files = await this.listEpubsFromPublicDocuments();
+    let files: string[] = [];
+    try {
+      files = await this.listEpubsFromPublicDocuments();
+    } catch (error) {
+      this.debugLog('listCovers:fallbackDocumentsDirectory', {
+        error: this.errorDetails(error),
+      });
+      files = await this.listDirectoryDocumentsEpubs();
+    }
     this.debugLog('listCovers', {
       reloadAt: new Date().toISOString(),
       count: files.length,
@@ -191,6 +263,12 @@ export class FileService {
 
   async hasCoverByFilename(filename: string): Promise<boolean> {
     await this.ensurePublicDocumentsEpubFolderReady();
+    if (!this.epubRewrite.isSupported()) {
+      return this.fileKit.exists({
+        dir: 'Documents',
+        path: `${this.EPUB_FOLDER}/${filename}`,
+      });
+    }
     return this.existsInPublicDocuments(filename);
   }
 
@@ -200,6 +278,7 @@ export class FileService {
     const epubPath = `${this.EPUB_FOLDER}/${filename}`;
     const thumbPath = this.getThumbPathForEpubFilename(filename);
     this.clearThumbCache(filename);
+    this.clearResolvedPreviewCache(filename);
     this.markThumbMissing(filename);
 
     await this.deletePublicEpub(filename);
@@ -314,6 +393,87 @@ export class FileService {
     }
 
     return { dataUrl: null, source: 'unavailable' };
+  }
+
+  async resolveCoverPreviewAsset(
+    filename: string,
+    opts?: {
+      forceRebuildThumb?: boolean;
+      allowNativeExtract?: boolean;
+      forceRefresh?: boolean;
+    },
+  ): Promise<ResolvedCoverPreviewAsset> {
+    const cacheKey = this.ensureEpubExt(this.sanitizeFilename(filename));
+    const canUseCache = !opts?.forceRebuildThumb && !opts?.forceRefresh;
+    if (canUseCache) {
+      const cached = this.resolvedPreviewCache.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+    }
+
+    const assets = await this.ensureCoverAssets(cacheKey, {
+      forceThumbRebuild: !!opts?.forceRebuildThumb,
+      allowNativeExtract: opts?.allowNativeExtract ?? true,
+    });
+    const baseSrc = assets.coverDataUrl ?? assets.thumbDataUrl ?? null;
+
+    if (!baseSrc) {
+      const unavailable: ResolvedCoverPreviewAsset = {
+        src: '',
+        isDithered: false,
+        source: 'unavailable',
+      };
+      this.resolvedPreviewCache.set(cacheKey, unavailable);
+      return unavailable;
+    }
+
+    const metadata = await this.resolveDitherMetadata(cacheKey, baseSrc, {
+      forceRefresh: !!opts?.forceRefresh,
+    });
+    let src = baseSrc;
+    let source: ResolvedCoverPreviewAsset['source'] = assets.coverDataUrl
+      ? 'file'
+      : 'thumbnail';
+    let width = metadata.width;
+    let height = metadata.height;
+
+    if (metadata.isDithered) {
+      const isLossyJpegSource = /^data:image\/(jpeg|jpg);base64,/i.test(
+        baseSrc,
+      );
+      const optimized = await buildOptimizedPreviewDataUrl(baseSrc, {
+        maxSide: this.OPTIMIZED_PREVIEW_MAX_SIDE,
+        preserveHardEdges: true,
+        keepSourceResolution: true,
+        reDitherFromLossySource: isLossyJpegSource,
+        mimeType: 'image/png',
+      });
+      if (optimized?.dataUrl) {
+        src = optimized.dataUrl;
+        source = 'generated-preview';
+        width = optimized.width;
+        height = optimized.height;
+      } else if (metadata.detectionSource === 'epub-metadata') {
+        source = 'epub-metadata';
+      } else if (metadata.detectionSource === 'inferred') {
+        source = 'inferred';
+      }
+    } else if (metadata.detectionSource === 'epub-metadata') {
+      source = 'epub-metadata';
+    } else if (metadata.detectionSource === 'inferred') {
+      source = 'inferred';
+    }
+
+    const resolved: ResolvedCoverPreviewAsset = {
+      src,
+      isDithered: metadata.isDithered,
+      source,
+      width,
+      height,
+    };
+    this.resolvedPreviewCache.set(cacheKey, resolved);
+    return resolved;
   }
 
   async ensureCoverAssets(
@@ -518,6 +678,79 @@ export class FileService {
       return;
     }
     this.thumbFileNamesCache.delete(toThumb);
+  }
+
+  private clearResolvedPreviewCache(filename: string): void {
+    this.resolvedPreviewCache.delete(this.thumbCacheKey(filename));
+    this.ditherMetadataCache.delete(this.thumbCacheKey(filename));
+  }
+
+  private renameResolvedPreviewCache(
+    fromFilename: string,
+    toFilename: string,
+  ): void {
+    const fromKey = this.thumbCacheKey(fromFilename);
+    const toKey = this.thumbCacheKey(toFilename);
+    const cached = this.resolvedPreviewCache.get(fromKey);
+    if (cached) {
+      this.resolvedPreviewCache.set(toKey, cached);
+    } else {
+      this.resolvedPreviewCache.delete(toKey);
+    }
+    this.resolvedPreviewCache.delete(fromKey);
+  }
+
+  private renameDitherMetadataCache(
+    fromFilename: string,
+    toFilename: string,
+  ): void {
+    const fromKey = this.thumbCacheKey(fromFilename);
+    const toKey = this.thumbCacheKey(toFilename);
+    const cached = this.ditherMetadataCache.get(fromKey);
+    if (cached) {
+      this.ditherMetadataCache.set(toKey, cached);
+    } else {
+      this.ditherMetadataCache.delete(toKey);
+    }
+    this.ditherMetadataCache.delete(fromKey);
+  }
+
+  private cacheResolvedCoverMetadata(
+    filename: string,
+    metadata?: CoverProcessingMetadataInput,
+  ): void {
+    const cacheKey = this.thumbCacheKey(filename);
+    this.resolvedPreviewCache.delete(cacheKey);
+    if (!metadata) {
+      this.ditherMetadataCache.delete(cacheKey);
+      return;
+    }
+
+    const colorMode = metadata.colorMode ?? 'color';
+    const artifactReductionEnabled =
+      metadata.artifactReductionEnabled ?? !!metadata.isDithered;
+    const artifactReductionMode =
+      metadata.artifactReductionMode ??
+      (artifactReductionEnabled && colorMode === 'black-white'
+        ? 'bw-dither'
+        : 'none');
+    const isDithered =
+      artifactReductionMode !== 'none' || !!metadata.isDithered;
+
+    this.ditherMetadataCache.set(cacheKey, {
+      isDithered,
+      colorMode,
+      artifactReductionEnabled,
+      artifactReductionMode,
+      detectionSource: 'local-metadata',
+      ditherAlgorithm:
+        isDithered && metadata.ditherAlgorithm?.trim()
+          ? metadata.ditherAlgorithm.trim()
+          : isDithered
+            ? 'floyd-steinberg'
+            : null,
+      renderKind: isDithered ? 'processed-dithered' : 'processed-standard',
+    });
   }
 
   private async tryReadBase64FromFilesystem(
@@ -741,7 +974,17 @@ export class FileService {
     filename?: string;
   }): Promise<{ bytes: Uint8Array; filename: string }> {
     if (!this.epubRewrite.isSupported()) {
-      throw new Error('Native EPUB generation is only supported on Android.');
+      const filename = this.ensureEpubExt(
+        this.sanitizeFilename(
+          opts.filename ?? this.buildFilename(opts.modelId),
+        ),
+      );
+      const bytes = await this.webEpubCover.createMinimalEpub(
+        opts.coverFile,
+        opts.title ?? 'EPUB Cover',
+        this.getEpubLang(),
+      );
+      return { bytes, filename };
     }
 
     const filename = this.ensureEpubExt(
@@ -805,7 +1048,17 @@ export class FileService {
     filename?: string;
   }): Promise<{ bytes: Uint8Array; filename: string }> {
     if (!this.epubRewrite.isSupported()) {
-      throw new Error('Native EPUB rewrite is only supported on Android.');
+      const filename = this.ensureEpubExt(
+        this.sanitizeFilename(
+          opts.filename ?? opts.sourceEpubFile?.name ?? 'epub_cover.epub',
+        ),
+      );
+      const bytes = await this.webEpubCover.replaceCover(
+        opts.sourceEpubFile,
+        opts.coverFile,
+        filename,
+      );
+      return { bytes, filename };
     }
 
     const sourceName = opts.sourceEpubFile?.name || 'epub_cover.epub';
@@ -895,27 +1148,69 @@ export class FileService {
     bytes: Uint8Array;
     filename: string;
     coverFileForThumb: File;
+    coverMetadata?: CoverProcessingMetadataInput;
   }) {
     const filename = this.ensureEpubExt(this.sanitizeFilename(opts.filename));
+    const finalBytes = await this.applyCoverMetadataToEpubBytes(
+      opts.bytes,
+      opts.coverMetadata,
+    );
+
+    if (!this.epubRewrite.isSupported()) {
+      const epubPath = `${this.EPUB_FOLDER}/${filename}`;
+      await this.fileKit.writeBytes({
+        dir: 'Documents',
+        path: epubPath,
+        bytes: finalBytes,
+        mimeType: 'application/epub+zip',
+      });
+
+      const uri = await this.fileKit.getUri({
+        dir: 'Documents',
+        path: epubPath,
+      });
+
+      const assets = await this.persistCoverAssetsFromFile(
+        opts.coverFileForThumb,
+        filename,
+      );
+      this.clearResolvedPreviewCache(filename);
+
+      this.debugLog('saveGeneratedEpub:web:documents', {
+        filename,
+        bytes: finalBytes.byteLength,
+        path: epubPath,
+      });
+
+      return {
+        path: epubPath,
+        uri,
+        filename,
+        thumbPath: assets.thumbPath,
+        thumbFilename: assets.thumbFilename,
+      };
+    }
+
     const uniqueFilename = await this.getUniqueDocumentFilename(filename);
     const epubPath = `${this.EPUB_FOLDER}/${uniqueFilename}`;
 
-    await this.writePublicEpub(uniqueFilename, opts.bytes);
+    await this.writePublicEpub(uniqueFilename, finalBytes);
     this.debugLog('saveGeneratedEpub:finalWriteComplete', {
       filename: uniqueFilename,
       writeCompletedAt: new Date().toISOString(),
-      bytes: opts.bytes.byteLength,
+      bytes: finalBytes.byteLength,
     });
     const uri = await this.getPublicEpubFileUriOrThrow(uniqueFilename);
     this.debugLog('saveGeneratedEpub', {
       filename: uniqueFilename,
-      bytes: opts.bytes.byteLength,
+      bytes: finalBytes.byteLength,
     });
 
     const assets = await this.persistCoverAssetsFromFile(
       opts.coverFileForThumb,
       uniqueFilename,
     );
+    this.cacheResolvedCoverMetadata(uniqueFilename, opts.coverMetadata);
 
     return {
       path: epubPath,
@@ -925,12 +1220,12 @@ export class FileService {
       thumbFilename: assets.thumbFilename,
     };
   }
-
   async saveGeneratedEpubFromPath(opts: {
     sourcePath: string;
     sourceDir: 'Data' | 'Documents' | 'Cache';
     filename: string;
     coverFileForThumb: File;
+    coverMetadata?: CoverProcessingMetadataInput;
   }) {
     const filename = this.ensureEpubExt(this.sanitizeFilename(opts.filename));
     const uniqueFilename = await this.getUniqueDocumentFilename(filename);
@@ -940,11 +1235,15 @@ export class FileService {
       opts.sourcePath,
       opts.sourceDir,
     );
-    await this.writePublicEpub(uniqueFilename, bytes);
+    const finalBytes = await this.applyCoverMetadataToEpubBytes(
+      bytes,
+      opts.coverMetadata,
+    );
+    await this.writePublicEpub(uniqueFilename, finalBytes);
     this.debugLog('saveGeneratedEpubFromPath:finalWriteComplete', {
       filename: uniqueFilename,
       writeCompletedAt: new Date().toISOString(),
-      bytes: bytes.byteLength,
+      bytes: finalBytes.byteLength,
       sourceDir: opts.sourceDir,
       sourcePath: opts.sourcePath,
     });
@@ -953,13 +1252,14 @@ export class FileService {
       sourceDir: opts.sourceDir,
       sourcePath: opts.sourcePath,
       filename: uniqueFilename,
-      bytes: bytes.byteLength,
+      bytes: finalBytes.byteLength,
     });
 
     const assets = await this.persistCoverAssetsFromFile(
       opts.coverFileForThumb,
       uniqueFilename,
     );
+    this.cacheResolvedCoverMetadata(uniqueFilename, opts.coverMetadata);
 
     return {
       path: epubPath,
@@ -991,18 +1291,23 @@ export class FileService {
   async persistCoverAssetsForGeneratedFilename(opts: {
     filename: string;
     coverFileForThumb: File;
+    coverMetadata?: CoverProcessingMetadataInput;
   }): Promise<{ thumbPath: string; thumbFilename: string }> {
     await this.ensurePublicDocumentsEpubFolderReady();
-    return this.persistCoverAssetsFromFile(
+    await this.updateGeneratedEpubMetadata(opts.filename, opts.coverMetadata);
+    const assets = await this.persistCoverAssetsFromFile(
       opts.coverFileForThumb,
       opts.filename,
     );
+    this.cacheResolvedCoverMetadata(opts.filename, opts.coverMetadata);
+    return assets;
   }
 
   async saveGeneratedEpubFromExistingDocument(opts: {
     sourceFilename: string;
     filename: string;
     coverFileForThumb: File;
+    coverMetadata?: CoverProcessingMetadataInput;
   }) {
     await this.ensurePublicDocumentsEpubFolderReady();
     const sourceFilename = this.ensureEpubExt(
@@ -1022,14 +1327,25 @@ export class FileService {
 
     if (sourcePath !== epubPath) {
       const bytes = await this.readPublicEpubBytes(sourceFilename);
-      await this.writePublicEpub(uniqueFilename, bytes);
+      const finalBytes = await this.applyCoverMetadataToEpubBytes(
+        bytes,
+        opts.coverMetadata,
+      );
+      await this.writePublicEpub(uniqueFilename, finalBytes);
       this.debugLog(
         'saveGeneratedEpubFromExistingDocument:finalWriteComplete',
         {
           filename: uniqueFilename,
           writeCompletedAt: new Date().toISOString(),
-          bytes: bytes.byteLength,
+          bytes: finalBytes.byteLength,
         },
+      );
+    }
+
+    if (sourcePath === epubPath) {
+      await this.updateGeneratedEpubMetadata(
+        uniqueFilename,
+        opts.coverMetadata,
       );
     }
 
@@ -1044,6 +1360,7 @@ export class FileService {
       opts.coverFileForThumb,
       uniqueFilename,
     );
+    this.cacheResolvedCoverMetadata(uniqueFilename, opts.coverMetadata);
 
     return {
       path: epubPath,
@@ -1135,6 +1452,8 @@ export class FileService {
     }
     this.renameThumbCache(fromFilename, toFilename);
     this.renameThumbPresence(fromFilename, toFilename);
+    this.renameResolvedPreviewCache(fromFilename, toFilename);
+    this.renameDitherMetadataCache(fromFilename, toFilename);
 
     return {
       filename: toFilename,
@@ -1433,6 +1752,13 @@ export class FileService {
     return result;
   }
 
+  private async listDirectoryDocumentsEpubs(): Promise<string[]> {
+    const files = await this.listDirectoryFileNames(this.EPUB_FOLDER, 'Documents');
+    return files
+      .filter((name) => name.toLowerCase().endsWith('.epub'))
+      .sort((a, b) => a.localeCompare(b));
+  }
+
   private async writePublicEpub(
     filename: string,
     bytes: Uint8Array,
@@ -1466,6 +1792,121 @@ export class FileService {
 
   private async getPublicEpubUri(filename: string): Promise<string> {
     return this.getPublicEpubFileUriOrThrow(filename);
+  }
+
+  private async resolveDitherMetadata(
+    filename: string,
+    previewSrc: string,
+    opts?: { forceRefresh?: boolean },
+  ): Promise<ResolvedDitherMetadata> {
+    const cacheKey = this.thumbCacheKey(filename);
+    if (!opts?.forceRefresh) {
+      const cached = this.ditherMetadataCache.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+    }
+
+    const embedded = await this.readEmbeddedDitherMetadata(filename);
+    if (embedded) {
+      this.ditherMetadataCache.set(cacheKey, embedded);
+      return embedded;
+    }
+
+    const analysis = await analyzeDitherPreview(previewSrc);
+    const inferred: ResolvedDitherMetadata = {
+      isDithered: !!analysis?.isDithered,
+      colorMode: analysis?.isDithered ? 'black-white' : 'color',
+      artifactReductionEnabled: !!analysis?.isDithered,
+      artifactReductionMode: analysis?.isDithered ? 'bw-dither' : 'none',
+      detectionSource: 'inferred',
+      ditherAlgorithm: analysis?.isDithered ? 'floyd-steinberg' : null,
+      width: analysis?.width,
+      height: analysis?.height,
+    };
+    this.ditherMetadataCache.set(cacheKey, inferred);
+    return inferred;
+  }
+
+  private async readEmbeddedDitherMetadata(
+    filename: string,
+  ): Promise<ResolvedDitherMetadata | null> {
+    try {
+      const bytes = await this.readPublicEpubBytes(filename);
+      const metadata = await readSheldrCoverMetadata(bytes);
+      if (!metadata) {
+        return null;
+      }
+
+      return {
+        isDithered: metadata.isDithered,
+        colorMode: metadata.colorMode,
+        artifactReductionEnabled: metadata.artifactReductionEnabled,
+        artifactReductionMode: metadata.artifactReductionMode ?? null,
+        detectionSource: 'epub-metadata',
+        ditherAlgorithm: metadata.ditherAlgorithm ?? null,
+        renderKind: metadata.renderKind ?? null,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  private async applyCoverMetadataToEpubBytes(
+    bytes: Uint8Array,
+    metadata?: CoverProcessingMetadataInput,
+  ): Promise<Uint8Array> {
+    if (!metadata) {
+      return bytes;
+    }
+
+    return writeSheldrCoverMetadata(
+      bytes,
+      this.toSheldrCoverMetadata(metadata),
+    );
+  }
+
+  private async updateGeneratedEpubMetadata(
+    filename: string,
+    metadata?: CoverProcessingMetadataInput,
+  ): Promise<void> {
+    if (!metadata) {
+      return;
+    }
+
+    const bytes = await this.readPublicEpubBytes(filename);
+    const updated = await this.applyCoverMetadataToEpubBytes(bytes, metadata);
+    await this.writePublicEpub(filename, updated);
+  }
+
+  private toSheldrCoverMetadata(
+    metadata: CoverProcessingMetadataInput,
+  ): SheldrCoverMetadata {
+    const colorMode = metadata.colorMode ?? 'color';
+    const artifactReductionEnabled =
+      metadata.artifactReductionEnabled ?? !!metadata.isDithered;
+    const artifactReductionMode =
+      metadata.artifactReductionMode ??
+      (artifactReductionEnabled && colorMode === 'black-white'
+        ? 'bw-dither'
+        : 'none');
+    const normalizedIsDithered =
+      artifactReductionMode !== 'none' || !!metadata.isDithered;
+
+    return {
+      colorMode,
+      artifactReductionEnabled,
+      artifactReductionMode,
+      isDithered: normalizedIsDithered,
+      ditherAlgorithm: normalizedIsDithered
+        ? metadata.ditherAlgorithm?.trim() || 'floyd-steinberg'
+        : null,
+      renderKind: normalizedIsDithered
+        ? 'processed-dithered'
+        : 'processed-standard',
+      processedBy: 'epub-cover-changer',
+      metadataVersion: '2',
+    };
   }
 
   private async ensurePublicDocumentsEpubFolderReady(opts?: {

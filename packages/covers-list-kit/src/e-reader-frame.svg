@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1354" height="2048" viewBox="0 0 1354 2048" fill="none">
+  <defs>
+    <linearGradient id="bezel" x1="37" y1="37" x2="1291" y2="2035" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0D1118"/>
+      <stop offset="0.18" stop-color="#2B3038"/>
+      <stop offset="0.5" stop-color="#444950"/>
+      <stop offset="0.82" stop-color="#2B3038"/>
+      <stop offset="1" stop-color="#0A0E14"/>
+    </linearGradient>
+
+    <linearGradient id="verticalSheen" x1="37" y1="1036" x2="1291" y2="1036" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#71808D" stop-opacity="0.18"/>
+      <stop offset="0.1" stop-color="#FFFFFF" stop-opacity="0.04"/>
+      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="0.9" stop-color="#FFFFFF" stop-opacity="0.04"/>
+      <stop offset="1" stop-color="#71808D" stop-opacity="0.16"/>
+    </linearGradient>
+
+    <radialGradient id="topGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(677 80) rotate(90) scale(55 600)">
+      <stop stop-color="#FFFFFF" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="screenEdge" x1="163" y1="215" x2="163" y2="1677" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5E6369" stop-opacity="0.12"/>
+      <stop offset="0.08" stop-color="#000000" stop-opacity="0.3"/>
+      <stop offset="0.92" stop-color="#000000" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#5E6369" stop-opacity="0.12"/>
+    </linearGradient>
+
+    <!-- White = visible, black = transparent hole -->
+    <mask id="frameMask" maskUnits="userSpaceOnUse" x="37" y="37" width="1254" height="1998">
+      <rect x="37" y="37" width="1254" height="1998" rx="66" fill="white"/>
+      <rect x="163" y="215" width="1000" height="1462" fill="black"/>
+    </mask>
+  </defs>
+
+  <!-- Outer frame, with transparent hole punched in the middle -->
+  <rect x="37" y="37" width="1254" height="1998" rx="66" fill="url(#bezel)" mask="url(#frameMask)"/>
+  <rect x="37" y="37" width="1254" height="1998" rx="66" fill="url(#verticalSheen)" mask="url(#frameMask)"/>
+
+  <rect x="42" y="42" width="1244" height="1988" rx="62" stroke="#82878D" stroke-opacity="0.2" stroke-width="2"/>
+  <rect x="55" y="55" width="1218" height="1962" rx="54" stroke="#020305" stroke-opacity="0.95" stroke-width="5"/>
+  <rect x="62" y="62" width="1204" height="1948" rx="51" stroke="#8F949A" stroke-opacity="0.12" stroke-width="1.5"/>
+
+  <ellipse cx="677" cy="91" rx="560" ry="50" fill="url(#topGlow)" mask="url(#frameMask)"/>
+
+  <!-- Inner opening border only; no fill, so the center remains transparent -->
+  <rect x="163" y="215" width="1000" height="1462" fill="none" stroke="url(#screenEdge)" stroke-width="3"/>
+  <rect x="166" y="218" width="994" height="1456" fill="none" stroke="#0A0A0A" stroke-opacity="0.8" stroke-width="1.2"/>
+</svg>

@@ -68,7 +68,10 @@ export class BillingService {
 
     this.hydrateCachedStatePromise = this.readCachedEntitlement()
       .then((cachedEntitlement) => {
-        this.setEntitlement(cachedEntitlement);
+        const effectiveEntitlement = this.isDevelopmentPremiumMode()
+          ? true
+          : cachedEntitlement;
+        this.setEntitlement(effectiveEntitlement);
         this.hasHydratedCachedState = true;
       })
       .catch((error) => {
@@ -197,6 +200,10 @@ export class BillingService {
   }
 
   canShowRemoveAdsEntryPoint(): boolean {
+    if (this.isDevelopmentPremiumMode()) {
+      return false;
+    }
+
     if (!this.removeAdsProductId) {
       return false;
     }
@@ -432,6 +439,10 @@ export class BillingService {
       this.billingAvailable &&
       this.isReady
     );
+  }
+
+  private isDevelopmentPremiumMode(): boolean {
+    return !isNative() && this.config.isTesting === true;
   }
 
   private get removeAdsProductId(): string | undefined {

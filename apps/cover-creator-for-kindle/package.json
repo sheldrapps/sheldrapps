@@ -47,10 +47,12 @@
     "@sheldrapps/file-kit": "workspace:*",
     "@sheldrapps/i18n-kit": "workspace:*",
     "@sheldrapps/image-workflow": "workspace:*",
+    "@sheldrapps/rating-kit": "workspace:*",
     "@sheldrapps/recommended-apps": "workspace:*",
     "@sheldrapps/settings-kit": "workspace:*",
     "@sheldrapps/ui-theme": "workspace:*",
     "ionicons": "^7.0.0",
+    "jszip": "^3.10.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"

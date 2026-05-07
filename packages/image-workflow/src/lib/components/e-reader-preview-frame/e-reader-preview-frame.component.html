@@ -1,0 +1,108 @@
+@if (hasContent) {
+<div
+  class="ereader-preview"
+  [class.ereader-preview--compare]="isCompareLayout"
+>
+  <div
+    #gestureViewport
+    class="ereader-preview__gesture-stage"
+    [class.ereader-preview__gesture-stage--interactive]="zoomEnabled"
+    (pointerdown)="onGesturePointerDown($event)"
+    (pointermove)="onGesturePointerMove($event)"
+    (pointerup)="onGesturePointerUp($event)"
+    (pointercancel)="onGesturePointerUp($event)"
+    (lostpointercapture)="onGesturePointerUp($event)"
+  >
+    <div
+      #gestureSurface
+      class="ereader-preview__compare"
+      [class.ereader-preview__compare--single]="!isCompareLayout"
+      [ngStyle]="getCompareStyle()"
+    >
+      @for (panel of panels; track trackPanel($index, panel)) {
+      <section
+        #panelRef
+        class="ereader-preview__panel"
+        [attr.data-panel-id]="panel.id"
+      >
+        @if (panel.label) {
+        <div class="ereader-preview__label">{{ panel.label }}</div>
+        }
+
+        <div
+          #visualViewport
+          class="ereader-preview__viewport"
+          [ngStyle]="getPanelStyle(panel)"
+        >
+          <div
+            class="ereader-preview__device"
+            [class.ereader-preview__device--plain]="!frameEnabled"
+            [ngStyle]="getDeviceStyle()"
+          >
+            <div
+              class="ereader-preview__screen"
+              [class.ereader-preview__screen--letterbox]="isCompareLayout && panel.id === 'before'"
+            >
+              <img
+                class="ereader-preview__cover"
+                [ngClass]="coverClassNames"
+                [src]="panel.src"
+                [alt]="panel.alt"
+                (load)="onImageLoad(panel, $event)"
+                (error)="onImageError(panel)"
+              />
+            </div>
+
+            @if (frameEnabled) {
+            <div class="ereader-preview__frame" aria-hidden="true"></div>
+            }
+          </div>
+        </div>
+      </section>
+      }
+    </div>
+  </div>
+
+  @if (showFrameColorSelector) {
+  <div class="ereader-preview__controls" role="group" [attr.aria-label]="colorSelectorTitleKey | translate">
+    <button
+      type="button"
+      class="ereader-preview__color-button"
+      [attr.aria-expanded]="colorSelectorOpen"
+      (click)="toggleColorSelector()"
+    >
+      <span class="ereader-preview__color-button-swatch" [ngStyle]="frameColorSwatchStyle"></span>
+      <span class="ereader-preview__color-button-label">{{ selectedFrameColorLabelKey | translate }}</span>
+    </button>
+
+    @if (colorSelectorOpen) {
+    <div class="ereader-preview__color-panel" role="dialog" [attr.aria-label]="colorSelectorTitleKey | translate">
+      <div class="ereader-preview__color-options">
+        @for (preset of frameColorOptions; track preset.id) {
+        <button
+          type="button"
+          class="ereader-preview__color-option"
+          [class.ereader-preview__color-option--active]="isSelectedFrameColor(preset.id)"
+          (click)="selectFrameColor(preset.id)"
+        >
+          <span
+            class="ereader-preview__color-option-swatch"
+            [ngStyle]="{ backgroundColor: preset.swatch }"
+          ></span>
+          <span class="ereader-preview__color-option-label">{{ preset.i18nKey | translate }}</span>
+        </button>
+        }
+      </div>
+      <button
+        type="button"
+        class="ereader-preview__color-close"
+        (click)="closeColorSelector()"
+      >
+        {{ 'COMMON.CLOSE' | translate }}
+      </button>
+    </div>
+    }
+  </div>
+  }
+</div>
+}

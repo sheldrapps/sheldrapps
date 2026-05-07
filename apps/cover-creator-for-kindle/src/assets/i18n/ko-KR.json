@@ -13,7 +13,7 @@
     "BILLING_UNAVAILABLE": "현재 구매할 수 없습니다.",
     "PURCHASE_ERROR": "구매를 완료할 수 없습니다. 다시 시도해 주세요.",
     "REMOVE_ADS_BUY": "구매",
-    "REMOVE_ADS_DESCRIPTION": "일회 결제로 광고를 영구적으로 제거하세요.",
+    "REMOVE_ADS_DESCRIPTION": "일회 결제로 광고를 영구적으로 제거하고 무손실/압축 내보내기 선택을 활성화하세요.",
     "REMOVE_ADS_PURCHASED": "광고가 영구적으로 제거되었습니다.",
     "REMOVE_ADS_RESTORE": "구매 복원",
     "REMOVE_ADS_RESTORED": "구매가 성공적으로 복원되었습니다.",
@@ -80,7 +80,17 @@
     },
     "INFO_REQUIREMENTS_LABEL": "필요 조건:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Kindle에서 광고를 비활성화하세요.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Kindle에서 \"화면 및 밝기 > 잠금 화면에 표지 표시\"를 활성화하세요."
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Kindle에서 \"화면 및 밝기 > 잠금 화면에 표지 표시\"를 활성화하세요.",
+    "EXPORT_OPTIONS": {
+      "TITLE": "내보내기 품질",
+      "LOSSLESS_TITLE": "최고 화질",
+      "LOSSLESS_DESCRIPTION": "무손실 PNG입니다. 디테일을 더 잘 보존하지만 EPUB 파일 크기가 훨씬 커질 수 있습니다.",
+      "OPTIMIZED_TITLE": "압축",
+      "OPTIMIZED_DESCRIPTION": "압축 이미지입니다. 라이브러리 썸네일용 표지만 필요할 때 적합합니다.",
+      "OPTIMIZED_BADGE": "썸네일에 권장",
+      "SMALL_SOURCE_WARNING": "이 크롭에는 원본 이미지가 다소 작습니다. 내보낸 표지가 덜 선명해 보일 수 있습니다.",
+      "DITHERING_HINT": "아티팩트 감소를 사용하면 휴대폰 화면의 미리보기가 다르게 보일 수 있습니다. 최종 e-reader 결과에서 눈에 띄는 아티팩트가 있을 때만 사용하세요."
+    }
   },
   "COVERS": {
     "DELETED": "표지가 삭제되었습니다",
@@ -90,6 +100,7 @@
     "PLACEHOLDER": "표지",
     "PREVIEW_TITLE": "미리보기",
     "TITLE": "표지",
+    "DITHERED_THUMBNAIL_NOTICE": "???? ??? ??? ??? ????? ??? ?? ? ????. ? ??? ??? ??? ????? ?? ???.",
     "ACTIONS": {
       "DELETE": "삭제",
       "SHARE": "공유"
@@ -103,6 +114,11 @@
       "LOAD": "표지를 불러올 수 없습니다. 아래로 당겨 새로 고침하세요.",
       "PREVIEW": "미리보기를 불러올 수 없습니다. 다시 시도해 주세요.",
       "SHARE": "표지를 공유할 수 없습니다. 다시 시도해 주세요."
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "이리더 미리보기 축소",
+      "ZOOM_IN_ARIA": "이리더 미리보기 확대",
+      "ZOOM_RESET_ARIA": "이리더 미리보기 확대/축소 재설정"
     }
   },
   "INSTRUCTIONS": {
@@ -304,6 +320,26 @@
       "INFO": "정보",
       "APPS": "앱",
       "GUIDE": "가이드"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

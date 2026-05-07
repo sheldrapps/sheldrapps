@@ -32,6 +32,7 @@ import { SettingsStore } from '@sheldrapps/settings-kit';
 import { CcfkSettings } from 'src/app/settings/ccfk-settings.schema';
 import { Browser } from '@capacitor/browser';
 import { restartForLanguageChange } from '@sheldrapps/i18n-kit';
+import { RatingService } from '@sheldrapps/rating-kit';
 import { TourService } from 'src/app/shared/tour/tour.service';
 import { HOME_TOUR_ID } from 'src/app/shared/tour/home-tour.definition';
 
@@ -63,6 +64,7 @@ export class SettingsPage {
   private settings = inject(SettingsStore<CcfkSettings>);
   private router = inject(Router);
   private tour = inject(TourService);
+  private ratingService = inject(RatingService);
   public lang = inject(LanguageService);
   public consent = inject(ConsentService);
   private theme = inject(ThemeService);
@@ -160,6 +162,14 @@ export class SettingsPage {
   async startHomeTour() {
     this.tour.requestManualStart(HOME_TOUR_ID);
     await this.router.navigateByUrl('/tabs/create');
+  }
+
+  async previewRatingPrompt(): Promise<void> {
+    await this.ratingService.previewPrompt();
+  }
+
+  async previewRatingFeedback(): Promise<void> {
+    await this.ratingService.previewFeedbackFlow();
   }
 
   private async showLanguageRestartCountdown() {

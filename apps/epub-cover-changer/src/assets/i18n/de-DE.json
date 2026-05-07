@@ -13,7 +13,7 @@
     "BILLING_UNAVAILABLE": "Käufe sind derzeit nicht verfügbar.",
     "PURCHASE_ERROR": "Der Kauf konnte nicht abgeschlossen werden. Bitte versuche es erneut.",
     "REMOVE_ADS_BUY": "Kaufen",
-    "REMOVE_ADS_DESCRIPTION": "Entferne Werbung für immer mit einer Einmalzahlung.",
+    "REMOVE_ADS_DESCRIPTION": "Entferne Werbung für immer und aktiviere die Auswahl zwischen verlustfreiem und komprimiertem Export.",
     "REMOVE_ADS_PURCHASED": "Werbung dauerhaft entfernt.",
     "REMOVE_ADS_RESTORE": "Kauf wiederherstellen",
     "REMOVE_ADS_RESTORED": "Kauf erfolgreich wiederhergestellt.",
@@ -74,8 +74,22 @@
     "SELECT_IMAGE_PLACEHOLDER": "Bild auswählen",
     "TAP_TO_CHANGE": "Antippen zum Ändern/Zurücksetzen",
     "TAP_TO_CHANGE_IMAGE": "Antippen zum Ändern",
+    "LONGPRESS_PREVIEW_HINT": "Zum Anzeigen gedrückt halten",
     "TITLE": "Cover ändern",
-    "INVALID_COVER_TAP_TO_CHANGE": "Invalid cover, tap to change"
+    "INVALID_COVER_TAP_TO_CHANGE": "Invalid cover, tap to change",
+    "PREVIEW_ORIGINAL_LABEL": "Originalcover",
+    "PREVIEW_NEW_LABEL": "Neues Cover",
+    "PREVIEW_NEW_ONLY_LABEL": "Neues Cover",
+    "EXPORT_OPTIONS": {
+      "TITLE": "Exportqualität",
+      "LOSSLESS_TITLE": "Beste Qualität",
+      "LOSSLESS_DESCRIPTION": "Verlustfreies PNG. Erhält mehr Details, aber die EPUB-Datei kann deutlich größer sein.",
+      "OPTIMIZED_TITLE": "Komprimiert",
+      "OPTIMIZED_DESCRIPTION": "Komprimiertes Bild. Ideal, wenn du das Cover nur als Miniatur in der Bibliothek brauchst.",
+      "OPTIMIZED_BADGE": "Empfohlen für Miniaturen",
+      "SMALL_SOURCE_WARNING": "Dein Quellbild ist für diesen Zuschnitt recht klein. Das exportierte Cover könnte weicher wirken.",
+      "DITHERING_HINT": "Die Artefaktreduzierung kann Vorschauen auf Handybildschirmen anders aussehen lassen. Verwende sie nur, wenn das Endergebnis auf dem E-Reader sichtbare Artefakte zeigt."
+    }
   },
   "COVERS": {
     "DELETED": "EPUB gelöscht",
@@ -83,6 +97,7 @@
     "PLACEHOLDER": "EPUB",
     "PREVIEW_TITLE": "Vorschau",
     "TITLE": "Meine EPUBs",
+    "DITHERED_THUMBNAIL_NOTICE": "Cover mit Artefaktreduzierung können in Miniaturansichten anders wirken. Öffne die Vorschau, um ein genaueres Ergebnis zu sehen.",
     "ACTIONS": {
       "DELETE": "Löschen",
       "SHARE": "Teilen"
@@ -98,7 +113,12 @@
       "PREVIEW": "Vorschau konnte nicht geladen werden. Versuche es erneut."
     },
     "GENERATE_THUMB": "Generate thumbnail",
-    "PREVIEW_UNAVAILABLE": "Preview unavailable."
+    "PREVIEW_UNAVAILABLE": "Preview unavailable.",
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "Vorschau im E-Reader verkleinern",
+      "ZOOM_IN_ARIA": "Vorschau im E-Reader vergrößern",
+      "ZOOM_RESET_ARIA": "Zoom der E-Reader-Vorschau zurücksetzen"
+    }
   },
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Hinweis",
@@ -181,6 +201,26 @@
       "INFO": "Info",
       "APPS": "Apps",
       "GUIDE": "Anleitung"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

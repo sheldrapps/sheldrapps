@@ -4,6 +4,8 @@ import type {
   CoverCropState,
   CropTarget,
 } from "../../types";
+import { applyEditorAdjustments } from "./apply-editor-adjustments";
+import { resolveArtifactReductionMode } from "./artifact-reduction-state";
 
 export type CompositionRenderMode = "preview" | "export";
 
@@ -39,6 +41,64 @@ const MAX_BLUR_PX = 40;
 const TEXT_STAGE_EDGE_PAD = 15;
 const TEXT_HANDLE_PAD_RIGHT = 12;
 
+export function resolveCompositionOutputSize(args: {
+  target: CropTarget;
+  frameWidth: number;
+  frameHeight: number;
+  baseScale: number;
+  naturalWidth: number;
+  naturalHeight: number;
+  state: CoverCropState;
+  outputScale?: number;
+}): { width: number; height: number } | null {
+  const {
+    target,
+    frameWidth,
+    frameHeight,
+    baseScale,
+    naturalWidth,
+    naturalHeight,
+    state,
+    outputScale = 1,
+  } = args;
+
+  if (!frameWidth || !frameHeight || !naturalWidth || !naturalHeight) {
+    return null;
+  }
+
+  if ((target.output ?? "target") !== "source") {
+    return {
+      width: Math.max(1, Math.round(target.width * outputScale)),
+      height: Math.max(1, Math.round(target.height * outputScale)),
+    };
+  }
+
+  const dispScale = baseScale * state.scale;
+  if (!Number.isFinite(dispScale) || dispScale <= 0) {
+    return null;
+  }
+
+  const rotation = (((state.rot % 360) + 360) % 360) as 0 | 90 | 180 | 270;
+  const rotatedWidth =
+    rotation === 90 || rotation === 270 ? naturalHeight : naturalWidth;
+  const rotatedHeight =
+    rotation === 90 || rotation === 270 ? naturalWidth : naturalHeight;
+
+  const cropWidth = Math.min(
+    rotatedWidth,
+    Math.max(1, Math.floor(frameWidth / dispScale)),
+  );
+  const cropHeight = Math.min(
+    rotatedHeight,
+    Math.max(1, Math.floor(frameHeight / dispScale)),
+  );
+
+  return {
+    width: Math.max(1, Math.round(cropWidth * outputScale)),
+    height: Math.max(1, Math.round(cropHeight * outputScale)),
+  };
+}
+
 export async function renderCompositionToCanvas(
   input: CompositionRenderInput,
   options: CompositionRenderOptions,
@@ -59,26 +119,25 @@ export async function renderCompositionToCanvas(
   if (!frameWidth || !frameHeight) return null;
   if (!naturalWidth || !naturalHeight) return null;
 
-  const outW = Math.max(1, Math.round(target.width));
-  const outH = Math.max(1, Math.round(target.height));
-  if (!outW || !outH) return null;
-
   const previewMode = options.mode === "preview";
-
   const outputScale = options.outputScale ?? 1;
+  const outputSize = resolveCompositionOutputSize({
+    target,
+    frameWidth,
+    frameHeight,
+    baseScale,
+    naturalWidth,
+    naturalHeight,
+    state,
+    outputScale: previewMode ? 1 : outputScale,
+  });
+  if (!outputSize) return null;
 
-  // Layout size: always the real target size
-  const layoutW = outW;
-  const layoutH = outH;
+  const layoutW = outputSize.width;
+  const layoutH = outputSize.height;
 
-  // Raster size: preview does not downscale here
-  const scaledW = previewMode
-    ? layoutW
-    : Math.max(1, Math.round(layoutW * outputScale));
-
-  const scaledH = previewMode
-    ? layoutH
-    : Math.max(1, Math.round(layoutH * outputScale));
+  const scaledW = layoutW;
+  const scaledH = layoutH;
 
   const dispScale = baseScale * state.scale;
   if (!Number.isFinite(dispScale) || dispScale <= 0) return null;
@@ -121,7 +180,7 @@ export async function renderCompositionToCanvas(
     width: scaledW,
     height: scaledH,
     preview: previewMode,
-    fallbackColor: options.backgroundFallbackColor ?? DEFAULT_BACKGROUND,
+    fallbackColor: options.backgroundFallbackColor,
     deferCheckerboard: shouldDrawCheckerAfter,
   });
 
@@ -237,7 +296,7 @@ function drawBackground(
     width: number;
     height: number;
     preview: boolean;
-    fallbackColor: string;
+    fallbackColor?: string;
     deferCheckerboard?: boolean;
   },
 ): void {
@@ -256,19 +315,22 @@ function drawBackground(
   if (mode === "transparent") {
     if (preview && !deferCheckerboard) {
       drawCheckerboard(ctx, width, height);
+    } else if (!preview && fallbackColor) {
+      ctx.fillStyle = fallbackColor;
+      ctx.fillRect(0, 0, width, height);
     }
     return;
   }
 
   if (mode === "color") {
-    ctx.fillStyle = color || fallbackColor;
+    ctx.fillStyle = color || fallbackColor || DEFAULT_BACKGROUND;
     ctx.fillRect(0, 0, width, height);
     return;
   }
 
   if (mode === "blur" && source === "same-image") {
     ctx.save();
-    ctx.fillStyle = DEFAULT_BACKGROUND;
+    ctx.fillStyle = fallbackColor || DEFAULT_BACKGROUND;
     ctx.fillRect(0, 0, width, height);
     const clamped = Math.max(0, Math.min(100, blur));
     const blurPx = (clamped / 100) * MAX_BLUR_PX;
@@ -317,96 +379,8 @@ function applyAdjustments(
   if (!width || !height) return;
 
   const imgData = ctx.getImageData(0, 0, width, height);
-  const d = imgData.data;
-
-  const b = state.brightness;
-  const s = state.saturation;
-  const c = state.contrast;
-
-  if (!state.bw) {
-    for (let i = 0; i < d.length; i += 4) {
-      let rr = d[i],
-        g = d[i + 1],
-        bl = d[i + 2];
-
-      rr = (rr - 128) * c + 128;
-      g = (g - 128) * c + 128;
-      bl = (bl - 128) * c + 128;
-
-      rr *= b;
-      g *= b;
-      bl *= b;
-
-      const l = 0.2126 * rr + 0.7152 * g + 0.0722 * bl;
-      rr = l + (rr - l) * s;
-      g = l + (g - l) * s;
-      bl = l + (bl - l) * s;
-
-      d[i] = rr < 0 ? 0 : rr > 255 ? 255 : rr;
-      d[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
-      d[i + 2] = bl < 0 ? 0 : bl > 255 ? 255 : bl;
-    }
-
-    ctx.putImageData(imgData, 0, 0);
-    return;
-  }
-
-  const gray = new Float32Array(width * height);
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const i = (y * width + x) * 4;
-      let rr = d[i],
-        g = d[i + 1],
-        bl = d[i + 2];
-
-      rr = (rr - 128) * c + 128;
-      g = (g - 128) * c + 128;
-      bl = (bl - 128) * c + 128;
-
-      rr *= b;
-      g *= b;
-      bl *= b;
-
-      let l = 0.2126 * rr + 0.7152 * g + 0.0722 * bl;
-      l = l < 0 ? 0 : l > 255 ? 255 : l;
-
-      gray[y * width + x] = l;
-    }
-  }
-
-  if (state.dither) {
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const idx = y * width + x;
-        const oldVal = gray[idx];
-        const newVal = oldVal < 128 ? 0 : 255;
-        const err = oldVal - newVal;
-        gray[idx] = newVal;
-
-        if (x + 1 < width) gray[idx + 1] += (err * 7) / 16;
-        if (y + 1 < height) {
-          if (x > 0) gray[idx + width - 1] += (err * 3) / 16;
-          gray[idx + width] += (err * 5) / 16;
-          if (x + 1 < width) gray[idx + width + 1] += err / 16;
-        }
-      }
-    }
-  }
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const idx = y * width + x;
-      let v = gray[idx];
-      v = v < 0 ? 0 : v > 255 ? 255 : v;
-
-      const i = idx * 4;
-      d[i] = v;
-      d[i + 1] = v;
-      d[i + 2] = v;
-    }
-  }
-
+  const artifactReductionMode = resolveArtifactReductionMode(state);
+  applyEditorAdjustments(imgData, state, artifactReductionMode);
   ctx.putImageData(imgData, 0, 0);
 }
 

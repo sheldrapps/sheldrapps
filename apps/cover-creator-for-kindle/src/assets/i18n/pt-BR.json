@@ -13,7 +13,7 @@
     "BILLING_UNAVAILABLE": "As compras não estão disponíveis no momento.",
     "PURCHASE_ERROR": "Não foi possível concluir a compra. Tente novamente.",
     "REMOVE_ADS_BUY": "Comprar",
-    "REMOVE_ADS_DESCRIPTION": "Remova os anúncios para sempre com um único pagamento.",
+    "REMOVE_ADS_DESCRIPTION": "Remova os anúncios para sempre e habilite a seleção entre exportação sem perdas e comprimida.",
     "REMOVE_ADS_PURCHASED": "Anúncios removidos para sempre.",
     "REMOVE_ADS_RESTORE": "Restaurar compra",
     "REMOVE_ADS_RESTORED": "Compra restaurada com sucesso.",
@@ -80,7 +80,17 @@
     },
     "INFO_REQUIREMENTS_LABEL": "Requisitos:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Desativar anuncios no Kindle.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Ativar \"Tela e brilho > Mostrar capas na tela de bloqueio\" no Kindle."
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Ativar \"Tela e brilho > Mostrar capas na tela de bloqueio\" no Kindle.",
+    "EXPORT_OPTIONS": {
+      "TITLE": "Qualidade de exportação",
+      "LOSSLESS_TITLE": "Melhor qualidade",
+      "LOSSLESS_DESCRIPTION": "PNG sem perdas. Mantém mais detalhes, mas o EPUB pode ficar bem maior.",
+      "OPTIMIZED_TITLE": "Comprimido",
+      "OPTIMIZED_DESCRIPTION": "Imagem compactada. Ótima quando você só precisa da capa como miniatura na biblioteca.",
+      "OPTIMIZED_BADGE": "Recomendado para miniaturas",
+      "SMALL_SOURCE_WARNING": "Sua imagem de origem é um pouco pequena para este recorte. A capa exportada pode parecer menos nítida.",
+      "DITHERING_HINT": "A redução de artefatos pode fazer a prévia parecer diferente nas telas do telefone. Use-a apenas se o resultado final no e-reader mostrar artefatos visíveis."
+    }
   },
   "COVERS": {
     "DELETED": "Capa excluída",
@@ -90,6 +100,7 @@
     "PLACEHOLDER": "Capa",
     "PREVIEW_TITLE": "Pré-visualização",
     "TITLE": "Capas",
+    "DITHERED_THUMBNAIL_NOTICE": "Capas com redu??o de artefatos podem parecer diferentes nas miniaturas. Abra a visualiza??o para ver um resultado mais fiel.",
     "ACTIONS": {
       "DELETE": "Excluir",
       "SHARE": "Compartilhar"
@@ -103,6 +114,11 @@
       "LOAD": "Não foi possível carregar suas capas. Arraste para baixo para tentar novamente.",
       "PREVIEW": "Não foi possível carregar a pré-visualização. Tente novamente.",
       "SHARE": "Não foi possível compartilhar a capa. Tente novamente."
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "Reduzir pré-visualização do e-reader",
+      "ZOOM_IN_ARIA": "Ampliar pré-visualização do e-reader",
+      "ZOOM_RESET_ARIA": "Redefinir zoom da pré-visualização do e-reader"
     }
   },
   "INSTRUCTIONS": {
@@ -304,6 +320,26 @@
       "INFO": "Info",
       "APPS": "Apps",
       "GUIDE": "Guia"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

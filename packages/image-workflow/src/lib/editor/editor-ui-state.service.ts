@@ -28,7 +28,8 @@ export type AdjustmentKey =
   | "brightness"
   | "contrast"
   | "saturation"
-  | "bw";
+  | "bw"
+  | "artifacts";
 export type TextKey = "text";
 
 export interface PanelState {

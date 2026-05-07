@@ -13,7 +13,7 @@
     "BILLING_UNAVAILABLE": "目前無法購買。",
     "PURCHASE_ERROR": "無法完成購買，請再試一次。",
     "REMOVE_ADS_BUY": "購買",
-    "REMOVE_ADS_DESCRIPTION": "透過一次性付款永久移除廣告。",
+    "REMOVE_ADS_DESCRIPTION": "透過一次性付款永久移除廣告，並啟用無損/壓縮匯出選擇。",
     "REMOVE_ADS_PURCHASED": "廣告已永久移除。",
     "REMOVE_ADS_RESTORE": "恢復購買",
     "REMOVE_ADS_RESTORED": "購買已成功恢復。",
@@ -85,7 +85,21 @@
     "INVALID_COVER_TAP_TO_CHANGE": "無效封面，請點擊更換",
     "TAP_TO_CHANGE": "點擊以更換／重設",
     "TAP_TO_CHANGE_IMAGE": "點擊以更換",
-    "TITLE": "更換封面"
+    "LONGPRESS_PREVIEW_HINT": "長按即可預覽",
+    "TITLE": "更換封面",
+    "PREVIEW_ORIGINAL_LABEL": "原始封面",
+    "PREVIEW_NEW_LABEL": "新封面",
+    "PREVIEW_NEW_ONLY_LABEL": "新封面",
+    "EXPORT_OPTIONS": {
+      "TITLE": "匯出品質",
+      "LOSSLESS_TITLE": "最佳畫質",
+      "LOSSLESS_DESCRIPTION": "無損 PNG。可保留更多細節，但 EPUB 檔案可能明顯變大。",
+      "OPTIMIZED_TITLE": "壓縮",
+      "OPTIMIZED_DESCRIPTION": "壓縮影像。適合只需要在書庫中顯示封面縮圖時使用。",
+      "OPTIMIZED_BADGE": "建議用於縮圖",
+      "SMALL_SOURCE_WARNING": "你的來源影像對此裁切來說偏小，匯出的封面可能會較不銳利。",
+      "DITHERING_HINT": "啟用瑕疵減少後，手機上的預覽可能與最終效果不同。僅在 e-reader 最終顯示出現明顯瑕疵時再使用。"
+    }
   },
   "COVERS": {
     "DELETED": "EPUB 已刪除",
@@ -96,6 +110,7 @@
     "PREVIEW_UNAVAILABLE": "預覽無法使用。",
     "PREVIEW_TITLE": "預覽",
     "TITLE": "我的 EPUB",
+    "DITHERED_THUMBNAIL_NOTICE": "套用瑕疵減少的封面在縮圖中可能看起來不同。請開啟預覽以查看更準確的結果。",
     "ACTIONS": {
       "DELETE": "刪除",
       "SHARE": "分享"
@@ -109,6 +124,11 @@
       "SHARE": "無法分享 EPUB，請再試一次。",
       "LOAD": "無法載入您的 EPUB，請下拉以重新整理。",
       "PREVIEW": "無法載入預覽，請再試一次。"
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "縮小電子閱讀器預覽",
+      "ZOOM_IN_ARIA": "放大電子閱讀器預覽",
+      "ZOOM_RESET_ARIA": "重設電子閱讀器預覽縮放"
     }
   },
   "INSTRUCTIONS": {
@@ -192,6 +212,26 @@
       "INFO": "資訊",
       "APPS": "應用程式",
       "GUIDE": "指南"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

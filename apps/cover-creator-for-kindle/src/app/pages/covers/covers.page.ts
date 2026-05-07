@@ -22,7 +22,10 @@ import {
   alertCircleOutline,
   helpCircleOutline,
 } from 'ionicons/icons';
-import { FileService } from '../../services/file.service';
+import {
+  FileService,
+  ResolvedCoverPreviewAsset,
+} from '../../services/file.service';
 import { CoversEventsService } from '../../services/covers-events.service';
 import {
   CoverListAction,
@@ -89,6 +92,7 @@ export class CoversPage implements OnInit, OnDestroy {
   previewOpen = false;
   previewFilename: string | null = null;
   previewDataUrl: string | null = null;
+  previewIsDithered = false;
   previewLoading = false;
   previewGettingCover = false;
 
@@ -313,6 +317,7 @@ export class CoversPage implements OnInit, OnDestroy {
     this.previewOpen = true;
     this.previewFilename = filename;
     this.previewDataUrl = fallbackThumb;
+    this.previewIsDithered = false;
     this.previewLoading = true;
     this.previewGettingCover = false;
 
@@ -320,10 +325,12 @@ export class CoversPage implements OnInit, OnDestroy {
       const hasCoverExport = await this.files.hasCoverExportForFilename(filename);
       this.previewGettingCover = !hasCoverExport;
 
-      const preview = await this.files.getBestPreviewCoverDataUrl(filename, {
-        allowNativeExtract: true,
-      });
-      this.previewDataUrl = preview.dataUrl ?? fallbackThumb;
+      const preview: ResolvedCoverPreviewAsset =
+        await this.files.resolveCoverPreviewAsset(filename, {
+          allowNativeExtract: true,
+        });
+      this.previewDataUrl = preview.src || fallbackThumb;
+      this.previewIsDithered = preview.isDithered;
     } catch {
       this.previewDataUrl = this.previewDataUrl ?? fallbackThumb;
       this.pageErrorKey = 'COVERS.ERROR.PREVIEW';
@@ -366,6 +373,7 @@ export class CoversPage implements OnInit, OnDestroy {
     this.previewOpen = false;
     this.previewFilename = null;
     this.previewDataUrl = null;
+    this.previewIsDithered = false;
     this.previewLoading = false;
     this.previewGettingCover = false;
   }

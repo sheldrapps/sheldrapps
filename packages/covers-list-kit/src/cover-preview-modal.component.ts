@@ -17,6 +17,7 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
+import { EReaderPreviewFrameComponent } from '@sheldrapps/image-workflow';
 import { LoadingStateComponent } from '@sheldrapps/ui-theme';
 
 export type PreviewActionRegion = 'header' | 'footer' | 'unavailable';
@@ -60,6 +61,7 @@ export interface PreviewActionClickEvent {
     IonModal,
     IonTitle,
     IonToolbar,
+    EReaderPreviewFrameComponent,
     LoadingStateComponent,
   ],
   templateUrl: './cover-preview-modal.component.html',
@@ -70,6 +72,7 @@ export class CoverPreviewModalComponent {
   @Input() isOpen = false;
   @Input() titleKey = 'COVERS.PREVIEW_TITLE';
   @Input() imageDataUrl: string | null = null;
+  @Input() isDithered = false;
   @Input() imageAlt = 'cover preview';
   @Input() loading = false;
   @Input() gettingCover = false;

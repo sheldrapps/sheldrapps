@@ -13,7 +13,7 @@
     "BILLING_UNAVAILABLE": "المشتريات غير متاحة حالياً.",
     "PURCHASE_ERROR": "تعذّر إتمام الشراء. يرجى المحاولة مجدداً.",
     "REMOVE_ADS_BUY": "شراء",
-    "REMOVE_ADS_DESCRIPTION": "أزل الإعلانات للأبد بدفعة واحدة.",
+    "REMOVE_ADS_DESCRIPTION": "أزل الإعلانات للأبد بدفعة واحدة وفعّل اختيار التصدير بدون فقدان/المضغوط.",
     "REMOVE_ADS_PURCHASED": "تمت إزالة الإعلانات للأبد.",
     "REMOVE_ADS_RESTORE": "استعادة الشراء",
     "REMOVE_ADS_RESTORED": "تمت استعادة الشراء بنجاح.",
@@ -80,7 +80,17 @@
     },
     "INFO_REQUIREMENTS_LABEL": "المتطلبات:",
     "INFO_REQUIREMENT_DISABLE_ADS": "تعطيل الإعلانات على Kindle.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "تفعيل \"الشاشة والسطوع > عرض الأغلفة على شاشة القفل\" على Kindle."
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "تفعيل \"الشاشة والسطوع > عرض الأغلفة على شاشة القفل\" على Kindle.",
+    "EXPORT_OPTIONS": {
+      "TITLE": "جودة التصدير",
+      "LOSSLESS_TITLE": "أفضل جودة",
+      "LOSSLESS_DESCRIPTION": "PNG بدون فقدان. يحافظ على تفاصيل أكثر، لكن ملف EPUB قد يصبح أكبر بكثير.",
+      "OPTIMIZED_TITLE": "مضغوط",
+      "OPTIMIZED_DESCRIPTION": "صورة مضغوطة. ممتازة إذا كنت تحتاج الغلاف فقط كصورة مصغرة في المكتبة.",
+      "OPTIMIZED_BADGE": "موصى به للصور المصغرة",
+      "SMALL_SOURCE_WARNING": "الصورة المصدر صغيرة نسبيًا لهذا القص. قد تبدو النسخة المصدّرة أقل حدّة.",
+      "DITHERING_HINT": "قد تجعل ميزة تقليل الشوائب المعاينة على شاشة الهاتف تبدو مختلفة. استخدمها فقط عندما تظهر شوائب واضحة في النتيجة النهائية على قارئ الكتب الإلكترونية."
+    }
   },
   "COVERS": {
     "DELETED": "تم حذف الغلاف",
@@ -90,6 +100,7 @@
     "PLACEHOLDER": "غلاف",
     "PREVIEW_TITLE": "معاينة",
     "TITLE": "الأغلفة",
+    "DITHERED_THUMBNAIL_NOTICE": "?? ???? ??????? ???? ?????? ????? ??????? ?????? ?? ????? ???????. ???? ???????? ????? ????? ???.",
     "ACTIONS": {
       "DELETE": "حذف",
       "SHARE": "مشاركة"
@@ -103,6 +114,11 @@
       "LOAD": "تعذّر تحميل أغلفتك. اسحب للأسفل للتحديث.",
       "PREVIEW": "تعذّر تحميل المعاينة. يرجى المحاولة مجدداً.",
       "SHARE": "تعذّرت مشاركة الغلاف. يرجى المحاولة مجدداً."
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "تصغير معاينة القارئ الإلكتروني",
+      "ZOOM_IN_ARIA": "تكبير معاينة القارئ الإلكتروني",
+      "ZOOM_RESET_ARIA": "إعادة تعيين تكبير معاينة القارئ الإلكتروني"
     }
   },
   "INSTRUCTIONS": {
@@ -304,6 +320,26 @@
       "INFO": "معلومات",
       "APPS": "التطبيقات",
       "GUIDE": "الدليل"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

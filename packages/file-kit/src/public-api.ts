@@ -29,6 +29,8 @@ export {
   type PrepareEpubInput,
 } from './lib/epub-fixer.port';
 export * from './lib/epub-fixer-native.service';
+export * from "./lib/epub-cover-metadata";
+export * from "./lib/epub-cover-generator";
 export * from './lib/epub-public-store';
 export * from './lib/epub-read.service';
 export * from './lib/epub-rewrite.service';
@@ -36,3 +38,4 @@ export * from './lib/epub-working-copy.service';
 
 // Providers
 export * from './lib/providers';
+export * from "./lib/web-epub-cover.service";

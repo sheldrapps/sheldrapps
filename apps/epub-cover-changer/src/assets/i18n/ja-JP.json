@@ -13,7 +13,7 @@
     "BILLING_UNAVAILABLE": "現在、購入できません。",
     "PURCHASE_ERROR": "購入を完了できませんでした。もう一度お試しください。",
     "REMOVE_ADS_BUY": "購入",
-    "REMOVE_ADS_DESCRIPTION": "一度の支払いで広告を永久に削除します。",
+    "REMOVE_ADS_DESCRIPTION": "一度の支払いで広告を永久に削除し、可逆圧縮/圧縮エクスポートの選択を有効にします。",
     "REMOVE_ADS_PURCHASED": "広告を永久に削除しました。",
     "REMOVE_ADS_RESTORE": "購入を復元",
     "REMOVE_ADS_RESTORED": "購入を正常に復元しました。",
@@ -85,7 +85,21 @@
     "INVALID_COVER_TAP_TO_CHANGE": "無効な表紙です。タップして変更",
     "TAP_TO_CHANGE": "タップして変更/リセット",
     "TAP_TO_CHANGE_IMAGE": "タップして変更",
-    "TITLE": "表紙を変更"
+    "LONGPRESS_PREVIEW_HINT": "長押しでプレビュー",
+    "TITLE": "表紙を変更",
+    "PREVIEW_ORIGINAL_LABEL": "元の表紙",
+    "PREVIEW_NEW_LABEL": "新しい表紙",
+    "PREVIEW_NEW_ONLY_LABEL": "新しい表紙",
+    "EXPORT_OPTIONS": {
+      "TITLE": "書き出し品質",
+      "LOSSLESS_TITLE": "最高画質",
+      "LOSSLESS_DESCRIPTION": "可逆圧縮のPNG。より多くのディテールを保てますが、EPUBはかなり大きくなることがあります。",
+      "OPTIMIZED_TITLE": "圧縮",
+      "OPTIMIZED_DESCRIPTION": "圧縮画像。ライブラリのサムネイル用に表紙が必要な場合に最適です。",
+      "OPTIMIZED_BADGE": "サムネイル向け推奨",
+      "SMALL_SOURCE_WARNING": "このトリミングには元画像がやや小さめです。書き出し後の表紙は少し甘く見える場合があります。",
+      "DITHERING_HINT": "アーティファクト低減を使うと、スマホ画面のプレビューが実際と異なって見えることがあります。最終的なe-reader表示で目立つアーティファクトがある場合のみ使用してください。"
+    }
   },
   "COVERS": {
     "DELETED": "EPUBを削除しました",
@@ -96,6 +110,7 @@
     "PREVIEW_UNAVAILABLE": "プレビューは利用できません。",
     "PREVIEW_TITLE": "プレビュー",
     "TITLE": "マイEPUB",
+    "DITHERED_THUMBNAIL_NOTICE": "アーティファクト低減を使った表紙は、サムネイルでは見え方が異なる場合があります。より正確な表示はプレビューで確認してください。",
     "ACTIONS": {
       "DELETE": "削除",
       "SHARE": "共有"
@@ -109,6 +124,11 @@
       "SHARE": "EPUBを共有できませんでした。もう一度お試しください。",
       "LOAD": "EPUBを読み込めませんでした。下に引っ張って更新してください。",
       "PREVIEW": "プレビューを読み込めませんでした。もう一度お試しください。"
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "電子書籍リーダープレビューを縮小",
+      "ZOOM_IN_ARIA": "電子書籍リーダープレビューを拡大",
+      "ZOOM_RESET_ARIA": "電子書籍リーダープレビューのズームをリセット"
     }
   },
   "INSTRUCTIONS": {
@@ -192,6 +212,26 @@
       "INFO": "情報",
       "APPS": "アプリ",
       "GUIDE": "ガイド"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }
