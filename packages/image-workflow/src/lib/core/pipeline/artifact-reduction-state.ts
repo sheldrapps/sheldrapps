@@ -3,20 +3,20 @@ import type {
   CoverColorMode,
   CoverCropState,
 } from "../../types";
+import {
+  isCleanupEnabled,
+  resolveCleanupArtifactReductionMode,
+} from "./output-processing-state";
 
 type ArtifactReductionStateLike = Pick<
   CoverCropState,
-  "artifactReductionEnabled" | "dither" | "bw"
+  "artifactReductionEnabled" | "bw" | "cleanup" | "dither" | "dithering"
 >;
 
 export function isArtifactReductionEnabled(
   state: ArtifactReductionStateLike | null | undefined,
 ): boolean {
-  if (!state) return false;
-  if (state.artifactReductionEnabled !== undefined) {
-    return !!state.artifactReductionEnabled;
-  }
-  return !!state.dither;
+  return isCleanupEnabled(state);
 }
 
 export function resolveCoverColorMode(
@@ -28,13 +28,5 @@ export function resolveCoverColorMode(
 export function resolveArtifactReductionMode(
   state: ArtifactReductionStateLike | null | undefined,
 ): ArtifactReductionMode {
-  if (!isArtifactReductionEnabled(state)) {
-    return "none";
-  }
-
-  if (state?.bw) {
-    return "bw-dither";
-  }
-
-  return "adaptive-color";
+  return resolveCleanupArtifactReductionMode(state);
 }

@@ -1,0 +1,44 @@
+<ion-list lines="full">
+  <ion-item>
+    <ion-label>
+      {{ "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.TOGGLE" | translate }}
+    </ion-label>
+    <ion-toggle
+      slot="end"
+      [checked]="history.ditheringEnabled()"
+      (ionChange)="onDitheringChange($event)"
+      [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.TOGGLE' | translate"
+    ></ion-toggle>
+  </ion-item>
+
+  <ion-item>
+    <ion-label>
+      {{ "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.MODE" | translate }}
+    </ion-label>
+    <ion-select
+      interface="popover"
+      slot="end"
+      [value]="history.ditheringMode()"
+      [disabled]="!history.ditheringEnabled()"
+      (ionChange)="onModeChange($event)"
+      [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.MODE' | translate"
+    >
+      <ion-select-option value="floyd-steinberg">
+        {{
+          "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.MODE_FLOYD_STEINBERG"
+            | translate
+        }}
+      </ion-select-option>
+      <ion-select-option value="ordered">
+        {{
+          "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.MODE_ORDERED"
+            | translate
+        }}
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+</ion-list>
+
+<ion-note class="dither-helper">
+  {{ "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.HELPER" | translate }}
+</ion-note>

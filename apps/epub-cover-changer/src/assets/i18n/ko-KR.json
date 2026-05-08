@@ -23,6 +23,7 @@
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "일회 결제 • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "가격: {{price}} • 구독 없음",
     "RESTORE_ERROR": "구매를 복원할 수 없습니다. 다시 시도해 주세요.",
+    "PRO_ONLY": "PRO",
     "WATCH_AD_SUBTITLE": "광고 보기",
     "SHARE": "공유",
     "SHARE_KINDLE_HINT": "공유할 때 Kindle 앱을 선택하여 기기로 전송하세요.",
@@ -93,6 +94,7 @@
     "EXPORT_OPTIONS": {
       "TITLE": "내보내기 품질",
       "LOSSLESS_TITLE": "최고 화질",
+      "THUMBNAIL_TITLE": "썸네일",
       "LOSSLESS_DESCRIPTION": "무손실 PNG입니다. 디테일을 더 잘 보존하지만 EPUB 파일 크기가 훨씬 커질 수 있습니다.",
       "OPTIMIZED_TITLE": "압축",
       "OPTIMIZED_DESCRIPTION": "압축 이미지입니다. 라이브러리 썸네일용 표지만 필요할 때 적합합니다.",

@@ -2,14 +2,11 @@
   display: block;
 }
 
-.artifacts-helper {
+.dither-helper {
+  display: block;
   margin: 0;
   padding: 0 16px 16px;
   color: var(--ion-color-medium);
   font-size: 0.875rem;
   line-height: 1.4;
-}
-
-.artifacts-helper--warning {
-  color: var(--ion-color-warning-shade, var(--ion-color-warning));
 }

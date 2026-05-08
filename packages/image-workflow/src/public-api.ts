@@ -24,13 +24,26 @@ export {
   computeSourceCropDims,
   applyAdaptiveColorArtifactReduction,
   isArtifactReductionEnabled,
+  isDitheringEnabled,
   renderCompositionToCanvas,
   renderCompositionToFile,
   resolveArtifactReductionMode,
   resolveCoverColorMode,
+  EXPORT_QUALITY_OPTIONS,
+  DEFAULT_EXPORT_QUALITY_MODE,
+  canUseExportQualityMode,
+  coerceExportQualityMode,
+  normalizeExportQualityMode,
+  migrateLegacyExportQualityMode,
+  getCoverExportOptions,
 } from "./lib/core/pipeline";
 export * from "./lib/core/preview/dither-preview";
 export * from "./lib/e-reader-preview/e-reader-frame-colors";
+export type {
+  CoverExportOptions,
+  ExportQualityMode,
+  ExportQualityOption,
+} from "./lib/core/pipeline/export-quality-mode";
 
 // Angular Service (for DI compatibility)
 export { ImagePipelineService } from "./lib/core/pipeline/image-pipeline.service";

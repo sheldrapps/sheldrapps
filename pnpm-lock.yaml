@@ -104,6 +104,9 @@ importers:
       '@sheldrapps/image-workflow':
         specifier: workspace:*
         version: link:../../packages/image-workflow
+      '@sheldrapps/rating-kit':
+        specifier: workspace:*
+        version: link:../../packages/rating-kit
       '@sheldrapps/recommended-apps':
         specifier: workspace:*
         version: link:../../packages/recommended-apps
@@ -1080,6 +1083,9 @@ importers:
       '@ngx-translate/core':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
+      '@sheldrapps/settings-kit':
+        specifier: workspace:*
+        version: link:../settings-kit
       ionicons:
         specifier: ^7.0.0
         version: 7.4.0

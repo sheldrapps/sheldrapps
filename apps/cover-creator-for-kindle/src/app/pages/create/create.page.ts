@@ -28,7 +28,6 @@ import {
   IonPopover,
   IonSelect,
   IonSelectOption,
-  IonToggle,
   ToastController,
   PopoverController,
   ModalController,
@@ -48,6 +47,8 @@ import {
   ImageValidationError,
   buildCompositionInputForPurpose,
   computeSourceCropDims,
+  isArtifactReductionEnabled,
+  isDitheringEnabled,
   renderCompositionToCanvas,
   renderCompositionToFile,
   resolveArtifactReductionMode,
@@ -107,9 +108,10 @@ import {
 } from '@sheldrapps/recommended-apps';
 import { CcfkSettings } from '../../settings/ccfk-settings.schema';
 import {
-  DEFAULT_PRO_COVER_EXPORT_MODE,
+  DEFAULT_EXPORT_QUALITY_MODE,
+  normalizeExportQualityMode,
   getCoverExportOptions,
-  type CoverExportMode,
+  type ExportQualityMode,
 } from '../../services/cover-export-mode';
 import { TourOverlayComponent } from '../../shared/tour/tour-overlay.component';
 import { TourService } from '../../shared/tour/tour.service';
@@ -153,7 +155,6 @@ type EditorResult = {
     IonPopover,
     IonSelect,
     IonSelectOption,
-    IonToggle,
     IonModal,
     LoadingStateComponent,
     EReaderPreviewFrameComponent,
@@ -202,7 +203,7 @@ export class CreatePage implements OnInit, OnDestroy {
   recommendedApps: RecommendedApp[] = [];
   showRecommended = false;
   adsRemoved = false;
-  coverExportMode: CoverExportMode = DEFAULT_PRO_COVER_EXPORT_MODE;
+  exportQualityMode: ExportQualityMode = DEFAULT_EXPORT_QUALITY_MODE;
   removeAdsPriceFormatted: string | null = null;
   removeAdsPulseActive = false;
   purchaseModalOpen = false;
@@ -291,6 +292,7 @@ export class CreatePage implements OnInit, OnDestroy {
       this.adsRemoved = value;
       if (tierChanged) {
         this.exportImageFile = undefined;
+        this.syncAuthorizedExportQualityMode('billing-state-change');
       }
       this.syncRemoveAdsPulse();
     });
@@ -308,7 +310,11 @@ export class CreatePage implements OnInit, OnDestroy {
         modelId: settings.modelId,
       }),
     );
-    this.coverExportMode = settings.coverExportMode;
+    this.exportQualityMode = normalizeExportQualityMode(
+      settings.exportQualityMode,
+      this.adsRemoved,
+    );
+    this.syncAuthorizedExportQualityMode('settings-load');
 
     this.routerSub = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
@@ -1106,28 +1112,48 @@ export class CreatePage implements OnInit, OnDestroy {
     return this.canExport();
   }
 
-  canEditCoverExportMode(): boolean {
-    return this.adsRemoved;
+  getEffectiveExportQualityMode(): ExportQualityMode {
+    return normalizeExportQualityMode(this.exportQualityMode, this.adsRemoved);
   }
 
-  isCoverExportModeSelected(mode: CoverExportMode): boolean {
-    return this.getEffectiveCoverExportMode() === mode;
+  getExportQualityModes(): ExportQualityMode[] {
+    return ['thumbnail', 'compressed', 'best'];
   }
 
-  async onCoverExportQualityToggle(event: Event): Promise<void> {
-    const checked =
-      (event as CustomEvent<{ checked: boolean }>).detail?.checked ?? false;
-    await this.onCoverExportModeChange(checked ? 'lossless' : 'compressed');
+  isExportQualityModeSelected(mode: ExportQualityMode): boolean {
+    return this.getEffectiveExportQualityMode() === mode;
   }
 
-  async onCoverExportModeChange(mode: CoverExportMode): Promise<void> {
-    if (!this.adsRemoved || this.coverExportMode === mode) {
+  isExportQualityModeLocked(mode: ExportQualityMode): boolean {
+    return mode !== 'compressed' && !this.adsRemoved;
+  }
+
+  getExportQualityModeLabel(mode: ExportQualityMode): string {
+    if (mode === 'compressed') {
+      return this.translate.instant('CREATE.EXPORT_OPTIONS.OPTIMIZED_TITLE');
+    }
+
+    if (mode === 'best') {
+      return this.translate.instant('CREATE.EXPORT_OPTIONS.LOSSLESS_TITLE');
+    }
+
+    return this.translate.instant('CREATE.EXPORT_OPTIONS.THUMBNAIL_TITLE');
+  }
+
+  async onExportQualityModeSelect(mode: ExportQualityMode): Promise<void> {
+    const normalized = normalizeExportQualityMode(mode, this.adsRemoved);
+    if (normalized !== mode) {
+      await this.openPurchaseModal();
       return;
     }
 
-    this.coverExportMode = mode;
+    if (this.exportQualityMode === mode) {
+      return;
+    }
+
+    this.exportQualityMode = mode;
     this.exportImageFile = undefined;
-    await this.settings.set({ coverExportMode: mode });
+    await this.settings.set({ exportQualityMode: mode });
   }
 
   async onGenerate() {
@@ -1223,7 +1249,8 @@ export class CreatePage implements OnInit, OnDestroy {
     });
     await this.ratingService.trackSuccessEvent('cover_created');
     await this.ratingService.maybeAskForRating({
-      trigger: 'cover-created',
+      source: 'save-success',
+      metadata: { flow: 'generate' },
     });
     await this.homeTour.completeInteraction('cover-created');
   }
@@ -1278,26 +1305,25 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   isPreviewDithered(): boolean {
-    return resolveArtifactReductionMode(this.cropState) !== 'none';
+    return isDitheringEnabled(this.cropState);
   }
 
   private buildCoverProcessingMetadata(): CoverProcessingMetadataInput {
     const colorMode = resolveCoverColorMode(this.cropState);
     const artifactReductionMode = resolveArtifactReductionMode(this.cropState);
-    const isDithered = artifactReductionMode !== 'none';
+    const isDithered = isDitheringEnabled(this.cropState);
+    const ditheringMode = this.cropState?.dithering?.mode ?? 'floyd-steinberg';
 
     return {
       colorMode,
-      artifactReductionEnabled:
-        !!this.cropState?.artifactReductionEnabled || !!this.cropState?.dither,
+      artifactReductionEnabled: isArtifactReductionEnabled(this.cropState),
       artifactReductionMode,
       isDithered,
-      ditherAlgorithm:
-        artifactReductionMode === 'bw-dither'
-          ? 'floyd-steinberg'
-          : artifactReductionMode === 'adaptive-color'
-            ? 'adaptive-bayer-4x4'
-            : null,
+      ditherAlgorithm: isDithered
+        ? ditheringMode === 'ordered'
+          ? 'ordered-bayer-4x4'
+          : 'floyd-steinberg'
+        : null,
     };
   }
 
@@ -1557,6 +1583,7 @@ export class CreatePage implements OnInit, OnDestroy {
       mode: 'export',
       mimeType: this.resolveExportMimeType(),
       quality: this.resolveExportQuality(),
+      maxDimension: this.resolveExportMaxDimension(),
     });
     if (!file) return null;
 
@@ -1565,15 +1592,34 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   private resolveExportMimeType(): string | undefined {
-    return getCoverExportOptions(this.getEffectiveCoverExportMode()).mimeType;
+    return this.getSelectedExportQualityOptions().mimeType;
   }
 
   private resolveExportQuality(): number | undefined {
-    return getCoverExportOptions(this.getEffectiveCoverExportMode()).quality;
+    return this.getSelectedExportQualityOptions().quality;
   }
 
-  private getEffectiveCoverExportMode(): CoverExportMode {
-    return this.adsRemoved ? this.coverExportMode : 'compressed';
+  private resolveExportMaxDimension(): number | undefined {
+    return this.getSelectedExportQualityOptions().maxDimension;
+  }
+
+  private getSelectedExportQualityOptions(): ReturnType<
+    typeof getCoverExportOptions
+  > {
+    return getCoverExportOptions(this.getEffectiveExportQualityMode());
+  }
+
+  private syncAuthorizedExportQualityMode(reason: string): void {
+    const normalized = normalizeExportQualityMode(
+      this.exportQualityMode,
+      this.adsRemoved,
+    );
+    if (normalized === this.exportQualityMode) {
+      return;
+    }
+
+    this.exportQualityMode = normalized;
+    void this.settings.set({ exportQualityMode: normalized });
   }
 
   private downscaleCanvas(

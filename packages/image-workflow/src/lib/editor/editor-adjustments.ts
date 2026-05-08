@@ -1,3 +1,8 @@
+import type {
+  DitheringSettings,
+  ImageCleanupSettings,
+} from "../types";
+
 export interface EditorAdjustmentsState {
   brightness: number;
   contrast: number;
@@ -5,6 +10,8 @@ export interface EditorAdjustmentsState {
   bw: boolean;
   dither: boolean;
   artifactReductionEnabled: boolean;
+  cleanup: ImageCleanupSettings;
+  dithering: DitheringSettings;
 }
 
 export const DEFAULT_EDITOR_ADJUSTMENTS: EditorAdjustmentsState = {
@@ -14,6 +21,16 @@ export const DEFAULT_EDITOR_ADJUSTMENTS: EditorAdjustmentsState = {
   bw: false,
   dither: false,
   artifactReductionEnabled: false,
+  cleanup: {
+    enabled: false,
+    artifactReduction: "off",
+    smoothGradients: false,
+    preserveDetails: true,
+  },
+  dithering: {
+    enabled: false,
+    mode: "floyd-steinberg",
+  },
 };
 
 const coerceNumber = (value: unknown, fallback: number): number => {

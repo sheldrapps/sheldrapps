@@ -64,11 +64,17 @@ export function provideEditorI18n() {
 
         const mergeEditorTranslations = (lang: string, reason: string) => {
           const dict = resolveDictForLang(lang);
-          if (!dict) return;
+          const baseDict = EDITOR_TRANSLATIONS["en-US"];
+          if (!baseDict && !dict) return;
           if (merged.has(lang)) return;
           merged.add(lang);
 
-          translate.setTranslation(lang, dict, true);
+          if (baseDict) {
+            translate.setTranslation(lang, baseDict, true);
+          }
+          if (dict) {
+            translate.setTranslation(lang, dict, true);
+          }
           applyOverridesForLang(lang);
 
           queueMicrotask(() => {

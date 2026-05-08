@@ -11,6 +11,20 @@ $appPath = Join-Path $repoRoot (Join-Path 'apps' $AppName)
 $androidPath = Join-Path $appPath 'android'
 $apkPath = Join-Path $androidPath 'app\build\outputs\apk\debug\app-debug.apk'
 
+function Invoke-Step {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Name,
+    [Parameter(Mandatory = $true)]
+    [scriptblock]$Action
+  )
+
+  & $Action
+  if ($LASTEXITCODE -ne 0) {
+    throw "Step failed: $Name (exit code $LASTEXITCODE)"
+  }
+}
+
 if (-not (Test-Path $appPath)) {
   throw "App path not found: $appPath"
 }
@@ -43,17 +57,17 @@ Write-Host ''
 
 Write-Host '[1/4] pnpm --filter <app> build'
 Push-Location $repoRoot
-pnpm --filter $AppName build
+Invoke-Step -Name 'pnpm build' -Action { pnpm --filter $AppName build }
 Pop-Location
 
 Write-Host '[2/4] npx cap sync android'
 Push-Location $appPath
-npx cap sync android
+Invoke-Step -Name 'cap sync android' -Action { npx cap sync android }
 Pop-Location
 
 Write-Host '[3/4] .\\gradlew.bat clean :app:assembleDebug'
 Push-Location $androidPath
-.\gradlew.bat clean :app:assembleDebug
+Invoke-Step -Name 'gradlew assembleDebug' -Action { .\gradlew.bat clean :app:assembleDebug }
 Pop-Location
 
 if (-not (Test-Path $apkPath)) {
@@ -61,7 +75,7 @@ if (-not (Test-Path $apkPath)) {
 }
 
 Write-Host '[4/4] adb install -r app-debug.apk'
-adb -s $DeviceId install -r $apkPath
+Invoke-Step -Name 'adb install' -Action { adb -s $DeviceId install -r $apkPath }
 
 Write-Host ''
 Write-Host 'Done: install completed.'

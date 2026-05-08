@@ -23,6 +23,7 @@
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Pagamento único • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "Preço: {{price}} • Sem assinatura",
     "RESTORE_ERROR": "Não foi possível restaurar a compra. Tente novamente.",
+    "PRO_ONLY": "PRO",
     "WATCH_AD_SUBTITLE": "Ver anúncio",
     "SHARE": "Compartilhar",
     "SHARE_KINDLE_HINT": "Ao compartilhar, selecione o app Kindle para enviá-la ao dispositivo.",
@@ -83,6 +84,7 @@
     "EXPORT_OPTIONS": {
       "TITLE": "Qualidade de exportação",
       "LOSSLESS_TITLE": "Melhor qualidade",
+      "THUMBNAIL_TITLE": "Miniatura",
       "LOSSLESS_DESCRIPTION": "PNG sem perdas. Mantém mais detalhes, mas o EPUB pode ficar bem maior.",
       "OPTIMIZED_TITLE": "Comprimido",
       "OPTIMIZED_DESCRIPTION": "Imagem compactada. Ótima quando você só precisa da capa como miniatura na biblioteca.",

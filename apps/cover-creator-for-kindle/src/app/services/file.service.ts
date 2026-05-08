@@ -330,7 +330,7 @@ export class FileService {
       const isLossyJpegSource = /^data:image\/(jpeg|jpg);base64,/i.test(
         baseSrc,
       );
-      const preserveHardEdges = metadata.artifactReductionMode === 'bw-dither';
+      const preserveHardEdges = metadata.isDithered;
       const optimized = await buildOptimizedPreviewDataUrl(baseSrc, {
         maxSide: this.OPTIMIZED_PREVIEW_MAX_SIDE,
         preserveHardEdges,
@@ -1299,8 +1299,8 @@ export class FileService {
     const inferred: ResolvedDitherMetadata = {
       isDithered: !!analysis?.isDithered,
       colorMode: analysis?.isDithered ? 'black-white' : 'color',
-      artifactReductionEnabled: !!analysis?.isDithered,
-      artifactReductionMode: analysis?.isDithered ? 'bw-dither' : 'none',
+      artifactReductionEnabled: false,
+      artifactReductionMode: 'none',
       detectionSource: 'inferred',
       ditherAlgorithm: analysis?.isDithered ? 'floyd-steinberg' : null,
       width: analysis?.width,
@@ -1352,16 +1352,13 @@ export class FileService {
     metadata: CoverProcessingMetadataInput,
   ): SheldrCoverMetadata {
     const colorMode = metadata.colorMode ?? 'color';
-    const artifactReductionEnabled =
-      metadata.artifactReductionEnabled ?? !!metadata.isDithered;
+    const artifactReductionEnabled = metadata.artifactReductionEnabled ?? false;
     const artifactReductionMode = this.resolveArtifactReductionModeForMetadata({
       colorMode,
       artifactReductionEnabled,
       artifactReductionMode: metadata.artifactReductionMode ?? null,
-      isDithered: metadata.isDithered,
     });
-    const normalizedIsDithered =
-      artifactReductionMode !== 'none' || !!metadata.isDithered;
+    const normalizedIsDithered = !!metadata.isDithered;
 
     return {
       colorMode,
@@ -1369,12 +1366,16 @@ export class FileService {
       artifactReductionMode,
       isDithered: normalizedIsDithered,
       ditherAlgorithm: this.resolveArtifactReductionAlgorithm(
-        artifactReductionMode,
+        normalizedIsDithered ? 'bw-dither' : 'none',
         metadata.ditherAlgorithm,
       ),
-      renderKind: normalizedIsDithered
-        ? 'processed-dithered'
-        : 'processed-standard',
+      renderKind: artifactReductionEnabled
+        ? normalizedIsDithered
+          ? 'processed-cleanup-dithered'
+          : 'processed-cleanup'
+        : normalizedIsDithered
+          ? 'processed-dithered'
+          : 'processed-standard',
       processedBy: 'cover-creator-for-kindle',
       metadataVersion: '2',
     };
@@ -1384,10 +1385,8 @@ export class FileService {
     colorMode: CoverColorMode;
     artifactReductionEnabled: boolean;
     artifactReductionMode?: ArtifactReductionMode | null;
-    isDithered?: boolean;
   }): ArtifactReductionMode {
     if (
-      input.artifactReductionMode === 'bw-dither' ||
       input.artifactReductionMode === 'adaptive-color' ||
       input.artifactReductionMode === 'adaptive-gray'
     ) {
@@ -1395,10 +1394,12 @@ export class FileService {
     }
 
     if (input.artifactReductionEnabled) {
-      return input.colorMode === 'black-white' ? 'bw-dither' : 'adaptive-color';
+      return input.colorMode === 'black-white'
+        ? 'adaptive-gray'
+        : 'adaptive-color';
     }
 
-    return input.isDithered ? 'bw-dither' : 'none';
+    return 'none';
   }
 
   private resolveArtifactReductionAlgorithm(

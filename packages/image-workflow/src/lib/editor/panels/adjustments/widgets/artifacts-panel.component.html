@@ -1,26 +1,82 @@
-<ion-item>
-  <ion-label>
-    {{
-      "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE" | translate
-    }}
-  </ion-label>
-  <ion-button
-    fill="clear"
-    size="small"
-    slot="end"
-    (click)="onInfoClick()"
-    [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_TITLE' | translate"
-  >
-    <ion-icon slot="icon-only" name="information-circle-outline"></ion-icon>
-  </ion-button>
-  <ion-toggle
-    slot="end"
-    [checked]="history.artifactReductionEnabled()"
-    (ionChange)="onArtifactReductionChange($event)"
-    [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE' | translate"
-  ></ion-toggle>
-</ion-item>
+<ion-list lines="full">
+  <ion-item>
+    <ion-label>
+      {{
+        "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.TOGGLE" | translate
+      }}
+    </ion-label>
+    <ion-button
+      fill="clear"
+      size="small"
+      slot="end"
+      (click)="onInfoClick()"
+      [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.INFO_TITLE' | translate"
+    >
+      <ion-icon slot="icon-only" name="information-circle-outline"></ion-icon>
+    </ion-button>
+    <ion-toggle
+      slot="end"
+      [checked]="history.cleanupEnabled()"
+      (ionChange)="onArtifactReductionChange($event)"
+      [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.TOGGLE' | translate"
+    ></ion-toggle>
+  </ion-item>
+
+  <ion-item>
+    <ion-label>
+      {{ "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH" | translate }}
+    </ion-label>
+    <ion-select
+      interface="popover"
+      slot="end"
+      [value]="history.cleanupArtifactReduction()"
+      [disabled]="!history.cleanupEnabled()"
+      (ionChange)="onStrengthChange($event)"
+      [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH' | translate"
+    >
+      <ion-select-option value="off">
+        {{ "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH_OFF" | translate }}
+      </ion-select-option>
+      <ion-select-option value="light">
+        {{ "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH_LIGHT" | translate }}
+      </ion-select-option>
+      <ion-select-option value="balanced">
+        {{ "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH_BALANCED" | translate }}
+      </ion-select-option>
+      <ion-select-option value="strong">
+        {{ "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH_STRONG" | translate }}
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <ion-item>
+    <ion-label>
+      {{
+        "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.SMOOTH_GRADIENTS"
+          | translate
+      }}
+    </ion-label>
+    <ion-toggle
+      slot="end"
+      [checked]="history.smoothGradients()"
+      [disabled]="!history.cleanupEnabled()"
+      (ionChange)="onSmoothGradientsChange($event)"
+      [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.SMOOTH_GRADIENTS' | translate"
+    ></ion-toggle>
+  </ion-item>
+</ion-list>
 
 <p class="artifacts-helper">
-  {{ "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.HELPER" | translate }}
+  {{ "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.HELPER" | translate }}
 </p>
+
+<ion-note class="artifacts-helper" *ngIf="history.cleanupEnabled()">
+  {{ "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.PRESERVE_DETAILS" | translate }}
+</ion-note>
+
+<ion-note
+  class="artifacts-helper artifacts-helper--warning"
+  *ngIf="history.cleanupEnabled() && history.cleanupArtifactReduction() === 'strong'"
+>
+  {{ "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRONG_HINT" | translate }}
+</ion-note>

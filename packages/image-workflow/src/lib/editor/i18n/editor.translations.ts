@@ -20,6 +20,8 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
       "Barra de herramientas de ajustes",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BRIGHTNESS": "Brillo",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW": "Blanco y negro",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CLEANUP":
+      "Limpieza",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST":
       "Contraste",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "Tramado",
@@ -40,6 +42,36 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
       "Actívalo solo si la imagen muestra artefactos visibles después de la conversión. Las miniaturas y vistas previas pueden verse distintas al resultado final en un e-reader, donde puede verse más nítido y natural.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_CTA":
       "Entendido",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.TOGGLE":
+      "Reducir artefactos JPEG",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH": "Intensidad",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH_OFF": "Desactivado",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH_LIGHT": "Suave",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH_BALANCED":
+      "Equilibrado",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH_STRONG":
+      "Fuerte",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.SMOOTH_GRADIENTS":
+      "Suavizar degradados",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.HELPER":
+      "Mejora imágenes comprimidas o de baja calidad antes de convertirlas para e-readers.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.PRESERVE_DETAILS":
+      "Preservar detalles queda activo para proteger texto, bordes y siluetas.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRONG_HINT":
+      "La limpieza fuerte puede suavizar la textura fina.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.INFO_TITLE":
+      "Limpieza de imagen",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.INFO_BODY":
+      "Reducir artefactos JPEG suaviza marcas de compresión en bloques, y Suavizar degradados ayuda con el banding en cielos y fondos suaves.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.INFO_CTA":
+      "Entendido",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.TOGGLE": "Dithering",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.MODE": "Modo",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.MODE_FLOYD_STEINBERG":
+      "Floyd-Steinberg",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.MODE_ORDERED": "Ordered",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.HELPER":
+      "Añade textura para simular más tonos en pantallas de color limitado. No siempre hace falta.",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION":
       "Saturación",
     "EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR": "Barra de herramientas",
@@ -139,6 +171,8 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BRIGHTNESS":
       "Brightness",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW": "Black & white",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CLEANUP":
+      "Cleanup",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST": "Contrast",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "Dithering",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS":
@@ -158,6 +192,36 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
       "Turn this on only if the image shows visible artifacts after conversion. Thumbnails and previews may look different from the final result on an e-reader, where it can appear sharper and more natural.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_CTA":
       "Got it",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.TOGGLE":
+      "Reduce JPEG artifacts",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH": "Strength",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH_OFF": "Off",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH_LIGHT": "Light",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH_BALANCED":
+      "Balanced",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH_STRONG":
+      "Strong",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.SMOOTH_GRADIENTS":
+      "Smooth gradients",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.HELPER":
+      "Improve low-quality or compressed images before converting them for e-readers.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.PRESERVE_DETAILS":
+      "Preserve details stays on to protect text, edges and silhouettes.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRONG_HINT":
+      "Strong cleanup may soften fine texture.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.INFO_TITLE":
+      "Image Cleanup",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.INFO_BODY":
+      "Reduce JPEG artifacts softens blocky compression marks, and Smooth gradients helps with banding in skies and smooth backgrounds.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.INFO_CTA":
+      "Got it",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.TOGGLE": "Dithering",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.MODE": "Mode",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.MODE_FLOYD_STEINBERG":
+      "Floyd-Steinberg",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.MODE_ORDERED": "Ordered",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.HELPER":
+      "Add texture to simulate more shades on limited-color displays. Not always needed.",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION":
       "Saturation",
     "EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR": "Toolbar",

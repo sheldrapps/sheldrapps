@@ -23,6 +23,7 @@
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "一回払い • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "価格: {{price}} • サブスクなし",
     "RESTORE_ERROR": "購入を復元できませんでした。もう一度お試しください。",
+    "PRO_ONLY": "PRO",
     "WATCH_AD_SUBTITLE": "広告を見る",
     "SHARE": "共有",
     "SHARE_KINDLE_HINT": "共有時に Kindle アプリを選択してデバイスに送信してください。",
@@ -84,6 +85,7 @@
     "EXPORT_OPTIONS": {
       "TITLE": "書き出し品質",
       "LOSSLESS_TITLE": "最高画質",
+      "THUMBNAIL_TITLE": "サムネイル",
       "LOSSLESS_DESCRIPTION": "可逆圧縮のPNG。より多くのディテールを保てますが、EPUBはかなり大きくなることがあります。",
       "OPTIMIZED_TITLE": "圧縮",
       "OPTIMIZED_DESCRIPTION": "圧縮画像。ライブラリのサムネイル用に表紙が必要な場合に最適です。",

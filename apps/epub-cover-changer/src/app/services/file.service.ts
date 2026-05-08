@@ -1817,8 +1817,8 @@ export class FileService {
     const inferred: ResolvedDitherMetadata = {
       isDithered: !!analysis?.isDithered,
       colorMode: analysis?.isDithered ? 'black-white' : 'color',
-      artifactReductionEnabled: !!analysis?.isDithered,
-      artifactReductionMode: analysis?.isDithered ? 'bw-dither' : 'none',
+      artifactReductionEnabled: false,
+      artifactReductionMode: 'none',
       detectionSource: 'inferred',
       ditherAlgorithm: analysis?.isDithered ? 'floyd-steinberg' : null,
       width: analysis?.width,
@@ -1883,15 +1883,13 @@ export class FileService {
     metadata: CoverProcessingMetadataInput,
   ): SheldrCoverMetadata {
     const colorMode = metadata.colorMode ?? 'color';
-    const artifactReductionEnabled =
-      metadata.artifactReductionEnabled ?? !!metadata.isDithered;
+    const artifactReductionEnabled = metadata.artifactReductionEnabled ?? false;
     const artifactReductionMode =
       metadata.artifactReductionMode ??
       (artifactReductionEnabled && colorMode === 'black-white'
-        ? 'bw-dither'
+        ? 'adaptive-gray'
         : 'none');
-    const normalizedIsDithered =
-      artifactReductionMode !== 'none' || !!metadata.isDithered;
+    const normalizedIsDithered = !!metadata.isDithered;
 
     return {
       colorMode,
@@ -1901,9 +1899,13 @@ export class FileService {
       ditherAlgorithm: normalizedIsDithered
         ? metadata.ditherAlgorithm?.trim() || 'floyd-steinberg'
         : null,
-      renderKind: normalizedIsDithered
-        ? 'processed-dithered'
-        : 'processed-standard',
+      renderKind: artifactReductionEnabled
+        ? normalizedIsDithered
+          ? 'processed-cleanup-dithered'
+          : 'processed-cleanup'
+        : normalizedIsDithered
+          ? 'processed-dithered'
+          : 'processed-standard',
       processedBy: 'epub-cover-changer',
       metadataVersion: '2',
     };

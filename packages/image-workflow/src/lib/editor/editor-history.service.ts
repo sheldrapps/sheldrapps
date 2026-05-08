@@ -5,8 +5,16 @@ import {
   type KindleSelectionSnapshot,
 } from "./editor-kindle-state.service";
 import { DEFAULT_EDITOR_ADJUSTMENTS } from "./editor-adjustments";
-import type { BackgroundMode, BackgroundSource } from "../types";
-import { isArtifactReductionEnabled } from "../core/pipeline/artifact-reduction-state";
+import type {
+  BackgroundMode,
+  BackgroundSource,
+  CleanupStrength,
+  DitheringMode,
+} from "../types";
+import {
+  isArtifactReductionEnabled,
+  isDitheringEnabled,
+} from "../core/pipeline";
 
 export type HistoryMode = "local" | "global";
 export type PanelScope = "tools" | "adjustments" | "text";
@@ -28,7 +36,12 @@ type NormalizedAdjustments = {
   contrast: number;
   saturation: number;
   bw: boolean;
-  dither: boolean;
+  cleanupEnabled: boolean;
+  cleanupStrength: string;
+  smoothGradients: boolean;
+  preserveDetails: boolean;
+  ditheringEnabled: boolean;
+  ditheringMode: string;
 };
 
 type NormalizedTransform = {
@@ -39,7 +52,12 @@ type NormalizedTransform = {
   flipX: boolean;
   flipY: boolean;
   bw: boolean;
-  dither: boolean;
+  cleanupEnabled: boolean;
+  cleanupStrength: string;
+  smoothGradients: boolean;
+  preserveDetails: boolean;
+  ditheringEnabled: boolean;
+  ditheringMode: string;
   backgroundMode: BackgroundMode;
   backgroundColor: string;
   backgroundSource: BackgroundSource | null;
@@ -109,6 +127,12 @@ export class EditorHistoryService {
   readonly bw = this.editorState.bw;
   readonly dither = this.editorState.dither;
   readonly artifactReductionEnabled = this.editorState.artifactReductionEnabled;
+  readonly cleanupEnabled = this.editorState.cleanupEnabled;
+  readonly cleanupArtifactReduction = this.editorState.cleanupArtifactReduction;
+  readonly smoothGradients = this.editorState.smoothGradients;
+  readonly preserveDetails = this.editorState.preserveDetails;
+  readonly ditheringEnabled = this.editorState.ditheringEnabled;
+  readonly ditheringMode = this.editorState.ditheringMode;
   readonly backgroundMode = this.editorState.backgroundMode;
   readonly backgroundColor = this.editorState.backgroundColor;
   readonly backgroundSource = this.editorState.backgroundSource;
@@ -435,16 +459,71 @@ export class EditorHistoryService {
   }
 
   setDither(value: boolean): void {
-    this.setArtifactReductionEnabled(value);
+    this.setDitheringEnabled(value);
   }
 
   setArtifactReductionEnabled(value: boolean): void {
-    const prev = this.editorState.dither();
+    const prev = this.editorState.cleanupEnabled();
     this.editorState.setArtifactReductionEnabled(value);
-    const next = this.editorState.dither();
+    const next = this.editorState.cleanupEnabled();
     if (prev === next) return;
     this.recordCommand({
-      type: "SetArtifactReduction",
+      type: "SetCleanupEnabled",
+      payload: { value: next },
+    });
+  }
+
+  setCleanupArtifactReduction(value: CleanupStrength): void {
+    const prev = this.editorState.cleanupArtifactReduction();
+    this.editorState.setCleanupArtifactReduction(value);
+    const next = this.editorState.cleanupArtifactReduction();
+    if (prev === next) return;
+    this.recordCommand({
+      type: "SetCleanupArtifactReduction",
+      payload: { value: next },
+    });
+  }
+
+  setSmoothGradients(value: boolean): void {
+    const prev = this.editorState.smoothGradients();
+    this.editorState.setSmoothGradients(value);
+    const next = this.editorState.smoothGradients();
+    if (prev === next) return;
+    this.recordCommand({
+      type: "SetSmoothGradients",
+      payload: { value: next },
+    });
+  }
+
+  setPreserveDetails(value: boolean): void {
+    const prev = this.editorState.preserveDetails();
+    this.editorState.setPreserveDetails(value);
+    const next = this.editorState.preserveDetails();
+    if (prev === next) return;
+    this.recordCommand({
+      type: "SetPreserveDetails",
+      payload: { value: next },
+    });
+  }
+
+  setDitheringEnabled(value: boolean): void {
+    const prev = this.editorState.ditheringEnabled();
+    this.editorState.setDitheringEnabled(value);
+    const next = this.editorState.ditheringEnabled();
+    if (prev === next) return;
+    this.recordCommand({
+      type: "SetDitheringEnabled",
+      payload: { value: next },
+    });
+  }
+
+  setDitheringMode(value: DitheringMode): void {
+    const prev = this.editorState.ditheringMode();
+    this.editorState.setDitheringMode(value);
+    const next = this.editorState.ditheringMode();
+    if (prev === next) return;
+    this.recordCommand({
+      type: "SetDitheringMode",
       payload: { value: next },
     });
   }
@@ -637,6 +716,16 @@ export class EditorHistoryService {
 
   resetDither(): void {
     this.setDither(DEFAULT_EDITOR_ADJUSTMENTS.dither);
+    this.setDitheringMode(DEFAULT_EDITOR_ADJUSTMENTS.dithering.mode);
+  }
+
+  resetCleanup(): void {
+    this.setArtifactReductionEnabled(DEFAULT_EDITOR_ADJUSTMENTS.cleanup.enabled);
+    this.setCleanupArtifactReduction(
+      DEFAULT_EDITOR_ADJUSTMENTS.cleanup.artifactReduction,
+    );
+    this.setSmoothGradients(DEFAULT_EDITOR_ADJUSTMENTS.cleanup.smoothGradients);
+    this.setPreserveDetails(DEFAULT_EDITOR_ADJUSTMENTS.cleanup.preserveDetails);
   }
 
   setRotation(value: number): void {
@@ -816,10 +905,25 @@ export class EditorHistoryService {
         this.editorState.setBw(command.payload.value);
         return;
       case "SetDither":
+        this.editorState.setDitheringEnabled(command.payload.value);
+        return;
+      case "SetCleanupEnabled":
         this.editorState.setArtifactReductionEnabled(command.payload.value);
         return;
-      case "SetArtifactReduction":
-        this.editorState.setArtifactReductionEnabled(command.payload.value);
+      case "SetCleanupArtifactReduction":
+        this.editorState.setCleanupArtifactReduction(command.payload.value);
+        return;
+      case "SetSmoothGradients":
+        this.editorState.setSmoothGradients(command.payload.value);
+        return;
+      case "SetPreserveDetails":
+        this.editorState.setPreserveDetails(command.payload.value);
+        return;
+      case "SetDitheringEnabled":
+        this.editorState.setDitheringEnabled(command.payload.value);
+        return;
+      case "SetDitheringMode":
+        this.editorState.setDitheringMode(command.payload.value);
         return;
       case "SetRotation":
         this.editorState.setRotation(command.payload.value);
@@ -862,7 +966,12 @@ export class EditorHistoryService {
           source?: BackgroundSource;
           blur?: number;
           bw?: boolean;
-          dither?: boolean;
+          cleanupEnabled?: boolean;
+          cleanupStrength?: CleanupStrength;
+          smoothGradients?: boolean;
+          preserveDetails?: boolean;
+          ditheringEnabled?: boolean;
+          ditheringMode?: DitheringMode;
         };
         this.editorState.setBackground({
           mode: payload.mode,
@@ -873,8 +982,23 @@ export class EditorHistoryService {
         if (payload.bw !== undefined) {
           this.editorState.setBw(!!payload.bw);
         }
-        if (payload.dither !== undefined) {
-          this.editorState.setArtifactReductionEnabled(!!payload.dither);
+        if (payload.cleanupEnabled !== undefined) {
+          this.editorState.setCleanupEnabled(!!payload.cleanupEnabled);
+        }
+        if (payload.cleanupStrength !== undefined) {
+          this.editorState.setCleanupArtifactReduction(payload.cleanupStrength);
+        }
+        if (payload.smoothGradients !== undefined) {
+          this.editorState.setSmoothGradients(!!payload.smoothGradients);
+        }
+        if (payload.preserveDetails !== undefined) {
+          this.editorState.setPreserveDetails(!!payload.preserveDetails);
+        }
+        if (payload.ditheringEnabled !== undefined) {
+          this.editorState.setDitheringEnabled(!!payload.ditheringEnabled);
+        }
+        if (payload.ditheringMode !== undefined) {
+          this.editorState.setDitheringMode(payload.ditheringMode);
         }
         return;
       }
@@ -994,7 +1118,15 @@ export class EditorHistoryService {
       contrast: this.roundToStep(state.contrast, SLIDER_STEP),
       saturation: this.roundToStep(state.saturation, SLIDER_STEP),
       bw: !!state.bw,
-      dither: isArtifactReductionEnabled(state),
+      cleanupEnabled: isArtifactReductionEnabled(state),
+      cleanupStrength: state.cleanup?.artifactReduction ?? "off",
+      smoothGradients: !!state.cleanup?.smoothGradients,
+      preserveDetails:
+        state.cleanup?.preserveDetails ??
+        DEFAULT_EDITOR_ADJUSTMENTS.cleanup.preserveDetails,
+      ditheringEnabled: isDitheringEnabled(state),
+      ditheringMode:
+        state.dithering?.mode ?? DEFAULT_EDITOR_ADJUSTMENTS.dithering.mode,
     };
   }
 
@@ -1007,7 +1139,15 @@ export class EditorHistoryService {
       flipX: !!state.flipX,
       flipY: !!state.flipY,
       bw: !!state.bw,
-      dither: isArtifactReductionEnabled(state),
+      cleanupEnabled: isArtifactReductionEnabled(state),
+      cleanupStrength: state.cleanup?.artifactReduction ?? "off",
+      smoothGradients: !!state.cleanup?.smoothGradients,
+      preserveDetails:
+        state.cleanup?.preserveDetails ??
+        DEFAULT_EDITOR_ADJUSTMENTS.cleanup.preserveDetails,
+      ditheringEnabled: isDitheringEnabled(state),
+      ditheringMode:
+        state.dithering?.mode ?? DEFAULT_EDITOR_ADJUSTMENTS.dithering.mode,
       backgroundMode: (state.backgroundMode ?? "transparent") as BackgroundMode,
       backgroundColor: this.normalizeHex(state.backgroundColor),
       backgroundSource:
@@ -1145,13 +1285,23 @@ export class EditorHistoryService {
     source?: BackgroundSource;
     blur?: number;
     bw: boolean;
-    dither: boolean;
+    cleanupEnabled: boolean;
+    cleanupStrength: string;
+    smoothGradients: boolean;
+    preserveDetails: boolean;
+    ditheringEnabled: boolean;
+    ditheringMode: string;
   } {
     const background = this.captureBackground();
     return {
       ...background,
       bw: !!this.editorState.bw(),
-      dither: !!this.editorState.artifactReductionEnabled(),
+      cleanupEnabled: !!this.editorState.cleanupEnabled(),
+      cleanupStrength: this.editorState.cleanupArtifactReduction(),
+      smoothGradients: !!this.editorState.smoothGradients(),
+      preserveDetails: !!this.editorState.preserveDetails(),
+      ditheringEnabled: !!this.editorState.ditheringEnabled(),
+      ditheringMode: this.editorState.ditheringMode(),
     };
   }
 
@@ -1166,7 +1316,12 @@ export class EditorHistoryService {
     source?: BackgroundSource;
     blur?: number;
     bw: boolean;
-    dither: boolean;
+    cleanupEnabled: boolean;
+    cleanupStrength: string;
+    smoothGradients: boolean;
+    preserveDetails: boolean;
+    ditheringEnabled: boolean;
+    ditheringMode: string;
   } {
     if (nextBackground.mode !== "transparent" && this.editorState.bw()) {
       this.editorState.setBw(false);
@@ -1175,7 +1330,12 @@ export class EditorHistoryService {
     return {
       ...nextBackground,
       bw: !!this.editorState.bw(),
-      dither: !!this.editorState.artifactReductionEnabled(),
+      cleanupEnabled: !!this.editorState.cleanupEnabled(),
+      cleanupStrength: this.editorState.cleanupArtifactReduction(),
+      smoothGradients: !!this.editorState.smoothGradients(),
+      preserveDetails: !!this.editorState.preserveDetails(),
+      ditheringEnabled: !!this.editorState.ditheringEnabled(),
+      ditheringMode: this.editorState.ditheringMode(),
     };
   }
 
@@ -1186,7 +1346,12 @@ export class EditorHistoryService {
       source?: BackgroundSource;
       blur?: number;
       bw: boolean;
-      dither: boolean;
+      cleanupEnabled: boolean;
+      cleanupStrength: string;
+      smoothGradients: boolean;
+      preserveDetails: boolean;
+      ditheringEnabled: boolean;
+      ditheringMode: string;
     },
     b: {
       mode: BackgroundMode;
@@ -1194,7 +1359,12 @@ export class EditorHistoryService {
       source?: BackgroundSource;
       blur?: number;
       bw: boolean;
-      dither: boolean;
+      cleanupEnabled: boolean;
+      cleanupStrength: string;
+      smoothGradients: boolean;
+      preserveDetails: boolean;
+      ditheringEnabled: boolean;
+      ditheringMode: string;
     },
   ): boolean {
     return (
@@ -1203,7 +1373,12 @@ export class EditorHistoryService {
       a.source === b.source &&
       this.normalizeBlur(a.blur) === this.normalizeBlur(b.blur) &&
       a.bw === b.bw &&
-      a.dither === b.dither
+      a.cleanupEnabled === b.cleanupEnabled &&
+      a.cleanupStrength === b.cleanupStrength &&
+      a.smoothGradients === b.smoothGradients &&
+      a.preserveDetails === b.preserveDetails &&
+      a.ditheringEnabled === b.ditheringEnabled &&
+      a.ditheringMode === b.ditheringMode
     );
   }
 

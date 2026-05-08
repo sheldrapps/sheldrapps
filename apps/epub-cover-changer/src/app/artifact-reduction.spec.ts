@@ -11,6 +11,7 @@ import {
 import {
   applyAdaptiveColorArtifactReduction,
   isArtifactReductionEnabled,
+  isDitheringEnabled,
   resolveArtifactReductionMode,
   resolveCoverColorMode,
 } from '@sheldrapps/image-workflow';
@@ -20,35 +21,77 @@ import {
   EditorSessionService,
 } from '@sheldrapps/image-workflow/editor';
 
+import { applyEditorAdjustments } from '../../../../packages/image-workflow/src/lib/core/pipeline/apply-editor-adjustments';
 import { EditorHistoryService } from '../../../../packages/image-workflow/src/lib/editor/editor-history.service';
 import { EDITOR_SESSION_ID } from '../../../../packages/image-workflow/src/lib/editor/editor-panel.tokens';
 import { EditorStateService } from '../../../../packages/image-workflow/src/lib/editor/editor-state.service';
 
 class EditorHistoryStub {
   readonly bw = signal(false);
-  readonly artifactReductionEnabled = signal(false);
+  readonly cleanupEnabled = signal(false);
+  readonly cleanupArtifactReduction = signal<'off' | 'light' | 'balanced' | 'strong'>('off');
+  readonly smoothGradients = signal(false);
+  readonly ditheringEnabled = signal(false);
+  readonly ditheringMode = signal<'floyd-steinberg' | 'ordered'>('floyd-steinberg');
+  readonly artifactReductionEnabled = this.cleanupEnabled;
 
   setBw(value: boolean): void {
     this.bw.set(value);
   }
 
   setArtifactReductionEnabled(value: boolean): void {
-    this.artifactReductionEnabled.set(value);
+    this.cleanupEnabled.set(value);
+  }
+
+  setCleanupArtifactReduction(value: 'off' | 'light' | 'balanced' | 'strong'): void {
+    this.cleanupArtifactReduction.set(value);
+  }
+
+  setSmoothGradients(value: boolean): void {
+    this.smoothGradients.set(value);
+  }
+
+  setDitheringEnabled(value: boolean): void {
+    this.ditheringEnabled.set(value);
+  }
+
+  setDitheringMode(value: 'floyd-steinberg' | 'ordered'): void {
+    this.ditheringMode.set(value);
   }
 }
 
 describe('artifact reduction editor flow', () => {
   const translations = {
     'EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW': 'Black & white',
-    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.TOGGLE':
-      'Reduce artifacts',
-    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.HELPER':
-      'Use only when the image shows visible conversion artifacts. Thumbnails may look different from the final e-reader result.',
-    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_TITLE':
-      'Use it only when needed',
-    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_BODY':
-      'Turn this on only if the image shows visible artifacts after conversion. Thumbnails and previews may look different from the final result on an e-reader, where it can appear sharper and more natural.',
-    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_CTA': 'Got it',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.TOGGLE':
+      'Reduce JPEG artifacts',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH': 'Strength',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH_OFF': 'Off',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH_LIGHT': 'Light',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH_BALANCED':
+      'Balanced',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRENGTH_STRONG':
+      'Strong',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.SMOOTH_GRADIENTS':
+      'Smooth gradients',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.HELPER':
+      'Improve low-quality or compressed images before converting them for e-readers.',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.PRESERVE_DETAILS':
+      'Preserve details stays on to protect text, edges and silhouettes.',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.STRONG_HINT':
+      'Strong cleanup may soften fine texture.',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.INFO_TITLE':
+      'Image Cleanup',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.INFO_BODY':
+      'Reduce JPEG artifacts softens blocky compression marks, and Smooth gradients helps with banding in skies and smooth backgrounds.',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.INFO_CTA': 'Got it',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.TOGGLE': 'Dithering',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.MODE': 'Mode',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.MODE_FLOYD_STEINBERG':
+      'Floyd-Steinberg',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.MODE_ORDERED': 'Ordered',
+    'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.HELPER':
+      'Add texture to simulate more shades on limited-color displays. Not always needed.',
   };
 
   const pngBase64 =
@@ -115,21 +158,32 @@ describe('artifact reduction editor flow', () => {
 
     const state = new EditorStateService();
     state.setArtifactReductionEnabled(true);
+    state.setCleanupArtifactReduction('balanced');
     state.setBw(true);
     state.setBw(false);
 
     expect(state.artifactReductionEnabled()).toBeTrue();
   });
 
-  it('renders the artifacts panel helper and updates artifact reduction independently', async () => {
+  it('enables smooth gradients when cleanup is first activated', () => {
+    const state = new EditorStateService();
+
+    state.setArtifactReductionEnabled(true);
+
+    expect(state.artifactReductionEnabled()).toBeTrue();
+    expect(state.cleanupArtifactReduction()).toBe('balanced');
+    expect(state.smoothGradients()).toBeTrue();
+  });
+
+  it('renders the cleanup panel helper and updates cleanup independently', async () => {
     const { history } = await configurePanelTestBed();
 
     const fixture = TestBed.createComponent(ArtifactsPanelComponent);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Reduce artifacts');
+    expect(fixture.nativeElement.textContent).toContain('Reduce JPEG artifacts');
     expect(fixture.nativeElement.textContent).toContain(
-      'Use only when the image shows visible conversion artifacts.',
+      'Improve low-quality or compressed images before converting them for e-readers.',
     );
 
     await fixture.componentInstance.onArtifactReductionChange({
@@ -195,6 +249,13 @@ describe('artifact reduction editor flow', () => {
       }),
     ).toBeTrue();
     expect(
+      isDitheringEnabled({
+        bw: false,
+        dither: false,
+        artifactReductionEnabled: true,
+      }),
+    ).toBeFalse();
+    expect(
       resolveCoverColorMode({
         bw: false,
       } as any),
@@ -204,6 +265,12 @@ describe('artifact reduction editor flow', () => {
         bw: false,
         dither: false,
         artifactReductionEnabled: true,
+        cleanup: {
+          enabled: true,
+          artifactReduction: 'balanced',
+          smoothGradients: true,
+          preserveDetails: true,
+        },
       }),
     ).toBe('adaptive-color');
     expect(
@@ -211,8 +278,14 @@ describe('artifact reduction editor flow', () => {
         bw: true,
         dither: true,
         artifactReductionEnabled: true,
+        cleanup: {
+          enabled: true,
+          artifactReduction: 'balanced',
+          smoothGradients: true,
+          preserveDetails: true,
+        },
       }),
-    ).toBe('bw-dither');
+    ).toBe('adaptive-gray');
   });
 
   it('applies a real artifact-reduction pass in color mode', () => {
@@ -233,6 +306,55 @@ describe('artifact reduction editor flow', () => {
     ]);
   });
 
+  it('softens banded gradients into intermediate tones during cleanup', () => {
+    const width = 12;
+    const height = 4;
+    const pixels = new Uint8ClampedArray(width * height * 4);
+    const bandValues = [96, 120, 144, 168];
+
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const band = Math.min(bandValues.length - 1, Math.floor(x / 3));
+        const offset = (y * width + x) * 4;
+        const value = bandValues[band];
+        pixels[offset] = value;
+        pixels[offset + 1] = value;
+        pixels[offset + 2] = value;
+        pixels[offset + 3] = 255;
+      }
+    }
+
+    const imageData = new ImageData(pixels, width, height);
+    applyEditorAdjustments(imageData, {
+      scale: 1,
+      tx: 0,
+      ty: 0,
+      rot: 0,
+      brightness: 1,
+      saturation: 1,
+      contrast: 1,
+      bw: false,
+      dither: false,
+      cleanup: {
+        enabled: true,
+        artifactReduction: 'strong',
+        smoothGradients: true,
+        preserveDetails: true,
+      },
+      dithering: {
+        enabled: false,
+        mode: 'none',
+      },
+    } as any);
+
+    const uniqueValues = new Set<number>();
+    for (let i = 0; i < imageData.data.length; i += 4) {
+      uniqueValues.add(imageData.data[i]);
+    }
+
+    expect(uniqueValues.size).toBeGreaterThan(bandValues.length);
+  });
+
   it('writes and reads the new artifact-reduction metadata fields', async () => {
     const coverFile = new File(
       [Uint8Array.from(atob(pngBase64), (char) => char.charCodeAt(0))],
@@ -242,15 +364,15 @@ describe('artifact reduction editor flow', () => {
     const epubBytes = await buildCoverOnlyEpubBytes({ coverFile, title: 'Cover' });
 
     const updated = await writeSheldrCoverMetadata(epubBytes, {
-      colorMode: 'color',
-      artifactReductionEnabled: true,
-      artifactReductionMode: 'adaptive-color',
-      isDithered: true,
-      ditherAlgorithm: 'adaptive-bayer-4x4',
-      renderKind: 'processed-dithered',
-      processedBy: 'artifact-reduction-spec',
-      metadataVersion: '2',
-    });
+        colorMode: 'color',
+        artifactReductionEnabled: true,
+        artifactReductionMode: 'adaptive-color',
+        isDithered: false,
+        ditherAlgorithm: null,
+        renderKind: 'processed-cleanup',
+        processedBy: 'artifact-reduction-spec',
+        metadataVersion: '2',
+      });
     const metadata = await readSheldrCoverMetadata(updated);
 
     expect(metadata).toEqual(
@@ -258,7 +380,7 @@ describe('artifact reduction editor flow', () => {
         colorMode: 'color',
         artifactReductionEnabled: true,
         artifactReductionMode: 'adaptive-color',
-        isDithered: true,
+        isDithered: false,
       }),
     );
   });

@@ -5,6 +5,11 @@ import type {
   CropTarget,
 } from "../../types";
 import { applyEditorAdjustments } from "./apply-editor-adjustments";
+import {
+  getRotatedSourceDims,
+  normalizeRightAngleRotation,
+  shouldUseFullSourceResolution,
+} from "./composition-geometry";
 import { resolveArtifactReductionMode } from "./artifact-reduction-state";
 
 export type CompositionRenderMode = "preview" | "export";
@@ -28,6 +33,7 @@ export interface CompositionRenderOptions {
   backgroundFallbackColor?: string;
   mimeType?: string;
   quality?: number;
+  maxDimension?: number;
   debug?: boolean;
   debugLabel?: string;
 }
@@ -78,18 +84,34 @@ export function resolveCompositionOutputSize(args: {
     return null;
   }
 
-  const rotation = (((state.rot % 360) + 360) % 360) as 0 | 90 | 180 | 270;
-  const rotatedWidth =
-    rotation === 90 || rotation === 270 ? naturalHeight : naturalWidth;
-  const rotatedHeight =
-    rotation === 90 || rotation === 270 ? naturalWidth : naturalHeight;
+  const rotation = normalizeRightAngleRotation(state.rot || 0);
+  const rotated = getRotatedSourceDims({
+    naturalWidth,
+    naturalHeight,
+    rotation,
+  });
+
+  if (
+    shouldUseFullSourceResolution({
+      frameWidth,
+      frameHeight,
+      naturalWidth,
+      naturalHeight,
+      state,
+    })
+  ) {
+    return {
+      width: Math.max(1, Math.round(rotated.width * outputScale)),
+      height: Math.max(1, Math.round(rotated.height * outputScale)),
+    };
+  }
 
   const cropWidth = Math.min(
-    rotatedWidth,
+    rotated.width,
     Math.max(1, Math.floor(frameWidth / dispScale)),
   );
   const cropHeight = Math.min(
-    rotatedHeight,
+    rotated.height,
     Math.max(1, Math.floor(frameHeight / dispScale)),
   );
 
@@ -264,8 +286,10 @@ export async function renderCompositionToFile(
   input: CompositionRenderInput,
   options: CompositionRenderOptions,
 ): Promise<File | null> {
-  const canvas = await renderCompositionToCanvas(input, options);
-  if (!canvas) return null;
+  const renderedCanvas = await renderCompositionToCanvas(input, options);
+  if (!renderedCanvas) return null;
+
+  const canvas = downscaleCanvas(renderedCanvas, options.maxDimension);
 
   const shouldUsePng =
     (input.state.backgroundMode ?? "transparent") === "transparent" &&
@@ -283,6 +307,35 @@ export async function renderCompositionToFile(
   const base = input.file.name.replace(/\.(png|jpg|jpeg|webp)$/i, "");
   const ext = mimeType === "image/png" ? "png" : "jpg";
   return new File([blob], `${base}_composed.${ext}`, { type: mimeType });
+}
+
+function downscaleCanvas(
+  src: HTMLCanvasElement,
+  maxDimension?: number,
+): HTMLCanvasElement {
+  if (!maxDimension || maxDimension <= 0) {
+    return src;
+  }
+
+  const sourceMax = Math.max(src.width, src.height);
+  if (sourceMax <= maxDimension) {
+    return src;
+  }
+
+  const scale = maxDimension / sourceMax;
+  const dst = document.createElement("canvas");
+  dst.width = Math.max(1, Math.round(src.width * scale));
+  dst.height = Math.max(1, Math.round(src.height * scale));
+
+  const ctx = dst.getContext("2d");
+  if (!ctx) {
+    return src;
+  }
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(src, 0, 0, dst.width, dst.height);
+  return dst;
 }
 
 function drawBackground(

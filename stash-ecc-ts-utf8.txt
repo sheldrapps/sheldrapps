@@ -1,4 +1,4 @@
-import {
+﻿import {
   Component,
   OnDestroy,
   OnInit,
@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription, filter, firstValueFrom } from 'rxjs';
+import { App } from '@capacitor/app';
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import { Device } from '@capacitor/device';
 import {
@@ -21,6 +22,7 @@ import {
   IonButtons,
   IonItem,
   IonLabel,
+  IonToggle,
   IonIcon,
   IonButton,
   IonModal,
@@ -37,13 +39,16 @@ import { TranslateModule } from '@ngx-translate/core';
 import {
   buildDefaultCoverCropState,
   CoverCropState,
+  createImageIngestSessionId,
+  describeDiagnosticFile,
   EReaderPreviewFrameComponent,
-  ImagePipelineService,
-  ImageValidationError,
   buildCompositionInputForPurpose,
   computeSourceCropDims,
   isArtifactReductionEnabled,
   isDitheringEnabled,
+  logImageIngestDiagnostic,
+  logImageIngestDiagnosticError,
+  probeBlobSliceRead,
   renderCompositionToCanvas,
   renderCompositionToFile,
   resolveArtifactReductionMode,
@@ -72,7 +77,12 @@ import {
   FileService,
 } from '../../services/file.service';
 import {
+  ImagePipelineService,
+  type ImageValidationError,
+} from '../../services/image-pipeline.service';
+import {
   DEFAULT_EXPORT_QUALITY_MODE,
+  EXPORT_QUALITY_OPTIONS,
   getCoverExportOptions,
   normalizeExportQualityMode,
   type ExportQualityMode,
@@ -95,7 +105,10 @@ import { detectSupportedLocale } from '@sheldrapps/i18n-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
 import {
   LoadingStateComponent,
+  resolveSelectCardGroupLocale,
   SaveCoverModalComponent,
+  SelectCardGroupComponent,
+  type SelectCardOption,
   ScrollableBarItem,
   ScrollableButtonBarComponent,
 } from '@sheldrapps/ui-theme';
@@ -150,6 +163,7 @@ type EditorResult = {
     IonModal,
     LoadingStateComponent,
     EReaderPreviewFrameComponent,
+    SelectCardGroupComponent,
     ScrollableButtonBarComponent,
     TourOverlayComponent,
   ],
@@ -206,6 +220,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private removeAdsCtaImpressionTracked = false;
   private nativeRewriteSessionDisabled = false;
   private nativeRewriteSdkBlocked = false;
+  private appResumeSub?: PluginListenerHandle;
 
   @ViewChild(IonContent) content?: IonContent;
   @ViewChild('epubInput') epubInput!: ElementRef<HTMLInputElement>;
@@ -317,6 +332,7 @@ export class ChangePage implements OnInit, OnDestroy {
     | 'replacement'
     | 'edited'
     | null = null;
+  private activeIngestSessionId: string | null = null;
   private readonly invalidCoverWarnKey = 'CHANGE.IMAGE_WARN_INVALID_EPUB_COVER';
 
   get previewUrlWithNonce(): string | null {
@@ -364,6 +380,15 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    this.appResumeSub = await App.addListener('resume', () => {
+      if (this.isNativeRewriteInProgress) {
+        return;
+      }
+
+      this.resetEpubLoadProgress();
+      this.setBusy('none');
+    });
+
     await this.initializeNativeRewriteSafetyGate();
     await this.refreshHeaderItems();
     this.isOnline = typeof navigator === 'undefined' ? true : navigator.onLine;
@@ -397,6 +422,9 @@ export class ChangePage implements OnInit, OnDestroy {
       this.adsRemoved,
     );
     this.syncAuthorizedExportQualityMode('settings-load');
+    console.info(
+      `[ECC:export-quality] loaded mode ${this.getEffectiveExportQualityMode()} ${JSON.stringify({ isPro: this.adsRemoved, source: 'create_page' })}`,
+    );
 
     if (this.usesNativeRewrite()) {
       this.rewriteProgressSub = await this.epubRewrite.addProgressListener(
@@ -446,6 +474,7 @@ export class ChangePage implements OnInit, OnDestroy {
       window.removeEventListener('online', this.onlineHandler);
       window.removeEventListener('offline', this.offlineHandler);
     }
+    void this.appResumeSub?.remove();
     void this.rewriteProgressSub?.remove();
   }
 
@@ -453,19 +482,17 @@ export class ChangePage implements OnInit, OnDestroy {
     kind: 'pick' | 'export' | 'epub' | 'none',
     messageKey?: string,
   ) {
-    this.zone.run(() => {
-      this.isPickingImage = kind === 'pick';
-      this.isExporting = kind === 'export';
-      this.isPickingEpub = kind === 'epub';
-      this.loadingMessageKey = kind === 'none' ? undefined : messageKey;
-    });
+    this.isPickingImage = kind === 'pick';
+    this.isExporting = kind === 'export';
+    this.isPickingEpub = kind === 'epub';
+    this.loadingMessageKey = kind === 'none' ? undefined : messageKey;
   }
 
   private buildFormatOptions(): CropFormatOption[] {
     const epubTarget: CropTarget = {
       width: this.baseTarget.width,
       height: this.baseTarget.height,
-      output: 'target',
+      output: 'source',
     };
 
     return [
@@ -473,7 +500,7 @@ export class ChangePage implements OnInit, OnDestroy {
       {
         id: 'kobo',
         label: 'Kobo',
-        target: { width: 1072, height: 1448, output: 'target' },
+        target: { width: 1072, height: 1448, output: 'source' },
       },
       {
         id: 'three_four',
@@ -501,9 +528,14 @@ export class ChangePage implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
+    const ingestSessionId = createImageIngestSessionId('ecc-web-epub');
+    this.activeIngestSessionId = ingestSessionId;
 
     this.resetEpubLoadProgress();
     this.setBusy('epub', 'CHANGE.LOADING_EPUB');
+    logImageIngestDiagnostic(ingestSessionId, 'ECC:epub-web', 'picked', {
+      file: describeDiagnosticFile(file),
+    });
 
     try {
       await this.resetWorkflowForNewEpub();
@@ -517,6 +549,12 @@ export class ChangePage implements OnInit, OnDestroy {
         this.failEpub(validation.errorKey!, file);
         return;
       }
+      await probeBlobSliceRead(
+        ingestSessionId,
+        'ECC:epub-web',
+        'epub-source-probe',
+        file,
+      );
 
       // Create working copy immediately
       let cycle: Awaited<ReturnType<EpubWorkingCopyService['startCycle']>>;
@@ -546,6 +584,14 @@ export class ChangePage implements OnInit, OnDestroy {
       const extractedCover = await this.fileService.extractCoverFromEpubFile(
         this.workingEpubFile,
       );
+      logImageIngestDiagnostic(
+        ingestSessionId,
+        'ECC:epub-web',
+        'cover-extracted',
+        {
+          extractedCover: describeDiagnosticFile(extractedCover),
+        },
+      );
       this.clearEpubError();
 
       if (!extractedCover) {
@@ -554,7 +600,11 @@ export class ChangePage implements OnInit, OnDestroy {
         return;
       }
 
-      const coverLoaded = await this.applyImageSource(extractedCover, false);
+      const coverLoaded = await this.applyImageSource(
+        extractedCover,
+        false,
+        ingestSessionId,
+      );
       if (!coverLoaded) {
         this.activateInvalidCoverFallback();
         await this.homeTour.completeInteraction('epub-selected');
@@ -562,6 +612,7 @@ export class ChangePage implements OnInit, OnDestroy {
       }
       await this.homeTour.completeInteraction('epub-selected');
     } finally {
+      logImageIngestDiagnostic(ingestSessionId, 'ECC:epub-web', 'finalize');
       this.resetEpubLoadProgress();
       this.setBusy('none');
       input.value = '';
@@ -569,16 +620,32 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private async pickNativeEpub() {
+    const ingestSessionId = createImageIngestSessionId('ecc-native-epub');
+    this.activeIngestSessionId = ingestSessionId;
     this.resetEpubLoadProgress();
     this.setBusy('epub', 'CHANGE.LOADING_EPUB');
+    logImageIngestDiagnostic(ingestSessionId, 'ECC:epub-native', 'busy:set', {
+      kind: 'epub',
+      messageKey: 'CHANGE.LOADING_EPUB',
+    });
     this.epubLoadStage = 'copy';
     this.epubLoadProgressPercent = 0;
+    logImageIngestDiagnostic(ingestSessionId, 'ECC:epub-native', 'pick:start');
 
     try {
       const prepared = await this.epubRewrite.pickAndPrepareEpub({
         maxBytes: this.maxEpubSizeMB * 1024 * 1024,
         requireCover: false,
         includeCoverPreview: true,
+        diagnosticSessionId: ingestSessionId,
+      });
+      logImageIngestDiagnostic(ingestSessionId, 'ECC:epub-native', 'pick:done', {
+        selectedName: prepared.selectedName,
+        sourceSize: prepared.sourceSize,
+        workingPath: prepared.workingPath,
+        workingNativePath: prepared.workingNativePath,
+        coverEntryPath: prepared.coverEntryPath,
+        file: describeDiagnosticFile(prepared.file),
       });
       await this.resetWorkflowForNewEpub();
       this.epubLoadStage = 'inspect';
@@ -608,7 +675,17 @@ export class ChangePage implements OnInit, OnDestroy {
       }
 
       try {
-        const coverLoaded = await this.applyImageSource(prepared.file, false);
+        const coverLoaded = await this.applyImageSource(
+          prepared.file,
+          false,
+          ingestSessionId,
+        );
+        logImageIngestDiagnostic(
+          ingestSessionId,
+          'ECC:epub-native',
+          'apply-image:done',
+          { coverLoaded },
+        );
         if (!coverLoaded) {
           this.activateInvalidCoverFallback();
           await this.homeTour.completeInteraction('epub-selected');
@@ -616,11 +693,23 @@ export class ChangePage implements OnInit, OnDestroy {
         }
         this.epubLoadProgressPercent = 100;
         await this.homeTour.completeInteraction('epub-selected');
-      } catch {
+      } catch (error) {
+        logImageIngestDiagnosticError(
+          ingestSessionId,
+          'ECC:epub-native',
+          'apply-image:error',
+          error,
+        );
         this.activateInvalidCoverFallback();
         await this.homeTour.completeInteraction('epub-selected');
       }
     } catch (error) {
+      logImageIngestDiagnosticError(
+        ingestSessionId,
+        'ECC:epub-native',
+        'pick:error',
+        error,
+      );
       if (
         error instanceof EpubRewriteError &&
         error.code === 'PICK_CANCELLED'
@@ -649,8 +738,17 @@ export class ChangePage implements OnInit, OnDestroy {
       );
       await this.cleanupWorkingCopy();
     } finally {
+      logImageIngestDiagnostic(ingestSessionId, 'ECC:epub-native', 'finalize');
       this.resetEpubLoadProgress();
+      logImageIngestDiagnostic(ingestSessionId, 'ECC:epub-native', 'busy:set', {
+        kind: 'none',
+      });
       this.setBusy('none');
+      logImageIngestDiagnostic(
+        ingestSessionId,
+        'ECC:epub-native',
+        'busy:post-none',
+      );
     }
   }
 
@@ -783,16 +881,37 @@ export class ChangePage implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
+    const ingestSessionId = createImageIngestSessionId('ecc-image');
+    this.activeIngestSessionId = ingestSessionId;
 
     this.setBusy('pick', 'CHANGE.LOADING_IMAGE');
+    logImageIngestDiagnostic(ingestSessionId, 'ECC:image-page', 'busy:set', {
+      kind: 'pick',
+      messageKey: 'CHANGE.LOADING_IMAGE',
+    });
+    logImageIngestDiagnostic(ingestSessionId, 'ECC:image-page', 'picked', {
+      file: describeDiagnosticFile(file),
+    });
 
     try {
-      const loaded = await this.applyImageSource(file, true);
+      const loaded = await this.applyImageSource(file, true, ingestSessionId);
+      logImageIngestDiagnostic(ingestSessionId, 'ECC:image-page', 'apply:done', {
+        loaded,
+      });
       if (loaded) {
         await this.homeTour.completeInteraction('cover-image-selected');
       }
     } finally {
+      logImageIngestDiagnostic(ingestSessionId, 'ECC:image-page', 'finalize');
+      logImageIngestDiagnostic(ingestSessionId, 'ECC:image-page', 'busy:set', {
+        kind: 'none',
+      });
       this.setBusy('none');
+      logImageIngestDiagnostic(
+        ingestSessionId,
+        'ECC:image-page',
+        'busy:post-none',
+      );
       input.value = '';
     }
   }
@@ -800,88 +919,200 @@ export class ChangePage implements OnInit, OnDestroy {
   private async applyImageSource(
     file: File,
     setImageError: boolean,
+    diagnosticSessionId?: string,
   ): Promise<boolean> {
+    const ingestSessionId =
+      diagnosticSessionId ??
+      this.activeIngestSessionId ??
+      createImageIngestSessionId('ecc-apply');
     this.cropState = undefined;
-    let source = file;
+    const source = file;
+    logImageIngestDiagnostic(ingestSessionId, 'ECC:apply-image', 'start', {
+      setImageError,
+      file: describeDiagnosticFile(file),
+    });
 
     const basicErr = this.imagePipe.validateBasic(source);
     if (basicErr) {
+      logImageIngestDiagnostic(
+        ingestSessionId,
+        'ECC:apply-image',
+        'validate:reject',
+        { basicErr },
+      );
       if (setImageError) this.failImage(basicErr, source);
       return false;
     }
 
-    source = await this.imagePipe.materializeFile(source);
+    try {
+      await this.probeRawFileRead(ingestSessionId, source);
+      await probeBlobSliceRead(
+        ingestSessionId,
+        'ECC:apply-image',
+        'source-probe',
+        source,
+      );
+      const prepared = await this.withTimeout(
+        this.imagePipe.prepareImageForWorkflow(source, ingestSessionId),
+        'prepare-image-for-workflow',
+      );
+      logImageIngestDiagnostic(ingestSessionId, 'ECC:apply-image', 'prepare:done', {
+        prepared: prepared
+          ? {
+              source: describeDiagnosticFile(prepared.source),
+              workingFile: describeDiagnosticFile(prepared.workingFile),
+              originalDims: prepared.originalDims,
+              workingDims: prepared.workingDims,
+            }
+          : null,
+      });
 
-    let originalDims = await this.imagePipe.getDimensions(source);
-
-    if (!originalDims) {
-      const normalized = await this.imagePipe.normalizeFile(source);
-      if (normalized) {
-        source = normalized;
-        originalDims = await this.imagePipe.getDimensions(source);
+      if (!prepared) {
+        if (setImageError) this.failImage('CORRUPT', source);
+        return false;
       }
-    }
 
-    if (!originalDims) {
-      if (setImageError) this.failImage('CORRUPT', source);
-      return false;
-    }
+      this.clearImageError();
+      this.clearImageWarn();
 
-    this.clearImageError();
-    this.clearImageWarn();
+      if (!setImageError) {
+        this.setOriginalEpubPreviewUrl(prepared.source);
+        this.currentPreviewOrigin = 'source-epub';
+      } else {
+        this.currentPreviewOrigin = 'replacement';
+      }
 
-    if (!setImageError) {
-      this.setOriginalEpubPreviewUrl(source);
-      this.currentPreviewOrigin = 'source-epub';
-    } else {
-      this.currentPreviewOrigin = 'replacement';
-    }
+      this.originalImageFile = prepared.source;
+      this.workingImageFile = prepared.workingFile;
+      this.exportImageFile = undefined;
+      this.cropState = undefined;
+      this.editorSourceFile = prepared.workingFile;
+      this.renderedImageFile = undefined;
+      this.renderedImageBlob = undefined;
+      this.renderedImageInfo = undefined;
+      this.originalImageDims = prepared.originalDims;
+      this.workingImageDims = prepared.workingDims;
+      this.selectedImageName = prepared.workingFile.name;
 
-    this.originalImageFile = source;
-
-    const working = await this.imagePipe.prepareWorkingImage(source);
-    this.workingImageFile = working;
-    this.exportImageFile = undefined;
-    this.cropState = undefined;
-    this.editorSourceFile = working;
-    this.renderedImageFile = undefined;
-    this.renderedImageBlob = undefined;
-    this.renderedImageInfo = undefined;
-
-    const workingDims = await this.imagePipe.getDimensions(working);
-    this.originalImageDims = originalDims;
-    this.workingImageDims = workingDims ?? originalDims;
-    this.selectedImageName = working.name;
-    if (workingDims) {
-      const originalMax = Math.max(originalDims.width, originalDims.height);
-      const workingMax = Math.max(workingDims.width, workingDims.height);
+      const originalMax = Math.max(
+        prepared.originalDims.width,
+        prepared.originalDims.height,
+      );
+      const workingMax = Math.max(
+        prepared.workingDims.width,
+        prepared.workingDims.height,
+      );
       const maxSide = this.imagePipe.workingMaxSide;
       this.workingMaxSideApplied =
         Number.isFinite(workingMax) &&
         originalMax > maxSide &&
         workingMax <= maxSide &&
         workingMax < originalMax;
-    } else {
-      this.workingMaxSideApplied = null;
-    }
 
-    await this.applySmallWarn('image-selected', originalDims);
-    const selected = this.getSelectedFormatOption();
-    if (selected) {
-      this.targetWidth = selected.target.width;
-      this.targetHeight = selected.target.height;
-    }
+      await this.applySmallWarn(
+        'image-selected',
+        prepared.originalDims,
+        prepared.workingDims,
+      );
+      logImageIngestDiagnostic(ingestSessionId, 'ECC:apply-image', 'small-warn:done');
+      const selected = this.getSelectedFormatOption();
+      if (selected) {
+        this.targetWidth = selected.target.width;
+        this.targetHeight = selected.target.height;
+      }
 
-    this.revokePreviewUrl();
-    this.previewThumbUrl = undefined;
-    await this.updatePreviewFromComposition();
-    if (!this.previewUrl) {
-      const url = URL.createObjectURL(working);
+      this.revokePreviewUrl();
+      this.previewThumbUrl = undefined;
+      logImageIngestDiagnostic(
+        ingestSessionId,
+        'ECC:apply-image',
+        'preview-url:create:start',
+      );
+      const url = URL.createObjectURL(prepared.workingFile);
       this.setPreviewUrl(url);
       this.setPreviewThumbUrl(url);
+      logImageIngestDiagnostic(
+        ingestSessionId,
+        'ECC:apply-image',
+        'preview-url:create:done',
+        { previewUrlLength: url.length },
+      );
+      return true;
+    } catch (error) {
+      logImageIngestDiagnosticError(
+        ingestSessionId,
+        'ECC:apply-image',
+        'error',
+        error,
+      );
+      console.error('[ECC:image-pick] failed to process selected image', {
+        error,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      });
+      if (setImageError) {
+        this.failImage('CORRUPT', file);
+      }
+      return false;
     }
+  }
 
-    return true;
+  private async withTimeout<T>(
+    promise: Promise<T>,
+    stage: string,
+    ms = 12000,
+  ): Promise<T> {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error(`timeout:${stage}:${ms}`));
+      }, ms);
+    });
+
+    try {
+      return await Promise.race([promise, timeoutPromise]);
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    }
+  }
+
+  private async probeRawFileRead(
+    ingestSessionId: string,
+    file: File,
+  ): Promise<void> {
+    const startedAt = Date.now();
+    try {
+      const arr = await this.withTimeout(
+        file.arrayBuffer(),
+        'raw-file-read',
+        8000,
+      );
+      logImageIngestDiagnostic(
+        ingestSessionId,
+        'ECC:apply-image',
+        'raw-read:ok',
+        {
+          byteLength: arr.byteLength,
+          elapsedMs: Date.now() - startedAt,
+          file: describeDiagnosticFile(file),
+        },
+      );
+    } catch (error) {
+      logImageIngestDiagnosticError(
+        ingestSessionId,
+        'ECC:apply-image',
+        'raw-read:error',
+        error,
+        {
+          elapsedMs: Date.now() - startedAt,
+          file: describeDiagnosticFile(file),
+        },
+      );
+      throw error;
+    }
   }
 
   private async applySmallWarn(
@@ -1910,7 +2141,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   canGenerate(): boolean {
-    return this.canExport() && !this.isExporting;
+    return this.canExport() && !!this.cropState && !this.isExporting;
   }
 
   canShowRemoveAdsEntryPoint(): boolean {
@@ -2155,42 +2386,62 @@ export class ChangePage implements OnInit, OnDestroy {
     );
   }
 
+  getExportQualityOptions(): SelectCardOption[] {
+    const componentLocale = resolveSelectCardGroupLocale(
+      this.translate.currentLang || this.translate.getDefaultLang() || 'en-US',
+    );
+    const proBadge = this.adsRemoved ? undefined : componentLocale.proBadge;
+    const lockedLabel = this.adsRemoved
+      ? undefined
+      : componentLocale.lockedLabel;
+
+    return EXPORT_QUALITY_OPTIONS.map((option) => ({
+      id: option.id,
+      title: this.translate.instant(option.titleKey),
+      shortTitle: this.resolveExportQualityShortTitle(option.id),
+      description: this.translate.instant(option.descriptionKey),
+      badge: option.isPro && !this.adsRemoved ? proBadge : undefined,
+      lockedLabel: option.isPro && !this.adsRemoved ? lockedLabel : undefined,
+      locked: option.isPro && !this.adsRemoved,
+    }));
+  }
+
+  private resolveExportQualityShortTitle(mode: ExportQualityMode): string {
+    const lang = (this.translate.currentLang || 'en-US').toLowerCase();
+    const isSpanish = lang.startsWith('es');
+
+    if (mode === 'thumbnail') {
+      return isSpanish ? 'Mini' : 'Thumb';
+    }
+
+    if (mode === 'best') {
+      return isSpanish ? 'Mejor' : 'Best';
+    }
+
+    return isSpanish ? 'Comp.' : 'Compressed';
+  }
+
   getEffectiveExportQualityMode(): ExportQualityMode {
     return normalizeExportQualityMode(this.exportQualityMode, this.adsRemoved);
   }
 
-  getExportQualityModes(): ExportQualityMode[] {
-    return ['thumbnail', 'compressed', 'best'];
-  }
-
-  isExportQualityModeSelected(mode: ExportQualityMode): boolean {
-    return this.getEffectiveExportQualityMode() === mode;
-  }
-
-  isExportQualityModeLocked(mode: ExportQualityMode): boolean {
-    return mode !== 'compressed' && !this.adsRemoved;
-  }
-
-  getExportQualityModeLabel(mode: ExportQualityMode): string {
-    if (mode === 'compressed') {
-      return this.translate.instant('CHANGE.EXPORT_OPTIONS.OPTIMIZED_TITLE');
-    }
-
-    if (mode === 'best') {
-      return this.translate.instant('CHANGE.EXPORT_OPTIONS.LOSSLESS_TITLE');
-    }
-
-    return this.translate.instant('CHANGE.EXPORT_OPTIONS.THUMBNAIL_TITLE');
+  async onLockedExportQualityModeClick(modeId: string): Promise<void> {
+    console.info(
+      `[ECC:export-quality] locked option clicked ${modeId} ${JSON.stringify({ isPro: this.adsRemoved, source: 'create_page' })}`,
+    );
+    await this.openPurchaseModal();
   }
 
   shouldShowPreviewLongPressHint(): boolean {
     return !!this.previewUrl && this.currentPreviewOrigin === 'edited';
   }
 
-  async onExportQualityModeSelect(mode: ExportQualityMode): Promise<void> {
+  async onExportQualityModeChange(modeId: string): Promise<void> {
+    const mode = modeId as ExportQualityMode;
     const normalized = normalizeExportQualityMode(mode, this.adsRemoved);
+
     if (normalized !== mode) {
-      await this.openPurchaseModal();
+      await this.onLockedExportQualityModeClick(mode);
       return;
     }
 
@@ -2201,6 +2452,9 @@ export class ChangePage implements OnInit, OnDestroy {
     this.exportQualityMode = mode;
     this.exportImageFile = undefined;
     this.invalidateGeneratedOutputState();
+    console.info(
+      `[ECC:export-quality] selected ${mode} ${JSON.stringify({ isPro: this.adsRemoved, source: 'create_page' })}`,
+    );
     await this.settings.set({ exportQualityMode: mode });
   }
 
@@ -2209,13 +2463,15 @@ export class ChangePage implements OnInit, OnDestroy {
       this.exportQualityMode,
       this.adsRemoved,
     );
+
     if (normalized === this.exportQualityMode) {
       return;
     }
 
+    console.info(
+      `[ECC:export-quality] normalized locked mode ${this.exportQualityMode} to ${normalized} ${JSON.stringify({ isPro: this.adsRemoved, reason, source: 'create_page' })}`,
+    );
     this.exportQualityMode = normalized;
-    this.exportImageFile = undefined;
-    this.invalidateGeneratedOutputState();
     void this.settings.set({ exportQualityMode: normalized });
   }
 
@@ -2998,3 +3254,4 @@ export class ChangePage implements OnInit, OnDestroy {
     console.info(`[ECC:change:save-flow] ${event}${suffix}`);
   }
 }
+

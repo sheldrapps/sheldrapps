@@ -23,6 +23,7 @@
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "一次性付款 • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "價格：{{price}} • 無訂閱",
     "RESTORE_ERROR": "無法恢復購買，請再試一次。",
+    "PRO_ONLY": "專業版",
     "WATCH_AD_SUBTITLE": "觀看廣告",
     "SHARE": "分享",
     "SHARE_KINDLE_HINT": "分享時，請選擇 Kindle 應用程式以傳送至您的裝置。",
@@ -93,6 +94,7 @@
     "EXPORT_OPTIONS": {
       "TITLE": "匯出品質",
       "LOSSLESS_TITLE": "最佳畫質",
+      "THUMBNAIL_TITLE": "縮圖",
       "LOSSLESS_DESCRIPTION": "無損 PNG。可保留更多細節，但 EPUB 檔案可能明顯變大。",
       "OPTIMIZED_TITLE": "壓縮",
       "OPTIMIZED_DESCRIPTION": "壓縮影像。適合只需要在書庫中顯示封面縮圖時使用。",

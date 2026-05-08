@@ -23,6 +23,7 @@
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "دفعة واحدة • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "السعر: {{price}} • بدون اشتراك",
     "RESTORE_ERROR": "تعذّرت استعادة المشتريات. يرجى المحاولة مجدداً.",
+    "PRO_ONLY": "برو",
     "WATCH_AD_SUBTITLE": "مشاهدة الإعلان",
     "SHARE": "مشاركة",
     "SHARE_KINDLE_HINT": "عند المشاركة، اختر تطبيق Kindle لإرساله إلى جهازك.",
@@ -84,6 +85,7 @@
     "EXPORT_OPTIONS": {
       "TITLE": "جودة التصدير",
       "LOSSLESS_TITLE": "أفضل جودة",
+      "THUMBNAIL_TITLE": "صورة مصغّرة",
       "LOSSLESS_DESCRIPTION": "PNG بدون فقدان. يحافظ على تفاصيل أكثر، لكن ملف EPUB قد يصبح أكبر بكثير.",
       "OPTIMIZED_TITLE": "مضغوط",
       "OPTIMIZED_DESCRIPTION": "صورة مضغوطة. ممتازة إذا كنت تحتاج الغلاف فقط كصورة مصغرة في المكتبة.",

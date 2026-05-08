@@ -42,6 +42,14 @@ export interface WorkingImageOptions {
   quality: number;
   mimeType?: string;
   allowUpscale?: boolean;
+  knownDims?: ImageDims;
+}
+
+export interface PreparedImageForWorkflow {
+  source: File;
+  originalDims: ImageDims;
+  workingFile: File;
+  workingDims: ImageDims;
 }
 
 /**
@@ -82,11 +90,31 @@ export interface CropFormatOption {
 export type BackgroundMode = "transparent" | "color" | "blur";
 export type BackgroundSource = "same-image";
 export type CoverColorMode = "color" | "black-white" | "grayscale";
+export type CleanupStrength = "off" | "light" | "balanced" | "strong";
+export type DitheringMode = "none" | "floyd-steinberg" | "ordered";
 export type ArtifactReductionMode =
   | "none"
   | "bw-dither"
   | "adaptive-color"
   | "adaptive-gray";
+
+export interface ImageCleanupSettings {
+  enabled: boolean;
+  artifactReduction: CleanupStrength;
+  smoothGradients: boolean;
+  preserveDetails: boolean;
+}
+
+export interface DitheringSettings {
+  enabled: boolean;
+  mode: DitheringMode;
+  intensity?: number;
+}
+
+export interface OutputProcessingSettings {
+  cleanup: ImageCleanupSettings;
+  dithering: DitheringSettings;
+}
 
 /**
  * Text layer for editor overlays
@@ -122,6 +150,8 @@ export interface CoverCropState {
   bw: boolean;
   dither: boolean;
   artifactReductionEnabled?: boolean;
+  cleanup?: ImageCleanupSettings;
+  dithering?: DitheringSettings;
   rot: number;
   flipX?: boolean;
   flipY?: boolean;

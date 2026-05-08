@@ -6,9 +6,16 @@ import {
 import type {
   BackgroundMode,
   BackgroundSource,
+  CleanupStrength,
   CoverCropState,
+  DitheringMode,
   TextLayer,
 } from "../types";
+import {
+  DEFAULT_DITHERING_SETTINGS,
+  DEFAULT_IMAGE_CLEANUP_SETTINGS,
+  normalizeCleanupStrength,
+} from "../core/pipeline/output-processing-state";
 
 type ConstraintsCtx = {
   frameW: number;
@@ -48,8 +55,24 @@ export class EditorStateService {
   readonly saturation = signal(DEFAULT_EDITOR_ADJUSTMENTS.saturation);
   readonly contrast = signal(DEFAULT_EDITOR_ADJUSTMENTS.contrast);
   readonly bw = signal(DEFAULT_EDITOR_ADJUSTMENTS.bw);
-  readonly dither = signal(DEFAULT_EDITOR_ADJUSTMENTS.dither);
-  readonly artifactReductionEnabled = this.dither;
+  readonly cleanupEnabled = signal(DEFAULT_EDITOR_ADJUSTMENTS.cleanup.enabled);
+  readonly cleanupArtifactReduction = signal<CleanupStrength>(
+    DEFAULT_EDITOR_ADJUSTMENTS.cleanup.artifactReduction,
+  );
+  readonly smoothGradients = signal(
+    DEFAULT_EDITOR_ADJUSTMENTS.cleanup.smoothGradients,
+  );
+  readonly preserveDetails = signal(
+    DEFAULT_EDITOR_ADJUSTMENTS.cleanup.preserveDetails,
+  );
+  readonly ditheringEnabled = signal(
+    DEFAULT_EDITOR_ADJUSTMENTS.dithering.enabled,
+  );
+  readonly ditheringMode = signal<DitheringMode>(
+    DEFAULT_EDITOR_ADJUSTMENTS.dithering.mode,
+  );
+  readonly dither = computed(() => this.ditheringEnabled());
+  readonly artifactReductionEnabled = computed(() => this.cleanupEnabled());
 
   // Background/composition state
   readonly backgroundMode = signal<BackgroundMode>(
@@ -70,8 +93,18 @@ export class EditorStateService {
     contrast: this.contrast(),
     saturation: this.saturation(),
     bw: this.bw(),
-    dither: this.dither(),
-    artifactReductionEnabled: this.dither(),
+    dither: this.ditheringEnabled(),
+    artifactReductionEnabled: this.cleanupEnabled(),
+    cleanup: {
+      enabled: this.cleanupEnabled(),
+      artifactReduction: this.cleanupArtifactReduction(),
+      smoothGradients: this.smoothGradients(),
+      preserveDetails: this.preserveDetails(),
+    },
+    dithering: {
+      enabled: this.ditheringEnabled(),
+      mode: this.ditheringMode(),
+    },
   }));
 
   readonly hasBackgroundSpace = computed(() => {
@@ -148,11 +181,54 @@ export class EditorStateService {
   }
 
   setDither(value: boolean): void {
-    this.setArtifactReductionEnabled(value);
+    this.setDitheringEnabled(value);
   }
 
   setArtifactReductionEnabled(value: boolean): void {
-    this.dither.set(!!value);
+    this.setCleanupEnabled(value);
+  }
+
+  setCleanupEnabled(value: boolean): void {
+    const enabled = !!value;
+    this.cleanupEnabled.set(enabled);
+    if (
+      enabled &&
+      this.cleanupArtifactReduction() === "off" &&
+      !this.smoothGradients()
+    ) {
+      this.cleanupArtifactReduction.set("balanced");
+      this.smoothGradients.set(true);
+    }
+  }
+
+  setCleanupArtifactReduction(value: CleanupStrength): void {
+    const normalized = normalizeCleanupStrength(value);
+    this.cleanupArtifactReduction.set(normalized);
+    this.cleanupEnabled.set(normalized !== "off" || this.smoothGradients());
+  }
+
+  setSmoothGradients(value: boolean): void {
+    this.smoothGradients.set(!!value);
+    this.cleanupEnabled.set(!!value || this.cleanupArtifactReduction() !== "off");
+  }
+
+  setPreserveDetails(value: boolean): void {
+    this.preserveDetails.set(!!value);
+  }
+
+  setDitheringEnabled(value: boolean): void {
+    this.ditheringEnabled.set(!!value);
+  }
+
+  setDitheringMode(value: DitheringMode): void {
+    const next =
+      value === "ordered" || value === "none" || value === "floyd-steinberg"
+        ? value
+        : DEFAULT_DITHERING_SETTINGS.mode;
+    this.ditheringMode.set(next);
+    if (next !== "none") {
+      this.ditheringEnabled.set(true);
+    }
   }
 
   setBackgroundMode(mode: BackgroundMode): void {
@@ -394,7 +470,17 @@ export class EditorStateService {
   }
 
   resetDither(): void {
-    this.dither.set(DEFAULT_EDITOR_ADJUSTMENTS.dither);
+    this.ditheringEnabled.set(DEFAULT_EDITOR_ADJUSTMENTS.dithering.enabled);
+    this.ditheringMode.set(DEFAULT_EDITOR_ADJUSTMENTS.dithering.mode);
+  }
+
+  resetCleanup(): void {
+    this.cleanupEnabled.set(DEFAULT_EDITOR_ADJUSTMENTS.cleanup.enabled);
+    this.cleanupArtifactReduction.set(
+      DEFAULT_EDITOR_ADJUSTMENTS.cleanup.artifactReduction,
+    );
+    this.smoothGradients.set(DEFAULT_EDITOR_ADJUSTMENTS.cleanup.smoothGradients);
+    this.preserveDetails.set(DEFAULT_EDITOR_ADJUSTMENTS.cleanup.preserveDetails);
   }
 
   resetAdjustments(): void {
@@ -402,7 +488,8 @@ export class EditorStateService {
     this.saturation.set(DEFAULT_EDITOR_ADJUSTMENTS.saturation);
     this.contrast.set(DEFAULT_EDITOR_ADJUSTMENTS.contrast);
     this.bw.set(DEFAULT_EDITOR_ADJUSTMENTS.bw);
-    this.dither.set(DEFAULT_EDITOR_ADJUSTMENTS.dither);
+    this.resetCleanup();
+    this.resetDither();
   }
 
   resetTransform(): void {
@@ -415,12 +502,12 @@ export class EditorStateService {
   }
 
   resetAll(): void {
-    this.resetAdjustments();
-    this.resetTransform();
     this.backgroundMode.set(EditorStateService.DEFAULT_BACKGROUND_MODE);
     this.backgroundColor.set(EditorStateService.DEFAULT_BACKGROUND_COLOR);
     this.backgroundSource.set(undefined);
     this.backgroundBlur.set(EditorStateService.DEFAULT_BACKGROUND_BLUR);
+    this.resetAdjustments();
+    this.resetTransform();
     this.textLayers.set([]);
     this.frameWidth.set(0);
     this.frameHeight.set(0);
@@ -439,8 +526,18 @@ export class EditorStateService {
       saturation: this.saturation(),
       contrast: this.contrast(),
       bw: this.bw(),
-      dither: this.dither(),
-      artifactReductionEnabled: this.dither(),
+      dither: this.ditheringEnabled(),
+      artifactReductionEnabled: this.cleanupEnabled(),
+      cleanup: {
+        enabled: this.cleanupEnabled(),
+        artifactReduction: this.cleanupArtifactReduction(),
+        smoothGradients: this.smoothGradients(),
+        preserveDetails: this.preserveDetails(),
+      },
+      dithering: {
+        enabled: this.ditheringEnabled(),
+        mode: this.ditheringMode(),
+      },
       backgroundMode: this.backgroundMode(),
       backgroundColor: this.backgroundColor(),
       backgroundSource: this.backgroundSource(),
@@ -463,8 +560,33 @@ export class EditorStateService {
     this.saturation.set(state.saturation);
     this.contrast.set(state.contrast);
     this.bw.set(state.bw);
-    this.dither.set(
-      state.artifactReductionEnabled ?? state.dither ?? DEFAULT_EDITOR_ADJUSTMENTS.dither,
+    const cleanup = state.cleanup ?? DEFAULT_IMAGE_CLEANUP_SETTINGS;
+    this.cleanupEnabled.set(
+      cleanup.enabled ??
+        state.artifactReductionEnabled ??
+        DEFAULT_EDITOR_ADJUSTMENTS.cleanup.enabled,
+    );
+    this.cleanupArtifactReduction.set(
+      normalizeCleanupStrength(
+        cleanup.artifactReduction ??
+          (state.artifactReductionEnabled ? "balanced" : "off"),
+      ),
+    );
+    this.smoothGradients.set(
+      cleanup.smoothGradients ?? !!state.artifactReductionEnabled,
+    );
+    this.preserveDetails.set(
+      cleanup.preserveDetails ??
+        DEFAULT_EDITOR_ADJUSTMENTS.cleanup.preserveDetails,
+    );
+    const dithering = state.dithering ?? DEFAULT_DITHERING_SETTINGS;
+    this.ditheringEnabled.set(
+      dithering.enabled ??
+        state.dither ??
+        DEFAULT_EDITOR_ADJUSTMENTS.dithering.enabled,
+    );
+    this.ditheringMode.set(
+      dithering.mode ?? DEFAULT_EDITOR_ADJUSTMENTS.dithering.mode,
     );
     this.backgroundMode.set(
       state.backgroundMode ?? EditorStateService.DEFAULT_BACKGROUND_MODE,

@@ -29,7 +29,8 @@ export type AdjustmentKey =
   | "contrast"
   | "saturation"
   | "bw"
-  | "artifacts";
+  | "cleanup"
+  | "dither";
 export type TextKey = "text";
 
 export interface PanelState {

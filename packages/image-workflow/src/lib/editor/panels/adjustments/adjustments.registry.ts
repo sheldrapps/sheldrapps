@@ -7,6 +7,7 @@ import {
   ContrastPanelComponent,
   BwPanelComponent,
   ArtifactsPanelComponent,
+  DitherPanelComponent,
 } from "./widgets";
 
 export interface AdjustmentPanelConfig {
@@ -50,9 +51,16 @@ export const ADJUSTMENTS_REGISTRY: Record<
     showGrabber: true,
     reset: (history) => history.resetBw(),
   },
-  artifacts: {
-    title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS",
+  cleanup: {
+    title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CLEANUP",
     component: ArtifactsPanelComponent,
+    canReset: true,
+    showGrabber: true,
+    reset: (history) => history.resetCleanup(),
+  },
+  dither: {
+    title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER",
+    component: DitherPanelComponent,
     canReset: true,
     showGrabber: true,
     reset: (history) => history.resetDither(),
@@ -68,5 +76,6 @@ export const ADJUSTMENT_LOADERS: Record<
   contrast: async () => ContrastPanelComponent,
   saturation: async () => SaturationPanelComponent,
   bw: async () => BwPanelComponent,
-  artifacts: async () => ArtifactsPanelComponent,
+  cleanup: async () => ArtifactsPanelComponent,
+  dither: async () => DitherPanelComponent,
 };

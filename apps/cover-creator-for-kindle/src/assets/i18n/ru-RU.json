@@ -23,6 +23,7 @@
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Разовый платёж • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "Цена: {{price}} • Без подписки",
     "RESTORE_ERROR": "Не удалось восстановить покупку. Попробуйте ещё раз.",
+    "PRO_ONLY": "PRO",
     "WATCH_AD_SUBTITLE": "Смотреть рекламу",
     "SHARE": "Поделиться",
     "SHARE_KINDLE_HINT": "При отправке выберите приложение Kindle, чтобы передать файл на устройство.",
@@ -84,6 +85,7 @@
     "EXPORT_OPTIONS": {
       "TITLE": "Качество экспорта",
       "LOSSLESS_TITLE": "Лучшее качество",
+      "THUMBNAIL_TITLE": "Миниатюра",
       "LOSSLESS_DESCRIPTION": "PNG без потерь. Сохраняет больше деталей, но EPUB может быть значительно больше.",
       "OPTIMIZED_TITLE": "Сжатое",
       "OPTIMIZED_DESCRIPTION": "Сжатое изображение. Отлично подходит, если обложка нужна только для миниатюр в библиотеке.",

@@ -5,9 +5,17 @@ import {
   IonIcon,
   IonItem,
   IonLabel,
+  IonList,
+  IonNote,
+  IonSelect,
+  IonSelectOption,
   IonToggle,
 } from "@ionic/angular/standalone";
-import { AlertController, CheckboxCustomEvent } from "@ionic/angular";
+import {
+  AlertController,
+  CheckboxCustomEvent,
+  SelectCustomEvent,
+} from "@ionic/angular";
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
 import { addIcons } from "ionicons";
 import { informationCircleOutline } from "ionicons/icons";
@@ -19,6 +27,7 @@ import {
   ArtifactReductionInfoPreferencePort,
   EditorSessionService,
 } from "../../../editor-session.service";
+import type { CleanupStrength } from "../../../../types";
 
 @Component({
   selector: "cc-artifacts-panel",
@@ -29,6 +38,10 @@ import {
     IonIcon,
     IonItem,
     IonLabel,
+    IonList,
+    IonNote,
+    IonSelect,
+    IonSelectOption,
     IonToggle,
     TranslateModule,
   ],
@@ -67,20 +80,31 @@ export class ArtifactsPanelComponent {
     await this.presentArtifactInfoModal({ persistSeen: false });
   }
 
+  onStrengthChange(event: Event): void {
+    const value =
+      (event as SelectCustomEvent<CleanupStrength>).detail.value ?? "off";
+    this.history.setCleanupArtifactReduction(value);
+  }
+
+  onSmoothGradientsChange(event: Event): void {
+    const checked = (event as CheckboxCustomEvent).detail.checked;
+    this.history.setSmoothGradients(checked);
+  }
+
   private async presentArtifactInfoModal(opts: {
     persistSeen: boolean;
   }): Promise<void> {
     const alert = await this.alertCtrl.create({
       header: this.translate.instant(
-        "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_TITLE",
+        "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.INFO_TITLE",
       ),
       message: this.translate.instant(
-        "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_BODY",
+        "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.INFO_BODY",
       ),
       buttons: [
         {
           text: this.translate.instant(
-            "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.ARTIFACTS_PANEL.INFO_CTA",
+            "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.CLEANUP_PANEL.INFO_CTA",
           ),
           role: "confirm",
         },

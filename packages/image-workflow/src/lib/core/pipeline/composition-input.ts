@@ -1,5 +1,10 @@
 import type { CoverCropState, CropTarget } from "../../types";
 import type { CompositionRenderInput } from "./composition-render";
+import {
+  getRotatedSourceDims,
+  normalizeRightAngleRotation,
+  shouldUseFullSourceResolution,
+} from "./composition-geometry";
 
 type FrameFallback = { width: number; height: number };
 type CompositionSource = {
@@ -71,18 +76,34 @@ export function computeSourceCropDims(args: {
     return null;
   }
 
-  const rotation = (((state.rot % 360) + 360) % 360) as 0 | 90 | 180 | 270;
-  const rotatedWidth =
-    rotation === 90 || rotation === 270 ? naturalHeight : naturalWidth;
-  const rotatedHeight =
-    rotation === 90 || rotation === 270 ? naturalWidth : naturalHeight;
+  const rotation = normalizeRightAngleRotation(state.rot || 0);
+  const rotated = getRotatedSourceDims({
+    naturalWidth,
+    naturalHeight,
+    rotation,
+  });
+
+  if (
+    shouldUseFullSourceResolution({
+      frameWidth,
+      frameHeight,
+      naturalWidth,
+      naturalHeight,
+      state,
+    })
+  ) {
+    return {
+      width: rotated.width,
+      height: rotated.height,
+    };
+  }
 
   const cropWidth = Math.min(
-    rotatedWidth,
+    rotated.width,
     Math.max(1, Math.floor(frameWidth / dispScale)),
   );
   const cropHeight = Math.min(
-    rotatedHeight,
+    rotated.height,
     Math.max(1, Math.floor(frameHeight / dispScale)),
   );
 

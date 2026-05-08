@@ -9,9 +9,9 @@ import {
 import { SettingsSchema, type MigrationContext } from '@sheldrapps/settings-kit';
 import { normalizeAppThemeMode, type AppThemeMode } from '@sheldrapps/ui-theme';
 import {
-  DEFAULT_PRO_COVER_EXPORT_MODE,
-  normalizeCoverExportMode,
-  type CoverExportMode,
+  DEFAULT_EXPORT_QUALITY_MODE,
+  migrateLegacyExportQualityMode,
+  type ExportQualityMode,
 } from '../services/cover-export-mode';
 
 type PreferenceValue = boolean | number | string | null;
@@ -23,6 +23,9 @@ type LegacyCcfkSettings = {
   theme?: string;
   brandId?: string;
   modelId?: string;
+  exportQualityMode?: string;
+  coverExportMode?: string;
+  bestQuality?: boolean;
   kindleModelId?: string;
   adsRemoved?: boolean;
   homeTourSeen?: boolean;
@@ -36,7 +39,7 @@ export interface CcfkSettings {
   theme: AppThemeMode;
   brandId?: string;
   modelId?: string;
-  coverExportMode: CoverExportMode;
+  exportQualityMode: ExportQualityMode;
   adsRemoved: boolean;
   homeTourSeen: boolean;
   homeTourVersion: number;
@@ -49,14 +52,14 @@ const LEGACY_HINT_KEYS = [
   'cc_hint_save_share_explain_shown',
   'cc_hint_share_kindle_shown',
 ] as const;
-const CCFK_SETTINGS_VERSION = 9;
+const CCFK_SETTINGS_VERSION = 10;
 
 const CCFK_DEFAULTS: CcfkSettings = {
   language: undefined,
   theme: 'system',
   brandId: undefined,
   modelId: undefined,
-  coverExportMode: DEFAULT_PRO_COVER_EXPORT_MODE,
+  exportQualityMode: DEFAULT_EXPORT_QUALITY_MODE,
   adsRemoved: false,
   homeTourSeen: false,
   homeTourVersion: 0,
@@ -74,14 +77,14 @@ export const CCFK_SETTINGS_SCHEMA: SettingsSchema<CcfkSettings> = {
       run: async (ctx: MigrationContext<CcfkSettings>) => {
         const legacySettings = await readLegacySettings<LegacyCcfkSettings>(
           ctx,
-          LEGACY_SETTINGS_KEY
+          LEGACY_SETTINGS_KEY,
         );
         const directLegacyLang = await ctx.legacy?.get('lang');
         const language = await resolveStoredLocale(
           pickNonEmptyString(legacySettings?.language) ||
             pickNonEmptyString(legacySettings?.locale) ||
             pickNonEmptyString(legacySettings?.lang) ||
-            pickNonEmptyString(directLegacyLang)
+            pickNonEmptyString(directLegacyLang),
         );
         const preferences = {
           ...normalizePreferences(legacySettings?.preferences),
@@ -100,7 +103,11 @@ export const CCFK_SETTINGS_SCHEMA: SettingsSchema<CcfkSettings> = {
           modelId:
             pickNonEmptyString(legacySettings?.modelId) ||
             pickNonEmptyString(legacySettings?.kindleModelId),
-          coverExportMode: DEFAULT_PRO_COVER_EXPORT_MODE,
+          exportQualityMode: migrateLegacyExportQualityMode({
+            exportQualityMode: legacySettings?.exportQualityMode,
+            coverExportMode: legacySettings?.coverExportMode,
+            bestQuality: legacySettings?.bestQuality,
+          }),
           adsRemoved: pickBoolean(legacySettings?.adsRemoved) ?? false,
           homeTourSeen: pickBoolean(legacySettings?.homeTourSeen) ?? false,
           homeTourVersion: pickNumber(legacySettings?.homeTourVersion) ?? 0,
@@ -157,6 +164,12 @@ export const CCFK_SETTINGS_SCHEMA: SettingsSchema<CcfkSettings> = {
       run: async (ctx: MigrationContext<CcfkSettings>) =>
         migrateVersionedSettings(ctx.rawJson),
     },
+    {
+      fromVersion: 9,
+      toVersion: CCFK_SETTINGS_VERSION,
+      run: async (ctx: MigrationContext<CcfkSettings>) =>
+        migrateVersionedSettings(ctx.rawJson),
+    },
   ],
 };
 
@@ -209,7 +222,11 @@ async function migrateVersionedSettings(
     modelId:
       pickNonEmptyString(stored?.['modelId']) ||
       pickNonEmptyString(stored?.['kindleModelId']),
-    coverExportMode: normalizeCoverExportMode(stored?.['coverExportMode']),
+    exportQualityMode: migrateLegacyExportQualityMode({
+      exportQualityMode: stored?.['exportQualityMode'],
+      coverExportMode: stored?.['coverExportMode'],
+      bestQuality: stored?.['bestQuality'],
+    }),
     adsRemoved: pickBoolean(stored?.['adsRemoved']) ?? false,
     homeTourSeen: pickBoolean(stored?.['homeTourSeen']) ?? false,
     homeTourVersion: pickNumber(stored?.['homeTourVersion']) ?? 0,

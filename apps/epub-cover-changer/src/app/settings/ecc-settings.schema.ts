@@ -9,9 +9,9 @@ import {
 import { SettingsSchema, type MigrationContext } from '@sheldrapps/settings-kit';
 import { normalizeAppThemeMode, type AppThemeMode } from '@sheldrapps/ui-theme';
 import {
-  DEFAULT_PRO_COVER_EXPORT_MODE,
-  normalizeCoverExportMode,
-  type CoverExportMode,
+  DEFAULT_EXPORT_QUALITY_MODE,
+  migrateLegacyExportQualityMode,
+  type ExportQualityMode,
 } from '../services/cover-export-mode';
 
 type PreferenceValue = boolean | number | string | null;
@@ -22,6 +22,9 @@ type LegacyEccSettings = {
   locale?: string;
   theme?: string;
   cropTargetId?: string;
+  exportQualityMode?: string;
+  coverExportMode?: string;
+  bestQuality?: boolean;
   adsRemoved?: boolean;
   homeTourSeen?: boolean;
   homeTourVersion?: number;
@@ -33,7 +36,7 @@ export interface EccSettings {
   language?: SupportedLocale;
   theme: AppThemeMode;
   cropTargetId?: string;
-  coverExportMode: CoverExportMode;
+  exportQualityMode: ExportQualityMode;
   adsRemoved: boolean;
   homeTourSeen: boolean;
   homeTourVersion: number;
@@ -46,13 +49,13 @@ const LEGACY_HINT_KEYS = [
   'cc_hint_save_share_explain_shown',
   'cc_hint_share_kindle_shown',
 ] as const;
-const ECC_SETTINGS_VERSION = 8;
+const ECC_SETTINGS_VERSION = 9;
 
 const ECC_DEFAULTS: EccSettings = {
   language: undefined,
   theme: 'system',
   cropTargetId: undefined,
-  coverExportMode: DEFAULT_PRO_COVER_EXPORT_MODE,
+  exportQualityMode: DEFAULT_EXPORT_QUALITY_MODE,
   adsRemoved: false,
   homeTourSeen: false,
   homeTourVersion: 0,
@@ -70,14 +73,14 @@ export const ECC_SETTINGS_SCHEMA: SettingsSchema<EccSettings> = {
       run: async (ctx: MigrationContext<EccSettings>) => {
         const legacySettings = await readLegacySettings<LegacyEccSettings>(
           ctx,
-          LEGACY_SETTINGS_KEY
+          LEGACY_SETTINGS_KEY,
         );
         const directLegacyLang = await ctx.legacy?.get('lang');
         const language = await resolveStoredLocale(
           pickNonEmptyString(legacySettings?.language) ||
             pickNonEmptyString(legacySettings?.locale) ||
             pickNonEmptyString(legacySettings?.lang) ||
-            pickNonEmptyString(directLegacyLang)
+            pickNonEmptyString(directLegacyLang),
         );
         const preferences = {
           ...normalizePreferences(legacySettings?.preferences),
@@ -88,7 +91,11 @@ export const ECC_SETTINGS_SCHEMA: SettingsSchema<EccSettings> = {
           language,
           theme: normalizeAppThemeMode(legacySettings?.['theme']) ?? 'system',
           cropTargetId: pickNonEmptyString(legacySettings?.cropTargetId),
-          coverExportMode: DEFAULT_PRO_COVER_EXPORT_MODE,
+          exportQualityMode: migrateLegacyExportQualityMode({
+            exportQualityMode: legacySettings?.exportQualityMode,
+            coverExportMode: legacySettings?.coverExportMode,
+            bestQuality: legacySettings?.bestQuality,
+          }),
           adsRemoved: pickBoolean(legacySettings?.adsRemoved) ?? false,
           homeTourSeen: pickBoolean(legacySettings?.homeTourSeen) ?? false,
           homeTourVersion: pickNumber(legacySettings?.homeTourVersion) ?? 0,
@@ -139,6 +146,12 @@ export const ECC_SETTINGS_SCHEMA: SettingsSchema<EccSettings> = {
       run: async (ctx: MigrationContext<EccSettings>) =>
         migrateVersionedSettings(ctx.rawJson),
     },
+    {
+      fromVersion: 8,
+      toVersion: ECC_SETTINGS_VERSION,
+      run: async (ctx: MigrationContext<EccSettings>) =>
+        migrateVersionedSettings(ctx.rawJson),
+    },
   ],
 };
 
@@ -183,7 +196,11 @@ async function migrateVersionedSettings(
     language,
     theme: normalizeAppThemeMode(stored?.['theme']) ?? 'system',
     cropTargetId: pickNonEmptyString(stored?.['cropTargetId']),
-    coverExportMode: normalizeCoverExportMode(stored?.['coverExportMode']),
+    exportQualityMode: migrateLegacyExportQualityMode({
+      exportQualityMode: stored?.['exportQualityMode'],
+      coverExportMode: stored?.['coverExportMode'],
+      bestQuality: stored?.['bestQuality'],
+    }),
     adsRemoved: pickBoolean(stored?.['adsRemoved']) ?? false,
     homeTourSeen: pickBoolean(stored?.['homeTourSeen']) ?? false,
     homeTourVersion: pickNumber(stored?.['homeTourVersion']) ?? 0,

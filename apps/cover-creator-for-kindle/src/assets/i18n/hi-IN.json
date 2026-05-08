@@ -23,6 +23,7 @@
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "एकमुश्त भुगतान • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "मूल्य: {{price}} • कोई सदस्यता नहीं",
     "RESTORE_ERROR": "खरीदारी पुनः प्राप्त नहीं हो सकी। कृपया फिर से कोशिश करें।",
+    "PRO_ONLY": "PRO",
     "WATCH_AD_SUBTITLE": "विज्ञापन देखें",
     "SHARE": "साझा करें",
     "SHARE_KINDLE_HINT": "साझा करते समय, इसे अपने डिवाइस पर भेजने के लिए Kindle ऐप चुनें।",
@@ -84,6 +85,7 @@
     "EXPORT_OPTIONS": {
       "TITLE": "एक्सपोर्ट गुणवत्ता",
       "LOSSLESS_TITLE": "सर्वोत्तम गुणवत्ता",
+      "THUMBNAIL_TITLE": "थंबनेल",
       "LOSSLESS_DESCRIPTION": "लॉसलेस PNG। यह अधिक विवरण सुरक्षित रखता है, लेकिन EPUB का आकार काफी बड़ा हो सकता है।",
       "OPTIMIZED_TITLE": "संपीड़ित",
       "OPTIMIZED_DESCRIPTION": "संपीड़ित छवि। जब आपको लाइब्रेरी थंबनेल के लिए सिर्फ कवर चाहिए, तब यह बेहतर है।",
