@@ -209,33 +209,12 @@
     </ion-button>
 
     @if (shouldShowExportOptions()) {
-    <section class="export-quality" aria-label="{{ 'CREATE.EXPORT_OPTIONS.TITLE' | translate }}">
-      <div class="field-title export-quality__title">
-        {{ 'CREATE.EXPORT_OPTIONS.TITLE' | translate }}
-      </div>
-      <div
-        class="export-quality__item export-quality__item--triple"
-        role="radiogroup"
-        [attr.aria-label]="'CREATE.EXPORT_OPTIONS.TITLE' | translate"
-      >
-        <button
-          type="button"
-          class="export-quality__option"
-          *ngFor="let mode of getExportQualityModes()"
-          [class.export-quality__option--active]="isExportQualityModeSelected(mode)"
-          [class.export-quality__option--inactive]="!isExportQualityModeSelected(mode)"
-          [class.export-quality__option--locked]="isExportQualityModeLocked(mode)"
-          [attr.aria-pressed]="isExportQualityModeSelected(mode)"
-          [attr.aria-label]="getExportQualityModeLabel(mode)"
-          (click)="onExportQualityModeSelect(mode)"
-        >
-          <span class="export-quality__option-text">{{ getExportQualityModeLabel(mode) }}</span>
-          @if (isExportQualityModeLocked(mode)) {
-          <span class="export-quality__badge">{{ 'COMMON.PRO_ONLY' | translate }}</span>
-          }
-        </button>
-      </div>
-    </section>
+    <app-export-quality-selector
+      translationScope="CREATE"
+      [selectedMode]="getEffectiveExportQualityMode()"
+      [isPro]="adsRemoved"
+      (modeSelect)="onExportQualityModeSelect($event)"
+    />
     }
 
     <div class="actions">

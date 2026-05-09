@@ -12,7 +12,7 @@ import {
   DEFAULT_EXPORT_QUALITY_MODE,
   migrateLegacyExportQualityMode,
   type ExportQualityMode,
-} from '../services/cover-export-mode';
+} from '@sheldrapps/export-quality-kit';
 
 type PreferenceValue = boolean | number | string | null;
 

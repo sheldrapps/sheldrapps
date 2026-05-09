@@ -90,18 +90,7 @@
     "TITLE": "تغيير الغلاف",
     "PREVIEW_ORIGINAL_LABEL": "الغلاف الأصلي",
     "PREVIEW_NEW_LABEL": "الغلاف الجديد",
-    "PREVIEW_NEW_ONLY_LABEL": "غلاف جديد",
-    "EXPORT_OPTIONS": {
-      "TITLE": "جودة التصدير",
-      "LOSSLESS_TITLE": "أفضل جودة",
-      "THUMBNAIL_TITLE": "صورة مصغّرة",
-      "LOSSLESS_DESCRIPTION": "PNG بدون فقدان. يحافظ على تفاصيل أكثر، لكن ملف EPUB قد يصبح أكبر بكثير.",
-      "OPTIMIZED_TITLE": "مضغوط",
-      "OPTIMIZED_DESCRIPTION": "صورة مضغوطة. ممتازة إذا كنت تحتاج الغلاف فقط كصورة مصغرة في المكتبة.",
-      "OPTIMIZED_BADGE": "موصى به للصور المصغرة",
-      "SMALL_SOURCE_WARNING": "الصورة المصدر صغيرة نسبيًا لهذا القص. قد تبدو النسخة المصدّرة أقل حدّة.",
-      "DITHERING_HINT": "قد تجعل ميزة تقليل الشوائب المعاينة على شاشة الهاتف تبدو مختلفة. استخدمها فقط عندما تظهر شوائب واضحة في النتيجة النهائية على قارئ الكتب الإلكترونية."
-    }
+    "PREVIEW_NEW_ONLY_LABEL": "غلاف جديد"
   },
   "COVERS": {
     "DELETED": "تم حذف ملف EPUB",

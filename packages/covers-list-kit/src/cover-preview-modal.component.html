@@ -58,7 +58,17 @@
               [alt]="imageAlt"
               fit="contain"
               renderMode="eReader"
-            ></app-e-reader-preview-frame>
+            >
+              @if (metadata?.name || metadata?.size) {
+              <div frameMetaBeforeControls class="preview-details" aria-live="polite">
+                @if (metadata?.name) {
+                <div class="preview-details__name">{{ metadata?.name }}</div>
+                } @if (metadata?.size) {
+                <div class="preview-details__size">{{ metadata?.size }}</div>
+                }
+              </div>
+              }
+            </app-e-reader-preview-frame>
             } @else if (!loading && unavailableConfig?.visible) {
             <div class="preview-unavailable">
               <div class="preview-unavailable__text">

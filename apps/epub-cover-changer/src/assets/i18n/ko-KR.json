@@ -90,18 +90,7 @@
     "TITLE": "표지 변경",
     "PREVIEW_ORIGINAL_LABEL": "원본 표지",
     "PREVIEW_NEW_LABEL": "새 표지",
-    "PREVIEW_NEW_ONLY_LABEL": "새 표지",
-    "EXPORT_OPTIONS": {
-      "TITLE": "내보내기 품질",
-      "LOSSLESS_TITLE": "최고 화질",
-      "THUMBNAIL_TITLE": "썸네일",
-      "LOSSLESS_DESCRIPTION": "무손실 PNG입니다. 디테일을 더 잘 보존하지만 EPUB 파일 크기가 훨씬 커질 수 있습니다.",
-      "OPTIMIZED_TITLE": "압축",
-      "OPTIMIZED_DESCRIPTION": "압축 이미지입니다. 라이브러리 썸네일용 표지만 필요할 때 적합합니다.",
-      "OPTIMIZED_BADGE": "썸네일에 권장",
-      "SMALL_SOURCE_WARNING": "이 크롭에는 원본 이미지가 다소 작습니다. 내보낸 표지가 덜 선명해 보일 수 있습니다.",
-      "DITHERING_HINT": "아티팩트 감소를 사용하면 휴대폰 화면의 미리보기가 다르게 보일 수 있습니다. 최종 e-reader 결과에서 눈에 띄는 아티팩트가 있을 때만 사용하세요."
-    }
+    "PREVIEW_NEW_ONLY_LABEL": "새 표지"
   },
   "COVERS": {
     "DELETED": "EPUB이 삭제되었습니다",

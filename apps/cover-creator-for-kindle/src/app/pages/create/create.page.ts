@@ -109,10 +109,11 @@ import {
 import { CcfkSettings } from '../../settings/ccfk-settings.schema';
 import {
   DEFAULT_EXPORT_QUALITY_MODE,
-  normalizeExportQualityMode,
+  ExportQualitySelectorComponent,
   getCoverExportOptions,
+  normalizeExportQualityMode,
   type ExportQualityMode,
-} from '../../services/cover-export-mode';
+} from '@sheldrapps/export-quality-kit';
 import { TourOverlayComponent } from '../../shared/tour/tour-overlay.component';
 import { TourService } from '../../shared/tour/tour.service';
 import {
@@ -159,6 +160,7 @@ type EditorResult = {
     LoadingStateComponent,
     EReaderPreviewFrameComponent,
     ScrollableButtonBarComponent,
+    ExportQualitySelectorComponent,
     TourOverlayComponent,
   ],
 })
@@ -1114,30 +1116,6 @@ export class CreatePage implements OnInit, OnDestroy {
 
   getEffectiveExportQualityMode(): ExportQualityMode {
     return normalizeExportQualityMode(this.exportQualityMode, this.adsRemoved);
-  }
-
-  getExportQualityModes(): ExportQualityMode[] {
-    return ['thumbnail', 'compressed', 'best'];
-  }
-
-  isExportQualityModeSelected(mode: ExportQualityMode): boolean {
-    return this.getEffectiveExportQualityMode() === mode;
-  }
-
-  isExportQualityModeLocked(mode: ExportQualityMode): boolean {
-    return mode !== 'compressed' && !this.adsRemoved;
-  }
-
-  getExportQualityModeLabel(mode: ExportQualityMode): string {
-    if (mode === 'compressed') {
-      return this.translate.instant('CREATE.EXPORT_OPTIONS.OPTIMIZED_TITLE');
-    }
-
-    if (mode === 'best') {
-      return this.translate.instant('CREATE.EXPORT_OPTIONS.LOSSLESS_TITLE');
-    }
-
-    return this.translate.instant('CREATE.EXPORT_OPTIONS.THUMBNAIL_TITLE');
   }
 
   async onExportQualityModeSelect(mode: ExportQualityMode): Promise<void> {

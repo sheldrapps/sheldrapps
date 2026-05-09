@@ -41,6 +41,11 @@ export interface PreviewUnavailableConfig {
   action?: PreviewAction;
 }
 
+export interface PreviewMetadata {
+  name?: string | null;
+  size?: string | null;
+}
+
 export interface PreviewActionClickEvent {
   actionId: string;
   region: PreviewActionRegion;
@@ -81,6 +86,7 @@ export class CoverPreviewModalComponent {
   @Input() headerActions: PreviewAction[] = [];
   @Input() footerActions: PreviewAction[] = [];
   @Input() unavailableConfig: PreviewUnavailableConfig | null = null;
+  @Input() metadata: PreviewMetadata | null = null;
 
   @Output() dismissed = new EventEmitter<void>();
   @Output() actionClick = new EventEmitter<PreviewActionClickEvent>();

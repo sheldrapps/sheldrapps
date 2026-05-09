@@ -80,18 +80,7 @@
     "INVALID_COVER_TAP_TO_CHANGE": "Invalid cover, tap to change",
     "PREVIEW_ORIGINAL_LABEL": "Copertina originale",
     "PREVIEW_NEW_LABEL": "Nuova copertina",
-    "PREVIEW_NEW_ONLY_LABEL": "Nuova copertina",
-    "EXPORT_OPTIONS": {
-      "TITLE": "Qualità di esportazione",
-      "LOSSLESS_TITLE": "Migliore qualità",
-      "THUMBNAIL_TITLE": "Miniatura",
-      "LOSSLESS_DESCRIPTION": "PNG senza perdita. Mantiene più dettagli, ma l’EPUB può diventare molto più grande.",
-      "OPTIMIZED_TITLE": "Compresso",
-      "OPTIMIZED_DESCRIPTION": "Immagine compressa. Ottima se ti serve la copertina solo come miniatura nella libreria.",
-      "OPTIMIZED_BADGE": "Consigliato per miniature",
-      "SMALL_SOURCE_WARNING": "L’immagine sorgente è piuttosto piccola per questo ritaglio. La copertina esportata potrebbe apparire meno nitida.",
-      "DITHERING_HINT": "La riduzione degli artefatti può far apparire le anteprime diverse sugli schermi del telefono. Usala solo se il risultato finale sull’e-reader mostra artefatti visibili."
-    }
+    "PREVIEW_NEW_ONLY_LABEL": "Nuova copertina"
   },
   "COVERS": {
     "DELETED": "EPUB eliminato",

@@ -81,18 +81,7 @@
     },
     "INFO_REQUIREMENTS_LABEL": "Voraussetzungen:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Ads auf Kindle deaktivieren.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Auf Kindle \"Bildschirm und Helligkeit > Cover auf dem Sperrbildschirm anzeigen\" aktivieren.",
-    "EXPORT_OPTIONS": {
-      "TITLE": "Exportqualität",
-      "LOSSLESS_TITLE": "Beste Qualität",
-      "THUMBNAIL_TITLE": "Miniatur",
-      "LOSSLESS_DESCRIPTION": "Verlustfreies PNG. Erhält mehr Details, aber die EPUB-Datei kann deutlich größer sein.",
-      "OPTIMIZED_TITLE": "Komprimiert",
-      "OPTIMIZED_DESCRIPTION": "Komprimiertes Bild. Ideal, wenn du das Cover nur als Miniatur in der Bibliothek brauchst.",
-      "OPTIMIZED_BADGE": "Empfohlen für Miniaturen",
-      "SMALL_SOURCE_WARNING": "Dein Quellbild ist für diesen Zuschnitt recht klein. Das exportierte Cover könnte weicher wirken.",
-      "DITHERING_HINT": "Die Artefaktreduzierung kann Vorschauen auf Handybildschirmen anders aussehen lassen. Verwende sie nur, wenn das Endergebnis auf dem E-Reader sichtbare Artefakte zeigt."
-    }
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Auf Kindle \"Bildschirm und Helligkeit > Cover auf dem Sperrbildschirm anzeigen\" aktivieren."
   },
   "COVERS": {
     "DELETED": "Cover gelöscht",

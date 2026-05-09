@@ -81,18 +81,7 @@
     },
     "INFO_REQUIREMENTS_LABEL": "要求：",
     "INFO_REQUIREMENT_DISABLE_ADS": "在 Kindle 上禁用广告。",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "在 Kindle 上启用「屏幕与亮度 > 在锁屏上显示封面」。",
-    "EXPORT_OPTIONS": {
-      "TITLE": "导出质量",
-      "LOSSLESS_TITLE": "最佳画质",
-      "THUMBNAIL_TITLE": "缩略图",
-      "LOSSLESS_DESCRIPTION": "无损 PNG。可保留更多细节，但 EPUB 体积可能显著增大。",
-      "OPTIMIZED_TITLE": "压缩",
-      "OPTIMIZED_DESCRIPTION": "压缩图像。适合只需要在书库里显示封面缩略图时使用。",
-      "OPTIMIZED_BADGE": "推荐用于缩略图",
-      "SMALL_SOURCE_WARNING": "你的源图像对于此裁剪来说偏小，导出的封面可能会显得不够清晰。",
-      "DITHERING_HINT": "启用伪影减少后，手机上的预览可能与最终效果不同。仅当 e-reader 最终显示中出现明显伪影时再使用。"
-    }
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "在 Kindle 上启用「屏幕与亮度 > 在锁屏上显示封面」。"
   },
   "COVERS": {
     "DELETED": "封面已删除",

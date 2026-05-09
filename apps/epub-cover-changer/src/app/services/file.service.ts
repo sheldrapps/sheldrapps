@@ -539,6 +539,16 @@ export class FileService {
     return false;
   }
 
+  async getCoverFileSizeBytes(filename: string): Promise<number | null> {
+    await this.ensurePublicDocumentsEpubFolderReady();
+    try {
+      const bytes = await this.readPublicEpubBytes(filename);
+      return bytes.byteLength;
+    } catch {
+      return null;
+    }
+  }
+
   private async persistCoverAssetsFromFile(
     coverFile: File,
     epubFilename: string,

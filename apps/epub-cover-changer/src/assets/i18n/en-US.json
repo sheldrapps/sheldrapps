@@ -90,18 +90,7 @@
     "TITLE": "Change cover",
     "PREVIEW_ORIGINAL_LABEL": "Original cover",
     "PREVIEW_NEW_LABEL": "New cover",
-    "PREVIEW_NEW_ONLY_LABEL": "New cover",
-    "EXPORT_OPTIONS": {
-      "TITLE": "Export quality",
-      "LOSSLESS_TITLE": "Best quality",
-      "THUMBNAIL_TITLE": "Thumbnail",
-      "LOSSLESS_DESCRIPTION": "Lossless PNG. Keeps more detail, but the EPUB can be much larger.",
-      "OPTIMIZED_TITLE": "Compressed",
-      "OPTIMIZED_DESCRIPTION": "Compressed image. Great when you only need the cover for library thumbnails.",
-      "OPTIMIZED_BADGE": "Recommended for thumbnails",
-      "SMALL_SOURCE_WARNING": "Your source image is quite small for this crop. The exported cover may look softer.",
-      "DITHERING_HINT": "Artifact reduction can make previews look different on phone screens. Use it only when the final e-reader result shows visible artifacts."
-    }
+    "PREVIEW_NEW_ONLY_LABEL": "New cover"
   },
   "COVERS": {
     "DELETED": "EPUB deleted",

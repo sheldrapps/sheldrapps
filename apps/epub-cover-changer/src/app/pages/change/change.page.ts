@@ -73,10 +73,11 @@ import {
 } from '../../services/file.service';
 import {
   DEFAULT_EXPORT_QUALITY_MODE,
+  ExportQualitySelectorComponent,
   getCoverExportOptions,
   normalizeExportQualityMode,
   type ExportQualityMode,
-} from '../../services/cover-export-mode';
+} from '@sheldrapps/export-quality-kit';
 import { EpubWorkingCopyService } from '../../services/epub-working-copy.service';
 import {
   AdsService,
@@ -151,6 +152,7 @@ type EditorResult = {
     LoadingStateComponent,
     EReaderPreviewFrameComponent,
     ScrollableButtonBarComponent,
+    ExportQualitySelectorComponent,
     TourOverlayComponent,
   ],
 })
@@ -2157,30 +2159,6 @@ export class ChangePage implements OnInit, OnDestroy {
 
   getEffectiveExportQualityMode(): ExportQualityMode {
     return normalizeExportQualityMode(this.exportQualityMode, this.adsRemoved);
-  }
-
-  getExportQualityModes(): ExportQualityMode[] {
-    return ['thumbnail', 'compressed', 'best'];
-  }
-
-  isExportQualityModeSelected(mode: ExportQualityMode): boolean {
-    return this.getEffectiveExportQualityMode() === mode;
-  }
-
-  isExportQualityModeLocked(mode: ExportQualityMode): boolean {
-    return mode !== 'compressed' && !this.adsRemoved;
-  }
-
-  getExportQualityModeLabel(mode: ExportQualityMode): string {
-    if (mode === 'compressed') {
-      return this.translate.instant('CHANGE.EXPORT_OPTIONS.OPTIMIZED_TITLE');
-    }
-
-    if (mode === 'best') {
-      return this.translate.instant('CHANGE.EXPORT_OPTIONS.LOSSLESS_TITLE');
-    }
-
-    return this.translate.instant('CHANGE.EXPORT_OPTIONS.THUMBNAIL_TITLE');
   }
 
   shouldShowPreviewLongPressHint(): boolean {

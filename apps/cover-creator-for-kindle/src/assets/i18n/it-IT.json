@@ -81,18 +81,7 @@
     },
     "INFO_REQUIREMENTS_LABEL": "Requisiti:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Disattivare gli annunci su Kindle.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Attivare \"Schermo e luminosita > Mostra copertine nella schermata di blocco\" su Kindle.",
-    "EXPORT_OPTIONS": {
-      "TITLE": "Qualità di esportazione",
-      "LOSSLESS_TITLE": "Migliore qualità",
-      "THUMBNAIL_TITLE": "Miniatura",
-      "LOSSLESS_DESCRIPTION": "PNG senza perdita. Mantiene più dettagli, ma l’EPUB può diventare molto più grande.",
-      "OPTIMIZED_TITLE": "Compresso",
-      "OPTIMIZED_DESCRIPTION": "Immagine compressa. Ottima se ti serve la copertina solo come miniatura nella libreria.",
-      "OPTIMIZED_BADGE": "Consigliato per miniature",
-      "SMALL_SOURCE_WARNING": "L’immagine sorgente è piuttosto piccola per questo ritaglio. La copertina esportata potrebbe apparire meno nitida.",
-      "DITHERING_HINT": "La riduzione degli artefatti può far apparire le anteprime diverse sugli schermi del telefono. Usala solo se il risultato finale sull’e-reader mostra artefatti visibili."
-    }
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Attivare \"Schermo e luminosita > Mostra copertine nella schermata di blocco\" su Kindle."
   },
   "COVERS": {
     "DELETED": "Copertina eliminata",

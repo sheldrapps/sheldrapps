@@ -81,18 +81,7 @@
     },
     "INFO_REQUIREMENTS_LABEL": "需求：",
     "INFO_REQUIREMENT_DISABLE_ADS": "在 Kindle 上停用廣告。",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "在 Kindle 上啟用「螢幕與亮度 > 在鎖定畫面顯示封面」。",
-    "EXPORT_OPTIONS": {
-      "TITLE": "匯出品質",
-      "LOSSLESS_TITLE": "最佳畫質",
-      "THUMBNAIL_TITLE": "縮圖",
-      "LOSSLESS_DESCRIPTION": "無損 PNG。可保留更多細節，但 EPUB 檔案可能明顯變大。",
-      "OPTIMIZED_TITLE": "壓縮",
-      "OPTIMIZED_DESCRIPTION": "壓縮影像。適合只需要在書庫中顯示封面縮圖時使用。",
-      "OPTIMIZED_BADGE": "建議用於縮圖",
-      "SMALL_SOURCE_WARNING": "你的來源影像對此裁切來說偏小，匯出的封面可能會較不銳利。",
-      "DITHERING_HINT": "啟用瑕疵減少後，手機上的預覽可能與最終效果不同。僅在 e-reader 最終顯示出現明顯瑕疵時再使用。"
-    }
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "在 Kindle 上啟用「螢幕與亮度 > 在鎖定畫面顯示封面」。"
   },
   "COVERS": {
     "DELETED": "封面已刪除",

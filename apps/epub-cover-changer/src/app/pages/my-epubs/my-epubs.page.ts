@@ -35,6 +35,7 @@ import {
   CoverPreviewModalComponent,
   PreviewAction,
   PreviewActionClickEvent,
+  PreviewMetadata,
   PreviewUnavailableConfig,
 } from '@sheldrapps/covers-list-kit';
 
@@ -107,6 +108,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   previewLoading = false;
   previewUnavailable = false;
   previewGettingCover = false;
+  previewFileSizeLabel: string | null = null;
   // Preview Modal
 
   constructor() {
@@ -314,6 +316,18 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     };
   }
 
+  get previewMetadata(): PreviewMetadata | null {
+    const filename = this.previewFilename;
+    if (!filename) {
+      return null;
+    }
+
+    return {
+      name: this.displayFilename(filename),
+      size: this.previewFileSizeLabel,
+    };
+  }
+
   onPreviewAction(event: PreviewActionClickEvent) {
     if (event.actionId === 'close') {
       this.closePreview();
@@ -344,6 +358,8 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     this.previewLoading = true;
     this.previewUnavailable = false;
     this.previewGettingCover = false;
+    this.previewFileSizeLabel = null;
+    void this.loadPreviewFileSizeLabel(filename);
 
     try {
       const hasCoverExport =
@@ -432,6 +448,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     this.previewLoading = false;
     this.previewUnavailable = false;
     this.previewGettingCover = false;
+    this.previewFileSizeLabel = null;
   }
 
   async deleteFromList(filename: string) {
@@ -523,6 +540,29 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       requestAnimationFrame(() => resolve()),
     );
     await this.content.scrollToPoint(0, scrollTop, 0);
+  }
+
+  private async loadPreviewFileSizeLabel(filename: string): Promise<void> {
+    try {
+      const bytes = await this.files.getCoverFileSizeBytes(filename);
+      if (this.previewFilename !== filename) {
+        return;
+      }
+      this.previewFileSizeLabel = this.formatFileSizeLabel(bytes);
+    } catch {
+      if (this.previewFilename === filename) {
+        this.previewFileSizeLabel = null;
+      }
+    }
+  }
+
+  private formatFileSizeLabel(bytes: number | null): string | null {
+    if (typeof bytes !== 'number' || !Number.isFinite(bytes) || bytes <= 0) {
+      return null;
+    }
+
+    const kb = Math.max(1, Math.round(bytes / 1024));
+    return `${kb}kb`;
   }
 
   private logInfo(event: string, payload?: Record<string, unknown>): void {

@@ -90,18 +90,7 @@
     "TITLE": "表紙を変更",
     "PREVIEW_ORIGINAL_LABEL": "元の表紙",
     "PREVIEW_NEW_LABEL": "新しい表紙",
-    "PREVIEW_NEW_ONLY_LABEL": "新しい表紙",
-    "EXPORT_OPTIONS": {
-      "TITLE": "書き出し品質",
-      "LOSSLESS_TITLE": "最高画質",
-      "THUMBNAIL_TITLE": "サムネイル",
-      "LOSSLESS_DESCRIPTION": "可逆圧縮のPNG。より多くのディテールを保てますが、EPUBはかなり大きくなることがあります。",
-      "OPTIMIZED_TITLE": "圧縮",
-      "OPTIMIZED_DESCRIPTION": "圧縮画像。ライブラリのサムネイル用に表紙が必要な場合に最適です。",
-      "OPTIMIZED_BADGE": "サムネイル向け推奨",
-      "SMALL_SOURCE_WARNING": "このトリミングには元画像がやや小さめです。書き出し後の表紙は少し甘く見える場合があります。",
-      "DITHERING_HINT": "アーティファクト低減を使うと、スマホ画面のプレビューが実際と異なって見えることがあります。最終的なe-reader表示で目立つアーティファクトがある場合のみ使用してください。"
-    }
+    "PREVIEW_NEW_ONLY_LABEL": "新しい表紙"
   },
   "COVERS": {
     "DELETED": "EPUBを削除しました",

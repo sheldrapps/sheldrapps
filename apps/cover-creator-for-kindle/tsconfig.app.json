@@ -28,6 +28,9 @@
       "@sheldrapps/image-workflow/editor": [
         "../../packages/image-workflow/src/editor/public-api.ts"
       ],
+      "@sheldrapps/export-quality-kit": [
+        "../../packages/export-quality-kit/src/public-api.ts"
+      ],
       "@sheldrapps/ui-theme": ["../../packages/ui-theme/src/index.ts"],
       "@sheldrapps/ui-theme/styles/*": ["../../packages/ui-theme/styles/*"]
     }
@@ -41,10 +44,12 @@
     "../../packages/image-workflow/src/lib/core/**/*.ts",
     "../../packages/image-workflow/src/lib/ui/**/*.ts",
     "../../packages/image-workflow/src/public-api.ts",
+    "../../packages/export-quality-kit/src/**/*.ts",
     "../../packages/covers-list-kit/src/**/*.ts"
   ],
   "exclude": [
     "src/**/*.spec.ts",
+    "../../packages/export-quality-kit/src/**/*.spec.ts",
     "../../packages/image-workflow/src/lib/adapters/**"
   ]
 }

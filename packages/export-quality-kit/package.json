@@ -1,0 +1,23 @@
+{
+  "name": "@sheldrapps/export-quality-kit",
+  "version": "1.0.0",
+  "description": "Reusable export quality selector and i18n bridge for Sheldrapps Ionic Angular apps",
+  "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
+  "peerDependencies": {
+    "@angular/common": "^20.0.0",
+    "@angular/core": "^20.0.0",
+    "@ngx-translate/core": "^17.0.0",
+    "@sheldrapps/image-workflow": "workspace:*"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "keywords": [
+    "export-quality",
+    "ionic",
+    "angular",
+    "translation"
+  ]
+}

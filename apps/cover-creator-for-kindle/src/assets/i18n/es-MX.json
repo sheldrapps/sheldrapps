@@ -81,18 +81,7 @@
     },
     "INFO_REQUIREMENTS_LABEL": "Requisitos:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Desactivar ads en Kindle.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Activar \"Pantalla y brillo > Mostrar portadas en la pantalla del dispositivo\" en Kindle.",
-    "EXPORT_OPTIONS": {
-      "TITLE": "Calidad de exportación",
-      "LOSSLESS_TITLE": "Mejor calidad",
-      "THUMBNAIL_TITLE": "Miniatura",
-      "LOSSLESS_DESCRIPTION": "PNG sin pérdida. Conserva más detalle, pero el EPUB puede ser mucho más grande.",
-      "OPTIMIZED_TITLE": "Comprimido",
-      "OPTIMIZED_DESCRIPTION": "Imagen comprimida. Ideal si solo necesitas la portada como miniatura en tu biblioteca.",
-      "OPTIMIZED_BADGE": "Recomendado para miniaturas",
-      "SMALL_SOURCE_WARNING": "La imagen original es algo pequeña para este recorte. La portada exportada podría verse menos nítida.",
-      "DITHERING_HINT": "La reducción de artefactos puede hacer que la vista previa se vea distinta en pantallas de teléfono. Úsala solo cuando el resultado final del e-reader muestre artefactos visibles."
-    }
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Activar \"Pantalla y brillo > Mostrar portadas en la pantalla del dispositivo\" en Kindle."
   },
   "COVERS": {
     "DELETED": "Portada eliminada",

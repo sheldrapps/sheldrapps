@@ -81,18 +81,7 @@
     },
     "INFO_REQUIREMENTS_LABEL": "आवश्यकताएँ:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Kindle पर विज्ञापन अक्षम करें।",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Kindle पर \"स्क्रीन और चमक > लॉक स्क्रीन पर कवर दिखाएँ\" सक्षम करें।",
-    "EXPORT_OPTIONS": {
-      "TITLE": "एक्सपोर्ट गुणवत्ता",
-      "LOSSLESS_TITLE": "सर्वोत्तम गुणवत्ता",
-      "THUMBNAIL_TITLE": "थंबनेल",
-      "LOSSLESS_DESCRIPTION": "लॉसलेस PNG। यह अधिक विवरण सुरक्षित रखता है, लेकिन EPUB का आकार काफी बड़ा हो सकता है।",
-      "OPTIMIZED_TITLE": "संपीड़ित",
-      "OPTIMIZED_DESCRIPTION": "संपीड़ित छवि। जब आपको लाइब्रेरी थंबनेल के लिए सिर्फ कवर चाहिए, तब यह बेहतर है।",
-      "OPTIMIZED_BADGE": "थंबनेल के लिए अनुशंसित",
-      "SMALL_SOURCE_WARNING": "इस क्रॉप के लिए आपकी स्रोत छवि थोड़ी छोटी है। एक्सपोर्ट की गई कवर कम शार्प दिख सकती है।",
-      "DITHERING_HINT": "आर्टिफैक्ट कम करने पर फ़ोन स्क्रीन पर प्रीव्यू अलग दिख सकता है। इसे तभी इस्तेमाल करें जब अंतिम e-reader परिणाम में स्पष्ट आर्टिफैक्ट दिखें।"
-    }
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Kindle पर \"स्क्रीन और चमक > लॉक स्क्रीन पर कवर दिखाएँ\" सक्षम करें।"
   },
   "COVERS": {
     "DELETED": "कवर हटाया गया",

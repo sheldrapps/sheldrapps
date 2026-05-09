@@ -44,6 +44,7 @@
     "@ngx-translate/core": "^17.0.0",
     "@ngx-translate/http-loader": "^17.0.0",
     "@sheldrapps/ads-kit": "workspace:*",
+    "@sheldrapps/export-quality-kit": "workspace:*",
     "@sheldrapps/file-kit": "workspace:*",
     "@sheldrapps/i18n-kit": "workspace:*",
     "@sheldrapps/image-workflow": "workspace:*",

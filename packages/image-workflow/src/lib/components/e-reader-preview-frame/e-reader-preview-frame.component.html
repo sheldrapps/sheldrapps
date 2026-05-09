@@ -63,6 +63,8 @@
     </div>
   </div>
 
+  <ng-content select="[frameMetaBeforeControls]"></ng-content>
+
   @if (showFrameColorSelector) {
   <div class="ereader-preview__controls" role="group" [attr.aria-label]="colorSelectorTitleKey | translate">
     <button

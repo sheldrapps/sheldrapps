@@ -90,18 +90,7 @@
     "TITLE": "Cambiar portada",
     "PREVIEW_ORIGINAL_LABEL": "Portada original",
     "PREVIEW_NEW_LABEL": "Portada nueva",
-    "PREVIEW_NEW_ONLY_LABEL": "Nueva portada",
-    "EXPORT_OPTIONS": {
-      "TITLE": "Calidad de exportación",
-      "LOSSLESS_TITLE": "Mejor calidad",
-      "THUMBNAIL_TITLE": "Miniatura",
-      "LOSSLESS_DESCRIPTION": "PNG sin pérdida. Conserva más detalle, pero el EPUB puede ser mucho más grande.",
-      "OPTIMIZED_TITLE": "Comprimido",
-      "OPTIMIZED_DESCRIPTION": "Imagen comprimida. Ideal si solo necesitas la portada como miniatura en tu biblioteca.",
-      "OPTIMIZED_BADGE": "Recomendado para miniaturas",
-      "SMALL_SOURCE_WARNING": "La imagen original es algo pequeña para este recorte. La portada exportada podría verse menos nítida.",
-      "DITHERING_HINT": "La reducción de artefactos puede hacer que la vista previa se vea distinta en pantallas de teléfono. Úsala solo cuando el resultado final del e-reader muestre artefactos visibles."
-    }
+    "PREVIEW_NEW_ONLY_LABEL": "Nueva portada"
   },
   "COVERS": {
     "DELETED": "EPUB eliminado",
