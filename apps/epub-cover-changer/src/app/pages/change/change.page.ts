@@ -101,12 +101,19 @@ import {
   ScrollableButtonBarComponent,
 } from '@sheldrapps/ui-theme';
 import {
+  BestCandidateImage,
+  BestCandidatePickerComponent,
+  BestCandidateResult,
+  BestCandidateService,
+} from '@sheldrapps/best-candidate-kit';
+import {
   RecommendedApp,
   RecommendedAppsService,
   buildHomeHeaderItems,
   handleHomeHeaderAction,
 } from '@sheldrapps/recommended-apps';
 import { EccSettings } from '../../settings/ecc-settings.schema';
+import { EpubCandidateImageService } from '../../services/epub-candidate-image.service';
 import { TourOverlayComponent } from '../../shared/tour/tour-overlay.component';
 import { TourService } from '../../shared/tour/tour.service';
 import {
@@ -153,6 +160,7 @@ type EditorResult = {
     EReaderPreviewFrameComponent,
     ScrollableButtonBarComponent,
     ExportQualitySelectorComponent,
+    BestCandidatePickerComponent,
     TourOverlayComponent,
   ],
 })
@@ -176,6 +184,8 @@ export class ChangePage implements OnInit, OnDestroy {
   private settings = inject(SettingsStore<EccSettings>);
   private ratingService = inject(RatingService);
   private recommendedAppsService = inject(RecommendedAppsService);
+  private bestCandidateService = inject(BestCandidateService);
+  private candidateImageService = inject(EpubCandidateImageService);
   private homeTour = inject(TourService);
   private readonly baseTarget = { width: 1236, height: 1648 };
   private readonly baseModelId = 'epub';
@@ -208,6 +218,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private removeAdsCtaImpressionTracked = false;
   private nativeRewriteSessionDisabled = false;
   private nativeRewriteSdkBlocked = false;
+  private candidateBlobUrls = new Set<string>();
 
   @ViewChild(IonContent) content?: IonContent;
   @ViewChild('epubInput') epubInput!: ElementRef<HTMLInputElement>;
@@ -312,6 +323,15 @@ export class ChangePage implements OnInit, OnDestroy {
   infoOpen = false;
   infoEvent: Event | null = null;
   previewOpen = false;
+  bestCandidateRequested = false;
+  bestCandidateLoading = false;
+  bestCandidates: BestCandidateResult[] = [];
+  selectedBestCandidateId?: string;
+  private previewCandidateOverride: {
+    src: string;
+    width: number | null;
+    height: number | null;
+  } | null = null;
   private isApplyingFromEditor = false;
   private previewGenerationToken = 0;
   private currentPreviewOrigin:
@@ -323,6 +343,37 @@ export class ChangePage implements OnInit, OnDestroy {
 
   get previewUrlWithNonce(): string | null {
     return this.previewUrl ? `${this.previewUrl}#v=${this.previewNonce}` : null;
+  }
+
+  get previewModalImageSrc(): string | null {
+    return this.previewCandidateOverride?.src ?? this.previewUrlWithNonce;
+  }
+
+  get previewModalImageWidth(): number | null {
+    if (this.previewCandidateOverride) return this.previewCandidateOverride.width;
+    return this.targetWidth ?? null;
+  }
+
+  get previewModalImageHeight(): number | null {
+    if (this.previewCandidateOverride) return this.previewCandidateOverride.height;
+    return this.targetHeight ?? null;
+  }
+
+  get previewModalMode(): 'single' | 'compare' {
+    if (this.previewCandidateOverride) return 'single';
+    return this.shouldShowComparePreview() ? 'compare' : 'single';
+  }
+
+  get previewModalBeforeSrc(): string | null {
+    return this.previewCandidateOverride ? null : this.originalEpubPreviewUrl;
+  }
+
+  get previewModalAfterSrc(): string | null {
+    return this.previewCandidateOverride ? null : this.previewUrlWithNonce;
+  }
+
+  get previewModalComparisonEnabled(): boolean {
+    return !this.previewCandidateOverride;
   }
 
   get nativeLoadMode(): 'epub' | 'rewrite' | null {
@@ -363,6 +414,10 @@ export class ChangePage implements OnInit, OnDestroy {
       !this.imageErrorKey &&
       this.imageWarnKey === this.invalidCoverWarnKey
     );
+  }
+
+  get shouldShowBestCandidateAction(): boolean {
+    return this.showInvalidCoverFallback || this.bestCandidateRequested;
   }
 
   async ngOnInit() {
@@ -437,6 +492,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.closeInfo();
     this.closePurchaseModal();
     this.clearPreviewLongPress();
+    this.resetBestCandidateState(true);
     this.revokePreviewUrl();
     this.revokeOriginalEpubPreviewUrl();
     this.routerSub?.unsubscribe();
@@ -545,20 +601,26 @@ export class ChangePage implements OnInit, OnDestroy {
         return;
       }
 
-      const extractedCover = await this.fileService.extractCoverFromEpubFile(
-        this.workingEpubFile,
-      );
+      const strictCover = await this.candidateImageService.resolveStrictCover({
+        epubFile: this.workingEpubFile,
+        epubName: this.selectedEpubName,
+      });
+      console.info('[ECC_BEST_CANDIDATE] strict cover found:', !!strictCover);
       this.clearEpubError();
 
-      if (!extractedCover) {
-        this.activateInvalidCoverFallback();
+      if (!strictCover) {
+        console.info(
+          '[ECC_BEST_CANDIDATE] valid cover not found, fallback to candidate picker',
+        );
+        await this.activateBestCandidateFallback();
         await this.homeTour.completeInteraction('epub-selected');
         return;
       }
 
-      const coverLoaded = await this.applyImageSource(extractedCover, false);
+      this.coverEntryPath = strictCover.sourcePath;
+      const coverLoaded = await this.applyImageSource(strictCover.file, false);
       if (!coverLoaded) {
-        this.activateInvalidCoverFallback();
+        await this.activateBestCandidateFallback();
         await this.homeTour.completeInteraction('epub-selected');
         return;
       }
@@ -599,27 +661,37 @@ export class ChangePage implements OnInit, OnDestroy {
       this.workingEpubName = prepared.workingName;
       this.outputBaseName = prepared.outputBaseName;
       this.selectedEpubName = prepared.selectedName;
-      this.coverEntryPath = prepared.coverEntryPath;
+      this.coverEntryPath = undefined;
       this.clearEpubError();
 
-      if (!prepared.file) {
-        this.activateInvalidCoverFallback();
+      const strictCover = await this.candidateImageService.resolveStrictCover({
+        epubNativePath: this.workingEpubNativePath,
+        epubName: this.selectedEpubName,
+      });
+      console.info('[ECC_BEST_CANDIDATE] strict cover found:', !!strictCover);
+
+      if (!strictCover) {
+        console.info(
+          '[ECC_BEST_CANDIDATE] valid cover not found, fallback to candidate picker',
+        );
+        await this.activateBestCandidateFallback();
         this.epubLoadProgressPercent = 100;
         await this.homeTour.completeInteraction('epub-selected');
         return;
       }
 
       try {
-        const coverLoaded = await this.applyImageSource(prepared.file, false);
+        this.coverEntryPath = strictCover.sourcePath;
+        const coverLoaded = await this.applyImageSource(strictCover.file, false);
         if (!coverLoaded) {
-          this.activateInvalidCoverFallback();
+          await this.activateBestCandidateFallback();
           await this.homeTour.completeInteraction('epub-selected');
           return;
         }
         this.epubLoadProgressPercent = 100;
         await this.homeTour.completeInteraction('epub-selected');
       } catch {
-        this.activateInvalidCoverFallback();
+        await this.activateBestCandidateFallback();
         await this.homeTour.completeInteraction('epub-selected');
       }
     } catch (error) {
@@ -635,9 +707,8 @@ export class ChangePage implements OnInit, OnDestroy {
         error.code === 'EXTRACT_READ_FAILED' &&
         !!error.details?.coverEntryPath
       ) {
-        this.coverEntryPath = error.details?.coverEntryPath;
         this.clearEpubError();
-        this.activateInvalidCoverFallback();
+        await this.activateBestCandidateFallback();
         return;
       }
 
@@ -726,6 +797,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.currentPreviewOrigin = null;
     this.clearImageError();
     this.clearImageWarn();
+    this.resetBestCandidateState(true);
 
     // Clear generation state
     this.generatedEpubBytes = undefined;
@@ -797,6 +869,123 @@ export class ChangePage implements OnInit, OnDestroy {
       this.setBusy('none');
       input.value = '';
     }
+  }
+
+  async detectCoverAutomatically(): Promise<void> {
+    if (!this.hasValidEpub() || this.bestCandidateLoading) return;
+
+    this.bestCandidateRequested = true;
+    this.bestCandidateLoading = true;
+    this.bestCandidates = [];
+    this.selectedBestCandidateId = undefined;
+    if (this.previewCandidateOverride) {
+      this.closePreview();
+    }
+    this.revokeCandidateBlobUrls();
+
+    try {
+      console.info(
+        '[ECC_BEST_CANDIDATE] cover not found, scanning internal images',
+      );
+      const discovered = await this.candidateImageService.discoverInternalImages(
+        {
+          epubFile: this.workingEpubFile,
+          epubNativePath: this.workingEpubNativePath,
+          epubName: this.selectedEpubName,
+        },
+      );
+      console.info(
+        '[ECC_BEST_CANDIDATE] manifest image count:',
+        discovered.diagnostics.manifestImageCount,
+      );
+      console.info(
+        '[ECC_BEST_CANDIDATE] zip image count:',
+        discovered.diagnostics.zipImageCount,
+      );
+      console.info(
+        '[ECC_BEST_CANDIDATE] merged image count:',
+        discovered.diagnostics.mergedImageCount,
+      );
+      for (const rejected of discovered.diagnostics.rejectedImages) {
+        console.info(
+          `[ECC_BEST_CANDIDATE] rejected image: ${rejected.path}, ${rejected.reason}`,
+        );
+      }
+
+      const images = discovered.images;
+      console.info('[ECC_BEST_CANDIDATE] images found:', images.length);
+
+      for (const image of images) {
+        if (image.src.startsWith('blob:')) {
+          this.candidateBlobUrls.add(image.src);
+        }
+      }
+
+      const ranked = this.bestCandidateService.rankCandidatesWithDiagnostics(
+        images,
+      );
+      for (const rejected of ranked.rejected) {
+        const rejectedPath =
+          rejected.image.sourcePath ||
+          rejected.image.fileName ||
+          rejected.image.id ||
+          'unknown';
+        console.info(
+          `[ECC_BEST_CANDIDATE] rejected image: ${rejectedPath}, ${rejected.reason}`,
+        );
+      }
+      console.info(
+        '[ECC_BEST_CANDIDATE] candidates after filters:',
+        ranked.results.length,
+      );
+      this.bestCandidates = ranked.results;
+    } catch (error) {
+      console.warn('[ECC_BEST_CANDIDATE] detection failed', error);
+      this.bestCandidates = [];
+    } finally {
+      this.bestCandidateLoading = false;
+    }
+  }
+
+  async onBestCandidateSelected(candidate: BestCandidateImage): Promise<void> {
+    if (this.bestCandidateLoading || !this.hasValidEpub()) return;
+    const file = this.candidateFileFromMetadata(candidate);
+    if (!file) return;
+
+    const loaded = await this.applyImageSource(file, false);
+    if (!loaded) return;
+
+    if (candidate.sourcePath) {
+      this.coverEntryPath = candidate.sourcePath;
+    }
+    console.info(
+      '[ECC_BEST_CANDIDATE] selected candidate:',
+      candidate.sourcePath || candidate.fileName || candidate.id,
+    );
+    this.resetBestCandidateState(true);
+    await this.homeTour.completeInteraction('cover-image-selected');
+  }
+
+  onBestCandidatePreviewRequested(candidate: BestCandidateImage): void {
+    if (this.bestCandidateLoading) return;
+    const src = candidate.src?.trim();
+    if (!src) return;
+    this.previewCandidateOverride = {
+      src,
+      width:
+        Number.isFinite(candidate.width) && candidate.width > 0
+          ? candidate.width
+          : null,
+      height:
+        Number.isFinite(candidate.height) && candidate.height > 0
+          ? candidate.height
+          : null,
+    };
+    this.previewOpen = true;
+    console.info(
+      '[ECC_BEST_CANDIDATE] preview requested:',
+      candidate.sourcePath || candidate.fileName || candidate.id,
+    );
   }
 
   private async applyImageSource(
@@ -1880,6 +2069,37 @@ export class ChangePage implements OnInit, OnDestroy {
     this.clearImageError();
     this.imageWarnKey = this.invalidCoverWarnKey;
     this.imageWarnParams = {};
+    this.resetBestCandidateState(true);
+  }
+
+  private async activateBestCandidateFallback(): Promise<void> {
+    this.activateInvalidCoverFallback();
+    await this.detectCoverAutomatically();
+  }
+
+  private resetBestCandidateState(revokeUrls: boolean): void {
+    this.bestCandidateRequested = false;
+    this.bestCandidateLoading = false;
+    this.bestCandidates = [];
+    this.selectedBestCandidateId = undefined;
+    if (this.previewCandidateOverride) {
+      this.closePreview();
+    }
+    if (revokeUrls) {
+      this.revokeCandidateBlobUrls();
+    }
+  }
+
+  private revokeCandidateBlobUrls(): void {
+    for (const url of this.candidateBlobUrls) {
+      URL.revokeObjectURL(url);
+    }
+    this.candidateBlobUrls.clear();
+  }
+
+  private candidateFileFromMetadata(candidate: BestCandidateImage): File | null {
+    const candidateFile = candidate.metadata?.['file'];
+    return candidateFile instanceof File ? candidateFile : null;
   }
 
   private clearImageWarn() {
@@ -2650,11 +2870,13 @@ export class ChangePage implements OnInit, OnDestroy {
 
   openPreview() {
     if (!this.previewUrl) return;
+    this.previewCandidateOverride = null;
     this.previewOpen = true;
   }
 
   closePreview() {
     this.previewOpen = false;
+    this.previewCandidateOverride = null;
     this.suppressNextImagePick = false;
   }
 

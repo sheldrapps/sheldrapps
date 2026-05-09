@@ -1,0 +1,28 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'BEST_CANDIDATE.PREVIEW.TITLE' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onClose()">{{ 'BEST_CANDIDATE.PREVIEW.CLOSE' | translate }}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="best-candidate-preview">
+  @if (candidate) {
+    <div class="best-candidate-preview__viewport">
+      <img [src]="candidate.src" [alt]="'BEST_CANDIDATE.PICKER.CANDIDATE_ALT' | translate : { index: 1 }" />
+    </div>
+    <div class="best-candidate-preview__meta">
+      <strong>{{ candidate.fileName || candidate.sourcePath || ('BEST_CANDIDATE.PICKER.UNKNOWN_IMAGE' | translate) }}</strong>
+      <small>{{ candidate.width }} x {{ candidate.height }}</small>
+    </div>
+  }
+
+  @if (allowSelect && candidate) {
+    <div class="best-candidate-preview__actions">
+      <ion-button class="app-btn" expand="block" (click)="onSelect()">
+        {{ 'BEST_CANDIDATE.PREVIEW.SELECT' | translate }}
+      </ion-button>
+    </div>
+  }
+</ion-content>

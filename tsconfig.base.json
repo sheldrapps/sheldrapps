@@ -41,6 +41,9 @@
       "@sheldrapps/export-quality-kit": [
         "packages/export-quality-kit/src/public-api.ts"
       ],
+      "@sheldrapps/best-candidate-kit": [
+        "packages/best-candidate-kit/src/public-api.ts"
+      ],
       "@sheldrapps/datetime-kit": [
         "packages/datetime-kit/src/public-api.ts"
       ],

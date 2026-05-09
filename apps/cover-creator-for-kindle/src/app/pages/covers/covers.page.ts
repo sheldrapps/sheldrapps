@@ -505,6 +505,16 @@ export class CoversPage implements OnInit, OnDestroy {
       return null;
     }
 
+    const MB_IN_BYTES = 1024 * 1024;
+    if (bytes >= MB_IN_BYTES) {
+      const mb = bytes / MB_IN_BYTES;
+      const rounded = mb >= 10 ? Math.round(mb) : Math.round(mb * 10) / 10;
+      const value = Number.isInteger(rounded)
+        ? String(rounded)
+        : String(rounded).replace(/\.0$/, '');
+      return `${value}mb`;
+    }
+
     const kb = Math.max(1, Math.round(bytes / 1024));
     return `${kb}kb`;
   }

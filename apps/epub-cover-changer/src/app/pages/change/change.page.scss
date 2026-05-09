@@ -12,3 +12,12 @@ ion-content.preview-content::part(scroll) {
   object-fit: contain;
 }
 
+:host {
+  --change-section-space-y: var(--app-space-5, 0.875rem);
+}
+
+.best-candidate-wrap {
+  margin-top: var(--change-section-space-y);
+  margin-bottom: var(--app-space-3, 0.5rem);
+}
+

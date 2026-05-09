@@ -32,21 +32,30 @@ ion-modal.cover-preview-modal {
 
 .preview-details {
   margin-top: var(--app-space-6);
+  width: min(420px, calc(100% - (var(--app-space-4) * 2)));
+  max-width: calc(100% - (var(--app-space-4) * 2));
   display: grid;
   gap: var(--app-space-1);
   justify-items: center;
-  text-align: center;
   color: var(--app-body-text-color);
 }
 
 .preview-details__name {
+  width: 100%;
   font-size: var(--app-text-sm);
   font-weight: var(--app-font-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .preview-details__size {
+  width: 100%;
   font-size: var(--app-text-xs);
   color: var(--app-muted-text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .preview-unavailable {

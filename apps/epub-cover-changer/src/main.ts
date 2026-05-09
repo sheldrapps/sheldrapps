@@ -11,6 +11,7 @@ import {
   EDITOR_I18N_OVERRIDES,
 } from '@sheldrapps/image-workflow/editor';
 import { provideExportQualityKitI18n } from '@sheldrapps/export-quality-kit';
+import { provideBestCandidateKitI18n } from '@sheldrapps/best-candidate-kit';
 import { provideAdsKit } from '@sheldrapps/ads-kit';
 import {
   CapacitorPreferencesAdapter,
@@ -85,6 +86,7 @@ bootstrapApplication(AppComponent, {
       new MemoryStorageAdapter(),
     ),
     provideExportQualityKitI18n(),
+    provideBestCandidateKitI18n(),
     provideEditorI18n(),
     {
       provide: EDITOR_I18N_OVERRIDES,

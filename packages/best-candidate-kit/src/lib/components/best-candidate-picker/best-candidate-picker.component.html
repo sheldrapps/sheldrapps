@@ -1,0 +1,103 @@
+<section class="best-candidate-picker" [class.best-candidate-picker--disabled]="disabled" [class.best-candidate-picker--compact]="compact">
+  @if (showHeader && !compact) {
+  <header class="best-candidate-picker__header">
+    <h3>{{ 'BEST_CANDIDATE.PICKER.TITLE' | translate }}</h3>
+    <p>{{ 'BEST_CANDIDATE.PICKER.DESCRIPTION' | translate }}</p>
+  </header>
+  }
+
+  @if (loading) {
+    <div class="best-candidate-picker__state" [class.best-candidate-picker__state--compact]="compact">
+      <ion-spinner name="crescent" aria-hidden="true"></ion-spinner>
+      <span>{{ 'BEST_CANDIDATE.LOADING.TITLE' | translate }}</span>
+    </div>
+  } @else if (!limitedCandidates.length) {
+    <div class="best-candidate-picker__state" [class.best-candidate-picker__state--compact]="compact">
+      <strong>{{ 'BEST_CANDIDATE.EMPTY.TITLE' | translate }}</strong>
+      <p>{{ 'BEST_CANDIDATE.EMPTY.DESCRIPTION' | translate }}</p>
+    </div>
+  } @else {
+    @if (compact) {
+      <ion-card class="best-candidate-picker__compact-card">
+        <p class="best-candidate-picker__compact-copy">
+          {{ 'BEST_CANDIDATE.PICKER.NO_COVER_DETECTED' | translate }}
+        </p>
+        <div class="best-candidate-picker__compact-list">
+          @for (candidate of limitedCandidates; track trackByCandidate($index, candidate)) {
+            <button
+              type="button"
+              class="best-candidate-picker__compact-thumb"
+              [class.best-candidate-picker__compact-thumb--selected]="isSelected(candidate)"
+              [disabled]="disabled"
+              [attr.aria-label]="'BEST_CANDIDATE.PICKER.CANDIDATE_ALT' | translate : { index: $index + 1 }"
+              (pointerdown)="onCandidatePointerDown(candidate.image)"
+              (pointerup)="onCandidatePointerUp(candidate.image)"
+              (pointerleave)="onCandidatePointerCancel()"
+              (pointercancel)="onCandidatePointerCancel()"
+            >
+              <img
+                [src]="candidate.image.src"
+                [alt]="'BEST_CANDIDATE.PICKER.CANDIDATE_ALT' | translate : { index: $index + 1 }"
+                loading="lazy"
+              />
+            </button>
+          }
+        </div>
+        @if (enableLongPressPreview) {
+          <p class="best-candidate-picker__compact-hint">
+            {{ 'BEST_CANDIDATE.PICKER.LONG_PRESS_TO_PREVIEW' | translate }}
+          </p>
+        }
+      </ion-card>
+    } @else {
+    <div class="best-candidate-picker__list">
+      @for (candidate of limitedCandidates; track trackByCandidate($index, candidate)) {
+        <ion-card
+          class="best-candidate-picker__card"
+          [class.best-candidate-picker__card--selected]="isSelected(candidate)"
+          [class.best-candidate-picker__card--disabled]="disabled"
+          (pointerdown)="onCandidatePointerDown(candidate.image)"
+          (pointerup)="onCandidatePointerUp(candidate.image)"
+          (pointerleave)="onCandidatePointerCancel()"
+          (pointercancel)="onCandidatePointerCancel()"
+        >
+          <div class="best-candidate-picker__thumb">
+            <img
+              [src]="candidate.image.src"
+              [alt]="'BEST_CANDIDATE.PICKER.CANDIDATE_ALT' | translate : { index: $index + 1 }"
+              loading="lazy"
+            />
+          </div>
+
+          <div class="best-candidate-picker__meta">
+            <div class="best-candidate-picker__meta-head">
+              <strong>{{ candidate.image.fileName || candidate.image.sourcePath || ('BEST_CANDIDATE.PICKER.UNKNOWN_IMAGE' | translate) }}</strong>
+              @if (enableLongPressPreview) {
+                <button
+                  type="button"
+                  class="best-candidate-picker__preview-btn"
+                  [disabled]="disabled"
+                  [attr.aria-label]="'BEST_CANDIDATE.PREVIEW.TITLE' | translate"
+                  (pointerdown)="$event.stopPropagation()"
+                  (pointerup)="$event.stopPropagation()"
+                  (click)="requestPreview(candidate.image, $event)"
+                >
+                  <span aria-hidden="true">{{ 'BEST_CANDIDATE.PREVIEW.OPEN' | translate }}</span>
+                </button>
+              }
+            </div>
+            <small>{{ candidate.image.width }} x {{ candidate.image.height }}</small>
+            @if (showReasons && candidate.reasons.length) {
+              <div class="best-candidate-picker__reasons">
+                @for (reason of candidate.reasons; track reason) {
+                  <span>{{ reasonKey(reason) | translate }}</span>
+                }
+              </div>
+            }
+          </div>
+        </ion-card>
+      }
+    </div>
+    }
+  }
+</section>

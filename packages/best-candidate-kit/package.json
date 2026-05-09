@@ -1,0 +1,25 @@
+{
+  "name": "@sheldrapps/best-candidate-kit",
+  "version": "1.0.0",
+  "description": "Reusable best candidate cover ranking and picker UI for EPUB workflows",
+  "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
+  "peerDependencies": {
+    "@angular/common": "^20.0.0",
+    "@angular/core": "^20.0.0",
+    "@ionic/angular": "^8.0.0",
+    "@ngx-translate/core": "^17.0.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "keywords": [
+    "epub",
+    "cover",
+    "candidate",
+    "ionic",
+    "angular",
+    "i18n"
+  ]
+}

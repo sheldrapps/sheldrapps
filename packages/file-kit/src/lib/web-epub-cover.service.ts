@@ -290,19 +290,6 @@ export class WebEpubCoverService {
       }
     }
 
-    // Fallback: first image item in manifest
-    const firstImage = items.find((item) =>
-      (item.getAttribute('media-type') ?? '').startsWith('image/'),
-    );
-    if (firstImage) {
-      const href = firstImage.getAttribute('href');
-      if (href) {
-        const resolved = this.resolvePath(opfDir, href);
-        const entry = zip.file(resolved);
-        if (entry) return { path: resolved, zip: entry };
-      }
-    }
-
     return null;
   }
 

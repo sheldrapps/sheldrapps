@@ -150,6 +150,23 @@
     </div>
   </ion-item>
 
+  @if (shouldShowBestCandidateAction) {
+  <div class="best-candidate-wrap">
+    <best-candidate-picker
+      [candidates]="bestCandidates"
+      [loading]="bestCandidateLoading"
+      [disabled]="!hasValidEpub() || bestCandidateLoading"
+      [selectedCandidateId]="selectedBestCandidateId"
+      [showReasons]="false"
+      [showHeader]="false"
+      [compact]="true"
+      [enableLongPressPreview]="true"
+      (candidateSelected)="onBestCandidateSelected($event)"
+      (candidatePreviewRequested)="onBestCandidatePreviewRequested($event)"
+    />
+  </div>
+  }
+
   @if (imageErrorKey) {
   <div class="app-callout app-callout--error" aria-live="polite" role="status">
     <ion-icon
@@ -380,28 +397,28 @@
       </ion-header>
 
       <ion-content class="preview-content" [fullscreen]="true">
-        @if (previewUrl) {
+        @if (previewModalImageSrc) {
         <app-e-reader-preview-frame
-          [mode]="shouldShowComparePreview() ? 'compare' : 'single'"
-          [imageSrc]="previewUrlWithNonce"
-          [imageWidth]="targetWidth ?? null"
-          [imageHeight]="targetHeight ?? null"
-          [beforeSrc]="originalEpubPreviewUrl"
-          [afterSrc]="previewUrlWithNonce"
+          [mode]="previewModalMode"
+          [imageSrc]="previewModalImageSrc"
+          [imageWidth]="previewModalImageWidth"
+          [imageHeight]="previewModalImageHeight"
+          [beforeSrc]="previewModalBeforeSrc"
+          [afterSrc]="previewModalAfterSrc"
           [beforeLabel]="
-            shouldShowComparePreview()
+            previewModalMode === 'compare'
               ? ('CHANGE.PREVIEW_ORIGINAL_LABEL' | translate)
               : null
           "
           [afterLabel]="
-            shouldShowComparePreview()
+            previewModalMode === 'compare'
               ? ('CHANGE.PREVIEW_NEW_LABEL' | translate)
               : ('CHANGE.PREVIEW_NEW_ONLY_LABEL' | translate)
           "
           alt="cover preview"
           fit="contain"
           renderMode="eReader"
-          [comparisonEnabled]="true"
+          [comparisonEnabled]="previewModalComparisonEnabled"
           [isDithered]="isPreviewDithered()"
         ></app-e-reader-preview-frame>
         }
