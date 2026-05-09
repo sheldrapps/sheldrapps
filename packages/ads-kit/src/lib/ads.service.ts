@@ -81,6 +81,12 @@ export class AdsService {
   }
 
   async showRewarded(): Promise<RewardedAdResult> {
+    if (!this.isNative && this.isTesting) {
+      // Browser/web mode runs as premium: no ads are shown but reward-gated
+      // flows should continue as successful.
+      return { rewardEarned: true, adClosed: true, failed: false };
+    }
+
     await this.init();
     if (!this.initialized) {
       return { rewardEarned: false, adClosed: false, failed: true };
