@@ -1,4 +1,4 @@
-import {
+﻿import {
   ENVIRONMENT_INITIALIZER,
   inject,
   makeEnvironmentProviders,
@@ -6,28 +6,10 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { EXPORT_QUALITY_KIT_TRANSLATIONS } from './export-quality-kit.translations';
 
-const TRANSLATION_SENTINEL_KEY = 'CREATE.EXPORT_OPTIONS.TITLE';
-type ExportQualityTranslationDict =
-  (typeof EXPORT_QUALITY_KIT_TRANSLATIONS)[keyof typeof EXPORT_QUALITY_KIT_TRANSLATIONS];
-
-function resolveExportQualityTranslations(
-  lang: string,
-): ExportQualityTranslationDict | null {
-  if (!lang) return null;
-  if (lang in EXPORT_QUALITY_KIT_TRANSLATIONS) {
-    return EXPORT_QUALITY_KIT_TRANSLATIONS[
-      lang as keyof typeof EXPORT_QUALITY_KIT_TRANSLATIONS
-    ];
-  }
-  if (lang === 'es-419') {
-    return EXPORT_QUALITY_KIT_TRANSLATIONS['es-MX'];
-  }
-  return null;
-}
-
 /**
- * Registers export quality translations and keeps them merged
- * after language loads/changes from host apps.
+ * Provides export quality kit i18n translations.
+ *
+ * Registers default export quality translations for all supported languages.
  */
 export function provideExportQualityKitI18n() {
   return makeEnvironmentProviders([
@@ -36,12 +18,26 @@ export function provideExportQualityKitI18n() {
       multi: true,
       useValue: () => {
         const translate = inject(TranslateService);
+        const sampleKey = 'CHANGE';
         const merged = new Set<string>();
 
-        const mergeForLang = (lang: string) => {
-          const dict = resolveExportQualityTranslations(lang);
+        const resolveDictForLang = (lang: string) => {
+          if (!lang) return null;
+          if (lang in EXPORT_QUALITY_KIT_TRANSLATIONS) {
+            return EXPORT_QUALITY_KIT_TRANSLATIONS[
+              lang as keyof typeof EXPORT_QUALITY_KIT_TRANSLATIONS
+            ];
+          }
+          if (lang === 'es-MX' && (EXPORT_QUALITY_KIT_TRANSLATIONS as any)['es-419']) {
+            return (EXPORT_QUALITY_KIT_TRANSLATIONS as any)['es-419'];
+          }
+          return null;
+        };
+
+        const mergeExportQualityTranslations = (lang: string) => {
+          const dict = resolveDictForLang(lang);
           const baseDict = EXPORT_QUALITY_KIT_TRANSLATIONS['en-US'];
-          if (!dict && !baseDict) return;
+          if (!baseDict && !dict) return;
           if (merged.has(lang)) return;
           merged.add(lang);
 
@@ -63,23 +59,20 @@ export function provideExportQualityKitI18n() {
               event.lang &&
               !Object.prototype.hasOwnProperty.call(
                 event.translations,
-                TRANSLATION_SENTINEL_KEY,
+                sampleKey,
               )
             ) {
-              mergeForLang(event.lang);
+              mergeExportQualityTranslations(event.lang);
             }
           });
 
           translate.onLangChange.subscribe((event) => {
-            mergeForLang(event.lang);
+            mergeExportQualityTranslations(event.lang);
+            translate.instant(sampleKey);
           });
-
-          for (const lang of Object.keys(EXPORT_QUALITY_KIT_TRANSLATIONS)) {
-            mergeForLang(lang);
-          }
         } catch (err) {
           console.warn(
-            '[export-quality-kit] Failed to register translations:',
+            '[export-quality-kit] Failed to register export quality translations:',
             err,
           );
         }
