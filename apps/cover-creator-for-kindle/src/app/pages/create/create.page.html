@@ -210,7 +210,6 @@
 
     @if (shouldShowExportOptions()) {
     <app-export-quality-selector
-      translationScope="CREATE"
       [selectedMode]="getEffectiveExportQualityMode()"
       [isPro]="adsRemoved"
       (modeSelect)="onExportQualityModeSelect($event)"

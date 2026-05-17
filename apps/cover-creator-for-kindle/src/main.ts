@@ -123,7 +123,8 @@ bootstrapApplication(AppComponent, {
           'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': '모델 (해상도)',
         },
         'ru-RU': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'Модель (Разрешение)',
+          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
+            'Модель (Разрешение)',
         },
         'zh-CN': {
           'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': '型号（分辨率）',
@@ -148,7 +149,9 @@ bootstrapApplication(AppComponent, {
       ]),
     }),
 
-    provideFileKit(),
+    provideFileKit({
+      enableWebDevAdapters: environment.enableWebDevAdapters,
+    }),
     provideRatingKit({
       appKey: 'cover-creator-for-kindle',
       appName: 'Cover Creator for Kindle',

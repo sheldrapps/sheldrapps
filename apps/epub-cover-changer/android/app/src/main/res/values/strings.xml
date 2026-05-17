@@ -2,13 +2,19 @@
 <resources>
     <string name="app_name">EPUB Cover Changer</string>
     <string name="title_activity_main">EPUB Cover Changer</string>
-    <string name="app_name_en">EPUB Cover Changer</string>
-    <string name="app_name_es">Cambiar portada a EPUB</string>
-    <string name="app_name_fr">Changer couverture EPUB</string>
-    <string name="app_name_it">Cambiare copertina EPUB</string>
-    <string name="app_name_pt">Alterar capa do EPUB</string>
-    <string name="app_name_de">EPUB Cover ändern</string>
+    <string name="app_name_en_us">EPUB Cover Changer</string>
+    <string name="app_name_es_mx">Cambiar portada a EPUB</string>
+    <string name="app_name_de_de">EPUB Cover ändern</string>
+    <string name="app_name_fr_fr">Changer couverture EPUB</string>
+    <string name="app_name_it_it">Cambiare copertina EPUB</string>
+    <string name="app_name_pt_br">Alterar capa do EPUB</string>
+    <string name="app_name_zh_tw">EPUB 封面更換</string>
+    <string name="app_name_hi_in">EPUB कवर बदलें</string>
+    <string name="app_name_ar_sa">تغيير غلاف EPUB</string>
+    <string name="app_name_ja_jp">EPUB表紙変更</string>
+    <string name="app_name_ko_kr">EPUB 표지 변경</string>
+    <string name="app_name_zh_cn">EPUB 封面更换</string>
+    <string name="app_name_ru_ru">Сменить обложку EPUB</string>
     <string name="package_name">com.sheldrapps.epubcoverchanger</string>
     <string name="custom_url_scheme">com.sheldrapps.epubcoverchanger</string>
 </resources>
-

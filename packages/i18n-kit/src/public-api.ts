@@ -12,6 +12,7 @@ export * from './lib/storage';
 export * from './lib/locale-detection.service';
 export * from './lib/launcher-alias-sync';
 export * from './lib/app-restart';
+export * from './lib/components/language-radio-list/language-radio-list.component';
 
 // Adapter exports
 export * from './lib/adapters/device-lang';

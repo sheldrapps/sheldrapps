@@ -1117,7 +1117,7 @@ export class ChangePage implements OnInit, OnDestroy {
     });
     if (!params) return;
 
-    this.imageWarnKey = 'CHANGE.EXPORT_OPTIONS.SMALL_SOURCE_WARNING';
+    this.imageWarnKey = 'EXPORT_OPTIONS.SMALL_SOURCE_WARNING';
     this.imageWarnParams = params;
   }
 

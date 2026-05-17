@@ -14,6 +14,7 @@ import {
 } from '@sheldrapps/settings-kit';
 import { provideEpubFixerPort, provideFileKit } from '@sheldrapps/file-kit';
 import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
+import { environment } from './environments/environment';
 
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
@@ -64,7 +65,9 @@ bootstrapApplication(AppComponent, {
       ]),
     }),
 
-    provideFileKit(),
+    provideFileKit({
+      enableWebDevAdapters: environment.enableWebDevAdapters,
+    }),
     provideEpubFixerPort(),
     {
       provide: RECOMMENDED_APPS_CURRENT_PACKAGE,

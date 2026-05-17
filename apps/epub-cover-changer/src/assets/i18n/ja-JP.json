@@ -172,7 +172,7 @@
     "INSTRUCTIONS_SECTION": "使い方",
     "LANGUAGE": "言語",
     "LANGUAGE_RESTART_NOTICE": "言語が変更されました。変更を適用するためにアプリを再起動します。",
-    "LANGUAGE_PREPARING_COUNTDOWN": "ご利用の言語で準備中 ({{count}})",
+    "LANGUAGE_PREPARING_COUNTDOWN": "あなたの言語で準備しています。名前を変更するためアプリを終了します（{{count}}）",
     "PRIVACY_HINT": "データと広告の扱いを管理します",
     "PRIVACY_OPTIONS": "プライバシー設定",
     "PRIVACY_POLICY": "プライバシーポリシー",

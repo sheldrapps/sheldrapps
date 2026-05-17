@@ -220,7 +220,6 @@
 
     @if (shouldShowExportOptions()) {
     <app-export-quality-selector
-      translationScope="CHANGE"
       [selectedMode]="getEffectiveExportQualityMode()"
       [isPro]="adsRemoved"
       (modeSelect)="onExportQualityModeSelect($event)"
@@ -236,7 +235,7 @@
       ></ion-icon>
 
       <div class="app-callout__body">
-        {{ 'CHANGE.EXPORT_OPTIONS.DITHERING_HINT' | translate }}
+        {{ 'EXPORT_OPTIONS.DITHERING_HINT' | translate }}
       </div>
     </div>
     }

@@ -172,7 +172,7 @@
     "INSTRUCTIONS_SECTION": "사용 방법",
     "LANGUAGE": "언어",
     "LANGUAGE_RESTART_NOTICE": "언어가 변경되었습니다. 변경 사항을 적용하기 위해 앱이 재시작됩니다.",
-    "LANGUAGE_PREPARING_COUNTDOWN": "선택한 언어로 준비 중 ({{count}})",
+    "LANGUAGE_PREPARING_COUNTDOWN": "언어에 맞게 준비 중입니다. 이름을 변경하기 위해 앱이 종료됩니다 ({{count}})",
     "PRIVACY_HINT": "데이터 및 광고 처리 방식을 제어합니다",
     "PRIVACY_OPTIONS": "개인정보 옵션",
     "PRIVACY_POLICY": "개인정보 처리방침",

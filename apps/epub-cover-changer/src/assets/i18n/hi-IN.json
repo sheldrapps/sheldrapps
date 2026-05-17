@@ -172,7 +172,7 @@
     "INSTRUCTIONS_SECTION": "निर्देश",
     "LANGUAGE": "भाषा",
     "LANGUAGE_RESTART_NOTICE": "भाषा बदल गई। परिवर्तन लागू करने के लिए ऐप पुनः शुरू होगा।",
-    "LANGUAGE_PREPARING_COUNTDOWN": "आपकी भाषा में सब कुछ तैयार किया जा रहा है ({{count}})",
+    "LANGUAGE_PREPARING_COUNTDOWN": "आपकी भाषा में सब कुछ तैयार किया जा रहा है। नाम बदलने के लिए ऐप बंद होगा ({{count}})",
     "PRIVACY_HINT": "डेटा और विज्ञापन प्रबंधन नियंत्रित करें",
     "PRIVACY_OPTIONS": "गोपनीयता विकल्प",
     "PRIVACY_POLICY": "गोपनीयता नीति",

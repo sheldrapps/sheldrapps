@@ -52,9 +52,11 @@ export class BestCandidatePickerComponent {
 
   onCandidatePointerUp(candidate: BestCandidateImage): void {
     if (this.disabled) return;
-    const shouldEmitSelect = !this.longPressTriggered;
+    // Capture state before clearing to avoid race condition with the timeout callback
+    const wasLongPress = this.longPressTriggered;
     this.clearLongPressTimer();
-    if (shouldEmitSelect) {
+    // Emit selection only if this wasn't a long press
+    if (!wasLongPress) {
       this.candidateSelected.emit(candidate);
     }
     this.longPressTriggered = false;

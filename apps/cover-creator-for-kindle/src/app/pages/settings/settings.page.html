@@ -115,16 +115,11 @@
 
       <ion-content>
         <ion-list>
-          <ion-radio-group
+          <app-language-radio-list
             [value]="languageDraft"
-            (ionChange)="onLanguageDraftChange($event.detail.value)"
-          >
-            <ion-item *ngFor="let l of supportedLangs; trackBy: trackByLang">
-              <ion-radio slot="start" [value]="l.code"></ion-radio>
-              <span class="app-language-option__flag" [ngClass]="l.flagClass" aria-hidden="true"></span>
-              <ion-label>{{ l.label }}</ion-label>
-            </ion-item>
-          </ion-radio-group>
+            [options]="supportedLangs"
+            (valueChange)="onLanguageDraftChange($event)"
+          ></app-language-radio-list>
         </ion-list>
       </ion-content>
     </ng-template>

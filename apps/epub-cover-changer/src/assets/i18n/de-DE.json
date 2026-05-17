@@ -161,7 +161,7 @@
     "INSTRUCTIONS_SECTION": "Anleitung",
     "LANGUAGE": "Sprache",
     "LANGUAGE_RESTART_NOTICE": "Sprache geändert. Die App wird neu gestartet, um die Änderungen anzuwenden.",
-    "LANGUAGE_PREPARING_COUNTDOWN": "Wir bereiten alles in deiner Sprache vor ({{count}})",
+    "LANGUAGE_PREPARING_COUNTDOWN": "Wir bereiten alles in deiner Sprache vor. Die App wird geschlossen, um ihren Namen zu ändern ({{count}})",
     "PRIVACY_HINT": "Lege fest, wie Daten und Werbung verarbeitet werden",
     "PRIVACY_OPTIONS": "Datenschutzoptionen",
     "PRIVACY_POLICY": "Datenschutzerklärung",

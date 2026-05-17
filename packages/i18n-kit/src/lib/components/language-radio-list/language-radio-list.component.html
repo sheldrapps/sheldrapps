@@ -1,0 +1,17 @@
+<ion-radio-group [value]="selectedValue" (ionChange)="onGroupChange($event.detail.value)">
+  <ion-item
+    *ngFor="let option of options; trackBy: trackByCode"
+    button
+    detail="false"
+    (click)="onItemClick(option.code)"
+  >
+    <ion-radio slot="start" [value]="option.code"></ion-radio>
+    <span
+      *ngIf="option.flagClass"
+      class="app-language-option__flag"
+      [ngClass]="option.flagClass"
+      aria-hidden="true"
+    ></span>
+    <ion-label>{{ option.label }}</ion-label>
+  </ion-item>
+</ion-radio-group>

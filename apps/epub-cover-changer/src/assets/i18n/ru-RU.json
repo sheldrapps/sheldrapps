@@ -172,7 +172,7 @@
     "INSTRUCTIONS_SECTION": "Инструкция",
     "LANGUAGE": "Язык",
     "LANGUAGE_RESTART_NOTICE": "Язык изменён. Приложение перезапустится для применения изменений.",
-    "LANGUAGE_PREPARING_COUNTDOWN": "Подготовка на вашем языке ({{count}})",
+    "LANGUAGE_PREPARING_COUNTDOWN": "Подготавливаем всё на вашем языке. Приложение закроется, чтобы изменить название ({{count}})",
     "PRIVACY_HINT": "Управляйте обработкой данных и рекламы",
     "PRIVACY_OPTIONS": "Настройки конфиденциальности",
     "PRIVACY_POLICY": "Политика конфиденциальности",

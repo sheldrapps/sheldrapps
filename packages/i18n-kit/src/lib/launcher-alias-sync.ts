@@ -44,40 +44,13 @@ async function waitForLauncherAliasBridge(
 ): Promise<LauncherAliasBridge | null> {
   const startedAt = Date.now();
   let bridge = getLauncherAliasBridge();
-  const effectiveTimeoutMs = isNativePlatformRuntime() ? timeoutMs : 150;
 
-  while (!bridge && Date.now() - startedAt < effectiveTimeoutMs) {
+  while (!bridge && Date.now() - startedAt < timeoutMs) {
     await wait(intervalMs);
     bridge = getLauncherAliasBridge();
   }
 
   return bridge;
-}
-
-function isNativePlatformRuntime(): boolean {
-  const scope = globalThis as typeof globalThis & {
-    Capacitor?: {
-      isNativePlatform?: () => boolean;
-    };
-    window?: {
-      Capacitor?: {
-        isNativePlatform?: () => boolean;
-      };
-    };
-  };
-
-  const detector =
-    scope.Capacitor?.isNativePlatform ?? scope.window?.Capacitor?.isNativePlatform;
-
-  if (!detector) {
-    return false;
-  }
-
-  try {
-    return !!detector();
-  } catch {
-    return false;
-  }
 }
 
 function wait(ms: number): Promise<void> {

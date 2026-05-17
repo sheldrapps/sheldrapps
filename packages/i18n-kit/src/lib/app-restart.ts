@@ -60,38 +60,11 @@ async function waitForAppControlBridge(
 ): Promise<AppControlBridge | null> {
   const startedAt = Date.now();
   let bridge = getAppControlBridge();
-  const effectiveTimeoutMs = isNativePlatformRuntime() ? timeoutMs : 150;
 
-  while (!bridge && Date.now() - startedAt < effectiveTimeoutMs) {
+  while (!bridge && Date.now() - startedAt < timeoutMs) {
     await wait(intervalMs);
     bridge = getAppControlBridge();
   }
 
   return bridge;
-}
-
-function isNativePlatformRuntime(): boolean {
-  const scope = globalThis as typeof globalThis & {
-    Capacitor?: {
-      isNativePlatform?: () => boolean;
-    };
-    window?: {
-      Capacitor?: {
-        isNativePlatform?: () => boolean;
-      };
-    };
-  };
-
-  const detector =
-    scope.Capacitor?.isNativePlatform ?? scope.window?.Capacitor?.isNativePlatform;
-
-  if (!detector) {
-    return false;
-  }
-
-  try {
-    return !!detector();
-  } catch {
-    return false;
-  }
 }

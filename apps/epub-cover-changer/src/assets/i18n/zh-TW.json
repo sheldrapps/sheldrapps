@@ -172,7 +172,7 @@
     "INSTRUCTIONS_SECTION": "說明",
     "LANGUAGE": "語言",
     "LANGUAGE_RESTART_NOTICE": "語言已變更，應用程式將重新啟動以套用變更。",
-    "LANGUAGE_PREPARING_COUNTDOWN": "正在以您的語言準備一切（{{count}}）",
+    "LANGUAGE_PREPARING_COUNTDOWN": "正在以你的語言完成準備。App 將關閉以變更名稱（{{count}}）",
     "PRIVACY_HINT": "控制資料和廣告的處理方式",
     "PRIVACY_OPTIONS": "隱私選項",
     "PRIVACY_POLICY": "隱私權政策",

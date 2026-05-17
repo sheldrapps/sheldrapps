@@ -8,29 +8,25 @@ import {
 } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import type { ExportQualityMode } from '@sheldrapps/image-workflow';
-import {
-  EXPORT_QUALITY_SELECTOR_MODES,
-  type ExportQualityTranslationScope,
-} from '../../models/export-quality-kit.types';
+import { EXPORT_QUALITY_SELECTOR_MODES } from "../../models/export-quality-kit.types";
 
 @Component({
-  selector: 'app-export-quality-selector',
+  selector: "app-export-quality-selector",
   standalone: true,
   imports: [CommonModule, TranslateModule],
-  templateUrl: './export-quality-selector.component.html',
-  styleUrls: ['./export-quality-selector.component.scss'],
+  templateUrl: "./export-quality-selector.component.html",
+  styleUrls: ["./export-quality-selector.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExportQualitySelectorComponent {
   @Input({ required: true }) selectedMode!: ExportQualityMode;
-  @Input({ required: true }) translationScope!: ExportQualityTranslationScope;
   @Input() isPro = false;
-  @Input() proOnlyKey = 'COMMON.PRO_ONLY';
+  @Input() proOnlyKey = "COMMON.PRO_ONLY";
   @Input() modes: readonly ExportQualityMode[] = EXPORT_QUALITY_SELECTOR_MODES;
   @Output() modeSelect = new EventEmitter<ExportQualityMode>();
 
   get titleKey(): string {
-    return `${this.translationScope}.EXPORT_OPTIONS.TITLE`;
+    return "EXPORT_OPTIONS.TITLE";
   }
 
   isModeSelected(mode: ExportQualityMode): boolean {
@@ -38,19 +34,31 @@ export class ExportQualitySelectorComponent {
   }
 
   isModeLocked(mode: ExportQualityMode): boolean {
-    return mode !== 'compressed' && !this.isPro;
+    return mode !== "compressed" && !this.isPro;
   }
 
   getModeLabelKey(mode: ExportQualityMode): string {
-    if (mode === 'compressed') {
-      return `${this.translationScope}.EXPORT_OPTIONS.OPTIMIZED_TITLE`;
+    if (mode === "compressed") {
+      return "EXPORT_OPTIONS.OPTIMIZED_TITLE";
     }
 
-    if (mode === 'best') {
-      return `${this.translationScope}.EXPORT_OPTIONS.LOSSLESS_TITLE`;
+    if (mode === "best") {
+      return "EXPORT_OPTIONS.LOSSLESS_TITLE";
     }
 
-    return `${this.translationScope}.EXPORT_OPTIONS.THUMBNAIL_TITLE`;
+    return "EXPORT_OPTIONS.THUMBNAIL_TITLE";
+  }
+
+  getDescriptionKey(mode: ExportQualityMode): string {
+    if (mode === "compressed") {
+      return "EXPORT_OPTIONS.OPTIMIZED_DESCRIPTION";
+    }
+
+    if (mode === "best") {
+      return "EXPORT_OPTIONS.LOSSLESS_DESCRIPTION";
+    }
+
+    return "EXPORT_OPTIONS.THUMBNAIL_DESCRIPTION";
   }
 
   onModeSelect(mode: ExportQualityMode): void {

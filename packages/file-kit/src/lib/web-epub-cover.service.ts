@@ -1,14 +1,21 @@
 /**
  * JSZip-based EPUB cover operations for web/non-Android environments.
  * Used as a fallback when the native EpubRewritePlugin is not available.
+ *
+ * WARNING: This service imports jszip, which is excluded in production builds
+ * when enableWebDevAdapters is false. Do not use directly in production code.
  */
 
-import { Injectable } from '@angular/core';
+import { Injectable, InjectionToken } from '@angular/core';
 import JSZip, { type JSZipObject } from 'jszip';
 
 const EPUB_MIME = 'application/epub+zip';
 
-@Injectable({ providedIn: 'root' })
+export const WEB_EPUB_COVER_SERVICE_TOKEN = new InjectionToken<WebEpubCoverService>(
+  'WEB_EPUB_COVER_SERVICE'
+);
+
+@Injectable()
 export class WebEpubCoverService {
   /**
    * Returns true if the file is a readable EPUB zip with at least a container.xml.

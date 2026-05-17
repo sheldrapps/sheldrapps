@@ -277,7 +277,7 @@
     "INSTRUCTIONS_SECTION": "Instructions",
     "LANGUAGE": "Language",
     "LANGUAGE_RESTART_NOTICE": "Language changed. The app will restart to apply changes.",
-    "LANGUAGE_PREPARING_COUNTDOWN": "Preparing everything in your language ({{count}})",
+    "LANGUAGE_PREPARING_COUNTDOWN": "Preparing everything in your language. The app will close to change its name ({{count}})",
     "PRIVACY_HINT": "Control how data and advertising are handled",
     "PRIVACY_OPTIONS": "Privacy options",
     "PRIVACY_POLICY": "Privacy policy",

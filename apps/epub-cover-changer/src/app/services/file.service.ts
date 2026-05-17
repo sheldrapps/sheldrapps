@@ -8,6 +8,7 @@ import {
   type SheldrCoverMetadata,
   writeSheldrCoverMetadata,
   WebEpubCoverService,
+  WEB_EPUB_COVER_SERVICE_TOKEN,
 } from '@sheldrapps/file-kit';
 import { TranslateService } from '@ngx-translate/core';
 import {
@@ -91,7 +92,9 @@ export class FileService {
   private readonly LEGACY_EPUB_FOLDERS = ['CoverCreator'];
   private fileKit = inject(FileKitService);
   private epubRewrite = inject(EpubRewriteService);
-  private webEpubCover = inject(WebEpubCoverService);
+  private webEpubCover = inject(WEB_EPUB_COVER_SERVICE_TOKEN, {
+    optional: true,
+  }) as WebEpubCoverService | null;
   private readonly thumbDataUrlCache = new Map<string, string>();
   private thumbFileNamesCache: Set<string> | null = null;
   private thumbFileNamesCachePromise: Promise<Set<string>> | null = null;
@@ -134,6 +137,9 @@ export class FileService {
 
   async validateEpubStructure(file: File): Promise<boolean> {
     if (!this.epubRewrite.isSupported()) {
+      if (!this.webEpubCover) {
+        throw new Error('Web EPUB cover support not available in this build');
+      }
       return this.webEpubCover.isReadableEpub(file);
     }
     const tempName = `validate_${Date.now()}_${file.name || 'epub'}`;
@@ -166,6 +172,9 @@ export class FileService {
 
   async extractCoverFromEpubFile(file: File): Promise<File | null> {
     if (!this.epubRewrite.isSupported()) {
+      if (!this.webEpubCover) {
+        throw new Error('Web EPUB cover support not available in this build');
+      }
       return this.webEpubCover.extractCover(file);
     }
     const tempName = `extract_${Date.now()}_${file.name || 'epub'}`;
@@ -984,6 +993,9 @@ export class FileService {
     filename?: string;
   }): Promise<{ bytes: Uint8Array; filename: string }> {
     if (!this.epubRewrite.isSupported()) {
+      if (!this.webEpubCover) {
+        throw new Error('Web EPUB cover support not available in this build');
+      }
       const filename = this.ensureEpubExt(
         this.sanitizeFilename(
           opts.filename ?? this.buildFilename(opts.modelId),
@@ -1058,6 +1070,9 @@ export class FileService {
     filename?: string;
   }): Promise<{ bytes: Uint8Array; filename: string }> {
     if (!this.epubRewrite.isSupported()) {
+      if (!this.webEpubCover) {
+        throw new Error('Web EPUB cover support not available in this build');
+      }
       const filename = this.ensureEpubExt(
         this.sanitizeFilename(
           opts.filename ?? opts.sourceEpubFile?.name ?? 'epub_cover.epub',
@@ -1763,7 +1778,10 @@ export class FileService {
   }
 
   private async listDirectoryDocumentsEpubs(): Promise<string[]> {
-    const files = await this.listDirectoryFileNames(this.EPUB_FOLDER, 'Documents');
+    const files = await this.listDirectoryFileNames(
+      this.EPUB_FOLDER,
+      'Documents',
+    );
     return files
       .filter((name) => name.toLowerCase().endsWith('.epub'))
       .sort((a, b) => a.localeCompare(b));

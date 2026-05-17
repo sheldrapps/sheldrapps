@@ -18,7 +18,7 @@ export function provideExportQualityKitI18n() {
       multi: true,
       useValue: () => {
         const translate = inject(TranslateService);
-        const sampleKey = 'CHANGE';
+        const sampleKey = "EXPORT_OPTIONS";
         const merged = new Set<string>();
 
         const resolveDictForLang = (lang: string) => {

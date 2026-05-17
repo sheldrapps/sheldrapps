@@ -22,13 +22,21 @@ import java.util.List;
 public class MainActivity extends BridgeActivity {
     private boolean runtimeFlagsExposed = false;
     private static final String ALIAS_PREFIX = "com.sheldrapps.epubcoverchanger.MainActivityAlias_";
+    private static final String DEFAULT_ALIAS_LOCALE = "en-US";
     private static final List<String> ALL_ALIAS_LOCALES = Arrays.asList(
-        "en",
-        "es",
-        "fr",
-        "it",
-        "pt",
-        "de"
+        "en-US",
+        "es-MX",
+        "de-DE",
+        "fr-FR",
+        "it-IT",
+        "pt-BR",
+        "zh-TW",
+        "hi-IN",
+        "ar-SA",
+        "ja-JP",
+        "ko-KR",
+        "zh-CN",
+        "ru-RU"
     );
 
     private static final class RuntimeBridge {
@@ -53,8 +61,8 @@ public class MainActivity extends BridgeActivity {
         @JavascriptInterface
         public void restartForLocale(String localeTag) {
             runOnUiThread(() -> {
-                setActiveLauncherAliasLocale(localeTag);
-                relaunchApp();
+                String targetLocale = setActiveLauncherAliasLocale(localeTag);
+                relaunchAppForAliasLocale(targetLocale);
             });
         }
     }
@@ -161,21 +169,114 @@ public class MainActivity extends BridgeActivity {
         Runtime.getRuntime().exit(0);
     }
 
-    private void setActiveLauncherAliasLocale(String localeTag) {
-        final String lang = localeTag != null && localeTag.contains("-")
-            ? localeTag.split("-")[0]
-            : localeTag;
-        final String targetLocale = ALL_ALIAS_LOCALES.contains(lang) ? lang : "en";
+    private void relaunchAppForAliasLocale(String locale) {
+        String targetLocale = resolveAliasLocale(locale);
+        ComponentName aliasComponent = buildAliasComponentName(targetLocale);
+
+        Intent aliasLaunchIntent = new Intent(Intent.ACTION_MAIN);
+        aliasLaunchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        aliasLaunchIntent.setComponent(aliasComponent);
+        aliasLaunchIntent.addFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK |
+            Intent.FLAG_ACTIVITY_CLEAR_TASK
+        );
+
+        try {
+            startActivity(aliasLaunchIntent);
+            Runtime.getRuntime().exit(0);
+            return;
+        } catch (Exception ignored) {
+            // Fallback below.
+        }
+
+        Intent launchIntent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+        if (launchIntent == null) {
+            launchIntent = new Intent(this, MainActivity.class);
+            launchIntent.setAction(Intent.ACTION_MAIN);
+            launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        }
+
+        launchIntent.addFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK |
+            Intent.FLAG_ACTIVITY_CLEAR_TASK
+        );
+
+        startActivity(launchIntent);
+        Runtime.getRuntime().exit(0);
+    }
+
+    private String setActiveLauncherAliasLocale(String localeTag) {
+        final String targetLocale = resolveAliasLocale(localeTag);
 
         PackageManager pm = getPackageManager();
         String pkg = getPackageName();
 
         for (String locale : ALL_ALIAS_LOCALES) {
-            ComponentName component = new ComponentName(pkg, ALIAS_PREFIX + locale);
+            ComponentName component = new ComponentName(pkg, ALIAS_PREFIX + localeToAliasSuffix(locale));
             int state = locale.equals(targetLocale)
                 ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
                 : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
             pm.setComponentEnabledSetting(component, state, PackageManager.DONT_KILL_APP);
         }
+
+        return targetLocale;
+    }
+
+    private String resolveAliasLocale(String localeTag) {
+        if (localeTag == null || localeTag.trim().isEmpty()) {
+            return DEFAULT_ALIAS_LOCALE;
+        }
+
+        String normalized = localeTag.trim().replace('_', '-');
+        for (String locale : ALL_ALIAS_LOCALES) {
+            if (locale.equalsIgnoreCase(normalized)) {
+                return locale;
+            }
+        }
+
+        String[] parts = normalized.split("-", 2);
+        String language = parts[0].toLowerCase();
+        String region = parts.length > 1 ? parts[1].toUpperCase() : "";
+
+        switch (language) {
+            case "es":
+                return "es-MX";
+            case "en":
+                return "en-US";
+            case "de":
+                return "de-DE";
+            case "fr":
+                return "fr-FR";
+            case "it":
+                return "it-IT";
+            case "pt":
+            case "pr":
+                return "pt-BR";
+            case "zh":
+                return "CN".equals(region) ? "zh-CN" : "zh-TW";
+            case "hi":
+                return "hi-IN";
+            case "ar":
+                return "ar-SA";
+            case "ja":
+                return "ja-JP";
+            case "ko":
+                return "ko-KR";
+            case "ru":
+                return "ru-RU";
+            default:
+                return DEFAULT_ALIAS_LOCALE;
+        }
+    }
+
+    private String localeToAliasSuffix(String locale) {
+        return locale.replace('-', '_');
+    }
+
+    private ComponentName buildAliasComponentName(String locale) {
+        return new ComponentName(
+            getPackageName(),
+            ALIAS_PREFIX + localeToAliasSuffix(locale)
+        );
     }
 }

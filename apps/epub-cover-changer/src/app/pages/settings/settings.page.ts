@@ -11,8 +11,6 @@ import {
   IonList,
   IonItem,
   IonLabel,
-  IonRadio,
-  IonRadioGroup,
   IonModal,
   IonButtons,
   IonButton,
@@ -31,7 +29,10 @@ import { ConsentService } from 'src/app/services/consent.service';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EccSettings } from 'src/app/settings/ecc-settings.schema';
 import { Browser } from '@capacitor/browser';
-import { restartForLanguageChange } from '@sheldrapps/i18n-kit';
+import {
+  LanguageRadioListComponent,
+  restartForLanguageChange,
+} from '@sheldrapps/i18n-kit';
 import { TourService } from 'src/app/shared/tour/tour.service';
 import { HOME_TOUR_ID } from 'src/app/shared/tour/home-tour.definition';
 import { RatingService } from '@sheldrapps/rating-kit';
@@ -52,12 +53,11 @@ import { RatingService } from '@sheldrapps/rating-kit';
     IonList,
     IonItem,
     IonLabel,
-    IonRadio,
-    IonRadioGroup,
     IonModal,
     IonButtons,
     IonButton,
     IonLoading,
+    LanguageRadioListComponent,
   ],
 })
 export class SettingsPage {
@@ -75,8 +75,8 @@ export class SettingsPage {
   isLanguageModalOpen = false;
   private _languageDraft: Lang | null = null;
   isLanguageRestartLoading = false;
-  languageRestartCountdown = 3;
-  private readonly languageRestartCountdownStart = 3;
+  languageRestartCountdown = 4;
+  private readonly languageRestartCountdownStart = 4;
 
   private readonly privacyPolicyUrl =
     'https://sheldrapps.github.io/privacy-policies/epub-cover-changer/';
@@ -117,8 +117,13 @@ export class SettingsPage {
     this.isLanguageModalOpen = false;
   }
 
-  onLanguageDraftChange(value: Lang) {
-    this._languageDraft = value;
+  onLanguageDraftChange(value: string) {
+    const next = this.supportedLangs.find((option) => option.code === value)?.code;
+    if (!next) {
+      return;
+    }
+
+    this._languageDraft = next;
   }
 
   async confirmLanguageModal() {
@@ -139,7 +144,7 @@ export class SettingsPage {
       await this.settings.set({ language: v });
       await this.lang.set(v);
       await this.showLanguageRestartCountdown();
-      await restartForLanguageChange(v, 0);
+      await restartForLanguageChange(v, 500);
     } finally {
       this.isLanguageRestartLoading = false;
       this.isRestartingLanguage = false;
@@ -175,20 +180,12 @@ export class SettingsPage {
   }
 
   private async showLanguageRestartCountdown() {
-    this.languageRestartCountdown = this.languageRestartCountdownStart;
     this.isLanguageRestartLoading = true;
     await this.waitForLoadingToRender();
-
-    for (
-      let remaining = this.languageRestartCountdownStart;
-      remaining > 1;
-      remaining--
-    ) {
+    for (let remaining = this.languageRestartCountdownStart; remaining >= 1; remaining--) {
+      this.languageRestartCountdown = remaining;
       await this.delay(1000);
-      this.languageRestartCountdown = remaining - 1;
     }
-
-    await this.delay(1000);
   }
 
   private async waitForLoadingToRender(): Promise<void> {

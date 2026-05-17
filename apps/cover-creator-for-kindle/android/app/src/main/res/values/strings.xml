@@ -2,12 +2,19 @@
 <resources>
     <string name="app_name">E-Reader Cover Creator</string>
     <string name="title_activity_main">E-Reader Cover Creator</string>
-    <string name="app_name_en">E-Reader Cover Creator</string>
-    <string name="app_name_es">Creador de portadas e-reader</string>
-    <string name="app_name_fr">Créateur couvertures e-reader</string>
-    <string name="app_name_it">Creatore copertine e-reader</string>
-    <string name="app_name_pt">Criador de capas e-reader</string>
-    <string name="app_name_de">E-Reader Cover Creator</string>
+    <string name="app_name_en_us">E-Reader Cover Creator</string>
+    <string name="app_name_es_mx">Creador de portadas e-reader</string>
+    <string name="app_name_de_de">E-Reader Cover Creator</string>
+    <string name="app_name_fr_fr">Créateur couvertures e-reader</string>
+    <string name="app_name_it_it">Creatore copertine e-reader</string>
+    <string name="app_name_pt_br">Criador de capas e-reader</string>
+    <string name="app_name_zh_tw">Kindle 封面製作器</string>
+    <string name="app_name_hi_in">किंडल कवर क्रिएटर</string>
+    <string name="app_name_ar_sa">صانع أغلفة كيندل</string>
+    <string name="app_name_ja_jp">Kindle表紙作成</string>
+    <string name="app_name_ko_kr">킨들 표지 제작기</string>
+    <string name="app_name_zh_cn">Kindle 封面制作器</string>
+    <string name="app_name_ru_ru">Обложки для Kindle</string>
     <string name="package_name">com.sheldrapps.covercreatorforkindle</string>
     <string name="custom_url_scheme">com.sheldrapps.covercreatorforkindle</string>
 </resources>

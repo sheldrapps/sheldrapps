@@ -277,7 +277,7 @@
     "INSTRUCTIONS_SECTION": "التعليمات",
     "LANGUAGE": "اللغة",
     "LANGUAGE_RESTART_NOTICE": "تم تغيير اللغة. سيُعاد تشغيل التطبيق لتطبيق التغييرات.",
-    "LANGUAGE_PREPARING_COUNTDOWN": "جارٍ تجهيز كل شيء بلغتك ({{count}})",
+    "LANGUAGE_PREPARING_COUNTDOWN": "جارٍ تجهيز كل شيء بلغتك. سيتم إغلاق التطبيق لتغيير اسمه ({{count}})",
     "PRIVACY_HINT": "تحكّم في كيفية معالجة البيانات والإعلانات",
     "PRIVACY_OPTIONS": "خيارات الخصوصية",
     "PRIVACY_POLICY": "سياسة الخصوصية",

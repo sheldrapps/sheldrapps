@@ -172,7 +172,9 @@ bootstrapApplication(AppComponent, {
       ]),
     }),
 
-    provideFileKit(),
+    provideFileKit({
+      enableWebDevAdapters: environment.enableWebDevAdapters,
+    }),
     provideRatingKit({
       appKey: 'epub-cover-changer',
       appName: 'EPUB Cover Changer',
