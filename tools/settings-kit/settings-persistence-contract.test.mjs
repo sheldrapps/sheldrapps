@@ -60,6 +60,46 @@ test("settings-store contract: writes persist and are re-readable via storage ke
     /const next =\s*typeof update === 'function'/,
     "SettingsStore.set() must support patch function update pattern"
   );
+  assert.match(
+    source,
+    /await this\.load\(\);\s*return this\.enqueueWrite\(/,
+    "SettingsStore.set() must load before writing and serialize writes"
+  );
+});
+
+test("settings-store contract: writes are queued to avoid race conditions", () => {
+  const source = readFileSync(settingsStorePath, "utf8");
+
+  assert.match(
+    source,
+    /private writeQueue: Promise<void> = Promise\.resolve\(\);/,
+    "SettingsStore should keep an internal FIFO queue for writes"
+  );
+  assert.match(
+    source,
+    /private async enqueueWrite<R>\(operation: \(\) => Promise<R>\): Promise<R>/,
+    "SettingsStore should expose an internal enqueueWrite helper"
+  );
+  assert.match(
+    source,
+    /const pending = this\.writeQueue;/,
+    "enqueueWrite should wait for the previous write before running"
+  );
+  assert.match(
+    source,
+    /await pending;/,
+    "enqueueWrite must await previous writes"
+  );
+  assert.match(
+    source,
+    /async setForScope\(/,
+    "SettingsStore should expose setForScope() for scoped writes"
+  );
+  assert.match(
+    source,
+    /Protected keys require setForScope/,
+    "SettingsStore should block protected keys in generic set()"
+  );
 });
 
 test("config-json adapter contract: default file path is config.json", () => {
@@ -92,7 +132,30 @@ test("app wiring contract: config.json adapter is the source of truth where impl
       /fallbackAdapter:\s*new WebLocalStorageAdapter\(\)/,
       `${name} must keep web fallback adapter in config.json storage wiring`
     );
+    assert.match(
+      source,
+      /writeAccess:\s*\{/,
+      `${name} must define write access policy`
+    );
+    assert.match(
+      source,
+      /protectedKeys:\s*\[\s*'theme',\s*'language',\s*'exportQualityMode'\s*\]/,
+      `${name} must protect theme/language/exportQualityMode from generic writes`
+    );
   }
+});
+
+test("theme ownership contract: shared ThemeService persists theme via scoped write", () => {
+  const source = readFileSync(
+    "packages/ui-theme/src/lib/theme/theme.service.ts",
+    "utf8"
+  );
+
+  assert.match(
+    source,
+    /setForScope\('theme',\s*\{\s*theme:/,
+    "ThemeService must persist theme through theme scope"
+  );
 });
 
 test("documented limitation: presupuesto-ninos does not implement config.json wiring yet", () => {

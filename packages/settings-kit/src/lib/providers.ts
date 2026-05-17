@@ -27,6 +27,18 @@ export interface SettingsKitConfig {
    * Defaults to the main storage adapter when omitted.
    */
   legacyStorageAdapter?: StorageAdapter;
+
+  /**
+   * Optional write access policy.
+   * - protectedKeys: keys that cannot be written via generic set()
+   * - scopes: allowed keys per scope for setForScope(scope, ...)
+   */
+  writeAccess?: SettingsWriteAccessConfig;
+}
+
+export interface SettingsWriteAccessConfig {
+  protectedKeys?: readonly string[];
+  scopes?: Readonly<Record<string, readonly string[]>>;
 }
 
 /**
@@ -81,6 +93,11 @@ export interface ProvideSettingsKitConfig<T> {
    * Defaults to the main storage adapter when omitted.
    */
   legacyStorageAdapter?: StorageAdapter;
+
+  /**
+   * Optional write access policy.
+   */
+  writeAccess?: SettingsWriteAccessConfig;
 }
 
 /**
@@ -110,6 +127,7 @@ export function provideSettingsKit<T>(
         appId: config.appId,
         storageKey: config.storageKey,
         legacyStorageAdapter: config.legacyStorageAdapter,
+        writeAccess: config.writeAccess,
       } as SettingsKitConfig,
     },
 

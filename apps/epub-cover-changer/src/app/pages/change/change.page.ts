@@ -2399,7 +2399,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.exportQualityMode = mode;
     this.exportImageFile = undefined;
     this.invalidateGeneratedOutputState();
-    await this.settings.set({ exportQualityMode: mode });
+    await this.settings.setForScope('exportQuality', { exportQualityMode: mode });
   }
 
   private syncAuthorizedExportQualityMode(reason: string): void {
@@ -2414,7 +2414,9 @@ export class ChangePage implements OnInit, OnDestroy {
     this.exportQualityMode = normalized;
     this.exportImageFile = undefined;
     this.invalidateGeneratedOutputState();
-    void this.settings.set({ exportQualityMode: normalized });
+    void this.settings.setForScope('exportQuality', {
+      exportQualityMode: normalized,
+    });
   }
 
   shouldShowDitheringHint(): boolean {

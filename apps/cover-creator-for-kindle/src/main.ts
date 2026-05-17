@@ -139,6 +139,14 @@ bootstrapApplication(AppComponent, {
       appId: 'ccfk',
       storageKey: CCFK_SETTINGS_STORAGE_KEY,
       schema: CCFK_SETTINGS_SCHEMA,
+      writeAccess: {
+        protectedKeys: ['theme', 'language', 'exportQualityMode'],
+        scopes: {
+          theme: ['theme'],
+          language: ['language'],
+          exportQuality: ['exportQualityMode'],
+        },
+      },
       storageAdapter: new ConfigJsonFileAdapter({
         primaryKey: CCFK_SETTINGS_STORAGE_KEY,
         fallbackAdapter: new WebLocalStorageAdapter(),

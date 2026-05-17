@@ -41,7 +41,7 @@ export class ThemeService implements OnDestroy {
     await this.applyTheme(storedTheme);
 
     if (this.settings.get().theme !== storedTheme) {
-      await this.settings.set({ theme: storedTheme });
+      await this.settings.setForScope('theme', { theme: storedTheme });
     }
 
     this.initialized = true;
@@ -51,7 +51,7 @@ export class ThemeService implements OnDestroy {
     const normalizedTheme = normalizeAppThemeMode(theme) ?? 'system';
     this.mode = normalizedTheme;
     await this.applyTheme(normalizedTheme);
-    await this.settings.set({ theme: normalizedTheme });
+    await this.settings.setForScope('theme', { theme: normalizedTheme });
   }
 
   async previewTheme(theme: Theme): Promise<void> {

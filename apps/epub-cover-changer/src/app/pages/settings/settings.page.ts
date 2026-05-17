@@ -141,7 +141,7 @@ export class SettingsPage {
     this.isRestartingLanguage = true;
 
     try {
-      await this.settings.set({ language: v });
+      await this.settings.setForScope('language', { language: v });
       await this.lang.set(v);
       await this.showLanguageRestartCountdown();
       await restartForLanguageChange(v, 500);

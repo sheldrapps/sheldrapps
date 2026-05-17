@@ -28,8 +28,11 @@ export class SettingsStore<T extends object> {
   private readonly storage: StorageAdapter;
   private readonly legacyStorage: StorageAdapter;
   private readonly subject: BehaviorSubject<T>;
+  private readonly protectedKeys: ReadonlySet<string>;
+  private readonly scopeKeys: Readonly<Record<string, ReadonlySet<string>>>;
   private loaded = false;
   private loading: Promise<T> | null = null;
+  private writeQueue: Promise<void> = Promise.resolve();
 
   constructor(
     @Inject(SETTINGS_KIT_CONFIG_TOKEN) config: SettingsKitConfig,
@@ -40,6 +43,8 @@ export class SettingsStore<T extends object> {
     this.schema = schema;
     this.storage = storage;
     this.legacyStorage = config.legacyStorageAdapter || storage;
+    this.protectedKeys = new Set(config.writeAccess?.protectedKeys ?? []);
+    this.scopeKeys = this.buildScopeKeys(config.writeAccess?.scopes);
     this.subject = new BehaviorSubject<T>(schema.defaults);
 
   }
@@ -136,25 +141,32 @@ export class SettingsStore<T extends object> {
   async set(
     update: Partial<T> | ((prev: T) => T)
   ): Promise<T> {
-    const current = this.subject.value;
-    const next =
-      typeof update === 'function'
-        ? update(current)
-        : { ...current, ...update };
+    await this.load();
+    return this.enqueueWrite(async () => this.applyUpdate(update));
+  }
 
-    const hydrated = this.hydrate(next);
-    await this.persist(hydrated);
-    this.subject.next(hydrated);
-    return hydrated;
+  /**
+   * Update settings with an explicit write scope.
+   * Scope is validated against configured writeAccess.scopes.
+   */
+  async setForScope(
+    scope: string,
+    update: Partial<T> | ((prev: T) => T)
+  ): Promise<T> {
+    await this.load();
+    return this.enqueueWrite(async () => this.applyUpdate(update, scope));
   }
 
   /**
    * Reset settings to defaults
    */
   async reset(): Promise<T> {
-    await this.storage.remove(this.storageKey);
-    this.subject.next(this.schema.defaults);
-    return this.schema.defaults;
+    await this.load();
+    return this.enqueueWrite(async () => {
+      await this.storage.remove(this.storageKey);
+      this.subject.next(this.schema.defaults);
+      return this.schema.defaults;
+    });
   }
 
   /**
@@ -288,5 +300,102 @@ export class SettingsStore<T extends object> {
 
   private isPlainObject(value: unknown): value is Record<string, unknown> {
     return !!value && typeof value === 'object' && !Array.isArray(value);
+  }
+
+  private async enqueueWrite<R>(operation: () => Promise<R>): Promise<R> {
+    const pending = this.writeQueue;
+    let releaseQueue: () => void = () => {};
+    this.writeQueue = new Promise<void>((resolve) => {
+      releaseQueue = resolve;
+    });
+
+    await pending;
+    try {
+      return await operation();
+    } finally {
+      releaseQueue();
+    }
+  }
+
+  private buildScopeKeys(
+    scopes: Readonly<Record<string, readonly string[]>> | undefined
+  ): Readonly<Record<string, ReadonlySet<string>>> {
+    if (!scopes) {
+      return {};
+    }
+
+    return Object.fromEntries(
+      Object.entries(scopes).map(([scope, keys]) => [scope, new Set(keys)])
+    );
+  }
+
+  private async applyUpdate(
+    update: Partial<T> | ((prev: T) => T),
+    scope?: string
+  ): Promise<T> {
+    const current = this.subject.value;
+    const next =
+      typeof update === 'function'
+        ? update(current)
+        : { ...current, ...update };
+
+    const hydrated = this.hydrate(next);
+    const changedKeys = this.getChangedKeys(current, hydrated);
+    this.validateChangedKeys(changedKeys, scope);
+    await this.persist(hydrated);
+    this.subject.next(hydrated);
+    return hydrated;
+  }
+
+  private getChangedKeys(current: T, next: T): string[] {
+    const keys = new Set<string>([
+      ...Object.keys(current as Record<string, unknown>),
+      ...Object.keys(next as Record<string, unknown>),
+    ]);
+
+    const changed: string[] = [];
+    for (const key of keys) {
+      const prevValue = (current as Record<string, unknown>)[key];
+      const nextValue = (next as Record<string, unknown>)[key];
+      if (!this.valuesEqual(prevValue, nextValue)) {
+        changed.push(key);
+      }
+    }
+
+    return changed;
+  }
+
+  private validateChangedKeys(changedKeys: readonly string[], scope?: string): void {
+    if (!changedKeys.length) {
+      return;
+    }
+
+    if (scope) {
+      const allowed = this.scopeKeys[scope];
+      if (!allowed) {
+        throw new Error(
+          `[settings-kit] Unknown settings write scope "${scope}".`
+        );
+      }
+
+      const blocked = changedKeys.filter((key) => !allowed.has(key));
+      if (blocked.length) {
+        throw new Error(
+          `[settings-kit] Scope "${scope}" is not allowed to write keys: ${blocked.join(', ')}`
+        );
+      }
+      return;
+    }
+
+    if (!this.protectedKeys.size) {
+      return;
+    }
+
+    const blocked = changedKeys.filter((key) => this.protectedKeys.has(key));
+    if (blocked.length) {
+      throw new Error(
+        `[settings-kit] Protected keys require setForScope(...): ${blocked.join(', ')}`
+      );
+    }
   }
 }

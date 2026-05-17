@@ -1131,7 +1131,9 @@ export class CreatePage implements OnInit, OnDestroy {
 
     this.exportQualityMode = mode;
     this.exportImageFile = undefined;
-    await this.settings.set({ exportQualityMode: mode });
+    await this.settings.setForScope('exportQuality', {
+      exportQualityMode: mode,
+    });
   }
 
   async onGenerate() {
@@ -1597,7 +1599,9 @@ export class CreatePage implements OnInit, OnDestroy {
     }
 
     this.exportQualityMode = normalized;
-    void this.settings.set({ exportQualityMode: normalized });
+    void this.settings.setForScope('exportQuality', {
+      exportQualityMode: normalized,
+    });
   }
 
   private downscaleCanvas(

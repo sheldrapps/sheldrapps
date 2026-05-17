@@ -162,6 +162,14 @@ bootstrapApplication(AppComponent, {
       appId: 'ecc',
       storageKey: ECC_SETTINGS_STORAGE_KEY,
       schema: ECC_SETTINGS_SCHEMA,
+      writeAccess: {
+        protectedKeys: ['theme', 'language', 'exportQualityMode'],
+        scopes: {
+          theme: ['theme'],
+          language: ['language'],
+          exportQuality: ['exportQualityMode'],
+        },
+      },
       storageAdapter: new ConfigJsonFileAdapter({
         primaryKey: ECC_SETTINGS_STORAGE_KEY,
         fallbackAdapter: new WebLocalStorageAdapter(),
