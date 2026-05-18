@@ -15,6 +15,7 @@ import {
   isArtifactReductionEnabled,
   isDitheringEnabled,
 } from "../core/pipeline";
+import { EREADER_OPTIMIZE_PRESET } from "./editor-adjustment-presets";
 
 export type HistoryMode = "local" | "global";
 export type PanelScope = "tools" | "adjustments" | "text";
@@ -35,6 +36,8 @@ type NormalizedAdjustments = {
   brightness: number;
   contrast: number;
   saturation: number;
+  sharpness: number;
+  eReaderOptimizationEnabled: boolean;
   bw: boolean;
   cleanupEnabled: boolean;
   cleanupStrength: string;
@@ -42,6 +45,13 @@ type NormalizedAdjustments = {
   preserveDetails: boolean;
   ditheringEnabled: boolean;
   ditheringMode: string;
+};
+
+type EReaderOptimizationBaseline = {
+  brightness: number;
+  contrast: number;
+  saturation: number;
+  sharpness: number;
 };
 
 type NormalizedTransform = {
@@ -103,6 +113,8 @@ export class EditorHistoryService {
 
   private sliderActive = false;
   private pendingSliderCommand: EditorCommand | null = null;
+  private eReaderOptimizationBaseline: EReaderOptimizationBaseline | null = null;
+  private eReaderOptimizationMutation = false;
 
   private gestureActive = false;
   private gestureStart: { scale: number; tx: number; ty: number } | null = null;
@@ -124,6 +136,8 @@ export class EditorHistoryService {
   readonly brightness = this.editorState.brightness;
   readonly saturation = this.editorState.saturation;
   readonly contrast = this.editorState.contrast;
+  readonly sharpness = this.editorState.sharpness;
+  readonly eReaderOptimizationEnabled = this.editorState.eReaderOptimizationEnabled;
   readonly bw = this.editorState.bw;
   readonly dither = this.editorState.dither;
   readonly artifactReductionEnabled = this.editorState.artifactReductionEnabled;
@@ -204,6 +218,8 @@ export class EditorHistoryService {
     this.baselineKindleSnapshot.set(null);
     this.panelScope.set(null);
     this.mode.set("global");
+    this.eReaderOptimizationBaseline = null;
+    this.eReaderOptimizationMutation = false;
   }
 
   resetSession(): void {
@@ -221,6 +237,8 @@ export class EditorHistoryService {
     this.baselineKindleSnapshot.set(null);
     this.panelScope.set(null);
     this.mode.set("global");
+    this.eReaderOptimizationBaseline = null;
+    this.eReaderOptimizationMutation = false;
   }
 
   enterPanel(scope: PanelScope): void {
@@ -306,6 +324,7 @@ export class EditorHistoryService {
     this.mode.set("global");
     this.textDragActiveId = null;
     this.textDragStart = null;
+    this.syncEReaderOptimizationBaselineFromState();
     return true;
   }
 
@@ -416,7 +435,15 @@ export class EditorHistoryService {
     this.editorState.setBrightness(value);
     const next = this.editorState.brightness();
     if (prev === next) return;
-    const command = { type: "SetBrightness", payload: { value: next } };
+    const disabledOptimization =
+      this.maybeAutoDisableEReaderOptimizationOnManualAdjustment();
+    const command = {
+      type: "SetBrightness",
+      payload: {
+        value: next,
+        eReaderOptimizationEnabled: disabledOptimization ? false : undefined,
+      },
+    };
     if (this.sliderActive) {
       this.pendingSliderCommand = command;
       return;
@@ -429,7 +456,15 @@ export class EditorHistoryService {
     this.editorState.setSaturation(value);
     const next = this.editorState.saturation();
     if (prev === next) return;
-    const command = { type: "SetSaturation", payload: { value: next } };
+    const disabledOptimization =
+      this.maybeAutoDisableEReaderOptimizationOnManualAdjustment();
+    const command = {
+      type: "SetSaturation",
+      payload: {
+        value: next,
+        eReaderOptimizationEnabled: disabledOptimization ? false : undefined,
+      },
+    };
     if (this.sliderActive) {
       this.pendingSliderCommand = command;
       return;
@@ -442,7 +477,36 @@ export class EditorHistoryService {
     this.editorState.setContrast(value);
     const next = this.editorState.contrast();
     if (prev === next) return;
-    const command = { type: "SetContrast", payload: { value: next } };
+    const disabledOptimization =
+      this.maybeAutoDisableEReaderOptimizationOnManualAdjustment();
+    const command = {
+      type: "SetContrast",
+      payload: {
+        value: next,
+        eReaderOptimizationEnabled: disabledOptimization ? false : undefined,
+      },
+    };
+    if (this.sliderActive) {
+      this.pendingSliderCommand = command;
+      return;
+    }
+    this.recordCommand(command);
+  }
+
+  setSharpness(value: number): void {
+    const prev = this.editorState.sharpness();
+    this.editorState.setSharpness(value);
+    const next = this.editorState.sharpness();
+    if (prev === next) return;
+    const disabledOptimization =
+      this.maybeAutoDisableEReaderOptimizationOnManualAdjustment();
+    const command = {
+      type: "SetSharpness",
+      payload: {
+        value: next,
+        eReaderOptimizationEnabled: disabledOptimization ? false : undefined,
+      },
+    };
     if (this.sliderActive) {
       this.pendingSliderCommand = command;
       return;
@@ -456,6 +520,78 @@ export class EditorHistoryService {
     const next = this.editorState.bw();
     if (prev === next) return;
     this.recordCommand({ type: "SetBw", payload: { value: next } });
+  }
+
+  setEReaderOptimizationEnabled(value: boolean): void {
+    const prev = this.editorState.eReaderOptimizationEnabled();
+    this.editorState.setEReaderOptimizationEnabled(value);
+    const next = this.editorState.eReaderOptimizationEnabled();
+    if (prev === next) return;
+    this.recordCommand({
+      type: "SetEReaderOptimizationEnabled",
+      payload: { value: next },
+    });
+    this.syncEReaderOptimizationBaselineFromState();
+  }
+
+  toggleEReaderOptimization(value: boolean): void {
+    const current = this.editorState.eReaderOptimizationEnabled();
+    if (value === current) {
+      return;
+    }
+
+    if (value) {
+      this.applyEReaderOptimizationPreset();
+      return;
+    }
+    this.disableEReaderOptimizationAndRestoreBaseline();
+  }
+
+  applyEReaderOptimizationPreset(): void {
+    this.setEReaderOptimizationState({
+      brightness: EREADER_OPTIMIZE_PRESET.brightness,
+      contrast: EREADER_OPTIMIZE_PRESET.contrast,
+      saturation: EREADER_OPTIMIZE_PRESET.saturation,
+      sharpness: EREADER_OPTIMIZE_PRESET.sharpness,
+      eReaderOptimizationEnabled: true,
+    });
+  }
+
+  setEReaderOptimizationState(nextState: {
+    brightness: number;
+    contrast: number;
+    saturation: number;
+    sharpness: number;
+    eReaderOptimizationEnabled: boolean;
+  }): void {
+    const before = this.captureEReaderOptimizationState();
+    const wasEnabled = before.eReaderOptimizationEnabled;
+
+    if (nextState.eReaderOptimizationEnabled && !wasEnabled) {
+      this.eReaderOptimizationBaseline = this.captureCurrentAdjustmentBaseline();
+    }
+
+    this.eReaderOptimizationMutation = true;
+    try {
+      this.editorState.setBrightness(nextState.brightness);
+      this.editorState.setContrast(nextState.contrast);
+      this.editorState.setSaturation(nextState.saturation);
+      this.editorState.setSharpness(nextState.sharpness);
+      this.editorState.setEReaderOptimizationEnabled(
+        nextState.eReaderOptimizationEnabled,
+      );
+    } finally {
+      this.eReaderOptimizationMutation = false;
+    }
+
+    const after = this.captureEReaderOptimizationState();
+    if (this.eReaderOptimizationStateEqual(before, after)) return;
+
+    this.recordCommand({
+      type: "ApplyEReaderOptimizationPreset",
+      payload: { ...after },
+    });
+    this.syncEReaderOptimizationBaselineFromState();
   }
 
   setDither(value: boolean): void {
@@ -710,8 +846,16 @@ export class EditorHistoryService {
     this.setContrast(DEFAULT_EDITOR_ADJUSTMENTS.contrast);
   }
 
+  resetSharpness(): void {
+    this.setSharpness(DEFAULT_EDITOR_ADJUSTMENTS.sharpness);
+  }
+
   resetBw(): void {
     this.setBw(DEFAULT_EDITOR_ADJUSTMENTS.bw);
+  }
+
+  resetEReaderOptimization(): void {
+    this.setEReaderOptimizationEnabled(false);
   }
 
   resetDither(): void {
@@ -894,16 +1038,59 @@ export class EditorHistoryService {
     switch (command.type) {
       case "SetBrightness":
         this.editorState.setBrightness(command.payload.value);
+        if (typeof command.payload.eReaderOptimizationEnabled === "boolean") {
+          this.editorState.setEReaderOptimizationEnabled(
+            command.payload.eReaderOptimizationEnabled,
+          );
+        }
         return;
       case "SetSaturation":
         this.editorState.setSaturation(command.payload.value);
+        if (typeof command.payload.eReaderOptimizationEnabled === "boolean") {
+          this.editorState.setEReaderOptimizationEnabled(
+            command.payload.eReaderOptimizationEnabled,
+          );
+        }
         return;
       case "SetContrast":
         this.editorState.setContrast(command.payload.value);
+        if (typeof command.payload.eReaderOptimizationEnabled === "boolean") {
+          this.editorState.setEReaderOptimizationEnabled(
+            command.payload.eReaderOptimizationEnabled,
+          );
+        }
+        return;
+      case "SetSharpness":
+        this.editorState.setSharpness(command.payload.value);
+        if (typeof command.payload.eReaderOptimizationEnabled === "boolean") {
+          this.editorState.setEReaderOptimizationEnabled(
+            command.payload.eReaderOptimizationEnabled,
+          );
+        }
         return;
       case "SetBw":
         this.editorState.setBw(command.payload.value);
         return;
+      case "SetEReaderOptimizationEnabled":
+        this.editorState.setEReaderOptimizationEnabled(command.payload.value);
+        return;
+      case "ApplyEReaderOptimizationPreset": {
+        const payload = command.payload as {
+          brightness: number;
+          contrast: number;
+          saturation: number;
+          sharpness: number;
+          eReaderOptimizationEnabled: boolean;
+        };
+        this.editorState.setBrightness(payload.brightness);
+        this.editorState.setContrast(payload.contrast);
+        this.editorState.setSaturation(payload.saturation);
+        this.editorState.setSharpness(payload.sharpness);
+        this.editorState.setEReaderOptimizationEnabled(
+          payload.eReaderOptimizationEnabled,
+        );
+        return;
+      }
       case "SetDither":
         this.editorState.setDitheringEnabled(command.payload.value);
         return;
@@ -1016,6 +1203,52 @@ export class EditorHistoryService {
       default:
         console.warn("[editor-history] Unknown command:", command);
     }
+    this.syncEReaderOptimizationBaselineFromState();
+  }
+
+  private disableEReaderOptimizationAndRestoreBaseline(): void {
+    const baseline =
+      this.eReaderOptimizationBaseline ?? {
+        brightness: DEFAULT_EDITOR_ADJUSTMENTS.brightness,
+        contrast: DEFAULT_EDITOR_ADJUSTMENTS.contrast,
+        saturation: DEFAULT_EDITOR_ADJUSTMENTS.saturation,
+        sharpness: DEFAULT_EDITOR_ADJUSTMENTS.sharpness,
+      };
+
+    this.setEReaderOptimizationState({
+      brightness: baseline.brightness,
+      contrast: baseline.contrast,
+      saturation: baseline.saturation,
+      sharpness: baseline.sharpness,
+      eReaderOptimizationEnabled: false,
+    });
+  }
+
+  private captureCurrentAdjustmentBaseline(): EReaderOptimizationBaseline {
+    return {
+      brightness: this.roundToStep(this.editorState.brightness(), SLIDER_STEP),
+      contrast: this.roundToStep(this.editorState.contrast(), SLIDER_STEP),
+      saturation: this.roundToStep(this.editorState.saturation(), SLIDER_STEP),
+      sharpness: this.roundToStep(this.editorState.sharpness(), SLIDER_STEP),
+    };
+  }
+
+  private maybeAutoDisableEReaderOptimizationOnManualAdjustment(): boolean {
+    if (this.eReaderOptimizationMutation) {
+      return false;
+    }
+    if (!this.editorState.eReaderOptimizationEnabled()) {
+      return false;
+    }
+    this.editorState.setEReaderOptimizationEnabled(false);
+    this.eReaderOptimizationBaseline = null;
+    return true;
+  }
+
+  private syncEReaderOptimizationBaselineFromState(): void {
+    if (!this.editorState.eReaderOptimizationEnabled()) {
+      this.eReaderOptimizationBaseline = null;
+    }
   }
 
   private recordViewportIfChanged(prev: {
@@ -1087,6 +1320,47 @@ export class EditorHistoryService {
     this.localPointer.set(nextCommands.length);
   }
 
+  private captureEReaderOptimizationState(): {
+    brightness: number;
+    contrast: number;
+    saturation: number;
+    sharpness: number;
+    eReaderOptimizationEnabled: boolean;
+  } {
+    return {
+      brightness: this.roundToStep(this.editorState.brightness(), SLIDER_STEP),
+      contrast: this.roundToStep(this.editorState.contrast(), SLIDER_STEP),
+      saturation: this.roundToStep(this.editorState.saturation(), SLIDER_STEP),
+      sharpness: this.roundToStep(this.editorState.sharpness(), SLIDER_STEP),
+      eReaderOptimizationEnabled: !!this.editorState.eReaderOptimizationEnabled(),
+    };
+  }
+
+  private eReaderOptimizationStateEqual(
+    a: {
+      brightness: number;
+      contrast: number;
+      saturation: number;
+      sharpness: number;
+      eReaderOptimizationEnabled: boolean;
+    },
+    b: {
+      brightness: number;
+      contrast: number;
+      saturation: number;
+      sharpness: number;
+      eReaderOptimizationEnabled: boolean;
+    },
+  ): boolean {
+    return (
+      a.brightness === b.brightness &&
+      a.contrast === b.contrast &&
+      a.saturation === b.saturation &&
+      a.sharpness === b.sharpness &&
+      a.eReaderOptimizationEnabled === b.eReaderOptimizationEnabled
+    );
+  }
+
   private flushPending(): void {
     if (this.sliderActive) {
       this.onSliderEnd();
@@ -1117,6 +1391,8 @@ export class EditorHistoryService {
       brightness: this.roundToStep(state.brightness, SLIDER_STEP),
       contrast: this.roundToStep(state.contrast, SLIDER_STEP),
       saturation: this.roundToStep(state.saturation, SLIDER_STEP),
+      sharpness: this.roundToStep(state.sharpness ?? 0, SLIDER_STEP),
+      eReaderOptimizationEnabled: !!state.eReaderOptimizationEnabled,
       bw: !!state.bw,
       cleanupEnabled: isArtifactReductionEnabled(state),
       cleanupStrength: state.cleanup?.artifactReduction ?? "off",

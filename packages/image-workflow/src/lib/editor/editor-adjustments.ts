@@ -7,6 +7,7 @@ export interface EditorAdjustmentsState {
   brightness: number;
   contrast: number;
   saturation: number;
+  sharpness: number;
   bw: boolean;
   dither: boolean;
   artifactReductionEnabled: boolean;
@@ -18,6 +19,7 @@ export const DEFAULT_EDITOR_ADJUSTMENTS: EditorAdjustmentsState = {
   brightness: 1,
   contrast: 1,
   saturation: 1,
+  sharpness: 0,
   bw: false,
   dither: false,
   artifactReductionEnabled: false,

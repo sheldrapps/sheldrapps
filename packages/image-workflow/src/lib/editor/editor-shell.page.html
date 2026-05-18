@@ -44,7 +44,7 @@
           (dblclick)="reset()"
           [attr.aria-label]="'EDITOR.SHELL.ARIA.CROP_FRAME' | translate"
         >
-        <div class="frame-content" [style.filter]="cssFilter()">
+        <div class="frame-content" [style.filter]="composedAdjustmentsPreviewUrl() ? null : cssFilter()">
           <div
             class="frame-bg"
             [class.frame-bg--blur]="backgroundMode() === 'blur'"
@@ -53,7 +53,7 @@
             [style.--bg-blur]="backgroundBlurPx()"
             aria-hidden="true"
           ></div>
-          @if (imageUrl) {
+          @if (imageUrl && !composedAdjustmentsPreviewUrl()) {
             <img
               #img
               class="img"
@@ -62,6 +62,14 @@
               draggable="false"
               (load)="onImgLoad($event)"
               (error)="onImgError($event)"
+            />
+          }
+          @if (composedAdjustmentsPreviewUrl()) {
+            <img
+              class="img img--composed"
+              [src]="composedAdjustmentsPreviewUrl()"
+              alt=""
+              draggable="false"
             />
           }
         </div>

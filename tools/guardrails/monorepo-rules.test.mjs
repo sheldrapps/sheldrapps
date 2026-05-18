@@ -442,3 +442,90 @@ test("regression: rating-kit must register translations only for active locale a
     "registerTranslations must subscribe to translateService.onLangChange to handle language switches",
   );
 });
+
+test("regression: ECC and CCFK launcher aliases default to system locale on fresh install", () => {
+  const manifests = [
+    "apps/epub-cover-changer/android/app/src/main/AndroidManifest.xml",
+    "apps/cover-creator-for-kindle/android/app/src/main/AndroidManifest.xml",
+  ];
+
+  for (const manifestPath of manifests) {
+    const manifest = readFileSync(manifestPath, "utf8");
+    const aliasBlocks = [...manifest.matchAll(/<activity-alias[\s\S]*?<\/activity-alias>/g)].map(
+      (m) => m[0],
+    );
+    const launcherAliases = aliasBlocks
+      .map((block) => {
+        const nameMatch = block.match(/android:name="([^"]+)"/);
+        const enabledMatch = block.match(/android:enabled="([^"]+)"/);
+        return {
+          name: nameMatch?.[1] ?? "",
+          enabled: enabledMatch?.[1] ?? "",
+        };
+      })
+      .filter((alias) => alias.name.includes(".MainActivityAlias_"));
+
+    const enabledAliases = launcherAliases.filter((alias) => alias.enabled === "true");
+    assert.equal(
+      enabledAliases.length,
+      1,
+      `${manifestPath} must have exactly one enabled launcher alias`,
+    );
+    assert.equal(
+      enabledAliases[0]?.name,
+      ".MainActivityAlias_system",
+      `${manifestPath} must enable .MainActivityAlias_system by default`,
+    );
+
+    const enUsAlias = launcherAliases.find(
+      (alias) => alias.name === ".MainActivityAlias_en_US",
+    );
+    assert.ok(
+      enUsAlias,
+      `${manifestPath} must declare .MainActivityAlias_en_US`,
+    );
+    assert.equal(
+      enUsAlias.enabled,
+      "false",
+      `${manifestPath} must keep .MainActivityAlias_en_US disabled by default`,
+    );
+  }
+});
+
+test("regression: launcher locale native mapping defaults to system in ECC and CCFK MainActivity", () => {
+  const mainActivities = [
+    "apps/epub-cover-changer/android/app/src/main/java/com/sheldrapps/epubcoverchanger/MainActivity.java",
+    "apps/cover-creator-for-kindle/android/app/src/main/java/com/sheldrapps/covercreatorforkindle/MainActivity.java",
+  ];
+
+  for (const activityPath of mainActivities) {
+    const source = readFileSync(activityPath, "utf8");
+    assert.match(
+      source,
+      /DEFAULT_ALIAS_LOCALE\s*=\s*"system"/,
+      `${activityPath} must default launcher alias locale to "system"`,
+    );
+    assert.match(
+      source,
+      /ALL_ALIAS_LOCALES\s*=\s*Arrays\.asList\(\s*"system"/s,
+      `${activityPath} must include "system" as first launcher alias locale`,
+    );
+    assert.match(
+      source,
+      /if\s*\("system"\.equalsIgnoreCase\(normalized\)\)\s*\{\s*return\s*"system";\s*\}/s,
+      `${activityPath} must resolve "system" locale explicitly`,
+    );
+  }
+});
+
+test("regression: language service must not sync launcher alias during startup/init language set", () => {
+  const source = readFileSync("packages/i18n-kit/src/lib/language.service.ts", "utf8");
+  assert.ok(
+    !source.includes("syncLauncherAlias("),
+    "LanguageService must not call syncLauncherAlias(); launcher alias switching must remain in explicit restart/change-language flow",
+  );
+  assert.ok(
+    !/from\s+['"]\.\/launcher-alias-sync['"]/.test(source),
+    "LanguageService must not import launcher alias sync helper",
+  );
+});

@@ -56,6 +56,7 @@ import {
 } from '@sheldrapps/image-workflow';
 import {
   EditorSessionService,
+  EDITOR_EREADER_OPTIMIZATION_PREF_KEY,
   type KindleDeviceModel,
 } from '@sheldrapps/image-workflow/editor';
 
@@ -247,6 +248,7 @@ export class CreatePage implements OnInit, OnDestroy {
   private removeAdsPulseResetTimeout: ReturnType<typeof setTimeout> | null =
     null;
   private removeAdsCtaImpressionTracked = false;
+  private readonly editorEReaderOptimizationFeatureEnabled = true;
 
   imageErrorKey?: string;
   imageErrorParams: Record<string, any> = {};
@@ -373,6 +375,9 @@ export class CreatePage implements OnInit, OnDestroy {
     const selection = this.resolveCurrentSelection();
     if (!selection) return;
     this.applyResolvedSelection(selection);
+    const eReaderOptimizationEnabledForFeature =
+      await this.resolveEReaderOptimizationEnabled();
+    const initialState = this.cropState;
 
     const sid = this.editorSession.createSession({
       file: this.workingImageFile,
@@ -380,7 +385,7 @@ export class CreatePage implements OnInit, OnDestroy {
         width: selection.model.width,
         height: selection.model.height,
       },
-      initialState: this.cropState,
+      initialState,
       tools: {
         kindle: {
           modelCatalog: this.groups,
@@ -390,6 +395,11 @@ export class CreatePage implements OnInit, OnDestroy {
           onKindleModelChange: (model: KindleDeviceModel) => {
             void this.applyExternalModelChange(model);
           },
+        },
+        eReaderOptimization: {
+          enabled:
+            this.editorEReaderOptimizationFeatureEnabled &&
+            eReaderOptimizationEnabledForFeature,
         },
       },
       output: {
@@ -434,6 +444,16 @@ export class CreatePage implements OnInit, OnDestroy {
         ...(shouldShowEditorTour ? { tour: '1' } : {}),
       },
     });
+  }
+
+  private async resolveEReaderOptimizationEnabled(): Promise<boolean> {
+    if (!this.editorEReaderOptimizationFeatureEnabled) {
+      return false;
+    }
+    const settings = await this.settings.load();
+    const stored =
+      settings.preferences?.[EDITOR_EREADER_OPTIMIZATION_PREF_KEY];
+    return stored !== false;
   }
 
   async onBrandChange() {
@@ -714,10 +734,14 @@ export class CreatePage implements OnInit, OnDestroy {
     try {
       const exportFile = await this.ensureExportImageFile();
       if (!exportFile) return;
+      const requestedFilename = this.ensureEpubExtension(filename);
 
-      if (filename === this.lastSavedFilename) {
+      if (
+        this.lastSavedFilename &&
+        requestedFilename.toLowerCase() === this.lastSavedFilename.toLowerCase()
+      ) {
         const alreadySaved =
-          await this.fileService.hasCoverByFilename(filename);
+          await this.fileService.hasCoverByFilename(requestedFilename);
         if (alreadySaved) {
           await this.showToast(
             'CREATE.SAVED_OK',
@@ -735,23 +759,23 @@ export class CreatePage implements OnInit, OnDestroy {
         try {
           await this.fileService.renameGeneratedEpub({
             from: staleFilename,
-            to: filename,
+            to: requestedFilename,
           });
         } catch {
           await this.fileService.saveGeneratedEpub({
             bytes: this.generatedEpubBytes!,
-            filename: filename,
+            filename: requestedFilename,
             coverFileForThumb: exportFile,
             coverMetadata: this.buildCoverProcessingMetadata(),
           });
           this.logSaveFlow('finalWriteComplete', {
             flow: 'performSave',
-            filename,
+            filename: requestedFilename,
             writeCompletedAt: new Date().toISOString(),
           });
           if (
             staleFilename &&
-            staleFilename.toLowerCase() !== filename.toLowerCase()
+            staleFilename.toLowerCase() !== requestedFilename.toLowerCase()
           ) {
             try {
               await this.fileService.deleteGeneratedEpub(staleFilename);
@@ -760,30 +784,34 @@ export class CreatePage implements OnInit, OnDestroy {
             }
           }
         }
+
+        this.generatedEpubFilename = requestedFilename;
+        this.lastSavedFilename = requestedFilename;
       } else {
+        const uniqueFilename =
+          await this.resolveUniqueEpubFilename(requestedFilename);
         await this.fileService.saveGeneratedEpub({
           bytes: this.generatedEpubBytes!,
-          filename: filename,
+          filename: uniqueFilename,
           coverFileForThumb: exportFile,
           coverMetadata: this.buildCoverProcessingMetadata(),
         });
         this.logSaveFlow('finalWriteComplete', {
           flow: 'performSave',
-          filename,
+          filename: uniqueFilename,
           writeCompletedAt: new Date().toISOString(),
         });
+        this.generatedEpubFilename = uniqueFilename;
+        this.lastSavedFilename = uniqueFilename;
       }
-
-      this.generatedEpubFilename = filename;
-      this.lastSavedFilename = filename;
 
       this.coversEvents.emit({
         type: 'saved',
-        filename: filename,
+        filename: this.generatedEpubFilename,
       });
       this.logSaveFlow('savedEventEmitted', {
         flow: 'performSave',
-        filename,
+        filename: this.generatedEpubFilename,
         emittedAt: new Date().toISOString(),
       });
 
@@ -1191,7 +1219,9 @@ export class CreatePage implements OnInit, OnDestroy {
     });
 
     this.generatedEpubBytes = res.bytes;
-    this.generatedEpubFilename = res.filename;
+    this.generatedEpubFilename = await this.resolveUniqueEpubFilename(
+      res.filename,
+    );
 
     this.setBusy('export', 'CREATE.SAVING');
 
@@ -1648,6 +1678,22 @@ export class CreatePage implements OnInit, OnDestroy {
     if (result?.file) {
       await this.applyCropResult(result);
     }
+  }
+
+  private async resolveUniqueEpubFilename(
+    requestedFilename: string,
+  ): Promise<string> {
+    const normalized = this.ensureEpubExtension(requestedFilename);
+    const base = normalized.replace(/\.epub$/i, '').trim() || 'kindle_cover';
+    let candidate = `${base}.epub`;
+    let index = 1;
+
+    while (await this.fileService.hasCoverByFilename(candidate)) {
+      candidate = `${base} (${index}).epub`;
+      index += 1;
+    }
+
+    return candidate;
   }
 
   private logSaveFlow(event: string, payload?: Record<string, unknown>): void {

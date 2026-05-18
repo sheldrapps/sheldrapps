@@ -34,9 +34,13 @@ export interface CompositionRenderOptions {
   mimeType?: string;
   quality?: number;
   maxDimension?: number;
+  includeBackground?: boolean;
+  includeTextLayers?: boolean;
   debug?: boolean;
   debugLabel?: string;
 }
+
+type RasterSource = ImageBitmap | HTMLImageElement;
 
 const DEFAULT_EXPORT_QUALITY = 0.92;
 const DEFAULT_EXPORT_MIME = "image/jpeg";
@@ -46,6 +50,8 @@ const DEFAULT_BLUR_STRENGTH = 80;
 const MAX_BLUR_PX = 40;
 const TEXT_STAGE_EDGE_PAD = 15;
 const TEXT_HANDLE_PAD_RIGHT = 12;
+const EREADER_UPSCALE_MIN_SHORT_SIDE = 1100;
+const EREADER_UPSCALE_MAX_FACTOR = 1.6;
 
 export function resolveCompositionOutputSize(args: {
   target: CropTarget;
@@ -143,7 +149,7 @@ export async function renderCompositionToCanvas(
 
   const previewMode = options.mode === "preview";
   const outputScale = options.outputScale ?? 1;
-  const outputSize = resolveCompositionOutputSize({
+  const baseOutputSize = resolveCompositionOutputSize({
     target,
     frameWidth,
     frameHeight,
@@ -151,9 +157,27 @@ export async function renderCompositionToCanvas(
     naturalWidth,
     naturalHeight,
     state,
-    outputScale: previewMode ? 1 : outputScale,
+    outputScale,
   });
-  if (!outputSize) return null;
+  if (!baseOutputSize) return null;
+
+  const eReaderUpscaleFactor = resolveEReaderUpscaleFactor({
+    mode: options.mode,
+    target,
+    state,
+    width: baseOutputSize.width,
+    height: baseOutputSize.height,
+  });
+  const outputSize =
+    eReaderUpscaleFactor > 1
+      ? {
+          width: Math.max(1, Math.round(baseOutputSize.width * eReaderUpscaleFactor)),
+          height: Math.max(
+            1,
+            Math.round(baseOutputSize.height * eReaderUpscaleFactor),
+          ),
+        }
+      : baseOutputSize;
 
   const layoutW = outputSize.width;
   const layoutH = outputSize.height;
@@ -166,11 +190,11 @@ export async function renderCompositionToCanvas(
 
   const frameScale = scaledW / frameWidth;
 
-  const bitmap =
-    sourceBitmap ??
-    (sourceBitmapPromise
-      ? await sourceBitmapPromise
-      : await createImageBitmap(file));
+  const bitmap = await resolveRasterSource({
+    file,
+    sourceBitmap,
+    sourceBitmapPromise,
+  });
 
   const backgroundMode =
     (state.backgroundMode ?? "transparent") as BackgroundMode;
@@ -192,19 +216,22 @@ export async function renderCompositionToCanvas(
   ctx.imageSmoothingQuality = "high";
 
   const shouldDrawCheckerAfter = previewMode && backgroundMode === "transparent";
+  const includeBackground = options.includeBackground !== false;
 
-  drawBackground(ctx, {
-    mode: backgroundMode,
-    color: backgroundColor,
-    source: backgroundSource,
-    blur: backgroundBlur,
-    bitmap,
-    width: scaledW,
-    height: scaledH,
-    preview: previewMode,
-    fallbackColor: options.backgroundFallbackColor,
-    deferCheckerboard: shouldDrawCheckerAfter,
-  });
+  if (includeBackground) {
+    drawBackground(ctx, {
+      mode: backgroundMode,
+      color: backgroundColor,
+      source: backgroundSource,
+      blur: backgroundBlur,
+      bitmap,
+      width: scaledW,
+      height: scaledH,
+      preview: previewMode,
+      fallbackColor: options.backgroundFallbackColor,
+      deferCheckerboard: shouldDrawCheckerAfter,
+    });
+  }
 
   const scale = dispScale * frameScale;
   const tx = (state.tx || 0) * frameScale;
@@ -257,18 +284,20 @@ export async function renderCompositionToCanvas(
 
   applyAdjustments(ctx, scaledW, scaledH, state);
 
-  if (shouldDrawCheckerAfter) {
+  if (includeBackground && shouldDrawCheckerAfter) {
     ctx.save();
     ctx.globalCompositeOperation = "destination-over";
     drawCheckerboard(ctx, scaledW, scaledH);
     ctx.restore();
   }
 
-  const textLayers = Array.isArray(state.textLayers)
-    ? state.textLayers
-    : state.textLayer
-      ? [state.textLayer]
-      : [];
+  const textLayers = options.includeTextLayers === false
+    ? []
+    : Array.isArray(state.textLayers)
+      ? state.textLayers
+      : state.textLayer
+        ? [state.textLayer]
+        : [];
 
   await ensureFontsLoaded(textLayers);
 
@@ -338,6 +367,26 @@ function downscaleCanvas(
   return dst;
 }
 
+function resolveEReaderUpscaleFactor(args: {
+  mode: CompositionRenderMode;
+  target: CropTarget;
+  state: CoverCropState;
+  width: number;
+  height: number;
+}): number {
+  const { mode, target, state, width, height } = args;
+  if (mode !== "export") return 1;
+  if (!state.eReaderOptimizationEnabled) return 1;
+  if ((target.output ?? "target") !== "source") return 1;
+
+  const shortSide = Math.min(width, height);
+  if (!Number.isFinite(shortSide) || shortSide <= 0) return 1;
+  if (shortSide >= EREADER_UPSCALE_MIN_SHORT_SIDE) return 1;
+
+  const factor = EREADER_UPSCALE_MIN_SHORT_SIDE / shortSide;
+  return Math.max(1, Math.min(EREADER_UPSCALE_MAX_FACTOR, factor));
+}
+
 function drawBackground(
   ctx: CanvasRenderingContext2D,
   opts: {
@@ -345,7 +394,7 @@ function drawBackground(
     color: string;
     source: BackgroundSource;
     blur: number;
-    bitmap: ImageBitmap;
+    bitmap: RasterSource;
     width: number;
     height: number;
     preview: boolean;
@@ -389,15 +438,71 @@ function drawBackground(
     const blurPx = (clamped / 100) * MAX_BLUR_PX;
     ctx.filter = `blur(${blurPx}px)`;
 
-    const scale = Math.max(width / bitmap.width, height / bitmap.height);
-    const bw = bitmap.width * scale;
-    const bh = bitmap.height * scale;
+    const bitmapWidth = getRasterWidth(bitmap);
+    const bitmapHeight = getRasterHeight(bitmap);
+    const scale = Math.max(width / bitmapWidth, height / bitmapHeight);
+    const bw = bitmapWidth * scale;
+    const bh = bitmapHeight * scale;
     const bx = (width - bw) / 2;
     const by = (height - bh) / 2;
 
     ctx.drawImage(bitmap, bx, by, bw, bh);
     ctx.restore();
   }
+}
+
+async function resolveRasterSource(args: {
+  file: File;
+  sourceBitmap?: ImageBitmap;
+  sourceBitmapPromise?: Promise<ImageBitmap>;
+}): Promise<RasterSource> {
+  const { file, sourceBitmap, sourceBitmapPromise } = args;
+  if (sourceBitmap) return sourceBitmap;
+  if (sourceBitmapPromise) {
+    try {
+      return await sourceBitmapPromise;
+    } catch {
+      // Fallback below.
+    }
+  }
+
+  if (typeof createImageBitmap === "function") {
+    try {
+      return await createImageBitmap(file);
+    } catch {
+      // Fallback below.
+    }
+  }
+
+  return loadImageElementFromFile(file);
+}
+
+function loadImageElementFromFile(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = (error) => {
+      URL.revokeObjectURL(url);
+      reject(error);
+    };
+    img.src = url;
+  });
+}
+
+function getRasterWidth(source: RasterSource): number {
+  return source instanceof ImageBitmap
+    ? source.width
+    : source.naturalWidth || source.width;
+}
+
+function getRasterHeight(source: RasterSource): number {
+  return source instanceof ImageBitmap
+    ? source.height
+    : source.naturalHeight || source.height;
 }
 
 function drawCheckerboard(

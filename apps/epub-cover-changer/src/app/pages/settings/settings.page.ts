@@ -15,7 +15,9 @@ import {
   IonButtons,
   IonButton,
   IonLoading,
+  IonToggle,
 } from '@ionic/angular/standalone';
+import { CheckboxCustomEvent } from '@ionic/angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { THEME_OPTIONS, ThemeService, type Theme } from '@sheldrapps/ui-theme';
 
@@ -36,6 +38,7 @@ import {
 import { TourService } from 'src/app/shared/tour/tour.service';
 import { HOME_TOUR_ID } from 'src/app/shared/tour/home-tour.definition';
 import { RatingService } from '@sheldrapps/rating-kit';
+import { EDITOR_EREADER_OPTIMIZATION_PREF_KEY } from '@sheldrapps/image-workflow/editor';
 
 @Component({
   selector: 'app-settings',
@@ -57,10 +60,12 @@ import { RatingService } from '@sheldrapps/rating-kit';
     IonButtons,
     IonButton,
     IonLoading,
+    IonToggle,
     LanguageRadioListComponent,
   ],
 })
 export class SettingsPage {
+  readonly editorEReaderOptimizationFeatureEnabled = true;
   lang = inject(LanguageService);
   consent = inject(ConsentService);
   private theme = inject(ThemeService);
@@ -77,6 +82,7 @@ export class SettingsPage {
   isLanguageRestartLoading = false;
   languageRestartCountdown = 4;
   private readonly languageRestartCountdownStart = 4;
+  eReaderOptimizationEnabled = true;
 
   private readonly privacyPolicyUrl =
     'https://sheldrapps.github.io/privacy-policies/epub-cover-changer/';
@@ -106,6 +112,10 @@ export class SettingsPage {
     return this.supportedLangs.find(
       (option) => option.code === this.selectedLanguage,
     );
+  }
+
+  async ionViewWillEnter() {
+    await this.loadEReaderOptimizationSetting();
   }
 
   openLanguageModal() {
@@ -179,6 +189,18 @@ export class SettingsPage {
     await this.ratingService.previewFeedbackFlow();
   }
 
+  async onEReaderOptimizationChange(event: Event): Promise<void> {
+    const enabled = (event as CheckboxCustomEvent).detail.checked;
+    this.eReaderOptimizationEnabled = enabled;
+    await this.settings.set((prev) => ({
+      ...prev,
+      preferences: {
+        ...(prev.preferences ?? {}),
+        [EDITOR_EREADER_OPTIMIZATION_PREF_KEY]: enabled,
+      },
+    }));
+  }
+
   private async showLanguageRestartCountdown() {
     this.isLanguageRestartLoading = true;
     await this.waitForLoadingToRender();
@@ -205,5 +227,12 @@ export class SettingsPage {
     return new Promise((resolve) => {
       setTimeout(resolve, ms);
     });
+  }
+
+  private async loadEReaderOptimizationSetting(): Promise<void> {
+    const settings = await this.settings.load();
+    const stored =
+      settings.preferences?.[EDITOR_EREADER_OPTIMIZATION_PREF_KEY];
+    this.eReaderOptimizationEnabled = stored !== false;
   }
 }

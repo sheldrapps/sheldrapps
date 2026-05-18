@@ -28,9 +28,11 @@ export type AdjustmentKey =
   | "brightness"
   | "contrast"
   | "saturation"
+  | "sharpness"
   | "bw"
   | "cleanup"
-  | "dither";
+  | "dither"
+  | "ereaderOptimize";
 export type TextKey = "text";
 
 export interface PanelState {

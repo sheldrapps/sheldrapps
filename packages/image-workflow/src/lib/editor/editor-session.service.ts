@@ -69,6 +69,14 @@ export interface EditorToolsConfig {
     cropLabel?: string;
     modelLabel?: string;
   };
+
+  /** Optional one-tap optimizer for eReader exports */
+  eReaderOptimization?: {
+    /** Shows the optimizer control inside Adjustments */
+    enabled?: boolean;
+    /** Applies the eReader preset as initial state when opening editor */
+    initialActive?: boolean;
+  };
 }
 
 /** Editor session - passed from app to editor */

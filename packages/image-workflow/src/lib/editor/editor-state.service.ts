@@ -54,6 +54,8 @@ export class EditorStateService {
   readonly brightness = signal(DEFAULT_EDITOR_ADJUSTMENTS.brightness);
   readonly saturation = signal(DEFAULT_EDITOR_ADJUSTMENTS.saturation);
   readonly contrast = signal(DEFAULT_EDITOR_ADJUSTMENTS.contrast);
+  readonly sharpness = signal(DEFAULT_EDITOR_ADJUSTMENTS.sharpness);
+  readonly eReaderOptimizationEnabled = signal(false);
   readonly bw = signal(DEFAULT_EDITOR_ADJUSTMENTS.bw);
   readonly cleanupEnabled = signal(DEFAULT_EDITOR_ADJUSTMENTS.cleanup.enabled);
   readonly cleanupArtifactReduction = signal<CleanupStrength>(
@@ -92,6 +94,7 @@ export class EditorStateService {
     brightness: this.brightness(),
     contrast: this.contrast(),
     saturation: this.saturation(),
+    sharpness: this.sharpness(),
     bw: this.bw(),
     dither: this.ditheringEnabled(),
     artifactReductionEnabled: this.cleanupEnabled(),
@@ -176,8 +179,16 @@ export class EditorStateService {
     this.contrast.set(this.clamp(value, 0.5, 1.8));
   }
 
+  setSharpness(value: number): void {
+    this.sharpness.set(this.clamp(value, 0, 1));
+  }
+
   setBw(value: boolean): void {
     this.bw.set(value);
+  }
+
+  setEReaderOptimizationEnabled(value: boolean): void {
+    this.eReaderOptimizationEnabled.set(!!value);
   }
 
   setDither(value: boolean): void {
@@ -465,8 +476,16 @@ export class EditorStateService {
     this.contrast.set(DEFAULT_EDITOR_ADJUSTMENTS.contrast);
   }
 
+  resetSharpness(): void {
+    this.sharpness.set(DEFAULT_EDITOR_ADJUSTMENTS.sharpness);
+  }
+
   resetBw(): void {
     this.bw.set(DEFAULT_EDITOR_ADJUSTMENTS.bw);
+  }
+
+  resetEReaderOptimization(): void {
+    this.eReaderOptimizationEnabled.set(false);
   }
 
   resetDither(): void {
@@ -487,6 +506,8 @@ export class EditorStateService {
     this.brightness.set(DEFAULT_EDITOR_ADJUSTMENTS.brightness);
     this.saturation.set(DEFAULT_EDITOR_ADJUSTMENTS.saturation);
     this.contrast.set(DEFAULT_EDITOR_ADJUSTMENTS.contrast);
+    this.sharpness.set(DEFAULT_EDITOR_ADJUSTMENTS.sharpness);
+    this.eReaderOptimizationEnabled.set(false);
     this.bw.set(DEFAULT_EDITOR_ADJUSTMENTS.bw);
     this.resetCleanup();
     this.resetDither();
@@ -525,6 +546,8 @@ export class EditorStateService {
       brightness: this.brightness(),
       saturation: this.saturation(),
       contrast: this.contrast(),
+      sharpness: this.sharpness(),
+      eReaderOptimizationEnabled: this.eReaderOptimizationEnabled(),
       bw: this.bw(),
       dither: this.ditheringEnabled(),
       artifactReductionEnabled: this.cleanupEnabled(),
@@ -559,6 +582,12 @@ export class EditorStateService {
     this.brightness.set(state.brightness);
     this.saturation.set(state.saturation);
     this.contrast.set(state.contrast);
+    this.sharpness.set(
+      Number.isFinite(state.sharpness as number)
+        ? this.clamp(state.sharpness as number, 0, 1)
+        : DEFAULT_EDITOR_ADJUSTMENTS.sharpness,
+    );
+    this.eReaderOptimizationEnabled.set(!!state.eReaderOptimizationEnabled);
     this.bw.set(state.bw);
     const cleanup = state.cleanup ?? DEFAULT_IMAGE_CLEANUP_SETTINGS;
     this.cleanupEnabled.set(

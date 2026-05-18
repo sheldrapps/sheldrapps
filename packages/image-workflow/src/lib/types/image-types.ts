@@ -147,6 +147,8 @@ export interface CoverCropState {
   brightness: number;
   saturation: number;
   contrast: number;
+  sharpness?: number;
+  eReaderOptimizationEnabled?: boolean;
   bw: boolean;
   dither: boolean;
   artifactReductionEnabled?: boolean;

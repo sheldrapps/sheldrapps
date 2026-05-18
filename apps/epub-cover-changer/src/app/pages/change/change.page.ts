@@ -50,7 +50,10 @@ import {
   resolveCoverColorMode,
 } from '@sheldrapps/image-workflow';
 import type { CropTarget, CropFormatOption } from '@sheldrapps/image-workflow';
-import { EditorSessionService } from '@sheldrapps/image-workflow/editor';
+import {
+  EditorSessionService,
+  EDITOR_EREADER_OPTIMIZATION_PREF_KEY,
+} from '@sheldrapps/image-workflow/editor';
 
 import {
   imageOutline,
@@ -203,6 +206,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private readonly editorTourSeenVersionKey = 'ecc_editor_tour_seen_version';
   private readonly artifactReductionInfoSeenKey =
     'ecc_editor_artifact_reduction_info_seen';
+  private readonly editorEReaderOptimizationFeatureEnabled = true;
   private readonly currentEditorTourVersion = 4;
   private adsRemovedSub?: Subscription;
   private removeAdsPriceSub?: Subscription;
@@ -1179,6 +1183,9 @@ export class ChangePage implements OnInit, OnDestroy {
 
     const selected = this.getSelectedFormatOption();
     if (!selected) return;
+    const eReaderOptimizationEnabledForFeature =
+      await this.resolveEReaderOptimizationEnabled();
+    const initialState = this.cropState;
 
     const sid = this.editorSession.createSession({
       file: sourceFile,
@@ -1186,11 +1193,16 @@ export class ChangePage implements OnInit, OnDestroy {
         width: selected.target.width,
         height: selected.target.height,
       },
-      initialState: this.cropState,
+      initialState,
       tools: {
         formats: {
           options: this.formatOptions,
           selectedId: selected.id,
+        },
+        eReaderOptimization: {
+          enabled:
+            this.editorEReaderOptimizationFeatureEnabled &&
+            eReaderOptimizationEnabledForFeature,
         },
       },
       output: {
@@ -1255,6 +1267,16 @@ export class ChangePage implements OnInit, OnDestroy {
     const current = this.router.url;
     if (current.startsWith('/tabs/')) return current;
     return '/tabs/change';
+  }
+
+  private async resolveEReaderOptimizationEnabled(): Promise<boolean> {
+    if (!this.editorEReaderOptimizationFeatureEnabled) {
+      return false;
+    }
+    const settings = await this.settings.load();
+    const stored =
+      settings.preferences?.[EDITOR_EREADER_OPTIMIZATION_PREF_KEY];
+    return stored !== false;
   }
 
   canExport(): boolean {
@@ -1577,9 +1599,14 @@ export class ChangePage implements OnInit, OnDestroy {
   private async performSave(filename: string) {
     this.setBusy('export', 'CHANGE.SAVING');
     try {
-      if (filename === this.lastSavedFilename) {
+      const requestedFilename = this.ensureEpubExtension(filename);
+
+      if (
+        this.lastSavedFilename &&
+        requestedFilename.toLowerCase() === this.lastSavedFilename.toLowerCase()
+      ) {
         const alreadySaved =
-          await this.fileService.hasCoverByFilename(filename);
+          await this.fileService.hasCoverByFilename(requestedFilename);
         if (alreadySaved) {
           await this.showToast(
             'CHANGE.SAVED_OK',
@@ -1600,7 +1627,7 @@ export class ChangePage implements OnInit, OnDestroy {
         try {
           const renamed = await this.fileService.renameGeneratedEpub({
             from: staleFilename,
-            to: filename,
+            to: requestedFilename,
           });
           this.generatedEpubFilename = renamed.filename;
           this.lastSavedFilename = renamed.filename;
@@ -1610,19 +1637,19 @@ export class ChangePage implements OnInit, OnDestroy {
               ? await this.fileService.saveGeneratedEpubFromPath({
                   sourcePath: this.generatedEpubPath,
                   sourceDir: 'Data',
-                  filename,
+                  filename: requestedFilename,
                   coverFileForThumb: exportFile,
                   coverMetadata: this.buildCoverProcessingMetadata(),
                 })
               : await this.fileService.saveGeneratedEpubFromExistingDocument({
                   sourceFilename: staleFilename,
-                  filename,
+                  filename: requestedFilename,
                   coverFileForThumb: exportFile,
                   coverMetadata: this.buildCoverProcessingMetadata(),
                 })
             : await this.fileService.saveGeneratedEpub({
                 bytes: this.generatedEpubBytes!,
-                filename,
+                filename: requestedFilename,
                 coverFileForThumb: exportFile,
                 coverMetadata: this.buildCoverProcessingMetadata(),
               });
@@ -1645,18 +1672,20 @@ export class ChangePage implements OnInit, OnDestroy {
           this.lastSavedFilename = saved.filename;
         }
       } else {
+        const uniqueFilename =
+          await this.resolveUniqueEpubFilename(requestedFilename);
         const saved =
           this.usesNativeRewrite() && this.generatedEpubPath
             ? await this.fileService.saveGeneratedEpubFromPath({
                 sourcePath: this.generatedEpubPath,
                 sourceDir: 'Data',
-                filename,
+                filename: uniqueFilename,
                 coverFileForThumb: exportFile,
                 coverMetadata: this.buildCoverProcessingMetadata(),
               })
             : await this.fileService.saveGeneratedEpub({
                 bytes: this.generatedEpubBytes!,
-                filename,
+                filename: uniqueFilename,
                 coverFileForThumb: exportFile,
                 coverMetadata: this.buildCoverProcessingMetadata(),
               });
@@ -2505,7 +2534,9 @@ export class ChangePage implements OnInit, OnDestroy {
     }
 
     this.generatedEpubBytes = res.bytes;
-    this.generatedEpubFilename = res.filename;
+    this.generatedEpubFilename = await this.resolveUniqueEpubFilename(
+      res.filename,
+    );
 
     this.setBusy('export', 'CHANGE.SAVING');
 
@@ -2545,6 +2576,22 @@ export class ChangePage implements OnInit, OnDestroy {
     });
     await this.maybeAskForRatingAfterSuccessfulSave('web');
     await this.homeTour.completeInteraction('cover-created');
+  }
+
+  private async resolveUniqueEpubFilename(
+    requestedFilename: string,
+  ): Promise<string> {
+    const normalized = this.ensureEpubExtension(requestedFilename);
+    const base = normalized.replace(/\.epub$/i, '').trim() || 'epub';
+    let candidate = `${base}.epub`;
+    let index = 1;
+
+    while (await this.fileService.hasCoverByFilename(candidate)) {
+      candidate = `${base} (${index}).epub`;
+      index += 1;
+    }
+
+    return candidate;
   }
 
   private invalidateGeneratedOutputState(): void {

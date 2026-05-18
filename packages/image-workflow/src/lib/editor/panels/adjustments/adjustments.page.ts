@@ -1,4 +1,4 @@
-import { Component, inject, DestroyRef } from "@angular/core";
+import { Component, inject, DestroyRef, effect } from "@angular/core";
 import {
   TranslateModule,
   TranslateService,
@@ -29,6 +29,12 @@ export class AdjustmentsPage {
   adjustmentItems: ScrollableBarItem[] = this.buildAdjustmentItems();
 
   constructor() {
+    effect(() => {
+      // Rebuild items when feature flags change (e.g. eReader optimization visibility)
+      this.ui.toolsConfig();
+      this.adjustmentItems = this.buildAdjustmentItems();
+    });
+
     merge(
       this.translate.onLangChange as Observable<LangChangeEvent>,
       this.translate.onTranslationChange as Observable<TranslationChangeEvent>,
@@ -46,18 +52,24 @@ export class AdjustmentsPage {
       "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION";
     const contrastKey =
       "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST";
+    const sharpnessKey =
+      "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS";
     const bwKey = "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW";
     const cleanupKey =
       "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CLEANUP";
     const ditherKey =
       "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER";
+    const ereaderOptimizeKey =
+      "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE";
 
     const brightnessLabel = this.translate.instant(brightnessKey);
     const saturationLabel = this.translate.instant(saturationKey);
     const contrastLabel = this.translate.instant(contrastKey);
+    const sharpnessLabel = this.translate.instant(sharpnessKey);
     const bwLabel = this.translate.instant(bwKey);
     const cleanupLabel = this.translate.instant(cleanupKey);
     const ditherLabel = this.translate.instant(ditherKey);
+    const ereaderOptimizeLabel = this.translate.instant(ereaderOptimizeKey);
 
     const makeItem = (id: string, label: string) =>
       ({
@@ -69,14 +81,23 @@ export class AdjustmentsPage {
         ariaLabel: label,
       }) as unknown as ScrollableBarItem;
 
-    return [
+    const items: ScrollableBarItem[] = [];
+
+    if (this.ui.toolsConfig()?.eReaderOptimization?.enabled) {
+      items.push(makeItem("ereaderOptimize", ereaderOptimizeLabel));
+    }
+
+    items.push(
       makeItem("brightness", brightnessLabel),
-      makeItem("saturation", saturationLabel),
       makeItem("contrast", contrastLabel),
+      makeItem("saturation", saturationLabel),
+      makeItem("sharpness", sharpnessLabel),
       makeItem("bw", bwLabel),
       makeItem("cleanup", cleanupLabel),
       makeItem("dither", ditherLabel),
-    ];
+    );
+
+    return items;
   }
 
   onSelectAdjustPanel(panelId: string): void {

@@ -29,3 +29,4 @@ export { EditorUiStateService } from './editor-ui-state.service';
 export { EditorHistoryService } from "./editor-history.service";
 export { EditorSessionService } from './editor-session.service';
 export { provideEditorI18n } from "./i18n/provide-editor-i18n";
+export { EDITOR_EREADER_OPTIMIZATION_PREF_KEY } from "./editor-ereader-optimization";

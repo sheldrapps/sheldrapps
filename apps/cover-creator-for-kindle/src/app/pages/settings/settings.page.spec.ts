@@ -43,6 +43,8 @@ describe('SettingsPage', () => {
           useValue: {
             get: () => ({}),
             set: settingsSetSpy,
+            setForScope: settingsSetSpy,
+            load: jasmine.createSpy('load').and.resolveTo({ preferences: {} }),
           },
         },
         {

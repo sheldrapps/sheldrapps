@@ -246,6 +246,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   aspectRatio = "3 / 4";
   previewMaskShape: EditorPreviewMaskShape = "rect";
   imageUrl: string | null = null;
+  readonly composedAdjustmentsPreviewUrl = signal<string | null>(null);
   ready = false;
   readonly cssFilter = computed(() =>
     buildCssFilter(this.editorState.adjustments()),
@@ -280,6 +281,9 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       : "EDITOR.SHELL.HINT.PREVIEW",
   );
   private isExporting = false;
+  private composedPreviewRenderTimer: ReturnType<typeof setTimeout> | null = null;
+  private composedPreviewRenderVersion = 0;
+  private composedPreviewObjectUrl: string | null = null;
   private readonly measureCanvas = document.createElement("canvas");
   private readonly measureCtx = this.measureCanvas.getContext("2d");
 
@@ -521,6 +525,28 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     });
 
     effect(() => {
+      const mode = this.ui.activeMode();
+      this.editorState.brightness();
+      this.editorState.contrast();
+      this.editorState.saturation();
+      this.editorState.sharpness();
+      this.editorState.bw();
+      this.editorState.cleanupEnabled();
+      this.editorState.cleanupArtifactReduction();
+      this.editorState.smoothGradients();
+      this.editorState.preserveDetails();
+      this.editorState.ditheringEnabled();
+      this.editorState.ditheringMode();
+
+      if (mode !== "adjustments") {
+        this.clearComposedAdjustmentsPreview();
+        return;
+      }
+
+      this.scheduleComposedAdjustmentsPreviewRender();
+    });
+
+    effect(() => {
       const isEditing = this.textEdit.isEditing();
       void this.syncEditViewportLock(isEditing);
     });
@@ -595,6 +621,9 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.sessionExit.setReturnUrl(this.returnUrl ?? null);
 
     this.kindleState.reset();
+    // Editor state service is singleton-scoped; reset it for every session so
+    // adjustments from a previous image do not leak into a new one.
+    this.editorState.resetAll();
 
     if (!this.session?.file) return;
 
@@ -910,6 +939,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.stopEditorTour();
     this.resizeObs?.disconnect();
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
+    this.clearComposedAdjustmentsPreview();
     this.cleanupGestures?.();
     this.unlockEditViewportLock();
     this.stopAndroidShiftDetector();
@@ -1663,6 +1693,10 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       }
       void this.prepareSamplingCanvas();
     }
+
+    if (this.ui.activeMode() === "adjustments") {
+      this.scheduleComposedAdjustmentsPreviewRender();
+    }
   }
 
   private async startEditorTour(): Promise<void> {
@@ -2270,6 +2304,74 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  private scheduleComposedAdjustmentsPreviewRender(): void {
+    if (
+      this.ui.activeMode() !== "adjustments" ||
+      !this.ready ||
+      !this.session?.target
+    ) {
+      return;
+    }
+
+    if (this.composedPreviewRenderTimer) {
+      clearTimeout(this.composedPreviewRenderTimer);
+      this.composedPreviewRenderTimer = null;
+    }
+
+    const version = ++this.composedPreviewRenderVersion;
+    this.composedPreviewRenderTimer = setTimeout(() => {
+      void this.renderComposedAdjustmentsPreview(version);
+    }, 70);
+  }
+
+  private async renderComposedAdjustmentsPreview(
+    version: number,
+  ): Promise<void> {
+    if (version !== this.composedPreviewRenderVersion) return;
+    const outputScale = this.resolvePreviewOutputScale();
+    const input = this.buildRenderInput(this.editorState.getState());
+    if (!input) return;
+
+    const canvas = await renderCompositionToCanvas(input, {
+      mode: "preview",
+      outputScale,
+      includeBackground: false,
+      includeTextLayers: false,
+    });
+    if (!canvas || version !== this.composedPreviewRenderVersion) return;
+
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob((bb) => resolve(bb), "image/png"),
+    );
+    if (!blob || version !== this.composedPreviewRenderVersion) return;
+
+    const nextUrl = URL.createObjectURL(blob);
+    if (version !== this.composedPreviewRenderVersion) {
+      URL.revokeObjectURL(nextUrl);
+      return;
+    }
+
+    const prev = this.composedPreviewObjectUrl;
+    this.composedPreviewObjectUrl = nextUrl;
+    this.composedAdjustmentsPreviewUrl.set(nextUrl);
+    if (prev) {
+      URL.revokeObjectURL(prev);
+    }
+  }
+
+  private clearComposedAdjustmentsPreview(): void {
+    if (this.composedPreviewRenderTimer) {
+      clearTimeout(this.composedPreviewRenderTimer);
+      this.composedPreviewRenderTimer = null;
+    }
+    this.composedPreviewRenderVersion += 1;
+    if (this.composedPreviewObjectUrl) {
+      URL.revokeObjectURL(this.composedPreviewObjectUrl);
+      this.composedPreviewObjectUrl = null;
+    }
+    this.composedAdjustmentsPreviewUrl.set(null);
+  }
+
   private buildRenderInput(state: CoverCropState): CompositionRenderInput | null {
     if (!this.session?.file || !this.session?.target) return null;
     const target = this.session.target;
@@ -2304,6 +2406,15 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       naturalHeight: this.naturalH,
       state,
     };
+  }
+
+  private resolvePreviewOutputScale(): number {
+    const frameEl = this.frameRef?.nativeElement;
+    if (!frameEl || !this.session?.target?.width) return 1;
+    const frameSize = this.getFrameSize();
+    const frameWidth = frameSize?.width ?? frameEl.clientWidth;
+    if (!frameWidth || frameWidth <= 0) return 1;
+    return frameWidth / this.session.target.width;
   }
 
   private getFrameSize(): { width: number; height: number } | null {

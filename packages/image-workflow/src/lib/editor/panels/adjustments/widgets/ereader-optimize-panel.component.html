@@ -1,0 +1,21 @@
+<ion-item>
+  <ion-label>
+    {{
+      "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE"
+        | translate
+    }}
+  </ion-label>
+  <ion-toggle
+    slot="end"
+    [checked]="history.eReaderOptimizationEnabled()"
+    (ionChange)="onOptimizationToggle($event)"
+    [attr.aria-label]="'EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE' | translate"
+  ></ion-toggle>
+</ion-item>
+
+<ion-note class="ereader-optimize-helper">
+  {{
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION"
+      | translate
+  }}
+</ion-note>

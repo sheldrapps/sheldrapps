@@ -5,9 +5,11 @@ import {
   BrightnessPanelComponent,
   SaturationPanelComponent,
   ContrastPanelComponent,
+  SharpnessPanelComponent,
   BwPanelComponent,
   ArtifactsPanelComponent,
   DitherPanelComponent,
+  EreaderOptimizePanelComponent,
 } from "./widgets";
 
 export interface AdjustmentPanelConfig {
@@ -44,6 +46,13 @@ export const ADJUSTMENTS_REGISTRY: Record<
     showGrabber: true,
     reset: (history) => history.resetContrast(),
   },
+  sharpness: {
+    title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS",
+    component: SharpnessPanelComponent,
+    canReset: true,
+    showGrabber: true,
+    reset: (history) => history.resetSharpness(),
+  },
   bw: {
     title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.BW",
     component: BwPanelComponent,
@@ -65,6 +74,13 @@ export const ADJUSTMENTS_REGISTRY: Record<
     showGrabber: true,
     reset: (history) => history.resetDither(),
   },
+  ereaderOptimize: {
+    title: "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE",
+    component: EreaderOptimizePanelComponent,
+    canReset: false,
+    showGrabber: true,
+    reset: (history) => history.resetEReaderOptimization(),
+  },
 };
 
 // Legacy async loaders (kept for compatibility, but prefer sync ADJUSTMENTS_REGISTRY)
@@ -74,8 +90,10 @@ export const ADJUSTMENT_LOADERS: Record<
 > = {
   brightness: async () => BrightnessPanelComponent,
   contrast: async () => ContrastPanelComponent,
+  sharpness: async () => SharpnessPanelComponent,
   saturation: async () => SaturationPanelComponent,
   bw: async () => BwPanelComponent,
   cleanup: async () => ArtifactsPanelComponent,
   dither: async () => DitherPanelComponent,
+  ereaderOptimize: async () => EreaderOptimizePanelComponent,
 };

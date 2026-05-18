@@ -103,13 +103,21 @@ export function applyEditorAdjustments(
   const brightness = state.brightness;
   const saturation = state.saturation;
   const contrast = state.contrast;
+  const sharpness = clampSharpness(state.sharpness ?? 0);
 
   if (!state.bw) {
     applyColorAdjustments(data, brightness, saturation, contrast);
+    if (sharpness > 0) {
+      applyLightUnsharpMask(data, width, height, sharpness);
+    }
     if (processing.dithering.enabled) {
       applyColorDithering(data, width, height, processing.dithering);
     }
     return;
+  }
+
+  if (sharpness > 0) {
+    applyLightUnsharpMask(data, width, height, sharpness);
   }
 
   applyBwAdjustments(
@@ -120,6 +128,12 @@ export function applyEditorAdjustments(
     contrast,
     processing.dithering,
   );
+
+}
+
+function clampSharpness(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(1, value));
 }
 
 function applyCleanupStage(
@@ -533,6 +547,27 @@ function applyBwAdjustments(
     data[offset] = value;
     data[offset + 1] = value;
     data[offset + 2] = value;
+  }
+}
+
+function applyLightUnsharpMask(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+  amount: number,
+): void {
+  if (!width || !height || amount <= 0) return;
+  const gain = amount * 1.8;
+  const blurred = separableBoxBlur(data, width, height, 1);
+
+  for (let i = 0; i < data.length; i += 4) {
+    data[i] = clampByte(data[i] + (data[i] - blurred[i]) * gain);
+    data[i + 1] = clampByte(
+      data[i + 1] + (data[i + 1] - blurred[i + 1]) * gain,
+    );
+    data[i + 2] = clampByte(
+      data[i + 2] + (data[i + 2] - blurred[i + 2]) * gain,
+    );
   }
 }
 

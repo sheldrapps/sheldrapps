@@ -25,6 +25,8 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST":
       "Contraste",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "Tramado",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
+      "Optimizar para tinta electrónica",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS":
       "Artefactos",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.TITLE":
@@ -72,6 +74,22 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.MODE_ORDERED": "Ordered",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.HELPER":
       "Añade textura para simular más tonos en pantallas de color limitado. No siempre hace falta.",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS":
+      "Nitidez",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
+      "Realza bordes y detalles pequeños. Úsalo con moderación para evitar artefactos.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
+      "Optimizar para tinta electrónica",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
+      "Aplica una mejora rápida de contraste, color y nitidez para que la portada se vea mejor en pantallas de tinta electrónica.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.APPLY_PRESET":
+      "Aplicar preset",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.PRESET_APPLIED":
+      "Preset aplicado",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
+      "Optimizar para tinta electrónica",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
+      "Aplica un ajuste automático con enfoque ligero, contraste extra y upscale básico para exportaciones pequeñas.",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION":
       "Saturación",
     "EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR": "Barra de herramientas",
@@ -175,6 +193,8 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
       "Cleanup",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST": "Contrast",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "Dithering",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
+      "Optimize for eReader",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS":
       "Artifacts",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.TITLE":
@@ -222,6 +242,22 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.MODE_ORDERED": "Ordered",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.DITHER_PANEL.HELPER":
       "Add texture to simulate more shades on limited-color displays. Not always needed.",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS":
+      "Sharpness",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
+      "Enhance edges and fine details. Use with moderation to avoid artifacts.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
+      "Optimize for eReader",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
+      "Apply a quick enhancement of contrast, color and sharpness so the cover looks better on e-reader screens.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.APPLY_PRESET":
+      "Apply preset",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.PRESET_APPLIED":
+      "Preset applied",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
+      "Optimize for eReader",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
+      "Applies light sharpening, extra contrast and a basic upscale for small exports.",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION":
       "Saturation",
     "EDITOR.PANELS.DEFAULT.DEFAULT.PAGE.ARIA.TOOLBAR": "Toolbar",
@@ -1537,3 +1573,248 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.TEXT.WIDGETS.TEXT_PANEL.DEFAULT.CONTENT": "Текст",
   },
 };
+
+const EDITOR_NEW_ADJUSTMENTS_I18N: Record<Locale, FlatDict> = {
+  "es-419": {
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
+      "Optimizar",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS":
+      "Nitidez",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
+      "Realza bordes y detalles pequeños. Úsalo con moderación para evitar artefactos.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
+      "Optimizar para tinta electrónica",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
+      "Aplica una mejora rápida de contraste, color y nitidez para que la portada se vea mejor en pantallas de tinta electrónica.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
+      "Optimizar para tinta electrónica",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
+      "Aplica un ajuste automático con enfoque ligero, contraste extra y upscale básico para exportaciones pequeñas.",
+  },
+  "en-US": {
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
+      "Optimize",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS":
+      "Sharpness",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
+      "Enhance edges and fine details. Use in moderation to avoid artifacts.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
+      "Optimize for e-ink",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
+      "Apply a quick enhancement of contrast, color, and sharpness so the cover looks better on e-ink screens.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
+      "Optimize for e-ink",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
+      "Applies an automatic adjustment with light sharpening, extra contrast, and basic upscaling for small exports.",
+  },
+  "de-DE": {
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
+      "Optimieren",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS":
+      "Schärfe",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
+      "Betont Kanten und feine Details. In Maßen verwenden, um Artefakte zu vermeiden.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
+      "Für E-Ink optimieren",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
+      "Wendet eine schnelle Verbesserung von Kontrast, Farbe und Schärfe an, damit das Cover auf E-Ink-Bildschirmen besser aussieht.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
+      "Für E-Ink optimieren",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
+      "Wendet eine automatische Anpassung mit leichter Schärfung, höherem Kontrast und einfachem Upscaling für kleine Exporte an.",
+  },
+  "fr-FR": {
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
+      "Optimiser",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS":
+      "Netteté",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
+      "Renforce les contours et les petits détails. À utiliser avec modération pour éviter les artefacts.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
+      "Optimiser pour encre électronique",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
+      "Applique une amélioration rapide du contraste, des couleurs et de la netteté afin que la couverture soit mieux visible sur les écrans à encre électronique.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
+      "Optimiser pour encre électronique",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
+      "Applique un réglage automatique avec une légère accentuation, plus de contraste et un upscaling de base pour les petites exportations.",
+  },
+  "it-IT": {
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
+      "Ottimizza",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS":
+      "Nitidezza",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
+      "Evidenzia bordi e piccoli dettagli. Usalo con moderazione per evitare artefatti.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
+      "Ottimizza per inchiostro elettronico",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
+      "Applica un miglioramento rapido di contrasto, colore e nitidezza per far apparire meglio la copertina sugli schermi a inchiostro elettronico.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
+      "Ottimizza per inchiostro elettronico",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
+      "Applica una regolazione automatica con leggera nitidezza, contrasto extra e upscaling di base per esportazioni piccole.",
+  },
+  "pt-BR": {
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
+      "Otimizar",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS":
+      "Nitidez",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
+      "Realça bordas e detalhes finos. Use com moderação para evitar artefatos.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
+      "Otimizar para tinta eletrônica",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
+      "Aplica uma melhoria rápida de contraste, cor e nitidez para que a capa fique melhor em telas de tinta eletrônica.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
+      "Otimizar para tinta eletrônica",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
+      "Aplica um ajuste automático com nitidez leve, contraste extra e upscaling básico para exportações pequenas.",
+  },
+  "zh-TW": {
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
+      "最佳化",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS":
+      "銳利度",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
+      "強化邊緣與細節。請適度使用以避免產生雜訊。",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
+      "針對電子墨水最佳化",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
+      "快速提升對比、色彩與銳利度，讓封面在電子墨水螢幕上顯示更清晰。",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
+      "針對電子墨水最佳化",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
+      "自動套用輕度銳化、額外對比與基礎放大，適合小尺寸匯出。",
+  },
+  "hi-IN": {
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
+      "ऑप्टिमाइज़",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS":
+      "तीक्ष्णता",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
+      "किनारों और बारीक विवरणों को उभारता है। आर्टिफैक्ट से बचने के लिए इसे सीमित रखें।",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
+      "ई-इंक के लिए ऑप्टिमाइज़ करें",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
+      "कॉन्ट्रास्ट, रंग और तीक्ष्णता में तेज़ सुधार लागू करता है ताकि कवर ई-इंक स्क्रीन पर बेहतर दिखे।",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
+      "ई-इंक के लिए ऑप्टिमाइज़ करें",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
+      "छोटे एक्सपोर्ट के लिए हल्की शार्पनिंग, अतिरिक्त कॉन्ट्रास्ट और बेसिक अपस्केल के साथ स्वचालित समायोजन लागू करता है।",
+  },
+  "ar-SA": {
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
+      "تحسين",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS":
+      "الحدة",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
+      "يعزز الحواف والتفاصيل الدقيقة. استخدمه باعتدال لتجنب التشوهات.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
+      "تحسين لشاشات الحبر الإلكتروني",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
+      "يطبق تحسينًا سريعًا للتباين واللون والحدة ليظهر الغلاف بشكل أفضل على شاشات الحبر الإلكتروني.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
+      "تحسين لشاشات الحبر الإلكتروني",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
+      "يطبق ضبطًا تلقائيًا مع شحذ خفيف وتباين إضافي وتكبير أساسي لعمليات التصدير الصغيرة.",
+  },
+  "ja-JP": {
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
+      "最適化",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS":
+      "シャープネス",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
+      "輪郭や細部を強調します。アーティファクトを防ぐため、適度に使用してください。",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
+      "電子インク向けに最適化",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
+      "コントラスト・色・シャープネスを素早く補正し、電子インク画面で表紙が見やすくなるようにします。",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
+      "電子インク向けに最適化",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
+      "小さい書き出し向けに、軽いシャープ化・コントラスト強化・基本アップスケールを自動適用します。",
+  },
+  "ko-KR": {
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
+      "최적화",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS":
+      "선명도",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
+      "윤곽선과 미세한 디테일을 강조합니다. 아티팩트를 피하려면 적당히 사용하세요.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
+      "전자잉크용 최적화",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
+      "대비, 색상, 선명도를 빠르게 개선해 전자잉크 화면에서 표지가 더 잘 보이게 합니다.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
+      "전자잉크용 최적화",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
+      "작은 내보내기를 위해 가벼운 샤프닝, 추가 대비, 기본 업스케일을 자동으로 적용합니다.",
+  },
+  "zh-CN": {
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
+      "优化",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS":
+      "锐度",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
+      "增强边缘与细节。请适度使用以避免伪影。",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
+      "为电子墨水优化",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
+      "快速提升对比度、色彩和锐度，让封面在电子墨水屏上显示更清晰。",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
+      "为电子墨水优化",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
+      "自动应用轻度锐化、额外对比和基础放大，适合小尺寸导出。",
+  },
+  "ru-RU": {
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
+      "Оптимизировать",
+    "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS":
+      "Резкость",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
+      "Подчеркивает контуры и мелкие детали. Используйте умеренно, чтобы избежать артефактов.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
+      "Оптимизировать для электронных чернил",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
+      "Быстро улучшает контраст, цвет и резкость, чтобы обложка лучше выглядела на экранах с электронными чернилами.",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
+      "Оптимизировать для электронных чернил",
+    "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
+      "Автоматически применяет легкую резкость, дополнительный контраст и базовый апскейл для небольшого экспорта.",
+  },
+};
+
+const EDITOR_FALLBACK_KEYS: FlatDict = {
+  "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
+    "Optimize",
+  "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SHARPNESS":
+    "Sharpness",
+  "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
+    "Enhance edges and fine details. Use in moderation to avoid artifacts.",
+  "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
+    "Optimize for e-ink",
+  "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
+    "Apply a quick enhancement of contrast, color, and sharpness so the cover looks better on e-ink screens.",
+  "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
+    "Optimize for e-ink",
+  "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
+    "Applies an automatic adjustment with light sharpening, extra contrast, and basic upscaling for small exports.",
+  "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.APPLY_PRESET":
+    "Apply preset",
+  "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.PRESET_APPLIED":
+    "Preset applied",
+};
+
+for (const locale of Object.keys(EDITOR_TRANSLATIONS) as Locale[]) {
+  const localized = EDITOR_NEW_ADJUSTMENTS_I18N[locale];
+  for (const [key, value] of Object.entries(localized)) {
+    EDITOR_TRANSLATIONS[locale][key] = value;
+  }
+
+  for (const [key, value] of Object.entries(EDITOR_FALLBACK_KEYS)) {
+    if (!(key in EDITOR_TRANSLATIONS[locale])) {
+      EDITOR_TRANSLATIONS[locale][key] = value;
+    }
+  }
+}

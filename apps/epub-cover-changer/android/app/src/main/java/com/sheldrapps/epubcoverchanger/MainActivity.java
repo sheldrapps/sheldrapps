@@ -22,8 +22,9 @@ import java.util.List;
 public class MainActivity extends BridgeActivity {
     private boolean runtimeFlagsExposed = false;
     private static final String ALIAS_PREFIX = "com.sheldrapps.epubcoverchanger.MainActivityAlias_";
-    private static final String DEFAULT_ALIAS_LOCALE = "en-US";
+    private static final String DEFAULT_ALIAS_LOCALE = "system";
     private static final List<String> ALL_ALIAS_LOCALES = Arrays.asList(
+        "system",
         "en-US",
         "es-MX",
         "de-DE",
@@ -228,6 +229,9 @@ public class MainActivity extends BridgeActivity {
         }
 
         String normalized = localeTag.trim().replace('_', '-');
+        if ("system".equalsIgnoreCase(normalized)) {
+            return "system";
+        }
         for (String locale : ALL_ALIAS_LOCALES) {
             if (locale.equalsIgnoreCase(normalized)) {
                 return locale;

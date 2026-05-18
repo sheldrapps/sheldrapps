@@ -15,3 +15,4 @@ export {
 
 // Editor session service
 export * from "../lib/editor/editor-session.service";
+export * from "../lib/editor/editor-ereader-optimization";
