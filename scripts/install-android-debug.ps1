@@ -1,7 +1,8 @@
 param(
   [Parameter(Mandatory = $true)]
   [string]$AppName,
-  [string]$DeviceId
+  [string]$DeviceId,
+  [switch]$UninstallFirst
 )
 
 $ErrorActionPreference = 'Stop'
@@ -10,6 +11,19 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $appPath = Join-Path $repoRoot (Join-Path 'apps' $AppName)
 $androidPath = Join-Path $appPath 'android'
 $apkPath = Join-Path $androidPath 'app\build\outputs\apk\debug\app-debug.apk'
+
+function Resolve-AppId {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Name
+  )
+
+  switch ($Name) {
+    'epub-cover-changer' { return 'com.sheldrapps.epubcoverchanger' }
+    'cover-creator-for-kindle' { return 'com.sheldrapps.covercreatorforkindle' }
+    default { throw "Unsupported AppName for uninstall flow: $Name" }
+  }
+}
 
 function Invoke-Step {
   param(
@@ -54,6 +68,18 @@ if (-not $DeviceId) {
 Write-Host "Target app: $AppName"
 Write-Host "Target device: $DeviceId"
 Write-Host ''
+
+if ($UninstallFirst) {
+  $resolvedAppId = Resolve-AppId -Name $AppName
+  Write-Host '[0/5] adb uninstall (if installed)'
+  $installedPackages = adb -s $DeviceId shell pm list packages $resolvedAppId
+  if ($installedPackages -match "package:$resolvedAppId") {
+    Invoke-Step -Name 'adb uninstall' -Action { adb -s $DeviceId uninstall $resolvedAppId }
+  }
+  else {
+    Write-Host "Package not installed, skipping uninstall: $resolvedAppId"
+  }
+}
 
 Write-Host '[1/4] pnpm --filter <app> build'
 Push-Location $repoRoot
