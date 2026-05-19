@@ -536,11 +536,10 @@ export class EditorHistoryService {
 
   toggleEReaderOptimization(value: boolean): void {
     const current = this.editorState.eReaderOptimizationEnabled();
-    if (value === current) {
-      return;
-    }
-
     if (value) {
+      if (current) {
+        return;
+      }
       this.applyEReaderOptimizationPreset();
       return;
     }
@@ -1246,9 +1245,8 @@ export class EditorHistoryService {
   }
 
   private syncEReaderOptimizationBaselineFromState(): void {
-    if (!this.editorState.eReaderOptimizationEnabled()) {
-      this.eReaderOptimizationBaseline = null;
-    }
+    // Intentionally keep the last baseline even when the optimization flag is false.
+    // This makes repeated ON/OFF cycles deterministic in the same editor session.
   }
 
   private recordViewportIfChanged(prev: {

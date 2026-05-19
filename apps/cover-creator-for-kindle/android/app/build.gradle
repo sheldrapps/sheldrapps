@@ -9,7 +9,7 @@ android {
         applicationId "com.sheldrapps.covercreatorforkindle"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 39
+        versionCode 40
         versionName "Optimize for e-ink and sharpness"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
