@@ -34,6 +34,7 @@
     "serve:ecc:no-open": "pnpm --filter epub-cover-changer exec ionic serve --no-open",
     "serve:ccfk": "pnpm --filter cover-creator-for-kindle start",
     "serve:ccfk:no-open": "pnpm --filter cover-creator-for-kindle exec ionic serve --no-open",
+    "increment:version": "node scripts/increment-version-utilidades.cjs",
     "test": "node --test --test-isolation=none tools/guardrails/**/*.test.mjs tools/settings-kit/**/*.test.mjs tools/native-sqlite-kit/**/*.test.mjs packages/recommended-apps/tests/**/*.test.mjs",
     "lint": "pnpm -r lint",
     "build": "pnpm -r build"
