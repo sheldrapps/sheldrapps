@@ -1,0 +1,85 @@
+{
+  "project": "cover-creator-for-kindle",
+  "shortName": "ccfk",
+  "generatedAt": "2026-05-20T01:21:06.059Z",
+  "head": "1cf564b7546dfb08997df73c6e9037396c197274",
+  "versionCodeAnchorCommit": "9fd1a17310a22565cbf7a07a4c55688f93e27ca1",
+  "version": {
+    "currentCode": 41,
+    "currentName": "Kindle Rebranding",
+    "proposedCode": 41,
+    "proposedName": "Kindle Rebranding"
+  },
+  "delta": {
+    "mode": "incremental",
+    "from": "9fd1a17310a22565cbf7a07a4c55688f93e27ca1",
+    "to": "1cf564b7546dfb08997df73c6e9037396c197274",
+    "changedFilesCount": 13,
+    "changedFiles": [
+      "apps/cover-creator-for-kindle/android/app/src/main/res/values/strings.xml",
+      "apps/cover-creator-for-kindle/src/assets/i18n/ar-SA.json",
+      "apps/cover-creator-for-kindle/src/assets/i18n/de-DE.json",
+      "apps/cover-creator-for-kindle/src/assets/i18n/es-MX.json",
+      "apps/cover-creator-for-kindle/src/assets/i18n/fr-FR.json",
+      "apps/cover-creator-for-kindle/src/assets/i18n/it-IT.json",
+      "apps/cover-creator-for-kindle/src/assets/i18n/ja-JP.json",
+      "apps/cover-creator-for-kindle/src/assets/i18n/ko-KR.json",
+      "apps/cover-creator-for-kindle/src/assets/i18n/pt-BR.json",
+      "apps/cover-creator-for-kindle/src/assets/i18n/ru-RU.json",
+      "apps/cover-creator-for-kindle/src/assets/i18n/zh-CN.json",
+      "apps/cover-creator-for-kindle/src/assets/i18n/zh-TW.json",
+      "M apps/cover-creator-for-kindle/android/app/build.gradle"
+    ]
+  },
+  "locales": [
+    "ar-SA",
+    "de-DE",
+    "en-US",
+    "es-MX",
+    "fr-FR",
+    "hi-IN",
+    "it-IT",
+    "ja-JP",
+    "ko-KR",
+    "pt-BR",
+    "ru-RU",
+    "zh-CN",
+    "zh-TW"
+  ],
+  "capabilities": [
+    {
+      "id": "artifact",
+      "title": "Reduccion de artefactos",
+      "benefit": "Disminuye ruido visual y mejora limpieza de bordes.",
+      "evidence": "apps/cover-creator-for-kindle/src/app/pages/create/create.page.html"
+    },
+    {
+      "id": "quality",
+      "title": "Control de calidad de exportacion",
+      "benefit": "Balancea peso y calidad segun el uso final.",
+      "evidence": "apps/cover-creator-for-kindle/src/app/pages/create/create.page.html"
+    },
+    {
+      "id": "preview",
+      "title": "Previsualizacion en lector",
+      "benefit": "Permite ver resultado aproximado antes de exportar.",
+      "evidence": "apps/cover-creator-for-kindle/src/app/pages/create/create.page.html"
+    }
+  ],
+  "releaseInsights": {
+    "insights": [
+      {
+        "key": "translations_refined",
+        "count": 11
+      },
+      {
+        "key": "preview_flow_available"
+      },
+      {
+        "key": "image_optimization_available"
+      }
+    ],
+    "titleChanges": [],
+    "appNameChanges": []
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "project": "cover-creator-for-kindle",
+  "shortName": "ccfk",
+  "baseline": {
+    "versionCode": 40,
+    "versionName": "Optimize for e-ink and sharpness"
+  },
+  "current": {
+    "updatedAt": "2026-05-20T01:21:06.059Z",
+    "head": "1cf564b7546dfb08997df73c6e9037396c197274",
+    "versionCode": 41,
+    "versionName": "Kindle Rebranding",
+    "versionCodeAnchorCommit": "9fd1a17310a22565cbf7a07a4c55688f93e27ca1",
+    "deltaFrom": "9fd1a17310a22565cbf7a07a4c55688f93e27ca1",
+    "deltaTo": "1cf564b7546dfb08997df73c6e9037396c197274",
+    "changedFilesCount": 13,
+    "userFacingSummary": [
+      "translations_refined",
+      "preview_flow_available",
+      "image_optimization_available"
+    ]
+  },
+  "tracking": {
+    "lastProcessedHead": "1cf564b7546dfb08997df73c6e9037396c197274",
+    "lastProcessedAt": "2026-05-20T01:21:06.059Z",
+    "lastWorkingTreeFingerprint": "f2f1fb3549f7095fb99a80b302d4b86477c58724"
+  }
+}

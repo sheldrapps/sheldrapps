@@ -1,21 +1,17 @@
-﻿---
+---
 name: incrementa-version-utilidades
-description: Ejecuta incremento de versión de app móvil por alias (ccfk/ecc/jos/ef/pn) usando build.gradle como fuente, luego genera/actualiza utilidades incrementales y version-notes en formato Play Store placeholder. Use when user says "incrementa la versión para <proyecto>" o equivalente.
+description: Incrementa version de app movil y genera utilidades/notes con inteligencia basada en cambios reales. Use when user says "incrementa la version para <proyecto>" o equivalente.
 ---
 
-# Incrementa Versión De Utilidades
+# Incrementa Version Utilidades
 
-## Entrada válida
+## Trigger
 
-- `incrementa la versión para <proyecto>`
-- `incrementar versión <proyecto>`
-- `sube versión <proyecto>`
+- `incrementa la version para <proyecto>`
+- `sube version <proyecto>`
+- `actualiza version <proyecto>`
 
-`<proyecto>` permitido: `ccfk`, `ecc`, `jos`, `ef`, `pn` o nombre de carpeta en `apps/*`.
-
-## Resolución directa
-
-Aliases:
+Alias soportados:
 
 - `ccfk` -> `cover-creator-for-kindle`
 - `ecc` -> `epub-cover-changer`
@@ -23,84 +19,50 @@ Aliases:
 - `ef` -> `epub-fixer`
 - `pn` -> `presupuesto-ninos`
 
-Ruta de versión por app:
+## Source of truth
 
-- `apps/<project>/android/app/build.gradle`
+- Version source only: `apps/<project>/android/app/build.gradle`
+- Scope de evidencia: `apps/<project>/**` + `packages/**`
 
-## Scope permitido
+## Skill-first contract
 
-Solo usar como evidencia funcional:
+La skill hace la inteligencia:
 
-- `apps/<project>/**`
-- `packages/**` usados por `<project>`
+1. Decide `versionName` descriptivo (<= 30 chars) con base en delta user-facing.
+2. Redacta `version-notes.xml` por locale con contenido real (no placeholder si hay cambios visibles).
+3. Construye `utility.md` como input factual para la skill `fichas` (no como ficha final).
+4. Actualiza `state.json` para incremental siguiente.
 
-No hace falta explorar fuera de ese scope para esta tarea.
+Script opcional de evidencia:
 
-## Fuente de versión permitida
+- `pnpm increment:collect <proyecto|alias> [--delta-from-anchor]`
+- Genera `docs/utilities/<short-name>/delta.json` y no decide wording final.
 
-Usar únicamente en `build.gradle`:
+## Required outputs
 
-- `versionCode`
-- `versionName`
-
-## Regla de incremento
-
-- Si usuario no indica número objetivo: `newVersionCode = currentVersionCode + 1`.
-- `versionName` puede mantenerse.
-- Si `versionName` cambia, debe ser intencional y <= 30 caracteres.
-
-## Ejecucion skill-first
-
-La skill decide:
-
-1. Evidencia incremental real (git + working tree en scope permitido).
-2. `versionName` descriptivo (<= 30 chars) a partir de cambios user-facing.
-3. `utility.md` útil para ficha Play Store.
-4. `version-notes.xml` por locale con texto real (no placeholders).
-
-Script opcional de apoyo:
-
-- `pnpm increment:version <proyecto|alias> --collect-only`
-- Solo para reunir evidencia en `docs/utilities/<short-name>/delta.json`.
-- La redacción final de `versionName`, `utility.md` y `version-notes.xml` es responsabilidad de la skill.
-
-## Artefactos obligatorios
-
-Siempre terminar con:
+Siempre actualizar:
 
 1. `docs/utilities/<short-name>/utility.md`
 2. `docs/utilities/<short-name>/state.json`
 3. `docs/utilities/<short-name>/version-notes.xml`
 
-Comportamiento:
+## Utility format goal
 
-- Si `utility.md` / `state.json` no existen: crear baseline completo.
-- Si existen: refrescar con estado incremental actual.
+`utility.md` debe contener hechos estructurados para `fichas`:
 
-## Incremental Git permitido
+- identidad/versiones
+- capacidades verificadas + evidencia
+- diferenciadores
+- casos de uso validos
+- facts user-facing del incremento
+- coverage de locales
+- constraints/no-goals
 
-Persistir en `state.json`:
+## Version-notes format
 
-- `project`
-- `shortName`
-- `baselineCommit`
-- `versionCodeAnchorCommit`
-- `baseline.versionCode`
-- `baseline.versionName`
-- `tracking.lastProcessedHead`
-- `tracking.lastProcessedAt`
-- `tracking.lastWorkingTreeFingerprint`
+Archivo: `docs/utilities/<short-name>/version-notes.xml` (overwrite each run).
 
-Regla de delta:
-
-- `versionCodeAnchorCommit` = último commit que tocó el `currentVersionCode` en `build.gradle`.
-- Delta = commits desde ancla vigente hasta `HEAD` + `working tree` en scope permitido.
-
-## Version-notes: formato permitido (exacto)
-
-Archivo: `docs/utilities/<short-name>/version-notes.xml` (sobrescribir en cada ejecución, sin historial por versión).
-
-Locales permitidos y obligatorios:
+Locales obligatorios:
 
 - `en-US`
 - `de-DE`
@@ -109,7 +71,7 @@ Locales permitidos y obligatorios:
 - `it-IT`
 - `pt-BR`
 
-Formato exacto requerido:
+Formato:
 
 ```xml
 <en-US>
@@ -137,28 +99,10 @@ Formato exacto requerido:
 </pt-BR>
 ```
 
-Regla de contenido:
+## Validation before close
 
-- No usar placeholders genéricos si hay cambios user-facing en `apps/` o `packages/`.
-- Generar texto real a partir de `git diff` (por ejemplo cambios de nombres, textos, features visibles).
-- Placeholder solo como fallback cuando no hay cambios visibles para usuarios.
-
-## Validación de cierre
-
-Antes de cerrar, confirmar:
-
-- `versionCode` actualizado en `build.gradle`.
-- `versionName` <= 30.
-- `utility.md` actualizado.
-- `state.json` actualizado con `baselineCommit` + `versionCodeAnchorCommit`.
-- `version-notes.xml` existe y fue sobrescrito con formato exacto permitido.
-
-## Respuesta final esperada
-
-Reportar:
-
-- app resuelta (`short-name` y carpeta real),
-- `currentVersionCode` -> `newVersionCode`,
-- estado de `versionName`,
-- rutas de artefactos actualizados,
-- riesgos/supuestos abiertos.
+- `versionCode` incrementado cuando el usuario lo pide.
+- `versionName` <= 30 y descriptivo.
+- `utility.md` factual y util para `fichas`.
+- `version-notes.xml` sin placeholders si hay cambios visibles.
+- no mojibake.
