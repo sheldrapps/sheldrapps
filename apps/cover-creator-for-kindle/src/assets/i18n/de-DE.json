@@ -94,7 +94,8 @@
     "DITHERED_THUMBNAIL_NOTICE": "Cover mit Artefaktreduzierung können in Miniaturansichten anders wirken. Öffne die Vorschau, um ein genaueres Ergebnis zu sehen.",
     "ACTIONS": {
       "DELETE": "Löschen",
-      "SHARE": "Teilen"
+      "SHARE": "Teilen",
+      "OPEN": "Öffnen"
     },
     "DELETE": {
       "MESSAGE": "Möchtest du dieses Cover löschen?",
@@ -104,7 +105,8 @@
       "DELETE": "Cover konnte nicht gelöscht werden. Bitte versuche es erneut.",
       "LOAD": "Cover konnten nicht geladen werden. Zum Aktualisieren nach unten ziehen.",
       "PREVIEW": "Vorschau konnte nicht geladen werden. Bitte versuche es erneut.",
-      "SHARE": "Cover konnte nicht geteilt werden. Bitte versuche es erneut."
+      "SHARE": "Cover konnte nicht geteilt werden. Bitte versuche es erneut.",
+      "OPEN": "Das Cover konnte nicht geöffnet werden. Bitte versuchen Sie es erneut."
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "Vorschau im E-Reader verkleinern",

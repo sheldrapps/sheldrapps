@@ -19,6 +19,11 @@ Este repositorio es un workspace pnpm para apps Ionic + Angular y kits compartid
 Las siguientes áreas ya están definidas por skills dedicadas en `.agents/skills/`.
 No duplicar reglas aquí; seguir la skill correspondiente.
 
+### Router (Compat Copilot/Codex)
+
+- Trigger: `grill me` / `grill-me` / `/grill-me` -> `.agents/skills/grill-me/SKILL.md`
+- Trigger: `caveman mode` / `use caveman` / `/caveman` -> `.agents/skills/caveman/SKILL.md`
+
 - `programar-ts`: SOLID/SRP, Clean Code/Clean Architecture, separación TS/HTML/SCSS, i18n obligatorio, kits-first.
 - `add-ui-component`: tokenización ui-theme, UI/UX limpia, accesibilidad, i18n app-owned o kit-owned standalone.
 - `create-ionic-app`: baseline de nueva app + wiring i18n/settings/ui-theme.
@@ -27,6 +32,13 @@ No duplicar reglas aquí; seguir la skill correspondiente.
 - `fichas`: generación de fichas Play Store por locale.
 
 ## Reglas Que Sí Permanecen En AGENTS
+
+### Preferencias Operativas Del Usuario
+
+- Modo always-on: cargar y aplicar `grill me` en toda petición del usuario sin requerir triggers explícitos.
+- Modo always-on: cargar y aplicar `caveman` en toda respuesta del agente sin requerir triggers explícitos.
+- Cuando se escriba código TypeScript, usar siempre las skills `programar-ts` y `validacion`.
+- Cuando se creen o modifiquen elementos UI, usar la skill `add-ui-component`.
 
 ### Versioning Rule (Critical)
 

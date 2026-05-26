@@ -104,7 +104,8 @@
     "DITHERED_THUMBNAIL_NOTICE": "套用瑕疵減少的封面在縮圖中可能看起來不同。請開啟預覽以查看更準確的結果。",
     "ACTIONS": {
       "DELETE": "刪除",
-      "SHARE": "分享"
+      "SHARE": "分享",
+      "OPEN": "開啟"
     },
     "DELETE": {
       "MESSAGE": "確定要刪除此 EPUB？",
@@ -114,7 +115,8 @@
       "DELETE": "無法刪除 EPUB，請再試一次。",
       "SHARE": "無法分享 EPUB，請再試一次。",
       "LOAD": "無法載入您的 EPUB，請下拉以重新整理。",
-      "PREVIEW": "無法載入預覽，請再試一次。"
+      "PREVIEW": "無法載入預覽，請再試一次。",
+      "OPEN": "無法開啟 EPUB。請再試一次。"
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "縮小電子閱讀器預覽",

@@ -3,7 +3,7 @@ import { Capacitor } from '@capacitor/core';
 
 import { NativeEpubFixerAdapter } from './adapters/native-epub-fixer.adapter';
 import { WebDevEpubFixerAdapter } from './adapters/web-dev-epub-fixer.adapter';
-import { FILE_KIT_CONFIG_TOKEN, FileKitConfig } from "./providers";
+import { FILE_KIT_CONFIG_TOKEN, FileKitConfig } from "./provider-tokens";
 
 export type EpubFixerEnvironment = 'native' | 'web-dev';
 

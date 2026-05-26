@@ -91,7 +91,8 @@
     "DITHERED_THUMBNAIL_NOTICE": "Le copertine con riduzione degli artefatti possono apparire diverse nelle miniature. Apri l'anteprima per vedere un risultato più fedele.",
     "ACTIONS": {
       "DELETE": "Elimina",
-      "SHARE": "Condividi"
+      "SHARE": "Condividi",
+      "OPEN": "Apri"
     },
     "DELETE": {
       "MESSAGE": "Vuoi eliminare questo EPUB?",
@@ -101,7 +102,8 @@
       "DELETE": "Impossibile eliminare l'EPUB. Riprova.",
       "SHARE": "Impossibile condividere l'EPUB. Riprova.",
       "LOAD": "Impossibile caricare i tuoi EPUB. Trascina verso il basso per riprovare.",
-      "PREVIEW": "Impossibile caricare l'anteprima. Riprova."
+      "PREVIEW": "Impossibile caricare l'anteprima. Riprova.",
+      "OPEN": "Impossibile aprire l'EPUB. Riprova."
     },
     "GENERATE_THUMB": "Generate thumbnail",
     "PREVIEW_UNAVAILABLE": "Preview unavailable.",

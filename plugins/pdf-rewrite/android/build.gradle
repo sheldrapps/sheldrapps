@@ -1,0 +1,26 @@
+apply plugin: 'com.android.library'
+
+android {
+    namespace = "com.sheldrapps.plugins.pdfrewrite"
+    compileSdk = rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':capacitor-android')
+    implementation 'androidx.activity:activity:1.9.3'
+    implementation 'com.tom-roush:pdfbox-android:2.0.27.0'
+}

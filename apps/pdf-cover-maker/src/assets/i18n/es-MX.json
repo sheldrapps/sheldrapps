@@ -1,0 +1,243 @@
+{
+  "APP": {
+    "TITLE": "Creador de Portadas PDF"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "Vuelve atrás de nuevo para salir",
+    "CANCEL": "Cancelar",
+    "CLOSE": "Cerrar",
+    "DELETE": "Eliminar",
+    "DONE": "Listo",
+    "ERROR": "Error",
+    "LOADING": "Cargando...",
+    "BILLING_UNAVAILABLE": "Las compras no están disponibles en este momento.",
+    "PURCHASE_ERROR": "No se pudo completar la compra. Inténtalo de nuevo.",
+    "REMOVE_ADS_BUY": "Comprar",
+    "REMOVE_ADS_DESCRIPTION": "Quita los anuncios para siempre y habilita la selección de exportación lossless/compressed.",
+    "REMOVE_ADS_PURCHASED": "Anuncios eliminados para siempre.",
+    "REMOVE_ADS_RESTORE": "Restaurar compra",
+    "REMOVE_ADS_RESTORED": "Compra restaurada correctamente.",
+    "REMOVE_ADS_TITLE": "Eliminar anuncios",
+    "REMOVE_ADS_CTA_TITLE": "Eliminar anuncios",
+    "REMOVE_ADS_CTA_SUBTITLE": "Pago único • Para siempre",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Pago único • {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "Precio: {{price}} • Sin suscripción",
+    "RESTORE_ERROR": "No se pudo restaurar la compra. Inténtalo de nuevo.",
+    "PRO_ONLY": "PRO",
+    "WATCH_AD_SUBTITLE": "Ver anuncio",
+    "SHARE": "Compartir",
+    "SHARE_KINDLE_HINT": "Al compartir, selecciona la app Kindle para enviarla a tu dispositivo.",
+    "WARNING": "Advertencia"
+  },
+  "CHANGE": {
+    "ADS_REQUIRED": "No se pudo cargar el anuncio. Revisa tu red o bloqueador de anuncios.",
+    "ARIA_CHANGE_PDF": "Crear archivo PDF. Archivo actual: {{name}}",
+    "ARIA_CHANGE_IMAGE": "Crear imagen de portada. Imagen actual: {{name}}",
+    "ARIA_CROP": "Ajustar imagen seleccionada",
+    "ARIA_SELECT_PDF": "Seleccionar archivo PDF",
+    "ARIA_SELECT_IMAGE": "Seleccionar imagen de portada",
+    "CROP_ACTION": "Ajustar",
+    "COVER_CHANGED": "Portada creada. Ya puedes guardar o compartir",
+    "CHANGE_ACTION": "Crear portada",
+    "CHANGE_ACTION_REWARDED": "Crear portada (ver anuncio)",
+    "PDF_ERROR_CORRUPT": "No se pudo leer el PDF. Prueba con otro archivo.",
+    "PDF_ERROR_NO_COVER": "Este PDF no tiene una portada reemplazable.",
+    "NO_COVER_DETECTED_ADDED": "No se detectó portada. Se agregó una portada nueva a este PDF.",
+    "PDF_ERROR_REWRITE": "No se pudo procesar el PDF. Inténtalo de nuevo.",
+    "PDF_ERROR_STORAGE": "No hay espacio suficiente. Se requieren {{requiredMB}} MB y hay {{availableMB}} MB disponibles.",
+    "PDF_ERROR_SIZE": "El archivo pesa demasiado. Máximo {{maxSize}} MB.",
+    "PDF_ERROR_TYPE": "Archivo PDF no compatible.",
+    "GENERATING": "Actualizando portada...",
+    "HINT_SAVE_SHARE_EXPLAIN": "Crear la portada no la guarda automáticamente.",
+    "INFO": "Info",
+    "INFO_ARIA": "Información sobre crear portada",
+    "INFO_TITLE": "Información",
+    "INFO_FLOW_LABEL": "Orden recomendado:",
+    "INFO_STEP_1": "Seleccionar PDF.",
+    "INFO_STEP_1_1": "1.1. Se precarga la portada original.",
+    "INFO_STEP_1_2": "1.2. Crear la imagen o continuar con la original.",
+    "INFO_STEP_2": "Ajustar imagen en el editor.",
+    "INFO_STEP_3": "Ver anuncio para guardar portada.",
+    "INFO_STEP_4": "Guardar o compartir.",
+    "IMAGE_ERROR_CORRUPT": "No se pudo leer la imagen. Prueba con otra.",
+    "IMAGE_ERROR_SIZE": "El archivo pesa demasiado. Máximo {{maxSize}} MB.",
+    "IMAGE_ERROR_TYPE": "Formato no compatible ({{type}}). Selecciona JPG, PNG o WebP.",
+    "IMAGE_WARN_SMALL": "La imagen puede ser demasiado pequeña para algunos dispositivos",
+    "IMAGE_WARN_INVALID_PDF_COVER": "Portada inválida en el PDF. Toca para elegir una nueva imagen.",
+    "LOADING_PDF": "Cargando PDF...",
+    "PDF_LOADING_COPY": "Copiando PDF grande...",
+    "PDF_LOADING_INSPECT": "Analizando estructura del PDF...",
+    "LOADING_IMAGE": "Cargando imagen...",
+    "OPENING_EDITOR": "Abriendo editor...",
+    "CHANGING_COVER": "Creando portada...",
+    "GETTING_COVER": "Obteniendo portada",
+    "PROCESSING_LARGE_PDF": "Procesando PDF grande...",
+    "PROCESS_CANCELLED": "Proceso cancelado",
+    "SELECT_PDF_LABEL": "Archivo PDF",
+    "SELECT_PDF_PLACEHOLDER": "Selecciona un archivo PDF",
+    "COVER_MODE_LABEL": "Decide qué quieres hacer con la primer página",
+    "COVER_MODE_ARIA": "Decide qué quieres hacer con la primer página",
+    "COVER_MODE_REPLACE_FIRST_PAGE": "Reemplazar",
+    "COVER_MODE_INSERT_FIRST_PAGE": "Insertar",
+    "INSERT_MODE_TOC_WARNING": "Al insertar portada, TOC, marcadores o numeracion de paginas podrian desajustarse. Intentaremos mantenerlos alineados.",
+    "FRAME_MODE_LABEL": "Modo de marco",
+    "FRAME_MODE_ARIA": "Modo de marco",
+    "FRAME_MODE_WITH_FRAME": "Con marco",
+    "FRAME_MODE_WITHOUT_FRAME": "Sin marco",
+    "FRAME_NOT_DETECTED_TOAST": "Marco no detectado en el documento",
+    "SAVING": "Guardando portada...",
+    "SAVED_OK": "Portada guardada",
+    "SAVE_RENAME_TITLE": "Guardar portada",
+    "SAVE_RENAME_MESSAGE": "Ingresa el nombre para la portada",
+    "SAVE_RENAME_PLACEHOLDER": "Nombre del archivo",
+    "SAVE_ACTION": "Guardar",
+    "SELECT_IMAGE_LABEL": "Imagen de portada",
+    "SELECT_IMAGE_PLACEHOLDER": "Selecciona una imagen",
+    "INVALID_COVER_TAP_TO_CHANGE": "Portada inválida, toca para crear",
+    "TAP_TO_CHANGE": "Toca para crear/reiniciar",
+    "TAP_TO_CHANGE_IMAGE": "Toca para crear",
+    "LONGPRESS_PREVIEW_HINT": "Mantén pulsado para previsualizar",
+    "TITLE": "Crear portada",
+    "PREVIEW_ORIGINAL_LABEL": "Portada original",
+    "PREVIEW_NEW_LABEL": "Portada nueva",
+    "PREVIEW_NEW_ONLY_LABEL": "Nueva portada"
+  },
+  "COVERS": {
+    "DELETED": "PDF eliminado",
+    "EMPTY": "No se encontraron portadas en la app. Los archivos creados antes de reinstalar pueden no aparecer por restricciones del sistema.",
+    "GENERATE_THUMB": "Generar miniatura",
+    "LOADING_PREVIEW": "Cargando vista previa...",
+    "PLACEHOLDER": "PDF",
+    "PREVIEW_UNAVAILABLE": "Vista previa no disponible.",
+    "PREVIEW_TITLE": "Vista previa",
+    "TITLE": "Mis PDFs",
+    "DITHERED_THUMBNAIL_NOTICE": "Las portadas con reducción de artefactos pueden verse diferentes en miniatura. Abre la vista previa para ver un resultado más fiel.",
+    "ACTIONS": {
+      "DELETE": "Eliminar",
+      "OPEN": "Abrir",
+      "SHARE": "Compartir"
+    },
+    "DELETE": {
+      "MESSAGE": "¿Quieres eliminar este PDF?",
+      "TITLE": "Eliminar PDF"
+    },
+    "ERROR": {
+      "DELETE": "No se pudo eliminar el PDF. Inténtalo de nuevo.",
+      "OPEN": "No se pudo abrir el PDF. Inténtalo de nuevo.",
+      "SHARE": "No se pudo compartir el PDF. Inténtalo de nuevo.",
+      "LOAD": "No se pudieron cargar tus PDFs. Arrastra hacia abajo para intentar de nuevo.",
+      "PREVIEW": "No se pudo cargar la vista previa. Intenta de nuevo."
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "Alejar vista previa del e-reader",
+      "ZOOM_IN_ARIA": "Acercar vista previa del e-reader",
+      "ZOOM_RESET_ARIA": "Restablecer zoom de la vista previa del e-reader"
+    }
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "Nota",
+    "STEP_1": "Selecciona un archivo PDF (se precarga la portada actual)",
+    "STEP_2": "Ajusta la portada cargada o elige una nueva imagen y ajusta",
+    "STEP_3": "Ve el anuncio para crear la portada del PDF",
+    "STEP_4": "Guarda o comparte el PDF actualizado",
+    "STEP_4_DESC": "Cuando esté listo, puedes guardarlo en tu dispositivo o compartirlo con la app Kindle para una transición más suave.",
+    "STEP_5": "Enviar vía web (Send to Kindle)",
+    "STEP_5_DESC": "También puedes enviarla desde el navegador usando la herramienta web Send to Kindle.",
+    "TIP": "Para mejores resultados, usa imágenes en alta resolución y asegúrate de que los anuncios estén desactivados en tu Kindle.",
+    "TITLE": "Instrucciones"
+  },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "Atrás",
+      "FINISH": "Finalizar",
+      "INTERACT_HINT": "Interactúa con el elemento resaltado para continuar.",
+      "NEXT": "Siguiente",
+      "PROGRESS": "{{current}} de {{total}}",
+      "SKIP": "Omitir"
+    },
+    "STEPS": {
+      "PDF": {
+        "TITLE": "Archivo PDF",
+        "DESCRIPTION": "Selecciona el archivo PDF que quieres actualizar."
+      },
+      "IMAGE": {
+        "TITLE": "Imagen de portada",
+        "DESCRIPTION": "Selecciona la imagen para tu portada."
+      },
+      "ADJUST": {
+        "TITLE": "Ajustar",
+        "DESCRIPTION": "Ajusta la imagen en el editor y toca Listo."
+      },
+      "CREATE": {
+        "TITLE": "Crear portada",
+        "DESCRIPTION": "Genera aquí la portada actualizada."
+      },
+      "RESULTS": {
+        "TITLE": "Guardar o compartir",
+        "DESCRIPTION": "Guarda o comparte tu PDF actualizado."
+      }
+    }
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "Ver instrucciones",
+    "INSTRUCTIONS_HINT": "Cómo crear y enviar una portada a Kindle",
+    "INSTRUCTIONS_SECTION": "Instrucciones",
+    "LANGUAGE": "Idioma",
+    "LANGUAGE_RESTART_NOTICE": "Idioma creado. La app se reiniciará para aplicar los cambios.",
+    "LANGUAGE_PREPARING_COUNTDOWN": "Preparando todo en tu idioma. La app se cerrará para crear su nombre ({{count}})",
+    "PRIVACY_HINT": "Controla cómo se manejan los datos y la publicidad",
+    "PRIVACY_OPTIONS": "Opciones de privacidad",
+    "PRIVACY_POLICY": "Política de privacidad",
+    "PRIVACY_SECTION": "Privacidad",
+    "EREADER_OPTIMIZATION_SECTION": "Mejora de imagen",
+    "EREADER_OPTIMIZATION_HINT": "Aplica ajustes automáticos para mejorar nitidez en pantallas de tinta electrónica",
+    "EREADER_OPTIMIZATION_TOGGLE": "Optimizar para tinta electrónica",
+    "THEME": "Tema",
+    "THEME_SYSTEM": "Sistema",
+    "THEME_LIGHT": "Claro Natural",
+    "THEME_DARK": "Oscuro Clásico",
+    "THEME_WARM_READING": "Lectura Cálida",
+    "THEME_POP_ROSE": "Rosa Pop",
+    "THEME_NOCTURNE_VIOLET": "Violeta Nocturno",
+    "THEME_OBSIDIAN_RED": "Rojo Obsidiana",
+    "THEME_TERMINAL_GREEN": "Verde Terminal",
+    "THEME_MINT_FRESH": "Menta Fresca",
+    "THEME_SILVER_TECH": "Silver",
+    "THEME_GOLD_LUXE": "Oro",
+    "VIEW_TOUR": "Ver tour",
+    "TITLE": "Configuración"
+  },
+  "TABS": {
+    "COVERS": "Mis PDFs",
+    "CHANGE": "Crear",
+    "SETTINGS": "Configuración"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "Recomendadas",
+      "INFO": "Info",
+      "APPS": "Apps",
+      "GUIDE": "Guía"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Color del marco"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Genérico"
+    },
+    "COLOR": {
+      "BLACK": "Negro",
+      "WHITE": "Blanco",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Rosa",
+      "METALLIC_BLACK": "Negro metálico",
+      "METALLIC_JADE": "Jade metálico",
+      "METALLIC_PINK": "Rosa metálico"
+    }
+  }
+}

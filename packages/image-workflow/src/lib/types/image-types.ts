@@ -82,6 +82,7 @@ export interface CropFormatOption {
   id: string;
   label: string;
   target: CropTarget;
+  disabled?: boolean;
 }
 
 /**

@@ -94,7 +94,8 @@
     "DITHERED_THUMBNAIL_NOTICE": "Las portadas con reducción de artefactos pueden verse diferentes en miniatura. Abre la vista previa para ver un resultado más fiel.",
     "ACTIONS": {
       "DELETE": "Eliminar",
-      "SHARE": "Compartir"
+      "SHARE": "Compartir",
+      "OPEN": "Abrir"
     },
     "DELETE": {
       "MESSAGE": "¿Quieres eliminar esta portada?",
@@ -104,7 +105,8 @@
       "DELETE": "No se pudo eliminar la portada. Inténtalo de nuevo.",
       "LOAD": "No se pudieron cargar tus portadas. Arrastra hacia abajo para intentar de nuevo.",
       "PREVIEW": "No se pudo cargar la vista previa. Intenta de nuevo.",
-      "SHARE": "No se pudo compartir la portada. Inténtalo de nuevo."
+      "SHARE": "No se pudo compartir la portada. Inténtalo de nuevo.",
+      "OPEN": "No se pudo abrir la portada. Inténtalo de nuevo."
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "Alejar vista previa del e-reader",

@@ -1,0 +1,45 @@
+import { Routes } from '@angular/router';
+
+export const routes: Routes = [
+  {
+    path: '',
+    loadChildren: () => import('./tabs/tabs.routes').then((m) => m.routes),
+  },
+  {
+    path: 'settings',
+    loadComponent: () =>
+      import('./pages/settings/settings.page').then((m) => m.SettingsPage),
+  },
+  {
+    path: 'change',
+    loadComponent: () =>
+      import('./pages/change/change.page').then((m) => m.ChangePage),
+  },
+  {
+    path: 'editor',
+    loadChildren: () =>
+      import('@sheldrapps/image-workflow/editor').then((m) => m.EDITOR_ROUTES),
+  },
+  {
+    path: 'my-pdfs',
+    loadComponent: () =>
+      import('./pages/my-pdfs/my-pdfs.page').then((m) => m.MyPdfsPage),
+  },
+  {
+    path: 'recommended-apps',
+    data: {
+      backHref: '/tabs/change',
+    },
+    loadChildren: () =>
+      import('@sheldrapps/recommended-apps').then(
+        (m) => m.RECOMMENDED_APPS_ROUTES
+      ),
+  },
+  {
+    path: 'instructions',
+    loadComponent: () =>
+      import('./pages/instructions/instructions.page').then(
+        (m) => m.InstructionsPage,
+      ),
+  },
+];

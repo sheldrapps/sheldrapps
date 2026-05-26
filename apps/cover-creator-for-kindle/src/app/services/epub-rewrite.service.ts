@@ -32,6 +32,19 @@ type ExtractCoverAssetResult = {
   stage?: string;
 };
 
+type OpenExternalFileOptions = {
+  inputPath: string;
+  mimeType?: string;
+  chooserTitle?: string;
+};
+
+type OpenExternalFileResult = {
+  success: boolean;
+  error?: string;
+  message?: string;
+  stage?: string;
+};
+
 type EpubRewritePlugin = Plugin & {
   createEpubFromCover(
     options: CreateEpubFromCoverOptions,
@@ -39,6 +52,9 @@ type EpubRewritePlugin = Plugin & {
   extractCoverAsset(
     options: ExtractCoverAssetOptions,
   ): Promise<ExtractCoverAssetResult>;
+  openExternalFile(
+    options: OpenExternalFileOptions,
+  ): Promise<OpenExternalFileResult>;
 };
 
 const EpubRewrite = registerPlugin<EpubRewritePlugin>('EpubRewritePlugin');
@@ -108,6 +124,16 @@ export class EpubRewriteService {
       ...extracted,
       file,
     };
+  }
+
+  async openExternalFile(options: OpenExternalFileOptions): Promise<void> {
+    const result = await EpubRewrite.openExternalFile(options);
+    if (!result.success) {
+      throw new EpubRewriteError(result.error ?? 'OPEN_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
   }
 
   toNativePath(uriOrPath: string): string {

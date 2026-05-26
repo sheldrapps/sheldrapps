@@ -1,0 +1,23 @@
+{
+  "name": "@sheldrapps/cover-page-mode-kit",
+  "version": "1.0.0",
+  "description": "Reusable two-option switch for cover page placement flows",
+  "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
+  "peerDependencies": {
+    "@angular/common": "^20.0.0",
+    "@angular/core": "^20.0.0",
+    "@ionic/angular": "^8.0.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "keywords": [
+    "cover",
+    "switch",
+    "toggle",
+    "ionic",
+    "angular"
+  ]
+}

@@ -227,6 +227,33 @@ export class FileService {
     return { uri, filename };
   }
 
+  async openCoverByFilename(filename: string) {
+    await this.ensurePublicDocumentsEpubFolderReady();
+    const uri = await this.getPublicEpubFileUriOrThrow(filename);
+    this.debugLog('openCoverByFilename', { filename, uri });
+
+    if (!this.epubRewrite.isSupported()) {
+      const fileRef: FileRef = {
+        uri,
+        filename,
+        mimeType: 'application/epub+zip',
+      };
+      await this.fileKit.share(fileRef, {
+        title: filename,
+        text: 'EPUB cover generated with Cover creator for kindle',
+        dialogTitle: 'Open EPUB',
+      });
+      return { uri, filename };
+    }
+
+    await this.epubRewrite.openExternalFile({
+      inputPath: uri,
+      mimeType: 'application/epub+zip',
+      chooserTitle: 'Open EPUB',
+    });
+    return { uri, filename };
+  }
+
   async getOrBuildThumbDataUrlForFilename(
     filename: string,
   ): Promise<string | null> {

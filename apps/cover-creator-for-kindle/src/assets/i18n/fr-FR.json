@@ -94,7 +94,8 @@
     "DITHERED_THUMBNAIL_NOTICE": "Les couvertures avec réduction des artefacts peuvent paraître différentes en miniature. Ouvrez l’aperçu pour voir un résultat plus fidèle.",
     "ACTIONS": {
       "DELETE": "Supprimer",
-      "SHARE": "Partager"
+      "SHARE": "Partager",
+      "OPEN": "Ouvrir"
     },
     "DELETE": {
       "MESSAGE": "Voulez-vous supprimer cette couverture ?",
@@ -104,7 +105,8 @@
       "DELETE": "Impossible de supprimer la couverture. Réessaie.",
       "LOAD": "Impossible de charger les couvertures. Fais glisser vers le bas pour réessayer.",
       "PREVIEW": "Impossible de charger l'aperçu. Réessaie.",
-      "SHARE": "Impossible de partager la couverture. Réessaie."
+      "SHARE": "Impossible de partager la couverture. Réessaie.",
+      "OPEN": "Impossible d'ouvrir la couverture. Veuillez réessayer."
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "Réduire l’aperçu e-reader",

@@ -1,6 +1,7 @@
 ---
 name: incrementa-version-utilidades
-description: Incrementa version de app movil y genera utilidades/notes con inteligencia basada en cambios reales. Use when user says "incrementa la version para <proyecto>" o equivalente.
+user-invocable: true
+description: "Incrementa version de app movil y genera utilidades/notes con inteligencia basada en cambios reales. Use when user says 'incrementa la version para <proyecto>' o equivalente."
 ---
 
 # Incrementa Version Utilidades

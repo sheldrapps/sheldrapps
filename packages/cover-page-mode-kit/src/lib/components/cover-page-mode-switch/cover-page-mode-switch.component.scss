@@ -1,0 +1,55 @@
+:host {
+  display: block;
+}
+
+.cover-mode-switch {
+  display: grid;
+  gap: var(--app-space-3, 0.5rem);
+}
+
+.cover-mode-switch__toggle {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--app-space-4, 10px);
+  min-height: var(--app-touch-target, 44px);
+}
+
+.cover-mode-switch__label {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--app-text-secondary, var(--ion-color-medium));
+  font-size: var(--app-text-sm, 0.85rem);
+  font-weight: var(--app-font-semibold, 600);
+  line-height: 1.25;
+  padding: 0;
+}
+
+.cover-mode-switch__label:first-of-type {
+  text-align: right;
+}
+
+.cover-mode-switch__label:last-of-type {
+  text-align: left;
+}
+
+.cover-mode-switch__label--active {
+  color: var(--ion-color-primary);
+}
+
+.cover-mode-switch__label--blocked {
+  opacity: var(--app-text-faint, 0.55);
+}
+
+.cover-mode-switch__control {
+  --track-background: rgba(var(--ion-color-medium-rgb), 0.24);
+  --track-background-checked: rgba(var(--ion-color-primary-rgb), 0.36);
+  --handle-background: var(--app-surface, var(--ion-color-base));
+  --handle-background-checked: var(--ion-color-primary);
+}
+
+.cover-mode-switch__label:disabled,
+.cover-mode-switch__control:disabled {
+  opacity: var(--app-text-faint, 0.55);
+}

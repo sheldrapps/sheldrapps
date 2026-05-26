@@ -10,6 +10,13 @@ Skills are source of truth.
 - Trigger: `agrega componente UI` -> `.agents/skills/add-ui-component/SKILL.md`
 - Trigger: TS implementation/refactor -> `.agents/skills/programar-ts/SKILL.md`
 - Trigger: validate completed change -> `.agents/skills/validacion/SKILL.md`
+- Trigger: `grill me` / `grill-me` / `/grill-me` -> `.agents/skills/grill-me/SKILL.md`
+- Trigger: `caveman mode` / `use caveman` / `/caveman` -> `.agents/skills/caveman/SKILL.md`
+
+## Always-On Skills Policy
+
+- In this repository, load and apply `.agents/skills/grill-me/SKILL.md` for every user request, even when no trigger phrase is present.
+- In this repository, load and apply `.agents/skills/caveman/SKILL.md` for every assistant response, even when no trigger phrase is present.
 
 ## Increment Version Contract
 

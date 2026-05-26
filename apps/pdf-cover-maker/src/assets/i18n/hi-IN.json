@@ -1,0 +1,243 @@
+{
+  "APP": {
+    "TITLE": "PDF कवर मेकर"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "बाहर निकलने के लिए फिर से वापस जाएँ",
+    "CANCEL": "रद्द करें",
+    "CLOSE": "बंद करें",
+    "DELETE": "हटाएँ",
+    "DONE": "हो गया",
+    "ERROR": "त्रुटि",
+    "LOADING": "लोड हो रहा है…",
+    "BILLING_UNAVAILABLE": "अभी खरीदारी उपलब्ध नहीं है।",
+    "PURCHASE_ERROR": "खरीदारी पूरी नहीं हो सकी। कृपया फिर से कोशिश करें।",
+    "REMOVE_ADS_BUY": "खरीदें",
+    "REMOVE_ADS_DESCRIPTION": "एक बार के भुगतान से विज्ञापन हमेशा के लिए हटाएँ और लॉसलेस/कम्प्रेस्ड एक्सपोर्ट चयन सक्षम करें।",
+    "REMOVE_ADS_PURCHASED": "विज्ञापन हमेशा के लिए हटा दिए गए।",
+    "REMOVE_ADS_RESTORE": "खरीदारी पुनः प्राप्त करें",
+    "REMOVE_ADS_RESTORED": "खरीदारी सफलतापूर्वक पुनः प्राप्त की गई।",
+    "REMOVE_ADS_TITLE": "विज्ञापन हटाएँ",
+    "REMOVE_ADS_CTA_TITLE": "विज्ञापन हटाएँ",
+    "REMOVE_ADS_CTA_SUBTITLE": "एकमुश्त भुगतान • हमेशा के लिए",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "एकमुश्त भुगतान • {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "मूल्य: {{price}} • कोई सदस्यता नहीं",
+    "RESTORE_ERROR": "खरीदारी पुनः प्राप्त नहीं हो सकी। कृपया फिर से कोशिश करें।",
+    "PRO_ONLY": "PRO",
+    "WATCH_AD_SUBTITLE": "विज्ञापन देखें",
+    "SHARE": "साझा करें",
+    "SHARE_KINDLE_HINT": "साझा करते समय, इसे अपने डिवाइस पर भेजने के लिए Kindle ऐप चुनें।",
+    "WARNING": "चेतावनी"
+  },
+  "CHANGE": {
+    "ADS_REQUIRED": "विज्ञापन लोड नहीं हो सका। अपना नेटवर्क या विज्ञापन अवरोधक जाँचें।",
+    "ARIA_CHANGE_PDF": "PDF फ़ाइल बनाएं। वर्तमान फ़ाइल: {{name}}",
+    "ARIA_CHANGE_IMAGE": "कवर छवि बनाएं। वर्तमान छवि: {{name}}",
+    "ARIA_CROP": "चयनित छवि समायोजित करें",
+    "ARIA_SELECT_PDF": "PDF फ़ाइल चुनें",
+    "ARIA_SELECT_IMAGE": "कवर छवि चुनें",
+    "CROP_ACTION": "समायोजित करें",
+    "COVER_CHANGED": "कवर बन गया। अब आप सहेज या साझा कर सकते हैं",
+    "CHANGE_ACTION": "कवर बनाएं",
+    "CHANGE_ACTION_REWARDED": "कवर बनाएं (विज्ञापन देखें)",
+    "GENERATING": "कवर अपडेट हो रहा है…",
+    "HINT_SAVE_SHARE_EXPLAIN": "कवर बनाने से वह स्वतः सहेजा नहीं जाता।",
+    "INFO": "जानकारी",
+    "INFO_ARIA": "कवर बनाने के बारे में जानकारी",
+    "INFO_TITLE": "जानकारी",
+    "INFO_FLOW_LABEL": "अनुशंसित क्रम:",
+    "INFO_STEP_1": "PDF चुनें।",
+    "INFO_STEP_1_1": "1.1. मूल कवर पहले से लोड हो जाएगा।",
+    "INFO_STEP_1_2": "1.2. छवि बनाएं या मूल रखें।",
+    "INFO_STEP_2": "संपादक में छवि समायोजित करें।",
+    "INFO_STEP_3": "कवर सहेजने के लिए विज्ञापन देखें।",
+    "INFO_STEP_4": "सहेजें या साझा करें।",
+    "IMAGE_ERROR_CORRUPT": "छवि पढ़ी नहीं जा सकी। कृपया कोई अन्य छवि आज़माएँ।",
+    "IMAGE_ERROR_SIZE": "फ़ाइल बहुत बड़ी है। अधिकतम {{maxSize}} MB।",
+    "IMAGE_ERROR_TYPE": "असमर्थित प्रारूप ({{type}})। कृपया JPG, PNG या WebP चुनें।",
+    "IMAGE_WARN_SMALL": "यह छवि कुछ डिवाइस के लिए बहुत छोटी हो सकती है।",
+    "IMAGE_WARN_INVALID_PDF_COVER": "अमान्य PDF कवर। नई छवि चुनने के लिए टैप करें।",
+    "PDF_ERROR_CORRUPT": "PDF पढ़ी नहीं जा सकी। कोई अन्य फ़ाइल आज़माएँ।",
+    "PDF_ERROR_NO_COVER": "इस PDF में बदला जाने योग्य कोई कवर नहीं है।",
+    "NO_COVER_DETECTED_ADDED": "कोई कवर नहीं मिला। इस PDF में एक नया कवर जोड़ा गया।",
+    "PDF_ERROR_REWRITE": "PDF प्रोसेस नहीं हो सकी। कृपया फिर से कोशिश करें।",
+    "PDF_ERROR_STORAGE": "पर्याप्त संग्रहण स्थान नहीं है। आवश्यक {{requiredMB}} MB, उपलब्ध {{availableMB}} MB।",
+    "PDF_ERROR_SIZE": "फ़ाइल बहुत बड़ी है। अधिकतम {{maxSize}} MB।",
+    "PDF_ERROR_TYPE": "असमर्थित PDF फ़ाइल।",
+    "LOADING_PDF": "PDF लोड हो रही है…",
+    "PDF_LOADING_COPY": "बड़ी PDF कॉपी हो रही है...",
+    "PDF_LOADING_INSPECT": "PDF संरचना जाँची जा रही है...",
+    "LOADING_IMAGE": "छवि लोड हो रही है…",
+    "OPENING_EDITOR": "संपादक खुल रहा है…",
+    "CHANGING_COVER": "कवर बनाया जा रहा है...",
+    "GETTING_COVER": "कवर प्राप्त किया जा रहा है",
+    "SAVING": "कवर सहेजा जा रहा है…",
+    "SELECT_PDF_LABEL": "PDF फ़ाइल",
+    "PROCESSING_LARGE_PDF": "बड़ी PDF प्रोसेस हो रही है...",
+    "PROCESS_CANCELLED": "प्रक्रिया रद्द की गई",
+    "SELECT_PDF_PLACEHOLDER": "PDF फ़ाइल चुनें",
+    "COVER_MODE_LABEL": "कवर पेज क्रिया",
+    "COVER_MODE_ARIA": "नई कवर पेज कैसे लागू करनी है चुनें",
+    "COVER_MODE_REPLACE_FIRST_PAGE": "पहला पेज बदलें",
+    "COVER_MODE_INSERT_FIRST_PAGE": "शुरुआत में नया पेज जोड़ें",
+    "INSERT_MODE_TOC_WARNING": "Inserting a cover may shift TOC, bookmarks, or page numbering. We'll try to keep them aligned.",
+    "FRAME_MODE_LABEL": "Frame mode",
+    "FRAME_MODE_ARIA": "Frame mode",
+    "FRAME_MODE_WITH_FRAME": "With frame",
+    "FRAME_MODE_WITHOUT_FRAME": "Without frame",
+    "FRAME_NOT_DETECTED_TOAST": "Frame not detected in the document",
+    "SAVE_ACTION": "सहेजें",
+    "SAVED_OK": "कवर सहेजा गया",
+    "SAVE_RENAME_TITLE": "कवर सहेजें",
+    "SAVE_RENAME_MESSAGE": "कवर के लिए एक नाम दर्ज करें",
+    "SAVE_RENAME_PLACEHOLDER": "फ़ाइल का नाम",
+    "SELECT_IMAGE_LABEL": "कवर छवि",
+    "SELECT_IMAGE_PLACEHOLDER": "छवि चुनें",
+    "INVALID_COVER_TAP_TO_CHANGE": "अमान्य कवर, बनाने के लिए टैप करें",
+    "TAP_TO_CHANGE": "बनाने/रीसेट करने के लिए टैप करें",
+    "TAP_TO_CHANGE_IMAGE": "बनाने के लिए टैप करें",
+    "LONGPRESS_PREVIEW_HINT": "पूर्वावलोकन के लिए देर तक दबाएँ",
+    "TITLE": "कवर बनाएं",
+    "PREVIEW_ORIGINAL_LABEL": "मूल कवर",
+    "PREVIEW_NEW_LABEL": "नया कवर",
+    "PREVIEW_NEW_ONLY_LABEL": "नया कवर"
+  },
+  "COVERS": {
+    "DELETED": "PDF हटाई गई",
+    "EMPTY": "ऐप में कोई कवर नहीं मिला। पुनः इंस्टॉल करने से पहले बनाई गई फ़ाइलें सिस्टम प्रतिबंधों के कारण दिखाई नहीं दे सकती हैं।",
+    "GENERATE_THUMB": "थंबनेल बनाएँ",
+    "LOADING_PREVIEW": "प्रीव्यू लोड हो रहा है...",
+    "PLACEHOLDER": "PDF",
+    "PREVIEW_UNAVAILABLE": "प्रीव्यू उपलब्ध नहीं है।",
+    "PREVIEW_TITLE": "प्रीव्यू",
+    "TITLE": "मेरी PDFs",
+    "DITHERED_THUMBNAIL_NOTICE": "आर्टिफैक्ट कमी वाली कवर थंबनेल में अलग दिख सकती हैं। अधिक सटीक परिणाम देखने के लिए प्रीव्यू खोलें।",
+    "ACTIONS": {
+      "DELETE": "हटाएँ",
+      "SHARE": "साझा करें",
+      "OPEN": "खोलें"
+    },
+    "DELETE": {
+      "MESSAGE": "क्या आप इस PDF को हटाना चाहते हैं?",
+      "TITLE": "PDF हटाएँ"
+    },
+    "ERROR": {
+      "DELETE": "PDF हटाई नहीं जा सकी। कृपया फिर से कोशिश करें।",
+      "SHARE": "PDF साझा नहीं हो सकी। कृपया फिर से कोशिश करें।",
+      "LOAD": "आपकी PDFs लोड नहीं हो सकीं। रीफ्रेश करने के लिए नीचे खींचें।",
+      "PREVIEW": "प्रीव्यू लोड नहीं हो सका। फिर से कोशिश करें।",
+      "OPEN": "PDF नहीं खोला जा सका। कृपया फिर से प्रयास करें।"
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "ई-रीडर प्रीव्यू को छोटा करें",
+      "ZOOM_IN_ARIA": "ई-रीडर प्रीव्यू को बड़ा करें",
+      "ZOOM_RESET_ARIA": "ई-रीडर प्रीव्यू का ज़ूम रीसेट करें"
+    }
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "नोट",
+    "STEP_1": "PDF फ़ाइल चुनें (वर्तमान कवर पहले से लोड हो जाएगा)",
+    "STEP_2": "लोड किया कवर समायोजित करें या नई छवि चुनकर समायोजित करें",
+    "STEP_3": "PDF में कवर बनाने के लिए विज्ञापन देखें",
+    "STEP_4": "अपडेट की गई PDF सहेजें या साझा करें",
+    "STEP_4_DESC": "तैयार होने पर, इसे अपने डिवाइस पर सहेजें या सुचारू परिवर्तन के लिए सीधे Kindle ऐप से साझा करें।",
+    "STEP_5": "वेब के ज़रिए भेजें (Send to Kindle)",
+    "STEP_5_DESC": "आप इसे ब्राउज़र से Send to Kindle वेब टूल का उपयोग करके भी भेज सकते हैं।",
+    "TIP": "सर्वोत्तम परिणामों के लिए, उच्च-रिज़ॉल्यूशन छवियाँ उपयोग करें और सुनिश्चित करें कि आपके Kindle डिवाइस पर विज्ञापन अक्षम हैं।",
+    "TITLE": "निर्देश"
+  },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "वापस",
+      "FINISH": "समाप्त",
+      "INTERACT_HINT": "जारी रखने के लिए हाइलाइट किए गए तत्व से इंटरेक्ट करें।",
+      "NEXT": "अगला",
+      "PROGRESS": "{{current}} / {{total}}",
+      "SKIP": "छोड़ें"
+    },
+    "STEPS": {
+      "PDF": {
+        "TITLE": "PDF फ़ाइल",
+        "DESCRIPTION": "वह PDF फ़ाइल चुनें जिसे आप अपडेट करना चाहते हैं।"
+      },
+      "IMAGE": {
+        "TITLE": "कवर छवि",
+        "DESCRIPTION": "अपने कवर के लिए छवि चुनें।"
+      },
+      "ADJUST": {
+        "TITLE": "समायोजित करें",
+        "DESCRIPTION": "संपादक में छवि समायोजित करें और हो गया टैप करें।"
+      },
+      "CREATE": {
+        "TITLE": "कवर बनाएं",
+        "DESCRIPTION": "यहाँ नया कवर बनाएँ।"
+      },
+      "RESULTS": {
+        "TITLE": "सहेजें या साझा करें",
+        "DESCRIPTION": "अपनी अपडेट की गई PDF सहेजें या साझा करें।"
+      }
+    }
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "निर्देश देखें",
+    "INSTRUCTIONS_HINT": "Kindle के लिए कवर कैसे बनाएं और भेजें",
+    "INSTRUCTIONS_SECTION": "निर्देश",
+    "LANGUAGE": "भाषा",
+    "LANGUAGE_RESTART_NOTICE": "भाषा बदल गई। परिवर्तन लागू करने के लिए ऐप पुनः शुरू होगा।",
+    "LANGUAGE_PREPARING_COUNTDOWN": "आपकी भाषा में सब कुछ तैयार किया जा रहा है। नाम बनाने के लिए ऐप बंद होगा ({{count}})",
+    "PRIVACY_HINT": "डेटा और विज्ञापन प्रबंधन नियंत्रित करें",
+    "PRIVACY_OPTIONS": "गोपनीयता विकल्प",
+    "PRIVACY_POLICY": "गोपनीयता नीति",
+    "PRIVACY_SECTION": "गोपनीयता",
+    "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
+    "EREADER_OPTIMIZATION_HINT": "Apply automatic adjustments to improve clarity on eReaders",
+    "EREADER_OPTIMIZATION_TOGGLE": "Optimize for eReader",
+    "THEME": "थीम",
+    "THEME_SYSTEM": "सिस्टम",
+    "THEME_LIGHT": "प्राकृतिक प्रकाश",
+    "THEME_DARK": "क्लासिक डार्क",
+    "THEME_WARM_READING": "वॉर्म रीडिंग",
+    "THEME_POP_ROSE": "पॉप रोज़",
+    "THEME_NOCTURNE_VIOLET": "नोक्टर्न वायलेट",
+    "THEME_OBSIDIAN_RED": "ऑब्सीडियन रेड",
+    "THEME_TERMINAL_GREEN": "टर्मिनल ग्रीन",
+    "THEME_MINT_FRESH": "मिंट फ्रेश",
+    "THEME_SILVER_TECH": "सिल्वर",
+    "THEME_GOLD_LUXE": "गोल्ड",
+    "TITLE": "सेटिंग्स",
+    "VIEW_TOUR": "टूर देखें"
+  },
+  "TABS": {
+    "COVERS": "मेरी PDFs",
+    "CHANGE": "बनाएं",
+    "SETTINGS": "सेटिंग्स"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "अनुशंसित",
+      "INFO": "जानकारी",
+      "APPS": "ऐप्स",
+      "GUIDE": "गाइड"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
+    }
+  }
+}

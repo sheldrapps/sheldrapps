@@ -1,0 +1,243 @@
+{
+  "APP": {
+    "TITLE": "صانع غلاف PDF"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "اضغط مرة أخرى للخروج",
+    "CANCEL": "إلغاء",
+    "CLOSE": "إغلاق",
+    "DELETE": "حذف",
+    "DONE": "تم",
+    "ERROR": "خطأ",
+    "LOADING": "جارٍ التحميل…",
+    "BILLING_UNAVAILABLE": "المشتريات غير متاحة حالياً.",
+    "PURCHASE_ERROR": "تعذّر إتمام الشراء. يرجى المحاولة مجدداً.",
+    "REMOVE_ADS_BUY": "شراء",
+    "REMOVE_ADS_DESCRIPTION": "أزل الإعلانات للأبد بدفعة واحدة وفعّل اختيار التصدير بدون فقدان/المضغوط.",
+    "REMOVE_ADS_PURCHASED": "تمت إزالة الإعلانات للأبد.",
+    "REMOVE_ADS_RESTORE": "استعادة الشراء",
+    "REMOVE_ADS_RESTORED": "تمت استعادة الشراء بنجاح.",
+    "REMOVE_ADS_TITLE": "إزالة الإعلانات",
+    "REMOVE_ADS_CTA_TITLE": "إزالة الإعلانات",
+    "REMOVE_ADS_CTA_SUBTITLE": "دفعة واحدة • للأبد",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "دفعة واحدة • {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "السعر: {{price}} • بدون اشتراك",
+    "RESTORE_ERROR": "تعذّرت استعادة المشتريات. يرجى المحاولة مجدداً.",
+    "PRO_ONLY": "برو",
+    "WATCH_AD_SUBTITLE": "مشاهدة الإعلان",
+    "SHARE": "مشاركة",
+    "SHARE_KINDLE_HINT": "عند المشاركة، اختر تطبيق Kindle لإرساله إلى جهازك.",
+    "WARNING": "تحذير"
+  },
+  "CHANGE": {
+    "ADS_REQUIRED": "تعذّر تحميل الإعلان. تحقق من الشبكة أو حاجب الإعلانات.",
+    "ARIA_CHANGE_PDF": "إنشاء ملف PDF. الملف الحالي: {{name}}",
+    "ARIA_CHANGE_IMAGE": "إنشاء صورة الغلاف. الصورة الحالية: {{name}}",
+    "ARIA_CROP": "ضبط الصورة المحددة",
+    "ARIA_SELECT_PDF": "تحديد ملف PDF",
+    "ARIA_SELECT_IMAGE": "تحديد صورة الغلاف",
+    "CROP_ACTION": "ضبط",
+    "COVER_CHANGED": "تم إنشاء الغلاف. يمكنك الآن الحفظ أو المشاركة",
+    "CHANGE_ACTION": "إنشاء الغلاف",
+    "CHANGE_ACTION_REWARDED": "إنشاء الغلاف (مشاهدة إعلان)",
+    "GENERATING": "جارٍ تحديث الغلاف…",
+    "HINT_SAVE_SHARE_EXPLAIN": "إنشاء الغلاف لا يحفظه تلقائياً.",
+    "INFO": "معلومات",
+    "INFO_ARIA": "معلومات حول إنشاء الغلاف",
+    "INFO_TITLE": "معلومات",
+    "INFO_FLOW_LABEL": "الترتيب الموصى به:",
+    "INFO_STEP_1": "حدد ملف PDF.",
+    "INFO_STEP_1_1": "1.1. يُحمَّل الغلاف الأصلي مسبقاً.",
+    "INFO_STEP_1_2": "1.2. غيّر الصورة أو احتفظ بالأصلية.",
+    "INFO_STEP_2": "اضبط الصورة في المحرر.",
+    "INFO_STEP_3": "شاهد الإعلان لحفظ الغلاف.",
+    "INFO_STEP_4": "احفظ أو شارك.",
+    "IMAGE_ERROR_CORRUPT": "تعذّرت قراءة الصورة. يرجى تجربة صورة أخرى.",
+    "IMAGE_ERROR_SIZE": "الملف كبير جداً. الحد الأقصى {{maxSize}} ميغابايت.",
+    "IMAGE_ERROR_TYPE": "تنسيق غير مدعوم ({{type}}). يرجى تحديد JPG أو PNG أو WebP.",
+    "IMAGE_WARN_SMALL": "قد تكون الصورة صغيرة جداً لبعض الأجهزة.",
+    "IMAGE_WARN_INVALID_PDF_COVER": "غلاف PDF غير صالح. اضغط لاختيار صورة جديدة.",
+    "PDF_ERROR_CORRUPT": "تعذّرت قراءة ملف PDF. جرّب ملفاً آخر.",
+    "PDF_ERROR_NO_COVER": "لا يحتوي هذا الملف على غلاف قابل للاستبدال.",
+    "NO_COVER_DETECTED_ADDED": "لم يُعثر على غلاف. تمت إضافة غلاف جديد لهذا الملف.",
+    "PDF_ERROR_REWRITE": "تعذّرت معالجة ملف PDF. يرجى المحاولة مجدداً.",
+    "PDF_ERROR_STORAGE": "مساحة التخزين غير كافية. مطلوب {{requiredMB}} ميغابايت، متاح {{availableMB}} ميغابايت.",
+    "PDF_ERROR_SIZE": "الملف كبير جداً. الحد الأقصى {{maxSize}} ميغابايت.",
+    "PDF_ERROR_TYPE": "ملف PDF غير مدعوم.",
+    "LOADING_PDF": "جارٍ تحميل PDF…",
+    "PDF_LOADING_COPY": "جارٍ نسخ ملف PDF الكبير...",
+    "PDF_LOADING_INSPECT": "جارٍ فحص بنية PDF...",
+    "LOADING_IMAGE": "جارٍ تحميل الصورة…",
+    "OPENING_EDITOR": "جارٍ فتح المحرر…",
+    "CHANGING_COVER": "جارٍ إنشاء الغلاف...",
+    "GETTING_COVER": "جارٍ الحصول على الغلاف",
+    "SAVING": "جارٍ حفظ الغلاف…",
+    "SELECT_PDF_LABEL": "ملف PDF",
+    "PROCESSING_LARGE_PDF": "جارٍ معالجة ملف PDF الكبير...",
+    "PROCESS_CANCELLED": "تم إلغاء المعالجة",
+    "SELECT_PDF_PLACEHOLDER": "حدد ملف PDF",
+    "COVER_MODE_LABEL": "إجراء صفحة الغلاف",
+    "COVER_MODE_ARIA": "اختر طريقة تطبيق صفحة الغلاف الجديدة",
+    "COVER_MODE_REPLACE_FIRST_PAGE": "استبدال الصفحة الأولى",
+    "COVER_MODE_INSERT_FIRST_PAGE": "إدراج صفحة جديدة في البداية",
+    "INSERT_MODE_TOC_WARNING": "Inserting a cover may shift TOC, bookmarks, or page numbering. We'll try to keep them aligned.",
+    "FRAME_MODE_LABEL": "Frame mode",
+    "FRAME_MODE_ARIA": "Frame mode",
+    "FRAME_MODE_WITH_FRAME": "With frame",
+    "FRAME_MODE_WITHOUT_FRAME": "Without frame",
+    "FRAME_NOT_DETECTED_TOAST": "Frame not detected in the document",
+    "SAVE_ACTION": "حفظ",
+    "SAVED_OK": "تم حفظ الغلاف",
+    "SAVE_RENAME_TITLE": "حفظ الغلاف",
+    "SAVE_RENAME_MESSAGE": "أدخل اسماً للغلاف",
+    "SAVE_RENAME_PLACEHOLDER": "اسم الملف",
+    "SELECT_IMAGE_LABEL": "صورة الغلاف",
+    "SELECT_IMAGE_PLACEHOLDER": "حدد صورة",
+    "INVALID_COVER_TAP_TO_CHANGE": "غلاف غير صالح، اضغط للإنشاء",
+    "TAP_TO_CHANGE": "اضغط للإنشاء/الإعادة",
+    "TAP_TO_CHANGE_IMAGE": "اضغط للإنشاء",
+    "LONGPRESS_PREVIEW_HINT": "اضغط مطولاً للمعاينة",
+    "TITLE": "إنشاء الغلاف",
+    "PREVIEW_ORIGINAL_LABEL": "الغلاف الأصلي",
+    "PREVIEW_NEW_LABEL": "الغلاف الجديد",
+    "PREVIEW_NEW_ONLY_LABEL": "غلاف جديد"
+  },
+  "COVERS": {
+    "DELETED": "تم حذف ملف PDF",
+    "EMPTY": "لم يتم العثور على ملفات في التطبيق. قد لا تظهر الملفات التي تم إنشاؤها قبل إعادة التثبيت بسبب قيود النظام.",
+    "GENERATE_THUMB": "إنشاء صورة مصغّرة",
+    "LOADING_PREVIEW": "جارٍ تحميل المعاينة...",
+    "PLACEHOLDER": "PDF",
+    "PREVIEW_UNAVAILABLE": "المعاينة غير متاحة.",
+    "PREVIEW_TITLE": "معاينة",
+    "TITLE": "ملفات PDF",
+    "DITHERED_THUMBNAIL_NOTICE": "قد تبدو الأغلفة التي تستخدم تقليل الشوائب مختلفة في الصور المصغرة. افتح المعاينة لرؤية نتيجة أدق.",
+    "ACTIONS": {
+      "DELETE": "حذف",
+      "SHARE": "مشاركة",
+      "OPEN": "فتح"
+    },
+    "DELETE": {
+      "MESSAGE": "هل تريد حذف هذا الملف؟",
+      "TITLE": "حذف PDF"
+    },
+    "ERROR": {
+      "DELETE": "تعذّر حذف الملف. يرجى المحاولة مجدداً.",
+      "SHARE": "تعذّرت مشاركة الملف. يرجى المحاولة مجدداً.",
+      "LOAD": "تعذّر تحميل ملفاتك. اسحب للأسفل للتحديث.",
+      "PREVIEW": "تعذّر تحميل المعاينة. يرجى المحاولة مجدداً.",
+      "OPEN": "تعذر فتح ملف PDF. يرجى المحاولة مرة أخرى."
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "تصغير معاينة القارئ الإلكتروني",
+      "ZOOM_IN_ARIA": "تكبير معاينة القارئ الإلكتروني",
+      "ZOOM_RESET_ARIA": "إعادة تعيين تكبير معاينة القارئ الإلكتروني"
+    }
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "ملاحظة",
+    "STEP_1": "حدد ملف PDF (يُحمَّل الغلاف الحالي مسبقاً)",
+    "STEP_2": "اضبط الغلاف المحمَّل أو اختر صورة جديدة واضبطها",
+    "STEP_3": "شاهد الإعلان لإنشاء الغلاف في ملف PDF",
+    "STEP_4": "احفظ أو شارك ملف PDF المحدَّث",
+    "STEP_4_DESC": "بعد الانتهاء، يمكنك حفظه على جهازك أو مشاركته مباشرةً عبر تطبيق Kindle.",
+    "STEP_5": "الإرسال عبر الويب (Send to Kindle)",
+    "STEP_5_DESC": "يمكنك أيضاً إرساله من المتصفح باستخدام أداة Send to Kindle على الويب.",
+    "TIP": "للحصول على أفضل النتائج، استخدم صوراً عالية الدقة وتأكد من تعطيل الإعلانات على جهاز Kindle.",
+    "TITLE": "التعليمات"
+  },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "رجوع",
+      "FINISH": "إنهاء",
+      "INTERACT_HINT": "تفاعل مع العنصر المميز للمتابعة.",
+      "NEXT": "التالي",
+      "PROGRESS": "{{current}} من {{total}}",
+      "SKIP": "تخطي"
+    },
+    "STEPS": {
+      "PDF": {
+        "TITLE": "ملف PDF",
+        "DESCRIPTION": "حدد ملف PDF الذي تريد تحديثه."
+      },
+      "IMAGE": {
+        "TITLE": "صورة الغلاف",
+        "DESCRIPTION": "حدد الصورة التي ستستخدمها غلافاً."
+      },
+      "ADJUST": {
+        "TITLE": "ضبط",
+        "DESCRIPTION": "اضبط الصورة في المحرر ثم اضغط تم."
+      },
+      "CREATE": {
+        "TITLE": "إنشاء الغلاف",
+        "DESCRIPTION": "أنشئ الغلاف الجديد من هنا."
+      },
+      "RESULTS": {
+        "TITLE": "حفظ أو مشاركة",
+        "DESCRIPTION": "احفظ ملف PDF المحدَّث أو شاركه."
+      }
+    }
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "عرض التعليمات",
+    "INSTRUCTIONS_HINT": "كيفية إنشاء الغلاف وإرساله إلى Kindle",
+    "INSTRUCTIONS_SECTION": "التعليمات",
+    "LANGUAGE": "اللغة",
+    "LANGUAGE_RESTART_NOTICE": "تم إنشاء اللغة. سيُعاد تشغيل التطبيق لتطبيق الإنشاءات.",
+    "LANGUAGE_PREPARING_COUNTDOWN": "جارٍ تجهيز كل شيء بلغتك. سيتم إغلاق التطبيق لإنشاء اسمه ({{count}})",
+    "PRIVACY_HINT": "تحكّم في كيفية معالجة البيانات والإعلانات",
+    "PRIVACY_OPTIONS": "خيارات الخصوصية",
+    "PRIVACY_POLICY": "سياسة الخصوصية",
+    "PRIVACY_SECTION": "الخصوصية",
+    "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
+    "EREADER_OPTIMIZATION_HINT": "Apply automatic adjustments to improve clarity on eReaders",
+    "EREADER_OPTIMIZATION_TOGGLE": "Optimize for eReader",
+    "THEME": "السمة",
+    "THEME_SYSTEM": "النظام",
+    "THEME_LIGHT": "الضوء الطبيعي",
+    "THEME_DARK": "الداكن الكلاسيكي",
+    "THEME_WARM_READING": "القراءة الدافئة",
+    "THEME_POP_ROSE": "وردي منبثق",
+    "THEME_NOCTURNE_VIOLET": "بنفسجي ليلي",
+    "THEME_OBSIDIAN_RED": "أحمر أوبسيديان",
+    "THEME_TERMINAL_GREEN": "أخضر طرفية",
+    "THEME_MINT_FRESH": "نعناعي منعش",
+    "THEME_SILVER_TECH": "فضي",
+    "THEME_GOLD_LUXE": "ذهبي",
+    "TITLE": "الإعدادات",
+    "VIEW_TOUR": "عرض الجولة"
+  },
+  "TABS": {
+    "COVERS": "ملفات PDF",
+    "CHANGE": "إنشاء",
+    "SETTINGS": "الإعدادات"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "موصى به",
+      "INFO": "معلومات",
+      "APPS": "التطبيقات",
+      "GUIDE": "الدليل"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
+    }
+  }
+}

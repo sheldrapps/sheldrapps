@@ -91,7 +91,8 @@
     "DITHERED_THUMBNAIL_NOTICE": "Cover mit Artefaktreduzierung können in Miniaturansichten anders wirken. Öffne die Vorschau, um ein genaueres Ergebnis zu sehen.",
     "ACTIONS": {
       "DELETE": "Löschen",
-      "SHARE": "Teilen"
+      "SHARE": "Teilen",
+      "OPEN": "Öffnen"
     },
     "DELETE": {
       "MESSAGE": "Möchtest du dieses EPUB löschen?",
@@ -101,7 +102,8 @@
       "DELETE": "EPUB konnte nicht gelöscht werden. Bitte versuche es erneut.",
       "SHARE": "EPUB konnte nicht geteilt werden. Bitte versuche es erneut.",
       "LOAD": "Cover konnten nicht geladen werden. Zum Aktualisieren nach unten ziehen.",
-      "PREVIEW": "Vorschau konnte nicht geladen werden. Versuche es erneut."
+      "PREVIEW": "Vorschau konnte nicht geladen werden. Versuche es erneut.",
+      "OPEN": "Die EPUB-Datei konnte nicht geöffnet werden. Bitte versuchen Sie es erneut."
     },
     "GENERATE_THUMB": "Generate thumbnail",
     "PREVIEW_UNAVAILABLE": "Preview unavailable.",

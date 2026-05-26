@@ -1,6 +1,7 @@
 package com.sheldrapps.plugins.epubrewrite;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
@@ -9,6 +10,7 @@ import android.net.Uri;
 import android.os.StatFs;
 import android.provider.OpenableColumns;
 import android.util.Log;
+import androidx.core.content.FileProvider;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -103,6 +105,38 @@ public class EpubRewritePlugin extends Plugin {
     @PluginMethod
     public void createEpubFromCover(PluginCall call) {
         runExclusive(call, "create_epub", this::createEpubFromCoverInternal);
+    }
+
+    @PluginMethod
+    public void openExternalFile(PluginCall call) {
+        String inputPath = call.getString("inputPath");
+        String mimeType = call.getString("mimeType", "application/epub+zip");
+        String chooserTitle = call.getString("chooserTitle", "Open with");
+
+        if (CompatStrings.isBlank(inputPath)) {
+            call.resolve(errorResult("OPEN_FAILED", null, "open"));
+            return;
+        }
+
+        try {
+            Uri uri = resolvePathToOpenUri(inputPath);
+            Intent viewIntent = new Intent(Intent.ACTION_VIEW);
+            viewIntent.setDataAndType(uri, mimeType);
+            viewIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            viewIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            Intent chooserIntent = Intent.createChooser(viewIntent, chooserTitle);
+            chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(chooserIntent);
+
+            JSObject out = new JSObject();
+            out.put("success", true);
+            call.resolve(out);
+        } catch (ActivityNotFoundException notFound) {
+            call.resolve(errorResult("NO_HANDLER", null, "open"));
+        } catch (Exception ex) {
+            call.resolve(errorResult("OPEN_FAILED", ex.getMessage(), "open"));
+        }
     }
 
     @PluginMethod
@@ -2033,6 +2067,27 @@ public class EpubRewritePlugin extends Plugin {
         } catch (InvalidPathException ex) {
             throw new IOException("Unsupported path: " + rawPath, ex);
         }
+    }
+
+    private Uri resolvePathToOpenUri(String inputPath) throws Exception {
+        String value = inputPath == null ? "" : inputPath.trim();
+        if (CompatStrings.isBlank(value)) {
+            throw new IOException("Path is required");
+        }
+
+        Uri uri = Uri.parse(value);
+        String scheme = uri.getScheme();
+        if ("content".equalsIgnoreCase(scheme)) {
+            return uri;
+        }
+
+        Path path = resolvePath(value);
+        if (!Files.exists(path) || !Files.isRegularFile(path)) {
+            throw new IOException("Missing file: " + value);
+        }
+
+        String authority = getContext().getPackageName() + ".fileprovider";
+        return FileProvider.getUriForFile(getContext(), authority, path.toFile());
     }
 
     private String requireString(PluginCall call, String key) throws IOException {

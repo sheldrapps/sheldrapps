@@ -1,0 +1,45 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'COVERS.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content
+  class="ion-padding"
+  [scrollEvents]="true"
+  (ionScrollStart)="onListScrollStart()"
+  (ionScrollEnd)="onListScrollEnd()"
+>
+  <sh-cover-list-content
+    #listContent
+    [items]="items"
+    [loading]="loading"
+    [pageErrorKey]="pageErrorKey"
+    [pageErrorParams]="pageErrorParams"
+    [showNotice]="true"
+    noticeKey="COVERS.DITHERED_THUMBNAIL_NOTICE"
+    [actions]="listActions"
+    [showFileName]="true"
+    [filenameFormatter]="displayFilename"
+    thumbAlt="pdf cover"
+    (refreshRequested)="load($event)"
+    (itemClick)="onListItemClick($event)"
+    (actionClick)="onListAction($event)"
+  ></sh-cover-list-content>
+
+  <sh-cover-preview-modal
+    [isOpen]="previewOpen"
+    [imageDataUrl]="previewDataUrl"
+    [isDithered]="previewIsDithered"
+    [loading]="previewLoading"
+    [gettingCover]="previewGettingCover"
+    gettingCoverTextKey="CHANGE.GETTING_COVER"
+    loadingTextKey="COVERS.LOADING_PREVIEW"
+    [headerActions]="previewHeaderActions"
+    [footerActions]="previewFooterActions"
+    [metadata]="previewMetadata"
+    [unavailableConfig]="previewUnavailableConfig"
+    (dismissed)="closePreview()"
+    (actionClick)="onPreviewAction($event)"
+  ></sh-cover-preview-modal>
+</ion-content>

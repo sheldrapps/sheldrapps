@@ -21,7 +21,7 @@ import { ShareAdapter } from './adapters/share.adapter';
 import {
   FILESYSTEM_ADAPTER_TOKEN,
   SHARE_ADAPTER_TOKEN,
-} from './providers';
+} from "./provider-tokens";
 
 @Injectable({ providedIn: "root" })
 export class FileKitService {
@@ -186,6 +186,50 @@ export class FileKitService {
     // Check if file has content
     if (file.size === 0) {
       return { valid: false, errorKey: "EPUB_ERROR_CORRUPT" };
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * Validate if a file is a valid PDF.
+   * We accept empty MIME because SAF/browsers may omit it.
+   */
+  isValidPdf(file: File): boolean {
+    if (!file) return false;
+
+    const fileName = (file.name || '').toLowerCase();
+    const hasValidExtension = fileName.endsWith('.pdf');
+    if (!hasValidExtension) return false;
+
+    const mime = (file.type || '').toLowerCase().trim();
+    if (!mime) return true;
+
+    return mime === 'application/pdf';
+  }
+
+  /**
+   * Validate PDF file with size limit.
+   */
+  validatePdf(
+    file: File,
+    maxSizeMB: number = 50,
+  ): { valid: boolean; errorKey?: string } {
+    if (!file) {
+      return { valid: false, errorKey: 'PDF_ERROR_NO_FILE' };
+    }
+
+    if (!this.isValidPdf(file)) {
+      return { valid: false, errorKey: 'PDF_ERROR_TYPE' };
+    }
+
+    if (file.size === 0) {
+      return { valid: false, errorKey: 'PDF_ERROR_EMPTY' };
+    }
+
+    const maxBytes = maxSizeMB * 1024 * 1024;
+    if (file.size > maxBytes) {
+      return { valid: false, errorKey: 'PDF_ERROR_SIZE' };
     }
 
     return { valid: true };

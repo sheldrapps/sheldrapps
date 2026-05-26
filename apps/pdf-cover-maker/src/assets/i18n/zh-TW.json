@@ -1,0 +1,243 @@
+{
+  "APP": {
+    "TITLE": "PDF封面製作"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "再按一次返回以退出",
+    "CANCEL": "取消",
+    "CLOSE": "關閉",
+    "DELETE": "刪除",
+    "DONE": "完成",
+    "ERROR": "錯誤",
+    "LOADING": "載入中…",
+    "BILLING_UNAVAILABLE": "目前無法購買。",
+    "PURCHASE_ERROR": "無法完成購買，請再試一次。",
+    "REMOVE_ADS_BUY": "購買",
+    "REMOVE_ADS_DESCRIPTION": "透過一次性付款永久移除廣告，並啟用無損/壓縮匯出選擇。",
+    "REMOVE_ADS_PURCHASED": "廣告已永久移除。",
+    "REMOVE_ADS_RESTORE": "恢復購買",
+    "REMOVE_ADS_RESTORED": "購買已成功恢復。",
+    "REMOVE_ADS_TITLE": "移除廣告",
+    "REMOVE_ADS_CTA_TITLE": "移除廣告",
+    "REMOVE_ADS_CTA_SUBTITLE": "一次性付款 • 永久有效",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "一次性付款 • {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "價格：{{price}} • 無訂閱",
+    "RESTORE_ERROR": "無法恢復購買，請再試一次。",
+    "PRO_ONLY": "專業版",
+    "WATCH_AD_SUBTITLE": "觀看廣告",
+    "SHARE": "分享",
+    "SHARE_KINDLE_HINT": "分享時，請選擇 Kindle 應用程式以傳送至您的裝置。",
+    "WARNING": "警告"
+  },
+  "CHANGE": {
+    "ADS_REQUIRED": "廣告無法載入，請檢查您的網路或廣告攔截器。",
+    "ARIA_CHANGE_PDF": "製作 PDF 檔案。目前檔案：{{name}}",
+    "ARIA_CHANGE_IMAGE": "製作封面圖片。目前圖片：{{name}}",
+    "ARIA_CROP": "調整選取的圖片",
+    "ARIA_SELECT_PDF": "選取 PDF 檔案",
+    "ARIA_SELECT_IMAGE": "選取封面圖片",
+    "CROP_ACTION": "調整",
+    "COVER_CHANGED": "封面已製作，您現在可以儲存或分享",
+    "CHANGE_ACTION": "製作封面",
+    "CHANGE_ACTION_REWARDED": "製作封面（觀看廣告）",
+    "GENERATING": "正在更新封面…",
+    "HINT_SAVE_SHARE_EXPLAIN": "製作封面不會自動儲存。",
+    "INFO": "資訊",
+    "INFO_ARIA": "關於製作封面的資訊",
+    "INFO_TITLE": "資訊",
+    "INFO_FLOW_LABEL": "建議順序：",
+    "INFO_STEP_1": "選取 PDF。",
+    "INFO_STEP_1_1": "1.1. 原始封面會預先載入。",
+    "INFO_STEP_1_2": "1.2. 製作圖片或保留原始圖片。",
+    "INFO_STEP_2": "在編輯器中調整圖片。",
+    "INFO_STEP_3": "觀看廣告以儲存封面。",
+    "INFO_STEP_4": "儲存或分享。",
+    "IMAGE_ERROR_CORRUPT": "無法讀取圖片，請嘗試其他圖片。",
+    "IMAGE_ERROR_SIZE": "檔案過大，最大 {{maxSize}} MB。",
+    "IMAGE_ERROR_TYPE": "不支援的格式（{{type}}），請選取 JPG、PNG 或 WebP。",
+    "IMAGE_WARN_SMALL": "此圖片對某些裝置可能太小。",
+    "IMAGE_WARN_INVALID_PDF_COVER": "無效的 PDF 封面，請點擊選取新圖片。",
+    "PDF_ERROR_CORRUPT": "無法讀取 PDF，請嘗試其他檔案。",
+    "PDF_ERROR_NO_COVER": "此 PDF 不包含可替換的封面。",
+    "NO_COVER_DETECTED_ADDED": "未偵測到封面，已為此 PDF 新增封面。",
+    "PDF_ERROR_REWRITE": "無法處理 PDF，請再試一次。",
+    "PDF_ERROR_STORAGE": "儲存空間不足，需要 {{requiredMB}} MB，可用 {{availableMB}} MB。",
+    "PDF_ERROR_SIZE": "檔案過大，最大 {{maxSize}} MB。",
+    "PDF_ERROR_TYPE": "不支援的 PDF 檔案。",
+    "LOADING_PDF": "正在載入 PDF…",
+    "PDF_LOADING_COPY": "正在複製大型 PDF...",
+    "PDF_LOADING_INSPECT": "正在檢查 PDF 結構...",
+    "LOADING_IMAGE": "正在載入圖片…",
+    "OPENING_EDITOR": "正在開啟編輯器…",
+    "CHANGING_COVER": "正在製作封面...",
+    "GETTING_COVER": "正在取得封面",
+    "SAVING": "正在儲存封面…",
+    "SELECT_PDF_LABEL": "PDF 檔案",
+    "PROCESSING_LARGE_PDF": "正在處理大型 PDF...",
+    "PROCESS_CANCELLED": "處理已取消",
+    "SELECT_PDF_PLACEHOLDER": "選取 PDF 檔案",
+    "COVER_MODE_LABEL": "封面頁操作",
+    "COVER_MODE_ARIA": "選擇如何套用新的封面頁",
+    "COVER_MODE_REPLACE_FIRST_PAGE": "取代第一頁",
+    "COVER_MODE_INSERT_FIRST_PAGE": "在開頭插入新頁面",
+    "INSERT_MODE_TOC_WARNING": "Inserting a cover may shift TOC, bookmarks, or page numbering. We'll try to keep them aligned.",
+    "FRAME_MODE_LABEL": "Frame mode",
+    "FRAME_MODE_ARIA": "Frame mode",
+    "FRAME_MODE_WITH_FRAME": "With frame",
+    "FRAME_MODE_WITHOUT_FRAME": "Without frame",
+    "FRAME_NOT_DETECTED_TOAST": "Frame not detected in the document",
+    "SAVE_ACTION": "儲存",
+    "SAVED_OK": "封面已儲存",
+    "SAVE_RENAME_TITLE": "儲存封面",
+    "SAVE_RENAME_MESSAGE": "請輸入封面的名稱",
+    "SAVE_RENAME_PLACEHOLDER": "檔案名稱",
+    "SELECT_IMAGE_LABEL": "封面圖片",
+    "SELECT_IMAGE_PLACEHOLDER": "選取圖片",
+    "INVALID_COVER_TAP_TO_CHANGE": "無效封面，請點擊製作",
+    "TAP_TO_CHANGE": "點擊以製作／重設",
+    "TAP_TO_CHANGE_IMAGE": "點擊以製作",
+    "LONGPRESS_PREVIEW_HINT": "長按即可預覽",
+    "TITLE": "製作封面",
+    "PREVIEW_ORIGINAL_LABEL": "原始封面",
+    "PREVIEW_NEW_LABEL": "新封面",
+    "PREVIEW_NEW_ONLY_LABEL": "新封面"
+  },
+  "COVERS": {
+    "DELETED": "PDF 已刪除",
+    "EMPTY": "應用程式中找不到封面。重新安裝前建立的檔案可能因系統限制而無法顯示。",
+    "GENERATE_THUMB": "產生縮圖",
+    "LOADING_PREVIEW": "正在載入預覽...",
+    "PLACEHOLDER": "PDF",
+    "PREVIEW_UNAVAILABLE": "預覽無法使用。",
+    "PREVIEW_TITLE": "預覽",
+    "TITLE": "我的 PDF",
+    "DITHERED_THUMBNAIL_NOTICE": "套用瑕疵減少的封面在縮圖中可能看起來不同。請開啟預覽以查看更準確的結果。",
+    "ACTIONS": {
+      "DELETE": "刪除",
+      "SHARE": "分享",
+      "OPEN": "開啟"
+    },
+    "DELETE": {
+      "MESSAGE": "確定要刪除此 PDF？",
+      "TITLE": "刪除 PDF"
+    },
+    "ERROR": {
+      "DELETE": "無法刪除 PDF，請再試一次。",
+      "SHARE": "無法分享 PDF，請再試一次。",
+      "LOAD": "無法載入您的 PDF，請下拉以重新整理。",
+      "PREVIEW": "無法載入預覽，請再試一次。",
+      "OPEN": "無法開啟 PDF。請再試一次。"
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "縮小電子閱讀器預覽",
+      "ZOOM_IN_ARIA": "放大電子閱讀器預覽",
+      "ZOOM_RESET_ARIA": "重設電子閱讀器預覽縮放"
+    }
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "注意",
+    "STEP_1": "選取 PDF 檔案（目前封面會預先載入）",
+    "STEP_2": "調整已載入的封面，或選取新圖片並進行調整",
+    "STEP_3": "觀看廣告以製作 PDF 中的封面",
+    "STEP_4": "儲存或分享更新後的 PDF",
+    "STEP_4_DESC": "完成後，您可以將其儲存至裝置，或直接透過 Kindle 應用程式分享，以獲得更順暢的體驗。",
+    "STEP_5": "透過網頁傳送（Send to Kindle）",
+    "STEP_5_DESC": "您也可以在瀏覽器中使用 Send to Kindle 網頁工具傳送。",
+    "TIP": "為獲得最佳效果，請使用高解析度圖片，並確保 Kindle 裝置上的廣告已停用。",
+    "TITLE": "使用說明"
+  },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "返回",
+      "FINISH": "完成",
+      "INTERACT_HINT": "與醒目顯示的元素互動以繼續。",
+      "NEXT": "下一步",
+      "PROGRESS": "{{current}} / {{total}}",
+      "SKIP": "略過"
+    },
+    "STEPS": {
+      "PDF": {
+        "TITLE": "PDF 檔案",
+        "DESCRIPTION": "選取您要更新的 PDF 檔案。"
+      },
+      "IMAGE": {
+        "TITLE": "封面圖片",
+        "DESCRIPTION": "選取封面圖片。"
+      },
+      "ADJUST": {
+        "TITLE": "調整",
+        "DESCRIPTION": "在編輯器中調整圖片，然後點擊完成。"
+      },
+      "CREATE": {
+        "TITLE": "製作封面",
+        "DESCRIPTION": "在此產生新封面。"
+      },
+      "RESULTS": {
+        "TITLE": "儲存或分享",
+        "DESCRIPTION": "儲存或分享您更新後的 PDF。"
+      }
+    }
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "查看說明",
+    "INSTRUCTIONS_HINT": "如何為 Kindle 製作並傳送封面",
+    "INSTRUCTIONS_SECTION": "說明",
+    "LANGUAGE": "語言",
+    "LANGUAGE_RESTART_NOTICE": "語言已變更，應用程式將重新啟動以套用變更。",
+    "LANGUAGE_PREPARING_COUNTDOWN": "正在以你的語言完成準備。App 將關閉以變更名稱（{{count}}）",
+    "PRIVACY_HINT": "控制資料和廣告的處理方式",
+    "PRIVACY_OPTIONS": "隱私選項",
+    "PRIVACY_POLICY": "隱私權政策",
+    "PRIVACY_SECTION": "隱私",
+    "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
+    "EREADER_OPTIMIZATION_HINT": "Apply automatic adjustments to improve clarity on eReaders",
+    "EREADER_OPTIMIZATION_TOGGLE": "Optimize for eReader",
+    "THEME": "主題",
+    "THEME_SYSTEM": "系統",
+    "THEME_LIGHT": "自然亮色",
+    "THEME_DARK": "經典暗色",
+    "THEME_WARM_READING": "溫暖閱讀",
+    "THEME_POP_ROSE": "玫瑰粉",
+    "THEME_NOCTURNE_VIOLET": "夜曲紫",
+    "THEME_OBSIDIAN_RED": "黑曜紅",
+    "THEME_TERMINAL_GREEN": "終端綠",
+    "THEME_MINT_FRESH": "薄荷清新",
+    "THEME_SILVER_TECH": "銀色",
+    "THEME_GOLD_LUXE": "金色",
+    "TITLE": "設定",
+    "VIEW_TOUR": "查看導覽"
+  },
+  "TABS": {
+    "COVERS": "我的 PDF",
+    "CHANGE": "製作",
+    "SETTINGS": "設定"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "推薦",
+      "INFO": "資訊",
+      "APPS": "應用程式",
+      "GUIDE": "指南"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
+    }
+  }
+}

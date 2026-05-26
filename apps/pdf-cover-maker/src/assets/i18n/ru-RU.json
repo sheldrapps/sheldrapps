@@ -1,0 +1,243 @@
+{
+  "APP": {
+    "TITLE": "Создать обложку PDF"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "Нажмите ещё раз для выхода",
+    "CANCEL": "Отмена",
+    "CLOSE": "Закрыть",
+    "DELETE": "Удалить",
+    "DONE": "Готово",
+    "ERROR": "Ошибка",
+    "LOADING": "Загрузка…",
+    "BILLING_UNAVAILABLE": "Покупки временно недоступны.",
+    "PURCHASE_ERROR": "Не удалось завершить покупку. Попробуйте ещё раз.",
+    "REMOVE_ADS_BUY": "Купить",
+    "REMOVE_ADS_DESCRIPTION": "Уберите рекламу навсегда и откройте выбор между экспортом без потерь и сжатием.",
+    "REMOVE_ADS_PURCHASED": "Реклама убрана навсегда.",
+    "REMOVE_ADS_RESTORE": "Восстановить покупку",
+    "REMOVE_ADS_RESTORED": "Покупка успешно восстановлена.",
+    "REMOVE_ADS_TITLE": "Убрать рекламу",
+    "REMOVE_ADS_CTA_TITLE": "Убрать рекламу",
+    "REMOVE_ADS_CTA_SUBTITLE": "Разовый платёж • Навсегда",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Разовый платёж • {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "Цена: {{price}} • Без подписки",
+    "RESTORE_ERROR": "Не удалось восстановить покупку. Попробуйте ещё раз.",
+    "PRO_ONLY": "PRO",
+    "WATCH_AD_SUBTITLE": "Смотреть рекламу",
+    "SHARE": "Поделиться",
+    "SHARE_KINDLE_HINT": "При отправке выберите приложение Kindle, чтобы передать файл на устройство.",
+    "WARNING": "Предупреждение"
+  },
+  "CHANGE": {
+    "ADS_REQUIRED": "Не удалось загрузить рекламу. Проверьте сеть или блокировщик рекламы.",
+    "ARIA_CHANGE_PDF": "Создать файл PDF. Текущий файл: {{name}}",
+    "ARIA_CHANGE_IMAGE": "Создать изображение обложки. Текущее изображение: {{name}}",
+    "ARIA_CROP": "Настроить выбранное изображение",
+    "ARIA_SELECT_PDF": "Выбрать файл PDF",
+    "ARIA_SELECT_IMAGE": "Выбрать изображение обложки",
+    "CROP_ACTION": "Настроить",
+    "COVER_CHANGED": "Обложка создана. Теперь можно сохранить или поделиться",
+    "CHANGE_ACTION": "Создать обложку",
+    "CHANGE_ACTION_REWARDED": "Создать обложку (смотреть рекламу)",
+    "GENERATING": "Обновление обложки…",
+    "HINT_SAVE_SHARE_EXPLAIN": "Изменение обложки не сохраняет её автоматически.",
+    "INFO": "Информация",
+    "INFO_ARIA": "Информация об изменении обложки",
+    "INFO_TITLE": "Информация",
+    "INFO_FLOW_LABEL": "Рекомендуемый порядок:",
+    "INFO_STEP_1": "Выберите PDF.",
+    "INFO_STEP_1_1": "1.1. Оригинальная обложка будет предзагружена.",
+    "INFO_STEP_1_2": "1.2. Замените изображение или оставьте оригинал.",
+    "INFO_STEP_2": "Настройте изображение в редакторе.",
+    "INFO_STEP_3": "Просмотрите рекламу для сохранения обложки.",
+    "INFO_STEP_4": "Сохраните или поделитесь.",
+    "IMAGE_ERROR_CORRUPT": "Не удалось прочитать изображение. Попробуйте другое.",
+    "IMAGE_ERROR_SIZE": "Файл слишком большой. Максимум {{maxSize}} МБ.",
+    "IMAGE_ERROR_TYPE": "Неподдерживаемый формат ({{type}}). Выберите JPG, PNG или WebP.",
+    "IMAGE_WARN_SMALL": "Изображение может быть слишком маленьким для некоторых устройств.",
+    "IMAGE_WARN_INVALID_PDF_COVER": "Недопустимая обложка PDF. Нажмите, чтобы выбрать новое изображение.",
+    "PDF_ERROR_CORRUPT": "Не удалось прочитать PDF. Попробуйте другой файл.",
+    "PDF_ERROR_NO_COVER": "В этом PDF нет заменяемой обложки.",
+    "NO_COVER_DETECTED_ADDED": "Обложка не обнаружена. В PDF добавлена новая обложка.",
+    "PDF_ERROR_REWRITE": "Не удалось обработать PDF. Попробуйте ещё раз.",
+    "PDF_ERROR_STORAGE": "Недостаточно места. Требуется {{requiredMB}} МБ, доступно {{availableMB}} МБ.",
+    "PDF_ERROR_SIZE": "Файл слишком большой. Максимум {{maxSize}} МБ.",
+    "PDF_ERROR_TYPE": "Неподдерживаемый файл PDF.",
+    "LOADING_PDF": "Загрузка PDF…",
+    "PDF_LOADING_COPY": "Копирование большого файла PDF...",
+    "PDF_LOADING_INSPECT": "Проверка структуры PDF...",
+    "LOADING_IMAGE": "Загрузка изображения…",
+    "OPENING_EDITOR": "Открытие редактора…",
+    "CHANGING_COVER": "Изменение обложки...",
+    "GETTING_COVER": "Получение обложки",
+    "SAVING": "Сохранение обложки…",
+    "SELECT_PDF_LABEL": "Файл PDF",
+    "PROCESSING_LARGE_PDF": "Обработка большого файла PDF...",
+    "PROCESS_CANCELLED": "Обработка отменена",
+    "SELECT_PDF_PLACEHOLDER": "Выберите файл PDF",
+    "COVER_MODE_LABEL": "Действие для страницы обложки",
+    "COVER_MODE_ARIA": "Выберите, как применить новую страницу обложки",
+    "COVER_MODE_REPLACE_FIRST_PAGE": "Заменить первую страницу",
+    "COVER_MODE_INSERT_FIRST_PAGE": "Вставить новую страницу в начало",
+    "INSERT_MODE_TOC_WARNING": "Inserting a cover may shift TOC, bookmarks, or page numbering. We'll try to keep them aligned.",
+    "FRAME_MODE_LABEL": "Frame mode",
+    "FRAME_MODE_ARIA": "Frame mode",
+    "FRAME_MODE_WITH_FRAME": "With frame",
+    "FRAME_MODE_WITHOUT_FRAME": "Without frame",
+    "FRAME_NOT_DETECTED_TOAST": "Frame not detected in the document",
+    "SAVE_ACTION": "Сохранить",
+    "SAVED_OK": "Обложка сохранена",
+    "SAVE_RENAME_TITLE": "Сохранить обложку",
+    "SAVE_RENAME_MESSAGE": "Введите название для обложки",
+    "SAVE_RENAME_PLACEHOLDER": "Имя файла",
+    "SELECT_IMAGE_LABEL": "Изображение обложки",
+    "SELECT_IMAGE_PLACEHOLDER": "Выберите изображение",
+    "INVALID_COVER_TAP_TO_CHANGE": "Недопустимая обложка, нажмите для замены",
+    "TAP_TO_CHANGE": "Нажмите для замены/сброса",
+    "TAP_TO_CHANGE_IMAGE": "Нажмите для замены",
+    "LONGPRESS_PREVIEW_HINT": "Удерживайте для предпросмотра",
+    "TITLE": "Создать обложку",
+    "PREVIEW_ORIGINAL_LABEL": "Исходная обложка",
+    "PREVIEW_NEW_LABEL": "Новая обложка",
+    "PREVIEW_NEW_ONLY_LABEL": "Новая обложка"
+  },
+  "COVERS": {
+    "DELETED": "PDF удалён",
+    "EMPTY": "В приложении нет обложек. Файлы, созданные до переустановки, могут не отображаться из-за системных ограничений.",
+    "GENERATE_THUMB": "Создать миниатюру",
+    "LOADING_PREVIEW": "Загрузка предпросмотра...",
+    "PLACEHOLDER": "PDF",
+    "PREVIEW_UNAVAILABLE": "Предпросмотр недоступен.",
+    "PREVIEW_TITLE": "Предпросмотр",
+    "TITLE": "Мои PDF",
+    "DITHERED_THUMBNAIL_NOTICE": "Обложки с уменьшением артефактов могут выглядеть иначе в миниатюрах. Откройте предпросмотр, чтобы увидеть более точный результат.",
+    "ACTIONS": {
+      "DELETE": "Удалить",
+      "SHARE": "Поделиться",
+      "OPEN": "Открыть"
+    },
+    "DELETE": {
+      "MESSAGE": "Удалить этот файл PDF?",
+      "TITLE": "Удалить PDF"
+    },
+    "ERROR": {
+      "DELETE": "Не удалось удалить PDF. Попробуйте ещё раз.",
+      "SHARE": "Не удалось поделиться PDF. Попробуйте ещё раз.",
+      "LOAD": "Не удалось загрузить файлы PDF. Потяните вниз для обновления.",
+      "PREVIEW": "Не удалось загрузить предпросмотр. Попробуйте ещё раз.",
+      "OPEN": "Не удалось открыть PDF. Повторите попытку."
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "Уменьшить предпросмотр ридера",
+      "ZOOM_IN_ARIA": "Увеличить предпросмотр ридера",
+      "ZOOM_RESET_ARIA": "Сбросить масштаб предпросмотра ридера"
+    }
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "Примечание",
+    "STEP_1": "Выберите файл PDF (текущая обложка загрузится заранее)",
+    "STEP_2": "Настройте загруженную обложку или выберите новое изображение и настройте его",
+    "STEP_3": "Просмотрите рекламу для замены обложки в PDF",
+    "STEP_4": "Сохраните или поделитесь обновлённым PDF",
+    "STEP_4_DESC": "После готовности сохраните файл на устройстве или поделитесь напрямую через приложение Kindle.",
+    "STEP_5": "Отправить через веб (Send to Kindle)",
+    "STEP_5_DESC": "Также можно отправить файл из браузера с помощью веб-инструмента Send to Kindle.",
+    "TIP": "Для наилучшего результата используйте изображения высокого разрешения и убедитесь, что реклама отключена на устройстве Kindle.",
+    "TITLE": "Инструкция"
+  },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "Назад",
+      "FINISH": "Завершить",
+      "INTERACT_HINT": "Нажмите на выделенный элемент, чтобы продолжить.",
+      "NEXT": "Далее",
+      "PROGRESS": "{{current}} из {{total}}",
+      "SKIP": "Пропустить"
+    },
+    "STEPS": {
+      "PDF": {
+        "TITLE": "Файл PDF",
+        "DESCRIPTION": "Выберите файл PDF, который хотите обновить."
+      },
+      "IMAGE": {
+        "TITLE": "Изображение обложки",
+        "DESCRIPTION": "Выберите изображение для обложки."
+      },
+      "ADJUST": {
+        "TITLE": "Настроить",
+        "DESCRIPTION": "Настройте изображение в редакторе и нажмите «Готово»."
+      },
+      "CREATE": {
+        "TITLE": "Создать обложку",
+        "DESCRIPTION": "Создайте новую обложку здесь."
+      },
+      "RESULTS": {
+        "TITLE": "Сохранить или поделиться",
+        "DESCRIPTION": "Сохраните или поделитесь обновлённым PDF."
+      }
+    }
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "Посмотреть инструкцию",
+    "INSTRUCTIONS_HINT": "Как создать и отправить обложку для Kindle",
+    "INSTRUCTIONS_SECTION": "Инструкция",
+    "LANGUAGE": "Язык",
+    "LANGUAGE_RESTART_NOTICE": "Язык изменён. Приложение перезапустится для применения изменений.",
+    "LANGUAGE_PREPARING_COUNTDOWN": "Подготавливаем всё на вашем языке. Приложение закроется, чтобы создать название ({{count}})",
+    "PRIVACY_HINT": "Управляйте обработкой данных и рекламы",
+    "PRIVACY_OPTIONS": "Настройки конфиденциальности",
+    "PRIVACY_POLICY": "Политика конфиденциальности",
+    "PRIVACY_SECTION": "Конфиденциальность",
+    "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
+    "EREADER_OPTIMIZATION_HINT": "Apply automatic adjustments to improve clarity on eReaders",
+    "EREADER_OPTIMIZATION_TOGGLE": "Optimize for eReader",
+    "THEME": "Тема",
+    "THEME_SYSTEM": "Системная",
+    "THEME_LIGHT": "Естественный свет",
+    "THEME_DARK": "Классическая тёмная",
+    "THEME_WARM_READING": "Тёплое чтение",
+    "THEME_POP_ROSE": "Поп-роуз",
+    "THEME_NOCTURNE_VIOLET": "Ночной фиолетовый",
+    "THEME_OBSIDIAN_RED": "Обсидиановый красный",
+    "THEME_TERMINAL_GREEN": "Терминальный зелёный",
+    "THEME_MINT_FRESH": "Мятная свежесть",
+    "THEME_SILVER_TECH": "Серебряный",
+    "THEME_GOLD_LUXE": "Золотой",
+    "TITLE": "Настройки",
+    "VIEW_TOUR": "Смотреть тур"
+  },
+  "TABS": {
+    "COVERS": "Мои PDF",
+    "CHANGE": "Создать",
+    "SETTINGS": "Настройки"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "Рекомендуем",
+      "INFO": "Информация",
+      "APPS": "Приложения",
+      "GUIDE": "Гид"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
+    }
+  }
+}

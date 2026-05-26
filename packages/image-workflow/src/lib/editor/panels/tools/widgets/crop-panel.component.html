@@ -1,5 +1,36 @@
 <div class="crop-panel">
-  @if (hasFormatOptions) {
+  @if (shouldUseFrameSwitch) {
+  <div class="format-switch" aria-label="Frame mode">
+    <button
+      type="button"
+      class="format-switch__label"
+      [class.format-switch__label--active]="!frameSwitchChecked"
+      (click)="onFormatSelect('without_frame')"
+    >
+      {{ frameWithoutLabel }}
+    </button>
+
+    <ion-toggle
+      class="format-switch__control"
+      [class.format-switch__control--blocked]="frameWithDisabled"
+      [checked]="frameSwitchChecked"
+      [attr.aria-disabled]="frameWithDisabled ? 'true' : null"
+      [enableOnOffLabels]="false"
+      (ionChange)="onFrameSwitchChange($event)"
+    ></ion-toggle>
+
+    <button
+      type="button"
+      class="format-switch__label"
+      [class.format-switch__label--active]="frameSwitchChecked"
+      [class.format-switch__label--blocked]="frameWithDisabled"
+      [attr.aria-disabled]="frameWithDisabled ? 'true' : null"
+      (click)="onFormatSelect('with_frame')"
+    >
+      {{ frameWithLabel }}
+    </button>
+  </div>
+  } @else if (hasFormatOptions) {
   <div class="format-bar">
     <sh-scrollable-button-bar
       [items]="formatItems"
@@ -9,6 +40,10 @@
       [ariaLabel]="'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP' | translate"
       (selectItem)="onFormatSelect($event)"
     ></sh-scrollable-button-bar>
+  </div>
+  } @else if (formatOptions.length === 1) {
+  <div class="single-format-label">
+    {{ formatOptions[0].label }}
   </div>
   } @else {
   <!-- Kindle Model Selection Panel -->

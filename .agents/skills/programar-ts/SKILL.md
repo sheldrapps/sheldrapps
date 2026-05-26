@@ -1,6 +1,7 @@
 ﻿---
 name: programar-ts
-description: Implementar/refactorizar TypeScript con calidad de producción en primera pasada: SOLID, SRP, Clean Code, Clean Architecture, separación TS/HTML/SCSS, i18n por keys. Use when user asks TS implementation/refactor, clean-architecture boundaries, or feature code without post-cleanup pass.
+user-invocable: true
+description: "Implementar/refactorizar TypeScript con calidad de producción en primera pasada: SOLID, SRP, Clean Code, Clean Architecture, separación TS/HTML/SCSS, i18n por keys. Use when user asks TS implementation/refactor, clean-architecture boundaries, or feature code without post-cleanup pass."
 ---
 
 # Programar En TypeScript (Clean By Default)

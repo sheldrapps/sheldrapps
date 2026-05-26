@@ -1,6 +1,7 @@
 ﻿---
 name: create-ionic-app
-description: Crear app Ionic Angular nueva en monorepo con tabs, settings-kit, config.json, ui-theme, i18n inicial. Use when user asks create/scaffold app under apps/*, set settings as last tab, or wire bootstrap with shared kits.
+user-invocable: true
+description: "Crear app Ionic Angular nueva en monorepo con tabs, settings-kit, config.json, ui-theme, i18n inicial. Use when user asks create/scaffold app under apps/*, set settings as last tab, or wire bootstrap with shared kits."
 ---
 
 # Create Ionic App (Monorepo Standard)

@@ -91,7 +91,8 @@
     "DITHERED_THUMBNAIL_NOTICE": "Capas com redução de artefatos podem parecer diferentes nas miniaturas. Abra a visualização para ver um resultado mais fiel.",
     "ACTIONS": {
       "DELETE": "Excluir",
-      "SHARE": "Compartilhar"
+      "SHARE": "Compartilhar",
+      "OPEN": "Abrir"
     },
     "DELETE": {
       "MESSAGE": "Deseja excluir este EPUB?",
@@ -101,7 +102,8 @@
       "DELETE": "Não foi possível excluir o EPUB. Tente novamente.",
       "SHARE": "Não foi possível compartilhar o EPUB. Tente novamente.",
       "LOAD": "Não foi possível carregar suas capas. Arraste para baixo para tentar novamente.",
-      "PREVIEW": "Não foi possível carregar a pré-visualização. Tente novamente."
+      "PREVIEW": "Não foi possível carregar a pré-visualização. Tente novamente.",
+      "OPEN": "Não foi possível abrir o EPUB. Tente novamente."
     },
     "GENERATE_THUMB": "Generate thumbnail",
     "PREVIEW_UNAVAILABLE": "Preview unavailable.",

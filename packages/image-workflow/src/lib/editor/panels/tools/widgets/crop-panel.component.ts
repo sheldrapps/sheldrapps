@@ -9,6 +9,8 @@ import {
   IonItem,
   IonSelect,
   IonSelectOption,
+  IonToggle,
+  ToastController,
 } from "@ionic/angular/standalone";
 import {
   ScrollableButtonBarComponent,
@@ -37,6 +39,7 @@ import type { CropFormatOption } from "../../../../types";
     IonItem,
     IonSelect,
     IonSelectOption,
+    IonToggle,
     ScrollableButtonBarComponent,
     TranslateModule,
   ],
@@ -44,12 +47,18 @@ import type { CropFormatOption } from "../../../../types";
   styleUrls: ["./crop-panel.component.scss"],
 })
 export class CropPanelComponent {
+  private static readonly FORMAT_ID_WITH_FRAME = "with_frame";
+  private static readonly FORMAT_ID_WITHOUT_FRAME = "without_frame";
+  private static readonly FRAME_NOT_DETECTED_MESSAGE =
+    "Marco no detectado en el documento";
+
   private readonly history = inject(EditorHistoryService);
   private readonly ui = inject(EditorUiStateService);
   private readonly kindleState = inject(EditorKindleStateService);
   private readonly editorSession = inject(EditorSessionService, {
     optional: true,
   });
+  private readonly toastCtrl = inject(ToastController);
   private readonly sid = inject(EDITOR_SESSION_ID, { optional: true });
 
   kindleGroups: KindleGroup[] = [];
@@ -89,7 +98,45 @@ export class CropPanelComponent {
   }
 
   get hasFormatOptions(): boolean {
-    return this.formatOptions.length > 0;
+    return this.formatOptions.length > 1;
+  }
+
+  get shouldUseFrameSwitch(): boolean {
+    if (this.formatOptions.length !== 2) {
+      return false;
+    }
+
+    const ids = new Set(this.formatOptions.map((opt) => opt.id));
+    return (
+      ids.has(CropPanelComponent.FORMAT_ID_WITH_FRAME) &&
+      ids.has(CropPanelComponent.FORMAT_ID_WITHOUT_FRAME)
+    );
+  }
+
+  get frameSwitchChecked(): boolean {
+    return this.selectedFormatId === CropPanelComponent.FORMAT_ID_WITH_FRAME;
+  }
+
+  get frameWithDisabled(): boolean {
+    return !!this.formatOptions.find(
+      (opt) => opt.id === CropPanelComponent.FORMAT_ID_WITH_FRAME,
+    )?.disabled;
+  }
+
+  get frameWithLabel(): string {
+    return (
+      this.formatOptions.find(
+        (opt) => opt.id === CropPanelComponent.FORMAT_ID_WITH_FRAME,
+      )?.label ?? CropPanelComponent.FORMAT_ID_WITH_FRAME
+    );
+  }
+
+  get frameWithoutLabel(): string {
+    return (
+      this.formatOptions.find(
+        (opt) => opt.id === CropPanelComponent.FORMAT_ID_WITHOUT_FRAME,
+      )?.label ?? CropPanelComponent.FORMAT_ID_WITHOUT_FRAME
+    );
   }
 
   get currentGroupModels(): KindleDeviceModel[] {
@@ -133,10 +180,14 @@ export class CropPanelComponent {
     this.history.setKindleModel(this.selectedGroupId, this.selectedModel.id);
   }
 
-  onFormatSelect(id: string): void {
+  async onFormatSelect(id: string): Promise<void> {
     if (!id || id === this.selectedFormatId) return;
     const selected = this.formatOptions.find((opt) => opt.id === id);
     if (!selected) return;
+    if (selected.disabled) {
+      await this.showFrameNotDetectedToast();
+      return;
+    }
 
     this.selectedFormatId = id;
 
@@ -163,6 +214,26 @@ export class CropPanelComponent {
     }
 
     this.history.resetViewToCover();
+  }
+
+  async onFrameSwitchChange(event: CustomEvent<{ checked: boolean }>): Promise<void> {
+    const checked = !!event.detail?.checked;
+    const id = checked
+      ? CropPanelComponent.FORMAT_ID_WITH_FRAME
+      : CropPanelComponent.FORMAT_ID_WITHOUT_FRAME;
+    await this.onFormatSelect(id);
+  }
+
+  private async showFrameNotDetectedToast(): Promise<void> {
+    const toast = await this.toastCtrl.create({
+      message: CropPanelComponent.FRAME_NOT_DETECTED_MESSAGE,
+      position: "middle",
+      duration: 1800,
+      cssClass: ["cc-toast", "cc-toast--info"],
+      animated: true,
+      translucent: true,
+    });
+    await toast.present();
   }
 
   private getSession() {

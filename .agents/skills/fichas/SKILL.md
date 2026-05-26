@@ -1,6 +1,7 @@
 ﻿---
 name: fichas
-description: Crear/actualizar fichas Play Store SEO/ASO por proyecto+locale, con estrategia regional y límites Play Store. Leer docs/utilities/<short-name>/ sin modificar. Use when user asks "genera fichas", "crea ficha Play Store", or localized listing copy/visual direction for ecc/ccfk/other locales.
+user-invocable: true
+description: "Crear/actualizar fichas Play Store SEO/ASO por proyecto+locale, con estrategia regional y límites Play Store. Leer docs/utilities/<short-name>/ sin modificar. Use when user asks 'genera fichas', 'crea ficha Play Store', or localized listing copy/visual direction for ecc/ccfk/other locales."
 ---
 
 # Fichas Play Store (SEO/ASO)

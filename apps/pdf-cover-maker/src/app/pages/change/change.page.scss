@@ -1,0 +1,28 @@
+.preview-content {
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+ion-content.preview-content::part(scroll) {
+  height: 100%;
+}
+
+/* Ensure extreme ratios show full composition in the selection thumb */
+:host .thumb img {
+  object-fit: contain;
+}
+
+:host {
+  --change-section-space-y: var(--app-space-5, 0.875rem);
+}
+
+.best-candidate-wrap {
+  margin-top: var(--change-section-space-y);
+  margin-bottom: var(--app-space-3, 0.5rem);
+}
+
+.cover-mode-card__warning {
+  margin-top: var(--app-space-3, 0.5rem);
+}
+
+

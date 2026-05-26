@@ -1,57 +1,25 @@
-import { InjectionToken, Provider } from "@angular/core";
-import { FilesystemAdapter } from "./adapters/filesystem.adapter";
-import { ShareAdapter } from "./adapters/share.adapter";
+import { Provider } from "@angular/core";
 import { CapacitorFilesystemAdapter } from "./adapters/capacitor/capacitor-filesystem.adapter";
 import { CapacitorShareAdapter } from "./adapters/capacitor/capacitor-share.adapter";
 import { FileKitService } from "./file-kit.service";
 import {
+  FILESYSTEM_ADAPTER_TOKEN,
+  SHARE_ADAPTER_TOKEN,
+  FILE_KIT_CONFIG_TOKEN,
+  FileKitConfig,
+} from "./provider-tokens";
+import {
   WebEpubCoverService,
   WEB_EPUB_COVER_SERVICE_TOKEN,
 } from "./web-epub-cover.service";
+import {
+  WebPdfCoverService,
+  WEB_PDF_COVER_SERVICE_TOKEN,
+} from "./web-pdf-cover.service";
 
 /**
  * Injection token for filesystem adapter
  */
-export const FILESYSTEM_ADAPTER_TOKEN = new InjectionToken<FilesystemAdapter>(
-  "FILESYSTEM_ADAPTER",
-);
-
-/**
- * Injection token for share adapter
- */
-export const SHARE_ADAPTER_TOKEN = new InjectionToken<ShareAdapter>(
-  "SHARE_ADAPTER",
-);
-
-/**
- * Injection token for file-kit configuration
- */
-export const FILE_KIT_CONFIG_TOKEN = new InjectionToken<FileKitConfig>(
-  "FILE_KIT_CONFIG",
-);
-
-/**
- * Configuration for file-kit
- */
-export interface FileKitConfig {
-  /**
-   * Custom filesystem adapter
-   */
-  filesystemAdapter?: FilesystemAdapter;
-
-  /**
-   * Custom share adapter
-   */
-  shareAdapter?: ShareAdapter;
-
-  /**
-   * Enable web development adapters (JSZip-based EPUB handling, WebDevEpubFixerAdapter).
-   * Set to false in production to exclude web-dev code and reduce bundle size (~150KB).
-   * @default true
-   */
-  enableWebDevAdapters?: boolean;
-}
-
 /**
  * Provide file-kit for an Angular application
  *
@@ -100,6 +68,10 @@ export function provideFileKit(config?: FileKitConfig): Provider[] {
     providers.push({
       provide: WEB_EPUB_COVER_SERVICE_TOKEN,
       useClass: WebEpubCoverService,
+    });
+    providers.push({
+      provide: WEB_PDF_COVER_SERVICE_TOKEN,
+      useClass: WebPdfCoverService,
     });
   }
 

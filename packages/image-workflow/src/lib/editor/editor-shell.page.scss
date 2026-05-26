@@ -1,7 +1,4 @@
 @use '../../../../ui-theme/styles/cropper' as *;
-@use './editor-fonts' as editorFonts;
-
-@include editorFonts.load-editor-fonts;
 
 :host {
   display: block;

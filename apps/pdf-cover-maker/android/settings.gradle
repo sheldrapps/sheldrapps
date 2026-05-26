@@ -1,0 +1,4 @@
+include ':app'
+include ':pdf-rewrite'
+project(':pdf-rewrite').projectDir = new File('../../../plugins/pdf-rewrite/android')
+apply from: 'capacitor.settings.gradle'

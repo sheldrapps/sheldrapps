@@ -19,7 +19,7 @@ export class CapacitorShareAdapter implements ShareAdapter {
 
       await Share.share({
         title: options?.title || ref.filename,
-        text: options?.text || `Sharing ${ref.filename}`,
+        ...(options?.text ? { text: options.text } : {}),
         files: [ref.uri],
         dialogTitle: options?.dialogTitle || 'Share file',
       });

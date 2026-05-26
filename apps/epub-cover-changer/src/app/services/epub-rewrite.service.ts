@@ -72,6 +72,19 @@ type ExtractCoverAssetResult = {
   availableBytes?: number;
 };
 
+type OpenExternalFileOptions = {
+  inputPath: string;
+  mimeType?: string;
+  chooserTitle?: string;
+};
+
+type OpenExternalFileResult = {
+  success: boolean;
+  error?: string;
+  message?: string;
+  stage?: string;
+};
+
 type PickAndPrepareEpubOptions = {
   maxBytes?: number;
   requireCover?: boolean;
@@ -113,6 +126,9 @@ type EpubRewritePlugin = Plugin & {
   extractCoverAsset(
     options: ExtractCoverAssetOptions,
   ): Promise<ExtractCoverAssetResult>;
+  openExternalFile(
+    options: OpenExternalFileOptions,
+  ): Promise<OpenExternalFileResult>;
   cancelRewrite(): Promise<{ cancelled: boolean }>;
 };
 
@@ -274,6 +290,16 @@ export class EpubRewriteService {
   async cancelRewrite(): Promise<void> {
     if (!this.isSupported()) return;
     await EpubRewrite.cancelRewrite();
+  }
+
+  async openExternalFile(options: OpenExternalFileOptions): Promise<void> {
+    const result = await EpubRewrite.openExternalFile(options);
+    if (!result.success) {
+      throw new EpubRewriteError(result.error ?? 'OPEN_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
   }
 
   async extractCoverFile(

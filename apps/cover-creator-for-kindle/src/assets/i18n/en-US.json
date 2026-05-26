@@ -94,7 +94,8 @@
     "DITHERED_THUMBNAIL_NOTICE": "Covers with artifact reduction may look different in thumbnails. Open preview to see a more accurate result.",
     "ACTIONS": {
       "DELETE": "Delete",
-      "SHARE": "Share"
+      "SHARE": "Share",
+      "OPEN": "Open"
     },
     "DELETE": {
       "MESSAGE": "Do you want to delete this cover?",
@@ -104,7 +105,8 @@
       "DELETE": "Could not delete the cover. Please try again.",
       "LOAD": "Could not load your covers. Pull down to refresh.",
       "PREVIEW": "Could not load the preview. Please try again.",
-      "SHARE": "Could not share the cover. Please try again."
+      "SHARE": "Could not share the cover. Please try again.",
+      "OPEN": "Could not open the cover. Please try again."
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "Zoom out e-reader preview",

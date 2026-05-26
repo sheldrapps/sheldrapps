@@ -94,7 +94,8 @@
     "DITHERED_THUMBNAIL_NOTICE": "Capas com redu??o de artefatos podem parecer diferentes nas miniaturas. Abra a visualiza??o para ver um resultado mais fiel.",
     "ACTIONS": {
       "DELETE": "Excluir",
-      "SHARE": "Compartilhar"
+      "SHARE": "Compartilhar",
+      "OPEN": "Abrir"
     },
     "DELETE": {
       "MESSAGE": "Deseja excluir esta capa?",
@@ -104,7 +105,8 @@
       "DELETE": "Não foi possível excluir a capa. Tente novamente.",
       "LOAD": "Não foi possível carregar suas capas. Arraste para baixo para tentar novamente.",
       "PREVIEW": "Não foi possível carregar a pré-visualização. Tente novamente.",
-      "SHARE": "Não foi possível compartilhar a capa. Tente novamente."
+      "SHARE": "Não foi possível compartilhar a capa. Tente novamente.",
+      "OPEN": "Não foi possível abrir a capa. Tente novamente."
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "Reduzir pré-visualização do e-reader",

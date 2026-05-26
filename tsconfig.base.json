@@ -29,6 +29,7 @@
         "packages/covers-list-kit/src/public-api.ts"
       ],
       "@sheldrapps/file-kit": ["packages/file-kit/src/public-api.ts"],
+      "@sheldrapps/file-kit/pdf": ["packages/file-kit/src/pdf-api.ts"],
       "@sheldrapps/image-workflow": [
         "packages/image-workflow/src/public-api.ts"
       ],
@@ -41,12 +42,13 @@
       "@sheldrapps/export-quality-kit": [
         "packages/export-quality-kit/src/public-api.ts"
       ],
+      "@sheldrapps/cover-page-mode-kit": [
+        "packages/cover-page-mode-kit/src/public-api.ts"
+      ],
       "@sheldrapps/best-candidate-kit": [
         "packages/best-candidate-kit/src/public-api.ts"
       ],
-      "@sheldrapps/datetime-kit": [
-        "packages/datetime-kit/src/public-api.ts"
-      ],
+      "@sheldrapps/datetime-kit": ["packages/datetime-kit/src/public-api.ts"],
       "@sheldrapps/ui-theme": ["packages/ui-theme/src/index.ts"],
       "@sheldrapps/ui-theme/styles/*": ["packages/ui-theme/styles/*"]
     }

@@ -104,7 +104,8 @@
     "DITHERED_THUMBNAIL_NOTICE": "Las portadas con reducción de artefactos pueden verse diferentes en miniatura. Abre la vista previa para ver un resultado más fiel.",
     "ACTIONS": {
       "DELETE": "Eliminar",
-      "SHARE": "Compartir"
+      "SHARE": "Compartir",
+      "OPEN": "Abrir"
     },
     "DELETE": {
       "MESSAGE": "¿Quieres eliminar este EPUB?",
@@ -114,7 +115,8 @@
       "DELETE": "No se pudo eliminar el EPUB. Inténtalo de nuevo.",
       "SHARE": "No se pudo compartir el EPUB. Inténtalo de nuevo.",
       "LOAD": "No se pudieron cargar tus EPUBs. Arrastra hacia abajo para intentar de nuevo.",
-      "PREVIEW": "No se pudo cargar la vista previa. Intenta de nuevo."
+      "PREVIEW": "No se pudo cargar la vista previa. Intenta de nuevo.",
+      "OPEN": "No se pudo abrir el EPUB. Inténtalo de nuevo."
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "Alejar vista previa del e-reader",

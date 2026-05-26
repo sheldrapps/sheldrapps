@@ -1,0 +1,22 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PDF Cover Maker</string>
+    <string name="title_activity_main">PDF Cover Maker</string>
+    <string name="app_name_en_us">PDF Cover Maker</string>
+    <string name="app_name_es_mx">Creador de Portadas PDF</string>
+    <string name="app_name_de_de">PDF-Cover erstellen</string>
+    <string name="app_name_fr_fr">Créer couverture PDF</string>
+    <string name="app_name_it_it">Crea copertina PDF</string>
+    <string name="app_name_pt_br">Criar capa para PDF</string>
+    <string name="app_name_zh_tw">PDF封面製作</string>
+    <string name="app_name_hi_in">PDF कवर मेकर</string>
+    <string name="app_name_ar_sa">صانع غلاف PDF</string>
+    <string name="app_name_ja_jp">PDF表紙メーカー</string>
+    <string name="app_name_ko_kr">PDF 표지 만들기</string>
+    <string name="app_name_zh_cn">PDF封面制作</string>
+    <string name="app_name_ru_ru">Создать обложку PDF</string>
+    <string name="package_name">com.sheldrapps.pdfcovercr�er</string>
+    <string name="custom_url_scheme">com.sheldrapps.pdfcovercr�er</string>
+</resources>
+
+

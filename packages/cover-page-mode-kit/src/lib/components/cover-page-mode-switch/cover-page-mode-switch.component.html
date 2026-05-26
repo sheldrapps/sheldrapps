@@ -1,0 +1,37 @@
+<section class="cover-mode-switch">
+  <div class="field-title" *ngIf="title">{{ title }}</div>
+
+  <div class="cover-mode-switch__toggle" [attr.aria-label]="ariaLabel || title || null">
+    <button
+      type="button"
+      class="cover-mode-switch__label"
+      [class.cover-mode-switch__label--active]="isSelected(leftValue)"
+      [class.cover-mode-switch__label--blocked]="isLeftBlocked()"
+      [disabled]="disabled"
+      [attr.aria-disabled]="isLeftBlocked() ? 'true' : null"
+      (click)="onSelect(leftValue)"
+    >
+      {{ leftLabel }}
+    </button>
+
+    <ion-toggle
+      class="cover-mode-switch__control"
+      [checked]="checked"
+      [disabled]="disabled"
+      [enableOnOffLabels]="false"
+      (ionChange)="onToggleChange($event)"
+    ></ion-toggle>
+
+    <button
+      type="button"
+      class="cover-mode-switch__label"
+      [class.cover-mode-switch__label--active]="isSelected(rightValue)"
+      [class.cover-mode-switch__label--blocked]="isRightBlocked()"
+      [disabled]="disabled"
+      [attr.aria-disabled]="isRightBlocked() ? 'true' : null"
+      (click)="onSelect(rightValue)"
+    >
+      {{ rightLabel }}
+    </button>
+  </div>
+</section>

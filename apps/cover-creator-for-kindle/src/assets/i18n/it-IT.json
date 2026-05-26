@@ -94,7 +94,8 @@
     "DITHERED_THUMBNAIL_NOTICE": "Le copertine con riduzione degli artefatti possono apparire diverse nelle miniature. Apri l'anteprima per vedere un risultato pi? fedele.",
     "ACTIONS": {
       "DELETE": "Elimina",
-      "SHARE": "Condividi"
+      "SHARE": "Condividi",
+      "OPEN": "Apri"
     },
     "DELETE": {
       "MESSAGE": "Vuoi eliminare questa copertina?",
@@ -104,7 +105,8 @@
       "DELETE": "Impossibile eliminare la copertina. Riprova.",
       "LOAD": "Impossibile caricare le copertine. Trascina verso il basso per riprovare.",
       "PREVIEW": "Impossibile caricare l'anteprima. Riprova.",
-      "SHARE": "Impossibile condividere la copertina. Riprova."
+      "SHARE": "Impossibile condividere la copertina. Riprova.",
+      "OPEN": "Impossibile aprire la copertina. Riprova."
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "Riduci anteprima e-reader",

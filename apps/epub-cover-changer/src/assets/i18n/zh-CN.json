@@ -104,7 +104,8 @@
     "DITHERED_THUMBNAIL_NOTICE": "启用伪影减少的封面在缩略图中可能看起来不同。请打开预览查看更准确的效果。",
     "ACTIONS": {
       "DELETE": "删除",
-      "SHARE": "分享"
+      "SHARE": "分享",
+      "OPEN": "打开"
     },
     "DELETE": {
       "MESSAGE": "确定要删除此 EPUB 吗？",
@@ -114,7 +115,8 @@
       "DELETE": "无法删除 EPUB，请重试。",
       "SHARE": "无法分享 EPUB，请重试。",
       "LOAD": "无法加载您的 EPUB，请下拉刷新。",
-      "PREVIEW": "无法加载预览，请重试。"
+      "PREVIEW": "无法加载预览，请重试。",
+      "OPEN": "无法打开 EPUB。请重试。"
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "缩小电子阅读器预览",

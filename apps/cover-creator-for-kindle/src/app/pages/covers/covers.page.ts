@@ -16,6 +16,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
 import {
   ellipsisVertical,
+  openOutline,
   shareOutline,
   trashOutline,
   closeCircleOutline,
@@ -71,6 +72,11 @@ export class CoversPage implements OnInit, OnDestroy {
 
   readonly listActions: CoverListAction[] = [
     {
+      id: 'open',
+      labelKey: 'COVERS.ACTIONS.OPEN',
+      icon: 'open-outline',
+    },
+    {
       id: 'share',
       labelKey: 'COVERS.ACTIONS.SHARE',
       icon: 'share-outline',
@@ -110,6 +116,7 @@ export class CoversPage implements OnInit, OnDestroy {
     addIcons({
       closeCircleOutline,
       ellipsisVertical,
+      openOutline,
       shareOutline,
       trashOutline,
       helpCircleOutline,
@@ -252,6 +259,14 @@ export class CoversPage implements OnInit, OnDestroy {
     const disabled = this.previewLoading || !this.previewFilename;
     return [
       {
+        id: 'open',
+        labelKey: 'COVERS.ACTIONS.OPEN',
+        icon: 'open-outline',
+        layout: 'icon-text',
+        cssClass: 'ctrl',
+        disabled,
+      },
+      {
         id: 'share',
         labelKey: 'COMMON.SHARE',
         icon: 'share-outline',
@@ -297,6 +312,10 @@ export class CoversPage implements OnInit, OnDestroy {
       void this.sharePreview();
       return;
     }
+    if (event.actionId === 'open') {
+      void this.openPreviewExternal();
+      return;
+    }
     if (event.actionId === 'delete') {
       void this.deletePreview();
     }
@@ -315,6 +334,10 @@ export class CoversPage implements OnInit, OnDestroy {
   }
 
   onListAction(event: CoverListActionEvent) {
+    if (event.actionId === 'open') {
+      void this.openByFilename(event.item.filename);
+      return;
+    }
     if (event.actionId === 'share') {
       void this.shareByFilename(event.item.filename);
       return;
@@ -360,6 +383,12 @@ export class CoversPage implements OnInit, OnDestroy {
     const filename = this.previewFilename;
     if (!filename) return;
     await this.shareByFilename(filename);
+  }
+
+  async openPreviewExternal() {
+    const filename = this.previewFilename;
+    if (!filename) return;
+    await this.openByFilename(filename);
   }
 
   async deletePreview() {
@@ -439,6 +468,17 @@ export class CoversPage implements OnInit, OnDestroy {
       await this.files.shareCoverByFilename(filename);
     } catch {
       this.pageErrorKey = 'COVERS.ERROR.SHARE';
+    }
+  }
+
+  private async openByFilename(filename: string): Promise<void> {
+    this.pageErrorKey = null;
+    this.pageErrorParams = null;
+
+    try {
+      await this.files.openCoverByFilename(filename);
+    } catch {
+      this.pageErrorKey = 'COVERS.ERROR.OPEN';
     }
   }
 

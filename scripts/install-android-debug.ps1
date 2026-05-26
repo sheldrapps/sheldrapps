@@ -8,7 +8,11 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$appPath = Join-Path $repoRoot (Join-Path 'apps' $AppName)
+$appDirName = switch ($AppName) {
+  'pdf-cover-changer' { 'pdf-cover-maker' }
+  default { $AppName }
+}
+$appPath = Join-Path $repoRoot (Join-Path 'apps' $appDirName)
 $androidPath = Join-Path $appPath 'android'
 $apkPath = Join-Path $androidPath 'app\build\outputs\apk\debug\app-debug.apk'
 
@@ -20,6 +24,7 @@ function Resolve-AppId {
 
   switch ($Name) {
     'epub-cover-changer' { return 'com.sheldrapps.epubcoverchanger' }
+    'pdf-cover-changer' { return 'com.sheldrapps.pdfcovermaker' }
     'cover-creator-for-kindle' { return 'com.sheldrapps.covercreatorforkindle' }
     default { throw "Unsupported AppName for uninstall flow: $Name" }
   }
