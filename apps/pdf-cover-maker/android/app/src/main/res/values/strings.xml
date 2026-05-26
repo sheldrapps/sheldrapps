@@ -15,8 +15,8 @@
     <string name="app_name_ko_kr">PDF 표지 만들기</string>
     <string name="app_name_zh_cn">PDF封面制作</string>
     <string name="app_name_ru_ru">Создать обложку PDF</string>
-    <string name="package_name">com.sheldrapps.pdfcovercr�er</string>
-    <string name="custom_url_scheme">com.sheldrapps.pdfcovercr�er</string>
+    <string name="package_name">com.sheldrapps.pdfcovermaker</string>
+    <string name="custom_url_scheme">com.sheldrapps.pdfcovermaker</string>
 </resources>
 
 

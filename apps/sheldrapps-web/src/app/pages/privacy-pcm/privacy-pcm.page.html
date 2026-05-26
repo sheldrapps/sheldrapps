@@ -1,0 +1,69 @@
+<header>
+  <div class="top">
+    <a routerLink="/" class="muted" [attr.aria-label]="'COMMON.BACK_HOME' | translate">&larr; {{ 'COMMON.BRAND' | translate }}</a>
+    <span class="badge">{{ 'COMMON.PRIVACY_POLICY_BADGE' | translate }}</span>
+  </div>
+</header>
+
+<main aria-labelledby="policy-title">
+  <h1 id="policy-title">{{ 'PRIVACY.PCM.TITLE' | translate }}</h1>
+  <p class="muted">{{ 'PRIVACY.PCM.LAST_UPDATED' | translate }}</p>
+
+  <div class="box">
+    <p [innerHTML]="'PRIVACY.PCM.INTRO' | translate"></p>
+  </div>
+
+  <h2>{{ 'PRIVACY.PCM.SECTION_1_TITLE' | translate }}</h2>
+  <p>{{ 'PRIVACY.PCM.SECTION_1_BODY' | translate }}</p>
+
+  <h2>{{ 'PRIVACY.PCM.SECTION_2_TITLE' | translate }}</h2>
+  <ul>
+    <li [innerHTML]="'PRIVACY.PCM.SECTION_2_ITEM_1' | translate"></li>
+    <li [innerHTML]="'PRIVACY.PCM.SECTION_2_ITEM_2' | translate"></li>
+    <li>{{ 'PRIVACY.PCM.SECTION_2_ITEM_3' | translate }}</li>
+  </ul>
+
+  <h2>{{ 'PRIVACY.PCM.SECTION_3_TITLE' | translate }}</h2>
+  <p [innerHTML]="'PRIVACY.PCM.SECTION_3_BODY' | translate"></p>
+  <p class="muted">
+    {{ 'PRIVACY.PCM.GOOGLE_POLICY_LABEL' | translate }}
+    <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer noopener">
+      {{ 'PRIVACY.PCM.GOOGLE_POLICY_URL' | translate }}
+    </a>
+  </p>
+
+  <h2>{{ 'PRIVACY.PCM.SECTION_4_TITLE' | translate }}</h2>
+  <p>{{ 'PRIVACY.PCM.SECTION_4_BODY' | translate }}</p>
+  <ul>
+    <li>{{ 'PRIVACY.PCM.SECTION_4_ITEM_1' | translate }}</li>
+    <li [innerHTML]="'PRIVACY.PCM.SECTION_4_ITEM_2' | translate"></li>
+    <li>{{ 'PRIVACY.PCM.SECTION_4_ITEM_3' | translate }}</li>
+  </ul>
+
+  <h2>{{ 'PRIVACY.PCM.SECTION_5_TITLE' | translate }}</h2>
+  <p>{{ 'PRIVACY.PCM.SECTION_5_BODY' | translate }}</p>
+
+  <h2>{{ 'PRIVACY.PCM.SECTION_6_TITLE' | translate }}</h2>
+  <p>{{ 'PRIVACY.PCM.SECTION_6_BODY' | translate }}</p>
+
+  <h2>{{ 'PRIVACY.PCM.SECTION_7_TITLE' | translate }}</h2>
+  <p>{{ 'PRIVACY.PCM.SECTION_7_BODY' | translate }}</p>
+  <ul>
+    <li>{{ 'PRIVACY.PCM.SECTION_7_ITEM_1' | translate }}</li>
+    <li>{{ 'PRIVACY.PCM.SECTION_7_ITEM_2' | translate }}</li>
+    <li>{{ 'PRIVACY.PCM.SECTION_7_ITEM_3' | translate }}</li>
+    <li>{{ 'PRIVACY.PCM.SECTION_7_ITEM_4' | translate }}</li>
+  </ul>
+
+  <h2>{{ 'PRIVACY.PCM.SECTION_8_TITLE' | translate }}</h2>
+  <p>{{ 'PRIVACY.PCM.SECTION_8_BODY' | translate }}</p>
+
+  <h2>{{ 'PRIVACY.PCM.SECTION_9_TITLE' | translate }}</h2>
+  <p>{{ 'PRIVACY.PCM.SECTION_9_BODY' | translate }}</p>
+
+  <h2>{{ 'PRIVACY.PCM.SECTION_10_TITLE' | translate }}</h2>
+  <p>
+    {{ 'PRIVACY.PCM.SECTION_10_BODY' | translate }}
+    <a href="mailto:sheldrapps@gmail.com">{{ 'HOME.SUPPORT_EMAIL' | translate }}</a>
+  </p>
+</main>

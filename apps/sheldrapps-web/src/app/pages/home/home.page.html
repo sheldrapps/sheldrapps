@@ -1,0 +1,178 @@
+<div class="site-shell">
+  <header class="site-header">
+    <div class="page-container site-header-bar">
+      <a class="site-brand" href="#top">
+        <span class="site-brand-title">{{ 'COMMON.BRAND' | translate }}</span>
+        <span class="site-brand-subtitle">{{ 'HOME.HEADER_TITLE' | translate }}</span>
+      </a>
+
+      <div class="site-header-controls" [attr.aria-label]="'HOME.SELECTORS_LABEL' | translate">
+        <label class="selector-field">
+          <span>{{ 'COMMON.THEME' | translate }}</span>
+          <div class="selector-control">
+            <select [value]="selectedTheme" (change)="onThemeChange(($any($event.target)).value)">
+              @for (option of themeOptions; track option.code) {
+                <option [value]="option.code">{{ option.labelKey | translate }}</option>
+              }
+            </select>
+            <span class="selector-caret" aria-hidden="true"></span>
+          </div>
+        </label>
+
+        <label class="selector-field selector-field--language">
+          <span>{{ 'COMMON.LANGUAGE' | translate }}</span>
+          <div class="selector-control">
+            <button
+              type="button"
+              class="selector-menu-trigger"
+              [attr.aria-expanded]="isLanguageMenuOpen"
+              aria-haspopup="listbox"
+              (click)="toggleLanguageMenu()"
+            >
+              <span class="app-language-option__flag" [ngClass]="currentLanguageFlagClass" aria-hidden="true"></span>
+              <span class="selector-menu-label">{{ currentLanguageOption.labelKey | translate }}</span>
+            </button>
+
+            @if (isLanguageMenuOpen) {
+              <ul class="selector-menu" role="listbox">
+                @for (option of languageOptions; track option.code) {
+                  <li>
+                    <button
+                      type="button"
+                      class="selector-menu-option"
+                      role="option"
+                      [attr.aria-selected]="selectedLanguage === option.code"
+                      [class.selector-menu-option--selected]="selectedLanguage === option.code"
+                      (click)="selectLanguage(option.code)"
+                    >
+                      <span class="app-language-option__flag" [ngClass]="option.flagClass" aria-hidden="true"></span>
+                      <span>{{ option.labelKey | translate }}</span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+            <span class="selector-caret" aria-hidden="true"></span>
+          </div>
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-container" id="top">
+    <section class="hero-panel">
+      <p class="eyebrow">{{ 'HOME.HERO_KICKER' | translate }}</p>
+      <h1>{{ 'HOME.HERO_TITLE' | translate }}</h1>
+      <p>{{ 'HOME.HERO_BODY' | translate }}</p>
+
+      <div class="hero-actions">
+        <a class="app-button app-button-primary" href="#apps">
+          {{ 'HOME.HERO_CTA_PRIMARY' | translate }}
+        </a>
+
+        <a class="app-button app-button-secondary" href="mailto:sheldrapps@gmail.com">
+          {{ 'HOME.HERO_CTA_SECONDARY' | translate }}
+        </a>
+      </div>
+    </section>
+
+    <section class="content-section" id="apps">
+      <div class="section-heading">
+        <h2>{{ 'HOME.APPS_SECTION_TITLE' | translate }}</h2>
+        <p>{{ 'HOME.APPS_SECTION_BODY' | translate }}</p>
+      </div>
+
+      <div class="app-list">
+        @for (app of apps; track app.nameKey) {
+          <article class="app-row">
+            <img class="app-icon" [src]="app.icon" [alt]="app.nameKey | translate" />
+
+            <div class="app-row-content">
+              <h3>
+                {{ app.nameKey | translate }}
+                @if (app.badgeKey) {
+                  <span class="app-status-badge">{{ app.badgeKey | translate }}</span>
+                }
+              </h3>
+              <p>{{ app.descriptionKey | translate }}</p>
+
+              <div class="app-row-links">
+                @if (!app.disabled && app.playStoreUrl) {
+                  <a
+                    class="app-row-store-link"
+                    [href]="app.playStoreUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <span>{{ 'COMMON.OPEN_PLAY_STORE' | translate }}</span>
+                    <img
+                      class="app-row-store-icon"
+                      [src]="playStoreIconSrc"
+                      alt=""
+                      aria-hidden="true"
+                    />
+                  </a>
+                }
+
+                <a [routerLink]="app.privacyRoute">
+                  {{ 'COMMON.PRIVACY_POLICY' | translate }}
+                </a>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+
+    <section class="content-section" id="values">
+      <div class="section-heading">
+        <h2>{{ 'HOME.VALUES_TITLE' | translate }}</h2>
+      </div>
+
+      <div class="values-list">
+        <article>
+          <h3>{{ 'HOME.VALUES.FOCUSED.TITLE' | translate }}</h3>
+          <p>{{ 'HOME.VALUES.FOCUSED.BODY' | translate }}</p>
+        </article>
+
+        <article>
+          <h3>{{ 'HOME.VALUES.READER_FIRST.TITLE' | translate }}</h3>
+          <p>{{ 'HOME.VALUES.READER_FIRST.BODY' | translate }}</p>
+        </article>
+
+        <article>
+          <h3>{{ 'HOME.VALUES.PRIVACY_AWARE.TITLE' | translate }}</h3>
+          <p>{{ 'HOME.VALUES.PRIVACY_AWARE.BODY' | translate }}</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="footer-grid">
+      <article class="simple-panel" id="support">
+        <h2>{{ 'HOME.SUPPORT_TITLE' | translate }}</h2>
+        <p>
+          {{ 'HOME.SUPPORT_BODY' | translate }}
+          <a href="mailto:sheldrapps@gmail.com">{{ 'HOME.SUPPORT_EMAIL' | translate }}</a>.
+        </p>
+      </article>
+
+      <article class="simple-panel" id="legal">
+        <h2>{{ 'HOME.LEGAL_TITLE' | translate }}</h2>
+
+        <div class="legal-links">
+          <a routerLink="/privacy-policies/epub-cover-changer">
+            {{ 'HOME.LEGAL_ECC_LINK' | translate }}
+          </a>
+
+          <a routerLink="/privacy-policies/cover-creator-for-kindle">
+            {{ 'HOME.LEGAL_CCFK_LINK' | translate }}
+          </a>
+
+          <a routerLink="/privacy-policies/pdf-cover-maker">
+            {{ 'HOME.LEGAL_PCM_LINK' | translate }}
+          </a>
+        </div>
+      </article>
+    </section>
+  </main>
+</div>

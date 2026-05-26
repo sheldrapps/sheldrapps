@@ -18,12 +18,30 @@
           "builder": "@angular/build:application",
           "options": {
             "browser": "apps/sheldrapps-web/src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
             "tsConfig": "apps/sheldrapps-web/tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
               {
                 "glob": "**/*",
                 "input": "apps/sheldrapps-web/public"
+              },
+              {
+                "glob": "icon.png",
+                "input": "apps/cover-creator-for-kindle/resources",
+                "output": "assets/apps/ccfk"
+              },
+              {
+                "glob": "icon.png",
+                "input": "apps/epub-cover-changer/resources",
+                "output": "assets/apps/ecc"
+              },
+              {
+                "glob": "icon.png",
+                "input": "apps/pdf-cover-maker/resources",
+                "output": "assets/apps/pcm"
               }
             ],
             "styles": [
