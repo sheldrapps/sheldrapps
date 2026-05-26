@@ -1,0 +1,180 @@
+:host {
+  --policy-max-width: 860px;
+  --policy-radius: 16px;
+  --policy-border: 1px solid var(--app-divider);
+
+  display: block;
+  min-height: 100dvh;
+  color: var(--app-text-primary);
+  background: var(--app-background);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  line-height: 1.6;
+}
+
+:host * {
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.policy-header {
+  background: var(--app-surface);
+  border-bottom: var(--policy-border);
+}
+
+.policy-top {
+  width: min(100% - 32px, var(--policy-max-width));
+  min-height: 64px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+}
+
+.back-link {
+  color: var(--app-text-secondary);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.back-link:hover {
+  color: var(--app-text-primary);
+}
+
+.policy-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 0.75rem;
+  border: var(--policy-border);
+  border-radius: 999px;
+  color: var(--app-text-secondary);
+  background: var(--app-surface);
+  font-size: 0.78rem;
+  font-weight: var(--app-font-semibold);
+}
+
+.policy-page {
+  width: min(100% - 48px, var(--policy-max-width));
+  margin: 0 auto;
+  padding: var(--app-space-6) 0 var(--app-space-10);
+}
+
+.policy-hero {
+  margin-bottom: var(--app-space-5);
+}
+
+.policy-hero h1 {
+  margin: 0;
+  color: var(--app-text-primary);
+  font-size: clamp(1.65rem, 3.4vw, 2.15rem);
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  font-weight: 750;
+}
+
+.policy-muted {
+  color: var(--app-text-secondary);
+}
+
+.policy-hero .policy-muted {
+  margin: var(--app-space-3) 0 0;
+}
+
+.policy-box {
+  margin-bottom: var(--app-space-6);
+  padding: var(--app-space-4);
+  border: var(--policy-border);
+  border-radius: var(--policy-radius);
+  background: var(--app-surface);
+}
+
+.policy-box p {
+  margin: 0;
+  color: var(--app-text-primary);
+}
+
+.policy-content {
+  display: block;
+}
+
+.policy-content h2 {
+  margin: var(--app-space-6) 0 var(--app-space-2);
+  color: var(--app-text-primary);
+  font-size: clamp(1.12rem, 2vw, 1.28rem);
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  font-weight: 750;
+}
+
+.policy-content p,
+.policy-content li {
+  color: var(--app-text-secondary);
+}
+
+.policy-content p {
+  margin: 0 0 var(--app-space-3);
+}
+
+.policy-content ul {
+  margin: var(--app-space-2) 0 var(--app-space-4);
+  padding-left: 1.35rem;
+}
+
+.policy-content li {
+  margin-bottom: var(--app-space-1);
+}
+
+.policy-content strong,
+.policy-box strong {
+  color: var(--app-text-primary);
+  font-weight: 750;
+}
+
+a {
+  color: var(--ion-color-primary);
+  text-decoration: none;
+  font-weight: var(--app-font-semibold);
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.18rem;
+}
+
+code {
+  color: var(--app-text-primary);
+  background: var(--app-surface);
+  border: var(--policy-border);
+  padding: 0.1rem 0.35rem;
+  border-radius: 6px;
+}
+
+@media (max-width: 560px) {
+  .policy-top,
+  .policy-page {
+    width: min(100% - 24px, var(--policy-max-width));
+  }
+
+  .policy-top {
+    min-height: auto;
+    padding: var(--app-space-3) 0;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--app-space-2);
+  }
+
+  .policy-page {
+    padding-top: var(--app-space-5);
+  }
+
+  .policy-box {
+    padding: var(--app-space-3);
+  }
+}

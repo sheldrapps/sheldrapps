@@ -1,0 +1,50 @@
+<div class="site-header-controls" [attr.aria-label]="'HOME.SELECTORS_LABEL' | translate">
+  <label class="selector-field">
+    <span>{{ 'COMMON.THEME' | translate }}</span>
+    <div class="selector-control">
+      <select [value]="selectedTheme" (change)="onThemeChange(($any($event.target)).value)">
+        @for (option of themeOptions; track option.code) {
+          <option [value]="option.code">{{ option.labelKey | translate }}</option>
+        }
+      </select>
+      <span class="selector-caret" aria-hidden="true"></span>
+    </div>
+  </label>
+
+  <label class="selector-field selector-field--language">
+    <span>{{ 'COMMON.LANGUAGE' | translate }}</span>
+    <div class="selector-control">
+      <button
+        type="button"
+        class="selector-menu-trigger"
+        [attr.aria-expanded]="isLanguageMenuOpen"
+        aria-haspopup="listbox"
+        (click)="toggleLanguageMenu()"
+      >
+        <span class="app-language-option__flag" [ngClass]="currentLanguageFlagClass" aria-hidden="true"></span>
+        <span class="selector-menu-label">{{ currentLanguageOption.labelKey | translate }}</span>
+      </button>
+
+      @if (isLanguageMenuOpen) {
+        <ul class="selector-menu" role="listbox">
+          @for (option of languageOptions; track option.code) {
+            <li>
+              <button
+                type="button"
+                class="selector-menu-option"
+                role="option"
+                [attr.aria-selected]="selectedLanguage === option.code"
+                [class.selector-menu-option--selected]="selectedLanguage === option.code"
+                (click)="selectLanguage(option.code)"
+              >
+                <span class="app-language-option__flag" [ngClass]="option.flagClass" aria-hidden="true"></span>
+                <span>{{ option.labelKey | translate }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+      <span class="selector-caret" aria-hidden="true"></span>
+    </div>
+  </label>
+</div>

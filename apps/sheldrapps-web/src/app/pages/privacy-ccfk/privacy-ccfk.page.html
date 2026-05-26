@@ -1,70 +1,80 @@
-﻿<header>
-  <div class="top">
-    <a routerLink="/" class="muted" [attr.aria-label]="'COMMON.BACK_HOME' | translate">&larr; {{ 'COMMON.BRAND' | translate }}</a>
-    <span class="badge">{{ 'COMMON.PRIVACY_POLICY_BADGE' | translate }}</span>
+﻿<header class="policy-header">
+  <div class="policy-top">
+    <a routerLink="/" class="back-link" [attr.aria-label]="'COMMON.BACK_HOME' | translate">
+      &larr; {{ 'COMMON.BRAND' | translate }}
+    </a>
+
+    <span class="policy-badge">
+      {{ 'COMMON.PRIVACY_POLICY_BADGE' | translate }}
+    </span>
+
+    <app-site-title-controls></app-site-title-controls>
   </div>
 </header>
 
-<main aria-labelledby="policy-title">
-  <h1 id="policy-title">{{ 'PRIVACY.CCFK.TITLE' | translate }}</h1>
-  <p class="muted">{{ 'PRIVACY.CCFK.LAST_UPDATED' | translate }}</p>
+<main class="policy-page" aria-labelledby="policy-title">
+  <section class="policy-hero">
+    <h1 id="policy-title">{{ 'PRIVACY.CCFK.TITLE' | translate }}</h1>
+    <p class="policy-muted">{{ 'PRIVACY.CCFK.LAST_UPDATED' | translate }}</p>
+  </section>
 
-  <div class="box">
+  <section class="policy-box">
     <p [innerHTML]="'PRIVACY.CCFK.INTRO' | translate"></p>
-  </div>
+  </section>
 
-  <h2>{{ 'PRIVACY.CCFK.SECTION_1_TITLE' | translate }}</h2>
-  <p>{{ 'PRIVACY.CCFK.SECTION_1_BODY' | translate }}</p>
+  <section class="policy-content">
+    <h2>{{ 'PRIVACY.CCFK.SECTION_1_TITLE' | translate }}</h2>
+    <p>{{ 'PRIVACY.CCFK.SECTION_1_BODY' | translate }}</p>
 
-  <h2>{{ 'PRIVACY.CCFK.SECTION_2_TITLE' | translate }}</h2>
-  <ul>
-    <li [innerHTML]="'PRIVACY.CCFK.SECTION_2_ITEM_1' | translate"></li>
-    <li [innerHTML]="'PRIVACY.CCFK.SECTION_2_ITEM_2' | translate"></li>
-    <li>{{ 'PRIVACY.CCFK.SECTION_2_ITEM_3' | translate }}</li>
-  </ul>
+    <h2>{{ 'PRIVACY.CCFK.SECTION_2_TITLE' | translate }}</h2>
+    <ul>
+      <li [innerHTML]="'PRIVACY.CCFK.SECTION_2_ITEM_1' | translate"></li>
+      <li [innerHTML]="'PRIVACY.CCFK.SECTION_2_ITEM_2' | translate"></li>
+      <li>{{ 'PRIVACY.CCFK.SECTION_2_ITEM_3' | translate }}</li>
+    </ul>
 
-  <h2>{{ 'PRIVACY.CCFK.SECTION_3_TITLE' | translate }}</h2>
-  <p [innerHTML]="'PRIVACY.CCFK.SECTION_3_BODY' | translate"></p>
-  <p class="muted">
-    {{ 'PRIVACY.CCFK.GOOGLE_POLICY_LABEL' | translate }}
-    <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer noopener">
-      {{ 'PRIVACY.CCFK.GOOGLE_POLICY_URL' | translate }}
-    </a>
-  </p>
+    <h2>{{ 'PRIVACY.CCFK.SECTION_3_TITLE' | translate }}</h2>
+    <p [innerHTML]="'PRIVACY.CCFK.SECTION_3_BODY' | translate"></p>
+    <p class="policy-muted">
+      {{ 'PRIVACY.CCFK.GOOGLE_POLICY_LABEL' | translate }}
+      <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer noopener">
+        {{ 'PRIVACY.CCFK.GOOGLE_POLICY_URL' | translate }}
+      </a>
+    </p>
 
-  <h2>{{ 'PRIVACY.CCFK.SECTION_4_TITLE' | translate }}</h2>
-  <p>{{ 'PRIVACY.CCFK.SECTION_4_BODY' | translate }}</p>
-  <ul>
-    <li>{{ 'PRIVACY.CCFK.SECTION_4_ITEM_1' | translate }}</li>
-    <li [innerHTML]="'PRIVACY.CCFK.SECTION_4_ITEM_2' | translate"></li>
-    <li>{{ 'PRIVACY.CCFK.SECTION_4_ITEM_3' | translate }}</li>
-  </ul>
+    <h2>{{ 'PRIVACY.CCFK.SECTION_4_TITLE' | translate }}</h2>
+    <p>{{ 'PRIVACY.CCFK.SECTION_4_BODY' | translate }}</p>
+    <ul>
+      <li>{{ 'PRIVACY.CCFK.SECTION_4_ITEM_1' | translate }}</li>
+      <li [innerHTML]="'PRIVACY.CCFK.SECTION_4_ITEM_2' | translate"></li>
+      <li>{{ 'PRIVACY.CCFK.SECTION_4_ITEM_3' | translate }}</li>
+    </ul>
 
-  <h2>{{ 'PRIVACY.CCFK.SECTION_5_TITLE' | translate }}</h2>
-  <p>{{ 'PRIVACY.CCFK.SECTION_5_BODY' | translate }}</p>
+    <h2>{{ 'PRIVACY.CCFK.SECTION_5_TITLE' | translate }}</h2>
+    <p>{{ 'PRIVACY.CCFK.SECTION_5_BODY' | translate }}</p>
 
-  <h2>{{ 'PRIVACY.CCFK.SECTION_6_TITLE' | translate }}</h2>
-  <p>{{ 'PRIVACY.CCFK.SECTION_6_BODY' | translate }}</p>
+    <h2>{{ 'PRIVACY.CCFK.SECTION_6_TITLE' | translate }}</h2>
+    <p>{{ 'PRIVACY.CCFK.SECTION_6_BODY' | translate }}</p>
 
-  <h2>{{ 'PRIVACY.CCFK.SECTION_7_TITLE' | translate }}</h2>
-  <p>{{ 'PRIVACY.CCFK.SECTION_7_BODY' | translate }}</p>
-  <ul>
-    <li>{{ 'PRIVACY.CCFK.SECTION_7_ITEM_1' | translate }}</li>
-    <li>{{ 'PRIVACY.CCFK.SECTION_7_ITEM_2' | translate }}</li>
-    <li>{{ 'PRIVACY.CCFK.SECTION_7_ITEM_3' | translate }}</li>
-    <li>{{ 'PRIVACY.CCFK.SECTION_7_ITEM_4' | translate }}</li>
-  </ul>
+    <h2>{{ 'PRIVACY.CCFK.SECTION_7_TITLE' | translate }}</h2>
+    <p>{{ 'PRIVACY.CCFK.SECTION_7_BODY' | translate }}</p>
+    <ul>
+      <li>{{ 'PRIVACY.CCFK.SECTION_7_ITEM_1' | translate }}</li>
+      <li>{{ 'PRIVACY.CCFK.SECTION_7_ITEM_2' | translate }}</li>
+      <li>{{ 'PRIVACY.CCFK.SECTION_7_ITEM_3' | translate }}</li>
+      <li>{{ 'PRIVACY.CCFK.SECTION_7_ITEM_4' | translate }}</li>
+    </ul>
 
-  <h2>{{ 'PRIVACY.CCFK.SECTION_8_TITLE' | translate }}</h2>
-  <p>{{ 'PRIVACY.CCFK.SECTION_8_BODY' | translate }}</p>
+    <h2>{{ 'PRIVACY.CCFK.SECTION_8_TITLE' | translate }}</h2>
+    <p>{{ 'PRIVACY.CCFK.SECTION_8_BODY' | translate }}</p>
 
-  <h2>{{ 'PRIVACY.CCFK.SECTION_9_TITLE' | translate }}</h2>
-  <p>{{ 'PRIVACY.CCFK.SECTION_9_BODY' | translate }}</p>
+    <h2>{{ 'PRIVACY.CCFK.SECTION_9_TITLE' | translate }}</h2>
+    <p>{{ 'PRIVACY.CCFK.SECTION_9_BODY' | translate }}</p>
 
-  <h2>{{ 'PRIVACY.CCFK.SECTION_10_TITLE' | translate }}</h2>
-  <p>
-    {{ 'PRIVACY.CCFK.SECTION_10_BODY' | translate }}
-    <a href="mailto:sheldrapps@gmail.com">{{ 'HOME.SUPPORT_EMAIL' | translate }}</a>
-  </p>
+    <h2>{{ 'PRIVACY.CCFK.SECTION_10_TITLE' | translate }}</h2>
+    <p>
+      {{ 'PRIVACY.CCFK.SECTION_10_BODY' | translate }}
+      <a href="mailto:sheldrapps@gmail.com">{{ 'HOME.SUPPORT_EMAIL' | translate }}</a>
+    </p>
+  </section>
 </main>
-

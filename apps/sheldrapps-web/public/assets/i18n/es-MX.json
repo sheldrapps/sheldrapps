@@ -1,12 +1,12 @@
 {
   "COMMON": {
-    "BRAND": "Sheldraps",
+    "BRAND": "Sheldrapps",
     "BACK_HOME": "De vuelta a casa",
-    "PRIVACY_POLICY_BADGE": "política de privacidad",
+    "PRIVACY_POLICY_BADGE": "Política de privacidad",
     "THEME": "Tema",
     "LANGUAGE": "Idioma",
     "OPEN_PLAY_STORE": "Ver en Google Play",
-    "PRIVACY_POLICY": "política de privacidad",
+    "PRIVACY_POLICY": "Política de privacidad",
     "SUPPORT_EMAIL": "sheldrapps@gmail.com"
   },
   "LANGUAGE": {
@@ -87,8 +87,8 @@
     "SUPPORT_BODY": "¿Necesitas ayuda con una de nuestras aplicaciones? Contáctenos en",
     "SUPPORT_EMAIL": "sheldrapps@gmail.com",
     "LEGAL_TITLE": "Legal",
-    "LEGAL_ECC_LINK": "política de privacidad - Cambiar portada a EPUB",
-    "LEGAL_CCFK_LINK": "política de privacidad - Crear Portadas para Kindle",
+    "LEGAL_ECC_LINK": "Política de privacidad - Cambiar portada a EPUB",
+    "LEGAL_CCFK_LINK": "Política de privacidad - Crear Portadas para Kindle",
     "SHOWCASE_CHIP_ONE": "portadas EPUB",
     "SHOWCASE_CHIP_TWO": "Lector electrónico listo",
     "SHOWCASE_CHIP_THREE": "Primero local",
@@ -97,18 +97,18 @@
     "HERO_STAT_EPUB": "Herramientas EPUB",
     "HERO_STAT_PDF": "Flujos de trabajo de PDF",
     "PLAY_STORE_UNAVAILABLE": "Próximamente enlace a Google Play",
-    "LEGAL_PCM_LINK": "política de privacidad - Creador de Portadas PDF"
+    "LEGAL_PCM_LINK": "Política de privacidad - Creador de Portadas PDF"
   },
   "PRIVACY": {
     "CCFK": {
-      "TITLE": "política de privacidad - Crear Portadas para Kindle",
+      "TITLE": "Política de privacidad - Crear Portadas para Kindle",
       "LAST_UPDATED": "Última actualización: 2026-01-19",
-      "INTRO": "Cover Creator para Kindle (<strong>la aplicación</strong>) es desarrollado y mantenido por <strong>Sheldrapps</strong>. Esta Política de Privacidad explica cómo se maneja la información cuando utiliza la Aplicación.",
+      "INTRO": "Crear Portadas para Kindle (<strong>la aplicación</strong>) es desarrollada y mantenida por <strong>Sheldrapps</strong>. Esta Política de Privacidad explica cómo se maneja la información cuando utiliza la Aplicación.",
       "SECTION_1_TITLE": "1. Información que recopilamos",
       "SECTION_1_BODY": "La aplicación no requiere la creación de una cuenta y no recopila directamente información de identificación personal, como su nombre, dirección de correo electrónico o número de teléfono.",
       "SECTION_2_TITLE": "2. Imágenes y archivos",
       "SECTION_2_ITEM_1": "Las imágenes que seleccione se procesan <strong>localmente en su dispositivo</strong>.",
-      "SECTION_2_ITEM_2": "La aplicación <strong>not</strong> carga o almacena sus imágenes en servidores externos.",
+      "SECTION_2_ITEM_2": "La aplicación <strong>no</strong> carga o almacena sus imágenes en servidores externos.",
       "SECTION_2_ITEM_3": "Los archivos generados permanecen en su dispositivo a menos que los comparta explícitamente.",
       "SECTION_3_TITLE": "3. Publicidad",
       "SECTION_3_BODY": "La aplicación puede mostrar anuncios utilizando <strong>Google AdMob</strong>. AdMob puede recopilar y procesar ciertos datos, como identificadores de dispositivos, ubicación aproximada (país/región) y datos de interacción con anuncios (impresiones/clics) para entregar y medir publicidad.",
@@ -137,14 +137,14 @@
       "SECTION_10_BODY": "Si tiene preguntas sobre esta Política de Privacidad, comuníquese con:"
     },
     "ECC": {
-      "TITLE": "política de privacidad - Cambiar portada a EPUB",
+      "TITLE": "Política de privacidad - Cambiar portada a EPUB",
       "LAST_UPDATED": "Última actualización: 2026-02-05",
-      "INTRO": "El cambiador de portada EPUB (<strong>la aplicación</strong>) es desarrollado y mantenido por <strong>Sheldrapps</strong>. Esta Política de Privacidad explica cómo se maneja la información cuando utiliza la Aplicación.",
+      "INTRO": "Cambiar portada a EPUB (<strong>la aplicación</strong>) es desarrollada y mantenida por <strong>Sheldrapps</strong>. Esta Política de Privacidad explica cómo se maneja la información cuando utiliza la Aplicación.",
       "SECTION_1_TITLE": "1. Información que recopilamos",
       "SECTION_1_BODY": "La aplicación no requiere la creación de una cuenta y no recopila directamente información de identificación personal, como su nombre, dirección de correo electrónico o número de teléfono.",
       "SECTION_2_TITLE": "2. Archivos e imágenes",
       "SECTION_2_ITEM_1": "Los archivos EPUB y las imágenes que seleccione se procesan <strong>localmente en su dispositivo</strong>.",
-      "SECTION_2_ITEM_2": "La aplicación <strong>not</strong> carga o almacena sus archivos o imágenes en servidores externos.",
+      "SECTION_2_ITEM_2": "La aplicación <strong>no</strong> carga o almacena sus archivos o imágenes en servidores externos.",
       "SECTION_2_ITEM_3": "Los archivos EPUB modificados permanecen en su dispositivo a menos que los comparta explícitamente.",
       "SECTION_3_TITLE": "3. Publicidad",
       "SECTION_3_BODY": "La aplicación puede mostrar anuncios utilizando <strong>Google AdMob</strong>. AdMob puede recopilar y procesar ciertos datos, como identificadores de dispositivos, ubicación aproximada (país/región) y datos de interacción con anuncios (impresiones/clics) para entregar y medir publicidad.",
@@ -173,14 +173,14 @@
       "SECTION_10_BODY": "Si tiene preguntas sobre esta Política de Privacidad, comuníquese con:"
     },
     "PCM": {
-      "TITLE": "política de privacidad - Creador de Portadas PDF",
+      "TITLE": "Política de privacidad - Creador de Portadas PDF",
       "LAST_UPDATED": "Última actualización: 2026-05-26",
-      "INTRO": "PDF Cover Maker (<strong>la aplicación</strong>) es desarrollado y mantenido por <strong>Sheldrapps</strong>. Esta Política de Privacidad explica cómo se maneja la información cuando utiliza la Aplicación.",
+      "INTRO": "Creador de Portadas PDF (<strong>la aplicación</strong>) es desarrollada y mantenida por <strong>Sheldrapps</strong>. Esta Política de Privacidad explica cómo se maneja la información cuando utiliza la Aplicación.",
       "SECTION_1_TITLE": "1. Información que recopilamos",
       "SECTION_1_BODY": "La aplicación no requiere la creación de una cuenta y no recopila directamente información de identificación personal, como su nombre, dirección de correo electrónico o número de teléfono.",
       "SECTION_2_TITLE": "2. Archivos e imágenes",
       "SECTION_2_ITEM_1": "Los archivos PDF y las imágenes que seleccione se procesan <strong>localmente en su dispositivo</strong>.",
-      "SECTION_2_ITEM_2": "La aplicación <strong>not</strong> carga o almacena sus archivos o imágenes en servidores externos.",
+      "SECTION_2_ITEM_2": "La aplicación <strong>no</strong> carga o almacena sus archivos o imágenes en servidores externos.",
       "SECTION_2_ITEM_3": "Los archivos PDF modificados permanecen en su dispositivo a menos que los comparta explícitamente.",
       "SECTION_3_TITLE": "3. Publicidad",
       "SECTION_3_BODY": "La aplicación puede mostrar anuncios utilizando <strong>Google AdMob</strong>. AdMob puede recopilar y procesar ciertos datos, como identificadores de dispositivos, ubicación aproximada (país/región) y datos de interacción con anuncios (impresiones/clics) para entregar y medir publicidad.",
