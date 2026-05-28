@@ -18,6 +18,7 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
+import com.tom_roush.pdfbox.android.PDFBoxResourceLoader;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.pdmodel.PDDocumentInformation;
 import com.tom_roush.pdfbox.pdmodel.PDPage;
@@ -58,6 +59,7 @@ public class PdfRewritePlugin extends Plugin {
     private static final float PREVIEW_MAX_SCALE = 2.0f;
     private static final long PDFBOX_MAIN_MEMORY_BUDGET_BYTES = 24L * 1024L * 1024L;
     private final AtomicBoolean cancelRequested = new AtomicBoolean(false);
+    private final AtomicBoolean pdfBoxInitialized = new AtomicBoolean(false);
 
     @PluginMethod
     public void pickAndPreparePdf(PluginCall call) {
@@ -88,6 +90,7 @@ public class PdfRewritePlugin extends Plugin {
 
         new Thread(() -> {
             try {
+                ensurePdfBoxInitialized();
                 Long maxBytes = call.getLong("maxBytes");
                 PreparedFile prepared = copyUriToWorkingFile(sourceUri, maxBytes);
                 JSObject inspection = inspectFile(prepared.file);
@@ -116,6 +119,8 @@ public class PdfRewritePlugin extends Plugin {
                 call.resolve(errorResult("PDF_TOO_LARGE", "pick"));
             } catch (Exception error) {
                 call.resolve(errorResult("PDF_CORRUPT", "pick"));
+            } catch (Throwable fatal) {
+                call.resolve(errorResult("REWRITE_FAILED", "pick"));
             }
         }).start();
     }
@@ -131,12 +136,15 @@ public class PdfRewritePlugin extends Plugin {
 
         new Thread(() -> {
             try {
+                ensurePdfBoxInitialized();
                 File inputFile = resolvePathToFile(inputPath);
                 JSObject result = inspectFile(inputFile);
                 call.resolve(result);
             } catch (OutOfMemoryError oom) {
                 call.resolve(errorResult("PDF_TOO_LARGE", "inspect"));
             } catch (Exception error) {
+                call.resolve(errorResult("PDF_CORRUPT", "inspect"));
+            } catch (Throwable fatal) {
                 call.resolve(errorResult("PDF_CORRUPT", "inspect"));
             }
         }).start();
@@ -157,6 +165,7 @@ public class PdfRewritePlugin extends Plugin {
 
         new Thread(() -> {
             try {
+                ensurePdfBoxInitialized();
                 File inputFile = resolvePathToFile(inputPath);
                 File coverFile = resolvePathToFile(newCoverPath);
                 File outFile = outputPath == null || outputPath.trim().isEmpty()
@@ -182,6 +191,8 @@ public class PdfRewritePlugin extends Plugin {
                 call.resolve(errorResult("PDF_TOO_LARGE", "rewrite"));
             } catch (Exception error) {
                 call.resolve(errorResult("REWRITE_FAILED", "rewrite"));
+            } catch (Throwable fatal) {
+                call.resolve(errorResult("REWRITE_FAILED", "rewrite"));
             }
         }).start();
     }
@@ -199,6 +210,7 @@ public class PdfRewritePlugin extends Plugin {
 
         new Thread(() -> {
             try {
+                ensurePdfBoxInitialized();
                 File outFile = resolvePathToFile(outputPath);
                 File coverFile = resolvePathToFile(coverPath);
                 ensureParentExists(outFile);
@@ -215,6 +227,8 @@ public class PdfRewritePlugin extends Plugin {
             } catch (OutOfMemoryError oom) {
                 call.resolve(errorResult("PDF_TOO_LARGE", "create"));
             } catch (Exception error) {
+                call.resolve(errorResult("REWRITE_FAILED", "create"));
+            } catch (Throwable fatal) {
                 call.resolve(errorResult("REWRITE_FAILED", "create"));
             }
         }).start();
@@ -233,6 +247,7 @@ public class PdfRewritePlugin extends Plugin {
 
         new Thread(() -> {
             try {
+                ensurePdfBoxInitialized();
                 File inputFile = resolvePathToFile(inputPath);
                 File previewFile = renderFirstPagePreview(inputFile, maxDimension);
                 BitmapFactory.Options options = new BitmapFactory.Options();
@@ -253,6 +268,8 @@ public class PdfRewritePlugin extends Plugin {
             } catch (OutOfMemoryError oom) {
                 call.resolve(errorResult("PDF_TOO_LARGE", "preview"));
             } catch (Exception error) {
+                call.resolve(errorResult("PDF_CORRUPT", "preview"));
+            } catch (Throwable fatal) {
                 call.resolve(errorResult("PDF_CORRUPT", "preview"));
             }
         }).start();
@@ -847,6 +864,24 @@ public class PdfRewritePlugin extends Plugin {
         JSObject event = new JSObject();
         event.put("percent", Math.max(0, Math.min(100, percent)));
         notifyListeners("rewriteProgress", event);
+    }
+
+    private void ensurePdfBoxInitialized() throws PluginError {
+        if (pdfBoxInitialized.get()) {
+            return;
+        }
+
+        synchronized (pdfBoxInitialized) {
+            if (pdfBoxInitialized.get()) {
+                return;
+            }
+            try {
+                PDFBoxResourceLoader.init(getContext().getApplicationContext());
+                pdfBoxInitialized.set(true);
+            } catch (Throwable fatal) {
+                throw new PluginError("REWRITE_FAILED", "init");
+            }
+        }
     }
 
     private void ensureNotCancelled() throws CancelledException {

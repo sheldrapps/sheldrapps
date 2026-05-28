@@ -35,6 +35,12 @@ export class TourService {
   private pendingManualTourId: string | null = null;
   private resizeHandler?: () => void;
   private syncRafId: number | null = null;
+  private mutationObserver: MutationObserver | null = null;
+  private mutationObservedRoot: Node | null = null;
+  private targetResizeObserver: ResizeObserver | null = null;
+  private observedTarget: HTMLElement | null = null;
+  private syncInFlight = false;
+  private syncQueued = false;
 
   readonly state = computed<TourOverlayState>(() => {
     const activeTour = this.activeTourSig();
@@ -50,7 +56,9 @@ export class TourService {
       displayCurrent: currentStep?.progressCurrent ?? currentIndex + 1,
       displayTotal: currentStep?.progressTotal ?? totalSteps,
       canGoBack: currentIndex > 0,
-      canFinish: !!currentStep?.showFinish || (totalSteps > 0 && currentIndex === totalSteps - 1),
+      canFinish:
+        !!currentStep?.showFinish ||
+        (totalSteps > 0 && currentIndex === totalSteps - 1),
       isLastStep: totalSteps > 0 && currentIndex === totalSteps - 1,
       spotlightRect: this.spotlightRectSig(),
       tooltipStyle: this.tooltipStyleSig(),
@@ -88,9 +96,10 @@ export class TourService {
 
     this.attachWindowListeners();
     this.log('tour:start', { tourId: tour.id, steps: tour.steps.length });
+    await this.ensureMutationObserver();
 
     await this.waitForLayout();
-    await this.syncCurrentStep({ allowScroll: true });
+    await this.runSync({ allowScroll: true });
   }
 
   async next(): Promise<void> {
@@ -105,7 +114,7 @@ export class TourService {
     }
 
     this.currentIndexSig.set(state.currentIndex + 1);
-    await this.syncCurrentStep({ allowScroll: true });
+    await this.runSync({ allowScroll: true });
   }
 
   async back(): Promise<void> {
@@ -115,7 +124,7 @@ export class TourService {
     }
 
     this.currentIndexSig.set(state.currentIndex - 1);
-    await this.syncCurrentStep({ allowScroll: true });
+    await this.runSync({ allowScroll: true });
   }
 
   async skip(): Promise<void> {
@@ -138,7 +147,7 @@ export class TourService {
     }
 
     this.currentIndexSig.set(state.currentIndex + 1);
-    await this.syncCurrentStep({ allowScroll: true });
+    await this.runSync({ allowScroll: true });
   }
 
   requestSync(): void {
@@ -147,7 +156,7 @@ export class TourService {
     }
 
     if (typeof window === 'undefined') {
-      void this.syncCurrentStep({ allowScroll: false });
+      void this.runSync({ allowScroll: false });
       return;
     }
 
@@ -157,7 +166,9 @@ export class TourService {
 
     this.syncRafId = window.requestAnimationFrame(() => {
       this.syncRafId = null;
-      void this.syncCurrentStep({ allowScroll: false });
+      void this.waitForLayout().then(() => {
+        void this.runSync({ allowScroll: false });
+      });
     });
   }
 
@@ -172,6 +183,7 @@ export class TourService {
     this.currentIndexSig.set(0);
     this.spotlightRectSig.set(null);
     this.tooltipStyleSig.set(DEFAULT_TOOLTIP_STYLE);
+    this.clearPendingSyncHandles();
 
     this.log(reason === 'skip' ? 'tour:skip' : 'tour:complete', {
       tourId: activeTour.id,
@@ -193,6 +205,7 @@ export class TourService {
     }
 
     if (!step.target) {
+      this.clearObservedTarget();
       this.spotlightRectSig.set(null);
       this.tooltipStyleSig.set(this.buildTooltipStyle(step.placement, null));
       this.log('tour:step', { stepId: step.id, target: null });
@@ -201,21 +214,43 @@ export class TourService {
 
     let target = this.findTarget(step.target);
     if (!target) {
+      this.clearObservedTarget();
       this.spotlightRectSig.set(null);
       this.tooltipStyleSig.set(this.buildTooltipStyle('center', null));
       this.log('tour:target-missing', { stepId: step.id, target: step.target });
       return;
     }
 
+    this.observeTarget(target);
+
     if (opts.allowScroll) {
       await this.scrollTargetIntoView(step.id, target);
       target = this.findTarget(step.target) ?? target;
+      this.observeTarget(target);
     }
 
     const rect = this.toSpotlightRect(target.getBoundingClientRect());
     this.spotlightRectSig.set(rect);
     this.tooltipStyleSig.set(this.buildTooltipStyle(step.placement, rect));
     this.log('tour:step', { stepId: step.id, target: step.target });
+  }
+
+  private async runSync(opts: { allowScroll: boolean }): Promise<void> {
+    if (this.syncInFlight) {
+      this.syncQueued = true;
+      return;
+    }
+
+    this.syncInFlight = true;
+    try {
+      await this.syncCurrentStep(opts);
+    } finally {
+      this.syncInFlight = false;
+      if (this.syncQueued) {
+        this.syncQueued = false;
+        void this.runSync({ allowScroll: false });
+      }
+    }
   }
 
   private findTarget(targetId: string): HTMLElement | null {
@@ -309,7 +344,10 @@ export class TourService {
       case 'bottom':
       default:
         return {
-          top: `${Math.min(window.innerHeight - 16, rect.top + rect.height + 12)}px`,
+          top: `${Math.min(
+            window.innerHeight - 16,
+            rect.top + rect.height + 12
+          )}px`,
           left: `${centerX}px`,
           transform: 'translate(-50%, 0)',
           width: `${width}px`,
@@ -337,6 +375,91 @@ export class TourService {
     window.removeEventListener('resize', this.resizeHandler);
     window.removeEventListener('orientationchange', this.resizeHandler);
     this.resizeHandler = undefined;
+  }
+
+  private clearPendingSyncHandles(): void {
+    if (typeof window !== 'undefined' && this.syncRafId != null) {
+      window.cancelAnimationFrame(this.syncRafId);
+    }
+    this.syncRafId = null;
+
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
+      this.mutationObserver = null;
+    }
+    this.mutationObservedRoot = null;
+
+    this.clearObservedTarget();
+
+    if (this.targetResizeObserver) {
+      this.targetResizeObserver.disconnect();
+      this.targetResizeObserver = null;
+    }
+  }
+
+  private async ensureMutationObserver(): Promise<void> {
+    if (typeof MutationObserver === 'undefined') {
+      return;
+    }
+
+    const root = await this.getMutationRoot();
+    if (!root) {
+      return;
+    }
+
+    if (!this.mutationObserver) {
+      this.mutationObserver = new MutationObserver(() => this.requestSync());
+    }
+
+    if (this.mutationObservedRoot === root) {
+      return;
+    }
+
+    this.mutationObserver.disconnect();
+    this.mutationObserver.observe(root, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+    });
+    this.mutationObservedRoot = root;
+  }
+
+  private async getMutationRoot(): Promise<Node | null> {
+    if (typeof document === 'undefined') {
+      return null;
+    }
+    // Observe global app root so ion-modal/overlays (mounted outside ion-content)
+    // also trigger tour re-sync.
+    return document.body;
+  }
+
+  private observeTarget(target: HTMLElement): void {
+    if (this.observedTarget === target) {
+      return;
+    }
+
+    if (this.targetResizeObserver && this.observedTarget) {
+      this.targetResizeObserver.unobserve(this.observedTarget);
+    }
+
+    this.observedTarget = target;
+
+    if (typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    if (!this.targetResizeObserver) {
+      this.targetResizeObserver = new ResizeObserver(() => this.requestSync());
+    }
+
+    this.targetResizeObserver.observe(target);
+  }
+
+  private clearObservedTarget(): void {
+    if (this.targetResizeObserver && this.observedTarget) {
+      this.targetResizeObserver.unobserve(this.observedTarget);
+    }
+    this.observedTarget = null;
   }
 
   private async waitForLayout(): Promise<void> {

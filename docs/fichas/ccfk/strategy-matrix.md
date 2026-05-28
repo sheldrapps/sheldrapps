@@ -1,22 +1,26 @@
-# CCFK Strategy Matrix
+# ECC Strategy Matrix
 
-| Locale | Ángulo de mercado | Hero visual | Prueba de confianza | Qué evitar | Paleta | Notas |
-| --- | --- | --- | --- | --- | --- | --- |
-| en-US | Personalización Kindle-first | Resultado visual final en portada | Recorte, preview y export por modelo | Abrir con tabla técnica o settings | #041126 / #1D5C96 |
-| es-MX | Personalización Kindle-first | Resultado visual final en portada | Recorte, preview y export por modelo | Abrir con tabla técnica o settings | #1C232B / #D96B4A |
-| de-DE | Personalización Kindle-first | Resultado visual final en portada | Recorte, preview y export por modelo | Abrir con tabla técnica o settings | #101827 / #3B7CA6 |
-| fr-FR | Personalización Kindle-first | Resultado visual final en portada | Recorte, preview y export por modelo | Abrir con tabla técnica o settings | #0E1625 / #4F7AA8 |
-| it-IT | Personalización Kindle-first | Resultado visual final en portada | Recorte, preview y export por modelo | Abrir con tabla técnica o settings | #111822 / #C07E4D |
-| pt-BR | Personalización Kindle-first | Resultado visual final en portada | Recorte, preview y export por modelo | Abrir con tabla técnica o settings | #0F1E27 / #2F8E83 |
-| ar-SA | Personalización Kindle-first | Resultado visual final en portada | Recorte, preview y export por modelo | Abrir con tabla técnica o settings | #07131F / #A57F2B |
-| hi-IN | Personalización Kindle-first | Resultado visual final en portada | Recorte, preview y export por modelo | Abrir con tabla técnica o settings | #0E1930 / #D27B4C |
-| ja-JP | Personalización Kindle-first | Resultado visual final en portada | Recorte, preview y export por modelo | Abrir con tabla técnica o settings | #091423 / #5B86B6 |
-| ko-KR | Personalización Kindle-first | Resultado visual final en portada | Recorte, preview y export por modelo | Abrir con tabla técnica o settings | #09131F / #3F8BC0 |
-| ru-RU | Personalización Kindle-first | Resultado visual final en portada | Recorte, preview y export por modelo | Abrir con tabla técnica o settings | #0B1524 / #A9724F |
-| zh-CN | Personalización Kindle-first | Resultado visual final en portada | Recorte, preview y export por modelo | Abrir con tabla técnica o settings | #081726 / #2E8B78 |
-| zh-TW | Personalización Kindle-first | Resultado visual final en portada | Recorte, preview y export por modelo | Abrir con tabla técnica o settings | #091626 / #4C8BB1 |
+| Locale | Ángulo de mercado | Hero visual | Before cover idea | After cover idea | Énfasis de flujo | Prueba de confianza | Qué evitar | Paleta | Notas |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| en-US | Fast EPUB cover replacement | Clear before/after EPUB transformation | Plain white or ugly generic EPUB cover | Polished custom image cover | Select EPUB → choose image → adjust → save copy | 100% on device. No accounts. No uploads. | Making it look like a generic image editor or AI cover generator | #151515 / #252525 / #B3261E | Lead with utility and speed. The strongest hook is fixing a bad cover quickly. |
+| es-MX | Arreglar portadas EPUB rápido | Transformación antes/después muy clara | Portada simple, fea o incompleta | Imagen personalizada atractiva | Elegir EPUB → seleccionar imagen → ajustar → guardar copia | 100% en tu dispositivo. Sin cuentas. Sin subir archivos. | Abrir con ajustes, biblioteca sola o lenguaje demasiado técnico | #151515 / #252525 / #B3261E | Debe sentirse práctica, confiable y directa. “Cambia la portada en segundos” es el eje. |
+| de-DE | EPUB-Cover schnell korrigieren | Before/after with clean, precise layout | Minimal incorrect or missing cover | Clean corrected ebook cover | EPUB wählen → Bild anpassen → Vorschau → Kopie speichern | Lokale Verarbeitung. Kein Konto. Kein Upload. | Overpromising full EPUB editing or cloud features | #151515 / #252525 / #B3261E | Emphasize precision, privacy, and file control. Avoid exaggerated emotional copy. |
+| fr-FR | Remplacer une couverture EPUB facilement | Elegant before/after ebook cover change | Generic or wrong cover | Refined personalized cover | Choisir EPUB → recadrer → prévisualiser → sauvegarder | Traitement local. Aucun compte. Aucun envoi. | Trop d’effet “application artistique” avant d’expliquer l’utilité | #151515 / #252525 / #B3261E | Balance practical utility with a polished reading-library aesthetic. |
+| it-IT | Sistemare copertine EPUB in modo semplice | Obvious before/after cover upgrade | Cover generica o brutta | Copertina personalizzata pulita | Scegli EPUB → regola immagine → anteprima → salva copia | Tutto sul dispositivo. Nessun account. Nessun upload. | Farla sembrare un editor immagini generico | #151515 / #252525 / #B3261E | The message should feel simple and useful, not overly technical. |
+| pt-BR | Trocar capa de EPUB com rapidez | Antes/depois direto e visual | Capa feia, errada ou genérica | Capa personalizada mais bonita | Escolher EPUB → ajustar imagem → visualizar → salvar cópia | 100% no dispositivo. Sem conta. Sem uploads. | Prometer edição completa de EPUB ou geração por IA | #151515 / #252525 / #B3261E | Use direct, practical language. Strong hook: corrigir capas ruins da biblioteca digital. |
+| ar-SA | تغيير غلاف EPUB بسهولة وخصوصية | مقارنة واضحة قبل/بعد | غلاف بسيط أو غير مناسب | غلاف مخصص أنيق | اختيار EPUB → اختيار صورة → ضبط → حفظ نسخة | تتم المعالجة على الجهاز. بدون حساب. بدون رفع ملفات. | الزخرفة الزائدة أو الوعود التقنية غير المدعومة | #151515 / #252525 / #B3261E | Keep the visual premium and clean. Trust and privacy should be highly visible. |
+| hi-IN | EPUB cover quickly change/fix | Simple before/after transformation | Plain or incorrect ebook cover | Attractive custom cover image | Select EPUB → adjust image → preview → save copy | On-device processing. No account. No uploads. | Too much technical EPUB language or complex UI-first screenshots | #151515 / #252525 / #B3261E | English app terms may remain useful, but the benefit must be very clear. |
+| ja-JP | EPUB表紙を簡単に差し替え | Clean before/after cover replacement | Simple wrong or blank cover | Clean custom cover | EPUB選択 → 画像調整 → プレビュー → 保存 | 端末上で処理。アカウント不要。アップロード不要。 | 派手すぎる装飾、AI生成のような誤解、技術説明から始めること | #151515 / #252525 / #B3261E | Prioritize clarity, neatness, and privacy. Visual hierarchy should be calm. |
+| ko-KR | EPUB 표지 빠르게 교체 | Before/after cover comparison | Generic or incorrect EPUB cover | Neat personalized cover | EPUB 선택 → 이미지 조정 → 미리보기 → 복사본 저장 | 기기에서만 처리. 계정 없음. 업로드 없음. | 일반 이미지 편집기처럼 보이는 구성 | #151515 / #252525 / #B3261E | Keep the value proposition immediate: bad cover fixed fast. |
+| ru-RU | Быстро заменить обложку EPUB | Strong before/after transformation | Простая, неправильная или пустая обложка | Аккуратная персональная обложка | Выбрать EPUB → настроить изображение → предпросмотр → сохранить копию | Обработка на устройстве. Без аккаунта. Без загрузки файлов. | Обещания полного EPUB-редактора или облачного сервиса | #151515 / #252525 / #B3261E | Practical and trustworthy tone. Avoid sounding like a complex technical utility. |
+| zh-CN | 快速更换 EPUB 封面 | Clear before/after EPUB cover change | Plain, wrong, or missing cover | Clean personalized cover | 选择 EPUB → 调整图片 → 预览 → 保存副本 | 本地处理。无需账号。不上传文件。 | 暗示完整 EPUB 编辑、AI 生成或云端处理 | #151515 / #252525 / #B3261E | Emphasize speed, simplicity, and local privacy. |
+| zh-TW | 快速更換 EPUB 封面 | Clear before/after cover replacement | Plain or incorrect EPUB cover | Polished custom cover | 選擇 EPUB → 調整圖片 → 預覽 → 儲存副本 | 在裝置上處理。無需帳號。不需上傳。 | 太像一般圖片編輯器，或暗示雲端處理 | #151515 / #252525 / #B3261E | Keep the copy direct and utility-first. Privacy proof should remain visible. |
 
 Notas:
-- El primer marco visual debe vender deseo, no configuración.
-- Kindle sigue siendo el gancho ASO principal en todos los locales.
-- El soporte para otras marcas se usa como prueba de confianza, nunca como apertura.
+- El primer marco visual debe vender el problema y la transformación, no la configuración.
+- El gancho ASO principal es “EPUB cover / portada EPUB”, no Kindle.
+- La app debe sentirse como una herramienta específica para cambiar portadas EPUB, no como editor general de imágenes.
+- La secuencia visual recomendada es: problema → flujo simple → control → privacidad.
+- La prueba de confianza global debe repetirse con claridad: procesamiento local, sin cuentas y sin subir archivos.
+- Evitar cualquier claim de IA, generación automática, plantillas, DRM, edición completa de EPUB o afiliación con plataformas de lectura.
+- La paleta global se mantiene oscura, sobria y práctica: #151515 / #252525 con acento #B3261E.

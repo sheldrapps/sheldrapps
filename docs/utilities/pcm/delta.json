@@ -1,0 +1,50 @@
+{
+  "project": "pdf-cover-maker",
+  "shortName": "pcm",
+  "generatedAt": "2026-05-27T16:32:41.785Z",
+  "head": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
+  "versionCodeAnchorCommit": "66dbf571480797e63fa491b43d5dcf3e90e448a0",
+  "source": {
+    "buildGradle": "apps/pdf-cover-maker/android/app/build.gradle",
+    "scope": [
+      "apps/pdf-cover-maker/**",
+      "packages/**"
+    ]
+  },
+  "version": {
+    "currentCode": 0,
+    "currentName": ""
+  },
+  "delta": {
+    "mode": "snapshot-first-run",
+    "from": "66dbf571480797e63fa491b43d5dcf3e90e448a0",
+    "to": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
+    "changedFilesCount": 20,
+    "changedFiles": [
+      "apps/pdf-cover-maker/android/app/src/main/res/values/strings.xml",
+      "M apps/pdf-cover-maker/android/app/build.gradle",
+      "apps/pdf-cover-maker/android/app/src/main/AndroidManifest.xml",
+      "apps/pdf-cover-maker/capacitor.config.ts",
+      "apps/pdf-cover-maker/ionic.config.json",
+      "apps/pdf-cover-maker/ios/App/App/Info.plist",
+      "apps/pdf-cover-maker/package.json",
+      "apps/pdf-cover-maker/src/app/pages/change/change.page.html",
+      "apps/pdf-cover-maker/src/app/pages/change/change.page.ts",
+      "apps/pdf-cover-maker/src/app/pages/settings/settings.page.ts",
+      "apps/pdf-cover-maker/src/app/services/ads.config.ts",
+      "apps/pdf-cover-maker/src/app/shared/tour/home-tour.definition.ts",
+      "apps/pdf-cover-maker/src/app/shared/tour/tour-overlay.component.ts",
+      "apps/pdf-cover-maker/src/app/shared/tour/tour.service.ts",
+      "apps/pdf-cover-maker/src/assets/i18n/en-US.json",
+      "apps/pdf-cover-maker/src/assets/i18n/es-MX.json",
+      "apps/pdf-cover-maker/src/main.ts",
+      "packages/file-kit/src/lib/providers.ts",
+      "packages/file-kit/src/public-api.ts",
+      "apps/pdf-cover-maker/resources/icon_512.png"
+    ]
+  },
+  "userFacingFacts": {
+    "appTitleChanges": [],
+    "androidAppNameChanges": []
+  }
+}

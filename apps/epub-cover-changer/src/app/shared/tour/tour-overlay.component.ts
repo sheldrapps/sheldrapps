@@ -71,7 +71,7 @@ import { TourService } from './tour.service';
       .tour-overlay {
         inset: 0;
         position: fixed;
-        z-index: 10020;
+        z-index: 2147483000;
         pointer-events: none;
       }
 

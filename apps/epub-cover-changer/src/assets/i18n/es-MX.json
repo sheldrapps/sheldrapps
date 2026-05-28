@@ -158,6 +158,14 @@
         "TITLE": "Ajustar",
         "DESCRIPTION": "Ajusta la imagen en el editor y toca Listo."
       },
+      "EXPORT": {
+        "TITLE": "Calidad de exportacion",
+        "DESCRIPTION": "Gratis exportas en Estandar. Al comprar sin anuncios desbloqueas la seleccion de exportacion (Lossless/Compressed)."
+      },
+      "REMOVE_ADS_CLOSE": {
+        "TITLE": "Cerrar por ahora",
+        "DESCRIPTION": "De momento, disfruta la version gratis. No te sientas obligado a comprar."
+      },
       "CREATE": {
         "TITLE": "Cambiar portada",
         "DESCRIPTION": "Genera aquí la portada actualizada."

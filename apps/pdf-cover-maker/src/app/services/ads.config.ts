@@ -7,5 +7,5 @@ export const ADS_UNITS_ANDROID_TEST: AdsUnits = {
 };
 
 export const ADS_UNITS_ANDROID_PROD: AdsUnits = {
-  rewarded: 'ca-app-pub-1676607690625695~9460744582',
+  rewarded: 'ca-app-pub-1676607690625695/1139778733',
 };

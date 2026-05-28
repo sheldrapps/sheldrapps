@@ -1,7 +1,7 @@
 ﻿---
 name: fichas
 user-invocable: true
-description: "Crear/actualizar fichas Play Store SEO/ASO por proyecto+locale, con estrategia regional y límites Play Store. Leer docs/utilities/<short-name>/ sin modificar. Use when user asks 'genera fichas', 'crea ficha Play Store', or localized listing copy/visual direction for ecc/ccfk/other locales."
+description: "Crear/actualizar fichas Play Store SEO/ASO por proyecto+locale, usando creative brief, strategy matrix/conversion strategy, conversion audit y golden files aprobados como insumos de solo lectura. Leer docs/utilities/<short-name>/ sin modificar. Use when user asks 'genera fichas', 'crea ficha Play Store', or localized listing copy/visual direction for ecc/ccfk/other locales."
 ---
 
 # Fichas Play Store (SEO/ASO)
@@ -17,21 +17,47 @@ Activa esta skill cuando la intención del usuario sea generar, actualizar o rev
 
 Si el usuario pide `otro proyecto`, resuelve el proyecto desde `apps/*` y sus aliases.
 
+## Regla crítica de alcance
+
+Esta skill genera fichas finales de Play Store. No genera estrategia base.
+
+Los documentos estratégicos aprobados son insumos provistos por el usuario y deben tratarse como fuente de verdad de solo lectura:
+
+- `docs/fichas/<project-id>/creative-brief.md`
+- `docs/fichas/<project-id>/strategy-matrix.md`
+- `docs/fichas/<project-id>/conversion-strategy.md` cuando exista en lugar de `strategy-matrix.md`
+- `docs/fichas/<project-id>/conversion-audit.md`
+- `docs/fichas/<project-id>/*.golden.md`
+
+La skill debe consumir esos documentos, no producirlos.
+
+No crear, regenerar, corregir, resumir en archivo, actualizar ni modificar:
+
+- `creative-brief.md`
+- `strategy-matrix.md`
+- `conversion-strategy.md`
+- `conversion-audit.md`
+- `*.golden.md`
+
+Si alguno de los documentos estratégicos requeridos falta, detener el flujo y reportar exactamente qué archivo falta. No inventar estrategia, no completar huecos con inferencias propias y no sustituir documentos faltantes con análisis del código.
+
+Si el usuario pide explícitamente actualizar `creative-brief.md`, `strategy-matrix.md`, `conversion-strategy.md`, `conversion-audit.md` o `*.golden.md`, esa petición queda fuera del flujo generador de esta skill. Solicitar confirmación explícita para tratarlo como edición manual de documentos estratégicos, no como generación automática de fichas.
+
 ## Objetivo
 
-Generar documentos markdown de fichas con:
+Generar documentos markdown finales de fichas con:
 
 - estrategia de nombre por locale,
 - short description,
 - long description,
 - estrategia de conversión regional,
-- dirección visual para feature graphic y 5 screenshots,
+- dirección visual para feature graphic y screenshots,
 - sistema de color,
 - notas y supuestos.
 
-La ficha debe ser localizada por mercado. Traducir literalmente una sola versión para todos los locales es incorrecto.
+La ficha debe ser localizada por mercado, pero siempre alineada con los documentos estratégicos aprobados. Traducir literalmente una sola versión para todos los locales es incorrecto.
 
-No generar imágenes. No usar herramientas de image generation. Solo crear/editar markdown.
+No generar imágenes. No usar herramientas de image generation. Solo crear/editar markdown de fichas finales.
 
 ## Contrato de entrada
 
@@ -72,16 +98,38 @@ Si se agregan nuevos locales en el repo, priorizar descubrimiento dinámico sobr
 
 ## Fuentes a leer (obligatorias)
 
-Antes de redactar cada ficha, revisar:
+Antes de redactar cada ficha, revisar en este orden:
 
-- `apps/<project>/**`
-- `apps/<project>/src/assets/i18n/**/*.json`
-- `apps/<project>/src/main/res/values*/strings.xml`
-- `docs/utilities/<short-name>/**` (solo lectura, no modificar)
-- `packages/**` (para capacidades reales compartidas)
-- `README.md` y `docs/**` relevantes
+1. Documentos estratégicos aprobados en `docs/fichas/<project-id>/`:
+   - `creative-brief.md`
+   - `strategy-matrix.md` o `conversion-strategy.md`
+   - `conversion-audit.md`
+   - `*.golden.md`
+2. Código y configuración reales:
+   - `apps/<project>/**`
+   - `apps/<project>/src/assets/i18n/**/*.json`
+   - `apps/<project>/src/main/res/values*/strings.xml`
+   - `packages/**` para capacidades compartidas reales
+3. Contexto documental secundario:
+   - `docs/utilities/<short-name>/**` solo lectura, no modificar
+   - `README.md` y `docs/**` relevantes, siempre que no contradigan los documentos estratégicos aprobados
 
-`docs/utilities/<short-name>/` puede estar vacío por ahora. Si no hay contenido utilizable, continuar con análisis de código y dejar constancia en `Notes / Assumptions`.
+`docs/utilities/<short-name>/` puede estar vacío por ahora. Si no hay contenido utilizable, continuar solo si los documentos estratégicos aprobados sí existen.
+
+## Manejo de contradicciones
+
+Los documentos estratégicos aprobados mandan sobre el tono, ángulo de conversión, visuales y riesgos.
+
+El código manda sobre capacidades reales.
+
+Si la estrategia promete algo que no puede confirmarse en código/configuración:
+
+- no modificar la estrategia,
+- no inventar soporte,
+- detenerse si el riesgo es alto,
+- o dejar la incertidumbre documentada en `Notes / Assumptions` si el riesgo es bajo.
+
+Nunca corregir la estrategia desde la skill. Solo reportar la contradicción.
 
 ## Ubicación de salida
 
@@ -94,9 +142,15 @@ Si ya existe y no se pidió reemplazo, crear:
 
 `docs/fichas/<project-id>/<locale>.draft.md`
 
-Si se generan varias fichas, crear o actualizar:
+La generación masiva solo debe crear o actualizar fichas finales por locale.
 
-`docs/fichas/README.md`
+No crear ni actualizar durante este flujo:
+
+- `docs/fichas/<project-id>/creative-brief.md`
+- `docs/fichas/<project-id>/strategy-matrix.md`
+- `docs/fichas/<project-id>/conversion-strategy.md`
+- `docs/fichas/<project-id>/conversion-audit.md`
+- `docs/fichas/<project-id>/*.golden.md`
 
 ## Reglas de Play Store (obligatorias)
 
@@ -107,7 +161,7 @@ Si se generan varias fichas, crear o actualizar:
 Siempre incluir conteo de caracteres en la ficha.
 
 No prometer features no implementadas.
-Solo mencionar privacidad, offline, cuenta, compatibilidad y formatos si se confirma en código/configuración.
+Solo mencionar privacidad, offline, cuenta, compatibilidad y formatos si se confirma en código/configuración o si está autorizado explícitamente en los documentos estratégicos aprobados y no contradice el código.
 
 ## Regla de nombre de app
 
@@ -234,7 +288,9 @@ conversion intent:
 - ...
 ```
 
-No agregar secciones top-level extra salvo necesidad justificada.
+No agregar secciones top-level extra salvo necesidad justificada por la ficha golden o por los documentos estratégicos aprobados.
+
+Si el creative brief o golden files del proyecto definen 4 screenshots en lugar de 5, seguir la estrategia aprobada del proyecto y omitir `Screenshot 5` solo cuando esa decisión esté explícita o consistentemente reflejada en esos documentos.
 
 ## Campos visuales y wrappers permitidos
 
@@ -258,8 +314,9 @@ Incluir estos tamaños explícitamente dentro de `fondo:` e `imagen:`.
 
 ## Localización real por idioma
 
-No reutilizar concepto idéntico entre locales cambiando solo texto.
-Cada locale debe cambiar:
+No reutilizar concepto idéntico entre locales cambiando solo texto, salvo que los documentos estratégicos aprobados indiquen una estrategia global común.
+
+Cada locale debe adaptar, cuando corresponda:
 
 - intención principal,
 - léxico de búsqueda,
@@ -288,13 +345,31 @@ Se prohíbe implicar relación oficial:
 - `Kindle-approved`
 - `Amazon Kindle Cover Creator`
 
+## Deliverables permitidos
+
+La skill puede generar o actualizar:
+
+- `docs/fichas/<project-id>/<locale>.md`
+- `docs/fichas/<project-id>/<locale>.draft.md`
+
+La skill no puede generar o actualizar:
+
+- `docs/fichas/<project-id>/creative-brief.md`
+- `docs/fichas/<project-id>/strategy-matrix.md`
+- `docs/fichas/<project-id>/conversion-strategy.md`
+- `docs/fichas/<project-id>/conversion-audit.md`
+- `docs/fichas/<project-id>/*.golden.md`
+
 ## Checklist de validación final
 
 - ruta correcta: `docs/fichas/<project-id>/<locale>.md`
+- documentos estratégicos aprobados leídos como solo lectura
+- ningún documento estratégico base creado o modificado
 - límites de caracteres cumplidos
 - promesas alineadas con implementación real
-- diferenciación regional real (no traducción literal)
-- 5 screenshots con ángulos distintos
+- claims alineados con creative brief, strategy matrix/conversion strategy, conversion audit y golden files
+- diferenciación regional real, salvo estrategia global común aprobada
+- screenshots con ángulos distintos según estrategia aprobada
 - feature graphic con intención de conversión clara
 - sistema visual con contraste seguro para área de copy
 - incertidumbres documentadas en `Notes / Assumptions`
@@ -303,3 +378,5 @@ Se prohíbe implicar relación oficial:
 
 Al terminar, responder con un resumen breve de archivos creados/actualizados.
 No pegar el contenido completo de todas las fichas salvo que el usuario lo pida.
+
+Si el flujo se detuvo por falta de documentos estratégicos, responder con la lista exacta de archivos faltantes y no generar fichas.

@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.sheldrapps.pdfcovermaker',
-  appName: 'PDF Cover Changer',
+  appName: 'PDF Cover Maker',
   webDir: 'www',
 };
 

@@ -16,11 +16,11 @@ import {
 
 export function providePdfFileKit(config?: FileKitConfig): Provider[] {
   const mergedConfig: FileKitConfig = {
+    enableWebDevAdapters: true,
     ...config,
-    enableWebDevAdapters: false,
   };
 
-  return [
+  const providers: Provider[] = [
     {
       provide: FILE_KIT_CONFIG_TOKEN,
       useValue: mergedConfig,
@@ -34,10 +34,15 @@ export function providePdfFileKit(config?: FileKitConfig): Provider[] {
       provide: SHARE_ADAPTER_TOKEN,
       useValue: mergedConfig.shareAdapter || new CapacitorShareAdapter(),
     },
-    {
-      provide: WEB_PDF_COVER_SERVICE_TOKEN,
-      useClass: WebPdfCoverService,
-    },
     FileKitService,
   ];
+
+  if (mergedConfig.enableWebDevAdapters !== false) {
+    providers.push({
+      provide: WEB_PDF_COVER_SERVICE_TOKEN,
+      useClass: WebPdfCoverService,
+    });
+  }
+
+  return providers;
 }

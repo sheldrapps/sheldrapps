@@ -85,7 +85,7 @@ export class SettingsPage {
   eReaderOptimizationEnabled = true;
 
   private readonly privacyPolicyUrl =
-    'https://sheldrapps.github.io/privacy-policies/epub-cover-changer/';
+    'https://sheldrapps.com/privacy-policies/epub-cover-changer';
 
   trackByLang = (_: number, l: LangOption) => l.code;
 

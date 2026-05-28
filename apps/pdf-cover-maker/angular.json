@@ -23,9 +23,7 @@
               "browser": ""
             },
             "index": "src/index.html",
-            "polyfills": [
-              "src/polyfills.ts"
-            ],
+            "polyfills": ["src/polyfills.ts"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "stylePreprocessorOptions": {
@@ -44,7 +42,7 @@
               },
               {
                 "glob": "icon.png",
-                "input": "resources",
+                "input": "../epub-cover-changer/resources",
                 "output": "assets/apps/ecc"
               },
               {
@@ -54,12 +52,6 @@
               },
               {
                 "glob": "pdf.worker.min.mjs",
-                "input": "node_modules/pdfjs-dist/build",
-                "output": "pdfjs-dist/build",
-                "followSymlinks": true
-              },
-              {
-                "glob": "pdf.worker.mjs",
                 "input": "node_modules/pdfjs-dist/build",
                 "output": "pdfjs-dist/build",
                 "followSymlinks": true
@@ -81,6 +73,28 @@
                   "type": "anyComponentStyle",
                   "maximumWarning": "9kb",
                   "maximumError": "12kb"
+                }
+              ],
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "src/assets",
+                  "output": "assets"
+                },
+                {
+                  "glob": "icon.png",
+                  "input": "../cover-creator-for-kindle/resources",
+                  "output": "assets/apps/ccfk"
+                },
+                {
+                  "glob": "icon.png",
+                  "input": "../epub-cover-changer/resources",
+                  "output": "assets/apps/ecc"
+                },
+                {
+                  "glob": "**/*",
+                  "input": "../../packages/image-workflow/src/assets",
+                  "output": "assets"
                 }
               ],
               "fileReplacements": [
@@ -145,7 +159,7 @@
               },
               {
                 "glob": "icon.png",
-                "input": "resources",
+                "input": "../epub-cover-changer/resources",
                 "output": "assets/apps/ecc"
               },
               {
@@ -155,12 +169,6 @@
               },
               {
                 "glob": "pdf.worker.min.mjs",
-                "input": "node_modules/pdfjs-dist/build",
-                "output": "pdfjs-dist/build",
-                "followSymlinks": true
-              },
-              {
-                "glob": "pdf.worker.mjs",
                 "input": "node_modules/pdfjs-dist/build",
                 "output": "pdfjs-dist/build",
                 "followSymlinks": true

@@ -168,6 +168,18 @@
         "TITLE": "Adjust",
         "DESCRIPTION": "Adjust the image in the editor and tap Done."
       },
+      "COVER_MODE": {
+        "TITLE": "Cover page action",
+        "DESCRIPTION": "Choose whether to insert a new first page or replace the current first page."
+      },
+      "EXPORT": {
+        "TITLE": "Export quality",
+        "DESCRIPTION": "Free export uses Standard. Remove ads to unlock export selection (Lossless/Compressed)."
+      },
+      "REMOVE_ADS_CLOSE": {
+        "TITLE": "Close for now",
+        "DESCRIPTION": "For now, enjoy the free version. You are not obligated to buy."
+      },
       "CREATE": {
         "TITLE": "Make cover",
         "DESCRIPTION": "Generate the new cover here."

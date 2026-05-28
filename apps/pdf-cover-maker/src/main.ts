@@ -180,7 +180,9 @@ bootstrapApplication(AppComponent, {
       ]),
     }),
 
-    providePdfFileKit(),
+    providePdfFileKit({
+      enableWebDevAdapters: environment.enableWebDevAdapters,
+    }),
     provideRatingKit({
       appKey: 'pdf-cover-maker',
       appName: 'PDF Cover Maker',
@@ -208,7 +210,7 @@ bootstrapApplication(AppComponent, {
         },
       },
       billing: {
-        removeAdsProductId: 'ecc_remove_ads_forever',
+        removeAdsProductId: 'pcm_remove_ads_forever',
       },
     }),
   ],

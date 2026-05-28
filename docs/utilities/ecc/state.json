@@ -1,0 +1,29 @@
+{
+  "project": "epub-cover-changer",
+  "shortName": "ecc",
+  "baseline": {
+    "versionCode": 39,
+    "versionName": "Optimize for e-ink and sharpness"
+  },
+  "current": {
+    "updatedAt": "2026-05-27T06:26:08.502Z",
+    "head": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
+    "versionCode": 40,
+    "versionName": "Guided tour sync refresh",
+    "versionCodeAnchorCommit": "9fd1a17310a22565cbf7a07a4c55688f93e27ca1",
+    "deltaFrom": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
+    "deltaTo": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
+    "changedFilesCount": 10,
+    "userFacingSummary": [
+      "tour_sync_follows_ui_changes",
+      "manual_tour_restarts_editor_and_remove_ads_segment",
+      "guide_entrypoint_launches_tour_flow",
+      "export_quality_step_added_to_tour"
+    ]
+  },
+  "tracking": {
+    "lastProcessedHead": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
+    "lastProcessedAt": "2026-05-27T06:26:08.502Z",
+    "lastWorkingTreeFingerprint": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3"
+  }
+}

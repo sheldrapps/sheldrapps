@@ -1,0 +1,40 @@
+{
+  "project": "epub-cover-changer",
+  "shortName": "ecc",
+  "generatedAt": "2026-05-27T06:26:08.502Z",
+  "head": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
+  "versionCodeAnchorCommit": "9fd1a17310a22565cbf7a07a4c55688f93e27ca1",
+  "source": {
+    "buildGradle": "apps/epub-cover-changer/android/app/build.gradle",
+    "scope": [
+      "apps/epub-cover-changer/**",
+      "packages/**"
+    ]
+  },
+  "version": {
+    "currentCode": 39,
+    "currentName": "Optimize for e-ink and sharpness"
+  },
+  "delta": {
+    "mode": "snapshot-first-run",
+    "from": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
+    "to": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
+    "changedFilesCount": 10,
+    "changedFiles": [
+      "M apps/epub-cover-changer/src/app/pages/change/change.page.html",
+      "apps/epub-cover-changer/src/app/pages/change/change.page.ts",
+      "apps/epub-cover-changer/src/app/pages/settings/settings.page.ts",
+      "apps/epub-cover-changer/src/app/shared/tour/home-tour.definition.ts",
+      "apps/epub-cover-changer/src/app/shared/tour/tour-overlay.component.ts",
+      "apps/epub-cover-changer/src/app/shared/tour/tour.service.ts",
+      "apps/epub-cover-changer/src/assets/i18n/en-US.json",
+      "apps/epub-cover-changer/src/assets/i18n/es-MX.json",
+      "packages/file-kit/src/lib/providers.ts",
+      "packages/file-kit/src/public-api.ts"
+    ]
+  },
+  "userFacingFacts": {
+    "appTitleChanges": [],
+    "androidAppNameChanges": []
+  }
+}

@@ -158,6 +158,14 @@
         "TITLE": "Adjust",
         "DESCRIPTION": "Adjust the image in the editor and tap Done."
       },
+      "EXPORT": {
+        "TITLE": "Export quality",
+        "DESCRIPTION": "Free export uses Standard. Remove ads to unlock export selection (Lossless/Compressed)."
+      },
+      "REMOVE_ADS_CLOSE": {
+        "TITLE": "Close for now",
+        "DESCRIPTION": "For now, enjoy the free version. You are not obligated to buy."
+      },
       "CREATE": {
         "TITLE": "Change cover",
         "DESCRIPTION": "Generate the new cover here."

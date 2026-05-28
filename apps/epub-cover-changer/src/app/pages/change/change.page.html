@@ -219,11 +219,13 @@
     </ion-button>
 
     @if (shouldShowExportOptions()) {
-    <app-export-quality-selector
-      [selectedMode]="getEffectiveExportQualityMode()"
-      [isPro]="adsRemoved"
-      (modeSelect)="onExportQualityModeSelect($event)"
-    />
+    <div data-tour-id="export-quality">
+      <app-export-quality-selector
+        [selectedMode]="getEffectiveExportQualityMode()"
+        [isPro]="adsRemoved"
+        (modeSelect)="onExportQualityModeSelect($event)"
+      />
+    </div>
     }
 
     @if (shouldShowDitheringHint()) {
@@ -288,6 +290,7 @@
     <ion-button
       expand="block"
       fill="outline"
+      data-tour-id="remove-ads-cta"
       class="premium-upgrade-cta"
       [class.premium-upgrade-cta--pulse]="removeAdsPulseActive"
       (click)="openPurchaseModal()"
@@ -341,7 +344,10 @@
         <ion-toolbar>
           <ion-title>{{ 'COMMON.REMOVE_ADS_TITLE' | translate }}</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="closePurchaseModal()">
+            <ion-button
+              data-tour-id="remove-ads-close"
+              (click)="onPurchaseModalCloseClick()"
+            >
               {{ 'COMMON.CLOSE' | translate }}
             </ion-button>
           </ion-buttons>

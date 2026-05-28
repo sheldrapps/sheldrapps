@@ -217,7 +217,10 @@ export class ChangePage implements OnInit, OnDestroy {
   private readonly artifactReductionInfoSeenKey =
     'pcm_editor_artifact_reduction_info_seen';
   private readonly editorEReaderOptimizationFeatureEnabled = true;
-  private readonly currentEditorTourVersion = 4;
+  private readonly currentEditorTourVersion = 5;
+  private forceEditorTourOnNextEditorOpen = false;
+  private forceIncludeRemoveAdsStepOnNextHomeTour = false;
+  private forceShowRemoveAdsEntryPointForTour = false;
   private adsRemovedSub?: Subscription;
   private removeAdsPriceSub?: Subscription;
   private readonly onlineHandler = () => {
@@ -352,11 +355,8 @@ export class ChangePage implements OnInit, OnDestroy {
   } | null = null;
   private isApplyingFromEditor = false;
   private previewGenerationToken = 0;
-  private currentPreviewOrigin:
-    | 'source-pdf'
-    | 'replacement'
-    | 'edited'
-    | null = null;
+  private currentPreviewOrigin: 'source-pdf' | 'replacement' | 'edited' | null =
+    null;
   private readonly invalidCoverWarnKey = 'CHANGE.IMAGE_WARN_INVALID_PDF_COVER';
 
   get previewUrlWithNonce(): string | null {
@@ -368,12 +368,14 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   get previewModalImageWidth(): number | null {
-    if (this.previewCandidateOverride) return this.previewCandidateOverride.width;
+    if (this.previewCandidateOverride)
+      return this.previewCandidateOverride.width;
     return this.targetWidth ?? null;
   }
 
   get previewModalImageHeight(): number | null {
-    if (this.previewCandidateOverride) return this.previewCandidateOverride.height;
+    if (this.previewCandidateOverride)
+      return this.previewCandidateOverride.height;
     return this.targetHeight ?? null;
   }
 
@@ -448,16 +450,18 @@ export class ChangePage implements OnInit, OnDestroy {
     }
     await this.billing.hydrateCachedState();
     this.adsRemoved = this.billing.isAdsRemoved();
-    this.adsRemovedSub = this.billing.adsRemoved$.subscribe((value: boolean) => {
-      const tierChanged = this.adsRemoved !== value;
-      this.adsRemoved = value;
-      if (tierChanged) {
-        this.exportImageFile = undefined;
-        this.invalidateGeneratedOutputState();
-        this.syncAuthorizedExportQualityMode('billing-state-change');
-      }
-      this.syncRemoveAdsPulse();
-    });
+    this.adsRemovedSub = this.billing.adsRemoved$.subscribe(
+      (value: boolean) => {
+        const tierChanged = this.adsRemoved !== value;
+        this.adsRemoved = value;
+        if (tierChanged) {
+          this.exportImageFile = undefined;
+          this.invalidateGeneratedOutputState();
+          this.syncAuthorizedExportQualityMode('billing-state-change');
+        }
+        this.syncRemoveAdsPulse();
+      },
+    );
     this.removeAdsPriceFormatted = this.billing.getRemoveAdsPriceFormatted();
     this.removeAdsPriceSub = this.billing.removeAdsPrice$.subscribe(
       (value: string | null) => {
@@ -572,7 +576,10 @@ export class ChangePage implements OnInit, OnDestroy {
     };
     const base = isLandscape ? baseLandscape : basePortrait;
 
-    const normalized = this.scaleDimsToLongSide(reference, Math.max(base.width, base.height));
+    const normalized = this.scaleDimsToLongSide(
+      reference,
+      Math.max(base.width, base.height),
+    );
 
     if (!withFrame) {
       return {
@@ -686,11 +693,17 @@ export class ChangePage implements OnInit, OnDestroy {
 
   // PDF handling methods
   openPdfPicker() {
-    if (this.usesNativeRewrite()) {
+    if (this.canUseNativePdfPicker()) {
       void this.pickNativePdf();
       return;
     }
     this.pdfInput.nativeElement.click();
+  }
+
+  private canUseNativePdfPicker(): boolean {
+    return (
+      Capacitor.getPlatform() === 'android' && this.pdfRewrite.isSupported()
+    );
   }
 
   async onPdfSelected(event: Event) {
@@ -705,10 +718,7 @@ export class ChangePage implements OnInit, OnDestroy {
       await this.resetWorkflowForNewPdf();
 
       // Validate PDF file
-      const validation = this.fileService.validatePdf(
-        file,
-        this.maxPdfSizeMB,
-      );
+      const validation = this.fileService.validatePdf(file, this.maxPdfSizeMB);
       if (!validation.valid) {
         this.failPdf(this.mapValidationErrorToUiKey(validation.errorKey), file);
         return;
@@ -838,7 +848,10 @@ export class ChangePage implements OnInit, OnDestroy {
 
       try {
         this.coverEntryPath = strictCover.sourcePath;
-        const coverLoaded = await this.applyImageSource(strictCover.file, false);
+        const coverLoaded = await this.applyImageSource(
+          strictCover.file,
+          false,
+        );
         if (!coverLoaded) {
           const firstPageApplied = await this.tryApplyFirstPageCoverFallback();
           if (firstPageApplied) {
@@ -863,10 +876,7 @@ export class ChangePage implements OnInit, OnDestroy {
         await this.homeTour.completeInteraction('pdf-selected');
       }
     } catch (error) {
-      if (
-        error instanceof PdfRewriteError &&
-        error.code === 'PICK_CANCELLED'
-      ) {
+      if (error instanceof PdfRewriteError && error.code === 'PICK_CANCELLED') {
         return;
       }
 
@@ -919,8 +929,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
   hasValidPdf(): boolean {
     return (
-      !!(this.workingPdfFile || this.workingPdfNativePath) &&
-      !this.pdfErrorKey
+      !!(this.workingPdfFile || this.workingPdfNativePath) && !this.pdfErrorKey
     );
   }
 
@@ -1050,13 +1059,12 @@ export class ChangePage implements OnInit, OnDestroy {
       console.info(
         '[ECC_BEST_CANDIDATE] cover not found, scanning internal images',
       );
-      const discovered = await this.candidateImageService.discoverInternalImages(
-        {
+      const discovered =
+        await this.candidateImageService.discoverInternalImages({
           pdfFile: this.workingPdfFile,
           pdfNativePath: this.workingPdfNativePath,
           pdfName: this.selectedPdfName,
-        },
-      );
+        });
       console.info(
         '[ECC_BEST_CANDIDATE] manifest image count:',
         discovered.diagnostics.manifestImageCount,
@@ -1084,9 +1092,8 @@ export class ChangePage implements OnInit, OnDestroy {
         }
       }
 
-      const ranked = this.bestCandidateService.rankCandidatesWithDiagnostics(
-        images,
-      );
+      const ranked =
+        this.bestCandidateService.rankCandidatesWithDiagnostics(images);
       for (const rejected of ranked.rejected) {
         const rejectedPath =
           rejected.image.sourcePath ||
@@ -1375,8 +1382,7 @@ export class ChangePage implements OnInit, OnDestroy {
     const orientationAwareBoost =
       (dimsHint?.width ?? width) > (dimsHint?.height ?? height) ? 0.9 : 1;
     const hasFrame =
-      frameLikeByUniformBand &&
-      innerOuterContrast > 58 * orientationAwareBoost;
+      frameLikeByUniformBand && innerOuterContrast > 58 * orientationAwareBoost;
 
     return { hasFrame };
   }
@@ -1470,6 +1476,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
     this.imageWarnKey = 'EXPORT_OPTIONS.SMALL_SOURCE_WARNING';
     this.imageWarnParams = params;
+    this.homeTour.requestSync();
   }
 
   private getSmallWarnParamsForExportDims(
@@ -1580,21 +1587,17 @@ export class ChangePage implements OnInit, OnDestroy {
 
     this.lastEditorSessionId = sid;
     const shouldShowEditorTour = await this.shouldShowEditorTour();
-    if (shouldShowEditorTour) {
-      await this.settings.set((prev) => ({
-        ...prev,
-        preferences: {
-          ...(prev.preferences ?? {}),
-          [this.editorTourSeenVersionKey]: this.currentEditorTourVersion,
-        },
-      }));
-    }
+    await this.homeTour.completeInteraction('editor-apply');
 
     this.router.navigate(['/editor'], {
       queryParams: {
         sid,
         ...(shouldShowEditorTour
-          ? { tour: '1', tourCurrent: '4', tourTotal: '6' }
+          ? {
+              tour: '1',
+              tourCurrent: '4',
+              tourTotal: this.canShowRemoveAdsEntryPoint() ? '7' : '6',
+            }
           : {}),
       },
     });
@@ -1622,8 +1625,7 @@ export class ChangePage implements OnInit, OnDestroy {
       return false;
     }
     const settings = await this.settings.load();
-    const stored =
-      settings.preferences?.[EDITOR_EREADER_OPTIMIZATION_PREF_KEY];
+    const stored = settings.preferences?.[EDITOR_EREADER_OPTIMIZATION_PREF_KEY];
     return stored !== false;
   }
 
@@ -1640,6 +1642,7 @@ export class ChangePage implements OnInit, OnDestroy {
     if (!newFile) return;
     const renderedBlob = result.renderedBlob;
     this.isApplyingFromEditor = true;
+    let editorTourShouldBeMarkedSeen = false;
     this.previewGenerationToken += 1;
     this.currentPreviewOrigin = 'edited';
 
@@ -1720,6 +1723,7 @@ export class ChangePage implements OnInit, OnDestroy {
           undefined,
           renderedInfo ?? undefined,
         );
+        editorTourShouldBeMarkedSeen = true;
         this.isApplyingFromEditor = false;
         this.zone.run(() => {
           this.previewNonce += 1;
@@ -1727,10 +1731,14 @@ export class ChangePage implements OnInit, OnDestroy {
         return;
       } else {
         await this.applySmallWarn('editor-apply');
+        editorTourShouldBeMarkedSeen = true;
         this.isApplyingFromEditor = false;
         await this.updatePreviewFromComposition();
       }
     } finally {
+      if (editorTourShouldBeMarkedSeen) {
+        await this.markEditorTourSeen();
+      }
       this.isApplyingFromEditor = false;
       await this.homeTour.completeInteraction('editor-apply');
     }
@@ -2427,6 +2435,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.clearImageError();
     this.imageWarnKey = this.invalidCoverWarnKey;
     this.imageWarnParams = {};
+    this.homeTour.requestSync();
     this.resetBestCandidateState(true);
   }
 
@@ -2469,7 +2478,8 @@ export class ChangePage implements OnInit, OnDestroy {
       );
       for (const file of candidates) {
         try {
-          const extracted = await this.fileService.extractCoverFromPdfFile(file);
+          const extracted =
+            await this.fileService.extractCoverFromPdfFile(file);
           if (extracted) {
             firstPageFile = extracted;
             const extractedDims = this.normalizeDims(
@@ -2520,7 +2530,9 @@ export class ChangePage implements OnInit, OnDestroy {
     this.candidateBlobUrls.clear();
   }
 
-  private candidateFileFromMetadata(candidate: BestCandidateImage): File | null {
+  private candidateFileFromMetadata(
+    candidate: BestCandidateImage,
+  ): File | null {
     const candidateFile = candidate.metadata?.['file'];
     return candidateFile instanceof File ? candidateFile : null;
   }
@@ -2528,6 +2540,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private clearImageWarn() {
     this.imageWarnKey = undefined;
     this.imageWarnParams = {};
+    this.homeTour.requestSync();
   }
 
   private clearImageError() {
@@ -2559,7 +2572,11 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   canShowRemoveAdsEntryPoint(): boolean {
-    return !this.adsRemoved && this.billing.canShowRemoveAdsEntryPoint();
+    return (
+      !this.adsRemoved &&
+      (this.forceShowRemoveAdsEntryPointForTour ||
+        this.billing.canShowRemoveAdsEntryPoint())
+    );
   }
 
   getRemoveAdsCtaSubtitleKey(): string {
@@ -2705,10 +2722,16 @@ export class ChangePage implements OnInit, OnDestroy {
       price: this.removeAdsPriceFormatted,
     });
     this.purchaseModalOpen = true;
+    await this.homeTour.completeInteraction('remove-ads-open');
   }
 
   closePurchaseModal(): void {
     this.purchaseModalOpen = false;
+  }
+
+  onPurchaseModalCloseClick(): void {
+    void this.homeTour.completeInteraction('remove-ads-close');
+    this.closePurchaseModal();
   }
 
   async onPurchaseRemoveAds(): Promise<void> {
@@ -2813,6 +2836,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   async onExportQualityModeSelect(mode: ExportQualityMode): Promise<void> {
+    await this.homeTour.completeInteraction('export-quality-select');
     const normalized = normalizeExportQualityMode(mode, this.adsRemoved);
     if (normalized !== mode) {
       await this.openPurchaseModal();
@@ -2826,10 +2850,13 @@ export class ChangePage implements OnInit, OnDestroy {
     this.exportQualityMode = mode;
     this.exportImageFile = undefined;
     this.invalidateGeneratedOutputState();
-    await this.settings.setForScope('exportQuality', { exportQualityMode: mode });
+    await this.settings.setForScope('exportQuality', {
+      exportQualityMode: mode,
+    });
   }
 
   onCoverPageModeChange(mode: CoverPageMode): void {
+    void this.homeTour.completeInteraction('cover-mode-selected');
     if (this.coverPageMode === mode) return;
     this.coverPageMode = mode;
     this.invalidateGeneratedOutputState();
@@ -3191,8 +3218,13 @@ export class ChangePage implements OnInit, OnDestroy {
 
   private maybeDisableNativeRewriteForSession(
     error: unknown,
-    _stage: 'pick_pdf' | 'rewrite_cover',
+    stage: 'pick_pdf' | 'rewrite_cover',
   ): void {
+    // Keep native picker available even when rewrite path is disabled.
+    if (stage === 'pick_pdf') {
+      return;
+    }
+
     if (error instanceof PdfRewriteError) {
       // User/content/storage errors should not permanently disable native in-session.
       if (
@@ -3229,10 +3261,7 @@ export class ChangePage implements OnInit, OnDestroy {
     ) {
       return 'PDF_ERROR_TYPE';
     }
-    if (
-      error instanceof PdfRewriteError &&
-      error.code === 'UNSUPPORTED_PDF'
-    ) {
+    if (error instanceof PdfRewriteError && error.code === 'UNSUPPORTED_PDF') {
       return 'PDF_ERROR_TYPE';
     }
     return 'PDF_ERROR_CORRUPT';
@@ -3261,9 +3290,7 @@ export class ChangePage implements OnInit, OnDestroy {
     return { key: 'CHANGE.PDF_ERROR_REWRITE' };
   }
 
-  private mapValidationErrorToUiKey(
-    errorKey: string | undefined,
-  ): string {
+  private mapValidationErrorToUiKey(errorKey: string | undefined): string {
     if (!errorKey) return 'PDF_ERROR_CORRUPT';
     if (errorKey === 'PDF_ERROR_EMPTY') return 'PDF_ERROR_CORRUPT';
     if (errorKey === 'PDF_ERROR_NO_FILE') return 'PDF_ERROR_TYPE';
@@ -3404,9 +3431,13 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async ionViewDidEnter() {
     this.homeTour.registerContent(this.content);
-    await this.maybeStartHomeTour(
-      this.homeTour.consumePendingManualStart(HOME_TOUR_ID),
-    );
+    const manualStartRequested =
+      this.homeTour.consumePendingManualStart(HOME_TOUR_ID);
+    if (manualStartRequested) {
+      this.forceEditorTourOnNextEditorOpen = true;
+      this.forceIncludeRemoveAdsStepOnNextHomeTour = true;
+    }
+    await this.maybeStartHomeTour(manualStartRequested);
   }
 
   onTourContentScroll() {
@@ -3424,6 +3455,11 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   async onHeaderItemClick(id: string): Promise<void> {
+    if (id === 'guide' || id === 'info') {
+      await this.startManualHomeTour();
+      return;
+    }
+
     await handleHomeHeaderAction(id, {
       closeInfo: () => this.closeInfo(),
       toggleInfo: () => this.toggleInfo(),
@@ -3613,11 +3649,24 @@ export class ChangePage implements OnInit, OnDestroy {
 
     await this.ensureTourLocaleReady(settings);
     this.closeInfo();
-    await this.homeTour.start(buildHomeTourDefinition(this.translate), {
-      onComplete: async (reason: TourCompletionReason) => {
-        await this.markHomeTourSeen(reason);
+    const includeRemoveAdsStep =
+      (!this.adsRemoved && this.billing.canShowRemoveAdsEntryPoint()) ||
+      (!this.adsRemoved && this.forceIncludeRemoveAdsStepOnNextHomeTour);
+    this.forceShowRemoveAdsEntryPointForTour =
+      !this.adsRemoved && this.forceIncludeRemoveAdsStepOnNextHomeTour;
+
+    await this.homeTour.start(
+      buildHomeTourDefinition(this.translate, {
+        includeRemoveAdsStep,
+      }),
+      {
+        onComplete: async (reason: TourCompletionReason) => {
+          this.forceIncludeRemoveAdsStepOnNextHomeTour = false;
+          this.forceShowRemoveAdsEntryPointForTour = false;
+          await this.markHomeTourSeen(reason);
+        },
       },
-    });
+    );
   }
 
   private async ensureTourLocaleReady(settings: PcmSettings): Promise<void> {
@@ -3640,6 +3689,19 @@ export class ChangePage implements OnInit, OnDestroy {
       homeTourSeen: true,
       homeTourVersion: CURRENT_HOME_TOUR_VERSION,
       homeTourSeenAt: new Date().toISOString(),
+    }));
+  }
+
+  private async startManualHomeTour(): Promise<void> {
+    this.forceEditorTourOnNextEditorOpen = true;
+    this.forceIncludeRemoveAdsStepOnNextHomeTour = true;
+    this.closeInfo();
+    await this.maybeStartHomeTour(true);
+  }
+
+  private async markEditorTourSeen(): Promise<void> {
+    await this.settings.set((prev) => ({
+      ...prev,
       preferences: {
         ...(prev.preferences ?? {}),
         [this.editorTourSeenVersionKey]: this.currentEditorTourVersion,
@@ -3648,6 +3710,11 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private async shouldShowEditorTour(): Promise<boolean> {
+    if (this.forceEditorTourOnNextEditorOpen) {
+      this.forceEditorTourOnNextEditorOpen = false;
+      return true;
+    }
+
     const settings = await this.settings.load();
     const seenVersion = settings.preferences?.[this.editorTourSeenVersionKey];
     return (

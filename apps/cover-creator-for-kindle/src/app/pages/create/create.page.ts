@@ -280,7 +280,10 @@ export class CreatePage implements OnInit, OnDestroy {
   private readonly editorTourSeenVersionKey = 'cc_editor_tour_seen_version';
   private readonly artifactReductionInfoSeenKey =
     'cc_editor_artifact_reduction_info_seen';
-  private readonly currentEditorTourVersion = 4;
+  private readonly currentEditorTourVersion = 5;
+  private forceEditorTourOnNextEditorOpen = false;
+  private forceIncludeRemoveAdsStepOnNextHomeTour = false;
+  private forceShowRemoveAdsEntryPointForTour = false;
 
   async ngOnInit() {
     await this.refreshHeaderItems();
@@ -428,15 +431,7 @@ export class CreatePage implements OnInit, OnDestroy {
 
     this.lastEditorSessionId = sid;
     const shouldShowEditorTour = await this.shouldShowEditorTour();
-    if (shouldShowEditorTour) {
-      await this.settings.set((prev) => ({
-        ...prev,
-        preferences: {
-          ...(prev.preferences ?? {}),
-          [this.editorTourSeenVersionKey]: this.currentEditorTourVersion,
-        },
-      }));
-    }
+    await this.homeTour.completeInteraction('editor-apply');
 
     this.router.navigate(['/editor'], {
       queryParams: {
@@ -682,6 +677,7 @@ export class CreatePage implements OnInit, OnDestroy {
 
     this.imageWarnKey = 'CREATE.IMAGE_WARN_SMALL';
     this.imageWarnParams = params;
+    this.homeTour.requestSync();
   }
 
   canEdit(): boolean {
@@ -878,6 +874,7 @@ export class CreatePage implements OnInit, OnDestroy {
   private clearImageWarn() {
     this.imageWarnKey = undefined;
     this.imageWarnParams = {};
+    this.homeTour.requestSync();
   }
 
   private clearImageError() {
@@ -915,7 +912,11 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   canShowRemoveAdsEntryPoint(): boolean {
-    return !this.adsRemoved && this.billing.canShowRemoveAdsEntryPoint();
+    return (
+      !this.adsRemoved &&
+      (this.forceShowRemoveAdsEntryPointForTour ||
+        this.billing.canShowRemoveAdsEntryPoint())
+    );
   }
 
   getRemoveAdsCtaSubtitleKey(): string {
@@ -1061,10 +1062,16 @@ export class CreatePage implements OnInit, OnDestroy {
       price: this.removeAdsPriceFormatted,
     });
     this.purchaseModalOpen = true;
+    await this.homeTour.completeInteraction('remove-ads-open');
   }
 
   closePurchaseModal(): void {
     this.purchaseModalOpen = false;
+  }
+
+  onPurchaseModalCloseClick(): void {
+    void this.homeTour.completeInteraction('remove-ads-close');
+    this.closePurchaseModal();
   }
 
   async onPurchaseRemoveAds(): Promise<void> {
@@ -1147,6 +1154,7 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   async onExportQualityModeSelect(mode: ExportQualityMode): Promise<void> {
+    await this.homeTour.completeInteraction('export-quality-select');
     const normalized = normalizeExportQualityMode(mode, this.adsRemoved);
     if (normalized !== mode) {
       await this.openPurchaseModal();
@@ -1368,9 +1376,13 @@ export class CreatePage implements OnInit, OnDestroy {
 
   async ionViewDidEnter() {
     this.homeTour.registerContent(this.content);
-    await this.maybeStartHomeTour(
-      this.homeTour.consumePendingManualStart(HOME_TOUR_ID),
-    );
+    const manualStartRequested =
+      this.homeTour.consumePendingManualStart(HOME_TOUR_ID);
+    if (manualStartRequested) {
+      this.forceEditorTourOnNextEditorOpen = true;
+      this.forceIncludeRemoveAdsStepOnNextHomeTour = true;
+    }
+    await this.maybeStartHomeTour(manualStartRequested);
   }
 
   onTourContentScroll() {
@@ -1395,6 +1407,11 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   async onHeaderItemClick(id: string): Promise<void> {
+    if (id === 'guide' || id === 'info') {
+      await this.startManualHomeTour();
+      return;
+    }
+
     await handleHomeHeaderAction(id, {
       closeInfo: () => this.closeInfo(),
       toggleInfo: () => this.toggleInfo(),
@@ -1456,6 +1473,7 @@ export class CreatePage implements OnInit, OnDestroy {
     await this.applySmallWarn('editor-apply', undefined, exportDimsFromEditor);
 
     await this.updatePreviewFromComposition();
+    await this.markEditorTourSeen();
     await this.homeTour.completeInteraction('editor-apply');
   }
 
@@ -1680,6 +1698,13 @@ export class CreatePage implements OnInit, OnDestroy {
     }
   }
 
+  private async startManualHomeTour(): Promise<void> {
+    this.forceEditorTourOnNextEditorOpen = true;
+    this.forceIncludeRemoveAdsStepOnNextHomeTour = true;
+    this.closeInfo();
+    await this.maybeStartHomeTour(true);
+  }
+
   private async resolveUniqueEpubFilename(
     requestedFilename: string,
   ): Promise<string> {
@@ -1734,11 +1759,24 @@ export class CreatePage implements OnInit, OnDestroy {
 
     await this.ensureTourLocaleReady(settings);
     this.closeInfo();
-    await this.homeTour.start(buildHomeTourDefinition(this.translate), {
-      onComplete: async (reason: TourCompletionReason) => {
-        await this.markHomeTourSeen(reason);
+    const includeRemoveAdsStep =
+      (!this.adsRemoved && this.billing.canShowRemoveAdsEntryPoint()) ||
+      (!this.adsRemoved && this.forceIncludeRemoveAdsStepOnNextHomeTour);
+    this.forceShowRemoveAdsEntryPointForTour =
+      !this.adsRemoved && this.forceIncludeRemoveAdsStepOnNextHomeTour;
+
+    await this.homeTour.start(
+      buildHomeTourDefinition(this.translate, {
+        includeRemoveAdsStep,
+      }),
+      {
+        onComplete: async (reason: TourCompletionReason) => {
+          this.forceIncludeRemoveAdsStepOnNextHomeTour = false;
+          this.forceShowRemoveAdsEntryPointForTour = false;
+          await this.markHomeTourSeen(reason);
+        },
       },
-    });
+    );
   }
 
   private async ensureTourLocaleReady(settings: CcfkSettings): Promise<void> {
@@ -1761,6 +1799,12 @@ export class CreatePage implements OnInit, OnDestroy {
       homeTourSeen: true,
       homeTourVersion: CURRENT_HOME_TOUR_VERSION,
       homeTourSeenAt: new Date().toISOString(),
+    }));
+  }
+
+  private async markEditorTourSeen(): Promise<void> {
+    await this.settings.set((prev) => ({
+      ...prev,
       preferences: {
         ...(prev.preferences ?? {}),
         [this.editorTourSeenVersionKey]: this.currentEditorTourVersion,
@@ -1769,6 +1813,11 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   private async shouldShowEditorTour(): Promise<boolean> {
+    if (this.forceEditorTourOnNextEditorOpen) {
+      this.forceEditorTourOnNextEditorOpen = false;
+      return true;
+    }
+
     const settings = await this.settings.load();
     const seenVersion = settings.preferences?.[this.editorTourSeenVersionKey];
     return (

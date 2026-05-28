@@ -1,5 +1,5 @@
 {
-  "name": "pdf-cover-changer",
+  "name": "pdf-cover-maker",
   "version": "0.0.1",
   "author": "Ionic Framework",
   "homepage": "https://ionicframework.com/",
@@ -55,7 +55,6 @@
     "@sheldrapps/settings-kit": "workspace:*",
     "@sheldrapps/ui-theme": "workspace:*",
     "ionicons": "^7.0.0",
-    "jszip": "^3.10.1",
     "pdfjs-dist": "^4.10.38",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",

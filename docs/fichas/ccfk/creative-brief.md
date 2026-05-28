@@ -1,8 +1,8 @@
-# Cover Creator for Kindle — Creative Brief
+# EPUB Cover Changer — Creative Brief
 
 ## Purpose
 
-Define the creative, commercial, and localization strategy for Play Store listing assets of Cover Creator for Kindle (CCFK).
+Define the creative, commercial, and localization strategy for Play Store listing assets of EPUB Cover Changer.
 
 This brief exists to guide:
 
@@ -21,70 +21,76 @@ The skill and generated fichas must follow this brief.
 
 ### Working product name
 
-Cover Creator for Kindle
+EPUB Cover Changer
 
 ### Category
 
-Visual personalization / utility app for e-readers.
+EPUB utility / ebook library personalization.
 
 ### What the app really is
 
-A tool that helps users turn images they already like into properly fitted covers for Kindle and other supported e-readers.
+A focused utility that lets users replace the cover of an EPUB file with a new image, adjust it, preview it, and save a new copy of the book.
 
 ### What the app is not
 
-- Not a generic graphic design app
-- Not a full template marketplace
-- Not an official Amazon/Kindle app
-- Not primarily a quote-template app
-- Not just a technical resizing tool
+- Not a generic image editor
+- Not a full EPUB editor
+- Not an ebook reader
+- Not an ebook store
+- Not an official Amazon/Kindle/Kobo app
+- Not a cover generator
+- Not primarily an AI or template app
+- Not a general book management platform
 
 ## Core Positioning
 
 ### Main positioning statement
 
-Turn your favorite image into a cover that fits your e-reader.
+Change the cover of any EPUB file in seconds.
 
-### Stronger emotional interpretation
+### Stronger practical interpretation
 
-Make your e-reader feel more personal, more beautiful, and more yours.
+Fix bad, missing, ugly, or incorrect EPUB covers quickly and privately.
 
 ### Functional truth
 
 The app helps users:
 
-- choose or import an image
-- adapt it to the right format
-- preview it
-- adjust it
-- export it for their selected e-reader model
+- select an EPUB file
+- choose a new cover image
+- crop and align the image
+- adjust the cover layout
+- preview the result
+- save a new copy of the EPUB with the updated cover
 
 ### Strategic balance
 
-CCFK should be positioned as:
+EPUB Cover Changer should be positioned as:
 
-- visual personalization first
-- technical fit second
+- practical problem-solving first
+- simple cover customization second
+- technical EPUB processing third
 
-The emotional or visual desire must come before the technical explanation.
+The user should understand the result before the technical details.
 
 ## Core Conversion Promise
 
 ### Primary conversion promise
 
-Users can take an image they already love and turn it into a beautiful, usable e-reader cover.
+Users can replace an EPUB cover quickly using their own image.
 
 ### Secondary conversion promise
 
-The app helps them make that image fit correctly for their Kindle or other supported e-reader.
+The app gives them enough control to crop, adjust, preview, and save the result without complicated desktop software.
 
 ### Trust proof
 
-- model selection
-- correct cover size
+- 100% on-device processing
+- no accounts
+- no uploads
 - preview before saving
-- easy crop/adjust flow
-- compatibility with multiple brands/models
+- saves a new copy instead of silently overwriting the original
+- focused workflow made specifically for EPUB covers
 
 ### Product Truth / Supported Feature Guardrails
 
@@ -92,73 +98,88 @@ The listing must stay aligned with what the app actually supports.
 
 #### Safe promises
 
-- Convert an image into an e-reader cover
-- Choose a compatible e-reader model
-- Crop / adjust / preview
-- Export a fitted result
-- Support multiple e-reader brands/models
-- Use photos, art, and personal images
-- Text editing only if truly supported and usable
+- Change an EPUB cover
+- Replace the original EPUB cover
+- Use a custom image
+- Crop, align, and adjust the cover
+- Preview the result
+- Save a new copy of the EPUB
+- Process files locally on the device
+- Work with most EPUB readers
 
 #### Risky promises
 
 Do not over-emphasize these unless clearly verified in the current build:
 
-- template library
-- advanced typography workflows
-- official Kindle affiliation
-- premium features unless clearly labeled
-- anything that sounds like "design from scratch" if that is not the core use case
+- complete EPUB editing
+- metadata editing
+- batch processing
+- AI cover generation
+- template marketplace
+- automatic cover search
+- official compatibility with every EPUB reader
+- support for DRM-protected books
+- direct publishing features
 
 #### Important strategic truth
 
-If text editing exists, show it as part of a personalized cover result, not as plain text on a white background.
+The app’s strongest promise is not “design a beautiful cover from scratch.”
+
+The strongest promise is:
+
+I have an EPUB with a bad cover, and this app lets me fix it fast.
 
 ## Main User Motivations
 
-CCFK does not sell only a utility. It sells user desire.
+EPUB Cover Changer sells a direct fix.
 
 ### Top user motivations
 
-- Make my Kindle/e-reader look like me
-- Use a favorite image as my cover
-- Make my e-reader setup look aesthetic
-- Use art, travel photos, pets, or personal memories
-- Get the right size without guessing
-- Preview before exporting
+- Replace an ugly EPUB cover
+- Fix an incorrect cover
+- Add a missing cover
+- Make a personal ebook library look cleaner
+- Use a better image for a book
+- Avoid desktop tools like Calibre for a simple cover change
+- Keep files private and local
+- Save a corrected copy of the book
 
 ## Audience
 
 ### Primary audience
 
-People who own Kindle or other e-readers and want them to feel more personal, aesthetic, or visually pleasing.
+People who own EPUB files and want to correct or personalize their covers quickly.
 
 ### Secondary audience
 
 People who:
 
-- use BookTok / Bookstagram aesthetics
-- like digital personalization
-- enjoy reading setups
-- want a polished image on their lock screen / cover display
+- organize digital libraries
+- read EPUBs on e-readers, tablets, or mobile apps
+- care about clean book thumbnails
+- download public-domain or personal EPUB files
+- want a simple mobile alternative to desktop ebook tools
 
 ### User mindset
 
-The user is not searching for "image processing."
-They are searching for a way to make their e-reader look better and more personal.
+The user is not searching for a complex EPUB editor.
+
+They are searching for a simple way to change or fix an EPUB cover.
 
 ## App-Specific ASO / SEO Strategy
 
 ### Core discoverability themes
 
-- Kindle cover creator
-- e-reader cover maker
-- Kindle wallpaper / custom cover
-- Kobo cover creator
-- personalized e-reader cover
-- custom Kindle cover
-- e-ink cover image
-- cover for Kindle / Kobo / e-reader
+- EPUB cover changer
+- change EPUB cover
+- replace EPUB cover
+- EPUB cover editor
+- ebook cover changer
+- ebook cover editor
+- fix EPUB cover
+- custom EPUB cover
+- digital library organization
+- crop ebook cover image
 
 ### Important rule
 
@@ -167,57 +188,61 @@ Do not stuff keywords unnaturally.
 
 ### Brand usage rule
 
-Use Kindle, Kobo, Nook, PocketBook, Tolino descriptively only.
-Never imply official endorsement or ownership.
+Use EPUB descriptively as a file format.
+Do not imply official endorsement by ebook stores, publishers, Amazon, Kindle, Kobo, Adobe, Apple Books, Google Play Books, or EPUB standards organizations.
 
 ## Global Creative Direction
 
 ### Brand feeling
 
-- modern
-- premium
-- personal
-- visual
-- clear
+- direct
+- practical
+- focused
+- private
+- reliable
+- simple
 - polished
-- useful
+- utility-first
 
 ### The app should feel like
 
-A clean, capable personalization app for people who care about how their e-reader looks.
+A clean, focused tool made for one useful task: changing EPUB covers without friction.
 
 ### The app should not feel like
 
-- a dry settings utility
-- a generic cropper
-- a template-only app
-- an official Amazon product
-- a childish editor
-- a stock productivity tool
+- a generic image editor
+- a complicated ebook editor
+- a design marketplace
+- an AI art app
+- an official ebook platform
+- a cloud upload service
+- a technical developer tool
 
 ## Screenshot Philosophy
 
 ### The first screenshot must do this
 
-Answer: "Why would I want this app?"
+Answer: “What problem does this solve for me?”
 
 ### The first screenshot must not do this
 
-Answer: "How do I configure this tool?"
+Answer: “What buttons does the editor have?”
 
 ### Required screenshot logic
 
 For consumer-facing ficha generation:
 
-- Screenshot 1 = main desire / hero result
-- Screenshot 2 = region-specific use case
-- Screenshot 3 = second region-specific use case
-- Screenshot 4 = workflow / editor / preview
-- Screenshot 5 = trust proof / compatibility / model selection
+- Screenshot 1 = pain point / before-after transformation
+- Screenshot 2 = simple workflow / editor
+- Screenshot 3 = control / preview result
+- Screenshot 4 = privacy / on-device trust proof
+- Optional Screenshot 5 = saved library / export / compatibility proof
 
 ### Visual rule
 
-At least 3 of the 5 screenshots must show user outcomes or use cases, not only UI.
+At least 2 screenshots must clearly show the before/after or final outcome.
+
+The first screenshot must make the transformation obvious in one glance.
 
 ## Feature Graphic Philosophy
 
@@ -225,17 +250,20 @@ The feature graphic should summarize the app in one glance.
 
 ### It should communicate
 
-- personalization
-- visual transformation
-- e-reader relevance
-- trust / compatibility
+- EPUB cover replacement
+- before/after transformation
+- speed and simplicity
+- custom image result
+- practical utility
 
 ### It should not communicate
 
-- a dense settings tool
-- technical complexity
-- obscure features
-- experimental or premium-only capabilities
+- generic document editing
+- PDF editing
+- AI generation
+- template design
+- cloud processing
+- technical EPUB internals
 
 ## Visual Rules
 
@@ -243,16 +271,17 @@ The feature graphic should summarize the app in one glance.
 
 Allowed, depending on the asset:
 
-- kindle/e-reader emulado
-- teléfono emulado
-- captura directa de app
-- composición gráfica con dispositivo + bullets
+- e-reader mockup
+- phone mockup
+- direct app screenshot
+- before/after composition
+- device + simple transformation graphic
 
 ### Asset sizes
 
-- fondo vertical: 1994x3456 px
+- vertical screenshot background: 1994x3456 px
 - screenshot de teléfono: 972x2106 px
-- imagen dentro de kindle/e-reader emulado: 1313x1751 px
+- image inside e-reader mockup: depends on mockup, preserve readable proportions
 - feature graphic: 1024x500 px
 
 ### Background rules
@@ -262,9 +291,12 @@ Each ficha must define:
 - base background
 - secondary background
 - accent color
-- optional warm/cool accent
 - headline color
 - subline color
+- accent placement
+- copy safe area
+- texture rules
+- forbidden elements behind text
 
 #### Mandatory production rule
 
@@ -287,25 +319,36 @@ Always specify:
 
 Depending on region:
 
-- photos
-- pets
-- travel
-- personal memories
-- cozy fantasy
-- reading aesthetic
-- design/aesthetic art
-- study/desk mood
-- architecture
-- landscapes
-- stationery / calm reading vibe
+- polished illustration
+- fantasy landscape
+- cozy reading image
+- personal photo
+- pet photo
+- travel memory
+- minimal book-art style
+- public-domain inspired cover
+- aesthetic image that clearly improves the original cover
+
+### Preferred “before” content
+
+- plain white generic cover
+- incorrect-looking minimal cover
+- ugly placeholder cover
+- missing-cover style
+- rough sketch cover
+- generic title-only layout
 
 ### Avoid
 
-- generic white quote cards
-- plain text on blank background as hero result
-- repetitive "same idea, translated" covers
-- overly abstract visuals disconnected from actual use
-- screenshots that look like a tutorial before showing the result
+- copyrighted recognizable book covers
+- real brand documents
+- official publisher artwork
+- fake Amazon/Kindle UI
+- cluttered stacks of books
+- tiny unreadable text
+- AI generation claims
+- covers that look too similar before and after
+- visuals where the transformation is not obvious
 
 ## Regional Localization Principle
 
@@ -313,9 +356,10 @@ Localization is not translation.
 
 ### Each region must answer:
 
-- What does this market want from the app?
-- What kind of image would make the user imagine their own e-reader?
-- What should be shown first for conversion?
+- What EPUB cover problem does this market recognize fastest?
+- What type of “bad cover” feels relatable?
+- What kind of replacement image feels desirable?
+- What trust proof matters most?
 - What visual tone feels native there?
 
 ### Strategy-matrix.md requirements
@@ -324,8 +368,9 @@ The generated strategy-matrix.md must define, per locale:
 
 - market angle
 - hero visual
-- second use case
-- third use case
+- before cover idea
+- after cover idea
+- workflow emphasis
 - trust proof
 - palette direction
 - what to avoid
@@ -334,8 +379,8 @@ The generated strategy-matrix.md must define, per locale:
 
 The project should maintain at least two approved golden references:
 
-- docs/fichas/ccfk/en-US.golden.md
-- docs/fichas/ccfk/es-MX.golden.md
+- docs/fichas/ecc/en-US.golden.md
+- docs/fichas/ecc/es-MX.golden.md
 
 ### Role of the golden listings
 
@@ -349,6 +394,7 @@ They exist to establish:
 - screenshot ordering
 - conversion-first logic
 - acceptable tone
+- safe feature claims
 
 ### Bulk generation rule
 
@@ -362,27 +408,33 @@ before generating locale-specific markdown files.
 
 ## Long Description Quality Standard
 
-Long descriptions must not be thin summaries.
+Long descriptions must be clear, practical, and conversion-focused.
 
 ### Target quality
 
 A strong long description should include:
 
 - opening hook
-- value proposition
-- practical use cases
+- immediate value proposition
+- simple workflow
 - feature benefits explained as outcomes
-- compatibility/trust section
+- privacy / local processing trust proof
 - natural ASO keywords
 - closing motivation to install
 
 ### Recommended length
 
-- Minimum acceptable: 1200 characters
-- Preferred range: 1800–2800 characters
+- Minimum acceptable: 700 characters
+- Preferred range: 900–1600 characters
 - Maximum: 4000 characters
 
-If a generated long description is under 1000 characters, it should usually be revised.
+If a generated long description is under 600 characters, it should usually be revised.
+
+### Tone rule
+
+The long description should sound direct and useful, not poetic.
+
+This app solves a concrete file problem. Do not over-romanticize it.
 
 ## Short Description Quality Standard
 
@@ -396,34 +448,40 @@ The selected option must be chosen intentionally, not automatically.
 
 ### Rule
 
-Do not default to "Balanced" every time.
+Do not default to “Balanced” every time.
 
 Choose:
 
 - SEO-first when discoverability is the main challenge
-- Conversion-first when desire and emotional pull matter more
+- Conversion-first when the problem/benefit is obvious
 - Balanced only when it is clearly the strongest option
 
 ## Conversion Risks to Avoid
 
 ### Strategic risks
 
-- leading with model selector
-- making the app feel too technical
-- promising features not clearly implemented
-- overusing generic quotes
-- showing screenshots that look like a manual
-- repeating the same visual sequence across all locales
-- using region-inappropriate imagery
-- implying official Kindle/Amazon affiliation
+- leading with settings
+- leading with file library only
+- making the app feel like a generic image editor
+- promising full EPUB editing
+- implying DRM bypass
+- suggesting official ebook-platform affiliation
+- overusing aesthetic language before explaining the utility
+- making the app sound like it creates covers from scratch
+- hiding the privacy/on-device proof
 
 ### Visual risks
 
 - low contrast text
-- bright areas behind the copy
-- all regions using the same palette family
-- too many screenshots being direct UI only
-- generic clip-art or stock-like mood
+- bright areas behind copy
+- transformation not obvious
+- before and after covers too similar
+- too much UI in screenshot 1
+- tiny unreadable app controls
+- busy document stacks
+- white panels behind headline
+- aggressive red glow
+- confusing PDF-like visuals unless this is a PDF-specific app
 
 ## Deliverables Required for Each Locale
 
@@ -440,8 +498,9 @@ Each locale ficha must contain:
 - Screenshot 2
 - Screenshot 3
 - Screenshot 4
-- Screenshot 5
 - Notes / Assumptions
+
+Screenshot 5 is optional unless the generation pipeline requires 5 screenshots.
 
 ## Deliverables Required for Multi-Locale Generation
 
@@ -456,8 +515,9 @@ When generating multiple locales, the system must create:
 - locale
 - market angle
 - hero visual
-- second use case
-- third use case
+- before cover idea
+- after cover idea
+- workflow emphasis
 - trust proof
 - palette direction
 - what to avoid
@@ -466,39 +526,60 @@ When generating multiple locales, the system must create:
 
 - app name clarity
 - short description strength
-- long description depth
+- long description clarity
 - screenshot 1 hook
+- before/after clarity
 - regional differentiation
 - visual specificity
-- trust proof clarity
+- privacy/trust proof clarity
 - unsupported claim risk
 
 ## Final Quality Bar
 
 The work is acceptable only if:
 
-- the first screenshot sells desire
-- screenshots 1–3 are tied to the strategy matrix
-- screenshots are not a translated clone across regions
-- the long description is persuasive and not shallow
-- the app is positioned as visual personalization first
-- compatibility and model selection appear as trust proof
-- the listing feels like it could compete with high-quality store assets
+- the first screenshot sells the problem and transformation
+- the user understands the app in one glance
+- the long description is practical and not shallow
+- the app is positioned as a focused EPUB cover utility
+- privacy and local processing are clearly stated
+- screenshots do not make the app look like a generic editor
+- the feature graphic clearly communicates before/after cover replacement
+- unsupported claims are avoided
+- the listing feels simple, trustworthy, and useful
 
-## Notes for Current CCFK Direction
+## Notes for Current ECC Direction
 
 ### Current strongest global promise
 
-Turn an image you love into a cover that fits your e-reader.
+Change the cover of any EPUB file in seconds.
 
 ### Strongest global trust proof
 
-Choose your model, preview the result, and export the right size.
+Everything is processed 100% on your device. No accounts. No uploads.
 
 ### Strongest current category opportunities
 
-- Kindle / e-reader personalization
-- reading aesthetic
-- pets / memories / favorite photos
-- cozy fantasy / bookish mood
-- art adapted for e-ink screens
+- EPUB cover replacement
+- fixing incorrect ebook covers
+- organizing digital libraries
+- personalizing ebook collections
+- simple mobile alternative to desktop EPUB tools
+
+### Current strongest screenshot sequence
+
+1. Before/after EPUB cover transformation
+2. Editor workflow: select, adjust, done
+3. Preview result with full layout control
+4. Local/private saved EPUB library
+
+### Current preferred visual system
+
+- primary background: #151515
+- secondary background: #252525
+- accent: #B3261E
+- headline color: #FFFFFF
+- subline color: #B8B8B8
+
+The visual tone should be dark, matte, practical, and direct.
+The red accent should be subtle and controlled, never aggressive.

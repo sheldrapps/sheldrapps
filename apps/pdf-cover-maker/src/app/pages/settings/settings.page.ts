@@ -85,7 +85,7 @@ export class SettingsPage {
   eReaderOptimizationEnabled = true;
 
   private readonly privacyPolicyUrl =
-    'https://sheldrapps.github.io/privacy-policies/pdf-cover-maker/';
+    'https://sheldrapps.com/privacy-policies/pdf-cover-maker';
 
   trackByLang = (_: number, l: LangOption) => l.code;
 

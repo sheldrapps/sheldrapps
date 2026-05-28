@@ -12,10 +12,6 @@ import {
   WebEpubCoverService,
   WEB_EPUB_COVER_SERVICE_TOKEN,
 } from "./web-epub-cover.service";
-import {
-  WebPdfCoverService,
-  WEB_PDF_COVER_SERVICE_TOKEN,
-} from "./web-pdf-cover.service";
 
 /**
  * Injection token for filesystem adapter
@@ -68,10 +64,6 @@ export function provideFileKit(config?: FileKitConfig): Provider[] {
     providers.push({
       provide: WEB_EPUB_COVER_SERVICE_TOKEN,
       useClass: WebEpubCoverService,
-    });
-    providers.push({
-      provide: WEB_PDF_COVER_SERVICE_TOKEN,
-      useClass: WebPdfCoverService,
     });
   }
 

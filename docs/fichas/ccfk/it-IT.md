@@ -1,282 +1,264 @@
-# Cover Creator for Kindle - it-IT Ficha Play Store
+﻿# Crea Cover per Kindle - it-IT Play Store Listing
 
-## Propósito
+## Purpose
+Localized Play Store listing for it-IT, generated for CCFK with Kindle-first conversion focus and model-aware e-reader compatibility.
 
-Definir la estrategia creativa y comercial de la ficha de Play Store para el locale it-IT, manteniendo texto localizado solo dentro de bloques Copy visible.
+## App Name
+Current localized name from strings.xml/app.title:
+Crea Cover per Kindle
 
-## Nombre de la app
+Suggested localized name, if needed:
+Crea Cover per Kindle
 
-Copy visible:
-- nombre actual: Crea Cover per Kindle
-- nombre sugerido, si aplica: Crea Cover per Kindle
-
-Conteo de caracteres:
+Character count:
 21
 
-Razonamiento:
-La ficha mantiene el nombre local del producto para sostener el ASO y la claridad de marca sin prometer nada que la app no haga.
+Reasoning:
+Name is already clear, searchable, and within the 30-character Play Store limit for this locale.
 
-## Descripción corta
+## Short Description
+Text:
+Crea cover Kindle personalizzate dalle tue immagini
 
-Copy visible:
-- SEO-first: Crea cover Kindle personalizzate dalle tue immagini preferite
-- Conversion-first: Rendi il tuo Kindle più personale con una tua immagine
-- Balanced: Trasforma una tua immagine in una cover Kindle
-- Texto seleccionado: Trasforma una tua immagine in una cover Kindle
+Character count:
+51
 
-Conteo de caracteres:
-48
+Reasoning:
+Prioritizes immediate outcome (image -> Kindle cover) and keeps intent clear without unsupported claims.
 
-Razonamiento:
-Se elige la variante que mejor combina intención de búsqueda y promesa clara de personalización.
+## Long Description
+Text:
+Trasforma in pochi secondi un immagine che hai gia in una cover Kindle personalizzata. Scegli foto, illustrazione, arte digitale o ricordo personale, poi adattala al formato Kindle o e-reader compatibile. Il flusso e diretto: seleziona immagine, scegli modello, regola inquadratura, verifica anteprima, salva o condividi. La logica per modello riduce errori di dimensione e ti permette di esportare con maggiore fiducia. Ideale per chi vuole una libreria visiva piu ordinata, personale e coerente senza usare strumenti desktop complessi. Cover Creator for Kindle non e un app ufficiale Amazon, Kindle, Kobo, Nook, PocketBook o Tolino; i nomi dei brand sono usati solo per descrivere la compatibilita.
 
-## Descripción larga
+Character count:
+700
 
-Copy visible:
-Rendi il tuo Kindle più tuo.
+SEO/ASO notes:
+Includes Kindle/e-reader intent terms naturally. Avoids claims for AI image generation, full EPUB editing, DRM bypass, or official brand affiliation.
 
-Crea Cover per Kindle ti aiuta a trasformare immagini che possiedi già in cover personalizzate per Kindle e altri e-reader supportati. Usa una foto che ami, un’illustrazione, un ricordo di viaggio, il ritratto del tuo animale, un artwork digitale o un visual in linea con il tuo modo di leggere.
+## Regional Conversion Strategy
+Primary user desire:
+Creare rapidamente una cover Kindle/e-reader da una propria immagine.
 
-Invece di indovinare la misura giusta, scegli il modello del dispositivo e controlli il risultato prima di salvare. Il flusso resta semplice e visuale: scegli un’immagine, regola il ritaglio, visualizza l’anteprima e crea un risultato pronto per la lettura.
+Best use cases to show:
+Cover da foto preferita, mood di lettura, output adatto al modello selezionato.
 
-Usala per cover Kindle cozy fantasy, per immagini e illustrazioni già tue, per foto di animali, ricordi di viaggio, atmosfere dark academia, setup minimalisti e cover personalizzate per Kindle, Kobo, Nook, PocketBook, Tolino e altro ancora.
+What to avoid:
+Evitare promesse da editor EPUB completo, IA o app ufficiale di brand.
 
-L’obiettivo è semplice: prendere un’immagine che ti rappresenta già e farla funzionare bene sul tuo Kindle o e-reader.
+Search/ASO terms to include naturally:
+cover kindle, copertina kindle, e-reader cover, ritagliare immagine, anteprima
 
-Crea Cover per Kindle non è un’app ufficiale di Amazon, Kindle, Kobo o di altri marchi di e-reader. I nomi dei brand servono solo a descrivere modelli e compatibilità.
+## Visual System
+Palette:
+- primary background: #1F2732
+- secondary background: #2E3A48
+- accent: #C96A42
+- optional warm/cool accent: #E5A170
+- headline color: #FFFFFF
+- subline color: #EFDDCB
 
-Conteo de caracteres:
-1115
+General visual rules:
+Keep copy-safe area dark and stable. Show image-to-cover transformation clearly before showing technical controls. Use real app UI for workflow proof and finish with compatibility confidence.
 
-Notas SEO/ASO:
-La descripción usa términos naturales de descubrimiento y mantiene el mensaje Kindle-first sin exagerar compatibilidad ni funciones no verificadas.
+## Feature Graphic
+titulo:
+LA TUA IMMAGINE DIVENTA COVER KINDLE
 
-## Decisión de ángulo de mercado
+subline:
+Ritaglia, controlla, salva
 
-Ángulo de mercado seleccionado:
-Personalización visual Kindle-first con prueba de confianza técnica después del deseo.
+headline color:
+#FFFFFF
 
-Por qué este ángulo debería convertir en este locale:
-La intención de compra mejora cuando el usuario ve primero un resultado aspiracional y, después, confirmación de compatibilidad y control.
-
-Deseo visual principal:
-Visualizar una imagen personal ya transformada en portada final para Kindle o e-reader.
-
-Prueba secundaria de confianza:
-Recorte, vista previa y exportación por modelo para Kindle, Kobo, Nook, PocketBook, Tolino y más.
-
-Qué NO debe ser la primera captura:
-Una pantalla de selección de modelo, ajustes o una tabla técnica de compatibilidad.
-
-Riesgo de enfoque feature-first:
-Si se abre con lo técnico, la app se percibe como utilidad y pierde atractivo de personalización.
-
-## Estrategia de conversión regional
-
-Deseo principal del usuario:
-Hacer que su Kindle o e-reader se vea más personal, estético y alineado con su identidad de lectura.
-
-Mejores casos de uso para mostrar:
-Foto favorita, mascota, recuerdo de viaje, imagen aesthetic y compatibilidad multi-marca mostrada al final.
-
-Qué evitar:
-Frases sobre fondo blanco, capturas técnicas al inicio, promesas de generación de imágenes o apariencia de recortadora básica.
-
-Términos de búsqueda/ASO para incluir naturalmente:
-kindle cover creator, portada Kindle personalizada, e-reader cover, crop, preview, Kobo cover, Tolino cover.
-
-## Sistema visual
-
-Paleta:
-- fondo principal: #111822
-- fondo secundario: #20324A
-- acento: #C07E4D
-- acento cálido/frío opcional: #7BA7B9
-- color de titular: #FFFFFF
-- color de subtítulo: #E6EDF5
-
-Reglas visuales generales:
-Mantener contraste alto, fondo estable para copy y acentos solo para profundidad alrededor del dispositivo. Evitar ruido visual y saturación excesiva.
-
-## Gráfico promocional
-
-Copy visible:
-- titulo: COVER KINDLE IN UN COLPO D’OCCHIO
-- subtítulo: Foto, arte e immagini bookish
-- bullets:
-
-  - Kindle, Kobo, Nook e altro
-  - Pensato per E-Ink
-  - Ritaglia, anteprima, esporta
-
-color de titular:#FFFFFF
-
-color de subtítulo:#E6EDF5
+subline color:
+#EFDDCB
 
 wrapper:
-composición gráfica con dispositivo + bullets
+composicion grafica con dispositivo + transformacion imagen-a-portada
 
 fondo:
 - dimension: 1024x500 px
-- base principal: #111822
-- secundario: #20324A usado como una transición suave y premium
-- acento: #C07E4D
-- ubicacion del acento: detrás del dispositivo, del lado derecho, con intensidad baja
-- zona segura de copy: tercio izquierdo con fondo oscuro uniforme
-- textura permitida: grano sutil por debajo de 5%
-- elementos prohibidos: brillo fuerte, formas claras o gradientes medios detrás del texto
+- base principal: #1F2732
+- secundario: #2E3A48
+- acento: #C96A42
+- ubicacion del acento: detras del dispositivo, intensidad baja
+- zona segura de copy: tercio izquierdo oscuro uniforme
+- textura permitida: grano sutil debajo de 3%
+- elementos prohibidos: brillo fuerte detras del titular, paneles blancos detras del texto, patrones cargados
 
 imagen:
-Imagen 1313x1751 px con resultado aspiracional y limpio dentro de un mockup de e-reader. El área de copy debe mantenerse libre de ruido visual.
+Show one source image and one final Kindle/e-reader cover result in the same frame. Do not imply that the app generates artwork.
 
-intención de conversión:
-Mostrar deseo en un vistazo y después reforzar confianza con compatibilidad y flujo claro.
+bullets:
+- Kindle-first discovery hook
+- Model-aware sizing and preview
+- Save or share final cover
 
-## Captura 1
+conversion intent:
+Explain the app in one glance: user image in, Kindle/e-reader cover out.
 
-Copy visible:
-- titulo: RENDI IL TUO KINDLE PIÙ PERSONALE
-- subtítulo: Ogni immagine può diventare una cover
+## Screenshot 1
+titulo:
+CREA UNA COVER KINDLE IN POCHI SECONDI
 
-color de titular:#FFFFFF
+subline:
+Risultato chiaro e personale
 
-color de subtítulo:#E6EDF5
+headline color:
+#FFFFFF
+
+subline color:
+#EFDDCB
 
 wrapper:
 kindle/e-reader emulado
 
 fondo:
 - dimension: 1994x3456 px
-- base principal: #111822
-- secundario: #20324A usado como un fondo premium de apoyo
-- acento: #C07E4D
-- ubicacion del acento: ligero detrás del e-reader, ligeramente hacia la derecha
-- zona segura de copy: tercio superior izquierdo, oscuro y limpio
-- textura permitida: grano sutil por debajo de 3%
-- elementos prohibidos: luz brillante detrás del titular, formas ocupadas, fragmentos visibles de UI
+- base principal: #1F2732
+- secundario: #2E3A48
+- acento: #C96A42
+- ubicacion del acento: luz suave detras del dispositivo
+- zona segura de copy: tercio superior izquierdo
+- textura permitida: grano sutil debajo de 3%
+- elementos prohibidos: brillo alto detras del copy, ruido visual, UI tecnica como foco principal
 
 imagen:
-Imagen 1313x1751 px con resultado final atractivo y coherente con el mercado objetivo.
+Final transformed cover shown inside e-reader mockup using appealing, legal source imagery.
 
-intención de conversión:
-Abrir con resultado aspiracional para impulsar deseo inmediato.
+conversion intent:
+Lead with visible transformation and immediate value.
 
-## Captura 2
+## Screenshot 2
+titulo:
+SCEGLI. REGOLA. FATTO.
 
-Copy visible:
-- titulo: DALL’IMMAGINE ALLA COVER KINDLE
-- subtítulo: Prendi la tua immagine preferita e adattala
+subline:
+Flusso semplice e guidato
 
-color de titular:#FFFFFF
+headline color:
+#FFFFFF
 
-color de subtítulo:#E6EDF5
+subline color:
+#EFDDCB
 
 wrapper:
-teléfono emulado
+telefono emulado
 
 fondo:
 - dimension: 1994x3456 px
-- base principal: #20324A
-- secundario: #111822 usado para dar profundidad
-- acento: #7BA7B9
-- ubicacion del acento: detrás del marco, con intensidad baja
-- zona segura de copy: tercio superior izquierdo, sin resplandores
-- textura permitida: grano sutil por debajo de 3%
-- elementos prohibidos: neón, gradientes brillantes, iconos flotantes no relacionados
+- base principal: #2E3A48
+- secundario: #1F2732
+- acento: #E5A170
+- ubicacion del acento: detras del marco del telefono
+- zona segura de copy: tercio superior izquierdo
+- textura permitida: grano sutil debajo de 3%
+- elementos prohibidos: iconos decorativos sin contexto, fondos saturados
 
 imagen:
-Screenshot 972x2106 px mostrando adaptación de imagen existente al formato de portada.
+Real editor screen showing selection and framing controls.
 
-intención de conversión:
-Mostrar que el usuario puede usar imágenes que ya tiene sin procesos complejos.
+conversion intent:
+Prove workflow simplicity after the first emotional hook.
 
-## Captura 3
+## Screenshot 3
+titulo:
+FATTA PER IL TUO E-READER
 
-Copy visible:
-- titulo: UNO STILE CHE TI SOMIGLIA
-- subtítulo: Abbina la cover al tuo mood, ai libri o allo spazio
+subline:
+Scegli modello e verifica resa
 
-color de titular:#FFFFFF
+headline color:
+#FFFFFF
 
-color de subtítulo:#E6EDF5
+subline color:
+#EFDDCB
 
 wrapper:
-kindle/e-reader emulado
+telefono emulado
 
 fondo:
 - dimension: 1994x3456 px
-- base principal: #111822
-- secundario: #20324A usado como una transición calmada
-- acento: #C07E4D
-- ubicacion del acento: detrás del dispositivo, en la esquina inferior o lateral
-- zona segura de copy: tercio superior izquierdo, estable y oscuro
-- textura permitida: grano mínimo o superficie mate
-- elementos prohibidos: saturación excesiva, bloques claros, elementos que compitan con el título
+- base principal: #1F2732
+- secundario: #2E3A48
+- acento: #C96A42
+- ubicacion del acento: borde inferior derecho del dispositivo
+- zona segura de copy: tercio superior izquierdo
+- textura permitida: grano mate minimo
+- elementos prohibidos: tablas tecnicas densas, tipografia pequena ilegible
 
 imagen:
-Imagen 1313x1751 px enfocada en mood de lectura y resultado visual final.
+Model selection or model-aware preview with visible compatible device families.
 
-intención de conversión:
-Expandir escenarios de uso y reforzar personalización estética.
+conversion intent:
+Convert technical sizing into trust and confidence.
 
-## Captura 4
+## Screenshot 4
+titulo:
+RITAGLIA, ANTEPRIMA, ESPORTA
 
-Copy visible:
-- titulo: RITAGLIA, REGOLA, VEDI
-- subtítulo: Controlla prima di salvare
+subline:
+Controllo finale prima di salvare
 
-color de titular:#FFFFFF
+headline color:
+#FFFFFF
 
-color de subtítulo:#E6EDF5
+subline color:
+#EFDDCB
 
 wrapper:
-teléfono emulado
+telefono emulado
 
 fondo:
 - dimension: 1994x3456 px
-- base principal: #20324A
-- secundario: #111822 usado para profundidad
-- acento: #7BA7B9
-- ubicacion del acento: detrás del teléfono, hacia el costado derecho
-- zona segura de copy: tercio superior izquierdo, legible y oscuro
-- textura permitida: grano muy fino o ninguno
-- elementos prohibidos: flare blanco bajo el titular, adornos distractores, fondos claros detrás del texto
+- base principal: #2E3A48
+- secundario: #1F2732
+- acento: #C96A42
+- ubicacion del acento: lateral derecho del marco
+- zona segura de copy: tercio superior izquierdo
+- textura permitida: nula o muy sutil
+- elementos prohibidos: overlays brillantes, patrones distractores
 
 imagen:
-Screenshot 972x2106 px con editor real, controles de recorte y vista previa legible.
+Preview/export screen showing final cover check before save/share.
 
-intención de conversión:
-Probar control y simplicidad tras el impacto visual inicial.
+conversion intent:
+Reinforce control and confidence before final action.
 
-## Captura 5
+## Screenshot 5
+titulo:
+KINDLE, KOBO, NOOK E ALTRO
 
-Copy visible:
-- titulo: PER KINDLE, KOBO E ALTRO
-- subtítulo: Scegli il modello ed esporta la misura giusta
+subline:
+Compatibilita basata su modello
 
-color de titular:#FFFFFF
+headline color:
+#FFFFFF
 
-color de subtítulo:#E6EDF5
+subline color:
+#EFDDCB
 
 wrapper:
-teléfono emulado
+composicion grafica con dispositivo + bullets
 
 fondo:
 - dimension: 1994x3456 px
-- base principal: #111822
-- secundario: #20324A usado como gradiente técnico suave
-- acento: #C07E4D
-- ubicacion del acento: detrás de la lista o del panel de modelo, con intensidad baja
-- zona segura de copy: tercio superior izquierdo, oscuro y estable
-- textura permitida: grano sutil por debajo de 3%
-- elementos prohibidos: tablas densas detrás del copy, paneles blancos brillantes, patrones ocupados
+- base principal: #1F2732
+- secundario: #2E3A48
+- acento: #E5A170
+- ubicacion del acento: tarjetas abstractas suaves detras del dispositivo
+- zona segura de copy: tercio superior izquierdo
+- textura permitida: grano sutil debajo de 3%
+- elementos prohibidos: fondos claros tras texto, lista tecnica excesiva
 
 imagen:
-Screenshot 972x2106 px con selector de modelo y marcas compatibles visibles.
+Compatibility-focused frame with model selector UI or multi-brand device context.
 
-intención de conversión:
-Cerrar con confianza de compatibilidad y tamaño correcto de salida.
+conversion intent:
+Close with compatibility proof while keeping Kindle-first positioning.
 
-## Notas / Suposiciones
-
-- La ficha mantiene Kindle como gancho principal, pero aclara soporte adicional solo cuando el dato está respaldado por la app.- La app no promete generar imágenes ni vender plantillas como core del producto.- Los nombres de marca se usan solo de forma descriptiva para compatibilidad.- La estrategia visual prioriza el deseo y después la confianza técnica.- En esta ficha, todo texto fuera de `Copy visible` está en español.
+## Notes / Assumptions
+- Strategic docs under docs/fichas/ccfk/ include contradictions (some files still describe EPUB cover replacement), while CCFK code and golden files position a Kindle/e-reader cover creator. This ficha follows code reality plus CCFK golden positioning.
+- Claims limited to verifiable behavior: model-aware sizing, adjust/preview flow, save/share.
+- No claim for AI generation, template marketplace, DRM bypass, or official affiliation.

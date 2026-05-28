@@ -207,7 +207,10 @@ export class ChangePage implements OnInit, OnDestroy {
   private readonly artifactReductionInfoSeenKey =
     'ecc_editor_artifact_reduction_info_seen';
   private readonly editorEReaderOptimizationFeatureEnabled = true;
-  private readonly currentEditorTourVersion = 4;
+  private readonly currentEditorTourVersion = 5;
+  private forceEditorTourOnNextEditorOpen = false;
+  private forceIncludeRemoveAdsStepOnNextHomeTour = false;
+  private forceShowRemoveAdsEntryPointForTour = false;
   private adsRemovedSub?: Subscription;
   private removeAdsPriceSub?: Subscription;
   private readonly onlineHandler = () => {
@@ -1123,6 +1126,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
     this.imageWarnKey = 'EXPORT_OPTIONS.SMALL_SOURCE_WARNING';
     this.imageWarnParams = params;
+    this.homeTour.requestSync();
   }
 
   private getSmallWarnParamsForExportDims(
@@ -1232,21 +1236,17 @@ export class ChangePage implements OnInit, OnDestroy {
 
     this.lastEditorSessionId = sid;
     const shouldShowEditorTour = await this.shouldShowEditorTour();
-    if (shouldShowEditorTour) {
-      await this.settings.set((prev) => ({
-        ...prev,
-        preferences: {
-          ...(prev.preferences ?? {}),
-          [this.editorTourSeenVersionKey]: this.currentEditorTourVersion,
-        },
-      }));
-    }
+    await this.homeTour.completeInteraction('editor-apply');
 
     this.router.navigate(['/editor'], {
       queryParams: {
         sid,
         ...(shouldShowEditorTour
-          ? { tour: '1', tourCurrent: '4', tourTotal: '6' }
+          ? {
+              tour: '1',
+              tourCurrent: '4',
+              tourTotal: this.canShowRemoveAdsEntryPoint() ? '7' : '6',
+            }
           : {}),
       },
     });
@@ -1292,6 +1292,7 @@ export class ChangePage implements OnInit, OnDestroy {
     if (!newFile) return;
     const renderedBlob = result.renderedBlob;
     this.isApplyingFromEditor = true;
+    let editorTourShouldBeMarkedSeen = false;
     this.previewGenerationToken += 1;
     this.currentPreviewOrigin = 'edited';
 
@@ -1372,6 +1373,7 @@ export class ChangePage implements OnInit, OnDestroy {
           undefined,
           renderedInfo ?? undefined,
         );
+        editorTourShouldBeMarkedSeen = true;
         this.isApplyingFromEditor = false;
         this.zone.run(() => {
           this.previewNonce += 1;
@@ -1379,10 +1381,14 @@ export class ChangePage implements OnInit, OnDestroy {
         return;
       } else {
         await this.applySmallWarn('editor-apply');
+        editorTourShouldBeMarkedSeen = true;
         this.isApplyingFromEditor = false;
         await this.updatePreviewFromComposition();
       }
     } finally {
+      if (editorTourShouldBeMarkedSeen) {
+        await this.markEditorTourSeen();
+      }
       this.isApplyingFromEditor = false;
       await this.homeTour.completeInteraction('editor-apply');
     }
@@ -2098,6 +2104,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.clearImageError();
     this.imageWarnKey = this.invalidCoverWarnKey;
     this.imageWarnParams = {};
+    this.homeTour.requestSync();
     this.resetBestCandidateState(true);
   }
 
@@ -2134,6 +2141,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private clearImageWarn() {
     this.imageWarnKey = undefined;
     this.imageWarnParams = {};
+    this.homeTour.requestSync();
   }
 
   private clearImageError() {
@@ -2165,7 +2173,11 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   canShowRemoveAdsEntryPoint(): boolean {
-    return !this.adsRemoved && this.billing.canShowRemoveAdsEntryPoint();
+    return (
+      !this.adsRemoved &&
+      (this.forceShowRemoveAdsEntryPointForTour ||
+        this.billing.canShowRemoveAdsEntryPoint())
+    );
   }
 
   getRemoveAdsCtaSubtitleKey(): string {
@@ -2311,10 +2323,16 @@ export class ChangePage implements OnInit, OnDestroy {
       price: this.removeAdsPriceFormatted,
     });
     this.purchaseModalOpen = true;
+    await this.homeTour.completeInteraction('remove-ads-open');
   }
 
   closePurchaseModal(): void {
     this.purchaseModalOpen = false;
+  }
+
+  onPurchaseModalCloseClick(): void {
+    void this.homeTour.completeInteraction('remove-ads-close');
+    this.closePurchaseModal();
   }
 
   async onPurchaseRemoveAds(): Promise<void> {
@@ -2415,6 +2433,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   async onExportQualityModeSelect(mode: ExportQualityMode): Promise<void> {
+    await this.homeTour.completeInteraction('export-quality-select');
     const normalized = normalizeExportQualityMode(mode, this.adsRemoved);
     if (normalized !== mode) {
       await this.openPurchaseModal();
@@ -2986,9 +3005,13 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async ionViewDidEnter() {
     this.homeTour.registerContent(this.content);
-    await this.maybeStartHomeTour(
-      this.homeTour.consumePendingManualStart(HOME_TOUR_ID),
-    );
+    const manualStartRequested =
+      this.homeTour.consumePendingManualStart(HOME_TOUR_ID);
+    if (manualStartRequested) {
+      this.forceEditorTourOnNextEditorOpen = true;
+      this.forceIncludeRemoveAdsStepOnNextHomeTour = true;
+    }
+    await this.maybeStartHomeTour(manualStartRequested);
   }
 
   onTourContentScroll() {
@@ -3006,6 +3029,11 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   async onHeaderItemClick(id: string): Promise<void> {
+    if (id === 'guide' || id === 'info') {
+      await this.startManualHomeTour();
+      return;
+    }
+
     await handleHomeHeaderAction(id, {
       closeInfo: () => this.closeInfo(),
       toggleInfo: () => this.toggleInfo(),
@@ -3199,11 +3227,24 @@ export class ChangePage implements OnInit, OnDestroy {
 
     await this.ensureTourLocaleReady(settings);
     this.closeInfo();
-    await this.homeTour.start(buildHomeTourDefinition(this.translate), {
-      onComplete: async (reason: TourCompletionReason) => {
-        await this.markHomeTourSeen(reason);
+    const includeRemoveAdsStep =
+      (!this.adsRemoved && this.billing.canShowRemoveAdsEntryPoint()) ||
+      (!this.adsRemoved && this.forceIncludeRemoveAdsStepOnNextHomeTour);
+    this.forceShowRemoveAdsEntryPointForTour =
+      !this.adsRemoved && this.forceIncludeRemoveAdsStepOnNextHomeTour;
+
+    await this.homeTour.start(
+      buildHomeTourDefinition(this.translate, {
+        includeRemoveAdsStep,
+      }),
+      {
+        onComplete: async (reason: TourCompletionReason) => {
+          this.forceIncludeRemoveAdsStepOnNextHomeTour = false;
+          this.forceShowRemoveAdsEntryPointForTour = false;
+          await this.markHomeTourSeen(reason);
+        },
       },
-    });
+    );
   }
 
   private async ensureTourLocaleReady(settings: EccSettings): Promise<void> {
@@ -3226,6 +3267,19 @@ export class ChangePage implements OnInit, OnDestroy {
       homeTourSeen: true,
       homeTourVersion: CURRENT_HOME_TOUR_VERSION,
       homeTourSeenAt: new Date().toISOString(),
+    }));
+  }
+
+  private async startManualHomeTour(): Promise<void> {
+    this.forceEditorTourOnNextEditorOpen = true;
+    this.forceIncludeRemoveAdsStepOnNextHomeTour = true;
+    this.closeInfo();
+    await this.maybeStartHomeTour(true);
+  }
+
+  private async markEditorTourSeen(): Promise<void> {
+    await this.settings.set((prev) => ({
+      ...prev,
       preferences: {
         ...(prev.preferences ?? {}),
         [this.editorTourSeenVersionKey]: this.currentEditorTourVersion,
@@ -3234,6 +3288,11 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private async shouldShowEditorTour(): Promise<boolean> {
+    if (this.forceEditorTourOnNextEditorOpen) {
+      this.forceEditorTourOnNextEditorOpen = false;
+      return true;
+    }
+
     const settings = await this.settings.load();
     const seenVersion = settings.preferences?.[this.editorTourSeenVersionKey];
     return (

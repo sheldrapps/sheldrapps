@@ -2,11 +2,15 @@
 
 ## Purpose
 
-Position CCFK for the US market as a Kindle-first visual personalization app for readers who want their device to look aesthetic, personal, and polished.
+Position CCFK for the US market as a fast, focused, Kindle-first utility for readers who want to turn any image they already have into a custom Kindle or e-reader cover.
 
-The listing should sell the outcome first: turning any image the user already has into a custom Kindle cover.
+The listing should sell the outcome first: turning an image into a Kindle cover in seconds.
 
-Technical features like model selection, crop, preview, and export should appear as trust proof after the visual desire is clear.
+The app should feel simple, useful, visual, and trustworthy. The user should immediately understand that they can choose an image, select their Kindle or supported e-reader model, adjust the framing, preview the result, and save a ready-to-use cover.
+
+The strongest conversion angle is not “design tool,” “AI cover generator,” or “aesthetic gallery.” It is:
+
+I have an image I like, and I want it to fit my Kindle or e-reader as a cover.
 
 Although the app name and main ASO hook are Kindle-first, the listing must also clarify that the app supports other e-reader brands such as Kobo, Nook, PocketBook, and Tolino when accurate.
 
@@ -22,14 +26,14 @@ Character count:
 25
 
 Reasoning:
-The current name is strong for ASO because “Kindle” is the highest-intent search keyword for this category. It is clear, searchable, and under the 30-character limit. Broader e-reader compatibility should be communicated in the description, feature graphic, and final screenshot without weakening the Kindle-first discovery hook.
+The current name is strong for ASO because “Kindle” is the highest-intent search keyword for this category. It is clear, searchable, and under the 30-character limit. Broader e-reader compatibility should be communicated in the description, feature graphic, and later screenshots without weakening the Kindle-first discovery hook.
 
 ## Short Description
 
 Candidates:
-- SEO-first: Create custom Kindle covers from your favorite images
-- Conversion-first: Make your Kindle aesthetic with any image you love
-- Balanced: Turn any image into a custom Kindle cover
+- SEO-first: Turn any image into a custom Kindle cover
+- Conversion-first: Create a Kindle cover from any image in seconds
+- Balanced: Make custom covers for Kindle and e-readers
 
 Selected text:
 Turn any image into a custom Kindle cover
@@ -38,67 +42,74 @@ Character count:
 41
 
 Reasoning:
-This is short, clear, and Kindle-first for ASO. It avoids implying built-in image generation and focuses on the app’s real promise: adapting an image the user already has into a cover. Broader e-reader support can be explained elsewhere without diluting the search value of “Kindle.”
+This is the strongest line because it is direct, benefit-driven, and immediately understandable. It matches the proven conversion structure: user has an input, app creates the desired output. It also includes the core ASO phrase “Kindle cover” while avoiding unsupported claims about AI generation or templates.
 
 ## Long Description
 
 Text:
-Make your Kindle feel more personal, aesthetic, and yours.
+Turn any image into a custom Kindle cover in seconds.
 
-Cover Creator for Kindle helps you turn images you already have into custom covers for your Kindle and other supported e-readers. Use a cozy fantasy illustration, a favorite photo, digital artwork, a pet portrait, a travel memory, or any visual that matches your reading mood.
+Choose a photo, artwork, illustration, or favorite image, then adjust it exactly the way you want.
 
-Instead of guessing the right size, you can choose your device model and check the result before saving. The workflow stays simple and visual: pick an image, adjust the framing, preview the cover, and create a result that feels ready for your reading setup.
+With Cover Creator for Kindle you can:
 
-Use it for:
-- cozy fantasy and reading aesthetic Kindle covers
-- digital artwork or illustrations you already have
-- pet portraits, travel photos, and personal memories
-- dark academia, bookish, or minimalist reading moods
-- custom covers for Kindle, Kobo, Nook, PocketBook, Tolino, and more
+• Create custom covers from images you already have
+• Choose your Kindle or supported e-reader model
+• Crop, align, and preview the result
+• Adjust the image for an e-ink screen
+• Save a ready-to-use cover for your device
 
-The goal is simple: take an image that already feels like you, and make it fit your Kindle or e-reader.
+No guessing sizes.
+No complicated editing software.
+No need to start from scratch.
+
+Perfect for readers who want to personalize their Kindle, make their e-reader feel more their own, or create covers from photos, artwork, pets, travel memories, cozy images, fantasy landscapes, or bookish visuals.
+
+The workflow is simple and focused: choose an image, pick your device model, adjust the cover, preview the result, and save it.
+
+Fast, simple, and focused on one thing: turning your image into a cover that fits your Kindle or e-reader.
 
 Cover Creator for Kindle is not an official Amazon, Kindle, Kobo, or e-reader brand app. Brand names are used only to describe compatible models and workflows.
 
 Character count:
-1213
+1150
 
 SEO/ASO notes:
-Includes natural ASO terms such as Kindle cover, custom Kindle cover, e-reader cover, photos, artwork, crop, preview, Kobo, Nook, PocketBook, and Tolino. The copy is Kindle-first for discovery, but still clarifies broader e-reader compatibility. It avoids “AI art” as a visible promise to prevent users from expecting built-in image generation.
+Includes natural search terms such as Kindle cover, custom Kindle cover, e-reader cover, crop, preview, photo cover, artwork cover, e-ink screen, Kobo, Nook, PocketBook, and Tolino. The copy is Kindle-first for discovery, but still clarifies broader e-reader compatibility. It avoids “AI art” or “cover generator” as visible promises to prevent users from expecting built-in image generation.
 
 ## Market Angle Decision
 
 Market angle selected:
-Kindle-first reading aesthetic and image-based personalization.
+Fast Kindle/e-reader cover creation from any existing image.
 
 Why this angle should convert in this locale:
-US users are likely to understand Kindle personalization through the same mental model as wallpapers, reading setups, BookTok aesthetics, bookish visuals, and device styling. The listing should make the user imagine a beautiful Kindle cover before explaining technical fit.
+US users are likely to understand the value quickly when the promise is framed as a direct transformation: image → Kindle cover. The app should not open as a lifestyle moodboard or a technical model-sizing utility. It should first answer the practical desire: “Can I make this image fit my Kindle?” Then it can support the claim with crop, preview, model-aware sizing, and e-reader compatibility.
 
-Primary visual desire:
-See a cozy, aesthetic, or personally meaningful image already transformed into a finished Kindle cover.
+Primary user desire:
+Turn a favorite image into a Kindle cover without guessing sizes or using complicated editing software.
 
 Secondary trust proof:
-Crop, preview, and model-aware export for Kindle, Kobo, Nook, PocketBook, Tolino, and more.
+Model-aware sizing, crop, preview, e-ink optimization, and support for Kindle, Kobo, Nook, PocketBook, Tolino, and more.
 
 What should NOT be the first screenshot:
-A model selector, settings screen, export option, compatibility table, or generic technical UI.
+A settings screen, model selector, compatibility table, generic editor UI, or broad aesthetic promise without showing the final result.
 
 Feature-first risk:
-If the listing starts with model selection or technical fit, it may feel like a utility instead of a desirable Kindle personalization app.
+If the listing starts with technical model selection, it may feel like a utility with no emotional payoff. If it starts with lifestyle only, users may not understand what the app actually does. The first message must show the transformation from image to Kindle cover.
 
 ## Regional Conversion Strategy
 
 Primary user desire:
-Make the Kindle look aesthetic, personal, and aligned with the user’s reading identity.
+Create a cover that makes the Kindle or e-reader feel personal, polished, and ready to use.
 
 Best use cases to show:
-Cozy fantasy Kindle cover, artwork cover, dark academia / reading setup mood, pet or travel image as secondary proof, model compatibility after the desire is clear.
+Favorite photo transformed into a Kindle cover, artwork adapted to e-reader format, cozy fantasy image, pet portrait, travel memory, dark academia or bookish mood, model-aware cover sizing.
 
 What to avoid:
-Generic quote cards, plain white text covers, technical-first screenshots, claims that the app generates images, and visuals that look like a basic cropper.
+Generic quote cards, plain white text covers, technical-first screenshots, claims that the app generates images, confusing EPUB-cover-replacement language, or visuals that make the app look like a basic cropper.
 
 Search/ASO terms to include naturally:
-Kindle cover creator, custom Kindle cover, Kindle aesthetic, e-reader cover, artwork cover, photo cover, Kobo cover, crop, preview, bookish setup.
+Kindle cover creator, custom Kindle cover, Kindle cover, e-reader cover, photo cover, artwork cover, Kobo cover, crop image, preview cover, e-ink screen.
 
 ## Visual System
 
@@ -111,15 +122,17 @@ Palette:
 - subline color: #D7E8F7
 
 General visual rules:
-Use a premium navy / lifestyle-tech visual system. Keep the copy area dark and stable. Use blue light as depth behind the device, not behind text. The visual tone should feel modern, polished, bookish, and creator-friendly. Avoid generic stock-photo energy.
+Use a premium navy / lifestyle-tech visual system. Keep the copy area dark and stable. Use blue light as depth behind the device, not behind text. The visual tone should feel modern, polished, bookish, and creator-friendly, but the message must remain direct and practical.
+
+Avoid bright glow behind the headline, white shapes behind text, busy textures, tiny unreadable UI, generic stock-photo energy, or visuals that make the app look like an EPUB editor.
 
 ## Feature Graphic
 
 titulo:
-CUSTOM COVERS FOR KINDLE
+TURN ANY IMAGE INTO A KINDLE COVER
 
 subline:
-Use photos, artwork and bookish images
+Crop, preview, and save it in seconds
 
 headline color:
 #FFFFFF
@@ -128,7 +141,7 @@ subline color:
 #D7E8F7
 
 wrapper:
-composición gráfica con dispositivo + bullets
+composition with e-reader mockup + image-to-cover transformation
 
 fondo:
 - dimension: 1024x500 px
@@ -138,26 +151,26 @@ fondo:
 - ubicacion del acento: behind the e-reader on the right side, low intensity
 - zona segura de copy: left third, uniform dark navy background
 - textura permitida: very subtle digital grain below 3%
-- elementos prohibidos: bright glow, white shapes, busy textures, or mid-value gradients behind text
+- elementos prohibidos: bright glow behind headline, white shapes, busy textures, mid-value gradients behind text, EPUB book replacement visuals
 
 imagen:
-imagen 1313x1751 px - cozy fantasy / reading aesthetic cover placed inside an e-reader mockup. The cover should show a warm library, rainy window, armchair, lamp, and books. It should feel like a BookTok or Bookstagram reader would want it on their Kindle. No large text should dominate the cover.
+Show a clear image-to-cover transformation. On one side, show a source image such as a cozy fantasy illustration, pet photo, travel memory, or digital artwork. On the other side, show that same image adapted inside a Kindle/e-reader mockup as a finished cover. The result must be obvious in one glance. Do not imply the app generated the artwork.
 
 bullets:
 - Kindle, Kobo, Nook & more
 - Made for e-ink screens
-- Crop, preview and export
+- Crop, preview and save
 
 conversion intent:
-Lead with Kindle for ASO and user recognition, then immediately reassure users that the app also supports other e-reader brands and practical export needs.
+Make the app’s purpose instantly understandable. The user should not need to read the full listing to know: this app takes an image and turns it into a Kindle/e-reader cover.
 
 ## Screenshot 1
 
 titulo:
-MAKE YOUR KINDLE AESTHETIC
+TURN YOUR IMAGE INTO A KINDLE COVER
 
 subline:
-Turn any image into a custom Kindle cover
+Create a custom cover in seconds
 
 headline color:
 #FFFFFF
@@ -166,7 +179,7 @@ subline color:
 #D7E8F7
 
 wrapper:
-kindle/e-reader emulado
+kindle/e-reader mockup with final cover result
 
 fondo:
 - dimension: 1994x3456 px
@@ -176,21 +189,21 @@ fondo:
 - ubicacion del acento: soft light behind the e-reader, centered slightly to the right
 - zona segura de copy: upper-left third, dark and clean
 - textura permitida: subtle digital grain below 3%
-- elementos prohibidos: bright light behind headline, busy shapes, visible UI fragments
+- elementos prohibidos: bright light behind headline, busy shapes, visible UI fragments, EPUB file replacement visuals
 
 imagen:
-imagen 1313x1751 px - cozy fantasy / reading aesthetic cover inside an e-reader mockup. Use a vertical illustration of a warm library, rainy window, comfortable chair, reading lamp, and stacked books. The image must feel aspirational for US reading culture, like something made for BookTok, Bookstagram, or a polished Kindle setup. No text protagonist.
+An e-reader mockup showing a finished custom cover made from a strong visual image. Recommended image: cozy fantasy / reading aesthetic cover with a warm library, rainy window, comfortable chair, reading lamp, and books. It should feel like a desirable Kindle setup, but the copy must stay direct: image to cover.
 
 conversion intent:
-Open with the strongest US desire: a Kindle that looks aesthetic, personal, and shareable.
+Open with the clearest conversion promise. The user should immediately understand the result: their image can become a Kindle cover.
 
 ## Screenshot 2
 
 titulo:
-FROM ARTWORK TO KINDLE COVER
+SELECT. ADJUST. DONE.
 
 subline:
-Use your favorite image and make it fit your screen
+Simple cover creation for your device
 
 headline color:
 #FFFFFF
@@ -199,7 +212,7 @@ subline color:
 #D7E8F7
 
 wrapper:
-teléfono emulado
+phone mockup showing the editor
 
 fondo:
 - dimension: 1994x3456 px
@@ -212,18 +225,18 @@ fondo:
 - elementos prohibidos: neon clutter, bright gradients behind copy, floating unrelated icons
 
 imagen:
-screenshot 972x2106 px - app preview showing a fantasy, illustration, digital artwork, or polished visual image already adapted into a Kindle/e-reader cover format. The visual should suggest magical forest, cozy castle, dreamy landscape, or another artwork style. The screen should communicate: “I already have a beautiful image; this app makes it work as my Kindle cover.” Do not imply the app generates images or artwork.
+Real editor screen showing an image loaded and adapted into Kindle/e-reader cover format. Crop handles and core controls should be visible enough to prove control, but not so dominant that it feels like a generic image editor. Use the same visual style from Screenshot 1 for continuity.
 
 conversion intent:
-Connect with users who already have images, illustrations, designs, or artwork they want to use, while keeping the app’s promise accurate: adaptation, not generation.
+Prove that the workflow is easy: select an image, adjust it, and prepare it for the device.
 
 ## Screenshot 3
 
 titulo:
-BUILD YOUR READING MOOD
+MADE TO FIT YOUR E-READER
 
 subline:
-Match your cover to your books, setup, or vibe
+Choose your model and preview the result
 
 headline color:
 #FFFFFF
@@ -232,7 +245,7 @@ subline color:
 #D7E8F7
 
 wrapper:
-kindle/e-reader emulado
+phone mockup showing model-aware preview or model selection
 
 fondo:
 - dimension: 1994x3456 px
@@ -242,21 +255,21 @@ fondo:
 - ubicacion del acento: low-intensity glow behind lower-right device edge
 - zona segura de copy: upper-left third, stable dark surface
 - textura permitida: minimal matte grain below 3%
-- elementos prohibidos: decorative clutter behind text, high-saturation colors, white blocks
+- elementos prohibidos: dense compatibility tables, tiny device lists, decorative clutter behind text
 
 imagen:
-imagen 1313x1751 px - dark academia / bookish mood cover inside an e-reader mockup. Show a wooden desk, open book, candle, reading glasses, soft shadows, and literary atmosphere. A tiny integrated phrase may exist only as a background detail, not as the main concept. The image should sell a reading mood, not a template.
+Real screen showing device/model selection or a preview clearly tied to a selected Kindle/e-reader model. If possible, show Kindle and other supported brands such as Kobo, Nook, PocketBook, and Tolino in a clean selector. The screen should communicate that the output fits the selected device.
 
 conversion intent:
-Expand the US use case beyond single photos: the app helps the user make their reading setup feel intentional and aesthetic.
+Turn technical sizing into trust proof. The user should feel they do not need to guess dimensions.
 
 ## Screenshot 4
 
 titulo:
-CROP, ADJUST, PREVIEW
+CROP, PREVIEW, SAVE
 
 subline:
-Fine-tune your image before saving the cover
+Fine-tune your cover before exporting
 
 headline color:
 #FFFFFF
@@ -265,7 +278,7 @@ subline color:
 #D7E8F7
 
 wrapper:
-teléfono emulado
+phone mockup showing preview/export flow
 
 fondo:
 - dimension: 1994x3456 px
@@ -278,18 +291,18 @@ fondo:
 - elementos prohibidos: decorative shapes, bright UI glow under headline, noisy textures
 
 imagen:
-screenshot 972x2106 px - real editor screen showing an aesthetic image loaded, crop handles visible, preview state clear, and controls easy to understand. Use the visual style from Screenshot 2 or Screenshot 3 for continuity. The UI should feel simple, fast, and reliable.
+Real preview or export screen showing the final cover clearly before saving. The cover should appear centered, polished, and ready to use on the selected e-reader model.
 
 conversion intent:
-After selling desire, prove that the user can actually control the image before export.
+Show confidence before saving. This screenshot communicates that the user can check the result and control the final cover.
 
 ## Screenshot 5
 
 titulo:
-FOR KINDLE, KOBO & MORE
+FIND YOUR KINDLE MODEL
 
 subline:
-Pick your model and export the right cover size
+Exact compatibility for your device
 
 headline color:
 #FFFFFF
@@ -298,7 +311,7 @@ subline color:
 #D7E8F7
 
 wrapper:
-teléfono emulado
+phone mockup showing the real Kindle model selector
 
 fondo:
 - dimension: 1994x3456 px
@@ -311,15 +324,17 @@ fondo:
 - elementos prohibidos: large bright panels, dense compatibility tables behind copy, distracting patterns
 
 imagen:
-screenshot 972x2106 px - real model selection screen showing Kindle, Kobo, Nook, PocketBook, and Tolino if available. The image should communicate that the app is Kindle-first but not Kindle-only; it also helps create the right cover size for supported e-reader models.
+Real Kindle model selector screen showing specific compatibility by family and generation. It should look clear and trustworthy, with families such as Kindle Basic, Paperwhite, Paperwhite Signature, Voyage, Oasis, and Scribe, if available in the current catalog. The image should communicate that users can find their exact Kindle model and create the cover at the correct size without guessing resolutions.
 
 conversion intent:
-Close with trust proof: compatibility, model-aware output, and confidence before saving/exporting.
+Close with strong exact-compatibility proof. The user should feel that the app supports their specific Kindle, not just “Kindle in general”.
 
 ## Notes / Assumptions
 
-- This golden ficha intentionally emphasizes Kindle-first ASO while still acknowledging broader e-reader support.
-- The app does not claim to generate images, AI art, templates, or artwork. It adapts images the user already has.
+- This golden ficha intentionally applies the ECC conversion structure to CCFK without changing the product category.
+- CCFK does not change EPUB covers. It creates/adapts Kindle and e-reader covers from images the user already has.
+- The app does not claim to generate images, AI art, templates, or artwork.
 - Brand names are used descriptively only. The listing must not imply official affiliation with Amazon, Kindle, Kobo, or other brands.
 - Compatibility should be phrased as supported model families unless exact device coverage is verified in the current project.
+- The strongest conversion sequence is: image-to-cover result → simple workflow → model fit → preview/save → compatibility.
 - This golden ficha is a quality benchmark for Codex generation, not a template to copy literally across locales.

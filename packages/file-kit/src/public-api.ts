@@ -40,4 +40,3 @@ export * from './lib/epub-working-copy.service';
 // Providers
 export * from './lib/providers';
 export * from "./lib/web-epub-cover.service";
-export * from "./lib/web-pdf-cover.service";

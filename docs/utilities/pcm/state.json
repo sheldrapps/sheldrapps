@@ -1,0 +1,31 @@
+{
+  "project": "pdf-cover-maker",
+  "shortName": "pcm",
+  "baseline": {
+    "versionCode": 0,
+    "versionName": ""
+  },
+  "current": {
+    "updatedAt": "2026-05-27T15:11:01.1046198-06:00",
+    "head": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
+    "versionCode": 2,
+    "versionName": "Native pick and PDF stability",
+    "versionCodeAnchorCommit": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
+    "deltaFrom": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
+    "deltaTo": "WORKTREE",
+    "changedFilesCount": 22,
+    "userFacingSummary": [
+      "android_pdf_picker_forced_to_native_plugin_path",
+      "native_pdf_rewrite_gate_separated_from_picker_gate",
+      "pdfbox_resource_loader_initialized_before_render",
+      "pdf_preview_threads_hardened_against_initializer_crash",
+      "recommended_apps_ecc_icon_source_fixed_in_pcm_assets",
+      "android_release_excludes_web_pdf_worker_assets"
+    ]
+  },
+  "tracking": {
+    "lastProcessedHead": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
+    "lastProcessedAt": "2026-05-27T15:11:01.1046198-06:00",
+    "lastWorkingTreeFingerprint": "WORKTREE"
+  }
+}

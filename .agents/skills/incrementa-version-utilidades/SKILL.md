@@ -11,6 +11,8 @@ description: "Incrementa version de app movil y genera utilidades/notes con inte
 - `incrementa la version para <proyecto>`
 - `sube version <proyecto>`
 - `actualiza version <proyecto>`
+- `actualiza solo version notes para <proyecto>`
+- `genera solo version notes para <proyecto>`
 
 Alias soportados:
 
@@ -47,6 +49,16 @@ Siempre actualizar:
 2. `docs/utilities/<short-name>/state.json`
 3. `docs/utilities/<short-name>/version-notes.xml`
 
+### Modo `solo version-notes`
+
+Si el usuario pide explicitamente ejecutar solo version notes:
+
+- Actualizar unicamente `docs/utilities/<short-name>/version-notes.xml`.
+- No modificar `versionCode`/`versionName` en `build.gradle`.
+- No modificar `docs/utilities/<short-name>/utility.md`.
+- No modificar `docs/utilities/<short-name>/state.json`.
+- Basar el texto en cambios user-facing reales del delta actual.
+
 ## Utility format goal
 
 `utility.md` debe contener hechos estructurados para `fichas`:
@@ -66,11 +78,18 @@ Archivo: `docs/utilities/<short-name>/version-notes.xml` (overwrite each run).
 Locales obligatorios:
 
 - `en-US`
+- `ar`
 - `de-DE`
 - `es-419`
 - `fr-FR`
+- `hi-IN`
 - `it-IT`
+- `ja-JP`
+- `ko-KR`
 - `pt-BR`
+- `ru-RU`
+- `zh-CN`
+- `zh-TW`
 
 Formato:
 
@@ -78,6 +97,10 @@ Formato:
 <en-US>
 ...
 </en-US>
+
+<ar>
+...
+</ar>
 
 <de-DE>
 ...
@@ -91,13 +114,37 @@ Formato:
 ...
 </fr-FR>
 
+<hi-IN>
+...
+</hi-IN>
+
 <it-IT>
 ...
 </it-IT>
 
+<ja-JP>
+...
+</ja-JP>
+
+<ko-KR>
+...
+</ko-KR>
+
 <pt-BR>
 ...
 </pt-BR>
+
+<ru-RU>
+...
+</ru-RU>
+
+<zh-CN>
+...
+</zh-CN>
+
+<zh-TW>
+...
+</zh-TW>
 ```
 
 ## Validation before close
@@ -105,5 +152,5 @@ Formato:
 - `versionCode` incrementado cuando el usuario lo pide.
 - `versionName` <= 30 y descriptivo.
 - `utility.md` factual y util para `fichas`.
-- `version-notes.xml` sin placeholders si hay cambios visibles.
+- `version-notes.xml` en los 13 locales obligatorios y sin placeholders si hay cambios visibles.
 - no mojibake.

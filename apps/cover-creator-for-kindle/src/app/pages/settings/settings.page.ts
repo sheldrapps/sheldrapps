@@ -84,7 +84,7 @@ export class SettingsPage {
   eReaderOptimizationEnabled = true;
 
   private readonly privacyPolicyUrl =
-    'https://sheldrapps.github.io/privacy-policies/cover-creator-for-kindle/';
+    'https://sheldrapps.com/privacy-policies/cover-creator-for-kindle';
 
   trackByLang = (_: number, l: LangOption) => l.code;
 

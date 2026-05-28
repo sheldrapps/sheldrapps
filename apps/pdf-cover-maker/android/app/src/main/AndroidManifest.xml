@@ -9,7 +9,7 @@
         android:theme="@style/AppTheme">
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-1676607690625695/1139778733"
+            android:value="ca-app-pub-1676607690625695~9460744582"
         />
 
         <activity
