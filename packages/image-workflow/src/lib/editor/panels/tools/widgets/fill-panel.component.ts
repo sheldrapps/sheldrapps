@@ -1,4 +1,10 @@
-import { Component, computed, inject, signal, DestroyRef } from "@angular/core";
+import {
+  Component,
+  computed,
+  inject,
+  signal,
+  DestroyRef,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import {
   TranslateModule,
@@ -25,6 +31,8 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { EditorHistoryService } from "../../../editor-history.service";
 import { EditorColorSamplerService } from "../../../editor-color-sampler.service";
 import { EditorUiStateService } from "../../../editor-ui-state.service";
+import { EditorSessionService } from "../../../editor-session.service";
+import { EDITOR_SESSION_ID } from "../../../editor-panel.tokens";
 import type { BackgroundMode } from "../../../../types";
 
 type FillPanelView = "root" | "blur" | "colors" | "picker";
@@ -90,6 +98,10 @@ export class FillPanelComponent {
   readonly history = inject(EditorHistoryService);
   readonly sampler = inject(EditorColorSamplerService);
   readonly ui = inject(EditorUiStateService);
+  private readonly editorSession = inject(EditorSessionService, {
+    optional: true,
+  });
+  private readonly sid = inject(EDITOR_SESSION_ID, { optional: true });
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -114,6 +126,22 @@ export class FillPanelComponent {
     if (mode === "transparent") return "none";
     if (mode === "blur") return "same-image";
     return this.lastColorSource() === "picker" ? "picker" : "colors";
+  });
+  readonly isScratchSession = computed(() => {
+    if (!this.editorSession || !this.sid) return false;
+    return this.editorSession.getSession(this.sid)?.sourceMode === "scratch";
+  });
+  readonly eyedropperEnabled = computed(() => {
+    if (!this.isScratchSession()) return true;
+    return this.mode() === "color";
+  });
+  readonly disabledToolIds = computed(() => {
+    if (!this.isScratchSession()) return [];
+    const disabled = ["same-image"];
+    if (!this.eyedropperEnabled()) {
+      disabled.push("picker");
+    }
+    return disabled;
   });
 
   presets = FILL_PRESET_COLORS;
@@ -186,10 +214,12 @@ export class FillPanelComponent {
         this.activeView.set("root");
         return;
       case "same-image":
+        if (this.isScratchSession()) return;
         this.setBlur();
         this.activeView.set("blur");
         return;
       case "picker":
+        if (!this.eyedropperEnabled()) return;
         this.lastColorSource.set("picker");
         this.activeView.set("picker");
         this.startSampling();

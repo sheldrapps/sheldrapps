@@ -69,10 +69,7 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     }
 
     if (file.size > WEB_SIZE_WARNING_BYTES) {
-      console.warn('[EpubFixer][WebDev] Large EPUB loaded in browser', {
-        name: file.name,
-        size: file.size,
-      });
+      // no-op
     }
 
     try {
@@ -88,12 +85,6 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
         exportUrls: new Set<string>(),
       });
 
-      console.info('[EpubFixer][WebDev] Prepared EPUB session', {
-        sessionId,
-        name: input.displayName || file.name,
-        size: file.size,
-      });
-
       return {
         sessionId,
         originalName: input.displayName || file.name,
@@ -101,7 +92,6 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
         isZipReadable: true,
       };
     } catch (error) {
-      console.error('[EpubFixer][WebDev] ZIP unreadable', error);
       throw new EpubFixerPortError('ZIP_UNREADABLE', {
         message: error instanceof Error ? error.message : String(error),
       });
@@ -111,12 +101,6 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
   async diagnose(input: { sessionId: string }): Promise<EpubDiagnosticResult> {
     const session = this.requireSession(input.sessionId);
     const analysis = await this.analyze(session.zip);
-
-    console.info('[EpubFixer][WebDev] Diagnosis completed', {
-      sessionId: input.sessionId,
-      status: analysis.status,
-      issues: analysis.issues.map((issue) => issue.code),
-    });
 
     return {
       sessionId: input.sessionId,
@@ -197,11 +181,6 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     const xml = new XMLSerializer().serializeToString(analysis.opfDocument);
     session.zip.file(analysis.opfPath, xml);
 
-    console.info('[EpubFixer][WebDev] Repair applied', {
-      sessionId: input.sessionId,
-      repairedIssues: [...repairedIssues],
-    });
-
     return {
       success: true,
       repairedIssues: [...repairedIssues],
@@ -223,12 +202,6 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     session.exportUrls.add(outputUri);
     this.triggerDownload(outputUri, outputName);
 
-    console.info('[EpubFixer][WebDev] Export generated', {
-      sessionId: input.sessionId,
-      outputName,
-      size: blob.size,
-    });
-
     return {
       outputUri,
       size: blob.size,
@@ -246,9 +219,6 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     }
 
     this.sessions.delete(input.sessionId);
-    console.info('[EpubFixer][WebDev] Session cleaned', {
-      sessionId: input.sessionId,
-    });
   }
 
   private requireSession(sessionId: string): WebSession {

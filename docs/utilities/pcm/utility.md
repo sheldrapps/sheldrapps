@@ -3,69 +3,60 @@
 ## Project identity
 - app: pdf-cover-maker
 - alias: pcm
-- currentVersionCode: 1
-- nextVersionCode: 2
-- currentVersionName: "Guided tour and brand refresh"
-- nextVersionName: "Native pick and PDF stability"
+- currentVersionCode: 2
+- nextVersionCode: 3
+- currentVersionName: "Native pick and PDF stability"
+- nextVersionName: "Scratch flow and crop parity"
 
 ## Product purpose
 - Create cleaner PDF first-page covers with a guided, local workflow.
 - Help users improve visual organization of PDF libraries without cloud upload.
-- Keep a short loop: pick PDF, pick image, adjust, export, save/share.
+- Keep a short loop: pick PDF, pick source, adjust, export, save/share.
 
 ## Capability inventory (facts)
 - format: capability | user-value | evidence
-- Android PDF selection now prefers native plugin picker whenever plugin is available | Avoids fragile web file input path with streamed SAF providers on low/mid devices. | apps/pdf-cover-maker/src/app/pages/change/change.page.ts
-- Native picker gate decoupled from native rewrite gate | PDF import remains stable even when rewrite safety gate is disabled for session or SDK. | apps/pdf-cover-maker/src/app/pages/change/change.page.ts
-- PDFBox resources are explicitly initialized before PDF operations | Prevents glyph list initialization crash during first-page preview rendering. | plugins/pdf-rewrite/android/src/main/java/com/sheldrapps/plugins/pdfrewrite/PdfRewritePlugin.java
-- Plugin worker threads now catch fatal throwables in pick/inspect/rewrite/create/preview | Reduces process-kill risk from runtime initializer errors and returns controlled plugin errors. | plugins/pdf-rewrite/android/src/main/java/com/sheldrapps/plugins/pdfrewrite/PdfRewritePlugin.java
-- Recommended-apps ECC icon mapping fixed in PCM asset pipeline | Users now see ECC icon correctly instead of PCM icon in recommendations panel. | apps/pdf-cover-maker/angular.json
-- Production build excludes web PDF worker assets for Android release | Removes unneeded web worker payload in release package when web adapters are disabled. | apps/pdf-cover-maker/angular.json
-- PDF file-kit provider now enables web adapters only when explicitly requested | Keeps web fallback behavior in dev/web while excluding it in production Android. | packages/file-kit/src/lib/providers-pdf.ts
+- New source switch image or scratch | User can start cover design from blank background after PDF is selected. | apps/pdf-cover-maker/src/app/pages/change/change.page.html
+- Scratch start wired to editor tools entry | Scratch path opens tools-first editor and jumps to background setup. | apps/pdf-cover-maker/src/app/pages/change/change.page.ts
+- Best candidate hides after done from image/scratch | Candidate helper is removed once user commits source in editor. | apps/pdf-cover-maker/src/app/pages/change/change.page.ts
+- Scratch guardrails in fill panel | Same-image action remains disabled and eyedropper unlocks only after color exists. | packages/image-workflow/src/lib/editor/panels/tools/widgets/fill-panel.component.ts
+- Detected PDF crop and editor/export crop aligned | Editor preview and exported output now follow same crop interpretation. | apps/pdf-cover-maker/src/app/pages/change/change.page.ts
+- Thumbnail preview frame removed | Thumbnail now reflects real crop ratio with no decorative frame bars. | apps/pdf-cover-maker/src/app/pages/change/change.page.html
+- Tour flow updated for source chooser path | Tour includes source actions and preserves one-time behavior unless manual relaunch. | apps/pdf-cover-maker/src/app/shared/tour/home-tour.definition.ts
+- Shared source actions extracted to kit | Image/scratch controls and translations reused across all apps. | packages/image-workflow/src/lib/components/cover-source-actions/cover-source-actions.component.ts
 
 ## Differentiators (facts)
 - Native-first PDF ingest path tuned for Android document providers.
-- Defensive native rendering path against PDFBox resource init failures.
+- Scratch-first and image-first cover entry in same flow.
+- Crop parity between editor view and exported file.
 - Local-first file flow focused on privacy and fast execution.
 
 ## Valid additional use cases (facts)
 - Make training PDFs easier to identify by topic with custom visual covers.
-- Standardize document collections for teams sharing many similar PDFs.
-- Prepare clean before/after cover variants for study or archive workflows.
+- Build color-first minimal covers directly from scratch mode.
+- Prepare clean before/after cover variants with predictable crop output.
 
 ## User-facing change facts (increment)
-- PDF picker in Android now routes through native plugin path to avoid file-handle drop after streamed picker selection.
-- Native PDF import remains available even when rewrite safety gate blocks native rewrite stage.
-- Crash class around missing PDFBox glyph resources is mitigated by explicit resource loader init.
-- Native plugin preview/rewrite workers now return controlled failures for fatal runtime initialization errors.
-- Recommended apps in PCM now show ECC icon correctly.
-- Android release excludes web PDF worker artifacts.
+- Added source picker with sibling actions: image and scratch.
+- Scratch opens editor directly on background tool path.
+- After done from image or scratch, best candidate helper hides again.
+- In scratch mode, same-image is disabled and eyedropper unlocks only after color selection.
+- PDF detected crop and editor/export crop logic now align, preventing mismatched heavy crop on export.
+- Thumbnail preview no longer uses frame and now reflects real crop ratio.
+- Tour updated for new inputs and auto-run remains one-time unless manually relaunched.
 
 ## Increment scope facts
 - deltaFrom: 5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3
-- deltaTo: WORKTREE
-- changedFiles: 22
-- M apps/pdf-cover-maker/android/app/build.gradle
-- apps/pdf-cover-maker/android/app/src/main/AndroidManifest.xml
-- apps/pdf-cover-maker/capacitor.config.ts
-- apps/pdf-cover-maker/ionic.config.json
-- apps/pdf-cover-maker/ios/App/App/Info.plist
-- apps/pdf-cover-maker/package.json
+- deltaTo: 346e0b6d22d07b395c60014d440b768620e484ed
+- changedFiles: 50
 - apps/pdf-cover-maker/src/app/pages/change/change.page.html
 - apps/pdf-cover-maker/src/app/pages/change/change.page.ts
-- apps/pdf-cover-maker/src/app/pages/settings/settings.page.ts
-- apps/pdf-cover-maker/src/app/services/ads.config.ts
 - apps/pdf-cover-maker/src/app/shared/tour/home-tour.definition.ts
-- apps/pdf-cover-maker/src/app/shared/tour/tour-overlay.component.ts
-- apps/pdf-cover-maker/src/app/shared/tour/tour.service.ts
 - apps/pdf-cover-maker/src/assets/i18n/en-US.json
-- apps/pdf-cover-maker/src/assets/i18n/es-MX.json
-- apps/pdf-cover-maker/src/main.ts
-- packages/file-kit/src/lib/providers-pdf.ts
-- packages/file-kit/src/lib/providers.ts
-- packages/file-kit/src/public-api.ts
-- plugins/pdf-rewrite/android/src/main/java/com/sheldrapps/plugins/pdfrewrite/PdfRewritePlugin.java
-- apps/pdf-cover-maker/resources/icon_512.png
+- packages/image-workflow/src/lib/components/cover-source-actions/cover-source-actions.component.ts
+- packages/image-workflow/src/lib/cover-source/i18n/cover-source.translations.ts
+- packages/image-workflow/src/lib/editor/editor-session.service.ts
+- packages/image-workflow/src/lib/editor/editor-shell.page.ts
+- packages/image-workflow/src/lib/editor/panels/tools/widgets/fill-panel.component.ts
 
 ## Locale coverage facts
 - localeCount: 13
@@ -77,5 +68,5 @@
 - This increment does not claim PDF editing, merge, split, OCR, or compression.
 
 ## Tracking
-- versionCodeAnchorCommit: 5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3
-- generatedAt: 2026-05-27T15:11:01.1046198-06:00
+- versionCodeAnchorCommit: 346e0b6d22d07b395c60014d440b768620e484ed
+- generatedAt: 2026-05-28T03:46:35.8762772Z

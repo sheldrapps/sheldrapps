@@ -6,23 +6,24 @@
     "versionName": "Optimize for e-ink and sharpness"
   },
   "current": {
-    "updatedAt": "2026-05-20T01:21:06.059Z",
-    "head": "1cf564b7546dfb08997df73c6e9037396c197274",
-    "versionCode": 41,
-    "versionName": "Kindle Rebranding",
-    "versionCodeAnchorCommit": "9fd1a17310a22565cbf7a07a4c55688f93e27ca1",
-    "deltaFrom": "9fd1a17310a22565cbf7a07a4c55688f93e27ca1",
-    "deltaTo": "1cf564b7546dfb08997df73c6e9037396c197274",
-    "changedFilesCount": 13,
+    "updatedAt": "2026-05-28T03:46:35.8762772Z",
+    "head": "346e0b6d22d07b395c60014d440b768620e484ed",
+    "versionCode": 42,
+    "versionName": "Scratch source and tour reset",
+    "versionCodeAnchorCommit": "346e0b6d22d07b395c60014d440b768620e484ed",
+    "deltaFrom": "1cf564b7546dfb08997df73c6e9037396c197274",
+    "deltaTo": "346e0b6d22d07b395c60014d440b768620e484ed",
+    "changedFilesCount": 62,
     "userFacingSummary": [
-      "translations_refined",
-      "preview_flow_available",
-      "image_optimization_available"
+      "source_switch_image_and_scratch_added",
+      "scratch_enters_editor_background_tools",
+      "thumbnail_ratio_matches_crop_without_frame",
+      "tour_flow_updated_for_new_inputs"
     ]
   },
   "tracking": {
-    "lastProcessedHead": "1cf564b7546dfb08997df73c6e9037396c197274",
-    "lastProcessedAt": "2026-05-20T01:21:06.059Z",
-    "lastWorkingTreeFingerprint": "f2f1fb3549f7095fb99a80b302d4b86477c58724"
+    "lastProcessedHead": "346e0b6d22d07b395c60014d440b768620e484ed",
+    "lastProcessedAt": "2026-05-28T03:46:35.8762772Z",
+    "lastWorkingTreeFingerprint": "WORKTREE"
   }
 }

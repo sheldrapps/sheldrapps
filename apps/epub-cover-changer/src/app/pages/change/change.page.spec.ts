@@ -470,4 +470,26 @@ describe('ChangePage', () => {
 
     expect(nativeEnabled).toBeTrue();
   });
+
+  it('allows scratch start when epub exists and app is idle', () => {
+    const ctx = {
+      isPickingImage: false,
+      isExporting: false,
+      hasValidEpub: () => true,
+    };
+
+    const canStartScratch = (
+      ChangePage as unknown as {
+        prototype: {
+          canStartScratch: (this: {
+            isPickingImage: boolean;
+            isExporting: boolean;
+            hasValidEpub: () => boolean;
+          }) => boolean;
+        };
+      }
+    ).prototype.canStartScratch.call(ctx);
+
+    expect(canStartScratch).toBeTrue();
+  });
 });

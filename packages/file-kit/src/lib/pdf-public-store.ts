@@ -346,8 +346,7 @@ export class PdfPublicStore {
 
   private debugLog(event: string, payload?: Record<string, unknown>): void {
     if (!this.debug) return;
-    const suffix = payload ? ` ${JSON.stringify(payload)}` : '';
-    console.info(`[${this.logPrefix}] ${event}${suffix}`);
+    void event;
+    void payload;
   }
 }
-

@@ -90,7 +90,10 @@
     "TITLE": "표지 변경",
     "PREVIEW_ORIGINAL_LABEL": "원본 표지",
     "PREVIEW_NEW_LABEL": "새 표지",
-    "PREVIEW_NEW_ONLY_LABEL": "새 표지"
+    "PREVIEW_NEW_ONLY_LABEL": "새 표지",
+    "ARIA_START_SCRATCH": "Start from scratch",
+    "SOURCE_IMAGE": "Image",
+    "SOURCE_SCRATCH": "Scratch"
   },
   "COVERS": {
     "DELETED": "EPUB이 삭제되었습니다",

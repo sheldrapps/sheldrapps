@@ -100,7 +100,10 @@
     "TITLE": "Make cover",
     "PREVIEW_ORIGINAL_LABEL": "Original cover",
     "PREVIEW_NEW_LABEL": "New cover",
-    "PREVIEW_NEW_ONLY_LABEL": "New cover"
+    "PREVIEW_NEW_ONLY_LABEL": "New cover",
+    "ARIA_START_SCRATCH": "Start from scratch",
+    "SOURCE_IMAGE": "Image",
+    "SOURCE_SCRATCH": "Scratch"
   },
   "COVERS": {
     "DELETED": "PDF deleted",

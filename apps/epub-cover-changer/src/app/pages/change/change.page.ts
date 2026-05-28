@@ -36,6 +36,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import {
   buildDefaultCoverCropState,
+  CoverSourceActionsComponent,
   CoverCropState,
   EReaderPreviewFrameComponent,
   ImagePipelineService,
@@ -136,6 +137,8 @@ type EditorResult = {
   renderedMimeType?: string;
 };
 
+type EditorSourceMode = 'image' | 'scratch';
+
 @Component({
   selector: 'app-change',
   templateUrl: './change.page.html',
@@ -161,6 +164,7 @@ type EditorResult = {
     IonModal,
     LoadingStateComponent,
     EReaderPreviewFrameComponent,
+    CoverSourceActionsComponent,
     ScrollableButtonBarComponent,
     ExportQualitySelectorComponent,
     BestCandidatePickerComponent,
@@ -1179,20 +1183,42 @@ export class ChangePage implements OnInit, OnDestroy {
       !this.imageErrorKey
     );
   }
+  canStartScratch(): boolean {
+    return this.hasValidEpub() && !this.isPickingImage && !this.isExporting;
+  }
+
+  async onStartScratch(): Promise<void> {
+    if (!this.canStartScratch()) return;
+    this.resetSelectedImage();
+    this.clearImageError();
+    this.clearImageWarn();
+    await this.homeTour.completeInteraction('cover-image-selected');
+    await this.openEditor('scratch');
+  }
+
   async startCrop() {
     if (!this.canCrop()) return;
+    await this.openEditor('image');
+  }
 
-    const sourceFile = this.editorSourceFile ?? this.workingImageFile;
-    if (!sourceFile) return;
-
+  private async openEditor(sourceMode: EditorSourceMode): Promise<void> {
     const selected = this.getSelectedFormatOption();
     if (!selected) return;
+
+    const sourceFile =
+      sourceMode === 'image'
+        ? this.editorSourceFile ?? this.workingImageFile
+        : undefined;
+    if (sourceMode === 'image' && !sourceFile) return;
+
     const eReaderOptimizationEnabledForFeature =
       await this.resolveEReaderOptimizationEnabled();
-    const initialState = this.cropState;
+    const initialState =
+      sourceMode === 'scratch' ? this.buildDefaultCropState() : this.cropState;
 
     const sid = this.editorSession.createSession({
       file: sourceFile,
+      sourceMode,
       target: {
         width: selected.target.width,
         height: selected.target.height,
@@ -1238,7 +1264,8 @@ export class ChangePage implements OnInit, OnDestroy {
     const shouldShowEditorTour = await this.shouldShowEditorTour();
     await this.homeTour.completeInteraction('editor-apply');
 
-    this.router.navigate(['/editor'], {
+    const entryPath = sourceMode === 'scratch' ? '/editor/tools' : '/editor';
+    this.router.navigate([entryPath], {
       queryParams: {
         sid,
         ...(shouldShowEditorTour
@@ -1328,6 +1355,7 @@ export class ChangePage implements OnInit, OnDestroy {
     }
     this.clearImageError();
     this.clearImageWarn();
+    this.resetBestCandidateState(true);
 
     this.workingImageFile = newFile;
     this.exportImageFile = undefined;
@@ -1344,11 +1372,9 @@ export class ChangePage implements OnInit, OnDestroy {
     this.wasAutoSaved = false;
 
     this.selectedImageName = newFile.name;
-    if (!this.workingImageDims) {
-      const dims = await this.imagePipe.getDimensions(newFile);
-      if (!dims) return this.failImage('CORRUPT', newFile);
-      this.workingImageDims = dims;
-    }
+    const dims = await this.imagePipe.getDimensions(newFile);
+    if (!dims) return this.failImage('CORRUPT', newFile);
+    this.workingImageDims = dims;
 
     try {
       if (renderedBlob) {
@@ -3258,7 +3284,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private shouldAutoStartHomeTour(settings: EccSettings): boolean {
-    return (settings.homeTourVersion ?? 0) < CURRENT_HOME_TOUR_VERSION;
+    return settings.homeTourSeen !== true;
   }
 
   private async markHomeTourSeen(_reason: TourCompletionReason): Promise<void> {

@@ -3,58 +3,58 @@
 ## Project identity
 - app: epub-cover-changer
 - alias: ecc
-- currentVersionCode: 39
-- nextVersionCode: 40
-- currentVersionName: "Optimize for e-ink and sharpness"
-- nextVersionName: "Guided tour sync refresh"
+- currentVersionCode: 40
+- nextVersionCode: 41
+- currentVersionName: "Guided tour sync refresh"
+- nextVersionName: "Scratch source and UX parity"
 
 ## Product purpose
 - Replace or update EPUB covers with a fast, local workflow.
 - Keep documents readable and visually cleaner in e-reader libraries.
-- Keep the core loop simple: pick EPUB, pick cover image, adjust, export, save/share.
+- Keep the core loop simple: pick EPUB, pick source, adjust, export, save/share.
 
 ## Capability inventory (facts)
 - format: capability | user-value | evidence
-- Guided onboarding with interaction-aware steps | Users can follow the flow step by step without guessing the next action. | apps/epub-cover-changer/src/app/shared/tour/home-tour.definition.ts
-- Dynamic tour synchronization on UI mutations and resize | Spotlight stays aligned when warnings, toggles, modals, and layout changes happen. | apps/epub-cover-changer/src/app/shared/tour/tour.service.ts
-- Manual tour restart from guide entrypoint | Tapping guide now relaunches the full tour instead of only showing static help text. | apps/epub-cover-changer/src/app/pages/change/change.page.ts
-- Editor segment replay in manual tours | Manual tour explicitly replays the editor "Done" segment when reopened. | apps/epub-cover-changer/src/app/pages/change/change.page.ts
-- Remove-ads segment included in manual tours | Manual tours include CTA + close modal steps so the purchase branch is explained end to end. | apps/epub-cover-changer/src/app/shared/tour/home-tour.definition.ts
-- Export quality step included in tour | Free vs paid export path is now visible during onboarding. | apps/epub-cover-changer/src/app/pages/change/change.page.html
-- Tour overlay above modal layers | Tour tooltip/spotlight remains visible over overlays with higher z-index handling. | apps/epub-cover-changer/src/app/shared/tour/tour-overlay.component.ts
-- Web-dev startup stability for non-PDF apps | General file-kit provider no longer pulls PDF web cover service in ECC/CCFK builds. | packages/file-kit/src/lib/providers.ts
+- New source switch image or scratch | User can open editor with blank background flow, no input image required. | apps/epub-cover-changer/src/app/pages/change/change.page.html
+- Scratch start wired to editor tools entry | Scratch mode lands on tools path and opens background setup quickly. | apps/epub-cover-changer/src/app/pages/change/change.page.ts
+- Best candidate hides after done from image/scratch | Candidate helper disappears when user already committed source in editor. | apps/epub-cover-changer/src/app/pages/change/change.page.ts
+- Scratch guardrails in fill panel | Same-image action disabled and eyedropper disabled until color exists in scratch mode. | packages/image-workflow/src/lib/editor/panels/tools/widgets/fill-panel.component.ts
+- Shared source actions extracted to kit | Source controls and translations reused consistently across apps. | packages/image-workflow/src/lib/components/cover-source-actions/cover-source-actions.component.ts
+- Tour flow updated for new source inputs | Tour path covers image/scratch chooser and preserves manual guide restart flow. | apps/epub-cover-changer/src/app/shared/tour/home-tour.definition.ts
+- Tour replay gating by seen version | Auto-play does not re-run after seen, unless user relaunches manually from guide/settings. | apps/epub-cover-changer/src/app/pages/change/change.page.ts
+- Thumbnail preview frame removed | Thumbnail now mirrors crop ratio directly and avoids false border expectation. | apps/epub-cover-changer/src/app/pages/change/change.page.html
 
 ## Differentiators (facts)
-- Guided flow that reacts to real UI changes rather than fixed coordinates.
-- Onboarding covers both free and paid export paths in the same walkthrough.
+- Guided flow reacts to real UI changes rather than fixed coordinates.
+- Source picker supports both image-first and scratch-first entry.
 - Local-first workflow with no cloud upload requirement.
 
 ## Valid additional use cases (facts)
 - Standardize old EPUB libraries with cleaner cover consistency.
-- Prepare teaching/study EPUB sets with clearer visual identification.
-- Quick batch-like repeated updates using remembered settings.
+- Build simple color-first covers directly from scratch mode.
+- Quick repeated updates using remembered settings and tour-on-demand.
 
 ## User-facing change facts (increment)
-- Tour now tracks moving UI and modal transitions more reliably.
-- Guide button now launches the tour flow directly.
-- Manual tour now replays editor and remove-ads segments.
-- Export quality guidance was added to onboarding copy.
-- Privacy policy URL for settings was normalized to sheldrapps.com.
+- Added sibling source buttons: image and scratch.
+- Scratch opens editor in tools flow and starts from background setup path.
+- After done from image or scratch, best candidate helper hides again.
+- In scratch mode, same-image stays disabled and eyedropper unlocks only after color selection.
+- Thumbnail preview no longer uses frame, so crop ratio display matches expected output.
+- Tour updated for new inputs and stays one-time unless manually relaunched.
 
 ## Increment scope facts
 - deltaFrom: 5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3
-- deltaTo: 5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3
-- changedFiles: 10
+- deltaTo: 346e0b6d22d07b395c60014d440b768620e484ed
+- changedFiles: 42
 - apps/epub-cover-changer/src/app/pages/change/change.page.html
 - apps/epub-cover-changer/src/app/pages/change/change.page.ts
-- apps/epub-cover-changer/src/app/pages/settings/settings.page.ts
 - apps/epub-cover-changer/src/app/shared/tour/home-tour.definition.ts
-- apps/epub-cover-changer/src/app/shared/tour/tour-overlay.component.ts
-- apps/epub-cover-changer/src/app/shared/tour/tour.service.ts
 - apps/epub-cover-changer/src/assets/i18n/en-US.json
-- apps/epub-cover-changer/src/assets/i18n/es-MX.json
-- packages/file-kit/src/lib/providers.ts
-- packages/file-kit/src/public-api.ts
+- packages/image-workflow/src/lib/components/cover-source-actions/cover-source-actions.component.ts
+- packages/image-workflow/src/lib/cover-source/i18n/cover-source.translations.ts
+- packages/image-workflow/src/lib/editor/editor-session.service.ts
+- packages/image-workflow/src/lib/editor/editor-shell.page.ts
+- packages/image-workflow/src/lib/editor/panels/tools/widgets/fill-panel.component.ts
 
 ## Locale coverage facts
 - localeCount: 13
@@ -66,5 +66,5 @@
 - This increment does not claim OCR, PDF editing, conversion, merge, or compression features.
 
 ## Tracking
-- versionCodeAnchorCommit: 9fd1a17310a22565cbf7a07a4c55688f93e27ca1
-- generatedAt: 2026-05-27T06:26:08.502Z
+- versionCodeAnchorCommit: 346e0b6d22d07b395c60014d440b768620e484ed
+- generatedAt: 2026-05-28T03:46:35.8762772Z

@@ -4,6 +4,7 @@
       <sh-scrollable-button-bar
         [items]="toolItems"
         [activeId]="activeItem()"
+        [disabledIds]="disabledToolIds()"
         variant="iconText"
         align="center"
         (selectItem)="onSelectTool($event)"

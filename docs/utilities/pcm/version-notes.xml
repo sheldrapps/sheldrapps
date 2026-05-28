@@ -1,51 +1,51 @@
 <en-US>
-PDF Cover Maker now uses a more stable native PDF picker path on Android and improves PDF rendering reliability. Recommended apps also show the correct EPUB Cover Changer icon.
+Added Image | Scratch source actions. Scratch opens editor directly on background tools. PDF detected crop now matches editor and export output, so preview and final file stay aligned.
 </en-US>
 
 <ar>
-PDF Cover Maker yastakhdim alan masar ikhtiyar PDF asli akthar istiqraran ala Android wa yuhassin istikrar muaynat PDF. kama yuhir qism altatbiqat almuwassa biha ayqonat EPUB Cover Changer alssahiha.
+Tam idafat image | scratch. yabhath scratch al-muharrir mubasharatan ila adawat al-khalfiyah. qass PDF al-mukhtashaf alaan yutabiq muaynat al-muharrir wa natijit al-tasdir.
 </ar>
 
 <de-DE>
-PDF Cover Maker nutzt jetzt einen stabileren nativen PDF-Picker-Pfad auf Android und verbessert die Zuverlaessigkeit beim PDF-Rendering. In den empfohlenen Apps wird jetzt auch das korrekte EPUB Cover Changer Symbol angezeigt.
+Image | Scratch Quelle hinzugefuegt. Scratch oeffnet den Editor direkt bei den Hintergrund-Werkzeugen. Erkanntes PDF-Crop stimmt jetzt mit Editor und Export ueberein, damit Vorschau und Ergebnis gleich bleiben.
 </de-DE>
 
 <es-419>
-PDF Cover Maker ahora usa una ruta nativa de seleccion de PDF mas estable en Android y mejora la confiabilidad del render de PDF. En apps recomendadas tambien se muestra el icono correcto de EPUB Cover Changer.
+Se agregaron acciones de fuente Image | Scratch. Scratch abre el editor directo en herramientas de fondo. El crop detectado del PDF ahora coincide con editor y exportacion, por lo que preview y archivo final quedan alineados.
 </es-419>
 
 <fr-FR>
-PDF Cover Maker utilise maintenant un chemin natif de selection PDF plus stable sur Android et ameliore la fiabilite du rendu PDF. Les applications recommandees affichent aussi la bonne icone EPUB Cover Changer.
+Ajout des actions source Image | Scratch. Scratch ouvre l editeur directement sur les outils de fond. Le crop detecte du PDF correspond maintenant a l editeur et a l export, pour garder preview et resultat alignes.
 </fr-FR>
 
 <hi-IN>
-PDF Cover Maker ab Android par zyada stable native PDF picker path use karta hai aur PDF rendering reliability ko improve karta hai. Recommended apps mein ab EPUB Cover Changer ka sahi icon dikh raha hai.
+Image | Scratch source actions add hue. Scratch editor ko seedha background tools par kholta hai. PDF detected crop ab editor aur export ke saath match karta hai, isliye preview aur final file aligned rehte hain.
 </hi-IN>
 
 <it-IT>
-PDF Cover Maker ora usa un percorso nativo di selezione PDF piu stabile su Android e migliora l affidabilita del rendering PDF. Nelle app consigliate viene mostrata anche l icona corretta di EPUB Cover Changer.
+Aggiunte azioni sorgente Image | Scratch. Scratch apre l editor direttamente sugli strumenti di sfondo. Il crop PDF rilevato ora coincide con editor ed export, cosi anteprima e file finale restano allineati.
 </it-IT>
 
 <ja-JP>
-PDF Cover Maker wa Android de yori antei shita native PDF picker keiro o shiyou shi, PDF ringa no shinraisei mo kaizen. Osusume apuri de EPUB Cover Changer no tadashii aikon mo hyouji sareru.
+Image | Scratch source action o tsuika. Scratch wa haikei tool ni chokusetu hairu editor de hirakimasu. PDF de kenshutsu sareta crop wa ima editor to export to icchi shi, preview to saishuu file ga zuremasen.
 </ja-JP>
 
 <ko-KR>
-PDF Cover Maker-neun Android-eseo deo anjeongjeogin native PDF picker gyeongroreul sayonghago PDF rendering sinroe-seongeul gaeseonhaetseumnida. Recommended apps-eseo EPUB Cover Changer ui ollbareun aikon-do pyosi doemnida.
+Image | Scratch source action-i chuga doeeotseumnida. Scratch-neun baegyeong tool-eseo jeuksi editor-reul yeoreumnida. PDF gamji crop-eun ije editor-wa export-gwa ilchihae preview-wa gyeolgwa file-i matseumnida.
 </ko-KR>
 
 <pt-BR>
-O PDF Cover Maker agora usa um caminho nativo de selecao de PDF mais estavel no Android e melhora a confiabilidade do rendering de PDF. Os apps recomendados tambem exibem o icone correto do EPUB Cover Changer.
+Foram adicionadas acoes de origem Image | Scratch. Scratch abre o editor direto nas ferramentas de fundo. O crop detectado do PDF agora coincide com editor e exportacao, mantendo preview e arquivo final alinhados.
 </pt-BR>
 
 <ru-RU>
-PDF Cover Maker teper ispolzuet bolee stabilnyi native put vybora PDF na Android i uluchshaet nadezhnost renderinga PDF. V rekomenduemykh prilozheniyakh takzhe pokazyvaetsya pravilnaya ikonka EPUB Cover Changer.
+Dobavleny deistviya istochnika Image | Scratch. Rezhim scratch otkryvaet redaktor srazu na instrumentakh fona. Obnaruzhennyi PDF crop teper sovpadaet s editorom i exportom, poetomu preview i finalnyi fail soglasovany.
 </ru-RU>
 
 <zh-CN>
-PDF Cover Maker xianzai zai Android shang shiyong geng wending de yuansheng PDF xuanze lujing, bing tisheng le PDF xuanran de kekaoxing. Tuijian yingyong ye hui xianshi zhengque de EPUB Cover Changer tubiao.
+Yi zengjia Image | Scratch laiyuan anniu. Scratch hui zhijie dakaibianjiqi de beijing gongju. PDF zidong jiance de crop xianzai yu editor he export baochi yizhi, preview he zuizhong wenjian bu zai cuowei.
 </zh-CN>
 
 <zh-TW>
-PDF Cover Maker xianzai zai Android shang shiyong geng wending de yuansheng PDF xuanze lujing, bing tisheng le PDF xuanzan de kekaoxing. Tuijian yingyong ye hui xianshi zhengque de EPUB Cover Changer tubiao.
+Yi zengjia Image | Scratch laiyuan anniu. Scratch hui zhijie dakaibianjiqi de beijing gongju. PDF zidong jiance de crop xianzai yu editor he export baochi yizhi, preview he zuizhong wenjian bu zai cuowei.
 </zh-TW>

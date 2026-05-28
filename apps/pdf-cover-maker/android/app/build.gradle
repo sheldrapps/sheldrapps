@@ -9,8 +9,8 @@ android {
         applicationId "com.sheldrapps.pdfcovermaker"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "Native pick and PDF stability"
+        versionCode 3
+        versionName "Scratch flow and crop parity"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

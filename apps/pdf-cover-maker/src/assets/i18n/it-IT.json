@@ -90,7 +90,10 @@
     "INVALID_COVER_TAP_TO_CHANGE": "Invalid cover, tap to make",
     "PREVIEW_ORIGINAL_LABEL": "Copertina originale",
     "PREVIEW_NEW_LABEL": "Nuova copertina",
-    "PREVIEW_NEW_ONLY_LABEL": "Nuova copertina"
+    "PREVIEW_NEW_ONLY_LABEL": "Nuova copertina",
+    "ARIA_START_SCRATCH": "Start from scratch",
+    "SOURCE_IMAGE": "Image",
+    "SOURCE_SCRATCH": "Scratch"
   },
   "COVERS": {
     "DELETED": "PDF eliminato",

@@ -81,7 +81,10 @@
     },
     "INFO_REQUIREMENTS_LABEL": "必要条件:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Kindleで広告を無効にしてください。",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Kindleで「画面と明るさ > ロック画面に表紙を表示」を有効にしてください。"
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Kindleで「画面と明るさ > ロック画面に表紙を表示」を有効にしてください。",
+    "ARIA_START_SCRATCH": "Zero kara kaishi",
+    "SOURCE_IMAGE": "Gazou",
+    "SOURCE_SCRATCH": "Zero kara"
   },
   "COVERS": {
     "DELETED": "表紙を削除しました",

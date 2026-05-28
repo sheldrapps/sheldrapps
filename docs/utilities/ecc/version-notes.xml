@@ -1,51 +1,51 @@
 <en-US>
-Tour alignment is now more stable during warnings, modals, and quick UI changes. Guide now starts the full tour, including editor and remove-ads steps.
+Added Image | Scratch source actions. After Done from image or scratch, Best Candidate now hides again. In scratch mode, Same Image stays disabled and Eyedropper unlocks only after choosing a color.
 </en-US>
 
 <ar>
-اصبح محاذاة الجولة اكثر ثباتا اثناء التحذيرات والنوافذ المنبثقة وتغيرات الواجهة السريعة. زر الدليل يبدأ الان الجولة الكاملة بما في ذلك خطوات المحرر وازالة الاعلانات.
+Tam idafat image | scratch. baad done min image aw scratch, akhyar murashah yakhfii marra ukhra. fi scratch, same image yabqa muattalan wa eyedropper yatafaal baad ikhtiyar lawn.
 </ar>
 
 <de-DE>
-Die Tour-Ausrichtung ist jetzt stabiler bei Warnungen, Modalen und schnellen UI-Aenderungen. Guide startet jetzt die komplette Tour inklusive Editor- und Remove-Ads-Schritten.
+Image | Scratch Quelle hinzugefuegt. Nach Done aus Image oder Scratch wird Best Candidate wieder ausgeblendet. Im Scratch-Modus bleibt Same Image deaktiviert und Eyedropper wird erst nach Farbauswahl aktiv.
 </de-DE>
 
 <es-419>
-El tour ahora se mantiene mejor alineado durante advertencias, modales y cambios rapidos de la interfaz. Guia ahora inicia el tour completo, incluyendo editor y pasos de quitar anuncios.
+Se agregaron acciones de fuente Image | Scratch. Despues de Done desde imagen o scratch, Best Candidate se vuelve a ocultar. En modo scratch, Same Image queda deshabilitado y Eyedropper solo se habilita tras elegir color.
 </es-419>
 
 <fr-FR>
-L alignement du tour est maintenant plus stable pendant les alertes, modales et changements rapides de l interface. Guide lance maintenant le tour complet, avec l editeur et les etapes remove ads.
+Ajout des actions source Image | Scratch. Apres Done depuis image ou scratch, Best Candidate se masque a nouveau. En mode scratch, Same Image reste desactive et Eyedropper s active seulement apres choix d une couleur.
 </fr-FR>
 
 <hi-IN>
-अब टूर अलाइनमेंट चेतावनियों, मोडल्स और तेज UI बदलावों के दौरान ज्यादा स्थिर है। गाइड अब पूरा टूर शुरू करता है, जिसमें एडिटर और remove ads स्टेप्स शामिल हैं।
+Image | Scratch source actions add kiye gaye. Image ya scratch se Done ke baad Best Candidate fir hide hota hai. Scratch mode me Same Image disabled rehta hai aur Eyedropper color choose karne ke baad hi enable hota hai.
 </hi-IN>
 
 <it-IT>
-L allineamento del tour e ora piu stabile durante avvisi, modali e cambi rapidi dell interfaccia. Guida ora avvia il tour completo, inclusi editor e passaggi remove ads.
+Aggiunte azioni sorgente Image | Scratch. Dopo Done da image o scratch, Best Candidate torna nascosto. In modalita scratch, Same Image resta disabilitato e Eyedropper si abilita solo dopo scelta colore.
 </it-IT>
 
 <ja-JP>
-警告やモーダル、素早いUI変化の間でも、ツアーの位置合わせがより安定しました。ガイドは編集と広告削除ステップを含むフルツアーを開始します。
+Image | Scratch source action o tsuika. Image matawa scratch kara Done no ato, Best Candidate wa futatabi kakuremasu. Scratch mode dewa Same Image wa muko no mama, Eyedropper wa iro sentaku go ni nomi yuukou.
 </ja-JP>
 
 <ko-KR>
-경고, 모달, 빠른 UI 변경 중에도 투어 정렬이 더 안정적으로 동작합니다. 가이드는 이제 에디터와 광고 제거 단계를 포함한 전체 투어를 시작합니다.
+Image | Scratch source action-i chuga doeeotseumnida. Image ttoneun scratch-eseo Done hu Best Candidate-neun dasi sumgyeojimnida. Scratch mode-eseo Same Image-neun biyonghwa, Eyedropper-neun saeg sangtae seontaek hu-e man hwalseonghwa doemnida.
 </ko-KR>
 
 <pt-BR>
-O alinhamento do tour esta mais estavel durante avisos, modais e mudancas rapidas da interface. Guia agora inicia o tour completo, incluindo editor e etapas de remover anuncios.
+Foram adicionadas acoes de origem Image | Scratch. Depois de Done por imagem ou scratch, Best Candidate volta a ficar oculto. No modo scratch, Same Image continua desabilitado e Eyedropper so ativa apos escolher cor.
 </pt-BR>
 
 <ru-RU>
-Выравнивание тура стало стабильнее при предупреждениях, модальных окнах и быстрых изменениях интерфейса. Кнопка Guide теперь запускает полный тур, включая шаги редактора и удаления рекламы.
+Dobavleny deistviya istochnika Image | Scratch. Posle Done iz image ili scratch Best Candidate snova skryvaetsya. V rezhime scratch Same Image ostayotsya otklyuchen, a Eyedropper vklyuchaetsya tolko posle vybora cveta.
 </ru-RU>
 
 <zh-CN>
-现在在警告、弹窗和快速界面变化时，导览定位更稳定。指南按钮会启动完整导览，包括编辑器和去广告步骤。
+Yi zengjia Image | Scratch laiyuan anniu. Cong image huo scratch dianji Done hou, Best Candidate hui zai ci yincang. Zai scratch moshi zhong, Same Image baochi jinyong, Eyedropper xuyao xian xuanze yanse cai neng qiyong.
 </zh-CN>
 
 <zh-TW>
-現在在警告、彈窗與快速介面變化時，導覽定位更穩定。指南按鈕會啟動完整導覽，包含編輯器與移除廣告步驟。
+Yi zengjia Image | Scratch laiyuan anniu. Cong image huo scratch dianji Done hou, Best Candidate hui zai ci yincang. Zai scratch moshi zhong, Same Image baochi jinyong, Eyedropper bixu xian xuanze yanse cai neng qiyong.
 </zh-TW>

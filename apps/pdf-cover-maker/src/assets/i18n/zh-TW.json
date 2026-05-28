@@ -100,7 +100,10 @@
     "TITLE": "製作封面",
     "PREVIEW_ORIGINAL_LABEL": "原始封面",
     "PREVIEW_NEW_LABEL": "新封面",
-    "PREVIEW_NEW_ONLY_LABEL": "新封面"
+    "PREVIEW_NEW_ONLY_LABEL": "新封面",
+    "ARIA_START_SCRATCH": "Start from scratch",
+    "SOURCE_IMAGE": "Image",
+    "SOURCE_SCRATCH": "Scratch"
   },
   "COVERS": {
     "DELETED": "PDF 已刪除",

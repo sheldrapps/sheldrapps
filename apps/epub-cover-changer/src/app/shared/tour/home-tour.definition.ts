@@ -25,8 +25,8 @@ export function buildHomeTourDefinition(
       progressTotal: totalSteps,
     },
     {
-      id: 'cover-image-picker',
-      target: 'cover-image-picker',
+      id: 'cover-source-actions',
+      target: 'cover-source-actions',
       title: t('HOME_TOUR.STEPS.IMAGE.TITLE'),
       description: t('HOME_TOUR.STEPS.IMAGE.DESCRIPTION'),
       placement: 'bottom',

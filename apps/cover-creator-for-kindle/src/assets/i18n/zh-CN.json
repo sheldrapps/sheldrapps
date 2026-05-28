@@ -81,7 +81,10 @@
     },
     "INFO_REQUIREMENTS_LABEL": "要求：",
     "INFO_REQUIREMENT_DISABLE_ADS": "在 Kindle 上禁用广告。",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "在 Kindle 上启用「屏幕与亮度 > 在锁屏上显示封面」。"
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "在 Kindle 上启用「屏幕与亮度 > 在锁屏上显示封面」。",
+    "ARIA_START_SCRATCH": "Cong ling kaishi",
+    "SOURCE_IMAGE": "Tupian",
+    "SOURCE_SCRATCH": "Cong ling kaishi"
   },
   "COVERS": {
     "DELETED": "封面已删除",

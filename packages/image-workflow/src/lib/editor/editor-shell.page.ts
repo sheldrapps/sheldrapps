@@ -241,6 +241,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   session: EditorSession | null = null;
   private returnUrl: string | null = null;
   private objectUrl?: string;
+  private scratchFillPanelOpened = false;
 
   // Preview
   aspectRatio = "3 / 4";
@@ -602,6 +603,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.sid = this.route.snapshot.queryParamMap.get("sid") ?? "";
     this.session = this.sid ? this.editorSession.getSession(this.sid) : null;
+    this.scratchFillPanelOpened = false;
     this.returnUrl =
       this.session?.returnUrl ??
       this.route.snapshot.queryParamMap.get("returnUrl");
@@ -624,8 +626,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     // Editor state service is singleton-scoped; reset it for every session so
     // adjustments from a previous image do not leak into a new one.
     this.editorState.resetAll();
-
-    if (!this.session?.file) return;
+    if (!this.session) return;
 
     if (this.session.initialState) {
       this.editorState.setState(this.session.initialState);
@@ -644,9 +645,6 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       this.ui.setToolsConfig(this.session.tools);
     }
 
-    this.objectUrl = URL.createObjectURL(this.session.file);
-    this.imageUrl = this.objectUrl;
-
     this.aspectRatio = `${this.session.target.width} / ${this.session.target.height}`;
     this.previewMaskShape = this.session.preview?.maskShape ?? "rect";
     const kindleTarget = this.kindleState.target();
@@ -664,6 +662,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
     // Initial route check
     this.updateModeFromRoute();
+    void this.initializeSessionImage();
   }
 
   ngAfterViewInit(): void {
@@ -961,6 +960,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.updateCanvasGestures();
     this.updateConstraintsContext();
     this.updateHistoryMode();
+    this.syncScratchEntryPanel();
   }
 
   private async syncEditViewportLock(isEditing: boolean): Promise<void> {
@@ -1650,6 +1650,74 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
   onImgError(_: Event): void {
     // No-op
+  }
+
+  private async initializeSessionImage(): Promise<void> {
+    if (!this.session) return;
+    const file = await this.resolveSessionFile();
+    if (!file) return;
+
+    if (this.objectUrl) {
+      URL.revokeObjectURL(this.objectUrl);
+      this.objectUrl = undefined;
+    }
+
+    this.imageLoaded = false;
+    this.ready = false;
+    this.naturalW = 0;
+    this.naturalH = 0;
+
+    this.objectUrl = URL.createObjectURL(file);
+    this.imageUrl = this.objectUrl;
+  }
+
+  private async resolveSessionFile(): Promise<File | null> {
+    if (!this.session) return null;
+    if (this.session.file) return this.session.file;
+    if (this.session.sourceMode !== "scratch") return null;
+
+    const targetWidth = Math.max(1, Math.round(this.session.target.width));
+    const targetHeight = Math.max(1, Math.round(this.session.target.height));
+    const file = await this.createScratchFile(targetWidth, targetHeight);
+    this.session.file = file;
+    return file;
+  }
+
+  private async createScratchFile(
+    width: number,
+    height: number,
+  ): Promise<File> {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.clearRect(0, 0, width, height);
+    }
+
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob((value) => resolve(value), "image/png"),
+    );
+
+    if (blob) {
+      return new File([blob], "scratch.png", { type: "image/png" });
+    }
+
+    const fallback = new Uint8Array([
+      137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0,
+      1, 0, 0, 0, 1, 8, 6, 0, 0, 0, 31, 21, 196, 137, 0, 0, 0, 10, 73, 68, 65,
+      84, 120, 218, 99, 0, 1, 0, 0, 5, 0, 1, 13, 10, 45, 180, 0, 0, 0, 0, 73,
+      69, 78, 68, 174, 66, 96, 130,
+    ]);
+    return new File([fallback], "scratch.png", { type: "image/png" });
+  }
+
+  private syncScratchEntryPanel(): void {
+    if (this.scratchFillPanelOpened) return;
+    if (!this.session || this.session.sourceMode !== "scratch") return;
+    if (this.ui.activeMode() !== "tools") return;
+    this.ui.openPanel("tools", "fill");
+    this.scratchFillPanelOpened = true;
   }
 
   private tryReady(): void {

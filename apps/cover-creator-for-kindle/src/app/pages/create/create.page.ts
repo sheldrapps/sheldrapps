@@ -41,6 +41,7 @@ import {
 
 import {
   buildDefaultCoverCropState,
+  CoverSourceActionsComponent,
   CoverCropState,
   EReaderPreviewFrameComponent,
   ImagePipelineService,
@@ -132,6 +133,8 @@ type EditorResult = {
   renderedHeight?: number;
 };
 
+type EditorSourceMode = 'image' | 'scratch';
+
 @Component({
   selector: 'app-create',
   templateUrl: './create.page.html',
@@ -160,6 +163,7 @@ type EditorResult = {
     IonModal,
     LoadingStateComponent,
     EReaderPreviewFrameComponent,
+    CoverSourceActionsComponent,
     ScrollableButtonBarComponent,
     ExportQualitySelectorComponent,
     TourOverlayComponent,
@@ -372,18 +376,35 @@ export class CreatePage implements OnInit, OnDestroy {
 
   async onAdjustWithEditor() {
     if (!this.canEdit()) return;
+    await this.openEditor('image');
+  }
 
-    if (!this.workingImageFile) return;
+  canStartScratch(): boolean {
+    return !!this.selectedModel && !this.isPickingImage && !this.isExporting;
+  }
 
+  async onStartScratch(): Promise<void> {
+    if (!this.canStartScratch()) return;
+    this.resetSelectedImage();
+    this.clearImageError();
+    this.clearImageWarn();
+    await this.homeTour.completeInteraction('cover-image-selected');
+    await this.openEditor('scratch');
+  }
+
+  private async openEditor(sourceMode: EditorSourceMode): Promise<void> {
     const selection = this.resolveCurrentSelection();
     if (!selection) return;
+    if (sourceMode === 'image' && !this.workingImageFile) return;
+
     this.applyResolvedSelection(selection);
     const eReaderOptimizationEnabledForFeature =
       await this.resolveEReaderOptimizationEnabled();
-    const initialState = this.cropState;
-
+    const initialState =
+      sourceMode === 'scratch' ? buildDefaultCoverCropState() : this.cropState;
     const sid = this.editorSession.createSession({
-      file: this.workingImageFile,
+      file: sourceMode === 'image' ? this.workingImageFile : undefined,
+      sourceMode,
       target: {
         width: selection.model.width,
         height: selection.model.height,
@@ -433,7 +454,8 @@ export class CreatePage implements OnInit, OnDestroy {
     const shouldShowEditorTour = await this.shouldShowEditorTour();
     await this.homeTour.completeInteraction('editor-apply');
 
-    this.router.navigate(['/editor'], {
+    const entryPath = sourceMode === 'scratch' ? '/editor/tools' : '/editor';
+    this.router.navigate([entryPath], {
       queryParams: {
         sid,
         ...(shouldShowEditorTour ? { tour: '1' } : {}),
@@ -1463,11 +1485,9 @@ export class CreatePage implements OnInit, OnDestroy {
     this.wasAutoSaved = false;
 
     this.selectedImageName = newFile.name;
-    if (!this.workingImageDims) {
-      const dims = await this.imagePipe.getDimensions(newFile);
-      if (!dims) return this.failImage('CORRUPT', newFile);
-      this.workingImageDims = dims;
-    }
+    const dims = await this.imagePipe.getDimensions(newFile);
+    if (!dims) return this.failImage('CORRUPT', newFile);
+    this.workingImageDims = dims;
 
     const exportDimsFromEditor = this.extractEditorExportDims(result);
     await this.applySmallWarn('editor-apply', undefined, exportDimsFromEditor);
@@ -1790,7 +1810,7 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   private shouldAutoStartHomeTour(settings: CcfkSettings): boolean {
-    return (settings.homeTourVersion ?? 0) < CURRENT_HOME_TOUR_VERSION;
+    return settings.homeTourSeen !== true;
   }
 
   private async markHomeTourSeen(_reason: TourCompletionReason): Promise<void> {

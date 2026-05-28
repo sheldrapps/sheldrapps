@@ -81,7 +81,10 @@
     },
     "INFO_REQUIREMENTS_LABEL": "필요 조건:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Kindle에서 광고를 비활성화하세요.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Kindle에서 \"화면 및 밝기 > 잠금 화면에 표지 표시\"를 활성화하세요."
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Kindle에서 \"화면 및 밝기 > 잠금 화면에 표지 표시\"를 활성화하세요.",
+    "ARIA_START_SCRATCH": "Cheoeumbuteo sijak",
+    "SOURCE_IMAGE": "Imiji",
+    "SOURCE_SCRATCH": "Cheoeumbuteo"
   },
   "COVERS": {
     "DELETED": "표지가 삭제되었습니다",

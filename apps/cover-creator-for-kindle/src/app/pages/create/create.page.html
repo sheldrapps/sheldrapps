@@ -106,6 +106,13 @@
     </ion-grid>
   </div>
 
+  <sh-cover-source-actions
+    [imageDisabled]="false"
+    [scratchDisabled]="!canStartScratch()"
+    (imageSelected)="openImagePicker()"
+    (scratchSelected)="onStartScratch()"
+  ></sh-cover-source-actions>
+
   <ion-item
     button
     detail="false"
@@ -139,9 +146,14 @@
       }
     </ion-label>
 
-    <div class="thumb-wrapper" slot="end" aria-hidden="true">
+    <div
+      class="thumb-wrapper"
+      [class.thumb-wrapper--preview]="previewUrl && !imageErrorKey"
+      slot="end"
+      aria-hidden="true"
+    >
       @if (previewUrl && !imageErrorKey) {
-      <div class="thumb">
+      <div class="thumb thumb--preview">
         <img [src]="previewUrl" alt="" />
       </div>
       <ion-icon class="thumb-check" name="checkmark-circle"></ion-icon>

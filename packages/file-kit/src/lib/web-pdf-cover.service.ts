@@ -107,7 +107,7 @@ export class WebPdfCoverService {
       const fileName = this.deriveFirstPageName(_file.name || 'pdf');
       return new File([blob], fileName, { type: 'image/png' });
     } catch (error) {
-      console.warn('[PCM_WEB_PDF_FALLBACK] extractCover failed', error);
+      void error;
       return null;
     } finally {
       try {

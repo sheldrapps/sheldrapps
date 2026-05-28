@@ -100,7 +100,10 @@
     "TITLE": "表紙を作成",
     "PREVIEW_ORIGINAL_LABEL": "元の表紙",
     "PREVIEW_NEW_LABEL": "新しい表紙",
-    "PREVIEW_NEW_ONLY_LABEL": "新しい表紙"
+    "PREVIEW_NEW_ONLY_LABEL": "新しい表紙",
+    "ARIA_START_SCRATCH": "Start from scratch",
+    "SOURCE_IMAGE": "Image",
+    "SOURCE_SCRATCH": "Scratch"
   },
   "COVERS": {
     "DELETED": "PDFを削除しました",

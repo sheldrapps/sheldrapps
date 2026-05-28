@@ -5,6 +5,7 @@ import type { CoverCropState, CropFormatOption, CropperResult } from '../types';
 /** Panel types available in the editor */
 export type ToolPanelType = "zoom" | "rotate" | "crop";
 export type EditorPreviewMaskShape = "rect" | "circle";
+export type EditorSessionSourceMode = "image" | "scratch";
 // Use CropFormatOption from types barrel
 
 /** Kindle device model (catalog-driven) */
@@ -86,7 +87,8 @@ export interface ArtifactReductionInfoPreferencePort {
 }
 
 export type EditorSession = {
-  file: File;
+  file?: File;
+  sourceMode?: EditorSessionSourceMode;
 
   /** Initial target dimensions */
   target: { width: number; height: number };

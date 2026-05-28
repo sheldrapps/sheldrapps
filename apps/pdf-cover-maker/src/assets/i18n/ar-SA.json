@@ -100,7 +100,10 @@
     "TITLE": "إنشاء الغلاف",
     "PREVIEW_ORIGINAL_LABEL": "الغلاف الأصلي",
     "PREVIEW_NEW_LABEL": "الغلاف الجديد",
-    "PREVIEW_NEW_ONLY_LABEL": "غلاف جديد"
+    "PREVIEW_NEW_ONLY_LABEL": "غلاف جديد",
+    "ARIA_START_SCRATCH": "Start from scratch",
+    "SOURCE_IMAGE": "Image",
+    "SOURCE_SCRATCH": "Scratch"
   },
   "COVERS": {
     "DELETED": "تم حذف ملف PDF",

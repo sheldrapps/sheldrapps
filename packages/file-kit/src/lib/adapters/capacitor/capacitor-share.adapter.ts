@@ -13,7 +13,6 @@ export class CapacitorShareAdapter implements ShareAdapter {
       // Check if Share is available
       const { value: canShare } = await Share.canShare();
       if (!canShare) {
-        console.warn('[file-kit] Share not available on this platform');
         return false;
       }
 
@@ -26,7 +25,6 @@ export class CapacitorShareAdapter implements ShareAdapter {
 
       return true;
     } catch (error) {
-      console.warn('[file-kit] Share failed:', error);
       // Share being cancelled is not an error, just return false
       if (String(error).includes('canceled')) {
         return false;

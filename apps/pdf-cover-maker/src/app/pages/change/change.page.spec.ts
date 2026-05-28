@@ -470,4 +470,26 @@ describe('ChangePage', () => {
 
     expect(nativeEnabled).toBeTrue();
   });
+
+  it('allows scratch start when pdf exists and app is idle', () => {
+    const ctx = {
+      isPickingImage: false,
+      isExporting: false,
+      hasValidPdf: () => true,
+    };
+
+    const canStartScratch = (
+      ChangePage as unknown as {
+        prototype: {
+          canStartScratch: (this: {
+            isPickingImage: boolean;
+            isExporting: boolean;
+            hasValidPdf: () => boolean;
+          }) => boolean;
+        };
+      }
+    ).prototype.canStartScratch.call(ctx);
+
+    expect(canStartScratch).toBeTrue();
+  });
 });

@@ -4,57 +4,55 @@
 - app: cover-creator-for-kindle
 - alias: ccfk
 - currentVersionCode: 41
-- nextVersionCode: 41
+- nextVersionCode: 42
 - currentVersionName: "Kindle Rebranding"
-- nextVersionName: "Kindle Rebranding"
+- nextVersionName: "Scratch source and tour reset"
 
 ## Product purpose
 - Convert images into e-reader covers with model-safe output.
 - Reduce incompatibility issues across device models and resolutions.
-- Keep a short flow: choose model, adjust, preview, export, share.
+- Keep short flow: choose source, adjust, preview, export, share.
 
 ## Capability inventory (facts)
 - format: capability | user-value | evidence
-- Catalogo multi-dispositivo con resolucion real | Permite crear portadas para multiples familias de e-reader sin ajuste manual. Actualmente: 5 marcas, 19 grupos y 29 modelos. | apps/cover-creator-for-kindle/src/assets/data/kindle-model-groups.json
-- Seleccion inteligente de modelo y fallback seguro | Resuelve modelo/brand por defecto y evita selecciones invalidas. | apps/cover-creator-for-kindle/src/app/services/kindle-catalog.service.ts
-- Validacion fuerte de imagen de entrada | Detecta tipo no soportado, tamano fuera de limite y archivos corruptos antes de exportar. | apps/cover-creator-for-kindle/src/app/services/image-pipeline.service.ts
-- Previsualizacion antes de guardar/compartir | Permite validar el resultado final de portada sin salir del flujo de edicion. | apps/cover-creator-for-kindle/src/app/pages/create/create.page.ts
-- Reduccion de artefactos y metadatos de dithering | Mejora legibilidad en pantallas e-ink y conserva informacion de procesamiento por portada. | apps/cover-creator-for-kindle/src/app/services/file.service.ts
-- Calidad de exportacion configurable | Balancea calidad visual y tamano de archivo segun preferencia del usuario. | apps/cover-creator-for-kindle/src/app/settings/ccfk-settings.schema.ts
-- Guardado y compartido de EPUB generado | Permite flujo completo desde edicion hasta envio a app/servicio de lectura. | apps/cover-creator-for-kindle/src/app/services/file.service.ts
-- Persistencia de preferencias y hints de onboarding | Recuerda modelo y opciones de exportacion para reducir friccion en usos repetidos. | apps/cover-creator-for-kindle/src/app/settings/ccfk-settings.schema.ts
+- New source switch image or scratch | User can start from blank canvas without importing image first. | apps/cover-creator-for-kindle/src/app/pages/create/create.page.html
+- Scratch opens editor directly in tools/fill path | Faster zero-to-cover flow with no extra taps to reach background controls. | apps/cover-creator-for-kindle/src/app/pages/create/create.page.ts
+- Shared source actions extracted to kit | Same UX and translation keys reused across apps, reducing drift. | packages/image-workflow/src/lib/components/cover-source-actions/cover-source-actions.component.ts
+- Scratch mode wired in editor session | Editor preserves source mode and enables scratch-specific behavior. | packages/image-workflow/src/lib/editor/editor-session.service.ts
+- Fill panel behavior adjusted for scratch mode | Same-image action stays disabled, eyedropper gated by color selection in scratch. | packages/image-workflow/src/lib/editor/panels/tools/widgets/fill-panel.component.ts
+- Home and editor tours updated for new source inputs | Guidance includes source chooser and keeps manual guide re-entry path. | apps/cover-creator-for-kindle/src/app/shared/tour/home-tour.definition.ts
+- Thumbnail preview frame removed | Miniature now reflects crop ratio directly without misleading outer frame. | apps/cover-creator-for-kindle/src/app/pages/create/create.page.html
+- 13-locale copy update for new source labels | Image and scratch labels shipped across supported locales. | apps/cover-creator-for-kindle/src/assets/i18n/en-US.json
 
 ## Differentiators (facts)
 - Model-aware output workflow for e-readers.
-- Integrated preview before save/share.
-- Artifact reduction oriented to e-ink readability.
+- New blank-canvas entry point in same main flow.
+- Preview and editor behavior aligned with final crop ratio.
 
 ## Valid additional use cases (facts)
-- Personal placeholders for books read in physical format.
-- Uniform library thumbnails by collection/author/series.
-- High-contrast variants for readability workflows.
+- Build simple text or color-first covers without base image.
+- Prototype quick variants with scratch background before importing art.
+- Keep consistent cover composition across series using same blank start.
 
 ## User-facing change facts (increment)
-- appTitleLocalesUpdated: 0
-- androidAppNameKeysUpdated: 0
+- Added source picker with sibling actions: image and scratch.
+- Scratch opens editor on tools flow so user starts directly on background setup.
+- Preview thumbnail now shows real crop ratio without framing bars.
+- Tour definitions updated for new input path and manual guide replay.
 
 ## Increment scope facts
-- deltaFrom: 9fd1a17310a22565cbf7a07a4c55688f93e27ca1
-- deltaTo: 1cf564b7546dfb08997df73c6e9037396c197274
-- changedFiles: 13
-- apps/cover-creator-for-kindle/android/app/src/main/res/values/strings.xml
-- apps/cover-creator-for-kindle/src/assets/i18n/ar-SA.json
-- apps/cover-creator-for-kindle/src/assets/i18n/de-DE.json
-- apps/cover-creator-for-kindle/src/assets/i18n/es-MX.json
-- apps/cover-creator-for-kindle/src/assets/i18n/fr-FR.json
-- apps/cover-creator-for-kindle/src/assets/i18n/it-IT.json
-- apps/cover-creator-for-kindle/src/assets/i18n/ja-JP.json
-- apps/cover-creator-for-kindle/src/assets/i18n/ko-KR.json
-- apps/cover-creator-for-kindle/src/assets/i18n/pt-BR.json
-- apps/cover-creator-for-kindle/src/assets/i18n/ru-RU.json
-- apps/cover-creator-for-kindle/src/assets/i18n/zh-CN.json
-- apps/cover-creator-for-kindle/src/assets/i18n/zh-TW.json
-- M apps/cover-creator-for-kindle/android/app/build.gradle
+- deltaFrom: 1cf564b7546dfb08997df73c6e9037396c197274
+- deltaTo: 346e0b6d22d07b395c60014d440b768620e484ed
+- changedFiles: 62
+- apps/cover-creator-for-kindle/src/app/pages/create/create.page.html
+- apps/cover-creator-for-kindle/src/app/pages/create/create.page.ts
+- apps/cover-creator-for-kindle/src/app/shared/tour/home-tour.definition.ts
+- apps/cover-creator-for-kindle/src/assets/i18n/en-US.json
+- packages/image-workflow/src/lib/components/cover-source-actions/cover-source-actions.component.ts
+- packages/image-workflow/src/lib/cover-source/i18n/cover-source.translations.ts
+- packages/image-workflow/src/lib/editor/editor-session.service.ts
+- packages/image-workflow/src/lib/editor/editor-shell.page.ts
+- packages/image-workflow/src/lib/editor/panels/tools/widgets/fill-panel.component.ts
 
 ## Locale coverage facts
 - localeCount: 13
@@ -62,8 +60,9 @@
 
 ## Constraints and non-goals
 - Utility is factual input for ficha generation; it is not final store copy.
-- Any claim must map to evidence path above.
+- Claims must map to verifiable evidence paths listed above.
+- This increment does not claim OCR, file conversion, or cloud sync features.
 
 ## Tracking
-- versionCodeAnchorCommit: 9fd1a17310a22565cbf7a07a4c55688f93e27ca1
-- generatedAt: 2026-05-20T01:21:06.059Z
+- versionCodeAnchorCommit: 346e0b6d22d07b395c60014d440b768620e484ed
+- generatedAt: 2026-05-28T03:46:35.8762772Z

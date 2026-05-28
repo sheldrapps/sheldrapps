@@ -1,9 +1,9 @@
 {
   "project": "epub-cover-changer",
   "shortName": "ecc",
-  "generatedAt": "2026-05-27T06:26:08.502Z",
-  "head": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
-  "versionCodeAnchorCommit": "9fd1a17310a22565cbf7a07a4c55688f93e27ca1",
+  "generatedAt": "2026-05-28T03:51:32.425Z",
+  "head": "346e0b6d22d07b395c60014d440b768620e484ed",
+  "versionCodeAnchorCommit": "346e0b6d22d07b395c60014d440b768620e484ed",
   "source": {
     "buildGradle": "apps/epub-cover-changer/android/app/build.gradle",
     "scope": [
@@ -12,25 +12,50 @@
     ]
   },
   "version": {
-    "currentCode": 39,
-    "currentName": "Optimize for e-ink and sharpness"
+    "currentCode": 41,
+    "currentName": "Scratch source and UX parity"
   },
   "delta": {
-    "mode": "snapshot-first-run",
-    "from": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
-    "to": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
-    "changedFilesCount": 10,
+    "mode": "incremental",
+    "from": "346e0b6d22d07b395c60014d440b768620e484ed",
+    "to": "346e0b6d22d07b395c60014d440b768620e484ed",
+    "changedFilesCount": 35,
     "changedFiles": [
-      "M apps/epub-cover-changer/src/app/pages/change/change.page.html",
+      "M apps/epub-cover-changer/android/app/build.gradle",
+      "apps/epub-cover-changer/src/app/pages/change/change.page.html",
+      "apps/epub-cover-changer/src/app/pages/change/change.page.scss",
+      "apps/epub-cover-changer/src/app/pages/change/change.page.spec.ts",
       "apps/epub-cover-changer/src/app/pages/change/change.page.ts",
-      "apps/epub-cover-changer/src/app/pages/settings/settings.page.ts",
       "apps/epub-cover-changer/src/app/shared/tour/home-tour.definition.ts",
-      "apps/epub-cover-changer/src/app/shared/tour/tour-overlay.component.ts",
-      "apps/epub-cover-changer/src/app/shared/tour/tour.service.ts",
+      "apps/epub-cover-changer/src/assets/i18n/ar-SA.json",
+      "apps/epub-cover-changer/src/assets/i18n/de-DE.json",
       "apps/epub-cover-changer/src/assets/i18n/en-US.json",
       "apps/epub-cover-changer/src/assets/i18n/es-MX.json",
-      "packages/file-kit/src/lib/providers.ts",
-      "packages/file-kit/src/public-api.ts"
+      "apps/epub-cover-changer/src/assets/i18n/fr-FR.json",
+      "apps/epub-cover-changer/src/assets/i18n/hi-IN.json",
+      "apps/epub-cover-changer/src/assets/i18n/it-IT.json",
+      "apps/epub-cover-changer/src/assets/i18n/ja-JP.json",
+      "apps/epub-cover-changer/src/assets/i18n/ko-KR.json",
+      "apps/epub-cover-changer/src/assets/i18n/pt-BR.json",
+      "apps/epub-cover-changer/src/assets/i18n/ru-RU.json",
+      "apps/epub-cover-changer/src/assets/i18n/zh-CN.json",
+      "apps/epub-cover-changer/src/assets/i18n/zh-TW.json",
+      "apps/epub-cover-changer/src/main.ts",
+      "packages/file-kit/src/lib/adapters/capacitor/capacitor-filesystem.adapter.ts",
+      "packages/file-kit/src/lib/adapters/capacitor/capacitor-share.adapter.ts",
+      "packages/file-kit/src/lib/adapters/web-dev-epub-fixer.adapter.ts",
+      "packages/file-kit/src/lib/epub-public-store.ts",
+      "packages/file-kit/src/lib/pdf-public-store.ts",
+      "packages/file-kit/src/lib/web-pdf-cover.service.ts",
+      "packages/image-workflow/src/lib/editor/editor-session.service.ts",
+      "packages/image-workflow/src/lib/editor/editor-shell.page.ts",
+      "packages/image-workflow/src/lib/editor/panels/tools/tools.page.ts",
+      "packages/image-workflow/src/lib/editor/panels/tools/widgets/fill-panel.component.html",
+      "packages/image-workflow/src/lib/editor/panels/tools/widgets/fill-panel.component.ts",
+      "packages/image-workflow/src/public-api.ts",
+      "packages/recommended-apps/src/recommended-apps.service.ts",
+      "packages/image-workflow/src/lib/components/cover-source-actions/",
+      "packages/image-workflow/src/lib/cover-source/"
     ]
   },
   "userFacingFacts": {

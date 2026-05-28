@@ -50,3 +50,6 @@ export { ImagePipelineService } from "./lib/core/pipeline/image-pipeline.service
 
 // Reusable UI Components
 export * from "./lib/components/e-reader-preview-frame/e-reader-preview-frame.component";
+export * from "./lib/components/cover-source-actions/cover-source-actions.component";
+export * from "./lib/cover-source/i18n/cover-source.translations";
+export * from "./lib/cover-source/i18n/provide-cover-source-i18n";

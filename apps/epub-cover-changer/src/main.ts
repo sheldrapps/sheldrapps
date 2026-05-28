@@ -6,6 +6,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { MemoryStorageAdapter, provideI18nKit } from '@sheldrapps/i18n-kit';
+import { provideCoverSourceI18n } from '@sheldrapps/image-workflow';
 import {
   provideEditorI18n,
   EDITOR_I18N_OVERRIDES,
@@ -87,6 +88,7 @@ bootstrapApplication(AppComponent, {
     ),
     provideExportQualityKitI18n(),
     provideBestCandidateKitI18n(),
+    provideCoverSourceI18n(),
     provideEditorI18n(),
     {
       provide: EDITOR_I18N_OVERRIDES,

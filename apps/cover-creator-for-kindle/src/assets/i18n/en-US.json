@@ -81,7 +81,10 @@
     },
     "INFO_REQUIREMENTS_LABEL": "Requirements:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Disable ads on Kindle.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Enable \"Screen and brightness > Show covers on lock screen\" on Kindle."
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Enable \"Screen and brightness > Show covers on lock screen\" on Kindle.",
+    "ARIA_START_SCRATCH": "Start from scratch",
+    "SOURCE_IMAGE": "Image",
+    "SOURCE_SCRATCH": "Scratch"
   },
   "COVERS": {
     "DELETED": "Cover deleted",

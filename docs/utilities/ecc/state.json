@@ -6,24 +6,25 @@
     "versionName": "Optimize for e-ink and sharpness"
   },
   "current": {
-    "updatedAt": "2026-05-27T06:26:08.502Z",
-    "head": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
-    "versionCode": 40,
-    "versionName": "Guided tour sync refresh",
-    "versionCodeAnchorCommit": "9fd1a17310a22565cbf7a07a4c55688f93e27ca1",
+    "updatedAt": "2026-05-28T03:46:35.8762772Z",
+    "head": "346e0b6d22d07b395c60014d440b768620e484ed",
+    "versionCode": 41,
+    "versionName": "Scratch source and UX parity",
+    "versionCodeAnchorCommit": "346e0b6d22d07b395c60014d440b768620e484ed",
     "deltaFrom": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
-    "deltaTo": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
-    "changedFilesCount": 10,
+    "deltaTo": "346e0b6d22d07b395c60014d440b768620e484ed",
+    "changedFilesCount": 42,
     "userFacingSummary": [
-      "tour_sync_follows_ui_changes",
-      "manual_tour_restarts_editor_and_remove_ads_segment",
-      "guide_entrypoint_launches_tour_flow",
-      "export_quality_step_added_to_tour"
+      "source_switch_image_and_scratch_added",
+      "best_candidate_hides_after_editor_done",
+      "scratch_disables_same_image_and_gates_eyedropper",
+      "thumbnail_ratio_matches_crop_without_frame",
+      "tour_flow_updated_for_new_inputs"
     ]
   },
   "tracking": {
-    "lastProcessedHead": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3",
-    "lastProcessedAt": "2026-05-27T06:26:08.502Z",
-    "lastWorkingTreeFingerprint": "5f50a1d7e2a10b7e3ec79522e0f48c0ba5b517a3"
+    "lastProcessedHead": "346e0b6d22d07b395c60014d440b768620e484ed",
+    "lastProcessedAt": "2026-05-28T03:46:35.8762772Z",
+    "lastWorkingTreeFingerprint": "WORKTREE"
   }
 }

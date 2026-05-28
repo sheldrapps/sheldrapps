@@ -1,264 +1,252 @@
-﻿# Creer des Covers pour Kindle - fr-FR Play Store Listing
+﻿# Créer des Covers pour Kindle - fr-FR Play Store Listing
 
 ## Purpose
-Localized Play Store listing for fr-FR, generated for CCFK with Kindle-first conversion focus and model-aware e-reader compatibility.
+Localized Play Store listing for fr-FR, regenerated for CCFK with Kindle-first conversion and new image|scratch source flow.
 
 ## App Name
 Current localized name from strings.xml/app.title:
-Creer des Covers pour Kindle
+Créer des Covers pour Kindle
 
 Suggested localized name, if needed:
-Creer des Covers pour Kindle
+Créer des Covers pour Kindle
 
 Character count:
 28
 
 Reasoning:
-Name is already clear, searchable, and within the 30-character Play Store limit for this locale.
+Name is clear, searchable, and within 30-character Play Store limit.
 
 ## Short Description
 Text:
-Creez une cover Kindle perso depuis vos images
+Transformez image en cover Kindle ou partez de scratch
 
 Character count:
-46
+54
 
 Reasoning:
-Prioritizes immediate outcome (image -> Kindle cover) and keeps intent clear without unsupported claims.
+Leads with direct outcome and source flexibility without unsupported claims.
 
 ## Long Description
 Text:
-Transformez en quelques secondes une image que vous avez deja en cover Kindle personnalisee. Choisissez une photo, une illustration, une image artistique ou un souvenir, puis adaptez-la au format Kindle ou e-reader compatible. Le flux reste simple: choisir image, choisir modele, ajuster cadrage, verifier apercu, enregistrer ou partager. La logique par modele vous evite les essais manuels de taille et vous donne un resultat propre avant export. Parfait pour les lecteurs qui veulent une bibliotheque visuelle plus nette, plus personnelle et plus coherente sans logiciel complexe. Cover Creator for Kindle n est pas une application officielle Amazon, Kindle, Kobo, Nook, PocketBook ou Tolino; les marques sont citees uniquement pour decrire la compatibilite.
+Create a Kindle cover in seconds from your image, or start from scratch with a clean background. Workflow stays direct: source, model, crop, preview, then save or share. This release adds the image|scratch source selector, improves guided onboarding around source choice, and keeps thumbnail preview aligned with the real final crop ratio. Positioning remains Kindle-first while supporting compatible e-readers such as Kobo, Nook, PocketBook, and Tolino. Brand names are descriptive only; no official affiliation is implied.
 
 Character count:
-760
+524
 
 SEO/ASO notes:
-Includes Kindle/e-reader intent terms naturally. Avoids claims for AI image generation, full EPUB editing, DRM bypass, or official brand affiliation.
+Keep Kindle-first intent while clarifying compatible e-reader support. Avoid AI generation, full EPUB editing, DRM bypass, and official affiliation claims.
 
 ## Regional Conversion Strategy
 Primary user desire:
-Creer rapidement une cover Kindle/e-reader propre a partir d une image existante.
+Creer cover Kindle/liseuse rapidement depuis image ou scratch.
 
 Best use cases to show:
-Photo personnelle en cover, style lecture cosy, resultat adapte au modele choisi.
+Photo-to-cover personalization, scratch-first minimalist covers, model-aware output and preview before export.
 
 What to avoid:
-Eviter toute promesse IA, editeur EPUB complet ou affiliation officielle.
+Do not position app as EPUB editor, AI generator, template marketplace, or official brand app.
 
 Search/ASO terms to include naturally:
-cover kindle, couverture kindle, e-reader cover, recadrer image, apercu
+cover kindle, cover liseuse, scratch, recadrage, apercu
 
 ## Visual System
 Palette:
-- primary background: #202934
-- secondary background: #2F3B49
-- accent: #C46748
-- optional warm/cool accent: #E8A47E
+- primary background: #202630
+- secondary background: #313B46
+- accent: #C96A4A
+- optional warm/cool accent: #4A90C2
 - headline color: #FFFFFF
-- subline color: #F0DFD0
+- subline color: #D7E8F7
 
 General visual rules:
-Keep copy-safe area dark and stable. Show image-to-cover transformation clearly before showing technical controls. Use real app UI for workflow proof and finish with compatibility confidence.
+Dark copy-safe area always protected. Show transformation first, then workflow proof. Thumbnail must match real crop ratio (no frame distortion).
 
 ## Feature Graphic
 titulo:
-TRANSFORMEZ VOTRE IMAGE EN COVER KINDLE
+IMAGE OR SCRATCH TO KINDLE COVER
 
 subline:
-Recadrez, verifiez, enregistrez
+Choose source, adjust, preview, save
 
 headline color:
 #FFFFFF
 
 subline color:
-#F0DFD0
-
-wrapper:
-composicion grafica con dispositivo + transformacion imagen-a-portada
-
-fondo:
-- dimension: 1024x500 px
-- base principal: #202934
-- secundario: #2F3B49
-- acento: #C46748
-- ubicacion del acento: detras del dispositivo, intensidad baja
-- zona segura de copy: tercio izquierdo oscuro uniforme
-- textura permitida: grano sutil debajo de 3%
-- elementos prohibidos: brillo fuerte detras del titular, paneles blancos detras del texto, patrones cargados
-
-imagen:
-Show one source image and one final Kindle/e-reader cover result in the same frame. Do not imply that the app generates artwork.
-
-bullets:
-- Kindle-first discovery hook
-- Model-aware sizing and preview
-- Save or share final cover
-
-conversion intent:
-Explain the app in one glance: user image in, Kindle/e-reader cover out.
-
-## Screenshot 1
-titulo:
-VOTRE IMAGE, VOTRE COVER KINDLE
-
-subline:
-Resultat visible en un coup d oeil
-
-headline color:
-#FFFFFF
-
-subline color:
-#F0DFD0
-
-wrapper:
-kindle/e-reader emulado
-
-fondo:
-- dimension: 1994x3456 px
-- base principal: #202934
-- secundario: #2F3B49
-- acento: #C46748
-- ubicacion del acento: luz suave detras del dispositivo
-- zona segura de copy: tercio superior izquierdo
-- textura permitida: grano sutil debajo de 3%
-- elementos prohibidos: brillo alto detras del copy, ruido visual, UI tecnica como foco principal
-
-imagen:
-Final transformed cover shown inside e-reader mockup using appealing, legal source imagery.
-
-conversion intent:
-Lead with visible transformation and immediate value.
-
-## Screenshot 2
-titulo:
-CHOISIR. AJUSTER. TERMINER.
-
-subline:
-Workflow simple et rapide
-
-headline color:
-#FFFFFF
-
-subline color:
-#F0DFD0
-
-wrapper:
-telefono emulado
-
-fondo:
-- dimension: 1994x3456 px
-- base principal: #2F3B49
-- secundario: #202934
-- acento: #E8A47E
-- ubicacion del acento: detras del marco del telefono
-- zona segura de copy: tercio superior izquierdo
-- textura permitida: grano sutil debajo de 3%
-- elementos prohibidos: iconos decorativos sin contexto, fondos saturados
-
-imagen:
-Real editor screen showing selection and framing controls.
-
-conversion intent:
-Prove workflow simplicity after the first emotional hook.
-
-## Screenshot 3
-titulo:
-ADAPTE A VOTRE E-READER
-
-subline:
-Modele choisi, rendu coherent
-
-headline color:
-#FFFFFF
-
-subline color:
-#F0DFD0
-
-wrapper:
-telefono emulado
-
-fondo:
-- dimension: 1994x3456 px
-- base principal: #202934
-- secundario: #2F3B49
-- acento: #C46748
-- ubicacion del acento: borde inferior derecho del dispositivo
-- zona segura de copy: tercio superior izquierdo
-- textura permitida: grano mate minimo
-- elementos prohibidos: tablas tecnicas densas, tipografia pequena ilegible
-
-imagen:
-Model selection or model-aware preview with visible compatible device families.
-
-conversion intent:
-Convert technical sizing into trust and confidence.
-
-## Screenshot 4
-titulo:
-RECADRER, PREVISUALISER, EXPORTER
-
-subline:
-Controle avant sauvegarde
-
-headline color:
-#FFFFFF
-
-subline color:
-#F0DFD0
-
-wrapper:
-telefono emulado
-
-fondo:
-- dimension: 1994x3456 px
-- base principal: #2F3B49
-- secundario: #202934
-- acento: #C46748
-- ubicacion del acento: lateral derecho del marco
-- zona segura de copy: tercio superior izquierdo
-- textura permitida: nula o muy sutil
-- elementos prohibidos: overlays brillantes, patrones distractores
-
-imagen:
-Preview/export screen showing final cover check before save/share.
-
-conversion intent:
-Reinforce control and confidence before final action.
-
-## Screenshot 5
-titulo:
-KINDLE, KOBO, NOOK ET PLUS
-
-subline:
-Compatibilite claire par modele
-
-headline color:
-#FFFFFF
-
-subline color:
-#F0DFD0
+#D7E8F7
 
 wrapper:
 composicion grafica con dispositivo + bullets
 
 fondo:
-- dimension: 1994x3456 px
-- base principal: #202934
-- secundario: #2F3B49
-- acento: #E8A47E
-- ubicacion del acento: tarjetas abstractas suaves detras del dispositivo
-- zona segura de copy: tercio superior izquierdo
-- textura permitida: grano sutil debajo de 3%
-- elementos prohibidos: fondos claros tras texto, lista tecnica excesiva
+- primary background: 1024x500 px, dark stable base
+- secondary background: low-noise gradient away from copy area
+- accent: subtle glow behind device only
+- optional warm/cool accent: small edge highlights
+- headline color: #FFFFFF
+- subline color: #D7E8F7
 
 imagen:
-Compatibility-focused frame with model selector UI or multi-brand device context.
+Show source image card next to final Kindle/e-reader cover result. Make transformation obvious in one glance.
+
+bullets:
+- Image or scratch start
+- Model-aware crop and preview
+- Save or share final cover
 
 conversion intent:
-Close with compatibility proof while keeping Kindle-first positioning.
+Immediate comprehension: source in, fitted cover out.
+
+## Screenshot 1
+titulo:
+TURN IMAGE INTO A KINDLE COVER
+
+subline:
+Or start from scratch in one tap
+
+headline color:
+#FFFFFF
+
+subline color:
+#D7E8F7
+
+wrapper:
+kindle/e-reader emulado
+
+fondo:
+- primary background: 1994x3456 px dark base
+- secondary background: smooth depth gradient
+- accent: restrained highlight at device edge
+- optional warm/cool accent: minimal and off copy area
+- headline color: #FFFFFF
+- subline color: #D7E8F7
+
+imagen:
+Final transformed cover inside device mockup with clear before/after context.
+
+conversion intent:
+Sell transformation instantly.
+
+## Screenshot 2
+titulo:
+SOURCE > MODEL > CROP > DONE
+
+subline:
+Fast workflow with real controls
+
+headline color:
+#FFFFFF
+
+subline color:
+#D7E8F7
+
+wrapper:
+telefono emulado
+
+fondo:
+- primary background: 1994x3456 px dark surface
+- secondary background: subtle gradient bands
+- accent: soft halo behind phone frame
+- optional warm/cool accent: tiny side accents
+- headline color: #FFFFFF
+- subline color: #D7E8F7
+
+imagen:
+Real editor UI proving source selection and crop workflow.
+
+conversion intent:
+Prove simplicity after emotional hook.
+
+## Screenshot 3
+titulo:
+FITS YOUR E-READER MODEL
+
+subline:
+Model-aware sizing with preview
+
+headline color:
+#FFFFFF
+
+subline color:
+#D7E8F7
+
+wrapper:
+telefono emulado
+
+fondo:
+- primary background: 1994x3456 px dark base
+- secondary background: deep gradient, clean copy zone
+- accent: low-intensity edge light
+- optional warm/cool accent: micro highlights
+- headline color: #FFFFFF
+- subline color: #D7E8F7
+
+imagen:
+Model selector or preview tied to compatible families.
+
+conversion intent:
+Turn technical sizing into trust.
+
+## Screenshot 4
+titulo:
+PREVIEW MATCHES FINAL CROP
+
+subline:
+Thumbnail reflects true output ratio
+
+headline color:
+#FFFFFF
+
+subline color:
+#D7E8F7
+
+wrapper:
+captura directa de app
+
+fondo:
+- primary background: 1994x3456 px dark matte
+- secondary background: low-noise gradient
+- accent: subtle right-side accent line
+- optional warm/cool accent: tiny corner accent
+- headline color: #FFFFFF
+- subline color: #D7E8F7
+
+imagen:
+Preview and thumbnail showing real crop-ratio consistency.
+
+conversion intent:
+Build confidence before export.
+
+## Screenshot 5
+titulo:
+GUIDED FLOW, MANUAL REPLAY
+
+subline:
+Tour runs once; guide restarts on demand
+
+headline color:
+#FFFFFF
+
+subline color:
+#D7E8F7
+
+wrapper:
+composicion grafica con dispositivo + bullets
+
+fondo:
+- primary background: 1994x3456 px dark base
+- secondary background: smooth depth gradient
+- accent: restrained cards and bullets
+- optional warm/cool accent: sparse divider accents
+- headline color: #FFFFFF
+- subline color: #D7E8F7
+
+imagen:
+Guide/tour moments plus source selector in action.
+
+conversion intent:
+Close with clarity and onboarding confidence.
 
 ## Notes / Assumptions
-- Strategic docs under docs/fichas/ccfk/ include contradictions (some files still describe EPUB cover replacement), while CCFK code and golden files position a Kindle/e-reader cover creator. This ficha follows code reality plus CCFK golden positioning.
-- Claims limited to verifiable behavior: model-aware sizing, adjust/preview flow, save/share.
-- No claim for AI generation, template marketplace, DRM bypass, or official affiliation.
+- Strategic docs under docs/fichas/ccfk include legacy EPUB language; this ficha follows CCFK golden positioning plus current code reality.
+- Claims limited to verified behavior: image|scratch source, model-aware crop/preview, save/share, tour guidance.
+- No claim for AI generation, template marketplace, DRM bypass, cloud processing, or official brand affiliation.

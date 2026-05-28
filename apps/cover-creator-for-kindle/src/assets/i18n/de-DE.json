@@ -81,7 +81,10 @@
     },
     "INFO_REQUIREMENTS_LABEL": "Voraussetzungen:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Ads auf Kindle deaktivieren.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Auf Kindle \"Bildschirm und Helligkeit > Cover auf dem Sperrbildschirm anzeigen\" aktivieren."
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Auf Kindle \"Bildschirm und Helligkeit > Cover auf dem Sperrbildschirm anzeigen\" aktivieren.",
+    "ARIA_START_SCRATCH": "Von Null starten",
+    "SOURCE_IMAGE": "Bild",
+    "SOURCE_SCRATCH": "Von Null"
   },
   "COVERS": {
     "DELETED": "Cover gelöscht",

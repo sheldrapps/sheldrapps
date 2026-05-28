@@ -1,7 +1,7 @@
 ﻿# 创建Kindle封面 - zh-CN Play Store Listing
 
 ## Purpose
-Localized Play Store listing for zh-CN, generated for CCFK with Kindle-first conversion focus and model-aware e-reader compatibility.
+Localized Play Store listing for zh-CN, regenerated for CCFK with Kindle-first conversion and new image|scratch source flow.
 
 ## App Name
 Current localized name from strings.xml/app.title:
@@ -14,251 +14,239 @@ Character count:
 10
 
 Reasoning:
-Name is already clear, searchable, and within the 30-character Play Store limit for this locale.
+Name is clear, searchable, and within 30-character Play Store limit.
 
 ## Short Description
 Text:
-把你喜欢的图片做成Kindle封面
+用图片或scratch快速创建Kindle封面
 
 Character count:
-17
+23
 
 Reasoning:
-Prioritizes immediate outcome (image -> Kindle cover) and keeps intent clear without unsupported claims.
+Leads with direct outcome and source flexibility without unsupported claims.
 
 ## Long Description
 Text:
-将你已有的图片在几秒内变成个性化 Kindle 封面。你可以选择照片、插画、旅行回忆或其他喜欢的视觉素材，然后按 Kindle 或兼容 e-reader 的型号进行适配。流程很直接：选图片、选型号、调位置、看预览、再保存或分享。按型号输出可以减少尺寸猜测，导出更稳定。适合想让阅读库更整洁、更有个人风格的用户，不需要复杂的桌面工具。Cover Creator for Kindle 不是 Amazon、Kindle、Kobo、Nook、PocketBook、Tolino 官方应用；品牌名称仅用于说明兼容性。
+Create a Kindle cover in seconds from your image, or start from scratch with a clean background. Workflow stays direct: source, model, crop, preview, then save or share. This release adds the image|scratch source selector, improves guided onboarding around source choice, and keeps thumbnail preview aligned with the real final crop ratio. Positioning remains Kindle-first while supporting compatible e-readers such as Kobo, Nook, PocketBook, and Tolino. Brand names are descriptive only; no official affiliation is implied.
 
 Character count:
-254
+524
 
 SEO/ASO notes:
-Includes Kindle/e-reader intent terms naturally. Avoids claims for AI image generation, full EPUB editing, DRM bypass, or official brand affiliation.
+Keep Kindle-first intent while clarifying compatible e-reader support. Avoid AI generation, full EPUB editing, DRM bypass, and official affiliation claims.
 
 ## Regional Conversion Strategy
 Primary user desire:
-用现有图片快速制作 Kindle/e-reader 封面。
+Create Kindle/e-reader cover quickly from image or scratch.
 
 Best use cases to show:
-照片做封面、阅读氛围统一、按型号输出更稳妥。
+Photo-to-cover personalization, scratch-first minimalist covers, model-aware output and preview before export.
 
 What to avoid:
-避免承诺 AI 生成、完整 EPUB 编辑或官方合作关系。
+Do not position app as EPUB editor, AI generator, template marketplace, or official brand app.
 
 Search/ASO terms to include naturally:
-kindle 封面, 自定义封面, e-reader cover, 裁剪, 预览
+Kindle封面, e-reader封面, scratch, 裁剪, 预览
 
 ## Visual System
 Palette:
-- primary background: #1D2530
-- secondary background: #2D3946
-- accent: #C56543
-- optional warm/cool accent: #DF9E73
+- primary background: #1F2733
+- secondary background: #2F3A47
+- accent: #D0704B
+- optional warm/cool accent: #4A90C2
 - headline color: #FFFFFF
-- subline color: #EEDCCA
+- subline color: #D7E8F7
 
 General visual rules:
-Keep copy-safe area dark and stable. Show image-to-cover transformation clearly before showing technical controls. Use real app UI for workflow proof and finish with compatibility confidence.
+Dark copy-safe area always protected. Show transformation first, then workflow proof. Thumbnail must match real crop ratio (no frame distortion).
 
 ## Feature Graphic
 titulo:
-图片秒变 KINDLE 封面
+IMAGE OR SCRATCH TO KINDLE COVER
 
 subline:
-裁剪、预览、保存
+Choose source, adjust, preview, save
 
 headline color:
 #FFFFFF
 
 subline color:
-#EEDCCA
-
-wrapper:
-composicion grafica con dispositivo + transformacion imagen-a-portada
-
-fondo:
-- dimension: 1024x500 px
-- base principal: #1D2530
-- secundario: #2D3946
-- acento: #C56543
-- ubicacion del acento: detras del dispositivo, intensidad baja
-- zona segura de copy: tercio izquierdo oscuro uniforme
-- textura permitida: grano sutil debajo de 3%
-- elementos prohibidos: brillo fuerte detras del titular, paneles blancos detras del texto, patrones cargados
-
-imagen:
-Show one source image and one final Kindle/e-reader cover result in the same frame. Do not imply that the app generates artwork.
-
-bullets:
-- Kindle-first discovery hook
-- Model-aware sizing and preview
-- Save or share final cover
-
-conversion intent:
-Explain the app in one glance: user image in, Kindle/e-reader cover out.
-
-## Screenshot 1
-titulo:
-你的图片就是 KINDLE 封面
-
-subline:
-一眼看懂最终效果
-
-headline color:
-#FFFFFF
-
-subline color:
-#EEDCCA
-
-wrapper:
-kindle/e-reader emulado
-
-fondo:
-- dimension: 1994x3456 px
-- base principal: #1D2530
-- secundario: #2D3946
-- acento: #C56543
-- ubicacion del acento: luz suave detras del dispositivo
-- zona segura de copy: tercio superior izquierdo
-- textura permitida: grano sutil debajo de 3%
-- elementos prohibidos: brillo alto detras del copy, ruido visual, UI tecnica como foco principal
-
-imagen:
-Final transformed cover shown inside e-reader mockup using appealing, legal source imagery.
-
-conversion intent:
-Lead with visible transformation and immediate value.
-
-## Screenshot 2
-titulo:
-选择、调整、完成
-
-subline:
-流程简单不绕路
-
-headline color:
-#FFFFFF
-
-subline color:
-#EEDCCA
-
-wrapper:
-telefono emulado
-
-fondo:
-- dimension: 1994x3456 px
-- base principal: #2D3946
-- secundario: #1D2530
-- acento: #DF9E73
-- ubicacion del acento: detras del marco del telefono
-- zona segura de copy: tercio superior izquierdo
-- textura permitida: grano sutil debajo de 3%
-- elementos prohibidos: iconos decorativos sin contexto, fondos saturados
-
-imagen:
-Real editor screen showing selection and framing controls.
-
-conversion intent:
-Prove workflow simplicity after the first emotional hook.
-
-## Screenshot 3
-titulo:
-适配你的 E-READER
-
-subline:
-选型号再导出更放心
-
-headline color:
-#FFFFFF
-
-subline color:
-#EEDCCA
-
-wrapper:
-telefono emulado
-
-fondo:
-- dimension: 1994x3456 px
-- base principal: #1D2530
-- secundario: #2D3946
-- acento: #C56543
-- ubicacion del acento: borde inferior derecho del dispositivo
-- zona segura de copy: tercio superior izquierdo
-- textura permitida: grano mate minimo
-- elementos prohibidos: tablas tecnicas densas, tipografia pequena ilegible
-
-imagen:
-Model selection or model-aware preview with visible compatible device families.
-
-conversion intent:
-Convert technical sizing into trust and confidence.
-
-## Screenshot 4
-titulo:
-裁剪、预览、保存
-
-subline:
-导出前最后确认
-
-headline color:
-#FFFFFF
-
-subline color:
-#EEDCCA
-
-wrapper:
-telefono emulado
-
-fondo:
-- dimension: 1994x3456 px
-- base principal: #2D3946
-- secundario: #1D2530
-- acento: #C56543
-- ubicacion del acento: lateral derecho del marco
-- zona segura de copy: tercio superior izquierdo
-- textura permitida: nula o muy sutil
-- elementos prohibidos: overlays brillantes, patrones distractores
-
-imagen:
-Preview/export screen showing final cover check before save/share.
-
-conversion intent:
-Reinforce control and confidence before final action.
-
-## Screenshot 5
-titulo:
-支持 KINDLE、KOBO、NOOK 等
-
-subline:
-按型号兼容输出
-
-headline color:
-#FFFFFF
-
-subline color:
-#EEDCCA
+#D7E8F7
 
 wrapper:
 composicion grafica con dispositivo + bullets
 
 fondo:
-- dimension: 1994x3456 px
-- base principal: #1D2530
-- secundario: #2D3946
-- acento: #DF9E73
-- ubicacion del acento: tarjetas abstractas suaves detras del dispositivo
-- zona segura de copy: tercio superior izquierdo
-- textura permitida: grano sutil debajo de 3%
-- elementos prohibidos: fondos claros tras texto, lista tecnica excesiva
+- primary background: 1024x500 px, dark stable base
+- secondary background: low-noise gradient away from copy area
+- accent: subtle glow behind device only
+- optional warm/cool accent: small edge highlights
+- headline color: #FFFFFF
+- subline color: #D7E8F7
 
 imagen:
-Compatibility-focused frame with model selector UI or multi-brand device context.
+Show source image card next to final Kindle/e-reader cover result. Make transformation obvious in one glance.
+
+bullets:
+- Image or scratch start
+- Model-aware crop and preview
+- Save or share final cover
 
 conversion intent:
-Close with compatibility proof while keeping Kindle-first positioning.
+Immediate comprehension: source in, fitted cover out.
+
+## Screenshot 1
+titulo:
+TURN IMAGE INTO A KINDLE COVER
+
+subline:
+Or start from scratch in one tap
+
+headline color:
+#FFFFFF
+
+subline color:
+#D7E8F7
+
+wrapper:
+kindle/e-reader emulado
+
+fondo:
+- primary background: 1994x3456 px dark base
+- secondary background: smooth depth gradient
+- accent: restrained highlight at device edge
+- optional warm/cool accent: minimal and off copy area
+- headline color: #FFFFFF
+- subline color: #D7E8F7
+
+imagen:
+Final transformed cover inside device mockup with clear before/after context.
+
+conversion intent:
+Sell transformation instantly.
+
+## Screenshot 2
+titulo:
+SOURCE > MODEL > CROP > DONE
+
+subline:
+Fast workflow with real controls
+
+headline color:
+#FFFFFF
+
+subline color:
+#D7E8F7
+
+wrapper:
+telefono emulado
+
+fondo:
+- primary background: 1994x3456 px dark surface
+- secondary background: subtle gradient bands
+- accent: soft halo behind phone frame
+- optional warm/cool accent: tiny side accents
+- headline color: #FFFFFF
+- subline color: #D7E8F7
+
+imagen:
+Real editor UI proving source selection and crop workflow.
+
+conversion intent:
+Prove simplicity after emotional hook.
+
+## Screenshot 3
+titulo:
+FITS YOUR E-READER MODEL
+
+subline:
+Model-aware sizing with preview
+
+headline color:
+#FFFFFF
+
+subline color:
+#D7E8F7
+
+wrapper:
+telefono emulado
+
+fondo:
+- primary background: 1994x3456 px dark base
+- secondary background: deep gradient, clean copy zone
+- accent: low-intensity edge light
+- optional warm/cool accent: micro highlights
+- headline color: #FFFFFF
+- subline color: #D7E8F7
+
+imagen:
+Model selector or preview tied to compatible families.
+
+conversion intent:
+Turn technical sizing into trust.
+
+## Screenshot 4
+titulo:
+PREVIEW MATCHES FINAL CROP
+
+subline:
+Thumbnail reflects true output ratio
+
+headline color:
+#FFFFFF
+
+subline color:
+#D7E8F7
+
+wrapper:
+captura directa de app
+
+fondo:
+- primary background: 1994x3456 px dark matte
+- secondary background: low-noise gradient
+- accent: subtle right-side accent line
+- optional warm/cool accent: tiny corner accent
+- headline color: #FFFFFF
+- subline color: #D7E8F7
+
+imagen:
+Preview and thumbnail showing real crop-ratio consistency.
+
+conversion intent:
+Build confidence before export.
+
+## Screenshot 5
+titulo:
+GUIDED FLOW, MANUAL REPLAY
+
+subline:
+Tour runs once; guide restarts on demand
+
+headline color:
+#FFFFFF
+
+subline color:
+#D7E8F7
+
+wrapper:
+composicion grafica con dispositivo + bullets
+
+fondo:
+- primary background: 1994x3456 px dark base
+- secondary background: smooth depth gradient
+- accent: restrained cards and bullets
+- optional warm/cool accent: sparse divider accents
+- headline color: #FFFFFF
+- subline color: #D7E8F7
+
+imagen:
+Guide/tour moments plus source selector in action.
+
+conversion intent:
+Close with clarity and onboarding confidence.
 
 ## Notes / Assumptions
-- Strategic docs under docs/fichas/ccfk/ include contradictions (some files still describe EPUB cover replacement), while CCFK code and golden files position a Kindle/e-reader cover creator. This ficha follows code reality plus CCFK golden positioning.
-- Claims limited to verifiable behavior: model-aware sizing, adjust/preview flow, save/share.
-- No claim for AI generation, template marketplace, DRM bypass, or official affiliation.
+- Strategic docs under docs/fichas/ccfk include legacy EPUB language; this ficha follows CCFK golden positioning plus current code reality.
+- Claims limited to verified behavior: image|scratch source, model-aware crop/preview, save/share, tour guidance.
+- No claim for AI generation, template marketplace, DRM bypass, cloud processing, or official brand affiliation.

@@ -12,6 +12,7 @@ import {
 } from "@sheldrapps/ui-theme";
 import { EditorUiStateService } from "../../editor-ui-state.service";
 import { EditorStateService } from "../../editor-state.service";
+import { EditorSessionService } from "../../editor-session.service";
 import { TOOLS_REGISTRY } from "./tools.registry";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { merge, Observable } from "rxjs";
@@ -26,12 +27,18 @@ import { merge, Observable } from "rxjs";
 export class ToolsPage {
   readonly ui = inject(EditorUiStateService);
   private readonly editorState = inject(EditorStateService);
+  private readonly editorSession = inject(EditorSessionService, {
+    optional: true,
+  });
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
   toolItems: ScrollableBarItem[] = this.buildToolItems();
+  readonly fillEnabled = computed(
+    () => this.editorState.hasBackgroundSpace() || this.isScratchSession(),
+  );
   readonly disabledToolIds = computed(() =>
-    this.editorState.hasBackgroundSpace() ? [] : ["fill"],
+    this.fillEnabled() ? [] : ["fill"],
   );
 
   constructor() {
@@ -97,8 +104,14 @@ export class ToolsPage {
     return items;
   }
 
+  private isScratchSession(): boolean {
+    const sid = this.ui.sessionId();
+    if (!sid || !this.editorSession) return false;
+    return this.editorSession.getSession(sid)?.sourceMode === "scratch";
+  }
+
   onSelectTool(panelId: string): void {
-    if (panelId === "fill" && !this.editorState.hasBackgroundSpace()) {
+    if (panelId === "fill" && !this.fillEnabled()) {
       return;
     }
     this.ui.togglePanel("tools", panelId);

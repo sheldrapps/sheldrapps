@@ -87,7 +87,7 @@ export class CapacitorFilesystemAdapter implements FilesystemAdapter {
         });
         uri = result.uri;
       } catch (e) {
-        console.warn('[file-kit] Could not get URI:', e);
+        void e;
         uri = `file://${params.path}`;
       }
 
@@ -100,7 +100,6 @@ export class CapacitorFilesystemAdapter implements FilesystemAdapter {
         size: params.bytes.length,
       };
     } catch (error) {
-      console.warn('[file-kit] Write failed:', error);
       throw new FileKitError(
         'WRITE_FAILED',
         `Failed to write file: ${params.path}`,
@@ -128,7 +127,6 @@ export class CapacitorFilesystemAdapter implements FilesystemAdapter {
         throw new Error('Unexpected data format');
       }
     } catch (error) {
-      console.warn('[file-kit] Read failed:', error);
       const code = String(error).includes('ENOENT') ? 'NOT_FOUND' : 'READ_FAILED';
       throw new FileKitError(code, `Failed to read file: ${params.path}`, error);
     }
@@ -142,7 +140,6 @@ export class CapacitorFilesystemAdapter implements FilesystemAdapter {
         directory,
       });
     } catch (error) {
-      console.warn('[file-kit] Delete failed:', error);
       throw new FileKitError(
         'DELETE_FAILED',
         `Failed to delete file: ${params.path}`,
@@ -173,7 +170,6 @@ export class CapacitorFilesystemAdapter implements FilesystemAdapter {
       });
       return result.uri;
     } catch (error) {
-      console.warn('[file-kit] Get URI failed:', error);
       throw new FileKitError(
         'READ_FAILED',
         `Failed to get URI for file: ${params.path}`,

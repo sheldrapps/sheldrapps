@@ -9,8 +9,8 @@ android {
         applicationId "com.sheldrapps.covercreatorforkindle"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 41
-        versionName "Kindle Rebranding"
+        versionCode 42
+        versionName "Scratch source and tour reset"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

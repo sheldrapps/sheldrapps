@@ -1,26 +1,38 @@
 {
   "project": "cover-creator-for-kindle",
   "shortName": "ccfk",
-  "generatedAt": "2026-05-20T01:21:06.059Z",
-  "head": "1cf564b7546dfb08997df73c6e9037396c197274",
-  "versionCodeAnchorCommit": "9fd1a17310a22565cbf7a07a4c55688f93e27ca1",
+  "generatedAt": "2026-05-28T03:51:32.359Z",
+  "head": "346e0b6d22d07b395c60014d440b768620e484ed",
+  "versionCodeAnchorCommit": "362cfe052e105ab0800ab37f8ae5e705f3624ed2",
+  "source": {
+    "buildGradle": "apps/cover-creator-for-kindle/android/app/build.gradle",
+    "scope": [
+      "apps/cover-creator-for-kindle/**",
+      "packages/**"
+    ]
+  },
   "version": {
-    "currentCode": 41,
-    "currentName": "Kindle Rebranding",
-    "proposedCode": 41,
-    "proposedName": "Kindle Rebranding"
+    "currentCode": 42,
+    "currentName": "Scratch source and tour reset"
   },
   "delta": {
     "mode": "incremental",
-    "from": "9fd1a17310a22565cbf7a07a4c55688f93e27ca1",
-    "to": "1cf564b7546dfb08997df73c6e9037396c197274",
-    "changedFilesCount": 13,
+    "from": "346e0b6d22d07b395c60014d440b768620e484ed",
+    "to": "346e0b6d22d07b395c60014d440b768620e484ed",
+    "changedFilesCount": 35,
     "changedFiles": [
-      "apps/cover-creator-for-kindle/android/app/src/main/res/values/strings.xml",
+      "M apps/cover-creator-for-kindle/android/app/build.gradle",
+      "apps/cover-creator-for-kindle/src/app/pages/create/create.page.html",
+      "apps/cover-creator-for-kindle/src/app/pages/create/create.page.scss",
+      "apps/cover-creator-for-kindle/src/app/pages/create/create.page.spec.ts",
+      "apps/cover-creator-for-kindle/src/app/pages/create/create.page.ts",
+      "apps/cover-creator-for-kindle/src/app/shared/tour/home-tour.definition.ts",
       "apps/cover-creator-for-kindle/src/assets/i18n/ar-SA.json",
       "apps/cover-creator-for-kindle/src/assets/i18n/de-DE.json",
+      "apps/cover-creator-for-kindle/src/assets/i18n/en-US.json",
       "apps/cover-creator-for-kindle/src/assets/i18n/es-MX.json",
       "apps/cover-creator-for-kindle/src/assets/i18n/fr-FR.json",
+      "apps/cover-creator-for-kindle/src/assets/i18n/hi-IN.json",
       "apps/cover-creator-for-kindle/src/assets/i18n/it-IT.json",
       "apps/cover-creator-for-kindle/src/assets/i18n/ja-JP.json",
       "apps/cover-creator-for-kindle/src/assets/i18n/ko-KR.json",
@@ -28,58 +40,26 @@
       "apps/cover-creator-for-kindle/src/assets/i18n/ru-RU.json",
       "apps/cover-creator-for-kindle/src/assets/i18n/zh-CN.json",
       "apps/cover-creator-for-kindle/src/assets/i18n/zh-TW.json",
-      "M apps/cover-creator-for-kindle/android/app/build.gradle"
+      "apps/cover-creator-for-kindle/src/main.ts",
+      "packages/file-kit/src/lib/adapters/capacitor/capacitor-filesystem.adapter.ts",
+      "packages/file-kit/src/lib/adapters/capacitor/capacitor-share.adapter.ts",
+      "packages/file-kit/src/lib/adapters/web-dev-epub-fixer.adapter.ts",
+      "packages/file-kit/src/lib/epub-public-store.ts",
+      "packages/file-kit/src/lib/pdf-public-store.ts",
+      "packages/file-kit/src/lib/web-pdf-cover.service.ts",
+      "packages/image-workflow/src/lib/editor/editor-session.service.ts",
+      "packages/image-workflow/src/lib/editor/editor-shell.page.ts",
+      "packages/image-workflow/src/lib/editor/panels/tools/tools.page.ts",
+      "packages/image-workflow/src/lib/editor/panels/tools/widgets/fill-panel.component.html",
+      "packages/image-workflow/src/lib/editor/panels/tools/widgets/fill-panel.component.ts",
+      "packages/image-workflow/src/public-api.ts",
+      "packages/recommended-apps/src/recommended-apps.service.ts",
+      "packages/image-workflow/src/lib/components/cover-source-actions/",
+      "packages/image-workflow/src/lib/cover-source/"
     ]
   },
-  "locales": [
-    "ar-SA",
-    "de-DE",
-    "en-US",
-    "es-MX",
-    "fr-FR",
-    "hi-IN",
-    "it-IT",
-    "ja-JP",
-    "ko-KR",
-    "pt-BR",
-    "ru-RU",
-    "zh-CN",
-    "zh-TW"
-  ],
-  "capabilities": [
-    {
-      "id": "artifact",
-      "title": "Reduccion de artefactos",
-      "benefit": "Disminuye ruido visual y mejora limpieza de bordes.",
-      "evidence": "apps/cover-creator-for-kindle/src/app/pages/create/create.page.html"
-    },
-    {
-      "id": "quality",
-      "title": "Control de calidad de exportacion",
-      "benefit": "Balancea peso y calidad segun el uso final.",
-      "evidence": "apps/cover-creator-for-kindle/src/app/pages/create/create.page.html"
-    },
-    {
-      "id": "preview",
-      "title": "Previsualizacion en lector",
-      "benefit": "Permite ver resultado aproximado antes de exportar.",
-      "evidence": "apps/cover-creator-for-kindle/src/app/pages/create/create.page.html"
-    }
-  ],
-  "releaseInsights": {
-    "insights": [
-      {
-        "key": "translations_refined",
-        "count": 11
-      },
-      {
-        "key": "preview_flow_available"
-      },
-      {
-        "key": "image_optimization_available"
-      }
-    ],
-    "titleChanges": [],
-    "appNameChanges": []
+  "userFacingFacts": {
+    "appTitleChanges": [],
+    "androidAppNameChanges": []
   }
 }

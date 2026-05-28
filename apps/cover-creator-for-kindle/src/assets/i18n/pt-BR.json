@@ -81,7 +81,10 @@
     },
     "INFO_REQUIREMENTS_LABEL": "Requisitos:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Desativar anuncios no Kindle.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Ativar \"Tela e brilho > Mostrar capas na tela de bloqueio\" no Kindle."
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Ativar \"Tela e brilho > Mostrar capas na tela de bloqueio\" no Kindle.",
+    "ARIA_START_SCRATCH": "Comecar do zero",
+    "SOURCE_IMAGE": "Imagem",
+    "SOURCE_SCRATCH": "Do zero"
   },
   "COVERS": {
     "DELETED": "Capa excluída",

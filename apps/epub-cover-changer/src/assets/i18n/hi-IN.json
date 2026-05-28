@@ -90,7 +90,10 @@
     "TITLE": "कवर बदलें",
     "PREVIEW_ORIGINAL_LABEL": "मूल कवर",
     "PREVIEW_NEW_LABEL": "नया कवर",
-    "PREVIEW_NEW_ONLY_LABEL": "नया कवर"
+    "PREVIEW_NEW_ONLY_LABEL": "नया कवर",
+    "ARIA_START_SCRATCH": "Start from scratch",
+    "SOURCE_IMAGE": "Image",
+    "SOURCE_SCRATCH": "Scratch"
   },
   "COVERS": {
     "DELETED": "EPUB हटाई गई",

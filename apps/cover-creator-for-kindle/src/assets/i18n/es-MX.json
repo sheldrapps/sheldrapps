@@ -81,7 +81,10 @@
     },
     "INFO_REQUIREMENTS_LABEL": "Requisitos:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Desactivar ads en Kindle.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Activar \"Pantalla y brillo > Mostrar portadas en la pantalla del dispositivo\" en Kindle."
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Activar \"Pantalla y brillo > Mostrar portadas en la pantalla del dispositivo\" en Kindle.",
+    "ARIA_START_SCRATCH": "Comenzar desde cero",
+    "SOURCE_IMAGE": "Imagen",
+    "SOURCE_SCRATCH": "Desde cero"
   },
   "COVERS": {
     "DELETED": "Portada eliminada",

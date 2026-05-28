@@ -112,6 +112,13 @@
     }
   </div>
 
+  <sh-cover-source-actions
+    [imageDisabled]="!hasValidPdf()"
+    [scratchDisabled]="!canStartScratch()"
+    (imageSelected)="openImagePicker()"
+    (scratchSelected)="onStartScratch()"
+  ></sh-cover-source-actions>
+
   <!-- Image Selector -->
   <ion-item
     button
@@ -158,11 +165,16 @@
       }
     </ion-label>
 
-    <div class="thumb-wrapper" slot="end" aria-hidden="true">
+    <div
+      class="thumb-wrapper"
+      [class.thumb-wrapper--preview]="previewUrl && !imageErrorKey"
+      slot="end"
+      aria-hidden="true"
+    >
       @if (previewUrl && !imageErrorKey) {
-      <div class="thumb">
+      <div class="thumb thumb--preview">
         <img
-          [src]="previewThumbUrl ?? (previewUrl ? previewUrl + '#v=' + previewNonce : null)"
+          [src]="previewUrl ? previewUrl + '#v=' + previewNonce : null"
           alt=""
         />
       </div>

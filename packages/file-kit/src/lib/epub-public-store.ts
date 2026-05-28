@@ -112,12 +112,6 @@ export class EpubPublicStore {
           directory: attempt.directory,
           error: errorDetails,
         });
-        console.warn(`[${this.logPrefix}] listEpubs:readdir:failed`, {
-          source: attempt.source,
-          resolvedFolderPath: attempt.path,
-          directory: attempt.directory,
-          error: errorDetails,
-        });
       }
     }
 
@@ -168,11 +162,6 @@ export class EpubPublicStore {
         if (this.isNotFoundError(error)) {
           continue;
         }
-        console.warn(`[${this.logPrefix}] deleteEpub failed`, {
-          filename,
-          path,
-          error: this.errorDetails(error),
-        });
       }
     }
     this.debugLog('deleteEpub:notFound', {
@@ -259,10 +248,7 @@ export class EpubPublicStore {
         });
         return;
       } catch (error) {
-        console.warn(`[${this.logPrefix}] ensurePublicFolderExists failed`, {
-          resolvedFolderPath: folderPath,
-          error: this.errorDetails(error),
-        });
+        void error;
       }
     }
   }
@@ -307,10 +293,7 @@ export class EpubPublicStore {
         });
       } catch (error) {
         failed.push(filename);
-        console.warn(`[${this.logPrefix}] migrate:failed`, {
-          filename,
-          error: this.errorDetails(error),
-        });
+        void error;
       }
     }
 
@@ -336,11 +319,7 @@ export class EpubPublicStore {
       });
       return filtered;
     } catch (error) {
-      console.warn(`[${this.logPrefix}] migrate:listDirectoryDocumentsEpubs:failed`, {
-        sourcePath: this.options.epubFolder,
-        directory: Directory.Documents,
-        error: this.errorDetails(error),
-      });
+      void error;
       return [];
     }
   }
@@ -489,7 +468,7 @@ export class EpubPublicStore {
 
   private debugLog(event: string, payload?: Record<string, unknown>): void {
     if (!this.debug) return;
-    const suffix = payload ? ` ${JSON.stringify(payload)}` : '';
-    console.info(`[${this.logPrefix}] ${event}${suffix}`);
+    void event;
+    void payload;
   }
 }

@@ -81,7 +81,10 @@
     },
     "INFO_REQUIREMENTS_LABEL": "Требования:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Отключите рекламу на Kindle.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Включите «Экран и яркость > Показывать обложки на экране блокировки» на Kindle."
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Включите «Экран и яркость > Показывать обложки на экране блокировки» на Kindle.",
+    "ARIA_START_SCRATCH": "Nachat s nulya",
+    "SOURCE_IMAGE": "Izobrazhenie",
+    "SOURCE_SCRATCH": "S nulya"
   },
   "COVERS": {
     "DELETED": "Обложка удалена",

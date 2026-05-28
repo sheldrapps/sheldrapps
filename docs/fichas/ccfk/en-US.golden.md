@@ -159,7 +159,6 @@ Show a clear image-to-cover transformation. On one side, show a source image suc
 bullets:
 - Kindle, Kobo, Nook & more
 - Made for e-ink screens
-- Crop, preview and save
 
 conversion intent:
 Make the app’s purpose instantly understandable. The user should not need to read the full listing to know: this app takes an image and turns it into a Kindle/e-reader cover.

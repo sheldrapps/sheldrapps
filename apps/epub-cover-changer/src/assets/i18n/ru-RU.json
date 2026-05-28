@@ -90,7 +90,10 @@
     "TITLE": "Изменить обложку",
     "PREVIEW_ORIGINAL_LABEL": "Исходная обложка",
     "PREVIEW_NEW_LABEL": "Новая обложка",
-    "PREVIEW_NEW_ONLY_LABEL": "Новая обложка"
+    "PREVIEW_NEW_ONLY_LABEL": "Новая обложка",
+    "ARIA_START_SCRATCH": "Start from scratch",
+    "SOURCE_IMAGE": "Image",
+    "SOURCE_SCRATCH": "Scratch"
   },
   "COVERS": {
     "DELETED": "EPUB удалён",

@@ -81,7 +81,10 @@
     },
     "INFO_REQUIREMENTS_LABEL": "المتطلبات:",
     "INFO_REQUIREMENT_DISABLE_ADS": "تعطيل الإعلانات على Kindle.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "تفعيل \"الشاشة والسطوع > عرض الأغلفة على شاشة القفل\" على Kindle."
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "تفعيل \"الشاشة والسطوع > عرض الأغلفة على شاشة القفل\" على Kindle.",
+    "ARIA_START_SCRATCH": "Ibda min as-sifr",
+    "SOURCE_IMAGE": "Sura",
+    "SOURCE_SCRATCH": "Min as-sifr"
   },
   "COVERS": {
     "DELETED": "تم حذف الغلاف",

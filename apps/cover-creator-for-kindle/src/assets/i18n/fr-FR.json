@@ -81,7 +81,10 @@
     },
     "INFO_REQUIREMENTS_LABEL": "Exigences :",
     "INFO_REQUIREMENT_DISABLE_ADS": "Desactiver les pubs sur Kindle.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Activer \"Ecran et luminosite > Afficher les couvertures sur ecran de verrouillage\" sur Kindle."
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Activer \"Ecran et luminosite > Afficher les couvertures sur ecran de verrouillage\" sur Kindle.",
+    "ARIA_START_SCRATCH": "Commencer de zero",
+    "SOURCE_IMAGE": "Image",
+    "SOURCE_SCRATCH": "Depuis zero"
   },
   "COVERS": {
     "DELETED": "Couverture supprimée",

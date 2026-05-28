@@ -81,7 +81,10 @@
     },
     "INFO_REQUIREMENTS_LABEL": "आवश्यकताएँ:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Kindle पर विज्ञापन अक्षम करें।",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Kindle पर \"स्क्रीन और चमक > लॉक स्क्रीन पर कवर दिखाएँ\" सक्षम करें।"
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Kindle पर \"स्क्रीन और चमक > लॉक स्क्रीन पर कवर दिखाएँ\" सक्षम करें।",
+    "ARIA_START_SCRATCH": "Shuru se shuru karein",
+    "SOURCE_IMAGE": "Chhavi",
+    "SOURCE_SCRATCH": "Shuru se"
   },
   "COVERS": {
     "DELETED": "कवर हटाया गया",

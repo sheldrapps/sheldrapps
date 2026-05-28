@@ -81,7 +81,10 @@
     },
     "INFO_REQUIREMENTS_LABEL": "Requisiti:",
     "INFO_REQUIREMENT_DISABLE_ADS": "Disattivare gli annunci su Kindle.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Attivare \"Schermo e luminosita > Mostra copertine nella schermata di blocco\" su Kindle."
+    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Attivare \"Schermo e luminosita > Mostra copertine nella schermata di blocco\" su Kindle.",
+    "ARIA_START_SCRATCH": "Inizia da zero",
+    "SOURCE_IMAGE": "Immagine",
+    "SOURCE_SCRATCH": "Da zero"
   },
   "COVERS": {
     "DELETED": "Copertina eliminata",

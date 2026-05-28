@@ -12,6 +12,31 @@ ion-content.preview-content::part(scroll) {
   object-fit: contain;
 }
 
+:host .thumb-wrapper--preview {
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+:host .thumb--preview {
+  width: auto;
+  height: auto;
+  max-height: var(--app-touch-target);
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
+}
+
+:host .thumb--preview img {
+  width: auto;
+  height: auto;
+  max-height: var(--app-touch-target);
+  max-width: calc(var(--app-touch-target) * 1.8);
+  object-fit: contain;
+  display: block;
+}
+
 :host {
   --change-section-space-y: var(--app-space-5, 0.875rem);
 }

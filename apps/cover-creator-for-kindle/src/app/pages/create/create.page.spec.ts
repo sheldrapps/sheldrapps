@@ -86,4 +86,26 @@ describe('CreatePage', () => {
 
     expect(canExport).toBeTrue();
   });
+
+  it('allows scratch start when model exists and app is idle', () => {
+    const ctx = {
+      selectedModel: { id: 'pw', width: 1072, height: 1448 },
+      isPickingImage: false,
+      isExporting: false,
+    };
+
+    const canStartScratch = (
+      CreatePage as unknown as {
+        prototype: {
+          canStartScratch: (this: {
+            selectedModel?: unknown;
+            isPickingImage: boolean;
+            isExporting: boolean;
+          }) => boolean;
+        };
+      }
+    ).prototype.canStartScratch.call(ctx);
+
+    expect(canStartScratch).toBeTrue();
+  });
 });

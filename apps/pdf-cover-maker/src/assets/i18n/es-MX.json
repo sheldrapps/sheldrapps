@@ -100,7 +100,10 @@
     "TITLE": "Crear portada",
     "PREVIEW_ORIGINAL_LABEL": "Portada original",
     "PREVIEW_NEW_LABEL": "Portada nueva",
-    "PREVIEW_NEW_ONLY_LABEL": "Nueva portada"
+    "PREVIEW_NEW_ONLY_LABEL": "Nueva portada",
+    "ARIA_START_SCRATCH": "Start from scratch",
+    "SOURCE_IMAGE": "Image",
+    "SOURCE_SCRATCH": "Scratch"
   },
   "COVERS": {
     "DELETED": "PDF eliminado",

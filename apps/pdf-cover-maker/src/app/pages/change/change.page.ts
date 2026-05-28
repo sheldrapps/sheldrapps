@@ -36,6 +36,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import {
   buildDefaultCoverCropState,
+  CoverSourceActionsComponent,
   CoverCropState,
   EReaderPreviewFrameComponent,
   ImagePipelineService,
@@ -140,6 +141,8 @@ type EditorResult = {
   renderedMimeType?: string;
 };
 
+type EditorSourceMode = 'image' | 'scratch';
+
 type FrameDetectionResult = {
   hasFrame: boolean;
 };
@@ -169,6 +172,7 @@ type FrameDetectionResult = {
     IonModal,
     LoadingStateComponent,
     EReaderPreviewFrameComponent,
+    CoverSourceActionsComponent,
     ScrollableButtonBarComponent,
     ExportQualitySelectorComponent,
     CoverPageModeSwitchComponent,
@@ -1529,21 +1533,46 @@ export class ChangePage implements OnInit, OnDestroy {
       !this.imageErrorKey
     );
   }
+  canStartScratch(): boolean {
+    return this.hasValidPdf() && !this.isPickingImage && !this.isExporting;
+  }
+
+  async onStartScratch(): Promise<void> {
+    if (!this.canStartScratch()) return;
+    const frameDetected = this.isFrameDetected;
+    const frameDetecting = this.isDetectingFrame;
+    this.resetSelectedImage();
+    this.isFrameDetected = frameDetected;
+    this.isDetectingFrame = frameDetecting;
+    this.clearImageError();
+    this.clearImageWarn();
+    await this.homeTour.completeInteraction('cover-image-selected');
+    await this.openEditor('scratch');
+  }
+
   async startCrop() {
     if (!this.canCrop()) return;
+    await this.openEditor('image');
+  }
 
-    const sourceFile = this.editorSourceFile ?? this.workingImageFile;
-    if (!sourceFile) return;
-
+  private async openEditor(sourceMode: EditorSourceMode): Promise<void> {
     const selected = this.getSelectedFormatOption();
     if (!selected) return;
+    const sourceFile =
+      sourceMode === 'image'
+        ? this.editorSourceFile ?? this.workingImageFile
+        : undefined;
+    if (sourceMode === 'image' && !sourceFile) return;
+
     const editorFormats = this.getCurrentFormatOptions();
     const eReaderOptimizationEnabledForFeature =
       await this.resolveEReaderOptimizationEnabled();
-    const initialState = this.cropState;
+    const initialState =
+      sourceMode === 'scratch' ? this.buildDefaultCropState() : this.cropState;
 
     const sid = this.editorSession.createSession({
       file: sourceFile,
+      sourceMode,
       target: {
         width: selected.target.width,
         height: selected.target.height,
@@ -1589,7 +1618,8 @@ export class ChangePage implements OnInit, OnDestroy {
     const shouldShowEditorTour = await this.shouldShowEditorTour();
     await this.homeTour.completeInteraction('editor-apply');
 
-    this.router.navigate(['/editor'], {
+    const entryPath = sourceMode === 'scratch' ? '/editor/tools' : '/editor';
+    this.router.navigate([entryPath], {
       queryParams: {
         sid,
         ...(shouldShowEditorTour
@@ -1694,11 +1724,9 @@ export class ChangePage implements OnInit, OnDestroy {
     this.wasAutoSaved = false;
 
     this.selectedImageName = newFile.name;
-    if (!this.workingImageDims) {
-      const dims = await this.imagePipe.getDimensions(newFile);
-      if (!dims) return this.failImage('CORRUPT', newFile);
-      this.workingImageDims = dims;
-    }
+    const dims = await this.imagePipe.getDimensions(newFile);
+    if (!dims) return this.failImage('CORRUPT', newFile);
+    this.workingImageDims = dims;
 
     try {
       if (renderedBlob) {
@@ -3531,8 +3559,12 @@ export class ChangePage implements OnInit, OnDestroy {
     target: CropTarget,
   ): CoverCropState {
     const next: CoverCropState = { ...state };
-    next.frameWidth = target.width;
-    next.frameHeight = target.height;
+    if (!Number.isFinite(next.frameWidth as number)) {
+      next.frameWidth = target.width;
+    }
+    if (!Number.isFinite(next.frameHeight as number)) {
+      next.frameHeight = target.height;
+    }
     return next;
   }
 
@@ -3680,7 +3712,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private shouldAutoStartHomeTour(settings: PcmSettings): boolean {
-    return (settings.homeTourVersion ?? 0) < CURRENT_HOME_TOUR_VERSION;
+    return settings.homeTourSeen !== true;
   }
 
   private async markHomeTourSeen(_reason: TourCompletionReason): Promise<void> {
