@@ -1,4 +1,4 @@
-{
+﻿{
   "APP": {
     "TITLE": "建立Kindle封面"
   },
@@ -94,7 +94,7 @@
     "PLACEHOLDER": "封面",
     "PREVIEW_TITLE": "預覽",
     "TITLE": "封面",
-    "DITHERED_THUMBNAIL_NOTICE": "???????????????????????????????????",
+    "DITHERED_THUMBNAIL_NOTICE": "套用瑕疵減少的封面在縮圖中可能看起來不同。請開啟預覽以查看更準確的結果。",
     "ACTIONS": {
       "DELETE": "刪除",
       "SHARE": "分享",

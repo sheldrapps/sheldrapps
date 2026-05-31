@@ -1,4 +1,4 @@
-# Cover Creator for Kindle - en-US Golden Play Store Listing
+﻿# Cover Creator for Kindle - en-US Golden Play Store Listing
 
 ## Purpose
 
@@ -328,6 +328,37 @@ Real Kindle model selector screen showing specific compatibility by family and g
 conversion intent:
 Close with strong exact-compatibility proof. The user should feel that the app supports their specific Kindle, not just “Kindle in general”.
 
+
+## Screenshot 6
+titulo:
+100% LOCAL AND PRIVATE
+
+subline:
+Ad-free version, no internet needed
+
+headline color:
+#FFFFFF
+
+subline color:
+#D7E8F7
+
+wrapper:
+composición gráfica con teléfono + bullets
+
+fondo:
+- primary background: 1994x3456 px dark base
+- secondary background: smooth depth gradient
+- accent: restrained trust badges/icons
+- optional warm/cool accent: sparse corner highlights
+- headline color: #FFFFFF
+- subline color: #D7E8F7
+
+imagen:
+Conceptual trust composition (no real app screenshot): phone mockup plus privacy badges stating 100% on-device processing, no account, no uploads, ad-free version, and no internet requirement.
+
+conversion intent:
+Close with hard trust proof: private, local, ad-free, offline.
+
 ## Notes / Assumptions
 
 - This golden ficha intentionally applies the ECC conversion structure to CCFK without changing the product category.
@@ -337,3 +368,4 @@ Close with strong exact-compatibility proof. The user should feel that the app s
 - Compatibility should be phrased as supported model families unless exact device coverage is verified in the current project.
 - The strongest conversion sequence is: image-to-cover result → simple workflow → model fit → preview/save → compatibility.
 - This golden ficha is a quality benchmark for Codex generation, not a template to copy literally across locales.
+

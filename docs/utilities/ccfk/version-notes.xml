@@ -1,51 +1,39 @@
-<en-US>
-New Image | Scratch source selector added. Scratch now opens editor directly on background tools. Tour flow and thumbnail preview were updated for clearer crop expectations.
+﻿<en-US>
+E-reader optimization is now manual-only inside editor tools. Settings toggle was removed, and source labels were refined across locales.
 </en-US>
-
 <ar>
-Tam idafat mukhayyir masdar jadid image | scratch. yabhath scratch alaan al-muharrir mubasharatan ila adawat al-khalfiyah. tam tahdith al-tour wa al-musaghara li idhhar nisbat al-qass biwuduh.
+Tahsin e-reader asbaha yadawi faqat dakhil adawat al-muharrir. Tam izalat mubaddil al-iadadat, wa tahsin nusus al-masdar fi jami al-lughat.
 </ar>
-
 <de-DE>
-Neue Auswahl Image | Scratch hinzugefuegt. Scratch oeffnet den Editor jetzt direkt bei den Hintergrund-Werkzeugen. Tour-Ablauf und Miniaturvorschau wurden fuer klarere Crop-Erwartung verbessert.
+Die e-reader Optimierung ist jetzt nur noch manuell in den Editor Werkzeugen aktiv. Der Schalter in den Einstellungen wurde entfernt und die Quellenlabels wurden in allen Sprachen verbessert.
 </de-DE>
-
 <es-419>
-Se agrego selector de fuente Image | Scratch. Scratch ahora abre el editor directo en herramientas de fondo. Se actualizo el tour y la miniatura para mostrar mejor la expectativa real del recorte.
+La optimizacion para e-reader ahora es solo manual dentro de herramientas del editor. Se elimino el toggle en ajustes y se mejoraron textos de origen en todos los idiomas.
 </es-419>
-
 <fr-FR>
-Nouveau selecteur Image | Scratch ajoute. Scratch ouvre maintenant l editeur directement sur les outils de fond. Le tour et la miniature ont ete ajustes pour mieux refleter le recadrage reel.
+L optimisation e-reader est maintenant uniquement manuelle dans les outils de l editeur. Le commutateur des reglages a ete retire et les libelles source ont ete ameliores dans toutes les langues.
 </fr-FR>
-
 <hi-IN>
-Naya Image | Scratch source selector add hua. Scratch ab editor ko seedha background tools par kholta hai. Tour flow aur thumbnail preview ko real crop expectation ke liye update kiya gaya.
+E-reader optimization ab sirf manual hai aur editor tools ke andar milti hai. Settings toggle hata diya gaya hai, aur source labels sabhi bhashaon mein sudhare gaye hain.
 </hi-IN>
-
 <it-IT>
-Aggiunto nuovo selettore Image | Scratch. Scratch ora apre l editor direttamente sugli strumenti di sfondo. Tour e anteprima miniatura aggiornati per mostrare meglio il ritaglio reale.
+L ottimizzazione e-reader ora e solo manuale negli strumenti editor. Il toggle nelle impostazioni e stato rimosso e le etichette sorgente sono state migliorate in tutte le lingue.
 </it-IT>
-
 <ja-JP>
-Image | Scratch no sentaku o tsuika. Scratch wa haikei tool ni chokusetu hairu editor de hirakimasu. Tour to mini preview o koushin shi, crop no mie kata o wakariyasuku shimashita.
+E-reader saitekika wa editor tsuru nai no manual nomi ni henkou. Settings toggle wa sakujo sare, source labels wa subete no locales de kaizen sareta.
 </ja-JP>
-
 <ko-KR>
-Image | Scratch soseu seontaegi chuga doeeotseumnida. Scratch-neun ije editor-reul baegyeong tool-eseo jeuksi yeoreumnida. Tour-wa thumb preview-ga silje crop biyul-e match doedorok gaeseon doeeotseumnida.
+E-reader choejeokhwa neun ije editor tools aneseo su-dongman sayong doemnida. Settings toggle eun jegeo doeeotgo, source labels neun modeun locale eseo gaeseon doeeotseumnida.
 </ko-KR>
-
 <pt-BR>
-Novo seletor de origem Image | Scratch adicionado. Scratch agora abre o editor direto nas ferramentas de fundo. Tour e miniatura foram atualizados para mostrar melhor a expectativa real de corte.
+A otimizacao para e-reader agora e apenas manual nas ferramentas do editor. O toggle de configuracoes foi removido e os textos de origem foram melhorados em todos os idiomas.
 </pt-BR>
-
 <ru-RU>
-Dobavlen novyi vybor istochnika Image | Scratch. Rezhim scratch teper otkryvaet redaktor srazu na instrumentakh fona. Tur i miniatyura obnovleny dlya bolee ponyatnogo ozhidaniya crop.
+Optimizatsiya dlya e-reader teper tolko ruchnaya v instrumentakh redaktora. Toggle v nastroikakh udalen, a podpisi istochnika uluchsheny vo vsekh lokalakh.
 </ru-RU>
-
 <zh-CN>
-Yi xin zeng Image | Scratch laiyuan xuanze. Scratch xianzai zhijie jinru bianjiqi de beijing gongju. Tour he suolue tu yijing gengxin, geng qingchu fan ying shiji caijian bili.
+E-reader youhua xianzai jin zai editor tools zhong shoudong qiyong. Settings toggle yi yichu, source labels yi zai suoyou locales zhong gaijin.
 </zh-CN>
-
 <zh-TW>
-Yi xin zeng Image | Scratch laiyuan xuanze. Scratch xianzai zhijie jinru bianjiqi de beijing gongju. Tour he suolue tu yi gengxin, geng qingchu fanying shiji caijian bili.
+E-reader youhua xianzai jin zai editor tools zhong shoudong qiyong. Settings toggle yi yichu, source labels yi zai suoyou locales zhong gaijin.
 </zh-TW>

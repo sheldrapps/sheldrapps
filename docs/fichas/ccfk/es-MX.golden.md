@@ -1,4 +1,4 @@
-# Cover Creator for Kindle - es-MX Golden Play Store Listing
+﻿# Cover Creator for Kindle - es-MX Golden Play Store Listing
 
 ## Propósito
 
@@ -329,6 +329,37 @@ Pantalla real de selección de modelos o dispositivos compatibles mostrando Kind
 conversion intent:
 Cerrar con prueba de compatibilidad sin debilitar el gancho principal Kindle-first.
 
+
+## Screenshot 6
+
+titulo:
+100% LOCAL Y PRIVADO
+
+subline:
+Version sin anuncios, no necesita internet
+
+headline color:
+#FFFFFF
+
+subline color:
+#F2D6C5
+
+wrapper:
+composición gráfica con teléfono + bullets
+
+fondo:
+- primary background: 1994x3456 px dark base
+- secondary background: smooth depth gradient
+- accent: restrained trust badges/icons
+- optional warm/cool accent: sparse corner highlights
+- headline color: #FFFFFF
+- subline color: #F2D6C5
+
+imagen:
+Composición de confianza (sin captura real de app): mockup de teléfono con sellos de privacidad que indiquen procesamiento 100% local en el dispositivo, sin cuenta, sin subidas, versión sin anuncios y sin necesidad de internet.
+
+conversion intent:
+Cerrar con prueba dura de confianza: privado, local, sin anuncios y offline.
 ## Notas / Supuestos
 
 - Esta golden ficha aplica la estructura de conversión de ECC a CCFK sin cambiar el producto.
@@ -338,3 +369,4 @@ Cerrar con prueba de compatibilidad sin debilitar el gancho principal Kindle-fir
 - La compatibilidad debe expresarse como familias o modelos soportados, salvo que la cobertura exacta esté verificada en el proyecto actual.
 - La secuencia de conversión más fuerte es: resultado imagen-a-portada → flujo simple → ajuste por modelo → vista previa/guardar → compatibilidad.
 - Esta golden ficha es una referencia de calidad para generación con Codex, no una plantilla literal para copiar en todos los locales.
+

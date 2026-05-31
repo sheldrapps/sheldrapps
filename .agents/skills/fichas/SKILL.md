@@ -1,7 +1,7 @@
 ﻿---
 name: fichas
 user-invocable: true
-description: "Crear/actualizar fichas Play Store SEO/ASO por proyecto+locale, usando creative brief, strategy matrix/conversion strategy, conversion audit y golden files aprobados como insumos de solo lectura. Leer docs/utilities/<short-name>/ sin modificar. Use when user asks 'genera fichas', 'crea ficha Play Store', or localized listing copy/visual direction for ecc/ccfk/other locales."
+description: "Crear/actualizar fichas Play Store SEO/ASO por proyecto+locale, usando creative brief, strategy matrix/conversion strategy, conversion audit y golden files aprobados como insumos de solo lectura. Use when user asks 'genera fichas', 'crea ficha Play Store', or localized listing copy/visual direction for ecc/ccfk/other locales."
 ---
 
 # Fichas Play Store (SEO/ASO)
@@ -42,6 +42,14 @@ No crear, regenerar, corregir, resumir en archivo, actualizar ni modificar:
 Si alguno de los documentos estratégicos requeridos falta, detener el flujo y reportar exactamente qué archivo falta. No inventar estrategia, no completar huecos con inferencias propias y no sustituir documentos faltantes con análisis del código.
 
 Si el usuario pide explícitamente actualizar `creative-brief.md`, `strategy-matrix.md`, `conversion-strategy.md`, `conversion-audit.md` o `*.golden.md`, esa petición queda fuera del flujo generador de esta skill. Solicitar confirmación explícita para tratarlo como edición manual de documentos estratégicos, no como generación automática de fichas.
+
+## Modo estricto persistente
+
+Esta skill opera en modo estricto y debe mantenerse así sin que el usuario lo repita:
+
+- Solo lectura de archivos de configuración estratégica y audit.
+- Solo escritura/creación de fichas finales por locale.
+- Cualquier intento de leer fuentes fuera de allowlist o escribir fuera de deliverables permitidos debe abortar.
 
 ## Objetivo
 
@@ -100,21 +108,64 @@ Si se agregan nuevos locales en el repo, priorizar descubrimiento dinámico sobr
 
 Antes de redactar cada ficha, revisar en este orden:
 
-1. Documentos estratégicos aprobados en `docs/fichas/<project-id>/`:
+1. Configuración estratégica en `docs/fichas/<project-id>/`:
    - `creative-brief.md`
    - `strategy-matrix.md` o `conversion-strategy.md`
-   - `conversion-audit.md`
    - `*.golden.md`
-2. Código y configuración reales:
-   - `apps/<project>/**`
+2. Audit en `docs/fichas/<project-id>/`:
+   - `conversion-audit.md`
+3. Configuración de proyecto para locales y naming:
    - `apps/<project>/src/assets/i18n/**/*.json`
    - `apps/<project>/src/main/res/values*/strings.xml`
-   - `packages/**` para capacidades compartidas reales
-3. Contexto documental secundario:
-   - `docs/utilities/<short-name>/**` solo lectura, no modificar
-   - `README.md` y `docs/**` relevantes, siempre que no contradigan los documentos estratégicos aprobados
 
-`docs/utilities/<short-name>/` puede estar vacío por ahora. Si no hay contenido utilizable, continuar solo si los documentos estratégicos aprobados sí existen.
+## Anclaje obligatorio a strategy matrix
+
+Para cada `locale` generado, leer y usar explícitamente su fila en:
+
+- `docs/fichas/<project-id>/strategy-matrix.md`
+- o `docs/fichas/<project-id>/conversion-strategy.md` si reemplaza al matrix
+
+No se permite generar múltiples locales a partir de un único copy base en inglés.
+
+Antes de redactar cada locale, extraer de su fila al menos:
+
+- propuesta de valor principal,
+- deseo principal,
+- casos de uso clave,
+- qué evitar,
+- términos ASO.
+- sistema de color por locale usando columnas explícitas del matrix:
+  - `Background base`
+  - `Background secondary`
+  - `Accent color`
+  - `Title color`
+  - `Subline color`
+  - `Bullet color`
+
+Ese anclaje debe reflejarse en el resultado final. Si dos locales terminan con el mismo copy visible de piezas, se considera fallo.
+
+## Anclaje obligatorio de color por locale
+
+Para cada locale, los colores de `Visual System`, `Feature Graphic` y `Screenshot 1..N` deben salir de la referencia del mismo locale:
+
+- prioridad 1: fila del locale en `strategy-matrix.md` o `conversion-strategy.md` con columnas explícitas de color,
+- prioridad 2: `*.golden.md` del mismo locale solo como fallback cuando falten campos en matrix.
+
+No usar paleta de `en-US` para otros locales salvo que la estrategia aprobada declare explícitamente una paleta global compartida y sin overrides por locale.
+Si falta cualquiera de estos campos para el locale (`Background base`, `Background secondary`, `Accent color`, `Title color`, `Subline color`, `Bullet color`), detener y reportar la falta en vez de heredar colores de otro mercado.
+
+## Reglas visuales del matrix (obligatorias)
+
+Si `strategy-matrix.md` incluye sección `Visual Generation Rules`, aplicarla literalmente en la generación del locale.
+
+Como mínimo, reflejar en la ficha:
+
+- zona de copy estable, oscura y legible,
+- sin paneles brillantes detrás de títulos,
+- sin glows rojos saturados detrás del headline,
+- sin patrones densos detrás del copy,
+- secuencia visual `problema → flujo simple → control → privacidad`,
+- prueba de confianza explícita: procesamiento local, sin cuentas, sin subidas.
 
 ## Manejo de contradicciones
 
@@ -130,6 +181,14 @@ Si la estrategia promete algo que no puede confirmarse en código/configuración
 - o dejar la incertidumbre documentada en `Notes / Assumptions` si el riesgo es bajo.
 
 Nunca corregir la estrategia desde la skill. Solo reportar la contradicción.
+
+## Prueba de lectura real (obligatoria)
+
+Cada ejecución debe demostrar lectura real de config+audit antes de escribir:
+
+- Citar en la respuesta final al menos 1 hallazgo de `strategy-matrix.md` o `conversion-strategy.md` para el locale.
+- Citar al menos 1 hallazgo de `conversion-audit.md`.
+- Si no puede citar ambos, abortar generación de ficha.
 
 ## Ubicación de salida
 
@@ -221,6 +280,7 @@ Palette:
 - optional warm/cool accent:
 - headline color:
 - subline color:
+- bullet color:
 General visual rules:
 
 ## Feature Graphic
@@ -284,22 +344,50 @@ fondo:
 imagen:
 conversion intent:
 
+## Screenshot 6
+titulo:
+subline:
+headline color:
+subline color:
+wrapper:
+fondo:
+imagen:
+conversion intent:
+
 ## Notes / Assumptions
 - ...
 ```
 
 No agregar secciones top-level extra salvo necesidad justificada por la ficha golden o por los documentos estratégicos aprobados.
 
-Si el creative brief o golden files del proyecto definen 4 screenshots en lugar de 5, seguir la estrategia aprobada del proyecto y omitir `Screenshot 5` solo cuando esa decisión esté explícita o consistentemente reflejada en esos documentos.
+Si el creative brief o golden files del proyecto definen 4, 5 o 6 screenshots, seguir exactamente la estrategia aprobada del proyecto.
+`Screenshot 6` debe incluirse cuando esté definido en la referencia golden o en los documentos estratégicos aprobados.
 
 ## Campos visuales y wrappers permitidos
 
 Wrappers base:
 
-- `kindle/e-reader emulado`
-- `teléfono emulado`
+- `e-reader emulado (sin branding)`
+- `teléfono android emulado`
+- `tablet emulada`
 - `captura directa de app`
 - `composición gráfica con dispositivo + bullets`
+- `composición tipográfica + bullets (sin dispositivo)`
+
+Para piezas de confianza (privacidad/local/offline/ad-free), no exigir captura real de pantalla de ajustes/privacidad; se permite y se prefiere composición gráfica de confianza.
+Para `Screenshot 6`, cuando la prueba de confianza no depende de UI real, usar `composición tipográfica + bullets (sin dispositivo)` y evitar mockups de teléfono/e-reader.
+Solo usar `teléfono android` en `Screenshot 6` si el documento estratégico aprobado exige explícitamente mostrar UI.
+
+Si el proyecto es Android-only, cualquier wrapper de teléfono debe especificar explícitamente `teléfono android`.
+En proyectos Android-only, evitar mockups de iPhone/iOS.
+Para `Screenshot 4` cuando representa preview interna de la app, usar wrapper de `teléfono android emulado`, no `captura directa de app`.
+
+Regla de precisión de dispositivo:
+
+- No usar `dispositivo` de forma ambigua en copy final de ficha.
+- Cuando aplique, especificar tipo: `teléfono`, `tablet` o `e-reader`.
+- En piezas visuales, evitar `kindle` como tipo de mockup para prevenir branding en generación.
+- En secciones visuales, `wrapper` debe indicar tipo concreto; evitar descripciones genéricas.
 
 Para apps no e-reader, adaptar contexto sin cambiar nombres de campos.
 
@@ -312,9 +400,38 @@ Tamaños por defecto (si el usuario no da otros):
 
 Incluir estos tamaños explícitamente dentro de `fondo:` e `imagen:`.
 
+## Localización selectiva para piezas visuales
+
+Objetivo: localizar solo el texto que aparece escrito en la imagen/captura, no todo el bloque técnico de producción.
+
+En `Feature Graphic` y `Screenshot 1..6`:
+
+- Campos que SÍ se localizan al idioma destino:
+  - `titulo:`
+  - `subline:`
+  - `bullets:` (cuando exista)
+- Campos que NO se localizan por defecto (mantener idioma de trabajo del documento):
+  - `wrapper:`
+  - `fondo:`
+  - `imagen:`
+  - `conversion intent:`
+  - reglas técnicas de color/tamaño/composición
+
+Para `locale != en-US`, está prohibido dejar en inglés literales de overlay como:
+
+- `IMAGE OR SCRATCH TO KINDLE COVER`
+- `Choose source, adjust, preview, save`
+- `TURN IMAGE INTO A KINDLE COVER`
+- `Image or scratch start`
+- `Model-aware crop and preview`
+- `Save or share final cover`
+
 ## Localización real por idioma
 
 No reutilizar concepto idéntico entre locales cambiando solo texto, salvo que los documentos estratégicos aprobados indiquen una estrategia global común.
+
+Para `locale != en-US`, no usar fallback en inglés en texto visible de la ficha.
+Si la fila del matrix viene en inglés para un locale no inglés, traducir y adaptar el texto al idioma objetivo manteniendo significado, claims y límites.
 
 Cada locale debe adaptar, cuando corresponda:
 
@@ -352,6 +469,8 @@ La skill puede generar o actualizar:
 - `docs/fichas/<project-id>/<locale>.md`
 - `docs/fichas/<project-id>/<locale>.draft.md`
 
+Ningún otro archivo puede ser creado, modificado o eliminado por esta skill.
+
 La skill no puede generar o actualizar:
 
 - `docs/fichas/<project-id>/creative-brief.md`
@@ -363,15 +482,23 @@ La skill no puede generar o actualizar:
 ## Checklist de validación final
 
 - ruta correcta: `docs/fichas/<project-id>/<locale>.md`
+- solo se leyeron fuentes allowlist (config estratégica + audit + config locales)
 - documentos estratégicos aprobados leídos como solo lectura
 - ningún documento estratégico base creado o modificado
+- ningún archivo fuera de deliverables fue escrito
 - límites de caracteres cumplidos
 - promesas alineadas con implementación real
 - claims alineados con creative brief, strategy matrix/conversion strategy, conversion audit y golden files
 - diferenciación regional real, salvo estrategia global común aprobada
+- colores anclados al locale (background base/secondary, accent, title, subline, bullet), sin heredar `en-US` por defecto
+- reglas de `Visual Generation Rules` aplicadas cuando existan en matrix
+- en piezas visuales, `titulo/subline/bullets` localizados para `locale != en-US`
+- en piezas visuales, sin copy overlay duplicado literal entre locales
+- sin uso ambiguo de `dispositivo` cuando corresponde `teléfono/tablet/e-reader`
 - screenshots con ángulos distintos según estrategia aprobada
 - feature graphic con intención de conversión clara
 - sistema visual con contraste seguro para área de copy
+- evidencia de lectura real reportada (matrix/strategy + audit)
 - incertidumbres documentadas en `Notes / Assumptions`
 
 ## Comportamiento de respuesta

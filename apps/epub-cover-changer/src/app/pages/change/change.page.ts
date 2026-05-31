@@ -53,7 +53,6 @@ import {
 import type { CropTarget, CropFormatOption } from '@sheldrapps/image-workflow';
 import {
   EditorSessionService,
-  EDITOR_EREADER_OPTIMIZATION_PREF_KEY,
 } from '@sheldrapps/image-workflow/editor';
 
 import {
@@ -361,12 +360,14 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   get previewModalImageWidth(): number | null {
-    if (this.previewCandidateOverride) return this.previewCandidateOverride.width;
+    if (this.previewCandidateOverride)
+      return this.previewCandidateOverride.width;
     return this.targetWidth ?? null;
   }
 
   get previewModalImageHeight(): number | null {
-    if (this.previewCandidateOverride) return this.previewCandidateOverride.height;
+    if (this.previewCandidateOverride)
+      return this.previewCandidateOverride.height;
     return this.targetHeight ?? null;
   }
 
@@ -693,7 +694,10 @@ export class ChangePage implements OnInit, OnDestroy {
 
       try {
         this.coverEntryPath = strictCover.sourcePath;
-        const coverLoaded = await this.applyImageSource(strictCover.file, false);
+        const coverLoaded = await this.applyImageSource(
+          strictCover.file,
+          false,
+        );
         if (!coverLoaded) {
           await this.activateBestCandidateFallback();
           await this.homeTour.completeInteraction('epub-selected');
@@ -898,13 +902,12 @@ export class ChangePage implements OnInit, OnDestroy {
       console.info(
         '[ECC_BEST_CANDIDATE] cover not found, scanning internal images',
       );
-      const discovered = await this.candidateImageService.discoverInternalImages(
-        {
+      const discovered =
+        await this.candidateImageService.discoverInternalImages({
           epubFile: this.workingEpubFile,
           epubNativePath: this.workingEpubNativePath,
           epubName: this.selectedEpubName,
-        },
-      );
+        });
       console.info(
         '[ECC_BEST_CANDIDATE] manifest image count:',
         discovered.diagnostics.manifestImageCount,
@@ -932,9 +935,8 @@ export class ChangePage implements OnInit, OnDestroy {
         }
       }
 
-      const ranked = this.bestCandidateService.rankCandidatesWithDiagnostics(
-        images,
-      );
+      const ranked =
+        this.bestCandidateService.rankCandidatesWithDiagnostics(images);
       for (const rejected of ranked.rejected) {
         const rejectedPath =
           rejected.image.sourcePath ||
@@ -1207,12 +1209,10 @@ export class ChangePage implements OnInit, OnDestroy {
 
     const sourceFile =
       sourceMode === 'image'
-        ? this.editorSourceFile ?? this.workingImageFile
+        ? (this.editorSourceFile ?? this.workingImageFile)
         : undefined;
     if (sourceMode === 'image' && !sourceFile) return;
 
-    const eReaderOptimizationEnabledForFeature =
-      await this.resolveEReaderOptimizationEnabled();
     const initialState =
       sourceMode === 'scratch' ? this.buildDefaultCropState() : this.cropState;
 
@@ -1230,9 +1230,7 @@ export class ChangePage implements OnInit, OnDestroy {
           selectedId: selected.id,
         },
         eReaderOptimization: {
-          enabled:
-            this.editorEReaderOptimizationFeatureEnabled &&
-            eReaderOptimizationEnabledForFeature,
+          enabled: this.editorEReaderOptimizationFeatureEnabled,
         },
       },
       output: {
@@ -1294,16 +1292,6 @@ export class ChangePage implements OnInit, OnDestroy {
     const current = this.router.url;
     if (current.startsWith('/tabs/')) return current;
     return '/tabs/change';
-  }
-
-  private async resolveEReaderOptimizationEnabled(): Promise<boolean> {
-    if (!this.editorEReaderOptimizationFeatureEnabled) {
-      return false;
-    }
-    const settings = await this.settings.load();
-    const stored =
-      settings.preferences?.[EDITOR_EREADER_OPTIMIZATION_PREF_KEY];
-    return stored !== false;
   }
 
   canExport(): boolean {
@@ -2159,7 +2147,9 @@ export class ChangePage implements OnInit, OnDestroy {
     this.candidateBlobUrls.clear();
   }
 
-  private candidateFileFromMetadata(candidate: BestCandidateImage): File | null {
+  private candidateFileFromMetadata(
+    candidate: BestCandidateImage,
+  ): File | null {
     const candidateFile = candidate.metadata?.['file'];
     return candidateFile instanceof File ? candidateFile : null;
   }
@@ -2473,7 +2463,9 @@ export class ChangePage implements OnInit, OnDestroy {
     this.exportQualityMode = mode;
     this.exportImageFile = undefined;
     this.invalidateGeneratedOutputState();
-    await this.settings.setForScope('exportQuality', { exportQualityMode: mode });
+    await this.settings.setForScope('exportQuality', {
+      exportQualityMode: mode,
+    });
   }
 
   private syncAuthorizedExportQualityMode(reason: string): void {

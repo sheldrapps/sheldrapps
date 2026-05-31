@@ -1,7 +1,7 @@
 ﻿# 建立Kindle封面 - zh-TW Play Store Listing
 
 ## Purpose
-Localized Play Store listing for zh-TW, regenerated for CCFK with Kindle-first conversion and new image|scratch source flow.
+Localized Play Store listing for zh-TW, regenerated from the updated strategy matrix and conversion audit.
 
 ## App Name
 Current localized name from strings.xml/app.title:
@@ -14,7 +14,7 @@ Character count:
 10
 
 Reasoning:
-Name is clear, searchable, and within 30-character Play Store limit.
+Uses the official localized app name from Android resources.
 
 ## Short Description
 Text:
@@ -24,229 +24,271 @@ Character count:
 23
 
 Reasoning:
-Leads with direct outcome and source flexibility without unsupported claims.
+Aligned to locale conversion angle and kept under Play Store limit.
 
 ## Long Description
 Text:
-Create a Kindle cover in seconds from your image, or start from scratch with a clean background. Workflow stays direct: source, model, crop, preview, then save or share. This release adds the image|scratch source selector, improves guided onboarding around source choice, and keeps thumbnail preview aligned with the real final crop ratio. Positioning remains Kindle-first while supporting compatible e-readers such as Kobo, Nook, PocketBook, and Tolino. Brand names are descriptive only; no official affiliation is implied.
+快速更換 EPUB 封面. Clear before/after cover replacement.
+
+Flow: 選擇 EPUB -> 調整圖片 -> 預覽 -> 儲存副本.
+
+Trust proof: 在裝置上處理。無需帳號。不需上傳。
+
+Positioning stays focused on transformation and practical control, while avoiding AI/editor overpromises.
 
 Character count:
-524
+228
 
 SEO/ASO notes:
-Keep Kindle-first intent while clarifying compatible e-reader support. Avoid AI generation, full EPUB editing, DRM bypass, and official affiliation claims.
+Use locale terms naturally and avoid unsupported claims.
 
 ## Regional Conversion Strategy
 Primary user desire:
-Create Kindle/e-reader cover quickly from image or scratch.
+快速更換 EPUB 封面
 
 Best use cases to show:
-Photo-to-cover personalization, scratch-first minimalist covers, model-aware output and preview before export.
+Clear before/after cover replacement
+Polished custom cover
 
 What to avoid:
-Do not position app as EPUB editor, AI generator, template marketplace, or official brand app.
+太像一般圖片編輯器，或暗示雲端處理
 
 Search/ASO terms to include naturally:
 Kindle封面, e-reader封面, scratch, 裁切, 預覽
 
 ## Visual System
 Palette:
-- primary background: #1F2733
-- secondary background: #2F3A47
-- accent: #D0704B
-- optional warm/cool accent: #4A90C2
+- primary background: #121416
+- secondary background: #20272C
+- accent: #C6533D
+- optional warm/cool accent: derived support tone from accent
 - headline color: #FFFFFF
-- subline color: #D7E8F7
+- subline color: #D6E0E3
+- bullet color: #ECB0A1
 
 General visual rules:
-Dark copy-safe area always protected. Show transformation first, then workflow proof. Thumbnail must match real crop ratio (no frame distortion).
+- keep copy zone stable, dark and readable
+- no bright panels behind title
+- no saturated red glow behind headline
+- no dense patterns behind copy
+- sequence: problem -> simple flow -> control -> privacy
+- trust proof stays explicit: local processing, no accounts, no uploads
 
 ## Feature Graphic
 titulo:
-IMAGE OR SCRATCH TO KINDLE COVER
+把圖片變成電子閱讀器封面
 
 subline:
-Choose source, adjust, preview, save
+或一鍵從零開始
 
 headline color:
 #FFFFFF
 
 subline color:
-#D7E8F7
+#D6E0E3
 
 wrapper:
-composicion grafica con dispositivo + bullets
+composicion grafica con e-reader + bullets (sin branding)
 
 fondo:
-- primary background: 1024x500 px, dark stable base
-- secondary background: low-noise gradient away from copy area
-- accent: subtle glow behind device only
-- optional warm/cool accent: small edge highlights
+- primary background: 1024x500 px using #121416
+- secondary background: gradient using #20272C
+- accent: restrained highlights using #C6533D
+- optional warm/cool accent: subtle support tone
 - headline color: #FFFFFF
-- subline color: #D7E8F7
+- subline color: #D6E0E3
+- bullet color: #ECB0A1
 
 imagen:
-Show source image card next to final Kindle/e-reader cover result. Make transformation obvious in one glance.
+Before/after transformation concept: Plain or incorrect EPUB cover -> Polished custom cover.
 
 bullets:
-- Image or scratch start
-- Model-aware crop and preview
-- Save or share final cover
+- 本地處理、無需帳號、不需上傳。
+- 選擇 EPUB -> 調整圖片 -> 預覽 -> 儲存副本
+- 以轉化為導向的視覺清晰度
 
 conversion intent:
-Immediate comprehension: source in, fitted cover out.
+Immediate value comprehension.
 
 ## Screenshot 1
 titulo:
-TURN IMAGE INTO A KINDLE COVER
+把圖片變成電子閱讀器封面
 
 subline:
-Or start from scratch in one tap
+或一鍵從零開始
 
 headline color:
 #FFFFFF
 
 subline color:
-#D7E8F7
+#D6E0E3
 
 wrapper:
-kindle/e-reader emulado
+e-reader emulado (sin branding)
 
 fondo:
-- primary background: 1994x3456 px dark base
-- secondary background: smooth depth gradient
-- accent: restrained highlight at device edge
-- optional warm/cool accent: minimal and off copy area
+- primary background: 1994x3456 px using #121416
+- secondary background: depth gradient using #20272C
+- accent: restrained line accents with #C6533D
 - headline color: #FFFFFF
-- subline color: #D7E8F7
+- subline color: #D6E0E3
 
 imagen:
-Final transformed cover inside device mockup with clear before/after context.
+Problem -> transformed cover outcome.
 
 conversion intent:
-Sell transformation instantly.
+Sell transformation first.
 
 ## Screenshot 2
 titulo:
-SOURCE > MODEL > CROP > DONE
+來源 > 機型 > 裁切 > 完成
 
 subline:
-Fast workflow with real controls
+以真實控制完成快速流程
 
 headline color:
 #FFFFFF
 
 subline color:
-#D7E8F7
+#D6E0E3
 
 wrapper:
-telefono emulado
+telefono android emulado
 
 fondo:
-- primary background: 1994x3456 px dark surface
-- secondary background: subtle gradient bands
-- accent: soft halo behind phone frame
-- optional warm/cool accent: tiny side accents
+- primary background: 1994x3456 px using #121416
+- secondary background: layered depth with #20272C
+- accent: focused cues in #C6533D
 - headline color: #FFFFFF
-- subline color: #D7E8F7
+- subline color: #D6E0E3
 
 imagen:
-Real editor UI proving source selection and crop workflow.
+Simple flow execution: 選擇 EPUB -> 調整圖片 -> 預覽 -> 儲存副本.
 
 conversion intent:
-Prove simplicity after emotional hook.
+Prove practical ease of use.
 
 ## Screenshot 3
 titulo:
-FITS YOUR E-READER MODEL
+貼合你的電子閱讀器機型
 
 subline:
-Model-aware sizing with preview
+依機型尺寸預覽輸出
 
 headline color:
 #FFFFFF
 
 subline color:
-#D7E8F7
+#D6E0E3
 
 wrapper:
-telefono emulado
+telefono android emulado
 
 fondo:
-- primary background: 1994x3456 px dark base
-- secondary background: deep gradient, clean copy zone
-- accent: low-intensity edge light
-- optional warm/cool accent: micro highlights
+- primary background: 1994x3456 px using #121416
+- secondary background: controlled gradient with #20272C
+- accent: precision markers with #C6533D
 - headline color: #FFFFFF
-- subline color: #D7E8F7
+- subline color: #D6E0E3
 
 imagen:
-Model selector or preview tied to compatible families.
+Control and fit confidence without overload.
 
 conversion intent:
-Turn technical sizing into trust.
+Turn control into trust.
 
 ## Screenshot 4
 titulo:
-PREVIEW MATCHES FINAL CROP
+預覽即最終裁切結果
 
 subline:
-Thumbnail reflects true output ratio
+縮圖反映真實輸出比例
 
 headline color:
 #FFFFFF
 
 subline color:
-#D7E8F7
+#D6E0E3
 
 wrapper:
-captura directa de app
+telefono android emulado
 
 fondo:
-- primary background: 1994x3456 px dark matte
-- secondary background: low-noise gradient
-- accent: subtle right-side accent line
-- optional warm/cool accent: tiny corner accent
+- primary background: 1994x3456 px using #121416
+- secondary background: low-noise support with #20272C
+- accent: confirmation accents with #C6533D
 - headline color: #FFFFFF
-- subline color: #D7E8F7
+- subline color: #D6E0E3
 
 imagen:
-Preview and thumbnail showing real crop-ratio consistency.
+Preview-before-save confidence and final clarity.
 
 conversion intent:
-Build confidence before export.
+Reduce hesitation before save.
 
 ## Screenshot 5
 titulo:
-GUIDED FLOW, MANUAL REPLAY
+引導流程，可手動重播
 
 subline:
-Tour runs once; guide restarts on demand
+導覽一次，需要時再看
 
 headline color:
 #FFFFFF
 
 subline color:
-#D7E8F7
+#D6E0E3
 
 wrapper:
-composicion grafica con dispositivo + bullets
+telefono android emulado
 
 fondo:
-- primary background: 1994x3456 px dark base
-- secondary background: smooth depth gradient
-- accent: restrained cards and bullets
-- optional warm/cool accent: sparse divider accents
+- primary background: 1994x3456 px using #121416
+- secondary background: structural depth with #20272C
+- accent: compatibility/trust marks in #C6533D
 - headline color: #FFFFFF
-- subline color: #D7E8F7
+- subline color: #D6E0E3
 
 imagen:
-Guide/tour moments plus source selector in action.
+Compatibility/trust proof without dense technical clutter.
 
 conversion intent:
-Close with clarity and onboarding confidence.
+Strengthen conversion confidence.
+
+## Screenshot 6
+titulo:
+100% 本機與私密
+
+subline:
+無廣告版本，不需網路
+
+headline color:
+#FFFFFF
+
+subline color:
+#D6E0E3
+
+wrapper:
+composicion tipografica + bullets (sin dispositivo)
+
+fondo:
+- primary background: 1994x3456 px using #121416
+- secondary background: smooth depth using #20272C
+- accent: trust badges using #C6533D
+- optional warm/cool accent: sparse corner highlights
+- headline color: #FFFFFF
+- subline color: #D6E0E3
+- bullet color: #ECB0A1
+
+imagen:
+Conceptual trust composition without device mockups: clear privacy/offline/ad-free badges and short proof bullets.
+
+conversion intent:
+Close with hard trust proof.
 
 ## Notes / Assumptions
-- Strategic docs under docs/fichas/ccfk include legacy EPUB language; this ficha follows CCFK golden positioning plus current code reality.
-- Claims limited to verified behavior: image|scratch source, model-aware crop/preview, save/share, tour guidance.
-- No claim for AI generation, template marketplace, DRM bypass, cloud processing, or official brand affiliation.
+- Matrix row $locale used as primary strategy and palette source.
+- Conversion audit trust framing aligned: 在裝置上處理。無需帳號。不需上傳。
+- Locale note from matrix: Keep the copy direct and utility-first. Use a slightly warmer editorial accent than zh-CN.
+
+

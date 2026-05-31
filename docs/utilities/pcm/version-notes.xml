@@ -1,51 +1,39 @@
-<en-US>
-Added Image | Scratch source actions. Scratch opens editor directly on background tools. PDF detected crop now matches editor and export output, so preview and final file stay aligned.
+﻿<en-US>
+E-reader optimization is now manual-only inside editor tools. Settings toggle was removed, and source labels were refined across locales.
 </en-US>
-
 <ar>
-Tam idafat image | scratch. yabhath scratch al-muharrir mubasharatan ila adawat al-khalfiyah. qass PDF al-mukhtashaf alaan yutabiq muaynat al-muharrir wa natijit al-tasdir.
+Tahsin e-reader asbaha yadawi faqat dakhil adawat al-muharrir. Tam izalat mubaddil al-iadadat, wa tahsin nusus al-masdar fi jami al-lughat.
 </ar>
-
 <de-DE>
-Image | Scratch Quelle hinzugefuegt. Scratch oeffnet den Editor direkt bei den Hintergrund-Werkzeugen. Erkanntes PDF-Crop stimmt jetzt mit Editor und Export ueberein, damit Vorschau und Ergebnis gleich bleiben.
+Die e-reader Optimierung ist jetzt nur noch manuell in den Editor Werkzeugen aktiv. Der Schalter in den Einstellungen wurde entfernt und die Quellenlabels wurden in allen Sprachen verbessert.
 </de-DE>
-
 <es-419>
-Se agregaron acciones de fuente Image | Scratch. Scratch abre el editor directo en herramientas de fondo. El crop detectado del PDF ahora coincide con editor y exportacion, por lo que preview y archivo final quedan alineados.
+La optimizacion para e-reader ahora es solo manual dentro de herramientas del editor. Se elimino el toggle en ajustes y se mejoraron textos de origen en todos los idiomas.
 </es-419>
-
 <fr-FR>
-Ajout des actions source Image | Scratch. Scratch ouvre l editeur directement sur les outils de fond. Le crop detecte du PDF correspond maintenant a l editeur et a l export, pour garder preview et resultat alignes.
+L optimisation e-reader est maintenant uniquement manuelle dans les outils de l editeur. Le commutateur des reglages a ete retire et les libelles source ont ete ameliores dans toutes les langues.
 </fr-FR>
-
 <hi-IN>
-Image | Scratch source actions add hue. Scratch editor ko seedha background tools par kholta hai. PDF detected crop ab editor aur export ke saath match karta hai, isliye preview aur final file aligned rehte hain.
+E-reader optimization ab sirf manual hai aur editor tools ke andar milti hai. Settings toggle hata diya gaya hai, aur source labels sabhi bhashaon mein sudhare gaye hain.
 </hi-IN>
-
 <it-IT>
-Aggiunte azioni sorgente Image | Scratch. Scratch apre l editor direttamente sugli strumenti di sfondo. Il crop PDF rilevato ora coincide con editor ed export, cosi anteprima e file finale restano allineati.
+L ottimizzazione e-reader ora e solo manuale negli strumenti editor. Il toggle nelle impostazioni e stato rimosso e le etichette sorgente sono state migliorate in tutte le lingue.
 </it-IT>
-
 <ja-JP>
-Image | Scratch source action o tsuika. Scratch wa haikei tool ni chokusetu hairu editor de hirakimasu. PDF de kenshutsu sareta crop wa ima editor to export to icchi shi, preview to saishuu file ga zuremasen.
+E-reader saitekika wa editor tsuru nai no manual nomi ni henkou. Settings toggle wa sakujo sare, source labels wa subete no locales de kaizen sareta.
 </ja-JP>
-
 <ko-KR>
-Image | Scratch source action-i chuga doeeotseumnida. Scratch-neun baegyeong tool-eseo jeuksi editor-reul yeoreumnida. PDF gamji crop-eun ije editor-wa export-gwa ilchihae preview-wa gyeolgwa file-i matseumnida.
+E-reader choejeokhwa neun ije editor tools aneseo su-dongman sayong doemnida. Settings toggle eun jegeo doeeotgo, source labels neun modeun locale eseo gaeseon doeeotseumnida.
 </ko-KR>
-
 <pt-BR>
-Foram adicionadas acoes de origem Image | Scratch. Scratch abre o editor direto nas ferramentas de fundo. O crop detectado do PDF agora coincide com editor e exportacao, mantendo preview e arquivo final alinhados.
+A otimizacao para e-reader agora e apenas manual nas ferramentas do editor. O toggle de configuracoes foi removido e os textos de origem foram melhorados em todos os idiomas.
 </pt-BR>
-
 <ru-RU>
-Dobavleny deistviya istochnika Image | Scratch. Rezhim scratch otkryvaet redaktor srazu na instrumentakh fona. Obnaruzhennyi PDF crop teper sovpadaet s editorom i exportom, poetomu preview i finalnyi fail soglasovany.
+Optimizatsiya dlya e-reader teper tolko ruchnaya v instrumentakh redaktora. Toggle v nastroikakh udalen, a podpisi istochnika uluchsheny vo vsekh lokalakh.
 </ru-RU>
-
 <zh-CN>
-Yi zengjia Image | Scratch laiyuan anniu. Scratch hui zhijie dakaibianjiqi de beijing gongju. PDF zidong jiance de crop xianzai yu editor he export baochi yizhi, preview he zuizhong wenjian bu zai cuowei.
+E-reader youhua xianzai jin zai editor tools zhong shoudong qiyong. Settings toggle yi yichu, source labels yi zai suoyou locales zhong gaijin.
 </zh-CN>
-
 <zh-TW>
-Yi zengjia Image | Scratch laiyuan anniu. Scratch hui zhijie dakaibianjiqi de beijing gongju. PDF zidong jiance de crop xianzai yu editor he export baochi yizhi, preview he zuizhong wenjian bu zai cuowei.
+E-reader youhua xianzai jin zai editor tools zhong shoudong qiyong. Settings toggle yi yichu, source labels yi zai suoyou locales zhong gaijin.
 </zh-TW>

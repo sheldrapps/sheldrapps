@@ -15,9 +15,7 @@ import {
   IonButtons,
   IonButton,
   IonLoading,
-  IonToggle,
 } from '@ionic/angular/standalone';
-import { CheckboxCustomEvent } from '@ionic/angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { THEME_OPTIONS, ThemeService, type Theme } from '@sheldrapps/ui-theme';
 
@@ -38,7 +36,6 @@ import {
 import { RatingService } from '@sheldrapps/rating-kit';
 import { TourService } from 'src/app/shared/tour/tour.service';
 import { HOME_TOUR_ID } from 'src/app/shared/tour/home-tour.definition';
-import { EDITOR_EREADER_OPTIMIZATION_PREF_KEY } from '@sheldrapps/image-workflow/editor';
 
 @Component({
   selector: 'app-settings',
@@ -60,12 +57,10 @@ import { EDITOR_EREADER_OPTIMIZATION_PREF_KEY } from '@sheldrapps/image-workflow
     IonButtons,
     IonButton,
     IonLoading,
-    IonToggle,
     LanguageRadioListComponent,
   ],
 })
 export class SettingsPage {
-  readonly editorEReaderOptimizationFeatureEnabled = true;
   private settings = inject(SettingsStore<CcfkSettings>);
   private router = inject(Router);
   private tour = inject(TourService);
@@ -81,7 +76,6 @@ export class SettingsPage {
   isLanguageRestartLoading = false;
   languageRestartCountdown = 4;
   private readonly languageRestartCountdownStart = 4;
-  eReaderOptimizationEnabled = true;
 
   private readonly privacyPolicyUrl =
     'https://sheldrapps.com/privacy-policies/cover-creator-for-kindle';
@@ -113,10 +107,6 @@ export class SettingsPage {
     );
   }
 
-  async ionViewWillEnter() {
-    await this.loadEReaderOptimizationSetting();
-  }
-
   openLanguageModal() {
     this.isLanguageModalOpen = true;
     this._languageDraft = null;
@@ -127,7 +117,9 @@ export class SettingsPage {
   }
 
   onLanguageDraftChange(value: string) {
-    const next = this.supportedLangs.find((option) => option.code === value)?.code;
+    const next = this.supportedLangs.find(
+      (option) => option.code === value,
+    )?.code;
     if (!next) {
       return;
     }
@@ -187,22 +179,14 @@ export class SettingsPage {
     await this.ratingService.previewFeedbackFlow();
   }
 
-  async onEReaderOptimizationChange(event: Event): Promise<void> {
-    const enabled = (event as CheckboxCustomEvent).detail.checked;
-    this.eReaderOptimizationEnabled = enabled;
-    await this.settings.set((prev) => ({
-      ...prev,
-      preferences: {
-        ...(prev.preferences ?? {}),
-        [EDITOR_EREADER_OPTIMIZATION_PREF_KEY]: enabled,
-      },
-    }));
-  }
-
   private async showLanguageRestartCountdown() {
     this.isLanguageRestartLoading = true;
     await this.waitForLoadingToRender();
-    for (let remaining = this.languageRestartCountdownStart; remaining >= 1; remaining--) {
+    for (
+      let remaining = this.languageRestartCountdownStart;
+      remaining >= 1;
+      remaining--
+    ) {
       this.languageRestartCountdown = remaining;
       await this.delay(1000);
     }
@@ -225,12 +209,5 @@ export class SettingsPage {
     return new Promise((resolve) => {
       setTimeout(resolve, ms);
     });
-  }
-
-  private async loadEReaderOptimizationSetting(): Promise<void> {
-    const settings = await this.settings.load();
-    const stored =
-      settings.preferences?.[EDITOR_EREADER_OPTIMIZATION_PREF_KEY];
-    this.eReaderOptimizationEnabled = stored !== false;
   }
 }

@@ -1,4 +1,4 @@
----
+﻿---
 name: incrementa-version-utilidades
 user-invocable: true
 description: "Incrementa version de app movil y genera utilidades/notes con inteligencia basada en cambios reales. Use when user says 'incrementa la version para <proyecto>' o equivalente."
@@ -33,7 +33,7 @@ La skill hace la inteligencia:
 
 1. Decide `versionName` descriptivo (<= 30 chars) con base en delta user-facing.
 2. Redacta `version-notes.xml` por locale con contenido real (no placeholder si hay cambios visibles).
-3. Construye `utility.md` como input factual para la skill `fichas` (no como ficha final).
+3. Construye `utility.md` como registro factual para trazabilidad de release/versionado (no como input para `fichas`).
 4. Actualiza `state.json` para incremental siguiente.
 
 Script opcional de evidencia:
@@ -61,7 +61,7 @@ Si el usuario pide explicitamente ejecutar solo version notes:
 
 ## Utility format goal
 
-`utility.md` debe contener hechos estructurados para `fichas`:
+`utility.md` debe contener hechos estructurados para trazabilidad técnica de release:
 
 - identidad/versiones
 - capacidades verificadas + evidencia
@@ -147,10 +147,21 @@ Formato:
 </zh-TW>
 ```
 
+## Encoding y anti-artifacts (obligatorio)
+
+- Escribir siempre `version-notes.xml`, `utility.md` y `state.json` en `UTF-8`.
+- No dejar mojibake ni reemplazos de caracteres.
+- Bloquear salida si aparece cualquiera de estos patrones:
+  - `\\u00C3|\\u00C2|\\uFFFD`
+  - `\?{2,}`
+  - `[A-Za-z]\?[A-Za-z]`
+- Si el entorno rompe scripts no latinos, usar transliteracion legible sin artifacts en vez de texto corrupto.
+- Nunca cerrar la tarea con `?` dentro de palabras en `version-notes.xml`.
+
 ## Validation before close
 
 - `versionCode` incrementado cuando el usuario lo pide.
 - `versionName` <= 30 y descriptivo.
-- `utility.md` factual y util para `fichas`.
+- `utility.md` factual y util para trazabilidad/versionado.
 - `version-notes.xml` en los 13 locales obligatorios y sin placeholders si hay cambios visibles.
-- no mojibake.
+- `version-notes.xml`, `utility.md` y `state.json` sin mojibake ni artifacts `?`.

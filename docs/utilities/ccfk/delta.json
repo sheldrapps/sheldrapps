@@ -1,9 +1,9 @@
 {
   "project": "cover-creator-for-kindle",
   "shortName": "ccfk",
-  "generatedAt": "2026-05-28T03:51:32.359Z",
-  "head": "346e0b6d22d07b395c60014d440b768620e484ed",
-  "versionCodeAnchorCommit": "362cfe052e105ab0800ab37f8ae5e705f3624ed2",
+  "generatedAt": "2026-05-29T04:15:02.439Z",
+  "head": "9c7a4b2b1c48525c799f78df23eae3d421dcc892",
+  "versionCodeAnchorCommit": "9c7a4b2b1c48525c799f78df23eae3d421dcc892",
   "source": {
     "buildGradle": "apps/cover-creator-for-kindle/android/app/build.gradle",
     "scope": [
@@ -12,26 +12,20 @@
     ]
   },
   "version": {
-    "currentCode": 42,
-    "currentName": "Scratch source and tour reset"
+    "currentCode": 43,
+    "currentName": "Manual optimize and i18n fix"
   },
   "delta": {
     "mode": "incremental",
-    "from": "346e0b6d22d07b395c60014d440b768620e484ed",
-    "to": "346e0b6d22d07b395c60014d440b768620e484ed",
-    "changedFilesCount": 35,
+    "from": "9c7a4b2b1c48525c799f78df23eae3d421dcc892",
+    "to": "9c7a4b2b1c48525c799f78df23eae3d421dcc892",
+    "changedFilesCount": 15,
     "changedFiles": [
       "M apps/cover-creator-for-kindle/android/app/build.gradle",
-      "apps/cover-creator-for-kindle/src/app/pages/create/create.page.html",
-      "apps/cover-creator-for-kindle/src/app/pages/create/create.page.scss",
-      "apps/cover-creator-for-kindle/src/app/pages/create/create.page.spec.ts",
       "apps/cover-creator-for-kindle/src/app/pages/create/create.page.ts",
-      "apps/cover-creator-for-kindle/src/app/shared/tour/home-tour.definition.ts",
+      "apps/cover-creator-for-kindle/src/app/pages/settings/settings.page.html",
+      "apps/cover-creator-for-kindle/src/app/pages/settings/settings.page.ts",
       "apps/cover-creator-for-kindle/src/assets/i18n/ar-SA.json",
-      "apps/cover-creator-for-kindle/src/assets/i18n/de-DE.json",
-      "apps/cover-creator-for-kindle/src/assets/i18n/en-US.json",
-      "apps/cover-creator-for-kindle/src/assets/i18n/es-MX.json",
-      "apps/cover-creator-for-kindle/src/assets/i18n/fr-FR.json",
       "apps/cover-creator-for-kindle/src/assets/i18n/hi-IN.json",
       "apps/cover-creator-for-kindle/src/assets/i18n/it-IT.json",
       "apps/cover-creator-for-kindle/src/assets/i18n/ja-JP.json",
@@ -40,22 +34,8 @@
       "apps/cover-creator-for-kindle/src/assets/i18n/ru-RU.json",
       "apps/cover-creator-for-kindle/src/assets/i18n/zh-CN.json",
       "apps/cover-creator-for-kindle/src/assets/i18n/zh-TW.json",
-      "apps/cover-creator-for-kindle/src/main.ts",
-      "packages/file-kit/src/lib/adapters/capacitor/capacitor-filesystem.adapter.ts",
-      "packages/file-kit/src/lib/adapters/capacitor/capacitor-share.adapter.ts",
-      "packages/file-kit/src/lib/adapters/web-dev-epub-fixer.adapter.ts",
-      "packages/file-kit/src/lib/epub-public-store.ts",
-      "packages/file-kit/src/lib/pdf-public-store.ts",
-      "packages/file-kit/src/lib/web-pdf-cover.service.ts",
-      "packages/image-workflow/src/lib/editor/editor-session.service.ts",
-      "packages/image-workflow/src/lib/editor/editor-shell.page.ts",
-      "packages/image-workflow/src/lib/editor/panels/tools/tools.page.ts",
-      "packages/image-workflow/src/lib/editor/panels/tools/widgets/fill-panel.component.html",
-      "packages/image-workflow/src/lib/editor/panels/tools/widgets/fill-panel.component.ts",
-      "packages/image-workflow/src/public-api.ts",
-      "packages/recommended-apps/src/recommended-apps.service.ts",
-      "packages/image-workflow/src/lib/components/cover-source-actions/",
-      "packages/image-workflow/src/lib/cover-source/"
+      "packages/covers-list-kit/src/cover-list-content.component.scss",
+      "packages/image-workflow/src/lib/cover-source/i18n/cover-source.translations.ts"
     ]
   },
   "userFacingFacts": {

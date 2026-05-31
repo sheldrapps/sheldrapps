@@ -12,7 +12,7 @@
   margin: var(--app-space-5) 0 0;
   font-size: var(--app-text-xs);
   line-height: 1.45;
-  color: var(--app-text-color-secondary, rgba(255, 255, 255, 0.72));
+  color: var(--app-muted-text-color, var(--app-text-secondary, var(--ion-color-step-600)));
 }
 
 .cover-card {

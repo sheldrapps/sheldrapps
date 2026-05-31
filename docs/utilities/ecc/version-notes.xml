@@ -1,51 +1,39 @@
-<en-US>
-Added Image | Scratch source actions. After Done from image or scratch, Best Candidate now hides again. In scratch mode, Same Image stays disabled and Eyedropper unlocks only after choosing a color.
+﻿<en-US>
+E-reader optimization is now manual-only inside editor tools. Settings toggle was removed, and source labels were refined across locales.
 </en-US>
-
 <ar>
-Tam idafat image | scratch. baad done min image aw scratch, akhyar murashah yakhfii marra ukhra. fi scratch, same image yabqa muattalan wa eyedropper yatafaal baad ikhtiyar lawn.
+Tahsin e-reader asbaha yadawi faqat dakhil adawat al-muharrir. Tam izalat mubaddil al-iadadat, wa tahsin nusus al-masdar fi jami al-lughat.
 </ar>
-
 <de-DE>
-Image | Scratch Quelle hinzugefuegt. Nach Done aus Image oder Scratch wird Best Candidate wieder ausgeblendet. Im Scratch-Modus bleibt Same Image deaktiviert und Eyedropper wird erst nach Farbauswahl aktiv.
+Die e-reader Optimierung ist jetzt nur noch manuell in den Editor Werkzeugen aktiv. Der Schalter in den Einstellungen wurde entfernt und die Quellenlabels wurden in allen Sprachen verbessert.
 </de-DE>
-
 <es-419>
-Se agregaron acciones de fuente Image | Scratch. Despues de Done desde imagen o scratch, Best Candidate se vuelve a ocultar. En modo scratch, Same Image queda deshabilitado y Eyedropper solo se habilita tras elegir color.
+La optimizacion para e-reader ahora es solo manual dentro de herramientas del editor. Se elimino el toggle en ajustes y se mejoraron textos de origen en todos los idiomas.
 </es-419>
-
 <fr-FR>
-Ajout des actions source Image | Scratch. Apres Done depuis image ou scratch, Best Candidate se masque a nouveau. En mode scratch, Same Image reste desactive et Eyedropper s active seulement apres choix d une couleur.
+L optimisation e-reader est maintenant uniquement manuelle dans les outils de l editeur. Le commutateur des reglages a ete retire et les libelles source ont ete ameliores dans toutes les langues.
 </fr-FR>
-
 <hi-IN>
-Image | Scratch source actions add kiye gaye. Image ya scratch se Done ke baad Best Candidate fir hide hota hai. Scratch mode me Same Image disabled rehta hai aur Eyedropper color choose karne ke baad hi enable hota hai.
+E-reader optimization ab sirf manual hai aur editor tools ke andar milti hai. Settings toggle hata diya gaya hai, aur source labels sabhi bhashaon mein sudhare gaye hain.
 </hi-IN>
-
 <it-IT>
-Aggiunte azioni sorgente Image | Scratch. Dopo Done da image o scratch, Best Candidate torna nascosto. In modalita scratch, Same Image resta disabilitato e Eyedropper si abilita solo dopo scelta colore.
+L ottimizzazione e-reader ora e solo manuale negli strumenti editor. Il toggle nelle impostazioni e stato rimosso e le etichette sorgente sono state migliorate in tutte le lingue.
 </it-IT>
-
 <ja-JP>
-Image | Scratch source action o tsuika. Image matawa scratch kara Done no ato, Best Candidate wa futatabi kakuremasu. Scratch mode dewa Same Image wa muko no mama, Eyedropper wa iro sentaku go ni nomi yuukou.
+E-reader saitekika wa editor tsuru nai no manual nomi ni henkou. Settings toggle wa sakujo sare, source labels wa subete no locales de kaizen sareta.
 </ja-JP>
-
 <ko-KR>
-Image | Scratch source action-i chuga doeeotseumnida. Image ttoneun scratch-eseo Done hu Best Candidate-neun dasi sumgyeojimnida. Scratch mode-eseo Same Image-neun biyonghwa, Eyedropper-neun saeg sangtae seontaek hu-e man hwalseonghwa doemnida.
+E-reader choejeokhwa neun ije editor tools aneseo su-dongman sayong doemnida. Settings toggle eun jegeo doeeotgo, source labels neun modeun locale eseo gaeseon doeeotseumnida.
 </ko-KR>
-
 <pt-BR>
-Foram adicionadas acoes de origem Image | Scratch. Depois de Done por imagem ou scratch, Best Candidate volta a ficar oculto. No modo scratch, Same Image continua desabilitado e Eyedropper so ativa apos escolher cor.
+A otimizacao para e-reader agora e apenas manual nas ferramentas do editor. O toggle de configuracoes foi removido e os textos de origem foram melhorados em todos os idiomas.
 </pt-BR>
-
 <ru-RU>
-Dobavleny deistviya istochnika Image | Scratch. Posle Done iz image ili scratch Best Candidate snova skryvaetsya. V rezhime scratch Same Image ostayotsya otklyuchen, a Eyedropper vklyuchaetsya tolko posle vybora cveta.
+Optimizatsiya dlya e-reader teper tolko ruchnaya v instrumentakh redaktora. Toggle v nastroikakh udalen, a podpisi istochnika uluchsheny vo vsekh lokalakh.
 </ru-RU>
-
 <zh-CN>
-Yi zengjia Image | Scratch laiyuan anniu. Cong image huo scratch dianji Done hou, Best Candidate hui zai ci yincang. Zai scratch moshi zhong, Same Image baochi jinyong, Eyedropper xuyao xian xuanze yanse cai neng qiyong.
+E-reader youhua xianzai jin zai editor tools zhong shoudong qiyong. Settings toggle yi yichu, source labels yi zai suoyou locales zhong gaijin.
 </zh-CN>
-
 <zh-TW>
-Yi zengjia Image | Scratch laiyuan anniu. Cong image huo scratch dianji Done hou, Best Candidate hui zai ci yincang. Zai scratch moshi zhong, Same Image baochi jinyong, Eyedropper bixu xian xuanze yanse cai neng qiyong.
+E-reader youhua xianzai jin zai editor tools zhong shoudong qiyong. Settings toggle yi yichu, source labels yi zai suoyou locales zhong gaijin.
 </zh-TW>

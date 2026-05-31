@@ -1,7 +1,7 @@
 ﻿# Cover Creator for Kindle - en-US Play Store Listing
 
 ## Purpose
-Localized Play Store listing for en-US, regenerated for CCFK with Kindle-first conversion and new image|scratch source flow.
+Localized Play Store listing for en-US, regenerated from the updated strategy matrix and conversion audit.
 
 ## App Name
 Current localized name from strings.xml/app.title:
@@ -14,7 +14,7 @@ Character count:
 24
 
 Reasoning:
-Name is clear, searchable, and within 30-character Play Store limit.
+Uses the official localized app name from Android resources.
 
 ## Short Description
 Text:
@@ -24,81 +24,59 @@ Character count:
 56
 
 Reasoning:
-Leads with direct outcome and source flexibility without unsupported claims.
+Aligned to locale conversion angle and kept under Play Store limit.
 
 ## Long Description
 Text:
-Create a Kindle cover in seconds from your image, or start from scratch with a clean background. Workflow stays direct: source, model, crop, preview, then save or share. This release adds the image|scratch source selector, improves guided onboarding around source choice, and keeps thumbnail preview aligned with the real final crop ratio. Positioning remains Kindle-first while supporting compatible e-readers such as Kobo, Nook, PocketBook, and Tolino. Brand names are descriptive only; no official affiliation is implied.
+Fast EPUB cover replacement. Clear before/after EPUB transformation.
+
+Flow: Select EPUB -> choose image -> adjust -> save copy.
+
+Trust proof: 100% on device. No accounts. No uploads.
+
+Positioning stays focused on transformation and practical control, while avoiding AI/editor overpromises.
 
 Character count:
-524
+289
 
 SEO/ASO notes:
-Keep Kindle-first intent while clarifying compatible e-reader support. Avoid AI generation, full EPUB editing, DRM bypass, and official affiliation claims.
+Use locale terms naturally and avoid unsupported claims.
 
 ## Regional Conversion Strategy
 Primary user desire:
-Create personal Kindle/e-reader cover from image or scratch in seconds.
+Fast EPUB cover replacement
 
 Best use cases to show:
-Photo-to-cover personalization, scratch-first minimalist covers, model-aware output and preview before export.
+Clear before/after EPUB transformation
+Polished custom image cover
 
 What to avoid:
-Do not position app as EPUB editor, AI generator, template marketplace, or official brand app.
+Making it look like a generic image editor or AI cover generator
 
 Search/ASO terms to include naturally:
 kindle cover creator, custom kindle cover, e-reader cover, scratch, crop, preview
 
 ## Visual System
 Palette:
-- primary background: #041126
-- secondary background: #071B3A
-- accent: #1D5C96
-- optional warm/cool accent: #4A90C2
+- primary background: #151515
+- secondary background: #242424
+- accent: #B3261E
+- optional warm/cool accent: derived support tone from accent
 - headline color: #FFFFFF
-- subline color: #D7E8F7
+- subline color: #D8D8D8
+- bullet color: #F0B3AD
 
 General visual rules:
-Dark copy-safe area always protected. Show transformation first, then workflow proof. Thumbnail must match real crop ratio (no frame distortion).
+- keep copy zone stable, dark and readable
+- no bright panels behind title
+- no saturated red glow behind headline
+- no dense patterns behind copy
+- sequence: problem -> simple flow -> control -> privacy
+- trust proof stays explicit: local processing, no accounts, no uploads
 
 ## Feature Graphic
 titulo:
-IMAGE OR SCRATCH TO KINDLE COVER
-
-subline:
-Choose source, adjust, preview, save
-
-headline color:
-#FFFFFF
-
-subline color:
-#D7E8F7
-
-wrapper:
-composicion grafica con dispositivo + bullets
-
-fondo:
-- primary background: 1024x500 px, dark stable base
-- secondary background: low-noise gradient away from copy area
-- accent: subtle glow behind device only
-- optional warm/cool accent: small edge highlights
-- headline color: #FFFFFF
-- subline color: #D7E8F7
-
-imagen:
-Show source image card next to final Kindle/e-reader cover result. Make transformation obvious in one glance.
-
-bullets:
-- Image or scratch start
-- Model-aware crop and preview
-- Save or share final cover
-
-conversion intent:
-Immediate comprehension: source in, fitted cover out.
-
-## Screenshot 1
-titulo:
-TURN IMAGE INTO A KINDLE COVER
+TURN IMAGE INTO AN E-READER COVER
 
 subline:
 Or start from scratch in one tap
@@ -107,24 +85,59 @@ headline color:
 #FFFFFF
 
 subline color:
-#D7E8F7
+#D8D8D8
 
 wrapper:
-kindle/e-reader emulado
+composicion grafica con e-reader + bullets (sin branding)
 
 fondo:
-- primary background: 1994x3456 px dark base
-- secondary background: smooth depth gradient
-- accent: restrained highlight at device edge
-- optional warm/cool accent: minimal and off copy area
+- primary background: 1024x500 px using #151515
+- secondary background: gradient using #242424
+- accent: restrained highlights using #B3261E
+- optional warm/cool accent: subtle support tone
 - headline color: #FFFFFF
-- subline color: #D7E8F7
+- subline color: #D8D8D8
+- bullet color: #F0B3AD
 
 imagen:
-Final transformed cover inside device mockup with clear before/after context.
+Before/after transformation concept: Plain white or ugly generic EPUB cover -> Polished custom image cover.
+
+bullets:
+- 100% on device. No accounts. No uploads.
+- Select EPUB -> choose image -> adjust -> save copy
+- conversion-first visual clarity
 
 conversion intent:
-Sell transformation instantly.
+Immediate value comprehension.
+
+## Screenshot 1
+titulo:
+TURN IMAGE INTO AN E-READER COVER
+
+subline:
+Or start from scratch in one tap
+
+headline color:
+#FFFFFF
+
+subline color:
+#D8D8D8
+
+wrapper:
+e-reader emulado (sin branding)
+
+fondo:
+- primary background: 1994x3456 px using #151515
+- secondary background: depth gradient using #242424
+- accent: restrained line accents with #B3261E
+- headline color: #FFFFFF
+- subline color: #D8D8D8
+
+imagen:
+Problem -> transformed cover outcome.
+
+conversion intent:
+Sell transformation first.
 
 ## Screenshot 2
 titulo:
@@ -137,24 +150,23 @@ headline color:
 #FFFFFF
 
 subline color:
-#D7E8F7
+#D8D8D8
 
 wrapper:
-telefono emulado
+telefono android emulado
 
 fondo:
-- primary background: 1994x3456 px dark surface
-- secondary background: subtle gradient bands
-- accent: soft halo behind phone frame
-- optional warm/cool accent: tiny side accents
+- primary background: 1994x3456 px using #151515
+- secondary background: layered depth with #242424
+- accent: focused cues in #B3261E
 - headline color: #FFFFFF
-- subline color: #D7E8F7
+- subline color: #D8D8D8
 
 imagen:
-Real editor UI proving source selection and crop workflow.
+Simple flow execution: Select EPUB -> choose image -> adjust -> save copy.
 
 conversion intent:
-Prove simplicity after emotional hook.
+Prove practical ease of use.
 
 ## Screenshot 3
 titulo:
@@ -167,24 +179,23 @@ headline color:
 #FFFFFF
 
 subline color:
-#D7E8F7
+#D8D8D8
 
 wrapper:
-telefono emulado
+telefono android emulado
 
 fondo:
-- primary background: 1994x3456 px dark base
-- secondary background: deep gradient, clean copy zone
-- accent: low-intensity edge light
-- optional warm/cool accent: micro highlights
+- primary background: 1994x3456 px using #151515
+- secondary background: controlled gradient with #242424
+- accent: precision markers with #B3261E
 - headline color: #FFFFFF
-- subline color: #D7E8F7
+- subline color: #D8D8D8
 
 imagen:
-Model selector or preview tied to compatible families.
+Control and fit confidence without overload.
 
 conversion intent:
-Turn technical sizing into trust.
+Turn control into trust.
 
 ## Screenshot 4
 titulo:
@@ -197,24 +208,23 @@ headline color:
 #FFFFFF
 
 subline color:
-#D7E8F7
+#D8D8D8
 
 wrapper:
-captura directa de app
+telefono android emulado
 
 fondo:
-- primary background: 1994x3456 px dark matte
-- secondary background: low-noise gradient
-- accent: subtle right-side accent line
-- optional warm/cool accent: tiny corner accent
+- primary background: 1994x3456 px using #151515
+- secondary background: low-noise support with #242424
+- accent: confirmation accents with #B3261E
 - headline color: #FFFFFF
-- subline color: #D7E8F7
+- subline color: #D8D8D8
 
 imagen:
-Preview and thumbnail showing real crop-ratio consistency.
+Preview-before-save confidence and final clarity.
 
 conversion intent:
-Build confidence before export.
+Reduce hesitation before save.
 
 ## Screenshot 5
 titulo:
@@ -227,26 +237,56 @@ headline color:
 #FFFFFF
 
 subline color:
-#D7E8F7
+#D8D8D8
 
 wrapper:
-composicion grafica con dispositivo + bullets
+telefono android emulado
 
 fondo:
-- primary background: 1994x3456 px dark base
-- secondary background: smooth depth gradient
-- accent: restrained cards and bullets
-- optional warm/cool accent: sparse divider accents
+- primary background: 1994x3456 px using #151515
+- secondary background: structural depth with #242424
+- accent: compatibility/trust marks in #B3261E
 - headline color: #FFFFFF
-- subline color: #D7E8F7
+- subline color: #D8D8D8
 
 imagen:
-Guide/tour moments plus source selector in action.
+Compatibility/trust proof without dense technical clutter.
 
 conversion intent:
-Close with clarity and onboarding confidence.
+Strengthen conversion confidence.
+
+## Screenshot 6
+titulo:
+100% LOCAL AND PRIVATE
+
+subline:
+Ad-free version, no internet needed
+
+headline color:
+#FFFFFF
+
+subline color:
+#D8D8D8
+
+wrapper:
+composicion tipografica + bullets (sin dispositivo)
+
+fondo:
+- primary background: 1994x3456 px using #151515
+- secondary background: smooth depth using #242424
+- accent: trust badges using #B3261E
+- optional warm/cool accent: sparse corner highlights
+- headline color: #FFFFFF
+- subline color: #D8D8D8
+- bullet color: #F0B3AD
+
+imagen:
+Conceptual trust composition without device mockups: clear privacy/offline/ad-free badges and short proof bullets.
+
+conversion intent:
+Close with hard trust proof.
 
 ## Notes / Assumptions
-- Strategic docs under docs/fichas/ccfk include legacy EPUB language; this ficha follows CCFK golden positioning plus current code reality.
-- Claims limited to verified behavior: image|scratch source, model-aware crop/preview, save/share, tour guidance.
-- No claim for AI generation, template marketplace, DRM bypass, cloud processing, or official brand affiliation.
+- Matrix row $locale used as primary strategy and palette source.
+- Conversion audit trust framing aligned: 100% on device. No accounts. No uploads.
+- Locale note from matrix: Lead with utility and speed. Use a dark practical background with controlled PDF-red accents.

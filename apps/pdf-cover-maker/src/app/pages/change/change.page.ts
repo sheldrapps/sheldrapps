@@ -53,7 +53,6 @@ import {
 import type { CropTarget, CropFormatOption } from '@sheldrapps/image-workflow';
 import {
   EditorSessionService,
-  EDITOR_EREADER_OPTIMIZATION_PREF_KEY,
 } from '@sheldrapps/image-workflow/editor';
 
 import {
@@ -1560,13 +1559,11 @@ export class ChangePage implements OnInit, OnDestroy {
     if (!selected) return;
     const sourceFile =
       sourceMode === 'image'
-        ? this.editorSourceFile ?? this.workingImageFile
+        ? (this.editorSourceFile ?? this.workingImageFile)
         : undefined;
     if (sourceMode === 'image' && !sourceFile) return;
 
     const editorFormats = this.getCurrentFormatOptions();
-    const eReaderOptimizationEnabledForFeature =
-      await this.resolveEReaderOptimizationEnabled();
     const initialState =
       sourceMode === 'scratch' ? this.buildDefaultCropState() : this.cropState;
 
@@ -1584,9 +1581,7 @@ export class ChangePage implements OnInit, OnDestroy {
           selectedId: selected.id,
         },
         eReaderOptimization: {
-          enabled:
-            this.editorEReaderOptimizationFeatureEnabled &&
-            eReaderOptimizationEnabledForFeature,
+          enabled: this.editorEReaderOptimizationFeatureEnabled,
         },
       },
       output: {
@@ -1648,15 +1643,6 @@ export class ChangePage implements OnInit, OnDestroy {
     const current = this.router.url;
     if (current.startsWith('/tabs/')) return current;
     return '/tabs/change';
-  }
-
-  private async resolveEReaderOptimizationEnabled(): Promise<boolean> {
-    if (!this.editorEReaderOptimizationFeatureEnabled) {
-      return false;
-    }
-    const settings = await this.settings.load();
-    const stored = settings.preferences?.[EDITOR_EREADER_OPTIMIZATION_PREF_KEY];
-    return stored !== false;
   }
 
   canExport(): boolean {

@@ -1,4 +1,4 @@
-# EPUB Cover Changer — Creative Brief
+﻿# EPUB Cover Changer — Creative Brief
 
 ## Purpose
 

@@ -1,4 +1,4 @@
-{
+﻿{
   "APP": {
     "TITLE": "创建Kindle封面"
   },
@@ -94,7 +94,7 @@
     "PLACEHOLDER": "封面",
     "PREVIEW_TITLE": "预览",
     "TITLE": "封面",
-    "DITHERED_THUMBNAIL_NOTICE": "????????????????????????????????????",
+    "DITHERED_THUMBNAIL_NOTICE": "启用伪影减少的封面在缩略图中可能看起来不同。请打开预览查看更准确的效果。",
     "ACTIONS": {
       "DELETE": "删除",
       "SHARE": "分享",

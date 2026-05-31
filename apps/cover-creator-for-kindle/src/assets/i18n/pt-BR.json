@@ -1,4 +1,4 @@
-{
+﻿{
   "APP": {
     "TITLE": "Criar Capas para Kindle"
   },
@@ -94,7 +94,7 @@
     "PLACEHOLDER": "Capa",
     "PREVIEW_TITLE": "Pré-visualização",
     "TITLE": "Capas",
-    "DITHERED_THUMBNAIL_NOTICE": "Capas com redu??o de artefatos podem parecer diferentes nas miniaturas. Abra a visualiza??o para ver um resultado mais fiel.",
+    "DITHERED_THUMBNAIL_NOTICE": "Capas com redução de artefatos podem parecer diferentes nas miniaturas. Abra a visualização para ver um resultado mais fiel.",
     "ACTIONS": {
       "DELETE": "Excluir",
       "SHARE": "Compartilhar",

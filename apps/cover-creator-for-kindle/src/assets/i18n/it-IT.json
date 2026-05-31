@@ -1,4 +1,4 @@
-{
+﻿{
   "APP": {
     "TITLE": "Crea Cover per Kindle"
   },
@@ -94,7 +94,7 @@
     "PLACEHOLDER": "Copertina",
     "PREVIEW_TITLE": "Anteprima",
     "TITLE": "Copertine",
-    "DITHERED_THUMBNAIL_NOTICE": "Le copertine con riduzione degli artefatti possono apparire diverse nelle miniature. Apri l'anteprima per vedere un risultato pi? fedele.",
+    "DITHERED_THUMBNAIL_NOTICE": "Le copertine con riduzione degli artefatti possono apparire diverse nelle miniature. Apri l'anteprima per vedere un risultato più fedele.",
     "ACTIONS": {
       "DELETE": "Elimina",
       "SHARE": "Condividi",

@@ -57,7 +57,6 @@ import {
 } from '@sheldrapps/image-workflow';
 import {
   EditorSessionService,
-  EDITOR_EREADER_OPTIMIZATION_PREF_KEY,
   type KindleDeviceModel,
 } from '@sheldrapps/image-workflow/editor';
 
@@ -398,8 +397,6 @@ export class CreatePage implements OnInit, OnDestroy {
     if (sourceMode === 'image' && !this.workingImageFile) return;
 
     this.applyResolvedSelection(selection);
-    const eReaderOptimizationEnabledForFeature =
-      await this.resolveEReaderOptimizationEnabled();
     const initialState =
       sourceMode === 'scratch' ? buildDefaultCoverCropState() : this.cropState;
     const sid = this.editorSession.createSession({
@@ -421,9 +418,7 @@ export class CreatePage implements OnInit, OnDestroy {
           },
         },
         eReaderOptimization: {
-          enabled:
-            this.editorEReaderOptimizationFeatureEnabled &&
-            eReaderOptimizationEnabledForFeature,
+          enabled: this.editorEReaderOptimizationFeatureEnabled,
         },
       },
       output: {
@@ -461,16 +456,6 @@ export class CreatePage implements OnInit, OnDestroy {
         ...(shouldShowEditorTour ? { tour: '1' } : {}),
       },
     });
-  }
-
-  private async resolveEReaderOptimizationEnabled(): Promise<boolean> {
-    if (!this.editorEReaderOptimizationFeatureEnabled) {
-      return false;
-    }
-    const settings = await this.settings.load();
-    const stored =
-      settings.preferences?.[EDITOR_EREADER_OPTIMIZATION_PREF_KEY];
-    return stored !== false;
   }
 
   async onBrandChange() {
