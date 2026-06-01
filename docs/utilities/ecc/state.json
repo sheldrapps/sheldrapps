@@ -1,28 +1,28 @@
-﻿{
-    "project":  "epub-cover-changer",
-    "shortName":  "ecc",
-    "baseline":  {
-                     "versionCode":  39,
-                     "versionName":  "Optimize for e-ink and sharpness"
-                 },
-    "current":  {
-                    "updatedAt":  "2026-05-29T04:13:13.6600632Z",
-                    "head":  "9c7a4b2b1c48525c799f78df23eae3d421dcc892",
-                    "versionCode":  42,
-                    "versionName":  "Manual optimize and i18n fix",
-                    "versionCodeAnchorCommit":  "9c7a4b2b1c48525c799f78df23eae3d421dcc892",
-                    "deltaFrom":  "346e0b6d22d07b395c60014d440b768620e484ed",
-                    "deltaTo":  "9c7a4b2b1c48525c799f78df23eae3d421dcc892",
-                    "changedFilesCount":  41,
-                    "userFacingSummary":  [
-                                              "ereader_optimize_settings_pref_removed",
-                                              "ereader_optimize_manual_only",
-                                              "cover_source_labels_locales_refined"
-                                          ]
-                },
-    "tracking":  {
-                     "lastProcessedHead":  "9c7a4b2b1c48525c799f78df23eae3d421dcc892",
-                     "lastProcessedAt":  "2026-05-29T04:13:13.6600632Z",
-                     "lastWorkingTreeFingerprint":  "WORKTREE"
-                 }
+{
+  "project": "epub-cover-changer",
+  "shortName": "ecc",
+  "baseline": {
+    "versionCode": 39,
+    "versionName": "Optimize for e-ink and sharpness"
+  },
+  "current": {
+    "updatedAt": "2026-06-01T04:50:11.108Z",
+    "head": "b4a177404511d6b3cf1065b1ebb24609d69a7756",
+    "versionCode": 43,
+    "versionName": "Fallback tour cohesion",
+    "versionCodeAnchorCommit": "b4a177404511d6b3cf1065b1ebb24609d69a7756",
+    "deltaFrom": "9c7a4b2b1c48525c799f78df23eae3d421dcc892",
+    "deltaTo": "b4a177404511d6b3cf1065b1ebb24609d69a7756",
+    "changedFilesCount": 6,
+    "userFacingSummary": [
+      "ad_fallback_flow_hardened",
+      "trial_consumption_on_success_only",
+      "tour_skip_unified_with_editor_and_remove_ads"
+    ]
+  },
+  "tracking": {
+    "lastProcessedHead": "b4a177404511d6b3cf1065b1ebb24609d69a7756",
+    "lastProcessedAt": "2026-06-01T04:50:11.108Z",
+    "lastWorkingTreeFingerprint": "WORKTREE"
+  }
 }

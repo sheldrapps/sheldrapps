@@ -1,0 +1,42 @@
+<section
+  class="ad-fallback-modal app-secondary-surface"
+  [attr.aria-label]="'AD_FALLBACK.TITLE' | translate"
+>
+  <header class="ad-fallback-modal__header">
+    <h2 class="ad-fallback-modal__title">{{ 'AD_FALLBACK.TITLE' | translate }}</h2>
+  </header>
+
+  <div class="ad-fallback-modal__body">
+    <p class="ad-fallback-modal__text">{{ messageKey | translate }}</p>
+
+    <p class="ad-fallback-modal__text ad-fallback-modal__text--reason" *ngIf="reasonKey">
+      {{ reasonKey | translate }}
+    </p>
+
+    <p class="ad-fallback-modal__remaining">
+      {{
+        'AD_FALLBACK.REMAINING'
+          | translate: { remaining: remaining, total: total }
+      }}
+    </p>
+  </div>
+
+  <footer class="ad-fallback-modal__footer">
+    <ion-button
+      class="app-btn ad-fallback-modal__button"
+      expand="block"
+      [disabled]="!isReady"
+      (click)="onAccept()"
+    >
+      <ng-container *ngIf="!isReady; else useTrial">
+        {{ 'AD_FALLBACK.BUTTON.WAIT' | translate: { count: currentCount } }}
+      </ng-container>
+      <ng-template #useTrial>
+        {{
+          'AD_FALLBACK.BUTTON.USE_TRIAL'
+            | translate: { remaining: remaining, total: total }
+        }}
+      </ng-template>
+    </ion-button>
+  </footer>
+</section>

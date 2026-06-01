@@ -1,0 +1,26 @@
+{
+  "name": "@sheldrapps/ad-fallback-kit",
+  "version": "1.0.0",
+  "description": "Ad failure fallback modal and orchestration for Sheldrapps Ionic Angular apps",
+  "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
+  "peerDependencies": {
+    "@angular/common": "^20.0.0",
+    "@angular/core": "^20.0.0",
+    "@ionic/angular": "^8.0.0",
+    "@ngx-translate/core": "^17.0.0"
+  },
+  "dependencies": {
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "tslib": "^2.3.0"
+  },
+  "keywords": [
+    "ads",
+    "fallback",
+    "ionic",
+    "angular",
+    "translations"
+  ]
+}

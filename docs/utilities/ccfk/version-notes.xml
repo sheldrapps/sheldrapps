@@ -1,39 +1,39 @@
-﻿<en-US>
-E-reader optimization is now manual-only inside editor tools. Settings toggle was removed, and source labels were refined across locales.
+<en-US>
+Fallback export flow is now more reliable when rewarded ads fail, with better tour coordination and trial consumption only after successful output.
 </en-US>
 <ar>
-Tahsin e-reader asbaha yadawi faqat dakhil adawat al-muharrir. Tam izalat mubaddil al-iadadat, wa tahsin nusus al-masdar fi jami al-lughat.
+Tatbiq masar fallback lil tasdir asbaha akthar istiqraran inda fashal iilan rewarded, maa tansiq afdal maa al-tour wa istihlak al-try baad natijah najihah faqat.
 </ar>
 <de-DE>
-Die e-reader Optimierung ist jetzt nur noch manuell in den Editor Werkzeugen aktiv. Der Schalter in den Einstellungen wurde entfernt und die Quellenlabels wurden in allen Sprachen verbessert.
+Der Fallback Export Ablauf ist jetzt zuverlaessiger bei Rewarded Ad Fehlern, mit besserer Tour Abstimmung und Verbrauch des Testexports nur nach erfolgreicher Ausgabe.
 </de-DE>
 <es-419>
-La optimizacion para e-reader ahora es solo manual dentro de herramientas del editor. Se elimino el toggle en ajustes y se mejoraron textos de origen en todos los idiomas.
+El flujo de exportacion fallback ahora es mas confiable cuando falla el anuncio rewarded, con mejor coordinacion del tour y consumo de prueba solo tras salida exitosa.
 </es-419>
 <fr-FR>
-L optimisation e-reader est maintenant uniquement manuelle dans les outils de l editeur. Le commutateur des reglages a ete retire et les libelles source ont ete ameliores dans toutes les langues.
+Le flux d export fallback est maintenant plus fiable quand une pub rewarded echoue, avec une meilleure coordination du tour et une consommation d essai seulement apres une sortie reussie.
 </fr-FR>
 <hi-IN>
-E-reader optimization ab sirf manual hai aur editor tools ke andar milti hai. Settings toggle hata diya gaya hai, aur source labels sabhi bhashaon mein sudhare gaye hain.
+Rewarded ad fail hone par fallback export flow ab zyada reliable hai, tour coordination behtar hai, aur trial sirf successful output ke baad consume hota hai.
 </hi-IN>
 <it-IT>
-L ottimizzazione e-reader ora e solo manuale negli strumenti editor. Il toggle nelle impostazioni e stato rimosso e le etichette sorgente sono state migliorate in tutte le lingue.
+Il flusso export fallback ora e piu affidabile quando la rewarded ad fallisce, con migliore coordinamento del tour e consumo prova solo dopo output riuscito.
 </it-IT>
 <ja-JP>
-E-reader saitekika wa editor tsuru nai no manual nomi ni henkou. Settings toggle wa sakujo sare, source labels wa subete no locales de kaizen sareta.
+Rewarded ad no shippai ji ni fallback export flow ga yori antei. Tour no kyouchou ga kaizen sare, trial wa seikou shita output no ato dake shouhi saremasu.
 </ja-JP>
 <ko-KR>
-E-reader choejeokhwa neun ije editor tools aneseo su-dongman sayong doemnida. Settings toggle eun jegeo doeeotgo, source labels neun modeun locale eseo gaeseon doeeotseumnida.
+Rewarded ad silpae si fallback export flow ga deo anjeongjeogimnida. Tour yeondong i gaeseon doeeotgo, trial eun seonggong output ihueman sojidoemnida.
 </ko-KR>
 <pt-BR>
-A otimizacao para e-reader agora e apenas manual nas ferramentas do editor. O toggle de configuracoes foi removido e os textos de origem foram melhorados em todos os idiomas.
+O fluxo de exportacao fallback agora esta mais confiavel quando o anuncio rewarded falha, com melhor coordenacao do tour e consumo de teste so apos saida bem sucedida.
 </pt-BR>
 <ru-RU>
-Optimizatsiya dlya e-reader teper tolko ruchnaya v instrumentakh redaktora. Toggle v nastroikakh udalen, a podpisi istochnika uluchsheny vo vsekh lokalakh.
+Fallback eksport teper nadezhnee pri sboye rewarded ads, s luchshei koordinatsiei tour i rashodom proby tolko posle uspeshnogo vyvoda.
 </ru-RU>
 <zh-CN>
-E-reader youhua xianzai jin zai editor tools zhong shoudong qiyong. Settings toggle yi yichu, source labels yi zai suoyou locales zhong gaijin.
+Dang rewarded ad shibai shi, fallback export flow geng wending. Tour xietong geng hao, qie trial zhizai chenggong output hou xiaofei.
 </zh-CN>
 <zh-TW>
-E-reader youhua xianzai jin zai editor tools zhong shoudong qiyong. Settings toggle yi yichu, source labels yi zai suoyou locales zhong gaijin.
+Dang rewarded ad shibai shi, fallback export flow geng wending. Tour xietong geng hao, qie trial zhizai chenggong output hou xiaofei.
 </zh-TW>

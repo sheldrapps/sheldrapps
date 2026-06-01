@@ -17,6 +17,9 @@
     "paths": {
       "@sheldrapps/i18n-kit": ["packages/i18n-kit/src/public-api.ts"],
       "@sheldrapps/ads-kit": ["packages/ads-kit/src/public-api.ts"],
+      "@sheldrapps/ad-fallback-kit": [
+        "packages/ad-fallback-kit/src/public-api.ts"
+      ],
       "@sheldrapps/settings-kit": ["packages/settings-kit/src/public-api.ts"],
       "@sheldrapps/rating-kit": ["packages/rating-kit/src/public-api.ts"],
       "@sheldrapps/native-sqlite-kit": [

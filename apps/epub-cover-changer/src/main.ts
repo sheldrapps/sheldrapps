@@ -13,6 +13,7 @@ import {
 } from '@sheldrapps/image-workflow/editor';
 import { provideExportQualityKitI18n } from '@sheldrapps/export-quality-kit';
 import { provideBestCandidateKitI18n } from '@sheldrapps/best-candidate-kit';
+import { provideAdFallbackKitI18n } from '@sheldrapps/ad-fallback-kit';
 import { provideAdsKit } from '@sheldrapps/ads-kit';
 import {
   CapacitorPreferencesAdapter,
@@ -87,6 +88,7 @@ bootstrapApplication(AppComponent, {
       new MemoryStorageAdapter(),
     ),
     provideExportQualityKitI18n(),
+    provideAdFallbackKitI18n(),
     provideBestCandidateKitI18n(),
     provideCoverSourceI18n(),
     provideEditorI18n(),

@@ -23,6 +23,9 @@
     "skipLibCheck": true,
     "useDefineForClassFields": false,
     "paths": {
+      "@sheldrapps/ad-fallback-kit": [
+        "../../packages/ad-fallback-kit/src/public-api.ts"
+      ],
       "@sheldrapps/ads-kit": ["../../packages/ads-kit/src/public-api.ts"],
       "@sheldrapps/i18n-kit": ["../../packages/i18n-kit/src/public-api.ts"],
       "@sheldrapps/settings-kit": [

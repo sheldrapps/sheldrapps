@@ -1,5 +1,6 @@
 import {
   Component,
+  Injector,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -82,6 +83,11 @@ import {
   type ExportQualityMode,
 } from '@sheldrapps/export-quality-kit';
 import { EpubWorkingCopyService } from '../../services/epub-working-copy.service';
+import {
+  AdFallbackService,
+  type AdFailureConfidence,
+  type AdFailureReason,
+} from '@sheldrapps/ad-fallback-kit';
 import {
   AdsService,
   BillingService,
@@ -178,7 +184,6 @@ export class ChangePage implements OnInit, OnDestroy {
   private workingCopy = inject(EpubWorkingCopyService);
   private epubRewrite = inject(EpubRewriteService);
   private imagePipe = inject(ImagePipelineService);
-  private ads = inject(AdsService);
   private billing = inject(BillingService);
   private toastCtrl = inject(ToastController);
   private popoverCtrl = inject(PopoverController);
@@ -193,6 +198,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private bestCandidateService = inject(BestCandidateService);
   private candidateImageService = inject(EpubCandidateImageService);
   private homeTour = inject(TourService);
+  private appInjector = inject(Injector);
   private readonly baseTarget = { width: 1236, height: 1648 };
   private readonly baseModelId = 'epub';
   private readonly maxEpubSizeMB = 1024;
@@ -214,6 +220,12 @@ export class ChangePage implements OnInit, OnDestroy {
   private forceEditorTourOnNextEditorOpen = false;
   private forceIncludeRemoveAdsStepOnNextHomeTour = false;
   private forceShowRemoveAdsEntryPointForTour = false;
+  private adFallbackTrialActive = false;
+  private readonly adFallbackTotal = 1;
+  private adFallbackRemaining = this.adFallbackTotal;
+  private readonly adFallbackApp = 'ecc' as const;
+  private readonly adFallbackRemainingPrefKey = 'ecc_ad_fallback_remaining';
+  private readonly adFallbackTrialActivePrefKey = 'ecc_ad_fallback_trial_active';
   private adsRemovedSub?: Subscription;
   private removeAdsPriceSub?: Subscription;
   private readonly onlineHandler = () => {
@@ -443,8 +455,13 @@ export class ChangePage implements OnInit, OnDestroy {
     await this.billing.hydrateCachedState();
     this.adsRemoved = this.billing.isAdsRemoved();
     this.adsRemovedSub = this.billing.adsRemoved$.subscribe((value) => {
-      const tierChanged = this.adsRemoved !== value;
+      const previousAdsRemoved = this.adsRemoved;
+      const tierChanged = previousAdsRemoved !== value;
       this.adsRemoved = value;
+      if (value) {
+        this.adFallbackTrialActive = false;
+        void this.persistAdFallbackState();
+      }
       if (tierChanged) {
         this.exportImageFile = undefined;
         this.invalidateGeneratedOutputState();
@@ -459,6 +476,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.syncRemoveAdsPulse();
 
     const settings = await this.settings.load();
+    this.hydrateAdFallbackState(settings.preferences);
     this.selectedFormatId = this.resolveFormatId(settings.cropTargetId);
     this.persistedCropTargetId = this.selectedFormatId;
     this.exportQualityMode = normalizeExportQualityMode(
@@ -1628,6 +1646,7 @@ export class ChangePage implements OnInit, OnDestroy {
         const alreadySaved =
           await this.fileService.hasCoverByFilename(requestedFilename);
         if (alreadySaved) {
+          await this.consumeAdFallbackAttemptAfterSuccess('save');
           await this.showToast(
             'CHANGE.SAVED_OK',
             { duration: 1600 },
@@ -1728,6 +1747,7 @@ export class ChangePage implements OnInit, OnDestroy {
         emittedAt: new Date().toISOString(),
       });
 
+      await this.consumeAdFallbackAttemptAfterSuccess('save');
       await this.showToast('CHANGE.SAVED_OK', { duration: 1600 }, 'success');
     } finally {
       this.zone.run(() => this.setBusy('none'));
@@ -2311,6 +2331,157 @@ export class ChangePage implements OnInit, OnDestroy {
     console.info(`[ECC:remove-ads] ${eventName}${suffix}`);
   }
 
+  private async openAdFallbackFromFailure(
+    result: RewardedAdResult,
+  ): Promise<boolean> {
+    const adFallback = this.appInjector.get(AdFallbackService, null);
+    if (!adFallback) {
+      return false;
+    }
+
+    try {
+      await this.dismissActiveTourForBlockingModal();
+      const remaining = this.resolveAdFallbackRemaining();
+      const decision = await adFallback.handleAdFailure(
+        {
+          app: this.adFallbackApp,
+          reason: this.normalizeFailureReason(result.failureReason),
+          confidence: this.normalizeFailureConfidence(result.failureConfidence),
+          remaining,
+          total: this.adFallbackTotal,
+          countdownSeconds: 5,
+        },
+        this.modalCtrl,
+      );
+
+      if (decision === 'accepted') {
+        this.adFallbackTrialActive = true;
+        await this.persistAdFallbackState();
+        return true;
+      }
+
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  private async confirmActiveAdFallbackTrial(): Promise<boolean> {
+    const adFallback = this.appInjector.get(AdFallbackService, null);
+    if (!adFallback) {
+      return false;
+    }
+
+    try {
+      await this.dismissActiveTourForBlockingModal();
+      const remaining = this.resolveAdFallbackRemaining();
+      const decision = await adFallback.handleAdFailure(
+        {
+          app: this.adFallbackApp,
+          reason: 'unknown',
+          confidence: 'low',
+          remaining,
+          total: this.adFallbackTotal,
+          countdownSeconds: 5,
+        },
+        this.modalCtrl,
+      );
+
+      return decision === 'accepted';
+    } catch {
+      return false;
+    }
+  }
+
+  private resolveAdFallbackRemaining(): number {
+    return this.adFallbackRemaining;
+  }
+
+  private async dismissActiveTourForBlockingModal(): Promise<void> {
+    if (!this.homeTour.isActive()) return;
+    await this.homeTour.skip();
+  }
+
+  private hydrateAdFallbackState(
+    preferences: Record<string, unknown> | undefined,
+  ): void {
+    const rawRemaining = preferences?.[this.adFallbackRemainingPrefKey];
+    const parsedRemaining =
+      typeof rawRemaining === 'number' && Number.isFinite(rawRemaining)
+        ? Math.floor(rawRemaining)
+        : this.adFallbackTotal;
+    this.adFallbackRemaining = Math.max(
+      0,
+      Math.min(this.adFallbackTotal, parsedRemaining),
+    );
+
+    const rawActive = preferences?.[this.adFallbackTrialActivePrefKey];
+    this.adFallbackTrialActive =
+      rawActive === true && this.adFallbackRemaining > 0;
+  }
+
+  private async persistAdFallbackState(): Promise<void> {
+    const clampedRemaining = Math.max(
+      0,
+      Math.min(this.adFallbackTotal, Math.floor(this.adFallbackRemaining)),
+    );
+    this.adFallbackRemaining = clampedRemaining;
+    const active = this.adFallbackTrialActive && clampedRemaining > 0;
+    this.adFallbackTrialActive = active;
+
+    await this.settings.set((prev) => ({
+      ...prev,
+      preferences: {
+        ...(prev.preferences ?? {}),
+        [this.adFallbackRemainingPrefKey]: clampedRemaining,
+        [this.adFallbackTrialActivePrefKey]: active,
+      },
+    }));
+  }
+
+  private async consumeAdFallbackAttemptAfterSuccess(
+    source: 'generate-web' | 'generate-native' | 'save',
+  ): Promise<void> {
+    if (!this.adFallbackTrialActive) {
+      return;
+    }
+
+    const remaining = this.resolveAdFallbackRemaining();
+    if (remaining <= 0) {
+      this.adFallbackTrialActive = false;
+      await this.persistAdFallbackState();
+      return;
+    }
+
+    this.adFallbackRemaining = remaining - 1;
+    this.adFallbackTrialActive = false;
+    await this.persistAdFallbackState();
+    console.info(
+      `[ECC:ad-fallback] consumed on ${source} ${JSON.stringify({
+        remaining: this.adFallbackRemaining,
+        total: this.adFallbackTotal,
+      })}`,
+    );
+  }
+
+  private normalizeFailureReason(value: unknown): AdFailureReason {
+    switch (value) {
+      case 'network':
+      case 'dns':
+      case 'no-fill':
+      case 'blocked':
+      case 'region':
+      case 'unknown':
+        return value;
+      default:
+        return 'unknown';
+    }
+  }
+
+  private normalizeFailureConfidence(value: unknown): AdFailureConfidence {
+    return value === 'high' ? 'high' : 'low';
+  }
+
   async openPurchaseModal(): Promise<void> {
     if (!this.canShowRemoveAdsEntryPoint()) {
       return;
@@ -2491,41 +2662,94 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async onGenerate() {
     if (!this.canGenerate()) return;
-
-    this.setBusy('export', 'CHANGE.GENERATING');
-
     try {
-      if (!this.billing.isAdsRemoved()) {
-        const result: RewardedAdResult = await this.ads.showRewarded();
+      if (!this.adsRemoved) {
+        if (this.adFallbackTrialActive && this.resolveAdFallbackRemaining() > 0) {
+          const accepted = await this.confirmActiveAdFallbackTrial();
+          if (!accepted) {
+            await this.showToast(
+              'CHANGE.ADS_REQUIRED',
+              { duration: 1800 },
+              'error',
+            );
+            return;
+          }
+        } else {
+          const adsService = this.appInjector.get(AdsService, null);
+          if (!adsService) {
+            const accepted = await this.openAdFallbackFromFailure({
+              rewardEarned: false,
+              adClosed: false,
+              failed: true,
+              failureReason: 'unknown',
+              failureConfidence: 'low',
+            });
+            if (!accepted) {
+              await this.showToast(
+                'CHANGE.ADS_REQUIRED',
+                { duration: 1800 },
+                'error',
+              );
+              return;
+            }
+          }
 
-        // Handle ad failure
-        if (result.failed) {
-          await this.showToast(
-            'CHANGE.ADS_REQUIRED',
-            { duration: 1800 },
-            'error',
-          );
-          return;
+          if (adsService) {
+            const result: RewardedAdResult = await adsService.showRewarded();
+            const shouldFallback =
+              result.failed || (!result.rewardEarned && !result.adClosed);
+
+            if (shouldFallback) {
+              const accepted = await this.openAdFallbackFromFailure(
+                result.failed
+                  ? result
+                  : {
+                      rewardEarned: false,
+                      adClosed: false,
+                      failed: true,
+                      failureReason: 'unknown',
+                      failureConfidence: 'low',
+                    },
+              );
+              if (!accepted) {
+                await this.showToast(
+                  'CHANGE.ADS_REQUIRED',
+                  { duration: 1800 },
+                  'error',
+                );
+                return;
+              }
+            } else if (result.adClosed && !result.rewardEarned) {
+              await this.showToast(
+                'CHANGE.ADS_REQUIRED',
+                { duration: 1800 },
+                'error',
+              );
+              return;
+            } else if (result.rewardEarned && result.adClosed) {
+              this.trackRemoveAdsEvent('rewarded_generate_completed');
+            } else {
+              const accepted = await this.openAdFallbackFromFailure({
+                rewardEarned: false,
+                adClosed: false,
+                failed: true,
+                failureReason: 'unknown',
+                failureConfidence: 'low',
+              });
+              if (!accepted) {
+                await this.showToast(
+                  'CHANGE.ADS_REQUIRED',
+                  { duration: 1800 },
+                  'error',
+                );
+                return;
+              }
+            }
+          }
         }
-
-        // Handle ad closed without reward (user didn't watch it completely)
-        if (result.adClosed && !result.rewardEarned) {
-          await this.showToast(
-            'CHANGE.ADS_REQUIRED',
-            { duration: 1800 },
-            'error',
-          );
-          return;
-        }
-
-        // Only proceed if BOTH reward earned AND ad closed
-        if (!result.rewardEarned || !result.adClosed) {
-          return;
-        }
-
-        this.trackRemoveAdsEvent('rewarded_generate_completed');
       }
 
+      this.setBusy('export', 'CHANGE.GENERATING');
       await this.generateChangedCover();
     } finally {
       this.zone.run(() => this.setBusy('none'));
@@ -2612,6 +2836,7 @@ export class ChangePage implements OnInit, OnDestroy {
       );
     });
     await this.maybeAskForRatingAfterSuccessfulSave('web');
+    await this.consumeAdFallbackAttemptAfterSuccess('generate-web');
     await this.homeTour.completeInteraction('cover-created');
   }
 
@@ -2753,6 +2978,7 @@ export class ChangePage implements OnInit, OnDestroy {
         'success',
       );
       await this.maybeAskForRatingAfterSuccessfulSave('native');
+      await this.consumeAdFallbackAttemptAfterSuccess('generate-native');
     } catch (error) {
       this.maybeDisableNativeRewriteForSession(error, 'rewrite_cover');
       if (!(error instanceof EpubRewriteError) || error.code !== 'CANCELLED') {
@@ -3285,6 +3511,10 @@ export class ChangePage implements OnInit, OnDestroy {
       homeTourSeen: true,
       homeTourVersion: CURRENT_HOME_TOUR_VERSION,
       homeTourSeenAt: new Date().toISOString(),
+      preferences: {
+        ...(prev.preferences ?? {}),
+        [this.editorTourSeenVersionKey]: this.currentEditorTourVersion,
+      },
     }));
   }
 
