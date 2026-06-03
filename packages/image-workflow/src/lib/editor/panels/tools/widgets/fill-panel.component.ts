@@ -33,9 +33,16 @@ import { EditorColorSamplerService } from "../../../editor-color-sampler.service
 import { EditorUiStateService } from "../../../editor-ui-state.service";
 import { EditorSessionService } from "../../../editor-session.service";
 import { EDITOR_SESSION_ID } from "../../../editor-panel.tokens";
-import type { BackgroundMode } from "../../../../types";
+import { EditorBackgroundCatalogService } from "../../../editor-background-catalog.service";
+import {
+  getBackgroundAssetPath,
+  type
+  BackgroundMode,
+  FitBackgroundConfig,
+  BackgroundCatalogItem,
+} from "../../../../types";
 
-type FillPanelView = "root" | "blur" | "colors" | "picker";
+type FillPanelView = "root" | "blur" | "colors" | "picker" | "backgrounds";
 type ColorSource = "picker" | "colors";
 
 type FillPreset = {
@@ -44,6 +51,10 @@ type FillPreset = {
 };
 
 const DEFAULT_BLUR = 80;
+const DEFAULT_BACKGROUND_SCALE = 1;
+const MIN_BACKGROUND_SCALE = 0.25;
+const MAX_BACKGROUND_SCALE = 4;
+const DEFAULT_BACKGROUND_OFFSET = 0;
 
 const FILL_PRESET_COLORS: FillPreset[] = [
   { id: "black", hex: "#000000" },
@@ -98,6 +109,7 @@ export class FillPanelComponent {
   readonly history = inject(EditorHistoryService);
   readonly sampler = inject(EditorColorSamplerService);
   readonly ui = inject(EditorUiStateService);
+  private readonly backgroundCatalog = inject(EditorBackgroundCatalogService);
   private readonly editorSession = inject(EditorSessionService, {
     optional: true,
   });
@@ -113,6 +125,11 @@ export class FillPanelComponent {
   );
   readonly color = computed(() => this.history.backgroundColor());
   readonly blur = computed(() => this.history.backgroundBlur() ?? DEFAULT_BLUR);
+  readonly background = computed(() => this.history.backgroundPattern());
+  readonly backgrounds = signal<BackgroundCatalogItem[]>([]);
+  readonly backgroundScale = computed(() =>
+    this.normalizeBackgroundScale(this.background()?.scale),
+  );
   readonly activeColorId = computed(() => {
     const current = this.normalizeHex(this.color());
     const match = this.presets.find(
@@ -120,11 +137,14 @@ export class FillPanelComponent {
     );
     return match?.id ?? null;
   });
+  readonly activeBackgroundId = computed(() => this.background()?.textureId ?? null);
+  readonly hasBackgroundCatalog = computed(() => this.backgrounds().length > 0);
 
   readonly activeItem = computed(() => {
     const mode = this.mode();
     if (mode === "transparent") return "none";
     if (mode === "blur") return "same-image";
+    if (mode === "background" || mode === "texture") return "backgrounds";
     return this.lastColorSource() === "picker" ? "picker" : "colors";
   });
   readonly isScratchSession = computed(() => {
@@ -136,10 +156,15 @@ export class FillPanelComponent {
     return this.mode() === "color";
   });
   readonly disabledToolIds = computed(() => {
-    if (!this.isScratchSession()) return [];
-    const disabled = ["same-image"];
+    const disabled: string[] = [];
+    if (this.isScratchSession()) {
+      disabled.push("same-image");
+    }
     if (!this.eyedropperEnabled()) {
       disabled.push("picker");
+    }
+    if (!this.hasBackgroundCatalog()) {
+      disabled.push("backgrounds");
     }
     return disabled;
   });
@@ -147,6 +172,8 @@ export class FillPanelComponent {
   presets = FILL_PRESET_COLORS;
   toolItems: ScrollableBarItem[] = this.buildToolItems();
   colorItems: ScrollableBarItem[] = this.buildColorItems();
+  backgroundItems: ScrollableBarItem[] = [];
+  private readonly backgroundSvgMap = signal<Record<string, string>>({});
 
   constructor() {
     addIcons({
@@ -164,8 +191,10 @@ export class FillPanelComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.toolItems = this.buildToolItems();
+        this.backgroundItems = this.buildBackgroundItems(this.backgrounds());
       });
 
+    void this.loadBackgrounds();
   }
 
   private buildToolItems(): ScrollableBarItem[] {
@@ -181,6 +210,9 @@ export class FillPanelComponent {
     const colorsLabel = this.translate.instant(
       "EDITOR.PANELS.TOOLS.WIDGETS.FILL_PANEL.TAB.COLORS",
     );
+    const backgroundsLabel = this.translate.instant(
+      "EDITOR.PANELS.TOOLS.WIDGETS.FILL_PANEL.TAB.BACKGROUNDS",
+    );
 
     const makeItem = (id: string, label: string, icon: string) =>
       ({
@@ -195,6 +227,7 @@ export class FillPanelComponent {
       makeItem("same-image", imageLabel, "image-outline"),
       makeItem("picker", pickerLabel, "eyedrop-outline"),
       makeItem("colors", colorsLabel, "color-palette-outline"),
+      makeItem("backgrounds", backgroundsLabel, "image-outline"),
     ];
   }
 
@@ -204,6 +237,17 @@ export class FillPanelComponent {
       label: preset.hex,
       type: "color",
       colorHex: preset.hex,
+    }));
+  }
+
+  private buildBackgroundItems(items: BackgroundCatalogItem[]): ScrollableBarItem[] {
+    const svgMap = this.backgroundSvgMap();
+    return items.map((item) => ({
+      id: item.id,
+      label: item.label,
+      type: "default",
+      svg: svgMap[item.id],
+      icon: svgMap[item.id] ? undefined : "image-outline",
     }));
   }
 
@@ -227,6 +271,10 @@ export class FillPanelComponent {
       case "colors":
         this.lastColorSource.set("colors");
         this.activeView.set("colors");
+        return;
+      case "backgrounds":
+        if (!this.hasBackgroundCatalog()) return;
+        this.activeView.set("backgrounds");
         return;
       default:
         return;
@@ -269,8 +317,98 @@ export class FillPanelComponent {
     this.activeView.set("root");
   }
 
+  onSelectBackground(id: string): void {
+    const background = this.backgrounds().find((item) => item.id === id);
+    if (!background) return;
+    this.history.setBackground({
+      mode: "background",
+      color: this.color(),
+      background: this.buildBackgroundConfig(background),
+    });
+    this.activeView.set("backgrounds");
+  }
+
+  onBackgroundScaleChange(event: Event): void {
+    const value = (event as RangeCustomEvent).detail.value as number;
+    if (!Number.isFinite(value)) return;
+    const activeId = this.activeBackgroundId();
+    if (!activeId) return;
+    const background = this.backgrounds().find((item) => item.id === activeId);
+    if (!background) return;
+    this.history.setBackground({
+      mode: "background",
+      color: this.color(),
+      background: {
+        ...this.buildBackgroundConfig(background),
+        scale: this.normalizeBackgroundScale(value),
+      },
+    });
+  }
+
   goRoot(): void {
     this.activeView.set("root");
+  }
+
+  private async loadBackgrounds(): Promise<void> {
+    const backgrounds = await this.backgroundCatalog.listEnabled();
+    const svgMap = await this.loadBackgroundSvgs(backgrounds);
+    this.backgroundSvgMap.set(svgMap);
+    this.backgrounds.set(backgrounds);
+    this.backgroundItems = this.buildBackgroundItems(backgrounds);
+    if (!backgrounds.length) return;
+    if (this.mode() !== "background") return;
+    if (this.activeBackgroundId()) return;
+    const first = backgrounds[0];
+    this.history.setBackground({
+      mode: "background",
+      color: this.color(),
+      background: this.buildBackgroundConfig(first),
+    });
+  }
+
+  private buildBackgroundConfig(background: BackgroundCatalogItem): FitBackgroundConfig {
+    const current = this.background();
+    const sameBackground = current?.textureId === background.id;
+    return {
+      textureId: background.id,
+      file: background.file,
+      intensity: 1,
+      scale: sameBackground && Number.isFinite(current?.scale)
+        ? this.normalizeBackgroundScale(current!.scale)
+        : DEFAULT_BACKGROUND_SCALE,
+      offsetX: sameBackground && Number.isFinite(current?.offsetX)
+        ? (current!.offsetX as number)
+        : DEFAULT_BACKGROUND_OFFSET,
+      offsetY: sameBackground && Number.isFinite(current?.offsetY)
+        ? (current!.offsetY as number)
+        : DEFAULT_BACKGROUND_OFFSET,
+    };
+  }
+
+  private async loadBackgroundSvgs(
+    items: BackgroundCatalogItem[],
+  ): Promise<Record<string, string>> {
+    const entries = await Promise.all(
+      items.map(async (item) => {
+        try {
+          const response = await fetch(getBackgroundAssetPath({ file: item.file }), {
+            cache: "force-cache",
+          });
+          if (!response.ok) return [item.id, null] as const;
+          const raw = (await response.text()).replace(/^\uFEFF/, "").trim();
+          if (!/<svg[\s>]/i.test(raw)) return [item.id, null] as const;
+          return [item.id, raw] as const;
+        } catch {
+          return [item.id, null] as const;
+        }
+      }),
+    );
+
+    const map: Record<string, string> = {};
+    for (const [id, svg] of entries) {
+      if (svg) map[id] = svg;
+    }
+    return map;
   }
 
   private normalizeHex(value: string | undefined): string {
@@ -278,5 +416,14 @@ export class FillPanelComponent {
     if (!trimmed) return "#000000";
     if (!trimmed.startsWith("#")) return `#${trimmed}`;
     return trimmed.toLowerCase();
+  }
+
+  private normalizeBackgroundScale(value: number | undefined): number {
+    if (!Number.isFinite(value)) return DEFAULT_BACKGROUND_SCALE;
+    return this.clamp(value as number, MIN_BACKGROUND_SCALE, MAX_BACKGROUND_SCALE);
+  }
+
+  private clamp(value: number, min: number, max: number): number {
+    return Math.max(min, Math.min(max, value));
   }
 }

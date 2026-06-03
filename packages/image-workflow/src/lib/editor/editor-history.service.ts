@@ -10,6 +10,7 @@ import type {
   BackgroundSource,
   CleanupStrength,
   DitheringMode,
+  FitBackgroundConfig,
 } from "../types";
 import {
   isArtifactReductionEnabled,
@@ -72,6 +73,12 @@ type NormalizedTransform = {
   backgroundColor: string;
   backgroundSource: BackgroundSource | null;
   backgroundBlur: number;
+  backgroundPatternId: string | null;
+  backgroundPatternFile: string | null;
+  backgroundPatternIntensity: number;
+  backgroundPatternScale: number;
+  backgroundPatternOffsetX: number;
+  backgroundPatternOffsetY: number;
 };
 
 type NormalizedTextLayer = {
@@ -151,6 +158,7 @@ export class EditorHistoryService {
   readonly backgroundColor = this.editorState.backgroundColor;
   readonly backgroundSource = this.editorState.backgroundSource;
   readonly backgroundBlur = this.editorState.backgroundBlur;
+  readonly backgroundPattern = this.editorState.backgroundPattern;
   readonly adjustments = this.editorState.adjustments;
   readonly isAdjusting = this.editorState.isAdjusting;
   readonly textLayers = this.editorState.textLayers;
@@ -692,6 +700,7 @@ export class EditorHistoryService {
     color?: string;
     source?: BackgroundSource;
     blur?: number;
+    background?: FitBackgroundConfig;
   }): void {
     const prev = this.captureBackgroundPolicy();
     this.editorState.setBackground(opts);
@@ -1151,6 +1160,7 @@ export class EditorHistoryService {
           color?: string;
           source?: BackgroundSource;
           blur?: number;
+          background?: FitBackgroundConfig;
           bw?: boolean;
           cleanupEnabled?: boolean;
           cleanupStrength?: CleanupStrength;
@@ -1164,6 +1174,7 @@ export class EditorHistoryService {
           color: payload.color,
           source: payload.source,
           blur: payload.blur,
+          background: payload.background,
         });
         if (payload.bw !== undefined) {
           this.editorState.setBw(!!payload.bw);
@@ -1427,6 +1438,20 @@ export class EditorHistoryService {
       backgroundSource:
         (state.backgroundSource as BackgroundSource | undefined) ?? null,
       backgroundBlur: this.normalizeBlur(state.backgroundBlur),
+      backgroundPatternId: state.backgroundPattern?.textureId ?? null,
+      backgroundPatternFile: state.backgroundPattern?.file ?? null,
+      backgroundPatternIntensity: this.normalizeBackgroundIntensity(
+        state.backgroundPattern?.intensity,
+      ),
+      backgroundPatternScale: this.normalizeBackgroundScale(
+        state.backgroundPattern?.scale,
+      ),
+      backgroundPatternOffsetX: this.normalizeBackgroundOffset(
+        state.backgroundPattern?.offsetX,
+      ),
+      backgroundPatternOffsetY: this.normalizeBackgroundOffset(
+        state.backgroundPattern?.offsetY,
+      ),
     };
   }
 
@@ -1526,6 +1551,10 @@ export class EditorHistoryService {
     return Math.round(value * factor) / factor;
   }
 
+  private clamp(value: number, min: number, max: number): number {
+    return Math.max(min, Math.min(max, value));
+  }
+
   private normalizeRotation(degrees: number): number {
     const normalized = degrees % 360;
     const positive = normalized < 0 ? normalized + 360 : normalized;
@@ -1544,12 +1573,14 @@ export class EditorHistoryService {
     color: string;
     source?: BackgroundSource;
     blur?: number;
+    background?: FitBackgroundConfig;
   } {
     return {
       mode: (this.editorState.backgroundMode() ?? "transparent") as BackgroundMode,
       color: this.normalizeHex(this.editorState.backgroundColor()),
       source: this.editorState.backgroundSource() ?? undefined,
       blur: this.normalizeBlur(this.editorState.backgroundBlur()),
+      background: this.normalizeBackground(this.editorState.backgroundPattern()),
     };
   }
 
@@ -1558,6 +1589,7 @@ export class EditorHistoryService {
     color: string;
     source?: BackgroundSource;
     blur?: number;
+    background?: FitBackgroundConfig;
     bw: boolean;
     cleanupEnabled: boolean;
     cleanupStrength: string;
@@ -1584,11 +1616,13 @@ export class EditorHistoryService {
     color: string;
     source?: BackgroundSource;
     blur?: number;
+    background?: FitBackgroundConfig;
   }): {
     mode: BackgroundMode;
     color: string;
     source?: BackgroundSource;
     blur?: number;
+    background?: FitBackgroundConfig;
     bw: boolean;
     cleanupEnabled: boolean;
     cleanupStrength: string;
@@ -1619,6 +1653,7 @@ export class EditorHistoryService {
       color: string;
       source?: BackgroundSource;
       blur?: number;
+      background?: FitBackgroundConfig;
       bw: boolean;
       cleanupEnabled: boolean;
       cleanupStrength: string;
@@ -1632,6 +1667,7 @@ export class EditorHistoryService {
       color: string;
       source?: BackgroundSource;
       blur?: number;
+      background?: FitBackgroundConfig;
       bw: boolean;
       cleanupEnabled: boolean;
       cleanupStrength: string;
@@ -1646,6 +1682,7 @@ export class EditorHistoryService {
       a.color === b.color &&
       a.source === b.source &&
       this.normalizeBlur(a.blur) === this.normalizeBlur(b.blur) &&
+      this.textureEqual(a.background, b.background) &&
       a.bw === b.bw &&
       a.cleanupEnabled === b.cleanupEnabled &&
       a.cleanupStrength === b.cleanupStrength &&
@@ -1660,6 +1697,58 @@ export class EditorHistoryService {
     if (!Number.isFinite(value)) return 80;
     const clamped = Math.max(0, Math.min(100, value as number));
     return Math.round(clamped);
+  }
+
+  private normalizeBackground(
+    value?: FitBackgroundConfig,
+  ): FitBackgroundConfig | undefined {
+    if (!value) return undefined;
+    const textureId = (value.textureId || "").trim();
+    const file = (value.file || "").trim();
+    if (!textureId || !file) return undefined;
+    return {
+      textureId,
+      file,
+      intensity: this.normalizeBackgroundIntensity(value.intensity),
+      scale: this.normalizeBackgroundScale(value.scale),
+      offsetX: this.normalizeBackgroundOffset(value.offsetX),
+      offsetY: this.normalizeBackgroundOffset(value.offsetY),
+    };
+  }
+
+  private normalizeBackgroundIntensity(value: number | undefined): number {
+    if (!Number.isFinite(value)) return 1;
+    return this.roundTo(this.clamp(value as number, 0, 1), FLOAT_PRECISION);
+  }
+
+  private normalizeBackgroundScale(value: number | undefined): number {
+    if (!Number.isFinite(value)) return 1;
+    return this.roundTo(this.clamp(value as number, 0.25, 4), FLOAT_PRECISION);
+  }
+
+  private normalizeBackgroundOffset(value: number | undefined): number {
+    if (!Number.isFinite(value)) return 0;
+    return this.roundTo(value as number, FLOAT_PRECISION);
+  }
+
+  private textureEqual(
+    a?: FitBackgroundConfig,
+    b?: FitBackgroundConfig,
+  ): boolean {
+    const na = this.normalizeBackground(a);
+    const nb = this.normalizeBackground(b);
+    if (!na && !nb) return true;
+    if (!na || !nb) return false;
+    return (
+      na.textureId === nb.textureId &&
+      na.file === nb.file &&
+      na.intensity === nb.intensity &&
+      na.scale === nb.scale &&
+      this.normalizeBackgroundOffset(na.offsetX) ===
+        this.normalizeBackgroundOffset(nb.offsetX) &&
+      this.normalizeBackgroundOffset(na.offsetY) ===
+        this.normalizeBackgroundOffset(nb.offsetY)
+    );
   }
 
   private shallowEqual<T extends Record<string, any>>(a: T, b: T): boolean {

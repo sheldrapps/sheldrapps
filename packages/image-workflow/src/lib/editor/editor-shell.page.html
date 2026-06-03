@@ -7,7 +7,7 @@
         <ion-button (click)="cancel()">{{ 'EDITOR.SHELL.BUTTON.CANCEL' | translate }}</ion-button>
         <ion-button
           data-tour-id="editor-done-button"
-          [disabled]="!ready"
+          [disabled]="!canDone()"
           (click)="done()"
         >{{ 'EDITOR.SHELL.BUTTON.DONE' | translate }}</ion-button>
       </ion-buttons>
@@ -44,29 +44,47 @@
           (dblclick)="reset()"
           [attr.aria-label]="'EDITOR.SHELL.ARIA.CROP_FRAME' | translate"
         >
-        <div class="frame-content" [style.filter]="composedAdjustmentsPreviewUrl() ? null : cssFilter()">
           <div
-            class="frame-bg"
-            [class.frame-bg--blur]="backgroundMode() === 'blur'"
-            [style.backgroundColor]="backgroundMode() === 'color' ? backgroundColor() : null"
-            [style.backgroundImage]="backgroundMode() === 'blur' && imageUrl ? 'url(' + imageUrl + ')' : null"
-            [style.--bg-blur]="backgroundBlurPx()"
-            aria-hidden="true"
-          ></div>
-          @if (imageUrl && !composedAdjustmentsPreviewUrl()) {
-            <img
-              #img
-              class="img"
-              [src]="imageUrl"
-              alt=""
-              draggable="false"
-              (load)="onImgLoad($event)"
-              (error)="onImgError($event)"
-            />
-          }
+            class="frame-content"
+            [class.frame-content--preview-active]="composedAdjustmentsPreviewState() === 'active'"
+          >
+            <div
+              class="frame-content__live"
+              [style.filter]="composedAdjustmentsPreviewState() === 'active' ? null : cssFilter()"
+            >
+              <div
+                class="frame-bg"
+                [class.frame-bg--blur]="backgroundMode() === 'blur'"
+                [style.backgroundColor]="backgroundMode() === 'color' || backgroundMode() === 'background' || backgroundMode() === 'texture' ? backgroundColor() : null"
+                [style.backgroundImage]="backgroundMode() === 'blur' && imageUrl ? 'url(' + imageUrl + ')' : null"
+                [style.--bg-blur]="backgroundBlurPx()"
+                aria-hidden="true"
+              >
+                <div
+                  class="frame-bg__background"
+                  [style.backgroundImage]="backgroundPatternImage()"
+                  [style.backgroundSize]="backgroundPatternSize()"
+                  [style.backgroundPosition]="backgroundPatternPosition()"
+                  [style.opacity]="backgroundPatternOpacity()"
+                ></div>
+              </div>
+              @if (imageUrl) {
+                <img
+                  #img
+                  class="img"
+                  [src]="imageUrl"
+                  alt=""
+                  draggable="false"
+                  (load)="onImgLoad($event)"
+                  (error)="onImgError($event)"
+                />
+              }
+              <cc-text-overlay></cc-text-overlay>
+            </div>
           @if (composedAdjustmentsPreviewUrl()) {
             <img
-              class="img img--composed"
+              class="img img--composed frame-content__preview"
+              [class.frame-content__preview--visible]="composedAdjustmentsPreviewState() === 'active'"
               [src]="composedAdjustmentsPreviewUrl()"
               alt=""
               draggable="false"
@@ -95,9 +113,6 @@
             ></div>
           </div>
         }
-
-        <cc-text-overlay></cc-text-overlay>
-
           @if (isSampling()) {
             <div
               class="picker-overlay"

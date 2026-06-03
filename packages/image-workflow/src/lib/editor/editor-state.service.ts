@@ -9,6 +9,7 @@ import type {
   CleanupStrength,
   CoverCropState,
   DitheringMode,
+  FitBackgroundConfig,
   TextLayer,
 } from "../types";
 import {
@@ -87,6 +88,7 @@ export class EditorStateService {
   readonly backgroundBlur = signal<number>(
     EditorStateService.DEFAULT_BACKGROUND_BLUR,
   );
+  readonly backgroundPattern = signal<FitBackgroundConfig | undefined>(undefined);
 
   readonly textLayers = signal<TextLayer[]>([]);
 
@@ -243,12 +245,16 @@ export class EditorStateService {
   }
 
   setBackgroundMode(mode: BackgroundMode): void {
-    this.backgroundMode.set(mode);
-    if (mode === "blur" && !this.backgroundSource()) {
+    const normalizedMode = this.normalizeBackgroundMode(mode);
+    this.backgroundMode.set(normalizedMode);
+    if (normalizedMode === "blur" && !this.backgroundSource()) {
       this.backgroundSource.set("same-image");
     }
-    if (mode === "blur" && !Number.isFinite(this.backgroundBlur())) {
+    if (normalizedMode === "blur" && !Number.isFinite(this.backgroundBlur())) {
       this.backgroundBlur.set(EditorStateService.DEFAULT_BACKGROUND_BLUR);
+    }
+    if (normalizedMode !== "background") {
+      this.backgroundPattern.set(undefined);
     }
   }
 
@@ -271,9 +277,13 @@ export class EditorStateService {
     color?: string;
     source?: BackgroundSource;
     blur?: number;
+    background?: FitBackgroundConfig;
   }): void {
+    const normalizedMode = opts.mode
+      ? this.normalizeBackgroundMode(opts.mode)
+      : undefined;
     if (opts.mode) {
-      this.backgroundMode.set(opts.mode);
+      this.backgroundMode.set(normalizedMode!);
     }
     if (opts.color) {
       this.backgroundColor.set(this.normalizeHex(opts.color));
@@ -283,11 +293,19 @@ export class EditorStateService {
     }
     if (opts.source !== undefined) {
       this.backgroundSource.set(opts.source);
-    } else if (opts.mode === "blur" && !this.backgroundSource()) {
+    } else if (normalizedMode === "blur" && !this.backgroundSource()) {
       this.backgroundSource.set("same-image");
     }
-    if (opts.mode === "blur" && !Number.isFinite(this.backgroundBlur())) {
+    if (normalizedMode === "blur" && !Number.isFinite(this.backgroundBlur())) {
       this.backgroundBlur.set(EditorStateService.DEFAULT_BACKGROUND_BLUR);
+    }
+    if (opts.background !== undefined) {
+      this.backgroundPattern.set(this.normalizeBackgroundConfig(opts.background));
+    } else if (
+      (normalizedMode && normalizedMode !== "background") ||
+      this.backgroundMode() !== "background"
+    ) {
+      this.backgroundPattern.set(undefined);
     }
   }
 
@@ -527,6 +545,7 @@ export class EditorStateService {
     this.backgroundColor.set(EditorStateService.DEFAULT_BACKGROUND_COLOR);
     this.backgroundSource.set(undefined);
     this.backgroundBlur.set(EditorStateService.DEFAULT_BACKGROUND_BLUR);
+    this.backgroundPattern.set(undefined);
     this.resetAdjustments();
     this.resetTransform();
     this.textLayers.set([]);
@@ -565,6 +584,7 @@ export class EditorStateService {
       backgroundColor: this.backgroundColor(),
       backgroundSource: this.backgroundSource(),
       backgroundBlur: this.backgroundBlur(),
+      backgroundPattern: this.backgroundPattern(),
       textLayers: this.textLayers(),
       frameWidth: this.frameWidth(),
       frameHeight: this.frameHeight(),
@@ -617,9 +637,10 @@ export class EditorStateService {
     this.ditheringMode.set(
       dithering.mode ?? DEFAULT_EDITOR_ADJUSTMENTS.dithering.mode,
     );
-    this.backgroundMode.set(
+    const stateMode = this.normalizeBackgroundMode(
       state.backgroundMode ?? EditorStateService.DEFAULT_BACKGROUND_MODE,
     );
+    this.backgroundMode.set(stateMode);
     this.backgroundColor.set(
       this.normalizeHex(
         state.backgroundColor ?? EditorStateService.DEFAULT_BACKGROUND_COLOR,
@@ -630,6 +651,11 @@ export class EditorStateService {
       Number.isFinite(state.backgroundBlur)
         ? (state.backgroundBlur as number)
         : EditorStateService.DEFAULT_BACKGROUND_BLUR,
+    );
+    this.backgroundPattern.set(
+      this.normalizeBackgroundConfig(
+        state.backgroundPattern ?? state.backgroundTexture,
+      ),
     );
     const nextLayers = Array.isArray(state.textLayers)
       ? state.textLayers.map((layer) => this.ensureTextLayerId(layer))
@@ -648,6 +674,9 @@ export class EditorStateService {
       !this.backgroundSource()
     ) {
       this.backgroundSource.set("same-image");
+    }
+    if (this.backgroundMode() !== "background") {
+      this.backgroundPattern.set(undefined);
     }
     this.clampScaleToCtx();
     this.clampTranslationToCtx();
@@ -702,6 +731,35 @@ export class EditorStateService {
     if (!trimmed) return EditorStateService.DEFAULT_BACKGROUND_COLOR;
     if (!trimmed.startsWith("#")) return `#${trimmed}`;
     return trimmed;
+  }
+
+  private normalizeBackgroundConfig(
+    value?: FitBackgroundConfig,
+  ): FitBackgroundConfig | undefined {
+    if (!value) return undefined;
+    const textureId = (value.textureId || "").trim();
+    const file = (value.file || "").trim();
+    if (!textureId || !file) return undefined;
+    const intensity = Number.isFinite(value.intensity)
+      ? this.clamp(value.intensity, 0, 1)
+      : 1;
+    const scale = Number.isFinite(value.scale)
+      ? this.clamp(value.scale, 0.25, 4)
+      : 1;
+    const offsetX = Number.isFinite(value.offsetX) ? (value.offsetX as number) : 0;
+    const offsetY = Number.isFinite(value.offsetY) ? (value.offsetY as number) : 0;
+    return {
+      textureId,
+      file,
+      intensity,
+      scale,
+      offsetX,
+      offsetY,
+    };
+  }
+
+  private normalizeBackgroundMode(mode: BackgroundMode): BackgroundMode {
+    return mode === "texture" ? "background" : mode;
   }
 
   private pointInConvexPolygon(point: Pt, poly: Pt[]): boolean {

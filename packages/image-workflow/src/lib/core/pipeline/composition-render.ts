@@ -3,7 +3,9 @@ import type {
   BackgroundSource,
   CoverCropState,
   CropTarget,
+  FitBackgroundConfig,
 } from "../../types";
+import { getBackgroundAssetPath } from "../../types";
 import { applyEditorAdjustments } from "./apply-editor-adjustments";
 import {
   getRotatedSourceDims,
@@ -48,10 +50,17 @@ const DEFAULT_EXPORT_MIME_TRANSPARENT = "image/png";
 const DEFAULT_BACKGROUND = "#000000";
 const DEFAULT_BLUR_STRENGTH = 80;
 const MAX_BLUR_PX = 40;
+const DEFAULT_BACKGROUND_INTENSITY = 1;
+const DEFAULT_BACKGROUND_SCALE = 1;
+const MIN_BACKGROUND_SCALE = 0.25;
+const MAX_BACKGROUND_SCALE = 4;
 const TEXT_STAGE_EDGE_PAD = 15;
 const TEXT_HANDLE_PAD_RIGHT = 12;
 const EREADER_UPSCALE_MIN_SHORT_SIDE = 1100;
 const EREADER_UPSCALE_MAX_FACTOR = 1.6;
+
+const backgroundImageCache = new Map<string, Promise<HTMLImageElement | null>>();
+const backgroundTileCache = new Map<string, Promise<HTMLCanvasElement | null>>();
 
 export function resolveCompositionOutputSize(args: {
   target: CropTarget;
@@ -204,6 +213,7 @@ export async function renderCompositionToCanvas(
     (state.backgroundSource ?? "same-image") as BackgroundSource;
   const backgroundBlur =
     Number.isFinite(state.backgroundBlur) ? state.backgroundBlur! : DEFAULT_BLUR_STRENGTH;
+  const backgroundPattern = state.backgroundPattern ?? state.backgroundTexture;
 
   const canvas = document.createElement("canvas");
   canvas.width = scaledW;
@@ -219,11 +229,12 @@ export async function renderCompositionToCanvas(
   const includeBackground = options.includeBackground !== false;
 
   if (includeBackground) {
-    drawBackground(ctx, {
+    await drawBackground(ctx, {
       mode: backgroundMode,
       color: backgroundColor,
       source: backgroundSource,
       blur: backgroundBlur,
+      background: backgroundPattern,
       bitmap,
       width: scaledW,
       height: scaledH,
@@ -282,15 +293,6 @@ export async function renderCompositionToCanvas(
   );
   ctx.restore();
 
-  applyAdjustments(ctx, scaledW, scaledH, state);
-
-  if (includeBackground && shouldDrawCheckerAfter) {
-    ctx.save();
-    ctx.globalCompositeOperation = "destination-over";
-    drawCheckerboard(ctx, scaledW, scaledH);
-    ctx.restore();
-  }
-
   const textLayers = options.includeTextLayers === false
     ? []
     : Array.isArray(state.textLayers)
@@ -308,6 +310,15 @@ export async function renderCompositionToCanvas(
     outputWidth: scaledW,
     outputHeight: scaledH,
   });
+
+  applyAdjustments(ctx, scaledW, scaledH, state);
+
+  if (includeBackground && shouldDrawCheckerAfter) {
+    ctx.save();
+    ctx.globalCompositeOperation = "destination-over";
+    drawCheckerboard(ctx, scaledW, scaledH);
+    ctx.restore();
+  }
   return canvas;
 }
 
@@ -387,13 +398,14 @@ function resolveEReaderUpscaleFactor(args: {
   return Math.max(1, Math.min(EREADER_UPSCALE_MAX_FACTOR, factor));
 }
 
-function drawBackground(
+async function drawBackground(
   ctx: CanvasRenderingContext2D,
   opts: {
     mode: BackgroundMode;
     color: string;
     source: BackgroundSource;
     blur: number;
+    background?: FitBackgroundConfig;
     bitmap: RasterSource;
     width: number;
     height: number;
@@ -401,12 +413,13 @@ function drawBackground(
     fallbackColor?: string;
     deferCheckerboard?: boolean;
   },
-): void {
+): Promise<void> {
   const {
     mode,
     color,
     source,
     blur,
+    background,
     bitmap,
     width,
     height,
@@ -427,6 +440,23 @@ function drawBackground(
   if (mode === "color") {
     ctx.fillStyle = color || fallbackColor || DEFAULT_BACKGROUND;
     ctx.fillRect(0, 0, width, height);
+    return;
+  }
+
+  if (mode === "background" || mode === "texture") {
+    ctx.fillStyle = color || fallbackColor || DEFAULT_BACKGROUND;
+    ctx.fillRect(0, 0, width, height);
+    const normalizedBackground = normalizeBackground(background);
+    const pattern = await resolveBackgroundPattern(ctx, normalizedBackground);
+    if (!pattern) return;
+    const offsetX = normalizedBackground?.offsetX ?? 0;
+    const offsetY = normalizedBackground?.offsetY ?? 0;
+    ctx.save();
+    ctx.globalAlpha = 1;
+    ctx.translate(offsetX, offsetY);
+    ctx.fillStyle = pattern;
+    ctx.fillRect(-offsetX, -offsetY, width, height);
+    ctx.restore();
     return;
   }
 
@@ -503,6 +533,98 @@ function getRasterHeight(source: RasterSource): number {
   return source instanceof ImageBitmap
     ? source.height
     : source.naturalHeight || source.height;
+}
+
+async function resolveBackgroundPattern(
+  ctx: CanvasRenderingContext2D,
+  background?: FitBackgroundConfig,
+): Promise<CanvasPattern | null> {
+  const normalized = normalizeBackground(background);
+  if (!normalized) return null;
+  const tile = await resolveBackgroundTile(normalized);
+  if (!tile) return null;
+  return ctx.createPattern(tile, "repeat");
+}
+
+async function resolveBackgroundTile(
+  background: FitBackgroundConfig,
+): Promise<HTMLCanvasElement | null> {
+  const assetPath = getBackgroundAssetPath(background);
+  const scale = normalizeBackgroundScale(background.scale);
+  const cacheKey = `${assetPath}|${scale}`;
+  const cached = backgroundTileCache.get(cacheKey);
+  if (cached) return cached;
+
+  const next = (async () => {
+    const image = await resolveBackgroundImage(assetPath);
+    if (!image) return null;
+    const sourceWidth = Math.max(1, image.naturalWidth || image.width);
+    const sourceHeight = Math.max(1, image.naturalHeight || image.height);
+    const targetWidth = Math.max(1, Math.round(sourceWidth * scale));
+    const targetHeight = Math.max(1, Math.round(sourceHeight * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    const context = canvas.getContext("2d");
+    if (!context) return null;
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.drawImage(image, 0, 0, targetWidth, targetHeight);
+    return canvas;
+  })();
+
+  backgroundTileCache.set(cacheKey, next);
+  return next;
+}
+
+async function resolveBackgroundImage(path: string): Promise<HTMLImageElement | null> {
+  const cached = backgroundImageCache.get(path);
+  if (cached) return cached;
+
+  const next = loadImageElementFromUrl(path).catch(() => null);
+  backgroundImageCache.set(path, next);
+  return next;
+}
+
+function loadImageElementFromUrl(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = (error) => reject(error);
+    img.src = url;
+  });
+}
+
+function normalizeBackground(
+  background?: FitBackgroundConfig,
+): FitBackgroundConfig | undefined {
+  if (!background) return undefined;
+  const textureId = (background.textureId || "").trim();
+  const file = (background.file || "").trim();
+  if (!textureId || !file) return undefined;
+  return {
+    textureId,
+    file,
+    intensity: normalizeBackgroundIntensity(background.intensity),
+    scale: normalizeBackgroundScale(background.scale),
+    offsetX: normalizeBackgroundOffset(background.offsetX),
+    offsetY: normalizeBackgroundOffset(background.offsetY),
+  };
+}
+
+function normalizeBackgroundIntensity(value: number | undefined): number {
+  if (!Number.isFinite(value)) return DEFAULT_BACKGROUND_INTENSITY;
+  return Math.max(0, Math.min(1, value as number));
+}
+
+function normalizeBackgroundScale(value: number | undefined): number {
+  if (!Number.isFinite(value)) return DEFAULT_BACKGROUND_SCALE;
+  return Math.max(MIN_BACKGROUND_SCALE, Math.min(MAX_BACKGROUND_SCALE, value as number));
+}
+
+function normalizeBackgroundOffset(value: number | undefined): number {
+  if (!Number.isFinite(value)) return 0;
+  return value as number;
 }
 
 function drawCheckerboard(

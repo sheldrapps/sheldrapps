@@ -88,7 +88,7 @@ export interface CropFormatOption {
 /**
  * Background settings for composition
  */
-export type BackgroundMode = "transparent" | "color" | "blur";
+export type BackgroundMode = "transparent" | "color" | "blur" | "background" | "texture";
 export type BackgroundSource = "same-image";
 export type CoverColorMode = "color" | "black-white" | "grayscale";
 export type CleanupStrength = "off" | "light" | "balanced" | "strong";
@@ -98,6 +98,39 @@ export type ArtifactReductionMode =
   | "bw-dither"
   | "adaptive-color"
   | "adaptive-gray";
+
+export const BACKGROUNDS_BASE_PATH = "assets/backgrounds";
+export const TEXTURES_BASE_PATH = BACKGROUNDS_BASE_PATH;
+
+export interface BackgroundCatalogItem {
+  id: string;
+  label: string;
+  file: string;
+  defaultIntensity: number;
+  tileSize?: number;
+  enabled?: boolean;
+}
+
+export interface FitBackgroundConfig {
+  textureId: string;
+  file: string;
+  intensity: number;
+  scale: number;
+  offsetX?: number;
+  offsetY?: number;
+}
+
+export type TextureCatalogItem = BackgroundCatalogItem;
+export type FitTextureConfig = FitBackgroundConfig;
+
+export function getBackgroundAssetPath(background: { file: string }): string {
+  const file = (background.file || "").trim();
+  if (!file) return BACKGROUNDS_BASE_PATH;
+  if (file.startsWith("assets/")) return file;
+  return `${BACKGROUNDS_BASE_PATH}/${file}`;
+}
+
+export const getTextureAssetPath = getBackgroundAssetPath;
 
 export interface ImageCleanupSettings {
   enabled: boolean;
@@ -162,6 +195,8 @@ export interface CoverCropState {
   backgroundColor?: string;
   backgroundSource?: BackgroundSource;
   backgroundBlur?: number;
+  backgroundPattern?: FitBackgroundConfig;
+  backgroundTexture?: FitBackgroundConfig;
   textLayers?: TextLayer[];
   textLayer?: TextLayer | null;
   frameWidth?: number;
@@ -178,6 +213,8 @@ export interface CompositionModel {
   backgroundMode?: BackgroundMode;
   backgroundColor?: string;
   backgroundSource?: BackgroundSource;
+  backgroundPattern?: FitBackgroundConfig;
+  backgroundTexture?: FitBackgroundConfig;
 }
 
 /**

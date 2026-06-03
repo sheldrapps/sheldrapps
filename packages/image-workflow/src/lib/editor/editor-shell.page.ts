@@ -67,13 +67,20 @@ import {
   measureTextLayer,
   type CompositionRenderInput,
 } from "../core/pipeline/composition-render";
-import type { CoverCropState, CropperResult } from "../types";
+import {
+  getBackgroundAssetPath,
+  type CoverCropState,
+  type CropperResult,
+  type FitBackgroundConfig,
+} from "../types";
 import { TextOverlayComponent } from "./components/text-overlay.component";
 
 type Pt = { x: number; y: number };
+const PREVIEW_BACKGROUND_TILE_SIZE = 512;
 
 type CanvasGestureStart = {
   type: "pan" | "pinch";
+  target: "image" | "background";
   startScale: number;
   startTx: number;
   startTy: number;
@@ -248,6 +255,9 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   previewMaskShape: EditorPreviewMaskShape = "rect";
   imageUrl: string | null = null;
   readonly composedAdjustmentsPreviewUrl = signal<string | null>(null);
+  readonly composedAdjustmentsPreviewState = signal<"none" | "active" | "fading">(
+    "none",
+  );
   ready = false;
   readonly cssFilter = computed(() =>
     buildCssFilter(this.editorState.adjustments()),
@@ -263,9 +273,38 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   readonly backgroundMode = computed(() => this.editorState.backgroundMode());
   readonly backgroundColor = computed(() => this.editorState.backgroundColor());
   readonly backgroundBlur = computed(() => this.editorState.backgroundBlur());
+  readonly backgroundPattern = computed(() => this.editorState.backgroundPattern());
   readonly backgroundBlurPx = computed(() =>
     `${this.blurToPx(this.backgroundBlur())}px`,
   );
+  readonly backgroundPatternImage = computed(() => {
+    if (this.backgroundMode() !== "background" && this.backgroundMode() !== "texture") return null;
+    const texture = this.backgroundPattern();
+    if (!texture) return null;
+    return `url(${getBackgroundAssetPath(texture)})`;
+  });
+  readonly backgroundPatternOpacity = computed(() => {
+    if (this.backgroundMode() !== "background" && this.backgroundMode() !== "texture") return "0";
+    return "1";
+  });
+  readonly backgroundPatternSize = computed(() => {
+    if (this.backgroundMode() !== "background" && this.backgroundMode() !== "texture") return null;
+    this.previewScaleVersion();
+    const scale = this.normalizeBackgroundScale(this.backgroundPattern()?.scale);
+    const previewOutputScale = this.resolvePreviewOutputScale();
+    const previewTileSize = PREVIEW_BACKGROUND_TILE_SIZE * scale * previewOutputScale;
+    return `${Math.max(1, Math.round(previewTileSize))}px`;
+  });
+  readonly backgroundPatternPosition = computed(() => {
+    if (this.backgroundMode() !== "background" && this.backgroundMode() !== "texture") return null;
+    this.previewScaleVersion();
+    const previewOutputScale = this.resolvePreviewOutputScale();
+    const pattern = this.backgroundPattern();
+    const x = this.normalizeBackgroundOffset(pattern?.offsetX) * previewOutputScale;
+    const y = this.normalizeBackgroundOffset(pattern?.offsetY) * previewOutputScale;
+    return `${Math.round(x)}px ${Math.round(y)}px`;
+  });
+  readonly canDone = computed(() => this.ready && this.hasValidBackgroundSelection());
   readonly pickerPos = signal<Pt | null>(null);
   readonly pickerTip = signal<Pt>({ x: 0, y: 0 });
   readonly pickerConfirmPos = signal<Pt | null>(null);
@@ -283,6 +322,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   );
   private isExporting = false;
   private composedPreviewRenderTimer: ReturnType<typeof setTimeout> | null = null;
+  private composedPreviewFadeTimer: ReturnType<typeof setTimeout> | null = null;
   private composedPreviewRenderVersion = 0;
   private composedPreviewObjectUrl: string | null = null;
   private readonly measureCanvas = document.createElement("canvas");
@@ -298,6 +338,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     discard: "",
     apply: "",
   });
+  private readonly previewScaleVersion = signal(0);
   readonly topBarItems = computed<ScrollableBarItem[]>(() => {
     const labels = this.topBarLabels();
     if (this.textEdit.isEditing()) {
@@ -540,7 +581,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       this.editorState.ditheringMode();
 
       if (mode !== "adjustments") {
-        this.clearComposedAdjustmentsPreview();
+        this.fadeOutComposedAdjustmentsPreview();
         return;
       }
 
@@ -570,6 +611,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         this.session.tools.kindle.selectedModel =
           this.kindleState.selectedModel() ?? undefined;
       }
+      this.bumpPreviewScaleVersion();
     });
 
     effect(() => {
@@ -593,6 +635,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       if (this.session.tools?.formats) {
         this.session.tools.formats.selectedId = selected.id;
       }
+      this.bumpPreviewScaleVersion();
     });
   }
 
@@ -671,11 +714,13 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.resizeObs = new ResizeObserver(() => {
       this.tryReady();
+      this.bumpPreviewScaleVersion();
       if (this.editorTourActive()) {
         void this.syncEditorTour();
       }
     });
     this.resizeObs.observe(frameEl);
+    this.bumpPreviewScaleVersion();
 
     const capture = (id: number) => {
       if (this.capturedPointers.has(id)) return;
@@ -708,12 +753,13 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         e.preventDefault();
         return;
       }
-      if (!this.isPointerOnImage(e)) {
-        return;
-      }
       if (!this.gesturesEnabled) return;
       if (!this.ready) {
         e.preventDefault();
+        return;
+      }
+      const gestureTarget = this.resolveGestureTarget();
+      if (gestureTarget === "image" && !this.isPointerOnImage(e)) {
         return;
       }
 
@@ -726,30 +772,38 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if (this.pointers.size === 1) {
+        const start = this.captureGestureValues(gestureTarget);
         this.gestureStart = {
           type: "pan",
-          startScale: this.editorState.scale(),
-          startTx: this.editorState.tx(),
-          startTy: this.editorState.ty(),
+          target: gestureTarget,
+          startScale: start.scale,
+          startTx: start.tx,
+          startTy: start.ty,
           startDist: 0,
           startMid: { x: e.clientX, y: e.clientY },
         };
-        this.updateImageGuidesFromTxTy(
-          this.gestureStart.startTx,
-          this.gestureStart.startTy,
-          e.pointerType,
-        );
+        if (gestureTarget === "image") {
+          this.updateImageGuidesFromTxTy(
+            this.gestureStart.startTx,
+            this.gestureStart.startTy,
+            e.pointerType,
+          );
+        } else {
+          this.setImageGuidesInactive();
+        }
         e.preventDefault();
         return;
       }
 
       if (this.pointers.size >= 2) {
         const [a, b] = Array.from(this.pointers.values());
+        const start = this.captureGestureValues(gestureTarget);
         this.gestureStart = {
           type: "pinch",
-          startScale: this.editorState.scale(),
-          startTx: this.editorState.tx(),
-          startTy: this.editorState.ty(),
+          target: gestureTarget,
+          startScale: start.scale,
+          startTx: start.tx,
+          startTy: start.ty,
           startDist: this.distance(a, b),
           startMid: this.midpoint(a, b),
         };
@@ -781,23 +835,37 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         const p = this.pointers.values().next().value as Pt;
         const dx = p.x - this.gestureStart.startMid.x;
         const dy = p.y - this.gestureStart.startMid.y;
-        const nextTx = this.gestureStart.startTx + dx;
-        const nextTy = this.gestureStart.startTy + dy;
-        this.history.setTranslation(
-          nextTx,
-          nextTy,
-        );
-        this.updateImageGuidesFromTxTy(
-          nextTx,
-          nextTy,
-          e.pointerType,
-        );
+        if (this.gestureStart.target === "background") {
+          const previewScale = this.resolvePreviewOutputScale();
+          const safeScale = previewScale > 0 ? previewScale : 1;
+          const nextOffsetX = this.gestureStart.startTx + dx / safeScale;
+          const nextOffsetY = this.gestureStart.startTy + dy / safeScale;
+          this.applyBackgroundPatternGesture({
+            scale: this.gestureStart.startScale,
+            offsetX: nextOffsetX,
+            offsetY: nextOffsetY,
+          });
+        } else {
+          const nextTx = this.gestureStart.startTx + dx;
+          const nextTy = this.gestureStart.startTy + dy;
+          this.history.setTranslation(
+            nextTx,
+            nextTy,
+          );
+          this.updateImageGuidesFromTxTy(
+            nextTx,
+            nextTy,
+            e.pointerType,
+          );
+        }
         e.preventDefault();
         return;
       }
 
       if (this.pointers.size >= 2) {
-        this.setImageGuidesInactive();
+        if (this.gestureStart.target === "image") {
+          this.setImageGuidesInactive();
+        }
         const [a, b] = Array.from(this.pointers.values());
         const mid = this.midpoint(a, b);
         const dist = this.distance(a, b);
@@ -807,15 +875,25 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
             ? dist / this.gestureStart.startDist
             : 1;
 
-        this.history.setScale(this.gestureStart.startScale * ratio);
-
         const mdx = mid.x - this.gestureStart.startMid.x;
         const mdy = mid.y - this.gestureStart.startMid.y;
-
-        this.history.setTranslation(
-          this.gestureStart.startTx + mdx,
-          this.gestureStart.startTy + mdy,
-        );
+        if (this.gestureStart.target === "background") {
+          const previewScale = this.resolvePreviewOutputScale();
+          const safeScale = previewScale > 0 ? previewScale : 1;
+          const nextOffsetX = this.gestureStart.startTx + mdx / safeScale;
+          const nextOffsetY = this.gestureStart.startTy + mdy / safeScale;
+          this.applyBackgroundPatternGesture({
+            scale: this.gestureStart.startScale * ratio,
+            offsetX: nextOffsetX,
+            offsetY: nextOffsetY,
+          });
+        } else {
+          this.history.setScale(this.gestureStart.startScale * ratio);
+          this.history.setTranslation(
+            this.gestureStart.startTx + mdx,
+            this.gestureStart.startTy + mdy,
+          );
+        }
         e.preventDefault();
       }
     };
@@ -862,10 +940,15 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
             e.preventDefault();
             this.lastTapAt = 0;
             this.lastTapPos = null;
+            const gestureTarget = this.gestureStart?.target;
             this.cancelActivePointers();
-            this.history.onGestureStart();
-            this.history.resetViewToCover();
-            this.history.onGestureEnd();
+            if (gestureTarget === "background") {
+              this.resetBackgroundPatternTransform();
+            } else {
+              this.history.onGestureStart();
+              this.history.resetViewToCover();
+              this.history.onGestureEnd();
+            }
             return;
           }
 
@@ -873,7 +956,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
           this.lastTapPos = pos;
         }
 
-        if (this.gestureStart?.type === "pan") {
+        if (this.gestureStart?.type === "pan" && this.gestureStart.target === "image") {
           const currentTx = this.editorState.tx();
           const currentTy = this.editorState.ty();
           const snapped = this.snapTranslationToCenter(
@@ -885,25 +968,34 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
             this.history.setTranslation(snapped.tx, snapped.ty);
           }
         }
+        if (this.gestureStart?.target === "background") {
+          this.commitBackgroundPatternGesture(this.gestureStart);
+        }
       }
 
       if (this.pointers.size === 1) {
         const p = this.pointers.values().next().value as Pt;
+        const target = this.gestureStart?.target ?? this.resolveGestureTarget();
+        const start = this.captureGestureValues(target);
         this.gestureStart = {
           type: "pan",
-          startScale: this.editorState.scale(),
-          startTx: this.editorState.tx(),
-          startTy: this.editorState.ty(),
+          target,
+          startScale: start.scale,
+          startTx: start.tx,
+          startTy: start.ty,
           startDist: 0,
           startMid: { x: p.x, y: p.y },
         };
       } else if (this.pointers.size >= 2) {
         const [a, b] = Array.from(this.pointers.values());
+        const target = this.gestureStart?.target ?? this.resolveGestureTarget();
+        const start = this.captureGestureValues(target);
         this.gestureStart = {
           type: "pinch",
-          startScale: this.editorState.scale(),
-          startTx: this.editorState.tx(),
-          startTy: this.editorState.ty(),
+          target,
+          startScale: start.scale,
+          startTx: start.tx,
+          startTy: start.ty,
           startDist: this.distance(a, b),
           startMid: this.midpoint(a, b),
         };
@@ -1435,6 +1527,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
   async done(): Promise<void> {
     if (this.isExporting) return;
+    if (!this.hasValidBackgroundSelection()) return;
 
     if (!this.ready || !this.session?.file) {
       this.stopEditorTour();
@@ -2385,6 +2478,10 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       clearTimeout(this.composedPreviewRenderTimer);
       this.composedPreviewRenderTimer = null;
     }
+    if (this.composedPreviewFadeTimer) {
+      clearTimeout(this.composedPreviewFadeTimer);
+      this.composedPreviewFadeTimer = null;
+    }
 
     const version = ++this.composedPreviewRenderVersion;
     this.composedPreviewRenderTimer = setTimeout(() => {
@@ -2403,8 +2500,6 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     const canvas = await renderCompositionToCanvas(input, {
       mode: "preview",
       outputScale,
-      includeBackground: false,
-      includeTextLayers: false,
     });
     if (!canvas || version !== this.composedPreviewRenderVersion) return;
 
@@ -2422,9 +2517,37 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     const prev = this.composedPreviewObjectUrl;
     this.composedPreviewObjectUrl = nextUrl;
     this.composedAdjustmentsPreviewUrl.set(nextUrl);
+    this.composedAdjustmentsPreviewState.set("active");
     if (prev) {
       URL.revokeObjectURL(prev);
     }
+  }
+
+  private fadeOutComposedAdjustmentsPreview(): void {
+    if (this.composedPreviewRenderTimer) {
+      clearTimeout(this.composedPreviewRenderTimer);
+      this.composedPreviewRenderTimer = null;
+    }
+    if (this.composedPreviewFadeTimer) {
+      clearTimeout(this.composedPreviewFadeTimer);
+      this.composedPreviewFadeTimer = null;
+    }
+    this.composedPreviewRenderVersion += 1;
+    if (!this.composedAdjustmentsPreviewUrl()) {
+      this.composedAdjustmentsPreviewState.set("none");
+      return;
+    }
+    this.composedAdjustmentsPreviewState.set("fading");
+    this.composedPreviewFadeTimer = setTimeout(() => {
+      const prev = this.composedPreviewObjectUrl;
+      this.composedPreviewObjectUrl = null;
+      this.composedAdjustmentsPreviewUrl.set(null);
+      this.composedAdjustmentsPreviewState.set("none");
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
+      this.composedPreviewFadeTimer = null;
+    }, 160);
   }
 
   private clearComposedAdjustmentsPreview(): void {
@@ -2432,12 +2555,18 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       clearTimeout(this.composedPreviewRenderTimer);
       this.composedPreviewRenderTimer = null;
     }
-    this.composedPreviewRenderVersion += 1;
-    if (this.composedPreviewObjectUrl) {
-      URL.revokeObjectURL(this.composedPreviewObjectUrl);
-      this.composedPreviewObjectUrl = null;
+    if (this.composedPreviewFadeTimer) {
+      clearTimeout(this.composedPreviewFadeTimer);
+      this.composedPreviewFadeTimer = null;
     }
+    this.composedPreviewRenderVersion += 1;
+    const prev = this.composedPreviewObjectUrl;
+    this.composedPreviewObjectUrl = null;
     this.composedAdjustmentsPreviewUrl.set(null);
+    this.composedAdjustmentsPreviewState.set("none");
+    if (prev) {
+      URL.revokeObjectURL(prev);
+    }
   }
 
   private buildRenderInput(state: CoverCropState): CompositionRenderInput | null {
@@ -2485,6 +2614,10 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     return frameWidth / this.session.target.width;
   }
 
+  private bumpPreviewScaleVersion(): void {
+    this.previewScaleVersion.update((value) => value + 1);
+  }
+
   private getFrameSize(): { width: number; height: number } | null {
     const frameEl = this.frameRef?.nativeElement;
     if (!frameEl) return null;
@@ -2493,6 +2626,125 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     const rect = overlay.getBoundingClientRect();
     if (!rect.width || !rect.height) return null;
     return { width: rect.width, height: rect.height };
+  }
+
+  private normalizeBackgroundScale(value: number | undefined): number {
+    if (!Number.isFinite(value)) return 1;
+    return this.clamp(value as number, 0.25, 4);
+  }
+
+  private normalizeBackgroundOffset(value: number | undefined): number {
+    if (!Number.isFinite(value)) return 0;
+    return value as number;
+  }
+
+  private hasValidBackgroundSelection(): boolean {
+    const mode = this.backgroundMode();
+    if (mode === "color") {
+      return !!this.backgroundColor()?.trim();
+    }
+    if (mode === "blur") {
+      return !!this.session?.file;
+    }
+    if (mode === "background" || mode === "texture") {
+      const pattern = this.backgroundPattern();
+      return !!pattern?.textureId && !!pattern?.file;
+    }
+    return false;
+  }
+
+  private resolveGestureTarget(): "image" | "background" {
+    if (this.ui.panelId() !== "fill") return "image";
+    const mode = this.backgroundMode();
+    if (mode !== "background" && mode !== "texture") return "image";
+    return this.backgroundPattern() ? "background" : "image";
+  }
+
+  private captureGestureValues(target: "image" | "background"): {
+    scale: number;
+    tx: number;
+    ty: number;
+  } {
+    if (target === "background") {
+      const current = this.getNormalizedBackgroundPattern();
+      return {
+        scale: current?.scale ?? 1,
+        tx: current?.offsetX ?? 0,
+        ty: current?.offsetY ?? 0,
+      };
+    }
+    return {
+      scale: this.editorState.scale(),
+      tx: this.editorState.tx(),
+      ty: this.editorState.ty(),
+    };
+  }
+
+  private getNormalizedBackgroundPattern(): FitBackgroundConfig | null {
+    const current = this.backgroundPattern();
+    if (!current?.textureId || !current.file) return null;
+    return {
+      textureId: current.textureId,
+      file: current.file,
+      intensity: 1,
+      scale: this.normalizeBackgroundScale(current.scale),
+      offsetX: this.normalizeBackgroundOffset(current.offsetX),
+      offsetY: this.normalizeBackgroundOffset(current.offsetY),
+    };
+  }
+
+  private applyBackgroundPatternGesture(args: {
+    scale: number;
+    offsetX: number;
+    offsetY: number;
+  }): void {
+    const current = this.getNormalizedBackgroundPattern();
+    if (!current) return;
+    const next: FitBackgroundConfig = {
+      ...current,
+      scale: this.normalizeBackgroundScale(args.scale),
+      offsetX: this.normalizeBackgroundOffset(args.offsetX),
+      offsetY: this.normalizeBackgroundOffset(args.offsetY),
+    };
+    this.editorState.setBackground({
+      mode: "background",
+      color: this.backgroundColor(),
+      background: next,
+    });
+  }
+
+  private commitBackgroundPatternGesture(start: CanvasGestureStart): void {
+    if (start.target !== "background") return;
+    const next = this.getNormalizedBackgroundPattern();
+    if (!next) return;
+    const changed =
+      this.normalizeBackgroundScale(start.startScale) !==
+        this.normalizeBackgroundScale(next.scale) ||
+      this.normalizeBackgroundOffset(start.startTx) !==
+        this.normalizeBackgroundOffset(next.offsetX) ||
+      this.normalizeBackgroundOffset(start.startTy) !==
+        this.normalizeBackgroundOffset(next.offsetY);
+    if (!changed) return;
+    this.history.setBackground({
+      mode: "background",
+      color: this.backgroundColor(),
+      background: next,
+    });
+  }
+
+  private resetBackgroundPatternTransform(): void {
+    const current = this.getNormalizedBackgroundPattern();
+    if (!current) return;
+    this.history.setBackground({
+      mode: "background",
+      color: this.backgroundColor(),
+      background: {
+        ...current,
+        scale: 1,
+        offsetX: 0,
+        offsetY: 0,
+      },
+    });
   }
 
   private clamp(value: number, min: number, max: number): number {

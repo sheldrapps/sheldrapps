@@ -84,6 +84,29 @@
   border-radius: 0;
 }
 
+.frame-content__live {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.frame-content--preview-active .frame-content__live {
+  visibility: hidden;
+}
+
+.frame-content__preview {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.16s ease;
+  pointer-events: none;
+}
+
+.frame-content__preview--visible {
+  opacity: 1;
+}
+
 .stage-guides {
   position: absolute;
   inset: 0;
@@ -153,6 +176,16 @@
   pointer-events: none;
   transition: opacity 0.2s ease;
   z-index: 0;
+}
+
+.frame-bg__background {
+  position: absolute;
+  inset: 0;
+  background-repeat: repeat;
+  background-position: 0 0;
+  background-size: 512px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .frame-bg--blur {

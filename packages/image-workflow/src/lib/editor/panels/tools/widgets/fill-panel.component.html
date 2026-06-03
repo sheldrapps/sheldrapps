@@ -20,6 +20,8 @@
           {{ "EDITOR.PANELS.TOOLS.WIDGETS.FILL_PANEL.TAB.IMAGE" | translate }}
         } @else if (activeView() === "colors") {
           {{ "EDITOR.PANELS.TOOLS.WIDGETS.FILL_PANEL.TAB.COLORS" | translate }}
+        } @else if (activeView() === "backgrounds") {
+          {{ "EDITOR.PANELS.TOOLS.WIDGETS.FILL_PANEL.TAB.BACKGROUNDS" | translate }}
         } @else {
           {{ "EDITOR.PANELS.TOOLS.WIDGETS.FILL_PANEL.TAB.PICKER" | translate }}
         }
@@ -56,6 +58,37 @@
         align="start"
         (selectItem)="onSelectColor($event)"
       ></sh-scrollable-button-bar>
+    </div>
+  }
+
+  @if (activeView() === "backgrounds") {
+    <div class="fill-subpanel app-panel-subpanel">
+      <sh-scrollable-button-bar
+        class="fill-backgrounds-bar"
+        [items]="backgroundItems"
+        [activeId]="activeBackgroundId()"
+        variant="iconText"
+        align="start"
+        (selectItem)="onSelectBackground($event)"
+      ></sh-scrollable-button-bar>
+
+      @if (activeBackgroundId()) {
+        <ion-item>
+          <ion-label>
+            {{ "EDITOR.PANELS.TOOLS.WIDGETS.FILL_PANEL.LABEL.BACKGROUND_SCALE" | translate }}
+          </ion-label>
+          <ion-range
+            min="0.25"
+            max="4"
+            step="0.05"
+            [value]="backgroundScale()"
+            (ionInput)="onBackgroundScaleChange($event)"
+            (ionKnobMoveStart)="history.onSliderStart()"
+            (ionKnobMoveEnd)="history.onSliderEnd()"
+            [attr.aria-label]="'EDITOR.PANELS.TOOLS.WIDGETS.FILL_PANEL.LABEL.BACKGROUND_SCALE' | translate"
+          ></ion-range>
+        </ion-item>
+      }
     </div>
   }
 </div>
