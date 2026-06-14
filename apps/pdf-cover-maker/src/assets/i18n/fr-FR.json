@@ -27,7 +27,13 @@
     "WATCH_AD_SUBTITLE": "Regarder une publicité",
     "SHARE": "Partager",
     "SHARE_KINDLE_HINT": "Lors du partage, sélectionne l'application Kindle pour l'envoyer à ton appareil.",
-    "WARNING": "Avertissement"
+    "WARNING": "Avertissement",
+    "EDIT_PROJECT_TITLE": "Comment veux-tu modifier ce fichier ?",
+    "EDIT_PROJECT_MESSAGE": "Choisis si tu veux remplacer le fichier actuel ou travailler sur une copie.",
+    "EDIT_PROJECT_OVERWRITE": "Écraser",
+    "EDIT_PROJECT_OVERWRITE_DESC": "Enregistre les changements sur le fichier existant.",
+    "EDIT_PROJECT_COPY": "Travailler sur une copie",
+    "EDIT_PROJECT_COPY_DESC": "Conserve le fichier original et modifie une nouvelle copie."
   },
   "CHANGE": {
     "ADS_REQUIRED": "Impossible de charger la publicité. Vérifiez votre réseau ou bloqueur de publicités.",
@@ -105,7 +111,8 @@
     "ACTIONS": {
       "DELETE": "Supprimer",
       "SHARE": "Partager",
-      "OPEN": "Ouvrir"
+      "OPEN": "Ouvrir",
+      "EDIT_PROJECT": "Modifier"
     },
     "DELETE": {
       "MESSAGE": "Voulez-vous supprimer cet PDF ?",
@@ -116,7 +123,8 @@
       "SHARE": "Impossible de partager l'PDF. Réessaie.",
       "LOAD": "Impossible de charger vos PDF. Fais glisser vers le bas pour réessayer.",
       "PREVIEW": "Impossible de charger l'aperçu. Réessaye.",
-      "OPEN": "Impossible d'ouvrir le PDF. Veuillez réessayer."
+      "OPEN": "Impossible d'ouvrir le PDF. Veuillez réessayer.",
+      "OPEN_PROJECT": "Impossible d'ouvrir le projet. Veuillez réessayer."
     },
     "GENERATE_THUMB": "Generate thumbnail",
     "PREVIEW_UNAVAILABLE": "Preview unavailable.",

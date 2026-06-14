@@ -1,4 +1,4 @@
-﻿{
+{
   "APP": {
     "TITLE": "Criar Capas para Kindle"
   },
@@ -27,7 +27,13 @@
     "WATCH_AD_SUBTITLE": "Ver anúncio",
     "SHARE": "Compartilhar",
     "SHARE_KINDLE_HINT": "Ao compartilhar, selecione o app Kindle para enviá-la ao dispositivo.",
-    "WARNING": "Aviso"
+    "WARNING": "Aviso",
+    "EDIT_PROJECT_TITLE": "Como você quer editar este arquivo?",
+    "EDIT_PROJECT_MESSAGE": "Escolha se deseja substituir o arquivo atual ou trabalhar em uma cópia.",
+    "EDIT_PROJECT_OVERWRITE": "Substituir",
+    "EDIT_PROJECT_OVERWRITE_DESC": "Salva as alterações sobre o arquivo existente.",
+    "EDIT_PROJECT_COPY": "Trabalhar em uma cópia",
+    "EDIT_PROJECT_COPY_DESC": "Mantém o arquivo original e edita uma nova cópia."
   },
   "CREATE": {
     "ADS_REQUIRED": "Não foi possível carregar o anúncio. Verifique a rede ou o bloqueador de anúncios.",
@@ -98,7 +104,8 @@
     "ACTIONS": {
       "DELETE": "Excluir",
       "SHARE": "Compartilhar",
-      "OPEN": "Abrir"
+      "OPEN": "Abrir",
+      "EDIT_PROJECT": "Editar"
     },
     "DELETE": {
       "MESSAGE": "Deseja excluir esta capa?",
@@ -109,7 +116,8 @@
       "LOAD": "Não foi possível carregar suas capas. Arraste para baixo para tentar novamente.",
       "PREVIEW": "Não foi possível carregar a pré-visualização. Tente novamente.",
       "SHARE": "Não foi possível compartilhar a capa. Tente novamente.",
-      "OPEN": "Não foi possível abrir a capa. Tente novamente."
+      "OPEN": "Não foi possível abrir a capa. Tente novamente.",
+      "OPEN_PROJECT": "Não foi possível abrir o projeto. Tente novamente."
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "Reduzir pré-visualização do e-reader",

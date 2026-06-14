@@ -105,36 +105,14 @@
 
       <div class="bottom-bar" role="toolbar">
         <div class="bottom-inner">
-          @for (action of visibleActions(footerActions); track action.id) {
-          <ion-button
-            [fill]="action.fill ?? 'clear'"
-            [size]="action.size ?? 'default'"
-            [class]="(action.cssClass || 'ctrl') + ' app-btn'"
-            [class.app-btn--icon]="action.layout === 'icon'"
-            [class.app-btn--text]="action.layout === 'text'"
-            [class.app-btn--icon-stack]="action.layout === 'app-icon-text'"
-            [class.app-btn--icon-row]="action.layout === 'icon-text'"
-            [disabled]="!!action.disabled"
-            [attr.aria-label]="action.ariaLabelKey ? (action.ariaLabelKey | translate) : null"
-            (click)="onFooterActionClick(action, $event)"
-          >
-            @if (action.layout === 'icon') {
-            <ion-icon [name]="action.icon ?? ''" slot="icon-only"></ion-icon>
-            } @else if (action.layout === 'text') {
-            @if (action.labelKey) {
-            <span class="ctrl-text">{{ action.labelKey | translate }}</span>
-            }
-            } @else {
-            <span class="app-icon-row">
-              @if (action.icon) {
-              <ion-icon class="app-icon-row__icon" [name]="action.icon"></ion-icon>
-              } @if (action.labelKey) {
-              <span class="app-icon-row__label">{{ action.labelKey | translate }}</span>
-              }
-            </span>
-            }
-          </ion-button>
-          }
+          <sh-scrollable-button-bar
+            [items]="footerBarItems"
+            [disabledIds]="footerBarDisabledIds"
+            variant="iconText"
+            align="start"
+            [ariaLabel]="titleKey | translate"
+            (selectItem)="onFooterScrollableAction($event)"
+          ></sh-scrollable-button-bar>
         </div>
       </div>
     </ion-content>

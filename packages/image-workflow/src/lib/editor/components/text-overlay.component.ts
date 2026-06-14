@@ -344,11 +344,11 @@ export class TextOverlayComponent implements AfterViewInit, OnDestroy {
       );
       // Prevent scroll globally in AutoEdit mode
       window.addEventListener("scroll", this.preventScrollBound, {
-        passive: false,
+        passive: true,
         capture: true,
       });
       document.addEventListener("scroll", this.preventScrollBound, {
-        passive: false,
+        passive: true,
         capture: true,
       });
     }
@@ -641,7 +641,12 @@ export class TextOverlayComponent implements AfterViewInit, OnDestroy {
 
     // Force scroll restoration
     if (typeof window !== "undefined") {
-      window.scrollTo(this.initialScrollX, this.initialScrollY);
+      if (
+        window.scrollX !== this.initialScrollX ||
+        window.scrollY !== this.initialScrollY
+      ) {
+        window.scrollTo(this.initialScrollX, this.initialScrollY);
+      }
     }
   }
 
@@ -656,7 +661,6 @@ export class TextOverlayComponent implements AfterViewInit, OnDestroy {
     if (!layer || layer.userBoxTouched) return;
 
     // In AutoEdit mode, prevent all scroll attempts
-    e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
 
@@ -664,9 +668,19 @@ export class TextOverlayComponent implements AfterViewInit, OnDestroy {
     if (typeof window !== "undefined") {
       // Use setTimeout 0 as fallback for browsers that need async restoration
       setTimeout(() => {
-        window.scrollTo(this.initialScrollX, this.initialScrollY);
+        if (
+          window.scrollX !== this.initialScrollX ||
+          window.scrollY !== this.initialScrollY
+        ) {
+          window.scrollTo(this.initialScrollX, this.initialScrollY);
+        }
       }, 0);
-      window.scrollTo(this.initialScrollX, this.initialScrollY);
+      if (
+        window.scrollX !== this.initialScrollX ||
+        window.scrollY !== this.initialScrollY
+      ) {
+        window.scrollTo(this.initialScrollX, this.initialScrollY);
+      }
     }
   }
 

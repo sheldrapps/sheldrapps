@@ -35,6 +35,7 @@ export class AdFallbackModalComponent implements OnInit, OnDestroy {
 
   isReady = false;
   currentCount = 5;
+  acceptInProgress = false;
 
   private countdownTimer: ReturnType<typeof setInterval> | null = null;
   private appStateCleanupCallbacks: Array<() => void> = [];
@@ -82,9 +83,13 @@ export class AdFallbackModalComponent implements OnInit, OnDestroy {
   }
 
   onAccept(): void {
-    if (!this.isReady) {
+    if (!this.isReady || this.acceptInProgress) {
       return;
     }
+    if (!this.requestAccept) {
+      return;
+    }
+    this.acceptInProgress = true;
     this.requestAccept?.();
   }
 

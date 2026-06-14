@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NavigationEnd, Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { Subscription, filter, firstValueFrom } from 'rxjs';
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import { Device } from '@capacitor/device';
@@ -54,6 +54,7 @@ import {
 import type { CropTarget, CropFormatOption } from '@sheldrapps/image-workflow';
 import {
   EditorSessionService,
+  ProjectSaveState,
 } from '@sheldrapps/image-workflow/editor';
 
 import {
@@ -191,6 +192,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private translate = inject(TranslateService);
   private zone = inject(NgZone);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private editorSession = inject(EditorSessionService);
   private settings = inject(SettingsStore<EccSettings>);
   private ratingService = inject(RatingService);
@@ -216,6 +218,10 @@ export class ChangePage implements OnInit, OnDestroy {
   private readonly artifactReductionInfoSeenKey =
     'ecc_editor_artifact_reduction_info_seen';
   private readonly editorEReaderOptimizationFeatureEnabled = true;
+  private projectEditReturnUrl: string | null = null;
+  private activeProjectFilename?: string;
+  private lastHandledProjectRouteKey: string | null = null;
+  private isOpeningProjectFromRoute = false;
   private readonly currentEditorTourVersion = 5;
   private forceEditorTourOnNextEditorOpen = false;
   private forceIncludeRemoveAdsStepOnNextHomeTour = false;
@@ -336,6 +342,7 @@ export class ChangePage implements OnInit, OnDestroy {
   generatedEpubFilename?: string;
   lastSavedFilename?: string;
   wasAutoSaved = false;
+  private readonly projectSaveState = new ProjectSaveState();
   rewriteProgressPercent = 0;
   isNativeRewriteInProgress = false;
   isCancellingNativeRewrite = false;
@@ -851,6 +858,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.resetWorkflow();
     this.lastEditorSessionId = undefined;
     this.editorSession.clearSessions();
+    this.projectSaveState.clear();
     this.sourceEpubFile = undefined;
     this.sourceEpubMeta = undefined;
     this.workingEpubFile = undefined;
@@ -1307,6 +1315,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private getEditorReturnUrl(): string {
+    if (this.projectEditReturnUrl) return this.projectEditReturnUrl;
     const current = this.router.url;
     if (current.startsWith('/tabs/')) return current;
     return '/tabs/change';
@@ -1603,8 +1612,12 @@ export class ChangePage implements OnInit, OnDestroy {
     const exportFile = await this.ensureExportImageFile();
     if (!exportFile) return;
 
-    const currentFilename = this.generatedEpubFilename || 'epub_cover';
-    const nameWithoutExt = currentFilename.replace(/\.epub$/i, '');
+    const nameWithoutExt = this.projectSaveState.getSuggestedBaseName(
+      '.epub',
+      this.lastSavedFilename,
+      this.generatedEpubFilename,
+      'epub_cover',
+    );
 
     const modal = await this.modalCtrl.create({
       component: SaveCoverModalComponent,
@@ -1639,6 +1652,71 @@ export class ChangePage implements OnInit, OnDestroy {
     try {
       const requestedFilename = this.ensureEpubExtension(filename);
 
+      const isProjectEditSave =
+        this.projectSaveState.isCurrentFilename(requestedFilename);
+
+      if (isProjectEditSave) {
+        const exportFile = await this.ensureExportImageFile();
+        if (!exportFile) return;
+
+        const saved = this.usesNativeRewrite()
+          ? this.generatedEpubPath
+            ? await this.fileService.saveGeneratedEpubFromPath({
+                sourcePath: this.generatedEpubPath,
+                sourceDir: 'Data',
+                filename: this.projectSaveState.getCurrentFilename()!,
+                coverFileForThumb: exportFile,
+                coverMetadata: this.buildCoverProcessingMetadata(),
+                overwriteExisting: true,
+              })
+            : await this.fileService.saveGeneratedEpubFromExistingDocument({
+                sourceFilename: this.projectSaveState.getCurrentFilename()!,
+                filename: this.projectSaveState.getCurrentFilename()!,
+                coverFileForThumb: exportFile,
+                coverMetadata: this.buildCoverProcessingMetadata(),
+                overwriteExisting: true,
+              })
+              : await this.fileService.saveGeneratedEpub({
+                bytes: this.generatedEpubBytes!,
+              filename: this.projectSaveState.getCurrentFilename()!,
+              coverFileForThumb: exportFile,
+              coverMetadata: this.buildCoverProcessingMetadata(),
+              overwriteExisting: true,
+            });
+
+        this.logSaveFlow('finalWriteComplete', {
+          flow: 'performSave:edit-overwrite',
+          filename: saved.filename,
+          writeCompletedAt: new Date().toISOString(),
+        });
+
+        this.generatedEpubFilename = saved.filename;
+        this.lastSavedFilename = saved.filename;
+        this.projectSaveState.setCurrentFilename(saved.filename);
+        this.wasAutoSaved = false;
+
+        try {
+          await this.saveLocalProjectSnapshot(saved.filename, exportFile);
+        } catch (error) {
+          console.warn('[ECC:change] project snapshot save failed', error);
+        }
+
+        this.coversEvents.emit({
+          type: 'saved',
+          filename: saved.filename,
+        });
+        this.activateSavedProject(saved.filename);
+        this.logSaveFlow('savedEventEmitted', {
+          flow: 'performSave:edit-overwrite',
+          filename: saved.filename,
+          emittedAt: new Date().toISOString(),
+        });
+
+        await this.consumeAdFallbackAttemptAfterSuccess('save');
+        await this.showToast('CHANGE.SAVED_OK', { duration: 1600 }, 'success');
+        return;
+      }
+
       if (
         this.lastSavedFilename &&
         requestedFilename.toLowerCase() === this.lastSavedFilename.toLowerCase()
@@ -1646,6 +1724,34 @@ export class ChangePage implements OnInit, OnDestroy {
         const alreadySaved =
           await this.fileService.hasCoverByFilename(requestedFilename);
         if (alreadySaved) {
+          const exportFile = await this.ensureExportImageFile();
+          if (!exportFile) return;
+
+          this.generatedEpubFilename = requestedFilename;
+          this.lastSavedFilename = requestedFilename;
+          this.projectSaveState.setCurrentFilename(requestedFilename);
+          this.wasAutoSaved = true;
+
+          try {
+            await this.saveLocalProjectSnapshot(
+              requestedFilename,
+              exportFile,
+            );
+          } catch (error) {
+            console.warn('[ECC:change] project snapshot save failed', error);
+          }
+
+          this.coversEvents.emit({
+            type: 'saved',
+            filename: requestedFilename,
+          });
+          this.activateSavedProject(requestedFilename);
+          this.logSaveFlow('savedEventEmitted', {
+            flow: 'performSave:auto-save',
+            filename: requestedFilename,
+            emittedAt: new Date().toISOString(),
+          });
+
           await this.consumeAdFallbackAttemptAfterSuccess('save');
           await this.showToast(
             'CHANGE.SAVED_OK',
@@ -1670,6 +1776,14 @@ export class ChangePage implements OnInit, OnDestroy {
           });
           this.generatedEpubFilename = renamed.filename;
           this.lastSavedFilename = renamed.filename;
+          this.projectSaveState.setCurrentFilename(renamed.filename);
+          this.wasAutoSaved = false;
+          try {
+            await this.saveLocalProjectSnapshot(renamed.filename, exportFile);
+          } catch (error) {
+            console.warn('[ECC:change] project snapshot save failed', error);
+          }
+          this.activateSavedProject(renamed.filename);
         } catch {
           const saved = this.usesNativeRewrite()
             ? this.generatedEpubPath
@@ -1709,6 +1823,8 @@ export class ChangePage implements OnInit, OnDestroy {
           });
           this.generatedEpubFilename = saved.filename;
           this.lastSavedFilename = saved.filename;
+          this.projectSaveState.setCurrentFilename(saved.filename);
+          this.activateSavedProject(saved.filename);
         }
       } else {
         const uniqueFilename =
@@ -1735,12 +1851,15 @@ export class ChangePage implements OnInit, OnDestroy {
         });
         this.generatedEpubFilename = saved.filename;
         this.lastSavedFilename = saved.filename;
+        this.projectSaveState.setCurrentFilename(saved.filename);
+        this.activateSavedProject(saved.filename);
       }
 
       this.coversEvents.emit({
         type: 'saved',
         filename: this.generatedEpubFilename,
       });
+      this.activateSavedProject(this.generatedEpubFilename);
       this.logSaveFlow('savedEventEmitted', {
         flow: 'performSave',
         filename: this.generatedEpubFilename,
@@ -2662,6 +2781,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async onGenerate() {
     if (!this.canGenerate()) return;
+    this.setBusy('export', 'CHANGE.GENERATING');
     try {
       if (!this.adsRemoved) {
         if (this.adFallbackTrialActive && this.resolveAdFallbackRemaining() > 0) {
@@ -2749,7 +2869,6 @@ export class ChangePage implements OnInit, OnDestroy {
         }
       }
 
-      this.setBusy('export', 'CHANGE.GENERATING');
       await this.generateChangedCover();
     } finally {
       this.zone.run(() => this.setBusy('none'));
@@ -2760,9 +2879,13 @@ export class ChangePage implements OnInit, OnDestroy {
     const exportFile = await this.ensureExportImageFile();
     if (!exportFile) return;
 
-    const preferredFilename = this.outputBaseName
-      ? `${this.outputBaseName}.epub`
-      : this.selectedEpubName;
+    const preferredFilename = this.projectSaveState.getSuggestedBaseName(
+      '.epub',
+      this.lastSavedFilename,
+      this.outputBaseName,
+      this.selectedEpubName,
+      'epub_cover',
+    );
 
     if (this.usesNativeRewrite()) {
       await this.generateWithNativeRewrite(exportFile, preferredFilename);
@@ -2795,9 +2918,12 @@ export class ChangePage implements OnInit, OnDestroy {
     }
 
     this.generatedEpubBytes = res.bytes;
-    this.generatedEpubFilename = await this.resolveUniqueEpubFilename(
-      res.filename,
-    );
+    const overwriteFilename = this.projectSaveState.getOverwriteFilename();
+    const overwriteExisting = !!overwriteFilename;
+    this.generatedEpubFilename = overwriteFilename
+      ? overwriteFilename
+      : await this.resolveUniqueEpubFilename(res.filename);
+    this.projectSaveState.setCurrentFilename(this.generatedEpubFilename);
 
     this.setBusy('export', 'CHANGE.SAVING');
 
@@ -2806,6 +2932,7 @@ export class ChangePage implements OnInit, OnDestroy {
       filename: this.generatedEpubFilename,
       coverFileForThumb: exportFile,
       coverMetadata: this.buildCoverProcessingMetadata(),
+      overwriteExisting,
     });
     this.logSaveFlow('finalWriteComplete', {
       flow: 'onGenerate',
@@ -2814,11 +2941,17 @@ export class ChangePage implements OnInit, OnDestroy {
     });
 
     this.generatedEpubFilename = saved.filename;
+    try {
+      await this.saveLocalProjectSnapshot(saved.filename, exportFile);
+    } catch (error) {
+      console.warn('[ECC:change] project snapshot save failed', error);
+    }
 
     this.coversEvents.emit({
       type: 'saved',
       filename: saved.filename,
     });
+    this.activateSavedProject(saved.filename);
     this.logSaveFlow('savedEventEmitted', {
       flow: 'onGenerate',
       filename: saved.filename,
@@ -2838,6 +2971,204 @@ export class ChangePage implements OnInit, OnDestroy {
     await this.maybeAskForRatingAfterSuccessfulSave('web');
     await this.consumeAdFallbackAttemptAfterSuccess('generate-web');
     await this.homeTour.completeInteraction('cover-created');
+  }
+
+  private async saveLocalProjectSnapshot(
+    coverFilename: string,
+    coverFileForThumb: File,
+  ): Promise<void> {
+    const sourceFile =
+      this.originalImageFile ?? this.editorSourceFile ?? this.workingImageFile;
+    if (!sourceFile) return;
+    const sourceDims = this.originalImageDims ?? this.workingImageDims;
+
+    const selected = this.getSelectedFormatOption();
+    if (!selected) return;
+
+    await this.fileService.saveProjectSnapshot({
+      coverFilename,
+      sourceFile,
+      coverFileForThumb,
+      cropState: this.cropState ?? buildDefaultCoverCropState(),
+      target: {
+        width: selected.target.width,
+        height: selected.target.height,
+      },
+      coverMetadata: this.buildCoverProcessingMetadata(),
+      sourceInfo: {
+        name: sourceFile.name,
+        width: sourceDims?.width,
+        height: sourceDims?.height,
+        originalName: this.originalImageFile?.name ?? sourceFile.name,
+        originalWidth: this.originalImageDims?.width ?? sourceDims?.width,
+        originalHeight: this.originalImageDims?.height ?? sourceDims?.height,
+      },
+    });
+  }
+
+  private activateSavedProject(filename: string): void {
+    this.activeProjectFilename = filename;
+  }
+
+  private async tryOpenProjectFromRoute(): Promise<boolean> {
+    const projectFilename = this.route.snapshot.queryParamMap.get('project');
+    if (!projectFilename) {
+      this.lastHandledProjectRouteKey = null;
+      return false;
+    }
+    const editMode =
+      this.route.snapshot.queryParamMap.get('editMode') === 'copy'
+        ? 'copy'
+        : 'overwrite';
+    const routeKey = `${projectFilename}::${editMode}`;
+    if (this.isOpeningProjectFromRoute) {
+      return false;
+    }
+    if (this.lastHandledProjectRouteKey === routeKey) {
+      return false;
+    }
+
+    this.isOpeningProjectFromRoute = true;
+    try {
+      const opened = await this.openProjectByFilename(projectFilename, editMode);
+      if (opened) {
+        this.lastHandledProjectRouteKey = routeKey;
+      }
+      return opened;
+    } finally {
+      this.isOpeningProjectFromRoute = false;
+    }
+  }
+
+  private async openProjectByFilename(
+    filename: string,
+    editMode: 'overwrite' | 'copy' = 'overwrite',
+  ): Promise<boolean> {
+    const loaded = await this.fileService.loadProjectByFilename(filename);
+    if (!loaded) {
+      return false;
+    }
+
+    const sourceEpubFile = await this.fileService.loadGeneratedEpubByFilename(
+      loaded.snapshot.coverFilename,
+    );
+    if (!sourceEpubFile) {
+      return false;
+    }
+
+    await this.resetWorkflowForNewEpub();
+    await this.hydrateProjectEpubContext(
+      loaded.snapshot.coverFilename,
+      sourceEpubFile,
+    );
+    await this.resolveProjectCoverEntryPath();
+
+    const snapshot = loaded.snapshot;
+    const dims =
+      this.sourceInfoToDims(snapshot.sourceInfo) ??
+      (await this.imagePipe.getDimensions(loaded.sourceFile)) ??
+      snapshot.target;
+    const matchedFormat = this.formatOptions.find(
+      (option) =>
+        option.target.width === snapshot.target.width &&
+        option.target.height === snapshot.target.height,
+    );
+
+    if (matchedFormat) {
+      this.selectedFormatId = matchedFormat.id;
+    }
+
+    this.originalImageFile = loaded.sourceFile;
+    this.selectedImageFile = loaded.sourceFile;
+    this.selectedImageName = loaded.sourceFile.name;
+    this.originalImageDims = dims;
+    this.workingImageDims = dims;
+    this.workingImageFile = loaded.sourceFile;
+    this.editorSourceFile = loaded.sourceFile;
+    this.cropState = snapshot.cropState;
+    this.exportImageFile = undefined;
+    this.activeProjectFilename =
+      editMode === 'overwrite' ? snapshot.coverFilename : undefined;
+    this.projectSaveState.setProject(snapshot.coverFilename, editMode);
+    this.generatedEpubFilename =
+      editMode === 'overwrite' ? snapshot.coverFilename : undefined;
+    this.lastSavedFilename =
+      editMode === 'overwrite' ? snapshot.coverFilename : undefined;
+    this.revokePreviewUrl();
+    this.previewUrl = URL.createObjectURL(loaded.sourceFile);
+
+    this.projectEditReturnUrl = '/tabs/change';
+    try {
+      await this.openEditor('image');
+      return true;
+    } finally {
+      this.projectEditReturnUrl = null;
+    }
+  }
+
+  private async hydrateProjectEpubContext(
+    filename: string,
+    sourceEpubFile: File,
+  ): Promise<void> {
+    const outputBaseName =
+      filename.replace(/\.epub$/i, '').trim() || 'epub_cover';
+
+    if (this.usesNativeRewrite()) {
+      const cycle = await this.workingCopy.startStreamingCycle(sourceEpubFile);
+      this.sourceEpubFile = sourceEpubFile;
+      this.sourceEpubMeta = cycle.sourceMeta;
+      this.workingEpubFile = sourceEpubFile;
+      this.workingEpubPath = cycle.workingPath;
+      this.workingEpubNativePath = cycle.workingNativePath;
+      this.workingEpubName = cycle.workingName;
+      this.outputBaseName = outputBaseName;
+    } else {
+      const cycle = await this.workingCopy.startCycle(sourceEpubFile);
+      this.sourceEpubFile = sourceEpubFile;
+      this.sourceEpubMeta = cycle.sourceMeta;
+      this.workingEpubFile = cycle.workingFile;
+      this.workingEpubPath = cycle.workingPath;
+      this.workingEpubNativePath = undefined;
+      this.workingEpubName = cycle.workingName;
+      this.outputBaseName = outputBaseName;
+    }
+
+    this.selectedEpubName = filename;
+    this.coverEntryPath = undefined;
+    this.clearEpubError();
+  }
+
+  private async resolveProjectCoverEntryPath(): Promise<void> {
+    if (!this.selectedEpubName) {
+      this.coverEntryPath = undefined;
+      return;
+    }
+
+    const strictCover = this.workingEpubNativePath
+      ? await this.candidateImageService.resolveStrictCover({
+          epubNativePath: this.workingEpubNativePath,
+          epubName: this.selectedEpubName,
+        })
+      : this.workingEpubFile
+        ? await this.candidateImageService.resolveStrictCover({
+            epubFile: this.workingEpubFile,
+            epubName: this.selectedEpubName,
+          })
+        : null;
+
+    this.coverEntryPath = strictCover?.sourcePath;
+  }
+
+  private sourceInfoToDims(sourceInfo?: {
+    width?: number;
+    height?: number;
+    originalWidth?: number;
+    originalHeight?: number;
+  }): { width: number; height: number } | null {
+    const width = sourceInfo?.width ?? sourceInfo?.originalWidth;
+    const height = sourceInfo?.height ?? sourceInfo?.originalHeight;
+    if (!width || !height) return null;
+    return { width, height };
   }
 
   private async resolveUniqueEpubFilename(
@@ -2893,8 +3224,11 @@ export class ChangePage implements OnInit, OnDestroy {
     const requestedFilename = this.ensureEpubExtension(
       preferredFilename || `${outputBaseName}.epub`,
     );
+    const overwriteExisting = !!this.projectSaveState.getOverwriteFilename();
     const outputTarget =
-      await this.fileService.reserveNativeDocumentOutput(requestedFilename);
+      await this.fileService.reserveNativeDocumentOutput(requestedFilename, {
+        overwriteExisting,
+      });
 
     this.isNativeRewriteInProgress = true;
     this.isCancellingNativeRewrite = false;
@@ -2959,10 +3293,17 @@ export class ChangePage implements OnInit, OnDestroy {
         coverMetadata: this.buildCoverProcessingMetadata(),
       });
 
+      try {
+        await this.saveLocalProjectSnapshot(outputTarget.filename, rewriteCoverFile);
+      } catch (error) {
+        console.warn('[ECC:change] project snapshot save failed', error);
+      }
+
       this.coversEvents.emit({
         type: 'saved',
         filename: outputTarget.filename,
       });
+      this.activateSavedProject(outputTarget.filename);
       this.logSaveFlow('savedEventEmitted', {
         flow: 'nativeRewrite',
         filename: outputTarget.filename,
@@ -2971,6 +3312,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
       this.wasAutoSaved = true;
       this.lastSavedFilename = outputTarget.filename;
+      this.projectSaveState.setCurrentFilename(outputTarget.filename);
 
       await this.showToast(
         'CHANGE.COVER_CHANGED',
@@ -3242,8 +3584,11 @@ export class ChangePage implements OnInit, OnDestroy {
     this.closeInfo();
   }
 
-  ionViewWillEnter() {
-    this.consumeEditorResult();
+  async ionViewWillEnter() {
+    const openedProject = await this.tryOpenProjectFromRoute();
+    if (!openedProject) {
+      await this.consumeEditorResult();
+    }
     void this.refreshHeaderItems();
   }
 

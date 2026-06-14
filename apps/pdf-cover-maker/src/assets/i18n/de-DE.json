@@ -27,7 +27,13 @@
     "WATCH_AD_SUBTITLE": "Anzeige ansehen",
     "SHARE": "Teilen",
     "SHARE_KINDLE_HINT": "Wähle beim Teilen die Kindle-App aus, um es an dein Gerät zu senden.",
-    "WARNING": "Warnung"
+    "WARNING": "Warnung",
+    "EDIT_PROJECT_TITLE": "Wie möchtest du diese Datei bearbeiten?",
+    "EDIT_PROJECT_MESSAGE": "Entscheide, ob die aktuelle Datei ersetzt oder als Kopie bearbeitet werden soll.",
+    "EDIT_PROJECT_OVERWRITE": "Überschreiben",
+    "EDIT_PROJECT_OVERWRITE_DESC": "Änderungen direkt in der bestehenden Datei speichern.",
+    "EDIT_PROJECT_COPY": "Mit Kopie arbeiten",
+    "EDIT_PROJECT_COPY_DESC": "Die Originaldatei behalten und eine neue Kopie bearbeiten."
   },
   "CHANGE": {
     "ADS_REQUIRED": "Anzeige konnte nicht geladen werden. Prüfe dein Netzwerk oder den Werbeblocker.",
@@ -105,7 +111,8 @@
     "ACTIONS": {
       "DELETE": "Löschen",
       "SHARE": "Teilen",
-      "OPEN": "Öffnen"
+      "OPEN": "Öffnen",
+      "EDIT_PROJECT": "Bearbeiten"
     },
     "DELETE": {
       "MESSAGE": "Möchtest du dieses PDF löschen?",
@@ -116,7 +123,8 @@
       "SHARE": "PDF konnte nicht geteilt werden. Bitte versuche es erneut.",
       "LOAD": "Cover konnten nicht geladen werden. Zum Aktualisieren nach unten ziehen.",
       "PREVIEW": "Vorschau konnte nicht geladen werden. Versuche es erneut.",
-      "OPEN": "Die PDF-Datei konnte nicht geöffnet werden. Bitte versuchen Sie es erneut."
+      "OPEN": "Die PDF-Datei konnte nicht geöffnet werden. Bitte versuchen Sie es erneut.",
+      "OPEN_PROJECT": "Das Projekt konnte nicht geöffnet werden. Bitte versuche es erneut."
     },
     "GENERATE_THUMB": "Generate thumbnail",
     "PREVIEW_UNAVAILABLE": "Preview unavailable.",

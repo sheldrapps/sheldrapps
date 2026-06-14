@@ -1,0 +1,47 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ title }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="edit-project-choice-modal" [fullscreen]="true">
+  <div class="edit-project-choice-modal__body">
+    <p class="edit-project-choice-modal__message">{{ message }}</p>
+
+    <div class="edit-project-choice-modal__options" role="group">
+      <button
+        type="button"
+        class="edit-project-choice-modal__option edit-project-choice-modal__option--primary"
+        (click)="chooseOverwrite()"
+      >
+        <span class="edit-project-choice-modal__option-label">{{
+          overwriteLabel
+        }}</span>
+        <span class="edit-project-choice-modal__option-description">{{
+          overwriteDescription
+        }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="edit-project-choice-modal__option"
+        (click)="chooseCopy()"
+      >
+        <span class="edit-project-choice-modal__option-label">{{
+          copyLabel
+        }}</span>
+        <span class="edit-project-choice-modal__option-description">{{
+          copyDescription
+        }}</span>
+      </button>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="cancel()">{{ cancelLabel }}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

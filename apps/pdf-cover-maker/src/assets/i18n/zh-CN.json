@@ -27,7 +27,13 @@
     "WATCH_AD_SUBTITLE": "观看广告",
     "SHARE": "分享",
     "SHARE_KINDLE_HINT": "分享时，请选择 Kindle 应用以发送到您的设备。",
-    "WARNING": "警告"
+    "WARNING": "警告",
+    "EDIT_PROJECT_TITLE": "你想如何编辑这个文件？",
+    "EDIT_PROJECT_MESSAGE": "请选择是替换当前文件，还是先保留一份副本。",
+    "EDIT_PROJECT_OVERWRITE": "覆盖",
+    "EDIT_PROJECT_OVERWRITE_DESC": "将更改直接保存到现有文件。",
+    "EDIT_PROJECT_COPY": "使用副本",
+    "EDIT_PROJECT_COPY_DESC": "保留原文件，并编辑一个新副本。"
   },
   "CHANGE": {
     "ADS_REQUIRED": "广告加载失败，请检查网络或广告拦截器。",
@@ -118,7 +124,8 @@
     "ACTIONS": {
       "DELETE": "删除",
       "SHARE": "分享",
-      "OPEN": "打开"
+      "OPEN": "打开",
+      "EDIT_PROJECT": "编辑"
     },
     "DELETE": {
       "MESSAGE": "确定要删除此 PDF 吗？",
@@ -129,7 +136,8 @@
       "SHARE": "无法分享 PDF，请重试。",
       "LOAD": "无法加载您的 PDF，请下拉刷新。",
       "PREVIEW": "无法加载预览，请重试。",
-      "OPEN": "无法打开 PDF。请重试。"
+      "OPEN": "无法打开 PDF。请重试。",
+      "OPEN_PROJECT": "无法打开项目。请重试。"
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "缩小电子阅读器预览",

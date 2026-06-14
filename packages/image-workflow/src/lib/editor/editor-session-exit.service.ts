@@ -32,13 +32,13 @@ export class EditorSessionExitService {
 
     this.history.resetSession();
     this.allowNextExitOnce();
-    this.navCtrl.navigateBack(this.getExitUrl(), { replaceUrl: true });
+    this.navCtrl.navigateRoot(this.getExitUrl(), { replaceUrl: true });
     return true;
   }
 
   exitAfterDone(): void {
     this.allowNextExitOnce();
-    this.navCtrl.navigateBack(this.getExitUrl(), { replaceUrl: true });
+    this.navCtrl.navigateRoot(this.getExitUrl(), { replaceUrl: true });
   }
 
   async canExitEditor(): Promise<boolean> {

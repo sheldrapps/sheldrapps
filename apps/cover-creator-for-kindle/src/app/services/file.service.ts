@@ -5,6 +5,7 @@ import {
   EpubPublicStore,
   FileKitService,
   FileRef,
+  ensureDirectoriesExist,
   readSheldrCoverMetadata,
   type SheldrCoverMetadata,
   writeSheldrCoverMetadata,
@@ -13,8 +14,10 @@ import { TranslateService } from '@ngx-translate/core';
 import {
   analyzeDitherPreview,
   buildOptimizedPreviewDataUrl,
+  type CoverCropState,
   type ArtifactReductionMode,
   type CoverColorMode,
+  type EditorHistorySnapshot,
 } from '@sheldrapps/image-workflow';
 import { EpubRewriteService } from './epub-rewrite.service';
 
@@ -22,6 +25,51 @@ export type CoverEntry = {
   filename: string;
   epubPath: string;
   thumbPath: string;
+};
+
+export type ProjectEntry = {
+  filename: string;
+  projectPath: string;
+  sourcePath: string;
+  thumbPath: string;
+  coverFilename: string;
+  savedAt?: string;
+};
+
+export type SavedCoverProject = {
+  schemaVersion: 1;
+  kind: 'cover-creator-project';
+  savedAt: string;
+  coverFilename: string;
+  sourceFilename: string;
+  sourceMimeType: string;
+  cropState: CoverCropState;
+  target: {
+    width: number;
+    height: number;
+  };
+  coverMetadata?: CoverProcessingMetadataInput;
+  history?: EditorHistorySnapshot;
+  sourceInfo?: {
+    name?: string;
+    width?: number;
+    height?: number;
+    originalName?: string;
+    originalWidth?: number;
+    originalHeight?: number;
+  };
+};
+
+export type SaveProjectResult = {
+  projectPath: string;
+  sourcePath: string;
+  thumbPath: string;
+  filename: string;
+};
+
+export type LoadedCoverProject = {
+  snapshot: SavedCoverProject;
+  sourceFile: File;
 };
 
 export type PreviewCoverResult = {
@@ -76,6 +124,8 @@ export class FileService {
   private readonly EPUB_FOLDER = 'CoverCreator';
   private readonly COVER_FOLDER = 'CoverCreatorCovers';
   private readonly THUMB_FOLDER = 'CoverCreatorThumbs';
+  private readonly PROJECT_FOLDER = 'CoverCreatorProjects';
+  private readonly PROJECT_THUMB_FOLDER = 'CoverCreatorProjectThumbs';
   private readonly THUMB_MAX_WIDTH = 320;
   private readonly THUMB_QUALITY = 0.82;
   private readonly LEGACY_COVER_MAX_BYTES = 30 * 1024 * 1024;
@@ -141,6 +191,79 @@ export class FileService {
     return `${this.THUMB_FOLDER}/${baseName}.jpg`;
   }
 
+  getProjectThumbPathForFilename(filename: string) {
+    const baseName = this.getBaseNameFromEpubFilename(filename);
+    return `${this.PROJECT_THUMB_FOLDER}/${baseName}.jpg`;
+  }
+
+  getProjectPathForFilename(filename: string) {
+    const baseName = this.getBaseNameFromEpubFilename(filename);
+    return `${this.PROJECT_FOLDER}/${baseName}.json`;
+  }
+
+  async listProjects(): Promise<ProjectEntry[]> {
+    await this.ensureProjectFoldersReady();
+    const files = await this.listProjectJsonFiles();
+    const projects: ProjectEntry[] = [];
+
+    for (const filename of files) {
+      const snapshot = await this.readProjectSnapshotByFilename(filename);
+      if (!snapshot) continue;
+
+      const baseName = this.getBaseNameFromEpubFilename(snapshot.coverFilename);
+      projects.push({
+        filename,
+        projectPath: `${this.PROJECT_FOLDER}/${filename}`,
+        sourcePath: `${this.PROJECT_FOLDER}/${snapshot.sourceFilename}`,
+        thumbPath: `${this.PROJECT_THUMB_FOLDER}/${baseName}.jpg`,
+        coverFilename: snapshot.coverFilename,
+        savedAt: snapshot.savedAt,
+      });
+    }
+
+    return projects.sort((a, b) => a.filename.localeCompare(b.filename));
+  }
+
+  async hasProjectByFilename(filename: string): Promise<boolean> {
+    await this.ensureProjectFoldersReady();
+    const projectPath = this.getProjectPathForFilename(filename);
+    return this.fileKit.exists({
+      dir: 'Data',
+      path: projectPath,
+    });
+  }
+
+  async loadProjectByFilename(
+    filename: string,
+  ): Promise<LoadedCoverProject | null> {
+    await this.ensureProjectFoldersReady();
+    const projectFilename = filename.toLowerCase().endsWith('.json')
+      ? filename
+      : `${this.getBaseNameFromEpubFilename(filename)}.json`;
+    const snapshot = await this.readProjectSnapshotByFilename(projectFilename);
+    if (!snapshot) return null;
+
+    try {
+      const sourceBytes = await this.fileKit.readBytes({
+        dir: 'Data',
+        path: `${this.PROJECT_FOLDER}/${snapshot.sourceFilename}`,
+      });
+      const sourceBuffer = new ArrayBuffer(sourceBytes.byteLength);
+      new Uint8Array(sourceBuffer).set(sourceBytes);
+      const sourceMimeType = this.resolveProjectSourceMimeType(
+        snapshot.sourceMimeType,
+        snapshot.sourceFilename,
+        sourceBytes,
+      );
+      const sourceFile = new File([sourceBuffer], snapshot.sourceFilename, {
+        type: sourceMimeType,
+      });
+      return { snapshot, sourceFile };
+    } catch {
+      return null;
+    }
+  }
+
   async listCovers(): Promise<CoverEntry[]> {
     await this.ensurePublicDocumentsEpubFolderReady();
     let files: string[] = [];
@@ -204,6 +327,7 @@ export class FileService {
         // ignore missing cover export variants
       }
     }
+    await this.deleteProjectSnapshotAssets(coverBaseName);
     this.debugLog('deleteCoverByFilename:done', { filename });
   }
 
@@ -546,15 +670,19 @@ export class FileService {
     filename: string;
     coverFileForThumb: File;
     coverMetadata?: CoverProcessingMetadataInput;
+    overwriteExisting?: boolean;
   }) {
     const filename = this.ensureEpubExt(this.sanitizeFilename(opts.filename));
     const bytesToSave = await this.applyCoverMetadataToEpubBytes(
       opts.bytes,
       opts.coverMetadata,
     );
+    const outputFilename = opts.overwriteExisting
+      ? filename
+      : await this.getUniqueDocumentFilename(filename);
+    const epubPath = `${this.EPUB_FOLDER}/${outputFilename}`;
 
     if (!this.epubRewrite.isSupported()) {
-      const epubPath = `${this.EPUB_FOLDER}/${filename}`;
       await this.fileKit.writeBytes({
         dir: 'Documents',
         path: epubPath,
@@ -569,12 +697,12 @@ export class FileService {
 
       const assets = await this.persistCoverAssetsFromFile(
         opts.coverFileForThumb,
-        filename,
+        outputFilename,
       );
-      this.resolvedPreviewCache.delete(this.thumbCacheKey(filename));
+      this.resolvedPreviewCache.delete(this.thumbCacheKey(outputFilename));
 
       this.debugLog('saveGeneratedEpub:web:documents', {
-        filename,
+        filename: outputFilename,
         bytes: bytesToSave.byteLength,
         path: epubPath,
       });
@@ -582,39 +710,113 @@ export class FileService {
       return {
         path: epubPath,
         uri,
-        filename,
+        filename: outputFilename,
         thumbPath: assets.thumbPath,
         thumbFilename: assets.thumbFilename,
       };
     }
 
-    const epubPath = `${this.EPUB_FOLDER}/${filename}`;
-
-    await this.writePublicEpub(filename, bytesToSave);
+    await this.writePublicEpub(outputFilename, bytesToSave);
     this.debugLog('saveGeneratedEpub:finalWriteComplete', {
-      filename,
+      filename: outputFilename,
       writeCompletedAt: new Date().toISOString(),
       bytes: bytesToSave.byteLength,
     });
-    const uri = await this.getPublicEpubFileUriOrThrow(filename);
+    const uri = await this.getPublicEpubFileUriOrThrow(outputFilename);
     this.debugLog('saveGeneratedEpub', {
-      filename,
+      filename: outputFilename,
       bytes: bytesToSave.byteLength,
     });
 
     const assets = await this.persistCoverAssetsFromFile(
       opts.coverFileForThumb,
-      filename,
+      outputFilename,
     );
-    this.resolvedPreviewCache.delete(this.thumbCacheKey(filename));
-    this.ditherMetadataCache.delete(this.thumbCacheKey(filename));
+    this.resolvedPreviewCache.delete(this.thumbCacheKey(outputFilename));
+    this.ditherMetadataCache.delete(this.thumbCacheKey(outputFilename));
 
     return {
       path: epubPath,
       uri,
-      filename,
+      filename: outputFilename,
       thumbPath: assets.thumbPath,
       thumbFilename: assets.thumbFilename,
+    };
+  }
+
+  async saveProjectSnapshot(opts: {
+    coverFilename: string;
+    sourceFile: File;
+    coverFileForThumb: File;
+    cropState: CoverCropState;
+    target: { width: number; height: number };
+    coverMetadata?: CoverProcessingMetadataInput;
+    history?: EditorHistorySnapshot;
+    sourceInfo?: {
+      name?: string;
+      width?: number;
+      height?: number;
+      originalName?: string;
+      originalWidth?: number;
+      originalHeight?: number;
+    };
+  }): Promise<SaveProjectResult> {
+    await this.ensureProjectFoldersReady();
+    const coverFilename = this.ensureEpubExt(
+      this.sanitizeFilename(opts.coverFilename),
+    );
+    const baseName = this.getBaseNameFromEpubFilename(coverFilename);
+    const sourceMimeType =
+      opts.sourceFile.type || this.mimeFromFilename(opts.sourceFile.name);
+    const sourceExt = this.coverExtFromMime(sourceMimeType);
+    const sourceFilename = `${baseName}.source.${sourceExt}`;
+    const projectFilename = `${baseName}.json`;
+    const sourcePath = `${this.PROJECT_FOLDER}/${sourceFilename}`;
+    const projectPath = `${this.PROJECT_FOLDER}/${projectFilename}`;
+    const thumbPath = this.getProjectThumbPathForFilename(coverFilename);
+
+    const snapshot: SavedCoverProject = {
+      schemaVersion: 1,
+      kind: 'cover-creator-project',
+      savedAt: new Date().toISOString(),
+      coverFilename,
+      sourceFilename,
+      sourceMimeType,
+      cropState: opts.cropState,
+      target: {
+        width: Math.max(1, Math.round(opts.target.width)),
+        height: Math.max(1, Math.round(opts.target.height)),
+      },
+      coverMetadata: opts.coverMetadata,
+      history: opts.history,
+      sourceInfo: opts.sourceInfo,
+    };
+
+    const sourceBytes = new Uint8Array(await opts.sourceFile.arrayBuffer());
+    await this.fileKit.writeBytes({
+      dir: 'Data',
+      path: sourcePath,
+      bytes: sourceBytes,
+      mimeType: sourceMimeType,
+    });
+
+    const projectBytes = new TextEncoder().encode(
+      JSON.stringify(snapshot, null, 2),
+    );
+    await this.fileKit.writeBytes({
+      dir: 'Data',
+      path: projectPath,
+      bytes: projectBytes,
+      mimeType: 'application/json',
+    });
+
+    await this.ensureProjectThumbFromFile(opts.coverFileForThumb, thumbPath);
+
+    return {
+      projectPath,
+      sourcePath,
+      thumbPath,
+      filename: projectFilename,
     };
   }
 
@@ -728,6 +930,8 @@ export class FileService {
       this.ditherMetadataCache.delete(this.thumbCacheKey(toFilename));
     }
     this.ditherMetadataCache.delete(this.thumbCacheKey(fromFilename));
+
+    await this.renameProjectSnapshotAssets(fromFilename, toFilename);
 
     return {
       filename: toFilename,
@@ -1157,6 +1361,49 @@ export class FileService {
     return 'image/jpeg';
   }
 
+  private resolveProjectSourceMimeType(
+    declaredMimeType: string | undefined,
+    sourceFilename: string,
+    sourceBytes: Uint8Array,
+  ): string {
+    const mime = (declaredMimeType ?? '').trim().toLowerCase();
+    if (mime === 'image/png' || mime === 'image/jpeg' || mime === 'image/webp') {
+      return mime;
+    }
+
+    if (sourceBytes.length >= 12) {
+      const isPng =
+        sourceBytes[0] === 0x89 &&
+        sourceBytes[1] === 0x50 &&
+        sourceBytes[2] === 0x4e &&
+        sourceBytes[3] === 0x47 &&
+        sourceBytes[4] === 0x0d &&
+        sourceBytes[5] === 0x0a &&
+        sourceBytes[6] === 0x1a &&
+        sourceBytes[7] === 0x0a;
+      if (isPng) return 'image/png';
+
+      const isJpeg =
+        sourceBytes[0] === 0xff &&
+        sourceBytes[1] === 0xd8 &&
+        sourceBytes[2] === 0xff;
+      if (isJpeg) return 'image/jpeg';
+
+      const isWebp =
+        sourceBytes[0] === 0x52 &&
+        sourceBytes[1] === 0x49 &&
+        sourceBytes[2] === 0x46 &&
+        sourceBytes[3] === 0x46 &&
+        sourceBytes[8] === 0x57 &&
+        sourceBytes[9] === 0x45 &&
+        sourceBytes[10] === 0x42 &&
+        sourceBytes[11] === 0x50;
+      if (isWebp) return 'image/webp';
+    }
+
+    return this.mimeFromFilename(sourceFilename);
+  }
+
   private buildFilename(modelId: string) {
     const now = new Date();
     const safeTs =
@@ -1212,6 +1459,20 @@ export class FileService {
 
   private getBaseNameFromEpubFilename(epubFilename: string): string {
     return epubFilename.replace(/\.epub$/i, '');
+  }
+
+  private async getUniqueDocumentFilename(filename: string): Promise<string> {
+    const safeFilename = this.ensureEpubExt(this.sanitizeFilename(filename));
+    const baseName = this.getBaseNameFromEpubFilename(safeFilename);
+    let candidate = safeFilename;
+    let index = 1;
+
+    while (await this.existsInPublicDocuments(candidate)) {
+      candidate = `${baseName} (${index}).epub`;
+      index += 1;
+    }
+
+    return candidate;
   }
 
   private normalizeBase64Data(data: string): string {
@@ -1383,6 +1644,197 @@ export class FileService {
       bytes,
       this.toSheldrCoverMetadata(metadata),
     );
+  }
+
+  private async readProjectSnapshotByFilename(
+    filename: string,
+  ): Promise<SavedCoverProject | null> {
+    await this.ensureProjectFoldersReady();
+    const path = `${this.PROJECT_FOLDER}/${filename}`;
+    try {
+      const bytes = await this.fileKit.readBytes({
+        dir: 'Data',
+        path,
+      });
+      const raw = new TextDecoder().decode(bytes);
+      const parsed = JSON.parse(raw) as SavedCoverProject;
+      if (
+        !parsed ||
+        parsed.kind !== 'cover-creator-project' ||
+        parsed.schemaVersion !== 1 ||
+        typeof parsed.coverFilename !== 'string' ||
+        typeof parsed.sourceFilename !== 'string'
+      ) {
+        return null;
+      }
+      return parsed;
+    } catch {
+      return null;
+    }
+  }
+
+  private async listProjectJsonFiles(): Promise<string[]> {
+    await this.ensureProjectFoldersReady();
+    const files = await this.listDirectoryFileNames(
+      this.PROJECT_FOLDER,
+      'Data',
+    );
+    return files
+      .filter((name) => name.toLowerCase().endsWith('.json'))
+      .sort((a, b) => a.localeCompare(b));
+  }
+
+  private async deleteProjectSnapshotAssets(baseName: string): Promise<void> {
+    await this.ensureProjectFoldersReady();
+    const projectFiles = await this.listDirectoryFileNames(
+      this.PROJECT_FOLDER,
+      'Data',
+    );
+    for (const filename of projectFiles) {
+      if (
+        filename === `${baseName}.json` ||
+        filename === `${baseName}.source.jpg` ||
+        filename === `${baseName}.source.png` ||
+        filename === `${baseName}.source.webp` ||
+        filename.startsWith(`${baseName}.source.`)
+      ) {
+        try {
+          await this.fileKit.delete({
+            dir: 'Data',
+            path: `${this.PROJECT_FOLDER}/${filename}`,
+          });
+        } catch {
+          // ignore missing project asset
+        }
+      }
+    }
+    await this.fileKit.delete({
+      dir: 'Data',
+      path: `${this.PROJECT_THUMB_FOLDER}/${baseName}.jpg`,
+    }).catch(() => {
+      // ignore missing thumb
+    });
+  }
+
+  private async renameProjectSnapshotAssets(
+    fromFilename: string,
+    toFilename: string,
+  ): Promise<void> {
+    await this.ensureProjectFoldersReady();
+    const fromBaseName = this.getBaseNameFromEpubFilename(fromFilename);
+    const toBaseName = this.getBaseNameFromEpubFilename(toFilename);
+    const snapshot = await this.readProjectSnapshotByFilename(
+      `${fromBaseName}.json`,
+    );
+    if (!snapshot) {
+      return;
+    }
+
+    const updated: SavedCoverProject = {
+      ...snapshot,
+      savedAt: new Date().toISOString(),
+      coverFilename: toFilename,
+      sourceFilename: snapshot.sourceFilename.startsWith(`${fromBaseName}.`)
+        ? snapshot.sourceFilename.replace(
+            `${fromBaseName}.`,
+            `${toBaseName}.`,
+          )
+        : snapshot.sourceFilename,
+    };
+
+    const fromProjectPath = `${this.PROJECT_FOLDER}/${fromBaseName}.json`;
+    const toProjectPath = `${this.PROJECT_FOLDER}/${toBaseName}.json`;
+    const sourceExt = snapshot.sourceFilename.split('.').pop() ?? 'jpg';
+    const fromSourcePath = `${this.PROJECT_FOLDER}/${snapshot.sourceFilename}`;
+    const toSourcePath = `${this.PROJECT_FOLDER}/${updated.sourceFilename}`;
+    const thumbFromPath = `${this.PROJECT_THUMB_FOLDER}/${fromBaseName}.jpg`;
+    const thumbToPath = `${this.PROJECT_THUMB_FOLDER}/${toBaseName}.jpg`;
+
+    try {
+      const sourceExists = await this.fileKit.exists({
+        dir: 'Data',
+        path: fromSourcePath,
+      });
+      if (sourceExists && fromSourcePath !== toSourcePath) {
+        const sourceBytes = await this.fileKit.readBytes({
+          dir: 'Data',
+          path: fromSourcePath,
+        });
+        await this.fileKit.writeBytes({
+          dir: 'Data',
+          path: toSourcePath,
+          bytes: sourceBytes,
+          mimeType: this.mimeFromFilename(sourceExt),
+        });
+        await this.fileKit.delete({
+          dir: 'Data',
+          path: fromSourcePath,
+        }).catch(() => undefined);
+      }
+    } catch {
+      // best effort
+    }
+
+    await this.fileKit.writeBytes({
+      dir: 'Data',
+      path: toProjectPath,
+      bytes: new TextEncoder().encode(JSON.stringify(updated, null, 2)),
+      mimeType: 'application/json',
+    });
+    await this.fileKit.delete({
+      dir: 'Data',
+      path: fromProjectPath,
+    }).catch(() => undefined);
+
+    try {
+      const thumbExists = await this.fileKit.exists({
+        dir: 'Data',
+        path: thumbFromPath,
+      });
+      if (thumbExists && thumbFromPath !== thumbToPath) {
+        const thumbBytes = await this.fileKit.readBytes({
+          dir: 'Data',
+          path: thumbFromPath,
+        });
+        await this.fileKit.writeBytes({
+          dir: 'Data',
+          path: thumbToPath,
+          bytes: thumbBytes,
+          mimeType: 'image/jpeg',
+        });
+        await this.fileKit.delete({
+          dir: 'Data',
+          path: thumbFromPath,
+        }).catch(() => undefined);
+      }
+    } catch {
+      // best effort
+    }
+  }
+
+  private async ensureProjectThumbFromFile(
+    file: File,
+    thumbPath: string,
+  ): Promise<void> {
+    const thumbBase64 = await this.arrayBufferToJpegThumbBase64(
+      await file.arrayBuffer(),
+      file.name,
+      this.THUMB_MAX_WIDTH,
+      this.THUMB_QUALITY,
+    );
+    await this.fileKit.writeBytes({
+      dir: 'Data',
+      path: thumbPath,
+      bytes: this.fileKit.fromBase64(thumbBase64),
+      mimeType: 'image/jpeg',
+    });
+  }
+
+  private async ensureProjectFoldersReady(): Promise<void> {
+    await ensureDirectoriesExist([
+      this.PROJECT_FOLDER,
+      this.PROJECT_THUMB_FOLDER,
+    ]);
   }
 
   private toSheldrCoverMetadata(

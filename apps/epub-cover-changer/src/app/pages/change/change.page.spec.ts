@@ -1,3 +1,4 @@
+import { ProjectSaveState } from '@sheldrapps/image-workflow/editor';
 import { ChangePage } from './change.page';
 import { Capacitor } from '@capacitor/core';
 
@@ -5,7 +6,7 @@ describe('ChangePage', () => {
   it('uses PNG export for premium lossless mode', () => {
     const ctx = {
       adsRemoved: true,
-      coverExportMode: 'lossless',
+      coverExportMode: 'lossless' as const,
       getSelectedCoverExportOptions() {
         return {
           mimeType: 'image/png',
@@ -31,7 +32,7 @@ describe('ChangePage', () => {
   it('uses JPEG export for premium compressed mode', () => {
     const ctx = {
       adsRemoved: true,
-      coverExportMode: 'compressed',
+      coverExportMode: 'compressed' as const,
       getSelectedCoverExportOptions() {
         return {
           mimeType: 'image/jpeg',
@@ -79,7 +80,7 @@ describe('ChangePage', () => {
   it('disables lossy quality override for premium lossless mode', () => {
     const ctx = {
       adsRemoved: true,
-      coverExportMode: 'lossless',
+      coverExportMode: 'lossless' as const,
       getSelectedCoverExportOptions() {
         return {
           quality: undefined,
@@ -105,7 +106,7 @@ describe('ChangePage', () => {
   it('uses JPEG quality override for premium compressed mode', () => {
     const ctx = {
       adsRemoved: true,
-      coverExportMode: 'compressed',
+      coverExportMode: 'compressed' as const,
       getSelectedCoverExportOptions() {
         return {
           quality: 0.92,
@@ -148,6 +149,43 @@ describe('ChangePage', () => {
     ).prototype.resolveExportQuality.call(ctx);
 
     expect(quality).toBe(0.92);
+  });
+
+  it('uses original project filename as save suggestion when editing a copy', async () => {
+    const present = jasmine.createSpy('present').and.resolveTo(undefined);
+    const onWillDismiss = jasmine
+      .createSpy('onWillDismiss')
+      .and.resolveTo({ role: 'cancel' });
+    const create = jasmine.createSpy('create').and.resolveTo({
+      present,
+      onWillDismiss,
+    });
+
+    const ctx = {
+      canSaveShare: () => true,
+      ensureExportImageFile: jasmine
+        .createSpy('ensureExportImageFile')
+        .and.resolveTo(new File(['cover'], 'cover.png', { type: 'image/png' })),
+      projectSaveState: new ProjectSaveState(),
+      lastSavedFilename: undefined,
+      generatedEpubFilename: undefined,
+      modalCtrl: { create },
+      translate: { instant: (key: string) => key },
+    };
+    ctx.projectSaveState.setProject('book.epub', 'copy');
+
+    await (
+      ChangePage as unknown as {
+        prototype: {
+          onSave: (this: typeof ctx) => Promise<void>;
+        };
+      }
+    ).prototype.onSave.call(ctx);
+
+    expect(create).toHaveBeenCalled();
+    expect(create.calls.mostRecent().args[0].componentProps.initialFilename).toBe(
+      'book',
+    );
   });
 
   it('persists premium export mode selection to settings-kit', async () => {
@@ -491,5 +529,90 @@ describe('ChangePage', () => {
     ).prototype.canStartScratch.call(ctx);
 
     expect(canStartScratch).toBeTrue();
+  });
+
+  it('rehydrates generated epub before opening project editor', async () => {
+    const sourceFile = new File(['cover'], 'cover.jpg', {
+      type: 'image/jpeg',
+    });
+    const sourceEpubFile = new File(['epub'], 'book.epub', {
+      type: 'application/epub+zip',
+    });
+    const resetWorkflowForNewEpub = jasmine
+      .createSpy('resetWorkflowForNewEpub')
+      .and.resolveTo(undefined);
+    const hydrateProjectEpubContext = jasmine
+      .createSpy('hydrateProjectEpubContext')
+      .and.resolveTo(undefined);
+    const resolveProjectCoverEntryPath = jasmine
+      .createSpy('resolveProjectCoverEntryPath')
+      .and.resolveTo(undefined);
+    const setProject = jasmine.createSpy('setProject');
+    const revokePreviewUrl = jasmine.createSpy('revokePreviewUrl');
+    const openEditor = jasmine.createSpy('openEditor').and.resolveTo(undefined);
+    spyOn(URL, 'createObjectURL').and.returnValue('blob:cover');
+
+    const ctx = {
+      fileService: {
+        loadProjectByFilename: jasmine.createSpy('loadProjectByFilename').and.resolveTo({
+          snapshot: {
+            coverFilename: 'book.epub',
+            sourceInfo: undefined,
+            target: { width: 1236, height: 1648 },
+            cropState: { zoom: 1 },
+          },
+          sourceFile,
+        }),
+        loadGeneratedEpubByFilename: jasmine
+          .createSpy('loadGeneratedEpubByFilename')
+          .and.resolveTo(sourceEpubFile),
+      },
+      imagePipe: {
+        getDimensions: jasmine
+          .createSpy('getDimensions')
+          .and.resolveTo({ width: 1200, height: 1600 }),
+      },
+      formatOptions: [{ id: 'epub', target: { width: 1236, height: 1648 } }],
+      sourceInfoToDims: () => null,
+      resetWorkflowForNewEpub,
+      hydrateProjectEpubContext,
+      resolveProjectCoverEntryPath,
+      projectSaveState: { setProject },
+      revokePreviewUrl,
+      openEditor,
+      activeProjectFilename: undefined as string | undefined,
+      generatedEpubFilename: undefined as string | undefined,
+      lastSavedFilename: undefined as string | undefined,
+      projectEditReturnUrl: null as string | null,
+    };
+
+    const opened = await (
+      ChangePage as unknown as {
+        prototype: {
+          openProjectByFilename: (
+            this: typeof ctx,
+            filename: string,
+            editMode?: 'overwrite' | 'copy',
+          ) => Promise<boolean>;
+        };
+      }
+    ).prototype.openProjectByFilename.call(ctx, 'project.json', 'overwrite');
+
+    expect(opened).toBeTrue();
+    expect(ctx.fileService.loadGeneratedEpubByFilename).toHaveBeenCalledWith(
+      'book.epub',
+    );
+    expect(resetWorkflowForNewEpub).toHaveBeenCalled();
+    expect(hydrateProjectEpubContext).toHaveBeenCalledWith(
+      'book.epub',
+      sourceEpubFile,
+    );
+    expect(resolveProjectCoverEntryPath).toHaveBeenCalled();
+    expect(setProject).toHaveBeenCalledWith('book.epub', 'overwrite');
+    expect(ctx.activeProjectFilename).toBe('book.epub');
+    expect(ctx.generatedEpubFilename).toBe('book.epub');
+    expect(ctx.lastSavedFilename).toBe('book.epub');
+    expect(openEditor).toHaveBeenCalledWith('image');
+    expect(ctx.projectEditReturnUrl).toBeNull();
   });
 });

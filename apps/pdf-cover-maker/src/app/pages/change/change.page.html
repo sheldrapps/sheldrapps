@@ -93,7 +93,7 @@
       [leftValue]="'insert'"
       [rightValue]="'replace'"
       [value]="coverPageMode"
-      [disabled]="!hasValidPdf()"
+      [disabled]="!hasValidPdf() || hasActiveProjectFilename"
       (valueChange)="onCoverPageModeChange($event)"
     ></app-cover-page-mode-switch>
 

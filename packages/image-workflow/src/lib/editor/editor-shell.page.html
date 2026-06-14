@@ -46,11 +46,10 @@
         >
           <div
             class="frame-content"
-            [class.frame-content--preview-active]="composedAdjustmentsPreviewState() === 'active'"
           >
             <div
               class="frame-content__live"
-              [style.filter]="composedAdjustmentsPreviewState() === 'active' ? null : cssFilter()"
+              [style.filter]="cssFilter()"
             >
               <div
                 class="frame-bg"
@@ -81,15 +80,6 @@
               }
               <cc-text-overlay></cc-text-overlay>
             </div>
-          @if (composedAdjustmentsPreviewUrl()) {
-            <img
-              class="img img--composed frame-content__preview"
-              [class.frame-content__preview--visible]="composedAdjustmentsPreviewState() === 'active'"
-              [src]="composedAdjustmentsPreviewUrl()"
-              alt=""
-              draggable="false"
-            />
-          }
         </div>
 
         <div class="stage-guides stage-guides--grid" aria-hidden="true">

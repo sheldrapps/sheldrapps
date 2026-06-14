@@ -1,4 +1,4 @@
-﻿{
+{
   "APP": {
     "TITLE": "Kindle用カバー作成"
   },
@@ -27,7 +27,13 @@
     "WATCH_AD_SUBTITLE": "広告を見る",
     "SHARE": "共有",
     "SHARE_KINDLE_HINT": "共有時に Kindle アプリを選択してデバイスに送信してください。",
-    "WARNING": "警告"
+    "WARNING": "警告",
+    "EDIT_PROJECT_TITLE": "このファイルをどう編集しますか？",
+    "EDIT_PROJECT_MESSAGE": "現在のファイルを置き換えるか、コピーで作業するかを選んでください。",
+    "EDIT_PROJECT_OVERWRITE": "上書き",
+    "EDIT_PROJECT_OVERWRITE_DESC": "既存のファイルに変更を保存します。",
+    "EDIT_PROJECT_COPY": "コピーで作業",
+    "EDIT_PROJECT_COPY_DESC": "元のファイルを残して、新しいコピーを編集します。"
   },
   "CREATE": {
     "ADS_REQUIRED": "広告を読み込めませんでした。ネットワークまたは広告ブロッカーを確認してください。",
@@ -98,7 +104,8 @@
     "ACTIONS": {
       "DELETE": "削除",
       "SHARE": "共有",
-      "OPEN": "開く"
+      "OPEN": "開く",
+      "EDIT_PROJECT": "編集"
     },
     "DELETE": {
       "MESSAGE": "この表紙を削除しますか？",
@@ -109,7 +116,8 @@
       "LOAD": "表紙を読み込めませんでした。下に引っ張って更新してください。",
       "PREVIEW": "プレビューを読み込めませんでした。もう一度お試しください。",
       "SHARE": "表紙を共有できませんでした。もう一度お試しください。",
-      "OPEN": "表紙を開けませんでした。もう一度お試しください。"
+      "OPEN": "表紙を開けませんでした。もう一度お試しください。",
+      "OPEN_PROJECT": "プロジェクトを開けませんでした。もう一度お試しください。"
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "電子書籍リーダープレビューを縮小",

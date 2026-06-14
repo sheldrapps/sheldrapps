@@ -307,14 +307,13 @@ export class FillPanelComponent {
   startSampling(): void {
     if (this.sampler.active()) return;
     this.sampler.start("background", { mode: "tools", panelId: "fill" });
-    this.ui.closePanel();
   }
 
   onSelectColor(id: string): void {
     const match = this.presets.find((preset) => preset.id === id);
     if (!match) return;
     this.setColor(match.hex);
-    this.activeView.set("root");
+    this.activeView.set("colors");
   }
 
   onSelectBackground(id: string): void {

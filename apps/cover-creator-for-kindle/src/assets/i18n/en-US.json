@@ -1,4 +1,4 @@
-﻿{
+{
   "APP": {
     "TITLE": "Cover Creator for Kindle"
   },
@@ -27,7 +27,13 @@
     "WATCH_AD_SUBTITLE": "Watch ad",
     "SHARE": "Share",
     "SHARE_KINDLE_HINT": "When sharing, select the Kindle app to send it to your device.",
-    "WARNING": "Warning"
+    "WARNING": "Warning",
+    "EDIT_PROJECT_TITLE": "How do you want to edit this file?",
+    "EDIT_PROJECT_MESSAGE": "Choose whether to replace the current file or keep it as a copy.",
+    "EDIT_PROJECT_OVERWRITE": "Overwrite",
+    "EDIT_PROJECT_OVERWRITE_DESC": "Save changes on top of the existing file.",
+    "EDIT_PROJECT_COPY": "Work on a copy",
+    "EDIT_PROJECT_COPY_DESC": "Keep the original file and edit a new copy."
   },
   "CREATE": {
     "ADS_REQUIRED": "The ad could not be loaded. Check your network or ad blocker.",
@@ -98,7 +104,8 @@
     "ACTIONS": {
       "DELETE": "Delete",
       "SHARE": "Share",
-      "OPEN": "Open"
+      "OPEN": "Open",
+      "EDIT_PROJECT": "Edit"
     },
     "DELETE": {
       "MESSAGE": "Do you want to delete this cover?",
@@ -109,7 +116,8 @@
       "LOAD": "Could not load your covers. Pull down to refresh.",
       "PREVIEW": "Could not load the preview. Please try again.",
       "SHARE": "Could not share the cover. Please try again.",
-      "OPEN": "Could not open the cover. Please try again."
+      "OPEN": "Could not open the cover. Please try again.",
+      "OPEN_PROJECT": "Could not open the project. Please try again."
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "Zoom out e-reader preview",

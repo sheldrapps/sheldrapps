@@ -61,6 +61,7 @@ import { EditorSessionExitService } from "./editor-session-exit.service";
 import { EditorKindleStateService } from "./editor-kindle-state.service";
 import { EditorColorSamplerService } from "./editor-color-sampler.service";
 import { EditorTextEditService } from "./editor-text-edit.service";
+import { ImagePipelineService } from "../core/pipeline/image-pipeline.service";
 import { buildCssFilter } from "./editor-adjustments";
 import {
   renderCompositionToCanvas,
@@ -185,7 +186,7 @@ const PICKER_TIP_RATIO_X = -PICKER_ICON_RATIO / 2;
 const PICKER_TIP_RATIO_Y = PICKER_ICON_RATIO / 2;
 const MAX_BG_BLUR_PX = 40;
 const DEBUG_EDIT_VIEWPORT_LOCK = false;
-const DEBUG_ANDROID_SHIFT_DETECTOR = true;
+const DEBUG_ANDROID_SHIFT_DETECTOR = false;
 const EDIT_SHIFT_PROBE_EVENT = "__cc_text_edit_shift_probe__";
 const DEFAULT_EDITOR_TOUR_CURRENT = 6;
 const DEFAULT_EDITOR_TOUR_TOTAL = 8;
@@ -248,6 +249,8 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   session: EditorSession | null = null;
   private returnUrl: string | null = null;
   private objectUrl?: string;
+  private readyCheckFrame1: number | null = null;
+  private readyCheckFrame2: number | null = null;
   private scratchFillPanelOpened = false;
 
   // Preview
@@ -304,7 +307,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     const y = this.normalizeBackgroundOffset(pattern?.offsetY) * previewOutputScale;
     return `${Math.round(x)}px ${Math.round(y)}px`;
   });
-  readonly canDone = computed(() => this.ready && this.hasValidBackgroundSelection());
+  readonly canDone = computed(() => !!this.session);
   readonly pickerPos = signal<Pt | null>(null);
   readonly pickerTip = signal<Pt>({ x: 0, y: 0 });
   readonly pickerConfirmPos = signal<Pt | null>(null);
@@ -480,6 +483,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     private kindleState: EditorKindleStateService,
     private colorSampler: EditorColorSamplerService,
     private textEdit: EditorTextEditService,
+    private imagePipeline: ImagePipelineService,
     private translate: TranslateService,
     private destroyRef: DestroyRef,
     private hostRef: ElementRef<HTMLElement>,
@@ -551,41 +555,9 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     });
 
     effect(() => {
-      const panelId = this.ui.panelId();
-      if (
-        this.colorSampler.active() &&
-        (panelId === "fill" || panelId === "text")
-      ) {
-        this.ui.closePanel();
-      }
-    });
-
-    effect(() => {
       if (this.ui.activeMode() !== "text" && this.textEdit.isEditing()) {
         this.textEdit.discard();
       }
-    });
-
-    effect(() => {
-      const mode = this.ui.activeMode();
-      this.editorState.brightness();
-      this.editorState.contrast();
-      this.editorState.saturation();
-      this.editorState.sharpness();
-      this.editorState.bw();
-      this.editorState.cleanupEnabled();
-      this.editorState.cleanupArtifactReduction();
-      this.editorState.smoothGradients();
-      this.editorState.preserveDetails();
-      this.editorState.ditheringEnabled();
-      this.editorState.ditheringMode();
-
-      if (mode !== "adjustments") {
-        this.fadeOutComposedAdjustmentsPreview();
-        return;
-      }
-
-      this.scheduleComposedAdjustmentsPreviewRender();
     });
 
     effect(() => {
@@ -676,6 +648,9 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.history.startSession();
+    if (this.session.project?.history) {
+      this.history.restoreProjectSnapshot(this.session.project.history);
+    }
 
     // Set session ID and tools configuration in UI state
     this.ui.setSessionId(this.sid);
@@ -721,6 +696,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     });
     this.resizeObs.observe(frameEl);
     this.bumpPreviewScaleVersion();
+    this.scheduleReadyCheck();
 
     const capture = (id: number) => {
       if (this.capturedPointers.has(id)) return;
@@ -750,12 +726,10 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         this.isDraggingSample.set(true);
         capture(e.pointerId);
         this.updatePickerPositionFromPointer(e);
-        e.preventDefault();
         return;
       }
       if (!this.gesturesEnabled) return;
       if (!this.ready) {
-        e.preventDefault();
         return;
       }
       const gestureTarget = this.resolveGestureTarget();
@@ -791,7 +765,6 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         } else {
           this.setImageGuidesInactive();
         }
-        e.preventDefault();
         return;
       }
 
@@ -808,7 +781,6 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
           startMid: this.midpoint(a, b),
         };
         this.setImageGuidesInactive();
-        e.preventDefault();
       }
     };
 
@@ -822,7 +794,6 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
           this.isDraggingSample.set(true);
         }
         this.updatePickerPositionFromPointer(e);
-        e.preventDefault();
         return;
       }
       if (!this.gesturesEnabled || !this.ready) return;
@@ -858,7 +829,6 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
             e.pointerType,
           );
         }
-        e.preventDefault();
         return;
       }
 
@@ -894,7 +864,6 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
             this.gestureStart.startTy + mdy,
           );
         }
-        e.preventDefault();
       }
     };
 
@@ -911,7 +880,6 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
           }
           this.colorSampler.propose();
         }
-        e.preventDefault();
         return;
       }
       if (this.pointers.has(e.pointerId)) {
@@ -937,7 +905,6 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
             : false;
 
           if (withinTime && withinDist) {
-            e.preventDefault();
             this.lastTapAt = 0;
             this.lastTapPos = null;
             const gestureTarget = this.gestureStart?.target;
@@ -1005,14 +972,12 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       if (this.pointers.size === 0) {
         this.setImageGuidesInactive();
       }
-
-      e.preventDefault();
     };
 
-    frameEl.addEventListener("pointerdown", onPointerDown, { passive: false });
-    frameEl.addEventListener("pointermove", onPointerMove, { passive: false });
-    frameEl.addEventListener("pointerup", onPointerUp, { passive: false });
-    frameEl.addEventListener("pointercancel", onPointerUp, { passive: false });
+    frameEl.addEventListener("pointerdown", onPointerDown, { passive: true });
+    frameEl.addEventListener("pointermove", onPointerMove, { passive: true });
+    frameEl.addEventListener("pointerup", onPointerUp, { passive: true });
+    frameEl.addEventListener("pointercancel", onPointerUp, { passive: true });
 
     this.cleanupGestures = () => {
       frameEl.removeEventListener("pointerdown", onPointerDown as any);
@@ -1024,6 +989,10 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.updateCanvasGestures();
     void this.syncEditViewportLock(this.textEdit.isEditing());
+  }
+
+  ionViewDidEnter(): void {
+    this.scheduleReadyCheck();
   }
 
   ngOnDestroy(): void {
@@ -1371,11 +1340,19 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     if (lock.scrollEl) {
       lock.scrollEl.style.overflow = lock.scrollOverflow;
       lock.scrollEl.style.overscrollBehavior = lock.scrollOverscrollBehavior;
-      lock.scrollEl.scrollTop = lock.scrollTop;
+      try {
+        lock.scrollEl.scrollTop = lock.scrollTop;
+      } catch {
+        // best effort
+      }
     }
 
     this.editViewportLock = null;
-    window.scrollTo(lock.windowScrollX, lock.windowScrollY);
+    try {
+      window.scrollTo(lock.windowScrollX, lock.windowScrollY);
+    } catch {
+      // best effort
+    }
     void this.logEditViewportDiagnostics("[EDIT_VIEWPORT_UNLOCK]");
   }
 
@@ -1522,18 +1499,31 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
   cancel(): void {
     this.stopEditorTour();
+    this.blurDeepActiveElement();
     void this.sessionExit.cancelSession();
   }
 
   async done(): Promise<void> {
     if (this.isExporting) return;
-    if (!this.hasValidBackgroundSelection()) return;
+    if (this.textEdit.isEditing()) {
+      this.textEdit.apply();
+    }
 
-    if (!this.ready || !this.session?.file) {
+    const session = this.session;
+    if (!session) {
       this.stopEditorTour();
       this.sessionExit.exitAfterDone();
       return;
     }
+
+    const sourceFile = session.file ?? (await this.resolveSessionFile());
+    if (!sourceFile) {
+      this.stopEditorTour();
+      this.sessionExit.exitAfterDone();
+      return;
+    }
+
+    await this.ensureExportDimensions(session, sourceFile);
 
     this.isExporting = true;
     const wasReady = this.ready;
@@ -1559,64 +1549,79 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         state.frameWidth = fw;
         state.frameHeight = fh;
       }
-      const target = this.session.target;
+      const target = session.target;
       let renderedBlob: Blob | undefined;
       let renderedWidth: number | undefined;
       let renderedHeight: number | undefined;
       let renderedMimeType: string | undefined;
 
       const renderInput = this.buildRenderInput(state);
-      const includeRenderedBlob = this.session.output?.includeRenderedBlob ?? true;
+      const includeRenderedBlob = session.output?.includeRenderedBlob ?? true;
       if (renderInput && includeRenderedBlob) {
-        const canvas = await renderCompositionToCanvas(renderInput, {
-          mode: "export",
-          outputScale: 1,
-        });
-        if (canvas) {
-          const tryBlob = async (
-            mimeType: string,
-            quality?: number,
-          ): Promise<Blob | null> =>
-            new Promise((resolve) =>
-              canvas.toBlob((bb) => resolve(bb), mimeType, quality),
-            );
+        try {
+          const canvas = await renderCompositionToCanvas(renderInput, {
+            mode: "export",
+            outputScale: 1,
+          });
+          if (canvas) {
+            const tryBlob = async (
+              mimeType: string,
+              quality?: number,
+            ): Promise<Blob | null> =>
+              new Promise((resolve) =>
+                canvas.toBlob((bb) => resolve(bb), mimeType, quality),
+              );
 
-          const preferredMime = "image/png";
-          const png = await tryBlob(preferredMime);
-          if (png) {
-            renderedBlob = png;
-            renderedMimeType = preferredMime;
-            renderedWidth = canvas.width;
-            renderedHeight = canvas.height;
-          } else {
-            const jpegMime = "image/jpeg";
-            const jpg = await tryBlob(jpegMime, 0.93);
-            if (jpg) {
-              renderedBlob = jpg;
-              renderedMimeType = jpegMime;
+            const preferredMime = "image/png";
+            const png = await tryBlob(preferredMime);
+            if (png) {
+              renderedBlob = png;
+              renderedMimeType = preferredMime;
               renderedWidth = canvas.width;
               renderedHeight = canvas.height;
+            } else {
+              const jpegMime = "image/jpeg";
+              const jpg = await tryBlob(jpegMime, 0.93);
+              if (jpg) {
+                renderedBlob = jpg;
+                renderedMimeType = jpegMime;
+                renderedWidth = canvas.width;
+                renderedHeight = canvas.height;
+              }
             }
           }
+        } catch (error) {
+          console.warn("[EDITOR] render export failed", error);
         }
       }
 
       const result: CropperResult = {
-        file: this.session.file,
+        file: sourceFile,
         state,
-        formatId: this.session.tools?.formats?.selectedId,
+        formatId: session.tools?.formats?.selectedId,
         renderedBlob,
         renderedWidth,
         renderedHeight,
         renderedMimeType,
+        history: this.history.captureProjectSnapshot(),
       };
       this.editorSession.setResult(this.sid, result);
+      if (session.project?.persist) {
+        try {
+          await session.project.persist(result);
+        } catch (error) {
+          console.warn("[EDITOR] project persist failed", error);
+        }
+      }
       shouldExit = true;
     } finally {
       this.isExporting = false;
       this.ready = wasReady;
       if (shouldExit) {
         this.stopEditorTour();
+        this.stopAndroidShiftDetector();
+        this.unlockEditViewportLock();
+        this.blurDeepActiveElement();
         this.sessionExit.exitAfterDone();
       }
     }
@@ -1738,6 +1743,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     img.style.height = `${this.naturalH}px`;
 
     this.imageLoaded = true;
+    this.scheduleReadyCheck();
     this.tryReady();
   }
 
@@ -1760,8 +1766,71 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.naturalW = 0;
     this.naturalH = 0;
 
+    const projectDims = this.resolveProjectSourceDims();
+    if (projectDims) {
+      this.naturalW = projectDims.width;
+      this.naturalH = projectDims.height;
+    }
+
     this.objectUrl = URL.createObjectURL(file);
     this.imageUrl = this.objectUrl;
+    this.scheduleReadyCheck();
+  }
+
+  private resolveProjectSourceDims(): { width: number; height: number } | null {
+    const sourceInfo = this.session?.project?.sourceInfo;
+    const width =
+      sourceInfo?.originalWidth ??
+      sourceInfo?.width ??
+      this.session?.target?.width ??
+      0;
+    const height =
+      sourceInfo?.originalHeight ??
+      sourceInfo?.height ??
+      this.session?.target?.height ??
+      0;
+    if (!Number.isFinite(width) || !Number.isFinite(height)) return null;
+    if (width <= 0 || height <= 0) return null;
+    return { width, height };
+  }
+
+  private async ensureExportDimensions(
+    session: EditorSession,
+    sourceFile: File,
+  ): Promise<void> {
+    if (this.naturalW > 0 && this.naturalH > 0 && this.imageLoaded) {
+      return;
+    }
+
+    const projectDims = this.resolveProjectSourceDims();
+    if (projectDims) {
+      this.naturalW = projectDims.width;
+      this.naturalH = projectDims.height;
+      this.imageLoaded = true;
+      this.updateConstraintsContext();
+      this.scheduleReadyCheck();
+      return;
+    }
+
+    const dims = await this.imagePipeline.getDimensions(sourceFile);
+    if (dims?.width && dims?.height) {
+      this.naturalW = dims.width;
+      this.naturalH = dims.height;
+      this.imageLoaded = true;
+      this.updateConstraintsContext();
+      this.scheduleReadyCheck();
+      return;
+    }
+
+    const targetWidth = session.target?.width ?? 0;
+    const targetHeight = session.target?.height ?? 0;
+    if (targetWidth > 0 && targetHeight > 0) {
+      this.naturalW = targetWidth;
+      this.naturalH = targetHeight;
+      this.imageLoaded = true;
+      this.updateConstraintsContext();
+      this.scheduleReadyCheck();
+    }
   }
 
   private async resolveSessionFile(): Promise<File | null> {
@@ -1854,10 +1923,32 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       }
       void this.prepareSamplingCanvas();
     }
+  }
 
-    if (this.ui.activeMode() === "adjustments") {
-      this.scheduleComposedAdjustmentsPreviewRender();
+  private scheduleReadyCheck(): void {
+    if (typeof window === "undefined") return;
+
+    if (this.readyCheckFrame1 !== null) {
+      cancelAnimationFrame(this.readyCheckFrame1);
+      this.readyCheckFrame1 = null;
     }
+    if (this.readyCheckFrame2 !== null) {
+      cancelAnimationFrame(this.readyCheckFrame2);
+      this.readyCheckFrame2 = null;
+    }
+
+    this.readyCheckFrame1 = requestAnimationFrame(() => {
+      this.readyCheckFrame1 = null;
+      this.tryReady();
+      this.readyCheckFrame2 = requestAnimationFrame(() => {
+        this.readyCheckFrame2 = null;
+        this.tryReady();
+      });
+    });
+  }
+
+  private canExport(): boolean {
+    return !!this.session?.file && !!this.naturalW && !!this.naturalH;
   }
 
   private async startEditorTour(): Promise<void> {
@@ -2796,5 +2887,21 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       discard: this.translate.instant(this.uiLabels.discardLabel),
       apply: this.translate.instant(this.uiLabels.applyLabel),
     });
+  }
+
+  private blurDeepActiveElement(): void {
+    if (typeof document === "undefined") return;
+
+    let active: Element | null = document.activeElement;
+    while (active && (active as HTMLElement).shadowRoot?.activeElement) {
+      active = (active as HTMLElement).shadowRoot?.activeElement ?? null;
+    }
+
+    const target = active as HTMLElement | null;
+    try {
+      target?.blur?.();
+    } catch {
+      // best effort
+    }
   }
 }

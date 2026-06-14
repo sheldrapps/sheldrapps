@@ -5,6 +5,7 @@ import {
   EventEmitter,
   Input,
   Output,
+  inject,
 } from '@angular/core';
 import {
   IonButton,
@@ -16,9 +17,13 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { EReaderPreviewFrameComponent } from '@sheldrapps/image-workflow';
-import { LoadingStateComponent } from '@sheldrapps/ui-theme';
+import {
+  LoadingStateComponent,
+  ScrollableBarItem,
+  ScrollableButtonBarComponent,
+} from '@sheldrapps/ui-theme';
 
 export type PreviewActionRegion = 'header' | 'footer' | 'unavailable';
 
@@ -68,12 +73,15 @@ export interface PreviewActionClickEvent {
     IonToolbar,
     EReaderPreviewFrameComponent,
     LoadingStateComponent,
+    ScrollableButtonBarComponent,
   ],
   templateUrl: './cover-preview-modal.component.html',
   styleUrls: ['./cover-preview-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CoverPreviewModalComponent {
+  private translate = inject(TranslateService);
+
   @Input() isOpen = false;
   @Input() titleKey = 'COVERS.PREVIEW_TITLE';
   @Input() imageDataUrl: string | null = null;
@@ -103,6 +111,14 @@ export class CoverPreviewModalComponent {
     this.emitAction('footer', action, ev);
   }
 
+  onFooterScrollableAction(actionId: string): void {
+    const action = this.visibleActions(this.footerActions).find(
+      (candidate) => candidate.id === actionId,
+    );
+    if (!action) return;
+    this.emitAction('footer', action);
+  }
+
   onUnavailableActionClick(action: PreviewAction, ev: Event): void {
     this.emitAction('unavailable', action, ev);
   }
@@ -117,12 +133,28 @@ export class CoverPreviewModalComponent {
     return action;
   }
 
+  get footerBarItems(): ScrollableBarItem[] {
+    return this.visibleActions(this.footerActions).map((action) => ({
+      id: action.id,
+      label: action.labelKey
+        ? this.translate.instant(action.labelKey)
+        : action.id,
+      icon: action.icon,
+    }));
+  }
+
+  get footerBarDisabledIds(): string[] {
+    return this.visibleActions(this.footerActions)
+      .filter((action) => !!action.disabled)
+      .map((action) => action.id);
+  }
+
   private emitAction(
     region: PreviewActionRegion,
     action: PreviewAction,
-    ev: Event,
+    ev?: Event,
   ): void {
-    ev.stopPropagation();
+    ev?.stopPropagation();
     if (action.disabled) return;
     this.actionClick.emit({
       actionId: action.id,

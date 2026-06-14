@@ -1,4 +1,4 @@
-﻿{
+{
   "APP": {
     "TITLE": "Créer des Covers pour Kindle"
   },
@@ -27,7 +27,13 @@
     "WATCH_AD_SUBTITLE": "Regarder une publicité",
     "SHARE": "Partager",
     "SHARE_KINDLE_HINT": "Lors du partage, sélectionne l’application Kindle pour l’envoyer à ton appareil.",
-    "WARNING": "Avertissement"
+    "WARNING": "Avertissement",
+    "EDIT_PROJECT_TITLE": "Comment veux-tu modifier ce fichier ?",
+    "EDIT_PROJECT_MESSAGE": "Choisis si tu veux remplacer le fichier actuel ou travailler sur une copie.",
+    "EDIT_PROJECT_OVERWRITE": "Écraser",
+    "EDIT_PROJECT_OVERWRITE_DESC": "Enregistre les changements sur le fichier existant.",
+    "EDIT_PROJECT_COPY": "Travailler sur une copie",
+    "EDIT_PROJECT_COPY_DESC": "Conserve le fichier original et modifie une nouvelle copie."
   },
   "CREATE": {
     "ADS_REQUIRED": "Impossible de charger la publicité. Vérifiez votre réseau ou bloqueur de publicités.",
@@ -98,7 +104,8 @@
     "ACTIONS": {
       "DELETE": "Supprimer",
       "SHARE": "Partager",
-      "OPEN": "Ouvrir"
+      "OPEN": "Ouvrir",
+      "EDIT_PROJECT": "Modifier"
     },
     "DELETE": {
       "MESSAGE": "Voulez-vous supprimer cette couverture ?",
@@ -109,7 +116,8 @@
       "LOAD": "Impossible de charger les couvertures. Fais glisser vers le bas pour réessayer.",
       "PREVIEW": "Impossible de charger l'aperçu. Réessaie.",
       "SHARE": "Impossible de partager la couverture. Réessaie.",
-      "OPEN": "Impossible d'ouvrir la couverture. Veuillez réessayer."
+      "OPEN": "Impossible d'ouvrir la couverture. Veuillez réessayer.",
+      "OPEN_PROJECT": "Impossible d'ouvrir le projet. Veuillez réessayer."
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "Réduire l’aperçu e-reader",

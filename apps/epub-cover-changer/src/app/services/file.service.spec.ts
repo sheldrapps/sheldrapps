@@ -66,7 +66,9 @@ describe('FileService', () => {
       type: 'image/jpeg',
     });
 
-    spyOn<any>(service, 'getUniqueDocumentFilename').and.resolveTo('book.epub');
+    const getUniqueSpy = spyOn<any>(service, 'getUniqueDocumentFilename').and.resolveTo(
+      'book.epub',
+    );
     const writePublicEpubSpy = spyOn<any>(service, 'writePublicEpub').and.resolveTo();
     const getUriSpy = spyOn<any>(service, 'getPublicEpubFileUriOrThrow').and.resolveTo(
       'app://library/book.epub',
@@ -83,6 +85,7 @@ describe('FileService', () => {
       coverFileForThumb: coverFile,
     });
 
+    expect(getUniqueSpy).toHaveBeenCalledWith('book.epub');
     expect(writePublicEpubSpy).toHaveBeenCalledWith('book.epub', bytes);
     expect(getUriSpy).toHaveBeenCalledWith('book.epub');
     expect(persistAssetsSpy).toHaveBeenCalledWith(coverFile, 'book.epub');
@@ -95,5 +98,78 @@ describe('FileService', () => {
       thumbPath: 'EPUBCoverChangerThumbs/book.jpg',
       thumbFilename: 'book.jpg',
     });
+  });
+
+  it('saveGeneratedEpub should generate a unique filename when overwriteExisting is not set', async () => {
+    const bytes = new Uint8Array([4, 5, 6]);
+    const coverFile = new File([new Uint8Array([1, 2, 3])], 'cover.jpg', {
+      type: 'image/jpeg',
+    });
+
+    const getUniqueSpy = spyOn<any>(service, 'getUniqueDocumentFilename').and.resolveTo(
+      'book (1).epub',
+    );
+    const writePublicEpubSpy = spyOn<any>(service, 'writePublicEpub').and.resolveTo();
+    const getUriSpy = spyOn<any>(service, 'getPublicEpubFileUriOrThrow').and.resolveTo(
+      'app://library/book-1.epub',
+    );
+    const persistAssetsSpy = spyOn<any>(service, 'persistCoverAssetsFromFile').and.resolveTo({
+      thumbPath: 'EPUBCoverChangerThumbs/book-1.jpg',
+      thumbFilename: 'book-1.jpg',
+    });
+    spyOn<any>(service, 'cacheResolvedCoverMetadata');
+
+    const result = await service.saveGeneratedEpub({
+      bytes,
+      filename: 'book.epub',
+      coverFileForThumb: coverFile,
+    });
+
+    expect(getUniqueSpy).toHaveBeenCalledWith('book.epub');
+    expect(writePublicEpubSpy).toHaveBeenCalledWith('book (1).epub', bytes);
+    expect(getUriSpy).toHaveBeenCalledWith('book (1).epub');
+    expect(persistAssetsSpy).toHaveBeenCalledWith(coverFile, 'book (1).epub');
+    expect(result).toEqual({
+      path: 'EPUBCoverChanger/book (1).epub',
+      uri: 'app://library/book-1.epub',
+      filename: 'book (1).epub',
+      thumbPath: 'EPUBCoverChangerThumbs/book-1.jpg',
+      thumbFilename: 'book-1.jpg',
+    });
+  });
+
+  it('saveGeneratedEpub should reuse filename when overwriteExisting is set', async () => {
+    const bytes = new Uint8Array([1, 2, 3]);
+    const coverFile = new File([new Uint8Array([7, 8, 9])], 'cover.jpg', {
+      type: 'image/jpeg',
+    });
+
+    const epubRewrite = TestBed.inject(EpubRewriteService);
+    spyOn(epubRewrite, 'isSupported').and.returnValue(true);
+    spyOn<any>(service, 'applyCoverMetadataToEpubBytes').and.resolveTo(bytes);
+    const writeEpubSpy = spyOn<any>(service, 'writePublicEpub').and.resolveTo();
+    const getUriSpy = spyOn<any>(service, 'getPublicEpubFileUriOrThrow').and.resolveTo(
+      'app://library/book.epub',
+    );
+    const getUniqueSpy = spyOn<any>(service, 'getUniqueDocumentFilename').and.resolveTo(
+      'should-not-be-used.epub',
+    );
+    spyOn<any>(service, 'persistCoverAssetsFromFile').and.resolveTo({
+      thumbPath: 'EPUBCoverChangerThumbs/book.jpg',
+      thumbFilename: 'book.jpg',
+    });
+    spyOn<any>(service, 'cacheResolvedCoverMetadata');
+
+    const result = await service.saveGeneratedEpub({
+      bytes,
+      filename: 'book.epub',
+      coverFileForThumb: coverFile,
+      overwriteExisting: true,
+    });
+
+    expect(getUniqueSpy).not.toHaveBeenCalled();
+    expect(writeEpubSpy).toHaveBeenCalledWith('book.epub', bytes);
+    expect(getUriSpy).toHaveBeenCalledWith('book.epub');
+    expect(result.filename).toBe('book.epub');
   });
 });

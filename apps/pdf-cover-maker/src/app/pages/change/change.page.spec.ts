@@ -5,7 +5,7 @@ describe('ChangePage', () => {
   it('uses PNG export for premium lossless mode', () => {
     const ctx = {
       adsRemoved: true,
-      coverExportMode: 'lossless',
+      coverExportMode: 'lossless' as const,
       getSelectedCoverExportOptions() {
         return {
           mimeType: 'image/png',
@@ -31,7 +31,7 @@ describe('ChangePage', () => {
   it('uses JPEG export for premium compressed mode', () => {
     const ctx = {
       adsRemoved: true,
-      coverExportMode: 'compressed',
+      coverExportMode: 'compressed' as const,
       getSelectedCoverExportOptions() {
         return {
           mimeType: 'image/jpeg',
@@ -79,7 +79,7 @@ describe('ChangePage', () => {
   it('disables lossy quality override for premium lossless mode', () => {
     const ctx = {
       adsRemoved: true,
-      coverExportMode: 'lossless',
+      coverExportMode: 'lossless' as const,
       getSelectedCoverExportOptions() {
         return {
           quality: undefined,
@@ -105,7 +105,7 @@ describe('ChangePage', () => {
   it('uses JPEG quality override for premium compressed mode', () => {
     const ctx = {
       adsRemoved: true,
-      coverExportMode: 'compressed',
+      coverExportMode: 'compressed' as const,
       getSelectedCoverExportOptions() {
         return {
           quality: 0.92,
@@ -491,5 +491,161 @@ describe('ChangePage', () => {
     ).prototype.canStartScratch.call(ctx);
 
     expect(canStartScratch).toBeTrue();
+  });
+
+  it('rehydrates working pdf context for project editing on web flow', async () => {
+    const sourcePdf = new File([new Uint8Array([1, 2, 3])], 'book.pdf', {
+      type: 'application/pdf',
+      lastModified: 11,
+    });
+    const cycle = {
+      workingPath: 'pdfcovermakerWork/book.pdf',
+      workingName: 'book.pdf',
+      outputBaseName: 'ignored',
+      workingFile: new File([new Uint8Array([1, 2, 3])], 'book-working.pdf', {
+        type: 'application/pdf',
+      }),
+      sourceMeta: {
+        name: 'book.pdf',
+        size: sourcePdf.size,
+        lastModified: 11,
+        type: 'application/pdf',
+      },
+    };
+    const clearPdfError = jasmine.createSpy('clearPdfError');
+    const resolvePdfFirstPageDims = jasmine
+      .createSpy('resolvePdfFirstPageDims')
+      .and.resolveTo(undefined);
+    const startCycle = jasmine.createSpy('startCycle').and.resolveTo(cycle);
+    const startStreamingCycle = jasmine.createSpy('startStreamingCycle');
+    const ctx = {
+      workingCopy: {
+        startCycle,
+        startStreamingCycle,
+      },
+      usesNativeRewrite: () => false,
+      clearPdfError,
+      resolvePdfFirstPageDims,
+      sourcePdfFile: undefined as File | undefined,
+      sourcePdfMeta: undefined as
+        | {
+            name: string;
+            size: number;
+            lastModified: number;
+            type: string;
+          }
+        | undefined,
+      workingPdfFile: undefined as File | undefined,
+      workingPdfPath: undefined as string | undefined,
+      workingPdfNativePath: 'stale' as string | undefined,
+      workingPdfName: undefined as string | undefined,
+      outputBaseName: undefined as string | undefined,
+      selectedPdfName: undefined as string | undefined,
+      coverEntryPath: 'stale' as string | undefined,
+    };
+
+    await (
+      ChangePage as unknown as {
+        prototype: {
+          hydrateProjectPdfContext: (
+            this: typeof ctx,
+            filename: string,
+            sourcePdfFile: File,
+          ) => Promise<void>;
+        };
+      }
+    ).prototype.hydrateProjectPdfContext.call(ctx, 'book.pdf', sourcePdf);
+
+    expect(startCycle).toHaveBeenCalledWith(sourcePdf);
+    expect(startStreamingCycle).not.toHaveBeenCalled();
+    expect(ctx.sourcePdfFile).toBe(sourcePdf);
+    expect(ctx.sourcePdfMeta).toEqual(cycle.sourceMeta);
+    expect(ctx.workingPdfFile).toBe(cycle.workingFile);
+    expect(ctx.workingPdfPath).toBe(cycle.workingPath);
+    expect(ctx.workingPdfNativePath).toBeUndefined();
+    expect(ctx.workingPdfName).toBe(cycle.workingName);
+    expect(ctx.outputBaseName).toBe('book');
+    expect(ctx.selectedPdfName).toBe('book.pdf');
+    expect(ctx.coverEntryPath).toBeUndefined();
+    expect(clearPdfError).toHaveBeenCalled();
+    expect(resolvePdfFirstPageDims).toHaveBeenCalled();
+  });
+
+  it('rehydrates working pdf context for project editing on native flow', async () => {
+    const sourcePdf = new File([new Uint8Array([4, 5, 6])], 'book.pdf', {
+      type: 'application/pdf',
+      lastModified: 22,
+    });
+    const cycle = {
+      workingPath: 'pdfcovermakerWork/book.pdf',
+      workingName: 'book.pdf',
+      workingNativePath: '/data/user/0/book.pdf',
+      outputBaseName: 'ignored',
+      sourceMeta: {
+        name: 'book.pdf',
+        size: sourcePdf.size,
+        lastModified: 22,
+        type: 'application/pdf',
+      },
+    };
+    const clearPdfError = jasmine.createSpy('clearPdfError');
+    const resolvePdfFirstPageDims = jasmine
+      .createSpy('resolvePdfFirstPageDims')
+      .and.resolveTo(undefined);
+    const startCycle = jasmine.createSpy('startCycle');
+    const startStreamingCycle = jasmine
+      .createSpy('startStreamingCycle')
+      .and.resolveTo(cycle);
+    const ctx = {
+      workingCopy: {
+        startCycle,
+        startStreamingCycle,
+      },
+      usesNativeRewrite: () => true,
+      clearPdfError,
+      resolvePdfFirstPageDims,
+      sourcePdfFile: undefined as File | undefined,
+      sourcePdfMeta: undefined as
+        | {
+            name: string;
+            size: number;
+            lastModified: number;
+            type: string;
+          }
+        | undefined,
+      workingPdfFile: undefined as File | undefined,
+      workingPdfPath: undefined as string | undefined,
+      workingPdfNativePath: undefined as string | undefined,
+      workingPdfName: undefined as string | undefined,
+      outputBaseName: undefined as string | undefined,
+      selectedPdfName: undefined as string | undefined,
+      coverEntryPath: 'stale' as string | undefined,
+    };
+
+    await (
+      ChangePage as unknown as {
+        prototype: {
+          hydrateProjectPdfContext: (
+            this: typeof ctx,
+            filename: string,
+            sourcePdfFile: File,
+          ) => Promise<void>;
+        };
+      }
+    ).prototype.hydrateProjectPdfContext.call(ctx, 'book.pdf', sourcePdf);
+
+    expect(startStreamingCycle).toHaveBeenCalledWith(sourcePdf);
+    expect(startCycle).not.toHaveBeenCalled();
+    expect(ctx.sourcePdfFile).toBe(sourcePdf);
+    expect(ctx.sourcePdfMeta).toEqual(cycle.sourceMeta);
+    expect(ctx.workingPdfFile).toBe(sourcePdf);
+    expect(ctx.workingPdfPath).toBe(cycle.workingPath);
+    expect(ctx.workingPdfNativePath).toBe(cycle.workingNativePath);
+    expect(ctx.workingPdfName).toBe(cycle.workingName);
+    expect(ctx.outputBaseName).toBe('book');
+    expect(ctx.selectedPdfName).toBe('book.pdf');
+    expect(ctx.coverEntryPath).toBeUndefined();
+    expect(clearPdfError).toHaveBeenCalled();
+    expect(resolvePdfFirstPageDims).toHaveBeenCalled();
   });
 });

@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, inject } from '@angular/core';
 import { Subscription, filter } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import {
   IonContent,
   IonHeader,
@@ -9,6 +10,8 @@ import {
   IonPopover,
   AlertController,
   ToastController,
+  NavController,
+  ModalController,
 } from '@ionic/angular/standalone';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -17,6 +20,7 @@ import { addIcons } from 'ionicons';
 import {
   ellipsisVertical,
   openOutline,
+  folderOpenOutline,
   shareOutline,
   trashOutline,
   closeCircleOutline,
@@ -27,6 +31,7 @@ import {
   FileService,
   ResolvedCoverPreviewAsset,
 } from '../../services/file.service';
+import { EditProjectChoiceModalComponent } from '@sheldrapps/ui-theme';
 import { CoversEventsService } from '../../services/covers-events.service';
 import {
   CoverListAction,
@@ -38,6 +43,7 @@ import {
   PreviewActionClickEvent,
   PreviewMetadata,
 } from '@sheldrapps/covers-list-kit';
+import { normalizeFilenameKey } from '@sheldrapps/file-kit';
 
 type UiCoverItem = {
   filename: string;
@@ -77,6 +83,12 @@ export class CoversPage implements OnInit, OnDestroy {
       icon: 'open-outline',
     },
     {
+      id: 'project',
+      labelKey: 'COVERS.ACTIONS.EDIT_PROJECT',
+      icon: 'folder-open-outline',
+      hidden: (item) => !this.hasProjectForFilename(item.filename),
+    },
+    {
       id: 'share',
       labelKey: 'COVERS.ACTIONS.SHARE',
       icon: 'share-outline',
@@ -90,6 +102,7 @@ export class CoversPage implements OnInit, OnDestroy {
 
   private coversEventsSub?: Subscription;
   private localDeletedFilenames = new Set<string>();
+  private projectCoverFilenames = new Set<string>();
   private thumbsLoadToken = 0;
   private hasLoadedOnce = false;
   private needsReload = true;
@@ -111,12 +124,16 @@ export class CoversPage implements OnInit, OnDestroy {
   private translate = inject(TranslateService);
   private coversEvents = inject(CoversEventsService);
   private toastCtrl = inject(ToastController);
+  private navCtrl = inject(NavController);
+  private modalCtrl = inject(ModalController);
+  private router = inject(Router);
 
   constructor() {
     addIcons({
       closeCircleOutline,
       ellipsisVertical,
       openOutline,
+      folderOpenOutline,
       shareOutline,
       trashOutline,
       helpCircleOutline,
@@ -167,10 +184,24 @@ export class CoversPage implements OnInit, OnDestroy {
 
     try {
       const entries = await this.files.listCovers();
+      const [projects, projectMatches] = await Promise.all([
+        this.files.listProjects(),
+        Promise.all(
+          entries.map(async (cover) =>
+            (await this.files.hasProjectByFilename(cover.filename))
+              ? normalizeFilenameKey(cover.filename)
+              : null,
+          ),
+        ),
+      ]);
       this.logInfo('libraryReload:listCoversResult', {
         count: entries.length,
         filenames: entries.map((entry) => entry.filename),
       });
+      this.projectCoverFilenames = new Set([
+        ...projects.map((project) => normalizeFilenameKey(project.coverFilename)),
+        ...projectMatches.filter((filename): filename is string => !!filename),
+      ]);
       const items: UiCoverItem[] = entries.map((e) => ({
         filename: e.filename,
       }));
@@ -186,6 +217,7 @@ export class CoversPage implements OnInit, OnDestroy {
         error: this.errorDetails(error),
       });
       this.items = [];
+      this.projectCoverFilenames = new Set();
       this.pageErrorKey = 'COVERS.ERROR.LOAD';
       this.loading = false;
       ev?.target && (ev.target as any).complete();
@@ -257,6 +289,9 @@ export class CoversPage implements OnInit, OnDestroy {
 
   get previewFooterActions(): PreviewAction[] {
     const disabled = this.previewLoading || !this.previewFilename;
+    const hasProject =
+      !!this.previewFilename &&
+      this.hasProjectForFilename(this.previewFilename);
     return [
       {
         id: 'open',
@@ -265,6 +300,15 @@ export class CoversPage implements OnInit, OnDestroy {
         layout: 'icon-text',
         cssClass: 'ctrl',
         disabled,
+      },
+      {
+        id: 'project',
+        labelKey: 'COVERS.ACTIONS.EDIT_PROJECT',
+        icon: 'folder-open-outline',
+        layout: 'icon-text',
+        cssClass: 'ctrl',
+        disabled: disabled || !hasProject,
+        hidden: !hasProject,
       },
       {
         id: 'share',
@@ -316,6 +360,11 @@ export class CoversPage implements OnInit, OnDestroy {
       void this.openPreviewExternal();
       return;
     }
+    if (event.actionId === 'project') {
+      void this.openProjectByFilename(this.previewFilename);
+      this.closePreview();
+      return;
+    }
     if (event.actionId === 'delete') {
       void this.deletePreview();
     }
@@ -336,6 +385,10 @@ export class CoversPage implements OnInit, OnDestroy {
   onListAction(event: CoverListActionEvent) {
     if (event.actionId === 'open') {
       void this.openByFilename(event.item.filename);
+      return;
+    }
+    if (event.actionId === 'project') {
+      void this.openProjectByFilename(event.item.filename);
       return;
     }
     if (event.actionId === 'share') {
@@ -482,6 +535,68 @@ export class CoversPage implements OnInit, OnDestroy {
     }
   }
 
+  private async openProjectByFilename(filename: string | null): Promise<void> {
+    if (!filename) return;
+    this.pageErrorKey = null;
+    this.pageErrorParams = null;
+
+    try {
+      const editMode = await this.promptProjectEditMode();
+      if (!editMode) return;
+
+      this.loading = true;
+      await this.waitForLoadingIndicatorFrame();
+      this.blurDeepActiveElement();
+      const navigated = await this.navCtrl.navigateRoot('/tabs/create', {
+        queryParams: {
+          project: filename,
+          editMode,
+        },
+      });
+      if (!navigated) {
+        this.loading = false;
+        this.pageErrorKey = 'COVERS.ERROR.OPEN_PROJECT';
+      }
+    } catch {
+      this.loading = false;
+      this.pageErrorKey = 'COVERS.ERROR.OPEN_PROJECT';
+    }
+  }
+
+  private async promptProjectEditMode(): Promise<'overwrite' | 'copy' | null> {
+    const modal = await this.modalCtrl.create({
+      component: EditProjectChoiceModalComponent,
+      componentProps: {
+        title: this.translate.instant('COMMON.EDIT_PROJECT_TITLE'),
+        message: this.translate.instant('COMMON.EDIT_PROJECT_MESSAGE'),
+        overwriteLabel: this.translate.instant('COMMON.EDIT_PROJECT_OVERWRITE'),
+        overwriteDescription: this.translate.instant(
+          'COMMON.EDIT_PROJECT_OVERWRITE_DESC',
+        ),
+        copyLabel: this.translate.instant('COMMON.EDIT_PROJECT_COPY'),
+        copyDescription: this.translate.instant('COMMON.EDIT_PROJECT_COPY_DESC'),
+        cancelLabel: this.translate.instant('COMMON.CANCEL'),
+      },
+    });
+
+    await modal.present();
+    const { role } = await modal.onWillDismiss();
+    if (role === 'overwrite' || role === 'copy') {
+      return role;
+    }
+    return null;
+  }
+
+  private async waitForLoadingIndicatorFrame(): Promise<void> {
+    await new Promise<void>((resolve) => {
+      if (typeof requestAnimationFrame !== 'function') {
+        resolve();
+        return;
+      }
+      requestAnimationFrame(() => resolve());
+    });
+  }
+
   private async deleteByFilename(
     filename: string,
     opts?: { markLocalDelete?: boolean },
@@ -540,6 +655,10 @@ export class CoversPage implements OnInit, OnDestroy {
     }
   }
 
+  private hasProjectForFilename(filename: string): boolean {
+    return this.projectCoverFilenames.has(normalizeFilenameKey(filename));
+  }
+
   private formatFileSizeLabel(bytes: number | null): string | null {
     if (typeof bytes !== 'number' || !Number.isFinite(bytes) || bytes <= 0) {
       return null;
@@ -584,5 +703,20 @@ export class CoversPage implements OnInit, OnDestroy {
       };
     }
     return { message: String(error) };
+  }
+
+  private blurDeepActiveElement(): void {
+    if (typeof document === 'undefined') return;
+
+    let active: Element | null = document.activeElement;
+    while (active && (active as HTMLElement).shadowRoot?.activeElement) {
+      active = (active as HTMLElement).shadowRoot?.activeElement ?? null;
+    }
+
+    try {
+      (active as HTMLElement | null)?.blur?.();
+    } catch {
+      // best effort
+    }
   }
 }

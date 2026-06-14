@@ -86,13 +86,4 @@ ion-modal.cover-preview-modal {
   max-width: var(--app-sheet-max-width);
   margin: 0 auto;
   width: 100%;
-  display: flex;
-  gap: var(--app-space-5);
-  align-items: center;
-  justify-content: space-between;
-}
-
-.bottom-inner .ctrl {
-  flex: 1 1 0;
-  justify-content: center;
 }

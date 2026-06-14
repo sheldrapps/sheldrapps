@@ -275,6 +275,7 @@ export interface CropperResult {
   renderedWidth?: number;
   renderedHeight?: number;
   renderedMimeType?: string;
+  history?: import("../editor/editor-history.service").EditorHistorySnapshot;
 }
 
 /**

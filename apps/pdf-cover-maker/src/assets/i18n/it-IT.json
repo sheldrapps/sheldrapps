@@ -27,7 +27,13 @@
     "WATCH_AD_SUBTITLE": "Guarda annuncio",
     "SHARE": "Condividi",
     "SHARE_KINDLE_HINT": "Durante la condivisione, seleziona l’app Kindle per inviarla al dispositivo.",
-    "WARNING": "Avviso"
+    "WARNING": "Avviso",
+    "EDIT_PROJECT_TITLE": "Come vuoi modificare questo file?",
+    "EDIT_PROJECT_MESSAGE": "Scegli se sostituire il file attuale o lavorare su una copia.",
+    "EDIT_PROJECT_OVERWRITE": "Sovrascrivi",
+    "EDIT_PROJECT_OVERWRITE_DESC": "Salva le modifiche sopra il file esistente.",
+    "EDIT_PROJECT_COPY": "Lavora su una copia",
+    "EDIT_PROJECT_COPY_DESC": "Conserva il file originale e modifica una nuova copia."
   },
   "CHANGE": {
     "ADS_REQUIRED": "Impossibile caricare l’annuncio. Controlla la rete o il blocco annunci.",
@@ -105,7 +111,8 @@
     "ACTIONS": {
       "DELETE": "Elimina",
       "SHARE": "Condividi",
-      "OPEN": "Apri"
+      "OPEN": "Apri",
+      "EDIT_PROJECT": "Modifica"
     },
     "DELETE": {
       "MESSAGE": "Vuoi eliminare questo PDF?",
@@ -116,7 +123,8 @@
       "SHARE": "Impossibile condividere l'PDF. Riprova.",
       "LOAD": "Impossibile caricare i tuoi PDF. Trascina verso il basso per riprovare.",
       "PREVIEW": "Impossibile caricare l'anteprima. Riprova.",
-      "OPEN": "Impossibile aprire il PDF. Riprova."
+      "OPEN": "Impossibile aprire il PDF. Riprova.",
+      "OPEN_PROJECT": "Impossibile aprire il progetto. Riprova."
     },
     "GENERATE_THUMB": "Generate thumbnail",
     "PREVIEW_UNAVAILABLE": "Preview unavailable.",

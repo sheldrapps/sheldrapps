@@ -10,7 +10,7 @@
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NavigationEnd, Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { Subscription, filter, firstValueFrom } from 'rxjs';
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import { Device } from '@capacitor/device';
@@ -54,6 +54,7 @@ import {
 import type { CropTarget, CropFormatOption } from '@sheldrapps/image-workflow';
 import {
   EditorSessionService,
+  ProjectSaveState,
 } from '@sheldrapps/image-workflow/editor';
 
 import {
@@ -204,6 +205,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private translate = inject(TranslateService);
   private zone = inject(NgZone);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private editorSession = inject(EditorSessionService);
   private settings = inject(SettingsStore<PcmSettings>);
   private ratingService = inject(RatingService);
@@ -228,6 +230,10 @@ export class ChangePage implements OnInit, OnDestroy {
   private readonly artifactReductionInfoSeenKey =
     'pcm_editor_artifact_reduction_info_seen';
   private readonly editorEReaderOptimizationFeatureEnabled = true;
+  private projectEditReturnUrl: string | null = null;
+  private activeProjectFilename?: string;
+  private lastHandledProjectRouteKey: string | null = null;
+  private isOpeningProjectFromRoute = false;
   private readonly currentEditorTourVersion = 5;
   private forceEditorTourOnNextEditorOpen = false;
   private forceIncludeRemoveAdsStepOnNextHomeTour = false;
@@ -352,6 +358,7 @@ export class ChangePage implements OnInit, OnDestroy {
   generatedPdfFilename?: string;
   lastSavedFilename?: string;
   wasAutoSaved = false;
+  private readonly projectSaveState = new ProjectSaveState();
   rewriteProgressPercent = 0;
   isNativeRewriteInProgress = false;
   isCancellingNativeRewrite = false;
@@ -451,6 +458,10 @@ export class ChangePage implements OnInit, OnDestroy {
       !this.imageErrorKey &&
       this.imageWarnKey === this.invalidCoverWarnKey
     );
+  }
+
+  get hasActiveProjectFilename(): boolean {
+    return !!this.activeProjectFilename;
   }
 
   get shouldShowBestCandidateAction(): boolean {
@@ -1011,6 +1022,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.resetWorkflow();
     this.lastEditorSessionId = undefined;
     this.editorSession.clearSessions();
+    this.projectSaveState.clear();
     this.sourcePdfFile = undefined;
     this.sourcePdfMeta = undefined;
     this.workingPdfFile = undefined;
@@ -1086,6 +1098,7 @@ export class ChangePage implements OnInit, OnDestroy {
           pdfFile: this.workingPdfFile,
           pdfNativePath: this.workingPdfNativePath,
           pdfName: this.selectedPdfName,
+          maxImages: 8,
         });
       console.info(
         '[ECC_BEST_CANDIDATE] manifest image count:',
@@ -1131,6 +1144,7 @@ export class ChangePage implements OnInit, OnDestroy {
         ranked.results.length,
       );
       this.bestCandidates = ranked.results;
+      this.selectedBestCandidateId = ranked.results[0]?.image.id;
     } catch (error) {
       console.warn('[ECC_BEST_CANDIDATE] detection failed', error);
       this.bestCandidates = [];
@@ -1659,6 +1673,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private getEditorReturnUrl(): string {
+    if (this.projectEditReturnUrl) return this.projectEditReturnUrl;
     const current = this.router.url;
     if (current.startsWith('/tabs/')) return current;
     return '/tabs/change';
@@ -1954,8 +1969,12 @@ export class ChangePage implements OnInit, OnDestroy {
     const exportFile = await this.ensureExportImageFile();
     if (!exportFile) return;
 
-    const currentFilename = this.generatedPdfFilename || 'pdf_cover';
-    const nameWithoutExt = currentFilename.replace(/\.pdf$/i, '');
+    const nameWithoutExt = this.projectSaveState.getSuggestedBaseName(
+      '.pdf',
+      this.lastSavedFilename,
+      this.generatedPdfFilename,
+      'pdf_cover',
+    );
 
     const modal = await this.modalCtrl.create({
       component: SaveCoverModalComponent,
@@ -1990,6 +2009,71 @@ export class ChangePage implements OnInit, OnDestroy {
     try {
       const requestedFilename = this.ensurePdfExtension(filename);
 
+      const isProjectEditSave =
+        this.projectSaveState.isCurrentFilename(requestedFilename);
+
+      if (isProjectEditSave) {
+        const exportFile = await this.ensureExportImageFile();
+        if (!exportFile) return;
+
+        const saved = this.usesNativeRewrite()
+          ? this.generatedPdfPath
+            ? await this.fileService.saveGeneratedPdfFromPath({
+                sourcePath: this.generatedPdfPath,
+                sourceDir: 'Data',
+                filename: this.projectSaveState.getCurrentFilename()!,
+                coverFileForThumb: exportFile,
+                coverMetadata: this.buildCoverProcessingMetadata(),
+                overwriteExisting: true,
+              })
+            : await this.fileService.saveGeneratedPdfFromExistingDocument({
+                sourceFilename: this.projectSaveState.getCurrentFilename()!,
+                filename: this.projectSaveState.getCurrentFilename()!,
+                coverFileForThumb: exportFile,
+                coverMetadata: this.buildCoverProcessingMetadata(),
+                overwriteExisting: true,
+              })
+              : await this.fileService.saveGeneratedPdf({
+              bytes: this.generatedPdfBytes!,
+              filename: this.projectSaveState.getCurrentFilename()!,
+              coverFileForThumb: exportFile,
+              coverMetadata: this.buildCoverProcessingMetadata(),
+              overwriteExisting: true,
+            });
+
+        this.logSaveFlow('finalWriteComplete', {
+          flow: 'performSave:edit-overwrite',
+          filename: saved.filename,
+          writeCompletedAt: new Date().toISOString(),
+        });
+
+        this.generatedPdfFilename = saved.filename;
+        this.lastSavedFilename = saved.filename;
+        this.projectSaveState.setCurrentFilename(saved.filename);
+        this.wasAutoSaved = false;
+
+        try {
+          await this.saveLocalProjectSnapshot(saved.filename, exportFile);
+        } catch (error) {
+          console.warn('[PCM:change] project snapshot save failed', error);
+        }
+
+        this.coversEvents.emit({
+          type: 'saved',
+          filename: saved.filename,
+        });
+        this.activateSavedProject(saved.filename);
+        this.logSaveFlow('savedEventEmitted', {
+          flow: 'performSave:edit-overwrite',
+          filename: saved.filename,
+          emittedAt: new Date().toISOString(),
+        });
+
+        await this.consumeAdFallbackAttemptAfterSuccess('save');
+        await this.showToast('CHANGE.SAVED_OK', { duration: 1600 }, 'success');
+        return;
+      }
+
       if (
         this.lastSavedFilename &&
         requestedFilename.toLowerCase() === this.lastSavedFilename.toLowerCase()
@@ -1997,6 +2081,31 @@ export class ChangePage implements OnInit, OnDestroy {
         const alreadySaved =
           await this.fileService.hasCoverByFilename(requestedFilename);
         if (alreadySaved) {
+          const exportFile = await this.ensureExportImageFile();
+          if (!exportFile) return;
+
+          this.generatedPdfFilename = requestedFilename;
+          this.lastSavedFilename = requestedFilename;
+          this.projectSaveState.setCurrentFilename(requestedFilename);
+          this.wasAutoSaved = true;
+
+          try {
+            await this.saveLocalProjectSnapshot(requestedFilename, exportFile);
+          } catch (error) {
+            console.warn('[PCM:change] project snapshot save failed', error);
+          }
+
+          this.coversEvents.emit({
+            type: 'saved',
+            filename: requestedFilename,
+          });
+          this.activateSavedProject(requestedFilename);
+          this.logSaveFlow('savedEventEmitted', {
+            flow: 'performSave:auto-save',
+            filename: requestedFilename,
+            emittedAt: new Date().toISOString(),
+          });
+
           await this.consumeAdFallbackAttemptAfterSuccess('save');
           await this.showToast(
             'CHANGE.SAVED_OK',
@@ -2021,6 +2130,14 @@ export class ChangePage implements OnInit, OnDestroy {
           });
           this.generatedPdfFilename = renamed.filename;
           this.lastSavedFilename = renamed.filename;
+          this.projectSaveState.setCurrentFilename(renamed.filename);
+          this.wasAutoSaved = false;
+          try {
+            await this.saveLocalProjectSnapshot(renamed.filename, exportFile);
+          } catch (error) {
+            console.warn('[PCM:change] project snapshot save failed', error);
+          }
+          this.activateSavedProject(renamed.filename);
         } catch {
           const saved = this.usesNativeRewrite()
             ? this.generatedPdfPath
@@ -2060,6 +2177,8 @@ export class ChangePage implements OnInit, OnDestroy {
           });
           this.generatedPdfFilename = saved.filename;
           this.lastSavedFilename = saved.filename;
+          this.projectSaveState.setCurrentFilename(saved.filename);
+          this.activateSavedProject(saved.filename);
         }
       } else {
         const uniqueFilename =
@@ -2086,12 +2205,15 @@ export class ChangePage implements OnInit, OnDestroy {
         });
         this.generatedPdfFilename = saved.filename;
         this.lastSavedFilename = saved.filename;
+        this.projectSaveState.setCurrentFilename(saved.filename);
+        this.activateSavedProject(saved.filename);
       }
 
       this.coversEvents.emit({
         type: 'saved',
         filename: this.generatedPdfFilename,
       });
+      this.activateSavedProject(this.generatedPdfFilename);
       this.logSaveFlow('savedEventEmitted', {
         flow: 'performSave',
         filename: this.generatedPdfFilename,
@@ -3123,6 +3245,10 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   onCoverPageModeChange(mode: CoverPageMode): void {
+    if (this.activeProjectFilename) {
+      this.coverPageMode = 'replace';
+      return;
+    }
     void this.homeTour.completeInteraction('cover-mode-selected');
     if (this.coverPageMode === mode) return;
     this.coverPageMode = mode;
@@ -3153,6 +3279,7 @@ export class ChangePage implements OnInit, OnDestroy {
   async onGenerate() {
     if (!this.canGenerate()) return;
 
+    this.setBusy('export', 'CHANGE.GENERATING');
     try {
       console.info(
         `[PCM:ads-gate] start ${JSON.stringify({
@@ -3257,7 +3384,6 @@ export class ChangePage implements OnInit, OnDestroy {
       }
 
       console.info('[PCM:ads-gate] completed, start generation');
-      this.setBusy('export', 'CHANGE.GENERATING');
       console.info('[PCM:generate] busy set, invoking generateChangedCover');
       const generated = await this.generateChangedCover();
       console.info(
@@ -3291,9 +3417,13 @@ export class ChangePage implements OnInit, OnDestroy {
     const exportFile = await this.ensureExportImageFile();
     if (!exportFile) return false;
 
-    const preferredFilename = this.outputBaseName
-      ? `${this.outputBaseName}.pdf`
-      : this.selectedPdfName;
+    const preferredFilename = this.projectSaveState.getSuggestedBaseName(
+      '.pdf',
+      this.lastSavedFilename,
+      this.outputBaseName,
+      this.selectedPdfName,
+      'pdf_cover',
+    );
 
     if (this.usesNativeRewrite()) {
       const generated = await this.generateWithNativeRewrite(
@@ -3307,6 +3437,8 @@ export class ChangePage implements OnInit, OnDestroy {
     }
 
     const sourcePdf = this.workingPdfFile;
+    const overwriteFilename = this.projectSaveState.getOverwriteFilename();
+    const overwriteExisting = !!overwriteFilename;
     let res: { bytes: Uint8Array; filename: string };
     if (sourcePdf) {
       try {
@@ -3332,9 +3464,10 @@ export class ChangePage implements OnInit, OnDestroy {
     }
 
     this.generatedPdfBytes = res.bytes;
-    this.generatedPdfFilename = await this.resolveUniquePdfFilename(
-      res.filename,
-    );
+    this.generatedPdfFilename = overwriteFilename
+      ? overwriteFilename
+      : await this.resolveUniquePdfFilename(res.filename);
+    this.projectSaveState.setCurrentFilename(this.generatedPdfFilename);
 
     this.setBusy('export', 'CHANGE.SAVING');
 
@@ -3343,6 +3476,7 @@ export class ChangePage implements OnInit, OnDestroy {
       filename: this.generatedPdfFilename,
       coverFileForThumb: exportFile,
       coverMetadata: this.buildCoverProcessingMetadata(),
+      overwriteExisting,
     });
     this.logSaveFlow('finalWriteComplete', {
       flow: 'onGenerate',
@@ -3351,11 +3485,17 @@ export class ChangePage implements OnInit, OnDestroy {
     });
 
     this.generatedPdfFilename = saved.filename;
+    try {
+      await this.saveLocalProjectSnapshot(saved.filename, exportFile);
+    } catch (error) {
+      console.warn('[PCM:change] project snapshot save failed', error);
+    }
 
     this.coversEvents.emit({
       type: 'saved',
       filename: saved.filename,
     });
+    this.activateSavedProject(saved.filename);
     this.logSaveFlow('savedEventEmitted', {
       flow: 'onGenerate',
       filename: saved.filename,
@@ -3376,6 +3516,191 @@ export class ChangePage implements OnInit, OnDestroy {
     await this.consumeAdFallbackAttemptAfterSuccess('generate-web');
     await this.homeTour.completeInteraction('cover-created');
     return true;
+  }
+
+  private async saveLocalProjectSnapshot(
+    coverFilename: string,
+    coverFileForThumb: File,
+  ): Promise<void> {
+    const sourceFile =
+      this.originalImageFile ?? this.editorSourceFile ?? this.workingImageFile;
+    if (!sourceFile) return;
+    const sourceDims = this.originalImageDims ?? this.workingImageDims;
+
+    const selected = this.getSelectedFormatOption();
+    if (!selected) return;
+
+    await this.fileService.saveProjectSnapshot({
+      coverFilename,
+      sourceFile,
+      coverFileForThumb,
+      cropState: this.cropState ?? buildDefaultCoverCropState(),
+      target: {
+        width: selected.target.width,
+        height: selected.target.height,
+      },
+      coverMetadata: this.buildCoverProcessingMetadata(),
+      sourceInfo: {
+        name: sourceFile.name,
+        width: sourceDims?.width,
+        height: sourceDims?.height,
+        originalName: this.originalImageFile?.name ?? sourceFile.name,
+        originalWidth: this.originalImageDims?.width ?? sourceDims?.width,
+        originalHeight: this.originalImageDims?.height ?? sourceDims?.height,
+      },
+    });
+  }
+
+  private activateSavedProject(filename: string): void {
+    this.activeProjectFilename = filename;
+    this.coverPageMode = 'replace';
+  }
+
+  private async tryOpenProjectFromRoute(): Promise<boolean> {
+    const projectFilename = this.route.snapshot.queryParamMap.get('project');
+    if (!projectFilename) {
+      this.lastHandledProjectRouteKey = null;
+      return false;
+    }
+
+    const editMode =
+      this.route.snapshot.queryParamMap.get('editMode') === 'copy'
+        ? 'copy'
+        : 'overwrite';
+    const routeKey = `${projectFilename}::${editMode}`;
+    if (this.isOpeningProjectFromRoute) {
+      return false;
+    }
+    if (this.lastHandledProjectRouteKey === routeKey) {
+      return false;
+    }
+
+    this.isOpeningProjectFromRoute = true;
+    try {
+      const opened = await this.openProjectByFilename(projectFilename, editMode);
+      if (opened) {
+        this.lastHandledProjectRouteKey = routeKey;
+      }
+      return opened;
+    } finally {
+      this.isOpeningProjectFromRoute = false;
+    }
+  }
+
+  private async openProjectByFilename(
+    filename: string,
+    editMode: 'overwrite' | 'copy' = 'overwrite',
+  ): Promise<boolean> {
+    try {
+      const loaded = await this.fileService.loadProjectByFilename(filename);
+      if (!loaded) {
+        return false;
+      }
+
+      const sourcePdfFile = await this.fileService.loadGeneratedPdfByFilename(
+        loaded.snapshot.coverFilename,
+      );
+      if (!sourcePdfFile) {
+        return false;
+      }
+
+      await this.resetWorkflowForNewPdf();
+      await this.hydrateProjectPdfContext(
+        loaded.snapshot.coverFilename,
+        sourcePdfFile,
+      );
+
+      const snapshot = loaded.snapshot;
+      const dims =
+        this.sourceInfoToDims(snapshot.sourceInfo) ??
+        (await this.imagePipe.getDimensions(loaded.sourceFile)) ??
+        snapshot.target;
+      this.originalImageFile = loaded.sourceFile;
+      this.selectedImageFile = loaded.sourceFile;
+      this.selectedImageName = loaded.sourceFile.name;
+      this.originalImageDims = dims;
+      this.workingImageDims = dims;
+      this.workingImageFile = loaded.sourceFile;
+      this.editorSourceFile = loaded.sourceFile;
+      this.cropState = snapshot.cropState;
+      this.exportImageFile = undefined;
+      this.activeProjectFilename =
+        editMode === 'overwrite' ? snapshot.coverFilename : undefined;
+      this.projectSaveState.setProject(snapshot.coverFilename, editMode);
+      if (this.activeProjectFilename) {
+        this.coverPageMode = 'replace';
+      }
+      this.generatedPdfFilename =
+        editMode === 'overwrite' ? snapshot.coverFilename : undefined;
+      this.lastSavedFilename =
+        editMode === 'overwrite' ? snapshot.coverFilename : undefined;
+      const options = this.getCurrentFormatOptions();
+      const matchedFormat = options.find(
+        (option) =>
+          option.target.width === snapshot.target.width &&
+          option.target.height === snapshot.target.height,
+      );
+      if (matchedFormat) {
+        this.selectedFormatId = matchedFormat.id;
+      }
+      this.revokePreviewUrl();
+      this.previewUrl = URL.createObjectURL(loaded.sourceFile);
+
+      this.projectEditReturnUrl = '/tabs/change';
+      try {
+        await this.openEditor('image');
+        return true;
+      } finally {
+        this.projectEditReturnUrl = null;
+      }
+    } catch {
+      return false;
+    }
+  }
+
+  private async hydrateProjectPdfContext(
+    filename: string,
+    sourcePdfFile: File,
+  ): Promise<void> {
+    const outputBaseName =
+      filename.replace(/\.pdf$/i, '').trim() || 'pdf_cover';
+
+    if (this.usesNativeRewrite()) {
+      const cycle = await this.workingCopy.startStreamingCycle(sourcePdfFile);
+      this.sourcePdfFile = sourcePdfFile;
+      this.sourcePdfMeta = cycle.sourceMeta;
+      this.workingPdfFile = sourcePdfFile;
+      this.workingPdfPath = cycle.workingPath;
+      this.workingPdfNativePath = cycle.workingNativePath;
+      this.workingPdfName = cycle.workingName;
+      this.outputBaseName = outputBaseName;
+    } else {
+      const cycle = await this.workingCopy.startCycle(sourcePdfFile);
+      this.sourcePdfFile = sourcePdfFile;
+      this.sourcePdfMeta = cycle.sourceMeta;
+      this.workingPdfFile = cycle.workingFile;
+      this.workingPdfPath = cycle.workingPath;
+      this.workingPdfNativePath = undefined;
+      this.workingPdfName = cycle.workingName;
+      this.outputBaseName = outputBaseName;
+    }
+
+    this.selectedPdfName = filename;
+    this.coverEntryPath = undefined;
+    this.clearPdfError();
+    await this.resolvePdfFirstPageDims();
+  }
+
+  private sourceInfoToDims(sourceInfo?: {
+    width?: number;
+    height?: number;
+    originalWidth?: number;
+    originalHeight?: number;
+  }): { width: number; height: number } | null {
+    const width = sourceInfo?.width ?? sourceInfo?.originalWidth;
+    const height = sourceInfo?.height ?? sourceInfo?.originalHeight;
+    if (!width || !height) return null;
+    return { width, height };
   }
 
   private async resolveUniquePdfFilename(
@@ -3431,8 +3756,11 @@ export class ChangePage implements OnInit, OnDestroy {
     const requestedFilename = this.ensurePdfExtension(
       preferredFilename || `${outputBaseName}.pdf`,
     );
+    const overwriteExisting = !!this.projectSaveState.getOverwriteFilename();
     const outputTarget =
-      await this.fileService.reserveNativeDocumentOutput(requestedFilename);
+      await this.fileService.reserveNativeDocumentOutput(requestedFilename, {
+        overwriteExisting,
+      });
 
     this.isNativeRewriteInProgress = true;
     this.isCancellingNativeRewrite = false;
@@ -3483,10 +3811,17 @@ export class ChangePage implements OnInit, OnDestroy {
         coverMetadata: this.buildCoverProcessingMetadata(),
       });
 
+      try {
+        await this.saveLocalProjectSnapshot(outputTarget.filename, rewriteCoverFile);
+      } catch (error) {
+        console.warn('[PCM:change] project snapshot save failed', error);
+      }
+
       this.coversEvents.emit({
         type: 'saved',
         filename: outputTarget.filename,
       });
+      this.activateSavedProject(outputTarget.filename);
       this.logSaveFlow('savedEventEmitted', {
         flow: 'nativeRewrite',
         filename: outputTarget.filename,
@@ -3495,6 +3830,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
       this.wasAutoSaved = true;
       this.lastSavedFilename = outputTarget.filename;
+      this.projectSaveState.setCurrentFilename(outputTarget.filename);
 
       await this.showToast(
         'CHANGE.COVER_CHANGED',
@@ -3795,8 +4131,11 @@ export class ChangePage implements OnInit, OnDestroy {
     this.closeInfo();
   }
 
-  ionViewWillEnter() {
-    this.consumeEditorResult();
+  async ionViewWillEnter() {
+    const openedProject = await this.tryOpenProjectFromRoute();
+    if (!openedProject) {
+      await this.consumeEditorResult();
+    }
     void this.refreshHeaderItems();
   }
 

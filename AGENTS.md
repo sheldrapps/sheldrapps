@@ -31,6 +31,10 @@ No duplicar reglas aquí; seguir la skill correspondiente.
 - `incrementa-version-utilidades`: incremental Git para utilidades/version-notes Play Store.
 - `fichas`: generación de fichas Play Store por locale.
 
+### Kits-First Rule
+
+- Antes de duplicar UI o lógica en `apps/*`, evaluar si corresponde extraer o reutilizar en `packages/*`.
+
 ## Reglas Que Sí Permanecen En AGENTS
 
 ### Preferencias Operativas Del Usuario

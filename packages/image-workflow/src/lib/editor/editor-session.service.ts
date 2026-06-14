@@ -1,5 +1,6 @@
 import { Injectable, Optional } from '@angular/core';
 import { Router } from '@angular/router';
+import type { EditorHistorySnapshot } from './editor-history.service';
 import type { CoverCropState, CropFormatOption, CropperResult } from '../types';
 
 /** Panel types available in the editor */
@@ -109,6 +110,23 @@ export type EditorSession = {
     includeRenderedBlob?: boolean;
   };
 
+  /** Optional persisted project data for project-edit sessions. */
+  project?: {
+    filename?: string;
+    mode?: 'overwrite' | 'copy';
+    history?: EditorHistorySnapshot;
+    sourceInfo?: {
+      name?: string;
+      width?: number;
+      height?: number;
+      originalName?: string;
+      originalWidth?: number;
+      originalHeight?: number;
+    };
+    returnUrl?: string;
+    persist?: (result: CropperResult) => Promise<void> | void;
+  };
+
   /** Optional return url for exiting the editor */
   returnUrl?: string;
 
@@ -156,6 +174,11 @@ export class EditorSessionService {
 
   getResult(id: string): CropperResult | null {
     return this.results.get(id) ?? null;
+  }
+
+  getSessionForLatestResult(): EditorSession | null {
+    if (!this.lastResultId) return null;
+    return this.sessions.get(this.lastResultId) ?? null;
   }
 
   consumeResult(id: string): CropperResult | null {

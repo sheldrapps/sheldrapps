@@ -27,7 +27,13 @@
     "WATCH_AD_SUBTITLE": "Ver anuncio",
     "SHARE": "Compartir",
     "SHARE_KINDLE_HINT": "Al compartir, selecciona la app Kindle para enviarla a tu dispositivo.",
-    "WARNING": "Advertencia"
+    "WARNING": "Advertencia",
+    "EDIT_PROJECT_TITLE": "¿Cómo quieres editar este archivo?",
+    "EDIT_PROJECT_MESSAGE": "Elige si quieres reemplazar el archivo actual o trabajar sobre una copia.",
+    "EDIT_PROJECT_OVERWRITE": "Sobreescribir",
+    "EDIT_PROJECT_OVERWRITE_DESC": "Guarda los cambios encima del archivo existente.",
+    "EDIT_PROJECT_COPY": "Trabajar con una copia",
+    "EDIT_PROJECT_COPY_DESC": "Conserva el archivo original y edita una copia nueva."
   },
   "CHANGE": {
     "ADS_REQUIRED": "No se pudo cargar el anuncio. Revisa tu red o bloqueador de anuncios.",
@@ -108,7 +114,8 @@
     "ACTIONS": {
       "DELETE": "Eliminar",
       "SHARE": "Compartir",
-      "OPEN": "Abrir"
+      "OPEN": "Abrir",
+      "EDIT_PROJECT": "Editar"
     },
     "DELETE": {
       "MESSAGE": "¿Quieres eliminar este EPUB?",
@@ -119,7 +126,8 @@
       "SHARE": "No se pudo compartir el EPUB. Inténtalo de nuevo.",
       "LOAD": "No se pudieron cargar tus EPUBs. Arrastra hacia abajo para intentar de nuevo.",
       "PREVIEW": "No se pudo cargar la vista previa. Intenta de nuevo.",
-      "OPEN": "No se pudo abrir el EPUB. Inténtalo de nuevo."
+      "OPEN": "No se pudo abrir el EPUB. Inténtalo de nuevo.",
+      "OPEN_PROJECT": "No se pudo abrir el proyecto. Inténtalo de nuevo."
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "Alejar vista previa del e-reader",

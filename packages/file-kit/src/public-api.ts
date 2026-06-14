@@ -11,6 +11,8 @@ export * from './lib/errors';
 // Utilities
 export { guessMimeType } from './lib/mime';
 export { makeSafeFilename } from './lib/name';
+export { ensureDirectoriesExist } from './lib/ensure-directories';
+export { normalizeFilenameKey } from './lib/filename-keys';
 
 // Service
 export * from './lib/file-kit.service';

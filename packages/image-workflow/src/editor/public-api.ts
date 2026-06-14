@@ -15,4 +15,6 @@ export {
 
 // Editor session service
 export * from "../lib/editor/editor-session.service";
+export * from "../lib/editor/editor-history.service";
+export * from "../lib/editor/project-save-state";
 export * from "../lib/editor/editor-ereader-optimization";

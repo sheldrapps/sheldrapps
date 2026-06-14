@@ -3,6 +3,7 @@ import { Subscription, filter } from 'rxjs';
 import { App } from '@capacitor/app';
 import { PluginListenerHandle } from '@capacitor/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import {
   IonContent,
   IonHeader,
@@ -10,6 +11,7 @@ import {
   IonToolbar,
   AlertController,
   ToastController,
+  ModalController,
 } from '@ionic/angular/standalone';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -18,6 +20,7 @@ import { addIcons } from 'ionicons';
 import {
   ellipsisVertical,
   openOutline,
+  folderOpenOutline,
   shareOutline,
   trashOutline,
   closeCircleOutline,
@@ -39,6 +42,8 @@ import {
   PreviewMetadata,
   PreviewUnavailableConfig,
 } from '@sheldrapps/covers-list-kit';
+import { normalizeFilenameKey } from '@sheldrapps/file-kit';
+import { EditProjectChoiceModalComponent } from '@sheldrapps/ui-theme';
 
 type UiCoverItem = {
   filename: string;
@@ -67,6 +72,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   private translate = inject(TranslateService);
   private coversEvents = inject(CoversEventsService);
   private toastCtrl = inject(ToastController);
+  private modalCtrl = inject(ModalController);
 
   @ViewChild(IonContent) content!: IonContent;
   @ViewChild(CoverListContentComponent) listContent?: CoverListContentComponent;
@@ -81,6 +87,12 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       id: 'open',
       labelKey: 'COVERS.ACTIONS.OPEN',
       icon: 'open-outline',
+    },
+    {
+      id: 'project',
+      labelKey: 'COVERS.ACTIONS.EDIT_PROJECT',
+      icon: 'folder-open-outline',
+      hidden: (item) => !this.hasProjectForFilename(item.filename),
     },
     {
       id: 'share',
@@ -99,12 +111,14 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   private coversEventsSub?: Subscription;
   private appStateListener?: PluginListenerHandle;
   private localDeletedFilenames = new Set<string>();
+  private projectCoverFilenames = new Set<string>();
   private thumbsLoadToken = 0;
   private hasLoadedOnce = false;
   private needsReload = true;
   private isViewActive = false;
   private isLoadInProgress = false;
   private readonly logPrefix = 'ECC:my-epubs';
+  private router = inject(Router);
 
   // Preview Modal
   previewOpen = false;
@@ -122,6 +136,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       closeCircleOutline,
       ellipsisVertical,
       openOutline,
+      folderOpenOutline,
       shareOutline,
       trashOutline,
       alertCircleOutline,
@@ -201,10 +216,24 @@ export class MyEpubsPage implements OnInit, OnDestroy {
 
     try {
       const entries = await this.files.listCovers();
+      const [projects, projectMatches] = await Promise.all([
+        this.files.listProjects(),
+        Promise.all(
+          entries.map(async (cover) =>
+            (await this.files.hasProjectByFilename(cover.filename))
+              ? normalizeFilenameKey(cover.filename)
+              : null,
+          ),
+        ),
+      ]);
       this.logInfo('libraryReload:listCoversResult', {
         count: entries.length,
         filenames: entries.map((entry) => entry.filename),
       });
+      this.projectCoverFilenames = new Set([
+        ...projects.map((project) => normalizeFilenameKey(project.coverFilename)),
+        ...projectMatches.filter((filename): filename is string => !!filename),
+      ]);
       const items: UiCoverItem[] = entries.map((e) => ({
         filename: e.filename,
       }));
@@ -220,6 +249,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
         error: this.errorDetails(error),
       });
       this.items = [];
+      this.projectCoverFilenames = new Set();
       this.pageErrorKey = 'COVERS.ERROR.LOAD';
       this.loading = false;
       ev?.target && (ev.target as any).complete();
@@ -271,6 +301,10 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       void this.openByFilename(event.item.filename);
       return;
     }
+    if (event.actionId === 'project') {
+      void this.openProjectByFilename(event.item.filename);
+      return;
+    }
     if (event.actionId === 'share') {
       void this.shareByFilename(event.item.filename);
       return;
@@ -293,6 +327,9 @@ export class MyEpubsPage implements OnInit, OnDestroy {
 
   get previewFooterActions(): PreviewAction[] {
     const disabled = this.previewLoading || !this.previewFilename;
+    const hasProject =
+      !!this.previewFilename &&
+      this.hasProjectForFilename(this.previewFilename);
     return [
       {
         id: 'open',
@@ -301,6 +338,15 @@ export class MyEpubsPage implements OnInit, OnDestroy {
         layout: 'icon-text',
         cssClass: 'ctrl',
         disabled,
+      },
+      {
+        id: 'project',
+        labelKey: 'COVERS.ACTIONS.EDIT_PROJECT',
+        icon: 'folder-open-outline',
+        layout: 'icon-text',
+        cssClass: 'ctrl',
+        disabled: disabled || !hasProject,
+        hidden: !hasProject,
       },
       {
         id: 'share',
@@ -358,6 +404,11 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     }
     if (event.actionId === 'open') {
       void this.openPreviewExternal();
+      return;
+    }
+    if (event.actionId === 'project') {
+      void this.openProjectByFilename(this.previewFilename);
+      this.closePreview();
       return;
     }
     if (event.actionId === 'delete') {
@@ -538,6 +589,64 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     }
   }
 
+  private async openProjectByFilename(filename: string | null): Promise<void> {
+    if (!filename) return;
+    this.pageErrorKey = null;
+    this.pageErrorParams = null;
+
+    try {
+      const editMode = await this.promptProjectEditMode();
+      if (!editMode) return;
+
+      this.loading = true;
+      await this.waitForLoadingIndicatorFrame();
+      const navigated = await this.router.navigate(['/tabs/change'], {
+        queryParams: { project: filename, editMode },
+      });
+      if (!navigated) {
+        this.loading = false;
+        this.pageErrorKey = 'COVERS.ERROR.OPEN_PROJECT';
+      }
+    } catch {
+      this.loading = false;
+      this.pageErrorKey = 'COVERS.ERROR.OPEN_PROJECT';
+    }
+  }
+
+  private async promptProjectEditMode(): Promise<'overwrite' | 'copy' | null> {
+    const modal = await this.modalCtrl.create({
+      component: EditProjectChoiceModalComponent,
+      componentProps: {
+        title: this.translate.instant('COMMON.EDIT_PROJECT_TITLE'),
+        message: this.translate.instant('COMMON.EDIT_PROJECT_MESSAGE'),
+        overwriteLabel: this.translate.instant('COMMON.EDIT_PROJECT_OVERWRITE'),
+        overwriteDescription: this.translate.instant(
+          'COMMON.EDIT_PROJECT_OVERWRITE_DESC',
+        ),
+        copyLabel: this.translate.instant('COMMON.EDIT_PROJECT_COPY'),
+        copyDescription: this.translate.instant('COMMON.EDIT_PROJECT_COPY_DESC'),
+        cancelLabel: this.translate.instant('COMMON.CANCEL'),
+      },
+    });
+
+    await modal.present();
+    const { role } = await modal.onWillDismiss();
+    if (role === 'overwrite' || role === 'copy') {
+      return role;
+    }
+    return null;
+  }
+
+  private async waitForLoadingIndicatorFrame(): Promise<void> {
+    await new Promise<void>((resolve) => {
+      if (typeof requestAnimationFrame !== 'function') {
+        resolve();
+        return;
+      }
+      requestAnimationFrame(() => resolve());
+    });
+  }
+
   private async deleteByFilename(
     filename: string,
     opts?: { markLocalDelete?: boolean },
@@ -556,6 +665,10 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     } catch {
       this.pageErrorKey = 'COVERS.ERROR.DELETE';
     }
+  }
+
+  private hasProjectForFilename(filename: string): boolean {
+    return this.projectCoverFilenames.has(normalizeFilenameKey(filename));
   }
 
   private async showToast(messageKey: string, duration = 1600) {

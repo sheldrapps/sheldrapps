@@ -28,6 +28,11 @@ export interface EditorCommand {
 
 type EditorSnapshot = ReturnType<EditorStateService["getState"]>;
 type HistoryBlock = { commands: EditorCommand[] };
+export type EditorHistorySnapshot = {
+  baseState: EditorSnapshot;
+  globalStack: HistoryBlock[];
+  globalRedoStack: HistoryBlock[];
+};
 
 const MAX_LOCAL_COMMANDS = 10;
 const SLIDER_STEP = 0.01;
@@ -215,6 +220,41 @@ export class EditorHistoryService {
     if (this.isDirty()) return true;
     return this.panelScope() === "tools";
   });
+
+  captureProjectSnapshot(): EditorHistorySnapshot {
+    return {
+      baseState: this.cloneSnapshot(
+        this.initialSnapshot ?? this.editorState.getState(),
+      ),
+      globalStack: this.cloneHistoryBlocks(this.globalStack()),
+      globalRedoStack: this.cloneHistoryBlocks(this.globalRedoStack()),
+    };
+  }
+
+  restoreProjectSnapshot(snapshot: EditorHistorySnapshot): void {
+    const baseState = this.cloneSnapshot(snapshot.baseState);
+    this.replay(() => {
+      this.editorState.setState(baseState);
+    });
+    this.initialSnapshot = baseState;
+    this.globalStack.set(this.cloneHistoryBlocks(snapshot.globalStack));
+    this.globalRedoStack.set(this.cloneHistoryBlocks(snapshot.globalRedoStack));
+    this.localCommands.set([]);
+    this.localPointer.set(0);
+    this.baselineSnapshot.set(null);
+    this.baselineKindleSnapshot.set(null);
+    this.panelScope.set(null);
+    this.mode.set("global");
+    this.sliderActive = false;
+    this.pendingSliderCommand = null;
+    this.gestureActive = false;
+    this.gestureStart = null;
+    this.textDragActiveId = null;
+    this.textDragStart = null;
+    this.eReaderOptimizationBaseline = null;
+    this.eReaderOptimizationMutation = false;
+    this.recomposeGlobal();
+  }
 
   startSession(): void {
     this.initialSnapshot = this.editorState.getState();
@@ -1765,5 +1805,25 @@ export class EditorHistoryService {
     } finally {
       this.isReplaying = false;
     }
+  }
+
+  private cloneHistoryBlocks(blocks: HistoryBlock[]): HistoryBlock[] {
+    return blocks.map((block) => ({
+      commands: block.commands.map((command) => ({
+        type: command.type,
+        payload: this.cloneValue(command.payload),
+      })),
+    }));
+  }
+
+  private cloneSnapshot(snapshot: EditorSnapshot): EditorSnapshot {
+    return this.cloneValue(snapshot);
+  }
+
+  private cloneValue<T>(value: T): T {
+    if (typeof structuredClone === "function") {
+      return structuredClone(value);
+    }
+    return JSON.parse(JSON.stringify(value)) as T;
   }
 }

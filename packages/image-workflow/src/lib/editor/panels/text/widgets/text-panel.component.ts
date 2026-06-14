@@ -394,7 +394,6 @@ export class TextPanelComponent {
     if (this.sampler.active()) return;
     const samplerTarget = target === "stroke" ? "text-stroke" : "text-fill";
     this.sampler.start(samplerTarget, { mode: "text", panelId: "text" });
-    this.ui.closePanel();
   }
 
   onBack(): void {

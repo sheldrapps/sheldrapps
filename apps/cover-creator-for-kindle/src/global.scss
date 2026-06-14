@@ -30,3 +30,7 @@
 
 /* Ionic Dark Mode */
 @import "@ionic/angular/css/palettes/dark.system.css";
+
+.ion-page-hidden {
+  pointer-events: none !important;
+}

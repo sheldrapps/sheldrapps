@@ -41,6 +41,7 @@ export class AdFallbackService {
       return 'exhausted';
     }
 
+    let acceptDismissInProgress = false;
     const modal = await modalController.create({
       component: AdFallbackModalComponent,
       componentProps: {
@@ -51,7 +52,16 @@ export class AdFallbackService {
         reason: request.reason,
         showReason: telemetryPayload.showReason,
         requestAccept: () => {
-          void modal.dismiss({ accepted: true }, 'accepted');
+          if (acceptDismissInProgress) {
+            return;
+          }
+          acceptDismissInProgress = true;
+          void modal
+            .dismiss({ accepted: true }, 'accepted')
+            .catch(() => undefined)
+            .finally(() => {
+              acceptDismissInProgress = false;
+            });
         },
       },
       cssClass: 'ad-fallback-alert-modal',

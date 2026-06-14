@@ -22,7 +22,6 @@ export const DEFAULT_VALIDATION_OPTIONS: ImageValidationOptions = {
  */
 export const DEFAULT_WORKING_OPTIONS: WorkingImageOptions = {
   maxSide: 2048,
-  minSide: 1024,
   quality: 0.85,
   mimeType: 'image/jpeg',
   allowUpscale: false,
@@ -126,20 +125,35 @@ export async function materializeFile(file: File): Promise<File> {
 }
 
 /**
- * Prepares a working image by resizing and optimizing
- * Scales down if too large, scales up if too small (optional)
+ * Prepares a working image while preserving the original dimensions unless
+ * resizing is explicitly requested.
  */
 export async function prepareWorkingImage(
   source: File | Blob,
   options: Partial<WorkingImageOptions> = {}
 ): Promise<File> {
   const opts = { ...DEFAULT_WORKING_OPTIONS, ...options };
+  const canDownscale =
+    Number.isFinite(opts.maxSide) && opts.maxSide > 0;
+  const canUpscale =
+    !!(opts.allowUpscale && opts.minSide && opts.minSide > 0);
+
+  if (!canDownscale && !canUpscale) {
+    if (source instanceof File) {
+      return source;
+    }
+
+    const name = `image_${Date.now()}.${opts.mimeType === 'image/png' ? 'png' : 'jpg'}`;
+    return new File([source], name, {
+      type: source.type || opts.mimeType,
+    });
+  }
 
   let bitmap: ImageBitmap;
 
   try {
     bitmap = await createImageBitmap(source);
-  } catch (err) {
+  } catch {
     // Return as-is if can't process
     if (source instanceof File) return source;
     const name = `image_${Date.now()}.jpg`;

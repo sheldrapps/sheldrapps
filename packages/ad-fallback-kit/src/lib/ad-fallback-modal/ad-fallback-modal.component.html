@@ -25,7 +25,7 @@
     <ion-button
       class="app-btn ad-fallback-modal__button"
       expand="block"
-      [disabled]="!isReady"
+      [disabled]="!isReady || acceptInProgress"
       (click)="onAccept()"
     >
       <ng-container *ngIf="!isReady; else useTrial">
