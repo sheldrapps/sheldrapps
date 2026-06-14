@@ -5,6 +5,11 @@ import {
   type PrepareEpubOptions,
   type PrepareEpubResult,
 } from './epub-rewrite.service';
+import type {
+  EpubDiagnosticResult,
+  EpubExportResult,
+  EpubRepairResult,
+} from './epub-fixer.port';
 
 export type PickAndPrepareEpubSessionOptions = {
   maxBytes?: number;
@@ -20,6 +25,21 @@ export class EpubFixerNativeService {
 
   prepare(options: PrepareEpubOptions): Promise<PrepareEpubResult> {
     return this.epubRewrite.prepare(options);
+  }
+
+  diagnose(sessionId: string): Promise<EpubDiagnosticResult> {
+    return this.epubRewrite.diagnose(sessionId);
+  }
+
+  repair(sessionId: string): Promise<EpubRepairResult> {
+    return this.epubRewrite.repair(sessionId);
+  }
+
+  exportFixed(
+    sessionId: string,
+    outputName?: string,
+  ): Promise<EpubExportResult> {
+    return this.epubRewrite.exportFixed(sessionId, outputName);
   }
 
   async pickAndPrepare(

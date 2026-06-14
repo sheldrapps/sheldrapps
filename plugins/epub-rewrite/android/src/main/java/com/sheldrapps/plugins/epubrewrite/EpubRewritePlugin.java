@@ -52,6 +52,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.CRC32;
 import java.util.stream.Stream;
 import androidx.activity.result.ActivityResult;
+import com.getcapacitor.JSArray;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -90,6 +91,21 @@ public class EpubRewritePlugin extends Plugin {
     @PluginMethod
     public void inspectEpub(PluginCall call) {
         runExclusive(call, "inspect", this::inspectEpubInternal);
+    }
+
+    @PluginMethod
+    public void diagnoseEpub(PluginCall call) {
+        runExclusive(call, "diagnose", this::diagnoseEpubInternal);
+    }
+
+    @PluginMethod
+    public void repairEpub(PluginCall call) {
+        runExclusive(call, "repair", this::repairEpubInternal);
+    }
+
+    @PluginMethod
+    public void exportFixed(PluginCall call) {
+        runExclusive(call, "export_fixed", this::exportFixedInternal);
     }
 
     @PluginMethod
@@ -533,6 +549,638 @@ public class EpubRewritePlugin extends Plugin {
             result.put("coverEntryPath", coverEntryPath);
             call.resolve(result);
         }
+    }
+
+    private void diagnoseEpubInternal(PluginCall call) throws Exception {
+        String sessionId = requireString(call, "sessionId").trim();
+        validateSessionId(sessionId);
+
+        Path workingPath = resolveSessionWorkingPath(sessionId);
+        EpubAnalysis analysis = analyzeEpub(workingPath);
+
+        JSObject result = new JSObject();
+        result.put("success", true);
+        result.put("sessionId", sessionId);
+        result.put("status", analysis.status);
+        result.put("issues", toIssueArray(analysis.issues));
+        call.resolve(result);
+    }
+
+    private void repairEpubInternal(PluginCall call) throws Exception {
+        String sessionId = requireString(call, "sessionId").trim();
+        validateSessionId(sessionId);
+
+        Path workingPath = resolveSessionWorkingPath(sessionId);
+        EpubAnalysis analysis = analyzeEpub(workingPath);
+
+        if ("failed".equals(analysis.status) || "unsupported".equals(analysis.status)) {
+            JSObject result = new JSObject();
+            result.put("success", false);
+            result.put("error", "REPAIR_UNAVAILABLE");
+            result.put("status", analysis.status);
+            result.put("issues", toIssueArray(analysis.issues));
+            call.resolve(result);
+            return;
+        }
+
+        Path backupPath = workingPath.resolveSibling(workingPath.getFileName() + ".bak");
+        Path tempOutputPath = workingPath.resolveSibling(workingPath.getFileName() + ".tmp");
+
+        deleteIfExists(backupPath);
+        deleteIfExists(tempOutputPath);
+
+        try {
+            moveFileAtomicWithFallback(workingPath, backupPath);
+            repairArchiveToOutput(backupPath, tempOutputPath, analysis);
+            ensureNotCancelled();
+            moveFileAtomicWithFallback(tempOutputPath, workingPath);
+            deleteIfExists(backupPath);
+            scanPathForMediaStore(workingPath);
+
+            JSObject result = new JSObject();
+            result.put("success", true);
+            result.put("repairedIssues", buildRepairedIssues(analysis));
+            call.resolve(result);
+        } catch (Exception ex) {
+            debugIo(
+                "repairEpub failed reason=" + ex.getClass().getSimpleName()
+                    + " message=" + (ex.getMessage() == null ? "" : ex.getMessage())
+            );
+            rollbackInPlace(workingPath, backupPath, tempOutputPath);
+            throw ex;
+        } finally {
+            deleteIfExists(tempOutputPath);
+            deleteIfExists(backupPath);
+        }
+    }
+
+    private void exportFixedInternal(PluginCall call) throws Exception {
+        String sessionId = requireString(call, "sessionId").trim();
+        validateSessionId(sessionId);
+
+        Path workingPath = resolveSessionWorkingPath(sessionId);
+        Path sessionDir = resolveSessionDir(sessionId);
+        String requestedName = call.getString("outputName");
+        String outputFileName = buildExportFileName(workingPath.getFileName().toString(), requestedName);
+        Path outputPath = sessionDir.resolve(outputFileName);
+
+        if (workingPath.equals(outputPath)) {
+            JSObject result = new JSObject();
+            result.put("success", true);
+            result.put("outputUri", workingPath.toUri().toString());
+            result.put("size", Files.size(workingPath));
+            call.resolve(result);
+            return;
+        }
+
+        Files.createDirectories(outputPath.getParent());
+        Files.copy(workingPath, outputPath, StandardCopyOption.REPLACE_EXISTING);
+        scanPathForMediaStore(outputPath);
+
+        JSObject result = new JSObject();
+        result.put("success", true);
+        result.put("outputUri", outputPath.toUri().toString());
+        result.put("size", Files.size(outputPath));
+        call.resolve(result);
+    }
+
+    private EpubAnalysis analyzeEpub(Path epubPath) throws Exception {
+        try (ZipFile zipFile = new ZipFile(epubPath.toFile())) {
+            List<FileHeader> headers = zipFile.getFileHeaders();
+            if (headers == null || headers.isEmpty()) {
+                return finishAnalysis(
+                    new java.util.ArrayList<>(),
+                    new EpubAnalysis(
+                        "failed",
+                        new java.util.ArrayList<>(),
+                        null,
+                        null,
+                        null,
+                        new java.util.ArrayList<>(),
+                        new java.util.ArrayList<>(),
+                        false,
+                        false
+                    ),
+                    issue("ZIP_UNREADABLE", "error", false, "empty headers")
+                );
+            }
+
+            java.util.ArrayList<EpubIssue> issues = new java.util.ArrayList<>();
+            FileHeader mimetypeHeader = findHeader(headers, "mimetype");
+            boolean mimetypeMissing = mimetypeHeader == null;
+            boolean mimetypeInvalid = false;
+            if (mimetypeHeader == null) {
+                issues.add(issue("MIMETYPE_MISSING", "error", true));
+            } else {
+                String mimetypeValue = new String(readEntryBytes(zipFile, mimetypeHeader), StandardCharsets.UTF_8).trim();
+                if (!"application/epub+zip".equals(mimetypeValue)) {
+                    mimetypeInvalid = true;
+                    issues.add(issue("MIMETYPE_INVALID", "error", true, mimetypeValue));
+                }
+            }
+
+            String containerText = readZipText(zipFile, "META-INF/container.xml");
+            if (containerText == null) {
+                issues.add(issue("CONTAINER_MISSING", "error", false));
+                return finishAnalysis(
+                    issues,
+                    new EpubAnalysis(
+                        resolveStatus(issues),
+                        issues,
+                        null,
+                        null,
+                        null,
+                        new java.util.ArrayList<>(),
+                        new java.util.ArrayList<>(),
+                        mimetypeMissing,
+                        mimetypeInvalid
+                    )
+                );
+            }
+
+            Document containerDocument = parseXmlUtf8(containerText);
+            if (containerDocument == null) {
+                issues.add(issue("CONTAINER_MISSING", "error", false, "container.xml is not parseable"));
+                return finishAnalysis(
+                    issues,
+                    new EpubAnalysis(
+                        resolveStatus(issues),
+                        issues,
+                        null,
+                        null,
+                        null,
+                        new java.util.ArrayList<>(),
+                        new java.util.ArrayList<>(),
+                        mimetypeMissing,
+                        mimetypeInvalid
+                    )
+                );
+            }
+
+            Element rootfileElement = firstElementByName(containerDocument, "rootfile");
+            String opfPath = rootfileElement == null ? null : normalizeZipPath(rootfileElement.getAttribute("full-path"));
+            if (CompatStrings.isBlank(opfPath)) {
+                issues.add(issue("OPF_MISSING", "error", false, "container.xml does not declare a rootfile"));
+                return finishAnalysis(
+                    issues,
+                    new EpubAnalysis(
+                        resolveStatus(issues),
+                        issues,
+                        null,
+                        null,
+                        null,
+                        new java.util.ArrayList<>(),
+                        new java.util.ArrayList<>(),
+                        mimetypeMissing,
+                        mimetypeInvalid
+                    )
+                );
+            }
+
+            opfPath = normalizeZipPath(opfPath);
+            String opfText = readZipText(zipFile, opfPath);
+            if (opfText == null) {
+                issues.add(issue("OPF_MISSING", "error", false, opfPath));
+                return finishAnalysis(
+                    issues,
+                    new EpubAnalysis(
+                        resolveStatus(issues),
+                        issues,
+                        opfPath,
+                        parentZipPath(opfPath),
+                        null,
+                        new java.util.ArrayList<>(),
+                        new java.util.ArrayList<>(),
+                        mimetypeMissing,
+                        mimetypeInvalid
+                    )
+                );
+            }
+
+            Document opfDocument = parseXmlUtf8(opfText);
+            if (opfDocument == null) {
+                issues.add(issue("OPF_MISSING", "error", false, opfPath + " is not parseable"));
+                return finishAnalysis(
+                    issues,
+                    new EpubAnalysis(
+                        resolveStatus(issues),
+                        issues,
+                        opfPath,
+                        parentZipPath(opfPath),
+                        null,
+                        new java.util.ArrayList<>(),
+                        new java.util.ArrayList<>(),
+                        mimetypeMissing,
+                        mimetypeInvalid
+                    )
+                );
+            }
+
+            String opfDir = parentZipPath(opfPath);
+            Element manifestElement = firstElementByName(opfDocument, "manifest");
+            Element spineElement = firstElementByName(opfDocument, "spine");
+            java.util.ArrayList<ParsedManifestItem> manifestItems =
+                manifestElement == null
+                    ? new java.util.ArrayList<>()
+                    : parseManifestItems(headers, manifestElement, opfDir);
+            java.util.ArrayList<ParsedSpineItem> spineItems =
+                spineElement == null
+                    ? new java.util.ArrayList<>()
+                    : parseSpineItems(spineElement, manifestItems);
+
+            for (ParsedManifestItem manifestItem : manifestItems) {
+                if (!manifestItem.exists) {
+                    issues.add(
+                        issue(
+                            "MANIFEST_ITEM_MISSING",
+                            "warning",
+                            true,
+                            manifestItem.id + ": " + manifestItem.resolvedPath
+                        )
+                    );
+                }
+            }
+
+            if (spineItems.isEmpty()) {
+                issues.add(issue("SPINE_EMPTY", "error", false));
+            }
+
+            for (ParsedSpineItem spineItem : spineItems) {
+                if (!spineItem.valid) {
+                    issues.add(
+                        issue(
+                            "SPINE_ITEM_INVALID",
+                            "warning",
+                            true,
+                            CompatStrings.isNotBlank(spineItem.idref) ? spineItem.idref : "missing idref"
+                        )
+                    );
+                }
+            }
+
+            if (
+                !spineItems.isEmpty()
+                    && spineItems.stream().noneMatch(item -> item.valid)
+            ) {
+                issues.add(issue("SPINE_EMPTY", "error", false, "No valid spine entries remain"));
+            }
+
+            return finishAnalysis(
+                issues,
+                new EpubAnalysis(
+                    resolveStatus(issues),
+                    issues,
+                    opfPath,
+                    opfDir,
+                    opfDocument,
+                    manifestItems,
+                    spineItems,
+                    mimetypeMissing,
+                    mimetypeInvalid
+                )
+            );
+        } catch (Exception ex) {
+            java.util.ArrayList<EpubIssue> issues = new java.util.ArrayList<>();
+            issues.add(issue("ZIP_UNREADABLE", "error", false, ex.getMessage()));
+            return new EpubAnalysis(
+                "failed",
+                issues,
+                null,
+                null,
+                null,
+                new java.util.ArrayList<>(),
+                new java.util.ArrayList<>(),
+                false,
+                false
+            );
+        }
+    }
+
+    private EpubAnalysis finishAnalysis(
+        java.util.ArrayList<EpubIssue> issues,
+        EpubAnalysis analysis
+    ) {
+        return new EpubAnalysis(
+            resolveStatus(issues),
+            issues,
+            analysis.opfPath,
+            analysis.opfDir,
+            analysis.opfDocument,
+            analysis.manifestItems,
+            analysis.spineItems,
+            analysis.mimetypeMissing,
+            analysis.mimetypeInvalid
+        );
+    }
+
+    private java.util.ArrayList<ParsedManifestItem> parseManifestItems(
+        List<FileHeader> headers,
+        Element manifestElement,
+        String opfDir
+    ) {
+        java.util.ArrayList<ParsedManifestItem> items = new java.util.ArrayList<>();
+        NodeList children = manifestElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            if (!(children.item(i) instanceof Element)) {
+                continue;
+            }
+            Element element = (Element) children.item(i);
+            if (!"item".equals(element.getLocalName())) {
+                continue;
+            }
+
+            String id = element.getAttribute("id").trim();
+            String href = element.getAttribute("href").trim();
+            String normalizedHref = normalizeRelativePath(href);
+            String resolvedPath = resolveRelativeZipPath(opfDir, href);
+            items.add(
+                new ParsedManifestItem(
+                    id,
+                    href,
+                    normalizedHref,
+                    resolvedPath,
+                    findHeader(headers, resolvedPath) != null,
+                    element
+                )
+            );
+        }
+        return items;
+    }
+
+    private java.util.ArrayList<ParsedSpineItem> parseSpineItems(
+        Element spineElement,
+        java.util.ArrayList<ParsedManifestItem> manifestItems
+    ) {
+        java.util.HashMap<String, ParsedManifestItem> manifestById = new java.util.HashMap<>();
+        for (ParsedManifestItem manifestItem : manifestItems) {
+            if (CompatStrings.isNotBlank(manifestItem.id)) {
+                manifestById.put(manifestItem.id, manifestItem);
+            }
+        }
+
+        java.util.ArrayList<ParsedSpineItem> items = new java.util.ArrayList<>();
+        NodeList children = spineElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            if (!(children.item(i) instanceof Element)) {
+                continue;
+            }
+            Element element = (Element) children.item(i);
+            if (!"itemref".equals(element.getLocalName())) {
+                continue;
+            }
+
+            String idref = element.getAttribute("idref").trim();
+            ParsedManifestItem manifestItem = CompatStrings.isNotBlank(idref)
+                ? manifestById.get(idref)
+                : null;
+            boolean valid = manifestItem != null && manifestItem.exists;
+            items.add(new ParsedSpineItem(idref, valid, element));
+        }
+        return items;
+    }
+
+    private void repairArchiveToOutput(
+        Path sourceZipPath,
+        Path outputZipPath,
+        EpubAnalysis analysis
+    ) throws Exception {
+        deleteIfExists(outputZipPath);
+
+        try (
+            ZipFile sourceZip = new ZipFile(sourceZipPath.toFile());
+            ZipFile outputZip = new ZipFile(outputZipPath.toFile())
+        ) {
+            List<FileHeader> headers = sourceZip.getFileHeaders();
+            if (headers == null || headers.isEmpty()) {
+                throw new IOException("Invalid EPUB: empty headers");
+            }
+
+            addTextEntry(outputZip, "mimetype", "application/epub+zip", true);
+
+            long totalBytes = totalProcessableBytes(headers);
+            long processedBytes = 0L;
+            for (FileHeader header : headers) {
+                if (header == null || header.isDirectory()) {
+                    continue;
+                }
+
+                ensureNotCancelled();
+
+                String entryPath = normalizeZipPath(header.getFileName());
+                if ("mimetype".equals(entryPath)) {
+                    processedBytes += Math.max(1L, header.getUncompressedSize());
+                    emitProgress(interpolate(5, 95, processedBytes, totalBytes));
+                    continue;
+                }
+
+                ZipParameters parameters = buildParametersFromHeader(header, entryPath, null);
+                if (analysis.opfPath != null && analysis.opfPath.equals(entryPath) && analysis.opfDocument != null) {
+                    String repairedOpf = rewritePackageDocument(analysis);
+                    byte[] repairedBytes = repairedOpf.getBytes(StandardCharsets.UTF_8);
+                    parameters = buildParametersFromBytes(header, entryPath, repairedBytes);
+                    try (InputStream entryInput = new ByteArrayInputStream(repairedBytes)) {
+                        outputZip.addStream(entryInput, parameters);
+                    }
+                } else {
+                    try (InputStream entryInput = new BufferedInputStream(sourceZip.getInputStream(header))) {
+                        outputZip.addStream(entryInput, parameters);
+                    }
+                }
+
+                processedBytes += Math.max(1L, header.getUncompressedSize());
+                emitProgress(interpolate(5, 95, processedBytes, totalBytes));
+            }
+        }
+    }
+
+    private String rewritePackageDocument(EpubAnalysis analysis) throws Exception {
+        Document document = analysis.opfDocument;
+        Element manifestElement = firstElementByName(document, "manifest");
+        Element spineElement = firstElementByName(document, "spine");
+
+        if (manifestElement != null) {
+            for (ParsedManifestItem manifestItem : analysis.manifestItems) {
+                if (!manifestItem.exists) {
+                    if (manifestItem.element.getParentNode() != null) {
+                        manifestItem.element.getParentNode().removeChild(manifestItem.element);
+                    }
+                    continue;
+                }
+
+                if (!manifestItem.normalizedHref.equals(manifestItem.href)) {
+                    manifestItem.element.setAttribute("href", manifestItem.normalizedHref);
+                }
+            }
+        }
+
+        if (spineElement != null) {
+            java.util.HashSet<String> validIds = new java.util.HashSet<>();
+            for (ParsedManifestItem manifestItem : analysis.manifestItems) {
+                if (manifestItem.exists && CompatStrings.isNotBlank(manifestItem.id)) {
+                    validIds.add(manifestItem.id);
+                }
+            }
+
+            for (ParsedSpineItem spineItem : analysis.spineItems) {
+                if (!spineItem.valid || !validIds.contains(spineItem.idref)) {
+                    if (spineItem.element.getParentNode() != null) {
+                        spineItem.element.getParentNode().removeChild(spineItem.element);
+                    }
+                }
+            }
+        }
+
+        return serializeXml(document);
+    }
+
+    private JSArray toIssueArray(java.util.ArrayList<EpubIssue> issues) {
+        JSArray array = new JSArray();
+        for (EpubIssue issue : issues) {
+            JSObject item = new JSObject();
+            item.put("code", issue.code);
+            item.put("severity", issue.severity);
+            item.put("fixable", issue.fixable);
+            item.put("messageKey", issue.messageKey);
+            if (CompatStrings.isNotBlank(issue.details)) {
+                item.put("details", issue.details);
+            }
+            array.put(item);
+        }
+        return array;
+    }
+
+    private String readZipText(ZipFile zipFile, String path) throws IOException {
+        try {
+            List<FileHeader> headers = zipFile.getFileHeaders();
+            FileHeader header = findHeader(headers, path);
+            if (header == null) {
+                return null;
+            }
+
+            return new String(readEntryBytes(zipFile, header), StandardCharsets.UTF_8);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private String normalizeRelativePath(String path) {
+        if (path == null) {
+            return "";
+        }
+
+        String[] pathParts = path.split("[?#]", 2);
+        return normalizeZipPath(pathParts.length > 0 ? pathParts[0] : path);
+    }
+
+    private java.util.ArrayList<String> buildRepairedIssues(EpubAnalysis analysis) {
+        java.util.LinkedHashSet<String> repairedIssues = new java.util.LinkedHashSet<>();
+        for (EpubIssue issue : analysis.issues) {
+            if (issue.fixable) {
+                repairedIssues.add(issue.code);
+            }
+        }
+        return new java.util.ArrayList<>(repairedIssues);
+    }
+
+    private String buildExportFileName(String workingFileName, String requestedName) {
+        String candidate = CompatStrings.isNotBlank(requestedName)
+            ? requestedName.trim()
+            : stripExtension(workingFileName) + "_fixed.epub";
+        if (!candidate.toLowerCase(Locale.US).endsWith(".epub")) {
+            candidate = candidate + ".epub";
+        }
+
+        String safe = candidate.replaceAll("[/\\\\:*?\"<>|]", "_").replaceAll("[\\x00-\\x1f\\x7f]", "_").trim();
+        if (safe.isEmpty()) {
+            safe = stripExtension(workingFileName) + "_fixed.epub";
+        }
+        return safe;
+    }
+
+    private Path resolveSessionWorkingPath(String sessionId) throws IOException {
+        Path sessionDir = resolveSessionDir(sessionId);
+        if (!Files.isDirectory(sessionDir)) {
+            throw new IOException("Session not found");
+        }
+
+        try (Stream<Path> stream = Files.list(sessionDir)) {
+            Path candidate = stream
+                .filter(Files::isRegularFile)
+                .filter(path -> {
+                    String name = path.getFileName().toString().toLowerCase(Locale.US);
+                    return name.endsWith(".epub")
+                        && !name.endsWith(".tmp")
+                        && !name.endsWith(".bak")
+                        && !name.endsWith("_fixed.epub")
+                        && !name.endsWith("_output.epub");
+                })
+                .sorted(Comparator.comparing(path -> path.getFileName().toString()))
+                .findFirst()
+                .orElse(null);
+
+            if (candidate != null) {
+                return candidate;
+            }
+        }
+
+        try (Stream<Path> stream = Files.list(sessionDir)) {
+            return stream
+                .filter(Files::isRegularFile)
+                .filter(path -> path.getFileName().toString().toLowerCase(Locale.US).endsWith(".epub"))
+                .sorted(Comparator.comparing(path -> path.getFileName().toString()))
+                .findFirst()
+                .orElseThrow(() -> new IOException("Session not found"));
+        }
+    }
+
+    private EpubIssue issue(
+        String code,
+        String severity,
+        boolean fixable,
+        String details
+    ) {
+        return new EpubIssue(code, severity, fixable, "FIX.ISSUE_" + code, details);
+    }
+
+    private EpubIssue issue(
+        String code,
+        String severity,
+        boolean fixable
+    ) {
+        return issue(code, severity, fixable, null);
+    }
+
+    private boolean isBlockingIssue(String code) {
+        return "CONTAINER_MISSING".equals(code)
+            || "OPF_MISSING".equals(code)
+            || "SPINE_EMPTY".equals(code);
+    }
+
+    private EpubAnalysis finishAnalysis(
+        java.util.ArrayList<EpubIssue> issues,
+        EpubAnalysis analysis,
+        EpubIssue extraIssue
+    ) {
+        if (extraIssue != null) {
+            issues.add(extraIssue);
+        }
+        return finishAnalysis(issues, analysis);
+    }
+
+    private String resolveStatus(java.util.ArrayList<EpubIssue> issues) {
+        for (EpubIssue issue : issues) {
+            if ("ZIP_UNREADABLE".equals(issue.code)) {
+                return "failed";
+            }
+        }
+
+        for (EpubIssue issue : issues) {
+            if (isBlockingIssue(issue.code)) {
+                return "unsupported";
+            }
+        }
+
+        return issues.isEmpty() ? "valid" : "repairable";
     }
 
     private void prepareInternal(PluginCall call) throws Exception {
@@ -2257,6 +2905,99 @@ public class EpubRewritePlugin extends Plugin {
     @FunctionalInterface
     private interface PluginWork {
         void run(PluginCall call) throws Exception;
+    }
+
+    private static final class EpubIssue {
+        final String code;
+        final String severity;
+        final boolean fixable;
+        final String messageKey;
+        final String details;
+
+        EpubIssue(
+            String code,
+            String severity,
+            boolean fixable,
+            String messageKey,
+            String details
+        ) {
+            this.code = code;
+            this.severity = severity;
+            this.fixable = fixable;
+            this.messageKey = messageKey;
+            this.details = details;
+        }
+    }
+
+    private static final class ParsedManifestItem {
+        final String id;
+        final String href;
+        final String normalizedHref;
+        final String resolvedPath;
+        final boolean exists;
+        final Element element;
+
+        ParsedManifestItem(
+            String id,
+            String href,
+            String normalizedHref,
+            String resolvedPath,
+            boolean exists,
+            Element element
+        ) {
+            this.id = id;
+            this.href = href;
+            this.normalizedHref = normalizedHref;
+            this.resolvedPath = resolvedPath;
+            this.exists = exists;
+            this.element = element;
+        }
+    }
+
+    private static final class ParsedSpineItem {
+        final String idref;
+        final boolean valid;
+        final Element element;
+
+        ParsedSpineItem(String idref, boolean valid, Element element) {
+            this.idref = idref;
+            this.valid = valid;
+            this.element = element;
+        }
+    }
+
+    private static final class EpubAnalysis {
+        final String status;
+        final java.util.ArrayList<EpubIssue> issues;
+        final String opfPath;
+        final String opfDir;
+        final Document opfDocument;
+        final java.util.ArrayList<ParsedManifestItem> manifestItems;
+        final java.util.ArrayList<ParsedSpineItem> spineItems;
+        final boolean mimetypeMissing;
+        final boolean mimetypeInvalid;
+
+        EpubAnalysis(
+            String status,
+            java.util.ArrayList<EpubIssue> issues,
+            String opfPath,
+            String opfDir,
+            Document opfDocument,
+            java.util.ArrayList<ParsedManifestItem> manifestItems,
+            java.util.ArrayList<ParsedSpineItem> spineItems,
+            boolean mimetypeMissing,
+            boolean mimetypeInvalid
+        ) {
+            this.status = status;
+            this.issues = issues;
+            this.opfPath = opfPath;
+            this.opfDir = opfDir;
+            this.opfDocument = opfDocument;
+            this.manifestItems = manifestItems;
+            this.spineItems = spineItems;
+            this.mimetypeMissing = mimetypeMissing;
+            this.mimetypeInvalid = mimetypeInvalid;
+        }
     }
 
     private static final class SourceMeta {

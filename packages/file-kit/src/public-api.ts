@@ -31,6 +31,7 @@ export {
   type PrepareEpubInput,
 } from './lib/epub-fixer.port';
 export * from './lib/epub-fixer-native.service';
+export * from './lib/adapters/native-epub-fixer.adapter';
 export * from "./lib/epub-cover-metadata";
 export * from "./lib/epub-cover-generator";
 export * from './lib/epub-public-store';

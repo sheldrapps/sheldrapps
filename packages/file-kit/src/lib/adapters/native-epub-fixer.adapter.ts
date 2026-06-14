@@ -37,18 +37,18 @@ export class NativeEpubFixerAdapter implements EpubFixerPort {
   }
 
   diagnose(_input: { sessionId: string }): Promise<EpubDiagnosticResult> {
-    throw new EpubFixerPortError('NATIVE_DIAGNOSE_UNAVAILABLE');
+    return this.native.diagnose(_input.sessionId);
   }
 
   repair(_input: { sessionId: string }): Promise<EpubRepairResult> {
-    throw new EpubFixerPortError('NATIVE_REPAIR_UNAVAILABLE');
+    return this.native.repair(_input.sessionId);
   }
 
   exportFixed(_input: {
     sessionId: string;
     outputName?: string;
   }): Promise<EpubExportResult> {
-    throw new EpubFixerPortError('NATIVE_EXPORT_UNAVAILABLE');
+    return this.native.exportFixed(_input.sessionId, _input.outputName);
   }
 
   cleanup(input: { sessionId: string }): Promise<void> {

@@ -4,10 +4,7 @@ import {
   provideIonicAngular,
   IonicRouteStrategy,
 } from '@ionic/angular/standalone';
-import {
-  MemoryStorageAdapter,
-  provideI18nKit,
-} from '@sheldrapps/i18n-kit';
+import { MemoryStorageAdapter, provideI18nKit } from '@sheldrapps/i18n-kit';
 import {
   CapacitorPreferencesAdapter,
   CompositeStorageAdapter,
@@ -22,13 +19,12 @@ import { environment } from './environments/environment';
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
 import { EPUB_FIXER_SETTINGS_SCHEMA } from './app/settings/epub-fixer-settings.schema';
-import type { EnvironmentProviders, Provider } from '@angular/core';
 
 const EPUB_FIXER_SETTINGS_STORAGE_KEY = 'epub-fixer.settings';
 const EPUB_FIXER_PACKAGE_ID = 'com.sheldrapps.epubfixer';
 
 async function bootstrap(): Promise<void> {
-  const providers: Array<EnvironmentProviders | Provider> = [
+  const providers = [
     provideIonicAngular(),
     provideRouter(routes),
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
@@ -72,20 +68,12 @@ async function bootstrap(): Promise<void> {
     provideFileKit({
       enableWebDevAdapters: environment.enableWebDevAdapters,
     }),
+    ...provideEpubFixerPort(),
     {
       provide: RECOMMENDED_APPS_CURRENT_PACKAGE,
       useValue: EPUB_FIXER_PACKAGE_ID,
     },
   ];
-
-  if (environment.enableWebDevAdapters) {
-    const { provideWebDevEpubFixerPort } = await import(
-      './app/providers/epub-fixer-web.providers'
-    );
-    providers.push(...provideWebDevEpubFixerPort());
-  } else {
-    providers.push(...provideEpubFixerPort());
-  }
 
   await bootstrapApplication(AppComponent, { providers });
 }

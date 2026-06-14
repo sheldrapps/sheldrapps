@@ -17,6 +17,29 @@ type InspectEpubResult = {
   availableBytes?: number;
 };
 
+type DiagnoseEpubResult = {
+  success: boolean;
+  status?: 'valid' | 'repairable' | 'unsupported' | 'failed';
+  issues?: Array<{
+    code:
+      | 'MIMETYPE_MISSING'
+      | 'MIMETYPE_INVALID'
+      | 'CONTAINER_MISSING'
+      | 'OPF_MISSING'
+      | 'MANIFEST_ITEM_MISSING'
+      | 'SPINE_EMPTY'
+      | 'SPINE_ITEM_INVALID'
+      | 'ZIP_UNREADABLE';
+    severity: 'info' | 'warning' | 'error';
+    fixable: boolean;
+    messageKey: string;
+    details?: string;
+  }>;
+  error?: string;
+  message?: string;
+  stage?: string;
+};
+
 export type PrepareEpubOptions = {
   uri: string;
   displayName?: string;
@@ -68,10 +91,45 @@ type RewriteCoverResult = {
   availableBytes?: number;
 };
 
+type RepairEpubResult = {
+  success: boolean;
+  repairedIssues?: string[];
+  outputPath?: string;
+  error?: string;
+  message?: string;
+  stage?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
+};
+
+type ExportFixedEpubResult = {
+  success: boolean;
+  outputUri?: string;
+  size?: number;
+  error?: string;
+  message?: string;
+  stage?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
+};
+
 type ExtractCoverAssetOptions = {
   epubPath: string;
   preferCoverEntryPath?: string;
   maxBytes?: number;
+};
+
+type OpenExternalFileOptions = {
+  inputPath: string;
+  mimeType?: string;
+  chooserTitle?: string;
+};
+
+type OpenExternalFileResult = {
+  success: boolean;
+  error?: string;
+  message?: string;
+  stage?: string;
 };
 
 type ExtractCoverAssetResult = {
@@ -120,6 +178,16 @@ type RewriteProgressEvent = {
 };
 
 type EpubRewritePlugin = Plugin & {
+  openExternalFile(options: {
+    inputPath: string;
+    mimeType?: string;
+    chooserTitle?: string;
+  }): Promise<{
+    success: boolean;
+    error?: string;
+    message?: string;
+    stage?: string;
+  }>;
   prepare(options: PrepareEpubOptions): Promise<{
     success: boolean;
     sessionId?: string;
@@ -140,6 +208,12 @@ type EpubRewritePlugin = Plugin & {
     options: PickAndPrepareEpubOptions,
   ): Promise<PickAndPrepareEpubResult>;
   inspectEpub(options: { inputPath: string }): Promise<InspectEpubResult>;
+  diagnoseEpub(options: { sessionId: string }): Promise<DiagnoseEpubResult>;
+  repairEpub(options: { sessionId: string }): Promise<RepairEpubResult>;
+  exportFixed(options: {
+    sessionId: string;
+    outputName?: string;
+  }): Promise<ExportFixedEpubResult>;
   rewriteCover(options: RewriteCoverOptions): Promise<RewriteCoverResult>;
   createEpubFromCover(
     options: CreateEpubFromCoverOptions,
@@ -147,6 +221,9 @@ type EpubRewritePlugin = Plugin & {
   extractCoverAsset(
     options: ExtractCoverAssetOptions,
   ): Promise<ExtractCoverAssetResult>;
+  openExternalFile(
+    options: OpenExternalFileOptions,
+  ): Promise<OpenExternalFileResult>;
   cleanup(options: { sessionId: string }): Promise<void>;
   cancelRewrite(): Promise<{ cancelled: boolean }>;
 };
@@ -182,6 +259,20 @@ export class EpubRewriteService {
     listener: (event: RewriteProgressEvent) => void,
   ): Promise<PluginListenerHandle> {
     return EpubRewrite.addListener('rewriteProgress', listener);
+  }
+
+  async openExternalFile(options: {
+    inputPath: string;
+    mimeType?: string;
+    chooserTitle?: string;
+  }): Promise<void> {
+    const result = await EpubRewrite.openExternalFile(options);
+    if (!result.success) {
+      throw new EpubRewriteError(result.error ?? 'OPEN_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
   }
 
   async prepare(options: PrepareEpubOptions): Promise<PrepareEpubResult> {
@@ -254,6 +345,66 @@ export class EpubRewriteService {
 
   async inspectEpub(inputPath: string): Promise<InspectEpubResult> {
     return EpubRewrite.inspectEpub({ inputPath });
+  }
+
+  async diagnose(sessionId: string): Promise<{
+    sessionId: string;
+    status: 'valid' | 'repairable' | 'unsupported' | 'failed';
+    issues: NonNullable<DiagnoseEpubResult['issues']>;
+  }> {
+    const result = await EpubRewrite.diagnoseEpub({ sessionId });
+    if (!result.success || !result.status || !result.issues) {
+      throw new EpubRewriteError(result.error ?? 'DIAGNOSE_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+
+    return {
+      sessionId,
+      status: result.status,
+      issues: result.issues,
+    };
+  }
+
+  async repair(sessionId: string): Promise<{
+    success: boolean;
+    repairedIssues: string[];
+  }> {
+    const result = await EpubRewrite.repairEpub({ sessionId });
+    if (!result.success) {
+      throw new EpubRewriteError(result.error ?? 'REPAIR_FAILED', {
+        message: result.message,
+        stage: result.stage,
+        requiredBytes: result.requiredBytes,
+        availableBytes: result.availableBytes,
+      });
+    }
+
+    return {
+      success: true,
+      repairedIssues: result.repairedIssues ?? [],
+    };
+  }
+
+  async exportFixed(
+    sessionId: string,
+    outputName?: string,
+  ): Promise<{ outputUri: string; size: number }> {
+    const result = await EpubRewrite.exportFixed({ sessionId, outputName });
+    if (!result.success || !result.outputUri || typeof result.size !== 'number') {
+      throw new EpubRewriteError(result.error ?? 'EXPORT_FAILED', {
+        message: result.message,
+        stage: result.stage,
+        requiredBytes: result.requiredBytes,
+        availableBytes: result.availableBytes,
+      });
+    }
+
+    return {
+      outputUri: result.outputUri,
+      size: result.size,
+    };
   }
 
   async createEpubFromCover(options: CreateEpubFromCoverOptions): Promise<void> {

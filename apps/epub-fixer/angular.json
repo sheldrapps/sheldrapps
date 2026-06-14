@@ -47,6 +47,7 @@
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss"],
             "scripts": [],
+            "allowedCommonJsDependencies": ["jszip"],
             "browser": "src/main.ts"
           },
           "configurations": {
@@ -67,6 +68,10 @@
                 {
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.prod.ts"
+                },
+                {
+                  "replace": "src/main.ts",
+                  "with": "src/main.native.ts"
                 }
               ],
               "outputHashing": "all"

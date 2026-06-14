@@ -111,14 +111,7 @@
       <section class="app-accent-surface fix-state-card">
         <div class="app-accent-card-body fix-state-card__body">
           <div class="fix-state-card__copy">
-            @if (!supportsFullWorkflow) {
-              <h2 class="fix-state-card__title">
-                {{ 'FIX.WORKFLOW_PENDING_TITLE' | translate }}
-              </h2>
-              <p class="app-supporting-text fix-state-card__body-text">
-                {{ 'FIX.WORKFLOW_PENDING_BODY' | translate }}
-              </p>
-            } @else if (viewState === 'diagnosing') {
+            @if (viewState === 'diagnosing') {
               <h2 class="fix-state-card__title">
                 {{ 'FIX.STATE_DIAGNOSING_TITLE' | translate }}
               </h2>
@@ -135,18 +128,16 @@
             }
           </div>
 
-          @if (supportsFullWorkflow) {
-            <div class="fix-state-card__actions">
-              <ion-button
-                class="app-btn"
-                expand="block"
-                [disabled]="!canDiagnose"
-                (click)="runDiagnosis()"
-              >
-                {{ 'FIX.ACTION_DIAGNOSE' | translate }}
-              </ion-button>
-            </div>
-          }
+          <div class="fix-state-card__actions">
+            <ion-button
+              class="app-btn"
+              expand="block"
+              [disabled]="!canDiagnose"
+              (click)="runDiagnosis()"
+            >
+              {{ 'FIX.ACTION_DIAGNOSE' | translate }}
+            </ion-button>
+          </div>
         </div>
       </section>
     }

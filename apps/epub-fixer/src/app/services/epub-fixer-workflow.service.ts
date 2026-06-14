@@ -29,7 +29,7 @@ export class EpubFixerWorkflowService {
   }
 
   supportsFullWorkflow(): boolean {
-    return this.port.environment === 'web-dev';
+    return true;
   }
 
   usesNativePicker(): boolean {

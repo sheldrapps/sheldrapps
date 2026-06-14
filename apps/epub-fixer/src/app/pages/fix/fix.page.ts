@@ -50,6 +50,7 @@ import {
 } from '@sheldrapps/recommended-apps';
 
 import { EpubFixerWorkflowService } from '../../services/epub-fixer-workflow.service';
+import { EpubLibraryService } from '../../services/epub-library.service';
 
 @Component({
   selector: 'app-fix-page',
@@ -76,6 +77,7 @@ import { EpubFixerWorkflowService } from '../../services/epub-fixer-workflow.ser
 })
 export class FixPage implements OnInit, OnDestroy {
   private readonly workflow = inject(EpubFixerWorkflowService);
+  private readonly library = inject(EpubLibraryService);
   private readonly recommendedAppsService = inject(RecommendedAppsService);
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
@@ -148,10 +150,6 @@ export class FixPage implements OnInit, OnDestroy {
     return this.workflow.isWebDevMode();
   }
 
-  get supportsFullWorkflow(): boolean {
-    return this.workflow.supportsFullWorkflow();
-  }
-
   get showLargeFileWarning(): boolean {
     return this.workflow.shouldWarnForLargeWebFile(this.sourceEpubMeta?.size);
   }
@@ -168,7 +166,6 @@ export class FixPage implements OnInit, OnDestroy {
     return (
       !!this.preparedSessionId &&
       !this.isBusy &&
-      this.supportsFullWorkflow &&
       this.viewState === 'prepared'
     );
   }
@@ -177,7 +174,6 @@ export class FixPage implements OnInit, OnDestroy {
     return (
       !!this.preparedSessionId &&
       !this.isBusy &&
-      this.supportsFullWorkflow &&
       this.viewState === 'diagnosed' &&
       this.diagnosis?.status === 'repairable'
     );
@@ -187,7 +183,6 @@ export class FixPage implements OnInit, OnDestroy {
     return (
       !!this.preparedSessionId &&
       !this.isBusy &&
-      this.supportsFullWorkflow &&
       (this.viewState === 'repaired' || this.diagnosis?.status === 'valid')
     );
   }
@@ -364,6 +359,11 @@ export class FixPage implements OnInit, OnDestroy {
     try {
       const outputName = this.workflow.buildFixedOutputName(this.selectedEpubName);
       const exported = await this.workflow.exportCurrentEpub(outputName);
+      try {
+        await this.library.saveExportedEpub(exported.outputUri, outputName);
+      } catch (saveError) {
+        console.warn('[epub-fixer] save exported epub failed', saveError);
+      }
       this.exportResult = {
         size: exported.size,
         outputName,

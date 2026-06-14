@@ -1,9 +1,7 @@
-import { inject, Injectable, InjectionToken, Provider } from '@angular/core';
-import { Capacitor } from '@capacitor/core';
+import { inject, Injectable, InjectionToken } from '@angular/core';
+import type { Provider } from '@angular/core';
 
 import { NativeEpubFixerAdapter } from './adapters/native-epub-fixer.adapter';
-import { WebDevEpubFixerAdapter } from './adapters/web-dev-epub-fixer.adapter';
-import { FILE_KIT_CONFIG_TOKEN, FileKitConfig } from "./provider-tokens";
 
 export type EpubFixerEnvironment = 'native' | 'web-dev';
 
@@ -98,44 +96,12 @@ export const EPUB_FIXER_PORT = new InjectionToken<EpubFixerPort>(
   'EPUB_FIXER_PORT',
 );
 
-@Injectable({ providedIn: "root" })
-class EpubFixerPortFactory {
-  private readonly nativeAdapter = inject(NativeEpubFixerAdapter);
-  private readonly webAdapter = inject(WebDevEpubFixerAdapter, {
-    optional: true,
-  });
-  private readonly config = inject(FILE_KIT_CONFIG_TOKEN, { optional: true });
-
-  create(): EpubFixerPort {
-    // If web dev adapters are disabled or unavailable, must use native
-    if (!this.config?.enableWebDevAdapters || !this.webAdapter) {
-      return this.nativeAdapter;
-    }
-
-    return Capacitor.isNativePlatform() ? this.nativeAdapter : this.webAdapter;
-  }
-}
-
 export function provideEpubFixerPort(): Provider[] {
   return [
     NativeEpubFixerAdapter,
-    // WebDevEpubFixerAdapter is provided conditionally by file-kit config
-    {
-      provide: WebDevEpubFixerAdapter,
-      useFactory: () => {
-        const config = inject(FILE_KIT_CONFIG_TOKEN, { optional: true });
-        // If web dev adapters are disabled, return null
-        // This allows tree-shaking of jszip from the bundle
-        if (!config || config.enableWebDevAdapters === false) {
-          return null;
-        }
-        return new WebDevEpubFixerAdapter();
-      },
-    },
-    EpubFixerPortFactory,
     {
       provide: EPUB_FIXER_PORT,
-      useFactory: () => inject(EpubFixerPortFactory).create(),
+      useFactory: () => inject(NativeEpubFixerAdapter),
     },
   ];
 }

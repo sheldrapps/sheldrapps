@@ -4,19 +4,43 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="my-epubs-page ion-padding">
-  <ion-list inset="true">
-    <ion-item>
-      <ion-label class="ion-text-wrap">
-        <h2>{{ 'MY_EPUBS.EMPTY_TITLE' | translate }}</h2>
-        <p>{{ 'MY_EPUBS.EMPTY_BODY' | translate }}</p>
-      </ion-label>
-    </ion-item>
-  </ion-list>
+<ion-content
+  class="ion-padding"
+  [scrollEvents]="true"
+  (ionScrollStart)="onListScrollStart()"
+  (ionScrollEnd)="onListScrollEnd()"
+>
+  <sh-cover-list-content
+    #listContent
+    [items]="items"
+    [loading]="loading"
+    [pageErrorKey]="pageErrorKey"
+    [pageErrorParams]="pageErrorParams"
+    [emptyKey]="'MY_EPUBS.EMPTY'"
+    [placeholderKey]="'MY_EPUBS.PLACEHOLDER'"
+    [showFileName]="true"
+    [filenameFormatter]="displayFilename"
+    [actions]="listActions"
+    thumbAlt="epub cover"
+    (refreshRequested)="load($event)"
+    (itemClick)="onListItemClick($event)"
+    (actionClick)="onListAction($event)"
+  ></sh-cover-list-content>
 
-  <div class="my-epubs-page__actions">
-    <ion-button class="app-btn" expand="block" [routerLink]="['/tabs/fix']">
-      {{ 'MY_EPUBS.GO_TO_FIXER' | translate }}
-    </ion-button>
-  </div>
+  <sh-cover-preview-modal
+    [isOpen]="previewOpen"
+    [titleKey]="'MY_EPUBS.PREVIEW_TITLE'"
+    [imageDataUrl]="previewDataUrl"
+    [isDithered]="previewIsDithered"
+    [loading]="previewLoading"
+    [gettingCover]="previewGettingCover"
+    [gettingCoverTextKey]="'MY_EPUBS.GETTING_COVER'"
+    [loadingTextKey]="'MY_EPUBS.LOADING_PREVIEW'"
+    [headerActions]="previewHeaderActions"
+    [footerActions]="previewFooterActions"
+    [metadata]="previewMetadata"
+    [unavailableConfig]="previewUnavailableConfig"
+    (dismissed)="closePreview()"
+    (actionClick)="onPreviewAction($event)"
+  ></sh-cover-preview-modal>
 </ion-content>

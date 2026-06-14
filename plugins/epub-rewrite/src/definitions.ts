@@ -38,6 +38,32 @@ export interface InspectEpubResult {
   availableBytes?: number;
 }
 
+export interface DiagnoseEpubResult {
+  success: boolean;
+  sessionId?: string;
+  status?: 'valid' | 'repairable' | 'unsupported' | 'failed';
+  issues?: Array<{
+    code:
+      | 'MIMETYPE_MISSING'
+      | 'MIMETYPE_INVALID'
+      | 'CONTAINER_MISSING'
+      | 'OPF_MISSING'
+      | 'MANIFEST_ITEM_MISSING'
+      | 'SPINE_EMPTY'
+      | 'SPINE_ITEM_INVALID'
+      | 'ZIP_UNREADABLE';
+    severity: 'info' | 'warning' | 'error';
+    fixable: boolean;
+    messageKey: string;
+    details?: string;
+  }>;
+  error?: string;
+  message?: string;
+  stage?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
+}
+
 export interface RewriteCoverOptions {
   inputPath: string;
   outputPath?: string;
@@ -93,6 +119,28 @@ export interface CreateEpubFromCoverResult {
   availableBytes?: number;
 }
 
+export interface RepairEpubResult {
+  success: boolean;
+  repairedIssues?: string[];
+  outputPath?: string;
+  error?: string;
+  message?: string;
+  stage?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
+}
+
+export interface ExportFixedResult {
+  success: boolean;
+  outputUri?: string;
+  size?: number;
+  error?: string;
+  message?: string;
+  stage?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
+}
+
 export interface RewriteProgressEvent {
   percent: number;
 }
@@ -131,11 +179,27 @@ export interface CancelRewriteResult {
 }
 
 export interface EpubRewritePlugin extends Plugin {
+  openExternalFile(options: {
+    inputPath: string;
+    mimeType?: string;
+    chooserTitle?: string;
+  }): Promise<{
+    success: boolean;
+    error?: string;
+    message?: string;
+    stage?: string;
+  }>;
   prepare(options: PrepareEpubOptions): Promise<PrepareEpubResult>;
   pickAndPrepareEpub(
     options: PickAndPrepareEpubOptions,
   ): Promise<PickAndPrepareEpubResult>;
   inspectEpub(options: InspectEpubOptions): Promise<InspectEpubResult>;
+  diagnoseEpub(options: { sessionId: string }): Promise<DiagnoseEpubResult>;
+  repairEpub(options: { sessionId: string }): Promise<RepairEpubResult>;
+  exportFixed(options: {
+    sessionId: string;
+    outputName?: string;
+  }): Promise<ExportFixedResult>;
   rewriteCover(options: RewriteCoverOptions): Promise<RewriteCoverResult>;
   extractCoverAsset(
     options: ExtractCoverAssetOptions,

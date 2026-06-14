@@ -15,8 +15,7 @@
     var(--agenda-time-col-width)
     var(--agenda-divider-col-width)
     minmax(0, 1fr);
-  row-gap: 0;
-  column-gap: 0;
+  gap: 0;
   isolation: isolate;
 }
 
@@ -40,7 +39,6 @@
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: inherit;
-  column-gap: 0;
 }
 
 .agenda-day-timeline__boundary-row {
@@ -74,14 +72,12 @@
 
 .agenda-day-timeline__time-label {
   display: block;
-  min-width: 100%;
 }
 
 .agenda-day-timeline__ruler {
   grid-column: 2 / -1;
   display: flex;
   align-self: center;
-  align-items: center;
   height: 1px;
   z-index: 2;
 }
@@ -97,7 +93,6 @@
   --agenda-body-row-height: 32px;
 
   min-height: var(--agenda-body-row-height);
-  align-items: stretch;
   position: relative;
   z-index: 1;
 }
@@ -111,20 +106,17 @@
   grid-column: 2;
   display: flex;
   justify-content: center;
-  align-items: stretch;
 }
 
 .agenda-day-timeline__divider-line {
   width: 1px;
   height: 100%;
-  background: transparent;
 }
 
 .agenda-day-timeline__content {
   grid-column: 3;
   min-height: var(--agenda-body-row-height);
   display: flex;
-  align-items: stretch;
   padding-left: var(--agenda-content-gap);
 }
 
@@ -133,7 +125,6 @@
   min-height: var(--agenda-body-row-height);
   display: grid;
   grid-template-columns: repeat(var(--agenda-event-columns, 1), minmax(0, 1fr));
-  align-items: stretch;
   gap: var(--app-space-1);
   min-width: 0;
 }
@@ -145,7 +136,6 @@
 .agenda-day-timeline__body {
   width: 100%;
   min-height: var(--agenda-body-row-height);
-  height: 100%;
   display: flex;
   align-items: center;
   margin: 0;
@@ -156,12 +146,7 @@
 }
 
 .agenda-day-timeline__body--event {
-  justify-content: flex-start;
   border-left: 3px solid var(--app-accent-border-color, var(--app-accent-border-fallback));
-}
-
-.agenda-day-timeline__body--empty {
-  justify-content: flex-start;
 }
 
 .agenda-day-timeline__empty-content {
@@ -193,8 +178,6 @@
 .agenda-day-timeline__empty-divider {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  vertical-align: middle;
   color: var(--app-accent-border-color, var(--app-task-accent-border-color, var(--app-accent-border-fallback))) !important;
   font-size: 0.9rem;
   font-weight: 900;

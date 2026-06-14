@@ -12,7 +12,10 @@
     "BACK_AGAIN_TO_EXIT": "Go back again to exit",
     "CANCEL": "Cancel",
     "DONE": "Done",
+    "CLOSE": "Close",
     "ERROR": "Error",
+    "DELETE": "Delete",
+    "SHARE": "Share",
     "LOADING": "Loading"
   },
   "FIX": {
@@ -90,9 +93,25 @@
   },
   "MY_EPUBS": {
     "TITLE": "My EPUBs",
-    "EMPTY_TITLE": "No EPUBs yet",
-    "EMPTY_BODY": "Your repaired or imported files will appear here once the fixer workflow is connected.",
-    "GO_TO_FIXER": "Go to fixer"
+    "EMPTY": "No EPUBs yet",
+    "PLACEHOLDER": "EPUB",
+    "PREVIEW_TITLE": "EPUB preview",
+    "PREVIEW_UNAVAILABLE": "No preview available",
+    "REGENERATE_PREVIEW": "Regenerate preview",
+    "GETTING_COVER": "Extracting cover",
+    "LOADING_PREVIEW": "Loading preview",
+    "ACTION_OPEN": "Open EPUB",
+    "ACTION_EDIT": "Edit EPUB",
+    "ACTION_SHARE": "Share EPUB",
+    "ACTION_DELETE": "Delete EPUB",
+    "DELETE_TITLE": "Delete EPUB?",
+    "DELETE_MESSAGE": "This EPUB will be removed from My EPUBs.",
+    "DELETED": "EPUB deleted",
+    "ERROR.LOAD": "Could not load your EPUB library.",
+    "ERROR.PREVIEW": "Could not load the preview.",
+    "ERROR.OPEN": "Could not open the EPUB.",
+    "ERROR.SHARE": "Could not share the EPUB.",
+    "ERROR.DELETE": "Could not delete the EPUB."
   },
   "INSTRUCTIONS": {
     "TITLE": "Instructions",

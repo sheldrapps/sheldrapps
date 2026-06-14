@@ -13,7 +13,10 @@
     "CANCEL": "Cancelar",
     "DONE": "Listo",
     "ERROR": "Error",
-    "LOADING": "Cargando"
+    "LOADING": "Cargando",
+    "CLOSE": "Cerrar",
+    "DELETE": "Eliminar",
+    "SHARE": "Compartir"
   },
   "FIX": {
     "TITLE": "Reparar",
@@ -92,7 +95,26 @@
     "TITLE": "Mis EPUBs",
     "EMPTY_TITLE": "Todavía no hay EPUBs",
     "EMPTY_BODY": "Tus archivos reparados o importados aparecerán aquí cuando el flujo del fixer esté conectado.",
-    "GO_TO_FIXER": "Ir al fixer"
+    "GO_TO_FIXER": "Ir al fixer",
+    "EMPTY": "Todav?a no hay EPUBs",
+    "PLACEHOLDER": "EPUB",
+    "PREVIEW_TITLE": "Vista previa del EPUB",
+    "PREVIEW_UNAVAILABLE": "No hay vista previa disponible",
+    "REGENERATE_PREVIEW": "Regenerar vista previa",
+    "GETTING_COVER": "Extrayendo portada",
+    "LOADING_PREVIEW": "Cargando vista previa",
+    "ACTION_OPEN": "Abrir EPUB",
+    "ACTION_EDIT": "Editar EPUB",
+    "ACTION_SHARE": "Compartir EPUB",
+    "ACTION_DELETE": "Eliminar EPUB",
+    "DELETE_TITLE": "?Eliminar EPUB?",
+    "DELETE_MESSAGE": "Este EPUB se eliminar? de Mis EPUBs.",
+    "DELETED": "EPUB eliminado",
+    "ERROR.LOAD": "No se pudo cargar tu biblioteca de EPUBs.",
+    "ERROR.PREVIEW": "No se pudo cargar la vista previa.",
+    "ERROR.OPEN": "No se pudo abrir el EPUB.",
+    "ERROR.SHARE": "No se pudo compartir el EPUB.",
+    "ERROR.DELETE": "No se pudo eliminar el EPUB."
   },
   "INSTRUCTIONS": {
     "TITLE": "Instrucciones",
