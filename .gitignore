@@ -27,6 +27,11 @@ apps/*/platforms/
 apps/*/plugins/
 
 # =============================
+# Play Store screenshot raws
+# =============================
+tools/playstore/raw/
+
+# =============================
 # Capacitor / Android
 # =============================
 android/.gradle/

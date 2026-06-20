@@ -152,7 +152,7 @@ subline color:
 #F0D2CC
 
 wrapper:
-before/after EPUB cover transformation composition
+two e-reader devices side by side
 
 fondo:
 
@@ -203,7 +203,7 @@ subline color:
 #F0D2CC
 
 wrapper:
-book-cover or e-reader mockup with clear before/after split
+single e-reader device showing the after state only
 
 fondo:
 
@@ -232,6 +232,12 @@ conversion intent:
 Open with the user’s pain point. The user should immediately understand: “posso corrigir essa capa rapidamente.”
 
 ## Screenshot 2
+
+raw screenshot handling:
+
+* Only replace the pattern inside the editor with an image input that our target user could use.
+* Do not add, remove, invent, or restyle anything else in the raw screenshot.
+* Keep the raw screenshot composition intact.
 
 titulo:
 ESCOLHA. AJUSTE. PRONTO.
@@ -279,6 +285,12 @@ Show that the workflow is simple: choose the EPUB, select an image, adjust it, a
 
 ## Screenshot 3
 
+raw screenshot handling:
+
+* Only replace the content of the simulated e-reader and the EPUB name.
+* Do not add, remove, invent, or restyle anything else in the raw screenshot.
+* Keep the raw screenshot composition intact.
+
 titulo:
 A CAPA DO SEU JEITO
 
@@ -321,6 +333,13 @@ Communicate that the user controls how the final EPUB cover will look before sav
 
 ## Screenshot 4
 
+raw screenshot handling:
+
+* Only replace the content of the EPUB card, the EPUB name, and the filename.
+* Use a public-domain book popular in the region.
+* Do not add, remove, invent, or restyle anything else in the raw screenshot.
+* Keep the raw screenshot composition intact.
+
 titulo:
 CONFIRA ANTES DE SALVAR
 
@@ -357,6 +376,12 @@ conversion intent:
 Reassure the user that they can check the result before saving the new EPUB copy.
 
 ## Screenshot 5
+
+raw screenshot handling:
+
+* Only replace the EPUB name and the thumbnail image.
+* Do not add, remove, invent, or restyle anything else in the raw screenshot.
+* Keep the raw screenshot composition intact.
 
 titulo:
 100% NO SEU DISPOSITIVO
@@ -400,6 +425,13 @@ conversion intent:
 Build trust by making local processing clear and visible without turning the screenshot into a technical explanation.
 
 ## Screenshot 6
+
+raw screenshot handling:
+
+* Only replace the content of the EPUB card, the EPUB name, and the filename.
+* Use a public-domain book popular in the region.
+* Do not add, remove, invent, or restyle anything else in the raw screenshot.
+* Keep the raw screenshot composition intact.
 
 titulo:
 SALVE UMA NOVA CÓPIA

@@ -1,0 +1,50 @@
+[33m>[39m Building...
+[32m√[39m Building...
+[1mInitial chunk files[22m          [2m | [22m[1mNames[22m            [2m | [22m [1mRaw size[22m
+[32mstyles.css[39m                   [2m | [22m[2mstyles[22m           [2m | [22m[36m401.84 kB[39m[2m | [22m
+[32mchunk-GWHKTQG4.js[39m            [2m | [22m[2m-[22m                [2m | [22m[36m353.65 kB[39m[2m | [22m
+[32mchunk-52HPWWMV.js[39m            [2m | [22m[2m-[22m                [2m | [22m[36m271.28 kB[39m[2m | [22m
+[32mchunk-ZB6UI33D.js[39m            [2m | [22m[2m-[22m                [2m | [22m[36m216.22 kB[39m[2m | [22m
+[32mchunk-63YZRQ7O.js[39m            [2m | [22m[2m-[22m                [2m | [22m[36m180.20 kB[39m[2m | [22m
+[32mchunk-P5DEQTTI.js[39m            [2m | [22m[2m-[22m                [2m | [22m[36m137.21 kB[39m[2m | [22m
+[32mchunk-H7RFAWCV.js[39m            [2m | [22m[2m-[22m                [2m | [22m [36m77.07 kB[39m[2m | [22m
+[32mmain.js[39m                      [2m | [22m[2mmain[22m             [2m | [22m [36m62.64 kB[39m[2m | [22m
+[32mchunk-LMCFGFJX.js[39m            [2m | [22m[2m-[22m                [2m | [22m [36m45.89 kB[39m[2m | [22m
+[32mchunk-4H3MUZLJ.js[39m            [2m | [22m[2m-[22m                [2m | [22m [36m36.15 kB[39m[2m | [22m
+[32mchunk-TPYQKYZK.js[39m            [2m | [22m[2m-[22m                [2m | [22m  [36m8.42 kB[39m[2m | [22m
+[32mchunk-53V3YZZD.js[39m            [2m | [22m[2m-[22m                [2m | [22m  [36m8.32 kB[39m[2m | [22m
+[32mchunk-5GDQBDFO.js[39m            [2m | [22m[2m-[22m                [2m | [22m  [36m8.16 kB[39m[2m | [22m
+[32mchunk-PIAPPY66.js[39m            [2m | [22m[2m-[22m                [2m | [22m  [36m1.64 kB[39m[2m | [22m
+[32mchunk-BQF5WRJB.js[39m            [2m | [22m[2m-[22m                [2m | [22m[36m311 bytes[39m[2m | [22m
+[32mpolyfills.js[39m                 [2m | [22m[2mpolyfills[22m        [2m | [22m[36m143 bytes[39m[2m | [22m
+
+[1m [22m                            [2m | [22m[1mInitial total[22m    [2m | [22m  [1m1.81 MB[22m
+
+[1mLazy chunk files[22m             [2m | [22m[1mNames[22m            [2m | [22m [1mRaw size[22m
+[32mchange.page-PHEHB2JW.js[39m      [2m | [22m[2mchange-page[22m      [2m | [22m[36m285.99 kB[39m[2m | [22m
+[32mmy-epubs.page-ULC4UUOU.js[39m    [2m | [22m[2mmy-epubs-page[22m    [2m | [22m [36m90.99 kB[39m[2m | [22m
+[32mchunk-GJB3BTTZ.js[39m            [2m | [22m[2m-[22m                [2m | [22m [36m83.18 kB[39m[2m | [22m
+[32msettings.page-3SXBGWVZ.js[39m    [2m | [22m[2msettings-page[22m    [2m | [22m [36m32.87 kB[39m[2m | [22m
+[32mchunk-I4WWWPGT.js[39m            [2m | [22m[2m-[22m                [2m | [22m [36m17.06 kB[39m[2m | [22m
+[32minstructions.page-B3UEHZXV.js[39m[2m | [22m[2minstructions-page[22m[2m | [22m  [36m9.51 kB[39m[2m | [22m
+[32mtheme.page-RDL3ROHG.js[39m       [2m | [22m[2mtheme-page[22m       [2m | [22m  [36m8.44 kB[39m[2m | [22m
+[32mdefault.page-2YSZRV2Y.js[39m     [2m | [22m[2mdefault-page[22m     [2m | [22m  [36m7.82 kB[39m[2m | [22m
+[32mtabs.routes-ETPL6WEP.js[39m      [2m | [22m[2mtabs-routes[22m      [2m | [22m  [36m7.38 kB[39m[2m | [22m
+[32mtext.page-GZ2IL2DN.js[39m        [2m | [22m[2mtext-page[22m        [2m | [22m  [36m6.53 kB[39m[2m | [22m
+[32mpublic-api-NJGUBFIF.js[39m       [2m | [22m[2mpublic-api[22m       [2m | [22m  [36m1.23 kB[39m[2m | [22m
+[32mpublic-api-3Y6EVNDS.js[39m       [2m | [22m[2mpublic-api[22m       [2m | [22m  [36m1.04 kB[39m[2m | [22m
+[32meditor-shell.page-KGQJUBCR.js[39m[2m | [22m[2meditor-shell-page[22m[2m | [22m[36m232 bytes[39m[2m | [22m
+[32madjustments.page-KO2SCRX5.js[39m [2m | [22m[2madjustments-page[22m [2m | [22m[36m231 bytes[39m[2m | [22m
+[32mtools.page-2U2RZPTF.js[39m       [2m | [22m[2mtools-page[22m       [2m | [22m[36m213 bytes[39m[2m | [22m
+[2m...and 1 more lazy chunks files. Use "--verbose" to show all the files.[22m
+
+Application bundle generation complete. [6.292 seconds] - 2026-06-17T18:41:31.221Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+[2m12:41:31 p.m.[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m Re-optimizing dependencies because lockfile has changed
+[2m12:41:31 p.m.[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because lockfile has changed
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m4200[22m/[39m
+undefined
+C:\apps\sheldrapps\apps\epub-cover-changer:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: ng serve --host 127.0.0.1 --port 4200 --no-open

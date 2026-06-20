@@ -1,133 +1,150 @@
-# PDF Cover Maker - es-MX Golden Play Store Listing
+# Creador de portadas PDF - es-MX Golden Play Store Listing
 
 ## Purpose
 
-Posicionar PDF Cover Maker para México como una app rápida, privada y visual para usuarios que quieren que sus PDFs se vean mejor, más ordenados y más fáciles de reconocer.
+Crear una ficha que comunique con claridad que la app permite crear o cambiar la portada de un archivo PDF, ajustar la imagen, revisar el resultado y guardar una copia nueva del documento.
 
-La ficha debe vender primero el resultado: crear una portada más bonita y útil para un PDF en segundos.
-
-Las funciones técnicas como seleccionar archivo, elegir imagen, ajustar encuadre, previsualizar y guardar copia deben aparecer después como prueba de confianza.
-
-La app debe sentirse como una herramienta enfocada para crear portadas PDF, no como un editor completo de PDF.
+La ficha debe sentirse directa, práctica, confiable y fácil de entender. El usuario debe captar de inmediato que puede mejorar un PDF que se ve simple, poco atractivo, desordenado o difícil de reconocer desde la primera página.
 
 ## App Name
 
 Current localized name from strings.xml/app.title:
-PDF Cover Maker
+Creador de portadas PDF
 
 Suggested localized name, if needed:
-PDF Cover Maker
+Crear portada PDF
 
 Character count:
-15
+23 for "Creador de portadas PDF"
+17 for "Crear portada PDF"
 
 Reasoning:
-El nombre es corto, claro y searchable. Mantiene los términos de alta intención “PDF” y “Cover” sin prometer edición completa de PDF, conversión, compresión, OCR, firmas ni administración avanzada de documentos. Para es-MX puede mantenerse en inglés porque suena más cercano a una herramienta utilitaria de Play Store y evita nombres largos que superarían el límite de 30 caracteres.
+“Creador de portadas PDF” es claro, natural y comunica la función principal. Está por debajo del límite de 30 caracteres e incluye los términos más relevantes para búsqueda: “portadas” y “PDF.”
+
+“Crear portada PDF” es más corto y directo, pero suena menos como nombre de app. La opción actual se conserva porque se entiende mejor como producto.
+
+Selected app name:
+Creador de portadas PDF
 
 ## Short Description
 
 Candidates:
-- SEO-first: Crea portadas para PDF en segundos
-- Conversion-first: Haz que tus PDFs se vean mejor
-- Balanced: Crea una mejor portada para tus PDFs
+
+* SEO-first: Crea y edita portadas PDF fácilmente
+* Conversion-first: Crea portadas PDF en segundos
+* Balanced: Crea portadas PDF sin subir archivos
 
 Selected text:
-Crea portadas para PDF en segundos
+Crea portadas PDF en segundos
 
 Character count:
-34
+29
 
 Reasoning:
-Es clara, directa y conserva “PDF” como keyword principal. Comunica el valor real de la app sin sonar como editor completo. También conecta con usuarios que quieren resolver rápido una portada fea, blanca o poco útil.
+Esta opción es directa, natural y fácil de entender. Vende el beneficio inmediato y mantiene la palabra clave principal: “portadas PDF.” Para es-MX funciona bien porque no suena técnica ni sobrecargada.
 
 ## Long Description
 
 Text:
-¿No te gusta cómo se ve la portada de un PDF?
+Crea una mejor portada para cualquier archivo PDF en segundos.
 
-PDF Cover Maker te ayuda a crear una portada más limpia, atractiva y útil para tus PDFs en pocos pasos. Selecciona tu archivo, elige una imagen, ajusta el encuadre y guarda una copia nueva con la portada que sí quieres ver.
+Selecciona tu PDF, elige una imagen y ajústala exactamente como quieres antes de guardar el resultado.
 
-Úsala cuando un PDF tiene una primera página en blanco, una miniatura fea, una portada escaneada, una vista previa genérica o simplemente una imagen que no representa bien el contenido.
+Con esta app puedes:
 
-Con PDF Cover Maker puedes:
+• Crear una nueva portada para tu PDF
+• Usar una imagen personalizada desde tu dispositivo
+• Recortar, ajustar y encuadrar la imagen
+• Revisar la vista previa antes de guardar
+• Guardar una copia nueva del archivo PDF
 
-- crear una nueva portada para tu PDF
-- elegir una imagen desde tu dispositivo
-- recortar, ampliar, rotar y ajustar el encuadre
-- revisar la vista previa antes de guardar
-- guardar una copia nueva sin modificar el archivo original
-- mantener el proceso simple, rápido y privado
-
-Todo se procesa 100% en tu dispositivo.
+Todo el proceso se realiza en tu dispositivo.
 Sin cuentas.
 Sin subir archivos.
-Sin procesamiento en la nube.
 
-PDF Cover Maker es útil para ebooks en PDF, apuntes, manuales, reportes, catálogos, guías digitales, documentos personales y cualquier archivo que necesite una mejor primera impresión.
+Ideal para usuarios que quieren que sus documentos se vean más limpios, profesionales y fáciles de reconocer. Úsala para mejorar PDFs personales, apuntes, guías, documentos de trabajo, materiales de estudio o archivos que necesitan una portada más clara.
 
-La idea es simple: tomar un PDF que se ve simple, desordenado o poco atractivo, y darle una portada más clara, bonita y fácil de reconocer.
-
-PDF Cover Maker no es un editor completo de PDF. Está diseñada para una tarea concreta: ayudarte a crear una mejor portada para tus PDFs de forma rápida y privada.
+La app se enfoca en una sola tarea: crear portadas PDF de forma rápida, privada y sencilla.
 
 Character count:
-1275
+785
 
 SEO/ASO notes:
-Incluye términos naturales como portada PDF, portadas para PDF, crear portada PDF, miniatura PDF, documentos PDF, recortar, vista previa, guardar copia, sin subir archivos y procesamiento local. Evita prometer funciones no soportadas como editar todas las páginas, OCR, comprimir, firmar, unir, dividir o convertir PDFs.
+Focus on natural Spanish search terms such as crear portada PDF, cambiar portada PDF, editar portada PDF, reemplazar portada PDF, portada para PDF, agregar portada a PDF, portada personalizada PDF, documento PDF, vista previa PDF, guardar copia PDF.
+
+Avoid claims around AI generation, OCR, PDF compression, PDF conversion, PDF signing, DRM removal, full PDF editing, cloud processing, templates, EPUB/MOBI support, Kindle screensavers, or official affiliation with document platforms.
 
 ## Market Angle Decision
 
 Market angle selected:
-Mejor presentación visual de PDFs con privacidad y simplicidad.
+Crear o cambiar portadas PDF rápido, con procesamiento local y guardado como copia nueva.
 
 Why this angle should convert in this locale:
-En México puede convertir bien porque muchos usuarios manejan PDFs de escuela, trabajo, manuales, ebooks, guías o documentos personales. La ficha debe hacer que el usuario piense rápido: “Ese PDF se ve feo o desordenado; con esta app puedo arreglar su portada sin complicarme.”
+Para es-MX, el mensaje debe ser claro y práctico. El usuario no necesita una explicación técnica sobre PDF; necesita ver que puede mejorar un documento que se ve simple o poco presentable.
 
-Primary visual desire:
-Ver un PDF simple, blanco o feo convertido en un documento con una portada clara, atractiva y fácil de reconocer.
+La promesa más fuerte es: “elige una imagen, ajusta la portada y guarda una copia nueva sin subir tus archivos.”
+
+Primary user desire:
+Crear una portada PDF más clara, atractiva o profesional usando una imagen elegida por el usuario.
 
 Secondary trust proof:
-Editor simple, vista previa antes de guardar, copia nueva, procesamiento local, sin cuentas y sin subir archivos.
+Procesamiento en el dispositivo, sin cuentas, sin subir archivos, vista previa antes de guardar y creación de una copia nueva.
 
 What should NOT be the first screenshot:
-Pantalla de permisos, selector de archivos, ajustes, explicación técnica de PDFs, editor vacío o lista de funciones sin mostrar el resultado visual.
-
-Feature-first risk:
-Si la ficha empieza hablando de archivos, permisos o detalles técnicos, puede sentirse fría. Primero debe mostrar la transformación visual: de PDF feo a PDF con portada útil.
+Ajustes, lista vacía de archivos, detalles técnicos del PDF, editor genérico de imágenes o una pantalla de privacidad sin mostrar primero la mejora visual.
 
 ## Regional Conversion Strategy
 
 Primary user desire:
-Hacer que sus PDFs se vean mejor, más ordenados, más personales y más fáciles de identificar.
+Mejorar PDFs para que se vean más limpios, ordenados, profesionales y fáciles de identificar.
 
 Best use cases to show:
-PDF con portada fea corregida, apuntes o guía de estudio, ebook en PDF, documento personal, biblioteca local más ordenada.
+
+* Reemplazar una primera página simple o poco atractiva
+* Agregar una portada clara a un PDF
+* Usar una imagen personalizada como portada nueva
+* Revisar la vista previa antes de guardar
+* Guardar una copia nueva del PDF
 
 What to avoid:
-Prometer edición completa de PDF, usar tono demasiado corporativo, mostrar solo pantallas técnicas, usar portadas con copyright, abusar de rojo intenso o mostrar documentos con texto pequeño ilegible.
+
+* Apariencia de editor de imágenes genérico
+* Señales de generador de portadas con IA
+* Promesas de editor completo de PDF
+* Lenguaje de nube o subida de archivos
+* Posicionamiento como escáner, lector u OCR
+* Implicaciones de DRM o conversión de archivos
+* Visuales de EPUB, ebooks o Kindle screensaver
 
 Search/ASO terms to include naturally:
-portada PDF, crear portada PDF, portadas para PDF, personalizar PDF, miniatura PDF, documentos PDF, recortar portada, vista previa, guardar copia, herramienta PDF sin subir archivos.
+crear portada PDF, cambiar portada PDF, editar portada PDF, reemplazar portada PDF, portada para PDF, agregar portada a PDF, portada personalizada PDF, documento PDF, guardar copia PDF
 
 ## Visual System
 
 Palette:
-- primary background: #151515
-- secondary background: #252525
-- accent: #B3261E
-- optional warm/cool accent: #E84C3D
-- headline color: #FFFFFF
-- subline color: #B8B8B8
+
+* primary background: #151515
+* secondary background: #252525
+* accent: #B3261E
+* optional support accent: #D4574F
+* headline color: #FFFFFF
+* subline color: #B8B8B8
+* bullet/support text color: #E2D2D0
+
+Reasoning:
+Para es-MX, la ficha debe sentirse sobria, práctica y visualmente ligada a PDF sin ser agresiva. La base oscura mantiene lectura y confianza, mientras que el rojo PDF funciona como acento reconocible.
+
+El acento rojo debe usarse como énfasis controlado: líneas finas, indicadores antes/después, pequeños puntos de confianza o luz sutil cerca de la portada final. No debe dominar el fondo ni competir con el texto.
 
 General visual rules:
-Usar un sistema visual oscuro, sobrio y práctico, con acentos rojos asociados a PDF. El rojo debe llamar la atención sin lastimar la vista. Mantener el área de texto sobre fondo oscuro estable. La ficha debe sentirse moderna, directa y confiable, no como una suite compleja de documentos.
+Mantener el área de texto oscura, mate y legible. La transformación debe ser protagonista: primera página débil o simple → portada PDF nueva más atractiva.
 
-Evitar fondos rojos intensos completos, brillos fuertes detrás del texto, miniaturas ilegibles, mockups sobrecargados o elementos visuales que parezcan app de oficina pesada.
+Evitar brillos fuertes detrás del texto, fondos demasiado rojos, paneles blancos detrás del copy, pilas de documentos saturadas, señales de IA, iconos de nube/subida, visuales de EPUB, visuales de Kindle o cualquier composición que parezca editor genérico de PDF.
 
 ## Feature Graphic
 
 titulo:
-CREA PORTADAS PARA PDF
+CREA MEJORES PORTADAS PDF
 
 subline:
 Elige una imagen, ajústala y guarda
@@ -139,36 +156,49 @@ subline color:
 #B8B8B8
 
 wrapper:
-composición gráfica con dispositivo + comparación antes/después
+composición gráfica con dispositivo + mockups PDF antes/después
 
 fondo:
-- dimension: 1024x500 px
-- base principal: #151515
-- secundario: #252525 usado como gradiente mate sutil
-- acento: #B3261E
-- ubicacion del acento: detrás del PDF mejorado en el lado derecho, intensidad baja
-- zona segura de copy: tercio izquierdo con fondo oscuro uniforme
-- textura permitida: grano sutil tipo papel o textura mate por debajo de 4%
-- elementos prohibidos: brillo rojo fuerte detrás del titular, paneles blancos bajo el texto, pilas de documentos recargadas, UI pequeña ilegible
+
+* dimension: 1024x500 px
+* base principal: #151515
+* secundario: #252525 used as subtle matte gradient
+* acento: #B3261E
+* optional support accent: #D4574F
+* ubicacion del acento: behind the “después” PDF mockup on the right side, low intensity
+* zona segura de copy: left third, uniform dark background
+* textura permitida: subtle paper or leather grain below 4%
+* elementos prohibidos: bright red glow behind headline, white panels behind text, busy document stacks, small unreadable UI, cloud/upload symbols, AI generation cues, EPUB visuals, Kindle-like device positioning
 
 imagen:
-composición antes/después. A la izquierda, mostrar un PDF simple, blanco, genérico o con portada poco atractiva. A la derecha, mostrar el mismo PDF representado con una portada personalizada y visualmente más limpia. La transformación debe entenderse en un vistazo. Evitar portadas de libros reales, marcas reconocibles o documentos con datos personales.
+Show a clear before/after PDF cover transformation.
+
+Before:
+A plain, ugly, missing, or weak PDF first page with minimal generic content.
+
+After:
+The same PDF represented with a polished custom cover image.
+
+Labels:
+Antes
+Después
 
 bullets:
-- Portadas PDF personalizadas
-- Vista previa antes de guardar
-- 100% en tu dispositivo
+
+* Portadas PDF personalizadas
+* En tu dispositivo
+* Guarda una copia nueva
 
 conversion intent:
-Comunicar en una sola imagen el valor completo: un PDF simple se convierte en un PDF con mejor portada, sin subir archivos ni usar un editor complicado.
+Make the app’s purpose clear in one glance: this app creates a better PDF cover quickly and privately.
 
 ## Screenshot 1
 
 titulo:
-¿NO TE GUSTA ESA PORTADA?
+¿TU PDF SE VE MUY SIMPLE?
 
 subline:
-Crea una mejor en segundos
+Crea una mejor portada en segundos
 
 headline color:
 #FFFFFF
@@ -177,31 +207,47 @@ subline color:
 #B8B8B8
 
 wrapper:
-teléfono o tablet emulado mostrando antes/después
+before/after PDF mockup composition showing the after state as the hero
 
 fondo:
-- dimension: 1994x3456 px
-- base principal: #151515
-- secundario: #252525 usado como gradiente oscuro suave
-- acento: #B3261E
-- ubicacion del acento: profundidad roja sutil detrás del resultado mejorado
-- zona segura de copy: tercio superior, oscuro y limpio
-- textura permitida: textura mate por debajo de 4%
-- elementos prohibidos: brillo fuerte detrás del titular, texto denso, página blanca detrás del copy, iconos PDF distractores
+
+* dimension: 1994x3456 px
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
+* ubicacion del acento: soft controlled highlight behind the improved PDF cover, low intensity
+* zona segura de copy: upper third, dark and stable
+* textura permitida: subtle matte paper grain below 4%
+* elementos prohibidos: bright shapes behind text, heavy decoration, generic editor UI, cloud symbols, AI-style effects, EPUB/e-reader visuals
 
 imagen:
-visual antes/después dentro de un dispositivo. El lado izquierdo debe mostrar un PDF blanco, genérico, escaneado o poco atractivo. El lado derecho debe mostrar una nueva portada clara y llamativa. La diferencia debe ser inmediata.
+Show a strong before/after transformation.
+
+Before:
+A plain, generic, unattractive, or weak PDF first page.
+
+After:
+A polished custom PDF cover using a strong image.
+
+The transformation must be obvious at Play Store preview size.
 
 conversion intent:
-Abrir con el dolor principal y el resultado principal. El usuario debe entender al instante para qué sirve la app.
+Open with the user’s pain point. The user should immediately understand: “puedo hacer que este PDF se vea mejor.”
 
 ## Screenshot 2
+
+raw screenshot handling:
+
+* Only replace the pattern/image area inside the editor with an image input that a target PDF user could use.
+* Do not add, remove, invent, or restyle anything else in the raw screenshot.
+* Keep the raw screenshot composition intact.
 
 titulo:
 SELECCIONA. AJUSTA. LISTO.
 
 subline:
-Rápido y sin complicarte
+Rápido y sin complicaciones
 
 headline color:
 #FFFFFF
@@ -210,31 +256,50 @@ subline color:
 #B8B8B8
 
 wrapper:
-teléfono emulado
+Android phone mockup showing the real editor
 
 fondo:
-- dimension: 1994x3456 px
-- base principal: #151515
-- secundario: #202020 usado para dar profundidad alrededor del teléfono
-- acento: #B3261E
-- ubicacion del acento: detrás del marco del teléfono, intensidad baja
-- zona segura de copy: tercio superior, fondo oscuro estable
-- textura permitida: grano sutil por debajo de 3%
-- elementos prohibidos: paneles brillantes, resplandor bajo el titular, iconos decorativos innecesarios
+
+* dimension: 1994x3456 px
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
+* ubicacion del acento: subtle depth behind the phone frame, controlled and low intensity
+* zona segura de copy: upper third, clean dark area
+* textura permitida: subtle matte paper grain below 4%
+* elementos prohibidos: neon gradients, floating unrelated icons, generic image-editor claims, bright UI glow behind headline
 
 imagen:
-screenshot 972x2106 px - pantalla real del editor mostrando una imagen seleccionada y ajustándose como portada. Deben verse controles de recorte, zoom, rotación o encuadre. La pantalla debe sentirse fácil, rápida y confiable, no como un editor avanzado intimidante.
+Real editor screen showing a selected image loaded into the PDF cover editing area.
+
+Controls may be visible if readable:
+
+* recortar
+* girar
+* zoom
+* rellenar
+* deshacer
+* aplicar
+
+The screen should prove control without making the app feel like a complex image editor.
 
 conversion intent:
-Después de vender el resultado, demostrar que el flujo es simple y rápido.
+Show that the workflow is simple: choose the PDF, select an image, adjust it, and finish.
 
 ## Screenshot 3
 
+raw screenshot handling:
+
+* Only replace the content of the simulated PDF preview and the PDF name.
+* Do not add, remove, invent, or restyle anything else in the raw screenshot.
+* Keep the raw screenshot composition intact.
+
 titulo:
-LA PORTADA COMO LA QUIERES
+ENCUÁDRALA A TU GUSTO
 
 subline:
-Previsualiza antes de guardar
+Controla el recorte y el diseño
 
 headline color:
 #FFFFFF
@@ -243,25 +308,84 @@ subline color:
 #B8B8B8
 
 wrapper:
-teléfono emulado
+Android phone mockup showing crop/layout control or preview
 
 fondo:
-- dimension: 1994x3456 px
-- base principal: #151515
-- secundario: #252525 usado como superficie mate suave
-- acento: #E84C3D
-- ubicacion del acento: detalle rojo sutil cerca del borde inferior derecho del dispositivo
-- zona segura de copy: tercio superior, oscuro y limpio
-- textura permitida: textura papel sutil por debajo de 4%
-- elementos prohibidos: gradientes rojos brillantes detrás del texto, UI saturada, contenido PDF ilegible
+
+* dimension: 1994x3456 px
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
+* ubicacion del acento: subtle highlight near the preview/editor area, not behind copy
+* zona segura de copy: upper third, stable dark surface
+* textura permitida: subtle matte paper grain below 4%
+* elementos prohibidos: dense UI details, decorative clutter, cloud or AI cues
 
 imagen:
-screenshot 972x2106 px - pantalla de vista previa mostrando claramente el resultado final de la portada. La portada debe verse centrada, limpia y terminada. Si aparecen botones de guardar, compartir o administrar, deben apoyar la idea de resultado final sin robar atención.
+Show the user adjusting the cover layout or previewing the final result.
+
+The image should communicate:
+
+* recorte
+* alineación
+* encuadre
+* control del resultado final
 
 conversion intent:
-Construir confianza: el usuario puede revisar el resultado antes de guardar la nueva copia.
+Communicate that the user controls how the final PDF cover will look before saving.
 
 ## Screenshot 4
+
+raw screenshot handling:
+
+* Only replace the content of the PDF card, the PDF name, and the filename.
+* Use a generic public-domain style document concept or neutral sample PDF.
+* Do not add, remove, invent, or restyle anything else in the raw screenshot.
+* Keep the raw screenshot composition intact.
+
+titulo:
+REVISA ANTES DE GUARDAR
+
+subline:
+Confirma la portada final primero
+
+headline color:
+#FFFFFF
+
+subline color:
+#B8B8B8
+
+wrapper:
+Android phone mockup showing final PDF cover preview
+
+fondo:
+
+* dimension: 1994x3456 px
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
+* ubicacion del acento: minimal controlled highlight around the phone or final cover
+* zona segura de copy: upper third, clean dark surface
+* textura permitida: subtle matte paper grain below 4%
+* elementos prohibidos: bright glow behind headline, excessive badges, unrelated library graphics
+
+imagen:
+Real preview screen showing the final PDF cover clearly before saving/exporting.
+
+The cover should look centered, polished, and ready.
+
+conversion intent:
+Reassure the user that they can check the result before saving the new PDF copy.
+
+## Screenshot 5
+
+raw screenshot handling:
+
+* Only replace the PDF name and the thumbnail image.
+* Do not add, remove, invent, or restyle anything else in the raw screenshot.
+* Keep the raw screenshot composition intact.
 
 titulo:
 100% EN TU DISPOSITIVO
@@ -276,31 +400,48 @@ subline color:
 #B8B8B8
 
 wrapper:
-teléfono emulado
+phone mockup showing saved PDF result, or typography-led trust composition
 
 fondo:
-- dimension: 1994x3456 px
-- base principal: #151515
-- secundario: #202020 usado como gradiente controlado
-- acento: #B3261E
-- ubicacion del acento: línea o luz roja muy sutil cerca del dispositivo, nunca detrás del texto
-- zona segura de copy: tercio superior con fondo oscuro limpio
-- textura permitida: grano mate sutil por debajo de 4%
-- elementos prohibidos: iconos de nube que sugieran subida, candados tipo app de seguridad, paneles brillantes detrás del titular
+
+* dimension: 1994x3456 px
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
+* ubicacion del acento: restrained trust highlights only
+* zona segura de copy: upper third, clean dark area
+* textura permitida: subtle matte paper grain below 4%
+* elementos prohibidos: cloud upload icons, fake security badges, account/login screens, exaggerated privacy graphics
 
 imagen:
-screenshot 972x2106 px - pantalla de archivos locales o PDFs guardados mostrando documentos procesados en el dispositivo. La UI debe comunicar manejo local y privacidad. Evitar cualquier elemento que parezca sincronización en la nube o cuenta de usuario.
+Preferred:
+Real app screen showing the saved PDF result or local file result with the updated cover.
+
+Alternative:
+A clean trust composition with short proof points:
+
+* En tu dispositivo
+* Sin cuentas
+* Sin subir archivos
 
 conversion intent:
-Resolver la duda de privacidad. Es clave porque muchos usuarios no quieren subir PDFs personales a servidores.
+Build trust by making local processing clear and visible without turning the screenshot into a technical explanation.
 
-## Screenshot 5
+## Screenshot 6
+
+raw screenshot handling:
+
+* Only replace the content of the PDF card, the PDF name, and the filename.
+* Use a generic public-domain style document concept or neutral sample PDF.
+* Do not add, remove, invent, or restyle anything else in the raw screenshot.
+* Keep the raw screenshot composition intact.
 
 titulo:
-ORDENA MEJOR TUS PDFS
+GUARDA UNA COPIA NUEVA
 
 subline:
-Portadas claras. Archivos fáciles de reconocer.
+Conserva seguro el original
 
 headline color:
 #FFFFFF
@@ -309,29 +450,88 @@ subline color:
 #B8B8B8
 
 wrapper:
-teléfono o tablet emulado con biblioteca/lista de documentos
+safe-copy proof composition or export/save result screen
 
 fondo:
-- dimension: 1994x3456 px
-- base principal: #151515
-- secundario: #252525 usado como profundidad oscura
-- acento: #B3261E
-- ubicacion del acento: detalles rojos sutiles detrás de tarjetas PDF seleccionadas
-- zona segura de copy: tercio superior con fondo oscuro uniforme
-- textura permitida: grano fino tipo documento por debajo de 4%
-- elementos prohibidos: documentos corporativos demasiado serios, texto diminuto, saturación de colores, fondo brillante detrás del copy
+
+* dimension: 1994x3456 px
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
+* ubicacion del acento: subtle highlight around copy/output result, not behind text
+* zona segura de copy: upper third, dark and readable
+* textura permitida: subtle matte paper grain below 4%
+* elementos prohibidos: destructive overwrite visuals, warning-style UI, scary file corruption imagery, cloud backup claims
 
 imagen:
-screenshot 972x2106 px - lista o cuadrícula limpia de PDFs con portadas mejoradas. Mostrar que las portadas nuevas ayudan a reconocer documentos más rápido. Usar categorías genéricas seguras como guía de estudio, manual, catálogo, apuntes o documento personal. Evitar portadas reales con copyright.
+Show a simple safe-copy concept:
+PDF original → nueva copia PDF con portada actualizada
+
+If there is a real export/save confirmation screen, use it instead.
 
 conversion intent:
-Cerrar con el valor práctico a largo plazo: una biblioteca de PDFs más clara, ordenada y fácil de revisar.
+Reduce risk perception. The user should understand that the app saves a new copy and does not silently overwrite the original file.
+
+## Screenshot Order Recommendation
+
+Recommended order:
+
+1. ¿TU PDF SE VE MUY SIMPLE?
+2. SELECCIONA. AJUSTA. LISTO.
+3. ENCUÁDRALA A TU GUSTO
+4. REVISA ANTES DE GUARDAR
+5. 100% EN TU DISPOSITIVO
+6. GUARDA UNA COPIA NUEVA
+
+Reasoning:
+This sequence follows:
+Problema → flujo simple → control → vista previa → confianza → copia segura
+
+The first screenshot should not be a settings screen, file list, or editor-only view. It must show the transformation first.
+
+## Copy Rules
+
+Use:
+
+* Crear portada PDF
+* Cambiar portada PDF
+* Reemplazar portada PDF
+* Editar portada PDF
+* Agregar portada a PDF
+* Portada personalizada PDF
+* Recortar imagen
+* Alinear imagen
+* Vista previa
+* Guardar copia nueva
+* En tu dispositivo
+* Sin cuentas
+* Sin subir archivos
+* Documento PDF
+
+Avoid:
+
+* Editor completo de PDF
+* Convertidor PDF
+* Compresor PDF
+* Escáner PDF
+* OCR
+* Quitar DRM
+* Eliminar DRM
+* Generador de portadas con IA
+* Portadas generadas con IA
+* Plantillas listas
+* Procesamiento en la nube
+* Sincronización online
+* Soporte oficial para todos los lectores PDF
+* EPUB, ebook, Kindle o tienda de libros
+* Cualquier frase que sugiera afiliación oficial con plataformas de documentos
 
 ## Notes / Assumptions
 
-- Esta golden ficha posiciona PDF Cover Maker como una herramienta enfocada para crear portadas PDF, no como un editor completo de PDF.
-- La app no debe prometer OCR, compresión, unión de PDFs, división de PDFs, firmas, formularios, edición de texto ni edición completa de páginas salvo que esas funciones existan realmente.
-- El copy debe enfatizar crear una mejor portada, guardar una copia, previsualizar el resultado y mantener los archivos en el dispositivo.
-- “Cualquier PDF” puede usarse en copy corto de marketing si se quiere fuerza comercial, pero la descripción larga debe mantenerse más segura y evitar promesas absolutas si PDFs protegidos, dañados o inusuales pueden fallar.
-- Los archivos e imágenes seleccionados por el usuario no deben describirse como recopilados ni subidos si todo se procesa localmente.
-- Esta golden ficha es una referencia de calidad para generación con Codex, no una plantilla literal para copiar en todos los locales.
+* El nombre actual de la app es claro y se conserva.
+* El primer impacto visual debe mostrar la transformación de portada PDF.
+* La prueba de confianza debe mantenerse visible: en tu dispositivo, sin cuentas, sin subir archivos.
+* La app no debe parecer editor genérico de imágenes, editor PDF completo, escáner, servicio en la nube o generador de portadas con IA.
+* La paleta debe mantenerse oscura, sobria, práctica y ligada visualmente a PDF.
+* El orden más seguro para conversión es problema, flujo simple, control, vista previa, privacidad y copia segura.
