@@ -51,6 +51,7 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import {
   EditorSessionService,
   EditorSession,
+  type EditorSessionSourceMode,
   type EditorPreviewMaskShape,
 } from "./editor-session.service";
 import { EditorUiStateService } from "./editor-ui-state.service";
@@ -68,6 +69,7 @@ import {
   measureTextLayer,
   type CompositionRenderInput,
 } from "../core/pipeline/composition-render";
+import { resolveFrameDimensions } from "../core/pipeline/composition-input";
 import {
   getBackgroundAssetPath,
   type CoverCropState,
@@ -185,6 +187,9 @@ const PICKER_ICON_RATIO = 0.17;
 const PICKER_TIP_RATIO_X = -PICKER_ICON_RATIO / 2;
 const PICKER_TIP_RATIO_Y = PICKER_ICON_RATIO / 2;
 const MAX_BG_BLUR_PX = 40;
+const PREVIEW_MAX_FRAME_WIDTH = 520;
+const PREVIEW_MAX_FRAME_WIDTH_RATIO = 0.92;
+const PREVIEW_MAX_FRAME_HEIGHT_RATIO = 0.72;
 const DEBUG_EDIT_VIEWPORT_LOCK = false;
 const DEBUG_ANDROID_SHIFT_DETECTOR = false;
 const EDIT_SHIFT_PROBE_EVENT = "__cc_text_edit_shift_probe__";
@@ -192,9 +197,33 @@ const DEFAULT_EDITOR_TOUR_CURRENT = 6;
 const DEFAULT_EDITOR_TOUR_TOTAL = 8;
 
 function buildEditorTourSteps(
+  sourceMode: EditorSessionSourceMode,
   progressCurrent = DEFAULT_EDITOR_TOUR_CURRENT,
-  progressTotal = DEFAULT_EDITOR_TOUR_TOTAL
+  progressTotal = DEFAULT_EDITOR_TOUR_TOTAL,
 ): EditorTourStep[] {
+  if (sourceMode === "scratch") {
+    return [
+      {
+        id: "scratch-fill",
+        target: "editor-fill-panel",
+        titleKey: "EDITOR.TOUR.STEPS.FILL.TITLE",
+        descriptionKey: "EDITOR.TOUR.STEPS.FILL.DESCRIPTION",
+        placement: "bottom",
+        progressCurrent,
+        progressTotal,
+      },
+      {
+        id: "scratch-done",
+        target: "editor-done-button",
+        titleKey: "EDITOR.TOUR.STEPS.STAGE.TITLE",
+        descriptionKey: "EDITOR.TOUR.STEPS.STAGE.DESCRIPTION",
+        placement: "bottom",
+        progressCurrent: Math.min(progressCurrent + 1, progressTotal),
+        progressTotal,
+      },
+    ];
+  }
+
   return [
     {
       id: "edit-info",
@@ -262,6 +291,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     "none",
   );
   ready = false;
+  previewFrameSize = { width: 0, height: 0 };
   readonly cssFilter = computed(() =>
     buildCssFilter(this.editorState.adjustments()),
   );
@@ -307,7 +337,11 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     const y = this.normalizeBackgroundOffset(pattern?.offsetY) * previewOutputScale;
     return `${Math.round(x)}px ${Math.round(y)}px`;
   });
-  readonly canDone = computed(() => !!this.session);
+  readonly canDone = computed(() => {
+    if (!this.session) return false;
+    if (this.session.sourceMode !== "scratch") return true;
+    return this.history.mode() === "global" && this.hasValidBackgroundSelection();
+  });
   readonly pickerPos = signal<Pt | null>(null);
   readonly pickerTip = signal<Pt>({ x: 0, y: 0 });
   readonly pickerConfirmPos = signal<Pt | null>(null);
@@ -342,6 +376,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     apply: "",
   });
   private readonly previewScaleVersion = signal(0);
+  private cleanupPreviewFrameResize?: () => void;
   readonly topBarItems = computed<ScrollableBarItem[]>(() => {
     const labels = this.topBarLabels();
     if (this.textEdit.isEditing()) {
@@ -450,8 +485,9 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     width: "min(320px, calc(100vw - 24px))",
   });
   private shouldAutoStartEditorTour = false;
-  private editorTourSteps = buildEditorTourSteps();
+  private editorTourSteps = buildEditorTourSteps("image");
   private hasStartedEditorTour = false;
+  private scratchTourFillApplied = false;
   readonly editorTourState = computed(() => {
     const currentIndex = this.editorTourIndex();
     const step = this.editorTourSteps[currentIndex] ?? null;
@@ -468,6 +504,21 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       spotlight: this.editorTourSpotlight(),
       tooltipStyle: this.editorTourTooltipStyle(),
     };
+  });
+  private readonly scratchTourAdvanceEffect = effect(() => {
+    if (!this.editorTourActive()) return;
+    if (!this.session || this.session.sourceMode !== "scratch") return;
+    const state = this.editorTourState();
+    if (!state.active || state.step?.id !== "scratch-fill") return;
+    if (this.scratchTourFillApplied) return;
+    if (this.history.mode() !== "global") return;
+    if (!this.canDone()) return;
+
+    this.scratchTourFillApplied = true;
+    this.editorTourIndex.set(1);
+    queueMicrotask(() => {
+      void this.syncEditorTour();
+    });
   });
 
   constructor(
@@ -583,6 +634,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         this.session.tools.kindle.selectedModel =
           this.kindleState.selectedModel() ?? undefined;
       }
+      this.updatePreviewFrameSize();
       this.bumpPreviewScaleVersion();
     });
 
@@ -607,6 +659,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       if (this.session.tools?.formats) {
         this.session.tools.formats.selectedId = selected.id;
       }
+      this.updatePreviewFrameSize();
       this.bumpPreviewScaleVersion();
     });
   }
@@ -625,13 +678,14 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.shouldAutoStartEditorTour =
       this.route.snapshot.queryParamMap.get("tour") === "1";
     this.editorTourSteps = buildEditorTourSteps(
+      this.session?.sourceMode ?? "image",
       this.parseEditorTourParam(
         this.route.snapshot.queryParamMap.get("tourCurrent"),
         DEFAULT_EDITOR_TOUR_CURRENT
       ),
       this.parseEditorTourParam(
         this.route.snapshot.queryParamMap.get("tourTotal"),
-        DEFAULT_EDITOR_TOUR_TOTAL
+        DEFAULT_EDITOR_TOUR_TOTAL,
       )
     );
 
@@ -654,6 +708,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
     // Set session ID and tools configuration in UI state
     this.ui.setSessionId(this.sid);
+    this.ui.setTool("crop");
 
     if (this.session.tools?.kindle) {
       this.kindleState.initFromTools(this.session.tools.kindle);
@@ -670,6 +725,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       this.session.target = kindleTarget;
       this.aspectRatio = `${kindleTarget.width} / ${kindleTarget.height}`;
     }
+    this.updatePreviewFrameSize();
 
     // Route detection
     this.router.events
@@ -695,6 +751,17 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       }
     });
     this.resizeObs.observe(frameEl);
+    this.updatePreviewFrameSize();
+    const updatePreviewSize = () => this.updatePreviewFrameSize();
+    window.addEventListener("resize", updatePreviewSize);
+    window.visualViewport?.addEventListener("resize", updatePreviewSize);
+    window.visualViewport?.addEventListener("scroll", updatePreviewSize);
+    this.cleanupPreviewFrameResize = () => {
+      window.removeEventListener("resize", updatePreviewSize);
+      window.visualViewport?.removeEventListener("resize", updatePreviewSize);
+      window.visualViewport?.removeEventListener("scroll", updatePreviewSize);
+      this.cleanupPreviewFrameResize = undefined;
+    };
     this.bumpPreviewScaleVersion();
     this.scheduleReadyCheck();
 
@@ -998,6 +1065,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.stopEditorTour();
     this.resizeObs?.disconnect();
+    this.cleanupPreviewFrameResize?.();
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
     this.clearComposedAdjustmentsPreview();
     this.cleanupGestures?.();
@@ -1656,7 +1724,11 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     if (!applied) return;
 
     this.ui.closePanel();
-    this.router.navigate(["./"], { relativeTo: this.route });
+    const keepToolsRoute =
+      this.ui.activeMode() === "tools" && this.ui.activeTool() === "fill";
+    this.router.navigate([keepToolsRoute ? "tools" : "./"], {
+      relativeTo: this.route,
+    });
   }
 
   private updateCanvasGestures(): void {
@@ -1719,6 +1791,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   stopEditorTour(): void {
     this.editorTourActive.set(false);
     this.editorTourIndex.set(0);
+    this.scratchTourFillApplied = false;
     this.editorTourSpotlight.set(null);
     this.editorTourTooltipStyle.set({
       top: "max(16px, env(safe-area-inset-top, 0px))",
@@ -1952,6 +2025,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private async startEditorTour(): Promise<void> {
+    this.scratchTourFillApplied = false;
     this.editorTourIndex.set(0);
     this.editorTourActive.set(true);
     await this.waitForEditorTourLayout();
@@ -2666,29 +2740,31 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     const ctx = this.editorState.constraintsContext();
     const frameSize = this.getFrameSize();
     const frameEl = this.frameRef?.nativeElement;
-    const frameWidth =
-      (Number.isFinite(state.frameWidth as number)
-        ? (state.frameWidth as number)
-        : undefined) ??
-      (Number.isFinite(ctx?.frameW) ? ctx?.frameW : undefined) ??
-      frameSize?.width ??
-      frameEl?.clientWidth;
-    const frameHeight =
-      (Number.isFinite(state.frameHeight as number)
-        ? (state.frameHeight as number)
-        : undefined) ??
-      (Number.isFinite(ctx?.frameH) ? ctx?.frameH : undefined) ??
-      frameSize?.height ??
-      frameEl?.clientHeight;
-    if (!frameWidth || !frameHeight || !this.naturalW || !this.naturalH) {
+    const frame = resolveFrameDimensions({
+      target,
+      state,
+      frameFallback: {
+        width:
+          frameSize?.width ??
+          (Number.isFinite(ctx?.frameW) ? ctx?.frameW : undefined) ??
+          frameEl?.clientWidth ??
+          target.width,
+        height:
+          frameSize?.height ??
+          (Number.isFinite(ctx?.frameH) ? ctx?.frameH : undefined) ??
+          frameEl?.clientHeight ??
+          target.height,
+      },
+    });
+    if (!frame || !this.naturalW || !this.naturalH) {
       return null;
     }
 
     return {
       file: this.session.file,
       target: { width: target.width, height: target.height },
-      frameWidth,
-      frameHeight,
+      frameWidth: frame.width,
+      frameHeight: frame.height,
       baseScale: this.baseScale,
       naturalWidth: this.naturalW,
       naturalHeight: this.naturalH,
@@ -2703,6 +2779,73 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     const frameWidth = frameSize?.width ?? frameEl.clientWidth;
     if (!frameWidth || frameWidth <= 0) return 1;
     return frameWidth / this.session.target.width;
+  }
+
+  private updatePreviewFrameSize(): void {
+    const target = this.session?.target;
+    if (!target?.width || !target?.height) {
+      this.previewFrameSize = { width: 0, height: 0 };
+      return;
+    }
+
+    const viewport = window.visualViewport;
+    const viewportWidth = Math.max(
+      1,
+      Math.floor(viewport?.width ?? window.innerWidth),
+    );
+    const viewportHeight = Math.max(
+      1,
+      Math.floor(viewport?.height ?? window.innerHeight),
+    );
+    const maxWidth = Math.max(
+      1,
+      Math.min(
+        PREVIEW_MAX_FRAME_WIDTH,
+        Math.floor(viewportWidth * PREVIEW_MAX_FRAME_WIDTH_RATIO),
+      ),
+    );
+    const maxHeight = Math.max(
+      1,
+      Math.floor(viewportHeight * PREVIEW_MAX_FRAME_HEIGHT_RATIO),
+    );
+
+    this.previewFrameSize = this.fitDimensions(
+      target.width,
+      target.height,
+      maxWidth,
+      maxHeight,
+    );
+  }
+
+  private fitDimensions(
+    width: number,
+    height: number,
+    maxWidth: number,
+    maxHeight: number,
+  ): { width: number; height: number } {
+    const safeWidth = Math.max(1, width);
+    const safeHeight = Math.max(1, height);
+    const imageRatio = safeWidth / safeHeight;
+    const maxRatio = maxWidth / maxHeight;
+
+    if (!Number.isFinite(imageRatio) || imageRatio <= 0) {
+      return {
+        width: Math.max(1, Math.round(maxWidth)),
+        height: Math.max(1, Math.round(maxHeight)),
+      };
+    }
+
+    if (imageRatio > maxRatio) {
+      return {
+        width: Math.max(1, Math.round(maxWidth)),
+        height: Math.max(1, Math.round(maxWidth / imageRatio)),
+      };
+    }
+
+    return {
+      width: Math.max(1, Math.round(maxHeight * imageRatio)),
+      height: Math.max(1, Math.round(maxHeight)),
+    };
   }
 
   private bumpPreviewScaleVersion(): void {

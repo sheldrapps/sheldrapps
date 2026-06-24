@@ -44,9 +44,10 @@
           }
         </div>
         @if (enableLongPressPreview) {
-          <p class="best-candidate-picker__compact-hint">
-            {{ 'BEST_CANDIDATE.PICKER.LONG_PRESS_TO_PREVIEW' | translate }}
-          </p>
+          <ul class="best-candidate-picker__compact-hint">
+            <li>{{ 'BEST_CANDIDATE.PICKER.LONG_PRESS_HINT' | translate }}</li>
+            <li>{{ 'BEST_CANDIDATE.PICKER.LONG_PRESS_TO_PREVIEW' | translate }}</li>
+          </ul>
         }
       </ion-card>
     } @else {

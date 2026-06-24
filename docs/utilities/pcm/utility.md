@@ -2,9 +2,9 @@
 ## Project identity
 - app: pdf-cover-maker
 - alias: pcm
-- currentVersionCode: 7
-- nextVersionCode: 8
-- currentVersionName: "Project edit flow ready"
+- currentVersionCode: 8
+- nextVersionCode: 9
+- currentVersionName: "Edit and preview cleanup"
 - nextVersionName: "Edit and preview cleanup"
 ## Product purpose
 - Keep cover generation dependable when ads fail unexpectedly.

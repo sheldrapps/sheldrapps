@@ -19,6 +19,11 @@
       [attr.aria-label]="getModeLabelKey(mode) | translate"
       (click)="onModeSelect(mode)"
     >
+      <ion-icon
+        class="export-quality__option-icon"
+        [name]="getModeIconName(mode)"
+        aria-hidden="true"
+      ></ion-icon>
       <span class="export-quality__option-text">{{
         getModeLabelKey(mode) | translate
       }}</span>
@@ -26,9 +31,5 @@
         proOnlyKey | translate
       }}</span>
     </button>
-  </div>
-
-  <div class="export-quality__description">
-    {{ getDescriptionKey(selectedMode) | translate }}
   </div>
 </section>

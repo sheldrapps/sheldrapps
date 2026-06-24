@@ -6,7 +6,6 @@ import {
   detectSupportedLocale,
   LanguageService,
 } from '@sheldrapps/i18n-kit';
-import { RatingService } from '@sheldrapps/rating-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
 import { Subscription } from 'rxjs';
@@ -25,7 +24,6 @@ export class AppComponent implements OnDestroy {
   private edgeToEdge = inject(EdgeToEdgeService);
   private theme = inject(ThemeService);
   private settings = inject(SettingsStore<EccSettings>);
-  private rating = inject(RatingService);
 
   private langSub?: Subscription;
 
@@ -52,7 +50,6 @@ export class AppComponent implements OnDestroy {
     }
 
     await this.lang.set(language);
-    await this.rating.initialize();
 
     this.setDocumentTitle();
     this.langSub = this.t.onLangChange.subscribe(() => this.setDocumentTitle());

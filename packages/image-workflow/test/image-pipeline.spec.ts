@@ -1,5 +1,5 @@
 import { buildDefaultCoverCropState } from '../src/lib/core/pipeline/default-crop-state';
-import { buildCompositionInputForPurpose } from '../src/lib/core/pipeline/composition-input';
+import { buildCompositionInputForPurpose, resolveFrameDimensions } from '../src/lib/core/pipeline/composition-input';
 import { DEFAULT_WORKING_OPTIONS } from '../src/lib/core/pipeline/image-pipeline';
 import { getCoverExportOptions } from '../src/lib/core/pipeline/export-quality-mode';
 import type { CropTarget } from '../src/lib/types';
@@ -81,5 +81,30 @@ describe('image workflow contracts', () => {
     expect(preview?.file).toBe(working);
     expect(exportInput?.file).toBe(original);
     expect(fallbackExport?.file).toBe(working);
+  });
+
+  it('ignores stale frame dimensions when the target ratio changes', () => {
+    const target: CropTarget = {
+      width: 210,
+      height: 297,
+      output: 'source',
+    };
+
+    const resolved = resolveFrameDimensions({
+      target,
+      state: {
+        frameWidth: 1200,
+        frameHeight: 1600,
+      },
+      frameFallback: {
+        width: 630,
+        height: 891,
+      },
+    });
+
+    expect(resolved).toEqual({
+      width: 630,
+      height: 891,
+    });
   });
 });

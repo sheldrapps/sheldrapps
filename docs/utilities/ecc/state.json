@@ -6,9 +6,9 @@
     "versionName": "Optimize for e-ink and sharpness"
   },
   "current": {
-    "updatedAt": "2026-06-13T20:31:18.0611344-06:00",
+    "updatedAt": "2026-06-24T13:44:03.5679625-06:00",
     "head": "b4a177404511d6b3cf1065b1ebb24609d69a7756",
-    "versionCode": 45,
+    "versionCode": 46,
     "versionName": "Edit and preview cleanup",
     "versionCodeAnchorCommit": "b4a177404511d6b3cf1065b1ebb24609d69a7756",
     "deltaFrom": "9c7a4b2b1c48525c799f78df23eae3d421dcc892",

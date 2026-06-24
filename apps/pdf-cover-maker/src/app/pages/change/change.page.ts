@@ -39,11 +39,11 @@ import {
   buildDefaultCoverCropState,
   CoverSourceActionsComponent,
   CoverCropState,
+  CoverImageStateComponent,
   EReaderPreviewFrameComponent,
   ImagePipelineService,
   ImageValidationError,
   buildCompositionInputForPurpose,
-  computeSourceCropDims,
   isArtifactReductionEnabled,
   isDitheringEnabled,
   renderCompositionToCanvas,
@@ -54,6 +54,8 @@ import {
 import type { CropTarget, CropFormatOption } from '@sheldrapps/image-workflow';
 import {
   EditorSessionService,
+  consumeEditorResultSnapshot,
+  watchEditorResultReady,
   ProjectSaveState,
 } from '@sheldrapps/image-workflow/editor';
 
@@ -69,6 +71,7 @@ import {
   refreshOutline,
   appsOutline,
   informationCircleOutline,
+  optionsOutline,
 } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
@@ -179,6 +182,7 @@ type FrameDetectionResult = {
     IonPopover,
     IonModal,
     LoadingStateComponent,
+    CoverImageStateComponent,
     EReaderPreviewFrameComponent,
     CoverSourceActionsComponent,
     ScrollableButtonBarComponent,
@@ -191,8 +195,14 @@ type FrameDetectionResult = {
 export class ChangePage implements OnInit, OnDestroy {
   private static readonly PREVIEW_MAX_SIDE = 1280;
   private static readonly THUMB_SIZE = 96;
-  private static readonly FORMAT_ID_WITH_FRAME = 'with_frame';
-  private static readonly FORMAT_ID_WITHOUT_FRAME = 'without_frame';
+  private static readonly FORMAT_ID_AUTO = 'auto';
+  private static readonly FORMAT_ID_A4 = 'a4';
+  private static readonly FORMAT_ID_CARTA = 'carta';
+  private static readonly FORMAT_ID_OFICIO = 'oficio';
+  private static readonly FORMAT_ID_NINE_SIXTEEN = 'nine_sixteen';
+  private static readonly FORMAT_ID_THREE_FOUR = 'three_four';
+  private static readonly FORMAT_ID_ONE_ONE = 'one_one';
+  private static readonly FORMAT_ID_CUSTOM = 'custom';
   private modalCtrl = inject(ModalController);
   private fileService = inject(FileService);
   private workingCopy = inject(PdfWorkingCopyService);
@@ -218,14 +228,15 @@ export class ChangePage implements OnInit, OnDestroy {
   private readonly baseModelId = 'pdf';
   private readonly maxPdfSizeMB = 5120;
   private routerSub?: Subscription;
+  private editorResultSub?: Subscription;
   private coversEventsSub?: Subscription;
   private rewriteProgressSub?: PluginListenerHandle;
   private lastEditorSessionId?: string;
+  private lastEditorSourceMode: EditorSourceMode = 'image';
   private previewLongPressTimer: ReturnType<typeof setTimeout> | null = null;
   private suppressNextImagePick = false;
   private workingMaxSideApplied: boolean | null = null;
   private persistedCropTargetId = 'pdf';
-  private readonly warnDebugKey = 'cc_warn_debug';
   private readonly editorTourSeenVersionKey = 'pcm_editor_tour_seen_version';
   private readonly artifactReductionInfoSeenKey =
     'pcm_editor_artifact_reduction_info_seen';
@@ -277,6 +288,7 @@ export class ChangePage implements OnInit, OnDestroy {
       refreshOutline,
       appsOutline,
       informationCircleOutline,
+      optionsOutline,
     });
   }
 
@@ -318,11 +330,11 @@ export class ChangePage implements OnInit, OnDestroy {
   workingImageDims?: { width: number; height: number };
 
   previewUrl?: string;
+  previewRevision = 0;
   previewThumbUrl?: string;
-  previewNonce = 0;
   originalPdfPreviewUrl: string | null = null;
   cropState?: CoverCropState;
-  selectedFormatId = ChangePage.FORMAT_ID_WITHOUT_FRAME;
+  selectedFormatId = ChangePage.FORMAT_ID_AUTO;
   isFrameDetected = false;
   isDetectingFrame = false;
   exportQualityMode: ExportQualityMode = DEFAULT_EXPORT_QUALITY_MODE;
@@ -364,6 +376,7 @@ export class ChangePage implements OnInit, OnDestroy {
   isCancellingNativeRewrite = false;
   pdfLoadProgressPercent = 0;
   pdfLoadStage: 'copy' | 'inspect' | null = null;
+  private projectEditFlowActive = false;
 
   infoOpen = false;
   infoEvent: Event | null = null;
@@ -384,7 +397,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private readonly invalidCoverWarnKey = 'CHANGE.IMAGE_WARN_INVALID_PDF_COVER';
 
   get previewUrlWithNonce(): string | null {
-    return this.previewUrl ? `${this.previewUrl}#v=${this.previewNonce}` : null;
+    return this.previewUrl ?? null;
   }
 
   get previewModalImageSrc(): string | null {
@@ -401,6 +414,17 @@ export class ChangePage implements OnInit, OnDestroy {
     if (this.previewCandidateOverride)
       return this.previewCandidateOverride.height;
     return this.targetHeight ?? null;
+  }
+
+  get currentCoverWarningSourceDims(): { width: number; height: number } | null {
+    return this.originalImageDims ?? null;
+  }
+
+  get currentCoverWarningTarget(): { width: number; height: number } | null {
+    return this.normalizeDims({
+      width: this.targetWidth,
+      height: this.targetHeight,
+    });
   }
 
   get previewModalMode(): 'single' | 'compare' {
@@ -461,11 +485,30 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   get hasActiveProjectFilename(): boolean {
-    return !!this.activeProjectFilename;
+    return this.projectEditFlowActive && !!this.activeProjectFilename;
   }
 
   get shouldShowBestCandidateAction(): boolean {
-    return this.showInvalidCoverFallback || this.bestCandidateRequested;
+    return (
+      !this.previewUrl &&
+      (this.showInvalidCoverFallback || this.bestCandidateRequested)
+    );
+  }
+
+  getSuggestedStepId():
+    | 'pdf-picker'
+    | 'cover-source-image'
+    | 'adjust-button'
+    | 'create-button'
+    | 'result-actions'
+    | null {
+    if (this.homeTour.isActive()) return null;
+    if (!this.hasValidPdf() || this.pdfErrorKey) return 'pdf-picker';
+    if (!this.previewUrl || this.imageErrorKey) return 'cover-source-image';
+    if (!this.cropState && this.canCrop()) return 'adjust-button';
+    if (this.canSaveShare()) return 'result-actions';
+    if (this.canGenerate()) return 'create-button';
+    return null;
   }
 
   async ngOnInit() {
@@ -535,6 +578,14 @@ export class ChangePage implements OnInit, OnDestroy {
         }
       });
 
+    this.editorResultSub = watchEditorResultReady(
+      this.editorSession,
+      () => this.lastEditorSessionId,
+      (sid) => {
+        void this.consumeEditorResult(sid);
+      },
+    );
+
     this.coversEventsSub = this.coversEvents.events$
       .pipe(filter((event) => event.type === 'deleted'))
       .subscribe((event) => {
@@ -553,6 +604,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.revokePreviewUrl();
     this.revokeOriginalPdfPreviewUrl();
     this.routerSub?.unsubscribe();
+    this.editorResultSub?.unsubscribe();
     this.coversEventsSub?.unsubscribe();
     this.adsRemovedSub?.unsubscribe();
     this.removeAdsPriceSub?.unsubscribe();
@@ -577,72 +629,71 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private getCurrentFormatOptions(): CropFormatOption[] {
-    const dims = this.resolveDocumentDims();
-    const withoutFrameTarget = this.buildTargetForFrameMode(false, dims);
-    const withFrameTarget = this.buildTargetForFrameMode(true, dims);
+    const dims = this.resolveDocumentDims() ?? this.baseTarget;
 
     return [
       {
-        id: ChangePage.FORMAT_ID_WITHOUT_FRAME,
-        label: this.translate.instant('CHANGE.FRAME_MODE_WITHOUT_FRAME'),
-        target: withoutFrameTarget,
+        id: ChangePage.FORMAT_ID_AUTO,
+        label: this.translate.instant('CHANGE.FORMAT_AUTO'),
+        target: this.buildAbsoluteTarget(dims),
       },
       {
-        id: ChangePage.FORMAT_ID_WITH_FRAME,
-        label: this.translate.instant('CHANGE.FRAME_MODE_WITH_FRAME'),
-        target: withFrameTarget,
-        disabled: !this.isFrameDetected,
+        id: ChangePage.FORMAT_ID_A4,
+        label: this.translate.instant('CHANGE.FORMAT_A4'),
+        target: this.buildRatioTarget(210, 297),
+      },
+      {
+        id: ChangePage.FORMAT_ID_CARTA,
+        label: this.translate.instant('CHANGE.FORMAT_CARTA'),
+        target: this.buildRatioTarget(216, 279),
+      },
+      {
+        id: ChangePage.FORMAT_ID_OFICIO,
+        label: this.translate.instant('CHANGE.FORMAT_OFICIO'),
+        target: this.buildRatioTarget(216, 356),
+      },
+      {
+        id: ChangePage.FORMAT_ID_NINE_SIXTEEN,
+        label: this.translate.instant('CHANGE.FORMAT_NINE_SIXTEEN'),
+        target: this.buildRatioTarget(9, 16),
+      },
+      {
+        id: ChangePage.FORMAT_ID_THREE_FOUR,
+        label: this.translate.instant('CHANGE.FORMAT_THREE_FOUR'),
+        target: this.buildRatioTarget(3, 4),
+      },
+      {
+        id: ChangePage.FORMAT_ID_ONE_ONE,
+        label: this.translate.instant('CHANGE.FORMAT_ONE_ONE'),
+        target: this.buildRatioTarget(1, 1),
+      },
+      {
+        id: ChangePage.FORMAT_ID_CUSTOM,
+        label: this.buildCustomFormatLabel(),
+        target: this.buildAbsoluteTarget(dims),
       },
     ];
   }
 
-  private buildTargetForFrameMode(
-    withFrame: boolean,
-    dims: { width: number; height: number } | null,
-  ): CropTarget {
-    const reference = dims ?? this.baseTarget;
-    const isLandscape = reference.width > reference.height;
-    const basePortrait = this.baseTarget;
-    const baseLandscape = {
-      width: this.baseTarget.height,
-      height: this.baseTarget.width,
-    };
-    const base = isLandscape ? baseLandscape : basePortrait;
-
-    const normalized = this.scaleDimsToLongSide(
-      reference,
-      Math.max(base.width, base.height),
-    );
-
-    if (!withFrame) {
-      return {
-        width: normalized.width,
-        height: normalized.height,
-        output: 'target',
-      };
-    }
-
+  private buildAbsoluteTarget(dims: { width: number; height: number }): CropTarget {
+    const normalized = this.normalizeDims(dims) ?? this.baseTarget;
     return {
-      width: base.width,
-      height: base.height,
+      width: normalized.width,
+      height: normalized.height,
       output: 'target',
     };
   }
 
-  private scaleDimsToLongSide(
-    dims: { width: number; height: number },
-    targetLongSide: number,
-  ): { width: number; height: number } {
-    const longSide = Math.max(dims.width, dims.height);
-    if (!longSide || !Number.isFinite(longSide) || longSide <= 0) {
-      return { width: this.baseTarget.width, height: this.baseTarget.height };
-    }
-
-    const scale = targetLongSide / longSide;
+  private buildRatioTarget(width: number, height: number): CropTarget {
     return {
-      width: Math.max(1, Math.round(dims.width * scale)),
-      height: Math.max(1, Math.round(dims.height * scale)),
+      width,
+      height,
+      output: 'source',
     };
+  }
+
+  private buildCustomFormatLabel(): string {
+    return this.translate.instant('CHANGE.FORMAT_CUSTOM');
   }
 
   private resolveDocumentDims(): { width: number; height: number } | null {
@@ -676,6 +727,23 @@ export class ChangePage implements OnInit, OnDestroy {
 
   private async resolvePdfFirstPageDims(): Promise<void> {
     this.pdfFirstPageDims = undefined;
+
+    try {
+      const directDims = await this.candidateImageService.getFirstPageDimensions(
+        {
+          pdfFile: this.workingPdfFile,
+          pdfNativePath: this.workingPdfNativePath,
+          pdfName: this.selectedPdfName || this.workingPdfName || 'pdf',
+        },
+      );
+      const normalizedDirectDims = this.normalizeDims(directDims);
+      if (normalizedDirectDims) {
+        this.pdfFirstPageDims = normalizedDirectDims;
+        return;
+      }
+    } catch {
+      // Best effort: fall back to render-based extraction below.
+    }
 
     if (this.workingPdfNativePath && this.pdfRewrite.isSupported()) {
       try {
@@ -976,6 +1044,8 @@ export class ChangePage implements OnInit, OnDestroy {
     this.isFrameDetected = false;
     this.isDetectingFrame = false;
     this.coverPageMode = 'replace';
+    this.activeProjectFilename = undefined;
+    this.projectEditFlowActive = false;
     this.closeInfo();
     this.closePreview();
     this.clearPreviewLongPress();
@@ -1064,6 +1134,7 @@ export class ChangePage implements OnInit, OnDestroy {
     const file = input.files?.[0];
     if (!file) return;
 
+    this.resetBestCandidateState(true);
     this.setBusy('pick', 'CHANGE.LOADING_IMAGE');
 
     try {
@@ -1158,6 +1229,7 @@ export class ChangePage implements OnInit, OnDestroy {
     const file = this.candidateFileFromMetadata(candidate);
     if (!file) return;
 
+    this.resetBestCandidateState(true);
     const loaded = await this.applyImageSource(file, false);
     if (!loaded) return;
 
@@ -1297,7 +1369,7 @@ export class ChangePage implements OnInit, OnDestroy {
     }
 
     if (!this.isFrameDetected) {
-      this.selectedFormatId = ChangePage.FORMAT_ID_WITHOUT_FRAME;
+      this.selectedFormatId = this.resolveFormatId(this.selectedFormatId);
     }
 
     const selected = this.getSelectedFormatOption();
@@ -1473,89 +1545,11 @@ export class ChangePage implements OnInit, OnDestroy {
     legacyDimsHint?: { width: number; height: number },
     exportDimsHint?: { width: number; height: number },
   ): Promise<void> {
+    void reason;
+    void legacyDimsHint;
+    void exportDimsHint;
     this.clearImageWarn();
-    const selected = this.getSelectedFormatOption();
-    if (!selected) return;
-    const target = {
-      width: selected.target.width,
-      height: selected.target.height,
-    };
-    const legacyDims = legacyDimsHint ?? this.workingImageDims ?? null;
-    const exportDims =
-      exportDimsHint ?? (await this.resolveExportDimsForSmallWarn()) ?? null;
-
-    // Enforce export-based validation only.
-    if (!exportDims) {
-      this.debugSmallWarn({
-        reason,
-        targetId: selected.id,
-        target,
-        exportDims,
-        legacyDims,
-        usedDims: null,
-        willWarn: false,
-      });
-      return;
-    }
-
-    const params = this.getSmallWarnParamsForExportDims(exportDims, target);
-    this.debugSmallWarn({
-      reason,
-      targetId: selected.id,
-      target,
-      exportDims,
-      legacyDims,
-      usedDims: exportDims,
-      willWarn: !!params,
-    });
-    if (!params) return;
-
-    this.imageWarnKey = 'EXPORT_OPTIONS.SMALL_SOURCE_WARNING';
-    this.imageWarnParams = params;
     this.homeTour.requestSync();
-  }
-
-  private getSmallWarnParamsForExportDims(
-    exportDims: { width: number; height: number },
-    target: { width: number; height: number },
-  ): Record<string, number> | null {
-    const reference = this.getExportWarningReferenceDims(target);
-    const widthScale = reference.width / exportDims.width;
-    const heightScale = reference.height / exportDims.height;
-    const scaleFactor = Math.max(widthScale, heightScale);
-    const belowRecommendedWidth = exportDims.width < reference.width * 0.75;
-    const belowRecommendedHeight = exportDims.height < reference.height * 0.75;
-
-    if (
-      scaleFactor <= 1.5 &&
-      !belowRecommendedWidth &&
-      !belowRecommendedHeight
-    ) {
-      return null;
-    }
-
-    return {
-      imgW: exportDims.width,
-      imgH: exportDims.height,
-      minW: reference.width,
-      minH: reference.height,
-      scaleFactor: Number(scaleFactor.toFixed(2)),
-    };
-  }
-
-  private getExportWarningReferenceDims(target: {
-    width: number;
-    height: number;
-  }): { width: number; height: number } {
-    const scale = Math.min(
-      this.baseTarget.width / target.width,
-      this.baseTarget.height / target.height,
-    );
-
-    return {
-      width: Math.max(1, Math.round(target.width * scale)),
-      height: Math.max(1, Math.round(target.height * scale)),
-    };
   }
 
   canCrop(): boolean {
@@ -1571,6 +1565,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async onStartScratch(): Promise<void> {
     if (!this.canStartScratch()) return;
+    this.resetBestCandidateState(true);
     const frameDetected = this.isFrameDetected;
     const frameDetecting = this.isDetectingFrame;
     this.resetSelectedImage();
@@ -1584,7 +1579,9 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async startCrop() {
     if (!this.canCrop()) return;
-    await this.openEditor('image');
+    await this.openEditor(
+      this.lastEditorSourceMode === 'scratch' ? 'scratch' : 'image',
+    );
   }
 
   private async openEditor(sourceMode: EditorSourceMode): Promise<void> {
@@ -1618,7 +1615,7 @@ export class ChangePage implements OnInit, OnDestroy {
         },
       },
       output: {
-        includeRenderedBlob: false,
+        includeRenderedBlob: true,
       },
       preferences: {
         artifactReductionInfo: {
@@ -1642,6 +1639,7 @@ export class ChangePage implements OnInit, OnDestroy {
       returnUrl: this.getEditorReturnUrl(),
     });
 
+    this.lastEditorSourceMode = sourceMode;
     this.lastEditorSessionId = sid;
     const shouldShowEditorTour = await this.shouldShowEditorTour();
     await this.homeTour.completeInteraction('editor-apply');
@@ -1703,7 +1701,7 @@ export class ChangePage implements OnInit, OnDestroy {
     }
 
     if (result.formatId) {
-      this.selectedFormatId = result.formatId;
+      this.selectedFormatId = this.resolveFormatId(result.formatId);
     }
     const selected = this.getSelectedFormatOption();
     if (selected?.id && selected.id !== this.persistedCropTargetId) {
@@ -1749,40 +1747,37 @@ export class ChangePage implements OnInit, OnDestroy {
     this.workingImageDims = dims;
 
     try {
-      if (renderedBlob) {
-        const renderedInfo = this.normalizeRenderedInfo(result) ?? undefined;
-        const renderedFile = this.buildRenderedFile(
-          renderedBlob,
-          renderedInfo?.mimeType,
-        );
-        this.renderedImageFile = renderedFile;
-        this.renderedImageBlob = renderedBlob;
-        this.renderedImageInfo = renderedInfo;
-
-        const url = URL.createObjectURL(renderedBlob);
-        this.setPreviewUrl(url);
-        const thumb = await this.buildThumbFromBlob(
-          renderedBlob,
-          ChangePage.THUMB_SIZE,
-        );
-        this.setPreviewThumbUrl(thumb ?? url);
-        await this.applySmallWarn(
-          'editor-apply',
-          undefined,
-          renderedInfo ?? undefined,
-        );
+      if (!renderedBlob) {
+        console.warn('[PCM] editor result missing renderedBlob; skipping preview fallback');
         editorTourShouldBeMarkedSeen = true;
         this.isApplyingFromEditor = false;
-        this.zone.run(() => {
-          this.previewNonce += 1;
-        });
         return;
-      } else {
-        await this.applySmallWarn('editor-apply');
-        editorTourShouldBeMarkedSeen = true;
-        this.isApplyingFromEditor = false;
-        await this.updatePreviewFromComposition();
       }
+
+      const renderedInfo = this.normalizeRenderedInfo(result) ?? undefined;
+      const renderedFile = this.buildRenderedFile(
+        renderedBlob,
+        renderedInfo?.mimeType,
+      );
+      this.renderedImageFile = renderedFile;
+      this.renderedImageBlob = renderedBlob;
+      this.renderedImageInfo = renderedInfo;
+
+      const url = URL.createObjectURL(renderedBlob);
+      this.setPreviewUrl(url);
+      const thumb = await this.buildThumbFromBlob(
+        renderedBlob,
+        ChangePage.THUMB_SIZE,
+      );
+      this.setPreviewThumbUrl(thumb ?? url);
+      await this.applySmallWarn(
+        'editor-apply',
+        undefined,
+        renderedInfo ?? undefined,
+      );
+      editorTourShouldBeMarkedSeen = true;
+      this.isApplyingFromEditor = false;
+      return;
     } finally {
       if (editorTourShouldBeMarkedSeen) {
         await this.markEditorTourSeen();
@@ -2309,7 +2304,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.revokePreviewUrl();
     this.zone.run(() => {
       this.previewUrl = url;
-      this.previewNonce += 1;
+      this.previewRevision += 1;
     });
   }
 
@@ -2608,6 +2603,23 @@ export class ChangePage implements OnInit, OnDestroy {
 
   private async tryApplyFirstPageCoverFallback(): Promise<boolean> {
     let firstPageFile: File | null = null;
+
+    if (!this.pdfFirstPageDims) {
+      try {
+        const directDims =
+          await this.candidateImageService.getFirstPageDimensions({
+            pdfFile: this.workingPdfFile,
+            pdfNativePath: this.workingPdfNativePath,
+            pdfName: this.selectedPdfName || this.workingPdfName || 'pdf',
+          });
+        const normalizedDirectDims = this.normalizeDims(directDims);
+        if (normalizedDirectDims) {
+          this.pdfFirstPageDims = normalizedDirectDims;
+        }
+      } catch {
+        // Keep going with the rendered first-page fallback below.
+      }
+    }
 
     if (this.workingPdfNativePath && this.pdfRewrite.isSupported()) {
       try {
@@ -3205,11 +3217,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   shouldShowExportOptions(): boolean {
-    return (
-      this.hasValidPdf() &&
-      !!(this.editorSourceFile ?? this.workingImageFile) &&
-      !this.imageErrorKey
-    );
+    return this.canGenerate();
   }
 
   shouldShowInsertTocWarning(): boolean {
@@ -3552,7 +3560,9 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private activateSavedProject(filename: string): void {
-    this.activeProjectFilename = filename;
+    this.activeProjectFilename = this.projectEditFlowActive
+      ? filename
+      : undefined;
     this.coverPageMode = 'replace';
   }
 
@@ -3643,10 +3653,10 @@ export class ChangePage implements OnInit, OnDestroy {
       if (matchedFormat) {
         this.selectedFormatId = matchedFormat.id;
       }
-      this.revokePreviewUrl();
-      this.previewUrl = URL.createObjectURL(loaded.sourceFile);
+      this.setPreviewUrl(URL.createObjectURL(loaded.sourceFile));
 
       this.projectEditReturnUrl = '/tabs/change';
+      this.projectEditFlowActive = true;
       try {
         await this.openEditor('image');
         return true;
@@ -4179,16 +4189,14 @@ export class ChangePage implements OnInit, OnDestroy {
     });
   }
 
-  private async consumeEditorResult(): Promise<void> {
-    let result: EditorResult | null = null;
+  private async consumeEditorResult(sessionId?: string): Promise<void> {
+    const { result } = consumeEditorResultSnapshot(
+      this.editorSession,
+      sessionId ?? this.lastEditorSessionId,
+    );
 
-    if (this.lastEditorSessionId) {
-      result = this.editorSession.consumeResult(this.lastEditorSessionId);
+    if (result) {
       this.lastEditorSessionId = undefined;
-    }
-
-    if (!result) {
-      result = this.editorSession.consumeLatestResult();
     }
 
     if (result?.file) {
@@ -4282,57 +4290,15 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private resolveFormatId(formatId?: string): string {
-    if (
-      formatId === ChangePage.FORMAT_ID_WITH_FRAME ||
-      formatId === ChangePage.FORMAT_ID_WITHOUT_FRAME
-    ) {
+    const options = this.getCurrentFormatOptions();
+    if (formatId === 'with_frame' || formatId === 'without_frame') {
+      return ChangePage.FORMAT_ID_AUTO;
+    }
+    if (formatId && options.some((option) => option.id === formatId)) {
       return formatId;
     }
 
-    return ChangePage.FORMAT_ID_WITHOUT_FRAME;
-  }
-
-  private async resolveExportDimsForSmallWarn(): Promise<{
-    width: number;
-    height: number;
-  } | null> {
-    const compositionInput = this.buildCompositionInput('export');
-    const croppedSourceDims = compositionInput
-      ? computeSourceCropDims(compositionInput)
-      : null;
-    if (croppedSourceDims) {
-      return croppedSourceDims;
-    }
-
-    const exportFile =
-      this.exportImageFile ?? (await this.ensureExportImageFile());
-    if (!exportFile) return null;
-    const dims = await this.imagePipe.getDimensions(exportFile);
-    return dims ?? null;
-  }
-
-  private debugSmallWarn(data: {
-    reason: string;
-    targetId: string;
-    target: { width: number; height: number };
-    exportDims: { width: number; height: number } | null;
-    legacyDims: { width: number; height: number } | null;
-    usedDims: { width: number; height: number } | null;
-    willWarn: boolean;
-  }): void {
-    if (!this.isSmallWarnDebugEnabled()) return;
-    console.info('[ECC][SMALL_WARN_DEBUG]', data);
-  }
-
-  private isSmallWarnDebugEnabled(): boolean {
-    if (typeof window === 'undefined') return false;
-    const w = window as Window & { __CC_WARN_DEBUG__?: boolean };
-    if (w.__CC_WARN_DEBUG__ === true) return true;
-    try {
-      return localStorage.getItem(this.warnDebugKey) === '1';
-    } catch {
-      return false;
-    }
+    return options[0]?.id ?? ChangePage.FORMAT_ID_AUTO;
   }
 
   private async persistCropTargetId(formatId: string): Promise<void> {

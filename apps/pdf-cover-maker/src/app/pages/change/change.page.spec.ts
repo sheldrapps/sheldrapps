@@ -648,4 +648,134 @@ describe('ChangePage', () => {
     expect(clearPdfError).toHaveBeenCalled();
     expect(resolvePdfFirstPageDims).toHaveBeenCalled();
   });
+
+  it('prefers direct first-page viewport dimensions for pdf cover sizing', async () => {
+    const candidateImageService = {
+      getFirstPageDimensions: jasmine
+        .createSpy('getFirstPageDimensions')
+        .and.resolveTo({ width: 6, height: 16 }),
+    };
+    const ctx = {
+      candidateImageService,
+      pdfFirstPageDims: { width: 123, height: 456 } as
+        | { width: number; height: number }
+        | undefined,
+      workingPdfFile: new File([new Uint8Array([1])], 'weird.pdf', {
+        type: 'application/pdf',
+      }),
+      workingPdfNativePath: undefined as string | undefined,
+      selectedPdfName: 'weird.pdf',
+      workingPdfName: 'weird',
+      normalizeDims: (
+        dims: Partial<{ width: number; height: number }> | null | undefined,
+      ) => {
+        const width = Number(dims?.width);
+        const height = Number(dims?.height);
+        if (!Number.isFinite(width) || !Number.isFinite(height)) {
+          return null;
+        }
+        return { width: Math.round(width), height: Math.round(height) };
+      },
+    };
+
+    await (
+      ChangePage as unknown as {
+        prototype: {
+          resolvePdfFirstPageDims: (this: typeof ctx) => Promise<void>;
+        };
+      }
+    ).prototype.resolvePdfFirstPageDims.call(ctx);
+
+    expect(candidateImageService.getFirstPageDimensions).toHaveBeenCalledWith({
+      pdfFile: ctx.workingPdfFile,
+      pdfNativePath: undefined,
+      pdfName: 'weird.pdf',
+    });
+    expect(ctx.pdfFirstPageDims).toEqual({ width: 6, height: 16 });
+  });
+
+  it('builds pdf crop presets with auto, standards and custom labels', () => {
+    const translate = {
+      instant: (key: string) => {
+        if (key === 'CHANGE.FORMAT_CUSTOM') {
+          return 'Custom';
+        }
+        return key.split('.').pop() ?? key;
+      },
+    };
+    const ctx = {
+      translate,
+      baseTarget: { width: 1236, height: 1648 },
+      resolveDocumentDims: () => ({ width: 1236, height: 1648 }),
+      buildAbsoluteTarget: (dims: { width: number; height: number }) => ({
+        width: dims.width,
+        height: dims.height,
+        output: 'target' as const,
+      }),
+      buildRatioTarget: (width: number, height: number) => ({
+        width,
+        height,
+        output: 'source' as const,
+      }),
+      buildCustomFormatLabel: () => 'Custom',
+    };
+
+    const options = (
+      ChangePage as unknown as {
+        prototype: {
+          getCurrentFormatOptions: (this: typeof ctx) => Array<{
+            id: string;
+            label: string;
+            target: { width: number; height: number; output?: string };
+          }>;
+        };
+      }
+    ).prototype.getCurrentFormatOptions.call(ctx);
+
+    expect(options.map((option) => option.id)).toEqual([
+      'auto',
+      'a4',
+      'carta',
+      'oficio',
+      'nine_sixteen',
+      'three_four',
+      'one_one',
+      'custom',
+    ]);
+    expect(options[0].label).toBe('FORMAT_AUTO');
+    expect(options[1].label).toBe('FORMAT_A4');
+    expect(options[7].label).toBe('Custom');
+    expect(options[0].target).toEqual({
+      width: 1236,
+      height: 1648,
+      output: 'target',
+    });
+    expect(options[4].target).toEqual({
+      width: 9,
+      height: 16,
+      output: 'source',
+    });
+  });
+
+  it('maps legacy crop ids to the new auto preset', () => {
+    const ctx = {
+      getCurrentFormatOptions: () => [
+        { id: 'auto' },
+        { id: 'a4' },
+      ],
+    };
+
+    const resolveFormatId = (
+      ChangePage as unknown as {
+        prototype: {
+          resolveFormatId: (this: typeof ctx, formatId?: string) => string;
+        };
+      }
+    ).prototype.resolveFormatId;
+
+    expect(resolveFormatId.call(ctx, 'without_frame')).toBe('auto');
+    expect(resolveFormatId.call(ctx, 'with_frame')).toBe('auto');
+    expect(resolveFormatId.call(ctx, 'a4')).toBe('a4');
+    expect(resolveFormatId.call(ctx, 'unknown')).toBe('auto');
+  });
 });

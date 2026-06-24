@@ -26,7 +26,7 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
       "Contraste",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "Tramado",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
-      "Optimizar para tinta electrónica",
+      "Optimizar",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS":
       "Artefactos",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.TITLE":
@@ -79,15 +79,15 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
       "Realza bordes y detalles pequeños. Úsalo con moderación para evitar artefactos.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
-      "Optimizar para tinta electrónica",
+      "Optimizar",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
-      "Aplica una mejora rápida de contraste, color y nitidez para que la portada se vea mejor en pantallas de tinta electrónica.",
+      "Aplica una mejora rápida de contraste, color y nitidez para que la portada se vea mejor.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.APPLY_PRESET":
       "Aplicar preset",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.PRESET_APPLIED":
       "Preset aplicado",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
-      "Optimizar para tinta electrónica",
+      "Optimizar",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
       "Aplica un ajuste automático con enfoque ligero, contraste extra y upscale básico para exportaciones pequeñas.",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION":
@@ -171,6 +171,9 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.TOUR.CONTROLS.BACK": "Atrás",
     "EDITOR.TOUR.CONTROLS.PROGRESS": "{{current}} de {{total}}",
     "EDITOR.TOUR.CONTROLS.SKIP": "Omitir",
+    "EDITOR.TOUR.STEPS.FILL.TITLE": "Fondo de scratch",
+    "EDITOR.TOUR.STEPS.FILL.DESCRIPTION":
+      "Elige un color o un pattern para el fondo y pulsa Aplicar. Después aparecerá el botón Listo.",
     "EDITOR.TOUR.STEPS.STAGE.TITLE": "Botón Listo",
     "EDITOR.TOUR.STEPS.STAGE.DESCRIPTION":
       "Cuando termines de ajustar la portada, toca Listo para aplicar el cambio y volver.",
@@ -199,7 +202,7 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.CONTRAST": "Contrast",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.DITHER": "Dithering",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.EREADER_OPTIMIZE":
-      "Optimize for eReader",
+      "Optimize",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.ARTIFACTS":
       "Artifacts",
     "EDITOR.PANELS.ADJUSTMENTS.DITHER_ALERT.TITLE":
@@ -252,7 +255,7 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
       "Enhance edges and fine details. Use with moderation to avoid artifacts.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
-      "Optimize for eReader",
+      "Optimize",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
       "Apply a quick enhancement of contrast, color and sharpness so the cover looks better on e-reader screens.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.APPLY_PRESET":
@@ -260,7 +263,7 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.PRESET_APPLIED":
       "Preset applied",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
-      "Optimize for eReader",
+      "Optimize",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
       "Applies light sharpening, extra contrast and a basic upscale for small exports.",
     "EDITOR.PANELS.ADJUSTMENTS.ADJUSTMENTS.REGISTRY.TITLE.SATURATION":
@@ -338,6 +341,9 @@ export const EDITOR_TRANSLATIONS: Record<Locale, FlatDict> = {
     "EDITOR.TOUR.CONTROLS.BACK": "Back",
     "EDITOR.TOUR.CONTROLS.PROGRESS": "{{current}} of {{total}}",
     "EDITOR.TOUR.CONTROLS.SKIP": "Skip",
+    "EDITOR.TOUR.STEPS.FILL.TITLE": "Scratch background",
+    "EDITOR.TOUR.STEPS.FILL.DESCRIPTION":
+      "Choose a color or pattern for the background, then tap Apply. After that, the Done button will appear.",
     "EDITOR.TOUR.STEPS.STAGE.TITLE": "Done button",
     "EDITOR.TOUR.STEPS.STAGE.DESCRIPTION":
       "When you finish adjusting the cover, tap Done to apply the change and go back.",
@@ -1841,11 +1847,11 @@ const EDITOR_NEW_ADJUSTMENTS_I18N: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
       "Realza bordes y detalles pequeños. Úsalo con moderación para evitar artefactos.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
-      "Optimizar para tinta electrónica",
+      "Optimizar",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
-      "Aplica una mejora rápida de contraste, color y nitidez para que la portada se vea mejor en pantallas de tinta electrónica.",
+      "Aplica una mejora rápida de contraste, color y nitidez para que la portada se vea mejor.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
-      "Optimizar para tinta electrónica",
+      "Optimizar",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
       "Aplica un ajuste automático con enfoque ligero, contraste extra y upscale básico para exportaciones pequeñas.",
   },
@@ -1857,11 +1863,11 @@ const EDITOR_NEW_ADJUSTMENTS_I18N: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
       "Enhance edges and fine details. Use in moderation to avoid artifacts.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
-      "Optimize for e-ink",
+      "Optimize",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
-      "Apply a quick enhancement of contrast, color, and sharpness so the cover looks better on e-ink screens.",
+      "Apply a quick enhancement of contrast, color, and sharpness so the cover looks better.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
-      "Optimize for e-ink",
+      "Optimize",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
       "Applies an automatic adjustment with light sharpening, extra contrast, and basic upscaling for small exports.",
   },
@@ -1873,11 +1879,11 @@ const EDITOR_NEW_ADJUSTMENTS_I18N: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
       "Betont Kanten und feine Details. In Maßen verwenden, um Artefakte zu vermeiden.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
-      "Für E-Ink optimieren",
+      "Optimieren",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
-      "Wendet eine schnelle Verbesserung von Kontrast, Farbe und Schärfe an, damit das Cover auf E-Ink-Bildschirmen besser aussieht.",
+      "Wendet eine schnelle Verbesserung von Kontrast, Farbe und Schärfe an, damit das Cover besser aussieht.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
-      "Für E-Ink optimieren",
+      "Optimieren",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
       "Wendet eine automatische Anpassung mit leichter Schärfung, höherem Kontrast und einfachem Upscaling für kleine Exporte an.",
   },
@@ -1889,11 +1895,11 @@ const EDITOR_NEW_ADJUSTMENTS_I18N: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
       "Renforce les contours et les petits détails. À utiliser avec modération pour éviter les artefacts.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
-      "Optimiser pour encre électronique",
+      "Optimiser",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
-      "Applique une amélioration rapide du contraste, des couleurs et de la netteté afin que la couverture soit mieux visible sur les écrans à encre électronique.",
+      "Applique une amélioration rapide du contraste, des couleurs et de la netteté afin que la couverture soit plus belle.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
-      "Optimiser pour encre électronique",
+      "Optimiser",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
       "Applique un réglage automatique avec une légère accentuation, plus de contraste et un upscaling de base pour les petites exportations.",
   },
@@ -1905,11 +1911,11 @@ const EDITOR_NEW_ADJUSTMENTS_I18N: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
       "Evidenzia bordi e piccoli dettagli. Usalo con moderazione per evitare artefatti.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
-      "Ottimizza per inchiostro elettronico",
+      "Ottimizza",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
-      "Applica un miglioramento rapido di contrasto, colore e nitidezza per far apparire meglio la copertina sugli schermi a inchiostro elettronico.",
+      "Applica un miglioramento rapido di contrasto, colore e nitidezza per far apparire meglio la copertina.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
-      "Ottimizza per inchiostro elettronico",
+      "Ottimizza",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
       "Applica una regolazione automatica con leggera nitidezza, contrasto extra e upscaling di base per esportazioni piccole.",
   },
@@ -1921,11 +1927,11 @@ const EDITOR_NEW_ADJUSTMENTS_I18N: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
       "Realça bordas e detalhes finos. Use com moderação para evitar artefatos.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
-      "Otimizar para tinta eletrônica",
+      "Otimizar",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
-      "Aplica uma melhoria rápida de contraste, cor e nitidez para que a capa fique melhor em telas de tinta eletrônica.",
+      "Aplica uma melhoria rápida de contraste, cor e nitidez para que a capa fique melhor.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
-      "Otimizar para tinta eletrônica",
+      "Otimizar",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
       "Aplica um ajuste automático com nitidez leve, contraste extra e upscaling básico para exportações pequenas.",
   },
@@ -1937,11 +1943,11 @@ const EDITOR_NEW_ADJUSTMENTS_I18N: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
       "強化邊緣與細節。請適度使用以避免產生雜訊。",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
-      "針對電子墨水最佳化",
+      "最佳化",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
-      "快速提升對比、色彩與銳利度，讓封面在電子墨水螢幕上顯示更清晰。",
+      "快速提升對比、色彩與銳利度，讓封面看起來更好。",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
-      "針對電子墨水最佳化",
+      "最佳化",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
       "自動套用輕度銳化、額外對比與基礎放大，適合小尺寸匯出。",
   },
@@ -1953,11 +1959,11 @@ const EDITOR_NEW_ADJUSTMENTS_I18N: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
       "किनारों और बारीक विवरणों को उभारता है। आर्टिफैक्ट से बचने के लिए इसे सीमित रखें।",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
-      "ई-इंक के लिए ऑप्टिमाइज़ करें",
+      "ऑप्टिमाइज़",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
-      "कॉन्ट्रास्ट, रंग और तीक्ष्णता में तेज़ सुधार लागू करता है ताकि कवर ई-इंक स्क्रीन पर बेहतर दिखे।",
+      "कॉन्ट्रास्ट, रंग और तीक्ष्णता में तेज़ सुधार लागू करता है ताकि कवर बेहतर दिखे।",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
-      "ई-इंक के लिए ऑप्टिमाइज़ करें",
+      "ऑप्टिमाइज़",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
       "छोटे एक्सपोर्ट के लिए हल्की शार्पनिंग, अतिरिक्त कॉन्ट्रास्ट और बेसिक अपस्केल के साथ स्वचालित समायोजन लागू करता है।",
   },
@@ -1969,11 +1975,11 @@ const EDITOR_NEW_ADJUSTMENTS_I18N: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
       "يعزز الحواف والتفاصيل الدقيقة. استخدمه باعتدال لتجنب التشوهات.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
-      "تحسين لشاشات الحبر الإلكتروني",
+      "تحسين",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
-      "يطبق تحسينًا سريعًا للتباين واللون والحدة ليظهر الغلاف بشكل أفضل على شاشات الحبر الإلكتروني.",
+      "يطبق تحسينًا سريعًا للتباين واللون والحدة ليظهر الغلاف بشكل أفضل.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
-      "تحسين لشاشات الحبر الإلكتروني",
+      "تحسين",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
       "يطبق ضبطًا تلقائيًا مع شحذ خفيف وتباين إضافي وتكبير أساسي لعمليات التصدير الصغيرة.",
   },
@@ -1985,11 +1991,11 @@ const EDITOR_NEW_ADJUSTMENTS_I18N: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
       "輪郭や細部を強調します。アーティファクトを防ぐため、適度に使用してください。",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
-      "電子インク向けに最適化",
+      "最適化",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
-      "コントラスト・色・シャープネスを素早く補正し、電子インク画面で表紙が見やすくなるようにします。",
+      "コントラスト・色・シャープネスを素早く補正し、表紙がより良く見えるようにします。",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
-      "電子インク向けに最適化",
+      "最適化",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
       "小さい書き出し向けに、軽いシャープ化・コントラスト強化・基本アップスケールを自動適用します。",
   },
@@ -2001,11 +2007,11 @@ const EDITOR_NEW_ADJUSTMENTS_I18N: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
       "윤곽선과 미세한 디테일을 강조합니다. 아티팩트를 피하려면 적당히 사용하세요.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
-      "전자잉크용 최적화",
+      "최적화",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
-      "대비, 색상, 선명도를 빠르게 개선해 전자잉크 화면에서 표지가 더 잘 보이게 합니다.",
+      "대비, 색상, 선명도를 빠르게 개선해 표지가 더 좋아 보이게 합니다.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
-      "전자잉크용 최적화",
+      "최적화",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
       "작은 내보내기를 위해 가벼운 샤프닝, 추가 대비, 기본 업스케일을 자동으로 적용합니다.",
   },
@@ -2017,11 +2023,11 @@ const EDITOR_NEW_ADJUSTMENTS_I18N: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
       "增强边缘与细节。请适度使用以避免伪影。",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
-      "为电子墨水优化",
+      "优化",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
-      "快速提升对比度、色彩和锐度，让封面在电子墨水屏上显示更清晰。",
+      "快速提升对比度、色彩和锐度，让封面看起来更好。",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
-      "为电子墨水优化",
+      "优化",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
       "自动应用轻度锐化、额外对比和基础放大，适合小尺寸导出。",
   },
@@ -2033,11 +2039,11 @@ const EDITOR_NEW_ADJUSTMENTS_I18N: Record<Locale, FlatDict> = {
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
       "Подчеркивает контуры и мелкие детали. Используйте умеренно, чтобы избежать артефактов.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
-      "Оптимизировать для электронных чернил",
+      "Оптимизировать",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
-      "Быстро улучшает контраст, цвет и резкость, чтобы обложка лучше выглядела на экранах с электронными чернилами.",
+      "Быстро улучшает контраст, цвет и резкость, чтобы обложка выглядела лучше.",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
-      "Оптимизировать для электронных чернил",
+      "Оптимизировать",
     "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
       "Автоматически применяет легкую резкость, дополнительный контраст и базовый апскейл для небольшого экспорта.",
   },
@@ -2051,11 +2057,11 @@ const EDITOR_FALLBACK_KEYS: FlatDict = {
   "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.SHARPNESS_PANEL.HELPER":
     "Enhance edges and fine details. Use in moderation to avoid artifacts.",
   "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TITLE":
-    "Optimize for e-ink",
+    "Optimize",
   "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.DESCRIPTION":
-    "Apply a quick enhancement of contrast, color, and sharpness so the cover looks better on e-ink screens.",
+    "Apply a quick enhancement of contrast, color, and sharpness so the cover looks better.",
   "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.TOGGLE":
-    "Optimize for e-ink",
+    "Optimize",
   "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.HELPER":
     "Applies an automatic adjustment with light sharpening, extra contrast, and basic upscaling for small exports.",
   "EDITOR.PANELS.ADJUSTMENTS.WIDGETS.EREADER_OPTIMIZE_PANEL.APPLY_PRESET":
@@ -2067,6 +2073,11 @@ const EDITOR_FALLBACK_KEYS: FlatDict = {
     "Background intensity",
   "EDITOR.PANELS.TOOLS.WIDGETS.FILL_PANEL.LABEL.BACKGROUND_SCALE":
     "Background scale",
+  "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.TITLE": "Custom size",
+  "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.WIDTH_LABEL": "Width",
+  "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HEIGHT_LABEL": "Height",
+  "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HELPER":
+    "Enter whole numbers from {{min}} to {{max}} px.",
 };
 
 for (const locale of Object.keys(EDITOR_TRANSLATIONS) as Locale[]) {
@@ -2079,5 +2090,112 @@ for (const locale of Object.keys(EDITOR_TRANSLATIONS) as Locale[]) {
     if (!(key in EDITOR_TRANSLATIONS[locale])) {
       EDITOR_TRANSLATIONS[locale][key] = value;
     }
+  }
+}
+
+const EDITOR_NEW_CROP_I18N: Record<Locale, FlatDict> = {
+  "es-419": {
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.TITLE":
+      "Tamaño personalizado",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.WIDTH_LABEL": "Ancho",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HEIGHT_LABEL": "Alto",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HELPER":
+      "Ingresa solo números enteros de {{min}} a {{max}} px.",
+  },
+  "en-US": {
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.TITLE": "Custom size",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.WIDTH_LABEL": "Width",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HEIGHT_LABEL": "Height",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HELPER":
+      "Enter whole numbers from {{min}} to {{max}} px.",
+  },
+  "de-DE": {
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.TITLE":
+      "Benutzerdefinierte Größe",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.WIDTH_LABEL": "Breite",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HEIGHT_LABEL": "Höhe",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HELPER":
+      "Nur ganze Zahlen von {{min}} bis {{max}} px eingeben.",
+  },
+  "fr-FR": {
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.TITLE":
+      "Taille personnalisée",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.WIDTH_LABEL": "Largeur",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HEIGHT_LABEL": "Hauteur",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HELPER":
+      "Saisissez uniquement des nombres entiers de {{min}} à {{max}} px.",
+  },
+  "it-IT": {
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.TITLE":
+      "Dimensione personalizzata",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.WIDTH_LABEL": "Larghezza",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HEIGHT_LABEL": "Altezza",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HELPER":
+      "Inserisci solo numeri interi da {{min}} a {{max}} px.",
+  },
+  "pt-BR": {
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.TITLE":
+      "Tamanho personalizado",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.WIDTH_LABEL": "Largura",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HEIGHT_LABEL": "Altura",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HELPER":
+      "Digite apenas números inteiros de {{min}} a {{max}} px.",
+  },
+  "zh-TW": {
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.TITLE": "自訂尺寸",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.WIDTH_LABEL": "寬度",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HEIGHT_LABEL": "高度",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HELPER":
+      "只輸入 {{min}} 到 {{max}} px 的整數。",
+  },
+  "hi-IN": {
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.TITLE": "कस्टम आकार",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.WIDTH_LABEL": "चौड़ाई",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HEIGHT_LABEL": "ऊँचाई",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HELPER":
+      "{{min}} से {{max}} px तक केवल पूर्णांक दर्ज करें।",
+  },
+  "ar-SA": {
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.TITLE": "مقاس مخصص",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.WIDTH_LABEL": "العرض",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HEIGHT_LABEL": "الارتفاع",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HELPER":
+      "أدخل أرقامًا صحيحة فقط من {{min}} إلى {{max}} بكسل.",
+  },
+  "ja-JP": {
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.TITLE": "カスタムサイズ",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.WIDTH_LABEL": "幅",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HEIGHT_LABEL": "高さ",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HELPER":
+      "{{min}} から {{max}} px の整数のみを入力してください。",
+  },
+  "ko-KR": {
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.TITLE": "사용자 지정 크기",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.WIDTH_LABEL": "너비",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HEIGHT_LABEL": "높이",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HELPER":
+      "{{min}}~{{max}}px 사이의 정수만 입력하세요.",
+  },
+  "zh-CN": {
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.TITLE": "自定义尺寸",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.WIDTH_LABEL": "宽度",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HEIGHT_LABEL": "高度",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HELPER":
+      "仅输入 {{min}} 到 {{max}} px 的整数。",
+  },
+  "ru-RU": {
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.TITLE":
+      "Пользовательский размер",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.WIDTH_LABEL": "Ширина",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HEIGHT_LABEL": "Высота",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HELPER":
+      "Вводите только целые числа от {{min}} до {{max}} px.",
+  },
+};
+
+for (const locale of Object.keys(EDITOR_TRANSLATIONS) as Locale[]) {
+  const localized = EDITOR_NEW_CROP_I18N[locale];
+  for (const [key, value] of Object.entries(localized)) {
+    EDITOR_TRANSLATIONS[locale][key] = value;
   }
 }

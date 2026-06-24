@@ -1,0 +1,7 @@
+interface:
+  display_name: "Emil Design Eng"
+  short_description: "Review motion and animation polish"
+  default_prompt: "Use $emil-design-eng to review timing, easing, and motion details in this UI."
+
+policy:
+  allow_implicit_invocation: true

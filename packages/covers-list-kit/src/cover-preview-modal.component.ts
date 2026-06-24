@@ -14,7 +14,6 @@ import {
   IonHeader,
   IonIcon,
   IonModal,
-  IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -69,7 +68,6 @@ export interface PreviewActionClickEvent {
     IonHeader,
     IonIcon,
     IonModal,
-    IonTitle,
     IonToolbar,
     EReaderPreviewFrameComponent,
     LoadingStateComponent,
@@ -83,7 +81,7 @@ export class CoverPreviewModalComponent {
   private translate = inject(TranslateService);
 
   @Input() isOpen = false;
-  @Input() titleKey = 'COVERS.PREVIEW_TITLE';
+  @Input() titleKey: string | null = null;
   @Input() imageDataUrl: string | null = null;
   @Input() isDithered = false;
   @Input() imageAlt = 'cover preview';

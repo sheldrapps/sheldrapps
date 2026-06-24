@@ -35,6 +35,77 @@ export type CompositionInputForPurposeArgs = {
   frameFallback?: FrameFallback;
 };
 
+type FrameDimensions = {
+  width: number;
+  height: number;
+};
+
+const FRAME_RATIO_TOLERANCE = 0.01;
+
+function normalizeFrameDimension(value: number | undefined): number | null {
+  if (!Number.isFinite(value as number)) {
+    return null;
+  }
+
+  const normalized = Math.max(1, Math.round(value as number));
+  return normalized > 0 ? normalized : null;
+}
+
+function hasMatchingAspectRatio(
+  frameWidth: number,
+  frameHeight: number,
+  targetWidth: number,
+  targetHeight: number,
+): boolean {
+  if (!frameWidth || !frameHeight || !targetWidth || !targetHeight) {
+    return false;
+  }
+
+  const frameRatio = frameWidth / frameHeight;
+  const targetRatio = targetWidth / targetHeight;
+  return Math.abs(frameRatio - targetRatio) <= FRAME_RATIO_TOLERANCE;
+}
+
+export function resolveFrameDimensions(args: {
+  target: CropTarget;
+  state?: Pick<CoverCropState, "frameWidth" | "frameHeight"> | null;
+  frameFallback?: FrameFallback;
+}): FrameDimensions | null {
+  const fallbackWidth = normalizeFrameDimension(
+    args.frameFallback?.width ?? args.target.width,
+  );
+  const fallbackHeight = normalizeFrameDimension(
+    args.frameFallback?.height ?? args.target.height,
+  );
+
+  if (!fallbackWidth || !fallbackHeight) {
+    return null;
+  }
+
+  const stateWidth = normalizeFrameDimension(args.state?.frameWidth);
+  const stateHeight = normalizeFrameDimension(args.state?.frameHeight);
+  if (
+    stateWidth &&
+    stateHeight &&
+    hasMatchingAspectRatio(
+      stateWidth,
+      stateHeight,
+      args.target.width,
+      args.target.height,
+    )
+  ) {
+    return {
+      width: stateWidth,
+      height: stateHeight,
+    };
+  }
+
+  return {
+    width: fallbackWidth,
+    height: fallbackHeight,
+  };
+}
+
 export function computeBaseScale(
   frameW: number,
   frameH: number,
@@ -129,25 +200,12 @@ export function buildCompositionInput(
   if (!state) return null;
   if (!naturalWidth || !naturalHeight) return null;
 
-  const frameW =
-    (Number.isFinite(state.frameWidth as number)
-      ? (state.frameWidth as number)
-      : undefined) ??
-    frameFallback?.width ??
-    target.width;
-
-  const frameH =
-    (Number.isFinite(state.frameHeight as number)
-      ? (state.frameHeight as number)
-      : undefined) ??
-    frameFallback?.height ??
-    target.height;
-
-  if (!frameW || !frameH) return null;
+  const frame = resolveFrameDimensions({ target, state, frameFallback });
+  if (!frame) return null;
 
   const baseScale = computeBaseScale(
-    frameW,
-    frameH,
+    frame.width,
+    frame.height,
     naturalWidth,
     naturalHeight,
     state.rot,
@@ -162,8 +220,8 @@ export function buildCompositionInput(
   return {
     file,
     target: normalizedTarget,
-    frameWidth: frameW,
-    frameHeight: frameH,
+    frameWidth: frame.width,
+    frameHeight: frame.height,
     baseScale,
     naturalWidth,
     naturalHeight,

@@ -2,9 +2,9 @@
 ## Project identity
 - app: cover-creator-for-kindle
 - alias: ccfk
-- currentVersionCode: 45
-- nextVersionCode: 46
-- currentVersionName: "Project edit flow ready"
+- currentVersionCode: 46
+- nextVersionCode: 47
+- currentVersionName: "Edit and preview cleanup"
 - nextVersionName: "Edit and preview cleanup"
 ## Product purpose
 - Keep cover generation dependable when ads fail unexpectedly.

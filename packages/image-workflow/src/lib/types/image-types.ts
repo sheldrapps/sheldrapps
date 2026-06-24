@@ -7,6 +7,46 @@ export type ImageValidationError =
   | 'CORRUPT'
   | 'INVALID_DIMENSIONS';
 
+export type ImageValidationIssueSeverity = 'error' | 'warning' | 'info';
+
+export interface ImageValidationIssue {
+  severity: ImageValidationIssueSeverity;
+  messageKey: string;
+  messageParams?: Record<string, unknown>;
+}
+
+export function normalizeImageValidationIssues(
+  issues: Array<ImageValidationIssue | null | undefined>,
+): ImageValidationIssue[] {
+  return issues.filter(
+    (issue): issue is ImageValidationIssue => !!issue && !!issue.messageKey,
+  );
+}
+
+export function buildImageValidationIssues(options: {
+  errorKey?: string | null;
+  errorParams?: Record<string, unknown>;
+  warningKey?: string | null;
+  warningParams?: Record<string, unknown>;
+}): ImageValidationIssue[] {
+  return normalizeImageValidationIssues([
+    options.errorKey
+      ? {
+          severity: "error" as const,
+          messageKey: options.errorKey,
+          messageParams: options.errorParams,
+        }
+      : null,
+    options.warningKey
+      ? {
+          severity: "warning" as const,
+          messageKey: options.warningKey,
+          messageParams: options.warningParams,
+        }
+      : null,
+  ]);
+}
+
 /**
  * Result of image validation
  */

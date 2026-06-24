@@ -39,6 +39,7 @@ import {
   buildDefaultCoverCropState,
   CoverSourceActionsComponent,
   CoverCropState,
+  CoverImageStateComponent,
   EReaderPreviewFrameComponent,
   ImagePipelineService,
   ImageValidationError,
@@ -54,6 +55,8 @@ import {
 import type { CropTarget, CropFormatOption } from '@sheldrapps/image-workflow';
 import {
   EditorSessionService,
+  consumeEditorResultSnapshot,
+  watchEditorResultReady,
   ProjectSaveState,
 } from '@sheldrapps/image-workflow/editor';
 
@@ -69,6 +72,7 @@ import {
   refreshOutline,
   appsOutline,
   informationCircleOutline,
+  optionsOutline,
 } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
@@ -169,6 +173,7 @@ type EditorSourceMode = 'image' | 'scratch';
     IonPopover,
     IonModal,
     LoadingStateComponent,
+    CoverImageStateComponent,
     EReaderPreviewFrameComponent,
     CoverSourceActionsComponent,
     ScrollableButtonBarComponent,
@@ -206,9 +211,11 @@ export class ChangePage implements OnInit, OnDestroy {
   private readonly maxEpubSizeMB = 1024;
   private readonly formatOptions = this.buildFormatOptions();
   private routerSub?: Subscription;
+  private editorResultSub?: Subscription;
   private coversEventsSub?: Subscription;
   private rewriteProgressSub?: PluginListenerHandle;
   private lastEditorSessionId?: string;
+  private lastEditorSourceMode: EditorSourceMode = 'image';
   private previewLongPressTimer: ReturnType<typeof setTimeout> | null = null;
   private suppressNextImagePick = false;
   private workingMaxSideApplied: boolean | null = null;
@@ -265,6 +272,7 @@ export class ChangePage implements OnInit, OnDestroy {
       refreshOutline,
       appsOutline,
       informationCircleOutline,
+      optionsOutline,
     });
   }
 
@@ -305,8 +313,8 @@ export class ChangePage implements OnInit, OnDestroy {
   workingImageDims?: { width: number; height: number };
 
   previewUrl?: string;
+  previewRevision = 0;
   previewThumbUrl?: string;
-  previewNonce = 0;
   originalEpubPreviewUrl: string | null = null;
   cropState?: CoverCropState;
   selectedFormatId = 'epub';
@@ -371,7 +379,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private readonly invalidCoverWarnKey = 'CHANGE.IMAGE_WARN_INVALID_EPUB_COVER';
 
   get previewUrlWithNonce(): string | null {
-    return this.previewUrl ? `${this.previewUrl}#v=${this.previewNonce}` : null;
+    return this.previewUrl ?? null;
   }
 
   get previewModalImageSrc(): string | null {
@@ -448,7 +456,26 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   get shouldShowBestCandidateAction(): boolean {
-    return this.showInvalidCoverFallback || this.bestCandidateRequested;
+    return (
+      !this.previewUrl &&
+      (this.showInvalidCoverFallback || this.bestCandidateRequested)
+    );
+  }
+
+  getSuggestedStepId():
+    | 'epub-picker'
+    | 'cover-source-image'
+    | 'adjust-button'
+    | 'create-button'
+    | 'result-actions'
+    | null {
+    if (this.homeTour.isActive()) return null;
+    if (!this.hasValidEpub() || this.epubErrorKey) return 'epub-picker';
+    if (!this.previewUrl || this.imageErrorKey) return 'cover-source-image';
+    if (!this.cropState && this.canCrop()) return 'adjust-button';
+    if (this.canSaveShare()) return 'result-actions';
+    if (this.canGenerate()) return 'create-button';
+    return null;
   }
 
   async ngOnInit() {
@@ -515,6 +542,14 @@ export class ChangePage implements OnInit, OnDestroy {
         }
       });
 
+    this.editorResultSub = watchEditorResultReady(
+      this.editorSession,
+      () => this.lastEditorSessionId,
+      (sid) => {
+        void this.consumeEditorResult(sid);
+      },
+    );
+
     this.coversEventsSub = this.coversEvents.events$
       .pipe(filter((event) => event.type === 'deleted'))
       .subscribe((event) => {
@@ -533,6 +568,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.revokePreviewUrl();
     this.revokeOriginalEpubPreviewUrl();
     this.routerSub?.unsubscribe();
+    this.editorResultSub?.unsubscribe();
     this.coversEventsSub?.unsubscribe();
     this.adsRemovedSub?.unsubscribe();
     this.removeAdsPriceSub?.unsubscribe();
@@ -899,6 +935,7 @@ export class ChangePage implements OnInit, OnDestroy {
     const file = input.files?.[0];
     if (!file) return;
 
+    this.resetBestCandidateState(true);
     this.setBusy('pick', 'CHANGE.LOADING_IMAGE');
 
     try {
@@ -991,6 +1028,7 @@ export class ChangePage implements OnInit, OnDestroy {
     const file = this.candidateFileFromMetadata(candidate);
     if (!file) return;
 
+    this.resetBestCandidateState(true);
     const loaded = await this.applyImageSource(file, false);
     if (!loaded) return;
 
@@ -1217,6 +1255,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async onStartScratch(): Promise<void> {
     if (!this.canStartScratch()) return;
+    this.resetBestCandidateState(true);
     this.resetSelectedImage();
     this.clearImageError();
     this.clearImageWarn();
@@ -1226,7 +1265,9 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async startCrop() {
     if (!this.canCrop()) return;
-    await this.openEditor('image');
+    await this.openEditor(
+      this.lastEditorSourceMode === 'scratch' ? 'scratch' : 'image',
+    );
   }
 
   private async openEditor(sourceMode: EditorSourceMode): Promise<void> {
@@ -1260,7 +1301,7 @@ export class ChangePage implements OnInit, OnDestroy {
         },
       },
       output: {
-        includeRenderedBlob: false,
+        includeRenderedBlob: true,
       },
       preferences: {
         artifactReductionInfo: {
@@ -1284,6 +1325,7 @@ export class ChangePage implements OnInit, OnDestroy {
       returnUrl: this.getEditorReturnUrl(),
     });
 
+    this.lastEditorSourceMode = sourceMode;
     this.lastEditorSessionId = sid;
     const shouldShowEditorTour = await this.shouldShowEditorTour();
     await this.homeTour.completeInteraction('editor-apply');
@@ -1392,40 +1434,37 @@ export class ChangePage implements OnInit, OnDestroy {
     this.workingImageDims = dims;
 
     try {
-      if (renderedBlob) {
-        const renderedInfo = this.normalizeRenderedInfo(result) ?? undefined;
-        const renderedFile = this.buildRenderedFile(
-          renderedBlob,
-          renderedInfo?.mimeType,
-        );
-        this.renderedImageFile = renderedFile;
-        this.renderedImageBlob = renderedBlob;
-        this.renderedImageInfo = renderedInfo;
-
-        const url = URL.createObjectURL(renderedBlob);
-        this.setPreviewUrl(url);
-        const thumb = await this.buildThumbFromBlob(
-          renderedBlob,
-          ChangePage.THUMB_SIZE,
-        );
-        this.setPreviewThumbUrl(thumb ?? url);
-        await this.applySmallWarn(
-          'editor-apply',
-          undefined,
-          renderedInfo ?? undefined,
-        );
+      if (!renderedBlob) {
+        console.warn('[ECC] editor result missing renderedBlob; skipping preview fallback');
         editorTourShouldBeMarkedSeen = true;
         this.isApplyingFromEditor = false;
-        this.zone.run(() => {
-          this.previewNonce += 1;
-        });
         return;
-      } else {
-        await this.applySmallWarn('editor-apply');
-        editorTourShouldBeMarkedSeen = true;
-        this.isApplyingFromEditor = false;
-        await this.updatePreviewFromComposition();
       }
+
+      const renderedInfo = this.normalizeRenderedInfo(result) ?? undefined;
+      const renderedFile = this.buildRenderedFile(
+        renderedBlob,
+        renderedInfo?.mimeType,
+      );
+      this.renderedImageFile = renderedFile;
+      this.renderedImageBlob = renderedBlob;
+      this.renderedImageInfo = renderedInfo;
+
+      const url = URL.createObjectURL(renderedBlob);
+      this.setPreviewUrl(url);
+      const thumb = await this.buildThumbFromBlob(
+        renderedBlob,
+        ChangePage.THUMB_SIZE,
+      );
+      this.setPreviewThumbUrl(thumb ?? url);
+      await this.applySmallWarn(
+        'editor-apply',
+        undefined,
+        renderedInfo ?? undefined,
+      );
+      editorTourShouldBeMarkedSeen = true;
+      this.isApplyingFromEditor = false;
+      return;
     } finally {
       if (editorTourShouldBeMarkedSeen) {
         await this.markEditorTourSeen();
@@ -1953,7 +1992,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.revokePreviewUrl();
     this.zone.run(() => {
       this.previewUrl = url;
-      this.previewNonce += 1;
+      this.previewRevision += 1;
     });
   }
 
@@ -2723,11 +2762,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   shouldShowExportOptions(): boolean {
-    return (
-      this.hasValidEpub() &&
-      !!(this.editorSourceFile ?? this.workingImageFile) &&
-      !this.imageErrorKey
-    );
+    return this.canGenerate();
   }
 
   getEffectiveExportQualityMode(): ExportQualityMode {
@@ -3094,8 +3129,7 @@ export class ChangePage implements OnInit, OnDestroy {
       editMode === 'overwrite' ? snapshot.coverFilename : undefined;
     this.lastSavedFilename =
       editMode === 'overwrite' ? snapshot.coverFilename : undefined;
-    this.revokePreviewUrl();
-    this.previewUrl = URL.createObjectURL(loaded.sourceFile);
+    this.setPreviewUrl(URL.createObjectURL(loaded.sourceFile));
 
     this.projectEditReturnUrl = '/tabs/change';
     try {
@@ -3632,16 +3666,14 @@ export class ChangePage implements OnInit, OnDestroy {
     });
   }
 
-  private async consumeEditorResult(): Promise<void> {
-    let result: EditorResult | null = null;
+  private async consumeEditorResult(sessionId?: string): Promise<void> {
+    const { result } = consumeEditorResultSnapshot(
+      this.editorSession,
+      sessionId ?? this.lastEditorSessionId,
+    );
 
-    if (this.lastEditorSessionId) {
-      result = this.editorSession.consumeResult(this.lastEditorSessionId);
+    if (result) {
       this.lastEditorSessionId = undefined;
-    }
-
-    if (!result) {
-      result = this.editorSession.consumeLatestResult();
     }
 
     if (result?.file) {

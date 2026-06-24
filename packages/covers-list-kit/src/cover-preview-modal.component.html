@@ -2,8 +2,6 @@
   <ng-template>
     <ion-header>
       <ion-toolbar class="preview-toolbar">
-        <ion-title class="preview-title">{{ titleKey | translate }}</ion-title>
-
         <ion-buttons slot="end">
           @for (action of visibleActions(headerActions); track action.id) {
           <ion-button
@@ -47,9 +45,15 @@
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="preview-content" [fullscreen]="true" [scrollY]="false">
+    <ion-content class="preview-content" [fullscreen]="true" [scrollY]="true">
       <div class="stage">
         <div class="frame-wrap">
+          @if (titleKey) {
+          <div class="preview-header">
+            <div class="preview-title">{{ titleKey | translate }}</div>
+          </div>
+          }
+
           <div class="preview-visual">
             @if (imageDataUrl) {
             <app-e-reader-preview-frame

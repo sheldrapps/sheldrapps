@@ -32,7 +32,12 @@
       data-tour-id="editor-stage"
       [class.stage--editing]="isEditingText()"
     >
-    <div class="stage-content" [class.stage-content--editing]="isEditingText()">
+    <div
+      class="stage-content"
+      [class.stage-content--editing]="isEditingText()"
+      [style.width.px]="previewFrameSize.width || null"
+      [style.height.px]="previewFrameSize.height || null"
+    >
       <div class="stage-bg" [class.stage-bg--checker]="backgroundMode() === 'transparent'"></div>
       <div class="frame-wrap">
         <div

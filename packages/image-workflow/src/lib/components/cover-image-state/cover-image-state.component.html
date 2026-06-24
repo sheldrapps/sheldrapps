@@ -1,0 +1,19 @@
+@if (previewUrl) {
+<sh-current-cover-preview
+  [titleKey]="titleKey"
+  [hintKey]="hintKey"
+  [ariaLabelKey]="ariaLabelKey"
+  [tourId]="tourId"
+  [previewUrl]="previewUrl"
+  [previewRevision]="previewRevision"
+  [issues]="issues"
+  (previewRequested)="onPreviewRequested()"
+></sh-current-cover-preview>
+} @else if (issues.length) {
+<div class="cover-image-state__issues-only">
+  <sh-image-validation-issues
+    [embedded]="true"
+    [issues]="issues"
+  ></sh-image-validation-issues>
+</div>
+}

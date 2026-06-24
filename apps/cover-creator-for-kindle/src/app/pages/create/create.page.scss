@@ -4,28 +4,186 @@ ion-modal.cover-preview-modal {
   }
 }
 
-:host .thumb-wrapper--preview {
-  width: auto;
-  height: auto;
+:host ion-button.suggested-action--active {
+  position: relative;
+  isolation: isolate;
+  animation: suggested-action-lift 1800ms var(--app-ease) infinite;
+}
+
+:host ion-button.suggested-action--active::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  pointer-events: none;
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.34);
+  box-shadow:
+    0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.1),
+    0 0 18px rgba(var(--ion-color-primary-rgb), 0.18);
+  opacity: 0;
+  transform: scale(0.98);
+  animation: suggested-action-ring 1800ms var(--app-ease) infinite;
+}
+
+:host ion-button.suggested-action--active ion-icon {
+  animation: suggested-action-icon 1800ms var(--app-ease) infinite;
+}
+
+.model-picker-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+}
+
+.model-picker-selectors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+  width: 100%;
+}
+
+.model-picker-selectors__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--app-space-2);
+  width: 100%;
+}
+
+.model-picker-selectors__row--split {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.model-picker-selectors__col {
   min-width: 0;
-  min-height: 0;
 }
 
-:host .thumb--preview {
-  width: auto;
-  height: auto;
-  max-height: var(--app-touch-target);
-  border-radius: 0;
-  overflow: visible;
-  background: transparent;
+.model-picker-selectors__item {
+  --padding-start: var(--app-space-5);
+  --padding-end: var(--app-space-5);
+  --inner-padding-end: var(--app-space-3);
+  --min-height: var(--app-control-min-height);
+  --background: var(--ion-item-background);
+  width: 100%;
+  margin-bottom: 0;
+  border-radius: var(--app-radius-md);
+  transition:
+    box-shadow var(--app-dur-med) var(--app-ease),
+    background-color var(--app-dur-med) var(--app-ease);
 }
 
-:host .thumb--preview img {
-  width: auto;
-  height: auto;
-  max-height: var(--app-touch-target);
-  max-width: calc(var(--app-touch-target) * 1.8);
-  object-fit: contain;
-  display: block;
+.model-picker-selectors__item::part(native) {
+  border-radius: var(--app-radius-md);
+  box-shadow: var(--app-shadow-sm);
+  transition:
+    box-shadow var(--app-dur-med) var(--app-ease),
+    background-color var(--app-dur-med) var(--app-ease);
 }
 
+.model-picker-selectors__item:focus-within::part(native) {
+  box-shadow: var(--app-focus-ring);
+}
+
+.model-picker-selectors__select {
+  width: 100%;
+  --border-radius: var(--app-radius-md);
+  --placeholder-color: var(--app-control-placeholder);
+  font-weight: 550;
+  letter-spacing: 0.15px;
+}
+
+.model-picker-card {
+  width: 100%;
+}
+
+.model-picker-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--app-space-3);
+  padding: var(--app-space-4);
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-md);
+  box-shadow: var(--app-shadow-sm);
+  background: var(--app-surface);
+}
+
+.model-picker-summary__text {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-2);
+  min-width: 0;
+  color: var(--app-text-primary);
+  font-size: var(--app-text-base);
+  font-weight: var(--app-font-semibold);
+  line-height: 1.35;
+}
+
+.model-picker-summary__edit {
+  justify-self: end;
+  --padding-start: 0;
+  --padding-end: 0;
+  --color: var(--app-text-secondary);
+  font-weight: var(--app-font-semibold);
+}
+
+@keyframes suggested-action-lift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-1.5px);
+  }
+}
+
+@keyframes suggested-action-ring {
+  0% {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  20% {
+    opacity: 0.9;
+  }
+
+  55% {
+    opacity: 0.15;
+    transform: scale(1.015);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes suggested-action-icon {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  35% {
+    transform: translateX(1px);
+  }
+
+  65% {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host ion-button.suggested-action--active,
+  :host ion-button.suggested-action--active::after,
+  :host ion-button.suggested-action--active ion-icon {
+    animation: none;
+  }
+
+  :host ion-button.suggested-action--active::after {
+    opacity: 0.55;
+    transform: none;
+  }
+}

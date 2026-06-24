@@ -19,51 +19,62 @@
   [scrollEvents]="true"
   (ionScroll)="onTourContentScroll()"
 >
+  @let suggestedStepId = getSuggestedStepId();
+
   <!-- PDF File Selector -->
-  <ion-item
-    button
-    detail="false"
-    class="ion-margin-top"
-    data-tour-id="pdf-picker"
-    (click)="openPdfPicker()"
-    [class.item-invalid]="!!pdfErrorKey"
-    [attr.aria-invalid]="pdfErrorKey ? 'true' : 'false'"
-    [attr.aria-describedby]="pdfErrorKey ? 'pdf-error' : null"
-    [attr.aria-label]="
-    selectedPdfName
-      ? ('CHANGE.ARIA_CHANGE_PDF' | translate:{ name: selectedPdfName })
-      : ('CHANGE.ARIA_SELECT_PDF' | translate)
-  "
-  >
-    <ion-label>
-      <div class="field-title">
-        {{ 'CHANGE.SELECT_PDF_LABEL' | translate }}
-      </div>
-
-      @if (selectedPdfName && !pdfErrorKey) {
-      <div class="field-filename">{{ selectedPdfName }}</div>
-      <div class="field-subtle">{{ 'CHANGE.TAP_TO_CHANGE' | translate }}</div>
-      } @else {
-      <div class="field-placeholder">
-        {{ 'CHANGE.SELECT_PDF_PLACEHOLDER' | translate }}
-      </div>
-      }
-    </ion-label>
-
-    <div class="thumb-wrapper" slot="end" aria-hidden="true">
-      @if (selectedPdfName && !pdfErrorKey) {
-      <ion-icon class="thumb-check" name="checkmark-circle"></ion-icon>
-      } @else {
-      <div class="thumb thumb--icon">
-        <ion-icon
-          class="thumb-icon"
-          [name]="pdfErrorKey ? 'alert-circle-outline' : 'document-outline'"
-          aria-hidden="true"
-        ></ion-icon>
-      </div>
-      }
+  <div class="file-selector-section">
+    <div class="field-title">
+      {{ 'CHANGE.PDF_FILE_TITLE' | translate }}
     </div>
-  </ion-item>
+
+    <ion-item
+      button
+      detail="false"
+      class="file-selector-section__item app-outline-surface"
+      data-tour-id="pdf-picker"
+      (click)="openPdfPicker()"
+      [class.item-invalid]="!!pdfErrorKey"
+      [class.suggested-action--active]="suggestedStepId === 'pdf-picker'"
+      [attr.aria-invalid]="pdfErrorKey ? 'true' : 'false'"
+      [attr.aria-describedby]="pdfErrorKey ? 'pdf-error' : null"
+      [attr.aria-label]="
+      selectedPdfName
+        ? ('CHANGE.ARIA_CHANGE_PDF' | translate:{ name: selectedPdfName })
+        : ('CHANGE.ARIA_SELECT_PDF' | translate)
+    "
+    >
+      <ion-label>
+        <div class="field-title">
+          {{ 'CHANGE.SELECT_PDF_LABEL' | translate }}
+        </div>
+
+        @if (selectedPdfName && !pdfErrorKey) {
+        <div class="file-selector-section__selected-copy">
+          <div class="field-filename">{{ selectedPdfName }}</div>
+          <div class="field-subtle">{{ 'CHANGE.TAP_TO_CHANGE' | translate }}</div>
+        </div>
+        } @else {
+        <div class="field-placeholder">
+          {{ 'CHANGE.SELECT_PDF_PLACEHOLDER' | translate }}
+        </div>
+        }
+      </ion-label>
+
+      <div class="thumb-wrapper" slot="end" aria-hidden="true">
+        @if (selectedPdfName && !pdfErrorKey) {
+        <ion-icon class="thumb-check" name="checkmark-circle"></ion-icon>
+        } @else {
+        <div class="thumb thumb--icon">
+          <ion-icon
+            class="thumb-icon"
+            [name]="pdfErrorKey ? 'alert-circle-outline' : 'document-outline'"
+            aria-hidden="true"
+          ></ion-icon>
+        </div>
+        }
+      </div>
+    </ion-item>
+  </div>
 
   @if (pdfErrorKey) {
   <div class="app-callout app-callout--error" aria-live="polite" role="status" id="pdf-error">
@@ -83,6 +94,7 @@
   </div>
   }
 
+  @if (hasValidPdf()) {
   <div class="cover-mode-card app-secondary-surface ion-margin-top">
     <app-cover-page-mode-switch
       data-tour-id="cover-page-mode"
@@ -93,7 +105,7 @@
       [leftValue]="'insert'"
       [rightValue]="'replace'"
       [value]="coverPageMode"
-      [disabled]="!hasValidPdf() || hasActiveProjectFilename"
+      [disabled]="hasActiveProjectFilename"
       (valueChange)="onCoverPageModeChange($event)"
     ></app-cover-page-mode-switch>
 
@@ -111,85 +123,30 @@
     </div>
     }
   </div>
+  }
 
   <sh-cover-source-actions
-    [imageDisabled]="!hasValidPdf()"
-    [scratchDisabled]="!canStartScratch()"
+    [imageHidden]="!hasValidPdf()"
+    [scratchHidden]="!canStartScratch()"
+    [suggestedActions]="
+      suggestedStepId === 'cover-source-image' ? ['image', 'scratch'] : []
+    "
     (imageSelected)="openImagePicker()"
     (scratchSelected)="onStartScratch()"
   ></sh-cover-source-actions>
 
-  <!-- Image Selector -->
-  <ion-item
-    button
-    detail="false"
-    class="ion-margin-top"
-    data-tour-id="cover-image-picker"
-    (click)="openImagePicker()"
-    (pointerdown)="onPreviewPressStart()"
-    (pointerup)="onPreviewPressEnd()"
-    (pointerleave)="onPreviewPressEnd()"
-    (pointercancel)="onPreviewPressEnd()"
-    [disabled]="!hasValidPdf()"
-    [class.item-invalid]="!!imageErrorKey"
-    [attr.aria-invalid]="imageErrorKey ? 'true' : 'false'"
-    [attr.aria-describedby]="imageErrorKey ? 'image-error' : null"
-    [attr.aria-label]="
-    selectedImageName
-      ? ('CHANGE.ARIA_CHANGE_IMAGE' | translate:{ name: selectedImageName })
-      : ('CHANGE.ARIA_SELECT_IMAGE' | translate)
-  "
-  >
-    <ion-label>
-      <div class="field-title">
-        {{ 'CHANGE.SELECT_IMAGE_LABEL' | translate }}
-      </div>
-
-      @if (previewUrl && !imageErrorKey) {
-      <div class="field-subtle">
-        {{ 'CHANGE.TAP_TO_CHANGE_IMAGE' | translate }}
-      </div>
-      @if (shouldShowPreviewLongPressHint()) {
-      <div class="field-subtle">
-        {{ 'CHANGE.LONGPRESS_PREVIEW_HINT' | translate }}
-      </div>
-      }
-      } @else if (showInvalidCoverFallback) {
-      <div class="field-subtle">
-        {{ 'CHANGE.INVALID_COVER_TAP_TO_CHANGE' | translate }}
-      </div>
-      } @else {
-      <div class="field-placeholder">
-        {{ 'CHANGE.SELECT_IMAGE_PLACEHOLDER' | translate }}
-      </div>
-      }
-    </ion-label>
-
-    <div
-      class="thumb-wrapper"
-      [class.thumb-wrapper--preview]="previewUrl && !imageErrorKey"
-      slot="end"
-      aria-hidden="true"
-    >
-      @if (previewUrl && !imageErrorKey) {
-      <div class="thumb thumb--preview">
-        <img
-          [src]="previewUrl ? previewUrl + '#v=' + previewNonce : null"
-          alt=""
-        />
-      </div>
-      <ion-icon class="thumb-check" name="checkmark-circle"></ion-icon>
-      } @else {
-      <div class="thumb thumb--icon">
-        <ion-icon
-          class="thumb-icon"
-          [name]="imageErrorKey ? 'alert-circle-outline' : 'image-outline'"
-          aria-hidden="true"
-        ></ion-icon>
-      </div>
-      }
-    </div>
-  </ion-item>
+  <sh-cover-image-state
+    [previewUrl]="previewUrl"
+    [previewRevision]="previewRevision"
+    [hintKey]="'CHANGE.TAP_TO_PREVIEW'"
+  [errorKey]="imageErrorKey || null"
+  [errorParams]="imageErrorParams"
+  [warningKey]="imageWarnKey || null"
+  [warningParams]="imageWarnParams"
+  [smallWarningSourceDims]="currentCoverWarningSourceDims"
+  [smallWarningTarget]="currentCoverWarningTarget"
+  (previewRequested)="openPreview()"
+></sh-cover-image-state>
 
   @if (shouldShowBestCandidateAction) {
   <div class="best-candidate-wrap">
@@ -208,56 +165,20 @@
   </div>
   }
 
-  @if (imageErrorKey) {
-  <div class="app-callout app-callout--error" aria-live="polite" role="status">
-    <ion-icon
-      class="app-callout__icon"
-      name="close-circle-outline"
-      aria-hidden="true"
-    ></ion-icon>
-
-    <div>
-      <div class="app-callout__title">{{ "COMMON.ERROR" | translate }}</div>
-
-      <div class="app-callout__body">
-        {{ imageErrorKey | translate:imageErrorParams }}
-      </div>
-    </div>
-  </div>
-
-  } @if (!imageErrorKey && imageWarnKey) {
-  <div
-    class="app-callout app-callout--warning"
-    aria-live="polite"
-    role="status"
-  >
-    <ion-icon
-      class="app-callout__icon"
-      name="alert-circle-outline"
-      aria-hidden="true"
-    ></ion-icon>
-
-    <div>
-      <div class="app-callout__title">{{ "COMMON.WARNING" | translate }}</div>
-
-      <div class="app-callout__body">
-        {{ imageWarnKey | translate:imageWarnParams }}
-      </div>
-    </div>
-  </div>
-  }
-
   <div class="primary-actions">
+    @if (canCrop()) {
     <ion-button
       expand="block"
       fill="outline"
       data-tour-id="adjust-button"
-      [disabled]="!canCrop()"
       (click)="startCrop()"
       aria-label="{{ 'CHANGE.ARIA_CROP' | translate }}"
+      [class.suggested-action--active]="suggestedStepId === 'adjust-button'"
     >
+      <ion-icon slot="start" name="options-outline"></ion-icon>
       {{ 'CHANGE.CROP_ACTION' | translate }}
     </ion-button>
+    }
 
     @if (shouldShowExportOptions()) {
     <div data-tour-id="export-quality">
@@ -284,27 +205,30 @@
     }
 
     <div class="actions">
+      @if (canGenerate()) {
       <ion-button
         expand="block"
         data-tour-id="create-button"
-        [disabled]="!canGenerate()"
         (click)="onGenerate()"
+        [class.suggested-action--active]="suggestedStepId === 'create-button'"
       >
         <ion-icon slot="start" name="refresh-outline"></ion-icon>
         {{ getChangeActionKey() | translate }}
       </ion-button>
+      }
     </div>
   </div>
 
   <div class="secondary-actions">
+    @if (canSaveShare()) {
     <ion-grid class="app-action-grid" data-tour-id="result-actions">
       <ion-row>
         <ion-col size="6">
           <ion-button
             expand="block"
             fill="outline"
-            [disabled]="!canSaveShare()"
             (click)="onSave()"
+            [class.suggested-action--active]="suggestedStepId === 'result-actions'"
           >
             <ion-icon slot="start" name="save-outline"></ion-icon>
             {{ 'CHANGE.SAVE_ACTION' | translate }}
@@ -315,7 +239,6 @@
           <ion-button
             expand="block"
             fill="outline"
-            [disabled]="!canSaveShare()"
             (click)="onShare()"
           >
             <ion-icon slot="start" name="share-social-outline"></ion-icon>
@@ -324,6 +247,7 @@
         </ion-col>
       </ion-row>
     </ion-grid>
+    }
   </div>
 
   @if (canShowRemoveAdsEntryPoint()) {

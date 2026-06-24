@@ -46,13 +46,35 @@
     {{ formatOptions[0].label }}
   </div>
   } @else {
-  <!-- Kindle Model Selection Panel -->
-  <ion-grid class="selectors-grid">
-    <ion-row>
-      <ion-col size="12">
+  @if (showModelSelectionSummary) {
+  <div class="app-accent-surface model-summary-card">
+    <div class="app-accent-card-body model-summary-card__body">
+      <div class="model-summary" aria-live="polite">
+        <div class="model-summary__text">
+          <span>{{ selectedBrand?.i18nKey | translate }}</span>
+          <span>{{ selectedGroup?.i18nKey | translate }}</span>
+          <span>{{ (selectedModel?.i18nKey || selectedModel?.labelKey || selectedModel?.name || selectedModel?.id) | translate }}</span>
+        </div>
+
+        <ion-button
+          class="model-summary__edit"
+          fill="clear"
+          size="small"
+          (click)="openModelSelectionEditor()"
+        >
+          {{ 'COMMON.EDIT' | translate }}
+        </ion-button>
+      </div>
+    </div>
+  </div>
+  } @else {
+  <div class="selectors-grid">
+    <div class="selectors-grid__row">
+      <div class="selectors-grid__col selectors-grid__col--full">
         <div class="selector-label">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.BRAND' | translate }}</div>
-        <ion-item>
+        <ion-item class="selectors-grid__item">
           <ion-select
+            class="selectors-grid__select"
             [(ngModel)]="selectedBrandId"
             (ionChange)="onBrandChange()"
             [placeholder]="'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.PLACEHOLDER.SELECT_BRAND' | translate"
@@ -63,14 +85,15 @@
             </ion-select-option>
           </ion-select>
         </ion-item>
-      </ion-col>
-    </ion-row>
+      </div>
+    </div>
 
-    <ion-row>
-      <ion-col size="6">
+    <div class="selectors-grid__row selectors-grid__row--split">
+      <div class="selectors-grid__col">
         <div class="selector-label">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.GROUP' | translate }}</div>
-        <ion-item>
+        <ion-item class="selectors-grid__item">
           <ion-select
+            class="selectors-grid__select"
             [(ngModel)]="selectedGroupId"
             (ionChange)="onGroupChange()"
             [placeholder]="'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.PLACEHOLDER.SELECT_GROUP' | translate"
@@ -82,12 +105,13 @@
             </ion-select-option>
           </ion-select>
         </ion-item>
-      </ion-col>
+      </div>
 
-      <ion-col size="6">
+      <div class="selectors-grid__col">
         <div class="selector-label">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.MODEL' | translate }}</div>
-        <ion-item>
+        <ion-item class="selectors-grid__item">
           <ion-select
+            class="selectors-grid__select"
             [(ngModel)]="selectedModel"
             (ionChange)="onModelChange()"
             [placeholder]="'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.PLACEHOLDER.SELECT_MODEL' | translate"
@@ -100,9 +124,59 @@
             </ion-select-option>
           </ion-select>
         </ion-item>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+      </div>
+    </div>
+  </div>
+  }
+  }
+
+  @if (showCustomInputs) {
+  <section class="custom-format" aria-labelledby="custom-format-title">
+    <div class="custom-format__title" id="custom-format-title">
+      {{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.TITLE' | translate }}
+    </div>
+
+    <ion-grid class="custom-format__grid">
+      <ion-row>
+        <ion-col size="6">
+          <ion-item class="custom-format__item">
+            <ion-label position="stacked">
+              {{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.WIDTH_LABEL' | translate }}
+            </ion-label>
+            <ion-input
+              [(ngModel)]="customWidthInput"
+              (ionChange)="onCustomWidthChange($event)"
+              type="number"
+              inputmode="numeric"
+              step="1"
+              [min]="customDimensionMin"
+              [max]="customDimensionMax"
+            ></ion-input>
+          </ion-item>
+        </ion-col>
+
+        <ion-col size="6">
+          <ion-item class="custom-format__item">
+            <ion-label position="stacked">
+              {{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HEIGHT_LABEL' | translate }}
+            </ion-label>
+            <ion-input
+              [(ngModel)]="customHeightInput"
+              (ionChange)="onCustomHeightChange($event)"
+              type="number"
+              inputmode="numeric"
+              step="1"
+              [min]="customDimensionMin"
+              [max]="customDimensionMax"
+            ></ion-input>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <div class="custom-format__helper">
+      {{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CUSTOM.HELPER' | translate:{ min: customDimensionMin, max: customDimensionMax } }}
+    </div>
+  </section>
   }
 </div>
-

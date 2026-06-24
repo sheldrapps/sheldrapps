@@ -1,5 +1,6 @@
 import { Injectable, Optional } from '@angular/core';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
 import type { EditorHistorySnapshot } from './editor-history.service';
 import type { CoverCropState, CropFormatOption, CropperResult } from '../types';
 
@@ -144,6 +145,8 @@ export class EditorSessionService {
   private sessions = new Map<string, EditorSession>();
   private results = new Map<string, CropperResult>();
   private lastResultId: string | null = null;
+  private readonly resultReadySubject = new Subject<string>();
+  readonly resultReady$ = this.resultReadySubject.asObservable();
 
   constructor(@Optional() private router?: Router) {}
 
@@ -170,6 +173,7 @@ export class EditorSessionService {
       session.file = result.file;
       session.result = result;
     }
+    this.resultReadySubject.next(id);
   }
 
   getResult(id: string): CropperResult | null {

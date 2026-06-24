@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
@@ -84,7 +85,10 @@ export class ScrollableButtonBarComponent
   private suppressClickUntil = 0;
   isDragging = false;
 
-  constructor(private hostRef: ElementRef<HTMLElement>) {}
+  constructor(
+    private hostRef: ElementRef<HTMLElement>,
+    private cdr: ChangeDetectorRef,
+  ) {}
 
   ngAfterViewInit(): void {
     const el = this.scrollElRef?.nativeElement;
@@ -198,6 +202,7 @@ export class ScrollableButtonBarComponent
       if (allowNudge) {
         this.nudgeOnce();
       }
+      this.cdr.markForCheck();
     });
   }
 
@@ -212,6 +217,7 @@ export class ScrollableButtonBarComponent
       this.resetDragState();
       this.showFadeLeft = false;
       this.showFadeRight = false;
+      this.cdr.markForCheck();
       return;
     }
 
@@ -221,6 +227,7 @@ export class ScrollableButtonBarComponent
 
     this.showFadeLeft = !atStart;
     this.showFadeRight = !atEnd;
+    this.cdr.markForCheck();
   }
 
   private scrollToEdgeEnd(): void {
@@ -280,6 +287,62 @@ export class ScrollableButtonBarComponent
     this.dragPointerId = null;
     this.dragActive = false;
     this.isDragging = false;
+  }
+
+  private nudgeOnce(): void {
+    if (this.didNudge) return;
+    if (this.shouldReduceMotion()) return;
+
+    const el = this.scrollElRef?.nativeElement;
+    if (!el) return;
+    if (el.scrollWidth <= el.clientWidth + 1) return;
+
+    this.didNudge = true;
+
+    const startScroll = el.scrollLeft;
+    const direction = this.edge === "end" ? -1 : 1;
+    const nudgeDistance = 14 * direction;
+    const duration = 600;
+    const startTime = performance.now();
+
+    const animateOut = (t: number) => {
+      const elapsed = t - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+
+      el.scrollLeft = startScroll + nudgeDistance * ease;
+
+      if (progress < 1) {
+        requestAnimationFrame(animateOut);
+        return;
+      }
+
+      const returnStart = performance.now();
+      const animateBack = (tt: number) => {
+        const elapsedBack = tt - returnStart;
+        const progressBack = Math.min(elapsedBack / duration, 1);
+        const easeBack = 1 - Math.pow(1 - progressBack, 3);
+
+        el.scrollLeft = startScroll + nudgeDistance * (1 - easeBack);
+
+        if (progressBack < 1) {
+          requestAnimationFrame(animateBack);
+          return;
+        }
+
+        el.scrollLeft = startScroll;
+        this.cdr.markForCheck();
+      };
+
+      requestAnimationFrame(animateBack);
+    };
+
+    requestAnimationFrame(animateOut);
+  }
+
+  private shouldReduceMotion(): boolean {
+    if (typeof window === "undefined" || !window.matchMedia) return false;
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
 
   private logDiagnostics(context: string): void {
@@ -343,55 +406,5 @@ export class ScrollableButtonBarComponent
     }
   }
 
-  private nudgeOnce(): void {
-    if (this.didNudge) return;
-
-    const el = this.scrollElRef?.nativeElement;
-    if (!el) return;
-
-    if (el.scrollWidth <= el.clientWidth + 1) return;
-
-    this.didNudge = true;
-
-    const startScroll = el.scrollLeft;
-    const direction = this.edge === "end" ? -1 : 1;
-    const nudgeDistance = 14 * direction;
-    const duration = 600;
-
-    const startTime = performance.now();
-
-    const animateOut = (t: number) => {
-      const elapsed = t - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const ease = 1 - Math.pow(1 - progress, 3);
-
-      el.scrollLeft = startScroll + nudgeDistance * ease;
-
-      if (progress < 1) {
-        requestAnimationFrame(animateOut);
-      } else {
-        const returnStart = performance.now();
-
-        const animateBack = (tt: number) => {
-          const e2 = tt - returnStart;
-          const p2 = Math.min(e2 / duration, 1);
-          const ease2 = 1 - Math.pow(1 - p2, 3);
-
-          el.scrollLeft = startScroll + nudgeDistance * (1 - ease2);
-
-          if (p2 < 1) {
-            requestAnimationFrame(animateBack);
-          } else {
-            el.scrollLeft = startScroll;
-            this.recalculateOverflow();
-          }
-        };
-
-        requestAnimationFrame(animateBack);
-      }
-    };
-
-    requestAnimationFrame(animateOut);
-  }
   trackById = (_: number, item: ScrollableBarItem) => item.id;
 }

@@ -1,0 +1,74 @@
+:host {
+  display: block;
+}
+
+.validation-issues {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+}
+
+.validation-issues--embedded {
+  gap: var(--app-space-1);
+}
+
+.validation-issues__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--app-space-2);
+  padding: var(--app-space-3) var(--app-space-4);
+  border-radius: var(--app-radius-md);
+  background: var(--ion-item-background);
+  border-inline-start: 3px solid transparent;
+  box-shadow: var(--app-shadow-sm);
+}
+
+.validation-issues__item--embedded {
+  padding: 0;
+  background: transparent;
+  border-inline-start: 0;
+  box-shadow: none;
+}
+
+.validation-issues__item--error {
+  border-inline-start-color: var(--ion-color-danger);
+}
+
+.validation-issues__item--warning {
+  border-inline-start-color: var(--ion-color-warning);
+}
+
+.validation-issues__item--info {
+  border-inline-start-color: var(--ion-color-medium);
+}
+
+.validation-issues__icon {
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+  font-size: 1rem;
+  color: inherit;
+}
+
+.validation-issues__item--error .validation-issues__icon {
+  color: var(--ion-color-danger);
+}
+
+.validation-issues__item--warning .validation-issues__icon {
+  color: var(--ion-color-warning);
+}
+
+.validation-issues__item--info .validation-issues__icon {
+  color: var(--ion-color-medium);
+}
+
+.validation-issues__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.validation-issues__message {
+  color: var(--ion-text-color);
+  font-size: var(--app-text-sm);
+  line-height: 1.45;
+  word-break: break-word;
+}

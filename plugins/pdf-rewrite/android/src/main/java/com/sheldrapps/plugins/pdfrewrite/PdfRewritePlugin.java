@@ -471,12 +471,7 @@ public class PdfRewritePlugin extends Plugin {
                 throw new PluginError("REWRITE_FAILED", "rewrite");
             }
 
-            PDRectangle targetBox;
-            if (source.getNumberOfPages() > 0) {
-                targetBox = source.getPage(0).getMediaBox();
-            } else {
-                targetBox = new PDRectangle(bitmap.getWidth(), bitmap.getHeight());
-            }
+            PDRectangle targetBox = new PDRectangle(bitmap.getWidth(), bitmap.getHeight());
 
             PDPage coverPage = new PDPage(targetBox);
             if (source.getNumberOfPages() > 0) {

@@ -1,0 +1,51 @@
+@if (previewUrlWithNonce) {
+<div class="field-section preview-section" [attr.data-tour-id]="tourId || null">
+  <div class="field-title">
+    {{ titleKey | translate }}
+  </div>
+
+  <div class="preview-section__card">
+    <ion-item
+      button
+      detail="false"
+      class="preview-section__item"
+      [attr.aria-label]="ariaLabelKey | translate"
+      (click)="onPreviewRequested()"
+    >
+      <ion-label>
+        <div class="field-subtle field-subtle--preview-hint">
+          {{ hintKey | translate }}
+        </div>
+      </ion-label>
+
+      <div class="thumb-wrapper thumb-wrapper--preview" aria-hidden="true">
+        <div
+          class="thumb thumb--preview"
+          [class.thumb--preview-loading]="isPreviewLoading"
+        >
+          <img
+            [src]="previewUrlWithNonce"
+            alt=""
+            (load)="onPreviewLoad()"
+            (error)="onPreviewError()"
+          />
+          @if (isPreviewLoading) {
+          <div class="thumb-loader" aria-hidden="true">
+            <ion-spinner name="crescent"></ion-spinner>
+          </div>
+          }
+        </div>
+        <ion-icon class="thumb-check" name="checkmark-circle"></ion-icon>
+      </div>
+    </ion-item>
+
+    @if (issues.length) {
+    <sh-image-validation-issues
+      class="preview-section__issues"
+      [embedded]="true"
+      [issues]="issues"
+    ></sh-image-validation-issues>
+    }
+  </div>
+</div>
+}

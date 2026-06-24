@@ -19,21 +19,46 @@
   [scrollEvents]="true"
   (ionScroll)="onTourContentScroll()"
 >
-  <div class="field-section" data-tour-id="device-section">
+  @let suggestedStepId = getSuggestedStepId();
+
+  <div
+    class="field-section model-picker-section"
+    data-tour-id="device-section"
+  >
     <div class="field-title">
       {{ 'CREATE.SELECT_MODEL_LABEL' | translate }}
     </div>
-    
-    <ion-grid class="app-select-grid">
-      <ion-row>
-        <ion-col size="12">
+
+    @if (showModelSelectionSummary) {
+    <div class="model-picker-card">
+      <div class="model-picker-summary" aria-live="polite">
+        <div class="model-picker-summary__text">
+          <span>{{ selectedBrandSummary }}</span>
+          <span>{{ selectedGroupSummary }}</span>
+          <span>{{ selectedModelSummary }}</span>
+        </div>
+
+        <ion-button
+          class="model-picker-summary__edit"
+          data-tour-id="device-edit"
+          fill="clear"
+          size="small"
+          (click)="openModelSelectionEditor()"
+        >
+          {{ 'COMMON.CHANGE' | translate }}
+        </ion-button>
+      </div>
+    </div>
+    } @else {
+    <div class="model-picker-selectors">
+      <div class="model-picker-selectors__row">
+        <div class="model-picker-selectors__col model-picker-selectors__col--full">
           <div class="app-select-label">
             {{ 'CREATE.SELECT_BRAND_LABEL' | translate }}
           </div>
-          <ion-item
-            data-tour-id="brand-select"
-          >
+          <ion-item class="model-picker-selectors__item" data-tour-id="brand-select">
             <ion-select
+              class="model-picker-selectors__select"
               [(ngModel)]="selectedBrandId"
               (ionChange)="onBrandChange()"
               (ionFocus)="onBrandSelectOpen()"
@@ -48,18 +73,17 @@
               </ion-select-option>
             </ion-select>
           </ion-item>
-        </ion-col>
-      </ion-row>
+        </div>
+      </div>
 
-      <ion-row>
-        <ion-col size="6">
+      <div class="model-picker-selectors__row model-picker-selectors__row--split">
+        <div class="model-picker-selectors__col">
           <div class="app-select-label">
             {{ 'CREATE.SELECT_GROUP_LABEL' | translate }}
           </div>
-          <ion-item
-            data-tour-id="group-select"
-          >
+          <ion-item class="model-picker-selectors__item" data-tour-id="group-select">
             <ion-select
+              class="model-picker-selectors__select"
               [(ngModel)]="selectedGroupId"
               (ionChange)="onGroupChange()"
               (ionFocus)="onGroupSelectOpen()"
@@ -75,16 +99,15 @@
               </ion-select-option>
             </ion-select>
           </ion-item>
-        </ion-col>
+        </div>
 
-        <ion-col size="6">
+        <div class="model-picker-selectors__col">
           <div class="app-select-label">
             {{ 'CREATE.SELECT_GENERATION_LABEL' | translate }}
           </div>
-          <ion-item
-            data-tour-id="model-select"
-          >
+          <ion-item class="model-picker-selectors__item" data-tour-id="model-select">
             <ion-select
+              class="model-picker-selectors__select"
               [(ngModel)]="selectedModel"
               (ionChange)="onModelChange()"
               (ionFocus)="onModelSelectOpen()"
@@ -101,124 +124,57 @@
               </ion-select-option>
             </ion-select>
           </ion-item>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
-  </div>
-
-  <sh-cover-source-actions
-    [imageDisabled]="false"
-    [scratchDisabled]="!canStartScratch()"
-    (imageSelected)="openImagePicker()"
-    (scratchSelected)="onStartScratch()"
-  ></sh-cover-source-actions>
-
-  <ion-item
-    button
-    detail="false"
-    class="ion-margin-top"
-    data-tour-id="cover-image-picker"
-    (click)="openImagePicker()"
-    (pointerdown)="onPreviewPressStart()"
-    (pointerup)="onPreviewPressEnd()"
-    (pointerleave)="onPreviewPressEnd()"
-    (pointercancel)="onPreviewPressEnd()"
-    [class.item-invalid]="!!imageErrorKey"
-    [attr.aria-invalid]="imageErrorKey ? 'true' : 'false'"
-    [attr.aria-describedby]="imageErrorKey ? 'image-error' : null"
-    [attr.aria-label]="
-    selectedImageName
-      ? ('CREATE.ARIA_CHANGE_IMAGE' | translate:{ name: selectedImageName })
-      : ('CREATE.ARIA_SELECT_IMAGE' | translate)
-  "
-  >
-    <ion-label>
-      <div class="field-title">
-        {{ 'CREATE.SELECT_IMAGE_LABEL' | translate }}
-      </div>
-
-      @if (previewUrl && !imageErrorKey) {
-      <div class="field-subtle">{{ 'CREATE.TAP_TO_CHANGE' | translate }}</div>
-      } @else {
-      <div class="field-placeholder">
-        {{ 'CREATE.SELECT_IMAGE_PLACEHOLDER' | translate }}
-      </div>
-      }
-    </ion-label>
-
-    <div
-      class="thumb-wrapper"
-      [class.thumb-wrapper--preview]="previewUrl && !imageErrorKey"
-      slot="end"
-      aria-hidden="true"
-    >
-      @if (previewUrl && !imageErrorKey) {
-      <div class="thumb thumb--preview">
-        <img [src]="previewUrl" alt="" />
-      </div>
-      <ion-icon class="thumb-check" name="checkmark-circle"></ion-icon>
-      } @else {
-      <div class="thumb thumb--icon">
-        <ion-icon
-          class="thumb-icon"
-          [name]="imageErrorKey ? 'alert-circle-outline' : 'image-outline'"
-          aria-hidden="true"
-        ></ion-icon>
-      </div>
-      }
-    </div>
-  </ion-item>
-
-  @if (imageErrorKey) {
-  <div class="app-callout app-callout--error" aria-live="polite" role="status">
-    <ion-icon
-      class="app-callout__icon"
-      name="close-circle-outline"
-      aria-hidden="true"
-    ></ion-icon>
-
-    <div>
-      <div class="app-callout__title">{{ "COMMON.ERROR" | translate }}</div>
-
-      <div class="app-callout__body">
-        {{ imageErrorKey | translate:imageErrorParams }}
+        </div>
       </div>
     </div>
+    }
   </div>
 
-  } @if (!imageErrorKey && imageWarnKey) {
   <div
-    class="app-callout app-callout--warning"
-    aria-live="polite"
-    role="status"
+    class="field-section cover-source-section"
   >
-    <ion-icon
-      class="app-callout__icon"
-      name="alert-circle-outline"
-      aria-hidden="true"
-    ></ion-icon>
-
-    <div>
-      <div class="app-callout__title">{{ "COMMON.WARNING" | translate }}</div>
-
-      <div class="app-callout__body">
-        {{ imageWarnKey | translate:imageWarnParams }}
-      </div>
-    </div>
+    <sh-cover-source-actions
+      [titleKey]="'CREATE.COVER_SOURCE_TITLE'"
+      [imageDisabled]="false"
+      [scratchDisabled]="!canStartScratch()"
+      [suggestedActions]="
+        suggestedStepId === 'cover-source-image' && showModelSelectionSummary
+          ? ['image', 'scratch']
+          : suggestedStepId === 'cover-source-image'
+            ? ['image']
+            : []
+      "
+      (imageSelected)="openImagePicker()"
+      (scratchSelected)="onStartScratch()"
+    ></sh-cover-source-actions>
   </div>
-  }
 
+  <sh-cover-image-state
+    [previewUrl]="previewUrl"
+    [previewRevision]="previewRevision"
+    [hintKey]="'CREATE.TAP_TO_PREVIEW'"
+    [errorKey]="imageErrorKey || null"
+    [errorParams]="imageErrorParams"
+    [warningKey]="imageWarnKey || null"
+    [warningParams]="imageWarnParams"
+    (previewRequested)="openPreview()"
+  ></sh-cover-image-state>
+
+  @if (canEdit() || shouldShowExportOptions() || canGenerate()) {
   <div class="primary-actions">
+    @if (canEdit()) {
     <ion-button
       expand="block"
       fill="outline"
       data-tour-id="adjust-button"
-      [disabled]="!canEdit()"
       (click)="onAdjustWithEditor()"
       aria-label="{{ 'CREATE.ARIA_CROP' | translate }}"
+      [class.suggested-action--active]="suggestedStepId === 'adjust-button'"
     >
+      <ion-icon slot="start" name="options-outline"></ion-icon>
       {{ 'CREATE.CROP_ACTION' | translate }}
     </ion-button>
+    }
 
     @if (shouldShowExportOptions()) {
     <div data-tour-id="export-quality">
@@ -230,21 +186,23 @@
     </div>
     }
 
+    @if (canGenerate()) {
     <div class="actions">
       <ion-button
         expand="block"
         data-tour-id="create-button"
-        [disabled]="!canGenerate()"
         (click)="onGenerate()"
+        [class.suggested-action--active]="suggestedStepId === 'create-button'"
       >
-        @if (!adsRemoved) {
-        <ion-icon slot="start" name="play-circle-outline"></ion-icon>
-        }
+        <ion-icon slot="start" name="sparkles-outline"></ion-icon>
         {{ getGenerateActionKey() | translate }}
       </ion-button>
     </div>
+    }
   </div>
+  }
 
+  @if (canSaveShare()) {
   <div class="secondary-actions">
     <ion-grid class="app-action-grid" data-tour-id="result-actions">
       <ion-row>
@@ -252,8 +210,8 @@
           <ion-button
             expand="block"
             fill="outline"
-            [disabled]="!canSaveShare()"
             (click)="onSave()"
+            [class.suggested-action--active]="suggestedStepId === 'result-actions'"
           >
             <ion-icon slot="start" name="save-outline"></ion-icon>
             {{ 'CREATE.SAVE_ACTION' | translate }}
@@ -264,7 +222,6 @@
           <ion-button
             expand="block"
             fill="outline"
-            [disabled]="!canSaveShare()"
             (click)="onShare()"
           >
             <ion-icon slot="start" name="share-social-outline"></ion-icon>
@@ -274,6 +231,7 @@
       </ion-row>
     </ion-grid>
   </div>
+  }
 
   @if (canShowRemoveAdsEntryPoint()) {
   <div class="upgrade-actions">

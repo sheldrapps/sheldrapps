@@ -151,13 +151,20 @@ export class FillPanelComponent {
     if (!this.editorSession || !this.sid) return false;
     return this.editorSession.getSession(this.sid)?.sourceMode === "scratch";
   });
+  readonly hasVisibleSampleTarget = computed(() => {
+    if (!this.isScratchSession()) return true;
+    if (this.mode() !== "transparent") return true;
+    if (this.history.textLayers().length > 0) return true;
+    return false;
+  });
   readonly eyedropperEnabled = computed(() => {
     if (!this.isScratchSession()) return true;
-    return this.mode() === "color";
+    return this.hasVisibleSampleTarget();
   });
   readonly disabledToolIds = computed(() => {
     const disabled: string[] = [];
     if (this.isScratchSession()) {
+      disabled.push("none");
       disabled.push("same-image");
     }
     if (!this.eyedropperEnabled()) {

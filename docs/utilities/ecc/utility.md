@@ -2,9 +2,9 @@
 ## Project identity
 - app: epub-cover-changer
 - alias: ecc
-- currentVersionCode: 44
-- nextVersionCode: 45
-- currentVersionName: "Project edit flow ready"
+- currentVersionCode: 45
+- nextVersionCode: 46
+- currentVersionName: "Edit and preview cleanup"
 - nextVersionName: "Edit and preview cleanup"
 ## Product purpose
 - Keep cover generation dependable when ads fail unexpectedly.

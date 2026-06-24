@@ -115,4 +115,42 @@ describe('PdfCandidateImageService', () => {
     expect(result.images[0].sourcePath).toBe('first-page-render');
     expect(result.images[0].metadata?.['file']).toBe(coverFile);
   });
+
+  it('getFirstPageDimensions should read the first page viewport directly', async () => {
+    const loadPdfBytes = spyOn<any>(service, 'loadPdfBytes').and.resolveTo(
+      new Uint8Array([1, 2, 3]),
+    );
+    const pageCleanup = jasmine.createSpy('cleanup').and.stub();
+    const documentDestroy = jasmine.createSpy('destroy').and.resolveTo();
+    const loadingTaskDestroy = jasmine.createSpy('destroy').and.resolveTo();
+    const loadPdfDocument = spyOn<any>(service, 'loadPdfDocument').and.resolveTo({
+      document: {
+        numPages: 1,
+        getPage: jasmine.createSpy('getPage').and.resolveTo({
+          getViewport: jasmine
+            .createSpy('getViewport')
+            .and.returnValue({ width: 6, height: 16 }),
+          cleanup: pageCleanup,
+        }),
+        destroy: documentDestroy,
+      },
+      loadingTask: {
+        destroy: loadingTaskDestroy,
+      },
+    });
+
+    const dims = await service.getFirstPageDimensions({
+      pdfFile: new File([new Uint8Array([1])], 'weird.pdf', {
+        type: 'application/pdf',
+      }),
+      pdfName: 'weird',
+    });
+
+    expect(loadPdfBytes).toHaveBeenCalled();
+    expect(loadPdfDocument).toHaveBeenCalled();
+    expect(dims).toEqual({ width: 6, height: 16 });
+    expect(pageCleanup).toHaveBeenCalled();
+    expect(documentDestroy).toHaveBeenCalled();
+    expect(loadingTaskDestroy).toHaveBeenCalled();
+  });
 });

@@ -19,7 +19,8 @@ describe('BestCandidatePickerComponent', () => {
         PICKER: {
           TITLE: 'title',
           DESCRIPTION: 'desc',
-          LONG_PRESS_HINT: 'hint',
+          LONG_PRESS_HINT: 'tap to select',
+          LONG_PRESS_TO_PREVIEW: 'hold to preview',
           UNKNOWN_IMAGE: 'unknown',
           CANDIDATE_ALT: 'candidate {{index}}',
         },

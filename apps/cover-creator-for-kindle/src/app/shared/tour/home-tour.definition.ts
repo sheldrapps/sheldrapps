@@ -3,17 +3,36 @@ import { TranslateService } from '@ngx-translate/core';
 import type { TourDefinition } from './tour.types';
 
 export const HOME_TOUR_ID = 'ccfk-home-tour';
-export const CURRENT_HOME_TOUR_VERSION = 7;
+export const CURRENT_HOME_TOUR_VERSION = 9;
 
 export function buildHomeTourDefinition(
   translate: TranslateService,
-  opts?: { includeRemoveAdsStep?: boolean },
+  opts?: { includeDeviceSummaryStep?: boolean; includeRemoveAdsStep?: boolean },
 ): TourDefinition {
   const t = (key: string) => translate.instant(key);
+  const includeDeviceSummaryStep = opts?.includeDeviceSummaryStep === true;
   const includeRemoveAdsStep = opts?.includeRemoveAdsStep === true;
-  const totalSteps = includeRemoveAdsStep ? 11 : 9;
+  const totalSteps =
+    (includeRemoveAdsStep ? 9 : 7) + (includeDeviceSummaryStep ? 1 : 0);
+  const selectionStepStart = includeDeviceSummaryStep ? 2 : 1;
+  const selectionStepOffset = selectionStepStart - 1;
 
-  const steps: TourDefinition['steps'] = [
+  const steps: TourDefinition['steps'] = [];
+
+  if (includeDeviceSummaryStep) {
+    steps.push({
+      id: 'device-summary',
+      target: 'device-section',
+      title: t('HOME_TOUR.STEPS.DEVICE.TITLE'),
+      description: t('HOME_TOUR.STEPS.DEVICE.DESCRIPTION'),
+      placement: 'bottom',
+      advanceOn: ['device-edit'],
+      progressCurrent: 1,
+      progressTotal: totalSteps,
+    });
+  }
+
+  steps.push(
     {
       id: 'brand-select',
       target: 'brand-select',
@@ -21,7 +40,7 @@ export function buildHomeTourDefinition(
       description: t('HOME_TOUR.STEPS.BRAND.DESCRIPTION'),
       placement: 'bottom',
       advanceOn: ['brand-select'],
-      progressCurrent: 1,
+      progressCurrent: selectionStepStart,
       progressTotal: totalSteps,
     },
     {
@@ -31,7 +50,7 @@ export function buildHomeTourDefinition(
       description: t('HOME_TOUR.STEPS.GROUP.DESCRIPTION'),
       placement: 'bottom',
       advanceOn: ['group-select'],
-      progressCurrent: 2,
+      progressCurrent: 2 + selectionStepOffset,
       progressTotal: totalSteps,
     },
     {
@@ -41,7 +60,7 @@ export function buildHomeTourDefinition(
       description: t('HOME_TOUR.STEPS.MODEL.DESCRIPTION'),
       placement: 'bottom',
       advanceOn: ['model-select'],
-      progressCurrent: 3,
+      progressCurrent: 3 + selectionStepOffset,
       progressTotal: totalSteps,
     },
     {
@@ -51,7 +70,7 @@ export function buildHomeTourDefinition(
       description: t('HOME_TOUR.STEPS.IMAGE.DESCRIPTION'),
       placement: 'bottom',
       advanceOn: ['cover-image-selected'],
-      progressCurrent: 4,
+      progressCurrent: 4 + selectionStepOffset,
       progressTotal: totalSteps,
     },
     {
@@ -61,17 +80,7 @@ export function buildHomeTourDefinition(
       description: t('HOME_TOUR.STEPS.ADJUST.DESCRIPTION'),
       placement: 'top',
       advanceOn: ['editor-apply'],
-      progressCurrent: 5,
-      progressTotal: totalSteps,
-    },
-    {
-      id: 'export-quality',
-      target: 'export-quality',
-      title: t('HOME_TOUR.STEPS.EXPORT.TITLE'),
-      description: t('HOME_TOUR.STEPS.EXPORT.DESCRIPTION'),
-      placement: 'top',
-      advanceOn: ['export-quality-select'],
-      progressCurrent: 6,
+      progressCurrent: 5 + selectionStepOffset,
       progressTotal: totalSteps,
     },
     {
@@ -83,10 +92,10 @@ export function buildHomeTourDefinition(
         : t('HOME_TOUR.STEPS.CREATE.DESCRIPTION'),
       placement: 'top',
       advanceOn: ['cover-created'],
-      progressCurrent: 7,
+      progressCurrent: 6 + selectionStepOffset,
       progressTotal: totalSteps,
     },
-  ];
+  );
 
   if (includeRemoveAdsStep) {
     steps.push({
@@ -96,7 +105,7 @@ export function buildHomeTourDefinition(
       description: t('COMMON.REMOVE_ADS_DESCRIPTION'),
       placement: 'top',
       advanceOn: ['remove-ads-open'],
-      progressCurrent: 8,
+      progressCurrent: 7 + selectionStepOffset,
       progressTotal: totalSteps,
     });
     steps.push({
@@ -106,7 +115,7 @@ export function buildHomeTourDefinition(
       description: t('HOME_TOUR.STEPS.REMOVE_ADS_CLOSE.DESCRIPTION'),
       placement: 'bottom',
       advanceOn: ['remove-ads-close'],
-      progressCurrent: 9,
+      progressCurrent: 8 + selectionStepOffset,
       progressTotal: totalSteps,
     });
   }
@@ -118,7 +127,9 @@ export function buildHomeTourDefinition(
     description: t('HOME_TOUR.STEPS.RESULTS.DESCRIPTION'),
     placement: 'top',
     showFinish: true,
-    progressCurrent: includeRemoveAdsStep ? 11 : 9,
+    progressCurrent: includeRemoveAdsStep
+      ? 9 + selectionStepOffset
+      : 7 + selectionStepOffset,
     progressTotal: totalSteps,
   });
 

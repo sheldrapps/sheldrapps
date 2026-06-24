@@ -121,9 +121,9 @@ export class HomePageComponent implements OnInit {
       nameKey: 'HOME.APPS.PCM.NAME',
       descriptionKey: 'HOME.APPS.PCM.DESCRIPTION',
       icon: 'assets/apps/pcm/icon.png',
+      playStoreUrl:
+        'https://play.google.com/store/apps/details?id=com.sheldrapps.pdfcovermaker',
       privacyRoute: '/privacy-policies/pdf-cover-maker',
-      badgeKey: 'HOME.APPS.PCM.BADGE',
-      disabled: true,
     },
   ];
 

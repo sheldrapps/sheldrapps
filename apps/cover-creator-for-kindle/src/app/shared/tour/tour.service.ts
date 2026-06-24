@@ -18,7 +18,7 @@ const DEFAULT_TOOLTIP_STYLE: TourTooltipStyle = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 'min(320px, calc(100vw - 24px))',
+  width: 'min(384px, calc(100vw - 24px))',
 };
 
 @Injectable({ providedIn: 'root' })
@@ -311,7 +311,7 @@ export class TourService {
     }
 
     const viewportWidth = window.innerWidth;
-    const width = Math.min(320, viewportWidth - 24);
+    const width = Math.min(384, viewportWidth - 24);
     const centerX = this.clamp(
       rect.left + rect.width / 2,
       width / 2 + 12,

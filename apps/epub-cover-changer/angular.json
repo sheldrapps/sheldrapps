@@ -55,6 +55,7 @@
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss"],
             "scripts": [],
+            "allowedCommonJsDependencies": ["jszip"],
             "browser": "src/main.ts"
           },
           "configurations": {
@@ -143,7 +144,8 @@
               }
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss"],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": ["jszip"]
           },
           "configurations": {
             "ci": {

@@ -14,9 +14,9 @@ export const BEST_CANDIDATE_KIT_TRANSLATIONS = {
       PICKER: {
         TITLE: "اختر غلافًا محتملًا",
         DESCRIPTION: "وجدنا صورًا قد تعمل كغلاف الكتاب.",
-        LONG_PRESS_HINT: "اضغط لفترة طويلة على صورة لمعاينتها.",
+        LONG_PRESS_HINT: "اضغط للتحديد",
         NO_COVER_DETECTED: "لم يتم اكتشاف غلاف، اضغط لاختيار أحد الاقتراحات.",
-        LONG_PRESS_TO_PREVIEW: "اضغط لفترة طويلة للمعاينة.",
+        LONG_PRESS_TO_PREVIEW: "اضغط مطولًا للمعاينة",
         UNKNOWN_IMAGE: "صورة غير معروفة",
         CANDIDATE_ALT: "صورة مرشحة {{index}}",
       },
@@ -55,10 +55,10 @@ export const BEST_CANDIDATE_KIT_TRANSLATIONS = {
         TITLE: "Wähle ein mögliches Cover",
         DESCRIPTION:
           "Wir haben Bilder gefunden, die als Buchcover funktionieren könnten.",
-        LONG_PRESS_HINT: "Lange drücken, um eine Vorschau zu sehen.",
+        LONG_PRESS_HINT: "Tippen zum Auswählen",
         NO_COVER_DETECTED:
           "Kein Cover erkannt, tippe, um einen der Vorschläge auszuwählen.",
-        LONG_PRESS_TO_PREVIEW: "Lange drücken für Vorschau.",
+        LONG_PRESS_TO_PREVIEW: "Gedrückt halten für Vorschau",
         UNKNOWN_IMAGE: "Unbekanntes Bild",
         CANDIDATE_ALT: "Kandidatenbild {{index}}",
       },
@@ -95,10 +95,10 @@ export const BEST_CANDIDATE_KIT_TRANSLATIONS = {
       PICKER: {
         TITLE: "Choose a possible cover",
         DESCRIPTION: "We found images that may work as the book cover.",
-        LONG_PRESS_HINT: "Long press an image to preview it.",
+        LONG_PRESS_HINT: "Tap to select",
         NO_COVER_DETECTED:
           "No cover detected, tap to select one of the suggestions.",
-        LONG_PRESS_TO_PREVIEW: "Long press to preview.",
+        LONG_PRESS_TO_PREVIEW: "Hold to preview",
         UNKNOWN_IMAGE: "Unknown image",
         CANDIDATE_ALT: "Candidate image {{index}}",
       },
@@ -137,10 +137,10 @@ export const BEST_CANDIDATE_KIT_TRANSLATIONS = {
         TITLE: "Elige una posible portada",
         DESCRIPTION:
           "Encontramos imágenes que podrían funcionar como portada del libro.",
-        LONG_PRESS_HINT: "Mantén presionada una imagen para verla en grande.",
+        LONG_PRESS_HINT: "Toca para seleccionar",
         NO_COVER_DETECTED:
           "No se detectó portada, toca para seleccionar una de las sugerencias.",
-        LONG_PRESS_TO_PREVIEW: "Mantén presionado para previsualizar.",
+        LONG_PRESS_TO_PREVIEW: "Mantén presionado para previsualizar",
         UNKNOWN_IMAGE: "Imagen desconocida",
         CANDIDATE_ALT: "Imagen candidata {{index}}",
       },
@@ -179,10 +179,10 @@ export const BEST_CANDIDATE_KIT_TRANSLATIONS = {
         TITLE: "Choisissez une couverture possible",
         DESCRIPTION:
           "Nous avons trouvé des images qui pourraient servir de couverture au livre.",
-        LONG_PRESS_HINT: "Appuyez longuement sur une image pour l'aperçu.",
+        LONG_PRESS_HINT: "Touchez pour sélectionner",
         NO_COVER_DETECTED:
           "Aucune couverture détectée, appuyez pour sélectionner l'une des suggestions.",
-        LONG_PRESS_TO_PREVIEW: "Appuyez longuement pour l'aperçu.",
+        LONG_PRESS_TO_PREVIEW: "Maintenez appuyé pour prévisualiser",
         UNKNOWN_IMAGE: "Image inconnue",
         CANDIDATE_ALT: "Image candidate {{index}}",
       },
@@ -221,10 +221,10 @@ export const BEST_CANDIDATE_KIT_TRANSLATIONS = {
         DESCRIPTION:
           "हमें ऐसी छवियां मिलीं जो किताब के कवर के रूप में काम कर सकती हैं।",
         LONG_PRESS_HINT:
-          "इसका पूर्वावलोकन देखने के लिए किसी छवि को लंबे समय तक दबाएं।",
+          "चुनने के लिए टैप करें",
         NO_COVER_DETECTED:
           "कोई कवर नहीं पहचाना गया, सुझावों में से किसी एक को चुनने के लिए टैप करें।",
-        LONG_PRESS_TO_PREVIEW: "पूर्वावलोकन के लिए लंबे समय तक दबाएं।",
+        LONG_PRESS_TO_PREVIEW: "पूर्वावलोकन के लिए लंबे समय तक दबाएं",
         UNKNOWN_IMAGE: "अज्ञात छवि",
         CANDIDATE_ALT: "उम्मीदवार छवि {{index}}",
       },
@@ -264,10 +264,10 @@ export const BEST_CANDIDATE_KIT_TRANSLATIONS = {
         DESCRIPTION:
           "Abbiamo trovato immagini che potrebbero funzionare come copertina del libro.",
         LONG_PRESS_HINT:
-          "Premi a lungo su un'immagine per visualizzarne l'anteprima.",
+          "Tocca per selezionare",
         NO_COVER_DETECTED:
           "Nessuna copertina rilevata, tocca per selezionare uno dei suggerimenti.",
-        LONG_PRESS_TO_PREVIEW: "Premi a lungo per visualizzare l'anteprima.",
+        LONG_PRESS_TO_PREVIEW: "Tieni premuto per visualizzare l'anteprima",
         UNKNOWN_IMAGE: "Immagine sconosciuta",
         CANDIDATE_ALT: "Immagine candidata {{index}}",
       },
@@ -306,10 +306,10 @@ export const BEST_CANDIDATE_KIT_TRANSLATIONS = {
         TITLE: "可能なカバーを選択",
         DESCRIPTION:
           "本のカバーとして機能する可能性のある画像が見つかりました。",
-        LONG_PRESS_HINT: "画像を長押ししてプレビューを表示します。",
+        LONG_PRESS_HINT: "タップして選択",
         NO_COVER_DETECTED:
           "カバーが検出されていません。提案の1つを選択するにはタップしてください。",
-        LONG_PRESS_TO_PREVIEW: "長押ししてプレビューを表示します。",
+        LONG_PRESS_TO_PREVIEW: "長押ししてプレビュー",
         UNKNOWN_IMAGE: "不明な画像",
         CANDIDATE_ALT: "候補画像{{index}}",
       },
@@ -346,10 +346,10 @@ export const BEST_CANDIDATE_KIT_TRANSLATIONS = {
       PICKER: {
         TITLE: "가능한 표지를 선택하세요",
         DESCRIPTION: "책 표지로 작동할 수 있는 이미지를 찾았습니다.",
-        LONG_PRESS_HINT: "이미지를 길게 눌러 미리보기를 표시합니다.",
+        LONG_PRESS_HINT: "탭하여 선택",
         NO_COVER_DETECTED:
           "표지가 감지되지 않았습니다. 제안 중 하나를 선택하려면 탭하세요.",
-        LONG_PRESS_TO_PREVIEW: "길게 눌러 미리보기를 표시합니다.",
+        LONG_PRESS_TO_PREVIEW: "길게 눌러 미리보기",
         UNKNOWN_IMAGE: "알 수 없는 이미지",
         CANDIDATE_ALT: "후보 이미지{{index}}",
       },
@@ -388,10 +388,10 @@ export const BEST_CANDIDATE_KIT_TRANSLATIONS = {
         TITLE: "Escolha uma capa possível",
         DESCRIPTION:
           "Encontramos imagens que podem funcionar como capa do livro.",
-        LONG_PRESS_HINT: "Pressione e mantenha uma imagem para visualizar.",
+        LONG_PRESS_HINT: "Toque para selecionar",
         NO_COVER_DETECTED:
           "Nenhuma capa detectada, toque para selecionar uma das sugestões.",
-        LONG_PRESS_TO_PREVIEW: "Pressione e mantenha para visualizar.",
+        LONG_PRESS_TO_PREVIEW: "Toque e segure para visualizar",
         UNKNOWN_IMAGE: "Imagem desconhecida",
         CANDIDATE_ALT: "Imagem candidata {{index}}",
       },
@@ -429,10 +429,10 @@ export const BEST_CANDIDATE_KIT_TRANSLATIONS = {
         TITLE: "Выберите возможную обложку",
         DESCRIPTION:
           "Мы нашли изображения, которые могут служить обложкой книги.",
-        LONG_PRESS_HINT: "Долгое нажатие на изображение для предпросмотра.",
+        LONG_PRESS_HINT: "Коснитесь, чтобы выбрать",
         NO_COVER_DETECTED:
           "Обложка не обнаружена, коснитесь для выбора одного из предложений.",
-        LONG_PRESS_TO_PREVIEW: "Долгое нажатие для предпросмотра.",
+        LONG_PRESS_TO_PREVIEW: "Удерживайте для предпросмотра",
         UNKNOWN_IMAGE: "Неизвестное изображение",
         CANDIDATE_ALT: "Изображение-кандидат {{index}}",
       },
@@ -469,9 +469,9 @@ export const BEST_CANDIDATE_KIT_TRANSLATIONS = {
       PICKER: {
         TITLE: "选择可能的封面",
         DESCRIPTION: "我们找到了可能作为书籍封面的图像。",
-        LONG_PRESS_HINT: "长按图像以预览。",
+        LONG_PRESS_HINT: "点按以选择",
         NO_COVER_DETECTED: "未检测到封面，点击选择其中一个建议。",
-        LONG_PRESS_TO_PREVIEW: "长按以预览。",
+        LONG_PRESS_TO_PREVIEW: "长按以预览",
         UNKNOWN_IMAGE: "未知图像",
         CANDIDATE_ALT: "候选图像{{index}}",
       },
@@ -508,9 +508,9 @@ export const BEST_CANDIDATE_KIT_TRANSLATIONS = {
       PICKER: {
         TITLE: "選擇可能的封面",
         DESCRIPTION: "我們找到了可能作為書籍封面的影像。",
-        LONG_PRESS_HINT: "長按影像以預覽。",
+        LONG_PRESS_HINT: "點按以選擇",
         NO_COVER_DETECTED: "未偵測到封面，點擊選擇其中一個建議。",
-        LONG_PRESS_TO_PREVIEW: "長按以預覽。",
+        LONG_PRESS_TO_PREVIEW: "長按以預覽",
         UNKNOWN_IMAGE: "未知影像",
         CANDIDATE_ALT: "候選影像{{index}}",
       },

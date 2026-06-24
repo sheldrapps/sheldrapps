@@ -118,6 +118,12 @@ export type StrictCoverResolution = {
   sourcePath: string;
 };
 
+export type FirstPageDimensionsRequest = {
+  pdfFile?: File;
+  pdfNativePath?: string;
+  pdfName?: string;
+};
+
 @Injectable({ providedIn: 'root' })
 export class PdfCandidateImageService {
   private readonly pdfRewrite = inject(PdfRewriteService);
@@ -311,6 +317,55 @@ export class PdfCandidateImageService {
     }
 
     return null;
+  }
+
+  async getFirstPageDimensions(
+    params: FirstPageDimensionsRequest,
+  ): Promise<{ width: number; height: number } | null> {
+    const pdfBytes = await this.loadPdfBytes(params);
+    if (!pdfBytes) {
+      return null;
+    }
+
+    const handle = await this.loadPdfDocument(pdfBytes);
+    if (!handle) {
+      return null;
+    }
+
+    try {
+      if (!handle.document || handle.document.numPages < 1) {
+        return null;
+      }
+
+      const page = await handle.document.getPage(1);
+      try {
+        const viewport = page.getViewport({ scale: 1 });
+        const width = Math.round(viewport.width);
+        const height = Math.round(viewport.height);
+        if (!width || !height) {
+          return null;
+        }
+
+        return { width, height };
+      } finally {
+        try {
+          page.cleanup?.();
+        } catch {
+          // best effort
+        }
+      }
+    } finally {
+      try {
+        await handle.document.destroy?.();
+      } catch {
+        // best effort
+      }
+      try {
+        await handle.loadingTask.destroy?.();
+      } catch {
+        // best effort
+      }
+    }
   }
 
   private async loadPdfBytes(

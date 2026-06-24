@@ -1,65 +1,45 @@
-﻿# Sheldrapps Monorepo Agent Rules
+# Sheldrapps Monorepo
 
-Este repositorio es un workspace pnpm para apps Ionic + Angular y kits compartidos.
+Repo pnpm para apps Ionic + Angular y kits compartidos.
 
 - Apps en `apps/*`
 - Kits en `packages/*`
-- Apps productivas actuales: `cover-creator-for-kindle`, `epub-cover-changer`, `presupuesto-ninos`
+- Apps productivas: `cover-creator-for-kindle`, `epub-cover-changer`, `presupuesto-ninos`
 
-## Golden Commands
+## Commands
 
 - Install: `pnpm i`
-- Test guardrails/settings contracts: `pnpm test`
-- Lint all workspaces: `pnpm lint`
-- Build all workspaces with a `build` script: `pnpm build`
-- Run one app locally: `pnpm --filter <app-name> start`
+- Test: `pnpm test`
+- Lint: `pnpm lint`
+- Build: `pnpm build`
+- Run one app: `pnpm --filter <app-name> start`
 
-## Skills Source Of Truth
+## Skills
 
-Las siguientes áreas ya están definidas por skills dedicadas en `.agents/skills/`.
-No duplicar reglas aquí; seguir la skill correspondiente.
+Skills viven en `.agents/skills/`.
 
-### Router (Compat Copilot/Codex)
+- `programar-ts`: TypeScript, refactors, i18n, kits-first
+- `validacion`: lint/test/build y checks i18n/mojibake
+- `add-ui-component`: UI, tokens, accesibilidad, i18n
+- `handoff`: resumen compacto para continuar en otra sesion
+- `write-a-skill`: crear o actualizar skills
+- `taste`: direccion visual fuerte para UI nueva o redesign con libertad
+- `impeccable`: audit, polish, redesign y limpieza de UI ya hecha
+- `emil-design-eng`: revision estricta de animaciones y motion
 
-- Trigger: `grill me` / `grill-me` / `/grill-me` -> `.agents/skills/grill-me/SKILL.md`
-- Trigger: `caveman mode` / `use caveman` / `/caveman` -> `.agents/skills/caveman/SKILL.md`
+## Default Mode
 
-- `programar-ts`: SOLID/SRP, Clean Code/Clean Architecture, separación TS/HTML/SCSS, i18n obligatorio, kits-first.
-- `add-ui-component`: tokenización ui-theme, UI/UX limpia, accesibilidad, i18n app-owned o kit-owned standalone.
-- `create-ionic-app`: baseline de nueva app + wiring i18n/settings/ui-theme.
-- `validacion`: lint/test/build, clasificación regresión vs error normal, no-regresión, checks i18n/mojibake, cierre de calidad.
-- `incrementa-version-utilidades`: incremental Git para utilidades/version-notes Play Store.
-- `fichas`: generación de fichas Play Store por locale.
+- `caveman` es el formato por defecto: breve, directo, sin relleno. Solo expandir si el usuario pide detalle.
 
-### Kits-First Rule
+## Repo Rules
 
-- Antes de duplicar UI o lógica en `apps/*`, evaluar si corresponde extraer o reutilizar en `packages/*`.
-
-## Reglas Que Sí Permanecen En AGENTS
-
-### Preferencias Operativas Del Usuario
-
-- Modo always-on: cargar y aplicar `grill me` en toda petición del usuario sin requerir triggers explícitos.
-- Modo always-on: cargar y aplicar `caveman` en toda respuesta del agente sin requerir triggers explícitos.
-- Cuando se escriba código TypeScript, usar siempre las skills `programar-ts` y `validacion`.
-- Cuando se creen o modifiquen elementos UI, usar la skill `add-ui-component`.
-
-### Versioning Rule (Critical)
-
-- Si el usuario pide incrementar versión de una app (`ccfk`, `ecc`, etc.), usar `apps/<app>/android/app/build.gradle` como fuente (`versionCode`, `versionName`).
-- No usar `package.json` para versionado de app móvil, salvo petición explícita de release npm.
-- No se acepta como resultado cambiar solo `package.json` para este tipo de solicitud.
-- No se acepta como resultado incrementar `versionCode` sin generar/actualizar `docs/utilities/<short-name>/utility.md`, `state.json` y `version-notes.xml`.
-
-### Layout Alignment Rule (Critical)
-
-- Para páginas que mezclan botones de acción e inset cards/lists, la alineación horizontal debe coincidir exactamente.
-- Wrapper exacto para botones full-width superior/inferior:
-  - contenedor: `padding: 0 var(--app-space-7)` (opcional bottom con `var(--app-space-8)`).
-  - botón: `class="app-btn" expand="block"`.
-- Para layouts JOS-style, preferir superficies tokenizadas de `ui-theme` (`app-accent-surface` + `app-accent-card-body` o `app-secondary-surface`).
-- En workflow/status screens con patrón JOS, no usar `ion-list` como contenedor genérico de card.
-- Usar `ion-list inset="true"` solo cuando el contenido sea semánticamente lista.
-- Antes de cerrar:
-  - bordes izquierdo/derecho de botón deben alinear con contenido card/list,
-  - no introducir drift horizontal por padding extra.
+- Kits-first: antes de duplicar UI o logica en `apps/*`, revisar si va en `packages/*`
+- TypeScript: usar `programar-ts` y `validacion`
+- UI: usar `add-ui-component`
+- UI nueva o con libertad visual: usar `taste` para definir direccion antes de construir
+- UI ya construida: usar `impeccable` para limpiar, auditar y pulir
+- Animaciones: usar `emil-design-eng` para validar decisiones de motion
+- Versionado de apps moviles: usar `apps/<app>/android/app/build.gradle` como fuente de `versionCode` y `versionName`
+- Si se incrementa `versionCode`, actualizar tambien `docs/utilities/<short-name>/utility.md`, `state.json` y `version-notes.xml`
+- Layouts con botones + cards/lists: mantener alineacion horizontal exacta y usar `class="app-btn" expand="block"` en botones full-width
+- En workflows/status screens con patron JOS, evitar `ion-list` como contenedor generico de card

@@ -198,6 +198,9 @@ export class EditorUiStateService {
   openPanel(mode: PanelMode, panelId: string): void {
     if (!mode) return;
     this.panelState.set({ mode, panelId });
+    if (mode === "tools") {
+      this.activeTool.set(panelId as ToolKey);
+    }
   }
 
   closePanel(): void {
@@ -208,6 +211,9 @@ export class EditorUiStateService {
     const current = this.panelState();
     if (current.mode) {
       this.panelState.set({ ...current, panelId });
+      if (current.mode === "tools") {
+        this.activeTool.set(panelId as ToolKey);
+      }
     }
   }
 

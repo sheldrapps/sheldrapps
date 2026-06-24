@@ -12,7 +12,7 @@ import JSZip, { type JSZipObject } from 'jszip';
 const EPUB_MIME = 'application/epub+zip';
 
 export const WEB_EPUB_COVER_SERVICE_TOKEN = new InjectionToken<WebEpubCoverService>(
-  'WEB_EPUB_COVER_SERVICE'
+  'WEB_EPUB_COVER_SERVICE',
 );
 
 @Injectable()

@@ -19,7 +19,6 @@ import {
   IonToolbar,
   IonButtons,
   IonItem,
-  IonLabel,
   IonIcon,
   IonButton,
   IonModal,
@@ -45,6 +44,7 @@ import {
   buildDefaultCoverCropState,
   CoverSourceActionsComponent,
   CoverCropState,
+  CoverImageStateComponent,
   EReaderPreviewFrameComponent,
   ImagePipelineService,
   ImageValidationError,
@@ -59,6 +59,8 @@ import {
 } from '@sheldrapps/image-workflow';
 import {
   EditorSessionService,
+  consumeEditorResultSnapshot,
+  watchEditorResultReady,
   type EditorHistorySnapshot,
   type KindleDeviceModel,
   ProjectSaveState,
@@ -75,6 +77,8 @@ import {
   helpCircleOutline,
   appsOutline,
   informationCircleOutline,
+  sparklesOutline,
+  optionsOutline,
 } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
@@ -97,7 +101,6 @@ import {
   BillingService,
   type RewardedAdResult,
 } from '../../services/ads.service';
-import { playCircleOutline } from 'ionicons/icons';
 import { CoversEventsService } from '../../services/covers-events.service';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastOptions } from '@ionic/angular';
@@ -162,7 +165,6 @@ type EditorSourceMode = 'image' | 'scratch';
     IonToolbar,
     IonButtons,
     IonItem,
-    IonLabel,
     IonIcon,
     IonButton,
     IonCol,
@@ -173,10 +175,11 @@ type EditorSourceMode = 'image' | 'scratch';
     IonSelectOption,
     IonModal,
     LoadingStateComponent,
+    CoverImageStateComponent,
     EReaderPreviewFrameComponent,
     CoverSourceActionsComponent,
-    ScrollableButtonBarComponent,
     ExportQualitySelectorComponent,
+    ScrollableButtonBarComponent,
     TourOverlayComponent,
   ],
 })
@@ -209,13 +212,14 @@ export class CreatePage implements OnInit, OnDestroy {
       checkmarkCircle,
       closeCircleOutline,
       alertCircleOutline,
-      playCircleOutline,
       saveOutline,
       shareSocialOutline,
       helpCircleOutline,
       appsOutline,
       informationCircleOutline,
       imageOutline,
+      sparklesOutline,
+      optionsOutline,
     });
   }
 
@@ -235,11 +239,46 @@ export class CreatePage implements OnInit, OnDestroy {
   selectedBrandId?: string;
   selectedGroupId?: string;
   selectedModel?: KindleModel;
+  modelSelectionEditing = false;
 
   get currentGroupModels(): KindleModel[] {
     if (!this.selectedGroupId) return [];
     const group = this.groups.find((g) => g.id === this.selectedGroupId);
     return group?.items ?? [];
+  }
+
+  get selectedBrand(): KindleBrand | undefined {
+    return this.brands.find((brand) => brand.id === this.selectedBrandId);
+  }
+
+  get selectedGroup(): KindleGroup | undefined {
+    return this.groups.find((group) => group.id === this.selectedGroupId);
+  }
+
+  get hasCompleteModelSelection(): boolean {
+    return !!this.selectedBrandId && !!this.selectedGroupId && !!this.selectedModel;
+  }
+
+  get showModelSelectionSummary(): boolean {
+    return this.hasCompleteModelSelection && !this.modelSelectionEditing;
+  }
+
+  get selectedBrandSummary(): string {
+    return this.selectedBrand?.i18nKey
+      ? this.translate.instant(this.selectedBrand.i18nKey)
+      : '';
+  }
+
+  get selectedGroupSummary(): string {
+    return this.selectedGroup?.i18nKey
+      ? this.translate.instant(this.selectedGroup.i18nKey)
+      : '';
+  }
+
+  get selectedModelSummary(): string {
+    return this.selectedModel?.i18nKey
+      ? this.translate.instant(this.selectedModel.i18nKey)
+      : '';
   }
 
   originalImageFile?: File;
@@ -249,9 +288,12 @@ export class CreatePage implements OnInit, OnDestroy {
   workingImageDims?: { width: number; height: number };
 
   previewUrl?: string;
+  previewRevision = 0;
   cropState?: CoverCropState;
   private lastEditorSessionId?: string;
+  private lastEditorSourceMode: EditorSourceMode = 'image';
   private routerSub?: Subscription;
+  private editorResultSub?: Subscription;
   private coversEventsSub?: Subscription;
   private adsRemovedSub?: Subscription;
   private removeAdsPriceSub?: Subscription;
@@ -307,8 +349,6 @@ export class CreatePage implements OnInit, OnDestroy {
   infoOpen = false;
   infoEvent: Event | null = null;
   previewOpen = false;
-  private previewLongPressTimer: ReturnType<typeof setTimeout> | null = null;
-  private suppressNextImagePick = false;
   private brandSelectCanceled = false;
   private groupSelectCanceled = false;
   private modelSelectCanceled = false;
@@ -381,6 +421,14 @@ export class CreatePage implements OnInit, OnDestroy {
         }
       });
 
+    this.editorResultSub = watchEditorResultReady(
+      this.editorSession,
+      () => this.lastEditorSessionId,
+      (sid) => {
+        void this.consumeEditorResult(sid);
+      },
+    );
+
     this.coversEventsSub = this.coversEvents.events$
       .pipe(filter((event) => event.type === 'deleted'))
       .subscribe((event) => {
@@ -394,9 +442,9 @@ export class CreatePage implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.closeInfo();
     this.closePurchaseModal();
-    this.clearPreviewLongPress();
     this.revokePreviewUrl();
     this.routerSub?.unsubscribe();
+    this.editorResultSub?.unsubscribe();
     this.coversEventsSub?.unsubscribe();
     this.adsRemovedSub?.unsubscribe();
     this.removeAdsPriceSub?.unsubscribe();
@@ -421,7 +469,9 @@ export class CreatePage implements OnInit, OnDestroy {
 
   async onAdjustWithEditor() {
     if (!this.canEdit()) return;
-    await this.openEditor('image');
+    await this.openEditor(
+      this.lastEditorSourceMode === 'scratch' ? 'scratch' : 'image',
+    );
   }
 
   canStartScratch(): boolean {
@@ -443,6 +493,7 @@ export class CreatePage implements OnInit, OnDestroy {
     if (sourceMode === 'image' && !this.workingImageFile) return;
 
     this.applyResolvedSelection(selection);
+    await this.persistSelectionToSettings(selection);
     const initialState =
       sourceMode === 'scratch'
         ? buildDefaultCoverCropState()
@@ -494,7 +545,7 @@ export class CreatePage implements OnInit, OnDestroy {
         },
       },
       output: {
-        includeRenderedBlob: !!projectFilename,
+        includeRenderedBlob: true,
       },
       preferences: {
         artifactReductionInfo: {
@@ -517,6 +568,7 @@ export class CreatePage implements OnInit, OnDestroy {
       },
     });
 
+    this.lastEditorSourceMode = sourceMode;
     this.lastEditorSessionId = sid;
     const shouldShowEditorTour = await this.shouldShowEditorTour();
     await this.homeTour.completeInteraction('editor-apply');
@@ -531,30 +583,35 @@ export class CreatePage implements OnInit, OnDestroy {
     });
   }
 
-  async onBrandChange() {
+  onBrandChange() {
     const selection =
       this.catalog.resolveFirstSelectionInBrand(
         this.brands,
         this.selectedBrandId,
       ) ?? this.catalog.getDefaultSelection(this.brands);
     this.applyResolvedSelection(selection);
-    await this.onModelChange();
   }
 
-  async onGroupChange() {
+  onGroupChange() {
     // When group changes, reset the model selection
     // and select the first model in the new group
     if (this.selectedGroupId) {
       const group = this.groups.find((g) => g.id === this.selectedGroupId);
       if (group && group.items.length > 0) {
         this.selectedModel = group.items[0];
-        await this.onModelChange();
       }
     }
   }
 
   async onModelChange() {
     await this.persistModelSelection({ applyWarn: true });
+  }
+
+  openModelSelectionEditor(): void {
+    this.modelSelectionEditing = true;
+    globalThis.setTimeout(() => {
+      void this.homeTour.completeInteraction('device-edit');
+    }, 0);
   }
 
   onBrandSelectOpen(): void {
@@ -641,10 +698,8 @@ export class CreatePage implements OnInit, OnDestroy {
 
     const selection = this.resolveCurrentSelection();
     if (selection) {
-      await this.settings.set({
-        brandId: selection.brandId,
-        modelId: selection.modelId,
-      });
+      await this.persistSelectionToSettings(selection);
+      this.modelSelectionEditing = false;
     }
 
     if (opts.applyWarn && this.workingImageFile && this.workingImageDims) {
@@ -653,10 +708,6 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   openImagePicker() {
-    if (this.suppressNextImagePick) {
-      this.suppressNextImagePick = false;
-      return;
-    }
     this.imageInput.nativeElement.click();
   }
 
@@ -706,8 +757,7 @@ export class CreatePage implements OnInit, OnDestroy {
 
       await this.applySmallWarn('image-selected', originalDims);
 
-      this.revokePreviewUrl();
-      this.previewUrl = URL.createObjectURL(working);
+      this.setPreviewUrl(URL.createObjectURL(working));
       await this.homeTour.completeInteraction('cover-image-selected');
     } finally {
       this.setBusy('none');
@@ -769,8 +819,28 @@ export class CreatePage implements OnInit, OnDestroy {
   }
   canExport(): boolean {
     return (
+      this.hasEditorAppliedCover() &&
       !!this.selectedModel && !!this.workingImageFile && !this.imageErrorKey
     );
+  }
+
+  getSuggestedStepId():
+    | 'cover-source-image'
+    | 'adjust-button'
+    | 'create-button'
+    | 'result-actions'
+    | null {
+    if (this.homeTour.isActive()) return null;
+    if (!this.showModelSelectionSummary) return null;
+    if (!this.previewUrl || this.imageErrorKey) return 'cover-source-image';
+    if (!this.hasEditorAppliedCover()) return 'adjust-button';
+    if (this.canSaveShare()) return 'result-actions';
+    if (this.canGenerate()) return 'create-button';
+    return null;
+  }
+
+  private hasEditorAppliedCover(): boolean {
+    return !!this.cropState || !!this.activeProjectHistory;
   }
 
   async onSave() {
@@ -1230,8 +1300,7 @@ export class CreatePage implements OnInit, OnDestroy {
       this.exportImageFile = undefined;
       this.cropState =
         loaded.snapshot.history?.baseState ?? loaded.snapshot.cropState;
-      this.revokePreviewUrl();
-      this.previewUrl = URL.createObjectURL(loaded.sourceFile);
+      this.setPreviewUrl(URL.createObjectURL(loaded.sourceFile));
 
       this.projectEditReturnUrl = '/tabs/create';
       try {
@@ -1986,13 +2055,12 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   openPreview() {
-    if (!this.previewUrl) return;
+    if (!this.previewUrl || this.imageErrorKey) return;
     this.previewOpen = true;
   }
 
   closePreview() {
     this.previewOpen = false;
-    this.suppressNextImagePick = false;
   }
 
   isPreviewDithered(): boolean {
@@ -2016,26 +2084,6 @@ export class CreatePage implements OnInit, OnDestroy {
           : 'floyd-steinberg'
         : null,
     };
-  }
-
-  onPreviewPressStart() {
-    if (!this.previewUrl) return;
-    this.clearPreviewLongPress();
-    this.previewLongPressTimer = setTimeout(() => {
-      this.suppressNextImagePick = true;
-      this.openPreview();
-    }, 450);
-  }
-
-  onPreviewPressEnd() {
-    this.clearPreviewLongPress();
-  }
-
-  private clearPreviewLongPress() {
-    if (this.previewLongPressTimer) {
-      clearTimeout(this.previewLongPressTimer);
-      this.previewLongPressTimer = null;
-    }
   }
 
   ionViewWillLeave() {
@@ -2117,6 +2165,7 @@ export class CreatePage implements OnInit, OnDestroy {
   private async applyCropResult(result: EditorResult): Promise<void> {
     const newFile = result.file;
     if (!newFile) return;
+    const renderedBlob = result.renderedBlob;
 
     this.cropState = result.state ?? this.cropState;
 
@@ -2140,7 +2189,12 @@ export class CreatePage implements OnInit, OnDestroy {
     const exportDimsFromEditor = this.extractEditorExportDims(result);
     await this.applySmallWarn('editor-apply', undefined, exportDimsFromEditor);
 
-    await this.updatePreviewFromComposition();
+    if (renderedBlob) {
+      this.setPreviewUrl(URL.createObjectURL(renderedBlob));
+    } else {
+      console.warn('[CCFK] editor result missing renderedBlob; keeping previous preview');
+    }
+
     await this.markEditorTourSeen();
     await this.homeTour.completeInteraction('editor-apply');
   }
@@ -2265,8 +2319,13 @@ export class CreatePage implements OnInit, OnDestroy {
     );
     if (!blob) return;
 
+    this.setPreviewUrl(URL.createObjectURL(blob));
+  }
+
+  private setPreviewUrl(url: string): void {
     this.revokePreviewUrl();
-    this.previewUrl = URL.createObjectURL(blob);
+    this.previewUrl = url;
+    this.previewRevision += 1;
   }
 
   private async ensureExportImageFile(): Promise<File | null> {
@@ -2349,21 +2408,14 @@ export class CreatePage implements OnInit, OnDestroy {
     return dst;
   }
 
-  private async consumeEditorResult(): Promise<void> {
-    const session =
-      (this.lastEditorSessionId
-        ? this.editorSession.getSession(this.lastEditorSessionId)
-        : this.editorSession.getSessionForLatestResult()) ?? null;
+  private async consumeEditorResult(sessionId?: string): Promise<void> {
+    const { session, result } = consumeEditorResultSnapshot(
+      this.editorSession,
+      sessionId ?? this.lastEditorSessionId,
+    );
 
-    let result: EditorResult | null = null;
-
-    if (this.lastEditorSessionId) {
-      result = this.editorSession.consumeResult(this.lastEditorSessionId);
+    if (result) {
       this.lastEditorSessionId = undefined;
-    }
-
-    if (!result) {
-      result = this.editorSession.consumeLatestResult();
     }
 
     if (session?.project?.filename) {
@@ -2428,6 +2480,16 @@ export class CreatePage implements OnInit, OnDestroy {
     );
     this.selectedGroupId = selection.groupId;
     this.selectedModel = selection.model;
+    this.modelSelectionEditing = !this.hasCompleteModelSelection;
+  }
+
+  private async persistSelectionToSettings(
+    selection: ResolvedKindleSelection,
+  ): Promise<void> {
+    await this.settings.set({
+      brandId: selection.brandId,
+      modelId: selection.modelId,
+    });
   }
 
   private async maybeStartHomeTour(force = false): Promise<void> {
@@ -2450,6 +2512,7 @@ export class CreatePage implements OnInit, OnDestroy {
 
     await this.homeTour.start(
       buildHomeTourDefinition(this.translate, {
+        includeDeviceSummaryStep: this.showModelSelectionSummary,
         includeRemoveAdsStep,
       }),
       {

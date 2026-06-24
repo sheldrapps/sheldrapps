@@ -1,0 +1,25 @@
+@if (issues.length) {
+<div
+  class="validation-issues"
+  [class.validation-issues--embedded]="embedded"
+  [id]="id || null"
+  aria-live="polite"
+  role="status"
+>
+  @for (issue of issues; track trackIssue($index, issue)) {
+  <div class="validation-issues__item" [class.validation-issues__item--embedded]="embedded" [class.validation-issues__item--error]="issue.severity === 'error'" [class.validation-issues__item--warning]="issue.severity === 'warning'" [class.validation-issues__item--info]="issue.severity === 'info'">
+    <ion-icon
+      class="validation-issues__icon"
+      [name]="iconName(issue)"
+      aria-hidden="true"
+    ></ion-icon>
+
+    <div class="validation-issues__body">
+      <div class="validation-issues__message">
+        {{ issue.messageKey | translate:issue.messageParams }}
+      </div>
+    </div>
+  </div>
+  }
+</div>
+}

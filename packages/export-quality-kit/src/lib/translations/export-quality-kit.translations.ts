@@ -2,12 +2,12 @@ export const EXPORT_QUALITY_KIT_TRANSLATIONS = {
   "ar-SA": {
     EXPORT_OPTIONS: {
       TITLE: "جودة التصدير",
-      LOSSLESS_TITLE: "أفضل جودة",
-      THUMBNAIL_TITLE: "صورة مصغّرة",
+      LOSSLESS_TITLE: "???????? ????????",
+      THUMBNAIL_TITLE: "?????? ????????",
       THUMBNAIL_DESCRIPTION: "للمكتبات والمجموعات. حجم ملف صغير جدًا.",
       LOSSLESS_DESCRIPTION:
         "PNG بدون فقدان. يحافظ على تفاصيل أكثر، لكن الملف قد يصبح أكبر بكثير.",
-      OPTIMIZED_TITLE: "قياسي",
+      OPTIMIZED_TITLE: "???????? ????",
       OPTIMIZED_DESCRIPTION: "صورة مضغوطة. نسبة ممتازة بين الجودة والحجم.",
       OPTIMIZED_BADGE: "موصى به للصور المصغرة",
       SMALL_SOURCE_WARNING:
@@ -19,13 +19,13 @@ export const EXPORT_QUALITY_KIT_TRANSLATIONS = {
   "de-DE": {
     EXPORT_OPTIONS: {
       TITLE: "Exportqualität",
-      LOSSLESS_TITLE: "Beste Qualität",
-      THUMBNAIL_TITLE: "Miniatur",
+      LOSSLESS_TITLE: "Beste Qualit?t",
+      THUMBNAIL_TITLE: "Kleine Datei",
       THUMBNAIL_DESCRIPTION:
         "Für Bibliotheken und Sammlungen. Sehr kleine Dateigröße.",
       LOSSLESS_DESCRIPTION:
         "Verlustfreies PNG. Erhält mehr Details, aber die Datei kann deutlich größer sein.",
-      OPTIMIZED_TITLE: "Standard",
+      OPTIMIZED_TITLE: "Empfohlen",
       OPTIMIZED_DESCRIPTION:
         "Komprimiertes Bild. Ausgezeichnetes Qualitäts-Größe-Verhältnis.",
       OPTIMIZED_BADGE: "Empfohlen für Miniaturen",
@@ -39,11 +39,11 @@ export const EXPORT_QUALITY_KIT_TRANSLATIONS = {
     EXPORT_OPTIONS: {
       TITLE: "Export quality",
       LOSSLESS_TITLE: "Best quality",
-      THUMBNAIL_TITLE: "Thumbnail",
+      THUMBNAIL_TITLE: "Small file",
       THUMBNAIL_DESCRIPTION: "For library collections. Very small file size.",
       LOSSLESS_DESCRIPTION:
         "Lossless PNG. Keeps more detail, but the file can be much larger.",
-      OPTIMIZED_TITLE: "Standard",
+      OPTIMIZED_TITLE: "Recommended",
       OPTIMIZED_DESCRIPTION:
         "Compressed image. Excellent quality-to-file-size ratio.",
       OPTIMIZED_BADGE: "Recommended for thumbnails",
@@ -57,12 +57,12 @@ export const EXPORT_QUALITY_KIT_TRANSLATIONS = {
     EXPORT_OPTIONS: {
       TITLE: "Calidad de exportación",
       LOSSLESS_TITLE: "Mejor calidad",
-      THUMBNAIL_TITLE: "Miniatura",
+      THUMBNAIL_TITLE: "Archivo peque?o",
       THUMBNAIL_DESCRIPTION:
         "Para colecciones de biblioteca. Tamaño de archivo muy reducido.",
       LOSSLESS_DESCRIPTION:
         "PNG sin pérdida. Conserva más detalle, pero el archivo puede ser mucho más grande.",
-      OPTIMIZED_TITLE: "Estándar",
+      OPTIMIZED_TITLE: "Recomendado",
       OPTIMIZED_DESCRIPTION:
         "Imagen comprimida. Excelente relación calidad-tamaño.",
       OPTIMIZED_BADGE: "Recomendado para miniaturas",
@@ -75,13 +75,13 @@ export const EXPORT_QUALITY_KIT_TRANSLATIONS = {
   "fr-FR": {
     EXPORT_OPTIONS: {
       TITLE: "Qualité d'exportation",
-      LOSSLESS_TITLE: "Meilleure qualité",
-      THUMBNAIL_TITLE: "Miniature",
+      LOSSLESS_TITLE: "Meilleure qualit?",
+      THUMBNAIL_TITLE: "Petit fichier",
       THUMBNAIL_DESCRIPTION:
         "Pour les collections de bibliothèques. Très petite taille de fichier.",
       LOSSLESS_DESCRIPTION:
         "PNG sans perte. Préserve plus de détails, mais le fichier peut être beaucoup plus volumineux.",
-      OPTIMIZED_TITLE: "Standard",
+      OPTIMIZED_TITLE: "Recommand?",
       OPTIMIZED_DESCRIPTION:
         "Image compressée. Excellent rapport qualité-taille.",
       OPTIMIZED_BADGE: "Recommandé pour les miniatures",
@@ -94,12 +94,12 @@ export const EXPORT_QUALITY_KIT_TRANSLATIONS = {
   "hi-IN": {
     EXPORT_OPTIONS: {
       TITLE: "एक्सपोर्ट गुणवत्ता",
-      LOSSLESS_TITLE: "सर्वोत्तम गुणवत्ता",
-      THUMBNAIL_TITLE: "थंबनेल",
+      LOSSLESS_TITLE: "????????? ????????",
+      THUMBNAIL_TITLE: "???? ?????",
       THUMBNAIL_DESCRIPTION: "पुस्तकालय संग्रह के लिए। बहुत छोटा फ़ाइल आकार।",
       LOSSLESS_DESCRIPTION:
         "लॉसलेस PNG। यह अधिक विवरण सुरक्षित रखता है, लेकिन फ़ाइल का आकार काफी बड़ा हो सकता है।",
-      OPTIMIZED_TITLE: "मानक",
+      OPTIMIZED_TITLE: "????????",
       OPTIMIZED_DESCRIPTION: "संपीड़ित छवि। उत्कृष्ट गुणवत्ता-आकार अनुपात।",
       OPTIMIZED_BADGE: "थंबनेल के लिए अनुशंसित",
       SMALL_SOURCE_WARNING:
@@ -111,13 +111,13 @@ export const EXPORT_QUALITY_KIT_TRANSLATIONS = {
   "it-IT": {
     EXPORT_OPTIONS: {
       TITLE: "Qualità di esportazione",
-      LOSSLESS_TITLE: "Migliore qualità",
-      THUMBNAIL_TITLE: "Miniatura",
+      LOSSLESS_TITLE: "Migliore qualit?",
+      THUMBNAIL_TITLE: "File piccolo",
       THUMBNAIL_DESCRIPTION:
         "Per le collezioni di biblioteche. Dimensione del file molto piccola.",
       LOSSLESS_DESCRIPTION:
         "PNG senza perdita. Mantiene più dettagli, ma il file può diventare molto più grande.",
-      OPTIMIZED_TITLE: "Standard",
+      OPTIMIZED_TITLE: "Consigliato",
       OPTIMIZED_DESCRIPTION:
         "Immagine compressa. Eccellente rapporto qualità-dimensione.",
       OPTIMIZED_BADGE: "Consigliato per miniature",
@@ -130,12 +130,12 @@ export const EXPORT_QUALITY_KIT_TRANSLATIONS = {
   "ja-JP": {
     EXPORT_OPTIONS: {
       TITLE: "書き出し品質",
-      LOSSLESS_TITLE: "最高画質",
-      THUMBNAIL_TITLE: "サムネイル",
+      LOSSLESS_TITLE: "????",
+      THUMBNAIL_TITLE: "???????",
       THUMBNAIL_DESCRIPTION: "文庫の収蔵用。非常に小さいファイルサイズ。",
       LOSSLESS_DESCRIPTION:
         "可逆圧縮のPNG。より多くのディテールを保てますが、ファイルはかなり大きくなることがあります。",
-      OPTIMIZED_TITLE: "標準",
+      OPTIMIZED_TITLE: "??",
       OPTIMIZED_DESCRIPTION: "圧縮画像。優れた品質・ファイルサイズ比。",
       OPTIMIZED_BADGE: "サムネイル向け推奨",
       SMALL_SOURCE_WARNING:
@@ -147,12 +147,12 @@ export const EXPORT_QUALITY_KIT_TRANSLATIONS = {
   "ko-KR": {
     EXPORT_OPTIONS: {
       TITLE: "내보내기 품질",
-      LOSSLESS_TITLE: "최고 화질",
-      THUMBNAIL_TITLE: "썸네일",
+      LOSSLESS_TITLE: "?? ??",
+      THUMBNAIL_TITLE: "?? ??",
       THUMBNAIL_DESCRIPTION: "라이브러리 컬렉션용. 매우 작은 파일 크기.",
       LOSSLESS_DESCRIPTION:
         "무손실 PNG입니다. 디테일을 더 잘 보존하지만 파일 크기가 훨씬 커질 수 있습니다.",
-      OPTIMIZED_TITLE: "표준",
+      OPTIMIZED_TITLE: "??",
       OPTIMIZED_DESCRIPTION:
         "압축 이미지입니다. 우수한 품질 대비 파일 크기입니다.",
       OPTIMIZED_BADGE: "썸네일에 권장",
@@ -166,12 +166,12 @@ export const EXPORT_QUALITY_KIT_TRANSLATIONS = {
     EXPORT_OPTIONS: {
       TITLE: "Qualidade de exportação",
       LOSSLESS_TITLE: "Melhor qualidade",
-      THUMBNAIL_TITLE: "Miniatura",
+      THUMBNAIL_TITLE: "Arquivo pequeno",
       THUMBNAIL_DESCRIPTION:
         "Para coleções de biblioteca. Tamanho de arquivo muito pequeno.",
       LOSSLESS_DESCRIPTION:
         "PNG sem perdas. Mantém mais detalhes, mas o arquivo pode ficar bem maior.",
-      OPTIMIZED_TITLE: "Padrão",
+      OPTIMIZED_TITLE: "Recomendado",
       OPTIMIZED_DESCRIPTION:
         "Imagem compactada. Excelente relação qualidade-tamanho.",
       OPTIMIZED_BADGE: "Recomendado para miniaturas",
@@ -184,13 +184,13 @@ export const EXPORT_QUALITY_KIT_TRANSLATIONS = {
   "ru-RU": {
     EXPORT_OPTIONS: {
       TITLE: "Качество экспорта",
-      LOSSLESS_TITLE: "Лучшее качество",
-      THUMBNAIL_TITLE: "Миниатюра",
+      LOSSLESS_TITLE: "?????? ????????",
+      THUMBNAIL_TITLE: "????????? ????",
       THUMBNAIL_DESCRIPTION:
         "Для коллекций библиотеки. Очень маленький размер файла.",
       LOSSLESS_DESCRIPTION:
         "PNG без потерь. Сохраняет больше деталей, но файл может быть значительно больше.",
-      OPTIMIZED_TITLE: "Стандартное",
+      OPTIMIZED_TITLE: "?????????????",
       OPTIMIZED_DESCRIPTION:
         "Сжатое изображение. Отличное соотношение качества к размеру.",
       OPTIMIZED_BADGE: "Рекомендуется для миниатюр",
@@ -203,12 +203,12 @@ export const EXPORT_QUALITY_KIT_TRANSLATIONS = {
   "zh-CN": {
     EXPORT_OPTIONS: {
       TITLE: "导出质量",
-      LOSSLESS_TITLE: "最佳画质",
-      THUMBNAIL_TITLE: "缩略图",
+      LOSSLESS_TITLE: "????",
+      THUMBNAIL_TITLE: "???",
       THUMBNAIL_DESCRIPTION: "用于图书馆收藏。非常小的文件大小。",
       LOSSLESS_DESCRIPTION:
         "无损 PNG。可保留更多细节，但 文件体积可能显著增大。",
-      OPTIMIZED_TITLE: "标准",
+      OPTIMIZED_TITLE: "??",
       OPTIMIZED_DESCRIPTION: "压缩图像。优秀的质量对文件大小比。",
       OPTIMIZED_BADGE: "推荐用于缩略图",
       SMALL_SOURCE_WARNING:
@@ -220,11 +220,11 @@ export const EXPORT_QUALITY_KIT_TRANSLATIONS = {
   "zh-TW": {
     EXPORT_OPTIONS: {
       TITLE: "匯出品質",
-      LOSSLESS_TITLE: "最佳畫質",
-      THUMBNAIL_TITLE: "縮圖",
+      LOSSLESS_TITLE: "????",
+      THUMBNAIL_TITLE: "???",
       THUMBNAIL_DESCRIPTION: "用於圖書館收藏。非常小的檔案大小。",
       LOSSLESS_DESCRIPTION: "無損 PNG。可保留更多細節，但 檔案可能明顯變大。",
-      OPTIMIZED_TITLE: "標準",
+      OPTIMIZED_TITLE: "??",
       OPTIMIZED_DESCRIPTION: "壓縮影像。優異的品質與檔案大小比。",
       OPTIMIZED_BADGE: "建議用於縮圖",
       SMALL_SOURCE_WARNING:
