@@ -42,7 +42,7 @@ async function captureLocale(browser, app, locale, fixtures) {
     deviceScaleFactor: app.capture.deviceScaleFactor,
     locale,
   });
-  await seedCaptureTourSettings(context, app);
+  await seedCaptureTourSettings(context, app, locale);
 
   try {
     const page = await context.newPage();
@@ -61,7 +61,7 @@ async function captureLocale(browser, app, locale, fixtures) {
       console.log(`-> [${locale}] ${scenario.id}: ${routeUrl}`);
 
       await page.goto(routeUrl, { waitUntil: 'networkidle' });
-      await waitForAppLocale(page, locale);
+      await applyAppLocale(page, locale);
       await forcePlaystoreTheme(page, app.themeId);
       await dismissAnyTour(page);
 
@@ -113,6 +113,18 @@ async function runScenarioAction(action, page, app, fixtures) {
       case 'openLibraryPreview':
         await openLibraryPreview(page, app, fixtures);
         return;
+      case 'seedFixDiagnosisState':
+        await seedFixDiagnosisState(page, app);
+        return;
+      case 'seedFixRepairFlowState':
+        await seedFixRepairFlowState(page, app);
+        return;
+      case 'seedFixRepairResultState':
+        await seedFixRepairResultState(page, app);
+        return;
+      case 'openFixSaveModal':
+        await openFixSaveModal(page, app);
+        return;
       default:
         throw new Error(`Unknown screenshot action "${action}".`);
     }
@@ -161,9 +173,34 @@ async function createFixtures(app) {
   };
 }
 
-async function waitForAppLocale(page, locale) {
+async function applyAppLocale(page, locale) {
+  await page.evaluate(
+    async (expected) => {
+      const ngApi = window.ng;
+      const appEl = document.querySelector('app-root');
+      const component = ngApi?.getComponent?.(appEl);
+      if (!component?.lang?.set) {
+        throw new Error('LanguageService is not available from AppComponent.');
+      }
+
+      document.documentElement.lang = expected;
+      await component.lang.set(expected);
+      document.documentElement.lang = expected;
+    },
+    locale,
+  );
+
   await page.waitForFunction(
-    (expected) => document.documentElement.lang === expected,
+    (expected) => {
+      const ngApi = window.ng;
+      const appEl = document.querySelector('app-root');
+      const component = ngApi?.getComponent?.(appEl);
+      return (
+        document.documentElement.lang === expected ||
+        component?.lang?.lang === expected ||
+        component?.translate?.currentLang === expected
+      );
+    },
     locale,
     { timeout: 15_000 },
   );
@@ -409,6 +446,11 @@ async function openEditor(page, panel) {
 }
 
 async function ensureLibrarySeed(page, app, fixtures) {
+  await page.locator(app.selectors.library).first().waitFor({
+    timeout: 15_000,
+    state: 'attached',
+  });
+
   const libraryState = await page.evaluate(
     async ({ selector, documentFilename, coverDataUrl }) => {
       const ngApi = window.ng;
@@ -469,14 +511,9 @@ async function openLibraryPreview(page, app, fixtures) {
     timeout: 15_000,
   });
 
-  const card = page.locator('.cover-card').first();
-  await card.waitFor({ timeout: 15_000, state: 'visible' });
-  await card.click();
-  await page.waitForTimeout(350);
-
   await page.evaluate((coverDataUrl) => {
     const ngApi = window.ng;
-    const appEl = document.querySelector('app-my-pdfs, app-my-epubs');
+    const appEl = document.querySelector('app-my-pdfs, app-my-epubs-page');
     const component = ngApi?.getComponent?.(appEl);
     if (!component) {
       throw new Error('Library page component is not available.');
@@ -501,6 +538,197 @@ async function openLibraryPreview(page, app, fixtures) {
   });
 }
 
+async function seedFixDiagnosisState(page, app) {
+  await setFixPageState(page, app, {
+    preparedSessionId: 'session-diagnosis',
+    selectedEpubName: 'broken-book.epub',
+    sourceEpubMeta: {
+      name: 'broken-book.epub',
+      size: 2 * 1024 * 1024,
+      lastModified: Date.now(),
+      type: 'application/epub+zip',
+    },
+    diagnosis: {
+      sessionId: 'session-diagnosis',
+      status: 'repairable',
+      issues: [
+        {
+          code: 'MIMETYPE_MISSING',
+          severity: 'error',
+          fixable: true,
+          messageKey: 'FIX.ISSUE_MIMETYPE_MISSING',
+          repairMode: 'automatic',
+        },
+        {
+          code: 'CONTAINER_MISSING',
+          severity: 'error',
+          fixable: true,
+          messageKey: 'FIX.ISSUE_CONTAINER_MISSING',
+          repairMode: 'automatic',
+        },
+        {
+          code: 'OPF_AMBIGUOUS',
+          severity: 'warning',
+          fixable: true,
+          messageKey: 'FIX.ISSUE_OPF_AMBIGUOUS',
+          repairMode: 'guided',
+          options: ['OPS/package.opf', 'OPS/backup.opf'],
+        },
+      ],
+    },
+    repairResult: undefined,
+    exportResult: undefined,
+    viewState: 'diagnosed',
+    epubErrorKey: undefined,
+    epubErrorParams: {},
+    busyAction: undefined,
+    busyProgressPercent: 0,
+  });
+}
+
+async function seedFixRepairFlowState(page, app) {
+  await setFixPageState(page, app, {
+    preparedSessionId: 'session-repair',
+    selectedEpubName: 'broken-book.epub',
+    sourceEpubMeta: {
+      name: 'broken-book.epub',
+      size: 2 * 1024 * 1024,
+      lastModified: Date.now(),
+      type: 'application/epub+zip',
+    },
+    diagnosis: {
+      sessionId: 'session-repair',
+      status: 'repairable',
+      issues: [
+        {
+          code: 'MIMETYPE_MISSING',
+          severity: 'error',
+          fixable: true,
+          messageKey: 'FIX.ISSUE_MIMETYPE_MISSING',
+          repairMode: 'automatic',
+        },
+        {
+          code: 'MANIFEST_ITEM_MISSING',
+          severity: 'warning',
+          fixable: true,
+          messageKey: 'FIX.ISSUE_MANIFEST_ITEM_MISSING',
+          repairMode: 'review',
+        },
+        {
+          code: 'SPINE_EMPTY',
+          severity: 'error',
+          fixable: true,
+          messageKey: 'FIX.ISSUE_SPINE_EMPTY',
+          repairMode: 'partial_recovery',
+        },
+      ],
+    },
+    repairResult: undefined,
+    exportResult: undefined,
+    viewState: 'diagnosed',
+    epubErrorKey: undefined,
+    epubErrorParams: {},
+    busyAction: 'repair',
+    busyProgressPercent: 62,
+  });
+}
+
+async function seedFixRepairResultState(page, app) {
+  await setFixPageState(page, app, {
+    preparedSessionId: 'session-result',
+    selectedEpubName: 'broken-book.epub',
+    sourceEpubMeta: {
+      name: 'broken-book.epub',
+      size: 2 * 1024 * 1024,
+      lastModified: Date.now(),
+      type: 'application/epub+zip',
+    },
+    diagnosis: {
+      sessionId: 'session-result',
+      status: 'repairable',
+      issues: [
+        {
+          code: 'MIMETYPE_MISSING',
+          severity: 'error',
+          fixable: true,
+          messageKey: 'FIX.ISSUE_MIMETYPE_MISSING',
+          repairMode: 'automatic',
+        },
+        {
+          code: 'CONTAINER_MISSING',
+          severity: 'error',
+          fixable: true,
+          messageKey: 'FIX.ISSUE_CONTAINER_MISSING',
+          repairMode: 'automatic',
+        },
+        {
+          code: 'MANIFEST_ITEM_MISSING',
+          severity: 'warning',
+          fixable: true,
+          messageKey: 'FIX.ISSUE_MANIFEST_ITEM_MISSING',
+          repairMode: 'review',
+        },
+      ],
+    },
+    repairResult: {
+      success: true,
+      repairedIssues: ['MIMETYPE_MISSING', 'CONTAINER_MISSING'],
+    },
+    exportResult: {
+      size: 2 * 1024 * 1024,
+      outputName: 'broken-book_repaired.epub',
+      outputUri: 'blob:broken-book-repaired',
+    },
+    viewState: 'repaired',
+    epubErrorKey: undefined,
+    epubErrorParams: {},
+    busyAction: undefined,
+    busyProgressPercent: 100,
+  });
+}
+
+async function openFixSaveModal(page, app) {
+  await seedFixRepairResultState(page, app);
+
+  await page.evaluate(async () => {
+    const ngApi = window.ng;
+    const appEl = document.querySelector('app-fix-page');
+    const component = ngApi?.getComponent?.(appEl);
+    if (!component?.onSave) {
+      throw new Error('FixPage.onSave is not available.');
+    }
+    void component.onSave();
+  });
+
+  await page.locator(app.selectors.saveModal ?? 'app-save-cover-modal-shared').first().waitFor({
+    timeout: 12_000,
+    state: 'visible',
+  });
+}
+
+async function setFixPageState(page, app, state) {
+  await page.evaluate(
+    async ({ selector, value }) => {
+      const ngApi = window.ng;
+      const appEl = document.querySelector(selector);
+      const component = ngApi?.getComponent?.(appEl);
+      if (!component) {
+        throw new Error('FixPage component is not available.');
+      }
+
+      Object.assign(component, value);
+
+      if (ngApi?.applyChanges) {
+        ngApi.applyChanges(appEl);
+      }
+    },
+    {
+      selector: app.selectors.change,
+      value: state,
+    },
+  );
+}
+
 async function hideEditorLoaderOverlay(page) {
   await page.addStyleTag({
     content:
@@ -513,10 +741,10 @@ async function forcePlaystoreTheme(page, themeId) {
     const ngApi = window.ng;
     const app = document.querySelector('app-root');
     const component = ngApi?.getComponent?.(app);
-    if (!component?.theme?.setTheme) {
+    if (!component?.theme?.previewTheme) {
       throw new Error('ThemeService is not available from AppComponent.');
     }
-    await component.theme.setTheme(resolvedThemeId);
+    await component.theme.previewTheme(resolvedThemeId);
   }, themeId);
 
   await page.waitForFunction(
@@ -527,11 +755,12 @@ async function forcePlaystoreTheme(page, themeId) {
   );
 }
 
-async function seedCaptureTourSettings(context, app) {
+async function seedCaptureTourSettings(context, app, locale) {
   const prefix = app.shortName.toLowerCase();
   const payload = {
     version: app.settingsVersion,
     data: {
+      language: locale,
       homeTourSeen: true,
       homeTourVersion: app.homeTourVersion,
       homeTourSeenAt: new Date().toISOString(),

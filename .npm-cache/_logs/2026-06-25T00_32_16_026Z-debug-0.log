@@ -1,0 +1,26 @@
+0 verbose cli C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js
+1 info using npm@11.6.2
+2 info using node@v24.12.0
+3 silly config load:file:C:\Program Files\nodejs\node_modules\npm\npmrc
+4 silly config load:file:C:\apps\sheldrapps\apps\epub-fixer\.npmrc
+5 silly config load:file:C:\Users\sheld\.npmrc
+6 silly config load:file:C:\Users\sheld\AppData\Roaming\npm\etc\npmrc
+7 verbose title npm exec capacitor-assets generate --android
+8 verbose argv "exec" "--yes" "--package" "@capacitor/assets" "--" "capacitor-assets" "generate" "--android"
+9 verbose logfile logs-max:10 dir:C:\apps\sheldrapps\.npm-cache\_logs\2026-06-25T00_32_16_026Z-
+10 verbose logfile C:\apps\sheldrapps\.npm-cache\_logs\2026-06-25T00_32_16_026Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:4496293888 maxSize:1124073472 maxEntrySize:562036736
+13 verbose shrinkwrap failed to load node_modules/.package-lock.json out of date, updated: node_modules
+14 http fetch GET 200 https://registry.npmjs.org/npm 387ms
+15 verbose cwd C:\apps\sheldrapps\apps\epub-fixer
+16 verbose os Windows_NT 10.0.26200
+17 verbose node v24.12.0
+18 verbose npm  v11.6.2
+19 notice
+19 notice New [33mminor[39m version of npm available! [33m11.6.2[39m -> [34m11.17.0[39m
+19 notice Changelog: [34mhttps://github.com/npm/cli/releases/tag/v11.17.0[39m
+19 notice To update run: [4mnpm install -g npm@11.17.0[24m
+19 notice  { force: true, Symbol(proc-log.meta): true }
+20 verbose exit 0
+21 info ok

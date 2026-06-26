@@ -15,55 +15,78 @@
 
 <ion-content class="fix-page">
   <div class="fix-page__stack">
-    @if (isWebDevMode) {
-      <div class="fix-page__mode">
-        <ion-badge color="warning">{{ 'FIX.DEV_MODE_BADGE' | translate }}</ion-badge>
+    <section class="fix-file-section">
+      <div class="field-title">
+        {{ 'FIX.EPUB_FILE_TITLE' | translate }}
       </div>
-    }
 
-    <ion-item
-      button
-      detail="false"
-      class="fix-file-input"
-      (click)="openEpubPicker()"
-      [class.item-invalid]="!!epubErrorKey"
-      [attr.aria-invalid]="epubErrorKey ? 'true' : 'false'"
-      [attr.aria-describedby]="epubErrorKey ? 'epub-error' : null"
-      [attr.aria-label]="
-        selectedEpubName
-          ? ('FIX.ARIA_CHANGE_EPUB' | translate:{ name: selectedEpubName })
-          : ('FIX.ARIA_SELECT_EPUB' | translate)
-      "
-    >
-      <ion-label>
-        <div class="field-title">
-          {{ 'FIX.SELECT_EPUB_LABEL' | translate }}
+      <ion-item
+        button
+        detail="false"
+        class="app-file-selector-surface"
+        (click)="openEpubPicker()"
+        [class.item-invalid]="!!epubErrorKey"
+        [attr.aria-invalid]="epubErrorKey ? 'true' : 'false'"
+        [attr.aria-describedby]="epubErrorKey ? 'epub-error' : null"
+        [attr.aria-label]="
+          selectedEpubName
+            ? ('FIX.ARIA_CHANGE_EPUB' | translate:{ name: selectedEpubName })
+            : ('FIX.ARIA_SELECT_EPUB' | translate)
+        "
+      >
+        <ion-label>
+          @if (selectedEpubName && !epubErrorKey) {
+            <div class="field-filename">{{ selectedEpubName }}</div>
+            <div class="field-subtle">{{ 'FIX.TAP_TO_CHANGE' | translate }}</div>
+          } @else {
+            <div class="field-placeholder">
+              {{ 'FIX.SELECT_EPUB_PLACEHOLDER' | translate }}
+            </div>
+          }
+        </ion-label>
+
+        <div class="thumb-wrapper" slot="end" aria-hidden="true">
+          @if (selectedEpubName && !epubErrorKey) {
+            <ion-icon class="thumb-check" name="checkmark-circle"></ion-icon>
+          } @else {
+            <div class="thumb thumb--icon">
+              <ion-icon
+                class="thumb-icon"
+                [name]="epubErrorKey ? 'alert-circle-outline' : 'document-outline'"
+                aria-hidden="true"
+              ></ion-icon>
+            </div>
+          }
         </div>
+      </ion-item>
+    </section>
 
-        @if (selectedEpubName && !epubErrorKey) {
-          <div class="field-filename">{{ selectedEpubName }}</div>
-          <div class="field-subtle">{{ 'FIX.TAP_TO_CHANGE' | translate }}</div>
-        } @else {
-          <div class="field-placeholder">
-            {{ 'FIX.SELECT_EPUB_PLACEHOLDER' | translate }}
-          </div>
-        }
-      </ion-label>
+    @if (showIssuesList) {
+      <sh-section-card [title]="'FIX.ISSUES_TITLE' | translate">
+        <ul class="fix-issues-list">
+          @for (issue of diagnosis?.issues ?? []; track issue.code + issue.details) {
+            <li class="fix-issues-list__item">
+              <div class="fix-issues-list__header">
+                <div class="fix-issues-list__message">
+                  {{ issue.messageKey | translate }}
+                </div>
 
-      <div class="thumb-wrapper" slot="end" aria-hidden="true">
-        @if (selectedEpubName && !epubErrorKey) {
-          <ion-icon class="thumb-check" name="checkmark-circle"></ion-icon>
-        } @else {
-          <div class="thumb thumb--icon">
-            <ion-icon
-              class="thumb-icon"
-              [name]="epubErrorKey ? 'alert-circle-outline' : 'document-outline'"
-              aria-hidden="true"
-            ></ion-icon>
-          </div>
-        }
-      </div>
-    </ion-item>
+                <ion-badge
+                  class="fix-issues-list__badge"
+                  [color]="issueRepairModeBadgeColor(issue)"
+                >
+                  {{ issueRepairModeLabelKey(issue) | translate }}
+                </ion-badge>
+              </div>
+
+              @if (issue.details) {
+                <div class="fix-issues-list__details">{{ issue.details }}</div>
+              }
+            </li>
+          }
+        </ul>
+      </sh-section-card>
+    }
 
     @if (epubErrorKey) {
       <div
@@ -107,6 +130,64 @@
       </div>
     }
 
+    @if (showDiagnosisOverview) {
+      <sh-section-card [title]="'FIX.DIAGNOSIS_OVERVIEW_TITLE' | translate">
+        <div class="fix-diagnosis-summary">
+          <div class="fix-diagnosis-summary__status">
+            {{ diagnosisOverviewKey | translate }}
+          </div>
+
+          <ul class="fix-diagnosis-summary__stats">
+            <li class="fix-diagnosis-summary__stat">
+              <span class="fix-diagnosis-summary__value">{{ diagnosisSummary.totalIssues }}</span>
+              <span class="fix-diagnosis-summary__label">
+                {{ 'FIX.DIAGNOSIS_ISSUES_FOUND' | translate }}
+              </span>
+            </li>
+
+            <li class="fix-diagnosis-summary__stat">
+              <span class="fix-diagnosis-summary__value">{{ diagnosisSummary.automaticIssues }}</span>
+              <span class="fix-diagnosis-summary__label">
+                {{ 'FIX.DIAGNOSIS_FIXABLE' | translate }}
+              </span>
+            </li>
+
+            <li class="fix-diagnosis-summary__stat">
+              <span class="fix-diagnosis-summary__value">{{ diagnosisSummary.partialIssues }}</span>
+              <span class="fix-diagnosis-summary__label">
+                {{ 'FIX.DIAGNOSIS_PARTIAL' | translate }}
+              </span>
+            </li>
+
+            <li class="fix-diagnosis-summary__stat">
+              <span class="fix-diagnosis-summary__value">{{ diagnosisSummary.blockedIssues }}</span>
+              <span class="fix-diagnosis-summary__label">
+                {{ 'FIX.DIAGNOSIS_BLOCKED' | translate }}
+              </span>
+            </li>
+
+            @if (diagnosisSummary.reviewIssues > 0) {
+              <li class="fix-diagnosis-summary__stat">
+                <span class="fix-diagnosis-summary__value">{{ diagnosisSummary.reviewIssues }}</span>
+                <span class="fix-diagnosis-summary__label">
+                  {{ 'FIX.DIAGNOSIS_REVIEW' | translate }}
+                </span>
+              </li>
+            }
+
+            @if (diagnosisSummary.guidedIssues > 0) {
+              <li class="fix-diagnosis-summary__stat">
+                <span class="fix-diagnosis-summary__value">{{ diagnosisSummary.guidedIssues }}</span>
+                <span class="fix-diagnosis-summary__label">
+                  {{ 'FIX.DIAGNOSIS_GUIDED' | translate }}
+                </span>
+              </li>
+            }
+          </ul>
+        </div>
+      </sh-section-card>
+    }
+
     @if (showPreparedActionCard) {
       <section class="app-accent-surface fix-state-card">
         <div class="app-accent-card-body fix-state-card__body">
@@ -143,8 +224,7 @@
     }
 
     @if (showReviewChecklist) {
-      <section class="app-secondary-surface fix-info-card">
-        <p class="app-section-label">{{ 'FIX.SECTION_REVIEW_TITLE' | translate }}</p>
+      <sh-section-card [title]="'FIX.SECTION_REVIEW_TITLE' | translate">
         <ul class="fix-review-list">
           <li>{{ 'FIX.REVIEW_STRUCTURE' | translate }}</li>
           <li>{{ 'FIX.REVIEW_MIMETYPE' | translate }}</li>
@@ -152,103 +232,50 @@
           <li>{{ 'FIX.REVIEW_OPF' | translate }}</li>
           <li>{{ 'FIX.REVIEW_MANIFEST_SPINE' | translate }}</li>
         </ul>
-      </section>
+      </sh-section-card>
     }
 
-    @if (showDiagnosisSummary) {
-      <section class="app-accent-surface fix-state-card">
-        <div class="app-accent-card-body fix-state-card__body">
-          <div class="fix-state-card__copy">
-            <h2 class="fix-state-card__title">
-              {{
-                viewState === 'repaired'
-                  ? ('FIX.REPAIR_SUCCESS_TITLE' | translate)
-                  : ('FIX.DIAGNOSIS_TITLE' | translate)
-              }}
-            </h2>
+    @if (resultPrimaryActionKey) {
+      <div class="fix-primary-action">
+        <ion-button
+          class="app-btn"
+          expand="block"
+          [disabled]="(resultPrimaryActionKey === 'FIX.ACTION_REPAIR' && !canRepair) || (resultPrimaryActionKey === 'FIX.ACTION_EXPORT' && !canExport)"
+          (click)="onPrimaryAction()"
+        >
+          <ion-icon slot="start" name="sparkles-outline"></ion-icon>
+          {{ resultPrimaryActionKey | translate }}
+        </ion-button>
+      </div>
+    }
 
-            @if (viewState === 'repaired') {
-              <p class="app-supporting-text fix-state-card__body-text">
-                {{ 'FIX.REPAIR_SUCCESS_BODY' | translate }}
-              </p>
-            }
-
-            <div class="fix-result-metrics">
-              <p class="app-meta-text fix-result-metric">
-                {{ 'FIX.RESULT_ISSUES_FOUND' | translate:{ count: diagnosisIssueCount } }}
-              </p>
-              <p class="app-meta-text fix-result-metric">
-                {{ 'FIX.RESULT_FIXABLE_COUNT' | translate:{ count: diagnosisFixableCount } }}
-              </p>
-            </div>
-          </div>
-
-          <div class="fix-state-card__actions">
-            @if (resultPrimaryActionKey) {
+    @if (canSaveShare) {
+      <div class="secondary-actions">
+        <ion-grid class="app-action-grid">
+          <ion-row>
+            <ion-col size="6">
               <ion-button
-                class="app-btn"
                 expand="block"
-                [disabled]="(resultPrimaryActionKey === 'FIX.ACTION_REPAIR' && !canRepair) || (resultPrimaryActionKey === 'FIX.ACTION_EXPORT' && !canExport)"
-                (click)="resultPrimaryActionKey === 'FIX.ACTION_REPAIR' ? runRepair() : exportFixed()"
+                fill="outline"
+                (click)="onSave()"
               >
-                {{ resultPrimaryActionKey | translate }}
+                <ion-icon slot="start" name="save-outline"></ion-icon>
+                {{ 'FIX.SAVE_ACTION' | translate }}
               </ion-button>
-            }
+            </ion-col>
 
-            <ion-button
-              expand="block"
-              fill="outline"
-              (click)="openEpubPicker()"
-            >
-              {{ 'FIX.ACTION_PICK_ANOTHER_EPUB' | translate }}
-            </ion-button>
-          </div>
-        </div>
-      </section>
-    }
-
-    @if (showIssuesList) {
-      <section class="fix-issues-section">
-        <p class="app-section-label">{{ 'FIX.ISSUES_TITLE' | translate }}</p>
-
-        <div class="fix-issues-stack">
-          @for (issue of diagnosis?.issues ?? []; track issue.code + issue.details) {
-            <article class="app-secondary-surface fix-issue-card">
-              <h3 class="fix-issue-card__title">{{ issue.messageKey | translate }}</h3>
-              @if (issue.details) {
-                <p class="app-supporting-text fix-issue-card__details">{{ issue.details }}</p>
-              }
-            </article>
-          }
-        </div>
-      </section>
-    } @else if (showDiagnosisSummary && diagnosisIssueCount === 0) {
-      <section class="app-secondary-surface fix-info-card">
-        <p class="app-section-label">{{ 'FIX.ISSUES_TITLE' | translate }}</p>
-        <p class="app-supporting-text">{{ 'FIX.DIAGNOSIS_EMPTY' | translate }}</p>
-      </section>
-    }
-
-    @if (exportResult) {
-      <div class="app-callout app-callout--success" aria-live="polite" role="status">
-        <ion-icon
-          class="app-callout__icon"
-          name="checkmark-circle"
-          aria-hidden="true"
-        ></ion-icon>
-
-        <div>
-          <div class="app-callout__title">{{ 'FIX.EXPORT_SUCCESS_TITLE' | translate }}</div>
-          <div class="app-callout__body">
-            {{
-              'FIX.EXPORT_SUCCESS_BODY'
-                | translate:{
-                  name: exportResult.outputName,
-                  size: formatFileSize(exportResult.size)
-                }
-            }}
-          </div>
-        </div>
+            <ion-col size="6">
+              <ion-button
+                expand="block"
+                fill="outline"
+                (click)="onShare()"
+              >
+                <ion-icon slot="start" name="share-social-outline"></ion-icon>
+                {{ 'COMMON.SHARE' | translate }}
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
       </div>
     }
 
@@ -280,7 +307,7 @@
       <sh-loading-state
         variant="fullscreen"
         [label]="loadingLabelKey | translate"
-        [detail]="null"
+        [detail]="loadingProgressLabel"
       ></sh-loading-state>
     }
 

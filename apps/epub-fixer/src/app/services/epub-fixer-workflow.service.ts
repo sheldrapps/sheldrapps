@@ -60,6 +60,19 @@ export class EpubFixerWorkflowService {
     });
   }
 
+  prepareFromUri(
+    uri: string,
+    displayName?: string,
+  ): Promise<PreparedEpubSession> {
+    return this.port.prepare({
+      uri,
+      displayName,
+    }).then((prepared) => {
+      this.currentSessionId = prepared.sessionId;
+      return prepared;
+    });
+  }
+
   diagnose(sessionId: string): Promise<EpubDiagnosticResult> {
     return this.port.diagnose({ sessionId });
   }
@@ -68,12 +81,17 @@ export class EpubFixerWorkflowService {
     return this.diagnose(this.requireCurrentSessionId());
   }
 
-  repair(sessionId: string): Promise<EpubRepairResult> {
-    return this.port.repair({ sessionId });
+  repair(
+    sessionId: string,
+    preferredOpfPath?: string,
+  ): Promise<EpubRepairResult> {
+    return this.port.repair({ sessionId, preferredOpfPath });
   }
 
-  repairCurrentEpub(): Promise<EpubRepairResult> {
-    return this.repair(this.requireCurrentSessionId());
+  repairCurrentEpub(
+    preferredOpfPath?: string,
+  ): Promise<EpubRepairResult> {
+    return this.repair(this.requireCurrentSessionId(), preferredOpfPath);
   }
 
   exportFixed(

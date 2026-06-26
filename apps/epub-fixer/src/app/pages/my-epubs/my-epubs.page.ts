@@ -2,8 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { App } from '@capacitor/app';
 import { type PluginListenerHandle } from '@capacitor/core';
+import { Router } from '@angular/router';
 import { AlertController, IonContent, IonHeader, IonTitle, IonToolbar, ToastController } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
 import { addIcons } from 'ionicons';
 import {
   alertCircleOutline,
@@ -25,6 +27,7 @@ import {
   PreviewMetadata,
   PreviewUnavailableConfig,
 } from '@sheldrapps/covers-list-kit';
+import { CoversEventsService } from '../../services/covers-events.service';
 import { EpubLibraryService } from '../../services/epub-library.service';
 
 type UiEpubItem = {
@@ -53,6 +56,8 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
   private readonly translate = inject(TranslateService);
+  private readonly router = inject(Router);
+  private readonly coversEvents = inject(CoversEventsService);
 
   @ViewChild(CoverListContentComponent) listContent?: CoverListContentComponent;
 
@@ -71,7 +76,6 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       id: 'project',
       labelKey: 'MY_EPUBS.ACTION_EDIT',
       icon: 'folder-open-outline',
-      disabled: true,
     },
     {
       id: 'share',
@@ -95,6 +99,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   previewFileSizeLabel: string | null = null;
 
   private appStateListener?: PluginListenerHandle;
+  private coversEventsSub?: Subscription;
   private isViewActive = false;
   private isLoadInProgress = false;
   private loadToken = 0;
@@ -113,6 +118,16 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.coversEventsSub = this.coversEvents.events$.subscribe((event) => {
+      if (event.type !== 'saved' && event.type !== 'deleted') {
+        return;
+      }
+
+      if (this.isViewActive) {
+        void this.load(undefined, { silent: true });
+      }
+    });
+
     void App.addListener('appStateChange', ({ isActive }) => {
       if (isActive && this.isViewActive) {
         void this.load(undefined, { silent: true });
@@ -123,6 +138,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.coversEventsSub?.unsubscribe();
     void this.appStateListener?.remove();
   }
 
@@ -153,6 +169,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       return;
     }
     if (event.actionId === 'project') {
+      void this.openProjectByFilename(event.item.filename);
       return;
     }
     if (event.actionId === 'share') {
@@ -160,7 +177,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       return;
     }
     if (event.actionId === 'delete') {
-      void this.deleteFromList(event.item.filename);
+      void this.deleteByFilename(event.item.filename);
       return;
     }
   }
@@ -196,7 +213,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
         icon: 'folder-open-outline',
         layout: 'icon-text',
         cssClass: 'ctrl',
-        disabled: true,
+        disabled,
       },
       {
         id: 'share',
@@ -261,6 +278,11 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     }
     if (event.actionId === 'regenerate-preview') {
       void this.regeneratePreview();
+      return;
+    }
+    if (event.actionId === 'project') {
+      void this.openProjectByFilename(this.previewFilename);
+      this.closePreview();
     }
   }
 
@@ -440,6 +462,26 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       await this.library.openByFilename(filename);
     } catch (error) {
       this.logInfo('open:failed', { error: this.errorDetails(error) });
+      this.pageErrorKey = 'MY_EPUBS.ERROR.OPEN';
+    }
+  }
+
+  private async openProjectByFilename(filename: string | null): Promise<void> {
+    if (!filename) {
+      return;
+    }
+
+    this.pageErrorKey = null;
+    this.pageErrorParams = null;
+
+    try {
+      const navigated = await this.router.navigate(['/tabs/fix-page'], {
+        queryParams: { project: filename },
+      });
+      if (!navigated) {
+        this.pageErrorKey = 'MY_EPUBS.ERROR.OPEN';
+      }
+    } catch {
       this.pageErrorKey = 'MY_EPUBS.ERROR.OPEN';
     }
   }

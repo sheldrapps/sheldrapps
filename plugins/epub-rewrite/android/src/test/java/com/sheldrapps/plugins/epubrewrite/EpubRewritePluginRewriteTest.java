@@ -1,9 +1,12 @@
 package com.sheldrapps.plugins.epubrewrite;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 import org.junit.Test;
 
@@ -108,6 +111,82 @@ public class EpubRewritePluginRewriteTest {
         assertTrue(rewritten.contains("name=\"cover\""));
     }
 
+    @Test
+    public void mimetypeOnlyRepairDoesNotRewritePackageDocument() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Object issue = invokeObject(
+            plugin,
+            "issue",
+            new Class<?>[] { String.class, String.class, boolean.class },
+            "MIMETYPE_MISSING",
+            "error",
+            true
+        );
+        Object analysis = buildAnalysis(issue);
+
+        boolean shouldRewrite = invokeBoolean(
+            plugin,
+            "shouldRewritePackageDocument",
+            new Class<?>[] { analysis.getClass() },
+            analysis
+        );
+
+        assertFalse(shouldRewrite);
+    }
+
+    @Test
+    public void structuralIssuesStillRewritePackageDocument() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Object issue = invokeObject(
+            plugin,
+            "issue",
+            new Class<?>[] { String.class, String.class, boolean.class },
+            "SPINE_ITEM_INVALID",
+            "warning",
+            true
+        );
+        Object analysis = buildAnalysis(issue);
+
+        boolean shouldRewrite = invokeBoolean(
+            plugin,
+            "shouldRewritePackageDocument",
+            new Class<?>[] { analysis.getClass() },
+            analysis
+        );
+
+        assertTrue(shouldRewrite);
+    }
+
+    @Test
+    public void recoverableContainerIssueKeepsStatusRepairable() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Object issue = invokeObject(
+            plugin,
+            "issue",
+            new Class<?>[] { String.class, String.class, boolean.class },
+            "CONTAINER_MISSING",
+            "error",
+            true
+        );
+        Object analysis = buildAnalysis("repairable", "OPS/package.opf", issue);
+
+        assertEquals("repairable", invokeString(
+            plugin,
+            "resolveStatus",
+            new Class<?>[] { ArrayList.class },
+            buildIssues(issue)
+        ));
+
+        boolean shouldRewriteContainer = invokeBoolean(
+            plugin,
+            "shouldRewriteContainerDocument",
+            new Class<?>[] { analysis.getClass() },
+            analysis
+        );
+
+        assertTrue(shouldRewriteContainer);
+    }
+
     private String invokeString(
         Object target,
         String methodName,
@@ -117,5 +196,83 @@ public class EpubRewritePluginRewriteTest {
         Method method = target.getClass().getDeclaredMethod(methodName, paramTypes);
         method.setAccessible(true);
         return (String) method.invoke(target, args);
+    }
+
+    private boolean invokeBoolean(
+        Object target,
+        String methodName,
+        Class<?>[] paramTypes,
+        Object... args
+    ) throws Exception {
+        Method method = target.getClass().getDeclaredMethod(methodName, paramTypes);
+        method.setAccessible(true);
+        return (Boolean) method.invoke(target, args);
+    }
+
+    private Object invokeObject(
+        Object target,
+        String methodName,
+        Class<?>[] paramTypes,
+        Object... args
+    ) throws Exception {
+        Method method = target.getClass().getDeclaredMethod(methodName, paramTypes);
+        method.setAccessible(true);
+        return method.invoke(target, args);
+    }
+
+    private Object buildAnalysis(Object issue) throws Exception {
+        return buildAnalysis("repairable", issue);
+    }
+
+    private Object buildAnalysis(String status, Object issue) throws Exception {
+        return buildAnalysis(status, null, issue);
+    }
+
+    private Object buildAnalysis(String status, String opfPath, Object issue) throws Exception {
+        Class<?> analysisClass = Class.forName(
+            "com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin$EpubAnalysis"
+        );
+        Constructor<?> constructor = analysisClass.getDeclaredConstructor(
+            String.class,
+            ArrayList.class,
+            String.class,
+            String.class,
+            org.w3c.dom.Document.class,
+            ArrayList.class,
+            ArrayList.class,
+            boolean.class,
+            boolean.class
+        );
+        constructor.setAccessible(true);
+
+        ArrayList<Object> issues = new ArrayList<>();
+        issues.add(issue);
+
+        return constructor.newInstance(
+            status,
+            issues,
+            opfPath,
+            parentPath(opfPath),
+            null,
+            new ArrayList<>(),
+            new ArrayList<>(),
+            true,
+            false
+        );
+    }
+
+    private ArrayList<Object> buildIssues(Object issue) {
+        ArrayList<Object> issues = new ArrayList<>();
+        issues.add(issue);
+        return issues;
+    }
+
+    private String parentPath(String path) {
+        if (path == null) {
+            return null;
+        }
+
+        int lastSlash = path.lastIndexOf('/');
+        return lastSlash < 0 ? "" : path.substring(0, lastSlash);
     }
 }

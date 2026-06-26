@@ -16,11 +16,16 @@ import {
   provideSettingsKit,
 } from '@sheldrapps/settings-kit';
 import { provideEpubFixerPort, provideFileKit } from '@sheldrapps/file-kit';
+import { provideAdsKit } from '@sheldrapps/ads-kit';
 import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
 import { environment } from './environments/environment';
 
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
+import {
+  ADS_UNITS_ANDROID_PROD,
+  ADS_UNITS_ANDROID_TEST,
+} from './app/services/ads.config';
 import { EPUB_FIXER_SETTINGS_SCHEMA } from './app/settings/epub-fixer-settings.schema';
 import type { EnvironmentProviders, Provider } from '@angular/core';
 
@@ -71,6 +76,18 @@ async function bootstrap(): Promise<void> {
 
     provideFileKit({
       enableWebDevAdapters: environment.enableWebDevAdapters,
+    }),
+    provideAdsKit({
+      isTesting: !environment.production,
+      units: {
+        android: {
+          test: ADS_UNITS_ANDROID_TEST,
+          prod: ADS_UNITS_ANDROID_PROD,
+        },
+      },
+      billing: {
+        removeAdsProductId: 'epub_fixer_remove_ads_forever',
+      },
     }),
     {
       provide: RECOMMENDED_APPS_CURRENT_PACKAGE,

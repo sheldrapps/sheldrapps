@@ -4,6 +4,7 @@ import JSZip, { type JSZipObject } from 'jszip';
 import {
   EpubFixerPort,
   EpubFixerPortError,
+  classifyEpubDiagnosticRepairMode,
   type EpubDiagnosticIssue,
   type EpubDiagnosticIssueCode,
   type EpubDiagnosticResult,
@@ -109,26 +110,55 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     };
   }
 
-  async repair(input: { sessionId: string }): Promise<EpubRepairResult> {
+  async repair(input: {
+    sessionId: string;
+    preferredOpfPath?: string;
+  }): Promise<EpubRepairResult> {
     const session = this.requireSession(input.sessionId);
-    const analysis = await this.analyze(session.zip);
+    const analysis = await this.analyze(session.zip, input.preferredOpfPath);
     const repairedIssues = new Set<string>();
+    const hasMimetypeIssue = this.hasMimetypeIssue(analysis);
+    const shouldRewriteContainerDocument =
+      this.shouldRewriteContainerDocument(analysis);
 
-    if (analysis.status === 'failed' || analysis.status === 'unsupported') {
+    if (analysis.status === 'failed') {
       return {
         success: false,
         repairedIssues: [],
       };
     }
 
-    const needsMimetypeRepair = analysis.issues.some(
-      (issue) =>
-        issue.code === 'MIMETYPE_MISSING' || issue.code === 'MIMETYPE_INVALID',
-    );
-    if (needsMimetypeRepair) {
+    if (analysis.status === 'unsupported') {
+      return {
+        success: false,
+        repairedIssues: [],
+      };
+    }
+
+    if (hasMimetypeIssue) {
       session.zip.file('mimetype', EPUB_MIMETYPE);
       repairedIssues.add('MIMETYPE_MISSING');
       repairedIssues.add('MIMETYPE_INVALID');
+    }
+
+    if (shouldRewriteContainerDocument && analysis.opfPath) {
+      session.zip.file(
+        'META-INF/container.xml',
+        this.buildContainerXml(analysis.opfPath),
+      );
+      if (analysis.issues.some((issue) => issue.code === 'CONTAINER_MISSING')) {
+        repairedIssues.add('CONTAINER_MISSING');
+      }
+      if (analysis.issues.some((issue) => issue.code === 'OPF_MISSING')) {
+        repairedIssues.add('OPF_MISSING');
+      }
+    }
+
+    if (!this.shouldRewritePackageDocument(analysis)) {
+      return {
+        success: repairedIssues.size > 0,
+        repairedIssues: [...repairedIssues],
+      };
     }
 
     if (!analysis.opfPath || !analysis.opfDocument) {
@@ -194,13 +224,8 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     const session = this.requireSession(input.sessionId);
     const blob = await this.buildExportBlob(session.zip);
     const outputUri = URL.createObjectURL(blob);
-    const outputName = this.buildOutputName(
-      session.originalName,
-      input.outputName,
-    );
 
     session.exportUrls.add(outputUri);
-    this.triggerDownload(outputUri, outputName);
 
     return {
       outputUri,
@@ -229,7 +254,10 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     return session;
   }
 
-  private async analyze(zip: JSZip): Promise<EpubAnalysis> {
+  private async analyze(
+    zip: JSZip,
+    preferredOpfPath?: string,
+  ): Promise<EpubAnalysis> {
     const issues: EpubDiagnosticIssue[] = [];
     const mimetypeEntry = zip.file('mimetype');
 
@@ -245,51 +273,64 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     }
 
     const containerText = await this.readZipText(zip, 'META-INF/container.xml');
-    if (!containerText) {
-      return this.finishAnalysis(issues, {
-        manifestItems: [],
-        spineItems: [],
-        addBlocking: this.issue('CONTAINER_MISSING', 'error', false),
-      });
-    }
+    let containerIssue: EpubDiagnosticIssue | undefined;
+    let declaredOpfPath: string | undefined;
 
-    const containerDocument = this.parseXml(containerText);
-    if (!containerDocument) {
-      return this.finishAnalysis(issues, {
-        manifestItems: [],
-        spineItems: [],
-        addBlocking: this.issue(
+    if (!containerText) {
+      containerIssue = this.issue(
+        'CONTAINER_MISSING',
+        'error',
+        false,
+        'container.xml is missing',
+      );
+    } else {
+      const containerDocument = this.parseXml(containerText);
+      if (!containerDocument) {
+        containerIssue = this.issue(
           'CONTAINER_MISSING',
           'error',
           false,
           'container.xml is not parseable',
-        ),
-      });
+        );
+      } else {
+        const rootfileElement = this.firstByTagName(containerDocument, 'rootfile');
+        const opfPath = rootfileElement?.getAttribute('full-path')?.trim();
+        if (!opfPath) {
+          containerIssue = this.issue(
+            'CONTAINER_MISSING',
+            'error',
+            false,
+            'container.xml does not declare a rootfile',
+          );
+        } else {
+          declaredOpfPath = this.normalizePath(opfPath);
+        }
+      }
     }
 
-    const rootfileElement = this.firstByTagName(containerDocument, 'rootfile');
-    const opfPath = rootfileElement?.getAttribute('full-path')?.trim();
+    const validOpfCandidates = await this.collectValidOpfCandidates(
+      zip,
+      declaredOpfPath || preferredOpfPath,
+    );
+    const opfPath = validOpfCandidates[0];
     if (!opfPath) {
       return this.finishAnalysis(issues, {
         manifestItems: [],
         spineItems: [],
-        addBlocking: this.issue(
-          'OPF_MISSING',
-          'error',
-          false,
-          'container.xml does not declare a rootfile',
-        ),
+        addBlocking: declaredOpfPath
+          ? this.issue('OPF_MISSING', 'error', false, declaredOpfPath)
+          : (containerIssue ??
+              this.issue('CONTAINER_MISSING', 'error', false)),
       });
     }
 
-    const normalizedOpfPath = this.normalizePath(opfPath);
-    const opfText = await this.readZipText(zip, normalizedOpfPath);
+    const opfText = await this.readZipText(zip, opfPath);
     if (!opfText) {
       return this.finishAnalysis(issues, {
         manifestItems: [],
         spineItems: [],
-        addBlocking: this.issue('OPF_MISSING', 'error', false, normalizedOpfPath),
-        opfPath: normalizedOpfPath,
+        addBlocking: this.issue('OPF_MISSING', 'error', false, opfPath),
+        opfPath,
       });
     }
 
@@ -302,13 +343,45 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
           'OPF_MISSING',
           'error',
           false,
-          `${normalizedOpfPath} is not parseable`,
+          `${opfPath} is not parseable`,
         ),
-        opfPath: normalizedOpfPath,
+        opfPath,
       });
     }
 
-    const opfDir = this.dirname(normalizedOpfPath);
+    if (containerIssue) {
+      issues.push(
+        this.issue(
+          containerIssue.code,
+          containerIssue.severity,
+          true,
+          containerIssue.details,
+        ),
+      );
+    }
+
+    if (declaredOpfPath && declaredOpfPath !== opfPath) {
+      issues.push(
+        this.issue('OPF_MISSING', 'error', true, declaredOpfPath),
+      );
+    }
+
+    if (
+      validOpfCandidates.length > 1 &&
+      (!declaredOpfPath || declaredOpfPath !== opfPath)
+    ) {
+      issues.push(
+        this.issue(
+          'OPF_AMBIGUOUS',
+          'warning',
+          true,
+          'Multiple package documents were found',
+          validOpfCandidates,
+        ),
+      );
+    }
+
+    const opfDir = this.dirname(opfPath);
     const manifestElement = this.firstByTagName(opfDocument, 'manifest');
     const spineElement = this.firstByTagName(opfDocument, 'spine');
     const manifestItems = manifestElement
@@ -369,7 +442,7 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     return {
       status,
       issues,
-      opfPath: normalizedOpfPath,
+      opfPath,
       opfDir,
       opfDocument,
       manifestItems,
@@ -471,6 +544,31 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     });
   }
 
+  private shouldRewritePackageDocument(analysis: EpubAnalysis): boolean {
+    return analysis.issues.some(
+      (issue) =>
+        issue.code !== 'MIMETYPE_MISSING' &&
+        issue.code !== 'MIMETYPE_INVALID',
+    );
+  }
+
+  private shouldRewriteContainerDocument(analysis: EpubAnalysis): boolean {
+    return (
+      !!analysis.opfPath &&
+      analysis.issues.some(
+        (issue) =>
+          issue.code === 'CONTAINER_MISSING' || issue.code === 'OPF_MISSING',
+      )
+    );
+  }
+
+  private hasMimetypeIssue(analysis: EpubAnalysis): boolean {
+    return analysis.issues.some(
+      (issue) =>
+        issue.code === 'MIMETYPE_MISSING' || issue.code === 'MIMETYPE_INVALID',
+    );
+  }
+
   private readZipText(zip: JSZip, path: string): Promise<string | null> {
     const entry = this.findZipEntry(zip, path);
     return entry ? entry.async('string') : Promise.resolve(null);
@@ -503,11 +601,97 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
       return 'failed';
     }
 
-    if (issues.some((issue) => BLOCKING_CODES.has(issue.code))) {
+    if (
+      issues.some(
+        (issue) => BLOCKING_CODES.has(issue.code) && !issue.fixable,
+      )
+    ) {
       return 'unsupported';
     }
 
     return issues.length > 0 ? 'repairable' : 'valid';
+  }
+
+  private async findPrimaryOpfPath(
+    zip: JSZip,
+    preferredPath?: string,
+  ): Promise<string | null> {
+    const candidates = await this.collectValidOpfCandidates(zip, preferredPath);
+    return candidates[0] ?? null;
+  }
+
+  private async collectValidOpfCandidates(
+    zip: JSZip,
+    preferredPath?: string,
+  ): Promise<string[]> {
+    const candidates = this.collectOpfCandidates(zip, preferredPath);
+    const validCandidates: string[] = [];
+    for (const candidate of candidates) {
+      const opfText = await this.readZipText(zip, candidate);
+      if (!opfText) {
+        continue;
+      }
+
+      if (this.parseXml(opfText)) {
+        validCandidates.push(candidate);
+      }
+    }
+
+    return validCandidates;
+  }
+
+  private collectOpfCandidates(zip: JSZip, preferredPath?: string): string[] {
+    const candidates = new Map<string, number>();
+    const addCandidate = (path?: string, score = 0): void => {
+      const normalized = this.normalizePath(path || '');
+      if (!normalized || candidates.has(normalized)) {
+        return;
+      }
+      candidates.set(normalized, score);
+    };
+
+    addCandidate(preferredPath, -1);
+
+    for (const [name, entry] of Object.entries(zip.files)) {
+      if (!entry || entry.dir || !name.toLowerCase().endsWith('.opf')) {
+        continue;
+      }
+      addCandidate(name, this.scoreOpfCandidate(name));
+    }
+
+    return [...candidates.entries()]
+      .sort(
+        ([leftPath, leftScore], [rightPath, rightScore]) =>
+          leftScore - rightScore || leftPath.localeCompare(rightPath),
+      )
+      .map(([path]) => path);
+  }
+
+  private scoreOpfCandidate(path: string): number {
+    const normalized = this.normalizePath(path).toLowerCase();
+    if (normalized === 'oebps/content.opf' || normalized === 'ops/content.opf') {
+      return 0;
+    }
+    if (normalized === 'content.opf') {
+      return 1;
+    }
+    if (normalized.endsWith('/content.opf')) {
+      return 2;
+    }
+    if (normalized.endsWith('.opf')) {
+      return 3;
+    }
+    return 4;
+  }
+
+  private buildContainerXml(opfPath: string): string {
+    const safeOpfPath = this.normalizePath(opfPath);
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+  <rootfiles>
+    <rootfile full-path="${safeOpfPath}" media-type="application/oebps-package+xml"/>
+  </rootfiles>
+</container>`;
   }
 
   private issue(
@@ -515,13 +699,16 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     severity: 'info' | 'warning' | 'error',
     fixable: boolean,
     details?: string,
+    options?: string[],
   ): EpubDiagnosticIssue {
     return {
       code,
       severity,
       fixable,
       messageKey: `FIX.ISSUE_${code}`,
+      repairMode: classifyEpubDiagnosticRepairMode({ code, fixable }),
       details,
+      options,
     };
   }
 
@@ -576,16 +763,6 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
 
   private ensureEpubExtension(name: string): string {
     return /\.epub$/i.test(name) ? name : `${name}.epub`;
-  }
-
-  private triggerDownload(objectUrl: string, fileName: string): void {
-    const anchor = document.createElement('a');
-    anchor.href = objectUrl;
-    anchor.download = fileName;
-    anchor.style.display = 'none';
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
   }
 
   private createSessionId(): string {

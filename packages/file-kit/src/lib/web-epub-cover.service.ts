@@ -38,16 +38,12 @@ export class WebEpubCoverService {
     try {
       const zip = await JSZip.loadAsync(file);
       const opfPath = await this.readOpfPath(zip);
-      if (!opfPath) return null;
-
-      const opfText = await this.readZipText(zip, opfPath);
-      if (!opfText) return null;
-
-      const opfDoc = this.parseXml(opfText);
-      if (!opfDoc) return null;
-
-      const opfDir = this.dirname(opfPath);
-      const coverEntry = this.findCoverEntry(opfDoc, zip, opfDir);
+      const opfText = opfPath ? await this.readZipText(zip, opfPath) : null;
+      const opfDoc = opfText ? this.parseXml(opfText) : null;
+      const opfDir = opfPath ? this.dirname(opfPath) : '';
+      const coverEntry =
+        (opfDoc ? this.findCoverEntry(opfDoc, zip, opfDir) : null) ??
+        this.findFallbackImageEntry(zip, opfDir);
       if (!coverEntry) return null;
 
       const bytes = await coverEntry.zip.async('uint8array');
@@ -300,6 +296,32 @@ export class WebEpubCoverService {
     return null;
   }
 
+  /**
+   * Fallback when EPUB metadata does not point at a cover image.
+   * Prefers filenames that look like covers before falling back to the
+   * first image entry in the archive.
+   */
+  private findFallbackImageEntry(
+    zip: JSZip,
+    opfDir: string,
+  ): { path: string; zip: JSZipObject } | null {
+    const candidates = Object.entries(zip.files)
+      .filter(([path, entry]) => !!entry && !entry.dir && this.isImagePath(path))
+      .map(([path, entry]) => ({
+        path,
+        zip: entry as JSZipObject,
+        score: this.scoreFallbackImagePath(path, opfDir),
+      }))
+      .sort(
+        (left, right) =>
+          left.score - right.score || left.path.localeCompare(right.path),
+      );
+
+    return candidates[0]
+      ? { path: candidates[0].path, zip: candidates[0].zip }
+      : null;
+  }
+
   /** Patches the OPF manifest href and media-type when the cover path changes. */
   private updateOPFCoverEntry(
     opfDoc: XMLDocument,
@@ -391,6 +413,38 @@ export class WebEpubCoverService {
 
   private extFromPath(path: string): string {
     return path.split('.').pop()?.toLowerCase() ?? 'jpg';
+  }
+
+  private isImagePath(path: string): boolean {
+    return /\.(png|jpe?g|webp|gif|avif|bmp)$/i.test(path);
+  }
+
+  private scoreFallbackImagePath(path: string, opfDir: string): number {
+    const normalized = path.replace(/\\/g, '/').toLowerCase();
+    const filename = normalized.split('/').pop() ?? normalized;
+    let score = 20;
+
+    if (filename.includes('cover')) {
+      score -= 12;
+    } else if (filename.includes('front')) {
+      score -= 8;
+    } else if (filename.includes('jacket')) {
+      score -= 6;
+    }
+
+    if (normalized.includes('/images/')) {
+      score -= 2;
+    }
+
+    if (opfDir && normalized.startsWith(`${opfDir.toLowerCase()}/`)) {
+      score -= 2;
+    }
+
+    if (normalized.includes('/cover')) {
+      score -= 3;
+    }
+
+    return score;
   }
 
   private mimeFromExt(ext: string): string {

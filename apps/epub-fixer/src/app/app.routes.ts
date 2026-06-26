@@ -8,7 +8,7 @@ export const routes: Routes = [
   {
     path: 'recommended-apps',
     data: {
-      backHref: '/tabs/fix',
+      backHref: '/tabs/fix-page',
     },
     loadChildren: () =>
       import('@sheldrapps/recommended-apps').then(

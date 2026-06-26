@@ -5,6 +5,10 @@ import {
   type Plugin,
   type PluginListenerHandle,
 } from '@capacitor/core';
+import {
+  classifyEpubDiagnosticRepairMode,
+  normalizeEpubDiagnosticIssue,
+} from './epub-fixer.port';
 
 type InspectEpubResult = {
   success: boolean;
@@ -26,6 +30,7 @@ type DiagnoseEpubResult = {
       | 'MIMETYPE_INVALID'
       | 'CONTAINER_MISSING'
       | 'OPF_MISSING'
+      | 'OPF_AMBIGUOUS'
       | 'MANIFEST_ITEM_MISSING'
       | 'SPINE_EMPTY'
       | 'SPINE_ITEM_INVALID'
@@ -33,7 +38,9 @@ type DiagnoseEpubResult = {
     severity: 'info' | 'warning' | 'error';
     fixable: boolean;
     messageKey: string;
+    repairMode?: 'automatic' | 'review' | 'guided' | 'partial_recovery' | 'not_repairable';
     details?: string;
+    options?: string[];
   }>;
   error?: string;
   message?: string;
@@ -209,7 +216,10 @@ type EpubRewritePlugin = Plugin & {
   ): Promise<PickAndPrepareEpubResult>;
   inspectEpub(options: { inputPath: string }): Promise<InspectEpubResult>;
   diagnoseEpub(options: { sessionId: string }): Promise<DiagnoseEpubResult>;
-  repairEpub(options: { sessionId: string }): Promise<RepairEpubResult>;
+  repairEpub(options: {
+    sessionId: string;
+    preferredOpfPath?: string;
+  }): Promise<RepairEpubResult>;
   exportFixed(options: {
     sessionId: string;
     outputName?: string;
@@ -363,15 +373,25 @@ export class EpubRewriteService {
     return {
       sessionId,
       status: result.status,
-      issues: result.issues,
+      issues: result.issues.map((issue) =>
+        normalizeEpubDiagnosticIssue({
+          ...issue,
+          repairMode:
+            issue.repairMode ??
+            classifyEpubDiagnosticRepairMode({
+              code: issue.code,
+              fixable: issue.fixable,
+            }),
+        }),
+      ),
     };
   }
 
-  async repair(sessionId: string): Promise<{
+  async repair(sessionId: string, preferredOpfPath?: string): Promise<{
     success: boolean;
     repairedIssues: string[];
   }> {
-    const result = await EpubRewrite.repairEpub({ sessionId });
+    const result = await EpubRewrite.repairEpub({ sessionId, preferredOpfPath });
     if (!result.success) {
       throw new EpubRewriteError(result.error ?? 'REPAIR_FAILED', {
         message: result.message,

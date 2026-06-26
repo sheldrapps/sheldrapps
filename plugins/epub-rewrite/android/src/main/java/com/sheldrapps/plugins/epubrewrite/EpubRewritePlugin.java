@@ -374,7 +374,7 @@ public class EpubRewritePlugin extends Plugin {
 
         try (ZipFile sourceZip = new ZipFile(inputPath.toFile())) {
             List<FileHeader> headers = sourceZip.getFileHeaders();
-            primaryOpfPath = findPrimaryOpfPath(sourceZip, headers);
+            primaryOpfPath = findPrimaryOpfPath(sourceZip, headers, null);
 
             if (coverEntryPath != null && findHeader(headers, coverEntryPath) == null) {
                 coverEntryPath = findCoverEntryPath(sourceZip, headers);
@@ -556,7 +556,7 @@ public class EpubRewritePlugin extends Plugin {
         validateSessionId(sessionId);
 
         Path workingPath = resolveSessionWorkingPath(sessionId);
-        EpubAnalysis analysis = analyzeEpub(workingPath);
+        EpubAnalysis analysis = analyzeEpub(workingPath, null);
 
         JSObject result = new JSObject();
         result.put("success", true);
@@ -569,9 +569,14 @@ public class EpubRewritePlugin extends Plugin {
     private void repairEpubInternal(PluginCall call) throws Exception {
         String sessionId = requireString(call, "sessionId").trim();
         validateSessionId(sessionId);
+        String preferredOpfPath = normalizeZipPath(call.getString("preferredOpfPath"));
+        if (CompatStrings.isBlank(preferredOpfPath)) {
+            preferredOpfPath = null;
+        }
 
         Path workingPath = resolveSessionWorkingPath(sessionId);
-        EpubAnalysis analysis = analyzeEpub(workingPath);
+        EpubAnalysis analysis = analyzeEpub(workingPath, preferredOpfPath);
+        boolean shouldRewriteContainerDocument = shouldRewriteContainerDocument(analysis);
 
         if ("failed".equals(analysis.status) || "unsupported".equals(analysis.status)) {
             JSObject result = new JSObject();
@@ -591,7 +596,13 @@ public class EpubRewritePlugin extends Plugin {
 
         try {
             moveFileAtomicWithFallback(workingPath, backupPath);
-            repairArchiveToOutput(backupPath, tempOutputPath, analysis);
+            repairArchiveToOutput(
+                backupPath,
+                tempOutputPath,
+                analysis,
+                shouldRewritePackageDocument(analysis),
+                shouldRewriteContainerDocument
+            );
             ensureNotCancelled();
             moveFileAtomicWithFallback(tempOutputPath, workingPath);
             deleteIfExists(backupPath);
@@ -644,7 +655,7 @@ public class EpubRewritePlugin extends Plugin {
         call.resolve(result);
     }
 
-    private EpubAnalysis analyzeEpub(Path epubPath) throws Exception {
+    private EpubAnalysis analyzeEpub(Path epubPath, String preferredOpfPath) throws Exception {
         try (ZipFile zipFile = new ZipFile(epubPath.toFile())) {
             List<FileHeader> headers = zipFile.getFileHeaders();
             if (headers == null || headers.isEmpty()) {
@@ -680,8 +691,53 @@ public class EpubRewritePlugin extends Plugin {
             }
 
             String containerText = readZipText(zipFile, "META-INF/container.xml");
+            String declaredOpfPath = null;
+            boolean containerNeedsRepair = false;
+            String containerIssueDetails = null;
+
             if (containerText == null) {
-                issues.add(issue("CONTAINER_MISSING", "error", false));
+                containerNeedsRepair = true;
+                containerIssueDetails = "container.xml is missing";
+            } else {
+                Document containerDocument = parseXmlUtf8(containerText);
+                if (containerDocument == null) {
+                    containerNeedsRepair = true;
+                    containerIssueDetails = "container.xml is not parseable";
+                } else {
+                    Element rootfileElement = firstElementByName(containerDocument, "rootfile");
+                    String rootfilePath = rootfileElement == null
+                        ? null
+                        : normalizeZipPath(rootfileElement.getAttribute("full-path"));
+                    if (CompatStrings.isBlank(rootfilePath)) {
+                        containerNeedsRepair = true;
+                        containerIssueDetails = "container.xml does not declare a rootfile";
+                    } else {
+                        declaredOpfPath = rootfilePath;
+                    }
+                }
+            }
+
+            String opfPath = findPrimaryOpfPath(zipFile, headers, preferredOpfPath);
+            if (opfPath == null) {
+                if (declaredOpfPath != null) {
+                    issues.add(issue("OPF_MISSING", "error", false, declaredOpfPath));
+                    return finishAnalysis(
+                        issues,
+                        new EpubAnalysis(
+                            resolveStatus(issues),
+                            issues,
+                            declaredOpfPath,
+                            parentZipPath(declaredOpfPath),
+                            null,
+                            new java.util.ArrayList<>(),
+                            new java.util.ArrayList<>(),
+                            mimetypeMissing,
+                            mimetypeInvalid
+                        )
+                    );
+                }
+
+                issues.add(issue("CONTAINER_MISSING", "error", false, containerIssueDetails));
                 return finishAnalysis(
                     issues,
                     new EpubAnalysis(
@@ -698,46 +754,32 @@ public class EpubRewritePlugin extends Plugin {
                 );
             }
 
-            Document containerDocument = parseXmlUtf8(containerText);
-            if (containerDocument == null) {
-                issues.add(issue("CONTAINER_MISSING", "error", false, "container.xml is not parseable"));
-                return finishAnalysis(
-                    issues,
-                    new EpubAnalysis(
-                        resolveStatus(issues),
-                        issues,
-                        null,
-                        null,
-                        null,
-                        new java.util.ArrayList<>(),
-                        new java.util.ArrayList<>(),
-                        mimetypeMissing,
-                        mimetypeInvalid
+            if (containerNeedsRepair) {
+                issues.add(issue("CONTAINER_MISSING", "error", true, containerIssueDetails));
+            } else if (declaredOpfPath != null && !declaredOpfPath.equals(opfPath)) {
+                issues.add(issue("OPF_MISSING", "error", true, declaredOpfPath));
+            }
+
+            List<String> validOpfCandidates = collectValidOpfCandidates(
+                zipFile,
+                headers,
+                declaredOpfPath != null ? declaredOpfPath : preferredOpfPath
+            );
+            if (
+                validOpfCandidates.size() > 1
+                    && (declaredOpfPath == null || !declaredOpfPath.equals(opfPath))
+            ) {
+                issues.add(
+                    issue(
+                        "OPF_AMBIGUOUS",
+                        "warning",
+                        true,
+                        "Multiple package documents were found",
+                        validOpfCandidates
                     )
                 );
             }
 
-            Element rootfileElement = firstElementByName(containerDocument, "rootfile");
-            String opfPath = rootfileElement == null ? null : normalizeZipPath(rootfileElement.getAttribute("full-path"));
-            if (CompatStrings.isBlank(opfPath)) {
-                issues.add(issue("OPF_MISSING", "error", false, "container.xml does not declare a rootfile"));
-                return finishAnalysis(
-                    issues,
-                    new EpubAnalysis(
-                        resolveStatus(issues),
-                        issues,
-                        null,
-                        null,
-                        null,
-                        new java.util.ArrayList<>(),
-                        new java.util.ArrayList<>(),
-                        mimetypeMissing,
-                        mimetypeInvalid
-                    )
-                );
-            }
-
-            opfPath = normalizeZipPath(opfPath);
             String opfText = readZipText(zipFile, opfPath);
             if (opfText == null) {
                 issues.add(issue("OPF_MISSING", "error", false, opfPath));
@@ -942,7 +984,9 @@ public class EpubRewritePlugin extends Plugin {
     private void repairArchiveToOutput(
         Path sourceZipPath,
         Path outputZipPath,
-        EpubAnalysis analysis
+        EpubAnalysis analysis,
+        boolean rewriteOpfDocument,
+        boolean rewriteContainerDocument
     ) throws Exception {
         deleteIfExists(outputZipPath);
 
@@ -956,6 +1000,14 @@ public class EpubRewritePlugin extends Plugin {
             }
 
             addTextEntry(outputZip, "mimetype", "application/epub+zip", true);
+            if (rewriteContainerDocument && analysis.opfPath != null) {
+                addTextEntry(
+                    outputZip,
+                    "META-INF/container.xml",
+                    buildContainerXml(analysis.opfPath),
+                    false
+                );
+            }
 
             long totalBytes = totalProcessableBytes(headers);
             long processedBytes = 0L;
@@ -972,9 +1024,19 @@ public class EpubRewritePlugin extends Plugin {
                     emitProgress(interpolate(5, 95, processedBytes, totalBytes));
                     continue;
                 }
+                if (rewriteContainerDocument && "META-INF/container.xml".equals(entryPath)) {
+                    processedBytes += Math.max(1L, header.getUncompressedSize());
+                    emitProgress(interpolate(5, 95, processedBytes, totalBytes));
+                    continue;
+                }
 
                 ZipParameters parameters = buildParametersFromHeader(header, entryPath, null);
-                if (analysis.opfPath != null && analysis.opfPath.equals(entryPath) && analysis.opfDocument != null) {
+                if (
+                    rewriteOpfDocument
+                        && analysis.opfPath != null
+                        && analysis.opfPath.equals(entryPath)
+                        && analysis.opfDocument != null
+                ) {
                     String repairedOpf = rewritePackageDocument(analysis);
                     byte[] repairedBytes = repairedOpf.getBytes(StandardCharsets.UTF_8);
                     parameters = buildParametersFromBytes(header, entryPath, repairedBytes);
@@ -1044,6 +1106,13 @@ public class EpubRewritePlugin extends Plugin {
             if (CompatStrings.isNotBlank(issue.details)) {
                 item.put("details", issue.details);
             }
+            if (issue.options != null && !issue.options.isEmpty()) {
+                JSArray optionsArray = new JSArray();
+                for (String option : issue.options) {
+                    optionsArray.put(option);
+                }
+                item.put("options", optionsArray);
+            }
             array.put(item);
         }
         return array;
@@ -1080,6 +1149,34 @@ public class EpubRewritePlugin extends Plugin {
             }
         }
         return new java.util.ArrayList<>(repairedIssues);
+    }
+
+    private boolean shouldRewritePackageDocument(EpubAnalysis analysis) {
+        for (EpubIssue issue : analysis.issues) {
+            if ("MIMETYPE_MISSING".equals(issue.code) || "MIMETYPE_INVALID".equals(issue.code)) {
+                continue;
+            }
+
+            if (issue.fixable || isBlockingIssue(issue.code)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean shouldRewriteContainerDocument(EpubAnalysis analysis) {
+        if (analysis.opfPath == null) {
+            return false;
+        }
+
+        for (EpubIssue issue : analysis.issues) {
+            if ("CONTAINER_MISSING".equals(issue.code) || "OPF_MISSING".equals(issue.code)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private String buildExportFileName(String workingFileName, String requestedName) {
@@ -1137,9 +1234,10 @@ public class EpubRewritePlugin extends Plugin {
         String code,
         String severity,
         boolean fixable,
-        String details
+        String details,
+        List<String> options
     ) {
-        return new EpubIssue(code, severity, fixable, "FIX.ISSUE_" + code, details);
+        return new EpubIssue(code, severity, fixable, "FIX.ISSUE_" + code, details, options);
     }
 
     private EpubIssue issue(
@@ -1147,7 +1245,16 @@ public class EpubRewritePlugin extends Plugin {
         String severity,
         boolean fixable
     ) {
-        return issue(code, severity, fixable, null);
+        return issue(code, severity, fixable, null, null);
+    }
+
+    private EpubIssue issue(
+        String code,
+        String severity,
+        boolean fixable,
+        String details
+    ) {
+        return issue(code, severity, fixable, details, null);
     }
 
     private boolean isBlockingIssue(String code) {
@@ -1175,7 +1282,7 @@ public class EpubRewritePlugin extends Plugin {
         }
 
         for (EpubIssue issue : issues) {
-            if (isBlockingIssue(issue.code)) {
+            if (isBlockingIssue(issue.code) && !issue.fixable) {
                 return "unsupported";
             }
         }
@@ -1867,10 +1974,15 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     private String buildContainerXml() {
+        return buildContainerXml("OEBPS/content.opf");
+    }
+
+    private String buildContainerXml(String opfPath) {
+        String safeOpfPath = normalizeZipPath(opfPath);
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">\n"
             + "  <rootfiles>\n"
-            + "    <rootfile full-path=\"OEBPS/content.opf\" media-type=\"application/oebps-package+xml\"/>\n"
+            + "    <rootfile full-path=\"" + escapeXml(safeOpfPath) + "\" media-type=\"application/oebps-package+xml\"/>\n"
             + "  </rootfiles>\n"
             + "</container>";
     }
@@ -2348,27 +2460,119 @@ public class EpubRewritePlugin extends Plugin {
         return null;
     }
 
-    private String findPrimaryOpfPath(ZipFile zipFile, List<FileHeader> headers) {
-        try {
-            FileHeader containerHeader = findHeader(headers, "META-INF/container.xml");
-            if (containerHeader == null) {
-                return null;
+    private String findPrimaryOpfPath(
+        ZipFile zipFile,
+        List<FileHeader> headers,
+        String preferredPath
+    ) {
+        FileHeader containerHeader = findHeader(headers, "META-INF/container.xml");
+        String containerPreferredPath = preferredPath;
+        if (containerHeader != null && containerPreferredPath == null) {
+            try {
+                byte[] containerBytes = readEntryBytes(zipFile, containerHeader);
+                Document containerDoc = parseXmlUtf8(new String(containerBytes, StandardCharsets.UTF_8));
+                Element rootfile = firstElementByName(containerDoc, "rootfile");
+                if (rootfile != null) {
+                    String opfPath = normalizeZipPath(rootfile.getAttribute("full-path"));
+                    if (CompatStrings.isNotBlank(opfPath)) {
+                        containerPreferredPath = opfPath;
+                    }
+                }
+            } catch (Exception ignored) {
+                // Fall back to heuristic OPF discovery below.
+            }
+        }
+
+        List<String> candidates = collectValidOpfCandidates(zipFile, headers, containerPreferredPath);
+        for (String candidate : candidates) {
+            return candidate;
+        }
+
+        return null;
+    }
+
+    private List<String> collectValidOpfCandidates(
+        ZipFile zipFile,
+        List<FileHeader> headers,
+        String preferredPath
+    ) {
+        List<String> candidates = collectOpfCandidates(headers, preferredPath);
+        java.util.ArrayList<String> validCandidates = new java.util.ArrayList<>();
+        for (String candidate : candidates) {
+            try {
+                FileHeader opfHeader = findHeader(headers, candidate);
+                if (opfHeader == null) {
+                    continue;
+                }
+
+                byte[] opfBytes = readEntryBytes(zipFile, opfHeader);
+                Document opfDoc = parseXmlUtf8(new String(opfBytes, StandardCharsets.UTF_8));
+                if (opfDoc != null) {
+                    validCandidates.add(candidate);
+                }
+            } catch (Exception ignored) {
+                // Keep trying later candidates.
+            }
+        }
+
+        return validCandidates;
+    }
+
+    private List<String> collectOpfCandidates(List<FileHeader> headers, String preferredPath) {
+        java.util.LinkedHashMap<String, Integer> scores = new java.util.LinkedHashMap<>();
+        addCandidate(scores, preferredPath, -1);
+
+        for (FileHeader header : headers) {
+            if (header == null || header.isDirectory()) {
+                continue;
             }
 
-            byte[] containerBytes = readEntryBytes(zipFile, containerHeader);
-            Document containerDoc = parseXmlUtf8(new String(containerBytes, StandardCharsets.UTF_8));
-            Element rootfile = firstElementByName(containerDoc, "rootfile");
-            if (rootfile == null) {
-                return null;
+            String fileName = normalizeZipPath(header.getFileName());
+            if (!fileName.toLowerCase(Locale.US).endsWith(".opf")) {
+                continue;
             }
-            String opfPath = normalizeZipPath(rootfile.getAttribute("full-path"));
-            if (CompatStrings.isBlank(opfPath)) {
-                return null;
-            }
-            return findHeader(headers, opfPath) == null ? null : opfPath;
-        } catch (Exception ignored) {
-            return null;
+
+            addCandidate(scores, fileName, scoreOpfCandidate(fileName));
         }
+
+        return scores.entrySet().stream()
+            .sorted((left, right) ->
+                left.getValue().compareTo(right.getValue())
+                    != 0
+                    ? left.getValue().compareTo(right.getValue())
+                    : left.getKey().compareTo(right.getKey())
+            )
+            .map(java.util.Map.Entry::getKey)
+            .collect(java.util.stream.Collectors.toList());
+    }
+
+    private void addCandidate(
+        java.util.LinkedHashMap<String, Integer> scores,
+        String candidate,
+        int score
+    ) {
+        String normalized = normalizeZipPath(candidate);
+        if (CompatStrings.isBlank(normalized) || scores.containsKey(normalized)) {
+            return;
+        }
+        scores.put(normalized, score);
+    }
+
+    private int scoreOpfCandidate(String path) {
+        String normalized = normalizeZipPath(path).toLowerCase(Locale.US);
+        if ("oebps/content.opf".equals(normalized) || "ops/content.opf".equals(normalized)) {
+            return 0;
+        }
+        if ("content.opf".equals(normalized)) {
+            return 1;
+        }
+        if (normalized.endsWith("/content.opf")) {
+            return 2;
+        }
+        if (normalized.endsWith(".opf")) {
+            return 3;
+        }
+        return 4;
     }
 
     private String buildDefaultCoverEntryPath(Path newCoverPath) {
@@ -2913,19 +3117,22 @@ public class EpubRewritePlugin extends Plugin {
         final boolean fixable;
         final String messageKey;
         final String details;
+        final List<String> options;
 
         EpubIssue(
             String code,
             String severity,
             boolean fixable,
             String messageKey,
-            String details
+            String details,
+            List<String> options
         ) {
             this.code = code;
             this.severity = severity;
             this.fixable = fixable;
             this.messageKey = messageKey;
             this.details = details;
+            this.options = options;
         }
     }
 

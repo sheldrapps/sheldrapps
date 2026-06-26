@@ -48,6 +48,7 @@ export interface DiagnoseEpubResult {
       | 'MIMETYPE_INVALID'
       | 'CONTAINER_MISSING'
       | 'OPF_MISSING'
+      | 'OPF_AMBIGUOUS'
       | 'MANIFEST_ITEM_MISSING'
       | 'SPINE_EMPTY'
       | 'SPINE_ITEM_INVALID'
@@ -55,7 +56,9 @@ export interface DiagnoseEpubResult {
     severity: 'info' | 'warning' | 'error';
     fixable: boolean;
     messageKey: string;
+    repairMode?: 'automatic' | 'review' | 'guided' | 'partial_recovery' | 'not_repairable';
     details?: string;
+    options?: string[];
   }>;
   error?: string;
   message?: string;
@@ -195,7 +198,10 @@ export interface EpubRewritePlugin extends Plugin {
   ): Promise<PickAndPrepareEpubResult>;
   inspectEpub(options: InspectEpubOptions): Promise<InspectEpubResult>;
   diagnoseEpub(options: { sessionId: string }): Promise<DiagnoseEpubResult>;
-  repairEpub(options: { sessionId: string }): Promise<RepairEpubResult>;
+  repairEpub(options: {
+    sessionId: string;
+    preferredOpfPath?: string;
+  }): Promise<RepairEpubResult>;
   exportFixed(options: {
     sessionId: string;
     outputName?: string;

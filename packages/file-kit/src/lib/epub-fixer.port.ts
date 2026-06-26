@@ -25,11 +25,19 @@ export type EpubDiagnosticStatus =
   | 'unsupported'
   | 'failed';
 
+export type EpubDiagnosticRepairMode =
+  | 'automatic'
+  | 'review'
+  | 'guided'
+  | 'partial_recovery'
+  | 'not_repairable';
+
 export type EpubDiagnosticIssueCode =
   | 'MIMETYPE_MISSING'
   | 'MIMETYPE_INVALID'
   | 'CONTAINER_MISSING'
   | 'OPF_MISSING'
+  | 'OPF_AMBIGUOUS'
   | 'MANIFEST_ITEM_MISSING'
   | 'SPINE_EMPTY'
   | 'SPINE_ITEM_INVALID'
@@ -40,8 +48,55 @@ export type EpubDiagnosticIssue = {
   severity: 'info' | 'warning' | 'error';
   fixable: boolean;
   messageKey: string;
+  repairMode?: EpubDiagnosticRepairMode;
   details?: string;
+  options?: string[];
 };
+
+export function classifyEpubDiagnosticRepairMode(
+  issue: Pick<EpubDiagnosticIssue, 'code' | 'fixable'>,
+): EpubDiagnosticRepairMode {
+  if (issue.code === 'ZIP_UNREADABLE') {
+    return 'not_repairable';
+  }
+
+  if (
+    issue.code === 'MIMETYPE_MISSING' ||
+    issue.code === 'MIMETYPE_INVALID'
+  ) {
+    return 'automatic';
+  }
+
+  if (issue.code === 'CONTAINER_MISSING' || issue.code === 'OPF_MISSING') {
+    return issue.fixable ? 'automatic' : 'not_repairable';
+  }
+
+  if (issue.code === 'OPF_AMBIGUOUS') {
+    return 'guided';
+  }
+
+  if (
+    issue.code === 'MANIFEST_ITEM_MISSING' ||
+    issue.code === 'SPINE_ITEM_INVALID'
+  ) {
+    return 'partial_recovery';
+  }
+
+  if (issue.code === 'SPINE_EMPTY') {
+    return 'not_repairable';
+  }
+
+  return issue.fixable ? 'review' : 'not_repairable';
+}
+
+export function normalizeEpubDiagnosticIssue(
+  issue: EpubDiagnosticIssue,
+): EpubDiagnosticIssue {
+  return {
+    ...issue,
+    repairMode: issue.repairMode ?? classifyEpubDiagnosticRepairMode(issue),
+  };
+}
 
 export type EpubDiagnosticResult = {
   sessionId: string;
@@ -70,6 +125,7 @@ export interface EpubFixerPort {
 
   repair(input: {
     sessionId: string;
+    preferredOpfPath?: string;
   }): Promise<EpubRepairResult>;
 
   exportFixed(input: {

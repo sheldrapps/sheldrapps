@@ -56,11 +56,11 @@ export class TabsPage {
       }
 
       if (url === '/tabs/my-epubs' || url === '/tabs/settings') {
-        await this.router.navigateByUrl('/tabs/fix');
+        await this.router.navigateByUrl('/tabs/fix-page');
         return;
       }
 
-      if (url === '/tabs/fix') {
+      if (url.startsWith('/tabs/fix-page')) {
         const now = Date.now();
 
         if (now - this.lastBackAt < this.exitWindowMs) {

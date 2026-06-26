@@ -40,8 +40,11 @@ export class NativeEpubFixerAdapter implements EpubFixerPort {
     return this.native.diagnose(_input.sessionId);
   }
 
-  repair(_input: { sessionId: string }): Promise<EpubRepairResult> {
-    return this.native.repair(_input.sessionId);
+  repair(_input: {
+    sessionId: string;
+    preferredOpfPath?: string;
+  }): Promise<EpubRepairResult> {
+    return this.native.repair(_input.sessionId, _input.preferredOpfPath);
   }
 
   exportFixed(_input: {

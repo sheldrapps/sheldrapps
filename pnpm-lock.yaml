@@ -515,6 +515,9 @@ importers:
       '@angular/router':
         specifier: ^20.0.0
         version: 20.3.16(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.16(@angular/animations@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
+      '@capacitor-community/admob':
+        specifier: 8.0.0
+        version: 8.0.0
       '@capacitor/android':
         specifier: ^8.0.0
         version: 8.0.2(@capacitor/core@8.0.0)
@@ -551,6 +554,9 @@ importers:
       '@capacitor/status-bar':
         specifier: 8.0.0
         version: 8.0.0(@capacitor/core@8.0.0)
+      '@capgo/native-purchases':
+        specifier: ^8.0.0
+        version: 8.2.5(@capacitor/core@8.0.0)
       '@ionic/angular':
         specifier: ^8.0.0
         version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
@@ -560,6 +566,9 @@ importers:
       '@ngx-translate/http-loader':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
+      '@sheldrapps/ads-kit':
+        specifier: workspace:*
+        version: link:../../packages/ads-kit
       '@sheldrapps/file-kit':
         specifier: workspace:*
         version: link:../../packages/file-kit

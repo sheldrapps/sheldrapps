@@ -13,6 +13,12 @@ export type LibraryPreviewAsset = {
   isDithered: boolean;
 };
 
+export type LoadedGeneratedEpub = {
+  file: File;
+  uri: string | null;
+  size: number;
+};
+
 @Injectable({ providedIn: 'root' })
 export class EpubLibraryService {
   private readonly fileKit = inject(FileKitService);
@@ -40,6 +46,36 @@ export class EpubLibraryService {
     const bytes = await this.readExportBytes(sourceUri);
     await this.epubStore.writeEpub(filename, bytes);
     this.previewCache.delete(filename);
+  }
+
+  async loadGeneratedEpubByFilename(
+    filename: string,
+  ): Promise<LoadedGeneratedEpub | null> {
+    const resolved = this.ensureEpubFilename(filename);
+
+    try {
+      const bytes = await this.epubStore.readBytes(resolved);
+      const epubBuffer = bytes.buffer.slice(
+        bytes.byteOffset,
+        bytes.byteOffset + bytes.byteLength,
+      ) as ArrayBuffer;
+      let uri: string | null = null;
+      try {
+        uri = await this.epubStore.getUriOrThrow(resolved);
+      } catch {
+        uri = null;
+      }
+
+      return {
+        file: new File([epubBuffer], resolved, {
+          type: 'application/epub+zip',
+        }),
+        uri,
+        size: bytes.byteLength,
+      };
+    } catch {
+      return null;
+    }
   }
 
   async deleteByFilename(filename: string): Promise<void> {
@@ -143,7 +179,11 @@ export class EpubLibraryService {
     }
 
     const bytes = await this.epubStore.readBytes(filename);
-    const epubFile = new File([bytes], filename, {
+    const epubBuffer = bytes.buffer.slice(
+      bytes.byteOffset,
+      bytes.byteOffset + bytes.byteLength,
+    ) as ArrayBuffer;
+    const epubFile = new File([epubBuffer], filename, {
       type: 'application/epub+zip',
     });
     return this.webEpubCover.extractCover(epubFile);

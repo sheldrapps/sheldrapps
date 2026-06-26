@@ -2,6 +2,21 @@
 <resources>
     <string name="app_name">EPUB Fixer</string>
     <string name="title_activity_main">EPUB Fixer</string>
+
+    <string name="app_name_en_us">EPUB Fixer</string>
+    <string name="app_name_es_mx">Reparar EPUB</string>
+    <string name="app_name_de_de">EPUB reparieren</string>
+    <string name="app_name_fr_fr">Réparer EPUB</string>
+    <string name="app_name_it_it">Ripara EPUB</string>
+    <string name="app_name_pt_br">Reparar EPUB</string>
+    <string name="app_name_zh_tw">EPUB修復</string>
+    <string name="app_name_hi_in">EPUB रिपेयर</string>
+    <string name="app_name_ar_sa">إصلاح EPUB</string>
+    <string name="app_name_ja_jp">EPUB修復</string>
+    <string name="app_name_ko_kr">EPUB 복구</string>
+    <string name="app_name_zh_cn">EPUB修复</string>
+    <string name="app_name_ru_ru">Исправить EPUB</string>
+
     <string name="package_name">com.sheldrapps.epubfixer</string>
     <string name="custom_url_scheme">com.sheldrapps.epubfixer</string>
 </resources>

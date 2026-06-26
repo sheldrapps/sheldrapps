@@ -18,11 +18,14 @@ export { normalizeFilenameKey } from './lib/filename-keys';
 export * from './lib/file-kit.service';
 export {
   EPUB_FIXER_PORT,
+  classifyEpubDiagnosticRepairMode,
   EpubFixerPortError,
+  normalizeEpubDiagnosticIssue,
   provideEpubFixerPort,
   type EpubDiagnosticIssue,
   type EpubDiagnosticIssueCode,
   type EpubDiagnosticResult,
+  type EpubDiagnosticRepairMode,
   type EpubDiagnosticStatus,
   type EpubExportResult,
   type EpubFixerEnvironment,
@@ -32,6 +35,7 @@ export {
 } from './lib/epub-fixer.port';
 export * from './lib/epub-fixer-native.service';
 export * from './lib/adapters/native-epub-fixer.adapter';
+export * from './lib/adapters/web-dev-epub-fixer.adapter';
 export * from "./lib/epub-cover-metadata";
 export * from "./lib/epub-cover-generator";
 export * from './lib/epub-public-store';

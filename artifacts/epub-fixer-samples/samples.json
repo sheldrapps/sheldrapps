@@ -1,0 +1,27 @@
+[
+    {
+        "name":  "01-mimetype-missing",
+        "description":  "Missing mimetype file",
+        "file":  "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\01-mimetype-missing.epub"
+    },
+    {
+        "name":  "02-mimetype-invalid",
+        "description":  "Invalid mimetype contents",
+        "file":  "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\02-mimetype-invalid.epub"
+    },
+    {
+        "name":  "03-manifest-item-missing",
+        "description":  "Manifest item points to missing file",
+        "file":  "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\03-manifest-item-missing.epub"
+    },
+    {
+        "name":  "04-spine-item-invalid",
+        "description":  "Spine item points to a bogus manifest id",
+        "file":  "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\04-spine-item-invalid.epub"
+    },
+    {
+        "name":  "05-manifest-href-normalization",
+        "description":  "Manifest href uses a non-normalized relative path",
+        "file":  "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\05-manifest-href-normalization.epub"
+    }
+]

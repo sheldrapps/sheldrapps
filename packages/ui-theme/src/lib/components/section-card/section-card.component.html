@@ -1,0 +1,14 @@
+<div class="sh-section-card">
+  @if (title) {
+    <h2 class="field-title sh-section-card__title" [id]="titleId">
+      {{ title }}
+    </h2>
+  }
+
+  <section
+    class="app-secondary-surface sh-section-card__surface"
+    [attr.aria-labelledby]="title ? titleId : null"
+  >
+    <ng-content></ng-content>
+  </section>
+</div>

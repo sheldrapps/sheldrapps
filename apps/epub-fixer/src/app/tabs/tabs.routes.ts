@@ -4,7 +4,7 @@ import { TabsPage } from './tabs.page';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/tabs/fix',
+    redirectTo: '/tabs/fix-page',
     pathMatch: 'full',
   },
   {
@@ -12,7 +12,7 @@ export const routes: Routes = [
     component: TabsPage,
     children: [
       {
-        path: 'fix',
+        path: 'fix-page',
         loadComponent: () =>
           import('../pages/fix/fix.page').then((m) => m.FixPage),
       },
@@ -49,7 +49,7 @@ export const routes: Routes = [
       },
       {
         path: '',
-        redirectTo: 'fix',
+        redirectTo: 'fix-page',
         pathMatch: 'full',
       },
     ],

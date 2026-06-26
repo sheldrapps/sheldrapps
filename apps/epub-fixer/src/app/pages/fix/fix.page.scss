@@ -16,50 +16,18 @@
   margin: 0;
 }
 
-.fix-info-card,
-.fix-issue-card {
-  gap: var(--fix-page-card-gap);
-  padding: var(--fix-page-card-padding-y) var(--fix-page-card-padding-x);
+.fix-file-section {
+  display: grid;
+  gap: var(--app-space-2);
 }
 
-.fix-file-input {
-  --border-radius: var(--app-radius-xl);
-  --inner-padding-top: var(--app-space-5);
-  --inner-padding-bottom: var(--app-space-5);
-  --inner-padding-start: var(--app-space-5);
-  --inner-padding-end: var(--app-space-5);
-  --padding-start: 0;
-  --padding-end: 0;
-  --min-height: auto;
-  margin: 0;
-  border: 1px solid rgba(var(--ion-color-medium-rgb), 0.16);
-  border-radius: var(--app-radius-xl);
-  box-shadow: var(--app-shadow-sm);
-}
-
-.fix-file-input.item-invalid {
-  border-color: rgba(var(--ion-color-danger-rgb), 0.28);
-  box-shadow:
-    var(--app-shadow-sm),
-    inset 0 0 0 1px rgba(var(--ion-color-danger-rgb), 0.14);
-}
-
-.field-title,
-.fix-state-card__title,
-.fix-issue-card__title {
+.fix-state-card__title {
   margin: 0;
 }
 
-.fix-state-card__copy,
-.fix-issues-section {
+.fix-state-card__copy {
   display: grid;
   gap: var(--fix-page-copy-gap);
-}
-
-.field-title {
-  font-size: var(--app-text-sm);
-  font-weight: var(--app-font-semibold);
-  color: var(--app-text-secondary);
 }
 
 .field-filename {
@@ -73,8 +41,7 @@
 
 .field-subtle,
 .field-placeholder,
-.fix-state-card__body-text,
-.fix-issue-card__details {
+.fix-state-card__body-text {
   margin: 0;
 }
 
@@ -82,30 +49,6 @@
 .field-placeholder {
   margin-top: var(--app-space-1);
   color: var(--app-text-secondary);
-}
-
-.thumb-wrapper {
-  display: flex;
-  align-items: center;
-}
-
-.thumb {
-  display: grid;
-  place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 50%;
-  background: rgba(var(--ion-color-primary-rgb), 0.08);
-  color: var(--ion-color-primary);
-}
-
-.thumb-check {
-  font-size: 1.75rem;
-  color: var(--ion-color-success);
-}
-
-.thumb-icon {
-  font-size: 1.5rem;
 }
 
 .fix-state-card {
@@ -124,10 +67,92 @@
   color: var(--app-text-primary);
 }
 
-.fix-state-card__actions,
-.fix-issues-stack {
+.fix-state-card__actions {
   display: grid;
   gap: var(--app-space-3);
+}
+
+.fix-diagnosis-summary {
+  display: grid;
+  gap: var(--app-space-3);
+}
+
+.fix-diagnosis-summary__status {
+  font-size: var(--app-text-lg);
+  font-weight: var(--app-font-semibold);
+  line-height: 1.35;
+  color: var(--app-text-primary);
+}
+
+.fix-diagnosis-summary__stats {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--app-space-2);
+}
+
+.fix-diagnosis-summary__stat {
+  display: flex;
+  align-items: baseline;
+  gap: var(--app-space-2);
+  flex-wrap: wrap;
+}
+
+.fix-diagnosis-summary__value {
+  font-size: var(--app-text-base);
+  font-weight: var(--app-font-semibold);
+  color: var(--app-text-primary);
+}
+
+.fix-diagnosis-summary__label {
+  font-size: var(--app-text-base);
+  color: var(--app-text-secondary);
+}
+
+.fix-primary-action {
+  display: grid;
+}
+
+.fix-issues-list {
+  margin: 0;
+  padding-inline-start: var(--app-space-5);
+  display: grid;
+  gap: var(--app-space-3);
+  color: var(--app-text-primary);
+}
+
+.fix-issues-list__item {
+  color: var(--app-text-primary);
+}
+
+.fix-issues-list__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--app-space-3);
+}
+
+.fix-issues-list__message {
+  font-size: var(--app-text-base);
+  line-height: 1.45;
+  font-weight: 400;
+}
+
+.fix-issues-list__badge {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fix-issues-list__details {
+  margin-top: var(--app-space-1);
+  font-size: var(--app-text-sm);
+  line-height: 1.35;
+  color: var(--app-text-secondary);
+  font-weight: 400;
+  overflow-wrap: anywhere;
 }
 
 .fix-review-list {
@@ -136,16 +161,6 @@
   display: grid;
   gap: var(--app-space-2);
   color: var(--app-text-secondary);
-}
-
-.fix-result-metrics {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--app-space-2) var(--app-space-4);
-}
-
-.fix-result-metric {
-  margin: 0;
 }
 
 @media (max-width: 540px) {

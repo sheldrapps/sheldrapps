@@ -1,0 +1,26 @@
+{
+  "project": "epub-fixer",
+  "shortName": "ef",
+  "baseline": {
+    "versionCode": 1,
+    "versionName": "1.0"
+  },
+  "current": {
+    "updatedAt": "2026-06-26T13:39:33.1477051-06:00",
+    "head": "3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d",
+    "versionCode": 2,
+    "versionName": "1.1",
+    "versionCodeAnchorCommit": "3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d",
+    "deltaFrom": "3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d",
+    "deltaTo": "3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d",
+    "changedFilesCount": 1,
+    "userFacingSummary": [
+      "removed_web_development_badge_from_fix_screen"
+    ]
+  },
+  "tracking": {
+    "lastProcessedHead": "3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d",
+    "lastProcessedAt": "2026-06-26T13:39:33.1477051-06:00",
+    "lastWorkingTreeFingerprint": "WORKTREE"
+  }
+}

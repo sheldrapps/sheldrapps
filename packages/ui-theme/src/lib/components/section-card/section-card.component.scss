@@ -1,0 +1,12 @@
+:host {
+  display: block;
+}
+
+.sh-section-card {
+  display: grid;
+  gap: var(--app-space-2);
+}
+
+.sh-section-card__title {
+  margin: 0;
+}

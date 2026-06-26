@@ -31,8 +31,8 @@ export class EpubFixerNativeService {
     return this.epubRewrite.diagnose(sessionId);
   }
 
-  repair(sessionId: string): Promise<EpubRepairResult> {
-    return this.epubRewrite.repair(sessionId);
+  repair(sessionId: string, preferredOpfPath?: string): Promise<EpubRepairResult> {
+    return this.epubRewrite.repair(sessionId, preferredOpfPath);
   }
 
   exportFixed(

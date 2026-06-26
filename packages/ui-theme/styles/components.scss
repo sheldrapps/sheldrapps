@@ -104,7 +104,8 @@ ion-item.app-input-surface::part(native) {
   animation: app-suggested-action-icon 1800ms var(--app-ease) infinite;
 }
 
-ion-item.app-outline-surface {
+ion-item.app-outline-surface,
+ion-item.app-file-selector-surface {
   --background: var(--app-surface);
   --padding-start: var(--app-surface-padding);
   --padding-end: var(--app-surface-padding);
@@ -114,14 +115,15 @@ ion-item.app-outline-surface {
   --inner-padding-bottom: var(--app-surface-padding);
   --min-height: 0;
   margin-bottom: 0;
-  border-radius: var(--app-radius-md);
+  border-radius: var(--app-outline-surface-radius, var(--app-radius-md));
   border: 2px solid var(--app-button-outline-border);
   box-shadow: var(--app-button-outline-shadow);
   overflow: hidden;
 }
 
-ion-item.app-outline-surface::part(native) {
-  border-radius: var(--app-radius-md);
+ion-item.app-outline-surface::part(native),
+ion-item.app-file-selector-surface::part(native) {
+  border-radius: var(--app-outline-surface-radius, var(--app-radius-md));
   box-shadow: var(--app-button-outline-shadow);
   transition:
     border-color var(--app-dur-med) var(--app-ease),
@@ -129,11 +131,16 @@ ion-item.app-outline-surface::part(native) {
     box-shadow var(--app-dur-med) var(--app-ease);
 }
 
-ion-item.app-outline-surface:focus-within::part(native) {
+ion-item.app-outline-surface:focus-within::part(native),
+ion-item.app-file-selector-surface:focus-within::part(native) {
   border-color: var(--ion-color-primary);
   box-shadow:
     var(--app-focus-ring),
     var(--app-button-outline-shadow);
+}
+
+ion-item.app-file-selector-surface {
+  --app-outline-surface-radius: var(--app-radius-xl);
 }
 
 .app-preview-surface {
@@ -901,8 +908,8 @@ ion-item.app-outline-surface:focus-within::part(native) {
 
 .thumb-check {
   position: absolute;
-  bottom: calc(-1 * var(--app-space-2));
-  right: calc(-1 * var(--app-space-2));
+  bottom: var(--app-space-2);
+  right: var(--app-space-2);
   font-size: var(--app-icon-sm);
   color: var(--app-icon-container-check-color);
   background: var(--app-icon-container-check-background);
