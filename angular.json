@@ -42,6 +42,11 @@
                 "glob": "icon.png",
                 "input": "apps/pdf-cover-maker/resources",
                 "output": "assets/apps/pcm"
+              },
+              {
+                "glob": "icon.png",
+                "input": "apps/epub-fixer/resources",
+                "output": "assets/apps/epub-fixer"
               }
             ],
             "styles": [

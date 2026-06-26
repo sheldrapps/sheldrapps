@@ -10,6 +10,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/privacy-ecc/privacy-ecc.page').then((m) => m.PrivacyEccPageComponent)
   },
   {
+    path: 'privacy-policies/epub-fixer',
+    loadComponent: () => import('./pages/privacy-epub-fixer/privacy-epub-fixer.page').then((m) => m.PrivacyEpubFixerPageComponent)
+  },
+  {
     path: 'privacy-policies/cover-creator-for-kindle',
     loadComponent: () => import('./pages/privacy-ccfk/privacy-ccfk.page').then((m) => m.PrivacyCcfkPageComponent)
   },

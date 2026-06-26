@@ -66,6 +66,11 @@
         "NAME": "Creador de Portadas PDF",
         "DESCRIPTION": "Cambie las imágenes de portada de PDF y exporte archivos de lectura más limpios.",
         "BADGE": "Muy pronto"
+      },
+      "EPF": {
+        "NAME": "EPUB Fixer",
+        "DESCRIPTION": "Repara archivos EPUB y exporta copias corregidas.",
+        "BADGE": "Muy pronto"
       }
     },
     "VALUES_TITLE": "Nuestros valores",
@@ -97,7 +102,8 @@
     "HERO_STAT_EPUB": "Herramientas EPUB",
     "HERO_STAT_PDF": "Flujos de trabajo de PDF",
     "PLAY_STORE_UNAVAILABLE": "Próximamente enlace a Google Play",
-    "LEGAL_PCM_LINK": "Política de privacidad - Creador de Portadas PDF"
+    "LEGAL_PCM_LINK": "Política de privacidad - Creador de Portadas PDF",
+    "LEGAL_EPF_LINK": "Política de privacidad - EPUB Fixer"
   },
   "PRIVACY": {
     "CCFK": {
@@ -197,6 +203,42 @@
       "SECTION_6_BODY": "La aplicación procesa archivos localmente para minimizar la exposición. Tomamos medidas razonables para proteger la información manejada por la Aplicación.",
       "SECTION_7_TITLE": "7. Responsabilidad del contenido del usuario",
       "SECTION_7_BODY": "Usted es el único responsable del contenido de los archivos e imágenes que procesa a través de la Aplicación, incluidos los archivos PDF y las imágenes de portada.",
+      "SECTION_7_ITEM_1": "La aplicación no analiza, valida ni monitorea el contenido de los archivos que usted procesa.",
+      "SECTION_7_ITEM_2": "No verificamos la propiedad de los derechos de autor, los derechos de publicación ni las licencias de ningún archivo.",
+      "SECTION_7_ITEM_3": "Debe asegurarse de tener los derechos y permisos necesarios para cualquier contenido que procese.",
+      "SECTION_7_ITEM_4": "No somos responsables de ningún problema legal que surja del uso de contenido protegido por derechos de autor o no autorizado.",
+      "SECTION_8_TITLE": "8. Privacidad de los niños",
+      "SECTION_8_BODY": "La aplicación no está dirigida a niños menores de 13 años. No recopilamos conscientemente datos personales de niños.",
+      "SECTION_9_TITLE": "9. Cambios a esta política",
+      "SECTION_9_BODY": "Podemos actualizar esta Política de Privacidad de vez en cuando. Las actualizaciones se publicarán en esta página con una nueva fecha de \"Última actualización\".",
+      "SECTION_10_TITLE": "10. Contacto",
+      "SECTION_10_BODY": "Si tiene preguntas sobre esta Política de Privacidad, comuníquese con:"
+    },
+    "EPF": {
+      "TITLE": "Política de privacidad - EPUB Fixer",
+      "LAST_UPDATED": "Última actualización: 2026-06-25",
+      "INTRO": "EPUB Fixer (<strong>la aplicación</strong>) es desarrollada y mantenida por <strong>Sheldrapps</strong>. Esta Política de Privacidad explica cómo se maneja la información cuando utiliza la Aplicación.",
+      "SECTION_1_TITLE": "1. Información que recopilamos",
+      "SECTION_1_BODY": "La aplicación no requiere la creación de una cuenta y no recopila directamente información de identificación personal, como su nombre, dirección de correo electrónico o número de teléfono.",
+      "SECTION_2_TITLE": "2. Archivos e imágenes",
+      "SECTION_2_ITEM_1": "Los archivos EPUB y las imágenes que seleccione se procesan <strong>localmente en su dispositivo</strong>.",
+      "SECTION_2_ITEM_2": "La aplicación <strong>no</strong> carga o almacena sus archivos o imágenes en servidores externos.",
+      "SECTION_2_ITEM_3": "Los archivos EPUB modificados permanecen en su dispositivo a menos que los comparta explícitamente.",
+      "SECTION_3_TITLE": "3. Publicidad",
+      "SECTION_3_BODY": "La aplicación puede mostrar anuncios utilizando <strong>Google AdMob</strong>. AdMob puede recopilar y procesar ciertos datos, como identificadores de dispositivos, ubicación aproximada (país/región) y datos de interacción con anuncios (impresiones/clics) para entregar y medir publicidad.",
+      "GOOGLE_POLICY_LABEL": "Política de privacidad de Google:",
+      "GOOGLE_POLICY_URL": "https://policies.google.com/privacy",
+      "SECTION_4_TITLE": "4. Consentimiento (GDPR / Regulaciones Regionales)",
+      "SECTION_4_BODY": "Cuando lo exige la ley (por ejemplo, en el EEE/Reino Unido/Suiza), la Aplicación utiliza la Plataforma de mensajería de usuario (UMP) de Google para solicitar consentimiento para publicidad personalizada.",
+      "SECTION_4_ITEM_1": "Puedes aceptar o rechazar publicidad personalizada.",
+      "SECTION_4_ITEM_2": "Puede revisar o cambiar sus opciones a través de las <code>Opciones de privacidad</code> de la aplicación (cuando estén disponibles).",
+      "SECTION_4_ITEM_3": "Si no se otorga el consentimiento, es posible que los anuncios aún se muestren de forma no personalizada.",
+      "SECTION_5_TITLE": "5. Intercambio de datos",
+      "SECTION_5_BODY": "No vendemos información personal. Los datos pueden ser procesados ​​por servicios de terceros estrictamente para proporcionar publicidad y cumplir con requisitos legales.",
+      "SECTION_6_TITLE": "6. Seguridad de los datos",
+      "SECTION_6_BODY": "La aplicación procesa archivos localmente para minimizar la exposición. Tomamos medidas razonables para proteger la información manejada por la Aplicación.",
+      "SECTION_7_TITLE": "7. Responsabilidad del contenido del usuario",
+      "SECTION_7_BODY": "Usted es el único responsable del contenido de los archivos e imágenes que procesa a través de la Aplicación, incluidos los archivos EPUB y las imágenes de portada.",
       "SECTION_7_ITEM_1": "La aplicación no analiza, valida ni monitorea el contenido de los archivos que usted procesa.",
       "SECTION_7_ITEM_2": "No verificamos la propiedad de los derechos de autor, los derechos de publicación ni las licencias de ningún archivo.",
       "SECTION_7_ITEM_3": "Debe asegurarse de tener los derechos y permisos necesarios para cualquier contenido que procese.",

@@ -66,6 +66,11 @@
         "NAME": "PDF封面製作",
         "DESCRIPTION": "更改 PDF 封面圖像並匯出更清晰的閱讀文件。",
         "BADGE": "即將推出"
+      },
+      "EPF": {
+        "NAME": "EPUB Fixer",
+        "DESCRIPTION": "Repair EPUB files and export fixed copies.",
+        "BADGE": "即將推出"
       }
     },
     "VALUES_TITLE": "我們的價值觀",
@@ -97,7 +102,8 @@
     "HERO_STAT_EPUB": "EPUB工具",
     "HERO_STAT_PDF": "PDF 工作流程",
     "PLAY_STORE_UNAVAILABLE": "Google Play 連結即將推出",
-    "LEGAL_PCM_LINK": "隱私權政策 - PDF封面製作"
+    "LEGAL_PCM_LINK": "隱私權政策 - PDF封面製作",
+    "LEGAL_EPF_LINK": "隱私權政策 - EPUB Fixer"
   },
   "PRIVACY": {
     "CCFK": {
@@ -197,6 +203,42 @@
       "SECTION_6_BODY": "該應用程式在本地處理文件以最大程度地減少暴露。我們採取合理措施保護應用程式處理的資訊。",
       "SECTION_7_TITLE": "7. 使用者內容責任",
       "SECTION_7_BODY": "您對透過應用程式處理的文件和圖像的內容承擔全部責任，包括 PDF 文件和封面圖像。",
+      "SECTION_7_ITEM_1": "該應用程式不會分析、驗證或監控您處理的文件的內容。",
+      "SECTION_7_ITEM_2": "我們不驗證任何文件的版權所有權、出版權或許可。",
+      "SECTION_7_ITEM_3": "您必須確保您擁有處理任何內容所需的權利和權限。",
+      "SECTION_7_ITEM_4": "對於您使用受版權保護或未經授權的內容而引起的任何法律問題，我們不承擔任何責任。",
+      "SECTION_8_TITLE": "8. 兒童隱私",
+      "SECTION_8_BODY": "該應用程式不針對 13 歲以下的兒童。我們不會故意收集兒童的個人資料。",
+      "SECTION_9_TITLE": "9. 本政策的變更",
+      "SECTION_9_BODY": "我們可能會不時更新本隱私權政策。更新將發佈在此頁面上，並帶有新的「上次更新」日期。",
+      "SECTION_10_TITLE": "10. 聯絡方式",
+      "SECTION_10_BODY": "如果您對本隱私權政策有疑問，請聯絡："
+    },
+    "EPF": {
+      "TITLE": "隱私權政策 - EPUB Fixer",
+      "LAST_UPDATED": "最後更新: 2026-06-25",
+      "INTRO": "EPUB Fixer器（<strong> 應用程式</strong>）由 <strong>Sheldrapps</strong> 開發和維護。本隱私權政策解釋了您使用該應用程式時如何處理資訊。",
+      "SECTION_1_TITLE": "1. 我們收集的資訊",
+      "SECTION_1_BODY": "該應用程式不需要建立帳戶，也不會直接收集個人識別訊息，例如您的姓名、電子郵件地址或電話號碼。",
+      "SECTION_2_TITLE": "2. 文件和圖像",
+      "SECTION_2_ITEM_1": "您選擇的 EPUB 檔案和影像將在您的裝置<strong>本機處理</strong>。",
+      "SECTION_2_ITEM_2": "該應用程式不會<strong>而不</strong>在外部伺服器上傳或儲存您的檔案或圖像。",
+      "SECTION_2_ITEM_3": "除非您明確分享，否則修改後的 EPUB 檔案將保留在您的裝置上。",
+      "SECTION_3_TITLE": "3. 廣告",
+      "SECTION_3_BODY": "該應用程式可能會使用 <strong>Google AdMob</strong> 展示廣告。 AdMob 可能會收集和處理某些數據，例如裝置識別碼、大致位置（國家/地區）和廣告互動數據（展示次數/點擊次數），以投放和衡量廣告。",
+      "GOOGLE_POLICY_LABEL": "谷歌隱私權政策：",
+      "GOOGLE_POLICY_URL": "https://policies.google.com/privacy",
+      "SECTION_4_TITLE": "4. 同意（GDPR/地區法規）",
+      "SECTION_4_BODY": "根據法律要求（例如，在歐洲經濟區/英國/瑞士），該應用程式會使用 Google 的用戶訊息平台 (UMP) 來要求同意投放個人化廣告。",
+      "SECTION_4_ITEM_1": "您可以接受或拒絕個人化廣告。",
+      "SECTION_4_ITEM_2": "您可以透過應用程式的<code>隱私權選項</code>（如果可用）查看或變更您的選擇。",
+      "SECTION_4_ITEM_3": "若未獲得同意，廣告仍可能以非個人化形式顯示。",
+      "SECTION_5_TITLE": "5. 數據共享",
+      "SECTION_5_BODY": "我們不出售個人資訊。數據可能由第三方服務嚴格處理以提供廣告並遵守法律要求。",
+      "SECTION_6_TITLE": "6. 資料安全",
+      "SECTION_6_BODY": "該應用程式在本地處理文件以最大程度地減少暴露。我們採取合理措施保護應用程式處理的資訊。",
+      "SECTION_7_TITLE": "7. 使用者內容責任",
+      "SECTION_7_BODY": "您對透過應用程式處理的檔案和圖像的內容承擔全部責任，包括 EPUB 檔案和封面圖像。",
       "SECTION_7_ITEM_1": "該應用程式不會分析、驗證或監控您處理的文件的內容。",
       "SECTION_7_ITEM_2": "我們不驗證任何文件的版權所有權、出版權或許可。",
       "SECTION_7_ITEM_3": "您必須確保您擁有處理任何內容所需的權利和權限。",

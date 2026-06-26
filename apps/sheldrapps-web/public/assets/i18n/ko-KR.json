@@ -66,6 +66,11 @@
         "NAME": "PDF 표지 만들기",
         "DESCRIPTION": "PDF 표지 이미지를 변경하고 더 깔끔한 읽기 파일을 내보냅니다.",
         "BADGE": "곧 출시 예정"
+      },
+      "EPF": {
+        "NAME": "EPUB Fixer",
+        "DESCRIPTION": "Repair EPUB files and export fixed copies.",
+        "BADGE": "곧 출시 예정"
       }
     },
     "VALUES_TITLE": "우리의 가치",
@@ -97,7 +102,8 @@
     "HERO_STAT_EPUB": "EPUB 도구",
     "HERO_STAT_PDF": "PDF 워크플로",
     "PLAY_STORE_UNAVAILABLE": "Google Play 링크가 곧 제공될 예정입니다.",
-    "LEGAL_PCM_LINK": "개인 정보 보호 정책 - PDF 표지 만들기"
+    "LEGAL_PCM_LINK": "개인 정보 보호 정책 - PDF 표지 만들기",
+    "LEGAL_EPF_LINK": "개인 정보 보호 정책 - EPUB Fixer"
   },
   "PRIVACY": {
     "CCFK": {
@@ -197,6 +203,42 @@
       "SECTION_6_BODY": "앱은 노출을 최소화하기 위해 파일을 로컬로 처리합니다. 우리는 앱에서 처리하는 정보를 보호하기 위해 합리적인 조치를 취합니다.",
       "SECTION_7_TITLE": "7. 사용자 콘텐츠에 대한 책임",
       "SECTION_7_BODY": "PDF 파일 및 표지 이미지를 포함하여 앱을 통해 처리하는 파일 및 이미지의 콘텐츠에 대한 책임은 전적으로 귀하에게 있습니다.",
+      "SECTION_7_ITEM_1": "앱은 귀하가 처리하는 파일의 내용을 분석, 검증 또는 모니터링하지 않습니다.",
+      "SECTION_7_ITEM_2": "우리는 모든 파일에 대한 저작권 소유권, 출판권 또는 라이센스를 확인하지 않습니다.",
+      "SECTION_7_ITEM_3": "귀하는 귀하가 처리하는 모든 콘텐츠에 대해 필요한 권리와 권한이 있는지 확인해야 합니다.",
+      "SECTION_7_ITEM_4": "저작권이 있거나 승인되지 않은 콘텐츠를 사용하여 발생하는 법적 문제에 대해 당사는 책임을 지지 않습니다.",
+      "SECTION_8_TITLE": "8. 아동의 개인정보 보호",
+      "SECTION_8_BODY": "이 앱은 13세 미만의 어린이를 대상으로 하지 않습니다. 당사는 어린이로부터 고의로 개인 데이터를 수집하지 않습니다.",
+      "SECTION_9_TITLE": "9. 본 정책의 변경 사항",
+      "SECTION_9_BODY": "당사는 수시로 본 개인정보 보호정책을 업데이트할 수 있습니다. 업데이트는 새로운 \"마지막 업데이트\" 날짜와 함께 이 페이지에 게시됩니다.",
+      "SECTION_10_TITLE": "10. 연락처",
+      "SECTION_10_BODY": "본 개인정보 보호정책에 대해 질문이 있는 경우 다음 연락처로 문의하세요."
+    },
+    "EPF": {
+      "TITLE": "개인 정보 보호 정책 - EPUB Fixer",
+      "LAST_UPDATED": "최종 업데이트 날짜: 2026-06-25",
+      "INTRO": "EPUB Cover Changer(<strong>앱</strong>)는 <strong>Sheldrapps</strong>에서 개발하고 유지 관리합니다. 본 개인정보 보호정책은 귀하가 앱을 사용할 때 정보가 처리되는 방식을 설명합니다.",
+      "SECTION_1_TITLE": "1. 당사가 수집하는 정보",
+      "SECTION_1_BODY": "앱은 계정 생성을 요구하지 않으며 귀하의 이름, 이메일 주소, 전화번호와 같은 개인 식별 정보를 직접 수집하지 않습니다.",
+      "SECTION_2_TITLE": "2. 파일 및 이미지",
+      "SECTION_2_ITEM_1": "선택한 EPUB 파일과 이미지는 <strong>기기에서 로컬로</strong> 처리됩니다.",
+      "SECTION_2_ITEM_2": "앱은 파일이나 이미지를 외부 서버에 업로드하거나 저장하지 <strong>하지</strong> 않습니다.",
+      "SECTION_2_ITEM_3": "수정된 EPUB 파일은 명시적으로 공유하지 않는 한 기기에 남아 있습니다.",
+      "SECTION_3_TITLE": "3. 광고",
+      "SECTION_3_BODY": "앱은 <strong>Google AdMob</strong>을 사용하여 광고를 표시할 수 있습니다. AdMob은 광고를 전달하고 측정하기 위해 기기 식별자, 대략적인 위치(국가/지역), 광고 상호작용 데이터(노출수/클릭수) 등의 특정 데이터를 수집하고 처리할 수 있습니다.",
+      "GOOGLE_POLICY_LABEL": "Google 개인정보 보호정책:",
+      "GOOGLE_POLICY_URL": "https://policies.google.com/privacy",
+      "SECTION_4_TITLE": "4. 동의(GDPR/지역 규정)",
+      "SECTION_4_BODY": "법률에서 요구하는 경우(예: EEA/영국/스위스) 앱은 Google의 사용자 메시징 플랫폼(UMP)을 사용하여 개인화된 광고에 대한 동의를 요청합니다.",
+      "SECTION_4_ITEM_1": "개인화된 광고를 수락하거나 거부할 수 있습니다.",
+      "SECTION_4_ITEM_2": "앱의 <code>개인정보 보호 옵션</code>(가능한 경우)을 통해 선택 사항을 검토하거나 변경할 수 있습니다.",
+      "SECTION_4_ITEM_3": "동의하지 않으면 광고가 개인 맞춤이 아닌 형식으로 계속 표시될 수 있습니다.",
+      "SECTION_5_TITLE": "5. 데이터 공유",
+      "SECTION_5_BODY": "우리는 개인정보를 판매하지 않습니다. 데이터는 광고 제공 및 법적 요구 사항 준수를 위해서만 제3자 서비스에 의해 처리될 수 있습니다.",
+      "SECTION_6_TITLE": "6. 데이터 보안",
+      "SECTION_6_BODY": "앱은 노출을 최소화하기 위해 파일을 로컬로 처리합니다. 우리는 앱에서 처리하는 정보를 보호하기 위해 합리적인 조치를 취합니다.",
+      "SECTION_7_TITLE": "7. 사용자 콘텐츠에 대한 책임",
+      "SECTION_7_BODY": "EPUB 파일 및 표지 이미지를 포함하여 앱을 통해 처리하는 파일 및 이미지의 콘텐츠에 대한 책임은 전적으로 귀하에게 있습니다.",
       "SECTION_7_ITEM_1": "앱은 귀하가 처리하는 파일의 내용을 분석, 검증 또는 모니터링하지 않습니다.",
       "SECTION_7_ITEM_2": "우리는 모든 파일에 대한 저작권 소유권, 출판권 또는 라이센스를 확인하지 않습니다.",
       "SECTION_7_ITEM_3": "귀하는 귀하가 처리하는 모든 콘텐츠에 대해 필요한 권리와 권한이 있는지 확인해야 합니다.",
