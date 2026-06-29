@@ -2,8 +2,8 @@
 ## Project identity
 - app: pdf-cover-maker
 - alias: pcm
-- currentVersionCode: 8
-- nextVersionCode: 9
+- currentVersionCode: 10
+- nextVersionCode: 11
 - currentVersionName: "Edit and preview cleanup"
 - nextVersionName: "Edit and preview cleanup"
 ## Product purpose

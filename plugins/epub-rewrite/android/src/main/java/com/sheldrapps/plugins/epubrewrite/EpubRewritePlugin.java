@@ -32,6 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.Normalizer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -46,6 +47,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -64,6 +67,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -75,6 +79,11 @@ public class EpubRewritePlugin extends Plugin {
     private static final long STORAGE_MARGIN_BYTES = 64L * 1024L * 1024L;
     private static final String WORK_FOLDER = "EPUBCoverChangerWork";
     private static final String FIXER_SESSION_FOLDER = "EpubFixerSessions";
+    private static final Pattern ROOTFILE_FULL_PATH_PATTERN =
+        Pattern.compile(
+            "<rootfile\\b[^>]*\\bfull-path\\s*=\\s*(['\"])(.*?)\\1",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
+        );
     private static final DateTimeFormatter WORK_TIMESTAMP_FORMAT =
         DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss", Locale.US);
 
@@ -573,10 +582,15 @@ public class EpubRewritePlugin extends Plugin {
         if (CompatStrings.isBlank(preferredOpfPath)) {
             preferredOpfPath = null;
         }
+        JSObject guidedSelections = call.getObject("guidedSelections");
 
         Path workingPath = resolveSessionWorkingPath(sessionId);
-        EpubAnalysis analysis = analyzeEpub(workingPath, preferredOpfPath);
+        EpubAnalysis analysis = analyzeEpub(workingPath, preferredOpfPath, guidedSelections);
         boolean shouldRewriteContainerDocument = shouldRewriteContainerDocument(analysis);
+        java.util.LinkedHashSet<String> repairedIssues = new java.util.LinkedHashSet<>();
+        if (containsIssue(analysis.issues, "OPF_AMBIGUOUS")) {
+            repairedIssues.add("OPF_AMBIGUOUS");
+        }
 
         if ("failed".equals(analysis.status) || "unsupported".equals(analysis.status)) {
             JSObject result = new JSObject();
@@ -601,7 +615,9 @@ public class EpubRewritePlugin extends Plugin {
                 tempOutputPath,
                 analysis,
                 shouldRewritePackageDocument(analysis),
-                shouldRewriteContainerDocument
+                shouldRewriteContainerDocument,
+                guidedSelections,
+                repairedIssues
             );
             ensureNotCancelled();
             moveFileAtomicWithFallback(tempOutputPath, workingPath);
@@ -610,7 +626,7 @@ public class EpubRewritePlugin extends Plugin {
 
             JSObject result = new JSObject();
             result.put("success", true);
-            result.put("repairedIssues", buildRepairedIssues(analysis));
+            result.put("repairedIssues", new java.util.ArrayList<>(repairedIssues));
             call.resolve(result);
         } catch (Exception ex) {
             debugIo(
@@ -656,6 +672,14 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     private EpubAnalysis analyzeEpub(Path epubPath, String preferredOpfPath) throws Exception {
+        return analyzeEpub(epubPath, preferredOpfPath, null);
+    }
+
+    private EpubAnalysis analyzeEpub(
+        Path epubPath,
+        String preferredOpfPath,
+        JSObject guidedSelections
+    ) throws Exception {
         try (ZipFile zipFile = new ZipFile(epubPath.toFile())) {
             List<FileHeader> headers = zipFile.getFileHeaders();
             if (headers == null || headers.isEmpty()) {
@@ -667,6 +691,7 @@ public class EpubRewritePlugin extends Plugin {
                         null,
                         null,
                         null,
+                        new java.util.ArrayList<>(),
                         new java.util.ArrayList<>(),
                         new java.util.ArrayList<>(),
                         false,
@@ -695,27 +720,29 @@ public class EpubRewritePlugin extends Plugin {
             boolean containerNeedsRepair = false;
             String containerIssueDetails = null;
 
-            if (containerText == null) {
-                containerNeedsRepair = true;
-                containerIssueDetails = "container.xml is missing";
-            } else {
-                Document containerDocument = parseXmlUtf8(containerText);
-                if (containerDocument == null) {
+                if (containerText == null) {
                     containerNeedsRepair = true;
-                    containerIssueDetails = "container.xml is not parseable";
+                    containerIssueDetails = "container.xml is missing";
                 } else {
-                    Element rootfileElement = firstElementByName(containerDocument, "rootfile");
-                    String rootfilePath = rootfileElement == null
-                        ? null
-                        : normalizeZipPath(rootfileElement.getAttribute("full-path"));
-                    if (CompatStrings.isBlank(rootfilePath)) {
+                    try {
+                        Document containerDocument = parseXmlUtf8(containerText);
+                        Element rootfileElement = firstElementByName(containerDocument, "rootfile");
+                        String rootfilePath = rootfileElement == null
+                            ? null
+                            : normalizeZipPath(rootfileElement.getAttribute("full-path"));
+                        if (CompatStrings.isBlank(rootfilePath)) {
+                            containerNeedsRepair = true;
+                            containerIssueDetails = "container.xml does not declare a rootfile";
+                            declaredOpfPath = extractDeclaredOpfPathFromContainerText(containerText);
+                        } else {
+                            declaredOpfPath = rootfilePath;
+                        }
+                    } catch (Exception ex) {
                         containerNeedsRepair = true;
-                        containerIssueDetails = "container.xml does not declare a rootfile";
-                    } else {
-                        declaredOpfPath = rootfilePath;
+                        containerIssueDetails = "container.xml is not parseable";
+                        declaredOpfPath = extractDeclaredOpfPathFromContainerText(containerText);
                     }
                 }
-            }
 
             String opfPath = findPrimaryOpfPath(zipFile, headers, preferredOpfPath);
             if (opfPath == null) {
@@ -729,6 +756,7 @@ public class EpubRewritePlugin extends Plugin {
                             declaredOpfPath,
                             parentZipPath(declaredOpfPath),
                             null,
+                            new java.util.ArrayList<>(),
                             new java.util.ArrayList<>(),
                             new java.util.ArrayList<>(),
                             mimetypeMissing,
@@ -748,6 +776,7 @@ public class EpubRewritePlugin extends Plugin {
                         null,
                         new java.util.ArrayList<>(),
                         new java.util.ArrayList<>(),
+                        new java.util.ArrayList<>(),
                         mimetypeMissing,
                         mimetypeInvalid
                     )
@@ -765,19 +794,21 @@ public class EpubRewritePlugin extends Plugin {
                 headers,
                 declaredOpfPath != null ? declaredOpfPath : preferredOpfPath
             );
-            if (
-                validOpfCandidates.size() > 1
-                    && (declaredOpfPath == null || !declaredOpfPath.equals(opfPath))
-            ) {
-                issues.add(
-                    issue(
-                        "OPF_AMBIGUOUS",
-                        "warning",
-                        true,
-                        "Multiple package documents were found",
-                        validOpfCandidates
-                    )
-                );
+            if (validOpfCandidates.size() > 1) {
+                String preferredCandidate = preferredOpfPath != null
+                    ? normalizeZipPath(preferredOpfPath)
+                    : null;
+                if (!hasClearOpfWinner(zipFile, headers, validOpfCandidates, preferredCandidate)) {
+                    issues.add(
+                        issue(
+                            "OPF_AMBIGUOUS",
+                            "warning",
+                            true,
+                            "Multiple package documents were found",
+                            validOpfCandidates
+                        )
+                    );
+                }
             }
 
             String opfText = readZipText(zipFile, opfPath);
@@ -791,6 +822,7 @@ public class EpubRewritePlugin extends Plugin {
                         opfPath,
                         parentZipPath(opfPath),
                         null,
+                        new java.util.ArrayList<>(),
                         new java.util.ArrayList<>(),
                         new java.util.ArrayList<>(),
                         mimetypeMissing,
@@ -812,6 +844,7 @@ public class EpubRewritePlugin extends Plugin {
                         null,
                         new java.util.ArrayList<>(),
                         new java.util.ArrayList<>(),
+                        new java.util.ArrayList<>(),
                         mimetypeMissing,
                         mimetypeInvalid
                     )
@@ -825,6 +858,8 @@ public class EpubRewritePlugin extends Plugin {
                 manifestElement == null
                     ? new java.util.ArrayList<>()
                     : parseManifestItems(headers, manifestElement, opfDir);
+            java.util.ArrayList<String> reconstructibleSpineItemIds =
+                collectReconstructibleSpineItemIds(manifestItems);
             java.util.ArrayList<ParsedSpineItem> spineItems =
                 spineElement == null
                     ? new java.util.ArrayList<>()
@@ -841,10 +876,36 @@ public class EpubRewritePlugin extends Plugin {
                         )
                     );
                 }
+
+                if (
+                    manifestItem.exists
+                        && CompatStrings.isNotBlank(manifestItem.mediaOverlay)
+                        && !manifestItem.mediaOverlayExists
+                ) {
+                    issues.add(
+                        issue(
+                            "SMIL_MISSING",
+                            "warning",
+                            true,
+                            manifestItem.id + ": " + manifestItem.mediaOverlayResolvedPath
+                        )
+                    );
+                }
             }
 
             if (spineItems.isEmpty()) {
-                issues.add(issue("SPINE_EMPTY", "error", false));
+                if (reconstructibleSpineItemIds.isEmpty()) {
+                    issues.add(issue("SPINE_EMPTY", "error", false));
+                } else {
+                    issues.add(
+                        issue(
+                            "SPINE_EMPTY",
+                            "error",
+                            true,
+                            "Reconstructible spine from readable documents"
+                        )
+                    );
+                }
             }
 
             for (ParsedSpineItem spineItem : spineItems) {
@@ -864,8 +925,35 @@ public class EpubRewritePlugin extends Plugin {
                 !spineItems.isEmpty()
                     && spineItems.stream().noneMatch(item -> item.valid)
             ) {
-                issues.add(issue("SPINE_EMPTY", "error", false, "No valid spine entries remain"));
+                if (reconstructibleSpineItemIds.isEmpty()) {
+                    issues.add(issue("SPINE_EMPTY", "error", false, "No valid spine entries remain"));
+                } else {
+                    issues.add(
+                        issue(
+                            "SPINE_EMPTY",
+                            "error",
+                            true,
+                            "Reconstructible spine from readable documents"
+                        )
+                    );
+                }
             }
+
+            java.util.ArrayList<String> orphanResources = collectOrphanResources(
+                headers,
+                manifestItems,
+                opfPath
+            );
+            for (String orphanResource : orphanResources) {
+                issues.add(issue("ORPHAN_RESOURCE_UNUSED", "warning", true, orphanResource));
+            }
+
+            java.util.ArrayList<EpubIssue> linkIssues = collectInternalLinkIssues(
+                zipFile,
+                manifestItems,
+                opfDir
+            );
+            issues.addAll(linkIssues);
 
             return finishAnalysis(
                 issues,
@@ -877,6 +965,7 @@ public class EpubRewritePlugin extends Plugin {
                     opfDocument,
                     manifestItems,
                     spineItems,
+                    reconstructibleSpineItemIds,
                     mimetypeMissing,
                     mimetypeInvalid
                 )
@@ -890,6 +979,7 @@ public class EpubRewritePlugin extends Plugin {
                 null,
                 null,
                 null,
+                new java.util.ArrayList<>(),
                 new java.util.ArrayList<>(),
                 new java.util.ArrayList<>(),
                 false,
@@ -910,6 +1000,7 @@ public class EpubRewritePlugin extends Plugin {
             analysis.opfDocument,
             analysis.manifestItems,
             analysis.spineItems,
+            analysis.reconstructibleSpineItemIds,
             analysis.mimetypeMissing,
             analysis.mimetypeInvalid
         );
@@ -933,8 +1024,14 @@ public class EpubRewritePlugin extends Plugin {
 
             String id = element.getAttribute("id").trim();
             String href = element.getAttribute("href").trim();
+            String mediaType = element.getAttribute("media-type").trim();
+            String properties = element.getAttribute("properties").trim();
+            String mediaOverlay = element.getAttribute("media-overlay").trim();
             String normalizedHref = normalizeRelativePath(href);
             String resolvedPath = resolveRelativeZipPath(opfDir, href);
+            String mediaOverlayResolvedPath = CompatStrings.isBlank(mediaOverlay)
+                ? ""
+                : resolveRelativeZipPath(opfDir, mediaOverlay);
             items.add(
                 new ParsedManifestItem(
                     id,
@@ -942,6 +1039,12 @@ public class EpubRewritePlugin extends Plugin {
                     normalizedHref,
                     resolvedPath,
                     findHeader(headers, resolvedPath) != null,
+                    mediaType,
+                    properties,
+                    mediaOverlay,
+                    mediaOverlayResolvedPath,
+                    CompatStrings.isBlank(mediaOverlay)
+                        || findHeader(headers, mediaOverlayResolvedPath) != null,
                     element
                 )
             );
@@ -981,12 +1084,88 @@ public class EpubRewritePlugin extends Plugin {
         return items;
     }
 
+    private java.util.ArrayList<String> collectReconstructibleSpineItemIds(
+        java.util.ArrayList<ParsedManifestItem> manifestItems
+    ) {
+        java.util.LinkedHashSet<String> ids = new java.util.LinkedHashSet<>();
+        for (ParsedManifestItem manifestItem : manifestItems) {
+            if (isReconstructibleSpineManifestItem(manifestItem)) {
+                ids.add(manifestItem.id);
+            }
+        }
+        return new java.util.ArrayList<>(ids);
+    }
+
+    private boolean isReconstructibleSpineManifestItem(ParsedManifestItem manifestItem) {
+        if (manifestItem == null || !manifestItem.exists || CompatStrings.isBlank(manifestItem.id)) {
+            return false;
+        }
+
+        if (CompatStrings.isNotBlank(manifestItem.properties)) {
+            String normalizedProperties = manifestItem.properties.toLowerCase(Locale.US);
+            if (normalizedProperties.contains("nav")) {
+                return false;
+            }
+        }
+
+        return isReadableSpineMediaType(manifestItem.mediaType, manifestItem.normalizedHref);
+    }
+
+    private boolean isReadableSpineMediaType(String mediaType, String normalizedHref) {
+        String normalizedMediaType = mediaType == null ? "" : mediaType.trim().toLowerCase(Locale.US);
+        if ("application/xhtml+xml".equals(normalizedMediaType) || "image/svg+xml".equals(normalizedMediaType)) {
+            return true;
+        }
+
+        String normalizedPath = normalizedHref == null ? "" : normalizedHref.toLowerCase(Locale.US);
+        return normalizedPath.endsWith(".xhtml")
+            || normalizedPath.endsWith(".html")
+            || normalizedPath.endsWith(".htm")
+            || normalizedPath.endsWith(".svg");
+    }
+
+    private java.util.ArrayList<String> collectOrphanResources(
+        List<FileHeader> headers,
+        java.util.ArrayList<ParsedManifestItem> manifestItems,
+        String opfPath
+    ) {
+        java.util.HashSet<String> referenced = new java.util.HashSet<>();
+        for (ParsedManifestItem manifestItem : manifestItems) {
+            referenced.add(normalizeZipPath(manifestItem.resolvedPath));
+        }
+        referenced.add(normalizeZipPath(opfPath));
+        referenced.add("mimetype");
+        referenced.add("META-INF/container.xml");
+
+        java.util.ArrayList<String> orphanResources = new java.util.ArrayList<>();
+        for (FileHeader header : headers) {
+            if (header == null || header.isDirectory()) {
+                continue;
+            }
+
+            String entryPath = normalizeZipPath(header.getFileName());
+            if (CompatStrings.isBlank(entryPath) || referenced.contains(entryPath)) {
+                continue;
+            }
+            if (entryPath.startsWith("META-INF/")) {
+                continue;
+            }
+
+            orphanResources.add(entryPath);
+        }
+
+        orphanResources.sort(String::compareTo);
+        return orphanResources;
+    }
+
     private void repairArchiveToOutput(
         Path sourceZipPath,
         Path outputZipPath,
         EpubAnalysis analysis,
         boolean rewriteOpfDocument,
-        boolean rewriteContainerDocument
+        boolean rewriteContainerDocument,
+        JSObject guidedSelections,
+        java.util.Set<String> repairedIssues
     ) throws Exception {
         deleteIfExists(outputZipPath);
 
@@ -1000,6 +1179,14 @@ public class EpubRewritePlugin extends Plugin {
             }
 
             addTextEntry(outputZip, "mimetype", "application/epub+zip", true);
+            if (repairedIssues != null) {
+                if (analysis.mimetypeMissing) {
+                    repairedIssues.add("MIMETYPE_MISSING");
+                }
+                if (analysis.mimetypeInvalid) {
+                    repairedIssues.add("MIMETYPE_INVALID");
+                }
+            }
             if (rewriteContainerDocument && analysis.opfPath != null) {
                 addTextEntry(
                     outputZip,
@@ -1007,10 +1194,20 @@ public class EpubRewritePlugin extends Plugin {
                     buildContainerXml(analysis.opfPath),
                     false
                 );
+                if (repairedIssues != null) {
+                    for (EpubIssue issue : analysis.issues) {
+                        if ("CONTAINER_MISSING".equals(issue.code) || "OPF_MISSING".equals(issue.code)) {
+                            repairedIssues.add(issue.code);
+                        }
+                    }
+                }
             }
 
             long totalBytes = totalProcessableBytes(headers);
             long processedBytes = 0L;
+            java.util.Set<String> orphanEntries = new java.util.HashSet<>(
+                collectOrphanResources(headers, analysis.manifestItems, analysis.opfPath)
+            );
             for (FileHeader header : headers) {
                 if (header == null || header.isDirectory()) {
                     continue;
@@ -1029,6 +1226,14 @@ public class EpubRewritePlugin extends Plugin {
                     emitProgress(interpolate(5, 95, processedBytes, totalBytes));
                     continue;
                 }
+                if (orphanEntries.contains(entryPath)) {
+                    processedBytes += Math.max(1L, header.getUncompressedSize());
+                    emitProgress(interpolate(5, 95, processedBytes, totalBytes));
+                    if (repairedIssues != null) {
+                        repairedIssues.add("ORPHAN_RESOURCE_UNUSED");
+                    }
+                    continue;
+                }
 
                 ZipParameters parameters = buildParametersFromHeader(header, entryPath, null);
                 if (
@@ -1044,13 +1249,54 @@ public class EpubRewritePlugin extends Plugin {
                         outputZip.addStream(entryInput, parameters);
                     }
                 } else {
-                    try (InputStream entryInput = new BufferedInputStream(sourceZip.getInputStream(header))) {
-                        outputZip.addStream(entryInput, parameters);
+                    InternalLinkRepairResult repairedContent = tryRewriteInternalLinkContent(
+                        sourceZip,
+                        entryPath,
+                        analysis,
+                        guidedSelections
+                    );
+                    if (repairedContent != null) {
+                        parameters = buildParametersFromBytes(header, entryPath, repairedContent.content);
+                        try (InputStream entryInput = new ByteArrayInputStream(repairedContent.content)) {
+                            outputZip.addStream(entryInput, parameters);
+                        }
+                        if (repairedIssues != null) {
+                            repairedIssues.addAll(repairedContent.repairedIssueCodes);
+                        }
+                    } else {
+                        try (InputStream entryInput = new BufferedInputStream(
+                            sourceZip.getInputStream(header)
+                        )) {
+                            outputZip.addStream(entryInput, parameters);
+                        }
                     }
                 }
 
                 processedBytes += Math.max(1L, header.getUncompressedSize());
                 emitProgress(interpolate(5, 95, processedBytes, totalBytes));
+            }
+
+            if (repairedIssues != null) {
+                for (ParsedManifestItem manifestItem : analysis.manifestItems) {
+                    if (manifestItem == null) {
+                        continue;
+                    }
+                    if (!manifestItem.exists) {
+                        repairedIssues.add("MANIFEST_ITEM_MISSING");
+                    }
+                    if (manifestItem.exists && CompatStrings.isNotBlank(manifestItem.mediaOverlay)) {
+                        FileHeader mediaOverlayHeader = findHeader(headers, manifestItem.mediaOverlayResolvedPath);
+                        if (mediaOverlayHeader == null) {
+                            repairedIssues.add("SMIL_MISSING");
+                        }
+                    }
+                }
+
+                for (ParsedSpineItem spineItem : analysis.spineItems) {
+                    if (spineItem != null && (!spineItem.valid)) {
+                        repairedIssues.add("SPINE_ITEM_INVALID");
+                    }
+                }
             }
         }
     }
@@ -1072,6 +1318,14 @@ public class EpubRewritePlugin extends Plugin {
                 if (!manifestItem.normalizedHref.equals(manifestItem.href)) {
                     manifestItem.element.setAttribute("href", manifestItem.normalizedHref);
                 }
+
+                if (
+                    manifestItem.exists
+                        && CompatStrings.isNotBlank(manifestItem.mediaOverlay)
+                        && !manifestItem.mediaOverlayExists
+                ) {
+                    manifestItem.element.removeAttribute("media-overlay");
+                }
             }
         }
 
@@ -1092,7 +1346,886 @@ public class EpubRewritePlugin extends Plugin {
             }
         }
 
+        if (shouldRebuildSpine(analysis)) {
+            Element rebuiltSpine = spineElement != null
+                ? spineElement
+                : ensureSpineElement(document, manifestElement);
+            clearChildren(rebuiltSpine);
+            appendReconstructedSpineItems(document, rebuiltSpine, analysis);
+        }
+
         return serializeXml(document);
+    }
+
+    private boolean shouldRebuildSpine(EpubAnalysis analysis) {
+        if (analysis.reconstructibleSpineItemIds.isEmpty()) {
+            return false;
+        }
+
+        if (analysis.spineItems.isEmpty()) {
+            return true;
+        }
+
+        return analysis.spineItems.stream().noneMatch(item -> item.valid);
+    }
+
+    private void appendReconstructedSpineItems(
+        Document document,
+        Element spineElement,
+        EpubAnalysis analysis
+    ) {
+        for (String idref : analysis.reconstructibleSpineItemIds) {
+            Element itemref = createPackageElement(document, "itemref");
+            itemref.setAttribute("idref", idref);
+            spineElement.appendChild(itemref);
+        }
+    }
+
+    private Element ensureSpineElement(Document document, Element manifestElement) {
+        Element packageElement = document.getDocumentElement();
+        Element spineElement = createPackageElement(document, "spine");
+        if (packageElement == null) {
+            return spineElement;
+        }
+
+        if (manifestElement != null) {
+            Node sibling = manifestElement.getNextSibling();
+            while (sibling != null && sibling.getNodeType() != Node.ELEMENT_NODE) {
+                sibling = sibling.getNextSibling();
+            }
+            if (sibling != null) {
+                packageElement.insertBefore(spineElement, sibling);
+            } else {
+                packageElement.appendChild(spineElement);
+            }
+        } else {
+            packageElement.appendChild(spineElement);
+        }
+
+        return spineElement;
+    }
+
+    private Element createPackageElement(Document document, String localName) {
+        Element packageElement = document.getDocumentElement();
+        String namespace = packageElement == null ? null : packageElement.getNamespaceURI();
+        if (CompatStrings.isBlank(namespace)) {
+            return document.createElement(localName);
+        }
+        return document.createElementNS(namespace, localName);
+    }
+
+    private void clearChildren(Element element) {
+        if (element == null) {
+            return;
+        }
+
+        while (element.hasChildNodes()) {
+            element.removeChild(element.getFirstChild());
+        }
+    }
+
+    private java.util.ArrayList<EpubIssue> collectInternalLinkIssues(
+        ZipFile zipFile,
+        java.util.ArrayList<ParsedManifestItem> manifestItems,
+        String opfDir
+    ) throws Exception {
+        java.util.ArrayList<EpubIssue> issues = new java.util.ArrayList<>();
+        java.util.HashMap<String, java.util.HashSet<String>> documentIdCache =
+            new java.util.HashMap<>();
+
+        for (ParsedManifestItem manifestItem : manifestItems) {
+            if (!shouldInspectContentDocument(manifestItem)) {
+                continue;
+            }
+
+            String sourceText = readZipText(zipFile, manifestItem.resolvedPath);
+            if (sourceText == null) {
+                continue;
+            }
+
+            Document document = parseXmlUtf8(sourceText);
+            if (document == null) {
+                continue;
+            }
+
+            java.util.HashSet<String> sourceDocumentIds = collectDocumentIds(
+                zipFile,
+                manifestItem.resolvedPath,
+                document,
+                documentIdCache
+            );
+            issues.addAll(
+                inspectInternalLinksInDocument(
+                    zipFile,
+                    document,
+                    manifestItem.resolvedPath,
+                    opfDir,
+                    manifestItems,
+                    sourceDocumentIds,
+                    false,
+                    documentIdCache,
+                    null
+                ).issues
+            );
+        }
+
+        return issues;
+    }
+
+    private InternalLinkRepairResult tryRewriteInternalLinkContent(
+        ZipFile zipFile,
+        String entryPath,
+        EpubAnalysis analysis,
+        JSObject guidedSelections
+    ) throws Exception {
+        ParsedManifestItem manifestItem = findManifestItemByResolvedPath(
+            analysis.manifestItems,
+            entryPath
+        );
+        if (manifestItem == null || !shouldInspectContentDocument(manifestItem)) {
+            return null;
+        }
+
+        String sourceText = readZipText(zipFile, entryPath);
+        if (sourceText == null) {
+            return null;
+        }
+
+        Document document = parseXmlUtf8(sourceText);
+        if (document == null) {
+            return null;
+        }
+
+        java.util.HashMap<String, java.util.HashSet<String>> documentIdCache =
+            new java.util.HashMap<>();
+        java.util.HashSet<String> sourceDocumentIds = collectDocumentIds(
+            zipFile,
+            entryPath,
+            document,
+            documentIdCache
+        );
+        InternalLinkInspectionResult inspection = inspectInternalLinksInDocument(
+            zipFile,
+            document,
+            entryPath,
+            analysis.opfDir,
+            analysis.manifestItems,
+            sourceDocumentIds,
+            true,
+            documentIdCache,
+            guidedSelections
+        );
+
+        if (!inspection.changed) {
+            return null;
+        }
+
+        return new InternalLinkRepairResult(
+            serializeXml(document).getBytes(StandardCharsets.UTF_8),
+            inspection.repairedIssueCodes
+        );
+    }
+
+    private InternalLinkInspectionResult inspectInternalLinksInDocument(
+        ZipFile zipFile,
+        Document document,
+        String sourcePath,
+        String opfDir,
+        java.util.ArrayList<ParsedManifestItem> manifestItems,
+        java.util.HashSet<String> sourceDocumentIds,
+        boolean applyFix,
+        java.util.HashMap<String, java.util.HashSet<String>> documentIdCache,
+        JSObject guidedSelections
+    ) throws Exception {
+        InternalLinkInspectionResult result = new InternalLinkInspectionResult();
+        if (document == null || document.getDocumentElement() == null) {
+            return result;
+        }
+
+        java.util.ArrayList<Element> elements = collectElements(document);
+        for (Element element : elements) {
+            org.w3c.dom.NamedNodeMap attributes = element.getAttributes();
+            for (int i = 0; i < attributes.getLength(); i++) {
+                Node attributeNode = attributes.item(i);
+                if (attributeNode == null) {
+                    continue;
+                }
+
+                String attributeName = attributeNode.getNodeName();
+                String rawValue = attributeNode.getNodeValue();
+                if (!isInternalLinkAttribute(attributeName) || CompatStrings.isBlank(rawValue)) {
+                    continue;
+                }
+
+                InternalLinkEvaluation evaluation = evaluateInternalLinkReference(
+                    zipFile,
+                    sourcePath,
+                    opfDir,
+                    manifestItems,
+                    sourceDocumentIds,
+                    rawValue,
+                    documentIdCache,
+                    applyFix,
+                    guidedSelections
+                );
+                if (!evaluation.issues.isEmpty()) {
+                    result.issues.addAll(evaluation.issues);
+                }
+
+                if (applyFix && evaluation.changed && CompatStrings.isNotBlank(evaluation.repairedValue)) {
+                    attributeNode.setNodeValue(evaluation.repairedValue);
+                    result.changed = true;
+                    result.repairedIssueCodes.addAll(evaluation.repairedIssueCodes);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private InternalLinkEvaluation evaluateInternalLinkReference(
+        ZipFile zipFile,
+        String sourcePath,
+        String opfDir,
+        java.util.ArrayList<ParsedManifestItem> manifestItems,
+        java.util.HashSet<String> sourceDocumentIds,
+        String rawValue,
+        java.util.HashMap<String, java.util.HashSet<String>> documentIdCache,
+        boolean applyFix,
+        JSObject guidedSelections
+    ) throws Exception {
+        InternalLinkEvaluation evaluation = new InternalLinkEvaluation(rawValue);
+        InternalLinkParts parts = splitInternalLink(rawValue);
+        if (parts == null || looksExternalLink(parts.pathPart)) {
+            return evaluation;
+        }
+
+        String sourceDir = parentZipPath(sourcePath);
+        String targetPath = CompatStrings.isBlank(parts.pathPart)
+            ? sourcePath
+            : resolveRelativeZipPath(sourceDir, parts.pathPart);
+        PathResolution pathResolution = resolveCanonicalInternalPath(
+            targetPath,
+            manifestItems
+        );
+        if (pathResolution.canonicalPath != null) {
+            targetPath = pathResolution.canonicalPath;
+            if (pathResolution.issueCode != null) {
+                evaluation.repairedIssueCodes.add(pathResolution.issueCode);
+                evaluation.issues.add(
+                    issue(
+                        pathResolution.issueCode,
+                        "warning",
+                        pathResolution.fixable,
+                        buildLinkIssueDetails(sourcePath, rawValue, targetPath)
+                    )
+                );
+            }
+        } else if (pathResolution.issueCode != null) {
+            String details = pathResolution.options != null && pathResolution.options.size() > 1
+                ? buildAmbiguousLinkIssueDetails(sourcePath, rawValue)
+                : buildLinkIssueDetails(sourcePath, rawValue, targetPath);
+            String selectedPath = resolveGuidedSelection(
+                guidedSelections,
+                pathResolution.issueCode,
+                details,
+                pathResolution.options
+            );
+            evaluation.issues.add(
+                issue(
+                    pathResolution.issueCode,
+                    "warning",
+                    pathResolution.fixable,
+                    details,
+                    pathResolution.options
+                )
+            );
+            if (applyFix && CompatStrings.isNotBlank(selectedPath)) {
+                targetPath = selectedPath;
+                evaluation.repairedIssueCodes.add(pathResolution.issueCode);
+            }
+        }
+
+        String canonicalFragment = parts.fragmentPart;
+        if (CompatStrings.isNotBlank(parts.fragmentPart)) {
+            java.util.HashSet<String> targetIds = collectDocumentIds(
+                zipFile,
+                targetPath,
+                null,
+                documentIdCache
+            );
+            if (targetIds.isEmpty()) {
+                targetIds = sourceDocumentIds;
+            }
+
+            FragmentResolution fragmentResolution = resolveCanonicalFragment(
+                parts.fragmentPart,
+                targetIds
+            );
+            if (fragmentResolution.canonicalFragment != null) {
+                canonicalFragment = fragmentResolution.canonicalFragment;
+                if (fragmentResolution.issueCode != null) {
+                    evaluation.repairedIssueCodes.add(fragmentResolution.issueCode);
+                    evaluation.issues.add(
+                        issue(
+                            fragmentResolution.issueCode,
+                            "warning",
+                            fragmentResolution.fixable,
+                            buildLinkIssueDetails(sourcePath, rawValue, targetPath + "#" + canonicalFragment)
+                        )
+                    );
+                }
+            } else if (fragmentResolution.issueCode != null) {
+                String details = fragmentResolution.options != null && fragmentResolution.options.size() > 1
+                    ? buildAmbiguousLinkIssueDetails(sourcePath, rawValue)
+                    : buildLinkIssueDetails(sourcePath, rawValue, targetPath);
+                String selectedFragment = resolveGuidedSelection(
+                    guidedSelections,
+                    fragmentResolution.issueCode,
+                    details,
+                    fragmentResolution.options
+                );
+                evaluation.issues.add(
+                    issue(
+                        fragmentResolution.issueCode,
+                        "warning",
+                        fragmentResolution.fixable,
+                        details,
+                        fragmentResolution.options
+                    )
+                );
+                if (applyFix && CompatStrings.isNotBlank(selectedFragment)) {
+                    canonicalFragment = selectedFragment;
+                    evaluation.repairedIssueCodes.add(fragmentResolution.issueCode);
+                }
+            }
+        }
+
+        String repairedValue = buildInternalLinkValue(
+            targetPath,
+            parts.queryPart,
+            canonicalFragment
+        );
+        evaluation.repairedValue = repairedValue;
+        evaluation.changed = applyFix
+            && !normalizeInternalLinkValue(rawValue).equals(normalizeInternalLinkValue(repairedValue));
+        return evaluation;
+    }
+
+    private java.util.ArrayList<Element> collectElements(Document document) {
+        java.util.ArrayList<Element> elements = new java.util.ArrayList<>();
+        NodeList allElements = document.getElementsByTagNameNS("*", "*");
+        for (int i = 0; i < allElements.getLength(); i++) {
+            Node node = allElements.item(i);
+            if (node instanceof Element) {
+                elements.add((Element) node);
+            }
+        }
+        return elements;
+    }
+
+    private java.util.HashSet<String> collectDocumentIds(
+        ZipFile zipFile,
+        String documentPath,
+        Document parsedDocument,
+        java.util.HashMap<String, java.util.HashSet<String>> documentIdCache
+    ) throws Exception {
+        String normalizedPath = normalizeZipPath(documentPath);
+        if (CompatStrings.isBlank(normalizedPath)) {
+            return new java.util.HashSet<>();
+        }
+
+        java.util.HashSet<String> cached = documentIdCache.get(normalizedPath);
+        if (cached != null) {
+            return cached;
+        }
+
+        Document document = parsedDocument;
+        if (document == null) {
+            String documentText = readZipText(zipFile, normalizedPath);
+            if (documentText == null) {
+                java.util.HashSet<String> empty = new java.util.HashSet<>();
+                documentIdCache.put(normalizedPath, empty);
+                return empty;
+            }
+            document = parseXmlUtf8(documentText);
+            if (document == null) {
+                java.util.HashSet<String> empty = new java.util.HashSet<>();
+                documentIdCache.put(normalizedPath, empty);
+                return empty;
+            }
+        }
+
+        java.util.HashSet<String> ids = new java.util.HashSet<>();
+        NodeList allElements = document.getElementsByTagNameNS("*", "*");
+        for (int i = 0; i < allElements.getLength(); i++) {
+            Node node = allElements.item(i);
+            if (!(node instanceof Element)) {
+                continue;
+            }
+            Element element = (Element) node;
+            String id = element.getAttribute("id").trim();
+            if (CompatStrings.isNotBlank(id)) {
+                ids.add(id);
+            }
+            String xmlId = element.getAttributeNS(XMLConstants.XML_NS_URI, "id");
+            if (CompatStrings.isNotBlank(xmlId)) {
+                ids.add(xmlId.trim());
+            }
+        }
+
+        documentIdCache.put(normalizedPath, ids);
+        return ids;
+    }
+
+    private ParsedManifestItem findManifestItemByResolvedPath(
+        java.util.ArrayList<ParsedManifestItem> manifestItems,
+        String resolvedPath
+    ) {
+        String normalized = normalizeZipPath(resolvedPath);
+        for (ParsedManifestItem manifestItem : manifestItems) {
+            if (manifestItem != null && normalized.equals(normalizeZipPath(manifestItem.resolvedPath))) {
+                return manifestItem;
+            }
+        }
+        return null;
+    }
+
+    private boolean shouldInspectContentDocument(ParsedManifestItem manifestItem) {
+        if (manifestItem == null || !manifestItem.exists) {
+            return false;
+        }
+
+        if (isInspectableDocumentMediaType(manifestItem.mediaType)) {
+            return true;
+        }
+
+        String normalizedHref = manifestItem.normalizedHref == null
+            ? ""
+            : manifestItem.normalizedHref.toLowerCase(Locale.US);
+        return normalizedHref.endsWith(".xhtml")
+            || normalizedHref.endsWith(".html")
+            || normalizedHref.endsWith(".htm")
+            || normalizedHref.endsWith(".svg");
+    }
+
+    private boolean isInspectableDocumentMediaType(String mediaType) {
+        if (CompatStrings.isBlank(mediaType)) {
+            return false;
+        }
+
+        String normalized = mediaType.trim().toLowerCase(Locale.US);
+        return "application/xhtml+xml".equals(normalized)
+            || "image/svg+xml".equals(normalized)
+            || "text/html".equals(normalized);
+    }
+
+    private boolean isInternalLinkAttribute(String attributeName) {
+        if (CompatStrings.isBlank(attributeName)) {
+            return false;
+        }
+
+        String normalized = attributeName.trim().toLowerCase(Locale.US);
+        return "href".equals(normalized)
+            || "src".equals(normalized)
+            || normalized.endsWith(":href");
+    }
+
+    private boolean looksExternalLink(String pathPart) {
+        if (CompatStrings.isBlank(pathPart)) {
+            return false;
+        }
+
+        String normalized = pathPart.trim();
+        return normalized.matches("^[a-zA-Z][a-zA-Z0-9+.-]*:.*");
+    }
+
+    private InternalLinkParts splitInternalLink(String rawValue) {
+        String normalized = rawValue == null ? "" : rawValue.trim();
+        int fragmentIndex = normalized.indexOf('#');
+        String beforeFragment = fragmentIndex >= 0 ? normalized.substring(0, fragmentIndex) : normalized;
+        String fragmentPart = fragmentIndex >= 0 ? normalized.substring(fragmentIndex + 1) : "";
+        int queryIndex = beforeFragment.indexOf('?');
+        String pathPart = queryIndex >= 0 ? beforeFragment.substring(0, queryIndex) : beforeFragment;
+        String queryPart = queryIndex >= 0 ? beforeFragment.substring(queryIndex) : "";
+        return new InternalLinkParts(pathPart, queryPart, fragmentPart);
+    }
+
+    private PathResolution resolveCanonicalInternalPath(
+        String resolvedPath,
+        java.util.ArrayList<ParsedManifestItem> manifestItems
+    ) {
+        String normalizedResolvedPath = normalizeZipPath(resolvedPath);
+        if (CompatStrings.isBlank(normalizedResolvedPath)) {
+            return new PathResolution(null, null, false);
+        }
+
+        String exactMatch = null;
+        java.util.ArrayList<String> caseMatches = new java.util.ArrayList<>();
+        java.util.ArrayList<String> unicodeMatches = new java.util.ArrayList<>();
+        java.util.ArrayList<String> basenameMatches = new java.util.ArrayList<>();
+        String normalizedResolvedCaseKey = normalizedResolvedPath.toLowerCase(Locale.US);
+        String normalizedResolvedUnicodeKey = normalizeUnicodeKey(normalizedResolvedPath);
+        String normalizedResolvedBaseKey = basenameKey(normalizedResolvedPath);
+
+        for (ParsedManifestItem manifestItem : manifestItems) {
+            if (manifestItem == null || !manifestItem.exists) {
+                continue;
+            }
+
+            String candidatePath = normalizeZipPath(manifestItem.resolvedPath);
+            if (candidatePath.equals(normalizedResolvedPath)) {
+                exactMatch = candidatePath;
+                break;
+            }
+
+            if (candidatePath.toLowerCase(Locale.US).equals(normalizedResolvedCaseKey)) {
+                caseMatches.add(candidatePath);
+            }
+
+            if (normalizeUnicodeKey(candidatePath).equals(normalizedResolvedUnicodeKey)) {
+                unicodeMatches.add(candidatePath);
+            }
+
+            if (basenameKey(candidatePath).equals(normalizedResolvedBaseKey)) {
+                basenameMatches.add(candidatePath);
+            }
+        }
+
+        if (exactMatch != null) {
+            return new PathResolution(exactMatch, null, true);
+        }
+
+        if (caseMatches.size() == 1) {
+            return new PathResolution(
+                caseMatches.get(0),
+                "LINK_PATH_CASE_MISMATCH",
+                true
+            );
+        }
+
+        if (caseMatches.size() > 1) {
+            return new PathResolution(
+                null,
+                "LINK_PATH_CASE_MISMATCH",
+                true,
+                uniqueSortedCandidates(caseMatches)
+            );
+        }
+
+        if (unicodeMatches.size() == 1) {
+            return new PathResolution(
+                unicodeMatches.get(0),
+                "LINK_PATH_UNICODE_MISMATCH",
+                true
+            );
+        }
+
+        if (unicodeMatches.size() > 1) {
+            return new PathResolution(
+                null,
+                "LINK_PATH_UNICODE_MISMATCH",
+                true,
+                uniqueSortedCandidates(unicodeMatches)
+            );
+        }
+
+        if (basenameMatches.size() == 1) {
+            return new PathResolution(
+                basenameMatches.get(0),
+                "LINK_TARGET_MISSING",
+                true
+            );
+        }
+
+        if (basenameMatches.size() > 1) {
+            return new PathResolution(
+                null,
+                "LINK_TARGET_MISSING",
+                true,
+                uniqueSortedCandidates(basenameMatches)
+            );
+        }
+
+        return new PathResolution(null, "LINK_TARGET_MISSING", false);
+    }
+
+    private FragmentResolution resolveCanonicalFragment(
+        String fragment,
+        java.util.HashSet<String> ids
+    ) {
+        if (CompatStrings.isBlank(fragment) || ids == null || ids.isEmpty()) {
+            return new FragmentResolution(null, null, false);
+        }
+
+        String trimmedFragment = fragment.trim();
+        if (ids.contains(trimmedFragment)) {
+            return new FragmentResolution(trimmedFragment, null, true);
+        }
+
+        String caseKey = trimmedFragment.toLowerCase(Locale.US);
+        String unicodeKey = normalizeUnicodeKey(trimmedFragment);
+        java.util.ArrayList<String> caseMatches = new java.util.ArrayList<>();
+        java.util.ArrayList<String> unicodeMatches = new java.util.ArrayList<>();
+
+        for (String candidate : ids) {
+            if (candidate == null) {
+                continue;
+            }
+            if (candidate.toLowerCase(Locale.US).equals(caseKey)) {
+                caseMatches.add(candidate);
+            }
+            if (normalizeUnicodeKey(candidate).equals(unicodeKey)) {
+                unicodeMatches.add(candidate);
+            }
+        }
+
+        if (caseMatches.size() == 1) {
+            return new FragmentResolution(
+                caseMatches.get(0),
+                "LINK_FRAGMENT_MISSING",
+                true
+            );
+        }
+
+        if (caseMatches.size() > 1) {
+            return new FragmentResolution(
+                null,
+                "LINK_FRAGMENT_MISSING",
+                true,
+                uniqueSortedCandidates(caseMatches)
+            );
+        }
+
+        if (unicodeMatches.size() == 1) {
+            return new FragmentResolution(
+                unicodeMatches.get(0),
+                "LINK_FRAGMENT_MISSING",
+                true
+            );
+        }
+
+        if (unicodeMatches.size() > 1) {
+            return new FragmentResolution(
+                null,
+                "LINK_FRAGMENT_MISSING",
+                true,
+                uniqueSortedCandidates(unicodeMatches)
+            );
+        }
+
+        return new FragmentResolution(null, "LINK_FRAGMENT_MISSING", false);
+    }
+
+    private String buildInternalLinkValue(
+        String targetPath,
+        String queryPart,
+        String fragmentPart
+    ) {
+        StringBuilder builder = new StringBuilder();
+        if (CompatStrings.isNotBlank(targetPath)) {
+            builder.append(normalizeZipPath(targetPath));
+        }
+        if (CompatStrings.isNotBlank(queryPart)) {
+            builder.append(queryPart);
+        }
+        if (CompatStrings.isNotBlank(fragmentPart)) {
+            builder.append('#').append(fragmentPart);
+        }
+        return builder.toString();
+    }
+
+    private String buildLinkIssueDetails(
+        String sourcePath,
+        String rawValue,
+        String repairedValue
+    ) {
+        return normalizeZipPath(sourcePath) + ": " + rawValue + " -> " + repairedValue;
+    }
+
+    private String buildAmbiguousLinkIssueDetails(
+        String sourcePath,
+        String rawValue
+    ) {
+        return normalizeZipPath(sourcePath) + ": " + rawValue;
+    }
+
+    private String resolveGuidedSelection(
+        JSObject guidedSelections,
+        String issueCode,
+        String details,
+        List<String> options
+    ) {
+        if (guidedSelections == null || options == null || options.isEmpty()) {
+            return null;
+        }
+
+        java.util.ArrayList<String> normalizedOptions = new java.util.ArrayList<>();
+        for (String option : options) {
+            if (CompatStrings.isNotBlank(option)) {
+                normalizedOptions.add(option.trim());
+            }
+        }
+        if (normalizedOptions.isEmpty()) {
+            return null;
+        }
+
+        String key = buildIssueSelectionKey(issueCode, details, normalizedOptions);
+        String selected = normalizeZipPath(guidedSelections.getString(key));
+        if (CompatStrings.isBlank(selected)) {
+            return null;
+        }
+        for (String option : normalizedOptions) {
+            if (selected.equals(option)) {
+                return selected;
+            }
+        }
+        return null;
+    }
+
+    private String buildIssueSelectionKey(
+        String code,
+        String details,
+        List<String> options
+    ) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(code == null ? "" : code);
+        builder.append("::");
+        builder.append(details == null ? "" : details);
+        if (options != null) {
+            for (String option : options) {
+                builder.append("::");
+                builder.append(option == null ? "" : option.trim());
+            }
+        }
+        return builder.toString();
+    }
+
+    private String normalizeInternalLinkValue(String rawValue) {
+        InternalLinkParts parts = splitInternalLink(rawValue);
+        if (parts == null) {
+            return normalizeZipPath(rawValue);
+        }
+        return buildInternalLinkValue(parts.pathPart, parts.queryPart, parts.fragmentPart);
+    }
+
+    private static final class InternalLinkInspectionResult {
+        final java.util.ArrayList<EpubIssue> issues;
+        boolean changed;
+        final java.util.ArrayList<String> repairedIssueCodes;
+
+        InternalLinkInspectionResult() {
+            this.issues = new java.util.ArrayList<>();
+            this.repairedIssueCodes = new java.util.ArrayList<>();
+        }
+    }
+
+    private static final class InternalLinkRepairResult {
+        final byte[] content;
+        final java.util.ArrayList<String> repairedIssueCodes;
+
+        InternalLinkRepairResult(byte[] content, java.util.ArrayList<String> repairedIssueCodes) {
+            this.content = content;
+            this.repairedIssueCodes = repairedIssueCodes == null
+                ? new java.util.ArrayList<>()
+                : new java.util.ArrayList<>(repairedIssueCodes);
+        }
+    }
+
+    private static final class InternalLinkEvaluation {
+        final String rawValue;
+        final java.util.ArrayList<EpubIssue> issues;
+        final java.util.ArrayList<String> repairedIssueCodes;
+        String repairedValue;
+        boolean changed;
+
+        InternalLinkEvaluation(String rawValue) {
+            this.rawValue = rawValue;
+            this.issues = new java.util.ArrayList<>();
+            this.repairedIssueCodes = new java.util.ArrayList<>();
+            this.repairedValue = rawValue;
+        }
+    }
+
+    private static final class InternalLinkParts {
+        final String pathPart;
+        final String queryPart;
+        final String fragmentPart;
+
+        InternalLinkParts(String pathPart, String queryPart, String fragmentPart) {
+            this.pathPart = pathPart;
+            this.queryPart = queryPart;
+            this.fragmentPart = fragmentPart;
+        }
+    }
+
+    private static final class PathResolution {
+        final String canonicalPath;
+        final String issueCode;
+        final boolean fixable;
+        final java.util.ArrayList<String> options;
+
+        PathResolution(String canonicalPath, String issueCode, boolean fixable) {
+            this(canonicalPath, issueCode, fixable, null);
+        }
+
+        PathResolution(
+            String canonicalPath,
+            String issueCode,
+            boolean fixable,
+            java.util.ArrayList<String> options
+        ) {
+            this.canonicalPath = canonicalPath;
+            this.issueCode = issueCode;
+            this.fixable = fixable;
+            this.options = options;
+        }
+    }
+
+    private static final class FragmentResolution {
+        final String canonicalFragment;
+        final String issueCode;
+        final boolean fixable;
+        final java.util.ArrayList<String> options;
+
+        FragmentResolution(String canonicalFragment, String issueCode, boolean fixable) {
+            this(canonicalFragment, issueCode, fixable, null);
+        }
+
+        FragmentResolution(
+            String canonicalFragment,
+            String issueCode,
+            boolean fixable,
+            java.util.ArrayList<String> options
+        ) {
+            this.canonicalFragment = canonicalFragment;
+            this.issueCode = issueCode;
+            this.fixable = fixable;
+            this.options = options;
+        }
+    }
+
+    private java.util.ArrayList<String> uniqueSortedCandidates(List<String> candidates) {
+        java.util.TreeSet<String> sorted = new java.util.TreeSet<>();
+        if (candidates != null) {
+            for (String candidate : candidates) {
+                if (CompatStrings.isNotBlank(candidate)) {
+                    sorted.add(candidate.trim());
+                }
+            }
+        }
+        return new java.util.ArrayList<>(sorted);
+    }
+
+    private String normalizeUnicodeKey(String value) {
+        String normalized = normalizeZipPath(value);
+        return Normalizer.normalize(normalized, Normalizer.Form.NFC).toLowerCase(Locale.US);
+    }
+
+    private String basenameKey(String value) {
+        String normalized = normalizeZipPath(value).toLowerCase(Locale.US);
+        int lastSlash = normalized.lastIndexOf('/');
+        return lastSlash >= 0 ? normalized.substring(lastSlash + 1) : normalized;
     }
 
     private JSArray toIssueArray(java.util.ArrayList<EpubIssue> issues) {
@@ -1149,6 +2282,23 @@ public class EpubRewritePlugin extends Plugin {
             }
         }
         return new java.util.ArrayList<>(repairedIssues);
+    }
+
+    private boolean containsIssue(
+        java.util.ArrayList<EpubIssue> issues,
+        String code
+    ) {
+        if (issues == null || CompatStrings.isBlank(code)) {
+            return false;
+        }
+
+        for (EpubIssue issue : issues) {
+            if (issue != null && code.equals(issue.code)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private boolean shouldRewritePackageDocument(EpubAnalysis analysis) {
@@ -1977,18 +3127,32 @@ public class EpubRewritePlugin extends Plugin {
         return buildContainerXml("OEBPS/content.opf");
     }
 
-    private String buildContainerXml(String opfPath) {
-        String safeOpfPath = normalizeZipPath(opfPath);
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">\n"
-            + "  <rootfiles>\n"
-            + "    <rootfile full-path=\"" + escapeXml(safeOpfPath) + "\" media-type=\"application/oebps-package+xml\"/>\n"
-            + "  </rootfiles>\n"
-            + "</container>";
-    }
+      private String buildContainerXml(String opfPath) {
+          String safeOpfPath = normalizeZipPath(opfPath);
+          return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+              + "<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">\n"
+              + "  <rootfiles>\n"
+              + "    <rootfile full-path=\"" + escapeXml(safeOpfPath) + "\" media-type=\"application/oebps-package+xml\"/>\n"
+              + "  </rootfiles>\n"
+              + "</container>";
+      }
 
-    private String buildCoverXhtml(String coverFileName) {
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+      private String extractDeclaredOpfPathFromContainerText(String containerText) {
+          if (CompatStrings.isBlank(containerText)) {
+              return null;
+          }
+
+          Matcher matcher = ROOTFILE_FULL_PATH_PATTERN.matcher(containerText);
+          if (!matcher.find()) {
+              return null;
+          }
+
+          String opfPath = normalizeZipPath(matcher.group(2));
+          return CompatStrings.isBlank(opfPath) ? null : opfPath;
+      }
+
+      private String buildCoverXhtml(String coverFileName) {
+          return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<!DOCTYPE html>\n"
             + "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
             + "  <head>\n"
@@ -2467,21 +3631,29 @@ public class EpubRewritePlugin extends Plugin {
     ) {
         FileHeader containerHeader = findHeader(headers, "META-INF/container.xml");
         String containerPreferredPath = preferredPath;
-        if (containerHeader != null && containerPreferredPath == null) {
-            try {
-                byte[] containerBytes = readEntryBytes(zipFile, containerHeader);
-                Document containerDoc = parseXmlUtf8(new String(containerBytes, StandardCharsets.UTF_8));
-                Element rootfile = firstElementByName(containerDoc, "rootfile");
-                if (rootfile != null) {
-                    String opfPath = normalizeZipPath(rootfile.getAttribute("full-path"));
-                    if (CompatStrings.isNotBlank(opfPath)) {
-                        containerPreferredPath = opfPath;
-                    }
-                }
-            } catch (Exception ignored) {
-                // Fall back to heuristic OPF discovery below.
-            }
-        }
+              if (containerHeader != null && containerPreferredPath == null) {
+                try {
+                  byte[] containerBytes = readEntryBytes(zipFile, containerHeader);
+                  String containerText = new String(containerBytes, StandardCharsets.UTF_8);
+                  try {
+                      Document containerDoc = parseXmlUtf8(containerText);
+                      Element rootfile = firstElementByName(containerDoc, "rootfile");
+                      if (rootfile != null) {
+                          String opfPath = normalizeZipPath(rootfile.getAttribute("full-path"));
+                          if (CompatStrings.isNotBlank(opfPath)) {
+                              containerPreferredPath = opfPath;
+                          }
+                      }
+                  } catch (Exception ignored) {
+                      // Fall back to raw-text extraction below.
+                  }
+                  if (CompatStrings.isBlank(containerPreferredPath)) {
+                      containerPreferredPath = extractDeclaredOpfPathFromContainerText(containerText);
+                  }
+                } catch (Exception ignored) {
+                      // Fall back to heuristic OPF discovery below.
+                  }
+              }
 
         List<String> candidates = collectValidOpfCandidates(zipFile, headers, containerPreferredPath);
         for (String candidate : candidates) {
@@ -2497,7 +3669,7 @@ public class EpubRewritePlugin extends Plugin {
         String preferredPath
     ) {
         List<String> candidates = collectOpfCandidates(headers, preferredPath);
-        java.util.ArrayList<String> validCandidates = new java.util.ArrayList<>();
+        java.util.ArrayList<ScoredOpfCandidate> validCandidates = new java.util.ArrayList<>();
         for (String candidate : candidates) {
             try {
                 FileHeader opfHeader = findHeader(headers, candidate);
@@ -2508,14 +3680,131 @@ public class EpubRewritePlugin extends Plugin {
                 byte[] opfBytes = readEntryBytes(zipFile, opfHeader);
                 Document opfDoc = parseXmlUtf8(new String(opfBytes, StandardCharsets.UTF_8));
                 if (opfDoc != null) {
-                    validCandidates.add(candidate);
+                    validCandidates.add(
+                        new ScoredOpfCandidate(
+                            candidate,
+                            scoreValidOpfCandidate(candidate, opfDoc, preferredPath)
+                        )
+                    );
                 }
             } catch (Exception ignored) {
                 // Keep trying later candidates.
             }
         }
 
-        return validCandidates;
+        validCandidates.sort((left, right) ->
+            right.score != left.score
+                ? Integer.compare(right.score, left.score)
+                : left.path.compareTo(right.path)
+        );
+
+        java.util.ArrayList<String> orderedCandidates = new java.util.ArrayList<>();
+        for (ScoredOpfCandidate candidate : validCandidates) {
+            orderedCandidates.add(candidate.path);
+        }
+        return orderedCandidates;
+    }
+
+    private boolean hasClearOpfWinner(
+        ZipFile zipFile,
+        List<FileHeader> headers,
+        List<String> validCandidates,
+        String preferredPath
+    ) {
+        if (validCandidates.size() < 2) {
+            return true;
+        }
+
+        java.util.ArrayList<ScoredOpfCandidate> scoredCandidates = new java.util.ArrayList<>();
+        for (String candidate : validCandidates) {
+            try {
+                FileHeader opfHeader = findHeader(headers, candidate);
+                if (opfHeader == null) {
+                    continue;
+                }
+
+                byte[] opfBytes = readEntryBytes(zipFile, opfHeader);
+                Document opfDoc = parseXmlUtf8(new String(opfBytes, StandardCharsets.UTF_8));
+                if (opfDoc == null) {
+                    continue;
+                }
+
+                scoredCandidates.add(
+                    new ScoredOpfCandidate(
+                        candidate,
+                        scoreValidOpfCandidate(candidate, opfDoc, preferredPath)
+                    )
+                );
+            } catch (Exception ignored) {
+                // Ignore candidates we cannot inspect in detail.
+            }
+        }
+
+        if (scoredCandidates.size() < 2) {
+            return true;
+        }
+
+        scoredCandidates.sort((left, right) ->
+            right.score != left.score
+                ? Integer.compare(right.score, left.score)
+                : left.path.compareTo(right.path)
+        );
+
+        int bestScore = scoredCandidates.get(0).score;
+        int secondBestScore = scoredCandidates.get(1).score;
+        return bestScore - secondBestScore >= 3;
+    }
+
+    private int scoreValidOpfCandidate(
+        String candidatePath,
+        Document opfDoc,
+        String preferredPath
+    ) {
+        int score = (10 - scoreOpfCandidate(candidatePath)) * 10;
+        score += scoreOpfDocument(opfDoc);
+        if (CompatStrings.isNotBlank(preferredPath) && preferredPath.equals(candidatePath)) {
+            score += 25;
+        }
+        return score;
+    }
+
+    private int scoreOpfDocument(Document opfDoc) {
+        int score = 0;
+        Element manifestElement = firstElementByName(opfDoc, "manifest");
+        Element spineElement = firstElementByName(opfDoc, "spine");
+        Element metadataElement = firstElementByName(opfDoc, "metadata");
+
+        if (manifestElement != null) {
+            score += 2;
+            if (manifestElement.getElementsByTagNameNS("*", "item").getLength() > 0) {
+                score += 2;
+            }
+        }
+
+        if (spineElement != null) {
+            score += 2;
+            if (spineElement.getElementsByTagNameNS("*", "itemref").getLength() > 0) {
+                score += 2;
+            }
+        }
+
+        if (metadataElement != null) {
+            if (metadataElement.getElementsByTagNameNS("*", "title").getLength() > 0) {
+                score += 1;
+            }
+            if (metadataElement.getElementsByTagNameNS("*", "language").getLength() > 0) {
+                score += 1;
+            }
+            if (metadataElement.getElementsByTagNameNS("*", "identifier").getLength() > 0) {
+                score += 1;
+            }
+        }
+
+        if (opfDoc.getDocumentElement() != null) {
+            score += 1;
+        }
+
+        return score;
     }
 
     private List<String> collectOpfCandidates(List<FileHeader> headers, String preferredPath) {
@@ -3142,6 +4431,11 @@ public class EpubRewritePlugin extends Plugin {
         final String normalizedHref;
         final String resolvedPath;
         final boolean exists;
+        final String mediaType;
+        final String properties;
+        final String mediaOverlay;
+        final String mediaOverlayResolvedPath;
+        final boolean mediaOverlayExists;
         final Element element;
 
         ParsedManifestItem(
@@ -3150,6 +4444,11 @@ public class EpubRewritePlugin extends Plugin {
             String normalizedHref,
             String resolvedPath,
             boolean exists,
+            String mediaType,
+            String properties,
+            String mediaOverlay,
+            String mediaOverlayResolvedPath,
+            boolean mediaOverlayExists,
             Element element
         ) {
             this.id = id;
@@ -3157,6 +4456,11 @@ public class EpubRewritePlugin extends Plugin {
             this.normalizedHref = normalizedHref;
             this.resolvedPath = resolvedPath;
             this.exists = exists;
+            this.mediaType = mediaType;
+            this.properties = properties;
+            this.mediaOverlay = mediaOverlay;
+            this.mediaOverlayResolvedPath = mediaOverlayResolvedPath;
+            this.mediaOverlayExists = mediaOverlayExists;
             this.element = element;
         }
     }
@@ -3173,6 +4477,16 @@ public class EpubRewritePlugin extends Plugin {
         }
     }
 
+    private static final class ScoredOpfCandidate {
+        final String path;
+        final int score;
+
+        ScoredOpfCandidate(String path, int score) {
+            this.path = path;
+            this.score = score;
+        }
+    }
+
     private static final class EpubAnalysis {
         final String status;
         final java.util.ArrayList<EpubIssue> issues;
@@ -3181,6 +4495,7 @@ public class EpubRewritePlugin extends Plugin {
         final Document opfDocument;
         final java.util.ArrayList<ParsedManifestItem> manifestItems;
         final java.util.ArrayList<ParsedSpineItem> spineItems;
+        final java.util.ArrayList<String> reconstructibleSpineItemIds;
         final boolean mimetypeMissing;
         final boolean mimetypeInvalid;
 
@@ -3192,6 +4507,7 @@ public class EpubRewritePlugin extends Plugin {
             Document opfDocument,
             java.util.ArrayList<ParsedManifestItem> manifestItems,
             java.util.ArrayList<ParsedSpineItem> spineItems,
+            java.util.ArrayList<String> reconstructibleSpineItemIds,
             boolean mimetypeMissing,
             boolean mimetypeInvalid
         ) {
@@ -3202,6 +4518,7 @@ public class EpubRewritePlugin extends Plugin {
             this.opfDocument = opfDocument;
             this.manifestItems = manifestItems;
             this.spineItems = spineItems;
+            this.reconstructibleSpineItemIds = reconstructibleSpineItemIds;
             this.mimetypeMissing = mimetypeMissing;
             this.mimetypeInvalid = mimetypeInvalid;
         }

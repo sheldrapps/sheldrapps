@@ -1,27 +1,32 @@
 [
-    {
-        "name":  "01-mimetype-missing",
-        "description":  "Missing mimetype file",
-        "file":  "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\01-mimetype-missing.epub"
-    },
-    {
-        "name":  "02-mimetype-invalid",
-        "description":  "Invalid mimetype contents",
-        "file":  "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\02-mimetype-invalid.epub"
-    },
-    {
-        "name":  "03-manifest-item-missing",
-        "description":  "Manifest item points to missing file",
-        "file":  "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\03-manifest-item-missing.epub"
-    },
-    {
-        "name":  "04-spine-item-invalid",
-        "description":  "Spine item points to a bogus manifest id",
-        "file":  "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\04-spine-item-invalid.epub"
-    },
-    {
-        "name":  "05-manifest-href-normalization",
-        "description":  "Manifest href uses a non-normalized relative path",
-        "file":  "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\05-manifest-href-normalization.epub"
-    }
+  {
+    "name": "12-blocking-mimetype-missing",
+    "description": "Opening blocker with missing mimetype; fixer should restore application/epub+zip.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\12-blocking-mimetype-missing.epub"
+  },
+  {
+    "name": "13-blocking-mimetype-invalid",
+    "description": "Opening blocker with invalid mimetype content; fixer should normalize it.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\13-blocking-mimetype-invalid.epub"
+  },
+  {
+    "name": "14-blocking-container-missing",
+    "description": "Opening blocker with missing META-INF/container.xml; fixer should rebuild it.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\14-blocking-container-missing.epub"
+  },
+  {
+    "name": "15-blocking-container-malformed",
+    "description": "Opening blocker with malformed container.xml; fixer should rewrite a valid container.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\15-blocking-container-malformed.epub"
+  },
+  {
+    "name": "16-blocking-rootfile-missing",
+    "description": "Opening blocker with no rootfile; fixer should rediscover the package document.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\16-blocking-rootfile-missing.epub"
+  },
+  {
+    "name": "17-blocking-rootfile-invalid",
+    "description": "Opening blocker with a bad rootfile path; fixer should resolve the correct OPF.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\17-blocking-rootfile-invalid.epub"
+  }
 ]

@@ -17,6 +17,10 @@ export type PrepareEpubResult = {
   originalName: string;
   originalSize: number;
   isZipReadable: boolean;
+  workingPath?: string;
+  workingName?: string;
+  workingNativePath?: string;
+  outputBaseName?: string;
 };
 
 export type EpubDiagnosticStatus =
@@ -29,7 +33,6 @@ export type EpubDiagnosticRepairMode =
   | 'automatic'
   | 'review'
   | 'guided'
-  | 'partial_recovery'
   | 'not_repairable';
 
 export type EpubDiagnosticIssueCode =
@@ -39,6 +42,12 @@ export type EpubDiagnosticIssueCode =
   | 'OPF_MISSING'
   | 'OPF_AMBIGUOUS'
   | 'MANIFEST_ITEM_MISSING'
+  | 'LINK_TARGET_MISSING'
+  | 'LINK_FRAGMENT_MISSING'
+  | 'LINK_PATH_CASE_MISMATCH'
+  | 'LINK_PATH_UNICODE_MISMATCH'
+  | 'ORPHAN_RESOURCE_UNUSED'
+  | 'SMIL_MISSING'
   | 'SPINE_EMPTY'
   | 'SPINE_ITEM_INVALID'
   | 'ZIP_UNREADABLE';
@@ -53,8 +62,22 @@ export type EpubDiagnosticIssue = {
   options?: string[];
 };
 
+export function buildEpubIssueSelectionKey(
+  issue: Pick<EpubDiagnosticIssue, 'code' | 'details' | 'options'>,
+): string {
+  const options = (issue.options ?? [])
+    .map((option) => option.trim())
+    .filter((option): option is string => !!option);
+
+  return [
+    issue.code,
+    issue.details ?? '',
+    ...options,
+  ].join('::');
+}
+
 export function classifyEpubDiagnosticRepairMode(
-  issue: Pick<EpubDiagnosticIssue, 'code' | 'fixable'>,
+  issue: Pick<EpubDiagnosticIssue, 'code' | 'fixable' | 'options'>,
 ): EpubDiagnosticRepairMode {
   if (issue.code === 'ZIP_UNREADABLE') {
     return 'not_repairable';
@@ -76,10 +99,37 @@ export function classifyEpubDiagnosticRepairMode(
   }
 
   if (
+    (issue.code === 'LINK_TARGET_MISSING' ||
+      issue.code === 'LINK_FRAGMENT_MISSING' ||
+      issue.code === 'LINK_PATH_CASE_MISMATCH' ||
+      issue.code === 'LINK_PATH_UNICODE_MISMATCH') &&
+    (issue.options?.length ?? 0) > 1
+  ) {
+    return 'guided';
+  }
+
+  if (issue.code === 'SMIL_MISSING') {
+    return 'automatic';
+  }
+
+  if (
     issue.code === 'MANIFEST_ITEM_MISSING' ||
     issue.code === 'SPINE_ITEM_INVALID'
   ) {
-    return 'partial_recovery';
+    return 'automatic';
+  }
+
+  if (
+    issue.code === 'LINK_TARGET_MISSING' ||
+    issue.code === 'LINK_FRAGMENT_MISSING' ||
+    issue.code === 'LINK_PATH_CASE_MISMATCH' ||
+    issue.code === 'LINK_PATH_UNICODE_MISMATCH'
+  ) {
+    return issue.fixable ? 'automatic' : 'not_repairable';
+  }
+
+  if (issue.code === 'ORPHAN_RESOURCE_UNUSED') {
+    return issue.fixable ? 'review' : 'not_repairable';
   }
 
   if (issue.code === 'SPINE_EMPTY') {
@@ -126,6 +176,7 @@ export interface EpubFixerPort {
   repair(input: {
     sessionId: string;
     preferredOpfPath?: string;
+    guidedSelections?: Record<string, string>;
   }): Promise<EpubRepairResult>;
 
   exportFixed(input: {

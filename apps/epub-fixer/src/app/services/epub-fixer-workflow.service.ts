@@ -84,14 +84,20 @@ export class EpubFixerWorkflowService {
   repair(
     sessionId: string,
     preferredOpfPath?: string,
+    guidedSelections?: Record<string, string>,
   ): Promise<EpubRepairResult> {
-    return this.port.repair({ sessionId, preferredOpfPath });
+    return this.port.repair({ sessionId, preferredOpfPath, guidedSelections });
   }
 
   repairCurrentEpub(
     preferredOpfPath?: string,
+    guidedSelections?: Record<string, string>,
   ): Promise<EpubRepairResult> {
-    return this.repair(this.requireCurrentSessionId(), preferredOpfPath);
+    return this.repair(
+      this.requireCurrentSessionId(),
+      preferredOpfPath,
+      guidedSelections,
+    );
   }
 
   exportFixed(

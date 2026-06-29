@@ -9,7 +9,7 @@ android {
         applicationId "com.sheldrapps.covercreatorforkindle"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 47
+        versionCode 48
         versionName "Edit and preview cleanup"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {

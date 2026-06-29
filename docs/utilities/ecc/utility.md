@@ -2,8 +2,8 @@
 ## Project identity
 - app: epub-cover-changer
 - alias: ecc
-- currentVersionCode: 45
-- nextVersionCode: 46
+- currentVersionCode: 47
+- nextVersionCode: 48
 - currentVersionName: "Edit and preview cleanup"
 - nextVersionName: "Edit and preview cleanup"
 ## Product purpose

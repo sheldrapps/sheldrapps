@@ -6,6 +6,8 @@ export const RU_RU: RecommendedAppsTranslations = {
   EMPTY_STATE: 'Нет рекомендуемых приложений',
   APP_NAME_CCFK: 'Создатель обложек для ридеров',
   APP_NAME_ECC: 'EPUB Cover Changer',
+  APP_NAME_PCM: 'Создать обложку PDF',
   APP_DESC_CCFK: 'Создавайте обложки для ридеров из своих изображений за несколько нажатий.',
   APP_DESC_ECC: 'Заменяйте обложки EPUB и экспортируйте обновлённые файлы.',
+  APP_DESC_PCM: 'Заменяйте PDF-обложки и экспортируйте обновлённые файлы.',
 };

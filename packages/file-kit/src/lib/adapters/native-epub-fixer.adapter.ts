@@ -33,6 +33,10 @@ export class NativeEpubFixerAdapter implements EpubFixerPort {
       originalName: prepared.originalName,
       originalSize: prepared.originalSize,
       isZipReadable: prepared.isZipReadable,
+      workingPath: prepared.workingPath,
+      workingName: prepared.workingName,
+      workingNativePath: prepared.workingNativePath,
+      outputBaseName: prepared.outputBaseName,
     };
   }
 
@@ -43,8 +47,13 @@ export class NativeEpubFixerAdapter implements EpubFixerPort {
   repair(_input: {
     sessionId: string;
     preferredOpfPath?: string;
+    guidedSelections?: Record<string, string>;
   }): Promise<EpubRepairResult> {
-    return this.native.repair(_input.sessionId, _input.preferredOpfPath);
+    return this.native.repair(
+      _input.sessionId,
+      _input.preferredOpfPath,
+      _input.guidedSelections,
+    );
   }
 
   exportFixed(_input: {

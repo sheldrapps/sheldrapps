@@ -42,6 +42,35 @@ public class EpubCoverLocatorTest {
     }
 
     @Test
+    public void findsCoverWhenContainerXmlIsMalformedButDeclaresTheOpfPath() throws Exception {
+        ZipFile zipFile = buildZip(
+            orderedEntries(
+                "META-INF/container.xml", utf8(
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">\n"
+                        + "  <rootfiles>\n"
+                        + "    <rootfile full-path=\"OPS/package.xml\" media-type=\"application/oebps-package+xml\"/>\n"
+                        + "  </rootfilesX>\n"
+                        + "</container>"
+                ),
+                "OPS/package.xml", utf8(
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\">\n"
+                        + "  <manifest>\n"
+                        + "    <item id=\"cover\" href=\"images/cover.png\" media-type=\"image/png\" properties=\"cover-image\"/>\n"
+                        + "  </manifest>\n"
+                        + "</package>"
+                ),
+                "OPS/images/cover.png", imageBytes()
+            )
+        );
+
+        String coverPath = locator.findCoverEntryPath(zipFile, zipFile.getFileHeaders());
+
+        assertEquals("OPS/images/cover.png", coverPath);
+    }
+
+    @Test
     public void findsEpub2CoverFromDeclaredIso88591Opf() throws Exception {
         ZipFile zipFile = buildZip(
             orderedEntries(

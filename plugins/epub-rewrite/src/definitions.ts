@@ -50,6 +50,8 @@ export interface DiagnoseEpubResult {
       | 'OPF_MISSING'
       | 'OPF_AMBIGUOUS'
       | 'MANIFEST_ITEM_MISSING'
+      | 'ORPHAN_RESOURCE_UNUSED'
+      | 'SMIL_MISSING'
       | 'SPINE_EMPTY'
       | 'SPINE_ITEM_INVALID'
       | 'ZIP_UNREADABLE';

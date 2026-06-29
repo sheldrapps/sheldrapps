@@ -6,8 +6,9 @@ import {
   type PluginListenerHandle,
 } from '@capacitor/core';
 import {
-  classifyEpubDiagnosticRepairMode,
   normalizeEpubDiagnosticIssue,
+  type EpubDiagnosticIssue,
+  type EpubDiagnosticStatus,
 } from './epub-fixer.port';
 
 type InspectEpubResult = {
@@ -23,25 +24,8 @@ type InspectEpubResult = {
 
 type DiagnoseEpubResult = {
   success: boolean;
-  status?: 'valid' | 'repairable' | 'unsupported' | 'failed';
-  issues?: Array<{
-    code:
-      | 'MIMETYPE_MISSING'
-      | 'MIMETYPE_INVALID'
-      | 'CONTAINER_MISSING'
-      | 'OPF_MISSING'
-      | 'OPF_AMBIGUOUS'
-      | 'MANIFEST_ITEM_MISSING'
-      | 'SPINE_EMPTY'
-      | 'SPINE_ITEM_INVALID'
-      | 'ZIP_UNREADABLE';
-    severity: 'info' | 'warning' | 'error';
-    fixable: boolean;
-    messageKey: string;
-    repairMode?: 'automatic' | 'review' | 'guided' | 'partial_recovery' | 'not_repairable';
-    details?: string;
-    options?: string[];
-  }>;
+  status?: EpubDiagnosticStatus;
+  issues?: EpubDiagnosticIssue[];
   error?: string;
   message?: string;
   stage?: string;
@@ -219,6 +203,7 @@ type EpubRewritePlugin = Plugin & {
   repairEpub(options: {
     sessionId: string;
     preferredOpfPath?: string;
+    guidedSelections?: Record<string, string>;
   }): Promise<RepairEpubResult>;
   exportFixed(options: {
     sessionId: string;
@@ -373,25 +358,23 @@ export class EpubRewriteService {
     return {
       sessionId,
       status: result.status,
-      issues: result.issues.map((issue) =>
-        normalizeEpubDiagnosticIssue({
-          ...issue,
-          repairMode:
-            issue.repairMode ??
-            classifyEpubDiagnosticRepairMode({
-              code: issue.code,
-              fixable: issue.fixable,
-            }),
-        }),
-      ),
+      issues: result.issues.map((issue) => normalizeEpubDiagnosticIssue(issue)),
     };
   }
 
-  async repair(sessionId: string, preferredOpfPath?: string): Promise<{
+  async repair(
+    sessionId: string,
+    preferredOpfPath?: string,
+    guidedSelections?: Record<string, string>,
+  ): Promise<{
     success: boolean;
     repairedIssues: string[];
   }> {
-    const result = await EpubRewrite.repairEpub({ sessionId, preferredOpfPath });
+    const result = await EpubRewrite.repairEpub({
+      sessionId,
+      preferredOpfPath,
+      guidedSelections,
+    });
     if (!result.success) {
       throw new EpubRewriteError(result.error ?? 'REPAIR_FAILED', {
         message: result.message,

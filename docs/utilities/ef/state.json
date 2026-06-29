@@ -6,21 +6,22 @@
     "versionName": "1.0"
   },
   "current": {
-    "updatedAt": "2026-06-26T13:39:33.1477051-06:00",
-    "head": "3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d",
-    "versionCode": 2,
-    "versionName": "1.1",
-    "versionCodeAnchorCommit": "3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d",
+    "updatedAt": "2026-06-28T13:24:59.6987570-06:00",
+    "head": "59deb27e5df5a37a2fade5e579e53c18c27ab059",
+    "versionCode": 3,
+    "versionName": "Malformed container repair",
+    "versionCodeAnchorCommit": "59deb27e5df5a37a2fade5e579e53c18c27ab059",
     "deltaFrom": "3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d",
-    "deltaTo": "3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d",
-    "changedFilesCount": 1,
+    "deltaTo": "59deb27e5df5a37a2fade5e579e53c18c27ab059",
+    "changedFilesCount": 6,
     "userFacingSummary": [
-      "removed_web_development_badge_from_fix_screen"
+      "malformed_container_recovery_from_rootfile",
+      "artifact_15_repairs_on_web_and_android"
     ]
   },
   "tracking": {
-    "lastProcessedHead": "3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d",
-    "lastProcessedAt": "2026-06-26T13:39:33.1477051-06:00",
+    "lastProcessedHead": "59deb27e5df5a37a2fade5e579e53c18c27ab059",
+    "lastProcessedAt": "2026-06-28T13:24:59.6987570-06:00",
     "lastWorkingTreeFingerprint": "WORKTREE"
   }
 }

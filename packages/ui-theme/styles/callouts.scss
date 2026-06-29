@@ -1,7 +1,8 @@
 .app-callout {
-  margin: var(--app-space-3) var(--app-space-5) 0 var(--app-space-5);
+  margin: var(--app-space-3) 0 0;
   padding: var(--app-callout-padding-y) var(--app-callout-padding-x);
-  border-radius: var(--app-radius-md);
+  border-radius: var(--app-radius-lg);
+  border: 1px solid transparent;
 
   display: flex;
   gap: var(--app-callout-gap);
@@ -38,11 +39,11 @@
 }
 
 .app-callout--warning {
-  border-left: calc(var(--app-callout-border-w) + 1px) solid var(--app-callout-warning-border);
+  border-color: rgba(var(--ion-color-warning-rgb), 0.24);
   background: var(--app-callout-warning-bg);
   color: var(--app-callout-warning-text);
   box-shadow:
-    0 0 0 1px rgba(var(--ion-color-warning-rgb), 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
     var(--app-shadow-sm);
 }
 .app-callout--warning .app-callout__icon {
@@ -50,7 +51,7 @@
 }
 
 .app-callout--info {
-  border-left: var(--app-callout-border-w) solid var(--app-callout-info-border);
+  border-color: rgba(var(--ion-color-primary-rgb), 0.18);
   background: var(--app-callout-info-bg);
   color: var(--app-callout-info-text);
 }
@@ -59,7 +60,7 @@
 }
 
 .app-callout--success {
-  border-left: var(--app-callout-border-w) solid var(--app-callout-success-border);
+  border-color: rgba(var(--ion-color-success-rgb), 0.22);
   background: var(--app-callout-success-bg);
   color: var(--app-callout-success-text);
 }
@@ -68,7 +69,7 @@
 }
 
 .app-callout--error {
-  border-left: var(--app-callout-border-w) solid var(--app-callout-error-border);
+  border-color: rgba(var(--ion-color-danger-rgb), 0.24);
   background: var(--app-callout-error-bg);
   color: var(--app-callout-error-text);
 }

@@ -61,33 +61,6 @@
       </ion-item>
     </section>
 
-    @if (showIssuesList) {
-      <sh-section-card [title]="'FIX.ISSUES_TITLE' | translate">
-        <ul class="fix-issues-list">
-          @for (issue of diagnosis?.issues ?? []; track issue.code + issue.details) {
-            <li class="fix-issues-list__item">
-              <div class="fix-issues-list__header">
-                <div class="fix-issues-list__message">
-                  {{ issue.messageKey | translate }}
-                </div>
-
-                <ion-badge
-                  class="fix-issues-list__badge"
-                  [color]="issueRepairModeBadgeColor(issue)"
-                >
-                  {{ issueRepairModeLabelKey(issue) | translate }}
-                </ion-badge>
-              </div>
-
-              @if (issue.details) {
-                <div class="fix-issues-list__details">{{ issue.details }}</div>
-              }
-            </li>
-          }
-        </ul>
-      </sh-section-card>
-    }
-
     @if (epubErrorKey) {
       <div
         class="app-callout app-callout--error"
@@ -130,67 +103,9 @@
       </div>
     }
 
-    @if (showDiagnosisOverview) {
-      <sh-section-card [title]="'FIX.DIAGNOSIS_OVERVIEW_TITLE' | translate">
-        <div class="fix-diagnosis-summary">
-          <div class="fix-diagnosis-summary__status">
-            {{ diagnosisOverviewKey | translate }}
-          </div>
-
-          <ul class="fix-diagnosis-summary__stats">
-            <li class="fix-diagnosis-summary__stat">
-              <span class="fix-diagnosis-summary__value">{{ diagnosisSummary.totalIssues }}</span>
-              <span class="fix-diagnosis-summary__label">
-                {{ 'FIX.DIAGNOSIS_ISSUES_FOUND' | translate }}
-              </span>
-            </li>
-
-            <li class="fix-diagnosis-summary__stat">
-              <span class="fix-diagnosis-summary__value">{{ diagnosisSummary.automaticIssues }}</span>
-              <span class="fix-diagnosis-summary__label">
-                {{ 'FIX.DIAGNOSIS_FIXABLE' | translate }}
-              </span>
-            </li>
-
-            <li class="fix-diagnosis-summary__stat">
-              <span class="fix-diagnosis-summary__value">{{ diagnosisSummary.partialIssues }}</span>
-              <span class="fix-diagnosis-summary__label">
-                {{ 'FIX.DIAGNOSIS_PARTIAL' | translate }}
-              </span>
-            </li>
-
-            <li class="fix-diagnosis-summary__stat">
-              <span class="fix-diagnosis-summary__value">{{ diagnosisSummary.blockedIssues }}</span>
-              <span class="fix-diagnosis-summary__label">
-                {{ 'FIX.DIAGNOSIS_BLOCKED' | translate }}
-              </span>
-            </li>
-
-            @if (diagnosisSummary.reviewIssues > 0) {
-              <li class="fix-diagnosis-summary__stat">
-                <span class="fix-diagnosis-summary__value">{{ diagnosisSummary.reviewIssues }}</span>
-                <span class="fix-diagnosis-summary__label">
-                  {{ 'FIX.DIAGNOSIS_REVIEW' | translate }}
-                </span>
-              </li>
-            }
-
-            @if (diagnosisSummary.guidedIssues > 0) {
-              <li class="fix-diagnosis-summary__stat">
-                <span class="fix-diagnosis-summary__value">{{ diagnosisSummary.guidedIssues }}</span>
-                <span class="fix-diagnosis-summary__label">
-                  {{ 'FIX.DIAGNOSIS_GUIDED' | translate }}
-                </span>
-              </li>
-            }
-          </ul>
-        </div>
-      </sh-section-card>
-    }
-
     @if (showPreparedActionCard) {
-      <section class="app-accent-surface fix-state-card">
-        <div class="app-accent-card-body fix-state-card__body">
+      <section class="app-secondary-surface fix-state-card">
+        <div class="fix-state-card__body">
           <div class="fix-state-card__copy">
             @if (viewState === 'diagnosing') {
               <h2 class="fix-state-card__title">
@@ -223,6 +138,131 @@
       </section>
     }
 
+    @if (showDiagnosisOverview) {
+      <sh-section-card [title]="'FIX.DIAGNOSIS_OVERVIEW_TITLE' | translate">
+        <div class="fix-diagnosis-summary">
+          <p class="fix-diagnosis-summary__headline">
+            <span class="fix-diagnosis-summary__count fix-diagnosis-summary__count--lead">
+              {{ diagnosisSeveritySummary.totalIssues }}
+            </span>
+            <span class="fix-diagnosis-summary__text">
+              {{ 'FIX.DIAGNOSIS_ISSUES_FOUND' | translate }}
+            </span>
+          </p>
+
+          @if (diagnosisSeveritySummary.totalIssues > 0) {
+            <div class="fix-diagnosis-summary__severity-grid">
+              @for (segment of diagnosisSeveritySegments; track segment.level) {
+                <div
+                  class="fix-diagnosis-summary__severity-chip"
+                  [class.fix-diagnosis-summary__severity-chip--critical]="segment.level === 'critical'"
+                  [class.fix-diagnosis-summary__severity-chip--high]="segment.level === 'high'"
+                  [class.fix-diagnosis-summary__severity-chip--medium]="segment.level === 'medium'"
+                  [class.fix-diagnosis-summary__severity-chip--low]="segment.level === 'low'"
+                >
+                  <span class="fix-diagnosis-summary__severity-mark" aria-hidden="true"></span>
+                  <span class="fix-diagnosis-summary__severity-count">
+                    {{ segment.count }}
+                  </span>
+                  <span class="fix-diagnosis-summary__severity-label">
+                    {{ diagnosisSeverityLabelKey(segment.level) | translate }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </sh-section-card>
+    }
+
+    @if (showIssuesList) {
+      <sh-section-card [title]="'FIX.ISSUES_TITLE' | translate">
+        <div class="fix-issue-cluster-list">
+          @for (section of issueSections; track section.key) {
+            <div class="fix-issue-cluster">
+              <div class="fix-issue-cluster__label">
+                {{ section.count }}
+                {{ section.labelKey | translate }}
+              </div>
+
+              <ul class="fix-issue-list">
+                @for (issue of section.issues; track $index) {
+                  <li
+                    class="fix-issue-list__item"
+                    [attr.data-severity]="issueSeverityLevel(issue)"
+                  >
+                    <span class="fix-issue-list__bullet" aria-hidden="true"></span>
+                    <div class="fix-issue-list__copy">
+                      <div class="fix-issue-list__title">
+                        {{ issue.messageKey | translate }}
+                      </div>
+                      @if (issue.details) {
+                        <div class="fix-issue-list__detail">
+                          {{ issue.details }}
+                        </div>
+                      }
+                      @if (section.kind === 'confirmation') {
+                        <div class="app-choice-stack">
+                          <ion-item
+                            class="app-choice-row app-choice-row--checkbox"
+                            button
+                            detail="false"
+                            lines="none"
+                            (click)="toggleConfirmation(issue)"
+                          >
+                            <ion-checkbox
+                              slot="start"
+                              class="app-choice-row__control"
+                              [checked]="isConfirmationChecked(issue)"
+                              (click)="$event.stopPropagation()"
+                              (ionChange)="onConfirmationChange(issue, $event.detail.checked)"
+                            ></ion-checkbox>
+                            <ion-label class="app-choice-row__label ion-text-wrap">
+                              {{ 'FIX.CONFIRMATION_CHECKBOX' | translate }}
+                            </ion-label>
+                          </ion-item>
+                        </div>
+                      } @else if (
+                        section.kind === 'manual' && issueOptions(issue).length > 0
+                      ) {
+                        <div class="app-choice-stack">
+                          <ion-radio-group
+                            [attr.aria-label]="issue.messageKey | translate"
+                            [value]="selectedGuidedOption(issue)"
+                            (ionChange)="onGuidedOptionChange(issue, $event.detail.value)"
+                          >
+                            @for (option of issueOptions(issue); track option) {
+                              <ion-item
+                                class="app-choice-row app-choice-row--radio"
+                                button
+                                detail="false"
+                                lines="none"
+                                (click)="onGuidedOptionChange(issue, option)"
+                              >
+                                <ion-radio
+                                  slot="start"
+                                  class="app-choice-row__control"
+                                  [value]="option"
+                                  (click)="$event.stopPropagation()"
+                                ></ion-radio>
+                                <ion-label class="app-choice-row__label ion-text-wrap">
+                                  {{ option }}
+                                </ion-label>
+                              </ion-item>
+                            }
+                          </ion-radio-group>
+                        </div>
+                      }
+                    </div>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+      </sh-section-card>
+    }
+
     @if (showReviewChecklist) {
       <sh-section-card [title]="'FIX.SECTION_REVIEW_TITLE' | translate">
         <ul class="fix-review-list">
@@ -238,7 +278,7 @@
     @if (resultPrimaryActionKey) {
       <div class="fix-primary-action">
         <ion-button
-          class="app-btn"
+          class="app-btn fix-primary-action__button"
           expand="block"
           [disabled]="(resultPrimaryActionKey === 'FIX.ACTION_REPAIR' && !canRepair) || (resultPrimaryActionKey === 'FIX.ACTION_EXPORT' && !canExport)"
           (click)="onPrimaryAction()"
@@ -255,6 +295,7 @@
           <ion-row>
             <ion-col size="6">
               <ion-button
+                class="app-btn"
                 expand="block"
                 fill="outline"
                 (click)="onSave()"
@@ -266,6 +307,7 @@
 
             <ion-col size="6">
               <ion-button
+                class="app-btn"
                 expand="block"
                 fill="outline"
                 (click)="onShare()"
@@ -278,6 +320,69 @@
         </ion-grid>
       </div>
     }
+
+    @if (canShowRemoveAdsEntryPoint()) {
+      <div class="upgrade-actions">
+        <ion-button
+          expand="block"
+          fill="outline"
+          class="premium-upgrade-cta"
+          (click)="openPurchaseModal()"
+        >
+          <div class="app-cta-stack">
+            <span class="app-cta-stack__title">{{ 'COMMON.REMOVE_ADS_CTA_TITLE' | translate }}</span>
+            <span class="app-cta-stack__subtitle">{{
+              getRemoveAdsCtaSubtitleKey() | translate:getRemoveAdsPriceParams()
+            }}</span>
+          </div>
+        </ion-button>
+      </div>
+    }
+
+    <ion-modal
+      [isOpen]="purchaseModalOpen"
+      (didDismiss)="closePurchaseModal()"
+    >
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>{{ 'COMMON.REMOVE_ADS_TITLE' | translate }}</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="onPurchaseModalCloseClick()">
+                {{ 'COMMON.CLOSE' | translate }}
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="app-modal-content">
+          <div class="app-modal-copy app-modal-copy--purchase">
+            <div>{{ getRemoveAdsModalDescriptionKey() | translate }}</div>
+            @if (shouldShowRemoveAdsModalPrice()) {
+              <div class="field-subtle">
+                {{ 'COMMON.REMOVE_ADS_MODAL_PRICE' | translate:getRemoveAdsPriceParams() }}
+              </div>
+            }
+          </div>
+          <div class="app-modal-actions app-modal-actions--stack">
+            <ion-button
+              expand="block"
+              [disabled]="!canPurchaseRemoveAds()"
+              (click)="onPurchaseRemoveAds()"
+            >
+              {{ 'COMMON.REMOVE_ADS_BUY' | translate }}
+            </ion-button>
+            <ion-button
+              expand="block"
+              fill="outline"
+              [disabled]="!canRestoreRemoveAds()"
+              (click)="onRestorePurchases()"
+            >
+              {{ 'COMMON.REMOVE_ADS_RESTORE' | translate }}
+            </ion-button>
+          </div>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
 
     <ion-popover
       [isOpen]="infoOpen"

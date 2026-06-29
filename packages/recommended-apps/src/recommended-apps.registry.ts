@@ -17,4 +17,12 @@ export const RECOMMENDED_APPS_REGISTRY: RecommendedApp[] = [
       "https://play.google.com/store/apps/details?id=com.sheldrapps.epubcoverchanger",
     description: "Replace EPUB covers and export updated files.",
   },
+  {
+    appName: "PDF Cover Maker",
+    packageName: "com.sheldrapps.pdfcovermaker",
+    icon: "assets/apps/pcm/icon.png",
+    playStoreUrl:
+      "https://play.google.com/store/apps/details?id=com.sheldrapps.pdfcovermaker",
+    description: "Replace PDF covers and export updated files.",
+  },
 ];

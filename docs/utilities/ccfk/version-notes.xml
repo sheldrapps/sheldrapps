@@ -1,39 +1,39 @@
 <en-US>
-Edit is now the shared label in preview and menus, the preview action bar scrolls, and filename handling for overwrite versus copy stays centralized.
+Preview and menus now share the Edit label, the preview action bar scrolls when labels run long, and overwrite/copy filename handling stays in one place.
 </en-US>
 <ar>
-Edit alaan hiya al-tasmiya al-mushtaraka fi al-muayana wa al-qawaim, wa shirit al-ajraat yamtad lil-tamarrur, wa idarat asma al-milafat lil-kitabah fawq al-nuskha aw al-nasakh tabqa markaziyya.
+تشارك المعاينة والقوائم الآن تسمية Edit، ويمكن شريط إجراءات المعاينة التمرير عندما تطول التسميات، وتبقى معالجة أسماء الملفات للكتابة فوق الملف أو نسخه في مكان واحد.
 </ar>
 <de-DE>
-Edit ist jetzt das gemeinsame Label in Vorschau und Menues, die Vorschau-Buttonleiste ist scrollbar, und die Dateinamenlogik fuer Ueberschreiben und Kopie bleibt zentralisiert.
+Vorschau und Menüs verwenden jetzt gemeinsam das Label Edit, die Vorschau-Buttonleiste scrollt bei langen Beschriftungen, und die Dateinamenbehandlung für Überschreiben oder Kopie bleibt an einer Stelle.
 </de-DE>
 <es-419>
-Edit ahora es la etiqueta compartida en vista previa y menus, la barra de acciones de vista previa es desplazable, y el manejo de nombres para sobrescribir o copiar sigue centralizado.
+La vista previa y los menús ahora comparten la etiqueta Edit, la barra de acciones de vista previa se puede desplazar cuando las etiquetas son largas, y el manejo de nombres para sobrescribir o copiar sigue en un solo lugar.
 </es-419>
 <fr-FR>
-Edit est maintenant le libelle commun dans l apercu et les menus, la barre d actions de l apercu est deroulante, et la gestion des noms de fichier pour remplacer ou copier reste centralisee.
+L’aperçu et les menus partagent maintenant le libellé Edit, la barre d’actions de l’aperçu défile quand les libellés sont longs, et la gestion des noms de fichier pour remplacer ou copier reste au même endroit.
 </fr-FR>
 <hi-IN>
-Edit ab preview aur menu mein shared label hai, preview action bar scroll hoti hai, aur overwrite versus copy filename handling centralised hai.
+प्रीव्यू और मेनू अब Edit लेबल साझा करते हैं, प्रीव्यू ऐक्शन बार लंबे लेबल पर स्क्रॉल हो सकती है, और overwrite या copy के लिए filename handling एक ही जगह रहती है।
 </hi-IN>
 <it-IT>
-Edit e ora l etichetta condivisa nell anteprima e nei menu, la barra azioni dell anteprima e scorrevole, e la gestione dei nomi file per sovrascrittura e copia resta centralizzata.
+Anteprima e menu condividono ora l'etichetta Edit, la barra azioni dell'anteprima scorre quando le etichette sono lunghe, e la gestione dei nomi file per sovrascrivere o copiare resta in un solo punto.
 </it-IT>
 <ja-JP>
-Edit wa purobiyu to menyu no kyotsu raberu ni nari, purobiyu no action bar wa sukuroru kanou ni nari, overwrite to copy no fairu-mei shori wa chuo-ka sareta mama desu.
+プレビューとメニューで Edit ラベルが共通になり、プレビューのアクションバーは長いラベルでもスクロールでき、上書きとコピーのファイル名処理は一か所で管理されます。
 </ja-JP>
 <ko-KR>
-Edit ga miribogi wa menyuui gongtong leibeol-i doeeossego, miribogi jag-eob bar-neun seukeulrool doemyeo, deodeossseugi wa boksa-e daehan paileu-myeong chullineun jungang-eseo yujidoemnida.
+미리보기와 메뉴가 이제 Edit 레이블을 함께 사용하고, 미리보기 작업 표시줄은 긴 레이블에서 스크롤되며, 덮어쓰기와 복사에 대한 파일명 처리는 한 곳에서 유지됩니다.
 </ko-KR>
 <pt-BR>
-Edit agora e o rotulo compartilhado na previa e nos menus, a barra de acoes da previa e rolavel, e o tratamento de nomes de arquivo para sobrescrever ou copiar continua centralizado.
+A prévia e os menus agora compartilham o rótulo Edit, a barra de ações da prévia rola quando os rótulos ficam longos, e o tratamento de nomes de arquivo para sobrescrever ou copiar continua em um só lugar.
 </pt-BR>
 <ru-RU>
-Edit teper obshchaya metka v predprosmotre i menyu, panel deistvii predprosmotra prokruchivaetsya, a obrabotka imen failov dlya peresapisi i kopii po-prezhnemu tsentralizovana.
+Предпросмотр и меню теперь используют общую метку Edit, панель действий предпросмотра прокручивается, когда подписи длинные, а обработка имён файлов для перезаписи и копии остаётся в одном месте.
 </ru-RU>
 <zh-CN>
-Edit xianzai shi yulan he caidan zhong de gongyong biaoqian, yulan caozuo lan keyi gun dong, er qie gaixie yu fuzhi de wenjian ming chuli reng ran baochi zhongyanghua.
+预览和菜单现在共用 Edit 标签，预览操作栏在标签较长时可以滚动，覆盖和复制的文件名处理也保持集中。
 </zh-CN>
 <zh-TW>
-Edit xianzai shi yulan he caidan zhong de gongyong biaoqian, yulan caozuo lan keyi gun dong, er qie gaixie yu fuzhi de wenjian ming chuli reng ran baochi zhongyanghua.
+預覽和選單現在共用 Edit 標籤，預覽動作列在標籤較長時可以捲動，而覆寫與複製的檔名處理仍然集中在同一處。
 </zh-TW>

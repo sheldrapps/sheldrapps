@@ -6,6 +6,8 @@ export const DE_DE: RecommendedAppsTranslations = {
   EMPTY_STATE: 'Keine empfohlenen Apps verfügbar',
   APP_NAME_CCFK: 'E-Reader Cover Creator',
   APP_NAME_ECC: 'EPUB Cover ändern',
+  APP_NAME_PCM: 'PDF-Cover erstellen',
   APP_DESC_CCFK: 'Erstelle E-Reader-Cover aus deinen Bildern in nur wenigen Schritten.',
   APP_DESC_ECC: 'Ersetze EPUB-Cover und exportiere aktualisierte Dateien.',
+  APP_DESC_PCM: 'Ersetze PDF-Cover und exportiere aktualisierte Dateien.',
 };

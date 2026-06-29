@@ -35,6 +35,15 @@ const ECC_VALID_WITH_URL = {
     "https://play.google.com/store/apps/details?id=com.sheldrapps.epubcoverchanger",
 };
 
+const PCM_VALID_WITH_URL = {
+  appName: "PDF Cover Maker",
+  packageName: "com.sheldrapps.pdfcovermaker",
+  icon: "assets/apps/pcm/icon.png",
+  playStoreUrl:
+    "https://play.google.com/store/apps/details?id=com.sheldrapps.pdfcovermaker",
+  description: "Replace PDF covers and export updated files.",
+};
+
 test("service case A: currentPackage=CCFK and ECC has no URL => empty list and hasRecommended=false", async () => {
   const resolveCurrentPackage = createCurrentPackageResolver(async () => ({
     id: CCFK.packageName,
@@ -85,6 +94,19 @@ test("service case D: when ECC has URL and currentPackage=CCFK => list contains 
   assert.equal(recommended.length, 1);
   assert.equal(recommended[0].packageName, ECC_VALID_WITH_URL.packageName);
   assert.equal(hasRecommendedApps(registry, CCFK.packageName), true);
+});
+
+test("service case E: when PCM has URL and currentPackage=PCM => list contains both EPUB apps", () => {
+  const registry = [CCFK, ECC_VALID_WITH_URL, PCM_VALID_WITH_URL];
+  const recommended = filterRecommended(registry, PCM_VALID_WITH_URL.packageName);
+
+  assert.equal(recommended.length, 2);
+  assert.equal(recommended.some((app) => app.packageName === CCFK.packageName), true);
+  assert.equal(
+    recommended.some((app) => app.packageName === ECC_VALID_WITH_URL.packageName),
+    true,
+  );
+  assert.equal(hasRecommendedApps(registry, PCM_VALID_WITH_URL.packageName), true);
 });
 
 test("service package resolver caches getInfo result in memory", async () => {

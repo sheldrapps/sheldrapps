@@ -2,8 +2,8 @@
 ## Project identity
 - app: cover-creator-for-kindle
 - alias: ccfk
-- currentVersionCode: 46
-- nextVersionCode: 47
+- currentVersionCode: 48
+- nextVersionCode: 49
 - currentVersionName: "Edit and preview cleanup"
 - nextVersionName: "Edit and preview cleanup"
 ## Product purpose

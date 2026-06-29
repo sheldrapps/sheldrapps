@@ -1,3 +1,5 @@
+import { type EpubDiagnosticIssue } from '@sheldrapps/file-kit';
+
 import { FixPage } from './fix.page';
 
 describe('FixPage', () => {
@@ -206,11 +208,12 @@ describe('FixPage', () => {
     expect(descriptor?.get?.call(ctx)).toBe('FIX.ACTION_REPAIR');
   });
 
-  it('shows the Resolve action for an ambiguous OPF diagnosis', () => {
+  it('shows the Fix action for an ambiguous OPF diagnosis and waits for a guided choice', () => {
     const ctx = Object.assign(Object.create(FixPage.prototype), {
       busyAction: undefined,
       preparedSessionId: 'session-1',
       viewState: 'diagnosed' as const,
+      selectedGuidedOptionByIssueKey: {},
       diagnosis: {
         status: 'repairable',
         issues: [
@@ -230,18 +233,91 @@ describe('FixPage', () => {
       FixPage.prototype,
       'canRepair',
     );
-    const canResolveDescriptor = Object.getOwnPropertyDescriptor(
-      FixPage.prototype,
-      'canResolve',
-    );
     const primaryDescriptor = Object.getOwnPropertyDescriptor(
       FixPage.prototype,
       'resultPrimaryActionKey',
     );
 
     expect(canRepairDescriptor?.get?.call(ctx)).toBeFalse();
-    expect(canResolveDescriptor?.get?.call(ctx)).toBeTrue();
-    expect(primaryDescriptor?.get?.call(ctx)).toBe('FIX.ACTION_RESOLVE');
+    expect(primaryDescriptor?.get?.call(ctx)).toBe('FIX.ACTION_REPAIR');
+
+    FixPage.prototype.onGuidedOptionChange.call(
+      ctx,
+      ctx.diagnosis.issues[0],
+      'OPS/alt.opf',
+    );
+
+    expect(canRepairDescriptor?.get?.call(ctx)).toBeTrue();
+    expect(
+      FixPage.prototype.selectedGuidedOption.call(ctx, ctx.diagnosis.issues[0]),
+    ).toBe('OPS/alt.opf');
+  });
+
+  it('requires confirmation checkboxes before repairing confirmation issues', () => {
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      busyAction: undefined,
+      preparedSessionId: 'session-1',
+      viewState: 'diagnosed' as const,
+      selectedConfirmationByIssueKey: {},
+      selectedGuidedOptionByIssueKey: {},
+      diagnosis: {
+        status: 'repairable',
+        issues: [
+          {
+            code: 'ORPHAN_RESOURCE_UNUSED',
+            severity: 'warning',
+            fixable: true,
+            messageKey: 'FIX.ISSUE_ORPHAN_RESOURCE_UNUSED',
+            repairMode: 'review',
+          },
+        ],
+      },
+    });
+
+    const canRepairDescriptor = Object.getOwnPropertyDescriptor(
+      FixPage.prototype,
+      'canRepair',
+    );
+
+    expect(canRepairDescriptor?.get?.call(ctx)).toBeFalse();
+
+    FixPage.prototype.onConfirmationChange.call(
+      ctx,
+      ctx.diagnosis.issues[0],
+      true,
+    );
+
+    expect(
+      FixPage.prototype.isConfirmationChecked.call(ctx, ctx.diagnosis.issues[0]),
+    ).toBeTrue();
+    expect(canRepairDescriptor?.get?.call(ctx)).toBeTrue();
+  });
+
+  it('toggles confirmation selection from the choice row handler', () => {
+    const issue = {
+      code: 'ORPHAN_RESOURCE_UNUSED',
+      severity: 'warning',
+      fixable: true,
+      messageKey: 'FIX.ISSUE_ORPHAN_RESOURCE_UNUSED',
+      repairMode: 'review',
+    } satisfies EpubDiagnosticIssue;
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      selectedConfirmationByIssueKey: {},
+      diagnosis: {
+        status: 'repairable',
+        issues: [issue],
+      },
+    });
+
+    expect(
+      FixPage.prototype.isConfirmationChecked.call(ctx, issue),
+    ).toBeFalse();
+
+    FixPage.prototype.toggleConfirmation.call(ctx, issue);
+
+    expect(
+      FixPage.prototype.isConfirmationChecked.call(ctx, issue),
+    ).toBeTrue();
   });
 
   it('shows save/share actions after an export result exists', () => {
@@ -266,6 +342,52 @@ describe('FixPage', () => {
 
     expect(canSaveShareDescriptor?.get?.call(ctx)).toBeTrue();
     expect(primaryDescriptor?.get?.call(ctx)).toBeNull();
+  });
+
+  it('shows the remove ads entry point only while ads are active', () => {
+    const billing = {
+      canShowRemoveAdsEntryPoint: jasmine
+        .createSpy('canShowRemoveAdsEntryPoint')
+        .and.returnValue(true),
+    };
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      adsRemoved: false,
+      billing,
+    });
+
+    expect(FixPage.prototype.canShowRemoveAdsEntryPoint.call(ctx)).toBeTrue();
+
+    ctx.adsRemoved = true;
+
+    expect(FixPage.prototype.canShowRemoveAdsEntryPoint.call(ctx)).toBeFalse();
+    expect(billing.canShowRemoveAdsEntryPoint).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the remove ads modal after preparing the billing UI', async () => {
+    const preparePurchaseUi = jasmine
+      .createSpy('preparePurchaseUi')
+      .and.resolveTo(undefined);
+    const billing = {
+      canShowRemoveAdsEntryPoint: jasmine
+        .createSpy('canShowRemoveAdsEntryPoint')
+        .and.returnValue(true),
+      preparePurchaseUi,
+      isBillingAvailable: jasmine
+        .createSpy('isBillingAvailable')
+        .and.returnValue(true),
+    };
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      adsRemoved: false,
+      purchaseBusy: false,
+      purchaseModalOpen: false,
+      billing,
+    });
+
+    await FixPage.prototype.openPurchaseModal.call(ctx);
+
+    expect(preparePurchaseUi).toHaveBeenCalled();
+    expect(ctx.purchaseModalOpen).toBeTrue();
+    expect(ctx.purchaseBusy).toBeFalse();
   });
 
   it('forwards a preferred OPF path to the repair workflow', async () => {
@@ -337,10 +459,176 @@ describe('FixPage', () => {
 
     await FixPage.prototype.runRepair.call(ctx, 'OPS/package.opf');
 
-    expect(repair).toHaveBeenCalledWith('OPS/package.opf');
+    expect(repair).toHaveBeenCalledWith('OPS/package.opf', undefined);
   });
 
-  it('summarizes automatic and partial diagnosis results correctly', () => {
+  it('uses the guided OPF selection when fixing an ambiguous package', async () => {
+    const repair = jasmine.createSpy('repair').and.resolveTo({
+      success: true,
+      repairedIssues: ['OPF_AMBIGUOUS'],
+    });
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      busyAction: undefined,
+      busyProgressPercent: 0,
+      preparedSessionId: 'session-1',
+      selectedEpubName: 'book.epub',
+      selectedGuidedOptionByIssueKey: {},
+      diagnosis: {
+        status: 'repairable',
+        issues: [
+          {
+            code: 'OPF_AMBIGUOUS',
+            severity: 'warning',
+            fixable: true,
+            messageKey: 'FIX.ISSUE_OPF_AMBIGUOUS',
+            repairMode: 'guided',
+            options: ['OPS/package.opf', 'OPS/alt.opf'],
+          },
+        ],
+      },
+      repairResult: undefined,
+      exportResult: undefined,
+      viewState: 'diagnosed' as const,
+      epubErrorKey: undefined,
+      epubErrorParams: {},
+      adsRemoved: true,
+      ads: {
+        showRewarded: jasmine.createSpy('showRewarded'),
+      },
+      toastCtrl: {
+        create: jasmine.createSpy('create').and.resolveTo({
+          present: jasmine.createSpy('present').and.resolveTo(undefined),
+        }),
+      },
+      translate: {
+        instant: jasmine.createSpy('instant').and.callFake((key: string) => key),
+      },
+      workflow: {
+        repairCurrentEpub: repair,
+        diagnoseCurrentEpub: jasmine.createSpy('diagnoseCurrentEpub').and.resolveTo(
+          {
+            sessionId: 'session-1',
+            status: 'valid' as const,
+            issues: [],
+          },
+        ),
+        exportCurrentEpub: jasmine.createSpy('exportCurrentEpub').and.resolveTo({
+          outputUri: 'blob:fixed',
+          size: 123,
+        }),
+        buildFixedOutputName: jasmine
+          .createSpy('buildFixedOutputName')
+          .and.returnValue('book_fixed.epub'),
+      },
+      library: {
+        saveExportedEpub: jasmine
+          .createSpy('saveExportedEpub')
+          .and.resolveTo(undefined),
+      },
+      coversEvents: {
+        emit: jasmine.createSpy('emit'),
+      },
+    });
+    const issue = ctx.diagnosis.issues[0];
+
+    FixPage.prototype.onGuidedOptionChange.call(
+      ctx,
+      issue,
+      'OPS/alt.opf',
+    );
+
+    await FixPage.prototype.onPrimaryAction.call(ctx);
+
+    const selectionKey = FixPage.prototype.issueSelectionKey.call(
+      ctx,
+      issue,
+    );
+
+    expect(repair).toHaveBeenCalledWith('OPS/alt.opf', {
+      [selectionKey]: 'OPS/alt.opf',
+    });
+  });
+
+  it('forwards guided selections for internal link repairs', async () => {
+    const repair = jasmine.createSpy('repair').and.resolveTo({
+      success: true,
+      repairedIssues: ['LINK_TARGET_MISSING'],
+    });
+    const issue = {
+      code: 'LINK_TARGET_MISSING',
+      severity: 'warning',
+      fixable: true,
+      messageKey: 'FIX.ISSUE_LINK_TARGET_MISSING',
+      repairMode: 'guided',
+      details: 'OPS/text.xhtml: ../img/cover.png',
+      options: ['OPS/media/cover.png', 'OPS/img/cover.png'],
+    } satisfies EpubDiagnosticIssue;
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      busyAction: undefined,
+      busyProgressPercent: 0,
+      preparedSessionId: 'session-1',
+      selectedEpubName: 'book.epub',
+      selectedGuidedOptionByIssueKey: {},
+      diagnosis: {
+        status: 'repairable',
+        issues: [issue],
+      },
+      repairResult: undefined,
+      exportResult: undefined,
+      viewState: 'diagnosed' as const,
+      epubErrorKey: undefined,
+      epubErrorParams: {},
+      adsRemoved: true,
+      ads: {
+        showRewarded: jasmine.createSpy('showRewarded'),
+      },
+      toastCtrl: {
+        create: jasmine.createSpy('create').and.resolveTo({
+          present: jasmine.createSpy('present').and.resolveTo(undefined),
+        }),
+      },
+      translate: {
+        instant: jasmine.createSpy('instant').and.callFake((key: string) => key),
+      },
+      workflow: {
+        repairCurrentEpub: repair,
+        diagnoseCurrentEpub: jasmine.createSpy('diagnoseCurrentEpub').and.resolveTo(
+          {
+            sessionId: 'session-1',
+            status: 'valid' as const,
+            issues: [],
+          },
+        ),
+        exportCurrentEpub: jasmine.createSpy('exportCurrentEpub').and.resolveTo({
+          outputUri: 'blob:fixed',
+          size: 123,
+        }),
+        buildFixedOutputName: jasmine
+          .createSpy('buildFixedOutputName')
+          .and.returnValue('book_fixed.epub'),
+      },
+      library: {
+        saveExportedEpub: jasmine
+          .createSpy('saveExportedEpub')
+          .and.resolveTo(undefined),
+      },
+      coversEvents: {
+        emit: jasmine.createSpy('emit'),
+      },
+    });
+
+    FixPage.prototype.onGuidedOptionChange.call(ctx, issue, 'OPS/img/cover.png');
+
+    await FixPage.prototype.runRepair.call(ctx);
+
+    const selectionKey = FixPage.prototype.issueSelectionKey.call(ctx, issue);
+
+    expect(repair).toHaveBeenCalledWith(undefined, {
+      [selectionKey]: 'OPS/img/cover.png',
+    });
+  });
+
+  it('summarizes diagnosis severity correctly', () => {
     const ctx = Object.assign(Object.create(FixPage.prototype), {
       diagnosis: {
         status: 'repairable',
@@ -357,37 +645,6 @@ describe('FixPage', () => {
             fixable: true,
             messageKey: 'FIX.ISSUE_MANIFEST_ITEM_MISSING',
           },
-        ],
-      },
-    });
-
-    const summaryDescriptor = Object.getOwnPropertyDescriptor(
-      FixPage.prototype,
-      'diagnosisSummary',
-    );
-    const overviewDescriptor = Object.getOwnPropertyDescriptor(
-      FixPage.prototype,
-      'diagnosisOverviewKey',
-    );
-
-    expect(summaryDescriptor?.get?.call(ctx)).toEqual({
-      totalIssues: 2,
-      automaticIssues: 1,
-      reviewIssues: 0,
-      guidedIssues: 0,
-      partialIssues: 1,
-      blockedIssues: 0,
-    });
-    expect(overviewDescriptor?.get?.call(ctx)).toBe(
-      'FIX.DIAGNOSIS_STATUS_PARTIAL',
-    );
-  });
-
-  it('marks blocked issues as critical', () => {
-    const ctx = Object.assign(Object.create(FixPage.prototype), {
-      diagnosis: {
-        status: 'unsupported',
-        issues: [
           {
             code: 'ZIP_UNREADABLE',
             severity: 'error',
@@ -400,27 +657,71 @@ describe('FixPage', () => {
 
     const summaryDescriptor = Object.getOwnPropertyDescriptor(
       FixPage.prototype,
-      'diagnosisSummary',
+      'diagnosisSeveritySummary',
     );
-    const overviewDescriptor = Object.getOwnPropertyDescriptor(
+    const severityDescriptor = Object.getOwnPropertyDescriptor(
       FixPage.prototype,
-      'diagnosisOverviewKey',
+      'issueSeverityLevel',
     );
 
     expect(summaryDescriptor?.get?.call(ctx)).toEqual({
-      totalIssues: 1,
-      automaticIssues: 0,
-      reviewIssues: 0,
-      guidedIssues: 0,
-      partialIssues: 0,
-      blockedIssues: 1,
+      totalIssues: 3,
+      criticalIssues: 1,
+      highIssues: 1,
+      mediumIssues: 1,
+      lowIssues: 0,
     });
-    expect(overviewDescriptor?.get?.call(ctx)).toBe(
-      'FIX.DIAGNOSIS_STATUS_CRITICAL',
-    );
+    expect(
+      severityDescriptor?.value?.call(ctx, {
+        code: 'MIMETYPE_MISSING',
+        severity: 'error',
+        fixable: true,
+        messageKey: 'FIX.ISSUE_MIMETYPE_MISSING',
+      }),
+    ).toBe('high');
   });
 
-  it('marks a clean diagnosis as ready to export', () => {
+  it('classifies manifest items as automatic repairs', () => {
+    expect(
+      FixPage.prototype.issueRepairMode.call(Object.create(FixPage.prototype), {
+        code: 'MANIFEST_ITEM_MISSING',
+        severity: 'warning',
+        fixable: true,
+        messageKey: 'FIX.ISSUE_MANIFEST_ITEM_MISSING',
+      }),
+    ).toBe('automatic');
+    expect(
+      FixPage.prototype.issueRepairMode.call(Object.create(FixPage.prototype), {
+        code: 'SPINE_ITEM_INVALID',
+        severity: 'warning',
+        fixable: true,
+        messageKey: 'FIX.ISSUE_SPINE_ITEM_INVALID',
+      }),
+    ).toBe('automatic');
+    expect(
+      FixPage.prototype.issueRepairMode.call(Object.create(FixPage.prototype), {
+        code: 'ORPHAN_RESOURCE_UNUSED',
+        severity: 'warning',
+        fixable: true,
+        messageKey: 'FIX.ISSUE_ORPHAN_RESOURCE_UNUSED',
+      }),
+    ).toBe('review');
+  });
+
+  it('maps blocked issues to critical severity', () => {
+    const ctx = Object.assign(Object.create(FixPage.prototype), {});
+
+    expect(
+      FixPage.prototype.issueSeverityLevel.call(ctx, {
+        code: 'ZIP_UNREADABLE',
+        severity: 'error',
+        fixable: false,
+        messageKey: 'FIX.ISSUE_ZIP_UNREADABLE',
+      }),
+    ).toBe('critical');
+  });
+
+  it('returns a severity summary for a clean diagnosis', () => {
     const ctx = Object.assign(Object.create(FixPage.prototype), {
       diagnosis: {
         status: 'valid',
@@ -428,13 +729,166 @@ describe('FixPage', () => {
       },
     });
 
-    const overviewDescriptor = Object.getOwnPropertyDescriptor(
+    const summaryDescriptor = Object.getOwnPropertyDescriptor(
       FixPage.prototype,
-      'diagnosisOverviewKey',
+      'diagnosisSeveritySummary',
     );
 
-    expect(overviewDescriptor?.get?.call(ctx)).toBe(
-      'FIX.DIAGNOSIS_STATUS_READY',
+    expect(summaryDescriptor?.get?.call(ctx)).toEqual({
+      totalIssues: 0,
+      criticalIssues: 0,
+      highIssues: 0,
+      mediumIssues: 0,
+      lowIssues: 0,
+    });
+  });
+
+  it('orders auto-fixable issues by severity first', () => {
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      diagnosis: {
+        status: 'repairable',
+        issues: [
+          {
+            code: 'MIMETYPE_INVALID',
+            severity: 'info',
+            fixable: true,
+            messageKey: 'FIX.ISSUE_MIMETYPE_INVALID',
+          },
+          {
+            code: 'MIMETYPE_MISSING',
+            severity: 'error',
+            fixable: true,
+            messageKey: 'FIX.ISSUE_MIMETYPE_MISSING',
+          },
+          {
+            code: 'MANIFEST_ITEM_MISSING',
+            severity: 'warning',
+            fixable: true,
+            messageKey: 'FIX.ISSUE_MANIFEST_ITEM_MISSING',
+          },
+          {
+            code: 'OPF_AMBIGUOUS',
+            severity: 'warning',
+            fixable: true,
+            messageKey: 'FIX.ISSUE_OPF_AMBIGUOUS',
+            repairMode: 'guided',
+          },
+          {
+            code: 'ZIP_UNREADABLE',
+            severity: 'error',
+            fixable: false,
+            messageKey: 'FIX.ISSUE_ZIP_UNREADABLE',
+          },
+        ],
+      },
+    });
+
+    const issuesDescriptor = Object.getOwnPropertyDescriptor(
+      FixPage.prototype,
+      'autoFixableIssues',
+    );
+
+    expect(
+      issuesDescriptor?.get?.call(ctx).map((issue: { messageKey: string }) => issue.messageKey),
+    ).toEqual([
+      'FIX.ISSUE_MIMETYPE_MISSING',
+      'FIX.ISSUE_MANIFEST_ITEM_MISSING',
+      'FIX.ISSUE_MIMETYPE_INVALID',
+    ]);
+  });
+
+  it('keeps manual intervention issues limited to guided items', () => {
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      diagnosis: {
+        status: 'repairable',
+        issues: [
+          {
+            code: 'OPF_AMBIGUOUS',
+            severity: 'warning',
+            fixable: true,
+            messageKey: 'FIX.ISSUE_OPF_AMBIGUOUS',
+            repairMode: 'guided',
+          },
+        ],
+      },
+    });
+
+    const issuesDescriptor = Object.getOwnPropertyDescriptor(
+      FixPage.prototype,
+      'manualInterventionIssues',
+    );
+
+    expect(
+      issuesDescriptor?.get?.call(ctx).map((issue: { messageKey: string }) => issue.messageKey),
+    ).toEqual([
+      'FIX.ISSUE_OPF_AMBIGUOUS',
+    ]);
+  });
+
+  it('groups the issue list by repairability section', () => {
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      diagnosis: {
+        status: 'repairable',
+        issues: [
+          {
+            code: 'MIMETYPE_MISSING',
+            severity: 'error',
+            fixable: true,
+            messageKey: 'FIX.ISSUE_MIMETYPE_MISSING',
+          },
+          {
+            code: 'ORPHAN_RESOURCE_UNUSED',
+            severity: 'warning',
+            fixable: true,
+            messageKey: 'FIX.ISSUE_ORPHAN_RESOURCE_UNUSED',
+            repairMode: 'review',
+          },
+          {
+            code: 'OPF_AMBIGUOUS',
+            severity: 'warning',
+            fixable: true,
+            messageKey: 'FIX.ISSUE_OPF_AMBIGUOUS',
+            repairMode: 'guided',
+          },
+          {
+            code: 'ZIP_UNREADABLE',
+            severity: 'error',
+            fixable: false,
+            messageKey: 'FIX.ISSUE_ZIP_UNREADABLE',
+          },
+        ],
+      },
+    });
+
+    const sectionsDescriptor = Object.getOwnPropertyDescriptor(
+      FixPage.prototype,
+      'issueSections',
+    );
+
+    expect(
+      sectionsDescriptor?.get?.call(ctx).map((section: { key: string; count: number }) => ({
+        key: section.key,
+        count: section.count,
+      })),
+    ).toEqual([
+      { key: 'automatic', count: 1 },
+      { key: 'confirmation', count: 1 },
+      { key: 'manual', count: 1 },
+      { key: 'blocked', count: 1 },
+    ]);
+  });
+
+  it('treats unresolved internal link issues as blocked', () => {
+    const issue = {
+      code: 'LINK_TARGET_MISSING',
+      severity: 'warning',
+      fixable: false,
+      messageKey: 'FIX.ISSUE_LINK_TARGET_MISSING',
+    } as const;
+    const ctx = Object.create(FixPage.prototype);
+
+    expect(FixPage.prototype.issueRepairMode.call(ctx, issue)).toBe(
+      'not_repairable',
     );
   });
 

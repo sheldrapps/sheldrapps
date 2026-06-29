@@ -10,17 +10,27 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 final class EpubCoverLocator {
+    private static final Pattern ROOTFILE_FULL_PATH_PATTERN =
+        Pattern.compile(
+            "<rootfile\\b[^>]*\\bfull-path\\s*=\\s*(['\"])(.*?)\\1",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
+        );
+
     String findCoverEntryPath(ZipFile zipFile, List<FileHeader> headers) throws IOException {
         String opfPath = resolveOpfPath(zipFile, headers);
         if (opfPath != null) {
@@ -76,13 +86,25 @@ final class EpubCoverLocator {
             return null;
         }
 
-        Document containerDocument = readEntryXml(zipFile, containerHeader);
-        Element rootfile = firstElementByName(containerDocument, "rootfile");
-        if (rootfile == null) {
-            return null;
+        Document containerDocument = null;
+        try {
+            containerDocument = readEntryXml(zipFile, containerHeader);
+        } catch (IOException ignored) {
+            // Fall back to raw-text extraction below.
         }
 
-        String opfPath = normalizeZipPath(rootfile.getAttribute("full-path"));
+        if (containerDocument != null) {
+            Element rootfile = firstElementByName(containerDocument, "rootfile");
+            if (rootfile != null) {
+                String opfPath = normalizeZipPath(rootfile.getAttribute("full-path"));
+                if (CompatStrings.isNotBlank(opfPath)) {
+                    return findHeader(headers, opfPath) == null ? null : opfPath;
+                }
+            }
+        }
+
+        String containerText = readEntryText(zipFile, containerHeader);
+        String opfPath = extractDeclaredOpfPathFromContainerText(containerText);
         if (CompatStrings.isBlank(opfPath)) {
             return null;
         }
@@ -190,6 +212,32 @@ final class EpubCoverLocator {
         } catch (ParserConfigurationException | SAXException ex) {
             throw new IOException("Unable to parse XML entry: " + header.getFileName(), ex);
         }
+    }
+
+    private String readEntryText(ZipFile zipFile, FileHeader header) throws IOException {
+        try (InputStream inputStream = new BufferedInputStream(zipFile.getInputStream(header))) {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int read;
+            while ((read = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, read);
+            }
+            return outputStream.toString(StandardCharsets.UTF_8.name());
+        }
+    }
+
+    private String extractDeclaredOpfPathFromContainerText(String containerText) {
+        if (CompatStrings.isBlank(containerText)) {
+            return null;
+        }
+
+        Matcher matcher = ROOTFILE_FULL_PATH_PATTERN.matcher(containerText);
+        if (!matcher.find()) {
+            return null;
+        }
+
+        String opfPath = normalizeZipPath(matcher.group(2));
+        return CompatStrings.isBlank(opfPath) ? null : opfPath;
     }
 
     private void configureSecureXmlFactory(DocumentBuilderFactory factory)

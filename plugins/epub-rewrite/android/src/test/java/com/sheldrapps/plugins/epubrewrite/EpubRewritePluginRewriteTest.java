@@ -4,13 +4,27 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.model.ZipParameters;
+
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class EpubRewritePluginRewriteTest {
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     @Test
     public void relativizeZipPathBuildsExpectedRelativePath() throws Exception {
         EpubRewritePlugin plugin = new EpubRewritePlugin();
@@ -187,6 +201,49 @@ public class EpubRewritePluginRewriteTest {
         assertTrue(shouldRewriteContainer);
     }
 
+    @Test
+    public void malformedContainerFallsBackToDeclaredOpfPath() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        ZipFile zipFile = buildZip(
+            orderedEntries(
+                "mimetype", utf8("application/epub+zip"),
+                "META-INF/container.xml", utf8(
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">\n"
+                        + "  <rootfiles>\n"
+                        + "    <rootfile full-path=\"OPS/package.xml\" media-type=\"application/oebps-package+xml\"/>\n"
+                        + "  </rootfilesX>\n"
+                        + "</container>"
+                ),
+                "OPS/package.xml", utf8(
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\">\n"
+                        + "  <manifest>\n"
+                        + "    <item id=\"chapter-1\" href=\"text/ch1.xhtml\" media-type=\"application/xhtml+xml\"/>\n"
+                        + "  </manifest>\n"
+                        + "  <spine>\n"
+                        + "    <itemref idref=\"chapter-1\"/>\n"
+                        + "  </spine>\n"
+                        + "</package>"
+                ),
+                "OPS/text/ch1.xhtml", utf8(
+                    "<html xmlns=\"http://www.w3.org/1999/xhtml\"><body>Hi</body></html>"
+                )
+            )
+        );
+
+        String opfPath = invokeString(
+            plugin,
+            "findPrimaryOpfPath",
+            new Class<?>[] { ZipFile.class, List.class, String.class },
+            zipFile,
+            zipFile.getFileHeaders(),
+            null
+        );
+
+        assertEquals("OPS/package.xml", opfPath);
+    }
+
     private String invokeString(
         Object target,
         String methodName,
@@ -274,5 +331,28 @@ public class EpubRewritePluginRewriteTest {
 
         int lastSlash = path.lastIndexOf('/');
         return lastSlash < 0 ? "" : path.substring(0, lastSlash);
+    }
+
+    private ZipFile buildZip(Map<String, byte[]> entries) throws Exception {
+        File zipPath = temporaryFolder.newFile("sample-" + System.nanoTime() + ".epub");
+        ZipFile zipFile = new ZipFile(zipPath);
+        for (Map.Entry<String, byte[]> entry : entries.entrySet()) {
+            ZipParameters parameters = new ZipParameters();
+            parameters.setFileNameInZip(entry.getKey());
+            zipFile.addStream(new ByteArrayInputStream(entry.getValue()), parameters);
+        }
+        return zipFile;
+    }
+
+    private Map<String, byte[]> orderedEntries(Object... values) {
+        Map<String, byte[]> entries = new LinkedHashMap<>();
+        for (int index = 0; index < values.length; index += 2) {
+            entries.put((String) values[index], (byte[]) values[index + 1]);
+        }
+        return entries;
+    }
+
+    private byte[] utf8(String value) {
+        return value.getBytes(StandardCharsets.UTF_8);
     }
 }

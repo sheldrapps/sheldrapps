@@ -10,10 +10,8 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import {
-  AlertController,
   IonButtons,
   IonButton,
-  IonBadge,
   IonCol,
   IonContent,
   IonHeader,
@@ -21,8 +19,12 @@ import {
   IonItem,
   IonLabel,
   IonGrid,
+  IonCheckbox,
+  IonModal,
   IonPopover,
   IonRow,
+  IonRadio,
+  IonRadioGroup,
   IonTitle,
   IonToolbar,
   ModalController,
@@ -32,16 +34,17 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
 import {
   alertCircleOutline,
-  appsOutline,
   checkmarkCircle,
+  chevronDownOutline,
+  appsOutline,
   documentOutline,
   helpCircleOutline,
-  informationCircleOutline,
   saveOutline,
   shareSocialOutline,
   sparklesOutline,
 } from 'ionicons/icons';
 import {
+  buildEpubIssueSelectionKey,
   classifyEpubDiagnosticRepairMode,
   EpubDiagnosticResult,
   type EpubDiagnosticRepairMode,
@@ -75,6 +78,17 @@ import {
   type LoadedGeneratedEpub,
 } from '../../services/epub-library.service';
 
+type DiagnosisSeverityLevel = 'critical' | 'high' | 'medium' | 'low';
+type IssueSectionKind = 'automatic' | 'confirmation' | 'manual' | 'blocked';
+
+type IssueSectionView = {
+  key: string;
+  labelKey: string;
+  kind: IssueSectionKind;
+  issues: EpubDiagnosticIssue[];
+  count: number;
+};
+
 @Component({
   selector: 'app-fix-page',
   standalone: true,
@@ -83,7 +97,6 @@ import {
   imports: [
     CommonModule,
     TranslateModule,
-    IonBadge,
     IonButton,
     IonCol,
     IonContent,
@@ -91,9 +104,13 @@ import {
     IonHeader,
     IonButtons,
     IonIcon,
+    IonCheckbox,
     IonItem,
     IonLabel,
+    IonModal,
     IonPopover,
+    IonRadio,
+    IonRadioGroup,
     IonRow,
     IonTitle,
     IonToolbar,
@@ -105,7 +122,6 @@ import {
 export class FixPage implements OnInit, OnDestroy {
   private readonly workflow = inject(EpubFixerWorkflowService);
   private readonly modalCtrl = inject(ModalController);
-  private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
   private readonly library = inject(EpubLibraryService);
   private readonly ads = inject(AdsService);
@@ -121,11 +137,11 @@ export class FixPage implements OnInit, OnDestroy {
   constructor() {
     addIcons({
       alertCircleOutline,
-      appsOutline,
       checkmarkCircle,
+      chevronDownOutline,
+      appsOutline,
       documentOutline,
       helpCircleOutline,
-      informationCircleOutline,
       saveOutline,
       shareSocialOutline,
       sparklesOutline,
@@ -151,6 +167,9 @@ export class FixPage implements OnInit, OnDestroy {
     outputName: string;
     outputUri: string;
   };
+  removeAdsPriceFormatted: string | null = null;
+  purchaseModalOpen = false;
+  purchaseBusy = false;
 
   viewState:
     | 'idle'
@@ -166,7 +185,10 @@ export class FixPage implements OnInit, OnDestroy {
   busyProgressPercent = 0;
   adsRemoved = false;
   private adsRemovedSub?: Subscription;
+  private removeAdsPriceSub?: Subscription;
   private lastHandledProjectRouteKey: string | null = null;
+  private selectedConfirmationByIssueKey: Record<string, boolean> = {};
+  private selectedGuidedOptionByIssueKey: Record<string, string> = {};
 
   infoOpen = false;
   infoEvent: Event | null = null;
@@ -222,16 +244,8 @@ export class FixPage implements OnInit, OnDestroy {
       !this.isBusy &&
       this.viewState === 'diagnosed' &&
       this.diagnosis?.status === 'repairable' &&
-      !this.hasGuidedResolutionIssue
-    );
-  }
-
-  get canResolve(): boolean {
-    return (
-      !!this.preparedSessionId &&
-      !this.isBusy &&
-      this.viewState === 'diagnosed' &&
-      this.hasGuidedResolutionIssue
+      !this.hasPendingConfirmationSelection &&
+      !this.hasPendingGuidedSelection
     );
   }
 
@@ -271,12 +285,103 @@ export class FixPage implements OnInit, OnDestroy {
     return this.hasValidEpub() && !!this.diagnosis;
   }
 
+  get diagnosisSeveritySummary(): {
+    totalIssues: number;
+    criticalIssues: number;
+    highIssues: number;
+    mediumIssues: number;
+    lowIssues: number;
+  } {
+    const issues = this.diagnosis?.issues ?? [];
+    const summary = {
+      criticalIssues: 0,
+      highIssues: 0,
+      mediumIssues: 0,
+      lowIssues: 0,
+    };
+
+    for (const issue of issues) {
+      switch (this.issueSeverityLevel(issue)) {
+        case 'critical':
+          summary.criticalIssues += 1;
+          break;
+        case 'high':
+          summary.highIssues += 1;
+          break;
+        case 'medium':
+          summary.mediumIssues += 1;
+          break;
+        case 'low':
+          summary.lowIssues += 1;
+          break;
+      }
+    }
+
+    return {
+      totalIssues: issues.length,
+      ...summary,
+    };
+  }
+
+  get autoFixableIssueCount(): number {
+    return (
+      this.diagnosisSummary.automaticIssues + this.diagnosisSummary.reviewIssues
+    );
+  }
+
+  get autoFixableIssues(): EpubDiagnosticIssue[] {
+    return this.issuesByMode('automatic', 'review');
+  }
+
+  get manualInterventionIssues(): EpubDiagnosticIssue[] {
+    return this.issuesByMode('guided');
+  }
+
+  get issueSections(): IssueSectionView[] {
+    const sections: IssueSectionView[] = [
+      {
+        key: 'automatic',
+        labelKey: 'FIX.DIAGNOSIS_FIXABLE',
+        kind: 'automatic',
+        issues: this.issuesByMode('automatic'),
+        count: 0,
+      },
+      {
+        key: 'confirmation',
+        labelKey: 'FIX.DIAGNOSIS_REVIEW',
+        kind: 'confirmation',
+        issues: this.issuesByMode('review'),
+        count: 0,
+      },
+      {
+        key: 'manual',
+        labelKey: 'FIX.DIAGNOSIS_GUIDED',
+        kind: 'manual',
+        issues: this.issuesByMode('guided'),
+        count: 0,
+      },
+      {
+        key: 'blocked',
+        labelKey: 'FIX.DIAGNOSIS_BLOCKED',
+        kind: 'blocked',
+        issues: this.issuesByMode('not_repairable'),
+        count: 0,
+      },
+    ];
+
+    return sections
+      .map((section) => ({
+        ...section,
+        count: section.issues.length,
+      }))
+      .filter((section) => section.count > 0);
+  }
+
   get diagnosisSummary(): {
     totalIssues: number;
     automaticIssues: number;
     reviewIssues: number;
     guidedIssues: number;
-    partialIssues: number;
     blockedIssues: number;
   } {
     const issues = this.diagnosis?.issues ?? [];
@@ -284,7 +389,6 @@ export class FixPage implements OnInit, OnDestroy {
       automaticIssues: 0,
       reviewIssues: 0,
       guidedIssues: 0,
-      partialIssues: 0,
       blockedIssues: 0,
     };
 
@@ -299,9 +403,6 @@ export class FixPage implements OnInit, OnDestroy {
         case 'guided':
           summary.guidedIssues += 1;
           break;
-        case 'partial_recovery':
-          summary.partialIssues += 1;
-          break;
         case 'not_repairable':
           summary.blockedIssues += 1;
           break;
@@ -314,76 +415,91 @@ export class FixPage implements OnInit, OnDestroy {
     };
   }
 
-  get diagnosisOverviewKey(): string | null {
-    if (!this.diagnosis) {
-      return null;
-    }
-
-    const {
-      totalIssues,
-      automaticIssues,
-      reviewIssues,
-      guidedIssues,
-      partialIssues,
-      blockedIssues,
-    } = this.diagnosisSummary;
-
-    if (this.diagnosis.status === 'valid' || totalIssues === 0) {
-      return 'FIX.DIAGNOSIS_STATUS_READY';
-    }
-
-    if (
-      this.diagnosis.status === 'failed' ||
-      this.diagnosis.status === 'unsupported' ||
-      blockedIssues > 0
-    ) {
-      return 'FIX.DIAGNOSIS_STATUS_CRITICAL';
-    }
-
-    if (guidedIssues > 0) {
-      return 'FIX.DIAGNOSIS_STATUS_GUIDED';
-    }
-
-    if (partialIssues > 0) {
-      return 'FIX.DIAGNOSIS_STATUS_PARTIAL';
-    }
-
-    if (reviewIssues > 0) {
-      return 'FIX.DIAGNOSIS_STATUS_REVIEW';
-    }
-
-    if (automaticIssues > 0) {
-      return 'FIX.DIAGNOSIS_STATUS_REPAIRABLE';
-    }
-
-    return 'FIX.DIAGNOSIS_STATUS_CRITICAL';
-  }
-
-  get hasGuidedResolutionIssue(): boolean {
-    return (
-      this.diagnosis?.issues.some(
-        (issue) => this.issueRepairMode(issue) === 'guided',
-      ) ?? false
-    );
-  }
-
-  get guidedResolutionIssue(): EpubDiagnosticIssue | undefined {
-    return this.diagnosis?.issues.find(
-      (issue) => this.issueRepairMode(issue) === 'guided',
-    );
+  get diagnosisSeveritySegments(): Array<{
+    level: DiagnosisSeverityLevel;
+    count: number;
+  }> {
+    return [
+      {
+        level: 'critical' as const,
+        count: this.diagnosisSeveritySummary.criticalIssues,
+      },
+      {
+        level: 'high' as const,
+        count: this.diagnosisSeveritySummary.highIssues,
+      },
+      {
+        level: 'medium' as const,
+        count: this.diagnosisSeveritySummary.mediumIssues,
+      },
+      {
+        level: 'low' as const,
+        count: this.diagnosisSeveritySummary.lowIssues,
+      },
+    ];
   }
 
   get resultPrimaryActionKey(): string | null {
-    if (this.canResolve) {
-      return 'FIX.ACTION_RESOLVE';
-    }
-    if (this.canRepair && !this.exportResult) {
+    if (
+      this.viewState === 'diagnosed' &&
+      this.diagnosis?.status === 'repairable' &&
+      !this.exportResult
+    ) {
       return 'FIX.ACTION_REPAIR';
     }
     if (this.canExport && !this.exportResult) {
       return 'FIX.ACTION_EXPORT';
     }
     return null;
+  }
+
+  canShowRemoveAdsEntryPoint(): boolean {
+    return !this.adsRemoved && this.billing.canShowRemoveAdsEntryPoint();
+  }
+
+  getRemoveAdsCtaSubtitleKey(): string {
+    return this.removeAdsPriceFormatted
+      ? 'COMMON.REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE'
+      : 'COMMON.REMOVE_ADS_CTA_SUBTITLE';
+  }
+
+  getRemoveAdsPriceParams(): Record<string, string> {
+    return this.removeAdsPriceFormatted
+      ? { price: this.removeAdsPriceFormatted }
+      : {};
+  }
+
+  getRemoveAdsPurchaseState(): 'ready' | 'unavailable' {
+    return this.billing.isBillingAvailable() ? 'ready' : 'unavailable';
+  }
+
+  getRemoveAdsModalDescriptionKey(): string {
+    return this.getRemoveAdsPurchaseState() === 'ready'
+      ? 'COMMON.REMOVE_ADS_DESCRIPTION'
+      : 'COMMON.BILLING_UNAVAILABLE';
+  }
+
+  shouldShowRemoveAdsModalPrice(): boolean {
+    return (
+      this.getRemoveAdsPurchaseState() === 'ready' &&
+      !!this.removeAdsPriceFormatted
+    );
+  }
+
+  canPurchaseRemoveAds(): boolean {
+    return (
+      this.canShowRemoveAdsEntryPoint() &&
+      this.getRemoveAdsPurchaseState() === 'ready' &&
+      !this.purchaseBusy
+    );
+  }
+
+  canRestoreRemoveAds(): boolean {
+    return (
+      this.canShowRemoveAdsEntryPoint() &&
+      this.getRemoveAdsPurchaseState() === 'ready' &&
+      !this.purchaseBusy
+    );
   }
 
   async ngOnInit(): Promise<void> {
@@ -393,11 +509,17 @@ export class FixPage implements OnInit, OnDestroy {
       this.adsRemoved = value;
     });
     this.adsRemoved = this.billing.isAdsRemoved();
+    this.removeAdsPriceFormatted = this.billing.getRemoveAdsPriceFormatted();
+    this.removeAdsPriceSub = this.billing.removeAdsPrice$.subscribe((value) => {
+      this.removeAdsPriceFormatted = value;
+    });
   }
 
   ngOnDestroy(): void {
     this.closeInfo();
+    this.closePurchaseModal();
     this.adsRemovedSub?.unsubscribe();
+    this.removeAdsPriceSub?.unsubscribe();
     void this.cleanupPreparedEpub();
   }
 
@@ -497,6 +619,7 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   async runRepair(preferredOpfPath?: string): Promise<void> {
+    const guidedSelections = this.guidedRepairSelections;
     if (
       !this.preparedSessionId ||
       (!this.canRepair && !preferredOpfPath)
@@ -518,6 +641,7 @@ export class FixPage implements OnInit, OnDestroy {
 
       this.repairResult = await this.workflow.repairCurrentEpub(
         preferredOpfPath,
+        guidedSelections,
       );
       if (!this.repairResult.success) {
         this.failWorkflow('EPUB_ERROR_REWRITE');
@@ -598,6 +722,76 @@ export class FixPage implements OnInit, OnDestroy {
     });
   }
 
+  async openPurchaseModal(): Promise<void> {
+    if (!this.canShowRemoveAdsEntryPoint() || this.purchaseBusy) {
+      return;
+    }
+
+    this.purchaseBusy = true;
+    try {
+      await this.billing.preparePurchaseUi();
+    } finally {
+      this.purchaseBusy = false;
+    }
+
+    if (!this.canShowRemoveAdsEntryPoint()) {
+      return;
+    }
+
+    this.purchaseModalOpen = true;
+  }
+
+  closePurchaseModal(): void {
+    this.purchaseModalOpen = false;
+  }
+
+  onPurchaseModalCloseClick(): void {
+    this.closePurchaseModal();
+  }
+
+  async onPurchaseRemoveAds(): Promise<void> {
+    if (!this.canPurchaseRemoveAds()) {
+      return;
+    }
+
+    this.purchaseBusy = true;
+    try {
+      const success = await this.billing.purchaseRemoveAds();
+      if (!success) {
+        return;
+      }
+
+      this.closePurchaseModal();
+      await this.showToast('COMMON.REMOVE_ADS_PURCHASED', 1800, 'success');
+    } catch {
+      await this.showToast('COMMON.PURCHASE_ERROR', 1800, 'error');
+    } finally {
+      this.purchaseBusy = false;
+    }
+  }
+
+  async onRestorePurchases(): Promise<void> {
+    if (!this.canRestoreRemoveAds()) {
+      return;
+    }
+
+    this.purchaseBusy = true;
+    try {
+      const restored = await this.billing.restorePurchases();
+      if (!restored) {
+        await this.showToast('COMMON.RESTORE_ERROR', 1800, 'error');
+        return;
+      }
+
+      this.closePurchaseModal();
+      await this.showToast('COMMON.REMOVE_ADS_RESTORED', 1800, 'success');
+    } catch {
+      await this.showToast('COMMON.RESTORE_ERROR', 1800, 'error');
+    } finally {
+      this.purchaseBusy = false;
+    }
+  }
+
   openInfo(): void {
     this.infoEvent = null;
     this.infoOpen = true;
@@ -615,8 +809,6 @@ export class FixPage implements OnInit, OnDestroy {
         return 'FIX.REPAIR_MODE_REVIEW';
       case 'guided':
         return 'FIX.REPAIR_MODE_GUIDED';
-      case 'partial_recovery':
-        return 'FIX.REPAIR_MODE_PARTIAL';
       case 'not_repairable':
         return 'FIX.REPAIR_MODE_BLOCKED';
     }
@@ -632,8 +824,6 @@ export class FixPage implements OnInit, OnDestroy {
         return 'warning';
       case 'guided':
         return 'tertiary';
-      case 'partial_recovery':
-        return 'medium';
       case 'not_repairable':
         return 'danger';
     }
@@ -641,14 +831,43 @@ export class FixPage implements OnInit, OnDestroy {
     return 'danger';
   }
 
-  async onPrimaryAction(): Promise<void> {
-    if (this.canResolve) {
-      await this.resolveGuidedRepair();
-      return;
+  issueSeverityLevel(issue: EpubDiagnosticIssue): DiagnosisSeverityLevel {
+    const repairMode = this.issueRepairMode(issue);
+    if (repairMode === 'not_repairable') {
+      return 'critical';
     }
 
+    if (repairMode === 'guided') {
+      return issue.severity === 'error' ? 'critical' : 'high';
+    }
+
+    if (issue.severity === 'error') {
+      return 'high';
+    }
+
+    if (issue.severity === 'warning') {
+      return 'medium';
+    }
+
+    return 'low';
+  }
+
+  diagnosisSeverityLabelKey(level: DiagnosisSeverityLevel): string {
+    switch (level) {
+      case 'critical':
+        return 'FIX.DIAGNOSIS_SEVERITY_CRITICAL';
+      case 'high':
+        return 'FIX.DIAGNOSIS_SEVERITY_HIGH';
+      case 'medium':
+        return 'FIX.DIAGNOSIS_SEVERITY_MEDIUM';
+      case 'low':
+        return 'FIX.DIAGNOSIS_SEVERITY_LOW';
+    }
+  }
+
+  async onPrimaryAction(): Promise<void> {
     if (this.canRepair) {
-      await this.runRepair();
+      await this.runRepair(this.guidedRepairPreferredOpfPath);
       return;
     }
 
@@ -670,41 +889,46 @@ export class FixPage implements OnInit, OnDestroy {
     this.infoEvent = null;
   }
 
-  private async resolveGuidedRepair(): Promise<void> {
-    const issue = this.guidedResolutionIssue;
-    const options = issue?.options?.filter((option) => !!option.trim()) ?? [];
-    if (!issue || options.length === 0) {
-      return;
+  private issuesByMode(...modes: EpubDiagnosticRepairMode[]): EpubDiagnosticIssue[] {
+    const issues = this.diagnosis?.issues ?? [];
+    if (issues.length === 0) {
+      return [];
     }
 
-    const alert = await this.alertCtrl.create({
-      header: this.translate.instant('FIX.RESOLVE_OPF_TITLE'),
-      message: this.translate.instant('FIX.RESOLVE_OPF_MESSAGE'),
-      inputs: options.map((option, index) => ({
-        type: 'radio',
-        label: option,
-        value: option,
-        checked: index === 0,
-      })),
-      buttons: [
-        {
-          text: this.translate.instant('COMMON.CANCEL'),
-          role: 'cancel',
-        },
-        {
-          text: this.translate.instant('FIX.RESOLVE_OPF_CONFIRM'),
-          role: 'confirm',
-        },
-      ],
-    });
+    const allowedModes = new Set(modes);
+    const severityOrder: Record<DiagnosisSeverityLevel, number> = {
+      critical: 0,
+      high: 1,
+      medium: 2,
+      low: 3,
+    };
 
-    await alert.present();
-    const { data, role } = await alert.onDidDismiss<string>();
-    if (role !== 'confirm' || typeof data !== 'string') {
-      return;
-    }
+    const modeOrder: Record<EpubDiagnosticRepairMode, number> = {
+      automatic: 0,
+      review: 1,
+      guided: 2,
+      not_repairable: 3,
+    };
 
-    await this.runRepair(data);
+    return issues
+      .filter((issue) => allowedModes.has(this.issueRepairMode(issue)))
+      .sort((left, right) => {
+        const severityDelta =
+          severityOrder[this.issueSeverityLevel(left)] -
+          severityOrder[this.issueSeverityLevel(right)];
+        if (severityDelta !== 0) {
+          return severityDelta;
+        }
+
+        const leftModeDelta = modeOrder[this.issueRepairMode(left)];
+        const rightModeDelta = modeOrder[this.issueRepairMode(right)];
+        const modeDelta = leftModeDelta - rightModeDelta;
+        if (modeDelta !== 0) {
+          return modeDelta;
+        }
+
+        return left.messageKey.localeCompare(right.messageKey);
+      });
   }
 
   private async tryOpenProjectFromRoute(): Promise<void> {
@@ -864,12 +1088,16 @@ export class FixPage implements OnInit, OnDestroy {
     }
   }
 
-  private async showToast(messageKey: string, duration = 1600): Promise<void> {
+  private async showToast(
+    messageKey: string,
+    duration = 1600,
+    kind: 'success' | 'error' = 'success',
+  ): Promise<void> {
     const toast = await this.toastCtrl.create({
       message: this.translate.instant(messageKey),
       duration,
       position: 'middle',
-      cssClass: ['cc-toast', 'cc-toast--success'],
+      cssClass: ['cc-toast', `cc-toast--${kind}`],
     });
     await toast.present();
   }
@@ -939,6 +1167,8 @@ export class FixPage implements OnInit, OnDestroy {
     await this.cleanupPreparedEpub();
     this.clearEpubError();
     this.lastHandledProjectRouteKey = null;
+    this.selectedConfirmationByIssueKey = {};
+    this.selectedGuidedOptionByIssueKey = {};
 
     this.preparedSessionId = undefined;
     this.selectedEpubName = undefined;
@@ -986,6 +1216,8 @@ export class FixPage implements OnInit, OnDestroy {
     this.diagnosis = undefined;
     this.repairResult = undefined;
     this.exportResult = undefined;
+    this.selectedGuidedOptionByIssueKey = {};
+    this.selectedConfirmationByIssueKey = {};
     this.viewState = 'failed';
   }
 
@@ -1010,6 +1242,78 @@ export class FixPage implements OnInit, OnDestroy {
       this.failWorkflow('EPUB_ERROR_REWRITE', error);
       return false;
     }
+  }
+
+  issueOptions(issue: EpubDiagnosticIssue): string[] {
+    return (issue.options ?? []).map((option) => option.trim()).filter(Boolean);
+  }
+
+  issueSelectionKey(issue: EpubDiagnosticIssue): string {
+    return buildEpubIssueSelectionKey({
+      code: issue.code,
+      details: issue.details,
+      options: this.issueOptions(issue),
+    });
+  }
+
+  selectedGuidedOption(issue: EpubDiagnosticIssue): string | undefined {
+    const options = this.issueOptions(issue);
+    const selected = (this.selectedGuidedOptionByIssueKey ?? {})[
+      this.issueSelectionKey(issue)
+    ];
+
+    if (selected && options.includes(selected)) {
+      return selected;
+    }
+
+    if (options.length === 1) {
+      return options[0];
+    }
+
+    return undefined;
+  }
+
+  onGuidedOptionChange(
+    issue: EpubDiagnosticIssue,
+    value?: string | null,
+  ): void {
+    const key = this.issueSelectionKey(issue);
+    if (!value || !value.trim()) {
+      if (this.selectedGuidedOptionByIssueKey) {
+        delete this.selectedGuidedOptionByIssueKey[key];
+      }
+      return;
+    }
+
+    this.selectedGuidedOptionByIssueKey ??= {};
+    this.selectedGuidedOptionByIssueKey[key] = value;
+  }
+
+  isConfirmationChecked(issue: EpubDiagnosticIssue): boolean {
+    return (
+      (this.selectedConfirmationByIssueKey ?? {})[this.issueSelectionKey(issue)] ??
+      false
+    );
+  }
+
+  onConfirmationChange(
+    issue: EpubDiagnosticIssue,
+    checked?: boolean | null,
+  ): void {
+    const key = this.issueSelectionKey(issue);
+    if (!checked) {
+      if (this.selectedConfirmationByIssueKey) {
+        delete this.selectedConfirmationByIssueKey[key];
+      }
+      return;
+    }
+
+    this.selectedConfirmationByIssueKey ??= {};
+    this.selectedConfirmationByIssueKey[key] = true;
+  }
+
+  toggleConfirmation(issue: EpubDiagnosticIssue): void {
+    this.onConfirmationChange(issue, !this.isConfirmationChecked(issue));
   }
 
   private clearEpubError(): void {
@@ -1044,6 +1348,63 @@ export class FixPage implements OnInit, OnDestroy {
     if (error) {
       console.error('[epub-fixer] workflow action failed', error);
     }
+  }
+
+  private get guidedRepairPreferredOpfPath(): string | undefined {
+    const guidedIssue = this.diagnosis?.issues.find(
+      (issue) =>
+        issue.code === 'OPF_AMBIGUOUS' && this.issueOptions(issue).length > 0,
+    );
+
+    return guidedIssue ? this.selectedGuidedOption(guidedIssue) : undefined;
+  }
+
+  private get guidedRepairSelections(): Record<string, string> | undefined {
+    const selections: Record<string, string> = {};
+
+    for (const issue of this.diagnosis?.issues ?? []) {
+      if (this.issueRepairMode(issue) !== 'guided') {
+        continue;
+      }
+
+      const selected = this.selectedGuidedOption(issue);
+      if (!selected) {
+        continue;
+      }
+
+      selections[this.issueSelectionKey(issue)] = selected;
+    }
+
+    return Object.keys(selections).length > 0 ? selections : undefined;
+  }
+
+  private get hasPendingGuidedSelection(): boolean {
+    return (
+      this.diagnosis?.issues.some((issue) => {
+        if (this.issueRepairMode(issue) !== 'guided') {
+          return false;
+        }
+
+        const options = this.issueOptions(issue);
+        if (options.length <= 1) {
+          return false;
+        }
+
+        return !this.selectedGuidedOption(issue);
+      }) ?? false
+    );
+  }
+
+  private get hasPendingConfirmationSelection(): boolean {
+    return (
+      this.diagnosis?.issues.some((issue) => {
+        if (this.issueRepairMode(issue) !== 'review') {
+          return false;
+        }
+
+        return !this.isConfirmationChecked(issue);
+      }) ?? false
+    );
   }
 
   private buildNativeStorageErrorParams(

@@ -18,6 +18,7 @@ export { normalizeFilenameKey } from './lib/filename-keys';
 export * from './lib/file-kit.service';
 export {
   EPUB_FIXER_PORT,
+  buildEpubIssueSelectionKey,
   classifyEpubDiagnosticRepairMode,
   EpubFixerPortError,
   normalizeEpubDiagnosticIssue,
@@ -42,6 +43,7 @@ export * from './lib/epub-public-store';
 export * from './lib/pdf-public-store';
 export * from './lib/epub-read.service';
 export * from './lib/epub-rewrite.service';
+export * from './lib/epub-repairing.service';
 export * from './lib/epub-working-copy.service';
 
 // Providers

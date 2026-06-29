@@ -1,39 +1,39 @@
 <en-US>
-The Fix screen no longer shows the web development badge.
+Fix now recovers malformed container.xml by reading the declared rootfile path when XML parsing fails, so artifact 15 can be repaired on web and Android.
 </en-US>
 <ar>
-lam taud shashat Fix turez sharat wad al-tatwir ala al-web.
+تصلح Fix الآن ملف container.xml المشوَّه بقراءة مسار rootfile المُعلن حتى عند فشل تحليل XML، لذلك يمكن إصلاح artifact 15 على الويب وعلى Android.
 </ar>
 <de-DE>
-Der Fix-Bildschirm zeigt das Web-Entwicklungsabzeichen nicht mehr an.
+Fix kann nun eine fehlerhafte container.xml retten, indem der deklarierte rootfile-Pfad gelesen wird, wenn das XML-Parsing fehlschlaegt, damit artifact 15 auf Web und Android repariert werden kann.
 </de-DE>
-<es-MX>
-La pantalla de Fix ya no muestra la insignia de desarrollo web.
-</es-MX>
+<es-419>
+Fix ahora recupera container.xml malformado leyendo la ruta declarada de rootfile cuando falla el parseo XML, asi artifact 15 se puede reparar en web y Android.
+</es-419>
 <fr-FR>
-L ecran Fix n affiche plus le badge de developpement web.
+Fix peut maintenant recuperer une container.xml malformee en lisant le chemin rootfile declare lorsque le parsing XML echoue, afin de reparer artifact 15 sur web et Android.
 </fr-FR>
 <hi-IN>
-Fix screen par ab web development badge nahi dikh raha.
+Fix अब malformed container.xml को rootfile के घोषित path को पढ़कर recover करता है, जब XML parsing fail होती है, इसलिए artifact 15 web और Android पर repair हो सकता है.
 </hi-IN>
 <it-IT>
-La schermata Fix non mostra piu il badge di sviluppo web.
+Fix ora recupera una container.xml malformata leggendo il percorso rootfile dichiarato quando il parsing XML fallisce, cosi artifact 15 si puo riparare su web e Android.
 </it-IT>
 <ja-JP>
-Fix gamen ni web kaihatsu bajji wa hyoji sa renaku narimashita.
+Fix は XML の解析に失敗しても宣言された rootfile パスを読み取り、壊れた container.xml を復旧できるようになったため、artifact 15 を web と Android で修復できます。
 </ja-JP>
 <ko-KR>
-Fix hwamyeon-eneun ije web gaebal baejiga pyosi doeeji anseubnida.
+Fix는 XML 파싱이 실패해도 선언된 rootfile 경로를 읽어 손상된 container.xml을 복구할 수 있게 되어, artifact 15를 web과 Android에서 복구할 수 있습니다.
 </ko-KR>
 <pt-BR>
-A tela Fix nao mostra mais o selo de desenvolvimento web.
+Fix agora recupera container.xml malformado lendo o caminho rootfile declarado quando o parse XML falha, entao artifact 15 pode ser reparado no web e no Android.
 </pt-BR>
 <ru-RU>
-Ekran Fix bolshe ne pokazyvaet znachok veb-razrabotki.
+Fix теперь восстанавливает повреждённый container.xml, читая объявленный путь rootfile, когда разбор XML завершается сбоем, поэтому artifact 15 можно исправить в web и Android.
 </ru-RU>
 <zh-CN>
-Fix jiemian buzai xianshi Web kaifa huizhang.
+Fix 现在会在 XML 解析失败时读取已声明的 rootfile 路径，从而恢复损坏的 container.xml，因此 artifact 15 可以在 web 和 Android 上修复。
 </zh-CN>
 <zh-TW>
-Fix huamian buzai xianshi Web kaifa huizhang.
+Fix 現在會在 XML 解析失敗時讀取已宣告的 rootfile 路徑，從而還原損壞的 container.xml，因此 artifact 15 可以在 web 和 Android 上修復。
 </zh-TW>

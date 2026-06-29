@@ -140,7 +140,8 @@ ion-item.app-file-selector-surface:focus-within::part(native) {
 }
 
 ion-item.app-file-selector-surface {
-  --app-outline-surface-radius: var(--app-radius-xl);
+  --app-outline-surface-radius: var(--app-radius-lg);
+  border-width: 1px;
 }
 
 .app-preview-surface {
@@ -157,8 +158,8 @@ ion-item.app-file-selector-surface {
 
 .app-secondary-surface {
   display: grid;
-  gap: var(--app-space-3);
-  padding: var(--app-space-4);
+  gap: var(--app-space-4);
+  padding: var(--app-space-5);
   border-radius: var(--app-radius-lg);
   border: 1px solid var(--app-divider);
   background: var(--app-surface);
