@@ -14,6 +14,7 @@ import {
 } from '@sheldrapps/image-workflow/editor';
 import { provideExportQualityKitI18n } from '@sheldrapps/export-quality-kit';
 import { provideAdFallbackKitI18n } from '@sheldrapps/ad-fallback-kit';
+import { provideAdsKitI18n } from '@sheldrapps/ads-kit';
 import { provideAdsKit } from '@sheldrapps/ads-kit';
 import {
   CapacitorPreferencesAdapter,
@@ -81,6 +82,7 @@ export function createBootstrapProviders(): Array<Provider | EnvironmentProvider
     ),
     provideExportQualityKitI18n(),
     provideAdFallbackKitI18n(),
+    provideAdsKitI18n(),
     provideCoverImageStateI18n(),
     provideCoverSourceI18n(),
     provideEditorI18n(),

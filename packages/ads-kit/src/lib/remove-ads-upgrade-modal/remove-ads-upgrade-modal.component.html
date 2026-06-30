@@ -1,0 +1,102 @@
+<section
+  class="remove-ads-upgrade-modal"
+  [attr.aria-label]="presentation.titleKey | translate"
+>
+  <header class="remove-ads-upgrade-modal__header">
+    <div class="remove-ads-upgrade-modal__header-copy">
+      <h2 class="remove-ads-upgrade-modal__title">
+        {{ presentation.titleKey | translate }}
+      </h2>
+
+      <p class="remove-ads-upgrade-modal__intro">
+        {{ presentation.introKey | translate }}
+      </p>
+    </div>
+
+    <ion-buttons class="remove-ads-upgrade-modal__header-actions">
+      <ion-button
+        class="app-btn app-btn--text remove-ads-upgrade-modal__close"
+        data-tour-id="remove-ads-close"
+        fill="clear"
+        (click)="closeRequested.emit()"
+      >
+        {{ 'COMMON.CLOSE' | translate }}
+      </ion-button>
+    </ion-buttons>
+  </header>
+
+  <div class="remove-ads-upgrade-modal__body">
+    <div class="remove-ads-upgrade-modal__benefits" role="list">
+      @for (benefit of presentation.benefits; track benefit.titleKey) {
+        <article class="remove-ads-upgrade-modal__benefit" role="listitem">
+          <div class="remove-ads-upgrade-modal__benefit-icon" aria-hidden="true">
+            <ion-icon [name]="benefit.icon"></ion-icon>
+          </div>
+
+          <div class="remove-ads-upgrade-modal__benefit-copy">
+            <h3 class="remove-ads-upgrade-modal__benefit-title">
+              {{ benefit.titleKey | translate }}
+            </h3>
+
+            <p class="remove-ads-upgrade-modal__benefit-description">
+              {{ benefit.descriptionKey | translate }}
+            </p>
+          </div>
+        </article>
+      }
+    </div>
+
+    @if (!billingReady) {
+      <div class="app-callout app-callout--info remove-ads-upgrade-modal__offline" aria-live="polite" role="status">
+        <ion-icon
+          class="app-callout__icon"
+          name="cloud-offline-outline"
+          aria-hidden="true"
+        ></ion-icon>
+
+        <div>
+          <div class="app-callout__title">
+            {{ presentation.offlineTitleKey | translate }}
+          </div>
+
+          <div class="app-callout__body">
+            {{ presentation.offlineMessageKey | translate }}
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <footer class="remove-ads-upgrade-modal__footer">
+    <ion-button
+      class="app-btn remove-ads-upgrade-modal__primary"
+      expand="block"
+      [disabled]="purchaseDisabled || !billingReady"
+      (click)="purchaseRequested.emit()"
+    >
+      <ion-icon slot="start" name="sparkles-outline"></ion-icon>
+      {{ purchaseLabelKey | translate:purchaseLabelParams }}
+    </ion-button>
+
+    <div class="remove-ads-upgrade-modal__footer-copy">
+      <p class="remove-ads-upgrade-modal__trust">
+        {{ presentation.trustLineKey | translate }}
+      </p>
+
+      <div class="remove-ads-upgrade-modal__restore-row">
+        <span class="remove-ads-upgrade-modal__restore-copy">
+          {{ presentation.restorePromptKey | translate }}
+        </span>
+
+        <ion-button
+          class="app-btn app-btn--text remove-ads-upgrade-modal__restore"
+          fill="clear"
+          [disabled]="restoreDisabled || !billingReady"
+          (click)="restoreRequested.emit()"
+        >
+          {{ presentation.restoreLabelKey | translate }}
+        </ion-button>
+      </div>
+    </div>
+  </footer>
+</section>

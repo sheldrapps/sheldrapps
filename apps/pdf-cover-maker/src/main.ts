@@ -16,6 +16,7 @@ import {
 } from '@sheldrapps/image-workflow/editor';
 import { provideExportQualityKitI18n } from '@sheldrapps/export-quality-kit';
 import { provideAdFallbackKitI18n } from '@sheldrapps/ad-fallback-kit';
+import { provideAdsKitI18n } from '@sheldrapps/ads-kit';
 import { provideBestCandidateKitI18n } from '@sheldrapps/best-candidate-kit';
 import { provideAdsKit } from '@sheldrapps/ads-kit';
 import {
@@ -91,6 +92,7 @@ bootstrapApplication(AppComponent, {
       new MemoryStorageAdapter(),
     ),
     provideAdFallbackKitI18n(),
+    provideAdsKitI18n(),
     provideExportQualityKitI18n(),
     provideBestCandidateKitI18n(),
     provideCoverImageStateI18n(),

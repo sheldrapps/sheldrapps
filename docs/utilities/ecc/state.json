@@ -6,18 +6,18 @@
     "versionName": "Optimize for e-ink and sharpness"
   },
   "current": {
-    "updatedAt": "2026-06-24T13:44:03.5679625-06:00",
+    "updatedAt": "2026-06-29T00:00:00.0000000-06:00",
     "head": "b4a177404511d6b3cf1065b1ebb24609d69a7756",
-    "versionCode": 47,
-    "versionName": "Edit and preview cleanup",
+    "versionCode": 48,
+    "versionName": "Remove ads upgrade polish",
     "versionCodeAnchorCommit": "b4a177404511d6b3cf1065b1ebb24609d69a7756",
     "deltaFrom": "9c7a4b2b1c48525c799f78df23eae3d421dcc892",
     "deltaTo": "b4a177404511d6b3cf1065b1ebb24609d69a7756",
     "changedFilesCount": 6,
     "userFacingSummary": [
-      "shared_edit_label_in_preview_and_menu",
-      "scrollable_preview_action_bar",
-      "centralized_filename_resolution"
+      "remove_ads_full_screen_upgrade",
+      "compact_benefit_block",
+      "footer_cta_and_restore_purchase"
     ]
   },
   "tracking": {

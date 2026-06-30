@@ -6,17 +6,17 @@
     "versionName": "1.0"
   },
   "current": {
-    "updatedAt": "2026-06-28T13:24:59.6987570-06:00",
+    "updatedAt": "2026-06-29T00:00:00.0000000-06:00",
     "head": "59deb27e5df5a37a2fade5e579e53c18c27ab059",
-    "versionCode": 3,
-    "versionName": "Malformed container repair",
+    "versionCode": 4,
+    "versionName": "Thumbnail persistence",
     "versionCodeAnchorCommit": "59deb27e5df5a37a2fade5e579e53c18c27ab059",
     "deltaFrom": "3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d",
     "deltaTo": "59deb27e5df5a37a2fade5e579e53c18c27ab059",
     "changedFilesCount": 6,
     "userFacingSummary": [
-      "malformed_container_recovery_from_rootfile",
-      "artifact_15_repairs_on_web_and_android"
+      "persisted_preview_thumbnails",
+      "fallback_first_image_thumbnails"
     ]
   },
   "tracking": {

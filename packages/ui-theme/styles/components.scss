@@ -1095,6 +1095,30 @@ ion-modal.app-modal {
   --max-width: var(--app-sheet-max-width);
 }
 
+ion-modal.remove-ads-modal {
+  --width: 100vw;
+  --height: 100vh;
+  --max-width: 100vw;
+  --max-height: 100vh;
+  --border-radius: 0;
+  --box-shadow: none;
+  --backdrop-opacity: 0;
+}
+
+ion-modal.remove-ads-modal::part(content) {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  background: var(--app-background);
+}
+
+.remove-ads-modal__content {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  background: var(--app-background);
+}
+
 .app-modal-toolbar {
   --min-height: var(--app-toolbar-min-height);
   --app-modal-header-title-size: var(--app-text-xl);

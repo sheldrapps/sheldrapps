@@ -2,10 +2,10 @@
 ## Project identity
 - app: epub-fixer
 - alias: ef
-- currentVersionCode: 3
-- nextVersionCode: 4
-- currentVersionName: "Malformed container repair"
-- nextVersionName: "Malformed container repair"
+- currentVersionCode: 4
+- nextVersionCode: 5
+- currentVersionName: "Thumbnail persistence"
+- nextVersionName: "Thumbnail persistence"
 ## Product purpose
 - Keep EPUB repair dependable and understandable across web and Android.
 - Preserve file safety while diagnosis, repair, and export run.
@@ -16,8 +16,8 @@
 - android cover lookup and rewrite share the same raw-text container fallback. | Android can repair artifact 15 instead of stopping at a zip container read error. | plugins/epub-rewrite/android/src/main/java/com/sheldrapps/plugins/epubrewrite/EpubRewritePlugin.java
 - the container fallback also supports malformed rootfile markup in the cover locator. | The Android plugin can still resolve the package document when rootfiles parsing breaks. | plugins/epub-rewrite/android/src/main/java/com/sheldrapps/plugins/epubrewrite/EpubCoverLocator.java
 ## User-facing change facts (increment)
-- The Fix flow now repairs malformed container.xml by reading the declared rootfile path even when XML parsing fails.
-- Artifact 15 can be repaired on both web and Android instead of stopping at a container zip read error.
+- Preview thumbnails are now persisted, so My EPUBs can reuse them without a manual refresh.
+- Fallback first-image thumbnails are saved too, keeping books visible even when they do not have a cover file.
 ## Increment scope facts
 - deltaFrom: 3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d
 - deltaTo: 59deb27e5df5a37a2fade5e579e53c18c27ab059

@@ -293,48 +293,21 @@
   <ion-modal
     [isOpen]="purchaseModalOpen"
     (didDismiss)="closePurchaseModal()"
+    class="remove-ads-modal"
   >
     <ng-template>
-      <ion-header>
-        <ion-toolbar>
-          <ion-title>{{ 'COMMON.REMOVE_ADS_TITLE' | translate }}</ion-title>
-          <ion-buttons slot="end">
-            <ion-button
-              data-tour-id="remove-ads-close"
-              (click)="onPurchaseModalCloseClick()"
-            >
-              {{ 'COMMON.CLOSE' | translate }}
-            </ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-header>
-      <ion-content class="app-modal-content">
-        <div class="app-modal-copy app-modal-copy--purchase">
-          <div>{{ getRemoveAdsModalDescriptionKey() | translate }}</div>
-          @if (shouldShowRemoveAdsModalPrice()) {
-          <div class="field-subtle">
-            {{ 'COMMON.REMOVE_ADS_MODAL_PRICE' | translate:getRemoveAdsPriceParams() }}
-          </div>
-          }
-        </div>
-        <div class="app-modal-actions app-modal-actions--stack">
-          <ion-button
-            expand="block"
-            [disabled]="!canPurchaseRemoveAds()"
-            (click)="onPurchaseRemoveAds()"
-          >
-            {{ 'COMMON.REMOVE_ADS_BUY' | translate }}
-          </ion-button>
-          <ion-button
-            expand="block"
-            fill="outline"
-            [disabled]="!canRestoreRemoveAds()"
-            (click)="onRestorePurchases()"
-          >
-            {{ 'COMMON.REMOVE_ADS_RESTORE' | translate }}
-          </ion-button>
-        </div>
-      </ion-content>
+      <div class="app-modal-content remove-ads-modal__content">
+        <sh-remove-ads-upgrade-modal
+          variant="CCFK"
+          [billingReady]="getRemoveAdsPurchaseState() === 'ready'"
+          [priceFormatted]="removeAdsPriceFormatted"
+          [purchaseDisabled]="!canPurchaseRemoveAds()"
+          [restoreDisabled]="!canRestoreRemoveAds()"
+          (closeRequested)="onPurchaseModalCloseClick()"
+          (purchaseRequested)="onPurchaseRemoveAds()"
+          (restoreRequested)="onRestorePurchases()"
+        ></sh-remove-ads-upgrade-modal>
+      </div>
     </ng-template>
   </ion-modal>
 

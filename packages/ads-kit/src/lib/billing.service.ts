@@ -19,6 +19,7 @@ type BillingRuntimeState =
 
 @Injectable({ providedIn: 'root' })
 export class BillingService {
+  private readonly developmentRemoveAdsPriceFormatted = '$1.00';
   private initPromise: Promise<void> | null = null;
   private hydrateCachedStatePromise: Promise<void> | null = null;
   private operationQueue: Promise<void> = Promise.resolve();
@@ -72,6 +73,10 @@ export class BillingService {
           ? true
           : cachedEntitlement;
         this.setEntitlement(effectiveEntitlement);
+        if (this.isDevelopmentPremiumMode()) {
+          this.setEntitlement(true);
+          this.setRemoveAdsPrice(this.developmentRemoveAdsPriceFormatted);
+        }
         this.hasHydratedCachedState = true;
       })
       .catch((error) => {
@@ -110,6 +115,10 @@ export class BillingService {
   }
 
   async preparePurchaseUi(): Promise<void> {
+    if (this.isDevelopmentPremiumMode()) {
+      return;
+    }
+
     await this.enqueue(async () => {
       await this.ensureReady();
       if (!this.canRunBillingOperations()) {
@@ -121,6 +130,12 @@ export class BillingService {
   }
 
   async purchaseRemoveAds(): Promise<boolean> {
+    if (this.isDevelopmentPremiumMode()) {
+      this.setEntitlement(true);
+      this.setRemoveAdsPrice(this.developmentRemoveAdsPriceFormatted);
+      return true;
+    }
+
     return this.enqueue(async () => {
       await this.ensureReady();
       if (!this.canRunBillingOperations()) {
@@ -159,6 +174,12 @@ export class BillingService {
   }
 
   async restorePurchases(): Promise<boolean> {
+    if (this.isDevelopmentPremiumMode()) {
+      this.setEntitlement(true);
+      this.setRemoveAdsPrice(this.developmentRemoveAdsPriceFormatted);
+      return this.hasRemoveAdsEntitlement;
+    }
+
     return this.enqueue(async () => {
       await this.ensureReady();
       if (!this.canRunBillingOperations()) {
@@ -170,6 +191,11 @@ export class BillingService {
   }
 
   async loadProductsSafe(): Promise<void> {
+    if (this.isDevelopmentPremiumMode()) {
+      this.setRemoveAdsPrice(this.developmentRemoveAdsPriceFormatted);
+      return;
+    }
+
     await this.enqueue(async () => {
       await this.ensureReady();
       if (!this.canRunBillingOperations()) {
@@ -181,6 +207,12 @@ export class BillingService {
   }
 
   async restorePurchasesSafe(): Promise<void> {
+    if (this.isDevelopmentPremiumMode()) {
+      this.setEntitlement(true);
+      this.setRemoveAdsPrice(this.developmentRemoveAdsPriceFormatted);
+      return;
+    }
+
     await this.enqueue(async () => {
       await this.ensureReady();
       if (!this.canRunBillingOperations()) {
@@ -199,11 +231,11 @@ export class BillingService {
     return this.removeAdsPriceFormatted;
   }
 
-  canShowRemoveAdsEntryPoint(): boolean {
-    if (this.isDevelopmentPremiumMode()) {
-      return false;
-    }
+  isDevelopmentMode(): boolean {
+    return this.isDevelopmentPremiumMode();
+  }
 
+  canShowRemoveAdsEntryPoint(): boolean {
     if (!this.removeAdsProductId) {
       return false;
     }
@@ -217,12 +249,26 @@ export class BillingService {
   }
 
   isBillingAvailable(): boolean {
-    return this.billingAvailable && this.isReady;
+    return this.isDevelopmentPremiumMode() || (this.billingAvailable && this.isReady);
   }
 
   private async doInitialize(): Promise<void> {
     await this.hydrateCachedState();
     const cachedEntitlement = this.hasRemoveAdsEntitlement;
+
+    if (this.isDevelopmentPremiumMode()) {
+      this.state = 'ready';
+      this.isReady = true;
+      this.billingAvailable = true;
+      this.setEntitlement(true);
+      this.setRemoveAdsPrice(this.developmentRemoveAdsPriceFormatted);
+      this.logDebug('initialized in development mode', {
+        billingAvailable: this.billingAvailable,
+        productId: this.removeAdsProductId,
+        cachedEntitlement,
+      });
+      return;
+    }
 
     if (!this.isBillingSupportedByPlatform() || !this.removeAdsProductId) {
       this.state = 'unavailable';
@@ -442,7 +488,7 @@ export class BillingService {
   }
 
   private isDevelopmentPremiumMode(): boolean {
-    return !isNative() && this.config.isTesting === true;
+    return this.config.isTesting === true || isNativeDebugBuild();
   }
 
   private get removeAdsProductId(): string | undefined {

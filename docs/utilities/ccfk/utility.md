@@ -2,10 +2,10 @@
 ## Project identity
 - app: cover-creator-for-kindle
 - alias: ccfk
-- currentVersionCode: 48
-- nextVersionCode: 49
-- currentVersionName: "Edit and preview cleanup"
-- nextVersionName: "Edit and preview cleanup"
+- currentVersionCode: 49
+- nextVersionCode: 50
+- currentVersionName: "Remove ads upgrade polish"
+- nextVersionName: "Remove ads upgrade polish"
 ## Product purpose
 - Keep cover generation dependable when ads fail unexpectedly.
 - Preserve explicit user consent before using fallback trial exports.
@@ -23,9 +23,9 @@
 - skipping home tour now marks editor-tour as seen | Home/editor/remove-ads onboarding behaves as one unified flow when omitted. | apps/cover-creator-for-kindle/src/app/pages/create/create.page.ts
 - ad fallback modal remains non-dismissible except accepted role | Enforces explicit acknowledgement before continuing trial export. | packages/ad-fallback-kit/src/lib/ad-fallback.service.ts
 ## User-facing change facts (increment)
-- Edit is now the shared label in preview and menus.
-- Preview action rows are scrollable so long labels fit cleanly.
-- Filename handling for overwrite versus copy stays centralized.
+- Remove Ads now opens as a full-screen upgrade page instead of a floating modal.
+- Benefit items stay grouped compactly so the screen reads naturally on mobile.
+- The CTA, one-time purchase copy, and Restore Purchase stay anchored in the footer.
 ## Increment scope facts
 - deltaFrom: 9c7a4b2b1c48525c799f78df23eae3d421dcc892
 - deltaTo: b4a177404511d6b3cf1065b1ebb24609d69a7756

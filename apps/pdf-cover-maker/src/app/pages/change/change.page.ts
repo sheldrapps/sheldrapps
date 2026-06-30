@@ -93,6 +93,7 @@ import {
   type AdFailureConfidence,
   type AdFailureReason,
 } from '@sheldrapps/ad-fallback-kit';
+import { RemoveAdsUpgradeModalComponent } from '@sheldrapps/ads-kit';
 import {
   CoverPageMode,
   CoverPageModeSwitchComponent,
@@ -188,6 +189,7 @@ type FrameDetectionResult = {
     ScrollableButtonBarComponent,
     ExportQualitySelectorComponent,
     CoverPageModeSwitchComponent,
+    RemoveAdsUpgradeModalComponent,
     BestCandidatePickerComponent,
     TourOverlayComponent,
   ],
@@ -2761,7 +2763,9 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   getRemoveAdsPurchaseState(): 'ready' | 'unavailable' {
-    return this.billing.isBillingAvailable() && this.isOnline
+    return this.billing.isDevelopmentMode() ||
+      (this.billing.isBillingAvailable() &&
+        (Capacitor.getPlatform() === 'web' || this.isOnline))
       ? 'ready'
       : 'unavailable';
   }

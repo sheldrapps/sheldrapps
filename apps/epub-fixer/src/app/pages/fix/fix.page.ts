@@ -56,6 +56,7 @@ import {
 import {
   AdsService,
   BillingService,
+  RemoveAdsUpgradeModalComponent,
 } from '@sheldrapps/ads-kit';
 import {
   LoadingStateComponent,
@@ -117,6 +118,7 @@ type IssueSectionView = {
     LoadingStateComponent,
     SectionCardComponent,
     ScrollableButtonBarComponent,
+    RemoveAdsUpgradeModalComponent,
   ],
 })
 export class FixPage implements OnInit, OnDestroy {
@@ -470,7 +472,9 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   getRemoveAdsPurchaseState(): 'ready' | 'unavailable' {
-    return this.billing.isBillingAvailable() ? 'ready' : 'unavailable';
+    return this.billing.isDevelopmentMode() || this.billing.isBillingAvailable()
+      ? 'ready'
+      : 'unavailable';
   }
 
   getRemoveAdsModalDescriptionKey(): string {

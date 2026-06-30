@@ -1,39 +1,39 @@
 <en-US>
-Fix now recovers malformed container.xml by reading the declared rootfile path when XML parsing fails, so artifact 15 can be repaired on web and Android.
+Preview thumbnails are now persisted, so My EPUBs can reuse them without a manual refresh, even when a file falls back to its first image.
 </en-US>
 <ar>
-تصلح Fix الآن ملف container.xml المشوَّه بقراءة مسار rootfile المُعلن حتى عند فشل تحليل XML، لذلك يمكن إصلاح artifact 15 على الويب وعلى Android.
+تُحفظ صور المعاينة المصغّرة الآن، لذلك يمكن لـ My EPUBs إعادة استخدامها دون تحديث يدوي، حتى عندما يعتمد الملف على أول صورة كبديل.
 </ar>
 <de-DE>
-Fix kann nun eine fehlerhafte container.xml retten, indem der deklarierte rootfile-Pfad gelesen wird, wenn das XML-Parsing fehlschlaegt, damit artifact 15 auf Web und Android repariert werden kann.
+Vorschaubilder werden jetzt gespeichert, sodass My EPUBs sie ohne manuelles Aktualisieren wiederverwenden kann, auch wenn eine Datei auf das erste Bild als Fallback zuruckgreift.
 </de-DE>
 <es-419>
-Fix ahora recupera container.xml malformado leyendo la ruta declarada de rootfile cuando falla el parseo XML, asi artifact 15 se puede reparar en web y Android.
+Las miniaturas de vista previa ahora se guardan, asi My EPUBs puede reutilizarlas sin actualizar manualmente, incluso cuando un archivo recurre a su primera imagen como respaldo.
 </es-419>
 <fr-FR>
-Fix peut maintenant recuperer une container.xml malformee en lisant le chemin rootfile declare lorsque le parsing XML echoue, afin de reparer artifact 15 sur web et Android.
+Les miniatures d'apercu sont desormais conservees, donc My EPUBs peut les reutiliser sans actualisation manuelle, meme quand un fichier retombe sur sa premiere image.
 </fr-FR>
 <hi-IN>
-Fix अब malformed container.xml को rootfile के घोषित path को पढ़कर recover करता है, जब XML parsing fail होती है, इसलिए artifact 15 web और Android पर repair हो सकता है.
+प्रिव्यू थम्बनेल अब सहेजे जाते हैं, इसलिए My EPUBs उन्हें मैन्युअल रिफ्रेश के बिना फिर से इस्तेमाल कर सकता है, यहाँ तक कि जब फ़ाइल पहली छवि को बैकअप के रूप में उपयोग करे।
 </hi-IN>
 <it-IT>
-Fix ora recupera una container.xml malformata leggendo il percorso rootfile dichiarato quando il parsing XML fallisce, cosi artifact 15 si puo riparare su web e Android.
+Le miniature di anteprima ora vengono conservate, cosi My EPUBs puo riutilizzarle senza un refresh manuale, anche quando un file usa la sua prima immagine come fallback.
 </it-IT>
 <ja-JP>
-Fix は XML の解析に失敗しても宣言された rootfile パスを読み取り、壊れた container.xml を復旧できるようになったため、artifact 15 を web と Android で修復できます。
+プレビューのサムネイルが保存されるようになったので、My EPUBs は手動更新なしで再利用でき、ファイルが最初の画像をフォールバックに使う場合でも表示できます。
 </ja-JP>
 <ko-KR>
-Fix는 XML 파싱이 실패해도 선언된 rootfile 경로를 읽어 손상된 container.xml을 복구할 수 있게 되어, artifact 15를 web과 Android에서 복구할 수 있습니다.
+미리보기 썸네일이 이제 저장되므로 My EPUBs는 수동 새로고침 없이 다시 사용할 수 있고, 파일이 첫 번째 이미지를 대체 이미지로 사용할 때도 유지됩니다.
 </ko-KR>
 <pt-BR>
-Fix agora recupera container.xml malformado lendo o caminho rootfile declarado quando o parse XML falha, entao artifact 15 pode ser reparado no web e no Android.
+As miniaturas de previa agora ficam salvas, entao o My EPUBs pode reutiliza-las sem atualizacao manual, mesmo quando um arquivo usa a primeira imagem como fallback.
 </pt-BR>
 <ru-RU>
-Fix теперь восстанавливает повреждённый container.xml, читая объявленный путь rootfile, когда разбор XML завершается сбоем, поэтому artifact 15 можно исправить в web и Android.
+Миниатюры предпросмотра теперь сохраняются, поэтому My EPUBs может использовать их снова без ручного обновления, даже когда файл подставляет первое изображение как запасной вариант.
 </ru-RU>
 <zh-CN>
-Fix 现在会在 XML 解析失败时读取已声明的 rootfile 路径，从而恢复损坏的 container.xml，因此 artifact 15 可以在 web 和 Android 上修复。
+预览缩略图现在会被持久保存，因此 My EPUBs 可以在不手动刷新的情况下复用它们，即使文件改用第一张图片作为回退也一样。
 </zh-CN>
 <zh-TW>
-Fix 現在會在 XML 解析失敗時讀取已宣告的 rootfile 路徑，從而還原損壞的 container.xml，因此 artifact 15 可以在 web 和 Android 上修復。
+預覽縮圖現在會被持久保存，因此 My EPUBs 可以在不手動重新整理的情況下重用它們，即使檔案改用第一張圖片作為回退也一樣。
 </zh-TW>

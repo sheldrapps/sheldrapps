@@ -13,6 +13,12 @@ export type LibraryPreviewAsset = {
   isDithered: boolean;
 };
 
+type PersistedPreviewAsset = {
+  mimeType: string;
+  dataBase64: string;
+  isDithered: boolean;
+};
+
 export type LoadedGeneratedEpub = {
   file: File;
   uri: string | null;
@@ -31,6 +37,7 @@ export class EpubLibraryService {
     epubFolder: 'EPUBFixer',
     logPrefix: 'EF:library',
   });
+  private readonly previewThumbFolder = 'EPUBFixerThumbs';
 
   private readonly previewCache = new Map<string, LibraryPreviewAsset>();
 
@@ -45,7 +52,9 @@ export class EpubLibraryService {
     const filename = this.ensureEpubFilename(outputName);
     const bytes = await this.readExportBytes(sourceUri);
     await this.epubStore.writeEpub(filename, bytes);
+    await this.deletePersistedPreviewAsset(filename);
     this.previewCache.delete(filename);
+    await this.refreshPreviewAsset(filename).catch(() => void 0);
   }
 
   async loadGeneratedEpubByFilename(
@@ -81,6 +90,7 @@ export class EpubLibraryService {
   async deleteByFilename(filename: string): Promise<void> {
     const resolved = this.ensureEpubFilename(filename);
     await this.epubStore.deleteEpub(resolved);
+    await this.deletePersistedPreviewAsset(resolved);
     this.previewCache.delete(resolved);
   }
 
@@ -148,18 +158,20 @@ export class EpubLibraryService {
       if (cached) {
         return cached;
       }
+
+      const persisted = await this.readPersistedPreviewAsset(cacheKey);
+      if (persisted) {
+        this.previewCache.set(cacheKey, persisted);
+        return persisted;
+      }
     }
 
-    const coverFile = await this.extractCoverFile(cacheKey);
-    if (!coverFile) {
+    const resolved = await this.refreshPreviewAsset(cacheKey);
+    if (!resolved) {
       const unavailable = { src: '', isDithered: false };
       this.previewCache.set(cacheKey, unavailable);
       return unavailable;
     }
-
-    const src = await this.fileToDataUrl(coverFile);
-    const resolved = { src, isDithered: false };
-    this.previewCache.set(cacheKey, resolved);
     return resolved;
   }
 
@@ -187,6 +199,100 @@ export class EpubLibraryService {
       type: 'application/epub+zip',
     });
     return this.webEpubCover.extractCover(epubFile);
+  }
+
+  private async refreshPreviewAsset(
+    filename: string,
+  ): Promise<LibraryPreviewAsset | null> {
+    const coverFile = await this.extractCoverFile(filename);
+    if (!coverFile) {
+      return null;
+    }
+
+    const asset = await this.persistPreviewAsset(filename, coverFile);
+    this.previewCache.set(filename, asset);
+    return asset;
+  }
+
+  private previewThumbPath(filename: string): string {
+    return `${this.previewThumbFolder}/${this.fileKit.makeSafeFilename(
+      filename,
+      'json',
+    )}`;
+  }
+
+  private async readPersistedPreviewAsset(
+    filename: string,
+  ): Promise<LibraryPreviewAsset | null> {
+    const path = this.previewThumbPath(filename);
+    const exists = await this.fileKit.exists({
+      dir: 'Data',
+      path,
+    });
+    if (!exists) {
+      return null;
+    }
+
+    try {
+      const raw = await this.fileKit.readBytes({
+        dir: 'Data',
+        path,
+      });
+      const text = new TextDecoder().decode(raw);
+      const parsed = JSON.parse(text) as Partial<PersistedPreviewAsset>;
+      if (
+        !parsed ||
+        typeof parsed.mimeType !== 'string' ||
+        typeof parsed.dataBase64 !== 'string' ||
+        !parsed.dataBase64.trim()
+      ) {
+        return null;
+      }
+
+      return {
+        src: `data:${parsed.mimeType};base64,${parsed.dataBase64}`,
+        isDithered: !!parsed.isDithered,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  private async persistPreviewAsset(
+    filename: string,
+    coverFile: File,
+  ): Promise<LibraryPreviewAsset> {
+    const bytes = new Uint8Array(await coverFile.arrayBuffer());
+    const mimeType = coverFile.type || 'image/jpeg';
+    const dataBase64 = this.fileKit.toBase64(bytes);
+    const payload: PersistedPreviewAsset = {
+      mimeType,
+      dataBase64,
+      isDithered: false,
+    };
+
+    await this.fileKit.writeBytes({
+      dir: 'Data',
+      path: this.previewThumbPath(filename),
+      bytes: new TextEncoder().encode(JSON.stringify(payload)),
+      mimeType: 'application/json',
+    });
+
+    return {
+      src: `data:${mimeType};base64,${dataBase64}`,
+      isDithered: false,
+    };
+  }
+
+  private async deletePersistedPreviewAsset(filename: string): Promise<void> {
+    try {
+      await this.fileKit.delete({
+        dir: 'Data',
+        path: this.previewThumbPath(filename),
+      });
+    } catch {
+      // best effort
+    }
   }
 
   private async readExportBytes(sourceUri: string): Promise<Uint8Array> {
@@ -229,16 +335,4 @@ export class EpubLibraryService {
     return /\.epub$/i.test(trimmed) ? trimmed : `${trimmed}.epub`;
   }
 
-  private async fileToDataUrl(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        resolve(typeof reader.result === 'string' ? reader.result : '');
-      };
-      reader.onerror = () => {
-        reject(reader.error ?? new Error('Unable to read preview file'));
-      };
-      reader.readAsDataURL(file);
-    });
-  }
 }
