@@ -2,8 +2,8 @@
 ## Project identity
 - app: pdf-cover-maker
 - alias: pcm
-- currentVersionCode: 11
-- nextVersionCode: 12
+- currentVersionCode: 12
+- nextVersionCode: 13
 - currentVersionName: "Remove ads upgrade polish"
 - nextVersionName: "Remove ads upgrade polish"
 ## Product purpose

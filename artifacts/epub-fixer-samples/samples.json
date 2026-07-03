@@ -1,32 +1,167 @@
 [
   {
-    "name": "12-blocking-mimetype-missing",
-    "description": "Opening blocker with missing mimetype; fixer should restore application/epub+zip.",
-    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\12-blocking-mimetype-missing.epub"
+    "name": "01-crit-zip-001",
+    "description": "Plain text EPUB placeholder; not a readable ZIP.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\01-crit-zip-001.epub"
   },
   {
-    "name": "13-blocking-mimetype-invalid",
-    "description": "Opening blocker with invalid mimetype content; fixer should normalize it.",
-    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\13-blocking-mimetype-invalid.epub"
+    "name": "02-crit-zip-002",
+    "description": "Truncated ZIP central directory.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\02-crit-zip-002.epub"
   },
   {
-    "name": "14-blocking-container-missing",
-    "description": "Opening blocker with missing META-INF/container.xml; fixer should rebuild it.",
-    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\14-blocking-container-missing.epub"
+    "name": "03-crit-ocf-001",
+    "description": "Missing mimetype entry.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\03-crit-ocf-001.epub"
   },
   {
-    "name": "15-blocking-container-malformed",
-    "description": "Opening blocker with malformed container.xml; fixer should rewrite a valid container.",
-    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\15-blocking-container-malformed.epub"
+    "name": "04-crit-ocf-002",
+    "description": "Mimetype moved out of the first ZIP slot.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\04-crit-ocf-002.epub"
   },
   {
-    "name": "16-blocking-rootfile-missing",
-    "description": "Opening blocker with no rootfile; fixer should rediscover the package document.",
-    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\16-blocking-rootfile-missing.epub"
+    "name": "05-crit-ocf-003",
+    "description": "Mimetype stored with compression.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\05-crit-ocf-003.epub"
   },
   {
-    "name": "17-blocking-rootfile-invalid",
-    "description": "Opening blocker with a bad rootfile path; fixer should resolve the correct OPF.",
-    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\17-blocking-rootfile-invalid.epub"
+    "name": "06-crit-ocf-004",
+    "description": "Mimetype rewritten with invalid bytes.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\06-crit-ocf-004.epub"
+  },
+  {
+    "name": "07-crit-ocf-005",
+    "description": "No META-INF directory remains.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\07-crit-ocf-005.epub"
+  },
+  {
+    "name": "08-crit-con-001",
+    "description": "Missing META-INF/container.xml.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\08-crit-con-001.epub"
+  },
+  {
+    "name": "09-crit-con-002",
+    "description": "Malformed container.xml.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\09-crit-con-002.epub"
+  },
+  {
+    "name": "10-crit-con-003",
+    "description": "container.xml without a rootfile.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\10-crit-con-003.epub"
+  },
+  {
+    "name": "11-crit-con-004",
+    "description": "rootfile path points to a missing OPF.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\11-crit-con-004.epub"
+  },
+  {
+    "name": "12-crit-con-005",
+    "description": "Multiple OPF candidates with no clear winner.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\12-crit-con-005.epub"
+  },
+  {
+    "name": "13-crit-opf-001",
+    "description": "No OPF is localizable from the container.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\13-crit-opf-001.epub"
+  },
+  {
+    "name": "14-crit-opf-002",
+    "description": "OPF is malformed XML.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\14-crit-opf-002.epub"
+  },
+  {
+    "name": "15-crit-opf-003",
+    "description": "manifest element removed.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\15-crit-opf-003.epub"
+  },
+  {
+    "name": "16-crit-opf-004",
+    "description": "spine element removed.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\16-crit-opf-004.epub"
+  },
+  {
+    "name": "17-crit-opf-005",
+    "description": "spine exists but is empty.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\17-crit-opf-005.epub"
+  },
+  {
+    "name": "18-crit-spine-001",
+    "description": "spine idref points to a missing manifest id.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\18-crit-spine-001.epub"
+  },
+  {
+    "name": "19-crit-spine-002",
+    "description": "Referenced chapter file removed from ZIP.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\19-crit-spine-002.epub"
+  },
+  {
+    "name": "20-crit-spine-003",
+    "description": "spine points at a non-reading resource.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\20-crit-spine-003.epub"
+  },
+  {
+    "name": "21-crit-xhtml-001",
+    "description": "Chapter XHTML is malformed.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\21-crit-xhtml-001.epub"
+  },
+  {
+    "name": "22-crit-sec-001",
+    "description": "DRM-style locked content placeholder.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\22-crit-sec-001.epub"
+  },
+  {
+    "name": "23-high-opf-001",
+    "description": "OPF version is invalid.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\23-high-opf-001.epub"
+  },
+  {
+    "name": "24-high-opf-002",
+    "description": "unique-identifier removed.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\24-high-opf-002.epub"
+  },
+  {
+    "name": "25-high-opf-003",
+    "description": "unique-identifier points to a missing id.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\25-high-opf-003.epub"
+  },
+  {
+    "name": "26-high-man-001",
+    "description": "Physical orphan file added outside manifest.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\26-high-man-001.epub"
+  },
+  {
+    "name": "27-high-man-002",
+    "description": "Manifest references a missing image.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\27-high-man-002.epub"
+  },
+  {
+    "name": "28-high-xhtml-001",
+    "description": "Chapter XHTML has unclosed tags.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\28-high-xhtml-001.epub"
+  },
+  {
+    "name": "29-high-xhtml-002",
+    "description": "Chapter XHTML uses invalid XML syntax.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\29-high-xhtml-002.epub"
+  },
+  {
+    "name": "30-high-xhtml-003",
+    "description": "Chapter XHTML includes forbidden DOCTYPE/entity markup.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\30-high-xhtml-003.epub"
+  },
+  {
+    "name": "31-high-enc-001",
+    "description": "Chapter bytes and XML declaration disagree.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\31-high-enc-001.epub"
+  },
+  {
+    "name": "32-high-enc-002",
+    "description": "Chapter contains invalid XML control characters.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\32-high-enc-002.epub"
+  },
+  {
+    "name": "33-high-fallback-001",
+    "description": "Scripted/foreign resource has no fallback.",
+    "file": "C:\\apps\\sheldrapps\\artifacts\\epub-fixer-samples\\33-high-fallback-001.epub"
   }
 ]

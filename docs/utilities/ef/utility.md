@@ -2,8 +2,8 @@
 ## Project identity
 - app: epub-fixer
 - alias: ef
-- currentVersionCode: 4
-- nextVersionCode: 5
+- currentVersionCode: 5
+- nextVersionCode: 6
 - currentVersionName: "Thumbnail persistence"
 - nextVersionName: "Thumbnail persistence"
 ## Product purpose

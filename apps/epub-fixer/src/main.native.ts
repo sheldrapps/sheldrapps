@@ -61,6 +61,13 @@ async function bootstrap(): Promise<void> {
       appId: 'epub-fixer',
       storageKey: EPUB_FIXER_SETTINGS_STORAGE_KEY,
       schema: EPUB_FIXER_SETTINGS_SCHEMA,
+      writeAccess: {
+        protectedKeys: ['theme', 'language'],
+        scopes: {
+          theme: ['theme'],
+          language: ['language'],
+        },
+      },
       storageAdapter: new ConfigJsonFileAdapter({
         primaryKey: EPUB_FIXER_SETTINGS_STORAGE_KEY,
         fallbackAdapter: new WebLocalStorageAdapter(),

@@ -1,5 +1,5 @@
 param(
-  [string]$SourcePath = 'C:\Users\sheld\Downloads\el-principito.epub',
+  [string]$SourcePath = 'C:\Users\sheld\Downloads\el-gato-negro--3.epub',
   [string]$OutputDir = 'C:\apps\sheldrapps\artifacts\epub-fixer-samples'
 )
 

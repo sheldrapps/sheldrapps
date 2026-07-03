@@ -89,7 +89,10 @@ final class EpubCoverLocator {
         Document containerDocument = null;
         try {
             containerDocument = readEntryXml(zipFile, containerHeader);
-        } catch (IOException ignored) {
+        } catch (IOException ex) {
+            if (ex.getMessage() != null && ex.getMessage().contains("DOCTYPE is not allowed")) {
+                throw ex;
+            }
             // Fall back to raw-text extraction below.
         }
 
@@ -202,7 +205,13 @@ final class EpubCoverLocator {
     }
 
     private Document readEntryXml(ZipFile zipFile, FileHeader header) throws IOException {
-        try (InputStream inputStream = new BufferedInputStream(zipFile.getInputStream(header))) {
+        byte[] bytes = readEntryBytes(zipFile, header);
+        String rawText = new String(bytes, StandardCharsets.ISO_8859_1);
+        if (containsDoctypeDeclaration(rawText)) {
+            throw new IOException("DOCTYPE is not allowed in XML entry: " + header.getFileName());
+        }
+
+        try (InputStream inputStream = new BufferedInputStream(new java.io.ByteArrayInputStream(bytes))) {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setNamespaceAware(true);
             configureSecureXmlFactory(factory);
@@ -214,16 +223,24 @@ final class EpubCoverLocator {
         }
     }
 
-    private String readEntryText(ZipFile zipFile, FileHeader header) throws IOException {
-        try (InputStream inputStream = new BufferedInputStream(zipFile.getInputStream(header))) {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    private byte[] readEntryBytes(ZipFile zipFile, FileHeader header) throws IOException {
+        try (InputStream inputStream = new BufferedInputStream(zipFile.getInputStream(header));
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             byte[] buffer = new byte[4096];
             int read;
             while ((read = inputStream.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, read);
             }
-            return outputStream.toString(StandardCharsets.UTF_8.name());
+            return outputStream.toByteArray();
         }
+    }
+
+    private String readEntryText(ZipFile zipFile, FileHeader header) throws IOException {
+        return new String(readEntryBytes(zipFile, header), StandardCharsets.UTF_8);
+    }
+
+    private boolean containsDoctypeDeclaration(String text) {
+        return text != null && text.toUpperCase(Locale.US).contains("<!DOCTYPE");
     }
 
     private String extractDeclaredOpfPathFromContainerText(String containerText) {

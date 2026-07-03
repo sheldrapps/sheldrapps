@@ -87,6 +87,15 @@ const BLOCKING_CODES = new Set<EpubDiagnosticIssueCode>([
   'CONTAINER_MISSING',
   'OPF_MISSING',
   'SPINE_EMPTY',
+  'CRIT-XHTML-001',
+  'CRIT-SEC-001',
+  'HIGH-MAN-001',
+  'HIGH-XHTML-001',
+  'HIGH-XHTML-002',
+  'HIGH-XHTML-003',
+  'HIGH-ENC-001',
+  'HIGH-ENC-002',
+  'HIGH-FALLBACK-001',
 ]);
 
 @Injectable({ providedIn: 'root' })

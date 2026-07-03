@@ -41,6 +41,18 @@ export type EpubDiagnosticIssueCode =
   | 'CONTAINER_MISSING'
   | 'OPF_MISSING'
   | 'OPF_AMBIGUOUS'
+  | 'OPF_VERSION_INVALID'
+  | 'OPF_UNIQUE_IDENTIFIER_MISSING'
+  | 'OPF_UNIQUE_IDENTIFIER_INVALID'
+  | 'CRIT-XHTML-001'
+  | 'CRIT-SEC-001'
+  | 'HIGH-MAN-001'
+  | 'HIGH-XHTML-001'
+  | 'HIGH-XHTML-002'
+  | 'HIGH-XHTML-003'
+  | 'HIGH-ENC-001'
+  | 'HIGH-ENC-002'
+  | 'HIGH-FALLBACK-001'
   | 'MANIFEST_ITEM_MISSING'
   | 'LINK_TARGET_MISSING'
   | 'LINK_FRAGMENT_MISSING'
@@ -96,6 +108,46 @@ export function classifyEpubDiagnosticRepairMode(
 
   if (issue.code === 'OPF_AMBIGUOUS') {
     return 'guided';
+  }
+
+  if (
+    issue.code === 'OPF_VERSION_INVALID' ||
+    issue.code === 'OPF_UNIQUE_IDENTIFIER_MISSING' ||
+    issue.code === 'OPF_UNIQUE_IDENTIFIER_INVALID'
+  ) {
+    return issue.fixable ? 'automatic' : 'not_repairable';
+  }
+
+  if (issue.code === 'HIGH-MAN-001') {
+    return issue.fixable ? 'automatic' : 'not_repairable';
+  }
+
+  if (issue.code === 'HIGH-XHTML-001') {
+    return issue.fixable ? 'review' : 'not_repairable';
+  }
+
+  if (issue.code === 'HIGH-XHTML-002' || issue.code === 'HIGH-XHTML-003') {
+    return issue.fixable ? 'automatic' : 'not_repairable';
+  }
+
+  if (issue.code === 'HIGH-ENC-001') {
+    return issue.fixable ? 'automatic' : 'not_repairable';
+  }
+
+  if (issue.code === 'HIGH-ENC-002') {
+    return issue.fixable ? 'review' : 'not_repairable';
+  }
+
+  if (issue.code === 'HIGH-FALLBACK-001') {
+    return issue.fixable ? 'review' : 'not_repairable';
+  }
+
+  if (issue.code === 'CRIT-XHTML-001') {
+    return issue.fixable ? 'review' : 'not_repairable';
+  }
+
+  if (issue.code === 'CRIT-SEC-001') {
+    return 'not_repairable';
   }
 
   if (

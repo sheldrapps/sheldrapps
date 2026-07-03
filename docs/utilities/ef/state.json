@@ -6,9 +6,9 @@
     "versionName": "1.0"
   },
   "current": {
-    "updatedAt": "2026-06-29T00:00:00.0000000-06:00",
+    "updatedAt": "2026-07-01T00:00:00.0000000-06:00",
     "head": "59deb27e5df5a37a2fade5e579e53c18c27ab059",
-    "versionCode": 4,
+    "versionCode": 5,
     "versionName": "Thumbnail persistence",
     "versionCodeAnchorCommit": "59deb27e5df5a37a2fade5e579e53c18c27ab059",
     "deltaFrom": "3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d",

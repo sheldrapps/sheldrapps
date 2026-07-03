@@ -29,6 +29,11 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -42,6 +47,8 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -82,6 +89,11 @@ public class EpubRewritePlugin extends Plugin {
     private static final Pattern ROOTFILE_FULL_PATH_PATTERN =
         Pattern.compile(
             "<rootfile\\b[^>]*\\bfull-path\\s*=\\s*(['\"])(.*?)\\1",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
+        );
+    private static final Pattern XML_DECLARATION_ENCODING_PATTERN =
+        Pattern.compile(
+            "<\\?xml\\b[^>]*\\bencoding\\s*=\\s*(['\"])([^'\"]+)\\1",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL
         );
     private static final DateTimeFormatter WORK_TIMESTAMP_FORMAT =
@@ -694,6 +706,8 @@ public class EpubRewritePlugin extends Plugin {
                         new java.util.ArrayList<>(),
                         new java.util.ArrayList<>(),
                         new java.util.ArrayList<>(),
+                        new java.util.ArrayList<>(),
+                        new java.util.ArrayList<>(),
                         false,
                         false
                     ),
@@ -759,6 +773,8 @@ public class EpubRewritePlugin extends Plugin {
                             new java.util.ArrayList<>(),
                             new java.util.ArrayList<>(),
                             new java.util.ArrayList<>(),
+                            new java.util.ArrayList<>(),
+                            new java.util.ArrayList<>(),
                             mimetypeMissing,
                             mimetypeInvalid
                         )
@@ -774,6 +790,8 @@ public class EpubRewritePlugin extends Plugin {
                         null,
                         null,
                         null,
+                        new java.util.ArrayList<>(),
+                        new java.util.ArrayList<>(),
                         new java.util.ArrayList<>(),
                         new java.util.ArrayList<>(),
                         new java.util.ArrayList<>(),
@@ -825,6 +843,8 @@ public class EpubRewritePlugin extends Plugin {
                         new java.util.ArrayList<>(),
                         new java.util.ArrayList<>(),
                         new java.util.ArrayList<>(),
+                        new java.util.ArrayList<>(),
+                        new java.util.ArrayList<>(),
                         mimetypeMissing,
                         mimetypeInvalid
                     )
@@ -845,10 +865,34 @@ public class EpubRewritePlugin extends Plugin {
                         new java.util.ArrayList<>(),
                         new java.util.ArrayList<>(),
                         new java.util.ArrayList<>(),
+                        new java.util.ArrayList<>(),
+                        new java.util.ArrayList<>(),
                         mimetypeMissing,
                         mimetypeInvalid
                     )
                 );
+            }
+
+            Element packageElement = opfDocument.getDocumentElement();
+            String opfVersion = packageElement == null ? "" : packageElement.getAttribute("version").trim();
+            if (!isSupportedOpfVersion(opfVersion)) {
+                issues.add(
+                    issue(
+                        "OPF_VERSION_INVALID",
+                        "warning",
+                        true,
+                        CompatStrings.isBlank(opfVersion) ? "missing version" : opfVersion
+                    )
+                );
+            }
+
+            String uniqueIdentifier = packageElement == null
+                ? ""
+                : packageElement.getAttribute("unique-identifier").trim();
+            if (CompatStrings.isBlank(uniqueIdentifier)) {
+                issues.add(issue("OPF_UNIQUE_IDENTIFIER_MISSING", "warning", true));
+            } else if (!hasPackageUniqueIdentifier(opfDocument, uniqueIdentifier)) {
+                issues.add(issue("OPF_UNIQUE_IDENTIFIER_INVALID", "warning", true, uniqueIdentifier));
             }
 
             String opfDir = parentZipPath(opfPath);
@@ -864,12 +908,33 @@ public class EpubRewritePlugin extends Plugin {
                 spineElement == null
                     ? new java.util.ArrayList<>()
                     : parseSpineItems(spineElement, manifestItems);
+            java.util.ArrayList<String> promotableOrphanResources =
+                collectPromotableOrphanResources(headers, manifestItems, opfPath);
+            java.util.ArrayList<FallbackRepairPlan> fallbackPlans =
+                collectFallbackRepairPlans(manifestItems, opfDir, headers);
+            java.util.HashSet<String> spineManifestIds = new java.util.HashSet<>();
+            for (ParsedSpineItem spineItem : spineItems) {
+                if (spineItem != null && CompatStrings.isNotBlank(spineItem.idref)) {
+                    spineManifestIds.add(spineItem.idref);
+                }
+            }
 
             for (ParsedManifestItem manifestItem : manifestItems) {
                 if (!manifestItem.exists) {
                     issues.add(
                         issue(
                             "MANIFEST_ITEM_MISSING",
+                            "warning",
+                            true,
+                            manifestItem.id + ": " + manifestItem.resolvedPath
+                        )
+                    );
+                }
+
+                if (manifestItem.exists && hasMissingFallback(manifestItem)) {
+                    issues.add(
+                        issue(
+                            "HIGH-FALLBACK-001",
                             "warning",
                             true,
                             manifestItem.id + ": " + manifestItem.resolvedPath
@@ -891,6 +956,28 @@ public class EpubRewritePlugin extends Plugin {
                         )
                     );
                 }
+            }
+
+            if (containsDrmProtectedContent(headers)) {
+                issues.add(issue("CRIT-SEC-001", "error", false, "META-INF/encryption.xml"));
+            }
+
+            for (String orphanResource : promotableOrphanResources) {
+                issues.add(issue("HIGH-MAN-001", "warning", true, orphanResource));
+            }
+
+            for (ParsedManifestItem manifestItem : manifestItems) {
+                if (!manifestItem.exists || !shouldInspectContentDocument(manifestItem)) {
+                    continue;
+                }
+
+                issues.addAll(
+                    collectContentDocumentIssues(
+                        zipFile,
+                        manifestItem,
+                        spineManifestIds.contains(manifestItem.id)
+                    )
+                );
             }
 
             if (spineItems.isEmpty()) {
@@ -945,7 +1032,9 @@ public class EpubRewritePlugin extends Plugin {
                 opfPath
             );
             for (String orphanResource : orphanResources) {
-                issues.add(issue("ORPHAN_RESOURCE_UNUSED", "warning", true, orphanResource));
+                if (!promotableOrphanResources.contains(orphanResource)) {
+                    issues.add(issue("ORPHAN_RESOURCE_UNUSED", "warning", true, orphanResource));
+                }
             }
 
             java.util.ArrayList<EpubIssue> linkIssues = collectInternalLinkIssues(
@@ -966,6 +1055,8 @@ public class EpubRewritePlugin extends Plugin {
                     manifestItems,
                     spineItems,
                     reconstructibleSpineItemIds,
+                    promotableOrphanResources,
+                    fallbackPlans,
                     mimetypeMissing,
                     mimetypeInvalid
                 )
@@ -979,6 +1070,8 @@ public class EpubRewritePlugin extends Plugin {
                 null,
                 null,
                 null,
+                new java.util.ArrayList<>(),
+                new java.util.ArrayList<>(),
                 new java.util.ArrayList<>(),
                 new java.util.ArrayList<>(),
                 new java.util.ArrayList<>(),
@@ -1001,6 +1094,8 @@ public class EpubRewritePlugin extends Plugin {
             analysis.manifestItems,
             analysis.spineItems,
             analysis.reconstructibleSpineItemIds,
+            analysis.promotableOrphanResources,
+            analysis.fallbackPlans,
             analysis.mimetypeMissing,
             analysis.mimetypeInvalid
         );
@@ -1026,6 +1121,7 @@ public class EpubRewritePlugin extends Plugin {
             String href = element.getAttribute("href").trim();
             String mediaType = element.getAttribute("media-type").trim();
             String properties = element.getAttribute("properties").trim();
+            String fallback = element.getAttribute("fallback").trim();
             String mediaOverlay = element.getAttribute("media-overlay").trim();
             String normalizedHref = normalizeRelativePath(href);
             String resolvedPath = resolveRelativeZipPath(opfDir, href);
@@ -1041,6 +1137,7 @@ public class EpubRewritePlugin extends Plugin {
                     findHeader(headers, resolvedPath) != null,
                     mediaType,
                     properties,
+                    fallback,
                     mediaOverlay,
                     mediaOverlayResolvedPath,
                     CompatStrings.isBlank(mediaOverlay)
@@ -1158,6 +1255,179 @@ public class EpubRewritePlugin extends Plugin {
         return orphanResources;
     }
 
+    private java.util.ArrayList<String> collectPromotableOrphanResources(
+        List<FileHeader> headers,
+        java.util.ArrayList<ParsedManifestItem> manifestItems,
+        String opfPath
+    ) {
+        java.util.ArrayList<String> orphanResources = collectOrphanResources(headers, manifestItems, opfPath);
+        java.util.ArrayList<String> promotable = new java.util.ArrayList<>();
+        for (String orphanResource : orphanResources) {
+            if (isPromotableOrphanResource(orphanResource)) {
+                promotable.add(orphanResource);
+            }
+        }
+        return promotable;
+    }
+
+    private boolean isPromotableOrphanResource(String entryPath) {
+        String mediaType = detectMediaTypeFromPath(entryPath);
+        if (CompatStrings.isBlank(mediaType)) {
+            return false;
+        }
+
+        return mediaType.startsWith("image/")
+            || mediaType.startsWith("audio/")
+            || mediaType.startsWith("video/")
+            || mediaType.startsWith("font/")
+            || "text/css".equals(mediaType)
+            || "application/xhtml+xml".equals(mediaType)
+            || "application/svg+xml".equals(mediaType)
+            || "image/svg+xml".equals(mediaType);
+    }
+
+    private boolean hasMissingFallback(ParsedManifestItem manifestItem) {
+        if (manifestItem == null || !manifestItem.exists) {
+            return false;
+        }
+
+        String normalizedProperties = manifestItem.properties == null
+            ? ""
+            : manifestItem.properties.toLowerCase(Locale.US);
+        if (!normalizedProperties.contains("scripted")) {
+            return false;
+        }
+
+        return CompatStrings.isBlank(manifestItem.fallback);
+    }
+
+    private boolean containsDrmProtectedContent(List<FileHeader> headers) {
+        if (headers == null || headers.isEmpty()) {
+            return false;
+        }
+
+        for (FileHeader header : headers) {
+            if (header == null || header.isDirectory()) {
+                continue;
+            }
+
+            String entryPath = normalizeZipPath(header.getFileName()).toLowerCase(Locale.US);
+            if (
+                "meta-inf/encryption.xml".equals(entryPath)
+                    || "meta-inf/rights.xml".equals(entryPath)
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private java.util.ArrayList<FallbackRepairPlan> collectFallbackRepairPlans(
+        java.util.ArrayList<ParsedManifestItem> manifestItems,
+        String opfDir,
+        List<FileHeader> headers
+    ) {
+        java.util.HashSet<String> usedPaths = new java.util.HashSet<>();
+        if (headers != null) {
+            for (FileHeader header : headers) {
+                if (header != null && !header.isDirectory()) {
+                    usedPaths.add(normalizeZipPath(header.getFileName()));
+                }
+            }
+        }
+
+        for (ParsedManifestItem manifestItem : manifestItems) {
+            if (manifestItem != null && CompatStrings.isNotBlank(manifestItem.resolvedPath)) {
+                usedPaths.add(normalizeZipPath(manifestItem.resolvedPath));
+            }
+        }
+
+        java.util.ArrayList<FallbackRepairPlan> plans = new java.util.ArrayList<>();
+        for (ParsedManifestItem manifestItem : manifestItems) {
+            if (!hasMissingFallback(manifestItem)) {
+                continue;
+            }
+
+            String sourceDir = parentZipPath(manifestItem.resolvedPath);
+            String sourceBase = stripExtension(Paths.get(manifestItem.resolvedPath).getFileName().toString());
+            if (CompatStrings.isBlank(sourceBase)) {
+                sourceBase = "fallback";
+            }
+
+            String candidateResolvedPath = resolveRelativeZipPath(sourceDir, sourceBase + "-fallback.xhtml");
+            candidateResolvedPath = buildUniqueSiblingPath(candidateResolvedPath, usedPaths);
+            usedPaths.add(normalizeZipPath(candidateResolvedPath));
+
+            String fallbackHref = relativizeZipPath(opfDir, candidateResolvedPath);
+            String fallbackBaseId = CompatStrings.isNotBlank(manifestItem.id)
+                ? stripExtension(manifestItem.id)
+                : "fallback";
+            String fallbackId = buildUniqueManifestId(
+                manifestItems,
+                fallbackBaseId + "-fallback"
+            );
+            plans.add(
+                new FallbackRepairPlan(
+                    manifestItem,
+                    fallbackId,
+                    fallbackHref,
+                    candidateResolvedPath
+                )
+            );
+        }
+
+        return plans;
+    }
+
+    private java.util.ArrayList<EpubIssue> collectContentDocumentIssues(
+        ZipFile zipFile,
+        ParsedManifestItem manifestItem,
+        boolean isSpineItem
+    ) throws Exception {
+        java.util.ArrayList<EpubIssue> issues = new java.util.ArrayList<>();
+        FileHeader header = findHeader(zipFile.getFileHeaders(), manifestItem.resolvedPath);
+        byte[] bytes = header == null ? null : readEntryBytes(zipFile, header);
+        if (bytes == null) {
+            return issues;
+        }
+
+        DecodedXmlBytes decoded = decodeXmlBytesDetailed(bytes);
+        String text = decoded.text;
+        String normalized = text == null ? "" : text;
+        String sanitized = sanitizeXmlText(normalized);
+        boolean reparable = canParseAsXml(sanitized);
+
+        if (decoded.usedFallbackEncoding) {
+            issues.add(issue("HIGH-ENC-001", "warning", true, manifestItem.resolvedPath));
+        }
+
+        if (containsInvalidXmlCharacters(normalized)) {
+            issues.add(issue("HIGH-ENC-002", "warning", true, manifestItem.resolvedPath));
+        }
+
+        if (containsDoctypeDeclaration(normalized)) {
+            issues.add(issue("HIGH-XHTML-003", "warning", true, manifestItem.resolvedPath));
+        }
+
+        if (containsBareXmlAttributes(normalized)) {
+            issues.add(issue("HIGH-XHTML-002", "warning", true, manifestItem.resolvedPath));
+        }
+
+        if (!reparable) {
+            issues.add(issue("CRIT-XHTML-001", "error", true, manifestItem.resolvedPath));
+        } else if (isSpineItem && isLikelyHeadBodyBreak(normalized)) {
+            issues.add(issue("CRIT-XHTML-001", "error", true, manifestItem.resolvedPath));
+        } else if (
+            containsStructuralXmlDamage(normalized)
+                || !normalized.equals(sanitized)
+        ) {
+            issues.add(issue("HIGH-XHTML-001", "warning", true, manifestItem.resolvedPath));
+        }
+
+        return issues;
+    }
+
     private void repairArchiveToOutput(
         Path sourceZipPath,
         Path outputZipPath,
@@ -1208,6 +1478,9 @@ public class EpubRewritePlugin extends Plugin {
             java.util.Set<String> orphanEntries = new java.util.HashSet<>(
                 collectOrphanResources(headers, analysis.manifestItems, analysis.opfPath)
             );
+            java.util.Set<String> promotableOrphanEntries = new java.util.HashSet<>(
+                analysis.promotableOrphanResources
+            );
             for (FileHeader header : headers) {
                 if (header == null || header.isDirectory()) {
                     continue;
@@ -1226,7 +1499,7 @@ public class EpubRewritePlugin extends Plugin {
                     emitProgress(interpolate(5, 95, processedBytes, totalBytes));
                     continue;
                 }
-                if (orphanEntries.contains(entryPath)) {
+                if (orphanEntries.contains(entryPath) && !promotableOrphanEntries.contains(entryPath)) {
                     processedBytes += Math.max(1L, header.getUncompressedSize());
                     emitProgress(interpolate(5, 95, processedBytes, totalBytes));
                     if (repairedIssues != null) {
@@ -1242,38 +1515,87 @@ public class EpubRewritePlugin extends Plugin {
                         && analysis.opfPath.equals(entryPath)
                         && analysis.opfDocument != null
                 ) {
-                    String repairedOpf = rewritePackageDocument(analysis);
+                    String repairedOpf = rewritePackageDocument(analysis, repairedIssues);
                     byte[] repairedBytes = repairedOpf.getBytes(StandardCharsets.UTF_8);
                     parameters = buildParametersFromBytes(header, entryPath, repairedBytes);
                     try (InputStream entryInput = new ByteArrayInputStream(repairedBytes)) {
                         outputZip.addStream(entryInput, parameters);
                     }
                 } else {
-                    InternalLinkRepairResult repairedContent = tryRewriteInternalLinkContent(
-                        sourceZip,
-                        entryPath,
-                        analysis,
-                        guidedSelections
+                    ParsedManifestItem manifestItem = findManifestItemByResolvedPath(
+                        analysis.manifestItems,
+                        entryPath
                     );
-                    if (repairedContent != null) {
-                        parameters = buildParametersFromBytes(header, entryPath, repairedContent.content);
-                        try (InputStream entryInput = new ByteArrayInputStream(repairedContent.content)) {
+                    ContentDocumentRepairResult repairedDocument = repairInspectableContentDocument(
+                        sourceZip,
+                        manifestItem,
+                        false
+                    );
+                    if (repairedDocument != null) {
+                        parameters = buildParametersFromBytes(header, entryPath, repairedDocument.content);
+                        try (InputStream entryInput = new ByteArrayInputStream(repairedDocument.content)) {
                             outputZip.addStream(entryInput, parameters);
                         }
                         if (repairedIssues != null) {
-                            repairedIssues.addAll(repairedContent.repairedIssueCodes);
+                            repairedIssues.addAll(repairedDocument.repairedIssueCodes);
                         }
                     } else {
-                        try (InputStream entryInput = new BufferedInputStream(
-                            sourceZip.getInputStream(header)
-                        )) {
-                            outputZip.addStream(entryInput, parameters);
+                        InternalLinkRepairResult repairedContent = tryRewriteInternalLinkContent(
+                            sourceZip,
+                            entryPath,
+                            analysis,
+                            guidedSelections
+                        );
+                        if (repairedContent != null) {
+                            parameters = buildParametersFromBytes(header, entryPath, repairedContent.content);
+                            try (InputStream entryInput = new ByteArrayInputStream(repairedContent.content)) {
+                                outputZip.addStream(entryInput, parameters);
+                            }
+                            if (repairedIssues != null) {
+                                repairedIssues.addAll(repairedContent.repairedIssueCodes);
+                            }
+                        } else {
+                            try (InputStream entryInput = new BufferedInputStream(
+                                sourceZip.getInputStream(header)
+                            )) {
+                                outputZip.addStream(entryInput, parameters);
+                            }
                         }
                     }
                 }
 
                 processedBytes += Math.max(1L, header.getUncompressedSize());
                 emitProgress(interpolate(5, 95, processedBytes, totalBytes));
+            }
+
+            for (FallbackRepairPlan fallbackPlan : analysis.fallbackPlans) {
+                ensureNotCancelled();
+
+                ParsedManifestItem sourceItem = fallbackPlan.sourceItem;
+                if (sourceItem == null) {
+                    continue;
+                }
+
+                ContentDocumentRepairResult fallbackRepair = repairInspectableContentDocument(
+                    sourceZip,
+                    sourceItem,
+                    true
+                );
+                if (fallbackRepair == null) {
+                    continue;
+                }
+
+                ZipParameters parameters = new ZipParameters();
+                parameters.setFileNameInZip(fallbackPlan.fallbackResolvedPath);
+                parameters.setCompressionMethod(CompressionMethod.DEFLATE);
+                try (InputStream entryInput = new ByteArrayInputStream(fallbackRepair.content)) {
+                    outputZip.addStream(entryInput, parameters);
+                }
+
+                if (repairedIssues != null) {
+                    repairedIssues.addAll(fallbackRepair.repairedIssueCodes);
+                    repairedIssues.add("HIGH-FALLBACK-001");
+                }
             }
 
             if (repairedIssues != null) {
@@ -1297,14 +1619,57 @@ public class EpubRewritePlugin extends Plugin {
                         repairedIssues.add("SPINE_ITEM_INVALID");
                     }
                 }
+
+                if (!analysis.promotableOrphanResources.isEmpty()) {
+                    repairedIssues.add("HIGH-MAN-001");
+                }
             }
         }
     }
 
     private String rewritePackageDocument(EpubAnalysis analysis) throws Exception {
+        return rewritePackageDocument(analysis, null);
+    }
+
+    private String rewritePackageDocument(
+        EpubAnalysis analysis,
+        java.util.Set<String> repairedIssues
+    ) throws Exception {
         Document document = analysis.opfDocument;
+        Element packageElement = document.getDocumentElement();
+        Element metadataElement = firstElementByName(document, "metadata");
         Element manifestElement = firstElementByName(document, "manifest");
         Element spineElement = firstElementByName(document, "spine");
+
+        if (packageElement != null) {
+            String version = packageElement.getAttribute("version").trim();
+            if (!isSupportedOpfVersion(version)) {
+                packageElement.setAttribute("version", inferOpfVersion(analysis));
+                if (repairedIssues != null) {
+                    repairedIssues.add("OPF_VERSION_INVALID");
+                }
+            }
+        }
+
+        String uniqueIdentifier = packageElement == null
+            ? ""
+            : packageElement.getAttribute("unique-identifier").trim();
+        String normalizedUniqueIdentifier = normalizePackageUniqueIdentifier(
+            document,
+            packageElement,
+            metadataElement,
+            uniqueIdentifier
+        );
+        if (packageElement != null && !normalizedUniqueIdentifier.equals(uniqueIdentifier)) {
+            packageElement.setAttribute("unique-identifier", normalizedUniqueIdentifier);
+            if (repairedIssues != null) {
+                if (CompatStrings.isBlank(uniqueIdentifier)) {
+                    repairedIssues.add("OPF_UNIQUE_IDENTIFIER_MISSING");
+                } else {
+                    repairedIssues.add("OPF_UNIQUE_IDENTIFIER_INVALID");
+                }
+            }
+        }
 
         if (manifestElement != null) {
             for (ParsedManifestItem manifestItem : analysis.manifestItems) {
@@ -1326,6 +1691,53 @@ public class EpubRewritePlugin extends Plugin {
                 ) {
                     manifestItem.element.removeAttribute("media-overlay");
                 }
+            }
+
+            for (String orphanPath : analysis.promotableOrphanResources) {
+                if (CompatStrings.isBlank(orphanPath)) {
+                    continue;
+                }
+                if (findManifestItemByResolvedPath(analysis.manifestItems, orphanPath) != null) {
+                    continue;
+                }
+
+                Element itemElement = document.createElementNS(
+                    packageElement.getNamespaceURI(),
+                    "item"
+                );
+                String itemId = buildUniqueManifestId(analysis.manifestItems, stripExtension(Paths.get(orphanPath).getFileName().toString()));
+                itemElement.setAttribute("id", itemId);
+                itemElement.setAttribute("href", relativizeZipPath(analysis.opfDir, orphanPath));
+                String mediaType = detectMediaTypeFromPath(orphanPath);
+                if (CompatStrings.isBlank(mediaType)) {
+                    mediaType = "application/octet-stream";
+                }
+                itemElement.setAttribute("media-type", mediaType);
+                manifestElement.appendChild(itemElement);
+            }
+
+            for (FallbackRepairPlan fallbackPlan : analysis.fallbackPlans) {
+                if (fallbackPlan == null || fallbackPlan.sourceItem == null) {
+                    continue;
+                }
+                Element sourceElement = fallbackPlan.sourceItem.element;
+                if (sourceElement == null) {
+                    continue;
+                }
+
+                sourceElement.setAttribute("fallback", fallbackPlan.fallbackId);
+                if (findManifestItemById(manifestElement, fallbackPlan.fallbackId) != null) {
+                    continue;
+                }
+
+                Element fallbackItem = document.createElementNS(
+                    packageElement.getNamespaceURI(),
+                    "item"
+                );
+                fallbackItem.setAttribute("id", fallbackPlan.fallbackId);
+                fallbackItem.setAttribute("href", fallbackPlan.fallbackHref);
+                fallbackItem.setAttribute("media-type", "application/xhtml+xml");
+                manifestElement.appendChild(fallbackItem);
             }
         }
 
@@ -1367,6 +1779,195 @@ public class EpubRewritePlugin extends Plugin {
         }
 
         return analysis.spineItems.stream().noneMatch(item -> item.valid);
+    }
+
+    private boolean isSupportedOpfVersion(String version) {
+        String normalizedVersion = version == null ? "" : version.trim();
+        return "2.0".equals(normalizedVersion) || "3.0".equals(normalizedVersion);
+    }
+
+    private String inferOpfVersion(EpubAnalysis analysis) {
+        boolean hasNav = false;
+        boolean hasNcx = false;
+
+        for (ParsedManifestItem manifestItem : analysis.manifestItems) {
+            if (manifestItem == null || !manifestItem.exists) {
+                continue;
+            }
+
+            String normalizedProperties = manifestItem.properties == null
+                ? ""
+                : manifestItem.properties.toLowerCase(Locale.US);
+            if (normalizedProperties.contains("nav")) {
+                hasNav = true;
+            }
+
+            String normalizedMediaType = manifestItem.mediaType == null
+                ? ""
+                : manifestItem.mediaType.trim().toLowerCase(Locale.US);
+            String normalizedHref = manifestItem.normalizedHref == null
+                ? ""
+                : manifestItem.normalizedHref.toLowerCase(Locale.US);
+            if ("application/x-dtbncx+xml".equals(normalizedMediaType) || normalizedHref.endsWith(".ncx")) {
+                hasNcx = true;
+            }
+        }
+
+        if (hasNav) {
+            return "3.0";
+        }
+
+        if (hasNcx) {
+            return "2.0";
+        }
+
+        return "3.0";
+    }
+
+    private boolean hasPackageUniqueIdentifier(Document document, String uniqueIdentifier) {
+        if (document == null || CompatStrings.isBlank(uniqueIdentifier)) {
+            return false;
+        }
+
+        Element metadataElement = firstElementByName(document, "metadata");
+        if (metadataElement == null) {
+            return false;
+        }
+
+        NodeList identifiers = metadataElement.getElementsByTagNameNS("*", "identifier");
+        for (int i = 0; i < identifiers.getLength(); i++) {
+            if (!(identifiers.item(i) instanceof Element)) {
+                continue;
+            }
+            Element identifier = (Element) identifiers.item(i);
+            if (uniqueIdentifier.equals(identifier.getAttribute("id").trim())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private String normalizePackageUniqueIdentifier(
+        Document document,
+        Element packageElement,
+        Element metadataElement,
+        String currentUniqueIdentifier
+    ) {
+        Element effectiveMetadata = metadataElement != null
+            ? metadataElement
+            : ensureMetadataElement(document, packageElement);
+        if (effectiveMetadata == null) {
+            return CompatStrings.isBlank(currentUniqueIdentifier)
+                ? "bookid"
+                : currentUniqueIdentifier;
+        }
+
+        Element identifierElement = null;
+        if (CompatStrings.isNotBlank(currentUniqueIdentifier)) {
+            identifierElement = findIdentifierElementById(effectiveMetadata, currentUniqueIdentifier);
+        }
+
+        if (identifierElement == null) {
+            identifierElement = firstIdentifierElement(effectiveMetadata);
+        }
+
+        if (identifierElement == null) {
+            identifierElement = document.createElementNS(
+                "http://purl.org/dc/elements/1.1/",
+                "dc:identifier"
+            );
+            String identifierId = buildUniqueIdentifierId(effectiveMetadata, "bookid");
+            identifierElement.setAttribute("id", identifierId);
+            identifierElement.setTextContent("urn:uuid:" + UUID.randomUUID());
+            effectiveMetadata.appendChild(identifierElement);
+            return identifierId;
+        }
+
+        String identifierId = identifierElement.getAttribute("id").trim();
+        if (CompatStrings.isBlank(identifierId)) {
+            identifierId = buildUniqueIdentifierId(effectiveMetadata, "bookid");
+            identifierElement.setAttribute("id", identifierId);
+        }
+
+        if (CompatStrings.isBlank(identifierElement.getTextContent())) {
+            identifierElement.setTextContent("urn:uuid:" + UUID.randomUUID());
+        }
+
+        return identifierId;
+    }
+
+    private Element ensureMetadataElement(Document document, Element packageElement) {
+        if (document == null || packageElement == null) {
+            return null;
+        }
+
+        Element metadataElement = createPackageElement(document, "metadata");
+        Node firstChild = packageElement.getFirstChild();
+        if (firstChild == null) {
+            packageElement.appendChild(metadataElement);
+        } else {
+            packageElement.insertBefore(metadataElement, firstChild);
+        }
+        return metadataElement;
+    }
+
+    private Element firstIdentifierElement(Element metadataElement) {
+        if (metadataElement == null) {
+            return null;
+        }
+
+        NodeList identifiers = metadataElement.getElementsByTagNameNS("*", "identifier");
+        for (int i = 0; i < identifiers.getLength(); i++) {
+            if (identifiers.item(i) instanceof Element) {
+                return (Element) identifiers.item(i);
+            }
+        }
+
+        return null;
+    }
+
+    private Element findIdentifierElementById(Element metadataElement, String identifierId) {
+        if (metadataElement == null || CompatStrings.isBlank(identifierId)) {
+            return null;
+        }
+
+        NodeList identifiers = metadataElement.getElementsByTagNameNS("*", "identifier");
+        for (int i = 0; i < identifiers.getLength(); i++) {
+            if (!(identifiers.item(i) instanceof Element)) {
+                continue;
+            }
+            Element identifier = (Element) identifiers.item(i);
+            if (identifierId.equals(identifier.getAttribute("id").trim())) {
+                return identifier;
+            }
+        }
+
+        return null;
+    }
+
+    private String buildUniqueIdentifierId(Element metadataElement, String baseId) {
+        java.util.HashSet<String> ids = new java.util.HashSet<>();
+        NodeList identifiers = metadataElement.getElementsByTagNameNS("*", "identifier");
+        for (int i = 0; i < identifiers.getLength(); i++) {
+            if (!(identifiers.item(i) instanceof Element)) {
+                continue;
+            }
+            String existingId = ((Element) identifiers.item(i)).getAttribute("id").trim();
+            if (CompatStrings.isNotBlank(existingId)) {
+                ids.add(existingId);
+            }
+        }
+
+        if (!ids.contains(baseId)) {
+            return baseId;
+        }
+
+        int suffix = 2;
+        while (ids.contains(baseId + "-" + suffix)) {
+            suffix += 1;
+        }
+        return baseId + "-" + suffix;
     }
 
     private void appendReconstructedSpineItems(
@@ -1491,7 +2092,8 @@ public class EpubRewritePlugin extends Plugin {
             return null;
         }
 
-        Document document = parseXmlUtf8(sourceText);
+        String repairedSourceText = sanitizeXmlText(sourceText);
+        Document document = parseXmlUtf8(repairedSourceText);
         if (document == null) {
             return null;
         }
@@ -1523,6 +2125,69 @@ public class EpubRewritePlugin extends Plugin {
         return new InternalLinkRepairResult(
             serializeXml(document).getBytes(StandardCharsets.UTF_8),
             inspection.repairedIssueCodes
+        );
+    }
+
+    private ContentDocumentRepairResult repairInspectableContentDocument(
+        ZipFile zipFile,
+        ParsedManifestItem manifestItem,
+        boolean stripScripts
+    ) throws Exception {
+        if (manifestItem == null || !shouldInspectContentDocument(manifestItem)) {
+            return null;
+        }
+
+        FileHeader header = findHeader(zipFile.getFileHeaders(), manifestItem.resolvedPath);
+        byte[] entryBytes = header == null ? null : readEntryBytes(zipFile, header);
+        if (entryBytes == null) {
+            return null;
+        }
+
+        DecodedXmlBytes decoded = decodeXmlBytesDetailed(entryBytes);
+        String originalText = decoded.text == null ? "" : decoded.text;
+        String sanitizedText = sanitizeXmlText(originalText);
+        Document document = parseXmlUtf8(sanitizedText);
+        if (document == null) {
+            return null;
+        }
+
+        if (stripScripts) {
+            removeElementsByTagName(document, "script");
+            removeElementsByTagName(document, "object");
+            removeElementsByTagName(document, "embed");
+        }
+
+        String rewrittenText = serializeXml(document);
+        boolean textChanged = !normalizeXmlComparison(originalText).equals(normalizeXmlComparison(rewrittenText));
+        if (!stripScripts && !decoded.usedFallbackEncoding && !textChanged) {
+            return null;
+        }
+
+        java.util.ArrayList<String> repairedIssueCodes = new java.util.ArrayList<>();
+        if (decoded.usedFallbackEncoding) {
+            repairedIssueCodes.add("HIGH-ENC-001");
+        }
+        if (containsInvalidXmlCharacters(originalText)) {
+            repairedIssueCodes.add("HIGH-ENC-002");
+        }
+        if (containsDoctypeDeclaration(originalText)) {
+            repairedIssueCodes.add("HIGH-XHTML-003");
+        }
+        if (containsBareXmlAttributes(originalText)) {
+            repairedIssueCodes.add("HIGH-XHTML-002");
+        }
+        if (isLikelyHeadBodyBreak(originalText)) {
+            repairedIssueCodes.add("CRIT-XHTML-001");
+        } else if (
+            containsStructuralXmlDamage(originalText)
+                || !normalizeXmlComparison(originalText).equals(normalizeXmlComparison(rewrittenText))
+        ) {
+            repairedIssueCodes.add("HIGH-XHTML-001");
+        }
+
+        return new ContentDocumentRepairResult(
+            rewrittenText.getBytes(StandardCharsets.UTF_8),
+            repairedIssueCodes
         );
     }
 
@@ -1724,6 +2389,35 @@ public class EpubRewritePlugin extends Plugin {
         return elements;
     }
 
+    private void removeElementsByTagName(Document document, String localName) {
+        if (document == null || CompatStrings.isBlank(localName)) {
+            return;
+        }
+
+        NodeList nodes = document.getElementsByTagNameNS("*", localName);
+        java.util.ArrayList<Node> removable = new java.util.ArrayList<>();
+        for (int index = 0; index < nodes.getLength(); index++) {
+            Node node = nodes.item(index);
+            if (node != null) {
+                removable.add(node);
+            }
+        }
+
+        for (Node node : removable) {
+            Node parent = node.getParentNode();
+            if (parent != null) {
+                parent.removeChild(node);
+            }
+        }
+    }
+
+    private String normalizeXmlComparison(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace("\r\n", "\n").replace('\r', '\n').trim();
+    }
+
     private java.util.HashSet<String> collectDocumentIds(
         ZipFile zipFile,
         String documentPath,
@@ -1788,6 +2482,28 @@ public class EpubRewritePlugin extends Plugin {
                 return manifestItem;
             }
         }
+        return null;
+    }
+
+    private Element findManifestItemById(Element manifestElement, String id) {
+        if (manifestElement == null || CompatStrings.isBlank(id)) {
+            return null;
+        }
+
+        NodeList children = manifestElement.getChildNodes();
+        for (int index = 0; index < children.getLength(); index++) {
+            if (!(children.item(index) instanceof Element)) {
+                continue;
+            }
+            Element element = (Element) children.item(index);
+            if (!"item".equals(element.getLocalName()) && !"item".equals(element.getTagName())) {
+                continue;
+            }
+            if (id.equals(element.getAttribute("id").trim())) {
+                return element;
+            }
+        }
+
         return null;
     }
 
@@ -2132,6 +2848,18 @@ public class EpubRewritePlugin extends Plugin {
         }
     }
 
+    private static final class ContentDocumentRepairResult {
+        final byte[] content;
+        final java.util.ArrayList<String> repairedIssueCodes;
+
+        ContentDocumentRepairResult(byte[] content, java.util.ArrayList<String> repairedIssueCodes) {
+            this.content = content;
+            this.repairedIssueCodes = repairedIssueCodes == null
+                ? new java.util.ArrayList<>()
+                : new java.util.ArrayList<>(repairedIssueCodes);
+        }
+    }
+
     private static final class InternalLinkEvaluation {
         final String rawValue;
         final java.util.ArrayList<EpubIssue> issues;
@@ -2259,9 +2987,723 @@ public class EpubRewritePlugin extends Plugin {
                 return null;
             }
 
-            return new String(readEntryBytes(zipFile, header), StandardCharsets.UTF_8);
+            return decodeXmlBytes(readEntryBytes(zipFile, header));
         } catch (Exception ex) {
             return null;
+        }
+    }
+
+    private String decodeXmlBytes(byte[] bytes) {
+        return decodeXmlBytesDetailed(bytes).text;
+    }
+
+    private DecodedXmlBytes decodeXmlBytesDetailed(byte[] bytes) {
+        if (bytes == null || bytes.length == 0) {
+            return new DecodedXmlBytes("", StandardCharsets.UTF_8.name(), null, false);
+        }
+
+        java.util.ArrayList<Charset> candidates = new java.util.ArrayList<>();
+        int offset = 0;
+        String declaredEncoding = null;
+        if (startsWith(bytes, new byte[] {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF})) {
+            offset = 3;
+            candidates.add(StandardCharsets.UTF_8);
+            declaredEncoding = StandardCharsets.UTF_8.name();
+        } else if (startsWith(bytes, new byte[] {(byte) 0xFE, (byte) 0xFF})) {
+            offset = 2;
+            candidates.add(StandardCharsets.UTF_16BE);
+            declaredEncoding = StandardCharsets.UTF_16BE.name();
+        } else if (startsWith(bytes, new byte[] {(byte) 0xFF, (byte) 0xFE})) {
+            offset = 2;
+            candidates.add(StandardCharsets.UTF_16LE);
+            declaredEncoding = StandardCharsets.UTF_16LE.name();
+        } else {
+            int probeLength = Math.min(bytes.length, 256);
+            String probe = new String(bytes, 0, probeLength, StandardCharsets.ISO_8859_1);
+            Matcher matcher = XML_DECLARATION_ENCODING_PATTERN.matcher(probe);
+            if (matcher.find()) {
+                declaredEncoding = matcher.group(2).trim();
+                try {
+                    candidates.add(Charset.forName(declaredEncoding));
+                } catch (Exception ignored) {
+                    // Fall through to default candidates.
+                }
+            }
+        }
+
+        candidates.add(StandardCharsets.UTF_8);
+        candidates.add(StandardCharsets.ISO_8859_1);
+        candidates.add(Charset.forName("windows-1252"));
+
+        String fallbackReason = "UTF-8";
+        String text = null;
+        for (Charset candidate : candidates) {
+            if (candidate == null) {
+                continue;
+            }
+            try {
+                CharsetDecoder decoder = candidate
+                    .newDecoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT);
+                text = decoder.decode(ByteBuffer.wrap(bytes, offset, bytes.length - offset)).toString();
+                fallbackReason = candidate.name();
+                break;
+            } catch (CharacterCodingException ignored) {
+                // Try the next candidate.
+            } catch (Exception ignored) {
+                // Try the next candidate.
+            }
+        }
+
+        if (text == null) {
+            text = new String(bytes, offset, bytes.length - offset, StandardCharsets.UTF_8);
+            fallbackReason = StandardCharsets.UTF_8.name();
+        }
+
+        boolean usedFallbackEncoding = CompatStrings.isNotBlank(declaredEncoding)
+            && !declaredEncoding.equalsIgnoreCase(fallbackReason);
+
+        return new DecodedXmlBytes(text, fallbackReason, declaredEncoding, usedFallbackEncoding);
+    }
+
+    private boolean startsWith(byte[] bytes, byte[] prefix) {
+        if (bytes == null || prefix == null || bytes.length < prefix.length) {
+            return false;
+        }
+
+        for (int index = 0; index < prefix.length; index++) {
+            if (bytes[index] != prefix[index]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static final class DecodedXmlBytes {
+        final String text;
+        final String charsetName;
+        final String declaredEncoding;
+        final boolean usedFallbackEncoding;
+
+        DecodedXmlBytes(
+            String text,
+            String charsetName,
+            String declaredEncoding,
+            boolean usedFallbackEncoding
+        ) {
+            this.text = text;
+            this.charsetName = charsetName;
+            this.declaredEncoding = declaredEncoding;
+            this.usedFallbackEncoding = usedFallbackEncoding;
+        }
+    }
+
+    private boolean containsDoctypeDeclaration(String text) {
+        if (CompatStrings.isBlank(text)) {
+            return false;
+        }
+
+        String lower = text.toLowerCase(Locale.US);
+        return lower.contains("<!doctype");
+    }
+
+    private boolean containsInvalidXmlCharacters(String text) {
+        if (CompatStrings.isBlank(text)) {
+            return false;
+        }
+
+        for (int index = 0; index < text.length(); index++) {
+            char current = text.charAt(index);
+            if (
+                current == '\u0009'
+                    || current == '\n'
+                    || current == '\r'
+                    || current >= '\u0020'
+                    || (current >= '\uD800' && current <= '\uDFFF')
+            ) {
+                continue;
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean containsBareXmlAttributes(String text) {
+        if (CompatStrings.isBlank(text)) {
+            return false;
+        }
+
+        Pattern bareAttributePattern = Pattern.compile(
+            "<[A-Za-z_:][^>]*\\s+[A-Za-z_:][-A-Za-z0-9_:.]*\\s*=\\s*[^\"'\\s>][^\\s>]*",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
+        );
+        return bareAttributePattern.matcher(text).find();
+    }
+
+    private boolean containsStructuralXmlDamage(String text) {
+        if (CompatStrings.isBlank(text)) {
+            return false;
+        }
+
+        String lower = text.toLowerCase(Locale.US);
+        return (
+            lower.contains("<body")
+                && !lower.contains("</body>")
+                || lower.contains("<head")
+                    && !lower.contains("</head>")
+                || lower.contains("<p")
+                    && !lower.contains("</p>")
+                || lower.contains("<div")
+                    && !lower.contains("</div>")
+        );
+    }
+
+    private boolean isLikelyHeadBodyBreak(String text) {
+        if (CompatStrings.isBlank(text)) {
+            return false;
+        }
+
+        String lower = text.toLowerCase(Locale.US);
+        int headOpen = lower.indexOf("<head");
+        int headClose = lower.indexOf("</head>");
+        int bodyOpen = lower.indexOf("<body");
+        return headOpen >= 0 && bodyOpen > headOpen && headClose < 0;
+    }
+
+    private boolean canParseAsXml(String text) {
+        if (CompatStrings.isBlank(text)) {
+            return false;
+        }
+
+        try {
+            return parseXmlUtf8(text) != null;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    private String sanitizeXmlText(String text) {
+        if (CompatStrings.isBlank(text)) {
+            return "";
+        }
+
+        String normalized = text.replace("\r\n", "\n").replace('\r', '\n');
+        normalized = removeDoctypeDeclarations(normalized);
+        normalized = replaceUnknownEntityReferences(normalized);
+        normalized = removeInvalidXmlCharacters(normalized);
+        StringBuilder output = new StringBuilder(normalized.length() + 64);
+        Deque<String> openTags = new ArrayDeque<>();
+
+        int index = 0;
+        while (index < normalized.length()) {
+            char current = normalized.charAt(index);
+            if (current != '<') {
+                output.append(current);
+                index += 1;
+                continue;
+            }
+
+            if (normalized.regionMatches(true, index, "<!--", 0, 4)) {
+                int end = normalized.indexOf("-->", index + 4);
+                if (end < 0) {
+                    output.append(normalized.substring(index));
+                    break;
+                }
+                output.append(normalized, index, end + 3);
+                index = end + 3;
+                continue;
+            }
+
+            if (normalized.regionMatches(true, index, "<?", 0, 2)) {
+                int end = normalized.indexOf("?>", index + 2);
+                if (end < 0) {
+                    output.append(normalized.substring(index));
+                    break;
+                }
+                output.append(normalized, index, end + 2);
+                index = end + 2;
+                continue;
+            }
+
+            if (startsWithIgnoreCase(normalized, index, "<![cdata[")) {
+                int end = normalized.toLowerCase(Locale.US).indexOf("]]>", index + 9);
+                if (end < 0) {
+                    output.append(normalized.substring(index));
+                    break;
+                }
+                output.append(normalized, index, end + 3);
+                index = end + 3;
+                continue;
+            }
+
+            if (startsWithIgnoreCase(normalized, index, "<!doctype")) {
+                index = skipMarkupDeclaration(normalized, index);
+                continue;
+            }
+
+            int end = findTagEnd(normalized, index + 1);
+            if (end < 0) {
+                output.append(normalized.substring(index));
+                break;
+            }
+
+            String tagContent = normalized.substring(index + 1, end).trim();
+            index = end + 1;
+
+            if (tagContent.isEmpty() || tagContent.startsWith("!")) {
+                continue;
+            }
+
+            if (tagContent.startsWith("/")) {
+                String closeName = extractTagName(tagContent.substring(1));
+                closeOpenTags(output, openTags, closeName);
+                continue;
+            }
+
+            boolean selfClosing = tagContent.endsWith("/");
+            if (selfClosing) {
+                tagContent = tagContent.substring(0, tagContent.length() - 1).trim();
+            }
+
+            String tagName = extractTagName(tagContent);
+            if (CompatStrings.isBlank(tagName)) {
+                continue;
+            }
+
+            String remainder = tagContent.substring(tagName.length()).trim();
+            if ("body".equalsIgnoreCase(tagName)) {
+                closeOpenTagIfPresent(output, openTags, "head");
+            }
+
+            if (isVoidElement(tagName)) {
+                selfClosing = true;
+            }
+
+            output.append('<').append(tagName);
+            String sanitizedAttributes = sanitizeAttributeList(remainder);
+            if (CompatStrings.isNotBlank(sanitizedAttributes)) {
+                output.append(' ').append(sanitizedAttributes);
+            }
+            if (selfClosing) {
+                output.append("/>");
+            } else {
+                output.append('>');
+                openTags.push(tagName);
+            }
+        }
+
+        while (!openTags.isEmpty()) {
+            output.append("</").append(openTags.pop()).append('>');
+        }
+
+        return output.toString();
+    }
+
+    private int skipMarkupDeclaration(String text, int startIndex) {
+        int end = text.indexOf("]>", startIndex);
+        if (end >= 0) {
+            return end + 2;
+        }
+
+        end = findTagEnd(text, startIndex + 1);
+        if (end >= 0) {
+            return end + 1;
+        }
+
+        return text.length();
+    }
+
+    private int findTagEnd(String text, int startIndex) {
+        boolean inSingleQuote = false;
+        boolean inDoubleQuote = false;
+        for (int index = startIndex; index < text.length(); index++) {
+            char current = text.charAt(index);
+            if (current == '\'' && !inDoubleQuote) {
+                inSingleQuote = !inSingleQuote;
+            } else if (current == '"' && !inSingleQuote) {
+                inDoubleQuote = !inDoubleQuote;
+            } else if (current == '>' && !inSingleQuote && !inDoubleQuote) {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    private String extractTagName(String rawTag) {
+        if (CompatStrings.isBlank(rawTag)) {
+            return "";
+        }
+
+        String[] parts = rawTag.trim().split("\\s+", 2);
+        return parts.length == 0 ? "" : parts[0].trim();
+    }
+
+    private String sanitizeAttributeList(String rawAttributes) {
+        if (CompatStrings.isBlank(rawAttributes)) {
+            return "";
+        }
+
+        StringBuilder output = new StringBuilder(rawAttributes.length());
+        int index = 0;
+        while (index < rawAttributes.length()) {
+            while (index < rawAttributes.length() && Character.isWhitespace(rawAttributes.charAt(index))) {
+                index += 1;
+            }
+            if (index >= rawAttributes.length()) {
+                break;
+            }
+
+            int nameStart = index;
+            while (
+                index < rawAttributes.length()
+                    && isXmlNameChar(rawAttributes.charAt(index))
+            ) {
+                index += 1;
+            }
+            if (index == nameStart) {
+                index += 1;
+                continue;
+            }
+
+            String name = rawAttributes.substring(nameStart, index);
+            while (index < rawAttributes.length() && Character.isWhitespace(rawAttributes.charAt(index))) {
+                index += 1;
+            }
+
+            String value = null;
+            if (index < rawAttributes.length() && rawAttributes.charAt(index) == '=') {
+                index += 1;
+                while (index < rawAttributes.length() && Character.isWhitespace(rawAttributes.charAt(index))) {
+                    index += 1;
+                }
+
+                if (index < rawAttributes.length()) {
+                    char quote = rawAttributes.charAt(index);
+                    if (quote == '"' || quote == '\'') {
+                        index += 1;
+                        int valueStart = index;
+                        while (index < rawAttributes.length() && rawAttributes.charAt(index) != quote) {
+                            index += 1;
+                        }
+                        value = rawAttributes.substring(valueStart, Math.min(index, rawAttributes.length()));
+                        if (index < rawAttributes.length()) {
+                            index += 1;
+                        }
+                    } else {
+                        int valueStart = index;
+                        while (
+                            index < rawAttributes.length()
+                                && !Character.isWhitespace(rawAttributes.charAt(index))
+                        ) {
+                            index += 1;
+                        }
+                        value = rawAttributes.substring(valueStart, index);
+                    }
+                }
+            }
+
+            if (output.length() > 0) {
+                output.append(' ');
+            }
+            output.append(name);
+            if (value != null) {
+                output.append("=\"").append(escapeXml(value)).append('"');
+            }
+        }
+
+        return output.toString().trim();
+    }
+
+    private boolean isXmlNameChar(char value) {
+        return Character.isLetterOrDigit(value) || value == '_' || value == '-' || value == ':' || value == '.';
+    }
+
+    private boolean isVoidElement(String tagName) {
+        if (CompatStrings.isBlank(tagName)) {
+            return false;
+        }
+
+        switch (tagName.toLowerCase(Locale.US)) {
+            case "area":
+            case "base":
+            case "br":
+            case "col":
+            case "embed":
+            case "hr":
+            case "img":
+            case "input":
+            case "link":
+            case "meta":
+            case "param":
+            case "source":
+            case "track":
+            case "wbr":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private void closeOpenTagIfPresent(
+        StringBuilder output,
+        Deque<String> openTags,
+        String tagName
+    ) {
+        if (CompatStrings.isBlank(tagName) || openTags.isEmpty()) {
+            return;
+        }
+
+        Deque<String> buffer = new ArrayDeque<>();
+        boolean matched = false;
+        while (!openTags.isEmpty()) {
+            String openTag = openTags.pop();
+            buffer.push(openTag);
+            if (openTag.equalsIgnoreCase(tagName)) {
+                matched = true;
+                break;
+            }
+        }
+
+        while (!buffer.isEmpty()) {
+            String closeTag = buffer.pop();
+            output.append("</").append(closeTag).append('>');
+        }
+
+        if (!matched) {
+            output.append("</").append(tagName).append('>');
+        }
+    }
+
+    private void closeOpenTags(
+        StringBuilder output,
+        Deque<String> openTags,
+        String tagName
+    ) {
+        if (CompatStrings.isBlank(tagName)) {
+            return;
+        }
+
+        Deque<String> buffer = new ArrayDeque<>();
+        boolean matched = false;
+        while (!openTags.isEmpty()) {
+            String openTag = openTags.pop();
+            buffer.push(openTag);
+            if (openTag.equalsIgnoreCase(tagName)) {
+                matched = true;
+                break;
+            }
+        }
+
+        while (!buffer.isEmpty()) {
+            String closeTag = buffer.pop();
+            output.append("</").append(closeTag).append('>');
+        }
+
+        if (!matched) {
+            output.append("</").append(tagName).append('>');
+        }
+    }
+
+    private String removeDoctypeDeclarations(String text) {
+        if (CompatStrings.isBlank(text)) {
+            return "";
+        }
+
+        StringBuilder output = new StringBuilder(text.length());
+        int index = 0;
+        String lower = text.toLowerCase(Locale.US);
+        while (index < text.length()) {
+            int start = lower.indexOf("<!doctype", index);
+            if (start < 0) {
+                output.append(text.substring(index));
+                break;
+            }
+
+            output.append(text, index, start);
+            int end = lower.indexOf("]>", start);
+            if (end >= 0) {
+                index = end + 2;
+                continue;
+            }
+
+            end = lower.indexOf('>', start);
+            if (end >= 0) {
+                index = end + 1;
+                continue;
+            }
+
+            break;
+        }
+
+        return output.toString();
+    }
+
+    private String removeInvalidXmlCharacters(String text) {
+        if (CompatStrings.isBlank(text)) {
+            return "";
+        }
+
+        StringBuilder output = new StringBuilder(text.length());
+        for (int index = 0; index < text.length(); index++) {
+            char current = text.charAt(index);
+            if (
+                current == '\u0009'
+                    || current == '\n'
+                    || current == '\r'
+                    || current >= '\u0020'
+                    || (current >= '\uD800' && current <= '\uDFFF')
+            ) {
+                output.append(current);
+            }
+        }
+        return output.toString();
+    }
+
+    private String replaceUnknownEntityReferences(String text) {
+        if (CompatStrings.isBlank(text)) {
+            return "";
+        }
+
+        StringBuilder output = new StringBuilder(text.length());
+        int index = 0;
+        while (index < text.length()) {
+            char current = text.charAt(index);
+            if (current == '&') {
+                int semicolonIndex = text.indexOf(';', index + 1);
+                if (semicolonIndex > index + 1) {
+                    String entityName = text.substring(index + 1, semicolonIndex);
+                    if (
+                        "amp".equals(entityName)
+                            || "lt".equals(entityName)
+                            || "gt".equals(entityName)
+                            || "apos".equals(entityName)
+                            || "quot".equals(entityName)
+                            || entityName.startsWith("#")
+                    ) {
+                        output.append('&').append(entityName).append(';');
+                    } else {
+                        output.append(entityName);
+                    }
+                    index = semicolonIndex + 1;
+                    continue;
+                }
+            }
+
+            output.append(current);
+            index += 1;
+        }
+
+        return output.toString();
+    }
+
+    private boolean startsWithIgnoreCase(String text, int startIndex, String prefix) {
+        if (text == null || prefix == null || startIndex < 0) {
+            return false;
+        }
+
+        if (text.length() - startIndex < prefix.length()) {
+            return false;
+        }
+
+        return text.regionMatches(true, startIndex, prefix, 0, prefix.length());
+    }
+
+    private String buildUniqueSiblingPath(String candidatePath, java.util.Set<String> usedPaths) {
+        if (CompatStrings.isBlank(candidatePath)) {
+            return candidatePath;
+        }
+
+        String normalizedCandidate = normalizeZipPath(candidatePath);
+        if (usedPaths == null || !usedPaths.contains(normalizedCandidate)) {
+            return normalizedCandidate;
+        }
+
+        String ext = extensionFromPath(normalizedCandidate);
+        String baseName = stripExtension(Paths.get(normalizedCandidate).getFileName().toString());
+        String parentDir = parentZipPath(normalizedCandidate);
+        int suffix = 1;
+        while (true) {
+            String fileName = baseName + "-" + suffix + (CompatStrings.isBlank(ext) ? "" : "." + ext);
+            String next = CompatStrings.isBlank(parentDir) ? fileName : parentDir + "/" + fileName;
+            if (usedPaths == null || !usedPaths.contains(normalizeZipPath(next))) {
+                return next;
+            }
+            suffix += 1;
+        }
+    }
+
+    private String buildUniqueManifestId(
+        java.util.ArrayList<ParsedManifestItem> manifestItems,
+        String baseId
+    ) {
+        String candidate = CompatStrings.isBlank(baseId) ? "fallback" : baseId;
+        java.util.HashSet<String> usedIds = new java.util.HashSet<>();
+        for (ParsedManifestItem manifestItem : manifestItems) {
+            if (manifestItem != null && CompatStrings.isNotBlank(manifestItem.id)) {
+                usedIds.add(manifestItem.id);
+            }
+        }
+
+        if (!usedIds.contains(candidate)) {
+            return candidate;
+        }
+
+        int suffix = 1;
+        while (true) {
+            String next = candidate + "-" + suffix;
+            if (!usedIds.contains(next)) {
+                return next;
+            }
+            suffix += 1;
+        }
+    }
+
+    private String detectMediaTypeFromPath(String path) {
+        String ext = extensionFromPath(path);
+        switch (ext) {
+            case "xhtml":
+            case "html":
+            case "htm":
+                return "application/xhtml+xml";
+            case "svg":
+                return "image/svg+xml";
+            case "css":
+                return "text/css";
+            case "jpg":
+            case "jpeg":
+                return "image/jpeg";
+            case "png":
+                return "image/png";
+            case "gif":
+                return "image/gif";
+            case "webp":
+                return "image/webp";
+            case "avif":
+                return "image/avif";
+            case "mp3":
+                return "audio/mpeg";
+            case "m4a":
+                return "audio/mp4";
+            case "mp4":
+                return "video/mp4";
+            case "webm":
+                return "video/webm";
+            case "wav":
+                return "audio/wav";
+            case "otf":
+                return "font/otf";
+            case "ttf":
+                return "font/ttf";
+            case "woff":
+                return "font/woff";
+            case "woff2":
+                return "font/woff2";
+            default:
+                return "";
         }
     }
 
@@ -2410,7 +3852,16 @@ public class EpubRewritePlugin extends Plugin {
     private boolean isBlockingIssue(String code) {
         return "CONTAINER_MISSING".equals(code)
             || "OPF_MISSING".equals(code)
-            || "SPINE_EMPTY".equals(code);
+            || "SPINE_EMPTY".equals(code)
+            || "CRIT-XHTML-001".equals(code)
+            || "CRIT-SEC-001".equals(code)
+            || "HIGH-MAN-001".equals(code)
+            || "HIGH-XHTML-001".equals(code)
+            || "HIGH-XHTML-002".equals(code)
+            || "HIGH-XHTML-003".equals(code)
+            || "HIGH-ENC-001".equals(code)
+            || "HIGH-ENC-002".equals(code)
+            || "HIGH-FALLBACK-001".equals(code);
     }
 
     private EpubAnalysis finishAnalysis(
@@ -3262,7 +4713,7 @@ public class EpubRewritePlugin extends Plugin {
         }
 
         byte[] originalBytes = readEntryBytes(sourceZip, header);
-        String originalText = new String(originalBytes, StandardCharsets.UTF_8);
+        String originalText = decodeXmlBytes(originalBytes);
         String nextText = originalText;
 
         if (entryPath.toLowerCase(Locale.US).endsWith(".opf")) {
@@ -3634,7 +5085,7 @@ public class EpubRewritePlugin extends Plugin {
               if (containerHeader != null && containerPreferredPath == null) {
                 try {
                   byte[] containerBytes = readEntryBytes(zipFile, containerHeader);
-                  String containerText = new String(containerBytes, StandardCharsets.UTF_8);
+                  String containerText = decodeXmlBytes(containerBytes);
                   try {
                       Document containerDoc = parseXmlUtf8(containerText);
                       Element rootfile = firstElementByName(containerDoc, "rootfile");
@@ -3678,7 +5129,7 @@ public class EpubRewritePlugin extends Plugin {
                 }
 
                 byte[] opfBytes = readEntryBytes(zipFile, opfHeader);
-                Document opfDoc = parseXmlUtf8(new String(opfBytes, StandardCharsets.UTF_8));
+                Document opfDoc = parseXmlUtf8(decodeXmlBytes(opfBytes));
                 if (opfDoc != null) {
                     validCandidates.add(
                         new ScoredOpfCandidate(
@@ -3724,7 +5175,7 @@ public class EpubRewritePlugin extends Plugin {
                 }
 
                 byte[] opfBytes = readEntryBytes(zipFile, opfHeader);
-                Document opfDoc = parseXmlUtf8(new String(opfBytes, StandardCharsets.UTF_8));
+                Document opfDoc = parseXmlUtf8(decodeXmlBytes(opfBytes));
                 if (opfDoc == null) {
                     continue;
                 }
@@ -4045,9 +5496,17 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     private void emitProgress(int percent) {
-        JSObject payload = new JSObject();
-        payload.put("percent", Math.max(0, Math.min(100, percent)));
-        notifyListeners("rewriteProgress", payload);
+        try {
+            JSObject payload = new JSObject();
+            payload.put("percent", Math.max(0, Math.min(100, percent)));
+            notifyListeners("rewriteProgress", payload);
+        } catch (RuntimeException ex) {
+            String message = ex.getMessage();
+            if (message != null && message.contains("not mocked")) {
+                return;
+            }
+            throw ex;
+        }
     }
 
     private void ensureNotCancelled() throws CancelledRewriteException {
@@ -4433,6 +5892,7 @@ public class EpubRewritePlugin extends Plugin {
         final boolean exists;
         final String mediaType;
         final String properties;
+        final String fallback;
         final String mediaOverlay;
         final String mediaOverlayResolvedPath;
         final boolean mediaOverlayExists;
@@ -4446,6 +5906,7 @@ public class EpubRewritePlugin extends Plugin {
             boolean exists,
             String mediaType,
             String properties,
+            String fallback,
             String mediaOverlay,
             String mediaOverlayResolvedPath,
             boolean mediaOverlayExists,
@@ -4458,10 +5919,30 @@ public class EpubRewritePlugin extends Plugin {
             this.exists = exists;
             this.mediaType = mediaType;
             this.properties = properties;
+            this.fallback = fallback;
             this.mediaOverlay = mediaOverlay;
             this.mediaOverlayResolvedPath = mediaOverlayResolvedPath;
             this.mediaOverlayExists = mediaOverlayExists;
             this.element = element;
+        }
+    }
+
+    private static final class FallbackRepairPlan {
+        final ParsedManifestItem sourceItem;
+        final String fallbackId;
+        final String fallbackHref;
+        final String fallbackResolvedPath;
+
+        FallbackRepairPlan(
+            ParsedManifestItem sourceItem,
+            String fallbackId,
+            String fallbackHref,
+            String fallbackResolvedPath
+        ) {
+            this.sourceItem = sourceItem;
+            this.fallbackId = fallbackId;
+            this.fallbackHref = fallbackHref;
+            this.fallbackResolvedPath = fallbackResolvedPath;
         }
     }
 
@@ -4496,6 +5977,8 @@ public class EpubRewritePlugin extends Plugin {
         final java.util.ArrayList<ParsedManifestItem> manifestItems;
         final java.util.ArrayList<ParsedSpineItem> spineItems;
         final java.util.ArrayList<String> reconstructibleSpineItemIds;
+        final java.util.ArrayList<String> promotableOrphanResources;
+        final java.util.ArrayList<FallbackRepairPlan> fallbackPlans;
         final boolean mimetypeMissing;
         final boolean mimetypeInvalid;
 
@@ -4508,6 +5991,8 @@ public class EpubRewritePlugin extends Plugin {
             java.util.ArrayList<ParsedManifestItem> manifestItems,
             java.util.ArrayList<ParsedSpineItem> spineItems,
             java.util.ArrayList<String> reconstructibleSpineItemIds,
+            java.util.ArrayList<String> promotableOrphanResources,
+            java.util.ArrayList<FallbackRepairPlan> fallbackPlans,
             boolean mimetypeMissing,
             boolean mimetypeInvalid
         ) {
@@ -4519,6 +6004,8 @@ public class EpubRewritePlugin extends Plugin {
             this.manifestItems = manifestItems;
             this.spineItems = spineItems;
             this.reconstructibleSpineItemIds = reconstructibleSpineItemIds;
+            this.promotableOrphanResources = promotableOrphanResources;
+            this.fallbackPlans = fallbackPlans;
             this.mimetypeMissing = mimetypeMissing;
             this.mimetypeInvalid = mimetypeInvalid;
         }

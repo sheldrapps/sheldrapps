@@ -1,6 +1,8 @@
 :host {
   display: block;
   height: 100%;
+  box-sizing: border-box;
+  padding-top: var(--safe-top);
 }
 
 .remove-ads-upgrade-modal {

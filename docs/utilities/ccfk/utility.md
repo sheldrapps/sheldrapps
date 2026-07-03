@@ -2,8 +2,8 @@
 ## Project identity
 - app: cover-creator-for-kindle
 - alias: ccfk
-- currentVersionCode: 49
-- nextVersionCode: 50
+- currentVersionCode: 50
+- nextVersionCode: 51
 - currentVersionName: "Remove ads upgrade polish"
 - nextVersionName: "Remove ads upgrade polish"
 ## Product purpose

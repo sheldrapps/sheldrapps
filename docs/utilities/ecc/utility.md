@@ -2,8 +2,8 @@
 ## Project identity
 - app: epub-cover-changer
 - alias: ecc
-- currentVersionCode: 48
-- nextVersionCode: 49
+- currentVersionCode: 49
+- nextVersionCode: 50
 - currentVersionName: "Remove ads upgrade polish"
 - nextVersionName: "Remove ads upgrade polish"
 ## Product purpose
