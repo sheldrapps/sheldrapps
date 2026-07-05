@@ -648,7 +648,7 @@ describe('FixPage', () => {
           {
             code: 'ZIP_UNREADABLE',
             severity: 'error',
-            fixable: false,
+            fixable: true,
             messageKey: 'FIX.ISSUE_ZIP_UNREADABLE',
           },
         ],
@@ -708,17 +708,17 @@ describe('FixPage', () => {
     ).toBe('review');
   });
 
-  it('maps blocked issues to critical severity', () => {
+  it('treats unreadable zips as recoverable severity', () => {
     const ctx = Object.assign(Object.create(FixPage.prototype), {});
 
     expect(
       FixPage.prototype.issueSeverityLevel.call(ctx, {
         code: 'ZIP_UNREADABLE',
         severity: 'error',
-        fixable: false,
+        fixable: true,
         messageKey: 'FIX.ISSUE_ZIP_UNREADABLE',
       }),
-    ).toBe('critical');
+    ).toBe('high');
   });
 
   it('returns a severity summary for a clean diagnosis', () => {
@@ -776,7 +776,7 @@ describe('FixPage', () => {
           {
             code: 'ZIP_UNREADABLE',
             severity: 'error',
-            fixable: false,
+            fixable: true,
             messageKey: 'FIX.ISSUE_ZIP_UNREADABLE',
           },
         ],
@@ -792,6 +792,7 @@ describe('FixPage', () => {
       issuesDescriptor?.get?.call(ctx).map((issue: { messageKey: string }) => issue.messageKey),
     ).toEqual([
       'FIX.ISSUE_MIMETYPE_MISSING',
+      'FIX.ISSUE_ZIP_UNREADABLE',
       'FIX.ISSUE_MANIFEST_ITEM_MISSING',
       'FIX.ISSUE_MIMETYPE_INVALID',
     ]);
@@ -853,7 +854,7 @@ describe('FixPage', () => {
           {
             code: 'ZIP_UNREADABLE',
             severity: 'error',
-            fixable: false,
+            fixable: true,
             messageKey: 'FIX.ISSUE_ZIP_UNREADABLE',
           },
         ],
@@ -871,10 +872,9 @@ describe('FixPage', () => {
         count: section.count,
       })),
     ).toEqual([
-      { key: 'automatic', count: 1 },
+      { key: 'automatic', count: 2 },
       { key: 'confirmation', count: 1 },
       { key: 'manual', count: 1 },
-      { key: 'blocked', count: 1 },
     ]);
   });
 
@@ -890,6 +890,18 @@ describe('FixPage', () => {
     expect(FixPage.prototype.issueRepairMode.call(ctx, issue)).toBe(
       'not_repairable',
     );
+  });
+
+  it('treats a fixable empty spine as a review issue', () => {
+    const issue = {
+      code: 'SPINE_EMPTY',
+      severity: 'error',
+      fixable: true,
+      messageKey: 'FIX.ISSUE_SPINE_EMPTY',
+    } as const;
+    const ctx = Object.create(FixPage.prototype);
+
+    expect(FixPage.prototype.issueRepairMode.call(ctx, issue)).toBe('review');
   });
 
   it('opens a saved EPUB project back in the fix flow', async () => {

@@ -60,6 +60,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.CRC32;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 import java.util.stream.Stream;
 import androidx.activity.result.ActivityResult;
 import com.getcapacitor.JSArray;
@@ -597,12 +600,15 @@ public class EpubRewritePlugin extends Plugin {
         JSObject guidedSelections = call.getObject("guidedSelections");
 
         Path workingPath = resolveSessionWorkingPath(sessionId);
-        EpubAnalysis analysis = analyzeEpub(workingPath, preferredOpfPath, guidedSelections);
-        boolean shouldRewriteContainerDocument = shouldRewriteContainerDocument(analysis);
         java.util.LinkedHashSet<String> repairedIssues = new java.util.LinkedHashSet<>();
-        if (containsIssue(analysis.issues, "OPF_AMBIGUOUS")) {
-            repairedIssues.add("OPF_AMBIGUOUS");
-        }
+        java.util.HashSet<String> visitedAnalyses = new java.util.HashSet<>();
+
+        EpubAnalysis analysis = analyzeWorkingCopyForRepair(
+            workingPath,
+            preferredOpfPath,
+            guidedSelections,
+            repairedIssues
+        );
 
         if ("failed".equals(analysis.status) || "unsupported".equals(analysis.status)) {
             JSObject result = new JSObject();
@@ -617,24 +623,45 @@ public class EpubRewritePlugin extends Plugin {
         Path backupPath = workingPath.resolveSibling(workingPath.getFileName() + ".bak");
         Path tempOutputPath = workingPath.resolveSibling(workingPath.getFileName() + ".tmp");
 
-        deleteIfExists(backupPath);
-        deleteIfExists(tempOutputPath);
-
         try {
-            moveFileAtomicWithFallback(workingPath, backupPath);
-            repairArchiveToOutput(
-                backupPath,
-                tempOutputPath,
-                analysis,
-                shouldRewritePackageDocument(analysis),
-                shouldRewriteContainerDocument,
-                guidedSelections,
-                repairedIssues
-            );
-            ensureNotCancelled();
-            moveFileAtomicWithFallback(tempOutputPath, workingPath);
-            deleteIfExists(backupPath);
-            scanPathForMediaStore(workingPath);
+            while (true) {
+                String analysisSignature = buildAnalysisSignature(analysis);
+                if (!visitedAnalyses.add(analysisSignature)) {
+                    break;
+                }
+
+                if (!hasRepairableIssues(analysis)) {
+                    break;
+                }
+
+                boolean shouldRewritePackageDocument = shouldRewritePackageDocument(analysis);
+                boolean shouldRewriteContainerDocument = shouldRewriteContainerDocument(analysis);
+
+                deleteIfExists(backupPath);
+                deleteIfExists(tempOutputPath);
+
+                moveFileAtomicWithFallback(workingPath, backupPath);
+                repairArchiveToOutput(
+                    backupPath,
+                    tempOutputPath,
+                    analysis,
+                    shouldRewritePackageDocument,
+                    shouldRewriteContainerDocument,
+                    guidedSelections,
+                    repairedIssues
+                );
+                ensureNotCancelled();
+                moveFileAtomicWithFallback(tempOutputPath, workingPath);
+                deleteIfExists(backupPath);
+                scanPathForMediaStore(workingPath);
+
+                analysis = analyzeWorkingCopyForRepair(
+                    workingPath,
+                    preferredOpfPath,
+                    guidedSelections,
+                    repairedIssues
+                );
+            }
 
             JSObject result = new JSObject();
             result.put("success", true);
@@ -695,24 +722,7 @@ public class EpubRewritePlugin extends Plugin {
         try (ZipFile zipFile = new ZipFile(epubPath.toFile())) {
             List<FileHeader> headers = zipFile.getFileHeaders();
             if (headers == null || headers.isEmpty()) {
-                return finishAnalysis(
-                    new java.util.ArrayList<>(),
-                    new EpubAnalysis(
-                        "failed",
-                        new java.util.ArrayList<>(),
-                        null,
-                        null,
-                        null,
-                        new java.util.ArrayList<>(),
-                        new java.util.ArrayList<>(),
-                        new java.util.ArrayList<>(),
-                        new java.util.ArrayList<>(),
-                        new java.util.ArrayList<>(),
-                        false,
-                        false
-                    ),
-                    issue("ZIP_UNREADABLE", "error", false, "empty headers")
-                );
+                throw new IOException("Invalid EPUB: empty headers");
             }
 
             java.util.ArrayList<EpubIssue> issues = new java.util.ArrayList<>();
@@ -1062,10 +1072,45 @@ public class EpubRewritePlugin extends Plugin {
                 )
             );
         } catch (Exception ex) {
+            if (!isRecoveredArchivePath(epubPath)) {
+                Path recoveredPath = recoverReadableZip(epubPath);
+                if (recoveredPath != null) {
+                    try {
+                        EpubAnalysis recoveredAnalysis = analyzeEpub(
+                            recoveredPath,
+                            preferredOpfPath,
+                            guidedSelections
+                        );
+
+                        java.util.ArrayList<EpubIssue> recoveredIssues =
+                            new java.util.ArrayList<>();
+                        recoveredIssues.add(issue("ZIP_UNREADABLE", "error", true, ex.getMessage()));
+                        recoveredIssues.addAll(recoveredAnalysis.issues);
+
+                        return new EpubAnalysis(
+                            resolveStatus(recoveredIssues),
+                            recoveredIssues,
+                            recoveredAnalysis.opfPath,
+                            recoveredAnalysis.opfDir,
+                            recoveredAnalysis.opfDocument,
+                            recoveredAnalysis.manifestItems,
+                            recoveredAnalysis.spineItems,
+                            recoveredAnalysis.reconstructibleSpineItemIds,
+                            recoveredAnalysis.promotableOrphanResources,
+                            recoveredAnalysis.fallbackPlans,
+                            recoveredAnalysis.mimetypeMissing,
+                            recoveredAnalysis.mimetypeInvalid
+                        );
+                    } catch (Exception recoveredEx) {
+                        ex = recoveredEx;
+                    }
+                }
+            }
+
             java.util.ArrayList<EpubIssue> issues = new java.util.ArrayList<>();
-            issues.add(issue("ZIP_UNREADABLE", "error", false, ex.getMessage()));
+            issues.add(issue("ZIP_UNREADABLE", "error", true, ex.getMessage()));
             return new EpubAnalysis(
-                "failed",
+                resolveStatus(issues),
                 issues,
                 null,
                 null,
@@ -1081,6 +1126,42 @@ public class EpubRewritePlugin extends Plugin {
         }
     }
 
+    private EpubAnalysis analyzeWorkingCopyForRepair(
+        Path workingPath,
+        String preferredOpfPath,
+        JSObject guidedSelections,
+        java.util.Set<String> repairedIssues
+    ) throws Exception {
+        EpubAnalysis analysis = analyzeEpub(workingPath, preferredOpfPath, guidedSelections);
+        if (containsIssue(analysis.issues, "ZIP_UNREADABLE")) {
+            Path recoveredPath = recoverReadableZip(workingPath);
+            if (recoveredPath != null) {
+                moveFileAtomicWithFallback(recoveredPath, workingPath);
+                if (repairedIssues != null) {
+                    repairedIssues.add("ZIP_UNREADABLE");
+                }
+                analysis = analyzeEpub(workingPath, preferredOpfPath, guidedSelections);
+            }
+        }
+        if (containsIssue(analysis.issues, "OPF_AMBIGUOUS") && repairedIssues != null) {
+            repairedIssues.add("OPF_AMBIGUOUS");
+        }
+        return analysis;
+    }
+
+    private boolean isRecoveredArchivePath(Path epubPath) {
+        if (epubPath == null) {
+            return false;
+        }
+
+        Path fileName = epubPath.getFileName();
+        if (fileName == null) {
+            return false;
+        }
+
+        return fileName.toString().contains(".recovered.");
+    }
+ 
     private EpubAnalysis finishAnalysis(
         java.util.ArrayList<EpubIssue> issues,
         EpubAnalysis analysis
@@ -1099,6 +1180,54 @@ public class EpubRewritePlugin extends Plugin {
             analysis.mimetypeMissing,
             analysis.mimetypeInvalid
         );
+    }
+
+    private boolean hasRepairableIssues(EpubAnalysis analysis) {
+        if (analysis == null || analysis.issues == null) {
+            return false;
+        }
+
+        for (EpubIssue issue : analysis.issues) {
+            if (issue != null && issue.fixable) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private String buildAnalysisSignature(EpubAnalysis analysis) {
+        if (analysis == null) {
+            return "";
+        }
+
+        java.util.ArrayList<String> signatures = new java.util.ArrayList<>();
+        for (EpubIssue issue : analysis.issues) {
+            if (issue == null) {
+                continue;
+            }
+
+            StringBuilder builder = new StringBuilder();
+            builder.append(issue.code == null ? "" : issue.code);
+            builder.append('|');
+            builder.append(issue.severity == null ? "" : issue.severity);
+            builder.append('|');
+            builder.append(issue.fixable);
+            builder.append('|');
+            builder.append(issue.messageKey == null ? "" : issue.messageKey);
+            builder.append('|');
+            builder.append(issue.details == null ? "" : issue.details);
+            if (issue.options != null) {
+                for (String option : issue.options) {
+                    builder.append('|');
+                    builder.append(option == null ? "" : option.trim());
+                }
+            }
+            signatures.add(builder.toString());
+        }
+
+        java.util.Collections.sort(signatures);
+        return (analysis.status == null ? "" : analysis.status) + "::" + String.join(";;", signatures);
     }
 
     private java.util.ArrayList<ParsedManifestItem> parseManifestItems(
@@ -3876,19 +4005,19 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     private String resolveStatus(java.util.ArrayList<EpubIssue> issues) {
+        boolean hasFixableIssue = false;
         for (EpubIssue issue : issues) {
-            if ("ZIP_UNREADABLE".equals(issue.code)) {
-                return "failed";
+            if (issue != null && issue.fixable) {
+                hasFixableIssue = true;
+                break;
             }
         }
 
-        for (EpubIssue issue : issues) {
-            if (isBlockingIssue(issue.code) && !issue.fixable) {
-                return "unsupported";
-            }
+        if (issues.isEmpty()) {
+            return "valid";
         }
 
-        return issues.isEmpty() ? "valid" : "repairable";
+        return hasFixableIssue ? "repairable" : "unsupported";
     }
 
     private void prepareInternal(PluginCall call) throws Exception {
@@ -3991,15 +4120,27 @@ public class EpubRewritePlugin extends Plugin {
             throw ex;
         }
 
-        try (ZipFile zipFile = new ZipFile(workingPath.toFile())) {
-            List<FileHeader> headers = zipFile.getFileHeaders();
-            if (headers == null || headers.isEmpty()) {
-                throw new PluginErrorException("INVALID_EPUB", null, stage);
-            }
+        Path recoveredPath = recoverReadableZip(workingPath);
+        if (recoveredPath != null) {
+            moveFileAtomicWithFallback(recoveredPath, workingPath);
+        }
 
-            String coverEntryPath = null;
-            Path extractedCoverPath = null;
-            if (requireCover || includeCoverPreview) {
+        boolean zipReadable = isReadableZip(workingPath);
+
+        if ((requireCover || includeCoverPreview) && !zipReadable) {
+            deleteRecursively(sessionDir);
+            throw new PluginErrorException("INVALID_EPUB", null, stage);
+        }
+
+        String coverEntryPath = null;
+        Path extractedCoverPath = null;
+        if (requireCover || includeCoverPreview) {
+            try (ZipFile zipFile = new ZipFile(workingPath.toFile())) {
+                List<FileHeader> headers = zipFile.getFileHeaders();
+                if (headers == null || headers.isEmpty()) {
+                    throw new PluginErrorException("INVALID_EPUB", null, stage);
+                }
+
                 coverEntryPath = findCoverEntryPath(zipFile, headers);
                 if (coverEntryPath == null && requireCover) {
                     throw new PluginErrorException("NO_COVER", "cover entry not found", stage);
@@ -4016,31 +4157,32 @@ public class EpubRewritePlugin extends Plugin {
                         extractEntry(zipFile, coverHeader, extractedCoverPath);
                     }
                 }
+            } catch (Exception ex) {
+                deleteRecursively(sessionDir);
+                throw ex;
             }
-
-            debugIo(
-                stage + " success elapsedMs=" + (System.currentTimeMillis() - startedAt)
-                    + " sourceBytes=" + (sourceMeta.size > 0 ? sourceMeta.size : copiedBytes)
-                    + " workingPath=" + workingPath
-                    + " sessionId=" + sessionId
-            );
-
-            return new PreparedSession(
-                sessionId,
-                originalName,
-                sourceMeta.size > 0 ? sourceMeta.size : copiedBytes,
-                true,
-                sessionRelativePath(sessionId, workingPath.getFileName().toString()),
-                workingPath.getFileName().toString(),
-                workingPath.toString(),
-                stripExtension(workingPath.getFileName().toString()),
-                coverEntryPath,
-                extractedCoverPath
-            );
-        } catch (Exception ex) {
-            deleteRecursively(sessionDir);
-            throw ex;
         }
+
+        debugIo(
+            stage + " success elapsedMs=" + (System.currentTimeMillis() - startedAt)
+                + " sourceBytes=" + (sourceMeta.size > 0 ? sourceMeta.size : copiedBytes)
+                + " workingPath=" + workingPath
+                + " sessionId=" + sessionId
+                + " zipReadable=" + zipReadable
+        );
+
+        return new PreparedSession(
+            sessionId,
+            originalName,
+            sourceMeta.size > 0 ? sourceMeta.size : copiedBytes,
+            zipReadable,
+            sessionRelativePath(sessionId, workingPath.getFileName().toString()),
+            workingPath.getFileName().toString(),
+            workingPath.toString(),
+            stripExtension(workingPath.getFileName().toString()),
+            coverEntryPath,
+            extractedCoverPath
+        );
     }
 
     private JSObject toPrepareResult(PreparedSession prepared) {
@@ -4251,6 +4393,100 @@ public class EpubRewritePlugin extends Plugin {
             }
             idx += 1;
         }
+    }
+
+    private boolean isReadableZip(Path path) {
+        try (ZipFile zipFile = new ZipFile(path.toFile())) {
+            List<FileHeader> headers = zipFile.getFileHeaders();
+            return headers != null && !headers.isEmpty();
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    private Path recoverReadableZip(Path sourcePath) throws IOException {
+        Path recoveredPath = sourcePath.resolveSibling(
+            sourcePath.getFileName().toString() + ".recovered.epub"
+        );
+        deleteIfExists(recoveredPath);
+
+        int recoveredEntries = 0;
+        try (
+            InputStream inputStream = new BufferedInputStream(Files.newInputStream(sourcePath));
+            ZipInputStream zipInputStream = new ZipInputStream(inputStream);
+            OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(recoveredPath));
+            ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)
+        ) {
+            while (true) {
+                ZipEntry entry;
+                try {
+                    entry = zipInputStream.getNextEntry();
+                } catch (Exception ex) {
+                    break;
+                }
+
+                if (entry == null) {
+                    break;
+                }
+
+                try {
+                    if (entry.isDirectory()) {
+                        continue;
+                    }
+
+                    String entryName = normalizeZipPath(entry.getName());
+                    if (CompatStrings.isBlank(entryName)) {
+                        continue;
+                    }
+
+                    if ("mimetype".equals(entryName)) {
+                        byte[] mimetypeBytes = readStreamBytes(zipInputStream);
+                        ZipEntry recoveredEntry = new ZipEntry(entryName);
+                        recoveredEntry.setMethod(ZipEntry.STORED);
+                        recoveredEntry.setTime(entry.getTime());
+                        recoveredEntry.setSize(mimetypeBytes.length);
+                        recoveredEntry.setCompressedSize(mimetypeBytes.length);
+                        CRC32 crc32 = new CRC32();
+                        crc32.update(mimetypeBytes);
+                        recoveredEntry.setCrc(crc32.getValue());
+                        zipOutputStream.putNextEntry(recoveredEntry);
+                        zipOutputStream.write(mimetypeBytes);
+                        zipOutputStream.closeEntry();
+                    } else {
+                        ZipEntry recoveredEntry = new ZipEntry(entryName);
+                        recoveredEntry.setTime(entry.getTime());
+                        zipOutputStream.putNextEntry(recoveredEntry);
+                        copyStream(zipInputStream, zipOutputStream);
+                        zipOutputStream.closeEntry();
+                    }
+                    recoveredEntries += 1;
+                } catch (Exception ex) {
+                    break;
+                } finally {
+                    try {
+                        zipInputStream.closeEntry();
+                    } catch (Exception ignored) {
+                        // Best effort.
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            deleteIfExists(recoveredPath);
+            return null;
+        }
+
+        if (recoveredEntries == 0) {
+            deleteIfExists(recoveredPath);
+            return null;
+        }
+
+        return recoveredPath;
+    }
+
+    private byte[] readStreamBytes(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        copyStream(inputStream, outputStream);
+        return outputStream.toByteArray();
     }
 
     private String sanitizeBaseName(String name) {

@@ -12,6 +12,7 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -204,6 +205,97 @@ public class EpubRewritePluginRewriteTest {
         );
 
         assertTrue(shouldRewriteContainer);
+    }
+
+    @Test
+    public void blockingIssuesDoNotHideRepairableIssues() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Object blocker = invokeObject(
+            plugin,
+            "issue",
+            new Class<?>[] { String.class, String.class, boolean.class },
+            "CONTAINER_MISSING",
+            "error",
+            false
+        );
+        Object repairable = invokeObject(
+            plugin,
+            "issue",
+            new Class<?>[] { String.class, String.class, boolean.class },
+            "MIMETYPE_MISSING",
+            "error",
+            true
+        );
+
+        ArrayList<Object> issues = buildIssues(blocker, repairable);
+
+        assertEquals("repairable", invokeString(
+            plugin,
+            "resolveStatus",
+            new Class<?>[] { ArrayList.class },
+            issues
+        ));
+    }
+
+    @Test
+    public void recoverReadableZipRebuildsTruncatedArchive() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        File zipPath = temporaryFolder.newFile("truncated-" + System.nanoTime() + ".epub");
+        ZipFile zipFile = new ZipFile(zipPath);
+        addZipEntry(zipFile, "mimetype", utf8("application/epub+zip"));
+        addZipEntry(zipFile, "META-INF/container.xml", utf8(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">\n"
+                + "  <rootfiles>\n"
+                + "    <rootfile full-path=\"OPS/package.opf\" media-type=\"application/oebps-package+xml\"/>\n"
+                + "  </rootfiles>\n"
+                + "</container>"
+        ));
+        addZipEntry(zipFile, "OPS/package.opf", utf8(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\" unique-identifier=\"bookid\">\n"
+                + "  <metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n"
+                + "    <dc:identifier id=\"bookid\">urn:uuid:12345678-1234-1234-1234-123456789012</dc:identifier>\n"
+                + "  </metadata>\n"
+                + "  <manifest>\n"
+                + "    <item id=\"chapter-1\" href=\"text/ch1.xhtml\" media-type=\"application/xhtml+xml\"/>\n"
+                + "  </manifest>\n"
+                + "  <spine>\n"
+                + "    <itemref idref=\"chapter-1\"/>\n"
+                + "  </spine>\n"
+                + "</package>"
+        ));
+        addZipEntry(zipFile, "OPS/text/ch1.xhtml", utf8(
+            "<html xmlns=\"http://www.w3.org/1999/xhtml\"><body>Hi</body></html>"
+        ));
+
+        byte[] originalBytes = Files.readAllBytes(zipPath.toPath());
+        int truncatedLength = Math.max(0, originalBytes.length - 64);
+        byte[] truncatedBytes = new byte[truncatedLength];
+        System.arraycopy(originalBytes, 0, truncatedBytes, 0, truncatedLength);
+        Files.write(zipPath.toPath(), truncatedBytes);
+
+        Path recoveredPath = invokePath(
+            plugin,
+            "recoverReadableZip",
+            new Class<?>[] { Path.class },
+            zipPath.toPath()
+        );
+
+        assertNotNull(recoveredPath);
+        ZipFile recoveredZip = new ZipFile(recoveredPath.toFile());
+        List<net.lingala.zip4j.model.FileHeader> headers = recoveredZip.getFileHeaders();
+
+        assertTrue(headers.size() >= 4);
+        assertNotNull(
+            invokeString(
+                plugin,
+                "readZipText",
+                new Class<?>[] { ZipFile.class, String.class },
+                recoveredZip,
+                "META-INF/container.xml"
+            )
+        );
     }
 
     @Test
@@ -778,6 +870,15 @@ public class EpubRewritePluginRewriteTest {
         return (Document) invokeObject(target, methodName, paramTypes, args);
     }
 
+    private Path invokePath(
+        Object target,
+        String methodName,
+        Class<?>[] paramTypes,
+        Object... args
+    ) throws Exception {
+        return (Path) invokeObject(target, methodName, paramTypes, args);
+    }
+
     private Object buildAnalysis(Object issue) throws Exception {
         return buildAnalysis("repairable", issue);
     }
@@ -861,9 +962,13 @@ public class EpubRewritePluginRewriteTest {
         );
     }
 
-    private ArrayList<Object> buildIssues(Object issue) {
+    private ArrayList<Object> buildIssues(Object... issuesToAdd) {
         ArrayList<Object> issues = new ArrayList<>();
-        issues.add(issue);
+        if (issuesToAdd != null) {
+            for (Object issue : issuesToAdd) {
+                issues.add(issue);
+            }
+        }
         return issues;
     }
 

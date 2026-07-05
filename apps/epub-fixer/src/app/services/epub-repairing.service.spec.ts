@@ -33,10 +33,10 @@ describe('EpubRepairingService', () => {
         low: 19,
       },
       byAction: {
-        fix: 49,
+        fix: 50,
         review_fix: 46,
         resolve: 32,
-        cannot_repair: 4,
+        cannot_repair: 3,
       },
       byScope: {
         opening_blocker: 33,
@@ -86,6 +86,16 @@ describe('EpubRepairingService', () => {
       'CRIT-ZIP-001',
       'CRIT-ZIP-002',
     ]);
+    expect(service.getCase('CRIT-ZIP-002')?.recommendedAction).toBe('fix');
+  });
+
+  it('treats a fixable empty spine as a reviewable repair', () => {
+    expect(
+      service.getRepairMode({
+        code: 'SPINE_EMPTY',
+        fixable: true,
+      } as never),
+    ).toBe('review');
   });
 
   it('resolves container and OPF variants using diagnostic details', () => {

@@ -92,7 +92,7 @@ export function classifyEpubDiagnosticRepairMode(
   issue: Pick<EpubDiagnosticIssue, 'code' | 'fixable' | 'options'>,
 ): EpubDiagnosticRepairMode {
   if (issue.code === 'ZIP_UNREADABLE') {
-    return 'not_repairable';
+    return issue.fixable ? 'automatic' : 'not_repairable';
   }
 
   if (
@@ -185,7 +185,7 @@ export function classifyEpubDiagnosticRepairMode(
   }
 
   if (issue.code === 'SPINE_EMPTY') {
-    return 'not_repairable';
+    return issue.fixable ? 'review' : 'not_repairable';
   }
 
   return issue.fixable ? 'review' : 'not_repairable';

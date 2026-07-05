@@ -16,12 +16,12 @@
     "severity": "critical",
     "supportedProblem": "ZIP truncado o directorio central daÃ±ado.",
     "symptom": "EPUB no abre o el anÃ¡lisis se detiene.",
-    "solution": "Si no se puede listar el contenido por un central directory truncado, no hay reparación estructural fiable.",
-    "actionLabel": "Cannot repair",
+    "solution": "Intentar reconstrucción parcial desde entradas recuperables y volver a diagnosticar el EPUB reparado.",
+    "actionLabel": "Fix",
     "actions": [
-      "cannot_repair"
+      "fix"
     ],
-    "recommendedAction": "cannot_repair"
+    "recommendedAction": "fix"
   },
   {
     "id": "CRIT-OCF-001",
