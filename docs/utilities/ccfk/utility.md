@@ -2,12 +2,12 @@
 ## Project identity
 - app: cover-creator-for-kindle
 - alias: ccfk
-- currentVersionCode: 50
-- nextVersionCode: 51
-- currentVersionName: "Remove ads upgrade polish"
-- nextVersionName: "Remove ads upgrade polish"
+- currentVersionCode: 51
+- nextVersionCode: 52
+- currentVersionName: "Rewarded retry recovery"
+- nextVersionName: "Rewarded retry recovery"
 ## Product purpose
-- Keep cover generation dependable when ads fail unexpectedly.
+- Keep cover generation dependable when rewarded ads recover after a failed attempt.
 - Preserve explicit user consent before using fallback trial exports.
 - Keep onboarding behavior coherent across home, editor, and remove-ads tour steps.
 ## Capability inventory (facts)
@@ -15,6 +15,7 @@
 - preview and 3-dot actions use the shared Edit label and a scrollable action bar. | Users can reach edit actions without truncated buttons. | packages/covers-list-kit/src/cover-preview-modal.component.ts
 - overwrite and copy filename resolution is centralized. | Overwrite keeps the original filename while copy mode keeps a separate copy name. | packages/image-workflow/src/lib/editor/project-save-state.ts
 - ad failure now opens fallback offer flow | User can continue generation with trial export when rewarded ad fails to load. | apps/cover-creator-for-kindle/src/app/pages/create/create.page.ts
+- rewarded ads reset after a failed attempt. | Users can retry after a network or blocker change without force-closing the app. | packages/ads-kit/src/lib/ads.service.ts
 - fallback trial only consumes on successful output | Trial attempts are spent only after successful generate/save paths, not on failed processing. | apps/cover-creator-for-kindle/src/app/pages/create/create.page.ts
 - project edit flow now opens from the cover list and preview | Saved project entries can be reopened into edit mode instead of starting from scratch. | apps/cover-creator-for-kindle/src/app/pages/covers/covers.page.ts
 - project snapshots are persisted before edit mode can open | Manual save and auto-save keep the saved project record usable for editing. | apps/cover-creator-for-kindle/src/app/pages/create/create.page.ts
@@ -23,9 +24,9 @@
 - skipping home tour now marks editor-tour as seen | Home/editor/remove-ads onboarding behaves as one unified flow when omitted. | apps/cover-creator-for-kindle/src/app/pages/create/create.page.ts
 - ad fallback modal remains non-dismissible except accepted role | Enforces explicit acknowledgement before continuing trial export. | packages/ad-fallback-kit/src/lib/ad-fallback.service.ts
 ## User-facing change facts (increment)
-- Remove Ads now opens as a full-screen upgrade page instead of a floating modal.
-- Benefit items stay grouped compactly so the screen reads naturally on mobile.
-- The CTA, one-time purchase copy, and Restore Purchase stay anchored in the footer.
+- Rewarded ads can recover after a failed first attempt.
+- If the network or blocker state changes, the same session can retry without a full app restart.
+- The fallback export path still remains available when the ad flow cannot recover.
 ## Increment scope facts
 - deltaFrom: 9c7a4b2b1c48525c799f78df23eae3d421dcc892
 - deltaTo: b4a177404511d6b3cf1065b1ebb24609d69a7756

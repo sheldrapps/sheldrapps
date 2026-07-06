@@ -2,14 +2,8 @@ const fs = require("fs");
 const path = require("path");
 
 const workspaceRoot = path.resolve(__dirname, "..");
-const templatePath = path.join(
-  __dirname,
-  "templates",
-  "capacitor-admob",
-  "BannerAdSizeEnum.kt",
-);
 const pnpmStorePath = path.join(workspaceRoot, "node_modules", ".pnpm");
-const relativePluginPath = path.join(
+const pluginRootRelativePath = path.join(
   "node_modules",
   "@capacitor-community",
   "admob",
@@ -21,9 +15,21 @@ const relativePluginPath = path.join(
   "getcapacitor",
   "community",
   "admob",
-  "banner",
-  "BannerAdSizeEnum.kt",
 );
+const patchTargets = [
+  {
+    templateRelativePath: "BannerAdSizeEnum.kt",
+    pluginRelativePath: path.join("banner", "BannerAdSizeEnum.kt"),
+  },
+  {
+    templateRelativePath: path.join("rewarded", "AdRewardExecutor.java"),
+    pluginRelativePath: path.join("rewarded", "AdRewardExecutor.java"),
+  },
+  {
+    templateRelativePath: path.join("rewarded", "RewardedAdCallbackAndListeners.kt"),
+    pluginRelativePath: path.join("rewarded", "RewardedAdCallbackAndListeners.kt"),
+  },
+];
 
 function patchIfPresent(filePath, contents) {
   if (!fs.existsSync(filePath)) {
@@ -40,40 +46,44 @@ function patchIfPresent(filePath, contents) {
 }
 
 function main() {
-  if (!fs.existsSync(templatePath)) {
-    throw new Error(`Missing template: ${templatePath}`);
-  }
-
-  const template = fs.readFileSync(templatePath, "utf8");
   let patchedCount = 0;
 
-  const directInstallPath = path.join(
-    workspaceRoot,
-    "node_modules",
-    "@capacitor-community",
-    "admob",
-    "android",
-    "src",
-    "main",
-    "java",
-    "com",
-    "getcapacitor",
-    "community",
-    "admob",
-    "banner",
-    "BannerAdSizeEnum.kt",
-  );
-  if (patchIfPresent(directInstallPath, template)) {
-    patchedCount += 1;
-  }
+  for (const target of patchTargets) {
+    const templatePath = path.join(
+      __dirname,
+      "templates",
+      "capacitor-admob",
+      target.templateRelativePath,
+    );
+    if (!fs.existsSync(templatePath)) {
+      throw new Error(`Missing template: ${templatePath}`);
+    }
 
-  if (fs.existsSync(pnpmStorePath)) {
+    const template = fs.readFileSync(templatePath, "utf8");
+    const directInstallPath = path.join(
+      workspaceRoot,
+      pluginRootRelativePath,
+      target.pluginRelativePath,
+    );
+    if (patchIfPresent(directInstallPath, template)) {
+      patchedCount += 1;
+    }
+
+    if (!fs.existsSync(pnpmStorePath)) {
+      continue;
+    }
+
     for (const entry of fs.readdirSync(pnpmStorePath, { withFileTypes: true })) {
       if (!entry.isDirectory() || !entry.name.startsWith("@capacitor-community+admob@")) {
         continue;
       }
 
-      const candidate = path.join(pnpmStorePath, entry.name, relativePluginPath);
+      const candidate = path.join(
+        pnpmStorePath,
+        entry.name,
+        pluginRootRelativePath,
+        target.pluginRelativePath,
+      );
       if (patchIfPresent(candidate, template)) {
         patchedCount += 1;
       }

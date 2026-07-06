@@ -44,7 +44,7 @@ export class AdsService {
   }
 
   private get isTesting(): boolean {
-    return this.config.isTesting;
+    return !this.isNative && this.config.isTesting;
   }
 
   private get debugEnabled(): boolean {
@@ -241,6 +241,15 @@ export class AdsService {
     reason: AdFailureReason;
     confidence: AdFailureConfidence;
   } {
+    const googleAdsErrorCode = this.extractGoogleAdsErrorCode(error);
+    if (googleAdsErrorCode === 3) {
+      return { reason: "no-fill", confidence: "high" };
+    }
+
+    if (googleAdsErrorCode === 2) {
+      return { reason: "network", confidence: "high" };
+    }
+
     const normalized = this.normalizeErrorText(error);
 
     if (!normalized) {
@@ -276,6 +285,70 @@ export class AdsService {
     }
 
     return { reason: "unknown", confidence: "low" };
+  }
+
+  private extractGoogleAdsErrorCode(error: unknown): number | null {
+    if (typeof error === "number" && Number.isFinite(error)) {
+      return Math.trunc(error);
+    }
+
+    if (typeof error === "string") {
+      const parsed = this.parseGoogleAdsErrorCodeCandidate(error);
+      return parsed;
+    }
+
+    if (!error || typeof error !== "object") {
+      return null;
+    }
+
+    const record = error as Record<string, unknown>;
+    for (const key of ["code", "errorCode", "nativeErrorCode"]) {
+      const candidate = this.parseGoogleAdsErrorCodeValue(record[key]);
+      if (candidate !== null) {
+        return candidate;
+      }
+    }
+
+    for (const key of ["message", "error", "description", "reason"]) {
+      const candidate = this.parseGoogleAdsErrorCodeValue(record[key]);
+      if (candidate !== null) {
+        return candidate;
+      }
+    }
+
+    return null;
+  }
+
+  private parseGoogleAdsErrorCodeValue(value: unknown): number | null {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return Math.trunc(value);
+    }
+
+    if (typeof value !== "string") {
+      return null;
+    }
+
+    return this.parseGoogleAdsErrorCodeCandidate(value);
+  }
+
+  private parseGoogleAdsErrorCodeCandidate(value: string): number | null {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    if (/^[0-9]+$/.test(trimmed)) {
+      return Number.parseInt(trimmed, 10);
+    }
+
+    const match = trimmed.match(
+      /\b(?:code|errorcode|nativeerrorcode|ad failed to load)\b[^0-9-]*([0-9]+)\b/i,
+    );
+    if (!match) {
+      return null;
+    }
+
+    return Number.parseInt(match[1], 10);
   }
 
   private normalizeErrorText(error: unknown): string {

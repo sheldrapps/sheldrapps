@@ -8,7 +8,7 @@ export type AdFailureReason =
 
 export type AdFailureConfidence = 'high' | 'low';
 
-export type AdFallbackAppVariant = 'ccfk' | 'ecc' | 'pcm';
+export type AdFallbackAppVariant = 'ccfk' | 'ecc' | 'pcm' | 'ef';
 
 export type AdFallbackDecision = 'accepted' | 'exhausted' | 'dismissed';
 

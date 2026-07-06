@@ -43,6 +43,7 @@
     "@ionic/angular": "^8.0.0",
     "@ngx-translate/core": "^17.0.0",
     "@ngx-translate/http-loader": "^17.0.0",
+    "@sheldrapps/ad-fallback-kit": "workspace:*",
     "@sheldrapps/ads-kit": "workspace:*",
     "@sheldrapps/file-kit": "workspace:*",
     "@sheldrapps/i18n-kit": "workspace:*",

@@ -1,39 +1,51 @@
 <en-US>
-Preview thumbnails are now persisted, so My EPUBs can reuse them without a manual refresh, even when a file falls back to its first image.
+If a rewarded ad cannot load, EPUB Fixer now offers one ad-free repair attempt so you can keep going without restarting the app.
 </en-US>
+
 <ar>
-تُحفظ صور المعاينة المصغّرة الآن، لذلك يمكن لـ My EPUBs إعادة استخدامها دون تحديث يدوي، حتى عندما يعتمد الملف على أول صورة كبديل.
+إذا تعذّر تحميل إعلان مكافأة، يوفّر EPUB Fixer الآن محاولة إصلاح واحدة بدون إعلانات لتكمل العمل من دون إعادة تشغيل التطبيق.
 </ar>
+
 <de-DE>
-Vorschaubilder werden jetzt gespeichert, sodass My EPUBs sie ohne manuelles Aktualisieren wiederverwenden kann, auch wenn eine Datei auf das erste Bild als Fallback zuruckgreift.
+Wenn eine Belohnungsanzeige nicht geladen werden kann, bietet EPUB Fixer jetzt einen einmaligen Reparaturversuch ohne Werbung an, damit du ohne App-Neustart weitermachen kannst.
 </de-DE>
+
 <es-419>
-Las miniaturas de vista previa ahora se guardan, asi My EPUBs puede reutilizarlas sin actualizar manualmente, incluso cuando un archivo recurre a su primera imagen como respaldo.
+Si no se puede cargar un anuncio recompensado, EPUB Fixer ahora ofrece un intento de reparación sin anuncios para seguir sin reiniciar la app.
 </es-419>
+
 <fr-FR>
-Les miniatures d'apercu sont desormais conservees, donc My EPUBs peut les reutiliser sans actualisation manuelle, meme quand un fichier retombe sur sa premiere image.
+Si une annonce récompensée ne peut pas se charger, EPUB Fixer propose maintenant une tentative de réparation sans pub pour continuer sans redémarrer l'application.
 </fr-FR>
+
 <hi-IN>
-प्रिव्यू थम्बनेल अब सहेजे जाते हैं, इसलिए My EPUBs उन्हें मैन्युअल रिफ्रेश के बिना फिर से इस्तेमाल कर सकता है, यहाँ तक कि जब फ़ाइल पहली छवि को बैकअप के रूप में उपयोग करे।
+अगर रिवॉर्डेड विज्ञापन लोड नहीं होता, तो EPUB Fixer अब बिना विज्ञापन वाला एक मरम्मत प्रयास देता है ताकि आपको ऐप दोबारा शुरू न करनी पड़े.
 </hi-IN>
+
 <it-IT>
-Le miniature di anteprima ora vengono conservate, cosi My EPUBs puo riutilizzarle senza un refresh manuale, anche quando un file usa la sua prima immagine come fallback.
+Se un annuncio premio non si carica, EPUB Fixer ora offre un tentativo di riparazione senza pubblicità per continuare senza riavviare l'app.
 </it-IT>
+
 <ja-JP>
-プレビューのサムネイルが保存されるようになったので、My EPUBs は手動更新なしで再利用でき、ファイルが最初の画像をフォールバックに使う場合でも表示できます。
+リワード広告の読み込みに失敗しても、EPUB Fixer は広告なしで 1 回修復を試せるようになり、アプリを再起動せずに続けられます。
 </ja-JP>
+
 <ko-KR>
-미리보기 썸네일이 이제 저장되므로 My EPUBs는 수동 새로고침 없이 다시 사용할 수 있고, 파일이 첫 번째 이미지를 대체 이미지로 사용할 때도 유지됩니다.
+보상형 광고를 불러오지 못해도 EPUB Fixer는 이제 광고 없이 한 번 복구를 시도할 수 있어 앱을 다시 시작하지 않고 계속할 수 있습니다.
 </ko-KR>
+
 <pt-BR>
-As miniaturas de previa agora ficam salvas, entao o My EPUBs pode reutiliza-las sem atualizacao manual, mesmo quando um arquivo usa a primeira imagem como fallback.
+Se um anuncio recompensado nao carregar, o EPUB Fixer agora oferece uma tentativa de reparo sem anuncios para continuar sem reiniciar o app.
 </pt-BR>
+
 <ru-RU>
-Миниатюры предпросмотра теперь сохраняются, поэтому My EPUBs может использовать их снова без ручного обновления, даже когда файл подставляет первое изображение как запасной вариант.
+Если не удается загрузить вознаграждаемую рекламу, EPUB Fixer теперь предлагает одну попытку восстановления без рекламы, чтобы можно было продолжить без перезапуска приложения.
 </ru-RU>
+
 <zh-CN>
-预览缩略图现在会被持久保存，因此 My EPUBs 可以在不手动刷新的情况下复用它们，即使文件改用第一张图片作为回退也一样。
+如果激励广告无法加载，EPUB Fixer 现在会提供一次无广告修复尝试，让你无需重启应用也能继续。
 </zh-CN>
+
 <zh-TW>
-預覽縮圖現在會被持久保存，因此 My EPUBs 可以在不手動重新整理的情況下重用它們，即使檔案改用第一張圖片作為回退也一樣。
+如果獎勵廣告無法載入，EPUB Fixer 現在會提供一次無廣告修復嘗試，讓你不用重新啟動應用也能繼續。
 </zh-TW>

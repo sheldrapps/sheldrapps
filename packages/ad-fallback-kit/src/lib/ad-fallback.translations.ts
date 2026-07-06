@@ -25,6 +25,7 @@ const EN_BASE: AdFallbackLocaleDictionary = {
     MESSAGE: {
       CCFK: 'We could not load an ad right now. You can use a trial export to create a cover.',
       ECC: 'We could not load an ad right now. You can use a trial export to change a cover.',
+      EF: 'We could not load an ad right now. You can use a trial repair to continue.',
       PCM: 'We could not load an ad right now. You can use a trial export to create a cover.',
     },
     REMAINING: 'You have {{remaining}} of {{total}} trial exports left.',
@@ -48,6 +49,7 @@ const ES_BASE: AdFallbackLocaleDictionary = {
     MESSAGE: {
       CCFK: 'No pudimos cargar anuncio ahora. Puedes usar una exportacion de prueba para crear portada.',
       ECC: 'No pudimos cargar anuncio ahora. Puedes usar una exportacion de prueba para cambiar portada.',
+      EF: 'No pudimos cargar anuncio ahora. Puedes usar una reparacion de prueba para continuar.',
       PCM: 'No pudimos cargar anuncio ahora. Puedes usar una exportacion de prueba para crear portada.',
     },
     REMAINING: 'Te quedan {{remaining}} de {{total}} exportaciones de prueba.',

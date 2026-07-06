@@ -16,6 +16,7 @@ import {
   provideSettingsKit,
 } from '@sheldrapps/settings-kit';
 import { provideEpubFixerPort, provideFileKit } from '@sheldrapps/file-kit';
+import { provideAdFallbackKitI18n } from '@sheldrapps/ad-fallback-kit';
 import { provideAdsKit, provideAdsKitI18n } from '@sheldrapps/ads-kit';
 import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
 import { environment } from './environments/environment';
@@ -59,6 +60,7 @@ async function bootstrap(): Promise<void> {
       },
       new MemoryStorageAdapter(),
     ),
+    provideAdFallbackKitI18n(),
     provideAdsKitI18n(),
 
     provideSettingsKit({

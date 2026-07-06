@@ -488,7 +488,7 @@ export class BillingService {
   }
 
   private isDevelopmentPremiumMode(): boolean {
-    return this.config.isTesting === true || isNativeDebugBuild();
+    return !isNative() && this.config.isTesting === true;
   }
 
   private get removeAdsProductId(): string | undefined {

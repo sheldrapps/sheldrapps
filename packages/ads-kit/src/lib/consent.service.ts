@@ -37,7 +37,7 @@ export class ConsentService {
       const info = await AdMob.requestConsentInfo({});
 
       this.umpReady = true;
-      this.canRequestAds = !!info.canRequestAds;
+      this.canRequestAds = this.resolveCanRequestAds(info);
       this.privacyOptionsRequired =
         info.privacyOptionsRequirementStatus === 'REQUIRED';
 
@@ -47,9 +47,9 @@ export class ConsentService {
         );
       }
 
-      if (info.isConsentFormAvailable && info.status === 'REQUIRED') {
+      if (info.isConsentFormAvailable && this.isConsentRequired(info)) {
         const after = await AdMob.showConsentForm();
-        this.canRequestAds = !!after.canRequestAds;
+        this.canRequestAds = this.resolveCanRequestAds(after);
         this.privacyOptionsRequired =
           after.privacyOptionsRequirementStatus === 'REQUIRED';
 
@@ -83,5 +83,37 @@ export class ConsentService {
       console.error('[Consent] showPrivacyOptionsForm failed', e);
       return false;
     }
+  }
+
+  private resolveCanRequestAds(source: unknown): boolean {
+    const record = this.asRecord(source);
+    const explicitValue = record?.['canRequestAds'];
+    if (typeof explicitValue === 'boolean') {
+      return explicitValue;
+    }
+
+    return !this.isConsentRequired(source);
+  }
+
+  private isConsentRequired(source: unknown): boolean {
+    const status = this.pickString(this.asRecord(source)?.['status']);
+    return status?.toUpperCase() === 'REQUIRED';
+  }
+
+  private asRecord(value: unknown): Record<string, unknown> | null {
+    if (!value || typeof value !== 'object') {
+      return null;
+    }
+
+    return value as Record<string, unknown>;
+  }
+
+  private pickString(value: unknown): string | undefined {
+    if (typeof value !== 'string') {
+      return undefined;
+    }
+
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
   }
 }

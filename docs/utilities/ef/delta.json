@@ -1,9 +1,9 @@
 {
   "project": "epub-fixer",
   "shortName": "ef",
-  "generatedAt": "2026-06-26T13:39:33.1477051-06:00",
-  "head": "3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d",
-  "versionCodeAnchorCommit": "3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d",
+  "generatedAt": "2026-07-05T22:11:14.8466061-06:00",
+  "head": "829ac10055d50efbd7f2f35b092e5d25daea3412",
+  "versionCodeAnchorCommit": "829ac10055d50efbd7f2f35b092e5d25daea3412",
   "source": {
     "buildGradle": "apps/epub-fixer/android/app/build.gradle",
     "scope": [
@@ -12,20 +12,34 @@
     ]
   },
   "version": {
-    "currentCode": 2,
-    "currentName": "1.1"
+    "currentCode": 6,
+    "currentName": "Ad fallback repair trial"
   },
   "delta": {
-    "mode": "snapshot-first-run",
-    "from": "3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d",
-    "to": "3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d",
-    "changedFilesCount": 1,
+    "mode": "worktree-release",
+    "from": "85c340a5f0d1b32a67cc8b77dceff50ae9037721",
+    "to": "829ac10055d50efbd7f2f35b092e5d25daea3412",
+    "changedFilesCount": 10,
     "changedFiles": [
-      "apps/epub-fixer/android/app/build.gradle"
+      "apps/epub-fixer/android/app/build.gradle",
+      "apps/epub-fixer/package.json",
+      "apps/epub-fixer/src/app/pages/fix/fix.page.spec.ts",
+      "apps/epub-fixer/src/app/pages/fix/fix.page.ts",
+      "apps/epub-fixer/src/main.native.ts",
+      "apps/epub-fixer/src/main.ts",
+      "apps/epub-fixer/tsconfig.app.json",
+      "apps/epub-fixer/tsconfig.json",
+      "packages/ad-fallback-kit/src/lib/ad-fallback.translations.ts",
+      "packages/ad-fallback-kit/src/lib/ad-fallback.types.ts"
     ]
   },
   "userFacingFacts": {
     "appTitleChanges": [],
-    "androidAppNameChanges": []
+    "androidAppNameChanges": [],
+    "releaseSummary": [
+      "ad_fallback_repair_trial",
+      "one_attempt_without_ads",
+      "no_full_restart_needed_after_ad_failure"
+    ]
   }
 }

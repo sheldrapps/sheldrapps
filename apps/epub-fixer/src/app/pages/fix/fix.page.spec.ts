@@ -156,6 +156,119 @@ describe('FixPage', () => {
     expect(ctx.busyProgressPercent).toBe(0);
   });
 
+  it('falls back to one ad-free repair attempt when rewarded loading fails', async () => {
+    const repair = jasmine.createSpy('repair').and.resolveTo({
+      success: true,
+      repairedIssues: ['SPINE_EMPTY'],
+    });
+    const diagnose = jasmine.createSpy('diagnose').and.resolveTo({
+      sessionId: 'session-1',
+      status: 'valid' as const,
+      issues: [],
+    });
+    const exportCurrentEpub = jasmine.createSpy('exportCurrentEpub').and.resolveTo(
+      {
+        outputUri: 'blob:fixed',
+        size: 123,
+      },
+    );
+    const saveExportedEpub = jasmine
+      .createSpy('saveExportedEpub')
+      .and.resolveTo(undefined);
+    const emit = jasmine.createSpy('emit');
+    const showRewarded = jasmine.createSpy('showRewarded').and.resolveTo({
+      rewardEarned: false,
+      adClosed: false,
+      failed: true,
+      failureReason: 'network',
+      failureConfidence: 'high',
+    });
+    const handleAdFailure = jasmine.createSpy('handleAdFailure').and.resolveTo(
+      'accepted' as const,
+    );
+    const setSettings = jasmine.createSpy('set').and.resolveTo(undefined);
+    const toastCreate = jasmine.createSpy('create').and.resolveTo({
+      present: jasmine.createSpy('present').and.resolveTo(undefined),
+    });
+
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      busyAction: undefined,
+      busyProgressPercent: 0,
+      preparedSessionId: 'session-1',
+      selectedEpubName: 'book.epub',
+      diagnosis: {
+        status: 'repairable',
+        issues: [
+          {
+            code: 'SPINE_EMPTY',
+            severity: 'error',
+            fixable: true,
+            messageKey: 'FIX.ISSUE_SPINE_EMPTY',
+          },
+        ],
+      },
+      repairResult: undefined,
+      exportResult: undefined,
+      viewState: 'diagnosed' as const,
+      epubErrorKey: undefined,
+      epubErrorParams: {},
+      adsRemoved: false,
+      adFallbackRemaining: 1,
+      adFallbackTrialActive: false,
+      ads: {
+        showRewarded,
+      },
+      adFallback: {
+        handleAdFailure,
+      },
+      settings: {
+        set: setSettings,
+      },
+      toastCtrl: {
+        create: toastCreate,
+      },
+      translate: {
+        instant: jasmine.createSpy('instant').and.callFake((key: string) => key),
+      },
+      workflow: {
+        repairCurrentEpub: repair,
+        diagnoseCurrentEpub: diagnose,
+        exportCurrentEpub,
+        buildFixedOutputName: jasmine
+          .createSpy('buildFixedOutputName')
+          .and.returnValue('book_fixed.epub'),
+      },
+      library: {
+        saveExportedEpub,
+      },
+      coversEvents: {
+        emit,
+      },
+      modalCtrl: {},
+    });
+
+    await FixPage.prototype.runRepair.call(ctx);
+
+    expect(showRewarded).toHaveBeenCalled();
+    expect(handleAdFailure).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        app: 'ef',
+        remaining: 1,
+        total: 1,
+      }),
+      ctx.modalCtrl,
+    );
+    expect(repair).toHaveBeenCalled();
+    expect(saveExportedEpub).toHaveBeenCalledWith(
+      'blob:fixed',
+      'book_fixed.epub',
+    );
+    expect(ctx.adFallbackRemaining).toBe(0);
+    expect(ctx.adFallbackTrialActive).toBeFalse();
+    expect(setSettings).toHaveBeenCalled();
+    expect(ctx.viewState).toBe('repaired');
+  });
+
   it('shows the Fix action for a repairable missing mimetype diagnosis', () => {
     const ctx = Object.assign(Object.create(FixPage.prototype), {
       busyAction: undefined,

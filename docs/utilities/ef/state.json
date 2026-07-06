@@ -6,22 +6,23 @@
     "versionName": "1.0"
   },
   "current": {
-    "updatedAt": "2026-07-01T00:00:00.0000000-06:00",
-    "head": "59deb27e5df5a37a2fade5e579e53c18c27ab059",
-    "versionCode": 5,
-    "versionName": "Thumbnail persistence",
-    "versionCodeAnchorCommit": "59deb27e5df5a37a2fade5e579e53c18c27ab059",
-    "deltaFrom": "3dec6b6e73f46e0db756ac44f5ea0b410fc8ae4d",
-    "deltaTo": "59deb27e5df5a37a2fade5e579e53c18c27ab059",
-    "changedFilesCount": 6,
+    "updatedAt": "2026-07-05T22:11:14.8466061-06:00",
+    "head": "829ac10055d50efbd7f2f35b092e5d25daea3412",
+    "versionCode": 6,
+    "versionName": "Ad fallback repair trial",
+    "versionCodeAnchorCommit": "829ac10055d50efbd7f2f35b092e5d25daea3412",
+    "deltaFrom": "85c340a5f0d1b32a67cc8b77dceff50ae9037721",
+    "deltaTo": "829ac10055d50efbd7f2f35b092e5d25daea3412",
+    "changedFilesCount": 10,
     "userFacingSummary": [
-      "persisted_preview_thumbnails",
-      "fallback_first_image_thumbnails"
+      "ad_fallback_repair_trial",
+      "one_attempt_without_ads",
+      "no_full_restart_needed_after_ad_failure"
     ]
   },
   "tracking": {
-    "lastProcessedHead": "59deb27e5df5a37a2fade5e579e53c18c27ab059",
-    "lastProcessedAt": "2026-06-28T13:24:59.6987570-06:00",
+    "lastProcessedHead": "829ac10055d50efbd7f2f35b092e5d25daea3412",
+    "lastProcessedAt": "2026-07-05T22:11:14.8466061-06:00",
     "lastWorkingTreeFingerprint": "WORKTREE"
   }
 }

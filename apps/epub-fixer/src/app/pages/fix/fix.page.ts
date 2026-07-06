@@ -54,6 +54,11 @@ import {
   EpubRepairResult,
 } from '@sheldrapps/file-kit';
 import {
+  AdFallbackService,
+  type AdFailureConfidence,
+  type AdFailureReason,
+} from '@sheldrapps/ad-fallback-kit';
+import {
   AdsService,
   BillingService,
   RemoveAdsUpgradeModalComponent,
@@ -71,6 +76,7 @@ import {
   buildHomeHeaderItems,
   handleHomeHeaderAction,
 } from '@sheldrapps/recommended-apps';
+import { SettingsStore } from '@sheldrapps/settings-kit';
 import { CoversEventsService } from '../../services/covers-events.service';
 
 import { EpubFixerWorkflowService } from '../../services/epub-fixer-workflow.service';
@@ -78,6 +84,7 @@ import {
   EpubLibraryService,
   type LoadedGeneratedEpub,
 } from '../../services/epub-library.service';
+import { EpubFixerSettings } from '../../settings/epub-fixer-settings.schema';
 
 type DiagnosisSeverityLevel = 'critical' | 'high' | 'medium' | 'low';
 type IssueSectionKind = 'automatic' | 'confirmation' | 'manual' | 'blocked';
@@ -127,7 +134,9 @@ export class FixPage implements OnInit, OnDestroy {
   private readonly toastCtrl = inject(ToastController);
   private readonly library = inject(EpubLibraryService);
   private readonly ads = inject(AdsService);
+  private readonly adFallback = inject(AdFallbackService);
   private readonly billing = inject(BillingService);
+  private readonly settings = inject(SettingsStore<EpubFixerSettings>);
   private readonly coversEvents = inject(CoversEventsService);
   private readonly recommendedAppsService = inject(RecommendedAppsService);
   private readonly translate = inject(TranslateService);
@@ -172,6 +181,12 @@ export class FixPage implements OnInit, OnDestroy {
   removeAdsPriceFormatted: string | null = null;
   purchaseModalOpen = false;
   purchaseBusy = false;
+  private readonly adFallbackApp = 'ef' as const;
+  private readonly adFallbackTotal = 1;
+  private adFallbackRemaining = this.adFallbackTotal;
+  private readonly adFallbackRemainingPrefKey = 'ef_ad_fallback_remaining';
+  private readonly adFallbackTrialActivePrefKey = 'ef_ad_fallback_trial_active';
+  private adFallbackTrialActive = false;
 
   viewState:
     | 'idle'
@@ -509,8 +524,14 @@ export class FixPage implements OnInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     await this.refreshHeaderItems();
     await this.billing.hydrateCachedState();
+    const settings = await this.settings.load();
+    this.hydrateAdFallbackState(settings.preferences);
     this.adsRemovedSub = this.billing.adsRemoved$.subscribe((value) => {
       this.adsRemoved = value;
+      if (value) {
+        this.adFallbackTrialActive = false;
+        void this.persistAdFallbackState();
+      }
     });
     this.adsRemoved = this.billing.isAdsRemoved();
     this.removeAdsPriceFormatted = this.billing.getRemoveAdsPriceFormatted();
@@ -1008,18 +1029,183 @@ export class FixPage implements OnInit, OnDestroy {
       return true;
     }
 
+    if (this.adFallbackTrialActive && this.resolveAdFallbackRemaining() > 0) {
+      const accepted = await this.confirmActiveAdFallbackTrial();
+      if (!accepted) {
+        this.epubErrorKey = 'FIX.ADS_REQUIRED';
+        this.epubErrorParams = {};
+        return false;
+      }
+
+      return true;
+    }
+
     try {
       const result = await this.ads.showRewarded();
       if (result.rewardEarned) {
         return true;
       }
+
+      const shouldFallback =
+        result.failed || (!result.rewardEarned && !result.adClosed);
+      if (shouldFallback) {
+        const accepted = await this.openAdFallbackFromFailure(
+          result.failed
+            ? result
+            : {
+                rewardEarned: false,
+                adClosed: false,
+                failed: true,
+                failureReason: 'unknown',
+                failureConfidence: 'low',
+              },
+        );
+        if (accepted) {
+          return true;
+        }
+      }
     } catch (error) {
       console.warn('[epub-fixer] rewarded ad gate failed', error);
+      const accepted = await this.openAdFallbackFromFailure({
+        rewardEarned: false,
+        adClosed: false,
+        failed: true,
+        failureReason: 'unknown',
+        failureConfidence: 'low',
+      });
+      if (accepted) {
+        return true;
+      }
     }
 
     this.epubErrorKey = 'FIX.ADS_REQUIRED';
     this.epubErrorParams = {};
     return false;
+  }
+
+  private async openAdFallbackFromFailure(
+    result: {
+      rewardEarned: boolean;
+      adClosed: boolean;
+      failed: boolean;
+      failureReason?: AdFailureReason;
+      failureConfidence?: AdFailureConfidence;
+    },
+  ): Promise<boolean> {
+    const remaining = this.resolveAdFallbackRemaining();
+    const decision = await this.adFallback.handleAdFailure(
+      {
+        app: this.adFallbackApp,
+        reason: this.normalizeFailureReason(result.failureReason),
+        confidence: this.normalizeFailureConfidence(result.failureConfidence),
+        remaining,
+        total: this.adFallbackTotal,
+        countdownSeconds: 5,
+      },
+      this.modalCtrl,
+    );
+
+    if (decision === 'accepted') {
+      this.adFallbackTrialActive = true;
+      await this.persistAdFallbackState();
+      return true;
+    }
+
+    return false;
+  }
+
+  private async confirmActiveAdFallbackTrial(): Promise<boolean> {
+    const remaining = this.resolveAdFallbackRemaining();
+    const decision = await this.adFallback.handleAdFailure(
+      {
+        app: this.adFallbackApp,
+        reason: 'unknown',
+        confidence: 'low',
+        remaining,
+        total: this.adFallbackTotal,
+        countdownSeconds: 5,
+      },
+      this.modalCtrl,
+    );
+
+    return decision === 'accepted';
+  }
+
+  private resolveAdFallbackRemaining(): number {
+    return this.adFallbackRemaining;
+  }
+
+  private hydrateAdFallbackState(
+    preferences: Record<string, unknown> | undefined,
+  ): void {
+    const rawRemaining = preferences?.[this.adFallbackRemainingPrefKey];
+    const parsedRemaining =
+      typeof rawRemaining === 'number' && Number.isFinite(rawRemaining)
+        ? Math.floor(rawRemaining)
+        : this.adFallbackTotal;
+    this.adFallbackRemaining = Math.max(
+      0,
+      Math.min(this.adFallbackTotal, parsedRemaining),
+    );
+
+    const rawActive = preferences?.[this.adFallbackTrialActivePrefKey];
+    this.adFallbackTrialActive =
+      rawActive === true && this.adFallbackRemaining > 0;
+  }
+
+  private async persistAdFallbackState(): Promise<void> {
+    const clampedRemaining = Math.max(
+      0,
+      Math.min(this.adFallbackTotal, Math.floor(this.adFallbackRemaining)),
+    );
+    this.adFallbackRemaining = clampedRemaining;
+    const active = this.adFallbackTrialActive && clampedRemaining > 0;
+    this.adFallbackTrialActive = active;
+
+    await this.settings.set((prev) => ({
+      ...prev,
+      preferences: {
+        ...(prev.preferences ?? {}),
+        [this.adFallbackRemainingPrefKey]: clampedRemaining,
+        [this.adFallbackTrialActivePrefKey]: active,
+      },
+    }));
+  }
+
+  private async consumeAdFallbackAttemptAfterSuccess(): Promise<void> {
+    if (!this.adFallbackTrialActive) {
+      return;
+    }
+
+    const remaining = this.resolveAdFallbackRemaining();
+    if (remaining <= 0) {
+      this.adFallbackTrialActive = false;
+      await this.persistAdFallbackState();
+      return;
+    }
+
+    this.adFallbackRemaining = remaining - 1;
+    this.adFallbackTrialActive = false;
+    await this.persistAdFallbackState();
+  }
+
+  private normalizeFailureReason(value: unknown): AdFailureReason {
+    switch (value) {
+      case 'network':
+      case 'dns':
+      case 'no-fill':
+      case 'blocked':
+      case 'region':
+        return value;
+      default:
+        return 'unknown';
+    }
+  }
+
+  private normalizeFailureConfidence(
+    value: unknown,
+  ): AdFailureConfidence {
+    return value === 'high' ? 'high' : 'low';
   }
 
   private async exportCurrentCopy(): Promise<void> {
@@ -1047,6 +1233,7 @@ export class FixPage implements OnInit, OnDestroy {
         outputUri: exported.outputUri,
       };
       this.clearEpubError();
+      await this.consumeAdFallbackAttemptAfterSuccess();
     } finally {
       this.busyAction = previousBusyAction;
     }

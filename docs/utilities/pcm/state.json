@@ -6,23 +6,23 @@
     "versionName": ""
   },
   "current": {
-    "updatedAt": "2026-07-01T00:00:00.0000000-06:00",
+    "updatedAt": "2026-07-05T20:42:15.3702178-06:00",
     "head": "b4a177404511d6b3cf1065b1ebb24609d69a7756",
-    "versionCode": 12,
-    "versionName": "Remove ads upgrade polish",
+    "versionCode": 13,
+    "versionName": "Rewarded retry recovery",
     "versionCodeAnchorCommit": "b4a177404511d6b3cf1065b1ebb24609d69a7756",
     "deltaFrom": "9c7a4b2b1c48525c799f78df23eae3d421dcc892",
     "deltaTo": "b4a177404511d6b3cf1065b1ebb24609d69a7756",
     "changedFilesCount": 9,
     "userFacingSummary": [
-      "remove_ads_full_screen_upgrade",
-      "compact_benefit_block",
-      "footer_cta_and_restore_purchase"
+      "rewarded_retry_recovery",
+      "retry_after_network_or_blocker_change",
+      "no_force_close_needed_for_rewarded_flow"
     ]
   },
   "tracking": {
     "lastProcessedHead": "b4a177404511d6b3cf1065b1ebb24609d69a7756",
-    "lastProcessedAt": "2026-06-08T23:54:58.9601592-06:00",
+    "lastProcessedAt": "2026-07-05T20:42:15.3702178-06:00",
     "lastWorkingTreeFingerprint": "WORKTREE"
   }
 }
