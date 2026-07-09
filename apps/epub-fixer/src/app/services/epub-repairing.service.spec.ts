@@ -13,10 +13,10 @@ describe('EpubRepairingService', () => {
     expect(new Set(cases.map((repairCase) => repairCase.id)).size).toBe(104);
 
     for (const repairCase of cases) {
-      expect(repairCase.supportedProblem).toBeTruthy();
-      expect(repairCase.symptom).toBeTruthy();
-      expect(repairCase.solution).toBeTruthy();
-      expect(repairCase.actionLabel).toBeTruthy();
+      expect('supportedProblem' in repairCase).toBeFalsy();
+      expect('symptom' in repairCase).toBeFalsy();
+      expect('solution' in repairCase).toBeFalsy();
+      expect('actionLabel' in repairCase).toBeFalsy();
       expect(repairCase.actions.length).toBeGreaterThan(0);
       expect(repairCase.recommendedAction).toBe(repairCase.actions[0]);
       expect(service.getCase(repairCase.id)).toEqual(repairCase);
@@ -125,22 +125,6 @@ describe('EpubRepairingService', () => {
     ).toEqual(['CRIT-OPF-002']);
   });
 
-  it('builds a handoff markdown that includes representative cases', () => {
-    const markdown = service.buildHandoffMarkdown();
-
-    expect(markdown).toContain('# EPUB Fixer Repair Matrix');
-    expect(markdown).toContain('CRIT-ZIP-001');
-    expect(markdown).toContain('HIGH-MAN-002');
-    expect(markdown).toContain('LOW-REPORT-001');
-  });
-
-  it('exposes repair-mode labels from action families', () => {
-    expect(service.getRepairMode('fix')).toBe('automatic');
-    expect(service.getRepairMode('review_fix')).toBe('review');
-    expect(service.getRepairMode('resolve')).toBe('guided');
-    expect(service.getRepairMode('cannot_repair')).toBe('not_repairable');
-  });
-
   it('returns matrix cases by severity and action', () => {
     expect(service.getCasesBySeverity('critical').length).toBe(22);
     expect(service.getCasesBySeverity('high').length).toBe(33);
@@ -159,5 +143,12 @@ describe('EpubRepairingService', () => {
 
     expect(caseDef?.recommendedAction).toBe('resolve');
     expect(caseDef?.actions).toEqual(['resolve']);
+  });
+
+  it('maps repair actions to their repair modes', () => {
+    expect(service.getRepairMode('fix')).toBe('automatic');
+    expect(service.getRepairMode('review_fix')).toBe('review');
+    expect(service.getRepairMode('resolve')).toBe('guided');
+    expect(service.getRepairMode('cannot_repair')).toBe('not_repairable');
   });
 });

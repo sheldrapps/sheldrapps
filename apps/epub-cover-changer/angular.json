@@ -48,6 +48,11 @@
                 "output": "assets/apps/ecc"
               },
               {
+                "glob": "icon.png",
+                "input": "../pdf-cover-maker/resources",
+                "output": "assets/apps/pcm"
+              },
+              {
                 "glob": "**/*",
                 "input": "../../packages/image-workflow/src/assets",
                 "output": "assets"
@@ -136,6 +141,11 @@
                 "glob": "icon.png",
                 "input": "resources",
                 "output": "assets/apps/ecc"
+              },
+              {
+                "glob": "icon.png",
+                "input": "../pdf-cover-maker/resources",
+                "output": "assets/apps/pcm"
               },
               {
                 "glob": "**/*",

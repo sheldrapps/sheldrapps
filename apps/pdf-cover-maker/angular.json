@@ -46,6 +46,11 @@
                 "output": "assets/apps/ecc"
               },
               {
+                "glob": "icon.png",
+                "input": "resources",
+                "output": "assets/apps/pcm"
+              },
+              {
                 "glob": "**/*",
                 "input": "../../packages/image-workflow/src/assets",
                 "output": "assets"
@@ -86,15 +91,20 @@
                   "input": "../cover-creator-for-kindle/resources",
                   "output": "assets/apps/ccfk"
                 },
-                {
-                  "glob": "icon.png",
-                  "input": "../epub-cover-changer/resources",
-                  "output": "assets/apps/ecc"
-                },
-                {
-                  "glob": "**/*",
-                  "input": "../../packages/image-workflow/src/assets",
-                  "output": "assets"
+              {
+                "glob": "icon.png",
+                "input": "../epub-cover-changer/resources",
+                "output": "assets/apps/ecc"
+              },
+              {
+                "glob": "icon.png",
+                "input": "resources",
+                "output": "assets/apps/pcm"
+              },
+              {
+                "glob": "**/*",
+                "input": "../../packages/image-workflow/src/assets",
+                "output": "assets"
                 }
               ],
               "fileReplacements": [
@@ -161,6 +171,11 @@
                 "glob": "icon.png",
                 "input": "../epub-cover-changer/resources",
                 "output": "assets/apps/ecc"
+              },
+              {
+                "glob": "icon.png",
+                "input": "resources",
+                "output": "assets/apps/pcm"
               },
               {
                 "glob": "**/*",

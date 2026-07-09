@@ -2,6 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
+  LanguageRadioListComponent,
+  restartForLanguageChange,
+} from '@sheldrapps/i18n-kit';
+import {
   IonButton,
   IonButtons,
   IonContent,
@@ -11,13 +15,10 @@ import {
   IonList,
   IonLoading,
   IonModal,
-  IonRadio,
-  IonRadioGroup,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
-import { restartForLanguageChange } from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { THEME_OPTIONS, ThemeService, type Theme } from '@sheldrapps/ui-theme';
 import {
@@ -46,10 +47,9 @@ import { EpubFixerSettings } from 'src/app/settings/epub-fixer-settings.schema';
     IonList,
     IonLoading,
     IonModal,
-    IonRadio,
-    IonRadioGroup,
     IonTitle,
     IonToolbar,
+    LanguageRadioListComponent,
   ],
 })
 export class SettingsPage {
@@ -67,8 +67,6 @@ export class SettingsPage {
 
   private isRestartingLanguage = false;
   private readonly languageRestartCountdownStart = 3;
-
-  trackByLang = (_index: number, option: LangOption) => option.code;
 
   get selectedLanguage(): Lang {
     return this.lang.lang as Lang;
@@ -100,8 +98,15 @@ export class SettingsPage {
     this.isLanguageModalOpen = false;
   }
 
-  onLanguageDraftChange(value: Lang): void {
-    this.languageDraft = value;
+  onLanguageDraftChange(value: string): void {
+    const next = this.supportedLangs.find(
+      (option) => option.code === value,
+    )?.code;
+    if (!next) {
+      return;
+    }
+
+    this.languageDraft = next;
   }
 
   async confirmLanguageModal(): Promise<void> {

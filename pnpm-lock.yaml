@@ -566,6 +566,9 @@ importers:
       '@ngx-translate/http-loader':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
+      '@sheldrapps/ad-fallback-kit':
+        specifier: workspace:*
+        version: link:../../packages/ad-fallback-kit
       '@sheldrapps/ads-kit':
         specifier: workspace:*
         version: link:../../packages/ads-kit
@@ -16262,7 +16265,7 @@ snapshots:
       type-fest: 0.16.0
       unique-string: 2.0.0
 
-  terser-webpack-plugin@5.3.16(esbuild@0.25.9)(webpack@5.104.1):
+  terser-webpack-plugin@5.3.16(esbuild@0.25.9)(webpack@5.104.1(esbuild@0.25.9)):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       jest-worker: 27.5.1
@@ -16712,7 +16715,7 @@ snapshots:
       neo-async: 2.6.2
       schema-utils: 4.3.3
       tapable: 2.3.0
-      terser-webpack-plugin: 5.3.16(esbuild@0.25.9)(webpack@5.104.1)
+      terser-webpack-plugin: 5.3.16(esbuild@0.25.9)(webpack@5.104.1(esbuild@0.25.9))
       watchpack: 2.5.1
       webpack-sources: 3.3.3
     transitivePeerDependencies:

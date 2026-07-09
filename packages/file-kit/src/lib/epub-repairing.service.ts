@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import {
+  classifyEpubDiagnosticRepairMode,
   type EpubDiagnosticIssue,
   type EpubDiagnosticIssueCode,
   type EpubDiagnosticRepairMode,
@@ -24,13 +25,6 @@ const ACTION_TO_REPAIR_MODE: Record<EpubRepairAction, EpubDiagnosticRepairMode> 
   review_fix: 'review',
   resolve: 'guided',
   cannot_repair: 'not_repairable',
-};
-
-const ACTION_LABELS: Record<EpubRepairAction, string> = {
-  fix: 'Fix',
-  review_fix: 'Review Fix',
-  resolve: 'Resolve',
-  cannot_repair: 'Cannot repair',
 };
 
 const OPENING_BLOCKER_CASE_IDS = new Set<string>([
@@ -119,16 +113,21 @@ export class EpubRepairingService {
     );
   }
 
-  getRepairMode(caseOrAction: EpubRepairMatrixCase | EpubRepairAction): EpubDiagnosticRepairMode {
+  getRepairMode(
+    caseOrAction:
+      | EpubRepairMatrixCase
+      | EpubRepairAction
+      | Pick<EpubDiagnosticIssue, 'code' | 'fixable' | 'options'>,
+  ): EpubDiagnosticRepairMode {
     if (typeof caseOrAction === 'string') {
       return ACTION_TO_REPAIR_MODE[caseOrAction];
     }
 
-    return ACTION_TO_REPAIR_MODE[caseOrAction.recommendedAction];
-  }
+    if ('recommendedAction' in caseOrAction) {
+      return ACTION_TO_REPAIR_MODE[caseOrAction.recommendedAction];
+    }
 
-  getRepairModeLabel(action: EpubRepairAction): string {
-    return ACTION_LABELS[action];
+    return classifyEpubDiagnosticRepairMode(caseOrAction);
   }
 
   resolveDiagnosticCaseIds(
@@ -211,47 +210,6 @@ export class EpubRepairingService {
     return this.getCasesByScope('optional_cleanup');
   }
 
-  buildHandoffMarkdown(): string {
-    const lines: string[] = [
-      '# EPUB Fixer Repair Matrix',
-      '',
-      '## Purpose',
-      '',
-      'Complete source of truth for the current support matrix.',
-      '',
-    ];
-
-    for (const scope of ['opening_blocker', 'optional_cleanup'] as const) {
-      lines.push(`## ${scope === 'opening_blocker' ? 'Opening blockers' : 'Optional cleanup'}`);
-      lines.push('');
-
-      for (const repairCase of this.getCasesByScope(scope)) {
-        lines.push(`- \`${repairCase.id}\`: ${repairCase.supportedProblem}`);
-        lines.push(`  - Symptom: ${repairCase.symptom}`);
-        lines.push(`  - Action: ${repairCase.actionLabel}`);
-        lines.push(`  - Solution: ${repairCase.solution}`);
-      }
-
-      lines.push('');
-    }
-
-    for (const severity of ['critical', 'high', 'medium', 'low'] as const) {
-      lines.push(`## ${this.capitalize(severity)}`);
-      lines.push('');
-
-      for (const repairCase of this.getCasesBySeverity(severity)) {
-        lines.push(`- \`${repairCase.id}\`: ${repairCase.supportedProblem}`);
-        lines.push(`  - Symptom: ${repairCase.symptom}`);
-        lines.push(`  - Action: ${repairCase.actionLabel}`);
-        lines.push(`  - Solution: ${repairCase.solution}`);
-      }
-
-      lines.push('');
-    }
-
-    return `${lines.join('\n').trimEnd()}\n`;
-  }
-
   private getCaseScope(repairCase: EpubRepairMatrixCase): EpubRepairScope {
     return OPENING_BLOCKER_CASE_IDS.has(repairCase.id)
       ? 'opening_blocker'
@@ -281,9 +239,5 @@ export class EpubRepairingService {
       return ['CRIT-CON-005'];
     }
     return ['CRIT-OPF-001'];
-  }
-
-  private capitalize(value: string): string {
-    return value.charAt(0).toUpperCase() + value.slice(1);
   }
 }

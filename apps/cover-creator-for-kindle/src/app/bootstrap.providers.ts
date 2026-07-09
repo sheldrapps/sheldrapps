@@ -8,10 +8,7 @@ import {
   provideCoverImageStateI18n,
   provideCoverSourceI18n,
 } from '@sheldrapps/image-workflow';
-import {
-  EDITOR_I18N_OVERRIDES,
-  provideEditorI18n,
-} from '@sheldrapps/image-workflow/editor';
+import { provideEditorI18n } from '@sheldrapps/image-workflow/editor';
 import { provideExportQualityKitI18n } from '@sheldrapps/export-quality-kit';
 import { provideAdFallbackKitI18n } from '@sheldrapps/ad-fallback-kit';
 import { provideAdsKitI18n } from '@sheldrapps/ads-kit';
@@ -86,63 +83,6 @@ export function createBootstrapProviders(): Array<Provider | EnvironmentProvider
     provideCoverImageStateI18n(),
     provideCoverSourceI18n(),
     provideEditorI18n(),
-    {
-      provide: EDITOR_I18N_OVERRIDES,
-      useValue: {
-        'es-MX': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'Modelo (ResoluciÃ³n)',
-        },
-        'en-US': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'Model (Resolution)',
-        },
-        'de-DE': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'Modell (AuflÃ¶sung)',
-        },
-        'fr-FR': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'ModÃ¨le (RÃ©solution)',
-        },
-        'it-IT': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'Modello (Risoluzione)',
-        },
-        'pt-BR': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'Modelo (ResoluÃ§Ã£o)',
-        },
-        'ar-SA': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'Ø§Ù„Ø·Ø±Ø§Ø² (Ø§Ù„Ø¯Ù‚Ø©)',
-        },
-        'hi-IN': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'à¤®à¥‰à¤¡à¤² (à¤°à¤¿à¤œà¤¼à¥‰à¤²à¥à¤¯à¥‚à¤¶à¤¨)',
-        },
-        'ja-JP': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'ãƒ¢ãƒ‡ãƒ«ï¼ˆè§£åƒåº¦ï¼‰',
-        },
-        'ko-KR': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'ëª¨ë¸ (í•´ìƒë„)',
-        },
-        'ru-RU': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'ÐœÐ¾Ð´ÐµÐ»ÑŒ (Ð Ð°Ð·Ñ€ÐµÑˆÐµÐ½Ð¸Ðµ)',
-        },
-        'zh-CN': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'åž‹å·ï¼ˆåˆ†è¾¨çŽ‡ï¼‰',
-        },
-        'zh-TW': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'åž‹è™Ÿï¼ˆè§£æžåº¦ï¼‰',
-        },
-      },
-    },
     provideSettingsKit({
       appId: 'ccfk',
       storageKey: CCFK_SETTINGS_STORAGE_KEY,

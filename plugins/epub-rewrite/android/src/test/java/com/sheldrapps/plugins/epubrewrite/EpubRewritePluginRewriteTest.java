@@ -299,6 +299,39 @@ public class EpubRewritePluginRewriteTest {
     }
 
     @Test
+    public void analyzeEpubMarksPlainTextPlaceholderAsUnsupported() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        File epubPath = temporaryFolder.newFile("plain-text-" + System.nanoTime() + ".epub");
+        Files.write(epubPath.toPath(), "not a zip".getBytes(StandardCharsets.UTF_8));
+
+        Object analysis = invokeObject(
+            plugin,
+            "analyzeEpub",
+            new Class<?>[] { Path.class, String.class },
+            epubPath.toPath(),
+            null
+        );
+
+        java.lang.reflect.Field statusField = analysis.getClass().getDeclaredField("status");
+        statusField.setAccessible(true);
+        assertEquals("unsupported", statusField.get(analysis));
+
+        java.lang.reflect.Field issuesField = analysis.getClass().getDeclaredField("issues");
+        issuesField.setAccessible(true);
+        List<?> issues = (List<?>) issuesField.get(analysis);
+        assertEquals(1, issues.size());
+
+        Object issue = issues.get(0);
+        java.lang.reflect.Field codeField = issue.getClass().getDeclaredField("code");
+        codeField.setAccessible(true);
+        assertEquals("ZIP_UNREADABLE", codeField.get(issue));
+
+        java.lang.reflect.Field fixableField = issue.getClass().getDeclaredField("fixable");
+        fixableField.setAccessible(true);
+        assertEquals(false, fixableField.get(issue));
+    }
+
+    @Test
     public void analyzeEpubFlagsInvalidOpfVersionAndUniqueIdentifier() throws Exception {
         EpubRewritePlugin plugin = new EpubRewritePlugin();
         File zipPath = temporaryFolder.newFile("opf-issues-" + System.nanoTime() + ".epub");

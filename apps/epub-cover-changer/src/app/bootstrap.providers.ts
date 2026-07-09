@@ -8,10 +8,7 @@ import {
   provideCoverImageStateI18n,
   provideCoverSourceI18n,
 } from '@sheldrapps/image-workflow';
-import {
-  EDITOR_I18N_OVERRIDES,
-  provideEditorI18n,
-} from '@sheldrapps/image-workflow/editor';
+import { provideEditorI18n } from '@sheldrapps/image-workflow/editor';
 import { provideExportQualityKitI18n } from '@sheldrapps/export-quality-kit';
 import { provideBestCandidateKitI18n } from '@sheldrapps/best-candidate-kit';
 import { provideAdFallbackKitI18n } from '@sheldrapps/ad-fallback-kit';
@@ -88,84 +85,6 @@ export function createBootstrapProviders(): Array<Provider | EnvironmentProvider
     provideCoverImageStateI18n(),
     provideCoverSourceI18n(),
     provideEditorI18n(),
-    {
-      provide: EDITOR_I18N_OVERRIDES,
-      useValue: {
-        'es-MX': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'Recortar (ProporciÃ³n)',
-          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
-            'Recortar (ProporciÃ³n)',
-        },
-        'en-US': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'Crop (Ratio)',
-          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP': 'Crop (Ratio)',
-        },
-        'de-DE': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'Zuschneiden (Ratio)',
-          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
-            'Zuschneiden (Ratio)',
-        },
-        'fr-FR': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'Recadrer (Ratio)',
-          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
-            'Recadrer (Ratio)',
-        },
-        'it-IT': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'Ritaglia (Rapporto)',
-          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
-            'Ritaglia (Rapporto)',
-        },
-        'pt-BR': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'Recortar (ProporciÃ³o)',
-          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
-            'Recortar (ProporciÃ³o)',
-        },
-        'zh-TW': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'è£åˆ‡ï¼ˆæ¯”ä¾‹ï¼‰',
-          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
-            'è£åˆ‡ï¼ˆæ¯”ä¾‹ï¼‰',
-        },
-        'hi-IN': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'à¤•à¥à¤°à¥‰à¤ª (à¤…à¤¨à¥à¤ªà¤¾à¤¤)',
-          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
-            'à¤•à¥à¤°à¥‰à¤ª (à¤…à¤¨à¥à¤ªà¤¾à¤¤)',
-        },
-        'ar-SA': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'Ù‚Øµ (Ù†Ø³Ø¨Ø©)',
-          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
-            'Ù‚Øµ (Ù†Ø³Ø¨Ø©)',
-        },
-        'ja-JP': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'ãƒˆãƒªãƒŸãƒ³ã‚°ï¼ˆæ¯”çŽ‡ï¼‰',
-          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
-            'ãƒˆãƒªãƒŸãƒ³ã‚°ï¼ˆæ¯”çŽ‡ï¼‰',
-        },
-        'ko-KR': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'í¬ë¡­ (ë¹„ìœ¨)',
-          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
-            'í¬ë¡­ (ë¹„ìœ¨)',
-        },
-        'zh-CN': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP': 'è£å‰ªï¼ˆæ¯”ä¾‹ï¼‰',
-          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
-            'è£å‰ªï¼ˆæ¯”ä¾‹ï¼‰',
-        },
-        'ru-RU': {
-          'EDITOR.PANELS.TOOLS.TOOLS.REGISTRY.TITLE.CROP':
-            'ÐžÐ±Ñ€ÐµÐ·ÐºÐ° (ÑÐ¾Ð¾Ñ‚Ð½Ð¾ÑˆÐµÐ½Ð¸Ðµ)',
-          'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.CROP':
-            'ÐžÐ±Ñ€ÐµÐ·ÐºÐ° (ÑÐ¾Ð¾Ñ‚Ð½Ð¾ÑˆÐµÐ½Ð¸Ðµ)',
-        },
-      },
-    },
     provideSettingsKit({
       appId: 'ecc',
       storageKey: ECC_SETTINGS_STORAGE_KEY,

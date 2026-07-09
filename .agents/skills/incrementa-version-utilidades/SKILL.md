@@ -1,7 +1,7 @@
 ﻿---
 name: incrementa-version-utilidades
 user-invocable: true
-description: "Incrementa version de app movil y genera utilidades/notes con inteligencia basada en cambios reales. Use when user says 'Incrementa la versión de <short_name>' where <short_name> is the initials alias of the app name, or an equivalent versioning request."
+description: "Incrementa version de app movil y actualiza build.gradle + version-notes.xml. Use when user says 'Incrementa la versión de <short_name>' where <short_name> is the initials alias of the app name, or an equivalent versioning request."
 ---
 
 # Incrementa Version Utilidades
@@ -34,10 +34,12 @@ Alias soportados:
 ## Source of truth
 
 - Version source only: `apps/<project>/android/app/build.gradle`
+- Release copy only: `docs/utilities/<short-name>/version-notes.xml`
+- Delta is derived each run from the current working tree vs last published version; do not treat it as immutable.
 - Scope de evidencia: `apps/<project>/**` + `packages/**`
 - Cuando haya cambios en archivos compartidos, revisar si el proyecto los consume directa o indirectamente y reflejar el impacto visible en la app.
-- El orden correcto siempre es: primero `build.gradle`, luego `utility.md`, `state.json` y `version-notes.xml`.
-- Nunca usar `utility.md` o `state.json` como fuente para decidir el `versionCode` real.
+- El orden correcto siempre es: primero `build.gradle`, luego `version-notes.xml`.
+- Nunca usar archivos de `docs/utilities/<short-name>` para decidir el `versionCode` real.
 
 ## Skill-first contract
 
@@ -45,24 +47,17 @@ La skill hace la inteligencia:
 
 1. Decide `versionName` descriptivo (<= 30 chars) con base en delta user-facing.
 2. Redacta `version-notes.xml` por locale con contenido real (no placeholder si hay cambios visibles).
-3. Construye `utility.md` como registro factual para trazabilidad de release/versionado (no como input para `fichas`).
-4. Actualiza `state.json` para incremental siguiente.
-5. Si hay cambios en elementos compartidos que la app usa, conviértelos en beneficios observables para esa app y redacta las notas como experiencia de usuario, no como detalle interno.
-6. Redacta siempre las notas desde el delta actual. No copies ni arrastres texto de notas anteriores salvo que siga siendo estrictamente cierto para el cambio nuevo.
-7. Verifica que `build.gradle`, `utility.md` y `state.json` coinciden en el `currentVersionCode` final y en el siguiente valor esperado.
-
-Script opcional de evidencia:
-
-- `pnpm increment:collect <proyecto|alias> [--delta-from-anchor]`
-- Genera `docs/utilities/<short-name>/delta.json` y no decide wording final.
+3. Si hay cambios en elementos compartidos que la app usa, conviértelos en beneficios observables para esa app y redacta las notas como experiencia de usuario, no como detalle interno.
+4. Redacta siempre las notas desde el delta actual. No copies ni arrastres texto de notas anteriores salvo que siga siendo estrictamente cierto para el cambio nuevo.
+5. Verifica que `build.gradle` y `version-notes.xml` coinciden en el `currentVersionCode` final y en el siguiente valor esperado.
+6. Si materializas evidencia intermedia, `delta.json` es temporal y no se conserva como artefacto de release.
 
 ## Required outputs
 
 Siempre actualizar:
 
-1. `docs/utilities/<short-name>/utility.md`
-2. `docs/utilities/<short-name>/state.json`
-3. `docs/utilities/<short-name>/version-notes.xml`
+1. `apps/<project>/android/app/build.gradle`
+2. `docs/utilities/<short-name>/version-notes.xml`
 
 ### Modo `solo version-notes`
 
@@ -70,22 +65,7 @@ Si el usuario pide explicitamente ejecutar solo version notes:
 
 - Actualizar unicamente `docs/utilities/<short-name>/version-notes.xml`.
 - No modificar `versionCode`/`versionName` en `build.gradle`.
-- No modificar `docs/utilities/<short-name>/utility.md`.
-- No modificar `docs/utilities/<short-name>/state.json`.
 - Basar el texto en cambios user-facing reales del delta actual.
-
-## Utility format goal
-
-`utility.md` debe contener hechos estructurados para trazabilidad técnica de release:
-
-- identidad/versiones
-- capacidades verificadas + evidencia
-- diferenciadores
-- casos de uso validos
-- facts user-facing del incremento
-- coverage de locales
-- constraints/no-goals
-- si hubo cambios compartidos, impacto observable en la app y evidencia de qué parte visible mejora
 
 ## Version-notes format
 
@@ -165,7 +145,7 @@ Formato:
 
 ## Encoding y anti-artifacts (obligatorio)
 
-- Escribir siempre `version-notes.xml`, `utility.md` y `state.json` en `UTF-8`.
+- Escribir siempre `version-notes.xml` en `UTF-8`.
 - No dejar mojibake ni reemplazos de caracteres.
 - Bloquear salida si aparece cualquiera de estos patrones:
   - `\\u00C3|\\u00C2|\\uFFFD`
@@ -181,9 +161,8 @@ Formato:
 - `versionCode` incrementado cuando el usuario lo pide.
 - `versionCode` incrementado en `build.gradle` antes de cerrar.
 - `versionName` <= 30 y descriptivo.
-- `utility.md` factual y util para trazabilidad/versionado.
+- El delta se recalcula desde el working tree actual, no desde una captura inmutable.
 - `version-notes.xml` en los 13 locales obligatorios y sin placeholders si hay cambios visibles.
-- `version-notes.xml`, `utility.md` y `state.json` sin mojibake ni artifacts `?`.
+- `version-notes.xml` sin mojibake ni artifacts `?`.
 - Si los cambios vienen de piezas compartidas, las notas deben describir el resultado que ve el usuario en la app, evitando mencionar infraestructura, kits, paquetes o términos técnicos.
-- `utility.md` y `state.json` deben reflejar exactamente el mismo `currentVersionCode` que `build.gradle` después del incremento.
 - Las notas no deben repetir literalmente el release anterior. Deben resumir el cambio actual, aunque el alcance sea pequeño.

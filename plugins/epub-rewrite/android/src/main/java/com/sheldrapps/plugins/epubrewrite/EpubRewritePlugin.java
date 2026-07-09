@@ -1108,7 +1108,7 @@ public class EpubRewritePlugin extends Plugin {
             }
 
             java.util.ArrayList<EpubIssue> issues = new java.util.ArrayList<>();
-            issues.add(issue("ZIP_UNREADABLE", "error", true, ex.getMessage()));
+            issues.add(issue("ZIP_UNREADABLE", "error", false, ex.getMessage()));
             return new EpubAnalysis(
                 resolveStatus(issues),
                 issues,
