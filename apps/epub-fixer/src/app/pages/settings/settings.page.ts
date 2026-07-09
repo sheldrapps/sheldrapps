@@ -63,10 +63,10 @@ export class SettingsPage {
   isLanguageModalOpen = false;
   languageDraft: Lang = 'en-US';
   isLanguageRestartLoading = false;
-  languageRestartCountdown = 3;
+  languageRestartCountdown = 4;
 
   private isRestartingLanguage = false;
-  private readonly languageRestartCountdownStart = 3;
+  private readonly languageRestartCountdownStart = 4;
 
   get selectedLanguage(): Lang {
     return this.lang.lang as Lang;
@@ -123,10 +123,10 @@ export class SettingsPage {
     this.isRestartingLanguage = true;
 
     try {
-      await this.settings.set({ language });
+      await this.settings.setForScope('language', { language });
       await this.lang.set(language);
       await this.showLanguageRestartCountdown();
-      await restartForLanguageChange(language, 0);
+      await restartForLanguageChange(language, 500);
     } finally {
       this.isLanguageRestartLoading = false;
       this.isRestartingLanguage = false;
@@ -140,14 +140,12 @@ export class SettingsPage {
 
     for (
       let remaining = this.languageRestartCountdownStart;
-      remaining > 1;
+      remaining >= 1;
       remaining--
     ) {
+      this.languageRestartCountdown = remaining;
       await this.delay(1000);
-      this.languageRestartCountdown = remaining - 1;
     }
-
-    await this.delay(1000);
   }
 
   private async waitForLoadingToRender(): Promise<void> {

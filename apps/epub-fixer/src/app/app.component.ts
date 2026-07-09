@@ -54,7 +54,7 @@ export class AppComponent implements OnDestroy {
     this.translate.setDefaultLang('en-US');
 
     if (!storedLanguage) {
-      await this.settings.set({ language });
+      await this.settings.setForScope('language', { language });
     }
 
     await this.lang.set(language);

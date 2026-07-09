@@ -1,8 +1,8 @@
-# Исправить EPUB - ru-RU Play Store Listing
+# EPUB Fixer - ru-RU Play Store Listing
 
 ## Purpose
 
-Позиционировать EPUB Fixer как целевой инструмент для людей, у которых EPUB не открывается, имеет поврежденную внутреннюю структуру или требует исправления перед повторным использованием. Первое обещание должно быть понятным: находить распространенные проблемы EPUB и сохранять исправленную копию.
+Позиционировать EPUB Fixer как понятный и надежный инструмент для EPUB-файлов, которые не открываются, имеют поврежденную внутреннюю структуру или требуют безопасного ремонта перед дальнейшим использованием. Обещание должно быть мгновенно понятным: определить поддерживаемые проблемы EPUB и сохранить исправленную копию.
 
 ## App Name
 
@@ -16,114 +16,137 @@ Character count:
 14
 
 Reasoning:
-«Исправить EPUB» коротко, ясно и по делу. Формулировка не обещает reader, полный editor или cloud-сервис.
+"Исправить EPUB" прямо описывает действие и не создает впечатление полноценного редактора или облачного сервиса.
 
 ## Short Description
 
 Text:
-Проверяйте и исправляйте частые проблемы EPUB
+Диагностика и ремонт распространенных проблем EPUB
 
 Character count:
-45
+50
 
 Reasoning:
-Фраза ясно показывает два шага: сначала проверка, затем исправление поддерживаемых проблем.
+Фраза ясно объясняет два этапа: сначала диагностика, затем ремонт поддерживаемых проблем.
 
 ## Long Description
 
 Text:
-Проверяйте и исправляйте частые проблемы EPUB, а затем сохраняйте исправленную копию.
+Исправляйте распространенные проблемы EPUB и сохраняйте исправленную копию.
 
-EPUB Fixer помогает разбирать EPUB-файлы, которые не открываются, содержат сломанные внутренние ссылки или имеют структурные проблемы, мешающие нормальной работе.
+EPUB Fixer помогает проверять EPUB-файлы, которые не открываются корректно, имеют сломанные внутренние ссылки или содержат проблемы структуры, мешающие нормальной работе.
 
-Выберите EPUB с устройства и запустите быструю диагностику. Приложение четко определяет поддерживаемые проблемы, исправляет то, что может, и позволяет сохранить результат как новый EPUB-файл.
+Выберите EPUB с вашего устройства и подготовьте безопасную сессию для этого файла. Приложение проверяет важные части структуры EPUB, включая mimetype, container.xml, данные OPF, записи manifest и ссылки spine.
+
+Когда обнаружены поддерживаемые проблемы, EPUB Fixer проводит ремонтный поток, чтобы исправить сломанные ссылки, перестроить структуру EPUB при возможности и сохранить результат как новый EPUB-файл.
 
 С EPUB Fixer вы можете:
 
+• Выбирать EPUB-файлы с устройства
+• Подготавливать безопасную сессию для каждого файла
 • Диагностировать распространенные проблемы структуры EPUB
-• Находить отсутствующие или некорректные EPUB package-файлы и ссылки
-• Исправлять поддерживаемые проблемы manifest и spine
-• Просматривать, что было найдено и исправлено
-• Сохранять исправленный EPUB как новую копию
+• Проверять mimetype, container.xml, OPF, manifest и spine
+• Находить сломанные ссылки и отсутствующие файлы пакета
+• Исправлять поддерживаемые проблемы структуры EPUB
+• Перестраивать EPUB, когда это возможно
+• Сохранять исправленную копию EPUB
 • Оставлять исходный файл без изменений
+• Просматривать исправленные и импортированные файлы в My EPUBs
+• Настраивать язык и тему
+• Убирать рекламу через опцию обновления
 
-Все обрабатывается на устройстве.
+EPUB Fixer также понятно обрабатывает проблемные файлы, включая файлы с расширением .epub, которые не являются настоящими EPUB.
 
-Без аккаунта. Без загрузки. Без облачной конвертации.
+Вся обработка выполняется на вашем устройстве.
 
-EPUB Fixer создан для читателей, коллекционеров и всех, кто управляет цифровой библиотекой и хочет простой способ исправлять EPUB без сложного desktop-софта.
+Без аккаунта.
+Без загрузок.
+Без облачной конвертации.
+
+Некоторые бесплатные ремонты могут требовать просмотра rewarded ad. Если реклама не загружается, приложение показывает fallback, чтобы поток оставался понятным.
+
+EPUB Fixer создан для читателей, коллекционеров, студентов и всех, кто ведет цифровую библиотеку и хочет простой способ исправлять EPUB-файлы без сложного настольного ПО.
+
+Приложение фокусируется на практической задаче: диагностировать, исправлять и безопасно сохранять поддерживаемые EPUB-исправления.
 
 Character count:
-1033
+1695
 
 SEO/ASO notes:
-* Используйте естественные фразы вроде исправить EPUB, починить EPUB, исправление EPUB-файла, инструмент для исправления EPUB, диагностировать EPUB, сломанный EPUB, поврежденный EPUB-файл, исправление структуры EPUB, EPUB manifest, EPUB spine, ошибки EPUB и сохранить исправленную EPUB-копию.
-* Избегайте обещаний вроде исправить любой EPUB, удалить DRM, починить защищенные книги, облачное исправление, онлайн-конвертер, AI-исправление, универсальное исправление EPUB или полный EPUB-редактор.
+* Используйте естественные фразы: исправить EPUB, ремонт EPUB, починить EPUB, инструмент для ремонта EPUB, диагностировать EPUB, сломанный EPUB, поврежденный EPUB, ремонт структуры EPUB, manifest EPUB, spine EPUB, ошибки EPUB, сохранить исправленную копию, My EPUBs, убрать рекламу.
+* Избегайте обещаний вроде исправить любой EPUB, удалить DRM, ремонт защищенных книг, облачный ремонт, онлайн-конвертер, AI-ремонт, универсальный ремонт EPUB или полноценный EPUB-редактор.
 
 ## Market Angle Decision
 
 Market angle selected:
-Быстрая диагностика и исправление распространенных проблем структуры EPUB, с прозрачным результатом и безопасным сохранением в виде копии.
+Быстрая диагностика и ремонт распространенных проблем структуры EPUB с прозрачным результатом и сохранением как копии.
 
 Why this angle should convert in ru-RU:
-Самый сильный запрос пользователя очень практичен: «Мой EPUB не открывается, выглядит сломанным или не импортируется. Можно ли это исправить без desktop-софта?» Listing должен сразу отвечать на это понятной историей от проблемы к решению.
+Главный вопрос пользователя простой и срочный: "Мой EPUB не открывается, выглядит сломанным или не импортируется. Можно ли исправить это без настольного ПО?" Страница должна сразу ответить на это ясной историей проблема -> решение.
 
 Primary user desire:
-Сделать проблемный EPUB снова рабочим без продвинутых инструментов и desktop-софта.
+Сделать проблемный EPUB снова пригодным без продвинутых инструментов и настольного ПО.
 
 Secondary trust proof:
-* Ясная диагностика до исправления
-* Понятные результаты исправления
+* Ясная диагностика перед ремонтом
+* Понятные результаты ремонта
 * Обработка на устройстве
 * Без аккаунта
-* Без загрузки
-* Оригинальный EPUB не меняется
+* Без загрузок
+* Исходный EPUB остается неизменным
 * Создается новая исправленная копия
+* Файлы можно снова найти в My EPUBs
+* Удаление рекламы остается вторичным
 
 What should NOT be the first screenshot:
 * Экран настроек
 * Пустая локальная библиотека
-* Обычный выбор файла
+* Общий выбор файла
 * Технический XML или код
 * Экран только про приватность
-* Обычный EPUB reader
-* Туманный экран “исправление завершено” без показа проблемы
+* Общий EPUB-ридер
+* Размытый экран "ремонт завершен" без показа проблемы
+* Экран монетизации в первой визуальной роли
 
 ## Regional Conversion Strategy
 
 Primary user desire:
-Исправлять EPUB, которые не открываются, не импортируются, не проходят проверку или ведут себя некорректно из-за частых проблем внутренней структуры.
+Исправить EPUB, которые не открываются, не импортируются, не проходят проверку или работают неправильно из-за распространенных проблем внутренней структуры.
 
 Best use cases to show:
 * EPUB, который не открывается корректно
-* Быстрая диагностика, показывающая проблему
-* Доступный сценарий исправления
+* Быстрая диагностика с понятным выводом
+* Доступный поток ремонта
 * Короткий список исправленных проблем
 * Исправленный EPUB, сохраненный как отдельная копия
-* Локальная обработка как доказательство доверия
+* Локальная обработка как признак доверия
+* My EPUBs как локальная непрерывность для исправленных или импортированных файлов
 
 What to avoid:
-* Визуал как у антивируса или cleaner-приложения
-* Драматические изображения повреждения
-* Экраны с тяжелым кодом или XML
-* Позиционирование как универсальный файловый менеджер
-* Позиционирование как EPUB reader
-* Язык облачной загрузки или синхронизации
-* Визуальные намеки на AI
-* Упоминания DRM
-* Обещание, что любой сломанный EPUB можно исправить
+* Внешний вид антивируса или очистителя телефона
+* Драматичные изображения повреждений
+* Экраны с большим количеством кода или XML
+* Позиционирование как обычный файловый менеджер
+* Позиционирование как EPUB-ридер
+* Язык облака или синхронизации
+* Визуальные признаки AI
+* Намеки на DRM
+* Обещания исправить любой сломанный EPUB
+* Подачу рекламы или монетизации как основного преимущества
 
 Search/ASO terms to include naturally:
 * исправить EPUB
+* ремонт EPUB
 * починить EPUB
-* EPUB Fixer
-* поврежденный EPUB-файл
-* инструмент для исправления EPUB
+* сломанный EPUB
+* инструмент для ремонта EPUB
 * диагностировать EPUB
 * ошибки EPUB
-* исправление EPUB
-* исправленная EPUB-копия
-* исправить ebook-файл
+* ремонт структуры EPUB
+* исправленная копия EPUB
+* исправить файл ebook
+* My EPUBs
+* убрать рекламу
 
 ## Visual System
 
@@ -137,12 +160,12 @@ Palette:
 - bullet color: #E0A39C
 
 General visual rules:
-Визуальная история должна начинаться с восстановления: проблема EPUB → исправленный EPUB. Область текста должна быть темной, матовой и устойчивой. Избегайте ярких предупреждающих панелей, иконок облака, AI-эффектов, фрагментов кода и плотных технических логов.
+Визуальная история всегда начинается с восстановления: проблемный EPUB -> исправленный EPUB. Держите область текста темной, матовой и стабильной. Избегайте ярких панелей предупреждений, облачных иконок, AI-эффектов, фрагментов кода и плотных логов. Монетизация вторична.
 
 ## Feature Graphic
 
 titulo:
-ИСПРАВЛЕНИЕ ЧАСТЫХ ПРОБЛЕМ EPUB
+ИСПРАВИТЬ РАСПРОСТРАНЕННЫЕ EPUB-ПРОБЛЕМЫ
 
 subline:
 Проверить, исправить и сохранить новую копию
@@ -154,7 +177,7 @@ subline color:
 #D2D6DA
 
 wrapper:
-Ясная композиция до/после с двумя компактными карточками файлов или нейтральными превью e-reader.
+Понятная композиция до/после с двумя карточками EPUB или двумя нейтральными ebook-превью.
 
 fondo:
 * dimension: 1024x500 px
@@ -168,23 +191,23 @@ fondo:
 * elementos prohibidos: bright red warning banners, cloud/upload icons, AI effects, generic antivirus graphics, PDF visuals, dense technical labels
 
 imagen:
-Покажите простое преобразование: слева EPUB с пометкой «Требуется исправление», справа тот же EPUB как исправленная и пригодная копия. При необходимости можно добавить маленькие метки Before / After.
+Покажите простое преобразование: слева EPUB с пометкой "Нужен ремонт", справа тот же EPUB как исправленная и готовая копия. Небольшие подписи До/После допустимы.
 
 bullets:
-* Обработка на устройстве
+* Ремонт на устройстве
 * Без аккаунта
-* Без загрузки
+* Без загрузок
 
 conversion intent:
-С первого взгляда показать, что EPUB Fixer исправляет поддерживаемые проблемы и сохраняет отдельную исправленную копию.
+Сделать очевидным, что EPUB Fixer исправляет поддерживаемые проблемы EPUB и сохраняет отдельную исправленную копию.
 
 ## Screenshot 1
 
 titulo:
-EPUB не открывается?
+EPUB НЕ ОТКРЫВАЕТСЯ?
 
 subline:
-Найдите и исправьте частые ошибки
+Найдите и исправьте распространенные ошибки
 
 headline color:
 #FFFFFF
@@ -193,7 +216,7 @@ subline color:
 #D2D6DA
 
 wrapper:
-Сильное преобразование before/after.
+Четкое сравнение до/после.
 
 fondo:
 * dimension: 1994x3456 px
@@ -201,13 +224,13 @@ fondo:
 * secundario: #202226
 * acento: #B13A32
 * optional support accent: #E0A39C
-* ubicacion del acento: restrained, never behind the headline
+* ubicacion del acento: subtle repair path between the broken and repaired EPUB states
 * zona segura de copy: upper third, dark and readable
 * textura permitida: subtle matte grain below 3%
 * elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
 
 imagen:
-Покажите EPUB в двух состояниях: before с сдержанным индикатором проблемы; after — тот же заголовок как исправленный и готовый.
+Покажите EPUB в двух состояниях: сначала с ненавязчивым маркером проблемы, затем как исправленный и готовый файл.
 
 conversion intent:
 Начать с реальной проблемы, которую пользователь хочет решить.
@@ -215,10 +238,10 @@ conversion intent:
 ## Screenshot 2
 
 titulo:
-Поймите, что нужно исправить
+НАЧНИТЕ С EPUB
 
 subline:
-Ясная диагностика до исправления
+Подготовьте безопасную сессию ремонта
 
 headline color:
 #FFFFFF
@@ -227,7 +250,7 @@ subline color:
 #D2D6DA
 
 wrapper:
-Android phone mockup showing the real EPUB diagnosis screen.
+Mockup Android-телефона с реальным экраном выбора или подготовленной сессией.
 
 fondo:
 * dimension: 1994x3456 px
@@ -235,21 +258,55 @@ fondo:
 * secundario: #202226
 * acento: #B13A32
 * optional support accent: #E0A39C
-* ubicacion del acento: restrained, never behind the headline
-* zona segura de copy: upper third, dark and readable
+* ubicacion del acento: subtle emphasis around the selected EPUB or session card
+* zona segura de copy: upper third, clean and matte
 * textura permitida: subtle matte grain below 3%
-* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
+* elementos prohibidos: generic file-manager clutter, cloud picker visuals, upload arrows, fake security seals
 
 imagen:
-Покажите реальный экран диагностики с кратким и понятным итогом. Подходящие примеры: invalid EPUB package structure, missing container file, broken manifest reference, invalid spine entry, missing content file.
+Покажите EPUB, выбранный с устройства и готовый к диагностике или ремонту. Полезные подписи, если их поддерживает реальный UI: EPUB загружен, Готов к диагностике, Безопасная сессия готова. Не намекайте на облако или синхронизацию.
 
 conversion intent:
-Показать, что приложение сначала объясняет, что оно нашло.
+Показать, что приложение начинает с локального файла и подготавливает понятный рабочий поток.
 
 ## Screenshot 3
 
 titulo:
-Исправляйте частые EPUB-проблемы
+ПОЙМИТЕ, ЧТО СЛОМАЛОСЬ
+
+subline:
+Ясная диагностика до ремонта
+
+headline color:
+#FFFFFF
+
+subline color:
+#D2D6DA
+
+wrapper:
+Mockup Android-телефона с реальным экраном диагностики.
+
+fondo:
+* dimension: 1994x3456 px
+* base principal: #141414
+* secundario: #202226
+* acento: #B13A32
+* optional support accent: #E0A39C
+* ubicacion del acento: subtle emphasis near the diagnostic summary, never behind the headline
+* zona segura de copy: upper third, clean and matte
+* textura permitida: subtle matte grain below 3%
+* elementos prohibidos: verbose technical logs, raw XML, programmer-oriented labels, bright warning panels
+
+imagen:
+Экран диагностики должен показывать короткое и понятное резюме проблем. Подходящие примеры: неверная структура EPUB, отсутствующий container.xml, сломанная ссылка manifest, неверная запись spine или отсутствующий контент. Не показывайте больше трех-четырех проблем одновременно.
+
+conversion intent:
+Показать, что приложение объясняет найденные проблемы до ремонта.
+
+## Screenshot 4
+
+titulo:
+ИСПРАВЛЯЙТЕ EPUB-ПРОБЛЕМЫ
 
 subline:
 Корректируйте поддерживаемые структурные ошибки
@@ -261,7 +318,7 @@ subline color:
 #D2D6DA
 
 wrapper:
-Android phone mockup showing the real repair flow.
+Mockup Android-телефона с реальным потоком ремонта.
 
 fondo:
 * dimension: 1994x3456 px
@@ -269,21 +326,21 @@ fondo:
 * secundario: #202226
 * acento: #B13A32
 * optional support accent: #E0A39C
-* ubicacion del acento: restrained, never behind the headline
-* zona segura de copy: upper third, dark and readable
+* ubicacion del acento: subtle focus around the repair action or progress result
+* zona segura de copy: upper third, dark and stable
 * textura permitida: subtle matte grain below 3%
-* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
+* elementos prohibidos: exaggerated progress effects, "magic repair" language, cloud processing visuals, generic phone-cleaner styling
 
 imagen:
-Покажите процесс исправления или завершенный итог с поддерживаемыми структурными проблемами: missing package references, broken manifest items, invalid spine entries, EPUB package structure issues.
+Покажите процесс ремонта или итоговое резюме с поддерживаемыми проблемами: сломанные ссылки, поврежденные элементы manifest, неверные записи spine и проблемы структуры пакета EPUB.
 
 conversion intent:
-Сообщить, что приложение действительно исправляет поддерживаемые проблемы EPUB.
+Показать, что приложение действительно исправляет поддерживаемые проблемы EPUB.
 
-## Screenshot 4
+## Screenshot 5
 
 titulo:
-Посмотрите, что исправлено
+ПОСМОТРИТЕ, ЧТО ИСПРАВЛЕНО
 
 subline:
 Проверьте результат перед экспортом
@@ -295,7 +352,7 @@ subline color:
 #D2D6DA
 
 wrapper:
-Android phone mockup showing the completed repair summary.
+Mockup Android-телефона с завершенным резюме ремонта.
 
 fondo:
 * dimension: 1994x3456 px
@@ -303,58 +360,24 @@ fondo:
 * secundario: #202226
 * acento: #B13A32
 * optional support accent: #E0A39C
-* ubicacion del acento: restrained, never behind the headline
-* zona segura de copy: upper third, dark and readable
+* ubicacion del acento: controlled highlight around repaired-status indicators
+* zona segura de copy: upper third, clean and stable
 * textura permitida: subtle matte grain below 3%
-* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
+* elementos prohibidos: dense technical logs, code, fake validation certificates, cluttered library visuals
 
 imagen:
-Покажите экран результата с найденными проблемами, примененными исправлениями и исправленным EPUB, готовым к сохранению. Текст должен быть коротким и фактологичным.
+Покажите реальный экран результата с найденными проблемами, примененными исправлениями и EPUB, готовым к сохранению. Краткие и фактические строки лучше всего.
 
 conversion intent:
 Создать доверие через прозрачность до сохранения.
 
-## Screenshot 5
-
-titulo:
-Сохраните исправленную копию
-
-subline:
-Оригинальный EPUB остается без изменений
-
-headline color:
-#FFFFFF
-
-subline color:
-#D2D6DA
-
-wrapper:
-Safe-copy proof composition or real export confirmation screen.
-
-fondo:
-* dimension: 1994x3456 px
-* base principal: #141414
-* secundario: #202226
-* acento: #B13A32
-* optional support accent: #E0A39C
-* ubicacion del acento: restrained, never behind the headline
-* zona segura de copy: upper third, dark and readable
-* textura permitida: subtle matte grain below 3%
-* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
-
-imagen:
-Покажите простую связь файлов: оригинальный EPUB → исправленная EPUB-копия. Имя выходного файла должно выглядеть как новая версия, например The_Great_Gatsby_repaired.epub.
-
-conversion intent:
-Снизить риск, явно показывая безопасное копирование.
-
 ## Screenshot 6
 
 titulo:
-100% на устройстве
+100% НА УСТРОЙСТВЕ
 
 subline:
-Без аккаунта. Без загрузки.
+Без аккаунта. Без загрузок.
 
 headline color:
 #FFFFFF
@@ -363,7 +386,7 @@ subline color:
 #D2D6DA
 
 wrapper:
-Phone mockup showing the repaired EPUB in the app’s local library or saved-results area.
+Mockup телефона с исправленным EPUB в локальной библиотеке или области сохраненных результатов.
 
 fondo:
 * dimension: 1994x3456 px
@@ -371,22 +394,22 @@ fondo:
 * secundario: #202226
 * acento: #B13A32
 * optional support accent: #E0A39C
-* ubicacion del acento: restrained, never behind the headline
+* ubicacion del acento: subtle emphasis around the local repaired file
 * zona segura de copy: upper third, dark and readable
 * textura permitida: subtle matte grain below 3%
 * elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
 
 imagen:
-Используйте реальный экран сохраненного EPUB или локальной библиотеки, где исправленный файл виден как локальный результат. Дополнительно можно показать: обработка на устройстве, аккаунт не нужен, загрузки нет.
+Используйте реальный экран сохраненного файла или локальной библиотеки, где исправленный файл виден как локальный результат.
 
 conversion intent:
-Завершить акцентом на приватность и владение файлом.
+Завершить акцентом на приватности, владении и локальной непрерывности файла.
 
 ## Notes / Assumptions
 
-* Listing описывает только те исправления, которые приложение действительно поддерживает.
-* Скриншоты диагностики и результата исправления обязательны, потому что они показывают, что продукт больше, чем обычный файловый инструмент.
-* Технические термины использовать умеренно. Manifest, spine и package structure могут появляться как поддержка, но не должны доминировать.
-* Визуальная история должна быть восстановлением: проблема EPUB обнаружена → EPUB исправлен.
-* Исходный EPUB желательно показывать сохраненным.
-* Без аккаунта, без загрузки и обработка на устройстве остаются важными доказательствами доверия.
+* Описание касается только реально поддерживаемых ремонтов.
+* Экран диагностики и экран результата обязательны, потому что они доказывают, что продукт больше, чем обычный файловый инструмент.
+* Технические термины используйте умеренно. Manifest, spine и структура пакета могут появляться как поддержка, но не должны доминировать.
+* Визуальная история всегда должна быть восстановлением: проблема EPUB обнаружена -> EPUB исправлен.
+* Исходный EPUB по возможности должен быть показан как сохраненный.
+* Без аккаунта, без загрузок, обработка на устройстве и My EPUBs остаются важными сигналами доверия.

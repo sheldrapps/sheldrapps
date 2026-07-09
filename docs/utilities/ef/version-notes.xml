@@ -1,51 +1,51 @@
 <en-US>
-EPUB Fixer now lets you select a language by tapping anywhere on the row, and Done applies the new choice with the restart countdown.
+EPUB Fixer now restarts with the selected language, and the launcher name updates to match.
 </en-US>
 
 <ar>
-يتيح EPUB Fixer الآن اختيار اللغة بالنقر في أي مكان في الصف، ويطبّق زر تم الاختيار الجديد مع ظهور العدّ التنازلي لإعادة التشغيل.
+يُعاد تشغيل EPUB Fixer الآن باللغة التي اخترتها، ويُحدَّث اسم المشغّل ليتطابق معها.
 </ar>
 
 <de-DE>
-EPUB Fixer lässt dich jetzt eine Sprache auswählen, indem du irgendwo auf die Zeile tippst, und Mit Fertig wird die neue Auswahl samt Neustart-Countdown übernommen.
+EPUB Fixer startet jetzt mit der gewählten Sprache neu, und der Launcher-Name passt sich daran an.
 </de-DE>
 
 <es-419>
-EPUB Fixer ahora te permite elegir un idioma tocando cualquier parte de la fila, y al pulsar Listo se aplica la nueva selección con el conteo para reiniciar.
+EPUB Fixer ahora se reinicia con el idioma elegido y el nombre del lanzador se actualiza para coincidir.
 </es-419>
 
 <fr-FR>
-EPUB Fixer permet maintenant de choisir une langue en touchant n'importe où sur la ligne, et Terminé applique la nouvelle sélection avec le compte à rebours de redémarrage.
+EPUB Fixer redémarre maintenant avec la langue choisie, et le nom du lanceur se met à jour en conséquence.
 </fr-FR>
 
 <hi-IN>
-EPUB Fixer अब पंक्ति के किसी भी हिस्से पर टैप करके भाषा चुनने देता है, और पूर्ण नई पसंद को लागू करके रीस्टार्ट काउंटडाउन दिखाता है।
+EPUB Fixer अब चुनी गई भाषा के साथ फिर से शुरू होता है, और लॉन्चर का नाम भी उसी के अनुसार बदलता है।
 </hi-IN>
 
 <it-IT>
-EPUB Fixer ora ti permette di scegliere una lingua toccando qualsiasi punto della riga, e Fatto applica la nuova scelta mostrando il conto alla rovescia per il riavvio.
+EPUB Fixer ora si riavvia con la lingua scelta e il nome del launcher si aggiorna di conseguenza.
 </it-IT>
 
 <ja-JP>
-EPUB Fixer では、行のどこをタップしても言語を選べるようになり、完了で新しい選択が適用され、再起動のカウントダウンが表示されます。
+EPUB Fixer は、選択した言語で再起動し、ランチャー名もそれに合わせて更新されます。
 </ja-JP>
 
 <ko-KR>
-EPUB Fixer에서는 이제 행의 아무 곳이나 탭해도 언어를 선택할 수 있고, 완료를 누르면 새 선택이 적용되며 재시작 카운트다운이 표시됩니다.
+EPUB Fixer는 이제 선택한 언어로 다시 시작하며, 런처 이름도 그에 맞게 바뀝니다.
 </ko-KR>
 
 <pt-BR>
-O EPUB Fixer agora permite escolher um idioma tocando em qualquer parte da linha, e Concluído aplica a nova escolha com a contagem para reiniciar.
+O EPUB Fixer agora reinicia com o idioma escolhido e o nome do launcher é atualizado para combinar.
 </pt-BR>
 
 <ru-RU>
-Теперь в EPUB Fixer язык можно выбрать нажатием в любой части строки, а кнопка Готово применяет новый выбор и показывает обратный отсчёт перед перезапуском.
+Теперь EPUB Fixer перезапускается с выбранным языком, а имя лаунчера обновляется соответственно.
 </ru-RU>
 
 <zh-CN>
-现在，EPUB Fixer 可以通过点击整行任意位置来选择语言，点按“完成”后会应用新选择并显示重启倒计时。
+EPUB Fixer 现在会使用你选择的语言重新启动，并同步更新启动器名称。
 </zh-CN>
 
 <zh-TW>
-現在，EPUB Fixer 可以透過點擊整行任意位置來選擇語言，點選「完成」後會套用新選擇並顯示重新啟動倒數。
+EPUB Fixer 現在會以你選擇的語言重新啟動，並同步更新啟動器名稱。
 </zh-TW>

@@ -1,8 +1,8 @@
-# إصلاح EPUB - ar-SA Play Store Listing
+# EPUB Fixer - ar-SA Play Store Listing
 
 ## Purpose
 
-تموضع EPUB Fixer كأداة دقيقة للمستخدم الذي لديه EPUB لا يفتح بشكل صحيح أو يحتوي على بنية داخلية معطلة أو يحتاج إلى إصلاح قبل إعادة استخدامه. الوعد الأول يجب أن يكون واضحًا: اكتشاف المشكلات الشائعة وإنشاء نسخة جديدة مُصلحة.
+تقديم EPUB Fixer كأداة واضحة وموثوقة للكتب EPUB التي لا تفتح بشكل صحيح، أو لديها بنية داخلية مكسورة، أو تحتاج إلى إصلاح آمن قبل الاستخدام. يجب أن يكون الوعد مباشرًا: اكتشاف مشاكل EPUB المدعومة وحفظ نسخة مُصلحة.
 
 ## App Name
 
@@ -16,7 +16,7 @@ Character count:
 10
 
 Reasoning:
-«إصلاح EPUB» يوضح الفعل المطلوب مباشرة، ويحافظ على كلمة EPUB الأساسية مع تجنب الوعود الخاصة بالقراءة أو التحرير الكامل أو السحابة.
+"إصلاح EPUB" يوضح الوظيفة مباشرة ولا يوحي بأن التطبيق قارئ أو محرر أو خدمة سحابية.
 
 ## Short Description
 
@@ -27,49 +27,65 @@ Character count:
 31
 
 Reasoning:
-توضح العبارة الخطوتين الأساسيتين بوضوح: التشخيص أولًا ثم إصلاح المشكلات المدعومة.
+العبارة توضّح المرحلتين بوضوح: التشخيص أولًا ثم الإصلاح المدعوم.
 
 ## Long Description
 
 Text:
-تشخيص وإصلاح مشاكل EPUB الشائعة وحفظ نسخة جديدة مُصلحة.
+أصلح مشاكل EPUB الشائعة واحفظ نسخة مُصلحة.
 
-يساعدك EPUB Fixer على فحص ملفات EPUB التي لا تفتح بشكل صحيح، أو تحتوي على مراجع داخلية معطلة، أو لديها مشكلات بنيوية تمنعها من العمل كما هو متوقع.
+يساعدك EPUB Fixer على فحص ملفات EPUB التي لا تفتح بشكل صحيح، أو تحتوي على مراجع داخلية مكسورة، أو بها مشاكل بنيوية تمنعها من العمل كما يجب.
 
-اختر ملف EPUB من جهازك وشغّل فحصًا سريعًا. يتعرّف التطبيق على المشكلات المدعومة بوضوح، ويصلح ما يمكن إصلاحه، ثم يتيح لك حفظ النتيجة كملف EPUB جديد.
+اختر ملف EPUB من جهازك وابدأ جلسة آمنة لهذا الملف. يفحص التطبيق الأجزاء المهمة من بنية EPUB مثل mimetype وcontainer.xml وبيانات OPF وmanifest وspine.
 
-يمكنك مع EPUB Fixer:
+عندما يجد التطبيق مشاكل مدعومة، يرشدك EPUB Fixer خلال مسار إصلاح لتصحيح المراجع المكسورة وإعادة بناء بنية EPUB عندما يكون ذلك ممكنًا، ثم حفظ النتيجة كملف EPUB جديد.
 
-• تشخيص مشكلات بنية EPUB الشائعة
-• اكتشاف ملفات EPUB والمراجع المفقودة أو غير الصالحة
-• إصلاح مشكلات manifest و spine المدعومة
-• مراجعة ما تم العثور عليه وما تم إصلاحه
-• حفظ EPUB مُصلح كنسخة جديدة
-• إبقاء الملف الأصلي دون تغيير
+مع EPUB Fixer يمكنك:
 
-تتم المعالجة بالكامل على جهازك.
+• اختيار ملفات EPUB من جهازك
+• تجهيز جلسة آمنة لكل ملف
+• تشخيص مشاكل بنية EPUB الشائعة
+• فحص mimetype وcontainer.xml وOPF وmanifest وspine
+• اكتشاف المراجع المكسورة والملفات المفقودة
+• إصلاح مشاكل EPUB المدعومة
+• إعادة بناء EPUB عندما يكون ذلك ممكنًا
+• حفظ نسخة EPUB مُصلحة
+• الإبقاء على الملف الأصلي دون تغيير
+• عرض الملفات المُصلحة أو المستوردة في My EPUBs
+• ضبط اللغة والمظهر
+• إزالة الإعلانات عبر خيار ترقية
 
-بدون حساب. بدون رفع ملفات. بدون تحويل سحابي.
+يتعامل EPUB Fixer بوضوح أيضًا مع الملفات المشكوك فيها، بما في ذلك الملفات التي تحمل الامتداد .epub لكنها ليست EPUB حقيقية.
 
-تم تصميم EPUB Fixer للقراء والمقتنين ولكل من يدير مكتبة رقمية ويحتاج إلى طريقة بسيطة لحل مشاكل EPUB دون برامج سطح مكتب معقدة.
+تتم المعالجة كلها على جهازك.
+
+بدون حساب.
+بدون رفع ملفات.
+بدون تحويل سحابي.
+
+قد تتطلب بعض الإصلاحات المجانية مشاهدة إعلان مكافأ. إذا لم يُحمّل الإعلان، يوفّر التطبيق مسارًا بديلًا حتى يبقى التدفق مفهومًا.
+
+EPUB Fixer مناسب للقراء وجامعي الكتب والطلاب وكل من يدير مكتبة رقمية ويحتاج إلى طريقة بسيطة لمعالجة ملفات EPUB من دون برامج سطح مكتب معقدة.
+
+يركّز التطبيق على مهمة عملية واحدة: التشخيص والإصلاح والحفظ الآمن لنتائج إصلاح EPUB المدعومة.
 
 Character count:
-809
+1398
 
 SEO/ASO notes:
-* استخدم عبارات طبيعية مثل إصلاح EPUB، تصليح EPUB، إصلاح ملف EPUB، أداة إصلاح EPUB، تشخيص EPUB، EPUB تالف، بنية EPUB، manifest EPUB، spine EPUB، أخطاء EPUB، وحفظ نسخة EPUB مُصلحة.
-* تجنب عبارات مثل إصلاح كل EPUB، إزالة DRM، إصلاح الكتب المحمية، إصلاح سحابي، محول عبر الإنترنت، إصلاح بالذكاء الاصطناعي، أو محرر EPUB كامل.
+* استخدم عبارات طبيعية مثل إصلاح EPUB، إصلاح ملف EPUB، أداة إصلاح EPUB، تشخيص EPUB، EPUB تالف، ملف EPUB معطوب، إصلاح بنية EPUB، manifest EPUB، spine EPUB، أخطاء EPUB، حفظ نسخة مُصلحة، My EPUBs، إزالة الإعلانات.
+* تجنب العبارات مثل إصلاح أي EPUB، إزالة DRM، إصلاح الكتب المحمية، الإصلاح السحابي، المحول عبر الإنترنت، الإصلاح بالذكاء الاصطناعي، إصلاح EPUB شامل، أو محرر EPUB كامل.
 
 ## Market Angle Decision
 
 Market angle selected:
-تشخيص سريع وإصلاح لمشكلات بنية EPUB الشائعة مع نتائج شفافة وحفظ آمن كنسخة جديدة.
+تشخيص سريع لمشاكل بنية EPUB الشائعة مع نتائج شفافة وحفظ آمن كنسخة.
 
 Why this angle should convert in ar-SA:
-النية الأقوى هنا عملية جدًا: «ملف EPUB لا يفتح أو يبدو معطوبًا. هل يمكن إصلاحه بدون برامج سطح مكتب؟» يجب أن ترد الفيشة على هذا القلق فورًا بسرد واضح من المشكلة إلى الحل.
+السؤال الأساسي للمستخدم بسيط وعاجل: "ملف EPUB لا يفتح أو يبدو معطوبًا أو لا يُستورد. هل يمكن إصلاحه من دون برامج سطح مكتب؟" يجب أن يجيب العرض عن هذا السؤال فورًا من خلال قصة واضحة: المشكلة ثم الحل.
 
 Primary user desire:
-إعادة ملف EPUB المزعج إلى العمل دون أدوات متقدمة أو برامج سطح مكتب.
+إرجاع EPUB المتعطل إلى حالة قابلة للاستخدام من دون أدوات متقدمة أو برامج سطح مكتب.
 
 Secondary trust proof:
 * تشخيص واضح قبل الإصلاح
@@ -78,52 +94,57 @@ Secondary trust proof:
 * بدون حساب
 * بدون رفع ملفات
 * يبقى EPUB الأصلي دون تغيير
-* يتم إنشاء نسخة جديدة مُصلحة
+* يتم إنشاء نسخة مُصلحة جديدة
+* يمكن العثور على الملفات المُصلحة أو المستوردة مرة أخرى في My EPUBs
+* إزالة الإعلانات تبقى أمرًا ثانويًا
 
 What should NOT be the first screenshot:
 * شاشة الإعدادات
 * مكتبة محلية فارغة
 * منتقي ملفات عام
-* XML أو كود تقني
-* شاشة خصوصية فقط
+* XML تقني أو كود
+* شاشة تركز على الخصوصية فقط
 * قارئ EPUB عام
-* شاشة مبهمة تقول إن الإصلاح اكتمل دون إظهار المشكلة
+* شاشة "اكتمل الإصلاح" من دون عرض المشكلة
+* شاشة تحقيق الدخل كأول دليل بصري
 
 ## Regional Conversion Strategy
 
 Primary user desire:
-إصلاح ملفات EPUB التي تفشل في الفتح أو الاستيراد أو التحقق أو تتصرف بشكل خاطئ بسبب مشكلات بنيوية داخلية شائعة.
+إصلاح ملفات EPUB التي لا تفتح أو لا تُستورد أو تفشل في التحقق بسبب مشاكل شائعة في البنية الداخلية.
 
 Best use cases to show:
-* ملف EPUB لا يفتح بشكل صحيح
-* تشخيص سريع يوضح المشكلة
+* EPUB لا يفتح بشكل صحيح
+* تشخيص سريع يحدد المشكلة
 * مسار إصلاح سهل الفهم
-* قائمة مختصرة بالمشكلات التي تم إصلاحها
-* نسخة EPUB مُصلحة محفوظة بشكل منفصل
+* قائمة قصيرة بالمشاكل المُصلحة
+* EPUB مُصلح محفوظ كنسخة منفصلة
 * المعالجة المحلية كدليل ثقة
+* My EPUBs كاستمرارية محلية للملفات المُصلحة أو المستوردة
 
 What to avoid:
-* أسلوب مضاد فيروسات أو تنظيف الهاتف
-* صور فساد درامية
-* شاشات مليئة بالكود أو XML
-* وضع عام كمدير ملفات
-* وضع قارئ EPUB
-* لغة الرفع أو المزامنة السحابية
-* إيحاءات الذكاء الاصطناعي
-* إشارات DRM
-* وعد بأن كل EPUB تالف قابل للإصلاح
+* مظهر مضاد الفيروسات أو منظف الهاتف
+* صور تلف درامية
+* شاشات ثقيلة بالكود أو XML
+* التموضع كمدير ملفات عام
+* التموضع كقارئ EPUB
+* لغة السحابة أو المزامنة
+* مؤشرات بصرية للذكاء الاصطناعي
+* الإيحاء بـ DRM
+* الوعد بإصلاح كل EPUB تالف
+* تقديم الإعلانات أو تحقيق الدخل كفائدة رئيسية
 
 Search/ASO terms to include naturally:
 * إصلاح EPUB
-* تصليح EPUB
-* EPUB Fixer
-* ملف EPUB تالف
+* إصلاح ملف EPUB
 * أداة إصلاح EPUB
 * تشخيص EPUB
-* أخطاء EPUB
+* EPUB تالف
+* ملف EPUB معطوب
 * إصلاح بنية EPUB
 * نسخة EPUB مُصلحة
-* إصلاح ملف ebook
+* My EPUBs
+* إزالة الإعلانات
 
 ## Visual System
 
@@ -137,7 +158,7 @@ Palette:
 - bullet color: #E4C47A
 
 General visual rules:
-يجب أن تبدأ القصة البصرية من الاستعادة: EPUB معطوب → EPUB مُصلح. اجعل مساحة النص داكنة ومطفيّة وثابتة. تجنب لوحات التحذير الساطعة وأيقونات السحابة وتأثيرات الذكاء الاصطناعي ومقاطع الكود والسجلات التقنية الكثيفة.
+يجب أن تبدأ القصة البصرية بالتعافي: EPUB فيه مشكلة -> EPUB مُصلح. اجعل منطقة النص داكنة وماتّة ومستقرة. تجنب لوحات التحذير الساطعة، وأيقونات السحابة، وتأثيرات الذكاء الاصطناعي، وقطع الكود، والسجلات التقنية الكثيفة. اجعل تحقيق الدخل ثانويًا فقط.
 
 ## Feature Graphic
 
@@ -145,7 +166,7 @@ titulo:
 إصلاح مشاكل EPUB الشائعة
 
 subline:
-شخّص، أصلح، واحفظ نسخة جديدة
+تشخيص وإصلاح وحفظ نسخة جديدة
 
 headline color:
 #FFFFFF
@@ -154,7 +175,7 @@ subline color:
 #D7E0E3
 
 wrapper:
-تركيب واضح قبل/بعد مع بطاقتي ملف مدمجتين أو معاينتين محايدتين لجهاز قارئ.
+تركيب واضح قبل/بعد مع بطاقتي EPUB أو معاينتين محايدتين لكتاب رقمي.
 
 fondo:
 * dimension: 1024x500 px
@@ -162,13 +183,13 @@ fondo:
 * secundario: #1C252B used only for subtle depth
 * acento: #B88A3A
 * optional support accent: #E4C47A
-* ubicacion del acento: restrained line or low-intensity highlight connecting broken EPUB to repaired result
+* ubicacion del acento: line or low-intensity highlight connecting broken EPUB to repaired result
 * zona segura de copy: left third or upper-left, dark and stable
 * textura permitida: subtle matte grain below 3%
 * elementos prohibidos: bright red warning banners, cloud/upload icons, AI effects, generic antivirus graphics, PDF visuals, dense technical labels
 
 imagen:
-اعرض تحولًا بسيطًا: على اليسار ملف EPUB مع وسم «يحتاج إلى إصلاح»، وعلى اليمين نفس الملف كنسخة مُصلحة وجاهزة للاستخدام. يمكن استخدام Before / After إذا كان ذلك يساعد.
+اعرض تحولًا بسيطًا: على اليسار ملف EPUB بعلامة "يحتاج إصلاحًا"، وعلى اليمين نفس الملف كنسخة مُصلحة وجاهزة. يمكن إضافة Before / After بشكل صغير.
 
 bullets:
 * إصلاح على الجهاز
@@ -176,7 +197,7 @@ bullets:
 * بدون رفع ملفات
 
 conversion intent:
-إظهار أن EPUB Fixer يصلح المشكلات المدعومة ويحفظ نسخة صحيحة منفصلة.
+إظهار أن EPUB Fixer يصلح مشاكل EPUB المدعومة ويحفظ نسخة مُصلحة منفصلة.
 
 ## Screenshot 1
 
@@ -193,7 +214,7 @@ subline color:
 #D7E0E3
 
 wrapper:
-تحول قوي قبل/بعد.
+مقارنة واضحة قبل/بعد.
 
 fondo:
 * dimension: 1994x3456 px
@@ -201,21 +222,55 @@ fondo:
 * secundario: #1C252B
 * acento: #B88A3A
 * optional support accent: #E4C47A
-* ubicacion del acento: restrained, never behind the headline
+* ubicacion del acento: subtle repair path between the broken and repaired EPUB states
 * zona segura de copy: upper third, dark and readable
 * textura permitida: subtle matte grain below 3%
 * elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
 
 imagen:
-اعرض EPUB في حالتين: قبل، مع مؤشر مشكلة هادئ؛ وبعد، نفس العنوان كنسخة مُصلحة وجاهزة.
+اعرض EPUB في حالتين: قبل مع علامة مشكلة خفيفة، وبعد مع نفس الملف كنسخة مُصلحة وجاهزة.
 
 conversion intent:
-البدء بالمشكلة الحقيقية التي يحاول المستخدم حلها.
+البدء بالمشكلة الحقيقية التي يريد المستخدم حلها.
 
 ## Screenshot 2
 
 titulo:
-اعرف ما الذي يحتاج إصلاحًا
+ابدأ بـ EPUB
+
+subline:
+جهّز جلسة إصلاح آمنة
+
+headline color:
+#FFFFFF
+
+subline color:
+#D7E0E3
+
+wrapper:
+نموذج هاتف Android يعرض شاشة الاختيار أو الجلسة الجاهزة.
+
+fondo:
+* dimension: 1994x3456 px
+* base principal: #101418
+* secundario: #1C252B
+* acento: #B88A3A
+* optional support accent: #E4C47A
+* ubicacion del acento: subtle emphasis around the selected EPUB or session card
+* zona segura de copy: upper third, clean and matte
+* textura permitida: subtle matte grain below 3%
+* elementos prohibidos: generic file-manager clutter, cloud picker visuals, upload arrows, fake security seals
+
+imagen:
+اعرض EPUB تم اختياره من الجهاز وجاهزًا للتشخيص أو الإصلاح. إن دعمت الواجهة الحقيقية ذلك، استخدم عبارات مثل: EPUB محمّل، جاهز للتشخيص، جلسة آمنة جاهزة. لا توحِ بالرفع إلى السحابة أو المزامنة.
+
+conversion intent:
+إظهار أن التطبيق يبدأ بملف محلي ويجهّز مسار عمل واضح قبل أي تعديل.
+
+## Screenshot 3
+
+titulo:
+اعرف ماذا تعطل
 
 subline:
 تشخيص واضح قبل الإصلاح
@@ -227,7 +282,7 @@ subline color:
 #D7E0E3
 
 wrapper:
-Mockup هاتف Android يعرض شاشة التشخيص الحقيقية.
+نموذج هاتف Android يعرض شاشة التشخيص الحقيقية.
 
 fondo:
 * dimension: 1994x3456 px
@@ -235,24 +290,24 @@ fondo:
 * secundario: #1C252B
 * acento: #B88A3A
 * optional support accent: #E4C47A
-* ubicacion del acento: restrained, never behind the headline
-* zona segura de copy: upper third, dark and readable
+* ubicacion del acento: subtle emphasis near the diagnostic summary, never behind the headline
+* zona segura de copy: upper third, clean and matte
 * textura permitida: subtle matte grain below 3%
-* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
+* elementos prohibidos: verbose technical logs, raw XML, programmer-oriented labels, bright warning panels
 
 imagen:
-اعرض شاشة التشخيص الحقيقية مع ملخص قصير وواضح. استخدم أمثلة مدعومة مثل بنية EPUB غير صالحة، ملف container مفقود، مرجع manifest معطّل، إدخال spine غير صالح، أو محتوى مفقود.
+يجب أن تعرض شاشة التشخيص ملخصًا قصيرًا ومفهومًا للمشكلات. أمثلة مناسبة: بنية EPUB غير صالحة، ملف container مفقود، مرجع manifest مكسور، إدخال spine غير صالح، أو محتوى مفقود. لا تعرض أكثر من ثلاث أو أربع مشكلات في الوقت نفسه.
 
 conversion intent:
 إثبات أن التطبيق يشرح ما وجده قبل الإصلاح.
 
-## Screenshot 3
+## Screenshot 4
 
 titulo:
-إصلاح مشاكل EPUB الشائعة
+أصلح مشاكل EPUB الشائعة
 
 subline:
-صحّح مشكلات البنية المدعومة
+صحّح أخطاء البنية المدعومة
 
 headline color:
 #FFFFFF
@@ -261,7 +316,7 @@ subline color:
 #D7E0E3
 
 wrapper:
-Mockup هاتف Android يعرض مسار الإصلاح الحقيقي.
+نموذج هاتف Android يعرض مسار الإصلاح الحقيقي.
 
 fondo:
 * dimension: 1994x3456 px
@@ -269,21 +324,21 @@ fondo:
 * secundario: #1C252B
 * acento: #B88A3A
 * optional support accent: #E4C47A
-* ubicacion del acento: restrained, never behind the headline
-* zona segura de copy: upper third, dark and readable
+* ubicacion del acento: subtle focus around the repair action or progress result
+* zona segura de copy: upper third, dark and stable
 * textura permitida: subtle matte grain below 3%
-* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
+* elementos prohibidos: exaggerated progress effects, "magic repair" language, cloud processing visuals, generic phone-cleaner styling
 
 imagen:
-اعرض عملية الإصلاح أثناء التنفيذ أو ملخصًا مكتملًا مع مشكلات بنيوية مدعومة مثل المراجع المفقودة والعناصر المعطلة في manifest وإدخالات spine غير الصالحة ومشاكل بنية الحزمة EPUB.
+اعرض عملية الإصلاح أثناء العمل أو ملخصًا نهائيًا يتضمن مشاكل مدعومة مثل المراجع المكسورة، عناصر manifest التالفة، إدخالات spine غير الصالحة، ومشكلات بنية حزمة EPUB.
 
 conversion intent:
-إيصال أن التطبيق يصلح بالفعل المشكلات المدعومة.
+إيصال أن التطبيق يصلح فعلًا مشاكل EPUB المدعومة.
 
-## Screenshot 4
+## Screenshot 5
 
 titulo:
-اعرف ما الذي تم إصلاحه
+شاهد ما تم إصلاحه
 
 subline:
 راجع النتيجة قبل التصدير
@@ -295,7 +350,7 @@ subline color:
 #D7E0E3
 
 wrapper:
-Mockup هاتف Android يعرض ملخص الإصلاح المكتمل.
+نموذج هاتف Android يعرض ملخص الإصلاح المكتمل.
 
 fondo:
 * dimension: 1994x3456 px
@@ -303,55 +358,21 @@ fondo:
 * secundario: #1C252B
 * acento: #B88A3A
 * optional support accent: #E4C47A
-* ubicacion del acento: restrained, never behind the headline
-* zona segura de copy: upper third, dark and readable
+* ubicacion del acento: controlled highlight around repaired-status indicators
+* zona segura de copy: upper third, clean and stable
 * textura permitida: subtle matte grain below 3%
-* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
+* elementos prohibidos: dense technical logs, code, fake validation certificates, cluttered library visuals
 
 imagen:
-اعرض شاشة نتيجة توضح المشكلات التي تم العثور عليها والإصلاحات المطبقة وملف EPUB المُصلح الجاهز للحفظ. اجعل العناصر قصيرة وواقعية.
+اعرض شاشة نتيجة حقيقية توضّح المشكلات التي عُثر عليها، والإصلاحات التي طُبقت، وملف EPUB الجاهز للحفظ. حافظ على العناصر قصيرة وواقعية.
 
 conversion intent:
-بناء الثقة عبر الشفافية قبل الحفظ.
-
-## Screenshot 5
-
-titulo:
-احفظ نسخة مُصلحة
-
-subline:
-أبقِ EPUB الأصلي دون تغيير
-
-headline color:
-#FFFFFF
-
-subline color:
-#D7E0E3
-
-wrapper:
-تركيب يثبت النسخة الآمنة أو شاشة تأكيد التصدير الحقيقية.
-
-fondo:
-* dimension: 1994x3456 px
-* base principal: #101418
-* secundario: #1C252B
-* acento: #B88A3A
-* optional support accent: #E4C47A
-* ubicacion del acento: restrained, never behind the headline
-* zona segura de copy: upper third, dark and readable
-* textura permitida: subtle matte grain below 3%
-* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
-
-imagen:
-اعرض علاقة ملفات بسيطة: EPUB الأصلي → نسخة EPUB مُصلحة. يجب أن يبدو اسم الملف الناتج كنسخة جديدة، مثل The_Great_Gatsby_repaired.epub.
-
-conversion intent:
-تقليل الخوف من خلال إظهار أن النسخة الأصلية لا تُستبدل.
+بناء الثقة من خلال الشفافية قبل الحفظ.
 
 ## Screenshot 6
 
 titulo:
-100% على جهازك
+على جهازك 100%
 
 subline:
 بدون حساب. بدون رفع ملفات.
@@ -363,7 +384,7 @@ subline color:
 #D7E0E3
 
 wrapper:
-Mockup هاتف يعرض EPUB المُصلح في المكتبة المحلية أو قسم النتائج المحفوظة.
+نموذج هاتف يعرض EPUB المُصلح في المكتبة المحلية أو في نتائج الحفظ.
 
 fondo:
 * dimension: 1994x3456 px
@@ -371,22 +392,22 @@ fondo:
 * secundario: #1C252B
 * acento: #B88A3A
 * optional support accent: #E4C47A
-* ubicacion del acento: restrained, never behind the headline
+* ubicacion del acento: subtle emphasis around the local repaired file
 * zona segura de copy: upper third, dark and readable
 * textura permitida: subtle matte grain below 3%
 * elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
 
 imagen:
-استخدم شاشة EPUB المحفوظة أو المكتبة المحلية الحقيقية، مع ملف مُصلح ظاهر كنتيجة محلية. نقاط إثبات اختيارية: المعالجة على الجهاز، لا حاجة إلى حساب، بدون رفع ملفات.
+استخدم شاشة الملف المحفوظ أو المكتبة المحلية الحقيقية، بحيث يظهر الملف المُصلح كنتيجة محلية واضحة.
 
 conversion intent:
-الخاتمة بالخصوصية والملكية.
+إنهاء الرسالة بالخصوصية والملكية والاستمرارية المحلية للملف.
 
 ## Notes / Assumptions
 
-* الفِيشة تصف فقط الإصلاحات التي يدعمها التطبيق فعليًا.
-* تعد لقطات التشخيص ونتيجة الإصلاح أساسية لأنها تُثبت أن المنتج أكثر من مجرد أداة ملفات عامة.
-* استخدم المصطلحات التقنية باعتدال. يمكن أن تظهر manifest و spine و package structure كدعم، لكن لا ينبغي أن تهيمن على العناوين.
-* يجب أن تكون القصة البصرية دائمًا استعادة: اكتشاف مشكلة EPUB → EPUB مُصلح.
-* ينبغي إظهار EPUB الأصلي محفوظًا كلما أمكن.
-* تبقى رسائل بدون حساب وبدون رفع ومعالجة محلية إشارات ثقة مهمة.
+* الوصف يشرح فقط الإصلاحات المدعومة فعلًا.
+* شاشتَا التشخيص والنتيجة ضروريتان لأنهما تثبتان أن المنتج أكثر من مجرد أداة ملفات عادية.
+* استخدم المصطلحات التقنية باعتدال. يمكن أن تظهر manifest وspine وبنية الحزمة كدعم، لكن لا ينبغي أن تهيمن على العناوين.
+* يجب أن تكون القصة المرئية دائمًا عن التعافي: اكتشاف مشكلة EPUB -> EPUB مُصلح.
+* يفضَّل إظهار EPUB الأصلي كملف محفوظ إذا أمكن.
+* بدون حساب، بدون رفع ملفات، والمعالجة على الجهاز وMy EPUBs كلها إشارات ثقة مهمة.
