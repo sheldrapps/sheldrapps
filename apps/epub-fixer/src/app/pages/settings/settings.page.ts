@@ -5,6 +5,7 @@ import {
   LanguageRadioListComponent,
   restartForLanguageChange,
 } from '@sheldrapps/i18n-kit';
+import { PrivacyPolicySectionComponent } from '@sheldrapps/privacy-policy-kit';
 import {
   IonButton,
   IonButtons,
@@ -20,6 +21,7 @@ import {
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
 import { SettingsStore } from '@sheldrapps/settings-kit';
+import { RatingService } from '@sheldrapps/rating-kit';
 import { THEME_OPTIONS, ThemeService, type Theme } from '@sheldrapps/ui-theme';
 import {
   LANG_OPTIONS,
@@ -50,15 +52,19 @@ import { EpubFixerSettings } from 'src/app/settings/epub-fixer-settings.schema';
     IonTitle,
     IonToolbar,
     LanguageRadioListComponent,
+    PrivacyPolicySectionComponent,
   ],
 })
 export class SettingsPage {
   private readonly settings = inject(SettingsStore<EpubFixerSettings>);
   readonly lang = inject(LanguageService);
   private readonly theme = inject(ThemeService);
+  private readonly ratingService = inject(RatingService);
 
   readonly supportedLangs = LANG_OPTIONS;
   readonly supportedThemes = THEME_OPTIONS;
+  readonly privacyPolicyUrl =
+    'https://sheldrapps.com/privacy-policies/epub-fixer';
 
   isLanguageModalOpen = false;
   languageDraft: Lang = 'en-US';
@@ -131,6 +137,14 @@ export class SettingsPage {
       this.isLanguageRestartLoading = false;
       this.isRestartingLanguage = false;
     }
+  }
+
+  async previewRatingPrompt(): Promise<void> {
+    await this.ratingService.previewPrompt();
+  }
+
+  async previewRatingFeedback(): Promise<void> {
+    await this.ratingService.previewFeedbackFlow();
   }
 
   private async showLanguageRestartCountdown(): Promise<void> {

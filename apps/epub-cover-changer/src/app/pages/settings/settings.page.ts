@@ -18,6 +18,7 @@ import {
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
 import { THEME_OPTIONS, ThemeService, type Theme } from '@sheldrapps/ui-theme';
+import { PrivacyPolicySectionComponent } from '@sheldrapps/privacy-policy-kit';
 
 import {
   Lang,
@@ -28,7 +29,6 @@ import {
 import { ConsentService } from 'src/app/services/consent.service';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EccSettings } from 'src/app/settings/ecc-settings.schema';
-import { Browser } from '@capacitor/browser';
 import {
   LanguageRadioListComponent,
   restartForLanguageChange,
@@ -58,6 +58,7 @@ import { RatingService } from '@sheldrapps/rating-kit';
     IonButton,
     IonLoading,
     LanguageRadioListComponent,
+    PrivacyPolicySectionComponent,
   ],
 })
 export class SettingsPage {
@@ -78,7 +79,7 @@ export class SettingsPage {
   languageRestartCountdown = 4;
   private readonly languageRestartCountdownStart = 4;
 
-  private readonly privacyPolicyUrl =
+  readonly privacyPolicyUrl =
     'https://sheldrapps.com/privacy-policies/epub-cover-changer';
 
   trackByLang = (_: number, l: LangOption) => l.code;
@@ -162,10 +163,6 @@ export class SettingsPage {
     if (!opened) {
       // opcional: toast "Not available"
     }
-  }
-
-  async openPrivacyPolicy() {
-    await Browser.open({ url: this.privacyPolicyUrl });
   }
 
   async startHomeTour() {

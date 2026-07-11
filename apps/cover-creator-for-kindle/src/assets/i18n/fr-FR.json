@@ -1,356 +1,352 @@
 {
-  "APP": {
-    "TITLE": "Créer des Covers pour Kindle"
-  },
-  "COMMON": {
-    "BACK_AGAIN_TO_EXIT": "Revenez en arrière pour quitter",
-    "CANCEL": "Annuler",
-    "CLOSE": "Fermer",
-    "EDIT": "Modifier",
-    "CHANGE": "Changer",
-    "DELETE": "Supprimer",
-    "DONE": "Terminé",
-    "ERROR": "Erreur",
-    "LOADING": "Chargement…",
-    "BILLING_UNAVAILABLE": "Les achats ne sont pas disponibles pour le moment.",
-    "PURCHASE_ERROR": "Impossible de finaliser l’achat. Veuillez réessayer.",
-    "REMOVE_ADS_BUY": "Acheter",
-    "REMOVE_ADS_DESCRIPTION": "Supprime les publicités pour toujours et active le choix entre l’export sans perte et compressé.",
-    "REMOVE_ADS_PURCHASED": "Publicités supprimées pour toujours.",
-    "REMOVE_ADS_RESTORE": "Restaurer l’achat",
-    "REMOVE_ADS_RESTORED": "Achat restauré avec succès.",
-    "REMOVE_ADS_TITLE": "Supprimer les publicités",
-    "REMOVE_ADS_CTA_TITLE": "Supprimer les publicités",
-    "REMOVE_ADS_CTA_SUBTITLE": "Paiement unique • Pour toujours",
-    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Paiement unique • {{price}}",
-    "REMOVE_ADS_MODAL_PRICE": "Prix : {{price}} • Sans abonnement",
-    "RESTORE_ERROR": "Impossible de restaurer l’achat. Veuillez réessayer.",
-    "PRO_ONLY": "PRO",
-    "WATCH_AD_SUBTITLE": "Regarder une publicité",
-    "SHARE": "Partager",
-    "SHARE_KINDLE_HINT": "Lors du partage, sélectionne l’application Kindle pour l’envoyer à ton appareil.",
-    "WARNING": "Avertissement",
-    "EDIT_PROJECT_TITLE": "Comment veux-tu modifier ce fichier ?",
-    "EDIT_PROJECT_MESSAGE": "Choisis si tu veux remplacer le fichier actuel ou travailler sur une copie.",
-    "EDIT_PROJECT_OVERWRITE": "Écraser",
-    "EDIT_PROJECT_OVERWRITE_DESC": "Enregistre les changements sur le fichier existant.",
-    "EDIT_PROJECT_COPY": "Travailler sur une copie",
-    "EDIT_PROJECT_COPY_DESC": "Conserve le fichier original et modifie une nouvelle copie."
-  },
-  "CREATE": {
-    "ADS_REQUIRED": "Impossible de charger la publicité. Vérifiez votre réseau ou bloqueur de publicités.",
-    "ARIA_CHANGE_IMAGE": "Changer l’image de couverture. Image actuelle : {{name}}",
-    "ARIA_CROP": "Ajuster l’image sélectionnée",
-    "ARIA_SELECT_IMAGE": "Sélectionner une image de couverture",
-    "ARIA_SELECT_MODEL": "Sélectionner le modèle de l’appareil",
-    "CROP_ACTION": "Ajuster",
-    "COVER_CREATED": "Couverture créée. Vous pouvez maintenant enregistrer ou partager",
-    "CREATE_ACTION": "Créer la couverture",
-    "CREATE_ACTION_REWARDED": "Créer la couverture (voir une publicité)",
-    "GENERATING": "Génération de la couverture…",
-    "HINT_SAVE_SHARE_EXPLAIN": "Créer la couverture ne l'enregistre pas automatiquement.",
-    "INFO": "Info",
-    "INFO_ARIA": "Informations sur la création de couverture",
-    "INFO_TITLE": "Information",
-    "INFO_SEND_TITLE": "Envoyer vers Kindle",
-    "INFO_SHARE_KINDLE": "Pour l'envoyer à votre Kindle, sélectionnez l'application Kindle lors du partage.",
-    "INFO_FLOW_LABEL": "Ordre recommandé :",
-    "INFO_STEP_1": "Sélectionner une image.",
-    "INFO_STEP_2": "Ajustez l’image dans l’éditeur puis touchez Terminé pour l’appliquer.",
-    "INFO_STEP_3": "Créez la couverture après avoir appliqué l’ajustement.",
-    "INFO_STEP_4": "Enregistrer ou partager.",
-    "INFO_NOTE_LABEL": "Note :",
-    "IMAGE_ERROR_CORRUPT": "Impossible de lire l’image. Essayez-en une autre.",
-    "IMAGE_ERROR_SIZE": "Le fichier est trop volumineux. Maximum {{maxSize}} Mo.",
-    "IMAGE_ERROR_TYPE": "Format non pris en charge ({{type}}). Sélectionnez JPG, PNG ou WebP.",
-    "IMAGE_WARN_SMALL": "La résolution de l’image est inférieure à celle du modèle Kindle sélectionné. Pour de meilleurs résultats, utilisez une image plus grande.",
-    "LOADING_IMAGE": "Chargement de l’image…",
-    "OPENING_EDITOR": "Ouverture de l’éditeur…",
-    "SAVING": "Enregistrement de la couverture…",
-    "SAVE_ACTION": "Enregistrer",
-    "SAVED_OK": "Couverture enregistrée",
-    "SAVE_RENAME_TITLE": "Enregistrer la couverture",
-    "SAVE_RENAME_MESSAGE": "Entrez un nom pour la couverture",
-    "SAVE_RENAME_PLACEHOLDER": "Nom du fichier",
-    "SELECT_IMAGE_LABEL": "Image de couverture",
-    "SELECT_IMAGE_PLACEHOLDER": "Sélectionnez une image",
-    "SELECT_BRAND_LABEL": "Marque",
-    "SELECT_BRAND_PLACEHOLDER": "Sélectionner une marque",
-    "SELECT_GROUP_LABEL": "Groupe",
-    "SELECT_GROUP_PLACEHOLDER": "Sélectionner un groupe",
-    "SELECT_GENERATION_LABEL": "Modèle",
-    "SELECT_GENERATION_PLACEHOLDER": "Sélectionner un modèle",
-    "SELECT_MODEL_LABEL": "Modèle de l’appareil",
-    "SELECT_MODEL_PLACEHOLDER": "Sélectionnez votre appareil",
-    "TAP_TO_CHANGE": "Touchez pour changer/réinitialiser",
-    "TITLE": "Créer une couverture",
-    "COVER_SOURCE_TITLE": "Source de couverture",
-    "TAP_TO_PREVIEW": "Touchez pour prévisualiser",
-    "MODEL_PICKER": {
-      "TITLE": "Choisissez votre Kindle"
-    },
-    "INFO_REQUIREMENTS_LABEL": "Exigences :",
-    "INFO_REQUIREMENT_DISABLE_ADS": "Desactiver les pubs sur Kindle.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Activer \"Ecran et luminosite > Afficher les couvertures sur ecran de verrouillage\" sur Kindle.",
-    "ARIA_START_SCRATCH": "Commencer de zero",
-    "SOURCE_IMAGE": "Image",
-    "SOURCE_SCRATCH": "Depuis zero"
-  },
-  "COVERS": {
-    "DELETED": "Couverture supprimée",
-    "EMPTY": "Aucune couverture pour le moment.",
-    "GETTING_COVER": "Obtention de la couverture",
-    "LOADING_PREVIEW": "Chargement de l'aperçu...",
-    "PLACEHOLDER": "Couverture",
-    "PREVIEW_TITLE": "Couverture actuelle",
-    "TITLE": "Couvertures",
-    "DITHERED_THUMBNAIL_NOTICE": "Les couvertures avec réduction des artefacts peuvent paraître différentes en miniature. Ouvrez l’aperçu pour voir un résultat plus fidèle.",
-    "ACTIONS": {
-      "DELETE": "Supprimer",
-      "SHARE": "Partager",
-      "OPEN": "Ouvrir",
-      "EDIT_PROJECT": "Modifier"
-    },
-    "DELETE": {
-      "MESSAGE": "Voulez-vous supprimer cette couverture ?",
-      "TITLE": "Supprimer la couverture"
-    },
-    "ERROR": {
-      "DELETE": "Impossible de supprimer la couverture. Réessaie.",
-      "LOAD": "Impossible de charger les couvertures. Fais glisser vers le bas pour réessayer.",
-      "PREVIEW": "Impossible de charger l'aperçu. Réessaie.",
-      "SHARE": "Impossible de partager la couverture. Réessaie.",
-      "OPEN": "Impossible d'ouvrir la couverture. Veuillez réessayer.",
-      "OPEN_PROJECT": "Impossible d'ouvrir le projet. Veuillez réessayer."
-    },
-    "EREADER": {
-      "ZOOM_OUT_ARIA": "Réduire l’aperçu e-reader",
-      "ZOOM_IN_ARIA": "Agrandir l’aperçu e-reader",
-      "ZOOM_RESET_ARIA": "Réinitialiser le zoom de l’aperçu e-reader"
-    }
-  },
-  "INSTRUCTIONS": {
-    "NOTE_TITLE": "Note",
-    "STEP_1": "Sélectionnez une image pour votre couverture",
-    "STEP_2": "Ajustez l’image dans l’éditeur puis touchez Terminé pour l’appliquer",
-    "STEP_3": "Créez la couverture après avoir appliqué l’ajustement",
-    "STEP_4": "Enregistrez ou partagez la couverture",
-    "STEP_4_DESC": "Une fois prête, vous pouvez l’enregistrer sur votre appareil ou la partager vers l’application Kindle pour un flux plus simple.",
-    "STEP_5": "Envoyer via le web (Send to Kindle)",
-    "STEP_5_DESC": "Vous pouvez aussi l’envoyer depuis votre navigateur avec l’outil web Send to Kindle.",
-    "TIP": "Pour un meilleur résultat, utilisez des images en haute résolution et assurez-vous que les publicités sont désactivées sur votre Kindle.",
-    "TITLE": "Instructions"
-  },
-  "KINDLE_BRANDS": {
-    "KINDLE": "Kindle"
-  },
-  "KINDLE_GROUPS": {
-    "BASIC": "Basic",
-    "OASIS": "Oasis",
-    "PAPERWHITE": "Paperwhite",
-    "PAPERWHITE_SIGNATURE": "Paperwhite Signature",
-    "SCRIBE": "Scribe",
-    "VOYAGE": "Voyage",
-    "COLORSOFT": "Colorsoft",
-    "COLORSOFT_SIGNATURE": "Colorsoft Signature"
-  },
-  "KINDLE_MODELS": {
-    "BASIC_2010_2019": "2010-2019",
-    "BASIC_2022_2024": "2022-2024",
-    "OASIS_2016": "2016",
-    "OASIS_2017_2019": "2017-2019",
-    "PAPERWHITE_2012_2013": "2012-2013",
-    "PAPERWHITE_2015_2019": "2015-2019",
-    "PAPERWHITE_2021": "2021",
-    "PAPERWHITE_2024": "2024",
-    "PAPERWHITE_SIGNATURE_2021": "2021",
-    "PAPERWHITE_SIGNATURE_2024": "2024",
-    "SCRIBE_2022_2024": "2022-2024",
-    "VOYAGE_2014": "2014",
-    "COLORSOFT": "2025",
-    "COLORSOFT_SIGNATURE_EDITION": "2024"
-  },
-  "KOBO_BRANDS": {
-    "KOBO": "Kobo"
-  },
-  "KOBO_GROUPS": {
-    "CLARA": "Clara",
-    "ELIPSA": "Elipsa",
-    "LIBRA": "Libra",
-    "NIA": "Nia",
-    "SAGE": "Sage"
-  },
-  "KOBO_MODELS": {
-    "CLARA_ALL": "Kobo Clara (HD / 2E / BW / Colour)",
-    "ELIPSA_ALL": "Kobo Elipsa (Elipsa / 2E)",
-    "LIBRA_ALL": "Kobo Libra (H2O / 2 / Colour)",
-    "NIA": "Kobo Nia",
-    "SAGE": "Kobo Sage"
-  },
-  "NOOK_BRANDS": {
-    "NOOK": "Nook"
-  },
-  "NOOK_GROUPS": {
-    "GLOWLIGHT": "GlowLight"
-  },
-  "NOOK_MODELS": {
-    "GLOWLIGHT_2013_2015": "Nook GlowLight (2013-2015)",
-    "GLOWLIGHT_2019_2023": "Nook GlowLight (2019-2023)"
-  },
-  "POCKETBOOK_BRANDS": {
-    "POCKETBOOK": "PocketBook"
-  },
-  "POCKETBOOK_GROUPS": {
-    "ERA": "Era",
-    "INKPAD": "InkPad",
-    "VERSE": "Verse"
-  },
-  "POCKETBOOK_MODELS": {
-    "ERA": "PocketBook Era",
-    "INKPAD_ALL": "PocketBook InkPad (All models)",
-    "VERSE": "PocketBook Verse",
-    "VERSE_PRO": "PocketBook Verse Pro"
-  },
-  "TOLINO_BRANDS": {
-    "TOLINO": "Tolino"
-  },
-  "TOLINO_GROUPS": {
-    "SHINE": "Shine",
-    "VISION": "Vision"
-  },
-  "TOLINO_MODELS": {
-    "SHINE_2014_2018": "Tolino Shine (2014-2018)",
-    "SHINE_HD": "Tolino Shine HD",
-    "VISION_2015_2018": "Tolino Vision (2015-2018)",
-    "VISION_2021_2024": "Tolino Vision (2021-2024)"
-  },
-  "REQUISITES": {
-    "ADS_DESC": "Les publicités doivent être désactivées sur l’appareil pour que la couverture s’affiche sur l’écran de verrouillage.",
-    "ADS_LINK": "Gérer les publicités de l’appareil",
-    "ADS_TITLE": "Publicités désactivées",
-    "APP_ANDROID": "Application Kindle (Android)",
-    "APP_DESC": "L’application Kindle est nécessaire pour envoyer et afficher la couverture sur l’appareil.",
-    "APP_IOS": "Application Kindle (iOS)",
-    "APP_TITLE": "Application Kindle",
-    "COVER_DESC": "Activez l’option pour afficher la couverture du livre actuel sur l’écran de verrouillage.",
-    "COVER_LINK": "Configurer l’affichage de la couverture",
-    "COVER_TITLE": "Afficher la couverture du livre",
-    "NOTE": "Cover Creator for Kindle n’est pas une application officielle et ne modifie pas le logiciel de l’appareil.",
-    "SEND_LINK": "Send to Kindle (web)",
-    "SEND_TITLE": "Envoyer des couvertures via le web",
-    "TITLE": "Prérequis"
-  },
-  "HOME_TOUR": {
-    "CONTROLS": {
-      "BACK": "Retour",
-      "FINISH": "Terminer",
-      "NEXT": "Suivant",
-      "PROGRESS": "{{current}} sur {{total}}",
-      "SKIP": "Passer",
-      "INTERACT_HINT": "Interagissez avec l’élément mis en avant pour continuer."
-    },
-    "STEPS": {
-      "DEVICE": {
-        "TITLE": "Appareil",
-        "DESCRIPTION": "Commencez par sélectionner votre appareil.\nLa couverture sera ainsi créée avec la bonne résolution."
-      },
-      "BRAND": {
-        "TITLE": "Marque",
-        "DESCRIPTION": "Choisissez la marque de votre liseuse."
-      },
-      "GROUP": {
-        "TITLE": "Groupe",
-        "DESCRIPTION": "Sélectionnez la gamme de votre appareil."
-      },
-      "MODEL": {
-        "TITLE": "Modèle",
-        "DESCRIPTION": "Choisissez le modèle exact."
-      },
-      "IMAGE": {
-        "TITLE": "Image de couverture",
-        "DESCRIPTION": "Sélectionnez l’image pour votre couverture."
-      },
-      "ADJUST": {
-        "TITLE": "Ajuster",
-        "DESCRIPTION": "Ajustez l’image dans l’éditeur puis touchez Terminé."
-      },
-      "CREATE": {
-        "TITLE": "Créer la couverture",
-        "DESCRIPTION": "Générez la couverture ici."
-      },
-      "RESULTS": {
-        "TITLE": "Enregistrer ou partager",
-        "DESCRIPTION": "Enregistrez ou partagez votre couverture."
-      },
-      "DONE": {
-        "TITLE": "Terminé",
-        "DESCRIPTION": "Terminé.\nVous savez maintenant comment créer des couvertures avec CCFK."
-      }
-    }
-  },
-  "SETTINGS": {
-    "INSTRUCTIONS": "Voir les instructions",
-    "INSTRUCTIONS_HINT": "Comment créer et envoyer une couverture pour Kindle",
-    "INSTRUCTIONS_SECTION": "Instructions",
-    "LANGUAGE": "Langue",
-    "LANGUAGE_RESTART_NOTICE": "Langue modifiée. L’application va redémarrer pour appliquer les changements.",
-    "LANGUAGE_PREPARING_COUNTDOWN": "Préparation de tout dans votre langue. L'app va se fermer pour changer son nom ({{count}})",
-    "PRIVACY_HINT": "Contrôlez la manière dont les données et la publicité sont gérées",
-    "PRIVACY_OPTIONS": "Options de confidentialité",
-    "PRIVACY_POLICY": "Politique de confidentialité",
-    "PRIVACY_SECTION": "Confidentialité",
-    "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
-    "EREADER_OPTIMIZATION_HINT": "Apply automatic adjustments to improve clarity on eReaders",
-    "EREADER_OPTIMIZATION_TOGGLE": "Optimize for eReader",
-    "REQUISITES": "Voir les conditions requises",
-    "REQUISITES_HINT": "Paramètres nécessaires pour que les couvertures fonctionnent correctement sur Kindle",
-    "REQUISITES_SECTION": "Conditions requises",
-    "THEME": "Thème",
-    "THEME_SYSTEM": "Système",
-    "THEME_LIGHT": "Clair naturel",
-    "THEME_DARK": "Sombre classique",
-    "THEME_WARM_READING": "Lecture chaleureuse",
-    "THEME_POP_ROSE": "Rose pop",
-    "THEME_NOCTURNE_VIOLET": "Violet nocturne",
-    "THEME_OBSIDIAN_RED": "Rouge obsidienne",
-    "THEME_TERMINAL_GREEN": "Vert terminal",
-    "THEME_MINT_FRESH": "Vert Menthe",
-    "THEME_SILVER_TECH": "Silver",
-    "THEME_GOLD_LUXE": "Oro",
-    "TITLE": "Paramètres",
-    "VIEW_TOUR": "Voir le tour"
-  },
-  "TABS": {
-    "COVERS": "Couvertures",
-    "CREATE": "Créer",
-    "SETTINGS": "Paramètres"
-  },
-  "ARR": {
-    "TOOLS": {
-      "RECOMMENDED": "Recommandées",
-      "INFO": "Infos",
-      "APPS": "Apps",
-      "GUIDE": "Guide"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
-    }
-  }
+    "APP":  {
+                "TITLE":  "CrÃ©er des Covers pour Kindle"
+            },
+    "COMMON":  {
+                   "BACK_AGAIN_TO_EXIT":  "Revenez en arriÃ¨re pour quitter",
+                   "CANCEL":  "Annuler",
+                   "CLOSE":  "Fermer",
+                   "EDIT":  "Modifier",
+                   "CHANGE":  "Changer",
+                   "DELETE":  "Supprimer",
+                   "DONE":  "TerminÃ©",
+                   "ERROR":  "Erreur",
+                   "LOADING":  "Chargementâ€¦",
+                   "BILLING_UNAVAILABLE":  "Les achats ne sont pas disponibles pour le moment.",
+                   "PURCHASE_ERROR":  "Impossible de finaliser lâ€™achat. Veuillez rÃ©essayer.",
+                   "REMOVE_ADS_BUY":  "Acheter",
+                   "REMOVE_ADS_DESCRIPTION":  "Supprime les publicitÃ©s pour toujours et active le choix entre lâ€™export sans perte et compressÃ©.",
+                   "REMOVE_ADS_PURCHASED":  "PublicitÃ©s supprimÃ©es pour toujours.",
+                   "REMOVE_ADS_RESTORE":  "Restaurer lâ€™achat",
+                   "REMOVE_ADS_RESTORED":  "Achat restaurÃ© avec succÃ¨s.",
+                   "REMOVE_ADS_TITLE":  "Supprimer les publicitÃ©s",
+                   "REMOVE_ADS_CTA_TITLE":  "Supprimer les publicitÃ©s",
+                   "REMOVE_ADS_CTA_SUBTITLE":  "Paiement unique â€¢ Pour toujours",
+                   "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE":  "Paiement unique â€¢ {{price}}",
+                   "REMOVE_ADS_MODAL_PRICE":  "Prix : {{price}} â€¢ Sans abonnement",
+                   "RESTORE_ERROR":  "Impossible de restaurer lâ€™achat. Veuillez rÃ©essayer.",
+                   "PRO_ONLY":  "PRO",
+                   "WATCH_AD_SUBTITLE":  "Regarder une publicitÃ©",
+                   "SHARE":  "Partager",
+                   "SHARE_KINDLE_HINT":  "Lors du partage, sÃ©lectionne lâ€™application Kindle pour lâ€™envoyer Ã  ton appareil.",
+                   "WARNING":  "Avertissement",
+                   "EDIT_PROJECT_TITLE":  "Comment veux-tu modifier ce fichier ?",
+                   "EDIT_PROJECT_MESSAGE":  "Choisis si tu veux remplacer le fichier actuel ou travailler sur une copie.",
+                   "EDIT_PROJECT_OVERWRITE":  "Ã‰craser",
+                   "EDIT_PROJECT_OVERWRITE_DESC":  "Enregistre les changements sur le fichier existant.",
+                   "EDIT_PROJECT_COPY":  "Travailler sur une copie",
+                   "EDIT_PROJECT_COPY_DESC":  "Conserve le fichier original et modifie une nouvelle copie."
+               },
+    "CREATE":  {
+                   "ADS_REQUIRED":  "Impossible de charger la publicitÃ©. VÃ©rifiez votre rÃ©seau ou bloqueur de publicitÃ©s.",
+                   "ARIA_CHANGE_IMAGE":  "Changer lâ€™image de couverture. Image actuelle : {{name}}",
+                   "ARIA_CROP":  "Ajuster lâ€™image sÃ©lectionnÃ©e",
+                   "ARIA_SELECT_IMAGE":  "SÃ©lectionner une image de couverture",
+                   "ARIA_SELECT_MODEL":  "SÃ©lectionner le modÃ¨le de lâ€™appareil",
+                   "CROP_ACTION":  "Ajuster",
+                   "COVER_CREATED":  "Couverture crÃ©Ã©e. Vous pouvez maintenant enregistrer ou partager",
+                   "CREATE_ACTION":  "CrÃ©er la couverture",
+                   "CREATE_ACTION_REWARDED":  "CrÃ©er la couverture (voir une publicitÃ©)",
+                   "GENERATING":  "GÃ©nÃ©ration de la couvertureâ€¦",
+                   "HINT_SAVE_SHARE_EXPLAIN":  "CrÃ©er la couverture ne l\u0027enregistre pas automatiquement.",
+                   "INFO":  "Info",
+                   "INFO_ARIA":  "Informations sur la crÃ©ation de couverture",
+                   "INFO_TITLE":  "Information",
+                   "INFO_SEND_TITLE":  "Envoyer vers Kindle",
+                   "INFO_SHARE_KINDLE":  "Pour l\u0027envoyer Ã  votre Kindle, sÃ©lectionnez l\u0027application Kindle lors du partage.",
+                   "INFO_FLOW_LABEL":  "Ordre recommandÃ© :",
+                   "INFO_STEP_1":  "SÃ©lectionner une image.",
+                   "INFO_STEP_2":  "Ajustez lâ€™image dans lâ€™Ã©diteur puis touchez TerminÃ© pour lâ€™appliquer.",
+                   "INFO_STEP_3":  "CrÃ©ez la couverture aprÃ¨s avoir appliquÃ© lâ€™ajustement.",
+                   "INFO_STEP_4":  "Enregistrer ou partager.",
+                   "INFO_NOTE_LABEL":  "Note :",
+                   "IMAGE_ERROR_CORRUPT":  "Impossible de lire lâ€™image. Essayez-en une autre.",
+                   "IMAGE_ERROR_SIZE":  "Le fichier est trop volumineux. Maximum {{maxSize}} Mo.",
+                   "IMAGE_ERROR_TYPE":  "Format non pris en charge ({{type}}). SÃ©lectionnez JPG, PNG ou WebP.",
+                   "IMAGE_WARN_SMALL":  "La rÃ©solution de lâ€™image est infÃ©rieure Ã  celle du modÃ¨le Kindle sÃ©lectionnÃ©. Pour de meilleurs rÃ©sultats, utilisez une image plus grande.",
+                   "LOADING_IMAGE":  "Chargement de lâ€™imageâ€¦",
+                   "OPENING_EDITOR":  "Ouverture de lâ€™Ã©diteurâ€¦",
+                   "SAVING":  "Enregistrement de la couvertureâ€¦",
+                   "SAVE_ACTION":  "Enregistrer",
+                   "SAVED_OK":  "Couverture enregistrÃ©e",
+                   "SAVE_RENAME_TITLE":  "Enregistrer la couverture",
+                   "SAVE_RENAME_MESSAGE":  "Entrez un nom pour la couverture",
+                   "SAVE_RENAME_PLACEHOLDER":  "Nom du fichier",
+                   "SELECT_IMAGE_LABEL":  "Image de couverture",
+                   "SELECT_IMAGE_PLACEHOLDER":  "SÃ©lectionnez une image",
+                   "SELECT_BRAND_LABEL":  "Marque",
+                   "SELECT_BRAND_PLACEHOLDER":  "SÃ©lectionner une marque",
+                   "SELECT_GROUP_LABEL":  "Groupe",
+                   "SELECT_GROUP_PLACEHOLDER":  "SÃ©lectionner un groupe",
+                   "SELECT_GENERATION_LABEL":  "ModÃ¨le",
+                   "SELECT_GENERATION_PLACEHOLDER":  "SÃ©lectionner un modÃ¨le",
+                   "SELECT_MODEL_LABEL":  "ModÃ¨le de lâ€™appareil",
+                   "SELECT_MODEL_PLACEHOLDER":  "SÃ©lectionnez votre appareil",
+                   "TAP_TO_CHANGE":  "Touchez pour changer/rÃ©initialiser",
+                   "TITLE":  "CrÃ©er une couverture",
+                   "COVER_SOURCE_TITLE":  "Source de couverture",
+                   "TAP_TO_PREVIEW":  "Touchez pour prÃ©visualiser",
+                   "MODEL_PICKER":  {
+                                        "TITLE":  "Choisissez votre Kindle"
+                                    },
+                   "INFO_REQUIREMENTS_LABEL":  "Exigences :",
+                   "INFO_REQUIREMENT_DISABLE_ADS":  "Desactiver les pubs sur Kindle.",
+                   "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY":  "Activer \"Ecran et luminosite \u003e Afficher les couvertures sur ecran de verrouillage\" sur Kindle.",
+                   "ARIA_START_SCRATCH":  "Commencer de zero",
+                   "SOURCE_IMAGE":  "Image",
+                   "SOURCE_SCRATCH":  "Depuis zero"
+               },
+    "COVERS":  {
+                   "DELETED":  "Couverture supprimÃ©e",
+                   "EMPTY":  "Aucune couverture pour le moment.",
+                   "GETTING_COVER":  "Obtention de la couverture",
+                   "LOADING_PREVIEW":  "Chargement de l\u0027aperÃ§u...",
+                   "PLACEHOLDER":  "Couverture",
+                   "PREVIEW_TITLE":  "Couverture actuelle",
+                   "TITLE":  "Couvertures",
+                   "DITHERED_THUMBNAIL_NOTICE":  "Les couvertures avec rÃ©duction des artefacts peuvent paraÃ®tre diffÃ©rentes en miniature. Ouvrez lâ€™aperÃ§u pour voir un rÃ©sultat plus fidÃ¨le.",
+                   "ACTIONS":  {
+                                   "DELETE":  "Supprimer",
+                                   "SHARE":  "Partager",
+                                   "OPEN":  "Ouvrir",
+                                   "EDIT_PROJECT":  "Modifier"
+                               },
+                   "DELETE":  {
+                                  "MESSAGE":  "Voulez-vous supprimer cette couverture ?",
+                                  "TITLE":  "Supprimer la couverture"
+                              },
+                   "ERROR":  {
+                                 "DELETE":  "Impossible de supprimer la couverture. RÃ©essaie.",
+                                 "LOAD":  "Impossible de charger les couvertures. Fais glisser vers le bas pour rÃ©essayer.",
+                                 "PREVIEW":  "Impossible de charger l\u0027aperÃ§u. RÃ©essaie.",
+                                 "SHARE":  "Impossible de partager la couverture. RÃ©essaie.",
+                                 "OPEN":  "Impossible d\u0027ouvrir la couverture. Veuillez rÃ©essayer.",
+                                 "OPEN_PROJECT":  "Impossible d\u0027ouvrir le projet. Veuillez rÃ©essayer."
+                             },
+                   "EREADER":  {
+                                   "ZOOM_OUT_ARIA":  "RÃ©duire lâ€™aperÃ§u e-reader",
+                                   "ZOOM_IN_ARIA":  "Agrandir lâ€™aperÃ§u e-reader",
+                                   "ZOOM_RESET_ARIA":  "RÃ©initialiser le zoom de lâ€™aperÃ§u e-reader"
+                               }
+               },
+    "INSTRUCTIONS":  {
+                         "NOTE_TITLE":  "Note",
+                         "STEP_1":  "SÃ©lectionnez une image pour votre couverture",
+                         "STEP_2":  "Ajustez lâ€™image dans lâ€™Ã©diteur puis touchez TerminÃ© pour lâ€™appliquer",
+                         "STEP_3":  "CrÃ©ez la couverture aprÃ¨s avoir appliquÃ© lâ€™ajustement",
+                         "STEP_4":  "Enregistrez ou partagez la couverture",
+                         "STEP_4_DESC":  "Une fois prÃªte, vous pouvez lâ€™enregistrer sur votre appareil ou la partager vers lâ€™application Kindle pour un flux plus simple.",
+                         "STEP_5":  "Envoyer via le web (Send to Kindle)",
+                         "STEP_5_DESC":  "Vous pouvez aussi lâ€™envoyer depuis votre navigateur avec lâ€™outil web Send to Kindle.",
+                         "TIP":  "Pour un meilleur rÃ©sultat, utilisez des images en haute rÃ©solution et assurez-vous que les publicitÃ©s sont dÃ©sactivÃ©es sur votre Kindle.",
+                         "TITLE":  "Instructions"
+                     },
+    "KINDLE_BRANDS":  {
+                          "KINDLE":  "Kindle"
+                      },
+    "KINDLE_GROUPS":  {
+                          "BASIC":  "Basic",
+                          "OASIS":  "Oasis",
+                          "PAPERWHITE":  "Paperwhite",
+                          "PAPERWHITE_SIGNATURE":  "Paperwhite Signature",
+                          "SCRIBE":  "Scribe",
+                          "VOYAGE":  "Voyage",
+                          "COLORSOFT":  "Colorsoft",
+                          "COLORSOFT_SIGNATURE":  "Colorsoft Signature"
+                      },
+    "KINDLE_MODELS":  {
+                          "BASIC_2010_2019":  "2010-2019",
+                          "BASIC_2022_2024":  "2022-2024",
+                          "OASIS_2016":  "2016",
+                          "OASIS_2017_2019":  "2017-2019",
+                          "PAPERWHITE_2012_2013":  "2012-2013",
+                          "PAPERWHITE_2015_2019":  "2015-2019",
+                          "PAPERWHITE_2021":  "2021",
+                          "PAPERWHITE_2024":  "2024",
+                          "PAPERWHITE_SIGNATURE_2021":  "2021",
+                          "PAPERWHITE_SIGNATURE_2024":  "2024",
+                          "SCRIBE_2022_2024":  "2022-2024",
+                          "VOYAGE_2014":  "2014",
+                          "COLORSOFT":  "2025",
+                          "COLORSOFT_SIGNATURE_EDITION":  "2024"
+                      },
+    "KOBO_BRANDS":  {
+                        "KOBO":  "Kobo"
+                    },
+    "KOBO_GROUPS":  {
+                        "CLARA":  "Clara",
+                        "ELIPSA":  "Elipsa",
+                        "LIBRA":  "Libra",
+                        "NIA":  "Nia",
+                        "SAGE":  "Sage"
+                    },
+    "KOBO_MODELS":  {
+                        "CLARA_ALL":  "Kobo Clara (HD / 2E / BW / Colour)",
+                        "ELIPSA_ALL":  "Kobo Elipsa (Elipsa / 2E)",
+                        "LIBRA_ALL":  "Kobo Libra (H2O / 2 / Colour)",
+                        "NIA":  "Kobo Nia",
+                        "SAGE":  "Kobo Sage"
+                    },
+    "NOOK_BRANDS":  {
+                        "NOOK":  "Nook"
+                    },
+    "NOOK_GROUPS":  {
+                        "GLOWLIGHT":  "GlowLight"
+                    },
+    "NOOK_MODELS":  {
+                        "GLOWLIGHT_2013_2015":  "Nook GlowLight (2013-2015)",
+                        "GLOWLIGHT_2019_2023":  "Nook GlowLight (2019-2023)"
+                    },
+    "POCKETBOOK_BRANDS":  {
+                              "POCKETBOOK":  "PocketBook"
+                          },
+    "POCKETBOOK_GROUPS":  {
+                              "ERA":  "Era",
+                              "INKPAD":  "InkPad",
+                              "VERSE":  "Verse"
+                          },
+    "POCKETBOOK_MODELS":  {
+                              "ERA":  "PocketBook Era",
+                              "INKPAD_ALL":  "PocketBook InkPad (All models)",
+                              "VERSE":  "PocketBook Verse",
+                              "VERSE_PRO":  "PocketBook Verse Pro"
+                          },
+    "TOLINO_BRANDS":  {
+                          "TOLINO":  "Tolino"
+                      },
+    "TOLINO_GROUPS":  {
+                          "SHINE":  "Shine",
+                          "VISION":  "Vision"
+                      },
+    "TOLINO_MODELS":  {
+                          "SHINE_2014_2018":  "Tolino Shine (2014-2018)",
+                          "SHINE_HD":  "Tolino Shine HD",
+                          "VISION_2015_2018":  "Tolino Vision (2015-2018)",
+                          "VISION_2021_2024":  "Tolino Vision (2021-2024)"
+                      },
+    "REQUISITES":  {
+                       "ADS_DESC":  "Les publicitÃ©s doivent Ãªtre dÃ©sactivÃ©es sur lâ€™appareil pour que la couverture sâ€™affiche sur lâ€™Ã©cran de verrouillage.",
+                       "ADS_LINK":  "GÃ©rer les publicitÃ©s de lâ€™appareil",
+                       "ADS_TITLE":  "PublicitÃ©s dÃ©sactivÃ©es",
+                       "APP_ANDROID":  "Application Kindle (Android)",
+                       "APP_DESC":  "Lâ€™application Kindle est nÃ©cessaire pour envoyer et afficher la couverture sur lâ€™appareil.",
+                       "APP_IOS":  "Application Kindle (iOS)",
+                       "APP_TITLE":  "Application Kindle",
+                       "COVER_DESC":  "Activez lâ€™option pour afficher la couverture du livre actuel sur lâ€™Ã©cran de verrouillage.",
+                       "COVER_LINK":  "Configurer lâ€™affichage de la couverture",
+                       "COVER_TITLE":  "Afficher la couverture du livre",
+                       "NOTE":  "Cover Creator for Kindle nâ€™est pas une application officielle et ne modifie pas le logiciel de lâ€™appareil.",
+                       "SEND_LINK":  "Send to Kindle (web)",
+                       "SEND_TITLE":  "Envoyer des couvertures via le web",
+                       "TITLE":  "PrÃ©requis"
+                   },
+    "HOME_TOUR":  {
+                      "CONTROLS":  {
+                                       "BACK":  "Retour",
+                                       "FINISH":  "Terminer",
+                                       "NEXT":  "Suivant",
+                                       "PROGRESS":  "{{current}} sur {{total}}",
+                                       "SKIP":  "Passer",
+                                       "INTERACT_HINT":  "Interagissez avec lâ€™Ã©lÃ©ment mis en avant pour continuer."
+                                   },
+                      "STEPS":  {
+                                    "DEVICE":  {
+                                                   "TITLE":  "Appareil",
+                                                   "DESCRIPTION":  "Commencez par sÃ©lectionner votre appareil.\nLa couverture sera ainsi crÃ©Ã©e avec la bonne rÃ©solution."
+                                               },
+                                    "BRAND":  {
+                                                  "TITLE":  "Marque",
+                                                  "DESCRIPTION":  "Choisissez la marque de votre liseuse."
+                                              },
+                                    "GROUP":  {
+                                                  "TITLE":  "Groupe",
+                                                  "DESCRIPTION":  "SÃ©lectionnez la gamme de votre appareil."
+                                              },
+                                    "MODEL":  {
+                                                  "TITLE":  "ModÃ¨le",
+                                                  "DESCRIPTION":  "Choisissez le modÃ¨le exact."
+                                              },
+                                    "IMAGE":  {
+                                                  "TITLE":  "Image de couverture",
+                                                  "DESCRIPTION":  "SÃ©lectionnez lâ€™image pour votre couverture."
+                                              },
+                                    "ADJUST":  {
+                                                   "TITLE":  "Ajuster",
+                                                   "DESCRIPTION":  "Ajustez lâ€™image dans lâ€™Ã©diteur puis touchez TerminÃ©."
+                                               },
+                                    "CREATE":  {
+                                                   "TITLE":  "CrÃ©er la couverture",
+                                                   "DESCRIPTION":  "GÃ©nÃ©rez la couverture ici."
+                                               },
+                                    "RESULTS":  {
+                                                    "TITLE":  "Enregistrer ou partager",
+                                                    "DESCRIPTION":  "Enregistrez ou partagez votre couverture."
+                                                },
+                                    "DONE":  {
+                                                 "TITLE":  "TerminÃ©",
+                                                 "DESCRIPTION":  "TerminÃ©.\nVous savez maintenant comment crÃ©er des couvertures avec CCFK."
+                                             }
+                                }
+                  },
+    "SETTINGS":  {
+                     "INSTRUCTIONS":  "Voir les instructions",
+                     "INSTRUCTIONS_HINT":  "Comment crÃ©er et envoyer une couverture pour Kindle",
+                     "INSTRUCTIONS_SECTION":  "Instructions",
+                     "LANGUAGE":  "Langue",
+                     "LANGUAGE_RESTART_NOTICE":  "Langue modifiÃ©e. Lâ€™application va redÃ©marrer pour appliquer les changements.",
+                     "LANGUAGE_PREPARING_COUNTDOWN":  "PrÃ©paration de tout dans votre langue. L\u0027app va se fermer pour changer son nom ({{count}})",
+                     "EREADER_OPTIMIZATION_SECTION":  "Image enhancement",
+                     "EREADER_OPTIMIZATION_HINT":  "Apply automatic adjustments to improve clarity on eReaders",
+                     "EREADER_OPTIMIZATION_TOGGLE":  "Optimize for eReader",
+                     "REQUISITES":  "Voir les conditions requises",
+                     "REQUISITES_HINT":  "ParamÃ¨tres nÃ©cessaires pour que les couvertures fonctionnent correctement sur Kindle",
+                     "REQUISITES_SECTION":  "Conditions requises",
+                     "THEME":  "ThÃ¨me",
+                     "THEME_SYSTEM":  "SystÃ¨me",
+                     "THEME_LIGHT":  "Clair naturel",
+                     "THEME_DARK":  "Sombre classique",
+                     "THEME_WARM_READING":  "Lecture chaleureuse",
+                     "THEME_POP_ROSE":  "Rose pop",
+                     "THEME_NOCTURNE_VIOLET":  "Violet nocturne",
+                     "THEME_OBSIDIAN_RED":  "Rouge obsidienne",
+                     "THEME_TERMINAL_GREEN":  "Vert terminal",
+                     "THEME_MINT_FRESH":  "Vert Menthe",
+                     "THEME_SILVER_TECH":  "Silver",
+                     "THEME_GOLD_LUXE":  "Oro",
+                     "TITLE":  "ParamÃ¨tres",
+                     "VIEW_TOUR":  "Voir le tour"
+                 },
+    "TABS":  {
+                 "COVERS":  "Couvertures",
+                 "CREATE":  "CrÃ©er",
+                 "SETTINGS":  "ParamÃ¨tres"
+             },
+    "ARR":  {
+                "TOOLS":  {
+                              "RECOMMENDED":  "RecommandÃ©es",
+                              "INFO":  "Infos",
+                              "APPS":  "Apps",
+                              "GUIDE":  "Guide"
+                          }
+            },
+    "E_READER_FRAME":  {
+                           "COLOR_SELECTOR":  {
+                                                  "TITLE":  "Frame color"
+                                              },
+                           "BRAND":  {
+                                         "KINDLE":  "Kindle",
+                                         "KOBO":  "Kobo",
+                                         "GENERIC":  "Generic"
+                                     },
+                           "COLOR":  {
+                                         "BLACK":  "Black",
+                                         "WHITE":  "White",
+                                         "MATCHA":  "Matcha",
+                                         "JADE":  "Jade",
+                                         "PINK":  "Pink",
+                                         "METALLIC_BLACK":  "Metallic Black",
+                                         "METALLIC_JADE":  "Metallic Jade",
+                                         "METALLIC_PINK":  "Metallic Pink"
+                                     }
+                       }
 }

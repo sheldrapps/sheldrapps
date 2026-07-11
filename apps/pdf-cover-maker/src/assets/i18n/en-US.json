@@ -1,276 +1,272 @@
 {
-  "APP": {
-    "TITLE": "PDF Cover Maker"
-  },
-  "COMMON": {
-    "BACK_AGAIN_TO_EXIT": "Go back again to exit",
-    "CANCEL": "Cancel",
-    "CLOSE": "Close",
-    "DELETE": "Delete",
-    "DONE": "Done",
-    "ERROR": "Error",
-    "LOADING": "Loading…",
-    "BILLING_UNAVAILABLE": "Purchases are currently unavailable.",
-    "PURCHASE_ERROR": "Could not complete the purchase. Please try again.",
-    "REMOVE_ADS_BUY": "Buy",
-    "REMOVE_ADS_DESCRIPTION": "Remove ads forever and enable lossless/compressed export selection.",
-    "REMOVE_ADS_PURCHASED": "Ads removed forever.",
-    "REMOVE_ADS_RESTORE": "Restore purchase",
-    "REMOVE_ADS_RESTORED": "Purchase restored successfully.",
-    "REMOVE_ADS_TITLE": "Remove ads",
-    "REMOVE_ADS_CTA_TITLE": "Remove ads",
-    "REMOVE_ADS_CTA_SUBTITLE": "One-time payment • Forever",
-    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "One-time payment • {{price}}",
-    "REMOVE_ADS_MODAL_PRICE": "Price: {{price}} • No subscription",
-    "RESTORE_ERROR": "Could not restore purchases. Please try again.",
-    "PRO_ONLY": "PRO",
-    "WATCH_AD_SUBTITLE": "Watch ad",
-    "SHARE": "Share",
-    "SHARE_KINDLE_HINT": "When sharing, select the Kindle app to send it to your device.",
-    "WARNING": "Warning",
-    "EDIT_PROJECT_TITLE": "How do you want to edit this file?",
-    "EDIT_PROJECT_MESSAGE": "Choose whether to replace the current file or keep it as a copy.",
-    "EDIT_PROJECT_OVERWRITE": "Overwrite",
-    "EDIT_PROJECT_OVERWRITE_DESC": "Save changes on top of the existing file.",
-    "EDIT_PROJECT_COPY": "Work on a copy",
-    "EDIT_PROJECT_COPY_DESC": "Keep the original file and edit a new copy."
-  },
-  "CHANGE": {
-    "ADS_REQUIRED": "The ad could not be loaded. Check your network or ad blocker.",
-    "ARIA_CHANGE_PDF": "Make PDF file. Current file: {{name}}",
-    "ARIA_CHANGE_IMAGE": "Make cover image. Current image: {{name}}",
-    "ARIA_CROP": "Adjust selected image",
-    "ARIA_SELECT_PDF": "Select PDF file",
-    "ARIA_SELECT_IMAGE": "Select cover image",
-    "CROP_ACTION": "Adjust",
-    "COVER_CHANGED": "Cover changed. You can now save or share",
-    "CHANGE_ACTION": "Make cover",
-    "CHANGE_ACTION_REWARDED": "Make cover (watch ad)",
-    "GENERATING": "Updating cover…",
-    "HINT_SAVE_SHARE_EXPLAIN": "Changing the cover does not save it automatically.",
-    "INFO": "Info",
-    "INFO_ARIA": "Information about changing cover",
-    "INFO_TITLE": "Information",
-    "INFO_FLOW_LABEL": "Recommended order:",
-    "INFO_STEP_1": "Select PDF.",
-    "INFO_STEP_1_1": "1.1. The original cover is preloaded.",
-    "INFO_STEP_1_2": "1.2. Make the image or keep the original.",
-    "INFO_STEP_2": "Adjust the image in the editor.",
-    "INFO_STEP_3": "Watch the ad to save the cover.",
-    "INFO_STEP_4": "Save or share.",
-    "IMAGE_ERROR_CORRUPT": "The image could not be read. Please try another one.",
-    "IMAGE_ERROR_SIZE": "The file is too large. Maximum {{maxSize}} MB.",
-    "IMAGE_ERROR_TYPE": "Unsupported format ({{type}}). Please select JPG, PNG, or WebP.",
-    "IMAGE_WARN_SMALL": "The image may be too small for some devices.",
-    "IMAGE_WARN_INVALID_PDF_COVER": "Invalid PDF cover. Tap to choose a new image.",
-    "PDF_ERROR_CORRUPT": "The PDF could not be read. Try another file.",
-    "PDF_ERROR_NO_COVER": "This PDF does not contain a replaceable cover.",
-    "NO_COVER_DETECTED_ADDED": "No cover detected. A new cover was added to this PDF.",
-    "PDF_ERROR_REWRITE": "The PDF could not be processed. Please try again.",
-    "PDF_ERROR_STORAGE": "Not enough storage space. Need {{requiredMB}} MB, available {{availableMB}} MB.",
-    "PDF_ERROR_SIZE": "The file is too large. Maximum {{maxSize}} MB.",
-    "PDF_ERROR_TYPE": "Unsupported PDF file.",
-    "LOADING_PDF": "Loading PDF…",
-    "PDF_LOADING_COPY": "Copying large PDF...",
-    "PDF_LOADING_INSPECT": "Inspecting PDF structure...",
-    "LOADING_IMAGE": "Loading image…",
-    "OPENING_EDITOR": "Opening editor…",
-    "CHANGING_COVER": "Changing cover...",
-    "GETTING_COVER": "Getting cover",
-    "SAVING": "Saving cover…",
-    "SELECT_PDF_LABEL": "PDF file",
-    "PDF_FILE_TITLE": "PDF file",
-    "PROCESSING_LARGE_PDF": "Processing large PDF...",
-    "PROCESS_CANCELLED": "Processing cancelled",
-    "SELECT_PDF_PLACEHOLDER": "Select an PDF file",
-    "COVER_MODE_LABEL": "Cover page action",
-    "COVER_MODE_ARIA": "Select how to apply the new cover page",
-    "COVER_MODE_REPLACE_FIRST_PAGE": "Replace first page",
-    "COVER_MODE_INSERT_FIRST_PAGE": "Insert new page at beginning",
-    "INSERT_MODE_TOC_WARNING": "Inserting a cover may shift TOC, bookmarks, or page numbering. We'll try to keep them aligned.",
-    "FRAME_MODE_LABEL": "Frame mode",
-    "FRAME_MODE_ARIA": "Frame mode",
-    "FRAME_MODE_WITH_FRAME": "With frame",
-    "FRAME_MODE_WITHOUT_FRAME": "Without frame",
-    "FORMAT_AUTO": "Auto",
-    "FORMAT_A4": "A4",
-    "FORMAT_CARTA": "Carta",
-    "FORMAT_OFICIO": "Oficio",
-    "FORMAT_NINE_SIXTEEN": "9:16",
-    "FORMAT_THREE_FOUR": "3:4",
-    "FORMAT_ONE_ONE": "1:1",
-    "FORMAT_CUSTOM": "Custom",
-    "FRAME_NOT_DETECTED_TOAST": "Frame not detected in the document",
-    "SAVE_ACTION": "Save",
-    "SAVED_OK": "Cover saved",
-    "SAVE_RENAME_TITLE": "Save cover",
-    "SAVE_RENAME_MESSAGE": "Enter a name for the cover",
-    "SAVE_RENAME_PLACEHOLDER": "File name",
-    "SELECT_IMAGE_LABEL": "Cover image",
-    "SELECT_IMAGE_PLACEHOLDER": "Select an image",
-    "INVALID_COVER_TAP_TO_CHANGE": "Invalid cover, tap to make",
-    "TAP_TO_CHANGE": "Tap to make/reset",
-    "TAP_TO_CHANGE_IMAGE": "Tap to make",
-    "TAP_TO_PREVIEW": "Tap to preview",
-    "LONGPRESS_PREVIEW_HINT": "Long press to preview",
-    "TITLE": "Make cover",
-    "PREVIEW_ORIGINAL_LABEL": "Original cover",
-    "PREVIEW_NEW_LABEL": "New cover",
-    "PREVIEW_NEW_ONLY_LABEL": "New cover",
-    "ARIA_START_SCRATCH": "Start from scratch",
-    "SOURCE_IMAGE": "Image",
-    "SOURCE_SCRATCH": "Scratch"
-  },
-  "COVERS": {
-    "DELETED": "PDF deleted",
-    "EMPTY": "No covers found in the app. Files created before reinstalling may not appear due to system restrictions.",
-    "GENERATE_THUMB": "Generate thumbnail",
-    "LOADING_PREVIEW": "Loading preview...",
-    "PLACEHOLDER": "PDF",
-    "PREVIEW_UNAVAILABLE": "Preview unavailable.",
-    "PREVIEW_TITLE": "Current cover",
-    "TITLE": "My PDFs",
-    "DITHERED_THUMBNAIL_NOTICE": "Covers with artifact reduction may look different in thumbnails. Open preview to see a more accurate result.",
-    "ACTIONS": {
-      "DELETE": "Delete",
-      "OPEN": "Open",
-      "SHARE": "Share",
-      "EDIT_PROJECT": "Edit"
-    },
-    "DELETE": {
-      "MESSAGE": "Do you want to delete this PDF?",
-      "TITLE": "Delete PDF"
-    },
-    "ERROR": {
-      "DELETE": "Could not delete the PDF. Please try again.",
-      "OPEN": "Could not open the PDF. Please try again.",
-      "SHARE": "Could not share the PDF. Please try again.",
-      "LOAD": "Could not load your PDFs. Pull down to refresh.",
-      "PREVIEW": "Could not load preview. Try again.",
-      "OPEN_PROJECT": "Could not open the project. Please try again."
-    },
-    "EREADER": {
-      "ZOOM_OUT_ARIA": "Zoom out e-reader preview",
-      "ZOOM_IN_ARIA": "Zoom in e-reader preview",
-      "ZOOM_RESET_ARIA": "Reset e-reader preview zoom"
-    }
-  },
-  "INSTRUCTIONS": {
-    "NOTE_TITLE": "Note",
-    "STEP_1": "Select an PDF file (the current cover preloads)",
-    "STEP_2": "Adjust the loaded cover or choose a new image and adjust",
-    "STEP_3": "Watch the ad to make the cover in the PDF",
-    "STEP_4": "Save or share the updated PDF",
-    "STEP_4_DESC": "Once ready, you can save it to your device or share it directly with the Kindle app for a smoother transition.",
-    "STEP_5": "Send via web (Send to Kindle)",
-    "STEP_5_DESC": "You can also send it from your browser using the Send to Kindle web tool.",
-    "TIP": "For best results, use high-resolution images and make sure ads are disabled on your Kindle device.",
-    "TITLE": "Instructions"
-  },
-  "HOME_TOUR": {
-    "CONTROLS": {
-      "BACK": "Back",
-      "FINISH": "Finish",
-      "INTERACT_HINT": "Interact with the highlighted element to continue.",
-      "NEXT": "Next",
-      "PROGRESS": "{{current}} of {{total}}",
-      "SKIP": "Skip"
-    },
-    "STEPS": {
-      "PDF": {
-        "TITLE": "PDF file",
-        "DESCRIPTION": "Select the PDF file you want to update."
-      },
-      "IMAGE": {
-        "TITLE": "Cover image",
-        "DESCRIPTION": "Select the image for your cover."
-      },
-      "ADJUST": {
-        "TITLE": "Adjust",
-        "DESCRIPTION": "Adjust the image in the editor and tap Done."
-      },
-      "COVER_MODE": {
-        "TITLE": "Cover page action",
-        "DESCRIPTION": "Choose whether to insert a new first page or replace the current first page."
-      },
-      "EXPORT": {
-        "TITLE": "Export quality",
-        "DESCRIPTION": "Free export uses Standard. Remove ads to unlock export selection (Lossless/Compressed)."
-      },
-      "REMOVE_ADS_CLOSE": {
-        "TITLE": "Close for now",
-        "DESCRIPTION": "For now, enjoy the free version. You are not obligated to buy."
-      },
-      "CREATE": {
-        "TITLE": "Make cover",
-        "DESCRIPTION": "Generate the new cover here."
-      },
-      "RESULTS": {
-        "TITLE": "Save or share",
-        "DESCRIPTION": "Save or share your updated PDF."
-      }
-    }
-  },
-  "SETTINGS": {
-    "INSTRUCTIONS": "View instructions",
-    "INSTRUCTIONS_HINT": "How to make and send a cover for Kindle",
-    "INSTRUCTIONS_SECTION": "Instructions",
-    "LANGUAGE": "Language",
-    "LANGUAGE_RESTART_NOTICE": "Language changed. The app will restart to apply changes.",
-    "LANGUAGE_PREPARING_COUNTDOWN": "Preparing everything in your language. The app will close to make its name ({{count}})",
-    "PRIVACY_HINT": "Control how data and advertising are handled",
-    "PRIVACY_OPTIONS": "Privacy options",
-    "PRIVACY_POLICY": "Privacy policy",
-    "PRIVACY_SECTION": "Privacy",
-    "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
-    "EREADER_OPTIMIZATION_HINT": "Apply automatic adjustments to improve the cover",
-    "EREADER_OPTIMIZATION_TOGGLE": "Optimize",
-    "THEME": "Theme",
-    "THEME_SYSTEM": "System",
-    "THEME_LIGHT": "Natural Light",
-    "THEME_DARK": "Classic Dark",
-    "THEME_WARM_READING": "Warm Reading",
-    "THEME_POP_ROSE": "Pop Rose",
-    "THEME_NOCTURNE_VIOLET": "Nocturne Violet",
-    "THEME_OBSIDIAN_RED": "Obsidian Red",
-    "THEME_TERMINAL_GREEN": "Terminal Green",
-    "THEME_MINT_FRESH": "Mint Fresh",
-    "THEME_SILVER_TECH": "Silver",
-    "THEME_GOLD_LUXE": "Oro",
-    "TITLE": "Settings",
-    "VIEW_TOUR": "View tour"
-  },
-  "TABS": {
-    "COVERS": "My PDFs",
-    "CHANGE": "Make",
-    "SETTINGS": "Settings"
-  },
-  "ARR": {
-    "TOOLS": {
-      "RECOMMENDED": "Recommended",
-      "INFO": "Info",
-      "APPS": "Apps",
-      "GUIDE": "Guide"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
-    }
-  }
+    "APP":  {
+                "TITLE":  "PDF Cover Maker"
+            },
+    "COMMON":  {
+                   "BACK_AGAIN_TO_EXIT":  "Go back again to exit",
+                   "CANCEL":  "Cancel",
+                   "CLOSE":  "Close",
+                   "DELETE":  "Delete",
+                   "DONE":  "Done",
+                   "ERROR":  "Error",
+                   "LOADING":  "Loadingâ€¦",
+                   "BILLING_UNAVAILABLE":  "Purchases are currently unavailable.",
+                   "PURCHASE_ERROR":  "Could not complete the purchase. Please try again.",
+                   "REMOVE_ADS_BUY":  "Buy",
+                   "REMOVE_ADS_DESCRIPTION":  "Remove ads forever and enable lossless/compressed export selection.",
+                   "REMOVE_ADS_PURCHASED":  "Ads removed forever.",
+                   "REMOVE_ADS_RESTORE":  "Restore purchase",
+                   "REMOVE_ADS_RESTORED":  "Purchase restored successfully.",
+                   "REMOVE_ADS_TITLE":  "Remove ads",
+                   "REMOVE_ADS_CTA_TITLE":  "Remove ads",
+                   "REMOVE_ADS_CTA_SUBTITLE":  "One-time payment â€¢ Forever",
+                   "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE":  "One-time payment â€¢ {{price}}",
+                   "REMOVE_ADS_MODAL_PRICE":  "Price: {{price}} â€¢ No subscription",
+                   "RESTORE_ERROR":  "Could not restore purchases. Please try again.",
+                   "PRO_ONLY":  "PRO",
+                   "WATCH_AD_SUBTITLE":  "Watch ad",
+                   "SHARE":  "Share",
+                   "SHARE_KINDLE_HINT":  "When sharing, select the Kindle app to send it to your device.",
+                   "WARNING":  "Warning",
+                   "EDIT_PROJECT_TITLE":  "How do you want to edit this file?",
+                   "EDIT_PROJECT_MESSAGE":  "Choose whether to replace the current file or keep it as a copy.",
+                   "EDIT_PROJECT_OVERWRITE":  "Overwrite",
+                   "EDIT_PROJECT_OVERWRITE_DESC":  "Save changes on top of the existing file.",
+                   "EDIT_PROJECT_COPY":  "Work on a copy",
+                   "EDIT_PROJECT_COPY_DESC":  "Keep the original file and edit a new copy."
+               },
+    "CHANGE":  {
+                   "ADS_REQUIRED":  "The ad could not be loaded. Check your network or ad blocker.",
+                   "ARIA_CHANGE_PDF":  "Make PDF file. Current file: {{name}}",
+                   "ARIA_CHANGE_IMAGE":  "Make cover image. Current image: {{name}}",
+                   "ARIA_CROP":  "Adjust selected image",
+                   "ARIA_SELECT_PDF":  "Select PDF file",
+                   "ARIA_SELECT_IMAGE":  "Select cover image",
+                   "CROP_ACTION":  "Adjust",
+                   "COVER_CHANGED":  "Cover changed. You can now save or share",
+                   "CHANGE_ACTION":  "Make cover",
+                   "CHANGE_ACTION_REWARDED":  "Make cover (watch ad)",
+                   "GENERATING":  "Updating coverâ€¦",
+                   "HINT_SAVE_SHARE_EXPLAIN":  "Changing the cover does not save it automatically.",
+                   "INFO":  "Info",
+                   "INFO_ARIA":  "Information about changing cover",
+                   "INFO_TITLE":  "Information",
+                   "INFO_FLOW_LABEL":  "Recommended order:",
+                   "INFO_STEP_1":  "Select PDF.",
+                   "INFO_STEP_1_1":  "1.1. The original cover is preloaded.",
+                   "INFO_STEP_1_2":  "1.2. Make the image or keep the original.",
+                   "INFO_STEP_2":  "Adjust the image in the editor.",
+                   "INFO_STEP_3":  "Watch the ad to save the cover.",
+                   "INFO_STEP_4":  "Save or share.",
+                   "IMAGE_ERROR_CORRUPT":  "The image could not be read. Please try another one.",
+                   "IMAGE_ERROR_SIZE":  "The file is too large. Maximum {{maxSize}} MB.",
+                   "IMAGE_ERROR_TYPE":  "Unsupported format ({{type}}). Please select JPG, PNG, or WebP.",
+                   "IMAGE_WARN_SMALL":  "The image may be too small for some devices.",
+                   "IMAGE_WARN_INVALID_PDF_COVER":  "Invalid PDF cover. Tap to choose a new image.",
+                   "PDF_ERROR_CORRUPT":  "The PDF could not be read. Try another file.",
+                   "PDF_ERROR_NO_COVER":  "This PDF does not contain a replaceable cover.",
+                   "NO_COVER_DETECTED_ADDED":  "No cover detected. A new cover was added to this PDF.",
+                   "PDF_ERROR_REWRITE":  "The PDF could not be processed. Please try again.",
+                   "PDF_ERROR_STORAGE":  "Not enough storage space. Need {{requiredMB}} MB, available {{availableMB}} MB.",
+                   "PDF_ERROR_SIZE":  "The file is too large. Maximum {{maxSize}} MB.",
+                   "PDF_ERROR_TYPE":  "Unsupported PDF file.",
+                   "LOADING_PDF":  "Loading PDFâ€¦",
+                   "PDF_LOADING_COPY":  "Copying large PDF...",
+                   "PDF_LOADING_INSPECT":  "Inspecting PDF structure...",
+                   "LOADING_IMAGE":  "Loading imageâ€¦",
+                   "OPENING_EDITOR":  "Opening editorâ€¦",
+                   "CHANGING_COVER":  "Changing cover...",
+                   "GETTING_COVER":  "Getting cover",
+                   "SAVING":  "Saving coverâ€¦",
+                   "SELECT_PDF_LABEL":  "PDF file",
+                   "PDF_FILE_TITLE":  "PDF file",
+                   "PROCESSING_LARGE_PDF":  "Processing large PDF...",
+                   "PROCESS_CANCELLED":  "Processing cancelled",
+                   "SELECT_PDF_PLACEHOLDER":  "Select an PDF file",
+                   "COVER_MODE_LABEL":  "Cover page action",
+                   "COVER_MODE_ARIA":  "Select how to apply the new cover page",
+                   "COVER_MODE_REPLACE_FIRST_PAGE":  "Replace first page",
+                   "COVER_MODE_INSERT_FIRST_PAGE":  "Insert new page at beginning",
+                   "INSERT_MODE_TOC_WARNING":  "Inserting a cover may shift TOC, bookmarks, or page numbering. We\u0027ll try to keep them aligned.",
+                   "FRAME_MODE_LABEL":  "Frame mode",
+                   "FRAME_MODE_ARIA":  "Frame mode",
+                   "FRAME_MODE_WITH_FRAME":  "With frame",
+                   "FRAME_MODE_WITHOUT_FRAME":  "Without frame",
+                   "FORMAT_AUTO":  "Auto",
+                   "FORMAT_A4":  "A4",
+                   "FORMAT_CARTA":  "Carta",
+                   "FORMAT_OFICIO":  "Oficio",
+                   "FORMAT_NINE_SIXTEEN":  "9:16",
+                   "FORMAT_THREE_FOUR":  "3:4",
+                   "FORMAT_ONE_ONE":  "1:1",
+                   "FORMAT_CUSTOM":  "Custom",
+                   "FRAME_NOT_DETECTED_TOAST":  "Frame not detected in the document",
+                   "SAVE_ACTION":  "Save",
+                   "SAVED_OK":  "Cover saved",
+                   "SAVE_RENAME_TITLE":  "Save cover",
+                   "SAVE_RENAME_MESSAGE":  "Enter a name for the cover",
+                   "SAVE_RENAME_PLACEHOLDER":  "File name",
+                   "SELECT_IMAGE_LABEL":  "Cover image",
+                   "SELECT_IMAGE_PLACEHOLDER":  "Select an image",
+                   "INVALID_COVER_TAP_TO_CHANGE":  "Invalid cover, tap to make",
+                   "TAP_TO_CHANGE":  "Tap to make/reset",
+                   "TAP_TO_CHANGE_IMAGE":  "Tap to make",
+                   "TAP_TO_PREVIEW":  "Tap to preview",
+                   "LONGPRESS_PREVIEW_HINT":  "Long press to preview",
+                   "TITLE":  "Make cover",
+                   "PREVIEW_ORIGINAL_LABEL":  "Original cover",
+                   "PREVIEW_NEW_LABEL":  "New cover",
+                   "PREVIEW_NEW_ONLY_LABEL":  "New cover",
+                   "ARIA_START_SCRATCH":  "Start from scratch",
+                   "SOURCE_IMAGE":  "Image",
+                   "SOURCE_SCRATCH":  "Scratch"
+               },
+    "COVERS":  {
+                   "DELETED":  "PDF deleted",
+                   "EMPTY":  "No covers found in the app. Files created before reinstalling may not appear due to system restrictions.",
+                   "GENERATE_THUMB":  "Generate thumbnail",
+                   "LOADING_PREVIEW":  "Loading preview...",
+                   "PLACEHOLDER":  "PDF",
+                   "PREVIEW_UNAVAILABLE":  "Preview unavailable.",
+                   "PREVIEW_TITLE":  "Current cover",
+                   "TITLE":  "My PDFs",
+                   "DITHERED_THUMBNAIL_NOTICE":  "Covers with artifact reduction may look different in thumbnails. Open preview to see a more accurate result.",
+                   "ACTIONS":  {
+                                   "DELETE":  "Delete",
+                                   "OPEN":  "Open",
+                                   "SHARE":  "Share",
+                                   "EDIT_PROJECT":  "Edit"
+                               },
+                   "DELETE":  {
+                                  "MESSAGE":  "Do you want to delete this PDF?",
+                                  "TITLE":  "Delete PDF"
+                              },
+                   "ERROR":  {
+                                 "DELETE":  "Could not delete the PDF. Please try again.",
+                                 "OPEN":  "Could not open the PDF. Please try again.",
+                                 "SHARE":  "Could not share the PDF. Please try again.",
+                                 "LOAD":  "Could not load your PDFs. Pull down to refresh.",
+                                 "PREVIEW":  "Could not load preview. Try again.",
+                                 "OPEN_PROJECT":  "Could not open the project. Please try again."
+                             },
+                   "EREADER":  {
+                                   "ZOOM_OUT_ARIA":  "Zoom out e-reader preview",
+                                   "ZOOM_IN_ARIA":  "Zoom in e-reader preview",
+                                   "ZOOM_RESET_ARIA":  "Reset e-reader preview zoom"
+                               }
+               },
+    "INSTRUCTIONS":  {
+                         "NOTE_TITLE":  "Note",
+                         "STEP_1":  "Select an PDF file (the current cover preloads)",
+                         "STEP_2":  "Adjust the loaded cover or choose a new image and adjust",
+                         "STEP_3":  "Watch the ad to make the cover in the PDF",
+                         "STEP_4":  "Save or share the updated PDF",
+                         "STEP_4_DESC":  "Once ready, you can save it to your device or share it directly with the Kindle app for a smoother transition.",
+                         "STEP_5":  "Send via web (Send to Kindle)",
+                         "STEP_5_DESC":  "You can also send it from your browser using the Send to Kindle web tool.",
+                         "TIP":  "For best results, use high-resolution images and make sure ads are disabled on your Kindle device.",
+                         "TITLE":  "Instructions"
+                     },
+    "HOME_TOUR":  {
+                      "CONTROLS":  {
+                                       "BACK":  "Back",
+                                       "FINISH":  "Finish",
+                                       "INTERACT_HINT":  "Interact with the highlighted element to continue.",
+                                       "NEXT":  "Next",
+                                       "PROGRESS":  "{{current}} of {{total}}",
+                                       "SKIP":  "Skip"
+                                   },
+                      "STEPS":  {
+                                    "PDF":  {
+                                                "TITLE":  "PDF file",
+                                                "DESCRIPTION":  "Select the PDF file you want to update."
+                                            },
+                                    "IMAGE":  {
+                                                  "TITLE":  "Cover image",
+                                                  "DESCRIPTION":  "Select the image for your cover."
+                                              },
+                                    "ADJUST":  {
+                                                   "TITLE":  "Adjust",
+                                                   "DESCRIPTION":  "Adjust the image in the editor and tap Done."
+                                               },
+                                    "COVER_MODE":  {
+                                                       "TITLE":  "Cover page action",
+                                                       "DESCRIPTION":  "Choose whether to insert a new first page or replace the current first page."
+                                                   },
+                                    "EXPORT":  {
+                                                   "TITLE":  "Export quality",
+                                                   "DESCRIPTION":  "Free export uses Standard. Remove ads to unlock export selection (Lossless/Compressed)."
+                                               },
+                                    "REMOVE_ADS_CLOSE":  {
+                                                             "TITLE":  "Close for now",
+                                                             "DESCRIPTION":  "For now, enjoy the free version. You are not obligated to buy."
+                                                         },
+                                    "CREATE":  {
+                                                   "TITLE":  "Make cover",
+                                                   "DESCRIPTION":  "Generate the new cover here."
+                                               },
+                                    "RESULTS":  {
+                                                    "TITLE":  "Save or share",
+                                                    "DESCRIPTION":  "Save or share your updated PDF."
+                                                }
+                                }
+                  },
+    "SETTINGS":  {
+                     "INSTRUCTIONS":  "View instructions",
+                     "INSTRUCTIONS_HINT":  "How to make and send a cover for Kindle",
+                     "INSTRUCTIONS_SECTION":  "Instructions",
+                     "LANGUAGE":  "Language",
+                     "LANGUAGE_RESTART_NOTICE":  "Language changed. The app will restart to apply changes.",
+                     "LANGUAGE_PREPARING_COUNTDOWN":  "Preparing everything in your language. The app will close to make its name ({{count}})",
+                     "EREADER_OPTIMIZATION_SECTION":  "Image enhancement",
+                     "EREADER_OPTIMIZATION_HINT":  "Apply automatic adjustments to improve the cover",
+                     "EREADER_OPTIMIZATION_TOGGLE":  "Optimize",
+                     "THEME":  "Theme",
+                     "THEME_SYSTEM":  "System",
+                     "THEME_LIGHT":  "Natural Light",
+                     "THEME_DARK":  "Classic Dark",
+                     "THEME_WARM_READING":  "Warm Reading",
+                     "THEME_POP_ROSE":  "Pop Rose",
+                     "THEME_NOCTURNE_VIOLET":  "Nocturne Violet",
+                     "THEME_OBSIDIAN_RED":  "Obsidian Red",
+                     "THEME_TERMINAL_GREEN":  "Terminal Green",
+                     "THEME_MINT_FRESH":  "Mint Fresh",
+                     "THEME_SILVER_TECH":  "Silver",
+                     "THEME_GOLD_LUXE":  "Oro",
+                     "TITLE":  "Settings",
+                     "VIEW_TOUR":  "View tour"
+                 },
+    "TABS":  {
+                 "COVERS":  "My PDFs",
+                 "CHANGE":  "Make",
+                 "SETTINGS":  "Settings"
+             },
+    "ARR":  {
+                "TOOLS":  {
+                              "RECOMMENDED":  "Recommended",
+                              "INFO":  "Info",
+                              "APPS":  "Apps",
+                              "GUIDE":  "Guide"
+                          }
+            },
+    "E_READER_FRAME":  {
+                           "COLOR_SELECTOR":  {
+                                                  "TITLE":  "Frame color"
+                                              },
+                           "BRAND":  {
+                                         "KINDLE":  "Kindle",
+                                         "KOBO":  "Kobo",
+                                         "GENERIC":  "Generic"
+                                     },
+                           "COLOR":  {
+                                         "BLACK":  "Black",
+                                         "WHITE":  "White",
+                                         "MATCHA":  "Matcha",
+                                         "JADE":  "Jade",
+                                         "PINK":  "Pink",
+                                         "METALLIC_BLACK":  "Metallic Black",
+                                         "METALLIC_JADE":  "Metallic Jade",
+                                         "METALLIC_PINK":  "Metallic Pink"
+                                     }
+                       }
 }

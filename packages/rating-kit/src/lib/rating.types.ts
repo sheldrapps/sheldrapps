@@ -1,3 +1,5 @@
+import type { TranslationObject } from '@ngx-translate/core';
+
 export interface RatingState {
   appLaunchCount: number;
   successCount: number;
@@ -48,10 +50,15 @@ export interface RatingConfig {
   maxPromptCount: number;
   feedbackEnabled: boolean;
   feedbackOptions?: readonly RatingFeedbackOption[];
+  translationOverrides?: RatingTranslationOverrides;
   storageKeyPrefix?: string;
   storeReviewUrl?: string;
   webReviewUrl?: string;
 }
+
+export type RatingTranslationOverrides = Readonly<
+  Record<string, TranslationObject>
+>;
 
 export interface ResolvedRatingConfig extends RatingConfig {
   appKey: string;

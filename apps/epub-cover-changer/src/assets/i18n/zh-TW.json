@@ -1,246 +1,242 @@
 {
-  "APP": {
-    "TITLE": "EPUB Cover Changer"
-  },
-  "COMMON": {
-    "BACK_AGAIN_TO_EXIT": "再按一次返回以退出",
-    "CANCEL": "取消",
-    "CLOSE": "關閉",
-    "DELETE": "刪除",
-    "DONE": "完成",
-    "ERROR": "錯誤",
-    "LOADING": "載入中…",
-    "BILLING_UNAVAILABLE": "目前無法購買。",
-    "PURCHASE_ERROR": "無法完成購買，請再試一次。",
-    "REMOVE_ADS_BUY": "購買",
-    "REMOVE_ADS_DESCRIPTION": "透過一次性付款永久移除廣告，並啟用無損/壓縮匯出選擇。",
-    "REMOVE_ADS_PURCHASED": "廣告已永久移除。",
-    "REMOVE_ADS_RESTORE": "恢復購買",
-    "REMOVE_ADS_RESTORED": "購買已成功恢復。",
-    "REMOVE_ADS_TITLE": "移除廣告",
-    "REMOVE_ADS_CTA_TITLE": "移除廣告",
-    "REMOVE_ADS_CTA_SUBTITLE": "一次性付款 • 永久有效",
-    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "一次性付款 • {{price}}",
-    "REMOVE_ADS_MODAL_PRICE": "價格：{{price}} • 無訂閱",
-    "RESTORE_ERROR": "無法恢復購買，請再試一次。",
-    "PRO_ONLY": "專業版",
-    "WATCH_AD_SUBTITLE": "觀看廣告",
-    "SHARE": "分享",
-    "SHARE_KINDLE_HINT": "分享時，請選擇 Kindle 應用程式以傳送至您的裝置。",
-    "WARNING": "警告",
-    "EDIT_PROJECT_TITLE": "你想如何編輯這個檔案？",
-    "EDIT_PROJECT_MESSAGE": "請選擇要覆蓋目前檔案，還是先保留一份副本。",
-    "EDIT_PROJECT_OVERWRITE": "覆蓋",
-    "EDIT_PROJECT_OVERWRITE_DESC": "將變更直接儲存到現有檔案。",
-    "EDIT_PROJECT_COPY": "使用副本",
-    "EDIT_PROJECT_COPY_DESC": "保留原始檔案，並編輯一份新副本。"
-  },
-  "CHANGE": {
-    "ADS_REQUIRED": "廣告無法載入，請檢查您的網路或廣告攔截器。",
-    "ARIA_CHANGE_EPUB": "更換 EPUB 檔案。目前檔案：{{name}}",
-    "ARIA_CHANGE_IMAGE": "更換封面圖片。目前圖片：{{name}}",
-    "ARIA_CROP": "調整選取的圖片",
-    "ARIA_SELECT_EPUB": "選取 EPUB 檔案",
-    "ARIA_SELECT_IMAGE": "選取封面圖片",
-    "CROP_ACTION": "調整",
-    "COVER_CHANGED": "封面已更換，您現在可以儲存或分享",
-    "CHANGE_ACTION": "更換封面",
-    "CHANGE_ACTION_REWARDED": "更換封面（觀看廣告）",
-    "GENERATING": "正在更新封面…",
-    "HINT_SAVE_SHARE_EXPLAIN": "更換封面不會自動儲存。",
-    "INFO": "資訊",
-    "INFO_ARIA": "關於更換封面的資訊",
-    "INFO_TITLE": "資訊",
-    "INFO_FLOW_LABEL": "建議順序：",
-    "INFO_STEP_1": "選取 EPUB。",
-    "INFO_STEP_1_1": "1.1. 原始封面會預先載入。",
-    "INFO_STEP_1_2": "1.2. 更換圖片或保留原始圖片。",
-    "INFO_STEP_2": "在編輯器中調整圖片。",
-    "INFO_STEP_3": "觀看廣告以儲存封面。",
-    "INFO_STEP_4": "儲存或分享。",
-    "IMAGE_ERROR_CORRUPT": "無法讀取圖片，請嘗試其他圖片。",
-    "IMAGE_ERROR_SIZE": "檔案過大，最大 {{maxSize}} MB。",
-    "IMAGE_ERROR_TYPE": "不支援的格式（{{type}}），請選取 JPG、PNG 或 WebP。",
-    "IMAGE_WARN_SMALL": "此圖片對某些裝置可能太小。",
-    "IMAGE_WARN_INVALID_EPUB_COVER": "無效的 EPUB 封面，請點擊選取新圖片。",
-    "EPUB_ERROR_CORRUPT": "無法讀取 EPUB，請嘗試其他檔案。",
-    "EPUB_ERROR_NO_COVER": "此 EPUB 不包含可替換的封面。",
-    "NO_COVER_DETECTED_ADDED": "未偵測到封面，已為此 EPUB 新增封面。",
-    "EPUB_ERROR_REWRITE": "無法處理 EPUB，請再試一次。",
-    "EPUB_ERROR_STORAGE": "儲存空間不足，需要 {{requiredMB}} MB，可用 {{availableMB}} MB。",
-    "EPUB_ERROR_SIZE": "檔案過大，最大 {{maxSize}} MB。",
-    "EPUB_ERROR_TYPE": "不支援的 EPUB 檔案。",
-    "LOADING_EPUB": "正在載入 EPUB…",
-    "EPUB_LOADING_COPY": "正在複製大型 EPUB...",
-    "EPUB_LOADING_INSPECT": "正在檢查 EPUB 結構...",
-    "LOADING_IMAGE": "正在載入圖片…",
-    "OPENING_EDITOR": "正在開啟編輯器…",
-    "CHANGING_COVER": "正在更換封面...",
-    "GETTING_COVER": "正在取得封面",
-    "SAVING": "正在儲存封面…",
-    "SELECT_EPUB_LABEL": "EPUB 檔案",
-    "EPUB_FILE_TITLE": "EPUB 檔案",
-    "PROCESSING_LARGE_EPUB": "正在處理大型 EPUB...",
-    "PROCESS_CANCELLED": "處理已取消",
-    "SELECT_EPUB_PLACEHOLDER": "選取 EPUB 檔案",
-    "SAVE_ACTION": "儲存",
-    "SAVED_OK": "封面已儲存",
-    "SAVE_RENAME_TITLE": "儲存封面",
-    "SAVE_RENAME_MESSAGE": "請輸入封面的名稱",
-    "SAVE_RENAME_PLACEHOLDER": "檔案名稱",
-    "SELECT_IMAGE_LABEL": "封面圖片",
-    "SELECT_IMAGE_PLACEHOLDER": "選取圖片",
-    "INVALID_COVER_TAP_TO_CHANGE": "無效封面，請點擊更換",
-    "TAP_TO_CHANGE": "點擊以更換／重設",
-    "TAP_TO_CHANGE_IMAGE": "點擊以更換",
-    "TAP_TO_PREVIEW": "點擊查看預覽",
-    "LONGPRESS_PREVIEW_HINT": "長按即可預覽",
-    "TITLE": "更換封面",
-    "PREVIEW_ORIGINAL_LABEL": "原始封面",
-    "PREVIEW_NEW_LABEL": "新封面",
-    "PREVIEW_NEW_ONLY_LABEL": "新封面",
-    "ARIA_START_SCRATCH": "Start from scratch",
-    "SOURCE_IMAGE": "Image",
-    "SOURCE_SCRATCH": "Scratch"
-  },
-  "COVERS": {
-    "DELETED": "EPUB 已刪除",
-    "EMPTY": "應用程式中找不到封面。重新安裝前建立的檔案可能因系統限制而無法顯示。",
-    "GENERATE_THUMB": "產生縮圖",
-    "LOADING_PREVIEW": "正在載入預覽...",
-    "PLACEHOLDER": "EPUB",
-    "PREVIEW_UNAVAILABLE": "預覽無法使用。",
-    "PREVIEW_TITLE": "目前封面",
-    "TITLE": "我的 EPUB",
-    "DITHERED_THUMBNAIL_NOTICE": "套用瑕疵減少的封面在縮圖中可能看起來不同。請開啟預覽以查看更準確的結果。",
-    "ACTIONS": {
-      "DELETE": "刪除",
-      "SHARE": "分享",
-      "OPEN": "開啟",
-      "EDIT_PROJECT": "編輯"
-    },
-    "DELETE": {
-      "MESSAGE": "確定要刪除此 EPUB？",
-      "TITLE": "刪除 EPUB"
-    },
-    "ERROR": {
-      "DELETE": "無法刪除 EPUB，請再試一次。",
-      "SHARE": "無法分享 EPUB，請再試一次。",
-      "LOAD": "無法載入您的 EPUB，請下拉以重新整理。",
-      "PREVIEW": "無法載入預覽，請再試一次。",
-      "OPEN": "無法開啟 EPUB。請再試一次。",
-      "OPEN_PROJECT": "無法開啟專案。請再試一次。"
-    },
-    "EREADER": {
-      "ZOOM_OUT_ARIA": "縮小電子閱讀器預覽",
-      "ZOOM_IN_ARIA": "放大電子閱讀器預覽",
-      "ZOOM_RESET_ARIA": "重設電子閱讀器預覽縮放"
-    }
-  },
-  "INSTRUCTIONS": {
-    "NOTE_TITLE": "注意",
-    "STEP_1": "選取 EPUB 檔案（目前封面會預先載入）",
-    "STEP_2": "調整已載入的封面，或選取新圖片並進行調整",
-    "STEP_3": "觀看廣告以更換 EPUB 中的封面",
-    "STEP_4": "儲存或分享更新後的 EPUB",
-    "STEP_4_DESC": "完成後，您可以將其儲存至裝置，或直接透過 Kindle 應用程式分享，以獲得更順暢的體驗。",
-    "STEP_5": "透過網頁傳送（Send to Kindle）",
-    "STEP_5_DESC": "您也可以在瀏覽器中使用 Send to Kindle 網頁工具傳送。",
-    "TIP": "為獲得最佳效果，請使用高解析度圖片，並確保 Kindle 裝置上的廣告已停用。",
-    "TITLE": "使用說明"
-  },
-  "HOME_TOUR": {
-    "CONTROLS": {
-      "BACK": "返回",
-      "FINISH": "完成",
-      "INTERACT_HINT": "與醒目顯示的元素互動以繼續。",
-      "NEXT": "下一步",
-      "PROGRESS": "{{current}} / {{total}}",
-      "SKIP": "略過"
-    },
-    "STEPS": {
-      "EPUB": {
-        "TITLE": "EPUB 檔案",
-        "DESCRIPTION": "選取您要更新的 EPUB 檔案。"
-      },
-      "IMAGE": {
-        "TITLE": "封面圖片",
-        "DESCRIPTION": "選取封面圖片。"
-      },
-      "ADJUST": {
-        "TITLE": "調整",
-        "DESCRIPTION": "在編輯器中調整圖片，然後點擊完成。"
-      },
-      "CREATE": {
-        "TITLE": "更換封面",
-        "DESCRIPTION": "在此產生新封面。"
-      },
-      "RESULTS": {
-        "TITLE": "儲存或分享",
-        "DESCRIPTION": "儲存或分享您更新後的 EPUB。"
-      }
-    }
-  },
-  "SETTINGS": {
-    "INSTRUCTIONS": "查看說明",
-    "INSTRUCTIONS_HINT": "如何為 Kindle 更換並傳送封面",
-    "INSTRUCTIONS_SECTION": "說明",
-    "LANGUAGE": "語言",
-    "LANGUAGE_RESTART_NOTICE": "語言已變更，應用程式將重新啟動以套用變更。",
-    "LANGUAGE_PREPARING_COUNTDOWN": "正在以你的語言完成準備。App 將關閉以變更名稱（{{count}}）",
-    "PRIVACY_HINT": "控制資料和廣告的處理方式",
-    "PRIVACY_OPTIONS": "隱私選項",
-    "PRIVACY_POLICY": "隱私權政策",
-    "PRIVACY_SECTION": "隱私",
-    "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
-    "EREADER_OPTIMIZATION_HINT": "套用自動調整以改善封面效果",
-    "EREADER_OPTIMIZATION_TOGGLE": "最佳化",
-    "THEME": "主題",
-    "THEME_SYSTEM": "系統",
-    "THEME_LIGHT": "自然亮色",
-    "THEME_DARK": "經典暗色",
-    "THEME_WARM_READING": "溫暖閱讀",
-    "THEME_POP_ROSE": "玫瑰粉",
-    "THEME_NOCTURNE_VIOLET": "夜曲紫",
-    "THEME_OBSIDIAN_RED": "黑曜紅",
-    "THEME_TERMINAL_GREEN": "終端綠",
-    "THEME_MINT_FRESH": "薄荷清新",
-    "THEME_SILVER_TECH": "銀色",
-    "THEME_GOLD_LUXE": "金色",
-    "TITLE": "設定",
-    "VIEW_TOUR": "查看導覽"
-  },
-  "TABS": {
-    "COVERS": "我的 EPUB",
-    "CHANGE": "更換",
-    "SETTINGS": "設定"
-  },
-  "ARR": {
-    "TOOLS": {
-      "RECOMMENDED": "推薦",
-      "INFO": "資訊",
-      "APPS": "應用程式",
-      "GUIDE": "指南"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
-    }
-  }
+    "APP":  {
+                "TITLE":  "EPUB Cover Changer"
+            },
+    "COMMON":  {
+                   "BACK_AGAIN_TO_EXIT":  "å†æŒ‰ä¸€æ¬¡è¿”å›žä»¥é€€å‡º",
+                   "CANCEL":  "å–æ¶ˆ",
+                   "CLOSE":  "é—œé–‰",
+                   "DELETE":  "åˆªé™¤",
+                   "DONE":  "å®Œæˆ",
+                   "ERROR":  "éŒ¯èª¤",
+                   "LOADING":  "è¼‰å…¥ä¸­â€¦",
+                   "BILLING_UNAVAILABLE":  "ç›®å‰ç„¡æ³•è³¼è²·ã€‚",
+                   "PURCHASE_ERROR":  "ç„¡æ³•å®Œæˆè³¼è²·ï¼Œè«‹å†è©¦ä¸€æ¬¡ã€‚",
+                   "REMOVE_ADS_BUY":  "è³¼è²·",
+                   "REMOVE_ADS_DESCRIPTION":  "é€éŽä¸€æ¬¡æ€§ä»˜æ¬¾æ°¸ä¹…ç§»é™¤å»£å‘Šï¼Œä¸¦å•Ÿç”¨ç„¡æ/å£“ç¸®åŒ¯å‡ºé¸æ“‡ã€‚",
+                   "REMOVE_ADS_PURCHASED":  "å»£å‘Šå·²æ°¸ä¹…ç§»é™¤ã€‚",
+                   "REMOVE_ADS_RESTORE":  "æ¢å¾©è³¼è²·",
+                   "REMOVE_ADS_RESTORED":  "è³¼è²·å·²æˆåŠŸæ¢å¾©ã€‚",
+                   "REMOVE_ADS_TITLE":  "ç§»é™¤å»£å‘Š",
+                   "REMOVE_ADS_CTA_TITLE":  "ç§»é™¤å»£å‘Š",
+                   "REMOVE_ADS_CTA_SUBTITLE":  "ä¸€æ¬¡æ€§ä»˜æ¬¾ â€¢ æ°¸ä¹…æœ‰æ•ˆ",
+                   "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE":  "ä¸€æ¬¡æ€§ä»˜æ¬¾ â€¢ {{price}}",
+                   "REMOVE_ADS_MODAL_PRICE":  "åƒ¹æ ¼ï¼š{{price}} â€¢ ç„¡è¨‚é–±",
+                   "RESTORE_ERROR":  "ç„¡æ³•æ¢å¾©è³¼è²·ï¼Œè«‹å†è©¦ä¸€æ¬¡ã€‚",
+                   "PRO_ONLY":  "å°ˆæ¥­ç‰ˆ",
+                   "WATCH_AD_SUBTITLE":  "è§€çœ‹å»£å‘Š",
+                   "SHARE":  "åˆ†äº«",
+                   "SHARE_KINDLE_HINT":  "åˆ†äº«æ™‚ï¼Œè«‹é¸æ“‡ Kindle æ‡‰ç”¨ç¨‹å¼ä»¥å‚³é€è‡³æ‚¨çš„è£ç½®ã€‚",
+                   "WARNING":  "è­¦å‘Š",
+                   "EDIT_PROJECT_TITLE":  "ä½ æƒ³å¦‚ä½•ç·¨è¼¯é€™å€‹æª”æ¡ˆï¼Ÿ",
+                   "EDIT_PROJECT_MESSAGE":  "è«‹é¸æ“‡è¦è¦†è“‹ç›®å‰æª”æ¡ˆï¼Œé‚„æ˜¯å…ˆä¿ç•™ä¸€ä»½å‰¯æœ¬ã€‚",
+                   "EDIT_PROJECT_OVERWRITE":  "è¦†è“‹",
+                   "EDIT_PROJECT_OVERWRITE_DESC":  "å°‡è®Šæ›´ç›´æŽ¥å„²å­˜åˆ°ç¾æœ‰æª”æ¡ˆã€‚",
+                   "EDIT_PROJECT_COPY":  "ä½¿ç”¨å‰¯æœ¬",
+                   "EDIT_PROJECT_COPY_DESC":  "ä¿ç•™åŽŸå§‹æª”æ¡ˆï¼Œä¸¦ç·¨è¼¯ä¸€ä»½æ–°å‰¯æœ¬ã€‚"
+               },
+    "CHANGE":  {
+                   "ADS_REQUIRED":  "å»£å‘Šç„¡æ³•è¼‰å…¥ï¼Œè«‹æª¢æŸ¥æ‚¨çš„ç¶²è·¯æˆ–å»£å‘Šæ””æˆªå™¨ã€‚",
+                   "ARIA_CHANGE_EPUB":  "æ›´æ› EPUB æª”æ¡ˆã€‚ç›®å‰æª”æ¡ˆï¼š{{name}}",
+                   "ARIA_CHANGE_IMAGE":  "æ›´æ›å°é¢åœ–ç‰‡ã€‚ç›®å‰åœ–ç‰‡ï¼š{{name}}",
+                   "ARIA_CROP":  "èª¿æ•´é¸å–çš„åœ–ç‰‡",
+                   "ARIA_SELECT_EPUB":  "é¸å– EPUB æª”æ¡ˆ",
+                   "ARIA_SELECT_IMAGE":  "é¸å–å°é¢åœ–ç‰‡",
+                   "CROP_ACTION":  "èª¿æ•´",
+                   "COVER_CHANGED":  "å°é¢å·²æ›´æ›ï¼Œæ‚¨ç¾åœ¨å¯ä»¥å„²å­˜æˆ–åˆ†äº«",
+                   "CHANGE_ACTION":  "æ›´æ›å°é¢",
+                   "CHANGE_ACTION_REWARDED":  "æ›´æ›å°é¢ï¼ˆè§€çœ‹å»£å‘Šï¼‰",
+                   "GENERATING":  "æ­£åœ¨æ›´æ–°å°é¢â€¦",
+                   "HINT_SAVE_SHARE_EXPLAIN":  "æ›´æ›å°é¢ä¸æœƒè‡ªå‹•å„²å­˜ã€‚",
+                   "INFO":  "è³‡è¨Š",
+                   "INFO_ARIA":  "é—œæ–¼æ›´æ›å°é¢çš„è³‡è¨Š",
+                   "INFO_TITLE":  "è³‡è¨Š",
+                   "INFO_FLOW_LABEL":  "å»ºè­°é †åºï¼š",
+                   "INFO_STEP_1":  "é¸å– EPUBã€‚",
+                   "INFO_STEP_1_1":  "1.1. åŽŸå§‹å°é¢æœƒé å…ˆè¼‰å…¥ã€‚",
+                   "INFO_STEP_1_2":  "1.2. æ›´æ›åœ–ç‰‡æˆ–ä¿ç•™åŽŸå§‹åœ–ç‰‡ã€‚",
+                   "INFO_STEP_2":  "åœ¨ç·¨è¼¯å™¨ä¸­èª¿æ•´åœ–ç‰‡ã€‚",
+                   "INFO_STEP_3":  "è§€çœ‹å»£å‘Šä»¥å„²å­˜å°é¢ã€‚",
+                   "INFO_STEP_4":  "å„²å­˜æˆ–åˆ†äº«ã€‚",
+                   "IMAGE_ERROR_CORRUPT":  "ç„¡æ³•è®€å–åœ–ç‰‡ï¼Œè«‹å˜—è©¦å…¶ä»–åœ–ç‰‡ã€‚",
+                   "IMAGE_ERROR_SIZE":  "æª”æ¡ˆéŽå¤§ï¼Œæœ€å¤§ {{maxSize}} MBã€‚",
+                   "IMAGE_ERROR_TYPE":  "ä¸æ”¯æ´çš„æ ¼å¼ï¼ˆ{{type}}ï¼‰ï¼Œè«‹é¸å– JPGã€PNG æˆ– WebPã€‚",
+                   "IMAGE_WARN_SMALL":  "æ­¤åœ–ç‰‡å°æŸäº›è£ç½®å¯èƒ½å¤ªå°ã€‚",
+                   "IMAGE_WARN_INVALID_EPUB_COVER":  "ç„¡æ•ˆçš„ EPUB å°é¢ï¼Œè«‹é»žæ“Šé¸å–æ–°åœ–ç‰‡ã€‚",
+                   "EPUB_ERROR_CORRUPT":  "ç„¡æ³•è®€å– EPUBï¼Œè«‹å˜—è©¦å…¶ä»–æª”æ¡ˆã€‚",
+                   "EPUB_ERROR_NO_COVER":  "æ­¤ EPUB ä¸åŒ…å«å¯æ›¿æ›çš„å°é¢ã€‚",
+                   "NO_COVER_DETECTED_ADDED":  "æœªåµæ¸¬åˆ°å°é¢ï¼Œå·²ç‚ºæ­¤ EPUB æ–°å¢žå°é¢ã€‚",
+                   "EPUB_ERROR_REWRITE":  "ç„¡æ³•è™•ç† EPUBï¼Œè«‹å†è©¦ä¸€æ¬¡ã€‚",
+                   "EPUB_ERROR_STORAGE":  "å„²å­˜ç©ºé–“ä¸è¶³ï¼Œéœ€è¦ {{requiredMB}} MBï¼Œå¯ç”¨ {{availableMB}} MBã€‚",
+                   "EPUB_ERROR_SIZE":  "æª”æ¡ˆéŽå¤§ï¼Œæœ€å¤§ {{maxSize}} MBã€‚",
+                   "EPUB_ERROR_TYPE":  "ä¸æ”¯æ´çš„ EPUB æª”æ¡ˆã€‚",
+                   "LOADING_EPUB":  "æ­£åœ¨è¼‰å…¥ EPUBâ€¦",
+                   "EPUB_LOADING_COPY":  "æ­£åœ¨è¤‡è£½å¤§åž‹ EPUB...",
+                   "EPUB_LOADING_INSPECT":  "æ­£åœ¨æª¢æŸ¥ EPUB çµæ§‹...",
+                   "LOADING_IMAGE":  "æ­£åœ¨è¼‰å…¥åœ–ç‰‡â€¦",
+                   "OPENING_EDITOR":  "æ­£åœ¨é–‹å•Ÿç·¨è¼¯å™¨â€¦",
+                   "CHANGING_COVER":  "æ­£åœ¨æ›´æ›å°é¢...",
+                   "GETTING_COVER":  "æ­£åœ¨å–å¾—å°é¢",
+                   "SAVING":  "æ­£åœ¨å„²å­˜å°é¢â€¦",
+                   "SELECT_EPUB_LABEL":  "EPUB æª”æ¡ˆ",
+                   "EPUB_FILE_TITLE":  "EPUB æª”æ¡ˆ",
+                   "PROCESSING_LARGE_EPUB":  "æ­£åœ¨è™•ç†å¤§åž‹ EPUB...",
+                   "PROCESS_CANCELLED":  "è™•ç†å·²å–æ¶ˆ",
+                   "SELECT_EPUB_PLACEHOLDER":  "é¸å– EPUB æª”æ¡ˆ",
+                   "SAVE_ACTION":  "å„²å­˜",
+                   "SAVED_OK":  "å°é¢å·²å„²å­˜",
+                   "SAVE_RENAME_TITLE":  "å„²å­˜å°é¢",
+                   "SAVE_RENAME_MESSAGE":  "è«‹è¼¸å…¥å°é¢çš„åç¨±",
+                   "SAVE_RENAME_PLACEHOLDER":  "æª”æ¡ˆåç¨±",
+                   "SELECT_IMAGE_LABEL":  "å°é¢åœ–ç‰‡",
+                   "SELECT_IMAGE_PLACEHOLDER":  "é¸å–åœ–ç‰‡",
+                   "INVALID_COVER_TAP_TO_CHANGE":  "ç„¡æ•ˆå°é¢ï¼Œè«‹é»žæ“Šæ›´æ›",
+                   "TAP_TO_CHANGE":  "é»žæ“Šä»¥æ›´æ›ï¼é‡è¨­",
+                   "TAP_TO_CHANGE_IMAGE":  "é»žæ“Šä»¥æ›´æ›",
+                   "TAP_TO_PREVIEW":  "é»žæ“ŠæŸ¥çœ‹é è¦½",
+                   "LONGPRESS_PREVIEW_HINT":  "é•·æŒ‰å³å¯é è¦½",
+                   "TITLE":  "æ›´æ›å°é¢",
+                   "PREVIEW_ORIGINAL_LABEL":  "åŽŸå§‹å°é¢",
+                   "PREVIEW_NEW_LABEL":  "æ–°å°é¢",
+                   "PREVIEW_NEW_ONLY_LABEL":  "æ–°å°é¢",
+                   "ARIA_START_SCRATCH":  "Start from scratch",
+                   "SOURCE_IMAGE":  "Image",
+                   "SOURCE_SCRATCH":  "Scratch"
+               },
+    "COVERS":  {
+                   "DELETED":  "EPUB å·²åˆªé™¤",
+                   "EMPTY":  "æ‡‰ç”¨ç¨‹å¼ä¸­æ‰¾ä¸åˆ°å°é¢ã€‚é‡æ–°å®‰è£å‰å»ºç«‹çš„æª”æ¡ˆå¯èƒ½å› ç³»çµ±é™åˆ¶è€Œç„¡æ³•é¡¯ç¤ºã€‚",
+                   "GENERATE_THUMB":  "ç”¢ç”Ÿç¸®åœ–",
+                   "LOADING_PREVIEW":  "æ­£åœ¨è¼‰å…¥é è¦½...",
+                   "PLACEHOLDER":  "EPUB",
+                   "PREVIEW_UNAVAILABLE":  "é è¦½ç„¡æ³•ä½¿ç”¨ã€‚",
+                   "PREVIEW_TITLE":  "ç›®å‰å°é¢",
+                   "TITLE":  "æˆ‘çš„ EPUB",
+                   "DITHERED_THUMBNAIL_NOTICE":  "å¥—ç”¨ç‘•ç–µæ¸›å°‘çš„å°é¢åœ¨ç¸®åœ–ä¸­å¯èƒ½çœ‹èµ·ä¾†ä¸åŒã€‚è«‹é–‹å•Ÿé è¦½ä»¥æŸ¥çœ‹æ›´æº–ç¢ºçš„çµæžœã€‚",
+                   "ACTIONS":  {
+                                   "DELETE":  "åˆªé™¤",
+                                   "SHARE":  "åˆ†äº«",
+                                   "OPEN":  "é–‹å•Ÿ",
+                                   "EDIT_PROJECT":  "ç·¨è¼¯"
+                               },
+                   "DELETE":  {
+                                  "MESSAGE":  "ç¢ºå®šè¦åˆªé™¤æ­¤ EPUBï¼Ÿ",
+                                  "TITLE":  "åˆªé™¤ EPUB"
+                              },
+                   "ERROR":  {
+                                 "DELETE":  "ç„¡æ³•åˆªé™¤ EPUBï¼Œè«‹å†è©¦ä¸€æ¬¡ã€‚",
+                                 "SHARE":  "ç„¡æ³•åˆ†äº« EPUBï¼Œè«‹å†è©¦ä¸€æ¬¡ã€‚",
+                                 "LOAD":  "ç„¡æ³•è¼‰å…¥æ‚¨çš„ EPUBï¼Œè«‹ä¸‹æ‹‰ä»¥é‡æ–°æ•´ç†ã€‚",
+                                 "PREVIEW":  "ç„¡æ³•è¼‰å…¥é è¦½ï¼Œè«‹å†è©¦ä¸€æ¬¡ã€‚",
+                                 "OPEN":  "ç„¡æ³•é–‹å•Ÿ EPUBã€‚è«‹å†è©¦ä¸€æ¬¡ã€‚",
+                                 "OPEN_PROJECT":  "ç„¡æ³•é–‹å•Ÿå°ˆæ¡ˆã€‚è«‹å†è©¦ä¸€æ¬¡ã€‚"
+                             },
+                   "EREADER":  {
+                                   "ZOOM_OUT_ARIA":  "ç¸®å°é›»å­é–±è®€å™¨é è¦½",
+                                   "ZOOM_IN_ARIA":  "æ”¾å¤§é›»å­é–±è®€å™¨é è¦½",
+                                   "ZOOM_RESET_ARIA":  "é‡è¨­é›»å­é–±è®€å™¨é è¦½ç¸®æ”¾"
+                               }
+               },
+    "INSTRUCTIONS":  {
+                         "NOTE_TITLE":  "æ³¨æ„",
+                         "STEP_1":  "é¸å– EPUB æª”æ¡ˆï¼ˆç›®å‰å°é¢æœƒé å…ˆè¼‰å…¥ï¼‰",
+                         "STEP_2":  "èª¿æ•´å·²è¼‰å…¥çš„å°é¢ï¼Œæˆ–é¸å–æ–°åœ–ç‰‡ä¸¦é€²è¡Œèª¿æ•´",
+                         "STEP_3":  "è§€çœ‹å»£å‘Šä»¥æ›´æ› EPUB ä¸­çš„å°é¢",
+                         "STEP_4":  "å„²å­˜æˆ–åˆ†äº«æ›´æ–°å¾Œçš„ EPUB",
+                         "STEP_4_DESC":  "å®Œæˆå¾Œï¼Œæ‚¨å¯ä»¥å°‡å…¶å„²å­˜è‡³è£ç½®ï¼Œæˆ–ç›´æŽ¥é€éŽ Kindle æ‡‰ç”¨ç¨‹å¼åˆ†äº«ï¼Œä»¥ç²å¾—æ›´é †æš¢çš„é«”é©—ã€‚",
+                         "STEP_5":  "é€éŽç¶²é å‚³é€ï¼ˆSend to Kindleï¼‰",
+                         "STEP_5_DESC":  "æ‚¨ä¹Ÿå¯ä»¥åœ¨ç€è¦½å™¨ä¸­ä½¿ç”¨ Send to Kindle ç¶²é å·¥å…·å‚³é€ã€‚",
+                         "TIP":  "ç‚ºç²å¾—æœ€ä½³æ•ˆæžœï¼Œè«‹ä½¿ç”¨é«˜è§£æžåº¦åœ–ç‰‡ï¼Œä¸¦ç¢ºä¿ Kindle è£ç½®ä¸Šçš„å»£å‘Šå·²åœç”¨ã€‚",
+                         "TITLE":  "ä½¿ç”¨èªªæ˜Ž"
+                     },
+    "HOME_TOUR":  {
+                      "CONTROLS":  {
+                                       "BACK":  "è¿”å›ž",
+                                       "FINISH":  "å®Œæˆ",
+                                       "INTERACT_HINT":  "èˆ‡é†’ç›®é¡¯ç¤ºçš„å…ƒç´ äº’å‹•ä»¥ç¹¼çºŒã€‚",
+                                       "NEXT":  "ä¸‹ä¸€æ­¥",
+                                       "PROGRESS":  "{{current}} / {{total}}",
+                                       "SKIP":  "ç•¥éŽ"
+                                   },
+                      "STEPS":  {
+                                    "EPUB":  {
+                                                 "TITLE":  "EPUB æª”æ¡ˆ",
+                                                 "DESCRIPTION":  "é¸å–æ‚¨è¦æ›´æ–°çš„ EPUB æª”æ¡ˆã€‚"
+                                             },
+                                    "IMAGE":  {
+                                                  "TITLE":  "å°é¢åœ–ç‰‡",
+                                                  "DESCRIPTION":  "é¸å–å°é¢åœ–ç‰‡ã€‚"
+                                              },
+                                    "ADJUST":  {
+                                                   "TITLE":  "èª¿æ•´",
+                                                   "DESCRIPTION":  "åœ¨ç·¨è¼¯å™¨ä¸­èª¿æ•´åœ–ç‰‡ï¼Œç„¶å¾Œé»žæ“Šå®Œæˆã€‚"
+                                               },
+                                    "CREATE":  {
+                                                   "TITLE":  "æ›´æ›å°é¢",
+                                                   "DESCRIPTION":  "åœ¨æ­¤ç”¢ç”Ÿæ–°å°é¢ã€‚"
+                                               },
+                                    "RESULTS":  {
+                                                    "TITLE":  "å„²å­˜æˆ–åˆ†äº«",
+                                                    "DESCRIPTION":  "å„²å­˜æˆ–åˆ†äº«æ‚¨æ›´æ–°å¾Œçš„ EPUBã€‚"
+                                                }
+                                }
+                  },
+    "SETTINGS":  {
+                     "INSTRUCTIONS":  "æŸ¥çœ‹èªªæ˜Ž",
+                     "INSTRUCTIONS_HINT":  "å¦‚ä½•ç‚º Kindle æ›´æ›ä¸¦å‚³é€å°é¢",
+                     "INSTRUCTIONS_SECTION":  "èªªæ˜Ž",
+                     "LANGUAGE":  "èªžè¨€",
+                     "LANGUAGE_RESTART_NOTICE":  "èªžè¨€å·²è®Šæ›´ï¼Œæ‡‰ç”¨ç¨‹å¼å°‡é‡æ–°å•Ÿå‹•ä»¥å¥—ç”¨è®Šæ›´ã€‚",
+                     "LANGUAGE_PREPARING_COUNTDOWN":  "æ­£åœ¨ä»¥ä½ çš„èªžè¨€å®Œæˆæº–å‚™ã€‚App å°‡é—œé–‰ä»¥è®Šæ›´åç¨±ï¼ˆ{{count}}ï¼‰",
+                     "EREADER_OPTIMIZATION_SECTION":  "Image enhancement",
+                     "EREADER_OPTIMIZATION_HINT":  "å¥—ç”¨è‡ªå‹•èª¿æ•´ä»¥æ”¹å–„å°é¢æ•ˆæžœ",
+                     "EREADER_OPTIMIZATION_TOGGLE":  "æœ€ä½³åŒ–",
+                     "THEME":  "ä¸»é¡Œ",
+                     "THEME_SYSTEM":  "ç³»çµ±",
+                     "THEME_LIGHT":  "è‡ªç„¶äº®è‰²",
+                     "THEME_DARK":  "ç¶“å…¸æš—è‰²",
+                     "THEME_WARM_READING":  "æº«æš–é–±è®€",
+                     "THEME_POP_ROSE":  "çŽ«ç‘°ç²‰",
+                     "THEME_NOCTURNE_VIOLET":  "å¤œæ›²ç´«",
+                     "THEME_OBSIDIAN_RED":  "é»‘æ›œç´…",
+                     "THEME_TERMINAL_GREEN":  "çµ‚ç«¯ç¶ ",
+                     "THEME_MINT_FRESH":  "è–„è·æ¸…æ–°",
+                     "THEME_SILVER_TECH":  "éŠ€è‰²",
+                     "THEME_GOLD_LUXE":  "é‡‘è‰²",
+                     "TITLE":  "è¨­å®š",
+                     "VIEW_TOUR":  "æŸ¥çœ‹å°Žè¦½"
+                 },
+    "TABS":  {
+                 "COVERS":  "æˆ‘çš„ EPUB",
+                 "CHANGE":  "æ›´æ›",
+                 "SETTINGS":  "è¨­å®š"
+             },
+    "ARR":  {
+                "TOOLS":  {
+                              "RECOMMENDED":  "æŽ¨è–¦",
+                              "INFO":  "è³‡è¨Š",
+                              "APPS":  "æ‡‰ç”¨ç¨‹å¼",
+                              "GUIDE":  "æŒ‡å—"
+                          }
+            },
+    "E_READER_FRAME":  {
+                           "COLOR_SELECTOR":  {
+                                                  "TITLE":  "Frame color"
+                                              },
+                           "BRAND":  {
+                                         "KINDLE":  "Kindle",
+                                         "KOBO":  "Kobo",
+                                         "GENERIC":  "Generic"
+                                     },
+                           "COLOR":  {
+                                         "BLACK":  "Black",
+                                         "WHITE":  "White",
+                                         "MATCHA":  "Matcha",
+                                         "JADE":  "Jade",
+                                         "PINK":  "Pink",
+                                         "METALLIC_BLACK":  "Metallic Black",
+                                         "METALLIC_JADE":  "Metallic Jade",
+                                         "METALLIC_PINK":  "Metallic Pink"
+                                     }
+                       }
 }

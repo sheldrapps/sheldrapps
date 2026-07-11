@@ -21,6 +21,9 @@
         "packages/ad-fallback-kit/src/public-api.ts"
       ],
       "@sheldrapps/settings-kit": ["packages/settings-kit/src/public-api.ts"],
+      "@sheldrapps/privacy-policy-kit": [
+        "packages/privacy-policy-kit/src/public-api.ts"
+      ],
       "@sheldrapps/rating-kit": ["packages/rating-kit/src/public-api.ts"],
       "@sheldrapps/native-sqlite-kit": [
         "packages/native-sqlite-kit/src/public-api.ts"

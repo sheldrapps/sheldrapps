@@ -16,8 +16,8 @@ import {
   IonTitle,
   IonToolbar,
 } from "@ionic/angular/standalone";
-import { Browser } from '@capacitor/browser';
 import { TranslateModule } from '@ngx-translate/core';
+import { PrivacyPolicySectionComponent } from '@sheldrapps/privacy-policy-kit';
 import { THEME_OPTIONS, type Theme } from "@sheldrapps/ui-theme";
 
 import { Lang, LangOption, LANG_OPTIONS } from '../../services/language.service';
@@ -46,6 +46,7 @@ import { ConfigService } from "../../../config/config.service";
     IonModal,
     IonButtons,
     IonButton,
+    PrivacyPolicySectionComponent,
   ],
 })
 export class SettingsPage {
@@ -57,7 +58,7 @@ export class SettingsPage {
   isLanguageModalOpen = false;
   languageDraft: Lang = "en-US";
 
-  private readonly privacyPolicyUrl =
+  readonly privacyPolicyUrl =
     "https://sheldrapps.github.io/privacy-policies/just-one-step/";
 
   get currentLanguage(): Lang {
@@ -114,9 +115,5 @@ export class SettingsPage {
     if (!opened) {
       // Intentionally no-op to match ECC behavior.
     }
-  }
-
-  async openPrivacyPolicy(): Promise<void> {
-    await Browser.open({ url: this.privacyPolicyUrl });
   }
 }

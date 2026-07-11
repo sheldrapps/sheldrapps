@@ -11,6 +11,7 @@ import {
   provideCoverSourceI18n,
   provideEReaderPreviewFrameI18n,
 } from '@sheldrapps/image-workflow';
+import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
 import {
   provideEditorI18n,
   EDITOR_I18N_OVERRIDES,
@@ -99,6 +100,7 @@ bootstrapApplication(AppComponent, {
     provideCoverImageStateI18n(),
     provideCoverSourceI18n(),
     provideEReaderPreviewFrameI18n(),
+    providePrivacyPolicyKitI18n(),
     provideEditorI18n(),
     {
       provide: EDITOR_I18N_OVERRIDES,

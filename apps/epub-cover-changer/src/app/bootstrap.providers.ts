@@ -4,6 +4,7 @@ import {
   MemoryStorageAdapter,
   provideI18nKit,
 } from '@sheldrapps/i18n-kit';
+import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
 import {
   provideCoverImageStateI18n,
   provideCoverSourceI18n,
@@ -79,6 +80,7 @@ export function createBootstrapProviders(): Array<Provider | EnvironmentProvider
       },
       new MemoryStorageAdapter(),
     ),
+    providePrivacyPolicyKitI18n(),
     provideExportQualityKitI18n(),
     provideAdFallbackKitI18n(),
     provideAdsKitI18n(),

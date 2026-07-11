@@ -18,6 +18,7 @@ import {
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
 import { THEME_OPTIONS, ThemeService, type Theme } from '@sheldrapps/ui-theme';
+import { PrivacyPolicySectionComponent } from '@sheldrapps/privacy-policy-kit';
 
 import {
   Lang,
@@ -28,7 +29,6 @@ import {
 import { ConsentService } from 'src/app/services/consent.service';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { CcfkSettings } from 'src/app/settings/ccfk-settings.schema';
-import { Browser } from '@capacitor/browser';
 import {
   LanguageRadioListComponent,
   restartForLanguageChange,
@@ -58,6 +58,7 @@ import { HOME_TOUR_ID } from 'src/app/shared/tour/home-tour.definition';
     IonButton,
     IonLoading,
     LanguageRadioListComponent,
+    PrivacyPolicySectionComponent,
   ],
 })
 export class SettingsPage {
@@ -77,7 +78,7 @@ export class SettingsPage {
   languageRestartCountdown = 4;
   private readonly languageRestartCountdownStart = 4;
 
-  private readonly privacyPolicyUrl =
+  readonly privacyPolicyUrl =
     'https://sheldrapps.com/privacy-policies/cover-creator-for-kindle';
 
   trackByLang = (_: number, l: LangOption) => l.code;
@@ -160,10 +161,6 @@ export class SettingsPage {
     const opened = await this.consent.showPrivacyOptionsIfAvailable();
     if (!opened) {
     }
-  }
-
-  async openPrivacyPolicy() {
-    await Browser.open({ url: this.privacyPolicyUrl });
   }
 
   async startHomeTour() {

@@ -208,7 +208,7 @@ export class RatingService {
       (feedbackOption) => feedbackOption.id === submission.optionId,
     );
     const issueLabel = option
-      ? this.translate.instant(option.labelKey) || option.fallbackLabel
+      ? this.resolveFeedbackOptionLabel(option)
       : submission.optionId;
     const bodyLines = [
       `App: ${this.config.appName}`,
@@ -227,6 +227,16 @@ export class RatingService {
     }
 
     return bodyLines.join('\n');
+  }
+
+  private resolveFeedbackOptionLabel(option: {
+    labelKey: string;
+    fallbackLabel: string;
+  }): string {
+    const translated = this.translate.instant(option.labelKey);
+    return translated && translated !== option.labelKey
+      ? translated
+      : option.fallbackLabel;
   }
 
   private mergeContext(context?: RatingAskContext): RatingAskContext | undefined {
@@ -342,5 +352,10 @@ export class RatingService {
     }
 
     this.translate.setTranslation(locale, translations, true);
+
+    const overrides = this.config.translationOverrides?.[locale];
+    if (overrides) {
+      this.translate.setTranslation(locale, overrides, true);
+    }
   }
 }

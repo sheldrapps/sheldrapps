@@ -1,364 +1,360 @@
 {
-  "APP": {
-    "TITLE": "Crear Portadas para Kindle"
-  },
-  "COMMON": {
-    "BACK_AGAIN_TO_EXIT": "Vuelve atrás de nuevo para salir",
-    "CANCEL": "Cancelar",
-    "CLOSE": "Cerrar",
-    "EDIT": "Editar",
-    "CHANGE": "Cambiar",
-    "DELETE": "Eliminar",
-    "DONE": "Listo",
-    "ERROR": "Error",
-    "LOADING": "Cargando…",
-    "BILLING_UNAVAILABLE": "Las compras no están disponibles en este momento.",
-    "PURCHASE_ERROR": "No se pudo completar la compra. Inténtalo de nuevo.",
-    "REMOVE_ADS_BUY": "Comprar",
-    "REMOVE_ADS_DESCRIPTION": "Quita los anuncios para siempre y habilita la selección de exportación lossless/compressed.",
-    "REMOVE_ADS_PURCHASED": "Anuncios eliminados para siempre.",
-    "REMOVE_ADS_RESTORE": "Restaurar compra",
-    "REMOVE_ADS_RESTORED": "Compra restaurada correctamente.",
-    "REMOVE_ADS_TITLE": "Eliminar anuncios",
-    "REMOVE_ADS_CTA_TITLE": "Eliminar anuncios",
-    "REMOVE_ADS_CTA_SUBTITLE": "Pago único • Para siempre",
-    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Pago único • {{price}}",
-    "REMOVE_ADS_MODAL_PRICE": "Precio: {{price}} • Sin suscripción",
-    "RESTORE_ERROR": "No se pudo restaurar la compra. Inténtalo de nuevo.",
-    "PRO_ONLY": "PRO",
-    "WATCH_AD_SUBTITLE": "Ver anuncio",
-    "SHARE": "Compartir",
-    "SHARE_KINDLE_HINT": "Al compartir, selecciona la app Kindle para enviarla a tu dispositivo.",
-    "WARNING": "Advertencia",
-    "EDIT_PROJECT_TITLE": "¿Cómo quieres editar este archivo?",
-    "EDIT_PROJECT_MESSAGE": "Elige si quieres reemplazar el archivo actual o trabajar sobre una copia.",
-    "EDIT_PROJECT_OVERWRITE": "Sobreescribir",
-    "EDIT_PROJECT_OVERWRITE_DESC": "Guarda los cambios encima del archivo existente.",
-    "EDIT_PROJECT_COPY": "Trabajar con una copia",
-    "EDIT_PROJECT_COPY_DESC": "Conserva el archivo original y edita una copia nueva."
-  },
-  "CREATE": {
-    "ADS_REQUIRED": "No se pudo cargar el anuncio. Revisa tu red o bloqueador de anuncios.",
-    "ARIA_CHANGE_IMAGE": "Cambiar imagen de portada. Imagen actual: {{name}}",
-    "ARIA_CROP": "Ajustar imagen seleccionada",
-    "ARIA_SELECT_IMAGE": "Seleccionar imagen de portada",
-    "ARIA_SELECT_MODEL": "Seleccionar modelo del dispositivo",
-    "CROP_ACTION": "Ajustar",
-    "COVER_CREATED": "Portada creada. Ya puedes guardar o compartir",
-    "CREATE_ACTION": "Crear portada",
-    "CREATE_ACTION_REWARDED": "Crear portada (ver anuncio)",
-    "GENERATING": "Generando portada…",
-    "HINT_SAVE_SHARE_EXPLAIN": "Crear la portada no la guarda automáticamente.",
-    "INFO": "Info",
-    "INFO_ARIA": "Información sobre crear portada",
-    "INFO_TITLE": "Información",
-    "INFO_SEND_TITLE": "Enviar a Kindle",
-    "INFO_SHARE_KINDLE": "Para enviarla a tu Kindle, al compartir, elige la app Kindle.",
-    "INFO_FLOW_LABEL": "Orden recomendado:",
-    "INFO_STEP_1": "Seleccionar imagen.",
-    "INFO_STEP_2": "Ajustar la imagen en el editor y tocar Listo para aplicarla.",
-    "INFO_STEP_3": "Crear la portada después de aplicar el ajuste.",
-    "INFO_STEP_4": "Guardar o compartir.",
-    "INFO_NOTE_LABEL": "Nota:",
-    "IMAGE_ERROR_CORRUPT": "No se pudo leer la imagen. Prueba con otra.",
-    "IMAGE_ERROR_SIZE": "El archivo pesa demasiado. Máximo {{maxSize}} MB.",
-    "IMAGE_ERROR_TYPE": "Formato no compatible ({{type}}). Selecciona JPG, PNG o WebP.",
-    "IMAGE_WARN_SMALL": "La resolución de la imagen es menor a la del Kindle seleccionado. Para mejores resultados, usa una imagen más grande.",
-    "LOADING_IMAGE": "Cargando imagen…",
-    "OPENING_EDITOR": "Abriendo editor…",
-    "SAVING": "Guardando portada…",
-    "SAVED_OK": "Portada guardada",
-    "SAVE_RENAME_TITLE": "Guardar portada",
-    "SAVE_RENAME_MESSAGE": "Ingresa el nombre para la portada",
-    "SAVE_RENAME_PLACEHOLDER": "Nombre del archivo",
-    "SAVE_ACTION": "Guardar",
-    "SELECT_IMAGE_LABEL": "Imagen de portada",
-    "SELECT_IMAGE_PLACEHOLDER": "Selecciona una imagen",
-    "SELECT_BRAND_LABEL": "Marca",
-    "SELECT_BRAND_PLACEHOLDER": "Selecciona una marca",
-    "SELECT_GROUP_LABEL": "Grupo",
-    "SELECT_GROUP_PLACEHOLDER": "Selecciona un grupo",
-    "SELECT_GENERATION_LABEL": "Modelo",
-    "SELECT_GENERATION_PLACEHOLDER": "Selecciona un modelo",
-    "SELECT_MODEL_LABEL": "Modelo del dispositivo",
-    "SELECT_MODEL_PLACEHOLDER": "Selecciona tu dispositivo",
-    "COVER_SOURCE_TITLE": "Origen de portada",
-    "TAP_TO_CHANGE": "Toca para cambiar/reiniciar",
-    "TITLE": "Crear portada",
-    "TAP_TO_PREVIEW": "Toca para previsualizar",
-    "MODEL_PICKER": {
-      "TITLE": "Elige tu Kindle"
-    },
-    "INFO_REQUIREMENTS_LABEL": "Requisitos:",
-    "INFO_REQUIREMENT_DISABLE_ADS": "Desactivar ads en Kindle.",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Activar \"Pantalla y brillo > Mostrar portadas en la pantalla del dispositivo\" en Kindle.",
-    "ARIA_START_SCRATCH": "Comenzar desde cero",
-    "SOURCE_IMAGE": "Imagen",
-    "SOURCE_SCRATCH": "Desde cero"
-  },
-  "COVERS": {
-    "DELETED": "Portada eliminada",
-    "EMPTY": "No hay portadas todavía.",
-    "GETTING_COVER": "Obteniendo portada",
-    "LOADING_PREVIEW": "Cargando vista previa...",
-    "PLACEHOLDER": "Portada",
-    "PREVIEW_TITLE": "Portada actual",
-    "TITLE": "Portadas",
-    "DITHERED_THUMBNAIL_NOTICE": "Las portadas con reducción de artefactos pueden verse diferentes en miniatura. Abre la vista previa para ver un resultado más fiel.",
-    "ACTIONS": {
-      "DELETE": "Eliminar",
-      "SHARE": "Compartir",
-      "OPEN": "Abrir",
-      "EDIT_PROJECT": "Editar"
-    },
-    "DELETE": {
-      "MESSAGE": "¿Quieres eliminar esta portada?",
-      "TITLE": "Eliminar portada"
-    },
-    "ERROR": {
-      "DELETE": "No se pudo eliminar la portada. Inténtalo de nuevo.",
-      "LOAD": "No se pudieron cargar tus portadas. Arrastra hacia abajo para intentar de nuevo.",
-      "PREVIEW": "No se pudo cargar la vista previa. Intenta de nuevo.",
-      "SHARE": "No se pudo compartir la portada. Inténtalo de nuevo.",
-      "OPEN": "No se pudo abrir la portada. Inténtalo de nuevo.",
-      "OPEN_PROJECT": "No se pudo abrir el proyecto. Inténtalo de nuevo."
-    },
-    "EREADER": {
-      "ZOOM_OUT_ARIA": "Alejar vista previa del e-reader",
-      "ZOOM_IN_ARIA": "Acercar vista previa del e-reader",
-      "ZOOM_RESET_ARIA": "Restablecer zoom de la vista previa del e-reader"
-    }
-  },
-  "INSTRUCTIONS": {
-    "NOTE_TITLE": "Nota",
-    "STEP_1": "Selecciona una imagen para tu portada",
-    "STEP_2": "Ajusta la imagen en el editor y toca Listo para aplicarla",
-    "STEP_3": "Crea la portada después de aplicar el ajuste",
-    "STEP_4": "Guarda o comparte la portada",
-    "STEP_4_DESC": "Cuando esté lista, puedes guardarla en tu dispositivo o compartirla con la app Kindle para un flujo más simple.",
-    "STEP_5": "Enviar vía web (Send to Kindle)",
-    "STEP_5_DESC": "También puedes enviarla desde el navegador con la herramienta web Send to Kindle.",
-    "TIP": "Para mejores resultados, usa imágenes en alta resolución y asegúrate de que los anuncios estén desactivados en tu Kindle.",
-    "TITLE": "Instrucciones"
-  },
-  "KINDLE_BRANDS": {
-    "KINDLE": "Kindle"
-  },
-  "KINDLE_GROUPS": {
-    "BASIC": "Basic",
-    "OASIS": "Oasis",
-    "PAPERWHITE": "Paperwhite",
-    "PAPERWHITE_SIGNATURE": "Paperwhite Signature",
-    "SCRIBE": "Scribe",
-    "VOYAGE": "Voyage",
-    "COLORSOFT": "Colorsoft",
-    "COLORSOFT_SIGNATURE": "Colorsoft Signature"
-  },
-  "KINDLE_MODELS": {
-    "BASIC_2010_2019": "2010-2019",
-    "BASIC_2022_2024": "2022-2024",
-    "OASIS_2016": "2016",
-    "OASIS_2017_2019": "2017-2019",
-    "PAPERWHITE_2012_2013": "2012-2013",
-    "PAPERWHITE_2015_2019": "2015-2019",
-    "PAPERWHITE_2021": "2021",
-    "PAPERWHITE_2024": "2024",
-    "PAPERWHITE_SIGNATURE_2021": "2021",
-    "PAPERWHITE_SIGNATURE_2024": "2024",
-    "SCRIBE_2022_2024": "2022-2024",
-    "VOYAGE_2014": "2014",
-    "COLORSOFT": "2025",
-    "COLORSOFT_SIGNATURE_EDITION": "2024"
-  },
-  "KOBO_BRANDS": {
-    "KOBO": "Kobo"
-  },
-  "KOBO_GROUPS": {
-    "CLARA": "Clara",
-    "ELIPSA": "Elipsa",
-    "LIBRA": "Libra",
-    "NIA": "Nia",
-    "SAGE": "Sage"
-  },
-  "KOBO_MODELS": {
-    "CLARA_ALL": "Kobo Clara (HD / 2E / BW / Colour)",
-    "ELIPSA_ALL": "Kobo Elipsa (Elipsa / 2E)",
-    "LIBRA_ALL": "Kobo Libra (H2O / 2 / Colour)",
-    "NIA": "Kobo Nia",
-    "SAGE": "Kobo Sage"
-  },
-  "NOOK_BRANDS": {
-    "NOOK": "Nook"
-  },
-  "NOOK_GROUPS": {
-    "GLOWLIGHT": "GlowLight"
-  },
-  "NOOK_MODELS": {
-    "GLOWLIGHT_2013_2015": "Nook GlowLight (2013-2015)",
-    "GLOWLIGHT_2019_2023": "Nook GlowLight (2019-2023)"
-  },
-  "POCKETBOOK_BRANDS": {
-    "POCKETBOOK": "PocketBook"
-  },
-  "POCKETBOOK_GROUPS": {
-    "ERA": "Era",
-    "INKPAD": "InkPad",
-    "VERSE": "Verse"
-  },
-  "POCKETBOOK_MODELS": {
-    "ERA": "PocketBook Era",
-    "INKPAD_ALL": "PocketBook InkPad (All models)",
-    "VERSE": "PocketBook Verse",
-    "VERSE_PRO": "PocketBook Verse Pro"
-  },
-  "TOLINO_BRANDS": {
-    "TOLINO": "Tolino"
-  },
-  "TOLINO_GROUPS": {
-    "SHINE": "Shine",
-    "VISION": "Vision"
-  },
-  "TOLINO_MODELS": {
-    "SHINE_2014_2018": "Tolino Shine (2014-2018)",
-    "SHINE_HD": "Tolino Shine HD",
-    "VISION_2015_2018": "Tolino Vision (2015-2018)",
-    "VISION_2021_2024": "Tolino Vision (2021-2024)"
-  },
-  "REQUISITES": {
-    "ADS_DESC": "Es necesario desactivar los anuncios en el dispositivo para que la portada se muestre en la pantalla de bloqueo.",
-    "ADS_LINK": "Gestionar anuncios del dispositivo",
-    "ADS_TITLE": "Anuncios desactivados",
-    "APP_ANDROID": "App Kindle (Android)",
-    "APP_DESC": "Se requiere la app Kindle para enviar y visualizar la portada en el dispositivo.",
-    "APP_IOS": "App Kindle (iOS)",
-    "APP_TITLE": "Aplicación Kindle",
-    "COVER_DESC": "Activa la opción para mostrar la portada del libro actual en la pantalla de bloqueo.",
-    "COVER_LINK": "Configurar visualización de portada",
-    "COVER_TITLE": "Mostrar portada del libro",
-    "NOTE": "Cover Creator for Kindle no es una aplicación oficial y no modifica el software del dispositivo.",
-    "SEND_LINK": "Send to Kindle (web)",
-    "SEND_TITLE": "Enviar portadas vía web",
-    "TITLE": "Requisitos"
-  },
-  "HOME_TOUR": {
-    "CONTROLS": {
-      "BACK": "Atrás",
-      "FINISH": "Finalizar",
-      "INTERACT_HINT": "Interactúa con el elemento resaltado para continuar.",
-      "NEXT": "Siguiente",
-      "PROGRESS": "{{current}} de {{total}}",
-      "SKIP": "Omitir"
-    },
-    "STEPS": {
-      "DEVICE": {
-        "TITLE": "Dispositivo",
-        "DESCRIPTION": "Primero selecciona tu dispositivo.\nAsí la portada se crea con la resolución correcta."
-      },
-      "BRAND": {
-        "TITLE": "Marca",
-        "DESCRIPTION": "Elige la marca de tu eReader."
-      },
-      "GROUP": {
-        "TITLE": "Grupo",
-        "DESCRIPTION": "Selecciona la línea de tu dispositivo."
-      },
-      "MODEL": {
-        "TITLE": "Modelo",
-        "DESCRIPTION": "Elige el modelo exacto."
-      },
-      "IMAGE": {
-        "TITLE": "Imagen de portada",
-        "DESCRIPTION": "Selecciona la imagen para tu portada."
-      },
-      "ADJUST": {
-        "TITLE": "Ajustar",
-        "DESCRIPTION": "Ajusta la imagen en el editor y toca Listo."
-      },
-      "EXPORT": {
-        "TITLE": "Calidad de exportacion",
-        "DESCRIPTION": "Gratis exportas en Estandar. Al comprar sin anuncios desbloqueas la seleccion de exportacion (Lossless/Compressed)."
-      },
-      "REMOVE_ADS_CLOSE": {
-        "TITLE": "Cerrar por ahora",
-        "DESCRIPTION": "De momento, disfruta la version gratis. No te sientas obligado a comprar."
-      },
-      "CREATE": {
-        "TITLE": "Crear portada",
-        "DESCRIPTION": "Genera aquí la portada."
-      },
-      "RESULTS": {
-        "TITLE": "Guardar o compartir",
-        "DESCRIPTION": "Guarda o comparte tu portada."
-      },
-      "DONE": {
-        "TITLE": "Listo",
-        "DESCRIPTION": "Listo.\nYa sabes cómo crear portadas con CCFK."
-      }
-    }
-  },
-  "SETTINGS": {
-    "INSTRUCTIONS": "Ver instrucciones",
-    "INSTRUCTIONS_HINT": "Cómo crear y enviar una portada a Kindle",
-    "INSTRUCTIONS_SECTION": "Instrucciones",
-    "LANGUAGE": "Idioma",
-    "LANGUAGE_RESTART_NOTICE": "Idioma cambiado. La app se reiniciará para aplicar los cambios.",
-    "LANGUAGE_PREPARING_COUNTDOWN": "Preparando todo en tu idioma. La app se cerrará para cambiar su nombre ({{count}})",
-    "PRIVACY_HINT": "Controla cómo se manejan los datos y la publicidad",
-    "PRIVACY_OPTIONS": "Opciones de privacidad",
-    "PRIVACY_POLICY": "Política de privacidad",
-    "PRIVACY_SECTION": "Privacidad",
-    "EREADER_OPTIMIZATION_SECTION": "Mejora de imagen",
-    "EREADER_OPTIMIZATION_HINT": "Aplica ajustes automáticos para mejorar nitidez en pantallas de tinta electrónica",
-    "EREADER_OPTIMIZATION_TOGGLE": "Optimizar para tinta electrónica",
-    "REQUISITES": "Ver requisitos",
-    "REQUISITES_HINT": "Configuración necesaria para que la portada funcione correctamente en Kindle",
-    "REQUISITES_SECTION": "Requisitos",
-    "THEME": "Tema",
-    "THEME_SYSTEM": "Sistema",
-    "THEME_LIGHT": "Claro Natural",
-    "THEME_DARK": "Oscuro Clásico",
-    "THEME_WARM_READING": "Lectura Cálida",
-    "THEME_POP_ROSE": "Rosa Pop",
-    "THEME_NOCTURNE_VIOLET": "Violeta Nocturno",
-    "THEME_OBSIDIAN_RED": "Rojo Obsidiana",
-    "THEME_TERMINAL_GREEN": "Verde Terminal",
-    "THEME_MINT_FRESH": "Menta Fresca",
-    "THEME_SILVER_TECH": "Silver",
-    "THEME_GOLD_LUXE": "Oro",
-    "TITLE": "Configuración",
-    "VIEW_TOUR": "Ver tour"
-  },
-  "TABS": {
-    "COVERS": "Portadas",
-    "CREATE": "Crear",
-    "SETTINGS": "Configuración"
-  },
-  "ARR": {
-    "TOOLS": {
-      "RECOMMENDED": "Recomendadas",
-      "INFO": "Info",
-      "APPS": "Apps",
-      "GUIDE": "Guía"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Color del marco"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Genérico"
-    },
-    "COLOR": {
-      "BLACK": "Negro",
-      "WHITE": "Blanco",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Rosa",
-      "METALLIC_BLACK": "Negro metálico",
-      "METALLIC_JADE": "Jade metálico",
-      "METALLIC_PINK": "Rosa metálico"
-    }
-  }
+    "APP":  {
+                "TITLE":  "Crear Portadas para Kindle"
+            },
+    "COMMON":  {
+                   "BACK_AGAIN_TO_EXIT":  "Vuelve atrÃ¡s de nuevo para salir",
+                   "CANCEL":  "Cancelar",
+                   "CLOSE":  "Cerrar",
+                   "EDIT":  "Editar",
+                   "CHANGE":  "Cambiar",
+                   "DELETE":  "Eliminar",
+                   "DONE":  "Listo",
+                   "ERROR":  "Error",
+                   "LOADING":  "Cargandoâ€¦",
+                   "BILLING_UNAVAILABLE":  "Las compras no estÃ¡n disponibles en este momento.",
+                   "PURCHASE_ERROR":  "No se pudo completar la compra. IntÃ©ntalo de nuevo.",
+                   "REMOVE_ADS_BUY":  "Comprar",
+                   "REMOVE_ADS_DESCRIPTION":  "Quita los anuncios para siempre y habilita la selecciÃ³n de exportaciÃ³n lossless/compressed.",
+                   "REMOVE_ADS_PURCHASED":  "Anuncios eliminados para siempre.",
+                   "REMOVE_ADS_RESTORE":  "Restaurar compra",
+                   "REMOVE_ADS_RESTORED":  "Compra restaurada correctamente.",
+                   "REMOVE_ADS_TITLE":  "Eliminar anuncios",
+                   "REMOVE_ADS_CTA_TITLE":  "Eliminar anuncios",
+                   "REMOVE_ADS_CTA_SUBTITLE":  "Pago Ãºnico â€¢ Para siempre",
+                   "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE":  "Pago Ãºnico â€¢ {{price}}",
+                   "REMOVE_ADS_MODAL_PRICE":  "Precio: {{price}} â€¢ Sin suscripciÃ³n",
+                   "RESTORE_ERROR":  "No se pudo restaurar la compra. IntÃ©ntalo de nuevo.",
+                   "PRO_ONLY":  "PRO",
+                   "WATCH_AD_SUBTITLE":  "Ver anuncio",
+                   "SHARE":  "Compartir",
+                   "SHARE_KINDLE_HINT":  "Al compartir, selecciona la app Kindle para enviarla a tu dispositivo.",
+                   "WARNING":  "Advertencia",
+                   "EDIT_PROJECT_TITLE":  "Â¿CÃ³mo quieres editar este archivo?",
+                   "EDIT_PROJECT_MESSAGE":  "Elige si quieres reemplazar el archivo actual o trabajar sobre una copia.",
+                   "EDIT_PROJECT_OVERWRITE":  "Sobreescribir",
+                   "EDIT_PROJECT_OVERWRITE_DESC":  "Guarda los cambios encima del archivo existente.",
+                   "EDIT_PROJECT_COPY":  "Trabajar con una copia",
+                   "EDIT_PROJECT_COPY_DESC":  "Conserva el archivo original y edita una copia nueva."
+               },
+    "CREATE":  {
+                   "ADS_REQUIRED":  "No se pudo cargar el anuncio. Revisa tu red o bloqueador de anuncios.",
+                   "ARIA_CHANGE_IMAGE":  "Cambiar imagen de portada. Imagen actual: {{name}}",
+                   "ARIA_CROP":  "Ajustar imagen seleccionada",
+                   "ARIA_SELECT_IMAGE":  "Seleccionar imagen de portada",
+                   "ARIA_SELECT_MODEL":  "Seleccionar modelo del dispositivo",
+                   "CROP_ACTION":  "Ajustar",
+                   "COVER_CREATED":  "Portada creada. Ya puedes guardar o compartir",
+                   "CREATE_ACTION":  "Crear portada",
+                   "CREATE_ACTION_REWARDED":  "Crear portada (ver anuncio)",
+                   "GENERATING":  "Generando portadaâ€¦",
+                   "HINT_SAVE_SHARE_EXPLAIN":  "Crear la portada no la guarda automÃ¡ticamente.",
+                   "INFO":  "Info",
+                   "INFO_ARIA":  "InformaciÃ³n sobre crear portada",
+                   "INFO_TITLE":  "InformaciÃ³n",
+                   "INFO_SEND_TITLE":  "Enviar a Kindle",
+                   "INFO_SHARE_KINDLE":  "Para enviarla a tu Kindle, al compartir, elige la app Kindle.",
+                   "INFO_FLOW_LABEL":  "Orden recomendado:",
+                   "INFO_STEP_1":  "Seleccionar imagen.",
+                   "INFO_STEP_2":  "Ajustar la imagen en el editor y tocar Listo para aplicarla.",
+                   "INFO_STEP_3":  "Crear la portada despuÃ©s de aplicar el ajuste.",
+                   "INFO_STEP_4":  "Guardar o compartir.",
+                   "INFO_NOTE_LABEL":  "Nota:",
+                   "IMAGE_ERROR_CORRUPT":  "No se pudo leer la imagen. Prueba con otra.",
+                   "IMAGE_ERROR_SIZE":  "El archivo pesa demasiado. MÃ¡ximo {{maxSize}} MB.",
+                   "IMAGE_ERROR_TYPE":  "Formato no compatible ({{type}}). Selecciona JPG, PNG o WebP.",
+                   "IMAGE_WARN_SMALL":  "La resoluciÃ³n de la imagen es menor a la del Kindle seleccionado. Para mejores resultados, usa una imagen mÃ¡s grande.",
+                   "LOADING_IMAGE":  "Cargando imagenâ€¦",
+                   "OPENING_EDITOR":  "Abriendo editorâ€¦",
+                   "SAVING":  "Guardando portadaâ€¦",
+                   "SAVED_OK":  "Portada guardada",
+                   "SAVE_RENAME_TITLE":  "Guardar portada",
+                   "SAVE_RENAME_MESSAGE":  "Ingresa el nombre para la portada",
+                   "SAVE_RENAME_PLACEHOLDER":  "Nombre del archivo",
+                   "SAVE_ACTION":  "Guardar",
+                   "SELECT_IMAGE_LABEL":  "Imagen de portada",
+                   "SELECT_IMAGE_PLACEHOLDER":  "Selecciona una imagen",
+                   "SELECT_BRAND_LABEL":  "Marca",
+                   "SELECT_BRAND_PLACEHOLDER":  "Selecciona una marca",
+                   "SELECT_GROUP_LABEL":  "Grupo",
+                   "SELECT_GROUP_PLACEHOLDER":  "Selecciona un grupo",
+                   "SELECT_GENERATION_LABEL":  "Modelo",
+                   "SELECT_GENERATION_PLACEHOLDER":  "Selecciona un modelo",
+                   "SELECT_MODEL_LABEL":  "Modelo del dispositivo",
+                   "SELECT_MODEL_PLACEHOLDER":  "Selecciona tu dispositivo",
+                   "COVER_SOURCE_TITLE":  "Origen de portada",
+                   "TAP_TO_CHANGE":  "Toca para cambiar/reiniciar",
+                   "TITLE":  "Crear portada",
+                   "TAP_TO_PREVIEW":  "Toca para previsualizar",
+                   "MODEL_PICKER":  {
+                                        "TITLE":  "Elige tu Kindle"
+                                    },
+                   "INFO_REQUIREMENTS_LABEL":  "Requisitos:",
+                   "INFO_REQUIREMENT_DISABLE_ADS":  "Desactivar ads en Kindle.",
+                   "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY":  "Activar \"Pantalla y brillo \u003e Mostrar portadas en la pantalla del dispositivo\" en Kindle.",
+                   "ARIA_START_SCRATCH":  "Comenzar desde cero",
+                   "SOURCE_IMAGE":  "Imagen",
+                   "SOURCE_SCRATCH":  "Desde cero"
+               },
+    "COVERS":  {
+                   "DELETED":  "Portada eliminada",
+                   "EMPTY":  "No hay portadas todavÃ­a.",
+                   "GETTING_COVER":  "Obteniendo portada",
+                   "LOADING_PREVIEW":  "Cargando vista previa...",
+                   "PLACEHOLDER":  "Portada",
+                   "PREVIEW_TITLE":  "Portada actual",
+                   "TITLE":  "Portadas",
+                   "DITHERED_THUMBNAIL_NOTICE":  "Las portadas con reducciÃ³n de artefactos pueden verse diferentes en miniatura. Abre la vista previa para ver un resultado mÃ¡s fiel.",
+                   "ACTIONS":  {
+                                   "DELETE":  "Eliminar",
+                                   "SHARE":  "Compartir",
+                                   "OPEN":  "Abrir",
+                                   "EDIT_PROJECT":  "Editar"
+                               },
+                   "DELETE":  {
+                                  "MESSAGE":  "Â¿Quieres eliminar esta portada?",
+                                  "TITLE":  "Eliminar portada"
+                              },
+                   "ERROR":  {
+                                 "DELETE":  "No se pudo eliminar la portada. IntÃ©ntalo de nuevo.",
+                                 "LOAD":  "No se pudieron cargar tus portadas. Arrastra hacia abajo para intentar de nuevo.",
+                                 "PREVIEW":  "No se pudo cargar la vista previa. Intenta de nuevo.",
+                                 "SHARE":  "No se pudo compartir la portada. IntÃ©ntalo de nuevo.",
+                                 "OPEN":  "No se pudo abrir la portada. IntÃ©ntalo de nuevo.",
+                                 "OPEN_PROJECT":  "No se pudo abrir el proyecto. IntÃ©ntalo de nuevo."
+                             },
+                   "EREADER":  {
+                                   "ZOOM_OUT_ARIA":  "Alejar vista previa del e-reader",
+                                   "ZOOM_IN_ARIA":  "Acercar vista previa del e-reader",
+                                   "ZOOM_RESET_ARIA":  "Restablecer zoom de la vista previa del e-reader"
+                               }
+               },
+    "INSTRUCTIONS":  {
+                         "NOTE_TITLE":  "Nota",
+                         "STEP_1":  "Selecciona una imagen para tu portada",
+                         "STEP_2":  "Ajusta la imagen en el editor y toca Listo para aplicarla",
+                         "STEP_3":  "Crea la portada despuÃ©s de aplicar el ajuste",
+                         "STEP_4":  "Guarda o comparte la portada",
+                         "STEP_4_DESC":  "Cuando estÃ© lista, puedes guardarla en tu dispositivo o compartirla con la app Kindle para un flujo mÃ¡s simple.",
+                         "STEP_5":  "Enviar vÃ­a web (Send to Kindle)",
+                         "STEP_5_DESC":  "TambiÃ©n puedes enviarla desde el navegador con la herramienta web Send to Kindle.",
+                         "TIP":  "Para mejores resultados, usa imÃ¡genes en alta resoluciÃ³n y asegÃºrate de que los anuncios estÃ©n desactivados en tu Kindle.",
+                         "TITLE":  "Instrucciones"
+                     },
+    "KINDLE_BRANDS":  {
+                          "KINDLE":  "Kindle"
+                      },
+    "KINDLE_GROUPS":  {
+                          "BASIC":  "Basic",
+                          "OASIS":  "Oasis",
+                          "PAPERWHITE":  "Paperwhite",
+                          "PAPERWHITE_SIGNATURE":  "Paperwhite Signature",
+                          "SCRIBE":  "Scribe",
+                          "VOYAGE":  "Voyage",
+                          "COLORSOFT":  "Colorsoft",
+                          "COLORSOFT_SIGNATURE":  "Colorsoft Signature"
+                      },
+    "KINDLE_MODELS":  {
+                          "BASIC_2010_2019":  "2010-2019",
+                          "BASIC_2022_2024":  "2022-2024",
+                          "OASIS_2016":  "2016",
+                          "OASIS_2017_2019":  "2017-2019",
+                          "PAPERWHITE_2012_2013":  "2012-2013",
+                          "PAPERWHITE_2015_2019":  "2015-2019",
+                          "PAPERWHITE_2021":  "2021",
+                          "PAPERWHITE_2024":  "2024",
+                          "PAPERWHITE_SIGNATURE_2021":  "2021",
+                          "PAPERWHITE_SIGNATURE_2024":  "2024",
+                          "SCRIBE_2022_2024":  "2022-2024",
+                          "VOYAGE_2014":  "2014",
+                          "COLORSOFT":  "2025",
+                          "COLORSOFT_SIGNATURE_EDITION":  "2024"
+                      },
+    "KOBO_BRANDS":  {
+                        "KOBO":  "Kobo"
+                    },
+    "KOBO_GROUPS":  {
+                        "CLARA":  "Clara",
+                        "ELIPSA":  "Elipsa",
+                        "LIBRA":  "Libra",
+                        "NIA":  "Nia",
+                        "SAGE":  "Sage"
+                    },
+    "KOBO_MODELS":  {
+                        "CLARA_ALL":  "Kobo Clara (HD / 2E / BW / Colour)",
+                        "ELIPSA_ALL":  "Kobo Elipsa (Elipsa / 2E)",
+                        "LIBRA_ALL":  "Kobo Libra (H2O / 2 / Colour)",
+                        "NIA":  "Kobo Nia",
+                        "SAGE":  "Kobo Sage"
+                    },
+    "NOOK_BRANDS":  {
+                        "NOOK":  "Nook"
+                    },
+    "NOOK_GROUPS":  {
+                        "GLOWLIGHT":  "GlowLight"
+                    },
+    "NOOK_MODELS":  {
+                        "GLOWLIGHT_2013_2015":  "Nook GlowLight (2013-2015)",
+                        "GLOWLIGHT_2019_2023":  "Nook GlowLight (2019-2023)"
+                    },
+    "POCKETBOOK_BRANDS":  {
+                              "POCKETBOOK":  "PocketBook"
+                          },
+    "POCKETBOOK_GROUPS":  {
+                              "ERA":  "Era",
+                              "INKPAD":  "InkPad",
+                              "VERSE":  "Verse"
+                          },
+    "POCKETBOOK_MODELS":  {
+                              "ERA":  "PocketBook Era",
+                              "INKPAD_ALL":  "PocketBook InkPad (All models)",
+                              "VERSE":  "PocketBook Verse",
+                              "VERSE_PRO":  "PocketBook Verse Pro"
+                          },
+    "TOLINO_BRANDS":  {
+                          "TOLINO":  "Tolino"
+                      },
+    "TOLINO_GROUPS":  {
+                          "SHINE":  "Shine",
+                          "VISION":  "Vision"
+                      },
+    "TOLINO_MODELS":  {
+                          "SHINE_2014_2018":  "Tolino Shine (2014-2018)",
+                          "SHINE_HD":  "Tolino Shine HD",
+                          "VISION_2015_2018":  "Tolino Vision (2015-2018)",
+                          "VISION_2021_2024":  "Tolino Vision (2021-2024)"
+                      },
+    "REQUISITES":  {
+                       "ADS_DESC":  "Es necesario desactivar los anuncios en el dispositivo para que la portada se muestre en la pantalla de bloqueo.",
+                       "ADS_LINK":  "Gestionar anuncios del dispositivo",
+                       "ADS_TITLE":  "Anuncios desactivados",
+                       "APP_ANDROID":  "App Kindle (Android)",
+                       "APP_DESC":  "Se requiere la app Kindle para enviar y visualizar la portada en el dispositivo.",
+                       "APP_IOS":  "App Kindle (iOS)",
+                       "APP_TITLE":  "AplicaciÃ³n Kindle",
+                       "COVER_DESC":  "Activa la opciÃ³n para mostrar la portada del libro actual en la pantalla de bloqueo.",
+                       "COVER_LINK":  "Configurar visualizaciÃ³n de portada",
+                       "COVER_TITLE":  "Mostrar portada del libro",
+                       "NOTE":  "Cover Creator for Kindle no es una aplicaciÃ³n oficial y no modifica el software del dispositivo.",
+                       "SEND_LINK":  "Send to Kindle (web)",
+                       "SEND_TITLE":  "Enviar portadas vÃ­a web",
+                       "TITLE":  "Requisitos"
+                   },
+    "HOME_TOUR":  {
+                      "CONTROLS":  {
+                                       "BACK":  "AtrÃ¡s",
+                                       "FINISH":  "Finalizar",
+                                       "INTERACT_HINT":  "InteractÃºa con el elemento resaltado para continuar.",
+                                       "NEXT":  "Siguiente",
+                                       "PROGRESS":  "{{current}} de {{total}}",
+                                       "SKIP":  "Omitir"
+                                   },
+                      "STEPS":  {
+                                    "DEVICE":  {
+                                                   "TITLE":  "Dispositivo",
+                                                   "DESCRIPTION":  "Primero selecciona tu dispositivo.\nAsÃ­ la portada se crea con la resoluciÃ³n correcta."
+                                               },
+                                    "BRAND":  {
+                                                  "TITLE":  "Marca",
+                                                  "DESCRIPTION":  "Elige la marca de tu eReader."
+                                              },
+                                    "GROUP":  {
+                                                  "TITLE":  "Grupo",
+                                                  "DESCRIPTION":  "Selecciona la lÃ­nea de tu dispositivo."
+                                              },
+                                    "MODEL":  {
+                                                  "TITLE":  "Modelo",
+                                                  "DESCRIPTION":  "Elige el modelo exacto."
+                                              },
+                                    "IMAGE":  {
+                                                  "TITLE":  "Imagen de portada",
+                                                  "DESCRIPTION":  "Selecciona la imagen para tu portada."
+                                              },
+                                    "ADJUST":  {
+                                                   "TITLE":  "Ajustar",
+                                                   "DESCRIPTION":  "Ajusta la imagen en el editor y toca Listo."
+                                               },
+                                    "EXPORT":  {
+                                                   "TITLE":  "Calidad de exportacion",
+                                                   "DESCRIPTION":  "Gratis exportas en Estandar. Al comprar sin anuncios desbloqueas la seleccion de exportacion (Lossless/Compressed)."
+                                               },
+                                    "REMOVE_ADS_CLOSE":  {
+                                                             "TITLE":  "Cerrar por ahora",
+                                                             "DESCRIPTION":  "De momento, disfruta la version gratis. No te sientas obligado a comprar."
+                                                         },
+                                    "CREATE":  {
+                                                   "TITLE":  "Crear portada",
+                                                   "DESCRIPTION":  "Genera aquÃ­ la portada."
+                                               },
+                                    "RESULTS":  {
+                                                    "TITLE":  "Guardar o compartir",
+                                                    "DESCRIPTION":  "Guarda o comparte tu portada."
+                                                },
+                                    "DONE":  {
+                                                 "TITLE":  "Listo",
+                                                 "DESCRIPTION":  "Listo.\nYa sabes cÃ³mo crear portadas con CCFK."
+                                             }
+                                }
+                  },
+    "SETTINGS":  {
+                     "INSTRUCTIONS":  "Ver instrucciones",
+                     "INSTRUCTIONS_HINT":  "CÃ³mo crear y enviar una portada a Kindle",
+                     "INSTRUCTIONS_SECTION":  "Instrucciones",
+                     "LANGUAGE":  "Idioma",
+                     "LANGUAGE_RESTART_NOTICE":  "Idioma cambiado. La app se reiniciarÃ¡ para aplicar los cambios.",
+                     "LANGUAGE_PREPARING_COUNTDOWN":  "Preparando todo en tu idioma. La app se cerrarÃ¡ para cambiar su nombre ({{count}})",
+                     "EREADER_OPTIMIZATION_SECTION":  "Mejora de imagen",
+                     "EREADER_OPTIMIZATION_HINT":  "Aplica ajustes automÃ¡ticos para mejorar nitidez en pantallas de tinta electrÃ³nica",
+                     "EREADER_OPTIMIZATION_TOGGLE":  "Optimizar para tinta electrÃ³nica",
+                     "REQUISITES":  "Ver requisitos",
+                     "REQUISITES_HINT":  "ConfiguraciÃ³n necesaria para que la portada funcione correctamente en Kindle",
+                     "REQUISITES_SECTION":  "Requisitos",
+                     "THEME":  "Tema",
+                     "THEME_SYSTEM":  "Sistema",
+                     "THEME_LIGHT":  "Claro Natural",
+                     "THEME_DARK":  "Oscuro ClÃ¡sico",
+                     "THEME_WARM_READING":  "Lectura CÃ¡lida",
+                     "THEME_POP_ROSE":  "Rosa Pop",
+                     "THEME_NOCTURNE_VIOLET":  "Violeta Nocturno",
+                     "THEME_OBSIDIAN_RED":  "Rojo Obsidiana",
+                     "THEME_TERMINAL_GREEN":  "Verde Terminal",
+                     "THEME_MINT_FRESH":  "Menta Fresca",
+                     "THEME_SILVER_TECH":  "Silver",
+                     "THEME_GOLD_LUXE":  "Oro",
+                     "TITLE":  "ConfiguraciÃ³n",
+                     "VIEW_TOUR":  "Ver tour"
+                 },
+    "TABS":  {
+                 "COVERS":  "Portadas",
+                 "CREATE":  "Crear",
+                 "SETTINGS":  "ConfiguraciÃ³n"
+             },
+    "ARR":  {
+                "TOOLS":  {
+                              "RECOMMENDED":  "Recomendadas",
+                              "INFO":  "Info",
+                              "APPS":  "Apps",
+                              "GUIDE":  "GuÃ­a"
+                          }
+            },
+    "E_READER_FRAME":  {
+                           "COLOR_SELECTOR":  {
+                                                  "TITLE":  "Color del marco"
+                                              },
+                           "BRAND":  {
+                                         "KINDLE":  "Kindle",
+                                         "KOBO":  "Kobo",
+                                         "GENERIC":  "GenÃ©rico"
+                                     },
+                           "COLOR":  {
+                                         "BLACK":  "Negro",
+                                         "WHITE":  "Blanco",
+                                         "MATCHA":  "Matcha",
+                                         "JADE":  "Jade",
+                                         "PINK":  "Rosa",
+                                         "METALLIC_BLACK":  "Negro metÃ¡lico",
+                                         "METALLIC_JADE":  "Jade metÃ¡lico",
+                                         "METALLIC_PINK":  "Rosa metÃ¡lico"
+                                     }
+                       }
 }

@@ -1,0 +1,25 @@
+{
+  "name": "@sheldrapps/privacy-policy-kit",
+  "version": "1.0.0",
+  "description": "Reusable privacy policy section for Sheldrapps Ionic Angular apps",
+  "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
+  "peerDependencies": {
+    "@angular/common": "^20.0.0",
+    "@angular/core": "^20.0.0",
+    "@ionic/angular": "^8.0.0",
+    "@ngx-translate/core": "^17.0.0",
+    "rxjs": "~7.8.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "keywords": [
+    "privacy",
+    "policy",
+    "ionic",
+    "angular",
+    "translation"
+  ]
+}

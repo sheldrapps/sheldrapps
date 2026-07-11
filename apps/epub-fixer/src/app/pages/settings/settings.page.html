@@ -28,6 +28,18 @@
     </ion-item>
   </ion-list>
 
+  <sh-privacy-policy-section [url]="privacyPolicyUrl"></sh-privacy-policy-section>
+
+  <ion-list inset="true">
+    <ion-item button detail="true" (click)="previewRatingPrompt()">
+      <ion-label>{{ 'RATING.DEBUG.PREVIEW_PROMPT' | translate }}</ion-label>
+    </ion-item>
+
+    <ion-item button detail="true" (click)="previewRatingFeedback()">
+      <ion-label>{{ 'RATING.DEBUG.PREVIEW_FEEDBACK' | translate }}</ion-label>
+    </ion-item>
+  </ion-list>
+
   <ion-loading
     [isOpen]="isLanguageRestartLoading"
     [message]="'SETTINGS.LANGUAGE_PREPARING_COUNTDOWN' | translate:{ count: languageRestartCountdown }"

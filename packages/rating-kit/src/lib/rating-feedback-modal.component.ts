@@ -11,7 +11,7 @@ import {
   IonToolbar,
   ModalController,
 } from '@ionic/angular/standalone';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
   DEFAULT_RATING_FEEDBACK_OPTIONS,
   type RatingFeedbackOption,
@@ -40,6 +40,7 @@ import {
 })
 export class RatingFeedbackModalComponent {
   private readonly modalController = inject(ModalController);
+  private readonly translate = inject(TranslateService);
 
   @Input() feedbackOptions: readonly RatingFeedbackOption[] =
     DEFAULT_RATING_FEEDBACK_OPTIONS;
@@ -66,5 +67,12 @@ export class RatingFeedbackModalComponent {
 
   trackByOptionId(_: number, option: RatingFeedbackOption): string {
     return option.id;
+  }
+
+  resolveOptionLabel(option: RatingFeedbackOption): string {
+    const translated = this.translate.instant(option.labelKey);
+    return translated && translated !== option.labelKey
+      ? translated
+      : option.fallbackLabel;
   }
 }

@@ -1,356 +1,352 @@
 {
-  "APP": {
-    "TITLE": "创建Kindle封面"
-  },
-  "COMMON": {
-    "BACK_AGAIN_TO_EXIT": "再次返回以退出",
-    "CANCEL": "取消",
-    "CLOSE": "关闭",
-    "EDIT": "编辑",
-    "CHANGE": "更改",
-    "DELETE": "删除",
-    "DONE": "完成",
-    "ERROR": "错误",
-    "LOADING": "加载中…",
-    "BILLING_UNAVAILABLE": "当前无法购买。",
-    "PURCHASE_ERROR": "无法完成购买，请重试。",
-    "REMOVE_ADS_BUY": "购买",
-    "REMOVE_ADS_DESCRIPTION": "一次性付款，永久去除广告，并启用无损/压缩导出选择。",
-    "REMOVE_ADS_PURCHASED": "广告已永久去除。",
-    "REMOVE_ADS_RESTORE": "恢复购买",
-    "REMOVE_ADS_RESTORED": "购买已成功恢复。",
-    "REMOVE_ADS_TITLE": "去除广告",
-    "REMOVE_ADS_CTA_TITLE": "去除广告",
-    "REMOVE_ADS_CTA_SUBTITLE": "一次性付款 • 永久有效",
-    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "一次性付款 • {{price}}",
-    "REMOVE_ADS_MODAL_PRICE": "价格：{{price}} • 无订阅",
-    "RESTORE_ERROR": "无法恢复购买，请重试。",
-    "PRO_ONLY": "专业版",
-    "WATCH_AD_SUBTITLE": "观看广告",
-    "SHARE": "分享",
-    "SHARE_KINDLE_HINT": "分享时，请选择 Kindle 应用以发送到您的设备。",
-    "WARNING": "警告",
-    "EDIT_PROJECT_TITLE": "你想如何编辑这个文件？",
-    "EDIT_PROJECT_MESSAGE": "请选择是替换当前文件，还是先保留一份副本。",
-    "EDIT_PROJECT_OVERWRITE": "覆盖",
-    "EDIT_PROJECT_OVERWRITE_DESC": "将更改直接保存到现有文件。",
-    "EDIT_PROJECT_COPY": "使用副本",
-    "EDIT_PROJECT_COPY_DESC": "保留原文件，并编辑一个新副本。"
-  },
-  "CREATE": {
-    "ADS_REQUIRED": "广告加载失败，请检查网络或广告拦截器。",
-    "ARIA_CHANGE_IMAGE": "更换封面图片。当前图片：{{name}}",
-    "ARIA_CROP": "调整选中图片",
-    "ARIA_SELECT_IMAGE": "选择封面图片",
-    "ARIA_SELECT_MODEL": "选择设备型号",
-    "CROP_ACTION": "调整",
-    "COVER_CREATED": "封面已创建，您现在可以保存或分享",
-    "CREATE_ACTION": "创建封面",
-    "CREATE_ACTION_REWARDED": "创建封面（观看广告）",
-    "GENERATING": "正在生成封面…",
-    "HINT_SAVE_SHARE_EXPLAIN": "创建封面不会自动保存。",
-    "INFO": "信息",
-    "INFO_ARIA": "关于创建封面的信息",
-    "INFO_TITLE": "信息",
-    "INFO_SEND_TITLE": "发送到 Kindle",
-    "INFO_SHARE_KINDLE": "要发送到 Kindle，请在分享时选择 Kindle 应用。",
-    "INFO_FLOW_LABEL": "建议顺序：",
-    "INFO_STEP_1": "选择图片。",
-    "INFO_STEP_2": "在编辑器中调整图片，然后点击完成以应用。",
-    "INFO_STEP_3": "应用调整后创建封面。",
-    "INFO_STEP_4": "保存或分享。",
-    "INFO_NOTE_LABEL": "注意：",
-    "IMAGE_ERROR_CORRUPT": "无法读取图片，请尝试其他图片。",
-    "IMAGE_ERROR_SIZE": "文件过大，最大 {{maxSize}} MB。",
-    "IMAGE_ERROR_TYPE": "不支持的格式（{{type}}），请选择 JPG、PNG 或 WebP。",
-    "IMAGE_WARN_SMALL": "图片分辨率低于所选 Kindle 型号，建议使用更大的图片以获得更好的效果。",
-    "LOADING_IMAGE": "正在加载图片…",
-    "OPENING_EDITOR": "正在打开编辑器…",
-    "SAVING": "正在保存封面…",
-    "SAVE_ACTION": "保存",
-    "SAVED_OK": "封面已保存",
-    "SAVE_RENAME_TITLE": "保存封面",
-    "SAVE_RENAME_MESSAGE": "请输入封面名称",
-    "SAVE_RENAME_PLACEHOLDER": "文件名",
-    "SELECT_IMAGE_LABEL": "封面图片",
-    "SELECT_IMAGE_PLACEHOLDER": "选择图片",
-    "SELECT_BRAND_LABEL": "品牌",
-    "SELECT_BRAND_PLACEHOLDER": "选择品牌",
-    "SELECT_GROUP_LABEL": "系列",
-    "SELECT_GROUP_PLACEHOLDER": "选择系列",
-    "SELECT_GENERATION_LABEL": "型号",
-    "SELECT_GENERATION_PLACEHOLDER": "选择型号",
-    "SELECT_MODEL_LABEL": "设备型号",
-    "SELECT_MODEL_PLACEHOLDER": "选择您的设备",
-    "TAP_TO_CHANGE": "点击更换/重置",
-    "TITLE": "创建封面",
-    "COVER_SOURCE_TITLE": "封面来源",
-    "TAP_TO_PREVIEW": "点击查看预览",
-    "MODEL_PICKER": {
-      "TITLE": "选择您的 Kindle"
-    },
-    "INFO_REQUIREMENTS_LABEL": "要求：",
-    "INFO_REQUIREMENT_DISABLE_ADS": "在 Kindle 上禁用广告。",
-    "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "在 Kindle 上启用「屏幕与亮度 > 在锁屏上显示封面」。",
-    "ARIA_START_SCRATCH": "Cong ling kaishi",
-    "SOURCE_IMAGE": "Tupian",
-    "SOURCE_SCRATCH": "Cong ling kaishi"
-  },
-  "COVERS": {
-    "DELETED": "封面已删除",
-    "EMPTY": "暂无封面。",
-    "GETTING_COVER": "正在获取封面",
-    "LOADING_PREVIEW": "正在加载预览...",
-    "PLACEHOLDER": "封面",
-    "PREVIEW_TITLE": "当前封面",
-    "TITLE": "封面",
-    "DITHERED_THUMBNAIL_NOTICE": "启用伪影减少的封面在缩略图中可能看起来不同。请打开预览查看更准确的效果。",
-    "ACTIONS": {
-      "DELETE": "删除",
-      "SHARE": "分享",
-      "OPEN": "打开",
-      "EDIT_PROJECT": "编辑"
-    },
-    "DELETE": {
-      "MESSAGE": "确定要删除此封面吗？",
-      "TITLE": "删除封面"
-    },
-    "ERROR": {
-      "DELETE": "无法删除封面，请重试。",
-      "LOAD": "无法加载封面，请下拉刷新。",
-      "PREVIEW": "无法加载预览，请重试。",
-      "SHARE": "无法分享封面，请重试。",
-      "OPEN": "无法打开封面。请重试。",
-      "OPEN_PROJECT": "无法打开项目。请重试。"
-    },
-    "EREADER": {
-      "ZOOM_OUT_ARIA": "缩小电子阅读器预览",
-      "ZOOM_IN_ARIA": "放大电子阅读器预览",
-      "ZOOM_RESET_ARIA": "重置电子阅读器预览缩放"
-    }
-  },
-  "INSTRUCTIONS": {
-    "NOTE_TITLE": "注意",
-    "STEP_1": "选择封面图片",
-    "STEP_2": "在编辑器中调整图片，然后点击完成以应用",
-    "STEP_3": "应用调整后创建封面",
-    "STEP_4": "保存或分享封面",
-    "STEP_4_DESC": "准备好后，您可以将其保存到设备，或通过 Kindle 应用分享以获得更顺畅的体验。",
-    "STEP_5": "通过网页发送（Send to Kindle）",
-    "STEP_5_DESC": "您也可以在浏览器中使用 Send to Kindle 网页工具发送。",
-    "TIP": "为获得最佳效果，请使用高分辨率图片，并确保 Kindle 上的广告已禁用。",
-    "TITLE": "使用说明"
-  },
-  "KINDLE_BRANDS": {
-    "KINDLE": "Kindle"
-  },
-  "KINDLE_GROUPS": {
-    "BASIC": "Basic",
-    "OASIS": "Oasis",
-    "PAPERWHITE": "Paperwhite",
-    "PAPERWHITE_SIGNATURE": "Paperwhite Signature",
-    "SCRIBE": "Scribe",
-    "VOYAGE": "Voyage",
-    "COLORSOFT": "Colorsoft",
-    "COLORSOFT_SIGNATURE": "Colorsoft Signature"
-  },
-  "KINDLE_MODELS": {
-    "BASIC_2010_2019": "2010-2019",
-    "BASIC_2022_2024": "2022-2024",
-    "OASIS_2016": "2016",
-    "OASIS_2017_2019": "2017-2019",
-    "PAPERWHITE_2012_2013": "2012-2013",
-    "PAPERWHITE_2015_2019": "2015-2019",
-    "PAPERWHITE_2021": "2021",
-    "PAPERWHITE_2024": "2024",
-    "PAPERWHITE_SIGNATURE_2021": "2021",
-    "PAPERWHITE_SIGNATURE_2024": "2024",
-    "SCRIBE_2022_2024": "2022-2024",
-    "VOYAGE_2014": "2014",
-    "COLORSOFT": "2025",
-    "COLORSOFT_SIGNATURE_EDITION": "2024"
-  },
-  "KOBO_BRANDS": {
-    "KOBO": "Kobo"
-  },
-  "KOBO_GROUPS": {
-    "CLARA": "Clara",
-    "ELIPSA": "Elipsa",
-    "LIBRA": "Libra",
-    "NIA": "Nia",
-    "SAGE": "Sage"
-  },
-  "KOBO_MODELS": {
-    "CLARA_ALL": "Kobo Clara (HD / 2E / BW / Colour)",
-    "ELIPSA_ALL": "Kobo Elipsa (Elipsa / 2E)",
-    "LIBRA_ALL": "Kobo Libra (H2O / 2 / Colour)",
-    "NIA": "Kobo Nia",
-    "SAGE": "Kobo Sage"
-  },
-  "NOOK_BRANDS": {
-    "NOOK": "Nook"
-  },
-  "NOOK_GROUPS": {
-    "GLOWLIGHT": "GlowLight"
-  },
-  "NOOK_MODELS": {
-    "GLOWLIGHT_2013_2015": "Nook GlowLight (2013-2015)",
-    "GLOWLIGHT_2019_2023": "Nook GlowLight (2019-2023)"
-  },
-  "POCKETBOOK_BRANDS": {
-    "POCKETBOOK": "PocketBook"
-  },
-  "POCKETBOOK_GROUPS": {
-    "ERA": "Era",
-    "INKPAD": "InkPad",
-    "VERSE": "Verse"
-  },
-  "POCKETBOOK_MODELS": {
-    "ERA": "PocketBook Era",
-    "INKPAD_ALL": "PocketBook InkPad (All models)",
-    "VERSE": "PocketBook Verse",
-    "VERSE_PRO": "PocketBook Verse Pro"
-  },
-  "TOLINO_BRANDS": {
-    "TOLINO": "Tolino"
-  },
-  "TOLINO_GROUPS": {
-    "SHINE": "Shine",
-    "VISION": "Vision"
-  },
-  "TOLINO_MODELS": {
-    "SHINE_2014_2018": "Tolino Shine (2014-2018)",
-    "SHINE_HD": "Tolino Shine HD",
-    "VISION_2015_2018": "Tolino Vision (2015-2018)",
-    "VISION_2021_2024": "Tolino Vision (2021-2024)"
-  },
-  "REQUISITES": {
-    "ADS_DESC": "要在锁屏上显示封面，必须在设备上禁用广告。",
-    "ADS_LINK": "管理设备广告",
-    "ADS_TITLE": "已禁用广告",
-    "APP_ANDROID": "Kindle 应用（Android）",
-    "APP_DESC": "需要 Kindle 应用才能将封面发送到设备并查看。",
-    "APP_IOS": "Kindle 应用（iOS）",
-    "APP_TITLE": "Kindle 应用",
-    "COVER_DESC": "启用在锁屏上显示当前书籍封面的选项。",
-    "COVER_LINK": "配置封面显示",
-    "COVER_TITLE": "显示书籍封面",
-    "NOTE": "Cover Creator for Kindle 不是官方应用，不会修改设备软件。",
-    "SEND_LINK": "Send to Kindle（网页版）",
-    "SEND_TITLE": "通过网页发送封面",
-    "TITLE": "使用要求"
-  },
-  "HOME_TOUR": {
-    "CONTROLS": {
-      "BACK": "返回",
-      "FINISH": "完成",
-      "INTERACT_HINT": "与高亮元素互动以继续。",
-      "NEXT": "下一步",
-      "PROGRESS": "{{current}} / {{total}}",
-      "SKIP": "跳过"
-    },
-    "STEPS": {
-      "DEVICE": {
-        "TITLE": "设备",
-        "DESCRIPTION": "首先选择您的设备。\n这将确保以正确的分辨率创建封面。"
-      },
-      "BRAND": {
-        "TITLE": "品牌",
-        "DESCRIPTION": "选择您的电子书阅读器品牌。"
-      },
-      "GROUP": {
-        "TITLE": "系列",
-        "DESCRIPTION": "选择您的设备系列。"
-      },
-      "MODEL": {
-        "TITLE": "型号",
-        "DESCRIPTION": "选择精确型号。"
-      },
-      "IMAGE": {
-        "TITLE": "封面图片",
-        "DESCRIPTION": "选择封面图片。"
-      },
-      "ADJUST": {
-        "TITLE": "调整",
-        "DESCRIPTION": "在编辑器中调整图片，然后点击完成。"
-      },
-      "CREATE": {
-        "TITLE": "创建封面",
-        "DESCRIPTION": "在此生成封面。"
-      },
-      "RESULTS": {
-        "TITLE": "保存或分享",
-        "DESCRIPTION": "保存或分享您的封面。"
-      },
-      "DONE": {
-        "TITLE": "一切就绪",
-        "DESCRIPTION": "完成。\n您现在已了解如何使用 CCFK 创建封面。"
-      }
-    }
-  },
-  "SETTINGS": {
-    "INSTRUCTIONS": "查看说明",
-    "INSTRUCTIONS_HINT": "如何为 Kindle 创建并发送封面",
-    "INSTRUCTIONS_SECTION": "说明",
-    "LANGUAGE": "语言",
-    "LANGUAGE_RESTART_NOTICE": "语言已更改，应用将重启以应用更改。",
-    "LANGUAGE_PREPARING_COUNTDOWN": "正在按你的语言进行准备。应用将关闭以更改名称（{{count}}）",
-    "PRIVACY_HINT": "控制数据和广告的处理方式",
-    "PRIVACY_OPTIONS": "隐私选项",
-    "PRIVACY_POLICY": "隐私政策",
-    "PRIVACY_SECTION": "隐私",
-    "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
-    "EREADER_OPTIMIZATION_HINT": "Apply automatic adjustments to improve clarity on eReaders",
-    "EREADER_OPTIMIZATION_TOGGLE": "Optimize for eReader",
-    "REQUISITES": "查看要求",
-    "REQUISITES_HINT": "封面在 Kindle 上正确工作所需的设置",
-    "REQUISITES_SECTION": "使用要求",
-    "THEME": "主题",
-    "THEME_SYSTEM": "系统",
-    "THEME_LIGHT": "自然亮色",
-    "THEME_DARK": "经典暗色",
-    "THEME_WARM_READING": "暖色阅读",
-    "THEME_POP_ROSE": "玫瑰粉",
-    "THEME_NOCTURNE_VIOLET": "夜曲紫",
-    "THEME_OBSIDIAN_RED": "黑曜红",
-    "THEME_TERMINAL_GREEN": "终端绿",
-    "THEME_MINT_FRESH": "薄荷清新",
-    "THEME_SILVER_TECH": "银色",
-    "THEME_GOLD_LUXE": "金色",
-    "TITLE": "设置",
-    "VIEW_TOUR": "查看导览"
-  },
-  "TABS": {
-    "COVERS": "封面",
-    "CREATE": "创建",
-    "SETTINGS": "设置"
-  },
-  "ARR": {
-    "TOOLS": {
-      "RECOMMENDED": "推荐",
-      "INFO": "信息",
-      "APPS": "应用",
-      "GUIDE": "指南"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
-    }
-  }
+    "APP":  {
+                "TITLE":  "åˆ›å»ºKindleå°é¢"
+            },
+    "COMMON":  {
+                   "BACK_AGAIN_TO_EXIT":  "å†æ¬¡è¿”å›žä»¥é€€å‡º",
+                   "CANCEL":  "å–æ¶ˆ",
+                   "CLOSE":  "å…³é—­",
+                   "EDIT":  "ç¼–è¾‘",
+                   "CHANGE":  "æ›´æ”¹",
+                   "DELETE":  "åˆ é™¤",
+                   "DONE":  "å®Œæˆ",
+                   "ERROR":  "é”™è¯¯",
+                   "LOADING":  "åŠ è½½ä¸­â€¦",
+                   "BILLING_UNAVAILABLE":  "å½“å‰æ— æ³•è´­ä¹°ã€‚",
+                   "PURCHASE_ERROR":  "æ— æ³•å®Œæˆè´­ä¹°ï¼Œè¯·é‡è¯•ã€‚",
+                   "REMOVE_ADS_BUY":  "è´­ä¹°",
+                   "REMOVE_ADS_DESCRIPTION":  "ä¸€æ¬¡æ€§ä»˜æ¬¾ï¼Œæ°¸ä¹…åŽ»é™¤å¹¿å‘Šï¼Œå¹¶å¯ç”¨æ— æŸ/åŽ‹ç¼©å¯¼å‡ºé€‰æ‹©ã€‚",
+                   "REMOVE_ADS_PURCHASED":  "å¹¿å‘Šå·²æ°¸ä¹…åŽ»é™¤ã€‚",
+                   "REMOVE_ADS_RESTORE":  "æ¢å¤è´­ä¹°",
+                   "REMOVE_ADS_RESTORED":  "è´­ä¹°å·²æˆåŠŸæ¢å¤ã€‚",
+                   "REMOVE_ADS_TITLE":  "åŽ»é™¤å¹¿å‘Š",
+                   "REMOVE_ADS_CTA_TITLE":  "åŽ»é™¤å¹¿å‘Š",
+                   "REMOVE_ADS_CTA_SUBTITLE":  "ä¸€æ¬¡æ€§ä»˜æ¬¾ â€¢ æ°¸ä¹…æœ‰æ•ˆ",
+                   "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE":  "ä¸€æ¬¡æ€§ä»˜æ¬¾ â€¢ {{price}}",
+                   "REMOVE_ADS_MODAL_PRICE":  "ä»·æ ¼ï¼š{{price}} â€¢ æ— è®¢é˜…",
+                   "RESTORE_ERROR":  "æ— æ³•æ¢å¤è´­ä¹°ï¼Œè¯·é‡è¯•ã€‚",
+                   "PRO_ONLY":  "ä¸“ä¸šç‰ˆ",
+                   "WATCH_AD_SUBTITLE":  "è§‚çœ‹å¹¿å‘Š",
+                   "SHARE":  "åˆ†äº«",
+                   "SHARE_KINDLE_HINT":  "åˆ†äº«æ—¶ï¼Œè¯·é€‰æ‹© Kindle åº”ç”¨ä»¥å‘é€åˆ°æ‚¨çš„è®¾å¤‡ã€‚",
+                   "WARNING":  "è­¦å‘Š",
+                   "EDIT_PROJECT_TITLE":  "ä½ æƒ³å¦‚ä½•ç¼–è¾‘è¿™ä¸ªæ–‡ä»¶ï¼Ÿ",
+                   "EDIT_PROJECT_MESSAGE":  "è¯·é€‰æ‹©æ˜¯æ›¿æ¢å½“å‰æ–‡ä»¶ï¼Œè¿˜æ˜¯å…ˆä¿ç•™ä¸€ä»½å‰¯æœ¬ã€‚",
+                   "EDIT_PROJECT_OVERWRITE":  "è¦†ç›–",
+                   "EDIT_PROJECT_OVERWRITE_DESC":  "å°†æ›´æ”¹ç›´æŽ¥ä¿å­˜åˆ°çŽ°æœ‰æ–‡ä»¶ã€‚",
+                   "EDIT_PROJECT_COPY":  "ä½¿ç”¨å‰¯æœ¬",
+                   "EDIT_PROJECT_COPY_DESC":  "ä¿ç•™åŽŸæ–‡ä»¶ï¼Œå¹¶ç¼–è¾‘ä¸€ä¸ªæ–°å‰¯æœ¬ã€‚"
+               },
+    "CREATE":  {
+                   "ADS_REQUIRED":  "å¹¿å‘ŠåŠ è½½å¤±è´¥ï¼Œè¯·æ£€æŸ¥ç½‘ç»œæˆ–å¹¿å‘Šæ‹¦æˆªå™¨ã€‚",
+                   "ARIA_CHANGE_IMAGE":  "æ›´æ¢å°é¢å›¾ç‰‡ã€‚å½“å‰å›¾ç‰‡ï¼š{{name}}",
+                   "ARIA_CROP":  "è°ƒæ•´é€‰ä¸­å›¾ç‰‡",
+                   "ARIA_SELECT_IMAGE":  "é€‰æ‹©å°é¢å›¾ç‰‡",
+                   "ARIA_SELECT_MODEL":  "é€‰æ‹©è®¾å¤‡åž‹å·",
+                   "CROP_ACTION":  "è°ƒæ•´",
+                   "COVER_CREATED":  "å°é¢å·²åˆ›å»ºï¼Œæ‚¨çŽ°åœ¨å¯ä»¥ä¿å­˜æˆ–åˆ†äº«",
+                   "CREATE_ACTION":  "åˆ›å»ºå°é¢",
+                   "CREATE_ACTION_REWARDED":  "åˆ›å»ºå°é¢ï¼ˆè§‚çœ‹å¹¿å‘Šï¼‰",
+                   "GENERATING":  "æ­£åœ¨ç”Ÿæˆå°é¢â€¦",
+                   "HINT_SAVE_SHARE_EXPLAIN":  "åˆ›å»ºå°é¢ä¸ä¼šè‡ªåŠ¨ä¿å­˜ã€‚",
+                   "INFO":  "ä¿¡æ¯",
+                   "INFO_ARIA":  "å…³äºŽåˆ›å»ºå°é¢çš„ä¿¡æ¯",
+                   "INFO_TITLE":  "ä¿¡æ¯",
+                   "INFO_SEND_TITLE":  "å‘é€åˆ° Kindle",
+                   "INFO_SHARE_KINDLE":  "è¦å‘é€åˆ° Kindleï¼Œè¯·åœ¨åˆ†äº«æ—¶é€‰æ‹© Kindle åº”ç”¨ã€‚",
+                   "INFO_FLOW_LABEL":  "å»ºè®®é¡ºåºï¼š",
+                   "INFO_STEP_1":  "é€‰æ‹©å›¾ç‰‡ã€‚",
+                   "INFO_STEP_2":  "åœ¨ç¼–è¾‘å™¨ä¸­è°ƒæ•´å›¾ç‰‡ï¼Œç„¶åŽç‚¹å‡»å®Œæˆä»¥åº”ç”¨ã€‚",
+                   "INFO_STEP_3":  "åº”ç”¨è°ƒæ•´åŽåˆ›å»ºå°é¢ã€‚",
+                   "INFO_STEP_4":  "ä¿å­˜æˆ–åˆ†äº«ã€‚",
+                   "INFO_NOTE_LABEL":  "æ³¨æ„ï¼š",
+                   "IMAGE_ERROR_CORRUPT":  "æ— æ³•è¯»å–å›¾ç‰‡ï¼Œè¯·å°è¯•å…¶ä»–å›¾ç‰‡ã€‚",
+                   "IMAGE_ERROR_SIZE":  "æ–‡ä»¶è¿‡å¤§ï¼Œæœ€å¤§ {{maxSize}} MBã€‚",
+                   "IMAGE_ERROR_TYPE":  "ä¸æ”¯æŒçš„æ ¼å¼ï¼ˆ{{type}}ï¼‰ï¼Œè¯·é€‰æ‹© JPGã€PNG æˆ– WebPã€‚",
+                   "IMAGE_WARN_SMALL":  "å›¾ç‰‡åˆ†è¾¨çŽ‡ä½ŽäºŽæ‰€é€‰ Kindle åž‹å·ï¼Œå»ºè®®ä½¿ç”¨æ›´å¤§çš„å›¾ç‰‡ä»¥èŽ·å¾—æ›´å¥½çš„æ•ˆæžœã€‚",
+                   "LOADING_IMAGE":  "æ­£åœ¨åŠ è½½å›¾ç‰‡â€¦",
+                   "OPENING_EDITOR":  "æ­£åœ¨æ‰“å¼€ç¼–è¾‘å™¨â€¦",
+                   "SAVING":  "æ­£åœ¨ä¿å­˜å°é¢â€¦",
+                   "SAVE_ACTION":  "ä¿å­˜",
+                   "SAVED_OK":  "å°é¢å·²ä¿å­˜",
+                   "SAVE_RENAME_TITLE":  "ä¿å­˜å°é¢",
+                   "SAVE_RENAME_MESSAGE":  "è¯·è¾“å…¥å°é¢åç§°",
+                   "SAVE_RENAME_PLACEHOLDER":  "æ–‡ä»¶å",
+                   "SELECT_IMAGE_LABEL":  "å°é¢å›¾ç‰‡",
+                   "SELECT_IMAGE_PLACEHOLDER":  "é€‰æ‹©å›¾ç‰‡",
+                   "SELECT_BRAND_LABEL":  "å“ç‰Œ",
+                   "SELECT_BRAND_PLACEHOLDER":  "é€‰æ‹©å“ç‰Œ",
+                   "SELECT_GROUP_LABEL":  "ç³»åˆ—",
+                   "SELECT_GROUP_PLACEHOLDER":  "é€‰æ‹©ç³»åˆ—",
+                   "SELECT_GENERATION_LABEL":  "åž‹å·",
+                   "SELECT_GENERATION_PLACEHOLDER":  "é€‰æ‹©åž‹å·",
+                   "SELECT_MODEL_LABEL":  "è®¾å¤‡åž‹å·",
+                   "SELECT_MODEL_PLACEHOLDER":  "é€‰æ‹©æ‚¨çš„è®¾å¤‡",
+                   "TAP_TO_CHANGE":  "ç‚¹å‡»æ›´æ¢/é‡ç½®",
+                   "TITLE":  "åˆ›å»ºå°é¢",
+                   "COVER_SOURCE_TITLE":  "å°é¢æ¥æº",
+                   "TAP_TO_PREVIEW":  "ç‚¹å‡»æŸ¥çœ‹é¢„è§ˆ",
+                   "MODEL_PICKER":  {
+                                        "TITLE":  "é€‰æ‹©æ‚¨çš„ Kindle"
+                                    },
+                   "INFO_REQUIREMENTS_LABEL":  "è¦æ±‚ï¼š",
+                   "INFO_REQUIREMENT_DISABLE_ADS":  "åœ¨ Kindle ä¸Šç¦ç”¨å¹¿å‘Šã€‚",
+                   "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY":  "åœ¨ Kindle ä¸Šå¯ç”¨ã€Œå±å¹•ä¸Žäº®åº¦ \u003e åœ¨é”å±ä¸Šæ˜¾ç¤ºå°é¢ã€ã€‚",
+                   "ARIA_START_SCRATCH":  "Cong ling kaishi",
+                   "SOURCE_IMAGE":  "Tupian",
+                   "SOURCE_SCRATCH":  "Cong ling kaishi"
+               },
+    "COVERS":  {
+                   "DELETED":  "å°é¢å·²åˆ é™¤",
+                   "EMPTY":  "æš‚æ— å°é¢ã€‚",
+                   "GETTING_COVER":  "æ­£åœ¨èŽ·å–å°é¢",
+                   "LOADING_PREVIEW":  "æ­£åœ¨åŠ è½½é¢„è§ˆ...",
+                   "PLACEHOLDER":  "å°é¢",
+                   "PREVIEW_TITLE":  "å½“å‰å°é¢",
+                   "TITLE":  "å°é¢",
+                   "DITHERED_THUMBNAIL_NOTICE":  "å¯ç”¨ä¼ªå½±å‡å°‘çš„å°é¢åœ¨ç¼©ç•¥å›¾ä¸­å¯èƒ½çœ‹èµ·æ¥ä¸åŒã€‚è¯·æ‰“å¼€é¢„è§ˆæŸ¥çœ‹æ›´å‡†ç¡®çš„æ•ˆæžœã€‚",
+                   "ACTIONS":  {
+                                   "DELETE":  "åˆ é™¤",
+                                   "SHARE":  "åˆ†äº«",
+                                   "OPEN":  "æ‰“å¼€",
+                                   "EDIT_PROJECT":  "ç¼–è¾‘"
+                               },
+                   "DELETE":  {
+                                  "MESSAGE":  "ç¡®å®šè¦åˆ é™¤æ­¤å°é¢å—ï¼Ÿ",
+                                  "TITLE":  "åˆ é™¤å°é¢"
+                              },
+                   "ERROR":  {
+                                 "DELETE":  "æ— æ³•åˆ é™¤å°é¢ï¼Œè¯·é‡è¯•ã€‚",
+                                 "LOAD":  "æ— æ³•åŠ è½½å°é¢ï¼Œè¯·ä¸‹æ‹‰åˆ·æ–°ã€‚",
+                                 "PREVIEW":  "æ— æ³•åŠ è½½é¢„è§ˆï¼Œè¯·é‡è¯•ã€‚",
+                                 "SHARE":  "æ— æ³•åˆ†äº«å°é¢ï¼Œè¯·é‡è¯•ã€‚",
+                                 "OPEN":  "æ— æ³•æ‰“å¼€å°é¢ã€‚è¯·é‡è¯•ã€‚",
+                                 "OPEN_PROJECT":  "æ— æ³•æ‰“å¼€é¡¹ç›®ã€‚è¯·é‡è¯•ã€‚"
+                             },
+                   "EREADER":  {
+                                   "ZOOM_OUT_ARIA":  "ç¼©å°ç”µå­é˜…è¯»å™¨é¢„è§ˆ",
+                                   "ZOOM_IN_ARIA":  "æ”¾å¤§ç”µå­é˜…è¯»å™¨é¢„è§ˆ",
+                                   "ZOOM_RESET_ARIA":  "é‡ç½®ç”µå­é˜…è¯»å™¨é¢„è§ˆç¼©æ”¾"
+                               }
+               },
+    "INSTRUCTIONS":  {
+                         "NOTE_TITLE":  "æ³¨æ„",
+                         "STEP_1":  "é€‰æ‹©å°é¢å›¾ç‰‡",
+                         "STEP_2":  "åœ¨ç¼–è¾‘å™¨ä¸­è°ƒæ•´å›¾ç‰‡ï¼Œç„¶åŽç‚¹å‡»å®Œæˆä»¥åº”ç”¨",
+                         "STEP_3":  "åº”ç”¨è°ƒæ•´åŽåˆ›å»ºå°é¢",
+                         "STEP_4":  "ä¿å­˜æˆ–åˆ†äº«å°é¢",
+                         "STEP_4_DESC":  "å‡†å¤‡å¥½åŽï¼Œæ‚¨å¯ä»¥å°†å…¶ä¿å­˜åˆ°è®¾å¤‡ï¼Œæˆ–é€šè¿‡ Kindle åº”ç”¨åˆ†äº«ä»¥èŽ·å¾—æ›´é¡ºç•…çš„ä½“éªŒã€‚",
+                         "STEP_5":  "é€šè¿‡ç½‘é¡µå‘é€ï¼ˆSend to Kindleï¼‰",
+                         "STEP_5_DESC":  "æ‚¨ä¹Ÿå¯ä»¥åœ¨æµè§ˆå™¨ä¸­ä½¿ç”¨ Send to Kindle ç½‘é¡µå·¥å…·å‘é€ã€‚",
+                         "TIP":  "ä¸ºèŽ·å¾—æœ€ä½³æ•ˆæžœï¼Œè¯·ä½¿ç”¨é«˜åˆ†è¾¨çŽ‡å›¾ç‰‡ï¼Œå¹¶ç¡®ä¿ Kindle ä¸Šçš„å¹¿å‘Šå·²ç¦ç”¨ã€‚",
+                         "TITLE":  "ä½¿ç”¨è¯´æ˜Ž"
+                     },
+    "KINDLE_BRANDS":  {
+                          "KINDLE":  "Kindle"
+                      },
+    "KINDLE_GROUPS":  {
+                          "BASIC":  "Basic",
+                          "OASIS":  "Oasis",
+                          "PAPERWHITE":  "Paperwhite",
+                          "PAPERWHITE_SIGNATURE":  "Paperwhite Signature",
+                          "SCRIBE":  "Scribe",
+                          "VOYAGE":  "Voyage",
+                          "COLORSOFT":  "Colorsoft",
+                          "COLORSOFT_SIGNATURE":  "Colorsoft Signature"
+                      },
+    "KINDLE_MODELS":  {
+                          "BASIC_2010_2019":  "2010-2019",
+                          "BASIC_2022_2024":  "2022-2024",
+                          "OASIS_2016":  "2016",
+                          "OASIS_2017_2019":  "2017-2019",
+                          "PAPERWHITE_2012_2013":  "2012-2013",
+                          "PAPERWHITE_2015_2019":  "2015-2019",
+                          "PAPERWHITE_2021":  "2021",
+                          "PAPERWHITE_2024":  "2024",
+                          "PAPERWHITE_SIGNATURE_2021":  "2021",
+                          "PAPERWHITE_SIGNATURE_2024":  "2024",
+                          "SCRIBE_2022_2024":  "2022-2024",
+                          "VOYAGE_2014":  "2014",
+                          "COLORSOFT":  "2025",
+                          "COLORSOFT_SIGNATURE_EDITION":  "2024"
+                      },
+    "KOBO_BRANDS":  {
+                        "KOBO":  "Kobo"
+                    },
+    "KOBO_GROUPS":  {
+                        "CLARA":  "Clara",
+                        "ELIPSA":  "Elipsa",
+                        "LIBRA":  "Libra",
+                        "NIA":  "Nia",
+                        "SAGE":  "Sage"
+                    },
+    "KOBO_MODELS":  {
+                        "CLARA_ALL":  "Kobo Clara (HD / 2E / BW / Colour)",
+                        "ELIPSA_ALL":  "Kobo Elipsa (Elipsa / 2E)",
+                        "LIBRA_ALL":  "Kobo Libra (H2O / 2 / Colour)",
+                        "NIA":  "Kobo Nia",
+                        "SAGE":  "Kobo Sage"
+                    },
+    "NOOK_BRANDS":  {
+                        "NOOK":  "Nook"
+                    },
+    "NOOK_GROUPS":  {
+                        "GLOWLIGHT":  "GlowLight"
+                    },
+    "NOOK_MODELS":  {
+                        "GLOWLIGHT_2013_2015":  "Nook GlowLight (2013-2015)",
+                        "GLOWLIGHT_2019_2023":  "Nook GlowLight (2019-2023)"
+                    },
+    "POCKETBOOK_BRANDS":  {
+                              "POCKETBOOK":  "PocketBook"
+                          },
+    "POCKETBOOK_GROUPS":  {
+                              "ERA":  "Era",
+                              "INKPAD":  "InkPad",
+                              "VERSE":  "Verse"
+                          },
+    "POCKETBOOK_MODELS":  {
+                              "ERA":  "PocketBook Era",
+                              "INKPAD_ALL":  "PocketBook InkPad (All models)",
+                              "VERSE":  "PocketBook Verse",
+                              "VERSE_PRO":  "PocketBook Verse Pro"
+                          },
+    "TOLINO_BRANDS":  {
+                          "TOLINO":  "Tolino"
+                      },
+    "TOLINO_GROUPS":  {
+                          "SHINE":  "Shine",
+                          "VISION":  "Vision"
+                      },
+    "TOLINO_MODELS":  {
+                          "SHINE_2014_2018":  "Tolino Shine (2014-2018)",
+                          "SHINE_HD":  "Tolino Shine HD",
+                          "VISION_2015_2018":  "Tolino Vision (2015-2018)",
+                          "VISION_2021_2024":  "Tolino Vision (2021-2024)"
+                      },
+    "REQUISITES":  {
+                       "ADS_DESC":  "è¦åœ¨é”å±ä¸Šæ˜¾ç¤ºå°é¢ï¼Œå¿…é¡»åœ¨è®¾å¤‡ä¸Šç¦ç”¨å¹¿å‘Šã€‚",
+                       "ADS_LINK":  "ç®¡ç†è®¾å¤‡å¹¿å‘Š",
+                       "ADS_TITLE":  "å·²ç¦ç”¨å¹¿å‘Š",
+                       "APP_ANDROID":  "Kindle åº”ç”¨ï¼ˆAndroidï¼‰",
+                       "APP_DESC":  "éœ€è¦ Kindle åº”ç”¨æ‰èƒ½å°†å°é¢å‘é€åˆ°è®¾å¤‡å¹¶æŸ¥çœ‹ã€‚",
+                       "APP_IOS":  "Kindle åº”ç”¨ï¼ˆiOSï¼‰",
+                       "APP_TITLE":  "Kindle åº”ç”¨",
+                       "COVER_DESC":  "å¯ç”¨åœ¨é”å±ä¸Šæ˜¾ç¤ºå½“å‰ä¹¦ç±å°é¢çš„é€‰é¡¹ã€‚",
+                       "COVER_LINK":  "é…ç½®å°é¢æ˜¾ç¤º",
+                       "COVER_TITLE":  "æ˜¾ç¤ºä¹¦ç±å°é¢",
+                       "NOTE":  "Cover Creator for Kindle ä¸æ˜¯å®˜æ–¹åº”ç”¨ï¼Œä¸ä¼šä¿®æ”¹è®¾å¤‡è½¯ä»¶ã€‚",
+                       "SEND_LINK":  "Send to Kindleï¼ˆç½‘é¡µç‰ˆï¼‰",
+                       "SEND_TITLE":  "é€šè¿‡ç½‘é¡µå‘é€å°é¢",
+                       "TITLE":  "ä½¿ç”¨è¦æ±‚"
+                   },
+    "HOME_TOUR":  {
+                      "CONTROLS":  {
+                                       "BACK":  "è¿”å›ž",
+                                       "FINISH":  "å®Œæˆ",
+                                       "INTERACT_HINT":  "ä¸Žé«˜äº®å…ƒç´ äº’åŠ¨ä»¥ç»§ç»­ã€‚",
+                                       "NEXT":  "ä¸‹ä¸€æ­¥",
+                                       "PROGRESS":  "{{current}} / {{total}}",
+                                       "SKIP":  "è·³è¿‡"
+                                   },
+                      "STEPS":  {
+                                    "DEVICE":  {
+                                                   "TITLE":  "è®¾å¤‡",
+                                                   "DESCRIPTION":  "é¦–å…ˆé€‰æ‹©æ‚¨çš„è®¾å¤‡ã€‚\nè¿™å°†ç¡®ä¿ä»¥æ­£ç¡®çš„åˆ†è¾¨çŽ‡åˆ›å»ºå°é¢ã€‚"
+                                               },
+                                    "BRAND":  {
+                                                  "TITLE":  "å“ç‰Œ",
+                                                  "DESCRIPTION":  "é€‰æ‹©æ‚¨çš„ç”µå­ä¹¦é˜…è¯»å™¨å“ç‰Œã€‚"
+                                              },
+                                    "GROUP":  {
+                                                  "TITLE":  "ç³»åˆ—",
+                                                  "DESCRIPTION":  "é€‰æ‹©æ‚¨çš„è®¾å¤‡ç³»åˆ—ã€‚"
+                                              },
+                                    "MODEL":  {
+                                                  "TITLE":  "åž‹å·",
+                                                  "DESCRIPTION":  "é€‰æ‹©ç²¾ç¡®åž‹å·ã€‚"
+                                              },
+                                    "IMAGE":  {
+                                                  "TITLE":  "å°é¢å›¾ç‰‡",
+                                                  "DESCRIPTION":  "é€‰æ‹©å°é¢å›¾ç‰‡ã€‚"
+                                              },
+                                    "ADJUST":  {
+                                                   "TITLE":  "è°ƒæ•´",
+                                                   "DESCRIPTION":  "åœ¨ç¼–è¾‘å™¨ä¸­è°ƒæ•´å›¾ç‰‡ï¼Œç„¶åŽç‚¹å‡»å®Œæˆã€‚"
+                                               },
+                                    "CREATE":  {
+                                                   "TITLE":  "åˆ›å»ºå°é¢",
+                                                   "DESCRIPTION":  "åœ¨æ­¤ç”Ÿæˆå°é¢ã€‚"
+                                               },
+                                    "RESULTS":  {
+                                                    "TITLE":  "ä¿å­˜æˆ–åˆ†äº«",
+                                                    "DESCRIPTION":  "ä¿å­˜æˆ–åˆ†äº«æ‚¨çš„å°é¢ã€‚"
+                                                },
+                                    "DONE":  {
+                                                 "TITLE":  "ä¸€åˆ‡å°±ç»ª",
+                                                 "DESCRIPTION":  "å®Œæˆã€‚\næ‚¨çŽ°åœ¨å·²äº†è§£å¦‚ä½•ä½¿ç”¨ CCFK åˆ›å»ºå°é¢ã€‚"
+                                             }
+                                }
+                  },
+    "SETTINGS":  {
+                     "INSTRUCTIONS":  "æŸ¥çœ‹è¯´æ˜Ž",
+                     "INSTRUCTIONS_HINT":  "å¦‚ä½•ä¸º Kindle åˆ›å»ºå¹¶å‘é€å°é¢",
+                     "INSTRUCTIONS_SECTION":  "è¯´æ˜Ž",
+                     "LANGUAGE":  "è¯­è¨€",
+                     "LANGUAGE_RESTART_NOTICE":  "è¯­è¨€å·²æ›´æ”¹ï¼Œåº”ç”¨å°†é‡å¯ä»¥åº”ç”¨æ›´æ”¹ã€‚",
+                     "LANGUAGE_PREPARING_COUNTDOWN":  "æ­£åœ¨æŒ‰ä½ çš„è¯­è¨€è¿›è¡Œå‡†å¤‡ã€‚åº”ç”¨å°†å…³é—­ä»¥æ›´æ”¹åç§°ï¼ˆ{{count}}ï¼‰",
+                     "EREADER_OPTIMIZATION_SECTION":  "Image enhancement",
+                     "EREADER_OPTIMIZATION_HINT":  "Apply automatic adjustments to improve clarity on eReaders",
+                     "EREADER_OPTIMIZATION_TOGGLE":  "Optimize for eReader",
+                     "REQUISITES":  "æŸ¥çœ‹è¦æ±‚",
+                     "REQUISITES_HINT":  "å°é¢åœ¨ Kindle ä¸Šæ­£ç¡®å·¥ä½œæ‰€éœ€çš„è®¾ç½®",
+                     "REQUISITES_SECTION":  "ä½¿ç”¨è¦æ±‚",
+                     "THEME":  "ä¸»é¢˜",
+                     "THEME_SYSTEM":  "ç³»ç»Ÿ",
+                     "THEME_LIGHT":  "è‡ªç„¶äº®è‰²",
+                     "THEME_DARK":  "ç»å…¸æš—è‰²",
+                     "THEME_WARM_READING":  "æš–è‰²é˜…è¯»",
+                     "THEME_POP_ROSE":  "çŽ«ç‘°ç²‰",
+                     "THEME_NOCTURNE_VIOLET":  "å¤œæ›²ç´«",
+                     "THEME_OBSIDIAN_RED":  "é»‘æ›œçº¢",
+                     "THEME_TERMINAL_GREEN":  "ç»ˆç«¯ç»¿",
+                     "THEME_MINT_FRESH":  "è–„è·æ¸…æ–°",
+                     "THEME_SILVER_TECH":  "é“¶è‰²",
+                     "THEME_GOLD_LUXE":  "é‡‘è‰²",
+                     "TITLE":  "è®¾ç½®",
+                     "VIEW_TOUR":  "æŸ¥çœ‹å¯¼è§ˆ"
+                 },
+    "TABS":  {
+                 "COVERS":  "å°é¢",
+                 "CREATE":  "åˆ›å»º",
+                 "SETTINGS":  "è®¾ç½®"
+             },
+    "ARR":  {
+                "TOOLS":  {
+                              "RECOMMENDED":  "æŽ¨è",
+                              "INFO":  "ä¿¡æ¯",
+                              "APPS":  "åº”ç”¨",
+                              "GUIDE":  "æŒ‡å—"
+                          }
+            },
+    "E_READER_FRAME":  {
+                           "COLOR_SELECTOR":  {
+                                                  "TITLE":  "Frame color"
+                                              },
+                           "BRAND":  {
+                                         "KINDLE":  "Kindle",
+                                         "KOBO":  "Kobo",
+                                         "GENERIC":  "Generic"
+                                     },
+                           "COLOR":  {
+                                         "BLACK":  "Black",
+                                         "WHITE":  "White",
+                                         "MATCHA":  "Matcha",
+                                         "JADE":  "Jade",
+                                         "PINK":  "Pink",
+                                         "METALLIC_BLACK":  "Metallic Black",
+                                         "METALLIC_JADE":  "Metallic Jade",
+                                         "METALLIC_PINK":  "Metallic Pink"
+                                     }
+                       }
 }

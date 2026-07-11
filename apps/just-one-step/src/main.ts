@@ -8,6 +8,7 @@ import {
 import { provideAdsKit } from '@sheldrapps/ads-kit';
 import { MemoryStorageAdapter, provideI18nKit } from '@sheldrapps/i18n-kit';
 import { provideNativeSqlite } from '@sheldrapps/native-sqlite-kit';
+import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
 import {
   CapacitorPreferencesAdapter,
   CompositeStorageAdapter,
@@ -55,6 +56,7 @@ bootstrapApplication(AppComponent, {
       },
       new MemoryStorageAdapter()
     ),
+    providePrivacyPolicyKitI18n(),
     provideSettingsKit({
       appId: 'just-one-step',
       storageKey: JUST_ONE_STEP_SETTINGS_STORAGE_KEY,

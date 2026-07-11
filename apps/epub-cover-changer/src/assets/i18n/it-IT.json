@@ -1,235 +1,231 @@
 {
-  "APP": {
-    "TITLE": "EPUB Cover Changer"
-  },
-  "COMMON": {
-    "BACK_AGAIN_TO_EXIT": "Torna indietro di nuovo per uscire",
-    "CANCEL": "Annulla",
-    "CLOSE": "Chiudi",
-    "DELETE": "Elimina",
-    "DONE": "Fatto",
-    "ERROR": "Errore",
-    "LOADING": "Caricamento…",
-    "BILLING_UNAVAILABLE": "Gli acquisti non sono disponibili al momento.",
-    "PURCHASE_ERROR": "Impossibile completare l’acquisto. Riprova.",
-    "REMOVE_ADS_BUY": "Acquista",
-    "REMOVE_ADS_DESCRIPTION": "Rimuovi gli annunci per sempre e abilita la scelta tra esportazione senza perdita e compressa.",
-    "REMOVE_ADS_PURCHASED": "Annunci rimossi per sempre.",
-    "REMOVE_ADS_RESTORE": "Ripristina acquisto",
-    "REMOVE_ADS_RESTORED": "Acquisto ripristinato con successo.",
-    "REMOVE_ADS_TITLE": "Rimuovi annunci",
-    "REMOVE_ADS_CTA_TITLE": "Rimuovi annunci",
-    "REMOVE_ADS_CTA_SUBTITLE": "Pagamento unico • Per sempre",
-    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Pagamento unico • {{price}}",
-    "REMOVE_ADS_MODAL_PRICE": "Prezzo: {{price}} • Nessun abbonamento",
-    "RESTORE_ERROR": "Impossibile ripristinare l’acquisto. Riprova.",
-    "PRO_ONLY": "PRO",
-    "WATCH_AD_SUBTITLE": "Guarda annuncio",
-    "SHARE": "Condividi",
-    "SHARE_KINDLE_HINT": "Durante la condivisione, seleziona l’app Kindle per inviarla al dispositivo.",
-    "WARNING": "Avviso",
-    "EDIT_PROJECT_TITLE": "Come vuoi modificare questo file?",
-    "EDIT_PROJECT_MESSAGE": "Scegli se sostituire il file attuale o lavorare su una copia.",
-    "EDIT_PROJECT_OVERWRITE": "Sovrascrivi",
-    "EDIT_PROJECT_OVERWRITE_DESC": "Salva le modifiche sopra il file esistente.",
-    "EDIT_PROJECT_COPY": "Lavora su una copia",
-    "EDIT_PROJECT_COPY_DESC": "Conserva il file originale e modifica una nuova copia."
-  },
-  "CHANGE": {
-    "ADS_REQUIRED": "Impossibile caricare l’annuncio. Controlla la rete o il blocco annunci.",
-    "ARIA_CHANGE_EPUB": "Cambia file EPUB. File corrente: {{name}}",
-    "ARIA_CHANGE_IMAGE": "Cambia immagine della copertina. Immagine attuale: {{name}}",
-    "ARIA_CROP": "Regola l'immagine selezionata",
-    "ARIA_SELECT_EPUB": "Seleziona file EPUB",
-    "ARIA_SELECT_IMAGE": "Seleziona immagine di copertina",
-    "CROP_ACTION": "Regola",
-    "COVER_CHANGED": "Copertina cambiata. Puoi ora salvare o condividere",
-    "CHANGE_ACTION": "Cambia copertina",
-    "CHANGE_ACTION_REWARDED": "Cambia copertina (guarda annuncio)",
-    "GENERATING": "Aggiornamento copertina…",
-    "HINT_SAVE_SHARE_EXPLAIN": "La creazione della copertina non la salva automaticamente.",
-    "INFO": "Info",
-    "INFO_ARIA": "Informazioni sul cambio copertina",
-    "INFO_TITLE": "Informazione",
-    "INFO_FLOW_LABEL": "Ordine consigliato:",
-    "INFO_STEP_1": "Seleziona un EPUB.",
-    "INFO_STEP_1_1": "1.1. La copertina originale viene precaricata.",
-    "INFO_STEP_1_2": "1.2. Cambia l’immagine oppure mantieni l’originale.",
-    "INFO_STEP_2": "Regola l’immagine nell’editor.",
-    "INFO_STEP_3": "Guarda l’annuncio per salvare la copertina.",
-    "INFO_STEP_4": "Salva o condividi.",
-    "IMAGE_ERROR_CORRUPT": "Impossibile leggere l'immagine. Prova con un'altra.",
-    "IMAGE_ERROR_SIZE": "Il file è troppo grande. Massimo {{maxSize}} MB.",
-    "IMAGE_ERROR_TYPE": "Formato non supportato ({{type}}). Seleziona JPG, PNG o WebP.",
-    "IMAGE_WARN_SMALL": "L'immagine potrebbe essere troppo piccola per alcuni dispositivi.",
-    "NO_COVER_DETECTED_ADDED": "Nessuna copertina rilevata. È stata aggiunta una nuova copertina a questo EPUB.",
-    "EPUB_ERROR_STORAGE": "Spazio di archiviazione insufficiente. Servono {{requiredMB}} MB, disponibili {{availableMB}} MB.",
-    "LOADING_EPUB": "Caricamento EPUB…",
-    "LOADING_IMAGE": "Caricamento immagine…",
-    "OPENING_EDITOR": "Apertura editor…",
-    "CHANGING_COVER": "Modifica copertina...",
-    "GETTING_COVER": "Recupero copertina",
-    "SELECT_EPUB_LABEL": "File EPUB",
-    "EPUB_FILE_TITLE": "File EPUB",
-    "SELECT_EPUB_PLACEHOLDER": "Seleziona un file EPUB",
-    "SAVING": "Salvataggio copertina…",
-    "SAVE_ACTION": "Salva",
-    "SAVED_OK": "Copertina salvata",
-    "SAVE_RENAME_TITLE": "Salva copertina",
-    "SAVE_RENAME_MESSAGE": "Inserisci un nome per la copertina",
-    "SAVE_RENAME_PLACEHOLDER": "Nome del file",
-    "SELECT_IMAGE_LABEL": "Immagine di copertina",
-    "SELECT_IMAGE_PLACEHOLDER": "Seleziona un’immagine",
-    "TAP_TO_CHANGE": "Tocca per cambiare/reimpostare",
-    "TAP_TO_CHANGE_IMAGE": "Tocca per cambiare",
-    "TAP_TO_PREVIEW": "Tocca per visualizzare l’anteprima",
-    "LONGPRESS_PREVIEW_HINT": "Tieni premuto per l'anteprima",
-    "TITLE": "Cambia copertina",
-    "INVALID_COVER_TAP_TO_CHANGE": "Invalid cover, tap to change",
-    "PREVIEW_ORIGINAL_LABEL": "Copertina originale",
-    "PREVIEW_NEW_LABEL": "Nuova copertina",
-    "PREVIEW_NEW_ONLY_LABEL": "Nuova copertina",
-    "ARIA_START_SCRATCH": "Start from scratch",
-    "SOURCE_IMAGE": "Image",
-    "SOURCE_SCRATCH": "Scratch"
-  },
-  "COVERS": {
-    "DELETED": "EPUB eliminato",
-    "EMPTY": "Nessuna copertina trovata nell'app. I file creati prima della reinstallazione potrebbero non comparire a causa delle restrizioni di sistema.",
-    "PLACEHOLDER": "EPUB",
-    "PREVIEW_TITLE": "Copertina attuale",
-    "TITLE": "I miei EPUB",
-    "DITHERED_THUMBNAIL_NOTICE": "Le copertine con riduzione degli artefatti possono apparire diverse nelle miniature. Apri l'anteprima per vedere un risultato più fedele.",
-    "ACTIONS": {
-      "DELETE": "Elimina",
-      "SHARE": "Condividi",
-      "OPEN": "Apri",
-      "EDIT_PROJECT": "Modifica"
-    },
-    "DELETE": {
-      "MESSAGE": "Vuoi eliminare questo EPUB?",
-      "TITLE": "Elimina EPUB"
-    },
-    "ERROR": {
-      "DELETE": "Impossibile eliminare l'EPUB. Riprova.",
-      "SHARE": "Impossibile condividere l'EPUB. Riprova.",
-      "LOAD": "Impossibile caricare i tuoi EPUB. Trascina verso il basso per riprovare.",
-      "PREVIEW": "Impossibile caricare l'anteprima. Riprova.",
-      "OPEN": "Impossibile aprire l'EPUB. Riprova.",
-      "OPEN_PROJECT": "Impossibile aprire il progetto. Riprova."
-    },
-    "GENERATE_THUMB": "Generate thumbnail",
-    "PREVIEW_UNAVAILABLE": "Preview unavailable.",
-    "EREADER": {
-      "ZOOM_OUT_ARIA": "Riduci anteprima e-reader",
-      "ZOOM_IN_ARIA": "Ingrandisci anteprima e-reader",
-      "ZOOM_RESET_ARIA": "Reimposta zoom anteprima e-reader"
-    }
-  },
-  "INSTRUCTIONS": {
-    "NOTE_TITLE": "Nota",
-    "STEP_1": "Seleziona un file EPUB (la copertina attuale si carica in automatico)",
-    "STEP_2": "Regola la copertina caricata o scegli una nuova immagine e regolala",
-    "STEP_3": "Guarda l'annuncio per cambiare la copertina nell'EPUB",
-    "STEP_4": "Salva o condividi l'EPUB aggiornato",
-    "STEP_4_DESC": "Una volta pronto, puoi salvarlo sul dispositivo o condividerlo direttamente con l'app Kindle per una transizione piu fluida.",
-    "STEP_5": "Invia via web (Send to Kindle)",
-    "STEP_5_DESC": "Puoi anche inviarla dal browser utilizzando lo strumento web Send to Kindle.",
-    "TIP": "Per risultati migliori, utilizza immagini ad alta risoluzione e assicurati che gli annunci siano disattivati sul tuo Kindle.",
-    "TITLE": "Istruzioni"
-  },
-  "HOME_TOUR": {
-    "CONTROLS": {
-      "BACK": "Indietro",
-      "FINISH": "Fine",
-      "INTERACT_HINT": "Interagisci con l'elemento evidenziato per continuare.",
-      "NEXT": "Avanti",
-      "PROGRESS": "{{current}} di {{total}}",
-      "SKIP": "Salta"
-    },
-    "STEPS": {
-      "EPUB": {
-        "TITLE": "File EPUB",
-        "DESCRIPTION": "Seleziona il file EPUB che vuoi aggiornare."
-      },
-      "IMAGE": {
-        "TITLE": "Immagine di copertina",
-        "DESCRIPTION": "Seleziona l'immagine per la tua copertina."
-      },
-      "ADJUST": {
-        "TITLE": "Aggiusta",
-        "DESCRIPTION": "Aggiusta l'immagine nell'editor e tocca Fatto."
-      },
-      "CREATE": {
-        "TITLE": "Cambia copertina",
-        "DESCRIPTION": "Genera qui la copertina aggiornata."
-      },
-      "RESULTS": {
-        "TITLE": "Salva o condividi",
-        "DESCRIPTION": "Salva o condividi il tuo EPUB aggiornato."
-      }
-    }
-  },
-  "SETTINGS": {
-    "VIEW_TOUR": "Vedi il tour",
-    "INSTRUCTIONS": "Vedi istruzioni",
-    "INSTRUCTIONS_HINT": "Come cambiare e inviare una copertina per Kindle",
-    "INSTRUCTIONS_SECTION": "Istruzioni",
-    "LANGUAGE": "Lingua",
-    "LANGUAGE_RESTART_NOTICE": "Lingua cambiata. L'app si riavvierà per applicare le modifiche.",
-    "LANGUAGE_PREPARING_COUNTDOWN": "Stiamo preparando tutto nella tua lingua. L'app si chiuderà per cambiare il nome ({{count}})",
-    "PRIVACY_HINT": "Controlla come vengono gestiti dati e pubblicità",
-    "PRIVACY_OPTIONS": "Opzioni privacy",
-    "PRIVACY_POLICY": "Informativa sulla privacy",
-    "PRIVACY_SECTION": "Privacy",
-    "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
-    "EREADER_OPTIMIZATION_HINT": "Applica regolazioni automatiche per migliorare la copertina",
-    "EREADER_OPTIMIZATION_TOGGLE": "Ottimizza",
-    "THEME": "Tema",
-    "THEME_SYSTEM": "Sistema",
-    "THEME_LIGHT": "Chiaro naturale",
-    "THEME_DARK": "Scuro classico",
-    "THEME_WARM_READING": "Lettura calda",
-    "THEME_POP_ROSE": "Rosa pop",
-    "THEME_NOCTURNE_VIOLET": "Viola notturno",
-    "THEME_OBSIDIAN_RED": "Rosso ossidiana",
-    "THEME_TERMINAL_GREEN": "Verde terminale",
-    "THEME_MINT_FRESH": "Menta Fresca",
-    "THEME_SILVER_TECH": "Silver",
-    "THEME_GOLD_LUXE": "Oro",
-    "TITLE": "Impostazioni"
-  },
-  "TABS": {
-    "COVERS": "I miei EPUB",
-    "CHANGE": "Cambia",
-    "SETTINGS": "Impostazioni"
-  },
-  "ARR": {
-    "TOOLS": {
-      "RECOMMENDED": "Consigliate",
-      "INFO": "Info",
-      "APPS": "Apps",
-      "GUIDE": "Guida"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
-    }
-  }
+    "APP":  {
+                "TITLE":  "EPUB Cover Changer"
+            },
+    "COMMON":  {
+                   "BACK_AGAIN_TO_EXIT":  "Torna indietro di nuovo per uscire",
+                   "CANCEL":  "Annulla",
+                   "CLOSE":  "Chiudi",
+                   "DELETE":  "Elimina",
+                   "DONE":  "Fatto",
+                   "ERROR":  "Errore",
+                   "LOADING":  "Caricamentoâ€¦",
+                   "BILLING_UNAVAILABLE":  "Gli acquisti non sono disponibili al momento.",
+                   "PURCHASE_ERROR":  "Impossibile completare lâ€™acquisto. Riprova.",
+                   "REMOVE_ADS_BUY":  "Acquista",
+                   "REMOVE_ADS_DESCRIPTION":  "Rimuovi gli annunci per sempre e abilita la scelta tra esportazione senza perdita e compressa.",
+                   "REMOVE_ADS_PURCHASED":  "Annunci rimossi per sempre.",
+                   "REMOVE_ADS_RESTORE":  "Ripristina acquisto",
+                   "REMOVE_ADS_RESTORED":  "Acquisto ripristinato con successo.",
+                   "REMOVE_ADS_TITLE":  "Rimuovi annunci",
+                   "REMOVE_ADS_CTA_TITLE":  "Rimuovi annunci",
+                   "REMOVE_ADS_CTA_SUBTITLE":  "Pagamento unico â€¢ Per sempre",
+                   "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE":  "Pagamento unico â€¢ {{price}}",
+                   "REMOVE_ADS_MODAL_PRICE":  "Prezzo: {{price}} â€¢ Nessun abbonamento",
+                   "RESTORE_ERROR":  "Impossibile ripristinare lâ€™acquisto. Riprova.",
+                   "PRO_ONLY":  "PRO",
+                   "WATCH_AD_SUBTITLE":  "Guarda annuncio",
+                   "SHARE":  "Condividi",
+                   "SHARE_KINDLE_HINT":  "Durante la condivisione, seleziona lâ€™app Kindle per inviarla al dispositivo.",
+                   "WARNING":  "Avviso",
+                   "EDIT_PROJECT_TITLE":  "Come vuoi modificare questo file?",
+                   "EDIT_PROJECT_MESSAGE":  "Scegli se sostituire il file attuale o lavorare su una copia.",
+                   "EDIT_PROJECT_OVERWRITE":  "Sovrascrivi",
+                   "EDIT_PROJECT_OVERWRITE_DESC":  "Salva le modifiche sopra il file esistente.",
+                   "EDIT_PROJECT_COPY":  "Lavora su una copia",
+                   "EDIT_PROJECT_COPY_DESC":  "Conserva il file originale e modifica una nuova copia."
+               },
+    "CHANGE":  {
+                   "ADS_REQUIRED":  "Impossibile caricare lâ€™annuncio. Controlla la rete o il blocco annunci.",
+                   "ARIA_CHANGE_EPUB":  "Cambia file EPUB. File corrente: {{name}}",
+                   "ARIA_CHANGE_IMAGE":  "Cambia immagine della copertina. Immagine attuale: {{name}}",
+                   "ARIA_CROP":  "Regola l\u0027immagine selezionata",
+                   "ARIA_SELECT_EPUB":  "Seleziona file EPUB",
+                   "ARIA_SELECT_IMAGE":  "Seleziona immagine di copertina",
+                   "CROP_ACTION":  "Regola",
+                   "COVER_CHANGED":  "Copertina cambiata. Puoi ora salvare o condividere",
+                   "CHANGE_ACTION":  "Cambia copertina",
+                   "CHANGE_ACTION_REWARDED":  "Cambia copertina (guarda annuncio)",
+                   "GENERATING":  "Aggiornamento copertinaâ€¦",
+                   "HINT_SAVE_SHARE_EXPLAIN":  "La creazione della copertina non la salva automaticamente.",
+                   "INFO":  "Info",
+                   "INFO_ARIA":  "Informazioni sul cambio copertina",
+                   "INFO_TITLE":  "Informazione",
+                   "INFO_FLOW_LABEL":  "Ordine consigliato:",
+                   "INFO_STEP_1":  "Seleziona un EPUB.",
+                   "INFO_STEP_1_1":  "1.1. La copertina originale viene precaricata.",
+                   "INFO_STEP_1_2":  "1.2. Cambia lâ€™immagine oppure mantieni lâ€™originale.",
+                   "INFO_STEP_2":  "Regola lâ€™immagine nellâ€™editor.",
+                   "INFO_STEP_3":  "Guarda lâ€™annuncio per salvare la copertina.",
+                   "INFO_STEP_4":  "Salva o condividi.",
+                   "IMAGE_ERROR_CORRUPT":  "Impossibile leggere l\u0027immagine. Prova con un\u0027altra.",
+                   "IMAGE_ERROR_SIZE":  "Il file Ã¨ troppo grande. Massimo {{maxSize}} MB.",
+                   "IMAGE_ERROR_TYPE":  "Formato non supportato ({{type}}). Seleziona JPG, PNG o WebP.",
+                   "IMAGE_WARN_SMALL":  "L\u0027immagine potrebbe essere troppo piccola per alcuni dispositivi.",
+                   "NO_COVER_DETECTED_ADDED":  "Nessuna copertina rilevata. Ãˆ stata aggiunta una nuova copertina a questo EPUB.",
+                   "EPUB_ERROR_STORAGE":  "Spazio di archiviazione insufficiente. Servono {{requiredMB}} MB, disponibili {{availableMB}} MB.",
+                   "LOADING_EPUB":  "Caricamento EPUBâ€¦",
+                   "LOADING_IMAGE":  "Caricamento immagineâ€¦",
+                   "OPENING_EDITOR":  "Apertura editorâ€¦",
+                   "CHANGING_COVER":  "Modifica copertina...",
+                   "GETTING_COVER":  "Recupero copertina",
+                   "SELECT_EPUB_LABEL":  "File EPUB",
+                   "EPUB_FILE_TITLE":  "File EPUB",
+                   "SELECT_EPUB_PLACEHOLDER":  "Seleziona un file EPUB",
+                   "SAVING":  "Salvataggio copertinaâ€¦",
+                   "SAVE_ACTION":  "Salva",
+                   "SAVED_OK":  "Copertina salvata",
+                   "SAVE_RENAME_TITLE":  "Salva copertina",
+                   "SAVE_RENAME_MESSAGE":  "Inserisci un nome per la copertina",
+                   "SAVE_RENAME_PLACEHOLDER":  "Nome del file",
+                   "SELECT_IMAGE_LABEL":  "Immagine di copertina",
+                   "SELECT_IMAGE_PLACEHOLDER":  "Seleziona unâ€™immagine",
+                   "TAP_TO_CHANGE":  "Tocca per cambiare/reimpostare",
+                   "TAP_TO_CHANGE_IMAGE":  "Tocca per cambiare",
+                   "TAP_TO_PREVIEW":  "Tocca per visualizzare lâ€™anteprima",
+                   "LONGPRESS_PREVIEW_HINT":  "Tieni premuto per l\u0027anteprima",
+                   "TITLE":  "Cambia copertina",
+                   "INVALID_COVER_TAP_TO_CHANGE":  "Invalid cover, tap to change",
+                   "PREVIEW_ORIGINAL_LABEL":  "Copertina originale",
+                   "PREVIEW_NEW_LABEL":  "Nuova copertina",
+                   "PREVIEW_NEW_ONLY_LABEL":  "Nuova copertina",
+                   "ARIA_START_SCRATCH":  "Start from scratch",
+                   "SOURCE_IMAGE":  "Image",
+                   "SOURCE_SCRATCH":  "Scratch"
+               },
+    "COVERS":  {
+                   "DELETED":  "EPUB eliminato",
+                   "EMPTY":  "Nessuna copertina trovata nell\u0027app. I file creati prima della reinstallazione potrebbero non comparire a causa delle restrizioni di sistema.",
+                   "PLACEHOLDER":  "EPUB",
+                   "PREVIEW_TITLE":  "Copertina attuale",
+                   "TITLE":  "I miei EPUB",
+                   "DITHERED_THUMBNAIL_NOTICE":  "Le copertine con riduzione degli artefatti possono apparire diverse nelle miniature. Apri l\u0027anteprima per vedere un risultato piÃ¹ fedele.",
+                   "ACTIONS":  {
+                                   "DELETE":  "Elimina",
+                                   "SHARE":  "Condividi",
+                                   "OPEN":  "Apri",
+                                   "EDIT_PROJECT":  "Modifica"
+                               },
+                   "DELETE":  {
+                                  "MESSAGE":  "Vuoi eliminare questo EPUB?",
+                                  "TITLE":  "Elimina EPUB"
+                              },
+                   "ERROR":  {
+                                 "DELETE":  "Impossibile eliminare l\u0027EPUB. Riprova.",
+                                 "SHARE":  "Impossibile condividere l\u0027EPUB. Riprova.",
+                                 "LOAD":  "Impossibile caricare i tuoi EPUB. Trascina verso il basso per riprovare.",
+                                 "PREVIEW":  "Impossibile caricare l\u0027anteprima. Riprova.",
+                                 "OPEN":  "Impossibile aprire l\u0027EPUB. Riprova.",
+                                 "OPEN_PROJECT":  "Impossibile aprire il progetto. Riprova."
+                             },
+                   "GENERATE_THUMB":  "Generate thumbnail",
+                   "PREVIEW_UNAVAILABLE":  "Preview unavailable.",
+                   "EREADER":  {
+                                   "ZOOM_OUT_ARIA":  "Riduci anteprima e-reader",
+                                   "ZOOM_IN_ARIA":  "Ingrandisci anteprima e-reader",
+                                   "ZOOM_RESET_ARIA":  "Reimposta zoom anteprima e-reader"
+                               }
+               },
+    "INSTRUCTIONS":  {
+                         "NOTE_TITLE":  "Nota",
+                         "STEP_1":  "Seleziona un file EPUB (la copertina attuale si carica in automatico)",
+                         "STEP_2":  "Regola la copertina caricata o scegli una nuova immagine e regolala",
+                         "STEP_3":  "Guarda l\u0027annuncio per cambiare la copertina nell\u0027EPUB",
+                         "STEP_4":  "Salva o condividi l\u0027EPUB aggiornato",
+                         "STEP_4_DESC":  "Una volta pronto, puoi salvarlo sul dispositivo o condividerlo direttamente con l\u0027app Kindle per una transizione piu fluida.",
+                         "STEP_5":  "Invia via web (Send to Kindle)",
+                         "STEP_5_DESC":  "Puoi anche inviarla dal browser utilizzando lo strumento web Send to Kindle.",
+                         "TIP":  "Per risultati migliori, utilizza immagini ad alta risoluzione e assicurati che gli annunci siano disattivati sul tuo Kindle.",
+                         "TITLE":  "Istruzioni"
+                     },
+    "HOME_TOUR":  {
+                      "CONTROLS":  {
+                                       "BACK":  "Indietro",
+                                       "FINISH":  "Fine",
+                                       "INTERACT_HINT":  "Interagisci con l\u0027elemento evidenziato per continuare.",
+                                       "NEXT":  "Avanti",
+                                       "PROGRESS":  "{{current}} di {{total}}",
+                                       "SKIP":  "Salta"
+                                   },
+                      "STEPS":  {
+                                    "EPUB":  {
+                                                 "TITLE":  "File EPUB",
+                                                 "DESCRIPTION":  "Seleziona il file EPUB che vuoi aggiornare."
+                                             },
+                                    "IMAGE":  {
+                                                  "TITLE":  "Immagine di copertina",
+                                                  "DESCRIPTION":  "Seleziona l\u0027immagine per la tua copertina."
+                                              },
+                                    "ADJUST":  {
+                                                   "TITLE":  "Aggiusta",
+                                                   "DESCRIPTION":  "Aggiusta l\u0027immagine nell\u0027editor e tocca Fatto."
+                                               },
+                                    "CREATE":  {
+                                                   "TITLE":  "Cambia copertina",
+                                                   "DESCRIPTION":  "Genera qui la copertina aggiornata."
+                                               },
+                                    "RESULTS":  {
+                                                    "TITLE":  "Salva o condividi",
+                                                    "DESCRIPTION":  "Salva o condividi il tuo EPUB aggiornato."
+                                                }
+                                }
+                  },
+    "SETTINGS":  {
+                     "VIEW_TOUR":  "Vedi il tour",
+                     "INSTRUCTIONS":  "Vedi istruzioni",
+                     "INSTRUCTIONS_HINT":  "Come cambiare e inviare una copertina per Kindle",
+                     "INSTRUCTIONS_SECTION":  "Istruzioni",
+                     "LANGUAGE":  "Lingua",
+                     "LANGUAGE_RESTART_NOTICE":  "Lingua cambiata. L\u0027app si riavvierÃ  per applicare le modifiche.",
+                     "LANGUAGE_PREPARING_COUNTDOWN":  "Stiamo preparando tutto nella tua lingua. L\u0027app si chiuderÃ  per cambiare il nome ({{count}})",
+                     "EREADER_OPTIMIZATION_SECTION":  "Image enhancement",
+                     "EREADER_OPTIMIZATION_HINT":  "Applica regolazioni automatiche per migliorare la copertina",
+                     "EREADER_OPTIMIZATION_TOGGLE":  "Ottimizza",
+                     "THEME":  "Tema",
+                     "THEME_SYSTEM":  "Sistema",
+                     "THEME_LIGHT":  "Chiaro naturale",
+                     "THEME_DARK":  "Scuro classico",
+                     "THEME_WARM_READING":  "Lettura calda",
+                     "THEME_POP_ROSE":  "Rosa pop",
+                     "THEME_NOCTURNE_VIOLET":  "Viola notturno",
+                     "THEME_OBSIDIAN_RED":  "Rosso ossidiana",
+                     "THEME_TERMINAL_GREEN":  "Verde terminale",
+                     "THEME_MINT_FRESH":  "Menta Fresca",
+                     "THEME_SILVER_TECH":  "Silver",
+                     "THEME_GOLD_LUXE":  "Oro",
+                     "TITLE":  "Impostazioni"
+                 },
+    "TABS":  {
+                 "COVERS":  "I miei EPUB",
+                 "CHANGE":  "Cambia",
+                 "SETTINGS":  "Impostazioni"
+             },
+    "ARR":  {
+                "TOOLS":  {
+                              "RECOMMENDED":  "Consigliate",
+                              "INFO":  "Info",
+                              "APPS":  "Apps",
+                              "GUIDE":  "Guida"
+                          }
+            },
+    "E_READER_FRAME":  {
+                           "COLOR_SELECTOR":  {
+                                                  "TITLE":  "Frame color"
+                                              },
+                           "BRAND":  {
+                                         "KINDLE":  "Kindle",
+                                         "KOBO":  "Kobo",
+                                         "GENERIC":  "Generic"
+                                     },
+                           "COLOR":  {
+                                         "BLACK":  "Black",
+                                         "WHITE":  "White",
+                                         "MATCHA":  "Matcha",
+                                         "JADE":  "Jade",
+                                         "PINK":  "Pink",
+                                         "METALLIC_BLACK":  "Metallic Black",
+                                         "METALLIC_JADE":  "Metallic Jade",
+                                         "METALLIC_PINK":  "Metallic Pink"
+                                     }
+                       }
 }

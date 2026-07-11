@@ -9,6 +9,8 @@ import {
   provideI18nKit,
 } from '@sheldrapps/i18n-kit';
 import { provideEReaderPreviewFrameI18n } from '@sheldrapps/image-workflow';
+import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
+import { provideRatingKit } from '@sheldrapps/rating-kit';
 import {
   CapacitorPreferencesAdapter,
   CompositeStorageAdapter,
@@ -28,11 +30,16 @@ import {
   ADS_UNITS_ANDROID_PROD,
   ADS_UNITS_ANDROID_TEST,
 } from './app/services/ads.config';
+import {
+  EPUB_FIXER_RATING_FEEDBACK_OPTIONS,
+  EPUB_FIXER_RATING_TRANSLATION_OVERRIDES,
+} from './app/services/rating.config';
 import { EPUB_FIXER_SETTINGS_SCHEMA } from './app/settings/epub-fixer-settings.schema';
 import type { EnvironmentProviders, Provider } from '@angular/core';
 
 const EPUB_FIXER_SETTINGS_STORAGE_KEY = 'epub-fixer.settings';
 const EPUB_FIXER_PACKAGE_ID = 'com.sheldrapps.epubfixer';
+const EPUB_FIXER_RATING_STORAGE_KEY = 'rating.epub-fixer';
 
 async function bootstrap(): Promise<void> {
   const providers: Array<EnvironmentProviders | Provider> = [
@@ -83,6 +90,7 @@ async function bootstrap(): Promise<void> {
       new MemoryStorageAdapter(),
     ),
     provideEReaderPreviewFrameI18n(),
+    providePrivacyPolicyKitI18n(),
     provideAdFallbackKitI18n(),
     provideAdsKitI18n(),
 
@@ -105,6 +113,22 @@ async function bootstrap(): Promise<void> {
         new CapacitorPreferencesAdapter(),
         new WebLocalStorageAdapter(),
       ]),
+    }),
+    provideRatingKit({
+      appKey: 'epub-fixer',
+      appName: 'EPUB Fixer',
+      packageName: EPUB_FIXER_PACKAGE_ID,
+      supportEmail: 'sheldrapps@gmail.com',
+      feedbackOptions: EPUB_FIXER_RATING_FEEDBACK_OPTIONS,
+      translationOverrides: EPUB_FIXER_RATING_TRANSLATION_OVERRIDES,
+      minSuccessEvents: 2,
+      minLaunches: 2,
+      cooldownDays: 14,
+      storageAdapter: new ConfigJsonFileAdapter({
+        primaryKey: EPUB_FIXER_RATING_STORAGE_KEY,
+        path: 'rating-state.json',
+        fallbackAdapter: new WebLocalStorageAdapter(),
+      }),
     }),
 
     provideFileKit({

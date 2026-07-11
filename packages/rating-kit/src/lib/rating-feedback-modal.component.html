@@ -23,7 +23,7 @@
         [class.rating-feedback-option--selected]="selectedOptionId === option.id"
         (click)="selectOption(option.id)"
       >
-        {{ option.labelKey | translate }}
+        {{ resolveOptionLabel(option) }}
       </button>
     </div>
 
