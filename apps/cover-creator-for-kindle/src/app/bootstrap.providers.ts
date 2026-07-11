@@ -7,6 +7,7 @@ import {
 import {
   provideCoverImageStateI18n,
   provideCoverSourceI18n,
+  provideEReaderPreviewFrameI18n,
 } from '@sheldrapps/image-workflow';
 import { provideEditorI18n } from '@sheldrapps/image-workflow/editor';
 import { provideExportQualityKitI18n } from '@sheldrapps/export-quality-kit';
@@ -82,6 +83,7 @@ export function createBootstrapProviders(): Array<Provider | EnvironmentProvider
     provideAdsKitI18n(),
     provideCoverImageStateI18n(),
     provideCoverSourceI18n(),
+    provideEReaderPreviewFrameI18n(),
     provideEditorI18n(),
     provideSettingsKit({
       appId: 'ccfk',

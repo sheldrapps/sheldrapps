@@ -741,6 +741,45 @@ describe('FixPage', () => {
     });
   });
 
+  it('localizes known issue details while keeping technical paths intact', () => {
+    const instant = jasmine
+      .createSpy('instant')
+      .and.callFake((key: string, params?: Record<string, unknown>) =>
+        params?.path ? `${key}:${params.path}` : key,
+      );
+    const ctx = {
+      translate: {
+        instant,
+      },
+    };
+
+    const translated = FixPage.prototype.issueDetailsLabel.call(ctx, {
+      code: 'OPF_MISSING',
+      severity: 'error',
+      fixable: false,
+      messageKey: 'FIX.ISSUE_OPF_MISSING',
+      details: 'OEBPS/content.opf is not parseable',
+    } satisfies EpubDiagnosticIssue);
+    const passthrough = FixPage.prototype.issueDetailsLabel.call(ctx, {
+      code: 'LINK_TARGET_MISSING',
+      severity: 'warning',
+      fixable: true,
+      messageKey: 'FIX.ISSUE_LINK_TARGET_MISSING',
+      details: 'OPS/text.xhtml: ../img/cover.png',
+    } satisfies EpubDiagnosticIssue);
+
+    expect(instant).toHaveBeenCalledWith(
+      'FIX.ISSUE_DETAIL_FILE_NOT_PARSEABLE',
+      {
+        path: 'OEBPS/content.opf',
+      },
+    );
+    expect(translated).toBe(
+      'FIX.ISSUE_DETAIL_FILE_NOT_PARSEABLE:OEBPS/content.opf',
+    );
+    expect(passthrough).toBe('OPS/text.xhtml: ../img/cover.png');
+  });
+
   it('summarizes diagnosis severity correctly', () => {
     const ctx = Object.assign(Object.create(FixPage.prototype), {
       diagnosis: {

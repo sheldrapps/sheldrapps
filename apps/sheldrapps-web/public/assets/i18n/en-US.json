@@ -69,7 +69,7 @@
       },
       "EPF": {
         "NAME": "EPUB Fixer",
-        "DESCRIPTION": "Repair EPUB files and export fixed copies.",
+        "DESCRIPTION": "Diagnose and repair common EPUB file issues",
         "BADGE": "Coming soon"
       }
     },

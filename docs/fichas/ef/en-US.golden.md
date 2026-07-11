@@ -2,861 +2,356 @@
 
 ## Purpose
 
-Position EPUB Fixer as a focused, practical utility for people whose EPUB files do not open correctly, contain broken internal structure, or need repair before they can be used again.
+Create a Play Store listing that clearly positions EPUB Fixer as a focused utility for one practical job:
 
-The listing must make one promise clear from the first impression:
+**detect common EPUB file problems, identify files that are not real EPUBs, repair supported issues, and save a new repaired copy.**
 
-**Diagnose common EPUB structure problems, repair supported issues, and save a repaired copy.**
+The listing should make the app feel simple, trustworthy, and specific. It should not present EPUB Fixer as an ebook reader, full EPUB editor, universal converter, DRM remover, cloud repair service, ebook download app, or AI repair tool.
 
-Users should understand that the app lets them choose an EPUB from their device, prepares a safe repair session, checks the internal EPUB structure, explains supported issues in understandable terms, repairs what it can, and saves the result as a new EPUB file.
+The core message should feel like this:
 
-This is not an EPUB reader, a full book editor, a cover tool, a DRM remover, a download service, or a cloud converter.
+**Your EPUB has a problem. EPUB Fixer helps you check whether it is a real EPUB, understand what went wrong, repair supported issues, and save a new copy without changing the original file.**
+
+---
 
 ## App Name
 
-Current localized name from strings.xml/app.title:
-
 EPUB Fixer
 
-Suggested localized name, if needed:
+## Why
 
-EPUB Fixer
+“EPUB Fixer” is short, clear, searchable, and direct.
 
-Character count:
+It includes the strongest search term, **EPUB**, and communicates the main outcome users are looking for: fixing a problematic EPUB file.
 
-10
+No alternate app name is needed for en-US.
 
-Reasoning:
-
-“EPUB Fixer” is short, clear, searchable, and directly communicates the core job of the app.
-
-It includes the strongest intent term, “EPUB,” plus the direct outcome users need, “Fixer.” It does not imply a full editor, reader, conversion suite, or online service.
-
-No alternate name is needed.
+---
 
 ## Short Description
 
-Candidates:
-
-* SEO-first: Diagnose and repair common EPUB file issues
-* Repair-first: Fix EPUB structure issues and save a copy
-* Balanced: Find, repair, and manage EPUB file issues
-
-Selected text:
-
 Diagnose and repair common EPUB file issues
 
-Character count:
+## Why
 
-42
+This line communicates the two most important actions:
 
-Reasoning:
+* the app checks the file first
+* the app repairs supported problems
 
-This line clearly explains both stages of the experience: the app identifies issues first, then repairs supported problems.
+It avoids promising that every damaged or invalid file can be repaired.
 
-It avoids overstating compatibility or promising that every damaged EPUB can always be restored.
+---
 
 ## Long Description
 
-Text:
-
 Fix common EPUB file problems and save a repaired copy.
 
-EPUB Fixer helps you inspect EPUB files that do not open correctly, contain broken internal references, or have structural issues that prevent them from working as expected.
+EPUB Fixer helps you inspect EPUB files that do not open correctly, fail to import, or contain internal structure issues.
 
-Choose an EPUB from your device and start a safe repair session for that file. The app checks important EPUB structure components such as mimetype, container.xml, OPF package data, manifest entries, and spine references.
-
-When supported problems are found, EPUB Fixer guides you through a repair flow to correct broken references, rebuild the EPUB structure when possible, and save the repaired result as a new EPUB file.
+Choose an EPUB from your device and let the app check what is inside. EPUB Fixer can detect common structure problems and can also identify files that use the .epub extension but are not valid EPUB files.
 
 With EPUB Fixer, you can:
 
-• Select EPUB files from your device
-• Prepare a safe session for each file
-• Diagnose common EPUB structure issues
-• Check mimetype, container.xml, OPF, manifest, and spine data
-• Detect broken references and missing package files
-• Repair supported EPUB structure problems
-• Rebuild the EPUB when possible
-• Save a repaired EPUB as a new copy
-• Keep the original file unchanged
-• View repaired and imported files in My EPUBs
-• Adjust language and theme settings
-• Remove ads with an upgrade option
+* Select EPUB files from your device
+* Check whether a file is a valid EPUB
+* Diagnose common EPUB structure issues
+* Review elements such as mimetype, container.xml, OPF, manifest, and spine
+* Detect broken references or missing internal files
+* Repair supported EPUB issues
+* Save a new repaired EPUB copy
+* Keep the original file unchanged
+* View repaired and imported files in My EPUBs
+* Change language and theme settings
+* Remove ads with an upgrade option
 
-EPUB Fixer also handles problematic files more clearly, including files that use the .epub extension but are not real EPUB files.
+The app keeps the repair flow simple: choose a file, understand the issue, repair what is supported, and save the result as a new copy.
 
-Everything is processed on your device.
+If a file is not a real EPUB, EPUB Fixer explains it clearly so you do not waste time trying to repair a file that only has the .epub extension.
+
+File processing happens on your device.
 
 No accounts.
 No uploads.
-No cloud conversion.
+Local control over your EPUB files.
 
-Some repairs may require watching a rewarded ad in the free version. If an ad cannot load, the app provides a fallback so the flow remains understandable.
+Some free repairs may require a rewarded ad. If an ad cannot load, the app provides a fallback so the flow remains clear.
 
-EPUB Fixer is made for readers, collectors, students, and anyone managing a digital library who needs a simple way to troubleshoot EPUB files without using complicated desktop software.
+EPUB Fixer is useful for readers, students, collectors, and anyone who manages a digital library and wants a simpler way to troubleshoot EPUB files without complicated desktop tools.
 
-The app focuses on one practical job: helping you diagnose, repair, and safely save supported EPUB fixes.
+The app focuses on one practical job: **diagnose EPUB issues, repair supported problems, and save a new copy safely.**
 
-Character count:
+---
 
-Approximately 1,550 characters
+## ASO / SEO Intent
 
-SEO/ASO notes:
-
-Use natural phrases such as:
+Primary search terms to use naturally:
 
 * EPUB fixer
 * fix EPUB
-* repair EPUB file
+* repair EPUB
 * EPUB repair tool
+* repair EPUB file
+* EPUB not opening
+* broken EPUB file
+* invalid EPUB file
 * diagnose EPUB
-* broken EPUB
-* EPUB structure repair
-* EPUB manifest
-* EPUB spine
-* OPF file
-* container.xml
+* EPUB structure
 * fix EPUB errors
 * repair ebook file
-* save repaired EPUB copy
-* EPUB not opening
-* invalid EPUB file
+* repaired EPUB copy
+* EPUB manifest
+* EPUB spine
+* OPF
+* container.xml
 
-Avoid claims such as:
+Avoid:
 
-* Fix every EPUB
-* Guaranteed EPUB repair
-* Repair DRM-protected books
-* Remove DRM
-* Download ebooks
-* Free books
-* Full EPUB editor
+* fix every EPUB
+* guaranteed EPUB repair
+* repair DRM-protected books
+* remove DRM
+* download ebooks
+* free ebooks
 * EPUB reader
-* Convert every ebook format
-* Universal EPUB repair
-* Cloud repair
-* Online converter
+* full EPUB editor
+* universal ebook converter
+* cloud repair
+* online repair
 * AI repair
-* Official support for ebook platforms
+
+---
 
 ## Market Angle Decision
 
-Market angle selected:
+Selected angle:
 
-Safe EPUB diagnosis and repair, with clear structure checks, supported fixes, local file handling, and save-as-copy behavior.
+**Clear validation + supported repair + safe copy + local file control**
 
-Why this angle should convert in en-US:
+## Why this should convert
 
-The strongest user motivation is not technical curiosity. It is urgency:
+The strongest user motivations are simple:
 
-“My EPUB does not open, cannot be imported, or seems broken. Can I check what is wrong and repair it without desktop software?”
+* “My EPUB does not open.”
+* “I do not know if this file is really an EPUB.”
+* “I want to try repairing it without damaging the original.”
+* “I do not want to upload my files anywhere.”
 
-The listing should answer that concern immediately by showing a simple progression:
+The listing should tell a compact story:
 
-Select EPUB → safe session → structure diagnosis → supported repair → repaired copy → local library
+**problem → validation → diagnosis → repaired copy → local control**
 
-Primary user desire:
+The app should not look like it has a long or complex repair workflow. Its simplicity is part of the value.
 
-Get a problematic EPUB working again without needing advanced EPUB tools or desktop software.
-
-Secondary trust proof:
-
-* Clear diagnosis before repair
-* Specific EPUB structure checks
-* Understandable repair results
-* On-device processing
-* No accounts
-* No uploads
-* Original EPUB remains unchanged
-* New repaired copy is created
-* Repaired/imported files can be found again in My EPUBs
-
-What should NOT be the first screenshot:
-
-* A settings screen
-* An empty local library
-* A generic file picker
-* Technical XML or code
-* A privacy-only screen
-* A generic ebook reader
-* A vague “repair complete” screen without showing the problem being solved
-* A monetization screen
+---
 
 ## Regional Conversion Strategy
 
 Primary user desire:
 
-Repair EPUB files that fail to open, import, validate, or behave correctly because of common internal structure problems.
+Repair EPUB files that fail to open, fail to import, or behave incorrectly because of common internal structure problems.
 
-Best use cases to show:
+What users should understand quickly:
 
-* An EPUB selected from the device
-* A safe repair session prepared for that file
-* A diagnosis that checks EPUB structure
-* A repair flow that feels approachable
-* A concise list of repaired issues
-* A repaired EPUB saved as a separate copy
-* Local file history through My EPUBs
-* Local-only processing as a clear trust benefit
+* EPUB Fixer works specifically with EPUB files.
+* It can detect when a file is not a real EPUB.
+* It checks the file before repair.
+* It repairs supported issues.
+* It saves a new repaired copy.
+* The original EPUB remains unchanged.
+* File handling stays local to the device.
 
-What to avoid:
+What should not dominate the listing:
 
-* Generic antivirus or phone-cleaner styling
-* Scary corruption visuals
-* Programming or XML-heavy screens
-* Generic file-manager positioning
-* Ebook-reader positioning
-* Cloud upload or sync language
-* AI visual cues
-* DRM-related implications
-* Promises that every broken EPUB can be repaired
-* Making ads or monetization the main selling point
+* technical jargon
+* raw XML
+* scary error visuals
+* antivirus styling
+* generic file manager positioning
+* ebook reader positioning
+* cloud upload or sync language
+* monetization
+* DRM implications
+* promises that every file can be repaired
 
-Search/ASO terms to include naturally:
-
-* fix EPUB
-* EPUB fixer
-* repair EPUB
-* broken EPUB file
-* EPUB repair tool
-* EPUB file repair
-* diagnose EPUB
-* repair ebook file
-* EPUB errors
-* fix EPUB structure
-* repaired EPUB copy
-* EPUB not opening
-* invalid EPUB
-* OPF
-* manifest
-* spine
+---
 
 ## Visual System
 
 Palette:
 
-* primary background: #151515
-* secondary background: #252525
-* accent: #B3261E
-* optional support accent: #D4574F
-* headline color: #FFFFFF
-* subline color: #D9D9D9
-* bullet/support text color: #E3C3C1
+* Primary background: `#151515`
+* Secondary background: `#252525`
+* Accent: `#B3261E`
+* Optional support accent: `#D4574F`
+* Headline color: `#FFFFFF`
+* Subline color: `#D9D9D9`
+* Support text color: `#E3C3C1`
 
-Reasoning:
+Visual intent:
 
-EPUB Fixer should feel direct, reliable, technical enough to be credible, but never intimidating.
+EPUB Fixer should feel:
 
-The dark charcoal base gives the app a focused utility feeling. The muted repair-red accent communicates problem detection and recovery without turning the listing into an error screen or a warning-heavy product.
+* focused
+* practical
+* trustworthy
+* technical enough to be credible
+* simple enough for non-technical users
 
-The accent should be used only for controlled emphasis:
+The red accent should communicate diagnosis, attention, and repair. It should not make the listing feel like an antivirus, system warning, or phone cleaner.
 
-* Diagnostic markers
-* Broken-to-fixed transition lines
-* Small status indicators
-* Repair result confirmation
-* Subtle light around the repaired state
-* Local file/session continuity
+Avoid visually:
 
-Do not use aggressive red warning panels, bright alerts behind text, flashing error visuals, hacker aesthetics, neon gradients, or fake security-badge language.
-
-General visual rules:
-
-The first visual priority is always the recovery story:
-
-**Problem EPUB → diagnosis → repaired EPUB copy**
-
-Text should remain in a stable, dark, matte upper area.
-
-The app should look like a refined EPUB utility, not a file cleaner, antivirus, generic ZIP tool, full ebook editor, reader, or cloud conversion website.
-
-Avoid:
-
-* Cloud icons
-* Upload arrows
+* aggressive red error screens
+* giant warning icons
+* scary corrupted-file graphics
+* hacker aesthetics
+* neon gradients
+* fake security shields
+* cloud icons
+* upload arrows
 * AI sparkles
-* Code fragments
-* XML-heavy visuals
-* PDF documents
-* Kindle-like device framing
-* Bright red full-screen error states
-* Oversized warning icons
-* Dense technical logs
-* Monetization-heavy visuals in early screenshots
+* code or XML as the main visual element
+* Kindle-style device framing
+* bookstore/library marketplace visuals
+* monetization-heavy screens in the first screenshots
+
+---
+
+## Visual Asset Rule for Example Content
+
+When using book titles, filenames, thumbnails, or cover-style visuals in screenshots:
+
+* use popular books without copyright restrictions in the target locale
+* do not use currently copyrighted works
+* do not use real publisher branding
+* do not define the exact titles inside this golden
+* final title selection should happen during screenshot production
+
+---
 
 ## Feature Graphic
 
-titulo:
+Title:
 
 FIX COMMON EPUB FILE ISSUES
 
-subline:
+Subline:
 
 Diagnose, repair, and save a new copy
 
-headline color:
+Composition intent:
 
-#FFFFFF
+Show a simple recovery transformation:
 
-subline color:
+* problematic EPUB
+* diagnosis / repair indicator
+* repaired EPUB copy
 
-#D9D9D9
+The visual should communicate that EPUB Fixer works with EPUB files and creates a separate repaired copy.
 
-wrapper:
+Optional proof points:
 
-A clear before-and-after EPUB repair composition with two compact book-file cards or two neutral EPUB file previews.
-
-fondo:
-
-* dimension: 1024x500 px
-* base principal: #151515
-* secundario: #252525 used only for subtle depth
-* acento: #B3261E
-* optional support accent: #D4574F
-* ubicacion del acento: restrained line or low-intensity highlight connecting the broken EPUB to the repaired result
-* zona segura de copy: left third or upper-left, dark and stable
-* textura permitida: subtle matte grain below 3%
-* elementos prohibidos: bright red warning banners, cloud/upload icons, AI effects, generic antivirus graphics, PDF visuals, dense technical labels
-
-imagen:
-
-Show a simple repair transformation.
-
-Left state:
-
-A book file or EPUB preview labeled:
-
-Needs repair
-
-Small visible issue indicator:
-
-Structure issue found
-
-Right state:
-
-The same EPUB shown as repaired and usable.
-
-Small visible result indicator:
-
-Repaired copy ready
-
-Optional labels:
-
-Before
-After
-
-Optional small proof points:
-
-* On-device
+* On your device
+* No accounts
 * No uploads
-* Save as copy
 
-conversion intent:
+Avoid:
 
-Make the purpose obvious in one glance: EPUB Fixer helps diagnose supported EPUB problems, repair them when possible, and save a separate corrected copy.
+* cloud/upload visuals
+* AI visuals
+* antivirus visuals
+* PDF visuals
+* dense technical labels
+* full-screen warning states
+* dramatic broken-file graphics
+
+---
+
+# Screenshot System
+
+## Overall Screenshot Strategy
+
+Use a compact set of **5 screenshots**.
+
+The sequence should be:
+
+1. Main problem
+2. Non-repairable blocking case: not a real EPUB
+3. Repairable blocking case: structure issue found
+4. Safe result: repaired copy
+5. Local library + privacy
+
+This avoids visual redundancy and matches the real product better than showing separate “repair,” “repaired,” and “result” steps.
+
+---
 
 ## Screenshot 1
 
-titulo:
+Title:
 
 EPUB NOT OPENING?
 
-subline:
+Subline:
 
 Find and repair common file issues
 
-headline color:
+Goal:
 
-#FFFFFF
+Open with the main user problem.
 
-subline color:
+Visual intent:
 
-#D9D9D9
+Show a strong standalone before/after concept:
 
-wrapper:
+* an EPUB that cannot open correctly
+* the same EPUB shown as repaired or ready
 
-Single strong before-and-after repair transformation.
+This can be a clean conceptual composition or a product-based visual, but it must be instantly understandable at Play Store preview size.
 
-fondo:
+What this screenshot must communicate:
 
-* dimension: 1994x3456 px
-* base principal: #151515
-* secundario: #252525
-* acento: #B3261E
-* optional support accent: #D4574F
-* ubicacion del acento: subtle repair path between the broken and repaired EPUB states
-* zona segura de copy: upper third, dark and readable
-* textura permitida: subtle matte grain below 3%
-* elementos prohibidos: scary damaged-file imagery, giant warning symbols, generic cleaner visuals, cloud symbols, technical code
+* the app is for EPUB files
+* the user has a real file problem
+* EPUB Fixer can help detect and repair common issues
 
-imagen:
+Avoid:
 
-Show one EPUB in two states.
+* settings
+* library screens
+* monetization
+* long explanations
+* too many technical labels
 
-Before:
-
-A book preview or EPUB card with a restrained issue marker:
-
-Can’t open correctly
-
-After:
-
-The same title shown as repaired and ready.
-
-The transformation must remain understandable at Play Store preview size.
-
-conversion intent:
-
-Open with the real problem users are trying to solve: an EPUB that is not working properly.
-
-The user should immediately understand:
-
-“This app can help me diagnose and repair that file.”
+---
 
 ## Screenshot 2
 
-raw screenshot handling:
+Title:
 
-* Use the real EPUB selection or session preparation screen if available.
-* Replace only the EPUB name, cover/thumbnail, and file examples.
-* Do not add, remove, invent, or restyle any other UI elements.
-* Keep the raw screenshot composition intact.
+IS IT REALLY AN EPUB?
 
-titulo:
+Subline:
 
-START WITH YOUR EPUB
+Find files with changed extensions
 
-subline:
+Goal:
 
-Prepare a safe repair session
+Show the non-repairable blocking case.
 
-headline color:
+Visual intent:
 
-#FFFFFF
+The screenshot should show a calm, clear invalid-file state.
 
-subline color:
+The file may have a `.epub` extension, but the app should communicate that its internal structure does not match a valid EPUB file.
 
-#D9D9D9
+What this screenshot must communicate:
 
-wrapper:
+* not every `.epub` file is a real EPUB
+* EPUB Fixer can identify this case
+* the app helps users avoid wasting time on files that cannot be repaired as EPUBs
 
-Android phone mockup showing the real file selection or prepared-session screen.
-
-fondo:
-
-* dimension: 1994x3456 px
-* base principal: #151515
-* secundario: #252525
-* acento: #B3261E
-* optional support accent: #D4574F
-* ubicacion del acento: subtle emphasis around the selected EPUB or session card
-* zona segura de copy: upper third, clean and matte
-* textura permitida: subtle matte grain below 3%
-* elementos prohibidos: generic file-manager clutter, cloud picker visuals, upload arrows, fake security seals
-
-imagen:
-
-Show an EPUB selected from the device and prepared for diagnosis or repair.
-
-Useful labels if the real UI supports them:
-
-* EPUB loaded
-* Ready to diagnose
-* Safe session prepared
-
-Do not imply that the app uploads or syncs the file.
-
-conversion intent:
-
-Show that the app starts with a local EPUB and creates a clear working session before making changes.
-
-## Screenshot 3
-
-raw screenshot handling:
-
-* Use the real diagnosis screen.
-* Replace only the EPUB name, cover/thumbnail, and issue examples with realistic supported EPUB problems.
-* Do not add, remove, invent, or restyle any other UI elements.
-* Keep the raw screenshot composition intact.
-
-titulo:
-
-KNOW WHAT NEEDS FIXING
-
-subline:
-
-Clear diagnosis before repair
-
-headline color:
-
-#FFFFFF
-
-subline color:
-
-#D9D9D9
-
-wrapper:
-
-Android phone mockup showing the real EPUB diagnosis screen.
-
-fondo:
-
-* dimension: 1994x3456 px
-* base principal: #151515
-* secundario: #252525
-* acento: #B3261E
-* optional support accent: #D4574F
-* ubicacion del acento: subtle emphasis near the diagnostic summary, never behind the headline
-* zona segura de copy: upper third, clean and matte
-* textura permitida: subtle matte grain below 3%
-* elementos prohibidos: verbose technical logs, raw XML, programmer-oriented labels, bright warning panels
-
-imagen:
-
-The real diagnosis screen should show a concise, understandable issue summary.
-
-Useful supported examples:
-
-* Mimetype checked
-* container.xml checked
-* OPF package checked
-* Broken manifest reference
-* Invalid spine entry
-* Missing content file
-
-Avoid showing more than three or four issues at once.
-
-The screen should feel approachable, not technical.
-
-conversion intent:
-
-Prove that the app does more than press a repair button. It checks the EPUB structure and explains what it found first.
-
-## Screenshot 4
-
-raw screenshot handling:
-
-* Use the real repair workflow or repair-progress result screen.
-* Replace only EPUB-specific content, book title, thumbnail, and issue labels where needed.
-* Do not add, remove, invent, or restyle any other UI elements.
-* Keep the raw screenshot composition intact.
-
-titulo:
-
-REPAIR COMMON EPUB ISSUES
-
-subline:
-
-Fix supported structure problems
-
-headline color:
-
-#FFFFFF
-
-subline color:
-
-#D9D9D9
-
-wrapper:
-
-Android phone mockup showing the real repair flow.
-
-fondo:
-
-* dimension: 1994x3456 px
-* base principal: #151515
-* secundario: #252525
-* acento: #B3261E
-* optional support accent: #D4574F
-* ubicacion del acento: subtle focus around the repair action or progress result
-* zona segura de copy: upper third, dark and stable
-* textura permitida: subtle matte grain below 3%
-* elementos prohibidos: exaggerated progress effects, “magic repair” language, cloud processing visuals, generic phone-cleaner styling
-
-imagen:
-
-Show the repair operation in progress or a completed repair summary.
-
-The result should make visible that the app can handle supported structural problems, such as:
-
-* Broken manifest items
-* Invalid spine entries
-* Missing package references
-* EPUB package structure issues
-
-Use concise wording.
-
-Do not imply that every possible EPUB corruption can be repaired.
-
-conversion intent:
-
-Communicate that the app actively repairs supported EPUB problems rather than only reporting them.
-
-## Screenshot 5
-
-raw screenshot handling:
-
-* Use the real result or repair-report screen.
-* Replace only the EPUB name, thumbnail, filenames, and repair entries.
-* Do not add, remove, invent, or restyle any other UI elements.
-* Keep the raw screenshot composition intact.
-
-titulo:
-
-SEE WHAT WAS REPAIRED
-
-subline:
-
-Review the repair results
-
-headline color:
-
-#FFFFFF
-
-subline color:
-
-#D9D9D9
-
-wrapper:
-
-Android phone mockup showing the completed repair summary.
-
-fondo:
-
-* dimension: 1994x3456 px
-* base principal: #151515
-* secundario: #252525
-* acento: #B3261E
-* optional support accent: #D4574F
-* ubicacion del acento: controlled highlight around repaired-status indicators
-* zona segura de copy: upper third, clean and stable
-* textura permitida: subtle matte grain below 3%
-* elementos prohibidos: dense technical logs, code, fake validation certificates, cluttered library visuals
-
-imagen:
-
-Show a real result screen that communicates:
-
-* Issues found
-* Supported repairs applied
-* Repaired EPUB ready to save
-
-Example concise repair entries:
-
-* Rebuilt package structure
-* Removed broken references
-* Fixed invalid spine entries
-
-Only use entries that match the actual repair engine’s behavior.
-
-conversion intent:
-
-Build confidence through transparency. The user should understand what the app changed before saving the repaired file.
-
-## Screenshot 6
-
-raw screenshot handling:
-
-* Use the real save/export confirmation screen when available.
-* Replace only the EPUB card, book name, cover thumbnail, and output filename.
-* Do not add, remove, invent, or restyle any other UI elements.
-* Keep the raw screenshot composition intact.
-
-titulo:
-
-SAVE A REPAIRED COPY
-
-subline:
-
-Keep the original EPUB unchanged
-
-headline color:
-
-#FFFFFF
-
-subline color:
-
-#D9D9D9
-
-wrapper:
-
-Safe-copy proof composition or the real export confirmation screen.
-
-fondo:
-
-* dimension: 1994x3456 px
-* base principal: #151515
-* secundario: #252525
-* acento: #B3261E
-* optional support accent: #D4574F
-* ubicacion del acento: restrained highlight around the new output file
-* zona segura de copy: upper third, dark and readable
-* textura permitida: subtle matte grain below 3%
-* elementos prohibidos: destructive overwrite visuals, warning-style export screens, cloud backup claims, misleading “permanent fix” claims
-
-imagen:
-
-Show a simple and safe file relationship:
-
-Original EPUB
-→
-Repaired EPUB copy
-
-The output filename should clearly feel like a new version, for example:
-
-The_Great_Gatsby_repaired.epub
-
-Use a public-domain title suitable for the locale.
-
-conversion intent:
-
-Reduce the risk of trying the app. The user should understand that repairing a file does not silently overwrite their original EPUB.
-
-## Screenshot 7
-
-raw screenshot handling:
-
-* Use the real My EPUBs screen.
-* Replace only EPUB names, thumbnails, dates, and visible file examples.
-* Do not add, remove, invent, or restyle any other UI elements.
-* Keep the raw screenshot composition intact.
-
-titulo:
-
-FIND YOUR EPUBS AGAIN
-
-subline:
-
-Repaired and imported files in one place
-
-headline color:
-
-#FFFFFF
-
-subline color:
-
-#D9D9D9
-
-wrapper:
-
-Android phone mockup showing the My EPUBs screen with repaired or imported EPUB files.
-
-fondo:
-
-* dimension: 1994x3456 px
-* base principal: #151515
-* secundario: #252525
-* acento: #B3261E
-* optional support accent: #D4574F
-* ubicacion del acento: subtle emphasis around the repaired EPUB item
-* zona segura de copy: upper third, clean and stable
-* textura permitida: subtle matte grain below 3%
-* elementos prohibidos: generic bookshelf positioning, ebook-reader UI, cloud library claims, sync claims, crowded file grids
-
-imagen:
-
-Show repaired and imported EPUBs as local app items.
-
-Useful file examples:
-
-* The_Great_Gatsby_repaired.epub
-* Pride_and_Prejudice_repaired.epub
-* Imported EPUB
-
-Do not make the screen look like a reading library or bookstore.
-
-conversion intent:
-
-Show that EPUB Fixer is not only a one-screen repair action. Users can return to repaired or imported files through My EPUBs.
-
-## Screenshot 8
-
-raw screenshot handling:
-
-* Use the real settings, theme/language, or upgrade screen only if needed.
-* Prefer settings if the screen looks polished and simple.
-* Monetization should be secondary and should not dominate the screenshot set.
-* Replace only visible sample content if needed.
-* Do not add, remove, invent, or restyle any other UI elements.
-* Keep the raw screenshot composition intact.
-
-titulo:
-
-CONTROL YOUR EXPERIENCE
-
-subline:
-
-Language, theme, and ad-free options
-
-headline color:
-
-#FFFFFF
-
-subline color:
-
-#D9D9D9
-
-wrapper:
-
-Android phone mockup showing the real settings screen or a clean settings-related composition.
-
-fondo:
-
-* dimension: 1994x3456 px
-* base principal: #151515
-* secundario: #252525
-* acento: #B3261E
-* optional support accent: #D4574F
-* ubicacion del acento: subtle focus on settings options, not on ads
-* zona segura de copy: upper third, dark and readable
-* textura permitida: subtle matte grain below 3%
-* elementos prohibidos: aggressive paywall design, fake discounts, “free forever” claims, ad-heavy visuals, reward-ad screenshots as the main value
-
-imagen:
-
-Show app settings such as:
-
-* Language
-* Theme
-* Remove ads
-
-If showing monetization, keep it factual and secondary.
-
-Avoid making rewarded ads part of the main marketing promise unless required by policy or store transparency.
-
-conversion intent:
-
-Communicate that the app is a complete product with basic personalization and an optional ad-free path, without making monetization the hero.
-
-## Optional Problem Case Screenshot
-
-Use only if the app has a clean, user-friendly screen for this case.
-
-titulo:
-
-NOT A REAL EPUB?
-
-subline:
-
-Problem files are explained clearly
-
-headline color:
-
-#FFFFFF
-
-subline color:
-
-#D9D9D9
-
-wrapper:
-
-Android phone mockup showing a friendly invalid-file state.
-
-imagen:
-
-Show the case where a file has an .epub extension but does not contain a valid EPUB/ZIP structure.
-
-Suggested user-facing wording inside UI:
+Suggested in-app wording:
 
 This file is not a valid EPUB
 
@@ -867,109 +362,245 @@ It may use the .epub extension, but its internal structure does not match an EPU
 Avoid:
 
 * “Damaged EPUB” as the main label
-* “Repair failed” as the headline
-* Scary red error screens
-* Any wording that implies the user should try repairing it repeatedly
+* “Repair failed” as the main headline
+* aggressive red screens
+* blaming the user
+* wording that suggests trying the same repair repeatedly
 
-conversion intent:
+---
 
-Set realistic expectations and reduce frustration. The user should understand that some files are not repairable because they are not real EPUB files.
+## Screenshot 3
 
-## Screenshot Order Recommendation
+Title:
 
-Recommended 8-screenshot order:
+KNOW WHAT WENT WRONG
 
-1. EPUB NOT OPENING?
-2. START WITH YOUR EPUB
-3. KNOW WHAT NEEDS FIXING
-4. REPAIR COMMON EPUB ISSUES
-5. SEE WHAT WAS REPAIRED
-6. SAVE A REPAIRED COPY
-7. FIND YOUR EPUBS AGAIN
-8. CONTROL YOUR EXPERIENCE
+Subline:
 
-Recommended 6-screenshot order if Play Store assets must stay compact:
+Check the structure before repair
 
-1. EPUB NOT OPENING?
-2. KNOW WHAT NEEDS FIXING
-3. REPAIR COMMON EPUB ISSUES
-4. SAVE A REPAIRED COPY
-5. FIND YOUR EPUBS AGAIN
-6. 100% ON YOUR DEVICE
+Goal:
 
-Reasoning:
+Show the repairable blocking case.
 
-The full sequence follows the actual user journey:
+Visual intent:
 
-Problem → select EPUB → diagnose → repair → review result → save copy → manage files → settings/upgrade
+The file should clearly be a real EPUB, but with supported structure problems detected.
 
-The compact sequence prioritizes conversion:
+The screenshot should feel useful and understandable, not overly technical.
 
-Problem → proof of diagnosis → repair → safe output → file ownership → privacy trust
+Possible UI details:
 
-The first screenshot must not be a settings screen, technical diagnostic dump, monetization screen, or local-library view.
+* Mimetype checked
+* container.xml checked
+* OPF checked
+* Broken manifest reference
+* Invalid spine entry
+* Missing internal file
 
-## Copy Rules
+Do not show too many items at once.
 
-Use:
+What this screenshot must communicate:
 
-* Fix EPUB
-* Repair EPUB
-* Diagnose EPUB
-* Common EPUB issues
-* EPUB file issues
-* Broken EPUB references
-* EPUB structure
-* EPUB package structure
-* Mimetype
-* container.xml
-* OPF
-* Manifest
-* Spine
-* Repair results
-* Repaired copy
-* Save a new copy
-* Original unchanged
-* On-device processing
-* No accounts
-* No uploads
-* My EPUBs
-* Imported EPUBs
-* Repaired EPUBs
-* Remove ads
-* Ad-free option
-* Rewarded ad
-* Fallback when an ad cannot load
+* the app checks before acting
+* the file is a real EPUB
+* the issue is identifiable
+* the case is repairable when supported
 
 Avoid:
 
-* Fix every EPUB
-* Guaranteed repair
-* Full EPUB editor
+* raw XML
+* long logs
+* programmer-heavy labels
+* repeating the same visual idea as the repaired-copy screenshot
+
+---
+
+## Screenshot 4
+
+Title:
+
+SAVE A REPAIRED COPY
+
+Subline:
+
+Keep the original EPUB unchanged
+
+Goal:
+
+Show the safe final result.
+
+Visual intent:
+
+This screenshot should focus on the outcome:
+
+* repaired EPUB ready
+* new copy saved or ready to save
+* original preserved
+
+It can show a preview of the repaired file or a confirmation that a repaired copy exists.
+
+What this screenshot must communicate:
+
+* supported repair was applied
+* the result is a new EPUB copy
+* the original file is not overwritten
+* trying the app feels safe
+
+Suggested relationship to show:
+
+Original EPUB
+→
+Repaired EPUB copy
+
+Avoid:
+
+* selling the repair button again
+* “magic fix” language
+* destructive overwrite visuals
+* dense repair logs
+
+---
+
+## Screenshot 5
+
+Title:
+
+YOUR EPUBS, ON YOUR DEVICE
+
+Subline:
+
+Repaired, imported, and never uploaded
+
+Goal:
+
+Combine local library, privacy, and file control.
+
+Visual intent:
+
+Show the My EPUBs screen or equivalent local-file view with repaired and imported EPUBs.
+
+The screenshot should communicate that users can find their files again while keeping the experience local and private.
+
+What this screenshot must communicate:
+
+* repaired EPUBs are easy to find
+* imported EPUBs are kept in one local place
+* files are not uploaded to an account or cloud service
+* the app gives local control over EPUB files
+
+Content rule for example files:
+
+Use examples based on popular books without copyright restrictions in the target locale. Do not define the exact titles in this golden.
+
+Avoid:
+
+* making the screen look like an ebook reader
+* making the screen look like a bookstore
+* cloud sync visuals
+* crowded library grids
+* too many book covers
+
+---
+
+## Screenshot Order Recommendation
+
+Final recommended order:
+
+1. EPUB NOT OPENING?
+2. IS IT REALLY AN EPUB?
+3. KNOW WHAT WENT WRONG
+4. SAVE A REPAIRED COPY
+5. YOUR EPUBS, ON YOUR DEVICE
+
+Why this order works:
+
+It tells the real product story without inflating the flow:
+
+* first, the user’s problem
+* then, the important validation case
+* then, a repairable issue
+* then, a safe repaired result
+* finally, local file ownership and privacy
+
+---
+
+## Raw Screenshot Handling Rules
+
+For screenshots based on real UI:
+
+* use the real app screen whenever possible
+* replace only filenames, thumbnails, covers, dates, and example content
+* do not add fake UI elements
+* do not remove real UI elements
+* do not redesign the app layout inside the screenshot
+* keep the raw screenshot composition intact
+* keep visual consistency across all screenshots
+
+---
+
+## Copy Rules
+
+Prefer:
+
+* fix EPUB
+* repair EPUB
+* diagnose EPUB
+* valid EPUB
+* changed extension
+* check structure
+* common EPUB issues
+* repaired copy
+* save a new copy
+* original unchanged
+* on your device
+* no accounts
+* no uploads
+* My EPUBs
+* repaired EPUBs
+* imported EPUBs
+
+Use carefully:
+
+* mimetype
+* container.xml
+* OPF
+* manifest
+* spine
+
+These terms can appear as secondary details, but they should not dominate headline copy.
+
+Avoid:
+
+* fix every EPUB
+* guaranteed repair
+* full EPUB editor
 * EPUB reader
-* Remove DRM
+* remove DRM
 * DRM repair
-* Download books
-* Free ebooks
-* Cloud conversion
-* Online repair
+* download books
+* free ebooks
+* cloud conversion
+* online repair
 * AI file repair
-* Virus cleaning
-* Universal compatibility
-* Official support for every reading app
-* Unlimited free repair if that is not true
-* 100% offline if the free rewarded-ad flow requires internet
-* Any wording that implies affiliation with ebook stores or platforms
+* virus cleaning
+* universal compatibility
+* official support for every reading app
+* unlimited free repairs if that is not true
+* 100% offline if the free repair flow may require rewarded ads
+* wording that implies affiliation with ebook stores or platforms
+
+---
 
 ## Monetization Copy Guidance
 
-Use monetization language carefully and only where useful.
+Monetization should stay secondary.
 
-Best public-facing phrasing:
+Good public-facing phrasing:
 
 * Remove ads with an upgrade option
 * Some free repairs may use a rewarded ad
-* If an ad cannot load, the app explains what to do next
+* If an ad cannot load, the app provides a fallback
 * Upgrade to remove ads from the repair experience
 
 Avoid:
@@ -977,23 +608,24 @@ Avoid:
 * “Free unlimited repairs” if not true
 * “Always offline” if ads may be required in the free flow
 * “No ads” unless referring specifically to the paid/ad-free version
-* Making rewarded ads sound like a core product feature
-* Making the listing feel like a paywall
+* making rewarded ads sound like a core feature
+* making the listing feel like a paywall
 
 Recommended listing treatment:
 
-The main store listing should sell the repair product first.
+The store listing should sell the repair utility first. Monetization should appear only as a secondary transparency point.
 
-Monetization should appear as a secondary transparency point, not as one of the first screenshots.
+---
 
 ## Notes / Assumptions
 
-* The listing must only describe repairs that the app actually supports.
-* The diagnosis and repair-result screenshots are essential because they prove the product is more than a generic file utility.
-* Use technical terms sparingly. “Manifest,” “spine,” “OPF,” “mimetype,” and “container.xml” can appear in secondary UI details, but should not dominate headline copy.
-* The visual story should always be recovery, not failure: EPUB selected → problem detected → EPUB repaired → copy saved.
-* The original EPUB must be shown as preserved whenever possible.
-* “On-device,” “No accounts,” and “No uploads” remain important trust proof, but should appear after the core repair value is already clear.
-* Do not claim “100% offline” for the free flow if rewarded ads are part of repair access.
-* The ad-free/paid path can support an offline/private workflow claim only if the app truly works without internet in that mode.
-* The app should feel focused, capable, and safe, never intimidating or overly technical.
+* The listing must only describe repairs the app actually supports.
+* The screenshot set should remain compact, clear, and honest.
+* Do not imply a long repair process if the product flow is simple.
+* The invalid-file case is important because it reduces frustration and builds credibility.
+* The repairable case should be sold through clear diagnosis, not technical complexity.
+* The repaired-copy screenshot should reduce perceived risk by showing that the original remains unchanged.
+* The final screenshot should combine local library and privacy instead of splitting them into separate assets.
+* “On your device,” “No accounts,” and “No uploads” are trust proof, but should not replace the core repair message.
+* Do not claim “100% offline” for the general free flow if rewarded ads may require internet.
+* The ad-free path may support stronger local/offline language only if that mode truly works without internet.

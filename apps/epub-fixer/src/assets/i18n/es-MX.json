@@ -4,7 +4,7 @@
   },
   "ARR": {
     "TOOLS": {
-      "APPS": "Apps",
+      "APPS": "Aplicaciones",
       "GUIDE": "Guía"
     }
   },
@@ -130,6 +130,13 @@
     "EPUB_ERROR_SIZE": "El archivo pesa demasiado. Máximo {{maxSize}} MB.",
     "EPUB_ERROR_TYPE": "Archivo EPUB no compatible.",
     "EPUB_FIXED_SUCCESS": "EPUB reparado con éxito",
+    "ISSUE_DETAIL_CONTAINER_MISSING": "falta container.xml",
+    "ISSUE_DETAIL_CONTAINER_NOT_PARSEABLE": "container.xml no se puede analizar",
+    "ISSUE_DETAIL_CONTAINER_NO_ROOTFILE": "container.xml no declara un rootfile",
+    "ISSUE_DETAIL_OPF_AMBIGUOUS": "Se encontraron varios documentos de paquete",
+    "ISSUE_DETAIL_FILE_NOT_PARSEABLE": "{{path}} no se puede analizar",
+    "ISSUE_DETAIL_SPINE_EMPTY": "No quedan entradas válidas en el spine",
+    "ISSUE_DETAIL_MISSING_IDREF": "falta idref",
     "DIAGNOSIS_STATUS_REVIEW": "Problemas restantes después de la reparación",
     "DIAGNOSIS_STATUS_GUIDED": "Necesita tu decisión",
     "DIAGNOSIS_PARTIAL": "recuperación parcial",

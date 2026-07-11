@@ -56,3 +56,4 @@ export * from "./lib/components/cover-image-state/cover-image-state.component";
 export * from "./lib/components/image-validation-issues/image-validation-issues.component";
 export * from "./lib/components/cover-image-state/i18n/provide-cover-image-state-i18n";
 export * from "./lib/cover-source/i18n/provide-cover-source-i18n";
+export * from "./lib/e-reader-preview/i18n/provide-e-reader-preview-frame-i18n";

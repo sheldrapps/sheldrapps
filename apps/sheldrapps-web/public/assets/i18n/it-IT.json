@@ -68,8 +68,8 @@
         "BADGE": "Prossimamente"
       },
       "EPF": {
-        "NAME": "EPUB Fixer",
-        "DESCRIPTION": "Repair EPUB files and export fixed copies.",
+        "NAME": "Ripara EPUB",
+        "DESCRIPTION": "Diagnostica e ripara problemi comuni dei file EPUB",
         "BADGE": "Prossimamente"
       }
     },

@@ -10,4 +10,6 @@ export const AR_SA: RecommendedAppsTranslations = {
   APP_DESC_CCFK: 'أنشئ أغلفة للقارئ الإلكتروني من صورك في خطوات قليلة.',
   APP_DESC_ECC: 'استبدل أغلفة EPUB وصدّر الملفات المحدّثة.',
   APP_DESC_PCM: 'استبدل أغلفة PDF وصدّر الملفات المحدّثة.',
+  APP_NAME_EF: 'إصلاح EPUB',
+  APP_DESC_EF: 'تشخيص وإصلاح مشاكل EPUB الشائعة',
 };

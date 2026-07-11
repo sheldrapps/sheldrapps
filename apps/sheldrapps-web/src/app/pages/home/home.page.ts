@@ -52,9 +52,9 @@ export class HomePageComponent {
       nameKey: 'HOME.APPS.EPF.NAME',
       descriptionKey: 'HOME.APPS.EPF.DESCRIPTION',
       icon: 'assets/apps/epub-fixer/icon.png',
+      playStoreUrl:
+        'https://play.google.com/store/apps/details?id=com.sheldrapps.epubfixer',
       privacyRoute: '/privacy-policies/epub-fixer',
-      badgeKey: 'HOME.APPS.EPF.BADGE',
-      disabled: true,
     },
     {
       nameKey: 'HOME.APPS.PCM.NAME',

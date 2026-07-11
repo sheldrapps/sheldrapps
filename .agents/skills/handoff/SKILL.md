@@ -1,6 +1,6 @@
-﻿---
+---
 name: handoff
-description: Create compact handoff document for next agent/session. Use when user asks handoff, next-run summary, or continuation brief saved outside workspace.
+description: "Creates a compact handoff for the next session or agent. Use when the user asks for a handoff, continuation brief, next-run summary, or session recap."
 argument-hint: "What will the next session be used for?"
 ---
 

@@ -1,7 +1,7 @@
-﻿---
+---
 name: validacion
 user-invocable: true
-description: "Validar cambios TS/UI con lint, test, build; clasificar fallos (regresión vs normal); reparar y reforzar no-regresión al cierre. Use when implementation finished, after UI/strings edits, or before marking task done."
+description: "Validates completed TS/UI changes with lint, test, build, and i18n or encoding checks. Use when a change is done, after UI or strings edits, or before marking the task complete."
 ---
 
 # Validación (post-integración TS/UI)

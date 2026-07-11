@@ -5,9 +5,11 @@ export interface RecommendedAppsTranslations {
   APP_NAME_CCFK: string;
   APP_NAME_ECC: string;
   APP_NAME_PCM: string;
+  APP_NAME_EF: string;
   APP_DESC_CCFK: string;
   APP_DESC_ECC: string;
   APP_DESC_PCM: string;
+  APP_DESC_EF: string;
 }
 
 export type RecommendedAppsLocale =

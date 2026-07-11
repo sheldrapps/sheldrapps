@@ -13,7 +13,7 @@ titulo:
 修復常見 EPUB 問題
 
 subline:
-先檢查，再修復，儲存新副本
+診斷、修復並儲存新的副本
 
 headline color:
 #FFFFFF
@@ -22,7 +22,7 @@ subline color:
 #D6E0E3
 
 wrapper:
-以兩個緊湊檔案卡片或中性的電子閱讀器預覽，呈現清楚的前後對比。
+清楚的前後對比，由兩個 EPUB 卡片或兩個中性的電子書預覽組成。
 
 fondo:
 * dimension: 1024x500 px
@@ -36,15 +36,15 @@ fondo:
 * elementos prohibidos: bright red warning banners, cloud/upload icons, AI effects, generic antivirus graphics, PDF visuals, dense technical labels
 
 imagen:
-呈現一個簡單的修復轉變：左側 EPUB 標示「需要修復」，右側同一 EPUB 顯示為已修復且可用。可加入 Before / After 標籤。
+展示一個簡單的轉換：左邊是標示「需要修復」的 EPUB，右邊是同一本 EPUB 的修復副本。可選小標籤：Before / After。
 
 bullets:
-* 裝置本機修復
+* 在裝置上修復
 * 無需帳號
 * 無需上傳
 
 conversion intent:
-一眼看出 EPUB Fixer 會修復受支援的問題，並儲存一個獨立的修復副本。
+讓人一眼看懂 EPUB Fixer 會修復受支援的 EPUB 問題，並儲存一個獨立的修復副本。
 
 # Screenshot 1
 
@@ -58,10 +58,10 @@ Create a standalone screenshot-style composition from this brief. Do not use a s
 Brief
 
 titulo:
-EPUB 無法開啟？
+EPUB 打不開？
 
 subline:
-找出並修復常見問題
+找出並修復常見錯誤
 
 headline color:
 #FFFFFF
@@ -70,7 +70,7 @@ subline color:
 #D6E0E3
 
 wrapper:
-明顯的前後對比修復轉變。
+強烈的前後對比。
 
 fondo:
 * dimension: 1994x3456 px
@@ -78,13 +78,13 @@ fondo:
 * secundario: #20272C
 * acento: #C6533D
 * optional support accent: #ECB0A1
-* ubicacion del acento: restrained, never behind the headline
+* ubicacion del acento: subtle repair path between the broken and repaired EPUB states
 * zona segura de copy: upper third, dark and readable
 * textura permitida: subtle matte grain below 3%
 * elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
 
 imagen:
-將同一個 EPUB 分成兩種狀態呈現：左側為帶有克制問題標記的 before，右側為已修復且可用的 after。
+展示同一個 EPUB 的兩種狀態：前面是低調的問題標記，後面是修復後且準備好的同一本檔案。
 
 conversion intent:
 從使用者真正想解決的問題開始。
@@ -92,132 +92,104 @@ conversion intent:
 # Screenshot 2
 
 Source ficha: `docs/fichas/ef/zh-TW.md`
-Source screenshot: `tools/playstore/raw/ef/zh-TW/02-diagnosis.png`
+Source screenshot: `tools/playstore/raw/ef/zh-TW/02-invalid-file.png`
 
 Generate image.
 
 Brief
 
 titulo:
-先知道要修什麼
+這真的是 EPUB 嗎？
 
 subline:
-修復前的清楚診斷
+辨識被更改的副檔名
 
 headline color:
 #FFFFFF
 
 subline color:
-#D6E0E3
+#D9D9D9
+
+wrapper:
+Android phone mockup showing the invalid-file explanation screen.
+
+fondo:
+* dimension: 1994x3456 px
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
+* ubicacion del acento: calm status emphasis around the file card or warning badge
+* zona segura de copy: upper third, clean and matte
+* textura permitida: subtle matte grain below 3%
+* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, fake security seals
+
+imagen:
+Show a calm invalid-file state: the `.epub` extension exists, but the file is not a valid EPUB. Keep the message specific and non-dramatic.
+
+conversion intent:
+Prevent frustration by separating file extension from real EPUB structure.
+
+# Screenshot 3
+
+Source ficha: `docs/fichas/ef/zh-TW.md`
+Source screenshot: `tools/playstore/raw/ef/zh-TW/03-repairable-blocker.png`
+
+Generate image.
+
+Use my screenshot in your composition.
+Raw replacement instructions:
+3. Reemplaza solo el nombre del EPUB por un libro sin copyright famoso en la región.
+3. Mantén intactos el diagnóstico, la interfaz y la composición general.
+3. No cambies colores, fondos ni jerarquía visual.
+
+Brief
+
+titulo:
+看清楚哪裡出問題
+
+subline:
+修復前先清楚診斷
+
+headline color:
+#FFFFFF
+
+subline color:
+#D9D9D9
 
 wrapper:
 Android phone mockup showing the real EPUB diagnosis screen.
 
 fondo:
 * dimension: 1994x3456 px
-* base principal: #121416
-* secundario: #20272C
-* acento: #C6533D
-* optional support accent: #ECB0A1
-* ubicacion del acento: restrained, never behind the headline
-* zona segura de copy: upper third, dark and readable
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
+* ubicacion del acento: subtle emphasis near the diagnostic summary, never behind the headline
+* zona segura de copy: upper third, clean and matte
 * textura permitida: subtle matte grain below 3%
-* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
+* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, fake security seals
 
 imagen:
-顯示真實的診斷畫面，帶有簡潔易懂的問題摘要。可使用 invalid EPUB package structure、missing container file、broken manifest reference、invalid spine entry、missing content file 等受支援範例。
+The real diagnosis screen should show a concise, understandable issue summary. Useful supported examples: invalid EPUB package structure, missing container file, broken manifest reference, invalid spine entry, or missing content file. Avoid showing more than three or four issues at once.
 
 conversion intent:
-證明應用程式會先解釋它發現了什麼。
-
-# Screenshot 3
-
-Source ficha: `docs/fichas/ef/zh-TW.md`
-Source screenshot: `tools/playstore/raw/ef/zh-TW/03-repair-flow.png`
-
-Generate image.
-
-Brief
-
-titulo:
-修復常見 EPUB 問題
-
-subline:
-修正受支援的結構問題
-
-headline color:
-#FFFFFF
-
-subline color:
-#D6E0E3
-
-wrapper:
-Android phone mockup showing the real repair flow.
-
-fondo:
-* dimension: 1994x3456 px
-* base principal: #121416
-* secundario: #20272C
-* acento: #C6533D
-* optional support accent: #ECB0A1
-* ubicacion del acento: restrained, never behind the headline
-* zona segura de copy: upper third, dark and readable
-* textura permitida: subtle matte grain below 3%
-* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
-
-imagen:
-顯示修復進行中或已完成的摘要，包含 missing package references、broken manifest items、invalid spine entries、EPUB package structure issues 等受支援的結構問題。
-
-conversion intent:
-傳達應用程式確實會修復受支援的 EPUB 問題。
+Prove that the app checks the EPUB structure and explains what it found before repair.
 
 # Screenshot 4
 
 Source ficha: `docs/fichas/ef/zh-TW.md`
-Source screenshot: `tools/playstore/raw/ef/zh-TW/04-repair-result.png`
+Source screenshot: `tools/playstore/raw/ef/zh-TW/04-my-epubs-open.png`
 
 Generate image.
 
-Brief
-
-titulo:
-查看修復結果
-
-subline:
-匯出前先檢查結果
-
-headline color:
-#FFFFFF
-
-subline color:
-#D6E0E3
-
-wrapper:
-Android phone mockup showing the completed repair summary.
-
-fondo:
-* dimension: 1994x3456 px
-* base principal: #121416
-* secundario: #20272C
-* acento: #C6533D
-* optional support accent: #ECB0A1
-* ubicacion del acento: restrained, never behind the headline
-* zona segura de copy: upper third, dark and readable
-* textura permitida: subtle matte grain below 3%
-* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
-
-imagen:
-顯示結果頁，說明發現了什麼問題、套用了哪些修復，以及可儲存的修復後 EPUB。文案保持簡短、事實化。
-
-conversion intent:
-透過透明度建立信任。
-
-# Screenshot 5
-
-Source ficha: `docs/fichas/ef/zh-TW.md`
-Source screenshot: `tools/playstore/raw/ef/zh-TW/05-save-copy.png`
-
-Generate image.
+Use my screenshot in your composition.
+Raw replacement instructions:
+4. Reemplaza solo el nombre del EPUB y la portada/miniatura del preview.
+4. Usa un libro de dominio publico popular en la region.
+4. Mantén intactos la composicion, los controles y el layout de la pantalla.
+4. No agregues checkmarks, badges ni overlays sobre la portada.
 
 Brief
 
@@ -225,71 +197,77 @@ titulo:
 儲存修復副本
 
 subline:
-原始 EPUB 保持不變
+原始檔保持不變
 
 headline color:
 #FFFFFF
 
 subline color:
-#D6E0E3
+#D9D9D9
 
 wrapper:
-Safe-copy proof composition or real export confirmation screen.
+Android phone mockup showing the completed save/ready screen.
 
 fondo:
 * dimension: 1994x3456 px
-* base principal: #121416
-* secundario: #20272C
-* acento: #C6533D
-* optional support accent: #ECB0A1
-* ubicacion del acento: restrained, never behind the headline
-* zona segura de copy: upper third, dark and readable
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
+* ubicacion del acento: controlled emphasis around the repaired-status indicators
+* zona segura de copy: upper third, clean and matte
 * textura permitida: subtle matte grain below 3%
-* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
+* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, fake security seals
 
 imagen:
-展示原始 EPUB → 修復後 EPUB 副本 的簡單關係。輸出檔名應像一個新版本，例如 The_Great_Gatsby_repaired.epub。
+Show a result screen that makes it clear a new repaired EPUB copy is ready or saved, while the original remains untouched. Keep repair entries concise and factual.
 
 conversion intent:
-把安全副本行為講清楚，降低嘗試門檻。
+Prove that the app creates a separate repaired file and does not overwrite the original.
 
-# Screenshot 6
+# Screenshot 5
 
 Source ficha: `docs/fichas/ef/zh-TW.md`
-Source screenshot: `tools/playstore/raw/ef/zh-TW/06-library-result.png`
+Source screenshot: `tools/playstore/raw/ef/zh-TW/05-my-epubs-two-corrected.png`
 
 Generate image.
+
+Use my screenshot in your composition.
+Raw replacement instructions:
+5. Reemplaza el nombre y la portada de cada uno de los EPUB reparados en la composición.
+5. Mantén la composición, las tarjetas y la relación visual entre elementos intactas.
+5. No cambies la estructura general de la escena.
 
 Brief
 
 titulo:
-100% 在裝置上處理
+你的 EPUB 都在裝置上
 
 subline:
-無需帳號。無需上傳。
+已修復、已匯入，從未上傳
 
 headline color:
 #FFFFFF
 
 subline color:
-#D6E0E3
+#D9D9D9
 
 wrapper:
-Phone mockup showing the repaired EPUB in the app’s local library or saved-results area.
+Phone mockup showing the local My EPUBs or saved-results area.
 
 fondo:
 * dimension: 1994x3456 px
-* base principal: #121416
-* secundario: #20272C
-* acento: #C6533D
-* optional support accent: #ECB0A1
-* ubicacion del acento: restrained, never behind the headline
-* zona segura de copy: upper third, dark and readable
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
+* ubicacion del acento: subtle emphasis around the local repaired file
+* zona segura de copy: upper third, clean and matte
 * textura permitida: subtle matte grain below 3%
-* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
+* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, fake security seals
 
 imagen:
-使用真實的已儲存 EPUB 或本機圖書館畫面，讓修復檔案作為本機結果可見。可選說明：本機處理、無需帳號、無需上傳。
+Use the real saved EPUB or local-library screen, with repaired and imported files visible as local results. Optional proof points: on-device processing, no account needed, no uploads. If the screen shows My EPUBs, better.
 
 conversion intent:
-以隱私和檔案歸屬感收尾。
+Close with privacy, ownership, and local file continuity.

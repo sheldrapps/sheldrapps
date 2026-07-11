@@ -10,4 +10,6 @@ export const KO_KR: RecommendedAppsTranslations = {
   APP_DESC_CCFK: '몇 번의 탭으로 이미지에서 E리더 표지를 만드세요.',
   APP_DESC_ECC: 'EPUB 표지를 교체하고 업데이트된 파일을 내보냅니다.',
   APP_DESC_PCM: 'PDF 표지를 교체하고 업데이트된 파일을 내보냅니다.',
+  APP_NAME_EF: 'EPUB 복구',
+  APP_DESC_EF: '일반적인 EPUB 문제를 진단하고 복구',
 };

@@ -34,13 +34,6 @@ export const routes: Routes = [
               ),
           },
           {
-            path: 'instructions',
-            loadComponent: () =>
-              import('../pages/instructions/instructions.page').then(
-                (m) => m.InstructionsPage,
-              ),
-          },
-          {
             path: 'theme',
             loadComponent: () =>
               import('../pages/settings/theme.page').then((m) => m.ThemePage),

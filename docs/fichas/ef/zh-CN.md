@@ -34,7 +34,7 @@ Reasoning:
 Text:
 修复常见 EPUB 文件问题并保存修复副本。
 
-EPUB Fixer 可帮助你检查那些无法正常打开、存在内部引用错误或结构问题的 EPUB 文件，让你知道文件哪里出了问题。
+EPUB Fixer 可帮助你检查无法正常打开、存在内部引用错误，或因结构问题而无法正常工作的 EPUB 文件。
 
 从设备中选择一个 EPUB，并为该文件准备安全会话。应用会检查 EPUB 结构中的重要部分，例如 mimetype、container.xml、OPF 数据、manifest 条目和 spine 引用。
 
@@ -46,67 +46,35 @@ EPUB Fixer 可帮助你检查那些无法正常打开、存在内部引用错误
 • 为每个文件准备安全会话
 • 诊断常见 EPUB 结构问题
 • 检查 mimetype、container.xml、OPF、manifest 和 spine
-• 识别损坏引用和缺失包文件
+• 识别损坏引用和缺失的包文件
 • 修复受支持的 EPUB 结构问题
 • 在可能时重建 EPUB
-• 保存一个新的修复副本
+• 将修复后的 EPUB 保存为新副本
 • 保持原文件不变
-• 在 My EPUBs 中查看修复或导入的文件
+• 在 My EPUBs 中查看已修复或已导入的文件
 • 调整语言和主题
 • 通过升级选项移除广告
 
-EPUB Fixer 还会清楚处理问题文件，包括使用 .epub 扩展名但并不是真正 EPUB 的文件。
+EPUB Fixer 也会清楚处理问题文件，包括扩展名为 .epub、但实际并不是有效 EPUB 的文件。
 
 所有处理都在设备上完成。
 
-无需账号。
+无需账户。
 无需上传。
 无需云端转换。
 
-某些免费修复可能需要观看奖励广告。如果广告无法加载，应用会提供备用流程，确保用户知道接下来该做什么。
+某些免费修复可能需要观看激励广告。如果广告无法加载，应用会提供备用流程，确保用户知道接下来该做什么。
 
 EPUB Fixer 适合读者、收藏者、学生，以及任何管理数字书库、又不想使用复杂桌面软件来排查 EPUB 问题的人。
 
 这款应用专注一件实用的事：诊断、修复并安全保存受支持的 EPUB 修复结果。
 
 Character count:
-1321
+1293
 
 SEO/ASO notes:
 * 自然加入这些词：EPUB修复、修复 EPUB、修复 EPUB 文件、EPUB 修复工具、诊断 EPUB、损坏 EPUB、EPUB 文件损坏、EPUB 结构修复、EPUB manifest、EPUB spine、EPUB 错误、保存修复副本、My EPUBs、移除广告。
 * 避免这些说法：修复所有 EPUB、移除 DRM、修复受保护电子书、云端修复、在线转换器、AI 修复、万能 EPUB 修复、完整 EPUB 编辑器。
-
-## Market Angle Decision
-
-Market angle selected:
-快速诊断常见 EPUB 结构问题，并以透明结果安全保存为副本。
-
-Why this angle should convert in zh-CN:
-用户最直接的问题很简单也很紧急："我的 EPUB 打不开、像坏掉了，或者导入失败。能不能不用桌面软件直接修好？" 页面应该立刻用清晰的“问题 -> 解决”故事回应这个疑问。
-
-Primary user desire:
-让有问题的 EPUB 再次可用，而不用高级工具或桌面软件。
-
-Secondary trust proof:
-* 先诊断，再修复
-* 修复结果清楚易懂
-* 在设备上处理
-* 无需账号
-* 无需上传
-* 原 EPUB 保持不变
-* 会生成新的修复副本
-* 可在 My EPUBs 中再次找到修复或导入的文件
-* 移除广告保持为次要透明信息
-
-What should NOT be the first screenshot:
-* 设置页面
-* 空的本地库
-* 通用文件选择器
-* 技术 XML 或代码
-* 只讲隐私的页面
-* 通用 EPUB 阅读器
-* 没有问题上下文的“修复完成”页面
-* 第一张就展示变现内容
 
 ## Regional Conversion Strategy
 
@@ -194,7 +162,7 @@ imagen:
 
 bullets:
 * 在设备上修复
-* 无需账号
+* 无需账户
 * 无需上传
 
 conversion intent:
@@ -237,172 +205,157 @@ conversion intent:
 ## Screenshot 2
 
 titulo:
-从你的 EPUB 开始
+它真的是 EPUB 吗？
 
 subline:
-准备安全的修复会话
+识别被改过的文件扩展名
 
 headline color:
 #FFFFFF
 
 subline color:
-#D4DDE1
+#D9D9D9
 
 wrapper:
-Android 手机模型，展示真实的选择界面或已准备好的会话。
+Android 手机样机，展示无效文件的说明页面。
 
 fondo:
 * dimension: 1994x3456 px
-* base principal: #111417
-* secundario: #1D242A
-* acento: #C24130
-* optional support accent: #EAA69C
-* ubicacion del acento: subtle emphasis around the selected EPUB or session card
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
+* ubicacion del acento: calm status emphasis around the file card or warning badge
 * zona segura de copy: upper third, clean and matte
 * textura permitida: subtle matte grain below 3%
-* elementos prohibidos: generic file-manager clutter, cloud picker visuals, upload arrows, fake security seals
+* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, fake security seals
 
 imagen:
-展示从设备中选中的 EPUB，已经准备好进行诊断或修复。若真实界面支持，可使用：EPUB 已加载、准备诊断、安全会话已准备好。不要暗示云端上传或同步。
+展示一个克制的无效文件状态：文件带有 `.epub` 扩展名，但并不是有效的 EPUB。说明要具体，不要夸张。
 
 conversion intent:
-说明应用从本地文件开始，并在任何修改之前先建立清晰的工作会话。
+区分文件扩展名和真实 EPUB 结构，减少用户挫败感。
 
 ## Screenshot 3
 
 titulo:
-先弄清哪里坏了
+看清哪里出问题
 
 subline:
-修复前先清晰诊断
+修复前先明确诊断
 
 headline color:
 #FFFFFF
 
 subline color:
-#D4DDE1
+#D9D9D9
 
 wrapper:
-Android 手机模型，展示真实的诊断界面。
+Android 手机样机，展示真实 EPUB 诊断页面。
 
 fondo:
 * dimension: 1994x3456 px
-* base principal: #111417
-* secundario: #1D242A
-* acento: #C24130
-* optional support accent: #EAA69C
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
 * ubicacion del acento: subtle emphasis near the diagnostic summary, never behind the headline
 * zona segura de copy: upper third, clean and matte
 * textura permitida: subtle matte grain below 3%
-* elementos prohibidos: verbose technical logs, raw XML, programmer-oriented labels, bright warning panels
+* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, fake security seals
 
 imagen:
-真实的诊断界面应显示简短、易懂的问题摘要。支持的示例：EPUB 包结构无效、缺少 container 文件、manifest 引用损坏、spine 条目无效或内容缺失。不要一次展示超过三到四个问题。
+真实诊断页面应展示简洁、易懂的问题摘要。可用示例包括 EPUB 包结构无效、container 文件缺失、manifest 引用损坏、spine 条目无效，或内容文件缺失。一次不要展示超过三到四个问题。
+
+
+raw screenshot handling:
+3. Reemplaza solo el nombre del EPUB por un libro sin copyright famoso en la región.
+3. Mantén intactos el diagnóstico, la interfaz y la composición general.
+3. No cambies colores, fondos ni jerarquía visual.
 
 conversion intent:
-证明应用不只是按一个修复按钮，而是先检查 EPUB 结构并解释它找到了什么。
+证明应用会检查 EPUB 结构，并在修复前说明发现的问题。
 
 ## Screenshot 4
 
 titulo:
-修复常见 EPUB 问题
+保存修复副本
 
 subline:
-修正受支持的结构问题
+原文件保持不变
 
 headline color:
 #FFFFFF
 
 subline color:
-#D4DDE1
+#D9D9D9
 
 wrapper:
-Android 手机模型，展示真实的修复流程。
+Android 手机样机，展示保存完成或结果就绪页面。
 
 fondo:
 * dimension: 1994x3456 px
-* base principal: #111417
-* secundario: #1D242A
-* acento: #C24130
-* optional support accent: #EAA69C
-* ubicacion del acento: subtle focus around the repair action or progress result
-* zona segura de copy: upper third, dark and stable
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
+* ubicacion del acento: controlled emphasis around the repaired-status indicators
+* zona segura de copy: upper third, clean and matte
 * textura permitida: subtle matte grain below 3%
-* elementos prohibidos: exaggerated progress effects, "magic repair" language, cloud processing visuals, generic phone-cleaner styling
+* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, fake security seals
 
 imagen:
-展示修复进行中或完成后的摘要，包含受支持的结构问题，例如损坏的 manifest 项、无效的 spine 条目、缺失的包引用和 EPUB 包结构问题。
+展示结果页面，让用户清楚看到新的修复 EPUB 副本已经就绪或已保存，同时原文件保持不变。修复条目应简洁、具体。
+
+
+raw screenshot handling:
+4. Reemplaza solo el nombre del EPUB y la portada/miniatura del preview.
+4. Usa un libro de dominio publico popular en la region.
+4. Mantén intactos la composicion, los controles y el layout de la pantalla.
+4. No agregues checkmarks, badges ni overlays sobre la portada.
 
 conversion intent:
-传达应用确实会修复受支持的 EPUB 问题。
+证明应用会创建单独的修复文件，不会覆盖原文件。
 
 ## Screenshot 5
 
 titulo:
-看看修复了什么
+你的 EPUB 都在设备上
 
 subline:
-导出前先检查结果
+已修复、已导入，从未上传
 
 headline color:
 #FFFFFF
 
 subline color:
-#D4DDE1
+#D9D9D9
 
 wrapper:
-Android 手机模型，展示已完成的修复摘要。
+手机样机，展示本地 My EPUBs 或已保存结果区域。
 
 fondo:
 * dimension: 1994x3456 px
-* base principal: #111417
-* secundario: #1D242A
-* acento: #C24130
-* optional support accent: #EAA69C
-* ubicacion del acento: controlled highlight around repaired-status indicators
-* zona segura de copy: upper third, clean and stable
-* textura permitida: subtle matte grain below 3%
-* elementos prohibidos: dense technical logs, code, fake validation certificates, cluttered library visuals
-
-imagen:
-展示一个真实结果页，说明找到了什么问题、应用了哪些修复，以及可以保存的 EPUB 修复结果。保持条目简短且事实性强。
-
-conversion intent:
-在保存前通过透明度建立信任。
-
-## Screenshot 6
-
-titulo:
-100% 在设备上
-
-subline:
-无需账号。无需上传。
-
-headline color:
-#FFFFFF
-
-subline color:
-#D4DDE1
-
-wrapper:
-手机模型展示修复后的 EPUB 在本地库或已保存结果区域。
-
-fondo:
-* dimension: 1994x3456 px
-* base principal: #111417
-* secundario: #1D242A
-* acento: #C24130
-* optional support accent: #EAA69C
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
 * ubicacion del acento: subtle emphasis around the local repaired file
-* zona segura de copy: upper third, dark and readable
+* zona segura de copy: upper third, clean and matte
 * textura permitida: subtle matte grain below 3%
-* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
+* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, fake security seals
 
 imagen:
-使用真实的已保存文件或本地库界面，让修复后的文件作为本地结果可见。
+使用真实的已保存 EPUB 或本地文件列表页面，展示修复和导入后的文件作为本地结果。可选信任点：设备上处理、无需账户、无需上传。如果画面显示 My EPUBs，会更好。
+
+
+raw screenshot handling:
+5. Reemplaza el nombre y la portada de cada uno de los EPUB reparados en la composición.
+5. Mantén la composición, las tarjetas y la relación visual entre elementos intactas.
+5. No cambies la estructura general de la escena.
 
 conversion intent:
-以隐私、所有权和本地文件连续性收尾。
+以隐私、文件归属感和本地文件连续性收尾。
 
 ## Notes / Assumptions
 
@@ -411,4 +364,4 @@ conversion intent:
 * 技术术语要适量使用。manifest、spine 和 package structure 可以作为辅助，但不要主导标题。
 * 视觉叙事始终应是恢复：发现问题 EPUB -> 修复 EPUB。
 * 如果可能，应展示原始 EPUB 仍然被保留。
-* 无账号、无上传、本地处理和 My EPUBs 都是重要的信任信号。
+* 无账户、无上传、本地处理和 My EPUBs 都是重要的信任信号。

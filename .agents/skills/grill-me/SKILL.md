@@ -1,7 +1,7 @@
-﻿---
+---
 name: grill-me
 user-invocable: true
-description: "Interrogate plan/design branch-by-branch until shared understanding, resolving dependencies in decision tree. Use for every user request in this repository by default, and also when user asks stress-test, design grilling, says grill me, or invokes /grill-me."
+description: "Pressure-tests a plan or design by asking one question at a time until the decision tree is resolved. Use when the user asks to grill a plan, stress-test a design, or wants a deeper review of missing decisions."
 ---
 
 Interview me relentlessly about every aspect of this plan until we reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended answer.

@@ -68,8 +68,8 @@
         "BADGE": "即將推出"
       },
       "EPF": {
-        "NAME": "EPUB Fixer",
-        "DESCRIPTION": "Repair EPUB files and export fixed copies.",
+        "NAME": "EPUB修復",
+        "DESCRIPTION": "診斷並修復常見 EPUB 檔案問題",
         "BADGE": "即將推出"
       }
     },

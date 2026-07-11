@@ -32,7 +32,7 @@ Reasoning:
 ## Long Description
 
 Text:
-أصلح مشاكل EPUB الشائعة واحفظ نسخة مُصلحة.
+أصلح مشاكل EPUB الشائعة واحفظ النسخة المُصلحة.
 
 يساعدك EPUB Fixer على فحص ملفات EPUB التي لا تفتح بشكل صحيح، أو تحتوي على مراجع داخلية مكسورة، أو بها مشاكل بنيوية تمنعها من العمل كما يجب.
 
@@ -75,38 +75,6 @@ Character count:
 SEO/ASO notes:
 * استخدم عبارات طبيعية مثل إصلاح EPUB، إصلاح ملف EPUB، أداة إصلاح EPUB، تشخيص EPUB، EPUB تالف، ملف EPUB معطوب، إصلاح بنية EPUB، manifest EPUB، spine EPUB، أخطاء EPUB، حفظ نسخة مُصلحة، My EPUBs، إزالة الإعلانات.
 * تجنب العبارات مثل إصلاح أي EPUB، إزالة DRM، إصلاح الكتب المحمية، الإصلاح السحابي، المحول عبر الإنترنت، الإصلاح بالذكاء الاصطناعي، إصلاح EPUB شامل، أو محرر EPUB كامل.
-
-## Market Angle Decision
-
-Market angle selected:
-تشخيص سريع لمشاكل بنية EPUB الشائعة مع نتائج شفافة وحفظ آمن كنسخة.
-
-Why this angle should convert in ar-SA:
-السؤال الأساسي للمستخدم بسيط وعاجل: "ملف EPUB لا يفتح أو يبدو معطوبًا أو لا يُستورد. هل يمكن إصلاحه من دون برامج سطح مكتب؟" يجب أن يجيب العرض عن هذا السؤال فورًا من خلال قصة واضحة: المشكلة ثم الحل.
-
-Primary user desire:
-إرجاع EPUB المتعطل إلى حالة قابلة للاستخدام من دون أدوات متقدمة أو برامج سطح مكتب.
-
-Secondary trust proof:
-* تشخيص واضح قبل الإصلاح
-* نتائج إصلاح مفهومة
-* المعالجة على الجهاز
-* بدون حساب
-* بدون رفع ملفات
-* يبقى EPUB الأصلي دون تغيير
-* يتم إنشاء نسخة مُصلحة جديدة
-* يمكن العثور على الملفات المُصلحة أو المستوردة مرة أخرى في My EPUBs
-* إزالة الإعلانات تبقى أمرًا ثانويًا
-
-What should NOT be the first screenshot:
-* شاشة الإعدادات
-* مكتبة محلية فارغة
-* منتقي ملفات عام
-* XML تقني أو كود
-* شاشة تركز على الخصوصية فقط
-* قارئ EPUB عام
-* شاشة "اكتمل الإصلاح" من دون عرض المشكلة
-* شاشة تحقيق الدخل كأول دليل بصري
 
 ## Regional Conversion Strategy
 
@@ -202,10 +170,10 @@ conversion intent:
 ## Screenshot 1
 
 titulo:
-هل EPUB لا يفتح؟
+هل يتعذر فتح ملف EPUB؟
 
 subline:
-اعثر على الأخطاء الشائعة وأصلحها
+اكتشف المشكلة وأصلحها بسهولة
 
 headline color:
 #FFFFFF
@@ -236,173 +204,154 @@ conversion intent:
 ## Screenshot 2
 
 titulo:
-ابدأ بـ EPUB
+هل هو ملف EPUB حقيقي؟
 
 subline:
-جهّز جلسة إصلاح آمنة
+اكتشف الملفات ذات الامتداد المضلل
 
 headline color:
 #FFFFFF
 
 subline color:
-#D7E0E3
+#D9D9D9
 
 wrapper:
-نموذج هاتف Android يعرض شاشة الاختيار أو الجلسة الجاهزة.
+Android phone mockup showing the invalid-file explanation screen.
 
 fondo:
 * dimension: 1994x3456 px
-* base principal: #101418
-* secundario: #1C252B
-* acento: #B88A3A
-* optional support accent: #E4C47A
-* ubicacion del acento: subtle emphasis around the selected EPUB or session card
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
+* ubicacion del acento: calm status emphasis around the file card or warning badge
 * zona segura de copy: upper third, clean and matte
 * textura permitida: subtle matte grain below 3%
-* elementos prohibidos: generic file-manager clutter, cloud picker visuals, upload arrows, fake security seals
+* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, fake security seals
 
 imagen:
-اعرض EPUB تم اختياره من الجهاز وجاهزًا للتشخيص أو الإصلاح. إن دعمت الواجهة الحقيقية ذلك، استخدم عبارات مثل: EPUB محمّل، جاهز للتشخيص، جلسة آمنة جاهزة. لا توحِ بالرفع إلى السحابة أو المزامنة.
+Show a calm invalid-file state: the `.epub` extension exists, but the file is not a valid EPUB. Keep the message specific and non-dramatic.
 
 conversion intent:
-إظهار أن التطبيق يبدأ بملف محلي ويجهّز مسار عمل واضح قبل أي تعديل.
-
+Prevent frustration by separating file extension from real EPUB structure.
 ## Screenshot 3
 
 titulo:
-اعرف ماذا تعطل
+اعرف سبب المشكلة
 
 subline:
-تشخيص واضح قبل الإصلاح
+تشخيص واضح قبل بدء الإصلاح
 
 headline color:
 #FFFFFF
 
 subline color:
-#D7E0E3
+#D9D9D9
 
 wrapper:
-نموذج هاتف Android يعرض شاشة التشخيص الحقيقية.
+Android phone mockup showing the real EPUB diagnosis screen.
 
 fondo:
 * dimension: 1994x3456 px
-* base principal: #101418
-* secundario: #1C252B
-* acento: #B88A3A
-* optional support accent: #E4C47A
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
 * ubicacion del acento: subtle emphasis near the diagnostic summary, never behind the headline
 * zona segura de copy: upper third, clean and matte
 * textura permitida: subtle matte grain below 3%
-* elementos prohibidos: verbose technical logs, raw XML, programmer-oriented labels, bright warning panels
+* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, fake security seals
 
 imagen:
-يجب أن تعرض شاشة التشخيص ملخصًا قصيرًا ومفهومًا للمشكلات. أمثلة مناسبة: بنية EPUB غير صالحة، ملف container مفقود، مرجع manifest مكسور، إدخال spine غير صالح، أو محتوى مفقود. لا تعرض أكثر من ثلاث أو أربع مشكلات في الوقت نفسه.
+The real diagnosis screen should show a concise, understandable issue summary. Useful supported examples: invalid EPUB package structure, missing container file, broken manifest reference, invalid spine entry, or missing content file. Avoid showing more than three or four issues at once.
+
+
+raw screenshot handling:
+3. Reemplaza solo el nombre del EPUB por un libro sin copyright famoso en la región.
+3. Mantén intactos el diagnóstico, la interfaz y la composición general.
+3. No cambies colores, fondos ni jerarquía visual.
 
 conversion intent:
-إثبات أن التطبيق يشرح ما وجده قبل الإصلاح.
-
+Prove that the app checks the EPUB structure and explains what it found before repair.
 ## Screenshot 4
 
 titulo:
-أصلح مشاكل EPUB الشائعة
+احفظ النسخة المُصلحة
 
 subline:
-صحّح أخطاء البنية المدعومة
+يبقى الملف الأصلي كما هو
 
 headline color:
 #FFFFFF
 
 subline color:
-#D7E0E3
+#D9D9D9
 
 wrapper:
-نموذج هاتف Android يعرض مسار الإصلاح الحقيقي.
+Android phone mockup showing the completed save/ready screen.
 
 fondo:
 * dimension: 1994x3456 px
-* base principal: #101418
-* secundario: #1C252B
-* acento: #B88A3A
-* optional support accent: #E4C47A
-* ubicacion del acento: subtle focus around the repair action or progress result
-* zona segura de copy: upper third, dark and stable
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
+* ubicacion del acento: controlled emphasis around the repaired-status indicators
+* zona segura de copy: upper third, clean and matte
 * textura permitida: subtle matte grain below 3%
-* elementos prohibidos: exaggerated progress effects, "magic repair" language, cloud processing visuals, generic phone-cleaner styling
+* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, fake security seals
 
 imagen:
-اعرض عملية الإصلاح أثناء العمل أو ملخصًا نهائيًا يتضمن مشاكل مدعومة مثل المراجع المكسورة، عناصر manifest التالفة، إدخالات spine غير الصالحة، ومشكلات بنية حزمة EPUB.
+Show a result screen that makes it clear a new repaired EPUB copy is ready or saved, while the original remains untouched. Keep repair entries concise and factual.
+
+
+raw screenshot handling:
+4. Reemplaza solo el nombre del EPUB y la portada/miniatura del preview.
+4. Usa un libro de dominio publico popular en la region.
+4. Mantén intactos la composicion, los controles y el layout de la pantalla.
+4. No agregues checkmarks, badges ni overlays sobre la portada.
 
 conversion intent:
-إيصال أن التطبيق يصلح فعلًا مشاكل EPUB المدعومة.
-
+Prove that the app creates a separate repaired file and does not overwrite the original.
 ## Screenshot 5
 
 titulo:
-شاهد ما تم إصلاحه
+جميع ملفات EPUB في مكان واحد
 
 subline:
-راجع النتيجة قبل التصدير
+تُحفظ محليًا، بدون رفع أو حساب
 
 headline color:
 #FFFFFF
 
 subline color:
-#D7E0E3
+#D9D9D9
 
 wrapper:
-نموذج هاتف Android يعرض ملخص الإصلاح المكتمل.
+Phone mockup showing the local My EPUBs or saved-results area.
 
 fondo:
 * dimension: 1994x3456 px
-* base principal: #101418
-* secundario: #1C252B
-* acento: #B88A3A
-* optional support accent: #E4C47A
-* ubicacion del acento: controlled highlight around repaired-status indicators
-* zona segura de copy: upper third, clean and stable
-* textura permitida: subtle matte grain below 3%
-* elementos prohibidos: dense technical logs, code, fake validation certificates, cluttered library visuals
-
-imagen:
-اعرض شاشة نتيجة حقيقية توضّح المشكلات التي عُثر عليها، والإصلاحات التي طُبقت، وملف EPUB الجاهز للحفظ. حافظ على العناصر قصيرة وواقعية.
-
-conversion intent:
-بناء الثقة من خلال الشفافية قبل الحفظ.
-
-## Screenshot 6
-
-titulo:
-على جهازك 100%
-
-subline:
-بدون حساب. بدون رفع ملفات.
-
-headline color:
-#FFFFFF
-
-subline color:
-#D7E0E3
-
-wrapper:
-نموذج هاتف يعرض EPUB المُصلح في المكتبة المحلية أو في نتائج الحفظ.
-
-fondo:
-* dimension: 1994x3456 px
-* base principal: #101418
-* secundario: #1C252B
-* acento: #B88A3A
-* optional support accent: #E4C47A
+* base principal: #151515
+* secundario: #252525
+* acento: #B3261E
+* optional support accent: #D4574F
 * ubicacion del acento: subtle emphasis around the local repaired file
-* zona segura de copy: upper third, dark and readable
+* zona segura de copy: upper third, clean and matte
 * textura permitida: subtle matte grain below 3%
-* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, bright warning banners
+* elementos prohibidos: cloud icons, upload arrows, AI effects, dense technical logs, fake security seals
 
 imagen:
-استخدم شاشة الملف المحفوظ أو المكتبة المحلية الحقيقية، بحيث يظهر الملف المُصلح كنتيجة محلية واضحة.
+Use the real saved EPUB or local-library screen, with repaired and imported files visible as local results. Optional proof points: on-device processing, no account needed, no uploads. If the screen shows My EPUBs, better.
+
+
+raw screenshot handling:
+5. Reemplaza el nombre y la portada de cada uno de los EPUB reparados en la composición.
+5. Mantén la composición, las tarjetas y la relación visual entre elementos intactas.
+5. No cambies la estructura general de la escena.
 
 conversion intent:
-إنهاء الرسالة بالخصوصية والملكية والاستمرارية المحلية للملف.
-
+Close with privacy, ownership, and local file continuity.
 ## Notes / Assumptions
 
 * الوصف يشرح فقط الإصلاحات المدعومة فعلًا.

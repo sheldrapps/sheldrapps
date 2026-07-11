@@ -1,7 +1,7 @@
-﻿---
+---
 name: incrementa-version-utilidades
 user-invocable: true
-description: "Incrementa version de app movil y actualiza build.gradle + version-notes.xml. Use when user says 'Incrementa la versión de <short_name>' where <short_name> is the initials alias of the app name, or an equivalent versioning request."
+description: "Bumps a mobile app version and updates `build.gradle` plus release notes from the current delta. Use when the user asks to increase version, update release notes, publish a mobile release, or says 'sube version'."
 ---
 
 # Incrementa Version Utilidades

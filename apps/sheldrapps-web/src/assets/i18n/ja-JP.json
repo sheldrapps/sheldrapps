@@ -68,8 +68,8 @@
         "BADGE": "近日公開"
       },
       "EPF": {
-        "NAME": "EPUB Fixer",
-        "DESCRIPTION": "Repair EPUB files and export fixed copies.",
+        "NAME": "EPUB修復",
+        "DESCRIPTION": "EPUBの一般的な問題を診断して修復",
         "BADGE": "近日公開"
       }
     },

@@ -51,6 +51,11 @@
                 "output": "assets/apps/pcm"
               },
               {
+                "glob": "icon.png",
+                "input": "../epub-fixer/resources",
+                "output": "assets/apps/epub-fixer"
+              },
+              {
                 "glob": "**/*",
                 "input": "../../packages/image-workflow/src/assets",
                 "output": "assets"
@@ -102,10 +107,15 @@
                 "output": "assets/apps/pcm"
               },
               {
+                "glob": "icon.png",
+                "input": "../epub-fixer/resources",
+                "output": "assets/apps/epub-fixer"
+              },
+              {
                 "glob": "**/*",
                 "input": "../../packages/image-workflow/src/assets",
                 "output": "assets"
-                }
+              }
               ],
               "fileReplacements": [
                 {
@@ -176,6 +186,11 @@
                 "glob": "icon.png",
                 "input": "resources",
                 "output": "assets/apps/pcm"
+              },
+              {
+                "glob": "icon.png",
+                "input": "../epub-fixer/resources",
+                "output": "assets/apps/epub-fixer"
               },
               {
                 "glob": "**/*",

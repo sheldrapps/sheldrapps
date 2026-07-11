@@ -62,7 +62,7 @@ async function captureLocale(browser, app, locale, fixtures) {
 
       await page.goto(routeUrl, { waitUntil: 'networkidle' });
       await applyAppLocale(page, locale);
-      await forcePlaystoreTheme(page, app.themeId);
+      await forcePlaystoreTheme(page, resolveThemeIdForLocale(app, locale));
       await dismissAnyTour(page);
 
       if (scenario.page === 'library') {
@@ -113,6 +113,12 @@ async function runScenarioAction(action, page, app, fixtures) {
       case 'openLibraryPreview':
         await openLibraryPreview(page, app, fixtures);
         return;
+      case 'seedFixInvalidFileState':
+        await seedFixInvalidFileState(page, app);
+        return;
+      case 'seedFixRepairableBlockerState':
+        await seedFixRepairableBlockerState(page, app);
+        return;
       case 'seedFixDiagnosisState':
         await seedFixDiagnosisState(page, app);
         return;
@@ -121,6 +127,9 @@ async function runScenarioAction(action, page, app, fixtures) {
         return;
       case 'seedFixRepairResultState':
         await seedFixRepairResultState(page, app);
+        return;
+      case 'seedLibraryWithTwoCorrectedItems':
+        await seedLibraryWithTwoCorrectedItems(page, app, fixtures);
         return;
       case 'openFixSaveModal':
         await openFixSaveModal(page, app);
@@ -445,14 +454,14 @@ async function openEditor(page, panel) {
   }
 }
 
-async function ensureLibrarySeed(page, app, fixtures) {
+async function ensureLibrarySeed(page, app, fixtures, filenames = [fixtures.documentFilename]) {
   await page.locator(app.selectors.library).first().waitFor({
     timeout: 15_000,
     state: 'attached',
   });
 
   const libraryState = await page.evaluate(
-    async ({ selector, documentFilename, coverDataUrl }) => {
+    async ({ selector, documentFilenames, coverDataUrl }) => {
       const ngApi = window.ng;
       const appEl = document.querySelector(selector);
       const component = ngApi?.getComponent?.(appEl);
@@ -464,12 +473,10 @@ async function ensureLibrarySeed(page, app, fixtures) {
         await component.load(undefined, { silent: true });
       }
 
-      component.items = [
-        {
-          filename: documentFilename,
-          thumbDataUrl: coverDataUrl,
-        },
-      ];
+      component.items = documentFilenames.map((filename) => ({
+        filename,
+        thumbDataUrl: coverDataUrl,
+      }));
       component.loading = false;
       component.pageErrorKey = null;
       component.pageErrorParams = null;
@@ -487,7 +494,7 @@ async function ensureLibrarySeed(page, app, fixtures) {
     },
     {
       selector: app.selectors.library,
-      documentFilename: fixtures.documentFilename,
+      documentFilenames: filenames,
       coverDataUrl: fixtures.coverDataUrl,
     },
   );
@@ -496,7 +503,7 @@ async function ensureLibrarySeed(page, app, fixtures) {
 }
 
 async function openLibraryPreview(page, app, fixtures) {
-  await ensureLibrarySeed(page, app, fixtures);
+  await ensureLibrarySeed(page, app, fixtures, ['epub-reparado.epub']);
 
   await page.waitForFunction(() => {
     const cards = document.querySelectorAll('.cover-card');
@@ -536,6 +543,79 @@ async function openLibraryPreview(page, app, fixtures) {
     timeout: 12_000,
     state: 'visible',
   });
+}
+
+async function seedFixInvalidFileState(page, app) {
+  await setFixPageState(page, app, {
+    preparedSessionId: undefined,
+    selectedEpubName: undefined,
+    sourceEpubMeta: undefined,
+    diagnosis: undefined,
+    repairResult: undefined,
+    exportResult: undefined,
+    viewState: 'failed',
+    epubErrorKey: 'FIX.EPUB_ERROR_CORRUPT',
+    epubErrorParams: {
+      name: 'archivo-no-valido.epub',
+    },
+    busyAction: undefined,
+    busyProgressPercent: 0,
+  });
+}
+
+async function seedFixRepairableBlockerState(page, app) {
+  await setFixPageState(page, app, {
+    preparedSessionId: 'session-blocker',
+    selectedEpubName: 'bloqueante-reparable.epub',
+    sourceEpubMeta: {
+      name: 'bloqueante-reparable.epub',
+      size: 2 * 1024 * 1024,
+      lastModified: Date.now(),
+      type: 'application/epub+zip',
+    },
+    diagnosis: {
+      sessionId: 'session-blocker',
+      status: 'repairable',
+      issues: [
+        {
+          code: 'MIMETYPE_MISSING',
+          severity: 'error',
+          fixable: true,
+          messageKey: 'FIX.ISSUE_MIMETYPE_MISSING',
+          repairMode: 'automatic',
+        },
+        {
+          code: 'CONTAINER_MISSING',
+          severity: 'error',
+          fixable: true,
+          messageKey: 'FIX.ISSUE_CONTAINER_MISSING',
+          repairMode: 'automatic',
+        },
+        {
+          code: 'OPF_AMBIGUOUS',
+          severity: 'warning',
+          fixable: true,
+          messageKey: 'FIX.ISSUE_OPF_AMBIGUOUS',
+          repairMode: 'guided',
+          options: ['OPS/package.opf', 'OPS/backup.opf'],
+        },
+      ],
+    },
+    repairResult: undefined,
+    exportResult: undefined,
+    viewState: 'diagnosed',
+    epubErrorKey: undefined,
+    epubErrorParams: {},
+    busyAction: undefined,
+    busyProgressPercent: 0,
+  });
+}
+
+async function seedLibraryWithTwoCorrectedItems(page, app, fixtures) {
+  await ensureLibrarySeed(page, app, fixtures, [
+    'epub-reparado-1.epub',
+    'epub-reparado-2.epub',
+  ]);
 }
 
 async function seedFixDiagnosisState(page, app) {
@@ -753,6 +833,10 @@ async function forcePlaystoreTheme(page, themeId) {
     themeId,
     { timeout: 15_000 },
   );
+}
+
+function resolveThemeIdForLocale(app, locale) {
+  return app.themeIdByLocale?.[locale] ?? app.themeId;
 }
 
 async function seedCaptureTourSettings(context, app, locale) {

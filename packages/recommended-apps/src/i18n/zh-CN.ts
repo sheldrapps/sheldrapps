@@ -10,4 +10,6 @@ export const ZH_CN: RecommendedAppsTranslations = {
   APP_DESC_CCFK: '只需几步即可从您的图片创建电子书封面。',
   APP_DESC_ECC: '替换 EPUB 封面并导出更新后的文件。',
   APP_DESC_PCM: '替换 PDF 封面并导出更新后的文件。',
+  APP_NAME_EF: 'EPUB修复',
+  APP_DESC_EF: '诊断并修复常见 EPUB 文件问题',
 };

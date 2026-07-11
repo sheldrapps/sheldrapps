@@ -10,4 +10,6 @@ export const EN_US: RecommendedAppsTranslations = {
   APP_DESC_CCFK: 'Create e-reader covers from your images in just a few taps.',
   APP_DESC_ECC: 'Replace EPUB covers and export updated files.',
   APP_DESC_PCM: 'Replace PDF covers and export updated files.',
+  APP_NAME_EF: 'EPUB Fixer',
+  APP_DESC_EF: 'Diagnose and repair common EPUB file issues',
 };

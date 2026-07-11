@@ -10,4 +10,6 @@ export const ES_MX: RecommendedAppsTranslations = {
   APP_DESC_CCFK: 'Crea portadas para e-reader desde tus imágenes en solo unos pasos.',
   APP_DESC_ECC: 'Reemplaza portadas EPUB y exporta archivos actualizados.',
   APP_DESC_PCM: 'Reemplaza portadas PDF y exporta archivos actualizados.',
+  APP_NAME_EF: 'Reparar EPUB',
+  APP_DESC_EF: 'Detecta y repara problemas comunes en archivos EPUB',
 };

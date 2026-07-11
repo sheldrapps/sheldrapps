@@ -198,7 +198,7 @@
                       </div>
                       @if (issue.details) {
                         <div class="fix-issue-list__detail">
-                          {{ issue.details }}
+                          {{ issueDetailsLabel(issue) }}
                         </div>
                       }
                       @if (section.kind === 'confirmation') {

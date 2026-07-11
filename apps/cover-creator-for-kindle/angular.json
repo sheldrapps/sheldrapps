@@ -53,6 +53,11 @@
                 "output": "assets/apps/pcm"
               },
               {
+                "glob": "icon.png",
+                "input": "../epub-fixer/resources",
+                "output": "assets/apps/epub-fixer"
+              },
+              {
                 "glob": "**/*",
                 "input": "../../packages/image-workflow/src/assets",
                 "output": "assets"
@@ -146,6 +151,11 @@
                 "glob": "icon.png",
                 "input": "../pdf-cover-maker/resources",
                 "output": "assets/apps/pcm"
+              },
+              {
+                "glob": "icon.png",
+                "input": "../epub-fixer/resources",
+                "output": "assets/apps/epub-fixer"
               },
               {
                 "glob": "**/*",

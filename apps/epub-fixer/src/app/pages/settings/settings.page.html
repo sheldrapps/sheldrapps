@@ -28,19 +28,6 @@
     </ion-item>
   </ion-list>
 
-  <ion-list inset="true">
-    <ion-item lines="full">
-      <ion-label class="ion-text-wrap">
-        <h2>{{ 'SETTINGS.INSTRUCTIONS_SECTION' | translate }}</h2>
-        <p>{{ 'SETTINGS.INSTRUCTIONS_HINT' | translate }}</p>
-      </ion-label>
-    </ion-item>
-
-    <ion-item button detail="true" [routerLink]="['/tabs/settings/instructions']">
-      <ion-label>{{ 'SETTINGS.INSTRUCTIONS' | translate }}</ion-label>
-    </ion-item>
-  </ion-list>
-
   <ion-loading
     [isOpen]="isLanguageRestartLoading"
     [message]="'SETTINGS.LANGUAGE_PREPARING_COUNTDOWN' | translate:{ count: languageRestartCountdown }"

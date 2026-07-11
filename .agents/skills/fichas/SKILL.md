@@ -1,7 +1,7 @@
-﻿---
+---
 name: fichas
 user-invocable: true
-description: "Crear/actualizar fichas Play Store SEO/ASO por proyecto+locale, usando creative brief, strategy matrix/conversion strategy, conversion audit y golden files aprobados como insumos de solo lectura. Use when user asks 'genera fichas', 'crea ficha Play Store', or localized listing copy/visual direction for ecc/ccfk/other locales."
+description: "Creates or updates Play Store / ASO listing copy by project and locale using approved brief, strategy, audit, and golden files as read-only inputs. Use when the user asks for fichas, Play Store copy, app-store listing text, ASO, or localized store direction."
 ---
 
 # Fichas Play Store (SEO/ASO)

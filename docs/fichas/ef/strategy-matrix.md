@@ -16,7 +16,7 @@ This matrix guides:
 
 The product truth must remain consistent across all locales:
 
-EPUB Fixer lets users select an EPUB from the device, prepare a safe repair session, diagnose common supported EPUB structure issues, repair compatible problems, explain the result, and save a repaired EPUB as a new copy without changing the original file.
+**EPUB Fixer helps users select an EPUB from the device, check whether it is really a valid EPUB, diagnose common supported EPUB structure issues, repair compatible problems, and save a repaired EPUB as a new copy without changing the original file.**
 
 The product may also communicate, as secondary product completeness:
 
@@ -27,11 +27,21 @@ The product may also communicate, as secondary product completeness:
 * fallback handling if an ad cannot load
 * clear handling for files that are not real EPUBs
 
+---
+
 ## Global Strategy
 
-The core conversion journey is:
+The approved compact conversion journey is:
 
-**EPUB with a problem → safe session → clear diagnosis → supported repair → repaired copy → local control**
+**EPUB with a problem → valid EPUB check → repairable diagnosis → repaired copy → local control**
+
+The global screenshot set should stay compact:
+
+1. Problem EPUB → repaired EPUB copy
+2. Invalid-file / changed-extension case
+3. Repairable diagnosis / structure issue found
+4. Save a repaired copy / original unchanged
+5. My EPUBs + local/private trust proof
 
 The product must never be positioned as:
 
@@ -47,23 +57,29 @@ The product must never be positioned as:
 
 The first visual proof must always show an understandable recovery outcome, not only a technical process.
 
-## Strategy Matrix
+The invalid-file case is no longer optional. It is part of the core compact strategy because it helps users understand when a file only has an `.epub` extension but is not actually repairable as an EPUB.
 
-| Locale | Market angle                                                               | Hero visual                                                                                                      | Problem-state idea                                                                     | Repaired-state idea                                                          | Diagnosis emphasis                                                      | Workflow emphasis                                                                                 | Trust proof                                                                                          | Monetization handling                                                                                   | What to avoid                                                                                                                                                       | Background base | Background secondary | Accent color | Support accent | Title color | Subline color | Bullet color | Notes                                                                                                                       |
-| ------ | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | -------------------- | ------------ | -------------- | ----------- | ------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| en-US  | Fast, practical EPUB repair for files that do not open or behave correctly | Same EPUB shown as “Needs repair” and “Repaired copy ready”                                                      | Neutral EPUB card with subtle “Can’t open correctly” or “Structure issue found” status | Same title and cover, clean repaired status, distinct copy filename          | Clear diagnosis before modification; show 2–3 concise issues            | Select EPUB → safe session → diagnose → repair → review → save copy → My EPUBs                    | On-device file processing. No accounts. No uploads. Original unchanged.                              | Mention remove ads only as secondary transparency. Rewarded ads should not appear in early screenshots. | Universal-repair claims, antivirus visuals, XML-first opening, full-editor language, “100% offline” if ads may load                                                 | `#151515`       | `#252525`            | `#B3261E`    | `#D4574F`      | `#FFFFFF`   | `#D9D9D9`     | `#E3C3C1`    | Lead with urgency and recovery. A restrained slate-blue secondary highlight may be used for a more technical, premium mood. |
-| es-MX  | Recuperar un EPUB que no abre bien, sin complicaciones                     | Problema visible → copia reparada con mensaje claro                                                              | Tarjeta EPUB con “No abre correctamente” o “Problema detectado”                        | Mismo EPUB con “Copia reparada lista” y nombre terminado en `_reparado.epub` | “Entiende qué falló” antes de reparar; evitar jerga en el titular       | Elegir EPUB → preparar sesión → revisar problema → reparar → confirmar → guardar copia → My EPUBs | Procesamiento del archivo en tu dispositivo. Sin cuentas. Sin subir archivos. El original no cambia. | Quitar anuncios puede aparecer en ajustes o cierre. No vender anuncios recompensados como beneficio.    | Lenguaje demasiado técnico, reparación garantizada, estética de antivirus, pantalla de diagnóstico como primera imagen, “100% offline” en flujo gratis con anuncios | `#151515`       | `#252525`            | `#B3261E`    | `#D4574F`      | `#FFFFFF`   | `#D9D9D9`     | `#E3C3C1`    | Debe sentirse directa y tranquilizadora. “¿Tu EPUB no abre bien?” es más fuerte que una explicación de estructura interna.  |
-| de-DE  | Diagnóstico preciso y reparación controlada de problemas EPUB compatibles  | Comparación sobria: archivo con incidencia → copia reparada                                                      | EPUB minimalista con estado “Problem erkannt” o equivalente                            | Resultado limpio con estado “Reparierte Kopie bereit”                        | Mostrar hallazgos claros y estructurados, sin adornos                   | EPUB wählen → sichere Sitzung → prüfen → reparieren → Ergebnis prüfen → Kopie speichern           | Lokale Dateiverarbeitung. Kein Konto. Kein Upload. Original bleibt erhalten.                         | Werbefreie Option nur sachlich y en pantallas finales. Evitar tono promocional agresivo.                | Lenguaje emocional exagerado, promesas vagas de reparación mágica, visuales saturados, compatibilidad absoluta, offline no verificado                               | `#121416`       | `#202326`            | `#7A8FA6`    | `#9FB2C5`      | `#F7F7F7`   | `#C9D0D4`     | `#DCE3EA`    | Priorizar precisión, claridad y control. La paleta debe sentirse técnica y confiable, no alarmista.                         |
-| fr-FR  | Recuperación EPUB simple, clara y transparente                             | Progresión elegante: problème détecté → copie réparée                                                            | Libro digital neutro con alerta discreta, no dramática                                 | Mismo archivo con confirmación de reparación y copia nueva                   | Explicar el diagnóstico con términos humanos antes de detalles técnicos | Choisir EPUB → préparer → diagnostiquer → corriger → vérifier → enregistrer                       | Traitement du fichier sur l’appareil. Aucun compte. Aucun envoi. Original conservé.                  | Option sans publicité como soporte de experiencia, no como claim principal.                             | Apariencia de herramienta técnica hostil, nube, automatización opaca, mensajes demasiado secos o densos, paywall-first                                              | `#151518`       | `#242126`            | `#9E5A52`    | `#C98C84`      | `#FFFFFF`   | `#DDD4DC`     | `#EAB4AD`    | Debe equilibrar pulido editorial con utilidad concreta. El resultado reparado tiene que sentirse verificable, no abstracto. |
-| it-IT  | Corregir problemas EPUB comunes de forma sencilla y segura                 | Antes/después cálido y claro con la misma tarjeta EPUB                                                           | Archivo EPUB con un problema comprensible y marcador discreto                          | Nueva copia limpia con confirmación visible                                  | Priorizar “qué se encontró” y “qué se corrigió” con lenguaje accesible  | Scegli EPUB → prepara → controlla → ripara → verifica → salva copia                               | Elaborazione del file sul dispositivo. Nessun account. Nessun upload. Originale invariato.           | Rimuovi annunci puede aparecer como polish de ajustes. No debe ocupar hero ni primeras capturas.        | Estética de limpiador de archivos, jerga excesiva, promesas de recuperar todo el contenido de un libro                                                              | `#181414`       | `#2B2320`            | `#C85A3E`    | `#E08A65`      | `#FFFFFF`   | `#E8D4CA`     | `#F0B69E`    | Puede ser más cálida, pero la narrativa debe seguir siendo funcional: diagnóstico y reparación, no embellecimiento.         |
-| pt-BR  | Corrigir EPUB com problema e salvar uma cópia reparada                     | Transformação direta: EPUB com erro → EPUB corrigido                                                             | Cartão EPUB com “Problema encontrado” ou “Não abre corretamente”                       | Mesmo arquivo com estado “Cópia reparada pronta”                             | Explicação simples do problema antes da ação de reparo                  | Escolher EPUB → preparar sessão → diagnosticar → reparar → revisar → salvar cópia                 | Processamento do arquivo no dispositivo. Sem conta. Sem uploads. Original preservado.                | Remover anúncios como opção final. Evitar sugerir uso grátis ilimitado se não for verdade.              | Prometer reparação de qualquer EPUB, visual de antivírus, serviço em nuvem, ferramenta de limpeza genérica, “100% offline” com anúncios                             | `#161313`       | `#2A2020`            | `#D94B35`    | `#F27A55`      | `#FFFFFF`   | `#F0D2CC`     | `#FFC0A6`    | El acento puede ser más energético, pero los estados de problema y recuperación deben conservar una lectura clara.          |
-| ar-SA  | Diagnóstico y reparación EPUB privados con una copia nueva segura          | Comparación RTL clara: problema a la derecha → resultado reparado a la izquierda, o flujo visual RTL consistente | EPUB con señal breve de problema, sin iconografía agresiva                             | Copia reparada con estado limpio y archivo separado                          | Diagnóstico breve, con jerarquía RTL y espacio suficiente para textos   | اختيار EPUB → تجهيز الجلسة → فحص → إصلاح → مراجعة → حفظ نسخة                                      | تتم معالجة الملف على الجهاز. بدون حساب. بدون رفع ملفات. يبقى الأصل دون تغيير.                        | Mention ad-free only in settings/final screen. Rewarded ads must not crowd RTL layouts.                 | Diseño LTR, texto compacto, decoración excesiva, promesas absolutas de recuperación, iconos de nube, monetización dominante                                         | `#101418`       | `#1C252B`            | `#B88A3A`    | `#E4C47A`      | `#FFFFFF`   | `#D7E0E3`     | `#E4C47A`    | Mantener una composición premium, sobria y RTL-safe. El oro/bronce funciona como indicador de restauración controlada.      |
-| hi-IN  | Solución móvil clara para EPUB que no abre o tiene problemas comunes       | Comparación visual muy simple de archivo con problema y copia reparada                                           | EPUB con indicador entendible en inglés o hindi localizado, sin tecnicismos            | Resultado con estado “Repaired copy ready” o equivalente                     | Diagnosis must be short and visual, not code-heavy                      | Select EPUB → prepare → scan → repair → review → save copy                                        | File processing on device. No account. No uploads. Original stays unchanged.                         | Keep monetization simple: remove ads as optional. Avoid explaining rewarded ads in hero assets.         | Jargon técnico, capturas UI-first, copy confuso entre hindi e inglés, aspecto de limpiador de teléfono                                                              | `#151515`       | `#252018`            | `#D96B2B`    | `#FFC48F`      | `#FFFFFF`   | `#EED8C6`     | `#FFC48F`    | Usar lenguaje muy directo. Puede mantenerse inglés en términos como EPUB y “repair” si la localización final lo respalda.   |
-| ja-JP  | Comprobar problemas EPUB y guardar una copia reparada con precisión        | Transformación minimalista y tranquila del mismo EPUB                                                            | Archivo con estado breve y discreto, equivalente a “Issue found”                       | Copia reparada con confirmación ordenada y sin exageración visual            | La pantalla de diagnóstico debe ser concisa, organizada y legible       | EPUB選択 → 準備 → 確認 → 修復 → 結果確認 → コピー保存                                                              | ファイルは端末上で処理。アカウント不要。アップロード不要。元のファイルはそのまま。                                                            | Ad-free option only as quiet settings detail. No ad-heavy store visual.                                 | Errores dramáticos, decoración intensa, terminología técnica larga, estética de antivirus, promesas absolutas                                                       | `#121416`       | `#1E2327`            | `#8F3A35`    | `#D49B96`      | `#F8F8F8`   | `#CDD5D8`     | `#D49B96`    | Priorizar calma, orden y precisión. La relación problema → copia reparada debe leerse sin depender de texto extenso.        |
-| ko-KR  | Diagnosticar problemas EPUB comunes y guardar un resultado reparado        | Antes/después moderno con estados de archivo concisos                                                            | EPUB con marcador técnico discreto y mensaje breve                                     | Copia reparada visible, con estado limpio y nombre distinto                  | Mostrar que primero se diagnostica y después se repara                  | EPUB 선택 → 준비 → 진단 → 복구 → 결과 확인 → 복사본 저장                                                           | 파일은 기기에서 처리. 계정 없음. 업로드 없음. 원본은 그대로 유지.                                                              | Remove-ads as secondary product control. Avoid ad/rewarded mechanics in early visuals.                  | Que parezca un explorador de archivos, antivirus o herramienta que arregla todos los errores                                                                        | `#121417`       | `#1F2429`            | `#A83A32`    | `#DFA49D`      | `#FFFFFF`   | `#CDD6DC`     | `#DFA49D`    | La estética debe sentirse moderna, técnica y limpia. La interfaz real debe respaldar la promesa de reparación.              |
-| ru-RU  | Diagnóstico práctico de EPUB y reparación de problemas compatibles         | Antes/después directo, sobrio y serio                                                                            | EPUB con mensaje equivalente a “Проблема обнаружена”                                   | Misma obra en una copia con estado “Исправленная копия готова”               | Mostrar hallazgos y resultado sin prometer recuperación total           | Выбрать EPUB → подготовить → проверить → исправить → просмотреть → сохранить копию                | Обработка файла на устройстве. Без аккаунта. Без загрузки файлов. Оригинал не изменяется.            | Mention ad-free as optional, not as core conversion. Avoid “free unlimited” implications.               | Promesas de recuperación total, DRM, nube, aspecto de herramienta de hacking o editor EPUB completo                                                                 | `#141414`       | `#202226`            | `#B13A32`    | `#E0A39C`      | `#FFFFFF`   | `#D2D6DA`     | `#E0A39C`    | Debe proyectar capacidad y seriedad. El texto debe subrayar reparaciones compatibles y copia segura.                        |
-| zh-CN  | 检查常见 EPUB 问题并本地保存修复副本                                                      | Archivo EPUB con problema y resultado reparado claramente vinculados                                             | 状态简短，例如“发现问题”或“无法正常打开”                                                                 | 同一 EPUB 的修复副本，状态如“修复副本已就绪”                                                   | 强调先检查、再修复；技术细节保持次要                                                      | 选择 EPUB → 准备 → 检查 → 修复 → 查看结果 → 保存副本                                                              | 文件在设备上处理。无需账号。不上传文件。原文件不变。                                                                           | Remove-ads should be a late settings detail. Avoid ad mechanics in main conversion assets.              | 暗示完整 EPUB 编辑、AI 修复、云端处理、万能修复、安全软件式视觉或未验证离线承诺                                                                                                                        | `#111417`       | `#1D242A`            | `#C24130`    | `#EAA69C`      | `#FFFFFF`   | `#D4DDE1`     | `#EAA69C`    | 视觉必须高效、清晰、以结果为先。避免把内部结构术语放在主标题。                                                                                             |
-| zh-TW  | 檢查常見 EPUB 問題並儲存修復副本                                                        | 清楚且信任導向的問題→修復流程                                                                                                  | EPUB 檔案卡搭配簡短問題狀態，例如「無法正常開啟」                                                            | 同一檔案的修復版本，清楚標示為新副本                                                           | 優先傳達「先了解問題，再進行相容修復」                                                     | 選擇 EPUB → 準備 → 檢查 → 修復 → 檢視結果 → 儲存副本                                                              | 檔案在裝置上處理。無需帳號。不需上傳。原始檔案不會變更。                                                                         | Ad-free option supports trust only if late and factual. Do not make ads the story.                      | 太像防毒、雲端檔案服務、一般清理工具、保證修復所有 EPUB 或未驗證離線承諾                                                                                                                             | `#121416`       | `#20272C`            | `#C6533D`    | `#ECB0A1`      | `#FFFFFF`   | `#D6E0E3`     | `#ECB0A1`    | Puede mantener un acento ligeramente editorial y cálido, pero el resultado debe sentirse confiable y técnicamente realista. |
+---
+
+# Strategy Matrix
+
+| Locale | Market angle                                                               | Hero visual                                                               | Invalid-file visual                                                                       | Repairable diagnosis emphasis                                                             | Repaired-copy proof                                                 | Local / privacy trust proof                                                                          | Monetization handling                                                                                   | What to avoid                                                                                                                                           | Background base | Background secondary | Accent color | Support accent | Title color | Subline color | Bullet color | Notes                                                                                                           |
+| ------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | -------------------- | ------------ | -------------- | ----------- | ------------- | ------------ | --------------------------------------------------------------------------------------------------------------- |
+| en-US  | Fast, practical EPUB repair for files that do not open or behave correctly | Same EPUB shown as “Can’t open correctly” and “Repaired copy ready”       | Clear “Not a valid EPUB” state; explain changed extension without drama                   | Show 2–3 concise structure findings before repair, such as OPF, manifest, or spine issues | Distinct repaired-copy filename and original unchanged message      | On-device file processing. No accounts. No uploads. Original unchanged.                              | Mention remove ads only as secondary transparency. Rewarded ads should not appear in early screenshots. | Universal-repair claims, antivirus visuals, XML-first opening, full-editor language, cloud claims, “100% offline” if ads may load                       | `#151515`       | `#252525`            | `#B3261E`    | `#D4574F`      | `#FFFFFF`   | `#D9D9D9`     | `#E3C3C1`    | Lead with urgency and recovery. Use “IS IT REALLY AN EPUB?” as a strong second screenshot hook.                 |
+| es-MX  | Recuperar un EPUB que no abre bien, sin complicaciones                     | Problema visible → copia reparada con mensaje claro                       | Estado claro de “No es un EPUB válido”; explicar extensión cambiada sin llamarlo “dañado” | “Entiende qué falló” antes de reparar; evitar jerga en el titular                         | Copia reparada lista, con el original intacto                       | Procesamiento del archivo en tu dispositivo. Sin cuentas. Sin subir archivos. El original no cambia. | Quitar anuncios puede aparecer en ajustes o cierre. No vender anuncios recompensados como beneficio.    | Lenguaje demasiado técnico, reparación garantizada, estética de antivirus, diagnóstico como primera imagen, “100% offline” en flujo gratis con anuncios | `#151515`       | `#252525`            | `#B3261E`    | `#D4574F`      | `#FFFFFF`   | `#D9D9D9`     | `#E3C3C1`    | “¿Tu EPUB no abre bien?” sigue siendo el hook más fuerte. “¿Es realmente un EPUB?” debe ser la segunda captura. |
+| de-DE  | Precise EPUB validation and controlled repair of compatible issues         | Restrained before/after: issue detected → repaired copy                   | Calm invalid-file explanation; avoid emotional failure language                           | Structured findings, clear and minimal, with high trust in exactness                      | Separate repaired copy with “original remains unchanged” equivalent | Lokale Dateiverarbeitung. Kein Konto. Kein Upload. Original bleibt erhalten.                         | Werbefreie Option nur sachlich und in final/secondary contexts.                                         | Emotional wording, vague magic repair, universal compatibility, clutter, unverified offline claims                                                      | `#121416`       | `#202326`            | `#7A8FA6`    | `#9FB2C5`      | `#F7F7F7`   | `#C9D0D4`     | `#DCE3EA`    | Prioritize precision and control. A slate-blue technical palette may outperform repair-red.                     |
+| fr-FR  | Récupération EPUB simple, claire et transparente                           | Elegant progression: problème détecté → copie réparée                     | Explain invalid EPUB / changed extension with editorial calm                              | Human-readable diagnosis before technical details                                         | Repaired copy confirmation should feel verifiable, not abstract     | Traitement du fichier sur l’appareil. Aucun compte. Aucun envoi. Original conservé.                  | Option sans publicité as support, not the main claim.                                                   | Hostile technical feel, cloud language, opaque automation, dense copy, paywall-first visuals                                                            | `#151518`       | `#242126`            | `#9E5A52`    | `#C98C84`      | `#FFFFFF`   | `#DDD4DC`     | `#EAB4AD`    | Balance editorial polish with concrete utility. Keep invalid-file language calm and explanatory.                |
+| it-IT  | Correggere problemi EPUB comuni in modo semplice e sicuro                  | Warm but clear before/after with the same EPUB card                       | Show file extension mismatch without using dramatic error styling                         | Accessible “what was found” structure explanation                                         | New repaired copy with visible confirmation                         | Elaborazione del file sul dispositivo. Nessun account. Nessun upload. Originale invariato.           | Rimuovi annunci can appear as secondary settings polish.                                                | File-cleaner aesthetic, excessive jargon, promises to recover all book content                                                                          | `#181414`       | `#2B2320`            | `#C85A3E`    | `#E08A65`      | `#FFFFFF`   | `#E8D4CA`     | `#F0B69E`    | Can be warmer, but must remain utility-first. Avoid making repair feel magical.                                 |
+| pt-BR  | Corrigir EPUB com problema e salvar uma cópia reparada                     | Direct transformation: EPUB com problema → EPUB corrigido                 | Clear “not a valid EPUB” state; explain changed extension simply                          | Simple diagnosis before repair action                                                     | Same file shown as repaired copy, original preserved                | Processamento do arquivo no dispositivo. Sem conta. Sem uploads. Original preservado.                | Remover anúncios as final/secondary option. Avoid free-unlimited implications.                          | Promising repair of any EPUB, antivirus look, cloud service, generic cleaner, “100% offline” with ads                                                   | `#161313`       | `#2A2020`            | `#D94B35`    | `#F27A55`      | `#FFFFFF`   | `#F0D2CC`     | `#FFC0A6`    | Accent can be energetic, but the invalid-file case must remain calm.                                            |
+| ar-SA  | Private EPUB validation and supported repair with a safe new copy          | RTL-safe comparison: problem state → repaired copy, mirrored consistently | Clear invalid EPUB state in RTL layout with generous text space                           | Very concise diagnosis; avoid cramped technical lists                                     | Repaired copy separated from original, with clear status            | تتم معالجة الملف على الجهاز. بدون حساب. بدون رفع ملفات. يبقى الأصل دون تغيير.                        | Mention ad-free only in settings/final context. Rewarded ads must not crowd RTL layouts.                | LTR design, cramped text, excessive decoration, guaranteed recovery claims, cloud icons, dominant monetization                                          | `#101418`       | `#1C252B`            | `#B88A3A`    | `#E4C47A`      | `#FFFFFF`   | `#D7E0E3`     | `#E4C47A`    | Maintain premium, sober, RTL-safe composition. Bronze/gold works as controlled recovery emphasis.               |
+| hi-IN  | Clear mobile solution for EPUB files that do not open or are not valid     | Simple visual comparison: problem EPUB and repaired copy                  | Straightforward invalid-file explanation; avoid too much technical English                | Short visual diagnosis, not code-heavy                                                    | Repaired-copy result with visible output filename                   | File processing on device. No account. No uploads. Original stays unchanged.                         | Keep monetization simple: remove ads as optional. Avoid rewarded ads in hero assets.                    | Technical jargon, UI-first screenshots, confusing Hindi/English mix, phone-cleaner look                                                                 | `#151515`       | `#252018`            | `#D96B2B`    | `#FFC48F`      | `#FFFFFF`   | `#EED8C6`     | `#FFC48F`    | Use very direct language. EPUB and repair terms may stay in English if that fits the final localization.        |
+| ja-JP  | EPUBの問題を確認し、修復コピーを保存する精密なユーティリティ                                           | Minimal, calm transformation of the same EPUB                             | Quiet invalid-file explanation; avoid loud failure visuals                                | Concise, orderly diagnosis with minimal terms                                             | Repaired copy shown clearly and calmly                              | ファイルは端末上で処理。アカウント不要。アップロード不要。元のファイルはそのまま。                                                            | Ad-free option only as quiet settings detail.                                                           | Dramatic errors, heavy decoration, long technical terms, antivirus look, absolute promises                                                              | `#121416`       | `#1E2327`            | `#8F3A35`    | `#D49B96`      | `#F8F8F8`   | `#CDD5D8`     | `#D49B96`    | Prioritize calm, order, and precision. The visual transition should work without long copy.                     |
+| ko-KR  | Common EPUB issue diagnosis with a safe repaired copy                      | Modern before/after with concise file states                              | Show invalid EPUB / changed extension clearly, not as a fatal error                       | Diagnose first, repair supported issue second                                             | Repaired copy visible with distinct filename                        | 파일은 기기에서 처리. 계정 없음. 업로드 없음. 원본은 그대로 유지.                                                              | Remove-ads as secondary product control. Avoid ad mechanics in early visuals.                           | Looking like a file explorer, antivirus, or tool that fixes every error                                                                                 | `#121417`       | `#1F2429`            | `#A83A32`    | `#DFA49D`      | `#FFFFFF`   | `#CDD6DC`     | `#DFA49D`    | Modern, technical, clean. The real UI must support the repair credibility.                                      |
+| ru-RU  | Practical EPUB troubleshooting with compatible repair and local privacy    | Direct, serious before/after                                              | Explain invalid EPUB without implying total corruption                                    | Show findings and result without promising complete recovery                              | Repaired copy ready; original unchanged                             | Обработка файла на устройстве. Без аккаунта. Без загрузки файлов. Оригинал не изменяется.            | Mention ad-free as optional, not core conversion.                                                       | Total recovery promises, DRM, cloud, hacking-tool feel, full EPUB editor implication                                                                    | `#141414`       | `#202226`            | `#B13A32`    | `#E0A39C`      | `#FFFFFF`   | `#D2D6DA`     | `#E0A39C`    | Serious and capable. Use “compatible repairs” language strongly.                                                |
+| zh-CN  | 检查常见 EPUB 问题并本地保存修复副本                                                      | Problem EPUB and repaired result clearly linked                           | Explain invalid EPUB / extension mismatch efficiently                                     | Emphasize check first, repair second; technical terms stay secondary                      | Same EPUB shown as repaired copy                                    | 文件在设备上处理。无需账号。不上传文件。原文件不变。                                                                           | Remove-ads should be a late settings detail.                                                            | Full EPUB editing, AI repair, cloud processing, universal repair, security-software visuals, unverified offline promises                                | `#111417`       | `#1D242A`            | `#C24130`    | `#EAA69C`      | `#FFFFFF`   | `#D4DDE1`     | `#EAA69C`    | Efficient, clear, result-first. Avoid putting internal structure terms in main headlines.                       |
+| zh-TW  | 檢查常見 EPUB 問題並儲存修復副本                                                        | Trust-oriented problem → repaired-copy flow                               | Explain invalid EPUB / changed extension clearly and calmly                               | Communicate “understand first, then repair supported issues”                              | New repaired copy clearly marked                                    | 檔案在裝置上處理。無需帳號。不需上傳。原始檔案不會變更。                                                                         | Ad-free option supports trust only if late and factual.                                                 | Antivirus look, cloud file service, generic cleanup app, guaranteed repair, unverified offline claims                                                   | `#121416`       | `#20272C`            | `#C6533D`    | `#ECB0A1`      | `#FFFFFF`   | `#D6E0E3`     | `#ECB0A1`    | Slightly editorial and warm is fine, but the result must feel technically credible.                             |
+
+---
 
 ## Visual Generation Rules
 
@@ -74,7 +90,8 @@ Keep a dark global identity, but localize:
 * accent temperature
 * intensity of the repair marker
 * headline directness
-* diagnosis detail level
+* invalid-file phrasing
+* repairable-diagnosis detail level
 * trust-proof priority
 * visual warmth
 * file-state wording
@@ -97,11 +114,14 @@ Keep a dark global identity, but localize:
 * issue markers
 * repair-status indicators
 * thin problem-to-repair connectors
+* valid/invalid file-state badges
 * progress or result highlights
 * small visual cues on real app screens
 * restrained emphasis around the repaired copy
 
 `Support accent` is used only as a softer secondary highlight. It must not dominate the scene or compete with the repaired EPUB result.
+
+---
 
 ## Background Production Rules
 
@@ -128,27 +148,17 @@ Do not place white document pages, device highlights, or bright repaired-file ca
 
 Texture is allowed only if subtle and matte, under approximately 3% visual intensity.
 
+---
+
 ## Screenshot Strategy Rules
 
-The full screenshot sequence should follow:
+The approved compact screenshot sequence should follow:
 
-1. Problem EPUB → repaired EPUB copy
-2. Select EPUB / prepare safe session
-3. Clear diagnosis: what was found
-4. Supported repair workflow
-5. Repair result: what changed
-6. Save a repaired copy: original unchanged
-7. My EPUBs: repaired and imported files
-8. Settings: language, theme, remove ads
-
-The compact screenshot sequence should follow:
-
-1. Problem EPUB → repaired EPUB copy
-2. Clear diagnosis: what was found
-3. Supported repair workflow
-4. Repair result or save-copy proof
-5. Save a repaired copy: original unchanged
-6. Local processing / My EPUBs / no-account and no-upload proof
+1. **Problem EPUB → repaired EPUB copy**
+2. **Invalid-file / changed-extension case**
+3. **Repairable diagnosis: what was found**
+4. **Save a repaired copy: original unchanged**
+5. **Local processing / My EPUBs / no-account and no-upload proof**
 
 At least two visual assets must clearly show either:
 
@@ -170,6 +180,26 @@ Do not open with:
 * monetization or rewarded-ad screen
 * generic phone-cleaner screen
 * abstract error art
+
+### Expanded screenshot sets
+
+Screenshots 6–8 may be added only when a full product set is needed or when a specific test requires more depth.
+
+If used, extra screenshots must add distinct value, such as:
+
+* settings / language / theme
+* remove-ads option
+* fuller My EPUBs view
+* extra repair-result proof
+
+They must not simply repeat:
+
+* repair action
+* repair complete
+* repair summary
+* save copy
+
+---
 
 ## Feature Graphic Rules
 
@@ -209,6 +239,8 @@ Recommended structure:
 * optional compact trust proof below the headline
 * no visual intensity behind text
 
+---
+
 ## EPUB Thumbnail and File-State Rules
 
 Preferred problem-state ideas:
@@ -231,16 +263,18 @@ Preferred repaired-state ideas:
 
 Preferred invalid-file handling:
 
-* show only as an optional later problem-case screenshot
+* use as screenshot 2 in the compact set
 * use calm explanatory language
 * clarify that a file can have `.epub` extension without being a valid EPUB
-* avoid making this the hero problem unless a specific locale strategy justifies it
+* visually separate this from the repairable-diagnosis case
+* avoid making it look like a failed repair attempt
 
 Safe invalid-file wording examples:
 
 * This file is not a valid EPUB
 * The file extension is .epub, but the internal structure does not match an EPUB file
 * This file cannot be repaired as an EPUB
+* The extension was changed, but the file is not an EPUB
 
 Avoid:
 
@@ -258,15 +292,18 @@ Avoid:
 * copyrighted recognizable commercial covers
 * fake interfaces of ebook platforms
 
+---
+
 ## Copy Rules
 
 Use direct, realistic language:
 
 * Diagnose EPUB issues
+* Is it really an EPUB?
+* Find files with changed extensions
 * Find what needs fixing
 * Repair common EPUB problems
 * Fix supported structure issues
-* Review what was repaired
 * Save a repaired copy
 * Keep the original safe
 * Processed on your device
@@ -296,6 +333,8 @@ The safest privacy phrasing is:
 
 Use “100% offline” only when the specific referenced flow is verified to work without internet, including monetization/access gates.
 
+---
+
 ## Claims to Avoid Globally
 
 Avoid any claim or visual implication of:
@@ -323,6 +362,8 @@ Avoid any claim or visual implication of:
 * Unlimited free repair unless true
 * 100% offline unless verified for the exact flow
 
+---
+
 ## Regional Differentiation Rules
 
 Localization is not translation.
@@ -330,6 +371,7 @@ Localization is not translation.
 Each locale should adapt:
 
 * problem framing
+* invalid-file phrasing
 * level of technical reassurance
 * visual warmth
 * accent temperature
@@ -344,6 +386,7 @@ But every locale must preserve:
 
 * EPUB repair positioning
 * problem-to-repair first impression
+* invalid-file / changed-extension handling
 * diagnosis before repair
 * supported-repair qualification
 * repaired-copy reassurance
@@ -353,6 +396,8 @@ But every locale must preserve:
 * clear technical boundaries
 * monetization as secondary transparency
 
+---
+
 ## Final Quality Bar
 
 A locale strategy passes only if:
@@ -360,8 +405,10 @@ A locale strategy passes only if:
 * the market angle is immediately understandable
 * the first visual tells a believable EPUB recovery story
 * original and repaired states are clearly connected
+* invalid-file handling is clear and not dramatic
+* invalid-file and repairable-diagnosis cases are visually distinct
 * diagnosis is explained before or alongside repair
-* the repair result is visible and credible
+* the repaired-copy result is visible and credible
 * the original-file preservation is clear
 * local privacy proof is present
 * My EPUBs, if shown, supports local continuity and does not look like a reader/store
@@ -371,47 +418,51 @@ A locale strategy passes only if:
 * repair claims match current app behavior
 * unsupported claims are avoided
 * the app does not look like a generic cleaner, antivirus, editor, reader, cloud service, or universal recovery tool
+* the strategy does not drift back into redundant repair / repaired / repair-summary screenshots
+
+---
 
 ## Global Recommended Sequence
 
-Use this full sequence when showing the product as a complete app:
+Use this compact sequence by default:
 
 1. EPUB problem → repaired copy
-2. Start with your EPUB / safe session
-3. Understand what failed
-4. Repair supported issues
-5. Review what was repaired
-6. Save a new repaired copy
-7. Find repaired/imported EPUBs
-8. Adjust language, theme, and ad-free option
+2. Is it really an EPUB? / invalid-file case
+3. Understand what failed / repairable diagnosis
+4. Save a new repaired copy / original unchanged
+5. Processed on your device / My EPUBs
 
-Use this compact sequence when only six screenshots are available:
+Use an expanded sequence only when there is a specific need for more product depth:
 
 1. EPUB problem → repaired copy
-2. Understand what failed
-3. Repair supported issuesW
-4. Review what was repaired
-5. Save a new repaired copy
-6. Processed on your device / My EPUBs
+2. Is it really an EPUB? / invalid-file case
+3. Understand what failed / repairable diagnosis
+4. Save a new repaired copy / original unchanged
+5. Processed on your device / My EPUBs
+6. Settings / language / theme / remove ads, if visually strong
+7. Additional repair result proof, only if it adds a distinct point
+8. Additional local file continuity proof, only if it does not repeat screenshot 5
+
+---
 
 ## Current Global Direction
 
 Current strongest global promise:
 
-Fix common EPUB file issues and save a repaired copy.
+**Fix common EPUB file issues and save a repaired copy.**
 
 Current strongest user reassurance:
 
-Understand what failed before repairing, and keep the original EPUB unchanged.
+**Find out whether the file is really an EPUB, understand what failed, and keep the original EPUB unchanged.**
 
 Current strongest visual proof:
 
-The same EPUB appears first with a small, understandable problem state and then as a clean repaired copy.
+**The same EPUB appears first with a small, understandable problem state and then as a clean repaired copy.**
 
 Current strongest product completeness proof:
 
-Users can find repaired or imported files again in My EPUBs, while settings and remove-ads remain secondary support features.
+**Users can find repaired or imported files again in My EPUBs, while settings and remove-ads remain secondary support features.**
 
 Current strongest conversion logic:
 
-Problem → session → diagnosis → repair → proof → safe copy → local control.
+**Problem → valid EPUB check → repairable diagnosis → repaired copy → local control.**

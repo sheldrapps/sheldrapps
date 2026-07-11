@@ -9,6 +9,7 @@ import { MemoryStorageAdapter, provideI18nKit } from '@sheldrapps/i18n-kit';
 import {
   provideCoverImageStateI18n,
   provideCoverSourceI18n,
+  provideEReaderPreviewFrameI18n,
 } from '@sheldrapps/image-workflow';
 import {
   provideEditorI18n,
@@ -97,6 +98,7 @@ bootstrapApplication(AppComponent, {
     provideBestCandidateKitI18n(),
     provideCoverImageStateI18n(),
     provideCoverSourceI18n(),
+    provideEReaderPreviewFrameI18n(),
     provideEditorI18n(),
     {
       provide: EDITOR_I18N_OVERRIDES,

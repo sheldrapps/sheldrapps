@@ -1,51 +1,51 @@
 <en-US>
-EPUB Fixer now restarts with the selected language, and the launcher name updates to match.
+EPUB Fixer now removes the extra Instructions entry from Settings and keeps the app focused on the main repair flow.
 </en-US>
 
 <ar>
-يُعاد تشغيل EPUB Fixer الآن باللغة التي اخترتها، ويُحدَّث اسم المشغّل ليتطابق معها.
+أصبح EPUB Fixer يزيل خيار التعليمات الإضافي من الإعدادات، مع إبقاء التطبيق مركزًا على مسار الإصلاح الرئيسي.
 </ar>
 
 <de-DE>
-EPUB Fixer startet jetzt mit der gewählten Sprache neu, und der Launcher-Name passt sich daran an.
+EPUB Fixer entfernt jetzt den zusätzlichen Anleitungseintrag in den Einstellungen und bleibt auf den Hauptreparaturfluss fokussiert.
 </de-DE>
 
 <es-419>
-EPUB Fixer ahora se reinicia con el idioma elegido y el nombre del lanzador se actualiza para coincidir.
+EPUB Fixer ahora elimina el acceso extra a Instrucciones en Ajustes y mantiene la app enfocada en el flujo principal de reparación.
 </es-419>
 
 <fr-FR>
-EPUB Fixer redémarre maintenant avec la langue choisie, et le nom du lanceur se met à jour en conséquence.
+EPUB Fixer supprime désormais l’entrée supplémentaire Instructions dans les réglages et reste centré sur le flux principal de réparation.
 </fr-FR>
 
 <hi-IN>
-EPUB Fixer अब चुनी गई भाषा के साथ फिर से शुरू होता है, और लॉन्चर का नाम भी उसी के अनुसार बदलता है।
+EPUB Fixer अब सेटिंग्स से अतिरिक्त निर्देश प्रविष्टि हटा देता है और ऐप को मुख्य सुधार प्रवाह पर केंद्रित रखता है।
 </hi-IN>
 
 <it-IT>
-EPUB Fixer ora si riavvia con la lingua scelta e il nome del launcher si aggiorna di conseguenza.
+EPUB Fixer ora rimuove la voce extra Istruzioni nelle impostazioni e mantiene l'app concentrata sul flusso principale di correzione.
 </it-IT>
 
 <ja-JP>
-EPUB Fixer は、選択した言語で再起動し、ランチャー名もそれに合わせて更新されます。
+EPUB Fixer は、設定内の追加の使い方項目を削除し、アプリをメインの修復フローに集中させます。
 </ja-JP>
 
 <ko-KR>
-EPUB Fixer는 이제 선택한 언어로 다시 시작하며, 런처 이름도 그에 맞게 바뀝니다.
+EPUB Fixer는 이제 설정의 추가 사용법 항목을 제거하고 앱을 주요 복구 흐름에 집중시킵니다.
 </ko-KR>
 
 <pt-BR>
-O EPUB Fixer agora reinicia com o idioma escolhido e o nome do launcher é atualizado para combinar.
+O EPUB Fixer agora remove a entrada extra de Instruções em Ajustes e mantém o app focado no fluxo principal de reparo.
 </pt-BR>
 
 <ru-RU>
-Теперь EPUB Fixer перезапускается с выбранным языком, а имя лаунчера обновляется соответственно.
+Теперь EPUB Fixer убирает дополнительный пункт инструкций в настройках и сохраняет фокус приложения на основном потоке исправления.
 </ru-RU>
 
 <zh-CN>
-EPUB Fixer 现在会使用你选择的语言重新启动，并同步更新启动器名称。
+EPUB Fixer 现在会移除设置中的额外说明入口，并让应用保持聚焦在主要修复流程上。
 </zh-CN>
 
 <zh-TW>
-EPUB Fixer 現在會以你選擇的語言重新啟動，並同步更新啟動器名稱。
+EPUB Fixer 現在會移除設定中的額外說明入口，並讓應用保持聚焦在主要修復流程上。
 </zh-TW>

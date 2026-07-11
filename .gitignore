@@ -30,15 +30,18 @@ apps/*/plugins/
 # Play Store screenshot raws
 # =============================
 tools/playstore/raw/
+tmp/
 
 # =============================
 # Capacitor / Android
 # =============================
 android/.gradle/
+**/android/.gradle/
 android/build/
 android/app/build/
 android/captures/
 android/local.properties
+.tmp-micro-split/.gradle/
 
 # =============================
 # Capacitor / iOS (future)

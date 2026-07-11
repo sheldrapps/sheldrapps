@@ -8,6 +8,7 @@ import {
   MemoryStorageAdapter,
   provideI18nKit,
 } from '@sheldrapps/i18n-kit';
+import { provideEReaderPreviewFrameI18n } from '@sheldrapps/image-workflow';
 import {
   CapacitorPreferencesAdapter,
   CompositeStorageAdapter,
@@ -81,6 +82,7 @@ async function bootstrap(): Promise<void> {
       },
       new MemoryStorageAdapter(),
     ),
+    provideEReaderPreviewFrameI18n(),
     provideAdFallbackKitI18n(),
     provideAdsKitI18n(),
 

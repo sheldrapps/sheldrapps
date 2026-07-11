@@ -1,6 +1,6 @@
-﻿---
+---
 name: write-a-skill
-description: Create new agent skills with correct structure, trigger-focused description, progressive disclosure, optional bundled resources/scripts. Use when user asks create/write/build/update a skill.
+description: "Creates or updates Codex skills with the right structure, triggers, and supporting files. Use when the user asks to write, update, or improve a skill."
 ---
 
 # Writing Skills

@@ -1,0 +1,178 @@
+export type EReaderPreviewFrameLocale =
+  | "es-MX"
+  | "en-US"
+  | "de-DE"
+  | "fr-FR"
+  | "it-IT"
+  | "pt-BR"
+  | "zh-TW"
+  | "hi-IN"
+  | "ar-SA"
+  | "ja-JP"
+  | "ko-KR"
+  | "zh-CN"
+  | "ru-RU";
+
+export type EReaderPreviewFrameFlatDict = Record<string, string>;
+
+export const E_READER_PREVIEW_FRAME_TRANSLATIONS: Record<
+  EReaderPreviewFrameLocale,
+  EReaderPreviewFrameFlatDict
+> = {
+  "en-US": {
+    "E_READER_FRAME.COLOR_SELECTOR.TITLE": "E-reader color",
+    "E_READER_FRAME.COLOR_SELECTOR.CLOSE": "Close",
+    "E_READER_FRAME.COLOR.BLACK": "Black",
+    "E_READER_FRAME.COLOR.WHITE": "White",
+    "E_READER_FRAME.COLOR.MATCHA": "Matcha",
+    "E_READER_FRAME.COLOR.JADE": "Jade",
+    "E_READER_FRAME.COLOR.PINK": "Pink",
+    "E_READER_FRAME.COLOR.METALLIC_BLACK": "Metallic black",
+    "E_READER_FRAME.COLOR.METALLIC_JADE": "Metallic jade",
+    "E_READER_FRAME.COLOR.METALLIC_PINK": "Metallic pink",
+  },
+  "es-MX": {
+    "E_READER_FRAME.COLOR_SELECTOR.TITLE": "Color del e-reader",
+    "E_READER_FRAME.COLOR_SELECTOR.CLOSE": "Cerrar",
+    "E_READER_FRAME.COLOR.BLACK": "Negro",
+    "E_READER_FRAME.COLOR.WHITE": "Blanco",
+    "E_READER_FRAME.COLOR.MATCHA": "Matcha",
+    "E_READER_FRAME.COLOR.JADE": "Jade",
+    "E_READER_FRAME.COLOR.PINK": "Rosa",
+    "E_READER_FRAME.COLOR.METALLIC_BLACK": "Negro metálico",
+    "E_READER_FRAME.COLOR.METALLIC_JADE": "Jade metálico",
+    "E_READER_FRAME.COLOR.METALLIC_PINK": "Rosa metálico",
+  },
+  "de-DE": {
+    "E_READER_FRAME.COLOR_SELECTOR.TITLE": "E-Reader-Farbe",
+    "E_READER_FRAME.COLOR_SELECTOR.CLOSE": "Schließen",
+    "E_READER_FRAME.COLOR.BLACK": "Schwarz",
+    "E_READER_FRAME.COLOR.WHITE": "Weiß",
+    "E_READER_FRAME.COLOR.MATCHA": "Matcha",
+    "E_READER_FRAME.COLOR.JADE": "Jade",
+    "E_READER_FRAME.COLOR.PINK": "Rosa",
+    "E_READER_FRAME.COLOR.METALLIC_BLACK": "Metallisch Schwarz",
+    "E_READER_FRAME.COLOR.METALLIC_JADE": "Metallisch Jade",
+    "E_READER_FRAME.COLOR.METALLIC_PINK": "Metallisch Rosa",
+  },
+  "fr-FR": {
+    "E_READER_FRAME.COLOR_SELECTOR.TITLE": "Couleur de la liseuse",
+    "E_READER_FRAME.COLOR_SELECTOR.CLOSE": "Fermer",
+    "E_READER_FRAME.COLOR.BLACK": "Noir",
+    "E_READER_FRAME.COLOR.WHITE": "Blanc",
+    "E_READER_FRAME.COLOR.MATCHA": "Matcha",
+    "E_READER_FRAME.COLOR.JADE": "Jade",
+    "E_READER_FRAME.COLOR.PINK": "Rose",
+    "E_READER_FRAME.COLOR.METALLIC_BLACK": "Noir métallisé",
+    "E_READER_FRAME.COLOR.METALLIC_JADE": "Jade métallisé",
+    "E_READER_FRAME.COLOR.METALLIC_PINK": "Rose métallisé",
+  },
+  "it-IT": {
+    "E_READER_FRAME.COLOR_SELECTOR.TITLE": "Colore e-reader",
+    "E_READER_FRAME.COLOR_SELECTOR.CLOSE": "Chiudi",
+    "E_READER_FRAME.COLOR.BLACK": "Nero",
+    "E_READER_FRAME.COLOR.WHITE": "Bianco",
+    "E_READER_FRAME.COLOR.MATCHA": "Matcha",
+    "E_READER_FRAME.COLOR.JADE": "Giada",
+    "E_READER_FRAME.COLOR.PINK": "Rosa",
+    "E_READER_FRAME.COLOR.METALLIC_BLACK": "Nero metallizzato",
+    "E_READER_FRAME.COLOR.METALLIC_JADE": "Giada metallizzata",
+    "E_READER_FRAME.COLOR.METALLIC_PINK": "Rosa metallizzato",
+  },
+  "pt-BR": {
+    "E_READER_FRAME.COLOR_SELECTOR.TITLE": "Cor do e-reader",
+    "E_READER_FRAME.COLOR_SELECTOR.CLOSE": "Fechar",
+    "E_READER_FRAME.COLOR.BLACK": "Preto",
+    "E_READER_FRAME.COLOR.WHITE": "Branco",
+    "E_READER_FRAME.COLOR.MATCHA": "Matcha",
+    "E_READER_FRAME.COLOR.JADE": "Jade",
+    "E_READER_FRAME.COLOR.PINK": "Rosa",
+    "E_READER_FRAME.COLOR.METALLIC_BLACK": "Preto metálico",
+    "E_READER_FRAME.COLOR.METALLIC_JADE": "Jade metálico",
+    "E_READER_FRAME.COLOR.METALLIC_PINK": "Rosa metálico",
+  },
+  "zh-TW": {
+    "E_READER_FRAME.COLOR_SELECTOR.TITLE": "電子閱讀器顏色",
+    "E_READER_FRAME.COLOR_SELECTOR.CLOSE": "關閉",
+    "E_READER_FRAME.COLOR.BLACK": "黑色",
+    "E_READER_FRAME.COLOR.WHITE": "白色",
+    "E_READER_FRAME.COLOR.MATCHA": "抹茶",
+    "E_READER_FRAME.COLOR.JADE": "翡翠",
+    "E_READER_FRAME.COLOR.PINK": "粉紅",
+    "E_READER_FRAME.COLOR.METALLIC_BLACK": "金屬黑",
+    "E_READER_FRAME.COLOR.METALLIC_JADE": "金屬翡翠",
+    "E_READER_FRAME.COLOR.METALLIC_PINK": "金屬粉紅",
+  },
+  "hi-IN": {
+    "E_READER_FRAME.COLOR_SELECTOR.TITLE": "ई-रीडर का रंग",
+    "E_READER_FRAME.COLOR_SELECTOR.CLOSE": "बंद करें",
+    "E_READER_FRAME.COLOR.BLACK": "काला",
+    "E_READER_FRAME.COLOR.WHITE": "सफेद",
+    "E_READER_FRAME.COLOR.MATCHA": "माचा",
+    "E_READER_FRAME.COLOR.JADE": "जेड",
+    "E_READER_FRAME.COLOR.PINK": "गुलाबी",
+    "E_READER_FRAME.COLOR.METALLIC_BLACK": "धातुई काला",
+    "E_READER_FRAME.COLOR.METALLIC_JADE": "धातुई जेड",
+    "E_READER_FRAME.COLOR.METALLIC_PINK": "धातुई गुलाबी",
+  },
+  "ar-SA": {
+    "E_READER_FRAME.COLOR_SELECTOR.TITLE": "لون القارئ الإلكتروني",
+    "E_READER_FRAME.COLOR_SELECTOR.CLOSE": "إغلاق",
+    "E_READER_FRAME.COLOR.BLACK": "أسود",
+    "E_READER_FRAME.COLOR.WHITE": "أبيض",
+    "E_READER_FRAME.COLOR.MATCHA": "ماتشا",
+    "E_READER_FRAME.COLOR.JADE": "يشم",
+    "E_READER_FRAME.COLOR.PINK": "وردي",
+    "E_READER_FRAME.COLOR.METALLIC_BLACK": "أسود معدني",
+    "E_READER_FRAME.COLOR.METALLIC_JADE": "يشم معدني",
+    "E_READER_FRAME.COLOR.METALLIC_PINK": "وردي معدني",
+  },
+  "ja-JP": {
+    "E_READER_FRAME.COLOR_SELECTOR.TITLE": "電子書籍リーダーの色",
+    "E_READER_FRAME.COLOR_SELECTOR.CLOSE": "閉じる",
+    "E_READER_FRAME.COLOR.BLACK": "黒",
+    "E_READER_FRAME.COLOR.WHITE": "白",
+    "E_READER_FRAME.COLOR.MATCHA": "抹茶",
+    "E_READER_FRAME.COLOR.JADE": "翡翠",
+    "E_READER_FRAME.COLOR.PINK": "ピンク",
+    "E_READER_FRAME.COLOR.METALLIC_BLACK": "メタリックブラック",
+    "E_READER_FRAME.COLOR.METALLIC_JADE": "メタリック翡翠",
+    "E_READER_FRAME.COLOR.METALLIC_PINK": "メタリックピンク",
+  },
+  "ko-KR": {
+    "E_READER_FRAME.COLOR_SELECTOR.TITLE": "전자책 리더 색상",
+    "E_READER_FRAME.COLOR_SELECTOR.CLOSE": "닫기",
+    "E_READER_FRAME.COLOR.BLACK": "검정",
+    "E_READER_FRAME.COLOR.WHITE": "흰색",
+    "E_READER_FRAME.COLOR.MATCHA": "말차",
+    "E_READER_FRAME.COLOR.JADE": "제이드",
+    "E_READER_FRAME.COLOR.PINK": "핑크",
+    "E_READER_FRAME.COLOR.METALLIC_BLACK": "메탈릭 블랙",
+    "E_READER_FRAME.COLOR.METALLIC_JADE": "메탈릭 제이드",
+    "E_READER_FRAME.COLOR.METALLIC_PINK": "메탈릭 핑크",
+  },
+  "zh-CN": {
+    "E_READER_FRAME.COLOR_SELECTOR.TITLE": "电子阅读器颜色",
+    "E_READER_FRAME.COLOR_SELECTOR.CLOSE": "关闭",
+    "E_READER_FRAME.COLOR.BLACK": "黑色",
+    "E_READER_FRAME.COLOR.WHITE": "白色",
+    "E_READER_FRAME.COLOR.MATCHA": "抹茶",
+    "E_READER_FRAME.COLOR.JADE": "翡翠",
+    "E_READER_FRAME.COLOR.PINK": "粉红",
+    "E_READER_FRAME.COLOR.METALLIC_BLACK": "金属黑",
+    "E_READER_FRAME.COLOR.METALLIC_JADE": "金属翡翠",
+    "E_READER_FRAME.COLOR.METALLIC_PINK": "金属粉红",
+  },
+  "ru-RU": {
+    "E_READER_FRAME.COLOR_SELECTOR.TITLE": "Цвет ридера",
+    "E_READER_FRAME.COLOR_SELECTOR.CLOSE": "Закрыть",
+    "E_READER_FRAME.COLOR.BLACK": "Чёрный",
+    "E_READER_FRAME.COLOR.WHITE": "Белый",
+    "E_READER_FRAME.COLOR.MATCHA": "Матча",
+    "E_READER_FRAME.COLOR.JADE": "Нефрит",
+    "E_READER_FRAME.COLOR.PINK": "Розовый",
+    "E_READER_FRAME.COLOR.METALLIC_BLACK": "Чёрный металлик",
+    "E_READER_FRAME.COLOR.METALLIC_JADE": "Нефрит металлик",
+    "E_READER_FRAME.COLOR.METALLIC_PINK": "Розовый металлик",
+  },
+};

@@ -125,7 +125,7 @@ function extractRawScreenshotHandling(body) {
     return { handling: null, cleanedBody: body };
   }
 
-  const bullets = [];
+  const instructions = [];
   let end = start + 1;
   while (end < lines.length) {
     const trimmed = lines[end].trim();
@@ -133,29 +133,30 @@ function extractRawScreenshotHandling(body) {
       end += 1;
       continue;
     }
-    if (!trimmed.startsWith('* ')) {
+    if (!/^(\*|-|\d+\.)\s+/.test(trimmed)) {
       break;
     }
-    bullets.push(trimmed.slice(2).trim());
+    instructions.push(trimmed);
     end += 1;
   }
 
   const cleanedLines = [...lines.slice(0, start), ...lines.slice(end)];
   const cleanedBody = cleanedLines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 
-  const onlyReplace = bullets.find((line) => /^Only replace /i.test(line)) ?? '';
+  const onlyReplace = instructions.find((line) => /^Only replace /i.test(line)) ?? '';
   const useRegionBook =
-    bullets.find((line) =>
+    instructions.find((line) =>
       /^Use a public-domain book popular in the region\.?$/i.test(line),
     ) ?? '';
   const noRestyle =
-    bullets.find((line) => /^Do not add, remove, invent, or restyle/i.test(line)) ?? '';
+    instructions.find((line) => /^Do not add, remove, invent, or restyle/i.test(line)) ?? '';
   const keepComposition =
-    bullets.find((line) => /^Keep the raw screenshot composition intact\.?$/i.test(line)) ??
+    instructions.find((line) => /^Keep the raw screenshot composition intact\.?$/i.test(line)) ??
     '';
 
   return {
     handling: {
+      instructions,
       onlyReplace,
       useRegionBook,
       noRestyle,
@@ -171,6 +172,10 @@ function extractRawScreenshotHandling(body) {
 
 function buildScreenshotHandlingIntro(handling) {
   const parts = ['Use my screenshot in your composition.'];
+  if (handling.instructions.length > 0) {
+    parts.push('Raw replacement instructions:');
+    parts.push(...handling.instructions);
+  }
   if (handling.onlyReplace) {
     parts.push(handling.onlyReplace);
   }
@@ -180,7 +185,7 @@ function buildScreenshotHandlingIntro(handling) {
   if (handling.noRestyle && !handling.strictRule) {
     parts.push(handling.noRestyle);
   }
-  return parts.join(' ');
+  return parts.join('\n');
 }
 
 function writeIfChanged(filePath, content) {

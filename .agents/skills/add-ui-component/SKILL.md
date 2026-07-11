@@ -1,7 +1,7 @@
-﻿---
+---
 name: add-ui-component
 user-invocable: true
-description: "Crear/actualizar componentes reutilizables en @sheldrapps/ui-theme con tokenización, accesibilidad, i18n host-safe. Use when user asks add/update/reuse UI, says 'hazlo como en...', or requests moving duplicated UI from apps to shared kits."
+description: "Creates or updates reusable UI components in @sheldrapps/ui-theme with tokens, accessibility, and host-safe i18n. Use when the user asks to build, reuse, redesign, or extract duplicated UI, or says 'hazlo como en...'."
 ---
 
 # Add Reusable UI Component (ui-theme first)

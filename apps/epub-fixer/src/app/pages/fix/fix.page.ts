@@ -8,7 +8,7 @@ import {
   inject,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import {
   IonButtons,
   IonButton,
@@ -203,6 +203,8 @@ export class FixPage implements OnInit, OnDestroy {
   adsRemoved = false;
   private adsRemovedSub?: Subscription;
   private removeAdsPriceSub?: Subscription;
+  private headerLangSub?: Subscription;
+  private headerTranslationSub?: Subscription;
   private lastHandledProjectRouteKey: string | null = null;
   private selectedConfirmationByIssueKey: Record<string, boolean> = {};
   private selectedGuidedOptionByIssueKey: Record<string, string> = {};
@@ -522,6 +524,14 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
+    this.headerLangSub = this.translate.onLangChange.subscribe(() => {
+      void this.refreshHeaderItems();
+    });
+    this.headerTranslationSub = this.translate.onTranslationChange.subscribe((event) => {
+      if (event.lang) {
+        void this.refreshHeaderItems();
+      }
+    });
     await this.refreshHeaderItems();
     await this.billing.hydrateCachedState();
     const settings = await this.settings.load();
@@ -545,6 +555,8 @@ export class FixPage implements OnInit, OnDestroy {
     this.closePurchaseModal();
     this.adsRemovedSub?.unsubscribe();
     this.removeAdsPriceSub?.unsubscribe();
+    this.headerLangSub?.unsubscribe();
+    this.headerTranslationSub?.unsubscribe();
     void this.cleanupPreparedEpub();
   }
 
@@ -1303,11 +1315,21 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   private async refreshHeaderItems(): Promise<void> {
-    this.recommendedApps = await this.recommendedAppsService.getRecommendedApps();
-    this.showRecommended = this.recommendedApps.length > 0;
+    const [recommendedApps, labels] = await Promise.all([
+      this.recommendedAppsService.getRecommendedApps(),
+      firstValueFrom(
+        this.translate.get([
+          'ARR.TOOLS.APPS',
+          'ARR.TOOLS.GUIDE',
+        ]),
+      ),
+    ]);
+
+    this.recommendedApps = recommendedApps;
+    this.showRecommended = recommendedApps.length > 0;
     this.headerItems = buildHomeHeaderItems(this.showRecommended, {
-      appsLabel: this.translate.instant('ARR.TOOLS.APPS'),
-      guideLabel: this.translate.instant('ARR.TOOLS.GUIDE'),
+      appsLabel: labels['ARR.TOOLS.APPS'],
+      guideLabel: labels['ARR.TOOLS.GUIDE'],
     });
   }
 
@@ -1445,6 +1467,39 @@ export class FixPage implements OnInit, OnDestroy {
       details: issue.details,
       options: this.issueOptions(issue),
     });
+  }
+
+  issueDetailsLabel(issue: EpubDiagnosticIssue): string {
+    const details = issue.details?.trim();
+    if (!details) {
+      return '';
+    }
+
+    switch (details) {
+      case 'container.xml is missing':
+        return this.translate.instant('FIX.ISSUE_DETAIL_CONTAINER_MISSING');
+      case 'container.xml is not parseable':
+        return this.translate.instant(
+          'FIX.ISSUE_DETAIL_CONTAINER_NOT_PARSEABLE',
+        );
+      case 'container.xml does not declare a rootfile':
+        return this.translate.instant('FIX.ISSUE_DETAIL_CONTAINER_NO_ROOTFILE');
+      case 'Multiple package documents were found':
+        return this.translate.instant('FIX.ISSUE_DETAIL_OPF_AMBIGUOUS');
+      case 'No valid spine entries remain':
+        return this.translate.instant('FIX.ISSUE_DETAIL_SPINE_EMPTY');
+      case 'missing idref':
+        return this.translate.instant('FIX.ISSUE_DETAIL_MISSING_IDREF');
+    }
+
+    const notParseableMatch = details.match(/^(.*) is not parseable$/);
+    if (notParseableMatch) {
+      return this.translate.instant('FIX.ISSUE_DETAIL_FILE_NOT_PARSEABLE', {
+        path: notParseableMatch[1],
+      });
+    }
+
+    return details;
   }
 
   selectedGuidedOption(issue: EpubDiagnosticIssue): string | undefined {

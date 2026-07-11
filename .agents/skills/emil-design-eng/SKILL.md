@@ -1,6 +1,6 @@
 ---
 name: emil-design-eng
-description: Review, critique, and polish frontend motion and animations. Use when the user asks to review UI animations, easing, timing, transitions, micro-interactions, loading motion, drag feedback, repeated loops, or reduced-motion behavior in app components or screens.
+description: Review, critique, and polish frontend motion and animations. Use when the user asks for motion review, animation polish, timing or easing checks, loading motion, drag feedback, repeated loops, or reduced-motion behavior.
 ---
 
 # Emil Design Eng

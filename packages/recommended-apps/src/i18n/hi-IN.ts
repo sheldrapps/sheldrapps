@@ -10,4 +10,6 @@ export const HI_IN: RecommendedAppsTranslations = {
   APP_DESC_CCFK: 'कुछ ही टैप में अपनी छवियों से ई-रीडर कवर बनाएं।',
   APP_DESC_ECC: 'EPUB कवर बदलें और अपडेट की गई फ़ाइलें निर्यात करें।',
   APP_DESC_PCM: 'PDF कवर बदलें और अपडेट की गई फ़ाइलें निर्यात करें।',
+  APP_NAME_EF: 'EPUB रिपेयर',
+  APP_DESC_EF: 'EPUB फ़ाइलों की आम समस्याएँ जाँचें और ठीक करें',
 };

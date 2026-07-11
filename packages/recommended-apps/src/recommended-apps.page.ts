@@ -36,11 +36,13 @@ const LOGO_GOOGLE_PLAYSTORE_ICON = `
 const APP_DESCRIPTION_KEYS: Record<string, keyof RecommendedAppsTranslations> = {
   'com.sheldrapps.covercreatorforkindle': 'APP_DESC_CCFK',
   'com.sheldrapps.epubcoverchanger': 'APP_DESC_ECC',
+  'com.sheldrapps.epubfixer': 'APP_DESC_EF',
   'com.sheldrapps.pdfcovermaker': 'APP_DESC_PCM',
 };
 const APP_NAME_KEYS: Record<string, keyof RecommendedAppsTranslations> = {
   'com.sheldrapps.covercreatorforkindle': 'APP_NAME_CCFK',
   'com.sheldrapps.epubcoverchanger': 'APP_NAME_ECC',
+  'com.sheldrapps.epubfixer': 'APP_NAME_EF',
   'com.sheldrapps.pdfcovermaker': 'APP_NAME_PCM',
 };
 
