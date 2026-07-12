@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">EPUB Merger &amp; Splitter</string>
+    <string name="title_activity_main">EPUB Merger &amp; Splitter</string>
+
+    <string name="app_name_en_us">EPUB Merger &amp; Splitter</string>
+    <string name="app_name_es_mx">Unir y dividir EPUB</string>
+    <string name="app_name_de_de">EPUB zusammenfügen und teilen</string>
+    <string name="app_name_fr_fr">Fusionner et diviser EPUB</string>
+    <string name="app_name_it_it">Unisci e dividi EPUB</string>
+    <string name="app_name_pt_br">Juntar e dividir EPUB</string>
+    <string name="app_name_zh_tw">EPUB合併與拆分</string>
+    <string name="app_name_hi_in">EPUB मर्ज और स्प्लिट</string>
+    <string name="app_name_ar_sa">دمج وتقسيم EPUB</string>
+    <string name="app_name_ja_jp">EPUB結合・分割</string>
+    <string name="app_name_ko_kr">EPUB 병합 및 분할</string>
+    <string name="app_name_zh_cn">EPUB合并与拆分</string>
+    <string name="app_name_ru_ru">Объединить и разделить EPUB</string>
+
+    <string name="package_name">com.sheldrapps.epubmergersplitter</string>
+    <string name="custom_url_scheme">com.sheldrapps.epubmergersplitter</string>
+</resources>

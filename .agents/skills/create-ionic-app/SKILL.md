@@ -189,7 +189,13 @@ When the app uses `Settings`, include these flows in this order:
 
 ## Exact intake prompt
 
-Use this exact order when asking the user:
+Use this exact order when asking the user, but do it one question at a time:
+
+1. Ask only the first question and wait for the answer before continuing.
+2. After each answer, ask the next required question only.
+3. Do not bundle multiple intake questions in a single message.
+
+Question sequence:
 
 1. `Dime el nombre de la app por locale, idealmente con este formato: en-US, es-MX, de-DE, fr-FR, it-IT, pt-BR, ar-SA, hi-IN, ja-JP, ko-KR, ru-RU, zh-CN, zh-TW. Si quieres, puedes agregar el conteo de caracteres.`
 2. `Dime que tabs tendra ademas de Settings. Recuerda que Settings siempre va al final.`
@@ -238,7 +244,29 @@ Example:
    - `src/global.scss` -> `@use "@sheldrapps/ui-theme/styles/index" as *;`
    - `src/theme/variables.scss` -> mismo baseline.
 10. Agregar scripts root si aplica (`dev:*`, `build:*`, `lint:*`).
-11. Si el scaffold incluye assets de tienda, crear también:
+    - Siempre agregar también los aliases del short name nuevo en el `package.json` raíz:
+      - `dev:<short>`
+      - `build:<short>`
+      - `lint:<short>`
+      - `resources:<short>`
+      - `android:install:<short>`
+      - `android:clean-install:<short>`
+      - `phone:<short>`
+      - `phone:<short>:me`
+      - `clean-phone:<short>`
+      - `clean-phone:<short>:me`
+      - `bundleRelease:<short>`
+      - `serve:<short>`
+      - `serve:<short>:no-open`
+      - `debugApk:<short>`
+      - `releaseApk:<short>`
+    - Si la sección de scripts raíz ya está creciendo demasiado, centralizar los shorts en un mapa y generar los aliases desde una sola fuente de verdad.
+11. Configurar la firma Android de release para la app nueva antes de validar `bundleRelease`:
+    - crear una keystore nueva para la app
+    - agregar su ruta y alias en `android/gradle.properties`
+    - apuntar `android/app/build.gradle` a esa keystore
+    - verificar que `bundleRelease` use esa firma nueva
+12. Si el scaffold incluye assets de tienda, crear también:
    - `2` screenshots simples
    - `1` feature graphic simple
    - `1` icono `512x512`

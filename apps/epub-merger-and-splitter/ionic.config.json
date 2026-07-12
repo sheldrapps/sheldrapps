@@ -1,0 +1,7 @@
+{
+  "name": "epub-merger-and-splitter",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

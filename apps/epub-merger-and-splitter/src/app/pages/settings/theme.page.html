@@ -1,0 +1,34 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/settings"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ 'SETTINGS.THEME' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" [disabled]="!isDirty" (click)="onDone()">
+        {{ 'COMMON.DONE' | translate }}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="app-theme-selector-grid app-theme-selector-grid--two-columns">
+    <button
+      type="button"
+      class="app-theme-selector-card"
+      *ngFor="let option of supportedThemes; trackBy: trackByTheme"
+      [class.app-theme-selector-card--selected]="draftThemeId === option.code"
+      (click)="onThemeDraftChange(option.code)"
+    >
+      <sh-theme-preview-tile
+        [themeId]="option.code"
+        [displayName]="option.labelKey | translate"
+        [selected]="draftThemeId === option.code"
+      ></sh-theme-preview-tile>
+      <ion-label class="app-theme-selector-card__label">
+        {{ option.labelKey | translate }}
+      </ion-label>
+    </button>
+  </div>
+</ion-content>
