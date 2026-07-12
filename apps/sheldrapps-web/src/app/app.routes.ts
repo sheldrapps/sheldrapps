@@ -14,6 +14,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/privacy-epub-fixer/privacy-epub-fixer.page').then((m) => m.PrivacyEpubFixerPageComponent)
   },
   {
+    path: 'privacy-policies/epub-merger-and-splitter',
+    loadComponent: () => import('./pages/privacy-epub-merger-and-splitter/privacy-epub-merger-and-splitter.page').then((m) => m.PrivacyEpubMergerAndSplitterPageComponent)
+  },
+  {
     path: 'privacy-policies/cover-creator-for-kindle',
     loadComponent: () => import('./pages/privacy-ccfk/privacy-ccfk.page').then((m) => m.PrivacyCcfkPageComponent)
   },

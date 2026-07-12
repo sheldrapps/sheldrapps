@@ -47,6 +47,11 @@
                 "glob": "icon.png",
                 "input": "apps/epub-fixer/resources",
                 "output": "assets/apps/epub-fixer"
+              },
+              {
+                "glob": "icon.png",
+                "input": "apps/epub-merger-and-splitter/resources",
+                "output": "assets/apps/epub-merger-and-splitter"
               }
             ],
             "styles": [

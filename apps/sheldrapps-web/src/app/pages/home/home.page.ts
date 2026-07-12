@@ -57,6 +57,14 @@ export class HomePageComponent {
       privacyRoute: '/privacy-policies/epub-fixer',
     },
     {
+      nameKey: 'HOME.APPS.EMS.NAME',
+      descriptionKey: 'HOME.APPS.EMS.DESCRIPTION',
+      icon: 'assets/apps/epub-merger-and-splitter/icon.png',
+      privacyRoute: '/privacy-policies/epub-merger-and-splitter',
+      badgeKey: 'HOME.APPS.EMS.BADGE',
+      disabled: true,
+    },
+    {
       nameKey: 'HOME.APPS.PCM.NAME',
       descriptionKey: 'HOME.APPS.PCM.DESCRIPTION',
       icon: 'assets/apps/pcm/icon.png',
