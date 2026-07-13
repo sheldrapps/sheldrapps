@@ -5,6 +5,7 @@ import {
   LanguageRadioListComponent,
   restartForLanguageChange,
 } from '@sheldrapps/i18n-kit';
+import { PrivacyPolicySectionComponent } from '@sheldrapps/privacy-policy-kit';
 import {
   IonButton,
   IonButtons,
@@ -51,6 +52,7 @@ import { EpubMergerAndSplitterSettings } from 'src/app/settings/epub-merger-and-
     IonTitle,
     IonToolbar,
     LanguageRadioListComponent,
+    PrivacyPolicySectionComponent,
   ],
 })
 export class SettingsPage {
@@ -61,6 +63,8 @@ export class SettingsPage {
 
   readonly supportedLangs = LANG_OPTIONS;
   readonly supportedThemes = THEME_OPTIONS;
+  readonly privacyPolicyUrl =
+    'https://sheldrapps.com/privacy-policies/epub-merger-and-splitter';
 
   isLanguageModalOpen = false;
   languageDraft: Lang = 'en-US';
@@ -137,6 +141,10 @@ export class SettingsPage {
 
   async previewRatingPrompt(): Promise<void> {
     await this.ratingService.previewPrompt();
+  }
+
+  async previewRatingSuggestions(): Promise<void> {
+    await this.ratingService.previewSuggestionFlow();
   }
 
   async previewRatingFeedback(): Promise<void> {

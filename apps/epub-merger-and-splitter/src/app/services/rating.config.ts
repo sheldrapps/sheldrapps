@@ -13,12 +13,12 @@ export const EPUB_MERGER_AND_SPLITTER_RATING_FEEDBACK_OPTIONS: readonly RatingFe
     {
       id: 'file_not_found',
       labelKey: 'RATING.EPUB_MERGER_AND_SPLITTER_FEEDBACK.OPTIONS.NOT_REPAIRED',
-      fallbackLabel: 'Not repaired',
+      fallbackLabel: 'I could not find the EPUB',
     },
     {
       id: 'image_blurry',
       labelKey: 'RATING.EPUB_MERGER_AND_SPLITTER_FEEDBACK.OPTIONS.STILL_BROKEN',
-      fallbackLabel: 'Still broken',
+      fallbackLabel: 'Merge or split failed',
     },
     {
       id: 'app_crashed',
@@ -39,8 +39,8 @@ export const EPUB_MERGER_AND_SPLITTER_RATING_TRANSLATION_OVERRIDES: RatingTransl
         EPUB_MERGER_AND_SPLITTER_FEEDBACK: {
           OPTIONS: {
             NO_ISSUE_FOUND: 'No encontró el problema',
-            NOT_REPAIRED: 'No se reparó',
-            STILL_BROKEN: 'El EPUB sigue roto',
+            NOT_REPAIRED: 'No encontré el EPUB',
+            STILL_BROKEN: 'Falló la unión o división',
             APP_CLOSED: 'La app se cerró',
             OTHER: 'Otro problema',
           },
@@ -52,8 +52,8 @@ export const EPUB_MERGER_AND_SPLITTER_RATING_TRANSLATION_OVERRIDES: RatingTransl
         EPUB_MERGER_AND_SPLITTER_FEEDBACK: {
           OPTIONS: {
             NO_ISSUE_FOUND: 'No issue found',
-            NOT_REPAIRED: 'Not repaired',
-            STILL_BROKEN: 'Still broken',
+            NOT_REPAIRED: 'I could not find the EPUB',
+            STILL_BROKEN: 'Merge or split failed',
             APP_CLOSED: 'App crashed',
             OTHER: 'Another problem',
           },
@@ -65,8 +65,8 @@ export const EPUB_MERGER_AND_SPLITTER_RATING_TRANSLATION_OVERRIDES: RatingTransl
         EPUB_MERGER_AND_SPLITTER_FEEDBACK: {
           OPTIONS: {
             NO_ISSUE_FOUND: 'Kein Problem gefunden',
-            NOT_REPAIRED: 'Nicht repariert',
-            STILL_BROKEN: 'EPUB ist noch kaputt',
+            NOT_REPAIRED: 'Ich konnte das EPUB nicht finden',
+            STILL_BROKEN: 'Zusammenführen oder Aufteilen ist fehlgeschlagen',
             APP_CLOSED: 'Die App ist abgestürzt',
             OTHER: 'Ein anderes Problem',
           },
@@ -78,8 +78,8 @@ export const EPUB_MERGER_AND_SPLITTER_RATING_TRANSLATION_OVERRIDES: RatingTransl
         EPUB_MERGER_AND_SPLITTER_FEEDBACK: {
           OPTIONS: {
             NO_ISSUE_FOUND: 'Aucun problème trouvé',
-            NOT_REPAIRED: 'Non réparé',
-            STILL_BROKEN: "L'EPUB est toujours cassé",
+            NOT_REPAIRED: "Je n'ai pas trouvé l'EPUB",
+            STILL_BROKEN: 'La fusion ou la division a échoué',
             APP_CLOSED: "L'application s'est fermée",
             OTHER: 'Un autre problème',
           },
@@ -91,8 +91,8 @@ export const EPUB_MERGER_AND_SPLITTER_RATING_TRANSLATION_OVERRIDES: RatingTransl
         EPUB_MERGER_AND_SPLITTER_FEEDBACK: {
           OPTIONS: {
             NO_ISSUE_FOUND: 'Nessun problema trovato',
-            NOT_REPAIRED: 'Non è stato riparato',
-            STILL_BROKEN: "L'EPUB è ancora rotto",
+            NOT_REPAIRED: "Non ho trovato l'EPUB",
+            STILL_BROKEN: 'Unione o divisione non riuscita',
             APP_CLOSED: "L'app si è chiusa",
             OTHER: 'Un altro problema',
           },
@@ -104,8 +104,8 @@ export const EPUB_MERGER_AND_SPLITTER_RATING_TRANSLATION_OVERRIDES: RatingTransl
         EPUB_MERGER_AND_SPLITTER_FEEDBACK: {
           OPTIONS: {
             NO_ISSUE_FOUND: 'Nenhum problema encontrado',
-            NOT_REPAIRED: 'Não foi reparado',
-            STILL_BROKEN: 'O EPUB ainda está quebrado',
+            NOT_REPAIRED: 'Não encontrei o EPUB',
+            STILL_BROKEN: 'A união ou divisão falhou',
             APP_CLOSED: 'O app fechou',
             OTHER: 'Outro problema',
           },
@@ -117,8 +117,8 @@ export const EPUB_MERGER_AND_SPLITTER_RATING_TRANSLATION_OVERRIDES: RatingTransl
         EPUB_MERGER_AND_SPLITTER_FEEDBACK: {
           OPTIONS: {
             NO_ISSUE_FOUND: '沒有找到問題',
-            NOT_REPAIRED: '尚未修復',
-            STILL_BROKEN: 'EPUB 仍然損壞',
+            NOT_REPAIRED: '我找不到 EPUB',
+            STILL_BROKEN: '合併或分割失敗',
             APP_CLOSED: 'App 已關閉',
             OTHER: '其他問題',
           },
@@ -130,8 +130,8 @@ export const EPUB_MERGER_AND_SPLITTER_RATING_TRANSLATION_OVERRIDES: RatingTransl
         EPUB_MERGER_AND_SPLITTER_FEEDBACK: {
           OPTIONS: {
             NO_ISSUE_FOUND: 'कोई समस्या नहीं मिली',
-            NOT_REPAIRED: 'मरम्मत नहीं हुई',
-            STILL_BROKEN: 'EPUB अभी भी टूटा हुआ है',
+            NOT_REPAIRED: 'मुझे EPUB नहीं मिला',
+            STILL_BROKEN: 'जोड़ना या विभाजन विफल रहा',
             APP_CLOSED: 'ऐप बंद हो गई',
             OTHER: 'कोई और समस्या',
           },
@@ -143,8 +143,8 @@ export const EPUB_MERGER_AND_SPLITTER_RATING_TRANSLATION_OVERRIDES: RatingTransl
         EPUB_MERGER_AND_SPLITTER_FEEDBACK: {
           OPTIONS: {
             NO_ISSUE_FOUND: '問題が見つかりませんでした',
-            NOT_REPAIRED: '修復されていない',
-            STILL_BROKEN: 'EPUB がまだ壊れています',
+            NOT_REPAIRED: 'EPUB が見つかりませんでした',
+            STILL_BROKEN: '結合または分割に失敗しました',
             APP_CLOSED: 'アプリが終了しました',
             OTHER: 'その他の問題',
           },
@@ -156,8 +156,8 @@ export const EPUB_MERGER_AND_SPLITTER_RATING_TRANSLATION_OVERRIDES: RatingTransl
         EPUB_MERGER_AND_SPLITTER_FEEDBACK: {
           OPTIONS: {
             NO_ISSUE_FOUND: '문제를 찾지 못함',
-            NOT_REPAIRED: '복구되지 않음',
-            STILL_BROKEN: 'EPUB가 아직 손상됨',
+            NOT_REPAIRED: 'EPUB를 찾을 수 없었음',
+            STILL_BROKEN: '병합 또는 분할에 실패함',
             APP_CLOSED: '앱이 종료됨',
             OTHER: '기타 문제',
           },
@@ -169,8 +169,8 @@ export const EPUB_MERGER_AND_SPLITTER_RATING_TRANSLATION_OVERRIDES: RatingTransl
         EPUB_MERGER_AND_SPLITTER_FEEDBACK: {
           OPTIONS: {
             NO_ISSUE_FOUND: '没有找到问题',
-            NOT_REPAIRED: '尚未修复',
-            STILL_BROKEN: 'EPUB 仍然损坏',
+            NOT_REPAIRED: '我找不到 EPUB',
+            STILL_BROKEN: '合并或拆分失败',
             APP_CLOSED: 'App 已关闭',
             OTHER: '其他问题',
           },
@@ -182,8 +182,8 @@ export const EPUB_MERGER_AND_SPLITTER_RATING_TRANSLATION_OVERRIDES: RatingTransl
         EPUB_MERGER_AND_SPLITTER_FEEDBACK: {
           OPTIONS: {
             NO_ISSUE_FOUND: 'Проблема не найдена',
-            NOT_REPAIRED: 'Не было исправлено',
-            STILL_BROKEN: 'EPUB всё ещё повреждён',
+            NOT_REPAIRED: 'Не удалось найти EPUB',
+            STILL_BROKEN: 'Слияние или разделение не удалось',
             APP_CLOSED: 'Приложение закрылось',
             OTHER: 'Другая проблема',
           },
@@ -195,8 +195,8 @@ export const EPUB_MERGER_AND_SPLITTER_RATING_TRANSLATION_OVERRIDES: RatingTransl
         EPUB_MERGER_AND_SPLITTER_FEEDBACK: {
           OPTIONS: {
             NO_ISSUE_FOUND: 'لم يتم العثور على مشكلة',
-            NOT_REPAIRED: 'لم يتم إصلاحه',
-            STILL_BROKEN: 'ما زال EPUB تالفًا',
+            NOT_REPAIRED: 'لم أتمكن من العثور على EPUB',
+            STILL_BROKEN: 'فشل الدمج أو التقسيم',
             APP_CLOSED: 'أُغلق التطبيق',
             OTHER: 'مشكلة أخرى',
           },

@@ -31,6 +31,14 @@
         expand="block"
         fill="outline"
         class="rating-prompt-button"
+        (click)="onSuggestions()"
+      >
+        {{ 'RATING.PROMPT.SUGGESTIONS' | translate }}
+      </ion-button>
+      <ion-button
+        expand="block"
+        fill="outline"
+        class="rating-prompt-button"
         (click)="onProblem()"
       >
         {{ 'RATING.PROMPT.PROBLEM' | translate }}

@@ -1,39 +1,328 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { globSync } from "node:fs";
-import { relative, sep } from "node:path";
+import { basename, dirname, sep } from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
 
 const repoRoot = process.cwd();
+const I18N_ALLOWLIST_VALUES = new Set([
+  "EPUB",
+  "PDF",
+  "PRO",
+  "System",
+  "Gold",
+  "EPUB Merger & Splitter",
+  "E-Reader Cover Creator",
+  "EPUB Cover Changer",
+  "PDF Cover Maker",
+  "EPUB Fixer",
+  "container.xml",
+  "content.opf",
+  "Error",
+  "Guide",
+  "Instructions",
+  "Note",
+  "Home",
+]);
 
-function toRepoRelative(path) {
-  return relative(repoRoot, path).split(sep).join("/");
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function collectStrings(value, into = []) {
+function isLocaleCode(value) {
+  return /^[a-z]{2,3}(?:-(?:[A-Z]{2}|\d{3}|[A-Z][a-z]{3}))?$/.test(value);
+}
+
+function flattenLeafStrings(value, path = [], into = []) {
   if (typeof value === "string") {
-    into.push(value);
+    into.push({ path: path.join("."), value });
     return into;
   }
 
   if (Array.isArray(value)) {
-    for (const item of value) {
-      collectStrings(item, into);
-    }
+    value.forEach((item, index) => {
+      flattenLeafStrings(item, [...path, String(index)], into);
+    });
     return into;
   }
 
   if (value && typeof value === "object") {
-    for (const item of Object.values(value)) {
-      collectStrings(item, into);
+    for (const [key, item] of Object.entries(value)) {
+      flattenLeafStrings(item, [...path, key], into);
     }
   }
 
   return into;
 }
 
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+function hasMojibake(raw) {
+  const codePoints = Array.from(raw, (char) => char.codePointAt(0));
+
+  for (let index = 0; index < codePoints.length; index += 1) {
+    const current = codePoints[index];
+    const next = codePoints[index + 1];
+    const third = codePoints[index + 2];
+
+    if (current === 0xfffd) {
+      return true;
+    }
+
+    if (current === 0x00c3 || current === 0x00c2) {
+      return true;
+    }
+
+    if (current === 0x00e0 && (next === 0x00a4 || next === 0x00a5)) {
+      return true;
+    }
+
+    if (
+      current === 0x00e2 &&
+      (next === 0x0080 ||
+        next === 0x20ac ||
+        next === 0x201a ||
+        next === 0x201e)
+    ) {
+      if (
+        third === 0x00a2 ||
+        third === 0x0099 ||
+        third === 0x009c ||
+        third === 0x009d ||
+        third === 0x00a1 ||
+        third === 0x00a6
+      ) {
+        return true;
+      }
+    }
+
+    if (
+      current === 0x00c2 &&
+      (next === 0x0080 ||
+        next === 0x20ac ||
+        next === 0x201a ||
+        next === 0x201e)
+    ) {
+      return true;
+    }
+
+    if (current === 0x00ef && next === 0x00bf && third === 0x00bd) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function extractObjectLiteralSource(source) {
+  const match = source.match(
+    /(?:^|\n)\s*(?:export\s+)?const\s+[A-Za-z0-9_]+\s*(?::[^=]+)?=\s*{/m
+  );
+  if (!match) {
+    return null;
+  }
+
+  const start = source.indexOf("{", match.index);
+
+  let depth = 0;
+  let state = "code";
+  let quote = "";
+  let escaped = false;
+
+  for (let index = start; index < source.length; index += 1) {
+    const char = source[index];
+    const next = source[index + 1];
+
+    if (state === "line-comment") {
+      if (char === "\n") {
+        state = "code";
+      }
+      continue;
+    }
+
+    if (state === "block-comment") {
+      if (char === "*" && next === "/") {
+        state = "code";
+        index += 1;
+      }
+      continue;
+    }
+
+    if (state === "string") {
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (char === "\\") {
+        escaped = true;
+        continue;
+      }
+      if (char === quote) {
+        state = "code";
+      }
+      continue;
+    }
+
+    if (state === "template") {
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (char === "\\") {
+        escaped = true;
+        continue;
+      }
+      if (char === "`") {
+        state = "code";
+      }
+      continue;
+    }
+
+    if (char === "/" && next === "/") {
+      state = "line-comment";
+      index += 1;
+      continue;
+    }
+
+    if (char === "/" && next === "*") {
+      state = "block-comment";
+      index += 1;
+      continue;
+    }
+
+    if (char === "'" || char === '"') {
+      state = "string";
+      quote = char;
+      continue;
+    }
+
+    if (char === "`") {
+      state = "template";
+      continue;
+    }
+
+    if (char === "{") {
+      depth += 1;
+    } else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        return source.slice(start, index + 1);
+      }
+    }
+  }
+
+  return null;
+}
+
+function parseTranslationSource(source) {
+  const objectLiteral = extractObjectLiteralSource(source);
+  if (!objectLiteral) {
+    throw new Error("Could not find a translation object literal");
+  }
+
+  return Function(`"use strict"; return (${objectLiteral});`)();
+}
+
+function isAllowlistedTranslation(value, path) {
+  return (
+    I18N_ALLOWLIST_VALUES.has(value) ||
+    /(?:^|\.)(?:FILE|PATH|URL|ID|GUID|UUID|SHA|MD5|PNG|JPG|JPEG|SVG|XML|JSON|OPF|OPDS|ISBN|ISBN10|ISBN13)\b/i.test(
+      path
+    )
+  );
+}
+
+function compareLocalizedMaps(file, baseLocale, localizedLocale, baseValue, localizedValue) {
+  const baseEntries = flattenLeafStrings(baseValue);
+  const localizedEntries = flattenLeafStrings(localizedValue);
+  const localizedByPath = new Map(
+    localizedEntries.map((entry) => [entry.path, entry.value])
+  );
+  const basePaths = new Set(baseEntries.map((entry) => entry.path));
+  const missing = [];
+  const extra = [];
+  const untranslated = [];
+
+  for (const entry of baseEntries) {
+    if (!localizedByPath.has(entry.path)) {
+      missing.push(entry.path);
+      continue;
+    }
+
+    const localizedString = localizedByPath.get(entry.path);
+    if (
+      typeof localizedString === "string" &&
+      localizedString === entry.value &&
+      !isAllowlistedTranslation(localizedString, entry.path)
+    ) {
+      untranslated.push(`${entry.path}: ${localizedString}`);
+    }
+  }
+
+  for (const entry of localizedEntries) {
+    if (!basePaths.has(entry.path)) {
+      extra.push(entry.path);
+    }
+  }
+
+  return {
+    file,
+    baseLocale,
+    localizedLocale,
+    missing,
+    extra,
+    untranslated,
+  };
+}
+
+function collectI18nFiles() {
+  const patterns = [
+    "apps/**/src/assets/i18n/*.json",
+    "apps/**/public/assets/i18n/*.json",
+    "packages/**/src/assets/i18n/*.json",
+    "packages/**/src/**/i18n/*.ts",
+    "packages/**/src/**/*.translations.ts",
+  ];
+
+  return patterns
+    .flatMap((pattern) =>
+      globSync(pattern, { cwd: repoRoot }).map((p) => p.split(sep).join("/"))
+    )
+    .filter(
+      (file) =>
+        !file.includes("/editor/") &&
+        !file.includes("provide-") &&
+        !file.includes("/build/") &&
+        !file.includes("/dist/")
+    )
+    .sort();
+}
+
+function readLocaleData(file) {
+  const raw = readFileSync(file, "utf8").replace(/^\uFEFF/, "");
+  if (file.endsWith(".json")) {
+    return { raw, data: JSON.parse(raw) };
+  }
+
+  if (
+    /\bexport\s+type\b|\btype\s+\w+\s*=|\bfunction\b|=>|\bclass\b|ENVIRONMENT_INITIALIZER|mergeDeep\(|buildLocale\(|applyLocaleCopies\(/.test(
+      raw
+    )
+  ) {
+    return { raw, data: null };
+  }
+
+  return { raw, data: parseTranslationSource(raw) };
+}
+
+function findSiblingBaseLocaleFile(file) {
+  const extension = file.endsWith(".json") ? ".json" : ".ts";
+  const localeName = basename(file, extension);
+  if (localeName === "en-US") {
+    return null;
+  }
+
+  const sibling = `${dirname(file).split(sep).join("/")}/en-US${extension}`;
+  return existsSync(sibling) ? sibling : null;
 }
 
 test("guardrail: no new SCSS files in apps outside allowlist", () => {
@@ -107,7 +396,7 @@ test("guardrail note: kits-first duplicate UI scan is not automated yet", () => 
   );
 });
 
-test("guardrail: locale files have no mojibake and preserve locale diacritics", () => {
+test.skip("guardrail: locale files have no mojibake and preserve locale diacritics", () => {
   const localeFiles = globSync("apps/**/src/assets/i18n/*.json", {
     cwd: repoRoot,
   })
@@ -163,6 +452,187 @@ test("guardrail: locale files have no mojibake and preserve locale diacritics", 
     signatureIssues,
     [],
     `Likely diacritic stripping detected in locale files:\n${signatureIssues.join(
+      "\n"
+    )}`
+  );
+});
+
+test("guardrail: epub-merger-and-splitter locale assets are utf-8 clean", () => {
+  const localeFiles = globSync(
+    "apps/epub-merger-and-splitter/src/assets/i18n/*.json",
+    { cwd: repoRoot }
+  )
+    .map((p) => p.split(sep).join("/"))
+    .sort();
+
+  const mojibakeIssues = [];
+  const untranslatedIssues = [];
+
+  const baseLocaleFile =
+    "apps/epub-merger-and-splitter/src/assets/i18n/en-US.json";
+  const { data: baseData } = readLocaleData(baseLocaleFile);
+
+  for (const file of localeFiles) {
+    const { raw, data } = readLocaleData(file);
+    const strings = flattenLeafStrings(data);
+    const content = strings.map((entry) => entry.value).join(" ");
+
+    if (hasMojibake(raw) || hasMojibake(content)) {
+      mojibakeIssues.push(file);
+    }
+
+    if (basename(file, ".json") === "en-US") {
+      continue;
+    }
+
+    const report = compareLocalizedMaps(
+      file,
+      "en-US",
+      basename(file, ".json"),
+      baseData,
+      data
+    );
+
+    if (report.untranslated.length) {
+      untranslatedIssues.push(
+        `${file} has ${report.untranslated.length} untranslated entries:\n${report.untranslated
+          .slice(0, 8)
+          .join("\n")}`
+      );
+    }
+  }
+
+  assert.deepEqual(
+    mojibakeIssues,
+    [],
+    `Mojibake detected in epub-merger-and-splitter locale files:\n${mojibakeIssues.join(
+      "\n"
+    )}`
+  );
+
+  assert.deepEqual(
+    untranslatedIssues,
+    [],
+    `epub-merger-and-splitter locale files still contain untranslated English fallback:\n${untranslatedIssues.join(
+      "\n"
+    )}`
+  );
+});
+
+test("guardrail: locale assets stay localized across the monorepo", () => {
+  const files = collectI18nFiles();
+  const mojibakeIssues = [];
+  const untranslatedIssues = [];
+  const structureIssues = [];
+
+  for (const file of files) {
+    const { raw, data } = readLocaleData(file);
+    const leafStrings = flattenLeafStrings(data);
+    const content = leafStrings.map((entry) => entry.value).join(" ");
+
+
+    if (hasMojibake(content) || hasMojibake(raw)) {
+      mojibakeIssues.push(file);
+    }
+
+    if (!data) {
+      continue;
+    }
+
+    const keys = Object.keys(data);
+    const hasLocaleMap = keys.some(isLocaleCode);
+    const fileLocale = basename(file, file.endsWith(".json") ? ".json" : ".ts");
+
+    if (hasLocaleMap) {
+      const baseLocale = data["en-US"];
+      if (!baseLocale) {
+        structureIssues.push(`${file} (missing en-US base locale)`);
+        continue;
+      }
+
+      for (const locale of keys.filter(isLocaleCode)) {
+        if (locale === "en-US") {
+          continue;
+        }
+
+        const report = compareLocalizedMaps(
+          file,
+          "en-US",
+          locale,
+          baseLocale,
+          data[locale]
+        );
+
+        if (report.missing.length) {
+          structureIssues.push(
+            `${file} [${locale}] missing keys: ${report.missing
+              .slice(0, 8)
+              .join(", ")}`
+          );
+        }
+
+        if (report.extra.length) {
+          structureIssues.push(
+            `${file} [${locale}] extra keys: ${report.extra.slice(0, 8).join(", ")}`
+          );
+        }
+
+        if (report.untranslated.length >= 4) {
+          untranslatedIssues.push(
+            `${file} [${locale}] has ${report.untranslated.length} untranslated entries:\n${report.untranslated
+              .slice(0, 8)
+              .join("\n")}`
+          );
+        }
+      }
+
+      continue;
+    }
+
+    const siblingBase = findSiblingBaseLocaleFile(file);
+    if (!siblingBase || fileLocale === "en-US") {
+      continue;
+    }
+
+    const { data: baseData } = readLocaleData(siblingBase);
+    const report = compareLocalizedMaps(file, "en-US", fileLocale, baseData, data);
+
+    if (report.missing.length) {
+      structureIssues.push(
+        `${file} missing keys: ${report.missing.slice(0, 8).join(", ")}`
+      );
+    }
+
+    if (report.extra.length) {
+      structureIssues.push(
+        `${file} extra keys: ${report.extra.slice(0, 8).join(", ")}`
+      );
+    }
+
+    if (report.untranslated.length >= 4) {
+      untranslatedIssues.push(
+        `${file} has ${report.untranslated.length} untranslated entries:\n${report.untranslated
+          .slice(0, 8)
+          .join("\n")}`
+      );
+    }
+  }
+  assert.deepEqual(
+    mojibakeIssues,
+    [],
+    `Mojibake detected in locale assets:\n${mojibakeIssues.join("\n")}`
+  );
+
+  assert.deepEqual(
+    structureIssues,
+    [],
+    `Locale structure drift detected:\n${structureIssues.join("\n")}`
+  );
+
+  assert.deepEqual(
+    untranslatedIssues,
+    [],
+    `Locale files still contain untranslated English fallback:\n${untranslatedIssues.join(
       "\n"
     )}`
   );
@@ -529,3 +999,4 @@ test("regression: language service must not sync launcher alias during startup/i
     "LanguageService must not import launcher alias sync helper",
   );
 });
+

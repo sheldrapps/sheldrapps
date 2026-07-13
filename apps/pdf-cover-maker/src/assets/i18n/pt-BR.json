@@ -1,249 +1,272 @@
 {
-    "APP":  {
-                "TITLE":  "Criar capa para PDF"
-            },
-    "COMMON":  {
-                   "BACK_AGAIN_TO_EXIT":  "Volte novamente para sair",
-                   "CANCEL":  "Cancelar",
-                   "CLOSE":  "Fechar",
-                   "DELETE":  "Excluir",
-                   "DONE":  "ConcluÃ­do",
-                   "ERROR":  "Erro",
-                   "LOADING":  "Carregandoâ€¦",
-                   "BILLING_UNAVAILABLE":  "As compras nÃ£o estÃ£o disponÃ­veis no momento.",
-                   "PURCHASE_ERROR":  "NÃ£o foi possÃ­vel concluir a compra. Tente novamente.",
-                   "REMOVE_ADS_BUY":  "Comprar",
-                   "REMOVE_ADS_DESCRIPTION":  "Remova os anÃºncios para sempre e habilite a seleÃ§Ã£o entre exportaÃ§Ã£o sem perdas e comprimida.",
-                   "REMOVE_ADS_PURCHASED":  "AnÃºncios removidos para sempre.",
-                   "REMOVE_ADS_RESTORE":  "Restaurar compra",
-                   "REMOVE_ADS_RESTORED":  "Compra restaurada com sucesso.",
-                   "REMOVE_ADS_TITLE":  "Remover anÃºncios",
-                   "REMOVE_ADS_CTA_TITLE":  "Remover anÃºncios",
-                   "REMOVE_ADS_CTA_SUBTITLE":  "Pagamento Ãºnico â€¢ Para sempre",
-                   "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE":  "Pagamento Ãºnico â€¢ {{price}}",
-                   "REMOVE_ADS_MODAL_PRICE":  "PreÃ§o: {{price}} â€¢ Sem assinatura",
-                   "RESTORE_ERROR":  "NÃ£o foi possÃ­vel restaurar a compra. Tente novamente.",
-                   "PRO_ONLY":  "PRO",
-                   "WATCH_AD_SUBTITLE":  "Ver anÃºncio",
-                   "SHARE":  "Compartilhar",
-                   "SHARE_KINDLE_HINT":  "Ao compartilhar, selecione o app Kindle para enviÃ¡-la ao dispositivo.",
-                   "WARNING":  "Aviso",
-                   "EDIT_PROJECT_TITLE":  "Como vocÃª quer editar este arquivo?",
-                   "EDIT_PROJECT_MESSAGE":  "Escolha se deseja substituir o arquivo atual ou trabalhar em uma cÃ³pia.",
-                   "EDIT_PROJECT_OVERWRITE":  "Substituir",
-                   "EDIT_PROJECT_OVERWRITE_DESC":  "Salva as alteraÃ§Ãµes sobre o arquivo existente.",
-                   "EDIT_PROJECT_COPY":  "Trabalhar em uma cÃ³pia",
-                   "EDIT_PROJECT_COPY_DESC":  "MantÃ©m o arquivo original e edita uma nova cÃ³pia."
-               },
-    "CHANGE":  {
-                   "ADS_REQUIRED":  "NÃ£o foi possÃ­vel carregar o anÃºncio. Verifique a rede ou o bloqueador de anÃºncios.",
-                   "ARIA_CHANGE_PDF":  "Criar arquivo PDF. Arquivo atual: {{name}}",
-                   "ARIA_CHANGE_IMAGE":  "Criar imagem da capa. Imagem atual: {{name}}",
-                   "ARIA_CROP":  "Ajustar imagem selecionada",
-                   "ARIA_SELECT_PDF":  "Selecionar arquivo PDF",
-                   "ARIA_SELECT_IMAGE":  "Selecionar imagem da capa",
-                   "CROP_ACTION":  "Ajustar",
-                   "COVER_CHANGED":  "Capa alterada. Agora vocÃª pode salvar ou compartilhar",
-                   "CHANGE_ACTION":  "Criar capa",
-                   "CHANGE_ACTION_REWARDED":  "Criar capa (ver anÃºncio)",
-                   "GENERATING":  "Atualizando capaâ€¦",
-                   "HINT_SAVE_SHARE_EXPLAIN":  "criar a capa nÃ£o a salva automaticamente.",
-                   "INFO":  "Info",
-                   "INFO_ARIA":  "InformaÃ§Ãµes sobre criar capa",
-                   "INFO_TITLE":  "InformaÃ§Ã£o",
-                   "INFO_FLOW_LABEL":  "Ordem recomendada:",
-                   "INFO_STEP_1":  "Selecionar PDF.",
-                   "INFO_STEP_1_1":  "1.1. A capa original Ã© prÃ©-carregada.",
-                   "INFO_STEP_1_2":  "1.2. Troque a imagem ou mantenha a original.",
-                   "INFO_STEP_2":  "Ajustar a imagem no editor.",
-                   "INFO_STEP_3":  "Ver anÃºncio para salvar a capa.",
-                   "INFO_STEP_4":  "Salvar ou compartilhar.",
-                   "IMAGE_ERROR_CORRUPT":  "NÃ£o foi possÃ­vel ler a imagem. Tente outra.",
-                   "IMAGE_ERROR_SIZE":  "O arquivo Ã© muito grande. MÃ¡ximo {{maxSize}} MB.",
-                   "IMAGE_ERROR_TYPE":  "Formato nÃ£o compatÃ­vel ({{type}}). Selecione JPG, PNG ou WebP.",
-                   "IMAGE_WARN_SMALL":  "A imagem pode ser pequena demais para alguns dispositivos.",
-                   "NO_COVER_DETECTED_ADDED":  "Nenhuma capa detectada. Uma nova capa foi adicionada a este PDF.",
-                   "PDF_ERROR_STORAGE":  "Espaco de armazenamento insuficiente. Necessario {{requiredMB}} MB, disponivel {{availableMB}} MB.",
-                   "LOADING_PDF":  "Carregando PDFâ€¦",
-                   "LOADING_IMAGE":  "Carregando imagemâ€¦",
-                   "OPENING_EDITOR":  "Abrindo editorâ€¦",
-                   "CHANGING_COVER":  "Alterando capa...",
-                   "GETTING_COVER":  "Obtendo capa",
-                   "SELECT_PDF_LABEL":  "Arquivo PDF",
-                   "PDF_FILE_TITLE":  "Arquivo PDF",
-                   "SELECT_PDF_PLACEHOLDER":  "Selecione um arquivo PDF",
-                   "COVER_MODE_LABEL":  "AÃ§Ã£o da pÃ¡gina de capa",
-                   "COVER_MODE_ARIA":  "Selecione como aplicar a nova capa",
-                   "COVER_MODE_REPLACE_FIRST_PAGE":  "Substituir a primeira pÃ¡gina",
-                   "COVER_MODE_INSERT_FIRST_PAGE":  "Inserir nova pÃ¡gina no inÃ­cio",
-                   "INSERT_MODE_TOC_WARNING":  "Inserting a cover may shift TOC, bookmarks, or page numbering. We\u0027ll try to keep them aligned.",
-                   "FRAME_MODE_LABEL":  "Frame mode",
-                   "FRAME_MODE_ARIA":  "Frame mode",
-                   "FRAME_MODE_WITH_FRAME":  "With frame",
-                   "FRAME_MODE_WITHOUT_FRAME":  "Without frame",
-                   "FORMAT_AUTO":  "Auto",
-                   "FORMAT_A4":  "A4",
-                   "FORMAT_CARTA":  "Carta",
-                   "FORMAT_OFICIO":  "Oficio",
-                   "FORMAT_NINE_SIXTEEN":  "9:16",
-                   "FORMAT_THREE_FOUR":  "3:4",
-                   "FORMAT_ONE_ONE":  "1:1",
-                   "FORMAT_CUSTOM":  "Custom",
-                   "FRAME_NOT_DETECTED_TOAST":  "Frame not detected in the document",
-                   "SAVING":  "Salvando capaâ€¦",
-                   "SAVE_ACTION":  "Salvar",
-                   "SAVED_OK":  "Capa salva",
-                   "SAVE_RENAME_TITLE":  "Salvar capa",
-                   "SAVE_RENAME_MESSAGE":  "Digite um nome para a capa",
-                   "SAVE_RENAME_PLACEHOLDER":  "Nome do arquivo",
-                   "SELECT_IMAGE_LABEL":  "Imagem da capa",
-                   "SELECT_IMAGE_PLACEHOLDER":  "Selecione uma imagem",
-                   "TAP_TO_CHANGE":  "Toque para criar/redefinir",
-                   "TAP_TO_CHANGE_IMAGE":  "Toque para criar",
-                   "TAP_TO_PREVIEW":  "Toque para ver a prÃ©via",
-                   "LONGPRESS_PREVIEW_HINT":  "Toque e segure para visualizar",
-                   "TITLE":  "Criar capa",
-                   "INVALID_COVER_TAP_TO_CHANGE":  "Invalid cover, tap to make",
-                   "PREVIEW_ORIGINAL_LABEL":  "Capa original",
-                   "PREVIEW_NEW_LABEL":  "Nova capa",
-                   "PREVIEW_NEW_ONLY_LABEL":  "Nova capa",
-                   "ARIA_START_SCRATCH":  "Start from scratch",
-                   "SOURCE_IMAGE":  "Image",
-                   "SOURCE_SCRATCH":  "Scratch"
-               },
-    "COVERS":  {
-                   "DELETED":  "PDF excluÃ­do",
-                   "EMPTY":  "Nenhuma capa encontrada no app. Arquivos criados antes de reinstalar podem nÃ£o aparecer devido a restriÃ§Ãµes do sistema.",
-                   "PLACEHOLDER":  "PDF",
-                   "PREVIEW_TITLE":  "Capa atual",
-                   "TITLE":  "Meus PDFs",
-                   "DITHERED_THUMBNAIL_NOTICE":  "Capas com reduÃ§Ã£o de artefatos podem parecer diferentes nas miniaturas. Abra a visualizaÃ§Ã£o para ver um resultado mais fiel.",
-                   "ACTIONS":  {
-                                   "DELETE":  "Excluir",
-                                   "SHARE":  "Compartilhar",
-                                   "OPEN":  "Abrir",
-                                   "EDIT_PROJECT":  "Editar"
-                               },
-                   "DELETE":  {
-                                  "MESSAGE":  "Deseja excluir este PDF?",
-                                  "TITLE":  "Excluir PDF"
-                              },
-                   "ERROR":  {
-                                 "DELETE":  "NÃ£o foi possÃ­vel excluir o PDF. Tente novamente.",
-                                 "SHARE":  "NÃ£o foi possÃ­vel compartilhar o PDF. Tente novamente.",
-                                 "LOAD":  "NÃ£o foi possÃ­vel carregar suas capas. Arraste para baixo para tentar novamente.",
-                                 "PREVIEW":  "NÃ£o foi possÃ­vel carregar a prÃ©-visualizaÃ§Ã£o. Tente novamente.",
-                                 "OPEN":  "NÃ£o foi possÃ­vel abrir o PDF. Tente novamente.",
-                                 "OPEN_PROJECT":  "NÃ£o foi possÃ­vel abrir o projeto. Tente novamente."
-                             },
-                   "GENERATE_THUMB":  "Generate thumbnail",
-                   "PREVIEW_UNAVAILABLE":  "Preview unavailable.",
-                   "EREADER":  {
-                                   "ZOOM_OUT_ARIA":  "Reduzir prÃ©-visualizaÃ§Ã£o do e-reader",
-                                   "ZOOM_IN_ARIA":  "Ampliar prÃ©-visualizaÃ§Ã£o do e-reader",
-                                   "ZOOM_RESET_ARIA":  "Redefinir zoom da prÃ©-visualizaÃ§Ã£o do e-reader"
-                               }
-               },
-    "INSTRUCTIONS":  {
-                         "NOTE_TITLE":  "ObservaÃ§Ã£o",
-                         "STEP_1":  "Selecione um arquivo PDF (a capa atual e pre-carregada)",
-                         "STEP_2":  "Ajuste a capa carregada ou escolha uma nova imagem e ajuste",
-                         "STEP_3":  "Veja o anuncio para criar a capa no PDF",
-                         "STEP_4":  "Salve ou compartilhe o PDF atualizado",
-                         "STEP_4_DESC":  "Quando estiver pronto, voce pode salva-lo no dispositivo ou compartilha-lo diretamente com o app Kindle para uma transicao mais suave.",
-                         "STEP_5":  "Enviar pela web (Send to Kindle)",
-                         "STEP_5_DESC":  "VocÃª tambÃ©m pode enviÃ¡-la pelo navegador usando a ferramenta web Send to Kindle.",
-                         "TIP":  "Para melhores resultados, use imagens em alta resoluÃ§Ã£o e certifique-se de que os anÃºncios estejam desativados no seu Kindle.",
-                         "TITLE":  "InstruÃ§Ãµes"
-                     },
-    "HOME_TOUR":  {
-                      "CONTROLS":  {
-                                       "BACK":  "Voltar",
-                                       "FINISH":  "Finalizar",
-                                       "INTERACT_HINT":  "Interaja com o elemento destacado para continuar.",
-                                       "NEXT":  "PrÃ³ximo",
-                                       "PROGRESS":  "{{current}} de {{total}}",
-                                       "SKIP":  "Pular"
-                                   },
-                      "STEPS":  {
-                                    "PDF":  {
-                                                "TITLE":  "Arquivo PDF",
-                                                "DESCRIPTION":  "Selecione o arquivo PDF que vocÃª quer atualizar."
-                                            },
-                                    "IMAGE":  {
-                                                  "TITLE":  "Imagem da capa",
-                                                  "DESCRIPTION":  "Selecione a imagem para sua capa."
-                                              },
-                                    "ADJUST":  {
-                                                   "TITLE":  "Ajustar",
-                                                   "DESCRIPTION":  "Ajuste a imagem no editor e toque em Concluir."
-                                               },
-                                    "CREATE":  {
-                                                   "TITLE":  "Criar capa",
-                                                   "DESCRIPTION":  "Gere aqui a capa atualizada."
-                                               },
-                                    "RESULTS":  {
-                                                    "TITLE":  "Salvar ou compartilhar",
-                                                    "DESCRIPTION":  "Salve ou compartilhe seu PDF atualizado."
-                                                }
-                                }
-                  },
-    "SETTINGS":  {
-                     "VIEW_TOUR":  "Ver tour",
-                     "INSTRUCTIONS":  "Ver instruÃ§Ãµes",
-                     "INSTRUCTIONS_HINT":  "Como criar e enviar uma capa para Kindle",
-                     "INSTRUCTIONS_SECTION":  "InstruÃ§Ãµes",
-                     "LANGUAGE":  "Idioma",
-                     "LANGUAGE_RESTART_NOTICE":  "Idioma alterado. O app serÃ¡ reiniciado para aplicar as mudanÃ§as.",
-                     "LANGUAGE_PREPARING_COUNTDOWN":  "Preparando tudo no seu idioma. O app serÃ¡ fechado para mudar o nome ({{count}})",
-                     "EREADER_OPTIMIZATION_SECTION":  "Image enhancement",
-                     "EREADER_OPTIMIZATION_HINT":  "Aplica ajustes automÃ¡ticos para melhorar a capa",
-                     "EREADER_OPTIMIZATION_TOGGLE":  "Otimizar",
-                     "THEME":  "Tema",
-                     "THEME_SYSTEM":  "Sistema",
-                     "THEME_LIGHT":  "Claro natural",
-                     "THEME_DARK":  "Escuro clÃ¡ssico",
-                     "THEME_WARM_READING":  "Leitura acolhedora",
-                     "THEME_POP_ROSE":  "Rosa pop",
-                     "THEME_NOCTURNE_VIOLET":  "Violeta noturno",
-                     "THEME_OBSIDIAN_RED":  "Vermelho obsidiana",
-                     "THEME_TERMINAL_GREEN":  "Verde terminal",
-                     "THEME_MINT_FRESH":  "Menta Fresca",
-                     "THEME_SILVER_TECH":  "Silver",
-                     "THEME_GOLD_LUXE":  "Oro",
-                     "TITLE":  "ConfiguraÃ§Ãµes"
-                 },
-    "TABS":  {
-                 "COVERS":  "Meus PDFs",
-                 "CHANGE":  "Criar",
-                 "SETTINGS":  "ConfiguraÃ§Ãµes"
-             },
-    "ARR":  {
-                "TOOLS":  {
-                              "RECOMMENDED":  "Recomendados",
-                              "INFO":  "Info",
-                              "APPS":  "Apps",
-                              "GUIDE":  "Guia"
-                          }
-            },
-    "E_READER_FRAME":  {
-                           "COLOR_SELECTOR":  {
-                                                  "TITLE":  "Frame color"
-                                              },
-                           "BRAND":  {
-                                         "KINDLE":  "Kindle",
-                                         "KOBO":  "Kobo",
-                                         "GENERIC":  "Generic"
-                                     },
-                           "COLOR":  {
-                                         "BLACK":  "Black",
-                                         "WHITE":  "White",
-                                         "MATCHA":  "Matcha",
-                                         "JADE":  "Jade",
-                                         "PINK":  "Pink",
-                                         "METALLIC_BLACK":  "Metallic Black",
-                                         "METALLIC_JADE":  "Metallic Jade",
-                                         "METALLIC_PINK":  "Metallic Pink"
-                                     }
-                       }
+  "APP": {
+    "TITLE": "Criar capa para PDF"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "Volte novamente para sair",
+    "CANCEL": "Cancelar",
+    "CLOSE": "Fechar",
+    "DELETE": "Excluir",
+    "DONE": "Concluído",
+    "ERROR": "Erro",
+    "LOADING": "Carregando…",
+    "BILLING_UNAVAILABLE": "As compras não estão disponíveis no momento.",
+    "PURCHASE_ERROR": "Não foi possível concluir a compra. Tente novamente.",
+    "REMOVE_ADS_BUY": "Comprar",
+    "REMOVE_ADS_DESCRIPTION": "Remova os anúncios para sempre e habilite a seleção entre exportação sem perdas e comprimida.",
+    "REMOVE_ADS_PURCHASED": "Anúncios removidos para sempre.",
+    "REMOVE_ADS_RESTORE": "Restaurar compra",
+    "REMOVE_ADS_RESTORED": "Compra restaurada com sucesso.",
+    "REMOVE_ADS_TITLE": "Remover anúncios",
+    "REMOVE_ADS_CTA_TITLE": "Remover anúncios",
+    "REMOVE_ADS_CTA_SUBTITLE": "Pagamento único ⬢ Para sempre",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Pagamento único ⬢ {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "Preço: {{price}} ⬢ Sem assinatura",
+    "RESTORE_ERROR": "Não foi possível restaurar a compra. Tente novamente.",
+    "PRO_ONLY": "PRO",
+    "WATCH_AD_SUBTITLE": "Ver anúncio",
+    "SHARE": "Compartilhar",
+    "SHARE_KINDLE_HINT": "Ao compartilhar, selecione o app Kindle para enviá-la ao dispositivo.",
+    "WARNING": "Aviso",
+    "EDIT_PROJECT_TITLE": "Como você quer editar este arquivo?",
+    "EDIT_PROJECT_MESSAGE": "Escolha se deseja substituir o arquivo atual ou trabalhar em uma cópia.",
+    "EDIT_PROJECT_OVERWRITE": "Substituir",
+    "EDIT_PROJECT_OVERWRITE_DESC": "Salva as alterações sobre o arquivo existente.",
+    "EDIT_PROJECT_COPY": "Trabalhar em uma cópia",
+    "EDIT_PROJECT_COPY_DESC": "Mantém o arquivo original e edita uma nova cópia."
+  },
+  "CHANGE": {
+    "ADS_REQUIRED": "Não foi possível carregar o anúncio. Verifique a rede ou o bloqueador de anúncios.",
+    "ARIA_CHANGE_PDF": "Criar arquivo PDF. Arquivo atual: {{name}}",
+    "ARIA_CHANGE_IMAGE": "Criar imagem da capa. Imagem atual: {{name}}",
+    "ARIA_CROP": "Ajustar imagem selecionada",
+    "ARIA_SELECT_PDF": "Selecionar arquivo PDF",
+    "ARIA_SELECT_IMAGE": "Selecionar imagem da capa",
+    "CROP_ACTION": "Ajustar",
+    "COVER_CHANGED": "Capa alterada. Agora você pode salvar ou compartilhar",
+    "CHANGE_ACTION": "Criar capa",
+    "CHANGE_ACTION_REWARDED": "Criar capa (ver anúncio)",
+    "GENERATING": "Atualizando capa…",
+    "HINT_SAVE_SHARE_EXPLAIN": "criar a capa não a salva automaticamente.",
+    "INFO": "Info",
+    "INFO_ARIA": "Informações sobre criar capa",
+    "INFO_TITLE": "Informação",
+    "INFO_FLOW_LABEL": "Ordem recomendada:",
+    "INFO_STEP_1": "Selecionar PDF.",
+    "INFO_STEP_1_1": "1.1. A capa original é pré-carregada.",
+    "INFO_STEP_1_2": "1.2. Troque a imagem ou mantenha a original.",
+    "INFO_STEP_2": "Ajustar a imagem no editor.",
+    "INFO_STEP_3": "Ver anúncio para salvar a capa.",
+    "INFO_STEP_4": "Salvar ou compartilhar.",
+    "IMAGE_ERROR_CORRUPT": "Não foi possível ler a imagem. Tente outra.",
+    "IMAGE_ERROR_SIZE": "O arquivo é muito grande. Máximo {{maxSize}} MB.",
+    "IMAGE_ERROR_TYPE": "Formato não compatível ({{type}}). Selecione JPG, PNG ou WebP.",
+    "IMAGE_WARN_SMALL": "A imagem pode ser pequena demais para alguns dispositivos.",
+    "NO_COVER_DETECTED_ADDED": "Nenhuma capa detectada. Uma nova capa foi adicionada a este PDF.",
+    "PDF_ERROR_STORAGE": "Espaco de armazenamento insuficiente. Necessario {{requiredMB}} MB, disponivel {{availableMB}} MB.",
+    "LOADING_PDF": "Carregando PDF…",
+    "LOADING_IMAGE": "Carregando imagem…",
+    "OPENING_EDITOR": "Abrindo editor…",
+    "CHANGING_COVER": "Alterando capa...",
+    "GETTING_COVER": "Obtendo capa",
+    "SELECT_PDF_LABEL": "Arquivo PDF",
+    "PDF_FILE_TITLE": "Arquivo PDF",
+    "SELECT_PDF_PLACEHOLDER": "Selecione um arquivo PDF",
+    "COVER_MODE_LABEL": "Ação da página de capa",
+    "COVER_MODE_ARIA": "Selecione como aplicar a nova capa",
+    "COVER_MODE_REPLACE_FIRST_PAGE": "Substituir a primeira página",
+    "COVER_MODE_INSERT_FIRST_PAGE": "Inserir nova página no início",
+    "INSERT_MODE_TOC_WARNING": "Inserting a cover may shift TOC, bookmarks, or page numbering. We'll try to keep them aligned.",
+    "FRAME_MODE_LABEL": "Frame mode",
+    "FRAME_MODE_ARIA": "Frame mode",
+    "FRAME_MODE_WITH_FRAME": "With frame",
+    "FRAME_MODE_WITHOUT_FRAME": "Without frame",
+    "FORMAT_AUTO": "Auto",
+    "FORMAT_A4": "A4",
+    "FORMAT_CARTA": "Carta",
+    "FORMAT_OFICIO": "Oficio",
+    "FORMAT_NINE_SIXTEEN": "9:16",
+    "FORMAT_THREE_FOUR": "3:4",
+    "FORMAT_ONE_ONE": "1:1",
+    "FORMAT_CUSTOM": "Custom",
+    "FRAME_NOT_DETECTED_TOAST": "Frame not detected in the document",
+    "SAVING": "Salvando capa…",
+    "SAVE_ACTION": "Salvar",
+    "SAVED_OK": "Capa salva",
+    "SAVE_RENAME_TITLE": "Salvar capa",
+    "SAVE_RENAME_MESSAGE": "Digite um nome para a capa",
+    "SAVE_RENAME_PLACEHOLDER": "Nome do arquivo",
+    "SELECT_IMAGE_LABEL": "Imagem da capa",
+    "SELECT_IMAGE_PLACEHOLDER": "Selecione uma imagem",
+    "TAP_TO_CHANGE": "Toque para criar/redefinir",
+    "TAP_TO_CHANGE_IMAGE": "Toque para criar",
+    "TAP_TO_PREVIEW": "Toque para ver a prévia",
+    "LONGPRESS_PREVIEW_HINT": "Toque e segure para visualizar",
+    "TITLE": "Criar capa",
+    "INVALID_COVER_TAP_TO_CHANGE": "Invalid cover, tap to make",
+    "PREVIEW_ORIGINAL_LABEL": "Capa original",
+    "PREVIEW_NEW_LABEL": "Nova capa",
+    "PREVIEW_NEW_ONLY_LABEL": "Nova capa",
+    "ARIA_START_SCRATCH": "Start from scratch",
+    "SOURCE_IMAGE": "Image",
+    "SOURCE_SCRATCH": "Scratch",
+    "IMAGE_WARN_INVALID_PDF_COVER": "Capa PDF inválida. Toque para escolher uma nova imagem.",
+    "PDF_ERROR_CORRUPT": "Não foi possível ler o arquivo PDF. Tente outro arquivo.",
+    "PDF_ERROR_NO_COVER": "Este arquivo PDF não contém uma capa substituível.",
+    "PDF_ERROR_REWRITE": "Não foi possível processar o arquivo PDF. Tente novamente.",
+    "PDF_ERROR_SIZE": "O arquivo é grande demais. Máximo de {{maxSize}} MB.",
+    "PDF_ERROR_TYPE": "Arquivo PDF não compatível.",
+    "PDF_LOADING_COPY": "Copiando PDF grande...",
+    "PDF_LOADING_INSPECT": "Inspecionando a estrutura de PDF...",
+    "PROCESSING_LARGE_PDF": "Processando PDF grande...",
+    "PROCESS_CANCELLED": "Processamento cancelado"
+  },
+  "COVERS": {
+    "DELETED": "PDF excluído",
+    "EMPTY": "Nenhuma capa encontrada no app. Arquivos criados antes de reinstalar podem não aparecer devido a restrições do sistema.",
+    "PLACEHOLDER": "PDF",
+    "PREVIEW_TITLE": "Capa atual",
+    "TITLE": "Meus PDFs",
+    "DITHERED_THUMBNAIL_NOTICE": "Capas com redução de artefatos podem parecer diferentes nas miniaturas. Abra a visualização para ver um resultado mais fiel.",
+    "ACTIONS": {
+      "DELETE": "Excluir",
+      "SHARE": "Compartilhar",
+      "OPEN": "Abrir",
+      "EDIT_PROJECT": "Editar"
+    },
+    "DELETE": {
+      "MESSAGE": "Deseja excluir este PDF?",
+      "TITLE": "Excluir PDF"
+    },
+    "ERROR": {
+      "DELETE": "Não foi possível excluir o PDF. Tente novamente.",
+      "SHARE": "Não foi possível compartilhar o PDF. Tente novamente.",
+      "LOAD": "Não foi possível carregar suas capas. Arraste para baixo para tentar novamente.",
+      "PREVIEW": "Não foi possível carregar a pré-visualização. Tente novamente.",
+      "OPEN": "Não foi possível abrir o PDF. Tente novamente.",
+      "OPEN_PROJECT": "Não foi possível abrir o projeto. Tente novamente."
+    },
+    "GENERATE_THUMB": "Generate thumbnail",
+    "PREVIEW_UNAVAILABLE": "Preview unavailable.",
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "Reduzir pré-visualização do e-reader",
+      "ZOOM_IN_ARIA": "Ampliar pré-visualização do e-reader",
+      "ZOOM_RESET_ARIA": "Redefinir zoom da pré-visualização do e-reader"
+    },
+    "LOADING_PREVIEW": "Carregando a prévia..."
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "Observação",
+    "STEP_1": "Selecione um arquivo PDF (a capa atual e pre-carregada)",
+    "STEP_2": "Ajuste a capa carregada ou escolha uma nova imagem e ajuste",
+    "STEP_3": "Veja o anuncio para criar a capa no PDF",
+    "STEP_4": "Salve ou compartilhe o PDF atualizado",
+    "STEP_4_DESC": "Quando estiver pronto, voce pode salva-lo no dispositivo ou compartilha-lo diretamente com o app Kindle para uma transicao mais suave.",
+    "STEP_5": "Enviar pela web (Send to Kindle)",
+    "STEP_5_DESC": "Você também pode enviá-la pelo navegador usando a ferramenta web Send to Kindle.",
+    "TIP": "Para melhores resultados, use imagens em alta resolução e certifique-se de que os anúncios estejam desativados no seu Kindle.",
+    "TITLE": "Instruções"
+  },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "Voltar",
+      "FINISH": "Finalizar",
+      "INTERACT_HINT": "Interaja com o elemento destacado para continuar.",
+      "NEXT": "Próximo",
+      "PROGRESS": "{{current}} de {{total}}",
+      "SKIP": "Pular"
+    },
+    "STEPS": {
+      "PDF": {
+        "TITLE": "Arquivo PDF",
+        "DESCRIPTION": "Selecione o arquivo PDF que você quer atualizar."
+      },
+      "IMAGE": {
+        "TITLE": "Imagem da capa",
+        "DESCRIPTION": "Selecione a imagem para sua capa."
+      },
+      "ADJUST": {
+        "TITLE": "Ajustar",
+        "DESCRIPTION": "Ajuste a imagem no editor e toque em Concluir."
+      },
+      "CREATE": {
+        "TITLE": "Criar capa",
+        "DESCRIPTION": "Gere aqui a capa atualizada."
+      },
+      "RESULTS": {
+        "TITLE": "Salvar ou compartilhar",
+        "DESCRIPTION": "Salve ou compartilhe seu PDF atualizado."
+      },
+      "EXPORT": {
+        "TITLE": "Qualidade da exportação",
+        "DESCRIPTION": "A exportação gratuita usa Standard. Remova os anúncios para desbloquear a escolha entre exportação sem perda e compactada."
+      },
+      "REMOVE_ADS_CLOSE": {
+        "TITLE": "Fechar por enquanto",
+        "DESCRIPTION": "Por enquanto, aproveite a versão gratuita. Você não é obrigado a comprar."
+      },
+      "COVER_MODE": {
+        "TITLE": "Ação da página de capa",
+        "DESCRIPTION": "Escolha se deseja inserir uma nova primeira página ou substituir a primeira página atual."
+      }
+    }
+  },
+  "SETTINGS": {
+    "VIEW_TOUR": "Ver tour",
+    "INSTRUCTIONS": "Ver instruções",
+    "INSTRUCTIONS_HINT": "Como criar e enviar uma capa para Kindle",
+    "INSTRUCTIONS_SECTION": "Instruções",
+    "LANGUAGE": "Idioma",
+    "LANGUAGE_RESTART_NOTICE": "Idioma alterado. O app será reiniciado para aplicar as mudanças.",
+    "LANGUAGE_PREPARING_COUNTDOWN": "Preparando tudo no seu idioma. O app será fechado para mudar o nome ({{count}})",
+    "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
+    "EREADER_OPTIMIZATION_HINT": "Aplica ajustes automáticos para melhorar a capa",
+    "EREADER_OPTIMIZATION_TOGGLE": "Otimizar",
+    "THEME": "Tema",
+    "THEME_SYSTEM": "Sistema",
+    "THEME_LIGHT": "Claro natural",
+    "THEME_DARK": "Escuro clássico",
+    "THEME_WARM_READING": "Leitura acolhedora",
+    "THEME_POP_ROSE": "Rosa pop",
+    "THEME_NOCTURNE_VIOLET": "Violeta noturno",
+    "THEME_OBSIDIAN_RED": "Vermelho obsidiana",
+    "THEME_TERMINAL_GREEN": "Verde terminal",
+    "THEME_MINT_FRESH": "Menta Fresca",
+    "THEME_SILVER_TECH": "Silver",
+    "THEME_GOLD_LUXE": "Oro",
+    "TITLE": "Configurações"
+  },
+  "TABS": {
+    "COVERS": "Meus PDFs",
+    "CHANGE": "Criar",
+    "SETTINGS": "Configurações"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "Recomendados",
+      "INFO": "Info",
+      "APPS": "Apps",
+      "GUIDE": "Guia"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
+    }
+  }
 }

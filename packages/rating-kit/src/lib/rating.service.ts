@@ -77,6 +77,15 @@ export class RatingService {
         return;
       }
 
+      if (role === 'suggestions') {
+        if (this.config.feedbackEnabled) {
+          await this.openSuggestionFlow(this.mergeContext(context));
+        } else {
+          await this.dismissTemporarily();
+        }
+        return;
+      }
+
       if (role === 'problem') {
         if (this.config.feedbackEnabled) {
           await this.openFeedbackFlow(this.mergeContext(context));
@@ -109,6 +118,11 @@ export class RatingService {
         return;
       }
 
+      if (role === 'suggestions') {
+        await this.previewSuggestionFlow();
+        return;
+      }
+
       if (role === 'problem') {
         await this.previewFeedbackFlow();
       }
@@ -118,17 +132,22 @@ export class RatingService {
   }
 
   async previewFeedbackFlow(): Promise<void> {
-    const modal = await this.modalController.create({
-      component: RatingFeedbackModalComponent,
-      componentProps: {
-        feedbackOptions: this.config.feedbackOptions,
-      },
-    });
+    const modal = await this.createFeedbackModal('problem');
 
     await modal.present();
     const { data, role } = await modal.onWillDismiss<RatingFeedbackSubmission>();
     if (role === 'send' && data) {
       await this.openFeedbackEmail(data);
+    }
+  }
+
+  async previewSuggestionFlow(): Promise<void> {
+    const modal = await this.createFeedbackModal('suggestion');
+
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss<RatingFeedbackSubmission>();
+    if (role === 'send' && data) {
+      await this.openSuggestionEmail(data);
     }
   }
 
@@ -161,12 +180,7 @@ export class RatingService {
   }
 
   async openFeedbackFlow(context?: RatingAskContext): Promise<void> {
-    const modal = await this.modalController.create({
-      component: RatingFeedbackModalComponent,
-      componentProps: {
-        feedbackOptions: this.config.feedbackOptions,
-      },
-    });
+    const modal = await this.createFeedbackModal('problem');
 
     await modal.present();
     const { data, role } = await modal.onWillDismiss<RatingFeedbackSubmission>();
@@ -179,6 +193,32 @@ export class RatingService {
       ...state,
       feedbackSentAt: this.getNowIso(),
     }));
+  }
+
+  async openSuggestionFlow(context?: RatingAskContext): Promise<void> {
+    const modal = await this.createFeedbackModal('suggestion');
+
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss<RatingFeedbackSubmission>();
+    if (role !== 'send' || !data) {
+      return;
+    }
+
+    await this.openSuggestionEmail(data, this.mergeContext(context));
+    await this.storage.updateState((state) => ({
+      ...state,
+      feedbackSentAt: this.getNowIso(),
+    }));
+  }
+
+  private createFeedbackModal(mode: 'problem' | 'suggestion') {
+    return this.modalController.create({
+      component: RatingFeedbackModalComponent,
+      componentProps: {
+        mode,
+        feedbackOptions: this.config.feedbackOptions,
+      },
+    });
   }
 
   private createPromptModal() {
@@ -200,6 +240,16 @@ export class RatingService {
     await this.openExternalUrl(mailtoUrl);
   }
 
+  private async openSuggestionEmail(
+    submission: RatingFeedbackSubmission,
+    context?: RatingAskContext,
+  ): Promise<void> {
+    const subject = encodeURIComponent(`Suggestions ${this.config.appName}`);
+    const body = encodeURIComponent(this.buildSuggestionBody(submission, context));
+    const mailtoUrl = `mailto:${this.config.supportEmail}?subject=${subject}&body=${body}`;
+    await this.openExternalUrl(mailtoUrl);
+  }
+
   private buildFeedbackBody(
     submission: RatingFeedbackSubmission,
     context?: RatingAskContext,
@@ -214,6 +264,29 @@ export class RatingService {
       `App: ${this.config.appName}`,
       `Package: ${this.config.packageName}`,
       `Issue: ${issueLabel}`,
+      `Source: ${context?.source || 'unknown'}`,
+      `Success event: ${context?.successEventName || 'unknown'}`,
+    ];
+
+    if (context?.metadata) {
+      bodyLines.push(`Metadata: ${JSON.stringify(context.metadata)}`);
+    }
+
+    if (submission.details) {
+      bodyLines.push('', submission.details);
+    }
+
+    return bodyLines.join('\n');
+  }
+
+  private buildSuggestionBody(
+    submission: RatingFeedbackSubmission,
+    context?: RatingAskContext,
+  ): string {
+    const bodyLines = [
+      `App: ${this.config.appName}`,
+      `Package: ${this.config.packageName}`,
+      'Type: Suggestion inbox',
       `Source: ${context?.source || 'unknown'}`,
       `Success event: ${context?.successEventName || 'unknown'}`,
     ];

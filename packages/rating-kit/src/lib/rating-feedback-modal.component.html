@@ -1,46 +1,41 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>{{ 'RATING.FEEDBACK.TITLE' | translate }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="cancel()">
-        {{ 'RATING.FEEDBACK.CANCEL' | translate }}
-      </ion-button>
-    </ion-buttons>
+    <ion-title>{{ titleKey | translate }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="rating-feedback-content">
   <div class="rating-feedback-layout">
-    <p class="rating-feedback-message">
-      {{ 'RATING.FEEDBACK.MESSAGE' | translate }}
-    </p>
+    <p class="rating-feedback-message">{{ messageKey | translate }}</p>
 
-    <div class="rating-feedback-options">
-      <button
-        *ngFor="let option of feedbackOptions; trackBy: trackByOptionId"
-        type="button"
-        class="rating-feedback-option"
-        [class.rating-feedback-option--selected]="selectedOptionId === option.id"
-        (click)="selectOption(option.id)"
-      >
-        {{ resolveOptionLabel(option) }}
-      </button>
-    </div>
+    @if (showOptions) {
+      <div class="rating-feedback-options">
+        <button
+          *ngFor="let option of feedbackOptions; trackBy: trackByOptionId"
+          type="button"
+          class="rating-feedback-option"
+          [class.rating-feedback-option--selected]="selectedOptionId === option.id"
+          (click)="selectOption(option.id)"
+        >
+          {{ resolveOptionLabel(option) }}
+        </button>
+      </div>
+    }
 
     <ion-textarea
       [(ngModel)]="details"
       fill="outline"
       autoGrow="true"
       class="rating-feedback-textarea"
-      [placeholder]="'RATING.FEEDBACK.PLACEHOLDER' | translate"
+      [placeholder]="placeholderKey | translate"
     />
 
     <div class="rating-feedback-actions">
       <ion-button expand="block" fill="outline" (click)="cancel()">
-        {{ 'RATING.FEEDBACK.CANCEL' | translate }}
+        {{ (mode === 'suggestion' ? 'RATING.SUGGESTIONS.CANCEL' : 'RATING.FEEDBACK.CANCEL') | translate }}
       </ion-button>
       <ion-button expand="block" class="app-btn" (click)="send()">
-        {{ 'RATING.FEEDBACK.SEND' | translate }}
+        {{ (mode === 'suggestion' ? 'RATING.SUGGESTIONS.SEND' : 'RATING.FEEDBACK.SEND') | translate }}
       </ion-button>
     </div>
   </div>

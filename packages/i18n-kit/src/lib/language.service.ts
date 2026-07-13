@@ -3,6 +3,7 @@
  * Manages language selection, persistence, and detection
  */
 
+import { HttpClient } from '@angular/common/http';
 import { Injectable, Inject, Optional } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { lastValueFrom } from 'rxjs';
@@ -28,12 +29,13 @@ export class LanguageService {
 
   constructor(
     private translateService: TranslateService,
+    private http: HttpClient,
     @Optional()
     @Inject(LANGUAGE_CONFIG_TOKEN)
     config?: LanguageConfig,
     @Optional()
     @Inject(STORAGE_ADAPTER_TOKEN)
-    storage?: StorageAdapter
+    storage?: StorageAdapter,
   ) {
     this.currentLang = config?.defaultLang ?? 'en-US';
     this.config = config || this.getDefaultConfig();
@@ -94,6 +96,7 @@ export class LanguageService {
     this.updateDocumentLanguage(valid);
     const key = this.config.storageKey || 'lang';
     this.storage.setItem(key, valid);
+    await this.preloadAppTranslations(valid);
     await lastValueFrom(this.translateService.use(valid));
   }
 
@@ -157,5 +160,19 @@ export class LanguageService {
       supportedLangs: ['en-US'],
       loader: { prefix: './assets/i18n/', suffix: '.json' },
     };
+  }
+
+  private async preloadAppTranslations(lang: string): Promise<void> {
+    const url = `${this.config.loader.prefix}${lang}${this.config.loader.suffix}`;
+
+    try {
+      const translations = await lastValueFrom(this.http.get<any>(url));
+
+      if (translations && typeof translations === 'object') {
+        this.translateService.setTranslation(lang, translations, true);
+      }
+    } catch (error) {
+      console.warn(`[i18n-kit] Failed to preload translations for ${lang}:`, error);
+    }
   }
 }

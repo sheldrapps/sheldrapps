@@ -1,0 +1,26 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="backHref"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ 'UI_THEME.UNDER_CONSTRUCTION.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="under-construction">
+  <div class="under-construction__shell">
+    <section class="under-construction__content" aria-labelledby="under-construction-title">
+      <h2 id="under-construction-title" class="under-construction__title">
+        {{ 'UI_THEME.UNDER_CONSTRUCTION.TITLE' | translate }}
+      </h2>
+
+      <div class="under-construction__icon-wrap" aria-hidden="true">
+        <ion-icon name="construct-outline"></ion-icon>
+      </div>
+
+      <p class="under-construction__body">
+        {{ 'UI_THEME.UNDER_CONSTRUCTION.BODY' | translate }}
+      </p>
+    </section>
+  </div>
+</ion-content>

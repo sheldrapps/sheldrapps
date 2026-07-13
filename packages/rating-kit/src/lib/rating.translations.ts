@@ -6,8 +6,16 @@ export const RATING_KIT_TRANSLATIONS = {
         MESSAGE:
           'Tu calificación ayuda a que más personas la encuentren y a seguir mejorándola.',
         RATE: 'Calificar',
+        SUGGESTIONS: 'Buzón de sugerencias',
         PROBLEM: 'Reportar problema',
         LATER: 'Ahora no',
+      },
+      SUGGESTIONS: {
+        TITLE: 'Buzón de sugerencias',
+        MESSAGE: 'Cuéntanos qué te gustaría mejorar en la app.',
+        PLACEHOLDER: 'Cuéntanos tu sugerencia',
+        SEND: 'Enviar',
+        CANCEL: 'Cancelar',
       },
       FEEDBACK: {
         TITLE: '¿Qué salió mal?',
@@ -25,6 +33,7 @@ export const RATING_KIT_TRANSLATIONS = {
       },
       DEBUG: {
         PREVIEW_PROMPT: 'Calificar',
+        PREVIEW_SUGGESTIONS: 'Buzón de sugerencias',
         PREVIEW_FEEDBACK: 'Reportar un problema',
       },
     },
@@ -36,8 +45,16 @@ export const RATING_KIT_TRANSLATIONS = {
         MESSAGE:
           'Tu calificación ayuda a que más personas la encuentren y a seguir mejorándola.',
         RATE: 'Calificar',
+        SUGGESTIONS: 'Buzón de sugerencias',
         PROBLEM: 'Reportar problema',
         LATER: 'Ahora no',
+      },
+      SUGGESTIONS: {
+        TITLE: 'Buzón de sugerencias',
+        MESSAGE: 'Cuéntanos qué te gustaría mejorar en la app.',
+        PLACEHOLDER: 'Cuéntanos tu sugerencia',
+        SEND: 'Enviar',
+        CANCEL: 'Cancelar',
       },
       FEEDBACK: {
         TITLE: '¿Qué salió mal?',
@@ -55,6 +72,7 @@ export const RATING_KIT_TRANSLATIONS = {
       },
       DEBUG: {
         PREVIEW_PROMPT: 'Calificar',
+        PREVIEW_SUGGESTIONS: 'Buzón de sugerencias',
         PREVIEW_FEEDBACK: 'Reportar un problema',
       },
     },
@@ -66,8 +84,16 @@ export const RATING_KIT_TRANSLATIONS = {
         MESSAGE:
           'Your rating helps more people find it and helps us keep improving it.',
         RATE: 'Rate it',
+        SUGGESTIONS: 'Suggestions box',
         PROBLEM: 'Report a problem',
         LATER: 'Not now',
+      },
+      SUGGESTIONS: {
+        TITLE: 'Suggestions box',
+        MESSAGE: 'Tell us what you would like us to improve in the app.',
+        PLACEHOLDER: 'Share your suggestion',
+        SEND: 'Send',
+        CANCEL: 'Cancel',
       },
       FEEDBACK: {
         TITLE: 'What went wrong?',
@@ -85,6 +111,7 @@ export const RATING_KIT_TRANSLATIONS = {
       },
       DEBUG: {
         PREVIEW_PROMPT: 'Rate',
+        PREVIEW_SUGGESTIONS: 'Suggestions box',
         PREVIEW_FEEDBACK: 'Report a problem',
       },
     },
@@ -96,8 +123,16 @@ export const RATING_KIT_TRANSLATIONS = {
         MESSAGE:
           'Deine Bewertung hilft dabei, dass mehr Menschen die App finden und wir sie weiter verbessern können.',
         RATE: 'Bewerten',
+        SUGGESTIONS: 'Vorschlagsbox',
         PROBLEM: 'Problem melden',
         LATER: 'Jetzt nicht',
+      },
+      SUGGESTIONS: {
+        TITLE: 'Vorschlagsbox',
+        MESSAGE: 'Sag uns, was wir in der App verbessern sollen.',
+        PLACEHOLDER: 'Teile deinen Vorschlag mit',
+        SEND: 'Senden',
+        CANCEL: 'Abbrechen',
       },
       FEEDBACK: {
         TITLE: 'Was ist schiefgelaufen?',
@@ -116,6 +151,7 @@ export const RATING_KIT_TRANSLATIONS = {
       },
       DEBUG: {
         PREVIEW_PROMPT: 'Bewerten',
+        PREVIEW_SUGGESTIONS: 'Vorschlagsbox',
         PREVIEW_FEEDBACK: 'Problem melden',
       },
     },
@@ -127,8 +163,16 @@ export const RATING_KIT_TRANSLATIONS = {
         MESSAGE:
           "Votre note aide plus de personnes à la trouver et nous aide à continuer à l'améliorer.",
         RATE: 'Noter',
+        SUGGESTIONS: 'Boîte à idées',
         PROBLEM: 'Signaler un problème',
         LATER: 'Pas maintenant',
+      },
+      SUGGESTIONS: {
+        TITLE: 'Boîte à idées',
+        MESSAGE: 'Dites-nous ce que vous aimeriez que nous améliorions dans l’application.',
+        PLACEHOLDER: 'Partagez votre idée',
+        SEND: 'Envoyer',
+        CANCEL: 'Annuler',
       },
       FEEDBACK: {
         TITLE: "Qu'est-ce qui s'est mal passé ?",
@@ -147,6 +191,7 @@ export const RATING_KIT_TRANSLATIONS = {
       },
       DEBUG: {
         PREVIEW_PROMPT: 'Noter',
+        PREVIEW_SUGGESTIONS: 'Boîte à idées',
         PREVIEW_FEEDBACK: 'Signaler un problème',
       },
     },
@@ -158,8 +203,16 @@ export const RATING_KIT_TRANSLATIONS = {
         MESSAGE:
           'La tua valutazione aiuta più persone a trovarla e ci aiuta a continuare a migliorarla.',
         RATE: 'Valuta',
+        SUGGESTIONS: 'Casella suggerimenti',
         PROBLEM: 'Segnala un problema',
         LATER: 'Non ora',
+      },
+      SUGGESTIONS: {
+        TITLE: 'Casella suggerimenti',
+        MESSAGE: "Dicci cosa ti piacerebbe migliorare nell'app.",
+        PLACEHOLDER: 'Condividi il tuo suggerimento',
+        SEND: 'Invia',
+        CANCEL: 'Annulla',
       },
       FEEDBACK: {
         TITLE: 'Cosa è andato storto?',
@@ -177,6 +230,7 @@ export const RATING_KIT_TRANSLATIONS = {
       },
       DEBUG: {
         PREVIEW_PROMPT: 'Valuta',
+        PREVIEW_SUGGESTIONS: 'Casella suggerimenti',
         PREVIEW_FEEDBACK: 'Segnala un problema',
       },
     },
@@ -188,8 +242,16 @@ export const RATING_KIT_TRANSLATIONS = {
         MESSAGE:
           'Sua avaliação ajuda mais pessoas a encontrá-lo e nos ajuda a continuar melhorando.',
         RATE: 'Avaliar',
+        SUGGESTIONS: 'Caixa de sugestões',
         PROBLEM: 'Relatar problema',
         LATER: 'Agora não',
+      },
+      SUGGESTIONS: {
+        TITLE: 'Caixa de sugestões',
+        MESSAGE: 'Conte o que você gostaria que melhorássemos no app.',
+        PLACEHOLDER: 'Compartilhe sua sugestão',
+        SEND: 'Enviar',
+        CANCEL: 'Cancelar',
       },
       FEEDBACK: {
         TITLE: 'O que deu errado?',
@@ -207,6 +269,7 @@ export const RATING_KIT_TRANSLATIONS = {
       },
       DEBUG: {
         PREVIEW_PROMPT: 'Avaliar',
+        PREVIEW_SUGGESTIONS: 'Caixa de sugestões',
         PREVIEW_FEEDBACK: 'Relatar um problema',
       },
     },
@@ -217,8 +280,16 @@ export const RATING_KIT_TRANSLATIONS = {
         TITLE: '這個 App 對你有幫助嗎？',
         MESSAGE: '你的評分能幫助更多人找到它，也能幫助我們持續改進。',
         RATE: '評分',
+        SUGGESTIONS: '建議信箱',
         PROBLEM: '回報問題',
         LATER: '現在不要',
+      },
+      SUGGESTIONS: {
+        TITLE: '建議信箱',
+        MESSAGE: '告訴我們你希望在 App 裡改善什麼。',
+        PLACEHOLDER: '分享你的建議',
+        SEND: '送出',
+        CANCEL: '取消',
       },
       FEEDBACK: {
         TITLE: '出了什麼問題？',
@@ -236,6 +307,7 @@ export const RATING_KIT_TRANSLATIONS = {
       },
       DEBUG: {
         PREVIEW_PROMPT: '評分',
+        PREVIEW_SUGGESTIONS: '建議信箱',
         PREVIEW_FEEDBACK: '回報問題',
       },
     },
@@ -247,8 +319,16 @@ export const RATING_KIT_TRANSLATIONS = {
         MESSAGE:
           'आपकी रेटिंग से और लोग इसे ढूंढ पाएंगे और हमें इसे बेहतर बनाते रहने में मदद मिलेगी।',
         RATE: 'रेट करें',
+        SUGGESTIONS: 'सुझाव पेटी',
         PROBLEM: 'समस्या बताएं',
         LATER: 'अभी नहीं',
+      },
+      SUGGESTIONS: {
+        TITLE: 'सुझाव पेटी',
+        MESSAGE: 'बताएं कि आप ऐप में क्या बेहतर देखना चाहते हैं।',
+        PLACEHOLDER: 'अपना सुझाव साझा करें',
+        SEND: 'भेजें',
+        CANCEL: 'रद्द करें',
       },
       FEEDBACK: {
         TITLE: 'क्या गलत हुआ?',
@@ -266,6 +346,7 @@ export const RATING_KIT_TRANSLATIONS = {
       },
       DEBUG: {
         PREVIEW_PROMPT: 'रेट करें',
+        PREVIEW_SUGGESTIONS: 'सुझाव पेटी',
         PREVIEW_FEEDBACK: 'समस्या बताएं',
       },
     },
@@ -276,8 +357,16 @@ export const RATING_KIT_TRANSLATIONS = {
         TITLE: 'هل عمل التطبيق بشكل جيد معك؟',
         MESSAGE: 'يساعد تقييمك المزيد من الأشخاص على العثور عليه ويساعدنا على الاستمرار في تحسينه.',
         RATE: 'قيّم التطبيق',
+        SUGGESTIONS: 'صندوق الاقتراحات',
         PROBLEM: 'الإبلاغ عن مشكلة',
         LATER: 'ليس الآن',
+      },
+      SUGGESTIONS: {
+        TITLE: 'صندوق الاقتراحات',
+        MESSAGE: 'أخبرنا بما ترغب في تحسينه في التطبيق.',
+        PLACEHOLDER: 'شارك اقتراحك',
+        SEND: 'إرسال',
+        CANCEL: 'إلغاء',
       },
       FEEDBACK: {
         TITLE: 'ما الذي حدث بشكل خاطئ؟',
@@ -295,6 +384,7 @@ export const RATING_KIT_TRANSLATIONS = {
       },
       DEBUG: {
         PREVIEW_PROMPT: 'قيّم التطبيق',
+        PREVIEW_SUGGESTIONS: 'صندوق الاقتراحات',
         PREVIEW_FEEDBACK: 'الإبلاغ عن مشكلة',
       },
     },
@@ -305,8 +395,16 @@ export const RATING_KIT_TRANSLATIONS = {
         TITLE: 'アプリは問題なく使えましたか？',
         MESSAGE: '評価していただくと、より多くの人に見つけてもらえ、改善も続けられます。',
         RATE: '評価する',
+        SUGGESTIONS: 'ご意見箱',
         PROBLEM: '問題を報告',
         LATER: '今はしない',
+      },
+      SUGGESTIONS: {
+        TITLE: 'ご意見箱',
+        MESSAGE: 'アプリで改善してほしいことを教えてください。',
+        PLACEHOLDER: 'ご意見をお聞かせください',
+        SEND: '送信',
+        CANCEL: 'キャンセル',
       },
       FEEDBACK: {
         TITLE: 'どんな問題がありましたか？',
@@ -324,6 +422,7 @@ export const RATING_KIT_TRANSLATIONS = {
       },
       DEBUG: {
         PREVIEW_PROMPT: '評価する',
+        PREVIEW_SUGGESTIONS: 'ご意見箱',
         PREVIEW_FEEDBACK: '問題を報告',
       },
     },
@@ -334,8 +433,16 @@ export const RATING_KIT_TRANSLATIONS = {
         TITLE: '앱이 잘 작동했나요?',
         MESSAGE: '평가를 남겨 주시면 더 많은 사람이 앱을 찾을 수 있고, 저희가 계속 개선하는 데도 도움이 됩니다.',
         RATE: '평가하기',
+        SUGGESTIONS: '제안함',
         PROBLEM: '문제 신고',
         LATER: '나중에',
+      },
+      SUGGESTIONS: {
+        TITLE: '제안함',
+        MESSAGE: '앱에서 개선했으면 하는 점을 알려 주세요.',
+        PLACEHOLDER: '제안을 남겨 주세요',
+        SEND: '보내기',
+        CANCEL: '취소',
       },
       FEEDBACK: {
         TITLE: '무엇이 잘못되었나요?',
@@ -353,6 +460,7 @@ export const RATING_KIT_TRANSLATIONS = {
       },
       DEBUG: {
         PREVIEW_PROMPT: '평가하기',
+        PREVIEW_SUGGESTIONS: '제안함',
         PREVIEW_FEEDBACK: '문제 신고',
       },
     },
@@ -363,8 +471,16 @@ export const RATING_KIT_TRANSLATIONS = {
         TITLE: '这个 App 对你有帮助吗？',
         MESSAGE: '你的评分能帮助更多人找到它，也能帮助我们持续改进。',
         RATE: '评分',
+        SUGGESTIONS: '建议箱',
         PROBLEM: '报告问题',
         LATER: '暂时不要',
+      },
+      SUGGESTIONS: {
+        TITLE: '建议箱',
+        MESSAGE: '告诉我们你希望在 App 里改进什么。',
+        PLACEHOLDER: '分享你的建议',
+        SEND: '发送',
+        CANCEL: '取消',
       },
       FEEDBACK: {
         TITLE: '出了什么问题？',
@@ -382,6 +498,7 @@ export const RATING_KIT_TRANSLATIONS = {
       },
       DEBUG: {
         PREVIEW_PROMPT: '评分',
+        PREVIEW_SUGGESTIONS: '建议箱',
         PREVIEW_FEEDBACK: '报告问题',
       },
     },
@@ -392,8 +509,16 @@ export const RATING_KIT_TRANSLATIONS = {
         TITLE: 'Приложение хорошо сработало для вас?',
         MESSAGE: 'Ваша оценка поможет большему числу людей найти приложение и поможет нам продолжать его улучшать.',
         RATE: 'Оценить',
+        SUGGESTIONS: 'Ящик предложений',
         PROBLEM: 'Сообщить о проблеме',
         LATER: 'Не сейчас',
+      },
+      SUGGESTIONS: {
+        TITLE: 'Ящик предложений',
+        MESSAGE: 'Расскажите, что вы хотели бы улучшить в приложении.',
+        PLACEHOLDER: 'Поделитесь своим предложением',
+        SEND: 'Отправить',
+        CANCEL: 'Отмена',
       },
       FEEDBACK: {
         TITLE: 'Что пошло не так?',
@@ -411,6 +536,7 @@ export const RATING_KIT_TRANSLATIONS = {
       },
       DEBUG: {
         PREVIEW_PROMPT: 'Оценить',
+        PREVIEW_SUGGESTIONS: 'Ящик предложений',
         PREVIEW_FEEDBACK: 'Сообщить о проблеме',
       },
     },

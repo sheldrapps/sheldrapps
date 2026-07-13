@@ -16,6 +16,8 @@ export interface RatingAskContext {
   metadata?: Record<string, string | number | boolean | null | undefined>;
 }
 
+export type RatingFeedbackMode = 'problem' | 'suggestion';
+
 export type RatingFeedbackOptionId =
   | 'file_not_saved'
   | 'image_blurry'
@@ -30,7 +32,8 @@ export interface RatingFeedbackOption {
 }
 
 export interface RatingFeedbackSubmission {
-  optionId: RatingFeedbackOptionId;
+  mode: RatingFeedbackMode;
+  optionId?: RatingFeedbackOptionId;
   details?: string;
 }
 

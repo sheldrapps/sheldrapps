@@ -1,250 +1,250 @@
 {
-    "APP":  {
-                "TITLE":  "EPUB Cover Changer"
-            },
-    "COMMON":  {
-                   "BACK_AGAIN_TO_EXIT":  "Vuelve atrÃ¡s de nuevo para salir",
-                   "CANCEL":  "Cancelar",
-                   "CLOSE":  "Cerrar",
-                   "DELETE":  "Eliminar",
-                   "DONE":  "Listo",
-                   "ERROR":  "Error",
-                   "LOADING":  "Cargando...",
-                   "BILLING_UNAVAILABLE":  "Las compras no estÃ¡n disponibles en este momento.",
-                   "PURCHASE_ERROR":  "No se pudo completar la compra. IntÃ©ntalo de nuevo.",
-                   "REMOVE_ADS_BUY":  "Comprar",
-                   "REMOVE_ADS_DESCRIPTION":  "Quita los anuncios para siempre y habilita la selecciÃ³n de exportaciÃ³n lossless/compressed.",
-                   "REMOVE_ADS_PURCHASED":  "Anuncios eliminados para siempre.",
-                   "REMOVE_ADS_RESTORE":  "Restaurar compra",
-                   "REMOVE_ADS_RESTORED":  "Compra restaurada correctamente.",
-                   "REMOVE_ADS_TITLE":  "Eliminar anuncios",
-                   "REMOVE_ADS_CTA_TITLE":  "Eliminar anuncios",
-                   "REMOVE_ADS_CTA_SUBTITLE":  "Pago Ãºnico â€¢ Para siempre",
-                   "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE":  "Pago Ãºnico â€¢ {{price}}",
-                   "REMOVE_ADS_MODAL_PRICE":  "Precio: {{price}} â€¢ Sin suscripciÃ³n",
-                   "RESTORE_ERROR":  "No se pudo restaurar la compra. IntÃ©ntalo de nuevo.",
-                   "PRO_ONLY":  "PRO",
-                   "WATCH_AD_SUBTITLE":  "Ver anuncio",
-                   "SHARE":  "Compartir",
-                   "SHARE_KINDLE_HINT":  "Al compartir, selecciona la app Kindle para enviarla a tu dispositivo.",
-                   "WARNING":  "Advertencia",
-                   "EDIT_PROJECT_TITLE":  "Â¿CÃ³mo quieres editar este archivo?",
-                   "EDIT_PROJECT_MESSAGE":  "Elige si quieres reemplazar el archivo actual o trabajar sobre una copia.",
-                   "EDIT_PROJECT_OVERWRITE":  "Sobreescribir",
-                   "EDIT_PROJECT_OVERWRITE_DESC":  "Guarda los cambios encima del archivo existente.",
-                   "EDIT_PROJECT_COPY":  "Trabajar con una copia",
-                   "EDIT_PROJECT_COPY_DESC":  "Conserva el archivo original y edita una copia nueva."
-               },
-    "CHANGE":  {
-                   "ADS_REQUIRED":  "No se pudo cargar el anuncio. Revisa tu red o bloqueador de anuncios.",
-                   "ARIA_CHANGE_EPUB":  "Cambiar archivo EPUB. Archivo actual: {{name}}",
-                   "ARIA_CHANGE_IMAGE":  "Cambiar imagen de portada. Imagen actual: {{name}}",
-                   "ARIA_CROP":  "Ajustar imagen seleccionada",
-                   "ARIA_SELECT_EPUB":  "Seleccionar archivo EPUB",
-                   "ARIA_SELECT_IMAGE":  "Seleccionar imagen de portada",
-                   "CROP_ACTION":  "Ajustar",
-                   "COVER_CHANGED":  "Portada cambiada. Ya puedes guardar o compartir",
-                   "CHANGE_ACTION":  "Cambiar portada",
-                   "CHANGE_ACTION_REWARDED":  "Cambiar portada (ver anuncio)",
-                   "EPUB_ERROR_CORRUPT":  "No se pudo leer el EPUB. Prueba con otro archivo.",
-                   "EPUB_ERROR_NO_COVER":  "Este EPUB no tiene una portada reemplazable.",
-                   "NO_COVER_DETECTED_ADDED":  "No se detectÃ³ portada. Se agregÃ³ una portada nueva a este EPUB.",
-                   "EPUB_ERROR_REWRITE":  "No se pudo procesar el EPUB. IntÃ©ntalo de nuevo.",
-                   "EPUB_ERROR_STORAGE":  "No hay espacio suficiente. Se requieren {{requiredMB}} MB y hay {{availableMB}} MB disponibles.",
-                   "EPUB_ERROR_SIZE":  "El archivo pesa demasiado. MÃ¡ximo {{maxSize}} MB.",
-                   "EPUB_ERROR_TYPE":  "Archivo EPUB no compatible.",
-                   "GENERATING":  "Actualizando portada...",
-                   "HINT_SAVE_SHARE_EXPLAIN":  "Cambiar la portada no la guarda automÃ¡ticamente.",
-                   "INFO":  "Info",
-                   "INFO_ARIA":  "InformaciÃ³n sobre cambiar portada",
-                   "INFO_TITLE":  "InformaciÃ³n",
-                   "INFO_FLOW_LABEL":  "Orden recomendado:",
-                   "INFO_STEP_1":  "Seleccionar EPUB.",
-                   "INFO_STEP_1_1":  "1.1. Se precarga la portada original.",
-                   "INFO_STEP_1_2":  "1.2. Cambiar la imagen o continuar con la original.",
-                   "INFO_STEP_2":  "Ajustar imagen en el editor.",
-                   "INFO_STEP_3":  "Ver anuncio para guardar portada.",
-                   "INFO_STEP_4":  "Guardar o compartir.",
-                   "IMAGE_ERROR_CORRUPT":  "No se pudo leer la imagen. Prueba con otra.",
-                   "IMAGE_ERROR_SIZE":  "El archivo pesa demasiado. MÃ¡ximo {{maxSize}} MB.",
-                   "IMAGE_ERROR_TYPE":  "Formato no compatible ({{type}}). Selecciona JPG, PNG o WebP.",
-                   "IMAGE_WARN_SMALL":  "La imagen puede ser demasiado pequeÃ±a para algunos dispositivos",
-                   "IMAGE_WARN_INVALID_EPUB_COVER":  "Portada invÃ¡lida en el EPUB. Toca para elegir una nueva imagen.",
-                   "LOADING_EPUB":  "Cargando EPUB...",
-                   "EPUB_LOADING_COPY":  "Copiando EPUB grande...",
-                   "EPUB_LOADING_INSPECT":  "Analizando estructura del EPUB...",
-                   "LOADING_IMAGE":  "Cargando imagen...",
-                   "OPENING_EDITOR":  "Abriendo editor...",
-                   "CHANGING_COVER":  "Cambiando portada...",
-                   "GETTING_COVER":  "Obteniendo portada",
-                   "PROCESSING_LARGE_EPUB":  "Procesando EPUB grande...",
-                   "PROCESS_CANCELLED":  "Proceso cancelado",
-                   "SELECT_EPUB_LABEL":  "Archivo EPUB",
-                   "EPUB_FILE_TITLE":  "Archivo EPUB",
-                   "SELECT_EPUB_PLACEHOLDER":  "Selecciona un archivo EPUB",
-                   "SAVING":  "Guardando portada...",
-                   "SAVED_OK":  "Portada guardada",
-                   "SAVE_RENAME_TITLE":  "Guardar portada",
-                   "SAVE_RENAME_MESSAGE":  "Ingresa el nombre para la portada",
-                   "SAVE_RENAME_PLACEHOLDER":  "Nombre del archivo",
-                   "SAVE_ACTION":  "Guardar",
-                   "SELECT_IMAGE_LABEL":  "Imagen de portada",
-                   "SELECT_IMAGE_PLACEHOLDER":  "Selecciona una imagen",
-                   "INVALID_COVER_TAP_TO_CHANGE":  "Portada invÃ¡lida, toca para cambiar",
-                   "TAP_TO_CHANGE":  "Toca para cambiar/reiniciar",
-                   "TAP_TO_CHANGE_IMAGE":  "Toca para cambiar",
-                   "TAP_TO_PREVIEW":  "Toca para previsualizar",
-                   "LONGPRESS_PREVIEW_HINT":  "MantÃ©n pulsado para previsualizar",
-                   "TITLE":  "Cambiar portada",
-                   "PREVIEW_ORIGINAL_LABEL":  "Portada original",
-                   "PREVIEW_NEW_LABEL":  "Portada nueva",
-                   "PREVIEW_NEW_ONLY_LABEL":  "Nueva portada",
-                   "ARIA_START_SCRATCH":  "Start from scratch",
-                   "SOURCE_IMAGE":  "Image",
-                   "SOURCE_SCRATCH":  "Scratch"
-               },
-    "COVERS":  {
-                   "DELETED":  "EPUB eliminado",
-                   "EMPTY":  "No se encontraron portadas en la app. Los archivos creados antes de reinstalar pueden no aparecer por restricciones del sistema.",
-                   "GENERATE_THUMB":  "Generar miniatura",
-                   "LOADING_PREVIEW":  "Cargando vista previa...",
-                   "PLACEHOLDER":  "EPUB",
-                   "PREVIEW_UNAVAILABLE":  "Vista previa no disponible.",
-                   "PREVIEW_TITLE":  "Portada actual",
-                   "TITLE":  "Mis EPUBs",
-                   "DITHERED_THUMBNAIL_NOTICE":  "Las portadas con reducciÃ³n de artefactos pueden verse diferentes en miniatura. Abre la vista previa para ver un resultado mÃ¡s fiel.",
-                   "ACTIONS":  {
-                                   "DELETE":  "Eliminar",
-                                   "SHARE":  "Compartir",
-                                   "OPEN":  "Abrir",
-                                   "EDIT_PROJECT":  "Editar"
-                               },
-                   "DELETE":  {
-                                  "MESSAGE":  "Â¿Quieres eliminar este EPUB?",
-                                  "TITLE":  "Eliminar EPUB"
-                              },
-                   "ERROR":  {
-                                 "DELETE":  "No se pudo eliminar el EPUB. IntÃ©ntalo de nuevo.",
-                                 "SHARE":  "No se pudo compartir el EPUB. IntÃ©ntalo de nuevo.",
-                                 "LOAD":  "No se pudieron cargar tus EPUBs. Arrastra hacia abajo para intentar de nuevo.",
-                                 "PREVIEW":  "No se pudo cargar la vista previa. Intenta de nuevo.",
-                                 "OPEN":  "No se pudo abrir el EPUB. IntÃ©ntalo de nuevo.",
-                                 "OPEN_PROJECT":  "No se pudo abrir el proyecto. IntÃ©ntalo de nuevo."
-                             },
-                   "EREADER":  {
-                                   "ZOOM_OUT_ARIA":  "Alejar vista previa del e-reader",
-                                   "ZOOM_IN_ARIA":  "Acercar vista previa del e-reader",
-                                   "ZOOM_RESET_ARIA":  "Restablecer zoom de la vista previa del e-reader"
-                               }
-               },
-    "INSTRUCTIONS":  {
-                         "NOTE_TITLE":  "Nota",
-                         "STEP_1":  "Selecciona un archivo EPUB (se precarga la portada actual)",
-                         "STEP_2":  "Ajusta la portada cargada o elige una nueva imagen y ajusta",
-                         "STEP_3":  "Ve el anuncio para cambiar la portada del EPUB",
-                         "STEP_4":  "Guarda o comparte el EPUB actualizado",
-                         "STEP_4_DESC":  "Cuando estÃ© listo, puedes guardarlo en tu dispositivo o compartirlo con la app Kindle para una transiciÃ³n mÃ¡s suave.",
-                         "STEP_5":  "Enviar vÃ­a web (Send to Kindle)",
-                         "STEP_5_DESC":  "TambiÃ©n puedes enviarla desde el navegador usando la herramienta web Send to Kindle.",
-                         "TIP":  "Para mejores resultados, usa imÃ¡genes en alta resoluciÃ³n y asegÃºrate de que los anuncios estÃ©n desactivados en tu Kindle.",
-                         "TITLE":  "Instrucciones"
-                     },
-    "HOME_TOUR":  {
-                      "CONTROLS":  {
-                                       "BACK":  "AtrÃ¡s",
-                                       "FINISH":  "Finalizar",
-                                       "INTERACT_HINT":  "InteractÃºa con el elemento resaltado para continuar.",
-                                       "NEXT":  "Siguiente",
-                                       "PROGRESS":  "{{current}} de {{total}}",
-                                       "SKIP":  "Omitir"
-                                   },
-                      "STEPS":  {
-                                    "EPUB":  {
-                                                 "TITLE":  "Archivo EPUB",
-                                                 "DESCRIPTION":  "Selecciona el archivo EPUB que quieres actualizar."
-                                             },
-                                    "IMAGE":  {
-                                                  "TITLE":  "Imagen de portada",
-                                                  "DESCRIPTION":  "Selecciona la imagen para tu portada."
-                                              },
-                                    "ADJUST":  {
-                                                   "TITLE":  "Ajustar",
-                                                   "DESCRIPTION":  "Ajusta la imagen en el editor y toca Listo."
-                                               },
-                                    "EXPORT":  {
-                                                   "TITLE":  "Calidad de exportacion",
-                                                   "DESCRIPTION":  "Gratis exportas en Estandar. Al comprar sin anuncios desbloqueas la seleccion de exportacion (Lossless/Compressed)."
-                                               },
-                                    "REMOVE_ADS_CLOSE":  {
-                                                             "TITLE":  "Cerrar por ahora",
-                                                             "DESCRIPTION":  "De momento, disfruta la version gratis. No te sientas obligado a comprar."
-                                                         },
-                                    "CREATE":  {
-                                                   "TITLE":  "Cambiar portada",
-                                                   "DESCRIPTION":  "Genera aquÃ­ la portada actualizada."
-                                               },
-                                    "RESULTS":  {
-                                                    "TITLE":  "Guardar o compartir",
-                                                    "DESCRIPTION":  "Guarda o comparte tu EPUB actualizado."
-                                                }
-                                }
-                  },
-    "SETTINGS":  {
-                     "INSTRUCTIONS":  "Ver instrucciones",
-                     "INSTRUCTIONS_HINT":  "CÃ³mo cambiar y enviar una portada a Kindle",
-                     "INSTRUCTIONS_SECTION":  "Instrucciones",
-                     "LANGUAGE":  "Idioma",
-                     "LANGUAGE_RESTART_NOTICE":  "Idioma cambiado. La app se reiniciarÃ¡ para aplicar los cambios.",
-                     "LANGUAGE_PREPARING_COUNTDOWN":  "Preparando todo en tu idioma. La app se cerrarÃ¡ para cambiar su nombre ({{count}})",
-                     "EREADER_OPTIMIZATION_SECTION":  "Mejora de imagen",
-                     "EREADER_OPTIMIZATION_HINT":  "Aplica ajustes automÃ¡ticos para mejorar la portada",
-                     "EREADER_OPTIMIZATION_TOGGLE":  "Optimizar",
-                     "THEME":  "Tema",
-                     "THEME_SYSTEM":  "Sistema",
-                     "THEME_LIGHT":  "Claro Natural",
-                     "THEME_DARK":  "Oscuro ClÃ¡sico",
-                     "THEME_WARM_READING":  "Lectura CÃ¡lida",
-                     "THEME_POP_ROSE":  "Rosa Pop",
-                     "THEME_NOCTURNE_VIOLET":  "Violeta Nocturno",
-                     "THEME_OBSIDIAN_RED":  "Rojo Obsidiana",
-                     "THEME_TERMINAL_GREEN":  "Verde Terminal",
-                     "THEME_MINT_FRESH":  "Menta Fresca",
-                     "THEME_SILVER_TECH":  "Silver",
-                     "THEME_GOLD_LUXE":  "Oro",
-                     "VIEW_TOUR":  "Ver tour",
-                     "TITLE":  "ConfiguraciÃ³n"
-                 },
-    "TABS":  {
-                 "COVERS":  "Mis EPUBs",
-                 "CHANGE":  "Cambiar",
-                 "SETTINGS":  "ConfiguraciÃ³n"
-             },
-    "ARR":  {
-                "TOOLS":  {
-                              "RECOMMENDED":  "Recomendadas",
-                              "INFO":  "Info",
-                              "APPS":  "Apps",
-                              "GUIDE":  "GuÃ­a"
-                          }
-            },
-    "E_READER_FRAME":  {
-                           "COLOR_SELECTOR":  {
-                                                  "TITLE":  "Color del marco"
-                                              },
-                           "BRAND":  {
-                                         "KINDLE":  "Kindle",
-                                         "KOBO":  "Kobo",
-                                         "GENERIC":  "GenÃ©rico"
-                                     },
-                           "COLOR":  {
-                                         "BLACK":  "Negro",
-                                         "WHITE":  "Blanco",
-                                         "MATCHA":  "Matcha",
-                                         "JADE":  "Jade",
-                                         "PINK":  "Rosa",
-                                         "METALLIC_BLACK":  "Negro metÃ¡lico",
-                                         "METALLIC_JADE":  "Jade metÃ¡lico",
-                                         "METALLIC_PINK":  "Rosa metÃ¡lico"
-                                     }
-                       }
+  "APP": {
+    "TITLE": "EPUB Cover Changer"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "Vuelve atrás de nuevo para salir",
+    "CANCEL": "Cancelar",
+    "CLOSE": "Cerrar",
+    "DELETE": "Eliminar",
+    "DONE": "Listo",
+    "ERROR": "Error",
+    "LOADING": "Cargando...",
+    "BILLING_UNAVAILABLE": "Las compras no están disponibles en este momento.",
+    "PURCHASE_ERROR": "No se pudo completar la compra. Inténtalo de nuevo.",
+    "REMOVE_ADS_BUY": "Comprar",
+    "REMOVE_ADS_DESCRIPTION": "Quita los anuncios para siempre y habilita la selección de exportación lossless/compressed.",
+    "REMOVE_ADS_PURCHASED": "Anuncios eliminados para siempre.",
+    "REMOVE_ADS_RESTORE": "Restaurar compra",
+    "REMOVE_ADS_RESTORED": "Compra restaurada correctamente.",
+    "REMOVE_ADS_TITLE": "Eliminar anuncios",
+    "REMOVE_ADS_CTA_TITLE": "Eliminar anuncios",
+    "REMOVE_ADS_CTA_SUBTITLE": "Pago único ⬢ Para siempre",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Pago único ⬢ {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "Precio: {{price}} ⬢ Sin suscripción",
+    "RESTORE_ERROR": "No se pudo restaurar la compra. Inténtalo de nuevo.",
+    "PRO_ONLY": "PRO",
+    "WATCH_AD_SUBTITLE": "Ver anuncio",
+    "SHARE": "Compartir",
+    "SHARE_KINDLE_HINT": "Al compartir, selecciona la app Kindle para enviarla a tu dispositivo.",
+    "WARNING": "Advertencia",
+    "EDIT_PROJECT_TITLE": "¿Cómo quieres editar este archivo?",
+    "EDIT_PROJECT_MESSAGE": "Elige si quieres reemplazar el archivo actual o trabajar sobre una copia.",
+    "EDIT_PROJECT_OVERWRITE": "Sobreescribir",
+    "EDIT_PROJECT_OVERWRITE_DESC": "Guarda los cambios encima del archivo existente.",
+    "EDIT_PROJECT_COPY": "Trabajar con una copia",
+    "EDIT_PROJECT_COPY_DESC": "Conserva el archivo original y edita una copia nueva."
+  },
+  "CHANGE": {
+    "ADS_REQUIRED": "No se pudo cargar el anuncio. Revisa tu red o bloqueador de anuncios.",
+    "ARIA_CHANGE_EPUB": "Cambiar archivo EPUB. Archivo actual: {{name}}",
+    "ARIA_CHANGE_IMAGE": "Cambiar imagen de portada. Imagen actual: {{name}}",
+    "ARIA_CROP": "Ajustar imagen seleccionada",
+    "ARIA_SELECT_EPUB": "Seleccionar archivo EPUB",
+    "ARIA_SELECT_IMAGE": "Seleccionar imagen de portada",
+    "CROP_ACTION": "Ajustar",
+    "COVER_CHANGED": "Portada cambiada. Ya puedes guardar o compartir",
+    "CHANGE_ACTION": "Cambiar portada",
+    "CHANGE_ACTION_REWARDED": "Cambiar portada (ver anuncio)",
+    "EPUB_ERROR_CORRUPT": "No se pudo leer el EPUB. Prueba con otro archivo.",
+    "EPUB_ERROR_NO_COVER": "Este EPUB no tiene una portada reemplazable.",
+    "NO_COVER_DETECTED_ADDED": "No se detectó portada. Se agregó una portada nueva a este EPUB.",
+    "EPUB_ERROR_REWRITE": "No se pudo procesar el EPUB. Inténtalo de nuevo.",
+    "EPUB_ERROR_STORAGE": "No hay espacio suficiente. Se requieren {{requiredMB}} MB y hay {{availableMB}} MB disponibles.",
+    "EPUB_ERROR_SIZE": "El archivo pesa demasiado. Máximo {{maxSize}} MB.",
+    "EPUB_ERROR_TYPE": "Archivo EPUB no compatible.",
+    "GENERATING": "Actualizando portada...",
+    "HINT_SAVE_SHARE_EXPLAIN": "Cambiar la portada no la guarda automáticamente.",
+    "INFO": "Info",
+    "INFO_ARIA": "Información sobre cambiar portada",
+    "INFO_TITLE": "Información",
+    "INFO_FLOW_LABEL": "Orden recomendado:",
+    "INFO_STEP_1": "Seleccionar EPUB.",
+    "INFO_STEP_1_1": "1.1. Se precarga la portada original.",
+    "INFO_STEP_1_2": "1.2. Cambiar la imagen o continuar con la original.",
+    "INFO_STEP_2": "Ajustar imagen en el editor.",
+    "INFO_STEP_3": "Ver anuncio para guardar portada.",
+    "INFO_STEP_4": "Guardar o compartir.",
+    "IMAGE_ERROR_CORRUPT": "No se pudo leer la imagen. Prueba con otra.",
+    "IMAGE_ERROR_SIZE": "El archivo pesa demasiado. Máximo {{maxSize}} MB.",
+    "IMAGE_ERROR_TYPE": "Formato no compatible ({{type}}). Selecciona JPG, PNG o WebP.",
+    "IMAGE_WARN_SMALL": "La imagen puede ser demasiado pequeña para algunos dispositivos",
+    "IMAGE_WARN_INVALID_EPUB_COVER": "Portada inválida en el EPUB. Toca para elegir una nueva imagen.",
+    "LOADING_EPUB": "Cargando EPUB...",
+    "EPUB_LOADING_COPY": "Copiando EPUB grande...",
+    "EPUB_LOADING_INSPECT": "Analizando estructura del EPUB...",
+    "LOADING_IMAGE": "Cargando imagen...",
+    "OPENING_EDITOR": "Abriendo editor...",
+    "CHANGING_COVER": "Cambiando portada...",
+    "GETTING_COVER": "Obteniendo portada",
+    "PROCESSING_LARGE_EPUB": "Procesando EPUB grande...",
+    "PROCESS_CANCELLED": "Proceso cancelado",
+    "SELECT_EPUB_LABEL": "Archivo EPUB",
+    "EPUB_FILE_TITLE": "Archivo EPUB",
+    "SELECT_EPUB_PLACEHOLDER": "Selecciona un archivo EPUB",
+    "SAVING": "Guardando portada...",
+    "SAVED_OK": "Portada guardada",
+    "SAVE_RENAME_TITLE": "Guardar portada",
+    "SAVE_RENAME_MESSAGE": "Ingresa el nombre para la portada",
+    "SAVE_RENAME_PLACEHOLDER": "Nombre del archivo",
+    "SAVE_ACTION": "Guardar",
+    "SELECT_IMAGE_LABEL": "Imagen de portada",
+    "SELECT_IMAGE_PLACEHOLDER": "Selecciona una imagen",
+    "INVALID_COVER_TAP_TO_CHANGE": "Portada inválida, toca para cambiar",
+    "TAP_TO_CHANGE": "Toca para cambiar/reiniciar",
+    "TAP_TO_CHANGE_IMAGE": "Toca para cambiar",
+    "TAP_TO_PREVIEW": "Toca para previsualizar",
+    "LONGPRESS_PREVIEW_HINT": "Mantén pulsado para previsualizar",
+    "TITLE": "Cambiar portada",
+    "PREVIEW_ORIGINAL_LABEL": "Portada original",
+    "PREVIEW_NEW_LABEL": "Portada nueva",
+    "PREVIEW_NEW_ONLY_LABEL": "Nueva portada",
+    "ARIA_START_SCRATCH": "Start from scratch",
+    "SOURCE_IMAGE": "Image",
+    "SOURCE_SCRATCH": "Scratch"
+  },
+  "COVERS": {
+    "DELETED": "EPUB eliminado",
+    "EMPTY": "No se encontraron portadas en la app. Los archivos creados antes de reinstalar pueden no aparecer por restricciones del sistema.",
+    "GENERATE_THUMB": "Generar miniatura",
+    "LOADING_PREVIEW": "Cargando vista previa...",
+    "PLACEHOLDER": "EPUB",
+    "PREVIEW_UNAVAILABLE": "Vista previa no disponible.",
+    "PREVIEW_TITLE": "Portada actual",
+    "TITLE": "Mis EPUBs",
+    "DITHERED_THUMBNAIL_NOTICE": "Las portadas con reducción de artefactos pueden verse diferentes en miniatura. Abre la vista previa para ver un resultado más fiel.",
+    "ACTIONS": {
+      "DELETE": "Eliminar",
+      "SHARE": "Compartir",
+      "OPEN": "Abrir",
+      "EDIT_PROJECT": "Editar"
+    },
+    "DELETE": {
+      "MESSAGE": "¿Quieres eliminar este EPUB?",
+      "TITLE": "Eliminar EPUB"
+    },
+    "ERROR": {
+      "DELETE": "No se pudo eliminar el EPUB. Inténtalo de nuevo.",
+      "SHARE": "No se pudo compartir el EPUB. Inténtalo de nuevo.",
+      "LOAD": "No se pudieron cargar tus EPUBs. Arrastra hacia abajo para intentar de nuevo.",
+      "PREVIEW": "No se pudo cargar la vista previa. Intenta de nuevo.",
+      "OPEN": "No se pudo abrir el EPUB. Inténtalo de nuevo.",
+      "OPEN_PROJECT": "No se pudo abrir el proyecto. Inténtalo de nuevo."
+    },
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "Alejar vista previa del e-reader",
+      "ZOOM_IN_ARIA": "Acercar vista previa del e-reader",
+      "ZOOM_RESET_ARIA": "Restablecer zoom de la vista previa del e-reader"
+    }
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "Nota",
+    "STEP_1": "Selecciona un archivo EPUB (se precarga la portada actual)",
+    "STEP_2": "Ajusta la portada cargada o elige una nueva imagen y ajusta",
+    "STEP_3": "Ve el anuncio para cambiar la portada del EPUB",
+    "STEP_4": "Guarda o comparte el EPUB actualizado",
+    "STEP_4_DESC": "Cuando esté listo, puedes guardarlo en tu dispositivo o compartirlo con la app Kindle para una transición más suave.",
+    "STEP_5": "Enviar vía web (Send to Kindle)",
+    "STEP_5_DESC": "También puedes enviarla desde el navegador usando la herramienta web Send to Kindle.",
+    "TIP": "Para mejores resultados, usa imágenes en alta resolución y asegúrate de que los anuncios estén desactivados en tu Kindle.",
+    "TITLE": "Instrucciones"
+  },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "Atrás",
+      "FINISH": "Finalizar",
+      "INTERACT_HINT": "Interactúa con el elemento resaltado para continuar.",
+      "NEXT": "Siguiente",
+      "PROGRESS": "{{current}} de {{total}}",
+      "SKIP": "Omitir"
+    },
+    "STEPS": {
+      "EPUB": {
+        "TITLE": "Archivo EPUB",
+        "DESCRIPTION": "Selecciona el archivo EPUB que quieres actualizar."
+      },
+      "IMAGE": {
+        "TITLE": "Imagen de portada",
+        "DESCRIPTION": "Selecciona la imagen para tu portada."
+      },
+      "ADJUST": {
+        "TITLE": "Ajustar",
+        "DESCRIPTION": "Ajusta la imagen en el editor y toca Listo."
+      },
+      "EXPORT": {
+        "TITLE": "Calidad de exportacion",
+        "DESCRIPTION": "Gratis exportas en Estandar. Al comprar sin anuncios desbloqueas la seleccion de exportacion (Lossless/Compressed)."
+      },
+      "REMOVE_ADS_CLOSE": {
+        "TITLE": "Cerrar por ahora",
+        "DESCRIPTION": "De momento, disfruta la version gratis. No te sientas obligado a comprar."
+      },
+      "CREATE": {
+        "TITLE": "Cambiar portada",
+        "DESCRIPTION": "Genera aquí la portada actualizada."
+      },
+      "RESULTS": {
+        "TITLE": "Guardar o compartir",
+        "DESCRIPTION": "Guarda o comparte tu EPUB actualizado."
+      }
+    }
+  },
+  "SETTINGS": {
+    "INSTRUCTIONS": "Ver instrucciones",
+    "INSTRUCTIONS_HINT": "Cómo cambiar y enviar una portada a Kindle",
+    "INSTRUCTIONS_SECTION": "Instrucciones",
+    "LANGUAGE": "Idioma",
+    "LANGUAGE_RESTART_NOTICE": "Idioma cambiado. La app se reiniciará para aplicar los cambios.",
+    "LANGUAGE_PREPARING_COUNTDOWN": "Preparando todo en tu idioma. La app se cerrará para cambiar su nombre ({{count}})",
+    "EREADER_OPTIMIZATION_SECTION": "Mejora de imagen",
+    "EREADER_OPTIMIZATION_HINT": "Aplica ajustes automáticos para mejorar la portada",
+    "EREADER_OPTIMIZATION_TOGGLE": "Optimizar",
+    "THEME": "Tema",
+    "THEME_SYSTEM": "Sistema",
+    "THEME_LIGHT": "Claro Natural",
+    "THEME_DARK": "Oscuro Clásico",
+    "THEME_WARM_READING": "Lectura Cálida",
+    "THEME_POP_ROSE": "Rosa Pop",
+    "THEME_NOCTURNE_VIOLET": "Violeta Nocturno",
+    "THEME_OBSIDIAN_RED": "Rojo Obsidiana",
+    "THEME_TERMINAL_GREEN": "Verde Terminal",
+    "THEME_MINT_FRESH": "Menta Fresca",
+    "THEME_SILVER_TECH": "Silver",
+    "THEME_GOLD_LUXE": "Oro",
+    "VIEW_TOUR": "Ver tour",
+    "TITLE": "Configuración"
+  },
+  "TABS": {
+    "COVERS": "Mis EPUBs",
+    "CHANGE": "Cambiar",
+    "SETTINGS": "Configuración"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "Recomendadas",
+      "INFO": "Info",
+      "APPS": "Apps",
+      "GUIDE": "Guía"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Color del marco"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Genérico"
+    },
+    "COLOR": {
+      "BLACK": "Negro",
+      "WHITE": "Blanco",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Rosa",
+      "METALLIC_BLACK": "Negro metálico",
+      "METALLIC_JADE": "Jade metálico",
+      "METALLIC_PINK": "Rosa metálico"
+    }
+  }
 }

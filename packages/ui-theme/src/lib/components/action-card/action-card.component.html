@@ -1,0 +1,19 @@
+<button
+  class="sh-action-card"
+  [class.sh-action-card--selected]="selected"
+  [class.sh-action-card--disabled]="disabled"
+  [disabled]="disabled"
+  [type]="type"
+  [attr.aria-pressed]="selected ? 'true' : 'false'"
+  [attr.aria-label]="ariaLabel"
+>
+  <span class="sh-action-card__title">{{ title }}</span>
+
+  <span class="sh-action-card__icon" aria-hidden="true">
+    <ion-icon
+      [name]="icon"
+      [class.sh-action-card__icon--flip-horizontal]="iconFlip === 'horizontal'"
+      [class.sh-action-card__icon--flip-vertical]="iconFlip === 'vertical'"
+    ></ion-icon>
+  </span>
+</button>

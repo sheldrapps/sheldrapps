@@ -30,6 +30,7 @@ export class RatingPromptComponent {
   private readonly modalController = inject(ModalController);
 
   @Output() readonly rate = new EventEmitter<void>();
+  @Output() readonly suggestions = new EventEmitter<void>();
   @Output() readonly problem = new EventEmitter<void>();
   @Output() readonly later = new EventEmitter<void>();
 
@@ -41,6 +42,11 @@ export class RatingPromptComponent {
   onRate(): void {
     this.rate.emit();
     void this.modalController.dismiss(undefined, 'rate');
+  }
+
+  onSuggestions(): void {
+    this.suggestions.emit();
+    void this.modalController.dismiss(undefined, 'suggestions');
   }
 
   onProblem(): void {

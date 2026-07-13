@@ -1,7 +1,7 @@
 # EPUB Merger & Splitter - en-US Play Store Listing
 
 ## Purpose
-Temporary en-US ficha for the new short `esam`. Baseline copy for the listing.
+Temporary en-US ficha for the new short `emas`. Baseline copy for the listing.
 
 ## App Name
 Current localized name from strings.xml/app.title:

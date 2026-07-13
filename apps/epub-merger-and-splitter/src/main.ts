@@ -8,7 +8,9 @@ import {
   MemoryStorageAdapter,
   provideI18nKit,
 } from '@sheldrapps/i18n-kit';
+import { provideUiThemeI18n } from '@sheldrapps/ui-theme';
 import { provideEReaderPreviewFrameI18n } from '@sheldrapps/image-workflow';
+import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
 import { provideEditorI18n } from '@sheldrapps/image-workflow/editor';
 import { provideRatingKit } from '@sheldrapps/rating-kit';
 import {
@@ -29,6 +31,7 @@ import { environment } from './environments/environment';
 
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
+import { provideEpubMergerAndSplitterLanguageInitializer } from './app/providers/epub-merger-and-splitter-language.initializer';
 import {
   ADS_UNITS_ANDROID_PROD,
   ADS_UNITS_ANDROID_TEST,
@@ -92,10 +95,13 @@ async function bootstrap(): Promise<void> {
       },
       new MemoryStorageAdapter(),
     ),
+    provideEpubMergerAndSplitterLanguageInitializer(),
     provideEReaderPreviewFrameI18n(),
     provideEditorI18n(),
+    providePrivacyPolicyKitI18n(),
     provideAdFallbackKitI18n(),
     provideAdsKitI18n(),
+    provideUiThemeI18n(),
 
     provideSettingsKit({
       appId: 'epub-merger-and-splitter',

@@ -17,7 +17,7 @@ module.exports = [
     slug: 'cover-creator-for-kindle',
   },
   {
-    short: 'ems',
+    short: 'emas',
     slug: 'epub-merger-and-splitter',
     meDeviceId: 'R5CY21M3ZRY',
   },

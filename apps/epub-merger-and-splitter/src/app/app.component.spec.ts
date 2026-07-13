@@ -10,12 +10,14 @@ import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
   let settingsState: { language?: string };
+  let settingsLoadSpy: jasmine.Spy;
   let settingsSetForScopeSpy: jasmine.Spy;
   let languageSetSpy: jasmine.Spy;
   let titleSetSpy: jasmine.Spy;
 
   beforeEach(() => {
     settingsState = {};
+    settingsLoadSpy = jasmine.createSpy('load').and.callFake(async () => settingsState);
     settingsSetForScopeSpy = jasmine
       .createSpy('setForScope')
       .and.resolveTo({});
@@ -32,6 +34,7 @@ describe('AppComponent', () => {
           provide: SettingsStore,
           useValue: {
             get: () => settingsState,
+            load: settingsLoadSpy,
             set: jasmine.createSpy('set').and.resolveTo({}),
             setForScope: settingsSetForScopeSpy,
           },
@@ -95,6 +98,7 @@ describe('AppComponent', () => {
           provide: SettingsStore,
           useValue: {
             get: () => settingsState,
+            load: settingsLoadSpy,
             set: jasmine.createSpy('set').and.resolveTo({}),
             setForScope: settingsSetForScopeSpy,
           },

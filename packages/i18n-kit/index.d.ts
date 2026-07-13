@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import * as i0 from '@angular/core';
 import { InjectionToken, Provider, EnvironmentProviders } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
@@ -88,11 +89,12 @@ declare const STORAGE_ADAPTER_TOKEN: InjectionToken<StorageAdapter>;
 
 declare class LanguageService {
     private translateService;
+    private http;
     private currentLang;
     private config;
     private storage;
     private normMap;
-    constructor(translateService: TranslateService, config?: LanguageConfig, storage?: StorageAdapter);
+    constructor(translateService: TranslateService, http: HttpClient, config?: LanguageConfig, storage?: StorageAdapter);
     /**
      * Get current language
      */
@@ -128,7 +130,7 @@ declare class LanguageService {
      * Get default config (fallback if not provided)
      */
     private getDefaultConfig;
-    static ɵfac: i0.ɵɵFactoryDeclaration<LanguageService, [null, { optional: true; }, { optional: true; }]>;
+    static ɵfac: i0.ɵɵFactoryDeclaration<LanguageService, [null, null, { optional: true; }, { optional: true; }]>;
     static ɵprov: i0.ɵɵInjectableDeclaration<LanguageService>;
 }
 

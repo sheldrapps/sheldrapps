@@ -47,7 +47,7 @@ export class AppComponent implements OnDestroy {
     await this.edgeToEdge.initEdgeToEdge();
     await this.theme.initialize();
 
-    const currentSettings = this.settings.get();
+    const currentSettings = await this.settings.load();
     const storedLanguage = currentSettings.language;
     const language = storedLanguage ?? (await detectSupportedLocale());
 

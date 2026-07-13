@@ -47,6 +47,7 @@
     "@sheldrapps/ads-kit": "workspace:*",
     "@sheldrapps/file-kit": "workspace:*",
     "@sheldrapps/i18n-kit": "workspace:*",
+    "@sheldrapps/privacy-policy-kit": "workspace:*",
     "@sheldrapps/rating-kit": "workspace:*",
     "@sheldrapps/recommended-apps": "workspace:*",
     "@sheldrapps/settings-kit": "workspace:*",

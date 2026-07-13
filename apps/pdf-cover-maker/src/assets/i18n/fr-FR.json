@@ -1,249 +1,272 @@
 {
-    "APP":  {
-                "TITLE":  "CrÃ©er couverture PDF"
-            },
-    "COMMON":  {
-                   "BACK_AGAIN_TO_EXIT":  "Revenez en arriÃ¨re pour quitter",
-                   "CANCEL":  "Annuler",
-                   "CLOSE":  "Fermer",
-                   "DELETE":  "Supprimer",
-                   "DONE":  "TerminÃ©",
-                   "ERROR":  "Erreur",
-                   "LOADING":  "Chargement",
-                   "BILLING_UNAVAILABLE":  "Les achats ne sont pas disponibles pour le moment.",
-                   "PURCHASE_ERROR":  "Impossible de finaliser lâ€™achat. Veuillez rÃ©essayer.",
-                   "REMOVE_ADS_BUY":  "Acheter",
-                   "REMOVE_ADS_DESCRIPTION":  "Supprime les publicitÃ©s pour toujours et active le choix entre lâ€™export sans perte et compressÃ©.",
-                   "REMOVE_ADS_PURCHASED":  "PublicitÃ©s supprimÃ©es pour toujours.",
-                   "REMOVE_ADS_RESTORE":  "Restaurer lâ€™achat",
-                   "REMOVE_ADS_RESTORED":  "Achat restaurÃ© avec succÃ¨s.",
-                   "REMOVE_ADS_TITLE":  "Supprimer les publicitÃ©s",
-                   "REMOVE_ADS_CTA_TITLE":  "Supprimer les publicitÃ©s",
-                   "REMOVE_ADS_CTA_SUBTITLE":  "Paiement unique â€¢ Pour toujours",
-                   "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE":  "Paiement unique â€¢ {{price}}",
-                   "REMOVE_ADS_MODAL_PRICE":  "Prix : {{price}} â€¢ Sans abonnement",
-                   "RESTORE_ERROR":  "Impossible de restaurer lâ€™achat. Veuillez rÃ©essayer.",
-                   "PRO_ONLY":  "PRO",
-                   "WATCH_AD_SUBTITLE":  "Regarder une publicitÃ©",
-                   "SHARE":  "Partager",
-                   "SHARE_KINDLE_HINT":  "Lors du partage, sÃ©lectionne l\u0027application Kindle pour l\u0027envoyer Ã  ton appareil.",
-                   "WARNING":  "Avertissement",
-                   "EDIT_PROJECT_TITLE":  "Comment veux-tu modifier ce fichier ?",
-                   "EDIT_PROJECT_MESSAGE":  "Choisis si tu veux remplacer le fichier actuel ou travailler sur une copie.",
-                   "EDIT_PROJECT_OVERWRITE":  "Ã‰craser",
-                   "EDIT_PROJECT_OVERWRITE_DESC":  "Enregistre les changements sur le fichier existant.",
-                   "EDIT_PROJECT_COPY":  "Travailler sur une copie",
-                   "EDIT_PROJECT_COPY_DESC":  "Conserve le fichier original et modifie une nouvelle copie."
-               },
-    "CHANGE":  {
-                   "ADS_REQUIRED":  "Impossible de charger la publicitÃ©. VÃ©rifiez votre rÃ©seau ou bloqueur de publicitÃ©s.",
-                   "ARIA_CHANGE_PDF":  "CrÃ©er le fichier PDF. Fichier actuel : {{name}}",
-                   "ARIA_CHANGE_IMAGE":  "CrÃ©er l\u0027image de couverture. Image actuelle : {{name}}",
-                   "ARIA_CROP":  "Ajuster l\u0027image sÃ©lectionnÃ©e",
-                   "ARIA_SELECT_PDF":  "SÃ©lectionner un fichier PDF",
-                   "ARIA_SELECT_IMAGE":  "SÃ©lectionner une image de couverture",
-                   "CROP_ACTION":  "Ajuster",
-                   "COVER_CHANGED":  "Couverture changÃ©e. Vous pouvez maintenant enregistrer ou partager",
-                   "CHANGE_ACTION":  "CrÃ©er la couverture",
-                   "CHANGE_ACTION_REWARDED":  "CrÃ©er la couverture (voir une publicitÃ©)",
-                   "GENERATING":  "Mise Ã  jour de la couvertureâ€¦",
-                   "HINT_SAVE_SHARE_EXPLAIN":  "CrÃ©er la couverture ne l\u0027enregistre pas automatiquement.",
-                   "INFO":  "Info",
-                   "INFO_ARIA":  "Informations sur le changement de couverture",
-                   "INFO_TITLE":  "Information",
-                   "INFO_FLOW_LABEL":  "Ordre recommandÃ© :",
-                   "INFO_STEP_1":  "SÃ©lectionner un PDF.",
-                   "INFO_STEP_1_1":  "1.1. La couverture originale se prÃ©charge.",
-                   "INFO_STEP_1_2":  "1.2. CrÃ©er lâ€™image ou garder lâ€™originale.",
-                   "INFO_STEP_2":  "Ajuster lâ€™image dans lâ€™Ã©diteur.",
-                   "INFO_STEP_3":  "Regarder la pub pour enregistrer la couverture.",
-                   "INFO_STEP_4":  "Enregistrer ou partager.",
-                   "IMAGE_ERROR_CORRUPT":  "Impossible de lire l\u0027image. Essayez-en une autre.",
-                   "IMAGE_ERROR_SIZE":  "Le fichier est trop volumineux. Maximum {{maxSize}} Mo.",
-                   "IMAGE_ERROR_TYPE":  "Format non pris en charge ({{type}}). SÃ©lectionnez JPG, PNG ou WebP.",
-                   "IMAGE_WARN_SMALL":  "L\u0027image peut Ãªtre trop petite pour certains appareils.",
-                   "NO_COVER_DETECTED_ADDED":  "Aucune couverture dÃ©tectÃ©e. Une nouvelle couverture a Ã©tÃ© ajoutÃ©e Ã  cet PDF.",
-                   "PDF_ERROR_STORAGE":  "Espace de stockage insuffisant. {{requiredMB}} MB requis, {{availableMB}} MB disponibles.",
-                   "LOADING_PDF":  "Chargement de l\u0027PDF",
-                   "LOADING_IMAGE":  "Chargement de l\u0027image",
-                   "OPENING_EDITOR":  "Ouverture de l\u0027Ã©diteur",
-                   "CHANGING_COVER":  "Changement de couverture...",
-                   "GETTING_COVER":  "Obtention de la couverture",
-                   "SELECT_PDF_LABEL":  "Fichier PDF",
-                   "PDF_FILE_TITLE":  "Fichier PDF",
-                   "SELECT_PDF_PLACEHOLDER":  "SÃ©lectionnez un fichier PDF",
-                   "COVER_MODE_LABEL":  "Action de page de couverture",
-                   "COVER_MODE_ARIA":  "Choisissez comment appliquer la nouvelle couverture",
-                   "COVER_MODE_REPLACE_FIRST_PAGE":  "Remplacer la premiÃ¨re page",
-                   "COVER_MODE_INSERT_FIRST_PAGE":  "InsÃ©rer une nouvelle page au dÃ©but",
-                   "INSERT_MODE_TOC_WARNING":  "Inserting a cover may shift TOC, bookmarks, or page numbering. We\u0027ll try to keep them aligned.",
-                   "FRAME_MODE_LABEL":  "Frame mode",
-                   "FRAME_MODE_ARIA":  "Frame mode",
-                   "FRAME_MODE_WITH_FRAME":  "With frame",
-                   "FRAME_MODE_WITHOUT_FRAME":  "Without frame",
-                   "FORMAT_AUTO":  "Auto",
-                   "FORMAT_A4":  "A4",
-                   "FORMAT_CARTA":  "Carta",
-                   "FORMAT_OFICIO":  "Oficio",
-                   "FORMAT_NINE_SIXTEEN":  "9:16",
-                   "FORMAT_THREE_FOUR":  "3:4",
-                   "FORMAT_ONE_ONE":  "1:1",
-                   "FORMAT_CUSTOM":  "Custom",
-                   "FRAME_NOT_DETECTED_TOAST":  "Frame not detected in the document",
-                   "SAVING":  "Enregistrement de la couverture",
-                   "SAVE_ACTION":  "Enregistrer",
-                   "SAVED_OK":  "Couverture enregistrÃ©e",
-                   "SAVE_RENAME_TITLE":  "Enregistrer la couverture",
-                   "SAVE_RENAME_MESSAGE":  "Entrez un nom pour la couverture",
-                   "SAVE_RENAME_PLACEHOLDER":  "Nom du fichier",
-                   "SELECT_IMAGE_LABEL":  "Image de couverture",
-                   "SELECT_IMAGE_PLACEHOLDER":  "SÃ©lectionnez une image",
-                   "TAP_TO_CHANGE":  "Touchez pour crÃ©er/rÃ©initialiser",
-                   "TAP_TO_CHANGE_IMAGE":  "Touchez pour crÃ©er",
-                   "TAP_TO_PREVIEW":  "Touchez pour prÃ©visualiser",
-                   "LONGPRESS_PREVIEW_HINT":  "Appui long pour prÃ©visualiser",
-                   "TITLE":  "CrÃ©er une couverture",
-                   "INVALID_COVER_TAP_TO_CHANGE":  "Couverture invalide, touchez pour crÃ©er",
-                   "PREVIEW_ORIGINAL_LABEL":  "Couverture originale",
-                   "PREVIEW_NEW_LABEL":  "Nouvelle couverture",
-                   "PREVIEW_NEW_ONLY_LABEL":  "Nouvelle couverture",
-                   "ARIA_START_SCRATCH":  "Start from scratch",
-                   "SOURCE_IMAGE":  "Image",
-                   "SOURCE_SCRATCH":  "Scratch"
-               },
-    "COVERS":  {
-                   "DELETED":  "PDF supprimÃ©",
-                   "EMPTY":  "Aucune couverture trouvÃ©e dans l\u0027application. Les fichiers crÃ©Ã©s avant la rÃ©installation peuvent ne pas apparaÃ®tre en raison des restrictions systÃ¨me.",
-                   "PLACEHOLDER":  "PDF",
-                   "PREVIEW_TITLE":  "Couverture actuelle",
-                   "TITLE":  "Mes PDF",
-                   "DITHERED_THUMBNAIL_NOTICE":  "Les couvertures avec rÃ©duction des artefacts peuvent paraÃ®tre diffÃ©rentes en miniature. Ouvrez lâ€™aperÃ§u pour voir un rÃ©sultat plus fidÃ¨le.",
-                   "ACTIONS":  {
-                                   "DELETE":  "Supprimer",
-                                   "SHARE":  "Partager",
-                                   "OPEN":  "Ouvrir",
-                                   "EDIT_PROJECT":  "Modifier"
-                               },
-                   "DELETE":  {
-                                  "MESSAGE":  "Voulez-vous supprimer cet PDF ?",
-                                  "TITLE":  "Supprimer l\u0027PDF"
-                              },
-                   "ERROR":  {
-                                 "DELETE":  "Impossible de Supprimer l\u0027PDF. RÃ©essaie.",
-                                 "SHARE":  "Impossible de partager l\u0027PDF. RÃ©essaie.",
-                                 "LOAD":  "Impossible de charger vos PDF. Fais glisser vers le bas pour rÃ©essayer.",
-                                 "PREVIEW":  "Impossible de charger l\u0027aperÃ§u. RÃ©essaye.",
-                                 "OPEN":  "Impossible d\u0027ouvrir le PDF. Veuillez rÃ©essayer.",
-                                 "OPEN_PROJECT":  "Impossible d\u0027ouvrir le projet. Veuillez rÃ©essayer."
-                             },
-                   "GENERATE_THUMB":  "Generate thumbnail",
-                   "PREVIEW_UNAVAILABLE":  "Preview unavailable.",
-                   "EREADER":  {
-                                   "ZOOM_OUT_ARIA":  "RÃ©duire lâ€™aperÃ§u e-reader",
-                                   "ZOOM_IN_ARIA":  "Agrandir lâ€™aperÃ§u e-reader",
-                                   "ZOOM_RESET_ARIA":  "RÃ©initialiser le zoom de lâ€™aperÃ§u e-reader"
-                               }
-               },
-    "INSTRUCTIONS":  {
-                         "NOTE_TITLE":  "Remarque",
-                         "STEP_1":  "Selectionne un fichier PDF (la couverture actuelle se precharge)",
-                         "STEP_2":  "Ajuste la couverture chargee ou choisis une nouvelle image et ajuste",
-                         "STEP_3":  "Regarde la pub pour crÃ©er la couverture de l\u0027PDF",
-                         "STEP_4":  "Enregistre ou partage l\u0027PDF mis a jour",
-                         "STEP_4_DESC":  "Une fois pret, tu peux l\u0027enregistrer sur ton appareil ou le partager directement avec l\u0027app Kindle pour une transition plus fluide.",
-                         "STEP_5":  "Envoyer via le web (Send to Kindle)",
-                         "STEP_5_DESC":  "Vous pouvez Ã©galement l\u0027envoyer depuis le navigateur en utilisant l\u0027outil web Send to Kindle.",
-                         "TIP":  "Pour de meilleurs rÃ©sultats, utilisez des images en haute rÃ©solution et assurez-vous que les publicitÃ©s sont dÃ©sactivÃ©es sur votre Kindle.",
-                         "TITLE":  "Instructions"
-                     },
-    "HOME_TOUR":  {
-                      "CONTROLS":  {
-                                       "BACK":  "Retour",
-                                       "FINISH":  "Terminer",
-                                       "INTERACT_HINT":  "Interagissez avec lâ€™Ã©lÃ©ment mis en Ã©vidence pour continuer.",
-                                       "NEXT":  "Suivant",
-                                       "PROGRESS":  "{{current}} sur {{total}}",
-                                       "SKIP":  "Passer"
-                                   },
-                      "STEPS":  {
-                                    "PDF":  {
-                                                "TITLE":  "Fichier PDF",
-                                                "DESCRIPTION":  "SÃ©lectionnez le fichier PDF que vous souhaitez mettre Ã  jour."
-                                            },
-                                    "IMAGE":  {
-                                                  "TITLE":  "Image de couverture",
-                                                  "DESCRIPTION":  "SÃ©lectionnez lâ€™image pour votre couverture."
-                                              },
-                                    "ADJUST":  {
-                                                   "TITLE":  "Ajuster",
-                                                   "DESCRIPTION":  "Ajustez lâ€™image dans lâ€™Ã©diteur puis touchez TerminÃ©."
-                                               },
-                                    "CREATE":  {
-                                                   "TITLE":  "CrÃ©er la couverture",
-                                                   "DESCRIPTION":  "GÃ©nÃ©rez ici la couverture mise Ã  jour."
-                                               },
-                                    "RESULTS":  {
-                                                    "TITLE":  "Enregistrer ou partager",
-                                                    "DESCRIPTION":  "Enregistrez ou partagez votre PDF mis Ã  jour."
-                                                }
-                                }
-                  },
-    "SETTINGS":  {
-                     "VIEW_TOUR":  "Voir le tour",
-                     "INSTRUCTIONS":  "Voir les instructions",
-                     "INSTRUCTIONS_HINT":  "Comment crÃ©er et envoyer une couverture pour Kindle",
-                     "INSTRUCTIONS_SECTION":  "Instructions",
-                     "LANGUAGE":  "Langue",
-                     "LANGUAGE_RESTART_NOTICE":  "Langue modifiÃ©e. Lâ€™application va redÃ©marrer pour appliquer les changements.",
-                     "LANGUAGE_PREPARING_COUNTDOWN":  "PrÃ©paration de tout dans votre langue. L\u0027app va se fermer pour crÃ©er son nom ({{count}})",
-                     "EREADER_OPTIMIZATION_SECTION":  "Image enhancement",
-                     "EREADER_OPTIMIZATION_HINT":  "Applique des rÃ©glages automatiques pour amÃ©liorer la couverture",
-                     "EREADER_OPTIMIZATION_TOGGLE":  "Optimiser",
-                     "THEME":  "ThÃ¨me",
-                     "THEME_SYSTEM":  "SystÃ¨me",
-                     "THEME_LIGHT":  "Clair naturel",
-                     "THEME_DARK":  "Sombre classique",
-                     "THEME_WARM_READING":  "Lecture chaleureuse",
-                     "THEME_POP_ROSE":  "Rose pop",
-                     "THEME_NOCTURNE_VIOLET":  "Violet nocturne",
-                     "THEME_OBSIDIAN_RED":  "Rouge obsidienne",
-                     "THEME_TERMINAL_GREEN":  "Vert terminal",
-                     "THEME_MINT_FRESH":  "Vert Menthe",
-                     "THEME_SILVER_TECH":  "Silver",
-                     "THEME_GOLD_LUXE":  "Oro",
-                     "TITLE":  "ParamÃ¨tres"
-                 },
-    "TABS":  {
-                 "COVERS":  "Mes PDF",
-                 "CHANGE":  "CrÃ©er",
-                 "SETTINGS":  "ParamÃ¨tres"
-             },
-    "ARR":  {
-                "TOOLS":  {
-                              "RECOMMENDED":  "RecommandÃ©es",
-                              "INFO":  "Infos",
-                              "APPS":  "Apps",
-                              "GUIDE":  "Guide"
-                          }
-            },
-    "E_READER_FRAME":  {
-                           "COLOR_SELECTOR":  {
-                                                  "TITLE":  "Frame color"
-                                              },
-                           "BRAND":  {
-                                         "KINDLE":  "Kindle",
-                                         "KOBO":  "Kobo",
-                                         "GENERIC":  "Generic"
-                                     },
-                           "COLOR":  {
-                                         "BLACK":  "Black",
-                                         "WHITE":  "White",
-                                         "MATCHA":  "Matcha",
-                                         "JADE":  "Jade",
-                                         "PINK":  "Pink",
-                                         "METALLIC_BLACK":  "Metallic Black",
-                                         "METALLIC_JADE":  "Metallic Jade",
-                                         "METALLIC_PINK":  "Metallic Pink"
-                                     }
-                       }
+  "APP": {
+    "TITLE": "Créer couverture PDF"
+  },
+  "COMMON": {
+    "BACK_AGAIN_TO_EXIT": "Revenez en arrière pour quitter",
+    "CANCEL": "Annuler",
+    "CLOSE": "Fermer",
+    "DELETE": "Supprimer",
+    "DONE": "Terminé",
+    "ERROR": "Erreur",
+    "LOADING": "Chargement",
+    "BILLING_UNAVAILABLE": "Les achats ne sont pas disponibles pour le moment.",
+    "PURCHASE_ERROR": "Impossible de finaliser l’achat. Veuillez réessayer.",
+    "REMOVE_ADS_BUY": "Acheter",
+    "REMOVE_ADS_DESCRIPTION": "Supprime les publicités pour toujours et active le choix entre l’export sans perte et compressé.",
+    "REMOVE_ADS_PURCHASED": "Publicités supprimées pour toujours.",
+    "REMOVE_ADS_RESTORE": "Restaurer l’achat",
+    "REMOVE_ADS_RESTORED": "Achat restauré avec succès.",
+    "REMOVE_ADS_TITLE": "Supprimer les publicités",
+    "REMOVE_ADS_CTA_TITLE": "Supprimer les publicités",
+    "REMOVE_ADS_CTA_SUBTITLE": "Paiement unique • Pour toujours",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Paiement unique • {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "Prix : {{price}} • Sans abonnement",
+    "RESTORE_ERROR": "Impossible de restaurer l’achat. Veuillez réessayer.",
+    "PRO_ONLY": "PRO",
+    "WATCH_AD_SUBTITLE": "Regarder une publicité",
+    "SHARE": "Partager",
+    "SHARE_KINDLE_HINT": "Lors du partage, sélectionne l'application Kindle pour l'envoyer à ton appareil.",
+    "WARNING": "Avertissement",
+    "EDIT_PROJECT_TITLE": "Comment veux-tu modifier ce fichier ?",
+    "EDIT_PROJECT_MESSAGE": "Choisis si tu veux remplacer le fichier actuel ou travailler sur une copie.",
+    "EDIT_PROJECT_OVERWRITE": "Écraser",
+    "EDIT_PROJECT_OVERWRITE_DESC": "Enregistre les changements sur le fichier existant.",
+    "EDIT_PROJECT_COPY": "Travailler sur une copie",
+    "EDIT_PROJECT_COPY_DESC": "Conserve le fichier original et modifie une nouvelle copie."
+  },
+  "CHANGE": {
+    "ADS_REQUIRED": "Impossible de charger la publicité. Vérifiez votre réseau ou bloqueur de publicités.",
+    "ARIA_CHANGE_PDF": "Créer le fichier PDF. Fichier actuel : {{name}}",
+    "ARIA_CHANGE_IMAGE": "Créer l'image de couverture. Image actuelle : {{name}}",
+    "ARIA_CROP": "Ajuster l'image sélectionnée",
+    "ARIA_SELECT_PDF": "Sélectionner un fichier PDF",
+    "ARIA_SELECT_IMAGE": "Sélectionner une image de couverture",
+    "CROP_ACTION": "Ajuster",
+    "COVER_CHANGED": "Couverture changée. Vous pouvez maintenant enregistrer ou partager",
+    "CHANGE_ACTION": "Créer la couverture",
+    "CHANGE_ACTION_REWARDED": "Créer la couverture (voir une publicité)",
+    "GENERATING": "Mise à jour de la couverture⬦",
+    "HINT_SAVE_SHARE_EXPLAIN": "Créer la couverture ne l'enregistre pas automatiquement.",
+    "INFO": "Info",
+    "INFO_ARIA": "Informations sur le changement de couverture",
+    "INFO_TITLE": "Information",
+    "INFO_FLOW_LABEL": "Ordre recommandé :",
+    "INFO_STEP_1": "Sélectionner un PDF.",
+    "INFO_STEP_1_1": "1.1. La couverture originale se précharge.",
+    "INFO_STEP_1_2": "1.2. Créer l’image ou garder l’originale.",
+    "INFO_STEP_2": "Ajuster l’image dans l’éditeur.",
+    "INFO_STEP_3": "Regarder la pub pour enregistrer la couverture.",
+    "INFO_STEP_4": "Enregistrer ou partager.",
+    "IMAGE_ERROR_CORRUPT": "Impossible de lire l'image. Essayez-en une autre.",
+    "IMAGE_ERROR_SIZE": "Le fichier est trop volumineux. Maximum {{maxSize}} Mo.",
+    "IMAGE_ERROR_TYPE": "Format non pris en charge ({{type}}). Sélectionnez JPG, PNG ou WebP.",
+    "IMAGE_WARN_SMALL": "L'image peut être trop petite pour certains appareils.",
+    "NO_COVER_DETECTED_ADDED": "Aucune couverture détectée. Une nouvelle couverture a été ajoutée à cet PDF.",
+    "PDF_ERROR_STORAGE": "Espace de stockage insuffisant. {{requiredMB}} MB requis, {{availableMB}} MB disponibles.",
+    "LOADING_PDF": "Chargement de l'PDF",
+    "LOADING_IMAGE": "Chargement de l'image",
+    "OPENING_EDITOR": "Ouverture de l'éditeur",
+    "CHANGING_COVER": "Changement de couverture...",
+    "GETTING_COVER": "Obtention de la couverture",
+    "SELECT_PDF_LABEL": "Fichier PDF",
+    "PDF_FILE_TITLE": "Fichier PDF",
+    "SELECT_PDF_PLACEHOLDER": "Sélectionnez un fichier PDF",
+    "COVER_MODE_LABEL": "Action de page de couverture",
+    "COVER_MODE_ARIA": "Choisissez comment appliquer la nouvelle couverture",
+    "COVER_MODE_REPLACE_FIRST_PAGE": "Remplacer la première page",
+    "COVER_MODE_INSERT_FIRST_PAGE": "Insérer une nouvelle page au début",
+    "INSERT_MODE_TOC_WARNING": "Inserting a cover may shift TOC, bookmarks, or page numbering. We'll try to keep them aligned.",
+    "FRAME_MODE_LABEL": "Frame mode",
+    "FRAME_MODE_ARIA": "Frame mode",
+    "FRAME_MODE_WITH_FRAME": "With frame",
+    "FRAME_MODE_WITHOUT_FRAME": "Without frame",
+    "FORMAT_AUTO": "Auto",
+    "FORMAT_A4": "A4",
+    "FORMAT_CARTA": "Carta",
+    "FORMAT_OFICIO": "Oficio",
+    "FORMAT_NINE_SIXTEEN": "9:16",
+    "FORMAT_THREE_FOUR": "3:4",
+    "FORMAT_ONE_ONE": "1:1",
+    "FORMAT_CUSTOM": "Custom",
+    "FRAME_NOT_DETECTED_TOAST": "Frame not detected in the document",
+    "SAVING": "Enregistrement de la couverture",
+    "SAVE_ACTION": "Enregistrer",
+    "SAVED_OK": "Couverture enregistrée",
+    "SAVE_RENAME_TITLE": "Enregistrer la couverture",
+    "SAVE_RENAME_MESSAGE": "Entrez un nom pour la couverture",
+    "SAVE_RENAME_PLACEHOLDER": "Nom du fichier",
+    "SELECT_IMAGE_LABEL": "Image de couverture",
+    "SELECT_IMAGE_PLACEHOLDER": "Sélectionnez une image",
+    "TAP_TO_CHANGE": "Touchez pour créer/réinitialiser",
+    "TAP_TO_CHANGE_IMAGE": "Touchez pour créer",
+    "TAP_TO_PREVIEW": "Touchez pour prévisualiser",
+    "LONGPRESS_PREVIEW_HINT": "Appui long pour prévisualiser",
+    "TITLE": "Créer une couverture",
+    "INVALID_COVER_TAP_TO_CHANGE": "Couverture invalide, touchez pour créer",
+    "PREVIEW_ORIGINAL_LABEL": "Couverture originale",
+    "PREVIEW_NEW_LABEL": "Nouvelle couverture",
+    "PREVIEW_NEW_ONLY_LABEL": "Nouvelle couverture",
+    "ARIA_START_SCRATCH": "Start from scratch",
+    "SOURCE_IMAGE": "Image",
+    "SOURCE_SCRATCH": "Scratch",
+    "IMAGE_WARN_INVALID_PDF_COVER": "Couverture PDF non valide. Touchez pour choisir une nouvelle image.",
+    "PDF_ERROR_CORRUPT": "Le fichier PDF n’a pas pu être lu. Essayez un autre fichier.",
+    "PDF_ERROR_NO_COVER": "Ce fichier PDF ne contient pas de couverture remplaçable.",
+    "PDF_ERROR_REWRITE": "Le fichier PDF n’a pas pu être traité. Veuillez réessayer.",
+    "PDF_ERROR_SIZE": "Le fichier est trop volumineux. Maximum {{maxSize}} Mo.",
+    "PDF_ERROR_TYPE": "Fichier PDF non pris en charge.",
+    "PDF_LOADING_COPY": "Copie du gros fichier PDF...",
+    "PDF_LOADING_INSPECT": "Examen de la structure PDF...",
+    "PROCESSING_LARGE_PDF": "Traitement du gros fichier PDF...",
+    "PROCESS_CANCELLED": "Traitement annulé"
+  },
+  "COVERS": {
+    "DELETED": "PDF supprimé",
+    "EMPTY": "Aucune couverture trouvée dans l'application. Les fichiers créés avant la réinstallation peuvent ne pas apparaître en raison des restrictions système.",
+    "PLACEHOLDER": "PDF",
+    "PREVIEW_TITLE": "Couverture actuelle",
+    "TITLE": "Mes PDF",
+    "DITHERED_THUMBNAIL_NOTICE": "Les couvertures avec réduction des artefacts peuvent paraître différentes en miniature. Ouvrez l’aperçu pour voir un résultat plus fidèle.",
+    "ACTIONS": {
+      "DELETE": "Supprimer",
+      "SHARE": "Partager",
+      "OPEN": "Ouvrir",
+      "EDIT_PROJECT": "Modifier"
+    },
+    "DELETE": {
+      "MESSAGE": "Voulez-vous supprimer cet PDF ?",
+      "TITLE": "Supprimer l'PDF"
+    },
+    "ERROR": {
+      "DELETE": "Impossible de Supprimer l'PDF. Réessaie.",
+      "SHARE": "Impossible de partager l'PDF. Réessaie.",
+      "LOAD": "Impossible de charger vos PDF. Fais glisser vers le bas pour réessayer.",
+      "PREVIEW": "Impossible de charger l'aperçu. Réessaye.",
+      "OPEN": "Impossible d'ouvrir le PDF. Veuillez réessayer.",
+      "OPEN_PROJECT": "Impossible d'ouvrir le projet. Veuillez réessayer."
+    },
+    "GENERATE_THUMB": "Generate thumbnail",
+    "PREVIEW_UNAVAILABLE": "Preview unavailable.",
+    "EREADER": {
+      "ZOOM_OUT_ARIA": "Réduire l’aperçu e-reader",
+      "ZOOM_IN_ARIA": "Agrandir l’aperçu e-reader",
+      "ZOOM_RESET_ARIA": "Réinitialiser le zoom de l’aperçu e-reader"
+    },
+    "LOADING_PREVIEW": "Chargement de l’aperçu..."
+  },
+  "INSTRUCTIONS": {
+    "NOTE_TITLE": "Remarque",
+    "STEP_1": "Selectionne un fichier PDF (la couverture actuelle se precharge)",
+    "STEP_2": "Ajuste la couverture chargee ou choisis une nouvelle image et ajuste",
+    "STEP_3": "Regarde la pub pour créer la couverture de l'PDF",
+    "STEP_4": "Enregistre ou partage l'PDF mis a jour",
+    "STEP_4_DESC": "Une fois pret, tu peux l'enregistrer sur ton appareil ou le partager directement avec l'app Kindle pour une transition plus fluide.",
+    "STEP_5": "Envoyer via le web (Send to Kindle)",
+    "STEP_5_DESC": "Vous pouvez également l'envoyer depuis le navigateur en utilisant l'outil web Send to Kindle.",
+    "TIP": "Pour de meilleurs résultats, utilisez des images en haute résolution et assurez-vous que les publicités sont désactivées sur votre Kindle.",
+    "TITLE": "Instructions"
+  },
+  "HOME_TOUR": {
+    "CONTROLS": {
+      "BACK": "Retour",
+      "FINISH": "Terminer",
+      "INTERACT_HINT": "Interagissez avec l’élément mis en évidence pour continuer.",
+      "NEXT": "Suivant",
+      "PROGRESS": "{{current}} sur {{total}}",
+      "SKIP": "Passer"
+    },
+    "STEPS": {
+      "PDF": {
+        "TITLE": "Fichier PDF",
+        "DESCRIPTION": "Sélectionnez le fichier PDF que vous souhaitez mettre à jour."
+      },
+      "IMAGE": {
+        "TITLE": "Image de couverture",
+        "DESCRIPTION": "Sélectionnez l’image pour votre couverture."
+      },
+      "ADJUST": {
+        "TITLE": "Ajuster",
+        "DESCRIPTION": "Ajustez l’image dans l’éditeur puis touchez Terminé."
+      },
+      "CREATE": {
+        "TITLE": "Créer la couverture",
+        "DESCRIPTION": "Générez ici la couverture mise à jour."
+      },
+      "RESULTS": {
+        "TITLE": "Enregistrer ou partager",
+        "DESCRIPTION": "Enregistrez ou partagez votre PDF mis à jour."
+      },
+      "EXPORT": {
+        "TITLE": "Qualité d’export",
+        "DESCRIPTION": "L’export gratuit utilise Standard. Supprime les publicités pour choisir entre export sans perte et compressé."
+      },
+      "REMOVE_ADS_CLOSE": {
+        "TITLE": "Fermer pour l’instant",
+        "DESCRIPTION": "Pour l’instant, profitez de la version gratuite. Vous n’êtes pas obligé d’acheter."
+      },
+      "COVER_MODE": {
+        "TITLE": "Action de la page de couverture",
+        "DESCRIPTION": "Choisissez d’insérer une nouvelle première page ou de remplacer la première page actuelle."
+      }
+    }
+  },
+  "SETTINGS": {
+    "VIEW_TOUR": "Voir le tour",
+    "INSTRUCTIONS": "Voir les instructions",
+    "INSTRUCTIONS_HINT": "Comment créer et envoyer une couverture pour Kindle",
+    "INSTRUCTIONS_SECTION": "Instructions",
+    "LANGUAGE": "Langue",
+    "LANGUAGE_RESTART_NOTICE": "Langue modifiée. L’application va redémarrer pour appliquer les changements.",
+    "LANGUAGE_PREPARING_COUNTDOWN": "Préparation de tout dans votre langue. L'app va se fermer pour créer son nom ({{count}})",
+    "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
+    "EREADER_OPTIMIZATION_HINT": "Applique des réglages automatiques pour améliorer la couverture",
+    "EREADER_OPTIMIZATION_TOGGLE": "Optimiser",
+    "THEME": "Thème",
+    "THEME_SYSTEM": "Système",
+    "THEME_LIGHT": "Clair naturel",
+    "THEME_DARK": "Sombre classique",
+    "THEME_WARM_READING": "Lecture chaleureuse",
+    "THEME_POP_ROSE": "Rose pop",
+    "THEME_NOCTURNE_VIOLET": "Violet nocturne",
+    "THEME_OBSIDIAN_RED": "Rouge obsidienne",
+    "THEME_TERMINAL_GREEN": "Vert terminal",
+    "THEME_MINT_FRESH": "Vert Menthe",
+    "THEME_SILVER_TECH": "Silver",
+    "THEME_GOLD_LUXE": "Oro",
+    "TITLE": "Paramètres"
+  },
+  "TABS": {
+    "COVERS": "Mes PDF",
+    "CHANGE": "Créer",
+    "SETTINGS": "Paramètres"
+  },
+  "ARR": {
+    "TOOLS": {
+      "RECOMMENDED": "Recommandées",
+      "INFO": "Infos",
+      "APPS": "Apps",
+      "GUIDE": "Guide"
+    }
+  },
+  "E_READER_FRAME": {
+    "COLOR_SELECTOR": {
+      "TITLE": "Frame color"
+    },
+    "BRAND": {
+      "KINDLE": "Kindle",
+      "KOBO": "Kobo",
+      "GENERIC": "Generic"
+    },
+    "COLOR": {
+      "BLACK": "Black",
+      "WHITE": "White",
+      "MATCHA": "Matcha",
+      "JADE": "Jade",
+      "PINK": "Pink",
+      "METALLIC_BLACK": "Metallic Black",
+      "METALLIC_JADE": "Metallic Jade",
+      "METALLIC_PINK": "Metallic Pink"
+    }
+  }
 }

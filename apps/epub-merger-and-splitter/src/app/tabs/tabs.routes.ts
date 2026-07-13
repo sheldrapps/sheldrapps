@@ -17,6 +17,13 @@ export const routes: Routes = [
           import('../pages/home/home.page').then((m) => m.HomePage),
       },
       {
+        path: 'home/under-construction',
+        loadComponent: () =>
+          import('@sheldrapps/ui-theme').then(
+            (m) => m.UnderConstructionPageComponent,
+          ),
+      },
+      {
         path: 'my-epubs',
         loadComponent: () =>
           import('../pages/my-epubs/my-epubs.page').then(
