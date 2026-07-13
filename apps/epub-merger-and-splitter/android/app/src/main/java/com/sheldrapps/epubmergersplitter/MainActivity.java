@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Build;
+import android.util.Log;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 
@@ -20,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends BridgeActivity {
+    private static final String LOG_TAG = "EPUBMergerSplitter";
     private boolean runtimeFlagsExposed = false;
     private static final String ALIAS_PREFIX = "com.sheldrapps.epubmergersplitter.MainActivityAlias_";
     private static final String DEFAULT_ALIAS_LOCALE = "system";
@@ -50,6 +52,11 @@ public class MainActivity extends BridgeActivity {
         @JavascriptInterface
         public boolean isDebugBuild() {
             return debugBuild;
+        }
+
+        @JavascriptInterface
+        public void log(String message) {
+            Log.i(LOG_TAG, message);
         }
     }
 

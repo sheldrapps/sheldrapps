@@ -2,6 +2,7 @@ import { Component, EnvironmentInjector, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   IonTabs,
+  IonRouterOutlet,
   IonTabBar,
   IonTabButton,
   IonIcon,
@@ -16,10 +17,12 @@ import { homeOutline, libraryOutline, settingsOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-tabs',
+  standalone: true,
   templateUrl: 'tabs.page.html',
   styleUrls: ['tabs.page.scss'],
   imports: [
     IonTabs,
+    IonRouterOutlet,
     IonTabBar,
     IonTabButton,
     IonIcon,

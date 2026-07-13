@@ -31,7 +31,6 @@ import { environment } from './environments/environment';
 
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
-import { provideEpubMergerAndSplitterLanguageInitializer } from './app/providers/epub-merger-and-splitter-language.initializer';
 import {
   ADS_UNITS_ANDROID_PROD,
   ADS_UNITS_ANDROID_TEST,
@@ -47,7 +46,23 @@ const EPUB_MERGER_AND_SPLITTER_SETTINGS_STORAGE_KEY = 'epub-merger-and-splitter.
 const EPUB_MERGER_AND_SPLITTER_PACKAGE_ID = 'com.sheldrapps.epubmergersplitter';
 const EPUB_MERGER_AND_SPLITTER_RATING_STORAGE_KEY = 'rating.epub-merger-and-splitter';
 
+function installRuntimeLogging(): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.addEventListener('error', (event) => {
+    console.error('[epub-merger-and-splitter] window.error', event.error ?? event.message);
+  });
+
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('[epub-merger-and-splitter] unhandledrejection', event.reason);
+  });
+}
+
 async function bootstrap(): Promise<void> {
+  installRuntimeLogging();
+
   const providers: Array<EnvironmentProviders | Provider> = [
     provideIonicAngular(),
     provideRouter(routes),
@@ -95,7 +110,6 @@ async function bootstrap(): Promise<void> {
       },
       new MemoryStorageAdapter(),
     ),
-    provideEpubMergerAndSplitterLanguageInitializer(),
     provideEReaderPreviewFrameI18n(),
     provideEditorI18n(),
     providePrivacyPolicyKitI18n(),
@@ -173,4 +187,6 @@ async function bootstrap(): Promise<void> {
   await bootstrapApplication(AppComponent, { providers });
 }
 
-void bootstrap();
+void bootstrap().catch((error) => {
+  console.error('[epub-merger-and-splitter] bootstrap failed', error);
+});

@@ -1,20 +1,27 @@
-import { bootstrapApplication } from '@angular/platform-browser';
+import { APP_INITIALIZER } from '@angular/core';
+import { bootstrapApplication, Title } from '@angular/platform-browser';
 import { provideRouter, RouteReuseStrategy } from '@angular/router';
 import {
   provideIonicAngular,
   IonicRouteStrategy,
 } from '@ionic/angular/standalone';
-import { MemoryStorageAdapter, provideI18nKit } from '@sheldrapps/i18n-kit';
+import {
+  detectSupportedLocale,
+  LanguageService,
+  MemoryStorageAdapter,
+  provideI18nKit,
+} from '@sheldrapps/i18n-kit';
 import { provideEReaderPreviewFrameI18n } from '@sheldrapps/image-workflow';
 import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
 import { provideEditorI18n } from '@sheldrapps/image-workflow/editor';
-import { provideRatingKit } from '@sheldrapps/rating-kit';
+import { TranslateService } from '@ngx-translate/core';
 import { provideUiThemeI18n } from '@sheldrapps/ui-theme';
 import {
   CapacitorPreferencesAdapter,
   CompositeStorageAdapter,
   ConfigJsonFileAdapter,
   WebLocalStorageAdapter,
+  SettingsStore,
   provideSettingsKit,
 } from '@sheldrapps/settings-kit';
 import {
@@ -24,26 +31,72 @@ import {
 import { provideAdFallbackKitI18n } from '@sheldrapps/ad-fallback-kit';
 import { provideAdsKit, provideAdsKitI18n } from '@sheldrapps/ads-kit';
 import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
+import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
 import { environment } from './environments/environment';
 
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
-import { provideEpubMergerAndSplitterLanguageInitializer } from './app/providers/epub-merger-and-splitter-language.initializer';
 import {
   ADS_UNITS_ANDROID_PROD,
   ADS_UNITS_ANDROID_TEST,
 } from './app/services/ads.config';
 import {
-  EPUB_MERGER_AND_SPLITTER_RATING_FEEDBACK_OPTIONS,
-  EPUB_MERGER_AND_SPLITTER_RATING_TRANSLATION_OVERRIDES,
-} from './app/services/rating.config';
-import { EPUB_MERGER_AND_SPLITTER_SETTINGS_SCHEMA } from './app/settings/epub-merger-and-splitter-settings.schema';
+  EPUB_MERGER_AND_SPLITTER_SETTINGS_SCHEMA,
+  type EpubMergerAndSplitterSettings,
+} from './app/settings/epub-merger-and-splitter-settings.schema';
 
 const EPUB_MERGER_AND_SPLITTER_SETTINGS_STORAGE_KEY = 'epub-merger-and-splitter.settings';
 const EPUB_MERGER_AND_SPLITTER_PACKAGE_ID = 'com.sheldrapps.epubmergersplitter';
-const EPUB_MERGER_AND_SPLITTER_RATING_STORAGE_KEY = 'rating.epub-merger-and-splitter';
+
+function installRuntimeLogging(): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.addEventListener('error', (event) => {
+    console.error(
+      '[epub-merger-and-splitter] window.error',
+      event.error instanceof Error
+        ? `${event.error.name}: ${event.error.message}\n${event.error.stack ?? ''}`
+        : event.error ?? event.message,
+    );
+  });
+
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('[epub-merger-and-splitter] unhandledrejection', event.reason);
+  });
+}
+
+function createNativeBootstrapInitializer(
+  edgeToEdge: EdgeToEdgeService,
+  theme: ThemeService,
+  settings: SettingsStore<EpubMergerAndSplitterSettings>,
+  language: LanguageService,
+  translate: TranslateService,
+  title: Title,
+): () => Promise<void> {
+  return async () => {
+    await edgeToEdge.initEdgeToEdge();
+    await theme.initialize();
+
+    const currentSettings = settings.get();
+    const storedLanguage = currentSettings.language;
+    const resolvedLanguage = storedLanguage ?? (await detectSupportedLocale());
+
+    translate.setDefaultLang('en-US');
+
+    if (!storedLanguage) {
+      await settings.setForScope('language', { language: resolvedLanguage });
+    }
+
+    await language.set(resolvedLanguage);
+    title.setTitle(translate.instant('APP.TITLE'));
+  };
+}
 
 async function bootstrap(): Promise<void> {
+  installRuntimeLogging();
+
   const providers = [
     provideIonicAngular(),
     provideRouter(routes),
@@ -91,7 +144,6 @@ async function bootstrap(): Promise<void> {
       },
       new MemoryStorageAdapter(),
     ),
-    provideEpubMergerAndSplitterLanguageInitializer(),
     provideEReaderPreviewFrameI18n(),
     provideEditorI18n(),
     providePrivacyPolicyKitI18n(),
@@ -119,23 +171,6 @@ async function bootstrap(): Promise<void> {
         new WebLocalStorageAdapter(),
       ]),
     }),
-    provideRatingKit({
-      appKey: 'epub-merger-and-splitter',
-      appName: 'EPUB Merger & Splitter',
-      packageName: EPUB_MERGER_AND_SPLITTER_PACKAGE_ID,
-      supportEmail: 'sheldrapps@gmail.com',
-      feedbackOptions: EPUB_MERGER_AND_SPLITTER_RATING_FEEDBACK_OPTIONS,
-      translationOverrides: EPUB_MERGER_AND_SPLITTER_RATING_TRANSLATION_OVERRIDES,
-      minSuccessEvents: 2,
-      minLaunches: 2,
-      cooldownDays: 14,
-      storageAdapter: new ConfigJsonFileAdapter({
-        primaryKey: EPUB_MERGER_AND_SPLITTER_RATING_STORAGE_KEY,
-        path: 'rating-state.json',
-        fallbackAdapter: new WebLocalStorageAdapter(),
-      }),
-    }),
-
     provideFileKit({
       enableWebDevAdapters: environment.enableWebDevAdapters,
     }),
@@ -151,6 +186,19 @@ async function bootstrap(): Promise<void> {
         removeAdsProductId: 'epub_merger_and_splitter_pro',
       },
     }),
+    {
+      provide: APP_INITIALIZER,
+      multi: true,
+      deps: [
+        EdgeToEdgeService,
+        ThemeService,
+        SettingsStore,
+        LanguageService,
+        TranslateService,
+        Title,
+      ],
+      useFactory: createNativeBootstrapInitializer,
+    },
     ...provideEpubMergerAndSplitterPort(),
     {
       provide: RECOMMENDED_APPS_CURRENT_PACKAGE,
@@ -161,4 +209,6 @@ async function bootstrap(): Promise<void> {
   await bootstrapApplication(AppComponent, { providers });
 }
 
-void bootstrap();
+void bootstrap().catch((error) => {
+  console.error('[epub-merger-and-splitter] bootstrap failed', error);
+});

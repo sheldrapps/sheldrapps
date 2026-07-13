@@ -77,6 +77,38 @@ Rules:
    - when a forced theme is active, ignore system changes
 9. Apply the resolved theme to the document root and system bars using the current shared service behavior.
 10. Initialize theme in app bootstrap so the first render uses the stored or default theme, not a stale visual state.
+11. For native Android apps, do not leave theme initialization in `AppComponent` or a page constructor; gate first render through bootstrap-level initialization, preferably `APP_INITIALIZER` or an equivalent bootstrap barrier.
+
+## Android startup hardening
+
+Always scaffold the Android launch surface so the app does not start on a black frame.
+
+Rules:
+
+1. Add an explicit launch theme in `android/app/src/main/res/values/styles.xml`.
+2. Use `Theme.SplashScreen` for the launch theme.
+3. Set `android:windowBackground` to a dedicated launch drawable, not to a default dark surface.
+4. Set `postSplashScreenTheme` to the real app theme.
+5. Add `android/app/src/main/res/values-v31/styles.xml` for Android 12+ splash attributes.
+6. Set `windowSplashScreenBackground` explicitly.
+7. Set `windowSplashScreenAnimatedIcon` explicitly.
+8. Keep the launch drawable non-black by default unless the product brief explicitly wants a dark splash.
+9. If the scaffold generates tabs, include the `ion-router-outlet` inside the tabs shell template from the beginning.
+10. Do not treat a black first frame as acceptable startup noise; if a cold launch screenshot is black before the UI appears, fix the splash/theme before closing the scaffold.
+
+## Native Bootstrap Pattern
+
+If the app needs a native Android entrypoint, scaffold Android startup so the first render is controlled from bootstrap.
+
+Rules:
+
+1. Create `src/main.native.ts` when the app needs native-only startup behavior.
+2. Keep Android-specific initialization in `main.native.ts`, not in `AppComponent`, page constructors, or page lifecycle hooks.
+3. Use a bootstrap barrier for theme, language, and other startup state that must complete before first render.
+4. Prefer `APP_INITIALIZER` or an equivalent bootstrap gate when theme or language must resolve before Angular paints.
+5. Keep `AppComponent` focused on routing, shell behavior, document title, and blur-on-navigation cleanup.
+6. Do not duplicate startup policy between `main.ts` and `main.native.ts`; share providers if needed, but keep the native bootstrap decision centralized.
+7. If the app has `main.native.ts`, include cold-start screenshot validation in the scaffold checklist.
 
 ## Language flow intake
 
@@ -232,6 +264,7 @@ Example:
 5. Crear tabs base:
    - `src/app/tabs/tabs.page.html`
    - `src/app/tabs/tabs.routes.ts`
+   - `tabs.page.html` debe incluir `ion-router-outlet` dentro de `ion-tabs`.
 6. Si hay 3+ tabs, Settings debe ser el último.
 7. Definir schema settings en:
    - `src/app/settings/<app>-settings.schema.ts`
@@ -240,10 +273,16 @@ Example:
     - `ConfigJsonFileAdapter` para `config.json`.
     - `provideI18nKit({ ... })` con `prefix: './assets/i18n/'`.
     - `provideRatingKit({ ... })` si el app usa el flujo de calificar/reportar un problema.
+   - Si existe `src/main.native.ts`, mover ahí la política Android de arranque visual y dejar `src/main.ts` solo con bootstrap compartido.
 9. Integrar estilos ui-theme:
    - `src/global.scss` -> `@use "@sheldrapps/ui-theme/styles/index" as *;`
    - `src/theme/variables.scss` -> mismo baseline.
-10. Agregar scripts root si aplica (`dev:*`, `build:*`, `lint:*`).
+10. Crear y validar el launch theme Android:
+   - `android/app/src/main/res/values/styles.xml`
+   - `android/app/src/main/res/values-v31/styles.xml`
+   - launch drawable no negro
+   - `postSplashScreenTheme` apuntando al tema real
+11. Agregar scripts root si aplica (`dev:*`, `build:*`, `lint:*`).
     - Siempre agregar también los aliases del short name nuevo en el `package.json` raíz:
       - `dev:<short>`
       - `build:<short>`
@@ -261,12 +300,12 @@ Example:
       - `debugApk:<short>`
       - `releaseApk:<short>`
     - Si la sección de scripts raíz ya está creciendo demasiado, centralizar los shorts en un mapa y generar los aliases desde una sola fuente de verdad.
-11. Configurar la firma Android de release para la app nueva antes de validar `bundleRelease`:
+12. Configurar la firma Android de release para la app nueva antes de validar `bundleRelease`:
     - crear una keystore nueva para la app
     - agregar su ruta y alias en `android/gradle.properties`
     - apuntar `android/app/build.gradle` a esa keystore
     - verificar que `bundleRelease` use esa firma nueva
-12. Si el scaffold incluye assets de tienda, crear también:
+13. Si el scaffold incluye assets de tienda, crear también:
    - `2` screenshots simples
    - `1` feature graphic simple
    - `1` icono `512x512`
@@ -347,6 +386,14 @@ Si intencionalmente no se usa `ConfigJsonFileAdapter`, documentar TODO en bootst
 5. `pnpm test`
 6. `pnpm lint`
 7. `pnpm build`
+8. En Android, hacer un cold start real:
+   - sincronizar `cap`
+   - instalar el APK
+   - `force-stop`
+   - abrir la app
+   - capturar un screenshot a ~1s y otro a ~5s
+   - si el primer frame sigue negro o vacío, corregir splash/theme antes de cerrar
+9. Si existe `src/main.native.ts`, revisar que no haya init de theme/language/settings en `AppComponent` ni en constructores de páginas.
 
 ## Definition Of Done
 
@@ -356,6 +403,7 @@ No cerrar la skill hasta:
 2. Confirmar que no hay corrupción de encoding en textos o traducciones.
 3. Verificar que los `TABS.*` y demás strings nuevas quedaron completos en los 13 idiomas soportados.
 4. Confirmar que `en-US` quedó como fallback base.
+5. Confirmar en Android que no hay pantalla negra de arranque en cold start.
 
 ## Reporte esperado
 
