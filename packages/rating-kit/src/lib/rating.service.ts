@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, Injector, inject } from '@angular/core';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { ModalController } from '@ionic/angular/standalone';
@@ -18,7 +18,7 @@ import type {
 export class RatingService {
   private readonly config = inject(RATING_CONFIG_TOKEN);
   private readonly gate = inject(RatingGateService);
-  private readonly modalController = inject(ModalController);
+  private readonly injector = inject(Injector);
   private readonly storage = inject(RatingStorageService);
   private readonly translate = inject(TranslateService);
 
@@ -212,7 +212,7 @@ export class RatingService {
   }
 
   private createFeedbackModal(mode: 'problem' | 'suggestion') {
-    return this.modalController.create({
+    return this.injector.get(ModalController).create({
       component: RatingFeedbackModalComponent,
       componentProps: {
         mode,
@@ -222,7 +222,7 @@ export class RatingService {
   }
 
   private createPromptModal() {
-    return this.modalController.create({
+    return this.injector.get(ModalController).create({
       component: RatingPromptComponent,
       cssClass: 'rating-prompt-modal',
       backdropDismiss: true,

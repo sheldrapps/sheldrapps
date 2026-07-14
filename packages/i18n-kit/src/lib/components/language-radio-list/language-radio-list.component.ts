@@ -8,24 +8,28 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-import {
-  IonItem,
-  IonLabel,
-  IonRadio,
-  IonRadioGroup,
-} from '@ionic/angular/standalone';
+import { IonIcon, IonItem, IonLabel } from '@ionic/angular/standalone';
+import { TranslateModule } from '@ngx-translate/core';
 
 export type LanguageRadioOption = {
   code: string;
-  label: string;
+  label?: string;
+  labelKey?: string;
   flagClass?: string;
 };
 
 @Component({
   selector: 'app-language-radio-list',
   standalone: true,
-  imports: [CommonModule, IonRadioGroup, IonItem, IonRadio, IonLabel],
+  imports: [
+    CommonModule,
+    TranslateModule,
+    IonItem,
+    IonLabel,
+    IonIcon,
+  ],
   templateUrl: './language-radio-list.component.html',
+  styleUrls: ['./language-radio-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LanguageRadioListComponent implements OnChanges {
@@ -40,10 +44,6 @@ export class LanguageRadioListComponent implements OnChanges {
     if ('value' in changes) {
       this.selectedValue = this.value;
     }
-  }
-
-  onGroupChange(next: string): void {
-    this.selectValue(next);
   }
 
   onItemClick(next: string): void {

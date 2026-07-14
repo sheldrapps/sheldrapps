@@ -17,7 +17,11 @@ import {
   IonLoading,
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
-import { THEME_OPTIONS, ThemeService, type Theme } from '@sheldrapps/ui-theme';
+import {
+  ThemeService,
+  UiThemeI18nService,
+  type Theme,
+} from '@sheldrapps/ui-theme';
 import { PrivacyPolicySectionComponent } from '@sheldrapps/privacy-policy-kit';
 
 import {
@@ -69,8 +73,8 @@ export class SettingsPage {
   public lang = inject(LanguageService);
   public consent = inject(ConsentService);
   private theme = inject(ThemeService);
+  private uiThemeI18n = inject(UiThemeI18nService);
   readonly supportedLangs = LANG_OPTIONS;
-  readonly supportedThemes = THEME_OPTIONS;
   private isRestartingLanguage = false;
   isLanguageModalOpen = false;
   private _languageDraft: Lang | null = null;
@@ -95,11 +99,8 @@ export class SettingsPage {
     return this.theme.currentTheme;
   }
 
-  get currentThemeLabelKey(): string {
-    return (
-      this.supportedThemes.find((option) => option.code === this.currentTheme)
-        ?.labelKey ?? 'SETTINGS.THEME_SYSTEM'
-    );
+  get currentThemeLabel(): string {
+    return this.uiThemeI18n.getThemeLabel(this.currentTheme);
   }
 
   get currentLanguageOption(): LangOption | undefined {

@@ -1,6 +1,5 @@
 ﻿import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
   IonContent,
@@ -8,8 +7,6 @@ import {
   IonItem,
   IonLabel,
   IonList,
-  IonRadio,
-  IonRadioGroup,
   IonModal,
   IonButtons,
   IonButton,
@@ -18,7 +15,8 @@ import {
 } from "@ionic/angular/standalone";
 import { TranslateModule } from '@ngx-translate/core';
 import { PrivacyPolicySectionComponent } from '@sheldrapps/privacy-policy-kit';
-import { THEME_OPTIONS, type Theme } from "@sheldrapps/ui-theme";
+import { LanguageRadioListComponent } from '@sheldrapps/i18n-kit';
+import { UiThemeI18nService, type Theme } from "@sheldrapps/ui-theme";
 
 import { Lang, LangOption, LANG_OPTIONS } from '../../services/language.service';
 import { ConsentService } from '../../services/consent.service';
@@ -31,7 +29,6 @@ import { ConfigService } from "../../../config/config.service";
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     RouterLink,
     TranslateModule,
     IonHeader,
@@ -41,20 +38,19 @@ import { ConfigService } from "../../../config/config.service";
     IonList,
     IonItem,
     IonLabel,
-    IonRadio,
-    IonRadioGroup,
     IonModal,
     IonButtons,
     IonButton,
     PrivacyPolicySectionComponent,
+    LanguageRadioListComponent,
   ],
 })
 export class SettingsPage {
   private readonly config = inject(ConfigService);
+  private readonly uiThemeI18n = inject(UiThemeI18nService);
 
   readonly consent = inject(ConsentService);
   readonly supportedLangs = LANG_OPTIONS;
-  readonly supportedThemes = THEME_OPTIONS;
   isLanguageModalOpen = false;
   languageDraft: Lang = "en-US";
 
@@ -69,11 +65,8 @@ export class SettingsPage {
     return this.config.snapshot().theme;
   }
 
-  get currentThemeLabelKey(): string {
-    return (
-      this.supportedThemes.find((option) => option.code === this.currentTheme)
-        ?.labelKey ?? "SETTINGS.THEME_SYSTEM"
-    );
+  get currentThemeLabel(): string {
+    return this.uiThemeI18n.getThemeLabel(this.currentTheme);
   }
 
   get currentLanguageOption(): LangOption | undefined {
@@ -91,8 +84,8 @@ export class SettingsPage {
     this.isLanguageModalOpen = false;
   }
 
-  onLanguageDraftChange(value: Lang): void {
-    this.languageDraft = value;
+  onLanguageDraftChange(value: string): void {
+    this.languageDraft = value as Lang;
   }
 
   async confirmLanguageModal(): Promise<void> {
@@ -100,8 +93,6 @@ export class SettingsPage {
     this.closeLanguageModal();
     await this.onLangChange(nextLanguage);
   }
-
-  trackByLang = (_: number, l: LangOption) => l.code;
 
   async onLangChange(v: Lang): Promise<void> {
     if (!v || v === this.currentLanguage) {

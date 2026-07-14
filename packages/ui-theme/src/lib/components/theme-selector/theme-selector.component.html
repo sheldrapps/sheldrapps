@@ -1,0 +1,19 @@
+<div class="app-theme-selector-grid app-theme-selector-grid--two-columns">
+  <button
+    type="button"
+    class="app-theme-selector-card"
+    *ngFor="let option of options(); trackBy: trackByTheme"
+    [class.app-theme-selector-card--selected]="value === option.code"
+    [attr.aria-pressed]="value === option.code"
+    (click)="onSelect(option.code)"
+  >
+    <sh-theme-preview-tile
+      [themeId]="option.code"
+      [displayName]="option.label"
+      [selected]="value === option.code"
+    ></sh-theme-preview-tile>
+    <ion-label class="app-theme-selector-card__label">
+      {{ option.label }}
+    </ion-label>
+  </button>
+</div>

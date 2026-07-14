@@ -6,7 +6,7 @@ import {
   provideIonicAngular,
 } from '@ionic/angular/standalone';
 import { provideAdsKit } from '@sheldrapps/ads-kit';
-import { MemoryStorageAdapter, provideI18nKit } from '@sheldrapps/i18n-kit';
+import { provideI18nKit } from '@sheldrapps/i18n-kit';
 import { provideNativeSqlite } from '@sheldrapps/native-sqlite-kit';
 import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
 import {
@@ -54,7 +54,6 @@ bootstrapApplication(AppComponent, {
           pr: 'pt-BR',
         },
       },
-      new MemoryStorageAdapter()
     ),
     providePrivacyPolicyKitI18n(),
     provideSettingsKit({

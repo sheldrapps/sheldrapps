@@ -40,61 +40,61 @@ export type ThemePreviewTokens = {
 export const THEME_DEFINITIONS: readonly ThemeDefinition[] = [
   {
     id: 'light',
-    labelKey: 'SETTINGS.THEME_LIGHT',
+    labelKey: 'UI_THEME.THEME.LIGHT',
     className: 'theme-light',
     appearance: 'light',
   },
   {
     id: 'dark',
-    labelKey: 'SETTINGS.THEME_DARK',
+    labelKey: 'UI_THEME.THEME.DARK',
     className: 'theme-dark',
     appearance: 'dark',
   },
   {
     id: 'warm-reading',
-    labelKey: 'SETTINGS.THEME_WARM_READING',
+    labelKey: 'UI_THEME.THEME.WARM_READING',
     className: 'theme-warm-reading',
     appearance: 'light',
   },
   {
     id: 'pop-rose',
-    labelKey: 'SETTINGS.THEME_POP_ROSE',
+    labelKey: 'UI_THEME.THEME.POP_ROSE',
     className: 'theme-pop-rose',
     appearance: 'light',
   },
   {
     id: 'nocturne-violet',
-    labelKey: 'SETTINGS.THEME_NOCTURNE_VIOLET',
+    labelKey: 'UI_THEME.THEME.NOCTURNE_VIOLET',
     className: 'theme-nocturne-violet',
     appearance: 'dark',
   },
   {
     id: 'obsidian-red',
-    labelKey: 'SETTINGS.THEME_OBSIDIAN_RED',
+    labelKey: 'UI_THEME.THEME.OBSIDIAN_RED',
     className: 'theme-obsidian-red',
     appearance: 'dark',
   },
   {
     id: 'terminal-green',
-    labelKey: 'SETTINGS.THEME_TERMINAL_GREEN',
+    labelKey: 'UI_THEME.THEME.TERMINAL_GREEN',
     className: 'theme-terminal-green',
     appearance: 'dark',
   },
   {
     id: 'mint-fresh',
-    labelKey: 'SETTINGS.THEME_MINT_FRESH',
+    labelKey: 'UI_THEME.THEME.MINT_FRESH',
     className: 'theme-mint-fresh',
     appearance: 'light',
   },
   {
     id: 'silver-tech',
-    labelKey: 'SETTINGS.THEME_SILVER_TECH',
+    labelKey: 'UI_THEME.THEME.SILVER_TECH',
     className: 'theme-silver-tech',
     appearance: 'dark',
   },
   {
     id: 'gold-luxe',
-    labelKey: 'SETTINGS.THEME_GOLD_LUXE',
+    labelKey: 'UI_THEME.THEME.GOLD_LUXE',
     className: 'theme-gold-luxe',
     appearance: 'dark',
   },
@@ -117,9 +117,16 @@ export const THEME_CLASS_NAMES: readonly string[] = THEME_DEFINITIONS.map(
 );
 
 export const THEME_OPTIONS: readonly ThemeOption[] = [
-  { code: 'system', labelKey: 'SETTINGS.THEME_SYSTEM' },
+  { code: 'system', labelKey: 'UI_THEME.THEME.SYSTEM' },
   ...THEME_DEFINITIONS.map(({ id, labelKey }) => ({ code: id, labelKey })),
 ] as const;
+
+export function getThemeLabelKey(theme: Theme | null | undefined): string {
+  return (
+    THEME_OPTIONS.find((option) => option.code === theme)?.labelKey ??
+    THEME_OPTIONS[0].labelKey
+  );
+}
 
 export const THEME_PREVIEW_TOKENS: Readonly<Record<ThemeId, ThemePreviewTokens>> = {
   light: {

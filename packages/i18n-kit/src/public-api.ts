@@ -13,6 +13,8 @@ export * from './lib/locale-detection.service';
 export * from './lib/launcher-alias-sync';
 export * from './lib/app-restart';
 export * from './lib/components/language-radio-list/language-radio-list.component';
+export * from './lib/translations/language-kit.translations';
+export * from './lib/translations/provide-language-kit-i18n';
 
 // Adapter exports
 export * from './lib/adapters/device-lang';

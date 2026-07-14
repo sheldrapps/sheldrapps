@@ -10,4 +10,6 @@ export * from "./day-agenda-timeline/day-agenda-timeline.component";
 export * from "./loading-state/loading-state.component";
 export * from "./time-path/time-path.component";
 export * from "./theme-preview-tile/theme-preview-tile.component";
+export * from "./theme-selector/theme-selector.component";
+export * from "./theme-settings-page/theme-settings-page.component";
 export * from "./under-construction-page/under-construction-page.component";

@@ -15,6 +15,7 @@ import {
 import { LanguageService } from './language.service';
 import { StorageAdapter, LocalStorageAdapter } from './storage';
 import { createCasePreservingTranslateLoader } from './case-preserving-loader';
+import { provideLanguageKitI18n } from './translations/provide-language-kit-i18n';
 
 /**
  * Main provider factory for i18n-kit
@@ -68,6 +69,8 @@ export function provideI18nKit(
         deps: [HttpClient],
       },
     }),
+
+    provideLanguageKitI18n(),
 
     LanguageService,
   ];

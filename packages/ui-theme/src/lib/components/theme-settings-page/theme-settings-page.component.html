@@ -1,0 +1,20 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="backHref"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ texts().UI_THEME.THEME_SETTINGS.TITLE }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" [disabled]="!isDirty" (click)="onDone()">
+        {{ texts().UI_THEME.THEME_SETTINGS.DONE }}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <sh-theme-selector
+    [value]="draftThemeId"
+    (valueChange)="onThemeDraftChange($event)"
+  ></sh-theme-selector>
+</ion-content>

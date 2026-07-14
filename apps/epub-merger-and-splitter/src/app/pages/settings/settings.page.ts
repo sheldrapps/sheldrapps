@@ -22,7 +22,11 @@ import {
 import { TranslateModule } from '@ngx-translate/core';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
-import { THEME_OPTIONS, ThemeService, type Theme } from '@sheldrapps/ui-theme';
+import {
+  ThemeService,
+  UiThemeI18nService,
+  type Theme,
+} from '@sheldrapps/ui-theme';
 import {
   LANG_OPTIONS,
   Lang,
@@ -59,10 +63,10 @@ export class SettingsPage {
   private readonly settings = inject(SettingsStore<EpubMergerAndSplitterSettings>);
   readonly lang = inject(LanguageService);
   private readonly theme = inject(ThemeService);
+  private readonly uiThemeI18n = inject(UiThemeI18nService);
   private readonly ratingService = inject(RatingService);
 
   readonly supportedLangs = LANG_OPTIONS;
-  readonly supportedThemes = THEME_OPTIONS;
   readonly privacyPolicyUrl =
     'https://sheldrapps.com/privacy-policies/epub-merger-and-splitter';
 
@@ -82,11 +86,8 @@ export class SettingsPage {
     return this.theme.currentTheme;
   }
 
-  get currentThemeLabelKey(): string {
-    return (
-      this.supportedThemes.find((option) => option.code === this.currentTheme)
-        ?.labelKey ?? 'SETTINGS.THEME_SYSTEM'
-    );
+  get currentThemeLabel(): string {
+    return this.uiThemeI18n.getThemeLabel(this.currentTheme);
   }
 
   get currentLanguageOption(): LangOption | undefined {

@@ -5,7 +5,7 @@ import {
   IonicRouteStrategy,
 } from '@ionic/angular/standalone';
 
-import { MemoryStorageAdapter, provideI18nKit } from '@sheldrapps/i18n-kit';
+import { provideI18nKit } from '@sheldrapps/i18n-kit';
 import {
   provideCoverImageStateI18n,
   provideCoverSourceI18n,
@@ -91,7 +91,6 @@ bootstrapApplication(AppComponent, {
           ru: 'ru-RU',
         },
       },
-      new MemoryStorageAdapter(),
     ),
     provideAdFallbackKitI18n(),
     provideAdsKitI18n(),

@@ -23,7 +23,7 @@
     <ion-item button detail="true" [routerLink]="['/tabs/settings/theme']">
       <ion-label class="ion-text-wrap">
         <h2>{{ 'SETTINGS.THEME' | translate }}</h2>
-        <p>{{ currentThemeLabelKey | translate }}</p>
+        <p>{{ currentThemeLabel }}</p>
       </ion-label>
     </ion-item>
   </ion-list>
@@ -64,14 +64,12 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-content>
-        <ion-list>
-          <app-language-radio-list
-            [value]="languageDraft"
-            [options]="supportedLangs"
-            (valueChange)="onLanguageDraftChange($event)"
-          ></app-language-radio-list>
-        </ion-list>
+      <ion-content class="app-modal-content">
+        <app-language-radio-list
+          [value]="languageDraft"
+          [options]="supportedLangs"
+          (valueChange)="onLanguageDraftChange($event)"
+        ></app-language-radio-list>
       </ion-content>
     </ng-template>
   </ion-modal>

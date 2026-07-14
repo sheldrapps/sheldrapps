@@ -4,10 +4,7 @@ import {
   provideIonicAngular,
   IonicRouteStrategy,
 } from '@ionic/angular/standalone';
-import {
-  MemoryStorageAdapter,
-  provideI18nKit,
-} from '@sheldrapps/i18n-kit';
+import { provideI18nKit } from '@sheldrapps/i18n-kit';
 import { provideEReaderPreviewFrameI18n } from '@sheldrapps/image-workflow';
 import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
 import { provideRatingKit } from '@sheldrapps/rating-kit';
@@ -87,7 +84,6 @@ async function bootstrap(): Promise<void> {
           ru: 'ru-RU',
         },
       },
-      new MemoryStorageAdapter(),
     ),
     provideEReaderPreviewFrameI18n(),
     providePrivacyPolicyKitI18n(),

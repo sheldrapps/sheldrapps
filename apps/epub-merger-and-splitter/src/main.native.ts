@@ -8,14 +8,13 @@ import {
 import {
   detectSupportedLocale,
   LanguageService,
-  MemoryStorageAdapter,
   provideI18nKit,
 } from '@sheldrapps/i18n-kit';
 import { provideEReaderPreviewFrameI18n } from '@sheldrapps/image-workflow';
 import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
 import { provideEditorI18n } from '@sheldrapps/image-workflow/editor';
 import { TranslateService } from '@ngx-translate/core';
-import { provideUiThemeI18n } from '@sheldrapps/ui-theme';
+import { provideRatingKit } from '@sheldrapps/rating-kit';
 import {
   CapacitorPreferencesAdapter,
   CompositeStorageAdapter,
@@ -41,12 +40,17 @@ import {
   ADS_UNITS_ANDROID_TEST,
 } from './app/services/ads.config';
 import {
+  EPUB_MERGER_AND_SPLITTER_RATING_FEEDBACK_OPTIONS,
+  EPUB_MERGER_AND_SPLITTER_RATING_TRANSLATION_OVERRIDES,
+} from './app/services/rating.config';
+import {
   EPUB_MERGER_AND_SPLITTER_SETTINGS_SCHEMA,
   type EpubMergerAndSplitterSettings,
 } from './app/settings/epub-merger-and-splitter-settings.schema';
 
 const EPUB_MERGER_AND_SPLITTER_SETTINGS_STORAGE_KEY = 'epub-merger-and-splitter.settings';
 const EPUB_MERGER_AND_SPLITTER_PACKAGE_ID = 'com.sheldrapps.epubmergersplitter';
+const EPUB_MERGER_AND_SPLITTER_RATING_STORAGE_KEY = 'rating.epub-merger-and-splitter';
 
 function installRuntimeLogging(): void {
   if (typeof window === 'undefined') {
@@ -142,14 +146,12 @@ async function bootstrap(): Promise<void> {
           ru: 'ru-RU',
         },
       },
-      new MemoryStorageAdapter(),
     ),
     provideEReaderPreviewFrameI18n(),
     provideEditorI18n(),
     providePrivacyPolicyKitI18n(),
     provideAdFallbackKitI18n(),
     provideAdsKitI18n(),
-    provideUiThemeI18n(),
 
     provideSettingsKit({
       appId: 'epub-merger-and-splitter',
@@ -170,6 +172,22 @@ async function bootstrap(): Promise<void> {
         new CapacitorPreferencesAdapter(),
         new WebLocalStorageAdapter(),
       ]),
+    }),
+    provideRatingKit({
+      appKey: 'epub-merger-and-splitter',
+      appName: 'EPUB Merger & Splitter',
+      packageName: EPUB_MERGER_AND_SPLITTER_PACKAGE_ID,
+      supportEmail: 'sheldrapps@gmail.com',
+      feedbackOptions: EPUB_MERGER_AND_SPLITTER_RATING_FEEDBACK_OPTIONS,
+      translationOverrides: EPUB_MERGER_AND_SPLITTER_RATING_TRANSLATION_OVERRIDES,
+      minSuccessEvents: 2,
+      minLaunches: 2,
+      cooldownDays: 14,
+      storageAdapter: new ConfigJsonFileAdapter({
+        primaryKey: EPUB_MERGER_AND_SPLITTER_RATING_STORAGE_KEY,
+        path: 'rating-state.json',
+        fallbackAdapter: new WebLocalStorageAdapter(),
+      }),
     }),
     provideFileKit({
       enableWebDevAdapters: environment.enableWebDevAdapters,

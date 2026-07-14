@@ -1,7 +1,6 @@
 import { EnvironmentProviders, Provider } from '@angular/core';
 
 import {
-  MemoryStorageAdapter,
   provideI18nKit,
 } from '@sheldrapps/i18n-kit';
 import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
@@ -77,7 +76,6 @@ export function createBootstrapProviders(): Array<Provider | EnvironmentProvider
           'zh-TW': 'zh-TW',
         },
       },
-      new MemoryStorageAdapter(),
     ),
     providePrivacyPolicyKitI18n(),
     provideExportQualityKitI18n(),

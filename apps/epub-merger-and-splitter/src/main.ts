@@ -5,10 +5,8 @@ import {
   IonicRouteStrategy,
 } from '@ionic/angular/standalone';
 import {
-  MemoryStorageAdapter,
   provideI18nKit,
 } from '@sheldrapps/i18n-kit';
-import { provideUiThemeI18n } from '@sheldrapps/ui-theme';
 import { provideEReaderPreviewFrameI18n } from '@sheldrapps/image-workflow';
 import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
 import { provideEditorI18n } from '@sheldrapps/image-workflow/editor';
@@ -108,14 +106,12 @@ async function bootstrap(): Promise<void> {
           ru: 'ru-RU',
         },
       },
-      new MemoryStorageAdapter(),
     ),
     provideEReaderPreviewFrameI18n(),
     provideEditorI18n(),
     providePrivacyPolicyKitI18n(),
     provideAdFallbackKitI18n(),
     provideAdsKitI18n(),
-    provideUiThemeI18n(),
 
     provideSettingsKit({
       appId: 'epub-merger-and-splitter',
