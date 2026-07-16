@@ -15,7 +15,7 @@
     "BILLING_UNAVAILABLE": "As compras não estão disponíveis no momento.",
     "PURCHASE_ERROR": "Não foi possível concluir a compra. Tente novamente.",
     "REMOVE_ADS_BUY": "Comprar",
-    "REMOVE_ADS_DESCRIPTION": "Remova os anúncios para sempre e habilite a seleção entre exportação sem perdas e comprimida.",
+    "REMOVE_ADS_DESCRIPTION": "Remova os anúncios para sempre com um único pagamento.",
     "REMOVE_ADS_PURCHASED": "Anúncios removidos para sempre.",
     "REMOVE_ADS_RESTORE": "Restaurar compra",
     "REMOVE_ADS_RESTORED": "Compra restaurada com sucesso.",
@@ -104,7 +104,7 @@
     "PLACEHOLDER": "Capa",
     "PREVIEW_TITLE": "Capa atual",
     "TITLE": "Capas",
-    "DITHERED_THUMBNAIL_NOTICE": "Capas com redução de artefatos podem parecer diferentes nas miniaturas. Abra a visualização para ver um resultado mais fiel.",
+    "DITHERED_THUMBNAIL_NOTICE": "Capas com redu??o de artefatos podem parecer diferentes nas miniaturas. Abra a visualiza??o para ver um resultado mais fiel.",
     "ACTIONS": {
       "DELETE": "Excluir",
       "SHARE": "Compartilhar",
@@ -139,7 +139,7 @@
     "STEP_5": "Enviar pela web (Send to Kindle)",
     "STEP_5_DESC": "Você também pode enviá-la pelo navegador usando a ferramenta web Send to Kindle.",
     "TIP": "Para melhores resultados, use imagens em alta resolução e verifique se os anúncios estão desativados no seu Kindle.",
-    "TITLE": "Instruções"
+    "TITLE": "Instru??es"
   },
   "KINDLE_BRANDS": {
     "KINDLE": "Kindle"
@@ -300,29 +300,15 @@
     "INSTRUCTIONS": "Ver instruções",
     "INSTRUCTIONS_HINT": "Como criar e enviar uma capa para Kindle",
     "INSTRUCTIONS_SECTION": "Instruções",
-    "LANGUAGE": "Idioma",
-    "LANGUAGE_RESTART_NOTICE": "Idioma alterado. O app será reiniciado para aplicar as mudanças.",
-    "LANGUAGE_PREPARING_COUNTDOWN": "Preparando tudo no seu idioma. O app será fechado para mudar o nome ({{count}})",
     "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
     "EREADER_OPTIMIZATION_HINT": "Apply automatic adjustments to improve clarity on eReaders",
     "EREADER_OPTIMIZATION_TOGGLE": "Optimize for eReader",
     "REQUISITES": "Ver requisitos",
     "REQUISITES_HINT": "Configurações necessárias para que as capas funcionem corretamente no Kindle",
     "REQUISITES_SECTION": "Requisitos",
-    "THEME": "Tema",
-    "THEME_SYSTEM": "Sistema",
-    "THEME_LIGHT": "Claro natural",
-    "THEME_DARK": "Escuro clássico",
-    "THEME_WARM_READING": "Leitura acolhedora",
-    "THEME_POP_ROSE": "Rosa pop",
-    "THEME_NOCTURNE_VIOLET": "Violeta noturno",
-    "THEME_OBSIDIAN_RED": "Vermelho obsidiana",
-    "THEME_TERMINAL_GREEN": "Verde terminal",
-    "THEME_MINT_FRESH": "Menta Fresca",
-    "THEME_SILVER_TECH": "Silver",
-    "THEME_GOLD_LUXE": "Oro",
     "TITLE": "Configurações",
-    "VIEW_TOUR": "Ver tour"
+    "VIEW_TOUR": "Ver tour",
+    "HOW_TO_USE": "Como usar?"
   },
   "TABS": {
     "COVERS": "Capas",

@@ -187,24 +187,9 @@
   },
   "SETTINGS": {
     "TITLE": "설정",
-    "LANGUAGE": "언어",
-    "LANGUAGE_PREPARING_COUNTDOWN": "사용자 언어로 준비 중입니다. 이름 변경을 위해 앱이 종료됩니다 ({{count}})",
     "INSTRUCTIONS": "사용법 보기",
     "INSTRUCTIONS_SECTION": "사용법",
-    "INSTRUCTIONS_HINT": "EPUB Fixer가 지금 어떻게 구성되어 있는지",
-    "THEME": "í…Œë§ˆ",
-    "THEME_SYSTEM": "ì‹œìŠ¤í…œ",
-    "THEME_LIGHT": "내추럴 라이트",
-    "THEME_DARK": "클래식 다크",
-    "THEME_WARM_READING": "??? ??",
-    "THEME_POP_ROSE": "? ??",
-    "THEME_NOCTURNE_VIOLET": "?? ????",
-    "THEME_OBSIDIAN_RED": "??? ??",
-    "THEME_TERMINAL_GREEN": "??? ??",
-    "THEME_MINT_FRESH": "?? ???",
-    "THEME_SILVER_TECH": "?? ??",
-    "THEME_GOLD_LUXE": "?? ??",
-    "VIEW_TOUR": "????"
+    "INSTRUCTIONS_HINT": "EPUB Fixer가 지금 어떻게 구성되어 있는지"
   },
   "TABS": {
     "FIX": "ë³µêµ¬",

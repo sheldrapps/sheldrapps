@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { RatingService } from '@sheldrapps/rating-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { ThemeService, type Theme } from '@sheldrapps/ui-theme';
 import { SettingsPage } from './settings.page';
@@ -55,6 +56,18 @@ describe('SettingsPage', () => {
         {
           provide: LanguageService,
           useValue: languageService,
+        },
+        {
+          provide: RatingService,
+          useValue: {
+            previewPrompt: jasmine.createSpy('previewPrompt').and.resolveTo(),
+            previewSuggestionFlow: jasmine
+              .createSpy('previewSuggestionFlow')
+              .and.resolveTo(),
+            previewFeedbackFlow: jasmine
+              .createSpy('previewFeedbackFlow')
+              .and.resolveTo(),
+          },
         },
         { provide: ThemeService, useValue: themeService },
       ],

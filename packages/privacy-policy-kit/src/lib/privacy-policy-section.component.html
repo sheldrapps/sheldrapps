@@ -1,12 +1,6 @@
-<ion-list inset="true">
-  <ion-item lines="full">
-    <ion-label class="ion-text-wrap">
-      <h2>{{ 'SETTINGS.PRIVACY_SECTION' | translate }}</h2>
-      <p>{{ 'SETTINGS.PRIVACY_HINT' | translate }}</p>
-    </ion-label>
-  </ion-item>
-
-  <ion-item button detail="true" (click)="openPrivacyPolicy()">
-    <ion-label>{{ 'SETTINGS.PRIVACY_POLICY' | translate }}</ion-label>
-  </ion-item>
-</ion-list>
+<sh-selectable-button-list
+  [value]="null"
+  [items]="privacyPolicyItems"
+  [showSelectedIcon]="false"
+  (valueChange)="openPrivacyPolicy()"
+></sh-selectable-button-list>

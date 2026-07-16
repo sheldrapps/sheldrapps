@@ -35,8 +35,8 @@ import {
     IonButton,
   ],
   template: `
-    <ion-header>
-      <ion-toolbar>
+    <ion-header [translucent]="true">
+      <ion-toolbar class="safe-top-toolbar">
         <ion-title>{{ title }}</ion-title>
         <ion-buttons slot="end">
           <ion-button

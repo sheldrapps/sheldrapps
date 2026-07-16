@@ -34,6 +34,7 @@ Skills viven en `.agents/skills/`.
 ## Repo Rules
 
 - Kits-first: antes de duplicar UI o logica en `apps/*`, revisar si va en `packages/*`
+- Kits-First Rule: preferir mover UI compartida a `packages/*` en vez de copiarla en `apps/*`
 - TypeScript: usar `programar-ts` y `validacion`
 - UI: usar `add-ui-component`
 - UI nueva o con libertad visual: usar `taste` para definir direccion antes de construir

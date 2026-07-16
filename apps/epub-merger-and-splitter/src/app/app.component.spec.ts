@@ -1,68 +1,33 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
-import { Subject } from 'rxjs';
 import { Title } from '@angular/platform-browser';
+import { provideRouter } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '@sheldrapps/i18n-kit';
-import { SettingsStore } from '@sheldrapps/settings-kit';
-import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
+import { Subject } from 'rxjs';
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
-  let settingsState: { language?: string };
-  let settingsLoadSpy: jasmine.Spy;
-  let settingsSetForScopeSpy: jasmine.Spy;
-  let languageSetSpy: jasmine.Spy;
+  let onLangChange: Subject<unknown>;
   let titleSetSpy: jasmine.Spy;
+  let translateInstantSpy: jasmine.Spy;
 
   beforeEach(() => {
-    settingsState = {};
-    settingsLoadSpy = jasmine.createSpy('load').and.callFake(async () => settingsState);
-    settingsSetForScopeSpy = jasmine
-      .createSpy('setForScope')
-      .and.resolveTo({});
-    languageSetSpy = jasmine.createSpy('set').and.resolveTo();
+    onLangChange = new Subject<unknown>();
     titleSetSpy = jasmine.createSpy('setTitle');
+    translateInstantSpy = jasmine
+      .createSpy('instant')
+      .and.returnValue('EPUB Merger & Splitter');
   });
 
-  it('persists the detected language through the language scope on first launch', async () => {
+  async function createComponent(): Promise<AppComponent> {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
       providers: [
         provideRouter([]),
         {
-          provide: SettingsStore,
-          useValue: {
-            get: () => settingsState,
-            load: settingsLoadSpy,
-            set: jasmine.createSpy('set').and.resolveTo({}),
-            setForScope: settingsSetForScopeSpy,
-          },
-        },
-        {
-          provide: EdgeToEdgeService,
-          useValue: {
-            initEdgeToEdge: jasmine.createSpy('initEdgeToEdge').and.resolveTo(),
-          },
-        },
-        {
-          provide: ThemeService,
-          useValue: {
-            initialize: jasmine.createSpy('initialize').and.resolveTo(),
-          },
-        },
-        {
-          provide: LanguageService,
-          useValue: {
-            set: languageSetSpy,
-          },
-        },
-        {
           provide: TranslateService,
           useValue: {
-            setDefaultLang: jasmine.createSpy('setDefaultLang'),
-            instant: jasmine.createSpy('instant').and.returnValue('EPUB Merger & Splitter'),
-            onLangChange: new Subject<unknown>(),
+            instant: translateInstantSpy,
+            onLangChange,
           },
         },
         {
@@ -76,73 +41,18 @@ describe('AppComponent', () => {
 
     const fixture = TestBed.createComponent(AppComponent);
     await fixture.whenStable();
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    await fixture.whenStable();
+    return fixture.componentInstance;
+  }
 
-    expect(settingsSetForScopeSpy).toHaveBeenCalledOnceWith('language', {
-      language: jasmine.any(String),
-    });
-    expect(languageSetSpy).toHaveBeenCalledOnceWith(jasmine.any(String));
+  it('updates the document title on startup and language changes', async () => {
+    const component = await createComponent();
+
+    expect(component).toBeTruthy();
     expect(titleSetSpy).toHaveBeenCalledWith('EPUB Merger & Splitter');
-    expect(fixture.componentInstance).toBeTruthy();
-  });
 
-  it('does not rewrite language when it is already stored', async () => {
-    settingsState = { language: 'en-US' };
+    translateInstantSpy.and.returnValue('Combinador EPUB');
+    onLangChange.next({});
 
-    await TestBed.configureTestingModule({
-      imports: [AppComponent],
-      providers: [
-        provideRouter([]),
-        {
-          provide: SettingsStore,
-          useValue: {
-            get: () => settingsState,
-            load: settingsLoadSpy,
-            set: jasmine.createSpy('set').and.resolveTo({}),
-            setForScope: settingsSetForScopeSpy,
-          },
-        },
-        {
-          provide: EdgeToEdgeService,
-          useValue: {
-            initEdgeToEdge: jasmine.createSpy('initEdgeToEdge').and.resolveTo(),
-          },
-        },
-        {
-          provide: ThemeService,
-          useValue: {
-            initialize: jasmine.createSpy('initialize').and.resolveTo(),
-          },
-        },
-        {
-          provide: LanguageService,
-          useValue: {
-            set: languageSetSpy,
-          },
-        },
-        {
-          provide: TranslateService,
-          useValue: {
-            setDefaultLang: jasmine.createSpy('setDefaultLang'),
-            instant: jasmine.createSpy('instant').and.returnValue('EPUB Merger & Splitter'),
-            onLangChange: new Subject<unknown>(),
-          },
-        },
-        {
-          provide: Title,
-          useValue: {
-            setTitle: titleSetSpy,
-          },
-        },
-      ],
-    }).compileComponents();
-
-    const fixture = TestBed.createComponent(AppComponent);
-    await fixture.whenStable();
-
-    expect(settingsSetForScopeSpy).not.toHaveBeenCalled();
-    expect(languageSetSpy).toHaveBeenCalledOnceWith('en-US');
-    expect(fixture.componentInstance).toBeTruthy();
+    expect(titleSetSpy).toHaveBeenCalledWith('Combinador EPUB');
   });
 });

@@ -112,15 +112,18 @@ test("config-json adapter contract: default file path is config.json", () => {
 });
 
 test("app wiring contract: config.json adapter is the source of truth where implemented", () => {
-  const eccMain = readFileSync("apps/epub-cover-changer/src/main.ts", "utf8");
-  const ccfkMain = readFileSync(
-    "apps/cover-creator-for-kindle/src/main.ts",
+  const eccBootstrap = readFileSync(
+    "apps/epub-cover-changer/src/app/bootstrap.providers.ts",
+    "utf8"
+  );
+  const ccfkBootstrap = readFileSync(
+    "apps/cover-creator-for-kindle/src/app/bootstrap.providers.ts",
     "utf8"
   );
 
   for (const [name, source] of [
-    ["epub-cover-changer", eccMain],
-    ["cover-creator-for-kindle", ccfkMain],
+    ["epub-cover-changer", eccBootstrap],
+    ["cover-creator-for-kindle", ccfkBootstrap],
   ]) {
     assert.match(
       source,

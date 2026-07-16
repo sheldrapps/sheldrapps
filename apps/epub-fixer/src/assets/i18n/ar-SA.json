@@ -187,24 +187,9 @@
   },
   "SETTINGS": {
     "TITLE": "الإعدادات",
-    "LANGUAGE": "Ø§Ù„Ù„ØºØ©",
-    "LANGUAGE_PREPARING_COUNTDOWN": "Ø¬Ø§Ø±Ù ØªØ¬Ù‡ÙŠØ² ÙƒÙ„ Ø´ÙŠØ¡ Ø¨Ù„ØºØªÙƒ. Ø³ÙŠÙØºÙ„Ù‚ Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ Ù„ØªØºÙŠÙŠØ± Ø§Ù„Ø§Ø³Ù… ({{count}})",
     "INSTRUCTIONS": "Ø¹Ø±Ø¶ Ø§Ù„ØªØ¹Ù„ÙŠÙ…Ø§Øª",
     "INSTRUCTIONS_SECTION": "Ø§Ù„ØªØ¹Ù„ÙŠÙ…Ø§Øª",
-    "INSTRUCTIONS_HINT": "كيف يعمل EPUB Fixer الآن",
-    "THEME": "السمة",
-    "THEME_SYSTEM": "النظام",
-    "THEME_LIGHT": "Ø¶ÙˆØ¡ Ø·Ø¨ÙŠØ¹ÙŠ",
-    "THEME_DARK": "Ø¯Ø§ÙƒÙ† ÙƒÙ„Ø§Ø³ÙŠÙƒÙŠ",
-    "THEME_WARM_READING": "????? ?????",
-    "THEME_POP_ROSE": "???? ????",
-    "THEME_NOCTURNE_VIOLET": "?????? ????",
-    "THEME_OBSIDIAN_RED": "???? ???",
-    "THEME_TERMINAL_GREEN": "???? ???????",
-    "THEME_MINT_FRESH": "????? ????",
-    "THEME_SILVER_TECH": "??? ????",
-    "THEME_GOLD_LUXE": "???? ????",
-    "VIEW_TOUR": "??? ??????"
+    "INSTRUCTIONS_HINT": "كيف يعمل EPUB Fixer الآن"
   },
   "TABS": {
     "FIX": "Ø¥ØµÙ„Ø§Ø­",

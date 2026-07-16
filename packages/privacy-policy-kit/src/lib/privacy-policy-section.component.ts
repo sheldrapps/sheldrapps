@@ -1,16 +1,25 @@
-import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { IonItem, IonLabel, IonList } from '@ionic/angular/standalone';
-import { TranslateModule } from '@ngx-translate/core';
+import {
+  SelectableButtonListComponent,
+  type SelectableButtonListItem,
+} from '@sheldrapps/ui-theme';
 
 @Component({
   selector: 'sh-privacy-policy-section',
   standalone: true,
-  imports: [CommonModule, TranslateModule, IonItem, IonLabel, IonList],
+  imports: [SelectableButtonListComponent],
   templateUrl: './privacy-policy-section.component.html',
 })
 export class PrivacyPolicySectionComponent {
   private _url = '';
+  readonly privacyPolicyItems: readonly SelectableButtonListItem[] = [
+    {
+      value: 'privacy-policy',
+      titleKey: 'SETTINGS.PRIVACY_POLICY',
+      trailingIconName: 'chevron-forward-outline',
+      ariaLabelKey: 'SETTINGS.PRIVACY_POLICY',
+    },
+  ];
 
   @Input({ required: true })
   set url(value: string) {

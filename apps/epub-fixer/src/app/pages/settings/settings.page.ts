@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   LanguageRadioListComponent,
   restartForLanguageChange,
@@ -8,21 +8,27 @@ import {
 import { PrivacyPolicySectionComponent } from '@sheldrapps/privacy-policy-kit';
 import {
   IonButton,
-  IonButtons,
   IonContent,
   IonHeader,
-  IonItem,
-  IonLabel,
-  IonList,
   IonLoading,
   IonModal,
+  IonButtons,
   IonTitle,
   IonToolbar,
+  IonIcon,
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
+import { addIcons } from 'ionicons';
+import {
+  chevronBackOutline,
+  chevronForwardOutline,
+  colorPaletteOutline,
+} from 'ionicons/icons';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
 import {
+  SelectableButtonListComponent,
+  type SelectableButtonListItem,
   ThemeService,
   UiThemeI18nService,
   type Theme,
@@ -42,19 +48,17 @@ import { EpubFixerSettings } from 'src/app/settings/epub-fixer-settings.schema';
   styleUrls: ['./settings.page.scss'],
   imports: [
     CommonModule,
-    RouterLink,
     TranslateModule,
     IonButton,
     IonButtons,
     IonContent,
     IonHeader,
-    IonItem,
-    IonLabel,
-    IonList,
     IonLoading,
     IonModal,
+    IonIcon,
     IonTitle,
     IonToolbar,
+    SelectableButtonListComponent,
     LanguageRadioListComponent,
     PrivacyPolicySectionComponent,
   ],
@@ -62,9 +66,18 @@ import { EpubFixerSettings } from 'src/app/settings/epub-fixer-settings.schema';
 export class SettingsPage {
   private readonly settings = inject(SettingsStore<EpubFixerSettings>);
   readonly lang = inject(LanguageService);
+  private readonly router = inject(Router);
   private readonly theme = inject(ThemeService);
   private readonly uiThemeI18n = inject(UiThemeI18nService);
   private readonly ratingService = inject(RatingService);
+
+  constructor() {
+    addIcons({
+      chevronBackOutline,
+      chevronForwardOutline,
+      colorPaletteOutline,
+    });
+  }
 
   readonly supportedLangs = LANG_OPTIONS;
   readonly privacyPolicyUrl =
@@ -96,9 +109,66 @@ export class SettingsPage {
     );
   }
 
+  get languageSettingsItems(): SelectableButtonListItem[] {
+    const currentLanguage = this.currentLanguageOption;
+
+    return [
+      {
+        value: 'language',
+        titleKey: 'LANGUAGE_SETTINGS.TITLE',
+        subline: currentLanguage?.label ?? this.selectedLanguage,
+        leadingIconClass: currentLanguage
+          ? ['app-language-option__flag', currentLanguage.flagClass]
+          : undefined,
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'LANGUAGE_SETTINGS.TITLE',
+      },
+    ];
+  }
+
+  get themeSettingsItems(): SelectableButtonListItem[] {
+    return [
+      {
+        value: 'theme',
+        title: this.uiThemeI18n.texts().UI_THEME.THEME_SETTINGS.TITLE,
+        subline: this.currentThemeLabel,
+        leadingIconName: 'color-palette-outline',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabel: this.uiThemeI18n.texts().UI_THEME.THEME_SETTINGS.TITLE,
+      },
+    ];
+  }
+
+  get ratingSettingsItems(): SelectableButtonListItem[] {
+    return [
+      {
+        value: 'rating-prompt',
+        titleKey: 'RATING.DEBUG.PREVIEW_PROMPT',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'RATING.DEBUG.PREVIEW_PROMPT',
+      },
+      {
+        value: 'rating-suggestions',
+        titleKey: 'RATING.DEBUG.PREVIEW_SUGGESTIONS',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'RATING.DEBUG.PREVIEW_SUGGESTIONS',
+      },
+      {
+        value: 'rating-feedback',
+        titleKey: 'RATING.DEBUG.PREVIEW_FEEDBACK',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'RATING.DEBUG.PREVIEW_FEEDBACK',
+      },
+    ];
+  }
+
   openLanguageModal(): void {
     this.languageDraft = this.selectedLanguage;
     this.isLanguageModalOpen = true;
+  }
+
+  openThemeSettings(): void {
+    void this.router.navigateByUrl('/tabs/settings/theme');
   }
 
   closeLanguageModal(): void {
@@ -144,8 +214,36 @@ export class SettingsPage {
     await this.ratingService.previewPrompt();
   }
 
+  async previewRatingSuggestions(): Promise<void> {
+    await this.ratingService.previewSuggestionFlow();
+  }
+
   async previewRatingFeedback(): Promise<void> {
     await this.ratingService.previewFeedbackFlow();
+  }
+
+  onLanguageSettingsAction(): void {
+    this.openLanguageModal();
+  }
+
+  onThemeSettingsAction(): void {
+    this.openThemeSettings();
+  }
+
+  async onRatingSettingsAction(value: string): Promise<void> {
+    if (value === 'rating-prompt') {
+      await this.previewRatingPrompt();
+      return;
+    }
+
+    if (value === 'rating-suggestions') {
+      await this.previewRatingSuggestions();
+      return;
+    }
+
+    if (value === 'rating-feedback') {
+      await this.previewRatingFeedback();
+    }
   }
 
   private async showLanguageRestartCountdown(): Promise<void> {

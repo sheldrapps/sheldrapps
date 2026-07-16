@@ -12,7 +12,7 @@ export interface EpubMergerAndSplitterSettings {
 
 const EPUB_MERGER_AND_SPLITTER_DEFAULTS: EpubMergerAndSplitterSettings = {
   language: undefined,
-  theme: 'system',
+  theme: 'light',
   preferences: {},
 };
 

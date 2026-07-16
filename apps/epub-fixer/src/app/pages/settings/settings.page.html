@@ -5,57 +5,49 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <ion-list inset="true">
-    <ion-item button detail="true" (click)="openLanguageModal()">
-      <ion-label class="ion-text-wrap">
-        <h2>{{ 'SETTINGS.LANGUAGE' | translate }}</h2>
-        <p>
-          <span
-            class="app-language-option__flag"
-            [ngClass]="currentLanguageOption?.flagClass"
-            aria-hidden="true"
-          ></span>
-          {{ currentLanguageOption?.label }}
-        </p>
-      </ion-label>
-    </ion-item>
+  <sh-selectable-button-list
+    [value]="null"
+    [items]="languageSettingsItems"
+    [showSelectedIcon]="false"
+    (valueChange)="onLanguageSettingsAction()"
+  ></sh-selectable-button-list>
 
-    <ion-item button detail="true" [routerLink]="['/tabs/settings/theme']">
-      <ion-label class="ion-text-wrap">
-        <h2>{{ 'SETTINGS.THEME' | translate }}</h2>
-        <p>{{ currentThemeLabel }}</p>
-      </ion-label>
-    </ion-item>
-  </ion-list>
+  <sh-selectable-button-list
+    [value]="null"
+    [items]="themeSettingsItems"
+    [showSelectedIcon]="false"
+    (valueChange)="onThemeSettingsAction()"
+  ></sh-selectable-button-list>
 
   <sh-privacy-policy-section [url]="privacyPolicyUrl"></sh-privacy-policy-section>
 
-  <ion-list inset="true">
-    <ion-item button detail="true" (click)="previewRatingPrompt()">
-      <ion-label>{{ 'RATING.DEBUG.PREVIEW_PROMPT' | translate }}</ion-label>
-    </ion-item>
-
-    <ion-item button detail="true" (click)="previewRatingFeedback()">
-      <ion-label>{{ 'RATING.DEBUG.PREVIEW_FEEDBACK' | translate }}</ion-label>
-    </ion-item>
-  </ion-list>
+  <sh-selectable-button-list
+    [value]="null"
+    [items]="ratingSettingsItems"
+    [showSelectedIcon]="false"
+    (valueChange)="onRatingSettingsAction($event)"
+  ></sh-selectable-button-list>
 
   <ion-loading
     [isOpen]="isLanguageRestartLoading"
-    [message]="'SETTINGS.LANGUAGE_PREPARING_COUNTDOWN' | translate:{ count: languageRestartCountdown }"
+    [message]="'LANGUAGE_SETTINGS.PREPARING_COUNTDOWN' | translate:{ count: languageRestartCountdown }"
     backdropDismiss="false"
   ></ion-loading>
 
   <ion-modal [isOpen]="isLanguageModalOpen" (didDismiss)="closeLanguageModal()">
     <ng-template>
       <ion-header>
-        <ion-toolbar>
+        <ion-toolbar class="app-modal-toolbar">
           <ion-buttons slot="start">
-            <ion-button fill="clear" (click)="closeLanguageModal()">
-              {{ 'COMMON.CANCEL' | translate }}
+            <ion-button
+              fill="clear"
+              (click)="closeLanguageModal()"
+              [attr.aria-label]="'COMMON.CANCEL' | translate"
+            >
+              <ion-icon aria-hidden="true" name="chevron-back-outline"></ion-icon>
             </ion-button>
           </ion-buttons>
-          <ion-title>{{ 'SETTINGS.LANGUAGE' | translate }}</ion-title>
+          <ion-title>{{ 'LANGUAGE_SETTINGS.TITLE' | translate }}</ion-title>
           <ion-buttons slot="end">
             <ion-button fill="clear" (click)="confirmLanguageModal()">
               {{ 'COMMON.DONE' | translate }}

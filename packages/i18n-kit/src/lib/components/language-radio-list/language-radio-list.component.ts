@@ -8,26 +8,37 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-import { IonIcon, IonItem, IonLabel } from '@ionic/angular/standalone';
-import { TranslateModule } from '@ngx-translate/core';
+import {
+  SelectableButtonListComponent,
+  type SelectableButtonListItem,
+} from '@sheldrapps/ui-theme';
 
 export type LanguageRadioOption = {
   code: string;
   label?: string;
   labelKey?: string;
   flagClass?: string;
+  title?: string;
+  titleKey?: string;
+  subline?: string;
+  sublineKey?: string;
+  leadingIconName?: string;
+  leadingIconSrc?: string;
+  leadingIconClass?: string | readonly string[];
+  trailingIconName?: string;
+  trailingIconSrc?: string;
+  trailingIconClass?: string | readonly string[];
+  selectedIconName?: string;
+  selectedIconSrc?: string;
+  selectedIconClass?: string | readonly string[];
+  ariaLabel?: string;
+  ariaLabelKey?: string;
 };
 
 @Component({
   selector: 'app-language-radio-list',
   standalone: true,
-  imports: [
-    CommonModule,
-    TranslateModule,
-    IonItem,
-    IonLabel,
-    IonIcon,
-  ],
+  imports: [CommonModule, SelectableButtonListComponent],
   templateUrl: './language-radio-list.component.html',
   styleUrls: ['./language-radio-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,27 +47,39 @@ export class LanguageRadioListComponent implements OnChanges {
   @Input({ required: true }) options: readonly LanguageRadioOption[] = [];
   @Input({ required: true }) value: string | null = null;
   @Output() valueChange = new EventEmitter<string>();
-  selectedValue: string | null = null;
 
-  trackByCode = (_: number, option: LanguageRadioOption) => option.code;
+  buttonOptions: readonly SelectableButtonListItem[] = [];
 
   ngOnChanges(changes: SimpleChanges): void {
-    if ('value' in changes) {
-      this.selectedValue = this.value;
+    if ('options' in changes) {
+      this.buttonOptions = this.options.map((option) =>
+        this.toButtonOption(option),
+      );
     }
   }
 
-  onItemClick(next: string): void {
-    this.selectValue(next);
-  }
-
-  private selectValue(next: string): void {
-    this.selectedValue = next;
-
-    if (!next || next === this.value) {
-      return;
-    }
-
-    this.valueChange.emit(next);
+  private toButtonOption(option: LanguageRadioOption): SelectableButtonListItem {
+    return {
+      value: option.code,
+      title: option.title ?? option.label,
+      titleKey: option.titleKey ?? option.labelKey,
+      subline: option.subline,
+      sublineKey: option.sublineKey,
+      leadingIconClass: option.leadingIconClass ?? (
+        option.flagClass
+          ? ['app-language-option__flag', option.flagClass]
+          : undefined
+      ),
+      leadingIconName: option.leadingIconName,
+      leadingIconSrc: option.leadingIconSrc,
+      trailingIconClass: option.trailingIconClass,
+      trailingIconName: option.trailingIconName,
+      trailingIconSrc: option.trailingIconSrc,
+      selectedIconClass: option.selectedIconClass,
+      selectedIconName: option.selectedIconName,
+      selectedIconSrc: option.selectedIconSrc,
+      ariaLabel: option.ariaLabel,
+      ariaLabelKey: option.ariaLabelKey,
+    };
   }
 }

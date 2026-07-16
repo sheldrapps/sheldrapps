@@ -187,24 +187,9 @@
   },
   "SETTINGS": {
     "TITLE": "設定",
-    "LANGUAGE": "èªžè¨€",
-    "LANGUAGE_PREPARING_COUNTDOWN": "正在為你的語言做準備。應用程式將關閉以變更名稱（{{count}}）",
     "INSTRUCTIONS": "æŸ¥çœ‹èªªæ˜Ž",
     "INSTRUCTIONS_SECTION": "èªªæ˜Ž",
-    "INSTRUCTIONS_HINT": "EPUB Fixer 目前如何組織",
-    "THEME": "ä¸»é¡Œ",
-    "THEME_SYSTEM": "ç³»çµ±",
-    "THEME_LIGHT": "è‡ªç„¶å…‰",
-    "THEME_DARK": "經典深色",
-    "THEME_WARM_READING": "????",
-    "THEME_POP_ROSE": "????",
-    "THEME_NOCTURNE_VIOLET": "?????",
-    "THEME_OBSIDIAN_RED": "????",
-    "THEME_TERMINAL_GREEN": "???",
-    "THEME_MINT_FRESH": "????",
-    "THEME_SILVER_TECH": "????",
-    "THEME_GOLD_LUXE": "???",
-    "VIEW_TOUR": "????"
+    "INSTRUCTIONS_HINT": "EPUB Fixer 目前如何組織"
   },
   "TABS": {
     "FIX": "修復",

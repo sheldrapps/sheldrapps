@@ -12,6 +12,7 @@
   --app-text-sm: 0.85rem;
   --app-text-md: 0.9rem;
   --app-text-lg: 0.95rem;
+  --app-text-base: 1rem;
   --app-text-xl: 1rem;
 
   /* Font weights */
@@ -66,6 +67,10 @@
   --app-touch-target: 44px;
   --app-control-min-height: 48px;
   --app-toolbar-min-height: 56px;
+  --app-toolbar-title-size: 20px;
+  --app-toolbar-title-weight: 500;
+  --app-toolbar-title-letter-spacing: 0.0125em;
+  --app-toolbar-title-padding-inline: 20px;
   --app-header-tools-width: min(280px, 62vw);
   --app-tool-min-width-icon: 64px;
   --app-tool-min-width-text: 70px;

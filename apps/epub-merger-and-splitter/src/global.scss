@@ -9,6 +9,22 @@
 @use "../../../packages/ui-theme/styles/toast" as *;
 @use "../../../packages/ui-theme/styles/modal-kit" as *;
 
+@font-face {
+  font-family: 'Inter';
+  src: url('./assets/fonts/Inter-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('./assets/fonts/Inter-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
 
@@ -27,3 +43,9 @@
 
 /* Ionic Dark Mode */
 @import "@ionic/angular/css/palettes/dark.system.css";
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}

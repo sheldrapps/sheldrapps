@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 import {
   IonBackButton,
   IonButtons,
@@ -9,16 +9,15 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
-import { TranslateModule } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
 import { constructOutline } from 'ionicons/icons';
+import { UiThemeI18nService } from '../../translations/ui-theme-i18n.service';
 
 @Component({
   selector: 'sh-under-construction-page',
   standalone: true,
   imports: [
     CommonModule,
-    TranslateModule,
     IonBackButton,
     IonButtons,
     IonContent,
@@ -33,6 +32,8 @@ import { constructOutline } from 'ionicons/icons';
 })
 export class UnderConstructionPageComponent {
   @Input() backHref = '/tabs/home';
+  private readonly i18n = inject(UiThemeI18nService);
+  readonly texts = this.i18n.texts;
 
   constructor() {
     addIcons({

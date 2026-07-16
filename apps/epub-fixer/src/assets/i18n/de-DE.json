@@ -187,24 +187,9 @@
   },
   "SETTINGS": {
     "TITLE": "Einstellungen",
-    "LANGUAGE": "Sprache",
-    "LANGUAGE_PREPARING_COUNTDOWN": "Alles wird in deiner Sprache vorbereitet ({{count}})",
     "INSTRUCTIONS": "Anleitung ansehen",
     "INSTRUCTIONS_SECTION": "Anleitung",
-    "INSTRUCTIONS_HINT": "Wie EPUB Fixer aktuell aufgebaut ist",
-    "VIEW_TOUR": "Tour ansehen",
-    "THEME": "Thema",
-    "THEME_SYSTEM": "System",
-    "THEME_LIGHT": "Natürlich hell",
-    "THEME_DARK": "Klassisch dunkel",
-    "THEME_WARM_READING": "Warmes Lesen",
-    "THEME_POP_ROSE": "Pop-Rosa",
-    "THEME_NOCTURNE_VIOLET": "Nocturne-Violett",
-    "THEME_OBSIDIAN_RED": "Obsidianrot",
-    "THEME_TERMINAL_GREEN": "Terminalgrün",
-    "THEME_MINT_FRESH": "Frische Minze",
-    "THEME_SILVER_TECH": "Silber",
-    "THEME_GOLD_LUXE": "Gold"
+    "INSTRUCTIONS_HINT": "Wie EPUB Fixer aktuell aufgebaut ist"
   },
   "TABS": {
     "FIX": "Reparieren",

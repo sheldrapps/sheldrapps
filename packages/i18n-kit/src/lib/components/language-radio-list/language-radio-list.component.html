@@ -1,33 +1,5 @@
-<div class="app-surface app-language-option-stack" role="list">
-  <ion-item
-    *ngFor="let option of options; trackBy: trackByCode"
-    button
-    detail="false"
-    lines="none"
-    class="app-language-option"
-    [class.app-language-option--selected]="selectedValue === option.code"
-    [attr.aria-pressed]="selectedValue === option.code ? 'true' : 'false'"
-    [attr.aria-label]="option.labelKey ? (option.labelKey | translate) : option.label"
-    (click)="onItemClick(option.code)"
-  >
-    <ion-label class="app-language-option__copy ion-text-wrap">
-      <span
-        *ngIf="option.flagClass"
-        class="app-language-option__flag"
-        [ngClass]="option.flagClass"
-        aria-hidden="true"
-      ></span>
-      <span class="app-language-option__label">
-        {{ option.labelKey ? (option.labelKey | translate) : option.label }}
-      </span>
-    </ion-label>
-
-    <ion-icon
-      slot="end"
-      name="checkmark"
-      class="app-language-option__check"
-      [class.app-language-option__check--visible]="selectedValue === option.code"
-      aria-hidden="true"
-    ></ion-icon>
-  </ion-item>
-</div>
+<sh-selectable-button-list
+  [items]="buttonOptions"
+  [value]="value"
+  (valueChange)="valueChange.emit($event)"
+></sh-selectable-button-list>

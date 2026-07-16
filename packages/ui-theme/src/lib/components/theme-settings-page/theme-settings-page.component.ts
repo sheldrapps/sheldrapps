@@ -23,6 +23,7 @@ import { UiThemeI18nService } from '../../translations/ui-theme-i18n.service';
 export class ThemeSettingsPageComponent implements OnDestroy {
   private readonly i18n = inject(UiThemeI18nService);
   @Input() backHref = '/tabs/settings';
+  @Input() useEdgeToEdgeHeader = true;
 
   private readonly theme = inject(ThemeService);
   private readonly router = inject(Router);

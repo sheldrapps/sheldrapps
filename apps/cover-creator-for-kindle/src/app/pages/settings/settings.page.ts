@@ -1,23 +1,28 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
 import {
   IonHeader,
   IonToolbar,
   IonTitle,
   IonContent,
-  IonList,
-  IonItem,
-  IonLabel,
   IonModal,
-  IonButtons,
   IonButton,
   IonLoading,
+  IonButtons,
+  IonIcon,
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
+import { addIcons } from 'ionicons';
 import {
+  chevronBackOutline,
+  chevronForwardOutline,
+  colorPaletteOutline,
+} from 'ionicons/icons';
+import {
+  SelectableButtonListComponent,
+  type SelectableButtonListItem,
   ThemeService,
   UiThemeI18nService,
   type Theme,
@@ -48,19 +53,17 @@ import { HOME_TOUR_ID } from 'src/app/shared/tour/home-tour.definition';
   imports: [
     CommonModule,
     FormsModule,
-    RouterLink,
     TranslateModule,
     IonHeader,
     IonToolbar,
     IonTitle,
     IonContent,
-    IonList,
-    IonItem,
-    IonLabel,
     IonModal,
-    IonButtons,
     IonButton,
+    IonButtons,
     IonLoading,
+    IonIcon,
+    SelectableButtonListComponent,
     LanguageRadioListComponent,
     PrivacyPolicySectionComponent,
   ],
@@ -84,6 +87,14 @@ export class SettingsPage {
 
   readonly privacyPolicyUrl =
     'https://sheldrapps.com/privacy-policies/cover-creator-for-kindle';
+
+  constructor() {
+    addIcons({
+      chevronBackOutline,
+      chevronForwardOutline,
+      colorPaletteOutline,
+    });
+  }
 
   trackByLang = (_: number, l: LangOption) => l.code;
 
@@ -109,9 +120,112 @@ export class SettingsPage {
     );
   }
 
+  get languageSettingsItems(): SelectableButtonListItem[] {
+    const currentLanguage = this.currentLanguageOption;
+
+    return [
+      {
+        value: 'language',
+        titleKey: 'LANGUAGE_SETTINGS.TITLE',
+        sublineKey: currentLanguage?.labelKey,
+        leadingIconClass: currentLanguage
+          ? ['app-language-option__flag', currentLanguage.flagClass]
+          : undefined,
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'LANGUAGE_SETTINGS.TITLE',
+      },
+    ];
+  }
+
+  get themeSettingsItems(): SelectableButtonListItem[] {
+    return [
+      {
+        value: 'theme',
+        title: this.uiThemeI18n.texts().UI_THEME.THEME_SETTINGS.TITLE,
+        subline: this.currentThemeLabel,
+        leadingIconName: 'color-palette-outline',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabel: this.uiThemeI18n.texts().UI_THEME.THEME_SETTINGS.TITLE,
+      },
+    ];
+  }
+
+  get privacyOptionsItems(): SelectableButtonListItem[] {
+    return [
+      {
+        value: 'privacy-options',
+        titleKey: 'SETTINGS.PRIVACY_OPTIONS',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'SETTINGS.PRIVACY_OPTIONS',
+      },
+    ];
+  }
+
+  get requisitesItems(): SelectableButtonListItem[] {
+    return [
+      {
+        value: 'requisites',
+        titleKey: 'SETTINGS.REQUISITES_SECTION',
+        sublineKey: 'SETTINGS.REQUISITES_HINT',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'SETTINGS.REQUISITES_SECTION',
+      },
+    ];
+  }
+
+  get instructionsItems(): SelectableButtonListItem[] {
+    return [
+      {
+        value: 'how-to-use',
+        titleKey: 'SETTINGS.HOW_TO_USE',
+        ariaLabelKey: 'SETTINGS.HOW_TO_USE',
+        kind: 'static',
+      },
+      {
+        value: 'instructions',
+        titleKey: 'SETTINGS.INSTRUCTIONS',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'SETTINGS.INSTRUCTIONS',
+      },
+      {
+        value: 'view-tour',
+        titleKey: 'SETTINGS.VIEW_TOUR',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'SETTINGS.VIEW_TOUR',
+      },
+    ];
+  }
+
+  get ratingSettingsItems(): SelectableButtonListItem[] {
+    return [
+      {
+        value: 'rating-prompt',
+        titleKey: 'RATING.DEBUG.PREVIEW_PROMPT',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'RATING.DEBUG.PREVIEW_PROMPT',
+      },
+      {
+        value: 'rating-suggestions',
+        titleKey: 'RATING.DEBUG.PREVIEW_SUGGESTIONS',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'RATING.DEBUG.PREVIEW_SUGGESTIONS',
+      },
+      {
+        value: 'rating-feedback',
+        titleKey: 'RATING.DEBUG.PREVIEW_FEEDBACK',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'RATING.DEBUG.PREVIEW_FEEDBACK',
+      },
+    ];
+  }
+
   openLanguageModal() {
     this.isLanguageModalOpen = true;
     this._languageDraft = null;
+  }
+
+  openThemeSettings(): Promise<boolean> {
+    return this.router.navigateByUrl('/tabs/settings/theme');
   }
 
   closeLanguageModal() {
@@ -173,8 +287,59 @@ export class SettingsPage {
     await this.ratingService.previewPrompt();
   }
 
+  async previewRatingSuggestions(): Promise<void> {
+    await this.ratingService.previewSuggestionFlow();
+  }
+
   async previewRatingFeedback(): Promise<void> {
     await this.ratingService.previewFeedbackFlow();
+  }
+
+  onLanguageSettingsAction(): void {
+    this.openLanguageModal();
+  }
+
+  onThemeSettingsAction(): void {
+    void this.openThemeSettings();
+  }
+
+  onPrivacyOptionsAction(): void {
+    void this.openPrivacyOptions();
+  }
+
+  onRequisitesAction(): Promise<boolean> {
+    return this.router.navigateByUrl('/tabs/settings/requisites');
+  }
+
+  async onInstructionsAction(value: string): Promise<void> {
+    if (value === 'how-to-use') {
+      return;
+    }
+
+    if (value === 'instructions') {
+      await this.router.navigateByUrl('/tabs/settings/instructions');
+      return;
+    }
+
+    if (value === 'view-tour') {
+      await this.startHomeTour();
+    }
+  }
+
+  async onRatingSettingsAction(value: string): Promise<void> {
+    if (value === 'rating-prompt') {
+      await this.previewRatingPrompt();
+      return;
+    }
+
+    if (value === 'rating-suggestions') {
+      await this.previewRatingSuggestions();
+      return;
+    }
+
+    if (value === 'rating-feedback') {
+      await this.previewRatingFeedback();
+    }
   }
 
   private async showLanguageRestartCountdown() {

@@ -16,15 +16,14 @@
       <div class="home-action-grid">
         <sh-action-card
           [title]="'HOME.MERGE' | translate"
-          icon="git-merge-outline"
+          [svg]="mergeIconSvg()"
           [ariaLabel]="'HOME.MERGE' | translate"
           (click)="openUnderConstruction()"
         ></sh-action-card>
 
         <sh-action-card
           [title]="'HOME.SPLIT' | translate"
-          icon="git-branch-outline"
-          iconFlip="vertical"
+          [svg]="splitIconSvg()"
           [ariaLabel]="'HOME.SPLIT' | translate"
           (click)="openUnderConstruction()"
         ></sh-action-card>

@@ -86,6 +86,12 @@
   flex: 0 0 auto;
 }
 
+.sh-action-card__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .sh-action-card--selected .sh-action-card__icon {
   background: transparent;
 }

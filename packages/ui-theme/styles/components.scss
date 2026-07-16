@@ -1121,10 +1121,18 @@ ion-modal.remove-ads-modal::part(content) {
 
 .app-modal-toolbar {
   --min-height: var(--app-toolbar-min-height);
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --padding-start: 0;
+  --padding-end: 0;
   --app-modal-header-title-size: var(--app-text-xl);
   --app-modal-header-title-weight: var(--app-font-strong);
   --app-modal-header-action-color: var(--app-text-secondary);
   --app-modal-header-action-weight: var(--app-font-medium);
+}
+
+.app-modal-toolbar::part(container) {
+  min-height: var(--app-toolbar-min-height);
   align-items: center;
 }
 

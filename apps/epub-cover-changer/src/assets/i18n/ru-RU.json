@@ -72,7 +72,7 @@
     "EPUB_ERROR_TYPE": "Неподдерживаемый файл EPUB.",
     "LOADING_EPUB": "Загрузка EPUB…",
     "EPUB_LOADING_COPY": "Копирование большого файла EPUB...",
-    "EPUB_LOADING_INSPECT": "Проверка структуры EPUB...",
+    "EPUB_LOADING_INSPECT": "ÐŸÑ€Ð¾Ð²ÐµÑ€ÐºÐ° ÑÑ‚Ñ€ÑƒÐºÑ‚ÑƒÑ€Ñ‹ EPUB...",
     "LOADING_IMAGE": "Загрузка изображения…",
     "OPENING_EDITOR": "Открытие редактора…",
     "CHANGING_COVER": "Ð˜Ð·Ð¼ÐµÐ½ÐµÐ½Ð¸Ðµ Ð¾Ð±Ð»Ð¾Ð¶ÐºÐ¸...",
@@ -81,7 +81,7 @@
     "SELECT_EPUB_LABEL": "Файл EPUB",
     "EPUB_FILE_TITLE": "Файл EPUB",
     "PROCESSING_LARGE_EPUB": "Обработка большого файла EPUB...",
-    "PROCESS_CANCELLED": "Обработка отменена",
+    "PROCESS_CANCELLED": "ÐžÐ±Ñ€Ð°Ð±Ð¾Ñ‚ÐºÐ° Ð¾Ñ‚Ð¼ÐµÐ½ÐµÐ½Ð°",
     "SELECT_EPUB_PLACEHOLDER": "Выберите файл EPUB",
     "SAVE_ACTION": "Сохранить",
     "SAVED_OK": "Обложка сохранена",
@@ -184,8 +184,8 @@
         "DESCRIPTION": "Бесплатный экспорт использует Standard. Уберите рекламу, чтобы выбрать экспорт без потерь или сжатый."
       },
       "REMOVE_ADS_CLOSE": {
-        "TITLE": "Закрыть пока",
-        "DESCRIPTION": "Пока что пользуйтесь бесплатной версией. Покупка не обязательна."
+        "TITLE": "Ð—Ð°ÐºÑ€Ñ‹Ñ‚ÑŒ Ð¿Ð¾ÐºÐ°",
+        "DESCRIPTION": "ÐŸÐ¾ÐºÐ° Ñ‡Ñ‚Ð¾ Ð¿Ð¾Ð»ÑŒÐ·ÑƒÐ¹Ñ‚ÐµÑÑŒ Ð±ÐµÑÐ¿Ð»Ð°Ñ‚Ð½Ð¾Ð¹ Ð²ÐµÑ€ÑÐ¸ÐµÐ¹. ÐŸÐ¾ÐºÑƒÐ¿ÐºÐ° Ð½Ðµ Ð¾Ð±ÑÐ·Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð°."
       }
     }
   },
@@ -193,24 +193,9 @@
     "INSTRUCTIONS": "Посмотреть инструкцию",
     "INSTRUCTIONS_HINT": "Как изменить и отправить обложку для Kindle",
     "INSTRUCTIONS_SECTION": "Инструкция",
-    "LANGUAGE": "Ð¯Ð·Ñ‹Ðº",
-    "LANGUAGE_RESTART_NOTICE": "Язык изменён. Приложение перезапустится для применения изменений.",
-    "LANGUAGE_PREPARING_COUNTDOWN": "Подготавливаем всё на вашем языке. Приложение закроется, чтобы изменить название ({{count}})",
     "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
     "EREADER_OPTIMIZATION_HINT": "Применяет автоматические настройки, чтобы улучшить обложку",
     "EREADER_OPTIMIZATION_TOGGLE": "Оптимизировать",
-    "THEME": "Тема",
-    "THEME_SYSTEM": "Системная",
-    "THEME_LIGHT": "Естественный свет",
-    "THEME_DARK": "Классическая тёмная",
-    "THEME_WARM_READING": "Ð¢Ñ‘Ð¿Ð»Ð¾Ðµ Ñ‡Ñ‚ÐµÐ½Ð¸Ðµ",
-    "THEME_POP_ROSE": "ÐŸÐ¾Ð¿-Ñ€Ð¾ÑƒÐ·",
-    "THEME_NOCTURNE_VIOLET": "Ночной фиолетовый",
-    "THEME_OBSIDIAN_RED": "Обсидиановый красный",
-    "THEME_TERMINAL_GREEN": "Ð¢ÐµÑ€Ð¼Ð¸Ð½Ð°Ð»ÑŒÐ½Ñ‹Ð¹ Ð·ÐµÐ»Ñ‘Ð½Ñ‹Ð¹",
-    "THEME_MINT_FRESH": "Мятная свежесть",
-    "THEME_SILVER_TECH": "Серебряный",
-    "THEME_GOLD_LUXE": "Ð—Ð¾Ð»Ð¾Ñ‚Ð¾Ð¹",
     "TITLE": "Настройки",
     "VIEW_TOUR": "Ð¡Ð¼Ð¾Ñ‚Ñ€ÐµÑ‚ÑŒ Ñ‚ÑƒÑ€"
   },

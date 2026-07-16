@@ -31,6 +31,10 @@ ion-app.edge-to-edge-shell {
   box-sizing: border-box;
 }
 
+ion-app.edge-to-edge-shell ion-header > ion-toolbar {
+  padding-top: var(--safe-top) !important;
+}
+
 ion-app.edge-to-edge-shell ion-tab-bar {
   padding-inline-start: var(--safe-left);
   padding-inline-end: var(--safe-right);

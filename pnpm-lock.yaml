@@ -4,6 +4,10 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@ionic/angular': 8.8.8
+  '@ionic/core': 8.8.8
+
 importers:
 
   .:
@@ -27,7 +31,7 @@ importers:
         specifier: ^20.0.0
         version: 20.3.16(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.16(@angular/animations@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
       '@ionic/angular':
-        specifier: ^8.8.8
+        specifier: 8.8.8
         version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       '@ngx-translate/core':
         specifier: ^17.0.0
@@ -145,8 +149,8 @@ importers:
         specifier: ^8.0.0
         version: 8.2.5(@capacitor/core@8.0.0)
       '@ionic/angular':
-        specifier: ^8.0.0
-        version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
+        specifier: 8.8.8
+        version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       '@ngx-translate/core':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
@@ -350,8 +354,8 @@ importers:
         specifier: ^8.0.0
         version: 8.2.5(@capacitor/core@8.0.0)
       '@ionic/angular':
-        specifier: ^8.0.0
-        version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
+        specifier: 8.8.8
+        version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       '@ngx-translate/core':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
@@ -558,8 +562,8 @@ importers:
         specifier: ^8.0.0
         version: 8.2.5(@capacitor/core@8.0.0)
       '@ionic/angular':
-        specifier: ^8.0.0
-        version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
+        specifier: 8.8.8
+        version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       '@ngx-translate/core':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
@@ -757,7 +761,7 @@ importers:
         specifier: ^8.0.0
         version: 8.2.5(@capacitor/core@8.0.0)
       '@ionic/angular':
-        specifier: ^8.0.0
+        specifier: 8.8.8
         version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       '@ngx-translate/core':
         specifier: ^17.0.0
@@ -777,6 +781,9 @@ importers:
       '@sheldrapps/i18n-kit':
         specifier: workspace:*
         version: link:../../packages/i18n-kit
+      '@sheldrapps/privacy-policy-kit':
+        specifier: workspace:*
+        version: link:../../packages/privacy-policy-kit
       '@sheldrapps/rating-kit':
         specifier: workspace:*
         version: link:../../packages/rating-kit
@@ -938,8 +945,8 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0(@capacitor/core@8.0.0)
       '@ionic/angular':
-        specifier: ^8.0.0
-        version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
+        specifier: 8.8.8
+        version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       '@ngx-translate/core':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
@@ -1125,8 +1132,8 @@ importers:
         specifier: ^8.0.0
         version: 8.2.5(@capacitor/core@8.0.0)
       '@ionic/angular':
-        specifier: ^8.0.0
-        version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
+        specifier: 8.8.8
+        version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       '@ngx-translate/core':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
@@ -1327,8 +1334,8 @@ importers:
         specifier: 8.0.0
         version: 8.0.0(@capacitor/core@8.0.0)
       '@ionic/angular':
-        specifier: ^8.0.0
-        version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
+        specifier: 8.8.8
+        version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       '@ngx-translate/core':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
@@ -1460,7 +1467,7 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0
       '@ionic/angular':
-        specifier: ^8.0.0
+        specifier: 8.8.8
         version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       '@ngx-translate/core':
         specifier: ^17.0.0
@@ -1487,7 +1494,7 @@ importers:
         specifier: ^8.0.0
         version: 8.2.5(@capacitor/core@8.0.0)
       '@ionic/angular':
-        specifier: ^8.0.0
+        specifier: 8.8.8
         version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       '@ngx-translate/core':
         specifier: ^17.0.0
@@ -1511,8 +1518,8 @@ importers:
         specifier: ^20.0.0
         version: 20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)
       '@ionic/angular':
-        specifier: ^8.0.0
-        version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
+        specifier: 8.8.8
+        version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       '@ngx-translate/core':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
@@ -1529,8 +1536,8 @@ importers:
         specifier: ^20.0.0
         version: 20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)
       '@ionic/angular':
-        specifier: ^8.0.0
-        version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
+        specifier: 8.8.8
+        version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
@@ -1544,8 +1551,8 @@ importers:
         specifier: ^20.0.0
         version: 20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)
       '@ionic/angular':
-        specifier: ^8.0.0
-        version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
+        specifier: 8.8.8
+        version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       '@ngx-translate/core':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
@@ -1577,8 +1584,8 @@ importers:
         specifier: ^20.0.0
         version: 20.3.16(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.16(@angular/animations@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
       '@ionic/angular':
-        specifier: ^8.0.0
-        version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
+        specifier: 8.8.8
+        version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
@@ -1635,14 +1642,17 @@ importers:
         specifier: ^20.0.0
         version: 20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)
       '@ionic/angular':
-        specifier: ^8.0.0
-        version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
+        specifier: 8.8.8
+        version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       '@ngx-translate/core':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
       '@ngx-translate/http-loader':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
+      '@sheldrapps/ui-theme':
+        specifier: workspace:*
+        version: link:../ui-theme
       rxjs:
         specifier: ~7.8.0
         version: 7.8.2
@@ -1669,8 +1679,8 @@ importers:
         specifier: ^20.0.0
         version: 20.3.16(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.16(@angular/animations@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
       '@ionic/angular':
-        specifier: ^8.0.0
-        version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
+        specifier: 8.8.8
+        version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       '@ngx-translate/core':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
@@ -1721,11 +1731,14 @@ importers:
         specifier: ^20.0.0
         version: 20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)
       '@ionic/angular':
-        specifier: ^8.0.0
+        specifier: 8.8.8
         version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       '@ngx-translate/core':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
+      '@sheldrapps/ui-theme':
+        specifier: workspace:*
+        version: link:../ui-theme
       rxjs:
         specifier: ~7.8.0
         version: 7.8.2
@@ -1751,8 +1764,8 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0
       '@ionic/angular':
-        specifier: ^8.0.0
-        version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
+        specifier: 8.8.8
+        version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       '@ngx-translate/core':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
@@ -1784,8 +1797,8 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0(@capacitor/core@8.0.0)
       '@ionic/angular':
-        specifier: ^8.0.0
-        version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
+        specifier: 8.8.8
+        version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
       ionicons:
         specifier: ^7.0.0
         version: 7.4.0
@@ -1837,8 +1850,11 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0(@capacitor/core@8.0.0)
       '@ionic/angular':
-        specifier: ^8.0.0
-        version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
+        specifier: 8.8.8
+        version: 8.8.8(779e92b12364ecfade5acc83c4c09d29)
+      '@ngx-translate/core':
+        specifier: ^17.0.0
+        version: 17.0.0(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))
       '@sheldrapps/settings-kit':
         specifier: workspace:*
         version: link:../settings-kit
@@ -3440,15 +3456,6 @@ packages:
   '@ionic/angular-toolkit@12.3.0':
     resolution: {integrity: sha512-9cPTMmwggviB2W7wf4sv4vFeQnYq5HbO6V89UqQHopShokdhSvUFpaQ2w1/Mdf/ot8PghGjR3t5IdnXV7i1LvA==}
 
-  '@ionic/angular@8.7.17':
-    resolution: {integrity: sha512-EKXX5leNzgxVq9QgF67DJmQsJwiX/WKNx/EAqFTWd0eYlgXp3Cxcdkh+AJkoqnCPLoKeWqrmrze7QlxPy/ZfSw==}
-    peerDependencies:
-      '@angular/core': '>=16.0.0'
-      '@angular/forms': '>=16.0.0'
-      '@angular/router': '>=16.0.0'
-      rxjs: '>=7.5.0'
-      zone.js: '>=0.13.0'
-
   '@ionic/angular@8.8.8':
     resolution: {integrity: sha512-qUZlsYIwAvDTUmL8elFSqCaGa/gbJaE7Lbrz4z+KU6n0pu4CEkB3WmHHTwuS1Az+th8mNa0CWoas1qvNwxYxnw==}
     peerDependencies:
@@ -3461,10 +3468,6 @@ packages:
   '@ionic/cli-framework-output@2.2.8':
     resolution: {integrity: sha512-TshtaFQsovB4NWRBydbNFawql6yul7d5bMiW1WYYf17hd99V6xdDdk3vtF51bw6sLkxON3bDQpWsnUc9/hVo3g==}
     engines: {node: '>=16.0.0'}
-
-  '@ionic/core@8.7.17':
-    resolution: {integrity: sha512-gp7PIEJX27NX/FkjiUlpjQUtJiFFE5W1lofRC5CfORQ8p4PrLh9wJO9EJH0YryCr2qZS0k47sYgRQP5FwiXlpg==}
-    engines: {node: '>= 16'}
 
   '@ionic/core@8.8.8':
     resolution: {integrity: sha512-GGvYtEzLtn1gBUC1/vb4pvA3gQzYskTNVIsvdTVIgnwLtdt70rwTibrZRSqmkyHeqpjg/u3+9XsM2c0kzc/V3w==}
@@ -4364,11 +4367,6 @@ packages:
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
-
-  '@stencil/core@4.38.0':
-    resolution: {integrity: sha512-oC3QFKO0X1yXVvETgc8OLY525MNKhn9vISBrbtKnGoPlokJ6rI8Vk1RK22TevnNrHLI4SExNLbcDnqilKR35JQ==}
-    engines: {node: '>=16.0.0', npm: '>=7.10.0'}
-    hasBin: true
 
   '@stencil/core@4.41.3':
     resolution: {integrity: sha512-zQ/7/hwsJBKYz0CzN3LyKJ3JdnNTdsYMY+futdyodTLkPNlPeRWVF1EI5syaBb09W+ay/T+TsYbPMXbXgG/3qQ==}
@@ -10934,18 +10932,6 @@ snapshots:
     transitivePeerDependencies:
       - chokidar
 
-  '@ionic/angular@8.7.17(779e92b12364ecfade5acc83c4c09d29)':
-    dependencies:
-      '@angular/core': 20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)
-      '@angular/forms': 20.3.16(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.16(@angular/animations@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
-      '@angular/router': 20.3.16(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.16(@angular/animations@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.16(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
-      '@ionic/core': 8.7.17
-      ionicons: 8.0.13
-      jsonc-parser: 3.3.1
-      rxjs: 7.8.2
-      tslib: 2.8.1
-      zone.js: 0.15.1
-
   '@ionic/angular@8.8.8(779e92b12364ecfade5acc83c4c09d29)':
     dependencies:
       '@angular/core': 20.3.16(@angular/compiler@20.3.16)(rxjs@7.8.2)(zone.js@0.15.1)
@@ -10965,12 +10951,6 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
-
-  '@ionic/core@8.7.17':
-    dependencies:
-      '@stencil/core': 4.38.0
-      ionicons: 8.0.13
-      tslib: 2.8.1
 
   '@ionic/core@8.8.8':
     dependencies:
@@ -11809,17 +11789,6 @@ snapshots:
   '@socket.io/component-emitter@3.1.2': {}
 
   '@standard-schema/spec@1.1.0': {}
-
-  '@stencil/core@4.38.0':
-    optionalDependencies:
-      '@rollup/rollup-darwin-arm64': 4.34.9
-      '@rollup/rollup-darwin-x64': 4.34.9
-      '@rollup/rollup-linux-arm64-gnu': 4.34.9
-      '@rollup/rollup-linux-arm64-musl': 4.34.9
-      '@rollup/rollup-linux-x64-gnu': 4.34.9
-      '@rollup/rollup-linux-x64-musl': 4.34.9
-      '@rollup/rollup-win32-arm64-msvc': 4.34.9
-      '@rollup/rollup-win32-x64-msvc': 4.34.9
 
   '@stencil/core@4.41.3':
     optionalDependencies:
@@ -14275,7 +14244,7 @@ snapshots:
 
   ionicons@8.0.13:
     dependencies:
-      '@stencil/core': 4.41.3
+      '@stencil/core': 4.43.0
 
   ip-address@10.1.0: {}
 

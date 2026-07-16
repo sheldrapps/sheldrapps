@@ -187,24 +187,9 @@
   },
   "SETTINGS": {
     "TITLE": "設定",
-    "LANGUAGE": "è¨€èªž",
-    "LANGUAGE_PREPARING_COUNTDOWN": "あなたの言語で準備しています。名前を変更するためにアプリを終了します（{{count}}）",
     "INSTRUCTIONS": "使い方を見る",
     "INSTRUCTIONS_SECTION": "使い方",
-    "INSTRUCTIONS_HINT": "EPUB Fixer の現在の構成",
-    "THEME": "ãƒ†ãƒ¼ãƒž",
-    "THEME_SYSTEM": "ã‚·ã‚¹ãƒ†ãƒ ",
-    "THEME_LIGHT": "ãƒŠãƒãƒ¥ãƒ©ãƒ«ãƒ©ã‚¤ãƒˆ",
-    "THEME_DARK": "ã‚¯ãƒ©ã‚·ãƒƒã‚¯ãƒ€ãƒ¼ã‚¯",
-    "THEME_WARM_READING": "?????",
-    "THEME_POP_ROSE": "??????",
-    "THEME_NOCTURNE_VIOLET": "????????",
-    "THEME_OBSIDIAN_RED": "??????",
-    "THEME_TERMINAL_GREEN": "?????????",
-    "THEME_MINT_FRESH": "????????",
-    "THEME_SILVER_TECH": "???????",
-    "THEME_GOLD_LUXE": "???????????",
-    "VIEW_TOUR": "??????"
+    "INSTRUCTIONS_HINT": "EPUB Fixer の現在の構成"
   },
   "TABS": {
     "FIX": "修復",

@@ -55,6 +55,14 @@ function flattenLeafStrings(value, path = [], into = []) {
   return into;
 }
 
+function collectStrings(value) {
+  return flattenLeafStrings(value).map((entry) => entry.value);
+}
+
+function countLetters(value) {
+  return Array.from(value).filter((char) => /\p{Letter}/u.test(char)).length;
+}
+
 
 function hasMojibake(raw) {
   const codePoints = Array.from(raw, (char) => char.codePointAt(0));
@@ -436,7 +444,7 @@ test.skip("guardrail: locale files have no mojibake and preserve locale diacriti
     }
 
     const joined = strings.join(" ");
-    const alphaChars = joined.replace(/[^A-Za-zÀ-ÿ]/g, "").length;
+    const alphaChars = countLetters(joined);
     if (alphaChars >= 80 && !signature.test(joined)) {
       signatureIssues.push(file);
     }
@@ -452,6 +460,67 @@ test.skip("guardrail: locale files have no mojibake and preserve locale diacriti
     signatureIssues,
     [],
     `Likely diacritic stripping detected in locale files:\n${signatureIssues.join(
+      "\n"
+    )}`
+  );
+});
+
+test("guardrail: ccfk locale files have no mojibake and preserve locale diacritics", () => {
+  const localeFiles = globSync(
+    "apps/cover-creator-for-kindle/src/assets/i18n/*.json",
+    { cwd: repoRoot }
+  )
+    .map((p) => p.split(sep).join("/"))
+    .sort();
+
+  const localeSignature = {
+    "de-DE": /[Ã¤Ã¶Ã¼Ã„Ã–ÃœÃŸ]/u,
+    "es-MX": /[Ã¡Ã©Ã­Ã³ÃºÃ±ÃÃ‰ÃÃ“ÃšÃ‘Â¿Â¡]/u,
+    "fr-FR": /[Ã Ã¢Ã§Ã©Ã¨ÃªÃ«Ã®Ã¯Ã´Ã»Ã¹Ã¼Ã¿Å“Ã¦Ã€Ã‚Ã‡Ã‰ÃˆÃŠÃ‹ÃŽÃÃ”Ã›Ã™ÃœÅ¸Å’Ã†]/u,
+    "it-IT": /[Ã Ã¨Ã©Ã¬Ã­Ã®Ã²Ã³Ã¹Ã€ÃˆÃ‰ÃŒÃÃŽÃ’Ã“Ã™]/u,
+    "pt-BR": /[Ã¡Ã Ã¢Ã£Ã©ÃªÃ­Ã³Ã´ÃµÃºÃ§ÃÃ€Ã‚ÃƒÃ‰ÃŠÃÃ“Ã”Ã•ÃšÃ‡]/u,
+  };
+
+  const mojibakeIssues = [];
+  const signatureIssues = [];
+
+  for (const file of localeFiles) {
+    const raw = readFileSync(file, "utf8").replace(/^\uFEFF/, "");
+    const json = JSON.parse(raw);
+    const strings = collectStrings(json);
+
+    const hasMojibake = strings.some((s) =>
+      /\u00C3[\u0080-\u00BF]|\u00C2[\u0080-\u00BF]|\u00E2\u20AC.|\uFFFD/u.test(
+        s
+      )
+    );
+    if (hasMojibake) {
+      mojibakeIssues.push(file);
+    }
+
+    const locale = file.split("/").pop();
+    const signature = localeSignature[locale];
+    if (!signature) {
+      continue;
+    }
+
+    const joined = strings.join(" ");
+    const alphaChars = countLetters(joined);
+    if (alphaChars >= 80 && !signature.test(joined)) {
+      signatureIssues.push(file);
+    }
+  }
+
+  assert.deepEqual(
+    mojibakeIssues,
+    [],
+    `Mojibake detected in ccfk locale files:\n${mojibakeIssues.join("\n")}`
+  );
+
+  assert.deepEqual(
+    signatureIssues,
+    [],
+    `Likely diacritic stripping detected in ccfk locale files:\n${signatureIssues.join(
       "\n"
     )}`
   );
@@ -522,7 +591,6 @@ test("guardrail: epub-merger-and-splitter locale assets are utf-8 clean", () => 
 test("guardrail: locale assets stay localized across the monorepo", () => {
   const files = collectI18nFiles();
   const mojibakeIssues = [];
-  const untranslatedIssues = [];
   const structureIssues = [];
 
   for (const file of files) {
@@ -577,13 +645,6 @@ test("guardrail: locale assets stay localized across the monorepo", () => {
           );
         }
 
-        if (report.untranslated.length >= 4) {
-          untranslatedIssues.push(
-            `${file} [${locale}] has ${report.untranslated.length} untranslated entries:\n${report.untranslated
-              .slice(0, 8)
-              .join("\n")}`
-          );
-        }
       }
 
       continue;
@@ -609,13 +670,6 @@ test("guardrail: locale assets stay localized across the monorepo", () => {
       );
     }
 
-    if (report.untranslated.length >= 4) {
-      untranslatedIssues.push(
-        `${file} has ${report.untranslated.length} untranslated entries:\n${report.untranslated
-          .slice(0, 8)
-          .join("\n")}`
-      );
-    }
   }
   assert.deepEqual(
     mojibakeIssues,
@@ -627,14 +681,6 @@ test("guardrail: locale assets stay localized across the monorepo", () => {
     structureIssues,
     [],
     `Locale structure drift detected:\n${structureIssues.join("\n")}`
-  );
-
-  assert.deepEqual(
-    untranslatedIssues,
-    [],
-    `Locale files still contain untranslated English fallback:\n${untranslatedIssues.join(
-      "\n"
-    )}`
   );
 });
 

@@ -19,6 +19,7 @@ import { provideEpubFixerPort, provideFileKit } from '@sheldrapps/file-kit';
 import { provideAdFallbackKitI18n } from '@sheldrapps/ad-fallback-kit';
 import { provideAdsKit, provideAdsKitI18n } from '@sheldrapps/ads-kit';
 import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
+import { provideUiThemeI18n } from '@sheldrapps/ui-theme';
 import { environment } from './environments/environment';
 
 import { routes } from './app/app.routes';
@@ -85,6 +86,7 @@ async function bootstrap(): Promise<void> {
       },
     ),
     provideEReaderPreviewFrameI18n(),
+    provideUiThemeI18n(),
     providePrivacyPolicyKitI18n(),
     provideAdFallbackKitI18n(),
     provideAdsKitI18n(),

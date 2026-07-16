@@ -1,0 +1,234 @@
+<div class="app-surface app-language-option-stack" role="list" [attr.aria-label]="ariaLabel">
+  <ng-container *ngFor="let item of items; trackBy: trackByValue">
+    <div
+      *ngIf="isStaticItem(item); else interactiveItem"
+      class="app-language-option app-language-option--static"
+      [class.app-language-option--selected]="isSelected(item)"
+      role="listitem"
+      [attr.aria-disabled]="true"
+      [attr.aria-label]="item.ariaLabelKey ? (item.ariaLabelKey | translate) : itemAriaLabel(item)"
+    >
+      <span class="app-language-option__copy ion-text-wrap">
+        <ng-container *ngIf="isSimpleLanguageRow(item); else advancedStaticContent">
+          <span
+            *ngIf="item.leadingIconClass"
+            class="app-language-option__flag"
+            [ngClass]="item.leadingIconClass"
+            aria-hidden="true"
+          ></span>
+          <span class="app-language-option__content app-language-option__content--simple">
+            <span class="app-language-option__label">
+              {{ item.titleKey ? (item.titleKey | translate) : itemTitle(item) }}
+            </span>
+            <span
+              *ngIf="hasSubline(item)"
+              class="app-language-option__subline"
+            >
+              {{ item.sublineKey ? (item.sublineKey | translate) : itemSubline(item) }}
+            </span>
+          </span>
+        </ng-container>
+
+        <ng-template #advancedStaticContent>
+          <span
+            *ngIf="hasLeadingIcon(item)"
+            class="app-language-option__leading"
+            aria-hidden="true"
+          >
+            <ion-icon
+              *ngIf="item.leadingIconName"
+              class="app-language-option__leading-icon"
+              [name]="item.leadingIconName"
+            ></ion-icon>
+            <ion-icon
+              *ngIf="!item.leadingIconName && item.leadingIconSrc"
+              class="app-language-option__leading-icon"
+              [src]="item.leadingIconSrc"
+            ></ion-icon>
+            <span
+              *ngIf="!item.leadingIconName && !item.leadingIconSrc && item.leadingIconClass"
+              class="app-language-option__flag"
+              [ngClass]="item.leadingIconClass"
+            ></span>
+          </span>
+
+          <span class="app-language-option__content">
+            <span class="app-language-option__label">
+              {{ item.titleKey ? (item.titleKey | translate) : itemTitle(item) }}
+            </span>
+
+            <span
+              *ngIf="hasSubline(item)"
+              class="app-language-option__subline"
+            >
+              {{ item.sublineKey ? (item.sublineKey | translate) : itemSubline(item) }}
+            </span>
+          </span>
+        </ng-template>
+      </span>
+
+      <ng-template #advancedStaticEnd>
+        <span class="app-language-option__end" aria-hidden="true">
+          <span *ngIf="hasTrailingIcon(item)" class="app-language-option__end-icon">
+            <ion-icon
+              *ngIf="item.trailingIconName"
+              class="app-language-option__leading-icon"
+              [name]="item.trailingIconName"
+            ></ion-icon>
+            <ion-icon
+              *ngIf="!item.trailingIconName && item.trailingIconSrc"
+              class="app-language-option__leading-icon"
+              [src]="item.trailingIconSrc"
+            ></ion-icon>
+            <span
+              *ngIf="!item.trailingIconName && !item.trailingIconSrc && item.trailingIconClass"
+              class="app-language-option__flag"
+              [ngClass]="item.trailingIconClass"
+            ></span>
+          </span>
+
+          <span
+            *ngIf="showSelectedIcon && (hasItemSelectedIcon(item) || hasDefaultSelectedIcon())"
+            class="app-language-option__check"
+            [class.app-language-option__check--visible]="isSelected(item)"
+            aria-hidden="true"
+          >
+            <ion-icon
+              *ngIf="item.selectedIconName || (!item.selectedIconSrc && !item.selectedIconClass && selectedIconName)"
+              class="app-language-option__check-icon"
+              [name]="item.selectedIconName || selectedIconName"
+            ></ion-icon>
+            <ion-icon
+              *ngIf="!item.selectedIconName && (item.selectedIconSrc || selectedIconSrc)"
+              class="app-language-option__check-icon"
+              [src]="item.selectedIconSrc || selectedIconSrc"
+            ></ion-icon>
+            <span
+              *ngIf="!item.selectedIconName && !item.selectedIconSrc && (item.selectedIconClass || selectedIconClass)"
+              class="app-language-option__flag app-language-option__flag--selected"
+              [ngClass]="item.selectedIconClass || selectedIconClass"
+            ></span>
+          </span>
+        </span>
+      </ng-template>
+    </div>
+
+    <ng-template #interactiveItem>
+      <ion-item
+        [button]="true"
+        detail="false"
+        lines="none"
+        class="app-language-option"
+        [class.app-language-option--selected]="isSelected(item)"
+        [disabled]="item.disabled"
+        [attr.aria-pressed]="isSelected(item) ? 'true' : 'false'"
+        [attr.aria-label]="item.ariaLabelKey ? (item.ariaLabelKey | translate) : itemAriaLabel(item)"
+        (click)="onSelect(item)"
+      >
+        <ion-label class="app-language-option__copy ion-text-wrap">
+          <ng-container *ngIf="isSimpleLanguageRow(item); else advancedContent">
+            <span
+              *ngIf="item.leadingIconClass"
+              class="app-language-option__flag"
+              [ngClass]="item.leadingIconClass"
+              aria-hidden="true"
+            ></span>
+            <span class="app-language-option__content app-language-option__content--simple">
+              <span class="app-language-option__label">
+                {{ item.titleKey ? (item.titleKey | translate) : itemTitle(item) }}
+              </span>
+              <span
+                *ngIf="hasSubline(item)"
+                class="app-language-option__subline"
+              >
+                {{ item.sublineKey ? (item.sublineKey | translate) : itemSubline(item) }}
+              </span>
+            </span>
+          </ng-container>
+
+          <ng-template #advancedContent>
+            <span
+              *ngIf="hasLeadingIcon(item)"
+              class="app-language-option__leading"
+              aria-hidden="true"
+            >
+              <ion-icon
+                *ngIf="item.leadingIconName"
+                class="app-language-option__leading-icon"
+                [name]="item.leadingIconName"
+              ></ion-icon>
+              <ion-icon
+                *ngIf="!item.leadingIconName && item.leadingIconSrc"
+                class="app-language-option__leading-icon"
+                [src]="item.leadingIconSrc"
+              ></ion-icon>
+              <span
+                *ngIf="!item.leadingIconName && !item.leadingIconSrc && item.leadingIconClass"
+                class="app-language-option__flag"
+                [ngClass]="item.leadingIconClass"
+              ></span>
+            </span>
+
+            <span class="app-language-option__content">
+              <span class="app-language-option__label">
+                {{ item.titleKey ? (item.titleKey | translate) : itemTitle(item) }}
+              </span>
+
+              <span
+                *ngIf="hasSubline(item)"
+                class="app-language-option__subline"
+              >
+                {{ item.sublineKey ? (item.sublineKey | translate) : itemSubline(item) }}
+              </span>
+            </span>
+          </ng-template>
+        </ion-label>
+
+        <ng-template #advancedEnd>
+          <span class="app-language-option__end" aria-hidden="true">
+            <span *ngIf="hasTrailingIcon(item)" class="app-language-option__end-icon">
+              <ion-icon
+                *ngIf="item.trailingIconName"
+                class="app-language-option__leading-icon"
+                [name]="item.trailingIconName"
+              ></ion-icon>
+              <ion-icon
+                *ngIf="!item.trailingIconName && item.trailingIconSrc"
+                class="app-language-option__leading-icon"
+                [src]="item.trailingIconSrc"
+              ></ion-icon>
+              <span
+                *ngIf="!item.trailingIconName && !item.trailingIconSrc && item.trailingIconClass"
+                class="app-language-option__flag"
+                [ngClass]="item.trailingIconClass"
+              ></span>
+            </span>
+
+            <span
+              *ngIf="showSelectedIcon && (hasItemSelectedIcon(item) || hasDefaultSelectedIcon())"
+              class="app-language-option__check"
+              [class.app-language-option__check--visible]="isSelected(item)"
+              aria-hidden="true"
+            >
+              <ion-icon
+                *ngIf="item.selectedIconName || (!item.selectedIconSrc && !item.selectedIconClass && selectedIconName)"
+                class="app-language-option__check-icon"
+                [name]="item.selectedIconName || selectedIconName"
+              ></ion-icon>
+              <ion-icon
+                *ngIf="!item.selectedIconName && (item.selectedIconSrc || selectedIconSrc)"
+                class="app-language-option__check-icon"
+                [src]="item.selectedIconSrc || selectedIconSrc"
+              ></ion-icon>
+              <span
+                *ngIf="!item.selectedIconName && !item.selectedIconSrc && (item.selectedIconClass || selectedIconClass)"
+                class="app-language-option__flag app-language-option__flag--selected"
+                [ngClass]="item.selectedIconClass || selectedIconClass"
+              ></span>
+            </span>
+          </span>
+        </ng-template>
+      </ion-item>
+    </ng-template>
+  </ng-container>
+</div>

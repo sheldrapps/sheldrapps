@@ -4,15 +4,10 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.os.Bundle;
-import android.os.Build;
 import android.util.Log;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
-
-import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.getcapacitor.BridgeActivity;
 import com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin;
@@ -86,20 +81,22 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(EpubRewritePlugin.class);
         super.onCreate(savedInstanceState);
+        normalizeWebViewTextZoom();
         exposeRuntimeFlags();
-        enableEdgeToEdge();
         forceSoftInputAdjustNothing();
     }
 
     @Override
     public void onStart() {
         super.onStart();
+        normalizeWebViewTextZoom();
         exposeRuntimeFlags();
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        normalizeWebViewTextZoom();
         exposeRuntimeFlags();
     }
 
@@ -130,26 +127,12 @@ public class MainActivity extends BridgeActivity {
         runtimeFlagsExposed = true;
     }
 
-    private void enableEdgeToEdge() {
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-        WindowInsetsControllerCompat controller =
-            WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
-
-        if (controller != null) {
-            boolean isNightMode =
-                (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) ==
-                Configuration.UI_MODE_NIGHT_YES;
-            controller.setAppearanceLightNavigationBars(!isNightMode);
+    private void normalizeWebViewTextZoom() {
+        if (bridge == null || bridge.getWebView() == null) {
+            return;
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            WindowManager.LayoutParams attrs = getWindow().getAttributes();
-            attrs.layoutInDisplayCutoutMode =
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
-                    ? WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
-                    : WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
-            getWindow().setAttributes(attrs);
-        }
+        bridge.getWebView().getSettings().setTextZoom(100);
     }
 
     private void forceSoftInputAdjustNothing() {

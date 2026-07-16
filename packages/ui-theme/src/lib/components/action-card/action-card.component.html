@@ -10,10 +10,20 @@
   <span class="sh-action-card__title">{{ title }}</span>
 
   <span class="sh-action-card__icon" aria-hidden="true">
-    <ion-icon
-      [name]="icon"
+    <span
+      *ngIf="svg; else namedIcon"
       [class.sh-action-card__icon--flip-horizontal]="iconFlip === 'horizontal'"
       [class.sh-action-card__icon--flip-vertical]="iconFlip === 'vertical'"
-    ></ion-icon>
+    >
+      <span class="sh-action-card__svg" [innerHTML]="svgMarkup()"></span>
+    </span>
+
+    <ng-template #namedIcon>
+      <ion-icon
+        [name]="icon"
+        [class.sh-action-card__icon--flip-horizontal]="iconFlip === 'horizontal'"
+        [class.sh-action-card__icon--flip-vertical]="iconFlip === 'vertical'"
+      ></ion-icon>
+    </ng-template>
   </span>
 </button>

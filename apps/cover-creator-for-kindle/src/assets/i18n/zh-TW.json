@@ -5,16 +5,16 @@
   "COMMON": {
     "BACK_AGAIN_TO_EXIT": "再按一次返回以退出",
     "CANCEL": "取消",
-    "CLOSE": "é—œé–‰",
+    "CLOSE": "關閉",
     "EDIT": "編輯",
     "CHANGE": "更改",
-    "DELETE": "åˆªé™¤",
+    "DELETE": "刪除",
     "DONE": "完成",
-    "ERROR": "éŒ¯èª¤",
+    "ERROR": "錯誤",
     "LOADING": "載入中…",
     "BILLING_UNAVAILABLE": "目前無法購買。",
     "PURCHASE_ERROR": "無法完成購買，請再試一次。",
-    "REMOVE_ADS_BUY": "è³¼è²·",
+    "REMOVE_ADS_BUY": "購買",
     "REMOVE_ADS_DESCRIPTION": "透過一次性付款永久移除廣告，並啟用無損/壓縮匯出選擇。",
     "REMOVE_ADS_PURCHASED": "廣告已永久移除。",
     "REMOVE_ADS_RESTORE": "恢復購買",
@@ -25,12 +25,12 @@
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "一次性付款 • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "價格：{{price}} • 無訂閱",
     "RESTORE_ERROR": "無法恢復購買，請再試一次。",
-    "PRO_ONLY": "å°ˆæ¥­ç‰ˆ",
-    "WATCH_AD_SUBTITLE": "è§€çœ‹å»£å‘Š",
-    "SHARE": "åˆ†äº«",
+    "PRO_ONLY": "專業版",
+    "WATCH_AD_SUBTITLE": "觀看廣告",
+    "SHARE": "分享",
     "SHARE_KINDLE_HINT": "分享時，請選擇 Kindle 應用程式以傳送至您的裝置。",
-    "WARNING": "è­¦å‘Š",
-    "EDIT_PROJECT_TITLE": "ä½ æƒ³å¦‚ä½•ç·¨è¼¯é€™å€‹æª”æ¡ˆï¼Ÿ",
+    "WARNING": "警告",
+    "EDIT_PROJECT_TITLE": "你想如何編輯這個檔案？",
     "EDIT_PROJECT_MESSAGE": "請選擇要覆蓋目前檔案，還是先保留一份副本。",
     "EDIT_PROJECT_OVERWRITE": "覆蓋",
     "EDIT_PROJECT_OVERWRITE_DESC": "將變更直接儲存到現有檔案。",
@@ -38,32 +38,32 @@
     "EDIT_PROJECT_COPY_DESC": "保留原始檔案，並編輯一份新副本。"
   },
   "CREATE": {
-    "ADS_REQUIRED": "å»£å‘Šç„¡æ³•è¼‰å…¥ï¼Œè«‹æª¢æŸ¥æ‚¨çš„ç¶²è·¯æˆ–å»£å‘Šæ””æˆªå™¨ã€‚",
+    "ADS_REQUIRED": "廣告無法載入，請檢查您的網路或廣告攔截器。",
     "ARIA_CHANGE_IMAGE": "更換封面圖片。目前圖片：{{name}}",
     "ARIA_CROP": "調整選取的圖片",
     "ARIA_SELECT_IMAGE": "選取封面圖片",
     "ARIA_SELECT_MODEL": "選取裝置型號",
-    "CROP_ACTION": "èª¿æ•´",
+    "CROP_ACTION": "調整",
     "COVER_CREATED": "封面已建立，您現在可以儲存或分享",
     "CREATE_ACTION": "建立封面",
     "CREATE_ACTION_REWARDED": "建立封面（觀看廣告）",
     "GENERATING": "正在產生封面…",
     "HINT_SAVE_SHARE_EXPLAIN": "建立封面不會自動儲存。",
-    "INFO": "è³‡è¨Š",
+    "INFO": "資訊",
     "INFO_ARIA": "關於建立封面的資訊",
-    "INFO_TITLE": "è³‡è¨Š",
+    "INFO_TITLE": "資訊",
     "INFO_SEND_TITLE": "傳送至 Kindle",
     "INFO_SHARE_KINDLE": "若要傳送至 Kindle，請在分享時選擇 Kindle 應用程式。",
-    "INFO_FLOW_LABEL": "å»ºè­°é †åºï¼š",
+    "INFO_FLOW_LABEL": "建議順序：",
     "INFO_STEP_1": "選取圖片。",
-    "INFO_STEP_2": "åœ¨ç·¨è¼¯å™¨ä¸­èª¿æ•´åœ–ç‰‡ï¼Œç„¶å¾Œé»žæ“Šå®Œæˆä»¥å¥—ç”¨ã€‚",
+    "INFO_STEP_2": "在編輯器中調整圖片，然後點擊完成以套用。",
     "INFO_STEP_3": "套用調整後建立封面。",
-    "INFO_STEP_4": "å„²å­˜æˆ–åˆ†äº«ã€‚",
+    "INFO_STEP_4": "儲存或分享。",
     "INFO_NOTE_LABEL": "注意：",
     "IMAGE_ERROR_CORRUPT": "無法讀取圖片，請嘗試其他圖片。",
-    "IMAGE_ERROR_SIZE": "æª”æ¡ˆéŽå¤§ï¼Œæœ€å¤§ {{maxSize}} MBã€‚",
+    "IMAGE_ERROR_SIZE": "檔案過大，最大 {{maxSize}} MB。",
     "IMAGE_ERROR_TYPE": "不支援的格式（{{type}}），請選取 JPG、PNG 或 WebP。",
-    "IMAGE_WARN_SMALL": "åœ–ç‰‡è§£æžåº¦ä½Žæ–¼æ‰€é¸ Kindle åž‹è™Ÿï¼Œå»ºè­°ä½¿ç”¨è¼ƒå¤§çš„åœ–ç‰‡ä»¥ç²å¾—æ›´å¥½çš„æ•ˆæžœã€‚",
+    "IMAGE_WARN_SMALL": "圖片解析度低於所選 Kindle 型號，建議使用較大的圖片以獲得更好的效果。",
     "LOADING_IMAGE": "正在載入圖片…",
     "OPENING_EDITOR": "正在開啟編輯器…",
     "SAVING": "正在儲存封面…",
@@ -76,20 +76,20 @@
     "SELECT_IMAGE_PLACEHOLDER": "選取圖片",
     "SELECT_BRAND_LABEL": "品牌",
     "SELECT_BRAND_PLACEHOLDER": "選取品牌",
-    "SELECT_GROUP_LABEL": "ç³»åˆ—",
+    "SELECT_GROUP_LABEL": "系列",
     "SELECT_GROUP_PLACEHOLDER": "選取系列",
-    "SELECT_GENERATION_LABEL": "åž‹è™Ÿ",
+    "SELECT_GENERATION_LABEL": "型號",
     "SELECT_GENERATION_PLACEHOLDER": "選取型號",
     "SELECT_MODEL_LABEL": "裝置型號",
     "SELECT_MODEL_PLACEHOLDER": "選取您的裝置",
     "TAP_TO_CHANGE": "點擊以更換／重設",
     "TITLE": "建立封面",
     "COVER_SOURCE_TITLE": "封面來源",
-    "TAP_TO_PREVIEW": "é»žæ“ŠæŸ¥çœ‹é è¦½",
+    "TAP_TO_PREVIEW": "點擊查看預覽",
     "MODEL_PICKER": {
       "TITLE": "選擇您的 Kindle"
     },
-    "INFO_REQUIREMENTS_LABEL": "éœ€æ±‚ï¼š",
+    "INFO_REQUIREMENTS_LABEL": "需求：",
     "INFO_REQUIREMENT_DISABLE_ADS": "在 Kindle 上停用廣告。",
     "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "在 Kindle 上啟用「螢幕與亮度 > 在鎖定畫面顯示封面」。",
     "ARIA_START_SCRATCH": "Cong ling kaishi",
@@ -106,9 +106,9 @@
     "TITLE": "封面",
     "DITHERED_THUMBNAIL_NOTICE": "套用瑕疵減少的封面在縮圖中可能看起來不同。請開啟預覽以查看更準確的結果。",
     "ACTIONS": {
-      "DELETE": "åˆªé™¤",
-      "SHARE": "åˆ†äº«",
-      "OPEN": "é–‹å•Ÿ",
+      "DELETE": "刪除",
+      "SHARE": "分享",
+      "OPEN": "開啟",
       "EDIT_PROJECT": "編輯"
     },
     "DELETE": {
@@ -132,14 +132,14 @@
   "INSTRUCTIONS": {
     "NOTE_TITLE": "注意",
     "STEP_1": "選取封面圖片",
-    "STEP_2": "åœ¨ç·¨è¼¯å™¨ä¸­èª¿æ•´åœ–ç‰‡ï¼Œç„¶å¾Œé»žæ“Šå®Œæˆä»¥å¥—ç”¨",
+    "STEP_2": "在編輯器中調整圖片，然後點擊完成以套用",
     "STEP_3": "套用調整後建立封面",
     "STEP_4": "儲存或分享封面",
     "STEP_4_DESC": "完成後，您可以將其儲存至裝置，或透過 Kindle 應用程式分享以獲得更順暢的體驗。",
     "STEP_5": "透過網頁傳送（Send to Kindle）",
     "STEP_5_DESC": "您也可以在瀏覽器中使用 Send to Kindle 網頁工具傳送。",
-    "TIP": "ç‚ºç²å¾—æœ€ä½³æ•ˆæžœï¼Œè«‹ä½¿ç”¨é«˜è§£æžåº¦åœ–ç‰‡ï¼Œä¸¦ç¢ºä¿ Kindle ä¸Šçš„å»£å‘Šå·²åœç”¨ã€‚",
-    "TITLE": "ä½¿ç”¨èªªæ˜Ž"
+    "TIP": "為獲得最佳效果，請使用高解析度圖片，並確保 Kindle 上的廣告已停用。",
+    "TITLE": "使用說明"
   },
   "KINDLE_BRANDS": {
     "KINDLE": "Kindle"
@@ -236,15 +236,15 @@
     "COVER_LINK": "設定封面顯示",
     "COVER_TITLE": "顯示書籍封面",
     "NOTE": "Cover Creator for Kindle 並非官方應用程式，不會修改裝置軟體。",
-    "SEND_LINK": "Send to Kindleï¼ˆç¶²é ç‰ˆï¼‰",
+    "SEND_LINK": "Send to Kindle（網頁版）",
     "SEND_TITLE": "透過網頁傳送封面",
     "TITLE": "使用需求"
   },
   "HOME_TOUR": {
     "CONTROLS": {
-      "BACK": "è¿”å›ž",
+      "BACK": "返回",
       "FINISH": "完成",
-      "INTERACT_HINT": "èˆ‡é†’ç›®é¡¯ç¤ºçš„å…ƒç´ äº’å‹•ä»¥ç¹¼çºŒã€‚",
+      "INTERACT_HINT": "與醒目顯示的元素互動以繼續。",
       "NEXT": "下一步",
       "PROGRESS": "{{current}} / {{total}}",
       "SKIP": "略過"
@@ -259,11 +259,11 @@
         "DESCRIPTION": "選取您的電子書閱讀器品牌。"
       },
       "GROUP": {
-        "TITLE": "ç³»åˆ—",
+        "TITLE": "系列",
         "DESCRIPTION": "選取您的裝置系列。"
       },
       "MODEL": {
-        "TITLE": "åž‹è™Ÿ",
+        "TITLE": "型號",
         "DESCRIPTION": "選取精確的型號。"
       },
       "IMAGE": {
@@ -271,15 +271,15 @@
         "DESCRIPTION": "選取封面圖片。"
       },
       "ADJUST": {
-        "TITLE": "èª¿æ•´",
-        "DESCRIPTION": "åœ¨ç·¨è¼¯å™¨ä¸­èª¿æ•´åœ–ç‰‡ï¼Œç„¶å¾Œé»žæ“Šå®Œæˆã€‚"
+        "TITLE": "調整",
+        "DESCRIPTION": "在編輯器中調整圖片，然後點擊完成。"
       },
       "CREATE": {
         "TITLE": "建立封面",
         "DESCRIPTION": "在此產生封面。"
       },
       "RESULTS": {
-        "TITLE": "å„²å­˜æˆ–åˆ†äº«",
+        "TITLE": "儲存或分享",
         "DESCRIPTION": "儲存或分享您的封面。"
       },
       "DONE": {
@@ -297,42 +297,28 @@
     }
   },
   "SETTINGS": {
-    "INSTRUCTIONS": "æŸ¥çœ‹èªªæ˜Ž",
+    "INSTRUCTIONS": "查看說明",
     "INSTRUCTIONS_HINT": "如何為 Kindle 建立並傳送封面",
-    "INSTRUCTIONS_SECTION": "èªªæ˜Ž",
-    "LANGUAGE": "èªžè¨€",
-    "LANGUAGE_RESTART_NOTICE": "語言已變更，應用程式將重新啟動以套用變更。",
-    "LANGUAGE_PREPARING_COUNTDOWN": "正在以你的語言完成準備。App 將關閉以變更名稱（{{count}}）",
+    "INSTRUCTIONS_SECTION": "說明",
     "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
     "EREADER_OPTIMIZATION_HINT": "Apply automatic adjustments to improve clarity on eReaders",
     "EREADER_OPTIMIZATION_TOGGLE": "Optimize for eReader",
-    "REQUISITES": "æŸ¥çœ‹éœ€æ±‚",
+    "REQUISITES": "查看需求",
     "REQUISITES_HINT": "封面在 Kindle 上正確運作所需的設定",
     "REQUISITES_SECTION": "使用需求",
-    "THEME": "ä¸»é¡Œ",
-    "THEME_SYSTEM": "ç³»çµ±",
-    "THEME_LIGHT": "è‡ªç„¶äº®è‰²",
-    "THEME_DARK": "ç¶“å…¸æš—è‰²",
-    "THEME_WARM_READING": "æº«æš–é–±è®€",
-    "THEME_POP_ROSE": "çŽ«ç‘°ç²‰",
-    "THEME_NOCTURNE_VIOLET": "夜曲紫",
-    "THEME_OBSIDIAN_RED": "é»‘æ›œç´…",
-    "THEME_TERMINAL_GREEN": "çµ‚ç«¯ç¶ ",
-    "THEME_MINT_FRESH": "薄荷清新",
-    "THEME_SILVER_TECH": "éŠ€è‰²",
-    "THEME_GOLD_LUXE": "é‡‘è‰²",
     "TITLE": "設定",
-    "VIEW_TOUR": "æŸ¥çœ‹å°Žè¦½"
+    "VIEW_TOUR": "查看導覽",
+    "HOW_TO_USE": "如何使用？"
   },
   "TABS": {
     "COVERS": "封面",
-    "CREATE": "å»ºç«‹",
+    "CREATE": "建立",
     "SETTINGS": "設定"
   },
   "ARR": {
     "TOOLS": {
       "RECOMMENDED": "推薦",
-      "INFO": "è³‡è¨Š",
+      "INFO": "資訊",
       "APPS": "應用程式",
       "GUIDE": "指南"
     }

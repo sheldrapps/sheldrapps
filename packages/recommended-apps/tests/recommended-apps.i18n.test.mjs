@@ -39,7 +39,7 @@ const EXPECTED = {
     APP_NAME_ECC: "Cambiar portada a EPUB",
     APP_NAME_PCM: "Creador de Portadas PDF",
     APP_NAME_EF: "Reparar EPUB",
-    APP_DESC_CCFK: "Crea portadas para e-reader desde tus imÃ¡genes en solo unos pasos.",
+    APP_DESC_CCFK: "Crea portadas para e-reader desde tus imágenes en solo unos pasos.",
     APP_DESC_ECC: "Reemplaza portadas EPUB y exporta archivos actualizados.",
     APP_DESC_PCM: "Reemplaza portadas PDF y exporta archivos actualizados.",
     APP_DESC_EF: "Detecta y repara problemas comunes en archivos EPUB",
@@ -47,9 +47,9 @@ const EXPECTED = {
   "de-DE": {
     TITLE: "Empfohlene Apps",
     OPEN_PLAY_STORE: "Im Play Store ansehen",
-    EMPTY_STATE: "Keine empfohlenen Apps verfÃ¼gbar",
+    EMPTY_STATE: "Keine empfohlenen Apps verfügbar",
     APP_NAME_CCFK: "E-Reader Cover Creator",
-    APP_NAME_ECC: "EPUB Cover Ã¤ndern",
+    APP_NAME_ECC: "EPUB Cover ändern",
     APP_NAME_PCM: "PDF-Cover erstellen",
     APP_NAME_EF: "EPUB reparieren",
     APP_DESC_CCFK: "Erstelle E-Reader-Cover aus deinen Bildern in nur wenigen Schritten.",
@@ -58,19 +58,19 @@ const EXPECTED = {
     APP_DESC_EF: "Häufige EPUB-Probleme prüfen und reparierte Kopie speichern",
   },
   "fr-FR": {
-    TITLE: "Applications recommandÃ©es",
+    TITLE: "Applications recommandées",
     OPEN_PLAY_STORE: "Voir sur le Play Store",
-    EMPTY_STATE: "Aucune application recommandÃ©e disponible",
-    APP_NAME_CCFK: "CrÃ©ateur couvertures e-reader",
+    EMPTY_STATE: "Aucune application recommandée disponible",
+    APP_NAME_CCFK: "Créateur couvertures e-reader",
     APP_NAME_ECC: "Changer couverture EPUB",
-    APP_NAME_PCM: "CrÃ©er couverture PDF",
+    APP_NAME_PCM: "Créer couverture PDF",
     APP_NAME_EF: "Réparer EPUB",
     APP_DESC_CCFK:
-      "CrÃ©ez des couvertures pour e-reader Ã  partir de vos images en quelques Ã©tapes.",
+      "Créez des couvertures pour e-reader à partir de vos images en quelques étapes.",
     APP_DESC_ECC:
-      "Remplacez les couvertures EPUB et exportez les fichiers mis Ã  jour.",
+      "Remplacez les couvertures EPUB et exportez les fichiers mis à jour.",
     APP_DESC_PCM:
-      "Remplacez les couvertures PDF et exportez les fichiers mis Ã  jour.",
+      "Remplacez les couvertures PDF et exportez les fichiers mis à jour.",
     APP_DESC_EF: "Diagnostiquer et réparer les problèmes EPUB courants",
   },
   "it-IT": {
@@ -89,7 +89,7 @@ const EXPECTED = {
   "pt-BR": {
     TITLE: "Apps recomendados",
     OPEN_PLAY_STORE: "Ver na Play Store",
-    EMPTY_STATE: "Nenhum app recomendado disponÃ­vel",
+    EMPTY_STATE: "Nenhum app recomendado disponível",
     APP_NAME_CCFK: "Criador de capas e-reader",
     APP_NAME_ECC: "Alterar capa do EPUB",
     APP_NAME_PCM: "Criar capa para PDF",

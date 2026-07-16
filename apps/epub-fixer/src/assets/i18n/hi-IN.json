@@ -187,24 +187,9 @@
   },
   "SETTINGS": {
     "TITLE": "सेटिंग्स",
-    "LANGUAGE": "भाषा",
-    "LANGUAGE_PREPARING_COUNTDOWN": "आपकी भाषा में सब कुछ तैयार किया जा रहा है। नाम बदलने के लिए ऐप बंद होगा ({{count}})",
     "INSTRUCTIONS": "निर्देश देखें",
     "INSTRUCTIONS_SECTION": "निर्देश",
-    "INSTRUCTIONS_HINT": "EPUB Fixer अभी कैसे व्यवस्थित है",
-    "THEME": "थ६म",
-    "THEME_SYSTEM": "सिस्टम",
-    "THEME_LIGHT": "प्राकृतिक रोशनी",
-    "THEME_DARK": "क्लासिक डार्क",
-    "THEME_WARM_READING": "???? ????",
-    "THEME_POP_ROSE": "??? ????",
-    "THEME_NOCTURNE_VIOLET": "?????? ??????",
-    "THEME_OBSIDIAN_RED": "????????? ???",
-    "THEME_TERMINAL_GREEN": "??????? ???",
-    "THEME_MINT_FRESH": "????? ??????",
-    "THEME_SILVER_TECH": "?????? ???",
-    "THEME_GOLD_LUXE": "????? ?????",
-    "VIEW_TOUR": "??? ?????"
+    "INSTRUCTIONS_HINT": "EPUB Fixer अभी कैसे व्यवस्थित है"
   },
   "TABS": {
     "FIX": "ठीक करें",

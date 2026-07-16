@@ -1,23 +1,23 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonList,
-  IonItem,
-  IonLabel,
-  IonModal,
-  IonButtons,
   IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
   IonLoading,
+  IonModal,
+  IonTitle,
+  IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
+import { addIcons } from 'ionicons';
+import { colorPaletteOutline } from 'ionicons/icons';
 import {
+  SelectableButtonListComponent,
+  type SelectableButtonListItem,
   ThemeService,
   UiThemeI18nService,
   type Theme,
@@ -48,21 +48,18 @@ import { RatingService } from '@sheldrapps/rating-kit';
   imports: [
     CommonModule,
     FormsModule,
-    RouterLink,
     TranslateModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonContent,
-    IonList,
-    IonItem,
-    IonLabel,
-    IonModal,
-    IonButtons,
     IonButton,
+    IonButtons,
+    IonContent,
+    IonHeader,
     IonLoading,
-    LanguageRadioListComponent,
+    IonModal,
+    IonTitle,
+    IonToolbar,
+    SelectableButtonListComponent,
     PrivacyPolicySectionComponent,
+    LanguageRadioListComponent,
   ],
 })
 export class SettingsPage {
@@ -86,6 +83,12 @@ export class SettingsPage {
   readonly privacyPolicyUrl =
     'https://sheldrapps.com/privacy-policies/pdf-cover-maker';
 
+  constructor() {
+    addIcons({
+      colorPaletteOutline,
+    });
+  }
+
   trackByLang = (_: number, l: LangOption) => l.code;
 
   get selectedLanguage(): Lang {
@@ -108,6 +111,70 @@ export class SettingsPage {
     return this.supportedLangs.find(
       (option) => option.code === this.selectedLanguage,
     );
+  }
+
+  get languageSettingsItems(): SelectableButtonListItem[] {
+    const currentLanguage = this.currentLanguageOption;
+
+    return [
+      {
+        value: 'language',
+        titleKey: 'LANGUAGE_SETTINGS.TITLE',
+        subline: currentLanguage?.label ?? this.selectedLanguage,
+        leadingIconClass: currentLanguage
+          ? ['app-language-option__flag', currentLanguage.flagClass]
+          : undefined,
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'LANGUAGE_SETTINGS.TITLE',
+      },
+    ];
+  }
+
+  get themeSettingsItems(): SelectableButtonListItem[] {
+    return [
+      {
+        value: 'theme',
+        title: this.uiThemeI18n.texts().UI_THEME.THEME_SETTINGS.TITLE,
+        subline: this.currentThemeLabel,
+        leadingIconName: 'color-palette-outline',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabel: this.uiThemeI18n.texts().UI_THEME.THEME_SETTINGS.TITLE,
+      },
+    ];
+  }
+
+  get privacyOptionsItems(): SelectableButtonListItem[] {
+    return [
+      {
+        value: 'privacy-options',
+        titleKey: 'SETTINGS.PRIVACY_OPTIONS',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'SETTINGS.PRIVACY_OPTIONS',
+      },
+    ];
+  }
+
+  get ratingSettingsItems(): SelectableButtonListItem[] {
+    return [
+      {
+        value: 'rating-prompt',
+        titleKey: 'RATING.DEBUG.PREVIEW_PROMPT',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'RATING.DEBUG.PREVIEW_PROMPT',
+      },
+      {
+        value: 'rating-suggestions',
+        titleKey: 'RATING.DEBUG.PREVIEW_SUGGESTIONS',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'RATING.DEBUG.PREVIEW_SUGGESTIONS',
+      },
+      {
+        value: 'rating-feedback',
+        titleKey: 'RATING.DEBUG.PREVIEW_FEEDBACK',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'RATING.DEBUG.PREVIEW_FEEDBACK',
+      },
+    ];
   }
 
   openLanguageModal() {
@@ -159,6 +226,10 @@ export class SettingsPage {
     await this.theme.setTheme(theme);
   }
 
+  openThemeSettings(): void {
+    void this.router.navigateByUrl('/tabs/settings/theme');
+  }
+
   async openPrivacyOptions() {
     const opened = await this.consent.showPrivacyOptionsIfAvailable();
     if (!opened) {
@@ -175,8 +246,40 @@ export class SettingsPage {
     await this.ratingService.previewPrompt();
   }
 
+  async previewRatingSuggestions(): Promise<void> {
+    await this.ratingService.previewSuggestionFlow();
+  }
+
   async previewRatingFeedback(): Promise<void> {
     await this.ratingService.previewFeedbackFlow();
+  }
+
+  onLanguageSettingsAction(): void {
+    this.openLanguageModal();
+  }
+
+  onThemeSettingsAction(): void {
+    this.openThemeSettings();
+  }
+
+  onPrivacyOptionsAction(): void {
+    void this.openPrivacyOptions();
+  }
+
+  async onRatingSettingsAction(value: string): Promise<void> {
+    if (value === 'rating-prompt') {
+      await this.previewRatingPrompt();
+      return;
+    }
+
+    if (value === 'rating-suggestions') {
+      await this.previewRatingSuggestions();
+      return;
+    }
+
+    if (value === 'rating-feedback') {
+      await this.previewRatingFeedback();
+    }
   }
 
   private async showLanguageRestartCountdown() {

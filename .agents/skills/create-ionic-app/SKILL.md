@@ -30,7 +30,19 @@ Required rules:
 11. Expect the response in `ion-icons` terms.
 12. Default pattern:
    - `home-outline` - `Inicio`
-   - `library-outline` - `Mis EPUBs`
+   - `grid-outline` - `Herramientas`
+
+## Scaffold neutrality
+
+Default scaffolds must stay domain-neutral unless the user explicitly asks for a specific feature set.
+
+Rules:
+
+1. Create each non-settings tab as an empty standalone page by default.
+2. Do not copy page logic, services, routes, assets, stores, or workflows from an existing app just because the app names sound similar.
+3. Do not scaffold `file-kit`, EPUB ports, editor routes, image workflows, recommended apps routes, or domain-specific persistence unless the user explicitly requested that capability.
+4. Shared kits are opt-in by requirement, not by resemblance to another app in the repo.
+5. If the user only asked for tabs, deliver tabs and placeholder pages, not a prewired product flow.
 
 ## Workspace dependency intake
 
@@ -41,30 +53,31 @@ Ask explicitly:
 Rules:
 
 1. If the answer is yes:
-   - implement the current editor entry pattern used by `ccfk`, `ecc`, and `pcm`
+   - implement the current editor entry pattern used in the repo
    - support both current entry buttons:
      - `image`: pass the selected image/file into the editor
      - `scratch`: open the editor without file input, starting from the base editor state
-   - wire all input and output validations already used by those apps
-   - keep this aligned with the current source of truth in the existing apps, not with a stale `image | scratch` interpretation
+   - wire all input and output validations already used by the shared implementation
+   - keep this aligned with the current shared implementation, not with a stale `image | scratch` interpretation
    - import and configure the editor-related providers and routes as needed
 2. If the answer is no:
    - do not import the editor
    - do not wire editor providers
    - do not add editor routes, state, or assets
 3. Treat the editor decision as a hard branch in scaffolding, not a later cleanup.
+4. Never infer `yes` from a similar existing app; only scaffold editor when the user explicitly confirmed it.
 
 ## Theme flow intake
 
-Always include the current theme flow in `Settings`.
+If the app will expose theme controls in `Settings`, include the current theme flow.
 
 Rules:
 
 1. Use `@sheldrapps/ui-theme` for theme selection, preview, persistence, and system sync.
-2. Include the theme selector screen or section that mirrors the current apps.
+2. Render the `Settings` entry with `sh-selectable-button-list` from `@sheldrapps/ui-theme`; do not recreate the same action row with bespoke `ion-item` markup.
 3. Theme options must come from the supported theme list, not from a hardcoded ad-hoc array.
 4. Persist the selected theme through the settings store/theme service flow already used by the repo.
-5. Default theme is `system`.
+5. Do not default first launch to `system` unless the brief explicitly wants platform-following visuals. Use an explicit baseline theme that matches the intended product default, and prefer `light` when no other baseline was requested.
 6. Validate theme values with the existing normalization rules:
    - accept only `system` or a supported theme id
    - normalize invalid or legacy values back to `system`
@@ -77,7 +90,20 @@ Rules:
    - when a forced theme is active, ignore system changes
 9. Apply the resolved theme to the document root and system bars using the current shared service behavior.
 10. Initialize theme in app bootstrap so the first render uses the stored or default theme, not a stale visual state.
-11. For native Android apps, do not leave theme initialization in `AppComponent` or a page constructor; gate first render through bootstrap-level initialization, preferably `APP_INITIALIZER` or an equivalent bootstrap barrier.
+11. Register the bootstrap initializer in the real provider list used by the entrypoints; do not leave an initializer file created but unused.
+12. For native Android apps, do not leave theme initialization in `AppComponent` or a page constructor; gate first render through bootstrap-level initialization, preferably `APP_INITIALIZER` or an equivalent bootstrap barrier.
+
+## Settings button list intake
+
+Use the shared button-list surface for Settings action rows whenever the app exposes action rows.
+
+Rules:
+
+1. Use `sh-selectable-button-list` from `@sheldrapps/ui-theme` for action rows that open modals, navigate, or trigger one-tap flows.
+2. Prefer it for language, theme, privacy options, rating actions, and similar settings entries.
+3. Support title, subline, leading icon, trailing icon, selected icon, and flags through the shared item model instead of local row variants.
+4. Keep any static informational section separate from the button list only when the section is not an action row.
+5. Use local `ion-item` markup only when the app has a deliberate legacy screen or a non-action informational row that cannot be expressed as a shared button item.
 
 ## Android startup hardening
 
@@ -96,6 +122,16 @@ Rules:
 9. If the scaffold generates tabs, include the `ion-router-outlet` inside the tabs shell template from the beginning.
 10. Do not treat a black first frame as acceptable startup noise; if a cold launch screenshot is black before the UI appears, fix the splash/theme before closing the scaffold.
 
+## Standard page safe area
+
+For normal pages that use `ion-header` plus a custom content shell:
+
+1. Keep the page below the status bar.
+2. Scaffold the main routed page with `ion-header [translucent]="true"` and `ion-content [fullscreen]="true"` by default.
+3. If the page has a centered hero or under-construction block, add top spacing in the scroll shell using `env(safe-area-inset-top)` or `--ion-safe-area-top`.
+4. Do not scaffold those pages as edge-to-edge fullscreen screens unless the product brief explicitly asks for that layout.
+5. Treat any hero/content block that touches the status bar as a bug, not as a styling preference.
+
 ## Native Bootstrap Pattern
 
 If the app needs a native Android entrypoint, scaffold Android startup so the first render is controlled from bootstrap.
@@ -107,18 +143,33 @@ Rules:
 3. Use a bootstrap barrier for theme, language, and other startup state that must complete before first render.
 4. Prefer `APP_INITIALIZER` or an equivalent bootstrap gate when theme or language must resolve before Angular paints.
 5. Keep `AppComponent` focused on routing, shell behavior, document title, and blur-on-navigation cleanup.
-6. Do not duplicate startup policy between `main.ts` and `main.native.ts`; share providers if needed, but keep the native bootstrap decision centralized.
+6. Do not duplicate startup policy between `main.ts` and `main.native.ts`; extract shared bootstrap/providers so both entrypoints call the same setup.
 7. If the app has `main.native.ts`, include cold-start screenshot validation in the scaffold checklist.
+8. When the app uses the shared `@sheldrapps/ui-theme` system bars behavior, initialize `EdgeToEdgeService` before `ThemeService.initialize()` so the status bar and nav bar react to the resolved theme from first paint.
+9. Do not mix the shared edge-to-edge/theme flow with ad-hoc `StatusBar.setOverlaysWebView({ overlay: false })` startup logic unless the product explicitly wants a non-edge-to-edge shell.
+10. Use the same status bar strategy across sibling utility apps unless the brief explicitly asks for a different Android shell behavior.
+
+## Ionic dependency alignment
+
+Scaffold Ionic dependencies so web and Android render with the same runtime classes.
+
+Rules:
+
+1. Do not leave `@ionic/angular` on a broad starter range like `^8.0.0` when the workspace is already pinned to a newer Ionic release.
+2. Match the generated app's Ionic version to the workspace-selected version exactly.
+3. If the workspace uses root `pnpm.overrides` for Ionic, preserve them or add them when missing.
+4. Before closing the scaffold, verify pnpm resolves a single Ionic runtime for the app (`@ionic/angular` and `@ionic/core`) instead of multiple parallel versions.
+5. Treat duplicated Ionic runtimes as a release blocker because they can produce mismatched host classes and broken native rendering.
 
 ## Language flow intake
 
-Always include the current language selector flow in `Settings`.
+If the app will expose language selection in `Settings`, include the shared language selector flow.
 
 Rules:
 
 1. Use `@sheldrapps/i18n-kit` for language state, selection, normalization, translation, and restart behavior.
 2. Include the current selector UI pattern:
-   - an entry in `Settings` that opens a modal
+   - an entry in `Settings` rendered with `sh-selectable-button-list` that opens a modal
    - a radio list powered by `LanguageRadioListComponent`
    - Cancel and Done actions in the modal header
    - a loading/countdown state before restart after confirmation
@@ -147,15 +198,15 @@ Rules:
 
 ## Privacy policy flow intake
 
-Always include the static privacy policy section in `Settings`.
+If the app will expose privacy policy access in `Settings`, include the static privacy policy section.
 
 Rules:
 
 1. Ask for the privacy policy link during intake.
-2. Install the section as a static settings item, following the current `ccfk` pattern.
-3. Render the privacy policy entry as a plain action row in `Settings`, not as a dynamic settings form.
+2. Install the section as a static settings item, following the current shared privacy-policy-kit pattern.
+3. Render the privacy policy entry through `sh-privacy-policy-section`; it already uses `sh-selectable-button-list` internally.
 4. Open the provided privacy policy URL with the same browser/open-url pattern already used by the repo.
-5. If the app also has consent/privacy-options behavior, wire it only when that flow already exists in the source apps; do not invent it for apps that do not need it.
+5. If the app also has consent/privacy-options behavior, wire it only when that flow already exists in the source apps; render that consent/privacy-options entry with `sh-selectable-button-list` too.
 6. Keep the privacy policy link configurable per app, not hardcoded into the skill.
 7. If the answer is `no`:
    - do not add the privacy policy section to the app
@@ -167,7 +218,7 @@ Rules:
 
 ## Rating flow intake
 
-When the app will expose the `calificar / reportar un problema` entry in `Settings`, include the current `rating-kit` flow used by `ecc`, `ccfk`, and `pcm`.
+When the app will expose the `calificar / reportar un problema` entry in `Settings`, include the shared `rating-kit` flow.
 
 Rules:
 
@@ -178,8 +229,8 @@ Rules:
    - derive `appKey` from the app project slug unless the user asks for a custom key
    - keep the store review URL and web review URL on the shared kit defaults unless the user overrides them
    - wire `provideRatingKit(...)` in bootstrap
-   - add the `Settings` actions that call `ratingService.previewPrompt()` and `ratingService.previewFeedbackFlow()`
-   - use the shared kit labels `RATING.DEBUG.PREVIEW_PROMPT` and `RATING.DEBUG.PREVIEW_FEEDBACK`
+   - add the `Settings` actions that call `ratingService.previewPrompt()`, `ratingService.previewSuggestionFlow()`, and `ratingService.previewFeedbackFlow()`
+   - use the shared kit labels `RATING.DEBUG.PREVIEW_PROMPT`, `RATING.DEBUG.PREVIEW_SUGGESTIONS`, and `RATING.DEBUG.PREVIEW_FEEDBACK`
 3. If the answer is no:
    - do not import or wire `rating-kit`
    - do not add the rating buttons to `Settings`
@@ -209,15 +260,16 @@ Rules:
 
 ## Settings flow checklist
 
-When the app uses `Settings`, include these flows in this order:
+When the app uses `Settings`, include the applicable flows in this order:
 
 1. Language
 2. Theme
 3. Privacy policy
-4. Rating / report a problem, if enabled
-5. Ads, if enabled
-6. Editor, if enabled
-7. App-owned i18n
+4. Consent / privacy options, if the app already exposes them
+5. Rating / report a problem, if enabled
+6. Ads, if enabled
+7. Editor, if enabled
+8. App-owned i18n
 
 ## Exact intake prompt
 
@@ -254,7 +306,7 @@ Example:
     - `@sheldrapps/i18n-kit`
     - `@sheldrapps/rating-kit` si el app usa el flujo de calificar/reportar un problema
     - Otras solo si se usan (`file-kit`, `ads-kit`, `image-workflow`, etc.).
-3. Copiar bloque estándar de scripts desde `epub-cover-changer` / `cover-creator-for-kindle`:
+3. Define the standard scripts needed by the app following the repo's current script shape:
    - `ng`, `start`, `prebuild`, `build`, `watch`, `test`, `lint`, `assets:android`, `debugApk`, `releaseApk`, `bundleRelease`.
 4. Actualizar paths en `tsconfig.json` y `tsconfig.app.json`:
    - `../../packages/settings-kit/src/public-api.ts`
@@ -265,6 +317,7 @@ Example:
    - `src/app/tabs/tabs.page.html`
    - `src/app/tabs/tabs.routes.ts`
    - `tabs.page.html` debe incluir `ion-router-outlet` dentro de `ion-tabs`.
+   - cada tab nueva debe iniciar con una page vacia y sin logica de dominio
 6. Si hay 3+ tabs, Settings debe ser el último.
 7. Definir schema settings en:
    - `src/app/settings/<app>-settings.schema.ts`
@@ -274,6 +327,7 @@ Example:
     - `provideI18nKit({ ... })` con `prefix: './assets/i18n/'`.
     - `provideRatingKit({ ... })` si el app usa el flujo de calificar/reportar un problema.
    - Si existe `src/main.native.ts`, mover ahí la política Android de arranque visual y dejar `src/main.ts` solo con bootstrap compartido.
+   - no registrar providers de dominio (`file-kit`, puertos EPUB, editor, recommended-apps, workflows heredados) salvo pedido explÃ­cito
 9. Integrar estilos ui-theme:
    - `src/global.scss` -> `@use "@sheldrapps/ui-theme/styles/index" as *;`
    - `src/theme/variables.scss` -> mismo baseline.
@@ -358,10 +412,7 @@ Regla: un kit reusable no debe depender de que el host cree manualmente sus keys
 
 ## config.json Persistence Pattern
 
-Usar patrón real de:
-
-- `apps/cover-creator-for-kindle/src/main.ts`
-- `apps/epub-cover-changer/src/main.ts`
+Use the repo's current `config.json` persistence pattern from the closest matching app in the monorepo.
 
 Piezas esperadas:
 
@@ -394,6 +445,10 @@ Si intencionalmente no se usa `ConfigJsonFileAdapter`, documentar TODO en bootst
    - capturar un screenshot a ~1s y otro a ~5s
    - si el primer frame sigue negro o vacío, corregir splash/theme antes de cerrar
 9. Si existe `src/main.native.ts`, revisar que no haya init de theme/language/settings en `AppComponent` ni en constructores de páginas.
+
+10. Verificar que `android/app/src/main/assets/public/assets/i18n/*.json` exista despuÃ©s de `cap sync` o del empaquetado equivalente; si Android solo muestra keys, tratarlo como error de packaging hasta confirmar esos assets.
+
+11. En Android, confirmar que la status bar y nav bar reaccionan al tema igual que el resto de utilidades del repo; si se ven estaticas o separadas del shell, revisar el orden `EdgeToEdgeService.initEdgeToEdge()` -> `ThemeService.initialize()` y eliminar overrides manuales de `StatusBar`.
 
 ## Definition Of Done
 
