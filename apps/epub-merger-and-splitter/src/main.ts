@@ -1,5 +1,11 @@
-import { bootstrapEpubMergerAndSplitterApp } from './bootstrap';
+async function bootstrap(): Promise<void> {
+  const { bootstrapEpubMergerAndSplitterApp } = await import('./bootstrap');
 
-void bootstrapEpubMergerAndSplitterApp().catch((error) => {
+  await bootstrapEpubMergerAndSplitterApp();
+}
+
+void bootstrap().catch((error) => {
   console.error('[epub-merger-and-splitter] bootstrap failed', error);
 });
+
+export {};
