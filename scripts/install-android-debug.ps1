@@ -24,8 +24,12 @@ function Resolve-AppId {
 
   switch ($Name) {
     'epub-cover-changer' { return 'com.sheldrapps.epubcoverchanger' }
+    'pdf-cover-maker' { return 'com.sheldrapps.pdfcovermaker' }
     'pdf-cover-changer' { return 'com.sheldrapps.pdfcovermaker' }
     'cover-creator-for-kindle' { return 'com.sheldrapps.covercreatorforkindle' }
+    'epub-fixer' { return 'com.sheldrapps.epubfixer' }
+    'epub-merger-and-splitter' { return 'com.sheldrapps.epubmergersplitter' }
+    'just-one-step' { return 'com.sheldrapps.justonestep' }
     default { throw "Unsupported AppName for uninstall flow: $Name" }
   }
 }
@@ -77,9 +81,22 @@ Write-Host ''
 if ($UninstallFirst) {
   $resolvedAppId = Resolve-AppId -Name $AppName
   Write-Host '[0/5] adb uninstall (if installed)'
-  $installedPackages = adb -s $DeviceId shell pm list packages $resolvedAppId
+  $installedPackages = adb -s $DeviceId shell pm list packages --user 0 $resolvedAppId
   if ($installedPackages -match "package:$resolvedAppId") {
-    Invoke-Step -Name 'adb uninstall' -Action { adb -s $DeviceId uninstall $resolvedAppId }
+    $uninstallOutput = & adb -s $DeviceId shell pm uninstall --user 0 $resolvedAppId 2>&1
+    if ($LASTEXITCODE -ne 0) {
+      throw "adb uninstall failed for $resolvedAppId (exit code $LASTEXITCODE): $uninstallOutput"
+    }
+
+    if ($uninstallOutput -match 'Success') {
+      Write-Host "Uninstalled for user 0: $resolvedAppId"
+    }
+    elseif ($uninstallOutput -match 'SecurityException') {
+      Write-Warning "Uninstall skipped by Android for ${resolvedAppId}: $uninstallOutput"
+    }
+    else {
+      Write-Host $uninstallOutput
+    }
   }
   else {
     Write-Host "Package not installed, skipping uninstall: $resolvedAppId"
@@ -94,6 +111,10 @@ Pop-Location
 Write-Host '[2/4] pnpm exec cap sync android'
 Push-Location $appPath
 Invoke-Step -Name 'cap sync android' -Action { pnpm exec cap sync android }
+Write-Host '[2.5/4] node scripts/patch-cordova-flatdir.cjs'
+Push-Location $repoRoot
+Invoke-Step -Name 'patch cordova flatDir' -Action { node scripts/patch-cordova-flatdir.cjs }
+Pop-Location
 Pop-Location
 
 Write-Host '[3/4] .\\gradlew.bat clean :app:assembleDebug'
