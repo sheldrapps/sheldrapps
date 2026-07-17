@@ -6,12 +6,12 @@
   "sideEffects": false,
   "type": "module",
   "peerDependencies": {
-    "@angular/common": "^20.0.0",
-    "@angular/core": "^20.0.0",
-    "@angular/router": "^20.0.0",
+    "@angular/common": "^22.0.7",
+    "@angular/core": "^22.0.7",
+    "@angular/router": "^22.0.7",
     "@capacitor/app": "^8.0.0",
     "@capacitor/browser": "^8.0.0",
-    "@ionic/angular": "^8.0.0",
+    "@ionic/angular": "^8.8.14",
     "ionicons": "^7.0.0"
   },
   "dependencies": {

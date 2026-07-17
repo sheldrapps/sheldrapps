@@ -91,9 +91,9 @@ Push-Location $repoRoot
 Invoke-Step -Name 'pnpm build' -Action { pnpm --filter $AppName build }
 Pop-Location
 
-Write-Host '[2/4] npx cap sync android'
+Write-Host '[2/4] pnpm exec cap sync android'
 Push-Location $appPath
-Invoke-Step -Name 'cap sync android' -Action { npx cap sync android }
+Invoke-Step -Name 'cap sync android' -Action { pnpm exec cap sync android }
 Pop-Location
 
 Write-Host '[3/4] .\\gradlew.bat clean :app:assembleDebug'

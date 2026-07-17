@@ -13,35 +13,20 @@ for (const key of Object.keys(env)) {
 
 env.npm_config_cache = npmCachePath;
 
-const result =
-  process.platform === 'win32'
-    ? spawnSync(
-        process.env.ComSpec || 'cmd.exe',
-        [
-          '/d',
-          '/s',
-          '/c',
-          `npx --yes --package @capacitor/assets capacitor-assets ${process.argv
-            .slice(2)
-            .join(' ')}`,
-        ],
-        {
-          cwd: process.cwd(),
-          env,
-          stdio: 'inherit',
-          shell: false,
-        }
-      )
-    : spawnSync(
-        'npx',
-        ['--yes', '--package', '@capacitor/assets', 'capacitor-assets', ...process.argv.slice(2)],
-        {
-          cwd: process.cwd(),
-          env,
-          stdio: 'inherit',
-          shell: false,
-        }
-      );
+if (!process.env.npm_execpath) {
+  throw new Error('run-capacitor-assets.cjs must be launched through pnpm');
+}
+
+const result = spawnSync(
+  process.execPath,
+  [process.env.npm_execpath, 'exec', 'capacitor-assets', ...process.argv.slice(2)],
+  {
+    cwd: process.cwd(),
+    env,
+    stdio: 'inherit',
+    shell: false,
+  }
+);
 
 if (result.error) {
   throw result.error;

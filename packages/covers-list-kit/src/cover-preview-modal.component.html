@@ -63,20 +63,22 @@
               fit="contain"
               renderMode="eReader"
             >
-              @if (metadata?.name || metadata?.size) {
+              @if (metadata; as previewMetadata) {
+              @if (previewMetadata.name || previewMetadata.size) {
               <div frameMetaBeforeControls class="preview-details" aria-live="polite">
-                @if (metadata?.name) {
-                <div class="preview-details__name">{{ metadata?.name }}</div>
-                } @if (metadata?.size) {
-                <div class="preview-details__size">{{ metadata?.size }}</div>
+                @if (previewMetadata.name) {
+                <div class="preview-details__name">{{ previewMetadata.name }}</div>
+                } @if (previewMetadata.size) {
+                <div class="preview-details__size">{{ previewMetadata.size }}</div>
                 }
               </div>
               }
+              }
             </app-e-reader-preview-frame>
-            } @else if (!loading && unavailableConfig?.visible) {
+            } @else if (!loading && unavailableConfig && unavailableConfig.visible) {
             <div class="preview-unavailable">
               <div class="preview-unavailable__text">
-                {{ unavailableConfig?.textKey | translate }}
+                {{ unavailableConfig.textKey | translate }}
               </div>
               @if (visibleUnavailableAction(); as unavailableAction) {
               <ion-button

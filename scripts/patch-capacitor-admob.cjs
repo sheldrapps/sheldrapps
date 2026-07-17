@@ -30,6 +30,23 @@ const patchTargets = [
     pluginRelativePath: path.join("rewarded", "RewardedAdCallbackAndListeners.kt"),
   },
 ];
+const bannerExecutorRelativePath = path.join(
+  "node_modules",
+  "@capacitor-community",
+  "admob",
+  "android",
+  "src",
+  "main",
+  "java",
+  "com",
+  "getcapacitor",
+  "community",
+  "admob",
+  "banner",
+  "BannerExecutor.java",
+);
+const bannerExecutorSingle = "@SuppressWarnings(\"deprecation\")\npublic class BannerExecutor extends Executor {\n";
+const bannerExecutorDuplicate = "@SuppressWarnings(\"deprecation\")\n@SuppressWarnings(\"deprecation\")\npublic class BannerExecutor extends Executor {\n";
 
 function patchIfPresent(filePath, contents) {
   if (!fs.existsSync(filePath)) {
@@ -42,6 +59,52 @@ function patchIfPresent(filePath, contents) {
   }
 
   fs.writeFileSync(filePath, contents, "utf8");
+  return true;
+}
+
+function patchByReplacement(filePath, find, replace) {
+  if (!fs.existsSync(filePath)) {
+    return false;
+  }
+
+  const current = fs.readFileSync(filePath, "utf8");
+  if (current.includes(replace)) {
+    return false;
+  }
+  if (!current.includes(find)) {
+    return false;
+  }
+
+  const updated = current.replace(find, replace);
+  if (updated === current) {
+    return false;
+  }
+
+  fs.writeFileSync(filePath, updated, "utf8");
+  return true;
+}
+
+function patchBannerExecutor(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return false;
+  }
+
+  const current = fs.readFileSync(filePath, "utf8");
+  let updated = current;
+
+  if (current.includes(bannerExecutorDuplicate)) {
+    updated = current.replace(bannerExecutorDuplicate, bannerExecutorSingle);
+  } else if (!current.includes(bannerExecutorSingle) && current.includes("public class BannerExecutor extends Executor {\n")) {
+    updated = current.replace("public class BannerExecutor extends Executor {\n", bannerExecutorSingle);
+  } else {
+    return false;
+  }
+
+  if (updated === current) {
+    return false;
+  }
+
+  fs.writeFileSync(filePath, updated, "utf8");
   return true;
 }
 
@@ -85,6 +148,23 @@ function main() {
         target.pluginRelativePath,
       );
       if (patchIfPresent(candidate, template)) {
+        patchedCount += 1;
+      }
+    }
+  }
+
+  if (patchBannerExecutor(path.join(workspaceRoot, bannerExecutorRelativePath))) {
+    patchedCount += 1;
+  }
+
+  if (fs.existsSync(pnpmStorePath)) {
+    for (const entry of fs.readdirSync(pnpmStorePath, { withFileTypes: true })) {
+      if (!entry.isDirectory() || !entry.name.startsWith("@capacitor-community+admob@")) {
+        continue;
+      }
+
+      const candidate = path.join(pnpmStorePath, entry.name, bannerExecutorRelativePath);
+      if (patchBannerExecutor(candidate)) {
         patchedCount += 1;
       }
     }

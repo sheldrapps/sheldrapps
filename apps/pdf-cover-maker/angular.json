@@ -16,7 +16,7 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:application",
+          "builder": "@angular/build:application",
           "options": {
             "outputPath": {
               "base": "www",
@@ -37,12 +37,12 @@
               },
               {
                 "glob": "icon.png",
-                "input": "../cover-creator-for-kindle/resources",
+                "input": "apps/cover-creator-for-kindle/resources",
                 "output": "assets/apps/ccfk"
               },
               {
                 "glob": "icon.png",
-                "input": "../epub-cover-changer/resources",
+                "input": "apps/epub-cover-changer/resources",
                 "output": "assets/apps/ecc"
               },
               {
@@ -52,12 +52,12 @@
               },
               {
                 "glob": "icon.png",
-                "input": "../epub-fixer/resources",
+                "input": "apps/epub-fixer/resources",
                 "output": "assets/apps/epub-fixer"
               },
               {
                 "glob": "**/*",
-                "input": "../../packages/image-workflow/src/assets",
+                "input": "packages/image-workflow/src/assets",
                 "output": "assets"
               },
               {
@@ -93,12 +93,12 @@
                 },
                 {
                   "glob": "icon.png",
-                  "input": "../cover-creator-for-kindle/resources",
+                  "input": "apps/cover-creator-for-kindle/resources",
                   "output": "assets/apps/ccfk"
                 },
               {
                 "glob": "icon.png",
-                "input": "../epub-cover-changer/resources",
+                "input": "apps/epub-cover-changer/resources",
                 "output": "assets/apps/ecc"
               },
               {
@@ -108,12 +108,12 @@
               },
               {
                 "glob": "icon.png",
-                "input": "../epub-fixer/resources",
+                "input": "apps/epub-fixer/resources",
                 "output": "assets/apps/epub-fixer"
               },
               {
                 "glob": "**/*",
-                "input": "../../packages/image-workflow/src/assets",
+                "input": "packages/image-workflow/src/assets",
                 "output": "assets"
               }
               ],
@@ -138,7 +138,7 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
               "buildTarget": "app:build:production"
@@ -153,59 +153,18 @@
           "defaultConfiguration": "development"
         },
         "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "builder": "@angular/build:extract-i18n",
           "options": {
             "buildTarget": "app:build"
           }
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "main": "src/test.ts",
-            "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.js",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "src/assets",
-                "output": "assets"
-              },
-              {
-                "glob": "icon.png",
-                "input": "../cover-creator-for-kindle/resources",
-                "output": "assets/apps/ccfk"
-              },
-              {
-                "glob": "icon.png",
-                "input": "../epub-cover-changer/resources",
-                "output": "assets/apps/ecc"
-              },
-              {
-                "glob": "icon.png",
-                "input": "resources",
-                "output": "assets/apps/pcm"
-              },
-              {
-                "glob": "icon.png",
-                "input": "../epub-fixer/resources",
-                "output": "assets/apps/epub-fixer"
-              },
-              {
-                "glob": "**/*",
-                "input": "../../packages/image-workflow/src/assets",
-                "output": "assets"
-              },
-              {
-                "glob": "pdf.worker.min.mjs",
-                "input": "node_modules/pdfjs-dist/build",
-                "output": "pdfjs-dist/build",
-                "followSymlinks": true
-              }
-            ],
-            "styles": ["src/global.scss", "src/theme/variables.scss"],
-            "scripts": []
+            "buildTarget": "app:build:development",
+            "runner": "karma",
+            "runnerConfig": false
           },
           "configurations": {
             "ci": {

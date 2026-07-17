@@ -4,7 +4,6 @@
   "compilerOptions": {
     "outDir": "./out-tsc/app",
     "types": [],
-    "baseUrl": "./",
     "paths": {
       "@sheldrapps/ad-fallback-kit": ["../../packages/ad-fallback-kit/src/public-api.ts"],
       "@sheldrapps/ads-kit": ["../../packages/ads-kit/src/public-api.ts"],

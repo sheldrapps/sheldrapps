@@ -7,7 +7,6 @@
   "compilerOptions": {
     "outDir": "./out-tsc/app",
     "types": [],
-    "baseUrl": "./",
     "paths": {
       "@sheldrapps/i18n-kit": ["../../packages/i18n-kit/src/public-api.ts"],
       "@sheldrapps/image-workflow": [

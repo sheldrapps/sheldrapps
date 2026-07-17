@@ -14,9 +14,9 @@
     "tslib": "^2.3.0"
   },
   "peerDependencies": {
-    "@angular/common": "^20.0.0",
-    "@angular/core": "^20.0.0",
-    "@ionic/angular": "^8.0.0",
+    "@angular/common": "^22.0.7",
+    "@angular/core": "^22.0.7",
+    "@ionic/angular": "^8.8.14",
     "@ngx-translate/core": "^17.0.0",
     "@sheldrapps/image-workflow": "workspace:*",
     "@sheldrapps/ui-theme": "workspace:*",

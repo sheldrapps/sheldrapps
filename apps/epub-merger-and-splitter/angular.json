@@ -41,17 +41,17 @@
               },
               {
                 "glob": "icon.png",
-                "input": "../cover-creator-for-kindle/resources",
+                "input": "apps/cover-creator-for-kindle/resources",
                 "output": "assets/apps/ccfk"
               },
               {
                 "glob": "icon.png",
-                "input": "../epub-cover-changer/resources",
+                "input": "apps/epub-cover-changer/resources",
                 "output": "assets/apps/ecc"
               },
               {
                 "glob": "icon.png",
-                "input": "../pdf-cover-maker/resources",
+                "input": "apps/pdf-cover-maker/resources",
                 "output": "assets/apps/pcm"
               }
             ],
@@ -153,17 +153,17 @@
               },
               {
                 "glob": "icon.png",
-                "input": "../cover-creator-for-kindle/resources",
+                "input": "apps/cover-creator-for-kindle/resources",
                 "output": "assets/apps/ccfk"
               },
               {
                 "glob": "icon.png",
-                "input": "../epub-cover-changer/resources",
+                "input": "apps/epub-cover-changer/resources",
                 "output": "assets/apps/ecc"
               },
               {
                 "glob": "icon.png",
-                "input": "../pdf-cover-maker/resources",
+                "input": "apps/pdf-cover-maker/resources",
                 "output": "assets/apps/pcm"
               }
             ],

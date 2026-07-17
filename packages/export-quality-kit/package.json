@@ -6,8 +6,8 @@
   "sideEffects": false,
   "type": "module",
   "peerDependencies": {
-    "@angular/common": "^20.0.0",
-    "@angular/core": "^20.0.0",
+    "@angular/common": "^22.0.7",
+    "@angular/core": "^22.0.7",
     "@ngx-translate/core": "^17.0.0",
     "@sheldrapps/image-workflow": "workspace:*"
   },

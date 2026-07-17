@@ -16,13 +16,13 @@
     "tslib": "^2.3.0"
   },
   "peerDependencies": {
-    "@angular/common": "^20.0.0",
-    "@angular/core": "^20.0.0",
-    "@angular/forms": "^20.0.0",
-    "@angular/router": "^20.0.0",
+    "@angular/common": "^22.0.7",
+    "@angular/core": "^22.0.7",
+    "@angular/forms": "^22.0.7",
+    "@angular/router": "^22.0.7",
     "@capacitor/filesystem": "^8.0.0",
     "@capacitor/share": "^8.0.0",
-    "@ionic/angular": "^8.0.0",
+    "@ionic/angular": "^8.8.14",
     "@ngx-translate/core": "^17.0.0",
     "@sheldrapps/settings-kit": "workspace:*",
     "ionicons": "^7.0.0",
