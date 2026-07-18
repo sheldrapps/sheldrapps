@@ -62,6 +62,25 @@ export class EpubLibraryService {
   ): Promise<LoadedGeneratedEpub | null> {
     const resolved = this.ensureEpubFilename(filename);
 
+    if (this.epubRewrite.isSupported()) {
+      try {
+        const [uri, size] = await Promise.all([
+          this.epubStore.getUriOrThrow(resolved),
+          this.epubStore.getFileSizeOrThrow(resolved).catch(() => 0),
+        ]);
+
+        return {
+          file: new File([], resolved, {
+            type: 'application/epub+zip',
+          }),
+          uri,
+          size,
+        };
+      } catch {
+        // Fall back to reading bytes below when the native URI path is unavailable.
+      }
+    }
+
     try {
       const bytes = await this.epubStore.readBytes(resolved);
       const epubBuffer = bytes.buffer.slice(

@@ -819,6 +819,37 @@ public class EpubRewritePluginRewriteTest {
     }
 
     @Test
+    public void sanitizeXmlTextIgnoresStrayHeadCloserAfterBodyStarts() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        String sanitized = invokeString(
+            plugin,
+            "sanitizeXmlText",
+            new Class<?>[] { String.class },
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
+                + "  <head>\n"
+                + "    <title>Broken</title>\n"
+                + "  <body>\n"
+                + "    <p>Hello</p>\n"
+                + "  </body>\n"
+                + "  </head>\n"
+                + "</html>"
+        );
+
+        assertNotNull(sanitized);
+        assertTrue(sanitized.contains("</head><body>"));
+        assertFalse(sanitized.contains("</body></head>"));
+        assertNotNull(
+            invokeDocument(
+                plugin,
+                "parseXmlUtf8",
+                new Class<?>[] { String.class },
+                sanitized
+            )
+        );
+    }
+
+    @Test
     public void malformedContainerFallsBackToDeclaredOpfPath() throws Exception {
         EpubRewritePlugin plugin = new EpubRewritePlugin();
         ZipFile zipFile = buildZip(

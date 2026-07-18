@@ -239,6 +239,16 @@ export class EpubPublicStore {
     return uri;
   }
 
+  async getFileSizeOrThrow(filename: string): Promise<number> {
+    const path = await this.resolveExistingPath(filename);
+    if (!path) {
+      throw new Error(`File not found: ${filename}`);
+    }
+
+    const stat = await Filesystem.stat(this.buildFilesystemPath(path));
+    return typeof stat.size === 'number' ? stat.size : 0;
+  }
+
   async deleteDocumentEpubIfExists(relativePath: string): Promise<void> {
     try {
       await this.fileKit.delete({

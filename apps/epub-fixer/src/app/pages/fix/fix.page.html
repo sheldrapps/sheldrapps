@@ -194,7 +194,7 @@
                     <span class="fix-issue-list__bullet" aria-hidden="true"></span>
                     <div class="fix-issue-list__copy">
                       <div class="fix-issue-list__title">
-                        {{ issue.messageKey | translate }}
+                        {{ issueMessageLabel(issue) }}
                       </div>
                       @if (issue.details) {
                         <div class="fix-issue-list__detail">
@@ -227,7 +227,7 @@
                       ) {
                         <div class="app-choice-stack">
                           <ion-radio-group
-                            [attr.aria-label]="issue.messageKey | translate"
+                            [attr.aria-label]="issueMessageLabel(issue)"
                             [value]="selectedGuidedOption(issue)"
                             (ionChange)="onGuidedOptionChange(issue, $event.detail.value)"
                           >

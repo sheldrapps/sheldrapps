@@ -3586,24 +3586,24 @@ public class EpubRewritePlugin extends Plugin {
             return;
         }
 
-        Deque<String> buffer = new ArrayDeque<>();
+        java.util.ArrayList<String> closedTags = new java.util.ArrayList<>();
         boolean matched = false;
         while (!openTags.isEmpty()) {
             String openTag = openTags.pop();
-            buffer.push(openTag);
+            closedTags.add(openTag);
             if (openTag.equalsIgnoreCase(tagName)) {
                 matched = true;
                 break;
             }
         }
 
-        while (!buffer.isEmpty()) {
-            String closeTag = buffer.pop();
-            output.append("</").append(closeTag).append('>');
+        if (!matched) {
+            restoreOpenTags(openTags, closedTags);
+            return;
         }
 
-        if (!matched) {
-            output.append("</").append(tagName).append('>');
+        for (String closeTag : closedTags) {
+            output.append("</").append(closeTag).append('>');
         }
     }
 
@@ -3616,24 +3616,33 @@ public class EpubRewritePlugin extends Plugin {
             return;
         }
 
-        Deque<String> buffer = new ArrayDeque<>();
+        java.util.ArrayList<String> closedTags = new java.util.ArrayList<>();
         boolean matched = false;
         while (!openTags.isEmpty()) {
             String openTag = openTags.pop();
-            buffer.push(openTag);
+            closedTags.add(openTag);
             if (openTag.equalsIgnoreCase(tagName)) {
                 matched = true;
                 break;
             }
         }
 
-        while (!buffer.isEmpty()) {
-            String closeTag = buffer.pop();
-            output.append("</").append(closeTag).append('>');
+        if (!matched) {
+            restoreOpenTags(openTags, closedTags);
+            return;
         }
 
-        if (!matched) {
-            output.append("</").append(tagName).append('>');
+        for (String closeTag : closedTags) {
+            output.append("</").append(closeTag).append('>');
+        }
+    }
+
+    private void restoreOpenTags(
+        Deque<String> openTags,
+        List<String> closedTags
+    ) {
+        for (int index = closedTags.size() - 1; index >= 0; index -= 1) {
+            openTags.push(closedTags.get(index));
         }
     }
 

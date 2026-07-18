@@ -745,7 +745,7 @@ describe('FixPage', () => {
     const instant = jasmine
       .createSpy('instant')
       .and.callFake((key: string, params?: Record<string, unknown>) =>
-        params?.path ? `${key}:${params.path}` : key,
+        params?.['path'] ? `${key}:${params['path']}` : key,
       );
     const ctx = {
       translate: {
@@ -778,6 +778,29 @@ describe('FixPage', () => {
       'FIX.ISSUE_DETAIL_FILE_NOT_PARSEABLE:OEBPS/content.opf',
     );
     expect(passthrough).toBe('OPS/text.xhtml: ../img/cover.png');
+  });
+
+  it('normalizes hyphenated native issue keys before translating them', () => {
+    const instant = jasmine
+      .createSpy('instant')
+      .and.callFake((key: string) =>
+        key === 'FIX.ISSUE_HIGH_XHTML_001' ? 'Broken XHTML markup' : key,
+      );
+    const ctx = {
+      translate: {
+        instant,
+      },
+    };
+
+    const translated = FixPage.prototype.issueMessageLabel.call(ctx, {
+      code: 'HIGH-XHTML-001',
+      severity: 'error',
+      fixable: true,
+      messageKey: 'FIX.ISSUE_HIGH-XHTML-001',
+    } satisfies EpubDiagnosticIssue);
+
+    expect(instant).toHaveBeenCalledWith('FIX.ISSUE_HIGH_XHTML_001');
+    expect(translated).toBe('Broken XHTML markup');
   });
 
   it('summarizes diagnosis severity correctly', () => {

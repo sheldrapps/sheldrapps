@@ -1250,6 +1250,16 @@ export class FixPage implements OnInit, OnDestroy {
     return value === 'high' ? 'high' : 'low';
   }
 
+  private normalizeIssueMessageKey(
+    issue: Pick<EpubDiagnosticIssue, 'code' | 'messageKey'>,
+  ): string {
+    if (!issue.messageKey.startsWith('FIX.ISSUE_')) {
+      return issue.messageKey;
+    }
+
+    return `FIX.ISSUE_${issue.code.replace(/-/g, '_')}`;
+  }
+
   private async exportCurrentCopy(): Promise<void> {
     if (!this.preparedSessionId) {
       return;
@@ -1514,6 +1524,18 @@ export class FixPage implements OnInit, OnDestroy {
       details: issue.details,
       options: this.issueOptions(issue),
     });
+  }
+
+  issueMessageLabel(
+    issue: Pick<EpubDiagnosticIssue, 'code' | 'messageKey'>,
+  ): string {
+    const normalizedKey = this.normalizeIssueMessageKey(issue);
+    const normalizedLabel = this.translate.instant(normalizedKey);
+    if (normalizedLabel !== normalizedKey) {
+      return normalizedLabel;
+    }
+
+    return this.translate.instant(issue.messageKey);
   }
 
   issueDetailsLabel(issue: EpubDiagnosticIssue): string {

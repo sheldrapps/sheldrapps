@@ -194,8 +194,13 @@ export function classifyEpubDiagnosticRepairMode(
 export function normalizeEpubDiagnosticIssue(
   issue: EpubDiagnosticIssue,
 ): EpubDiagnosticIssue {
+  const normalizedMessageKey = issue.messageKey.startsWith('FIX.ISSUE_')
+    ? `FIX.ISSUE_${issue.code.replace(/-/g, '_')}`
+    : issue.messageKey;
+
   return {
     ...issue,
+    messageKey: normalizedMessageKey,
     repairMode: issue.repairMode ?? classifyEpubDiagnosticRepairMode(issue),
   };
 }
