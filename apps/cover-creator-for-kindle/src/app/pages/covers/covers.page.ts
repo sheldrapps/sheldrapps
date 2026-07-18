@@ -1,4 +1,12 @@
-import { Component, OnInit, OnDestroy, ViewChild, inject } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  NgZone,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  inject,
+} from '@angular/core';
 import { Subscription, filter } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -127,6 +135,8 @@ export class CoversPage implements OnInit, OnDestroy {
   private navCtrl = inject(NavController);
   private modalCtrl = inject(ModalController);
   private router = inject(Router);
+  private zone = inject(NgZone);
+  private changeDetector = inject(ChangeDetectorRef);
 
   constructor() {
     addIcons({
@@ -172,6 +182,25 @@ export class CoversPage implements OnInit, OnDestroy {
       });
   }
 
+  private runInZone<T>(fn: () => T): T {
+    return NgZone.isInAngularZone() ? fn() : this.zone.run(fn);
+  }
+
+  private async flushUi(): Promise<void> {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestAnimationFrame === 'function'
+    ) {
+      await new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    }
+    this.runInZone(() => {
+      this.changeDetector.markForCheck();
+      this.changeDetector.detectChanges();
+    });
+  }
+
   async load(ev?: CustomEvent) {
     this.logInfo('libraryReload:start', {
       reason: ev ? 'pull-to-refresh' : 'view-load',
@@ -210,6 +239,7 @@ export class CoversPage implements OnInit, OnDestroy {
       this.needsReload = false;
       this.loading = false;
       ev?.target && (ev.target as any).complete();
+      await this.flushUi();
       void this.loadThumbsResilient(items, loadToken);
     } catch (error) {
       this.logInfo('libraryReload:failed', {
@@ -221,6 +251,7 @@ export class CoversPage implements OnInit, OnDestroy {
       this.pageErrorKey = 'COVERS.ERROR.LOAD';
       this.loading = false;
       ev?.target && (ev.target as any).complete();
+      await this.flushUi();
     }
   }
 
@@ -240,6 +271,7 @@ export class CoversPage implements OnInit, OnDestroy {
 
         if (idx % 4 === 0 && loadToken === this.thumbsLoadToken) {
           this.items = [...items];
+          await this.flushUi();
         }
       }
     };
@@ -247,6 +279,7 @@ export class CoversPage implements OnInit, OnDestroy {
     await Promise.all(Array.from({ length: concurrency }, () => worker()));
     if (loadToken === this.thumbsLoadToken) {
       this.items = [...items];
+      await this.flushUi();
     }
   }
 
@@ -429,6 +462,7 @@ export class CoversPage implements OnInit, OnDestroy {
     } finally {
       this.previewLoading = false;
       this.previewGettingCover = false;
+      await this.flushUi();
     }
   }
 
@@ -475,6 +509,7 @@ export class CoversPage implements OnInit, OnDestroy {
     this.previewLoading = false;
     this.previewGettingCover = false;
     this.previewFileSizeLabel = null;
+    void this.flushUi();
   }
 
   async deleteFromList(filename: string) {

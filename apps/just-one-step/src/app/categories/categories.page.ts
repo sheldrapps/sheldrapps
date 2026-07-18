@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import {
@@ -51,6 +51,8 @@ export class CategoriesPage {
   private readonly categoryRepository = inject(CategoryRepository);
   private readonly alertController = inject(AlertController);
   private readonly translate = inject(TranslateService);
+  private readonly zone = inject(NgZone);
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   constructor() {
     addIcons({ createOutline, trashOutline });
@@ -126,7 +128,27 @@ export class CategoriesPage {
       this.loadFailed = true;
     } finally {
       this.isLoading = false;
+      await this.flushUi();
     }
+  }
+
+  private runInZone<T>(fn: () => T): T {
+    return NgZone.isInAngularZone() ? fn() : this.zone.run(fn);
+  }
+
+  private async flushUi(): Promise<void> {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestAnimationFrame === 'function'
+    ) {
+      await new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    }
+    this.runInZone(() => {
+      this.changeDetector.markForCheck();
+      this.changeDetector.detectChanges();
+    });
   }
 
   private withAlpha(hexColor: string, alpha: number): string {

@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   Injector,
   OnDestroy,
@@ -198,6 +199,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private coversEvents = inject(CoversEventsService);
   private translate = inject(TranslateService);
   private zone = inject(NgZone);
+  private changeDetector = inject(ChangeDetectorRef);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private editorSession = inject(EditorSessionService);
@@ -560,6 +562,7 @@ export class ChangePage implements OnInit, OnDestroy {
         this.lastSavedFilename = undefined;
         this.wasAutoSaved = false;
       });
+
   }
 
   ngOnDestroy() {
@@ -592,6 +595,30 @@ export class ChangePage implements OnInit, OnDestroy {
       this.isPickingEpub = kind === 'epub';
       this.loadingMessageKey = kind === 'none' ? undefined : messageKey;
     });
+  }
+
+  private runInZone<T>(fn: () => T): T {
+    return NgZone.isInAngularZone() ? fn() : this.zone.run(fn);
+  }
+
+  private async flushUi(): Promise<void> {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestAnimationFrame === 'function'
+    ) {
+      await new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    }
+    this.runInZone(() => {
+      this.changeDetector.markForCheck();
+      this.changeDetector.detectChanges();
+    });
+  }
+
+  private async clearBusyUi(): Promise<void> {
+    this.setBusy('none');
+    await this.flushUi();
   }
 
   private buildFormatOptions(): CropFormatOption[] {
@@ -635,63 +662,167 @@ export class ChangePage implements OnInit, OnDestroy {
     const file = input.files?.[0];
     if (!file) return;
 
-    this.resetEpubLoadProgress();
-    this.setBusy('epub', 'CHANGE.LOADING_EPUB');
+    await this.runInZone(async () => {
+      this.resetEpubLoadProgress();
+      this.setBusy('epub', 'CHANGE.LOADING_EPUB');
+
+      try {
+        await this.resetWorkflowForNewEpub();
+
+        const validation = this.fileService.validateEpub(
+          file,
+          this.maxEpubSizeMB,
+        );
+        if (!validation.valid) {
+          this.failEpub(validation.errorKey!, file);
+          return;
+        }
+
+        let cycle: Awaited<ReturnType<EpubWorkingCopyService['startCycle']>>;
+        try {
+          cycle = await this.workingCopy.startCycle(file);
+        } catch (error) {
+          this.failEpub('EPUB_ERROR_CORRUPT', file);
+          return;
+        }
+        this.sourceEpubFile = file;
+        this.sourceEpubMeta = cycle.sourceMeta;
+        this.workingEpubFile = cycle.workingFile;
+        this.workingEpubPath = cycle.workingPath;
+        this.workingEpubName = cycle.workingName;
+        this.outputBaseName = cycle.outputBaseName;
+        this.selectedEpubName = file.name;
+
+        const hasValidStructure = await this.fileService.validateEpubStructure(
+          this.workingEpubFile,
+        );
+        if (!hasValidStructure) {
+          this.failEpub('EPUB_ERROR_CORRUPT', file);
+          await this.cleanupWorkingCopy();
+          return;
+        }
+
+        const strictCover =
+          await this.candidateImageService.resolveStrictCover({
+            epubFile: this.workingEpubFile,
+            epubName: this.selectedEpubName,
+          });
+        console.info('[ECC_BEST_CANDIDATE] strict cover found:', !!strictCover);
+        this.clearEpubError();
+
+        if (!strictCover) {
+          console.info(
+            '[ECC_BEST_CANDIDATE] valid cover not found, fallback to candidate picker',
+          );
+          await this.activateBestCandidateFallback();
+          await this.homeTour.completeInteraction('epub-selected');
+          return;
+        }
+
+        this.coverEntryPath = strictCover.sourcePath;
+        const coverLoaded = await this.applyImageSource(strictCover.file, false);
+        if (!coverLoaded) {
+          await this.activateBestCandidateFallback();
+          await this.homeTour.completeInteraction('epub-selected');
+          return;
+        }
+        await this.homeTour.completeInteraction('epub-selected');
+      } finally {
+        this.resetEpubLoadProgress();
+        await this.clearBusyUi();
+        input.value = '';
+      }
+    });
+  }
+
+  private async pickNativeEpub() {
+    await this.runInZone(async () => {
+      this.resetEpubLoadProgress();
+      this.setBusy('epub', 'CHANGE.LOADING_EPUB');
+      this.epubLoadStage = 'copy';
+      this.epubLoadProgressPercent = 0;
+
+      try {
+        const prepared = await this.epubRewrite.pickAndPrepareEpub({
+          maxBytes: this.maxEpubSizeMB * 1024 * 1024,
+          requireCover: false,
+          includeCoverPreview: true,
+        });
+        await this.applyPreparedNativeEpub(prepared);
+      } catch (error) {
+        if (
+          error instanceof EpubRewriteError &&
+          error.code === 'PICK_CANCELLED'
+        ) {
+          return;
+        }
+
+        if (
+          error instanceof EpubRewriteError &&
+          error.code === 'EXTRACT_READ_FAILED' &&
+          !!error.details?.coverEntryPath
+        ) {
+          this.clearEpubError();
+          await this.activateBestCandidateFallback();
+          return;
+        }
+
+        this.maybeDisableNativeRewriteForSession(error, 'pick_epub');
+
+        const mappedErrorKey = this.mapNativeEpubError(error);
+        this.failEpub(
+          mappedErrorKey,
+          this.sourceEpubMeta,
+          this.buildNativeStorageErrorParams(error),
+        );
+        await this.cleanupWorkingCopy();
+      } finally {
+        this.resetEpubLoadProgress();
+        await this.clearBusyUi();
+      }
+    });
+  }
+
+  private async applyPreparedNativeEpub(
+    prepared: Awaited<ReturnType<EpubRewriteService['pickAndPrepareEpub']>>,
+  ): Promise<void> {
+    await this.resetWorkflowForNewEpub();
+    this.epubLoadStage = 'inspect';
+    this.epubLoadProgressPercent = 92;
+
+    this.sourceEpubFile = undefined;
+    this.sourceEpubMeta = {
+      name: prepared.selectedName,
+      size: prepared.sourceSize,
+      lastModified: prepared.sourceLastModified,
+      type: prepared.sourceMimeType,
+    };
+    this.workingEpubFile = undefined;
+    this.workingEpubPath = prepared.workingPath;
+    this.workingEpubNativePath = prepared.workingNativePath;
+    this.workingEpubName = prepared.workingName;
+    this.outputBaseName = prepared.outputBaseName;
+    this.selectedEpubName = prepared.selectedName;
+    this.coverEntryPath = undefined;
+    this.clearEpubError();
+
+    const strictCover = await this.candidateImageService.resolveStrictCover({
+      epubNativePath: this.workingEpubNativePath,
+      epubName: this.selectedEpubName,
+    });
+    console.info('[ECC_BEST_CANDIDATE] strict cover found:', !!strictCover);
+
+    if (!strictCover) {
+      console.info(
+        '[ECC_BEST_CANDIDATE] valid cover not found, fallback to candidate picker',
+      );
+      await this.activateBestCandidateFallback();
+      this.epubLoadProgressPercent = 100;
+      await this.homeTour.completeInteraction('epub-selected');
+      return;
+    }
 
     try {
-      await this.resetWorkflowForNewEpub();
-
-      // Validate EPUB file
-      const validation = this.fileService.validateEpub(
-        file,
-        this.maxEpubSizeMB,
-      );
-      if (!validation.valid) {
-        this.failEpub(validation.errorKey!, file);
-        return;
-      }
-
-      // Create working copy immediately
-      let cycle: Awaited<ReturnType<EpubWorkingCopyService['startCycle']>>;
-      try {
-        cycle = await this.workingCopy.startCycle(file);
-      } catch (error) {
-        this.failEpub('EPUB_ERROR_CORRUPT', file);
-        return;
-      }
-      this.sourceEpubFile = file;
-      this.sourceEpubMeta = cycle.sourceMeta;
-      this.workingEpubFile = cycle.workingFile;
-      this.workingEpubPath = cycle.workingPath;
-      this.workingEpubName = cycle.workingName;
-      this.outputBaseName = cycle.outputBaseName;
-      this.selectedEpubName = file.name;
-
-      const hasValidStructure = await this.fileService.validateEpubStructure(
-        this.workingEpubFile,
-      );
-      if (!hasValidStructure) {
-        this.failEpub('EPUB_ERROR_CORRUPT', file);
-        await this.cleanupWorkingCopy();
-        return;
-      }
-
-      const strictCover = await this.candidateImageService.resolveStrictCover({
-        epubFile: this.workingEpubFile,
-        epubName: this.selectedEpubName,
-      });
-      console.info('[ECC_BEST_CANDIDATE] strict cover found:', !!strictCover);
-      this.clearEpubError();
-
-      if (!strictCover) {
-        console.info(
-          '[ECC_BEST_CANDIDATE] valid cover not found, fallback to candidate picker',
-        );
-        await this.activateBestCandidateFallback();
-        await this.homeTour.completeInteraction('epub-selected');
-        return;
-      }
-
       this.coverEntryPath = strictCover.sourcePath;
       const coverLoaded = await this.applyImageSource(strictCover.file, false);
       if (!coverLoaded) {
@@ -699,109 +830,11 @@ export class ChangePage implements OnInit, OnDestroy {
         await this.homeTour.completeInteraction('epub-selected');
         return;
       }
+      this.epubLoadProgressPercent = 100;
       await this.homeTour.completeInteraction('epub-selected');
-    } finally {
-      this.resetEpubLoadProgress();
-      this.setBusy('none');
-      input.value = '';
-    }
-  }
-
-  private async pickNativeEpub() {
-    this.resetEpubLoadProgress();
-    this.setBusy('epub', 'CHANGE.LOADING_EPUB');
-    this.epubLoadStage = 'copy';
-    this.epubLoadProgressPercent = 0;
-
-    try {
-      const prepared = await this.epubRewrite.pickAndPrepareEpub({
-        maxBytes: this.maxEpubSizeMB * 1024 * 1024,
-        requireCover: false,
-        includeCoverPreview: true,
-      });
-      await this.resetWorkflowForNewEpub();
-      this.epubLoadStage = 'inspect';
-      this.epubLoadProgressPercent = 92;
-
-      this.sourceEpubFile = undefined;
-      this.sourceEpubMeta = {
-        name: prepared.selectedName,
-        size: prepared.sourceSize,
-        lastModified: prepared.sourceLastModified,
-        type: prepared.sourceMimeType,
-      };
-      this.workingEpubFile = undefined;
-      this.workingEpubPath = prepared.workingPath;
-      this.workingEpubNativePath = prepared.workingNativePath;
-      this.workingEpubName = prepared.workingName;
-      this.outputBaseName = prepared.outputBaseName;
-      this.selectedEpubName = prepared.selectedName;
-      this.coverEntryPath = undefined;
-      this.clearEpubError();
-
-      const strictCover = await this.candidateImageService.resolveStrictCover({
-        epubNativePath: this.workingEpubNativePath,
-        epubName: this.selectedEpubName,
-      });
-      console.info('[ECC_BEST_CANDIDATE] strict cover found:', !!strictCover);
-
-      if (!strictCover) {
-        console.info(
-          '[ECC_BEST_CANDIDATE] valid cover not found, fallback to candidate picker',
-        );
-        await this.activateBestCandidateFallback();
-        this.epubLoadProgressPercent = 100;
-        await this.homeTour.completeInteraction('epub-selected');
-        return;
-      }
-
-      try {
-        this.coverEntryPath = strictCover.sourcePath;
-        const coverLoaded = await this.applyImageSource(
-          strictCover.file,
-          false,
-        );
-        if (!coverLoaded) {
-          await this.activateBestCandidateFallback();
-          await this.homeTour.completeInteraction('epub-selected');
-          return;
-        }
-        this.epubLoadProgressPercent = 100;
-        await this.homeTour.completeInteraction('epub-selected');
-      } catch {
-        await this.activateBestCandidateFallback();
-        await this.homeTour.completeInteraction('epub-selected');
-      }
-    } catch (error) {
-      if (
-        error instanceof EpubRewriteError &&
-        error.code === 'PICK_CANCELLED'
-      ) {
-        return;
-      }
-
-      if (
-        error instanceof EpubRewriteError &&
-        error.code === 'EXTRACT_READ_FAILED' &&
-        !!error.details?.coverEntryPath
-      ) {
-        this.clearEpubError();
-        await this.activateBestCandidateFallback();
-        return;
-      }
-
-      this.maybeDisableNativeRewriteForSession(error, 'pick_epub');
-
-      const mappedErrorKey = this.mapNativeEpubError(error);
-      this.failEpub(
-        mappedErrorKey,
-        this.sourceEpubMeta,
-        this.buildNativeStorageErrorParams(error),
-      );
-      await this.cleanupWorkingCopy();
-    } finally {
-      this.resetEpubLoadProgress();
-      this.setBusy('none');
+    } catch {
+      await this.activateBestCandidateFallback();
+      await this.homeTour.completeInteraction('epub-selected');
     }
   }
 
@@ -947,6 +980,7 @@ export class ChangePage implements OnInit, OnDestroy {
       }
     } finally {
       this.setBusy('none');
+      await this.flushUi();
       input.value = '';
     }
   }
@@ -1910,7 +1944,7 @@ export class ChangePage implements OnInit, OnDestroy {
       await this.consumeAdFallbackAttemptAfterSuccess('save');
       await this.showToast('CHANGE.SAVED_OK', { duration: 1600 }, 'success');
     } finally {
-      this.zone.run(() => this.setBusy('none'));
+      await this.clearBusyUi();
     }
   }
 
@@ -2128,7 +2162,19 @@ export class ChangePage implements OnInit, OnDestroy {
   } | null> {
     if (typeof createImageBitmap === 'function') {
       try {
-        const bitmap = await createImageBitmap(blob);
+        let timer: ReturnType<typeof setTimeout> | null = null;
+        const bitmap = await Promise.race([
+          createImageBitmap(blob),
+          new Promise<null>((resolve) => {
+            timer = setTimeout(() => resolve(null), 8000);
+          }),
+        ]);
+        if (timer) {
+          clearTimeout(timer);
+        }
+        if (!bitmap) {
+          throw new Error('IMAGE_BITMAP_TIMEOUT');
+        }
         return {
           width: bitmap.width,
           height: bitmap.height,
@@ -2153,14 +2199,36 @@ export class ChangePage implements OnInit, OnDestroy {
 
     return new Promise((resolve) => {
       const url = URL.createObjectURL(blob);
+      let settled = false;
       const img = new Image();
       const cleanup = () => URL.revokeObjectURL(url);
+      const timer = setTimeout(() => finish(null), 8000);
+      const finish = (result: {
+        width: number;
+        height: number;
+        draw: (
+          ctx: CanvasRenderingContext2D,
+          dx: number,
+          dy: number,
+          dw: number,
+          dh: number,
+        ) => void;
+      } | null) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        clearTimeout(timer);
+        img.onload = null;
+        img.onerror = null;
+        cleanup();
+        resolve(result);
+      };
 
       img.onload = () => {
-        cleanup();
         const width = img.naturalWidth || img.width;
         const height = img.naturalHeight || img.height;
-        resolve({
+        finish({
           width,
           height,
           draw: (ctx, dx, dy, dw, dh) =>
@@ -2169,8 +2237,7 @@ export class ChangePage implements OnInit, OnDestroy {
       };
 
       img.onerror = () => {
-        cleanup();
-        resolve(null);
+        finish(null);
       };
 
       img.src = url;
@@ -2910,7 +2977,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
       await this.generateChangedCover();
     } finally {
-      this.zone.run(() => this.setBusy('none'));
+      await this.clearBusyUi();
     }
   }
 

@@ -1,5 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  NgZone,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  inject,
+} from '@angular/core';
 import { App } from '@capacitor/app';
 import { type PluginListenerHandle } from '@capacitor/core';
 import { Router } from '@angular/router';
@@ -58,6 +66,8 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
   private readonly coversEvents = inject(CoversEventsService);
+  private readonly zone = inject(NgZone);
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   @ViewChild(CoverListContentComponent) listContent?: CoverListContentComponent;
 
@@ -134,6 +144,25 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       }
     }).then((handle) => {
       this.appStateListener = handle;
+    });
+  }
+
+  private runInZone<T>(fn: () => T): T {
+    return NgZone.isInAngularZone() ? fn() : this.zone.run(fn);
+  }
+
+  private async flushUi(): Promise<void> {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestAnimationFrame === 'function'
+    ) {
+      await new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    }
+    this.runInZone(() => {
+      this.changeDetector.markForCheck();
+      this.changeDetector.detectChanges();
     });
   }
 
@@ -306,6 +335,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       this.items = items;
       this.loading = false;
       ev?.target && (ev.target as any).complete();
+      await this.flushUi();
       void this.loadThumbs(items, currentToken);
     } catch (error) {
       this.logInfo('load:failed', { error: this.errorDetails(error) });
@@ -313,6 +343,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       this.pageErrorKey = 'MY_EPUBS.ERROR.LOAD';
       this.loading = false;
       ev?.target && (ev.target as any).complete();
+      await this.flushUi();
     } finally {
       this.isLoadInProgress = false;
     }
@@ -335,6 +366,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
 
         if (currentIndex % 4 === 0 && token === this.loadToken) {
           this.items = [...items];
+          await this.flushUi();
         }
       }
     };
@@ -342,6 +374,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     await Promise.all(Array.from({ length: concurrency }, () => worker()));
     if (token === this.loadToken) {
       this.items = [...items];
+      await this.flushUi();
     }
   }
 
@@ -376,6 +409,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     } finally {
       this.previewLoading = false;
       this.previewGettingCover = false;
+      await this.flushUi();
     }
   }
 
@@ -407,6 +441,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     } finally {
       this.previewLoading = false;
       this.previewGettingCover = false;
+      await this.flushUi();
     }
   }
 
@@ -452,6 +487,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     this.previewUnavailable = false;
     this.previewGettingCover = false;
     this.previewFileSizeLabel = null;
+    void this.flushUi();
   }
 
   private async openByFilename(filename: string): Promise<void> {

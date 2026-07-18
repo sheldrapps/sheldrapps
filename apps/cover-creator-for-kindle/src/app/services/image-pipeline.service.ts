@@ -28,8 +28,8 @@ export class ImagePipelineService {
   async getDimensions(
     file: File,
   ): Promise<{ width: number; height: number } | null> {
-    try {
-      const bmp = await createImageBitmap(file);
+    const bmp = await this.tryCreateImageBitmap(file);
+    if (bmp) {
       try {
         const w = bmp.width;
         const h = bmp.height;
@@ -37,7 +37,7 @@ export class ImagePipelineService {
       } finally {
         bmp.close?.();
       }
-    } catch {}
+    }
 
     return new Promise((resolve) => {
       const url = URL.createObjectURL(file);
@@ -80,12 +80,9 @@ export class ImagePipelineService {
   }
 
   async prepareWorkingImage(file: File): Promise<File> {
-    let bitmap: ImageBitmap;
-
-    try {
-      bitmap = await createImageBitmap(file);
-    } catch (err) {
-      console.error('[pipe] createImageBitmap failed', err, {
+    const bitmap = await this.tryCreateImageBitmap(file);
+    if (!bitmap) {
+      console.error('[pipe] createImageBitmap failed or timed out', {
         name: file.name,
         type: file.type,
         size: file.size,
@@ -161,5 +158,42 @@ export class ImagePipelineService {
     const type = (file.type || 'image/jpeg').toLowerCase();
     const name = file.name || `image_${Date.now()}.jpg`;
     return new File([ab], name, { type });
+  }
+
+  private async tryCreateImageBitmap(
+    source: Blob,
+    timeoutMs = 4000,
+  ): Promise<ImageBitmap | null> {
+    if (typeof createImageBitmap !== 'function') {
+      return null;
+    }
+
+    let timedOut = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    try {
+      const bitmapPromise = createImageBitmap(source)
+        .then((bitmap) => {
+          if (timedOut) {
+            bitmap.close?.();
+            return null;
+          }
+          return bitmap;
+        })
+        .catch(() => null);
+
+      const timeoutPromise = new Promise<null>((resolve) => {
+        timer = setTimeout(() => {
+          timedOut = true;
+          resolve(null);
+        }, timeoutMs);
+      });
+
+      return await Promise.race([bitmapPromise, timeoutPromise]);
+    } finally {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    }
   }
 }

@@ -1,5 +1,14 @@
 import { CommonModule } from "@angular/common";
-import { Component, ElementRef, ViewChild, computed, effect, inject } from "@angular/core";
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  NgZone,
+  ViewChild,
+  computed,
+  effect,
+  inject,
+} from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
@@ -115,6 +124,8 @@ export class ChildDetailPage {
   private toastController = inject(ToastController);
   private editorSession = inject(EditorSessionService);
   private imagePipe = inject(ImagePipelineService);
+  private zone = inject(NgZone);
+  private changeDetector = inject(ChangeDetectorRef);
 
   readonly store = inject(BudgetStore);
   readonly childId = this.route.snapshot.paramMap.get("id") ?? "";
@@ -212,6 +223,7 @@ export class ChildDetailPage {
       console.error("Error in file change handler:", error);
     } finally {
       this.setBusy(false);
+      await this.flushUi();
       input.value = "";
     }
 
@@ -342,6 +354,25 @@ export class ChildDetailPage {
 
   private setBusy(next: boolean): void {
     this.isOpeningCropper = next;
+  }
+
+  private runInZone<T>(fn: () => T): T {
+    return NgZone.isInAngularZone() ? fn() : this.zone.run(fn);
+  }
+
+  private async flushUi(): Promise<void> {
+    if (
+      typeof window !== "undefined" &&
+      typeof window.requestAnimationFrame === "function"
+    ) {
+      await new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    }
+    this.runInZone(() => {
+      this.changeDetector.markForCheck();
+      this.changeDetector.detectChanges();
+    });
   }
 
   async addExpense(): Promise<void> {

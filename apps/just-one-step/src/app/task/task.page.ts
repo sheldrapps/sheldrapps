@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import {
@@ -119,6 +119,8 @@ export class TaskPage {
   private readonly taskRepository = inject(TaskRepository);
   private readonly alertController = inject(AlertController);
   private readonly translate = inject(TranslateService);
+  private readonly zone = inject(NgZone);
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   readonly taskId = this.route.snapshot.paramMap.get('id') ?? 'unknown';
 
@@ -236,6 +238,7 @@ export class TaskPage {
     if (this.isSampleTask) {
       this.task = this.buildSampleTaskAggregate();
       this.isLoading = false;
+      await this.flushUi();
       return;
     }
 
@@ -250,7 +253,27 @@ export class TaskPage {
       this.loadFailed = true;
     } finally {
       this.isLoading = false;
+      await this.flushUi();
     }
+  }
+
+  private runInZone<T>(fn: () => T): T {
+    return NgZone.isInAngularZone() ? fn() : this.zone.run(fn);
+  }
+
+  private async flushUi(): Promise<void> {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestAnimationFrame === 'function'
+    ) {
+      await new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    }
+    this.runInZone(() => {
+      this.changeDetector.markForCheck();
+      this.changeDetector.detectChanges();
+    });
   }
 
   private buildSampleTaskAggregate(): PersistedTaskAggregate {

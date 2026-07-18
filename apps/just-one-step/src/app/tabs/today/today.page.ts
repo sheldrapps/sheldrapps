@@ -1,4 +1,4 @@
-import { Component, inject } from "@angular/core";
+import { ChangeDetectorRef, Component, NgZone, inject } from "@angular/core";
 import { Router } from "@angular/router";
 import {
   IonButton,
@@ -139,6 +139,8 @@ export class TodayPage {
   private readonly taskRepository = inject(TaskRepository);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
+  private readonly zone = inject(NgZone);
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   isLoading = false;
   loadFailed = false;
@@ -269,7 +271,27 @@ export class TodayPage {
       this.loadFailed = true;
     } finally {
       this.isLoading = false;
+      await this.flushUi();
     }
+  }
+
+  private runInZone<T>(fn: () => T): T {
+    return NgZone.isInAngularZone() ? fn() : this.zone.run(fn);
+  }
+
+  private async flushUi(): Promise<void> {
+    if (
+      typeof window !== "undefined" &&
+      typeof window.requestAnimationFrame === "function"
+    ) {
+      await new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    }
+    this.runInZone(() => {
+      this.changeDetector.markForCheck();
+      this.changeDetector.detectChanges();
+    });
   }
 
   private refreshComputedSections(): void {

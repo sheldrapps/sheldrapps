@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -57,6 +57,8 @@ export class CategoryEditPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly categoryRepository = inject(CategoryRepository);
+  private readonly zone = inject(NgZone);
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   readonly form = this.fb.nonNullable.group({
     name: '',
@@ -211,6 +213,7 @@ export class CategoryEditPage {
       this.loadFailed = true;
     } finally {
       this.isLoading = false;
+      await this.flushUi();
     }
   }
 
@@ -218,5 +221,24 @@ export class CategoryEditPage {
     const categories = await this.categoryRepository.listCategories();
     this.categories = categories;
     return categories;
+  }
+
+  private runInZone<T>(fn: () => T): T {
+    return NgZone.isInAngularZone() ? fn() : this.zone.run(fn);
+  }
+
+  private async flushUi(): Promise<void> {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestAnimationFrame === 'function'
+    ) {
+      await new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    }
+    this.runInZone(() => {
+      this.changeDetector.markForCheck();
+      this.changeDetector.detectChanges();
+    });
   }
 }

@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
 import {
+  ChangeDetectorRef,
   Component,
   ElementRef,
+  NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -142,6 +144,8 @@ export class FixPage implements OnInit, OnDestroy {
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly zone = inject(NgZone);
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   @ViewChild('epubInput') epubInput!: ElementRef<HTMLInputElement>;
 
@@ -577,43 +581,71 @@ export class FixPage implements OnInit, OnDestroy {
     this.epubInput.nativeElement.click();
   }
 
+  private runInZone<T>(fn: () => T): T {
+    return NgZone.isInAngularZone() ? fn() : this.zone.run(fn);
+  }
+
+  private async flushUi(): Promise<void> {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestAnimationFrame === 'function'
+    ) {
+      await new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    }
+    this.runInZone(() => {
+      this.changeDetector.markForCheck();
+      this.changeDetector.detectChanges();
+    });
+  }
+
+  private async clearBusyState(): Promise<void> {
+    this.runInZone(() => {
+      this.busyAction = undefined;
+      this.busyProgressPercent = 0;
+    });
+    await this.flushUi();
+  }
+
   async onEpubSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
 
-    this.busyAction = 'prepare';
-    this.busyProgressPercent = 0;
-    try {
-      await this.resetWorkflowForNewEpub();
-      this.busyProgressPercent = 12;
-      const prepared = await this.workflow.prepareFromFile(file);
-      this.busyProgressPercent = 48;
-
-      this.preparedSessionId = prepared.sessionId;
-      this.selectedEpubName = file.name;
-      this.sourceEpubMeta = {
-        name: prepared.originalName,
-        size: prepared.originalSize,
-        lastModified: file.lastModified,
-        type: file.type || 'application/epub+zip',
-      };
-      this.viewState = 'prepared';
-      this.clearEpubError();
-
-      const diagnosisSucceeded = await this.performDiagnosis();
-      if (!diagnosisSucceeded) {
-        await this.cleanupPreparedEpub();
-        return;
-      }
-    } catch (error) {
-      this.failEpub(this.mapPrepareError(error), file);
-      await this.cleanupPreparedEpub();
-    } finally {
-      this.busyAction = undefined;
+    await this.runInZone(async () => {
+      this.busyAction = 'prepare';
       this.busyProgressPercent = 0;
-      input.value = '';
-    }
+      try {
+        await this.resetWorkflowForNewEpub();
+        this.busyProgressPercent = 12;
+        const prepared = await this.workflow.prepareFromFile(file);
+        this.busyProgressPercent = 48;
+
+        this.preparedSessionId = prepared.sessionId;
+        this.selectedEpubName = file.name;
+        this.sourceEpubMeta = {
+          name: prepared.originalName,
+          size: prepared.originalSize,
+          lastModified: file.lastModified,
+          type: file.type || 'application/epub+zip',
+        };
+        this.viewState = 'prepared';
+        this.clearEpubError();
+
+        const diagnosisSucceeded = await this.performDiagnosis();
+        if (!diagnosisSucceeded) {
+          await this.cleanupPreparedEpub();
+          return;
+        }
+      } catch (error) {
+        this.failEpub(this.mapPrepareError(error), file);
+        await this.cleanupPreparedEpub();
+      } finally {
+        await this.clearBusyState();
+        input.value = '';
+      }
+    });
   }
 
   hasValidEpub(): boolean {
@@ -650,8 +682,7 @@ export class FixPage implements OnInit, OnDestroy {
     } catch (error) {
       this.failWorkflow('EPUB_ERROR_REWRITE', error);
     } finally {
-      this.busyAction = undefined;
-      this.busyProgressPercent = 0;
+      await this.clearBusyState();
     }
   }
 
@@ -692,8 +723,7 @@ export class FixPage implements OnInit, OnDestroy {
     } catch (error) {
       this.failWorkflow('EPUB_ERROR_REWRITE', error);
     } finally {
-      this.busyAction = undefined;
-      this.busyProgressPercent = 0;
+      await this.clearBusyState();
     }
   }
 
@@ -708,8 +738,7 @@ export class FixPage implements OnInit, OnDestroy {
     } catch (error) {
       this.failWorkflow('EPUB_ERROR_REWRITE', error);
     } finally {
-      this.busyAction = undefined;
-      this.busyProgressPercent = 0;
+      await this.clearBusyState();
     }
   }
 
@@ -988,52 +1017,53 @@ export class FixPage implements OnInit, OnDestroy {
       return false;
     }
 
-    this.busyAction = 'prepare';
-    this.busyProgressPercent = 0;
+    return this.runInZone(async () => {
+      this.busyAction = 'prepare';
+      this.busyProgressPercent = 0;
 
-    try {
-      await this.resetWorkflowForNewEpub();
-      this.busyProgressPercent = 12;
+      try {
+        await this.resetWorkflowForNewEpub();
+        this.busyProgressPercent = 12;
 
-      if (this.workflow.usesNativePicker() && !project.uri) {
-        throw new Error('Missing native EPUB URI for project load.');
-      }
+        if (this.workflow.usesNativePicker() && !project.uri) {
+          throw new Error('Missing native EPUB URI for project load.');
+        }
 
-      const prepared = this.workflow.usesNativePicker()
-        ? await this.workflow.prepareFromUri(project.uri!, project.file.name)
-        : await this.workflow.prepareFromFile(project.file);
+        const prepared = this.workflow.usesNativePicker()
+          ? await this.workflow.prepareFromUri(project.uri!, project.file.name)
+          : await this.workflow.prepareFromFile(project.file);
 
-      this.busyProgressPercent = 48;
-      this.preparedSessionId = prepared.sessionId;
-      this.selectedEpubName = project.file.name;
-      this.sourceEpubMeta = {
-        name: prepared.originalName,
-        size: project.size,
-        lastModified: Date.now(),
-        type: 'application/epub+zip',
-      };
-      this.viewState = 'prepared';
-      this.clearEpubError();
+        this.busyProgressPercent = 48;
+        this.preparedSessionId = prepared.sessionId;
+        this.selectedEpubName = project.file.name;
+        this.sourceEpubMeta = {
+          name: prepared.originalName,
+          size: project.size,
+          lastModified: Date.now(),
+          type: 'application/epub+zip',
+        };
+        this.viewState = 'prepared';
+        this.clearEpubError();
 
-      const diagnosisSucceeded = await this.performDiagnosis();
-      if (!diagnosisSucceeded) {
+        const diagnosisSucceeded = await this.performDiagnosis();
+        if (!diagnosisSucceeded) {
+          await this.cleanupPreparedEpub();
+          return false;
+        }
+
+        return true;
+      } catch (error) {
+        this.failEpub(
+          this.mapPrepareError(error),
+          { name: filename },
+          this.buildNativeStorageErrorParams(error),
+        );
         await this.cleanupPreparedEpub();
         return false;
+      } finally {
+        await this.clearBusyState();
       }
-
-      return true;
-    } catch (error) {
-      this.failEpub(
-        this.mapPrepareError(error),
-        { name: filename },
-        this.buildNativeStorageErrorParams(error),
-      );
-      await this.cleanupPreparedEpub();
-      return false;
-    } finally {
-      this.busyAction = undefined;
-      this.busyProgressPercent = 0;
-    }
+    });
   }
 
   private async requestRewardedAdForFix(): Promise<boolean> {
@@ -1225,30 +1255,32 @@ export class FixPage implements OnInit, OnDestroy {
       return;
     }
 
-    const previousBusyAction = this.busyAction;
-    this.busyAction = 'export';
-    try {
-      this.exportResult = undefined;
-      const outputName =
-        this.workflow.buildFixedOutputName(this.selectedEpubName);
-      const exported = await this.workflow.exportCurrentEpub(outputName);
+    await this.runInZone(async () => {
+      const previousBusyAction = this.busyAction;
+      this.busyAction = 'export';
       try {
-        await this.library.saveExportedEpub(exported.outputUri, outputName);
-        this.coversEvents.emit({ type: 'saved', filename: outputName });
-      } catch (saveError) {
-        console.warn('[epub-fixer] save exported epub failed', saveError);
-      }
+        this.exportResult = undefined;
+        const outputName =
+          this.workflow.buildFixedOutputName(this.selectedEpubName);
+        const exported = await this.workflow.exportCurrentEpub(outputName);
+        try {
+          await this.library.saveExportedEpub(exported.outputUri, outputName);
+          this.coversEvents.emit({ type: 'saved', filename: outputName });
+        } catch (saveError) {
+          console.warn('[epub-fixer] save exported epub failed', saveError);
+        }
 
-      this.exportResult = {
-        size: exported.size,
-        outputName,
-        outputUri: exported.outputUri,
-      };
-      this.clearEpubError();
-      await this.consumeAdFallbackAttemptAfterSuccess();
-    } finally {
-      this.busyAction = previousBusyAction;
-    }
+        this.exportResult = {
+          size: exported.size,
+          outputName,
+          outputUri: exported.outputUri,
+        };
+        this.clearEpubError();
+        await this.consumeAdFallbackAttemptAfterSuccess();
+      } finally {
+        this.busyAction = previousBusyAction;
+      }
+    });
   }
 
   private async performSave(filename: string): Promise<void> {
@@ -1334,62 +1366,73 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   private async pickNativeEpub(): Promise<void> {
-    this.busyAction = 'prepare';
-    this.busyProgressPercent = 0;
-
-    try {
-      await this.resetWorkflowForNewEpub();
-      this.busyProgressPercent = 12;
-      const prepared = await this.workflow.pickAndPrepareNative();
-      this.busyProgressPercent = 48;
-
-      this.preparedSessionId = prepared.sessionId;
-      this.selectedEpubName = prepared.originalName;
-      this.sourceEpubMeta = {
-        name: prepared.originalName,
-        size: prepared.originalSize,
-        lastModified: Date.now(),
-        type: 'application/epub+zip',
-      };
-      this.viewState = 'prepared';
-      this.clearEpubError();
-
-      const diagnosisSucceeded = await this.performDiagnosis();
-      if (!diagnosisSucceeded) {
-        await this.cleanupPreparedEpub();
-        return;
-      }
-    } catch (error) {
-      if (error instanceof EpubRewriteError && error.code === 'PICK_CANCELLED') {
-        return;
-      }
-
-      this.failEpub(
-        this.mapPrepareError(error),
-        this.sourceEpubMeta,
-        this.buildNativeStorageErrorParams(error),
-      );
-      await this.cleanupPreparedEpub();
-    } finally {
-      this.busyAction = undefined;
+    await this.runInZone(async () => {
+      this.busyAction = 'prepare';
       this.busyProgressPercent = 0;
+
+      try {
+        await this.resetWorkflowForNewEpub();
+        this.busyProgressPercent = 12;
+        const prepared = await this.workflow.pickAndPrepareNative();
+        await this.applyPreparedNativeEpub(prepared);
+      } catch (error) {
+        if (
+          error instanceof EpubRewriteError &&
+          error.code === 'PICK_CANCELLED'
+        ) {
+          return;
+        }
+
+        this.failEpub(
+          this.mapPrepareError(error),
+          this.sourceEpubMeta,
+          this.buildNativeStorageErrorParams(error),
+        );
+        await this.cleanupPreparedEpub();
+      } finally {
+        await this.clearBusyState();
+      }
+    });
+  }
+
+  private async applyPreparedNativeEpub(
+    prepared: Awaited<ReturnType<EpubFixerWorkflowService['pickAndPrepareNative']>>,
+  ): Promise<void> {
+    this.busyProgressPercent = 48;
+
+    this.preparedSessionId = prepared.sessionId;
+    this.selectedEpubName = prepared.originalName;
+    this.sourceEpubMeta = {
+      name: prepared.originalName,
+      size: prepared.originalSize,
+      lastModified: Date.now(),
+      type: 'application/epub+zip',
+    };
+    this.viewState = 'prepared';
+    this.clearEpubError();
+
+    const diagnosisSucceeded = await this.performDiagnosis();
+    if (!diagnosisSucceeded) {
+      await this.cleanupPreparedEpub();
     }
   }
 
   private async resetWorkflowForNewEpub(): Promise<void> {
     await this.cleanupPreparedEpub();
-    this.clearEpubError();
-    this.lastHandledProjectRouteKey = null;
-    this.selectedConfirmationByIssueKey = {};
-    this.selectedGuidedOptionByIssueKey = {};
+    this.runInZone(() => {
+      this.clearEpubError();
+      this.lastHandledProjectRouteKey = null;
+      this.selectedConfirmationByIssueKey = {};
+      this.selectedGuidedOptionByIssueKey = {};
 
-    this.preparedSessionId = undefined;
-    this.selectedEpubName = undefined;
-    this.sourceEpubMeta = undefined;
-    this.diagnosis = undefined;
-    this.repairResult = undefined;
-    this.exportResult = undefined;
-    this.viewState = 'idle';
+      this.preparedSessionId = undefined;
+      this.selectedEpubName = undefined;
+      this.sourceEpubMeta = undefined;
+      this.diagnosis = undefined;
+      this.repairResult = undefined;
+      this.exportResult = undefined;
+      this.viewState = 'idle';
+    });
   }
 
   private async cleanupPreparedEpub(): Promise<void> {
@@ -1417,21 +1460,23 @@ export class FixPage implements OnInit, OnDestroy {
     file?: { name?: string },
     extraParams: Record<string, unknown> = {},
   ): void {
-    this.epubErrorKey = `FIX.${errorKey}`;
-    this.epubErrorParams = {
-      maxSize: String(this.workflow.maxNativeSizeMB),
-      name: file?.name || '',
-      ...extraParams,
-    };
-    this.preparedSessionId = undefined;
-    this.sourceEpubMeta = undefined;
-    this.selectedEpubName = undefined;
-    this.diagnosis = undefined;
-    this.repairResult = undefined;
-    this.exportResult = undefined;
-    this.selectedGuidedOptionByIssueKey = {};
-    this.selectedConfirmationByIssueKey = {};
-    this.viewState = 'failed';
+    this.runInZone(() => {
+      this.epubErrorKey = `FIX.${errorKey}`;
+      this.epubErrorParams = {
+        maxSize: String(this.workflow.maxNativeSizeMB),
+        name: file?.name || '',
+        ...extraParams,
+      };
+      this.preparedSessionId = undefined;
+      this.sourceEpubMeta = undefined;
+      this.selectedEpubName = undefined;
+      this.diagnosis = undefined;
+      this.repairResult = undefined;
+      this.exportResult = undefined;
+      this.selectedGuidedOptionByIssueKey = {};
+      this.selectedConfirmationByIssueKey = {};
+      this.viewState = 'failed';
+    });
   }
 
   private async performDiagnosis(): Promise<boolean> {
@@ -1439,22 +1484,24 @@ export class FixPage implements OnInit, OnDestroy {
       return false;
     }
 
-    this.busyAction = 'diagnose';
-    this.busyProgressPercent = 72;
-    this.viewState = 'diagnosing';
-    this.repairResult = undefined;
-    this.exportResult = undefined;
+    return this.runInZone(async () => {
+      this.busyAction = 'diagnose';
+      this.busyProgressPercent = 72;
+      this.viewState = 'diagnosing';
+      this.repairResult = undefined;
+      this.exportResult = undefined;
 
-    try {
-      this.diagnosis = await this.workflow.diagnoseCurrentEpub();
-      this.viewState = 'diagnosed';
-      this.clearEpubError();
-      this.busyProgressPercent = 100;
-      return true;
-    } catch (error) {
-      this.failWorkflow('EPUB_ERROR_REWRITE', error);
-      return false;
-    }
+      try {
+        this.diagnosis = await this.workflow.diagnoseCurrentEpub();
+        this.viewState = 'diagnosed';
+        this.clearEpubError();
+        this.busyProgressPercent = 100;
+        return true;
+      } catch (error) {
+        this.failWorkflow('EPUB_ERROR_REWRITE', error);
+        return false;
+      }
+    });
   }
 
   issueOptions(issue: EpubDiagnosticIssue): string[] {
@@ -1563,8 +1610,10 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   private clearEpubError(): void {
-    this.epubErrorKey = undefined;
-    this.epubErrorParams = {};
+    this.runInZone(() => {
+      this.epubErrorKey = undefined;
+      this.epubErrorParams = {};
+    });
   }
 
   private usesNativePrepare(): boolean {
@@ -1588,9 +1637,11 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   private failWorkflow(errorKey: string, error?: unknown): void {
-    this.epubErrorKey = `FIX.${errorKey}`;
-    this.epubErrorParams = {};
-    this.viewState = 'failed';
+    this.runInZone(() => {
+      this.epubErrorKey = `FIX.${errorKey}`;
+      this.epubErrorParams = {};
+      this.viewState = 'failed';
+    });
     if (error) {
       console.error('[epub-fixer] workflow action failed', error);
     }

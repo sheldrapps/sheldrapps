@@ -1,4 +1,12 @@
-import { Component, OnInit, OnDestroy, ViewChild, inject } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  NgZone,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  inject,
+} from '@angular/core';
 import { Subscription, filter } from 'rxjs';
 import { App } from '@capacitor/app';
 import { PluginListenerHandle } from '@capacitor/core';
@@ -73,6 +81,8 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   private coversEvents = inject(CoversEventsService);
   private toastCtrl = inject(ToastController);
   private modalCtrl = inject(ModalController);
+  private zone = inject(NgZone);
+  private changeDetector = inject(ChangeDetectorRef);
 
   @ViewChild(IonContent) content!: IonContent;
   @ViewChild(CoverListContentComponent) listContent?: CoverListContentComponent;
@@ -185,6 +195,25 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       });
   }
 
+  private runInZone<T>(fn: () => T): T {
+    return NgZone.isInAngularZone() ? fn() : this.zone.run(fn);
+  }
+
+  private async flushUi(): Promise<void> {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestAnimationFrame === 'function'
+    ) {
+      await new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    }
+    this.runInZone(() => {
+      this.changeDetector.markForCheck();
+      this.changeDetector.detectChanges();
+    });
+  }
+
   async load(ev?: CustomEvent, opts?: { silent?: boolean }) {
     // Skip concurrent automatic loads; pull-to-refresh always runs.
     if (!ev && this.isLoadInProgress) {
@@ -242,6 +271,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       this.needsReload = false;
       this.loading = false;
       ev?.target && (ev.target as any).complete();
+      await this.flushUi();
       void this.loadThumbsResilient(items, loadToken);
     } catch (error) {
       this.logInfo('libraryReload:failed', {
@@ -253,6 +283,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       this.pageErrorKey = 'COVERS.ERROR.LOAD';
       this.loading = false;
       ev?.target && (ev.target as any).complete();
+      await this.flushUi();
     } finally {
       this.isLoadInProgress = false;
     }
@@ -274,6 +305,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
 
         if (idx % 4 === 0 && loadToken === this.thumbsLoadToken) {
           this.items = [...items];
+          await this.flushUi();
         }
       }
     };
@@ -281,6 +313,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     await Promise.all(Array.from({ length: concurrency }, () => worker()));
     if (loadToken === this.thumbsLoadToken) {
       this.items = [...items];
+      await this.flushUi();
     }
   }
 
@@ -454,6 +487,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     } finally {
       this.previewLoading = false;
       this.previewGettingCover = false;
+      await this.flushUi();
     }
   }
 
@@ -482,6 +516,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     } finally {
       this.previewLoading = false;
       this.previewGettingCover = false;
+      await this.flushUi();
     }
   }
 
@@ -529,6 +564,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     this.previewUnavailable = false;
     this.previewGettingCover = false;
     this.previewFileSizeLabel = null;
+    void this.flushUi();
   }
 
   async deleteFromList(filename: string) {

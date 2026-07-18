@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   Injector,
   OnDestroy,
@@ -199,6 +200,7 @@ export class CreatePage implements OnInit, OnDestroy {
   private coversEvents = inject(CoversEventsService);
   private translate = inject(TranslateService);
   private zone = inject(NgZone);
+  private changeDetector = inject(ChangeDetectorRef);
   private navCtrl = inject(NavController);
   private settings = inject(SettingsStore<CcfkSettings>);
   private router = inject(Router);
@@ -466,6 +468,30 @@ export class CreatePage implements OnInit, OnDestroy {
     });
   }
 
+  private runInZone<T>(fn: () => T): T {
+    return NgZone.isInAngularZone() ? fn() : this.zone.run(fn);
+  }
+
+  private async flushUi(): Promise<void> {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestAnimationFrame === 'function'
+    ) {
+      await new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    }
+    this.runInZone(() => {
+      this.changeDetector.markForCheck();
+      this.changeDetector.detectChanges();
+    });
+  }
+
+  private async clearBusyUi(): Promise<void> {
+    this.setBusy('none');
+    await this.flushUi();
+  }
+
   compareModels(m1: KindleModel, m2: KindleModel): boolean {
     return m1 && m2 ? m1.id === m2.id : m1 === m2;
   }
@@ -717,55 +743,60 @@ export class CreatePage implements OnInit, OnDestroy {
   async onImageSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file) return;
-
-    this.setBusy('pick', 'CREATE.LOADING_IMAGE');
-
-    try {
-      let source = file;
-
-      const basicErr = this.imagePipe.validateBasic(source);
-      if (basicErr) return this.failImage(basicErr, source);
-
-      source = await this.imagePipe.materializeFile(source);
-
-      let originalDims = await this.imagePipe.getDimensions(source);
-
-      if (!originalDims) {
-        const normalized = await this.imagePipe.normalizeFile(source);
-        if (normalized) {
-          source = normalized;
-          originalDims = await this.imagePipe.getDimensions(source);
-        }
-      }
-
-      if (!originalDims) return this.failImage('CORRUPT', source);
-
-      this.clearImageError();
-      this.clearImageWarn();
-
-      this.originalImageFile = source;
-
-      const working = await this.imagePipe.prepareWorkingImage(source);
-      this.workingImageFile = working;
-      this.exportImageFile = undefined;
-      this.cropState = undefined;
-
-      const workingDims = await this.imagePipe.getDimensions(working);
-      this.originalImageDims = originalDims;
-      this.workingImageDims = workingDims ?? originalDims;
-      this.selectedImageName = working.name;
-      this.activeProjectHistory = null;
-      this.syncActiveProjectSourceInfo();
-
-      await this.applySmallWarn('image-selected', originalDims);
-
-      this.setPreviewUrl(URL.createObjectURL(working));
-      await this.homeTour.completeInteraction('cover-image-selected');
-    } finally {
-      this.setBusy('none');
-      input.value = '';
+    if (!file) {
+      return;
     }
+
+    await this.runInZone(async () => {
+      this.setBusy('pick', 'CREATE.LOADING_IMAGE');
+
+      try {
+        let source = file;
+
+        const basicErr = this.imagePipe.validateBasic(source);
+        if (basicErr) return this.failImage(basicErr, source);
+
+        source = await this.imagePipe.materializeFile(source);
+
+        let originalDims = await this.imagePipe.getDimensions(source);
+
+        if (!originalDims) {
+          const normalized = await this.imagePipe.normalizeFile(source);
+          if (normalized) {
+            source = normalized;
+            originalDims = await this.imagePipe.getDimensions(source);
+          }
+        }
+
+        if (!originalDims) return this.failImage('CORRUPT', source);
+
+        this.clearImageError();
+        this.clearImageWarn();
+
+        this.originalImageFile = source;
+
+        const working = await this.imagePipe.prepareWorkingImage(source);
+        this.workingImageFile = working;
+        this.exportImageFile = undefined;
+        this.cropState = undefined;
+
+        const workingDims = await this.imagePipe.getDimensions(working);
+        this.originalImageDims = originalDims;
+        this.workingImageDims = workingDims ?? originalDims;
+        this.selectedImageName = working.name;
+        this.activeProjectHistory = null;
+        this.syncActiveProjectSourceInfo();
+
+        await this.applySmallWarn('image-selected', originalDims);
+
+        this.setPreviewUrl(URL.createObjectURL(working));
+        await this.flushUi();
+        await this.homeTour.completeInteraction('cover-image-selected');
+      } finally {
+        await this.clearBusyUi();
+        input.value = '';
+      }
+    });
   }
 
   private async applySmallWarn(
@@ -1052,7 +1083,7 @@ export class CreatePage implements OnInit, OnDestroy {
       await this.consumeAdFallbackAttemptAfterSuccess('save');
       await this.showToast('CREATE.SAVED_OK', { duration: 1600 }, 'success');
     } finally {
-      this.zone.run(() => this.setBusy('none'));
+      await this.clearBusyUi();
     }
   }
 
@@ -1364,22 +1395,24 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   private resetSelectedImage() {
-    this.selectedImageFile = undefined;
-    this.selectedImageName = undefined;
-    this.originalImageDims = undefined;
-    this.workingImageDims = undefined;
-    this.originalImageFile = undefined;
-    this.cropState = undefined;
-    this.workingImageFile = undefined;
-    this.exportImageFile = undefined;
-    this.generatedEpubBytes = undefined;
-    this.wasAutoSaved = false;
-    this.generatedEpubFilename = undefined;
-    this.lastSavedFilename = undefined;
-    this.activeProjectHistory = null;
-    this.activeProjectSourceInfo = null;
+    this.runInZone(() => {
+      this.selectedImageFile = undefined;
+      this.selectedImageName = undefined;
+      this.originalImageDims = undefined;
+      this.workingImageDims = undefined;
+      this.originalImageFile = undefined;
+      this.cropState = undefined;
+      this.workingImageFile = undefined;
+      this.exportImageFile = undefined;
+      this.generatedEpubBytes = undefined;
+      this.wasAutoSaved = false;
+      this.generatedEpubFilename = undefined;
+      this.lastSavedFilename = undefined;
+      this.activeProjectHistory = null;
+      this.activeProjectSourceInfo = null;
 
-    this.revokePreviewUrl();
+      this.revokePreviewUrl();
+    });
   }
 
   private revokePreviewUrl() {
@@ -1390,33 +1423,39 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   private clearImageWarn() {
-    this.imageWarnKey = undefined;
-    this.imageWarnParams = {};
-    this.homeTour.requestSync();
+    this.runInZone(() => {
+      this.imageWarnKey = undefined;
+      this.imageWarnParams = {};
+      this.homeTour.requestSync();
+    });
   }
 
   private clearImageError() {
-    this.imageErrorKey = undefined;
-    this.imageErrorParams = {};
+    this.runInZone(() => {
+      this.imageErrorKey = undefined;
+      this.imageErrorParams = {};
+    });
   }
 
   private setImageError(err: ImageValidationError | 'CORRUPT', file: File) {
     const ext = (file.name.split('.').pop() ?? '').toUpperCase();
     const type = file.type || ext || 'file';
 
-    this.imageErrorKey =
-      err === 'UNSUPPORTED_TYPE'
-        ? 'CREATE.IMAGE_ERROR_TYPE'
-        : err === 'TOO_LARGE'
-          ? 'CREATE.IMAGE_ERROR_SIZE'
-          : 'CREATE.IMAGE_ERROR_CORRUPT';
+    this.runInZone(() => {
+      this.imageErrorKey =
+        err === 'UNSUPPORTED_TYPE'
+          ? 'CREATE.IMAGE_ERROR_TYPE'
+          : err === 'TOO_LARGE'
+            ? 'CREATE.IMAGE_ERROR_SIZE'
+            : 'CREATE.IMAGE_ERROR_CORRUPT';
 
-    this.imageErrorParams =
-      err === 'UNSUPPORTED_TYPE'
-        ? { type }
-        : err === 'TOO_LARGE'
-          ? { maxSize: Math.floor(this.imagePipe.maxBytes / (1024 * 1024)) }
-          : {};
+      this.imageErrorParams =
+        err === 'UNSUPPORTED_TYPE'
+          ? { type }
+          : err === 'TOO_LARGE'
+            ? { maxSize: Math.floor(this.imagePipe.maxBytes / (1024 * 1024)) }
+            : {};
+    });
   }
 
   canGenerate(): boolean {
@@ -1937,7 +1976,7 @@ export class CreatePage implements OnInit, OnDestroy {
 
       await this.generateCoverWithCurrentSelection();
     } finally {
-      this.zone.run(() => this.setBusy('none'));
+      await this.clearBusyUi();
     }
   }
 
@@ -2329,8 +2368,10 @@ export class CreatePage implements OnInit, OnDestroy {
 
   private setPreviewUrl(url: string): void {
     this.revokePreviewUrl();
-    this.previewUrl = url;
-    this.previewRevision += 1;
+    this.runInZone(() => {
+      this.previewUrl = url;
+      this.previewRevision += 1;
+    });
   }
 
   private async ensureExportImageFile(): Promise<File | null> {

@@ -1,4 +1,5 @@
 ﻿import {
+  ChangeDetectorRef,
   Component,
   Injector,
   OnDestroy,
@@ -216,6 +217,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private coversEvents = inject(CoversEventsService);
   private translate = inject(TranslateService);
   private zone = inject(NgZone);
+  private changeDetector = inject(ChangeDetectorRef);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private editorSession = inject(EditorSessionService);
@@ -596,6 +598,7 @@ export class ChangePage implements OnInit, OnDestroy {
         this.lastSavedFilename = undefined;
         this.wasAutoSaved = false;
       });
+
   }
 
   ngOnDestroy() {
@@ -628,6 +631,30 @@ export class ChangePage implements OnInit, OnDestroy {
       this.isPickingPdf = kind === 'pdf';
       this.loadingMessageKey = kind === 'none' ? undefined : messageKey;
     });
+  }
+
+  private runInZone<T>(fn: () => T): T {
+    return NgZone.isInAngularZone() ? fn() : this.zone.run(fn);
+  }
+
+  private async flushUi(): Promise<void> {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestAnimationFrame === 'function'
+    ) {
+      await new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    }
+    this.runInZone(() => {
+      this.changeDetector.markForCheck();
+      this.changeDetector.detectChanges();
+    });
+  }
+
+  private async clearBusyUi(): Promise<void> {
+    this.setBusy('none');
+    await this.flushUi();
   }
 
   private getCurrentFormatOptions(): CropFormatOption[] {
@@ -814,151 +841,65 @@ export class ChangePage implements OnInit, OnDestroy {
     const file = input.files?.[0];
     if (!file) return;
 
-    this.resetPdfLoadProgress();
-    this.setBusy('pdf', 'CHANGE.LOADING_PDF');
-
-    try {
-      await this.resetWorkflowForNewPdf();
-
-      // Validate PDF file
-      const validation = this.fileService.validatePdf(file, this.maxPdfSizeMB);
-      if (!validation.valid) {
-        this.failPdf(this.mapValidationErrorToUiKey(validation.errorKey), file);
-        return;
-      }
-
-      // Create working copy immediately
-      let cycle: Awaited<ReturnType<PdfWorkingCopyService['startCycle']>>;
-      try {
-        cycle = await this.workingCopy.startCycle(file);
-      } catch (error) {
-        this.failPdf('PDF_ERROR_CORRUPT', file);
-        return;
-      }
-      this.sourcePdfFile = file;
-      this.sourcePdfMeta = cycle.sourceMeta;
-      this.workingPdfFile = cycle.workingFile;
-      this.workingPdfPath = cycle.workingPath;
-      this.workingPdfName = cycle.workingName;
-      this.outputBaseName = cycle.outputBaseName;
-      this.selectedPdfName = file.name;
-
-      const hasValidStructure = await this.fileService.validatePdfStructure(
-        this.workingPdfFile,
-      );
-      if (!hasValidStructure) {
-        this.failPdf('PDF_ERROR_CORRUPT', file);
-        await this.cleanupWorkingCopy();
-        return;
-      }
-
-      await this.resolvePdfFirstPageDims();
-
-      const strictCover = await this.candidateImageService.resolveStrictCover({
-        pdfFile: this.workingPdfFile,
-        pdfName: this.selectedPdfName,
-      });
-      console.info('[ECC_BEST_CANDIDATE] strict cover found:', !!strictCover);
-      this.clearPdfError();
-
-      if (!strictCover) {
-        console.info(
-          '[ECC_BEST_CANDIDATE] valid cover not found, fallback to candidate picker',
-        );
-        const firstPageApplied = await this.tryApplyFirstPageCoverFallback();
-        if (firstPageApplied) {
-          await this.homeTour.completeInteraction('pdf-selected');
-          return;
-        }
-        await this.activateBestCandidateFallback();
-        await this.homeTour.completeInteraction('pdf-selected');
-        return;
-      }
-
-      this.coverEntryPath = strictCover.sourcePath;
-      const coverLoaded = await this.applyImageSource(strictCover.file, false);
-      if (!coverLoaded) {
-        const firstPageApplied = await this.tryApplyFirstPageCoverFallback();
-        if (firstPageApplied) {
-          await this.homeTour.completeInteraction('pdf-selected');
-          return;
-        }
-        await this.activateBestCandidateFallback();
-        await this.homeTour.completeInteraction('pdf-selected');
-        return;
-      }
-      await this.homeTour.completeInteraction('pdf-selected');
-    } finally {
+    await this.runInZone(async () => {
       this.resetPdfLoadProgress();
-      this.setBusy('none');
-      input.value = '';
-    }
-  }
-
-  private async pickNativePdf() {
-    this.resetPdfLoadProgress();
-    this.setBusy('pdf', 'CHANGE.LOADING_PDF');
-    this.pdfLoadStage = 'copy';
-    this.pdfLoadProgressPercent = 0;
-
-    try {
-      const prepared = await this.pdfRewrite.pickAndPreparePdf({
-        maxBytes: this.maxPdfSizeMB * 1024 * 1024,
-      });
-      await this.resetWorkflowForNewPdf();
-      this.pdfLoadStage = 'inspect';
-      this.pdfLoadProgressPercent = 92;
-
-      this.sourcePdfFile = undefined;
-      this.sourcePdfMeta = {
-        name: prepared.selectedName,
-        size: prepared.sourceSize,
-        lastModified: prepared.sourceLastModified,
-        type: prepared.sourceMimeType,
-      };
-      this.workingPdfFile = undefined;
-      this.workingPdfPath = prepared.workingPath;
-      this.workingPdfNativePath = prepared.workingNativePath;
-      this.workingPdfName = prepared.workingName;
-      this.outputBaseName = prepared.outputBaseName;
-      this.selectedPdfName = prepared.selectedName;
-      this.coverEntryPath = undefined;
-      this.clearPdfError();
-
-      await this.resolvePdfFirstPageDims();
-
-      const strictCover = await this.candidateImageService.resolveStrictCover({
-        pdfNativePath: this.workingPdfNativePath,
-        pdfName: this.selectedPdfName,
-      });
-      console.info('[ECC_BEST_CANDIDATE] strict cover found:', !!strictCover);
-
-      if (!strictCover) {
-        console.info(
-          '[ECC_BEST_CANDIDATE] valid cover not found, fallback to candidate picker',
-        );
-        const firstPageApplied = await this.tryApplyFirstPageCoverFallback();
-        if (firstPageApplied) {
-          this.pdfLoadProgressPercent = 100;
-          await this.homeTour.completeInteraction('pdf-selected');
-          return;
-        }
-        await this.activateBestCandidateFallback();
-        this.pdfLoadProgressPercent = 100;
-        await this.homeTour.completeInteraction('pdf-selected');
-        return;
-      }
+      this.setBusy('pdf', 'CHANGE.LOADING_PDF');
 
       try {
-        this.coverEntryPath = strictCover.sourcePath;
-        const coverLoaded = await this.applyImageSource(
-          strictCover.file,
-          false,
+        await this.resetWorkflowForNewPdf();
+
+        const validation = this.fileService.validatePdf(
+          file,
+          this.maxPdfSizeMB,
         );
-        if (!coverLoaded) {
+        if (!validation.valid) {
+          this.failPdf(
+            this.mapValidationErrorToUiKey(validation.errorKey),
+            file,
+          );
+          return;
+        }
+
+        let cycle: Awaited<ReturnType<PdfWorkingCopyService['startCycle']>>;
+        try {
+          cycle = await this.workingCopy.startCycle(file);
+        } catch (error) {
+          this.failPdf('PDF_ERROR_CORRUPT', file);
+          return;
+        }
+        this.sourcePdfFile = file;
+        this.sourcePdfMeta = cycle.sourceMeta;
+        this.workingPdfFile = cycle.workingFile;
+        this.workingPdfPath = cycle.workingPath;
+        this.workingPdfName = cycle.workingName;
+        this.outputBaseName = cycle.outputBaseName;
+        this.selectedPdfName = file.name;
+
+        const hasValidStructure = await this.fileService.validatePdfStructure(
+          this.workingPdfFile,
+        );
+        if (!hasValidStructure) {
+          this.failPdf('PDF_ERROR_CORRUPT', file);
+          await this.cleanupWorkingCopy();
+          return;
+        }
+
+        await this.resolvePdfFirstPageDims();
+
+        const strictCover =
+          await this.candidateImageService.resolveStrictCover({
+            pdfFile: this.workingPdfFile,
+            pdfName: this.selectedPdfName,
+          });
+        console.info('[ECC_BEST_CANDIDATE] strict cover found:', !!strictCover);
+        this.clearPdfError();
+
+        if (!strictCover) {
+          console.info(
+            '[ECC_BEST_CANDIDATE] valid cover not found, fallback to candidate picker',
+          );
           const firstPageApplied = await this.tryApplyFirstPageCoverFallback();
           if (firstPageApplied) {
-            this.pdfLoadProgressPercent = 100;
             await this.homeTour.completeInteraction('pdf-selected');
             return;
           }
@@ -966,9 +907,112 @@ export class ChangePage implements OnInit, OnDestroy {
           await this.homeTour.completeInteraction('pdf-selected');
           return;
         }
+
+        this.coverEntryPath = strictCover.sourcePath;
+        const coverLoaded = await this.applyImageSource(strictCover.file, false);
+        if (!coverLoaded) {
+          const firstPageApplied = await this.tryApplyFirstPageCoverFallback();
+          if (firstPageApplied) {
+            await this.homeTour.completeInteraction('pdf-selected');
+            return;
+          }
+          await this.activateBestCandidateFallback();
+          await this.homeTour.completeInteraction('pdf-selected');
+          return;
+        }
+        await this.homeTour.completeInteraction('pdf-selected');
+      } finally {
+        this.resetPdfLoadProgress();
+        await this.clearBusyUi();
+        input.value = '';
+      }
+    });
+  }
+
+  private async pickNativePdf() {
+    await this.runInZone(async () => {
+      this.resetPdfLoadProgress();
+      this.setBusy('pdf', 'CHANGE.LOADING_PDF');
+      this.pdfLoadStage = 'copy';
+      this.pdfLoadProgressPercent = 0;
+
+      try {
+        const prepared = await this.pdfRewrite.pickAndPreparePdf({
+          maxBytes: this.maxPdfSizeMB * 1024 * 1024,
+        });
+        await this.applyPreparedNativePdf(prepared);
+      } catch (error) {
+        if (error instanceof PdfRewriteError && error.code === 'PICK_CANCELLED') {
+          return;
+        }
+
+        this.maybeDisableNativeRewriteForSession(error, 'pick_pdf');
+
+        const mappedErrorKey = this.mapNativePdfError(error);
+        this.failPdf(
+          mappedErrorKey,
+          this.sourcePdfMeta,
+          this.buildNativeStorageErrorParams(error),
+        );
+        await this.cleanupWorkingCopy();
+      } finally {
+        this.resetPdfLoadProgress();
+        await this.clearBusyUi();
+      }
+    });
+  }
+
+  private async applyPreparedNativePdf(
+    prepared: Awaited<ReturnType<PdfRewriteService['pickAndPreparePdf']>>,
+  ): Promise<void> {
+    await this.resetWorkflowForNewPdf();
+    this.pdfLoadStage = 'inspect';
+    this.pdfLoadProgressPercent = 92;
+
+    this.sourcePdfFile = undefined;
+    this.sourcePdfMeta = {
+      name: prepared.selectedName,
+      size: prepared.sourceSize,
+      lastModified: prepared.sourceLastModified,
+      type: prepared.sourceMimeType,
+    };
+    this.workingPdfFile = undefined;
+    this.workingPdfPath = prepared.workingPath;
+    this.workingPdfNativePath = prepared.workingNativePath;
+    this.workingPdfName = prepared.workingName;
+    this.outputBaseName = prepared.outputBaseName;
+    this.selectedPdfName = prepared.selectedName;
+    this.coverEntryPath = undefined;
+    this.clearPdfError();
+
+    await this.resolvePdfFirstPageDims();
+
+    const strictCover = await this.candidateImageService.resolveStrictCover({
+      pdfNativePath: this.workingPdfNativePath,
+      pdfName: this.selectedPdfName,
+    });
+    console.info('[ECC_BEST_CANDIDATE] strict cover found:', !!strictCover);
+
+    if (!strictCover) {
+      console.info(
+        '[ECC_BEST_CANDIDATE] valid cover not found, fallback to candidate picker',
+      );
+      const firstPageApplied = await this.tryApplyFirstPageCoverFallback();
+      if (firstPageApplied) {
         this.pdfLoadProgressPercent = 100;
         await this.homeTour.completeInteraction('pdf-selected');
-      } catch {
+        return;
+      }
+      await this.activateBestCandidateFallback();
+      this.pdfLoadProgressPercent = 100;
+      await this.homeTour.completeInteraction('pdf-selected');
+      return;
+    }
+
+    try {
+      this.coverEntryPath = strictCover.sourcePath;
+      const coverLoaded = await this.applyImageSource(strictCover.file, false);
+      if (!coverLoaded) {
         const firstPageApplied = await this.tryApplyFirstPageCoverFallback();
         if (firstPageApplied) {
           this.pdfLoadProgressPercent = 100;
@@ -977,24 +1021,19 @@ export class ChangePage implements OnInit, OnDestroy {
         }
         await this.activateBestCandidateFallback();
         await this.homeTour.completeInteraction('pdf-selected');
-      }
-    } catch (error) {
-      if (error instanceof PdfRewriteError && error.code === 'PICK_CANCELLED') {
         return;
       }
-
-      this.maybeDisableNativeRewriteForSession(error, 'pick_pdf');
-
-      const mappedErrorKey = this.mapNativePdfError(error);
-      this.failPdf(
-        mappedErrorKey,
-        this.sourcePdfMeta,
-        this.buildNativeStorageErrorParams(error),
-      );
-      await this.cleanupWorkingCopy();
-    } finally {
-      this.resetPdfLoadProgress();
-      this.setBusy('none');
+      this.pdfLoadProgressPercent = 100;
+      await this.homeTour.completeInteraction('pdf-selected');
+    } catch {
+      const firstPageApplied = await this.tryApplyFirstPageCoverFallback();
+      if (firstPageApplied) {
+        this.pdfLoadProgressPercent = 100;
+        await this.homeTour.completeInteraction('pdf-selected');
+        return;
+      }
+      await this.activateBestCandidateFallback();
+      await this.homeTour.completeInteraction('pdf-selected');
     }
   }
 
@@ -1146,6 +1185,7 @@ export class ChangePage implements OnInit, OnDestroy {
       }
     } finally {
       this.setBusy('none');
+      await this.flushUi();
       input.value = '';
     }
   }
@@ -2220,7 +2260,7 @@ export class ChangePage implements OnInit, OnDestroy {
       await this.consumeAdFallbackAttemptAfterSuccess('save');
       await this.showToast('CHANGE.SAVED_OK', { duration: 1600 }, 'success');
     } finally {
-      this.zone.run(() => this.setBusy('none'));
+      await this.clearBusyUi();
     }
   }
 
@@ -2440,7 +2480,19 @@ export class ChangePage implements OnInit, OnDestroy {
   } | null> {
     if (typeof createImageBitmap === 'function') {
       try {
-        const bitmap = await createImageBitmap(blob);
+        let timer: ReturnType<typeof setTimeout> | null = null;
+        const bitmap = await Promise.race([
+          createImageBitmap(blob),
+          new Promise<null>((resolve) => {
+            timer = setTimeout(() => resolve(null), 8000);
+          }),
+        ]);
+        if (timer) {
+          clearTimeout(timer);
+        }
+        if (!bitmap) {
+          throw new Error('IMAGE_BITMAP_TIMEOUT');
+        }
         return {
           width: bitmap.width,
           height: bitmap.height,
@@ -2465,14 +2517,36 @@ export class ChangePage implements OnInit, OnDestroy {
 
     return new Promise((resolve) => {
       const url = URL.createObjectURL(blob);
+      let settled = false;
       const img = new Image();
       const cleanup = () => URL.revokeObjectURL(url);
+      const timer = setTimeout(() => finish(null), 8000);
+      const finish = (result: {
+        width: number;
+        height: number;
+        draw: (
+          ctx: CanvasRenderingContext2D,
+          dx: number,
+          dy: number,
+          dw: number,
+          dh: number,
+        ) => void;
+      } | null) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        clearTimeout(timer);
+        img.onload = null;
+        img.onerror = null;
+        cleanup();
+        resolve(result);
+      };
 
       img.onload = () => {
-        cleanup();
         const width = img.naturalWidth || img.width;
         const height = img.naturalHeight || img.height;
-        resolve({
+        finish({
           width,
           height,
           draw: (ctx, dx, dy, dw, dh) =>
@@ -2481,8 +2555,7 @@ export class ChangePage implements OnInit, OnDestroy {
       };
 
       img.onerror = () => {
-        cleanup();
-        resolve(null);
+        finish(null);
       };
 
       img.src = url;
@@ -3421,7 +3494,7 @@ export class ChangePage implements OnInit, OnDestroy {
         'error',
       );
     } finally {
-      this.zone.run(() => this.setBusy('none'));
+      await this.clearBusyUi();
     }
   }
 

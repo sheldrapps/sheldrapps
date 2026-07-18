@@ -1,9 +1,11 @@
 ﻿import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ComponentRef,
   ElementRef,
+  NgZone,
   OnDestroy,
   Type,
   ViewChild,
@@ -266,6 +268,8 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
   private readonly categoryRepository = inject(CategoryRepository);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
+  private readonly zone = inject(NgZone);
+  private readonly changeDetector = inject(ChangeDetectorRef);
   private readonly debugDayClassification = false;
 
   constructor() {
@@ -777,7 +781,7 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
     } finally {
       this.scopeLoadInFlight = false;
       if (!this.isDestroyed) {
-        this.endLoadingOverlay();
+        await this.endLoadingOverlay();
       }
 
       if (this.pendingScopeReload) {
@@ -1395,10 +1399,30 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
     this.destroyRenderedView();
   }
 
-  private endLoadingOverlay(): void {
+  private async endLoadingOverlay(): Promise<void> {
     this.isLoading = false;
     this.renderCurrentView();
     this.scheduleDayRenderRecovery();
+    await this.flushUi();
+  }
+
+  private runInZone<T>(fn: () => T): T {
+    return NgZone.isInAngularZone() ? fn() : this.zone.run(fn);
+  }
+
+  private async flushUi(): Promise<void> {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestAnimationFrame === 'function'
+    ) {
+      await new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    }
+    this.runInZone(() => {
+      this.changeDetector.markForCheck();
+      this.changeDetector.detectChanges();
+    });
   }
 
   private async ensureMonthSummaryForDate(date: Date): Promise<boolean> {

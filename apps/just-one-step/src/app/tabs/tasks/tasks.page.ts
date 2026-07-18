@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import {
@@ -51,6 +51,8 @@ export class TasksPage {
   private readonly alertController = inject(AlertController);
   private readonly translate = inject(TranslateService);
   private readonly debugTaskLoading = true;
+  private readonly zone = inject(NgZone);
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   constructor() {
     addIcons({ eyeOutline, createOutline, trashOutline });
@@ -154,7 +156,27 @@ export class TasksPage {
       await this.logLoadedTasks('sample-fallback-error');
     } finally {
       this.isLoading = false;
+      await this.flushUi();
     }
+  }
+
+  private runInZone<T>(fn: () => T): T {
+    return NgZone.isInAngularZone() ? fn() : this.zone.run(fn);
+  }
+
+  private async flushUi(): Promise<void> {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestAnimationFrame === 'function'
+    ) {
+      await new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    }
+    this.runInZone(() => {
+      this.changeDetector.markForCheck();
+      this.changeDetector.detectChanges();
+    });
   }
 
   private async logLoadedTasks(
