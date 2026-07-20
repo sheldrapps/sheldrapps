@@ -14,3 +14,5 @@ export * from "./theme-preview-tile/theme-preview-tile.component";
 export * from "./theme-selector/theme-selector.component";
 export * from "./theme-settings-page/theme-settings-page.component";
 export * from "./under-construction-page/under-construction-page.component";
+export * from "./file-picker-panel/file-picker-panel.component";
+export * from "./triple-button/triple-button.component";

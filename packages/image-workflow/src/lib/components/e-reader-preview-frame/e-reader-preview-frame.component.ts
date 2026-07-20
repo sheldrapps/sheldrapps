@@ -27,6 +27,7 @@ import {
   E_READER_FRAME_COLOR_PRESETS,
   E_READER_FRAME_DEFAULT_BY_BRAND,
 } from '../../e-reader-preview/e-reader-frame-colors';
+import { ImageWorkflowI18nService } from '../../e-reader-preview/i18n/image-workflow-i18n.service';
 
 export type EReaderPreviewMode = 'single' | 'compare';
 export type EReaderPreviewFit = 'contain' | 'cover';
@@ -126,6 +127,7 @@ export class EReaderPreviewFrameComponent
     'preview.eReaderFrameColorId';
 
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly imageWorkflowI18n = inject(ImageWorkflowI18nService);
   private readonly settingsStore = inject<
     SettingsStore<Record<string, unknown>> | null
   >(SettingsStore as any, { optional: true });

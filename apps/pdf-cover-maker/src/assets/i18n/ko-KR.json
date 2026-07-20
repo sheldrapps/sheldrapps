@@ -37,13 +37,13 @@
   },
   "CHANGE": {
     "ADS_REQUIRED": "광고를 불러올 수 없습니다. 네트워크 또는 광고 차단기를 확인해 주세요.",
-    "ARIA_CHANGE_PDF": "PDF íŒŒì¼ ì œìž‘. í˜„ìž¬ íŒŒì¼: {{name}}",
+    "ARIA_CHANGE_PDF": "PDF 파일 제작. 현재 파일: {{name}}",
     "ARIA_CHANGE_IMAGE": "표지 이미지 제작. 현재 이미지: {{name}}",
     "ARIA_CROP": "선택한 이미지 조정",
     "ARIA_SELECT_PDF": "PDF 파일 선택",
     "ARIA_SELECT_IMAGE": "표지 이미지 선택",
     "CROP_ACTION": "조정",
-    "COVER_CHANGED": "í‘œì§€ê°€ ì œìž‘ë˜ì—ˆìŠµë‹ˆë‹¤. ì´ì œ ì €ìž¥í•˜ê±°ë‚˜ ê³µìœ í•  ìˆ˜ ìžˆìŠµë‹ˆë‹¤",
+    "COVER_CHANGED": "표지가 제작되었습니다. 이제 저장하거나 공유할 수 있습니다",
     "CHANGE_ACTION": "í‘œì§€ ì œìž‘",
     "CHANGE_ACTION_REWARDED": "í‘œì§€ ì œìž‘ (ê´‘ê³  ë³´ê¸°)",
     "GENERATING": "표지 업데이트 중…",
@@ -108,10 +108,9 @@
     "SAVE_RENAME_PLACEHOLDER": "파일 이름",
     "SELECT_IMAGE_LABEL": "표지 이미지",
     "SELECT_IMAGE_PLACEHOLDER": "이미지 선택",
-    "INVALID_COVER_TAP_TO_CHANGE": "ìœ íš¨í•˜ì§€ ì•Šì€ í‘œì§€ìž…ë‹ˆë‹¤. íƒ­í•˜ì—¬ ì œìž‘í•˜ì„¸ìš”",
+    "INVALID_COVER_TAP_TO_CHANGE": "유효하지 않은 표지입니다. 탭하여 제작하세요",
     "TAP_TO_CHANGE": "íƒ­í•˜ì—¬ ì œìž‘/ì´ˆê¸°í™”",
     "TAP_TO_CHANGE_IMAGE": "íƒ­í•˜ì—¬ ì œìž‘",
-    "TAP_TO_PREVIEW": "탭하여 미리보기",
     "LONGPRESS_PREVIEW_HINT": "길게 눌러 미리보기",
     "TITLE": "í‘œì§€ ì œìž‘",
     "PREVIEW_ORIGINAL_LABEL": "원본 표지",
@@ -128,7 +127,6 @@
     "LOADING_PREVIEW": "미리보기를 불러오는 중...",
     "PLACEHOLDER": "PDF",
     "PREVIEW_UNAVAILABLE": "미리보기를 사용할 수 없습니다.",
-    "PREVIEW_TITLE": "í˜„ìž¬ í‘œì§€",
     "TITLE": "내 PDF",
     "DITHERED_THUMBNAIL_NOTICE": "아티팩트 감소가 적용된 표지는 썸네일에서 다르게 보일 수 있습니다. 더 정확한 결과는 미리보기에서 확인하세요.",
     "ACTIONS": {
@@ -143,8 +141,8 @@
     },
     "ERROR": {
       "DELETE": "PDF을 삭제할 수 없습니다. 다시 시도해 주세요.",
-      "SHARE": "PDFì„ ê³µìœ í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”.",
-      "LOAD": "PDFì„ ë¶ˆëŸ¬ì˜¬ ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ì•„ëž˜ë¡œ ë‹¹ê²¨ ìƒˆë¡œ ê³ ì¹¨í•˜ì„¸ìš”.",
+      "SHARE": "PDF을 공유할 수 없습니다. 다시 시도해 주세요.",
+      "LOAD": "PDF을 불러올 수 없습니다. 아래로 당겨 새로 고침하세요.",
       "PREVIEW": "미리보기를 불러올 수 없습니다. 다시 시도해 주세요.",
       "OPEN": "PDF를 열 수 없습니다. 다시 시도해 주세요.",
       "OPEN_PROJECT": "프로젝트를 열 수 없습니다. 다시 시도해 주세요."
@@ -232,26 +230,6 @@
       "INFO": "정보",
       "APPS": "앱",
       "GUIDE": "가이드"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

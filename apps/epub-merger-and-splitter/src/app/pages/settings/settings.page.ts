@@ -7,11 +7,11 @@ import {
 } from '@sheldrapps/i18n-kit';
 import { PrivacyPolicySectionComponent } from '@sheldrapps/privacy-policy-kit';
 import {
+  IonBackButton,
   IonButton,
   IonButtons,
   IonContent,
   IonHeader,
-  IonIcon,
   IonLoading,
   IonModal,
   IonTitle,
@@ -45,11 +45,11 @@ import { EpubMergerAndSplitterSettings } from 'src/app/settings/epub-merger-and-
   imports: [
     CommonModule,
     TranslateModule,
+    IonBackButton,
     IonButton,
     IonButtons,
     IonContent,
     IonHeader,
-    IonIcon,
     IonLoading,
     IonModal,
     IonTitle,

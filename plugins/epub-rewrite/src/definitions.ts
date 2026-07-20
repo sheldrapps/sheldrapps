@@ -66,7 +66,8 @@ export interface DiagnoseEpubResult {
       | 'SMIL_MISSING'
       | 'SPINE_EMPTY'
       | 'SPINE_ITEM_INVALID'
-      | 'ZIP_UNREADABLE';
+      | 'ZIP_UNREADABLE'
+      | 'ZIP_CENTRAL_DIRECTORY_TRUNCATED';
     severity: 'info' | 'warning' | 'error';
     fixable: boolean;
     messageKey: string;
@@ -195,6 +196,40 @@ export interface CancelRewriteResult {
   cancelled: boolean;
 }
 
+export interface EpubMergeInput {
+  id: string;
+  path: string;
+  name: string;
+}
+
+export interface EpubMergeOptions {
+  inputs: EpubMergeInput[];
+  outputPath: string;
+  outputName: string;
+  tocMode: 'books-and-chapters' | 'books-only' | 'full-index';
+  coverPath?: string;
+}
+
+export interface EpubMergePreflightResult {
+  success: boolean;
+  sourceCount?: number;
+  totalSourceBytes?: number;
+  estimatedOutputBytes?: number;
+  error?: string;
+  message?: string;
+  stage?: string;
+}
+
+export interface EpubMergeResult {
+  success: boolean;
+  outputPath?: string;
+  outputName?: string;
+  size?: number;
+  error?: string;
+  message?: string;
+  stage?: string;
+}
+
 export interface EpubRewritePlugin extends Plugin {
   openExternalFile(options: {
     inputPath: string;
@@ -229,6 +264,10 @@ export interface EpubRewritePlugin extends Plugin {
   ): Promise<CreateEpubFromCoverResult>;
   cleanup(options: { sessionId: string }): Promise<void>;
   cancelRewrite(): Promise<CancelRewriteResult>;
+  preflightMerge(options: {
+    inputs: EpubMergeInput[];
+  }): Promise<EpubMergePreflightResult>;
+  mergeEpubs(options: EpubMergeOptions): Promise<EpubMergeResult>;
   addListener(
     eventName: 'rewriteProgress',
     listenerFunc: (event: RewriteProgressEvent) => void,

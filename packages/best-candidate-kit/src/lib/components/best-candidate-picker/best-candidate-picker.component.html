@@ -31,9 +31,10 @@
               [disabled]="disabled"
               [attr.aria-label]="'BEST_CANDIDATE.PICKER.CANDIDATE_ALT' | translate : { index: $index + 1 }"
               (pointerdown)="onCandidatePointerDown(candidate.image)"
-              (pointerup)="onCandidatePointerUp(candidate.image)"
+              (pointerup)="onCandidatePointerUp()"
               (pointerleave)="onCandidatePointerCancel()"
               (pointercancel)="onCandidatePointerCancel()"
+              (click)="onCandidateClick(candidate.image, $event)"
             >
               <img
                 [src]="candidate.image.src"
@@ -58,9 +59,10 @@
           [class.best-candidate-picker__card--selected]="isSelected(candidate)"
           [class.best-candidate-picker__card--disabled]="disabled"
           (pointerdown)="onCandidatePointerDown(candidate.image)"
-          (pointerup)="onCandidatePointerUp(candidate.image)"
+          (pointerup)="onCandidatePointerUp()"
           (pointerleave)="onCandidatePointerCancel()"
           (pointercancel)="onCandidatePointerCancel()"
+          (click)="onCandidateClick(candidate.image, $event)"
         >
           <div class="best-candidate-picker__thumb">
             <img

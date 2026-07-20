@@ -37,7 +37,7 @@
   },
   "CHANGE": {
     "ADS_REQUIRED": "å»£å‘Šç„¡æ³•è¼‰å…¥ï¼Œè«‹æª¢æŸ¥æ‚¨çš„ç¶²è·¯æˆ–å»£å‘Šæ””æˆªå™¨ã€‚",
-    "ARIA_CHANGE_PDF": "è£½ä½œ PDF æª”æ¡ˆã€‚ç›®å‰æª”æ¡ˆï¼š{{name}}",
+    "ARIA_CHANGE_PDF": "製作 PDF 檔案。目前檔案：{{name}}",
     "ARIA_CHANGE_IMAGE": "製作封面圖片。目前圖片：{{name}}",
     "ARIA_CROP": "調整選取的圖片",
     "ARIA_SELECT_PDF": "選取 PDF 檔案",
@@ -51,15 +51,15 @@
     "INFO": "è³‡è¨Š",
     "INFO_ARIA": "關於製作封面的資訊",
     "INFO_TITLE": "è³‡è¨Š",
-    "INFO_FLOW_LABEL": "å»ºè­°é †åºï¼š",
+    "INFO_FLOW_LABEL": "建議順序：",
     "INFO_STEP_1": "選取 PDF。",
     "INFO_STEP_1_1": "1.1. 原始封面會預先載入。",
-    "INFO_STEP_1_2": "1.2. è£½ä½œåœ–ç‰‡æˆ–ä¿ç•™åŽŸå§‹åœ–ç‰‡ã€‚",
+    "INFO_STEP_1_2": "1.2. 製作圖片或保留原始圖片。",
     "INFO_STEP_2": "在編輯器中調整圖片。",
     "INFO_STEP_3": "觀看廣告以儲存封面。",
     "INFO_STEP_4": "å„²å­˜æˆ–åˆ†äº«ã€‚",
     "IMAGE_ERROR_CORRUPT": "無法讀取圖片，請嘗試其他圖片。",
-    "IMAGE_ERROR_SIZE": "æª”æ¡ˆéŽå¤§ï¼Œæœ€å¤§ {{maxSize}} MBã€‚",
+    "IMAGE_ERROR_SIZE": "檔案過大，最大 {{maxSize}} MB。",
     "IMAGE_ERROR_TYPE": "不支援的格式（{{type}}），請選取 JPG、PNG 或 WebP。",
     "IMAGE_WARN_SMALL": "此圖片對某些裝置可能太小。",
     "IMAGE_WARN_INVALID_PDF_COVER": "無效的 PDF 封面。點一下以選擇新圖片。",
@@ -111,7 +111,6 @@
     "INVALID_COVER_TAP_TO_CHANGE": "無效封面，請點擊製作",
     "TAP_TO_CHANGE": "點擊以製作／重設",
     "TAP_TO_CHANGE_IMAGE": "é»žæ“Šä»¥è£½ä½œ",
-    "TAP_TO_PREVIEW": "é»žæ“ŠæŸ¥çœ‹é è¦½",
     "LONGPRESS_PREVIEW_HINT": "長按即可預覽",
     "TITLE": "製作封面",
     "PREVIEW_ORIGINAL_LABEL": "原始封面",
@@ -128,7 +127,6 @@
     "LOADING_PREVIEW": "正在載入預覽...",
     "PLACEHOLDER": "PDF",
     "PREVIEW_UNAVAILABLE": "預覽無法使用。",
-    "PREVIEW_TITLE": "目前封面",
     "TITLE": "æˆ‘çš„ PDF",
     "DITHERED_THUMBNAIL_NOTICE": "套用瑕疵減少的封面在縮圖中可能看起來不同。請開啟預覽以查看更準確的結果。",
     "ACTIONS": {
@@ -187,7 +185,7 @@
       },
       "ADJUST": {
         "TITLE": "èª¿æ•´",
-        "DESCRIPTION": "åœ¨ç·¨è¼¯å™¨ä¸­èª¿æ•´åœ–ç‰‡ï¼Œç„¶å¾Œé»žæ“Šå®Œæˆã€‚"
+        "DESCRIPTION": "在編輯器中調整圖片，然後點擊完成。"
       },
       "CREATE": {
         "TITLE": "製作封面",
@@ -232,26 +230,6 @@
       "INFO": "è³‡è¨Š",
       "APPS": "應用程式",
       "GUIDE": "指南"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

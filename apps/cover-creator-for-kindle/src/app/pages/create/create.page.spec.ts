@@ -580,4 +580,53 @@ describe('CreatePage', () => {
     expect(setProject).toHaveBeenCalledWith('book.epub', 'overwrite');
     expect(applyCropResult).toHaveBeenCalledWith({ file });
   });
+
+  it('restores the preview from an editor result after the host is recreated', async () => {
+    const file = new File(['edited'], 'edited.png', { type: 'image/png' });
+    const renderedBlob = new Blob(['rendered'], { type: 'image/png' });
+    const setPreviewUrl = jasmine.createSpy('setPreviewUrl');
+    spyOn(URL, 'createObjectURL').and.returnValue('blob:edited-preview');
+
+    const ctx = {
+      cropState: undefined,
+      workingImageFile: undefined,
+      exportImageFile: new File(['old'], 'old.png', { type: 'image/png' }),
+      generatedEpubBytes: new Uint8Array([1]),
+      generatedEpubFilename: 'old.epub',
+      lastSavedFilename: 'old.epub',
+      wasAutoSaved: true,
+      selectedImageName: undefined,
+      workingImageDims: undefined,
+      imageErrorKey: 'IMAGE.ERROR',
+      clearImageError: jasmine.createSpy('clearImageError'),
+      clearImageWarn: jasmine.createSpy('clearImageWarn'),
+      imagePipe: {
+        getDimensions: jasmine
+          .createSpy('getDimensions')
+          .and.resolveTo({ width: 1200, height: 1600 }),
+      },
+      applySmallWarn: jasmine.createSpy('applySmallWarn').and.resolveTo(),
+      extractEditorExportDims: () => undefined,
+      setPreviewUrl,
+      markEditorTourSeen: jasmine.createSpy('markEditorTourSeen').and.resolveTo(),
+      homeTour: {
+        completeInteraction: jasmine.createSpy('completeInteraction').and.resolveTo(),
+      },
+    };
+
+    await (
+      CreatePage as unknown as {
+        prototype: {
+          applyCropResult: (
+            this: typeof ctx,
+            result: { file: File; renderedBlob: Blob },
+          ) => Promise<void>;
+        };
+      }
+    ).prototype.applyCropResult.call(ctx, { file, renderedBlob });
+
+    expect(ctx.workingImageFile).toBe(file);
+    expect(ctx.exportImageFile).toBeUndefined();
+    expect(setPreviewUrl).toHaveBeenCalledWith('blob:edited-preview');
+  });
 });

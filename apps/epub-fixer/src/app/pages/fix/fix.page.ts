@@ -54,6 +54,7 @@ import {
   EpubFixerPortError,
   EpubRewriteError,
   EpubRepairResult,
+  EpubRepairingService,
 } from '@sheldrapps/file-kit';
 import {
   AdFallbackService,
@@ -131,6 +132,7 @@ type IssueSectionView = {
   ],
 })
 export class FixPage implements OnInit, OnDestroy {
+  private readonly repairing = inject(EpubRepairingService);
   private readonly workflow = inject(EpubFixerWorkflowService);
   private readonly modalCtrl = inject(ModalController);
   private readonly toastCtrl = inject(ToastController);
@@ -282,7 +284,12 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   get canSaveShare(): boolean {
-    return !!this.preparedSessionId && !this.isBusy && !!this.exportResult;
+    return (
+      !!this.preparedSessionId &&
+      !this.isBusy &&
+      !this.epubErrorKey &&
+      !!this.exportResult
+    );
   }
 
   get showPreparedActionCard(): boolean {
@@ -586,14 +593,6 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   private async flushUi(): Promise<void> {
-    if (
-      typeof window !== 'undefined' &&
-      typeof window.requestAnimationFrame === 'function'
-    ) {
-      await new Promise<void>((resolve) => {
-        window.requestAnimationFrame(() => resolve());
-      });
-    }
     this.runInZone(() => {
       this.changeDetector.markForCheck();
       this.changeDetector.detectChanges();
@@ -716,6 +715,10 @@ export class FixPage implements OnInit, OnDestroy {
       } else {
         this.clearEpubError();
         this.diagnosis = await this.workflow.diagnoseCurrentEpub();
+        if (this.diagnosis.status !== 'valid') {
+          this.failWorkflow('EPUB_ERROR_REWRITE');
+          return;
+        }
         await this.exportCurrentCopy();
         this.viewState = 'repaired';
         await this.showToast('FIX.EPUB_FIXED_SUCCESS');
@@ -898,6 +901,11 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   issueSeverityLevel(issue: EpubDiagnosticIssue): DiagnosisSeverityLevel {
+    const matrixCase = this.repairing?.resolveDiagnosticCases(issue)[0];
+    if (matrixCase) {
+      return matrixCase.severity;
+    }
+
     const repairMode = this.issueRepairMode(issue);
     if (repairMode === 'not_repairable') {
       return 'critical';
@@ -1273,12 +1281,8 @@ export class FixPage implements OnInit, OnDestroy {
         const outputName =
           this.workflow.buildFixedOutputName(this.selectedEpubName);
         const exported = await this.workflow.exportCurrentEpub(outputName);
-        try {
-          await this.library.saveExportedEpub(exported.outputUri, outputName);
-          this.coversEvents.emit({ type: 'saved', filename: outputName });
-        } catch (saveError) {
-          console.warn('[epub-fixer] save exported epub failed', saveError);
-        }
+        await this.library.saveExportedEpub(exported.outputUri, outputName);
+        this.coversEvents.emit({ type: 'saved', filename: outputName });
 
         this.exportResult = {
           size: exported.size,
@@ -1330,6 +1334,10 @@ export class FixPage implements OnInit, OnDestroy {
       this.failWorkflow('EPUB_ERROR_REWRITE', error);
     } finally {
       this.busyAction = previousBusyAction;
+      this.runInZone(() => {
+        this.changeDetector.markForCheck();
+        this.changeDetector.detectChanges();
+      });
     }
   }
 

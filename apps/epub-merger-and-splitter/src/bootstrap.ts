@@ -7,7 +7,13 @@ import {
 } from '@ionic/angular/standalone';
 import { provideAdFallbackKitI18n } from '@sheldrapps/ad-fallback-kit';
 import { provideAdsKit, provideAdsKitI18n } from '@sheldrapps/ads-kit';
+import { provideBestCandidateKitI18n } from '@sheldrapps/best-candidate-kit';
 import { provideFileKit } from '@sheldrapps/file-kit';
+import {
+  provideCoverImageStateI18n,
+  provideCoverSourceI18n,
+} from '@sheldrapps/image-workflow';
+import { provideEditorI18n } from '@sheldrapps/image-workflow/editor';
 import { provideI18nKit } from '@sheldrapps/i18n-kit';
 import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
 import { provideRatingKit } from '@sheldrapps/rating-kit';
@@ -82,6 +88,10 @@ export async function bootstrapEpubMergerAndSplitterApp(): Promise<void> {
       },
     }),
     provideUiThemeI18n(),
+    provideBestCandidateKitI18n(),
+    provideCoverImageStateI18n(),
+    provideCoverSourceI18n(),
+    provideEditorI18n(),
     providePrivacyPolicyKitI18n(),
     provideAdFallbackKitI18n(),
     provideAdsKitI18n(),
@@ -94,6 +104,7 @@ export async function bootstrapEpubMergerAndSplitterApp(): Promise<void> {
         scopes: {
           theme: ['theme'],
           language: ['language'],
+          exportQuality: ['exportQualityMode'],
         },
       },
       storageAdapter: new ConfigJsonFileAdapter({

@@ -1,0 +1,110 @@
+<div class="file-picker-panel">
+  <div class="field-title">{{ title }}</div>
+
+  <ion-item
+    button
+    detail="false"
+    lines="none"
+    class="file-picker-panel__action app-outline-surface"
+    [disabled]="disabled"
+    [class.file-picker-panel__action--invalid]="invalid"
+    [attr.aria-invalid]="invalid ? 'true' : 'false'"
+    [attr.aria-label]="actionAriaLabel"
+    (click)="onActionSelected()"
+  >
+    <ion-label>
+      @if (selected && actionLabel && !invalid) {
+        <div class="file-picker-panel__selected-copy">
+          <div class="field-filename">{{ actionLabel }}</div>
+
+          @if (actionSubline) {
+            <div class="field-subtle">{{ actionSubline }}</div>
+          }
+        </div>
+      } @else {
+        <div class="field-placeholder">
+          {{ actionPlaceholder }}
+        </div>
+      }
+    </ion-label>
+
+    <div class="file-picker-panel__action-end" slot="end" aria-hidden="true">
+      @if (selected && !invalid) {
+        <ion-icon
+          class="file-picker-panel__status-icon file-picker-panel__status-icon--success"
+          name="checkmark-circle"
+        ></ion-icon>
+      } @else {
+        <div class="file-picker-panel__status-badge">
+          <ion-icon
+            class="file-picker-panel__status-icon"
+            [name]="invalid ? 'alert-circle-outline' : 'document-outline'"
+          ></ion-icon>
+        </div>
+      }
+    </div>
+  </ion-item>
+
+  @if (hasItems()) {
+    @if (itemsTitle) {
+      <div class="field-title">{{ itemsTitle }}</div>
+    }
+
+    <div class="app-surface file-picker-panel__list-shell">
+      <ion-reorder-group
+        [disabled]="!canReorder()"
+        (ionItemReorder)="onItemsReordered($event)"
+      >
+        @for (item of items; track item.id; let index = $index) {
+          <ion-item
+            [button]="false"
+            detail="false"
+            lines="none"
+            class="file-picker-panel__list-item file-picker-panel__list-item--static"
+            [attr.aria-label]="itemAriaLabel(item, index)"
+          >
+            <div class="file-picker-panel__order" slot="start" aria-hidden="true">
+              {{ index + 1 }}
+            </div>
+
+            <ion-label class="ion-text-wrap">
+              <div class="file-picker-panel__item-copy">
+                <div class="field-filename">{{ item.title }}</div>
+
+                @if (item.subtitle) {
+                  <div class="field-subtle">{{ item.subtitle }}</div>
+                }
+              </div>
+            </ion-label>
+
+            @if (removeEnabled) {
+              <ion-button
+                slot="end"
+                fill="clear"
+                class="file-picker-panel__remove"
+                [disabled]="disabled"
+                [attr.aria-label]="removeActionAriaLabel"
+                (click)="onItemRemoved($event, item, index)"
+              >
+                <ion-icon
+                  class="file-picker-panel__remove-icon"
+                  name="trash-outline"
+                  aria-hidden="true"
+                ></ion-icon>
+              </ion-button>
+            }
+
+            @if (reorderEnabled) {
+              <ion-reorder slot="end" class="file-picker-panel__reorder">
+                <ion-icon
+                  class="file-picker-panel__reorder-icon"
+                  name="reorder-two-outline"
+                ></ion-icon>
+              </ion-reorder>
+            }
+          </ion-item>
+        }
+      </ion-reorder-group>
+    </div>
+  }
+</div>

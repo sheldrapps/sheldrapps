@@ -47,11 +47,11 @@
     "DELETE_TITLE": "刪除 EPUB？",
     "DELETE_MESSAGE": "此 EPUB 將從「我的 EPUB」中移除。",
     "DELETED": "已刪除 EPUB",
-    "ERROR.LOAD": "?????? EPUB ????",
-    "ERROR.PREVIEW": "???????",
-    "ERROR.OPEN": "???? EPUB?",
-    "ERROR.SHARE": "???? EPUB?",
-    "ERROR.DELETE": "???? EPUB?",
+    "ERROR.LOAD": "無法載入 EPUB 資料庫。",
+    "ERROR.PREVIEW": "無法載入預覽。",
+    "ERROR.OPEN": "無法開啟 EPUB。",
+    "ERROR.SHARE": "無法分享 EPUB。",
+    "ERROR.DELETE": "無法刪除 EPUB。",
     "ERROR": "錯誤",
     "EMPTY_TITLE": "還沒有 EPUB",
     "EMPTY_BODY": "加入後，你的 EPUB 會顯示在這裡。"
@@ -81,6 +81,32 @@
   "HOME": {
     "WHAT_DO_YOU_WANT_TO_DO": "你想做什麼？",
     "MERGE": "合併",
-    "SPLIT": "拆分"
+    "SPLIT": "拆分",
+    "MERGING_TITLE": "正在合併",
+    "SPLITTING_TITLE": "正在分割",
+    "EPUB_FILES_TITLE": "EPUB 檔案",
+    "EPUB_FILE_TITLE": "EPUB 檔案",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "選擇 EPUB 檔案",
+    "ADD_ANOTHER_EPUB_FILE": "再新增一個 EPUB 檔案",
+    "FILES_SELECTED": "{{count}} 個檔案已就緒",
+    "ARIA_ADD_EPUB_FILE": "再新增一個 EPUB 檔案",
+    "ARIA_SELECT_EPUB_FILES": "選擇 EPUB 檔案",
+    "SELECT_EPUB_PLACEHOLDER": "選擇 EPUB 檔案",
+    "TAP_TO_CHANGE": "點一下即可更改",
+    "ARIA_CHANGE_EPUB": "更改 EPUB 檔案 {{name}}",
+    "ARIA_SELECT_EPUB": "選擇 EPUB 檔案",
+    "INPUT_ERROR_SIZE": "所選 EPUB 檔案過大。",
+    "INPUT_ERROR_STORAGE": "儲存空間不足，無法準備此 EPUB 檔案。",
+    "INPUT_ERROR_CORRUPT": "無法準備此 EPUB 檔案。請嘗試其他檔案。",
+    "EXPORT_ORDER_TITLE": "匯出順序",
+    "COVER_SELECTOR_TITLE": "封面選擇器",
+    "BEST_CANDIDATES_TITLE": "???? EPUB ??",
+    "ADJUST_COVER": "????"
+  },
+  "TOC_OPTIONS": {
+    "TITLE": "如何處理目錄？",
+    "BOOKS_AND_CHAPTERS": "書籍與章節",
+    "BOOKS_ONLY": "僅書籍",
+    "FULL_INDEX": "完整目錄"
   }
 }

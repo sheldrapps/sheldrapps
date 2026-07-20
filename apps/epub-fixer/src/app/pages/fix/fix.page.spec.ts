@@ -1,4 +1,7 @@
-import { type EpubDiagnosticIssue } from '@sheldrapps/file-kit';
+import {
+  EpubRepairingService,
+  type EpubDiagnosticIssue,
+} from '@sheldrapps/file-kit';
 
 import { FixPage } from './fix.page';
 
@@ -154,6 +157,71 @@ describe('FixPage', () => {
     });
     expect(ctx.busyAction).toBeUndefined();
     expect(ctx.busyProgressPercent).toBe(0);
+  });
+
+  it('does not report success when persisting the repaired EPUB fails', async () => {
+    const saveError = new Error('write failed');
+    const toastCreate = jasmine.createSpy('create').and.resolveTo({
+      present: jasmine.createSpy('present').and.resolveTo(undefined),
+    });
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      busyAction: undefined,
+      busyProgressPercent: 0,
+      preparedSessionId: 'session-1',
+      selectedEpubName: 'case-2.epub',
+      diagnosis: {
+        status: 'repairable',
+        issues: [
+          {
+            code: 'SPINE_EMPTY',
+            severity: 'error',
+            fixable: true,
+            messageKey: 'FIX.ISSUE_SPINE_EMPTY',
+          },
+        ],
+      },
+      repairResult: undefined,
+      exportResult: undefined,
+      viewState: 'diagnosed' as const,
+      epubErrorKey: undefined,
+      epubErrorParams: {},
+      adsRemoved: true,
+      toastCtrl: { create: toastCreate },
+      translate: {
+        instant: jasmine.createSpy('instant').and.callFake((key: string) => key),
+      },
+      workflow: {
+        repairCurrentEpub: jasmine.createSpy('repair').and.resolveTo({
+          success: true,
+          repairedIssues: ['SPINE_EMPTY'],
+        }),
+        diagnoseCurrentEpub: jasmine.createSpy('diagnose').and.resolveTo({
+          sessionId: 'session-1',
+          status: 'valid' as const,
+          issues: [],
+        }),
+        exportCurrentEpub: jasmine.createSpy('export').and.resolveTo({
+          outputUri: 'file:///cache/case-2.epub',
+          size: 123,
+        }),
+        buildFixedOutputName: jasmine
+          .createSpy('buildFixedOutputName')
+          .and.returnValue('case-2_fixed.epub'),
+      },
+      library: {
+        saveExportedEpub: jasmine
+          .createSpy('saveExportedEpub')
+          .and.rejectWith(saveError),
+      },
+      coversEvents: { emit: jasmine.createSpy('emit') },
+    });
+
+    await FixPage.prototype.runRepair.call(ctx);
+
+    expect(ctx.viewState).toBe('failed');
+    expect(ctx.epubErrorKey).toBe('FIX.EPUB_ERROR_REWRITE');
+    expect(ctx.busyAction).toBeUndefined();
+    expect(toastCreate).not.toHaveBeenCalled();
   });
 
   it('falls back to one ad-free repair attempt when rewarded loading fails', async () => {
@@ -805,6 +873,7 @@ describe('FixPage', () => {
 
   it('summarizes diagnosis severity correctly', () => {
     const ctx = Object.assign(Object.create(FixPage.prototype), {
+      repairing: new EpubRepairingService(),
       diagnosis: {
         status: 'repairable',
         issues: [
@@ -841,8 +910,8 @@ describe('FixPage', () => {
 
     expect(summaryDescriptor?.get?.call(ctx)).toEqual({
       totalIssues: 3,
-      criticalIssues: 1,
-      highIssues: 1,
+      criticalIssues: 2,
+      highIssues: 0,
       mediumIssues: 1,
       lowIssues: 0,
     });
@@ -853,7 +922,7 @@ describe('FixPage', () => {
         fixable: true,
         messageKey: 'FIX.ISSUE_MIMETYPE_MISSING',
       }),
-    ).toBe('high');
+    ).toBe('critical');
   });
 
   it('classifies manifest items as automatic repairs', () => {
@@ -883,17 +952,19 @@ describe('FixPage', () => {
     ).toBe('review');
   });
 
-  it('treats unreadable zips as recoverable severity', () => {
-    const ctx = Object.assign(Object.create(FixPage.prototype), {});
+  it('keeps the truncated central directory case critical and repairable', () => {
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      repairing: new EpubRepairingService(),
+    });
 
     expect(
       FixPage.prototype.issueSeverityLevel.call(ctx, {
-        code: 'ZIP_UNREADABLE',
+        code: 'ZIP_CENTRAL_DIRECTORY_TRUNCATED',
         severity: 'error',
         fixable: true,
-        messageKey: 'FIX.ISSUE_ZIP_UNREADABLE',
+        messageKey: 'FIX.ISSUE_ZIP_CENTRAL_DIRECTORY_TRUNCATED',
       }),
-    ).toBe('high');
+    ).toBe('critical');
   });
 
   it('returns a severity summary for a clean diagnosis', () => {

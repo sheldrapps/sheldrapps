@@ -1,33 +1,231 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>{{ 'TABS.HOME' | translate }}</ion-title>
+    @if (hasLoadedFiles()) {
+      <ion-buttons slot="start">
+        <ion-back-button
+          defaultHref="/tabs/home"
+          [disabled]="isPicking()"
+          (click)="cancelWorkflow()"
+          [text]="''"
+          [attr.aria-label]="'COMMON.CANCEL' | translate"
+        ></ion-back-button>
+      </ion-buttons>
+    }
+
+    <ion-title>{{ getPageTitleKey() | translate }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="home">
   <div class="home__stack">
-    <section class="home-action-section" aria-labelledby="home-action-title">
-      <div class="field-title">
-        <span id="home-action-title">
-          {{ 'HOME.WHAT_DO_YOU_WANT_TO_DO' | translate }}
-        </span>
-      </div>
+    @if (!hasLoadedFiles()) {
+      <section class="home-action-section" aria-labelledby="home-action-title">
+        <div class="field-title">
+          <span id="home-action-title">
+            {{ 'HOME.WHAT_DO_YOU_WANT_TO_DO' | translate }}
+          </span>
+        </div>
 
-      <div class="home-action-grid">
-        <sh-action-card
-          [title]="'HOME.MERGE' | translate"
-          [svg]="mergeIconSvg()"
-          [ariaLabel]="'HOME.MERGE' | translate"
-          (click)="openUnderConstruction()"
-        ></sh-action-card>
+        <div class="home-action-grid">
+          <sh-action-card
+            [title]="'HOME.MERGE' | translate"
+            [svg]="mergeIconSvg()"
+            [disabled]="isPicking()"
+            [ariaLabel]="'HOME.MERGE' | translate"
+            (click)="openMergePicker()"
+          ></sh-action-card>
 
-        <sh-action-card
-          [title]="'HOME.SPLIT' | translate"
-          [svg]="splitIconSvg()"
-          [ariaLabel]="'HOME.SPLIT' | translate"
-          (click)="openUnderConstruction()"
-        ></sh-action-card>
+          <sh-action-card
+            [title]="'HOME.SPLIT' | translate"
+            [svg]="splitIconSvg()"
+            [disabled]="isPicking()"
+            [ariaLabel]="'HOME.SPLIT' | translate"
+            (click)="openSplitPicker()"
+          ></sh-action-card>
+        </div>
+      </section>
+    }
+
+    @if (selectedMode() === 'merge') {
+      <sh-file-picker-panel
+        [title]="'HOME.EPUB_FILES_TITLE' | translate"
+        [selected]="mergeSelections().length > 0"
+        [disabled]="isPicking()"
+        [invalid]="!!pickerErrorKey()"
+        [actionLabel]="
+          mergeSelections().length > 0
+            ? ('HOME.ADD_ANOTHER_EPUB_FILE' | translate)
+            : null
+        "
+        [actionSubline]="
+          mergeSelections().length > 0
+            ? ('HOME.FILES_SELECTED'
+              | translate: { count: mergeSelections().length })
+            : null
+        "
+        [actionPlaceholder]="'HOME.SELECT_EPUB_FILES_PLACEHOLDER' | translate"
+        [actionAriaLabel]="
+          mergeSelections().length > 0
+            ? ('HOME.ARIA_ADD_EPUB_FILE' | translate)
+            : ('HOME.ARIA_SELECT_EPUB_FILES' | translate)
+        "
+        [items]="mergePickerItems()"
+        [itemsTitle]="'HOME.EXPORT_ORDER_TITLE' | translate"
+        [removeEnabled]="true"
+        [removeActionAriaLabel]="'COMMON.DELETE' | translate"
+        [reorderEnabled]="mergeSelections().length > 1"
+        (actionSelected)="openMergePicker()"
+        (itemRemoved)="onMergeItemRemoved($event)"
+        (itemsReordered)="onMergeItemsReordered($event)"
+      ></sh-file-picker-panel>
+
+      <section class="cover-selector-section" aria-labelledby="cover-selector-title">
+        <div class="field-title" id="cover-selector-title">
+          {{ 'HOME.COVER_SELECTOR_TITLE' | translate }}
+        </div>
+
+        <sh-cover-source-actions
+          [titleKey]="null"
+          [showTitle]="false"
+          [tourId]="null"
+          [imageDisabled]="isPicking()"
+          [scratchDisabled]="isPicking()"
+          [suggestedAction]="getCoverSourceSuggestedAction()"
+          (imageSelected)="onCoverImageSelected()"
+          (scratchSelected)="onCoverScratchSelected()"
+        ></sh-cover-source-actions>
+
+        <sh-cover-image-state
+          [tourId]="null"
+          [previewUrl]="mergeCoverPreviewUrl()"
+          [previewRevision]="mergeCoverPreviewRevision()"
+          (previewRequested)="openPreview()"
+        ></sh-cover-image-state>
+
+        @if (shouldShowBestCandidatePicker()) {
+          <div class="field-title" id="best-candidate-title">
+            {{ 'HOME.BEST_CANDIDATES_TITLE' | translate }}
+          </div>
+          <best-candidate-picker
+            aria-labelledby="best-candidate-title"
+            [candidates]="coverCandidates()"
+            [loading]="isDetectingCoverCandidates()"
+            [disabled]="isPicking() || isDetectingCoverCandidates()"
+            [selectedCandidateId]="selectedCoverCandidateId()"
+            [showReasons]="false"
+            [showHeader]="false"
+            [compact]="true"
+            [enableLongPressPreview]="true"
+            (candidateSelected)="onBestCandidateSelected($event)"
+            (candidatePreviewRequested)="onBestCandidatePreviewRequested($event)"
+          ></best-candidate-picker>
+        }
+
+        @if (mergeCoverPreviewUrl()) {
+          @if (canAdjustMergeCover()) {
+            <ion-button
+              expand="block"
+              fill="outline"
+              (click)="startMergeCoverAdjustment()"
+              aria-label="{{ 'HOME.ADJUST_COVER' | translate }}"
+            >
+              <ion-icon slot="start" name="options-outline"></ion-icon>
+              {{ 'HOME.ADJUST_COVER' | translate }}
+            </ion-button>
+          }
+
+          <sh-triple-button
+            mode="export-quality-mode"
+            [selectedValue]="getEffectiveExportQualityMode()"
+            [isPro]="false"
+            [showProBadge]="true"
+            (selectedValueChange)="onTripleExportQualityModeSelect($event)"
+          ></sh-triple-button>
+
+          <sh-triple-button
+            mode="toc-mode"
+            [selectedValue]="tocMode"
+            (selectedValueChange)="onTocModeChange($event)"
+          ></sh-triple-button>
+
+          <ion-button
+            expand="block"
+            [disabled]="isPicking() || isMergeActionBusy()"
+            (click)="onMergeButtonClick()"
+            aria-label="{{ 'HOME.MERGE' | translate }}"
+          >
+            <ion-icon slot="start" name="sparkles-outline"></ion-icon>
+            {{ 'HOME.MERGE' | translate }}
+            @if (!adsRemoved) {
+              ({{ 'COMMON.WATCH_AD_SUBTITLE' | translate }})
+            }
+          </ion-button>
+        }
+
+      </section>
+    } @else if (selectedMode() === 'split') {
+      <sh-file-picker-panel
+        [title]="'HOME.EPUB_FILE_TITLE' | translate"
+        [selected]="!!splitSelection()"
+        [disabled]="isPicking()"
+        [invalid]="!!pickerErrorKey()"
+        [actionLabel]="splitSelection()?.selectedName ?? null"
+        [actionSubline]="
+          splitSelection() ? ('HOME.TAP_TO_CHANGE' | translate) : null
+        "
+        [actionPlaceholder]="'HOME.SELECT_EPUB_PLACEHOLDER' | translate"
+        [actionAriaLabel]="
+          splitSelection()
+            ? ('HOME.ARIA_CHANGE_EPUB'
+              | translate: { name: splitSelection()?.selectedName })
+            : ('HOME.ARIA_SELECT_EPUB' | translate)
+        "
+        (actionSelected)="openSplitPicker()"
+      ></sh-file-picker-panel>
+    }
+
+    @if (pickerErrorKey()) {
+      <div
+        class="app-callout app-callout--error"
+        aria-live="polite"
+        role="status"
+      >
+        <ion-icon
+          class="app-callout__icon"
+          name="close-circle-outline"
+          aria-hidden="true"
+        ></ion-icon>
+
+        <div>
+          <div class="app-callout__title">{{ 'COMMON.ERROR' | translate }}</div>
+          <div class="app-callout__body">{{ pickerErrorKey()! | translate }}</div>
+        </div>
       </div>
-    </section>
+    }
   </div>
+
+  <input
+    #mergeInput
+    hidden
+    type="file"
+    [accept]="epubAccept"
+    multiple
+    (change)="onMergeFilesSelected($event)"
+  />
+
+  <input
+    #splitInput
+    hidden
+    type="file"
+    [accept]="epubAccept"
+    (change)="onSplitFilesSelected($event)"
+  />
+
+  <input
+    #coverImageInput
+    hidden
+    type="file"
+    [accept]="imageAccept"
+    (change)="onCoverImageFileSelected($event)"
+  />
 </ion-content>

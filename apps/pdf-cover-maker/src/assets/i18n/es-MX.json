@@ -111,7 +111,6 @@
     "INVALID_COVER_TAP_TO_CHANGE": "Portada inválida, toca para crear",
     "TAP_TO_CHANGE": "Toca para crear/reiniciar",
     "TAP_TO_CHANGE_IMAGE": "Toca para crear",
-    "TAP_TO_PREVIEW": "Toca para previsualizar",
     "LONGPRESS_PREVIEW_HINT": "Mantén pulsado para previsualizar",
     "TITLE": "Crear portada",
     "PREVIEW_ORIGINAL_LABEL": "Portada original",
@@ -128,7 +127,6 @@
     "LOADING_PREVIEW": "Cargando vista previa...",
     "PLACEHOLDER": "PDF",
     "PREVIEW_UNAVAILABLE": "Vista previa no disponible.",
-    "PREVIEW_TITLE": "Portada actual",
     "TITLE": "Mis PDFs",
     "DITHERED_THUMBNAIL_NOTICE": "Las portadas con reducción de artefactos pueden verse diferentes en miniatura. Abre la vista previa para ver un resultado más fiel.",
     "ACTIONS": {
@@ -232,26 +230,6 @@
       "INFO": "Info",
       "APPS": "Apps",
       "GUIDE": "Guía"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Color del marco"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Genérico"
-    },
-    "COLOR": {
-      "BLACK": "Negro",
-      "WHITE": "Blanco",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Rosa",
-      "METALLIC_BLACK": "Negro metálico",
-      "METALLIC_JADE": "Jade metálico",
-      "METALLIC_PINK": "Rosa metálico"
     }
   }
 }

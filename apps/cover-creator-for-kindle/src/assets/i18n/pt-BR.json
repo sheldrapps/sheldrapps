@@ -85,7 +85,6 @@
     "TAP_TO_CHANGE": "Toque para alterar/redefinir",
     "TITLE": "Criar capa",
     "COVER_SOURCE_TITLE": "Origem da capa",
-    "TAP_TO_PREVIEW": "Toque para ver a prévia",
     "MODEL_PICKER": {
       "TITLE": "Escolha seu Kindle"
     },
@@ -102,9 +101,8 @@
     "GETTING_COVER": "Obtendo capa",
     "LOADING_PREVIEW": "Carregando pré-visualização...",
     "PLACEHOLDER": "Capa",
-    "PREVIEW_TITLE": "Capa atual",
     "TITLE": "Capas",
-    "DITHERED_THUMBNAIL_NOTICE": "Capas com redu??o de artefatos podem parecer diferentes nas miniaturas. Abra a visualiza??o para ver um resultado mais fiel.",
+    "DITHERED_THUMBNAIL_NOTICE": "Capas com redução de artefatos podem parecer diferentes nas miniaturas. Abra a visualização para ver um resultado mais fiel.",
     "ACTIONS": {
       "DELETE": "Excluir",
       "SHARE": "Compartilhar",
@@ -139,7 +137,7 @@
     "STEP_5": "Enviar pela web (Send to Kindle)",
     "STEP_5_DESC": "Você também pode enviá-la pelo navegador usando a ferramenta web Send to Kindle.",
     "TIP": "Para melhores resultados, use imagens em alta resolução e verifique se os anúncios estão desativados no seu Kindle.",
-    "TITLE": "Instru??es"
+    "TITLE": "Instruções"
   },
   "KINDLE_BRANDS": {
     "KINDLE": "Kindle"
@@ -321,26 +319,6 @@
       "INFO": "Info",
       "APPS": "Apps",
       "GUIDE": "Guia"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

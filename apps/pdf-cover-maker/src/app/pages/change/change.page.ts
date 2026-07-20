@@ -41,8 +41,8 @@ import {
   CoverSourceActionsComponent,
   CoverCropState,
   CoverImageStateComponent,
-  EReaderPreviewFrameComponent,
   ImagePipelineService,
+  PreviewEditingPageService,
   ImageValidationError,
   buildCompositionInputForPurpose,
   isArtifactReductionEnabled,
@@ -56,7 +56,6 @@ import type { CropTarget, CropFormatOption } from '@sheldrapps/image-workflow';
 import {
   EditorSessionService,
   consumeEditorResultSnapshot,
-  watchEditorResultReady,
   ProjectSaveState,
 } from '@sheldrapps/image-workflow/editor';
 
@@ -82,7 +81,6 @@ import {
 } from '../../services/file.service';
 import {
   DEFAULT_EXPORT_QUALITY_MODE,
-  ExportQualitySelectorComponent,
   getCoverExportOptions,
   normalizeExportQualityMode,
   type ExportQualityMode,
@@ -120,6 +118,7 @@ import {
   SaveCoverModalComponent,
   ScrollableBarItem,
   ScrollableButtonBarComponent,
+  TripleButtonComponent,
 } from '@sheldrapps/ui-theme';
 import {
   BestCandidateImage,
@@ -185,10 +184,9 @@ type FrameDetectionResult = {
     IonModal,
     LoadingStateComponent,
     CoverImageStateComponent,
-    EReaderPreviewFrameComponent,
     CoverSourceActionsComponent,
     ScrollableButtonBarComponent,
-    ExportQualitySelectorComponent,
+    TripleButtonComponent,
     CoverPageModeSwitchComponent,
     RemoveAdsUpgradeModalComponent,
     BestCandidatePickerComponent,
@@ -211,6 +209,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private workingCopy = inject(PdfWorkingCopyService);
   private pdfRewrite = inject(PdfRewriteService);
   private imagePipe = inject(ImagePipelineService);
+  private readonly previewEditingPage = inject(PreviewEditingPageService);
   private billing = inject(BillingService);
   private toastCtrl = inject(ToastController);
   private popoverCtrl = inject(PopoverController);
@@ -232,7 +231,6 @@ export class ChangePage implements OnInit, OnDestroy {
   private readonly baseModelId = 'pdf';
   private readonly maxPdfSizeMB = 5120;
   private routerSub?: Subscription;
-  private editorResultSub?: Subscription;
   private coversEventsSub?: Subscription;
   private rewriteProgressSub?: PluginListenerHandle;
   private lastEditorSessionId?: string;
@@ -384,7 +382,6 @@ export class ChangePage implements OnInit, OnDestroy {
 
   infoOpen = false;
   infoEvent: Event | null = null;
-  previewOpen = false;
   bestCandidateRequested = false;
   bestCandidateLoading = false;
   bestCandidates: BestCandidateResult[] = [];
@@ -582,13 +579,7 @@ export class ChangePage implements OnInit, OnDestroy {
         }
       });
 
-    this.editorResultSub = watchEditorResultReady(
-      this.editorSession,
-      () => this.lastEditorSessionId,
-      (sid) => {
-        void this.consumeEditorResult(sid);
-      },
-    );
+    void this.consumeEditorResult();
 
     this.coversEventsSub = this.coversEvents.events$
       .pipe(filter((event) => event.type === 'deleted'))
@@ -609,7 +600,6 @@ export class ChangePage implements OnInit, OnDestroy {
     this.revokePreviewUrl();
     this.revokeOriginalPdfPreviewUrl();
     this.routerSub?.unsubscribe();
-    this.editorResultSub?.unsubscribe();
     this.coversEventsSub?.unsubscribe();
     this.adsRemovedSub?.unsubscribe();
     this.removeAdsPriceSub?.unsubscribe();
@@ -1290,18 +1280,14 @@ export class ChangePage implements OnInit, OnDestroy {
     if (this.bestCandidateLoading) return;
     const src = candidate.src?.trim();
     if (!src) return;
-    this.previewCandidateOverride = {
-      src,
-      width:
-        Number.isFinite(candidate.width) && candidate.width > 0
-          ? candidate.width
-          : null,
-      height:
-        Number.isFinite(candidate.height) && candidate.height > 0
-          ? candidate.height
-          : null,
-    };
-    this.previewOpen = true;
+    this.previewEditingPage.open({
+      imageSrc: src,
+      imageWidth: candidate.width,
+      imageHeight: candidate.height,
+      titleKey: 'BEST_CANDIDATE.PREVIEW.TITLE',
+      returnUrl: '/tabs/change',
+    });
+    void this.router.navigateByUrl('/preview-editing');
     console.info(
       '[ECC_BEST_CANDIDATE] preview requested:',
       candidate.sourcePath || candidate.fileName || candidate.id,
@@ -1679,6 +1665,12 @@ export class ChangePage implements OnInit, OnDestroy {
         },
       },
       returnUrl: this.getEditorReturnUrl(),
+      onResultApplied: async (result) => {
+        await this.applyCropResult(result);
+        const appliedSessionId = this.lastEditorSessionId;
+        if (appliedSessionId) this.editorSession.consumeResult(appliedSessionId);
+        this.lastEditorSessionId = undefined;
+      },
     });
 
     this.lastEditorSourceMode = sourceMode;
@@ -3498,6 +3490,14 @@ export class ChangePage implements OnInit, OnDestroy {
     }
   }
 
+  async onTripleExportQualityModeSelect(value: string): Promise<void> {
+    if (value !== 'thumbnail' && value !== 'compressed' && value !== 'best') {
+      return;
+    }
+
+    await this.onExportQualityModeSelect(value);
+  }
+
   private async generateChangedCover(): Promise<boolean> {
     const exportFile = await this.ensureExportImageFile();
     if (!exportFile) return false;
@@ -4158,12 +4158,30 @@ export class ChangePage implements OnInit, OnDestroy {
 
   openPreview() {
     if (!this.previewUrl) return;
-    this.previewCandidateOverride = null;
-    this.previewOpen = true;
+    this.previewEditingPage.open({
+      imageSrc: this.previewModalImageSrc,
+      imageWidth: this.previewModalImageWidth,
+      imageHeight: this.previewModalImageHeight,
+      beforeSrc: this.previewModalBeforeSrc,
+      afterSrc: this.previewModalAfterSrc,
+      beforeLabel:
+        this.previewModalMode === 'compare'
+          ? 'CHANGE.PREVIEW_ORIGINAL_LABEL'
+          : null,
+      afterLabel:
+        this.previewModalMode === 'compare'
+          ? 'CHANGE.PREVIEW_NEW_LABEL'
+          : 'CHANGE.PREVIEW_NEW_ONLY_LABEL',
+      mode: this.previewModalMode,
+      comparisonEnabled: this.previewModalComparisonEnabled,
+      isDithered: this.isPreviewDithered(),
+      returnUrl: '/tabs/change',
+    });
+    void this.router.navigateByUrl('/preview-editing');
   }
 
   closePreview() {
-    this.previewOpen = false;
+    this.previewEditingPage.clear();
     this.previewCandidateOverride = null;
     this.suppressNextImagePick = false;
   }

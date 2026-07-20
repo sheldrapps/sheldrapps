@@ -26,6 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 public class EpubRewritePluginRewriteTest {
     @Rule
@@ -268,9 +269,12 @@ public class EpubRewritePluginRewriteTest {
         addZipEntry(zipFile, "OPS/text/ch1.xhtml", utf8(
             "<html xmlns=\"http://www.w3.org/1999/xhtml\"><body>Hi</body></html>"
         ));
+        for (int index = 0; index < 12; index += 1) {
+            addZipEntry(zipFile, "META-INF/recovery-padding-" + index, utf8("padding"));
+        }
 
         byte[] originalBytes = Files.readAllBytes(zipPath.toPath());
-        int truncatedLength = Math.max(0, originalBytes.length - 64);
+        int truncatedLength = Math.max(0, originalBytes.length - 512);
         byte[] truncatedBytes = new byte[truncatedLength];
         System.arraycopy(originalBytes, 0, truncatedBytes, 0, truncatedLength);
         Files.write(zipPath.toPath(), truncatedBytes);
@@ -296,6 +300,371 @@ public class EpubRewritePluginRewriteTest {
                 "META-INF/container.xml"
             )
         );
+
+        Files.write(zipPath.toPath(), truncatedBytes);
+        java.util.LinkedHashSet<String> repairedIssues = new java.util.LinkedHashSet<>();
+        Object analysis = invokeObject(
+            plugin,
+            "analyzeWorkingCopyForRepair",
+            new Class<?>[] { Path.class, String.class, JSObject.class, java.util.Set.class },
+            zipPath.toPath(),
+            null,
+            null,
+            repairedIssues
+        );
+        java.lang.reflect.Field statusField = analysis.getClass().getDeclaredField("status");
+        statusField.setAccessible(true);
+
+        assertFalse("unsupported".equals(statusField.get(analysis)));
+        assertTrue(repairedIssues.contains("ZIP_CENTRAL_DIRECTORY_TRUNCATED"));
+        assertFalse(issueCodes(analysis).contains("ZIP_CENTRAL_DIRECTORY_TRUNCATED"));
+        assertTrue(invokeBoolean(
+            plugin,
+            "isReadableZip",
+            new Class<?>[] { Path.class },
+            zipPath.toPath()
+        ));
+    }
+
+    @Test
+    public void repairPreparationRecoversArtifact02TruncatedCentralDirectory() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Path artifactPath = java.nio.file.Paths.get(
+            System.getProperty("user.dir"),
+            "..",
+            "..",
+            "..",
+            "artifacts",
+            "epub-fixer-samples",
+            "02-crit-zip-002.epub"
+        ).normalize();
+        assertTrue(Files.isRegularFile(artifactPath));
+
+        Path workingPath = temporaryFolder.newFile("artifact-02.epub").toPath();
+        Files.copy(
+            artifactPath,
+            workingPath,
+            java.nio.file.StandardCopyOption.REPLACE_EXISTING
+        );
+
+        java.util.LinkedHashSet<String> repairedIssues = new java.util.LinkedHashSet<>();
+        Object analysis = invokeObject(
+            plugin,
+            "analyzeWorkingCopyForRepair",
+            new Class<?>[] { Path.class, String.class, JSObject.class, java.util.Set.class },
+            workingPath,
+            null,
+            null,
+            repairedIssues
+        );
+        boolean rewritePackageDocument = invokeBoolean(
+            plugin,
+            "shouldRewritePackageDocument",
+            new Class<?>[] { analysis.getClass() },
+            analysis
+        );
+        boolean rewriteContainerDocument = invokeBoolean(
+            plugin,
+            "shouldRewriteContainerDocument",
+            new Class<?>[] { analysis.getClass() },
+            analysis
+        );
+        Path repairedPath = temporaryFolder.newFile("artifact-02-repaired.epub").toPath();
+        invokeObject(
+            plugin,
+            "repairArchiveToOutput",
+            new Class<?>[] {
+                Path.class,
+                Path.class,
+                analysis.getClass(),
+                boolean.class,
+                boolean.class,
+                JSObject.class,
+                java.util.Set.class,
+            },
+            workingPath,
+            repairedPath,
+            analysis,
+            rewritePackageDocument,
+            rewriteContainerDocument,
+            null,
+            repairedIssues
+        );
+        Object repairedAnalysis = invokeObject(
+            plugin,
+            "analyzeEpub",
+            new Class<?>[] { Path.class, String.class, JSObject.class },
+            repairedPath,
+            null,
+            null
+        );
+        java.lang.reflect.Field repairedStatusField = repairedAnalysis
+            .getClass()
+            .getDeclaredField("status");
+        repairedStatusField.setAccessible(true);
+
+        assertEquals(
+            issueCodes(repairedAnalysis).toString(),
+            "valid",
+            repairedStatusField.get(repairedAnalysis)
+        );
+        assertTrue(repairedIssues.contains("ZIP_CENTRAL_DIRECTORY_TRUNCATED"));
+        assertTrue(invokeBoolean(
+            plugin,
+            "isReadableZip",
+            new Class<?>[] { Path.class },
+            workingPath
+        ));
+    }
+
+    @Test
+    public void bareAttributeDetectionIgnoresEqualsInsideQuotedValues() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+
+        assertFalse(invokeBoolean(
+            plugin,
+            "containsBareXmlAttributes",
+            new Class<?>[] { String.class },
+            "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>"
+        ));
+        assertTrue(invokeBoolean(
+            plugin,
+            "containsBareXmlAttributes",
+            new Class<?>[] { String.class },
+            "<meta http-equiv=Content-Type content=\"text/html\"/>"
+        ));
+    }
+
+    @Test
+    public void repairRemovesHrefWhenInternalTargetDoesNotExist() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        ZipFile zipFile = buildZip(orderedEntries(
+            "OPS/text/chapter.xhtml",
+            utf8("<html xmlns=\"http://www.w3.org/1999/xhtml\"><body/></html>")
+        ));
+        Document document = invokeDocument(
+            plugin,
+            "parseXmlUtf8",
+            new Class<?>[] { String.class },
+            "<html xmlns=\"http://www.w3.org/1999/xhtml\"><body><a href=\"missing.xhtml\">Read more</a></body></html>"
+        );
+        assertNotNull(document);
+
+        invokeObject(
+            plugin,
+            "inspectInternalLinksInDocument",
+            new Class<?>[] {
+                ZipFile.class,
+                Document.class,
+                String.class,
+                String.class,
+                java.util.ArrayList.class,
+                java.util.HashSet.class,
+                boolean.class,
+                java.util.HashMap.class,
+                JSObject.class,
+            },
+            zipFile,
+            document,
+            "OPS/text/chapter.xhtml",
+            "OPS",
+            new java.util.ArrayList<>(),
+            new java.util.HashSet<>(),
+            true,
+            new java.util.HashMap<>(),
+            null
+        );
+
+        Element link = (Element) document.getElementsByTagNameNS("*", "a").item(0);
+        assertNotNull(link);
+        assertFalse(link.hasAttribute("href"));
+        assertEquals("Read more", link.getTextContent());
+    }
+
+    @Test
+    public void repairMarksMissingFragmentAsRepairableAndRemovesAnchorOnlyHref() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Object resolution = invokeObject(
+            plugin,
+            "resolveCanonicalFragment",
+            new Class<?>[] { String.class, java.util.HashSet.class },
+            "missing-anchor",
+            new java.util.HashSet<String>()
+        );
+        java.lang.reflect.Field fixableField = resolution.getClass().getDeclaredField("fixable");
+        fixableField.setAccessible(true);
+        assertTrue((Boolean) fixableField.get(resolution));
+
+        Document document = invokeDocument(
+            plugin,
+            "parseXmlUtf8",
+            new Class<?>[] { String.class },
+            "<html xmlns=\"http://www.w3.org/1999/xhtml\"><body><a href=\"#missing-anchor\">Read more</a></body></html>"
+        );
+        assertNotNull(document);
+
+        Object evaluation = invokeObject(
+            plugin,
+            "evaluateInternalLinkReference",
+            new Class<?>[] {
+                ZipFile.class,
+                String.class,
+                String.class,
+                java.util.ArrayList.class,
+                java.util.HashSet.class,
+                String.class,
+                java.util.HashMap.class,
+                boolean.class,
+                JSObject.class,
+            },
+            buildZip(orderedEntries(
+                "OPS/text/chapter.xhtml",
+                utf8("<html xmlns=\"http://www.w3.org/1999/xhtml\"><body/></html>")
+            )),
+            "",
+            "",
+            new java.util.ArrayList<>(),
+            new java.util.HashSet<String>(),
+            "#missing-anchor",
+            new java.util.HashMap<>(),
+            true,
+            null
+        );
+        java.lang.reflect.Field removeAttributeField = evaluation.getClass().getDeclaredField("removeAttribute");
+        removeAttributeField.setAccessible(true);
+        assertTrue((Boolean) removeAttributeField.get(evaluation));
+    }
+
+    @Test
+    public void repairPreparationRepairsArtifact14MalformedOpf() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Path artifactPath = java.nio.file.Paths.get(
+            System.getProperty("user.dir"),
+            "..",
+            "..",
+            "..",
+            "artifacts",
+            "epub-fixer-samples",
+            "14-crit-opf-002.epub"
+        ).normalize();
+        assertTrue(Files.isRegularFile(artifactPath));
+
+        Path currentPath = temporaryFolder.newFile("artifact-14.epub").toPath();
+        Files.copy(artifactPath, currentPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        java.util.LinkedHashSet<String> repairedIssues = new java.util.LinkedHashSet<>();
+
+        ZipFile artifactZip = new ZipFile(currentPath.toFile());
+        String malformedOpf = invokeString(
+            plugin,
+            "readZipText",
+            new Class<?>[] { ZipFile.class, String.class },
+            artifactZip,
+            "content.opf"
+        );
+        String sanitizedOpf = invokeString(
+            plugin,
+            "sanitizeXmlText",
+            new Class<?>[] { String.class },
+            malformedOpf
+        );
+        assertTrue(sanitizedOpf, invokeBoolean(
+            plugin,
+            "canParseAsXml",
+            new Class<?>[] { String.class },
+            sanitizedOpf
+        ));
+
+        for (int pass = 0; pass < 3; pass += 1) {
+            Object analysis = invokeObject(
+                plugin,
+                "analyzeWorkingCopyForRepair",
+                new Class<?>[] { Path.class, String.class, JSObject.class, java.util.Set.class },
+                currentPath,
+                null,
+                null,
+                repairedIssues
+            );
+            if ("valid".equals(analysisStatus(analysis))) {
+                break;
+            }
+            assertEquals(
+                "pass=" + pass + " " + issueCodes(analysis).toString(),
+                "repairable",
+                analysisStatus(analysis)
+            );
+            if (pass == 0) {
+                java.lang.reflect.Field opfPathField = analysis.getClass().getDeclaredField("opfPath");
+                opfPathField.setAccessible(true);
+                assertEquals("content.opf", opfPathField.get(analysis));
+            }
+
+            Path nextPath = temporaryFolder.getRoot().toPath().resolve("artifact-14-pass-" + pass + ".epub");
+            invokeObject(
+                plugin,
+                "repairArchiveToOutput",
+                new Class<?>[] {
+                    Path.class,
+                    Path.class,
+                    analysis.getClass(),
+                    boolean.class,
+                    boolean.class,
+                    JSObject.class,
+                    java.util.Set.class,
+                },
+                currentPath,
+                nextPath,
+                analysis,
+                invokeBoolean(
+                    plugin,
+                    "shouldRewritePackageDocument",
+                    new Class<?>[] { analysis.getClass() },
+                    analysis
+                ),
+                invokeBoolean(
+                    plugin,
+                    "shouldRewriteContainerDocument",
+                    new Class<?>[] { analysis.getClass() },
+                    analysis
+                ),
+                null,
+                repairedIssues
+            );
+            if (pass == 0) {
+                ZipFile repairedZip = new ZipFile(nextPath.toFile());
+                String repairedOpf = invokeString(
+                    plugin,
+                    "readZipText",
+                    new Class<?>[] { ZipFile.class, String.class },
+                    repairedZip,
+                    "content.opf"
+                );
+                StringBuilder repairedEntries = new StringBuilder();
+                for (net.lingala.zip4j.model.FileHeader header : repairedZip.getFileHeaders()) {
+                    if (header != null) {
+                        repairedEntries.append(header.getFileName()).append('|');
+                    }
+                }
+                assertNotNull(repairedEntries.toString(), repairedOpf);
+                assertTrue(repairedOpf, invokeBoolean(
+                    plugin,
+                    "canParseAsXml",
+                    new Class<?>[] { String.class },
+                    repairedOpf
+                ));
+            }
+            currentPath = nextPath;
+        }
+
+        Object finalAnalysis = invokeObject(
+            plugin,
+            "analyzeEpub",
+            new Class<?>[] { Path.class, String.class, JSObject.class },
+            currentPath,
+            null,
+            null
+        );
+        assertEquals(issueCodes(finalAnalysis).toString(), "valid", analysisStatus(finalAnalysis));
+        assertTrue(repairedIssues.contains("OPF_MISSING"));
     }
 
     @Test
@@ -912,6 +1281,12 @@ public class EpubRewritePluginRewriteTest {
         Method method = target.getClass().getDeclaredMethod(methodName, paramTypes);
         method.setAccessible(true);
         return (Boolean) method.invoke(target, args);
+    }
+
+    private String analysisStatus(Object analysis) throws Exception {
+        java.lang.reflect.Field statusField = analysis.getClass().getDeclaredField("status");
+        statusField.setAccessible(true);
+        return (String) statusField.get(analysis);
     }
 
     private Object invokeObject(

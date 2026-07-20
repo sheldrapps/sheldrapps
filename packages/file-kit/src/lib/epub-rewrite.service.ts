@@ -168,6 +168,26 @@ type RewriteProgressEvent = {
   percent: number;
 };
 
+export type EpubMergeInput = {
+  id: string;
+  path: string;
+  name: string;
+};
+
+export type EpubMergeOptions = {
+  inputs: readonly EpubMergeInput[];
+  outputPath: string;
+  outputName: string;
+  tocMode: 'books-and-chapters' | 'books-only' | 'full-index';
+  coverPath?: string;
+};
+
+export type EpubMergePreflight = {
+  sourceCount: number;
+  totalSourceBytes: number;
+  estimatedOutputBytes: number;
+};
+
 type EpubRewritePlugin = Plugin & {
   openExternalFile(options: {
     inputPath: string;
@@ -221,6 +241,26 @@ type EpubRewritePlugin = Plugin & {
   ): Promise<OpenExternalFileResult>;
   cleanup(options: { sessionId: string }): Promise<void>;
   cancelRewrite(): Promise<{ cancelled: boolean }>;
+  preflightMerge(options: {
+    inputs: readonly EpubMergeInput[];
+  }): Promise<{
+    success: boolean;
+    sourceCount?: number;
+    totalSourceBytes?: number;
+    estimatedOutputBytes?: number;
+    error?: string;
+    message?: string;
+    stage?: string;
+  }>;
+  mergeEpubs(options: EpubMergeOptions): Promise<{
+    success: boolean;
+    outputPath?: string;
+    outputName?: string;
+    size?: number;
+    error?: string;
+    message?: string;
+    stage?: string;
+  }>;
 };
 
 const EpubRewrite = registerPlugin<EpubRewritePlugin>('EpubRewritePlugin');
@@ -465,6 +505,54 @@ export class EpubRewriteService {
   async cancelRewrite(): Promise<void> {
     if (!this.isSupported()) return;
     await EpubRewrite.cancelRewrite();
+  }
+
+  async preflightMerge(
+    inputs: readonly EpubMergeInput[],
+  ): Promise<EpubMergePreflight> {
+    const result = await EpubRewrite.preflightMerge({ inputs });
+    if (
+      !result.success ||
+      typeof result.sourceCount !== 'number' ||
+      typeof result.totalSourceBytes !== 'number' ||
+      typeof result.estimatedOutputBytes !== 'number'
+    ) {
+      throw new EpubRewriteError(result.error ?? 'MERGE_PREFLIGHT_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+
+    return {
+      sourceCount: result.sourceCount,
+      totalSourceBytes: result.totalSourceBytes,
+      estimatedOutputBytes: result.estimatedOutputBytes,
+    };
+  }
+
+  async mergeEpubs(options: EpubMergeOptions): Promise<{
+    outputPath: string;
+    outputName: string;
+    size: number;
+  }> {
+    const result = await EpubRewrite.mergeEpubs(options);
+    if (
+      !result.success ||
+      !result.outputPath ||
+      !result.outputName ||
+      typeof result.size !== 'number'
+    ) {
+      throw new EpubRewriteError(result.error ?? 'MERGE_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+
+    return {
+      outputPath: result.outputPath,
+      outputName: result.outputName,
+      size: result.size,
+    };
   }
 
   async cleanup(sessionId: string): Promise<void> {

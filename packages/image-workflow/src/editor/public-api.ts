@@ -15,6 +15,7 @@ export {
 
 // Editor session service
 export * from "../lib/editor/editor-session.service";
+export * from "../lib/editor/editor-session-exit.service";
 export * from "../lib/editor/editor-result-bridge";
 export * from "../lib/editor/editor-history.service";
 export * from "../lib/editor/project-save-state";

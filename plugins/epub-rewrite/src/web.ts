@@ -18,6 +18,9 @@ import type {
   RewriteCoverOptions,
   RewriteCoverResult,
   ExportFixedResult,
+  EpubMergeOptions,
+  EpubMergePreflightResult,
+  EpubMergeResult,
 } from './definitions';
 
 export class EpubRewriteWeb
@@ -90,5 +93,15 @@ export class EpubRewriteWeb
 
   async cancelRewrite(): Promise<CancelRewriteResult> {
     return { cancelled: false };
+  }
+
+  async preflightMerge(_options: {
+    inputs: import('./definitions').EpubMergeInput[];
+  }): Promise<EpubMergePreflightResult> {
+    throw this.unimplemented('EPUB merge is only available on Android.');
+  }
+
+  async mergeEpubs(_options: EpubMergeOptions): Promise<EpubMergeResult> {
+    throw this.unimplemented('EPUB merge is only available on Android.');
   }
 }

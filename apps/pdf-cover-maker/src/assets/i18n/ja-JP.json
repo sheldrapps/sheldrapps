@@ -40,12 +40,12 @@
     "ARIA_CHANGE_PDF": "PDFファイルを作成。現在のファイル: {{name}}",
     "ARIA_CHANGE_IMAGE": "表紙画像を作成。現在の画像: {{name}}",
     "ARIA_CROP": "選択した画像を調整",
-    "ARIA_SELECT_PDF": "PDFãƒ•ã‚¡ã‚¤ãƒ«ã‚’é¸æŠž",
+    "ARIA_SELECT_PDF": "PDFファイルを選択",
     "ARIA_SELECT_IMAGE": "表紙画像を選択",
     "CROP_ACTION": "èª¿æ•´",
     "COVER_CHANGED": "表紙を作成しました。保存または共有できます",
     "CHANGE_ACTION": "表紙を作成",
-    "CHANGE_ACTION_REWARDED": "è¡¨ç´™ã‚’ä½œæˆï¼ˆåºƒå‘Šã‚’è¦‹ã‚‹ï¼‰",
+    "CHANGE_ACTION_REWARDED": "表紙を作成（広告を見る）",
     "GENERATING": "表紙を更新中…",
     "HINT_SAVE_SHARE_EXPLAIN": "表紙の作成は自動的に保存されません。",
     "INFO": "æƒ…å ±",
@@ -82,7 +82,7 @@
     "PDF_FILE_TITLE": "PDFãƒ•ã‚¡ã‚¤ãƒ«",
     "PROCESSING_LARGE_PDF": "大きな PDF ファイルを処理しています...",
     "PROCESS_CANCELLED": "処理がキャンセルされました",
-    "SELECT_PDF_PLACEHOLDER": "PDFãƒ•ã‚¡ã‚¤ãƒ«ã‚’é¸æŠž",
+    "SELECT_PDF_PLACEHOLDER": "PDFファイルを選択",
     "COVER_MODE_LABEL": "表紙ページの適用方法",
     "COVER_MODE_ARIA": "新しい表紙ページの適用方法を選択",
     "COVER_MODE_REPLACE_FIRST_PAGE": "最初のページを置き換える",
@@ -109,9 +109,8 @@
     "SELECT_IMAGE_LABEL": "表紙画像",
     "SELECT_IMAGE_PLACEHOLDER": "画像を選択",
     "INVALID_COVER_TAP_TO_CHANGE": "無効な表紙です。タップして作成",
-    "TAP_TO_CHANGE": "ã‚¿ãƒƒãƒ—ã—ã¦ä½œæˆ/ãƒªã‚»ãƒƒãƒˆ",
+    "TAP_TO_CHANGE": "タップして作成/リセット",
     "TAP_TO_CHANGE_IMAGE": "タップして作成",
-    "TAP_TO_PREVIEW": "ã‚¿ãƒƒãƒ—ã§ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼è¡¨ç¤º",
     "LONGPRESS_PREVIEW_HINT": "長押しでプレビュー",
     "TITLE": "表紙を作成",
     "PREVIEW_ORIGINAL_LABEL": "元の表紙",
@@ -124,11 +123,10 @@
   "COVERS": {
     "DELETED": "PDFを削除しました",
     "EMPTY": "アプリ内にカバーが見つかりません。再インストール前に作成したファイルは、システムの制限により表示されない場合があります。",
-    "GENERATE_THUMB": "ã‚µãƒ ãƒã‚¤ãƒ«ã‚’ç”Ÿæˆ",
+    "GENERATE_THUMB": "サムネイルを生成",
     "LOADING_PREVIEW": "プレビューを読み込み中...",
     "PLACEHOLDER": "PDF",
     "PREVIEW_UNAVAILABLE": "プレビューは利用できません。",
-    "PREVIEW_TITLE": "現在の表紙",
     "TITLE": "ãƒžã‚¤PDF",
     "DITHERED_THUMBNAIL_NOTICE": "アーティファクト低減を使った表紙は、サムネイルでは見え方が異なる場合があります。より正確な表示はプレビューで確認してください。",
     "ACTIONS": {
@@ -151,8 +149,8 @@
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "電子書籍リーダープレビューを縮小",
-      "ZOOM_IN_ARIA": "é›»å­æ›¸ç±ãƒªãƒ¼ãƒ€ãƒ¼ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ã‚’æ‹¡å¤§",
-      "ZOOM_RESET_ARIA": "é›»å­æ›¸ç±ãƒªãƒ¼ãƒ€ãƒ¼ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ã®ã‚ºãƒ¼ãƒ ã‚’ãƒªã‚»ãƒƒãƒˆ"
+      "ZOOM_IN_ARIA": "電子書籍リーダープレビューを拡大",
+      "ZOOM_RESET_ARIA": "電子書籍リーダープレビューのズームをリセット"
     }
   },
   "INSTRUCTIONS": {
@@ -232,26 +230,6 @@
       "INFO": "æƒ…å ±",
       "APPS": "ã‚¢ãƒ—ãƒª",
       "GUIDE": "ガイド"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

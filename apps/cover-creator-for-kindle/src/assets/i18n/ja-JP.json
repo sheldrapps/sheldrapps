@@ -85,7 +85,6 @@
     "TAP_TO_CHANGE": "タップして変更/リセット",
     "TITLE": "表紙を作成",
     "COVER_SOURCE_TITLE": "カバーの元",
-    "TAP_TO_PREVIEW": "タップでプレビュー表示",
     "MODEL_PICKER": {
       "TITLE": "Kindleを選択"
     },
@@ -102,7 +101,6 @@
     "GETTING_COVER": "表紙を取得中",
     "LOADING_PREVIEW": "プレビューを読み込み中...",
     "PLACEHOLDER": "表紙",
-    "PREVIEW_TITLE": "現在の表紙",
     "TITLE": "表紙",
     "DITHERED_THUMBNAIL_NOTICE": "アーティファクト低減を使った表紙は、サムネイルでは見え方が異なる場合があります。より正確な表示はプレビューで確認してください。",
     "ACTIONS": {
@@ -321,26 +319,6 @@
       "INFO": "情報",
       "APPS": "ã‚¢ãƒ—ãƒª",
       "GUIDE": "ガイド"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

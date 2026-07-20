@@ -81,6 +81,26 @@
   "HOME": {
     "WHAT_DO_YOU_WANT_TO_DO": "Cosa vuoi fare?",
     "MERGE": "Unisci",
-    "SPLIT": "Dividi"
+    "SPLIT": "Dividi",
+    "MERGING_TITLE": "Unione",
+    "SPLITTING_TITLE": "Divisione",
+    "EPUB_FILES_TITLE": "File EPUB",
+    "EPUB_FILE_TITLE": "File EPUB",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "Seleziona i file EPUB",
+    "ADD_ANOTHER_EPUB_FILE": "Aggiungi un altro file EPUB",
+    "FILES_SELECTED": "{{count}} file pronti",
+    "ARIA_ADD_EPUB_FILE": "Aggiungi un altro file EPUB",
+    "ARIA_SELECT_EPUB_FILES": "Seleziona i file EPUB",
+    "SELECT_EPUB_PLACEHOLDER": "Seleziona un file EPUB",
+    "TAP_TO_CHANGE": "Tocca per cambiarlo",
+    "ARIA_CHANGE_EPUB": "Cambia file EPUB {{name}}",
+    "ARIA_SELECT_EPUB": "Seleziona un file EPUB",
+    "INPUT_ERROR_SIZE": "Il file EPUB selezionato è troppo grande.",
+    "INPUT_ERROR_STORAGE": "Non c'è spazio di archiviazione sufficiente per preparare questo file EPUB.",
+    "INPUT_ERROR_CORRUPT": "Non è stato possibile preparare questo file EPUB. Prova con un altro file.",
+    "EXPORT_ORDER_TITLE": "Ordine di esportazione",
+    "COVER_SELECTOR_TITLE": "Selettore copertina",
+    "BEST_CANDIDATES_TITLE": "Suggerimenti dai tuoi EPUB",
+    "ADJUST_COVER": "Regola copertina"
   }
 }

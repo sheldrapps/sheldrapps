@@ -138,6 +138,9 @@ export type EditorSession = {
 
   /** Last export result (matches CropperResult shape) */
   result?: CropperResult;
+
+  /** Applies the rendered result in the host before Done navigates away. */
+  onResultApplied?: (result: CropperResult) => Promise<void> | void;
 };
 
 @Injectable({ providedIn: 'root' })

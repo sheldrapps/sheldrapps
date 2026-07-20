@@ -1,7 +1,9 @@
 @if (visibleActionCount > 0) {
+@if (showTitle) {
 <div class="field-title">
   {{ resolvedTitleKey | translate }}
 </div>
+}
 
 <ion-grid class="app-action-grid" [attr.data-tour-id]="tourId || null">
   <ion-row>

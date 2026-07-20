@@ -4,13 +4,11 @@ import { provideI18nKit } from '@sheldrapps/i18n-kit';
 import {
   provideCoverImageStateI18n,
   provideCoverSourceI18n,
-  provideEReaderPreviewFrameI18n,
 } from '@sheldrapps/image-workflow';
 import {
   EDITOR_I18N_OVERRIDES,
   provideEditorI18n,
 } from '@sheldrapps/image-workflow/editor';
-import { provideExportQualityKitI18n } from '@sheldrapps/export-quality-kit';
 import { provideAdFallbackKitI18n } from '@sheldrapps/ad-fallback-kit';
 import { provideAdsKit, provideAdsKitI18n } from '@sheldrapps/ads-kit';
 import { provideBestCandidateKitI18n } from '@sheldrapps/best-candidate-kit';
@@ -25,6 +23,7 @@ import { providePdfFileKit } from '@sheldrapps/file-kit/pdf';
 import { provideRatingKit } from '@sheldrapps/rating-kit';
 import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
 import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
+import { provideUiThemeI18n } from '@sheldrapps/ui-theme';
 import {
   ADS_UNITS_ANDROID_PROD,
   ADS_UNITS_ANDROID_TEST,
@@ -78,11 +77,10 @@ export function createBootstrapProviders(): Array<EnvironmentProviders | Provide
     }),
     provideAdFallbackKitI18n(),
     provideAdsKitI18n(),
-    provideExportQualityKitI18n(),
     provideBestCandidateKitI18n(),
+    provideUiThemeI18n(),
     provideCoverImageStateI18n(),
     provideCoverSourceI18n(),
-    provideEReaderPreviewFrameI18n(),
     providePrivacyPolicyKitI18n(),
     provideEditorI18n(),
     {

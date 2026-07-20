@@ -3,8 +3,9 @@ import {
   inject,
   makeEnvironmentProviders,
 } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, type TranslationObject } from '@ngx-translate/core';
 import { UI_THEME_TRANSLATIONS } from './ui-theme.translations';
+import { TRIPLE_BUTTON_TRANSLATIONS } from './triple-button.translations';
 
 export function provideUiThemeI18n() {
   return makeEnvironmentProviders([
@@ -17,6 +18,10 @@ export function provideUiThemeI18n() {
 
         const registerLang = (lang: string) => {
           const dict = UI_THEME_TRANSLATIONS[lang] ?? UI_THEME_TRANSLATIONS['en-US'];
+          const tripleButtonDict =
+            (TRIPLE_BUTTON_TRANSLATIONS as Record<string, TranslationObject>)[
+              lang
+            ] ?? TRIPLE_BUTTON_TRANSLATIONS['en-US'];
 
           if (!dict || registered.has(lang)) {
             return;
@@ -24,6 +29,7 @@ export function provideUiThemeI18n() {
 
           registered.add(lang);
           translate.setTranslation(lang, dict, true);
+          translate.setTranslation(lang, tripleButtonDict, true);
         };
 
         try {

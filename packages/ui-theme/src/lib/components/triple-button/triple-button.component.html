@@ -1,0 +1,30 @@
+<section class="triple-button" [attr.aria-label]="titleKey | translate">
+  <div class="field-title triple-button__title">
+    {{ titleKey | translate }}
+  </div>
+
+  <div
+    class="triple-button__item"
+    role="radiogroup"
+    [attr.aria-label]="titleKey | translate"
+  >
+    <button
+      *ngFor="let option of options"
+      type="button"
+      class="triple-button__option"
+      [class.triple-button__option--active]="isSelected(option.value)"
+      [class.triple-button__option--inactive]="!isSelected(option.value)"
+      [class.triple-button__option--locked]="option.locked"
+      [attr.aria-pressed]="isSelected(option.value)"
+      [attr.aria-label]="option.labelKey | translate"
+      (click)="select(option.value)"
+    >
+      <span class="triple-button__option-text">
+        {{ option.labelKey | translate }}
+      </span>
+      <span class="triple-button__badge" *ngIf="showLockedBadge(option)">
+        {{ proOnlyKey | translate }}
+      </span>
+    </button>
+  </div>
+</section>

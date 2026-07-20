@@ -1,0 +1,33 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button
+        [defaultHref]="state()?.returnUrl || '/'"
+      ></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ (state()?.titleKey || 'IMAGE_WORKFLOW.PREVIEW_TITLE') | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="preview-editing-page__content" [fullscreen]="true" [scrollY]="false">
+  @if (state(); as preview) {
+    <app-e-reader-preview-frame
+      [mode]="preview.mode || 'single'"
+      [imageSrc]="preview.imageSrc"
+      [imageWidth]="preview.imageWidth"
+      [imageHeight]="preview.imageHeight"
+      [beforeSrc]="preview.beforeSrc"
+      [afterSrc]="preview.afterSrc"
+      [beforeLabel]="preview.beforeLabel"
+      [afterLabel]="preview.afterLabel"
+      [comparisonEnabled]="preview.comparisonEnabled ?? true"
+      [isDithered]="preview.isDithered ?? false"
+      [maxFrameWidth]="maxFrameWidth"
+      [maxFrameHeight]="maxFrameHeight"
+      alt="cover preview"
+      fit="contain"
+      renderMode="eReader"
+      [zoomEnabled]="false"
+    ></app-e-reader-preview-frame>
+  }
+</ion-content>

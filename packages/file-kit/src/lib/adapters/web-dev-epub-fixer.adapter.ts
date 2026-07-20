@@ -748,7 +748,13 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
   }
 
   private resolveStatus(issues: EpubDiagnosticIssue[]): EpubDiagnosticStatus {
-    if (issues.some((issue) => issue.code === 'ZIP_UNREADABLE')) {
+    if (
+      issues.some(
+        (issue) =>
+          issue.code === 'ZIP_UNREADABLE' ||
+          issue.code === 'ZIP_CENTRAL_DIRECTORY_TRUNCATED',
+      )
+    ) {
       return 'failed';
     }
 

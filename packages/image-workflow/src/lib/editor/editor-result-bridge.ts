@@ -8,6 +8,15 @@ export interface EditorResultSnapshot {
   result: CropperResult | null;
 }
 
+export async function applyEditorResultBeforeExit(
+  result: CropperResult,
+  apply: ((result: CropperResult) => Promise<void> | void) | undefined,
+  persist: ((result: CropperResult) => Promise<void> | void) | undefined,
+): Promise<void> {
+  if (apply) await apply(result);
+  if (persist) await persist(result);
+}
+
 export function consumeEditorResultSnapshot(
   editorSession: EditorSessionService,
   sessionId?: string,

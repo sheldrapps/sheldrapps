@@ -47,11 +47,11 @@
     "DELETE_TITLE": "EPUB를 삭제할까요?",
     "DELETE_MESSAGE": "이 EPUB는 내 EPUB에서 삭제됩니다.",
     "DELETED": "EPUB가 삭제되었습니다",
-    "ERROR.LOAD": "EPUB ?????? ???? ?????.",
-    "ERROR.PREVIEW": "????? ???? ?????.",
-    "ERROR.OPEN": "EPUB? ? ? ????.",
-    "ERROR.SHARE": "EPUB? ??? ? ????.",
-    "ERROR.DELETE": "EPUB? ??? ? ????.",
+    "ERROR.LOAD": "EPUB 라이브러리를 불러올 수 없습니다.",
+    "ERROR.PREVIEW": "미리보기를 불러올 수 없습니다.",
+    "ERROR.OPEN": "EPUB을 열 수 없습니다.",
+    "ERROR.SHARE": "EPUB을 공유할 수 없습니다.",
+    "ERROR.DELETE": "EPUB을 삭제할 수 없습니다.",
     "ERROR": "오류",
     "EMPTY_TITLE": "아직 EPUB가 없습니다",
     "EMPTY_BODY": "추가하면 EPUB가 여기에 표시됩니다."
@@ -81,6 +81,32 @@
   "HOME": {
     "WHAT_DO_YOU_WANT_TO_DO": "무엇을 하시겠어요?",
     "MERGE": "병합",
-    "SPLIT": "분할"
+    "SPLIT": "분할",
+    "MERGING_TITLE": "병합 중",
+    "SPLITTING_TITLE": "분할 중",
+    "EPUB_FILES_TITLE": "EPUB 파일",
+    "EPUB_FILE_TITLE": "EPUB 파일",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "EPUB 파일 선택",
+    "ADD_ANOTHER_EPUB_FILE": "다른 EPUB 파일 추가",
+    "FILES_SELECTED": "{{count}}개 파일 준비됨",
+    "ARIA_ADD_EPUB_FILE": "다른 EPUB 파일 추가",
+    "ARIA_SELECT_EPUB_FILES": "EPUB 파일 선택",
+    "SELECT_EPUB_PLACEHOLDER": "EPUB 파일 선택",
+    "TAP_TO_CHANGE": "탭하여 변경",
+    "ARIA_CHANGE_EPUB": "EPUB 파일 {{name}} 변경",
+    "ARIA_SELECT_EPUB": "EPUB 파일 선택",
+    "INPUT_ERROR_SIZE": "선택한 EPUB 파일이 너무 큽니다.",
+    "INPUT_ERROR_STORAGE": "이 EPUB 파일을 준비할 저장 공간이 부족합니다.",
+    "INPUT_ERROR_CORRUPT": "이 EPUB 파일을 준비할 수 없습니다. 다른 파일을 시도하세요.",
+    "EXPORT_ORDER_TITLE": "내보내기 순서",
+    "COVER_SELECTOR_TITLE": "커버 선택기",
+    "BEST_CANDIDATES_TITLE": "내 EPUB에서 가져온 제안",
+    "ADJUST_COVER": "?? ??"
+  },
+  "TOC_OPTIONS": {
+    "TITLE": "목차를 어떻게 할까요?",
+    "BOOKS_AND_CHAPTERS": "책 및 장",
+    "BOOKS_ONLY": "책만",
+    "FULL_INDEX": "전체 색인"
   }
 }

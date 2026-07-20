@@ -21,6 +21,13 @@ export const routes: Routes = [
       import('@sheldrapps/image-workflow/editor').then((m) => m.EDITOR_ROUTES),
   },
   {
+    path: 'preview-editing',
+    loadComponent: () =>
+      import('@sheldrapps/image-workflow').then(
+        (m) => m.PreviewEditingPageComponent,
+      ),
+  },
+  {
     path: 'my-epubs',
     loadComponent: () =>
       import('./pages/my-epubs/my-epubs.page').then((m) => m.MyEpubsPage),

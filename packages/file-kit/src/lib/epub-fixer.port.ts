@@ -62,7 +62,8 @@ export type EpubDiagnosticIssueCode =
   | 'SMIL_MISSING'
   | 'SPINE_EMPTY'
   | 'SPINE_ITEM_INVALID'
-  | 'ZIP_UNREADABLE';
+  | 'ZIP_UNREADABLE'
+  | 'ZIP_CENTRAL_DIRECTORY_TRUNCATED';
 
 export type EpubDiagnosticIssue = {
   code: EpubDiagnosticIssueCode;
@@ -91,7 +92,10 @@ export function buildEpubIssueSelectionKey(
 export function classifyEpubDiagnosticRepairMode(
   issue: Pick<EpubDiagnosticIssue, 'code' | 'fixable' | 'options'>,
 ): EpubDiagnosticRepairMode {
-  if (issue.code === 'ZIP_UNREADABLE') {
+  if (
+    issue.code === 'ZIP_UNREADABLE' ||
+    issue.code === 'ZIP_CENTRAL_DIRECTORY_TRUNCATED'
+  ) {
     return issue.fixable ? 'automatic' : 'not_repairable';
   }
 

@@ -20,9 +20,9 @@ const DEFAULT_SMALL_WARNING_KEY = "IMAGE_WARN_SMALL";
   styleUrls: ["./cover-image-state.component.scss"],
 })
 export class CoverImageStateComponent {
-  @Input() titleKey = "COVERS.PREVIEW_TITLE";
-  @Input() hintKey = "CREATE.TAP_TO_PREVIEW";
-  @Input() ariaLabelKey = "COVERS.PREVIEW_TITLE";
+  @Input() titleKey = "IMAGE_WORKFLOW.PREVIEW_TITLE";
+  @Input() hintKey = "IMAGE_WORKFLOW.TAP_TO_PREVIEW";
+  @Input() ariaLabelKey = "IMAGE_WORKFLOW.PREVIEW_TITLE";
   @Input() tourId: string | null = "cover-image-picker";
   @Input() previewUrl?: string;
   @Input() previewRevision = 0;

@@ -82,7 +82,6 @@
     "SELECT_IMAGE_PLACEHOLDER": "Bild auswählen",
     "TAP_TO_CHANGE": "Antippen zum Ändern/Zurücksetzen",
     "TAP_TO_CHANGE_IMAGE": "Antippen zum Ändern",
-    "TAP_TO_PREVIEW": "Zum Anzeigen tippen",
     "LONGPRESS_PREVIEW_HINT": "Zum Anzeigen gedrückt halten",
     "TITLE": "Cover ändern",
     "INVALID_COVER_TAP_TO_CHANGE": "Invalid cover, tap to change",
@@ -107,7 +106,6 @@
     "DELETED": "EPUB gelöscht",
     "EMPTY": "Keine Dateien in der App gefunden. Vor einer Neuinstallation erstellte Dateien sind möglicherweise aufgrund von Systembeschränkungen nicht sichtbar.",
     "PLACEHOLDER": "EPUB",
-    "PREVIEW_TITLE": "Aktuelles Cover",
     "TITLE": "Meine EPUBs",
     "DITHERED_THUMBNAIL_NOTICE": "Cover mit Artefaktreduzierung können in Miniaturansichten anders wirken. Öffne die Vorschau, um ein genaueres Ergebnis zu sehen.",
     "ACTIONS": {
@@ -210,26 +208,6 @@
       "INFO": "Info",
       "APPS": "Apps",
       "GUIDE": "Anleitung"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

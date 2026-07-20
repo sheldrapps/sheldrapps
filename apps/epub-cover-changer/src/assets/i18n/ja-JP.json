@@ -40,7 +40,7 @@
     "ARIA_CHANGE_EPUB": "EPUBファイルを変更。現在のファイル: {{name}}",
     "ARIA_CHANGE_IMAGE": "表紙画像を変更。現在の画像: {{name}}",
     "ARIA_CROP": "選択した画像を調整",
-    "ARIA_SELECT_EPUB": "EPUBãƒ•ã‚¡ã‚¤ãƒ«ã‚’é¸æŠž",
+    "ARIA_SELECT_EPUB": "EPUBファイルを選択",
     "ARIA_SELECT_IMAGE": "表紙画像を選択",
     "CROP_ACTION": "èª¿æ•´",
     "COVER_CHANGED": "表紙を変更しました。保存または共有できます",
@@ -82,7 +82,7 @@
     "EPUB_FILE_TITLE": "EPUBãƒ•ã‚¡ã‚¤ãƒ«",
     "PROCESSING_LARGE_EPUB": "大きな EPUB ファイルを処理しています...",
     "PROCESS_CANCELLED": "処理がキャンセルされました",
-    "SELECT_EPUB_PLACEHOLDER": "EPUBãƒ•ã‚¡ã‚¤ãƒ«ã‚’é¸æŠž",
+    "SELECT_EPUB_PLACEHOLDER": "EPUBファイルを選択",
     "SAVE_ACTION": "保存",
     "SAVED_OK": "表紙を保存しました",
     "SAVE_RENAME_TITLE": "表紙を保存",
@@ -91,9 +91,8 @@
     "SELECT_IMAGE_LABEL": "表紙画像",
     "SELECT_IMAGE_PLACEHOLDER": "画像を選択",
     "INVALID_COVER_TAP_TO_CHANGE": "無効な表紙です。タップして変更",
-    "TAP_TO_CHANGE": "ã‚¿ãƒƒãƒ—ã—ã¦å¤‰æ›´/ãƒªã‚»ãƒƒãƒˆ",
+    "TAP_TO_CHANGE": "タップして変更/リセット",
     "TAP_TO_CHANGE_IMAGE": "タップして変更",
-    "TAP_TO_PREVIEW": "ã‚¿ãƒƒãƒ—ã§ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼è¡¨ç¤º",
     "LONGPRESS_PREVIEW_HINT": "長押しでプレビュー",
     "TITLE": "表紙を変更",
     "PREVIEW_ORIGINAL_LABEL": "元の表紙",
@@ -106,11 +105,10 @@
   "COVERS": {
     "DELETED": "EPUBを削除しました",
     "EMPTY": "アプリ内にカバーが見つかりません。再インストール前に作成したファイルは、システムの制限により表示されない場合があります。",
-    "GENERATE_THUMB": "ã‚µãƒ ãƒã‚¤ãƒ«ã‚’ç”Ÿæˆ",
+    "GENERATE_THUMB": "サムネイルを生成",
     "LOADING_PREVIEW": "プレビューを読み込み中...",
     "PLACEHOLDER": "EPUB",
     "PREVIEW_UNAVAILABLE": "プレビューは利用できません。",
-    "PREVIEW_TITLE": "現在の表紙",
     "TITLE": "ãƒžã‚¤EPUB",
     "DITHERED_THUMBNAIL_NOTICE": "アーティファクト低減を使った表紙は、サムネイルでは見え方が異なる場合があります。より正確な表示はプレビューで確認してください。",
     "ACTIONS": {
@@ -133,8 +131,8 @@
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "電子書籍リーダープレビューを縮小",
-      "ZOOM_IN_ARIA": "é›»å­æ›¸ç±ãƒªãƒ¼ãƒ€ãƒ¼ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ã‚’æ‹¡å¤§",
-      "ZOOM_RESET_ARIA": "é›»å­æ›¸ç±ãƒªãƒ¼ãƒ€ãƒ¼ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ã®ã‚ºãƒ¼ãƒ ã‚’ãƒªã‚»ãƒƒãƒˆ"
+      "ZOOM_IN_ARIA": "電子書籍リーダープレビューを拡大",
+      "ZOOM_RESET_ARIA": "電子書籍リーダープレビューのズームをリセット"
     }
   },
   "INSTRUCTIONS": {
@@ -210,26 +208,6 @@
       "INFO": "æƒ…å ±",
       "APPS": "ã‚¢ãƒ—ãƒª",
       "GUIDE": "ガイド"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

@@ -47,8 +47,8 @@ import {
   CoverSourceActionsComponent,
   CoverCropState,
   CoverImageStateComponent,
-  EReaderPreviewFrameComponent,
   ImagePipelineService,
+  PreviewEditingPageService,
   ImageValidationError,
   buildCompositionInputForPurpose,
   computeSourceCropDims,
@@ -62,7 +62,6 @@ import {
 import {
   EditorSessionService,
   consumeEditorResultSnapshot,
-  watchEditorResultReady,
   type EditorHistorySnapshot,
   type KindleDeviceModel,
   ProjectSaveState,
@@ -112,6 +111,7 @@ import {
   SaveCoverModalComponent,
   ScrollableBarItem,
   ScrollableButtonBarComponent,
+  TripleButtonComponent,
 } from '@sheldrapps/ui-theme';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { detectSupportedLocale } from '@sheldrapps/i18n-kit';
@@ -125,7 +125,6 @@ import {
 import { CcfkSettings } from '../../settings/ccfk-settings.schema';
 import {
   DEFAULT_EXPORT_QUALITY_MODE,
-  ExportQualitySelectorComponent,
   getCoverExportOptions,
   normalizeExportQualityMode,
   type ExportQualityMode,
@@ -179,9 +178,8 @@ type EditorSourceMode = 'image' | 'scratch';
     IonModal,
     LoadingStateComponent,
     CoverImageStateComponent,
-    EReaderPreviewFrameComponent,
     CoverSourceActionsComponent,
-    ExportQualitySelectorComponent,
+    TripleButtonComponent,
     ScrollableButtonBarComponent,
     RemoveAdsUpgradeModalComponent,
     TourOverlayComponent,
@@ -194,6 +192,7 @@ export class CreatePage implements OnInit, OnDestroy {
   private fileService = inject(FileService);
   private catalog = inject(KindleCatalogService);
   private imagePipe = inject(ImagePipelineService);
+  private readonly previewEditingPage = inject(PreviewEditingPageService);
   private billing = inject(BillingService);
   private toastCtrl = inject(ToastController);
   private popoverCtrl = inject(PopoverController);
@@ -298,7 +297,6 @@ export class CreatePage implements OnInit, OnDestroy {
   private lastEditorSessionId?: string;
   private lastEditorSourceMode: EditorSourceMode = 'image';
   private routerSub?: Subscription;
-  private editorResultSub?: Subscription;
   private coversEventsSub?: Subscription;
   private adsRemovedSub?: Subscription;
   private removeAdsPriceSub?: Subscription;
@@ -353,7 +351,6 @@ export class CreatePage implements OnInit, OnDestroy {
 
   infoOpen = false;
   infoEvent: Event | null = null;
-  previewOpen = false;
   private brandSelectCanceled = false;
   private groupSelectCanceled = false;
   private modelSelectCanceled = false;
@@ -426,13 +423,7 @@ export class CreatePage implements OnInit, OnDestroy {
         }
       });
 
-    this.editorResultSub = watchEditorResultReady(
-      this.editorSession,
-      () => this.lastEditorSessionId,
-      (sid) => {
-        void this.consumeEditorResult(sid);
-      },
-    );
+    void this.consumeEditorResult();
 
     this.coversEventsSub = this.coversEvents.events$
       .pipe(filter((event) => event.type === 'deleted'))
@@ -449,7 +440,6 @@ export class CreatePage implements OnInit, OnDestroy {
     this.closePurchaseModal();
     this.revokePreviewUrl();
     this.routerSub?.unsubscribe();
-    this.editorResultSub?.unsubscribe();
     this.coversEventsSub?.unsubscribe();
     this.adsRemovedSub?.unsubscribe();
     this.removeAdsPriceSub?.unsubscribe();
@@ -576,6 +566,12 @@ export class CreatePage implements OnInit, OnDestroy {
       output: {
         includeRenderedBlob: true,
       },
+      onResultApplied: async (result) => {
+        await this.applyCropResult(result);
+        const appliedSessionId = this.lastEditorSessionId;
+        if (appliedSessionId) this.editorSession.consumeResult(appliedSessionId);
+        this.lastEditorSessionId = undefined;
+      },
       preferences: {
         artifactReductionInfo: {
           hasSeen: async () => {
@@ -604,7 +600,7 @@ export class CreatePage implements OnInit, OnDestroy {
     this.blurDeepActiveElement();
 
     const entryPath = sourceMode === 'scratch' ? '/editor/tools' : '/editor';
-    await this.navCtrl.navigateRoot(entryPath, {
+    await this.navCtrl.navigateForward(entryPath, {
       queryParams: {
         sid,
         ...(shouldShowEditorTour ? { tour: '1' } : {}),
@@ -1980,6 +1976,14 @@ export class CreatePage implements OnInit, OnDestroy {
     }
   }
 
+  async onTripleExportQualityModeSelect(value: string): Promise<void> {
+    if (value !== 'thumbnail' && value !== 'compressed' && value !== 'best') {
+      return;
+    }
+
+    await this.onExportQualityModeSelect(value);
+  }
+
   private async generateCoverWithCurrentSelection(): Promise<void> {
     if (!this.selectedModel) {
       return;
@@ -2100,11 +2104,18 @@ export class CreatePage implements OnInit, OnDestroy {
 
   openPreview() {
     if (!this.previewUrl || this.imageErrorKey) return;
-    this.previewOpen = true;
+    this.previewEditingPage.open({
+      imageSrc: this.previewUrl,
+      imageWidth: this.selectedModel?.width ?? null,
+      imageHeight: this.selectedModel?.height ?? null,
+      isDithered: this.isPreviewDithered(),
+      returnUrl: '/tabs/create',
+    });
+    void this.router.navigateByUrl('/preview-editing');
   }
 
   closePreview() {
-    this.previewOpen = false;
+    this.previewEditingPage.clear();
   }
 
   isPreviewDithered(): boolean {

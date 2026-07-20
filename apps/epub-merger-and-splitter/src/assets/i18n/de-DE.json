@@ -2,8 +2,8 @@
   "APP": {
     "TITLE": "EPUB zusammenfügen und teilen"
   },
-    "ARR": {
-      "TOOLS": {
+  "ARR": {
+    "TOOLS": {
       "APPS": "Anwendungen",
       "GUIDE": "Anleitung"
     }
@@ -81,6 +81,32 @@
   "HOME": {
     "WHAT_DO_YOU_WANT_TO_DO": "Was möchtest du tun?",
     "MERGE": "Zusammenfügen",
-    "SPLIT": "Teilen"
+    "SPLIT": "Teilen",
+    "MERGING_TITLE": "Zusammenführen",
+    "SPLITTING_TITLE": "Aufteilen",
+    "EPUB_FILES_TITLE": "EPUB-Dateien",
+    "EPUB_FILE_TITLE": "EPUB-Datei",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "EPUB-Dateien auswählen",
+    "ADD_ANOTHER_EPUB_FILE": "Weitere EPUB-Datei hinzufügen",
+    "FILES_SELECTED": "{{count}} Dateien bereit",
+    "ARIA_ADD_EPUB_FILE": "Weitere EPUB-Datei hinzufügen",
+    "ARIA_SELECT_EPUB_FILES": "EPUB-Dateien auswählen",
+    "SELECT_EPUB_PLACEHOLDER": "EPUB-Datei auswählen",
+    "TAP_TO_CHANGE": "Tippen zum Ändern",
+    "ARIA_CHANGE_EPUB": "EPUB-Datei {{name}} ändern",
+    "ARIA_SELECT_EPUB": "EPUB-Datei auswählen",
+    "INPUT_ERROR_SIZE": "Die ausgewählte EPUB-Datei ist zu groß.",
+    "INPUT_ERROR_STORAGE": "Es gibt nicht genug Speicherplatz, um diese EPUB-Datei vorzubereiten.",
+    "INPUT_ERROR_CORRUPT": "Diese EPUB-Datei konnte nicht vorbereitet werden. Versuche eine andere Datei.",
+    "EXPORT_ORDER_TITLE": "Exportreihenfolge",
+    "COVER_SELECTOR_TITLE": "Cover-Auswahl",
+    "BEST_CANDIDATES_TITLE": "Vorschläge aus deinen EPUBs",
+    "ADJUST_COVER": "Cover anpassen"
+  },
+  "TOC_OPTIONS": {
+    "TITLE": "Was soll mit dem Inhaltsverzeichnis geschehen?",
+    "BOOKS_AND_CHAPTERS": "Bücher und Kapitel",
+    "BOOKS_ONLY": "Nur Bücher",
+    "FULL_INDEX": "Vollständiges Verzeichnis"
   }
 }

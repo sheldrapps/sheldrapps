@@ -103,7 +103,7 @@
   <sh-cover-image-state
     [previewUrl]="previewUrl"
     [previewRevision]="previewRevision"
-    [hintKey]="'CHANGE.TAP_TO_PREVIEW'"
+    [hintKey]="'IMAGE_WORKFLOW.TAP_TO_PREVIEW'"
     [errorKey]="imageErrorKey || null"
     [errorParams]="imageErrorParams"
     [warningKey]="imageWarnKey || null"
@@ -145,10 +145,12 @@
 
     @if (shouldShowExportOptions()) {
     <div data-tour-id="export-quality">
-      <app-export-quality-selector
-        [selectedMode]="getEffectiveExportQualityMode()"
+      <sh-triple-button
+        mode="export-quality-mode"
+        [selectedValue]="getEffectiveExportQualityMode()"
         [isPro]="adsRemoved"
-        (modeSelect)="onExportQualityModeSelect($event)"
+        [showProBadge]="true"
+        (selectedValueChange)="onTripleExportQualityModeSelect($event)"
       />
     </div>
     }
@@ -281,54 +283,6 @@
           (restoreRequested)="onRestorePurchases()"
         ></sh-remove-ads-upgrade-modal>
       </div>
-    </ng-template>
-  </ion-modal>
-
-  <ion-modal
-    [isOpen]="previewOpen"
-    (didDismiss)="closePreview()"
-    class="cover-preview-modal ecc-preview-modal"
-  >
-    <ng-template>
-      <ion-header>
-        <ion-toolbar class="preview-toolbar">
-          <ion-title class="preview-title">{{ 'COVERS.PREVIEW_TITLE' | translate }}</ion-title>
-
-          <ion-buttons slot="end">
-            <ion-button class="preview-cancel" (click)="closePreview()">
-              {{ 'COMMON.CLOSE' | translate }}
-            </ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-header>
-
-      <ion-content class="preview-content" [fullscreen]="true">
-        @if (previewModalImageSrc) {
-        <app-e-reader-preview-frame
-          [mode]="previewModalMode"
-          [imageSrc]="previewModalImageSrc"
-          [imageWidth]="previewModalImageWidth"
-          [imageHeight]="previewModalImageHeight"
-          [beforeSrc]="previewModalBeforeSrc"
-          [afterSrc]="previewModalAfterSrc"
-          [beforeLabel]="
-            previewModalMode === 'compare'
-              ? ('CHANGE.PREVIEW_ORIGINAL_LABEL' | translate)
-              : null
-          "
-          [afterLabel]="
-            previewModalMode === 'compare'
-              ? ('CHANGE.PREVIEW_NEW_LABEL' | translate)
-              : ('CHANGE.PREVIEW_NEW_ONLY_LABEL' | translate)
-          "
-          alt="cover preview"
-          fit="contain"
-          renderMode="eReader"
-          [comparisonEnabled]="previewModalComparisonEnabled"
-          [isDithered]="isPreviewDithered()"
-        ></app-e-reader-preview-frame>
-        }
-      </ion-content>
     </ng-template>
   </ion-modal>
 

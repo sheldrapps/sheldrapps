@@ -39,13 +39,12 @@
       <ion-header>
         <ion-toolbar class="app-modal-toolbar">
           <ion-buttons slot="start">
-            <ion-button
-              fill="clear"
+            <ion-back-button
+              defaultHref="/tabs/settings"
               (click)="closeLanguageModal()"
+              [text]="''"
               [attr.aria-label]="'COMMON.CANCEL' | translate"
-            >
-              <ion-icon aria-hidden="true" name="chevron-back-outline"></ion-icon>
-            </ion-button>
+            ></ion-back-button>
           </ion-buttons>
           <ion-title>{{ 'SETTINGS.LANGUAGE' | translate }}</ion-title>
           <ion-buttons slot="end">

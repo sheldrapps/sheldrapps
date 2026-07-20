@@ -111,7 +111,6 @@
     "INVALID_COVER_TAP_TO_CHANGE": "Invalid cover, tap to make",
     "TAP_TO_CHANGE": "Tap to make/reset",
     "TAP_TO_CHANGE_IMAGE": "Tap to make",
-    "TAP_TO_PREVIEW": "Tap to preview",
     "LONGPRESS_PREVIEW_HINT": "Long press to preview",
     "TITLE": "Make cover",
     "PREVIEW_ORIGINAL_LABEL": "Original cover",
@@ -128,7 +127,6 @@
     "LOADING_PREVIEW": "Loading preview...",
     "PLACEHOLDER": "PDF",
     "PREVIEW_UNAVAILABLE": "Preview unavailable.",
-    "PREVIEW_TITLE": "Current cover",
     "TITLE": "My PDFs",
     "DITHERED_THUMBNAIL_NOTICE": "Covers with artifact reduction may look different in thumbnails. Open preview to see a more accurate result.",
     "ACTIONS": {
@@ -232,26 +230,6 @@
       "INFO": "Info",
       "APPS": "Apps",
       "GUIDE": "Guide"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

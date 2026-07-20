@@ -8,6 +8,9 @@
 @use "../../../packages/ui-theme/styles/index" as *;
 @use "../../../packages/ui-theme/styles/toast" as *;
 @use "../../../packages/ui-theme/styles/modal-kit" as *;
+@use "../../../packages/image-workflow/src/lib/editor/editor-fonts" as editorFonts;
+
+@include editorFonts.load-editor-fonts;
 
 @font-face {
   font-family: 'Inter';

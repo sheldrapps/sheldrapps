@@ -85,7 +85,6 @@
     "TAP_TO_CHANGE": "बदलने/रीसेट करने के लिए टैप करें",
     "TITLE": "कवर बनाएँ",
     "COVER_SOURCE_TITLE": "कवर स्रोत",
-    "TAP_TO_PREVIEW": "पूर्वावलोकन देखने के लिए टैप करें",
     "MODEL_PICKER": {
       "TITLE": "अपना Kindle चुनें"
     },
@@ -102,7 +101,6 @@
     "GETTING_COVER": "कवर प्राप्त किया जा रहा है",
     "LOADING_PREVIEW": "प्रीव्यू लोड हो रहा है...",
     "PLACEHOLDER": "कवर",
-    "PREVIEW_TITLE": "वर्तमान कवर",
     "TITLE": "कवर",
     "DITHERED_THUMBNAIL_NOTICE": "आर्टिफैक्ट कमी वाली कवर थंबनेल में अलग दिख सकती हैं। अधिक सटीक परिणाम देखने के लिए प्रीव्यू खोलें।",
     "ACTIONS": {
@@ -321,26 +319,6 @@
       "INFO": "जानकारी",
       "APPS": "ऐप्स",
       "GUIDE": "गाइड"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

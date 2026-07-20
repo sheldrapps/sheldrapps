@@ -59,6 +59,7 @@ import { EditorStateService } from "./editor-state.service";
 import { EditorHistoryService } from "./editor-history.service";
 import { EditorPanelExitService } from "./editor-panel-exit.service";
 import { EditorSessionExitService } from "./editor-session-exit.service";
+import { applyEditorResultBeforeExit } from "./editor-result-bridge";
 import { EditorKindleStateService } from "./editor-kindle-state.service";
 import { EditorColorSamplerService } from "./editor-color-sampler.service";
 import { EditorTextEditService } from "./editor-text-edit.service";
@@ -1599,6 +1600,8 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     let shouldExit = false;
 
     try {
+      await this.waitForNextPaint();
+      this.history.flushPendingChanges();
       const state: CoverCropState = {
         ...this.editorState.getState(),
       };
@@ -1623,9 +1626,15 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       let renderedHeight: number | undefined;
       let renderedMimeType: string | undefined;
 
-      const renderInput = this.buildRenderInput(state);
       const includeRenderedBlob = session.output?.includeRenderedBlob ?? true;
-      if (renderInput && includeRenderedBlob) {
+      let renderInput = this.buildRenderInput(state);
+      for (let attempt = 0; attempt < 3 && includeRenderedBlob; attempt += 1) {
+        if (!renderInput) {
+          await this.waitForNextPaint();
+          renderInput = this.buildRenderInput(state);
+          continue;
+        }
+
         try {
           const canvas = await renderCompositionToCanvas(renderInput, {
             mode: "export",
@@ -1661,6 +1670,16 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         } catch (error) {
           console.warn("[EDITOR] render export failed", error);
         }
+
+        if (!renderedBlob && attempt < 2) {
+          await this.waitForNextPaint();
+          renderInput = this.buildRenderInput(state);
+        }
+      }
+
+      if (includeRenderedBlob && !renderedBlob) {
+        console.warn("[EDITOR] final render did not produce a preview; keeping editor open");
+        return;
       }
 
       const result: CropperResult = {
@@ -1674,13 +1693,11 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         history: this.history.captureProjectSnapshot(),
       };
       this.editorSession.setResult(this.sid, result);
-      if (session.project?.persist) {
-        try {
-          await session.project.persist(result);
-        } catch (error) {
-          console.warn("[EDITOR] project persist failed", error);
-        }
-      }
+      await applyEditorResultBeforeExit(
+        result,
+        session.onResultApplied,
+        session.project?.persist,
+      );
       shouldExit = true;
     } finally {
       this.isExporting = false;
@@ -1865,6 +1882,17 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     if (!Number.isFinite(width) || !Number.isFinite(height)) return null;
     if (width <= 0 || height <= 0) return null;
     return { width, height };
+  }
+
+  private async waitForNextPaint(): Promise<void> {
+    if (typeof window === "undefined") {
+      await Promise.resolve();
+      return;
+    }
+
+    await new Promise<void>((resolve) => {
+      window.requestAnimationFrame(() => resolve());
+    });
   }
 
   private async ensureExportDimensions(

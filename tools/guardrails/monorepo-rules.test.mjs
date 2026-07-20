@@ -3,6 +3,10 @@ import { globSync } from "node:fs";
 import { basename, dirname, sep } from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
+import {
+  hasSemanticMojibake,
+  hasSuspiciousQuestionMark,
+} from "../text-integrity/detect.ts";
 
 const repoRoot = process.cwd();
 const I18N_ALLOWLIST_VALUES = new Set([
@@ -65,60 +69,7 @@ function countLetters(value) {
 
 
 function hasMojibake(raw) {
-  const codePoints = Array.from(raw, (char) => char.codePointAt(0));
-
-  for (let index = 0; index < codePoints.length; index += 1) {
-    const current = codePoints[index];
-    const next = codePoints[index + 1];
-    const third = codePoints[index + 2];
-
-    if (current === 0xfffd) {
-      return true;
-    }
-
-    if (current === 0x00c3 || current === 0x00c2) {
-      return true;
-    }
-
-    if (current === 0x00e0 && (next === 0x00a4 || next === 0x00a5)) {
-      return true;
-    }
-
-    if (
-      current === 0x00e2 &&
-      (next === 0x0080 ||
-        next === 0x20ac ||
-        next === 0x201a ||
-        next === 0x201e)
-    ) {
-      if (
-        third === 0x00a2 ||
-        third === 0x0099 ||
-        third === 0x009c ||
-        third === 0x009d ||
-        third === 0x00a1 ||
-        third === 0x00a6
-      ) {
-        return true;
-      }
-    }
-
-    if (
-      current === 0x00c2 &&
-      (next === 0x0080 ||
-        next === 0x20ac ||
-        next === 0x201a ||
-        next === 0x201e)
-    ) {
-      return true;
-    }
-
-    if (current === 0x00ef && next === 0x00bf && third === 0x00bd) {
-      return true;
-    }
-  }
-
-  return false;
+  return hasSemanticMojibake(raw);
 }
 
 function extractObjectLiteralSource(source) {
@@ -249,6 +200,7 @@ function compareLocalizedMaps(file, baseLocale, localizedLocale, baseValue, loca
   const missing = [];
   const extra = [];
   const untranslated = [];
+  const suspiciousQuestionMarks = [];
 
   for (const entry of baseEntries) {
     if (!localizedByPath.has(entry.path)) {
@@ -257,6 +209,14 @@ function compareLocalizedMaps(file, baseLocale, localizedLocale, baseValue, loca
     }
 
     const localizedString = localizedByPath.get(entry.path);
+    if (
+      typeof localizedString === "string" &&
+      hasSuspiciousQuestionMark(localizedString, entry.value) &&
+      !isAllowlistedTranslation(localizedString, entry.path)
+    ) {
+      suspiciousQuestionMarks.push(`${entry.path}: ${localizedString}`);
+    }
+
     if (
       typeof localizedString === "string" &&
       localizedString === entry.value &&
@@ -279,6 +239,7 @@ function compareLocalizedMaps(file, baseLocale, localizedLocale, baseValue, loca
     missing,
     extra,
     untranslated,
+    suspiciousQuestionMarks,
   };
 }
 
@@ -300,7 +261,10 @@ function collectI18nFiles() {
         !file.includes("/editor/") &&
         !file.includes("provide-") &&
         !file.includes("/build/") &&
-        !file.includes("/dist/")
+        !file.includes("/dist/") &&
+        !file.includes("/public/assets/i18n/") &&
+        !file.includes("/www/assets/i18n/") &&
+        !file.includes("/android/app/src/main/assets/public/")
     )
     .sort();
 }
@@ -465,6 +429,65 @@ test.skip("guardrail: locale files have no mojibake and preserve locale diacriti
   );
 });
 
+test("guardrail: translation tooling uses explicit utf8 and restricts latin1 to repair paths", () => {
+  const requiredUtf8Files = [
+    "scripts/add-ems-web-entry.cjs",
+    "scripts/sync-app-i18n-structure.cjs",
+    "scripts/sync-i18n-mirrors.cjs",
+    "scripts/update-emas-visible-i18n.cjs",
+    "scripts/repair-app-i18n.cjs",
+    "scripts/repair-emas-i18n.cjs",
+  ];
+  const transcodeAllowlist = new Set([
+    "scripts/generate-epub-fixer-samples.cjs",
+    "scripts/repair-app-i18n.cjs",
+    "scripts/repair-emas-i18n.cjs",
+    "tools/text-integrity/repair.ts",
+  ]);
+
+  for (const file of requiredUtf8Files) {
+    const source = readFileSync(file, "utf8");
+    assert.match(
+      source,
+      /["']utf8["']/,
+      `${file} must use explicit utf8 for maintained text reads/writes`
+    );
+  }
+
+  const scopedFiles = [
+    ...globSync("scripts/*.cjs", { cwd: repoRoot }).map((p) => p.split(sep).join("/")),
+    ...globSync("tools/text-integrity/**/*.{ts,js,mjs,cjs}", { cwd: repoRoot }).map((p) =>
+      p.split(sep).join("/")
+    ),
+  ].sort();
+
+  const offenders = [];
+  for (const file of scopedFiles) {
+    const source = readFileSync(file, "utf8");
+    if (!/latin1|ascii|binary/u.test(source)) {
+      continue;
+    }
+
+    if (transcodeAllowlist.has(file)) {
+      continue;
+    }
+
+    if (
+      /Buffer\.from\(.+,\s*["']latin1["']\)|toString\(["']latin1["']\)|readFileSync\(.+["']ascii["']|writeFileSync\(.+["']ascii["']/su.test(
+        source
+      )
+    ) {
+      offenders.push(file);
+    }
+  }
+
+  assert.deepEqual(
+    offenders,
+    [],
+    `Only controlled repair paths may use latin1/ascii text transcoding:\n${offenders.join("\n")}`
+  );
+});
+
 test("guardrail: ccfk locale files have no mojibake and preserve locale diacritics", () => {
   const localeFiles = globSync(
     "apps/cover-creator-for-kindle/src/assets/i18n/*.json",
@@ -536,6 +559,7 @@ test("guardrail: epub-merger-and-splitter locale assets are utf-8 clean", () => 
 
   const mojibakeIssues = [];
   const untranslatedIssues = [];
+  const suspiciousQuestionIssues = [];
 
   const baseLocaleFile =
     "apps/epub-merger-and-splitter/src/assets/i18n/en-US.json";
@@ -569,6 +593,14 @@ test("guardrail: epub-merger-and-splitter locale assets are utf-8 clean", () => 
           .join("\n")}`
       );
     }
+
+    if (report.suspiciousQuestionMarks.length) {
+      suspiciousQuestionIssues.push(
+        `${file} has suspicious question-mark replacements:\n${report.suspiciousQuestionMarks
+          .slice(0, 8)
+          .join("\n")}`
+      );
+    }
   }
 
   assert.deepEqual(
@@ -586,12 +618,21 @@ test("guardrail: epub-merger-and-splitter locale assets are utf-8 clean", () => 
       "\n"
     )}`
   );
+
+  assert.deepEqual(
+    suspiciousQuestionIssues,
+    [],
+    `epub-merger-and-splitter locale files contain suspicious question-mark replacements:\n${suspiciousQuestionIssues.join(
+      "\n"
+    )}`
+  );
 });
 
 test("guardrail: locale assets stay localized across the monorepo", () => {
   const files = collectI18nFiles();
   const mojibakeIssues = [];
   const structureIssues = [];
+  const suspiciousQuestionIssues = [];
 
   for (const file of files) {
     const { raw, data } = readLocaleData(file);
@@ -645,6 +686,14 @@ test("guardrail: locale assets stay localized across the monorepo", () => {
           );
         }
 
+        if (report.suspiciousQuestionMarks.length) {
+          suspiciousQuestionIssues.push(
+            `${file} [${locale}] suspicious question-mark replacements:\n${report.suspiciousQuestionMarks
+              .slice(0, 8)
+              .join("\n")}`
+          );
+        }
+
       }
 
       continue;
@@ -670,6 +719,14 @@ test("guardrail: locale assets stay localized across the monorepo", () => {
       );
     }
 
+    if (report.suspiciousQuestionMarks.length) {
+      suspiciousQuestionIssues.push(
+        `${file} suspicious question-mark replacements:\n${report.suspiciousQuestionMarks
+          .slice(0, 8)
+          .join("\n")}`
+      );
+    }
+
   }
   assert.deepEqual(
     mojibakeIssues,
@@ -681,6 +738,14 @@ test("guardrail: locale assets stay localized across the monorepo", () => {
     structureIssues,
     [],
     `Locale structure drift detected:\n${structureIssues.join("\n")}`
+  );
+
+  assert.deepEqual(
+    suspiciousQuestionIssues,
+    [],
+    `Suspicious question-mark replacements detected in locale assets:\n${suspiciousQuestionIssues.join(
+      "\n"
+    )}`
   );
 });
 

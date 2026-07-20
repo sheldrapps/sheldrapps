@@ -85,7 +85,6 @@
     "TAP_TO_CHANGE": "اضغط للتغيير/الإعادة",
     "TITLE": "إنشاء غلاف",
     "COVER_SOURCE_TITLE": "مصدر الغلاف",
-    "TAP_TO_PREVIEW": "اضغط لعرض المعاينة",
     "MODEL_PICKER": {
       "TITLE": "اختر جهاز Kindle"
     },
@@ -102,7 +101,6 @@
     "GETTING_COVER": "جارٍ الحصول على الغلاف",
     "LOADING_PREVIEW": "جارٍ تحميل المعاينة...",
     "PLACEHOLDER": "غلاف",
-    "PREVIEW_TITLE": "الغلاف الحالي",
     "TITLE": "الأغلفة",
     "DITHERED_THUMBNAIL_NOTICE": "قد تبدو الأغلفة التي تستخدم تقليل الشوائب مختلفة في الصور المصغرة. افتح المعاينة لرؤية نتيجة أدق.",
     "ACTIONS": {
@@ -321,26 +319,6 @@
       "INFO": "معلومات",
       "APPS": "التطبيقات",
       "GUIDE": "الدليل"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

@@ -37,7 +37,7 @@
   },
   "CHANGE": {
     "ADS_REQUIRED": "å¹¿å‘ŠåŠ è½½å¤±è´¥ï¼Œè¯·æ£€æŸ¥ç½‘ç»œæˆ–å¹¿å‘Šæ‹¦æˆªå™¨ã€‚",
-    "ARIA_CHANGE_PDF": "åˆ¶ä½œ PDF æ–‡ä»¶ã€‚å½“å‰æ–‡ä»¶ï¼š{{name}}",
+    "ARIA_CHANGE_PDF": "制作 PDF 文件。当前文件：{{name}}",
     "ARIA_CHANGE_IMAGE": "制作封面图片。当前图片：{{name}}",
     "ARIA_CROP": "调整选中图片",
     "ARIA_SELECT_PDF": "选择 PDF 文件",
@@ -45,19 +45,19 @@
     "CROP_ACTION": "调整",
     "COVER_CHANGED": "封面已制作，您现在可以保存或分享",
     "CHANGE_ACTION": "制作封面",
-    "CHANGE_ACTION_REWARDED": "åˆ¶ä½œå°é¢ï¼ˆè§‚çœ‹å¹¿å‘Šï¼‰",
+    "CHANGE_ACTION_REWARDED": "制作封面（观看广告）",
     "GENERATING": "正在更新封面…",
     "HINT_SAVE_SHARE_EXPLAIN": "制作封面不会自动保存。",
     "INFO": "信息",
     "INFO_ARIA": "关于制作封面的信息",
     "INFO_TITLE": "信息",
-    "INFO_FLOW_LABEL": "å»ºè®®é¡ºåºï¼š",
+    "INFO_FLOW_LABEL": "建议顺序：",
     "INFO_STEP_1": "选择 PDF。",
     "INFO_STEP_1_1": "1.1. 原始封面将预先加载。",
-    "INFO_STEP_1_2": "1.2. åˆ¶ä½œå›¾ç‰‡æˆ–ä¿ç•™åŽŸå§‹å›¾ç‰‡ã€‚",
+    "INFO_STEP_1_2": "1.2. 制作图片或保留原始图片。",
     "INFO_STEP_2": "在编辑器中调整图片。",
     "INFO_STEP_3": "观看广告以保存封面。",
-    "INFO_STEP_4": "ä¿å­˜æˆ–åˆ†äº«ã€‚",
+    "INFO_STEP_4": "保存或分享。",
     "IMAGE_ERROR_CORRUPT": "无法读取图片，请尝试其他图片。",
     "IMAGE_ERROR_SIZE": "æ–‡ä»¶è¿‡å¤§ï¼Œæœ€å¤§ {{maxSize}} MBã€‚",
     "IMAGE_ERROR_TYPE": "不支持的格式（{{type}}），请选择 JPG、PNG 或 WebP。",
@@ -111,7 +111,6 @@
     "INVALID_COVER_TAP_TO_CHANGE": "无效封面，点击制作",
     "TAP_TO_CHANGE": "点击制作/重置",
     "TAP_TO_CHANGE_IMAGE": "ç‚¹å‡»åˆ¶ä½œ",
-    "TAP_TO_PREVIEW": "ç‚¹å‡»æŸ¥çœ‹é¢„è§ˆ",
     "LONGPRESS_PREVIEW_HINT": "é•¿æŒ‰é¢„è§ˆ",
     "TITLE": "制作封面",
     "PREVIEW_ORIGINAL_LABEL": "原始封面",
@@ -128,7 +127,6 @@
     "LOADING_PREVIEW": "æ­£åœ¨åŠ è½½é¢„è§ˆ...",
     "PLACEHOLDER": "PDF",
     "PREVIEW_UNAVAILABLE": "预览不可用。",
-    "PREVIEW_TITLE": "当前封面",
     "TITLE": "æˆ‘çš„ PDF",
     "DITHERED_THUMBNAIL_NOTICE": "启用伪影减少的封面在缩略图中可能看起来不同。请打开预览查看更准确的效果。",
     "ACTIONS": {
@@ -143,9 +141,9 @@
     },
     "ERROR": {
       "DELETE": "无法删除 PDF，请重试。",
-      "SHARE": "æ— æ³•åˆ†äº« PDFï¼Œè¯·é‡è¯•ã€‚",
+      "SHARE": "无法分享 PDF，请重试。",
       "LOAD": "æ— æ³•åŠ è½½æ‚¨çš„ PDFï¼Œè¯·ä¸‹æ‹‰åˆ·æ–°ã€‚",
-      "PREVIEW": "æ— æ³•åŠ è½½é¢„è§ˆï¼Œè¯·é‡è¯•ã€‚",
+      "PREVIEW": "无法加载预览，请重试。",
       "OPEN": "无法打开 PDF。请重试。",
       "OPEN_PROJECT": "无法打开项目。请重试。"
     },
@@ -164,7 +162,7 @@
     "STEP_4_DESC": "准备好后，您可以将其保存到设备，或直接通过 Kindle 应用分享。",
     "STEP_5": "通过网页发送（Send to Kindle）",
     "STEP_5_DESC": "您也可以在浏览器中使用 Send to Kindle 网页工具发送。",
-    "TIP": "ä¸ºèŽ·å¾—æœ€ä½³æ•ˆæžœï¼Œè¯·ä½¿ç”¨é«˜åˆ†è¾¨çŽ‡å›¾ç‰‡ï¼Œå¹¶ç¡®ä¿ Kindle è®¾å¤‡ä¸Šçš„å¹¿å‘Šå·²ç¦ç”¨ã€‚",
+    "TIP": "为获得最佳效果，请使用高分辨率图片，并确保 Kindle 设备上的广告已禁用。",
     "TITLE": "使用说明"
   },
   "HOME_TOUR": {
@@ -232,26 +230,6 @@
       "INFO": "信息",
       "APPS": "åº”ç”¨",
       "GUIDE": "指南"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

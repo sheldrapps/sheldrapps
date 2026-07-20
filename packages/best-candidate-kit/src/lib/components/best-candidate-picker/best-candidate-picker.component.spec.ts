@@ -49,7 +49,7 @@ describe('BestCandidatePickerComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('empty');
   });
 
-  it('emits selected candidate on pointer up', () => {
+  it('emits selected candidate on click', () => {
     const emitSpy = spyOn(component.candidateSelected, 'emit');
     component.candidates = [
       {
@@ -60,7 +60,7 @@ describe('BestCandidatePickerComponent', () => {
     ];
 
     fixture.detectChanges();
-    component.onCandidatePointerUp(component.candidates[0].image);
+    component.onCandidateClick(component.candidates[0].image, new Event('click'));
 
     expect(emitSpy).toHaveBeenCalledWith(component.candidates[0].image);
   });
@@ -77,8 +77,28 @@ describe('BestCandidatePickerComponent', () => {
     ];
 
     fixture.detectChanges();
-    component.onCandidatePointerUp(component.candidates[0].image);
+    component.onCandidateClick(component.candidates[0].image, new Event('click'));
 
     expect(emitSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('BestCandidatePickerComponent built-in i18n', () => {
+  it('renders kit translations without host-provided strings', async () => {
+    await TestBed.resetTestingModule()
+      .configureTestingModule({
+        imports: [BestCandidatePickerComponent, TranslateModule.forRoot()],
+      })
+      .compileComponents();
+
+    const fixture = TestBed.createComponent(BestCandidatePickerComponent);
+    const translate = TestBed.inject(TranslateService);
+    translate.use('en-US');
+
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('No cover candidates found');
+    expect(text).not.toContain('BEST_CANDIDATE.EMPTY.TITLE');
   });
 });

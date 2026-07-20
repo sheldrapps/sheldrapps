@@ -43,7 +43,7 @@
     "ARIA_SELECT_EPUB": "EPUB 파일 선택",
     "ARIA_SELECT_IMAGE": "표지 이미지 선택",
     "CROP_ACTION": "조정",
-    "COVER_CHANGED": "í‘œì§€ê°€ ë³€ê²½ë˜ì—ˆìŠµë‹ˆë‹¤. ì´ì œ ì €ìž¥í•˜ê±°ë‚˜ ê³µìœ í•  ìˆ˜ ìžˆìŠµë‹ˆë‹¤",
+    "COVER_CHANGED": "표지가 변경되었습니다. 이제 저장하거나 공유할 수 있습니다",
     "CHANGE_ACTION": "표지 변경",
     "CHANGE_ACTION_REWARDED": "표지 변경 (광고 보기)",
     "GENERATING": "표지 업데이트 중…",
@@ -93,7 +93,6 @@
     "INVALID_COVER_TAP_TO_CHANGE": "유효하지 않은 표지입니다. 탭하여 변경하세요",
     "TAP_TO_CHANGE": "탭하여 변경/초기화",
     "TAP_TO_CHANGE_IMAGE": "탭하여 변경",
-    "TAP_TO_PREVIEW": "탭하여 미리보기",
     "LONGPRESS_PREVIEW_HINT": "길게 눌러 미리보기",
     "TITLE": "표지 변경",
     "PREVIEW_ORIGINAL_LABEL": "원본 표지",
@@ -110,7 +109,6 @@
     "LOADING_PREVIEW": "미리보기를 불러오는 중...",
     "PLACEHOLDER": "EPUB",
     "PREVIEW_UNAVAILABLE": "미리보기를 사용할 수 없습니다.",
-    "PREVIEW_TITLE": "í˜„ìž¬ í‘œì§€",
     "TITLE": "내 EPUB",
     "DITHERED_THUMBNAIL_NOTICE": "아티팩트 감소가 적용된 표지는 썸네일에서 다르게 보일 수 있습니다. 더 정확한 결과는 미리보기에서 확인하세요.",
     "ACTIONS": {
@@ -125,8 +123,8 @@
     },
     "ERROR": {
       "DELETE": "EPUB을 삭제할 수 없습니다. 다시 시도해 주세요.",
-      "SHARE": "EPUBì„ ê³µìœ í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”.",
-      "LOAD": "EPUBì„ ë¶ˆëŸ¬ì˜¬ ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ì•„ëž˜ë¡œ ë‹¹ê²¨ ìƒˆë¡œ ê³ ì¹¨í•˜ì„¸ìš”.",
+      "SHARE": "EPUB을 공유할 수 없습니다. 다시 시도해 주세요.",
+      "LOAD": "EPUB을 불러올 수 없습니다. 아래로 당겨 새로 고침하세요.",
       "PREVIEW": "미리보기를 불러올 수 없습니다. 다시 시도해 주세요.",
       "OPEN": "EPUB을 열 수 없습니다. 다시 시도해 주세요.",
       "OPEN_PROJECT": "프로젝트를 열 수 없습니다. 다시 시도해 주세요."
@@ -210,26 +208,6 @@
       "INFO": "정보",
       "APPS": "앱",
       "GUIDE": "가이드"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

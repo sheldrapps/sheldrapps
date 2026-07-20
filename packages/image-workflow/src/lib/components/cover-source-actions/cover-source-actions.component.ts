@@ -24,6 +24,7 @@ export class CoverSourceActionsComponent {
   @Input() scratchHidden = false;
   @Input() tourId: string | null = "cover-source-actions";
   @Input() titleKey: string | null = null;
+  @Input() showTitle = true;
   @Input() suggestedAction: "image" | "scratch" | null = null;
   @Input() suggestedActions: Array<"image" | "scratch"> = [];
 

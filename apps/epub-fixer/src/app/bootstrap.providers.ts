@@ -1,7 +1,6 @@
 import { type EnvironmentProviders, type Provider } from '@angular/core';
 
 import { provideI18nKit } from '@sheldrapps/i18n-kit';
-import { provideEReaderPreviewFrameI18n } from '@sheldrapps/image-workflow';
 import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
 import { provideRatingKit } from '@sheldrapps/rating-kit';
 import {
@@ -74,7 +73,6 @@ export async function createBootstrapProviders(): Promise<
         ru: 'ru-RU',
       },
     }),
-    provideEReaderPreviewFrameI18n(),
     provideUiThemeI18n(),
     providePrivacyPolicyKitI18n(),
     provideAdFallbackKitI18n(),

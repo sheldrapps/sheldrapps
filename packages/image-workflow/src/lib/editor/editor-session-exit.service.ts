@@ -32,13 +32,13 @@ export class EditorSessionExitService {
 
     this.history.resetSession();
     this.allowNextExitOnce();
-    this.navCtrl.navigateRoot(this.getExitUrl(), { replaceUrl: true });
+    void this.navCtrl.navigateBack(this.getExitUrl());
     return true;
   }
 
   exitAfterDone(): void {
     this.allowNextExitOnce();
-    this.navCtrl.navigateRoot(this.getExitUrl(), { replaceUrl: true });
+    void this.navCtrl.navigateBack(this.getExitUrl());
   }
 
   async canExitEditor(): Promise<boolean> {
@@ -97,4 +97,5 @@ export class EditorSessionExitService {
     if (candidate.startsWith("/tabs/")) return candidate;
     return "/tabs/create";
   }
+
 }

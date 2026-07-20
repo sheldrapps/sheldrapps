@@ -81,6 +81,26 @@
   "HOME": {
     "WHAT_DO_YOU_WANT_TO_DO": "¿Qué deseas hacer?",
     "MERGE": "Unir",
-    "SPLIT": "Dividir"
+    "SPLIT": "Dividir",
+    "MERGING_TITLE": "Uniendo",
+    "SPLITTING_TITLE": "Dividiendo",
+    "EPUB_FILES_TITLE": "Archivos EPUB",
+    "EPUB_FILE_TITLE": "Archivo EPUB",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "Selecciona archivos EPUB",
+    "ADD_ANOTHER_EPUB_FILE": "Añadir otro archivo EPUB",
+    "FILES_SELECTED": "{{count}} archivos listos",
+    "ARIA_ADD_EPUB_FILE": "Añadir otro archivo EPUB",
+    "ARIA_SELECT_EPUB_FILES": "Selecciona archivos EPUB",
+    "SELECT_EPUB_PLACEHOLDER": "Selecciona un archivo EPUB",
+    "TAP_TO_CHANGE": "Toca para cambiarlo",
+    "ARIA_CHANGE_EPUB": "Cambiar archivo EPUB {{name}}",
+    "ARIA_SELECT_EPUB": "Selecciona un archivo EPUB",
+    "INPUT_ERROR_SIZE": "El EPUB seleccionado es demasiado grande.",
+    "INPUT_ERROR_STORAGE": "No hay suficiente espacio para preparar este EPUB.",
+    "INPUT_ERROR_CORRUPT": "No se pudo preparar este EPUB. Prueba con otro archivo.",
+    "EXPORT_ORDER_TITLE": "Orden de exportación",
+    "COVER_SELECTOR_TITLE": "Selector de portada",
+    "BEST_CANDIDATES_TITLE": "Sugerencias desde tus EPUBS",
+    "ADJUST_COVER": "Ajustar portada"
   }
 }

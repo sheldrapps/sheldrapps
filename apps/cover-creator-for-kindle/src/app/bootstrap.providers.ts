@@ -7,10 +7,8 @@ import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
 import {
   provideCoverImageStateI18n,
   provideCoverSourceI18n,
-  provideEReaderPreviewFrameI18n,
 } from '@sheldrapps/image-workflow';
 import { provideEditorI18n } from '@sheldrapps/image-workflow/editor';
-import { provideExportQualityKitI18n } from '@sheldrapps/export-quality-kit';
 import { provideAdFallbackKitI18n } from '@sheldrapps/ad-fallback-kit';
 import { provideAdsKitI18n } from '@sheldrapps/ads-kit';
 import { provideAdsKit } from '@sheldrapps/ads-kit';
@@ -24,6 +22,7 @@ import {
 import { provideFileKit } from '@sheldrapps/file-kit';
 import { provideRatingKit } from '@sheldrapps/rating-kit';
 import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
+import { provideUiThemeI18n } from '@sheldrapps/ui-theme';
 import {
   ADS_UNITS_ANDROID_PROD,
   ADS_UNITS_ANDROID_TEST,
@@ -78,12 +77,11 @@ export function createBootstrapProviders(): Array<Provider | EnvironmentProvider
       },
     ),
     providePrivacyPolicyKitI18n(),
-    provideExportQualityKitI18n(),
     provideAdFallbackKitI18n(),
     provideAdsKitI18n(),
+    provideUiThemeI18n(),
     provideCoverImageStateI18n(),
     provideCoverSourceI18n(),
-    provideEReaderPreviewFrameI18n(),
     provideEditorI18n(),
     provideSettingsKit({
       appId: 'ccfk',

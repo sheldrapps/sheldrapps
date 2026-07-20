@@ -41,6 +41,12 @@
         "../../packages/covers-list-kit/src/public-api.ts"
       ],
       "@sheldrapps/file-kit": ["../../packages/file-kit/src/public-api.ts"],
+      "@sheldrapps/export-quality-kit": [
+        "../../packages/export-quality-kit/src/public-api.ts"
+      ],
+      "@sheldrapps/best-candidate-kit": [
+        "../../packages/best-candidate-kit/src/public-api.ts"
+      ],
       "@sheldrapps/image-workflow": [
         "../../packages/image-workflow/src/public-api.ts"
       ],

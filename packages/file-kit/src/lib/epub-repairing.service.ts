@@ -90,7 +90,8 @@ const ISSUE_TO_CASE_IDS: Record<EpubDiagnosticIssueCode, string[]> = {
   SMIL_MISSING: ['MED-SMIL-001'],
   SPINE_EMPTY: ['CRIT-OPF-005'],
   SPINE_ITEM_INVALID: ['CRIT-SPINE-001'],
-  ZIP_UNREADABLE: ['CRIT-ZIP-001', 'CRIT-ZIP-002'],
+  ZIP_UNREADABLE: ['CRIT-ZIP-001'],
+  ZIP_CENTRAL_DIRECTORY_TRUNCATED: ['CRIT-ZIP-002'],
 };
 
 @Injectable({ providedIn: 'root' })

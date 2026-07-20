@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import {
   EpubPublicStore,
@@ -35,6 +36,8 @@ export class EpubLibraryService {
 
   private readonly epubStore = new EpubPublicStore(this.fileKit, {
     epubFolder: 'EPUBFixer',
+    useDocumentsDirectoryOnNative: true,
+    nativeDirectory: Directory.Data,
     logPrefix: 'EF:library',
   });
   private readonly previewThumbFolder = 'EPUBFixerThumbs';
@@ -52,9 +55,10 @@ export class EpubLibraryService {
     const filename = this.ensureEpubFilename(outputName);
     const bytes = await this.readExportBytes(sourceUri);
     await this.epubStore.writeEpub(filename, bytes);
-    await this.deletePersistedPreviewAsset(filename);
     this.previewCache.delete(filename);
-    await this.refreshPreviewAsset(filename).catch(() => void 0);
+    void this.deletePersistedPreviewAsset(filename)
+      .then(() => this.refreshPreviewAsset(filename))
+      .catch(() => void 0);
   }
 
   async loadGeneratedEpubByFilename(

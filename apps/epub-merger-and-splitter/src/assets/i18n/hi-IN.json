@@ -47,11 +47,11 @@
     "DELETE_TITLE": "EPUB हटाएँ?",
     "DELETE_MESSAGE": "यह EPUB मेरे EPUBs से हटा दिया जाएगा।",
     "DELETED": "EPUB हटाया गया",
-    "ERROR.LOAD": "???? EPUB ????????? ??? ???? ?? ?? ????",
-    "ERROR.PREVIEW": "??????????? ??? ???? ???? ?? ????",
-    "ERROR.OPEN": "EPUB ???? ???? ?? ????",
-    "ERROR.SHARE": "EPUB ???? ???? ???? ?? ????",
-    "ERROR.DELETE": "EPUB ????? ???? ?? ????",
+    "ERROR.LOAD": "आपकी EPUB लाइब्रेरी लोड नहीं हो सकी।",
+    "ERROR.PREVIEW": "पूर्वावलोकन लोड नहीं हो सका।",
+    "ERROR.OPEN": "EPUB खोला नहीं जा सका।",
+    "ERROR.SHARE": "EPUB साझा नहीं किया जा सका।",
+    "ERROR.DELETE": "EPUB हटाया नहीं जा सका।",
     "ERROR": "त्रुटि",
     "EMPTY_TITLE": "अभी कोई EPUB नहीं",
     "EMPTY_BODY": "आपके EPUBs यहाँ दिखेंगे जब आप उन्हें जोड़ेंगे।"
@@ -81,6 +81,32 @@
   "HOME": {
     "WHAT_DO_YOU_WANT_TO_DO": "आप क्या करना चाहते हैं?",
     "MERGE": "मर्ज",
-    "SPLIT": "स्प्लिट"
+    "SPLIT": "स्प्लिट",
+    "MERGING_TITLE": "मर्ज किया जा रहा है",
+    "SPLITTING_TITLE": "विभाजित किया जा रहा है",
+    "EPUB_FILES_TITLE": "EPUB फ़ाइलें",
+    "EPUB_FILE_TITLE": "EPUB फ़ाइल",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "EPUB फ़ाइलें चुनें",
+    "ADD_ANOTHER_EPUB_FILE": "एक और EPUB फ़ाइल जोड़ें",
+    "FILES_SELECTED": "{{count}} फ़ाइलें तैयार हैं",
+    "ARIA_ADD_EPUB_FILE": "एक और EPUB फ़ाइल जोड़ें",
+    "ARIA_SELECT_EPUB_FILES": "EPUB फ़ाइलें चुनें",
+    "SELECT_EPUB_PLACEHOLDER": "EPUB फ़ाइल चुनें",
+    "TAP_TO_CHANGE": "बदलने के लिए टैप करें",
+    "ARIA_CHANGE_EPUB": "EPUB फ़ाइल {{name}} बदलें",
+    "ARIA_SELECT_EPUB": "EPUB फ़ाइल चुनें",
+    "INPUT_ERROR_SIZE": "चुनी गई EPUB फ़ाइल बहुत बड़ी है।",
+    "INPUT_ERROR_STORAGE": "इस EPUB फ़ाइल को तैयार करने के लिए पर्याप्त संग्रहण स्थान नहीं है।",
+    "INPUT_ERROR_CORRUPT": "इस EPUB फ़ाइल को तैयार नहीं किया जा सका। कोई दूसरी फ़ाइल आज़माएँ।",
+    "EXPORT_ORDER_TITLE": "निर्यात क्रम",
+    "COVER_SELECTOR_TITLE": "कवर चयनक",
+    "BEST_CANDIDATES_TITLE": "???? EPUB ?? ?????",
+    "ADJUST_COVER": "??? ???????? ????"
+  },
+  "TOC_OPTIONS": {
+    "TITLE": "विषय-सूची के साथ क्या करना है?",
+    "BOOKS_AND_CHAPTERS": "पुस्तकें और अध्याय",
+    "BOOKS_ONLY": "केवल पुस्तकें",
+    "FULL_INDEX": "पूर्ण अनुक्रमणिका"
   }
 }

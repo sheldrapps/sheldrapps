@@ -81,6 +81,32 @@
   "HOME": {
     "WHAT_DO_YOU_WANT_TO_DO": "O que você quer fazer?",
     "MERGE": "Juntar",
-    "SPLIT": "Dividir"
+    "SPLIT": "Dividir",
+    "MERGING_TITLE": "Unindo",
+    "SPLITTING_TITLE": "Dividindo",
+    "EPUB_FILES_TITLE": "Arquivos EPUB",
+    "EPUB_FILE_TITLE": "Arquivo EPUB",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "Selecionar arquivos EPUB",
+    "ADD_ANOTHER_EPUB_FILE": "Adicionar outro arquivo EPUB",
+    "FILES_SELECTED": "{{count}} arquivos prontos",
+    "ARIA_ADD_EPUB_FILE": "Adicionar outro arquivo EPUB",
+    "ARIA_SELECT_EPUB_FILES": "Selecionar arquivos EPUB",
+    "SELECT_EPUB_PLACEHOLDER": "Selecionar arquivo EPUB",
+    "TAP_TO_CHANGE": "Toque para alterar",
+    "ARIA_CHANGE_EPUB": "Alterar arquivo EPUB {{name}}",
+    "ARIA_SELECT_EPUB": "Selecionar arquivo EPUB",
+    "INPUT_ERROR_SIZE": "O arquivo EPUB selecionado é grande demais.",
+    "INPUT_ERROR_STORAGE": "Não há espaço de armazenamento suficiente para preparar este arquivo EPUB.",
+    "INPUT_ERROR_CORRUPT": "Não foi possível preparar este arquivo EPUB. Tente outro arquivo.",
+    "EXPORT_ORDER_TITLE": "Ordem de exportação",
+    "COVER_SELECTOR_TITLE": "Seletor de capa",
+    "BEST_CANDIDATES_TITLE": "Sugestões dos seus EPUBs",
+    "ADJUST_COVER": "Ajustar capa"
+  },
+  "TOC_OPTIONS": {
+    "TITLE": "O que fazer com o índice?",
+    "BOOKS_AND_CHAPTERS": "Livros e capítulos",
+    "BOOKS_ONLY": "Somente livros",
+    "FULL_INDEX": "Índice completo"
   }
 }

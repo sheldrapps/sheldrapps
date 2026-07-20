@@ -3,13 +3,15 @@ import {
   ChangeDetectionStrategy,
   Component,
   EventEmitter,
+  inject,
   Input,
   Output,
 } from '@angular/core';
 import { IonCard, IonSpinner } from '@ionic/angular/standalone';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BestCandidateImage, BestCandidateHint } from '../../models/best-candidate-image.model';
 import { BestCandidateResult } from '../../models/best-candidate-score.model';
+import { registerBestCandidateKitTranslations } from '../../translations/best-candidate-kit-i18n';
 
 @Component({
   selector: 'best-candidate-picker',
@@ -20,6 +22,8 @@ import { BestCandidateResult } from '../../models/best-candidate-score.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BestCandidatePickerComponent {
+  private readonly translate = inject(TranslateService);
+
   @Input() candidates: BestCandidateResult[] = [];
   @Input() loading = false;
   @Input() disabled = false;
@@ -34,7 +38,12 @@ export class BestCandidatePickerComponent {
 
   private pressTimer: ReturnType<typeof setTimeout> | null = null;
   private longPressTriggered = false;
+  private suppressNextClick = false;
   private readonly LONG_PRESS_MS = 420;
+
+  constructor() {
+    registerBestCandidateKitTranslations(this.translate);
+  }
 
   get limitedCandidates(): BestCandidateResult[] {
     return this.candidates.slice(0, 3);
@@ -44,27 +53,39 @@ export class BestCandidatePickerComponent {
     if (this.disabled || !this.enableLongPressPreview) return;
     this.clearLongPressTimer();
     this.longPressTriggered = false;
+    this.suppressNextClick = false;
     this.pressTimer = setTimeout(() => {
       this.longPressTriggered = true;
+      this.suppressNextClick = true;
       this.candidatePreviewRequested.emit(candidate);
     }, this.LONG_PRESS_MS);
   }
 
-  onCandidatePointerUp(candidate: BestCandidateImage): void {
+  onCandidatePointerUp(): void {
     if (this.disabled) return;
-    // Capture state before clearing to avoid race condition with the timeout callback
-    const wasLongPress = this.longPressTriggered;
     this.clearLongPressTimer();
-    // Emit selection only if this wasn't a long press
-    if (!wasLongPress) {
-      this.candidateSelected.emit(candidate);
-    }
-    this.longPressTriggered = false;
   }
 
   onCandidatePointerCancel(): void {
+    const wasLongPress = this.longPressTriggered;
     this.clearLongPressTimer();
     this.longPressTriggered = false;
+    if (!wasLongPress) {
+      this.suppressNextClick = false;
+    }
+  }
+
+  onCandidateClick(candidate: BestCandidateImage, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.disabled) return;
+
+    if (this.suppressNextClick) {
+      this.suppressNextClick = false;
+      return;
+    }
+
+    this.candidateSelected.emit(candidate);
   }
 
   requestPreview(candidate: BestCandidateImage, event: Event): void {

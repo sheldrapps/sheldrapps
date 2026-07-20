@@ -18,6 +18,14 @@ type ListingAttempt = {
 
 export type EpubPublicStoreOptions = {
   epubFolder: string;
+  /**
+   * Android's shared public Documents path is not writable through the
+   * Capacitor Filesystem API under scoped storage. Use the app Documents
+   * directory with a relative path for stores that own their files.
+   */
+  useDocumentsDirectoryOnNative?: boolean;
+  /** Physical Capacitor directory used by the relative store mode. */
+  nativeDirectory?: Directory;
   publicDocumentsRoot?: string;
   publicDocumentsRoots?: string[];
   debug?: boolean;
@@ -28,7 +36,8 @@ export class EpubPublicStore {
   private readonly publicDocumentsRoots: string[];
   private readonly debug: boolean;
   private readonly logPrefix: string;
-  private readonly useDocumentsDirectory = !Capacitor.isNativePlatform();
+  private readonly useDocumentsDirectory: boolean;
+  private readonly storageDirectory: Directory;
   private hasMigratedDocumentsToPublic = false;
   private activePublicDocumentsRoot: string;
 
@@ -36,6 +45,10 @@ export class EpubPublicStore {
     private readonly fileKit: FileKitService,
     private readonly options: EpubPublicStoreOptions,
   ) {
+    this.useDocumentsDirectory =
+      !Capacitor.isNativePlatform() ||
+      !!options.useDocumentsDirectoryOnNative;
+    this.storageDirectory = options.nativeDirectory ?? Directory.Documents;
     this.publicDocumentsRoots = this.resolvePublicDocumentsRoots(options);
     this.activePublicDocumentsRoot = this.publicDocumentsRoots[0];
     this.debug = !!options.debug;
@@ -148,7 +161,7 @@ export class EpubPublicStore {
     await Filesystem.writeFile(
       this.useDocumentsDirectory
         ? {
-            directory: Directory.Documents,
+            directory: this.storageDirectory,
             path: targetPath,
             data: this.fileKit.toBase64(bytes),
             recursive: true,
@@ -266,7 +279,7 @@ export class EpubPublicStore {
       try {
         await Filesystem.mkdir({
           path: this.options.epubFolder,
-          directory: Directory.Documents,
+          directory: this.storageDirectory,
           recursive: true,
         });
       } catch {
@@ -390,7 +403,7 @@ export class EpubPublicStore {
         {
           source: 'documents-directory',
           path: this.options.epubFolder,
-          directory: Directory.Documents,
+          directory: this.storageDirectory,
         },
       ];
     }
@@ -519,7 +532,7 @@ export class EpubPublicStore {
       path === this.options.epubFolder ||
       path.startsWith(`${this.options.epubFolder}/`)
     ) {
-      return { path, directory: Directory.Documents };
+      return { path, directory: this.storageDirectory };
     }
 
     return { path };
@@ -534,7 +547,7 @@ export class EpubPublicStore {
     if (isDocumentsPath) {
       const result = await Filesystem.getUri({
         path,
-        directory: Directory.Documents,
+        directory: this.storageDirectory,
       });
       return result.uri;
     }

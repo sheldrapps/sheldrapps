@@ -85,7 +85,6 @@
     "TAP_TO_CHANGE": "點擊以更換／重設",
     "TITLE": "建立封面",
     "COVER_SOURCE_TITLE": "封面來源",
-    "TAP_TO_PREVIEW": "點擊查看預覽",
     "MODEL_PICKER": {
       "TITLE": "選擇您的 Kindle"
     },
@@ -102,7 +101,6 @@
     "GETTING_COVER": "正在取得封面",
     "LOADING_PREVIEW": "正在載入預覽...",
     "PLACEHOLDER": "封面",
-    "PREVIEW_TITLE": "目前封面",
     "TITLE": "封面",
     "DITHERED_THUMBNAIL_NOTICE": "套用瑕疵減少的封面在縮圖中可能看起來不同。請開啟預覽以查看更準確的結果。",
     "ACTIONS": {
@@ -321,26 +319,6 @@
       "INFO": "資訊",
       "APPS": "應用程式",
       "GUIDE": "指南"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

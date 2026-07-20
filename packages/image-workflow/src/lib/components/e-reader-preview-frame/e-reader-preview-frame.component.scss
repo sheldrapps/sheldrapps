@@ -295,6 +295,11 @@
   backdrop-filter: blur(10px);
 }
 
+.ereader-preview__controls-title {
+  margin-bottom: 0;
+  text-align: left;
+}
+
 .ereader-preview__color-button {
   min-height: var(--app-touch-target);
   border: 1px solid var(--app-divider);

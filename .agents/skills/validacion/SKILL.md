@@ -65,18 +65,30 @@ Si todo pasa en lint/test/build:
   - asserts para contratos públicos,
   - validaciones de i18n donde aplique.
 
-Objetivo: el cambio no debe quedar solo “verde”, debe quedar protegido ante regresiones futuras.
+Objetivo: el cambio no debe quedar solo "verde", debe quedar protegido ante regresiones futuras.
 
 ## Reglas específicas para UI/strings
 
 Si se modificó UI o textos:
 
 1. Verificar que las traducciones existan en todos los idiomas soportados por la app host.
-2. Ejecutar checks anti-corrupción (mojibake/encoding) en `apps/*/src/assets/i18n/*.json`:
-   - sin reemplazo `?` dentro de palabras: `[A-Za-zÀ-ÿ]\?[A-Za-zÀ-ÿ]`
-   - sin mojibake: `Ã|Â|�`
-   - sin escapes unicode en values: `\\u[0-9a-fA-F]{4}`
-3. Si falla cualquier check, corregir antes de cerrar.
+2. Ejecutar primero los mecanismos ya existentes:
+   - `pnpm sync:i18n:check`
+   - `pnpm text-integrity --changed`
+   - o `pnpm text-integrity --staged` si el flujo es de staging
+3. Recordar siempre:
+   - UTF-8 válido no implica texto sano
+   - mojibake válido como `ConfiguraciÃ³n` o `DonÃ¢â‚¬â„¢t` debe tratarse como fallo
+4. Si `text-integrity` reporta hallazgos de confianza alta:
+   - no declarar éxito
+   - mostrar sugerencias
+   - corregir y volver a ejecutar validación completa
+5. Solo ejecutar `pnpm text-integrity --fix` cuando el usuario o la tarea lo pidan explícitamente.
+6. Después de cualquier reparación:
+   - volver a correr `pnpm sync:i18n:check`
+   - volver a correr `pnpm text-integrity --changed` o `--staged`
+   - verificar que JSON/XML sigan siendo válidos
+7. Está prohibido "arreglar" mojibake con reemplazos globales manuales de `Ãƒ`, `Ã‚` o `Ã¢`.
 
 ## Definition Of Done (skill)
 

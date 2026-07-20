@@ -26,6 +26,13 @@ export const routes: Routes = [
       import('./pages/covers/covers.page').then((m) => m.CoversPage),
   },
   {
+    path: 'preview-editing',
+    loadComponent: () =>
+      import('@sheldrapps/image-workflow').then(
+        (m) => m.PreviewEditingPageComponent,
+      ),
+  },
+  {
     path: 'recommended-apps',
     data: {
       backHref: '/tabs/create',

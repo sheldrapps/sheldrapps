@@ -85,7 +85,6 @@
     "TAP_TO_CHANGE": "Antippen zum Ändern/Zurücksetzen",
     "TITLE": "Cover erstellen",
     "COVER_SOURCE_TITLE": "Cover-Quelle",
-    "TAP_TO_PREVIEW": "Zum Anzeigen tippen",
     "MODEL_PICKER": {
       "TITLE": "Wähle dein Kindle"
     },
@@ -102,7 +101,6 @@
     "GETTING_COVER": "Cover wird geladen",
     "LOADING_PREVIEW": "Vorschau wird geladen...",
     "PLACEHOLDER": "Cover",
-    "PREVIEW_TITLE": "Aktuelles Cover",
     "TITLE": "Cover",
     "DITHERED_THUMBNAIL_NOTICE": "Cover mit Artefaktreduzierung können in Miniaturansichten anders wirken. Öffne die Vorschau, um ein genaueres Ergebnis zu sehen.",
     "ACTIONS": {
@@ -321,26 +319,6 @@
       "INFO": "Info",
       "APPS": "Apps",
       "GUIDE": "Anleitung"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

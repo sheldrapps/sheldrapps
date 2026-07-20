@@ -82,7 +82,6 @@
     "SELECT_IMAGE_PLACEHOLDER": "Selecione uma imagem",
     "TAP_TO_CHANGE": "Toque para alterar/redefinir",
     "TAP_TO_CHANGE_IMAGE": "Toque para alterar",
-    "TAP_TO_PREVIEW": "Toque para ver a prévia",
     "LONGPRESS_PREVIEW_HINT": "Toque e segure para visualizar",
     "TITLE": "Alterar capa",
     "INVALID_COVER_TAP_TO_CHANGE": "Invalid cover, tap to change",
@@ -107,7 +106,6 @@
     "DELETED": "EPUB excluído",
     "EMPTY": "Nenhuma capa encontrada no app. Arquivos criados antes de reinstalar podem não aparecer devido a restrições do sistema.",
     "PLACEHOLDER": "EPUB",
-    "PREVIEW_TITLE": "Capa atual",
     "TITLE": "Meus EPUBs",
     "DITHERED_THUMBNAIL_NOTICE": "Capas com redução de artefatos podem parecer diferentes nas miniaturas. Abra a visualização para ver um resultado mais fiel.",
     "ACTIONS": {
@@ -210,26 +208,6 @@
       "INFO": "Info",
       "APPS": "Apps",
       "GUIDE": "Guia"
-    }
-  },
-  "E_READER_FRAME": {
-    "COLOR_SELECTOR": {
-      "TITLE": "Frame color"
-    },
-    "BRAND": {
-      "KINDLE": "Kindle",
-      "KOBO": "Kobo",
-      "GENERIC": "Generic"
-    },
-    "COLOR": {
-      "BLACK": "Black",
-      "WHITE": "White",
-      "MATCHA": "Matcha",
-      "JADE": "Jade",
-      "PINK": "Pink",
-      "METALLIC_BLACK": "Metallic Black",
-      "METALLIC_JADE": "Metallic Jade",
-      "METALLIC_PINK": "Metallic Pink"
     }
   }
 }

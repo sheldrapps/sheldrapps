@@ -47,11 +47,11 @@
     "DELETE_TITLE": "EPUB を削除しますか？",
     "DELETE_MESSAGE": "この EPUB は「マイ EPUB」から削除されます。",
     "DELETED": "EPUB を削除しました",
-    "ERROR.LOAD": "EPUB ?????????????????",
-    "ERROR.PREVIEW": "?????????????????",
-    "ERROR.OPEN": "EPUB ??????????",
-    "ERROR.SHARE": "EPUB ????????????",
-    "ERROR.DELETE": "EPUB ????????????",
+    "ERROR.LOAD": "EPUBライブラリを読み込めませんでした。",
+    "ERROR.PREVIEW": "プレビューを読み込めませんでした。",
+    "ERROR.OPEN": "EPUBを開けませんでした。",
+    "ERROR.SHARE": "EPUBを共有できませんでした。",
+    "ERROR.DELETE": "EPUBを削除できませんでした。",
     "ERROR": "エラー",
     "EMPTY_TITLE": "まだ EPUB はありません",
     "EMPTY_BODY": "追加すると EPUB がここに表示されます。"
@@ -81,6 +81,32 @@
   "HOME": {
     "WHAT_DO_YOU_WANT_TO_DO": "何をしますか？",
     "MERGE": "結合",
-    "SPLIT": "分割"
+    "SPLIT": "分割",
+    "MERGING_TITLE": "結合中",
+    "SPLITTING_TITLE": "分割中",
+    "EPUB_FILES_TITLE": "EPUBファイル",
+    "EPUB_FILE_TITLE": "EPUBファイル",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "EPUBファイルを選択",
+    "ADD_ANOTHER_EPUB_FILE": "別のEPUBファイルを追加",
+    "FILES_SELECTED": "{{count}} 件のファイルを準備完了",
+    "ARIA_ADD_EPUB_FILE": "別のEPUBファイルを追加",
+    "ARIA_SELECT_EPUB_FILES": "EPUBファイルを選択",
+    "SELECT_EPUB_PLACEHOLDER": "EPUBファイルを選択",
+    "TAP_TO_CHANGE": "タップして変更",
+    "ARIA_CHANGE_EPUB": "EPUBファイル {{name}} を変更",
+    "ARIA_SELECT_EPUB": "EPUBファイルを選択",
+    "INPUT_ERROR_SIZE": "選択したEPUBファイルが大きすぎます。",
+    "INPUT_ERROR_STORAGE": "このEPUBファイルを準備するための保存容量が不足しています。",
+    "INPUT_ERROR_CORRUPT": "このEPUBファイルを準備できませんでした。別のファイルをお試しください。",
+    "EXPORT_ORDER_TITLE": "エクスポート順",
+    "COVER_SELECTOR_TITLE": "カバー選択",
+    "BEST_CANDIDATES_TITLE": "EPUB ?????",
+    "ADJUST_COVER": "??????"
+  },
+  "TOC_OPTIONS": {
+    "TITLE": "目次をどうしますか？",
+    "BOOKS_AND_CHAPTERS": "本と章",
+    "BOOKS_ONLY": "本のみ",
+    "FULL_INDEX": "完全な目次"
   }
 }

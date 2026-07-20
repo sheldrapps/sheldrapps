@@ -348,6 +348,10 @@ export class EditorHistoryService {
     return true;
   }
 
+  flushPendingChanges(): void {
+    this.flushPending();
+  }
+
   discardPanel(): boolean {
     if (this.mode() !== "local") return false;
 
