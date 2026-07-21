@@ -258,6 +258,7 @@ function collectI18nFiles() {
     )
     .filter(
       (file) =>
+        !file.includes("apps/__tmp_text_integrity__/") &&
         !file.includes("/editor/") &&
         !file.includes("provide-") &&
         !file.includes("/build/") &&

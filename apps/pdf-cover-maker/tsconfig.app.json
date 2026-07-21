@@ -26,6 +26,7 @@
   ],
   "exclude": [
     "src/**/*.spec.ts",
+    "../../packages/privacy-policy-kit/src/**/*.spec.ts",
     "../../packages/export-quality-kit/src/**/*.spec.ts",
     "../../packages/best-candidate-kit/src/**/*.spec.ts",
     "../../packages/image-workflow/src/lib/adapters/**"

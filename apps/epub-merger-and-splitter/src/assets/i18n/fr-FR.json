@@ -102,5 +102,11 @@
     "COVER_SELECTOR_TITLE": "Sélecteur de couverture",
     "BEST_CANDIDATES_TITLE": "Suggestions issues de vos EPUB",
     "ADJUST_COVER": "Ajuster la couverture"
+  },
+  "TOC_OPTIONS": {
+    "TITLE": "Que faire de la table des matières ?",
+    "BOOKS_AND_CHAPTERS": "Livres et chapitres",
+    "BOOKS_ONLY": "Livres uniquement",
+    "FULL_INDEX": "Table des matières complète"
   }
 }

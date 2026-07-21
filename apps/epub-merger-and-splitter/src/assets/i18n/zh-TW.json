@@ -100,8 +100,8 @@
     "INPUT_ERROR_CORRUPT": "無法準備此 EPUB 檔案。請嘗試其他檔案。",
     "EXPORT_ORDER_TITLE": "匯出順序",
     "COVER_SELECTOR_TITLE": "封面選擇器",
-    "BEST_CANDIDATES_TITLE": "???? EPUB ??",
-    "ADJUST_COVER": "????"
+    "BEST_CANDIDATES_TITLE": "來自你的 EPUB 的建議",
+    "ADJUST_COVER": "調整封面"
   },
   "TOC_OPTIONS": {
     "TITLE": "如何處理目錄？",

@@ -102,5 +102,11 @@
     "COVER_SELECTOR_TITLE": "Cover selector",
     "BEST_CANDIDATES_TITLE": "Suggestions from your EPUBs",
     "ADJUST_COVER": "Adjust cover"
+  },
+  "TOC_OPTIONS": {
+    "TITLE": "What should happen to the table of contents?",
+    "BOOKS_AND_CHAPTERS": "Books and chapters",
+    "BOOKS_ONLY": "Books only",
+    "FULL_INDEX": "Full index"
   }
 }

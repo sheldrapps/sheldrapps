@@ -100,8 +100,8 @@
     "INPUT_ERROR_CORRUPT": "Не удалось подготовить этот файл EPUB. Попробуйте другой файл.",
     "EXPORT_ORDER_TITLE": "Порядок экспорта",
     "COVER_SELECTOR_TITLE": "Выбор обложки",
-    "BEST_CANDIDATES_TITLE": "??????????? ?? ????? EPUB",
-    "ADJUST_COVER": "????????? ???????"
+    "BEST_CANDIDATES_TITLE": "Предложения из ваших EPUB",
+    "ADJUST_COVER": "Настроить обложку"
   },
   "TOC_OPTIONS": {
     "TITLE": "Что делать с оглавлением?",

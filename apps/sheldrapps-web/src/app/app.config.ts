@@ -82,6 +82,13 @@ function detectBrowserLanguage(): SupportedWebLocale {
     return "en-US";
   }
 
+  const queryLanguage = normalizeLanguage(
+    new URLSearchParams(window.location.search).get("lang"),
+  );
+  if (queryLanguage) {
+    return queryLanguage;
+  }
+
   const storedLanguage = normalizeLanguage(
     window.localStorage.getItem(LANGUAGE_STORAGE_KEY),
   );

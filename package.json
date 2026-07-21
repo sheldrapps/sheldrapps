@@ -86,6 +86,8 @@
     "test": "node --experimental-strip-types --test --test-isolation=none tools/text-integrity/**/*.test.ts tools/guardrails/**/*.test.mjs tools/settings-kit/**/*.test.mjs tools/native-sqlite-kit/**/*.test.mjs packages/recommended-apps/tests/**/*.test.mjs",
     "lint": "pnpm -r lint",
     "build": "pnpm -r build",
+    "build:web": "pnpm --filter sheldrapps-web build",
+    "serve:web": "pnpm --filter sheldrapps-web serve",
     "dev:ecc": "pnpm --filter epub-cover-changer start",
     "build:ecc": "pnpm --filter epub-cover-changer build",
     "lint:ecc": "pnpm --filter epub-cover-changer lint",

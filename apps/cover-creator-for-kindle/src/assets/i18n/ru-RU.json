@@ -299,7 +299,7 @@
     "INSTRUCTIONS_HINT": "Как создать и отправить обложку для Kindle",
     "INSTRUCTIONS_SECTION": "Инструкция",
     "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
-    "EREADER_OPTIMIZATION_HINT": "Apply automatic adjustments to improve clarity on eReaders",
+    "EREADER_OPTIMIZATION_HINT": "Применяет автоматические настройки для улучшения четкости на устройствах для чтения",
     "EREADER_OPTIMIZATION_TOGGLE": "Optimize for eReader",
     "REQUISITES": "Посмотреть требования",
     "REQUISITES_HINT": "Необходимые настройки для правильной работы обложек на Kindle",

@@ -1,0 +1,41 @@
+<nav class="workflow-stepper">
+  <ol class="workflow-stepper__list">
+    @for (step of steps(); track step.id; let index = $index) {
+      <li
+        class="workflow-stepper__step"
+        [class.is-completed]="getStatus(index) === 'completed'"
+        [class.is-active]="getStatus(index) === 'active'"
+        [class.is-pending]="getStatus(index) === 'pending'"
+        [attr.aria-current]="getStatus(index) === 'active' ? 'step' : null"
+      >
+        <div class="workflow-stepper__indicator-row">
+          @if (index > 0) {
+            <span
+              class="workflow-stepper__connector"
+              [class.is-completed]="isConnectorCompleted(index)"
+              aria-hidden="true"
+            ></span>
+          }
+
+          <span class="workflow-stepper__indicator">
+            @if (getStatus(index) === 'completed') {
+              <ion-icon name="checkmark" aria-hidden="true"></ion-icon>
+            } @else {
+              {{ index + 1 }}
+            }
+          </span>
+
+          @if (index < steps().length - 1) {
+            <span
+              class="workflow-stepper__connector"
+              [class.is-completed]="isConnectorCompleted(index + 1)"
+              aria-hidden="true"
+            ></span>
+          }
+        </div>
+
+        <span class="workflow-stepper__label">{{ step.label }}</span>
+      </li>
+    }
+  </ol>
+</nav>

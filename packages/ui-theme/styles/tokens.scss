@@ -189,6 +189,22 @@
   --app-radius-md: 12px;
   --app-radius-lg: 16px;
 
+  /* Workflow stepper */
+  --sh-stepper-indicator-size: 2rem;
+  --sh-stepper-indicator-font-size: 0.875rem;
+  --sh-stepper-label-font-size: 0.75rem;
+  --sh-stepper-connector-height: 0.125rem;
+  --sh-stepper-gap: 0.5rem;
+  --sh-stepper-active-color: var(--ion-color-primary);
+  --sh-stepper-active-contrast: var(--ion-color-primary-contrast);
+  --sh-stepper-completed-color: var(--ion-color-primary);
+  --sh-stepper-completed-contrast: var(--ion-color-primary-contrast);
+  --sh-stepper-pending-color: var(--ion-color-step-300);
+  --sh-stepper-pending-contrast: var(--ion-text-color);
+  --sh-stepper-connector-completed: var(--ion-color-primary);
+  --sh-stepper-connector-pending: var(--ion-color-step-300);
+  --sh-stepper-label-color: var(--ion-text-color);
+
   /* Shadow tokens */
   --app-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
   --app-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.10);

@@ -102,5 +102,11 @@
     "COVER_SELECTOR_TITLE": "Selettore copertina",
     "BEST_CANDIDATES_TITLE": "Suggerimenti dai tuoi EPUB",
     "ADJUST_COVER": "Regola copertina"
+  },
+  "TOC_OPTIONS": {
+    "TITLE": "Cosa fare con l'indice?",
+    "BOOKS_AND_CHAPTERS": "Libri e capitoli",
+    "BOOKS_ONLY": "Solo libri",
+    "FULL_INDEX": "Indice completo"
   }
 }

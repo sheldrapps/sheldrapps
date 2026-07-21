@@ -100,8 +100,8 @@
     "INPUT_ERROR_CORRUPT": "无法准备此 EPUB 文件。请尝试其他文件。",
     "EXPORT_ORDER_TITLE": "导出顺序",
     "COVER_SELECTOR_TITLE": "封面选择器",
-    "BEST_CANDIDATES_TITLE": "???? EPUB ???",
-    "ADJUST_COVER": "????"
+    "BEST_CANDIDATES_TITLE": "来自你的 EPUB 的建议",
+    "ADJUST_COVER": "调整封面"
   },
   "TOC_OPTIONS": {
     "TITLE": "如何处理目录？",

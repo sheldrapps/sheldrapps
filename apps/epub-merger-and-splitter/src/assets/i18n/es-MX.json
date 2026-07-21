@@ -102,5 +102,11 @@
     "COVER_SELECTOR_TITLE": "Selector de portada",
     "BEST_CANDIDATES_TITLE": "Sugerencias desde tus EPUBS",
     "ADJUST_COVER": "Ajustar portada"
+  },
+  "TOC_OPTIONS": {
+    "TITLE": "¿Qué hacer con el índice?",
+    "BOOKS_AND_CHAPTERS": "Libros y capítulos",
+    "BOOKS_ONLY": "Solo libros",
+    "FULL_INDEX": "Índice completo"
   }
 }

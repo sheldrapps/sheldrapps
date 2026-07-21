@@ -4,7 +4,10 @@ import { execFileSync } from "node:child_process";
 
 import { DEFAULT_TEXT_INTEGRITY_CONFIG, isExcludedByConfig, isJsonFile, isSupportedTextExtension, isXmlFile } from "./config.ts";
 import { scanTextFile } from "./detect.ts";
-import { collectUntranslatedLocaleFindings } from "./locale.ts";
+import {
+  collectSuspiciousQuestionMarkFindings,
+  collectUntranslatedLocaleFindings,
+} from "./locale.ts";
 import { formatHumanReport, toJsonReport } from "./report.ts";
 import type { OutputFormat, ScanOptions, ScanResult, TextIntegrityFinding } from "./types.ts";
 
@@ -276,7 +279,12 @@ function main(): void {
   }
 
   const localeFindings = collectUntranslatedLocaleFindings(files);
-  for (const finding of localeFindings) {
+  const suspiciousQuestionMarkFindings =
+    collectSuspiciousQuestionMarkFindings(files);
+  for (const finding of [
+    ...localeFindings,
+    ...suspiciousQuestionMarkFindings,
+  ]) {
     const result = results.find((entry) => entry.file.endsWith(finding.file));
     if (result) {
       result.findings.push(finding);

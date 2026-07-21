@@ -100,8 +100,8 @@
     "INPUT_ERROR_CORRUPT": "इस EPUB फ़ाइल को तैयार नहीं किया जा सका। कोई दूसरी फ़ाइल आज़माएँ।",
     "EXPORT_ORDER_TITLE": "निर्यात क्रम",
     "COVER_SELECTOR_TITLE": "कवर चयनक",
-    "BEST_CANDIDATES_TITLE": "???? EPUB ?? ?????",
-    "ADJUST_COVER": "??? ???????? ????"
+    "BEST_CANDIDATES_TITLE": "आपकी EPUB फ़ाइलों से सुझाव",
+    "ADJUST_COVER": "कवर समायोजित करें"
   },
   "TOC_OPTIONS": {
     "TITLE": "विषय-सूची के साथ क्या करना है?",

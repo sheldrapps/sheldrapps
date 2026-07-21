@@ -100,8 +100,8 @@
     "INPUT_ERROR_CORRUPT": "تعذر تحضير ملف EPUB هذا. جرّب ملفًا آخر.",
     "EXPORT_ORDER_TITLE": "ترتيب التصدير",
     "COVER_SELECTOR_TITLE": "محدد الغلاف",
-    "BEST_CANDIDATES_TITLE": "???????? ?? ????? EPUB ?????? ??",
-    "ADJUST_COVER": "??? ??????"
+    "BEST_CANDIDATES_TITLE": "اقتراحات من ملفات EPUB الخاصة بك",
+    "ADJUST_COVER": "ضبط الغلاف"
   },
   "TOC_OPTIONS": {
     "TITLE": "ماذا تفعل بجدول المحتويات؟",

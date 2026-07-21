@@ -1,6 +1,7 @@
 import { existsSync, globSync, readFileSync } from "node:fs";
 
 import type { TextIntegrityFinding, TextPosition } from "./types.ts";
+import { hasSuspiciousQuestionMark } from "./repair.ts";
 
 const BASE_LOCALE = "en-US";
 const ALLOWED_IDENTICAL_KEYS = new Set([
@@ -165,6 +166,49 @@ export function collectUntranslatedLocaleFindings(files: string[]): TextIntegrit
 
         findings.push(createFinding(file, text, key, value, BASE_LOCALE));
       }
+    }
+  }
+
+  return findings;
+}
+
+export function collectSuspiciousQuestionMarkFindings(
+  files: string[],
+): TextIntegrityFinding[] {
+  const findings: TextIntegrityFinding[] = [];
+
+  for (const file of files) {
+    const metadata = localeFilePath(file);
+    if (!metadata) {
+      continue;
+    }
+
+    const baseFile = `${metadata.directory}/en-US.json`;
+    if (metadata.locale === BASE_LOCALE || !existsSync(baseFile)) {
+      continue;
+    }
+
+    const baseText = readFileSync(baseFile, "utf8").replace(/^\uFEFF/u, "");
+    const text = readFileSync(file, "utf8").replace(/^\uFEFF/u, "");
+    const baseTranslations = flattenTranslations(JSON.parse(baseText));
+    const translations = flattenTranslations(JSON.parse(text));
+
+    for (const [key, value] of translations) {
+      const baseValue = baseTranslations.get(key);
+      if (
+        baseValue === undefined ||
+        !hasSuspiciousQuestionMark(value, baseValue)
+      ) {
+        continue;
+      }
+
+      const finding = createFinding(file, text, key, value, BASE_LOCALE);
+      findings.push({
+        ...finding,
+        kind: "suspicious-question-mark",
+        reason: `Question-mark replacement detected against ${BASE_LOCALE}.`,
+        pattern: key,
+      });
     }
   }
 

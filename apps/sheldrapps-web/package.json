@@ -1,0 +1,10 @@
+{
+  "name": "sheldrapps-web",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "cd ../.. && ng serve sheldrapps-web",
+    "serve": "cd ../.. && ng serve sheldrapps-web",
+    "build": "cd ../.. && ng build sheldrapps-web"
+  }
+}

@@ -4,6 +4,29 @@ import {
   type SelectableButtonListItem,
 } from '@sheldrapps/ui-theme';
 
+const PRIVACY_POLICY_LANGUAGE_PARAM = 'lang';
+
+export function buildLocalizedPrivacyPolicyUrl(
+  url: string,
+  language = typeof document !== 'undefined'
+    ? document.documentElement?.lang
+    : undefined,
+): string {
+  const normalizedUrl = url?.trim?.() ?? '';
+  const normalizedLanguage = language?.trim?.();
+  if (!normalizedUrl || !normalizedLanguage) {
+    return normalizedUrl;
+  }
+
+  try {
+    const localizedUrl = new URL(normalizedUrl);
+    localizedUrl.searchParams.set(PRIVACY_POLICY_LANGUAGE_PARAM, normalizedLanguage);
+    return localizedUrl.toString();
+  } catch {
+    return normalizedUrl;
+  }
+}
+
 @Component({
   selector: 'sh-privacy-policy-section',
   standalone: true,
@@ -35,6 +58,10 @@ export class PrivacyPolicySectionComponent {
       return;
     }
 
-    globalThis.open(this._url, '_blank', 'noopener,noreferrer');
+    globalThis.open(
+      buildLocalizedPrivacyPolicyUrl(this._url),
+      '_blank',
+      'noopener,noreferrer',
+    );
   }
 }

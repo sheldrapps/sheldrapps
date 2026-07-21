@@ -55,7 +55,7 @@
     "APPS_SECTION_BODY": "कवर, ईपीयूबी फाइलों को अनुकूलित करने और वर्कफ़्लो पढ़ने के लिए केंद्रित उपकरण।",
     "APPS": {
       "CCFK": {
-        "NAME": "Cover Creator for Kindle",
+        "NAME": "किंडल के लिए कवर क्रिएटर",
         "DESCRIPTION": "बस कुछ ही टैप में अपनी छवियों से ई-रीडर कवर बनाएं।"
       },
       "ECC": {
@@ -74,7 +74,7 @@
       },
       "EMS": {
         "NAME": "EPUB Merger & Splitter",
-        "DESCRIPTION": "Merge and split EPUB files.",
+        "DESCRIPTION": "EPUB फ़ाइलों की आम समस्याएँ जाँचें और ठीक करें",
         "BADGE": "Coming soon"
       }
     },
@@ -109,7 +109,7 @@
     "PLAY_STORE_UNAVAILABLE": "Google Play लिंक जल्द ही आ रहा है",
     "LEGAL_PCM_LINK": "गोपनीयता नीति - PDF कवर मेकर",
     "LEGAL_EPF_LINK": "गोपनीयता नीति - EPUB Fixer",
-    "LEGAL_EMS_LINK": "Privacy Policy - EPUB Merger & Splitter"
+    "LEGAL_EMS_LINK": "गोपनीयता नीति - EPUB Merger & Splitter"
   },
   "PRIVACY": {
     "CCFK": {
@@ -257,40 +257,40 @@
       "SECTION_10_BODY": "यदि इस गोपनीयता नीति के बारे में आपके कोई प्रश्न हैं, तो संपर्क करें:"
     },
     "EMS": {
-      "TITLE": "Privacy Policy - EPUB Merger & Splitter",
-      "LAST_UPDATED": "Last updated: 2026-07-12",
-      "INTRO": "EPUB Merger & Splitter (<strong>the App</strong>) is developed and maintained by <strong>Sheldrapps</strong>. This Privacy Policy explains how information is handled when you use the App.",
-      "SECTION_1_TITLE": "1. Information We Collect",
-      "SECTION_1_BODY": "The App does not require account creation and does not directly collect personally identifiable information such as your name, email address, or phone number.",
-      "SECTION_2_TITLE": "2. Files and Content",
-      "SECTION_2_ITEM_1": "Files you select are processed <strong>locally on your device</strong>.",
-      "SECTION_2_ITEM_2": "The App does <strong>not</strong> upload or store your files on external servers.",
-      "SECTION_2_ITEM_3": "Generated files remain on your device unless you explicitly share them.",
-      "SECTION_3_TITLE": "3. Advertising",
-      "SECTION_3_BODY": "The App may display ads using <strong>Google AdMob</strong>. AdMob may collect and process certain data such as device identifiers, approximate location (country/region), and ad interaction data (impressions/clicks) to deliver and measure advertising.",
-      "GOOGLE_POLICY_LABEL": "Google Privacy Policy:",
+      "TITLE": "गोपनीयता नीति - EPUB Merger & Splitter",
+      "LAST_UPDATED": "अंतिम अद्यतन: 2026-01-19",
+      "INTRO": "किंडल के लिए कवर क्रिएटर (<strong>एप्लिकेशन</strong>) का विकास और रखरखाव <strong>Sheldrapps</strong> द्वारा किया जाता है। यह गोपनीयता नीति बताती है कि जब आप ऐप का उपयोग करते हैं तो जानकारी को कैसे प्रबंधित किया जाता है।",
+      "SECTION_1_TITLE": "1. जानकारी हम एकत्रित करते हैं",
+      "SECTION_1_BODY": "ऐप को खाता निर्माण की आवश्यकता नहीं है और यह सीधे आपका नाम, ईमेल पता या फोन नंबर जैसी व्यक्तिगत पहचान योग्य जानकारी एकत्र नहीं करता है।",
+      "SECTION_2_TITLE": "2. छवियाँ और फ़ाइलें",
+      "SECTION_2_ITEM_1": "आपके द्वारा चुनी गई छवियाँ आपके डिवाइस पर <strong>स्थानीय रूप से संसाधित होती हैं</strong>।",
+      "SECTION_2_ITEM_2": "ऐप आपकी छवियों को बाहरी सर्वर पर अपलोड या संग्रहीत <strong>नहीं</strong> करता है।",
+      "SECTION_2_ITEM_3": "जेनरेट की गई फ़ाइलें आपके डिवाइस पर तब तक रहती हैं जब तक आप उन्हें स्पष्ट रूप से साझा नहीं करते।",
+      "SECTION_3_TITLE": "3. विज्ञापन",
+      "SECTION_3_BODY": "ऐप <strong>Google AdMob</strong> का उपयोग करके विज्ञापन प्रदर्शित कर सकता है। AdMob विज्ञापन देने और मापने के लिए डिवाइस पहचानकर्ता, अनुमानित स्थान (देश/क्षेत्र), और विज्ञापन इंटरैक्शन डेटा (इंप्रेशन/क्लिक) जैसे कुछ डेटा एकत्र और संसाधित कर सकता है।",
+      "GOOGLE_POLICY_LABEL": "गूगल गोपनीयता नीति:",
       "GOOGLE_POLICY_URL": "https://policies.google.com/privacy",
-      "SECTION_4_TITLE": "4. Consent (GDPR / Regional Regulations)",
-      "SECTION_4_BODY": "Where required by law (for example, in the EEA/UK/Switzerland), the App uses Google's User Messaging Platform (UMP) to request consent for personalized advertising.",
-      "SECTION_4_ITEM_1": "You can accept or decline personalized advertising.",
-      "SECTION_4_ITEM_2": "You can review or change your choices via the App's <code>Privacy options</code> (when available).",
-      "SECTION_4_ITEM_3": "If consent is not granted, ads may still be shown in a non-personalized form.",
-      "SECTION_5_TITLE": "5. Data Sharing",
-      "SECTION_5_BODY": "We do not sell personal information. Data may be processed by third-party services strictly for providing ads and complying with legal requirements.",
-      "SECTION_6_TITLE": "6. Data Security",
-      "SECTION_6_BODY": "The App processes files locally to minimize exposure. We take reasonable measures to protect information handled by the App.",
-      "SECTION_7_TITLE": "7. User Content Responsibility",
-      "SECTION_7_BODY": "You are solely responsible for the content of files and images you process through the App.",
-      "SECTION_7_ITEM_1": "The App does not analyze, validate, or monitor the content of files you process.",
-      "SECTION_7_ITEM_2": "We do not verify copyright ownership, publication rights, or licenses for any files.",
-      "SECTION_7_ITEM_3": "You must ensure you have the necessary rights and permissions for any content you process.",
-      "SECTION_7_ITEM_4": "We are not responsible for any legal issues arising from your use of copyrighted or unauthorized content.",
-      "SECTION_8_TITLE": "8. Children's Privacy",
-      "SECTION_8_BODY": "The App is not directed at children under 13. We do not knowingly collect personal data from children.",
-      "SECTION_9_TITLE": "9. Changes to This Policy",
-      "SECTION_9_BODY": "We may update this Privacy Policy from time to time. Updates will be posted on this page with a new \"Last updated\" date.",
-      "SECTION_10_TITLE": "10. Contact",
-      "SECTION_10_BODY": "If you have questions about this Privacy Policy, contact:"
+      "SECTION_4_TITLE": "4. सहमति (जीडीपीआर/क्षेत्रीय विनियम)",
+      "SECTION_4_BODY": "जहां कानून द्वारा आवश्यक हो (उदाहरण के लिए, ईईए/यूके/स्विट्जरलैंड में), ऐप वैयक्तिकृत विज्ञापन के लिए सहमति का अनुरोध करने के लिए Google के उपयोगकर्ता मैसेजिंग प्लेटफ़ॉर्म (यूएमपी) का उपयोग करता है।",
+      "SECTION_4_ITEM_1": "आप वैयक्तिकृत विज्ञापन को स्वीकार या अस्वीकार कर सकते हैं।",
+      "SECTION_4_ITEM_2": "आप ऐप के <code>गोपनीयता विकल्प</code> (उपलब्ध होने पर) के माध्यम से अपनी पसंद की समीक्षा कर सकते हैं या उसे बदल सकते हैं।",
+      "SECTION_4_ITEM_3": "यदि सहमति नहीं दी गई है, तो भी विज्ञापन गैर-वैयक्तिकृत रूप में दिखाए जा सकते हैं।",
+      "SECTION_5_TITLE": "5. डेटा शेयरिंग",
+      "SECTION_5_BODY": "हम व्यक्तिगत जानकारी नहीं बेचते हैं. विज्ञापन प्रदान करने और कानूनी आवश्यकताओं का अनुपालन करने के लिए डेटा को तृतीय-पक्ष सेवाओं द्वारा संसाधित किया जा सकता है।",
+      "SECTION_6_TITLE": "6. डेटा सुरक्षा",
+      "SECTION_6_BODY": "एक्सपोज़र को कम करने के लिए ऐप छवियों को स्थानीय रूप से संसाधित करता है। हम ऐप द्वारा संभाली गई जानकारी की सुरक्षा के लिए उचित उपाय करते हैं।",
+      "SECTION_7_TITLE": "7. उपयोगकर्ता सामग्री जिम्मेदारी",
+      "SECTION_7_BODY": "आप ऐप के माध्यम से संसाधित की जाने वाली छवियों और फ़ाइलों की सामग्री के लिए पूरी तरह से जिम्मेदार हैं, जिसमें कवर छवियां और जेनरेट की गई फ़ाइलें भी शामिल हैं।",
+      "SECTION_7_ITEM_1": "ऐप आपके द्वारा संसाधित की जाने वाली फ़ाइलों या छवियों की सामग्री का विश्लेषण, सत्यापन या निगरानी नहीं करता है।",
+      "SECTION_7_ITEM_2": "हम किसी भी सामग्री के लिए कॉपीराइट स्वामित्व, प्रकाशन अधिकार या लाइसेंस का सत्यापन नहीं करते हैं।",
+      "SECTION_7_ITEM_3": "आपको यह सुनिश्चित करना होगा कि आपके द्वारा संसाधित की जाने वाली किसी भी सामग्री के लिए आपके पास आवश्यक अधिकार और अनुमतियाँ हैं।",
+      "SECTION_7_ITEM_4": "हम आपके कॉपीराइट या अनधिकृत सामग्री के उपयोग से उत्पन्न होने वाले किसी भी कानूनी मुद्दे के लिए ज़िम्मेदार नहीं हैं।",
+      "SECTION_8_TITLE": "8. बच्चों की गोपनीयता",
+      "SECTION_8_BODY": "ऐप 13 वर्ष से कम उम्र के बच्चों के लिए नहीं है। हम जानबूझकर बच्चों से व्यक्तिगत डेटा एकत्र नहीं करते हैं।",
+      "SECTION_9_TITLE": "9. इस नीति में परिवर्तन",
+      "SECTION_9_BODY": "हम इस गोपनीयता नीति को समय-समय पर अद्यतन कर सकते हैं। अपडेट इस पृष्ठ पर एक नई \"अंतिम अद्यतन\" तिथि के साथ पोस्ट किए जाएंगे।",
+      "SECTION_10_TITLE": "10. संपर्क करें",
+      "SECTION_10_BODY": "यदि इस गोपनीयता नीति के बारे में आपके कोई प्रश्न हैं, तो संपर्क करें:"
     }
   }
 }

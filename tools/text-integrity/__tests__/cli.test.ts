@@ -33,7 +33,7 @@ test.after(() => {
   }
 });
 
-test("normal mode never writes files", () => {
+test("normal mode never writes files", { concurrency: false }, () => {
   const original = '{\n  "title": "ConfiguraciÃƒÂ³n"\n}\n';
   resetTempFile(original);
 
@@ -44,7 +44,7 @@ test("normal mode never writes files", () => {
   assert.equal(after, original);
 });
 
-test("fix mode repairs only high-confidence findings and preserves JSON validity", () => {
+test("fix mode repairs only high-confidence findings and preserves JSON validity", { concurrency: false }, () => {
   resetTempFile('{\n  "title": "ConfiguraciÃƒÂ³n",\n  "ok": "Configuración"\n}\n');
 
   const result = runCli("--fix", "--path", "apps/__tmp_text_integrity__");
@@ -56,7 +56,7 @@ test("fix mode repairs only high-confidence findings and preserves JSON validity
   assert.doesNotThrow(() => JSON.parse(after));
 });
 
-test("json output is stable and reports findings", () => {
+test("json output is stable and reports findings", { concurrency: false }, () => {
   resetTempFile('{\n  "title": "Donâ€™t"\n}\n');
   const result = runCli("--path", "apps/__tmp_text_integrity__", "--format", "json");
   const payload = JSON.parse(result.stdout);
@@ -66,7 +66,7 @@ test("json output is stable and reports findings", () => {
   assert.equal(payload.findings.length > 0, true);
 });
 
-test("fails when a non-English locale copies a translatable value from en-US", () => {
+test("fails when a non-English locale copies a translatable value from en-US", { concurrency: false }, () => {
   resetBaseLocale('{\n  "FIX": {\n    "ISSUE_CRIT_SEC_001": "This EPUB cannot be repaired."\n  }\n}\n');
   resetTempFile('{\n  "FIX": {\n    "ISSUE_CRIT_SEC_001": "This EPUB cannot be repaired."\n  }\n}\n');
 
@@ -77,11 +77,28 @@ test("fails when a non-English locale copies a translatable value from en-US", (
   assert.match(result.stdout, /FIX\.ISSUE_CRIT_SEC_001/u);
 });
 
-test("allows explicitly shared product and format tokens", () => {
+test("allows explicitly shared product and format tokens", { concurrency: false }, () => {
   resetBaseLocale('{\n  "APP": { "TITLE": "EPUB Fixer" },\n  "COMMON": { "PRO_ONLY": "PRO" },\n  "MY_EPUBS": { "PLACEHOLDER": "EPUB" }\n}\n');
   resetTempFile('{\n  "APP": { "TITLE": "EPUB Fixer" },\n  "COMMON": { "PRO_ONLY": "PRO" },\n  "MY_EPUBS": { "PLACEHOLDER": "EPUB" }\n}\n');
 
   const result = runCli("--path", "apps/__tmp_text_integrity__");
 
   assert.equal(result.status, 0);
+});
+
+test("fails when a locale contains question-mark replacements", { concurrency: false }, () => {
+  resetBaseLocale(`{
+  "HOME": { "TITLE": "Suggestions from your EPUBs" }
+}
+`);
+  resetTempFile(`{
+  "HOME": { "TITLE": "???? EPUB ???" }
+}
+`);
+
+  const result = runCli("--path", "apps/__tmp_text_integrity__");
+
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /Question-mark replacement detected/u);
+  assert.match(result.stdout, /HOME\.TITLE/u);
 });

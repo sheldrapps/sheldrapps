@@ -50,6 +50,7 @@
   ],
   "exclude": [
     "src/**/*.spec.ts",
+    "../../packages/privacy-policy-kit/src/**/*.spec.ts",
     "../../packages/**/*.spec.ts"
   ]
 }

@@ -16,3 +16,5 @@ export * from "./theme-settings-page/theme-settings-page.component";
 export * from "./under-construction-page/under-construction-page.component";
 export * from "./file-picker-panel/file-picker-panel.component";
 export * from "./triple-button/triple-button.component";
+export * from "./workflow-stepper/workflow-stepper.component";
+export * from "./workflow-stepper/workflow-stepper.types";

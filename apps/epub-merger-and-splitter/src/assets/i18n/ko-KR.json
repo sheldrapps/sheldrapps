@@ -100,8 +100,8 @@
     "INPUT_ERROR_CORRUPT": "이 EPUB 파일을 준비할 수 없습니다. 다른 파일을 시도하세요.",
     "EXPORT_ORDER_TITLE": "내보내기 순서",
     "COVER_SELECTOR_TITLE": "커버 선택기",
-    "BEST_CANDIDATES_TITLE": "내 EPUB에서 가져온 제안",
-    "ADJUST_COVER": "?? ??"
+    "BEST_CANDIDATES_TITLE": "내 EPUB에서 가져온 추천",
+    "ADJUST_COVER": "표지 조정"
   },
   "TOC_OPTIONS": {
     "TITLE": "목차를 어떻게 할까요?",

@@ -299,7 +299,7 @@
     "INSTRUCTIONS_HINT": "如何為 Kindle 建立並傳送封面",
     "INSTRUCTIONS_SECTION": "說明",
     "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
-    "EREADER_OPTIMIZATION_HINT": "Apply automatic adjustments to improve clarity on eReaders",
+    "EREADER_OPTIMIZATION_HINT": "套用自動調整以提升電子閱讀器上的清晰度",
     "EREADER_OPTIMIZATION_TOGGLE": "Optimize for eReader",
     "REQUISITES": "查看需求",
     "REQUISITES_HINT": "封面在 Kindle 上正確運作所需的設定",

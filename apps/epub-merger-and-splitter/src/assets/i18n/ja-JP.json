@@ -100,8 +100,8 @@
     "INPUT_ERROR_CORRUPT": "このEPUBファイルを準備できませんでした。別のファイルをお試しください。",
     "EXPORT_ORDER_TITLE": "エクスポート順",
     "COVER_SELECTOR_TITLE": "カバー選択",
-    "BEST_CANDIDATES_TITLE": "EPUB ?????",
-    "ADJUST_COVER": "??????"
+    "BEST_CANDIDATES_TITLE": "EPUB からのおすすめ",
+    "ADJUST_COVER": "表紙を調整"
   },
   "TOC_OPTIONS": {
     "TITLE": "目次をどうしますか？",
