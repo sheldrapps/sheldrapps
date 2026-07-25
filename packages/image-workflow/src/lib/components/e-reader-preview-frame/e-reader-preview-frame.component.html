@@ -26,7 +26,7 @@
         [attr.data-panel-id]="panel.id"
       >
         @if (panel.label) {
-        <div class="ereader-preview__label">{{ panel.label }}</div>
+        <div class="ereader-preview__label">{{ panel.label | translate }}</div>
         }
 
         <div
@@ -41,8 +41,18 @@
           >
             <div
               class="ereader-preview__screen"
-              [class.ereader-preview__screen--letterbox]="isCompareLayout && panel.id === 'before'"
+              [class.ereader-preview__screen--letterbox]="false"
             >
+              @if (compareBeforeSrc; as beforeSrc) {
+                <div class="ereader-preview__compare-before" [ngStyle]="compareClipStyle">
+                  <img
+                    class="ereader-preview__cover"
+                    [ngClass]="coverClassNames"
+                    [src]="beforeSrc"
+                    [alt]="compareBeforeLabel || 'previous cover'"
+                  />
+                </div>
+              }
               <img
                 class="ereader-preview__cover"
                 [ngClass]="coverClassNames"
@@ -57,6 +67,28 @@
             <div class="ereader-preview__frame" aria-hidden="true"></div>
             }
           </div>
+          @if (compareBeforeSrc) {
+            <div
+              class="ereader-preview__compare-divider"
+              [ngStyle]="compareHandleStyle"
+              aria-hidden="true"
+            >
+              <button class="ereader-preview__compare-handle" type="button" tabindex="-1">
+                <ion-icon name="code-outline"></ion-icon>
+              </button>
+            </div>
+            <input
+              class="ereader-preview__compare-slider"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              [value]="compareReveal"
+              [ngStyle]="compareHandleStyle"
+              aria-label="Compare previous and new cover"
+              (input)="onCompareRevealChange($event)"
+            />
+          }
         </div>
       </section>
       }

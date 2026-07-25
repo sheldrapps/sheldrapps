@@ -7,11 +7,11 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding" [fullscreen]="true">
-  @if (loading) {
+<ion-content class="ion-padding">
+  @if (loading && recommendedApps.length === 0) {
     <ion-list inset="true">
       <ion-item>
-        <ion-label>...</ion-label>
+        <ion-label>{{ t.LOADING || t.TITLE }}</ion-label>
       </ion-item>
     </ion-list>
   } @else if (recommendedApps.length === 0) {
@@ -23,9 +23,12 @@
       </ion-item>
     </ion-list>
   } @else {
-    <ion-list lines="full">
-      @for (app of recommendedApps; track app.packageName) {
-        <ion-item>
+    @for (category of categories; track category) {
+      @if (appsForCategory(category).length > 0) {
+        <h2 class="recommended-category-title">{{ categoryLabel(category) }}</h2>
+        <ion-list class="recommended-app-list app-surface" lines="none">
+          @for (app of appsForCategory(category); track app.packageName) {
+            <ion-item class="recommended-app-item" detail="false" lines="none">
           <div class="recommended-item-content">
             <h1 class="recommended-app-title">{{ getAppName(app) }}</h1>
             <div class="recommended-item-grid">
@@ -50,8 +53,10 @@
               </div>
             </div>
           </div>
-        </ion-item>
+            </ion-item>
+          }
+        </ion-list>
       }
-    </ion-list>
+    }
   }
 </ion-content>

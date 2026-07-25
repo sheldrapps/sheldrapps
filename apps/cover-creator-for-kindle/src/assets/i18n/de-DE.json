@@ -71,7 +71,7 @@
     "SAVE_RENAME_TITLE": "Cover speichern",
     "SAVE_RENAME_MESSAGE": "Gib einen Namen für das Cover ein",
     "SAVE_RENAME_PLACEHOLDER": "Dateiname",
-    "SAVE_ACTION": "Speichern",
+    "SAVE_ACTION": "Umbenennen",
     "SELECT_IMAGE_LABEL": "Coverbild",
     "SELECT_IMAGE_PLACEHOLDER": "Bild auswählen",
     "SELECT_BRAND_LABEL": "Marke",
@@ -80,11 +80,11 @@
     "SELECT_GROUP_PLACEHOLDER": "Gruppe auswählen",
     "SELECT_GENERATION_LABEL": "Modell",
     "SELECT_GENERATION_PLACEHOLDER": "Modell auswählen",
-    "SELECT_MODEL_LABEL": "Kindle-Modell",
+    "SELECT_MODEL_LABEL": "Welches Gerät hast du?",
     "SELECT_MODEL_PLACEHOLDER": "Gerät auswählen",
     "TAP_TO_CHANGE": "Antippen zum Ändern/Zurücksetzen",
     "TITLE": "Cover erstellen",
-    "COVER_SOURCE_TITLE": "Cover-Quelle",
+    "COVER_SOURCE_TITLE": "Woraus soll die Cover erstellt werden?",
     "MODEL_PICKER": {
       "TITLE": "Wähle dein Kindle"
     },
@@ -93,7 +93,18 @@
     "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Auf Kindle \"Bildschirm und Helligkeit > Cover auf dem Sperrbildschirm anzeigen\" aktivieren.",
     "ARIA_START_SCRATCH": "Von Null starten",
     "SOURCE_IMAGE": "Bild",
-    "SOURCE_SCRATCH": "Von Null"
+    "SOURCE_SCRATCH": "Von Null",
+    "STEPPER": {
+      "DEVICE": "Gerät",
+      "SOURCE": "Quelle",
+      "ADJUST": "Anpassen",
+      "CREATE": "Erstellen"
+    },
+    "WORKFLOW": {
+      "PREVIOUS": "Zurück",
+      "CONTINUE": "Weiter",
+      "ADJUST": "Cover anpassen"
+    }
   },
   "COVERS": {
     "DELETED": "Cover gelöscht",
@@ -132,10 +143,10 @@
     "STEP_1": "Wähle ein Bild für dein Cover aus",
     "STEP_2": "Passe das Bild im Editor an und tippe auf Fertig, um es anzuwenden",
     "STEP_3": "Erstelle das Cover, nachdem die Anpassung angewendet wurde",
-    "STEP_4": "Speichere oder teile das Cover",
-    "STEP_4_DESC": "Sobald es fertig ist, kannst du es auf deinem Gerät speichern oder an die Kindle-App teilen, damit der Ablauf einfacher ist.",
+    "STEP_4": "Erstelle das Cover und benenne oder teile es optional",
+    "STEP_4_DESC": "Beim Erstellen wird es automatisch gespeichert. Du kannst es umbenennen oder mit der Kindle-App teilen, damit es automatisch mit deinem Gerät synchronisiert wird.",
     "STEP_5": "Per Web senden (Send to Kindle)",
-    "STEP_5_DESC": "Du kannst es auch über den Browser mit dem Web-Tool Send to Kindle senden.",
+    "STEP_5_DESC": "Du kannst es auch über den Browser mit Send to Kindle senden. Das ist eine Alternative zum Teilen über die Kindle-App.",
     "TIP": "Für die besten Ergebnisse nutze hochauflösende Bilder und stelle sicher, dass Werbung auf deinem Kindle deaktiviert ist.",
     "TITLE": "Anleitung"
   },

@@ -5,6 +5,7 @@
 
 .workflow-stepper {
   min-width: 0;
+  margin-bottom: var(--app-space-7);
   color: var(--sh-stepper-label-color);
 }
 
@@ -19,26 +20,97 @@
 
 .workflow-stepper__step {
   display: flex;
-  flex: 1 1 0;
+  flex: 0 0 calc(100% / (var(--workflow-step-count) - 1));
+  min-width: 0;
+}
+
+.workflow-stepper__step:first-child,
+.workflow-stepper__step:last-child {
+  flex-basis: calc(50% / (var(--workflow-step-count) - 1));
+}
+
+.workflow-stepper__trigger {
+  display: flex;
+  flex: 1 1 auto;
   min-width: 0;
   flex-direction: column;
   align-items: center;
   gap: var(--sh-stepper-gap);
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
   text-align: center;
 }
 
+.workflow-stepper__trigger:not(:disabled) {
+  cursor: pointer;
+}
+
+.workflow-stepper__trigger:focus-visible {
+  outline: none;
+  border-radius: var(--app-radius-sm);
+  box-shadow: var(--app-focus-ring);
+}
+
+.workflow-stepper__trigger:disabled {
+  cursor: default;
+}
+
 .workflow-stepper__indicator-row {
+  position: relative;
   display: flex;
   align-items: center;
+  justify-content: center;
   align-self: stretch;
   min-width: 0;
 }
 
+.workflow-stepper__step:first-child .workflow-stepper__indicator-row {
+  justify-content: flex-start;
+}
+
+.workflow-stepper__step:last-child .workflow-stepper__indicator-row {
+  justify-content: flex-end;
+}
+
+.workflow-stepper__step:first-child .workflow-stepper__label {
+  text-align: start;
+}
+
+.workflow-stepper__step:last-child .workflow-stepper__label {
+  text-align: end;
+}
+
 .workflow-stepper__connector {
-  flex: 1 1 auto;
+  position: absolute;
+  top: 50%;
+  width: calc(50% - (var(--sh-stepper-indicator-size) / 2));
   min-width: 0;
   height: var(--sh-stepper-connector-height);
   background: var(--sh-stepper-connector-pending);
+  transform: translateY(-50%);
+}
+
+.workflow-stepper__connector:first-child {
+  left: 0;
+}
+
+.workflow-stepper__connector:last-child {
+  right: 0;
+}
+
+.workflow-stepper__step:first-child .workflow-stepper__connector:last-child {
+  right: 0;
+  left: calc(var(--sh-stepper-indicator-size) / 2);
+  width: calc(100% - (var(--sh-stepper-indicator-size) / 2));
+}
+
+.workflow-stepper__step:last-child .workflow-stepper__connector:first-child {
+  right: auto;
+  left: 0;
+  width: calc(100% - (var(--sh-stepper-indicator-size) / 2));
 }
 
 .workflow-stepper__connector.is-completed {
@@ -47,6 +119,7 @@
 
 .workflow-stepper__indicator {
   display: inline-grid;
+  position: relative;
   flex: 0 0 var(--sh-stepper-indicator-size);
   place-items: center;
   width: var(--sh-stepper-indicator-size);
@@ -57,6 +130,7 @@
   line-height: 1;
   color: var(--sh-stepper-pending-contrast);
   background: var(--sh-stepper-pending-color);
+  z-index: 1;
 }
 
 .workflow-stepper__indicator ion-icon {
@@ -74,6 +148,8 @@
 }
 
 .workflow-stepper__label {
+  display: block;
+  width: 100%;
   max-width: 100%;
   font-size: var(--sh-stepper-label-font-size);
   line-height: 1.25;

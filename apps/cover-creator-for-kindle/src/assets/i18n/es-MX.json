@@ -71,7 +71,7 @@
     "SAVE_RENAME_TITLE": "Guardar portada",
     "SAVE_RENAME_MESSAGE": "Ingresa el nombre para la portada",
     "SAVE_RENAME_PLACEHOLDER": "Nombre del archivo",
-    "SAVE_ACTION": "Guardar",
+    "SAVE_ACTION": "Renombrar",
     "SELECT_IMAGE_LABEL": "Imagen de portada",
     "SELECT_IMAGE_PLACEHOLDER": "Selecciona una imagen",
     "SELECT_BRAND_LABEL": "Marca",
@@ -80,9 +80,9 @@
     "SELECT_GROUP_PLACEHOLDER": "Selecciona un grupo",
     "SELECT_GENERATION_LABEL": "Modelo",
     "SELECT_GENERATION_PLACEHOLDER": "Selecciona un modelo",
-    "SELECT_MODEL_LABEL": "Modelo del dispositivo",
+    "SELECT_MODEL_LABEL": "¿Qué dispositivo tienes?",
     "SELECT_MODEL_PLACEHOLDER": "Selecciona tu dispositivo",
-    "COVER_SOURCE_TITLE": "Origen de portada",
+    "COVER_SOURCE_TITLE": "¿Desde dónde crear la portada?",
     "TAP_TO_CHANGE": "Toca para cambiar/reiniciar",
     "TITLE": "Crear portada",
     "MODEL_PICKER": {
@@ -93,7 +93,18 @@
     "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Activar \"Pantalla y brillo > Mostrar portadas en la pantalla del dispositivo\" en Kindle.",
     "ARIA_START_SCRATCH": "Comenzar desde cero",
     "SOURCE_IMAGE": "Imagen",
-    "SOURCE_SCRATCH": "Desde cero"
+    "SOURCE_SCRATCH": "Desde cero",
+    "STEPPER": {
+      "DEVICE": "Dispositivo",
+      "SOURCE": "Fuente",
+      "ADJUST": "Ajustar",
+      "CREATE": "Crear"
+    },
+    "WORKFLOW": {
+      "PREVIOUS": "Anterior",
+      "CONTINUE": "Continuar",
+      "ADJUST": "Ajustar portada"
+    }
   },
   "COVERS": {
     "DELETED": "Portada eliminada",
@@ -129,13 +140,13 @@
   },
   "INSTRUCTIONS": {
     "NOTE_TITLE": "Nota",
-    "STEP_1": "Selecciona una imagen para tu portada",
-    "STEP_2": "Ajusta la imagen en el editor y toca Listo para aplicarla",
-    "STEP_3": "Crea la portada después de aplicar el ajuste",
-    "STEP_4": "Guarda o comparte la portada",
-    "STEP_4_DESC": "Cuando esté lista, puedes guardarla en tu dispositivo o compartirla con la app Kindle para un flujo más simple.",
+    "STEP_1": "Selecciona tu dispositivo Kindle",
+    "STEP_2": "Elige una imagen o crea la portada desde cero",
+    "STEP_3": "Ajusta la portada en el editor y toca Listo",
+    "STEP_4": "Crea la portada y, si quieres, renómbrala o compártela",
+    "STEP_4_DESC": "Al crearla se guarda automáticamente. Puedes renombrarla o compartirla con la app Kindle; así se sincronizará automáticamente con tu dispositivo.",
     "STEP_5": "Enviar vía web (Send to Kindle)",
-    "STEP_5_DESC": "También puedes enviarla desde el navegador con la herramienta web Send to Kindle.",
+    "STEP_5_DESC": "También puedes enviarla desde el navegador con Send to Kindle. Es un método alternativo al envío desde la app Kindle.",
     "TIP": "Para mejores resultados, usa imágenes en alta resolución y asegúrate de que los anuncios estén desactivados en tu Kindle.",
     "TITLE": "Instrucciones"
   },
@@ -305,7 +316,6 @@
     "REQUISITES_HINT": "Configuración necesaria para que las portadas funcionen bien en Kindle",
     "REQUISITES_SECTION": "Requisitos externos",
     "TITLE": "Configuración",
-    "VIEW_TOUR": "Ver tour",
     "HOW_TO_USE": "¿Cómo usar?"
   },
   "TABS": {

@@ -17,6 +17,7 @@ import { provideEditorI18n } from '@sheldrapps/image-workflow/editor';
 import { provideI18nKit } from '@sheldrapps/i18n-kit';
 import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
 import { provideRatingKit } from '@sheldrapps/rating-kit';
+import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
 import {
   CapacitorPreferencesAdapter,
   CompositeStorageAdapter,
@@ -88,6 +89,10 @@ export async function bootstrapEpubMergerAndSplitterApp(): Promise<void> {
       },
     }),
     provideUiThemeI18n(),
+    {
+      provide: RECOMMENDED_APPS_CURRENT_PACKAGE,
+      useValue: EPUB_MERGER_AND_SPLITTER_PACKAGE_ID,
+    },
     provideBestCandidateKitI18n(),
     provideCoverImageStateI18n(),
     provideCoverSourceI18n(),

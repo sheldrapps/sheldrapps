@@ -18,51 +18,10 @@ ion-content.preview-content::part(scroll) {
   margin-bottom: var(--app-space-6);
 }
 
-.file-selector-section__item {
-  --padding-start: var(--app-space-5);
-  --padding-end: var(--app-space-5);
-  --inner-padding-end: var(--app-space-3);
-  --min-height: var(--app-control-min-height);
-  --background: var(--app-surface);
-  width: 100%;
-  margin-bottom: 0;
-  border-radius: var(--app-radius-md);
-  overflow: hidden;
-}
-
-.file-selector-section__item::part(native) {
-  border-radius: var(--app-radius-md);
-  box-shadow: var(--app-button-outline-shadow);
-  transition:
-    border-color var(--app-dur-med) var(--app-ease),
-    background-color var(--app-dur-med) var(--app-ease),
-    box-shadow var(--app-dur-med) var(--app-ease);
-}
-
-.file-selector-section__item:focus-within::part(native) {
-  border-color: var(--ion-color-primary);
-  box-shadow:
-    var(--app-focus-ring),
-    var(--app-button-outline-shadow);
-}
-
-.file-selector-section__selected-copy {
-  display: grid;
-  gap: var(--app-space-2);
-}
-
-.file-selector-section__selected-copy .field-filename {
-  margin-top: 0;
-}
-
 .best-candidate-wrap {
   margin-top: var(--change-section-space-y);
   margin-bottom: var(--app-space-3, 0.5rem);
   border-radius: var(--app-radius-md);
-}
-
-.cover-mode-card__warning {
-  margin-top: var(--app-space-3, 0.5rem);
 }
 
 

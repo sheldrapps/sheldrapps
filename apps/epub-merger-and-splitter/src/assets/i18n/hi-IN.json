@@ -79,15 +79,16 @@
     "SETTINGS": "सेटिंग्स"
   },
   "HOME": {
+    "STEPPER": { "MERGE_SPLIT": "जोड़ें / विभाजित करें", "SORT": "क्रमबद्ध करें", "TOC": "विषय-सूची", "COVER": "कवर", "ADJUST": "समायोजित करें", "JOIN": "जोड़ें" },
     "WHAT_DO_YOU_WANT_TO_DO": "आप क्या करना चाहते हैं?",
     "MERGE": "मर्ज",
     "SPLIT": "स्प्लिट",
     "MERGING_TITLE": "मर्ज किया जा रहा है",
     "SPLITTING_TITLE": "विभाजित किया जा रहा है",
-    "EPUB_FILES_TITLE": "EPUB फ़ाइलें",
+    "EPUB_FILES_TITLE": "कितनी फ़ाइलें?",
     "EPUB_FILE_TITLE": "EPUB फ़ाइल",
     "SELECT_EPUB_FILES_PLACEHOLDER": "EPUB फ़ाइलें चुनें",
-    "ADD_ANOTHER_EPUB_FILE": "एक और EPUB फ़ाइल जोड़ें",
+    "ADD_ANOTHER_EPUB_FILE": "और जोड़ें?",
     "FILES_SELECTED": "{{count}} फ़ाइलें तैयार हैं",
     "ARIA_ADD_EPUB_FILE": "एक और EPUB फ़ाइल जोड़ें",
     "ARIA_SELECT_EPUB_FILES": "EPUB फ़ाइलें चुनें",
@@ -98,10 +99,11 @@
     "INPUT_ERROR_SIZE": "चुनी गई EPUB फ़ाइल बहुत बड़ी है।",
     "INPUT_ERROR_STORAGE": "इस EPUB फ़ाइल को तैयार करने के लिए पर्याप्त संग्रहण स्थान नहीं है।",
     "INPUT_ERROR_CORRUPT": "इस EPUB फ़ाइल को तैयार नहीं किया जा सका। कोई दूसरी फ़ाइल आज़माएँ।",
-    "EXPORT_ORDER_TITLE": "निर्यात क्रम",
-    "COVER_SELECTOR_TITLE": "कवर चयनक",
+    "EXPORT_ORDER_TITLE": "आप इन्हें किस क्रम में चाहते हैं?",
+    "COVER_SELECTOR_TITLE": "कवर किससे बनाना है?",
     "BEST_CANDIDATES_TITLE": "आपकी EPUB फ़ाइलों से सुझाव",
-    "ADJUST_COVER": "कवर समायोजित करें"
+    "ADJUST_COVER": "कवर समायोजित करें",
+    "PREVIEW_TITLE": "पूर्वावलोकन"
   },
   "TOC_OPTIONS": {
     "TITLE": "विषय-सूची के साथ क्या करना है?",

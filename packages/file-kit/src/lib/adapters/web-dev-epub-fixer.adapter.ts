@@ -1334,6 +1334,7 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
       if (xmlId) {
         ids.add(xmlId);
       }
+
     }
 
     documentIdCache.set(normalizedPath, ids);

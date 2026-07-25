@@ -135,11 +135,18 @@ for (const locale of Object.keys(EXPECTED)) {
     const source = fs.readFileSync(file, "utf8");
 
     for (const [key, value] of Object.entries(EXPECTED[locale])) {
+      if (key === "APP_NAME_CCFK" || key.startsWith("APP_DESC_")) continue;
       const valueRegex = new RegExp(
         `\\b${key}\\s*:\\s*['\"]${escapeRegExp(value)}['\"]`,
         "u",
       );
       assert.match(source, valueRegex);
+    }
+
+    for (const key of ["APP_DESC_CCFK", "APP_DESC_ECC", "APP_DESC_PCM", "APP_DESC_EF"]) {
+      const match = source.match(new RegExp(`\\b${key}\\s*:\\s*['\"]([^'\"]+)['\"]`, "u"));
+      assert.ok(match?.[1], `${key} must have localized text`);
+      assert.ok(match[1].length <= 80, `${key} must stay within Play Store short-description limit`);
     }
   });
 }

@@ -67,7 +67,7 @@
     "LOADING_IMAGE": "Caricamento immagine…",
     "OPENING_EDITOR": "Apertura editor…",
     "SAVING": "Salvataggio copertina…",
-    "SAVE_ACTION": "Salva",
+    "SAVE_ACTION": "Rinomina",
     "SAVED_OK": "Copertina salvata",
     "SAVE_RENAME_TITLE": "Salva copertina",
     "SAVE_RENAME_MESSAGE": "Inserisci un nome per la copertina",
@@ -80,11 +80,11 @@
     "SELECT_GROUP_PLACEHOLDER": "Seleziona un gruppo",
     "SELECT_GENERATION_LABEL": "Modello",
     "SELECT_GENERATION_PLACEHOLDER": "Seleziona un modello",
-    "SELECT_MODEL_LABEL": "Modello del dispositivo",
+    "SELECT_MODEL_LABEL": "Che dispositivo hai?",
     "SELECT_MODEL_PLACEHOLDER": "Seleziona il tuo dispositivo",
     "TAP_TO_CHANGE": "Tocca per cambiare/reimpostare",
     "TITLE": "Crea copertina",
-    "COVER_SOURCE_TITLE": "Origine copertina",
+    "COVER_SOURCE_TITLE": "Da cosa vuoi creare la copertina?",
     "MODEL_PICKER": {
       "TITLE": "Scegli il tuo Kindle"
     },
@@ -93,7 +93,18 @@
     "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Attivare \"Schermo e luminosita > Mostra copertine nella schermata di blocco\" su Kindle.",
     "ARIA_START_SCRATCH": "Inizia da zero",
     "SOURCE_IMAGE": "Immagine",
-    "SOURCE_SCRATCH": "Da zero"
+    "SOURCE_SCRATCH": "Da zero",
+    "STEPPER": {
+      "DEVICE": "Dispositivo",
+      "SOURCE": "Fonte",
+      "ADJUST": "Regola",
+      "CREATE": "Crea"
+    },
+    "WORKFLOW": {
+      "PREVIOUS": "Indietro",
+      "CONTINUE": "Continua",
+      "ADJUST": "Regola copertina"
+    }
   },
   "COVERS": {
     "DELETED": "Copertina eliminata",
@@ -132,10 +143,10 @@
     "STEP_1": "Seleziona un’immagine per la tua copertina",
     "STEP_2": "Regola l’immagine nell’editor e tocca Fatto per applicarla",
     "STEP_3": "Crea la copertina dopo aver applicato la modifica",
-    "STEP_4": "Salva o condividi la copertina",
-    "STEP_4_DESC": "Quando è pronta, puoi salvarla sul dispositivo o condividerla con l’app Kindle per un flusso più semplice.",
+    "STEP_4": "Crea la copertina e, se vuoi, rinominala o condividila",
+    "STEP_4_DESC": "Creandola viene salvata automaticamente. Puoi rinominarla o condividerla con l’app Kindle per sincronizzarla automaticamente con il dispositivo.",
     "STEP_5": "Inviare via web (Send to Kindle)",
-    "STEP_5_DESC": "Puoi anche inviarla dal browser con lo strumento web Send to Kindle.",
+    "STEP_5_DESC": "Puoi anche inviarla dal browser con Send to Kindle. È un metodo alternativo alla condivisione tramite l’app Kindle.",
     "TIP": "Per risultati migliori, usa immagini ad alta risoluzione e assicurati che gli annunci siano disattivati sul tuo Kindle.",
     "TITLE": "Istruzioni"
   },

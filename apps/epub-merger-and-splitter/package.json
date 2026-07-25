@@ -49,6 +49,7 @@
     "@sheldrapps/export-quality-kit": "workspace:*",
     "@sheldrapps/i18n-kit": "workspace:*",
     "@sheldrapps/privacy-policy-kit": "workspace:*",
+    "@sheldrapps/recommended-apps": "workspace:*",
     "@sheldrapps/rating-kit": "workspace:*",
     "@sheldrapps/settings-kit": "workspace:*",
     "@sheldrapps/ui-theme": "workspace:*",

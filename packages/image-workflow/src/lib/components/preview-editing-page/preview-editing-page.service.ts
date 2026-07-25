@@ -2,6 +2,19 @@ import { Injectable, signal } from '@angular/core';
 
 export type PreviewEditingPageMode = 'single' | 'compare';
 
+export type PreviewEditingPageAction = {
+  id: string;
+  labelKey: string;
+  icon?: string;
+  disabled?: boolean;
+  hidden?: boolean;
+};
+
+export type PreviewEditingPageMetadata = {
+  name?: string | null;
+  size?: string | null;
+};
+
 export type PreviewEditingPageState = {
   imageSrc: string | null;
   imageWidth?: number | null;
@@ -14,6 +27,9 @@ export type PreviewEditingPageState = {
   comparisonEnabled?: boolean;
   isDithered?: boolean;
   titleKey?: string;
+  footerActions?: PreviewEditingPageAction[];
+  actionHandler?: (actionId: string) => void;
+  metadata?: PreviewEditingPageMetadata | null;
   returnUrl: string;
 };
 

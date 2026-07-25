@@ -19,7 +19,7 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AdsService, BillingService } from '@sheldrapps/ads-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import {
@@ -34,8 +34,8 @@ import {
   type BestCandidateResult,
 } from '@sheldrapps/best-candidate-kit';
 import {
-  CoverImageStateComponent,
   CoverSourceActionsComponent,
+  CoverImageStateComponent,
   ImagePipelineService,
   PreviewEditingPageService,
   buildDefaultCoverCropState,
@@ -52,12 +52,17 @@ import {
   ActionCardComponent,
   FilePickerPanelComponent,
   TripleButtonComponent,
+  ScrollableButtonBarComponent,
+  WorkflowStepperComponent,
+  WorkflowNavigationComponent,
+  type WorkflowStep,
+  type ScrollableBarItem,
   type FilePickerPanelItem,
   type FilePickerPanelRemoveEvent,
   type FilePickerPanelReorderEvent,
 } from '@sheldrapps/ui-theme';
 import { addIcons } from 'ionicons';
-import { optionsOutline, sparklesOutline } from 'ionicons/icons';
+import { appsOutline, sparklesOutline } from 'ionicons/icons';
 import {
   EpubRewriteError,
   EpubRewriteService,
@@ -68,6 +73,11 @@ import { filter, Subscription } from 'rxjs';
 import { MergeCoverCandidateService } from '../../services/merge-cover-candidate.service';
 import { EpubLibraryService } from '../../services/epub-library.service';
 import { EpubMergerAndSplitterSettings } from '../../settings/epub-merger-and-splitter-settings.schema';
+import {
+  RecommendedAppsService,
+  buildHomeHeaderItems,
+  handleHomeHeaderAction,
+} from '@sheldrapps/recommended-apps';
 
 type HomeMode = 'merge' | 'split';
 type CoverSourceMode = 'candidate' | 'image' | 'scratch';
@@ -110,11 +120,15 @@ const COVER_THUMB_SIZE = 96;
     IonIcon,
     IonTitle,
     IonToolbar,
+    IonButtons,
     ActionCardComponent,
     BestCandidatePickerComponent,
-    CoverImageStateComponent,
     CoverSourceActionsComponent,
+    CoverImageStateComponent,
     TripleButtonComponent,
+    ScrollableButtonBarComponent,
+    WorkflowStepperComponent,
+    WorkflowNavigationComponent,
     FilePickerPanelComponent,
   ],
 })
@@ -134,7 +148,56 @@ export class HomePage implements OnInit, OnDestroy {
   );
   private readonly ads = inject(AdsService);
   private readonly billing = inject(BillingService);
+  private readonly translate = inject(TranslateService);
+  private readonly recommendedAppsService = inject(RecommendedAppsService);
   private readonly candidateBlobUrls = new Set<string>();
+  headerItems: ScrollableBarItem[] = [];
+  readonly workflowSteps: readonly WorkflowStep[] = [
+    { id: 'merge-split', label: this.translate.instant('HOME.STEPPER.MERGE_SPLIT') },
+    { id: 'sort', label: this.translate.instant('HOME.STEPPER.SORT') },
+    { id: 'toc', label: this.translate.instant('HOME.STEPPER.TOC') },
+    { id: 'cover', label: this.translate.instant('HOME.STEPPER.COVER') },
+    { id: 'adjust', label: this.translate.instant('HOME.STEPPER.ADJUST') },
+    { id: 'join', label: this.translate.instant('HOME.STEPPER.JOIN') },
+  ];
+  workflowStep = 0;
+
+  get visibleWorkflowSteps(): readonly WorkflowStep[] {
+    return this.selectedMode() === 'merge'
+      ? this.workflowSteps
+      : this.workflowSteps.slice(0, 1);
+  }
+
+  get showWorkflowPrevious(): boolean {
+    return this.workflowStep > 0;
+  }
+
+  get showWorkflowNext(): boolean {
+    return this.workflowStep < this.visibleWorkflowSteps.length - 1;
+  }
+
+  get workflowNextLabel(): string {
+    return this.visibleWorkflowSteps[this.workflowStep + 1]?.label ?? '';
+  }
+
+  get workflowPreviousLabel(): string {
+    return this.visibleWorkflowSteps[this.workflowStep - 1]?.label ?? '';
+  }
+
+  get selectableWorkflowSteps(): readonly number[] {
+    if (this.selectedMode() !== 'merge') {
+      return [0];
+    }
+
+    const steps = [0, 1, 2, 3];
+    if (this.canOpenMergeCoverEditor()) {
+      steps.push(4);
+    }
+    if (this.mergeCoverRenderedFile) {
+      steps.push(5);
+    }
+    return steps;
+  }
 
   @ViewChild('mergeInput') private mergeInput?: ElementRef<HTMLInputElement>;
   @ViewChild('splitInput') private splitInput?: ElementRef<HTMLInputElement>;
@@ -234,6 +297,7 @@ export class HomePage implements OnInit, OnDestroy {
     this.clearPickerError();
     this.closePreview();
     this.selectedMode.set(null);
+    this.workflowStep = 0;
     this.resetFileInput(this.mergeInput?.nativeElement);
     this.resetFileInput(this.splitInput?.nativeElement);
     this.resetCoverSelection(true);
@@ -241,7 +305,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   constructor() {
-    addIcons({ optionsOutline, sparklesOutline });
+    addIcons({ appsOutline, sparklesOutline });
     void this.loadIcons();
   }
 
@@ -258,6 +322,76 @@ export class HomePage implements OnInit, OnDestroy {
       });
 
     void this.consumeEditorResult();
+    void this.refreshHeaderItems();
+  }
+
+  async ionViewWillEnter(): Promise<void> {
+    await this.refreshHeaderItems();
+  }
+
+  async onHeaderItemClick(id: string): Promise<void> {
+    await handleHomeHeaderAction(id, {
+      closeInfo: () => undefined,
+      toggleInfo: () => undefined,
+      navigateToRecommended: async () => {
+        await this.router.navigateByUrl('/tabs/recommended-apps');
+      },
+    });
+  }
+
+  private async refreshHeaderItems(): Promise<void> {
+    const recommendedApps = await this.recommendedAppsService.getRecommendedApps();
+    this.headerItems = buildHomeHeaderItems(recommendedApps.length > 0, {
+      appsLabel: this.translate.instant('ARR.TOOLS.APPS'),
+      includeGuide: false,
+    });
+  }
+
+  async onWorkflowPrevious(): Promise<void> {
+    if (this.workflowStep === 5 && this.canOpenMergeCoverEditor()) {
+      await this.openMergeCoverEditor();
+      return;
+    }
+
+    if (this.workflowStep > 0) {
+      this.workflowStep -= 1;
+    }
+  }
+
+  async onWorkflowNext(): Promise<void> {
+    if (this.workflowStep === 3 && this.canOpenMergeCoverEditor()) {
+      await this.openMergeCoverEditor();
+      return;
+    }
+
+    if (this.workflowStep < this.visibleWorkflowSteps.length - 1) {
+      this.workflowStep += 1;
+    }
+  }
+
+  async onWorkflowStepSelected(step: number): Promise<void> {
+    if (step === 4 && this.canOpenMergeCoverEditor()) {
+      await this.openMergeCoverEditor();
+      return;
+    }
+
+    if (this.selectableWorkflowSteps.includes(step)) {
+      this.workflowStep = step;
+    }
+  }
+
+  private canOpenMergeCoverEditor(): boolean {
+    return (
+      this.coverSourceMode() === 'scratch' ||
+      !!this.mergeCoverWorkingFile ||
+      !!this.mergeCoverPreviewUrl()
+    );
+  }
+
+  private async openMergeCoverEditor(): Promise<void> {
+    const sourceMode: EditorSourceMode =
+      this.coverSourceMode() === 'scratch' ? 'scratch' : 'image';
+    await this.openEditor(sourceMode);
   }
 
   ngOnDestroy(): void {
@@ -383,6 +517,7 @@ export class HomePage implements OnInit, OnDestroy {
       }
       this.mergeSelections.update((current) => [...current, ...selections]);
       this.selectedMode.set('merge');
+      this.workflowStep = 1;
       await this.refreshMergeCoverCandidates();
     } catch (error) {
       this.handlePickerError(error);
@@ -446,6 +581,7 @@ export class HomePage implements OnInit, OnDestroy {
 
     if (this.mergeSelections().length === 0) {
       this.selectedMode.set(null);
+      this.workflowStep = 0;
       this.clearPickerError();
       this.resetFileInput(this.mergeInput?.nativeElement);
       this.resetCoverSelection(true);
@@ -461,7 +597,6 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
-    this.bestCandidateDismissed.set(true);
     this.isPicking.set(true);
     try {
       const loaded = await this.applyCandidateCover(candidate);
@@ -753,12 +888,13 @@ export class HomePage implements OnInit, OnDestroy {
 
     this.lastEditorSourceMode = sourceMode;
     this.lastEditorSessionId = sid;
+    this.workflowStep = 4;
     const entryPath = sourceMode === 'scratch' ? '/editor/tools' : '/editor';
     await this.router.navigate([entryPath], { queryParams: { sid } });
   }
 
   private async consumeEditorResult(sessionId?: string): Promise<void> {
-    const { result } = consumeEditorResultSnapshot(
+    const { session, result } = consumeEditorResultSnapshot(
       this.editorSession,
       sessionId ?? this.lastEditorSessionId,
     );
@@ -769,6 +905,15 @@ export class HomePage implements OnInit, OnDestroy {
 
     if (result?.file) {
       await this.applyEditorResult(result);
+      return;
+    }
+
+    if (session && !result) {
+      this.resetMergeCoverSelection(true);
+      this.coverSourceMode.set(null);
+      this.selectedCoverCandidateId.set(undefined);
+      this.bestCandidateDismissed.set(false);
+      this.workflowStep = 3;
     }
   }
 
@@ -780,6 +925,7 @@ export class HomePage implements OnInit, OnDestroy {
     this.coverSourceMode.set(this.lastEditorSourceMode);
     this.bestCandidateDismissed.set(true);
     this.selectedCoverCandidateId.set(undefined);
+    this.workflowStep = 5;
 
     const renderedBlob = result.renderedBlob;
     if (renderedBlob) {
@@ -1060,6 +1206,7 @@ export class HomePage implements OnInit, OnDestroy {
     const previous = this.splitSelection();
     this.splitSelection.set(selection);
     this.selectedMode.set('split');
+    this.workflowStep = 0;
     await this.cleanupSelection(previous);
   }
 

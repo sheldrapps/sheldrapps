@@ -79,15 +79,16 @@
     "SETTINGS": "Settings"
   },
   "HOME": {
+    "STEPPER": { "MERGE_SPLIT": "Join / Split", "SORT": "Sort", "TOC": "TOC", "COVER": "Cover", "ADJUST": "Adjust", "JOIN": "Join" },
     "WHAT_DO_YOU_WANT_TO_DO": "What do you want to do?",
     "MERGE": "Merge",
     "SPLIT": "Split",
     "MERGING_TITLE": "Merging",
     "SPLITTING_TITLE": "Splitting",
-    "EPUB_FILES_TITLE": "Epub files",
+    "EPUB_FILES_TITLE": "How many files?",
     "EPUB_FILE_TITLE": "Epub file",
     "SELECT_EPUB_FILES_PLACEHOLDER": "Select EPUB files",
-    "ADD_ANOTHER_EPUB_FILE": "Add another EPUB file",
+    "ADD_ANOTHER_EPUB_FILE": "Add more?",
     "FILES_SELECTED": "{{count}} files ready",
     "ARIA_ADD_EPUB_FILE": "Add another EPUB file",
     "ARIA_SELECT_EPUB_FILES": "Select EPUB files",
@@ -98,10 +99,11 @@
     "INPUT_ERROR_SIZE": "The selected EPUB is too large.",
     "INPUT_ERROR_STORAGE": "There is not enough storage space to prepare this EPUB.",
     "INPUT_ERROR_CORRUPT": "This EPUB could not be prepared. Try another file.",
-    "EXPORT_ORDER_TITLE": "Export order",
-    "COVER_SELECTOR_TITLE": "Cover selector",
+    "EXPORT_ORDER_TITLE": "What order do you want them in?",
+    "COVER_SELECTOR_TITLE": "Where do you want to create the cover from?",
     "BEST_CANDIDATES_TITLE": "Suggestions from your EPUBs",
-    "ADJUST_COVER": "Adjust cover"
+    "ADJUST_COVER": "Adjust cover",
+    "PREVIEW_TITLE": "Preview"
   },
   "TOC_OPTIONS": {
     "TITLE": "What should happen to the table of contents?",

@@ -24,6 +24,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'preview-editing',
+        loadComponent: () =>
+          import('@sheldrapps/image-workflow').then(
+            (m) => m.PreviewEditingPageComponent,
+          ),
+      },
+      {
         path: 'settings',
         children: [
           {

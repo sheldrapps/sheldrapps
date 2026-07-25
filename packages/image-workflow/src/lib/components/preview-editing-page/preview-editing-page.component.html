@@ -9,8 +9,20 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="preview-editing-page__content" [fullscreen]="true" [scrollY]="false">
+<ion-content class="preview-editing-page__content" [scrollY]="true">
   @if (state(); as preview) {
+    @if (preview.metadata; as metadata) {
+      @if (metadata.name || metadata.size) {
+        <div class="preview-editing-page__metadata" aria-live="polite">
+          @if (metadata.name) {
+            <div class="preview-editing-page__metadata-name">{{ metadata.name }}</div>
+          }
+          @if (metadata.size) {
+            <div class="preview-editing-page__metadata-size">{{ metadata.size }}</div>
+          }
+        </div>
+      }
+    }
     <app-e-reader-preview-frame
       [mode]="preview.mode || 'single'"
       [imageSrc]="preview.imageSrc"
@@ -31,3 +43,15 @@
     ></app-e-reader-preview-frame>
   }
 </ion-content>
+
+@if (footerActions().length > 0) {
+  <div class="preview-editing-page__footer" role="toolbar">
+    <sh-scrollable-button-bar
+      [items]="footerActions()"
+      variant="iconText"
+      align="start"
+      [ariaLabel]="(state()?.titleKey || 'IMAGE_WORKFLOW.PREVIEW_TITLE') | translate"
+      (selectItem)="onFooterAction($event)"
+    ></sh-scrollable-button-bar>
+  </div>
+}

@@ -19,6 +19,9 @@ import {
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { TranslateModule } from '@ngx-translate/core';
+import { IonIcon } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { codeOutline } from 'ionicons/icons';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import {
   EReaderBrand,
@@ -94,7 +97,7 @@ const LEGACY_COLOR_ID_MAP: Record<string, EReaderColorId> = {
 @Component({
   selector: 'app-e-reader-preview-frame',
   standalone: true,
-  imports: [CommonModule, TranslateModule],
+  imports: [CommonModule, TranslateModule, IonIcon],
   templateUrl: './e-reader-preview-frame.component.html',
   styleUrls: ['./e-reader-preview-frame.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -102,6 +105,9 @@ const LEGACY_COLOR_ID_MAP: Record<string, EReaderColorId> = {
 export class EReaderPreviewFrameComponent
   implements OnInit, AfterViewInit, OnChanges, OnDestroy
 {
+  constructor() {
+    addIcons({ codeOutline });
+  }
   private static readonly ZOOM_MIN = 1;
   private static readonly ZOOM_MAX = 3;
   private static readonly ZOOM_STEP = 0.25;
@@ -183,6 +189,7 @@ export class EReaderPreviewFrameComponent
   @Output() frameColorIdChange = new EventEmitter<EReaderColorId>();
 
   zoom = EReaderPreviewFrameComponent.ZOOM_MIN;
+  compareReveal = 50;
   colorSelectorOpen = false;
   selectedFrameColorId: EReaderColorId = 'black';
 
@@ -314,6 +321,36 @@ export class EReaderPreviewFrameComponent
   resetZoom(): void {
     this.zoom = EReaderPreviewFrameComponent.ZOOM_MIN;
     this.resetPan();
+  }
+
+  onCompareRevealChange(event: Event): void {
+    const value = Number((event.target as HTMLInputElement).value);
+    this.compareReveal = Math.min(100, Math.max(0, value));
+  }
+
+  get compareBeforeSrc(): string | null {
+    return this.mode === 'compare' && this.comparisonEnabled
+      ? this.normalizeSrc(this.beforeSrc)
+      : null;
+  }
+
+  get compareBeforeLabel(): string | null {
+    return this.beforeLabel ?? null;
+  }
+
+  get compareAfterLabel(): string | null {
+    return this.afterLabel ?? this.label ?? null;
+  }
+
+  get compareClipStyle(): Record<string, string> {
+    return { '--compare-reveal': `${this.compareReveal}%` };
+  }
+
+  get compareHandleStyle(): Record<string, string> {
+    return {
+      '--compare-reveal': `${this.compareReveal}%`,
+      '--compare-reveal-ratio': String(this.compareReveal / 100),
+    };
   }
 
   getCompareStyle(): Record<string, string> {
@@ -536,15 +573,6 @@ export class EReaderPreviewFrameComponent
     const panels: PreviewPanel[] = [];
     const beforeSrc = this.normalizeSrc(this.beforeSrc);
     const afterSrc = this.normalizeSrc(this.afterSrc ?? this.imageSrc);
-
-    if (beforeSrc) {
-      panels.push({
-        id: 'before',
-        src: beforeSrc,
-        label: this.beforeLabel ?? undefined,
-        alt: this.resolveAlt(this.beforeLabel),
-      });
-    }
 
     if (afterSrc) {
       panels.push({

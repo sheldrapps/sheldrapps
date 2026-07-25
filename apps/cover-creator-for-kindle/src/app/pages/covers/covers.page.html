@@ -10,60 +10,21 @@
   (ionScrollStart)="onListScrollStart()"
   (ionScrollEnd)="onListScrollEnd()"
 >
-  <sh-cover-list-content
-    #listContent
-    [items]="items"
-    [loading]="loading"
-    [pageErrorKey]="pageErrorKey"
-    [pageErrorParams]="pageErrorParams"
-    [showNotice]="true"
-    noticeKey="COVERS.DITHERED_THUMBNAIL_NOTICE"
-    [actions]="listActions"
-    thumbAlt="cover"
-    (refreshRequested)="load($event)"
-    (itemClick)="onListItemClick($event)"
-    (actionClick)="onListAction($event)"
-  ></sh-cover-list-content>
+  <div class="covers-page__content">
+    <sh-cover-list-content
+      #listContent
+      [items]="items"
+      [loading]="loading"
+      [pageErrorKey]="pageErrorKey"
+      [pageErrorParams]="pageErrorParams"
+      [showNotice]="true"
+      noticeKey="COVERS.DITHERED_THUMBNAIL_NOTICE"
+      [actions]="listActions"
+      thumbAlt="cover"
+      (refreshRequested)="load($event)"
+      (itemClick)="onListItemClick($event)"
+      (actionClick)="onListAction($event)"
+    ></sh-cover-list-content>
+  </div>
 
-  <sh-cover-preview-modal
-    [isOpen]="previewOpen"
-    [imageDataUrl]="previewDataUrl"
-    [isDithered]="previewIsDithered"
-    [loading]="previewLoading"
-    [gettingCover]="previewGettingCover"
-    gettingCoverTextKey="COVERS.GETTING_COVER"
-    loadingTextKey="COVERS.LOADING_PREVIEW"
-    [headerActions]="previewHeaderActions"
-    [footerActions]="previewFooterActions"
-    [metadata]="previewMetadata"
-    (dismissed)="closePreview()"
-    (actionClick)="onPreviewAction($event)"
-  >
-      <ion-popover
-        shPreviewOverlay
-        [isOpen]="infoOpen"
-        (didDismiss)="closeInfo()"
-        side="bottom"
-        alignment="end"
-      >
-        <ng-template>
-          <div class="app-guide-popover">
-            <div class="app-guide-title">{{ 'CREATE.INFO_SEND_TITLE' | translate }}</div>
-            <div class="app-guide-body">
-              <div class="app-guide-text">
-                {{ 'COMMON.SHARE_KINDLE_HINT' | translate }}
-              </div>
-              <br>
-              <div class="app-guide-text">
-                <strong>{{ 'CREATE.INFO_REQUIREMENTS_LABEL' | translate }}</strong>
-                <ul class="app-guide-steps">
-                  <li>{{ 'CREATE.INFO_REQUIREMENT_DISABLE_ADS' | translate }}</li>
-                  <li>{{ 'CREATE.INFO_REQUIREMENT_ENABLE_COVER_DISPLAY' | translate }}</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </ng-template>
-      </ion-popover>
-  </sh-cover-preview-modal>
 </ion-content>

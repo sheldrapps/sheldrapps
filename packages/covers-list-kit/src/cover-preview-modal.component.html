@@ -1,7 +1,18 @@
-<ion-modal [isOpen]="isOpen" (didDismiss)="onDidDismiss()" class="cover-preview-modal">
-  <ng-template>
+@if (isOpen) {
+  <div class="cover-preview-page" role="dialog" aria-modal="true">
     <ion-header>
       <ion-toolbar class="preview-toolbar">
+        <ion-buttons slot="start">
+          <ion-button
+            fill="clear"
+            class="app-btn app-btn--icon"
+            aria-label="{{ 'COMMON.BACK' | translate }}"
+            (click)="onDidDismiss()"
+          >
+            <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+        <ion-title>{{ (titleKey || 'IMAGE_WORKFLOW.PREVIEW_TITLE') | translate }}</ion-title>
         <ion-buttons slot="end">
           @for (action of visibleActions(headerActions); track action.id) {
           <ion-button
@@ -46,35 +57,29 @@
     </ion-header>
 
     <ion-content class="preview-content" [fullscreen]="true" [scrollY]="true">
-      <div class="stage">
-        <div class="frame-wrap">
-          @if (titleKey) {
-          <div class="preview-header">
-            <div class="preview-title">{{ titleKey | translate }}</div>
-          </div>
-          }
-
+      <div class="preview-scroll-content">
           <div class="preview-visual">
             @if (imageDataUrl) {
+            @if (metadata; as previewMetadata) {
+            @if (previewMetadata.name || previewMetadata.size) {
+            <div class="preview-details" aria-live="polite">
+              @if (previewMetadata.name) {
+              <div class="preview-details__name">{{ previewMetadata.name }}</div>
+              } @if (previewMetadata.size) {
+              <div class="preview-details__size">{{ previewMetadata.size }}</div>
+              }
+            </div>
+            }
+            }
             <app-e-reader-preview-frame
               [imageSrc]="imageDataUrl"
               [isDithered]="isDithered"
               [alt]="imageAlt"
+              [maxFrameWidth]="resolvedMaxFrameWidth"
+              [maxFrameHeight]="resolvedMaxFrameHeight"
               fit="contain"
               renderMode="eReader"
-            >
-              @if (metadata; as previewMetadata) {
-              @if (previewMetadata.name || previewMetadata.size) {
-              <div frameMetaBeforeControls class="preview-details" aria-live="polite">
-                @if (previewMetadata.name) {
-                <div class="preview-details__name">{{ previewMetadata.name }}</div>
-                } @if (previewMetadata.size) {
-                <div class="preview-details__size">{{ previewMetadata.size }}</div>
-                }
-              </div>
-              }
-              }
-            </app-e-reader-preview-frame>
+            ></app-e-reader-preview-frame>
             } @else if (!loading && unavailableConfig && unavailableConfig.visible) {
             <div class="preview-unavailable">
               <div class="preview-unavailable__text">
@@ -106,23 +111,25 @@
             ></sh-loading-state>
             }
           </div>
-        </div>
       </div>
 
-      <div class="bottom-bar" role="toolbar">
-        <div class="bottom-inner">
-          <sh-scrollable-button-bar
-            [items]="footerBarItems"
-            [disabledIds]="footerBarDisabledIds"
-            variant="iconText"
-            align="start"
-            [ariaLabel]="titleKey | translate"
-            (selectItem)="onFooterScrollableAction($event)"
-          ></sh-scrollable-button-bar>
-        </div>
-      </div>
     </ion-content>
 
+    @if (showFooterBar) {
+    <div class="bottom-bar" role="toolbar">
+      <div class="bottom-inner">
+        <sh-scrollable-button-bar
+          [items]="footerBarItems"
+          [disabledIds]="footerBarDisabledIds"
+          variant="iconText"
+          align="start"
+          [ariaLabel]="titleKey | translate"
+          (selectItem)="onFooterScrollableAction($event)"
+        ></sh-scrollable-button-bar>
+      </div>
+    </div>
+    }
+
     <ng-content select="[shPreviewOverlay]"></ng-content>
-  </ng-template>
-</ion-modal>
+  </div>
+}

@@ -1,3 +1,12 @@
 :host {
   display: block;
 }
+
+.my-epubs-page__content {
+  display: block;
+  min-height: max-content;
+  padding-bottom: calc(
+    var(--app-space-8) + var(--app-space-10) + var(--app-space-2) +
+      var(--safe-bottom, 0px)
+  );
+}

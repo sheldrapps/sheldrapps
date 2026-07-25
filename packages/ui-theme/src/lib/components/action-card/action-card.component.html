@@ -1,7 +1,9 @@
 <button
   class="sh-action-card"
   [class.sh-action-card--selected]="selected"
+  [class.sh-action-card--suggested]="suggested"
   [class.sh-action-card--disabled]="disabled"
+  [class.sh-action-card--has-image]="!!imageUrl"
   [disabled]="disabled"
   [type]="type"
   [attr.aria-pressed]="selected ? 'true' : 'false'"
@@ -10,6 +12,14 @@
   <span class="sh-action-card__title">{{ title }}</span>
 
   <span class="sh-action-card__icon" aria-hidden="true">
+    <img
+      *ngIf="imageUrl; else iconContent"
+      class="sh-action-card__image"
+      [src]="imageUrl"
+      alt=""
+    />
+
+    <ng-template #iconContent>
     <span
       *ngIf="svg; else namedIcon"
       [class.sh-action-card__icon--flip-horizontal]="iconFlip === 'horizontal'"
@@ -25,5 +35,10 @@
         [class.sh-action-card__icon--flip-vertical]="iconFlip === 'vertical'"
       ></ion-icon>
     </ng-template>
+    </ng-template>
   </span>
+
+  @if (description) {
+    <small class="sh-action-card__description">{{ description }}</small>
+  }
 </button>

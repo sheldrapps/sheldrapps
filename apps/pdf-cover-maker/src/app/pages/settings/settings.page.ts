@@ -37,8 +37,6 @@ import {
   LanguageRadioListComponent,
   restartForLanguageChange,
 } from '@sheldrapps/i18n-kit';
-import { TourService } from 'src/app/shared/tour/tour.service';
-import { HOME_TOUR_ID } from 'src/app/shared/tour/home-tour.definition';
 import { RatingService } from '@sheldrapps/rating-kit';
 
 @Component({
@@ -70,7 +68,6 @@ export class SettingsPage {
 
   private settings = inject(SettingsStore<PcmSettings>);
   private router = inject(Router);
-  private tour = inject(TourService);
   private ratingService = inject(RatingService);
   readonly supportedLangs = LANG_OPTIONS;
   private isRestartingLanguage = false;
@@ -235,11 +232,6 @@ export class SettingsPage {
     if (!opened) {
       // opcional: toast "Not available"
     }
-  }
-
-  async startHomeTour() {
-    this.tour.requestManualStart(HOME_TOUR_ID);
-    await this.router.navigateByUrl('/tabs/change');
   }
 
   async previewRatingPrompt(): Promise<void> {

@@ -53,6 +53,21 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'preview-editing',
+        loadComponent: () =>
+          import('@sheldrapps/image-workflow').then(
+            (m) => m.PreviewEditingPageComponent,
+          ),
+      },
+      {
+        path: 'recommended-apps',
+        data: { backHref: '/tabs/create' },
+        loadChildren: () =>
+          import('@sheldrapps/recommended-apps').then(
+            (m) => m.RECOMMENDED_APPS_ROUTES,
+          ),
+      },
+      {
         path: '',
         redirectTo: 'create',
         pathMatch: 'full',

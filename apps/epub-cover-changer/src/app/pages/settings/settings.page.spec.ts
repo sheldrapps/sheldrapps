@@ -7,7 +7,6 @@ import { ThemeService, type Theme } from '@sheldrapps/ui-theme';
 import { SettingsPage } from './settings.page';
 import { ConsentService } from 'src/app/services/consent.service';
 import { LanguageService } from 'src/app/services/language.service';
-import { TourService } from 'src/app/shared/tour/tour.service';
 
 describe('SettingsPage', () => {
   let component: SettingsPage;
@@ -61,12 +60,6 @@ describe('SettingsPage', () => {
           },
         },
         { provide: ThemeService, useValue: themeService },
-        {
-          provide: TourService,
-          useValue: {
-            requestManualStart: jasmine.createSpy('requestManualStart'),
-          },
-        },
       ],
     }).compileComponents();
 

@@ -77,6 +77,7 @@ export class SettingsPage {
   readonly privacyPolicyUrl =
     'https://sheldrapps.com/privacy-policies/epub-merger-and-splitter';
 
+
   isLanguageModalOpen = false;
   languageDraft: Lang = 'en-US';
   isLanguageRestartLoading = false;
@@ -221,6 +222,7 @@ export class SettingsPage {
   onThemeSettingsAction(): void {
     void this.router.navigateByUrl('/tabs/settings/theme');
   }
+
 
   async onRatingSettingsAction(value: string): Promise<void> {
     if (value === 'rating-prompt') {

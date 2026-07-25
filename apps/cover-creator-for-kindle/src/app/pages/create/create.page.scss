@@ -29,6 +29,14 @@
   gap: var(--app-space-3);
 }
 
+.workflow-navigation-host {
+  position: sticky;
+  inset-block-end: var(--sh-workflow-navigation-bottom-offset);
+  z-index: 10;
+  margin-block-start: var(--sh-workflow-navigation-margin-block-start);
+  margin-inline: calc(var(--app-space-5) * -1);
+}
+
 .model-picker-selectors {
   display: flex;
   flex-direction: column;

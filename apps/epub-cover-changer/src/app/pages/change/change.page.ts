@@ -21,8 +21,6 @@ import {
   IonTitle,
   IonToolbar,
   IonButtons,
-  IonItem,
-  IonLabel,
   IonIcon,
   IonButton,
   IonModal,
@@ -109,12 +107,16 @@ import { SettingsStore } from '@sheldrapps/settings-kit';
 import { detectSupportedLocale } from '@sheldrapps/i18n-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
 import {
+  ActionCardComponent,
   LoadingStateComponent,
   SaveCoverModalComponent,
   ScrollableBarItem,
   ScrollableButtonBarComponent,
+  WorkflowNavigationComponent,
+  WorkflowStepperComponent,
   TripleButtonComponent,
 } from '@sheldrapps/ui-theme';
+import type { WorkflowStep } from '@sheldrapps/ui-theme';
 import {
   BestCandidateImage,
   BestCandidatePickerComponent,
@@ -129,7 +131,6 @@ import {
 } from '@sheldrapps/recommended-apps';
 import { EccSettings } from '../../settings/ecc-settings.schema';
 import { EpubCandidateImageService } from '../../services/epub-candidate-image.service';
-import { TourOverlayComponent } from '../../shared/tour/tour-overlay.component';
 import { TourService } from '../../shared/tour/tour.service';
 import {
   buildHomeTourDefinition,
@@ -165,22 +166,22 @@ type EditorSourceMode = 'image' | 'scratch';
     IonTitle,
     IonToolbar,
     IonButtons,
-    IonItem,
-    IonLabel,
     IonIcon,
     IonButton,
     IonRow,
     IonGrid,
     IonPopover,
     IonModal,
+    ActionCardComponent,
     LoadingStateComponent,
     CoverImageStateComponent,
     CoverSourceActionsComponent,
     ScrollableButtonBarComponent,
     TripleButtonComponent,
+    WorkflowNavigationComponent,
+    WorkflowStepperComponent,
     RemoveAdsUpgradeModalComponent,
     BestCandidatePickerComponent,
-    TourOverlayComponent,
   ],
 })
 export class ChangePage implements OnInit, OnDestroy {
@@ -211,7 +212,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private appInjector = inject(Injector);
   private readonly baseTarget = { width: 1236, height: 1648 };
   private readonly baseModelId = 'epub';
-  private readonly maxEpubSizeMB = 1024;
+  private readonly maxEpubSizeMB = 2048;
   private readonly formatOptions = this.buildFormatOptions();
   private routerSub?: Subscription;
   private coversEventsSub?: Subscription;
@@ -257,7 +258,14 @@ export class ChangePage implements OnInit, OnDestroy {
   private nativeRewriteSdkBlocked = false;
   private candidateBlobUrls = new Set<string>();
 
-  @ViewChild(IonContent) content?: IonContent;
+  readonly workflowSteps: readonly WorkflowStep[] = [
+    { id: 'epub', label: this.translate.instant('CHANGE.STEPPER.EPUB') },
+    { id: 'cover', label: this.translate.instant('CHANGE.STEPPER.COVER') },
+    { id: 'adjust', label: this.translate.instant('CHANGE.STEPPER.ADJUST') },
+    { id: 'create', label: this.translate.instant('CHANGE.STEPPER.CREATE') },
+  ];
+  workflowStep = 0;
+
   @ViewChild('epubInput') epubInput!: ElementRef<HTMLInputElement>;
   @ViewChild('imageInput') imageInput!: ElementRef<HTMLInputElement>;
 
@@ -371,6 +379,7 @@ export class ChangePage implements OnInit, OnDestroy {
     height: number | null;
   } | null = null;
   private isApplyingFromEditor = false;
+  private editorOpenedFromCurrentCover = false;
   private previewGenerationToken = 0;
   private currentPreviewOrigin:
     | 'source-epub'
@@ -457,9 +466,11 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   get shouldShowBestCandidateAction(): boolean {
+    const hasCandidateState =
+      this.bestCandidateRequested || this.bestCandidates.length > 0;
     return (
-      !this.previewUrl &&
-      (this.showInvalidCoverFallback || this.bestCandidateRequested)
+      (this.workflowStep === 1 && hasCandidateState) ||
+      (!this.previewUrl && this.showInvalidCoverFallback)
     );
   }
 
@@ -477,6 +488,69 @@ export class ChangePage implements OnInit, OnDestroy {
     if (this.canSaveShare()) return 'result-actions';
     if (this.canGenerate()) return 'create-button';
     return null;
+  }
+
+  get workflowPreviousLabel(): string {
+    return this.translate.instant('CHANGE.WORKFLOW_PREVIOUS');
+  }
+
+  get workflowNextLabel(): string {
+    return this.translate.instant('CHANGE.WORKFLOW_CONTINUE');
+  }
+
+  canContinueWorkflow(): boolean {
+    switch (this.workflowStep) {
+      case 0:
+        return this.hasValidEpub();
+      case 1:
+        return this.canCrop();
+      case 2:
+        return this.canExport();
+      default:
+        return false;
+    }
+  }
+
+  async onWorkflowPrevious(): Promise<void> {
+    if (this.workflowStep <= 0 || this.isExporting) return;
+    await this.navigateToWorkflowStep(this.workflowStep - 1);
+  }
+
+  async onWorkflowNext(): Promise<void> {
+    if (!this.canContinueWorkflow()) return;
+
+    if (this.workflowStep === 1) {
+      await this.startCrop();
+      return;
+    }
+
+    await this.navigateToWorkflowStep(this.workflowStep + 1);
+  }
+
+  async onWorkflowStepSelected(step: number): Promise<void> {
+    if (step < 0 || step > 3 || step === this.workflowStep) return;
+    if (step === 0 && this.hasValidEpub()) {
+      await this.navigateToWorkflowStep(step);
+      return;
+    }
+    if (step === 1 && this.hasValidEpub()) {
+      await this.navigateToWorkflowStep(step);
+      return;
+    }
+    if (step === 2 && this.canCrop()) {
+      await this.navigateToWorkflowStep(step);
+      return;
+    }
+    if (step === 3 && this.canExport()) {
+      await this.navigateToWorkflowStep(step);
+    }
+  }
+
+  private async navigateToWorkflowStep(step: number): Promise<void> {
+    this.workflowStep = step;
+    if (step === 2 && this.canCrop()) {
+      await this.startCrop();
+    }
   }
 
   async ngOnInit() {
@@ -716,6 +790,7 @@ export class ChangePage implements OnInit, OnDestroy {
           await this.homeTour.completeInteraction('epub-selected');
           return;
         }
+        this.workflowStep = 1;
         await this.homeTour.completeInteraction('epub-selected');
       } finally {
         this.resetEpubLoadProgress();
@@ -820,6 +895,7 @@ export class ChangePage implements OnInit, OnDestroy {
         await this.homeTour.completeInteraction('epub-selected');
         return;
       }
+      this.workflowStep = 1;
       this.epubLoadProgressPercent = 100;
       await this.homeTour.completeInteraction('epub-selected');
     } catch {
@@ -872,6 +948,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private resetWorkflow() {
+    this.workflowStep = 0;
     this.selectedFormatId = this.persistedCropTargetId;
     this.closeInfo();
     this.closePreview();
@@ -960,13 +1037,14 @@ export class ChangePage implements OnInit, OnDestroy {
     const file = input.files?.[0];
     if (!file) return;
 
-    this.resetBestCandidateState(true);
     this.setBusy('pick', 'CHANGE.LOADING_IMAGE');
 
     try {
       const loaded = await this.applyImageSource(file, true);
       if (loaded) {
+        this.editorOpenedFromCurrentCover = false;
         await this.homeTour.completeInteraction('cover-image-selected');
+        await this.openEditor('image');
       }
     } finally {
       this.setBusy('none');
@@ -1054,8 +1132,7 @@ export class ChangePage implements OnInit, OnDestroy {
     const file = this.candidateFileFromMetadata(candidate);
     if (!file) return;
 
-    this.resetBestCandidateState(true);
-    const loaded = await this.applyImageSource(file, false);
+    const loaded = await this.applyImageSource(file, true);
     if (!loaded) return;
 
     if (candidate.sourcePath) {
@@ -1065,8 +1142,8 @@ export class ChangePage implements OnInit, OnDestroy {
       '[ECC_BEST_CANDIDATE] selected candidate:',
       candidate.sourcePath || candidate.fileName || candidate.id,
     );
-    this.resetBestCandidateState(true);
     await this.homeTour.completeInteraction('cover-image-selected');
+    await this.openEditor('image');
   }
 
   onBestCandidatePreviewRequested(candidate: BestCandidateImage): void {
@@ -1080,7 +1157,7 @@ export class ChangePage implements OnInit, OnDestroy {
       titleKey: 'BEST_CANDIDATE.PREVIEW.TITLE',
       returnUrl: '/tabs/change',
     });
-    void this.router.navigateByUrl('/preview-editing');
+    void this.router.navigateByUrl('/tabs/preview-editing');
     console.info(
       '[ECC_BEST_CANDIDATE] preview requested:',
       candidate.sourcePath || candidate.fileName || candidate.id,
@@ -1170,6 +1247,8 @@ export class ChangePage implements OnInit, OnDestroy {
       this.setPreviewUrl(url);
       this.setPreviewThumbUrl(url);
     }
+
+    this.workflowStep = 1;
 
     return true;
   }
@@ -1271,14 +1350,28 @@ export class ChangePage implements OnInit, OnDestroy {
       !this.imageErrorKey
     );
   }
+
+  hasCurrentEpubCover(): boolean {
+    return (
+      !!this.originalEpubPreviewUrl &&
+      this.canCrop()
+    );
+  }
+
+  async onCurrentCoverSelected(): Promise<void> {
+    if (!this.hasCurrentEpubCover()) return;
+    this.editorOpenedFromCurrentCover = true;
+    await this.homeTour.completeInteraction('cover-image-selected');
+    await this.openEditor('image');
+  }
+
   canStartScratch(): boolean {
     return this.hasValidEpub() && !this.isPickingImage && !this.isExporting;
   }
 
   async onStartScratch(): Promise<void> {
     if (!this.canStartScratch()) return;
-    this.resetBestCandidateState(true);
-    this.resetSelectedImage();
+    this.editorOpenedFromCurrentCover = false;
     this.clearImageError();
     this.clearImageWarn();
     await this.homeTour.completeInteraction('cover-image-selected');
@@ -1301,6 +1394,10 @@ export class ChangePage implements OnInit, OnDestroy {
         ? (this.editorSourceFile ?? this.workingImageFile)
         : undefined;
     if (sourceMode === 'image' && !sourceFile) return;
+
+    if (sourceMode === 'scratch') {
+      this.editorOpenedFromCurrentCover = false;
+    }
 
     const initialState =
       sourceMode === 'scratch' ? this.buildDefaultCropState() : this.cropState;
@@ -1355,7 +1452,8 @@ export class ChangePage implements OnInit, OnDestroy {
 
     this.lastEditorSourceMode = sourceMode;
     this.lastEditorSessionId = sid;
-    const shouldShowEditorTour = await this.shouldShowEditorTour();
+    this.workflowStep = 2;
+    const shouldShowEditorTour = false;
     await this.homeTour.completeInteraction('editor-apply');
 
     const entryPath = sourceMode === 'scratch' ? '/editor/tools' : '/editor';
@@ -1402,6 +1500,8 @@ export class ChangePage implements OnInit, OnDestroy {
   private async applyCropResult(result: EditorResult): Promise<void> {
     const newFile = result.file;
     if (!newFile) return;
+    this.editorOpenedFromCurrentCover = false;
+    this.workflowStep = 3;
     const renderedBlob = result.renderedBlob;
     this.isApplyingFromEditor = true;
     let editorTourShouldBeMarkedSeen = false;
@@ -1503,7 +1603,10 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private buildCompositionInput(purpose: 'preview' | 'export' = 'preview') {
-    const workingFile = this.editorSourceFile ?? this.workingImageFile;
+    const isScratchComposition = this.lastEditorSourceMode === 'scratch';
+    const workingFile = isScratchComposition
+      ? this.workingImageFile
+      : this.editorSourceFile ?? this.workingImageFile;
     if (!workingFile || !this.workingImageDims) {
       return null;
     }
@@ -1524,7 +1627,7 @@ export class ChangePage implements OnInit, OnDestroy {
           naturalHeight: this.workingImageDims.height,
         },
         original:
-          this.originalImageFile && this.originalImageDims
+          !isScratchComposition && this.originalImageFile && this.originalImageDims
             ? {
                 file: this.originalImageFile,
                 naturalWidth: this.originalImageDims.width,
@@ -1718,6 +1821,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.setBusy('export', 'CHANGE.SAVING');
     try {
       const requestedFilename = this.ensureEpubExtension(filename);
+      const isRename = !!this.lastSavedFilename;
 
       const isProjectEditSave =
         this.projectSaveState.isCurrentFilename(requestedFilename);
@@ -1934,7 +2038,11 @@ export class ChangePage implements OnInit, OnDestroy {
       });
 
       await this.consumeAdFallbackAttemptAfterSuccess('save');
-      await this.showToast('CHANGE.SAVED_OK', { duration: 1600 }, 'success');
+      await this.showToast(
+        isRename ? 'CHANGE.RENAMED_OK' : 'CHANGE.SAVED_OK',
+        { duration: 1600 },
+        'success',
+      );
     } finally {
       await this.clearBusyUi();
     }
@@ -3371,14 +3479,6 @@ export class ChangePage implements OnInit, OnDestroy {
         this.coverEntryPath = result.coverEntryPath;
       }
 
-      if (result.coverInserted) {
-        await this.showToast(
-          'CHANGE.NO_COVER_DETECTED_ADDED',
-          { duration: 2000 },
-          'info',
-        );
-      }
-
       this.generatedEpubBytes = undefined;
       this.generatedEpubPath = undefined;
       this.generatedEpubNativePath = outputTarget.nativePath;
@@ -3640,7 +3740,7 @@ export class ChangePage implements OnInit, OnDestroy {
           ? 'CHANGE.PREVIEW_ORIGINAL_LABEL'
           : null,
       afterLabel:
-        this.previewModalMode === 'compare'
+        this.previewModalMode === 'compare' && !!this.previewModalBeforeSrc
           ? 'CHANGE.PREVIEW_NEW_LABEL'
           : 'CHANGE.PREVIEW_NEW_ONLY_LABEL',
       mode: this.previewModalMode,
@@ -3648,7 +3748,7 @@ export class ChangePage implements OnInit, OnDestroy {
       isDithered: this.isPreviewDithered(),
       returnUrl: '/tabs/change',
     });
-    void this.router.navigateByUrl('/preview-editing');
+    void this.router.navigateByUrl('/tabs/preview-editing');
   }
 
   closePreview() {
@@ -3715,48 +3815,28 @@ export class ChangePage implements OnInit, OnDestroy {
     void this.refreshHeaderItems();
   }
 
-  async ionViewDidEnter() {
-    this.homeTour.registerContent(this.content);
-    const manualStartRequested =
-      this.homeTour.consumePendingManualStart(HOME_TOUR_ID);
-    if (manualStartRequested) {
-      this.forceEditorTourOnNextEditorOpen = true;
-      this.forceIncludeRemoveAdsStepOnNextHomeTour = true;
-    }
-    await this.maybeStartHomeTour(manualStartRequested);
-  }
-
-  onTourContentScroll() {
-    this.homeTour.requestSync();
-  }
-
   private async refreshHeaderItems(): Promise<void> {
     this.recommendedApps =
       await this.recommendedAppsService.getRecommendedApps();
     this.showRecommended = this.recommendedApps.length > 0;
     this.headerItems = buildHomeHeaderItems(this.showRecommended, {
       appsLabel: this.translate.instant('ARR.TOOLS.APPS'),
-      guideLabel: this.translate.instant('ARR.TOOLS.GUIDE'),
+      includeGuide: false,
     });
   }
 
   async onHeaderItemClick(id: string): Promise<void> {
-    if (id === 'guide' || id === 'info') {
-      await this.startManualHomeTour();
-      return;
-    }
-
     await handleHomeHeaderAction(id, {
       closeInfo: () => this.closeInfo(),
       toggleInfo: () => this.toggleInfo(),
       navigateToRecommended: async () => {
-        await this.router.navigateByUrl('/recommended-apps');
+        await this.router.navigateByUrl('/tabs/recommended-apps');
       },
     });
   }
 
   private async consumeEditorResult(sessionId?: string): Promise<void> {
-    const { result } = consumeEditorResultSnapshot(
+    const { session, result } = consumeEditorResultSnapshot(
       this.editorSession,
       sessionId ?? this.lastEditorSessionId,
     );
@@ -3767,6 +3847,17 @@ export class ChangePage implements OnInit, OnDestroy {
 
     if (result?.file) {
       await this.applyCropResult(result);
+      return;
+    }
+
+    if (session && !result) {
+      if (!this.editorOpenedFromCurrentCover) {
+        this.currentPreviewOrigin = this.originalEpubPreviewUrl
+          ? 'source-epub'
+          : null;
+      }
+      this.workflowStep = 1;
+      this.editorOpenedFromCurrentCover = false;
     }
   }
 

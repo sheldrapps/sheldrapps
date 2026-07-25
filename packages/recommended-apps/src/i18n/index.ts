@@ -45,6 +45,14 @@ const SUPPORTED_RECOMMENDED_APPS_LOCALES = Object.keys(
   RECOMMENDED_APPS_TRANSLATIONS,
 ) as RecommendedAppsLocale[];
 
+const withCategoryLabels = (
+  translations: RecommendedAppsTranslations,
+): RecommendedAppsTranslations => ({
+  ...translations,
+  CATEGORY_EPUB: 'EPUB',
+  CATEGORY_PDF: 'PDF',
+});
+
 export function detectRecommendedAppsLocale(
   preferredLocale?: string,
 ): RecommendedAppsLocale {
@@ -69,12 +77,12 @@ export function getRecommendedAppsTranslations(
   preferredLocale?: string,
 ): RecommendedAppsTranslations {
   const locale = detectRecommendedAppsLocale(preferredLocale);
-  return RECOMMENDED_APPS_TRANSLATIONS[locale];
+  return withCategoryLabels(RECOMMENDED_APPS_TRANSLATIONS[locale]);
 }
 
 export async function getRecommendedAppsTranslationsAsync(
   preferredLocale?: string,
 ): Promise<RecommendedAppsTranslations> {
   const locale = await detectRecommendedAppsLocaleAsync(preferredLocale);
-  return RECOMMENDED_APPS_TRANSLATIONS[locale];
+  return withCategoryLabels(RECOMMENDED_APPS_TRANSLATIONS[locale]);
 }

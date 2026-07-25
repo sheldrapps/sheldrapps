@@ -79,15 +79,16 @@
     "SETTINGS": "Paramètres"
   },
   "HOME": {
+    "STEPPER": { "MERGE_SPLIT": "Fusionner / diviser", "SORT": "Trier", "TOC": "TOC", "COVER": "Couverture", "ADJUST": "Ajuster", "JOIN": "Fusionner" },
     "WHAT_DO_YOU_WANT_TO_DO": "Que voulez-vous faire ?",
     "MERGE": "Fusionner",
     "SPLIT": "Diviser",
     "MERGING_TITLE": "Fusion",
     "SPLITTING_TITLE": "Division",
-    "EPUB_FILES_TITLE": "Fichiers EPUB",
+    "EPUB_FILES_TITLE": "Combien de fichiers ?",
     "EPUB_FILE_TITLE": "Fichier EPUB",
     "SELECT_EPUB_FILES_PLACEHOLDER": "Sélectionner les fichiers EPUB",
-    "ADD_ANOTHER_EPUB_FILE": "Ajouter un autre fichier EPUB",
+    "ADD_ANOTHER_EPUB_FILE": "En ajouter ?",
     "FILES_SELECTED": "{{count}} fichiers prêts",
     "ARIA_ADD_EPUB_FILE": "Ajouter un autre fichier EPUB",
     "ARIA_SELECT_EPUB_FILES": "Sélectionner les fichiers EPUB",
@@ -98,10 +99,11 @@
     "INPUT_ERROR_SIZE": "Le fichier EPUB sélectionné est trop volumineux.",
     "INPUT_ERROR_STORAGE": "Il n’y a pas assez d’espace de stockage pour préparer ce fichier EPUB.",
     "INPUT_ERROR_CORRUPT": "Ce fichier EPUB n’a pas pu être préparé. Essayez un autre fichier.",
-    "EXPORT_ORDER_TITLE": "Ordre d’exportation",
-    "COVER_SELECTOR_TITLE": "Sélecteur de couverture",
+    "EXPORT_ORDER_TITLE": "Dans quel ordre les voulez-vous ?",
+    "COVER_SELECTOR_TITLE": "À partir de quoi créer la couverture ?",
     "BEST_CANDIDATES_TITLE": "Suggestions issues de vos EPUB",
-    "ADJUST_COVER": "Ajuster la couverture"
+    "ADJUST_COVER": "Ajuster la couverture",
+    "PREVIEW_TITLE": "Aperçu"
   },
   "TOC_OPTIONS": {
     "TITLE": "Que faire de la table des matières ?",

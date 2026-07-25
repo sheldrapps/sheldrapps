@@ -18,6 +18,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.CRC32;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.model.ZipParameters;
@@ -60,6 +63,39 @@ public class EpubRewritePluginRewriteTest {
         );
 
         assertEquals("OEBPS/images/cover.png", resolved);
+    }
+
+    @Test
+    public void recoverZipFromLocalHeadersKeepsStoredMimetypeEntry() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Path sourcePath = temporaryFolder.newFile("source.epub").toPath();
+        Path recoveredPath = temporaryFolder.newFile("recovered.epub").toPath();
+        byte[] mimetype = utf8("application/epub+zip");
+
+        try (ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(sourcePath))) {
+            ZipEntry mimetypeEntry = new ZipEntry("mimetype");
+            mimetypeEntry.setMethod(ZipEntry.STORED);
+            mimetypeEntry.setSize(mimetype.length);
+            mimetypeEntry.setCompressedSize(mimetype.length);
+            CRC32 crc32 = new CRC32();
+            crc32.update(mimetype);
+            mimetypeEntry.setCrc(crc32.getValue());
+            output.putNextEntry(mimetypeEntry);
+            output.write(mimetype);
+            output.closeEntry();
+        }
+
+        assertTrue(invokeBoolean(
+            plugin,
+            "recoverZipFromLocalHeaders",
+            new Class<?>[] { Path.class, Path.class },
+            sourcePath,
+            recoveredPath
+        ));
+
+        try (java.util.zip.ZipFile recovered = new java.util.zip.ZipFile(recoveredPath.toFile())) {
+            assertNotNull(recovered.getEntry("mimetype"));
+        }
     }
 
     @Test
@@ -433,6 +469,38 @@ public class EpubRewritePluginRewriteTest {
             new Class<?>[] { String.class },
             "<meta http-equiv=Content-Type content=\"text/html\"/>"
         ));
+    }
+
+    @Test
+    public void doctypeHtmlIsNotReportedAsXhtmlDamage() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+
+        assertFalse(invokeBoolean(
+            plugin,
+            "containsDoctypeDeclaration",
+            new Class<?>[] { String.class },
+            "<!DOCTYPE html><html xmlns=\"http://www.w3.org/1999/xhtml\"></html>"
+        ));
+        assertTrue(invokeBoolean(
+            plugin,
+            "containsDoctypeDeclaration",
+            new Class<?>[] { String.class },
+            "<!DOCTYPE html [<!ENTITY xxe SYSTEM \"file:///tmp/x\">]>"
+        ));
+        assertEquals(
+            invokeString(
+                plugin,
+                "normalizeXmlComparison",
+                new Class<?>[] { String.class },
+                "<!DOCTYPE html><html><body>Thanks</body></html>"
+            ),
+            invokeString(
+                plugin,
+                "normalizeXmlComparison",
+                new Class<?>[] { String.class },
+                "<html><body>Thanks</body></html>"
+            )
+        );
     }
 
     @Test

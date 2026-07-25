@@ -16,60 +16,51 @@
 <ion-content
   [fullscreen]="true"
   class="ion-padding"
-  [scrollEvents]="true"
-  (ionScroll)="onTourContentScroll()"
 >
   @let suggestedStepId = getSuggestedStepId();
 
+  <sh-workflow-stepper
+    [steps]="workflowSteps"
+    [currentStep]="workflowStep"
+    [selectableSteps]="
+      hasValidPdf()
+        ? canSaveShare()
+          ? [0, 1, 2, 3, 4]
+          : canExport()
+            ? [0, 1, 2, 3]
+              : canCrop()
+                ? [0, 1, 2, 3]
+                : [0]
+        : []
+    "
+    (stepSelected)="onWorkflowStepSelected($event)"
+  ></sh-workflow-stepper>
+
+  @if (workflowStep === 0) {
   <!-- PDF File Selector -->
   <div class="file-selector-section">
     <div class="field-title">
       {{ 'CHANGE.PDF_FILE_TITLE' | translate }}
     </div>
 
-    <ion-item
-      button
-      detail="false"
-      class="file-selector-section__item app-outline-surface"
+    <sh-action-card
+      class="file-selector-section__card"
       data-tour-id="pdf-picker"
       (click)="openPdfPicker()"
-      [class.item-invalid]="!!pdfErrorKey"
-      [class.suggested-action--active]="suggestedStepId === 'pdf-picker'"
-      [attr.aria-invalid]="pdfErrorKey ? 'true' : 'false'"
-      [attr.aria-describedby]="pdfErrorKey ? 'pdf-error' : null"
-      [attr.aria-label]="
-      selectedPdfName
-        ? ('CHANGE.ARIA_CHANGE_PDF' | translate:{ name: selectedPdfName })
-        : ('CHANGE.ARIA_SELECT_PDF' | translate)
-    "
-    >
-      <ion-label>
-        @if (selectedPdfName && !pdfErrorKey) {
-        <div class="file-selector-section__selected-copy">
-          <div class="field-filename">{{ selectedPdfName }}</div>
-          <div class="field-subtle">{{ 'CHANGE.TAP_TO_CHANGE' | translate }}</div>
-        </div>
-        } @else {
-        <div class="field-placeholder">
-          {{ 'CHANGE.SELECT_PDF_PLACEHOLDER' | translate }}
-        </div>
-        }
-      </ion-label>
-
-      <div class="thumb-wrapper" slot="end" aria-hidden="true">
-        @if (selectedPdfName && !pdfErrorKey) {
-        <ion-icon class="thumb-check" name="checkmark-circle"></ion-icon>
-        } @else {
-        <div class="thumb thumb--icon">
-          <ion-icon
-            class="thumb-icon"
-            [name]="pdfErrorKey ? 'alert-circle-outline' : 'document-outline'"
-            aria-hidden="true"
-          ></ion-icon>
-        </div>
-        }
-      </div>
-    </ion-item>
+      [title]="selectedPdfName || ('CHANGE.SELECT_PDF_PLACEHOLDER' | translate)"
+      [description]="
+        (selectedPdfName ? 'CHANGE.TAP_TO_CHANGE' : 'CHANGE.PDF_VALIDATION_HINT')
+          | translate
+      "
+      icon="document-outline"
+      [suggested]="suggestedStepId === 'pdf-picker'"
+      [disabled]="isPickingPdf || isExporting"
+      [ariaLabel]="
+        selectedPdfName
+          ? ('CHANGE.ARIA_CHANGE_PDF' | translate:{ name: selectedPdfName })
+          : ('CHANGE.ARIA_SELECT_PDF' | translate)
+      "
+    ></sh-action-card>
   </div>
 
   @if (pdfErrorKey) {
@@ -90,47 +81,57 @@
   </div>
   }
 
-  @if (hasValidPdf()) {
-  <div class="cover-mode-card app-secondary-surface ion-margin-top">
-    <app-cover-page-mode-switch
-      data-tour-id="cover-page-mode"
-      [title]="'CHANGE.COVER_MODE_LABEL' | translate"
-      [ariaLabel]="'CHANGE.COVER_MODE_ARIA' | translate"
-      [leftLabel]="'CHANGE.COVER_MODE_INSERT_FIRST_PAGE' | translate"
-      [rightLabel]="'CHANGE.COVER_MODE_REPLACE_FIRST_PAGE' | translate"
-      [leftValue]="'insert'"
-      [rightValue]="'replace'"
-      [value]="coverPageMode"
-      [disabled]="hasActiveProjectFilename"
-      (valueChange)="onCoverPageModeChange($event)"
-    ></app-cover-page-mode-switch>
-
-    @if (shouldShowInsertTocWarning()) {
-    <div class="app-callout app-callout--warning cover-mode-card__warning" aria-live="polite" role="status">
-      <ion-icon
-        class="app-callout__icon"
-        name="alert-circle-outline"
-        aria-hidden="true"
-      ></ion-icon>
-
-      <div class="app-callout__body">
-        {{ 'CHANGE.INSERT_MODE_TOC_WARNING' | translate }}
-      </div>
-    </div>
-    }
-  </div>
   }
 
+  @if (workflowStep === 1 && hasValidPdf()) {
+  <div class="field-title">{{ 'CHANGE.COVER_MODE_LABEL' | translate }}</div>
+  <ion-grid class="app-action-grid cover-mode-actions" data-tour-id="cover-page-mode">
+    <ion-row>
+      <ion-col>
+        <sh-action-card
+          [title]="'CHANGE.COVER_MODE_INSERT_FIRST_PAGE' | translate"
+          [description]="'CHANGE.INSERT_MODE_TOC_WARNING' | translate"
+          icon="document-outline"
+          [selected]="coverPageMode === 'insert'"
+          [disabled]="hasActiveProjectFilename"
+          [ariaLabel]="'CHANGE.COVER_MODE_INSERT_FIRST_PAGE' | translate"
+          (click)="onCoverPageModeChange('insert')"
+        ></sh-action-card>
+      </ion-col>
+      <ion-col>
+        <sh-action-card
+          [title]="'CHANGE.COVER_MODE_REPLACE_FIRST_PAGE' | translate"
+          [description]="'CHANGE.REPLACE_MODE_DESCRIPTION' | translate"
+          icon="refresh-outline"
+          [selected]="coverPageMode === 'replace'"
+          [disabled]="hasActiveProjectFilename"
+          [ariaLabel]="'CHANGE.COVER_MODE_REPLACE_FIRST_PAGE' | translate"
+          (click)="onCoverPageModeChange('replace')"
+        ></sh-action-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  }
+
+  @if (workflowStep === 2) {
   <sh-cover-source-actions
+    [titleKey]="'CHANGE.COVER_SOURCE_TITLE'"
     [imageHidden]="!hasValidPdf()"
     [scratchHidden]="!canStartScratch()"
+    [currentImageUrl]="originalPdfPreviewUrl"
+    [currentHidden]="!hasCurrentPdfCover()"
+    [currentDisabled]="isPickingImage || isExporting"
     [suggestedActions]="
       suggestedStepId === 'cover-source-image' ? ['image', 'scratch'] : []
     "
     (imageSelected)="openImagePicker()"
+    (currentSelected)="onCurrentCoverSelected()"
     (scratchSelected)="onStartScratch()"
   ></sh-cover-source-actions>
+  }
 
+  @if (workflowStep >= 2) {
   <sh-cover-image-state
     [previewUrl]="previewUrl"
     [previewRevision]="previewRevision"
@@ -143,8 +144,12 @@
   [smallWarningTarget]="currentCoverWarningTarget"
   (previewRequested)="openPreview()"
 ></sh-cover-image-state>
+  }
 
-  @if (shouldShowBestCandidateAction) {
+  @if (workflowStep === 2 && shouldShowBestCandidateAction) {
+  <div class="field-title best-candidate-title">
+    {{ 'CHANGE.BEST_CANDIDATE_TITLE' | translate }}
+  </div>
   <div class="best-candidate-wrap">
     <best-candidate-picker
       [candidates]="bestCandidates"
@@ -155,14 +160,16 @@
       [showHeader]="false"
       [compact]="true"
       [enableLongPressPreview]="true"
+      [showCompactCopy]="false"
       (candidateSelected)="onBestCandidateSelected($event)"
       (candidatePreviewRequested)="onBestCandidatePreviewRequested($event)"
     />
   </div>
   }
 
+  @if (workflowStep >= 2) {
   <div class="primary-actions">
-    @if (canCrop()) {
+    @if (workflowStep === 3 && canCrop()) {
     <ion-button
       expand="block"
       fill="outline"
@@ -176,7 +183,7 @@
     </ion-button>
     }
 
-    @if (shouldShowExportOptions()) {
+    @if (workflowStep === 4 && shouldShowExportOptions()) {
     <div data-tour-id="export-quality">
       <sh-triple-button
         mode="export-quality-mode"
@@ -188,7 +195,7 @@
     </div>
     }
 
-    @if (shouldShowDitheringHint()) {
+    @if (workflowStep === 4 && shouldShowDitheringHint()) {
     <div class="app-callout app-callout--info" aria-live="polite" role="status">
       <ion-icon
         class="app-callout__icon"
@@ -203,7 +210,7 @@
     }
 
     <div class="actions">
-      @if (canGenerate()) {
+      @if (workflowStep === 4 && canGenerate()) {
       <ion-button
         expand="block"
         data-tour-id="create-button"
@@ -216,7 +223,9 @@
       }
     </div>
   </div>
+  }
 
+  @if (workflowStep === 4) {
   <div class="secondary-actions">
     @if (canSaveShare()) {
     <ion-grid class="app-action-grid" data-tour-id="result-actions">
@@ -229,7 +238,7 @@
             [class.suggested-action--active]="suggestedStepId === 'result-actions'"
           >
             <ion-icon slot="start" name="save-outline"></ion-icon>
-            {{ 'CHANGE.SAVE_ACTION' | translate }}
+            {{ (wasAutoSaved ? 'CHANGE.RENAME_ACTION' : 'CHANGE.SAVE_ACTION') | translate }}
           </ion-button>
         </ion-col>
 
@@ -247,8 +256,9 @@
     </ion-grid>
     }
   </div>
+  }
 
-  @if (canShowRemoveAdsEntryPoint()) {
+    @if (workflowStep === 4 && canShowRemoveAdsEntryPoint()) {
   <div class="upgrade-actions">
     <ion-button
       expand="block"
@@ -267,6 +277,17 @@
     </ion-button>
   </div>
   }
+
+  <sh-workflow-navigation
+    [showPrevious]="workflowStep > 0"
+    [showNext]="workflowStep < 4"
+    [previousLabel]="workflowPreviousLabel"
+    [nextLabel]="workflowNextLabel"
+    [nextDisabled]="!canContinueWorkflow()"
+    [nextLoading]="isPickingImage || isExporting"
+    (previous)="onWorkflowPrevious()"
+    (next)="onWorkflowNext()"
+  ></sh-workflow-navigation>
 
   <ion-popover
     [isOpen]="infoOpen"
@@ -333,8 +354,6 @@
       [label]="loadingMessage || ('COMMON.LOADING' | translate)"
     ></sh-loading-state>
   }
-
-  <app-tour-overlay></app-tour-overlay>
 
   <input
     #pdfInput

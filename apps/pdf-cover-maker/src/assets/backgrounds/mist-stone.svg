@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Mist Stone seamless grayscale texture tile">
+  <rect data-bg="solid" x="0" y="0" width="512" height="512" fill="#FFFFFF" />
+  <defs>
+    <filter id="mist-stone-texture" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <!-- broad diffuse mineral base -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.02 0.024" numOctaves="3" seed="52" stitchTiles="stitch" result="broad"/>
+      <feColorMatrix in="broad" type="matrix" values="
+        0.18 0.18 0.18 0 0.44
+        0.18 0.18 0.18 0 0.44
+        0.18 0.18 0.18 0 0.44
+        0    0    0    0.16 0" result="broadTone"/>
+
+      <!-- soft cloudy mist variation -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.055 0.065" numOctaves="2" seed="91" stitchTiles="stitch" result="cloud"/>
+      <feGaussianBlur in="cloud" stdDeviation="0.5" result="cloudSoft"/>
+      <feColorMatrix in="cloudSoft" type="matrix" values="
+        0.10 0.10 0.10 0 0.48
+        0.10 0.10 0.10 0 0.48
+        0.10 0.10 0.10 0 0.48
+        0    0    0    0.08 0" result="cloudTone"/>
+
+      <!-- subtle mineral micrograin -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.14 0.18" numOctaves="1" seed="17" stitchTiles="stitch" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="
+        0.05 0.05 0.05 0 0.50
+        0.05 0.05 0.05 0 0.50
+        0.05 0.05 0.05 0 0.50
+        0    0    0    0.03 0" result="grainTone"/>
+
+      <feBlend in="broadTone" in2="cloudTone" mode="multiply" result="blend1"/>
+      <feBlend in="blend1" in2="grainTone" mode="multiply" result="blend2"/>
+      <feGaussianBlur in="blend2" stdDeviation="0.16" result="stoneTex"/>
+      <feComposite in="stoneTex" in2="SourceGraphic" operator="over"/>
+    </filter>
+
+    <pattern id="mist-stone" width="128" height="128" patternUnits="userSpaceOnUse">
+      <rect width="128" height="128" fill="#e5e5e3"/>
+      <rect width="128" height="128" fill="#ececea" filter="url(#mist-stone-texture)" opacity="0.92"/>
+
+      <!-- extremely subtle smooth mineral swells, tile-safe and non-figurative -->
+      <g opacity="0.014" fill="#7f7f7f">
+        <ellipse cx="26" cy="30" rx="22" ry="14"/>
+        <ellipse cx="94" cy="26" rx="28" ry="16"/>
+        <ellipse cx="54" cy="72" rx="30" ry="18"/>
+        <ellipse cx="106" cy="92" rx="22" ry="16"/>
+        <ellipse cx="18" cy="106" rx="18" ry="12"/>
+      </g>
+
+      <g opacity="0.01" fill="#8a8a8a">
+        <ellipse cx="70" cy="18" rx="16" ry="10"/>
+        <ellipse cx="22" cy="64" rx="18" ry="12"/>
+        <ellipse cx="92" cy="62" rx="20" ry="12"/>
+        <ellipse cx="56" cy="108" rx="22" ry="14"/>
+      </g>
+    </pattern>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#mist-stone)"/>
+</svg>

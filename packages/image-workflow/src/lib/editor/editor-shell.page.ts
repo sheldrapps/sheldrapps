@@ -1733,6 +1733,13 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.router.navigate(["./"], { relativeTo: this.route });
   }
 
+  onPanelClose(): void {
+    this.ui.closePanel();
+    if (this.isToolsRouteActive() || this.ui.activeMode() !== "none") {
+      void this.router.navigate(["./"], { relativeTo: this.route });
+    }
+  }
+
   applyPanel(): void {
     if (this.history.mode() !== "local") return;
     if (!this.history.canApplyPanel()) return;
@@ -1741,11 +1748,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     if (!applied) return;
 
     this.ui.closePanel();
-    const keepToolsRoute =
-      this.ui.activeMode() === "tools" && this.ui.activeTool() === "fill";
-    this.router.navigate([keepToolsRoute ? "tools" : "./"], {
-      relativeTo: this.route,
-    });
+    this.router.navigate(["./"], { relativeTo: this.route });
   }
 
   private updateCanvasGestures(): void {

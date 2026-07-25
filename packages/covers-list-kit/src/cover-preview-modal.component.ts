@@ -13,10 +13,12 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
-  IonModal,
+  IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { addIcons } from 'ionicons';
+import { arrowBackOutline } from 'ionicons/icons';
 import { EReaderPreviewFrameComponent } from '@sheldrapps/image-workflow';
 import {
   LoadingStateComponent,
@@ -67,7 +69,7 @@ export interface PreviewActionClickEvent {
     IonContent,
     IonHeader,
     IonIcon,
-    IonModal,
+    IonTitle,
     IonToolbar,
     EReaderPreviewFrameComponent,
     LoadingStateComponent,
@@ -80,8 +82,14 @@ export interface PreviewActionClickEvent {
 export class CoverPreviewModalComponent {
   private translate = inject(TranslateService);
 
+  constructor() {
+    addIcons({ 'arrow-back-outline': arrowBackOutline });
+  }
+
   @Input() isOpen = false;
   @Input() titleKey: string | null = null;
+  @Input() maxFrameWidth: number | null = null;
+  @Input() maxFrameHeight: number | null = null;
   @Input() imageDataUrl: string | null = null;
   @Input() isDithered = false;
   @Input() imageAlt = 'cover preview';
@@ -93,6 +101,19 @@ export class CoverPreviewModalComponent {
   @Input() footerActions: PreviewAction[] = [];
   @Input() unavailableConfig: PreviewUnavailableConfig | null = null;
   @Input() metadata: PreviewMetadata | null = null;
+  @Input() showFooterBar = true;
+
+  get resolvedMaxFrameWidth(): number {
+    if (this.maxFrameWidth) return this.maxFrameWidth;
+    if (typeof window === 'undefined') return 520;
+    return Math.max(1, Math.min(520, Math.floor(window.innerWidth * 0.92)));
+  }
+
+  get resolvedMaxFrameHeight(): number {
+    if (this.maxFrameHeight) return this.maxFrameHeight;
+    if (typeof window === 'undefined') return 520;
+    return Math.max(1, Math.floor(window.innerHeight * 0.72));
+  }
 
   @Output() dismissed = new EventEmitter<void>();
   @Output() actionClick = new EventEmitter<PreviewActionClickEvent>();

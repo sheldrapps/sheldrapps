@@ -86,6 +86,31 @@ describe('WorkflowStepperComponent', () => {
     ).toBe('4');
   });
 
+  it('emits when selecting a completed step', () => {
+    const stepSelected = jasmine.createSpy('stepSelected');
+    fixture.componentInstance.stepSelected.subscribe(stepSelected);
+    fixture.componentRef.setInput('currentStep', 1);
+    fixture.detectChanges();
+
+    const firstStep = fixture.nativeElement.querySelector(
+      '.workflow-stepper__trigger',
+    ) as HTMLButtonElement;
+    firstStep.click();
+
+    expect(stepSelected).toHaveBeenCalledOnceWith(0);
+  });
+
+  it('disables steps ahead of the current step', () => {
+    const triggers = fixture.nativeElement.querySelectorAll(
+      '.workflow-stepper__trigger',
+    ) as NodeListOf<HTMLButtonElement>;
+
+    expect(triggers[0].disabled).toBeFalse();
+    expect(triggers[1].disabled).toBeTrue();
+    expect(triggers[2].disabled).toBeTrue();
+    expect(triggers[3].disabled).toBeTrue();
+  });
+
   it('keeps a four-step layout within its host width', () => {
     const stepper = fixture.nativeElement.querySelector('.workflow-stepper');
     const list = fixture.nativeElement.querySelector('.workflow-stepper__list');

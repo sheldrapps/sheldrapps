@@ -67,7 +67,7 @@
     "LOADING_IMAGE": "Loading image…",
     "OPENING_EDITOR": "Opening editor…",
     "SAVING": "Saving cover…",
-    "SAVE_ACTION": "Save",
+    "SAVE_ACTION": "Rename",
     "SAVED_OK": "Cover saved",
     "SAVE_RENAME_TITLE": "Save cover",
     "SAVE_RENAME_MESSAGE": "Enter a name for the cover",
@@ -80,9 +80,9 @@
     "SELECT_GROUP_PLACEHOLDER": "Select a group",
     "SELECT_GENERATION_LABEL": "Model",
     "SELECT_GENERATION_PLACEHOLDER": "Select a model",
-    "SELECT_MODEL_LABEL": "Device model",
+    "SELECT_MODEL_LABEL": "What device do you have?",
     "SELECT_MODEL_PLACEHOLDER": "Select your device",
-    "COVER_SOURCE_TITLE": "Cover source",
+    "COVER_SOURCE_TITLE": "Where do you want to create the cover from?",
     "TAP_TO_CHANGE": "Tap to change/reset",
     "TITLE": "Create cover",
     "MODEL_PICKER": {
@@ -93,7 +93,18 @@
     "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Enable \"Screen and brightness > Show covers on lock screen\" on Kindle.",
     "ARIA_START_SCRATCH": "Start from scratch",
     "SOURCE_IMAGE": "Image",
-    "SOURCE_SCRATCH": "Scratch"
+    "SOURCE_SCRATCH": "Scratch",
+    "STEPPER": {
+      "DEVICE": "Device",
+      "SOURCE": "Source",
+      "ADJUST": "Adjust",
+      "CREATE": "Create"
+    },
+    "WORKFLOW": {
+      "PREVIOUS": "Previous",
+      "CONTINUE": "Continue",
+      "ADJUST": "Adjust cover"
+    }
   },
   "COVERS": {
     "DELETED": "Cover deleted",
@@ -132,10 +143,10 @@
     "STEP_1": "Select an image for your cover",
     "STEP_2": "Adjust the image in the editor and tap Done to apply it",
     "STEP_3": "Create the cover after the adjustment is applied",
-    "STEP_4": "Save or share the cover",
-    "STEP_4_DESC": "Once it is ready, you can save it on your device or share it to the Kindle app for a smoother flow.",
+    "STEP_4": "Create the cover and optionally rename or share it",
+    "STEP_4_DESC": "Creating it saves it automatically. You can rename it or share it with the Kindle app, which will sync it automatically to your device.",
     "STEP_5": "Send via web (Send to Kindle)",
-    "STEP_5_DESC": "You can also send it from your browser using the Send to Kindle web tool.",
+    "STEP_5_DESC": "You can also send it from your browser with Send to Kindle. This is an alternative to sharing it through the Kindle app.",
     "TIP": "For best results, use high-resolution images and make sure ads are disabled on your Kindle.",
     "TITLE": "Instructions"
   },

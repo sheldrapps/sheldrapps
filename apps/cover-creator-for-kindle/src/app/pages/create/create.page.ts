@@ -111,8 +111,11 @@ import {
   SaveCoverModalComponent,
   ScrollableBarItem,
   ScrollableButtonBarComponent,
+  WorkflowNavigationComponent,
   TripleButtonComponent,
+  WorkflowStepperComponent,
 } from '@sheldrapps/ui-theme';
+import type { WorkflowStep } from '@sheldrapps/ui-theme';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { detectSupportedLocale } from '@sheldrapps/i18n-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
@@ -129,7 +132,6 @@ import {
   normalizeExportQualityMode,
   type ExportQualityMode,
 } from '@sheldrapps/export-quality-kit';
-import { TourOverlayComponent } from '../../shared/tour/tour-overlay.component';
 import { TourService } from '../../shared/tour/tour.service';
 import {
   buildHomeTourDefinition,
@@ -181,8 +183,9 @@ type EditorSourceMode = 'image' | 'scratch';
     CoverSourceActionsComponent,
     TripleButtonComponent,
     ScrollableButtonBarComponent,
+    WorkflowNavigationComponent,
+    WorkflowStepperComponent,
     RemoveAdsUpgradeModalComponent,
-    TourOverlayComponent,
   ],
 })
 export class CreatePage implements OnInit, OnDestroy {
@@ -209,6 +212,14 @@ export class CreatePage implements OnInit, OnDestroy {
   private homeTour = inject(TourService);
   private ratingService = inject(RatingService);
   private appInjector = inject(Injector);
+
+  readonly workflowSteps: readonly WorkflowStep[] = [
+    { id: 'device', label: this.translate.instant('CREATE.STEPPER.DEVICE') },
+    { id: 'source', label: this.translate.instant('COVERS.PLACEHOLDER') },
+    { id: 'adjust', label: this.translate.instant('CREATE.STEPPER.ADJUST') },
+    { id: 'create', label: this.translate.instant('CREATE.STEPPER.CREATE') },
+  ];
+  workflowStep = 0;
 
   constructor() {
     addIcons({
@@ -243,8 +254,6 @@ export class CreatePage implements OnInit, OnDestroy {
   selectedBrandId?: string;
   selectedGroupId?: string;
   selectedModel?: KindleModel;
-  modelSelectionEditing = false;
-
   get currentGroupModels(): KindleModel[] {
     if (!this.selectedGroupId) return [];
     const group = this.groups.find((g) => g.id === this.selectedGroupId);
@@ -264,7 +273,7 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   get showModelSelectionSummary(): boolean {
-    return this.hasCompleteModelSelection && !this.modelSelectionEditing;
+    return this.workflowStep > 0 && this.hasCompleteModelSelection;
   }
 
   get selectedBrandSummary(): string {
@@ -401,6 +410,7 @@ export class CreatePage implements OnInit, OnDestroy {
 
     this.brands = await this.catalog.getBrands();
     const settings = await this.settings.load();
+    const hasStoredModelSelection = !!settings.brandId && !!settings.modelId;
     this.hydrateAdFallbackState(settings.preferences);
     this.applyResolvedSelection(
       this.catalog.resolveSelection(this.brands, {
@@ -408,6 +418,7 @@ export class CreatePage implements OnInit, OnDestroy {
         modelId: settings.modelId,
       }),
     );
+    this.workflowStep = hasStoredModelSelection ? 1 : 0;
     this.exportQualityMode = normalizeExportQualityMode(
       settings.exportQualityMode,
       this.adsRemoved,
@@ -632,11 +643,93 @@ export class CreatePage implements OnInit, OnDestroy {
     await this.persistModelSelection({ applyWarn: true });
   }
 
-  openModelSelectionEditor(): void {
-    this.modelSelectionEditing = true;
-    globalThis.setTimeout(() => {
-      void this.homeTour.completeInteraction('device-edit');
-    }, 0);
+  get workflowNextLabel(): string {
+    switch (this.workflowStep) {
+      case 0:
+        return this.translate.instant('COVERS.PLACEHOLDER');
+      case 1:
+        return this.translate.instant('CREATE.STEPPER.ADJUST');
+      case 2:
+        return this.translate.instant('CREATE.WORKFLOW_CONTINUE');
+      default:
+        return this.translate.instant('CREATE.CREATE_ACTION');
+    }
+  }
+
+  get workflowPreviousLabel(): string {
+    if (this.workflowStep === 1) {
+      return this.translate.instant('CREATE.STEPPER.DEVICE');
+    }
+
+    if (this.workflowStep === 2) {
+      return this.translate.instant('CREATE.STEPPER.ADJUST');
+    }
+
+    return this.workflowStep === 3
+      ? this.translate.instant('CREATE.STEPPER.ADJUST')
+      : this.translate.instant('CREATE.WORKFLOW_PREVIOUS');
+  }
+
+  get workflowNextIcon(): string {
+    return this.workflowStep === 0 ? 'arrow-forward' : 'arrow-forward';
+  }
+
+  canContinueWorkflow(): boolean {
+    if (this.workflowStep === 0) {
+      return this.hasCompleteModelSelection;
+    }
+
+    if (this.workflowStep === 3) {
+      return this.canGenerate();
+    }
+
+    return this.canEdit();
+  }
+
+  async onWorkflowPrevious(): Promise<void> {
+    if (this.workflowStep <= 0) return;
+
+    await this.navigateToWorkflowStep(this.workflowStep - 1);
+  }
+
+  async onWorkflowNext(): Promise<void> {
+    if (!this.canContinueWorkflow()) return;
+
+    if (this.workflowStep === 0) {
+      this.workflowStep = 1;
+      return;
+    }
+
+    if (this.workflowStep === 1 || this.workflowStep === 2) {
+      await this.onAdjustWithEditor();
+      return;
+    }
+
+    await this.onGenerate();
+  }
+
+  async onWorkflowStepSelected(step: number): Promise<void> {
+    if (step === 0 && this.hasCompleteModelSelection) {
+      await this.navigateToWorkflowStep(0);
+      return;
+    }
+
+    if (step === 1 && this.hasCompleteModelSelection) {
+      await this.navigateToWorkflowStep(1);
+      return;
+    }
+
+    if (step === 2 && this.canEdit()) {
+      await this.navigateToWorkflowStep(2);
+    }
+  }
+
+  private async navigateToWorkflowStep(step: number): Promise<void> {
+    this.workflowStep = step;
+
+    if (step === 2 && this.previewUrl) {
+      await this.onAdjustWithEditor();
+    }
   }
 
   onBrandSelectOpen(): void {
@@ -724,7 +817,6 @@ export class CreatePage implements OnInit, OnDestroy {
     const selection = this.resolveCurrentSelection();
     if (selection) {
       await this.persistSelectionToSettings(selection);
-      this.modelSelectionEditing = false;
     }
 
     if (opts.applyWarn && this.workingImageFile && this.workingImageDims) {
@@ -788,6 +880,7 @@ export class CreatePage implements OnInit, OnDestroy {
         this.setPreviewUrl(URL.createObjectURL(working));
         await this.flushUi();
         await this.homeTour.completeInteraction('cover-image-selected');
+        await this.openEditor('image');
       } finally {
         await this.clearBusyUi();
         input.value = '';
@@ -801,6 +894,7 @@ export class CreatePage implements OnInit, OnDestroy {
     exportDimsHint?: { width: number; height: number },
   ): Promise<void> {
     this.clearImageWarn();
+    if (this.lastEditorSourceMode === 'scratch') return;
     if (!this.selectedModel) return;
 
     const target = {
@@ -2111,7 +2205,7 @@ export class CreatePage implements OnInit, OnDestroy {
       isDithered: this.isPreviewDithered(),
       returnUrl: '/tabs/create',
     });
-    void this.router.navigateByUrl('/preview-editing');
+    void this.router.navigateByUrl('/tabs/preview-editing');
   }
 
   closePreview() {
@@ -2161,7 +2255,7 @@ export class CreatePage implements OnInit, OnDestroy {
       this.forceEditorTourOnNextEditorOpen = true;
       this.forceIncludeRemoveAdsStepOnNextHomeTour = true;
     }
-    await this.maybeStartHomeTour(manualStartRequested);
+    await this.maybeStartHomeTour();
   }
 
   onTourContentScroll() {
@@ -2175,6 +2269,7 @@ export class CreatePage implements OnInit, OnDestroy {
     this.headerItems = buildHomeHeaderItems(this.showRecommended, {
       appsLabel: this.translate.instant('ARR.TOOLS.APPS'),
       guideLabel: this.translate.instant('ARR.TOOLS.GUIDE'),
+      includeGuide: false,
     });
   }
 
@@ -2188,7 +2283,7 @@ export class CreatePage implements OnInit, OnDestroy {
       closeInfo: () => this.closeInfo(),
       toggleInfo: () => this.toggleInfo(),
       navigateToRecommended: async () => {
-        await this.router.navigateByUrl('/recommended-apps');
+      await this.router.navigateByUrl('/tabs/recommended-apps');
       },
     });
   }
@@ -2252,6 +2347,7 @@ export class CreatePage implements OnInit, OnDestroy {
 
     await this.markEditorTourSeen();
     await this.homeTour.completeInteraction('editor-apply');
+    this.workflowStep = 3;
   }
 
   private extractEditorExportDims(
@@ -2475,6 +2571,10 @@ export class CreatePage implements OnInit, OnDestroy {
       this.lastEditorSessionId = undefined;
     }
 
+    if (session && !result) {
+      this.workflowStep = 1;
+    }
+
     if (session?.project?.filename) {
       this.projectSaveState.setProject(
         session.project.filename,
@@ -2494,7 +2594,7 @@ export class CreatePage implements OnInit, OnDestroy {
     this.forceEditorTourOnNextEditorOpen = true;
     this.forceIncludeRemoveAdsStepOnNextHomeTour = true;
     this.closeInfo();
-    await this.maybeStartHomeTour(true);
+    await this.maybeStartHomeTour();
   }
 
   private async resolveUniqueEpubFilename(
@@ -2537,7 +2637,6 @@ export class CreatePage implements OnInit, OnDestroy {
     );
     this.selectedGroupId = selection.groupId;
     this.selectedModel = selection.model;
-    this.modelSelectionEditing = !this.hasCompleteModelSelection;
   }
 
   private async persistSelectionToSettings(
@@ -2549,37 +2648,8 @@ export class CreatePage implements OnInit, OnDestroy {
     });
   }
 
-  private async maybeStartHomeTour(force = false): Promise<void> {
-    if (this.homeTour.isActive()) {
-      return;
-    }
-
-    const settings = await this.settings.load();
-    if (!force && !this.shouldAutoStartHomeTour(settings)) {
-      return;
-    }
-
-    await this.ensureTourLocaleReady(settings);
-    this.closeInfo();
-    const includeRemoveAdsStep =
-      (!this.adsRemoved && this.billing.canShowRemoveAdsEntryPoint()) ||
-      (!this.adsRemoved && this.forceIncludeRemoveAdsStepOnNextHomeTour);
-    this.forceShowRemoveAdsEntryPointForTour =
-      !this.adsRemoved && this.forceIncludeRemoveAdsStepOnNextHomeTour;
-
-    await this.homeTour.start(
-      buildHomeTourDefinition(this.translate, {
-        includeDeviceSummaryStep: this.showModelSelectionSummary,
-        includeRemoveAdsStep,
-      }),
-      {
-        onComplete: async (reason: TourCompletionReason) => {
-          this.forceIncludeRemoveAdsStepOnNextHomeTour = false;
-          this.forceShowRemoveAdsEntryPointForTour = false;
-          await this.markHomeTourSeen(reason);
-        },
-      },
-    );
+  private async maybeStartHomeTour(): Promise<void> {
+    return;
   }
 
   private async ensureTourLocaleReady(settings: CcfkSettings): Promise<void> {

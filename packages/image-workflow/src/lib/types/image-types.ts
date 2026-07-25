@@ -139,12 +139,13 @@ export type ArtifactReductionMode =
   | "adaptive-color"
   | "adaptive-gray";
 
-export const BACKGROUNDS_BASE_PATH = "assets/backgrounds";
+export const BACKGROUNDS_BASE_PATH = "/assets/backgrounds";
 export const TEXTURES_BASE_PATH = BACKGROUNDS_BASE_PATH;
 
 export interface BackgroundCatalogItem {
   id: string;
   label: string;
+  labelKey?: string;
   file: string;
   defaultIntensity: number;
   tileSize?: number;

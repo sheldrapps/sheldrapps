@@ -27,19 +27,4 @@
     (actionClick)="onListAction($event)"
   ></sh-cover-list-content>
 
-  <sh-cover-preview-modal
-    [isOpen]="previewOpen"
-    [imageDataUrl]="previewDataUrl"
-    [isDithered]="previewIsDithered"
-    [loading]="previewLoading"
-    [gettingCover]="previewGettingCover"
-    gettingCoverTextKey="CHANGE.GETTING_COVER"
-    loadingTextKey="COVERS.LOADING_PREVIEW"
-    [headerActions]="previewHeaderActions"
-    [footerActions]="previewFooterActions"
-    [metadata]="previewMetadata"
-    [unavailableConfig]="previewUnavailableConfig"
-    (dismissed)="closePreview()"
-    (actionClick)="onPreviewAction($event)"
-  ></sh-cover-preview-modal>
 </ion-content>

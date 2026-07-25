@@ -7,6 +7,11 @@ export const COVER_SOURCE_TRANSLATIONS: Record<string, CoverSourceFlatDict> = {
     "COVER_SOURCE.TITLE": "Cover source",
     "COVER_SOURCE.ACTIONS.IMAGE": "Image",
     "COVER_SOURCE.ACTIONS.SCRATCH": "Scratch",
+    "COVER_SOURCE.ACTIONS.CURRENT": "Current cover",
+    "COVER_SOURCE.DESCRIPTIONS.CURRENT": "Edit the current cover from your EPUB.",
+    "COVER_SOURCE.ARIA.SELECT_CURRENT": "Edit current EPUB cover",
+    "COVER_SOURCE.DESCRIPTIONS.IMAGE": "Select an image from your gallery to get started.",
+    "COVER_SOURCE.DESCRIPTIONS.SCRATCH": "In our editor, select a background pattern or color to create.",
   },
   "es-MX": {
     "COVER_SOURCE.ARIA.SELECT_IMAGE": "Seleccionar imagen",
@@ -14,6 +19,11 @@ export const COVER_SOURCE_TRANSLATIONS: Record<string, CoverSourceFlatDict> = {
     "COVER_SOURCE.TITLE": "Origen de portada",
     "COVER_SOURCE.ACTIONS.IMAGE": "Imagen",
     "COVER_SOURCE.ACTIONS.SCRATCH": "Desde cero",
+    "COVER_SOURCE.ACTIONS.CURRENT": "Portada actual",
+    "COVER_SOURCE.DESCRIPTIONS.CURRENT": "Editar la portada actual de tu EPUB",
+    "COVER_SOURCE.ARIA.SELECT_CURRENT": "Editar la portada actual del EPUB",
+    "COVER_SOURCE.DESCRIPTIONS.IMAGE": "Selecciona una imagen de tu galería para comenzar.",
+    "COVER_SOURCE.DESCRIPTIONS.SCRATCH": "En nuestro editor, deberás seleccionar un patrón o color de fondo para crear.",
   },
   "de-DE": {
     "COVER_SOURCE.ARIA.SELECT_IMAGE": "Bild auswählen",
@@ -21,6 +31,9 @@ export const COVER_SOURCE_TRANSLATIONS: Record<string, CoverSourceFlatDict> = {
     "COVER_SOURCE.TITLE": "Cover-Quelle",
     "COVER_SOURCE.ACTIONS.IMAGE": "Bild",
     "COVER_SOURCE.ACTIONS.SCRATCH": "Von vorne",
+    "COVER_SOURCE.ACTIONS.CURRENT": "Aktuelles Cover",
+    "COVER_SOURCE.DESCRIPTIONS.CURRENT": "Das aktuelle Cover deines EPUB bearbeiten.",
+    "COVER_SOURCE.ARIA.SELECT_CURRENT": "Aktuelles EPUB-Cover bearbeiten",
   },
   "fr-FR": {
     "COVER_SOURCE.ARIA.SELECT_IMAGE": "Sélectionner une image",
@@ -28,6 +41,9 @@ export const COVER_SOURCE_TRANSLATIONS: Record<string, CoverSourceFlatDict> = {
     "COVER_SOURCE.TITLE": "Source de couverture",
     "COVER_SOURCE.ACTIONS.IMAGE": "Image",
     "COVER_SOURCE.ACTIONS.SCRATCH": "Depuis zéro",
+    "COVER_SOURCE.ACTIONS.CURRENT": "Couverture actuelle",
+    "COVER_SOURCE.DESCRIPTIONS.CURRENT": "Modifier la couverture actuelle de votre EPUB.",
+    "COVER_SOURCE.ARIA.SELECT_CURRENT": "Modifier la couverture actuelle de l’EPUB",
   },
   "it-IT": {
     "COVER_SOURCE.ARIA.SELECT_IMAGE": "Seleziona immagine",
@@ -35,6 +51,9 @@ export const COVER_SOURCE_TRANSLATIONS: Record<string, CoverSourceFlatDict> = {
     "COVER_SOURCE.TITLE": "Origine copertina",
     "COVER_SOURCE.ACTIONS.IMAGE": "Immagine",
     "COVER_SOURCE.ACTIONS.SCRATCH": "Da zero",
+    "COVER_SOURCE.ACTIONS.CURRENT": "Copertina attuale",
+    "COVER_SOURCE.DESCRIPTIONS.CURRENT": "Modifica la copertina attuale del tuo EPUB.",
+    "COVER_SOURCE.ARIA.SELECT_CURRENT": "Modifica la copertina attuale dell’EPUB",
   },
   "pt-BR": {
     "COVER_SOURCE.ARIA.SELECT_IMAGE": "Selecionar imagem",
@@ -42,6 +61,9 @@ export const COVER_SOURCE_TRANSLATIONS: Record<string, CoverSourceFlatDict> = {
     "COVER_SOURCE.TITLE": "Origem da capa",
     "COVER_SOURCE.ACTIONS.IMAGE": "Imagem",
     "COVER_SOURCE.ACTIONS.SCRATCH": "Do zero",
+    "COVER_SOURCE.ACTIONS.CURRENT": "Capa atual",
+    "COVER_SOURCE.DESCRIPTIONS.CURRENT": "Edite a capa atual do seu EPUB.",
+    "COVER_SOURCE.ARIA.SELECT_CURRENT": "Editar a capa atual do EPUB",
   },
   "ar-SA": {
     "COVER_SOURCE.ARIA.SELECT_IMAGE": "اختر صورة",
@@ -49,6 +71,9 @@ export const COVER_SOURCE_TRANSLATIONS: Record<string, CoverSourceFlatDict> = {
     "COVER_SOURCE.TITLE": "مصدر الغلاف",
     "COVER_SOURCE.ACTIONS.IMAGE": "صورة",
     "COVER_SOURCE.ACTIONS.SCRATCH": "من الصفر",
+    "COVER_SOURCE.ACTIONS.CURRENT": "الغلاف الحالي",
+    "COVER_SOURCE.DESCRIPTIONS.CURRENT": "عدّل الغلاف الحالي من ملف EPUB الخاص بك.",
+    "COVER_SOURCE.ARIA.SELECT_CURRENT": "تعديل غلاف EPUB الحالي",
   },
   "hi-IN": {
     "COVER_SOURCE.ARIA.SELECT_IMAGE": "छवि चुनें",
@@ -56,6 +81,9 @@ export const COVER_SOURCE_TRANSLATIONS: Record<string, CoverSourceFlatDict> = {
     "COVER_SOURCE.TITLE": "कवर स्रोत",
     "COVER_SOURCE.ACTIONS.IMAGE": "छवि",
     "COVER_SOURCE.ACTIONS.SCRATCH": "शुरू से",
+    "COVER_SOURCE.ACTIONS.CURRENT": "वर्तमान कवर",
+    "COVER_SOURCE.DESCRIPTIONS.CURRENT": "अपने EPUB के वर्तमान कवर को संपादित करें।",
+    "COVER_SOURCE.ARIA.SELECT_CURRENT": "वर्तमान EPUB कवर संपादित करें",
   },
   "ja-JP": {
     "COVER_SOURCE.ARIA.SELECT_IMAGE": "画像を選択",
@@ -63,6 +91,9 @@ export const COVER_SOURCE_TRANSLATIONS: Record<string, CoverSourceFlatDict> = {
     "COVER_SOURCE.TITLE": "カバーの元",
     "COVER_SOURCE.ACTIONS.IMAGE": "画像",
     "COVER_SOURCE.ACTIONS.SCRATCH": "ゼロから",
+    "COVER_SOURCE.ACTIONS.CURRENT": "現在の表紙",
+    "COVER_SOURCE.DESCRIPTIONS.CURRENT": "自分の EPUB の現在の表紙を編集します。",
+    "COVER_SOURCE.ARIA.SELECT_CURRENT": "現在の EPUB 表紙を編集",
   },
   "ko-KR": {
     "COVER_SOURCE.ARIA.SELECT_IMAGE": "이미지 선택",
@@ -70,6 +101,9 @@ export const COVER_SOURCE_TRANSLATIONS: Record<string, CoverSourceFlatDict> = {
     "COVER_SOURCE.TITLE": "커버 소스",
     "COVER_SOURCE.ACTIONS.IMAGE": "이미지",
     "COVER_SOURCE.ACTIONS.SCRATCH": "처음부터",
+    "COVER_SOURCE.ACTIONS.CURRENT": "현재 표지",
+    "COVER_SOURCE.DESCRIPTIONS.CURRENT": "내 EPUB의 현재 표지를 편집합니다.",
+    "COVER_SOURCE.ARIA.SELECT_CURRENT": "현재 EPUB 표지 편집",
   },
   "ru-RU": {
     "COVER_SOURCE.ARIA.SELECT_IMAGE": "Выбрать изображение",
@@ -77,6 +111,9 @@ export const COVER_SOURCE_TRANSLATIONS: Record<string, CoverSourceFlatDict> = {
     "COVER_SOURCE.TITLE": "Источник обложки",
     "COVER_SOURCE.ACTIONS.IMAGE": "Изображение",
     "COVER_SOURCE.ACTIONS.SCRATCH": "С нуля",
+    "COVER_SOURCE.ACTIONS.CURRENT": "Текущая обложка",
+    "COVER_SOURCE.DESCRIPTIONS.CURRENT": "Измените текущую обложку своего EPUB.",
+    "COVER_SOURCE.ARIA.SELECT_CURRENT": "Изменить текущую обложку EPUB",
   },
   "zh-CN": {
     "COVER_SOURCE.ARIA.SELECT_IMAGE": "选择图片",
@@ -84,6 +121,9 @@ export const COVER_SOURCE_TRANSLATIONS: Record<string, CoverSourceFlatDict> = {
     "COVER_SOURCE.TITLE": "封面来源",
     "COVER_SOURCE.ACTIONS.IMAGE": "图片",
     "COVER_SOURCE.ACTIONS.SCRATCH": "从零开始",
+    "COVER_SOURCE.ACTIONS.CURRENT": "当前封面",
+    "COVER_SOURCE.DESCRIPTIONS.CURRENT": "编辑 EPUB 中的当前封面。",
+    "COVER_SOURCE.ARIA.SELECT_CURRENT": "编辑当前 EPUB 封面",
   },
   "zh-TW": {
     "COVER_SOURCE.ARIA.SELECT_IMAGE": "選擇圖片",
@@ -91,5 +131,8 @@ export const COVER_SOURCE_TRANSLATIONS: Record<string, CoverSourceFlatDict> = {
     "COVER_SOURCE.TITLE": "封面來源",
     "COVER_SOURCE.ACTIONS.IMAGE": "圖片",
     "COVER_SOURCE.ACTIONS.SCRATCH": "從零開始",
+    "COVER_SOURCE.ACTIONS.CURRENT": "目前封面",
+    "COVER_SOURCE.DESCRIPTIONS.CURRENT": "編輯 EPUB 中的目前封面。",
+    "COVER_SOURCE.ARIA.SELECT_CURRENT": "編輯目前的 EPUB 封面",
   },
 };

@@ -15,50 +15,33 @@
 
 <ion-content class="fix-page">
   <div class="fix-page__stack">
+    <sh-workflow-stepper
+      [steps]="workflowSteps"
+      [currentStep]="workflowStep"
+      [selectableSteps]="selectableWorkflowSteps"
+      (stepSelected)="onWorkflowStepSelected($event)"
+    ></sh-workflow-stepper>
+
+    @if (workflowStep === 0) {
     <section class="fix-file-section">
       <div class="field-title">
         {{ 'FIX.EPUB_FILE_TITLE' | translate }}
       </div>
 
-      <ion-item
-        button
-        detail="false"
-        class="app-file-selector-surface"
+      <sh-action-card
+        class="fix-file-section__card"
         (click)="openEpubPicker()"
-        [class.item-invalid]="!!epubErrorKey"
-        [attr.aria-invalid]="epubErrorKey ? 'true' : 'false'"
-        [attr.aria-describedby]="epubErrorKey ? 'epub-error' : null"
-        [attr.aria-label]="
+        [title]="selectedEpubName || ('FIX.SELECT_EPUB_PLACEHOLDER' | translate)"
+        [description]="fileCardDescription"
+        icon="document-outline"
+        [selected]="!!selectedEpubName && !epubErrorKey"
+        [disabled]="isBusy"
+        [ariaLabel]="
           selectedEpubName
             ? ('FIX.ARIA_CHANGE_EPUB' | translate:{ name: selectedEpubName })
             : ('FIX.ARIA_SELECT_EPUB' | translate)
         "
-      >
-        <ion-label>
-          @if (selectedEpubName && !epubErrorKey) {
-            <div class="field-filename">{{ selectedEpubName }}</div>
-            <div class="field-subtle">{{ 'FIX.TAP_TO_CHANGE' | translate }}</div>
-          } @else {
-            <div class="field-placeholder">
-              {{ 'FIX.SELECT_EPUB_PLACEHOLDER' | translate }}
-            </div>
-          }
-        </ion-label>
-
-        <div class="thumb-wrapper" slot="end" aria-hidden="true">
-          @if (selectedEpubName && !epubErrorKey) {
-            <ion-icon class="thumb-check" name="checkmark-circle"></ion-icon>
-          } @else {
-            <div class="thumb thumb--icon">
-              <ion-icon
-                class="thumb-icon"
-                [name]="epubErrorKey ? 'alert-circle-outline' : 'document-outline'"
-                aria-hidden="true"
-              ></ion-icon>
-            </div>
-          }
-        </div>
-      </ion-item>
+      ></sh-action-card>
     </section>
 
     @if (epubErrorKey) {
@@ -137,7 +120,9 @@
         </div>
       </section>
     }
+    }
 
+    @if (workflowStep === 1) {
     @if (showDiagnosisOverview) {
       <sh-section-card [title]="'FIX.DIAGNOSIS_OVERVIEW_TITLE' | translate">
         <div class="fix-diagnosis-summary">
@@ -274,11 +259,79 @@
         </ul>
       </sh-section-card>
     }
+    }
+
+    @if (workflowStep === 2) {
+    @if (viewState === 'repaired' && exportResult) {
+      <sh-cover-image-state
+        [previewUrl]="exportResult.previewSrc"
+        [titleKey]="'FIX.REPAIR_SUCCESS_TITLE'"
+        [hintKey]="'FIX.REPAIR_SUCCESS_BODY'"
+        [ariaLabelKey]="'FIX.REPAIR_SUCCESS_TITLE'"
+      ></sh-cover-image-state>
+    }
+
+    @if (viewState === 'failed') {
+      <sh-action-card
+        class="fix-error-card"
+        [title]="'FIX.REPAIR_FAILURE_TITLE' | translate"
+        [description]="'FIX.REPAIR_FAILURE_BODY' | translate"
+        icon="close-outline"
+        [selected]="true"
+        [ariaLabel]="'FIX.REPAIR_FAILURE_TITLE' | translate"
+      ></sh-action-card>
+
+      <div class="fix-error-details" role="alert" aria-live="assertive">
+        <div class="fix-error-details__title">
+          {{ 'FIX.REPAIR_FAILURE_REASONS_TITLE' | translate }}
+        </div>
+        <ul class="fix-error-details__list">
+          @for (issue of diagnosis?.issues ?? []; track issue.code + ':' + (issue.details ?? '')) {
+            <li>
+              <strong>{{ issueMessageLabel(issue) }}</strong>
+              @if (issue.details) {
+                <span>{{ issueDetailsLabel(issue) }}</span>
+              }
+            </li>
+          }
+          @if (epubErrorKey) {
+            <li>{{ epubErrorKey | translate:epubErrorParams }}</li>
+          }
+          @if (!diagnosis?.issues?.length && !epubErrorKey) {
+            <li>{{ 'FIX.REPAIR_FAILURE_REASON_GENERIC' | translate }}</li>
+          }
+        </ul>
+        <p class="fix-error-details__email">
+          {{
+            'FIX.REPAIR_FAILURE_EMAIL_RECOMMENDATION'
+              | translate: { email: 'sheldrapps@gmail.com' }
+          }}
+          <a href="mailto:sheldrapps@gmail.com">sheldrapps@gmail.com</a>
+        </p>
+      </div>
+    }
+
+    @if (diagnosis?.status !== 'valid' && diagnosis?.issues?.length) {
+      <sh-section-card [title]="'FIX.DIAGNOSIS_STATUS_REVIEW' | translate">
+        <p class="fix-diagnosis-summary__text">
+          {{ 'FIX.DIAGNOSIS_PARTIAL' | translate }}
+        </p>
+        <ul class="fix-issue-list">
+          @for (issue of diagnosis.issues; track issue.code + ':' + (issue.details ?? '')) {
+            <li>
+              <strong>{{ issueMessageLabel(issue) }}</strong>
+              @if (issue.details) {
+                <span>{{ issueDetailsLabel(issue) }}</span>
+              }
+            </li>
+          }
+        </ul>
+      </sh-section-card>
+    }
 
     @if (resultPrimaryActionKey) {
       <div class="fix-primary-action">
         <ion-button
-          class="app-btn fix-primary-action__button"
           expand="block"
           [disabled]="(resultPrimaryActionKey === 'FIX.ACTION_REPAIR' && !canRepair) || (resultPrimaryActionKey === 'FIX.ACTION_EXPORT' && !canExport)"
           (click)="onPrimaryAction()"
@@ -301,7 +354,7 @@
                 (click)="onSave()"
               >
                 <ion-icon slot="start" name="save-outline"></ion-icon>
-                {{ 'FIX.SAVE_ACTION' | translate }}
+                {{ 'FIX.RENAME_ACTION' | translate }}
               </ion-button>
             </ion-col>
 
@@ -338,6 +391,18 @@
         </ion-button>
       </div>
     }
+    }
+
+    <sh-workflow-navigation
+      [showPrevious]="workflowStep > 0"
+      [showNext]="workflowStep < workflowSteps.length - 1"
+      [previousLabel]="workflowPreviousLabel"
+      [nextLabel]="workflowNextLabel"
+      [nextDisabled]="!canContinueWorkflow"
+      [nextLoading]="isBusy"
+      (previous)="onWorkflowPrevious()"
+      (next)="onWorkflowNext()"
+    ></sh-workflow-navigation>
 
   <ion-modal
     [isOpen]="purchaseModalOpen"

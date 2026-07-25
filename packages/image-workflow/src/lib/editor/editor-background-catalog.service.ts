@@ -54,6 +54,10 @@ export class EditorBackgroundCatalogService {
       typeof candidate["label"] === "string"
         ? candidate["label"].trim()
         : "";
+    const labelKey =
+      typeof candidate["labelKey"] === "string"
+        ? candidate["labelKey"].trim()
+        : undefined;
     const file =
       typeof candidate["file"] === "string" ? candidate["file"].trim() : "";
     if (!id || !label || !file) return null;
@@ -70,6 +74,7 @@ export class EditorBackgroundCatalogService {
     return {
       id,
       label,
+      labelKey,
       file: this.normalizeBackgroundFile(file),
       defaultIntensity,
       tileSize,

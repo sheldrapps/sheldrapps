@@ -1,5 +1,8 @@
 export interface RecommendedAppsTranslations {
+  LOADING?: string;
   TITLE: string;
+  CATEGORY_EPUB?: string;
+  CATEGORY_PDF?: string;
   OPEN_PLAY_STORE: string;
   EMPTY_STATE: string;
   APP_NAME_CCFK: string;

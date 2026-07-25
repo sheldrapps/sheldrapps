@@ -79,15 +79,16 @@
     "SETTINGS": "Настройки"
   },
   "HOME": {
+    "STEPPER": { "MERGE_SPLIT": "Объединить / разделить", "SORT": "Сортировка", "TOC": "Оглавление", "COVER": "Обложка", "ADJUST": "Настройка", "JOIN": "Объединить" },
     "WHAT_DO_YOU_WANT_TO_DO": "Что вы хотите сделать?",
     "MERGE": "Объединить",
     "SPLIT": "Разделить",
     "MERGING_TITLE": "Объединение",
     "SPLITTING_TITLE": "Разделение",
-    "EPUB_FILES_TITLE": "Файлы EPUB",
+    "EPUB_FILES_TITLE": "Сколько файлов?",
     "EPUB_FILE_TITLE": "Файл EPUB",
     "SELECT_EPUB_FILES_PLACEHOLDER": "Выберите файлы EPUB",
-    "ADD_ANOTHER_EPUB_FILE": "Добавить еще один файл EPUB",
+    "ADD_ANOTHER_EPUB_FILE": "Добавить еще?",
     "FILES_SELECTED": "{{count}} файлов готово",
     "ARIA_ADD_EPUB_FILE": "Добавить еще один файл EPUB",
     "ARIA_SELECT_EPUB_FILES": "Выберите файлы EPUB",
@@ -98,10 +99,11 @@
     "INPUT_ERROR_SIZE": "Выбранный файл EPUB слишком большой.",
     "INPUT_ERROR_STORAGE": "Недостаточно места, чтобы подготовить этот файл EPUB.",
     "INPUT_ERROR_CORRUPT": "Не удалось подготовить этот файл EPUB. Попробуйте другой файл.",
-    "EXPORT_ORDER_TITLE": "Порядок экспорта",
-    "COVER_SELECTOR_TITLE": "Выбор обложки",
+    "EXPORT_ORDER_TITLE": "В каком порядке их расположить?",
+    "COVER_SELECTOR_TITLE": "Из чего создать обложку?",
     "BEST_CANDIDATES_TITLE": "Предложения из ваших EPUB",
-    "ADJUST_COVER": "Настроить обложку"
+    "ADJUST_COVER": "Настроить обложку",
+    "PREVIEW_TITLE": "Предпросмотр"
   },
   "TOC_OPTIONS": {
     "TITLE": "Что делать с оглавлением?",

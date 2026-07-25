@@ -16,60 +16,47 @@
 <ion-content
   [fullscreen]="true"
   class="ion-padding"
-  [scrollEvents]="true"
-  (ionScroll)="onTourContentScroll()"
 >
   @let suggestedStepId = getSuggestedStepId();
 
+  <sh-workflow-stepper
+    [steps]="workflowSteps"
+    [currentStep]="workflowStep"
+    [selectableSteps]="
+      hasValidEpub()
+        ? canSaveShare()
+          ? [0, 1, 2, 3]
+          : canExport()
+            ? [0, 1, 2, 3]
+            : canCrop()
+              ? [0, 1]
+              : [0]
+        : []
+    "
+    (stepSelected)="onWorkflowStepSelected($event)"
+  ></sh-workflow-stepper>
+
+  @if (workflowStep === 0) {
   <!-- EPUB File Selector -->
   <div class="file-selector-section">
     <div class="field-title">
-      {{ 'CHANGE.EPUB_FILE_TITLE' | translate }}
+      {{ 'CHANGE.SELECT_EPUB_TITLE' | translate }}
     </div>
 
-    <ion-item
-      button
-      detail="false"
-      class="file-selector-section__item app-outline-surface"
+    <sh-action-card
+      class="file-selector-section__card"
       data-tour-id="epub-picker"
       (click)="openEpubPicker()"
-      [class.item-invalid]="!!epubErrorKey"
-      [class.suggested-action--active]="suggestedStepId === 'epub-picker'"
-      [attr.aria-invalid]="epubErrorKey ? 'true' : 'false'"
-      [attr.aria-describedby]="epubErrorKey ? 'epub-error' : null"
-      [attr.aria-label]="
-      selectedEpubName
-        ? ('CHANGE.ARIA_CHANGE_EPUB' | translate:{ name: selectedEpubName })
-        : ('CHANGE.ARIA_SELECT_EPUB' | translate)
-    "
-    >
-      <ion-label>
-        @if (selectedEpubName && !epubErrorKey) {
-        <div class="file-selector-section__selected-copy">
-          <div class="field-filename">{{ selectedEpubName }}</div>
-          <div class="field-subtle">{{ 'CHANGE.TAP_TO_CHANGE' | translate }}</div>
-        </div>
-        } @else {
-        <div class="field-placeholder">
-          {{ 'CHANGE.SELECT_EPUB_PLACEHOLDER' | translate }}
-        </div>
-        }
-      </ion-label>
-
-      <div class="thumb-wrapper" slot="end" aria-hidden="true">
-        @if (selectedEpubName && !epubErrorKey) {
-        <ion-icon class="thumb-check" name="checkmark-circle"></ion-icon>
-        } @else {
-        <div class="thumb thumb--icon">
-          <ion-icon
-            class="thumb-icon"
-            [name]="epubErrorKey ? 'alert-circle-outline' : 'document-outline'"
-            aria-hidden="true"
-          ></ion-icon>
-        </div>
-        }
-      </div>
-    </ion-item>
+      [title]="selectedEpubName || ('CHANGE.SELECT_EPUB_PLACEHOLDER' | translate)"
+      [description]="
+        (selectedEpubName ? 'CHANGE.TAP_TO_CHANGE' : 'CHANGE.EPUB_VALIDATION_HINT')
+          | translate
+      "
+      icon="document-outline"
+      [suggested]="suggestedStepId === 'epub-picker'"
+      [disabled]="isPickingEpub || isExporting"
+      [ariaLabel]="'CHANGE.ARIA_SELECT_EPUB' | translate"
+    ></sh-action-card>
   </div>
 
   @if (epubErrorKey) {
@@ -90,16 +77,27 @@
   </div>
   }
 
+  }
+
+  @if (workflowStep === 1) {
   <sh-cover-source-actions
+    [titleKey]="'CHANGE.COVER_SOURCE_TITLE'"
     [imageHidden]="!hasValidEpub()"
     [scratchHidden]="!canStartScratch()"
+    [currentImageUrl]="originalEpubPreviewUrl"
+    [currentHidden]="!hasCurrentEpubCover()"
+    [currentDisabled]="isPickingImage || isExporting"
     [suggestedActions]="
       suggestedStepId === 'cover-source-image' ? ['image', 'scratch'] : []
     "
     (imageSelected)="openImagePicker()"
+    (currentSelected)="onCurrentCoverSelected()"
     (scratchSelected)="onStartScratch()"
   ></sh-cover-source-actions>
 
+  }
+
+  @if (workflowStep >= 2) {
   <sh-cover-image-state
     [previewUrl]="previewUrl"
     [previewRevision]="previewRevision"
@@ -111,7 +109,12 @@
     (previewRequested)="openPreview()"
   ></sh-cover-image-state>
 
-  @if (shouldShowBestCandidateAction) {
+  }
+
+  @if (workflowStep === 1 && shouldShowBestCandidateAction) {
+  <div class="field-title best-candidate-title">
+    {{ 'CHANGE.BEST_CANDIDATE_TITLE' | translate }}
+  </div>
   <div class="best-candidate-wrap">
     <best-candidate-picker
       [candidates]="bestCandidates"
@@ -122,14 +125,16 @@
       [showHeader]="false"
       [compact]="true"
       [enableLongPressPreview]="true"
+      [showCompactCopy]="false"
       (candidateSelected)="onBestCandidateSelected($event)"
       (candidatePreviewRequested)="onBestCandidatePreviewRequested($event)"
     />
   </div>
   }
 
+  @if (workflowStep >= 2) {
   <div class="primary-actions">
-    @if (canCrop()) {
+    @if (workflowStep === 2 && canCrop()) {
     <ion-button
       expand="block"
       fill="outline"
@@ -143,7 +148,7 @@
     </ion-button>
     }
 
-    @if (shouldShowExportOptions()) {
+    @if (workflowStep === 3 && shouldShowExportOptions()) {
     <div data-tour-id="export-quality">
       <sh-triple-button
         mode="export-quality-mode"
@@ -155,7 +160,7 @@
     </div>
     }
 
-    @if (shouldShowDitheringHint()) {
+    @if (workflowStep === 3 && shouldShowDitheringHint()) {
     <div class="app-callout app-callout--info" aria-live="polite" role="status">
       <ion-icon
         class="app-callout__icon"
@@ -170,7 +175,7 @@
     }
 
     <div class="actions">
-      @if (canGenerate()) {
+      @if (workflowStep === 3 && canGenerate()) {
       <ion-button
         expand="block"
         data-tour-id="create-button"
@@ -184,6 +189,9 @@
     </div>
   </div>
 
+  }
+
+  @if (workflowStep === 3) {
   <div class="secondary-actions">
     @if (canSaveShare()) {
     <ion-grid class="app-action-grid" data-tour-id="result-actions">
@@ -196,7 +204,7 @@
             [class.suggested-action--active]="suggestedStepId === 'result-actions'"
           >
             <ion-icon slot="start" name="save-outline"></ion-icon>
-            {{ 'CHANGE.SAVE_ACTION' | translate }}
+            {{ (wasAutoSaved ? 'CHANGE.RENAME_ACTION' : 'CHANGE.SAVE_ACTION') | translate }}
           </ion-button>
         </ion-col>
 
@@ -215,7 +223,9 @@
     }
   </div>
 
-  @if (canShowRemoveAdsEntryPoint()) {
+  }
+
+  @if (workflowStep === 3 && canShowRemoveAdsEntryPoint()) {
   <div class="upgrade-actions">
     <ion-button
       expand="block"
@@ -234,6 +244,17 @@
     </ion-button>
   </div>
   }
+
+  <sh-workflow-navigation
+    [showPrevious]="workflowStep > 0"
+    [showNext]="workflowStep < 3"
+    [previousLabel]="workflowPreviousLabel"
+    [nextLabel]="workflowNextLabel"
+    [nextDisabled]="!canContinueWorkflow()"
+    [nextLoading]="isPickingImage || isExporting"
+    (previous)="onWorkflowPrevious()"
+    (next)="onWorkflowNext()"
+  ></sh-workflow-navigation>
 
   <ion-popover
     [isOpen]="infoOpen"
@@ -300,8 +321,6 @@
       [label]="loadingMessage || ('COMMON.LOADING' | translate)"
     ></sh-loading-state>
   }
-
-  <app-tour-overlay></app-tour-overlay>
 
   <input
     #epubInput

@@ -1,19 +1,24 @@
 import { Component, EventEmitter, Input, Output } from "@angular/core";
 import { TranslateModule } from "@ngx-translate/core";
 import {
-  IonButton,
   IonCol,
   IonGrid,
-  IonIcon,
   IonRow,
 } from "@ionic/angular/standalone";
+import { ActionCardComponent } from "@sheldrapps/ui-theme";
 import { addIcons } from "ionicons";
 import { imageOutline, pencilOutline } from "ionicons/icons";
 
 @Component({
   selector: "sh-cover-source-actions",
   standalone: true,
-  imports: [TranslateModule, IonGrid, IonRow, IonCol, IonButton, IonIcon],
+  imports: [
+    TranslateModule,
+    IonGrid,
+    IonRow,
+    IonCol,
+    ActionCardComponent,
+  ],
   templateUrl: "./cover-source-actions.component.html",
   styleUrls: ["./cover-source-actions.component.scss"],
 })
@@ -25,10 +30,14 @@ export class CoverSourceActionsComponent {
   @Input() tourId: string | null = "cover-source-actions";
   @Input() titleKey: string | null = null;
   @Input() showTitle = true;
-  @Input() suggestedAction: "image" | "scratch" | null = null;
-  @Input() suggestedActions: Array<"image" | "scratch"> = [];
+  @Input() currentImageUrl: string | null = null;
+  @Input() currentHidden = true;
+  @Input() currentDisabled = false;
+  @Input() suggestedAction: "image" | "current" | "scratch" | null = null;
+  @Input() suggestedActions: Array<"image" | "current" | "scratch"> = [];
 
   @Output() imageSelected = new EventEmitter<void>();
+  @Output() currentSelected = new EventEmitter<void>();
   @Output() scratchSelected = new EventEmitter<void>();
 
   get resolvedTitleKey(): string {
@@ -36,14 +45,14 @@ export class CoverSourceActionsComponent {
   }
 
   get visibleActionCount(): number {
-    return Number(!this.imageHidden) + Number(!this.scratchHidden);
+    return (
+      Number(!this.imageHidden) +
+      Number(!this.currentHidden) +
+      Number(!this.scratchHidden)
+    );
   }
 
-  get actionColSize(): string {
-    return this.visibleActionCount > 1 ? "6" : "12";
-  }
-
-  isSuggestedAction(action: "image" | "scratch"): boolean {
+  isSuggestedAction(action: "image" | "current" | "scratch"): boolean {
     if (this.suggestedActions.length > 0) {
       return this.suggestedActions.includes(action);
     }
@@ -68,5 +77,11 @@ export class CoverSourceActionsComponent {
     if (this.scratchHidden) return;
     if (this.scratchDisabled) return;
     this.scratchSelected.emit();
+  }
+
+  onSelectCurrent(): void {
+    if (this.currentHidden) return;
+    if (this.currentDisabled) return;
+    this.currentSelected.emit();
   }
 }

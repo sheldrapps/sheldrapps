@@ -43,8 +43,6 @@ import {
   restartForLanguageChange,
 } from '@sheldrapps/i18n-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
-import { TourService } from 'src/app/shared/tour/tour.service';
-import { HOME_TOUR_ID } from 'src/app/shared/tour/home-tour.definition';
 
 @Component({
   selector: 'app-settings',
@@ -71,7 +69,6 @@ import { HOME_TOUR_ID } from 'src/app/shared/tour/home-tour.definition';
 export class SettingsPage {
   private settings = inject(SettingsStore<CcfkSettings>);
   private router = inject(Router);
-  private tour = inject(TourService);
   private ratingService = inject(RatingService);
   public lang = inject(LanguageService);
   public consent = inject(ConsentService);
@@ -187,12 +184,6 @@ export class SettingsPage {
         trailingIconName: 'chevron-forward-outline',
         ariaLabelKey: 'SETTINGS.INSTRUCTIONS',
       },
-      {
-        value: 'view-tour',
-        titleKey: 'SETTINGS.VIEW_TOUR',
-        trailingIconName: 'chevron-forward-outline',
-        ariaLabelKey: 'SETTINGS.VIEW_TOUR',
-      },
     ];
   }
 
@@ -278,11 +269,6 @@ export class SettingsPage {
     }
   }
 
-  async startHomeTour() {
-    this.tour.requestManualStart(HOME_TOUR_ID);
-    await this.router.navigateByUrl('/tabs/create');
-  }
-
   async previewRatingPrompt(): Promise<void> {
     await this.ratingService.previewPrompt();
   }
@@ -321,9 +307,6 @@ export class SettingsPage {
       return;
     }
 
-    if (value === 'view-tour') {
-      await this.startHomeTour();
-    }
   }
 
   async onRatingSettingsAction(value: string): Promise<void> {

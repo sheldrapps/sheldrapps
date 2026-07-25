@@ -16,9 +16,12 @@ type ActionCardIconFlip = 'none' | 'horizontal' | 'vertical';
 export class ActionCardComponent {
   private readonly sanitizer = inject(DomSanitizer);
   @Input() title = '';
+  @Input() description = '';
   @Input() icon = '';
+  @Input() imageUrl: string | null = null;
   @Input() svg: string | null = null;
   @Input() selected = false;
+  @Input() suggested = false;
   @Input() disabled = false;
   @Input() type: 'button' | 'submit' | 'reset' = 'button';
   @Input() iconFlip: ActionCardIconFlip = 'none';

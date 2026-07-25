@@ -144,12 +144,10 @@ export class FileService {
   >();
   private thumbFileNamesCache: Set<string> | null = null;
   private thumbFileNamesCachePromise: Promise<Set<string>> | null = null;
-  // Temporary instrumentation for robust public EPUB discovery validation.
-  private readonly DEBUG_IO = true;
   private readonly OPTIMIZED_PREVIEW_MAX_SIDE = 1600;
   private readonly epubStore = new EpubPublicStore(this.fileKit, {
     epubFolder: this.EPUB_FOLDER,
-    debug: this.DEBUG_IO,
+    debug: false,
     logPrefix: 'CCFK:file-kit',
   });
 
@@ -1495,12 +1493,7 @@ export class FileService {
       return (list.files ?? [])
         .map((entry) => (typeof entry === 'string' ? entry : entry.name))
         .filter((name): name is string => !!name);
-    } catch (error) {
-      console.warn('[CCFK:file.service] listDirectoryFileNames failed', {
-        path,
-        dir,
-        error: this.errorDetails(error),
-      });
+    } catch {
       return [];
     }
   }
@@ -1905,22 +1898,14 @@ export class FileService {
 
   private async ensurePublicDocumentsEpubFolderReady(): Promise<void> {
     await this.epubStore.ensureReady();
-    this.debugLog('ensurePublicDocumentsEpubFolderReady', {
-      resolvedFolderPath: this.epubStore.publicFolderPath,
-      pathCandidates: this.epubStore.publicFolderPaths,
-    });
   }
+
+  private debugLog(_event: string, _payload?: Record<string, unknown>): void {}
 
   private mapDirectory(dir: 'Data' | 'Documents' | 'Cache'): Directory {
     if (dir === 'Data') return Directory.Data;
     if (dir === 'Cache') return Directory.Cache;
     return Directory.Documents;
-  }
-
-  private debugLog(event: string, payload?: Record<string, unknown>): void {
-    if (!this.DEBUG_IO) return;
-    const suffix = payload ? ` ${JSON.stringify(payload)}` : '';
-    console.info(`[CCFK:file.service] ${event}${suffix}`);
   }
 
   private errorDetails(error: unknown): Record<string, unknown> {

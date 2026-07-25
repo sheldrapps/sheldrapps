@@ -82,23 +82,39 @@ export function buildHomeHeaderItems(hasRecommendedApps, labels = {}) {
           },
         ]
       : []),
-    {
-      id: "guide",
-      label: guideLabel,
-      icon: "help-circle-outline",
-    },
+    ...(labels.includeGuide === false
+      ? []
+      : [
+          {
+            id: "guide",
+            label: guideLabel,
+            icon: "help-circle-outline",
+          },
+        ]),
   ];
 }
 
 export async function handleHomeHeaderAction(id, handlers) {
   if (id === "recommended") {
     handlers.closeInfo();
+    blurActiveElement();
     await handlers.navigateToRecommended();
     return;
   }
 
   if (id === "guide" || id === "info") {
     handlers.toggleInfo();
+  }
+}
+
+function blurActiveElement() {
+  try {
+    const activeElement = document?.activeElement;
+    if (activeElement instanceof HTMLElement) {
+      activeElement.blur();
+    }
+  } catch {
+    // DOM may be unavailable in tests or non-browser runtimes.
   }
 }
 

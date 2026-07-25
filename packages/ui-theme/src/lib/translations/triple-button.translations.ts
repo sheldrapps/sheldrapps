@@ -4,9 +4,9 @@ export const TRIPLE_BUTTON_TRANSLATIONS = {
   'en-US': {
     TRIPLE_BUTTON: {
       EXPORT_QUALITY: {
-        TITLE: 'Export quality',
+        TITLE: 'What quality do you want for your cover?',
         BEST: 'Best quality',
-        OPTIMIZED: 'Recommended',
+        OPTIMIZED: 'Standard',
         THUMBNAIL: 'Thumbnail',
       },
       TOC: {
@@ -20,9 +20,9 @@ export const TRIPLE_BUTTON_TRANSLATIONS = {
   'es-MX': {
     TRIPLE_BUTTON: {
       EXPORT_QUALITY: {
-        TITLE: 'Calidad de exportación',
+        TITLE: '¿En qué calidad deseas tu portada?',
         BEST: 'Mejor calidad',
-        OPTIMIZED: 'Recomendado',
+        OPTIMIZED: 'Estándar',
         THUMBNAIL: 'Miniatura',
       },
       TOC: {
@@ -36,9 +36,9 @@ export const TRIPLE_BUTTON_TRANSLATIONS = {
   'de-DE': {
     TRIPLE_BUTTON: {
       EXPORT_QUALITY: {
-        TITLE: 'Exportqualität',
+        TITLE: 'Welche Qualität möchtest du für dein Cover?',
         BEST: 'Beste Qualität',
-        OPTIMIZED: 'Empfohlen',
+        OPTIMIZED: 'Standard',
         THUMBNAIL: 'Miniaturbild',
       },
       TOC: {
@@ -52,9 +52,9 @@ export const TRIPLE_BUTTON_TRANSLATIONS = {
   'fr-FR': {
     TRIPLE_BUTTON: {
       EXPORT_QUALITY: {
-        TITLE: "Qualité d'export",
+        TITLE: 'Quelle qualité souhaitez-vous pour votre couverture ?',
         BEST: 'Meilleure qualité',
-        OPTIMIZED: 'Recommandé',
+        OPTIMIZED: 'Standard',
         THUMBNAIL: 'Miniature',
       },
       TOC: {
@@ -68,9 +68,9 @@ export const TRIPLE_BUTTON_TRANSLATIONS = {
   'hi-IN': {
     TRIPLE_BUTTON: {
       EXPORT_QUALITY: {
-        TITLE: 'एक्सपोर्ट गुणवत्ता',
+        TITLE: 'आप अपनी कवर किस गुणवत्ता में चाहते हैं?',
         BEST: 'सर्वोत्तम गुणवत्ता',
-        OPTIMIZED: 'अनुशंसित',
+        OPTIMIZED: 'मानक',
         THUMBNAIL: 'थंबनेल',
       },
       TOC: {
@@ -84,9 +84,9 @@ export const TRIPLE_BUTTON_TRANSLATIONS = {
   'it-IT': {
     TRIPLE_BUTTON: {
       EXPORT_QUALITY: {
-        TITLE: 'Qualità di esportazione',
+        TITLE: 'Che qualità desideri per la tua copertina?',
         BEST: 'Migliore qualità',
-        OPTIMIZED: 'Consigliato',
+        OPTIMIZED: 'Standard',
         THUMBNAIL: 'Miniatura',
       },
       TOC: {
@@ -100,9 +100,9 @@ export const TRIPLE_BUTTON_TRANSLATIONS = {
   'pt-BR': {
     TRIPLE_BUTTON: {
       EXPORT_QUALITY: {
-        TITLE: 'Qualidade de exportação',
+        TITLE: 'Com que qualidade você quer sua capa?',
         BEST: 'Melhor qualidade',
-        OPTIMIZED: 'Recomendado',
+        OPTIMIZED: 'Padrão',
         THUMBNAIL: 'Miniatura',
       },
       TOC: {
@@ -116,9 +116,9 @@ export const TRIPLE_BUTTON_TRANSLATIONS = {
   'ja-JP': {
     TRIPLE_BUTTON: {
       EXPORT_QUALITY: {
-        TITLE: '書き出し品質',
+        TITLE: 'カバーの品質をどうしますか？',
         BEST: '最高品質',
-        OPTIMIZED: 'おすすめ',
+        OPTIMIZED: '標準',
         THUMBNAIL: 'サムネイル',
       },
       TOC: {
@@ -132,9 +132,9 @@ export const TRIPLE_BUTTON_TRANSLATIONS = {
   'ko-KR': {
     TRIPLE_BUTTON: {
       EXPORT_QUALITY: {
-        TITLE: '내보내기 품질',
+        TITLE: '표지 품질을 어떻게 할까요?',
         BEST: '최고 품질',
-        OPTIMIZED: '추천',
+        OPTIMIZED: '표준',
         THUMBNAIL: '썸네일',
       },
       TOC: {
@@ -148,9 +148,9 @@ export const TRIPLE_BUTTON_TRANSLATIONS = {
   'zh-CN': {
     TRIPLE_BUTTON: {
       EXPORT_QUALITY: {
-        TITLE: '导出质量',
+        TITLE: '你希望封面采用什么质量？',
         BEST: '最佳质量',
-        OPTIMIZED: '推荐',
+        OPTIMIZED: '标准',
         THUMBNAIL: '缩略图',
       },
       TOC: {
@@ -164,9 +164,9 @@ export const TRIPLE_BUTTON_TRANSLATIONS = {
   'zh-TW': {
     TRIPLE_BUTTON: {
       EXPORT_QUALITY: {
-        TITLE: '匯出品質',
+        TITLE: '你希望封面採用什麼品質？',
         BEST: '最佳品質',
-        OPTIMIZED: '建議',
+        OPTIMIZED: '標準',
         THUMBNAIL: '縮圖',
       },
       TOC: {
@@ -180,9 +180,9 @@ export const TRIPLE_BUTTON_TRANSLATIONS = {
   'ru-RU': {
     TRIPLE_BUTTON: {
       EXPORT_QUALITY: {
-        TITLE: 'Качество экспорта',
+        TITLE: 'Какое качество обложки вы хотите?',
         BEST: 'Наилучшее качество',
-        OPTIMIZED: 'Рекомендуется',
+        OPTIMIZED: 'Стандартное',
         THUMBNAIL: 'Миниатюра',
       },
       TOC: {
@@ -196,9 +196,9 @@ export const TRIPLE_BUTTON_TRANSLATIONS = {
   'ar-SA': {
     TRIPLE_BUTTON: {
       EXPORT_QUALITY: {
-        TITLE: 'جودة التصدير',
+        TITLE: 'ما الجودة التي تريدها لغلافك؟',
         BEST: 'أفضل جودة',
-        OPTIMIZED: 'موصى به',
+        OPTIMIZED: 'قياسي',
         THUMBNAIL: 'الصورة المصغرة',
       },
       TOC: {

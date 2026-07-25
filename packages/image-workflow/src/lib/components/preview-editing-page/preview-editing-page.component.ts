@@ -4,6 +4,7 @@ import {
   Component,
   HostListener,
   OnDestroy,
+  computed,
   inject,
 } from '@angular/core';
 import {
@@ -18,6 +19,8 @@ import { TranslateModule } from '@ngx-translate/core';
 import { EReaderPreviewFrameComponent } from '../e-reader-preview-frame/e-reader-preview-frame.component';
 import { PreviewEditingPageService } from './preview-editing-page.service';
 import { ImageWorkflowI18nService } from '../../e-reader-preview/i18n/image-workflow-i18n.service';
+import { ScrollableButtonBarComponent } from '@sheldrapps/ui-theme';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-preview-editing-page',
@@ -32,6 +35,7 @@ import { ImageWorkflowI18nService } from '../../e-reader-preview/i18n/image-work
     IonTitle,
     IonToolbar,
     EReaderPreviewFrameComponent,
+    ScrollableButtonBarComponent,
   ],
   templateUrl: './preview-editing-page.component.html',
   styleUrls: ['./preview-editing-page.component.scss'],
@@ -40,6 +44,7 @@ import { ImageWorkflowI18nService } from '../../e-reader-preview/i18n/image-work
 export class PreviewEditingPageComponent implements OnDestroy {
   private readonly previewPage = inject(PreviewEditingPageService);
   private readonly imageWorkflowI18n = inject(ImageWorkflowI18nService);
+  private readonly translate = inject(TranslateService);
   readonly state = this.previewPage.state;
 
   @HostListener('window:resize')
@@ -59,6 +64,20 @@ export class PreviewEditingPageComponent implements OnDestroy {
     }
     const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
     return Math.max(1, Math.floor(viewportHeight * 0.72));
+  }
+
+  readonly footerActions = computed(() =>
+    (this.state()?.footerActions ?? [])
+      .filter((action) => !action.hidden)
+      .map((action) => ({
+        id: action.id,
+        label: this.translate.instant(action.labelKey),
+        icon: action.icon,
+      })),
+  );
+
+  onFooterAction(actionId: string): void {
+    this.state()?.actionHandler?.(actionId);
   }
 
   ngOnDestroy(): void {

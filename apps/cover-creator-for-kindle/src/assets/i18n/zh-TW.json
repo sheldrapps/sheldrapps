@@ -67,7 +67,7 @@
     "LOADING_IMAGE": "正在載入圖片…",
     "OPENING_EDITOR": "正在開啟編輯器…",
     "SAVING": "正在儲存封面…",
-    "SAVE_ACTION": "儲存",
+    "SAVE_ACTION": "重新命名",
     "SAVED_OK": "封面已儲存",
     "SAVE_RENAME_TITLE": "儲存封面",
     "SAVE_RENAME_MESSAGE": "請輸入封面的名稱",
@@ -80,11 +80,11 @@
     "SELECT_GROUP_PLACEHOLDER": "選取系列",
     "SELECT_GENERATION_LABEL": "型號",
     "SELECT_GENERATION_PLACEHOLDER": "選取型號",
-    "SELECT_MODEL_LABEL": "裝置型號",
+    "SELECT_MODEL_LABEL": "您使用的裝置是什麼？",
     "SELECT_MODEL_PLACEHOLDER": "選取您的裝置",
     "TAP_TO_CHANGE": "點擊以更換／重設",
     "TITLE": "建立封面",
-    "COVER_SOURCE_TITLE": "封面來源",
+    "COVER_SOURCE_TITLE": "您想從哪裡建立封面？",
     "MODEL_PICKER": {
       "TITLE": "選擇您的 Kindle"
     },
@@ -93,7 +93,18 @@
     "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "在 Kindle 上啟用「螢幕與亮度 > 在鎖定畫面顯示封面」。",
     "ARIA_START_SCRATCH": "Cong ling kaishi",
     "SOURCE_IMAGE": "Tupian",
-    "SOURCE_SCRATCH": "Cong ling kaishi"
+    "SOURCE_SCRATCH": "Cong ling kaishi",
+    "STEPPER": {
+      "DEVICE": "裝置",
+      "SOURCE": "來源",
+      "ADJUST": "調整",
+      "CREATE": "建立"
+    },
+    "WORKFLOW": {
+      "PREVIOUS": "上一步",
+      "CONTINUE": "繼續",
+      "ADJUST": "調整封面"
+    }
   },
   "COVERS": {
     "DELETED": "封面已刪除",
@@ -132,10 +143,10 @@
     "STEP_1": "選取封面圖片",
     "STEP_2": "在編輯器中調整圖片，然後點擊完成以套用",
     "STEP_3": "套用調整後建立封面",
-    "STEP_4": "儲存或分享封面",
-    "STEP_4_DESC": "完成後，您可以將其儲存至裝置，或透過 Kindle 應用程式分享以獲得更順暢的體驗。",
+    "STEP_4": "建立封面，並可選擇重新命名或分享",
+    "STEP_4_DESC": "建立後會自動儲存。您可以重新命名，或透過 Kindle 應用程式分享，封面會自動同步至您的裝置。",
     "STEP_5": "透過網頁傳送（Send to Kindle）",
-    "STEP_5_DESC": "您也可以在瀏覽器中使用 Send to Kindle 網頁工具傳送。",
+    "STEP_5_DESC": "您也可以在瀏覽器中使用 Send to Kindle 傳送。這是透過 Kindle 應用程式分享的替代方式。",
     "TIP": "為獲得最佳效果，請使用高解析度圖片，並確保 Kindle 上的廣告已停用。",
     "TITLE": "使用說明"
   },

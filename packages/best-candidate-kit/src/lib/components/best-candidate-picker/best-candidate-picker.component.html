@@ -19,9 +19,6 @@
   } @else {
     @if (compact) {
       <ion-card class="best-candidate-picker__compact-card">
-        <p class="best-candidate-picker__compact-copy">
-          {{ 'BEST_CANDIDATE.PICKER.NO_COVER_DETECTED' | translate }}
-        </p>
         <div class="best-candidate-picker__compact-list">
           @for (candidate of limitedCandidates; track trackByCandidate($index, candidate)) {
             <button

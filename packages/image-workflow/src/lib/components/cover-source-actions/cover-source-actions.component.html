@@ -8,38 +8,45 @@
 <ion-grid class="app-action-grid" [attr.data-tour-id]="tourId || null">
   <ion-row>
     @if (!imageHidden) {
-    <ion-col [size]="actionColSize">
-      <ion-button
-        expand="block"
-        fill="outline"
+    <ion-col>
+      <sh-action-card
+        [title]="'COVER_SOURCE.ACTIONS.IMAGE' | translate"
+        [description]="'COVER_SOURCE.DESCRIPTIONS.IMAGE' | translate"
+        icon="image-outline"
         [disabled]="imageDisabled"
+        [suggested]="isSuggestedAction('image')"
         (click)="onSelectImage()"
-        [attr.aria-label]="'COVER_SOURCE.ARIA.SELECT_IMAGE' | translate"
-        [class.suggested-action--active]="isSuggestedAction('image')"
-      >
-        <ion-icon slot="start" name="image-outline" aria-hidden="true"></ion-icon>
-        {{ "COVER_SOURCE.ACTIONS.IMAGE" | translate }}
-      </ion-button>
+        [ariaLabel]="'COVER_SOURCE.ARIA.SELECT_IMAGE' | translate"
+      ></sh-action-card>
     </ion-col>
     }
 
     @if (!scratchHidden) {
-    <ion-col [size]="actionColSize">
-      <ion-button
-        expand="block"
-        fill="outline"
+    <ion-col>
+      <sh-action-card
+        [title]="'COVER_SOURCE.ACTIONS.SCRATCH' | translate"
+        [description]="'COVER_SOURCE.DESCRIPTIONS.SCRATCH' | translate"
+        icon="pencil-outline"
         [disabled]="scratchDisabled"
+        [suggested]="isSuggestedAction('scratch')"
         (click)="onSelectScratch()"
-        [attr.aria-label]="'COVER_SOURCE.ARIA.START_SCRATCH' | translate"
-        [class.suggested-action--active]="isSuggestedAction('scratch')"
-      >
-        <ion-icon
-          slot="start"
-          name="pencil-outline"
-          aria-hidden="true"
-        ></ion-icon>
-        {{ "COVER_SOURCE.ACTIONS.SCRATCH" | translate }}
-      </ion-button>
+        [ariaLabel]="'COVER_SOURCE.ARIA.START_SCRATCH' | translate"
+      ></sh-action-card>
+    </ion-col>
+    }
+
+    @if (!currentHidden) {
+    <ion-col>
+      <sh-action-card
+        [title]="'COVER_SOURCE.ACTIONS.CURRENT' | translate"
+        [description]="'COVER_SOURCE.DESCRIPTIONS.CURRENT' | translate"
+        [imageUrl]="currentImageUrl"
+        icon="image-outline"
+        [disabled]="currentDisabled"
+        [suggested]="isSuggestedAction('current')"
+        (click)="onSelectCurrent()"
+        [ariaLabel]="'COVER_SOURCE.ARIA.SELECT_CURRENT' | translate"
+      ></sh-action-card>
     </ion-col>
     }
   </ion-row>

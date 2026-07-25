@@ -4,13 +4,18 @@ android {
     namespace = "com.sheldrapps.plugins.epubrewrite"
     compileSdk = rootProject.ext.compileSdkVersion
 
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
@@ -20,6 +25,7 @@ repositories {
 }
 
 dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.5'
     implementation project(':capacitor-android')
     implementation 'androidx.activity:activity:1.9.3'
     implementation 'net.lingala.zip4j:zip4j:2.11.5'

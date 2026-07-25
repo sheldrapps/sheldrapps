@@ -10,6 +10,29 @@
   margin-top: 0;
 }
 
+:host ion-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  column-gap: calc(var(--app-space-2) * 2);
+  row-gap: var(--app-space-4);
+  align-items: stretch;
+}
+
+:host ion-col {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  flex: none;
+  padding: 0;
+}
+
+:host sh-action-card {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 ion-button.suggested-action--active {
   position: relative;
   isolation: isolate;

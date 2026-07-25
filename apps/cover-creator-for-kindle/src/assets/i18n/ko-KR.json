@@ -67,7 +67,7 @@
     "LOADING_IMAGE": "이미지 불러오는 중…",
     "OPENING_EDITOR": "편집기 열기 중…",
     "SAVING": "표지 저장 중…",
-    "SAVE_ACTION": "저장",
+    "SAVE_ACTION": "이름 변경",
     "SAVED_OK": "표지가 저장되었습니다",
     "SAVE_RENAME_TITLE": "표지 저장",
     "SAVE_RENAME_MESSAGE": "표지의 이름을 입력하세요",
@@ -80,11 +80,11 @@
     "SELECT_GROUP_PLACEHOLDER": "그룹 선택",
     "SELECT_GENERATION_LABEL": "모델",
     "SELECT_GENERATION_PLACEHOLDER": "모델 선택",
-    "SELECT_MODEL_LABEL": "기기 모델",
+    "SELECT_MODEL_LABEL": "사용 중인 기기는 무엇인가요?",
     "SELECT_MODEL_PLACEHOLDER": "기기를 선택하세요",
     "TAP_TO_CHANGE": "탭하여 변경/초기화",
     "TITLE": "표지 만들기",
-    "COVER_SOURCE_TITLE": "커버 소스",
+    "COVER_SOURCE_TITLE": "무엇으로 표지를 만들까요?",
     "MODEL_PICKER": {
       "TITLE": "Kindle 선택"
     },
@@ -93,7 +93,18 @@
     "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Kindle에서 \"화면 및 밝기 > 잠금 화면에 표지 표시\"를 활성화하세요.",
     "ARIA_START_SCRATCH": "Cheoeumbuteo sijak",
     "SOURCE_IMAGE": "Imiji",
-    "SOURCE_SCRATCH": "Cheoeumbuteo"
+    "SOURCE_SCRATCH": "Cheoeumbuteo",
+    "STEPPER": {
+      "DEVICE": "디바이스",
+      "SOURCE": "소스",
+      "ADJUST": "조정",
+      "CREATE": "생성"
+    },
+    "WORKFLOW": {
+      "PREVIOUS": "이전",
+      "CONTINUE": "계속",
+      "ADJUST": "표지 조정"
+    }
   },
   "COVERS": {
     "DELETED": "표지가 삭제되었습니다",
@@ -132,10 +143,10 @@
     "STEP_1": "표지에 사용할 이미지를 선택합니다",
     "STEP_2": "편집기에서 이미지를 조정하고 완료를 탭하여 적용합니다",
     "STEP_3": "조정이 적용된 후 표지를 만듭니다",
-    "STEP_4": "표지를 저장하거나 공유합니다",
-    "STEP_4_DESC": "준비가 되면 기기에 저장하거나 더 원활한 흐름을 위해 Kindle 앱으로 공유할 수 있습니다.",
+    "STEP_4": "표지를 만들고 필요하면 이름을 변경하거나 공유합니다",
+    "STEP_4_DESC": "만들면 자동으로 저장됩니다. 이름을 변경하거나 Kindle 앱으로 공유하면 기기와 자동으로 동기화됩니다.",
     "STEP_5": "웹으로 전송 (Send to Kindle)",
-    "STEP_5_DESC": "브라우저에서 Send to Kindle 웹 도구를 사용하여 전송할 수도 있습니다.",
+    "STEP_5_DESC": "브라우저의 Send to Kindle로 전송할 수도 있습니다. Kindle 앱 공유의 대체 방법입니다.",
     "TIP": "최상의 결과를 위해 고해상도 이미지를 사용하고 Kindle에서 광고를 비활성화했는지 확인하세요.",
     "TITLE": "사용 방법"
   },

@@ -30,6 +30,11 @@ ion-content.preview-content::part(scroll) {
   overflow: hidden;
 }
 
+.file-selector-section__card {
+  display: block;
+  width: 100%;
+}
+
 .file-selector-section__item::part(native) {
   border-radius: var(--app-radius-md);
   box-shadow: var(--app-button-outline-shadow);
@@ -55,8 +60,12 @@ ion-content.preview-content::part(scroll) {
   margin-top: 0;
 }
 
+.best-candidate-title {
+  margin-block: var(--app-space-7);
+}
+
 .best-candidate-wrap {
-  margin-top: var(--change-section-space-y);
+  margin-top: 0;
   margin-bottom: var(--app-space-3, 0.5rem);
   border-radius: var(--app-radius-md);
 }

@@ -33,16 +33,6 @@ export const routes: Routes = [
       import('./pages/my-pdfs/my-pdfs.page').then((m) => m.MyPdfsPage),
   },
   {
-    path: 'recommended-apps',
-    data: {
-      backHref: '/tabs/change',
-    },
-    loadChildren: () =>
-      import('@sheldrapps/recommended-apps').then(
-        (m) => m.RECOMMENDED_APPS_ROUTES
-      ),
-  },
-  {
     path: 'instructions',
     loadComponent: () =>
       import('./pages/instructions/instructions.page').then(

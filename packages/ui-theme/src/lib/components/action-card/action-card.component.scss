@@ -1,6 +1,9 @@
 :host {
-  display: block;
+  display: flex;
+  align-self: stretch;
+  height: 100%;
   min-width: 0;
+  --sh-action-card-icon-color: var(--ion-color-primary);
 }
 
 .sh-action-card {
@@ -8,7 +11,6 @@
   width: 100%;
   min-width: 0;
   min-height: 100%;
-  aspect-ratio: 1 / 1;
   padding: var(--app-space-5) var(--app-space-4);
   border: 1px solid var(--app-divider);
   border-radius: var(--app-radius-lg);
@@ -20,9 +22,11 @@
     );
   color: var(--app-text-primary);
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
+  height: 100%;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: var(--app-space-4);
   text-align: center;
   cursor: pointer;
@@ -62,17 +66,33 @@
   border-color: rgba(var(--ion-color-primary-rgb), 0.86);
 }
 
+.sh-action-card--suggested {
+  animation: sh-action-card-suggested var(--app-dur-slow) var(--app-ease) infinite alternate;
+}
+
 .sh-action-card--disabled {
   cursor: not-allowed;
   opacity: 0.56;
 }
 
 .sh-action-card__title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 2.2em;
   font-size: var(--app-text-xl);
   font-weight: var(--app-font-semibold);
   line-height: 1.1;
   color: var(--app-text-primary);
   overflow-wrap: anywhere;
+}
+
+.sh-action-card__description {
+  max-width: 28ch;
+  color: var(--app-text-secondary);
+  line-height: 1.35;
+  align-self: center;
+  text-align: center;
 }
 
 .sh-action-card__icon {
@@ -82,7 +102,7 @@
   place-items: center;
   border-radius: 0;
   background: transparent;
-  color: var(--ion-color-primary);
+  color: var(--sh-action-card-icon-color);
   flex: 0 0 auto;
 }
 
@@ -92,12 +112,29 @@
   height: 100%;
 }
 
+.sh-action-card__image {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  max-height: none;
+  height: auto;
+  justify-self: center;
+  align-self: center;
+  object-fit: contain;
+  border-radius: var(--app-radius-md);
+}
+
+.sh-action-card--has-image .sh-action-card__icon {
+  height: auto;
+  min-height: clamp(4.75rem, 24vw, 6rem);
+}
+
 .sh-action-card--selected .sh-action-card__icon {
   background: transparent;
 }
 
 .sh-action-card__icon ion-icon {
-  font-size: clamp(2.75rem, 12vw, 3.75rem);
+  font-size: var(--app-action-card-icon-size);
 }
 
 .sh-action-card__icon--flip-horizontal {
@@ -123,8 +160,13 @@
     height: clamp(4rem, 28vw, 5.25rem);
   }
 
+  .sh-action-card--has-image .sh-action-card__icon {
+    height: auto;
+    min-height: clamp(4rem, 28vw, 5.25rem);
+  }
+
   .sh-action-card__icon ion-icon {
-    font-size: clamp(2.25rem, 11vw, 3rem);
+    font-size: var(--app-action-card-icon-size);
   }
 }
 
@@ -139,5 +181,19 @@
   .sh-action-card:focus-visible:not(:disabled),
   .sh-action-card:active:not(:disabled) {
     transform: none;
+  }
+
+  .sh-action-card--suggested {
+    animation: none;
+  }
+}
+
+@keyframes sh-action-card-suggested {
+  from {
+    border-color: var(--app-divider);
+  }
+
+  to {
+    border-color: rgba(var(--ion-color-primary-rgb), 0.74);
   }
 }

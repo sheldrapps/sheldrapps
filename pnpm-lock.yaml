@@ -563,6 +563,9 @@ importers:
       '@sheldrapps/i18n-kit':
         specifier: workspace:*
         version: link:../../packages/i18n-kit
+      '@sheldrapps/image-workflow':
+        specifier: workspace:*
+        version: link:../../packages/image-workflow
       '@sheldrapps/rating-kit':
         specifier: workspace:*
         version: link:../../packages/rating-kit
@@ -771,6 +774,9 @@ importers:
       '@sheldrapps/rating-kit':
         specifier: workspace:*
         version: link:../../packages/rating-kit
+      '@sheldrapps/recommended-apps':
+        specifier: workspace:*
+        version: link:../../packages/recommended-apps
       '@sheldrapps/settings-kit':
         specifier: workspace:*
         version: link:../../packages/settings-kit
@@ -1665,6 +1671,9 @@ importers:
       '@capacitor/share':
         specifier: ^8.0.0
         version: 8.0.0(@capacitor/core@8.0.0)
+      '@sheldrapps/ui-theme':
+        specifier: workspace:*
+        version: link:../ui-theme
 
   packages/native-sqlite-kit:
     dependencies:

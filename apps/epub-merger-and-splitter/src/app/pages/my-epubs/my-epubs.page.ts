@@ -540,7 +540,10 @@ export class MyEpubsPage implements OnInit, OnDestroy {
 
     try {
       await this.library.deleteByFilename(filename);
-      this.items = this.items.filter((item) => item.filename !== filename);
+      this.runInZone(() => {
+        this.items = this.items.filter((item) => item.filename !== filename);
+      });
+      await this.flushUi();
       void this.showToast('MY_EPUBS.DELETED');
     } catch (error) {
       this.logInfo('delete:failed', { error: this.errorDetails(error) });

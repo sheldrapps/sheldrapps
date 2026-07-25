@@ -10,6 +10,7 @@ import {
   inject,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import type { ToastOptions } from '@ionic/angular';
 import { firstValueFrom, Subscription } from 'rxjs';
 import {
   IonButtons,
@@ -39,6 +40,7 @@ import {
   checkmarkCircle,
   chevronDownOutline,
   appsOutline,
+  closeOutline,
   documentOutline,
   helpCircleOutline,
   saveOutline,
@@ -67,12 +69,17 @@ import {
   RemoveAdsUpgradeModalComponent,
 } from '@sheldrapps/ads-kit';
 import {
+  ActionCardComponent,
   LoadingStateComponent,
   SectionCardComponent,
   SaveCoverModalComponent,
   ScrollableBarItem,
   ScrollableButtonBarComponent,
+  WorkflowNavigationComponent,
+  WorkflowStepperComponent,
 } from '@sheldrapps/ui-theme';
+import { CoverImageStateComponent } from '@sheldrapps/image-workflow';
+import type { WorkflowStep } from '@sheldrapps/ui-theme';
 import {
   RecommendedApp,
   RecommendedAppsService,
@@ -100,6 +107,8 @@ type IssueSectionView = {
   count: number;
 };
 
+const MAX_REPAIR_PASSES = 3;
+
 @Component({
   selector: 'app-fix-page',
   standalone: true,
@@ -125,10 +134,14 @@ type IssueSectionView = {
     IonRow,
     IonTitle,
     IonToolbar,
+    ActionCardComponent,
+    CoverImageStateComponent,
     LoadingStateComponent,
     SectionCardComponent,
     ScrollableButtonBarComponent,
     RemoveAdsUpgradeModalComponent,
+    WorkflowNavigationComponent,
+    WorkflowStepperComponent,
   ],
 })
 export class FixPage implements OnInit, OnDestroy {
@@ -157,6 +170,7 @@ export class FixPage implements OnInit, OnDestroy {
       checkmarkCircle,
       chevronDownOutline,
       appsOutline,
+      closeOutline,
       documentOutline,
       helpCircleOutline,
       saveOutline,
@@ -183,6 +197,7 @@ export class FixPage implements OnInit, OnDestroy {
     size: number;
     outputName: string;
     outputUri: string;
+    previewSrc?: string;
   };
   removeAdsPriceFormatted: string | null = null;
   purchaseModalOpen = false;
@@ -193,6 +208,15 @@ export class FixPage implements OnInit, OnDestroy {
   private readonly adFallbackRemainingPrefKey = 'ef_ad_fallback_remaining';
   private readonly adFallbackTrialActivePrefKey = 'ef_ad_fallback_trial_active';
   private adFallbackTrialActive = false;
+
+  get workflowSteps(): readonly WorkflowStep[] {
+    return [
+      { id: 'load', label: this.translate.instant('FIX.STEPPER.LOAD') },
+      { id: 'confirm', label: this.translate.instant('FIX.STEPPER.CONFIRM') },
+      { id: 'fix', label: this.translate.instant('FIX.STEPPER.FIX') },
+    ];
+  }
+  workflowStep = 0;
 
   viewState:
     | 'idle'
@@ -220,6 +244,65 @@ export class FixPage implements OnInit, OnDestroy {
 
   get isBusy(): boolean {
     return !!this.busyAction;
+  }
+
+  get workflowPreviousLabel(): string {
+    return this.workflowSteps[this.workflowStep - 1]?.label ?? '';
+  }
+
+  get workflowNextLabel(): string {
+    return this.workflowSteps[this.workflowStep + 1]?.label ?? '';
+  }
+
+  get selectableWorkflowSteps(): readonly number[] {
+    const steps = [0];
+    if (this.hasValidEpub() && !!this.diagnosis) {
+      steps.push(1);
+    }
+    if (this.canRepair || this.canExport || this.viewState === 'repaired') {
+      steps.push(2);
+    }
+    return steps;
+  }
+
+  get canContinueWorkflow(): boolean {
+    if (this.workflowStep === 0) {
+      return this.hasValidEpub() && !!this.diagnosis && !this.isBusy;
+    }
+
+    if (this.workflowStep === 1) {
+      return (this.canRepair || this.canExport) && !this.isBusy;
+    }
+
+    return false;
+  }
+
+  async onWorkflowNext(): Promise<void> {
+    if (!this.canContinueWorkflow) {
+      return;
+    }
+
+    this.workflowStep += 1;
+  }
+
+  onWorkflowPrevious(): void {
+    if (this.workflowStep > 0 && !this.isBusy) {
+      this.workflowStep -= 1;
+    }
+  }
+
+  onWorkflowStepSelected(step: number): void {
+    if (
+      step < 0 ||
+      step >= this.workflowSteps.length ||
+      step === this.workflowStep ||
+      !this.selectableWorkflowSteps.includes(step) ||
+      this.isBusy
+    ) {
+      return;
+    }
+
+    this.workflowStep = step;
   }
 
   get loadingLabelKey(): string {
@@ -470,6 +553,9 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   get resultPrimaryActionKey(): string | null {
+    if (this.viewState === 'failed') {
+      return null;
+    }
     if (
       this.viewState === 'diagnosed' &&
       this.diagnosis?.status === 'repairable' &&
@@ -481,6 +567,21 @@ export class FixPage implements OnInit, OnDestroy {
       return 'FIX.ACTION_EXPORT';
     }
     return null;
+  }
+
+  get maxUploadSizeMB(): number {
+    return this.workflow.maxNativeSizeMB;
+  }
+
+  get fileCardDescription(): string {
+    const actionKey = this.selectedEpubName
+      ? 'FIX.TAP_TO_CHANGE'
+      : 'FIX.ACTION_SELECT_EPUB';
+    const action = this.translate.instant(actionKey);
+    const limits = this.translate.instant('FIX.EPUB_FILE_LIMITS', {
+      maxSize: this.maxUploadSizeMB,
+    });
+    return `${action} · ${limits}`;
   }
 
   canShowRemoveAdsEntryPoint(): boolean {
@@ -706,24 +807,44 @@ export class FixPage implements OnInit, OnDestroy {
         return;
       }
 
-      this.repairResult = await this.workflow.repairCurrentEpub(
-        preferredOpfPath,
-        guidedSelections,
-      );
-      if (!this.repairResult.success) {
-        this.failWorkflow('EPUB_ERROR_REWRITE');
-      } else {
-        this.clearEpubError();
-        this.diagnosis = await this.workflow.diagnoseCurrentEpub();
-        if (this.diagnosis.status !== 'valid') {
+      let repairedSomething = false;
+      for (let pass = 0; pass < MAX_REPAIR_PASSES; pass += 1) {
+        this.repairResult = await this.workflow.repairCurrentEpub(
+          preferredOpfPath,
+          guidedSelections,
+        );
+        if (!this.repairResult.success) {
+          if (repairedSomething) {
+            break;
+          }
+          this.workflowStep = 2;
           this.failWorkflow('EPUB_ERROR_REWRITE');
           return;
         }
+        repairedSomething =
+          repairedSomething || this.repairResult.repairedIssues.length > 0;
+
+        this.clearEpubError();
+        this.diagnosis = await this.workflow.diagnoseCurrentEpub();
+        if (this.diagnosis.status === 'valid') {
+          break;
+        }
+
+        if (pass === MAX_REPAIR_PASSES - 1) {
+          break;
+        }
+      }
+
+      const finalDiagnosis = this.diagnosis;
+      if (finalDiagnosis?.status === 'valid' || repairedSomething) {
         await this.exportCurrentCopy();
         this.viewState = 'repaired';
-        await this.showToast('FIX.EPUB_FIXED_SUCCESS');
+        this.workflowStep = 2;
+      } else {
+        this.viewState = 'diagnosed';
       }
     } catch (error) {
+      this.workflowStep = 2;
       this.failWorkflow('EPUB_ERROR_REWRITE', error);
     } finally {
       await this.clearBusyState();
@@ -738,7 +859,10 @@ export class FixPage implements OnInit, OnDestroy {
     this.busyAction = 'export';
     try {
       await this.exportCurrentCopy();
+      this.viewState = 'repaired';
+      this.workflowStep = 2;
     } catch (error) {
+      this.workflowStep = 2;
       this.failWorkflow('EPUB_ERROR_REWRITE', error);
     } finally {
       await this.clearBusyState();
@@ -831,9 +955,13 @@ export class FixPage implements OnInit, OnDestroy {
       }
 
       this.closePurchaseModal();
-      await this.showToast('COMMON.REMOVE_ADS_PURCHASED', 1800, 'success');
+      await this.showToast(
+        'COMMON.REMOVE_ADS_PURCHASED',
+        { duration: 1800 },
+        'success',
+      );
     } catch {
-      await this.showToast('COMMON.PURCHASE_ERROR', 1800, 'error');
+      await this.showToast('COMMON.PURCHASE_ERROR', { duration: 1800 }, 'error');
     } finally {
       this.purchaseBusy = false;
     }
@@ -848,14 +976,18 @@ export class FixPage implements OnInit, OnDestroy {
     try {
       const restored = await this.billing.restorePurchases();
       if (!restored) {
-        await this.showToast('COMMON.RESTORE_ERROR', 1800, 'error');
+        await this.showToast('COMMON.RESTORE_ERROR', { duration: 1800 }, 'error');
         return;
       }
 
       this.closePurchaseModal();
-      await this.showToast('COMMON.REMOVE_ADS_RESTORED', 1800, 'success');
+      await this.showToast(
+        'COMMON.REMOVE_ADS_RESTORED',
+        { duration: 1800 },
+        'success',
+      );
     } catch {
-      await this.showToast('COMMON.RESTORE_ERROR', 1800, 'error');
+      await this.showToast('COMMON.RESTORE_ERROR', { duration: 1800 }, 'error');
     } finally {
       this.purchaseBusy = false;
     }
@@ -1282,12 +1414,16 @@ export class FixPage implements OnInit, OnDestroy {
           this.workflow.buildFixedOutputName(this.selectedEpubName);
         const exported = await this.workflow.exportCurrentEpub(outputName);
         await this.library.saveExportedEpub(exported.outputUri, outputName);
+        const preview = await this.library.resolvePreviewAsset(outputName, {
+          forceRefresh: true,
+        });
         this.coversEvents.emit({ type: 'saved', filename: outputName });
 
         this.exportResult = {
           size: exported.size,
           outputName,
           outputUri: exported.outputUri,
+          previewSrc: preview.src || undefined,
         };
         this.clearEpubError();
         await this.consumeAdFallbackAttemptAfterSuccess();
@@ -1330,6 +1466,7 @@ export class FixPage implements OnInit, OnDestroy {
       };
       this.coversEvents.emit({ type: 'saved', filename: resolvedFilename });
       this.clearEpubError();
+      await this.showToast('FIX.RENAMED_OK', { duration: 1600 }, 'success');
     } catch (error) {
       this.failWorkflow('EPUB_ERROR_REWRITE', error);
     } finally {
@@ -1343,14 +1480,24 @@ export class FixPage implements OnInit, OnDestroy {
 
   private async showToast(
     messageKey: string,
-    duration = 1600,
-    kind: 'success' | 'error' = 'success',
+    opts: Partial<ToastOptions> = {},
+    variant: 'success' | 'error' | 'info' = 'success',
+    params?: Record<string, unknown>,
   ): Promise<void> {
+    const extra = opts.cssClass
+      ? Array.isArray(opts.cssClass)
+        ? opts.cssClass
+        : [opts.cssClass]
+      : [];
+
     const toast = await this.toastCtrl.create({
-      message: this.translate.instant(messageKey),
-      duration,
+      ...opts,
+      message: this.translate.instant(messageKey, params),
       position: 'middle',
-      cssClass: ['cc-toast', `cc-toast--${kind}`],
+      duration: opts.duration ?? 1800,
+      animated: true,
+      translucent: true,
+      cssClass: ['cc-toast', `cc-toast--${variant}`, ...extra],
     });
     await toast.present();
   }
@@ -1379,7 +1526,7 @@ export class FixPage implements OnInit, OnDestroy {
     this.showRecommended = recommendedApps.length > 0;
     this.headerItems = buildHomeHeaderItems(this.showRecommended, {
       appsLabel: labels['ARR.TOOLS.APPS'],
-      guideLabel: labels['ARR.TOOLS.GUIDE'],
+      includeGuide: false,
     });
   }
 
@@ -1449,6 +1596,7 @@ export class FixPage implements OnInit, OnDestroy {
       this.diagnosis = undefined;
       this.repairResult = undefined;
       this.exportResult = undefined;
+      this.workflowStep = 0;
       this.viewState = 'idle';
     });
   }
@@ -1493,6 +1641,7 @@ export class FixPage implements OnInit, OnDestroy {
       this.exportResult = undefined;
       this.selectedGuidedOptionByIssueKey = {};
       this.selectedConfirmationByIssueKey = {};
+      this.workflowStep = 0;
       this.viewState = 'failed';
     });
   }
@@ -1512,6 +1661,7 @@ export class FixPage implements OnInit, OnDestroy {
       try {
         this.diagnosis = await this.workflow.diagnoseCurrentEpub();
         this.viewState = 'diagnosed';
+        this.workflowStep = 1;
         this.clearEpubError();
         this.busyProgressPercent = 100;
         return true;

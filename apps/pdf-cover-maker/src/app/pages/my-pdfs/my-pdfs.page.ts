@@ -44,12 +44,12 @@ import {
   CoverListActionEvent,
   CoverListContentComponent,
   CoverListItem,
-  CoverPreviewModalComponent,
   PreviewAction,
   PreviewActionClickEvent,
   PreviewMetadata,
   PreviewUnavailableConfig,
 } from '@sheldrapps/covers-list-kit';
+import { PreviewEditingPageService } from '@sheldrapps/image-workflow';
 import { normalizeFilenameKey } from '@sheldrapps/file-kit/pdf';
 import { EditProjectChoiceModalComponent } from '@sheldrapps/ui-theme';
 
@@ -69,7 +69,6 @@ type UiCoverItem = {
     IonToolbar,
     IonTitle,
     IonContent,
-    CoverPreviewModalComponent,
   ],
   templateUrl: './my-pdfs.page.html',
   styleUrls: ['./my-pdfs.page.scss'],
@@ -129,6 +128,7 @@ export class MyPdfsPage implements OnInit, OnDestroy {
   private isLoadInProgress = false;
   private readonly logPrefix = 'ECC:my-pdfs';
   private router = inject(Router);
+  private previewPage = inject(PreviewEditingPageService);
 
   // Preview Modal
   previewOpen = false;
@@ -458,16 +458,6 @@ export class MyPdfsPage implements OnInit, OnDestroy {
       this.items.find((item) => item.filename === filename)?.thumbDataUrl ??
       null;
 
-    this.previewOpen = true;
-    this.previewFilename = filename;
-    this.previewDataUrl = fallbackThumb;
-    this.previewIsDithered = false;
-    this.previewLoading = true;
-    this.previewUnavailable = false;
-    this.previewGettingCover = false;
-    this.previewFileSizeLabel = null;
-    void this.loadPreviewFileSizeLabel(filename);
-
     try {
       const hasCoverExport =
         await this.files.hasCoverExportForFilename(filename);
@@ -477,17 +467,64 @@ export class MyPdfsPage implements OnInit, OnDestroy {
         await this.files.resolveCoverPreviewAsset(filename, {
           allowNativeExtract: true,
         });
-      this.previewDataUrl = preview.src || fallbackThumb;
-      this.previewIsDithered = preview.isDithered;
-      this.previewUnavailable = !this.previewDataUrl;
+      const imageSrc = preview.src || fallbackThumb;
+      if (!imageSrc) return;
+      const dimensions = await this.resolvePreviewDimensions(imageSrc);
+      const fileSizeLabel = await this.resolvePreviewFileSizeLabel(
+        filename,
+        imageSrc,
+      );
+      this.previewPage.open({
+        imageSrc,
+        imageWidth: dimensions.width,
+        imageHeight: dimensions.height,
+        isDithered: preview.isDithered,
+        metadata: { name: this.displayFilename(filename), size: fileSizeLabel },
+        titleKey: 'IMAGE_WORKFLOW.PREVIEW_TITLE',
+        returnUrl: '/tabs/my-pdfs',
+        footerActions: [
+          { id: 'open', labelKey: 'COVERS.ACTIONS.OPEN', icon: 'open-outline' },
+          { id: 'project', labelKey: 'COVERS.ACTIONS.EDIT_PROJECT', icon: 'folder-open-outline', hidden: !this.hasProjectForFilename(filename) },
+          { id: 'share', labelKey: 'COMMON.SHARE', icon: 'share-outline' },
+          { id: 'delete', labelKey: 'COMMON.DELETE', icon: 'trash-outline' },
+        ],
+        actionHandler: (actionId) => this.onPreviewAction({ actionId, region: 'footer' }),
+      });
+      this.previewFilename = filename;
+      await this.router.navigateByUrl('/tabs/preview-editing');
     } catch {
-      this.previewDataUrl = this.previewDataUrl ?? fallbackThumb;
-      this.previewUnavailable = !this.previewDataUrl;
       this.pageErrorKey = 'COVERS.ERROR.PREVIEW';
-    } finally {
-      this.previewLoading = false;
-      this.previewGettingCover = false;
-      await this.flushUi();
+    }
+  }
+
+  private async resolvePreviewDimensions(src: string): Promise<{ width: number; height: number }> {
+    return new Promise((resolve) => {
+      const image = new Image();
+      image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
+      image.onerror = () => resolve({ width: 3, height: 4 });
+      image.src = src;
+    });
+  }
+
+  private async resolvePreviewFileSizeLabel(
+    filename: string,
+    previewSrc: string,
+  ): Promise<string | null> {
+    try {
+      const storedSize = this.formatFileSizeLabel(
+        await this.files.getCoverFileSizeBytes(filename),
+      );
+      if (storedSize) return storedSize;
+
+      const base64Marker = ';base64,';
+      const markerIndex = previewSrc.indexOf(base64Marker);
+      if (markerIndex >= 0) {
+        const encoded = previewSrc.slice(markerIndex + base64Marker.length);
+        return this.formatFileSizeLabel(Math.floor((encoded.length * 3) / 4));
+      }
+      return null;
+    } catch {
+      return null;
     }
   }
 
@@ -692,11 +729,14 @@ export class MyPdfsPage implements OnInit, OnDestroy {
 
     try {
       await this.files.deleteCoverByFilename(filename);
-      this.items = this.items.filter((x) => x.filename !== filename);
+      this.runInZone(() => {
+        this.items = this.items.filter((x) => x.filename !== filename);
+      });
       if (opts?.markLocalDelete) {
         this.localDeletedFilenames.add(filename);
       }
       this.coversEvents.emit({ type: 'deleted', filename });
+      await this.flushUi();
       await this.showToast('COVERS.DELETED');
     } catch {
       this.pageErrorKey = 'COVERS.ERROR.DELETE';

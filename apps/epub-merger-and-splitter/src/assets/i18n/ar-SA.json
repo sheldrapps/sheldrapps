@@ -79,15 +79,16 @@
     "SETTINGS": "الإعدادات"
   },
   "HOME": {
+    "STEPPER": { "MERGE_SPLIT": "دمج / تقسيم", "SORT": "ترتيب", "TOC": "الفهرس", "COVER": "الغلاف", "ADJUST": "ضبط", "JOIN": "دمج" },
     "WHAT_DO_YOU_WANT_TO_DO": "ماذا تريد أن تفعل؟",
     "MERGE": "دمج",
     "SPLIT": "تقسيم",
     "MERGING_TITLE": "الدمج",
     "SPLITTING_TITLE": "التقسيم",
-    "EPUB_FILES_TITLE": "ملفات EPUB",
+    "EPUB_FILES_TITLE": "كم عدد الملفات؟",
     "EPUB_FILE_TITLE": "ملف EPUB",
     "SELECT_EPUB_FILES_PLACEHOLDER": "اختر ملفات EPUB",
-    "ADD_ANOTHER_EPUB_FILE": "أضف ملف EPUB آخر",
+    "ADD_ANOTHER_EPUB_FILE": "إضافة المزيد؟",
     "FILES_SELECTED": "{{count}} ملفات جاهزة",
     "ARIA_ADD_EPUB_FILE": "أضف ملف EPUB آخر",
     "ARIA_SELECT_EPUB_FILES": "اختر ملفات EPUB",
@@ -98,10 +99,11 @@
     "INPUT_ERROR_SIZE": "ملف EPUB المحدد كبير جدًا.",
     "INPUT_ERROR_STORAGE": "لا توجد مساحة تخزين كافية لتحضير ملف EPUB هذا.",
     "INPUT_ERROR_CORRUPT": "تعذر تحضير ملف EPUB هذا. جرّب ملفًا آخر.",
-    "EXPORT_ORDER_TITLE": "ترتيب التصدير",
-    "COVER_SELECTOR_TITLE": "محدد الغلاف",
+    "EXPORT_ORDER_TITLE": "بأي ترتيب تريدها؟",
+    "COVER_SELECTOR_TITLE": "من ماذا تريد إنشاء الغلاف؟",
     "BEST_CANDIDATES_TITLE": "اقتراحات من ملفات EPUB الخاصة بك",
-    "ADJUST_COVER": "ضبط الغلاف"
+    "ADJUST_COVER": "ضبط الغلاف",
+    "PREVIEW_TITLE": "معاينة"
   },
   "TOC_OPTIONS": {
     "TITLE": "ماذا تفعل بجدول المحتويات؟",

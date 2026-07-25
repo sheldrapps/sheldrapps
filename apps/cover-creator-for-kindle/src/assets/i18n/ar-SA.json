@@ -67,7 +67,7 @@
     "LOADING_IMAGE": "جارٍ تحميل الصورة…",
     "OPENING_EDITOR": "جارٍ فتح المحرر…",
     "SAVING": "جارٍ حفظ الغلاف…",
-    "SAVE_ACTION": "حفظ",
+    "SAVE_ACTION": "إعادة التسمية",
     "SAVED_OK": "تم حفظ الغلاف",
     "SAVE_RENAME_TITLE": "حفظ الغلاف",
     "SAVE_RENAME_MESSAGE": "أدخل اسماً للغلاف",
@@ -80,11 +80,11 @@
     "SELECT_GROUP_PLACEHOLDER": "اختر مجموعة",
     "SELECT_GENERATION_LABEL": "الطراز",
     "SELECT_GENERATION_PLACEHOLDER": "اختر طراز",
-    "SELECT_MODEL_LABEL": "طراز الجهاز",
+    "SELECT_MODEL_LABEL": "ما الجهاز الذي لديك؟",
     "SELECT_MODEL_PLACEHOLDER": "اختر جهازك",
     "TAP_TO_CHANGE": "اضغط للتغيير/الإعادة",
     "TITLE": "إنشاء غلاف",
-    "COVER_SOURCE_TITLE": "مصدر الغلاف",
+    "COVER_SOURCE_TITLE": "من ماذا تريد إنشاء الغلاف؟",
     "MODEL_PICKER": {
       "TITLE": "اختر جهاز Kindle"
     },
@@ -93,7 +93,18 @@
     "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "تفعيل \"الشاشة والسطوع > عرض الأغلفة على شاشة القفل\" على Kindle.",
     "ARIA_START_SCRATCH": "Ibda min as-sifr",
     "SOURCE_IMAGE": "Sura",
-    "SOURCE_SCRATCH": "Min as-sifr"
+    "SOURCE_SCRATCH": "Min as-sifr",
+    "STEPPER": {
+      "DEVICE": "الجهاز",
+      "SOURCE": "المصدر",
+      "ADJUST": "ضبط",
+      "CREATE": "إنشاء"
+    },
+    "WORKFLOW": {
+      "PREVIOUS": "السابق",
+      "CONTINUE": "متابعة",
+      "ADJUST": "ضبط الغلاف"
+    }
   },
   "COVERS": {
     "DELETED": "تم حذف الغلاف",
@@ -132,10 +143,10 @@
     "STEP_1": "اختر صورة لغلافك",
     "STEP_2": "اضبط الصورة في المحرر ثم اضغط تم لتطبيقها",
     "STEP_3": "أنشئ الغلاف بعد تطبيق الضبط",
-    "STEP_4": "احفظ أو شارك الغلاف",
-    "STEP_4_DESC": "بعد الانتهاء، يمكنك حفظه على جهازك أو مشاركته عبر تطبيق Kindle للحصول على تجربة أسلس.",
+    "STEP_4": "أنشئ الغلاف وأعد تسميته أو شاركه اختياريًا",
+    "STEP_4_DESC": "يُحفظ تلقائيًا عند إنشائه. يمكنك إعادة تسميته أو مشاركته مع تطبيق Kindle لمزامنته تلقائيًا مع جهازك.",
     "STEP_5": "الإرسال عبر الويب (Send to Kindle)",
-    "STEP_5_DESC": "يمكنك أيضاً إرساله من المتصفح باستخدام أداة Send to Kindle على الويب.",
+    "STEP_5_DESC": "يمكنك أيضًا إرساله من المتصفح باستخدام Send to Kindle. هذه طريقة بديلة للمشاركة عبر تطبيق Kindle.",
     "TIP": "للحصول على أفضل النتائج، استخدم صوراً عالية الدقة وتأكد من تعطيل الإعلانات على جهاز Kindle.",
     "TITLE": "التعليمات"
   },

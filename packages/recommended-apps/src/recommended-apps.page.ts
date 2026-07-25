@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import {
@@ -15,7 +15,7 @@ import {
   IonButtons,
 } from '@ionic/angular/standalone';
 import { RecommendedAppsService } from './recommended-apps.service';
-import { RecommendedApp } from './types';
+import { RecommendedApp, RecommendedAppCategory } from './types';
 import { openRecommendedApp } from './recommended-apps.runtime.js';
 import {
   getRecommendedAppsTranslations,
@@ -66,9 +66,10 @@ const APP_NAME_KEYS: Record<string, keyof RecommendedAppsTranslations> = {
     IonButtons,
   ],
 })
-export class RecommendedAppsPage {
+export class RecommendedAppsPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly recommendedAppsService = inject(RecommendedAppsService);
+  private readonly changeDetector = inject(ChangeDetectorRef);
   t: RecommendedAppsTranslations = getRecommendedAppsTranslations('en-US');
   private locale: RecommendedAppsLocale = 'en-US';
   readonly backHref = this.resolveBackHref();
@@ -77,18 +78,49 @@ export class RecommendedAppsPage {
   )}`;
 
   recommendedApps: RecommendedApp[] = [];
+  readonly categories: readonly RecommendedAppCategory[] = ['EPUB', 'PDF'];
   loading = true;
+  private hasLoaded = false;
+  private isLoadingPage = false;
+
+  async ngOnInit(): Promise<void> {
+    await this.loadPage();
+  }
 
   async ionViewWillEnter(): Promise<void> {
-    await Promise.all([this.loadTranslations(), this.loadRecommendedApps()]);
+    if (this.hasLoaded) return;
+    await this.loadPage();
+  }
+
+  private async loadPage(): Promise<void> {
+    if (this.hasLoaded || this.isLoadingPage) return;
+    this.isLoadingPage = true;
+    this.loading = true;
+    try {
+      const [recommendedApps] = await Promise.all([
+        this.recommendedAppsService.getRecommendedApps(),
+        this.loadTranslations(),
+      ]);
+      this.recommendedApps = recommendedApps;
+      this.hasLoaded = true;
+    } catch (error) {
+      console.warn('[RECOMMENDED_APPS] initial load failed', error);
+      this.recommendedApps = [];
+    } finally {
+      this.loading = false;
+      this.isLoadingPage = false;
+      this.changeDetector.detectChanges();
+    }
   }
 
   async loadRecommendedApps(): Promise<void> {
-    this.loading = true;
     try {
       this.recommendedApps = await this.recommendedAppsService.getRecommendedApps();
+    } catch (error) {
+      console.warn('[RECOMMENDED_APPS] using registry fallback', error);
+      this.recommendedApps = [];
     } finally {
-      this.loading = false;
+      this.changeDetector.detectChanges();
     }
   }
 
@@ -102,7 +134,7 @@ export class RecommendedAppsPage {
       return app.description;
     }
 
-    return this.t[descriptionKey];
+    return this.t[descriptionKey] ?? app.description;
   }
 
   getAppName(app: RecommendedApp): string {
@@ -111,7 +143,18 @@ export class RecommendedAppsPage {
       return app.appName;
     }
 
-    return this.t[nameKey];
+    return this.t[nameKey] ?? app.appName;
+  }
+
+  appsForCategory(category: RecommendedAppCategory): RecommendedApp[] {
+    return this.recommendedApps.filter((app) => app.category === category);
+  }
+
+  categoryLabel(category: RecommendedAppCategory): string {
+    return (
+      (category === 'EPUB' ? this.t.CATEGORY_EPUB : this.t.CATEGORY_PDF) ??
+      category
+    );
   }
 
   private async loadTranslations(): Promise<void> {

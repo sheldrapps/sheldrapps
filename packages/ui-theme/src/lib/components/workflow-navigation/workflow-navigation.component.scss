@@ -1,0 +1,42 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.workflow-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sh-workflow-navigation-gap);
+  min-height: var(--sh-workflow-navigation-min-height);
+  padding-block: var(--sh-workflow-navigation-padding-block);
+  padding-inline: var(--sh-workflow-navigation-padding-inline);
+  background: var(--sh-workflow-navigation-background);
+  box-sizing: border-box;
+}
+
+.workflow-navigation__spacer,
+.workflow-navigation__previous,
+.workflow-navigation__primary {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.workflow-navigation__primary {
+  min-width: var(--sh-workflow-navigation-primary-min-width);
+}
+
+.workflow-navigation__primary::part(native) {
+  min-height: var(--app-control-min-height);
+}
+
+.workflow-navigation__primary ion-spinner {
+  width: var(--app-icon-md);
+  height: var(--app-icon-md);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workflow-navigation__primary ion-spinner {
+    animation: none;
+  }
+}

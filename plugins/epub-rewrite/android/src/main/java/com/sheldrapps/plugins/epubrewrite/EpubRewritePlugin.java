@@ -1345,7 +1345,7 @@ public class EpubRewritePlugin extends Plugin {
         }
 
         java.util.Collections.sort(signatures);
-        return (analysis.status == null ? "" : analysis.status) + "::" + String.join(";;", signatures);
+        return (analysis.status == null ? "" : analysis.status) + "::" + joinStrings(";;", signatures);
     }
 
     private java.util.ArrayList<ParsedManifestItem> parseManifestItems(
@@ -2713,7 +2713,11 @@ public class EpubRewritePlugin extends Plugin {
         if (value == null) {
             return "";
         }
-        return value.replace("\r\n", "\n").replace('\r', '\n').trim();
+        String normalized = value.replace("\r\n", "\n").replace('\r', '\n').trim();
+        if (!containsDoctypeDeclaration(normalized)) {
+            normalized = normalized.replaceFirst("(?is)<!doctype\\s+html\\s*>", "");
+        }
+        return normalized.trim();
     }
 
     private java.util.HashSet<String> collectDocumentIds(
@@ -3408,7 +3412,11 @@ public class EpubRewritePlugin extends Plugin {
             return false;
         }
 
-        String lower = text.toLowerCase(Locale.US);
+        String lower = text.toLowerCase(Locale.US).replaceAll("\\s+", " ");
+        if (lower.matches(".*<!doctype\\s+html\\s*>.*")) {
+            return false;
+        }
+
         return lower.contains("<!doctype");
     }
 
@@ -4829,7 +4837,7 @@ public class EpubRewritePlugin extends Plugin {
                     if (compressedSize > 1024L) {
                         return false;
                     }
-                    byte[] mimetypeBytes = entryInput.readAllBytes();
+                    byte[] mimetypeBytes = readExactBytes(entryInput, (int) compressedSize);
                     ZipEntry mimetypeEntry = new ZipEntry(entryName);
                     mimetypeEntry.setMethod(ZipEntry.STORED);
                     mimetypeEntry.setSize(mimetypeBytes.length);
@@ -6283,6 +6291,17 @@ public class EpubRewritePlugin extends Plugin {
         return slashIndex < 0 ? "" : normalized.substring(0, slashIndex);
     }
 
+    private static String joinStrings(String delimiter, List<String> values) {
+        StringBuilder joined = new StringBuilder();
+        for (int index = 0; index < values.size(); index++) {
+            if (index > 0) {
+                joined.append(delimiter);
+            }
+            joined.append(String.valueOf(values.get(index)));
+        }
+        return joined.toString();
+    }
+
     private String resolveRelativeZipPath(String baseDir, String href) {
         String normalizedHref = normalizeZipPath(href);
         if (normalizedHref.matches("^[a-zA-Z]+://.*$")) {
@@ -6307,7 +6326,7 @@ public class EpubRewritePlugin extends Plugin {
             }
             resolved.add(part);
         }
-        return String.join("/", resolved);
+        return joinStrings("/", resolved);
     }
 
     private String relativizeZipPath(String fromDir, String toPath) {

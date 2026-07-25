@@ -163,15 +163,12 @@ export class FillPanelComponent {
   });
   readonly disabledToolIds = computed(() => {
     const disabled: string[] = [];
-    if (this.isScratchSession()) {
+    if (this.isScratchSession() && this.mode() === "transparent") {
       disabled.push("none");
       disabled.push("same-image");
     }
     if (!this.eyedropperEnabled()) {
       disabled.push("picker");
-    }
-    if (!this.hasBackgroundCatalog()) {
-      disabled.push("backgrounds");
     }
     return disabled;
   });
@@ -249,13 +246,19 @@ export class FillPanelComponent {
 
   private buildBackgroundItems(items: BackgroundCatalogItem[]): ScrollableBarItem[] {
     const svgMap = this.backgroundSvgMap();
-    return items.map((item) => ({
-      id: item.id,
-      label: item.label,
+    return items.map((item) => {
+      const labelKey =
+        item.labelKey ?? `EDITOR.BACKGROUNDS.${this.toTranslationId(item.id)}`;
+      const translatedLabel = this.translate.instant(labelKey);
+
+      return {
+        id: item.id,
+        label: translatedLabel === labelKey ? item.label : translatedLabel,
       type: "default",
       svg: svgMap[item.id],
       icon: svgMap[item.id] ? undefined : "image-outline",
-    }));
+      };
+    });
   }
 
   onSelectTool(id: string): void {
@@ -265,7 +268,7 @@ export class FillPanelComponent {
         this.activeView.set("root");
         return;
       case "same-image":
-        if (this.isScratchSession()) return;
+        if (this.isScratchSession() && this.mode() === "transparent") return;
         this.setBlur();
         this.activeView.set("blur");
         return;
@@ -280,7 +283,6 @@ export class FillPanelComponent {
         this.activeView.set("colors");
         return;
       case "backgrounds":
-        if (!this.hasBackgroundCatalog()) return;
         this.activeView.set("backgrounds");
         return;
       default:
@@ -422,6 +424,10 @@ export class FillPanelComponent {
     if (!trimmed) return "#000000";
     if (!trimmed.startsWith("#")) return `#${trimmed}`;
     return trimmed.toLowerCase();
+  }
+
+  private toTranslationId(id: string): string {
+    return id.replace(/-/g, "_").toUpperCase();
   }
 
   private normalizeBackgroundScale(value: number | undefined): number {

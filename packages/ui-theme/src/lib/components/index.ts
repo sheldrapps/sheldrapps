@@ -18,3 +18,4 @@ export * from "./file-picker-panel/file-picker-panel.component";
 export * from "./triple-button/triple-button.component";
 export * from "./workflow-stepper/workflow-stepper.component";
 export * from "./workflow-stepper/workflow-stepper.types";
+export * from "./workflow-navigation";

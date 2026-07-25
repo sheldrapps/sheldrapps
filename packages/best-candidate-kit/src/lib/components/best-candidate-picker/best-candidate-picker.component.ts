@@ -32,6 +32,7 @@ export class BestCandidatePickerComponent {
   @Input() showHeader = true;
   @Input() compact = false;
   @Input() enableLongPressPreview = true;
+  @Input() showCompactCopy = true;
 
   @Output() candidateSelected = new EventEmitter<BestCandidateImage>();
   @Output() candidatePreviewRequested = new EventEmitter<BestCandidateImage>();

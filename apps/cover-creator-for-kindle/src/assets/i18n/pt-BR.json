@@ -67,7 +67,7 @@
     "LOADING_IMAGE": "Carregando imagem…",
     "OPENING_EDITOR": "Abrindo editor…",
     "SAVING": "Salvando capa…",
-    "SAVE_ACTION": "Salvar",
+    "SAVE_ACTION": "Renomear",
     "SAVED_OK": "Capa salva",
     "SAVE_RENAME_TITLE": "Salvar capa",
     "SAVE_RENAME_MESSAGE": "Digite um nome para a capa",
@@ -80,11 +80,11 @@
     "SELECT_GROUP_PLACEHOLDER": "Selecione um grupo",
     "SELECT_GENERATION_LABEL": "Modelo",
     "SELECT_GENERATION_PLACEHOLDER": "Selecione um modelo",
-    "SELECT_MODEL_LABEL": "Modelo do dispositivo",
+    "SELECT_MODEL_LABEL": "Qual dispositivo você tem?",
     "SELECT_MODEL_PLACEHOLDER": "Selecione seu dispositivo",
     "TAP_TO_CHANGE": "Toque para alterar/redefinir",
     "TITLE": "Criar capa",
-    "COVER_SOURCE_TITLE": "Origem da capa",
+    "COVER_SOURCE_TITLE": "A partir de onde criar a capa?",
     "MODEL_PICKER": {
       "TITLE": "Escolha seu Kindle"
     },
@@ -93,7 +93,18 @@
     "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Ativar \"Tela e brilho > Mostrar capas na tela de bloqueio\" no Kindle.",
     "ARIA_START_SCRATCH": "Comecar do zero",
     "SOURCE_IMAGE": "Imagem",
-    "SOURCE_SCRATCH": "Do zero"
+    "SOURCE_SCRATCH": "Do zero",
+    "STEPPER": {
+      "DEVICE": "Dispositivo",
+      "SOURCE": "Fonte",
+      "ADJUST": "Ajustar",
+      "CREATE": "Criar"
+    },
+    "WORKFLOW": {
+      "PREVIOUS": "Anterior",
+      "CONTINUE": "Continuar",
+      "ADJUST": "Ajustar capa"
+    }
   },
   "COVERS": {
     "DELETED": "Capa excluída",
@@ -132,10 +143,10 @@
     "STEP_1": "Selecione uma imagem para a sua capa",
     "STEP_2": "Ajuste a imagem no editor e toque em Concluir para aplicá-la",
     "STEP_3": "Crie a capa depois de aplicar o ajuste",
-    "STEP_4": "Salve ou compartilhe a capa",
-    "STEP_4_DESC": "Quando estiver pronta, você pode salvá-la no dispositivo ou compartilhá-la com o app Kindle para um fluxo mais simples.",
+    "STEP_4": "Crie a capa e, se quiser, renomeie ou compartilhe",
+    "STEP_4_DESC": "Ao criá-la, ela é salva automaticamente. Você pode renomeá-la ou compartilhá-la com o app Kindle para sincronizá-la automaticamente com seu dispositivo.",
     "STEP_5": "Enviar pela web (Send to Kindle)",
-    "STEP_5_DESC": "Você também pode enviá-la pelo navegador usando a ferramenta web Send to Kindle.",
+    "STEP_5_DESC": "Você também pode enviá-la pelo navegador usando o Send to Kindle. É um método alternativo ao compartilhamento pelo app Kindle.",
     "TIP": "Para melhores resultados, use imagens em alta resolução e verifique se os anúncios estão desativados no seu Kindle.",
     "TITLE": "Instruções"
   },

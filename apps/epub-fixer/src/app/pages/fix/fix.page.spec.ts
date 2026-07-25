@@ -63,11 +63,27 @@ describe('FixPage', () => {
       success: true,
       repairedIssues: ['SPINE_EMPTY'],
     });
-    const diagnose = jasmine.createSpy('diagnose').and.resolveTo({
-      sessionId: 'session-1',
-      status: 'valid' as const,
-      issues: [],
-    });
+    const diagnose = jasmine
+      .createSpy('diagnose')
+      .and.returnValues(
+        Promise.resolve({
+          sessionId: 'session-1',
+          status: 'repairable' as const,
+          issues: [
+            {
+              code: 'LINK_FRAGMENT_MISSING' as const,
+              severity: 'warning' as const,
+              fixable: true,
+              messageKey: 'FIX.ISSUE_LINK_FRAGMENT_MISSING',
+            },
+          ],
+        }),
+        Promise.resolve({
+          sessionId: 'session-1',
+          status: 'valid' as const,
+          issues: [],
+        }),
+      );
     const exportCurrentEpub = jasmine.createSpy('exportCurrentEpub').and.resolveTo(
       {
         outputUri: 'blob:fixed',
@@ -137,9 +153,9 @@ describe('FixPage', () => {
     await FixPage.prototype.runRepair.call(ctx);
 
     expect(showRewarded).toHaveBeenCalled();
-    expect(repair).toHaveBeenCalled();
-    expect(diagnose).toHaveBeenCalled();
-    expect(toastCreate).toHaveBeenCalled();
+    expect(repair).toHaveBeenCalledTimes(2);
+    expect(diagnose).toHaveBeenCalledTimes(2);
+    expect(toastCreate).not.toHaveBeenCalled();
     expect(exportCurrentEpub).toHaveBeenCalledWith('book_fixed.epub');
     expect(saveExportedEpub).toHaveBeenCalledWith(
       'blob:fixed',

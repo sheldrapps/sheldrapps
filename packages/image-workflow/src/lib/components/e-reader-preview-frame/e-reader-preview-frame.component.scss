@@ -76,6 +76,7 @@
   display: grid;
   place-items: center;
   overflow: visible;
+  position: relative;
 }
 
 .ereader-preview__device {
@@ -159,6 +160,66 @@
   background: transparent;
   /* Keep the cover above metallic sweeps: anti-glare e-reader behavior. */
   z-index: 4;
+}
+
+.ereader-preview__compare-before {
+  position: absolute;
+  inset: 0;
+  width: var(--compare-reveal);
+  overflow: hidden;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.ereader-preview__compare-before .ereader-preview__cover {
+  width: var(--screen-width);
+  height: var(--screen-height);
+  max-width: none;
+}
+
+.ereader-preview__compare-slider {
+  position: absolute;
+  z-index: 20;
+  width: var(--screen-width);
+  height: var(--app-touch-target);
+  top: 50%;
+  left: var(--frame-left);
+  transform: translateY(-50%);
+  opacity: 0;
+  cursor: ew-resize;
+}
+
+.ereader-preview__compare-divider {
+  position: absolute;
+  z-index: 19;
+  top: 0;
+  bottom: 0;
+  left: calc(
+    var(--frame-left) + (var(--screen-width) * var(--compare-reveal-ratio))
+  );
+  width: 0;
+  pointer-events: none;
+  border-left: 2px solid var(--ion-color-primary);
+}
+
+.ereader-preview__compare-handle {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%);
+  width: var(--app-touch-target);
+  height: var(--app-touch-target);
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--ion-color-primary-contrast, #fff);
+  border-radius: 50%;
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast, #fff);
+  box-shadow: var(--app-shadow-md, 0 2px 8px rgba(0, 0, 0, 0.24));
+}
+
+.ereader-preview__compare-handle ion-icon {
+  font-size: var(--app-icon-sm);
 }
 
 .ereader-preview__screen--letterbox {
@@ -278,16 +339,13 @@
 }
 
 .ereader-preview__controls {
-  position: sticky;
-  bottom: var(--app-space-4);
-  z-index: 10;
+  position: static;
   width: min(420px, calc(100% - (var(--app-space-4) * 2)));
   max-width: calc(100% - (var(--app-space-4) * 2));
   display: grid;
   gap: var(--app-space-3);
-  max-height: min(74vh, 560px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  max-height: none;
+  overflow: visible;
   padding: var(--app-space-2);
   border-radius: var(--app-radius-lg);
   background: rgba(var(--ion-background-color-rgb), 0.9);
@@ -333,10 +391,10 @@
   background: var(--app-surface);
   padding: var(--app-space-3);
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
   gap: var(--app-space-3);
-  max-height: min(62vh, 460px);
-  overflow: hidden;
+  max-height: none;
+  overflow: visible;
 }
 
 .ereader-preview__color-group {
@@ -353,9 +411,7 @@
 .ereader-preview__color-options {
   display: grid;
   gap: var(--app-space-2);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  min-height: 0;
+  overflow: visible;
   padding-right: var(--app-space-1);
 }
 

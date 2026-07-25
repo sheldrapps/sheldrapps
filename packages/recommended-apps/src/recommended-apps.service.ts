@@ -41,8 +41,16 @@ export class RecommendedAppsService {
   }
 
   async getRecommendedApps(): Promise<RecommendedApp[]> {
-    const currentPackageName = await this.getCurrentPackage();
-    return filterRecommended(RECOMMENDED_APPS_REGISTRY, currentPackageName);
+    try {
+      const currentPackageName = await this.getCurrentPackage();
+      return filterRecommended(RECOMMENDED_APPS_REGISTRY, currentPackageName);
+    } catch (error) {
+      console.warn('[RECOMMENDED_APPS] package resolution failed', error);
+      const injectedPackage = this.normalizePackageName(
+        this.injectedCurrentPackageName
+      );
+      return filterRecommended(RECOMMENDED_APPS_REGISTRY, injectedPackage);
+    }
   }
 
   async hasRecommendedApps(): Promise<boolean> {

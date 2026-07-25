@@ -1,8 +1,7 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">EPUB Fixer</string>
     <string name="title_activity_main">EPUB Fixer</string>
-
     <string name="app_name_en_us">EPUB Fixer</string>
     <string name="app_name_es_mx">Reparar EPUB</string>
     <string name="app_name_de_de">EPUB reparieren</string>
@@ -16,7 +15,6 @@
     <string name="app_name_ko_kr">EPUB 복구</string>
     <string name="app_name_zh_cn">EPUB修复</string>
     <string name="app_name_ru_ru">Исправить EPUB</string>
-
     <string name="package_name">com.sheldrapps.epubfixer</string>
     <string name="custom_url_scheme">com.sheldrapps.epubfixer</string>
 </resources>

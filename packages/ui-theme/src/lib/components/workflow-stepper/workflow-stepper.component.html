@@ -1,4 +1,4 @@
-<nav class="workflow-stepper">
+<nav class="workflow-stepper" [style.--workflow-step-count]="steps().length">
   <ol class="workflow-stepper__list">
     @for (step of steps(); track step.id; let index = $index) {
       <li
@@ -8,6 +8,14 @@
         [class.is-pending]="getStatus(index) === 'pending'"
         [attr.aria-current]="getStatus(index) === 'active' ? 'step' : null"
       >
+        <button
+          type="button"
+          class="workflow-stepper__trigger"
+          [disabled]="
+            index > currentStep() && !selectableSteps().includes(index)
+          "
+          (click)="selectStep(index)"
+        >
         <div class="workflow-stepper__indicator-row">
           @if (index > 0) {
             <span
@@ -35,6 +43,7 @@
         </div>
 
         <span class="workflow-stepper__label">{{ step.label }}</span>
+        </button>
       </li>
     }
   </ol>

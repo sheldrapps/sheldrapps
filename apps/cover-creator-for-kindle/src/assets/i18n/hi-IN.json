@@ -67,7 +67,7 @@
     "LOADING_IMAGE": "छवि लोड हो रही है…",
     "OPENING_EDITOR": "संपादक खुल रहा है…",
     "SAVING": "कवर सहेजा जा रहा है…",
-    "SAVE_ACTION": "सहेजें",
+    "SAVE_ACTION": "नाम बदलें",
     "SAVED_OK": "कवर सहेजा गया",
     "SAVE_RENAME_TITLE": "कवर सहेजें",
     "SAVE_RENAME_MESSAGE": "कवर के लिए एक नाम दर्ज करें",
@@ -80,11 +80,11 @@
     "SELECT_GROUP_PLACEHOLDER": "समूह चुनें",
     "SELECT_GENERATION_LABEL": "मॉडल",
     "SELECT_GENERATION_PLACEHOLDER": "मॉडल चुनें",
-    "SELECT_MODEL_LABEL": "डिवाइस मॉडल",
+    "SELECT_MODEL_LABEL": "आपके पास कौन सा डिवाइस है?",
     "SELECT_MODEL_PLACEHOLDER": "अपना डिवाइस चुनें",
     "TAP_TO_CHANGE": "बदलने/रीसेट करने के लिए टैप करें",
     "TITLE": "कवर बनाएँ",
-    "COVER_SOURCE_TITLE": "कवर स्रोत",
+    "COVER_SOURCE_TITLE": "कवर किससे बनाना है?",
     "MODEL_PICKER": {
       "TITLE": "अपना Kindle चुनें"
     },
@@ -93,7 +93,18 @@
     "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Kindle पर \"स्क्रीन और चमक > लॉक स्क्रीन पर कवर दिखाएँ\" सक्षम करें।",
     "ARIA_START_SCRATCH": "Shuru se shuru karein",
     "SOURCE_IMAGE": "Chhavi",
-    "SOURCE_SCRATCH": "Shuru se"
+    "SOURCE_SCRATCH": "Shuru se",
+    "STEPPER": {
+      "DEVICE": "डिवाइस",
+      "SOURCE": "स्रोत",
+      "ADJUST": "समायोजित करें",
+      "CREATE": "बनाएँ"
+    },
+    "WORKFLOW": {
+      "PREVIOUS": "पिछला",
+      "CONTINUE": "जारी रखें",
+      "ADJUST": "कवर समायोजित करें"
+    }
   },
   "COVERS": {
     "DELETED": "कवर हटाया गया",
@@ -132,10 +143,10 @@
     "STEP_1": "अपने कवर के लिए एक छवि चुनें",
     "STEP_2": "संपादक में छवि समायोजित करें और लागू करने के लिए हो गया टैप करें",
     "STEP_3": "समायोजन लागू होने के बाद कवर बनाएँ",
-    "STEP_4": "कवर सहेजें या साझा करें",
-    "STEP_4_DESC": "तैयार होने पर, इसे अपने डिवाइस पर सहेजें या सुचारू परिवर्तन के लिए Kindle ऐप से साझा करें।",
+    "STEP_4": "कवर बनाएं और चाहें तो उसका नाम बदलें या साझा करें",
+    "STEP_4_DESC": "बनाते ही यह अपने आप सहेजा जाता है। आप इसका नाम बदल सकते हैं या Kindle ऐप से साझा कर सकते हैं, जिससे यह आपके डिवाइस के साथ अपने आप सिंक हो जाएगा।",
     "STEP_5": "वेब के ज़रिए भेजें (Send to Kindle)",
-    "STEP_5_DESC": "आप इसे ब्राउज़र से Send to Kindle वेब टूल का उपयोग करके भी भेज सकते हैं।",
+    "STEP_5_DESC": "आप इसे ब्राउज़र से Send to Kindle द्वारा भी भेज सकते हैं। यह Kindle ऐप से साझा करने का वैकल्पिक तरीका है।",
     "TIP": "सर्वोत्तम परिणामों के लिए, उच्च-रिज़ॉल्यूशन छवियाँ उपयोग करें और सुनिश्चित करें कि आपके Kindle पर विज्ञापन अक्षम हैं।",
     "TITLE": "निर्देश"
   },

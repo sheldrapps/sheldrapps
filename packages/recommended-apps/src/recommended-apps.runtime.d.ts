@@ -24,6 +24,7 @@ export declare function buildHomeHeaderItems(
     guideLabel?: string;
     recommendedLabel?: string;
     infoLabel?: string;
+    includeGuide?: boolean;
   }
 ): Array<{ id: string; label: string; icon: string }>;
 export declare function handleHomeHeaderAction(

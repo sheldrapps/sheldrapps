@@ -67,7 +67,7 @@
     "LOADING_IMAGE": "画像を読み込み中…",
     "OPENING_EDITOR": "エディタを開いています…",
     "SAVING": "表紙を保存中…",
-    "SAVE_ACTION": "保存",
+    "SAVE_ACTION": "名前を変更",
     "SAVED_OK": "表紙を保存しました",
     "SAVE_RENAME_TITLE": "表紙を保存",
     "SAVE_RENAME_MESSAGE": "表紙の名前を入力してください",
@@ -80,11 +80,11 @@
     "SELECT_GROUP_PLACEHOLDER": "グループを選択",
     "SELECT_GENERATION_LABEL": "ãƒ¢ãƒ‡ãƒ«",
     "SELECT_GENERATION_PLACEHOLDER": "モデルを選択",
-    "SELECT_MODEL_LABEL": "デバイスモデル",
+    "SELECT_MODEL_LABEL": "お使いのデバイスは？",
     "SELECT_MODEL_PLACEHOLDER": "デバイスを選択",
     "TAP_TO_CHANGE": "タップして変更/リセット",
     "TITLE": "表紙を作成",
-    "COVER_SOURCE_TITLE": "カバーの元",
+    "COVER_SOURCE_TITLE": "何から表紙を作成しますか？",
     "MODEL_PICKER": {
       "TITLE": "Kindleを選択"
     },
@@ -93,7 +93,18 @@
     "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Kindleで「画面と明るさ > ロック画面に表紙を表示」を有効にしてください。",
     "ARIA_START_SCRATCH": "Zero kara kaishi",
     "SOURCE_IMAGE": "Gazou",
-    "SOURCE_SCRATCH": "Zero kara"
+    "SOURCE_SCRATCH": "Zero kara",
+    "STEPPER": {
+      "DEVICE": "デバイス",
+      "SOURCE": "ソース",
+      "ADJUST": "調整",
+      "CREATE": "作成"
+    },
+    "WORKFLOW": {
+      "PREVIOUS": "戻る",
+      "CONTINUE": "続ける",
+      "ADJUST": "表紙を調整"
+    }
   },
   "COVERS": {
     "DELETED": "表紙を削除しました",
@@ -132,10 +143,10 @@
     "STEP_1": "表紙用の画像を選択します",
     "STEP_2": "エディタで画像を調整し、完了をタップして適用します",
     "STEP_3": "調整が適用された後に表紙を作成します",
-    "STEP_4": "表紙を保存または共有します",
-    "STEP_4_DESC": "準備ができたら、デバイスに保存するか、よりスムーズな操作のためにKindleアプリで共有できます。",
+    "STEP_4": "表紙を作成し、必要に応じて名前を変更または共有します",
+    "STEP_4_DESC": "作成すると自動的に保存されます。名前を変更したり、Kindleアプリで共有してデバイスと自動同期したりできます。",
     "STEP_5": "ウェブ経由で送信（Send to Kindle）",
-    "STEP_5_DESC": "ブラウザからSend to KindleウェブツールでEPUBを送信することもできます。",
+    "STEP_5_DESC": "ブラウザのSend to Kindleから送信することもできます。Kindleアプリで共有する代替方法です。",
     "TIP": "最良の結果を得るには、高解像度の画像を使用し、Kindleで広告を無効にしてください。",
     "TITLE": "使い方"
   },

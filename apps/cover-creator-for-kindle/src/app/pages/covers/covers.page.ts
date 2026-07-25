@@ -15,7 +15,6 @@ import {
   IonHeader,
   IonTitle,
   IonToolbar,
-  IonPopover,
   AlertController,
   ToastController,
   NavController,
@@ -33,7 +32,6 @@ import {
   trashOutline,
   closeCircleOutline,
   alertCircleOutline,
-  helpCircleOutline,
 } from 'ionicons/icons';
 import {
   FileService,
@@ -46,11 +44,11 @@ import {
   CoverListActionEvent,
   CoverListContentComponent,
   CoverListItem,
-  CoverPreviewModalComponent,
   PreviewAction,
   PreviewActionClickEvent,
   PreviewMetadata,
 } from '@sheldrapps/covers-list-kit';
+import { PreviewEditingPageService } from '@sheldrapps/image-workflow';
 import { normalizeFilenameKey } from '@sheldrapps/file-kit';
 
 type UiCoverItem = {
@@ -69,13 +67,12 @@ type UiCoverItem = {
     IonToolbar,
     IonTitle,
     IonContent,
-    IonPopover,
-    CoverPreviewModalComponent,
   ],
   templateUrl: './covers.page.html',
   styleUrls: ['./covers.page.scss'],
 })
 export class CoversPage implements OnInit, OnDestroy {
+  private previewPage = inject(PreviewEditingPageService);
   @ViewChild(IonContent) content!: IonContent;
   @ViewChild(CoverListContentComponent) listContent?: CoverListContentComponent;
   loading = true;
@@ -146,7 +143,6 @@ export class CoversPage implements OnInit, OnDestroy {
       folderOpenOutline,
       shareOutline,
       trashOutline,
-      helpCircleOutline,
       alertCircleOutline,
     });
   }
@@ -437,15 +433,6 @@ export class CoversPage implements OnInit, OnDestroy {
     const fallbackThumb =
       this.items.find((item) => item.filename === filename)?.thumbDataUrl ?? null;
 
-    this.previewOpen = true;
-    this.previewFilename = filename;
-    this.previewDataUrl = fallbackThumb;
-    this.previewIsDithered = false;
-    this.previewLoading = true;
-    this.previewGettingCover = false;
-    this.previewFileSizeLabel = null;
-    void this.loadPreviewFileSizeLabel(filename);
-
     try {
       const hasCoverExport = await this.files.hasCoverExportForFilename(filename);
       this.previewGettingCover = !hasCoverExport;
@@ -454,15 +441,47 @@ export class CoversPage implements OnInit, OnDestroy {
         await this.files.resolveCoverPreviewAsset(filename, {
           allowNativeExtract: true,
         });
-      this.previewDataUrl = preview.src || fallbackThumb;
-      this.previewIsDithered = preview.isDithered;
+      const imageSrc = preview.src || fallbackThumb;
+      if (!imageSrc) return;
+      const dimensions = await this.resolvePreviewDimensions(imageSrc);
+      const fileSizeLabel = await this.resolvePreviewFileSizeLabel(filename);
+      this.previewPage.open({
+        imageSrc,
+        imageWidth: dimensions.width,
+        imageHeight: dimensions.height,
+        isDithered: preview.isDithered,
+        metadata: { name: this.displayFilename(filename), size: fileSizeLabel },
+        titleKey: 'IMAGE_WORKFLOW.PREVIEW_TITLE',
+        returnUrl: '/tabs/covers',
+        footerActions: [
+          { id: 'open', labelKey: 'COVERS.ACTIONS.OPEN', icon: 'open-outline' },
+          { id: 'project', labelKey: 'COVERS.ACTIONS.EDIT_PROJECT', icon: 'folder-open-outline', hidden: !this.hasProjectForFilename(filename) },
+          { id: 'share', labelKey: 'COMMON.SHARE', icon: 'share-outline' },
+          { id: 'delete', labelKey: 'COMMON.DELETE', icon: 'trash-outline' },
+        ],
+        actionHandler: (actionId) => this.onPreviewAction({ actionId, region: 'footer' }),
+      });
+      this.previewFilename = filename;
+      await this.router.navigateByUrl('/tabs/preview-editing');
     } catch {
-      this.previewDataUrl = this.previewDataUrl ?? fallbackThumb;
       this.pageErrorKey = 'COVERS.ERROR.PREVIEW';
-    } finally {
-      this.previewLoading = false;
-      this.previewGettingCover = false;
-      await this.flushUi();
+    }
+  }
+
+  private async resolvePreviewDimensions(src: string): Promise<{ width: number; height: number }> {
+    return new Promise((resolve) => {
+      const image = new Image();
+      image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
+      image.onerror = () => resolve({ width: 3, height: 4 });
+      image.src = src;
+    });
+  }
+
+  private async resolvePreviewFileSizeLabel(filename: string): Promise<string | null> {
+    try {
+      return this.formatFileSizeLabel(await this.files.getCoverFileSizeBytes(filename));
+    } catch {
+      return null;
     }
   }
 
@@ -641,11 +660,14 @@ export class CoversPage implements OnInit, OnDestroy {
 
     try {
       await this.files.deleteCoverByFilename(filename);
-      this.items = this.items.filter((x) => x.filename !== filename);
+      this.runInZone(() => {
+        this.items = this.items.filter((x) => x.filename !== filename);
+      });
       if (opts?.markLocalDelete) {
         this.localDeletedFilenames.add(filename);
       }
       this.coversEvents.emit({ type: 'deleted', filename });
+      await this.flushUi();
       await this.showToast('COVERS.DELETED');
     } catch {
       this.pageErrorKey = 'COVERS.ERROR.DELETE';

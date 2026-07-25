@@ -79,15 +79,16 @@
     "SETTINGS": "設定"
   },
   "HOME": {
+    "STEPPER": { "MERGE_SPLIT": "結合 / 分割", "SORT": "並べ替え", "TOC": "目次", "COVER": "表紙", "ADJUST": "調整", "JOIN": "結合" },
     "WHAT_DO_YOU_WANT_TO_DO": "何をしますか？",
     "MERGE": "結合",
     "SPLIT": "分割",
     "MERGING_TITLE": "結合中",
     "SPLITTING_TITLE": "分割中",
-    "EPUB_FILES_TITLE": "EPUBファイル",
+    "EPUB_FILES_TITLE": "ファイルはいくつ？",
     "EPUB_FILE_TITLE": "EPUBファイル",
     "SELECT_EPUB_FILES_PLACEHOLDER": "EPUBファイルを選択",
-    "ADD_ANOTHER_EPUB_FILE": "別のEPUBファイルを追加",
+    "ADD_ANOTHER_EPUB_FILE": "さらに追加？",
     "FILES_SELECTED": "{{count}} 件のファイルを準備完了",
     "ARIA_ADD_EPUB_FILE": "別のEPUBファイルを追加",
     "ARIA_SELECT_EPUB_FILES": "EPUBファイルを選択",
@@ -98,10 +99,11 @@
     "INPUT_ERROR_SIZE": "選択したEPUBファイルが大きすぎます。",
     "INPUT_ERROR_STORAGE": "このEPUBファイルを準備するための保存容量が不足しています。",
     "INPUT_ERROR_CORRUPT": "このEPUBファイルを準備できませんでした。別のファイルをお試しください。",
-    "EXPORT_ORDER_TITLE": "エクスポート順",
-    "COVER_SELECTOR_TITLE": "カバー選択",
+    "EXPORT_ORDER_TITLE": "どの順番にしますか？",
+    "COVER_SELECTOR_TITLE": "何から表紙を作成しますか？",
     "BEST_CANDIDATES_TITLE": "EPUB からのおすすめ",
-    "ADJUST_COVER": "表紙を調整"
+    "ADJUST_COVER": "表紙を調整",
+    "PREVIEW_TITLE": "プレビュー"
   },
   "TOC_OPTIONS": {
     "TITLE": "目次をどうしますか？",

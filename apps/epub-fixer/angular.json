@@ -36,6 +36,11 @@
               },
               {
                 "glob": "icon.png",
+                "input": "resources",
+                "output": "assets/apps/epub-fixer"
+              },
+              {
+                "glob": "icon.png",
                 "input": "apps/cover-creator-for-kindle/resources",
                 "output": "assets/apps/ccfk"
               },
@@ -130,6 +135,11 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "icon.png",
+                "input": "resources",
+                "output": "assets/apps/epub-fixer"
               },
               {
                 "glob": "icon.png",

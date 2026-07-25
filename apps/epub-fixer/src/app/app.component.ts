@@ -3,7 +3,11 @@ import { NavigationStart, Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { TranslateService } from '@ngx-translate/core';
-import { detectSupportedLocale, LanguageService } from '@sheldrapps/i18n-kit';
+import {
+  detectSupportedLocale,
+  LanguageService,
+  syncLauncherAlias,
+} from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
 import { Subscription, filter } from 'rxjs';
@@ -58,6 +62,7 @@ export class AppComponent implements OnDestroy {
     }
 
     await this.lang.set(language);
+    void syncLauncherAlias(language);
 
     this.setDocumentTitle();
     this.langSub = this.translate.onLangChange.subscribe(() => {

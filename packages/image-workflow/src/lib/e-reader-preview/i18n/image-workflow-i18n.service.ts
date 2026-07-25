@@ -33,7 +33,7 @@ export class ImageWorkflowI18nService {
   }
 
   private register(lang: string | null | undefined): void {
-    if (!lang || this.registered.has(lang)) {
+    if (!lang) {
       return;
     }
 
@@ -50,6 +50,11 @@ export class ImageWorkflowI18nService {
     if (page) {
       this.translate.setTranslation(lang, page, true);
     }
+    this.translate.setTranslation(
+      lang,
+      { 'IMAGE_WORKFLOW.PREVIEW_TITLE': 'Preview' },
+      true,
+    );
     this.registered.add(lang);
   }
 }

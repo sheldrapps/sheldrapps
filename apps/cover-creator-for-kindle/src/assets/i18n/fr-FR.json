@@ -67,7 +67,7 @@
     "LOADING_IMAGE": "Chargement de l’image…",
     "OPENING_EDITOR": "Ouverture de l’éditeur…",
     "SAVING": "Enregistrement de la couverture…",
-    "SAVE_ACTION": "Enregistrer",
+    "SAVE_ACTION": "Renommer",
     "SAVED_OK": "Couverture enregistrée",
     "SAVE_RENAME_TITLE": "Enregistrer la couverture",
     "SAVE_RENAME_MESSAGE": "Entrez un nom pour la couverture",
@@ -80,11 +80,11 @@
     "SELECT_GROUP_PLACEHOLDER": "Sélectionner un groupe",
     "SELECT_GENERATION_LABEL": "Modèle",
     "SELECT_GENERATION_PLACEHOLDER": "Sélectionner un modèle",
-    "SELECT_MODEL_LABEL": "Modèle de l’appareil",
+    "SELECT_MODEL_LABEL": "Quel appareil avez-vous ?",
     "SELECT_MODEL_PLACEHOLDER": "Sélectionnez votre appareil",
     "TAP_TO_CHANGE": "Touchez pour changer/réinitialiser",
     "TITLE": "Créer une couverture",
-    "COVER_SOURCE_TITLE": "Source de couverture",
+    "COVER_SOURCE_TITLE": "À partir de quoi créer la couverture ?",
     "MODEL_PICKER": {
       "TITLE": "Choisissez votre Kindle"
     },
@@ -93,7 +93,18 @@
     "INFO_REQUIREMENT_ENABLE_COVER_DISPLAY": "Activer \"Ecran et luminosite > Afficher les couvertures sur ecran de verrouillage\" sur Kindle.",
     "ARIA_START_SCRATCH": "Commencer de zero",
     "SOURCE_IMAGE": "Image",
-    "SOURCE_SCRATCH": "Depuis zero"
+    "SOURCE_SCRATCH": "Depuis zero",
+    "STEPPER": {
+      "DEVICE": "Appareil",
+      "SOURCE": "Source",
+      "ADJUST": "Ajuster",
+      "CREATE": "Créer"
+    },
+    "WORKFLOW": {
+      "PREVIOUS": "Précédent",
+      "CONTINUE": "Continuer",
+      "ADJUST": "Ajuster la couverture"
+    }
   },
   "COVERS": {
     "DELETED": "Couverture supprimée",
@@ -132,10 +143,10 @@
     "STEP_1": "Sélectionnez une image pour votre couverture",
     "STEP_2": "Ajustez l’image dans l’éditeur puis touchez Terminé pour l’appliquer",
     "STEP_3": "Créez la couverture après avoir appliqué l’ajustement",
-    "STEP_4": "Enregistrez ou partagez la couverture",
-    "STEP_4_DESC": "Une fois prête, vous pouvez l’enregistrer sur votre appareil ou la partager vers l’application Kindle pour un flux plus simple.",
+    "STEP_4": "Créez la couverture et renommez-la ou partagez-la si vous le souhaitez",
+    "STEP_4_DESC": "Sa création l’enregistre automatiquement. Vous pouvez la renommer ou la partager avec l’application Kindle pour la synchroniser automatiquement avec votre appareil.",
     "STEP_5": "Envoyer via le web (Send to Kindle)",
-    "STEP_5_DESC": "Vous pouvez aussi l’envoyer depuis votre navigateur avec l’outil web Send to Kindle.",
+    "STEP_5_DESC": "Vous pouvez aussi l’envoyer depuis votre navigateur avec Send to Kindle. C’est une méthode alternative au partage via l’application Kindle.",
     "TIP": "Pour un meilleur résultat, utilisez des images en haute résolution et assurez-vous que les publicités sont désactivées sur votre Kindle.",
     "TITLE": "Instructions"
   },

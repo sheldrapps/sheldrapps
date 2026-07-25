@@ -79,15 +79,16 @@
     "SETTINGS": "설정"
   },
   "HOME": {
+    "STEPPER": { "MERGE_SPLIT": "병합 / 분할", "SORT": "정렬", "TOC": "목차", "COVER": "표지", "ADJUST": "조정", "JOIN": "병합" },
     "WHAT_DO_YOU_WANT_TO_DO": "무엇을 하시겠어요?",
     "MERGE": "병합",
     "SPLIT": "분할",
     "MERGING_TITLE": "병합 중",
     "SPLITTING_TITLE": "분할 중",
-    "EPUB_FILES_TITLE": "EPUB 파일",
+    "EPUB_FILES_TITLE": "파일이 몇 개인가요?",
     "EPUB_FILE_TITLE": "EPUB 파일",
     "SELECT_EPUB_FILES_PLACEHOLDER": "EPUB 파일 선택",
-    "ADD_ANOTHER_EPUB_FILE": "다른 EPUB 파일 추가",
+    "ADD_ANOTHER_EPUB_FILE": "더 추가할까요?",
     "FILES_SELECTED": "{{count}}개 파일 준비됨",
     "ARIA_ADD_EPUB_FILE": "다른 EPUB 파일 추가",
     "ARIA_SELECT_EPUB_FILES": "EPUB 파일 선택",
@@ -98,10 +99,11 @@
     "INPUT_ERROR_SIZE": "선택한 EPUB 파일이 너무 큽니다.",
     "INPUT_ERROR_STORAGE": "이 EPUB 파일을 준비할 저장 공간이 부족합니다.",
     "INPUT_ERROR_CORRUPT": "이 EPUB 파일을 준비할 수 없습니다. 다른 파일을 시도하세요.",
-    "EXPORT_ORDER_TITLE": "내보내기 순서",
-    "COVER_SELECTOR_TITLE": "커버 선택기",
+    "EXPORT_ORDER_TITLE": "어떤 순서로 할까요?",
+    "COVER_SELECTOR_TITLE": "무엇으로 표지를 만들까요?",
     "BEST_CANDIDATES_TITLE": "내 EPUB에서 가져온 추천",
-    "ADJUST_COVER": "표지 조정"
+    "ADJUST_COVER": "표지 조정",
+    "PREVIEW_TITLE": "미리보기"
   },
   "TOC_OPTIONS": {
     "TITLE": "목차를 어떻게 할까요?",

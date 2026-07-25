@@ -21,15 +21,25 @@
 >
   @let suggestedStepId = getSuggestedStepId();
 
+  <sh-workflow-stepper
+    [steps]="workflowSteps"
+    [currentStep]="workflowStep"
+    [selectableSteps]="hasCompleteModelSelection ? [1] : []"
+    (stepSelected)="onWorkflowStepSelected($event)"
+  ></sh-workflow-stepper>
+
+  @if (workflowStep === 0) {
   <div
     class="field-section model-picker-section"
     data-tour-id="device-section"
   >
+    @if (workflowStep === 0) {
     <div class="field-title">
       {{ 'CREATE.SELECT_MODEL_LABEL' | translate }}
     </div>
+    }
 
-    @if (showModelSelectionSummary) {
+    @if (workflowStep > 0 && showModelSelectionSummary) {
     <div class="model-picker-card">
       <div class="model-picker-summary" aria-live="polite">
         <div class="model-picker-summary__text">
@@ -38,18 +48,9 @@
           <span>{{ selectedModelSummary }}</span>
         </div>
 
-        <ion-button
-          class="model-picker-summary__edit"
-          data-tour-id="device-edit"
-          fill="clear"
-          size="small"
-          (click)="openModelSelectionEditor()"
-        >
-          {{ 'COMMON.CHANGE' | translate }}
-        </ion-button>
       </div>
     </div>
-    } @else {
+    } @else if (workflowStep === 0) {
     <div class="model-picker-selectors">
       <div class="model-picker-selectors__row">
         <div class="model-picker-selectors__col model-picker-selectors__col--full">
@@ -129,7 +130,9 @@
     </div>
     }
   </div>
+  }
 
+  @if (workflowStep === 1) {
   <div
     class="field-section cover-source-section"
   >
@@ -148,7 +151,25 @@
       (scratchSelected)="onStartScratch()"
     ></sh-cover-source-actions>
   </div>
+  }
 
+  @if (workflowStep < 3) {
+  <div class="workflow-navigation-host">
+    <sh-workflow-navigation
+      [showPrevious]="workflowStep > 0"
+      [showNext]="workflowStep < 3"
+      [previousLabel]="workflowPreviousLabel"
+      [nextLabel]="workflowNextLabel"
+      [nextIcon]="workflowNextIcon"
+      [nextDisabled]="!canContinueWorkflow()"
+      [nextLoading]="isPickingImage || isExporting"
+      (previous)="onWorkflowPrevious()"
+      (next)="onWorkflowNext()"
+    ></sh-workflow-navigation>
+  </div>
+  }
+
+  @if (workflowStep >= 2) {
   <sh-cover-image-state
     [previewUrl]="previewUrl"
     [previewRevision]="previewRevision"
@@ -159,10 +180,11 @@
     [warningParams]="imageWarnParams"
     (previewRequested)="openPreview()"
   ></sh-cover-image-state>
+  }
 
-  @if (canEdit() || shouldShowExportOptions() || canGenerate()) {
+  @if (workflowStep >= 2 && (canEdit() || shouldShowExportOptions() || canGenerate())) {
   <div class="primary-actions">
-    @if (canEdit()) {
+    @if (workflowStep === 2 && canEdit()) {
     <ion-button
       expand="block"
       fill="outline"
@@ -204,7 +226,7 @@
   </div>
   }
 
-  @if (canSaveShare()) {
+  @if (workflowStep === 3 && canSaveShare()) {
   <div class="secondary-actions">
     <ion-grid class="app-action-grid" data-tour-id="result-actions">
       <ion-row>
@@ -235,7 +257,21 @@
   </div>
   }
 
-  @if (canShowRemoveAdsEntryPoint()) {
+  @if (workflowStep === 3) {
+  <div class="workflow-navigation-host">
+    <sh-workflow-navigation
+      [showPrevious]="true"
+      [showNext]="false"
+      [previousLabel]="workflowPreviousLabel"
+      [nextLabel]="workflowNextLabel"
+      [previousDisabled]="isExporting"
+      [nextLoading]="isExporting"
+      (previous)="onWorkflowPrevious()"
+    ></sh-workflow-navigation>
+  </div>
+  }
+
+  @if (workflowStep === 3 && canShowRemoveAdsEntryPoint()) {
   <div class="upgrade-actions">
     <ion-button
       expand="block"
@@ -319,8 +355,6 @@
       [label]="(loadingMessageKey || 'COMMON.LOADING') | translate"
     ></sh-loading-state>
   }
-
-  <app-tour-overlay></app-tour-overlay>
 
   <input
     #imageInput

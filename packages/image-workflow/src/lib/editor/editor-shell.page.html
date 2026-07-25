@@ -177,7 +177,7 @@
       [showGrabber]="ui.showGrabber()"
       [resetAriaLabel]="'EDITOR.SHELL.ARIA.RESET' | translate"
       [closeAriaLabel]="'EDITOR.SHELL.ARIA.CLOSE' | translate"
-      (close)="ui.closePanel()"
+      (close)="onPanelClose()"
       (reset)="onResetPanel()"
     >
       @if (ui.activePanelComponent()) {

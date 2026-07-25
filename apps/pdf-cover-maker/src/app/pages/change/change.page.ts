@@ -21,8 +21,6 @@ import {
   IonTitle,
   IonToolbar,
   IonButtons,
-  IonItem,
-  IonLabel,
   IonIcon,
   IonButton,
   IonModal,
@@ -93,10 +91,7 @@ import {
   type AdFailureReason,
 } from '@sheldrapps/ad-fallback-kit';
 import { RemoveAdsUpgradeModalComponent } from '@sheldrapps/ads-kit';
-import {
-  CoverPageMode,
-  CoverPageModeSwitchComponent,
-} from '@sheldrapps/cover-page-mode-kit';
+import { CoverPageMode } from '@sheldrapps/cover-page-mode-kit';
 import { PdfWorkingCopyService } from '../../services/pdf-working-copy.service';
 import {
   AdsService,
@@ -115,11 +110,15 @@ import { detectSupportedLocale } from '@sheldrapps/i18n-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
 import {
   LoadingStateComponent,
+  ActionCardComponent,
   SaveCoverModalComponent,
   ScrollableBarItem,
   ScrollableButtonBarComponent,
   TripleButtonComponent,
+  WorkflowNavigationComponent,
+  WorkflowStepperComponent,
 } from '@sheldrapps/ui-theme';
+import type { WorkflowStep } from '@sheldrapps/ui-theme';
 import {
   BestCandidateImage,
   BestCandidatePickerComponent,
@@ -134,7 +133,6 @@ import {
 } from '@sheldrapps/recommended-apps';
 import { PcmSettings } from '../../settings/pcm-settings.schema';
 import { PdfCandidateImageService } from '../../services/pdf-candidate-image.service';
-import { TourOverlayComponent } from '../../shared/tour/tour-overlay.component';
 import { TourService } from '../../shared/tour/tour.service';
 import {
   buildHomeTourDefinition,
@@ -174,8 +172,6 @@ type FrameDetectionResult = {
     IonTitle,
     IonToolbar,
     IonButtons,
-    IonItem,
-    IonLabel,
     IonIcon,
     IonButton,
     IonRow,
@@ -183,14 +179,15 @@ type FrameDetectionResult = {
     IonPopover,
     IonModal,
     LoadingStateComponent,
+    ActionCardComponent,
     CoverImageStateComponent,
     CoverSourceActionsComponent,
     ScrollableButtonBarComponent,
     TripleButtonComponent,
-    CoverPageModeSwitchComponent,
     RemoveAdsUpgradeModalComponent,
     BestCandidatePickerComponent,
-    TourOverlayComponent,
+    WorkflowNavigationComponent,
+    WorkflowStepperComponent,
   ],
 })
 export class ChangePage implements OnInit, OnDestroy {
@@ -272,6 +269,16 @@ export class ChangePage implements OnInit, OnDestroy {
   private nativeRewriteSessionDisabled = false;
   private nativeRewriteSdkBlocked = false;
   private candidateBlobUrls = new Set<string>();
+  private editorOpenedFromCurrentCover = false;
+
+  readonly workflowSteps: readonly WorkflowStep[] = [
+    { id: 'pdf', label: this.translate.instant('CHANGE.STEPPER.PDF') },
+    { id: 'cover-mode', label: this.translate.instant('CHANGE.STEPPER.PAGE_1') },
+    { id: 'cover', label: this.translate.instant('CHANGE.STEPPER.COVER') },
+    { id: 'adjust', label: this.translate.instant('CHANGE.STEPPER.ADJUST') },
+    { id: 'create', label: this.translate.instant('CHANGE.STEPPER.CREATE') },
+  ];
+  workflowStep = 0;
 
   @ViewChild(IonContent) content?: IonContent;
   @ViewChild('pdfInput') pdfInput!: ElementRef<HTMLInputElement>;
@@ -490,10 +497,71 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   get shouldShowBestCandidateAction(): boolean {
+    const hasCandidateState =
+      this.bestCandidateRequested || this.bestCandidates.length > 0;
     return (
-      !this.previewUrl &&
-      (this.showInvalidCoverFallback || this.bestCandidateRequested)
+      (this.workflowStep === 2 && hasCandidateState) ||
+      (!this.previewUrl && this.showInvalidCoverFallback)
     );
+  }
+
+  get workflowPreviousLabel(): string {
+    return this.translate.instant('CHANGE.WORKFLOW_PREVIOUS');
+  }
+
+  get workflowNextLabel(): string {
+    return this.translate.instant('CHANGE.WORKFLOW_CONTINUE');
+  }
+
+  canContinueWorkflow(): boolean {
+    switch (this.workflowStep) {
+      case 0:
+        return this.hasValidPdf();
+      case 1:
+        return !!this.coverPageMode;
+      case 2:
+        return this.canCrop();
+      case 3:
+        return this.canExport();
+      default:
+        return false;
+    }
+  }
+
+  async onWorkflowPrevious(): Promise<void> {
+    if (this.workflowStep <= 0 || this.isExporting) return;
+    this.workflowStep -= 1;
+  }
+
+  async onWorkflowNext(): Promise<void> {
+    if (!this.canContinueWorkflow()) return;
+    if (this.workflowStep === 3) {
+      await this.startCrop();
+      return;
+    }
+    this.workflowStep += 1;
+  }
+
+  async onWorkflowStepSelected(step: number): Promise<void> {
+    if (step < 0 || step > 4 || step === this.workflowStep) return;
+    if (step === 0 && this.hasValidPdf()) this.workflowStep = step;
+    if (step === 1 && this.hasValidPdf()) this.workflowStep = step;
+    if (step === 2 && this.hasValidPdf()) this.workflowStep = step;
+    if (step === 3 && this.canCrop()) {
+      this.workflowStep = step;
+      await this.startCrop();
+    }
+    if (step === 4 && this.canExport()) this.workflowStep = step;
+  }
+
+  hasCurrentPdfCover(): boolean {
+    return !!this.originalPdfPreviewUrl && this.canCrop();
+  }
+
+  async onCurrentCoverSelected(): Promise<void> {
+    if (!this.hasCurrentPdfCover()) return;
+    this.editorOpenedFromCurrentCover = true;
+    await this.openEditor('image');
   }
 
   getSuggestedStepId():
@@ -1071,6 +1139,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private resetWorkflow() {
+    this.workflowStep = 0;
     this.selectedFormatId = this.persistedCropTargetId;
     this.isFrameDetected = false;
     this.isDetectingFrame = false;
@@ -1165,13 +1234,14 @@ export class ChangePage implements OnInit, OnDestroy {
     const file = input.files?.[0];
     if (!file) return;
 
-    this.resetBestCandidateState(true);
     this.setBusy('pick', 'CHANGE.LOADING_IMAGE');
 
     try {
       const loaded = await this.applyImageSource(file, true);
       if (loaded) {
+        this.editorOpenedFromCurrentCover = false;
         await this.homeTour.completeInteraction('cover-image-selected');
+        await this.openEditor('image');
       }
     } finally {
       this.setBusy('none');
@@ -1261,8 +1331,7 @@ export class ChangePage implements OnInit, OnDestroy {
     const file = this.candidateFileFromMetadata(candidate);
     if (!file) return;
 
-    this.resetBestCandidateState(true);
-    const loaded = await this.applyImageSource(file, false);
+    const loaded = await this.applyImageSource(file, true);
     if (!loaded) return;
 
     if (candidate.sourcePath) {
@@ -1272,8 +1341,8 @@ export class ChangePage implements OnInit, OnDestroy {
       '[ECC_BEST_CANDIDATE] selected candidate:',
       candidate.sourcePath || candidate.fileName || candidate.id,
     );
-    this.resetBestCandidateState(true);
     await this.homeTour.completeInteraction('cover-image-selected');
+    await this.openEditor('image');
   }
 
   onBestCandidatePreviewRequested(candidate: BestCandidateImage): void {
@@ -1287,7 +1356,7 @@ export class ChangePage implements OnInit, OnDestroy {
       titleKey: 'BEST_CANDIDATE.PREVIEW.TITLE',
       returnUrl: '/tabs/change',
     });
-    void this.router.navigateByUrl('/preview-editing');
+    void this.router.navigateByUrl('/tabs/preview-editing');
     console.info(
       '[ECC_BEST_CANDIDATE] preview requested:',
       candidate.sourcePath || candidate.fileName || candidate.id,
@@ -1378,6 +1447,8 @@ export class ChangePage implements OnInit, OnDestroy {
       this.setPreviewUrl(url);
       this.setPreviewThumbUrl(url);
     }
+
+    this.workflowStep = 1;
 
     return true;
   }
@@ -1593,14 +1664,13 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async onStartScratch(): Promise<void> {
     if (!this.canStartScratch()) return;
-    this.resetBestCandidateState(true);
     const frameDetected = this.isFrameDetected;
     const frameDetecting = this.isDetectingFrame;
-    this.resetSelectedImage();
     this.isFrameDetected = frameDetected;
     this.isDetectingFrame = frameDetecting;
     this.clearImageError();
     this.clearImageWarn();
+    this.editorOpenedFromCurrentCover = false;
     await this.homeTour.completeInteraction('cover-image-selected');
     await this.openEditor('scratch');
   }
@@ -1675,7 +1745,8 @@ export class ChangePage implements OnInit, OnDestroy {
 
     this.lastEditorSourceMode = sourceMode;
     this.lastEditorSessionId = sid;
-    const shouldShowEditorTour = await this.shouldShowEditorTour();
+    this.workflowStep = 3;
+    const shouldShowEditorTour = false;
     await this.homeTour.completeInteraction('editor-apply');
 
     const entryPath = sourceMode === 'scratch' ? '/editor/tools' : '/editor';
@@ -1722,6 +1793,8 @@ export class ChangePage implements OnInit, OnDestroy {
   private async applyCropResult(result: EditorResult): Promise<void> {
     const newFile = result.file;
     if (!newFile) return;
+    this.editorOpenedFromCurrentCover = false;
+    this.workflowStep = 4;
     const renderedBlob = result.renderedBlob;
     this.isApplyingFromEditor = true;
     let editorTourShouldBeMarkedSeen = false;
@@ -1822,7 +1895,10 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private buildCompositionInput(purpose: 'preview' | 'export' = 'preview') {
-    const workingFile = this.editorSourceFile ?? this.workingImageFile;
+    const isScratchComposition = this.lastEditorSourceMode === 'scratch';
+    const workingFile = isScratchComposition
+      ? this.workingImageFile
+      : this.editorSourceFile ?? this.workingImageFile;
     if (!workingFile || !this.workingImageDims) {
       return null;
     }
@@ -1843,7 +1919,7 @@ export class ChangePage implements OnInit, OnDestroy {
           naturalHeight: this.workingImageDims.height,
         },
         original:
-          this.originalImageFile && this.originalImageDims
+          !isScratchComposition && this.originalImageFile && this.originalImageDims
             ? {
                 file: this.originalImageFile,
                 naturalWidth: this.originalImageDims.width,
@@ -2037,6 +2113,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.setBusy('export', 'CHANGE.SAVING');
     try {
       const requestedFilename = this.ensurePdfExtension(filename);
+      const isRename = !!this.lastSavedFilename;
 
       const isProjectEditSave =
         this.projectSaveState.isCurrentFilename(requestedFilename);
@@ -2250,7 +2327,11 @@ export class ChangePage implements OnInit, OnDestroy {
       });
 
       await this.consumeAdFallbackAttemptAfterSuccess('save');
-      await this.showToast('CHANGE.SAVED_OK', { duration: 1600 }, 'success');
+      await this.showToast(
+        isRename ? 'CHANGE.RENAMED_OK' : 'CHANGE.SAVED_OK',
+        { duration: 1600 },
+        'success',
+      );
     } finally {
       await this.clearBusyUi();
     }
@@ -4169,7 +4250,7 @@ export class ChangePage implements OnInit, OnDestroy {
           ? 'CHANGE.PREVIEW_ORIGINAL_LABEL'
           : null,
       afterLabel:
-        this.previewModalMode === 'compare'
+        this.previewModalMode === 'compare' && !!this.previewModalBeforeSrc
           ? 'CHANGE.PREVIEW_NEW_LABEL'
           : 'CHANGE.PREVIEW_NEW_ONLY_LABEL',
       mode: this.previewModalMode,
@@ -4177,7 +4258,7 @@ export class ChangePage implements OnInit, OnDestroy {
       isDithered: this.isPreviewDithered(),
       returnUrl: '/tabs/change',
     });
-    void this.router.navigateByUrl('/preview-editing');
+    void this.router.navigateByUrl('/tabs/preview-editing');
   }
 
   closePreview() {
@@ -4244,48 +4325,28 @@ export class ChangePage implements OnInit, OnDestroy {
     void this.refreshHeaderItems();
   }
 
-  async ionViewDidEnter() {
-    this.homeTour.registerContent(this.content);
-    const manualStartRequested =
-      this.homeTour.consumePendingManualStart(HOME_TOUR_ID);
-    if (manualStartRequested) {
-      this.forceEditorTourOnNextEditorOpen = true;
-      this.forceIncludeRemoveAdsStepOnNextHomeTour = true;
-    }
-    await this.maybeStartHomeTour(manualStartRequested);
-  }
-
-  onTourContentScroll() {
-    this.homeTour.requestSync();
-  }
-
   private async refreshHeaderItems(): Promise<void> {
     this.recommendedApps =
       await this.recommendedAppsService.getRecommendedApps();
     this.showRecommended = this.recommendedApps.length > 0;
     this.headerItems = buildHomeHeaderItems(this.showRecommended, {
       appsLabel: this.translate.instant('ARR.TOOLS.APPS'),
-      guideLabel: this.translate.instant('ARR.TOOLS.GUIDE'),
+      includeGuide: false,
     });
   }
 
   async onHeaderItemClick(id: string): Promise<void> {
-    if (id === 'guide' || id === 'info') {
-      await this.startManualHomeTour();
-      return;
-    }
-
     await handleHomeHeaderAction(id, {
       closeInfo: () => this.closeInfo(),
       toggleInfo: () => this.toggleInfo(),
       navigateToRecommended: async () => {
-        await this.router.navigateByUrl('/recommended-apps');
+        await this.router.navigateByUrl('/tabs/recommended-apps');
       },
     });
   }
 
   private async consumeEditorResult(sessionId?: string): Promise<void> {
-    const { result } = consumeEditorResultSnapshot(
+    const { session, result } = consumeEditorResultSnapshot(
       this.editorSession,
       sessionId ?? this.lastEditorSessionId,
     );
@@ -4296,6 +4357,17 @@ export class ChangePage implements OnInit, OnDestroy {
 
     if (result?.file) {
       await this.applyCropResult(result);
+      return;
+    }
+
+    if (session && !result) {
+      if (!this.editorOpenedFromCurrentCover) {
+        this.currentPreviewOrigin = this.originalPdfPreviewUrl
+          ? 'source-pdf'
+          : null;
+      }
+      this.workflowStep = 2;
+      this.editorOpenedFromCurrentCover = false;
     }
   }
 

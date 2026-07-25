@@ -8,6 +8,7 @@ export const RECOMMENDED_APPS_REGISTRY: RecommendedApp[] = [
     playStoreUrl:
       "https://play.google.com/store/apps/details?id=com.sheldrapps.covercreatorforkindle",
     description: "Create e-reader covers from your images in just a few taps.",
+    category: 'EPUB',
   },
   {
     appName: "EPUB Cover Changer",
@@ -16,6 +17,7 @@ export const RECOMMENDED_APPS_REGISTRY: RecommendedApp[] = [
     playStoreUrl:
       "https://play.google.com/store/apps/details?id=com.sheldrapps.epubcoverchanger",
     description: "Replace EPUB covers and export updated files.",
+    category: 'EPUB',
   },
   {
     appName: "EPUB Fixer",
@@ -24,6 +26,7 @@ export const RECOMMENDED_APPS_REGISTRY: RecommendedApp[] = [
     playStoreUrl:
       "https://play.google.com/store/apps/details?id=com.sheldrapps.epubfixer",
     description: "Diagnose and repair common EPUB file issues.",
+    category: 'EPUB',
   },
   {
     appName: "PDF Cover Maker",
@@ -32,5 +35,6 @@ export const RECOMMENDED_APPS_REGISTRY: RecommendedApp[] = [
     playStoreUrl:
       "https://play.google.com/store/apps/details?id=com.sheldrapps.pdfcovermaker",
     description: "Replace PDF covers and export updated files.",
+    category: 'PDF',
   },
 ];

@@ -85,6 +85,8 @@
   --app-editor-picker-size-lg: 132px;
   --app-editor-guide-line-size: 1px;
   --app-editor-guide-line-size-fine: 0.5px;
+  --app-action-card-media-size: clamp(4.75rem, 24vw, 6rem);
+  --app-action-card-icon-size: clamp(2.25rem, 11vw, 3.75rem);
 
   /* Button standards */
   --app-btn-gap-inline: var(--app-space-2);
@@ -204,6 +206,17 @@
   --sh-stepper-connector-completed: var(--ion-color-primary);
   --sh-stepper-connector-pending: var(--ion-color-step-300);
   --sh-stepper-label-color: var(--ion-text-color);
+
+  /* Workflow navigation */
+  --sh-workflow-navigation-background: var(--ion-background-color);
+  --sh-workflow-navigation-border-color: var(--ion-color-step-200);
+  --sh-workflow-navigation-padding-inline: var(--app-space-5);
+  --sh-workflow-navigation-padding-block: var(--app-space-3);
+  --sh-workflow-navigation-margin-block-start: var(--app-space-7);
+  --sh-workflow-navigation-gap: var(--app-space-3);
+  --sh-workflow-navigation-min-height: 4.5rem;
+  --sh-workflow-navigation-primary-min-width: 9rem;
+  --sh-workflow-navigation-bottom-offset: 0px;
 
   /* Shadow tokens */
   --app-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
