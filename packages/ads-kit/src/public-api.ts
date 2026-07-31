@@ -12,6 +12,8 @@ export * from './lib/provide-ads-kit-i18n';
 export * from './lib/remove-ads-upgrade/remove-ads-upgrade.types';
 export * from './lib/remove-ads-upgrade/remove-ads-upgrade.presentation';
 export * from './lib/remove-ads-upgrade-modal/remove-ads-upgrade-modal.component';
+export * from './lib/remove-ads-purchase-page/remove-ads-purchase-page.component';
+export * from './lib/remove-ads-purchase-page/remove-ads-purchase-page.service';
 
 // Adapter exports
 export * from './lib/adapters/platform';

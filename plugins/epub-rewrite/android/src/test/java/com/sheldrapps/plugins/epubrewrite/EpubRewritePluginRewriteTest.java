@@ -9,6 +9,9 @@ import com.getcapacitor.JSObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
@@ -18,6 +21,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -34,6 +38,23 @@ import org.w3c.dom.Element;
 public class EpubRewritePluginRewriteTest {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    @Test
+    public void publicExportCopyCountsTwoGiBWithoutBufferingTheDocument() throws Exception {
+        long expectedBytes = 2_147_483_648L;
+        CountingInputStream input = new CountingInputStream(expectedBytes);
+        CountingOutputStream output = new CountingOutputStream();
+
+        long copiedBytes = EpubRewritePlugin.copyStreamWithLongCount(
+            input,
+            output,
+            new AtomicBoolean(false)
+        );
+
+        assertEquals(expectedBytes, copiedBytes);
+        assertEquals(expectedBytes, output.writtenBytes);
+        assertTrue(input.maximumRequestedBuffer <= 128 * 1024);
+    }
 
     @Test
     public void relativizeZipPathBuildsExpectedRelativePath() throws Exception {
@@ -63,6 +84,193 @@ public class EpubRewritePluginRewriteTest {
         );
 
         assertEquals("OEBPS/images/cover.png", resolved);
+    }
+
+    @Test
+    public void splitDependencyExtractionFollowsXhtmlAndCssResources() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+
+        @SuppressWarnings("unchecked")
+        List<String> xhtmlDependencies = (List<String>) invokeObject(
+            plugin,
+            "extractSplitDependencies",
+            new Class<?>[] { String.class, String.class },
+            "OEBPS/text/chapter.xhtml",
+            "<link rel=\"stylesheet\" href=\"../styles/book.css\"/><img src=\"../images/cover.jpg\"/>"
+        );
+        @SuppressWarnings("unchecked")
+        List<String> cssDependencies = (List<String>) invokeObject(
+            plugin,
+            "extractSplitDependencies",
+            new Class<?>[] { String.class, String.class },
+            "OEBPS/styles/book.css",
+            "@import \"theme.css\"; body { background: url('../images/bg.png'); }"
+        );
+
+        assertEquals(
+            java.util.Arrays.asList("OEBPS/images/cover.jpg", "OEBPS/styles/book.css"),
+            new java.util.ArrayList<>(new java.util.TreeSet<>(xhtmlDependencies))
+        );
+        assertEquals(
+            java.util.Arrays.asList("OEBPS/images/bg.png", "OEBPS/styles/theme.css"),
+            new java.util.ArrayList<>(new java.util.TreeSet<>(cssDependencies))
+        );
+    }
+
+    @Test
+    public void splitFixtureValidatesAndPreservesNestedTocHierarchy() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        ZipFile sourceZip = buildZip(orderedEntries(
+            "mimetype", utf8("application/epub+zip"),
+            "META-INF/container.xml", utf8(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                    + "<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">"
+                    + "<rootfiles><rootfile full-path=\"OPS/package.opf\" media-type=\"application/oebps-package+xml\"/></rootfiles>"
+                    + "</container>"
+            ),
+            "OPS/package.opf", utf8(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                    + "<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\" unique-identifier=\"bookid\">"
+                    + "<metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\">"
+                    + "<dc:identifier id=\"bookid\">urn:uuid:12345678-1234-1234-1234-123456789012</dc:identifier>"
+                    + "<dc:title>Nested TOC fixture</dc:title><dc:language>en</dc:language>"
+                    + "</metadata><manifest>"
+                    + "<item id=\"nav\" href=\"nav.xhtml\" media-type=\"application/xhtml+xml\" properties=\"nav\"/>"
+                    + "<item id=\"ncx\" href=\"toc.ncx\" media-type=\"application/x-dtbncx+xml\"/>"
+                    + "<item id=\"part-1\" href=\"text/part-1.xhtml\" media-type=\"application/xhtml+xml\"/>"
+                    + "<item id=\"chapter-1\" href=\"text/chapter-1.xhtml\" media-type=\"application/xhtml+xml\"/>"
+                    + "<item id=\"chapter-2\" href=\"text/chapter-2.xhtml\" media-type=\"application/xhtml+xml\"/>"
+                    + "<item id=\"part-2\" href=\"text/part-2.xhtml\" media-type=\"application/xhtml+xml\"/>"
+                    + "<item id=\"chapter-3\" href=\"text/chapter-3.xhtml\" media-type=\"application/xhtml+xml\"/>"
+                    + "<item id=\"chapter-4\" href=\"text/chapter-4.xhtml\" media-type=\"application/xhtml+xml\"/>"
+                    + "</manifest><spine toc=\"ncx\">"
+                    + "<itemref idref=\"part-1\"/><itemref idref=\"chapter-1\"/><itemref idref=\"chapter-2\"/>"
+                    + "<itemref idref=\"part-2\"/><itemref idref=\"chapter-3\"/><itemref idref=\"chapter-4\"/>"
+                    + "</spine></package>"
+            ),
+            "OPS/nav.xhtml", utf8(
+                "<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:epub=\"http://www.idpf.org/2007/ops\"><body>"
+                    + "<nav epub:type=\"toc\"><ol>"
+                    + "<li><a href=\"text/part-1.xhtml\">Part I</a><ol>"
+                    + "<li><a href=\"text/chapter-1.xhtml#section-3\">Chapter 1</a></li>"
+                    + "<li><a href=\"text/chapter-2.xhtml\">Chapter 2</a></li></ol></li>"
+                    + "<li><a href=\"text/part-2.xhtml\">Part II</a><ol>"
+                    + "<li><a href=\"text/chapter-3.xhtml\">Chapter 3</a></li>"
+                    + "<li><a href=\"text/chapter-4.xhtml\">Chapter 4</a></li></ol></li>"
+                    + "</ol></nav></body></html>"
+            ),
+            "OPS/toc.ncx", utf8(
+                "<ncx xmlns=\"http://www.daisy.org/z3986/2005/ncx/\"><navMap>"
+                    + "<navPoint id=\"part-1\"><navLabel><text>Part I</text></navLabel><content src=\"text/part-1.xhtml\"/></navPoint>"
+                    + "</navMap></ncx>"
+            ),
+            "OPS/text/part-1.xhtml", simpleXhtml("Part I"),
+            "OPS/text/chapter-1.xhtml", simpleXhtml("Chapter 1"),
+            "OPS/text/chapter-2.xhtml", simpleXhtml("Chapter 2"),
+            "OPS/text/part-2.xhtml", simpleXhtml("Part II"),
+            "OPS/text/chapter-3.xhtml", simpleXhtml("Chapter 3"),
+            "OPS/text/chapter-4.xhtml", simpleXhtml("Chapter 4")
+        ));
+
+        Object source = invokeObject(
+            plugin,
+            "readSplitSourceMetadata",
+            new Class<?>[] { ZipFile.class, String.class },
+            sourceZip,
+            "OPS/package.opf"
+        );
+
+        Class<?> requestClass = Class.forName(
+            "com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin$SplitOutputRequest"
+        );
+        Class<?> tocClass = Class.forName(
+            "com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin$SplitTocEntry"
+        );
+        Constructor<?> tocConstructor = tocClass.getDeclaredConstructor(
+            String.class,
+            String.class,
+            String.class,
+            ArrayList.class
+        );
+        tocConstructor.setAccessible(true);
+        ArrayList<Object> children = new ArrayList<>();
+        children.add(tocConstructor.newInstance(
+            "chapter-1", "Chapter 1", "OPS/text/chapter-1.xhtml#section-3", new ArrayList<>()
+        ));
+        children.add(tocConstructor.newInstance(
+            "chapter-2", "Chapter 2", "OPS/text/chapter-2.xhtml", new ArrayList<>()
+        ));
+        ArrayList<Object> tocEntries = new ArrayList<>();
+        tocEntries.add(tocConstructor.newInstance(
+            "part-1", "Part I", "OPS/text/part-1.xhtml", children
+        ));
+
+        Constructor<?> requestConstructor = requestClass.getDeclaredConstructor(
+            String.class,
+            Path.class,
+            String.class,
+            String.class,
+            ArrayList.class,
+            java.util.HashMap.class,
+            ArrayList.class
+        );
+        requestConstructor.setAccessible(true);
+        ArrayList<String> spineItemIds = new ArrayList<>();
+        spineItemIds.add("part-1");
+        spineItemIds.add("chapter-1");
+        spineItemIds.add("chapter-2");
+        Object request = requestConstructor.newInstance(
+            "part-1",
+            temporaryFolder.getRoot().toPath().resolve("part-1.epub"),
+            "part-1.epub",
+            "Part I",
+            spineItemIds,
+            new java.util.HashMap<>(),
+            tocEntries
+        );
+        Path outputPath = temporaryFolder.getRoot().toPath().resolve("part-1.epub");
+
+        invokeObject(
+            plugin,
+            "writeSplitOutput",
+            new Class<?>[] { ZipFile.class, source.getClass(), requestClass },
+            sourceZip,
+            source,
+            request
+        );
+        invokeObject(
+            plugin,
+            "validateSplitEpub",
+            new Class<?>[] { Path.class, int.class },
+            outputPath,
+            3
+        );
+
+        try (ZipFile outputZip = new ZipFile(outputPath.toFile())) {
+            assertEquals(
+                net.lingala.zip4j.model.enums.CompressionMethod.STORE,
+                outputZip.getFileHeader("mimetype").getCompressionMethod()
+            );
+            String nav = invokeString(
+                plugin,
+                "readZipText",
+                new Class<?>[] { ZipFile.class, String.class },
+                outputZip,
+                "OPS/emas-nav.xhtml"
+            );
+            String ncx = invokeString(
+                plugin,
+                "readZipText",
+                new Class<?>[] { ZipFile.class, String.class },
+                outputZip,
+                "OPS/emas-toc.ncx"
+            );
+            assertTrue(nav.contains("<li><a href=\"text/part-1.xhtml\">Part I</a><ol>"));
+            assertTrue(nav.contains("text/chapter-1.xhtml#section-3"));
+            assertTrue(ncx.contains("<navPoint id=\"toc-1\""));
+            assertTrue(ncx.contains("Chapter 1"));
+            assertTrue(ncx.indexOf("Chapter 1") > ncx.indexOf("Part I"));
+        }
     }
 
     @Test
@@ -144,7 +352,7 @@ public class EpubRewritePluginRewriteTest {
     public void rewriteOpfForInsertedCoverAddsManifestAndMeta() throws Exception {
         EpubRewritePlugin plugin = new EpubRewritePlugin();
         String opf = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\">\n"
+            + "<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"2.0\">\n"
             + "  <metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n"
             + "    <dc:title>Sample</dc:title>\n"
             + "  </metadata>\n"
@@ -166,6 +374,141 @@ public class EpubRewritePluginRewriteTest {
         assertTrue(rewritten.contains("media-type=\"image/jpeg\""));
         assertTrue(rewritten.contains("properties=\"cover-image\""));
         assertTrue(rewritten.contains("name=\"cover\""));
+        assertTrue(rewritten.contains("href=\"cover.xhtml\""));
+        assertTrue(rewritten.contains("idref=\"cover-page-generated\""));
+        assertTrue(rewritten.contains("type=\"cover\""));
+    }
+
+    @Test
+    public void rewriteNcxForInsertedCoverPrependsCoverAndShiftsPlayOrder() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        String ncx = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<ncx xmlns=\"http://www.daisy.org/z3986/2005/ncx/\" version=\"2005-1\">\n"
+            + "  <navMap><navPoint id=\"title\" playOrder=\"1\">"
+            + "<navLabel><text>Title page</text></navLabel>"
+            + "<content src=\"001.html\"/></navPoint></navMap>\n"
+            + "</ncx>";
+
+        String rewritten = invokeString(
+            plugin,
+            "rewriteNcxForInsertedCover",
+            new Class<?>[] { String.class, String.class, String.class },
+            ncx,
+            "Ops/toc.ncx",
+            "Ops/cover.xhtml"
+        );
+
+        assertTrue(rewritten.contains("id=\"cover-generated\" playOrder=\"1\""));
+        assertTrue(rewritten.contains("src=\"cover.xhtml\""));
+        assertTrue(rewritten.contains("id=\"title\" playOrder=\"2\""));
+    }
+
+    @Test
+    public void rewriteArchiveForInsertedCoverCreatesNavigableCoverPage() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Path sourcePath = temporaryFolder.newFile("no-cover-source.epub").toPath();
+        Path outputPath = temporaryFolder.newFile("no-cover-output.epub").toPath();
+        Path newCoverPath = temporaryFolder.newFile("new-cover.jpg").toPath();
+        Files.write(newCoverPath, new byte[] { 1, 2, 3, 4 });
+
+        try (ZipFile source = new ZipFile(sourcePath.toFile())) {
+            addZipEntry(source, "mimetype", utf8("application/epub+zip"));
+            addZipEntry(source, "META-INF/container.xml", utf8(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                    + "<container xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">"
+                    + "<rootfiles><rootfile full-path=\"OPS/package.opf\""
+                    + " media-type=\"application/oebps-package+xml\"/></rootfiles></container>"
+            ));
+            addZipEntry(source, "OPS/package.opf", utf8(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                    + "<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"2.0\">"
+                    + "<metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\"><dc:title>Book</dc:title></metadata>"
+                    + "<manifest><item id=\"ncx\" href=\"toc.ncx\" media-type=\"application/x-dtbncx+xml\"/>"
+                    + "<item id=\"chapter\" href=\"001.html\" media-type=\"application/xhtml+xml\"/></manifest>"
+                    + "<spine toc=\"ncx\"><itemref idref=\"chapter\"/></spine></package>"
+            ));
+            addZipEntry(source, "OPS/toc.ncx", utf8(
+                "<?xml version=\"1.0\"?><!DOCTYPE ncx PUBLIC \"-//NISO//DTD ncx 2005-1//EN\""
+                    + " \"http://www.daisy.org/z3986/2005/ncx-2005-1.dtd\"><ncx>"
+                    + "<navMap><navPoint id=\"chapter\" playOrder=\"1\"><navLabel><text>Chapter</text></navLabel>"
+                    + "<content src=\"001.html\"/></navPoint></navMap></ncx>"
+            ));
+            addZipEntry(source, "OPS/001.html", simpleXhtml("Chapter"));
+        }
+
+        invokeObject(
+            plugin,
+            "rewriteArchiveReplacingCover",
+            new Class<?>[] {
+                Path.class,
+                Path.class,
+                String.class,
+                String.class,
+                String.class,
+                Path.class,
+                int.class,
+                int.class,
+            },
+            sourcePath,
+            outputPath,
+            null,
+            "OPS/images/cover.jpg",
+            "OPS/package.opf",
+            newCoverPath,
+            0,
+            100
+        );
+
+        invokeObject(
+            plugin,
+            "validateInsertedCoverArchive",
+            new Class<?>[] { Path.class, String.class, String.class },
+            outputPath,
+            "OPS/images/cover.jpg",
+            "OPS/package.opf"
+        );
+
+        try (ZipFile output = new ZipFile(outputPath.toFile())) {
+            assertTrue(output.getFileHeaders().stream().anyMatch(
+                (header) -> "OPS/cover.xhtml".equals(header.getFileName())
+            ));
+            String opf = invokeString(
+                plugin,
+                "readZipText",
+                new Class<?>[] { ZipFile.class, String.class },
+                output,
+                "OPS/package.opf"
+            );
+            String ncx = invokeString(
+                plugin,
+                "readZipText",
+                new Class<?>[] { ZipFile.class, String.class },
+                output,
+                "OPS/toc.ncx"
+            );
+            assertTrue(opf.contains("idref=\"cover-page-generated\""));
+            assertTrue(opf.contains("type=\"cover\""));
+            assertTrue(ncx.contains("src=\"cover.xhtml\""));
+        }
+    }
+
+    @Test
+    public void buildMergeOpfAddsLegacyCoverMetaForReaderCompatibility() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+
+        String opf = invokeString(
+            plugin,
+            "buildMergeOpf",
+            new Class<?>[] { String.class, List.class, List.class, String.class, String.class },
+            "Merged",
+            new ArrayList<>(),
+            new ArrayList<>(),
+            "cover.jpg",
+            "image/jpeg"
+        );
+
+        assertTrue(opf.contains("<meta name=\"cover\" content=\"cover-image\"/>"));
+        assertTrue(opf.contains("properties=\"cover-image\""));
     }
 
     @Test
@@ -499,6 +842,22 @@ public class EpubRewritePluginRewriteTest {
                 "normalizeXmlComparison",
                 new Class<?>[] { String.class },
                 "<html><body>Thanks</body></html>"
+            )
+        );
+        assertEquals(
+            invokeString(
+                plugin,
+                "normalizeXmlComparison",
+                new Class<?>[] { String.class },
+                "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" "
+                    + "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">"
+                    + "<html xmlns=\"http://www.w3.org/1999/xhtml\"><body>Thanks</body></html>"
+            ),
+            invokeString(
+                plugin,
+                "normalizeXmlComparison",
+                new Class<?>[] { String.class },
+                "<html xmlns=\"http://www.w3.org/1999/xhtml\"><body>Thanks</body></html>"
             )
         );
     }
@@ -1529,7 +1888,60 @@ public class EpubRewritePluginRewriteTest {
         return value.getBytes(StandardCharsets.UTF_8);
     }
 
+    private byte[] simpleXhtml(String title) {
+        return utf8(
+            "<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><title>"
+                + title
+                + "</title></head><body><h1 id=\"section-3\">"
+                + title
+                + "</h1></body></html>"
+        );
+    }
+
     private byte[] encoded(String value, java.nio.charset.Charset charset) {
         return value.getBytes(charset);
+    }
+
+    private static final class CountingInputStream extends InputStream {
+        private long remainingBytes;
+        private int maximumRequestedBuffer;
+
+        CountingInputStream(long remainingBytes) {
+            this.remainingBytes = remainingBytes;
+        }
+
+        @Override
+        public int read() {
+            if (remainingBytes <= 0L) {
+                return -1;
+            }
+            remainingBytes -= 1L;
+            return 0;
+        }
+
+        @Override
+        public int read(byte[] buffer, int offset, int length) {
+            if (remainingBytes <= 0L) {
+                return -1;
+            }
+            maximumRequestedBuffer = Math.max(maximumRequestedBuffer, length);
+            int read = (int) Math.min((long) length, remainingBytes);
+            remainingBytes -= read;
+            return read;
+        }
+    }
+
+    private static final class CountingOutputStream extends OutputStream {
+        private long writtenBytes;
+
+        @Override
+        public void write(int value) {
+            writtenBytes += 1L;
+        }
+
+        @Override
+        public void write(byte[] buffer, int offset, int length) {
+            writtenBytes += (long) length;
+        }
     }
 }

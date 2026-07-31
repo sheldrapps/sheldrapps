@@ -74,9 +74,17 @@ export class WebEpubCoverService {
     const newExt = this.extFromMime(newMime);
     const coverBytes = new Uint8Array(await coverFile.arrayBuffer());
 
+    if (!opfPath) {
+      throw new Error('EPUB package OPF not found; cover was not inserted');
+    }
+
     if (opfPath) {
       const opfText = await this.readZipText(zip, opfPath);
       const opfDoc = opfText ? this.parseXml(opfText) : null;
+
+      if (!opfDoc) {
+        throw new Error('EPUB package OPF could not be parsed; cover was not inserted');
+      }
 
       if (opfDoc) {
         const opfDir = this.dirname(opfPath);
@@ -100,8 +108,25 @@ export class WebEpubCoverService {
           const newPath = opfDir
             ? `${opfDir}/cover.${newExt}`
             : `cover.${newExt}`;
+          const coverPagePath = this.uniqueZipPath(
+            zip,
+            opfDir ? `${opfDir}/cover.xhtml` : 'cover.xhtml',
+          );
           zip.file(newPath, coverBytes);
-          this.injectCoverIntoOPF(opfDoc, newPath, newMime, opfDir);
+          zip.file(
+            coverPagePath,
+            this.buildCoverXhtml(
+              this.relativePath(this.dirname(coverPagePath), newPath),
+            ),
+          );
+          this.injectCoverIntoOPF(
+            opfDoc,
+            newPath,
+            newMime,
+            opfDir,
+            coverPagePath,
+          );
+          await this.injectCoverIntoNcx(zip, opfDoc, opfPath, coverPagePath);
           const newOpfXml = new XMLSerializer().serializeToString(opfDoc);
           zip.file(opfPath, newOpfXml);
         }
@@ -351,27 +376,189 @@ export class WebEpubCoverService {
     }
   }
 
-  /** Adds a cover-image manifest entry when none exists. */
+  /** Adds EPUB 3 and EPUB 2 cover references when none exists. */
   private injectCoverIntoOPF(
     opfDoc: XMLDocument,
     coverPath: string,
     mime: string,
     opfDir: string,
+    coverPagePath: string,
   ): void {
     const manifest = this.firstByTagName(opfDoc, 'manifest');
-    if (!manifest) return;
+    if (!manifest) {
+      throw new Error('EPUB package manifest missing; cover was not inserted');
+    }
     const relative = opfDir
       ? coverPath.replace(`${opfDir}/`, '')
       : coverPath;
+    const existingIds = new Set(
+      Array.from(manifest.children)
+        .map((child) => child.getAttribute('id'))
+        .filter((id): id is string => !!id),
+    );
+    let coverId = 'cover-image';
+    let suffix = 2;
+    while (existingIds.has(coverId)) {
+      coverId = `cover-image-${suffix}`;
+      suffix += 1;
+    }
+
     const item = opfDoc.createElementNS(
       manifest.namespaceURI ?? null,
       'item',
     );
-    item.setAttribute('id', 'cover-image');
+    item.setAttribute('id', coverId);
     item.setAttribute('href', relative);
     item.setAttribute('media-type', mime);
     item.setAttribute('properties', 'cover-image');
     manifest.appendChild(item);
+
+    const coverPageRelative = this.relativePath(opfDir, coverPagePath);
+    const coverPageItem = opfDoc.createElementNS(
+      manifest.namespaceURI ?? null,
+      'item',
+    );
+    const coverPageIds = new Set(
+      Array.from(manifest.children)
+        .map((child) => child.getAttribute('id'))
+        .filter((id): id is string => !!id),
+    );
+    let coverPageId = 'cover-page-generated';
+    let coverPageSuffix = 2;
+    while (coverPageIds.has(coverPageId)) {
+      coverPageId = `cover-page-generated-${coverPageSuffix}`;
+      coverPageSuffix += 1;
+    }
+    coverPageItem.setAttribute('id', coverPageId);
+    coverPageItem.setAttribute('href', coverPageRelative);
+    coverPageItem.setAttribute('media-type', 'application/xhtml+xml');
+    manifest.appendChild(coverPageItem);
+
+    let spine = this.firstByTagName(opfDoc, 'spine');
+    if (!spine) {
+      spine = opfDoc.createElementNS(opfDoc.documentElement.namespaceURI, 'spine');
+      opfDoc.documentElement.appendChild(spine);
+    }
+    const itemref = opfDoc.createElementNS(spine.namespaceURI ?? null, 'itemref');
+    itemref.setAttribute('idref', coverPageId);
+    spine.insertBefore(itemref, spine.firstChild);
+
+    if ((opfDoc.documentElement?.getAttribute('version') ?? '').startsWith('2')) {
+      let guide = this.firstByTagName(opfDoc, 'guide');
+      if (!guide) {
+        guide = opfDoc.createElementNS(opfDoc.documentElement.namespaceURI, 'guide');
+        opfDoc.documentElement.appendChild(guide);
+      }
+      const hasCoverReference = Array.from(guide.children).some(
+        (child) => child.localName === 'reference' &&
+          child.getAttribute('type')?.toLowerCase() === 'cover',
+      );
+      if (!hasCoverReference) {
+        const reference = opfDoc.createElementNS(guide.namespaceURI ?? null, 'reference');
+        reference.setAttribute('type', 'cover');
+        reference.setAttribute('title', 'Cover');
+        reference.setAttribute('href', coverPageRelative);
+        guide.appendChild(reference);
+      }
+    }
+
+    const metadata = this.firstByTagName(opfDoc, 'metadata');
+    if (!metadata) return;
+
+    const coverMeta = Array.from(metadata.children).find(
+      (child) =>
+        child.localName === 'meta' &&
+        child.getAttribute('name')?.toLowerCase() === 'cover',
+    );
+    const meta =
+      coverMeta ??
+      opfDoc.createElementNS(metadata.namespaceURI ?? null, 'meta');
+    meta.setAttribute('name', 'cover');
+    meta.setAttribute('content', coverId);
+    if (!coverMeta) metadata.appendChild(meta);
+  }
+
+  private async injectCoverIntoNcx(
+    zip: JSZip,
+    opfDoc: XMLDocument,
+    opfPath: string,
+    coverPagePath: string,
+  ): Promise<void> {
+    const spine = this.firstByTagName(opfDoc, 'spine');
+    const tocId = spine?.getAttribute('toc');
+    if (!tocId) return;
+
+    const manifest = this.firstByTagName(opfDoc, 'manifest');
+    const tocItem = manifest
+      ? Array.from(manifest.children).find(
+          (child) => child.localName === 'item' && child.getAttribute('id') === tocId,
+        )
+      : null;
+    const tocHref = tocItem?.getAttribute('href');
+    if (!tocHref) return;
+
+    const ncxPath = this.resolvePath(this.dirname(opfPath), tocHref);
+    const ncxEntry = zip.file(ncxPath);
+    if (!ncxEntry) return;
+    const ncxText = await ncxEntry.async('string');
+    const navMapMatch = /<navMap\b[^>]*>/i.exec(ncxText);
+    if (!navMapMatch) return;
+
+    const shifted = ncxText.replace(
+      /(<navPoint\b[^>]*\bplayOrder\s*=\s*["'])(\d+)(["'])/gi,
+      (_match, prefix: string, order: string, suffix: string) =>
+        `${prefix}${Number(order) + 1}${suffix}`,
+    );
+    const coverHref = this.relativePath(this.dirname(ncxPath), coverPagePath);
+    const navPoint =
+      '<navPoint id="cover-generated" playOrder="1">' +
+      '<navLabel><text>Cover</text></navLabel>' +
+      `<content src="${this.escapeXml(coverHref)}"/></navPoint>`;
+    const shiftedNavMapMatch = /<navMap\b[^>]*>/i.exec(shifted);
+    if (!shiftedNavMapMatch) return;
+    const insertionPoint = shiftedNavMapMatch.index + shiftedNavMapMatch[0].length;
+    zip.file(
+      ncxPath,
+      shifted.slice(0, insertionPoint) + navPoint + shifted.slice(insertionPoint),
+    );
+  }
+
+  private buildCoverXhtml(imageHref: string): string {
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Cover</title>
+    <style>html,body{margin:0;padding:0;height:100%;}body{display:flex;align-items:center;justify-content:center;}img{max-width:100%;max-height:100%;}</style>
+  </head>
+  <body><img src="${this.escapeXml(imageHref)}" alt="Cover"/></body>
+</html>`;
+  }
+
+  private uniqueZipPath(zip: JSZip, requestedPath: string): string {
+    if (!zip.file(requestedPath)) return requestedPath;
+    const extensionIndex = requestedPath.lastIndexOf('.');
+    const base = extensionIndex >= 0 ? requestedPath.slice(0, extensionIndex) : requestedPath;
+    const extension = extensionIndex >= 0 ? requestedPath.slice(extensionIndex) : '';
+    let suffix = 1;
+    while (zip.file(`${base}-generated-${suffix}${extension}`)) suffix += 1;
+    return `${base}-generated-${suffix}${extension}`;
+  }
+
+  private relativePath(fromDir: string, toPath: string): string {
+    if (!fromDir) return toPath;
+    const from = fromDir.split('/').filter(Boolean);
+    const to = toPath.split('/').filter(Boolean);
+    let common = 0;
+    while (common < from.length && common < to.length && from[common] === to[common]) {
+      common += 1;
+    }
+    const parts = [
+      ...from.slice(common).map(() => '..'),
+      ...to.slice(common),
+    ];
+    return parts.join('/') || '';
   }
 
   private async readZipText(

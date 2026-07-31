@@ -10,6 +10,209 @@ describe('HomePage', () => {
     expect(ctx.selectedMode()).toBeNull();
   });
 
+  it('exposes the split method as the second workflow step after file selection', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      selectedMode: signal<'merge' | 'split' | null>('split'),
+      splitSelection: signal({ id: 'split', selectedName: 'Book.epub' }),
+      workflowSteps: [{ id: 'merge-split', label: 'Join / Split' }],
+      splitWorkflowStep: { id: 'split-method', label: 'How to' },
+      splitConfirmStep: { id: 'split-confirm', label: 'Confirm' },
+      splitCoverStep: { id: 'split-cover', label: 'Cover' },
+      splitAdjustStep: { id: 'split-adjust', label: 'Adjust' },
+      splitExecutionStep: { id: 'split-execution', label: 'Split' },
+      coverSourceMode: signal<'candidate' | 'image' | 'scratch' | null>(null),
+      mergeCoverPreviewUrl: signal<string | undefined>(undefined),
+    });
+
+    expect(ctx.visibleWorkflowSteps).toEqual([
+      { id: 'merge-split', label: 'Join / Split' },
+      { id: 'split-method', label: 'How to' },
+      { id: 'split-confirm', label: 'Confirm' },
+      { id: 'split-cover', label: 'Cover' },
+      { id: 'split-adjust', label: 'Adjust' },
+      { id: 'split-execution', label: 'Split' },
+    ]);
+    expect(ctx.selectableWorkflowSteps).toEqual([0, 1, 2, 3]);
+  });
+
+  it('accepts only supported split methods', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      splitMethod: 'by-chapters-or-sections',
+    });
+
+    HomePage.prototype.onSplitMethodChange.call(ctx, 'equal-parts');
+    expect(ctx.splitMethod).toBe('equal-parts');
+
+    HomePage.prototype.onSplitMethodChange.call(ctx, 'unknown');
+    expect(ctx.splitMethod).toBe('equal-parts');
+  });
+
+  it('resets every split configuration when a new method is selected', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      splitMethod: 'manual-split-points',
+      splitChapterMode: 'section',
+      splitEqualPartsValue: 4,
+      splitMaximumSize: 50,
+      splitMaximumSizeSelection: 'custom',
+      splitManualPointIds: signal<readonly string[]>(['chapter-2']),
+      splitPreviewExpanded: signal(true),
+    });
+
+    HomePage.prototype.onSplitMethodChange.call(ctx, 'equal-parts');
+
+    expect(ctx.splitMethod).toBe('equal-parts');
+    expect(ctx.splitChapterMode).toBe('chapter');
+    expect(ctx.splitEqualPartsValue).toBe(2);
+    expect(ctx.splitMaximumSize).toBe(10);
+    expect(ctx.splitMaximumSizeSelection).toBe('10');
+    expect(ctx.splitManualPointIds()).toEqual([]);
+    expect(ctx.splitPreviewExpanded()).toBeFalse();
+  });
+
+  it('resets split configuration when returning from confirm to How to', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      workflowStep: 2,
+      splitChapterMode: 'section',
+      splitEqualPartsValue: 4,
+      splitMaximumSize: 25,
+      splitMaximumSizeSelection: '25',
+      splitManualPointIds: signal<readonly string[]>(['chapter-3']),
+      splitPreviewExpanded: signal(true),
+    });
+
+    HomePage.prototype.onSplitBackToHowTo.call(ctx);
+
+    expect(ctx.workflowStep).toBe(1);
+    expect(ctx.splitChapterMode).toBe('chapter');
+    expect(ctx.splitEqualPartsValue).toBe(2);
+    expect(ctx.splitMaximumSize).toBe(10);
+    expect(ctx.splitMaximumSizeSelection).toBe('10');
+    expect(ctx.splitManualPointIds()).toEqual([]);
+    expect(ctx.splitPreviewExpanded()).toBeFalse();
+  });
+
+  it('opens the split cover step before the final split step', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      workflowStep: 2,
+      splitCanExecute: () => true,
+      pickerErrorKey: signal<string | null>('HOME.ERROR'),
+    });
+
+    HomePage.prototype.onSplitExecute.call(ctx);
+
+    expect(ctx.workflowStep).toBe(3);
+    expect(ctx.pickerErrorKey()).toBeNull();
+  });
+
+  it('selects custom equal parts and validates whole positive values', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      splitEqualPartsValue: 2,
+      splitEqualPartsSelectionValue: '2',
+      splitAnalysis: signal({ units: new Array(5).fill({}), sections: [], tocEntries: [] }),
+      splitEqualPartsErrorKey: signal<string | null>(null),
+      splitConfigurationRevision: signal(0),
+    });
+
+    HomePage.prototype.onSplitEqualPartsChange.call(ctx, 'custom');
+    expect(ctx.splitEqualPartsSelectionValue).toBe('custom');
+
+    HomePage.prototype.onSplitEqualPartsInput.call(ctx, 'e');
+    expect(ctx.splitEqualPartsErrorKey()).toBe('HOME.SPLIT_CONFIRM.INVALID_PART_COUNT');
+
+    HomePage.prototype.onSplitEqualPartsInput.call(ctx, '1');
+    expect(ctx.splitEqualPartsErrorKey()).toBe('HOME.SPLIT_CONFIRM.INVALID_PART_COUNT');
+
+    HomePage.prototype.onSplitEqualPartsInput.call(ctx, '3.5');
+    expect(ctx.splitEqualPartsErrorKey()).toBe('HOME.SPLIT_CONFIRM.INVALID_PART_COUNT');
+
+    HomePage.prototype.onSplitEqualPartsInput.call(ctx, '3');
+    expect(ctx.splitEqualPartsValue).toBe(3);
+    expect(ctx.splitEqualPartsErrorKey()).toBeNull();
+    expect(ctx.splitConfigurationRevision()).toBe(2);
+  });
+
+  it('blocks scientific notation and signs in integer inputs', () => {
+    const preventDefault = jasmine.createSpy('preventDefault');
+
+    HomePage.prototype.onSplitIntegerKeydown.call(
+      Object.create(HomePage.prototype),
+      { key: 'e', preventDefault } as unknown as KeyboardEvent,
+    );
+    HomePage.prototype.onSplitIntegerKeydown.call(
+      Object.create(HomePage.prototype),
+      { key: '+', preventDefault } as unknown as KeyboardEvent,
+    );
+
+    expect(preventDefault).toHaveBeenCalledTimes(2);
+  });
+
+  it('exposes only chapter and section variants', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      splitAnalysis: signal({
+        fileName: 'Book.epub',
+        fileSizeBytes: 300,
+        units: [],
+        sections: [
+          { id: 'section-1', title: 'Part I', firstUnitOrder: 0, lastUnitOrder: 1 },
+          { id: 'section-2', title: 'Part II', firstUnitOrder: 2, lastUnitOrder: 2 },
+        ],
+        tocEntries: [],
+        hasUsableToc: true,
+      }),
+    });
+    const splitChapterModeItems = Object.getOwnPropertyDescriptor(
+      HomePage.prototype,
+      'splitChapterModeItems',
+    )?.get;
+
+    expect(splitChapterModeItems?.call(ctx)?.map((item: { value: string }) => item.value)).toEqual([
+      'chapter',
+      'section',
+    ]);
+    expect(splitChapterModeItems?.call(ctx)?.find((item: { value: string }) => item.value === 'section')?.disabled).toBeUndefined();
+  });
+
+  it('keeps custom maximum size available for small EPUBs', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      splitAnalysis: signal({
+        fileSizeBytes: 512 * 1024,
+        units: [{}],
+        sections: [],
+        tocEntries: [],
+      }),
+      translate: { instant: (key: string) => key },
+    });
+
+    const getter = Object.getOwnPropertyDescriptor(
+      HomePage.prototype,
+      'splitMaximumSizeItems',
+    )?.get;
+    const customItem = getter?.call(ctx)?.find((item: { value: string }) => item.value === 'custom');
+
+    expect(customItem?.disabled).toBeUndefined();
+  });
+
+  it('refreshes workflow labels from the active translation set', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      translate: {
+        instant: (key: string) => key,
+      },
+    });
+    const refreshWorkflowStepLabels = (
+      HomePage.prototype as unknown as {
+        refreshWorkflowStepLabels: () => void;
+      }
+    ).refreshWorkflowStepLabels;
+
+    refreshWorkflowStepLabels.call(ctx);
+
+    expect(ctx.workflowSteps[0].label).toBe('HOME.STEPPER.MERGE_SPLIT');
+    expect(ctx.splitWorkflowStep.label).toBe('HOME.SPLIT_HOW_TO');
+    expect(ctx.splitConfirmStep.label).toBe('HOME.STEPPER.CONFIRM');
+    expect(ctx.splitCoverStep.label).toBe('HOME.STEPPER.COVER');
+    expect(ctx.splitAdjustStep.label).toBe('HOME.STEPPER.ADJUST');
+  });
+
   it('uses a workflow title only after files are loaded', () => {
     const ctx = Object.assign(Object.create(HomePage.prototype), {
       selectedMode: signal<'merge' | 'split' | null>(null),
@@ -60,7 +263,7 @@ describe('HomePage', () => {
     expect(ctx.clearPickerError).toHaveBeenCalled();
   });
 
-  it('preflights, merges, and registers the generated EPUB before opening the library', async () => {
+  it('preflights, merges, and registers the generated EPUB before showing feedback', async () => {
     const preflightMerge = jasmine.createSpy('preflightMerge').and.resolveTo({});
     const mergeEpubs = jasmine.createSpy('mergeEpubs').and.resolveTo({
       outputPath: '/tmp/merged.epub',
@@ -69,7 +272,7 @@ describe('HomePage', () => {
     });
     const saveExportedEpub = jasmine
       .createSpy('saveExportedEpub')
-      .and.resolveTo(undefined);
+      .and.resolveTo({ id: 'saved', filename: 'merged.epub' });
     const cleanupWorkingCopy = jasmine
       .createSpy('cleanupWorkingCopy')
       .and.resolveTo(undefined);
@@ -109,7 +312,7 @@ describe('HomePage', () => {
         cleanupWorkingCopy,
       },
       epubLibrary: { saveExportedEpub },
-      router: { navigateByUrl: jasmine.createSpy('navigateByUrl').and.resolveTo(true) },
+      completeOperation: jasmine.createSpy('completeOperation'),
     });
 
     const runMerge = (
@@ -128,8 +331,139 @@ describe('HomePage', () => {
       '/tmp/merged.epub',
       'merged.epub',
     );
-    expect(ctx.router.navigateByUrl).toHaveBeenCalledWith('/tabs/my-epubs');
+    expect(ctx.completeOperation).toHaveBeenCalledWith('merge', [
+      { id: 'saved', filename: 'merged.epub' },
+    ]);
     expect(cleanupWorkingCopy).toHaveBeenCalledTimes(2);
+  });
+
+  it('normalizes the selected split plan and persists all generated EPUBs together', async () => {
+    const splitEpubs = jasmine.createSpy('splitEpubs').and.resolveTo([
+      {
+        id: 'operation:1',
+        outputPath: '/tmp/part-1.epub',
+        outputName: 'Book - 1.epub',
+        title: 'Chapter 1',
+        size: 10,
+      },
+      {
+        id: 'operation:2',
+        outputPath: '/tmp/part-2.epub',
+        outputName: 'Book - 2.epub',
+        title: 'Chapter 2',
+        size: 11,
+      },
+    ]);
+    const saveExportedEpubs = jasmine
+      .createSpy('saveExportedEpubs')
+      .and.resolveTo([
+        { id: 'saved-1', filename: 'Book - 1.epub' },
+        { id: 'saved-2', filename: 'Book - 2.epub' },
+      ]);
+    const cleanupWorkingCopy = jasmine
+      .createSpy('cleanupWorkingCopy')
+      .and.resolveTo(undefined);
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      splitSelection: signal({
+        selectedName: 'Book.epub',
+        workingNativePath: '/tmp/source.epub',
+        outputBaseName: 'Book',
+      }),
+      splitAnalysis: signal({
+        units: [{ id: 'one' }, { id: 'two' }],
+        tocEntries: [],
+      }),
+      splitOutputPreviews: signal([
+        { number: 1, title: 'Chapter 1', startUnit: 0, endUnit: 0 },
+        { number: 2, title: 'Chapter 2', startUnit: 1, endUnit: 1 },
+      ]),
+      epubRewrite: {
+        isSupported: () => true,
+        splitEpubs,
+      },
+      epubWorkingCopy: {
+        buildOutputFile: jasmine
+          .createSpy('buildOutputFile')
+          .and.callFake((name: string) =>
+            Promise.resolve({
+              path: 'EpubWork/' + name + '.epub',
+              nativePath: '/tmp/' + name + '.epub',
+            }),
+          ),
+        cleanupWorkingCopy,
+      },
+      epubLibrary: { saveExportedEpubs },
+      mergeCoverRenderedFile: null,
+      createOperationId: () => 'operation',
+      completeOperation: jasmine.createSpy('completeOperation'),
+    });
+
+    await (HomePage.prototype as unknown as { runSplit: () => Promise<void> }).runSplit.call(ctx);
+
+    expect(splitEpubs).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        inputPath: '/tmp/source.epub',
+        outputs: [
+          jasmine.objectContaining({ spineItemIds: ['one'] }),
+          jasmine.objectContaining({ spineItemIds: ['two'] }),
+        ],
+      }),
+    );
+    expect(saveExportedEpubs).toHaveBeenCalledWith([
+      jasmine.objectContaining({ operation: 'split', operationId: 'operation', partIndex: 0 }),
+      jasmine.objectContaining({ operation: 'split', operationId: 'operation', partIndex: 1 }),
+    ]);
+    expect(ctx.completeOperation).toHaveBeenCalled();
+    expect(cleanupWorkingCopy).toHaveBeenCalledTimes(3);
+  });
+
+  it('keeps nested TOC entries and fragment targets in each split output', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {});
+    const buildSplitTocEntries = (
+      HomePage.prototype as unknown as {
+        buildSplitTocEntries: (analysis: unknown, preview: unknown) => unknown;
+      }
+    ).buildSplitTocEntries;
+    const entries = buildSplitTocEntries.call(ctx, {
+      units: [
+        { id: 'part-1', href: 'OPS/text/part-1.xhtml', order: 0 },
+        { id: 'chapter-1', href: 'OPS/text/chapter-1.xhtml', order: 1 },
+        { id: 'chapter-2', href: 'OPS/text/chapter-2.xhtml', order: 2 },
+      ],
+      tocEntries: [
+        {
+          id: 'part-i',
+          title: 'Part I',
+          href: 'OPS/text/part-1.xhtml',
+          spineItemId: 'part-1',
+          children: [
+            {
+              id: 'chapter-1-entry',
+              title: 'Chapter 1',
+              href: 'OPS/text/chapter-1.xhtml#section-3',
+              spineItemId: 'chapter-1',
+              children: [],
+            },
+          ],
+        },
+      ],
+    } as never, { startUnit: 0, endUnit: 1 } as never);
+
+    expect(entries).toEqual([
+      {
+        spineItemId: 'part-1',
+        title: 'Part I',
+        href: 'OPS/text/part-1.xhtml',
+        children: [
+          {
+            spineItemId: 'chapter-1',
+            title: 'Chapter 1',
+            href: 'OPS/text/chapter-1.xhtml#section-3',
+            children: [],
+          },
+        ],
+      },
+    ]);
   });
 
   it('opens the editing preview page only when a cover exists', () => {
@@ -217,11 +551,16 @@ describe('HomePage', () => {
       mergeCoverPreviewUrl: signal<string | undefined>(undefined),
       mergeCoverPreviewRevision: signal(0),
       isDetectingCoverCandidates: signal(false),
+      isMergeActionBusy: signal(false),
+      splitAnalysisPending: signal(false),
+      splitAnalysis: signal(null),
       bestCandidateDismissed: signal(false),
       candidateBlobUrls: new Set<string>(),
       previewEditingPage: { clear: jasmine.createSpy('clear') },
       pickerErrorKey: signal<string | null>('HOME.INPUT_ERROR_CORRUPT'),
       isPicking: signal(false),
+      operationFeedback: signal(null),
+      operationProgress: signal(null),
       mergeInput: { nativeElement: { value: 'merge-selection' } },
       splitInput: { nativeElement: { value: 'split-selection' } },
       cleanupSelection: jasmine
@@ -240,6 +579,38 @@ describe('HomePage', () => {
     expect(ctx.cleanupSelection).toHaveBeenCalledWith(firstSelection);
     expect(ctx.cleanupSelection).toHaveBeenCalledWith(secondSelection);
     expect(ctx.cleanupSelection).toHaveBeenCalledWith(splitSelection);
+  });
+
+  it('keeps the reset spinner active until cleanup completes', async () => {
+    let finishCleanup!: () => void;
+    const cleanup = new Promise<void>((resolve) => {
+      finishCleanup = resolve;
+    });
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      isResettingFlow: signal(false),
+      editorSessionExit: {
+        confirmResetFlow: jasmine
+          .createSpy('confirmResetFlow')
+          .and.resolveTo(true),
+      },
+      clearFlowState: jasmine.createSpy('clearFlowState').and.returnValue(cleanup),
+    });
+
+    const resetPromise = HomePage.prototype.resetFlow.call(ctx);
+    await Promise.resolve();
+    await new Promise<void>((resolve) => {
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    });
+
+    expect(ctx.isResettingFlow()).toBeTrue();
+    expect(ctx.clearFlowState).toHaveBeenCalledOnceWith();
+
+    finishCleanup();
+    await resetPromise;
+
+    expect(ctx.isResettingFlow()).toBeFalse();
   });
 
   it('prepares every EPUB returned by the merge input', async () => {
@@ -393,7 +764,7 @@ describe('HomePage', () => {
 
     expect(ctx.coverSourceMode()).toBe('scratch');
     expect(ctx.selectedCoverCandidateId()).toBeUndefined();
-    expect(ctx.openEditor).toHaveBeenCalledOnceWith('scratch');
+    expect(ctx.openEditor).toHaveBeenCalledOnceWith('scratch', 'new-cover', 3);
   });
 
   it('loads a cover image and opens the editor in image mode', async () => {
@@ -419,7 +790,7 @@ describe('HomePage', () => {
     expect(ctx.applyMergeCoverSource).toHaveBeenCalledOnceWith(image);
     expect(ctx.coverSourceMode()).toBe('image');
     expect(ctx.selectedCoverCandidateId()).toBeUndefined();
-    expect(ctx.openEditor).toHaveBeenCalledOnceWith('image');
+    expect(ctx.openEditor).toHaveBeenCalledOnceWith('image', 'new-cover', 3);
   });
 
   it('shows the rewarded ad before merging for free users', async () => {
@@ -428,6 +799,7 @@ describe('HomePage', () => {
       .and.resolveTo({ rewardEarned: true, adClosed: true, failed: false });
     const ctx = Object.assign(Object.create(HomePage.prototype), {
       isMergeActionBusy: signal(false),
+      operationProgress: signal(null),
       isPicking: signal(false),
       adsRemoved: false,
       ads: { showRewarded },
@@ -445,6 +817,7 @@ describe('HomePage', () => {
     const showRewarded = jasmine.createSpy('showRewarded');
     const ctx = Object.assign(Object.create(HomePage.prototype), {
       isMergeActionBusy: signal(false),
+      operationProgress: signal(null),
       isPicking: signal(false),
       adsRemoved: true,
       ads: { showRewarded },
@@ -455,6 +828,48 @@ describe('HomePage', () => {
 
     expect(showRewarded).not.toHaveBeenCalled();
     expect(ctx.runMerge).toHaveBeenCalled();
+    expect(ctx.isMergeActionBusy()).toBeFalse();
+  });
+
+  it('shows the rewarded ad before splitting for free users', async () => {
+    const showRewarded = jasmine
+      .createSpy('showRewarded')
+      .and.resolveTo({ rewardEarned: true, adClosed: true, failed: false });
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      splitCanExecute: signal(true),
+      isPicking: signal(false),
+      isMergeActionBusy: signal(false),
+      operationProgress: signal(null),
+      pickerErrorKey: signal<string | null>(null),
+      adsRemoved: false,
+      ads: { showRewarded },
+      runSplit: jasmine.createSpy('runSplit').and.resolveTo(undefined),
+    });
+
+    await HomePage.prototype.onSplitExport.call(ctx);
+
+    expect(showRewarded).toHaveBeenCalled();
+    expect(ctx.runSplit).toHaveBeenCalled();
+    expect(ctx.isMergeActionBusy()).toBeFalse();
+  });
+
+  it('skips the rewarded ad for Pro split exports', async () => {
+    const showRewarded = jasmine.createSpy('showRewarded');
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      splitCanExecute: signal(true),
+      isPicking: signal(false),
+      isMergeActionBusy: signal(false),
+      operationProgress: signal(null),
+      pickerErrorKey: signal<string | null>(null),
+      adsRemoved: true,
+      ads: { showRewarded },
+      runSplit: jasmine.createSpy('runSplit').and.resolveTo(undefined),
+    });
+
+    await HomePage.prototype.onSplitExport.call(ctx);
+
+    expect(showRewarded).not.toHaveBeenCalled();
+    expect(ctx.runSplit).toHaveBeenCalled();
     expect(ctx.isMergeActionBusy()).toBeFalse();
   });
 });

@@ -35,7 +35,17 @@ const WINDOWS_1252_MAP = new Map<number, number>([
 ]);
 
 export function hasSuspiciousQuestionMark(value: string, baseValue = ""): boolean {
+  // Query strings and regular expressions legitimately contain `?` between
+  // letters (for example `jpe?g` and URL parameters).
+  if (/(?:https?|market):\/\/|jpe\?g/iu.test(value)) {
+    return false;
+  }
+
   if (!value.includes("?")) {
+    return false;
+  }
+
+  if (value.includes("¿")) {
     return false;
   }
 
@@ -81,6 +91,8 @@ const STRONG_NEEDLES = [
   "Ã¯Â¿Â½",
 ];
 
+const REENCODED_CHARACTERS = /[\u0080-\u00ff\u0152\u0153\u0160\u0161\u0178\u017d\u0192\u02c6\u02dc\u2018-\u201e\u2020-\u2022\u2030\u2039\u203a\u2122]/gu;
+
 function countNeedles(value: string, needle: string): number {
   let count = 0;
   let start = 0;
@@ -121,6 +133,11 @@ export function scoreCorruption(value: string): number {
       score += 36;
     }
   }
+
+  // Single-pass UTF-8/Windows-1252 corruption may not contain Ã/Â markers.
+  // Keep this contribution small so it only becomes actionable when a
+  // reversible repair also exists.
+  score += (value.match(REENCODED_CHARACTERS)?.length ?? 0) * 4;
 
   return score;
 }
@@ -198,7 +215,11 @@ function canAcceptRepair(original: string, candidate: string): boolean {
 
   const originalScore = scoreCorruption(original);
   const candidateScore = scoreCorruption(candidate);
-  return originalScore - candidateScore >= 24;
+  const artifactImprovement =
+    (original.match(REENCODED_CHARACTERS)?.length ?? 0) -
+    (candidate.match(REENCODED_CHARACTERS)?.length ?? 0);
+
+  return originalScore - candidateScore >= 24 || artifactImprovement >= 2;
 }
 
 export function suggestRepair(
@@ -206,10 +227,6 @@ export function suggestRepair(
   maxPasses = 3
 ): RepairSuggestion | undefined {
   const originalScore = scoreCorruption(value);
-  if (originalScore === 0) {
-    return undefined;
-  }
-
   const queue: Candidate[] = [{ value, steps: [] }];
   const seen = new Set<string>([value]);
   let best: RepairSuggestion | undefined;

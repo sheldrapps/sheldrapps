@@ -15,6 +15,7 @@ export function provideUiThemeI18n() {
       useValue: () => {
         const translate = inject(TranslateService);
         const registered = new Set<string>();
+        let registering = false;
 
         const registerLang = (lang: string) => {
           const dict = UI_THEME_TRANSLATIONS[lang] ?? UI_THEME_TRANSLATIONS['en-US'];
@@ -28,8 +29,13 @@ export function provideUiThemeI18n() {
           }
 
           registered.add(lang);
-          translate.setTranslation(lang, dict, true);
-          translate.setTranslation(lang, tripleButtonDict, true);
+          registering = true;
+          try {
+            translate.setTranslation(lang, dict, true);
+            translate.setTranslation(lang, tripleButtonDict, true);
+          } finally {
+            registering = false;
+          }
         };
 
         try {
@@ -37,6 +43,20 @@ export function provideUiThemeI18n() {
 
           translate.onLangChange.subscribe((event) => {
             registerLang(event.lang);
+          });
+
+          translate.onTranslationChange.subscribe((event) => {
+            if (
+              !registering &&
+              event.lang &&
+              !Object.prototype.hasOwnProperty.call(
+                event.translations ?? {},
+                'UI_THEME',
+              )
+            ) {
+              registered.delete(event.lang);
+              registerLang(event.lang);
+            }
           });
         } catch (error) {
           console.warn('[ui-theme] Failed to register ui-theme translations:', error);

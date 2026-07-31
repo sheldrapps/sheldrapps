@@ -1,24 +1,13 @@
 <ion-header>
   <ion-toolbar>
-    @if (hasLoadedFiles()) {
-      <ion-buttons slot="start">
-        <ion-back-button
-          defaultHref="/tabs/home"
-          [disabled]="isPicking()"
-          (click)="cancelWorkflow()"
-          [text]="''"
-          [attr.aria-label]="'COMMON.CANCEL' | translate"
-        ></ion-back-button>
-      </ion-buttons>
-    }
-
-    <ion-title>{{ getPageTitleKey() | translate }}</ion-title>
+    <ion-title class="home-page-title">{{ getPageTitleKey() | translate }}</ion-title>
     <ion-buttons slot="end" class="app-header-tools">
       <sh-scrollable-button-bar
         [items]="headerItems"
         variant="iconText"
         align="start"
         edge="end"
+        [disabled]="isResettingFlow()"
         (selectItem)="onHeaderItemClick($event)"
       ></sh-scrollable-button-bar>
     </ion-buttons>
@@ -36,6 +25,57 @@
   </div>
 
   <div class="home__stack">
+    @if (operationFeedback(); as feedback) {
+      <section class="operation-feedback" aria-live="polite">
+        @if (feedback.status === 'success') {
+          <sh-cover-image-state
+            [previewUrl]="feedback.previewUrl"
+            [fallbackLabelKey]="'MY_EPUBS.PLACEHOLDER'"
+            [titleKey]="operationFeedbackTitleKey"
+            [ariaLabelKey]="operationFeedbackTitleKey"
+          ></sh-cover-image-state>
+          <p class="split-confirm__summary">
+            {{
+              operationFeedbackBodyKey
+                | translate:
+                    (feedback.operation === 'split'
+                      ? { count: feedback.outputs.length }
+                      : undefined)
+            }}
+          </p>
+
+          <div class="split-output-card app-surface">
+            <div class="field-title">
+              {{ 'HOME.OPERATION.OUTPUTS_TITLE' | translate }}
+            </div>
+            <ul class="split-output-card__list">
+              @for (output of feedback.outputs; track output.id) {
+                <li class="split-output-card__item">
+                  <span class="split-output-card__title">{{ output.filename }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        } @else {
+          <sh-action-card
+            class="operation-feedback__error"
+            [title]="operationFeedbackTitleKey | translate"
+            [description]="operationFeedbackBodyKey | translate"
+            icon="close-outline"
+            [selected]="true"
+            [ariaLabel]="operationFeedbackTitleKey | translate"
+          ></sh-action-card>
+        }
+
+        <ion-button
+          class="app-btn"
+          expand="block"
+          (click)="onOperationFeedbackDone()"
+        >
+          {{ 'COMMON.DONE' | translate }}
+        </ion-button>
+      </section>
+    } @else {
     @if (!hasLoadedFiles()) {
       <section class="home-action-section" aria-labelledby="home-action-title">
         <div class="field-title">
@@ -118,7 +158,6 @@
         <sh-cover-source-actions
           [titleKey]="null"
           [showTitle]="false"
-          [tourId]="null"
           [imageDisabled]="isPicking()"
           [scratchDisabled]="isPicking()"
           [suggestedAction]="getCoverSourceSuggestedAction()"
@@ -181,24 +220,284 @@
       </section>
       }
     } @else if (selectedMode() === 'split') {
-      <sh-file-picker-panel
-        [title]="'HOME.EPUB_FILE_TITLE' | translate"
-        [selected]="!!splitSelection()"
-        [disabled]="isPicking()"
-        [invalid]="!!pickerErrorKey()"
-        [actionLabel]="splitSelection()?.selectedName ?? null"
-        [actionSubline]="
-          splitSelection() ? ('HOME.TAP_TO_CHANGE' | translate) : null
-        "
-        [actionPlaceholder]="'HOME.SELECT_EPUB_PLACEHOLDER' | translate"
-        [actionAriaLabel]="
-          splitSelection()
-            ? ('HOME.ARIA_CHANGE_EPUB'
-              | translate: { name: splitSelection()?.selectedName })
-            : ('HOME.ARIA_SELECT_EPUB' | translate)
-        "
-        (actionSelected)="openSplitPicker()"
-      ></sh-file-picker-panel>
+      @if (workflowStep === 0) {
+        <sh-file-picker-panel
+          [title]="'HOME.EPUB_FILE_TITLE' | translate"
+          [selected]="!!splitSelection()"
+          [disabled]="isPicking()"
+          [invalid]="!!pickerErrorKey()"
+          [actionLabel]="splitSelection()?.selectedName ?? null"
+          [actionSubline]="
+            splitSelection() ? ('HOME.TAP_TO_CHANGE' | translate) : null
+          "
+          [actionPlaceholder]="'HOME.SELECT_EPUB_PLACEHOLDER' | translate"
+          [actionAriaLabel]="
+            splitSelection()
+              ? ('HOME.ARIA_CHANGE_EPUB'
+                | translate: { name: splitSelection()?.selectedName })
+              : ('HOME.ARIA_SELECT_EPUB' | translate)
+          "
+          (actionSelected)="openSplitPicker()"
+        ></sh-file-picker-panel>
+      }
+
+      @if (workflowStep === 1) {
+        <section class="split-method-section" aria-labelledby="split-method-title">
+          <div class="field-title" id="split-method-title">
+            {{ 'HOME.SPLIT_HOW_TO_TITLE' | translate }}
+          </div>
+
+          <sh-selectable-button-list
+            [items]="splitMethodItems"
+            [value]="splitMethod"
+            [ariaLabel]="'HOME.SPLIT_HOW_TO_TITLE' | translate"
+            (valueChange)="onSplitMethodChange($event)"
+          ></sh-selectable-button-list>
+        </section>
+      }
+
+      @if (workflowStep === 2) {
+        <section class="split-confirm-section" aria-labelledby="split-confirm-title">
+          <div class="field-title" id="split-confirm-title">
+            {{ splitConfirmTitleKey | translate }}
+          </div>
+
+          @if (splitAnalysisPending()) {
+            <p class="split-confirm__hint">{{ 'HOME.SPLIT_CONFIRM.ANALYZING' | translate }}</p>
+          } @else if (splitAnalysis()) {
+            <p class="split-confirm__summary">{{ splitSummaryLine }}</p>
+          }
+
+          @if (splitMethod === 'by-chapters-or-sections') {
+            <sh-selectable-button-list
+              [items]="splitChapterModeItems"
+              [value]="splitChapterMode"
+              [ariaLabel]="'HOME.SPLIT_CONFIRM.VARIANT_LABEL' | translate"
+              selectedIconName="radio-button-on"
+              (valueChange)="onSplitChapterModeChange($event)"
+            ></sh-selectable-button-list>
+
+          }
+
+          @if (splitMethod === 'manual-split-points') {
+            <p class="split-confirm__hint">{{ 'HOME.SPLIT_CONFIRM.MANUAL_HINT' | translate }}</p>
+            <sh-selectable-button-list
+              [items]="splitManualPointItems"
+              [value]="null"
+              [values]="splitManualPointValues"
+              selectionMode="multiple"
+              [ariaLabel]="'HOME.SPLIT_CONFIRM.MANUAL_TITLE' | translate"
+              (valuesChange)="onSplitManualPointsChange($event.slice(1))"
+            ></sh-selectable-button-list>
+          }
+
+          @if (splitMethod === 'equal-parts') {
+            <p class="split-confirm__hint">{{ 'HOME.SPLIT_CONFIRM.EQUAL_HELP' | translate }}</p>
+            <sh-selectable-button-list
+              [items]="splitEqualPartsItems"
+              [value]="splitEqualPartsSelection"
+              [expandedValue]="splitEqualPartsSelection"
+              [ariaLabel]="'HOME.SPLIT_CONFIRM.EQUAL_TITLE' | translate"
+              selectedIconName="radio-button-on"
+              (valueChange)="onSplitEqualPartsChange($event)"
+            >
+              <ng-template>
+                <div class="split-custom-option">
+                  <div class="split-custom-control">
+                    <ion-input
+                      class="split-custom-control__input"
+                      type="number"
+                      inputmode="numeric"
+                      min="2"
+                      step="1"
+                      [max]="splitUnitCount"
+                      [value]="splitEqualPartsValue"
+                      [attr.aria-label]="'HOME.SPLIT_CONFIRM.RESULT_COUNT' | translate"
+                      (keydown)="onSplitIntegerKeydown($event)"
+                      (ionInput)="onSplitEqualPartsInput($any($event).detail.value)"
+                    ></ion-input>
+                    <span class="split-custom-control__suffix">
+                      {{ 'HOME.SPLIT_CONFIRM.PARTS_UNIT' | translate }}
+                    </span>
+                  </div>
+                  @if (splitEqualPartsErrorKey()) {
+                    <p class="split-confirm__validation split-custom-option__validation">
+                      {{ splitEqualPartsErrorKey()! | translate: { max: splitUnitCount } }}
+                    </p>
+                  }
+                </div>
+              </ng-template>
+            </sh-selectable-button-list>
+          }
+
+          @if (splitMethod === 'maximum-file-size') {
+            <p class="split-confirm__hint">{{ 'HOME.SPLIT_CONFIRM.MAXIMUM_SIZE_HELP' | translate }}</p>
+            <sh-selectable-button-list
+              [items]="splitMaximumSizeItems"
+              [value]="splitMaximumSizeSelection"
+              [expandedValue]="splitMaximumSizeSelection"
+              [ariaLabel]="'HOME.SPLIT_CONFIRM.MAXIMUM_SIZE_TITLE' | translate"
+              selectedIconName="radio-button-on"
+              (valueChange)="onSplitMaximumSizeChange($event)"
+            >
+              <ng-template>
+                <div class="split-custom-option">
+                  <div class="split-custom-control">
+                    <ion-input
+                      class="split-custom-control__input"
+                      type="number"
+                      inputmode="numeric"
+                      min="1"
+                      step="1"
+                      [value]="splitMaximumSize"
+                      [attr.aria-label]="'HOME.SPLIT_CONFIRM.CUSTOM_SIZE' | translate"
+                      (keydown)="onSplitIntegerKeydown($event)"
+                      (ionInput)="onSplitMaximumSizeInput($any($event).detail.value)"
+                    ></ion-input>
+                    <span class="split-custom-control__suffix">
+                      {{ 'HOME.SPLIT_CONFIRM.MEGABYTES_UNIT' | translate }}
+                    </span>
+                  </div>
+                  @if (splitMaximumSizeErrorKey()) {
+                    <p class="split-confirm__validation split-custom-option__validation">
+                      {{ splitMaximumSizeErrorKey()! | translate }}
+                    </p>
+                  }
+                </div>
+              </ng-template>
+            </sh-selectable-button-list>
+            <p class="split-confirm__hint">{{ 'HOME.SPLIT_CONFIRM.APPROXIMATE_SIZE' | translate }}</p>
+          }
+
+          @if (splitAnalysis() && splitOutputPreviews().length > 0) {
+            <div class="split-preview split-output-card app-surface" aria-live="polite">
+              <div class="field-title">{{ 'HOME.SPLIT_CONFIRM.ESTIMATED_RESULT' | translate: { count: splitOutputPreviews().length } }}</div>
+              <ul class="split-output-card__list">
+              @for (output of (splitPreviewExpanded() ? splitOutputPreviews() : splitOutputPreviews().slice(0, 3)); track output.number) {
+                <li class="split-output-card__item">
+                  <span class="split-output-card__title">{{ output.title }}</span>
+                  @if (splitMethod === 'maximum-file-size') {
+                    <span class="split-output-card__size">≈ {{ formatMegabytes(output.sizeBytes) }}</span>
+                  }
+                </li>
+              }
+              </ul>
+              @if (splitOutputPreviews().length > 3) {
+                <ion-button fill="clear" size="small" (click)="toggleSplitPreview()">
+                  {{ (splitPreviewExpanded() ? 'HOME.SPLIT_CONFIRM.SHOW_FEWER_OUTPUTS' : 'HOME.SPLIT_CONFIRM.MORE_OUTPUTS') | translate: { count: splitOutputPreviews().length } }}
+                </ion-button>
+              }
+            </div>
+          }
+
+          @if (splitAnalysis() && splitOutputPreviews().length < 2) {
+            <p class="split-confirm__validation">{{ 'HOME.SPLIT_CONFIRM.NEEDS_TWO_OUTPUTS' | translate }}</p>
+          }
+
+        </section>
+      }
+
+      @if (workflowStep === 3) {
+        <section class="cover-selector-section" aria-labelledby="split-cover-selector-title">
+          <div class="field-title" id="split-cover-selector-title">
+            {{ 'HOME.STEPPER.COVER' | translate }}
+          </div>
+
+          <sh-cover-source-actions
+            [titleKey]="null"
+            [showTitle]="false"
+            [imageDisabled]="isPicking()"
+            [scratchDisabled]="isPicking()"
+            [suggestedAction]="getCoverSourceSuggestedAction()"
+            (imageSelected)="onCoverImageSelected()"
+            (scratchSelected)="onCoverScratchSelected()"
+          ></sh-cover-source-actions>
+
+          @if (shouldShowBestCandidatePicker()) {
+            <div class="field-title" id="split-best-candidate-title">
+              {{ 'HOME.BEST_CANDIDATES_TITLE' | translate }}
+            </div>
+            <best-candidate-picker
+              aria-labelledby="split-best-candidate-title"
+              [candidates]="coverCandidates()"
+              [loading]="isDetectingCoverCandidates()"
+              [disabled]="isPicking() || isDetectingCoverCandidates()"
+              [selectedCandidateId]="selectedCoverCandidateId()"
+              [showReasons]="false"
+              [showHeader]="false"
+              [compact]="true"
+              [enableLongPressPreview]="true"
+              (candidateSelected)="onBestCandidateSelected($event)"
+              (candidatePreviewRequested)="onBestCandidatePreviewRequested($event)"
+            ></best-candidate-picker>
+          }
+
+          @if (epubCoverChanger(); as ecc) {
+            <sh-recommended-app-card
+              [appName]="'HOME.SPLIT_COVER.ECC_TITLE' | translate"
+              [icon]="ecc.icon"
+              [description]="'HOME.SPLIT_COVER.ECC_DESCRIPTION' | translate"
+              [actionLabel]="'HOME.SPLIT_COVER.OPEN_ECC' | translate"
+              [actionAriaLabel]="'HOME.SPLIT_COVER.OPEN_ECC' | translate"
+              (action)="openEpubCoverChanger()"
+            ></sh-recommended-app-card>
+          }
+
+        </section>
+      }
+
+      @if (workflowStep === 5) {
+        <section class="merge-result-section" aria-labelledby="split-execution-title">
+          <div class="field-title" id="split-execution-title">
+            {{ 'HOME.SPLIT_STEP.TITLE' | translate }}
+          </div>
+
+          <sh-cover-image-state
+            [titleKey]="'HOME.PREVIEW_TITLE'"
+            [ariaLabelKey]="'HOME.PREVIEW_TITLE'"
+            [previewUrl]="mergeCoverPreviewUrl()"
+            [previewRevision]="mergeCoverPreviewRevision()"
+            (previewRequested)="openPreview()"
+          ></sh-cover-image-state>
+
+          <p class="split-confirm__summary">
+            {{ 'HOME.SPLIT_STEP.SUMMARY' | translate: { count: splitOutputPreviews().length } }}
+          </p>
+
+          @if (splitOutputPreviews().length > 0) {
+            <div class="split-output-card app-surface" aria-live="polite">
+              <div class="field-title">
+                {{ 'HOME.SPLIT_STEP.OUTPUTS_TITLE' | translate }}
+              </div>
+              <ul class="split-output-card__list">
+              @for (output of splitOutputPreviews(); track output.number) {
+                <li class="split-output-card__item">
+                  <span class="split-output-card__title">{{ output.title }}</span>
+                  @if (splitMethod === 'maximum-file-size') {
+                    <span class="split-output-card__size">{{ formatMegabytes(output.sizeBytes) }}</span>
+                  }
+                </li>
+              }
+              </ul>
+            </div>
+          }
+
+          <ion-button expand="block" fill="outline" (click)="onWorkflowPrevious()">
+            {{ 'HOME.SPLIT_STEP.BACK_TO_CONFIRM' | translate }}
+          </ion-button>
+          <ion-button
+            expand="block"
+            [disabled]="!splitCanExecute() || isPicking() || isMergeActionBusy()"
+            (click)="onSplitExport()"
+          >
+            <ion-icon slot="start" name="sparkles-outline"></ion-icon>
+            {{ 'HOME.SPLIT' | translate }}
+            @if (!adsRemoved) {
+              ({{ 'COMMON.WATCH_AD_SUBTITLE' | translate }})
+            }
+          </ion-button>
+        </section>
+      }
     }
 
     @if (pickerErrorKey()) {
@@ -218,6 +517,7 @@
           <div class="app-callout__body">{{ pickerErrorKey()! | translate }}</div>
         </div>
       </div>
+    }
     }
   </div>
 
@@ -248,14 +548,29 @@
 
   <div class="home__workflow-navigation">
     <sh-workflow-navigation
-    [showPrevious]="showWorkflowPrevious"
-    [showNext]="showWorkflowNext"
-    [previousDisabled]="false"
-    [nextDisabled]="false"
+      [showPrevious]="!operationFeedback() && showWorkflowPrevious"
+      [showNext]="!operationFeedback() && showWorkflowNext"
+      [previousDisabled]="false"
+      [nextDisabled]="workflowNextDisabled"
     [previousLabel]="workflowPreviousLabel"
     [nextLabel]="workflowNextLabel"
       (previous)="onWorkflowPrevious()"
       (next)="onWorkflowNext()"
     ></sh-workflow-navigation>
   </div>
+
+  @if (isMergeActionBusy() && operationProgress()) {
+    <sh-loading-state
+      variant="fullscreen"
+      [label]="operationProgressLabelKey | translate"
+      [detail]="operationProgressDetail"
+    ></sh-loading-state>
+  }
+
+  @if (isResettingFlow()) {
+    <sh-loading-state
+      variant="fullscreen"
+      [label]="'UI_THEME.RESETTING' | translate"
+    ></sh-loading-state>
+  }
 </ion-content>

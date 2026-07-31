@@ -24,6 +24,7 @@ export declare function buildHomeHeaderItems(
     guideLabel?: string;
     recommendedLabel?: string;
     infoLabel?: string;
+    resetLabel?: string;
     includeGuide?: boolean;
   }
 ): Array<{ id: string; label: string; icon: string }>;
@@ -33,6 +34,7 @@ export declare function handleHomeHeaderAction(
     closeInfo: () => void;
     toggleInfo: () => void;
     navigateToRecommended: () => Promise<void>;
+    resetFlow: () => Promise<void> | void;
   }
 ): Promise<void>;
 export declare function openRecommendedApp(

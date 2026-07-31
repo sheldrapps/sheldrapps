@@ -20,7 +20,8 @@
     "REMOVE_ADS_RESTORE": "Restaurar compra",
     "REMOVE_ADS_RESTORED": "Compra restaurada com sucesso.",
     "REMOVE_ADS_TITLE": "Remover anúncios",
-    "REMOVE_ADS_CTA_TITLE": "Remover anúncios",
+   "REMOVE_ADS_CTA_TITLE": "Remover anúncios",
+    "UPGRADE_TO_PRO": "Fazer upgrade para Pro",
     "REMOVE_ADS_CTA_SUBTITLE": "Pagamento único ⬢ Para sempre",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Pagamento único ⬢ {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "Preço: {{price}} ⬢ Sem assinatura",
@@ -316,7 +317,6 @@
     "REQUISITES_HINT": "Configurações necessárias para que as capas funcionem corretamente no Kindle",
     "REQUISITES_SECTION": "Requisitos",
     "TITLE": "Configurações",
-    "VIEW_TOUR": "Ver tour",
     "HOW_TO_USE": "Como usar?"
   },
   "TABS": {

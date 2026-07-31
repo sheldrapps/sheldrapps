@@ -28,32 +28,14 @@
         <h2 class="recommended-category-title">{{ categoryLabel(category) }}</h2>
         <ion-list class="recommended-app-list app-surface" lines="none">
           @for (app of appsForCategory(category); track app.packageName) {
-            <ion-item class="recommended-app-item" detail="false" lines="none">
-          <div class="recommended-item-content">
-            <h1 class="recommended-app-title">{{ getAppName(app) }}</h1>
-            <div class="recommended-item-grid">
-              <div class="recommended-app-icon">
-                <img [src]="app.icon" [alt]="getAppName(app)" />
-              </div>
-              <p class="recommended-app-description">{{ getDescription(app) }}</p>
-              <div class="recommended-store-row">
-                <ion-button
-                  class="recommended-store-action-button"
-                  fill="clear"
-                  size="small"
-                  (click)="openUrl(app.playStoreUrl)"
-                  [attr.aria-label]="t.OPEN_PLAY_STORE + ' - ' + getAppName(app)"
-                >
-                  <span class="recommended-store-action-label">{{ t.OPEN_PLAY_STORE }}:</span>
-                  <ion-icon
-                    class="recommended-store-icon"
-                    [src]="playStoreIconSrc"
-                  ></ion-icon>
-                </ion-button>
-              </div>
-            </div>
-          </div>
-            </ion-item>
+            <sh-recommended-app-card
+              [appName]="getAppName(app)"
+              [icon]="app.icon"
+              [description]="getDescription(app)"
+              [actionLabel]="t.OPEN_PLAY_STORE"
+              [actionAriaLabel]="t.OPEN_PLAY_STORE + ' - ' + getAppName(app)"
+              (action)="openUrl(app.playStoreUrl)"
+            ></sh-recommended-app-card>
           }
         </ion-list>
       }

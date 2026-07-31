@@ -13,6 +13,47 @@ type CompositionSource = {
   naturalHeight: number;
 };
 
+export type ResolvedCompositionTarget = CropTarget & {
+  output: "target" | "source";
+  unit: NonNullable<CropTarget["unit"]>;
+  outputMode: NonNullable<CropTarget["outputMode"]>;
+};
+
+/** Compatibility boundary for targets persisted before explicit output modes. */
+export function resolveCompositionTarget(
+  target: CropTarget,
+): ResolvedCompositionTarget {
+  const outputMode =
+    target.outputMode ??
+    (target.output === "source" ? "aspect-only" : "fixed-size");
+  const output = outputMode === "aspect-only" ? "source" : "target";
+  const unit = target.unit ?? (outputMode === "fixed-size" ? "px" : "ratio");
+
+  return { ...target, output, unit, outputMode };
+}
+
+export function isValidCompositionTarget(target: CropTarget): boolean {
+  const resolved = resolveCompositionTarget(target);
+  if (
+    !Number.isFinite(resolved.width) ||
+    !Number.isFinite(resolved.height) ||
+    resolved.width <= 0 ||
+    resolved.height <= 0
+  ) {
+    return false;
+  }
+
+  if (resolved.outputMode === "fixed-size") {
+    return resolved.unit === "px";
+  }
+
+  return (
+    resolved.unit === "ratio" ||
+    resolved.unit === "mm" ||
+    resolved.unit === "in"
+  );
+}
+
 export type CompositionInputArgs = {
   file: File;
   target: CropTarget;
@@ -20,6 +61,7 @@ export type CompositionInputArgs = {
   naturalWidth: number;
   naturalHeight: number;
   frameFallback?: FrameFallback;
+  sourceIsRaster?: boolean;
 };
 
 export type CompositionInputSourceSet = {
@@ -33,6 +75,7 @@ export type CompositionInputForPurposeArgs = {
   target: CropTarget;
   state: CoverCropState;
   frameFallback?: FrameFallback;
+  sourceIsRaster?: boolean;
 };
 
 type FrameDimensions = {
@@ -211,11 +254,14 @@ export function buildCompositionInput(
     state.rot,
   );
 
-  const normalizedTarget: CropTarget = {
+  const normalizedTarget = resolveCompositionTarget({
     width: target.width,
     height: target.height,
     output: target.output,
-  };
+    unit: target.unit,
+    outputMode: target.outputMode,
+  });
+  if (!isValidCompositionTarget(normalizedTarget)) return null;
 
   return {
     file,
@@ -226,6 +272,7 @@ export function buildCompositionInput(
     naturalWidth,
     naturalHeight,
     state,
+    sourceIsRaster: args.sourceIsRaster ?? true,
   };
 }
 
@@ -244,5 +291,6 @@ export function buildCompositionInputForPurpose(
     naturalWidth: source.naturalWidth,
     naturalHeight: source.naturalHeight,
     frameFallback: args.frameFallback,
+    sourceIsRaster: args.sourceIsRaster,
   });
 }

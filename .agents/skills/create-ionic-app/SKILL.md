@@ -105,6 +105,19 @@ Rules:
 4. Keep any static informational section separate from the button list only when the section is not an action row.
 5. Use local `ion-item` markup only when the app has a deliberate legacy screen or a non-action informational row that cannot be expressed as a shared button item.
 
+## Toast flow
+
+When the scaffold needs transient feedback, use the shared toast presentation used by the utility apps.
+
+Rules:
+
+1. Inject `ToastController` and translate the message through `TranslateService.instant()`; do not hardcode visible toast text.
+2. Use `position: 'middle'`, `animated: true`, and `translucent: true`.
+3. Use `cssClass: ['cc-toast', `cc-toast--${variant}`]` with `success`, `error`, or `info` according to the outcome.
+4. Use an explicit duration, defaulting to `1800` ms for action feedback; preserve a shorter intentional duration only for flows such as the double-back exit confirmation.
+5. Ensure `src/global.scss` loads the shared toast styles through `@sheldrapps/ui-theme/styles/toast` or the shared index that forwards them.
+6. If a toast is used as a guarded repeated action, retain a reference and clear it on `onDidDismiss()` so duplicate overlays are not stacked.
+
 ## Android startup hardening
 
 Always scaffold the Android launch surface so the app does not start on a black frame.
@@ -142,12 +155,14 @@ Rules:
 2. Keep Android-specific initialization in `main.native.ts`, not in `AppComponent`, page constructors, or page lifecycle hooks.
 3. Use a bootstrap barrier for theme, language, and other startup state that must complete before first render.
 4. Prefer `APP_INITIALIZER` or an equivalent bootstrap gate when theme or language must resolve before Angular paints.
-5. Keep `AppComponent` focused on routing, shell behavior, document title, and blur-on-navigation cleanup.
-6. Do not duplicate startup policy between `main.ts` and `main.native.ts`; extract shared bootstrap/providers so both entrypoints call the same setup.
-7. If the app has `main.native.ts`, include cold-start screenshot validation in the scaffold checklist.
-8. When the app uses the shared `@sheldrapps/ui-theme` system bars behavior, initialize `EdgeToEdgeService` before `ThemeService.initialize()` so the status bar and nav bar react to the resolved theme from first paint.
-9. Do not mix the shared edge-to-edge/theme flow with ad-hoc `StatusBar.setOverlaysWebView({ overlay: false })` startup logic unless the product explicitly wants a non-edge-to-edge shell.
-10. Use the same status bar strategy across sibling utility apps unless the brief explicitly asks for a different Android shell behavior.
+5. When Android launcher aliases are present, localize the `app_name` resource used by the enabled `system` alias in Android `values-*` folders for every supported locale; this makes the label correct before Angular starts.
+6. After applying the resolved initial language, call `syncLauncherAlias(language)` when Android launcher aliases are present; this keeps the installed app label aligned with the detected or persisted locale.
+7. Keep `AppComponent` focused on routing, shell behavior, document title, and blur-on-navigation cleanup.
+8. Do not duplicate startup policy between `main.ts` and `main.native.ts`; extract shared bootstrap/providers so both entrypoints call the same setup.
+9. If the app has `main.native.ts`, include cold-start screenshot validation in the scaffold checklist.
+10. When the app uses the shared `@sheldrapps/ui-theme` system bars behavior, initialize `EdgeToEdgeService` before `ThemeService.initialize()` so the status bar and nav bar react to the resolved theme from first paint.
+11. Do not mix the shared edge-to-edge/theme flow with ad-hoc `StatusBar.setOverlaysWebView({ overlay: false })` startup logic unless the product explicitly wants a non-edge-to-edge shell.
+12. Use the same status bar strategy across sibling utility apps unless the brief explicitly asks for a different Android shell behavior.
 
 ## Ionic dependency alignment
 
@@ -188,13 +203,14 @@ Rules:
    - update `LanguageService` with the selected language
    - show the restart countdown/loading state
    - call the shared restart helper for the selected locale
-7. No-op when the chosen language is invalid, missing, already active, or a restart is already in progress.
-8. Preserve the current bootstrap behavior:
+7. On cold start, after applying the detected or persisted language, synchronize the native launcher alias with `syncLauncherAlias(language)` when the app declares locale-specific aliases.
+8. No-op when the chosen language is invalid, missing, already active, or a restart is already in progress.
+9. Preserve the current bootstrap behavior:
    - initialize language in app bootstrap
    - if no stored language exists, detect a supported device locale
    - persist the detected language to settings before applying it
    - set the translation default language and then apply the active language through the kit
-9. Keep document language, translation service, and app restart behavior aligned with the shared kit, not local one-offs.
+10. Keep document language, translation service, and app restart behavior aligned with the shared kit, not local one-offs.
 
 ## Privacy policy flow intake
 

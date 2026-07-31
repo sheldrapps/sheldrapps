@@ -18,7 +18,8 @@
     "REMOVE_ADS_RESTORE": "Restaurar compra",
     "REMOVE_ADS_RESTORED": "Compra restaurada com sucesso.",
     "REMOVE_ADS_TITLE": "Remover anúncios",
-    "REMOVE_ADS_CTA_TITLE": "Remover anúncios",
+   "REMOVE_ADS_CTA_TITLE": "Remover anúncios",
+    "UPGRADE_TO_PRO": "Fazer upgrade para Pro",
     "REMOVE_ADS_CTA_SUBTITLE": "Pagamento único ⬢ Para sempre",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Pagamento único ⬢ {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "Preço: {{price}} ⬢ Sem assinatura",
@@ -62,7 +63,7 @@
     "IMAGE_ERROR_SIZE": "O arquivo é muito grande. Máximo {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Formato não compatível ({{type}}). Selecione JPG, PNG ou WebP.",
     "IMAGE_WARN_SMALL": "A imagem pode ser pequena demais para alguns dispositivos.",
-    "NO_COVER_DETECTED_ADDED": "Nenhuma capa detectada. Uma nova capa foi adicionada a este PDF.",
+    "RENAMED_OK": "PDF renomeado",
     "PDF_ERROR_STORAGE": "Espaco de armazenamento insuficiente. Necessario {{requiredMB}} MB, disponivel {{availableMB}} MB.",
     "LOADING_PDF": "Carregando PDF…",
     "LOADING_IMAGE": "Carregando imagem…",
@@ -218,7 +219,6 @@
     }
   },
   "SETTINGS": {
-    "VIEW_TOUR": "Ver tour",
     "INSTRUCTIONS": "Ver instruções",
     "INSTRUCTIONS_HINT": "Como criar e enviar uma capa para Kindle",
     "INSTRUCTIONS_SECTION": "Instruções",

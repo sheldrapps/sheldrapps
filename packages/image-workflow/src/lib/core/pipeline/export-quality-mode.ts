@@ -41,6 +41,20 @@ export const EXPORT_QUALITY_OPTIONS: ExportQualityOption[] = [
   },
 ];
 
+export function toEditorRenderQuality(
+  mode: ExportQualityMode | null | undefined,
+): import('../../types').EditorRenderQuality {
+  switch (mode) {
+    case 'thumbnail':
+      return 'thumbnail';
+    case 'best':
+      return 'high-quality';
+    case 'compressed':
+    default:
+      return 'recommended';
+  }
+}
+
 export function canUseExportQualityMode(
   mode: ExportQualityMode,
   isPro: boolean,

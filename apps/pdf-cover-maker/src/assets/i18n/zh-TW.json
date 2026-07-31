@@ -5,30 +5,31 @@
   "COMMON": {
     "BACK_AGAIN_TO_EXIT": "再按一次返回以退出",
     "CANCEL": "取消",
-    "CLOSE": "é—œé–‰",
-    "DELETE": "åˆªé™¤",
+    "CLOSE": "關閉",
+    "DELETE": "刪除",
     "DONE": "完成",
-    "ERROR": "éŒ¯èª¤",
+    "ERROR": "錯誤",
     "LOADING": "載入中…",
     "BILLING_UNAVAILABLE": "目前無法購買。",
     "PURCHASE_ERROR": "無法完成購買，請再試一次。",
-    "REMOVE_ADS_BUY": "è³¼è²·",
+    "REMOVE_ADS_BUY": "購買",
     "REMOVE_ADS_DESCRIPTION": "透過一次性付款永久移除廣告，並啟用無損/壓縮匯出選擇。",
     "REMOVE_ADS_PURCHASED": "廣告已永久移除。",
     "REMOVE_ADS_RESTORE": "恢復購買",
     "REMOVE_ADS_RESTORED": "購買已成功恢復。",
     "REMOVE_ADS_TITLE": "移除廣告",
-    "REMOVE_ADS_CTA_TITLE": "移除廣告",
+   "REMOVE_ADS_CTA_TITLE": "移除廣告",
+    "UPGRADE_TO_PRO": "升級至 Pro",
     "REMOVE_ADS_CTA_SUBTITLE": "一次性付款 • 永久有效",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "一次性付款 • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "價格：{{price}} • 無訂閱",
     "RESTORE_ERROR": "無法恢復購買，請再試一次。",
-    "PRO_ONLY": "å°ˆæ¥­ç‰ˆ",
-    "WATCH_AD_SUBTITLE": "è§€çœ‹å»£å‘Š",
-    "SHARE": "åˆ†äº«",
+    "PRO_ONLY": "專業版",
+    "WATCH_AD_SUBTITLE": "觀看廣告",
+    "SHARE": "分享",
     "SHARE_KINDLE_HINT": "分享時，請選擇 Kindle 應用程式以傳送至您的裝置。",
-    "WARNING": "è­¦å‘Š",
-    "EDIT_PROJECT_TITLE": "ä½ æƒ³å¦‚ä½•ç·¨è¼¯é€™å€‹æª”æ¡ˆï¼Ÿ",
+    "WARNING": "警告",
+    "EDIT_PROJECT_TITLE": "你想如何編輯這個檔案？",
     "EDIT_PROJECT_MESSAGE": "請選擇要覆蓋目前檔案，還是先保留一份副本。",
     "EDIT_PROJECT_OVERWRITE": "覆蓋",
     "EDIT_PROJECT_OVERWRITE_DESC": "將變更直接儲存到現有檔案。",
@@ -36,28 +37,28 @@
     "EDIT_PROJECT_COPY_DESC": "保留原始檔案，並編輯一份新副本。"
   },
   "CHANGE": {
-    "ADS_REQUIRED": "å»£å‘Šç„¡æ³•è¼‰å…¥ï¼Œè«‹æª¢æŸ¥æ‚¨çš„ç¶²è·¯æˆ–å»£å‘Šæ””æˆªå™¨ã€‚",
+    "ADS_REQUIRED": "廣告無法載入，請檢查您的網路或廣告攔截器。",
     "ARIA_CHANGE_PDF": "製作 PDF 檔案。目前檔案：{{name}}",
     "ARIA_CHANGE_IMAGE": "製作封面圖片。目前圖片：{{name}}",
     "ARIA_CROP": "調整選取的圖片",
     "ARIA_SELECT_PDF": "選取 PDF 檔案",
     "ARIA_SELECT_IMAGE": "選取封面圖片",
-    "CROP_ACTION": "èª¿æ•´",
+    "CROP_ACTION": "調整",
     "COVER_CHANGED": "封面已製作，您現在可以儲存或分享",
     "CHANGE_ACTION": "製作封面",
     "CHANGE_ACTION_REWARDED": "製作封面（觀看廣告）",
     "GENERATING": "正在更新封面…",
     "HINT_SAVE_SHARE_EXPLAIN": "製作封面不會自動儲存。",
-    "INFO": "è³‡è¨Š",
+    "INFO": "資訊",
     "INFO_ARIA": "關於製作封面的資訊",
-    "INFO_TITLE": "è³‡è¨Š",
+    "INFO_TITLE": "資訊",
     "INFO_FLOW_LABEL": "建議順序：",
     "INFO_STEP_1": "選取 PDF。",
     "INFO_STEP_1_1": "1.1. 原始封面會預先載入。",
     "INFO_STEP_1_2": "1.2. 製作圖片或保留原始圖片。",
     "INFO_STEP_2": "在編輯器中調整圖片。",
     "INFO_STEP_3": "觀看廣告以儲存封面。",
-    "INFO_STEP_4": "å„²å­˜æˆ–åˆ†äº«ã€‚",
+    "INFO_STEP_4": "儲存或分享。",
     "IMAGE_ERROR_CORRUPT": "無法讀取圖片，請嘗試其他圖片。",
     "IMAGE_ERROR_SIZE": "檔案過大，最大 {{maxSize}} MB。",
     "IMAGE_ERROR_TYPE": "不支援的格式（{{type}}），請選取 JPG、PNG 或 WebP。",
@@ -65,20 +66,20 @@
     "IMAGE_WARN_INVALID_PDF_COVER": "無效的 PDF 封面。點一下以選擇新圖片。",
     "PDF_ERROR_CORRUPT": "無法讀取 PDF 檔案。請嘗試其他檔案。",
     "PDF_ERROR_NO_COVER": "此 PDF 檔案不包含可替換的封面。",
-    "NO_COVER_DETECTED_ADDED": "未偵測到封面，已為此 PDF 新增封面。",
+    "RENAMED_OK": "已重新命名 PDF",
     "PDF_ERROR_REWRITE": "無法處理 PDF 檔案。請再試一次。",
     "PDF_ERROR_STORAGE": "儲存空間不足，需要 {{requiredMB}} MB，可用 {{availableMB}} MB。",
-    "PDF_ERROR_SIZE": "æª”æ¡ˆå¤ªå¤§ã€‚æœ€å¤§ {{maxSize}} MBã€‚",
+    "PDF_ERROR_SIZE": "檔案太大。最大 {{maxSize}} MB。",
     "PDF_ERROR_TYPE": "不支援的 PDF 檔案。",
     "LOADING_PDF": "正在載入 PDF…",
-    "PDF_LOADING_COPY": "æ­£åœ¨è¤‡è£½å¤§åž‹ PDF æª”æ¡ˆ...",
+    "PDF_LOADING_COPY": "正在複製大型 PDF 檔案...",
     "PDF_LOADING_INSPECT": "正在檢查 PDF 結構...",
     "LOADING_IMAGE": "正在載入圖片…",
     "OPENING_EDITOR": "正在開啟編輯器…",
     "CHANGING_COVER": "正在製作封面...",
     "GETTING_COVER": "正在取得封面",
     "SAVING": "正在儲存封面…",
-    "SELECT_PDF_LABEL": "PDF æª”æ¡ˆ",
+    "SELECT_PDF_LABEL": "PDF 檔案",
     "PDF_FILE_TITLE": "我們要使用哪個 PDF？",
     "PDF_VALIDATION_HINT": "僅限 PDF · .pdf · 最大 5 GB",
     "BEST_CANDIDATE_TITLE": "或者……從你自己的 PDF 中選擇一個。",
@@ -118,7 +119,7 @@
     "SELECT_IMAGE_PLACEHOLDER": "選取圖片",
     "INVALID_COVER_TAP_TO_CHANGE": "封面無效，請點擊修改",
     "TAP_TO_CHANGE": "點擊以製作／重設",
-    "TAP_TO_CHANGE_IMAGE": "é»žæ“Šä»¥è£½ä½œ",
+    "TAP_TO_CHANGE_IMAGE": "點擊以製作",
     "LONGPRESS_PREVIEW_HINT": "長按即可預覽",
     "TITLE": "製作封面",
     "PREVIEW_ORIGINAL_LABEL": "原始封面",
@@ -129,23 +130,23 @@
     "SOURCE_SCRATCH": "Scratch"
   },
   "COVERS": {
-    "DELETED": "PDF å·²åˆªé™¤",
+    "DELETED": "PDF 已刪除",
     "EMPTY": "應用程式中找不到封面。重新安裝前建立的檔案可能因系統限制而無法顯示。",
-    "GENERATE_THUMB": "ç”¢ç”Ÿç¸®åœ–",
+    "GENERATE_THUMB": "產生縮圖",
     "LOADING_PREVIEW": "正在載入預覽...",
     "PLACEHOLDER": "PDF",
     "PREVIEW_UNAVAILABLE": "預覽無法使用。",
-    "TITLE": "æˆ‘çš„ PDF",
+    "TITLE": "我的 PDF",
     "DITHERED_THUMBNAIL_NOTICE": "套用瑕疵減少的封面在縮圖中可能看起來不同。請開啟預覽以查看更準確的結果。",
     "ACTIONS": {
-      "DELETE": "åˆªé™¤",
-      "SHARE": "åˆ†äº«",
-      "OPEN": "é–‹å•Ÿ",
+      "DELETE": "刪除",
+      "SHARE": "分享",
+      "OPEN": "開啟",
       "EDIT_PROJECT": "編輯"
     },
     "DELETE": {
       "MESSAGE": "確定要刪除此 PDF？",
-      "TITLE": "åˆªé™¤ PDF"
+      "TITLE": "刪除 PDF"
     },
     "ERROR": {
       "DELETE": "無法刪除 PDF，請再試一次。",
@@ -166,25 +167,25 @@
     "STEP_1": "選取 PDF 檔案（目前封面會預先載入）",
     "STEP_2": "調整已載入的封面，或選取新圖片並進行調整",
     "STEP_3": "觀看廣告以製作 PDF 中的封面",
-    "STEP_4": "å„²å­˜æˆ–åˆ†äº«æ›´æ–°å¾Œçš„ PDF",
+    "STEP_4": "儲存或分享更新後的 PDF",
     "STEP_4_DESC": "完成後，您可以將其儲存至裝置，或直接透過 Kindle 應用程式分享，以獲得更順暢的體驗。",
     "STEP_5": "透過網頁傳送（Send to Kindle）",
     "STEP_5_DESC": "您也可以在瀏覽器中使用 Send to Kindle 網頁工具傳送。",
     "TIP": "為獲得最佳效果，請使用高解析度圖片，並確保 Kindle 裝置上的廣告已停用。",
-    "TITLE": "ä½¿ç”¨èªªæ˜Ž"
+    "TITLE": "使用說明"
   },
   "HOME_TOUR": {
     "CONTROLS": {
-      "BACK": "è¿”å›ž",
+      "BACK": "返回",
       "FINISH": "完成",
-      "INTERACT_HINT": "èˆ‡é†’ç›®é¡¯ç¤ºçš„å…ƒç´ äº’å‹•ä»¥ç¹¼çºŒã€‚",
+      "INTERACT_HINT": "與醒目顯示的元素互動以繼續。",
       "NEXT": "下一步",
       "PROGRESS": "{{current}} / {{total}}",
       "SKIP": "略過"
     },
     "STEPS": {
       "PDF": {
-        "TITLE": "PDF æª”æ¡ˆ",
+        "TITLE": "PDF 檔案",
         "DESCRIPTION": "選取您要更新的 PDF 檔案。"
       },
       "IMAGE": {
@@ -192,7 +193,7 @@
         "DESCRIPTION": "選取封面圖片。"
       },
       "ADJUST": {
-        "TITLE": "èª¿æ•´",
+        "TITLE": "調整",
         "DESCRIPTION": "在編輯器中調整圖片，然後點擊完成。"
       },
       "CREATE": {
@@ -200,15 +201,15 @@
         "DESCRIPTION": "在此產生新封面。"
       },
       "RESULTS": {
-        "TITLE": "å„²å­˜æˆ–åˆ†äº«",
-        "DESCRIPTION": "å„²å­˜æˆ–åˆ†äº«æ‚¨æ›´æ–°å¾Œçš„ PDFã€‚"
+        "TITLE": "儲存或分享",
+        "DESCRIPTION": "儲存或分享您更新後的 PDF。"
       },
       "EXPORT": {
         "TITLE": "匯出品質",
         "DESCRIPTION": "免費匯出會使用 Standard。移除廣告即可解鎖無損／壓縮匯出選項。"
       },
       "REMOVE_ADS_CLOSE": {
-        "TITLE": "æš«æ™‚é—œé–‰",
+        "TITLE": "暫時關閉",
         "DESCRIPTION": "目前先使用免費版即可。你不一定要購買。"
       },
       "COVER_MODE": {
@@ -218,24 +219,23 @@
     }
   },
   "SETTINGS": {
-    "INSTRUCTIONS": "æŸ¥çœ‹èªªæ˜Ž",
+    "INSTRUCTIONS": "查看說明",
     "INSTRUCTIONS_HINT": "如何為 Kindle 製作並傳送封面",
-    "INSTRUCTIONS_SECTION": "èªªæ˜Ž",
+    "INSTRUCTIONS_SECTION": "說明",
     "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
     "EREADER_OPTIMIZATION_HINT": "套用自動調整以改善封面效果",
-    "EREADER_OPTIMIZATION_TOGGLE": "æœ€ä½³åŒ–",
-    "TITLE": "設定",
-    "VIEW_TOUR": "æŸ¥çœ‹å°Žè¦½"
+    "EREADER_OPTIMIZATION_TOGGLE": "最佳化",
+    "TITLE": "設定"
   },
   "TABS": {
-    "COVERS": "æˆ‘çš„ PDF",
-    "CHANGE": "è£½ä½œ",
+    "COVERS": "我的 PDF",
+    "CHANGE": "製作",
     "SETTINGS": "設定"
   },
   "ARR": {
     "TOOLS": {
       "RECOMMENDED": "推薦",
-      "INFO": "è³‡è¨Š",
+      "INFO": "資訊",
       "APPS": "應用程式",
       "GUIDE": "指南"
     }

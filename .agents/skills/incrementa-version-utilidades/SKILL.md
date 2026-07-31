@@ -29,6 +29,7 @@ Alias soportados:
 - `ecc` -> `epub-cover-changer`
 - `jos` -> `just-one-step`
 - `ef` -> `epub-fixer`
+- `emas` -> `epub-merger-and-splitter`
 - `pn` -> `presupuesto-ninos`
 
 ## Source of truth

@@ -29,7 +29,8 @@
     "EDIT_PROJECT_OVERWRITE": "Sobreescribir",
     "EDIT_PROJECT_OVERWRITE_DESC": "Guarda los cambios encima del archivo existente.",
     "EDIT_PROJECT_COPY": "Trabajar con una copia",
-    "EDIT_PROJECT_COPY_DESC": "Conserva el archivo original y edita una copia nueva."
+    "EDIT_PROJECT_COPY_DESC": "Conserva el archivo original y edita una copia nueva.",
+    "UPGRADE_TO_PRO": "Actualizar a Pro"
   },
   "MY_EPUBS": {
     "TITLE": "Mis EPUBs",
@@ -79,7 +80,15 @@
     "SETTINGS": "Ajustes"
   },
   "HOME": {
-    "STEPPER": { "MERGE_SPLIT": "Unir / dividir", "SORT": "Ordenar", "TOC": "TOC", "COVER": "Portada", "ADJUST": "Ajustar", "JOIN": "Unir" },
+    "STEPPER": {
+      "MERGE_SPLIT": "Unir / dividir",
+      "SORT": "Ordenar",
+      "TOC": "Índice",
+      "COVER": "Portada",
+      "ADJUST": "Ajustar",
+      "JOIN": "Unir",
+      "CONFIRM": "Confirmar"
+    },
     "WHAT_DO_YOU_WANT_TO_DO": "¿Qué deseas hacer?",
     "MERGE": "Unir",
     "SPLIT": "Dividir",
@@ -103,7 +112,122 @@
     "COVER_SELECTOR_TITLE": "¿Desde dónde crear la portada?",
     "BEST_CANDIDATES_TITLE": "Sugerencias desde tus EPUBS",
     "ADJUST_COVER": "Ajustar portada",
-    "PREVIEW_TITLE": "Preview"
+    "PREVIEW_TITLE": "Vista previa",
+    "SPLIT_STEP": {
+      "TITLE": "Dividir",
+      "SUMMARY": "{{count}} EPUBs listos.",
+      "OUTPUTS_TITLE": "Archivos por crear",
+      "BACK_TO_CONFIRM": "← Volver a confirmar"
+    },
+    "SPLIT_COVER": {
+      "ECC_TITLE": "Cambiar portada de EPUB",
+      "ECC_DESCRIPTION": "Todos tus EPUBs tendrán la misma portada, para personalizar individualmente, usa nuestra app.",
+      "OPEN_ECC": "Probar app"
+    },
+    "SPLIT_HOW_TO": "Cómo dividir",
+    "SPLIT_HOW_TO_TITLE": "¿Cómo quieres dividir este EPUB?",
+    "SPLIT_OPTIONS": {
+      "BY_CHAPTERS_OR_SECTIONS": {
+        "TITLE": "Por capítulos o secciones",
+        "SUBLINE": "Usa el índice del libro."
+      },
+      "MANUAL_SPLIT_POINTS": {
+        "TITLE": "Elegir puntos de división",
+        "SUBLINE": "Agrupa los capítulos manualmente."
+      },
+      "EQUAL_PARTS": {
+        "TITLE": "En partes iguales",
+        "SUBLINE": "Elige cuántos EPUB crear."
+      },
+      "MAXIMUM_FILE_SIZE": {
+        "TITLE": "Por tamaño máximo",
+        "SUBLINE": "Crea archivos que no superen aproximadamente un tamaño."
+      }
+    },
+    "SPLIT_ANALYSIS_ERROR": "No se pudo analizar el índice de este EPUB.",
+    "SPLIT_EXPORT_NOT_AVAILABLE": "La configuración está lista, pero la exportación de EPUBs divididos aún no está disponible.",
+    "OPERATION": {
+      "OUTPUTS_TITLE": "EPUBs creados",
+      "MERGE_SUCCESS_TITLE": "EPUB unido correctamente",
+      "MERGE_SUCCESS_BODY": "Se creó una nueva copia con el contenido de los EPUB seleccionados.",
+      "SPLIT_SUCCESS_TITLE": "EPUB dividido correctamente",
+      "SPLIT_SUCCESS_BODY": "Se crearon {{count}} EPUBs nuevos.",
+      "MERGE_FAILURE_TITLE": "No se pudieron unir los EPUBs",
+      "MERGE_FAILURE_BODY": "No fue posible crear el EPUB final. Tus archivos originales no se modificaron.",
+      "SPLIT_FAILURE_TITLE": "No se pudo dividir el EPUB",
+      "SPLIT_FAILURE_BODY": "No fue posible crear todos los EPUBs. El archivo original no se modificó y no se guardaron resultados parciales.",
+      "PROGRESS": {
+        "PREPARING": "Preparando EPUB",
+        "ANALYZING": "Analizando EPUB",
+        "WRITING": "Creando EPUBs",
+        "VALIDATING": "Validando EPUBs",
+        "COMPLETED": "Completado",
+        "COUNT": "{{current}} de {{total}}"
+      }
+    },
+    "SPLIT_CONFIRM": {
+      "BY_CHAPTERS_TITLE": "¿Cómo quieres crear los EPUBs?",
+      "MANUAL_TITLE": "¿Dónde quieres iniciar un nuevo EPUB?",
+      "EQUAL_TITLE": "¿En cuántas partes quieres dividirlo?",
+      "MAXIMUM_SIZE_TITLE": "¿Qué tamaño máximo debe tener cada EPUB?",
+      "FILE_SUMMARY": "{{name}} · {{count}} capítulos · {{size}}",
+      "ANALYZING": "Analizando el orden de lectura y el índice…",
+      "BY_CHAPTER": "Por capítulos",
+      "BY_CHAPTER_SUBLINE": "Crea un EPUB independiente por cada capítulo.",
+      "BY_SECTION": "Por secciones",
+      "BY_SECTION_SUBLINE": "Agrupa los capítulos según las partes principales del índice.",
+      "BOOK_START": "Inicio del libro",
+      "BOOK_START_SUBLINE": "El EPUB 1 comienza aquí.",
+      "BEFORE_CHAPTER": "Antes de {{title}}",
+      "BEFORE_CHAPTER_SUBLINE": "Crear una división aquí.",
+      "EQUAL_HELP": "Los capítulos se repartirán de la forma más equilibrada posible.",
+      "PART_COUNT": "{{count}} partes",
+      "PART_COUNT_SUBLINE": "Aproximadamente {{count}} capítulos por EPUB.",
+      "CUSTOM_PART_COUNT": "Personalizado",
+      "CUSTOM_PART_COUNT_SUBLINE": "Elige otra cantidad de partes.",
+      "INVALID_PART_COUNT": "Introduce un número entero entre 2 y {{max}}.",
+      "MAXIMUM_SIZE_HELP": "El tamaño final puede variar por los recursos compartidos del libro.",
+      "MAXIMUM_SIZE_OPTION": "Hasta {{size}} MB",
+      "MAXIMUM_SIZE_OPTION_SUBLINE": "Se crearán aproximadamente {{count}} EPUBs.",
+      "CUSTOM_SIZE": "Tamaño personalizado",
+      "CUSTOM_SIZE_SUBLINE": "Introduce otro límite aproximado.",
+      "INVALID_MAXIMUM_SIZE": "Introduce un número entero positivo.",
+      "ESTIMATED_RESULT": "Se crearán {{count}} EPUBs",
+      "OUTPUT_NUMBER": "EPUB {{number}}",
+      "MORE_OUTPUTS": "Ver los {{count}} EPUBs",
+      "SHOW_FEWER_OUTPUTS": "Mostrar menos",
+      "NEEDS_TWO_OUTPUTS": "Selecciona una configuración que produzca al menos dos EPUBs.",
+      "BACK_TO_HOW_TO": "← Cómo dividir",
+      "SPLIT_EPUB": "Dividir EPUB →",
+      "TITLE": "Confirma cómo dividirlo",
+      "SAFE_SPLIT_HINT": "La primera versión divide solo entre documentos del orden de lectura.",
+      "TREE_LABEL": "Índice detectado",
+      "VARIANT_LABEL": "Variante de división",
+      "ONE_PER_CHAPTER": "Un EPUB por capítulo",
+      "ONE_PER_SECTION": "Un EPUB por sección principal",
+      "MANUAL_HINT": "Cada división inicia un EPUB nuevo.",
+      "SPLIT_HERE": "+ Dividir aquí",
+      "DIVIDED": "✓ División",
+      "EQUAL_HINT": "Las partes se equilibran aproximadamente por contenido y solo se cortan en límites seguros.",
+      "EQUAL_MODE_LABEL": "Modo de partes iguales",
+      "RESULT_COUNT": "Número de EPUB resultantes",
+      "PARTS_UNIT": "partes",
+      "MEGABYTES_UNIT": "MB",
+      "CHAPTERS_PER_FILE": "Capítulos por EPUB",
+      "SIZE_HINT": "Agrupa capítulos hasta acercarse al límite seleccionado.",
+      "SIZE_LABEL": "Tamaño máximo",
+      "SIZE_10": "10 MB",
+      "SIZE_25": "25 MB",
+      "SIZE_50": "50 MB",
+      "SIZE_CUSTOM": "Tamaño personalizado",
+      "APPROXIMATE_SIZE": "El tamaño es aproximado porque imágenes, fuentes y estilos pueden copiarse en varios resultados.",
+      "EXAMPLE_PART_ONE": "Parte I",
+      "EXAMPLE_CHAPTER_ONE": "Capítulo 1",
+      "EXAMPLE_CHAPTER_TWO": "Capítulo 2",
+      "EXAMPLE_PART_TWO": "Parte II",
+      "EXAMPLE_CHAPTER_THREE": "Capítulo 3",
+      "EXAMPLE_CHAPTER_FOUR": "Capítulo 4"
+    }
   },
   "TOC_OPTIONS": {
     "TITLE": "¿Qué hacer con el índice?",

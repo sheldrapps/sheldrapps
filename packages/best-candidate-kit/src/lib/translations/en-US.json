@@ -13,11 +13,11 @@
     "PICKER": {
       "TITLE": "Choose a possible cover",
       "DESCRIPTION": "We found images that may work as the book cover.",
-      "LONG_PRESS_HINT": "Long press an image to preview it.",
-      "UNKNOWN_IMAGE": "Unknown image",
-      "CANDIDATE_ALT": "Candidate image {{index}}",
+      "LONG_PRESS_HINT": "Tap to select",
       "NO_COVER_DETECTED": "No cover detected, tap to select one of the suggestions.",
-      "LONG_PRESS_TO_PREVIEW": "Long press to preview."
+      "LONG_PRESS_TO_PREVIEW": "Hold to preview",
+      "UNKNOWN_IMAGE": "Unknown image",
+      "CANDIDATE_ALT": "Candidate image {{index}}"
     },
     "REASON": {
       "FIRST_LARGE_IMAGE": "First large image",

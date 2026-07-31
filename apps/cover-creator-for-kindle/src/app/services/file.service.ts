@@ -5,6 +5,7 @@ import {
   EpubPublicStore,
   FileKitService,
   FileRef,
+  PUBLIC_FILESYSTEM,
   ensureDirectoriesExist,
   readSheldrCoverMetadata,
   type SheldrCoverMetadata,
@@ -122,6 +123,7 @@ type ResolvedDitherMetadata = {
 @Injectable({ providedIn: 'root' })
 export class FileService {
   private readonly EPUB_FOLDER = 'CoverCreator';
+  private readonly PUBLIC_WRITE_STAGING_FOLDER = 'CoverCreatorPublicStaging';
   private readonly COVER_FOLDER = 'CoverCreatorCovers';
   private readonly THUMB_FOLDER = 'CoverCreatorThumbs';
   private readonly PROJECT_FOLDER = 'CoverCreatorProjects';
@@ -132,6 +134,7 @@ export class FileService {
   private readonly APP_NAME = 'Cover creator for kindle';
 
   private fileKit = inject(FileKitService);
+  private readonly publicFilesystem = inject(PUBLIC_FILESYSTEM);
   private epubRewrite = inject(EpubRewriteService);
   private readonly thumbDataUrlCache = new Map<string, string>();
   private readonly resolvedPreviewCache = new Map<
@@ -147,6 +150,8 @@ export class FileService {
   private readonly OPTIMIZED_PREVIEW_MAX_SIDE = 1600;
   private readonly epubStore = new EpubPublicStore(this.fileKit, {
     epubFolder: this.EPUB_FOLDER,
+    useDocumentsDirectoryOnNative: true,
+    filesystem: this.publicFilesystem,
     debug: false,
     logPrefix: 'CCFK:file-kit',
   });
@@ -1503,6 +1508,11 @@ export class FileService {
   }
 
   private async listEpubsFromPublicDocuments(): Promise<string[]> {
+    if (this.epubRewrite.isSupported()) {
+      return (await this.epubRewrite.listPublicDocuments(this.EPUB_FOLDER))
+        .map((file) => file.name)
+        .sort((left, right) => left.localeCompare(right));
+    }
     this.debugLog('listEpubsFromPublicDocuments:start', {
       reloadAt: new Date().toISOString(),
       resolvedFolderPath: this.epubStore.publicFolderPath,
@@ -1530,10 +1540,25 @@ export class FileService {
     filename: string,
     bytes: Uint8Array,
   ): Promise<void> {
+    if (this.epubRewrite.isSupported()) {
+      const stagingPath = `${this.PUBLIC_WRITE_STAGING_FOLDER}/${Date.now()}_${filename}`;
+      try {
+        await this.fileKit.writeBytes({ dir: 'Data', path: stagingPath, bytes, mimeType: 'application/epub+zip' });
+        const sourcePath = await this.fileKit.getUri({ dir: 'Data', path: stagingPath });
+        await this.epubRewrite.publishPublicDocument({ folderName: this.EPUB_FOLDER, sourcePath, outputName: filename, mimeType: 'application/epub+zip' });
+      } finally {
+        try { await this.fileKit.delete({ dir: 'Data', path: stagingPath }); } catch {}
+      }
+      return;
+    }
     await this.epubStore.writeEpub(filename, bytes);
   }
 
   private async deletePublicEpub(filename: string): Promise<void> {
+    if (this.epubRewrite.isSupported()) {
+      await this.epubRewrite.deletePublicDocument(this.EPUB_FOLDER, filename);
+      return;
+    }
     await this.epubStore.deleteEpub(filename);
   }
 
@@ -1544,6 +1569,9 @@ export class FileService {
   }
 
   private async existsInPublicDocuments(filename: string): Promise<boolean> {
+    if (this.epubRewrite.isSupported()) {
+      try { await this.epubRewrite.getPublicDocument(this.EPUB_FOLDER, filename); return true; } catch { return false; }
+    }
     return this.epubStore.exists(filename);
   }
 
@@ -1558,6 +1586,9 @@ export class FileService {
   }
 
   private async getPublicEpubFileUriOrThrow(filename: string): Promise<string> {
+    if (this.epubRewrite.isSupported()) {
+      return (await this.epubRewrite.getPublicDocument(this.EPUB_FOLDER, filename)).uri;
+    }
     const uri = await this.epubStore.getUriOrThrow(filename);
     this.debugLog('getPublicEpubFileUriOrThrow', { filename, uri });
     return uri;

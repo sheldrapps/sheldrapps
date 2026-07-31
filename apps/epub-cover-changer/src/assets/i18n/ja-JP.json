@@ -1,14 +1,114 @@
 {
+  "PUBLISHING_CATALOG": {
+    "PLATFORMS": { "AMAZON_KDP": "Amazon KDP", "KOBO_WRITING_LIFE": "Kobo Writing Life", "APPLE_BOOKS": "Apple Books", "GOOGLE_PLAY_BOOKS": "Google Play Books", "BARNES_NOBLE_PRESS": "Barnes & Noble Press", "TOLINO_MEDIA": "Tolino Media", "RIDI": "RIDI / RIDIBOOKS", "DRAFT2DIGITAL": "Draft2Digital", "INGRAMSPARK": "IngramSpark", "PUBLISHDRIVE": "PublishDrive", "STREETLIB": "StreetLib", "LULU": "Lulu" },
+    "GROUPS": { "STORE_COVER": "ストア用カバー", "EBOOK_COVER": "電子書籍カバー", "EBOOK_AND_STORE_COVER": "電子書籍・ストア用カバー", "DISTRIBUTION_COVER": "配信用カバー", "EMBEDDED_COVER": "埋め込みカバー", "EXTERNAL_COVER": "外部カバー" },
+    "BADGES": { "IDEAL": "最適", "RECOMMENDED": "推奨", "COMPATIBLE": "対応", "ALTERNATIVE": "代替", "MINIMUM": "最小" },
+    "PRESETS": { "AMAZON_KDP_1600X2560": "1600 × 2560 px", "AMAZON_KDP_625X1000": "625 × 1000 px", "KOBO_WRITING_LIFE_1800X2400": "1800 × 2400 px", "APPLE_BOOKS_1600X2400": "1600 × 2400 px", "GOOGLE_PLAY_BOOKS_1600X2400": "1600 × 2400 px", "BARNES_NOBLE_PRESS_1600X2400": "1600 × 2400 px", "TOLINO_MEDIA_1600X2400": "1600 × 2400 px", "RIDI_1600X2560": "1600 × 2560 px", "RIDI_1200X1800": "1200 × 1800 px", "DRAFT2DIGITAL_1600X2400": "1600 × 2400 px", "INGRAMSPARK_1600X2560": "1600 × 2560 px", "PUBLISHDRIVE_EMBEDDED_1600X2400": "1600 × 2400 px", "PUBLISHDRIVE_STORE_1600X2560": "1600 × 2560 px", "STREETLIB_EMBEDDED_1200X1600": "1200 × 1600 px", "STREETLIB_EXTERNAL_1875X2500": "1875 × 2500 px", "LULU_1600X2560": "1600 × 2560 px", "LULU_625X1000": "625 × 1000 px" }
+  },
   "APP": {
     "TITLE": "EPUB Cover Changer"
   },
+  "ECC": { "RATIO_CATEGORIES": { "E_READERS": "電子書籍リーダー", "PUBLISHING": "出版", "PAPER": "用紙", "ASPECT_RATIO": "縦横比" } },
+  "CROP_SELECTORS": { "BRAND": "ブランド", "FAMILY": "ファミリー", "MODEL": "モデル", "PLATFORM": "プラットフォーム", "COVER_TYPE": "カバーの種類", "SIZE": "サイズ", "STANDARD": "規格", "SERIES": "シリーズ", "FORMAT": "形式", "ORIENTATION": "向き", "PORTRAIT": "縦", "LANDSCAPE": "横", "ASPECT_RATIO": "縦横比" },
+  "COMMON": { "RECOMMENDED": "おすすめ" },
+  "PUBLISHING_PLATFORMS": { "RIDI": "RIDI / RIDIBOOKS" },
+  "PUBLISHING_GROUPS": { "RIDI": { "EBOOK_COVER": "電子書籍カバー" } },
+  "PUBLISHING_PRESETS": { "RIDI_1600X2560": "1600 × 2560 px", "RIDI_1200X1800": "1200 × 1800 px" },
+  "PAPER_GROUPS": { "ISO_216": "ISO 216", "NORTH_AMERICAN": "北米", "ISO_A_SERIES": "Aシリーズ", "NORTH_AMERICAN_OFFICE": "北米オフィス規格" },
+  "PAPER_PRESETS": { "A3": "A3", "A4": "A4", "A5": "A5", "A6": "A6", "LETTER": "レター", "LEGAL": "リーガル", "TABLOID": "タブロイド" },
+  "RATIO_GROUPS": { "COMMON": "一般的な比率" },
+  "RATIO_PRESETS": { "1_1": "1:1", "2_3": "2:3", "3_4": "3:4", "4_5": "4:5", "5_7": "5:7", "5_8": "5:8", "9_16": "9:16", "CUSTOM": "カスタム" },
+  "RATIO_CUSTOM": { "TITLE": "カスタムの縦横比", "WIDTH": "幅", "HEIGHT": "高さ", "HELPER": "{{min}}〜{{max}}の整数を入力してください。" },
+  "KINDLE_BRANDS": {
+    "KINDLE": "Kindle"
+  },
+  "KINDLE_GROUPS": {
+    "BASIC": "Basic",
+    "OASIS": "Oasis",
+    "PAPERWHITE": "Paperwhite",
+    "PAPERWHITE_SIGNATURE": "Paperwhite Signature",
+    "SCRIBE": "Scribe",
+    "VOYAGE": "Voyage",
+    "COLORSOFT": "Colorsoft",
+    "COLORSOFT_SIGNATURE": "Colorsoft Signature"
+  },
+  "KINDLE_MODELS": {
+    "BASIC_2010_2019": "2010-2019",
+    "BASIC_2022_2024": "2022-2024",
+    "OASIS_2016": "2016",
+    "OASIS_2017_2019": "2017-2019",
+    "PAPERWHITE_2012_2013": "2012-2013",
+    "PAPERWHITE_2015_2019": "2015-2019",
+    "PAPERWHITE_2021": "2021",
+    "PAPERWHITE_2024": "2024",
+    "PAPERWHITE_SIGNATURE_2021": "2021",
+    "PAPERWHITE_SIGNATURE_2024": "2024",
+    "SCRIBE_2022_2024": "2022-2024",
+    "VOYAGE_2014": "2014",
+    "COLORSOFT": "2025",
+    "COLORSOFT_SIGNATURE_EDITION": "2024"
+  },
+  "KOBO_BRANDS": {
+    "KOBO": "Kobo"
+  },
+  "KOBO_GROUPS": {
+    "CLARA": "Clara",
+    "ELIPSA": "Elipsa",
+    "LIBRA": "Libra",
+    "NIA": "Nia",
+    "SAGE": "Sage"
+  },
+  "KOBO_MODELS": {
+    "CLARA_ALL": "Kobo Clara (HD / 2E / BW / Colour)",
+    "ELIPSA_ALL": "Kobo Elipsa (Elipsa / 2E)",
+    "LIBRA_ALL": "Kobo Libra (H2O / 2 / Colour)",
+    "NIA": "Kobo Nia",
+    "SAGE": "Kobo Sage"
+  },
+  "NOOK_BRANDS": {
+    "NOOK": "Nook"
+  },
+  "NOOK_GROUPS": {
+    "GLOWLIGHT": "GlowLight"
+  },
+  "NOOK_MODELS": {
+    "GLOWLIGHT_2013_2015": "Nook GlowLight (2013-2015)",
+    "GLOWLIGHT_2019_2023": "Nook GlowLight (2019-2023)"
+  },
+  "POCKETBOOK_BRANDS": {
+    "POCKETBOOK": "PocketBook"
+  },
+  "POCKETBOOK_GROUPS": {
+    "ERA": "Era",
+    "INKPAD": "InkPad",
+    "VERSE": "Verse"
+  },
+  "POCKETBOOK_MODELS": {
+    "ERA": "PocketBook Era",
+    "INKPAD_ALL": "PocketBook InkPad (All models)",
+    "VERSE": "PocketBook Verse",
+    "VERSE_PRO": "PocketBook Verse Pro"
+  },
+  "TOLINO_BRANDS": {
+    "TOLINO": "Tolino"
+  },
+  "TOLINO_GROUPS": {
+    "SHINE": "Shine",
+    "VISION": "Vision"
+  },
+  "TOLINO_MODELS": {
+    "SHINE_2014_2018": "Tolino Shine (2014-2018)",
+    "SHINE_HD": "Tolino Shine HD",
+    "VISION_2015_2018": "Tolino Vision (2015-2018)",
+    "VISION_2021_2024": "Tolino Vision (2021-2024)"
+  },
   "COMMON": {
     "BACK_AGAIN_TO_EXIT": "もう一度戻るで終了",
-    "CANCEL": "ã‚­ãƒ£ãƒ³ã‚»ãƒ«",
+    "CANCEL": "キャンセル",
     "CLOSE": "閉じる",
     "DELETE": "削除",
-    "DONE": "å®Œäº†",
-    "ERROR": "ã‚¨ãƒ©ãƒ¼",
+    "DONE": "完了",
+    "ERROR": "エラー",
     "LOADING": "読み込み中⬦",
     "BILLING_UNAVAILABLE": "現在、購入できません。",
     "PURCHASE_ERROR": "購入を完了できませんでした。もう一度お試しください。",
@@ -17,17 +117,18 @@
     "REMOVE_ADS_PURCHASED": "広告を永久に削除しました。",
     "REMOVE_ADS_RESTORE": "購入を復元",
     "REMOVE_ADS_RESTORED": "購入を正常に復元しました。",
-    "REMOVE_ADS_TITLE": "åºƒå‘Šã‚’å‰Šé™¤",
-    "REMOVE_ADS_CTA_TITLE": "åºƒå‘Šã‚’å‰Šé™¤",
+    "REMOVE_ADS_TITLE": "広告を削除",
+   "REMOVE_ADS_CTA_TITLE": "広告を削除",
+    "UPGRADE_TO_PRO": "Proにアップグレード",
     "REMOVE_ADS_CTA_SUBTITLE": "一回払い • 永久有効",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "一回払い • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "価格: {{price}} • サブスクなし",
     "RESTORE_ERROR": "購入を復元できませんでした。もう一度お試しください。",
     "PRO_ONLY": "PRO",
-    "WATCH_AD_SUBTITLE": "åºƒå‘Šã‚’è¦‹ã‚‹",
-    "SHARE": "å…±æœ‰",
+    "WATCH_AD_SUBTITLE": "広告を見る",
+    "SHARE": "共有",
     "SHARE_KINDLE_HINT": "共有時に Kindle アプリを選択してデバイスに送信してください。",
-    "WARNING": "è­¦å‘Š",
+    "WARNING": "警告",
     "EDIT_PROJECT_TITLE": "このファイルをどう編集しますか？",
     "EDIT_PROJECT_MESSAGE": "現在のファイルを置き換えるか、コピーで作業するかを選んでください。",
     "EDIT_PROJECT_OVERWRITE": "上書き",
@@ -42,15 +143,15 @@
     "ARIA_CROP": "選択した画像を調整",
     "ARIA_SELECT_EPUB": "EPUBファイルを選択",
     "ARIA_SELECT_IMAGE": "表紙画像を選択",
-    "CROP_ACTION": "èª¿æ•´",
+    "CROP_ACTION": "調整",
     "COVER_CHANGED": "表紙を変更しました。保存または共有できます",
     "CHANGE_ACTION": "表紙を変更",
-    "CHANGE_ACTION_REWARDED": "è¡¨ç´™ã‚’å¤‰æ›´ï¼ˆåºƒå‘Šã‚’è¦‹ã‚‹ï¼‰",
+    "CHANGE_ACTION_REWARDED": "表紙を変更（広告を見る）",
     "GENERATING": "表紙を更新中…",
     "HINT_SAVE_SHARE_EXPLAIN": "表紙の変更は自動的に保存されません。",
-    "INFO": "æƒ…å ±",
+    "INFO": "情報",
     "INFO_ARIA": "表紙変更に関する情報",
-    "INFO_TITLE": "æƒ…å ±",
+    "INFO_TITLE": "情報",
     "INFO_FLOW_LABEL": "推奨される手順:",
     "INFO_STEP_1": "EPUBを選択してください。",
     "INFO_STEP_1_1": "1.1. 元の表紙が事前に読み込まれます。",
@@ -65,7 +166,7 @@
     "IMAGE_WARN_INVALID_EPUB_COVER": "無効な EPUB カバーです。タップして新しい画像を選んでください。",
     "EPUB_ERROR_CORRUPT": "EPUB ファイルを読み取れませんでした。別のファイルをお試しください。",
     "EPUB_ERROR_NO_COVER": "この EPUB ファイルには置き換え可能なカバーが含まれていません。",
-    "NO_COVER_DETECTED_ADDED": "表紙が見つかりませんでした。このEPUBに新しい表紙を追加しました。",
+    "RENAMED_OK": "EPUB の名前を変更しました",
     "EPUB_ERROR_REWRITE": "EPUB ファイルを処理できませんでした。もう一度お試しください。",
     "EPUB_ERROR_STORAGE": "ストレージ容量が不足しています。必要: {{requiredMB}} MB、空き: {{availableMB}} MB。",
     "EPUB_ERROR_SIZE": "ファイルが大きすぎます。最大 {{maxSize}} MB。",
@@ -78,10 +179,10 @@
     "CHANGING_COVER": "表紙を変更中...",
     "GETTING_COVER": "表紙を取得中",
     "SAVING": "表紙を保存中…",
-    "SELECT_EPUB_LABEL": "EPUBãƒ•ã‚¡ã‚¤ãƒ«",
+    "SELECT_EPUB_LABEL": "EPUBファイル",
     "SELECT_EPUB_TITLE": "どの EPUB で作業しますか？",
     "BEST_CANDIDATE_TITLE": "または... 自分の EPUB から選択してください。",
-    "EPUB_FILE_TITLE": "EPUBãƒ•ã‚¡ã‚¤ãƒ«",
+    "EPUB_FILE_TITLE": "EPUBファイル",
     "COVER_SOURCE_TITLE": "何から表紙を作成しますか？",
     "EPUB_VALIDATION_HINT": "EPUBのみ · .epub · 最大2 GB",
     "PROCESSING_LARGE_EPUB": "大きな EPUB ファイルを処理しています...",
@@ -117,11 +218,11 @@
     "LOADING_PREVIEW": "プレビューを読み込み中...",
     "PLACEHOLDER": "EPUB",
     "PREVIEW_UNAVAILABLE": "プレビューは利用できません。",
-    "TITLE": "ãƒžã‚¤EPUB",
+    "TITLE": "マイEPUB",
     "DITHERED_THUMBNAIL_NOTICE": "アーティファクト低減を使った表紙は、サムネイルでは見え方が異なる場合があります。より正確な表示はプレビューで確認してください。",
     "ACTIONS": {
       "DELETE": "削除",
-      "SHARE": "å…±æœ‰",
+      "SHARE": "共有",
       "OPEN": "開く",
       "EDIT_PROJECT": "編集"
     },
@@ -157,16 +258,16 @@
   },
   "HOME_TOUR": {
     "CONTROLS": {
-      "BACK": "æˆ»ã‚‹",
-      "FINISH": "å®Œäº†",
+      "BACK": "戻る",
+      "FINISH": "完了",
       "INTERACT_HINT": "ハイライトされた要素を操作して続けてください。",
       "NEXT": "次へ",
       "PROGRESS": "{{current}} / {{total}}",
-      "SKIP": "ã‚¹ã‚­ãƒƒãƒ—"
+      "SKIP": "スキップ"
     },
     "STEPS": {
       "EPUB": {
-        "TITLE": "EPUBãƒ•ã‚¡ã‚¤ãƒ«",
+        "TITLE": "EPUBファイル",
         "DESCRIPTION": "更新したいEPUBファイルを選択してください。"
       },
       "IMAGE": {
@@ -174,7 +275,7 @@
         "DESCRIPTION": "表紙に使用する画像を選択してください。"
       },
       "ADJUST": {
-        "TITLE": "èª¿æ•´",
+        "TITLE": "調整",
         "DESCRIPTION": "エディタで画像を調整し、完了をタップしてください。"
       },
       "CREATE": {
@@ -202,19 +303,18 @@
     "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
     "EREADER_OPTIMIZATION_HINT": "表紙をより良くするために自動調整を適用します",
     "EREADER_OPTIMIZATION_TOGGLE": "最適化",
-    "TITLE": "設定",
-    "VIEW_TOUR": "ãƒ„ã‚¢ãƒ¼ã‚’è¦‹ã‚‹"
+    "TITLE": "設定"
   },
   "TABS": {
-    "COVERS": "ãƒžã‚¤EPUB",
+    "COVERS": "マイEPUB",
     "CHANGE": "変更",
     "SETTINGS": "設定"
   },
   "ARR": {
     "TOOLS": {
       "RECOMMENDED": "おすすめ",
-      "INFO": "æƒ…å ±",
-      "APPS": "ã‚¢ãƒ—ãƒª",
+      "INFO": "情報",
+      "APPS": "アプリ",
       "GUIDE": "ガイド"
     }
   }

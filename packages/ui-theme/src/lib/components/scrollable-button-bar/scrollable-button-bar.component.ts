@@ -77,7 +77,11 @@ export class ScrollableButtonBarComponent
   private onPointerDownBound?: (e: PointerEvent) => void;
   private onPointerMoveBound?: (e: PointerEvent) => void;
   private onPointerUpBound?: (e: PointerEvent) => void;
+  private onLostPointerCaptureBound?: (e: PointerEvent) => void;
   private rafId: number | null = null;
+  private nudgeRafId: number | null = null;
+  private isNudging = false;
+  private itemsSignature = "";
   private dragPointerId: number | null = null;
   private dragStartX = 0;
   private dragStartScrollLeft = 0;
@@ -95,7 +99,10 @@ export class ScrollableButtonBarComponent
     if (!el) return;
     this.viewReady = true;
 
-    this.onScrollBound = () => this.recalculateOverflow();
+    this.onScrollBound = () => {
+      if (!this.isNudging) this.cancelNudge();
+      this.recalculateOverflow();
+    };
     this.onResizeBound = () => this.scheduleRecalculate(this.edge === "end");
 
     el.addEventListener("scroll", this.onScrollBound, { passive: true });
@@ -104,12 +111,15 @@ export class ScrollableButtonBarComponent
     this.onPointerDownBound = (e: PointerEvent) => this.onPointerDown(e);
     this.onPointerMoveBound = (e: PointerEvent) => this.onPointerMove(e);
     this.onPointerUpBound = (e: PointerEvent) => this.onPointerUp(e);
-    el.addEventListener("pointerdown", this.onPointerDownBound);
+    this.onLostPointerCaptureBound = (e: PointerEvent) => this.onPointerUp(e);
+    el.addEventListener("pointerdown", this.onPointerDownBound, true);
     el.addEventListener("pointermove", this.onPointerMoveBound, {
+      capture: true,
       passive: false,
     });
-    el.addEventListener("pointerup", this.onPointerUpBound);
-    el.addEventListener("pointercancel", this.onPointerUpBound);
+    el.addEventListener("pointerup", this.onPointerUpBound, true);
+    el.addEventListener("pointercancel", this.onPointerUpBound, true);
+    el.addEventListener("lostpointercapture", this.onLostPointerCaptureBound);
 
     this.ro = new ResizeObserver(() =>
       this.scheduleRecalculate(this.edge === "end"),
@@ -120,7 +130,7 @@ export class ScrollableButtonBarComponent
       this.scheduleRecalculate(this.edge === "end"),
     );
 
-    // Wait 1 frame so scrollWidth/clientWidth are correct
+    this.itemsSignature = this.getItemsSignature();
     this.scheduleRecalculate(this.edge === "end", true);
     requestAnimationFrame(() => this.logDiagnostics("afterViewInit"));
   }
@@ -132,14 +142,17 @@ export class ScrollableButtonBarComponent
     if (this.onResizeBound)
       window.removeEventListener("resize", this.onResizeBound as any);
     if (el && this.onPointerDownBound)
-      el.removeEventListener("pointerdown", this.onPointerDownBound as any);
+      el.removeEventListener("pointerdown", this.onPointerDownBound as any, true);
     if (el && this.onPointerMoveBound)
-      el.removeEventListener("pointermove", this.onPointerMoveBound as any);
+      el.removeEventListener("pointermove", this.onPointerMoveBound as any, true);
     if (el && this.onPointerUpBound)
-      el.removeEventListener("pointerup", this.onPointerUpBound as any);
+      el.removeEventListener("pointerup", this.onPointerUpBound as any, true);
     if (el && this.onPointerUpBound)
-      el.removeEventListener("pointercancel", this.onPointerUpBound as any);
+      el.removeEventListener("pointercancel", this.onPointerUpBound as any, true);
+    if (el && this.onLostPointerCaptureBound)
+      el.removeEventListener("lostpointercapture", this.onLostPointerCaptureBound as any);
     if (this.rafId !== null) cancelAnimationFrame(this.rafId);
+    this.cancelNudge();
     this.ro?.disconnect();
     this.childRo?.disconnect();
     this.observedChildren.clear();
@@ -172,16 +185,14 @@ export class ScrollableButtonBarComponent
   ngOnChanges(changes: SimpleChanges): void {
     if (!this.viewReady) return;
     const itemsChanged = !!changes["items"];
-    if (itemsChanged) {
-      this.didNudge = false;
-    }
+    const contentChanged = itemsChanged && this.hasMeaningfulItemsChange();
     if (
       changes["items"] ||
       changes["order"] ||
       changes["edge"] ||
       changes["align"]
     ) {
-      this.scheduleRecalculate(this.edge === "end", itemsChanged);
+      this.scheduleRecalculate(this.edge === "end", contentChanged);
     }
   }
 
@@ -199,7 +210,7 @@ export class ScrollableButtonBarComponent
         this.scrollToEdgeEnd();
         this.recalculateOverflow();
       }
-      if (allowNudge) {
+      if (allowNudge || (this.hasOverflow && !this.didNudge)) {
         this.nudgeOnce();
       }
       this.cdr.markForCheck();
@@ -238,6 +249,8 @@ export class ScrollableButtonBarComponent
 
   private onPointerDown(e: PointerEvent): void {
     if (!this.hasOverflow) return;
+    this.cancelNudge();
+    if (e.pointerType !== "mouse") return;
     if (e.button !== 0) return;
 
     const el = this.scrollElRef?.nativeElement;
@@ -298,6 +311,7 @@ export class ScrollableButtonBarComponent
     if (el.scrollWidth <= el.clientWidth + 1) return;
 
     this.didNudge = true;
+    this.isNudging = true;
 
     const startScroll = el.scrollLeft;
     const direction = this.edge === "end" ? -1 : 1;
@@ -313,7 +327,7 @@ export class ScrollableButtonBarComponent
       el.scrollLeft = startScroll + nudgeDistance * ease;
 
       if (progress < 1) {
-        requestAnimationFrame(animateOut);
+        this.nudgeRafId = requestAnimationFrame(animateOut);
         return;
       }
 
@@ -326,18 +340,58 @@ export class ScrollableButtonBarComponent
         el.scrollLeft = startScroll + nudgeDistance * (1 - easeBack);
 
         if (progressBack < 1) {
-          requestAnimationFrame(animateBack);
+          this.nudgeRafId = requestAnimationFrame(animateBack);
           return;
         }
 
         el.scrollLeft = startScroll;
+        this.finishNudge();
         this.cdr.markForCheck();
       };
 
-      requestAnimationFrame(animateBack);
+      this.nudgeRafId = requestAnimationFrame(animateBack);
     };
 
-    requestAnimationFrame(animateOut);
+    this.nudgeRafId = requestAnimationFrame(animateOut);
+  }
+
+  private hasMeaningfulItemsChange(): boolean {
+    const nextSignature = this.getItemsSignature();
+    if (nextSignature === this.itemsSignature) return false;
+    this.itemsSignature = nextSignature;
+    this.didNudge = false;
+    this.cancelNudge();
+    return true;
+  }
+
+  private getItemsSignature(): string {
+    return this.items
+      .map((item) =>
+        [
+          item.id,
+          item.label,
+          item.labelKey,
+          item.icon,
+          item.svg,
+          item.type,
+          item.colorHex,
+          item.fontFamily,
+        ].join("\u001f"),
+      )
+      .join("\u001e");
+  }
+
+  private cancelNudge(): void {
+    if (this.nudgeRafId !== null) {
+      cancelAnimationFrame(this.nudgeRafId);
+      this.nudgeRafId = null;
+    }
+    this.isNudging = false;
+  }
+
+  private finishNudge(): void {
+    this.nudgeRafId = null;
+    this.isNudging = false;
   }
 
   private shouldReduceMotion(): boolean {

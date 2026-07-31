@@ -1,5 +1,7 @@
+import { Capacitor } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { FileKitService } from './file-kit.service';
+import { type PublicFilesystem } from './public-filesystem';
 
 const DEFAULT_PUBLIC_DOCUMENTS_ROOTS = [
   '/storage/emulated/0/Documents',
@@ -17,16 +19,22 @@ type ListingAttempt = {
 
 export type PdfPublicStoreOptions = {
   pdfFolder: string;
+  useDocumentsDirectoryOnNative?: boolean;
+  nativeDirectory?: Directory;
   publicDocumentsRoot?: string;
   publicDocumentsRoots?: string[];
   debug?: boolean;
   logPrefix?: string;
+  filesystem?: PublicFilesystem;
 };
 
 export class PdfPublicStore {
   private readonly publicDocumentsRoots: string[];
   private readonly debug: boolean;
   private readonly logPrefix: string;
+  private readonly useDocumentsDirectory: boolean;
+  private readonly storageDirectory: Directory;
+  private readonly filesystem: PublicFilesystem;
   private hasMigratedDocumentsToPublic = false;
   private activePublicDocumentsRoot: string;
 
@@ -34,6 +42,11 @@ export class PdfPublicStore {
     private readonly fileKit: FileKitService,
     private readonly options: PdfPublicStoreOptions,
   ) {
+    this.useDocumentsDirectory =
+      !Capacitor.isNativePlatform() ||
+      !!options.useDocumentsDirectoryOnNative;
+    this.storageDirectory = options.nativeDirectory ?? Directory.Documents;
+    this.filesystem = options.filesystem ?? Filesystem;
     this.publicDocumentsRoots = this.resolvePublicDocumentsRoots(options);
     this.activePublicDocumentsRoot = this.publicDocumentsRoots[0];
     this.debug = !!options.debug;
@@ -45,10 +58,16 @@ export class PdfPublicStore {
   }
 
   get publicFolderPath(): string {
+    if (this.useDocumentsDirectory) {
+      return this.options.pdfFolder;
+    }
     return this.buildPublicFolderPath(this.activePublicDocumentsRoot);
   }
 
   get publicFolderPaths(): string[] {
+    if (this.useDocumentsDirectory) {
+      return [this.options.pdfFolder];
+    }
     return this.publicDocumentsRoots.map((root) =>
       this.buildPublicFolderPath(root),
     );
@@ -103,17 +122,13 @@ export class PdfPublicStore {
 
   async writePdf(filename: string, bytes: Uint8Array): Promise<void> {
     await this.ensureReady();
-    await Filesystem.writeFile({
-      path: this.pathFor(filename),
-      data: this.fileKit.toBase64(bytes),
-      recursive: true,
-    });
+    await this.writeTargetPdf(filename, this.fileKit.toBase64(bytes));
   }
 
   async deletePdf(filename: string): Promise<void> {
     for (const path of this.buildFilePathCandidates(filename)) {
       try {
-        await Filesystem.deleteFile({ path });
+        await this.filesystem.deleteFile(this.buildFilesystemPath(path));
         return;
       } catch (error) {
         if (this.isNotFoundError(error)) continue;
@@ -129,9 +144,11 @@ export class PdfPublicStore {
     }
     const folderPath = fromPath.slice(0, fromPath.lastIndexOf('/'));
     const toPath = `${folderPath}/${toFilename}`;
-    await Filesystem.rename({
+    const renameOptions = this.buildFilesystemPath(fromPath);
+    await this.filesystem.rename({
       from: fromPath,
       to: toPath,
+      ...(renameOptions.directory ? { directory: renameOptions.directory } : {}),
     });
   }
 
@@ -145,7 +162,7 @@ export class PdfPublicStore {
     if (!path) {
       throw new Error(`File not found: ${filename}`);
     }
-    const raw = await Filesystem.readFile({ path });
+    const raw = await this.filesystem.readFile(this.buildFilesystemPath(path));
     const base64 =
       typeof raw.data === 'string'
         ? raw.data
@@ -158,7 +175,7 @@ export class PdfPublicStore {
     if (!absolutePath) {
       throw new Error(`File not found: ${filename}`);
     }
-    return `file://${absolutePath}`;
+    return this.getUriForPath(absolutePath);
   }
 
   async deleteDocumentPdfIfExists(relativePath: string): Promise<void> {
@@ -173,10 +190,23 @@ export class PdfPublicStore {
   }
 
   private async ensurePublicFolderExists(): Promise<void> {
+    if (this.useDocumentsDirectory) {
+      try {
+        await this.filesystem.mkdir({
+          path: this.options.pdfFolder,
+          directory: this.storageDirectory,
+          recursive: true,
+        });
+      } catch {
+        // best effort on web
+      }
+      return;
+    }
+
     for (const root of this.publicDocumentsRoots) {
       const folderPath = this.buildPublicFolderPath(root);
       try {
-        await Filesystem.mkdir({
+        await this.filesystem.mkdir({
           path: folderPath,
           recursive: true,
         });
@@ -189,6 +219,7 @@ export class PdfPublicStore {
   }
 
   private async migrateDocumentsPdfsToPublicOnce(): Promise<void> {
+    if (this.useDocumentsDirectory) return;
     if (this.hasMigratedDocumentsToPublic) return;
     this.hasMigratedDocumentsToPublic = true;
 
@@ -202,7 +233,7 @@ export class PdfPublicStore {
           dir: 'Documents',
           path: relativePath,
         });
-        await Filesystem.writeFile({
+        await this.filesystem.writeFile({
           path: this.pathFor(filename),
           data: this.fileKit.toBase64(bytes),
           recursive: true,
@@ -216,7 +247,7 @@ export class PdfPublicStore {
 
   private async listDirectoryDocumentsPdfs(): Promise<string[]> {
     try {
-      const list = await Filesystem.readdir({
+      const list = await this.filesystem.readdir({
         directory: Directory.Documents,
         path: this.options.pdfFolder,
       });
@@ -249,6 +280,16 @@ export class PdfPublicStore {
   }
 
   private buildListingAttempts(): ListingAttempt[] {
+    if (this.useDocumentsDirectory) {
+      return [
+        {
+          source: 'documents-directory',
+          path: this.options.pdfFolder,
+          directory: this.storageDirectory,
+        },
+      ];
+    }
+
     const absoluteAttempts: ListingAttempt[] = this.publicFolderPaths.map(
       (path) => ({
         source: 'absolute',
@@ -264,15 +305,9 @@ export class PdfPublicStore {
   }
 
   private async readdirForAttempt(attempt: ListingAttempt): Promise<any> {
-    if (attempt.directory) {
-      return Filesystem.readdir({
-        directory: attempt.directory,
-        path: attempt.path,
-      });
-    }
-    return Filesystem.readdir({
-      path: attempt.path,
-    });
+    return this.filesystem.readdir(
+      this.buildFilesystemPath(attempt.path, attempt.directory),
+    );
   }
 
   private normalizeDirectoryEntries(files: unknown): string[] {
@@ -315,13 +350,57 @@ export class PdfPublicStore {
   private async resolveExistingPath(filename: string): Promise<string | null> {
     for (const candidate of this.buildFilePathCandidates(filename)) {
       try {
-        await Filesystem.stat({ path: candidate });
+        await this.filesystem.stat(this.buildFilesystemPath(candidate));
         return candidate;
       } catch {
         // keep trying
       }
     }
     return null;
+  }
+
+  private async writeTargetPdf(filename: string, data: string): Promise<void> {
+    await this.filesystem.writeFile({
+      ...this.buildFilesystemPath(this.relativePathFor(filename)),
+      data,
+      recursive: true,
+    });
+  }
+
+  private buildFilesystemPath(
+    path: string,
+    directory?: Directory,
+  ): { path: string; directory?: Directory } {
+    if (directory) {
+      return { path, directory };
+    }
+
+    if (
+      this.useDocumentsDirectory ||
+      path === this.options.pdfFolder ||
+      path.startsWith(`${this.options.pdfFolder}/`)
+    ) {
+      return { path, directory: this.storageDirectory };
+    }
+
+    return { path };
+  }
+
+  private async getUriForPath(path: string): Promise<string> {
+    const isDocumentsPath =
+      this.useDocumentsDirectory ||
+      path === this.options.pdfFolder ||
+      path.startsWith(`${this.options.pdfFolder}/`);
+
+    if (isDocumentsPath) {
+      const result = await this.filesystem.getUri({
+        path,
+        directory: this.storageDirectory,
+      });
+      return result.uri;
+    }
+
+    return `file://${path}`;
   }
 
   private isNotFoundError(error: unknown): boolean {

@@ -23,7 +23,11 @@ import {
   chevronBackOutline,
   chevronForwardOutline,
   colorPaletteOutline,
+  sparklesOutline,
 } from 'ionicons/icons';
+import {
+  RemoveAdsPurchasePageService,
+} from '@sheldrapps/ads-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
 import {
@@ -67,6 +71,7 @@ export class SettingsPage {
   private readonly settings = inject(SettingsStore<EpubFixerSettings>);
   readonly lang = inject(LanguageService);
   private readonly router = inject(Router);
+  private readonly removeAdsPurchasePage = inject(RemoveAdsPurchasePageService);
   private readonly theme = inject(ThemeService);
   private readonly uiThemeI18n = inject(UiThemeI18nService);
   private readonly ratingService = inject(RatingService);
@@ -76,6 +81,7 @@ export class SettingsPage {
       chevronBackOutline,
       chevronForwardOutline,
       colorPaletteOutline,
+      sparklesOutline,
     });
   }
 
@@ -135,6 +141,18 @@ export class SettingsPage {
         leadingIconName: 'color-palette-outline',
         trailingIconName: 'chevron-forward-outline',
         ariaLabel: this.uiThemeI18n.texts().UI_THEME.THEME_SETTINGS.TITLE,
+      },
+    ];
+  }
+
+  get removeAdsSettingsItems(): SelectableButtonListItem[] {
+    return [
+      {
+        value: 'remove-ads',
+        titleKey: 'COMMON.UPGRADE_TO_PRO',
+        leadingIconName: 'sparkles-outline',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'COMMON.UPGRADE_TO_PRO',
       },
     ];
   }
@@ -228,6 +246,14 @@ export class SettingsPage {
 
   onThemeSettingsAction(): void {
     this.openThemeSettings();
+  }
+
+  onRemoveAdsSettingsAction(): void {
+    this.removeAdsPurchasePage.open({
+      variant: 'EF',
+      returnUrl: '/tabs/fix-page',
+    });
+    void this.router.navigateByUrl('/remove-ads');
   }
 
   async onRatingSettingsAction(value: string): Promise<void> {

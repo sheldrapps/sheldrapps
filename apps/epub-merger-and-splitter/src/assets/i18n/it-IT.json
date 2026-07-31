@@ -29,7 +29,8 @@
     "EDIT_PROJECT_OVERWRITE": "Sovrascrivi",
     "EDIT_PROJECT_OVERWRITE_DESC": "Salva le modifiche sopra il file esistente.",
     "EDIT_PROJECT_COPY": "Lavora su una copia",
-    "EDIT_PROJECT_COPY_DESC": "Conserva il file originale e modifica una nuova copia."
+    "EDIT_PROJECT_COPY_DESC": "Conserva il file originale e modifica una nuova copia.",
+    "UPGRADE_TO_PRO": "Passa a Pro"
   },
   "MY_EPUBS": {
     "TITLE": "I miei EPUB",
@@ -79,7 +80,15 @@
     "SETTINGS": "Impostazioni"
   },
   "HOME": {
-    "STEPPER": { "MERGE_SPLIT": "Unisci / dividi", "SORT": "Ordina", "TOC": "TOC", "COVER": "Copertina", "ADJUST": "Regola", "JOIN": "Unisci" },
+    "STEPPER": {
+      "MERGE_SPLIT": "Unisci / dividi",
+      "SORT": "Ordina",
+      "TOC": "Indice",
+      "COVER": "Copertina",
+      "ADJUST": "Regola",
+      "JOIN": "Unisci",
+      "CONFIRM": "Conferma"
+    },
     "WHAT_DO_YOU_WANT_TO_DO": "Cosa vuoi fare?",
     "MERGE": "Unisci",
     "SPLIT": "Dividi",
@@ -103,7 +112,122 @@
     "COVER_SELECTOR_TITLE": "Da cosa vuoi creare la copertina?",
     "BEST_CANDIDATES_TITLE": "Suggerimenti dai tuoi EPUB",
     "ADJUST_COVER": "Regola copertina",
-    "PREVIEW_TITLE": "Anteprima"
+    "PREVIEW_TITLE": "Anteprima",
+    "OPERATION": {
+      "OUTPUTS_TITLE": "EPUB creati",
+      "MERGE_SUCCESS_TITLE": "EPUB unito correttamente",
+      "MERGE_SUCCESS_BODY": "È stata creata una nuova copia con il contenuto degli EPUB selezionati.",
+      "SPLIT_SUCCESS_TITLE": "EPUB diviso correttamente",
+      "SPLIT_SUCCESS_BODY": "Sono stati creati {{count}} nuovi EPUB.",
+      "MERGE_FAILURE_TITLE": "Non è stato possibile unire gli EPUB",
+      "MERGE_FAILURE_BODY": "Non è stato possibile creare l’EPUB finale. I file originali non sono stati modificati.",
+      "SPLIT_FAILURE_TITLE": "Non è stato possibile dividere l’EPUB",
+      "SPLIT_FAILURE_BODY": "Non è stato possibile creare tutti gli EPUB. Il file originale non è stato modificato e non sono stati salvati risultati parziali.",
+      "PROGRESS": {
+        "PREPARING": "Preparazione dell’EPUB",
+        "ANALYZING": "Analisi dell’EPUB",
+        "WRITING": "Creazione degli EPUB",
+        "VALIDATING": "Convalida degli EPUB",
+        "COMPLETED": "Completato",
+        "COUNT": "{{current}} di {{total}}"
+      }
+    },
+    "SPLIT_STEP": {
+      "TITLE": "Dividi",
+      "SUMMARY": "{{count}} EPUB pronti.",
+      "OUTPUTS_TITLE": "File da creare",
+      "BACK_TO_CONFIRM": "← Torna alla conferma"
+    },
+    "SPLIT_COVER": {
+      "ECC_TITLE": "Cambiare copertina EPUB",
+      "ECC_DESCRIPTION": "Tutti i tuoi EPUB avranno la stessa copertina. Per personalizzarli singolarmente, usa la nostra app.",
+      "OPEN_ECC": "Prova l’app"
+    },
+    "SPLIT_HOW_TO": "Metodo di divisione",
+    "SPLIT_HOW_TO_TITLE": "Come vuoi dividere questo EPUB?",
+    "SPLIT_OPTIONS": {
+      "BY_CHAPTERS_OR_SECTIONS": {
+        "TITLE": "Per capitoli o sezioni",
+        "SUBLINE": "Usa l’indice del libro."
+      },
+      "MANUAL_SPLIT_POINTS": {
+        "TITLE": "Scegli i punti di divisione",
+        "SUBLINE": "Raggruppa i capitoli manualmente."
+      },
+      "EQUAL_PARTS": {
+        "TITLE": "Parti uguali",
+        "SUBLINE": "Scegli quanti EPUB creare."
+      },
+      "MAXIMUM_FILE_SIZE": {
+        "TITLE": "Per dimensione massima",
+        "SUBLINE": "Crea file entro una dimensione approssimativa."
+      }
+    },
+    "SPLIT_ANALYSIS_ERROR": "Non è stato possibile analizzare l’indice dell’EPUB.",
+    "SPLIT_EXPORT_NOT_AVAILABLE": "La configurazione è pronta, ma l’esportazione degli EPUB divisi non è ancora disponibile.",
+    "SPLIT_CONFIRM": {
+      "BY_CHAPTERS_TITLE": "Come vuoi dividere questo EPUB?",
+      "MANUAL_TITLE": "Scegli i punti di divisione",
+      "EQUAL_TITLE": "Parti uguali",
+      "MAXIMUM_SIZE_TITLE": "Per dimensione massima",
+      "FILE_SUMMARY": "{{name}} · {{count}} · {{size}}",
+      "ANALYZING": "Non è stato possibile analizzare l’indice dell’EPUB.",
+      "BY_CHAPTER": "Per capitoli",
+      "BY_CHAPTER_SUBLINE": "Usa l’indice del libro.",
+      "BY_SECTION": "Per sezioni",
+      "BY_SECTION_SUBLINE": "Usa l’indice del libro.",
+      "BOOK_START": "Inizio del libro",
+      "BOOK_START_SUBLINE": "Inizio del libro",
+      "BEFORE_CHAPTER": "{{title}}",
+      "BEFORE_CHAPTER_SUBLINE": "+ Dividi qui",
+      "EQUAL_HELP": "Scegli quanti EPUB creare.",
+      "PART_COUNT": "{{count}}",
+      "PART_COUNT_SUBLINE": "parti",
+      "CUSTOM_PART_COUNT": "Personalizzato",
+      "CUSTOM_PART_COUNT_SUBLINE": "Personalizzato",
+      "INVALID_PART_COUNT": "Personalizzato",
+      "MAXIMUM_SIZE_HELP": "Crea file entro una dimensione approssimativa.",
+      "MAXIMUM_SIZE_OPTION": "{{size}} MB",
+      "MAXIMUM_SIZE_OPTION_SUBLINE": "Crea file entro una dimensione approssimativa.",
+      "CUSTOM_SIZE": "Personalizzato",
+      "CUSTOM_SIZE_SUBLINE": "Personalizzato",
+      "INVALID_MAXIMUM_SIZE": "Personalizzato",
+      "ESTIMATED_RESULT": "{{count}} EPUB",
+      "OUTPUT_NUMBER": "EPUB {{number}}",
+      "MORE_OUTPUTS": "Mostra tutti i {{count}} EPUB",
+      "SHOW_FEWER_OUTPUTS": "Mostra meno",
+      "NEEDS_TWO_OUTPUTS": "Scegli quanti EPUB creare.",
+      "BACK_TO_HOW_TO": "← Metodo di divisione",
+      "SPLIT_EPUB": "Dividi EPUB →",
+      "TITLE": "Conferma la divisione",
+      "SAFE_SPLIT_HINT": "Usa l’indice del libro.",
+      "TREE_LABEL": "Metodo di divisione",
+      "VARIANT_LABEL": "Metodo di divisione",
+      "ONE_PER_CHAPTER": "Per capitoli",
+      "ONE_PER_SECTION": "Per sezioni",
+      "MANUAL_HINT": "Raggruppa i capitoli manualmente.",
+      "SPLIT_HERE": "+ Dividi qui",
+      "DIVIDED": "✓ Diviso",
+      "EQUAL_HINT": "Scegli quanti EPUB creare.",
+      "EQUAL_MODE_LABEL": "Parti uguali",
+      "RESULT_COUNT": "Parti uguali",
+      "PARTS_UNIT": "parti",
+      "MEGABYTES_UNIT": "MB",
+      "CHAPTERS_PER_FILE": "Per capitoli o sezioni",
+      "SIZE_HINT": "Crea file entro una dimensione approssimativa.",
+      "SIZE_LABEL": "Dimensione massima",
+      "SIZE_10": "10 MB",
+      "SIZE_25": "25 MB",
+      "SIZE_50": "50 MB",
+      "SIZE_CUSTOM": "Personalizzato",
+      "APPROXIMATE_SIZE": "Crea file entro una dimensione approssimativa.",
+      "EXAMPLE_PART_ONE": "Parte I",
+      "EXAMPLE_CHAPTER_ONE": "Capitolo 1",
+      "EXAMPLE_CHAPTER_TWO": "Capitolo 2",
+      "EXAMPLE_PART_TWO": "Parte II",
+      "EXAMPLE_CHAPTER_THREE": "Capitolo 3",
+      "EXAMPLE_CHAPTER_FOUR": "Capitolo 4"
+    }
   },
   "TOC_OPTIONS": {
     "TITLE": "Cosa fare con l'indice?",

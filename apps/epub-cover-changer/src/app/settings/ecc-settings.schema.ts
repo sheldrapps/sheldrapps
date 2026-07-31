@@ -13,6 +13,10 @@ import {
   migrateLegacyExportQualityMode,
   type ExportQualityMode,
 } from '@sheldrapps/export-quality-kit';
+import type {
+  CropOrientation,
+  CropTargetCategory,
+} from '@sheldrapps/image-workflow/editor';
 
 type PreferenceValue = boolean | number | string | null;
 
@@ -22,13 +26,14 @@ type LegacyEccSettings = {
   locale?: string;
   theme?: string;
   cropTargetId?: string;
+  cropTargetCategory?: CropTargetCategory;
+  cropTargetOrientation?: CropOrientation;
+  eReaderBrandId?: string;
+  eReaderModelId?: string;
   exportQualityMode?: string;
   coverExportMode?: string;
   bestQuality?: boolean;
   adsRemoved?: boolean;
-  homeTourSeen?: boolean;
-  homeTourVersion?: number;
-  homeTourSeenAt?: string;
   preferences?: Record<string, PreferenceValue>;
 };
 
@@ -36,11 +41,12 @@ export interface EccSettings {
   language?: SupportedLocale;
   theme: AppThemeMode;
   cropTargetId?: string;
+  cropTargetCategory?: CropTargetCategory;
+  cropTargetOrientation?: CropOrientation;
+  eReaderBrandId?: string;
+  eReaderModelId?: string;
   exportQualityMode: ExportQualityMode;
   adsRemoved: boolean;
-  homeTourSeen: boolean;
-  homeTourVersion: number;
-  homeTourSeenAt?: string;
   preferences: Record<string, PreferenceValue>;
 }
 
@@ -49,17 +55,18 @@ const LEGACY_HINT_KEYS = [
   'cc_hint_save_share_explain_shown',
   'cc_hint_share_kindle_shown',
 ] as const;
-const ECC_SETTINGS_VERSION = 9;
+const ECC_SETTINGS_VERSION = 10;
 
 const ECC_DEFAULTS: EccSettings = {
   language: undefined,
   theme: 'system',
   cropTargetId: undefined,
+  cropTargetCategory: undefined,
+  cropTargetOrientation: undefined,
+  eReaderBrandId: undefined,
+  eReaderModelId: undefined,
   exportQualityMode: DEFAULT_EXPORT_QUALITY_MODE,
   adsRemoved: false,
-  homeTourSeen: false,
-  homeTourVersion: 0,
-  homeTourSeenAt: undefined,
   preferences: {},
 };
 
@@ -91,15 +98,16 @@ export const ECC_SETTINGS_SCHEMA: SettingsSchema<EccSettings> = {
           language,
           theme: normalizeAppThemeMode(legacySettings?.['theme']) ?? 'system',
           cropTargetId: pickNonEmptyString(legacySettings?.cropTargetId),
+          cropTargetCategory: normalizeCropTargetCategory(legacySettings?.cropTargetCategory),
+          cropTargetOrientation: normalizeCropOrientation(legacySettings?.cropTargetOrientation),
+          eReaderBrandId: pickNonEmptyString(legacySettings?.eReaderBrandId),
+          eReaderModelId: pickNonEmptyString(legacySettings?.eReaderModelId),
           exportQualityMode: migrateLegacyExportQualityMode({
             exportQualityMode: legacySettings?.exportQualityMode,
             coverExportMode: legacySettings?.coverExportMode,
             bestQuality: legacySettings?.bestQuality,
           }),
           adsRemoved: pickBoolean(legacySettings?.adsRemoved) ?? false,
-          homeTourSeen: pickBoolean(legacySettings?.homeTourSeen) ?? false,
-          homeTourVersion: pickNumber(legacySettings?.homeTourVersion) ?? 0,
-          homeTourSeenAt: pickNonEmptyString(legacySettings?.homeTourSeenAt),
           preferences,
         };
       },
@@ -152,6 +160,12 @@ export const ECC_SETTINGS_SCHEMA: SettingsSchema<EccSettings> = {
       run: async (ctx: MigrationContext<EccSettings>) =>
         migrateVersionedSettings(ctx.rawJson),
     },
+    {
+      fromVersion: 9,
+      toVersion: ECC_SETTINGS_VERSION,
+      run: async (ctx: MigrationContext<EccSettings>) =>
+        migrateVersionedSettings(ctx.rawJson),
+    },
   ],
 };
 
@@ -196,15 +210,16 @@ async function migrateVersionedSettings(
     language,
     theme: normalizeAppThemeMode(stored?.['theme']) ?? 'system',
     cropTargetId: pickNonEmptyString(stored?.['cropTargetId']),
+    cropTargetCategory: normalizeCropTargetCategory(stored?.['cropTargetCategory']),
+    cropTargetOrientation: normalizeCropOrientation(stored?.['cropTargetOrientation']),
+    eReaderBrandId: pickNonEmptyString(stored?.['eReaderBrandId']),
+    eReaderModelId: pickNonEmptyString(stored?.['eReaderModelId']),
     exportQualityMode: migrateLegacyExportQualityMode({
       exportQualityMode: stored?.['exportQualityMode'],
       coverExportMode: stored?.['coverExportMode'],
       bestQuality: stored?.['bestQuality'],
     }),
     adsRemoved: pickBoolean(stored?.['adsRemoved']) ?? false,
-    homeTourSeen: pickBoolean(stored?.['homeTourSeen']) ?? false,
-    homeTourVersion: pickNumber(stored?.['homeTourVersion']) ?? 0,
-    homeTourSeenAt: pickNonEmptyString(stored?.['homeTourSeenAt']),
     preferences: normalizePreferences(stored?.['preferences']),
   };
 }
@@ -250,6 +265,16 @@ function pickBoolean(value: unknown): boolean | undefined {
 
 function pickNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function normalizeCropTargetCategory(value: unknown): CropTargetCategory | undefined {
+  return value === 'e-reader' || value === 'publishing' || value === 'paper' || value === 'ratio'
+    ? value
+    : undefined;
+}
+
+function normalizeCropOrientation(value: unknown): CropOrientation | undefined {
+  return value === 'portrait' || value === 'landscape' ? value : undefined;
 }
 
 function normalizePreferences(value: unknown): Record<string, PreferenceValue> {

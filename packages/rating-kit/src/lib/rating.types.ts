@@ -45,6 +45,7 @@ export interface RatingStorageAdapter {
 export interface RatingConfig {
   appKey?: string;
   appName?: string;
+  appNameKey?: string;
   packageName?: string;
   supportEmail?: string;
   minSuccessEvents: number;

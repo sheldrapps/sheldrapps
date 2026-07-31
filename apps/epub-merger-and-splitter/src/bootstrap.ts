@@ -125,6 +125,7 @@ export async function bootstrapEpubMergerAndSplitterApp(): Promise<void> {
     provideRatingKit({
       appKey: 'epub-merger-and-splitter',
       appName: 'EPUB Merger & Splitter',
+      appNameKey: 'APP.TITLE',
       packageName: EPUB_MERGER_AND_SPLITTER_PACKAGE_ID,
       supportEmail: 'sheldrapps@gmail.com',
       feedbackOptions: EPUB_MERGER_AND_SPLITTER_RATING_FEEDBACK_OPTIONS,

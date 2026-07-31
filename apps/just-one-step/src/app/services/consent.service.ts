@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Re-export from @sheldrapps/ads-kit.
  * Maintains compatibility with app-local imports.
  */

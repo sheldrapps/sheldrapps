@@ -1,39 +1,39 @@
 {
   "BEST_CANDIDATE": {
     "ACTION": {
-      "DETECT_COVER": "Detect cover automatically"
+      "DETECT_COVER": "Обнаружить обложку автоматически"
     },
     "LOADING": {
-      "TITLE": "Searching for candidate images..."
+      "TITLE": "Поиск кандидатов изображений..."
     },
     "EMPTY": {
-      "TITLE": "No cover candidates found",
-      "DESCRIPTION": "We could not find useful images inside this EPUB."
+      "TITLE": "Не найдены кандидаты обложки",
+      "DESCRIPTION": "Мы не смогли найти полезные изображения в этом EPUB."
     },
     "PICKER": {
-      "TITLE": "Choose a possible cover",
-      "DESCRIPTION": "We found images that may work as the book cover.",
-      "LONG_PRESS_HINT": "Long press an image to preview it.",
-      "UNKNOWN_IMAGE": "Unknown image",
-      "CANDIDATE_ALT": "Candidate image {{index}}",
-      "NO_COVER_DETECTED": "No cover detected, tap to select one of the suggestions.",
-      "LONG_PRESS_TO_PREVIEW": "Long press to preview."
+      "TITLE": "Выберите возможную обложку",
+      "DESCRIPTION": "Мы нашли изображения, которые могут служить обложкой книги.",
+      "LONG_PRESS_HINT": "Коснитесь, чтобы выбрать",
+      "NO_COVER_DETECTED": "Обложка не обнаружена, коснитесь для выбора одного из предложений.",
+      "LONG_PRESS_TO_PREVIEW": "Удерживайте для предпросмотра",
+      "UNKNOWN_IMAGE": "Неизвестное изображение",
+      "CANDIDATE_ALT": "Изображение-кандидат {{index}}"
     },
     "REASON": {
-      "FIRST_LARGE_IMAGE": "First large image",
-      "COVER_RATIO": "Cover-like ratio",
-      "NEAR_BOOK_START": "Near the beginning",
-      "FILENAME_COVER": "Cover-like filename",
-      "LARGE_RESOLUTION": "Large image",
-      "METADATA_COVER": "Marked as cover metadata",
-      "SMALL_ICON_RISK": "May be icon-like",
-      "DECORATIVE_RISK": "May be decorative"
+      "FIRST_LARGE_IMAGE": "Первое большое изображение",
+      "COVER_RATIO": "Соотношение сторон как обложка",
+      "NEAR_BOOK_START": "Рядом с началом",
+      "FILENAME_COVER": "Имя файла как обложка",
+      "LARGE_RESOLUTION": "Большое изображение",
+      "METADATA_COVER": "Отмечено как обложка в метаданных",
+      "SMALL_ICON_RISK": "Может быть похожа на значок",
+      "DECORATIVE_RISK": "Может быть декоративной"
     },
     "PREVIEW": {
-      "TITLE": "Image preview",
-      "OPEN": "Preview",
-      "CLOSE": "Close",
-      "SELECT": "Use this image"
+      "TITLE": "Предпросмотр изображения",
+      "OPEN": "Предпросмотр",
+      "CLOSE": "Закрыть",
+      "SELECT": "Использовать это изображение"
     }
   }
 }

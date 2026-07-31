@@ -129,7 +129,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   }
 
   private runInZone<T>(fn: () => T): T {
-    return NgZone.isInAngularZone() ? fn() : this.zone.run(fn);
+    return NgZone.isInAngularZone() || !this.zone ? fn() : this.zone.run(fn);
   }
 
   private async flushUi(): Promise<void> {
@@ -142,8 +142,8 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       });
     }
     this.runInZone(() => {
-      this.changeDetector.markForCheck();
-      this.changeDetector.detectChanges();
+      this.changeDetector?.markForCheck();
+      this.changeDetector?.detectChanges();
     });
   }
 

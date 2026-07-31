@@ -4,6 +4,7 @@ import {
   EpubPublicStore,
   FileKitService,
   FileRef,
+  PUBLIC_FILESYSTEM,
   ensureDirectoriesExist,
   readSheldrCoverMetadata,
   type SheldrCoverMetadata,
@@ -85,7 +86,8 @@ export type CoverAssetsResult = {
 export type NativeDocumentOutputTarget = {
   filename: string;
   relativePath: string;
-  nativePath: string;
+  rewritePath: string;
+  rewriteNativePath: string;
 };
 
 export type GeneratedFileSaveOptions = {
@@ -133,6 +135,8 @@ export class FileService {
   private translate = inject(TranslateService);
 
   private readonly EPUB_FOLDER = 'EPUBCoverChanger';
+  private readonly NATIVE_REWRITE_DATA_FOLDER = 'EPUBCoverChangerRewrite';
+  private readonly PUBLIC_WRITE_STAGING_FOLDER = 'EPUBCoverChangerPublicStaging';
   private readonly COVER_FOLDER = 'EPUBCoverChangerCovers';
   private readonly THUMB_FOLDER = 'EPUBCoverChangerThumbs';
   private readonly PROJECT_FOLDER = 'EPUBCoverChangerProjects';
@@ -163,8 +167,11 @@ export class FileService {
   private readonly DEBUG_IO = true;
   private readonly OPTIMIZED_PREVIEW_MAX_SIDE = 1600;
   private hasMigratedLegacyEpubFolders = false;
+  private readonly publicFilesystem = inject(PUBLIC_FILESYSTEM);
   private readonly epubStore = new EpubPublicStore(this.fileKit, {
     epubFolder: this.EPUB_FOLDER,
+    useDocumentsDirectoryOnNative: true,
+    filesystem: this.publicFilesystem,
     debug: this.DEBUG_IO,
     logPrefix: 'ECC:file-kit',
   });
@@ -172,6 +179,8 @@ export class FileService {
     (legacyFolder) =>
       new EpubPublicStore(this.fileKit, {
         epubFolder: legacyFolder,
+        useDocumentsDirectoryOnNative: true,
+        filesystem: this.publicFilesystem,
         debug: this.DEBUG_IO,
         logPrefix: `ECC:file-kit-legacy:${legacyFolder}`,
       }),
@@ -1592,14 +1601,70 @@ export class FileService {
       ? filename
       : await this.getUniqueDocumentFilename(filename);
     const relativePath = `${this.EPUB_FOLDER}/${outputFilename}`;
-    await this.ensurePublicDocumentsEpubFolderReady();
-    const nativePath = this.publicDocumentsEpubPath(outputFilename);
+    await this.ensureNativePublicExportFolder();
+    const rewritePath = `${this.NATIVE_REWRITE_DATA_FOLDER}/${Date.now()}_${Math.random()
+      .toString(36)
+      .slice(2, 8)}_${outputFilename}`;
+    await this.fileKit.writeBytes({
+      dir: 'Data',
+      path: rewritePath,
+      bytes: new Uint8Array(),
+      mimeType: 'application/epub+zip',
+    });
+    const rewriteNativePath = await this.fileKit.getUri({
+      dir: 'Data',
+      path: rewritePath,
+    });
 
     return {
       filename: outputFilename,
       relativePath,
-      nativePath,
+      rewritePath,
+      rewriteNativePath,
     };
+  }
+
+  async commitNativeDocumentOutput(
+    target: NativeDocumentOutputTarget,
+  ): Promise<{ uri: string; size: number }> {
+    if (this.epubRewrite.isSupported()) {
+      const published = await this.epubRewrite.publishPublicDocument({
+        folderName: this.EPUB_FOLDER,
+        sourcePath: target.rewriteNativePath,
+        outputName: target.filename,
+        mimeType: 'application/epub+zip',
+      });
+      this.debugLog('commitNativeDocumentOutput', {
+        filename: target.filename,
+        rewritePath: target.rewritePath,
+        size: published.size,
+        copiedBytes: published.copiedBytes,
+      });
+      return { uri: published.uri, size: published.size };
+    }
+
+    const bytes = await this.readBytesFromSource(target.rewritePath, 'Data');
+    if (bytes.byteLength === 0) {
+      throw new Error(`Native rewrite output is empty: ${target.rewritePath}`);
+    }
+    await this.writePublicEpub(target.filename, bytes);
+    const uri = await this.getPublicEpubFileUriOrThrow(target.filename);
+    this.debugLog('commitNativeDocumentOutput', {
+      filename: target.filename,
+      rewritePath: target.rewritePath,
+      size: bytes.byteLength,
+    });
+    return { uri, size: bytes.byteLength };
+  }
+
+  async cleanupNativeDocumentOutput(
+    target: NativeDocumentOutputTarget,
+  ): Promise<void> {
+    await Promise.all(
+      [target.rewritePath, `${target.rewritePath}.tmp`].map((path) =>
+        this.fileKit.delete({ dir: 'Data', path }).catch(() => undefined),
+      ),
+    );
   }
 
   async persistCoverAssetsForGeneratedFilename(opts: {
@@ -1628,7 +1693,6 @@ export class FileService {
     const sourceFilename = this.ensureEpubExt(
       this.sanitizeFilename(opts.sourceFilename),
     );
-    const sourcePath = `${this.EPUB_FOLDER}/${sourceFilename}`;
 
     const filename = this.ensureEpubExt(this.sanitizeFilename(opts.filename));
     const outputFilename = opts.overwriteExisting
@@ -1638,35 +1702,21 @@ export class FileService {
         });
     const epubPath = `${this.EPUB_FOLDER}/${outputFilename}`;
 
-    if (sourcePath !== epubPath) {
-      const bytes = await this.readPublicEpubBytes(sourceFilename);
-      const finalBytes = await this.applyCoverMetadataToEpubBytes(
-        bytes,
-        opts.coverMetadata,
-      );
-      await this.writePublicEpub(outputFilename, finalBytes);
-      this.debugLog(
-        'saveGeneratedEpubFromExistingDocument:finalWriteComplete',
-        {
-          filename: outputFilename,
-          writeCompletedAt: new Date().toISOString(),
-          bytes: finalBytes.byteLength,
-        },
-      );
-    }
-
-    if (sourcePath === epubPath) {
-      await this.updateGeneratedEpubMetadata(
-        outputFilename,
-        opts.coverMetadata,
-      );
-    }
+    await this.rewriteExistingPublicEpubCover(
+      sourceFilename,
+      outputFilename,
+      opts.coverFileForThumb,
+    );
+    await this.updateGeneratedEpubMetadata(
+      outputFilename,
+      opts.coverMetadata,
+    );
 
     const uri = await this.getPublicEpubFileUriOrThrow(outputFilename);
     this.debugLog('saveGeneratedEpubFromExistingDocument', {
       sourceFilename,
       filename: outputFilename,
-      copied: sourcePath !== epubPath,
+      copied: sourceFilename !== outputFilename,
     });
 
     const assets = await this.persistCoverAssetsFromFile(
@@ -1682,6 +1732,98 @@ export class FileService {
       thumbPath: assets.thumbPath,
       thumbFilename: assets.thumbFilename,
     };
+  }
+
+  private async rewriteExistingPublicEpubCover(
+    sourceFilename: string,
+    outputFilename: string,
+    coverFile: File,
+  ): Promise<void> {
+    if (!this.epubRewrite.isSupported()) {
+      if (!this.webEpubCover) {
+        throw new EpubRewriteError('REWRITE_UNAVAILABLE');
+      }
+
+      const sourceBytes = await this.readPublicEpubBytes(sourceFilename);
+      const sourceBlob = new Blob([sourceBytes.buffer as ArrayBuffer], {
+        type: 'application/epub+zip',
+      });
+      const sourceFile = new File([sourceBlob], sourceFilename, {
+        type: 'application/epub+zip',
+      });
+      const rewrittenBytes = await this.webEpubCover.replaceCover(
+        sourceFile,
+        coverFile,
+        outputFilename,
+      );
+      await this.writePublicEpub(outputFilename, rewrittenBytes);
+      this.debugLog(
+        'saveGeneratedEpubFromExistingDocument:finalWriteComplete',
+        {
+          filename: outputFilename,
+          writeCompletedAt: new Date().toISOString(),
+          bytes: rewrittenBytes.byteLength,
+        },
+      );
+      return;
+    }
+
+    const outputTarget = await this.reserveNativeDocumentOutput(
+      outputFilename,
+      { overwriteExisting: true },
+    );
+    const coverMime =
+      coverFile.type || this.mimeFromFilename(coverFile.name);
+    const coverExt = this.coverExtFromMime(coverMime);
+    const tempCoverPath = `${this.EPUB_FOLDER}/tmp_existing_cover_${Date.now()}_${Math.random()
+      .toString(36)
+      .slice(2, 8)}.${coverExt}`;
+
+    try {
+      await this.fileKit.writeBytes({
+        dir: 'Cache',
+        path: tempCoverPath,
+        bytes: new Uint8Array(await coverFile.arrayBuffer()),
+        mimeType: this.coverMediaTypeFromMime(coverMime),
+      });
+
+      const [sourcePath, coverUri] = await Promise.all([
+        this.epubStore.nativePathFor(sourceFilename),
+        this.fileKit.getUri({ dir: 'Cache', path: tempCoverPath }),
+      ]);
+      const inspected = await this.epubRewrite.inspectEpub(sourcePath);
+      const rewritten = await this.epubRewrite.rewriteCover({
+        inputPath: sourcePath,
+        outputPath: outputTarget.rewriteNativePath,
+        coverEntryPath:
+          inspected.success && inspected.coverEntryPath
+            ? inspected.coverEntryPath
+            : undefined,
+        newCoverPath: coverUri,
+      });
+
+      if (!rewritten.success) {
+        throw new EpubRewriteError(rewritten.error ?? 'REWRITE_FAILED', {
+          message: rewritten.message,
+          stage: rewritten.stage,
+          coverEntryPath: rewritten.coverEntryPath,
+        });
+      }
+
+      await this.commitNativeDocumentOutput(outputTarget);
+      this.debugLog(
+        'saveGeneratedEpubFromExistingDocument:finalWriteComplete',
+        {
+          filename: outputFilename,
+          writeCompletedAt: new Date().toISOString(),
+        },
+      );
+    } catch (error) {
+      await this.cleanupNativeDocumentOutput(outputTarget);
+      throw error;
+    } finally {
+      await this.cleanupCachePaths([tempCoverPath]);
+    }
   }
 
   async renameGeneratedEpub(opts: { from: string; to: string }) {
@@ -1713,11 +1855,17 @@ export class FileService {
       throw new Error(`File not found: ${fromPath}`);
     }
 
-    await Filesystem.rename({
-      from: this.publicDocumentsEpubPath(fromFilename),
-      to: this.publicDocumentsEpubPath(toFilename),
-    });
-    await this.deleteDocumentEpubIfExists(fromPath);
+    if (this.epubRewrite.isSupported()) {
+      await this.epubRewrite.renamePublicDocument(
+        this.EPUB_FOLDER,
+        fromFilename,
+        toFilename,
+      );
+    } else {
+      await this.epubStore.renameEpub(fromFilename, toFilename);
+      await this.scanPublicEpub(toFilename);
+      await this.deleteDocumentEpubIfExists(fromPath);
+    }
     this.debugLog('renameGeneratedEpub', {
       from: fromFilename,
       to: toFilename,
@@ -2046,11 +2194,11 @@ export class FileService {
     }
   }
 
-  private publicDocumentsEpubPath(filename: string): string {
-    return this.epubStore.pathFor(filename);
-  }
-
   private async listEpubsFromPublicDocuments(): Promise<string[]> {
+    if (this.epubRewrite.isSupported()) {
+      const files = await this.epubRewrite.listPublicDocuments(this.EPUB_FOLDER);
+      return files.map((file) => file.name).sort((a, b) => a.localeCompare(b));
+    }
     this.debugLog('listEpubsFromPublicDocuments:start', {
       reloadAt: new Date().toISOString(),
       resolvedFolderPath: this.epubStore.publicFolderPath,
@@ -2080,10 +2228,57 @@ export class FileService {
     filename: string,
     bytes: Uint8Array,
   ): Promise<void> {
+    if (this.epubRewrite.isSupported()) {
+      await this.ensureNativePublicExportFolder();
+      const stagingPath = `${this.PUBLIC_WRITE_STAGING_FOLDER}/${Date.now()}_${Math.random()
+        .toString(36)
+        .slice(2, 8)}_${filename}`;
+      try {
+        await this.fileKit.writeBytes({
+          dir: 'Data',
+          path: stagingPath,
+          bytes,
+          mimeType: 'application/epub+zip',
+        });
+        const stagingUri = await this.fileKit.getUri({
+          dir: 'Data',
+          path: stagingPath,
+        });
+        await this.epubRewrite.publishPublicDocument({
+          folderName: this.EPUB_FOLDER,
+          sourcePath: stagingUri,
+          outputName: filename,
+          mimeType: 'application/epub+zip',
+        });
+      } finally {
+        try {
+          await this.fileKit.delete({ dir: 'Data', path: stagingPath });
+        } catch {}
+      }
+      return;
+    }
     await this.epubStore.writeEpub(filename, bytes);
+    await this.scanPublicEpub(filename);
+  }
+
+  private async scanPublicEpub(filename: string): Promise<void> {
+    if (!this.epubRewrite.isSupported()) return;
+    try {
+      const path = await this.epubStore.nativePathFor(filename);
+      await this.epubRewrite.scanFile({
+        path,
+        mimeType: 'application/epub+zip',
+      });
+    } catch {
+      return;
+    }
   }
 
   private async deletePublicEpub(filename: string): Promise<void> {
+    if (this.epubRewrite.isSupported()) {
+      await this.epubRewrite.deletePublicDocument(this.EPUB_FOLDER, filename);
+      return;
+    }
     await this.epubStore.deleteEpub(filename);
   }
 
@@ -2094,6 +2289,14 @@ export class FileService {
   }
 
   private async existsInPublicDocuments(filename: string): Promise<boolean> {
+    if (this.epubRewrite.isSupported()) {
+      try {
+        await this.epubRewrite.getPublicDocument(this.EPUB_FOLDER, filename);
+        return true;
+      } catch {
+        return false;
+      }
+    }
     return this.epubStore.exists(filename);
   }
 
@@ -2102,6 +2305,13 @@ export class FileService {
   }
 
   private async getPublicEpubFileUriOrThrow(filename: string): Promise<string> {
+    if (this.epubRewrite.isSupported()) {
+      const document = await this.epubRewrite.getPublicDocument(
+        this.EPUB_FOLDER,
+        filename,
+      );
+      return document.uri;
+    }
     const uri = await this.epubStore.getUriOrThrow(filename);
     this.debugLog('getPublicEpubFileUriOrThrow', { filename, uri });
     return uri;
@@ -2231,6 +2441,9 @@ export class FileService {
   private async ensurePublicDocumentsEpubFolderReady(opts?: {
     skipLegacyMigration?: boolean;
   }): Promise<void> {
+    if (this.epubRewrite.isSupported()) {
+      return;
+    }
     await this.epubStore.ensureReady();
     if (opts?.skipLegacyMigration) {
       this.startLegacyMigrationInBackground();
@@ -2241,6 +2454,14 @@ export class FileService {
       resolvedFolderPath: this.epubStore.publicFolderPath,
       pathCandidates: this.epubStore.publicFolderPaths,
     });
+  }
+
+  private async ensureNativePublicExportFolder(): Promise<void> {
+    if (!this.epubRewrite.isSupported()) {
+      await this.ensurePublicDocumentsEpubFolderReady();
+      return;
+    }
+    await this.epubRewrite.ensurePublicExportFolder(this.EPUB_FOLDER);
   }
 
   private startLegacyMigrationInBackground(): void {
@@ -2263,6 +2484,9 @@ export class FileService {
   }
 
   private async migrateLegacyEpubFoldersOnce(): Promise<void> {
+    if (this.epubRewrite.isSupported()) {
+      return;
+    }
     if (this.hasMigratedLegacyEpubFolders) {
       return;
     }

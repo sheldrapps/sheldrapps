@@ -1,16 +1,116 @@
 {
+  "PUBLISHING_CATALOG": {
+    "PLATFORMS": { "AMAZON_KDP": "Amazon KDP", "KOBO_WRITING_LIFE": "Kobo Writing Life", "APPLE_BOOKS": "Apple Books", "GOOGLE_PLAY_BOOKS": "Google Play Books", "BARNES_NOBLE_PRESS": "Barnes & Noble Press", "TOLINO_MEDIA": "Tolino Media", "RIDI": "리디(RIDI)", "DRAFT2DIGITAL": "Draft2Digital", "INGRAMSPARK": "IngramSpark", "PUBLISHDRIVE": "PublishDrive", "STREETLIB": "StreetLib", "LULU": "Lulu" },
+    "GROUPS": { "STORE_COVER": "스토어 표지", "EBOOK_COVER": "전자책 표지", "EBOOK_AND_STORE_COVER": "전자책 및 스토어 표지", "DISTRIBUTION_COVER": "배포용 표지", "EMBEDDED_COVER": "삽입된 표지", "EXTERNAL_COVER": "외부 표지" },
+    "BADGES": { "IDEAL": "최적", "RECOMMENDED": "권장", "COMPATIBLE": "호환", "ALTERNATIVE": "대안", "MINIMUM": "최소" },
+    "PRESETS": { "AMAZON_KDP_1600X2560": "1600 × 2560 px", "AMAZON_KDP_625X1000": "625 × 1000 px", "KOBO_WRITING_LIFE_1800X2400": "1800 × 2400 px", "APPLE_BOOKS_1600X2400": "1600 × 2400 px", "GOOGLE_PLAY_BOOKS_1600X2400": "1600 × 2400 px", "BARNES_NOBLE_PRESS_1600X2400": "1600 × 2400 px", "TOLINO_MEDIA_1600X2400": "1600 × 2400 px", "RIDI_1600X2560": "1600 × 2560 px", "RIDI_1200X1800": "1200 × 1800 px", "DRAFT2DIGITAL_1600X2400": "1600 × 2400 px", "INGRAMSPARK_1600X2560": "1600 × 2560 px", "PUBLISHDRIVE_EMBEDDED_1600X2400": "1600 × 2400 px", "PUBLISHDRIVE_STORE_1600X2560": "1600 × 2560 px", "STREETLIB_EMBEDDED_1200X1600": "1200 × 1600 px", "STREETLIB_EXTERNAL_1875X2500": "1875 × 2500 px", "LULU_1600X2560": "1600 × 2560 px", "LULU_625X1000": "625 × 1000 px" }
+  },
   "APP": {
     "TITLE": "EPUB Cover Changer"
   },
+  "ECC": { "RATIO_CATEGORIES": { "E_READERS": "전자책 리더", "PUBLISHING": "출판", "PAPER": "용지", "ASPECT_RATIO": "종횡비" } },
+  "CROP_SELECTORS": { "BRAND": "브랜드", "FAMILY": "제품군", "MODEL": "모델", "PLATFORM": "플랫폼", "COVER_TYPE": "표지 유형", "SIZE": "크기", "STANDARD": "표준", "SERIES": "시리즈", "FORMAT": "형식", "ORIENTATION": "방향", "PORTRAIT": "세로", "LANDSCAPE": "가로", "ASPECT_RATIO": "종횡비" },
+  "COMMON": { "RECOMMENDED": "권장" },
+  "PUBLISHING_PLATFORMS": { "RIDI": "리디(RIDI)" },
+  "PUBLISHING_GROUPS": { "RIDI": { "EBOOK_COVER": "전자책 표지" } },
+  "PUBLISHING_PRESETS": { "RIDI_1600X2560": "1600 × 2560 px", "RIDI_1200X1800": "1200 × 1800 px" },
+  "PAPER_GROUPS": { "ISO_216": "ISO 216", "NORTH_AMERICAN": "북미", "ISO_A_SERIES": "A 시리즈", "NORTH_AMERICAN_OFFICE": "북미 사무용 규격" },
+  "PAPER_PRESETS": { "A3": "A3", "A4": "A4", "A5": "A5", "A6": "A6", "LETTER": "레터", "LEGAL": "리갈", "TABLOID": "타블로이드" },
+  "RATIO_GROUPS": { "COMMON": "일반 비율" },
+  "RATIO_PRESETS": { "1_1": "1:1", "2_3": "2:3", "3_4": "3:4", "4_5": "4:5", "5_7": "5:7", "5_8": "5:8", "9_16": "9:16", "CUSTOM": "사용자 지정" },
+  "RATIO_CUSTOM": { "TITLE": "사용자 지정 종횡비", "WIDTH": "너비", "HEIGHT": "높이", "HELPER": "{{min}}에서 {{max}} 사이의 정수를 입력하세요." },
+  "KINDLE_BRANDS": {
+    "KINDLE": "Kindle"
+  },
+  "KINDLE_GROUPS": {
+    "BASIC": "Basic",
+    "OASIS": "Oasis",
+    "PAPERWHITE": "Paperwhite",
+    "PAPERWHITE_SIGNATURE": "Paperwhite Signature",
+    "SCRIBE": "Scribe",
+    "VOYAGE": "Voyage",
+    "COLORSOFT": "Colorsoft",
+    "COLORSOFT_SIGNATURE": "Colorsoft Signature"
+  },
+  "KINDLE_MODELS": {
+    "BASIC_2010_2019": "2010-2019",
+    "BASIC_2022_2024": "2022-2024",
+    "OASIS_2016": "2016",
+    "OASIS_2017_2019": "2017-2019",
+    "PAPERWHITE_2012_2013": "2012-2013",
+    "PAPERWHITE_2015_2019": "2015-2019",
+    "PAPERWHITE_2021": "2021",
+    "PAPERWHITE_2024": "2024",
+    "PAPERWHITE_SIGNATURE_2021": "2021",
+    "PAPERWHITE_SIGNATURE_2024": "2024",
+    "SCRIBE_2022_2024": "2022-2024",
+    "VOYAGE_2014": "2014",
+    "COLORSOFT": "2025",
+    "COLORSOFT_SIGNATURE_EDITION": "2024"
+  },
+  "KOBO_BRANDS": {
+    "KOBO": "Kobo"
+  },
+  "KOBO_GROUPS": {
+    "CLARA": "Clara",
+    "ELIPSA": "Elipsa",
+    "LIBRA": "Libra",
+    "NIA": "Nia",
+    "SAGE": "Sage"
+  },
+  "KOBO_MODELS": {
+    "CLARA_ALL": "Kobo Clara (HD / 2E / BW / Colour)",
+    "ELIPSA_ALL": "Kobo Elipsa (Elipsa / 2E)",
+    "LIBRA_ALL": "Kobo Libra (H2O / 2 / Colour)",
+    "NIA": "Kobo Nia",
+    "SAGE": "Kobo Sage"
+  },
+  "NOOK_BRANDS": {
+    "NOOK": "Nook"
+  },
+  "NOOK_GROUPS": {
+    "GLOWLIGHT": "GlowLight"
+  },
+  "NOOK_MODELS": {
+    "GLOWLIGHT_2013_2015": "Nook GlowLight (2013-2015)",
+    "GLOWLIGHT_2019_2023": "Nook GlowLight (2019-2023)"
+  },
+  "POCKETBOOK_BRANDS": {
+    "POCKETBOOK": "PocketBook"
+  },
+  "POCKETBOOK_GROUPS": {
+    "ERA": "Era",
+    "INKPAD": "InkPad",
+    "VERSE": "Verse"
+  },
+  "POCKETBOOK_MODELS": {
+    "ERA": "PocketBook Era",
+    "INKPAD_ALL": "PocketBook InkPad (All models)",
+    "VERSE": "PocketBook Verse",
+    "VERSE_PRO": "PocketBook Verse Pro"
+  },
+  "TOLINO_BRANDS": {
+    "TOLINO": "Tolino"
+  },
+  "TOLINO_GROUPS": {
+    "SHINE": "Shine",
+    "VISION": "Vision"
+  },
+  "TOLINO_MODELS": {
+    "SHINE_2014_2018": "Tolino Shine (2014-2018)",
+    "SHINE_HD": "Tolino Shine HD",
+    "VISION_2015_2018": "Tolino Vision (2015-2018)",
+    "VISION_2021_2024": "Tolino Vision (2021-2024)"
+  },
   "COMMON": {
     "BACK_AGAIN_TO_EXIT": "한 번 더 뒤로 가면 종료됩니다",
-    "CANCEL": "ì·¨ì†Œ",
+    "CANCEL": "취소",
     "CLOSE": "닫기",
-    "DELETE": "ì‚­ì œ",
+    "DELETE": "삭제",
     "DONE": "완료",
     "ERROR": "오류",
     "LOADING": "로딩 중…",
-    "BILLING_UNAVAILABLE": "í˜„ìž¬ êµ¬ë§¤í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
+    "BILLING_UNAVAILABLE": "현재 구매할 수 없습니다.",
     "PURCHASE_ERROR": "구매를 완료할 수 없습니다. 다시 시도해 주세요.",
     "REMOVE_ADS_BUY": "구매",
     "REMOVE_ADS_DESCRIPTION": "일회 결제로 광고를 영구적으로 제거하고 무손실/압축 내보내기 선택을 활성화하세요.",
@@ -18,21 +118,22 @@
     "REMOVE_ADS_RESTORE": "구매 복원",
     "REMOVE_ADS_RESTORED": "구매가 성공적으로 복원되었습니다.",
     "REMOVE_ADS_TITLE": "광고 제거",
-    "REMOVE_ADS_CTA_TITLE": "광고 제거",
+   "REMOVE_ADS_CTA_TITLE": "광고 제거",
+    "UPGRADE_TO_PRO": "Pro로 업그레이드",
     "REMOVE_ADS_CTA_SUBTITLE": "일회 결제 • 영구 사용",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "일회 결제 • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "가격: {{price}} • 구독 없음",
     "RESTORE_ERROR": "구매를 복원할 수 없습니다. 다시 시도해 주세요.",
     "PRO_ONLY": "PRO",
     "WATCH_AD_SUBTITLE": "광고 보기",
-    "SHARE": "ê³µìœ ",
+    "SHARE": "공유",
     "SHARE_KINDLE_HINT": "공유할 때 Kindle 앱을 선택하여 기기로 전송하세요.",
-    "WARNING": "ê²½ê³ ",
+    "WARNING": "경고",
     "EDIT_PROJECT_TITLE": "이 파일을 어떻게 편집할까요?",
     "EDIT_PROJECT_MESSAGE": "현재 파일을 덮어쓸지, 복사본으로 작업할지 선택하세요.",
     "EDIT_PROJECT_OVERWRITE": "덮어쓰기",
     "EDIT_PROJECT_OVERWRITE_DESC": "기존 파일 위에 변경 내용을 저장합니다.",
-    "EDIT_PROJECT_COPY": "ë³µì‚¬ë³¸ìœ¼ë¡œ ìž‘ì—…",
+    "EDIT_PROJECT_COPY": "복사본으로 작업",
     "EDIT_PROJECT_COPY_DESC": "원본 파일을 유지하고 새 복사본을 편집합니다."
   },
   "CHANGE": {
@@ -51,7 +152,7 @@
     "INFO": "정보",
     "INFO_ARIA": "표지 변경에 관한 정보",
     "INFO_TITLE": "정보",
-    "INFO_FLOW_LABEL": "ê¶Œìž¥ ìˆœì„œ:",
+    "INFO_FLOW_LABEL": "권장 순서:",
     "INFO_STEP_1": "EPUB을 선택하세요.",
     "INFO_STEP_1_1": "1.1. 원본 표지가 미리 불러와집니다.",
     "INFO_STEP_1_2": "1.2. 이미지를 변경하거나 원본을 유지하세요.",
@@ -65,7 +166,7 @@
     "IMAGE_WARN_INVALID_EPUB_COVER": "유효하지 않은 EPUB 표지입니다. 탭하여 새 이미지를 선택하세요.",
     "EPUB_ERROR_CORRUPT": "EPUB 파일을 읽을 수 없습니다. 다른 파일을 시도해 보세요.",
     "EPUB_ERROR_NO_COVER": "이 EPUB 파일에는 교체 가능한 표지가 없습니다.",
-    "NO_COVER_DETECTED_ADDED": "표지가 감지되지 않았습니다. 이 EPUB에 새 표지가 추가되었습니다.",
+    "RENAMED_OK": "EPUB 이름이 변경되었습니다",
     "EPUB_ERROR_REWRITE": "EPUB 파일을 처리할 수 없습니다. 다시 시도하세요.",
     "EPUB_ERROR_STORAGE": "저장 공간이 부족합니다. 필요: {{requiredMB}} MB, 사용 가능: {{availableMB}} MB.",
     "EPUB_ERROR_SIZE": "파일이 너무 큽니다. 최대 {{maxSize}} MB.",
@@ -102,7 +203,7 @@
     "TITLE": "표지 변경",
     "PREVIEW_ORIGINAL_LABEL": "원본 표지",
     "PREVIEW_NEW_LABEL": "스와이프하여 비교",
-    "PREVIEW_NEW_ONLY_LABEL": "ìƒˆ í‘œì§€",
+    "PREVIEW_NEW_ONLY_LABEL": "새 표지",
     "ARIA_START_SCRATCH": "Start from scratch",
     "SOURCE_IMAGE": "Image",
     "SOURCE_SCRATCH": "Scratch",
@@ -120,14 +221,14 @@
     "TITLE": "내 EPUB",
     "DITHERED_THUMBNAIL_NOTICE": "아티팩트 감소가 적용된 표지는 썸네일에서 다르게 보일 수 있습니다. 더 정확한 결과는 미리보기에서 확인하세요.",
     "ACTIONS": {
-      "DELETE": "ì‚­ì œ",
-      "SHARE": "ê³µìœ ",
+      "DELETE": "삭제",
+      "SHARE": "공유",
       "OPEN": "열기",
-      "EDIT_PROJECT": "íŽ¸ì§‘"
+      "EDIT_PROJECT": "편집"
     },
     "DELETE": {
       "MESSAGE": "이 EPUB을 삭제하시겠습니까?",
-      "TITLE": "EPUB ì‚­ì œ"
+      "TITLE": "EPUB 삭제"
     },
     "ERROR": {
       "DELETE": "EPUB을 삭제할 수 없습니다. 다시 시도해 주세요.",
@@ -150,14 +251,14 @@
     "STEP_3": "EPUB의 표지를 변경하기 위해 광고를 시청합니다",
     "STEP_4": "업데이트된 EPUB을 저장하거나 공유합니다",
     "STEP_4_DESC": "준비가 되면 기기에 저장하거나 Kindle 앱으로 직접 공유할 수 있습니다.",
-    "STEP_5": "ì›¹ìœ¼ë¡œ ì „ì†¡ (Send to Kindle)",
+    "STEP_5": "웹으로 전송 (Send to Kindle)",
     "STEP_5_DESC": "브라우저에서 Send to Kindle 웹 도구를 사용하여 전송할 수도 있습니다.",
     "TIP": "최상의 결과를 위해 고해상도 이미지를 사용하고 Kindle 기기에서 광고를 비활성화했는지 확인하세요.",
     "TITLE": "사용 방법"
   },
   "HOME_TOUR": {
     "CONTROLS": {
-      "BACK": "ë’¤ë¡œ",
+      "BACK": "뒤로",
       "FINISH": "완료",
       "INTERACT_HINT": "계속하려면 강조 표시된 요소와 상호 작용하세요.",
       "NEXT": "다음",
@@ -202,17 +303,16 @@
     "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
     "EREADER_OPTIMIZATION_HINT": "표지를 더 보기 좋게 하도록 자동 조정을 적용합니다",
     "EREADER_OPTIMIZATION_TOGGLE": "최적화",
-    "TITLE": "설정",
-    "VIEW_TOUR": "투어 보기"
+    "TITLE": "설정"
   },
   "TABS": {
     "COVERS": "내 EPUB",
-    "CHANGE": "볬경",
+    "CHANGE": "변경",
     "SETTINGS": "설정"
   },
   "ARR": {
     "TOOLS": {
-      "RECOMMENDED": "ì¶”ì²œ",
+      "RECOMMENDED": "추천",
       "INFO": "정보",
       "APPS": "앱",
       "GUIDE": "가이드"

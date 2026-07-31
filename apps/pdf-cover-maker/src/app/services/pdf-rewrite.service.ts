@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Directory, Filesystem } from '@capacitor/filesystem';
 import {
   Capacitor,
   registerPlugin,
@@ -93,6 +94,7 @@ type ExtractFirstPagePreviewOptions = {
 type ExtractFirstPagePreviewResult = {
   success: boolean;
   tempImagePath?: string;
+  tempImageRelativePath?: string;
   mimeType?: string;
   width?: number;
   height?: number;
@@ -115,6 +117,9 @@ type OpenExternalFileResult = {
 };
 
 type PdfRewritePlugin = Plugin & {
+  listPublicDocuments(options: { folderName: string }): Promise<{ success: boolean; files?: Array<{ name: string; uri: string; size: number }>; error?: string; message?: string; stage?: string }>;
+  getPublicDocument(options: { folderName: string; filename: string }): Promise<{ success: boolean; uri?: string; filename?: string; size?: number; error?: string; message?: string; stage?: string }>;
+  publishPublicDocument(options: { folderName: string; sourcePath: string; outputName: string; mimeType: string }): Promise<{ success: boolean; uri?: string; filename?: string; size?: number; error?: string; message?: string; stage?: string }>;
   pickAndPreparePdf(
     options: PickAndPreparePdfOptions,
   ): Promise<PickAndPreparePdfResult>;
@@ -156,6 +161,24 @@ export class PdfRewriteService {
       Capacitor.getPlatform() === 'android' &&
       Capacitor.isPluginAvailable('PdfRewritePlugin')
     );
+  }
+
+  async publishPublicDocument(options: { folderName: string; sourcePath: string; outputName: string; mimeType: string }): Promise<{ uri: string; filename: string; size: number }> {
+    const result = await PdfRewrite.publishPublicDocument(options);
+    if (!result.success || !result.uri || !result.filename || typeof result.size !== 'number') throw new PdfRewriteError(result.error ?? 'PUBLIC_EXPORT_FAILED', { message: result.message, stage: result.stage });
+    return { uri: result.uri, filename: result.filename, size: result.size };
+  }
+
+  async getPublicDocument(folderName: string, filename: string): Promise<{ uri: string; filename: string; size: number }> {
+    const result = await PdfRewrite.getPublicDocument({ folderName, filename });
+    if (!result.success || !result.uri || !result.filename || typeof result.size !== 'number') throw new PdfRewriteError(result.error ?? 'PUBLIC_DOCUMENT_NOT_FOUND', { message: result.message, stage: result.stage });
+    return { uri: result.uri, filename: result.filename, size: result.size };
+  }
+
+  async listPublicDocuments(folderName: string): Promise<readonly { name: string; uri: string; size: number }[]> {
+    const result = await PdfRewrite.listPublicDocuments({ folderName });
+    if (!result.success) throw new PdfRewriteError(result.error ?? 'PUBLIC_LIST_FAILED', { message: result.message, stage: result.stage });
+    return result.files ?? [];
   }
 
   addProgressListener(
@@ -234,6 +257,7 @@ export class PdfRewriteService {
 
   async extractFirstPagePreview(options: ExtractFirstPagePreviewOptions): Promise<{
     tempImagePath: string;
+    tempImageRelativePath?: string;
     mimeType: string;
     width?: number;
     height?: number;
@@ -247,6 +271,7 @@ export class PdfRewriteService {
     }
     return {
       tempImagePath: result.tempImagePath,
+      tempImageRelativePath: result.tempImageRelativePath,
       mimeType: result.mimeType,
       width: result.width,
       height: result.height,
@@ -262,10 +287,29 @@ export class PdfRewriteService {
       inputPath: options.inputPath,
       maxDimension: options.maxDimension,
     });
+    const nativeCacheBytes = extracted.tempImageRelativePath
+      ? await this.readCacheFile(extracted.tempImageRelativePath)
+      : null;
+    const mimeType = extracted.mimeType || 'image/png';
+    const baseName = (options.pdfName || 'pdf')
+      .replace(/\.pdf$/i, '')
+      .replace(/[^\w.-]/g, '_');
+    const filename = `${baseName}_page1.${mimeType === 'image/jpeg' ? 'jpg' : 'png'}`;
+    if (nativeCacheBytes?.byteLength) {
+      const imageBuffer = nativeCacheBytes.buffer.slice(
+        nativeCacheBytes.byteOffset,
+        nativeCacheBytes.byteOffset + nativeCacheBytes.byteLength,
+      ) as ArrayBuffer;
+      return {
+        file: new File([imageBuffer], filename, { type: mimeType }),
+        width: extracted.width,
+        height: extracted.height,
+      };
+    }
     const file = await this.readExtractedFile(
       extracted.tempImagePath,
       options.pdfName,
-      extracted.mimeType,
+      mimeType,
     );
     return { file, width: extracted.width, height: extracted.height };
   }
@@ -299,11 +343,42 @@ export class PdfRewriteService {
       });
     }
     const blob = await response.blob();
-    const mimeType = blob.type || fallbackMimeType || 'image/png';
+    if (blob.size <= 0) {
+      throw new PdfRewriteError('REWRITE_FAILED', {
+        message: 'empty_extracted_image',
+        stage: 'extract_read',
+      });
+    }
+    const mimeType = fallbackMimeType || blob.type || 'image/png';
     const ext = mimeType === 'image/jpeg' ? 'jpg' : 'png';
     const baseName = (pdfName || 'pdf').replace(/\.pdf$/i, '').replace(/[^\w.-]/g, '_');
     const filename = `${baseName}_page1.${ext}`;
     return new File([blob], filename, { type: mimeType });
+  }
+
+  private async readCacheFile(path: string): Promise<Uint8Array | null> {
+    try {
+      const result = await Filesystem.readFile({
+        directory: Directory.Cache,
+        path,
+      });
+      if (typeof result.data === 'string') {
+        return this.decodeBase64(result.data);
+      }
+      return new Uint8Array(await result.data.arrayBuffer());
+    } catch {
+      return null;
+    }
+  }
+
+  private decodeBase64(value: string): Uint8Array {
+    const normalized = value.includes(',') ? value.split(',').pop() || '' : value;
+    const binary = atob(normalized);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+    return bytes;
   }
 
   private toFileUri(path: string): string {

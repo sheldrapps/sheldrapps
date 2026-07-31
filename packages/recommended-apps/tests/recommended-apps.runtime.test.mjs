@@ -145,13 +145,19 @@ test("service package resolver caches getInfo result in memory", async () => {
 test("home header: 0 recommended => no recommended item", () => {
   const items = buildHomeHeaderItems(false);
   assert.equal(items.some((item) => item.id === "recommended"), false);
+  assert.equal(items.some((item) => item.id === "reset"), true);
   assert.equal(items.some((item) => item.id === "guide"), true);
 });
 
 test("home header: >=1 recommended => has recommended item and handler navigates", async () => {
   const items = buildHomeHeaderItems(true);
   assert.equal(items.some((item) => item.id === "recommended"), true);
+  assert.equal(items.some((item) => item.id === "reset"), true);
   assert.equal(items.some((item) => item.id === "guide"), true);
+  assert.equal(
+    items.findIndex((item) => item.id === "reset"),
+    items.findIndex((item) => item.id === "recommended") + 1,
+  );
 
   let navigated = false;
   let toggled = false;
@@ -167,6 +173,7 @@ test("home header: >=1 recommended => has recommended item and handler navigates
     navigateToRecommended: async () => {
       navigated = true;
     },
+    resetFlow: async () => {},
   });
 
   assert.equal(navigated, true);
@@ -183,6 +190,7 @@ test("home header: guide action toggles info panel", async () => {
       toggled = true;
     },
     navigateToRecommended: async () => {},
+    resetFlow: async () => {},
   });
 
   assert.equal(toggled, true);
@@ -192,13 +200,31 @@ test("home header: supports translated labels from host", () => {
   const items = buildHomeHeaderItems(true, {
     appsLabel: "Apps",
     guideLabel: "Guia",
+    resetLabel: "Restablecer",
   });
 
   const appsItem = items.find((item) => item.id === "recommended");
   const guideItem = items.find((item) => item.id === "guide");
+  const resetItem = items.find((item) => item.id === "reset");
 
   assert.equal(appsItem?.label, "Apps");
   assert.equal(guideItem?.label, "Guia");
+  assert.equal(resetItem?.label, "Restablecer");
+});
+
+test("home header: reset action calls the host flow reset", async () => {
+  let reset = false;
+
+  await handleHomeHeaderAction("reset", {
+    closeInfo: () => {},
+    toggleInfo: () => {},
+    navigateToRecommended: async () => {},
+    resetFlow: () => {
+      reset = true;
+    },
+  });
+
+  assert.equal(reset, true);
 });
 
 test("landing click: click item calls openUrl callback", async () => {

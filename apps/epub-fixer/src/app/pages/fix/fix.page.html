@@ -7,6 +7,7 @@
         variant="iconText"
         align="start"
         edge="end"
+        [disabled]="isResettingFlow"
         (selectItem)="onHeaderItemClick($event)"
       ></sh-scrollable-button-bar>
     </ion-buttons>
@@ -265,6 +266,7 @@
     @if (viewState === 'repaired' && exportResult) {
       <sh-cover-image-state
         [previewUrl]="exportResult.previewSrc"
+        [fallbackLabelKey]="'MY_EPUBS.PLACEHOLDER'"
         [titleKey]="'FIX.REPAIR_SUCCESS_TITLE'"
         [hintKey]="'FIX.REPAIR_SUCCESS_BODY'"
         [ariaLabelKey]="'FIX.REPAIR_SUCCESS_TITLE'"
@@ -404,26 +406,6 @@
       (next)="onWorkflowNext()"
     ></sh-workflow-navigation>
 
-  <ion-modal
-    [isOpen]="purchaseModalOpen"
-    (didDismiss)="closePurchaseModal()"
-    class="remove-ads-modal"
-  >
-    <ng-template>
-      <div class="app-modal-content remove-ads-modal__content">
-        <sh-remove-ads-upgrade-modal
-          variant="EF"
-          [billingReady]="getRemoveAdsPurchaseState() === 'ready'"
-          [priceFormatted]="removeAdsPriceFormatted"
-          [purchaseDisabled]="!canPurchaseRemoveAds()"
-          [restoreDisabled]="!canRestoreRemoveAds()"
-          (closeRequested)="onPurchaseModalCloseClick()"
-          (purchaseRequested)="onPurchaseRemoveAds()"
-          (restoreRequested)="onRestorePurchases()"
-        ></sh-remove-ads-upgrade-modal>
-      </div>
-    </ng-template>
-  </ion-modal>
 
     <ion-popover
       [isOpen]="infoOpen"
@@ -454,6 +436,13 @@
         variant="fullscreen"
         [label]="loadingLabelKey | translate"
         [detail]="loadingProgressLabel"
+      ></sh-loading-state>
+    }
+
+    @if (isResettingFlow) {
+      <sh-loading-state
+        variant="fullscreen"
+        [label]="'UI_THEME.RESETTING' | translate"
       ></sh-loading-state>
     }
 

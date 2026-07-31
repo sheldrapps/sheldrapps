@@ -19,6 +19,13 @@
     (valueChange)="onThemeSettingsAction()"
   ></sh-selectable-button-list>
 
+  <sh-selectable-button-list
+    [value]="null"
+    [items]="removeAdsSettingsItems"
+    [showSelectedIcon]="false"
+    (valueChange)="onRemoveAdsSettingsAction()"
+  ></sh-selectable-button-list>
+
   <sh-privacy-policy-section [url]="privacyPolicyUrl"></sh-privacy-policy-section>
 
   <sh-selectable-button-list

@@ -18,7 +18,8 @@
     "REMOVE_ADS_RESTORE": "Restore purchase",
     "REMOVE_ADS_RESTORED": "Purchase restored successfully.",
     "REMOVE_ADS_TITLE": "Remove ads",
-    "REMOVE_ADS_CTA_TITLE": "Remove ads",
+   "REMOVE_ADS_CTA_TITLE": "Remove ads",
+    "UPGRADE_TO_PRO": "Upgrade to pro",
     "REMOVE_ADS_CTA_SUBTITLE": "One-time payment • Forever",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "One-time payment • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "Price: {{price}} • No subscription",
@@ -224,8 +225,7 @@
     "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
     "EREADER_OPTIMIZATION_HINT": "Apply automatic adjustments to improve the cover",
     "EREADER_OPTIMIZATION_TOGGLE": "Optimize",
-    "TITLE": "Settings",
-    "VIEW_TOUR": "View tour"
+    "TITLE": "Settings"
   },
   "TABS": {
     "COVERS": "My PDFs",

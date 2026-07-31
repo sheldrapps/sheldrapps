@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Settings schema for PDF Cover Maker.
  */
 
@@ -26,9 +26,6 @@ type LegacyPcmSettings = {
   coverExportMode?: string;
   bestQuality?: boolean;
   adsRemoved?: boolean;
-  homeTourSeen?: boolean;
-  homeTourVersion?: number;
-  homeTourSeenAt?: string;
   preferences?: Record<string, PreferenceValue>;
 };
 
@@ -38,9 +35,6 @@ export interface PcmSettings {
   cropTargetId?: string;
   exportQualityMode: ExportQualityMode;
   adsRemoved: boolean;
-  homeTourSeen: boolean;
-  homeTourVersion: number;
-  homeTourSeenAt?: string;
   preferences: Record<string, PreferenceValue>;
 }
 
@@ -57,9 +51,6 @@ const PCM_DEFAULTS: PcmSettings = {
   cropTargetId: undefined,
   exportQualityMode: DEFAULT_EXPORT_QUALITY_MODE,
   adsRemoved: false,
-  homeTourSeen: false,
-  homeTourVersion: 0,
-  homeTourSeenAt: undefined,
   preferences: {},
 };
 
@@ -97,9 +88,6 @@ export const PCM_SETTINGS_SCHEMA: SettingsSchema<PcmSettings> = {
             bestQuality: legacySettings?.bestQuality,
           }),
           adsRemoved: pickBoolean(legacySettings?.adsRemoved) ?? false,
-          homeTourSeen: pickBoolean(legacySettings?.homeTourSeen) ?? false,
-          homeTourVersion: pickNumber(legacySettings?.homeTourVersion) ?? 0,
-          homeTourSeenAt: pickNonEmptyString(legacySettings?.homeTourSeenAt),
           preferences,
         };
       },
@@ -202,9 +190,6 @@ async function migrateVersionedSettings(
       bestQuality: stored?.['bestQuality'],
     }),
     adsRemoved: pickBoolean(stored?.['adsRemoved']) ?? false,
-    homeTourSeen: pickBoolean(stored?.['homeTourSeen']) ?? false,
-    homeTourVersion: pickNumber(stored?.['homeTourVersion']) ?? 0,
-    homeTourSeenAt: pickNonEmptyString(stored?.['homeTourSeenAt']),
     preferences: normalizePreferences(stored?.['preferences']),
   };
 }

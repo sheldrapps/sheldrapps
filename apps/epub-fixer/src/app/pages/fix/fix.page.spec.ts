@@ -108,6 +108,7 @@ describe('FixPage', () => {
       busyProgressPercent: 0,
       preparedSessionId: 'session-1',
       selectedEpubName: 'book.epub',
+      repairing: new EpubRepairingService(),
       diagnosis: {
         status: 'repairable',
         issues: [
@@ -144,12 +145,16 @@ describe('FixPage', () => {
       },
       library: {
         saveExportedEpub,
+        resolvePreviewAsset: jasmine
+          .createSpy('resolvePreviewAsset')
+          .and.resolveTo({ src: '', isDithered: false }),
       },
       coversEvents: {
         emit,
       },
     });
 
+    FixPage.prototype.onConfirmationChange.call(ctx, ctx.diagnosis.issues[0], true);
     await FixPage.prototype.runRepair.call(ctx);
 
     expect(showRewarded).toHaveBeenCalled();
@@ -185,6 +190,7 @@ describe('FixPage', () => {
       busyProgressPercent: 0,
       preparedSessionId: 'session-1',
       selectedEpubName: 'case-2.epub',
+      repairing: new EpubRepairingService(),
       diagnosis: {
         status: 'repairable',
         issues: [
@@ -232,6 +238,7 @@ describe('FixPage', () => {
       coversEvents: { emit: jasmine.createSpy('emit') },
     });
 
+    FixPage.prototype.onConfirmationChange.call(ctx, ctx.diagnosis.issues[0], true);
     await FixPage.prototype.runRepair.call(ctx);
 
     expect(ctx.viewState).toBe('failed');
@@ -280,6 +287,7 @@ describe('FixPage', () => {
       busyProgressPercent: 0,
       preparedSessionId: 'session-1',
       selectedEpubName: 'book.epub',
+      repairing: new EpubRepairingService(),
       diagnosis: {
         status: 'repairable',
         issues: [
@@ -297,6 +305,8 @@ describe('FixPage', () => {
       epubErrorKey: undefined,
       epubErrorParams: {},
       adsRemoved: false,
+      adFallbackApp: 'ef',
+      adFallbackTotal: 1,
       adFallbackRemaining: 1,
       adFallbackTrialActive: false,
       ads: {
@@ -324,6 +334,9 @@ describe('FixPage', () => {
       },
       library: {
         saveExportedEpub,
+        resolvePreviewAsset: jasmine
+          .createSpy('resolvePreviewAsset')
+          .and.resolveTo({ src: '', isDithered: false }),
       },
       coversEvents: {
         emit,
@@ -331,6 +344,7 @@ describe('FixPage', () => {
       modalCtrl: {},
     });
 
+    FixPage.prototype.onConfirmationChange.call(ctx, ctx.diagnosis.issues[0], true);
     await FixPage.prototype.runRepair.call(ctx);
 
     expect(showRewarded).toHaveBeenCalled();
@@ -568,7 +582,11 @@ describe('FixPage', () => {
       canShowRemoveAdsEntryPoint: jasmine
         .createSpy('canShowRemoveAdsEntryPoint')
         .and.returnValue(true),
+      logPurchaseUiState: jasmine.createSpy('logPurchaseUiState'),
       preparePurchaseUi,
+      isDevelopmentMode: jasmine
+        .createSpy('isDevelopmentMode')
+        .and.returnValue(false),
       isBillingAvailable: jasmine
         .createSpy('isBillingAvailable')
         .and.returnValue(true),
@@ -648,6 +666,9 @@ describe('FixPage', () => {
         saveExportedEpub: jasmine
           .createSpy('saveExportedEpub')
           .and.resolveTo(undefined),
+        resolvePreviewAsset: jasmine
+          .createSpy('resolvePreviewAsset')
+          .and.resolveTo({ src: '', isDithered: false }),
       },
       coversEvents: {
         emit: jasmine.createSpy('emit'),
@@ -721,6 +742,9 @@ describe('FixPage', () => {
         saveExportedEpub: jasmine
           .createSpy('saveExportedEpub')
           .and.resolveTo(undefined),
+        resolvePreviewAsset: jasmine
+          .createSpy('resolvePreviewAsset')
+          .and.resolveTo({ src: '', isDithered: false }),
       },
       coversEvents: {
         emit: jasmine.createSpy('emit'),
@@ -808,6 +832,9 @@ describe('FixPage', () => {
         saveExportedEpub: jasmine
           .createSpy('saveExportedEpub')
           .and.resolveTo(undefined),
+        resolvePreviewAsset: jasmine
+          .createSpy('resolvePreviewAsset')
+          .and.resolveTo({ src: '', isDithered: false }),
       },
       coversEvents: {
         emit: jasmine.createSpy('emit'),
@@ -831,11 +858,11 @@ describe('FixPage', () => {
       .and.callFake((key: string, params?: Record<string, unknown>) =>
         params?.['path'] ? `${key}:${params['path']}` : key,
       );
-    const ctx = {
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
       translate: {
         instant,
       },
-    };
+    });
 
     const translated = FixPage.prototype.issueDetailsLabel.call(ctx, {
       code: 'OPF_MISSING',
@@ -870,11 +897,11 @@ describe('FixPage', () => {
       .and.callFake((key: string) =>
         key === 'FIX.ISSUE_HIGH_XHTML_001' ? 'Broken XHTML markup' : key,
       );
-    const ctx = {
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
       translate: {
         instant,
       },
-    };
+    });
 
     const translated = FixPage.prototype.issueMessageLabel.call(ctx, {
       code: 'HIGH-XHTML-001',
@@ -927,8 +954,8 @@ describe('FixPage', () => {
     expect(summaryDescriptor?.get?.call(ctx)).toEqual({
       totalIssues: 3,
       criticalIssues: 2,
-      highIssues: 0,
-      mediumIssues: 1,
+      highIssues: 1,
+      mediumIssues: 0,
       lowIssues: 0,
     });
     expect(

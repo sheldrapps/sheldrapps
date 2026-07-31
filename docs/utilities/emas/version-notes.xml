@@ -1,51 +1,39 @@
 <en-US>
-Merge EPUB files with a guided workflow, cover editing, and a clearer final preview.
+Merge and split EPUBs with a clearer guided workflow, keep their covers in the resulting files, and find completed exports more easily in Documents. Cover ratios preserve source detail instead of enlarging it unnecessarily.
 </en-US>
-
 <ar>
-ادمج ملفات EPUB عبر سير عمل إرشادي مع تحرير الغلاف ومعاينة نهائية أوضح.
+ادمج ملفات EPUB وقسّمها عبر مسار إرشادي أوضح، مع الحفاظ على أغلفتها في الملفات الناتجة والعثور على الصادرات المكتملة بسهولة أكبر في Documents. تحافظ نسب الغلاف على تفاصيل المصدر بدل تكبيرها دون حاجة.
 </ar>
-
 <de-DE>
-Führe EPUB-Dateien mit einem geführten Ablauf, Cover-Bearbeitung und einer klareren Abschlussvorschau zusammen.
+EPUBs lassen sich jetzt in einem klareren geführten Ablauf zusammenführen und teilen; ihre Cover bleiben in den erzeugten Dateien erhalten und fertige Exporte sind in Documents leichter zu finden. Cover-Verhältnisse bewahren Quelldetails, statt sie unnötig zu vergrößern.
 </de-DE>
-
 <es-419>
-Une archivos EPUB con un flujo guiado, edición de portada y una vista previa final más clara.
+Une y divide EPUB con un flujo guiado más claro, conserva las portadas en los archivos resultantes y encuentra las exportaciones terminadas más fácilmente en Documents. Las proporciones de portada conservan el detalle de origen en lugar de ampliarlo innecesariamente.
 </es-419>
-
 <fr-FR>
-Fusionnez des fichiers EPUB avec un parcours guidé, la modification de couverture et un aperçu final plus clair.
+Fusionnez et divisez des EPUB avec un parcours guidé plus clair, conservez leurs couvertures dans les fichiers générés et retrouvez plus facilement les exportations terminées dans Documents. Les proportions de couverture préservent les détails source au lieu de les agrandir inutilement.
 </fr-FR>
-
 <hi-IN>
-निर्देशित प्रक्रिया, कवर संपादन और अधिक स्पष्ट अंतिम प्रीव्यू के साथ EPUB फ़ाइलें मिलाएं।
+अब अधिक स्पष्ट निर्देशित प्रक्रिया में EPUB फ़ाइलों को मर्ज और स्प्लिट करें, परिणामस्वरूप फ़ाइलों में उनके कवर बनाए रखें और पूरी हुई एक्सपोर्ट फ़ाइलें Documents में आसानी से खोजें। कवर अनुपात स्रोत के विवरण को अनावश्यक रूप से बड़ा करने के बजाय बनाए रखते हैं।
 </hi-IN>
-
 <it-IT>
-Unisci file EPUB con un flusso guidato, modifica della copertina e un’anteprima finale più chiara.
+Unisci e dividi gli EPUB con un flusso guidato più chiaro, mantieni le copertine nei file risultanti e trova più facilmente le esportazioni completate in Documents. Le proporzioni della copertina preservano i dettagli originali invece di ingrandirli inutilmente.
 </it-IT>
-
 <ja-JP>
-ガイド付きの操作フローでEPUBファイルを結合し、表紙を編集して、より分かりやすい最終プレビューを確認できます。
+より分かりやすいガイド付きフローでEPUBを結合・分割し、生成したファイルにカバーを保持できるようになりました。完了した書き出しをDocumentsで見つけやすくなり、カバー比率では不要な拡大を避けて元の詳細を保持します。
 </ja-JP>
-
 <ko-KR>
-안내된 작업 흐름으로 EPUB 파일을 합치고 표지를 편집한 뒤 더 명확한 최종 미리보기를 확인하세요.
+더 명확한 안내 흐름으로 EPUB을 병합하고 분할하며, 결과 파일에 표지를 유지하고 완료된 내보내기를 Documents에서 더 쉽게 찾을 수 있습니다. 표지 비율은 불필요하게 확대하지 않고 원본 세부 정보를 유지합니다.
 </ko-KR>
-
 <pt-BR>
-Una arquivos EPUB com um fluxo guiado, edição de capa e uma prévia final mais clara.
+Una e divida EPUB em um fluxo guiado mais claro, mantenha as capas nos arquivos resultantes e encontre mais facilmente as exportações concluídas no Documents. As proporções da capa preservam os detalhes originais em vez de ampliá-los sem necessidade.
 </pt-BR>
-
 <ru-RU>
-Объединяйте EPUB-файлы по понятному сценарию, редактируйте обложку и проверяйте более ясное итоговое превью.
+Объединяйте и разделяйте EPUB в более понятном пошаговом процессе, сохраняйте обложки в созданных файлах и легче находите готовые экспорты в Documents. Пропорции обложки сохраняют детали исходного изображения, не увеличивая их без необходимости.
 </ru-RU>
-
 <zh-CN>
-通过引导式流程合并 EPUB 文件、编辑封面，并查看更清晰的最终预览。
+通过更清晰的引导流程合并和拆分 EPUB，并将封面保留在生成的文件中。完成的导出文件现在更容易在 Documents 中找到，封面比例会保留源图像细节，避免不必要的放大。
 </zh-CN>
-
 <zh-TW>
-透過引導式流程合併 EPUB 檔案、編輯封面，並查看更清楚的最終預覽。
+透過更清楚的引導流程合併與分割 EPUB，並將封面保留在產生的檔案中。完成的匯出檔案現在更容易在 Documents 中找到，封面比例會保留來源影像細節，避免不必要的放大。
 </zh-TW>

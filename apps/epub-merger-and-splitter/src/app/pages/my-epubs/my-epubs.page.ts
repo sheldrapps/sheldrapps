@@ -10,7 +10,6 @@ import {
 } from '@angular/core';
 import { App } from '@capacitor/app';
 import { type PluginListenerHandle } from '@capacitor/core';
-import { Router } from '@angular/router';
 import { AlertController, IonContent, IonHeader, IonTitle, IonToolbar, ToastController } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
@@ -19,7 +18,6 @@ import {
   alertCircleOutline,
   closeCircleOutline,
   ellipsisVertical,
-  folderOpenOutline,
   openOutline,
   shareOutline,
   trashOutline,
@@ -64,7 +62,6 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
   private readonly translate = inject(TranslateService);
-  private readonly router = inject(Router);
   private readonly coversEvents = inject(CoversEventsService);
   private readonly zone = inject(NgZone);
   private readonly changeDetector = inject(ChangeDetectorRef);
@@ -81,11 +78,6 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       id: 'open',
       labelKey: 'MY_EPUBS.ACTION_OPEN',
       icon: 'open-outline',
-    },
-    {
-      id: 'project',
-      labelKey: 'MY_EPUBS.ACTION_EDIT',
-      icon: 'folder-open-outline',
     },
     {
       id: 'share',
@@ -113,14 +105,13 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   private isViewActive = false;
   private isLoadInProgress = false;
   private loadToken = 0;
-  private readonly logPrefix = 'EF:my-epubs';
+  private readonly logPrefix = 'EMAS:my-epubs';
 
   constructor() {
     addIcons({
       alertCircleOutline,
       closeCircleOutline,
       ellipsisVertical,
-      folderOpenOutline,
       openOutline,
       shareOutline,
       trashOutline,
@@ -197,10 +188,6 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       void this.openByFilename(event.item.filename);
       return;
     }
-    if (event.actionId === 'project') {
-      void this.openProjectByFilename(event.item.filename);
-      return;
-    }
     if (event.actionId === 'share') {
       void this.shareByFilename(event.item.filename);
       return;
@@ -232,14 +219,6 @@ export class MyEpubsPage implements OnInit, OnDestroy {
         id: 'open',
         labelKey: 'MY_EPUBS.ACTION_OPEN',
         icon: 'open-outline',
-        layout: 'icon-text',
-        cssClass: 'ctrl',
-        disabled,
-      },
-      {
-        id: 'project',
-        labelKey: 'MY_EPUBS.ACTION_EDIT',
-        icon: 'folder-open-outline',
         layout: 'icon-text',
         cssClass: 'ctrl',
         disabled,
@@ -309,10 +288,6 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       void this.regeneratePreview();
       return;
     }
-    if (event.actionId === 'project') {
-      void this.openProjectByFilename(this.previewFilename);
-      this.closePreview();
-    }
   }
 
   async load(ev?: CustomEvent, opts?: { silent?: boolean }): Promise<void> {
@@ -330,8 +305,10 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     const currentToken = ++this.loadToken;
 
     try {
-      const filenames = await this.library.listEpubs();
-      const items: UiEpubItem[] = filenames.map((filename) => ({ filename }));
+      const records = await this.library.listRecords();
+      const items: UiEpubItem[] = records.map((record) => ({
+        filename: record.filename,
+      }));
       this.items = items;
       this.loading = false;
       await this.flushUi();
@@ -502,26 +479,6 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     }
   }
 
-  private async openProjectByFilename(filename: string | null): Promise<void> {
-    if (!filename) {
-      return;
-    }
-
-    this.pageErrorKey = null;
-    this.pageErrorParams = null;
-
-    try {
-      const navigated = await this.router.navigate(['/tabs/home'], {
-        queryParams: { project: filename },
-      });
-      if (!navigated) {
-        this.pageErrorKey = 'MY_EPUBS.ERROR.OPEN';
-      }
-    } catch {
-      this.pageErrorKey = 'MY_EPUBS.ERROR.OPEN';
-    }
-  }
-
   private async shareByFilename(filename: string): Promise<void> {
     this.pageErrorKey = null;
     this.pageErrorParams = null;
@@ -607,6 +564,8 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       message: this.translate.instant(messageKey),
       duration,
       position: 'middle',
+      animated: true,
+      translucent: true,
       cssClass: ['cc-toast', 'cc-toast--success'],
     });
     await toast.present();

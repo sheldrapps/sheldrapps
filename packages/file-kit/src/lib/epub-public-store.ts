@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { FileKitService } from './file-kit.service';
+import { PUBLIC_FILESYSTEM, type PublicFilesystem } from './public-filesystem';
 
 const DEFAULT_PUBLIC_DOCUMENTS_ROOTS = [
   '/storage/emulated/0/Documents',
@@ -16,6 +17,12 @@ type ListingAttempt = {
   directory?: Directory;
 };
 
+export type EpubPublicFilesystem = PublicFilesystem;
+
+export { PUBLIC_FILESYSTEM, type PublicFilesystem } from './public-filesystem';
+
+export const EPUB_PUBLIC_FILESYSTEM = PUBLIC_FILESYSTEM;
+
 export type EpubPublicStoreOptions = {
   epubFolder: string;
   /**
@@ -26,10 +33,13 @@ export type EpubPublicStoreOptions = {
   useDocumentsDirectoryOnNative?: boolean;
   /** Physical Capacitor directory used by the relative store mode. */
   nativeDirectory?: Directory;
+  /** Older private directories whose EPUBs should be copied into the public store. */
+  legacyNativeDirectories?: Directory[];
   publicDocumentsRoot?: string;
   publicDocumentsRoots?: string[];
   debug?: boolean;
   logPrefix?: string;
+  filesystem?: PublicFilesystem;
 };
 
 export class EpubPublicStore {
@@ -38,6 +48,9 @@ export class EpubPublicStore {
   private readonly logPrefix: string;
   private readonly useDocumentsDirectory: boolean;
   private readonly storageDirectory: Directory;
+  private readonly legacyNativeDirectories: Directory[];
+  private readonly filesystem: PublicFilesystem;
+  private hasMigratedLegacyNativeEpubs = false;
   private hasMigratedDocumentsToPublic = false;
   private activePublicDocumentsRoot: string;
 
@@ -48,7 +61,9 @@ export class EpubPublicStore {
     this.useDocumentsDirectory =
       !Capacitor.isNativePlatform() ||
       !!options.useDocumentsDirectoryOnNative;
+    this.filesystem = options.filesystem ?? Filesystem;
     this.storageDirectory = options.nativeDirectory ?? Directory.Documents;
+    this.legacyNativeDirectories = options.legacyNativeDirectories ?? [];
     this.publicDocumentsRoots = this.resolvePublicDocumentsRoots(options);
     this.activePublicDocumentsRoot = this.publicDocumentsRoots[0];
     this.debug = !!options.debug;
@@ -85,8 +100,22 @@ export class EpubPublicStore {
     return `${this.options.epubFolder}/${filename}`;
   }
 
+  async nativePathFor(filename: string): Promise<string> {
+    await this.ensureReady();
+    if (!this.useDocumentsDirectory) {
+      return this.pathFor(filename);
+    }
+
+    const result = await this.filesystem.getUri({
+      directory: this.storageDirectory,
+      path: this.relativePathFor(filename),
+    });
+    return this.toNativePath(result.uri);
+  }
+
   async ensureReady(): Promise<void> {
     await this.ensurePublicFolderExists();
+    await this.migrateLegacyNativeEpubsOnce();
     if (this.useDocumentsDirectory) {
       return;
     }
@@ -157,25 +186,11 @@ export class EpubPublicStore {
 
   async writeEpub(filename: string, bytes: Uint8Array): Promise<void> {
     await this.ensureReady();
-    const targetPath = this.pathFor(filename);
-    await Filesystem.writeFile(
-      this.useDocumentsDirectory
-        ? {
-            directory: this.storageDirectory,
-            path: targetPath,
-            data: this.fileKit.toBase64(bytes),
-            recursive: true,
-          }
-        : {
-            path: targetPath,
-            data: this.fileKit.toBase64(bytes),
-            recursive: true,
-          },
-    );
+    await this.writeTargetEpub(filename, this.fileKit.toBase64(bytes));
     this.debugLog('writeEpub', {
       filename,
       bytes: bytes.byteLength,
-      targetPath,
+      targetPath: this.pathFor(filename),
       writeCompletedAt: new Date().toISOString(),
     });
   }
@@ -183,7 +198,7 @@ export class EpubPublicStore {
   async deleteEpub(filename: string): Promise<void> {
     for (const path of this.buildFilePathCandidates(filename)) {
       try {
-        await Filesystem.deleteFile(this.buildFilesystemPath(path));
+        await this.filesystem.deleteFile(this.buildFilesystemPath(path));
         this.debugLog('deleteEpub', { filename, path });
         return;
       } catch (error) {
@@ -208,7 +223,7 @@ export class EpubPublicStore {
     const toPath = `${folderPath}/${toFilename}`;
 
     const renameOptions = this.buildFilesystemPath(fromPath);
-    await Filesystem.rename({
+    await this.filesystem.rename({
       from: fromPath,
       to: toPath,
       ...(renameOptions.directory
@@ -234,7 +249,7 @@ export class EpubPublicStore {
       throw new Error(`File not found: ${filename}`);
     }
 
-    const raw = await Filesystem.readFile(this.buildFilesystemPath(path));
+    const raw = await this.filesystem.readFile(this.buildFilesystemPath(path));
     const base64 = typeof raw.data === 'string'
       ? raw.data
       : this.fileKit.toBase64(new Uint8Array(await raw.data.arrayBuffer()));
@@ -258,7 +273,7 @@ export class EpubPublicStore {
       throw new Error(`File not found: ${filename}`);
     }
 
-    const stat = await Filesystem.stat(this.buildFilesystemPath(path));
+    const stat = await this.filesystem.stat(this.buildFilesystemPath(path));
     return typeof stat.size === 'number' ? stat.size : 0;
   }
 
@@ -277,7 +292,7 @@ export class EpubPublicStore {
   private async ensurePublicFolderExists(): Promise<void> {
     if (this.useDocumentsDirectory) {
       try {
-        await Filesystem.mkdir({
+        await this.filesystem.mkdir({
           path: this.options.epubFolder,
           directory: this.storageDirectory,
           recursive: true,
@@ -291,7 +306,7 @@ export class EpubPublicStore {
     for (const root of this.publicDocumentsRoots) {
       const folderPath = this.buildPublicFolderPath(root);
       try {
-        await Filesystem.mkdir({ path: folderPath, recursive: true });
+        await this.filesystem.mkdir({ path: folderPath, recursive: true });
         this.activePublicDocumentsRoot = root;
         this.debugLog('ensurePublicFolderExists:ok', {
           resolvedFolderPath: folderPath,
@@ -332,7 +347,7 @@ export class EpubPublicStore {
           dir: 'Documents',
           path: relativePath,
         });
-        await Filesystem.writeFile({
+        await this.filesystem.writeFile({
           path: this.pathFor(filename),
           data: this.fileKit.toBase64(bytes),
           recursive: true,
@@ -359,7 +374,7 @@ export class EpubPublicStore {
 
   private async listDirectoryDocumentsEpubs(): Promise<string[]> {
     try {
-      const list = await Filesystem.readdir(
+      const list = await this.filesystem.readdir(
         this.buildFilesystemPath(this.options.epubFolder),
       );
       const names = this.normalizeDirectoryEntries(list.files);
@@ -421,7 +436,69 @@ export class EpubPublicStore {
   }
 
   private async readdirForAttempt(attempt: ListingAttempt): Promise<any> {
-    return Filesystem.readdir(this.buildFilesystemPath(attempt.path, attempt.directory));
+    return this.filesystem.readdir(this.buildFilesystemPath(attempt.path, attempt.directory));
+  }
+
+  private async migrateLegacyNativeEpubsOnce(): Promise<void> {
+    if (this.hasMigratedLegacyNativeEpubs || this.legacyNativeDirectories.length === 0) {
+      return;
+    }
+    this.hasMigratedLegacyNativeEpubs = true;
+
+    for (const directory of this.legacyNativeDirectories) {
+      let filenames: string[];
+      try {
+        const listing = await this.filesystem.readdir({
+          directory,
+          path: this.options.epubFolder,
+        });
+        filenames = this.filterEpubNames(
+          this.normalizeDirectoryEntries(listing.files),
+        );
+      } catch {
+        continue;
+      }
+
+      for (const filename of filenames) {
+        if (await this.exists(filename)) {
+          continue;
+        }
+
+        try {
+          const source = await this.filesystem.readFile({
+            directory,
+            path: this.relativePathFor(filename),
+          });
+          const data =
+            typeof source.data === 'string'
+              ? this.normalizeBase64Data(source.data)
+              : this.fileKit.toBase64(
+                  new Uint8Array(await source.data.arrayBuffer()),
+                );
+          await this.writeTargetEpub(filename, data);
+        } catch {
+          continue;
+        }
+      }
+    }
+  }
+
+  private async writeTargetEpub(filename: string, data: string): Promise<void> {
+    if (this.useDocumentsDirectory) {
+      await this.filesystem.writeFile({
+        directory: this.storageDirectory,
+        path: this.relativePathFor(filename),
+        data,
+        recursive: true,
+      });
+      return;
+    }
+
+    await this.filesystem.writeFile({
+      path: this.pathFor(filename),
+      data,
+      recursive: true,
+    });
   }
 
   private normalizeDirectoryEntries(files: unknown): string[] {
@@ -480,7 +557,7 @@ export class EpubPublicStore {
   private async resolveExistingPath(filename: string): Promise<string | null> {
     for (const candidate of this.buildFilePathCandidates(filename)) {
       try {
-        await Filesystem.stat(this.buildFilesystemPath(candidate));
+        await this.filesystem.stat(this.buildFilesystemPath(candidate));
         return candidate;
       } catch {
         // continue
@@ -545,7 +622,7 @@ export class EpubPublicStore {
       path.startsWith(`${this.options.epubFolder}/`);
 
     if (isDocumentsPath) {
-      const result = await Filesystem.getUri({
+      const result = await this.filesystem.getUri({
         path,
         directory: this.storageDirectory,
       });
@@ -561,6 +638,13 @@ export class EpubPublicStore {
       return data.slice(commaIdx + 1);
     }
     return data;
+  }
+
+  private toNativePath(uri: string): string {
+    if (!uri.startsWith('file://')) {
+      return uri;
+    }
+    return decodeURIComponent(uri.replace(/^file:\/\//, ''));
   }
 
   private debugLog(event: string, payload?: Record<string, unknown>): void {

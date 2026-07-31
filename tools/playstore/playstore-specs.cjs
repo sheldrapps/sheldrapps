@@ -87,6 +87,55 @@ const FIX_PROMPT_SECTIONS = [
   },
 ];
 
+const EMAS_PROMPT_SECTIONS = [
+  {
+    heading: 'Feature Graphic',
+    screenshot: false,
+    rawFile: null,
+  },
+  {
+    heading: 'Screenshot 1',
+    screenshot: true,
+    rawFile: '01-home-empty.png',
+  },
+  {
+    heading: 'Screenshot 2',
+    screenshot: true,
+    rawFile: '02-merge-sort.png',
+  },
+  {
+    heading: 'Screenshot 3',
+    screenshot: true,
+    rawFile: '04-split-confirm.png',
+  },
+  {
+    heading: 'Screenshot 4',
+    screenshot: true,
+    rawFile: '03-split-how-to.png',
+  },
+  {
+    heading: 'Screenshot 5',
+    screenshot: true,
+    rawFile: '05-split-cover.png',
+  },
+];
+
+const EMAS_PALETTES = {
+  'en-US': { backgroundBase: '#13161A', backgroundSecondary: '#222830', mergeAccent: '#5578E8', splitAccent: '#66A6A1', title: '#FFFFFF', subline: '#D4DAE3', bullet: '#C8D4F0' },
+  'es-MX': { backgroundBase: '#15171B', backgroundSecondary: '#242A31', mergeAccent: '#4E6FD6', splitAccent: '#5D9B93', title: '#FFFFFF', subline: '#D5DBE4', bullet: '#C7D3ED' },
+  'de-DE': { backgroundBase: '#121416', backgroundSecondary: '#20262C', mergeAccent: '#6C86A3', splitAccent: '#7C9C97', title: '#F7F7F7', subline: '#CDD5DC', bullet: '#DCE6EE' },
+  'fr-FR': { backgroundBase: '#151518', backgroundSecondary: '#24242A', mergeAccent: '#6878B8', splitAccent: '#78A19A', title: '#FFFFFF', subline: '#DDDCE4', bullet: '#CFD4EB' },
+  'it-IT': { backgroundBase: '#181516', backgroundSecondary: '#2A2426', mergeAccent: '#6677C5', splitAccent: '#79A293', title: '#FFFFFF', subline: '#E4D8D8', bullet: '#D7D8EE' },
+  'pt-BR': { backgroundBase: '#151719', backgroundSecondary: '#252A2E', mergeAccent: '#4F72D8', splitAccent: '#55A49A', title: '#FFFFFF', subline: '#D7DDE3', bullet: '#CAD6F2' },
+  'ar-SA': { backgroundBase: '#101418', backgroundSecondary: '#1C252B', mergeAccent: '#B88A3A', splitAccent: '#5D8F8A', title: '#FFFFFF', subline: '#D7E0E3', bullet: '#E1D3AA' },
+  'hi-IN': { backgroundBase: '#151515', backgroundSecondary: '#252018', mergeAccent: '#5D6FD5', splitAccent: '#D58A3A', title: '#FFFFFF', subline: '#E6D9CE', bullet: '#D2D7F5' },
+  'ja-JP': { backgroundBase: '#121416', backgroundSecondary: '#1E2327', mergeAccent: '#5F7894', splitAccent: '#668F8B', title: '#F8F8F8', subline: '#CDD5D8', bullet: '#DCE5EA' },
+  'ko-KR': { backgroundBase: '#121417', backgroundSecondary: '#1F2429', mergeAccent: '#5B6DD8', splitAccent: '#5F9993', title: '#FFFFFF', subline: '#CDD6DC', bullet: '#D1D8F4' },
+  'ru-RU': { backgroundBase: '#141414', backgroundSecondary: '#20242A', mergeAccent: '#566DA8', splitAccent: '#6A9994', title: '#FFFFFF', subline: '#D2D6DA', bullet: '#D5DCEF' },
+  'zh-CN': { backgroundBase: '#111417', backgroundSecondary: '#1D242A', mergeAccent: '#4C6DD0', splitAccent: '#4E9B91', title: '#FFFFFF', subline: '#D4DDE1', bullet: '#CFD8F2' },
+  'zh-TW': { backgroundBase: '#121416', backgroundSecondary: '#20272C', mergeAccent: '#5D73B9', splitAccent: '#659C96', title: '#FFFFFF', subline: '#D6E0E3', bullet: '#D4DCF1' },
+};
+
 const COMMON_COVER_SCENARIOS = [
   {
     id: 'editor-adjust-contrast',
@@ -211,6 +260,43 @@ const APPS = {
       'zh-TW': 'obsidian-red',
     },
   }),
+  emas: buildEpubWorkflowAppSpec({
+    id: 'emas',
+    displayName: 'EPUB Merge & Split',
+    shortName: 'EMAS',
+    baseUrlEnv: 'EMAS_BASE_URL',
+    baseUrlDefault: 'http://localhost:8100',
+    localeEnv: 'EMAS_SCREENSHOT_LOCALES',
+    outputRoot: 'tools/playstore/raw/emas',
+    storageKey: 'epub-merger-and-splitter.settings',
+    settingsVersion: 1,
+    homeTourVersion: 1,
+    editorTourVersion: 1,
+    sampleDocumentFilename: 'emas-screenshot-sample.epub',
+    homeRoute: '/tabs/home',
+    homeSelector: 'app-home',
+    themeIdByLocale: {
+      'en-US': 'dark',
+      'es-MX': 'dark',
+      'de-DE': 'silver-tech',
+      'fr-FR': 'dark',
+      'it-IT': 'nocturne-violet',
+      'pt-BR': 'dark',
+      'ar-SA': 'gold-luxe',
+      'hi-IN': 'nocturne-violet',
+      'ja-JP': 'silver-tech',
+      'ko-KR': 'dark',
+      'ru-RU': 'silver-tech',
+      'zh-CN': 'dark',
+      'zh-TW': 'dark',
+    },
+    promptGuidance: {
+      palettes: EMAS_PALETTES,
+      screenshotAspectRatio: '9:16',
+      rawCompositionRule: 'Use the provided raw screenshot as the exact composition reference. Keep its layout, UI, cards, icons, controls, typography, spacing, hierarchy, and element count unchanged. Do not modify the screenshot internally, add elements, remove elements, rearrange elements, or restyle any other part.',
+      allowedReplacements: 'Only replace these visible contents: EPUB names using popular public-domain books from the locale or region (prefer a recognizable public-domain trilogy when practical), the displayed filename, the displayed chapter names, and the white placeholder boxes with plausible in-book images. Do not use copyrighted text, modern copyrighted translations, or identifiable copyrighted cover art.',
+    },
+  }),
   pcm: buildCoverAppSpec({
     id: 'pcm',
     displayName: 'PDF Cover Maker',
@@ -270,6 +356,84 @@ function buildFixAppSpec(options) {
     supportedLocales: [...SUPPORTED_LOCALES],
     promptSections: FIX_PROMPT_SECTIONS.map((section) => ({ ...section })),
     scenarios: COMMON_FIX_SCENARIOS.map((scenario) => ({ ...scenario })),
+    logPrefix: options.shortName,
+  };
+}
+
+function buildEpubWorkflowAppSpec(options) {
+  const captureWidth = 360;
+  const captureHeight = 800;
+
+  return {
+    id: options.id,
+    displayName: options.displayName,
+    shortName: options.shortName,
+    baseUrlEnv: options.baseUrlEnv,
+    baseUrlDefault: options.baseUrlDefault,
+    localeEnv: options.localeEnv,
+    outputRoot: options.outputRoot,
+    storageKey: options.storageKey,
+    settingsVersion: options.settingsVersion,
+    homeTourVersion: options.homeTourVersion,
+    editorTourVersion: options.editorTourVersion,
+    sampleDocumentFilename: options.sampleDocumentFilename,
+    routes: {
+      change: options.homeRoute,
+      library: options.homeRoute,
+    },
+    selectors: {
+      appRoot: 'app-root',
+      change: options.homeSelector,
+      library: options.homeSelector,
+      previewModal: 'ion-modal.cover-preview-modal',
+    },
+    capture: {
+      width: captureWidth,
+      height: captureHeight,
+      deviceScaleFactor: 4,
+    },
+    themeId: 'nocturne-violet',
+    themeIdByLocale: options.themeIdByLocale ?? null,
+    supportedLocales: [...SUPPORTED_LOCALES],
+    promptSections: EMAS_PROMPT_SECTIONS.map((section) => ({ ...section })),
+    promptGuidance: options.promptGuidance ?? null,
+    scenarios: [
+      {
+        id: 'home-empty',
+        page: 'change',
+        query: 'screen=home-empty',
+        filename: '01-home-empty.png',
+        actions: [],
+      },
+      {
+        id: 'merge-sort',
+        page: 'change',
+        query: 'screen=merge-sort',
+        filename: '02-merge-sort.png',
+        actions: ['seedEmasMergeSortState'],
+      },
+      {
+        id: 'split-how-to',
+        page: 'change',
+        query: 'screen=split-how-to',
+        filename: '04-split-how-to.png',
+        actions: ['seedEmasSplitHowToState'],
+      },
+      {
+        id: 'split-confirm',
+        page: 'change',
+        query: 'screen=split-confirm',
+        filename: '03-split-confirm.png',
+        actions: ['seedEmasSplitConfirmState'],
+      },
+      {
+        id: 'split-cover',
+        page: 'change',
+        query: 'screen=split-cover',
+        filename: '05-split-cover.png',
+        actions: ['seedEmasSplitCoverState'],
+      },
+    ],
     logPrefix: options.shortName,
   };
 }
@@ -334,6 +498,8 @@ function getSupportedAppIds() {
 module.exports = {
   APPS,
   FIX_PROMPT_SECTIONS,
+  EMAS_PROMPT_SECTIONS,
+  EMAS_PALETTES,
   STANDARD_PROMPT_SECTIONS,
   SUPPORTED_LOCALES,
   buildCoverAppSpec,

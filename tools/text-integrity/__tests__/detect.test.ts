@@ -56,3 +56,22 @@ test("reports exact line and column for semantic mojibake", () => {
   assert.equal(findings[0]?.start.line, 2);
   assert.equal(findings[0]?.start.column, 1);
 });
+
+test("detects single-pass mojibake in non-Latin scripts", () => {
+  const findings = collectSemanticMojibakeFindings(
+    "memory.ts",
+    "TITLE: '\u00eb\u2039\u00a4\u00ec\u2039\u0153 \u00ec\u2039\u0153\u00ec\u017e\u0091'"
+  );
+
+  assert.equal(findings.length > 0, true);
+  assert.equal(findings[0]?.suggested, "\ub2e4\uc2dc \uc2dc\uc791");
+});
+
+test("does not flag URL query strings or regular-expression syntax", () => {
+  const findings = collectSemanticMojibakeFindings(
+    "memory.ts",
+    "https://example.com/path?lang=es-MX jpe?g"
+  );
+
+  assert.deepEqual(findings, []);
+});

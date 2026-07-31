@@ -1,4 +1,4 @@
-﻿# Kindle用カバー作成 - ja-JP Play Store Listing
+# Kindle用カバー作成 - ja-JP Play Store Listing
 
 ## Purpose
 Localized Play Store listing for ja-JP, regenerated from the updated strategy matrix and conversion audit.

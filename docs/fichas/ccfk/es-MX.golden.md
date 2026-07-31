@@ -1,4 +1,4 @@
-﻿# Cover Creator for Kindle - es-MX Golden Play Store Listing
+# Cover Creator for Kindle - es-MX Golden Play Store Listing
 
 ## Propósito
 

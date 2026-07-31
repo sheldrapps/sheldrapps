@@ -1,4 +1,4 @@
-﻿import type { SupportedLocale } from '@sheldrapps/i18n-kit';
+import type { SupportedLocale } from '@sheldrapps/i18n-kit';
 import { SettingsSchema } from '@sheldrapps/settings-kit';
 import { isAppThemeMode, type AppThemeMode } from '@sheldrapps/ui-theme';
 

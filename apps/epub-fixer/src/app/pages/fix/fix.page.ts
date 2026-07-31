@@ -23,7 +23,6 @@ import {
   IonLabel,
   IonGrid,
   IonCheckbox,
-  IonModal,
   IonPopover,
   IonRow,
   IonRadio,
@@ -46,6 +45,7 @@ import {
   saveOutline,
   shareSocialOutline,
   sparklesOutline,
+  refreshOutline,
 } from 'ionicons/icons';
 import {
   buildEpubIssueSelectionKey,
@@ -66,7 +66,9 @@ import {
 import {
   AdsService,
   BillingService,
-  RemoveAdsUpgradeModalComponent,
+  PURCHASE_INTENT_QUERY_PARAM,
+  REMOVE_ADS_PURCHASE_INTENT,
+  RemoveAdsPurchasePageService,
 } from '@sheldrapps/ads-kit';
 import {
   ActionCardComponent,
@@ -79,6 +81,7 @@ import {
   WorkflowStepperComponent,
 } from '@sheldrapps/ui-theme';
 import { CoverImageStateComponent } from '@sheldrapps/image-workflow';
+import { EditorSessionExitService } from '@sheldrapps/image-workflow/editor';
 import type { WorkflowStep } from '@sheldrapps/ui-theme';
 import {
   RecommendedApp,
@@ -127,7 +130,6 @@ const MAX_REPAIR_PASSES = 3;
     IonCheckbox,
     IonItem,
     IonLabel,
-    IonModal,
     IonPopover,
     IonRadio,
     IonRadioGroup,
@@ -139,7 +141,6 @@ const MAX_REPAIR_PASSES = 3;
     LoadingStateComponent,
     SectionCardComponent,
     ScrollableButtonBarComponent,
-    RemoveAdsUpgradeModalComponent,
     WorkflowNavigationComponent,
     WorkflowStepperComponent,
   ],
@@ -153,6 +154,7 @@ export class FixPage implements OnInit, OnDestroy {
   private readonly ads = inject(AdsService);
   private readonly adFallback = inject(AdFallbackService);
   private readonly billing = inject(BillingService);
+  private readonly removeAdsPurchasePage = inject(RemoveAdsPurchasePageService);
   private readonly settings = inject(SettingsStore<EpubFixerSettings>);
   private readonly coversEvents = inject(CoversEventsService);
   private readonly recommendedAppsService = inject(RecommendedAppsService);
@@ -161,6 +163,7 @@ export class FixPage implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly zone = inject(NgZone);
   private readonly changeDetector = inject(ChangeDetectorRef);
+  private readonly editorSessionExit = inject(EditorSessionExitService);
 
   @ViewChild('epubInput') epubInput!: ElementRef<HTMLInputElement>;
 
@@ -176,6 +179,7 @@ export class FixPage implements OnInit, OnDestroy {
       saveOutline,
       shareSocialOutline,
       sparklesOutline,
+      refreshOutline,
     });
   }
 
@@ -230,6 +234,7 @@ export class FixPage implements OnInit, OnDestroy {
   epubErrorParams: Record<string, unknown> = {};
   busyAction?: 'prepare' | 'diagnose' | 'repair' | 'export';
   busyProgressPercent = 0;
+  isResettingFlow = false;
   adsRemoved = false;
   private adsRemovedSub?: Subscription;
   private removeAdsPriceSub?: Subscription;
@@ -635,6 +640,20 @@ export class FixPage implements OnInit, OnDestroy {
     );
   }
 
+  private logPurchaseUiState(source: string): void {
+    this.billing.logPurchaseUiState(source, {
+      app: 'ef',
+      adsRemoved: this.adsRemoved,
+      navigatorOnline:
+        typeof navigator === 'undefined' ? undefined : navigator.onLine,
+      purchaseBusy: this.purchaseBusy,
+      entryPointVisible: this.canShowRemoveAdsEntryPoint(),
+      purchaseState: this.getRemoveAdsPurchaseState(),
+      purchaseButtonEnabled: this.canPurchaseRemoveAds(),
+      restoreButtonEnabled: this.canRestoreRemoveAds(),
+    });
+  }
+
   async ngOnInit(): Promise<void> {
     this.headerLangSub = this.translate.onLangChange.subscribe(() => {
       void this.refreshHeaderItems();
@@ -649,16 +668,20 @@ export class FixPage implements OnInit, OnDestroy {
     const settings = await this.settings.load();
     this.hydrateAdFallbackState(settings.preferences);
     this.adsRemovedSub = this.billing.adsRemoved$.subscribe((value) => {
-      this.adsRemoved = value;
-      if (value) {
-        this.adFallbackTrialActive = false;
-        void this.persistAdFallbackState();
-      }
+      this.runInZone(() => {
+        this.adsRemoved = value;
+        if (value) {
+          this.adFallbackTrialActive = false;
+          void this.persistAdFallbackState();
+        }
+      });
     });
     this.adsRemoved = this.billing.isAdsRemoved();
     this.removeAdsPriceFormatted = this.billing.getRemoveAdsPriceFormatted();
     this.removeAdsPriceSub = this.billing.removeAdsPrice$.subscribe((value) => {
-      this.removeAdsPriceFormatted = value;
+      this.runInZone(() => {
+        this.removeAdsPriceFormatted = value;
+      });
     });
   }
 
@@ -675,6 +698,18 @@ export class FixPage implements OnInit, OnDestroy {
   async ionViewWillEnter(): Promise<void> {
     await this.refreshHeaderItems();
     await this.tryOpenProjectFromRoute();
+    await this.tryOpenPurchaseFromRoute();
+  }
+
+  private async tryOpenPurchaseFromRoute(): Promise<void> {
+    if (
+      this.route.snapshot.queryParamMap.get(PURCHASE_INTENT_QUERY_PARAM) !==
+      REMOVE_ADS_PURCHASE_INTENT
+    ) {
+      return;
+    }
+
+    await this.openPurchaseModal();
   }
 
   ionViewWillLeave(): void {
@@ -690,13 +725,21 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   private runInZone<T>(fn: () => T): T {
-    return NgZone.isInAngularZone() ? fn() : this.zone.run(fn);
+    return NgZone.isInAngularZone() || !this.zone ? fn() : this.zone.run(fn);
   }
 
   private async flushUi(): Promise<void> {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestAnimationFrame === 'function'
+    ) {
+      await new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    }
     this.runInZone(() => {
-      this.changeDetector.markForCheck();
-      this.changeDetector.detectChanges();
+      this.changeDetector?.markForCheck();
+      this.changeDetector?.detectChanges();
     });
   }
 
@@ -912,30 +955,49 @@ export class FixPage implements OnInit, OnDestroy {
       navigateToRecommended: async () => {
         await this.router.navigateByUrl('/recommended-apps');
       },
+      resetFlow: () => this.resetFlow(),
+    });
+  }
+
+  async resetFlow(): Promise<void> {
+    if (this.isResettingFlow) return;
+    if (!(await this.editorSessionExit.confirmResetFlow())) return;
+    this.runInZone(() => {
+      this.isResettingFlow = true;
+      this.changeDetector.detectChanges();
+    });
+    await this.yieldResetTurn();
+    await this.runInZone(async () => {
+      try {
+        await this.resetWorkflowForNewEpub();
+        this.busyAction = undefined;
+        this.busyProgressPercent = 0;
+        if (this.epubInput?.nativeElement) {
+          this.epubInput.nativeElement.value = '';
+        }
+      } finally {
+        this.isResettingFlow = false;
+        this.changeDetector.detectChanges();
+      }
     });
   }
 
   async openPurchaseModal(): Promise<void> {
+    this.logPurchaseUiState('open-before-guard');
     if (!this.canShowRemoveAdsEntryPoint() || this.purchaseBusy) {
       return;
     }
-
-    this.purchaseBusy = true;
-    try {
-      await this.billing.preparePurchaseUi();
-    } finally {
-      this.purchaseBusy = false;
-    }
-
-    if (!this.canShowRemoveAdsEntryPoint()) {
-      return;
-    }
-
-    this.purchaseModalOpen = true;
+    this.removeAdsPurchasePage.open({
+      variant: 'EF',
+      returnUrl: '/tabs/fix-page',
+    });
+    await this.router.navigateByUrl('/remove-ads');
   }
 
   closePurchaseModal(): void {
-    this.purchaseModalOpen = false;
+    this.runInZone(() => {
+      this.purchaseModalOpen = false;
+    });
   }
 
   onPurchaseModalCloseClick(): void {
@@ -947,14 +1009,19 @@ export class FixPage implements OnInit, OnDestroy {
       return;
     }
 
-    this.purchaseBusy = true;
+    this.runInZone(() => {
+      this.purchaseBusy = true;
+    });
+    await this.flushUi();
     try {
       const success = await this.billing.purchaseRemoveAds();
       if (!success) {
         return;
       }
 
-      this.closePurchaseModal();
+      this.runInZone(() => {
+        this.closePurchaseModal();
+      });
       await this.showToast(
         'COMMON.REMOVE_ADS_PURCHASED',
         { duration: 1800 },
@@ -963,7 +1030,10 @@ export class FixPage implements OnInit, OnDestroy {
     } catch {
       await this.showToast('COMMON.PURCHASE_ERROR', { duration: 1800 }, 'error');
     } finally {
-      this.purchaseBusy = false;
+      this.runInZone(() => {
+        this.purchaseBusy = false;
+      });
+      await this.flushUi();
     }
   }
 
@@ -972,7 +1042,10 @@ export class FixPage implements OnInit, OnDestroy {
       return;
     }
 
-    this.purchaseBusy = true;
+    this.runInZone(() => {
+      this.purchaseBusy = true;
+    });
+    await this.flushUi();
     try {
       const restored = await this.billing.restorePurchases();
       if (!restored) {
@@ -980,7 +1053,9 @@ export class FixPage implements OnInit, OnDestroy {
         return;
       }
 
-      this.closePurchaseModal();
+      this.runInZone(() => {
+        this.closePurchaseModal();
+      });
       await this.showToast(
         'COMMON.REMOVE_ADS_RESTORED',
         { duration: 1800 },
@@ -989,7 +1064,10 @@ export class FixPage implements OnInit, OnDestroy {
     } catch {
       await this.showToast('COMMON.RESTORE_ERROR', { duration: 1800 }, 'error');
     } finally {
-      this.purchaseBusy = false;
+      this.runInZone(() => {
+        this.purchaseBusy = false;
+      });
+      await this.flushUi();
     }
   }
 
@@ -1423,7 +1501,7 @@ export class FixPage implements OnInit, OnDestroy {
           size: exported.size,
           outputName,
           outputUri: exported.outputUri,
-          previewSrc: preview.src || undefined,
+          ...(preview.src ? { previewSrc: preview.src } : {}),
         };
         this.clearEpubError();
         await this.consumeAdFallbackAttemptAfterSuccess();
@@ -1478,6 +1556,19 @@ export class FixPage implements OnInit, OnDestroy {
     }
   }
 
+  private async yieldResetTurn(): Promise<void> {
+    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+      await Promise.resolve();
+      return;
+    }
+
+    await new Promise<void>((resolve) => {
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    });
+  }
+
   private async showToast(
     messageKey: string,
     opts: Partial<ToastOptions> = {},
@@ -1526,6 +1617,7 @@ export class FixPage implements OnInit, OnDestroy {
     this.showRecommended = recommendedApps.length > 0;
     this.headerItems = buildHomeHeaderItems(this.showRecommended, {
       appsLabel: labels['ARR.TOOLS.APPS'],
+      resetLabel: this.translate.instant('UI_THEME.RESET'),
       includeGuide: false,
     });
   }
@@ -1582,8 +1674,8 @@ export class FixPage implements OnInit, OnDestroy {
     }
   }
 
-  private async resetWorkflowForNewEpub(): Promise<void> {
-    await this.cleanupPreparedEpub();
+  private async resetWorkflowForNewEpub(waitForCleanup = true): Promise<void> {
+    const cleanupPromise = this.cleanupPreparedEpub();
     this.runInZone(() => {
       this.clearEpubError();
       this.lastHandledProjectRouteKey = null;
@@ -1599,6 +1691,7 @@ export class FixPage implements OnInit, OnDestroy {
       this.workflowStep = 0;
       this.viewState = 'idle';
     });
+    if (waitForCleanup) await cleanupPromise;
   }
 
   private async cleanupPreparedEpub(): Promise<void> {

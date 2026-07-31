@@ -3,6 +3,7 @@ import { Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import {
   EpubPublicStore,
+  PUBLIC_FILESYSTEM,
   FileKitService,
   EpubRewriteService,
   WEB_EPUB_COVER_SERVICE_TOKEN,
@@ -30,6 +31,7 @@ export type LoadedGeneratedEpub = {
 export class EpubLibraryService {
   private readonly fileKit = inject(FileKitService);
   private readonly epubRewrite = inject(EpubRewriteService);
+  private readonly nativeFilesystem = inject(PUBLIC_FILESYSTEM);
   private readonly webEpubCover = inject(WEB_EPUB_COVER_SERVICE_TOKEN, {
     optional: true,
   }) as WebEpubCoverService | null;
@@ -37,14 +39,24 @@ export class EpubLibraryService {
   private readonly epubStore = new EpubPublicStore(this.fileKit, {
     epubFolder: 'EPUBFixer',
     useDocumentsDirectoryOnNative: true,
-    nativeDirectory: Directory.Data,
+    nativeDirectory: Directory.Documents,
+    legacyNativeDirectories: [Directory.Data],
+    filesystem: this.nativeFilesystem,
     logPrefix: 'EF:library',
   });
   private readonly previewThumbFolder = 'EPUBFixerThumbs';
+  private readonly publicEpubFolder = 'EPUBFixer';
 
   private readonly previewCache = new Map<string, LibraryPreviewAsset>();
 
   async listEpubs(): Promise<string[]> {
+    if (this.epubRewrite.isSupported()) {
+      const files = await this.epubRewrite.listPublicDocuments(
+        this.publicEpubFolder,
+        '.epub',
+      );
+      return files.map((file) => file.name).sort((a, b) => a.localeCompare(b));
+    }
     return this.epubStore.listEpubs();
   }
 
@@ -53,8 +65,21 @@ export class EpubLibraryService {
     outputName: string,
   ): Promise<void> {
     const filename = this.ensureEpubFilename(outputName);
+    if (this.epubRewrite.isSupported()) {
+      await this.epubRewrite.ensurePublicExportFolder(this.publicEpubFolder);
+      await this.epubRewrite.publishPublicDocument({
+        folderName: this.publicEpubFolder,
+        sourcePath: sourceUri,
+        outputName: filename,
+        mimeType: 'application/epub+zip',
+      });
+      this.previewCache.delete(filename);
+      void this.deletePersistedPreviewAsset(filename).catch(() => void 0);
+      return;
+    }
     const bytes = await this.readExportBytes(sourceUri);
     await this.epubStore.writeEpub(filename, bytes);
+    await this.scanPublicEpub(filename);
     this.previewCache.delete(filename);
     void this.deletePersistedPreviewAsset(filename)
       .then(() => this.refreshPreviewAsset(filename))
@@ -68,20 +93,20 @@ export class EpubLibraryService {
 
     if (this.epubRewrite.isSupported()) {
       try {
-        const [uri, size] = await Promise.all([
-          this.epubStore.getUriOrThrow(resolved),
-          this.epubStore.getFileSizeOrThrow(resolved).catch(() => 0),
-        ]);
+        const document = await this.epubRewrite.getPublicDocument(
+          this.publicEpubFolder,
+          resolved,
+        );
 
         return {
           file: new File([], resolved, {
             type: 'application/epub+zip',
           }),
-          uri,
-          size,
+          uri: document.uri,
+          size: document.size,
         };
       } catch {
-        // Fall back to reading bytes below when the native URI path is unavailable.
+        return null;
       }
     }
 
@@ -112,14 +137,20 @@ export class EpubLibraryService {
 
   async deleteByFilename(filename: string): Promise<void> {
     const resolved = this.ensureEpubFilename(filename);
-    await this.epubStore.deleteEpub(resolved);
+    if (this.epubRewrite.isSupported()) {
+      await this.epubRewrite.deletePublicDocument(this.publicEpubFolder, resolved);
+    } else {
+      await this.epubStore.deleteEpub(resolved);
+    }
     await this.deletePersistedPreviewAsset(resolved);
     this.previewCache.delete(resolved);
   }
 
   async shareByFilename(filename: string): Promise<void> {
     const resolved = this.ensureEpubFilename(filename);
-    const uri = await this.epubStore.getUriOrThrow(resolved);
+    const uri = this.epubRewrite.isSupported()
+      ? (await this.epubRewrite.getPublicDocument(this.publicEpubFolder, resolved)).uri
+      : await this.epubStore.getUriOrThrow(resolved);
     await this.fileKit.share(
       {
         uri,
@@ -136,7 +167,9 @@ export class EpubLibraryService {
 
   async openByFilename(filename: string): Promise<void> {
     const resolved = this.ensureEpubFilename(filename);
-    const uri = await this.epubStore.getUriOrThrow(resolved);
+    const uri = this.epubRewrite.isSupported()
+      ? (await this.epubRewrite.getPublicDocument(this.publicEpubFolder, resolved)).uri
+      : await this.epubStore.getUriOrThrow(resolved);
 
     if (!this.epubRewrite.isSupported()) {
       await this.fileKit.share(
@@ -162,6 +195,18 @@ export class EpubLibraryService {
   }
 
   async getFileSizeBytes(filename: string): Promise<number | null> {
+    if (this.epubRewrite.isSupported()) {
+      try {
+        return (
+          await this.epubRewrite.getPublicDocument(
+            this.publicEpubFolder,
+            this.ensureEpubFilename(filename),
+          )
+        ).size;
+      } catch {
+        return null;
+      }
+    }
     try {
       return (
         await this.epubStore.readBytes(this.ensureEpubFilename(filename))
@@ -200,13 +245,7 @@ export class EpubLibraryService {
 
   private async extractCoverFile(filename: string): Promise<File | null> {
     if (this.epubRewrite.isSupported()) {
-      const uri = await this.epubStore.getUriOrThrow(filename);
-      const extracted = await this.epubRewrite.extractCoverAssetFile({
-        epubPath: uri,
-        epubName: filename,
-        maxBytes: 30 * 1024 * 1024,
-      });
-      return extracted.file;
+      return null;
     }
 
     if (!this.webEpubCover) {
@@ -327,6 +366,21 @@ export class EpubLibraryService {
 
     const buffer = await response.arrayBuffer();
     return new Uint8Array(buffer);
+  }
+
+  private async scanPublicEpub(filename: string): Promise<void> {
+    if (!this.epubRewrite.isSupported()) {
+      return;
+    }
+
+    try {
+      await this.epubRewrite.scanFile({
+        path: await this.epubStore.nativePathFor(filename),
+        mimeType: 'application/epub+zip',
+      });
+    } catch {
+      return;
+    }
   }
 
   private toFetchUrl(sourceUri: string): string {

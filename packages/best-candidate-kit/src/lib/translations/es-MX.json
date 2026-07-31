@@ -1,39 +1,39 @@
 {
   "BEST_CANDIDATE": {
     "ACTION": {
-      "DETECT_COVER": "Detect cover automatically"
+      "DETECT_COVER": "Detectar portada automáticamente"
     },
     "LOADING": {
-      "TITLE": "Searching for candidate images..."
+      "TITLE": "Buscando imágenes candidatas..."
     },
     "EMPTY": {
-      "TITLE": "No cover candidates found",
-      "DESCRIPTION": "We could not find useful images inside this EPUB."
+      "TITLE": "No se encontraron candidatas a portada",
+      "DESCRIPTION": "No pudimos encontrar imágenes útiles dentro de este EPUB."
     },
     "PICKER": {
-      "TITLE": "Choose a possible cover",
-      "DESCRIPTION": "We found images that may work as the book cover.",
-      "LONG_PRESS_HINT": "Long press an image to preview it.",
-      "UNKNOWN_IMAGE": "Unknown image",
-      "CANDIDATE_ALT": "Candidate image {{index}}",
-      "NO_COVER_DETECTED": "No cover detected, tap to select one of the suggestions.",
-      "LONG_PRESS_TO_PREVIEW": "Long press to preview."
+      "TITLE": "Elige una posible portada",
+      "DESCRIPTION": "Encontramos imágenes que podrían funcionar como portada del libro.",
+      "LONG_PRESS_HINT": "Toca para seleccionar",
+      "NO_COVER_DETECTED": "No se detectó portada, toca para seleccionar una de las sugerencias.",
+      "LONG_PRESS_TO_PREVIEW": "Mantén presionado para previsualizar",
+      "UNKNOWN_IMAGE": "Imagen desconocida",
+      "CANDIDATE_ALT": "Imagen candidata {{index}}"
     },
     "REASON": {
-      "FIRST_LARGE_IMAGE": "First large image",
-      "COVER_RATIO": "Cover-like ratio",
-      "NEAR_BOOK_START": "Near the beginning",
-      "FILENAME_COVER": "Cover-like filename",
-      "LARGE_RESOLUTION": "Large image",
-      "METADATA_COVER": "Marked as cover metadata",
-      "SMALL_ICON_RISK": "May be icon-like",
-      "DECORATIVE_RISK": "May be decorative"
+      "FIRST_LARGE_IMAGE": "Primera imagen grande",
+      "COVER_RATIO": "Relación de aspecto de portada",
+      "NEAR_BOOK_START": "Cerca del inicio",
+      "FILENAME_COVER": "Nombre de archivo similar a portada",
+      "LARGE_RESOLUTION": "Imagen de alta resolución",
+      "METADATA_COVER": "Marcada como portada en metadatos",
+      "SMALL_ICON_RISK": "Puede ser un icono",
+      "DECORATIVE_RISK": "Puede ser decorativa"
     },
     "PREVIEW": {
-      "TITLE": "Image preview",
-      "OPEN": "Preview",
-      "CLOSE": "Close",
-      "SELECT": "Use this image"
+      "TITLE": "Vista previa de imagen",
+      "OPEN": "Previsualizar",
+      "CLOSE": "Cerrar",
+      "SELECT": "Usar esta imagen"
     }
   }
 }

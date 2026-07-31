@@ -19,17 +19,18 @@
     "BILLING_UNAVAILABLE": "当前无法购买。",
     "PURCHASE_ERROR": "无法完成购买，请重试。",
     "RESTORE_ERROR": "无法恢复购买，请重试。",
-    "PRO_ONLY": "ä¸“ä¸šç‰ˆ",
-    "WATCH_AD_SUBTITLE": "è§‚çœ‹å¹¿å‘Š",
+    "PRO_ONLY": "专业版",
+    "WATCH_AD_SUBTITLE": "观看广告",
     "SHARE": "分享",
     "SHARE_KINDLE_HINT": "分享时，请选择 Kindle 应用以发送到您的设备。",
     "WARNING": "警告",
-    "EDIT_PROJECT_TITLE": "ä½ æƒ³å¦‚ä½•ç¼–è¾‘è¿™ä¸ªæ–‡ä»¶ï¼Ÿ",
+    "EDIT_PROJECT_TITLE": "你想如何编辑这个文件？",
     "EDIT_PROJECT_MESSAGE": "请选择是替换当前文件，还是先保留一份副本。",
     "EDIT_PROJECT_OVERWRITE": "覆盖",
     "EDIT_PROJECT_OVERWRITE_DESC": "将更改直接保存到现有文件。",
     "EDIT_PROJECT_COPY": "使用副本",
-    "EDIT_PROJECT_COPY_DESC": "保留原文件，并编辑一个新副本。"
+    "EDIT_PROJECT_COPY_DESC": "保留原文件，并编辑一个新副本。",
+    "UPGRADE_TO_PRO": "升级到 Pro"
   },
   "MY_EPUBS": {
     "TITLE": "我的 EPUB",
@@ -79,7 +80,15 @@
     "SETTINGS": "设置"
   },
   "HOME": {
-    "STEPPER": { "MERGE_SPLIT": "合并 / 拆分", "SORT": "排序", "TOC": "目录", "COVER": "封面", "ADJUST": "调整", "JOIN": "合并" },
+    "STEPPER": {
+      "MERGE_SPLIT": "合并 / 拆分",
+      "SORT": "排序",
+      "TOC": "目录",
+      "COVER": "封面",
+      "ADJUST": "调整",
+      "JOIN": "合并",
+      "CONFIRM": "确认"
+    },
     "WHAT_DO_YOU_WANT_TO_DO": "你想做什么？",
     "MERGE": "合并",
     "SPLIT": "拆分",
@@ -103,7 +112,122 @@
     "COVER_SELECTOR_TITLE": "您想从哪里创建封面？",
     "BEST_CANDIDATES_TITLE": "来自你的 EPUB 的建议",
     "ADJUST_COVER": "调整封面",
-    "PREVIEW_TITLE": "预览"
+    "PREVIEW_TITLE": "预览",
+    "OPERATION": {
+      "OUTPUTS_TITLE": "已创建的 EPUB",
+      "MERGE_SUCCESS_TITLE": "EPUB 合并成功",
+      "MERGE_SUCCESS_BODY": "已创建包含所选 EPUB 内容的新副本。",
+      "SPLIT_SUCCESS_TITLE": "EPUB 拆分成功",
+      "SPLIT_SUCCESS_BODY": "已创建 {{count}} 个新的 EPUB。",
+      "MERGE_FAILURE_TITLE": "无法合并 EPUB",
+      "MERGE_FAILURE_BODY": "无法创建最终 EPUB。原始文件未被修改。",
+      "SPLIT_FAILURE_TITLE": "无法拆分 EPUB",
+      "SPLIT_FAILURE_BODY": "无法创建所有 EPUB。原始文件未被修改，未保存部分结果。",
+      "PROGRESS": {
+        "PREPARING": "正在准备 EPUB",
+        "ANALYZING": "正在分析 EPUB",
+        "WRITING": "正在创建 EPUB",
+        "VALIDATING": "正在验证 EPUB",
+        "COMPLETED": "已完成",
+        "COUNT": "{{current}} / {{total}}"
+      }
+    },
+    "SPLIT_STEP": {
+      "TITLE": "拆分",
+      "SUMMARY": "准备创建 {{count}} 个 EPUB。",
+      "OUTPUTS_TITLE": "要创建的文件",
+      "BACK_TO_CONFIRM": "← 返回确认"
+    },
+    "SPLIT_COVER": {
+      "ECC_TITLE": "EPUB 封面更换工具",
+      "ECC_DESCRIPTION": "所有EPUB都会使用同一封面。如需分别自定义，请使用我们的应用。",
+      "OPEN_ECC": "试用应用"
+    },
+    "SPLIT_HOW_TO": "拆分方式",
+    "SPLIT_HOW_TO_TITLE": "你想如何拆分这个EPUB？",
+    "SPLIT_OPTIONS": {
+      "BY_CHAPTERS_OR_SECTIONS": {
+        "TITLE": "按章节或部分",
+        "SUBLINE": "使用书籍目录。"
+      },
+      "MANUAL_SPLIT_POINTS": {
+        "TITLE": "选择拆分点",
+        "SUBLINE": "手动组合章节。"
+      },
+      "EQUAL_PARTS": {
+        "TITLE": "均等分段",
+        "SUBLINE": "选择要创建的EPUB数量。"
+      },
+      "MAXIMUM_FILE_SIZE": {
+        "TITLE": "按最大大小",
+        "SUBLINE": "创建大致不超过指定大小的文件。"
+      }
+    },
+    "SPLIT_ANALYSIS_ERROR": "无法分析EPUB的目录。",
+    "SPLIT_EXPORT_NOT_AVAILABLE": "配置已准备好，但拆分EPUB导出功能尚不可用。",
+    "SPLIT_CONFIRM": {
+      "BY_CHAPTERS_TITLE": "你想如何拆分这个EPUB？",
+      "MANUAL_TITLE": "选择拆分点",
+      "EQUAL_TITLE": "均等分段",
+      "MAXIMUM_SIZE_TITLE": "按最大大小",
+      "FILE_SUMMARY": "{{name}} · {{count}} · {{size}}",
+      "ANALYZING": "无法分析EPUB的目录。",
+      "BY_CHAPTER": "按章节",
+      "BY_CHAPTER_SUBLINE": "使用书籍目录。",
+      "BY_SECTION": "按部分",
+      "BY_SECTION_SUBLINE": "使用书籍目录。",
+      "BOOK_START": "书籍开头",
+      "BOOK_START_SUBLINE": "书籍开头",
+      "BEFORE_CHAPTER": "{{title}}",
+      "BEFORE_CHAPTER_SUBLINE": "+ 在此拆分",
+      "EQUAL_HELP": "选择要创建的EPUB数量。",
+      "PART_COUNT": "{{count}}",
+      "PART_COUNT_SUBLINE": "部分",
+      "CUSTOM_PART_COUNT": "自定义",
+      "CUSTOM_PART_COUNT_SUBLINE": "自定义",
+      "INVALID_PART_COUNT": "自定义",
+      "MAXIMUM_SIZE_HELP": "创建大致不超过指定大小的文件。",
+      "MAXIMUM_SIZE_OPTION": "{{size}} MB",
+      "MAXIMUM_SIZE_OPTION_SUBLINE": "创建大致不超过指定大小的文件。",
+      "CUSTOM_SIZE": "自定义",
+      "CUSTOM_SIZE_SUBLINE": "自定义",
+      "INVALID_MAXIMUM_SIZE": "自定义",
+      "ESTIMATED_RESULT": "{{count}} EPUB",
+      "OUTPUT_NUMBER": "EPUB {{number}}",
+      "MORE_OUTPUTS": "查看全部{{count}}个EPUB",
+      "SHOW_FEWER_OUTPUTS": "显示更少",
+      "NEEDS_TWO_OUTPUTS": "选择要创建的EPUB数量。",
+      "BACK_TO_HOW_TO": "← 拆分方式",
+      "SPLIT_EPUB": "拆分EPUB →",
+      "TITLE": "确认拆分方式",
+      "SAFE_SPLIT_HINT": "使用书籍目录。",
+      "TREE_LABEL": "拆分方式",
+      "VARIANT_LABEL": "拆分方式",
+      "ONE_PER_CHAPTER": "按章节",
+      "ONE_PER_SECTION": "按部分",
+      "MANUAL_HINT": "手动组合章节。",
+      "SPLIT_HERE": "+ 在此拆分",
+      "DIVIDED": "✓ 已拆分",
+      "EQUAL_HINT": "选择要创建的EPUB数量。",
+      "EQUAL_MODE_LABEL": "均等分段",
+      "RESULT_COUNT": "均等分段",
+      "PARTS_UNIT": "部分",
+      "MEGABYTES_UNIT": "MB",
+      "CHAPTERS_PER_FILE": "按章节或部分",
+      "SIZE_HINT": "创建大致不超过指定大小的文件。",
+      "SIZE_LABEL": "最大大小",
+      "SIZE_10": "10 MB",
+      "SIZE_25": "25 MB",
+      "SIZE_50": "50 MB",
+      "SIZE_CUSTOM": "自定义",
+      "APPROXIMATE_SIZE": "创建大致不超过指定大小的文件。",
+      "EXAMPLE_PART_ONE": "第一部分",
+      "EXAMPLE_CHAPTER_ONE": "第1章",
+      "EXAMPLE_CHAPTER_TWO": "第2章",
+      "EXAMPLE_PART_TWO": "第二部分",
+      "EXAMPLE_CHAPTER_THREE": "第3章",
+      "EXAMPLE_CHAPTER_FOUR": "第4章"
+    }
   },
   "TOC_OPTIONS": {
     "TITLE": "如何处理目录？",

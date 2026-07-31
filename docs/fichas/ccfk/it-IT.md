@@ -1,4 +1,4 @@
-﻿# Crea Cover per Kindle - it-IT Play Store Listing
+# Crea Cover per Kindle - it-IT Play Store Listing
 
 ## Purpose
 Localized Play Store listing for it-IT, regenerated from the updated strategy matrix and conversion audit.

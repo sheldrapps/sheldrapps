@@ -234,7 +234,7 @@ export class RatingService {
     submission: RatingFeedbackSubmission,
     context?: RatingAskContext,
   ): Promise<void> {
-    const subject = encodeURIComponent(`Feedback ${this.config.appName}`);
+    const subject = encodeURIComponent(`Feedback ${this.getAppName()}`);
     const body = encodeURIComponent(this.buildFeedbackBody(submission, context));
     const mailtoUrl = `mailto:${this.config.supportEmail}?subject=${subject}&body=${body}`;
     await this.openExternalUrl(mailtoUrl);
@@ -244,7 +244,7 @@ export class RatingService {
     submission: RatingFeedbackSubmission,
     context?: RatingAskContext,
   ): Promise<void> {
-    const subject = encodeURIComponent(`Suggestions ${this.config.appName}`);
+    const subject = encodeURIComponent(`Suggestions ${this.getAppName()}`);
     const body = encodeURIComponent(this.buildSuggestionBody(submission, context));
     const mailtoUrl = `mailto:${this.config.supportEmail}?subject=${subject}&body=${body}`;
     await this.openExternalUrl(mailtoUrl);
@@ -261,7 +261,7 @@ export class RatingService {
       ? this.resolveFeedbackOptionLabel(option)
       : submission.optionId;
     const bodyLines = [
-      `App: ${this.config.appName}`,
+      `App: ${this.getAppName()}`,
       `Package: ${this.config.packageName}`,
       `Issue: ${issueLabel}`,
       `Source: ${context?.source || 'unknown'}`,
@@ -284,7 +284,7 @@ export class RatingService {
     context?: RatingAskContext,
   ): string {
     const bodyLines = [
-      `App: ${this.config.appName}`,
+      `App: ${this.getAppName()}`,
       `Package: ${this.config.packageName}`,
       'Type: Suggestion inbox',
       `Source: ${context?.source || 'unknown'}`,
@@ -310,6 +310,18 @@ export class RatingService {
     return translated && translated !== option.labelKey
       ? translated
       : option.fallbackLabel;
+  }
+
+  private getAppName(): string {
+    const appNameKey = this.config.appNameKey;
+    if (!appNameKey) {
+      return this.config.appName;
+    }
+
+    const translated = this.translate.instant(appNameKey);
+    return translated && translated !== appNameKey
+      ? translated
+      : this.config.appName;
   }
 
   private mergeContext(context?: RatingAskContext): RatingAskContext | undefined {

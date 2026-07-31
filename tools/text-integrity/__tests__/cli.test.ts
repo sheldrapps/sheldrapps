@@ -28,9 +28,10 @@ function resetBaseLocale(content: string): void {
 }
 
 test.after(() => {
-  if (existsSync(tmpAppRoot)) {
-    rmSync(tmpAppRoot, { recursive: true, force: true });
+  if (existsSync(baseLocaleFile)) {
+    rmSync(baseLocaleFile, { force: true });
   }
+  resetTempFile('{\n  "title": "Donâ€™t"\n}\n');
 });
 
 test("normal mode never writes files", { concurrency: false }, () => {

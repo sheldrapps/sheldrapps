@@ -15,6 +15,7 @@ import { provideAdFallbackKitI18n } from '@sheldrapps/ad-fallback-kit';
 import { provideAdsKit, provideAdsKitI18n } from '@sheldrapps/ads-kit';
 import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
 import { provideUiThemeI18n } from '@sheldrapps/ui-theme';
+import { provideEditorI18n } from '@sheldrapps/image-workflow/editor';
 import { environment } from '../environments/environment';
 import {
   ADS_UNITS_ANDROID_PROD,
@@ -74,6 +75,7 @@ export async function createBootstrapProviders(): Promise<
       },
     }),
     provideUiThemeI18n(),
+    provideEditorI18n(),
     providePrivacyPolicyKitI18n(),
     provideAdFallbackKitI18n(),
     provideAdsKitI18n(),

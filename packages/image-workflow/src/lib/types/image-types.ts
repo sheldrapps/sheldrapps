@@ -101,10 +101,40 @@ export interface ImageSource {
   mimeType: string;
 }
 
+/** Unit used by an editor crop target catalog. */
+export type CropTargetUnit = 'px' | 'mm' | 'in' | 'ratio';
+
+/** Explicit output policy for a crop target. */
+export type CropOutputMode = 'fixed-size' | 'aspect-only';
+
+/** Quality selected by the host for the editor result. */
+export type EditorRenderQuality =
+  | 'thumbnail'
+  | 'recommended'
+  | 'high-quality';
+
+export type EditorRenderWarningCode = 'FIXED_TARGET_UPSCALE';
+
+export interface EditorRenderInfo {
+  outputMode: CropOutputMode;
+  requestedWidth?: number;
+  requestedHeight?: number;
+  renderedWidth: number;
+  renderedHeight: number;
+  effectiveSourceWidth?: number;
+  effectiveSourceHeight?: number;
+  upscaleApplied: boolean;
+  upscaleFactor: number;
+  exportQuality: EditorRenderQuality;
+  warningCode?: EditorRenderWarningCode;
+}
+
 /**
  * Target dimensions for cropping
  */
 export interface CropTarget {
+  /** Stable catalog/session identifier. Optional only for legacy sessions. */
+  formatId?: string;
   width: number;
   height: number;
   /**
@@ -113,6 +143,9 @@ export interface CropTarget {
    * - 'source': export at source crop size (no rescale)
    */
   output?: 'target' | 'source';
+  /** Explicit policy. Missing values are adapted from the legacy `output`. */
+  unit?: CropTargetUnit;
+  outputMode?: CropOutputMode;
 }
 
 /**
@@ -316,6 +349,7 @@ export interface CropperResult {
   renderedWidth?: number;
   renderedHeight?: number;
   renderedMimeType?: string;
+  renderInfo?: EditorRenderInfo;
   history?: import("../editor/editor-history.service").EditorHistorySnapshot;
 }
 

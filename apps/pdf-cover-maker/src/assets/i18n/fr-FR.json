@@ -18,7 +18,8 @@
     "REMOVE_ADS_RESTORE": "Restaurer l’achat",
     "REMOVE_ADS_RESTORED": "Achat restauré avec succès.",
     "REMOVE_ADS_TITLE": "Supprimer les publicités",
-    "REMOVE_ADS_CTA_TITLE": "Supprimer les publicités",
+   "REMOVE_ADS_CTA_TITLE": "Supprimer les publicités",
+    "UPGRADE_TO_PRO": "Passer à Pro",
     "REMOVE_ADS_CTA_SUBTITLE": "Paiement unique • Pour toujours",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Paiement unique • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "Prix : {{price}} • Sans abonnement",
@@ -62,7 +63,7 @@
     "IMAGE_ERROR_SIZE": "Le fichier est trop volumineux. Maximum {{maxSize}} Mo.",
     "IMAGE_ERROR_TYPE": "Format non pris en charge ({{type}}). Sélectionnez JPG, PNG ou WebP.",
     "IMAGE_WARN_SMALL": "L'image peut être trop petite pour certains appareils.",
-    "NO_COVER_DETECTED_ADDED": "Aucune couverture détectée. Une nouvelle couverture a été ajoutée à cet PDF.",
+    "RENAMED_OK": "PDF renommé",
     "PDF_ERROR_STORAGE": "Espace de stockage insuffisant. {{requiredMB}} MB requis, {{availableMB}} MB disponibles.",
     "LOADING_PDF": "Chargement de l'PDF",
     "LOADING_IMAGE": "Chargement de l'image",
@@ -218,7 +219,6 @@
     }
   },
   "SETTINGS": {
-    "VIEW_TOUR": "Voir le tour",
     "INSTRUCTIONS": "Voir les instructions",
     "INSTRUCTIONS_HINT": "Comment créer et envoyer une couverture pour Kindle",
     "INSTRUCTIONS_SECTION": "Instructions",

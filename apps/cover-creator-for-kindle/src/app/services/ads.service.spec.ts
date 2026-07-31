@@ -117,6 +117,25 @@ describe('BillingService', () => {
     expect(service.isDevelopmentMode()).toBeFalse();
     expect(service.isAdsRemoved()).toBeFalse();
   });
+
+  it('exposes the billing state needed to diagnose disabled purchase UI', () => {
+    spyOn(Capacitor, 'getPlatform').and.returnValue('android');
+
+    expect(service.getPurchaseDiagnostics()).toEqual(
+      jasmine.objectContaining({
+        state: 'idle',
+        isReady: false,
+        billingAvailable: false,
+        canRunBillingOperations: false,
+        hasRemoveAdsEntitlement: false,
+        priceFormatted: null,
+        productId: 'ccfk_remove_ads_forever',
+        platform: 'android',
+        native: true,
+        android: true,
+      }),
+    );
+  });
 });
 
 describe('AdsService', () => {

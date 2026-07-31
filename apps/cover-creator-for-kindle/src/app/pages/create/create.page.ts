@@ -12,7 +12,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { Subscription, filter, firstValueFrom } from 'rxjs';
+import { Subscription, filter } from 'rxjs';
 import { Capacitor } from '@capacitor/core';
 import {
   IonContent,
@@ -23,7 +23,6 @@ import {
   IonItem,
   IonIcon,
   IonButton,
-  IonModal,
   IonGrid,
   IonCol,
   IonRow,
@@ -51,16 +50,20 @@ import {
   PreviewEditingPageService,
   ImageValidationError,
   buildCompositionInputForPurpose,
-  computeSourceCropDims,
+  encodeRenderedBlob,
   isArtifactReductionEnabled,
   isDitheringEnabled,
   renderCompositionToCanvas,
   renderCompositionToFile,
+  toEditorRenderQuality,
+  updateEditorRenderQuality,
+  type EditorRenderInfo,
   resolveArtifactReductionMode,
   resolveCoverColorMode,
 } from '@sheldrapps/image-workflow';
 import {
   EditorSessionService,
+  EditorSessionExitService,
   consumeEditorResultSnapshot,
   type EditorHistorySnapshot,
   type KindleDeviceModel,
@@ -79,7 +82,7 @@ import {
   appsOutline,
   informationCircleOutline,
   sparklesOutline,
-  optionsOutline,
+  refreshOutline,
 } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
@@ -97,7 +100,11 @@ import {
   type AdFailureConfidence,
   type AdFailureReason,
 } from '@sheldrapps/ad-fallback-kit';
-import { RemoveAdsUpgradeModalComponent } from '@sheldrapps/ads-kit';
+import {
+  PURCHASE_INTENT_QUERY_PARAM,
+  REMOVE_ADS_PURCHASE_INTENT,
+  RemoveAdsPurchasePageService,
+} from '@sheldrapps/ads-kit';
 import {
   AdsService,
   BillingService,
@@ -117,7 +124,6 @@ import {
 } from '@sheldrapps/ui-theme';
 import type { WorkflowStep } from '@sheldrapps/ui-theme';
 import { SettingsStore } from '@sheldrapps/settings-kit';
-import { detectSupportedLocale } from '@sheldrapps/i18n-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
 import {
   RecommendedApp,
@@ -133,12 +139,6 @@ import {
   type ExportQualityMode,
 } from '@sheldrapps/export-quality-kit';
 import { TourService } from '../../shared/tour/tour.service';
-import {
-  buildHomeTourDefinition,
-  CURRENT_HOME_TOUR_VERSION,
-  HOME_TOUR_ID,
-} from '../../shared/tour/home-tour.definition';
-import type { TourCompletionReason } from '../../shared/tour/tour.types';
 
 type EditorResult = {
   file: File;
@@ -148,6 +148,7 @@ type EditorResult = {
   renderedMimeType?: string;
   renderedWidth?: number;
   renderedHeight?: number;
+  renderInfo?: EditorRenderInfo;
   history?: EditorHistorySnapshot;
 };
 
@@ -177,7 +178,6 @@ type EditorSourceMode = 'image' | 'scratch';
     IonPopover,
     IonSelect,
     IonSelectOption,
-    IonModal,
     LoadingStateComponent,
     CoverImageStateComponent,
     CoverSourceActionsComponent,
@@ -185,7 +185,6 @@ type EditorSourceMode = 'image' | 'scratch';
     ScrollableButtonBarComponent,
     WorkflowNavigationComponent,
     WorkflowStepperComponent,
-    RemoveAdsUpgradeModalComponent,
   ],
 })
 export class CreatePage implements OnInit, OnDestroy {
@@ -197,6 +196,7 @@ export class CreatePage implements OnInit, OnDestroy {
   private imagePipe = inject(ImagePipelineService);
   private readonly previewEditingPage = inject(PreviewEditingPageService);
   private billing = inject(BillingService);
+  private removeAdsPurchasePage = inject(RemoveAdsPurchasePageService);
   private toastCtrl = inject(ToastController);
   private popoverCtrl = inject(PopoverController);
   private coversEvents = inject(CoversEventsService);
@@ -208,6 +208,7 @@ export class CreatePage implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private editorSession = inject(EditorSessionService);
+  private editorSessionExit = inject(EditorSessionExitService);
   private recommendedAppsService = inject(RecommendedAppsService);
   private homeTour = inject(TourService);
   private ratingService = inject(RatingService);
@@ -234,7 +235,7 @@ export class CreatePage implements OnInit, OnDestroy {
       informationCircleOutline,
       imageOutline,
       sparklesOutline,
-      optionsOutline,
+      refreshOutline,
     });
   }
 
@@ -304,6 +305,7 @@ export class CreatePage implements OnInit, OnDestroy {
   previewRevision = 0;
   cropState?: CoverCropState;
   private lastEditorSessionId?: string;
+  private lastEditorRenderInfo?: EditorRenderInfo;
   private lastEditorSourceMode: EditorSourceMode = 'image';
   private routerSub?: Subscription;
   private coversEventsSub?: Subscription;
@@ -332,10 +334,12 @@ export class CreatePage implements OnInit, OnDestroy {
 
   isPickingImage = false;
   isExporting = false;
+  isResettingFlow = false;
   loadingMessageKey?: string;
 
   workingImageFile?: File;
   exportImageFile?: File;
+  private editorRenderedBlob?: Blob;
   private readonly projectSaveState = new ProjectSaveState();
   private activeProjectFilename?: string;
   private activeProjectHistory?: EditorHistorySnapshot | null;
@@ -363,14 +367,8 @@ export class CreatePage implements OnInit, OnDestroy {
   private brandSelectCanceled = false;
   private groupSelectCanceled = false;
   private modelSelectCanceled = false;
-  private readonly warnDebugKey = 'cc_warn_debug';
-  private readonly editorTourSeenVersionKey = 'cc_editor_tour_seen_version';
   private readonly artifactReductionInfoSeenKey =
     'cc_editor_artifact_reduction_info_seen';
-  private readonly currentEditorTourVersion = 5;
-  private forceEditorTourOnNextEditorOpen = false;
-  private forceIncludeRemoveAdsStepOnNextHomeTour = false;
-  private forceShowRemoveAdsEntryPointForTour = false;
   private adFallbackTrialActive = false;
   private readonly adFallbackTotal = 2;
   private adFallbackRemaining = this.adFallbackTotal;
@@ -389,22 +387,26 @@ export class CreatePage implements OnInit, OnDestroy {
     await this.billing.hydrateCachedState();
     this.adsRemoved = this.billing.isAdsRemoved();
     this.adsRemovedSub = this.billing.adsRemoved$.subscribe((value) => {
-      const previousAdsRemoved = this.adsRemoved;
-      const tierChanged = previousAdsRemoved !== value;
-      this.adsRemoved = value;
-      if (value) {
-        this.adFallbackTrialActive = false;
-        void this.persistAdFallbackState();
-      }
-      if (tierChanged) {
-        this.exportImageFile = undefined;
-        this.syncAuthorizedExportQualityMode('billing-state-change');
-      }
-      this.syncRemoveAdsPulse();
+      this.runInZone(() => {
+        const previousAdsRemoved = this.adsRemoved;
+        const tierChanged = previousAdsRemoved !== value;
+        this.adsRemoved = value;
+        if (value) {
+          this.adFallbackTrialActive = false;
+          void this.persistAdFallbackState();
+        }
+        if (tierChanged) {
+          this.exportImageFile = undefined;
+          this.syncAuthorizedExportQualityMode('billing-state-change');
+        }
+        this.syncRemoveAdsPulse();
+      });
     });
     this.removeAdsPriceFormatted = this.billing.getRemoveAdsPriceFormatted();
     this.removeAdsPriceSub = this.billing.removeAdsPrice$.subscribe((value) => {
-      this.removeAdsPriceFormatted = value;
+      this.runInZone(() => {
+        this.removeAdsPriceFormatted = value;
+      });
     });
     this.syncRemoveAdsPulse();
 
@@ -544,8 +546,12 @@ export class CreatePage implements OnInit, OnDestroy {
       file: sourceMode === 'image' ? this.workingImageFile : undefined,
       sourceMode,
       target: {
+        formatId: selection.model.id,
         width: selection.model.width,
         height: selection.model.height,
+        output: 'target',
+        unit: 'px',
+        outputMode: 'fixed-size',
       },
       initialState,
       project: hasProjectData
@@ -576,6 +582,7 @@ export class CreatePage implements OnInit, OnDestroy {
       },
       output: {
         includeRenderedBlob: true,
+        exportQuality: toEditorRenderQuality(this.getEffectiveExportQualityMode()),
       },
       onResultApplied: async (result) => {
         await this.applyCropResult(result);
@@ -606,7 +613,6 @@ export class CreatePage implements OnInit, OnDestroy {
 
     this.lastEditorSourceMode = sourceMode;
     this.lastEditorSessionId = sid;
-    const shouldShowEditorTour = await this.shouldShowEditorTour();
     await this.homeTour.completeInteraction('editor-apply');
     this.blurDeepActiveElement();
 
@@ -614,7 +620,6 @@ export class CreatePage implements OnInit, OnDestroy {
     await this.navCtrl.navigateForward(entryPath, {
       queryParams: {
         sid,
-        ...(shouldShowEditorTour ? { tour: '1' } : {}),
       },
     });
   }
@@ -783,10 +788,6 @@ export class CreatePage implements OnInit, OnDestroy {
     await this.homeTour.completeInteraction('model-select');
   }
 
-  onTourInteraction(interactionId: string): void {
-    void this.homeTour.completeInteraction(interactionId);
-  }
-
   private async applyExternalModelChange(
     model: KindleDeviceModel,
   ): Promise<void> {
@@ -891,48 +892,21 @@ export class CreatePage implements OnInit, OnDestroy {
   private async applySmallWarn(
     reason: 'image-selected' | 'editor-apply' | 'model-change',
     legacyDimsHint?: { width: number; height: number },
-    exportDimsHint?: { width: number; height: number },
+    renderInfo?: EditorRenderInfo,
   ): Promise<void> {
+    void reason;
+    void legacyDimsHint;
     this.clearImageWarn();
-    if (this.lastEditorSourceMode === 'scratch') return;
-    if (!this.selectedModel) return;
+    if (renderInfo?.warningCode !== 'FIXED_TARGET_UPSCALE') return;
 
-    const target = {
-      width: this.selectedModel.width,
-      height: this.selectedModel.height,
+    this.imageWarnKey = 'EDITOR_RESOLUTION.UPSCALE_MESSAGE';
+    this.imageWarnParams = {
+      width: renderInfo.requestedWidth ?? renderInfo.renderedWidth,
+      height: renderInfo.requestedHeight ?? renderInfo.renderedHeight,
+      effectiveSourceWidth: renderInfo.effectiveSourceWidth ?? 0,
+      effectiveSourceHeight: renderInfo.effectiveSourceHeight ?? 0,
+      upscaleFactor: renderInfo.upscaleFactor,
     };
-    const legacyDims = legacyDimsHint ?? this.workingImageDims ?? null;
-    const exportDims =
-      (await this.resolveExportDimsForSmallWarn()) ?? exportDimsHint ?? null;
-
-    // Enforce export-based validation only.
-    if (!exportDims) {
-      this.debugSmallWarn({
-        reason,
-        modelId: this.selectedModel.id,
-        target,
-        exportDims,
-        legacyDims,
-        usedDims: null,
-        willWarn: false,
-      });
-      return;
-    }
-
-    const params = this.imagePipe.getSmallWarnParams(exportDims, target);
-    this.debugSmallWarn({
-      reason,
-      modelId: this.selectedModel.id,
-      target,
-      exportDims,
-      legacyDims,
-      usedDims: exportDims,
-      willWarn: !!params,
-    });
-    if (!params) return;
-
-    this.imageWarnKey = 'CREATE.IMAGE_WARN_SMALL';
-    this.imageWarnParams = params;
     this.homeTour.requestSync();
   }
 
@@ -950,14 +924,12 @@ export class CreatePage implements OnInit, OnDestroy {
 
   getSuggestedStepId():
     | 'cover-source-image'
-    | 'adjust-button'
     | 'create-button'
     | 'result-actions'
     | null {
     if (this.homeTour.isActive()) return null;
     if (!this.showModelSelectionSummary) return null;
     if (!this.previewUrl || this.imageErrorKey) return 'cover-source-image';
-    if (!this.hasEditorAppliedCover()) return 'adjust-button';
     if (this.canSaveShare()) return 'result-actions';
     if (this.canGenerate()) return 'create-button';
     return null;
@@ -1485,6 +1457,7 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   private resetSelectedImage() {
+    this.editorRenderedBlob = undefined;
     this.runInZone(() => {
       this.selectedImageFile = undefined;
       this.selectedImageName = undefined;
@@ -1559,11 +1532,7 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   canShowRemoveAdsEntryPoint(): boolean {
-    return (
-      !this.adsRemoved &&
-      (this.forceShowRemoveAdsEntryPointForTour ||
-        this.billing.canShowRemoveAdsEntryPoint())
-    );
+    return !this.adsRemoved && this.billing.canShowRemoveAdsEntryPoint();
   }
 
   getRemoveAdsCtaSubtitleKey(): string {
@@ -1613,6 +1582,19 @@ export class CreatePage implements OnInit, OnDestroy {
       this.getRemoveAdsPurchaseState() === 'ready' &&
       !this.purchaseBusy
     );
+  }
+
+  private logPurchaseUiState(source: string): void {
+    this.billing.logPurchaseUiState(source, {
+      app: 'ccfk',
+      adsRemoved: this.adsRemoved,
+      isOnline: this.isOnline,
+      purchaseBusy: this.purchaseBusy,
+      entryPointVisible: this.canShowRemoveAdsEntryPoint(),
+      purchaseState: this.getRemoveAdsPurchaseState(),
+      purchaseButtonEnabled: this.canPurchaseRemoveAds(),
+      restoreButtonEnabled: this.canRestoreRemoveAds(),
+    });
   }
 
   private syncRemoveAdsPulse(): void {
@@ -1835,11 +1817,8 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   async openPurchaseModal(): Promise<void> {
-    if (!this.canShowRemoveAdsEntryPoint()) {
-      return;
-    }
-
-    if (this.purchaseBusy) {
+    this.logPurchaseUiState('open-before-guard');
+    if (!this.canShowRemoveAdsEntryPoint() || this.purchaseBusy) {
       return;
     }
 
@@ -1847,26 +1826,18 @@ export class CreatePage implements OnInit, OnDestroy {
       price: this.removeAdsPriceFormatted,
     });
 
-    this.purchaseBusy = true;
-    try {
-      await this.billing.preparePurchaseUi();
-    } finally {
-      this.purchaseBusy = false;
-    }
-
-    if (!this.canShowRemoveAdsEntryPoint()) {
-      return;
-    }
-
-    this.trackRemoveAdsEvent('remove_ads_modal_open', {
-      price: this.removeAdsPriceFormatted,
+    this.removeAdsPurchasePage.open({
+      variant: 'CCFK',
+      returnUrl: '/tabs/create',
     });
-    this.purchaseModalOpen = true;
+    await this.router.navigateByUrl('/remove-ads');
     await this.homeTour.completeInteraction('remove-ads-open');
   }
 
   closePurchaseModal(): void {
-    this.purchaseModalOpen = false;
+    this.runInZone(() => {
+      this.purchaseModalOpen = false;
+    });
   }
 
   onPurchaseModalCloseClick(): void {
@@ -1879,14 +1850,19 @@ export class CreatePage implements OnInit, OnDestroy {
       return;
     }
 
-    this.purchaseBusy = true;
+    this.runInZone(() => {
+      this.purchaseBusy = true;
+    });
+    await this.flushUi();
     try {
       const success = await this.billing.purchaseRemoveAds();
       if (!success) {
         return;
       }
 
-      this.closePurchaseModal();
+      this.runInZone(() => {
+        this.closePurchaseModal();
+      });
       this.trackRemoveAdsEvent('remove_ads_purchase_success', {
         price: this.removeAdsPriceFormatted,
       });
@@ -1902,7 +1878,10 @@ export class CreatePage implements OnInit, OnDestroy {
         'error',
       );
     } finally {
-      this.purchaseBusy = false;
+      this.runInZone(() => {
+        this.purchaseBusy = false;
+      });
+      await this.flushUi();
     }
   }
 
@@ -1911,7 +1890,10 @@ export class CreatePage implements OnInit, OnDestroy {
       return;
     }
 
-    this.purchaseBusy = true;
+    this.runInZone(() => {
+      this.purchaseBusy = true;
+    });
+    await this.flushUi();
     try {
       const restored = await this.billing.restorePurchases();
       if (!restored) {
@@ -1923,7 +1905,9 @@ export class CreatePage implements OnInit, OnDestroy {
         return;
       }
 
-      this.closePurchaseModal();
+      this.runInZone(() => {
+        this.closePurchaseModal();
+      });
       await this.showToast(
         'COMMON.REMOVE_ADS_RESTORED',
         { duration: 1800 },
@@ -1932,7 +1916,10 @@ export class CreatePage implements OnInit, OnDestroy {
     } catch {
       await this.showToast('COMMON.RESTORE_ERROR', { duration: 1800 }, 'error');
     } finally {
-      this.purchaseBusy = false;
+      this.runInZone(() => {
+        this.purchaseBusy = false;
+      });
+      await this.flushUi();
     }
   }
 
@@ -1966,6 +1953,13 @@ export class CreatePage implements OnInit, OnDestroy {
 
     this.exportQualityMode = mode;
     this.exportImageFile = undefined;
+    if (this.lastEditorRenderInfo) {
+      this.lastEditorRenderInfo = updateEditorRenderQuality(
+        this.lastEditorRenderInfo,
+        toEditorRenderQuality(this.getEffectiveExportQualityMode()),
+      );
+    }
+    void this.applySmallWarn('editor-apply', undefined, this.lastEditorRenderInfo);
     await this.settings.setForScope('exportQuality', {
       exportQualityMode: mode,
     });
@@ -2244,22 +2238,22 @@ export class CreatePage implements OnInit, OnDestroy {
     if (!openedProject) {
       await this.consumeEditorResult();
     }
+    await this.tryOpenPurchaseFromRoute();
     void this.refreshHeaderItems();
   }
 
-  async ionViewDidEnter() {
-    this.homeTour.registerContent(this.content);
-    const manualStartRequested =
-      this.homeTour.consumePendingManualStart(HOME_TOUR_ID);
-    if (manualStartRequested) {
-      this.forceEditorTourOnNextEditorOpen = true;
-      this.forceIncludeRemoveAdsStepOnNextHomeTour = true;
+  private async tryOpenPurchaseFromRoute(): Promise<void> {
+    if (
+      this.route.snapshot.queryParamMap.get(PURCHASE_INTENT_QUERY_PARAM) !==
+      REMOVE_ADS_PURCHASE_INTENT
+    ) {
+      return;
     }
-    await this.maybeStartHomeTour();
+
+    await this.openPurchaseModal();
   }
 
-  onTourContentScroll() {
-    this.homeTour.requestSync();
+  async ionViewDidEnter() {
   }
 
   private async refreshHeaderItems(): Promise<void> {
@@ -2269,22 +2263,66 @@ export class CreatePage implements OnInit, OnDestroy {
     this.headerItems = buildHomeHeaderItems(this.showRecommended, {
       appsLabel: this.translate.instant('ARR.TOOLS.APPS'),
       guideLabel: this.translate.instant('ARR.TOOLS.GUIDE'),
+      resetLabel: this.translate.instant('UI_THEME.RESET'),
       includeGuide: false,
     });
   }
 
   async onHeaderItemClick(id: string): Promise<void> {
-    if (id === 'guide' || id === 'info') {
-      await this.startManualHomeTour();
-      return;
-    }
-
     await handleHomeHeaderAction(id, {
       closeInfo: () => this.closeInfo(),
       toggleInfo: () => this.toggleInfo(),
       navigateToRecommended: async () => {
       await this.router.navigateByUrl('/tabs/recommended-apps');
       },
+      resetFlow: () => this.resetFlow(),
+    });
+  }
+
+  async resetFlow(): Promise<void> {
+    if (this.isResettingFlow) return;
+    if (!(await this.editorSessionExit.confirmResetFlow())) return;
+    this.runInZone(() => {
+      this.isResettingFlow = true;
+      this.changeDetector.detectChanges();
+    });
+    await this.yieldResetTurn();
+    await this.runInZone(async () => {
+      try {
+        await this.clearBusyUi();
+        this.closeInfo();
+        this.resetSelectedImage();
+        this.clearImageError();
+        this.clearImageWarn();
+        if (this.imageInput?.nativeElement) {
+          this.imageInput.nativeElement.value = '';
+        }
+        this.lastEditorSessionId = undefined;
+        this.editorSession.clearSessions();
+        this.projectSaveState.clear();
+        this.activeProjectFilename = undefined;
+        this.activeProjectHistory = null;
+        this.activeProjectSourceInfo = null;
+        this.projectEditReturnUrl = null;
+        this.lastHandledProjectRouteKey = null;
+        this.workflowStep = this.hasCompleteModelSelection ? 1 : 0;
+      } finally {
+        this.isResettingFlow = false;
+        this.changeDetector.detectChanges();
+      }
+    });
+  }
+
+  private async yieldResetTurn(): Promise<void> {
+    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+      await Promise.resolve();
+      return;
+    }
+
+    await new Promise<void>((resolve) => {
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => resolve());
+      });
     });
   }
 
@@ -2316,6 +2354,7 @@ export class CreatePage implements OnInit, OnDestroy {
     const newFile = result.file;
     if (!newFile) return;
     const renderedBlob = result.renderedBlob;
+    this.lastEditorRenderInfo = result.renderInfo;
 
     this.cropState = result.state ?? this.cropState;
 
@@ -2323,6 +2362,7 @@ export class CreatePage implements OnInit, OnDestroy {
     this.clearImageWarn();
 
     this.workingImageFile = newFile;
+    this.editorRenderedBlob = renderedBlob;
     this.exportImageFile = undefined;
 
     this.generatedEpubBytes = undefined;
@@ -2336,8 +2376,7 @@ export class CreatePage implements OnInit, OnDestroy {
     this.workingImageDims = dims;
     this.activeProjectHistory = result.history ?? this.activeProjectHistory ?? null;
 
-    const exportDimsFromEditor = this.extractEditorExportDims(result);
-    await this.applySmallWarn('editor-apply', undefined, exportDimsFromEditor);
+    await this.applySmallWarn('editor-apply', undefined, result.renderInfo);
 
     if (renderedBlob) {
       this.setPreviewUrl(URL.createObjectURL(renderedBlob));
@@ -2345,67 +2384,8 @@ export class CreatePage implements OnInit, OnDestroy {
       console.warn('[CCFK] editor result missing renderedBlob; keeping previous preview');
     }
 
-    await this.markEditorTourSeen();
     await this.homeTour.completeInteraction('editor-apply');
     this.workflowStep = 3;
-  }
-
-  private extractEditorExportDims(
-    result: EditorResult,
-  ): { width: number; height: number } | undefined {
-    if (
-      Number.isFinite(result.renderedWidth) &&
-      Number.isFinite(result.renderedHeight)
-    ) {
-      return {
-        width: Math.max(1, Math.round(result.renderedWidth as number)),
-        height: Math.max(1, Math.round(result.renderedHeight as number)),
-      };
-    }
-    return undefined;
-  }
-
-  private async resolveExportDimsForSmallWarn(): Promise<{
-    width: number;
-    height: number;
-  } | null> {
-    const compositionInput = this.buildCompositionInput('export');
-    const croppedSourceDims = compositionInput
-      ? computeSourceCropDims(compositionInput)
-      : null;
-    if (croppedSourceDims) {
-      return croppedSourceDims;
-    }
-
-    const exportFile =
-      this.exportImageFile ?? (await this.ensureExportImageFile());
-    if (!exportFile) return null;
-    const dims = await this.imagePipe.getDimensions(exportFile);
-    return dims ?? null;
-  }
-
-  private debugSmallWarn(data: {
-    reason: string;
-    modelId?: string;
-    target: { width: number; height: number };
-    exportDims: { width: number; height: number } | null;
-    legacyDims: { width: number; height: number } | null;
-    usedDims: { width: number; height: number } | null;
-    willWarn: boolean;
-  }): void {
-    if (!this.isSmallWarnDebugEnabled()) return;
-    console.info('[CCFK][SMALL_WARN_DEBUG]', data);
-  }
-
-  private isSmallWarnDebugEnabled(): boolean {
-    if (typeof window === 'undefined') return false;
-    const w = window as Window & { __CC_WARN_DEBUG__?: boolean };
-    if (w.__CC_WARN_DEBUG__ === true) return true;
-    try {
-      return localStorage.getItem(this.warnDebugKey) === '1';
-    } catch {
-      return false;
-    }
   }
 
   private buildCompositionInput(purpose: 'preview' | 'export' = 'preview') {
@@ -2435,8 +2415,12 @@ export class CreatePage implements OnInit, OnDestroy {
             : undefined,
       },
       target: {
+        formatId: this.selectedModel.id,
         width: this.selectedModel.width,
         height: this.selectedModel.height,
+        output: 'target',
+        unit: 'px',
+        outputMode: 'fixed-size',
       },
       state: this.cropState ?? buildDefaultCoverCropState(),
       frameFallback: {
@@ -2483,6 +2467,18 @@ export class CreatePage implements OnInit, OnDestroy {
 
   private async ensureExportImageFile(): Promise<File | null> {
     if (this.exportImageFile) return this.exportImageFile;
+
+    if (this.editorRenderedBlob) {
+      const rendered = await encodeRenderedBlob(
+        this.editorRenderedBlob,
+        this.selectedImageName || 'cover',
+        toEditorRenderQuality(this.getEffectiveExportQualityMode()),
+      );
+      if (rendered) {
+        this.exportImageFile = rendered;
+        return rendered;
+      }
+    }
 
     const input = this.buildCompositionInput('export');
     if (!input) return null;
@@ -2590,13 +2586,6 @@ export class CreatePage implements OnInit, OnDestroy {
     }
   }
 
-  private async startManualHomeTour(): Promise<void> {
-    this.forceEditorTourOnNextEditorOpen = true;
-    this.forceIncludeRemoveAdsStepOnNextHomeTour = true;
-    this.closeInfo();
-    await this.maybeStartHomeTour();
-  }
-
   private async resolveUniqueEpubFilename(
     requestedFilename: string,
   ): Promise<string> {
@@ -2646,61 +2635,6 @@ export class CreatePage implements OnInit, OnDestroy {
       brandId: selection.brandId,
       modelId: selection.modelId,
     });
-  }
-
-  private async maybeStartHomeTour(): Promise<void> {
-    return;
-  }
-
-  private async ensureTourLocaleReady(settings: CcfkSettings): Promise<void> {
-    const expectedLanguage =
-      settings.language ?? (await detectSupportedLocale());
-    if (this.translate.currentLang === expectedLanguage) {
-      return;
-    }
-
-    await firstValueFrom(this.translate.use(expectedLanguage));
-  }
-
-  private shouldAutoStartHomeTour(settings: CcfkSettings): boolean {
-    return settings.homeTourSeen !== true;
-  }
-
-  private async markHomeTourSeen(_reason: TourCompletionReason): Promise<void> {
-    await this.settings.set((prev) => ({
-      ...prev,
-      homeTourSeen: true,
-      homeTourVersion: CURRENT_HOME_TOUR_VERSION,
-      homeTourSeenAt: new Date().toISOString(),
-      preferences: {
-        ...(prev.preferences ?? {}),
-        [this.editorTourSeenVersionKey]: this.currentEditorTourVersion,
-      },
-    }));
-  }
-
-  private async markEditorTourSeen(): Promise<void> {
-    await this.settings.set((prev) => ({
-      ...prev,
-      preferences: {
-        ...(prev.preferences ?? {}),
-        [this.editorTourSeenVersionKey]: this.currentEditorTourVersion,
-      },
-    }));
-  }
-
-  private async shouldShowEditorTour(): Promise<boolean> {
-    if (this.forceEditorTourOnNextEditorOpen) {
-      this.forceEditorTourOnNextEditorOpen = false;
-      return true;
-    }
-
-    const settings = await this.settings.load();
-    const seenVersion = settings.preferences?.[this.editorTourSeenVersionKey];
-    return (
-      typeof seenVersion !== 'number' ||
-      seenVersion < this.currentEditorTourVersion
-    );
   }
 
   private blurDeepActiveElement(): void {

@@ -1,4 +1,4 @@
-﻿import { Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { SiteTitleControlsComponent } from '../../components/site-title-controls/site-title-controls.component';

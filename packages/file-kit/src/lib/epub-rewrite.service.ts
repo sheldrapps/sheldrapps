@@ -164,8 +164,26 @@ type PickAndPrepareEpubResult = {
   availableBytes?: number;
 };
 
-type RewriteProgressEvent = {
+export type EpubOperationPhase =
+  | 'preparing'
+  | 'analyzing'
+  | 'writing'
+  | 'validating'
+  | 'completed';
+
+export type EpubOperationProgress = {
   percent: number;
+  phase?: EpubOperationPhase;
+  current?: number;
+  total?: number;
+};
+
+type ScanFileResult = {
+  success: boolean;
+  uri?: string;
+  error?: string;
+  message?: string;
+  stage?: string;
 };
 
 export type EpubMergeInput = {
@@ -188,7 +206,90 @@ export type EpubMergePreflight = {
   estimatedOutputBytes: number;
 };
 
+export type EpubSplitOutput = {
+  id: string;
+  outputPath: string;
+  outputName: string;
+  title: string;
+  spineItemIds: readonly string[];
+  tocEntries?: readonly EpubSplitTocEntry[];
+};
+
+export type EpubSplitTocEntry = {
+  spineItemId: string;
+  title: string;
+  href?: string;
+  children?: readonly EpubSplitTocEntry[];
+};
+
+export type EpubSplitOptions = {
+  inputPath: string;
+  outputs: readonly EpubSplitOutput[];
+  coverPath?: string;
+};
+
+export type EpubSplitResult = {
+  id: string;
+  outputPath: string;
+  outputName: string;
+  title: string;
+  size: number;
+};
+
+export type PublicEpubDocument = {
+  name: string;
+  uri: string;
+  size: number;
+};
+
+type PublicEpubDocumentResult = {
+  success: boolean;
+  uri?: string;
+  filename?: string;
+  size?: number;
+  copiedBytes?: number;
+  error?: string;
+  message?: string;
+  stage?: string;
+};
+
 type EpubRewritePlugin = Plugin & {
+  ensurePublicExportFolder(options: { folderName: string }): Promise<{
+    success: boolean;
+    uri?: string;
+    error?: string;
+    message?: string;
+    stage?: string;
+  }>;
+  publishPublicDocument(options: {
+    folderName: string;
+    sourcePath: string;
+    outputName: string;
+    mimeType: string;
+  }): Promise<PublicEpubDocumentResult>;
+  listPublicDocuments(options: {
+    folderName: string;
+    extension?: string;
+  }): Promise<{
+    success: boolean;
+    files?: PublicEpubDocument[];
+    error?: string;
+    message?: string;
+    stage?: string;
+  }>;
+  getPublicDocument(options: {
+    folderName: string;
+    filename: string;
+  }): Promise<PublicEpubDocumentResult>;
+  deletePublicDocument(options: {
+    folderName: string;
+    filename: string;
+  }): Promise<PublicEpubDocumentResult>;
+  renamePublicDocument(options: {
+    folderName: string;
+    filename: string;
+    outputName: string;
+  }): Promise<PublicEpubDocumentResult>;
   openExternalFile(options: {
     inputPath: string;
     mimeType?: string;
@@ -239,6 +340,7 @@ type EpubRewritePlugin = Plugin & {
   openExternalFile(
     options: OpenExternalFileOptions,
   ): Promise<OpenExternalFileResult>;
+  scanFile(options: { path: string; mimeType?: string }): Promise<ScanFileResult>;
   cleanup(options: { sessionId: string }): Promise<void>;
   cancelRewrite(): Promise<{ cancelled: boolean }>;
   preflightMerge(options: {
@@ -257,6 +359,13 @@ type EpubRewritePlugin = Plugin & {
     outputPath?: string;
     outputName?: string;
     size?: number;
+    error?: string;
+    message?: string;
+    stage?: string;
+  }>;
+  splitEpub(options: EpubSplitOptions): Promise<{
+    success: boolean;
+    outputs?: EpubSplitResult[];
     error?: string;
     message?: string;
     stage?: string;
@@ -290,8 +399,103 @@ export class EpubRewriteService {
     );
   }
 
+  async ensurePublicExportFolder(folderName: string): Promise<string> {
+    const result = await EpubRewrite.ensurePublicExportFolder({ folderName });
+    if (!result.success || !result.uri) {
+      throw new EpubRewriteError(result.error ?? 'EXPORT_FOLDER_REQUIRED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+    return result.uri;
+  }
+
+  async publishPublicDocument(options: {
+    folderName: string;
+    sourcePath: string;
+    outputName: string;
+    mimeType: string;
+  }): Promise<{ uri: string; filename: string; size: number; copiedBytes: number }> {
+    const result = await EpubRewrite.publishPublicDocument(options);
+    if (
+      !result.success ||
+      !result.uri ||
+      !result.filename ||
+      typeof result.size !== 'number' ||
+      typeof result.copiedBytes !== 'number'
+    ) {
+      throw new EpubRewriteError(result.error ?? 'PUBLIC_EXPORT_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+    return {
+      uri: result.uri,
+      filename: result.filename,
+      size: result.size,
+      copiedBytes: result.copiedBytes,
+    };
+  }
+
+  async listPublicDocuments(
+    folderName: string,
+    extension?: string,
+  ): Promise<readonly PublicEpubDocument[]> {
+    const result = await EpubRewrite.listPublicDocuments({ folderName, extension });
+    if (!result.success) {
+      throw new EpubRewriteError(result.error ?? 'PUBLIC_LIST_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+    return result.files ?? [];
+  }
+
+  async getPublicDocument(
+    folderName: string,
+    filename: string,
+  ): Promise<{ uri: string; filename: string; size: number }> {
+    const result = await EpubRewrite.getPublicDocument({ folderName, filename });
+    if (!result.success || !result.uri || !result.filename || typeof result.size !== 'number') {
+      throw new EpubRewriteError(result.error ?? 'PUBLIC_DOCUMENT_NOT_FOUND', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+    return { uri: result.uri, filename: result.filename, size: result.size };
+  }
+
+  async deletePublicDocument(folderName: string, filename: string): Promise<void> {
+    const result = await EpubRewrite.deletePublicDocument({ folderName, filename });
+    if (!result.success) {
+      throw new EpubRewriteError(result.error ?? 'PUBLIC_DELETE_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+  }
+
+  async renamePublicDocument(
+    folderName: string,
+    filename: string,
+    outputName: string,
+  ): Promise<{ uri: string; filename: string; size: number }> {
+    const result = await EpubRewrite.renamePublicDocument({
+      folderName,
+      filename,
+      outputName,
+    });
+    if (!result.success || !result.uri || !result.filename || typeof result.size !== 'number') {
+      throw new EpubRewriteError(result.error ?? 'PUBLIC_RENAME_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+    return { uri: result.uri, filename: result.filename, size: result.size };
+  }
+
   addProgressListener(
-    listener: (event: RewriteProgressEvent) => void,
+    listener: (event: EpubOperationProgress) => void,
   ): Promise<PluginListenerHandle> {
     return EpubRewrite.addListener('rewriteProgress', listener);
   }
@@ -507,6 +711,16 @@ export class EpubRewriteService {
     await EpubRewrite.cancelRewrite();
   }
 
+  async scanFile(options: { path: string; mimeType?: string }): Promise<void> {
+    const result = await EpubRewrite.scanFile(options);
+    if (!result.success) {
+      throw new EpubRewriteError(result.error ?? 'SCAN_FAILED', {
+        message: result.message,
+        stage: result.stage ?? 'media_scan',
+      });
+    }
+  }
+
   async preflightMerge(
     inputs: readonly EpubMergeInput[],
   ): Promise<EpubMergePreflight> {
@@ -553,6 +767,24 @@ export class EpubRewriteService {
       outputName: result.outputName,
       size: result.size,
     };
+  }
+
+  async splitEpubs(options: EpubSplitOptions): Promise<readonly EpubSplitResult[]> {
+    const result = await EpubRewrite.splitEpub(options);
+    if (!result.success || !Array.isArray(result.outputs) || result.outputs.length === 0) {
+      throw new EpubRewriteError(result.error ?? 'SPLIT_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+
+    return result.outputs.map((output) => ({
+      id: output.id,
+      outputPath: output.outputPath,
+      outputName: output.outputName,
+      title: output.title,
+      size: output.size,
+    }));
   }
 
   async cleanup(sessionId: string): Promise<void> {

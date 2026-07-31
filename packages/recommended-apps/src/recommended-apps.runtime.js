@@ -71,6 +71,10 @@ export function buildHomeHeaderItems(hasRecommendedApps, labels = {}) {
           labels.infoLabel.trim().length > 0
         ? labels.infoLabel
         : "Guide";
+  const resetLabel =
+    typeof labels?.resetLabel === "string" && labels.resetLabel.trim().length > 0
+      ? labels.resetLabel
+      : "Reset";
 
   return [
     ...(hasRecommendedApps
@@ -82,6 +86,11 @@ export function buildHomeHeaderItems(hasRecommendedApps, labels = {}) {
           },
         ]
       : []),
+    {
+      id: "reset",
+      label: resetLabel,
+      icon: "refresh-outline",
+    },
     ...(labels.includeGuide === false
       ? []
       : [
@@ -99,6 +108,13 @@ export async function handleHomeHeaderAction(id, handlers) {
     handlers.closeInfo();
     blurActiveElement();
     await handlers.navigateToRecommended();
+    return;
+  }
+
+  if (id === "reset") {
+    handlers.closeInfo();
+    blurActiveElement();
+    await handlers.resetFlow();
     return;
   }
 

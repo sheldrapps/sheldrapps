@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { collectSemanticMojibakeFindings } from '../text-integrity/detect.ts';
 
 const file = 'packages/ui-theme/src/lib/translations/triple-button.translations.ts';
 const source = fs.readFileSync(file, 'utf8');
@@ -23,6 +24,11 @@ test('ui-theme triple-button translations cover all 13 locales and keys', () => 
       assert.match(block, new RegExp(`\\b${key}:`), `${locale} is missing ${key}`);
     }
 
-    assert.doesNotMatch(block, /Ã|Â|â|ð|�/, `${locale} contains mojibake`);
+    assert.doesNotMatch(block, /\u00c3\u0192|\u00c2|\u00e2|\u00f0|\ufffd/u, `${locale} contains mojibake`);
+    assert.deepEqual(
+      collectSemanticMojibakeFindings(`${file}:${locale}`, block),
+      [],
+      `${locale} contains semantic mojibake`
+    );
   }
 });

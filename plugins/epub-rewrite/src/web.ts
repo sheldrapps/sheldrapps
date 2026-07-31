@@ -40,6 +40,14 @@ export class EpubRewriteWeb
     throw this.unimplemented('Epub rewrite is only available on Android.');
   }
 
+  async scanFile(_options: { path: string; mimeType?: string }): Promise<{
+    success: boolean;
+    error?: string;
+    message?: string;
+  }> {
+    throw this.unimplemented('Media scanning is only available on Android.');
+  }
+
   async prepare(_options: PrepareEpubOptions): Promise<PrepareEpubResult> {
     throw this.unimplemented('Epub rewrite is only available on Android.');
   }

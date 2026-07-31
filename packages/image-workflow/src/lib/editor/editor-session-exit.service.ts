@@ -26,6 +26,17 @@ export class EditorSessionExitService {
     this.returnUrl = null;
   }
 
+  async confirmDiscard(): Promise<boolean> {
+    return this.confirmCancelSession();
+  }
+
+  async confirmResetFlow(): Promise<boolean> {
+    return this.confirmConfirmation(
+      "UI_THEME.RESET_CONFIRMATION",
+      "UI_THEME.RESET",
+    );
+  }
+
   async cancelSession(): Promise<boolean> {
     const confirmed = await this.confirmCancelSession();
     if (!confirmed) return false;
@@ -63,12 +74,20 @@ export class EditorSessionExitService {
   }
 
   private async confirmCancelSession(): Promise<boolean> {
+    return this.confirmConfirmation(
+      "EDITOR.SHELL.CONFIRM.CANCEL_SESSION",
+      "EDITOR.SHELL.BUTTON.DISCARD",
+    );
+  }
+
+  private async confirmConfirmation(
+    messageKey: string,
+    confirmKey: string,
+  ): Promise<boolean> {
     if (this.confirming) return false;
     this.confirming = true;
     try {
-      const message = this.translate.instant(
-        "EDITOR.SHELL.CONFIRM.CANCEL_SESSION",
-      );
+      const message = this.translate.instant(messageKey);
 
       const alert = await this.alertCtrl.create({
         message,
@@ -78,7 +97,7 @@ export class EditorSessionExitService {
             role: "cancel",
           },
           {
-            text: this.translate.instant("EDITOR.SHELL.BUTTON.DISCARD"),
+            text: this.translate.instant(confirmKey),
             role: "confirm",
           },
         ],

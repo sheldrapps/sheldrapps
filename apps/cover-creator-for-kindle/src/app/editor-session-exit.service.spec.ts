@@ -61,6 +61,42 @@ describe('EditorSessionExitService', () => {
     expect(navigateBack).not.toHaveBeenCalled();
   });
 
+  it('uses editor discard copy for editor session discard', async () => {
+    const { service, resetSession, navigateBack, create } = createService();
+
+    const confirmed = await service.confirmDiscard();
+
+    expect(confirmed).toBeTrue();
+    expect(resetSession).not.toHaveBeenCalled();
+    expect(navigateBack).not.toHaveBeenCalled();
+    expect(create.calls.mostRecent().args[0]).toEqual(
+      jasmine.objectContaining({
+        message: 'EDITOR.SHELL.CONFIRM.CANCEL_SESSION',
+        buttons: [
+          { text: 'EDITOR.SHELL.BUTTON.CANCEL', role: 'cancel' },
+          { text: 'EDITOR.SHELL.BUTTON.DISCARD', role: 'confirm' },
+        ],
+      }),
+    );
+  });
+
+  it('uses reset copy for host flow reset', async () => {
+    const { service, create } = createService();
+
+    const confirmed = await service.confirmResetFlow();
+
+    expect(confirmed).toBeTrue();
+    expect(create.calls.mostRecent().args[0]).toEqual(
+      jasmine.objectContaining({
+        message: 'UI_THEME.RESET_CONFIRMATION',
+        buttons: [
+          { text: 'EDITOR.SHELL.BUTTON.CANCEL', role: 'cancel' },
+          { text: 'UI_THEME.RESET', role: 'confirm' },
+        ],
+      }),
+    );
+  });
+
   it('uses Create as the safe fallback when no valid host was recorded', () => {
     const { service, navigateBack } = createService();
 

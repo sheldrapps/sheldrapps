@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { RemoveAdsPurchasePageService } from '@sheldrapps/ads-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { ThemeService, type Theme } from '@sheldrapps/ui-theme';
@@ -14,6 +15,7 @@ describe('SettingsPage', () => {
   let languageSetSpy: jasmine.Spy;
   let languageService: { lang: string; set: jasmine.Spy };
   let restartForLocaleSpy: jasmine.Spy;
+  let removeAdsPurchasePageOpenSpy: jasmine.Spy;
   let themeService: {
     currentTheme: Theme;
     setTheme: jasmine.Spy<(theme: Theme) => Promise<void>>;
@@ -34,6 +36,7 @@ describe('SettingsPage', () => {
       setTheme: jasmine.createSpy('setTheme').and.resolveTo(),
     };
     restartForLocaleSpy = jasmine.createSpy('restartForLocale');
+    removeAdsPurchasePageOpenSpy = jasmine.createSpy('open');
     (globalThis as typeof globalThis & {
       SheldrappsAppControl?: { restartForLocale: jasmine.Spy };
     }).SheldrappsAppControl = {
@@ -70,6 +73,10 @@ describe('SettingsPage', () => {
           },
         },
         { provide: ThemeService, useValue: themeService },
+        {
+          provide: RemoveAdsPurchasePageService,
+          useValue: { open: removeAdsPurchasePageOpenSpy },
+        },
       ],
     }).compileComponents();
 
@@ -133,5 +140,14 @@ describe('SettingsPage', () => {
     expect(settingsSetForScopeSpy).not.toHaveBeenCalled();
     expect(languageSetSpy).not.toHaveBeenCalled();
     expect(restartForLocaleSpy).not.toHaveBeenCalled();
+  });
+
+  it('opens the EMAS upgrade page from settings', () => {
+    component.onRemoveAdsSettingsAction();
+
+    expect(removeAdsPurchasePageOpenSpy).toHaveBeenCalledOnceWith({
+      variant: 'EMAS',
+      returnUrl: '/tabs/home',
+    });
   });
 });

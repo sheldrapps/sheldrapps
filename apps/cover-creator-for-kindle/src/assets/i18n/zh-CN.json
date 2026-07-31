@@ -20,7 +20,8 @@
     "REMOVE_ADS_RESTORE": "恢复购买",
     "REMOVE_ADS_RESTORED": "购买已成功恢复。",
     "REMOVE_ADS_TITLE": "去除广告",
-    "REMOVE_ADS_CTA_TITLE": "去除广告",
+   "REMOVE_ADS_CTA_TITLE": "去除广告",
+    "UPGRADE_TO_PRO": "升级到 Pro",
     "REMOVE_ADS_CTA_SUBTITLE": "一次性付款 • 永久有效",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "一次性付款 • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "价格：{{price}} • 无订阅",
@@ -316,7 +317,6 @@
     "REQUISITES_HINT": "封面在 Kindle 上正确工作所需的设置",
     "REQUISITES_SECTION": "使用要求",
     "TITLE": "设置",
-    "VIEW_TOUR": "查看导览",
     "HOW_TO_USE": "如何使用？"
   },
   "TABS": {

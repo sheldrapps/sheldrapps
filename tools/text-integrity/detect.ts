@@ -33,6 +33,13 @@ const STRONG_PATTERNS = [
       /(?:Ãƒ|Ã‚|Ã¢â‚¬|â€™|â€œ|â€|â€“|â€”|â€¦|â€¢|â‚¬|â„¢|ðŸ|ï¿½|Ã°Å¸|Ã¯Â¿Â½)/gu,
     reason: "Common mojibake sequence detected.",
   },
+  {
+    id: "reencoded-unicode-sequence",
+    pattern:
+      /[\u0080-\u00ff\u0152\u0153\u0160\u0161\u0178\u017d\u0192\u02c6\u02dc\u2018-\u201e\u2020-\u2022\u2030\u2039\u203a\u2122]{2,}/gu,
+    reason:
+      "Sequence resembles UTF-8 text decoded as Windows-1252 or Latin-1.",
+  },
 ];
 
 const HARD_BOUNDARY = /[\u0000-\u001f"'`{}[\](),:;<>|]/u;
@@ -199,7 +206,17 @@ export function collectSemanticMojibakeFindings(
           continue;
         }
 
+        if (
+          entry.id === "question-mark-in-word" &&
+          /(?:https?|market):\/\/|jpe\?g/iu.test(original)
+        ) {
+          continue;
+        }
+
         const repair = suggestRepair(original);
+        if (entry.id === "reencoded-unicode-sequence" && !repair) {
+          continue;
+        }
         const confidence = confidenceForFinding(original, repair?.value);
         const start = positionAt(text, absoluteOffset + expanded.start);
         const end = positionAt(text, absoluteOffset + expanded.end);

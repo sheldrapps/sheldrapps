@@ -16,7 +16,7 @@
     "DONE": "완료",
     "ERROR": "오류",
     "LOADING": "불러오는 중…",
-    "BILLING_UNAVAILABLE": "í˜„ìž¬ êµ¬ë§¤í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
+    "BILLING_UNAVAILABLE": "현재 구매할 수 없습니다.",
     "PURCHASE_ERROR": "구매를 완료할 수 없습니다. 다시 시도해 주세요.",
     "RESTORE_ERROR": "구매를 복원할 수 없습니다. 다시 시도해 주세요.",
     "PRO_ONLY": "PRO",
@@ -28,8 +28,9 @@
     "EDIT_PROJECT_MESSAGE": "현재 파일을 덮어쓸지, 복사본으로 작업할지 선택하세요.",
     "EDIT_PROJECT_OVERWRITE": "덮어쓰기",
     "EDIT_PROJECT_OVERWRITE_DESC": "기존 파일 위에 변경 내용을 저장합니다.",
-    "EDIT_PROJECT_COPY": "ë³µì‚¬ë³¸ìœ¼ë¡œ ìž‘ì—…",
-    "EDIT_PROJECT_COPY_DESC": "원본 파일을 유지하고 새 복사본을 편집합니다."
+    "EDIT_PROJECT_COPY": "복사본으로 작업",
+    "EDIT_PROJECT_COPY_DESC": "원본 파일을 유지하고 새 복사본을 편집합니다.",
+    "UPGRADE_TO_PRO": "Pro로 업그레이드"
   },
   "MY_EPUBS": {
     "TITLE": "내 EPUB",
@@ -79,7 +80,15 @@
     "SETTINGS": "설정"
   },
   "HOME": {
-    "STEPPER": { "MERGE_SPLIT": "병합 / 분할", "SORT": "정렬", "TOC": "목차", "COVER": "표지", "ADJUST": "조정", "JOIN": "병합" },
+    "STEPPER": {
+      "MERGE_SPLIT": "병합 / 분할",
+      "SORT": "정렬",
+      "TOC": "목차",
+      "COVER": "표지",
+      "ADJUST": "조정",
+      "JOIN": "병합",
+      "CONFIRM": "확인"
+    },
     "WHAT_DO_YOU_WANT_TO_DO": "무엇을 하시겠어요?",
     "MERGE": "병합",
     "SPLIT": "분할",
@@ -103,7 +112,122 @@
     "COVER_SELECTOR_TITLE": "무엇으로 표지를 만들까요?",
     "BEST_CANDIDATES_TITLE": "내 EPUB에서 가져온 추천",
     "ADJUST_COVER": "표지 조정",
-    "PREVIEW_TITLE": "미리보기"
+    "PREVIEW_TITLE": "미리보기",
+    "OPERATION": {
+      "OUTPUTS_TITLE": "생성된 EPUB",
+      "MERGE_SUCCESS_TITLE": "EPUB를 성공적으로 합쳤습니다",
+      "MERGE_SUCCESS_BODY": "선택한 EPUB의 내용으로 새 사본을 만들었습니다.",
+      "SPLIT_SUCCESS_TITLE": "EPUB를 성공적으로 나눴습니다",
+      "SPLIT_SUCCESS_BODY": "새 EPUB {{count}}개를 만들었습니다.",
+      "MERGE_FAILURE_TITLE": "EPUB를 합칠 수 없습니다",
+      "MERGE_FAILURE_BODY": "최종 EPUB를 만들 수 없습니다. 원본 파일은 변경되지 않았습니다.",
+      "SPLIT_FAILURE_TITLE": "EPUB를 나눌 수 없습니다",
+      "SPLIT_FAILURE_BODY": "모든 EPUB를 만들 수 없습니다. 원본 파일은 변경되지 않았고 부분 결과는 저장되지 않았습니다.",
+      "PROGRESS": {
+        "PREPARING": "EPUB 준비 중",
+        "ANALYZING": "EPUB 분석 중",
+        "WRITING": "EPUB 생성 중",
+        "VALIDATING": "EPUB 확인 중",
+        "COMPLETED": "완료",
+        "COUNT": "{{current}} / {{total}}"
+      }
+    },
+    "SPLIT_STEP": {
+      "TITLE": "분할",
+      "SUMMARY": "{{count}}개의 EPUB가 준비되었습니다.",
+      "OUTPUTS_TITLE": "생성할 파일",
+      "BACK_TO_CONFIRM": "← 확인으로 돌아가기"
+    },
+    "SPLIT_COVER": {
+      "ECC_TITLE": "EPUB 표지 변경기",
+      "ECC_DESCRIPTION": "모든 EPUB에 같은 표지가 적용됩니다. 개별로 꾸미려면 앱을 사용하세요.",
+      "OPEN_ECC": "앱 사용해 보기"
+    },
+    "SPLIT_HOW_TO": "분할 방법",
+    "SPLIT_HOW_TO_TITLE": "이 EPUB을 어떻게 분할할까요?",
+    "SPLIT_OPTIONS": {
+      "BY_CHAPTERS_OR_SECTIONS": {
+        "TITLE": "챕터 또는 섹션별",
+        "SUBLINE": "책의 목차를 사용합니다."
+      },
+      "MANUAL_SPLIT_POINTS": {
+        "TITLE": "분할 지점 선택",
+        "SUBLINE": "챕터를 직접 묶습니다."
+      },
+      "EQUAL_PARTS": {
+        "TITLE": "같은 크기의 부분",
+        "SUBLINE": "만들 EPUB 수를 선택합니다."
+      },
+      "MAXIMUM_FILE_SIZE": {
+        "TITLE": "최대 파일 크기별",
+        "SUBLINE": "대략적인 크기 이하로 파일을 만듭니다."
+      }
+    },
+    "SPLIT_ANALYSIS_ERROR": "EPUB 목차를 분석할 수 없습니다.",
+    "SPLIT_EXPORT_NOT_AVAILABLE": "설정은 완료되었지만 분할된 EPUB 내보내기는 아직 사용할 수 없습니다.",
+    "SPLIT_CONFIRM": {
+      "BY_CHAPTERS_TITLE": "이 EPUB을 어떻게 분할할까요?",
+      "MANUAL_TITLE": "분할 지점 선택",
+      "EQUAL_TITLE": "같은 크기의 부분",
+      "MAXIMUM_SIZE_TITLE": "최대 파일 크기별",
+      "FILE_SUMMARY": "{{name}} · {{count}} · {{size}}",
+      "ANALYZING": "EPUB 목차를 분석할 수 없습니다.",
+      "BY_CHAPTER": "챕터별",
+      "BY_CHAPTER_SUBLINE": "책의 목차를 사용합니다.",
+      "BY_SECTION": "섹션별",
+      "BY_SECTION_SUBLINE": "책의 목차를 사용합니다.",
+      "BOOK_START": "책 시작",
+      "BOOK_START_SUBLINE": "책 시작",
+      "BEFORE_CHAPTER": "{{title}}",
+      "BEFORE_CHAPTER_SUBLINE": "+ 여기서 분할",
+      "EQUAL_HELP": "만들 EPUB 수를 선택합니다.",
+      "PART_COUNT": "{{count}}",
+      "PART_COUNT_SUBLINE": "부분",
+      "CUSTOM_PART_COUNT": "사용자 지정",
+      "CUSTOM_PART_COUNT_SUBLINE": "사용자 지정",
+      "INVALID_PART_COUNT": "사용자 지정",
+      "MAXIMUM_SIZE_HELP": "대략적인 크기 이하로 파일을 만듭니다.",
+      "MAXIMUM_SIZE_OPTION": "{{size}} MB",
+      "MAXIMUM_SIZE_OPTION_SUBLINE": "대략적인 크기 이하로 파일을 만듭니다.",
+      "CUSTOM_SIZE": "사용자 지정",
+      "CUSTOM_SIZE_SUBLINE": "사용자 지정",
+      "INVALID_MAXIMUM_SIZE": "사용자 지정",
+      "ESTIMATED_RESULT": "{{count}} EPUB",
+      "OUTPUT_NUMBER": "EPUB {{number}}",
+      "MORE_OUTPUTS": "{{count}}개 EPUB 모두 보기",
+      "SHOW_FEWER_OUTPUTS": "간단히 보기",
+      "NEEDS_TWO_OUTPUTS": "만들 EPUB 수를 선택합니다.",
+      "BACK_TO_HOW_TO": "← 분할 방법",
+      "SPLIT_EPUB": "EPUB 분할 →",
+      "TITLE": "분할 방법 확인",
+      "SAFE_SPLIT_HINT": "책의 목차를 사용합니다.",
+      "TREE_LABEL": "분할 방법",
+      "VARIANT_LABEL": "분할 방법",
+      "ONE_PER_CHAPTER": "챕터별",
+      "ONE_PER_SECTION": "섹션별",
+      "MANUAL_HINT": "챕터를 직접 묶습니다.",
+      "SPLIT_HERE": "+ 여기서 분할",
+      "DIVIDED": "✓ 분할됨",
+      "EQUAL_HINT": "만들 EPUB 수를 선택합니다.",
+      "EQUAL_MODE_LABEL": "같은 크기의 부분",
+      "RESULT_COUNT": "같은 크기의 부분",
+      "PARTS_UNIT": "부분",
+      "MEGABYTES_UNIT": "MB",
+      "CHAPTERS_PER_FILE": "챕터 또는 섹션별",
+      "SIZE_HINT": "대략적인 크기 이하로 파일을 만듭니다.",
+      "SIZE_LABEL": "최대 크기",
+      "SIZE_10": "10 MB",
+      "SIZE_25": "25 MB",
+      "SIZE_50": "50 MB",
+      "SIZE_CUSTOM": "사용자 지정",
+      "APPROXIMATE_SIZE": "대략적인 크기 이하로 파일을 만듭니다.",
+      "EXAMPLE_PART_ONE": "파트 I",
+      "EXAMPLE_CHAPTER_ONE": "챕터 1",
+      "EXAMPLE_CHAPTER_TWO": "챕터 2",
+      "EXAMPLE_PART_TWO": "파트 II",
+      "EXAMPLE_CHAPTER_THREE": "챕터 3",
+      "EXAMPLE_CHAPTER_FOUR": "챕터 4"
+    }
   },
   "TOC_OPTIONS": {
     "TITLE": "목차를 어떻게 할까요?",

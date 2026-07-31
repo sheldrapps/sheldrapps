@@ -29,7 +29,8 @@
     "EDIT_PROJECT_OVERWRITE": "बदलें",
     "EDIT_PROJECT_OVERWRITE_DESC": "मौजूदा फ़ाइल के ऊपर बदलाव सहेजें।",
     "EDIT_PROJECT_COPY": "प्रति पर काम करें",
-    "EDIT_PROJECT_COPY_DESC": "मूल फ़ाइल को रखें और एक नई प्रति संपादित करें।"
+    "EDIT_PROJECT_COPY_DESC": "मूल फ़ाइल को रखें और एक नई प्रति संपादित करें।",
+    "UPGRADE_TO_PRO": "प्रो में अपग्रेड करें"
   },
   "MY_EPUBS": {
     "TITLE": "मेरे EPUBs",
@@ -79,7 +80,15 @@
     "SETTINGS": "सेटिंग्स"
   },
   "HOME": {
-    "STEPPER": { "MERGE_SPLIT": "जोड़ें / विभाजित करें", "SORT": "क्रमबद्ध करें", "TOC": "विषय-सूची", "COVER": "कवर", "ADJUST": "समायोजित करें", "JOIN": "जोड़ें" },
+    "STEPPER": {
+      "MERGE_SPLIT": "जोड़ें / विभाजित करें",
+      "SORT": "क्रमबद्ध करें",
+      "TOC": "विषय-सूची",
+      "COVER": "कवर",
+      "ADJUST": "समायोजित करें",
+      "JOIN": "जोड़ें",
+      "CONFIRM": "पुष्टि करें"
+    },
     "WHAT_DO_YOU_WANT_TO_DO": "आप क्या करना चाहते हैं?",
     "MERGE": "मर्ज",
     "SPLIT": "स्प्लिट",
@@ -103,7 +112,122 @@
     "COVER_SELECTOR_TITLE": "कवर किससे बनाना है?",
     "BEST_CANDIDATES_TITLE": "आपकी EPUB फ़ाइलों से सुझाव",
     "ADJUST_COVER": "कवर समायोजित करें",
-    "PREVIEW_TITLE": "पूर्वावलोकन"
+    "PREVIEW_TITLE": "पूर्वावलोकन",
+    "OPERATION": {
+      "OUTPUTS_TITLE": "बनाए गए EPUB",
+      "MERGE_SUCCESS_TITLE": "EPUB सफलतापूर्वक जोड़ा गया",
+      "MERGE_SUCCESS_BODY": "चुने गए EPUB की सामग्री के साथ एक नई कॉपी बनाई गई।",
+      "SPLIT_SUCCESS_TITLE": "EPUB सफलतापूर्वक विभाजित किया गया",
+      "SPLIT_SUCCESS_BODY": "{{count}} नए EPUB बनाए गए।",
+      "MERGE_FAILURE_TITLE": "EPUB जोड़े नहीं जा सके",
+      "MERGE_FAILURE_BODY": "अंतिम EPUB नहीं बनाया जा सका। आपकी मूल फ़ाइलें नहीं बदली गईं।",
+      "SPLIT_FAILURE_TITLE": "EPUB विभाजित नहीं किया जा सका",
+      "SPLIT_FAILURE_BODY": "सभी EPUB नहीं बनाए जा सके। मूल फ़ाइल नहीं बदली गई और कोई आंशिक परिणाम सहेजा नहीं गया।",
+      "PROGRESS": {
+        "PREPARING": "EPUB तैयार किया जा रहा है",
+        "ANALYZING": "EPUB का विश्लेषण हो रहा है",
+        "WRITING": "EPUB बनाए जा रहे हैं",
+        "VALIDATING": "EPUB सत्यापित किए जा रहे हैं",
+        "COMPLETED": "पूर्ण",
+        "COUNT": "{{current}} / {{total}}"
+      }
+    },
+    "SPLIT_STEP": {
+      "TITLE": "स्प्लिट",
+      "SUMMARY": "{{count}} EPUB तैयार हैं।",
+      "OUTPUTS_TITLE": "बनाई जाने वाली फ़ाइलें",
+      "BACK_TO_CONFIRM": "← पुष्टि पर वापस जाएँ"
+    },
+    "SPLIT_COVER": {
+      "ECC_TITLE": "EPUB कवर बदलें",
+      "ECC_DESCRIPTION": "सभी EPUB में एक ही कवर होगा। उन्हें अलग-अलग सजाने के लिए हमारा ऐप इस्तेमाल करें।",
+      "OPEN_ECC": "ऐप आज़माएँ"
+    },
+    "SPLIT_HOW_TO": "विभाजन का तरीका",
+    "SPLIT_HOW_TO_TITLE": "इस EPUB को कैसे विभाजित करना चाहते हैं?",
+    "SPLIT_OPTIONS": {
+      "BY_CHAPTERS_OR_SECTIONS": {
+        "TITLE": "अध्याय या अनुभाग के अनुसार",
+        "SUBLINE": "पुस्तक की विषय-सूची का उपयोग करें।"
+      },
+      "MANUAL_SPLIT_POINTS": {
+        "TITLE": "विभाजन बिंदु चुनें",
+        "SUBLINE": "अध्यायों को मैन्युअल रूप से समूहित करें।"
+      },
+      "EQUAL_PARTS": {
+        "TITLE": "समान भाग",
+        "SUBLINE": "बनाए जाने वाले EPUB की संख्या चुनें।"
+      },
+      "MAXIMUM_FILE_SIZE": {
+        "TITLE": "अधिकतम आकार के अनुसार",
+        "SUBLINE": "लगभग निर्धारित आकार तक फ़ाइलें बनाएँ।"
+      }
+    },
+    "SPLIT_ANALYSIS_ERROR": "EPUB की विषय-सूची का विश्लेषण नहीं हो सका।",
+    "SPLIT_EXPORT_NOT_AVAILABLE": "कॉन्फ़िगरेशन तैयार है, लेकिन विभाजित EPUB का निर्यात अभी उपलब्ध नहीं है।",
+    "SPLIT_CONFIRM": {
+      "BY_CHAPTERS_TITLE": "इस EPUB को कैसे विभाजित करना चाहते हैं?",
+      "MANUAL_TITLE": "विभाजन बिंदु चुनें",
+      "EQUAL_TITLE": "समान भाग",
+      "MAXIMUM_SIZE_TITLE": "अधिकतम आकार के अनुसार",
+      "FILE_SUMMARY": "{{name}} · {{count}} · {{size}}",
+      "ANALYZING": "EPUB की विषय-सूची का विश्लेषण नहीं हो सका।",
+      "BY_CHAPTER": "अध्याय के अनुसार",
+      "BY_CHAPTER_SUBLINE": "पुस्तक की विषय-सूची का उपयोग करें।",
+      "BY_SECTION": "अनुभाग के अनुसार",
+      "BY_SECTION_SUBLINE": "पुस्तक की विषय-सूची का उपयोग करें।",
+      "BOOK_START": "पुस्तक की शुरुआत",
+      "BOOK_START_SUBLINE": "पुस्तक की शुरुआत",
+      "BEFORE_CHAPTER": "{{title}}",
+      "BEFORE_CHAPTER_SUBLINE": "+ यहाँ विभाजित करें",
+      "EQUAL_HELP": "बनाए जाने वाले EPUB की संख्या चुनें।",
+      "PART_COUNT": "{{count}}",
+      "PART_COUNT_SUBLINE": "भाग",
+      "CUSTOM_PART_COUNT": "कस्टम",
+      "CUSTOM_PART_COUNT_SUBLINE": "कस्टम",
+      "INVALID_PART_COUNT": "कस्टम",
+      "MAXIMUM_SIZE_HELP": "लगभग निर्धारित आकार तक फ़ाइलें बनाएँ।",
+      "MAXIMUM_SIZE_OPTION": "{{size}} MB",
+      "MAXIMUM_SIZE_OPTION_SUBLINE": "लगभग निर्धारित आकार तक फ़ाइलें बनाएँ।",
+      "CUSTOM_SIZE": "कस्टम",
+      "CUSTOM_SIZE_SUBLINE": "कस्टम",
+      "INVALID_MAXIMUM_SIZE": "कस्टम",
+      "ESTIMATED_RESULT": "{{count}} EPUB",
+      "OUTPUT_NUMBER": "EPUB {{number}}",
+      "MORE_OUTPUTS": "सभी {{count}} EPUB देखें",
+      "SHOW_FEWER_OUTPUTS": "कम दिखाएँ",
+      "NEEDS_TWO_OUTPUTS": "बनाए जाने वाले EPUB की संख्या चुनें।",
+      "BACK_TO_HOW_TO": "← विभाजन का तरीका",
+      "SPLIT_EPUB": "EPUB विभाजित करें →",
+      "TITLE": "विभाजन की पुष्टि करें",
+      "SAFE_SPLIT_HINT": "पुस्तक की विषय-सूची का उपयोग करें।",
+      "TREE_LABEL": "विभाजन का तरीका",
+      "VARIANT_LABEL": "विभाजन का तरीका",
+      "ONE_PER_CHAPTER": "अध्याय के अनुसार",
+      "ONE_PER_SECTION": "अनुभाग के अनुसार",
+      "MANUAL_HINT": "अध्यायों को मैन्युअल रूप से समूहित करें।",
+      "SPLIT_HERE": "+ यहाँ विभाजित करें",
+      "DIVIDED": "✓ विभाजित",
+      "EQUAL_HINT": "बनाए जाने वाले EPUB की संख्या चुनें।",
+      "EQUAL_MODE_LABEL": "समान भाग",
+      "RESULT_COUNT": "समान भाग",
+      "PARTS_UNIT": "भाग",
+      "MEGABYTES_UNIT": "MB",
+      "CHAPTERS_PER_FILE": "अध्याय या अनुभाग के अनुसार",
+      "SIZE_HINT": "लगभग निर्धारित आकार तक फ़ाइलें बनाएँ।",
+      "SIZE_LABEL": "अधिकतम आकार",
+      "SIZE_10": "10 MB",
+      "SIZE_25": "25 MB",
+      "SIZE_50": "50 MB",
+      "SIZE_CUSTOM": "कस्टम",
+      "APPROXIMATE_SIZE": "लगभग निर्धारित आकार तक फ़ाइलें बनाएँ।",
+      "EXAMPLE_PART_ONE": "भाग I",
+      "EXAMPLE_CHAPTER_ONE": "अध्याय 1",
+      "EXAMPLE_CHAPTER_TWO": "अध्याय 2",
+      "EXAMPLE_PART_TWO": "भाग II",
+      "EXAMPLE_CHAPTER_THREE": "अध्याय 3",
+      "EXAMPLE_CHAPTER_FOUR": "अध्याय 4"
+    }
   },
   "TOC_OPTIONS": {
     "TITLE": "विषय-सूची के साथ क्या करना है?",

@@ -6,6 +6,17 @@ export const routes: Routes = [
     loadChildren: () => import('./tabs/tabs.routes').then((m) => m.routes),
   },
   {
+    path: 'remove-ads',
+    data: {
+      removeAdsVariant: 'EF',
+      removeAdsReturnUrl: '/tabs/fix-page',
+    },
+    loadComponent: () =>
+      import('@sheldrapps/ads-kit').then(
+        (m) => m.RemoveAdsPurchasePageComponent,
+      ),
+  },
+  {
     path: 'recommended-apps',
     data: {
       backHref: '/tabs/fix-page',

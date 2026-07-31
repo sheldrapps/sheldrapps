@@ -122,6 +122,29 @@ public class EpubCoverLocatorTest {
     }
 
     @Test
+    public void declaredCoverLookupDoesNotPromoteAnArbitraryImage() throws Exception {
+        ZipFile zipFile = buildZip(
+            orderedEntries(
+                "META-INF/container.xml", utf8(containerXml("OEBPS/content.opf")),
+                "OEBPS/content.opf", utf8(
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\">\n"
+                        + "  <manifest>\n"
+                        + "    <item id=\"illustration\" href=\"images/frontispiece.png\" media-type=\"image/png\"/>\n"
+                        + "  </manifest>\n"
+                        + "</package>"
+                ),
+                "OEBPS/images/frontispiece.png", imageBytes()
+            )
+        );
+
+        assertEquals(
+            null,
+            locator.findDeclaredCoverEntryPath(zipFile, zipFile.getFileHeaders())
+        );
+    }
+
+    @Test
     public void ignoresBlankManifestHrefAndFallsBackToAnotherValidImage() throws Exception {
         ZipFile zipFile = buildZip(
             orderedEntries(

@@ -10,6 +10,7 @@ export * from './lib/errors';
 
 // Utilities
 export { guessMimeType } from './lib/mime';
+export { PUBLIC_FILESYSTEM, type PublicFilesystem } from './lib/public-filesystem';
 export { makeSafeFilename } from './lib/name';
 export { ensureDirectoriesExist } from './lib/ensure-directories';
 export { normalizeFilenameKey } from './lib/filename-keys';

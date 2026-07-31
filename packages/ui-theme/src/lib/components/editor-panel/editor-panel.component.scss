@@ -22,7 +22,8 @@
   margin: 0 auto;
 
   overflow: hidden;
-  touch-action: pan-y;
+  /* Descendants such as sh-scrollable-button-bar need to opt into pan-x. */
+  touch-action: auto;
 }
 
 /* === Header: same as .sheet-head === */
@@ -101,6 +102,15 @@
 /* === Body: same as .sheet-body === */
 .cc-editor-panel__body {
   padding: var(--app-space-4) var(--app-space-5) var(--app-space-5) var(--app-space-5);
+  box-sizing: border-box;
+  min-width: 0;
+  overflow-x: hidden;
+  touch-action: auto;
+}
+
+.cc-editor-panel__body > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .cc-editor-panel__body ion-item {

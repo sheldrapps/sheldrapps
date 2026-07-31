@@ -1,39 +1,39 @@
 <en-US>
-Create PDF covers from scratch with selected colors and patterns included in the final cover.
+Fixed-size cover targets now render at the exact requested dimensions, while aspect ratios preserve available source detail. First-page cover rendering and storage feedback are more reliable, with clearer space information when an export needs more room.
 </en-US>
 <ar>
-أنشئ أغلفة PDF من الصفر مع تضمين الألوان والأنماط المحددة في الغلاف النهائي.
+تُعرض أهداف الغلاف ذات الحجم الثابت الآن بالأبعاد المطلوبة بدقة، بينما تحافظ نسب الأبعاد على التفاصيل المتاحة في المصدر. أصبح عرض الصفحة الأولى كغلاف ومعلومات التخزين أكثر موثوقية، مع توضيح المساحة المطلوبة عند الحاجة.
 </ar>
 <de-DE>
-Erstelle PDF-Cover von Grund auf und übernimm ausgewählte Farben und Muster in das fertige Cover.
+Cover-Ziele mit fester Größe werden jetzt exakt in den gewünschten Abmessungen erstellt, während Seitenverhältnisse die verfügbaren Quelldetails bewahren. Die Darstellung der ersten Seite als Cover und die Speicherinformationen sind zuverlässiger und zeigen bei Bedarf den benötigten Platz klarer an.
 </de-DE>
 <es-419>
-Crea portadas PDF desde cero con los colores y patrones seleccionados incluidos en la portada final.
+Los destinos de portada de tamaño fijo ahora se renderizan exactamente con las dimensiones solicitadas, mientras que las proporciones conservan el detalle disponible del origen. El renderizado de la primera página como portada y la información de almacenamiento son más confiables, con datos claros del espacio necesario cuando hace falta.
 </es-419>
 <fr-FR>
-Créez des couvertures PDF de zéro en conservant les couleurs et motifs sélectionnés dans la couverture finale.
+Les cibles de couverture à taille fixe sont désormais rendues exactement aux dimensions demandées, tandis que les proportions préservent les détails disponibles de la source. Le rendu de la première page comme couverture et les informations de stockage sont plus fiables, avec un espace requis clairement indiqué si nécessaire.
 </fr-FR>
 <hi-IN>
-शुरुआत से PDF कवर बनाएं और चुने गए रंगों व पैटर्न को अंतिम कवर में शामिल करें।
+निश्चित आकार वाले कवर लक्ष्य अब मांगे गए आयामों में सटीक रूप से रेंडर होते हैं, जबकि अनुपात स्रोत के उपलब्ध विवरण को बनाए रखते हैं। पहली पेज को कवर के रूप में रेंडर करना और स्टोरेज की जानकारी अधिक विश्वसनीय है, और जरूरत पड़ने पर आवश्यक स्थान स्पष्ट रूप से दिखाया जाता है।
 </hi-IN>
 <it-IT>
-Crea copertine PDF da zero includendo i colori e i motivi selezionati nella copertina finale.
+I target della copertina a dimensione fissa ora vengono renderizzati esattamente nelle dimensioni richieste, mentre le proporzioni preservano i dettagli disponibili della sorgente. Il rendering della prima pagina come copertina e le informazioni sullo spazio sono più affidabili, con una indicazione chiara dello spazio necessario quando serve.
 </it-IT>
 <ja-JP>
-選択した色やパターンを最終的な表紙に反映して、PDF表紙をゼロから作成できます。
+固定サイズのカバーターゲットは指定した寸法で正確に生成され、比率指定では元画像の利用可能な詳細が保持されます。1ページ目をカバーとして表示する処理とストレージ情報の信頼性が向上し、容量が必要な場合は必要な空き容量も明確に表示されます。
 </ja-JP>
 <ko-KR>
-선택한 색상과 패턴이 최종 표지에 반영되도록 PDF 표지를 처음부터 만들 수 있습니다.
+고정 크기 표지 대상은 요청한 크기로 정확하게 렌더링되고, 비율 설정에서는 원본의 사용 가능한 세부 정보가 유지됩니다. 첫 페이지를 표지로 렌더링하는 기능과 저장 공간 안내가 더 안정적이며, 필요한 경우 요구되는 공간도 명확하게 표시됩니다.
 </ko-KR>
 <pt-BR>
-Crie capas PDF do zero com as cores e os padrões selecionados incluídos na capa final.
+Os destinos de capa com tamanho fixo agora são renderizados exatamente nas dimensões solicitadas, enquanto as proporções preservam os detalhes disponíveis da origem. A renderização da primeira página como capa e as informações de armazenamento estão mais confiáveis, mostrando claramente o espaço necessário quando preciso.
 </pt-BR>
 <ru-RU>
-Создавайте обложки PDF с нуля, сохраняя выбранные цвета и узоры в итоговой обложке.
+Цели обложки фиксированного размера теперь создаются точно в заданных размерах, а пропорции сохраняют доступные детали исходного изображения. Отображение первой страницы как обложки и сведения о хранилище стали надежнее, а при нехватке места ясно показывается требуемый объем.
 </ru-RU>
 <zh-CN>
-从头创建 PDF 封面，并将选定的颜色和图案应用到最终封面中。
+固定尺寸的封面目标现在会严格按照请求的尺寸生成，而比例设置会保留源图像中可用的细节。将第一页渲染为封面以及存储空间提示更加可靠，需要更多空间时会清楚显示所需容量。
 </zh-CN>
 <zh-TW>
-從頭建立 PDF 封面，並將選取的色彩與圖樣套用到最終封面中。
+固定尺寸的封面目標現在會依照要求的尺寸精確產生，而比例設定會保留來源影像中可用的細節。將第一頁轉換為封面以及儲存空間提示更加可靠，需要更多空間時會清楚顯示所需容量。
 </zh-TW>

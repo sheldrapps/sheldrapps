@@ -20,7 +20,7 @@
     "PURCHASE_ERROR": "Не удалось завершить покупку. Попробуйте ещё раз.",
     "RESTORE_ERROR": "Не удалось восстановить покупку. Попробуйте ещё раз.",
     "PRO_ONLY": "PRO",
-    "WATCH_AD_SUBTITLE": "Ð¡Ð¼Ð¾Ñ‚Ñ€ÐµÑ‚ÑŒ Ñ€ÐµÐºÐ»Ð°Ð¼Ñƒ",
+    "WATCH_AD_SUBTITLE": "Смотреть рекламу",
     "SHARE": "Поделиться",
     "SHARE_KINDLE_HINT": "При отправке выберите приложение Kindle, чтобы передать файл на устройство.",
     "WARNING": "Предупреждение",
@@ -29,7 +29,8 @@
     "EDIT_PROJECT_OVERWRITE": "Перезаписать",
     "EDIT_PROJECT_OVERWRITE_DESC": "Сохранить изменения поверх существующего файла.",
     "EDIT_PROJECT_COPY": "Работать с копией",
-    "EDIT_PROJECT_COPY_DESC": "Оставить оригинал и редактировать новую копию."
+    "EDIT_PROJECT_COPY_DESC": "Оставить оригинал и редактировать новую копию.",
+    "UPGRADE_TO_PRO": "Перейти на Pro"
   },
   "MY_EPUBS": {
     "TITLE": "Мои EPUB",
@@ -79,7 +80,15 @@
     "SETTINGS": "Настройки"
   },
   "HOME": {
-    "STEPPER": { "MERGE_SPLIT": "Объединить / разделить", "SORT": "Сортировка", "TOC": "Оглавление", "COVER": "Обложка", "ADJUST": "Настройка", "JOIN": "Объединить" },
+    "STEPPER": {
+      "MERGE_SPLIT": "Объединить / разделить",
+      "SORT": "Сортировка",
+      "TOC": "Оглавление",
+      "COVER": "Обложка",
+      "ADJUST": "Настройка",
+      "JOIN": "Объединить",
+      "CONFIRM": "Подтвердить"
+    },
     "WHAT_DO_YOU_WANT_TO_DO": "Что вы хотите сделать?",
     "MERGE": "Объединить",
     "SPLIT": "Разделить",
@@ -103,7 +112,122 @@
     "COVER_SELECTOR_TITLE": "Из чего создать обложку?",
     "BEST_CANDIDATES_TITLE": "Предложения из ваших EPUB",
     "ADJUST_COVER": "Настроить обложку",
-    "PREVIEW_TITLE": "Предпросмотр"
+    "PREVIEW_TITLE": "Предпросмотр",
+    "OPERATION": {
+      "OUTPUTS_TITLE": "Созданные EPUB",
+      "MERGE_SUCCESS_TITLE": "EPUB успешно объединены",
+      "MERGE_SUCCESS_BODY": "Создана новая копия с содержимым выбранных EPUB.",
+      "SPLIT_SUCCESS_TITLE": "EPUB успешно разделён",
+      "SPLIT_SUCCESS_BODY": "Создано новых EPUB: {{count}}.",
+      "MERGE_FAILURE_TITLE": "Не удалось объединить EPUB",
+      "MERGE_FAILURE_BODY": "Не удалось создать итоговый EPUB. Исходные файлы не были изменены.",
+      "SPLIT_FAILURE_TITLE": "Не удалось разделить EPUB",
+      "SPLIT_FAILURE_BODY": "Не удалось создать все EPUB. Исходный файл не был изменён, частичные результаты не сохранены.",
+      "PROGRESS": {
+        "PREPARING": "Подготовка EPUB",
+        "ANALYZING": "Анализ EPUB",
+        "WRITING": "Создание EPUB",
+        "VALIDATING": "Проверка EPUB",
+        "COMPLETED": "Готово",
+        "COUNT": "{{current}} из {{total}}"
+      }
+    },
+    "SPLIT_STEP": {
+      "TITLE": "Разделить",
+      "SUMMARY": "Готово файлов EPUB: {{count}}.",
+      "OUTPUTS_TITLE": "Файлы для создания",
+      "BACK_TO_CONFIRM": "← Вернуться к подтверждению"
+    },
+    "SPLIT_COVER": {
+      "ECC_TITLE": "Изменить обложку EPUB",
+      "ECC_DESCRIPTION": "Все EPUB получат одну и ту же обложку. Чтобы настроить их отдельно, используйте наше приложение.",
+      "OPEN_ECC": "Попробовать приложение"
+    },
+    "SPLIT_HOW_TO": "Способ разделения",
+    "SPLIT_HOW_TO_TITLE": "Как разделить этот EPUB?",
+    "SPLIT_OPTIONS": {
+      "BY_CHAPTERS_OR_SECTIONS": {
+        "TITLE": "По главам или разделам",
+        "SUBLINE": "Используйте оглавление книги."
+      },
+      "MANUAL_SPLIT_POINTS": {
+        "TITLE": "Выбрать точки разделения",
+        "SUBLINE": "Группируйте главы вручную."
+      },
+      "EQUAL_PARTS": {
+        "TITLE": "Равные части",
+        "SUBLINE": "Выберите количество EPUB."
+      },
+      "MAXIMUM_FILE_SIZE": {
+        "TITLE": "По максимальному размеру",
+        "SUBLINE": "Создавайте файлы примерно заданного размера."
+      }
+    },
+    "SPLIT_ANALYSIS_ERROR": "Не удалось проанализировать оглавление EPUB.",
+    "SPLIT_EXPORT_NOT_AVAILABLE": "Настройка готова, но экспорт разделённых EPUB пока недоступен.",
+    "SPLIT_CONFIRM": {
+      "BY_CHAPTERS_TITLE": "Как разделить этот EPUB?",
+      "MANUAL_TITLE": "Выбрать точки разделения",
+      "EQUAL_TITLE": "Равные части",
+      "MAXIMUM_SIZE_TITLE": "По максимальному размеру",
+      "FILE_SUMMARY": "{{name}} · {{count}} · {{size}}",
+      "ANALYZING": "Не удалось проанализировать оглавление EPUB.",
+      "BY_CHAPTER": "По главам",
+      "BY_CHAPTER_SUBLINE": "Используйте оглавление книги.",
+      "BY_SECTION": "По разделам",
+      "BY_SECTION_SUBLINE": "Используйте оглавление книги.",
+      "BOOK_START": "Начало книги",
+      "BOOK_START_SUBLINE": "Начало книги",
+      "BEFORE_CHAPTER": "{{title}}",
+      "BEFORE_CHAPTER_SUBLINE": "+ Разделить здесь",
+      "EQUAL_HELP": "Выберите количество EPUB.",
+      "PART_COUNT": "{{count}}",
+      "PART_COUNT_SUBLINE": "части",
+      "CUSTOM_PART_COUNT": "Вручную",
+      "CUSTOM_PART_COUNT_SUBLINE": "Вручную",
+      "INVALID_PART_COUNT": "Вручную",
+      "MAXIMUM_SIZE_HELP": "Создавайте файлы примерно заданного размера.",
+      "MAXIMUM_SIZE_OPTION": "{{size}} MB",
+      "MAXIMUM_SIZE_OPTION_SUBLINE": "Создавайте файлы примерно заданного размера.",
+      "CUSTOM_SIZE": "Вручную",
+      "CUSTOM_SIZE_SUBLINE": "Вручную",
+      "INVALID_MAXIMUM_SIZE": "Вручную",
+      "ESTIMATED_RESULT": "{{count}} EPUB",
+      "OUTPUT_NUMBER": "EPUB {{number}}",
+      "MORE_OUTPUTS": "Показать все EPUB ({{count}})",
+      "SHOW_FEWER_OUTPUTS": "Показать меньше",
+      "NEEDS_TWO_OUTPUTS": "Выберите количество EPUB.",
+      "BACK_TO_HOW_TO": "← Способ разделения",
+      "SPLIT_EPUB": "Разделить EPUB →",
+      "TITLE": "Подтвердите разделение",
+      "SAFE_SPLIT_HINT": "Используйте оглавление книги.",
+      "TREE_LABEL": "Способ разделения",
+      "VARIANT_LABEL": "Способ разделения",
+      "ONE_PER_CHAPTER": "По главам",
+      "ONE_PER_SECTION": "По разделам",
+      "MANUAL_HINT": "Группируйте главы вручную.",
+      "SPLIT_HERE": "+ Разделить здесь",
+      "DIVIDED": "✓ Разделено",
+      "EQUAL_HINT": "Выберите количество EPUB.",
+      "EQUAL_MODE_LABEL": "Равные части",
+      "RESULT_COUNT": "Равные части",
+      "PARTS_UNIT": "части",
+      "MEGABYTES_UNIT": "MB",
+      "CHAPTERS_PER_FILE": "По главам или разделам",
+      "SIZE_HINT": "Создавайте файлы примерно заданного размера.",
+      "SIZE_LABEL": "Максимальный размер",
+      "SIZE_10": "10 MB",
+      "SIZE_25": "25 MB",
+      "SIZE_50": "50 MB",
+      "SIZE_CUSTOM": "Вручную",
+      "APPROXIMATE_SIZE": "Создавайте файлы примерно заданного размера.",
+      "EXAMPLE_PART_ONE": "Часть I",
+      "EXAMPLE_CHAPTER_ONE": "Глава 1",
+      "EXAMPLE_CHAPTER_TWO": "Глава 2",
+      "EXAMPLE_PART_TWO": "Часть II",
+      "EXAMPLE_CHAPTER_THREE": "Глава 3",
+      "EXAMPLE_CHAPTER_FOUR": "Глава 4"
+    }
   },
   "TOC_OPTIONS": {
     "TITLE": "Что делать с оглавлением?",

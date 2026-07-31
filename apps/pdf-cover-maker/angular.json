@@ -129,12 +129,18 @@
           }
         },
         "test": {
-          "builder": "@angular/build:unit-test",
+          "builder": "@angular/build:karma",
           "options": {
+            "main": "src/test.ts",
+            "polyfills": ["src/polyfills.ts"],
             "tsConfig": "tsconfig.spec.json",
-            "buildTarget": "app:build:development",
-            "runner": "karma",
-            "runnerConfig": false
+            "karmaConfig": "karma.conf.js",
+            "inlineStyleLanguage": "scss",
+            "stylePreprocessorOptions": {
+              "includePaths": ["node_modules"]
+            },
+            "styles": ["src/global.scss", "src/theme/variables.scss"],
+            "scripts": []
           },
           "configurations": {
             "ci": {

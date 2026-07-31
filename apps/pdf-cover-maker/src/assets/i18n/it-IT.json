@@ -18,7 +18,8 @@
     "REMOVE_ADS_RESTORE": "Ripristina acquisto",
     "REMOVE_ADS_RESTORED": "Acquisto ripristinato con successo.",
     "REMOVE_ADS_TITLE": "Rimuovi annunci",
-    "REMOVE_ADS_CTA_TITLE": "Rimuovi annunci",
+   "REMOVE_ADS_CTA_TITLE": "Rimuovi annunci",
+    "UPGRADE_TO_PRO": "Passa a Pro",
     "REMOVE_ADS_CTA_SUBTITLE": "Pagamento unico • Per sempre",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Pagamento unico • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "Prezzo: {{price}} • Nessun abbonamento",
@@ -62,7 +63,7 @@
     "IMAGE_ERROR_SIZE": "Il file è troppo grande. Massimo {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Formato non supportato ({{type}}). Seleziona JPG, PNG o WebP.",
     "IMAGE_WARN_SMALL": "L'immagine potrebbe essere troppo piccola per alcuni dispositivi.",
-    "NO_COVER_DETECTED_ADDED": "Nessuna copertina rilevata. È stata aggiunta una nuova copertina a questo PDF.",
+    "RENAMED_OK": "PDF rinominato",
     "PDF_ERROR_STORAGE": "Spazio di archiviazione insufficiente. Servono {{requiredMB}} MB, disponibili {{availableMB}} MB.",
     "LOADING_PDF": "Caricamento PDF…",
     "LOADING_IMAGE": "Caricamento immagine…",
@@ -218,7 +219,6 @@
     }
   },
   "SETTINGS": {
-    "VIEW_TOUR": "Vedi il tour",
     "INSTRUCTIONS": "Vedi istruzioni",
     "INSTRUCTIONS_HINT": "Come creare e inviare una copertina per Kindle",
     "INSTRUCTIONS_SECTION": "Istruzioni",

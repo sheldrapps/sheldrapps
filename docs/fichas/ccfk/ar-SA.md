@@ -1,4 +1,4 @@
-﻿# إنشاء أغلفة لـ Kindle - ar-SA Play Store Listing
+# إنشاء أغلفة لـ Kindle - ar-SA Play Store Listing
 
 ## Purpose
 Localized Play Store listing for ar-SA, regenerated from the updated strategy matrix and conversion audit.

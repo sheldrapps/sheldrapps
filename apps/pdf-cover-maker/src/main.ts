@@ -1,4 +1,4 @@
-﻿import { bootstrapApplication } from '@angular/platform-browser';
+import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, RouteReuseStrategy } from '@angular/router';
 import {
   provideIonicAngular,

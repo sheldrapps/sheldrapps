@@ -1,39 +1,39 @@
 {
   "BEST_CANDIDATE": {
     "ACTION": {
-      "DETECT_COVER": "Detect cover automatically"
+      "DETECT_COVER": "自动检测封面"
     },
     "LOADING": {
-      "TITLE": "Searching for candidate images..."
+      "TITLE": "正在搜索候选图像..."
     },
     "EMPTY": {
-      "TITLE": "No cover candidates found",
-      "DESCRIPTION": "We could not find useful images inside this EPUB."
+      "TITLE": "未找到封面候选",
+      "DESCRIPTION": "我们无法在此EPUB中找到有用的图像。"
     },
     "PICKER": {
-      "TITLE": "Choose a possible cover",
-      "DESCRIPTION": "We found images that may work as the book cover.",
-      "LONG_PRESS_HINT": "Long press an image to preview it.",
-      "UNKNOWN_IMAGE": "Unknown image",
-      "CANDIDATE_ALT": "Candidate image {{index}}",
-      "NO_COVER_DETECTED": "No cover detected, tap to select one of the suggestions.",
-      "LONG_PRESS_TO_PREVIEW": "Long press to preview."
+      "TITLE": "选择可能的封面",
+      "DESCRIPTION": "我们找到了可能作为书籍封面的图像。",
+      "LONG_PRESS_HINT": "点按以选择",
+      "NO_COVER_DETECTED": "未检测到封面，点击选择其中一个建议。",
+      "LONG_PRESS_TO_PREVIEW": "长按以预览",
+      "UNKNOWN_IMAGE": "未知图像",
+      "CANDIDATE_ALT": "候选图像{{index}}"
     },
     "REASON": {
-      "FIRST_LARGE_IMAGE": "First large image",
-      "COVER_RATIO": "Cover-like ratio",
-      "NEAR_BOOK_START": "Near the beginning",
-      "FILENAME_COVER": "Cover-like filename",
-      "LARGE_RESOLUTION": "Large image",
-      "METADATA_COVER": "Marked as cover metadata",
-      "SMALL_ICON_RISK": "May be icon-like",
-      "DECORATIVE_RISK": "May be decorative"
+      "FIRST_LARGE_IMAGE": "第一张大图像",
+      "COVER_RATIO": "类似封面的比例",
+      "NEAR_BOOK_START": "靠近开始",
+      "FILENAME_COVER": "类似封面的文件名",
+      "LARGE_RESOLUTION": "大图像",
+      "METADATA_COVER": "在元数据中标记为封面",
+      "SMALL_ICON_RISK": "可能类似图标",
+      "DECORATIVE_RISK": "可能是装饰性的"
     },
     "PREVIEW": {
-      "TITLE": "Image preview",
-      "OPEN": "Preview",
-      "CLOSE": "Close",
-      "SELECT": "Use this image"
+      "TITLE": "图像预览",
+      "OPEN": "预览",
+      "CLOSE": "关闭",
+      "SELECT": "使用此图像"
     }
   }
 }

@@ -80,6 +80,15 @@ final class EpubCoverLocator {
         return null;
     }
 
+    String findDeclaredCoverEntryPath(ZipFile zipFile, List<FileHeader> headers)
+        throws IOException {
+        String opfPath = resolveOpfPath(zipFile, headers);
+        if (opfPath == null) {
+            return null;
+        }
+        return findCoverPathFromOpf(zipFile, headers, opfPath);
+    }
+
     private String resolveOpfPath(ZipFile zipFile, List<FileHeader> headers) throws IOException {
         FileHeader containerHeader = findHeader(headers, "META-INF/container.xml");
         if (containerHeader == null) {

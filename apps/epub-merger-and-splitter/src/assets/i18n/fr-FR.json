@@ -29,7 +29,8 @@
     "EDIT_PROJECT_OVERWRITE": "Écraser",
     "EDIT_PROJECT_OVERWRITE_DESC": "Enregistre les changements sur le fichier existant.",
     "EDIT_PROJECT_COPY": "Travailler sur une copie",
-    "EDIT_PROJECT_COPY_DESC": "Conserve le fichier original et modifie une nouvelle copie."
+    "EDIT_PROJECT_COPY_DESC": "Conserve le fichier original et modifie une nouvelle copie.",
+    "UPGRADE_TO_PRO": "Passer à Pro"
   },
   "MY_EPUBS": {
     "TITLE": "Mes EPUBs",
@@ -79,7 +80,15 @@
     "SETTINGS": "Paramètres"
   },
   "HOME": {
-    "STEPPER": { "MERGE_SPLIT": "Fusionner / diviser", "SORT": "Trier", "TOC": "TOC", "COVER": "Couverture", "ADJUST": "Ajuster", "JOIN": "Fusionner" },
+    "STEPPER": {
+      "MERGE_SPLIT": "Fusionner / diviser",
+      "SORT": "Trier",
+      "TOC": "Sommaire",
+      "COVER": "Couverture",
+      "ADJUST": "Ajuster",
+      "JOIN": "Fusionner",
+      "CONFIRM": "Confirmer"
+    },
     "WHAT_DO_YOU_WANT_TO_DO": "Que voulez-vous faire ?",
     "MERGE": "Fusionner",
     "SPLIT": "Diviser",
@@ -103,7 +112,122 @@
     "COVER_SELECTOR_TITLE": "À partir de quoi créer la couverture ?",
     "BEST_CANDIDATES_TITLE": "Suggestions issues de vos EPUB",
     "ADJUST_COVER": "Ajuster la couverture",
-    "PREVIEW_TITLE": "Aperçu"
+    "PREVIEW_TITLE": "Aperçu",
+    "OPERATION": {
+      "OUTPUTS_TITLE": "EPUB créés",
+      "MERGE_SUCCESS_TITLE": "EPUB fusionné avec succès",
+      "MERGE_SUCCESS_BODY": "Une nouvelle copie avec le contenu des EPUB sélectionnés a été créée.",
+      "SPLIT_SUCCESS_TITLE": "EPUB divisé avec succès",
+      "SPLIT_SUCCESS_BODY": "{{count}} nouveaux EPUB ont été créés.",
+      "MERGE_FAILURE_TITLE": "Impossible de fusionner les EPUB",
+      "MERGE_FAILURE_BODY": "L’EPUB final n’a pas pu être créé. Vos fichiers originaux n’ont pas été modifiés.",
+      "SPLIT_FAILURE_TITLE": "Impossible de diviser l’EPUB",
+      "SPLIT_FAILURE_BODY": "Tous les EPUB n’ont pas pu être créés. Le fichier original n’a pas été modifié et aucun résultat partiel n’a été enregistré.",
+      "PROGRESS": {
+        "PREPARING": "Préparation de l’EPUB",
+        "ANALYZING": "Analyse de l’EPUB",
+        "WRITING": "Création des EPUB",
+        "VALIDATING": "Validation des EPUB",
+        "COMPLETED": "Terminé",
+        "COUNT": "{{current}} sur {{total}}"
+      }
+    },
+    "SPLIT_STEP": {
+      "TITLE": "Diviser",
+      "SUMMARY": "{{count}} EPUB prêts.",
+      "OUTPUTS_TITLE": "Fichiers à créer",
+      "BACK_TO_CONFIRM": "← Retour à la confirmation"
+    },
+    "SPLIT_COVER": {
+      "ECC_TITLE": "Changer la couverture EPUB",
+      "ECC_DESCRIPTION": "Tous vos EPUB auront la même couverture. Pour les personnaliser individuellement, utilisez notre application.",
+      "OPEN_ECC": "Essayer l’application"
+    },
+    "SPLIT_HOW_TO": "Méthode de division",
+    "SPLIT_HOW_TO_TITLE": "Comment souhaitez-vous diviser cet EPUB ?",
+    "SPLIT_OPTIONS": {
+      "BY_CHAPTERS_OR_SECTIONS": {
+        "TITLE": "Par chapitres ou sections",
+        "SUBLINE": "Utilisez la table des matières du livre."
+      },
+      "MANUAL_SPLIT_POINTS": {
+        "TITLE": "Choisir les points de division",
+        "SUBLINE": "Regroupez les chapitres manuellement."
+      },
+      "EQUAL_PARTS": {
+        "TITLE": "Parts égales",
+        "SUBLINE": "Choisissez le nombre d’EPUB à créer."
+      },
+      "MAXIMUM_FILE_SIZE": {
+        "TITLE": "Par taille maximale",
+        "SUBLINE": "Créez des fichiers sous une taille approximative."
+      }
+    },
+    "SPLIT_ANALYSIS_ERROR": "La table des matières de l’EPUB n’a pas pu être analysée.",
+    "SPLIT_EXPORT_NOT_AVAILABLE": "La configuration est prête, mais l’export des EPUB divisés n’est pas encore disponible.",
+    "SPLIT_CONFIRM": {
+      "BY_CHAPTERS_TITLE": "Comment souhaitez-vous diviser cet EPUB ?",
+      "MANUAL_TITLE": "Choisir les points de division",
+      "EQUAL_TITLE": "Parts égales",
+      "MAXIMUM_SIZE_TITLE": "Par taille maximale",
+      "FILE_SUMMARY": "{{name}} · {{count}} · {{size}}",
+      "ANALYZING": "La table des matières de l’EPUB n’a pas pu être analysée.",
+      "BY_CHAPTER": "Par chapitres",
+      "BY_CHAPTER_SUBLINE": "Utilisez la table des matières du livre.",
+      "BY_SECTION": "Par sections",
+      "BY_SECTION_SUBLINE": "Utilisez la table des matières du livre.",
+      "BOOK_START": "Début du livre",
+      "BOOK_START_SUBLINE": "Début du livre",
+      "BEFORE_CHAPTER": "{{title}}",
+      "BEFORE_CHAPTER_SUBLINE": "+ Diviser ici",
+      "EQUAL_HELP": "Choisissez le nombre d’EPUB à créer.",
+      "PART_COUNT": "{{count}}",
+      "PART_COUNT_SUBLINE": "parts",
+      "CUSTOM_PART_COUNT": "Personnalisé",
+      "CUSTOM_PART_COUNT_SUBLINE": "Personnalisé",
+      "INVALID_PART_COUNT": "Personnalisé",
+      "MAXIMUM_SIZE_HELP": "Créez des fichiers sous une taille approximative.",
+      "MAXIMUM_SIZE_OPTION": "{{size}} MB",
+      "MAXIMUM_SIZE_OPTION_SUBLINE": "Créez des fichiers sous une taille approximative.",
+      "CUSTOM_SIZE": "Personnalisé",
+      "CUSTOM_SIZE_SUBLINE": "Personnalisé",
+      "INVALID_MAXIMUM_SIZE": "Personnalisé",
+      "ESTIMATED_RESULT": "{{count}} EPUB",
+      "OUTPUT_NUMBER": "EPUB {{number}}",
+      "MORE_OUTPUTS": "Afficher les {{count}} EPUB",
+      "SHOW_FEWER_OUTPUTS": "Afficher moins",
+      "NEEDS_TWO_OUTPUTS": "Choisissez le nombre d’EPUB à créer.",
+      "BACK_TO_HOW_TO": "← Méthode de division",
+      "SPLIT_EPUB": "Diviser l’EPUB →",
+      "TITLE": "Confirmer la division",
+      "SAFE_SPLIT_HINT": "Utilisez la table des matières du livre.",
+      "TREE_LABEL": "Méthode de division",
+      "VARIANT_LABEL": "Méthode de division",
+      "ONE_PER_CHAPTER": "Par chapitres",
+      "ONE_PER_SECTION": "Par sections",
+      "MANUAL_HINT": "Regroupez les chapitres manuellement.",
+      "SPLIT_HERE": "+ Diviser ici",
+      "DIVIDED": "✓ Divisé",
+      "EQUAL_HINT": "Choisissez le nombre d’EPUB à créer.",
+      "EQUAL_MODE_LABEL": "Parts égales",
+      "RESULT_COUNT": "Parts égales",
+      "PARTS_UNIT": "parties",
+      "MEGABYTES_UNIT": "MB",
+      "CHAPTERS_PER_FILE": "Par chapitres ou sections",
+      "SIZE_HINT": "Créez des fichiers sous une taille approximative.",
+      "SIZE_LABEL": "Taille maximale",
+      "SIZE_10": "10 MB",
+      "SIZE_25": "25 MB",
+      "SIZE_50": "50 MB",
+      "SIZE_CUSTOM": "Personnalisé",
+      "APPROXIMATE_SIZE": "Créez des fichiers sous une taille approximative.",
+      "EXAMPLE_PART_ONE": "Partie I",
+      "EXAMPLE_CHAPTER_ONE": "Chapitre 1",
+      "EXAMPLE_CHAPTER_TWO": "Chapitre 2",
+      "EXAMPLE_PART_TWO": "Partie II",
+      "EXAMPLE_CHAPTER_THREE": "Chapitre 3",
+      "EXAMPLE_CHAPTER_FOUR": "Chapitre 4"
+    }
   },
   "TOC_OPTIONS": {
     "TITLE": "Que faire de la table des matières ?",

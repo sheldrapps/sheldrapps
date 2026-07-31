@@ -61,11 +61,14 @@ import { EditorPanelExitService } from "./editor-panel-exit.service";
 import { EditorSessionExitService } from "./editor-session-exit.service";
 import { applyEditorResultBeforeExit } from "./editor-result-bridge";
 import { EditorKindleStateService } from "./editor-kindle-state.service";
+import { EditorCropTargetStateService } from "./editor-crop-target-state.service";
 import { EditorColorSamplerService } from "./editor-color-sampler.service";
 import { EditorTextEditService } from "./editor-text-edit.service";
 import { ImagePipelineService } from "../core/pipeline/image-pipeline.service";
 import { buildCssFilter } from "./editor-adjustments";
 import {
+  buildEditorRenderInfo,
+  encodeCompositionCanvas,
   renderCompositionToCanvas,
   measureTextLayer,
   type CompositionRenderInput,
@@ -533,6 +536,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     private sessionExit: EditorSessionExitService,
     private zone: NgZone,
     private kindleState: EditorKindleStateService,
+    private cropTargetState: EditorCropTargetStateService,
     private colorSampler: EditorColorSamplerService,
     private textEdit: EditorTextEditService,
     private imagePipeline: ImagePipelineService,
@@ -623,10 +627,54 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     });
 
     effect(() => {
+      const activeCategory = this.cropTargetState.activeCategory();
+      const selections = this.cropTargetState.selectionsByCategory();
+      if (this.session?.tools?.cropTargets) {
+        this.session.tools.cropTargets.activeCategory = activeCategory;
+        this.session.tools.cropTargets.selections = selections;
+      }
+    });
+
+    effect(() => {
+      const target = this.cropTargetState.effectiveTarget();
+      const selection = this.cropTargetState.selection();
+      if (
+        !this.session ||
+        !target ||
+        !selection ||
+        selection.category === "e-reader"
+      ) {
+        return;
+      }
+
+      this.session.target = {
+        formatId: selection.presetId,
+        width: target.width,
+        height: target.height,
+        output: target.output,
+        unit: target.unit,
+        outputMode: target.outputMode,
+      };
+      this.aspectRatio = `${target.width} / ${target.height}`;
+
+      if (this.session.tools?.formats) {
+        this.session.tools.formats.selectedId = selection.presetId;
+      }
+      this.updatePreviewFrameSize();
+      this.bumpPreviewScaleVersion();
+    });
+
+    effect(() => {
       const target = this.kindleState.target();
       if (!this.session || !target) return;
 
-      this.session.target = target;
+      this.session.target = {
+        formatId: this.kindleState.selectedModel()?.id,
+        ...target,
+        output: "target",
+        unit: "px",
+        outputMode: "fixed-size",
+      };
       this.aspectRatio = `${target.width} / ${target.height}`;
 
       if (this.session.tools?.kindle) {
@@ -644,16 +692,31 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       const formats = tools?.formats?.options ?? [];
       const hasKindleCatalog =
         !!tools?.kindle?.modelCatalog?.length || !!tools?.kindle?.groups?.length;
-      if (!this.session || !formats.length || hasKindleCatalog) return;
+      if (
+        !this.session ||
+        !formats.length ||
+        hasKindleCatalog ||
+        !!tools?.cropTargets
+      ) {
+        return;
+      }
 
       const selectedId = tools?.formats?.selectedId ?? formats[0]?.id;
       const selected =
         formats.find((format) => format.id === selectedId) ?? formats[0];
       if (!selected) return;
 
+      const outputMode =
+        selected.target.outputMode ??
+        (selected.target.output === "source" ? "aspect-only" : "fixed-size");
+
       this.session.target = {
+        formatId: selected.id,
         width: selected.target.width,
         height: selected.target.height,
+        output: outputMode === "aspect-only" ? "source" : "target",
+        unit: selected.target.unit ?? (outputMode === "fixed-size" ? "px" : "ratio"),
+        outputMode,
       };
       this.aspectRatio = `${selected.target.width} / ${selected.target.height}`;
 
@@ -676,23 +739,11 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.returnUrl =
       this.session?.returnUrl ??
       this.route.snapshot.queryParamMap.get("returnUrl");
-    this.shouldAutoStartEditorTour =
-      this.route.snapshot.queryParamMap.get("tour") === "1";
-    this.editorTourSteps = buildEditorTourSteps(
-      this.session?.sourceMode ?? "image",
-      this.parseEditorTourParam(
-        this.route.snapshot.queryParamMap.get("tourCurrent"),
-        DEFAULT_EDITOR_TOUR_CURRENT
-      ),
-      this.parseEditorTourParam(
-        this.route.snapshot.queryParamMap.get("tourTotal"),
-        DEFAULT_EDITOR_TOUR_TOTAL,
-      )
-    );
-
+    this.shouldAutoStartEditorTour = false;
     this.sessionExit.setReturnUrl(this.returnUrl ?? null);
 
     this.kindleState.reset();
+    this.cropTargetState.reset();
     // Editor state service is singleton-scoped; reset it for every session so
     // adjustments from a previous image do not leak into a new one.
     this.editorState.resetAll();
@@ -711,6 +762,10 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.ui.setSessionId(this.sid);
     this.ui.setTool("crop");
 
+    if (this.session.tools?.cropTargets) {
+      this.cropTargetState.initFromTools(this.session.tools);
+    }
+
     if (this.session.tools?.kindle) {
       this.kindleState.initFromTools(this.session.tools.kindle);
     }
@@ -723,7 +778,12 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.previewMaskShape = this.session.preview?.maskShape ?? "rect";
     const kindleTarget = this.kindleState.target();
     if (kindleTarget) {
-      this.session.target = kindleTarget;
+      this.session.target = {
+        ...kindleTarget,
+        output: "target",
+        unit: "px",
+        outputMode: "fixed-size",
+      };
       this.aspectRatio = `${kindleTarget.width} / ${kindleTarget.height}`;
     }
     this.updatePreviewFrameSize();
@@ -1639,32 +1699,21 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
           const canvas = await renderCompositionToCanvas(renderInput, {
             mode: "export",
             outputScale: 1,
+            backgroundFallbackColor:
+              session.output?.exportQuality === "high-quality"
+                ? undefined
+                : "#ffffff",
           });
           if (canvas) {
-            const tryBlob = async (
-              mimeType: string,
-              quality?: number,
-            ): Promise<Blob | null> =>
-              new Promise((resolve) =>
-                canvas.toBlob((bb) => resolve(bb), mimeType, quality),
-              );
-
-            const preferredMime = "image/png";
-            const png = await tryBlob(preferredMime);
-            if (png) {
-              renderedBlob = png;
-              renderedMimeType = preferredMime;
-              renderedWidth = canvas.width;
-              renderedHeight = canvas.height;
-            } else {
-              const jpegMime = "image/jpeg";
-              const jpg = await tryBlob(jpegMime, 0.93);
-              if (jpg) {
-                renderedBlob = jpg;
-                renderedMimeType = jpegMime;
-                renderedWidth = canvas.width;
-                renderedHeight = canvas.height;
-              }
+            const encoded = await encodeCompositionCanvas(
+              canvas,
+              session.output?.exportQuality,
+            );
+            if (encoded) {
+              renderedBlob = encoded.blob;
+              renderedMimeType = encoded.mimeType;
+              renderedWidth = encoded.width;
+              renderedHeight = encoded.height;
             }
           }
         } catch (error) {
@@ -1690,6 +1739,14 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         renderedWidth,
         renderedHeight,
         renderedMimeType,
+        renderInfo: renderInput
+          ? buildEditorRenderInfo({
+              input: renderInput,
+              renderedWidth: renderedWidth ?? 1,
+              renderedHeight: renderedHeight ?? 1,
+              exportQuality: session.output?.exportQuality,
+            })
+          : undefined,
         history: this.history.captureProjectSnapshot(),
       };
       this.editorSession.setResult(this.sid, result);
@@ -2003,13 +2060,6 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     this.baseScale = Math.max(needW, needH);
 
     if (!this.ready) this.ready = true;
-    if (this.ready && this.shouldAutoStartEditorTour && !this.hasStartedEditorTour) {
-      this.hasStartedEditorTour = true;
-      queueMicrotask(() => {
-        void this.startEditorTour();
-      });
-    }
-
     // Push ctx on every sizing/rotation change
     this.updateConstraintsContext();
     this.renderTransform();
@@ -2793,13 +2843,14 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
 
     return {
       file: this.session.file,
-      target: { width: target.width, height: target.height },
+      target: { ...target },
       frameWidth: frame.width,
       frameHeight: frame.height,
       baseScale: this.baseScale,
       naturalWidth: this.naturalW,
       naturalHeight: this.naturalH,
       state,
+      sourceIsRaster: this.session.sourceMode !== "scratch",
     };
   }
 

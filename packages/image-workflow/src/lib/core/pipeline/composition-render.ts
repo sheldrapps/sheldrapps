@@ -3,6 +3,8 @@ import type {
   BackgroundSource,
   CoverCropState,
   CropTarget,
+  EditorRenderInfo,
+  EditorRenderQuality,
   FitBackgroundConfig,
 } from "../../types";
 import { getBackgroundAssetPath } from "../../types";
@@ -13,6 +15,11 @@ import {
   shouldUseFullSourceResolution,
 } from "./composition-geometry";
 import { resolveArtifactReductionMode } from "./artifact-reduction-state";
+import {
+  computeSourceCropDims,
+  isValidCompositionTarget,
+  resolveCompositionTarget,
+} from "./composition-input";
 
 export type CompositionRenderMode = "preview" | "export";
 
@@ -27,6 +34,7 @@ export interface CompositionRenderInput {
   state: CoverCropState;
   sourceBitmap?: ImageBitmap;
   sourceBitmapPromise?: Promise<ImageBitmap>;
+  sourceIsRaster?: boolean;
 }
 
 export interface CompositionRenderOptions {
@@ -40,6 +48,86 @@ export interface CompositionRenderOptions {
   includeTextLayers?: boolean;
   debug?: boolean;
   debugLabel?: string;
+  exportQuality?: EditorRenderQuality;
+}
+
+export interface EncodedCompositionCanvas {
+  blob: Blob;
+  mimeType: string;
+  width: number;
+  height: number;
+}
+
+export async function encodeCompositionCanvas(
+  canvas: HTMLCanvasElement,
+  quality: EditorRenderQuality = "recommended",
+): Promise<EncodedCompositionCanvas | null> {
+  const outputCanvas = quality === "thumbnail"
+    ? downscaleCanvas(canvas, THUMBNAIL_EXPORT_MAX_DIMENSION)
+    : canvas;
+  const mimeType = quality === "high-quality" ? "image/png" : "image/jpeg";
+  const encodingQuality = quality === "high-quality"
+    ? undefined
+    : quality === "thumbnail"
+      ? THUMBNAIL_EXPORT_QUALITY
+      : RECOMMENDED_EXPORT_QUALITY;
+  const blob: Blob | null = await new Promise((resolve) =>
+    outputCanvas.toBlob((value) => resolve(value), mimeType, encodingQuality),
+  );
+  if (!blob) return null;
+
+  return {
+    blob,
+    mimeType: blob.type || mimeType,
+    width: outputCanvas.width,
+    height: outputCanvas.height,
+  };
+}
+
+export async function encodeRenderedBlob(
+  blob: Blob,
+  filename: string,
+  quality: EditorRenderQuality = "recommended",
+): Promise<File | null> {
+  let bitmap: ImageBitmap | null = null;
+  let image: HTMLImageElement | null = null;
+  if (typeof createImageBitmap === "function") {
+    try {
+      bitmap = await createImageBitmap(blob);
+    } catch {
+      bitmap = null;
+    }
+  }
+  if (!bitmap) {
+    try {
+      image = await loadImageElementFromFile(
+        new File([blob], "rendered-input", { type: blob.type || "image/png" }),
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, bitmap?.width ?? image?.naturalWidth ?? 1);
+  canvas.height = Math.max(1, bitmap?.height ?? image?.naturalHeight ?? 1);
+  const context = canvas.getContext("2d");
+  if (!context) {
+    bitmap?.close();
+    return null;
+  }
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+  context.drawImage(bitmap ?? image!, 0, 0);
+  bitmap?.close();
+
+  const encoded = await encodeCompositionCanvas(canvas, quality);
+  if (!encoded) return null;
+  const base = filename.replace(/\.(png|jpg|jpeg|webp)$/i, "") || "rendered";
+  const extension = encoded.mimeType === "image/png" ? "png" : "jpg";
+  return new File([encoded.blob], `${base}.${extension}`, {
+    type: encoded.mimeType,
+  });
 }
 
 type RasterSource = ImageBitmap | HTMLImageElement;
@@ -47,6 +135,9 @@ type RasterSource = ImageBitmap | HTMLImageElement;
 const DEFAULT_EXPORT_QUALITY = 0.92;
 const DEFAULT_EXPORT_MIME = "image/jpeg";
 const DEFAULT_EXPORT_MIME_TRANSPARENT = "image/png";
+const RECOMMENDED_EXPORT_QUALITY = 0.88;
+const THUMBNAIL_EXPORT_QUALITY = 0.72;
+const THUMBNAIL_EXPORT_MAX_DIMENSION = 800;
 const DEFAULT_BACKGROUND = "#000000";
 const DEFAULT_BLUR_STRENGTH = 80;
 const MAX_BLUR_PX = 40;
@@ -56,8 +147,6 @@ const MIN_BACKGROUND_SCALE = 0.25;
 const MAX_BACKGROUND_SCALE = 4;
 const TEXT_STAGE_EDGE_PAD = 15;
 const TEXT_HANDLE_PAD_RIGHT = 12;
-const EREADER_UPSCALE_MIN_SHORT_SIDE = 1100;
-const EREADER_UPSCALE_MAX_FACTOR = 1.6;
 
 const backgroundImageCache = new Map<string, Promise<HTMLImageElement | null>>();
 const backgroundTileCache = new Map<string, Promise<HTMLCanvasElement | null>>();
@@ -82,15 +171,17 @@ export function resolveCompositionOutputSize(args: {
     state,
     outputScale = 1,
   } = args;
+  const resolvedTarget = resolveCompositionTarget(target);
+  if (!isValidCompositionTarget(resolvedTarget)) return null;
 
   if (!frameWidth || !frameHeight || !naturalWidth || !naturalHeight) {
     return null;
   }
 
-  if ((target.output ?? "target") !== "source") {
+  if (resolvedTarget.outputMode === "fixed-size") {
     return {
-      width: Math.max(1, Math.round(target.width * outputScale)),
-      height: Math.max(1, Math.round(target.height * outputScale)),
+      width: Math.max(1, Math.round(resolvedTarget.width * outputScale)),
+      height: Math.max(1, Math.round(resolvedTarget.height * outputScale)),
     };
   }
 
@@ -152,7 +243,6 @@ export async function renderCompositionToCanvas(
     sourceBitmap,
     sourceBitmapPromise,
   } = input;
-
   if (!frameWidth || !frameHeight) return null;
   if (!naturalWidth || !naturalHeight) return null;
 
@@ -170,13 +260,9 @@ export async function renderCompositionToCanvas(
   });
   if (!baseOutputSize) return null;
 
-  const eReaderUpscaleFactor = resolveEReaderUpscaleFactor({
-    mode: options.mode,
-    target,
-    state,
-    width: baseOutputSize.width,
-    height: baseOutputSize.height,
-  });
+  // Explicit target policies own the output dimensions. In particular,
+  // aspect-only must never be enlarged as a side effect of export.
+  const eReaderUpscaleFactor = 1;
   const outputSize =
     eReaderUpscaleFactor > 1
       ? {
@@ -322,6 +408,79 @@ export async function renderCompositionToCanvas(
   return canvas;
 }
 
+export function buildEditorRenderInfo(args: {
+  input: CompositionRenderInput;
+  renderedWidth: number;
+  renderedHeight: number;
+  exportQuality?: EditorRenderQuality;
+}): EditorRenderInfo {
+  const { input, renderedWidth, renderedHeight } = args;
+  const target = resolveCompositionTarget(input.target);
+  const quality = args.exportQuality ?? "recommended";
+  const sourceDims = input.sourceIsRaster === false
+    ? undefined
+    : computeSourceCropDims({
+        frameWidth: input.frameWidth,
+        frameHeight: input.frameHeight,
+        baseScale: input.baseScale,
+        naturalWidth: input.naturalWidth,
+        naturalHeight: input.naturalHeight,
+        state: input.state,
+      });
+  const isFixedSize = target.outputMode === "fixed-size";
+  const requestedWidth = isFixedSize
+    ? Math.max(1, Math.round(target.width))
+    : undefined;
+  const requestedHeight = isFixedSize
+    ? Math.max(1, Math.round(target.height))
+    : undefined;
+  const upscaleFactor =
+    isFixedSize && sourceDims
+      ? Math.max(
+          1,
+          renderedWidth / Math.max(1, sourceDims.width),
+          renderedHeight / Math.max(1, sourceDims.height),
+        )
+      : 1;
+  const upscaleApplied = isFixedSize && !!sourceDims && upscaleFactor > 1.01;
+
+  return {
+    outputMode: target.outputMode,
+    requestedWidth,
+    requestedHeight,
+    renderedWidth: Math.max(1, Math.round(renderedWidth)),
+    renderedHeight: Math.max(1, Math.round(renderedHeight)),
+    effectiveSourceWidth: sourceDims?.width,
+    effectiveSourceHeight: sourceDims?.height,
+    upscaleApplied,
+    upscaleFactor: Number(upscaleFactor.toFixed(4)),
+    exportQuality: quality,
+    warningCode:
+      input.sourceIsRaster !== false &&
+      isFixedSize &&
+      quality !== "thumbnail" &&
+      upscaleApplied
+        ? "FIXED_TARGET_UPSCALE"
+        : undefined,
+  };
+}
+
+export function updateEditorRenderQuality(
+  info: EditorRenderInfo,
+  exportQuality: EditorRenderQuality,
+): EditorRenderInfo {
+  return {
+    ...info,
+    exportQuality,
+    warningCode:
+      info.outputMode === "fixed-size" &&
+      exportQuality !== "thumbnail" &&
+      info.upscaleApplied
+        ? "FIXED_TARGET_UPSCALE"
+        : undefined,
+  };
+}
+
 export async function renderCompositionToFile(
   input: CompositionRenderInput,
   options: CompositionRenderOptions,
@@ -376,26 +535,6 @@ function downscaleCanvas(
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(src, 0, 0, dst.width, dst.height);
   return dst;
-}
-
-function resolveEReaderUpscaleFactor(args: {
-  mode: CompositionRenderMode;
-  target: CropTarget;
-  state: CoverCropState;
-  width: number;
-  height: number;
-}): number {
-  const { mode, target, state, width, height } = args;
-  if (mode !== "export") return 1;
-  if (!state.eReaderOptimizationEnabled) return 1;
-  if ((target.output ?? "target") !== "source") return 1;
-
-  const shortSide = Math.min(width, height);
-  if (!Number.isFinite(shortSide) || shortSide <= 0) return 1;
-  if (shortSide >= EREADER_UPSCALE_MIN_SHORT_SIDE) return 1;
-
-  const factor = EREADER_UPSCALE_MIN_SHORT_SIDE / shortSide;
-  return Math.max(1, Math.min(EREADER_UPSCALE_MAX_FACTOR, factor));
 }
 
 async function drawBackground(

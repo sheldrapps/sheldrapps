@@ -1,7 +1,9 @@
 import type { RemoveAdsUpgradeVariant } from './remove-ads-upgrade.types';
 
+type RemoveAdsUpgradeCopyVariant = Exclude<RemoveAdsUpgradeVariant, 'EMAS'>;
+
 type VariantDictionary = Record<
-  RemoveAdsUpgradeVariant,
+  RemoveAdsUpgradeCopyVariant,
   {
     INTRO?: string;
     TITLE: string;
@@ -23,6 +25,10 @@ type VariantDictionary = Record<
 >;
 
 export type RemoveAdsUpgradeLocaleDictionary = {
+  COMMON: {
+    REMOVE_ADS_PURCHASED: string;
+    REMOVE_ADS_RESTORED: string;
+  };
   REMOVE_ADS_UPGRADE: {
     TITLE: VariantDictionary;
     INTRO: string;
@@ -36,6 +42,64 @@ export type RemoveAdsUpgradeLocaleDictionary = {
     RESTORE_PROMPT: string;
     RESTORE_LABEL: string;
   };
+};
+
+const COMMON_BILLING_TRANSLATIONS: Record<
+  string,
+  RemoveAdsUpgradeLocaleDictionary['COMMON']
+> = {
+  'en-US': {
+    REMOVE_ADS_PURCHASED: 'Purchase completed.',
+    REMOVE_ADS_RESTORED: 'Purchase restored.',
+  },
+  'es-MX': {
+    REMOVE_ADS_PURCHASED: 'Compra completada.',
+    REMOVE_ADS_RESTORED: 'Compra restaurada.',
+  },
+  'de-DE': {
+    REMOVE_ADS_PURCHASED: 'Kauf abgeschlossen.',
+    REMOVE_ADS_RESTORED: 'Kauf wiederhergestellt.',
+  },
+  'fr-FR': {
+    REMOVE_ADS_PURCHASED: 'Achat terminé.',
+    REMOVE_ADS_RESTORED: 'Achat restauré.',
+  },
+  'it-IT': {
+    REMOVE_ADS_PURCHASED: 'Acquisto completato.',
+    REMOVE_ADS_RESTORED: 'Acquisto ripristinato.',
+  },
+  'pt-BR': {
+    REMOVE_ADS_PURCHASED: 'Compra concluída.',
+    REMOVE_ADS_RESTORED: 'Compra restaurada.',
+  },
+  'ar-SA': {
+    REMOVE_ADS_PURCHASED: 'اكتمل الشراء.',
+    REMOVE_ADS_RESTORED: 'تمت استعادة الشراء.',
+  },
+  'hi-IN': {
+    REMOVE_ADS_PURCHASED: 'खरीद पूरी हो गई।',
+    REMOVE_ADS_RESTORED: 'खरीद बहाल हो गई।',
+  },
+  'ja-JP': {
+    REMOVE_ADS_PURCHASED: '購入が完了しました。',
+    REMOVE_ADS_RESTORED: '購入を復元しました。',
+  },
+  'ko-KR': {
+    REMOVE_ADS_PURCHASED: '구매가 완료되었습니다.',
+    REMOVE_ADS_RESTORED: '구매가 복원되었습니다.',
+  },
+  'ru-RU': {
+    REMOVE_ADS_PURCHASED: 'Покупка завершена.',
+    REMOVE_ADS_RESTORED: 'Покупка восстановлена.',
+  },
+  'zh-CN': {
+    REMOVE_ADS_PURCHASED: '购买已完成。',
+    REMOVE_ADS_RESTORED: '已恢复购买。',
+  },
+  'zh-TW': {
+    REMOVE_ADS_PURCHASED: '購買已完成。',
+    REMOVE_ADS_RESTORED: '已還原購買。',
+  },
 };
 
 type RemoveAdsUpgradeText = RemoveAdsUpgradeLocaleDictionary['REMOVE_ADS_UPGRADE'];
@@ -72,8 +136,19 @@ function buildLocale(
   overrides: DeepPartial<RemoveAdsUpgradeText>,
 ): RemoveAdsUpgradeLocaleDictionary {
   return {
+    COMMON: COMMON_BILLING_TRANSLATIONS['en-US'],
     REMOVE_ADS_UPGRADE: mergeDeep(EN_BASE.REMOVE_ADS_UPGRADE, overrides),
   };
+}
+
+function withCommonTranslations(
+  locale: RemoveAdsUpgradeLocaleDictionary,
+  lang: string,
+): RemoveAdsUpgradeLocaleDictionary {
+  return mergeDeep(locale, {
+    COMMON:
+      COMMON_BILLING_TRANSLATIONS[lang] ?? COMMON_BILLING_TRANSLATIONS['en-US'],
+  });
 }
 
 type PrimaryBenefitCopy = {
@@ -126,7 +201,7 @@ function applyPrimaryBenefitCopy(
 
 function applyVariantCopy(
   locale: RemoveAdsUpgradeLocaleDictionary,
-  variant: RemoveAdsUpgradeVariant,
+  variant: RemoveAdsUpgradeCopyVariant,
   copy: VariantUpgradeCopy,
 ): RemoveAdsUpgradeLocaleDictionary {
   return mergeDeep(locale, {
@@ -722,6 +797,7 @@ const EF_COPY_BY_LANG: Record<string, VariantUpgradeCopy> = {
 };
 
 const EN_BASE: RemoveAdsUpgradeLocaleDictionary = {
+  COMMON: COMMON_BILLING_TRANSLATIONS['en-US'],
   REMOVE_ADS_UPGRADE: {
     TITLE: {
       PCM: {
@@ -807,6 +883,7 @@ const EN_BASE: RemoveAdsUpgradeLocaleDictionary = {
 };
 
 const ES_BASE: RemoveAdsUpgradeLocaleDictionary = {
+  COMMON: COMMON_BILLING_TRANSLATIONS['es-MX'],
   REMOVE_ADS_UPGRADE: {
     TITLE: {
       PCM: {
@@ -1808,17 +1885,17 @@ export const REMOVE_ADS_UPGRADE_KIT_TRANSLATIONS: Record<
   string,
   RemoveAdsUpgradeLocaleDictionary
 > = {
-  'en-US': applyLocaleCopies(EN_BASE, 'en-US'),
-  'es-MX': applyLocaleCopies(ES_BASE, 'es-MX'),
-  'de-DE': applyLocaleCopies(DE_BASE, 'de-DE'),
-  'fr-FR': applyLocaleCopies(FR_BASE, 'fr-FR'),
-  'it-IT': applyLocaleCopies(IT_BASE, 'it-IT'),
-  'pt-BR': applyLocaleCopies(PT_BASE, 'pt-BR'),
-  'ar-SA': applyLocaleCopies(AR_BASE, 'ar-SA'),
-  'hi-IN': applyLocaleCopies(HI_BASE, 'hi-IN'),
-  'ja-JP': applyLocaleCopies(JA_BASE, 'ja-JP'),
-  'ko-KR': applyLocaleCopies(KO_BASE, 'ko-KR'),
-  'ru-RU': applyLocaleCopies(RU_BASE, 'ru-RU'),
-  'zh-CN': applyLocaleCopies(ZH_CN_BASE, 'zh-CN'),
-  'zh-TW': applyLocaleCopies(ZH_TW_BASE, 'zh-TW'),
+  'en-US': applyLocaleCopies(withCommonTranslations(EN_BASE, 'en-US'), 'en-US'),
+  'es-MX': applyLocaleCopies(withCommonTranslations(ES_BASE, 'es-MX'), 'es-MX'),
+  'de-DE': applyLocaleCopies(withCommonTranslations(DE_BASE, 'de-DE'), 'de-DE'),
+  'fr-FR': applyLocaleCopies(withCommonTranslations(FR_BASE, 'fr-FR'), 'fr-FR'),
+  'it-IT': applyLocaleCopies(withCommonTranslations(IT_BASE, 'it-IT'), 'it-IT'),
+  'pt-BR': applyLocaleCopies(withCommonTranslations(PT_BASE, 'pt-BR'), 'pt-BR'),
+  'ar-SA': applyLocaleCopies(withCommonTranslations(AR_BASE, 'ar-SA'), 'ar-SA'),
+  'hi-IN': applyLocaleCopies(withCommonTranslations(HI_BASE, 'hi-IN'), 'hi-IN'),
+  'ja-JP': applyLocaleCopies(withCommonTranslations(JA_BASE, 'ja-JP'), 'ja-JP'),
+  'ko-KR': applyLocaleCopies(withCommonTranslations(KO_BASE, 'ko-KR'), 'ko-KR'),
+  'ru-RU': applyLocaleCopies(withCommonTranslations(RU_BASE, 'ru-RU'), 'ru-RU'),
+  'zh-CN': applyLocaleCopies(withCommonTranslations(ZH_CN_BASE, 'zh-CN'), 'zh-CN'),
+  'zh-TW': applyLocaleCopies(withCommonTranslations(ZH_TW_BASE, 'zh-TW'), 'zh-TW'),
 };

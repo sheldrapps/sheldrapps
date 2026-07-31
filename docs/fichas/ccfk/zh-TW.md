@@ -1,4 +1,4 @@
-﻿# 建立Kindle封面 - zh-TW Play Store Listing
+# 建立Kindle封面 - zh-TW Play Store Listing
 
 ## Purpose
 Localized Play Store listing for zh-TW, regenerated from the updated strategy matrix and conversion audit.

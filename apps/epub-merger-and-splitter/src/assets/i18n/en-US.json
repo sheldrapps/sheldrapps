@@ -29,7 +29,8 @@
     "EDIT_PROJECT_OVERWRITE": "Overwrite",
     "EDIT_PROJECT_OVERWRITE_DESC": "Save changes on top of the existing file.",
     "EDIT_PROJECT_COPY": "Work on a copy",
-    "EDIT_PROJECT_COPY_DESC": "Keep the original file and edit a new copy."
+    "EDIT_PROJECT_COPY_DESC": "Keep the original file and edit a new copy.",
+    "UPGRADE_TO_PRO": "Upgrade to Pro"
   },
   "MY_EPUBS": {
     "TITLE": "My EPUBs",
@@ -79,7 +80,15 @@
     "SETTINGS": "Settings"
   },
   "HOME": {
-    "STEPPER": { "MERGE_SPLIT": "Join / Split", "SORT": "Sort", "TOC": "TOC", "COVER": "Cover", "ADJUST": "Adjust", "JOIN": "Join" },
+    "STEPPER": {
+      "MERGE_SPLIT": "Join / Split",
+      "SORT": "Sort",
+      "TOC": "TOC",
+      "COVER": "Cover",
+      "ADJUST": "Adjust",
+      "JOIN": "Join",
+      "CONFIRM": "Confirm"
+    },
     "WHAT_DO_YOU_WANT_TO_DO": "What do you want to do?",
     "MERGE": "Merge",
     "SPLIT": "Split",
@@ -103,7 +112,122 @@
     "COVER_SELECTOR_TITLE": "Where do you want to create the cover from?",
     "BEST_CANDIDATES_TITLE": "Suggestions from your EPUBs",
     "ADJUST_COVER": "Adjust cover",
-    "PREVIEW_TITLE": "Preview"
+    "PREVIEW_TITLE": "Preview",
+    "SPLIT_STEP": {
+      "TITLE": "Split",
+      "SUMMARY": "{{count}} EPUBs ready.",
+      "OUTPUTS_TITLE": "Files to create",
+      "BACK_TO_CONFIRM": "← Back to confirm"
+    },
+    "SPLIT_COVER": {
+      "ECC_TITLE": "EPUB Cover Changer",
+      "ECC_DESCRIPTION": "All your EPUBs will have the same cover. To customize them individually, use our app.",
+      "OPEN_ECC": "Try the app"
+    },
+    "SPLIT_HOW_TO": "How to",
+    "SPLIT_HOW_TO_TITLE": "How do you want to split this EPUB?",
+    "SPLIT_OPTIONS": {
+      "BY_CHAPTERS_OR_SECTIONS": {
+        "TITLE": "By chapters or sections",
+        "SUBLINE": "Use the book's table of contents."
+      },
+      "MANUAL_SPLIT_POINTS": {
+        "TITLE": "Choose split points",
+        "SUBLINE": "Group chapters manually."
+      },
+      "EQUAL_PARTS": {
+        "TITLE": "Equal parts",
+        "SUBLINE": "Choose how many EPUBs to create."
+      },
+      "MAXIMUM_FILE_SIZE": {
+        "TITLE": "By maximum size",
+        "SUBLINE": "Create files that stay approximately under a size."
+      }
+    },
+    "SPLIT_ANALYSIS_ERROR": "The EPUB table of contents could not be analyzed.",
+    "SPLIT_EXPORT_NOT_AVAILABLE": "The configuration is ready, but split EPUB export is not available yet.",
+    "OPERATION": {
+      "OUTPUTS_TITLE": "Created EPUBs",
+      "MERGE_SUCCESS_TITLE": "EPUB merged successfully",
+      "MERGE_SUCCESS_BODY": "A new copy with the selected EPUB content was created.",
+      "SPLIT_SUCCESS_TITLE": "EPUB split successfully",
+      "SPLIT_SUCCESS_BODY": "{{count}} new EPUBs were created.",
+      "MERGE_FAILURE_TITLE": "Could not merge the EPUBs",
+      "MERGE_FAILURE_BODY": "The final EPUB could not be created. Your original files were not changed.",
+      "SPLIT_FAILURE_TITLE": "Could not split the EPUB",
+      "SPLIT_FAILURE_BODY": "All EPUBs could not be created. The original file was not changed and no partial results were saved.",
+      "PROGRESS": {
+        "PREPARING": "Preparing EPUB",
+        "ANALYZING": "Analyzing EPUB",
+        "WRITING": "Creating EPUBs",
+        "VALIDATING": "Validating EPUBs",
+        "COMPLETED": "Completed",
+        "COUNT": "{{current}} of {{total}}"
+      }
+    },
+    "SPLIT_CONFIRM": {
+      "BY_CHAPTERS_TITLE": "How do you want to create the EPUBs?",
+      "MANUAL_TITLE": "Where should a new EPUB begin?",
+      "EQUAL_TITLE": "How many parts do you want to create?",
+      "MAXIMUM_SIZE_TITLE": "What maximum size should each EPUB have?",
+      "FILE_SUMMARY": "{{name}} · {{count}} chapters · {{size}}",
+      "ANALYZING": "Analyzing reading order and table of contents…",
+      "BY_CHAPTER": "By chapters",
+      "BY_CHAPTER_SUBLINE": "Create one independent EPUB per chapter.",
+      "BY_SECTION": "By sections",
+      "BY_SECTION_SUBLINE": "Group chapters according to the main sections in the table of contents.",
+      "BOOK_START": "Start of book",
+      "BOOK_START_SUBLINE": "EPUB 1 starts here.",
+      "BEFORE_CHAPTER": "Before {{title}}",
+      "BEFORE_CHAPTER_SUBLINE": "Create a split here.",
+      "EQUAL_HELP": "Chapters will be distributed as evenly as possible.",
+      "PART_COUNT": "{{count}} parts",
+      "PART_COUNT_SUBLINE": "Approximately {{count}} chapters per EPUB.",
+      "CUSTOM_PART_COUNT": "Custom",
+      "CUSTOM_PART_COUNT_SUBLINE": "Choose another number of parts.",
+      "INVALID_PART_COUNT": "Enter a whole number between 2 and {{max}}.",
+      "MAXIMUM_SIZE_HELP": "The final size may vary because of shared book resources.",
+      "MAXIMUM_SIZE_OPTION": "Up to {{size}} MB",
+      "MAXIMUM_SIZE_OPTION_SUBLINE": "Approximately {{count}} EPUBs will be created.",
+      "CUSTOM_SIZE": "Custom size",
+      "CUSTOM_SIZE_SUBLINE": "Enter another approximate limit.",
+      "INVALID_MAXIMUM_SIZE": "Enter a positive whole number.",
+      "ESTIMATED_RESULT": "{{count}} EPUBs will be created",
+      "OUTPUT_NUMBER": "EPUB {{number}}",
+      "MORE_OUTPUTS": "View all {{count}} EPUBs",
+      "SHOW_FEWER_OUTPUTS": "Show fewer",
+      "NEEDS_TWO_OUTPUTS": "Choose a configuration that produces at least two EPUBs.",
+      "BACK_TO_HOW_TO": "← How to split",
+      "SPLIT_EPUB": "Split EPUB →",
+      "TITLE": "Confirm how to split it",
+      "SAFE_SPLIT_HINT": "The first version splits only between reading-order documents.",
+      "TREE_LABEL": "Detected table of contents",
+      "VARIANT_LABEL": "Split variant",
+      "ONE_PER_CHAPTER": "One EPUB per chapter",
+      "ONE_PER_SECTION": "One EPUB per main section",
+      "MANUAL_HINT": "Each split starts a new EPUB.",
+      "SPLIT_HERE": "+ Split here",
+      "DIVIDED": "✓ Split",
+      "EQUAL_HINT": "Parts are balanced approximately by content and split only at safe boundaries.",
+      "EQUAL_MODE_LABEL": "Equal-parts mode",
+      "RESULT_COUNT": "Number of resulting EPUBs",
+      "PARTS_UNIT": "parts",
+      "MEGABYTES_UNIT": "MB",
+      "CHAPTERS_PER_FILE": "Chapters per EPUB",
+      "SIZE_HINT": "Group chapters until they approach the selected limit.",
+      "SIZE_LABEL": "Maximum size",
+      "SIZE_10": "10 MB",
+      "SIZE_25": "25 MB",
+      "SIZE_50": "50 MB",
+      "SIZE_CUSTOM": "Custom size",
+      "APPROXIMATE_SIZE": "The size is approximate because images, fonts, and shared styles may be copied into several results.",
+      "EXAMPLE_PART_ONE": "Part I",
+      "EXAMPLE_CHAPTER_ONE": "Chapter 1",
+      "EXAMPLE_CHAPTER_TWO": "Chapter 2",
+      "EXAMPLE_PART_TWO": "Part II",
+      "EXAMPLE_CHAPTER_THREE": "Chapter 3",
+      "EXAMPLE_CHAPTER_FOUR": "Chapter 4"
+    }
   },
   "TOC_OPTIONS": {
     "TITLE": "What should happen to the table of contents?",

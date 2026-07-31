@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Re-export and type definitions for language service.
  * Actual implementation comes from @sheldrapps/i18n-kit.
  */

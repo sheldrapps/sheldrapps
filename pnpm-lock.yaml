@@ -1582,8 +1582,8 @@ importers:
         specifier: ^22.0.7
         version: 22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1)
       '@capacitor/core':
-        specifier: ^8.0.0
-        version: 8.0.0
+        specifier: 8.4.1
+        version: 8.4.1
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
@@ -1595,11 +1595,11 @@ importers:
         version: 2.8.1
     optionalDependencies:
       '@capacitor/filesystem':
-        specifier: ^8.0.0
-        version: 8.1.0(@capacitor/core@8.0.0)
+        specifier: 8.1.2
+        version: 8.1.2(@capacitor/core@8.4.1)
       '@capacitor/share':
-        specifier: ^8.0.0
-        version: 8.0.0(@capacitor/core@8.0.0)
+        specifier: ^8.0.1
+        version: 8.0.1(@capacitor/core@8.4.1)
 
   packages/i18n-kit:
     dependencies:

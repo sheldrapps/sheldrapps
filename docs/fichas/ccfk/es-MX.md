@@ -1,4 +1,4 @@
-﻿# Crear Portadas para Kindle - es-MX Play Store Listing
+# Crear Portadas para Kindle - es-MX Play Store Listing
 
 ## Purpose
 Localized Play Store listing for es-MX, regenerated from the updated strategy matrix and conversion audit.

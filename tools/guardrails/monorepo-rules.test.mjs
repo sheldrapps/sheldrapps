@@ -190,6 +190,18 @@ function isAllowlistedTranslation(value, path) {
   );
 }
 
+function isIntentionalSharedTranslation(value, path) {
+  if (/(?:^|\.)PARTS_UNIT$/u.test(path)) {
+    return false;
+  }
+
+  return (
+    (/(?:^|\.)OUTPUT_NUMBER$/u.test(path) && value === "EPUB {{number}}") ||
+    (/(?:^|\.)MEGABYTES_UNIT$/u.test(path) && value === "MB") ||
+    (/(?:^|\.)SIZE_(?:10|25|50)$/u.test(path) && /^\d+ MB$/u.test(value))
+  );
+}
+
 function compareLocalizedMaps(file, baseLocale, localizedLocale, baseValue, localizedValue) {
   const baseEntries = flattenLeafStrings(baseValue);
   const localizedEntries = flattenLeafStrings(localizedValue);
@@ -220,7 +232,8 @@ function compareLocalizedMaps(file, baseLocale, localizedLocale, baseValue, loca
     if (
       typeof localizedString === "string" &&
       localizedString === entry.value &&
-      !isAllowlistedTranslation(localizedString, entry.path)
+      !isAllowlistedTranslation(localizedString, entry.path) &&
+      !isIntentionalSharedTranslation(localizedString, entry.path)
     ) {
       untranslated.push(`${entry.path}: ${localizedString}`);
     }
@@ -369,12 +382,16 @@ test("guardrail note: kits-first duplicate UI scan is not automated yet", () => 
   );
 });
 
-test.skip("guardrail: locale files have no mojibake and preserve locale diacritics", () => {
+test("guardrail: locale files have no mojibake and preserve locale diacritics", () => {
   const localeFiles = globSync("apps/**/src/assets/i18n/*.json", {
     cwd: repoRoot,
   })
     .map((p) => p.split(sep).join("/"))
-    .filter((p) => !p.includes("/editor/"))
+    .filter(
+      (p) =>
+        !p.includes("/editor/") &&
+        !p.includes("apps/__tmp_text_integrity__/")
+    )
     .sort();
 
   const localeSignature = {
@@ -1074,6 +1091,31 @@ test("regression: ECC and CCFK launcher aliases default to system locale on fres
   }
 });
 
+test("regression: native rewrite hosts expose app-private files to FileProvider", () => {
+  const rewriteBuildFiles = globSync("apps/*/android/app/build.gradle").filter((path) => {
+    const source = readFileSync(path, "utf8");
+    return source.includes("implementation project(':epub-rewrite')") ||
+      source.includes("implementation project(':pdf-rewrite')");
+  });
+
+  assert.ok(rewriteBuildFiles.length > 0, "Expected at least one native rewrite host");
+
+  for (const buildFile of rewriteBuildFiles) {
+    const appRoot = buildFile.replace(/[/\\]android[/\\]app[/\\]build\.gradle$/, "");
+    const manifestPath = `${appRoot}/android/app/src/main/AndroidManifest.xml`;
+    const pathsPath = `${appRoot}/android/app/src/main/res/xml/file_paths.xml`;
+    const manifest = readFileSync(manifestPath, "utf8");
+    const paths = readFileSync(pathsPath, "utf8");
+
+    assert.match(manifest, /android\.support\.FILE_PROVIDER_PATHS/,
+      `${appRoot} must declare FileProvider paths`);
+    assert.match(paths, /<cache-path\b[^>]*\bpath=["']\.["']/,
+      `${appRoot} must expose cache files to FileProvider`);
+    assert.match(paths, /<files-path\b[^>]*\bpath=["']\.["']/,
+      `${appRoot} must expose app-private files to FileProvider`);
+  }
+});
+
 test("regression: launcher locale native mapping defaults to system in ECC and CCFK MainActivity", () => {
   const mainActivities = [
     "apps/epub-cover-changer/android/app/src/main/java/com/sheldrapps/epubcoverchanger/MainActivity.java",
@@ -1109,6 +1151,66 @@ test("regression: language service must not sync launcher alias during startup/i
   assert.ok(
     !/from\s+['"]\.\/launcher-alias-sync['"]/.test(source),
     "LanguageService must not import launcher alias sync helper",
+  );
+});
+
+test("regression: EMAS syncs the native launcher alias after resolving its initial language", () => {
+  const source = readFileSync(
+    "apps/epub-merger-and-splitter/src/app/providers/epub-merger-and-splitter-bootstrap.initializer.ts",
+    "utf8",
+  );
+  assert.match(
+    source,
+    /await\s+lang\.set\(language\);\s*void\s+syncLauncherAlias\(language\);/s,
+    "EMAS must synchronize its native launcher alias after applying the detected or persisted language",
+  );
+});
+
+test("regression: EMAS system launcher label is localized before web startup", () => {
+  const expectedResources = {
+    "values-de": "EPUB zusammenfügen und teilen",
+    "values-es": "Unir y dividir EPUB",
+    "values-fr": "Fusionner et diviser EPUB",
+    "values-it": "Unisci e dividi EPUB",
+    "values-pt-rBR": "Juntar e dividir EPUB",
+    "values-zh-rTW": "EPUB合併與拆分",
+    "values-hi": "EPUB मर्ज और स्प्लिट",
+    "values-ar": "دمج وتقسيم EPUB",
+    "values-ja": "EPUB結合・分割",
+    "values-ko": "EPUB 병합 및 분할",
+    "values-zh-rCN": "EPUB合并与拆分",
+    "values-ru": "Объединить и разделить EPUB",
+  };
+
+  for (const [resourceDirectory, appName] of Object.entries(expectedResources)) {
+    const source = readFileSync(
+      `apps/epub-merger-and-splitter/android/app/src/main/res/${resourceDirectory}/strings.xml`,
+      "utf8",
+    );
+    assert.match(
+      source,
+      new RegExp(`<string\\s+name=["']app_name["']>${appName}</string>`),
+      `${resourceDirectory} must localize the system launcher app name`,
+    );
+  }
+});
+
+test("regression: EMAS toasts use the shared presentation contract", () => {
+  const tabsSource = readFileSync("apps/epub-merger-and-splitter/src/app/tabs/tabs.page.ts", "utf8");
+  const myEpubsSource = readFileSync(
+    "apps/epub-merger-and-splitter/src/app/pages/my-epubs/my-epubs.page.ts",
+    "utf8",
+  );
+
+  assert.match(
+    tabsSource,
+    /position:\s*['"]middle['"][\s\S]*animated:\s*true[\s\S]*translucent:\s*true[\s\S]*cssClass:\s*\[['"]cc-toast['"],\s*['"]cc-toast--info['"]\]/,
+    "EMAS exit toast must use the shared middle, animated, translucent info presentation",
+  );
+  assert.match(
+    myEpubsSource,
+    /position:\s*['"]middle['"][\s\S]*animated:\s*true[\s\S]*translucent:\s*true[\s\S]*cssClass:\s*\[['"]cc-toast['"],\s*['"]cc-toast--success['"]\]/,
+    "EMAS library toast must use the shared middle, animated, translucent success presentation",
   );
 });
 

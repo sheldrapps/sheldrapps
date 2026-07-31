@@ -1,14 +1,14 @@
 {
   "APP": {
-    "TITLE": "PDFè¡¨ç´™ãƒ¡ãƒ¼ã‚«ãƒ¼"
+    "TITLE": "PDF表紙メーカー"
   },
   "COMMON": {
     "BACK_AGAIN_TO_EXIT": "もう一度戻るで終了",
-    "CANCEL": "ã‚­ãƒ£ãƒ³ã‚»ãƒ«",
+    "CANCEL": "キャンセル",
     "CLOSE": "閉じる",
     "DELETE": "削除",
-    "DONE": "å®Œäº†",
-    "ERROR": "ã‚¨ãƒ©ãƒ¼",
+    "DONE": "完了",
+    "ERROR": "エラー",
     "LOADING": "読み込み中⬦",
     "BILLING_UNAVAILABLE": "現在、購入できません。",
     "PURCHASE_ERROR": "購入を完了できませんでした。もう一度お試しください。",
@@ -17,17 +17,18 @@
     "REMOVE_ADS_PURCHASED": "広告を永久に削除しました。",
     "REMOVE_ADS_RESTORE": "購入を復元",
     "REMOVE_ADS_RESTORED": "購入を正常に復元しました。",
-    "REMOVE_ADS_TITLE": "åºƒå‘Šã‚’å‰Šé™¤",
-    "REMOVE_ADS_CTA_TITLE": "åºƒå‘Šã‚’å‰Šé™¤",
+    "REMOVE_ADS_TITLE": "広告を削除",
+   "REMOVE_ADS_CTA_TITLE": "広告を削除",
+    "UPGRADE_TO_PRO": "Proにアップグレード",
     "REMOVE_ADS_CTA_SUBTITLE": "一回払い • 永久有効",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "一回払い • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "価格: {{price}} • サブスクなし",
     "RESTORE_ERROR": "購入を復元できませんでした。もう一度お試しください。",
     "PRO_ONLY": "PRO",
-    "WATCH_AD_SUBTITLE": "åºƒå‘Šã‚’è¦‹ã‚‹",
-    "SHARE": "å…±æœ‰",
+    "WATCH_AD_SUBTITLE": "広告を見る",
+    "SHARE": "共有",
     "SHARE_KINDLE_HINT": "共有時に Kindle アプリを選択してデバイスに送信してください。",
-    "WARNING": "è­¦å‘Š",
+    "WARNING": "警告",
     "EDIT_PROJECT_TITLE": "このファイルをどう編集しますか？",
     "EDIT_PROJECT_MESSAGE": "現在のファイルを置き換えるか、コピーで作業するかを選んでください。",
     "EDIT_PROJECT_OVERWRITE": "上書き",
@@ -42,15 +43,15 @@
     "ARIA_CROP": "選択した画像を調整",
     "ARIA_SELECT_PDF": "PDFファイルを選択",
     "ARIA_SELECT_IMAGE": "表紙画像を選択",
-    "CROP_ACTION": "èª¿æ•´",
+    "CROP_ACTION": "調整",
     "COVER_CHANGED": "表紙を作成しました。保存または共有できます",
     "CHANGE_ACTION": "表紙を作成",
     "CHANGE_ACTION_REWARDED": "表紙を作成（広告を見る）",
     "GENERATING": "表紙を更新中…",
     "HINT_SAVE_SHARE_EXPLAIN": "表紙の作成は自動的に保存されません。",
-    "INFO": "æƒ…å ±",
+    "INFO": "情報",
     "INFO_ARIA": "表紙作成に関する情報",
-    "INFO_TITLE": "æƒ…å ±",
+    "INFO_TITLE": "情報",
     "INFO_FLOW_LABEL": "推奨される手順:",
     "INFO_STEP_1": "PDFを選択してください。",
     "INFO_STEP_1_1": "1.1. 元の表紙が事前に読み込まれます。",
@@ -65,7 +66,7 @@
     "IMAGE_WARN_INVALID_PDF_COVER": "無効な PDF カバーです。タップして新しい画像を選んでください。",
     "PDF_ERROR_CORRUPT": "PDF ファイルを読み取れませんでした。別のファイルをお試しください。",
     "PDF_ERROR_NO_COVER": "この PDF ファイルには置き換え可能なカバーが含まれていません。",
-    "NO_COVER_DETECTED_ADDED": "表紙が見つかりませんでした。このPDFに新しい表紙を追加しました。",
+    "RENAMED_OK": "PDF の名前を変更しました",
     "PDF_ERROR_REWRITE": "PDF ファイルを処理できませんでした。もう一度お試しください。",
     "PDF_ERROR_STORAGE": "ストレージ容量が不足しています。必要: {{requiredMB}} MB、空き: {{availableMB}} MB。",
     "PDF_ERROR_SIZE": "ファイルが大きすぎます。最大 {{maxSize}} MB。",
@@ -78,7 +79,7 @@
     "CHANGING_COVER": "表紙を作成中...",
     "GETTING_COVER": "表紙を取得中",
     "SAVING": "表紙を保存中…",
-    "SELECT_PDF_LABEL": "PDFãƒ•ã‚¡ã‚¤ãƒ«",
+    "SELECT_PDF_LABEL": "PDFファイル",
     "PDF_FILE_TITLE": "どのPDFを使いますか？",
     "PDF_VALIDATION_HINT": "PDFのみ · .pdf · 最大5 GB",
     "BEST_CANDIDATE_TITLE": "または...自分のPDFから選択してください。",
@@ -135,11 +136,11 @@
     "LOADING_PREVIEW": "プレビューを読み込み中...",
     "PLACEHOLDER": "PDF",
     "PREVIEW_UNAVAILABLE": "プレビューは利用できません。",
-    "TITLE": "ãƒžã‚¤PDF",
+    "TITLE": "マイPDF",
     "DITHERED_THUMBNAIL_NOTICE": "アーティファクト低減を使った表紙は、サムネイルでは見え方が異なる場合があります。より正確な表示はプレビューで確認してください。",
     "ACTIONS": {
       "DELETE": "削除",
-      "SHARE": "å…±æœ‰",
+      "SHARE": "共有",
       "OPEN": "開く",
       "EDIT_PROJECT": "編集"
     },
@@ -175,16 +176,16 @@
   },
   "HOME_TOUR": {
     "CONTROLS": {
-      "BACK": "æˆ»ã‚‹",
-      "FINISH": "å®Œäº†",
+      "BACK": "戻る",
+      "FINISH": "完了",
       "INTERACT_HINT": "ハイライトされた要素を操作して続けてください。",
       "NEXT": "次へ",
       "PROGRESS": "{{current}} / {{total}}",
-      "SKIP": "ã‚¹ã‚­ãƒƒãƒ—"
+      "SKIP": "スキップ"
     },
     "STEPS": {
       "PDF": {
-        "TITLE": "PDFãƒ•ã‚¡ã‚¤ãƒ«",
+        "TITLE": "PDFファイル",
         "DESCRIPTION": "更新したいPDFファイルを選択してください。"
       },
       "IMAGE": {
@@ -192,7 +193,7 @@
         "DESCRIPTION": "表紙に使用する画像を選択してください。"
       },
       "ADJUST": {
-        "TITLE": "èª¿æ•´",
+        "TITLE": "調整",
         "DESCRIPTION": "エディタで画像を調整し、完了をタップしてください。"
       },
       "CREATE": {
@@ -224,19 +225,18 @@
     "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
     "EREADER_OPTIMIZATION_HINT": "表紙をより良くするために自動調整を適用します",
     "EREADER_OPTIMIZATION_TOGGLE": "最適化",
-    "TITLE": "設定",
-    "VIEW_TOUR": "ãƒ„ã‚¢ãƒ¼ã‚’è¦‹ã‚‹"
+    "TITLE": "設定"
   },
   "TABS": {
-    "COVERS": "ãƒžã‚¤PDF",
+    "COVERS": "マイPDF",
     "CHANGE": "作成",
     "SETTINGS": "設定"
   },
   "ARR": {
     "TOOLS": {
       "RECOMMENDED": "おすすめ",
-      "INFO": "æƒ…å ±",
-      "APPS": "ã‚¢ãƒ—ãƒª",
+      "INFO": "情報",
+      "APPS": "アプリ",
       "GUIDE": "ガイド"
     }
   }

@@ -1,4 +1,4 @@
-﻿# Создать обложки для Kindle - ru-RU Play Store Listing
+# Создать обложки для Kindle - ru-RU Play Store Listing
 
 ## Purpose
 Localized Play Store listing for ru-RU, regenerated from the updated strategy matrix and conversion audit.

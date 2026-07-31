@@ -159,6 +159,23 @@ export interface ExportFixedResult {
   availableBytes?: number;
 }
 
+export interface PublicDocumentEntry {
+  name: string;
+  uri: string;
+  size: number;
+}
+
+export interface PublicDocumentResult {
+  success: boolean;
+  uri?: string;
+  filename?: string;
+  size?: number;
+  copiedBytes?: number;
+  error?: string;
+  message?: string;
+  stage?: string;
+}
+
 export interface RewriteProgressEvent {
   percent: number;
 }
@@ -231,6 +248,42 @@ export interface EpubMergeResult {
 }
 
 export interface EpubRewritePlugin extends Plugin {
+  ensurePublicExportFolder(options: { folderName: string }): Promise<{
+    success: boolean;
+    uri?: string;
+    error?: string;
+    message?: string;
+    stage?: string;
+  }>;
+  publishPublicDocument(options: {
+    folderName: string;
+    sourcePath: string;
+    outputName: string;
+    mimeType: string;
+  }): Promise<PublicDocumentResult>;
+  listPublicDocuments(options: {
+    folderName: string;
+    extension?: string;
+  }): Promise<{
+    success: boolean;
+    files?: PublicDocumentEntry[];
+    error?: string;
+    message?: string;
+    stage?: string;
+  }>;
+  getPublicDocument(options: {
+    folderName: string;
+    filename: string;
+  }): Promise<PublicDocumentResult>;
+  deletePublicDocument(options: {
+    folderName: string;
+    filename: string;
+  }): Promise<PublicDocumentResult>;
+  renamePublicDocument(options: {
+    folderName: string;
+    filename: string;
+    outputName: string;
+  }): Promise<PublicDocumentResult>;
   openExternalFile(options: {
     inputPath: string;
     mimeType?: string;
@@ -240,6 +293,12 @@ export interface EpubRewritePlugin extends Plugin {
     error?: string;
     message?: string;
     stage?: string;
+  }>;
+  scanFile(options: { path: string; mimeType?: string }): Promise<{
+    success: boolean;
+    uri?: string;
+    error?: string;
+    message?: string;
   }>;
   prepare(options: PrepareEpubOptions): Promise<PrepareEpubResult>;
   pickAndPrepareEpub(

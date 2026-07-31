@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { provideRatingKit } from '@sheldrapps/rating-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { ThemeService, type Theme } from '@sheldrapps/ui-theme';
 import { SettingsPage } from './settings.page';
@@ -57,6 +58,19 @@ describe('SettingsPage', () => {
           useValue: languageService,
         },
         { provide: ThemeService, useValue: themeService },
+        ...provideRatingKit({
+          appKey: 'settings-test',
+          appName: 'Settings test',
+          packageName: 'com.example.settings-test',
+          ratingStorageAdapter: {
+            getState: async () => ({
+              appLaunchCount: 0,
+              successCount: 0,
+              promptCount: 0,
+            }),
+            setState: async () => undefined,
+          },
+        }),
       ],
     }).compileComponents();
 

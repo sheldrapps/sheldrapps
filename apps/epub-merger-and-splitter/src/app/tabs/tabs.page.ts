@@ -94,6 +94,9 @@ export class TabsPage {
       message: this.translate.instant('COMMON.BACK_AGAIN_TO_EXIT'),
       duration: this.exitWindowMs,
       position: 'middle',
+      animated: true,
+      translucent: true,
+      cssClass: ['cc-toast', 'cc-toast--info'],
     });
 
     this.exitToast = toast;

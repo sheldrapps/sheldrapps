@@ -16,20 +16,21 @@
     "DONE": "تم",
     "ERROR": "خطأ",
     "LOADING": "جارٍ التحميل…",
-    "BILLING_UNAVAILABLE": "Ø§Ù„Ù…Ø´ØªØ±ÙŠØ§Øª ØºÙŠØ± Ù…ØªØ§Ø­Ø© Ø­Ø§Ù„ÙŠØ§Ù‹.",
+    "BILLING_UNAVAILABLE": "المشتريات غير متاحة حالياً.",
     "PURCHASE_ERROR": "تعذّر إتمام الشراء. يرجى المحاولة مجدداً.",
-    "RESTORE_ERROR": "ØªØ¹Ø°Ù‘Ø±Øª Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø´ØªØ±ÙŠØ§Øª. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø¬Ø¯Ø¯Ø§Ù‹.",
+    "RESTORE_ERROR": "تعذّرت استعادة المشتريات. يرجى المحاولة مجدداً.",
     "PRO_ONLY": "برو",
     "WATCH_AD_SUBTITLE": "مشاهدة الإعلان",
     "SHARE": "مشاركة",
-    "SHARE_KINDLE_HINT": "Ø¹Ù†Ø¯ Ø§Ù„Ù…Ø´Ø§Ø±ÙƒØ©ØŒ Ø§Ø®ØªØ± ØªØ·Ø¨ÙŠÙ‚ Kindle Ù„Ø¥Ø±Ø³Ø§Ù„Ù‡ Ø¥Ù„Ù‰ Ø¬Ù‡Ø§Ø²Ùƒ.",
+    "SHARE_KINDLE_HINT": "عند المشاركة، اختر تطبيق Kindle لإرساله إلى جهازك.",
     "WARNING": "تحذير",
     "EDIT_PROJECT_TITLE": "كيف تريد تعديل هذا الملف؟",
     "EDIT_PROJECT_MESSAGE": "اختر ما إذا كنت تريد استبدال الملف الحالي أو العمل على نسخة.",
     "EDIT_PROJECT_OVERWRITE": "استبدال",
     "EDIT_PROJECT_OVERWRITE_DESC": "احفظ التغييرات فوق الملف الموجود.",
     "EDIT_PROJECT_COPY": "العمل على نسخة",
-    "EDIT_PROJECT_COPY_DESC": "احتفظ بالملف الأصلي وعدّل نسخة جديدة."
+    "EDIT_PROJECT_COPY_DESC": "احتفظ بالملف الأصلي وعدّل نسخة جديدة.",
+    "UPGRADE_TO_PRO": "الترقية إلى Pro"
   },
   "MY_EPUBS": {
     "TITLE": "ملفاتي EPUB",
@@ -79,7 +80,15 @@
     "SETTINGS": "الإعدادات"
   },
   "HOME": {
-    "STEPPER": { "MERGE_SPLIT": "دمج / تقسيم", "SORT": "ترتيب", "TOC": "الفهرس", "COVER": "الغلاف", "ADJUST": "ضبط", "JOIN": "دمج" },
+    "STEPPER": {
+      "MERGE_SPLIT": "دمج / تقسيم",
+      "SORT": "ترتيب",
+      "TOC": "الفهرس",
+      "COVER": "الغلاف",
+      "ADJUST": "ضبط",
+      "JOIN": "دمج",
+      "CONFIRM": "تأكيد"
+    },
     "WHAT_DO_YOU_WANT_TO_DO": "ماذا تريد أن تفعل؟",
     "MERGE": "دمج",
     "SPLIT": "تقسيم",
@@ -103,7 +112,122 @@
     "COVER_SELECTOR_TITLE": "من ماذا تريد إنشاء الغلاف؟",
     "BEST_CANDIDATES_TITLE": "اقتراحات من ملفات EPUB الخاصة بك",
     "ADJUST_COVER": "ضبط الغلاف",
-    "PREVIEW_TITLE": "معاينة"
+    "PREVIEW_TITLE": "معاينة",
+    "OPERATION": {
+      "OUTPUTS_TITLE": "ملفات EPUB التي تم إنشاؤها",
+      "MERGE_SUCCESS_TITLE": "تم دمج EPUB بنجاح",
+      "MERGE_SUCCESS_BODY": "تم إنشاء نسخة جديدة بمحتوى EPUB المحدد.",
+      "SPLIT_SUCCESS_TITLE": "تم تقسيم EPUB بنجاح",
+      "SPLIT_SUCCESS_BODY": "تم إنشاء {{count}} ملفات EPUB جديدة.",
+      "MERGE_FAILURE_TITLE": "تعذر دمج ملفات EPUB",
+      "MERGE_FAILURE_BODY": "تعذر إنشاء EPUB النهائي. لم يتم تعديل ملفاتك الأصلية.",
+      "SPLIT_FAILURE_TITLE": "تعذر تقسيم EPUB",
+      "SPLIT_FAILURE_BODY": "تعذر إنشاء جميع ملفات EPUB. لم يتم تعديل الملف الأصلي ولم يتم حفظ نتائج جزئية.",
+      "PROGRESS": {
+        "PREPARING": "جارٍ تحضير EPUB",
+        "ANALYZING": "جارٍ تحليل EPUB",
+        "WRITING": "جارٍ إنشاء EPUB",
+        "VALIDATING": "جارٍ التحقق من EPUB",
+        "COMPLETED": "اكتمل",
+        "COUNT": "{{current}} من {{total}}"
+      }
+    },
+    "SPLIT_STEP": {
+      "TITLE": "تقسيم",
+      "SUMMARY": "{{count}} من ملفات EPUB جاهزة.",
+      "OUTPUTS_TITLE": "الملفات التي سيتم إنشاؤها",
+      "BACK_TO_CONFIRM": "← العودة إلى التأكيد"
+    },
+    "SPLIT_COVER": {
+      "ECC_TITLE": "تغيير غلاف EPUB",
+      "ECC_DESCRIPTION": "ستحصل كل ملفات EPUB على الغلاف نفسه. لتخصيصها بشكل فردي، استخدم تطبيقنا.",
+      "OPEN_ECC": "جرّب التطبيق"
+    },
+    "SPLIT_HOW_TO": "كيفية التقسيم",
+    "SPLIT_HOW_TO_TITLE": "كيف تريد تقسيم ملف EPUB هذا؟",
+    "SPLIT_OPTIONS": {
+      "BY_CHAPTERS_OR_SECTIONS": {
+        "TITLE": "حسب الفصول أو الأقسام",
+        "SUBLINE": "استخدم فهرس الكتاب."
+      },
+      "MANUAL_SPLIT_POINTS": {
+        "TITLE": "اختيار نقاط التقسيم",
+        "SUBLINE": "اجمع الفصول يدويًا."
+      },
+      "EQUAL_PARTS": {
+        "TITLE": "أجزاء متساوية",
+        "SUBLINE": "اختر عدد ملفات EPUB المراد إنشاؤها."
+      },
+      "MAXIMUM_FILE_SIZE": {
+        "TITLE": "حسب الحجم الأقصى",
+        "SUBLINE": "أنشئ ملفات ضمن حجم تقريبي."
+      }
+    },
+    "SPLIT_ANALYSIS_ERROR": "تعذر تحليل فهرس ملف EPUB.",
+    "SPLIT_EXPORT_NOT_AVAILABLE": "الإعداد جاهز، لكن تصدير ملفات EPUB المقسمة غير متاح بعد.",
+    "SPLIT_CONFIRM": {
+      "BY_CHAPTERS_TITLE": "كيف تريد تقسيم ملف EPUB هذا؟",
+      "MANUAL_TITLE": "اختيار نقاط التقسيم",
+      "EQUAL_TITLE": "أجزاء متساوية",
+      "MAXIMUM_SIZE_TITLE": "حسب الحجم الأقصى",
+      "FILE_SUMMARY": "{{name}} · {{count}} · {{size}}",
+      "ANALYZING": "تعذر تحليل فهرس ملف EPUB.",
+      "BY_CHAPTER": "حسب الفصول",
+      "BY_CHAPTER_SUBLINE": "استخدم فهرس الكتاب.",
+      "BY_SECTION": "حسب الأقسام",
+      "BY_SECTION_SUBLINE": "استخدم فهرس الكتاب.",
+      "BOOK_START": "بداية الكتاب",
+      "BOOK_START_SUBLINE": "بداية الكتاب",
+      "BEFORE_CHAPTER": "{{title}}",
+      "BEFORE_CHAPTER_SUBLINE": "+ تقسيم هنا",
+      "EQUAL_HELP": "اختر عدد ملفات EPUB المراد إنشاؤها.",
+      "PART_COUNT": "{{count}}",
+      "PART_COUNT_SUBLINE": "أجزاء",
+      "CUSTOM_PART_COUNT": "مخصص",
+      "CUSTOM_PART_COUNT_SUBLINE": "مخصص",
+      "INVALID_PART_COUNT": "مخصص",
+      "MAXIMUM_SIZE_HELP": "أنشئ ملفات ضمن حجم تقريبي.",
+      "MAXIMUM_SIZE_OPTION": "{{size}} MB",
+      "MAXIMUM_SIZE_OPTION_SUBLINE": "أنشئ ملفات ضمن حجم تقريبي.",
+      "CUSTOM_SIZE": "مخصص",
+      "CUSTOM_SIZE_SUBLINE": "مخصص",
+      "INVALID_MAXIMUM_SIZE": "مخصص",
+      "ESTIMATED_RESULT": "{{count}} EPUB",
+      "OUTPUT_NUMBER": "EPUB {{number}}",
+      "MORE_OUTPUTS": "عرض كل ملفات EPUB وعددها {{count}}",
+      "SHOW_FEWER_OUTPUTS": "عرض أقل",
+      "NEEDS_TWO_OUTPUTS": "اختر عدد ملفات EPUB المراد إنشاؤها.",
+      "BACK_TO_HOW_TO": "← كيفية التقسيم",
+      "SPLIT_EPUB": "تقسيم EPUB →",
+      "TITLE": "تأكيد طريقة التقسيم",
+      "SAFE_SPLIT_HINT": "استخدم فهرس الكتاب.",
+      "TREE_LABEL": "كيفية التقسيم",
+      "VARIANT_LABEL": "كيفية التقسيم",
+      "ONE_PER_CHAPTER": "حسب الفصول",
+      "ONE_PER_SECTION": "حسب الأقسام",
+      "MANUAL_HINT": "اجمع الفصول يدويًا.",
+      "SPLIT_HERE": "+ تقسيم هنا",
+      "DIVIDED": "✓ تم التقسيم",
+      "EQUAL_HINT": "اختر عدد ملفات EPUB المراد إنشاؤها.",
+      "EQUAL_MODE_LABEL": "أجزاء متساوية",
+      "RESULT_COUNT": "أجزاء متساوية",
+      "PARTS_UNIT": "أجزاء",
+      "MEGABYTES_UNIT": "MB",
+      "CHAPTERS_PER_FILE": "حسب الفصول أو الأقسام",
+      "SIZE_HINT": "أنشئ ملفات ضمن حجم تقريبي.",
+      "SIZE_LABEL": "الحجم الأقصى",
+      "SIZE_10": "10 MB",
+      "SIZE_25": "25 MB",
+      "SIZE_50": "50 MB",
+      "SIZE_CUSTOM": "مخصص",
+      "APPROXIMATE_SIZE": "أنشئ ملفات ضمن حجم تقريبي.",
+      "EXAMPLE_PART_ONE": "الجزء الأول",
+      "EXAMPLE_CHAPTER_ONE": "الفصل 1",
+      "EXAMPLE_CHAPTER_TWO": "الفصل 2",
+      "EXAMPLE_PART_TWO": "الجزء الثاني",
+      "EXAMPLE_CHAPTER_THREE": "الفصل 3",
+      "EXAMPLE_CHAPTER_FOUR": "الفصل 4"
+    }
   },
   "TOC_OPTIONS": {
     "TITLE": "ماذا تفعل بجدول المحتويات؟",

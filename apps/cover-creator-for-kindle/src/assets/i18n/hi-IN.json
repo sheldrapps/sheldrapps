@@ -20,7 +20,8 @@
     "REMOVE_ADS_RESTORE": "खरीदारी पुनः प्राप्त करें",
     "REMOVE_ADS_RESTORED": "खरीदारी सफलतापूर्वक पुनः प्राप्त की गई।",
     "REMOVE_ADS_TITLE": "विज्ञापन हटाएँ",
-    "REMOVE_ADS_CTA_TITLE": "विज्ञापन हटाएँ",
+   "REMOVE_ADS_CTA_TITLE": "विज्ञापन हटाएँ",
+    "UPGRADE_TO_PRO": "प्रो में अपग्रेड करें",
     "REMOVE_ADS_CTA_SUBTITLE": "एकमुश्त भुगतान • हमेशा के लिए",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "एकमुश्त भुगतान • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "मूल्य: {{price}} • कोई सदस्यता नहीं",
@@ -316,7 +317,6 @@
     "REQUISITES_HINT": "Kindle पर कवर सही तरह काम करने के लिए आवश्यक सेटिंग्स",
     "REQUISITES_SECTION": "आवश्यकताएँ",
     "TITLE": "सेटिंग्स",
-    "VIEW_TOUR": "टूर देखें",
     "HOW_TO_USE": "कैसे उपयोग करें?"
   },
   "TABS": {

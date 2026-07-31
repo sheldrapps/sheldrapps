@@ -4,6 +4,7 @@
       *ngIf="isStaticItem(item); else interactiveItem"
       class="app-language-option app-language-option--static"
       [class.app-language-option--selected]="isSelected(item)"
+      [class.app-language-option--expanded]="isExpandedItem(item)"
       role="listitem"
       [attr.aria-disabled]="true"
       [attr.aria-label]="item.ariaLabelKey ? (item.ariaLabelKey | translate) : itemAriaLabel(item)"
@@ -120,8 +121,10 @@
         lines="none"
         class="app-language-option"
         [class.app-language-option--selected]="isSelected(item)"
+        [class.app-language-option--expanded]="isExpandedItem(item)"
         [disabled]="item.disabled"
         [attr.aria-pressed]="isSelected(item) ? 'true' : 'false'"
+        [attr.aria-checked]="selectionMode === 'multiple' ? (isSelected(item) ? 'true' : 'false') : null"
         [attr.aria-label]="item.ariaLabelKey ? (item.ariaLabelKey | translate) : itemAriaLabel(item)"
         (click)="onSelect(item)"
       >
@@ -230,5 +233,13 @@
         </ng-template>
       </ion-item>
     </ng-template>
+
+    <div
+      *ngIf="isExpandedItem(item)"
+      class="app-language-option__expanded"
+      role="group"
+    >
+      <ng-container *ngTemplateOutlet="expandedContentTemplate"></ng-container>
+    </div>
   </ng-container>
 </div>

@@ -23,12 +23,19 @@ async function generatePrompts(app, locales) {
     }
 
     const source = fs.readFileSync(sourcePath, 'utf8');
+    const fallbackSource = app.id === 'emas' && locale === 'en-US'
+      ? fs.readFileSync(path.join(fichasDir, 'en-US.golden.md'), 'utf8')
+      : null;
     fs.mkdirSync(promptsRootDir, { recursive: true });
     const outputPath = path.join(promptsRootDir, `${locale}.md`);
     const prompts = [];
 
     for (const section of app.promptSections) {
-      const body = extractSection(source, section.heading);
+      const body = tryExtractSection(source, section.heading)
+        ?? (fallbackSource ? extractSection(fallbackSource, section.heading) : null);
+      if (body === null) {
+        throw new Error(`Section not found: ${section.heading}`);
+      }
       prompts.push(
         buildPrompt({
           app,
@@ -68,6 +75,12 @@ function buildPrompt({ app, locale, sourcePath, section, body }) {
   lines.push('Generate image.');
   lines.push('');
 
+  const guidance = buildPromptGuidance(app, locale, section);
+  if (guidance) {
+    lines.push(guidance);
+    lines.push('');
+  }
+
   if (!section.screenshot) {
     if (section.heading === 'Feature Graphic') {
       lines.push(
@@ -100,20 +113,70 @@ function buildPrompt({ app, locale, sourcePath, section, body }) {
 
 function extractSection(markdown, heading) {
   const lines = markdown.split(/\r?\n/);
-  const start = lines.findIndex((line) => line.trim() === `## ${heading}`);
+  const start = lines.findIndex((line) => {
+    const trimmed = line.trim();
+    return trimmed === `## ${heading}` || trimmed === `### ${heading}`;
+  });
   if (start === -1) {
     throw new Error(`Section not found: ${heading}`);
   }
 
   let end = lines.length;
+  const headingLevel = lines[start].trim().startsWith('### ') ? 3 : 2;
+  const headingPrefix = '#'.repeat(headingLevel) + ' ';
   for (let index = start + 1; index < lines.length; index += 1) {
-    if (lines[index].startsWith('## ')) {
+    if (lines[index].trim().startsWith(headingPrefix)) {
       end = index;
       break;
     }
   }
 
   return lines.slice(start + 1, end).join('\n').trim();
+}
+
+function tryExtractSection(markdown, heading) {
+  try {
+    return extractSection(markdown, heading);
+  } catch (error) {
+    if (error instanceof Error && error.message === `Section not found: ${heading}`) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+function buildPromptGuidance(app, locale, section) {
+  const guidance = app.promptGuidance;
+  if (!guidance) {
+    return '';
+  }
+
+  const palette = guidance.palettes[locale];
+  if (!palette) {
+    throw new Error(`Missing prompt palette for ${app.id}/${locale}`);
+  }
+
+  const lines = [
+    'Composition requirements:',
+    `Background base: ${palette.backgroundBase}`,
+    `Background secondary: ${palette.backgroundSecondary}`,
+    `Merge accent: ${palette.mergeAccent}`,
+    `Split accent: ${palette.splitAccent}`,
+    `Title: ${palette.title}`,
+    `Subline: ${palette.subline}`,
+    `Bullet/support: ${palette.bullet}`,
+  ];
+
+  if (section.screenshot) {
+    lines.push(`Format: vertical ${guidance.screenshotAspectRatio}.`);
+    lines.push('Use my screenshot in your composition.');
+    lines.push(guidance.rawCompositionRule);
+    lines.push(guidance.allowedReplacements);
+  } else if (section.heading === 'Feature Graphic') {
+    lines.push('Format: Play Store feature graphic, 1024x500 px.');
+  }
+
+  return lines.join('\n');
 }
 
 function extractRawScreenshotHandling(body) {

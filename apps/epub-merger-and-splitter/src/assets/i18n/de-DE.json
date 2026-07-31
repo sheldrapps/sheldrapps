@@ -29,7 +29,8 @@
     "EDIT_PROJECT_OVERWRITE": "Überschreiben",
     "EDIT_PROJECT_OVERWRITE_DESC": "Änderungen direkt in der bestehenden Datei speichern.",
     "EDIT_PROJECT_COPY": "Mit Kopie arbeiten",
-    "EDIT_PROJECT_COPY_DESC": "Die Originaldatei behalten und eine neue Kopie bearbeiten."
+    "EDIT_PROJECT_COPY_DESC": "Die Originaldatei behalten und eine neue Kopie bearbeiten.",
+    "UPGRADE_TO_PRO": "Auf Pro upgraden"
   },
   "MY_EPUBS": {
     "TITLE": "Meine EPUBs",
@@ -79,7 +80,15 @@
     "SETTINGS": "Einstellungen"
   },
   "HOME": {
-    "STEPPER": { "MERGE_SPLIT": "Zusammenführen / Teilen", "SORT": "Sortieren", "TOC": "TOC", "COVER": "Cover", "ADJUST": "Anpassen", "JOIN": "Zusammenführen" },
+    "STEPPER": {
+      "MERGE_SPLIT": "Zusammenführen / Teilen",
+      "SORT": "Sortieren",
+      "TOC": "Inhaltsverzeichnis",
+      "COVER": "Umschlag",
+      "ADJUST": "Anpassen",
+      "JOIN": "Zusammenführen",
+      "CONFIRM": "Bestätigen"
+    },
     "WHAT_DO_YOU_WANT_TO_DO": "Was möchtest du tun?",
     "MERGE": "Zusammenfügen",
     "SPLIT": "Teilen",
@@ -103,7 +112,122 @@
     "COVER_SELECTOR_TITLE": "Woraus soll die Cover erstellt werden?",
     "BEST_CANDIDATES_TITLE": "Vorschläge aus deinen EPUBs",
     "ADJUST_COVER": "Cover anpassen",
-    "PREVIEW_TITLE": "Vorschau"
+    "PREVIEW_TITLE": "Vorschau",
+    "OPERATION": {
+      "OUTPUTS_TITLE": "Erstellte EPUBs",
+      "MERGE_SUCCESS_TITLE": "EPUB erfolgreich zusammengeführt",
+      "MERGE_SUCCESS_BODY": "Eine neue Kopie mit dem Inhalt der ausgewählten EPUBs wurde erstellt.",
+      "SPLIT_SUCCESS_TITLE": "EPUB erfolgreich geteilt",
+      "SPLIT_SUCCESS_BODY": "{{count}} neue EPUBs wurden erstellt.",
+      "MERGE_FAILURE_TITLE": "Die EPUBs konnten nicht zusammengeführt werden",
+      "MERGE_FAILURE_BODY": "Das endgültige EPUB konnte nicht erstellt werden. Deine Originaldateien wurden nicht geändert.",
+      "SPLIT_FAILURE_TITLE": "Das EPUB konnte nicht geteilt werden",
+      "SPLIT_FAILURE_BODY": "Nicht alle EPUBs konnten erstellt werden. Die Originaldatei wurde nicht geändert und keine Teilergebnisse wurden gespeichert.",
+      "PROGRESS": {
+        "PREPARING": "EPUB wird vorbereitet",
+        "ANALYZING": "EPUB wird analysiert",
+        "WRITING": "EPUBs werden erstellt",
+        "VALIDATING": "EPUBs werden geprüft",
+        "COMPLETED": "Abgeschlossen",
+        "COUNT": "{{current}} von {{total}}"
+      }
+    },
+    "SPLIT_STEP": {
+      "TITLE": "Teilen",
+      "SUMMARY": "{{count}} EPUBs bereit.",
+      "OUTPUTS_TITLE": "Zu erstellende Dateien",
+      "BACK_TO_CONFIRM": "← Zur Bestätigung"
+    },
+    "SPLIT_COVER": {
+      "ECC_TITLE": "EPUB-Cover ändern",
+      "ECC_DESCRIPTION": "Alle EPUB-Dateien erhalten denselben Umschlag. Für individuelle Anpassungen kannst du unsere App nutzen.",
+      "OPEN_ECC": "App ausprobieren"
+    },
+    "SPLIT_HOW_TO": "Teilungsmethode",
+    "SPLIT_HOW_TO_TITLE": "Wie möchtest du dieses EPUB aufteilen?",
+    "SPLIT_OPTIONS": {
+      "BY_CHAPTERS_OR_SECTIONS": {
+        "TITLE": "Nach Kapiteln oder Abschnitten",
+        "SUBLINE": "Nutze das Inhaltsverzeichnis des Buchs."
+      },
+      "MANUAL_SPLIT_POINTS": {
+        "TITLE": "Teilungspunkte auswählen",
+        "SUBLINE": "Kapitel manuell gruppieren."
+      },
+      "EQUAL_PARTS": {
+        "TITLE": "Gleich große Teile",
+        "SUBLINE": "Wähle die Anzahl der EPUB-Dateien."
+      },
+      "MAXIMUM_FILE_SIZE": {
+        "TITLE": "Nach maximaler Größe",
+        "SUBLINE": "Erstelle Dateien mit ungefähr begrenzter Größe."
+      }
+    },
+    "SPLIT_ANALYSIS_ERROR": "Das Inhaltsverzeichnis des EPUB konnte nicht analysiert werden.",
+    "SPLIT_EXPORT_NOT_AVAILABLE": "Die Konfiguration ist bereit, aber der Export geteilter EPUB-Dateien ist noch nicht verfügbar.",
+    "SPLIT_CONFIRM": {
+      "BY_CHAPTERS_TITLE": "Wie möchtest du dieses EPUB aufteilen?",
+      "MANUAL_TITLE": "Teilungspunkte auswählen",
+      "EQUAL_TITLE": "Gleich große Teile",
+      "MAXIMUM_SIZE_TITLE": "Nach maximaler Größe",
+      "FILE_SUMMARY": "{{name}} · {{count}} · {{size}}",
+      "ANALYZING": "Das Inhaltsverzeichnis des EPUB konnte nicht analysiert werden.",
+      "BY_CHAPTER": "Nach Kapiteln",
+      "BY_CHAPTER_SUBLINE": "Nutze das Inhaltsverzeichnis des Buchs.",
+      "BY_SECTION": "Nach Abschnitten",
+      "BY_SECTION_SUBLINE": "Nutze das Inhaltsverzeichnis des Buchs.",
+      "BOOK_START": "Buchanfang",
+      "BOOK_START_SUBLINE": "Buchanfang",
+      "BEFORE_CHAPTER": "{{title}}",
+      "BEFORE_CHAPTER_SUBLINE": "+ Hier teilen",
+      "EQUAL_HELP": "Wähle die Anzahl der EPUB-Dateien.",
+      "PART_COUNT": "{{count}}",
+      "PART_COUNT_SUBLINE": "Teile",
+      "CUSTOM_PART_COUNT": "Benutzerdefiniert",
+      "CUSTOM_PART_COUNT_SUBLINE": "Benutzerdefiniert",
+      "INVALID_PART_COUNT": "Benutzerdefiniert",
+      "MAXIMUM_SIZE_HELP": "Erstelle Dateien mit ungefähr begrenzter Größe.",
+      "MAXIMUM_SIZE_OPTION": "{{size}} MB",
+      "MAXIMUM_SIZE_OPTION_SUBLINE": "Erstelle Dateien mit ungefähr begrenzter Größe.",
+      "CUSTOM_SIZE": "Benutzerdefiniert",
+      "CUSTOM_SIZE_SUBLINE": "Benutzerdefiniert",
+      "INVALID_MAXIMUM_SIZE": "Benutzerdefiniert",
+      "ESTIMATED_RESULT": "{{count}} EPUB",
+      "OUTPUT_NUMBER": "EPUB {{number}}",
+      "MORE_OUTPUTS": "Alle {{count}} EPUB-Dateien anzeigen",
+      "SHOW_FEWER_OUTPUTS": "Weniger anzeigen",
+      "NEEDS_TWO_OUTPUTS": "Wähle die Anzahl der EPUB-Dateien.",
+      "BACK_TO_HOW_TO": "← Teilungsmethode",
+      "SPLIT_EPUB": "EPUB aufteilen →",
+      "TITLE": "Teilung bestätigen",
+      "SAFE_SPLIT_HINT": "Nutze das Inhaltsverzeichnis des Buchs.",
+      "TREE_LABEL": "Teilungsmethode",
+      "VARIANT_LABEL": "Teilungsmethode",
+      "ONE_PER_CHAPTER": "Nach Kapiteln",
+      "ONE_PER_SECTION": "Nach Abschnitten",
+      "MANUAL_HINT": "Kapitel manuell gruppieren.",
+      "SPLIT_HERE": "+ Hier teilen",
+      "DIVIDED": "✓ Geteilt",
+      "EQUAL_HINT": "Wähle die Anzahl der EPUB-Dateien.",
+      "EQUAL_MODE_LABEL": "Gleich große Teile",
+      "RESULT_COUNT": "Gleich große Teile",
+      "PARTS_UNIT": "Teile",
+      "MEGABYTES_UNIT": "MB",
+      "CHAPTERS_PER_FILE": "Nach Kapiteln oder Abschnitten",
+      "SIZE_HINT": "Erstelle Dateien mit ungefähr begrenzter Größe.",
+      "SIZE_LABEL": "Maximale Größe",
+      "SIZE_10": "10 MB",
+      "SIZE_25": "25 MB",
+      "SIZE_50": "50 MB",
+      "SIZE_CUSTOM": "Benutzerdefiniert",
+      "APPROXIMATE_SIZE": "Erstelle Dateien mit ungefähr begrenzter Größe.",
+      "EXAMPLE_PART_ONE": "Teil I",
+      "EXAMPLE_CHAPTER_ONE": "Kapitel 1",
+      "EXAMPLE_CHAPTER_TWO": "Kapitel 2",
+      "EXAMPLE_PART_TWO": "Teil II",
+      "EXAMPLE_CHAPTER_THREE": "Kapitel 3",
+      "EXAMPLE_CHAPTER_FOUR": "Kapitel 4"
+    }
   },
   "TOC_OPTIONS": {
     "TITLE": "Was soll mit dem Inhaltsverzeichnis geschehen?",

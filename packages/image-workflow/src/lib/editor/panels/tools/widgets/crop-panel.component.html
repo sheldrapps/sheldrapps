@@ -1,4 +1,211 @@
 <div class="crop-panel">
+  @if (usesCategoryNavigation) {
+  @if (activeView() === "root") {
+  <div class="crop-categories app-panel-tabs">
+    <sh-scrollable-button-bar
+      class="crop-panel__bar"
+      [items]="categoryItems"
+      [activeId]="null"
+      variant="text"
+      align="start"
+      (selectItem)="openView($event)"
+    ></sh-scrollable-button-bar>
+  </div>
+  } @else {
+  <div class="crop-subheader app-panel-subheader">
+    <ion-button fill="clear" class="crop-subheader__back app-panel-subheader__back" (click)="goRoot()">
+      <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+    </ion-button>
+    <div class="crop-subheader__title app-panel-subheader__title">
+      {{ activeViewTitleKey | translate }}
+    </div>
+  </div>
+  }
+
+  @if (activeView() === "e-reader" && hasKindleCatalog) {
+  <div class="selectors-grid crop-subpanel app-panel-subpanel">
+    <div class="selectors-grid__row">
+      <div class="selectors-grid__col selectors-grid__col--full">
+        <div class="selector-label">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.BRAND' | translate }}</div>
+        <ion-item class="selectors-grid__item">
+          <ion-select class="selectors-grid__select" [(ngModel)]="selectedBrandId" (click)="beginSelectInteraction('brand')" (ionFocus)="beginSelectInteraction('brand')" (ionChange)="onBrandChange()" (ionCancel)="cancelSelectInteraction('brand')" (ionDismiss)="finishSelectInteraction('brand')" interface="popover">
+            <ion-select-option *ngFor="let brand of brands" [value]="brand.id">{{ brand.i18nKey | translate }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </div>
+    </div>
+    <div class="selectors-grid__row selectors-grid__row--split">
+      <div class="selectors-grid__col">
+        <div class="selector-label">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.GROUP' | translate }}</div>
+        <ion-item class="selectors-grid__item">
+          <ion-select class="selectors-grid__select" [(ngModel)]="selectedGroupId" (click)="beginSelectInteraction('group')" (ionFocus)="beginSelectInteraction('group')" (ionChange)="onGroupChange()" (ionCancel)="cancelSelectInteraction('group')" (ionDismiss)="finishSelectInteraction('group')" interface="popover" [disabled]="!selectedBrandId">
+            <ion-select-option *ngFor="let group of visibleGroups" [value]="group.id">{{ (group.i18nKey || group.labelKey || group.label || group.id) | translate }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </div>
+      <div class="selectors-grid__col">
+        <div class="selector-label">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.LABEL.MODEL' | translate }}</div>
+        <ion-item class="selectors-grid__item">
+          <ion-select class="selectors-grid__select" [(ngModel)]="selectedModel" (click)="beginSelectInteraction('model')" (ionFocus)="beginSelectInteraction('model')" (ionChange)="onModelChange()" (ionCancel)="cancelSelectInteraction('model')" (ionDismiss)="finishSelectInteraction('model')" [compareWith]="compareModels" interface="popover" [disabled]="!selectedGroupId">
+            <ion-select-option *ngFor="let model of currentGroupModels" [value]="model">{{ (model.i18nKey || model.labelKey || model.name || model.id) | translate }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </div>
+    </div>
+  </div>
+  } @else if (activeView() === "publishing" || activeView() === "paper" || activeView() === "ratio") {
+  <div class="crop-target-selectors crop-subpanel app-panel-subpanel">
+    @if (showTargetParentSelector) {
+    <div class="selectors-grid__col">
+      <div class="selector-label">
+        {{ (targetCategory === 'publishing' ? 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.PLATFORM' : 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.STANDARD') | translate }}
+      </div>
+      <ion-item class="selectors-grid__item">
+        <ion-select
+          class="selectors-grid__select"
+          [ngModel]="selectedTargetParentId"
+          (click)="beginSelectInteraction('target-parent')"
+          (ionFocus)="beginSelectInteraction('target-parent')"
+          (ionChange)="onTargetParentChange($event.detail.value)"
+          (ionCancel)="cancelSelectInteraction('target-parent')"
+          (ionDismiss)="finishSelectInteraction('target-parent')"
+          interface="popover"
+        >
+          @for (parent of targetParents; track parent.id) {
+          <ion-select-option [value]="parent.id">{{ parent.i18nKey | translate }}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
+    </div>
+    }
+
+    @if (showTargetGroupSelector) {
+    <div class="selectors-grid__col">
+      <div class="selector-label">
+        {{ (targetCategory === 'publishing' ? 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.COVER_TYPE' : 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.SERIES') | translate }}
+      </div>
+      <ion-item class="selectors-grid__item">
+        <ion-select
+          class="selectors-grid__select"
+          [ngModel]="selectedTargetGroupId"
+          (click)="beginSelectInteraction('target-group')"
+          (ionFocus)="beginSelectInteraction('target-group')"
+          (ionChange)="onTargetGroupChange($event.detail.value)"
+          (ionCancel)="cancelSelectInteraction('target-group')"
+          (ionDismiss)="finishSelectInteraction('target-group')"
+          interface="popover"
+        >
+          @for (group of targetGroups; track group.id) {
+          <ion-select-option [value]="group.id">{{ group.i18nKey | translate }}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
+    </div>
+    }
+
+    <div class="selectors-grid__col">
+      <div class="selector-label">
+        {{ (targetCategory === 'ratio' ? 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.ASPECT_RATIO' : targetCategory === 'paper' ? 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.FORMAT' : 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.SIZE') | translate }}
+      </div>
+      <ion-item class="selectors-grid__item">
+        <ion-select
+          class="selectors-grid__select"
+          [ngModel]="selectedTargetPreset"
+          [compareWith]="comparePresets"
+          (click)="beginSelectInteraction('target-preset')"
+          (ionFocus)="beginSelectInteraction('target-preset')"
+          (ionChange)="onTargetPresetChange($event.detail.value?.id)"
+          (ionCancel)="cancelSelectInteraction('target-preset')"
+          (ionDismiss)="finishSelectInteraction('target-preset')"
+          interface="popover"
+        >
+          @for (preset of targetPresets; track preset.id) {
+          <ion-select-option [value]="preset">{{ getTargetLabel(preset) }}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
+    </div>
+
+    @if (showCustomRatioInputs) {
+    <section class="custom-format ratio-custom-format" aria-labelledby="custom-ratio-title">
+      <div class="custom-format__title" id="custom-ratio-title">
+        {{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.RATIO_CUSTOM.TITLE' | translate }}
+      </div>
+
+      <ion-grid class="custom-format__grid">
+        <ion-row>
+          <ion-col size="6">
+            <ion-item class="custom-format__item">
+              <ion-label position="stacked">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.RATIO_CUSTOM.WIDTH' | translate }}</ion-label>
+              <ion-input
+                [(ngModel)]="ratioCustomWidthInput"
+                (ionChange)="onRatioCustomWidthChange($event)"
+                type="number"
+                inputmode="numeric"
+                step="1"
+                [min]="customDimensionMin"
+                [max]="customDimensionMax"
+              ></ion-input>
+            </ion-item>
+          </ion-col>
+
+          <ion-col size="6">
+            <ion-item class="custom-format__item">
+              <ion-label position="stacked">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.RATIO_CUSTOM.HEIGHT' | translate }}</ion-label>
+              <ion-input
+                [(ngModel)]="ratioCustomHeightInput"
+                (ionChange)="onRatioCustomHeightChange($event)"
+                type="number"
+                inputmode="numeric"
+                step="1"
+                [min]="customDimensionMin"
+                [max]="customDimensionMax"
+              ></ion-input>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <ion-note class="custom-format__helper">
+        {{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.RATIO_CUSTOM.HELPER' | translate:{ min: customDimensionMin, max: customDimensionMax } }}
+      </ion-note>
+    </section>
+    }
+
+    @if (showTargetOrientation) {
+    <div class="target-orientation" role="group" [attr.aria-label]="'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.ORIENTATION' | translate">
+      <div class="selector-label">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.ORIENTATION' | translate }}</div>
+      <div class="target-orientation__buttons">
+        <ion-button
+          fill="clear"
+          class="target-orientation__button"
+          [class.target-orientation__button--active]="targetOrientation === 'portrait'"
+          (click)="onTargetOrientationChange('portrait')"
+        >{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.PORTRAIT' | translate }}</ion-button>
+        <ion-button
+          fill="clear"
+          class="target-orientation__button"
+          [class.target-orientation__button--active]="targetOrientation === 'landscape'"
+          (click)="onTargetOrientationChange('landscape')"
+        >{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.LANDSCAPE' | translate }}</ion-button>
+      </div>
+    </div>
+    }
+  </div>
+  } @else if (activeView() === "e-reader") {
+  <div class="format-bar crop-subpanel app-panel-subpanel">
+    <sh-scrollable-button-bar
+      class="crop-panel__bar"
+      [items]="eReaderFormatItems"
+      [activeId]="selectedFormatId ?? null"
+      variant="text"
+      align="start"
+      [ariaLabel]="activeViewTitleKey | translate"
+      (selectItem)="onFormatSelect($event)"
+    ></sh-scrollable-button-bar>
+  </div>
+  }
+  } @else {
   @if (shouldUseFrameSwitch) {
   <div class="format-switch" aria-label="Frame mode">
     <button
@@ -33,6 +240,7 @@
   } @else if (hasFormatOptions) {
   <div class="format-bar">
     <sh-scrollable-button-bar
+      class="crop-panel__bar"
       [items]="formatItems"
       [activeId]="selectedFormatId ?? null"
       variant="text"
@@ -76,7 +284,11 @@
           <ion-select
             class="selectors-grid__select"
             [(ngModel)]="selectedBrandId"
+            (click)="beginSelectInteraction('brand')"
+            (ionFocus)="beginSelectInteraction('brand')"
             (ionChange)="onBrandChange()"
+            (ionCancel)="cancelSelectInteraction('brand')"
+            (ionDismiss)="finishSelectInteraction('brand')"
             [placeholder]="'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.PLACEHOLDER.SELECT_BRAND' | translate"
             interface="popover"
           >
@@ -95,7 +307,11 @@
           <ion-select
             class="selectors-grid__select"
             [(ngModel)]="selectedGroupId"
+            (click)="beginSelectInteraction('group')"
+            (ionFocus)="beginSelectInteraction('group')"
             (ionChange)="onGroupChange()"
+            (ionCancel)="cancelSelectInteraction('group')"
+            (ionDismiss)="finishSelectInteraction('group')"
             [placeholder]="'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.PLACEHOLDER.SELECT_GROUP' | translate"
             interface="popover"
             [disabled]="!selectedBrandId"
@@ -113,7 +329,11 @@
           <ion-select
             class="selectors-grid__select"
             [(ngModel)]="selectedModel"
+            (click)="beginSelectInteraction('model')"
+            (ionFocus)="beginSelectInteraction('model')"
             (ionChange)="onModelChange()"
+            (ionCancel)="cancelSelectInteraction('model')"
+            (ionDismiss)="finishSelectInteraction('model')"
             [placeholder]="'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.PLACEHOLDER.SELECT_MODEL' | translate"
             [compareWith]="compareModels"
             interface="popover"
@@ -128,6 +348,8 @@
     </div>
   </div>
   }
+  }
+
   }
 
   @if (showCustomInputs) {

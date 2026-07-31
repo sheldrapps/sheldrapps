@@ -84,7 +84,6 @@ describe('EpubRepairingService', () => {
     ).toEqual(['CRIT-SPINE-001']);
     expect(service.resolveDiagnosticCaseIds({ code: 'ZIP_UNREADABLE' })).toEqual([
       'CRIT-ZIP-001',
-      'CRIT-ZIP-002',
     ]);
     expect(service.getCase('CRIT-ZIP-002')?.recommendedAction).toBe('fix');
   });

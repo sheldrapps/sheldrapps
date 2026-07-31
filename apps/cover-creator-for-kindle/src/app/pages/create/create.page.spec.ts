@@ -608,7 +608,6 @@ describe('CreatePage', () => {
       applySmallWarn: jasmine.createSpy('applySmallWarn').and.resolveTo(),
       extractEditorExportDims: () => undefined,
       setPreviewUrl,
-      markEditorTourSeen: jasmine.createSpy('markEditorTourSeen').and.resolveTo(),
       homeTour: {
         completeInteraction: jasmine.createSpy('completeInteraction').and.resolveTo(),
       },
@@ -625,7 +624,7 @@ describe('CreatePage', () => {
       }
     ).prototype.applyCropResult.call(ctx, { file, renderedBlob });
 
-    expect(ctx.workingImageFile).toBe(file);
+    expect((ctx as { workingImageFile?: File }).workingImageFile).toBe(file);
     expect(ctx.exportImageFile).toBeUndefined();
     expect(setPreviewUrl).toHaveBeenCalledWith('blob:edited-preview');
   });

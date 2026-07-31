@@ -19,7 +19,11 @@ import {
   chevronBackOutline,
   chevronForwardOutline,
   colorPaletteOutline,
+  sparklesOutline,
 } from 'ionicons/icons';
+import {
+  RemoveAdsPurchasePageService,
+} from '@sheldrapps/ads-kit';
 import {
   SelectableButtonListComponent,
   type SelectableButtonListItem,
@@ -69,6 +73,7 @@ import { RatingService } from '@sheldrapps/rating-kit';
 export class SettingsPage {
   private settings = inject(SettingsStore<CcfkSettings>);
   private router = inject(Router);
+  private removeAdsPurchasePage = inject(RemoveAdsPurchasePageService);
   private ratingService = inject(RatingService);
   public lang = inject(LanguageService);
   public consent = inject(ConsentService);
@@ -90,6 +95,7 @@ export class SettingsPage {
       chevronBackOutline,
       chevronForwardOutline,
       colorPaletteOutline,
+      sparklesOutline,
     });
   }
 
@@ -143,6 +149,18 @@ export class SettingsPage {
         leadingIconName: 'color-palette-outline',
         trailingIconName: 'chevron-forward-outline',
         ariaLabel: this.uiThemeI18n.texts().UI_THEME.THEME_SETTINGS.TITLE,
+      },
+    ];
+  }
+
+  get removeAdsSettingsItems(): SelectableButtonListItem[] {
+    return [
+      {
+        value: 'remove-ads',
+        titleKey: 'COMMON.UPGRADE_TO_PRO',
+        leadingIconName: 'sparkles-outline',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'COMMON.UPGRADE_TO_PRO',
       },
     ];
   }
@@ -287,6 +305,14 @@ export class SettingsPage {
 
   onThemeSettingsAction(): void {
     void this.openThemeSettings();
+  }
+
+  onRemoveAdsSettingsAction(): void {
+    this.removeAdsPurchasePage.open({
+      variant: 'CCFK',
+      returnUrl: '/tabs/create',
+    });
+    void this.router.navigateByUrl('/remove-ads');
   }
 
   onPrivacyOptionsAction(): void {

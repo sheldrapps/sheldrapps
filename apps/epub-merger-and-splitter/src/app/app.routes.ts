@@ -6,6 +6,17 @@ export const routes: Routes = [
     loadChildren: () => import('./tabs/tabs.routes').then((m) => m.routes),
   },
   {
+    path: 'remove-ads',
+    data: {
+      removeAdsVariant: 'EMAS',
+      removeAdsReturnUrl: '/tabs/home',
+    },
+    loadComponent: () =>
+      import('@sheldrapps/ads-kit').then(
+        (m) => m.RemoveAdsPurchasePageComponent,
+      ),
+  },
+  {
     path: 'editor',
     loadChildren: () =>
       import('@sheldrapps/image-workflow/editor').then((m) => m.EDITOR_ROUTES),

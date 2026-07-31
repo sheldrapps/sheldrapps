@@ -1,4 +1,4 @@
-﻿# ECC Strategy Matrix
+# ECC Strategy Matrix
 
 | Locale | Ángulo de mercado | Hero visual | Before cover idea | After cover idea | Énfasis de flujo | Prueba de confianza | Qué evitar | Background base | Background secondary | Accent color | Title color | Subline color | Bullet color | Notas |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |

@@ -1,16 +1,116 @@
 {
+  "PUBLISHING_CATALOG": {
+    "PLATFORMS": { "AMAZON_KDP": "Amazon KDP", "KOBO_WRITING_LIFE": "Kobo Writing Life", "APPLE_BOOKS": "Apple Books", "GOOGLE_PLAY_BOOKS": "Google Play Books", "BARNES_NOBLE_PRESS": "Barnes & Noble Press", "TOLINO_MEDIA": "Tolino Media", "RIDI": "RIDI / RIDIBOOKS", "DRAFT2DIGITAL": "Draft2Digital", "INGRAMSPARK": "IngramSpark", "PUBLISHDRIVE": "PublishDrive", "STREETLIB": "StreetLib", "LULU": "Lulu" },
+    "GROUPS": { "STORE_COVER": "غلاف المتجر", "EBOOK_COVER": "غلاف الكتاب الإلكتروني", "EBOOK_AND_STORE_COVER": "غلاف الكتاب الإلكتروني والمتجر", "DISTRIBUTION_COVER": "غلاف التوزيع", "EMBEDDED_COVER": "الغلاف المضمّن", "EXTERNAL_COVER": "الغلاف الخارجي" },
+    "BADGES": { "IDEAL": "مثالي", "RECOMMENDED": "موصى به", "COMPATIBLE": "متوافق", "ALTERNATIVE": "بديل", "MINIMUM": "الحد الأدنى" },
+    "PRESETS": { "AMAZON_KDP_1600X2560": "1600 × 2560 px", "AMAZON_KDP_625X1000": "625 × 1000 px", "KOBO_WRITING_LIFE_1800X2400": "1800 × 2400 px", "APPLE_BOOKS_1600X2400": "1600 × 2400 px", "GOOGLE_PLAY_BOOKS_1600X2400": "1600 × 2400 px", "BARNES_NOBLE_PRESS_1600X2400": "1600 × 2400 px", "TOLINO_MEDIA_1600X2400": "1600 × 2400 px", "RIDI_1600X2560": "1600 × 2560 px", "RIDI_1200X1800": "1200 × 1800 px", "DRAFT2DIGITAL_1600X2400": "1600 × 2400 px", "INGRAMSPARK_1600X2560": "1600 × 2560 px", "PUBLISHDRIVE_EMBEDDED_1600X2400": "1600 × 2400 px", "PUBLISHDRIVE_STORE_1600X2560": "1600 × 2560 px", "STREETLIB_EMBEDDED_1200X1600": "1200 × 1600 px", "STREETLIB_EXTERNAL_1875X2500": "1875 × 2500 px", "LULU_1600X2560": "1600 × 2560 px", "LULU_625X1000": "625 × 1000 px" }
+  },
   "APP": {
     "TITLE": "EPUB Cover Changer"
   },
+  "ECC": { "RATIO_CATEGORIES": { "E_READERS": "قارئات إلكترونية", "PUBLISHING": "النشر", "PAPER": "الورق", "ASPECT_RATIO": "نسبة الأبعاد" } },
+  "CROP_SELECTORS": { "BRAND": "العلامة التجارية", "FAMILY": "العائلة", "MODEL": "الطراز", "PLATFORM": "المنصة", "COVER_TYPE": "نوع الغلاف", "SIZE": "الحجم", "STANDARD": "المعيار", "SERIES": "السلسلة", "FORMAT": "التنسيق", "ORIENTATION": "الاتجاه", "PORTRAIT": "عمودي", "LANDSCAPE": "أفقي", "ASPECT_RATIO": "نسبة الأبعاد" },
+  "COMMON": { "RECOMMENDED": "موصى به" },
+  "PUBLISHING_PLATFORMS": { "RIDI": "RIDI / RIDIBOOKS" },
+  "PUBLISHING_GROUPS": { "RIDI": { "EBOOK_COVER": "غلاف كتاب إلكتروني" } },
+  "PUBLISHING_PRESETS": { "RIDI_1600X2560": "1600 × 2560 px", "RIDI_1200X1800": "1200 × 1800 px" },
+  "PAPER_GROUPS": { "ISO_216": "ISO 216", "NORTH_AMERICAN": "أمريكا الشمالية", "ISO_A_SERIES": "سلسلة A", "NORTH_AMERICAN_OFFICE": "مقاسات المكاتب في أمريكا الشمالية" },
+  "PAPER_PRESETS": { "A3": "A3", "A4": "A4", "A5": "A5", "A6": "A6", "LETTER": "Letter", "LEGAL": "Legal", "TABLOID": "Tabloid" },
+  "RATIO_GROUPS": { "COMMON": "النسب الشائعة" },
+  "RATIO_PRESETS": { "1_1": "1:1", "2_3": "2:3", "3_4": "3:4", "4_5": "4:5", "5_7": "5:7", "5_8": "5:8", "9_16": "9:16", "CUSTOM": "مخصصة" },
+  "RATIO_CUSTOM": { "TITLE": "نسبة أبعاد مخصصة", "WIDTH": "العرض", "HEIGHT": "الارتفاع", "HELPER": "أدخل أعدادًا صحيحة من {{min}} إلى {{max}}." },
+  "KINDLE_BRANDS": {
+    "KINDLE": "Kindle"
+  },
+  "KINDLE_GROUPS": {
+    "BASIC": "Basic",
+    "OASIS": "Oasis",
+    "PAPERWHITE": "Paperwhite",
+    "PAPERWHITE_SIGNATURE": "Paperwhite Signature",
+    "SCRIBE": "Scribe",
+    "VOYAGE": "Voyage",
+    "COLORSOFT": "Colorsoft",
+    "COLORSOFT_SIGNATURE": "Colorsoft Signature"
+  },
+  "KINDLE_MODELS": {
+    "BASIC_2010_2019": "2010-2019",
+    "BASIC_2022_2024": "2022-2024",
+    "OASIS_2016": "2016",
+    "OASIS_2017_2019": "2017-2019",
+    "PAPERWHITE_2012_2013": "2012-2013",
+    "PAPERWHITE_2015_2019": "2015-2019",
+    "PAPERWHITE_2021": "2021",
+    "PAPERWHITE_2024": "2024",
+    "PAPERWHITE_SIGNATURE_2021": "2021",
+    "PAPERWHITE_SIGNATURE_2024": "2024",
+    "SCRIBE_2022_2024": "2022-2024",
+    "VOYAGE_2014": "2014",
+    "COLORSOFT": "2025",
+    "COLORSOFT_SIGNATURE_EDITION": "2024"
+  },
+  "KOBO_BRANDS": {
+    "KOBO": "Kobo"
+  },
+  "KOBO_GROUPS": {
+    "CLARA": "Clara",
+    "ELIPSA": "Elipsa",
+    "LIBRA": "Libra",
+    "NIA": "Nia",
+    "SAGE": "Sage"
+  },
+  "KOBO_MODELS": {
+    "CLARA_ALL": "Kobo Clara (HD / 2E / BW / Colour)",
+    "ELIPSA_ALL": "Kobo Elipsa (Elipsa / 2E)",
+    "LIBRA_ALL": "Kobo Libra (H2O / 2 / Colour)",
+    "NIA": "Kobo Nia",
+    "SAGE": "Kobo Sage"
+  },
+  "NOOK_BRANDS": {
+    "NOOK": "Nook"
+  },
+  "NOOK_GROUPS": {
+    "GLOWLIGHT": "GlowLight"
+  },
+  "NOOK_MODELS": {
+    "GLOWLIGHT_2013_2015": "Nook GlowLight (2013-2015)",
+    "GLOWLIGHT_2019_2023": "Nook GlowLight (2019-2023)"
+  },
+  "POCKETBOOK_BRANDS": {
+    "POCKETBOOK": "PocketBook"
+  },
+  "POCKETBOOK_GROUPS": {
+    "ERA": "Era",
+    "INKPAD": "InkPad",
+    "VERSE": "Verse"
+  },
+  "POCKETBOOK_MODELS": {
+    "ERA": "PocketBook Era",
+    "INKPAD_ALL": "PocketBook InkPad (All models)",
+    "VERSE": "PocketBook Verse",
+    "VERSE_PRO": "PocketBook Verse Pro"
+  },
+  "TOLINO_BRANDS": {
+    "TOLINO": "Tolino"
+  },
+  "TOLINO_GROUPS": {
+    "SHINE": "Shine",
+    "VISION": "Vision"
+  },
+  "TOLINO_MODELS": {
+    "SHINE_2014_2018": "Tolino Shine (2014-2018)",
+    "SHINE_HD": "Tolino Shine HD",
+    "VISION_2015_2018": "Tolino Vision (2015-2018)",
+    "VISION_2021_2024": "Tolino Vision (2021-2024)"
+  },
   "COMMON": {
     "BACK_AGAIN_TO_EXIT": "اضغط مرة أخرى للخروج",
-    "CANCEL": "Ø¥Ù„ØºØ§Ø¡",
-    "CLOSE": "Ø¥ØºÙ„Ø§Ù‚",
+    "CANCEL": "إلغاء",
+    "CLOSE": "إغلاق",
     "DELETE": "حذف",
-    "DONE": "ØªÙ…",
+    "DONE": "تم",
     "ERROR": "خطأ",
     "LOADING": "جارٍ التحميل…",
-    "BILLING_UNAVAILABLE": "Ø§Ù„Ù…Ø´ØªØ±ÙŠØ§Øª ØºÙŠØ± Ù…ØªØ§Ø­Ø© Ø­Ø§Ù„ÙŠØ§Ù‹.",
+    "BILLING_UNAVAILABLE": "المشتريات غير متاحة حالياً.",
     "PURCHASE_ERROR": "تعذّر إتمام الشراء. يرجى المحاولة مجدداً.",
     "REMOVE_ADS_BUY": "شراء",
     "REMOVE_ADS_DESCRIPTION": "أزل الإعلانات للأبد بدفعة واحدة وفعّل اختيار التصدير بدون فقدان/المضغوط.",
@@ -18,16 +118,17 @@
     "REMOVE_ADS_RESTORE": "استعادة الشراء",
     "REMOVE_ADS_RESTORED": "تمت استعادة الشراء بنجاح.",
     "REMOVE_ADS_TITLE": "إزالة الإعلانات",
-    "REMOVE_ADS_CTA_TITLE": "إزالة الإعلانات",
+   "REMOVE_ADS_CTA_TITLE": "إزالة الإعلانات",
+    "UPGRADE_TO_PRO": "الترقية إلى Pro",
     "REMOVE_ADS_CTA_SUBTITLE": "دفعة واحدة • للأبد",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "دفعة واحدة • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "السعر: {{price}} • بدون اشتراك",
-    "RESTORE_ERROR": "ØªØ¹Ø°Ù‘Ø±Øª Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø´ØªØ±ÙŠØ§Øª. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø¬Ø¯Ø¯Ø§Ù‹.",
+    "RESTORE_ERROR": "تعذّرت استعادة المشتريات. يرجى المحاولة مجدداً.",
     "PRO_ONLY": "برو",
     "WATCH_AD_SUBTITLE": "مشاهدة الإعلان",
     "SHARE": "مشاركة",
-    "SHARE_KINDLE_HINT": "Ø¹Ù†Ø¯ Ø§Ù„Ù…Ø´Ø§Ø±ÙƒØ©ØŒ Ø§Ø®ØªØ± ØªØ·Ø¨ÙŠÙ‚ Kindle Ù„Ø¥Ø±Ø³Ø§Ù„Ù‡ Ø¥Ù„Ù‰ Ø¬Ù‡Ø§Ø²Ùƒ.",
-    "WARNING": "ØªØ­Ø°ÙŠØ±",
+    "SHARE_KINDLE_HINT": "عند المشاركة، اختر تطبيق Kindle لإرساله إلى جهازك.",
+    "WARNING": "تحذير",
     "EDIT_PROJECT_TITLE": "كيف تريد تعديل هذا الملف؟",
     "EDIT_PROJECT_MESSAGE": "اختر ما إذا كنت تريد استبدال الملف الحالي أو العمل على نسخة.",
     "EDIT_PROJECT_OVERWRITE": "استبدال",
@@ -36,7 +137,7 @@
     "EDIT_PROJECT_COPY_DESC": "احتفظ بالملف الأصلي وعدّل نسخة جديدة."
   },
   "CHANGE": {
-    "ADS_REQUIRED": "ØªØ¹Ø°Ù‘Ø± ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø¥Ø¹Ù„Ø§Ù†. ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„Ø´Ø¨ÙƒØ© Ø£Ùˆ Ø­Ø§Ø¬Ø¨ Ø§Ù„Ø¥Ø¹Ù„Ø§Ù†Ø§Øª.",
+    "ADS_REQUIRED": "تعذّر تحميل الإعلان. تحقق من الشبكة أو حاجب الإعلانات.",
     "ARIA_CHANGE_EPUB": "تغيير ملف EPUB. الملف الحالي: {{name}}",
     "ARIA_CHANGE_IMAGE": "تغيير صورة الغلاف. الصورة الحالية: {{name}}",
     "ARIA_CROP": "ضبط الصورة المحددة",
@@ -48,10 +149,10 @@
     "CHANGE_ACTION_REWARDED": "تغيير الغلاف (مشاهدة إعلان)",
     "GENERATING": "جارٍ تحديث الغلاف…",
     "HINT_SAVE_SHARE_EXPLAIN": "تغيير الغلاف لا يحفظه تلقائياً.",
-    "INFO": "Ù…Ø¹Ù„ÙˆÙ…Ø§Øª",
+    "INFO": "معلومات",
     "INFO_ARIA": "معلومات حول تغيير الغلاف",
-    "INFO_TITLE": "Ù…Ø¹Ù„ÙˆÙ…Ø§Øª",
-    "INFO_FLOW_LABEL": "Ø§Ù„ØªØ±ØªÙŠØ¨ Ø§Ù„Ù…ÙˆØµÙ‰ Ø¨Ù‡:",
+    "INFO_TITLE": "معلومات",
+    "INFO_FLOW_LABEL": "الترتيب الموصى به:",
     "INFO_STEP_1": "حدد ملف EPUB.",
     "INFO_STEP_1_1": "1.1. يُحمَّل الغلاف الأصلي مسبقاً.",
     "INFO_STEP_1_2": "1.2. غيّر الصورة أو احتفظ بالأصلية.",
@@ -60,12 +161,12 @@
     "INFO_STEP_4": "احفظ أو شارك.",
     "IMAGE_ERROR_CORRUPT": "تعذّرت قراءة الصورة. يرجى تجربة صورة أخرى.",
     "IMAGE_ERROR_SIZE": "الملف كبير جداً. الحد الأقصى {{maxSize}} ميغابايت.",
-    "IMAGE_ERROR_TYPE": "ØªÙ†Ø³ÙŠÙ‚ ØºÙŠØ± Ù…Ø¯Ø¹ÙˆÙ… ({{type}}). ÙŠØ±Ø¬Ù‰ ØªØ­Ø¯ÙŠØ¯ JPG Ø£Ùˆ PNG Ø£Ùˆ WebP.",
-    "IMAGE_WARN_SMALL": "Ù‚Ø¯ ØªÙƒÙˆÙ† Ø§Ù„ØµÙˆØ±Ø© ØµØºÙŠØ±Ø© Ø¬Ø¯Ø§Ù‹ Ù„Ø¨Ø¹Ø¶ Ø§Ù„Ø£Ø¬Ù‡Ø²Ø©.",
+    "IMAGE_ERROR_TYPE": "تنسيق غير مدعوم ({{type}}). يرجى تحديد JPG أو PNG أو WebP.",
+    "IMAGE_WARN_SMALL": "قد تكون الصورة صغيرة جداً لبعض الأجهزة.",
     "IMAGE_WARN_INVALID_EPUB_COVER": "غلاف EPUB غير صالح. اضغط لاختيار صورة جديدة.",
     "EPUB_ERROR_CORRUPT": "تعذر قراءة ملف EPUB. جرّب ملفًا آخر.",
     "EPUB_ERROR_NO_COVER": "لا يحتوي ملف EPUB هذا على غلاف قابل للاستبدال.",
-    "NO_COVER_DETECTED_ADDED": "لم يُعثر على غلاف. تمت إضافة غلاف جديد لهذا الملف.",
+    "RENAMED_OK": "تمت إعادة تسمية EPUB",
     "EPUB_ERROR_REWRITE": "تعذر معالجة ملف EPUB. يرجى المحاولة مرة أخرى.",
     "EPUB_ERROR_STORAGE": "مساحة التخزين غير كافية. مطلوب {{requiredMB}} ميغابايت، متاح {{availableMB}} ميغابايت.",
     "EPUB_ERROR_SIZE": "الملف كبير جدًا. الحد الأقصى {{maxSize}} MB.",
@@ -85,7 +186,7 @@
     "COVER_SOURCE_TITLE": "من ماذا تريد إنشاء الغلاف؟",
     "EPUB_VALIDATION_HINT": "EPUB فقط · .epub · الحد الأقصى 2 جيجابايت",
     "PROCESSING_LARGE_EPUB": "جارٍ معالجة ملف EPUB الكبير...",
-    "PROCESS_CANCELLED": "ØªÙ… Ø¥Ù„ØºØ§Ø¡ Ø§Ù„Ù…Ø¹Ø§Ù„Ø¬Ø©",
+    "PROCESS_CANCELLED": "تم إلغاء المعالجة",
     "SELECT_EPUB_PLACEHOLDER": "حدد ملف EPUB",
     "SAVE_ACTION": "حفظ",
     "RENAME_ACTION": "إعادة التسمية",
@@ -96,9 +197,9 @@
     "SELECT_IMAGE_LABEL": "صورة الغلاف",
     "SELECT_IMAGE_PLACEHOLDER": "حدد صورة",
     "INVALID_COVER_TAP_TO_CHANGE": "غلاف غير صالح، اضغط للتغيير",
-    "TAP_TO_CHANGE": "Ø§Ø¶ØºØ· Ù„Ù„ØªØºÙŠÙŠØ±/Ø§Ù„Ø¥Ø¹Ø§Ø¯Ø©",
-    "TAP_TO_CHANGE_IMAGE": "Ø§Ø¶ØºØ· Ù„Ù„ØªØºÙŠÙŠØ±",
-    "LONGPRESS_PREVIEW_HINT": "Ø§Ø¶ØºØ· Ù…Ø·ÙˆÙ„Ø§Ù‹ Ù„Ù„Ù…Ø¹Ø§ÙŠÙ†Ø©",
+    "TAP_TO_CHANGE": "اضغط للتغيير/الإعادة",
+    "TAP_TO_CHANGE_IMAGE": "اضغط للتغيير",
+    "LONGPRESS_PREVIEW_HINT": "اضغط مطولاً للمعاينة",
     "TITLE": "تغيير الغلاف",
     "PREVIEW_ORIGINAL_LABEL": "الغلاف الأصلي",
     "PREVIEW_NEW_LABEL": "مرر للمقارنة",
@@ -113,17 +214,17 @@
   "COVERS": {
     "DELETED": "تم حذف ملف EPUB",
     "EMPTY": "لم يتم العثور على ملفات في التطبيق. قد لا تظهر الملفات التي تم إنشاؤها قبل إعادة التثبيت بسبب قيود النظام.",
-    "GENERATE_THUMB": "Ø¥Ù†Ø´Ø§Ø¡ ØµÙˆØ±Ø© Ù…ØµØºÙ‘Ø±Ø©",
+    "GENERATE_THUMB": "إنشاء صورة مصغّرة",
     "LOADING_PREVIEW": "جارٍ تحميل المعاينة...",
     "PLACEHOLDER": "EPUB",
-    "PREVIEW_UNAVAILABLE": "Ø§Ù„Ù…Ø¹Ø§ÙŠÙ†Ø© ØºÙŠØ± Ù…ØªØ§Ø­Ø©.",
+    "PREVIEW_UNAVAILABLE": "المعاينة غير متاحة.",
     "TITLE": "ملفات EPUB",
     "DITHERED_THUMBNAIL_NOTICE": "قد تبدو الأغلفة التي تستخدم تقليل الشوائب مختلفة في الصور المصغرة. افتح المعاينة لرؤية نتيجة أدق.",
     "ACTIONS": {
       "DELETE": "حذف",
       "SHARE": "مشاركة",
       "OPEN": "فتح",
-      "EDIT_PROJECT": "ØªØ­Ø±ÙŠØ±"
+      "EDIT_PROJECT": "تحرير"
     },
     "DELETE": {
       "MESSAGE": "هل تريد حذف هذا الملف؟",
@@ -133,14 +234,14 @@
       "DELETE": "تعذّر حذف الملف. يرجى المحاولة مجدداً.",
       "SHARE": "تعذّرت مشاركة الملف. يرجى المحاولة مجدداً.",
       "LOAD": "تعذّر تحميل ملفاتك. اسحب للأسفل للتحديث.",
-      "PREVIEW": "ØªØ¹Ø°Ù‘Ø± ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ø¹Ø§ÙŠÙ†Ø©. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø¬Ø¯Ø¯Ø§Ù‹.",
+      "PREVIEW": "تعذّر تحميل المعاينة. يرجى المحاولة مجدداً.",
       "OPEN": "تعذر فتح ملف EPUB. يرجى المحاولة مرة أخرى.",
       "OPEN_PROJECT": "تعذر فتح المشروع. يرجى المحاولة مرة أخرى."
     },
     "EREADER": {
-      "ZOOM_OUT_ARIA": "ØªØµØºÙŠØ± Ù…Ø¹Ø§ÙŠÙ†Ø© Ø§Ù„Ù‚Ø§Ø±Ø¦ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ",
-      "ZOOM_IN_ARIA": "ØªÙƒØ¨ÙŠØ± Ù…Ø¹Ø§ÙŠÙ†Ø© Ø§Ù„Ù‚Ø§Ø±Ø¦ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ",
-      "ZOOM_RESET_ARIA": "Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† ØªÙƒØ¨ÙŠØ± Ù…Ø¹Ø§ÙŠÙ†Ø© Ø§Ù„Ù‚Ø§Ø±Ø¦ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ"
+      "ZOOM_OUT_ARIA": "تصغير معاينة القارئ الإلكتروني",
+      "ZOOM_IN_ARIA": "تكبير معاينة القارئ الإلكتروني",
+      "ZOOM_RESET_ARIA": "إعادة تعيين تكبير معاينة القارئ الإلكتروني"
     }
   },
   "INSTRUCTIONS": {
@@ -153,16 +254,16 @@
     "STEP_5": "الإرسال عبر الويب (Send to Kindle)",
     "STEP_5_DESC": "يمكنك أيضاً إرساله من المتصفح باستخدام أداة Send to Kindle على الويب.",
     "TIP": "للحصول على أفضل النتائج، استخدم صوراً عالية الدقة وتأكد من تعطيل الإعلانات على جهاز Kindle.",
-    "TITLE": "Ø§Ù„ØªØ¹Ù„ÙŠÙ…Ø§Øª"
+    "TITLE": "التعليمات"
   },
   "HOME_TOUR": {
     "CONTROLS": {
       "BACK": "رجوع",
       "FINISH": "إنهاء",
       "INTERACT_HINT": "تفاعل مع العنصر المميز للمتابعة.",
-      "NEXT": "Ø§Ù„ØªØ§Ù„ÙŠ",
-      "PROGRESS": "{{current}} Ù…Ù† {{total}}",
-      "SKIP": "ØªØ®Ø·ÙŠ"
+      "NEXT": "التالي",
+      "PROGRESS": "{{current}} من {{total}}",
+      "SKIP": "تخطي"
     },
     "STEPS": {
       "EPUB": {
@@ -186,7 +287,7 @@
         "DESCRIPTION": "احفظ ملف EPUB المحدَّث أو شاركه."
       },
       "EXPORT": {
-        "TITLE": "Ø¬ÙˆØ¯Ø© Ø§Ù„ØªØµØ¯ÙŠØ±",
+        "TITLE": "جودة التصدير",
         "DESCRIPTION": "يستخدم التصدير المجاني الوضع القياسي. أزل الإعلانات لفتح اختيار التصدير (بدون فقد/مضغوط)."
       },
       "REMOVE_ADS_CLOSE": {
@@ -196,26 +297,25 @@
     }
   },
   "SETTINGS": {
-    "INSTRUCTIONS": "Ø¹Ø±Ø¶ Ø§Ù„ØªØ¹Ù„ÙŠÙ…Ø§Øª",
+    "INSTRUCTIONS": "عرض التعليمات",
     "INSTRUCTIONS_HINT": "كيفية تغيير الغلاف وإرساله إلى Kindle",
-    "INSTRUCTIONS_SECTION": "Ø§Ù„ØªØ¹Ù„ÙŠÙ…Ø§Øª",
+    "INSTRUCTIONS_SECTION": "التعليمات",
     "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
     "EREADER_OPTIMIZATION_HINT": "يطبّق ضبطًا تلقائيًا لتحسين الغلاف",
-    "EREADER_OPTIMIZATION_TOGGLE": "ØªØ­Ø³ÙŠÙ†",
-    "TITLE": "الإعدادات",
-    "VIEW_TOUR": "عرض الجولة"
+    "EREADER_OPTIMIZATION_TOGGLE": "تحسين",
+    "TITLE": "الإعدادات"
   },
   "TABS": {
     "COVERS": "ملفات EPUB",
-    "CHANGE": "ØªØºÙŠÙŠØ±",
+    "CHANGE": "تغيير",
     "SETTINGS": "الإعدادات"
   },
   "ARR": {
     "TOOLS": {
-      "RECOMMENDED": "Ù…ÙˆØµÙ‰ Ø¨Ù‡",
-      "INFO": "Ù…Ø¹Ù„ÙˆÙ…Ø§Øª",
-      "APPS": "Ø§Ù„ØªØ·Ø¨ÙŠÙ‚Ø§Øª",
-      "GUIDE": "Ø§Ù„Ø¯Ù„ÙŠÙ„"
+      "RECOMMENDED": "موصى به",
+      "INFO": "معلومات",
+      "APPS": "التطبيقات",
+      "GUIDE": "الدليل"
     }
   }
 }

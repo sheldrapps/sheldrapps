@@ -15,6 +15,8 @@ export {
 
 // Editor session service
 export * from "../lib/editor/editor-session.service";
+export * from "../lib/editor/editor-crop-target-state.service";
+export * from "../lib/editor/editor-crop-target.types";
 export * from "../lib/editor/editor-session-exit.service";
 export * from "../lib/editor/editor-result-bridge";
 export * from "../lib/editor/editor-history.service";

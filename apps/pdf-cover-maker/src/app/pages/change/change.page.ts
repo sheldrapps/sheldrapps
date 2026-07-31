@@ -1,4 +1,4 @@
-﻿import {
+import {
   ChangeDetectorRef,
   Component,
   Injector,
@@ -12,7 +12,7 @@
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { Subscription, filter, firstValueFrom } from 'rxjs';
+import { Subscription, filter } from 'rxjs';
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import { Device } from '@capacitor/device';
 import {
@@ -23,7 +23,6 @@ import {
   IonButtons,
   IonIcon,
   IonButton,
-  IonModal,
   IonGrid,
   IonCol,
   IonRow,
@@ -43,18 +42,31 @@ import {
   PreviewEditingPageService,
   ImageValidationError,
   buildCompositionInputForPurpose,
+  encodeRenderedBlob,
   isArtifactReductionEnabled,
   isDitheringEnabled,
   renderCompositionToCanvas,
   renderCompositionToFile,
+  toEditorRenderQuality,
+  updateEditorRenderQuality,
+  type EditorRenderInfo,
   resolveArtifactReductionMode,
   resolveCoverColorMode,
 } from '@sheldrapps/image-workflow';
-import type { CropTarget, CropFormatOption } from '@sheldrapps/image-workflow';
+import type {
+  CropTarget,
+  CropFormatOption,
+} from '@sheldrapps/image-workflow';
 import {
   EditorSessionService,
+  EditorSessionExitService,
   consumeEditorResultSnapshot,
   ProjectSaveState,
+} from '@sheldrapps/image-workflow/editor';
+import type {
+  CropTargetCategory,
+  CropTargetPreset,
+  CropTargetsConfig,
 } from '@sheldrapps/image-workflow/editor';
 
 import {
@@ -69,7 +81,6 @@ import {
   refreshOutline,
   appsOutline,
   informationCircleOutline,
-  optionsOutline,
 } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
@@ -90,7 +101,11 @@ import {
   type AdFailureConfidence,
   type AdFailureReason,
 } from '@sheldrapps/ad-fallback-kit';
-import { RemoveAdsUpgradeModalComponent } from '@sheldrapps/ads-kit';
+import {
+  PURCHASE_INTENT_QUERY_PARAM,
+  REMOVE_ADS_PURCHASE_INTENT,
+  RemoveAdsPurchasePageService,
+} from '@sheldrapps/ads-kit';
 import { CoverPageMode } from '@sheldrapps/cover-page-mode-kit';
 import { PdfWorkingCopyService } from '../../services/pdf-working-copy.service';
 import {
@@ -106,7 +121,6 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { ToastOptions } from '@ionic/angular';
 import { SettingsStore } from '@sheldrapps/settings-kit';
-import { detectSupportedLocale } from '@sheldrapps/i18n-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
 import {
   LoadingStateComponent,
@@ -134,12 +148,6 @@ import {
 import { PcmSettings } from '../../settings/pcm-settings.schema';
 import { PdfCandidateImageService } from '../../services/pdf-candidate-image.service';
 import { TourService } from '../../shared/tour/tour.service';
-import {
-  buildHomeTourDefinition,
-  CURRENT_HOME_TOUR_VERSION,
-  HOME_TOUR_ID,
-} from '../../shared/tour/home-tour.definition';
-import type { TourCompletionReason } from '../../shared/tour/tour.types';
 
 type EditorResult = {
   file: File;
@@ -148,6 +156,7 @@ type EditorResult = {
   renderedBlob?: Blob;
   renderedWidth?: number;
   renderedHeight?: number;
+  renderInfo?: EditorRenderInfo;
   renderedMimeType?: string;
 };
 
@@ -177,14 +186,12 @@ type FrameDetectionResult = {
     IonRow,
     IonGrid,
     IonPopover,
-    IonModal,
     LoadingStateComponent,
     ActionCardComponent,
     CoverImageStateComponent,
     CoverSourceActionsComponent,
     ScrollableButtonBarComponent,
     TripleButtonComponent,
-    RemoveAdsUpgradeModalComponent,
     BestCandidatePickerComponent,
     WorkflowNavigationComponent,
     WorkflowStepperComponent,
@@ -195,12 +202,18 @@ export class ChangePage implements OnInit, OnDestroy {
   private static readonly THUMB_SIZE = 96;
   private static readonly FORMAT_ID_AUTO = 'auto';
   private static readonly FORMAT_ID_A4 = 'a4';
-  private static readonly FORMAT_ID_CARTA = 'carta';
-  private static readonly FORMAT_ID_OFICIO = 'oficio';
+  private static readonly FORMAT_ID_A3 = 'a3';
+  private static readonly FORMAT_ID_A5 = 'a5';
+  private static readonly FORMAT_ID_A6 = 'a6';
+  private static readonly FORMAT_ID_LETTER = 'letter';
+  private static readonly FORMAT_ID_LEGAL = 'legal';
+  private static readonly FORMAT_ID_TABLOID = 'tabloid';
   private static readonly FORMAT_ID_NINE_SIXTEEN = 'nine_sixteen';
   private static readonly FORMAT_ID_THREE_FOUR = 'three_four';
   private static readonly FORMAT_ID_ONE_ONE = 'one_one';
   private static readonly FORMAT_ID_CUSTOM = 'custom';
+  private static readonly CROP_TARGET_I18N_PREFIX =
+    'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL';
   private modalCtrl = inject(ModalController);
   private fileService = inject(FileService);
   private workingCopy = inject(PdfWorkingCopyService);
@@ -208,6 +221,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private imagePipe = inject(ImagePipelineService);
   private readonly previewEditingPage = inject(PreviewEditingPageService);
   private billing = inject(BillingService);
+  private removeAdsPurchasePage = inject(RemoveAdsPurchasePageService);
   private toastCtrl = inject(ToastController);
   private popoverCtrl = inject(PopoverController);
   private coversEvents = inject(CoversEventsService);
@@ -217,6 +231,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private editorSession = inject(EditorSessionService);
+  private editorSessionExit = inject(EditorSessionExitService);
   private settings = inject(SettingsStore<PcmSettings>);
   private ratingService = inject(RatingService);
   private recommendedAppsService = inject(RecommendedAppsService);
@@ -231,12 +246,13 @@ export class ChangePage implements OnInit, OnDestroy {
   private coversEventsSub?: Subscription;
   private rewriteProgressSub?: PluginListenerHandle;
   private lastEditorSessionId?: string;
+  private editorTargetOverride?: CropTarget;
+  private lastEditorRenderInfo?: EditorRenderInfo;
   private lastEditorSourceMode: EditorSourceMode = 'image';
   private previewLongPressTimer: ReturnType<typeof setTimeout> | null = null;
   private suppressNextImagePick = false;
   private workingMaxSideApplied: boolean | null = null;
   private persistedCropTargetId = 'pdf';
-  private readonly editorTourSeenVersionKey = 'pcm_editor_tour_seen_version';
   private readonly artifactReductionInfoSeenKey =
     'pcm_editor_artifact_reduction_info_seen';
   private readonly editorEReaderOptimizationFeatureEnabled = true;
@@ -244,10 +260,6 @@ export class ChangePage implements OnInit, OnDestroy {
   private activeProjectFilename?: string;
   private lastHandledProjectRouteKey: string | null = null;
   private isOpeningProjectFromRoute = false;
-  private readonly currentEditorTourVersion = 5;
-  private forceEditorTourOnNextEditorOpen = false;
-  private forceIncludeRemoveAdsStepOnNextHomeTour = false;
-  private forceShowRemoveAdsEntryPointForTour = false;
   private adFallbackTrialActive = false;
   private readonly adFallbackTotal = 1;
   private adFallbackRemaining = this.adFallbackTotal;
@@ -297,7 +309,6 @@ export class ChangePage implements OnInit, OnDestroy {
       refreshOutline,
       appsOutline,
       informationCircleOutline,
-      optionsOutline,
     });
   }
 
@@ -359,6 +370,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
   isPickingImage = false;
   isExporting = false;
+  isResettingFlow = false;
   loadingMessageKey?: string;
 
   workingImageFile?: File;
@@ -567,14 +579,11 @@ export class ChangePage implements OnInit, OnDestroy {
   getSuggestedStepId():
     | 'pdf-picker'
     | 'cover-source-image'
-    | 'adjust-button'
     | 'create-button'
     | 'result-actions'
     | null {
-    if (this.homeTour.isActive()) return null;
     if (!this.hasValidPdf() || this.pdfErrorKey) return 'pdf-picker';
     if (!this.previewUrl || this.imageErrorKey) return 'cover-source-image';
-    if (!this.cropState && this.canCrop()) return 'adjust-button';
     if (this.canSaveShare()) return 'result-actions';
     if (this.canGenerate()) return 'create-button';
     return null;
@@ -592,24 +601,28 @@ export class ChangePage implements OnInit, OnDestroy {
     this.adsRemoved = this.billing.isAdsRemoved();
     this.adsRemovedSub = this.billing.adsRemoved$.subscribe(
       (value: boolean) => {
-        const tierChanged = this.adsRemoved !== value;
-        this.adsRemoved = value;
-        if (this.adsRemoved) {
-          this.adFallbackTrialActive = false;
-          void this.persistAdFallbackState();
-        }
-        if (tierChanged) {
-          this.exportImageFile = undefined;
-          this.invalidateGeneratedOutputState();
-          this.syncAuthorizedExportQualityMode('billing-state-change');
-        }
-        this.syncRemoveAdsPulse();
+        this.runInZone(() => {
+          const tierChanged = this.adsRemoved !== value;
+          this.adsRemoved = value;
+          if (this.adsRemoved) {
+            this.adFallbackTrialActive = false;
+            void this.persistAdFallbackState();
+          }
+          if (tierChanged) {
+            this.exportImageFile = undefined;
+            this.invalidateGeneratedOutputState();
+            this.syncAuthorizedExportQualityMode('billing-state-change');
+          }
+          this.syncRemoveAdsPulse();
+        });
       },
     );
     this.removeAdsPriceFormatted = this.billing.getRemoveAdsPriceFormatted();
     this.removeAdsPriceSub = this.billing.removeAdsPrice$.subscribe(
       (value: string | null) => {
-        this.removeAdsPriceFormatted = value;
+        this.runInZone(() => {
+          this.removeAdsPriceFormatted = value;
+        });
       },
     );
     this.syncRemoveAdsPulse();
@@ -718,41 +731,86 @@ export class ChangePage implements OnInit, OnDestroy {
   private getCurrentFormatOptions(): CropFormatOption[] {
     const dims = this.resolveDocumentDims() ?? this.baseTarget;
 
-    return [
+    const options: CropFormatOption[] = [
       {
         id: ChangePage.FORMAT_ID_AUTO,
         label: this.translate.instant('CHANGE.FORMAT_AUTO'),
         target: this.buildAbsoluteTarget(dims),
       },
       {
+        id: ChangePage.FORMAT_ID_A3,
+        label: this.cropTargetLabel('PAPER.PRESETS.A3'),
+        target: this.buildAspectTarget('a3', 297, 420, 'mm'),
+      },
+      {
         id: ChangePage.FORMAT_ID_A4,
         label: this.translate.instant('CHANGE.FORMAT_A4'),
-        target: this.buildRatioTarget(210, 297),
+        target: this.buildAspectTarget('a4', 210, 297, 'mm'),
       },
       {
-        id: ChangePage.FORMAT_ID_CARTA,
+        id: ChangePage.FORMAT_ID_A5,
+        label: this.cropTargetLabel('PAPER.PRESETS.A5'),
+        target: this.buildAspectTarget('a5', 148, 210, 'mm'),
+      },
+      {
+        id: ChangePage.FORMAT_ID_A6,
+        label: this.cropTargetLabel('PAPER.PRESETS.A6'),
+        target: this.buildAspectTarget('a6', 105, 148, 'mm'),
+      },
+      {
+        id: ChangePage.FORMAT_ID_LETTER,
         label: this.translate.instant('CHANGE.FORMAT_CARTA'),
-        target: this.buildRatioTarget(216, 279),
+        target: this.buildAspectTarget('letter', 8.5, 11, 'in'),
       },
       {
-        id: ChangePage.FORMAT_ID_OFICIO,
+        id: ChangePage.FORMAT_ID_LEGAL,
         label: this.translate.instant('CHANGE.FORMAT_OFICIO'),
-        target: this.buildRatioTarget(216, 356),
+        target: this.buildAspectTarget('legal', 8.5, 14, 'in'),
+      },
+      {
+        id: ChangePage.FORMAT_ID_TABLOID,
+        label: this.cropTargetLabel('PAPER.PRESETS.TABLOID'),
+        target: this.buildAspectTarget('tabloid', 11, 17, 'in'),
       },
       {
         id: ChangePage.FORMAT_ID_NINE_SIXTEEN,
         label: this.translate.instant('CHANGE.FORMAT_NINE_SIXTEEN'),
-        target: this.buildRatioTarget(9, 16),
+        target: this.buildAspectTarget('nine_sixteen', 9, 16, 'ratio'),
       },
       {
         id: ChangePage.FORMAT_ID_THREE_FOUR,
         label: this.translate.instant('CHANGE.FORMAT_THREE_FOUR'),
-        target: this.buildRatioTarget(3, 4),
+        target: this.buildAspectTarget('three_four', 3, 4, 'ratio'),
       },
       {
         id: ChangePage.FORMAT_ID_ONE_ONE,
         label: this.translate.instant('CHANGE.FORMAT_ONE_ONE'),
-        target: this.buildRatioTarget(1, 1),
+        target: this.buildAspectTarget('one_one', 1, 1, 'ratio'),
+      },
+      {
+        id: 'four_five',
+        label: this.cropTargetLabel('RATIO.PRESETS.4_5'),
+        target: this.buildAspectTarget('four_five', 4, 5, 'ratio'),
+      },
+      {
+        id: 'five_seven',
+        label: this.cropTargetLabel('RATIO.PRESETS.5_7'),
+        target: this.buildAspectTarget('five_seven', 5, 7, 'ratio'),
+      },
+      {
+        id: 'two_three',
+        label: this.cropTargetLabel('RATIO.PRESETS.2_3'),
+        target: this.buildAspectTarget('two_three', 2, 3, 'ratio'),
+      },
+      {
+        id: 'five_eight',
+        label: this.cropTargetLabel('RATIO.PRESETS.5_8'),
+        target: this.buildAspectTarget('five_eight', 5, 8, 'ratio'),
+      },
+      {
+        id: 'custom_ratio',
+        label: this.cropTargetLabel('RATIO.PRESETS.CUSTOM'),
+        target: this.buildAspectTarget('custom_ratio', 1, 1, 'ratio'),
       },
       {
         id: ChangePage.FORMAT_ID_CUSTOM,
@@ -760,27 +818,148 @@ export class ChangePage implements OnInit, OnDestroy {
         target: this.buildAbsoluteTarget(dims),
       },
     ];
+
+    if (!this.editorTargetOverride) return options;
+    return options.map((option) =>
+      option.id === this.editorTargetOverride?.formatId
+        ? { ...option, target: { ...this.editorTargetOverride } }
+        : option,
+    );
   }
 
   private buildAbsoluteTarget(dims: { width: number; height: number }): CropTarget {
     const normalized = this.normalizeDims(dims) ?? this.baseTarget;
     return {
+      formatId: 'fixed-document',
       width: normalized.width,
       height: normalized.height,
       output: 'target',
+      unit: 'px',
+      outputMode: 'fixed-size',
     };
   }
 
-  private buildRatioTarget(width: number, height: number): CropTarget {
+  private buildAspectTarget(
+    formatId: string,
+    width: number,
+    height: number,
+    unit: 'mm' | 'in' | 'ratio',
+  ): CropTarget {
     return {
+      formatId,
       width,
       height,
       output: 'source',
+      unit,
+      outputMode: 'aspect-only',
     };
+  }
+
+  private buildCropTargetsConfig(): CropTargetsConfig {
+    const activeCategory = this.resolveCropTargetCategory(this.selectedFormatId);
+    const prefix = ChangePage.CROP_TARGET_I18N_PREFIX;
+
+    return {
+      activeCategory,
+      paper: {
+        catalog: [
+          {
+            parentId: 'iso-216',
+            parentI18nKey: `${prefix}.CATALOG.PAPER.GROUPS.ISO_216`,
+            id: 'a-series',
+            i18nKey: `${prefix}.CATALOG.PAPER.GROUPS.A_SERIES`,
+            items: [
+              this.paperPreset('a3', `${prefix}.CATALOG.PAPER.PRESETS.A3`, 297, 420, 'mm'),
+              this.paperPreset('a4', `${prefix}.CATALOG.PAPER.PRESETS.A4`, 210, 297, 'mm'),
+              this.paperPreset('a5', `${prefix}.CATALOG.PAPER.PRESETS.A5`, 148, 210, 'mm'),
+              this.paperPreset('a6', `${prefix}.CATALOG.PAPER.PRESETS.A6`, 105, 148, 'mm'),
+            ],
+          },
+          {
+            parentId: 'north-american',
+            parentI18nKey: `${prefix}.CATALOG.PAPER.GROUPS.NORTH_AMERICAN`,
+            id: 'office',
+            i18nKey: `${prefix}.CATALOG.PAPER.GROUPS.NORTH_AMERICAN_OFFICE`,
+            items: [
+              this.paperPreset('letter', `${prefix}.CATALOG.PAPER.PRESETS.LETTER`, 8.5, 11, 'in'),
+              this.paperPreset('legal', `${prefix}.CATALOG.PAPER.PRESETS.LEGAL`, 8.5, 14, 'in'),
+              this.paperPreset('tabloid', `${prefix}.CATALOG.PAPER.PRESETS.TABLOID`, 11, 17, 'in'),
+            ],
+          },
+        ],
+        selectedParentId: 'iso-216',
+        selectedGroupId: 'a-series',
+        supportsOrientation: true,
+        defaultOrientation: 'portrait',
+      },
+      ratio: {
+        catalog: [
+          {
+            parentId: 'common',
+            parentI18nKey: `${prefix}.CATALOG.RATIO.GROUPS.COMMON`,
+            id: 'common-ratios',
+            i18nKey: `${prefix}.CATALOG.RATIO.GROUPS.COMMON`,
+            items: [
+              this.ratioPreset('one_one', `${prefix}.CATALOG.RATIO.PRESETS.1_1`, 1, 1),
+              this.ratioPreset('four_five', `${prefix}.CATALOG.RATIO.PRESETS.4_5`, 4, 5),
+              this.ratioPreset('three_four', `${prefix}.CATALOG.RATIO.PRESETS.3_4`, 3, 4),
+              this.ratioPreset('five_seven', `${prefix}.CATALOG.RATIO.PRESETS.5_7`, 5, 7),
+              this.ratioPreset('two_three', `${prefix}.CATALOG.RATIO.PRESETS.2_3`, 2, 3),
+              this.ratioPreset('five_eight', `${prefix}.CATALOG.RATIO.PRESETS.5_8`, 5, 8),
+              this.ratioPreset('nine_sixteen', `${prefix}.CATALOG.RATIO.PRESETS.9_16`, 9, 16),
+              this.ratioPreset('custom_ratio', `${prefix}.CATALOG.RATIO.PRESETS.CUSTOM`, 1, 1),
+            ],
+          },
+        ],
+        selectedParentId: 'common',
+        selectedGroupId: 'common-ratios',
+        supportsOrientation: true,
+        defaultOrientation: 'portrait',
+      },
+    };
+  }
+
+  private paperPreset(
+    id: string,
+    i18nKey: string,
+    width: number,
+    height: number,
+    unit: 'mm' | 'in',
+  ): CropTargetPreset {
+    return { id, i18nKey, width, height, unit, outputMode: 'aspect-only' };
+  }
+
+  private ratioPreset(
+    id: string,
+    i18nKey: string,
+    width: number,
+    height: number,
+  ): CropTargetPreset {
+    return { id, i18nKey, width, height, unit: 'ratio', outputMode: 'aspect-only' };
+  }
+
+  private resolveCropTargetCategory(id?: string): CropTargetCategory {
+    if (
+      ['a3', 'a4', 'a5', 'a6', 'letter', 'legal', 'tabloid'].includes(id ?? '')
+    ) {
+      return 'paper';
+    }
+    if (
+      ['one_one', 'two_three', 'three_four', 'four_five', 'five_seven', 'five_eight', 'nine_sixteen', 'custom_ratio'].includes(id ?? '')
+    ) {
+      return 'ratio';
+    }
+    return 'paper';
   }
 
   private buildCustomFormatLabel(): string {
     return this.translate.instant('CHANGE.FORMAT_CUSTOM');
+  }
+
+  private cropTargetLabel(path: string): string {
+    return this.translate.instant(
+      `${ChangePage.CROP_TARGET_I18N_PREFIX}.CATALOG.${path}`,
+    );
   }
 
   private resolveDocumentDims(): { width: number; height: number } | null {
@@ -1187,8 +1366,8 @@ export class ChangePage implements OnInit, OnDestroy {
     this.clearPdfError();
   }
 
-  private async resetWorkflowForNewPdf() {
-    await this.cleanupWorkingCopy();
+  private async resetWorkflowForNewPdf(waitForCleanup = true) {
+    const cleanupPromise = this.cleanupWorkingCopy();
     this.resetWorkflow();
     this.lastEditorSessionId = undefined;
     this.editorSession.clearSessions();
@@ -1204,6 +1383,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.outputBaseName = undefined;
     this.selectedPdfName = undefined;
     this.workingMaxSideApplied = null;
+    if (waitForCleanup) await cleanupPromise;
   }
 
   private async cleanupWorkingCopy() {
@@ -1642,12 +1822,20 @@ export class ChangePage implements OnInit, OnDestroy {
   private async applySmallWarn(
     reason: 'image-selected' | 'editor-apply',
     legacyDimsHint?: { width: number; height: number },
-    exportDimsHint?: { width: number; height: number },
+    renderInfo?: EditorRenderInfo,
   ): Promise<void> {
     void reason;
     void legacyDimsHint;
-    void exportDimsHint;
     this.clearImageWarn();
+    if (renderInfo?.warningCode !== 'FIXED_TARGET_UPSCALE') return;
+    this.imageWarnKey = 'EDITOR_RESOLUTION.UPSCALE_MESSAGE';
+    this.imageWarnParams = {
+      width: renderInfo.requestedWidth ?? renderInfo.renderedWidth,
+      height: renderInfo.requestedHeight ?? renderInfo.renderedHeight,
+      effectiveSourceWidth: renderInfo.effectiveSourceWidth ?? 0,
+      effectiveSourceHeight: renderInfo.effectiveSourceHeight ?? 0,
+      upscaleFactor: renderInfo.upscaleFactor,
+    };
     this.homeTour.requestSync();
   }
 
@@ -1699,21 +1887,32 @@ export class ChangePage implements OnInit, OnDestroy {
       file: sourceFile,
       sourceMode,
       target: {
+        formatId: selected.id,
         width: selected.target.width,
         height: selected.target.height,
+        output: selected.target.output,
+        unit:
+          selected.target.unit ??
+          (selected.target.output === 'source' ? 'ratio' : 'px'),
+        outputMode:
+          selected.target.outputMode ??
+          (selected.target.output === 'source' ? 'aspect-only' : 'fixed-size'),
       },
       initialState,
       tools: {
+        formatNavigation: 'categories',
         formats: {
           options: editorFormats,
           selectedId: selected.id,
         },
+        cropTargets: this.buildCropTargetsConfig(),
         eReaderOptimization: {
           enabled: this.editorEReaderOptimizationFeatureEnabled,
         },
       },
       output: {
         includeRenderedBlob: true,
+        exportQuality: toEditorRenderQuality(this.getEffectiveExportQualityMode()),
       },
       preferences: {
         artifactReductionInfo: {
@@ -1746,20 +1945,12 @@ export class ChangePage implements OnInit, OnDestroy {
     this.lastEditorSourceMode = sourceMode;
     this.lastEditorSessionId = sid;
     this.workflowStep = 3;
-    const shouldShowEditorTour = false;
     await this.homeTour.completeInteraction('editor-apply');
 
     const entryPath = sourceMode === 'scratch' ? '/editor/tools' : '/editor';
     this.router.navigate([entryPath], {
       queryParams: {
         sid,
-        ...(shouldShowEditorTour
-          ? {
-              tour: '1',
-              tourCurrent: '4',
-              tourTotal: this.canShowRemoveAdsEntryPoint() ? '7' : '6',
-            }
-          : {}),
       },
     });
   }
@@ -1793,11 +1984,17 @@ export class ChangePage implements OnInit, OnDestroy {
   private async applyCropResult(result: EditorResult): Promise<void> {
     const newFile = result.file;
     if (!newFile) return;
+    const sessionTarget = this.lastEditorSessionId
+      ? this.editorSession.getSession(this.lastEditorSessionId)?.target
+      : undefined;
+    if (result.formatId && sessionTarget?.formatId === result.formatId) {
+      this.editorTargetOverride = { ...sessionTarget };
+    }
     this.editorOpenedFromCurrentCover = false;
     this.workflowStep = 4;
     const renderedBlob = result.renderedBlob;
+    this.lastEditorRenderInfo = result.renderInfo;
     this.isApplyingFromEditor = true;
-    let editorTourShouldBeMarkedSeen = false;
     this.previewGenerationToken += 1;
     this.currentPreviewOrigin = 'edited';
 
@@ -1856,7 +2053,6 @@ export class ChangePage implements OnInit, OnDestroy {
     try {
       if (!renderedBlob) {
         console.warn('[PCM] editor result missing renderedBlob; skipping preview fallback');
-        editorTourShouldBeMarkedSeen = true;
         this.isApplyingFromEditor = false;
         return;
       }
@@ -1880,15 +2076,11 @@ export class ChangePage implements OnInit, OnDestroy {
       await this.applySmallWarn(
         'editor-apply',
         undefined,
-        renderedInfo ?? undefined,
+        result.renderInfo,
       );
-      editorTourShouldBeMarkedSeen = true;
       this.isApplyingFromEditor = false;
       return;
     } finally {
-      if (editorTourShouldBeMarkedSeen) {
-        await this.markEditorTourSeen();
-      }
       this.isApplyingFromEditor = false;
       await this.homeTour.completeInteraction('editor-apply');
     }
@@ -1928,9 +2120,21 @@ export class ChangePage implements OnInit, OnDestroy {
             : undefined,
       },
       target: {
+        formatId: selected.id,
         width: rawTarget.width,
         height: rawTarget.height,
-        output: rawTarget.output,
+        output:
+          (rawTarget.outputMode ??
+            (rawTarget.output === 'source' ? 'aspect-only' : 'fixed-size')) ===
+          'aspect-only'
+            ? 'source'
+            : 'target',
+        unit:
+          rawTarget.unit ??
+          (rawTarget.output === 'source' ? 'ratio' : 'px'),
+        outputMode:
+          rawTarget.outputMode ??
+          (rawTarget.output === 'source' ? 'aspect-only' : 'fixed-size'),
       },
       state: layoutState,
       frameFallback: { width: rawTarget.width, height: rawTarget.height },
@@ -1976,6 +2180,18 @@ export class ChangePage implements OnInit, OnDestroy {
 
   private async ensureExportImageFile(): Promise<File | null> {
     if (this.exportImageFile) return this.exportImageFile;
+
+    if (this.renderedImageBlob) {
+      const rendered = await encodeRenderedBlob(
+        this.renderedImageBlob,
+        this.selectedImageName || 'cover',
+        toEditorRenderQuality(this.getEffectiveExportQualityMode()),
+      );
+      if (rendered) {
+        this.exportImageFile = rendered;
+        return rendered;
+      }
+    }
 
     const input = this.buildCompositionInput('export');
     if (!input) return null;
@@ -2379,6 +2595,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private resetSelectedImage() {
+    this.renderedImageBlob = undefined;
     this.selectedImageFile = undefined;
     this.selectedImageName = undefined;
     this.originalImageDims = undefined;
@@ -2889,11 +3106,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   canShowRemoveAdsEntryPoint(): boolean {
-    return (
-      !this.adsRemoved &&
-      (this.forceShowRemoveAdsEntryPointForTour ||
-        this.billing.canShowRemoveAdsEntryPoint())
-    );
+    return !this.adsRemoved && this.billing.canShowRemoveAdsEntryPoint();
   }
 
   getRemoveAdsCtaSubtitleKey(): string {
@@ -2943,6 +3156,19 @@ export class ChangePage implements OnInit, OnDestroy {
       this.getRemoveAdsPurchaseState() === 'ready' &&
       !this.purchaseBusy
     );
+  }
+
+  private logPurchaseUiState(source: string): void {
+    this.billing.logPurchaseUiState(source, {
+      app: 'pcm',
+      adsRemoved: this.adsRemoved,
+      isOnline: this.isOnline,
+      purchaseBusy: this.purchaseBusy,
+      entryPointVisible: this.canShowRemoveAdsEntryPoint(),
+      purchaseState: this.getRemoveAdsPurchaseState(),
+      purchaseButtonEnabled: this.canPurchaseRemoveAds(),
+      restoreButtonEnabled: this.canRestoreRemoveAds(),
+    });
   }
 
   private syncRemoveAdsPulse(): void {
@@ -3246,11 +3472,8 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   async openPurchaseModal(): Promise<void> {
-    if (!this.canShowRemoveAdsEntryPoint()) {
-      return;
-    }
-
-    if (this.purchaseBusy) {
+    this.logPurchaseUiState('open-before-guard');
+    if (!this.canShowRemoveAdsEntryPoint() || this.purchaseBusy) {
       return;
     }
 
@@ -3258,26 +3481,18 @@ export class ChangePage implements OnInit, OnDestroy {
       price: this.removeAdsPriceFormatted,
     });
 
-    this.purchaseBusy = true;
-    try {
-      await this.billing.preparePurchaseUi();
-    } finally {
-      this.purchaseBusy = false;
-    }
-
-    if (!this.canShowRemoveAdsEntryPoint()) {
-      return;
-    }
-
-    this.trackRemoveAdsEvent('remove_ads_modal_open', {
-      price: this.removeAdsPriceFormatted,
+    this.removeAdsPurchasePage.open({
+      variant: 'PCM',
+      returnUrl: '/tabs/change',
     });
-    this.purchaseModalOpen = true;
+    await this.router.navigateByUrl('/remove-ads');
     await this.homeTour.completeInteraction('remove-ads-open');
   }
 
   closePurchaseModal(): void {
-    this.purchaseModalOpen = false;
+    this.runInZone(() => {
+      this.purchaseModalOpen = false;
+    });
   }
 
   onPurchaseModalCloseClick(): void {
@@ -3290,14 +3505,19 @@ export class ChangePage implements OnInit, OnDestroy {
       return;
     }
 
-    this.purchaseBusy = true;
+    this.runInZone(() => {
+      this.purchaseBusy = true;
+    });
+    await this.flushUi();
     try {
       const success = await this.billing.purchaseRemoveAds();
       if (!success) {
         return;
       }
 
-      this.closePurchaseModal();
+      this.runInZone(() => {
+        this.closePurchaseModal();
+      });
       this.trackRemoveAdsEvent('remove_ads_purchase_success', {
         price: this.removeAdsPriceFormatted,
       });
@@ -3313,7 +3533,10 @@ export class ChangePage implements OnInit, OnDestroy {
         'error',
       );
     } finally {
-      this.purchaseBusy = false;
+      this.runInZone(() => {
+        this.purchaseBusy = false;
+      });
+      await this.flushUi();
     }
   }
 
@@ -3322,7 +3545,10 @@ export class ChangePage implements OnInit, OnDestroy {
       return;
     }
 
-    this.purchaseBusy = true;
+    this.runInZone(() => {
+      this.purchaseBusy = true;
+    });
+    await this.flushUi();
     try {
       const restored = await this.billing.restorePurchases();
       if (!restored) {
@@ -3334,7 +3560,9 @@ export class ChangePage implements OnInit, OnDestroy {
         return;
       }
 
-      this.closePurchaseModal();
+      this.runInZone(() => {
+        this.closePurchaseModal();
+      });
       await this.showToast(
         'COMMON.REMOVE_ADS_RESTORED',
         { duration: 1800 },
@@ -3343,7 +3571,10 @@ export class ChangePage implements OnInit, OnDestroy {
     } catch {
       await this.showToast('COMMON.RESTORE_ERROR', { duration: 1800 }, 'error');
     } finally {
-      this.purchaseBusy = false;
+      this.runInZone(() => {
+        this.purchaseBusy = false;
+      });
+      await this.flushUi();
     }
   }
 
@@ -3396,6 +3627,13 @@ export class ChangePage implements OnInit, OnDestroy {
 
     this.exportQualityMode = mode;
     this.exportImageFile = undefined;
+    if (this.lastEditorRenderInfo) {
+      this.lastEditorRenderInfo = updateEditorRenderQuality(
+        this.lastEditorRenderInfo,
+        toEditorRenderQuality(this.getEffectiveExportQualityMode()),
+      );
+    }
+    void this.applySmallWarn('editor-apply', undefined, this.lastEditorRenderInfo);
     this.invalidateGeneratedOutputState();
     await this.settings.setForScope('exportQuality', {
       exportQualityMode: mode,
@@ -3937,7 +4175,7 @@ export class ChangePage implements OnInit, OnDestroy {
     try {
       const result = await this.pdfRewrite.rewriteCover({
         inputPath: this.workingPdfNativePath,
-        outputPath: outputTarget.nativePath,
+        outputPath: outputTarget.rewriteNativePath,
         newCoverPath: tempCover.nativePath,
         mode: this.coverPageMode,
       });
@@ -3960,15 +4198,18 @@ export class ChangePage implements OnInit, OnDestroy {
         });
       }
 
+      const committedOutput =
+        await this.fileService.commitNativeDocumentOutput(outputTarget);
       this.generatedPdfBytes = undefined;
       this.generatedPdfPath = undefined;
-      this.generatedPdfNativePath = outputTarget.nativePath;
+      this.generatedPdfNativePath = committedOutput.uri;
       this.generatedPdfFilename = outputTarget.filename;
       this.rewriteProgressPercent = 100;
       this.logSaveFlow('finalWriteComplete', {
         flow: 'nativeRewrite',
         filename: outputTarget.filename,
-        outputPath: outputTarget.nativePath,
+        outputPath: committedOutput.uri,
+        bytes: committedOutput.size,
         writeCompletedAt: new Date().toISOString(),
       });
 
@@ -4024,6 +4265,7 @@ export class ChangePage implements OnInit, OnDestroy {
       this.isNativeRewriteInProgress = false;
       this.isCancellingNativeRewrite = false;
       await this.workingCopy.cleanupWorkingCopy(tempCover.path);
+      await this.fileService.cleanupNativeDocumentOutput(outputTarget);
     }
   }
 
@@ -4322,7 +4564,19 @@ export class ChangePage implements OnInit, OnDestroy {
     if (!openedProject) {
       await this.consumeEditorResult();
     }
+    await this.tryOpenPurchaseFromRoute();
     void this.refreshHeaderItems();
+  }
+
+  private async tryOpenPurchaseFromRoute(): Promise<void> {
+    if (
+      this.route.snapshot.queryParamMap.get(PURCHASE_INTENT_QUERY_PARAM) !==
+      REMOVE_ADS_PURCHASE_INTENT
+    ) {
+      return;
+    }
+
+    await this.openPurchaseModal();
   }
 
   private async refreshHeaderItems(): Promise<void> {
@@ -4331,6 +4585,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.showRecommended = this.recommendedApps.length > 0;
     this.headerItems = buildHomeHeaderItems(this.showRecommended, {
       appsLabel: this.translate.instant('ARR.TOOLS.APPS'),
+      resetLabel: this.translate.instant('UI_THEME.RESET'),
       includeGuide: false,
     });
   }
@@ -4342,6 +4597,44 @@ export class ChangePage implements OnInit, OnDestroy {
       navigateToRecommended: async () => {
         await this.router.navigateByUrl('/tabs/recommended-apps');
       },
+      resetFlow: () => this.resetFlow(),
+    });
+  }
+
+  async resetFlow(): Promise<void> {
+    if (this.isResettingFlow) return;
+    if (!(await this.editorSessionExit.confirmResetFlow())) return;
+    this.runInZone(() => {
+      this.isResettingFlow = true;
+      this.changeDetector.detectChanges();
+    });
+    await this.yieldResetTurn();
+    await this.runInZone(async () => {
+      try {
+        if (this.isNativeRewriteInProgress && !this.isCancellingNativeRewrite) {
+          await this.cancelNativeRewrite().catch(() => undefined);
+        }
+        await this.resetWorkflowForNewPdf();
+        if (this.pdfInput?.nativeElement) {
+          this.pdfInput.nativeElement.value = '';
+        }
+      } finally {
+        this.isResettingFlow = false;
+        this.changeDetector.detectChanges();
+      }
+    });
+  }
+
+  private async yieldResetTurn(): Promise<void> {
+    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+      await Promise.resolve();
+      return;
+    }
+
+    await new Promise<void>((resolve) => {
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => resolve());
+      });
     });
   }
 
@@ -4461,8 +4754,13 @@ export class ChangePage implements OnInit, OnDestroy {
     if (formatId === 'with_frame' || formatId === 'without_frame') {
       return ChangePage.FORMAT_ID_AUTO;
     }
-    if (formatId && options.some((option) => option.id === formatId)) {
-      return formatId;
+    const legacyAliases: Record<string, string> = {
+      carta: 'letter',
+      oficio: 'legal',
+    };
+    const normalizedId = formatId ? legacyAliases[formatId] ?? formatId : undefined;
+    if (normalizedId && options.some((option) => option.id === normalizedId)) {
+      return normalizedId;
     }
 
     return options[0]?.id ?? ChangePage.FORMAT_ID_AUTO;
@@ -4482,96 +4780,6 @@ export class ChangePage implements OnInit, OnDestroy {
       source: 'save-success',
       metadata: { flow },
     });
-  }
-
-  private async maybeStartHomeTour(force = false): Promise<void> {
-    if (this.homeTour.isActive()) {
-      return;
-    }
-
-    const settings = await this.settings.load();
-    if (!force && !this.shouldAutoStartHomeTour(settings)) {
-      return;
-    }
-
-    await this.ensureTourLocaleReady(settings);
-    this.closeInfo();
-    const includeRemoveAdsStep =
-      (!this.adsRemoved && this.billing.canShowRemoveAdsEntryPoint()) ||
-      (!this.adsRemoved && this.forceIncludeRemoveAdsStepOnNextHomeTour);
-    this.forceShowRemoveAdsEntryPointForTour =
-      !this.adsRemoved && this.forceIncludeRemoveAdsStepOnNextHomeTour;
-
-    await this.homeTour.start(
-      buildHomeTourDefinition(this.translate, {
-        includeRemoveAdsStep,
-      }),
-      {
-        onComplete: async (reason: TourCompletionReason) => {
-          this.forceIncludeRemoveAdsStepOnNextHomeTour = false;
-          this.forceShowRemoveAdsEntryPointForTour = false;
-          await this.markHomeTourSeen(reason);
-        },
-      },
-    );
-  }
-
-  private async ensureTourLocaleReady(settings: PcmSettings): Promise<void> {
-    const expectedLanguage =
-      settings.language ?? (await detectSupportedLocale());
-    if (this.translate.currentLang === expectedLanguage) {
-      return;
-    }
-
-    await firstValueFrom(this.translate.use(expectedLanguage));
-  }
-
-  private shouldAutoStartHomeTour(settings: PcmSettings): boolean {
-    return settings.homeTourSeen !== true;
-  }
-
-  private async markHomeTourSeen(_reason: TourCompletionReason): Promise<void> {
-    await this.settings.set((prev) => ({
-      ...prev,
-      homeTourSeen: true,
-      homeTourVersion: CURRENT_HOME_TOUR_VERSION,
-      homeTourSeenAt: new Date().toISOString(),
-      preferences: {
-        ...(prev.preferences ?? {}),
-        [this.editorTourSeenVersionKey]: this.currentEditorTourVersion,
-      },
-    }));
-  }
-
-  private async startManualHomeTour(): Promise<void> {
-    this.forceEditorTourOnNextEditorOpen = true;
-    this.forceIncludeRemoveAdsStepOnNextHomeTour = true;
-    this.closeInfo();
-    await this.maybeStartHomeTour(true);
-  }
-
-  private async markEditorTourSeen(): Promise<void> {
-    await this.settings.set((prev) => ({
-      ...prev,
-      preferences: {
-        ...(prev.preferences ?? {}),
-        [this.editorTourSeenVersionKey]: this.currentEditorTourVersion,
-      },
-    }));
-  }
-
-  private async shouldShowEditorTour(): Promise<boolean> {
-    if (this.forceEditorTourOnNextEditorOpen) {
-      this.forceEditorTourOnNextEditorOpen = false;
-      return true;
-    }
-
-    const settings = await this.settings.load();
-    const seenVersion = settings.preferences?.[this.editorTourSeenVersionKey];
-    return (
-      typeof seenVersion !== 'number' ||
-      seenVersion < this.currentEditorTourVersion
-    );
   }
 
   private logSaveFlow(event: string, payload?: Record<string, unknown>): void {

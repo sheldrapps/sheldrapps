@@ -1,4 +1,4 @@
-﻿import { Component, OnDestroy, inject } from '@angular/core';
+import { Component, OnDestroy, inject } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { Title } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';

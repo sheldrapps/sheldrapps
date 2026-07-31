@@ -1,4 +1,4 @@
-﻿
+
 import { Injectable, inject } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import {

@@ -7,6 +7,7 @@
         variant="iconText"
         align="start"
         edge="end"
+        [disabled]="isResettingFlow"
         (selectItem)="onHeaderItemClick($event)"
       ></sh-scrollable-button-bar>
     </ion-buttons>
@@ -17,7 +18,6 @@
   [fullscreen]="true"
   class="ion-padding"
   [scrollEvents]="true"
-  (ionScroll)="onTourContentScroll()"
 >
   @let suggestedStepId = getSuggestedStepId();
 
@@ -31,7 +31,6 @@
   @if (workflowStep === 0) {
   <div
     class="field-section model-picker-section"
-    data-tour-id="device-section"
   >
     @if (workflowStep === 0) {
     <div class="field-title">
@@ -57,7 +56,7 @@
           <div class="app-select-label">
             {{ 'CREATE.SELECT_BRAND_LABEL' | translate }}
           </div>
-          <ion-item class="model-picker-selectors__item" data-tour-id="brand-select">
+          <ion-item class="model-picker-selectors__item">
             <ion-select
               class="model-picker-selectors__select"
               [(ngModel)]="selectedBrandId"
@@ -82,7 +81,7 @@
           <div class="app-select-label">
             {{ 'CREATE.SELECT_GROUP_LABEL' | translate }}
           </div>
-          <ion-item class="model-picker-selectors__item" data-tour-id="group-select">
+          <ion-item class="model-picker-selectors__item">
             <ion-select
               class="model-picker-selectors__select"
               [(ngModel)]="selectedGroupId"
@@ -106,7 +105,7 @@
           <div class="app-select-label">
             {{ 'CREATE.SELECT_GENERATION_LABEL' | translate }}
           </div>
-          <ion-item class="model-picker-selectors__item" data-tour-id="model-select">
+          <ion-item class="model-picker-selectors__item">
             <ion-select
               class="model-picker-selectors__select"
               [(ngModel)]="selectedModel"
@@ -184,22 +183,8 @@
 
   @if (workflowStep >= 2 && (canEdit() || shouldShowExportOptions() || canGenerate())) {
   <div class="primary-actions">
-    @if (workflowStep === 2 && canEdit()) {
-    <ion-button
-      expand="block"
-      fill="outline"
-      data-tour-id="adjust-button"
-      (click)="onAdjustWithEditor()"
-      aria-label="{{ 'CREATE.ARIA_CROP' | translate }}"
-      [class.suggested-action--active]="suggestedStepId === 'adjust-button'"
-    >
-      <ion-icon slot="start" name="options-outline"></ion-icon>
-      {{ 'CREATE.CROP_ACTION' | translate }}
-    </ion-button>
-    }
-
     @if (shouldShowExportOptions()) {
-    <div data-tour-id="export-quality">
+    <div>
       <sh-triple-button
         mode="export-quality-mode"
         [selectedValue]="getEffectiveExportQualityMode()"
@@ -214,7 +199,6 @@
     <div class="actions">
       <ion-button
         expand="block"
-        data-tour-id="create-button"
         (click)="onGenerate()"
         [class.suggested-action--active]="suggestedStepId === 'create-button'"
       >
@@ -228,7 +212,7 @@
 
   @if (workflowStep === 3 && canSaveShare()) {
   <div class="secondary-actions">
-    <ion-grid class="app-action-grid" data-tour-id="result-actions">
+    <ion-grid class="app-action-grid">
       <ion-row>
         <ion-col size="6">
           <ion-button
@@ -276,7 +260,6 @@
     <ion-button
       expand="block"
       fill="outline"
-      data-tour-id="remove-ads-cta"
       class="premium-upgrade-cta"
       [class.premium-upgrade-cta--pulse]="removeAdsPulseActive"
       (click)="openPurchaseModal()"
@@ -328,31 +311,18 @@
     </ng-template>
   </ion-popover>
 
-  <ion-modal
-    [isOpen]="purchaseModalOpen"
-    (didDismiss)="closePurchaseModal()"
-    class="remove-ads-modal"
-  >
-    <ng-template>
-      <div class="app-modal-content remove-ads-modal__content">
-        <sh-remove-ads-upgrade-modal
-          variant="CCFK"
-          [billingReady]="getRemoveAdsPurchaseState() === 'ready'"
-          [priceFormatted]="removeAdsPriceFormatted"
-          [purchaseDisabled]="!canPurchaseRemoveAds()"
-          [restoreDisabled]="!canRestoreRemoveAds()"
-          (closeRequested)="onPurchaseModalCloseClick()"
-          (purchaseRequested)="onPurchaseRemoveAds()"
-          (restoreRequested)="onRestorePurchases()"
-        ></sh-remove-ads-upgrade-modal>
-      </div>
-    </ng-template>
-  </ion-modal>
 
   @if (isPickingImage || isExporting) {
     <sh-loading-state
       variant="fullscreen"
       [label]="(loadingMessageKey || 'COMMON.LOADING') | translate"
+    ></sh-loading-state>
+  }
+
+  @if (isResettingFlow) {
+    <sh-loading-state
+      variant="fullscreen"
+      [label]="'UI_THEME.RESETTING' | translate"
     ></sh-loading-state>
   }
 

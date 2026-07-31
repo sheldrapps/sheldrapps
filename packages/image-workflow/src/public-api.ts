@@ -27,6 +27,12 @@ export {
   isDitheringEnabled,
   renderCompositionToCanvas,
   renderCompositionToFile,
+  encodeCompositionCanvas,
+  encodeRenderedBlob,
+  buildEditorRenderInfo,
+  updateEditorRenderQuality,
+  resolveCompositionTarget,
+  isValidCompositionTarget,
   resolveArtifactReductionMode,
   resolveCoverColorMode,
   EXPORT_QUALITY_OPTIONS,
@@ -36,6 +42,7 @@ export {
   normalizeExportQualityMode,
   migrateLegacyExportQualityMode,
   getCoverExportOptions,
+  toEditorRenderQuality,
 } from "./lib/core/pipeline";
 export * from "./lib/core/preview/dither-preview";
 export * from "./lib/e-reader-preview/e-reader-frame-colors";

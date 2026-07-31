@@ -19,7 +19,8 @@ import {
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
-import { colorPaletteOutline } from 'ionicons/icons';
+import { colorPaletteOutline, sparklesOutline } from 'ionicons/icons';
+import { RemoveAdsPurchasePageService } from '@sheldrapps/ads-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
 import {
@@ -63,6 +64,7 @@ export class SettingsPage {
   private readonly settings = inject(SettingsStore<EpubMergerAndSplitterSettings>);
   readonly lang = inject(LanguageService);
   private readonly router = inject(Router);
+  private readonly removeAdsPurchasePage = inject(RemoveAdsPurchasePageService);
   private readonly theme = inject(ThemeService);
   private readonly uiThemeI18n = inject(UiThemeI18nService);
   private readonly ratingService = inject(RatingService);
@@ -70,6 +72,7 @@ export class SettingsPage {
   constructor() {
     addIcons({
       colorPaletteOutline,
+      sparklesOutline,
     });
   }
 
@@ -132,6 +135,18 @@ export class SettingsPage {
         leadingIconName: 'color-palette-outline',
         trailingIconName: 'chevron-forward-outline',
         ariaLabel: this.uiThemeI18n.texts().UI_THEME.THEME_SETTINGS.TITLE,
+      },
+    ];
+  }
+
+  get removeAdsSettingsItems(): SelectableButtonListItem[] {
+    return [
+      {
+        value: 'remove-ads',
+        titleKey: 'COMMON.UPGRADE_TO_PRO',
+        leadingIconName: 'sparkles-outline',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'COMMON.UPGRADE_TO_PRO',
       },
     ];
   }
@@ -221,6 +236,14 @@ export class SettingsPage {
 
   onThemeSettingsAction(): void {
     void this.router.navigateByUrl('/tabs/settings/theme');
+  }
+
+  onRemoveAdsSettingsAction(): void {
+    this.removeAdsPurchasePage.open({
+      variant: 'EMAS',
+      returnUrl: '/tabs/home',
+    });
+    void this.router.navigateByUrl('/remove-ads');
   }
 
 

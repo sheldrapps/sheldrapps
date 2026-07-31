@@ -1,6 +1,10 @@
 import { APP_INITIALIZER, inject, makeEnvironmentProviders } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { detectSupportedLocale, LanguageService } from '@sheldrapps/i18n-kit';
+import {
+  detectSupportedLocale,
+  LanguageService,
+  syncLauncherAlias,
+} from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
 import { EpubMergerAndSplitterSettings } from '../settings/epub-merger-and-splitter-settings.schema';
@@ -30,6 +34,7 @@ export function provideEpubMergerAndSplitterBootstrapInitializer() {
           }
 
           await lang.set(language);
+          void syncLauncherAlias(language);
           await theme.initialize();
         };
       },

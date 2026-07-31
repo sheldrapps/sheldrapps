@@ -1,0 +1,23 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button
+        [defaultHref]="returnUrl"
+      ></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ presentation.titleKey | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<sh-remove-ads-upgrade-modal
+  [variant]="variant"
+  [showHeader]="false"
+  [billingReady]="billingReady"
+  [priceFormatted]="removeAdsPriceFormatted"
+  [purchaseDisabled]="!canPurchase"
+  [restoreDisabled]="!canRestore"
+  [busy]="purchaseBusy"
+  (closeRequested)="closePage()"
+  (purchaseRequested)="purchase()"
+  (restoreRequested)="restore()"
+></sh-remove-ads-upgrade-modal>

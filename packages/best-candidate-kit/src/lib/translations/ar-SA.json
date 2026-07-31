@@ -1,39 +1,39 @@
 {
   "BEST_CANDIDATE": {
     "ACTION": {
-      "DETECT_COVER": "Detect cover automatically"
+      "DETECT_COVER": "اكتشف الغلاف تلقائيًا"
     },
     "LOADING": {
-      "TITLE": "Searching for candidate images..."
+      "TITLE": "جاري البحث عن صور مرشحة..."
     },
     "EMPTY": {
-      "TITLE": "No cover candidates found",
-      "DESCRIPTION": "We could not find useful images inside this EPUB."
+      "TITLE": "لم يتم العثور على مرشحين للغلاف",
+      "DESCRIPTION": "لم نتمكن من العثور على صور مفيدة داخل ملف EPUB هذا."
     },
     "PICKER": {
-      "TITLE": "Choose a possible cover",
-      "DESCRIPTION": "We found images that may work as the book cover.",
-      "LONG_PRESS_HINT": "Long press an image to preview it.",
-      "UNKNOWN_IMAGE": "Unknown image",
-      "CANDIDATE_ALT": "Candidate image {{index}}",
-      "NO_COVER_DETECTED": "No cover detected, tap to select one of the suggestions.",
-      "LONG_PRESS_TO_PREVIEW": "Long press to preview."
+      "TITLE": "اختر غلافًا محتملًا",
+      "DESCRIPTION": "وجدنا صورًا قد تعمل كغلاف الكتاب.",
+      "LONG_PRESS_HINT": "اضغط للتحديد",
+      "NO_COVER_DETECTED": "لم يتم اكتشاف غلاف، اضغط لاختيار أحد الاقتراحات.",
+      "LONG_PRESS_TO_PREVIEW": "اضغط مطولًا للمعاينة",
+      "UNKNOWN_IMAGE": "صورة غير معروفة",
+      "CANDIDATE_ALT": "صورة مرشحة {{index}}"
     },
     "REASON": {
-      "FIRST_LARGE_IMAGE": "First large image",
-      "COVER_RATIO": "Cover-like ratio",
-      "NEAR_BOOK_START": "Near the beginning",
-      "FILENAME_COVER": "Cover-like filename",
-      "LARGE_RESOLUTION": "Large image",
-      "METADATA_COVER": "Marked as cover metadata",
-      "SMALL_ICON_RISK": "May be icon-like",
-      "DECORATIVE_RISK": "May be decorative"
+      "FIRST_LARGE_IMAGE": "أول صورة كبيرة",
+      "COVER_RATIO": "نسبة تشبه الغلاف",
+      "NEAR_BOOK_START": "بالقرب من البداية",
+      "FILENAME_COVER": "اسم ملف يشبه الغلاف",
+      "LARGE_RESOLUTION": "صورة كبيرة",
+      "METADATA_COVER": "مميزة كغلاف في البيانات الوصفية",
+      "SMALL_ICON_RISK": "قد تكون تشبه الأيقونة",
+      "DECORATIVE_RISK": "قد تكون زخرفية"
     },
     "PREVIEW": {
-      "TITLE": "Image preview",
-      "OPEN": "Preview",
-      "CLOSE": "Close",
-      "SELECT": "Use this image"
+      "TITLE": "معاينة الصورة",
+      "OPEN": "معاينة",
+      "CLOSE": "إغلاق",
+      "SELECT": "استخدم هذه الصورة"
     }
   }
 }

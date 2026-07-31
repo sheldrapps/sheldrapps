@@ -7,5 +7,6 @@ export { normalizeFilenameKey } from './lib/filename-keys';
 
 export * from './lib/file-kit.service';
 export * from './lib/pdf-public-store';
+export { PUBLIC_FILESYSTEM, type PublicFilesystem } from './lib/public-filesystem';
 export * from './lib/web-pdf-cover.service';
 export * from './lib/providers-pdf';

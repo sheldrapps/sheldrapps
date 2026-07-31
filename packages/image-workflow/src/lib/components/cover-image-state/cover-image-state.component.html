@@ -9,6 +9,10 @@
   [issues]="issues"
   (previewRequested)="onPreviewRequested()"
 ></sh-current-cover-preview>
+} @else if (fallbackLabelKey) {
+<div class="cover-image-state__fallback" role="img" [attr.aria-label]="fallbackLabelKey | translate">
+  {{ fallbackLabelKey | translate }}
+</div>
 } @else if (issues.length) {
 <div class="cover-image-state__issues-only">
   <sh-image-validation-issues

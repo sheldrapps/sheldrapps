@@ -1,4 +1,4 @@
-﻿export type AdsUnits = {
+export type AdsUnits = {
   rewarded: string;
 };
 

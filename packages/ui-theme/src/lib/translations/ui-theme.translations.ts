@@ -1,5 +1,8 @@
 export type UiThemeTranslations = {
   UI_THEME: {
+    RESET: string;
+    RESETTING: string;
+    RESET_CONFIRMATION: string;
     UNDER_CONSTRUCTION: {
       TITLE: string;
       BODY: string;
@@ -27,6 +30,9 @@ export type UiThemeTranslations = {
 export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
   'en-US': {
     UI_THEME: {
+      RESET: 'Restart',
+      RESETTING: 'Restarting',
+      RESET_CONFIRMATION: 'All files and edits will be discarded, and you will return to the start of the workflow.',
       UNDER_CONSTRUCTION: {
         TITLE: 'Under construction',
         BODY: 'This screen is still being built.',
@@ -52,6 +58,9 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
   },
   'es-MX': {
     UI_THEME: {
+      RESET: 'Reiniciar',
+      RESETTING: 'Reiniciando',
+      RESET_CONFIRMATION: 'Se descartarán todos los archivos y ediciones, volverás al inicio del flujo.',
       UNDER_CONSTRUCTION: {
         TITLE: 'En construcción',
         BODY: 'Esta pantalla todavía se está construyendo.',
@@ -77,6 +86,9 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
   },
   'de-DE': {
     UI_THEME: {
+      RESET: 'Neu starten',
+      RESETTING: 'Wird neu gestartet',
+      RESET_CONFIRMATION: 'Alle Dateien und Bearbeitungen werden verworfen. Du kehrst zum Anfang des Ablaufs zurück.',
       UNDER_CONSTRUCTION: {
         TITLE: 'Im Aufbau',
         BODY: 'Dieser Bildschirm wird noch erstellt.',
@@ -102,6 +114,9 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
   },
   'fr-FR': {
     UI_THEME: {
+      RESET: 'Redémarrer',
+      RESETTING: 'Redémarrage',
+      RESET_CONFIRMATION: 'Tous les fichiers et toutes les modifications seront supprimés, et vous reviendrez au début du processus.',
       UNDER_CONSTRUCTION: {
         TITLE: 'En construction',
         BODY: 'Cet écran est encore en cours de création.',
@@ -127,6 +142,9 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
   },
   'it-IT': {
     UI_THEME: {
+      RESET: 'Riavviare',
+      RESETTING: 'Riavvio in corso',
+      RESET_CONFIRMATION: 'Tutti i file e le modifiche verranno eliminati e tornerai all’inizio del flusso.',
       UNDER_CONSTRUCTION: {
         TITLE: 'In costruzione',
         BODY: 'Questa schermata è ancora in fase di sviluppo.',
@@ -152,6 +170,9 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
   },
   'pt-BR': {
     UI_THEME: {
+      RESET: 'Reiniciar',
+      RESETTING: 'Reiniciando',
+      RESET_CONFIRMATION: 'Todos os arquivos e edições serão descartados, e você voltará ao início do fluxo.',
       UNDER_CONSTRUCTION: {
         TITLE: 'Em construção',
         BODY: 'Esta tela ainda está sendo construída.',
@@ -177,6 +198,9 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
   },
   'zh-TW': {
     UI_THEME: {
+      RESET: '重新啟動',
+      RESETTING: '正在重新啟動',
+      RESET_CONFIRMATION: '所有檔案與編輯內容都會被捨棄，你將返回流程開始處。',
       UNDER_CONSTRUCTION: {
         TITLE: '建置中',
         BODY: '此畫面仍在建置中。',
@@ -202,6 +226,9 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
   },
   'hi-IN': {
     UI_THEME: {
+      RESET: 'पुनः आरंभ करें',
+      RESETTING: 'पुनः आरंभ हो रहा है',
+      RESET_CONFIRMATION: 'सभी फ़ाइलें और संपादन हटाए जाएंगे और आप वर्कफ़्लो की शुरुआत पर लौट जाएंगे।',
       UNDER_CONSTRUCTION: {
         TITLE: 'निर्माणाधीन',
         BODY: 'यह स्क्रीन अभी बनाई जा रही है।',
@@ -227,6 +254,9 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
   },
   'ar-SA': {
     UI_THEME: {
+      RESET: 'إعادة التشغيل',
+      RESETTING: 'جارٍ إعادة التشغيل',
+      RESET_CONFIRMATION: 'سيتم تجاهل جميع الملفات والتعديلات، وستعود إلى بداية سير العمل.',
       UNDER_CONSTRUCTION: {
         TITLE: 'قيد الإنشاء',
         BODY: 'هذه الشاشة قيد الإنشاء حالياً.',
@@ -252,6 +282,9 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
   },
   'ja-JP': {
     UI_THEME: {
+      RESET: '再起動',
+      RESETTING: '再起動中',
+      RESET_CONFIRMATION: 'すべてのファイルと編集内容が破棄され、ワークフローの最初に戻ります。',
       UNDER_CONSTRUCTION: {
         TITLE: '構築中',
         BODY: 'この画面はまだ作成中です。',
@@ -277,6 +310,9 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
   },
   'ko-KR': {
     UI_THEME: {
+      RESET: '다시 시작',
+      RESETTING: '다시 시작하는 중',
+      RESET_CONFIRMATION: '모든 파일과 편집 내용이 삭제되고 워크플로 시작으로 돌아갑니다.',
       UNDER_CONSTRUCTION: {
         TITLE: '제작 중',
         BODY: '이 화면은 아직 만들어지는 중입니다.',
@@ -302,6 +338,9 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
   },
   'zh-CN': {
     UI_THEME: {
+      RESET: '重启',
+      RESETTING: '正在重启',
+      RESET_CONFIRMATION: '所有文件和编辑内容都会被丢弃，你将返回工作流开始处。',
       UNDER_CONSTRUCTION: {
         TITLE: '建设中',
         BODY: '此界面仍在构建中。',
@@ -327,6 +366,9 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
   },
   'ru-RU': {
     UI_THEME: {
+      RESET: 'Перезапустить',
+      RESETTING: 'Перезапуск',
+      RESET_CONFIRMATION: 'Все файлы и изменения будут удалены, и вы вернётесь к началу рабочего процесса.',
       UNDER_CONSTRUCTION: {
         TITLE: 'В разработке',
         BODY: 'Этот экран еще создается.',

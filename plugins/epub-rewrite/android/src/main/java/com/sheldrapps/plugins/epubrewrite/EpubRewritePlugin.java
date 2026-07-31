@@ -3,12 +3,15 @@ package com.sheldrapps.plugins.epubrewrite;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.content.ContentUris;
 import android.database.Cursor;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.StatFs;
 import android.provider.OpenableColumns;
+import android.provider.MediaStore;
 import android.util.Log;
 import androidx.core.content.FileProvider;
 
@@ -104,6 +107,18 @@ public class EpubRewritePlugin extends Plugin {
             "<\\?xml\\b[^>]*\\bencoding\\s*=\\s*(['\"])([^'\"]+)\\1",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL
         );
+    private static final Pattern XHTML_RESOURCE_ATTRIBUTE_PATTERN = Pattern.compile(
+        "(?:src|poster|data|xlink:href)\\s*=\\s*(['\\\"])([^'\\\"#?]+)\\1",
+        Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern XHTML_STYLESHEET_PATTERN = Pattern.compile(
+        "<link\\b[^>]*\\b(?:rel\\s*=\\s*(['\\\"])stylesheet\\1)[^>]*\\bhref\\s*=\\s*(['\\\"])([^'\\\"#?]+)\\2",
+        Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern CSS_RESOURCE_PATTERN = Pattern.compile(
+        "(?:url|@import)\\s*\\(?(?:\\s*['\\\"])?([^'\\\"()#?\\s]+)",
+        Pattern.CASE_INSENSITIVE
+    );
     private static final DateTimeFormatter WORK_TIMESTAMP_FORMAT =
         DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss", Locale.US);
 
@@ -163,6 +178,102 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     @PluginMethod
+    public void splitEpub(PluginCall call) {
+        runExclusive(call, "split", this::splitEpubInternal);
+    }
+
+    @PluginMethod
+    public void ensurePublicExportFolder(PluginCall call) {
+        try {
+            String folderName = requirePublicFolderName(call.getString("folderName"));
+            JSObject result = new JSObject();
+            result.put("success", true);
+            result.put("uri", publicRelativePath(folderName));
+            call.resolve(result);
+        } catch (Exception ex) {
+            call.resolve(errorResult("EXPORT_FOLDER_INVALID", ex.getMessage(), "public_folder"));
+        }
+    }
+
+    @PluginMethod
+    public void publishPublicDocument(PluginCall call) {
+        runExclusive(call, "publish_public", this::publishPublicDocumentInternal);
+    }
+
+    @PluginMethod
+    public void listPublicDocuments(PluginCall call) {
+        try {
+            String folderName = requirePublicFolderName(call.getString("folderName"));
+            String extension = call.getString("extension", "").toLowerCase(Locale.US);
+            JSArray files = new JSArray();
+            try (Cursor cursor = getContext().getContentResolver().query(
+                publicDownloadsCollection(),
+                new String[] { MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.SIZE },
+                MediaStore.MediaColumns.RELATIVE_PATH + "=?",
+                new String[] { publicRelativePath(folderName) },
+                MediaStore.MediaColumns.DISPLAY_NAME + " ASC"
+            )) {
+                while (cursor != null && cursor.moveToNext()) {
+                    String name = cursor.getString(1);
+                    if (name != null && (extension.isEmpty() || name.toLowerCase(Locale.US).endsWith(extension))) {
+                        JSObject item = new JSObject();
+                        item.put("name", name);
+                        item.put("uri", ContentUris.withAppendedId(publicDownloadsCollection(), cursor.getLong(0)).toString());
+                        item.put("size", cursor.getLong(2));
+                        files.put(item);
+                    }
+                }
+            }
+            JSObject result = new JSObject();
+            result.put("success", true);
+            result.put("files", files);
+            call.resolve(result);
+        } catch (Exception ex) {
+            call.resolve(errorResult("PUBLIC_LIST_FAILED", ex.getMessage(), "public_list"));
+        }
+    }
+
+    @PluginMethod
+    public void getPublicDocument(PluginCall call) {
+        try {
+            call.resolve(publicDocumentResult(requirePublicDocumentUri(call)));
+        } catch (Exception ex) {
+            call.resolve(errorResult("PUBLIC_DOCUMENT_NOT_FOUND", ex.getMessage(), "public_get"));
+        }
+    }
+
+    @PluginMethod
+    public void deletePublicDocument(PluginCall call) {
+        try {
+            Uri file = requirePublicDocumentUri(call);
+            if (getContext().getContentResolver().delete(file, null, null) != 1) {
+                throw new IOException("Unable to delete public document");
+            }
+            JSObject result = new JSObject();
+            result.put("success", true);
+            call.resolve(result);
+        } catch (Exception ex) {
+            call.resolve(errorResult("PUBLIC_DELETE_FAILED", ex.getMessage(), "public_delete"));
+        }
+    }
+
+    @PluginMethod
+    public void renamePublicDocument(PluginCall call) {
+        try {
+            Uri file = requirePublicDocumentUri(call);
+            String outputName = requirePublicFileName(call.getString("outputName"));
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, outputName);
+            if (getContext().getContentResolver().update(file, values, null, null) != 1) {
+                throw new IOException("Unable to rename public document");
+            }
+            call.resolve(publicDocumentResult(file));
+        } catch (Exception ex) {
+            call.resolve(errorResult("PUBLIC_RENAME_FAILED", ex.getMessage(), "public_rename"));
+        }
+    }
+
+    @PluginMethod
     public void openExternalFile(PluginCall call) {
         String inputPath = call.getString("inputPath");
         String mimeType = call.getString("mimeType", "application/epub+zip");
@@ -191,6 +302,32 @@ public class EpubRewritePlugin extends Plugin {
             call.resolve(errorResult("NO_HANDLER", null, "open"));
         } catch (Exception ex) {
             call.resolve(errorResult("OPEN_FAILED", ex.getMessage(), "open"));
+        }
+    }
+
+    @PluginMethod
+    public void scanFile(PluginCall call) {
+        String inputPath = call.getString("path");
+        String mimeType = call.getString("mimeType", "application/epub+zip");
+
+        try {
+            Path path = requireReadablePath(inputPath);
+            String absolutePath = path.toAbsolutePath().toString();
+            MediaScannerConnection.scanFile(
+                getContext(),
+                new String[] { absolutePath },
+                new String[] { mimeType },
+                (scannedPath, uri) -> {
+                    JSObject result = new JSObject();
+                    result.put("success", true);
+                    if (uri != null) {
+                        result.put("uri", uri.toString());
+                    }
+                    call.resolve(result);
+                }
+            );
+        } catch (Exception ex) {
+            call.resolve(errorResult("SCAN_FAILED", ex.getMessage(), "media_scan"));
         }
     }
 
@@ -315,6 +452,7 @@ public class EpubRewritePlugin extends Plugin {
         }
 
         cancelRequested.set(false);
+        debugIo("operation start stage=" + stage);
 
         executor.execute(() -> {
             try {
@@ -339,6 +477,7 @@ public class EpubRewritePlugin extends Plugin {
             } finally {
                 cancelRequested.set(false);
                 busy.set(false);
+                debugIo("operation end stage=" + stage);
             }
         });
     }
@@ -354,7 +493,7 @@ public class EpubRewritePlugin extends Plugin {
                 return;
             }
 
-            String coverEntryPath = findCoverEntryPath(zipFile, headers);
+            String coverEntryPath = findDeclaredCoverEntryPath(zipFile, headers);
             if (coverEntryPath == null) {
                 Log.w(TAG, "inspectEpub NO_COVER: unable to resolve cover entry");
                 call.resolve(errorResult("NO_COVER", "cover entry not found", "inspect"));
@@ -380,9 +519,20 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     private void rewriteCoverInternal(PluginCall call) throws Exception {
-        Path inputPath = requireReadablePath(call.getString("inputPath"));
-        Path outputPath = resolveOptionalWritablePath(call.getString("outputPath"));
-        Path newCoverPath = requireReadablePath(call.getString("newCoverPath"));
+        String rawInputPath = call.getString("inputPath");
+        String rawOutputPath = call.getString("outputPath");
+        String rawNewCoverPath = call.getString("newCoverPath");
+        debugIo(
+            "rewriteCover request inputPath=" + rawInputPath
+                + " outputPath=" + rawOutputPath
+                + " newCoverPath=" + rawNewCoverPath
+                + " coverEntryPath=" + call.getString("coverEntryPath")
+                + " replacementCoverEntryPath=" + call.getString("replacementCoverEntryPath")
+        );
+
+        Path inputPath = requireReadablePath(rawInputPath);
+        Path outputPath = resolveOptionalWritablePath(rawOutputPath);
+        Path newCoverPath = requireReadablePath(rawNewCoverPath);
         String coverEntryPath = normalizeZipPath(call.getString("coverEntryPath"));
         if (CompatStrings.isBlank(coverEntryPath)) {
             coverEntryPath = null;
@@ -409,6 +559,9 @@ public class EpubRewritePlugin extends Plugin {
                 + " inputBytes=" + inputBytes
                 + " inputPath=" + inputPath
                 + " outputPath=" + effectiveOutputPath
+                + " newCoverBytes=" + safeFileSize(newCoverPath)
+                + " coverEntryPath=" + coverEntryPath
+                + " replacementCoverEntryPath=" + replacementCoverEntryPath
         );
 
         try (ZipFile sourceZip = new ZipFile(inputPath.toFile())) {
@@ -420,9 +573,15 @@ public class EpubRewritePlugin extends Plugin {
             }
 
             if (coverEntryPath == null) {
+                if (CompatStrings.isBlank(primaryOpfPath)) {
+                    throw new IOException("Unable to insert cover: EPUB package OPF not found");
+                }
                 coverInserted = true;
                 if (replacementCoverEntryPath == null) {
-                    replacementCoverEntryPath = buildDefaultCoverEntryPath(newCoverPath);
+                    replacementCoverEntryPath = buildDefaultCoverEntryPath(
+                        newCoverPath,
+                        primaryOpfPath
+                    );
                 }
                 if (findHeader(headers, replacementCoverEntryPath) != null) {
                     replacementCoverEntryPath = buildUniqueCoverEntryPath(headers, newCoverPath);
@@ -430,6 +589,14 @@ public class EpubRewritePlugin extends Plugin {
             } else if (replacementCoverEntryPath == null) {
                 replacementCoverEntryPath = coverEntryPath;
             }
+
+            debugIo(
+                "rewriteCover source inspected entries=" + headers.size()
+                    + " primaryOpfPath=" + primaryOpfPath
+                    + " resolvedCoverEntryPath=" + coverEntryPath
+                    + " resolvedReplacementCoverEntryPath=" + replacementCoverEntryPath
+                    + " coverInserted=" + coverInserted
+            );
         }
 
         emitProgress(0);
@@ -460,6 +627,8 @@ public class EpubRewritePlugin extends Plugin {
             "rewriteCover success mode=" + (inPlaceMode ? "in_place" : "output")
                 + " outputPath=" + effectiveOutputPath
                 + " totalMs=" + totalMs
+                + " outputBytes=" + safeFileSize(effectiveOutputPath)
+                + " coverEntryPath=" + replacementCoverEntryPath
         );
         scanPathForMediaStore(effectiveOutputPath);
         JSObject result = new JSObject();
@@ -559,7 +728,7 @@ public class EpubRewritePlugin extends Plugin {
             }
 
             if (coverHeader == null) {
-                coverEntryPath = findCoverEntryPath(zipFile, headers);
+                coverEntryPath = findDeclaredCoverEntryPath(zipFile, headers);
                 if (coverEntryPath != null) {
                     coverHeader = findHeader(headers, coverEntryPath);
                 }
@@ -764,6 +933,63 @@ public class EpubRewritePlugin extends Plugin {
         call.resolve(result);
     }
 
+    private void publishPublicDocumentInternal(PluginCall call) throws Exception {
+        String folderName = requirePublicFolderName(call.getString("folderName"));
+        String outputName = requirePublicFileName(call.getString("outputName"));
+        String mimeType = call.getString("mimeType", "application/octet-stream");
+        Path sourcePath = requireReadablePath(call.getString("sourcePath"));
+        Uri partial = null;
+        try {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, outputName + ".partial");
+            values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
+            values.put(MediaStore.MediaColumns.RELATIVE_PATH, publicRelativePath(folderName));
+            values.put(MediaStore.MediaColumns.IS_PENDING, 1);
+            partial = getContext().getContentResolver().insert(publicDownloadsCollection(), values);
+            if (partial == null) {
+                throw new IOException("Unable to create public partial document");
+            }
+
+            long expectedBytes = Files.size(sourcePath);
+            long copiedBytes;
+            try (
+                InputStream input = new BufferedInputStream(Files.newInputStream(sourcePath), BUFFER_SIZE);
+                OutputStream rawOutput = getContext().getContentResolver().openOutputStream(partial, "w");
+                OutputStream output = rawOutput == null ? null : new BufferedOutputStream(rawOutput, BUFFER_SIZE)
+            ) {
+                if (output == null) {
+                    throw new IOException("Unable to open public partial document");
+                }
+                copiedBytes = copyStreamWithLongCount(input, output, cancelRequested);
+            }
+
+            if (copiedBytes != expectedBytes) {
+                throw new IOException("Public export size mismatch");
+            }
+
+            Uri existing = findPublicDocumentUri(folderName, outputName);
+            if (existing != null) getContext().getContentResolver().delete(existing, null, null);
+            ContentValues finalValues = new ContentValues();
+            finalValues.put(MediaStore.MediaColumns.DISPLAY_NAME, outputName);
+            finalValues.put(MediaStore.MediaColumns.IS_PENDING, 0);
+            if (getContext().getContentResolver().update(partial, finalValues, null, null) != 1) throw new IOException("Unable to finalize public document");
+            JSObject result = publicDocumentResult(partial);
+            result.put("mimeType", mimeType);
+            result.put("copiedBytes", copiedBytes);
+            call.resolve(result);
+        } catch (CancelledRewriteException cancelled) {
+            if (partial != null) {
+                getContext().getContentResolver().delete(partial, null, null);
+            }
+            throw cancelled;
+        } catch (Exception ex) {
+            if (partial != null) {
+                getContext().getContentResolver().delete(partial, null, null);
+            }
+            throw ex;
+        }
+    }
+
     private EpubAnalysis analyzeEpub(Path epubPath, String preferredOpfPath) throws Exception {
         return analyzeEpub(epubPath, preferredOpfPath, null);
     }
@@ -773,6 +999,7 @@ public class EpubRewritePlugin extends Plugin {
         String preferredOpfPath,
         JSObject guidedSelections
     ) throws Exception {
+        String discoveredOpfPath = null;
         try (ZipFile zipFile = new ZipFile(epubPath.toFile())) {
             List<FileHeader> headers = zipFile.getFileHeaders();
             if (headers == null || headers.isEmpty()) {
@@ -823,6 +1050,7 @@ public class EpubRewritePlugin extends Plugin {
             }
 
             String opfPath = findPrimaryOpfPath(zipFile, headers, preferredOpfPath);
+            discoveredOpfPath = opfPath;
             if (
                 opfPath == null
                     && CompatStrings.isNotBlank(declaredOpfPath)
@@ -937,7 +1165,12 @@ public class EpubRewritePlugin extends Plugin {
                 );
             }
 
-            Document opfDocument = parseXmlUtf8(opfText);
+            Document opfDocument;
+            try {
+                opfDocument = parseXmlUtf8(opfText);
+            } catch (Exception ignored) {
+                opfDocument = null;
+            }
             if (opfDocument == null) {
                 opfDocument = parseXmlUtf8(sanitizeXmlText(opfText));
                 if (opfDocument == null) {
@@ -1177,7 +1410,7 @@ public class EpubRewritePlugin extends Plugin {
                         return new EpubAnalysis(
                             resolveStatus(recoveredIssues),
                             recoveredIssues,
-                            recoveredAnalysis.opfPath,
+                            recoveredAnalysis.opfPath != null ? recoveredAnalysis.opfPath : discoveredOpfPath,
                             recoveredAnalysis.opfDir,
                             recoveredAnalysis.opfDocument,
                             recoveredAnalysis.manifestItems,
@@ -1199,8 +1432,8 @@ public class EpubRewritePlugin extends Plugin {
             return new EpubAnalysis(
                 resolveStatus(issues),
                 issues,
-                null,
-                null,
+                discoveredOpfPath,
+                discoveredOpfPath == null ? null : parentZipPath(discoveredOpfPath),
                 null,
                 new java.util.ArrayList<>(),
                 new java.util.ArrayList<>(),
@@ -2714,9 +2947,7 @@ public class EpubRewritePlugin extends Plugin {
             return "";
         }
         String normalized = value.replace("\r\n", "\n").replace('\r', '\n').trim();
-        if (!containsDoctypeDeclaration(normalized)) {
-            normalized = normalized.replaceFirst("(?is)<!doctype\\s+html\\s*>", "");
-        }
+        normalized = removeDoctypeDeclarations(normalized);
         return normalized.trim();
     }
 
@@ -4441,7 +4672,7 @@ public class EpubRewritePlugin extends Plugin {
                     throw new PluginErrorException("INVALID_EPUB", null, stage);
                 }
 
-                coverEntryPath = findCoverEntryPath(zipFile, headers);
+                coverEntryPath = findDeclaredCoverEntryPath(zipFile, headers);
                 if (coverEntryPath == null && requireCover) {
                     throw new PluginErrorException("NO_COVER", "cover entry not found", stage);
                 }
@@ -4998,6 +5229,13 @@ public class EpubRewritePlugin extends Plugin {
                 5,
                 90
             );
+            if (coverEntryPath == null) {
+                validateInsertedCoverArchive(
+                    tempOutputPath,
+                    replacementCoverEntryPath,
+                    primaryOpfPath
+                );
+            }
             debugIo("rewriteCover in_place rewriteMs=" + (System.currentTimeMillis() - rewriteStart));
             ensureNotCancelled();
 
@@ -5031,6 +5269,11 @@ public class EpubRewritePlugin extends Plugin {
     ) throws Exception {
         Path tempOutputPath = outputPath.resolveSibling(outputPath.getFileName() + ".tmp");
         deleteIfExists(tempOutputPath);
+        debugIo(
+            "rewriteCover output temp start sourcePath=" + inputPath
+                + " tempOutputPath=" + tempOutputPath
+                + " outputPath=" + outputPath
+        );
 
         try {
             long rewriteStart = System.currentTimeMillis();
@@ -5044,15 +5287,37 @@ public class EpubRewritePlugin extends Plugin {
                 5,
                 95
             );
-            debugIo("rewriteCover output rewriteMs=" + (System.currentTimeMillis() - rewriteStart));
+            if (coverEntryPath == null) {
+                validateInsertedCoverArchive(
+                    tempOutputPath,
+                    replacementCoverEntryPath,
+                    primaryOpfPath
+                );
+            }
+            debugIo(
+                "rewriteCover output archiveComplete rewriteMs="
+                    + (System.currentTimeMillis() - rewriteStart)
+                    + " tempBytes=" + safeFileSize(tempOutputPath)
+            );
             ensureNotCancelled();
             moveFileAtomicWithFallback(tempOutputPath, outputPath);
-            debugIo("rewriteCover output commit totalMs=" + (System.currentTimeMillis() - startedAt));
+            debugIo(
+                "rewriteCover output commitComplete totalMs="
+                    + (System.currentTimeMillis() - startedAt)
+                    + " outputBytes=" + safeFileSize(outputPath)
+            );
         } catch (Exception ex) {
+            debugIo(
+                "rewriteCover output error type=" + ex.getClass().getSimpleName()
+                    + " message=" + (ex.getMessage() == null ? "" : ex.getMessage())
+                    + " tempExists=" + Files.exists(tempOutputPath)
+                    + " outputExists=" + Files.exists(outputPath)
+            );
             deleteIfExists(tempOutputPath);
             throw ex;
         } finally {
             deleteIfExists(tempOutputPath);
+            debugIo("rewriteCover output temp cleanup path=" + tempOutputPath);
         }
     }
 
@@ -5080,6 +5345,21 @@ public class EpubRewritePlugin extends Plugin {
             long totalBytes = totalProcessableBytes(headers);
             long processedBytes = 0L;
             boolean coverReplaced = false;
+            int rewrittenEntries = 0;
+            int copiedEntries = 0;
+            String insertedCoverPageEntryPath = coverEntryPath == null
+                ? buildUniqueCoverPageEntryPath(headers, primaryOpfPath)
+                : null;
+
+            debugIo(
+                "rewrite archive start source=" + sourceZipPath
+                    + " output=" + outputZipPath
+                    + " entries=" + headers.size()
+                    + " totalBytes=" + totalBytes
+                    + " coverEntryPath=" + coverEntryPath
+                    + " replacementCoverEntryPath=" + replacementCoverEntryPath
+                    + " primaryOpfPath=" + primaryOpfPath
+            );
 
             for (FileHeader header : headers) {
                 if (header == null || header.isDirectory()) {
@@ -5110,14 +5390,17 @@ public class EpubRewritePlugin extends Plugin {
                         entryPath,
                         coverEntryPath,
                         replacementCoverEntryPath,
-                        primaryOpfPath
+                        primaryOpfPath,
+                        insertedCoverPageEntryPath
                     );
                     if (rewrittenText != null) {
+                        rewrittenEntries += 1;
                         parameters = buildParametersFromBytes(header, entryPath, rewrittenText);
                         try (InputStream entryInput = new ByteArrayInputStream(rewrittenText)) {
                             outputZip.addStream(entryInput, parameters);
                         }
                     } else {
+                        copiedEntries += 1;
                         try (InputStream entryInput = new BufferedInputStream(sourceZip.getInputStream(header))) {
                             outputZip.addStream(entryInput, parameters);
                         }
@@ -5136,6 +5419,165 @@ public class EpubRewritePlugin extends Plugin {
                 ZipParameters addCoverParams = new ZipParameters();
                 addCoverParams.setFileNameInZip(replacementCoverEntryPath);
                 outputZip.addFile(newCoverPath.toFile(), addCoverParams);
+
+                String imageHref = relativizeZipPath(
+                    parentZipPath(insertedCoverPageEntryPath),
+                    replacementCoverEntryPath
+                );
+                addTextEntry(
+                    outputZip,
+                    insertedCoverPageEntryPath,
+                    buildCoverXhtml(imageHref),
+                    false
+                );
+            }
+
+            debugIo(
+                "rewrite archive complete coverReplaced=" + coverReplaced
+                    + " rewrittenEntries=" + rewrittenEntries
+                    + " copiedEntries=" + copiedEntries
+                    + " processedBytes=" + processedBytes
+            );
+        }
+
+        debugIo(
+            "rewrite archive outputClosed output=" + outputZipPath
+                + " outputBytes=" + safeFileSize(outputZipPath)
+        );
+    }
+
+    private void validateInsertedCoverArchive(
+        Path archivePath,
+        String replacementCoverEntryPath,
+        String primaryOpfPath
+    ) throws IOException {
+        try (ZipFile zip = new ZipFile(archivePath.toFile())) {
+            List<FileHeader> headers = zip.getFileHeaders();
+            String replacementPath = normalizeZipPath(replacementCoverEntryPath);
+            FileHeader coverHeader = findHeader(headers, replacementPath);
+            if (coverHeader == null || coverHeader.isDirectory() || coverHeader.getUncompressedSize() <= 0) {
+                throw new IOException("Inserted cover image is missing from EPUB archive");
+            }
+
+            FileHeader opfHeader = findHeader(headers, primaryOpfPath);
+            if (opfHeader == null) {
+                throw new IOException("Inserted cover OPF is missing from EPUB archive");
+            }
+
+            Document document;
+            try {
+                document = parseXmlUtf8(decodeXmlBytes(readEntryBytes(zip, opfHeader)));
+            } catch (Exception ex) {
+                throw new IOException("Inserted cover OPF could not be parsed", ex);
+            }
+
+            Element manifest = firstElementByName(document, "manifest");
+            if (manifest == null) {
+                throw new IOException("Inserted cover OPF manifest is missing");
+            }
+
+            NodeList items = manifest.getElementsByTagNameNS("*", "item");
+            if (items.getLength() == 0) {
+                items = manifest.getElementsByTagName("item");
+            }
+
+            String opfDir = parentZipPath(primaryOpfPath);
+            boolean referencedAsCover = false;
+            String coverPageId = null;
+            String coverPagePath = null;
+            for (int index = 0; index < items.getLength(); index++) {
+                if (!(items.item(index) instanceof Element)) {
+                    continue;
+                }
+                Element item = (Element) items.item(index);
+                String href = item.getAttribute("href");
+                if (CompatStrings.isBlank(href)) {
+                    continue;
+                }
+                String resolvedHref = resolveRelativeZipPath(opfDir, href);
+                if (
+                    replacementPath.equals(resolvedHref)
+                        && containsCoverImageProperty(item.getAttribute("properties"))
+                ) {
+                    referencedAsCover = true;
+                }
+                String itemId = item.getAttribute("id");
+                if (
+                    itemId.startsWith("cover-page")
+                        || containsCoverPageProperty(item.getAttribute("properties"))
+                ) {
+                    coverPageId = itemId;
+                    coverPagePath = resolvedHref;
+                }
+            }
+
+            if (!referencedAsCover) {
+                throw new IOException("Inserted cover is not referenced as cover-image by OPF");
+            }
+
+            if (CompatStrings.isBlank(coverPageId) || CompatStrings.isBlank(coverPagePath)) {
+                throw new IOException("Inserted cover page is not registered in OPF");
+            }
+            FileHeader coverPageHeader = findHeader(headers, coverPagePath);
+            if (
+                coverPageHeader == null
+                    || coverPageHeader.isDirectory()
+                    || coverPageHeader.getUncompressedSize() <= 0
+            ) {
+                throw new IOException("Inserted cover page is missing from EPUB archive");
+            }
+
+            Element spine = firstElementByName(document, "spine");
+            if (spine == null) {
+                throw new IOException("Inserted cover spine is missing from OPF");
+            }
+            NodeList spineRefs = spine.getElementsByTagNameNS("*", "itemref");
+            if (spineRefs.getLength() == 0) {
+                spineRefs = spine.getElementsByTagName("itemref");
+            }
+            Element firstSpineRef = null;
+            for (int index = 0; index < spineRefs.getLength(); index++) {
+                if (spineRefs.item(index) instanceof Element) {
+                    firstSpineRef = (Element) spineRefs.item(index);
+                    break;
+                }
+            }
+            if (
+                firstSpineRef == null
+                    || !coverPageId.equals(firstSpineRef.getAttribute("idref"))
+            ) {
+                throw new IOException("Inserted cover page is not first in EPUB spine");
+            }
+
+            String tocId = spine.getAttribute("toc");
+            if (CompatStrings.isNotBlank(tocId)) {
+                String ncxPath = null;
+                for (int index = 0; index < items.getLength(); index++) {
+                    if (!(items.item(index) instanceof Element)) {
+                        continue;
+                    }
+                    Element item = (Element) items.item(index);
+                    if (tocId.equals(item.getAttribute("id"))) {
+                        ncxPath = resolveRelativeZipPath(opfDir, item.getAttribute("href"));
+                        break;
+                    }
+                }
+                if (CompatStrings.isNotBlank(ncxPath)) {
+                    FileHeader ncxHeader = findHeader(headers, ncxPath);
+                    if (ncxHeader == null) {
+                        throw new IOException("EPUB spine TOC entry is missing");
+                    }
+                    String ncxText = decodeXmlBytes(readEntryBytes(zip, ncxHeader));
+                    String coverHref = relativizeZipPath(parentZipPath(ncxPath), coverPagePath);
+                    if (!ncxText.contains("src=\"" + coverHref + "\"")) {
+                        throw new IOException("Inserted cover page is missing from EPUB TOC");
+                    }
+                }
+            }
+
+            String locatedCoverPath = findCoverEntryPath(zip, headers);
+            if (!replacementPath.equals(locatedCoverPath)) {
+                throw new IOException("Inserted cover could not be resolved from OPF");
             }
         }
     }
@@ -5236,8 +5678,16 @@ public class EpubRewritePlugin extends Plugin {
                 StandardCopyOption.REPLACE_EXISTING,
                 StandardCopyOption.ATOMIC_MOVE
             );
+            debugIo("move atomic success from=" + from + " to=" + to);
         } catch (IOException ignored) {
+            debugIo(
+                "move atomic failed from=" + from
+                    + " to=" + to
+                    + " errorType=" + ignored.getClass().getSimpleName()
+                    + " error=" + (ignored.getMessage() == null ? "" : ignored.getMessage())
+            );
             Files.move(from, to, StandardCopyOption.REPLACE_EXISTING);
+            debugIo("move fallback success from=" + from + " to=" + to);
         }
     }
 
@@ -5511,6 +5961,628 @@ public class EpubRewritePlugin extends Plugin {
         call.resolve(result);
     }
 
+    private void splitEpubInternal(PluginCall call) throws Exception {
+        Path inputPath = requireReadablePath(call.getString("inputPath"));
+        JSArray outputValues = call.getArray("outputs");
+        String coverPathValue = call.getString("coverPath");
+        Path coverPath = CompatStrings.isBlank(coverPathValue)
+            ? null
+            : requireReadablePath(coverPathValue);
+
+        if (outputValues == null || outputValues.length() < 2) {
+            throw new PluginErrorException("SPLIT_MINIMUM_OUTPUTS", "At least two EPUB outputs are required", "split");
+        }
+        if (!isReadableZip(inputPath)) {
+            throw new PluginErrorException("SPLIT_SOURCE_INVALID", inputPath.getFileName().toString(), "split");
+        }
+
+        java.util.ArrayList<SplitOutputRequest> outputs = new java.util.ArrayList<>();
+        java.util.HashSet<String> outputPaths = new java.util.HashSet<>();
+        long requiredBytes = 0L;
+        for (int index = 0; index < outputValues.length(); index++) {
+            org.json.JSONObject raw = outputValues.getJSONObject(index);
+            SplitOutputRequest output = SplitOutputRequest.from(raw);
+            if (!outputPaths.add(output.outputPath.toString())) {
+                throw new PluginErrorException("SPLIT_OUTPUT_DUPLICATE", output.outputPath.toString(), "split");
+            }
+            requiredBytes = safeAdd(requiredBytes, Files.size(inputPath));
+            outputs.add(output);
+        }
+        ensureSufficientSpace(inputPath, safeAdd(requiredBytes, STORAGE_MARGIN_BYTES), "split");
+
+        JSArray completedOutputs = new JSArray();
+        try (ZipFile sourceZip = new ZipFile(inputPath.toFile())) {
+            String opfPath = locateMergeOpfPath(sourceZip);
+            SplitSourceMetadata source = readSplitSourceMetadata(sourceZip, opfPath);
+            validateSplitPlan(source, outputs);
+
+            emitOperationProgress("preparing", 0, outputs.size(), 2);
+            for (int index = 0; index < outputs.size(); index++) {
+                ensureNotCancelled();
+                SplitOutputRequest output = outputs.get(index);
+                emitOperationProgress("writing", index, outputs.size(), interpolate(5, 78, index, outputs.size()));
+                writeSplitOutput(sourceZip, source, output);
+
+                if (coverPath != null) {
+                    applySplitCover(output.outputPath, coverPath);
+                }
+
+                emitOperationProgress("validating", index + 1, outputs.size(), interpolate(80, 96, index + 1, outputs.size()));
+                validateSplitEpub(output.outputPath, output.spineItemIds.size());
+
+                JSObject saved = new JSObject();
+                saved.put("id", output.id);
+                saved.put("outputPath", output.outputPath.toString());
+                saved.put("outputName", output.outputName);
+                saved.put("title", output.title);
+                saved.put("size", Files.size(output.outputPath));
+                completedOutputs.put(saved);
+            }
+        } catch (Exception error) {
+            for (SplitOutputRequest output : outputs) {
+                deleteIfExists(output.outputPath);
+            }
+            throw error;
+        }
+
+        emitOperationProgress("completed", outputs.size(), outputs.size(), 100);
+        JSObject result = new JSObject();
+        result.put("success", true);
+        result.put("outputs", completedOutputs);
+        call.resolve(result);
+    }
+
+    private SplitSourceMetadata readSplitSourceMetadata(ZipFile sourceZip, String opfPath) throws Exception {
+        FileHeader opfHeader = findHeader(sourceZip.getFileHeaders(), opfPath);
+        if (opfHeader == null) {
+            throw new PluginErrorException("SPLIT_OPF_MISSING", "package document missing", "split_analyzing");
+        }
+
+        Document document = parseXmlUtf8(decodeXmlBytes(readEntryBytes(sourceZip, opfHeader)));
+        Element manifest = firstElementByName(document, "manifest");
+        Element spine = firstElementByName(document, "spine");
+        if (manifest == null || spine == null) {
+            throw new PluginErrorException("SPLIT_STRUCTURE_INVALID", "manifest or spine missing", "split_analyzing");
+        }
+
+        java.util.LinkedHashMap<String, String> spinePaths = new java.util.LinkedHashMap<>();
+        String opfDirectory = parentZipPath(opfPath);
+        NodeList manifestItems = manifest.getElementsByTagNameNS("*", "item");
+        java.util.HashMap<String, String> manifestPaths = new java.util.HashMap<>();
+        for (int index = 0; index < manifestItems.getLength(); index++) {
+            if (!(manifestItems.item(index) instanceof Element)) continue;
+            Element item = (Element) manifestItems.item(index);
+            String id = item.getAttribute("id");
+            String href = item.getAttribute("href");
+            if (CompatStrings.isNotBlank(id) && CompatStrings.isNotBlank(href)) {
+                manifestPaths.put(id, resolveRelativeZipPath(opfDirectory, href));
+            }
+        }
+        NodeList itemRefs = spine.getElementsByTagNameNS("*", "itemref");
+        for (int index = 0; index < itemRefs.getLength(); index++) {
+            if (!(itemRefs.item(index) instanceof Element)) continue;
+            String id = ((Element) itemRefs.item(index)).getAttribute("idref");
+            String path = manifestPaths.get(id);
+            if (CompatStrings.isNotBlank(id) && CompatStrings.isNotBlank(path)) {
+                spinePaths.put(id, path);
+            }
+        }
+        if (spinePaths.isEmpty()) {
+            throw new PluginErrorException("SPLIT_SPINE_EMPTY", "source EPUB has no readable spine items", "split_analyzing");
+        }
+
+        return new SplitSourceMetadata(opfPath, spinePaths);
+    }
+
+    private void validateSplitPlan(
+        SplitSourceMetadata source,
+        java.util.List<SplitOutputRequest> outputs
+    ) throws PluginErrorException {
+        java.util.HashSet<String> assignedItems = new java.util.HashSet<>();
+        for (SplitOutputRequest output : outputs) {
+            if (output.spineItemIds.isEmpty()) {
+                throw new PluginErrorException("SPLIT_OUTPUT_EMPTY", output.id, "split_analyzing");
+            }
+            for (String id : output.spineItemIds) {
+                if (!source.spinePaths.containsKey(id)) {
+                    throw new PluginErrorException("SPLIT_SPINE_ITEM_UNKNOWN", id, "split_analyzing");
+                }
+                if (!assignedItems.add(id)) {
+                    throw new PluginErrorException("SPLIT_SPINE_ITEM_DUPLICATE", id, "split_analyzing");
+                }
+            }
+        }
+    }
+
+    private void writeSplitOutput(
+        ZipFile sourceZip,
+        SplitSourceMetadata source,
+        SplitOutputRequest output
+    ) throws Exception {
+        Path parent = output.outputPath.getParent();
+        if (parent == null) {
+            throw new PluginErrorException("SPLIT_OUTPUT_REQUIRED", output.outputPath.toString(), "split_writing");
+        }
+        Files.createDirectories(parent);
+        deleteIfExists(output.outputPath);
+
+        List<FileHeader> headers = sourceZip.getFileHeaders();
+        String opfDirectory = parentZipPath(source.opfPath);
+        String navPath = buildUniqueSplitNavigationPath(headers, opfDirectory, "emas-nav", ".xhtml");
+        String ncxPath = buildUniqueSplitNavigationPath(headers, opfDirectory, "emas-toc", ".ncx");
+        java.util.LinkedHashSet<String> includedPaths = collectSplitResourcePaths(sourceZip, source, output);
+        String packageDocument = buildSplitPackageDocument(
+            sourceZip,
+            source.opfPath,
+            output,
+            navPath,
+            ncxPath,
+            includedPaths
+        );
+
+        try (
+            OutputStream rawOutput = new BufferedOutputStream(Files.newOutputStream(output.outputPath));
+            ZipOutputStream zipOutput = new ZipOutputStream(rawOutput)
+        ) {
+            writeStoredZipEntry(zipOutput, "mimetype", "application/epub+zip".getBytes(StandardCharsets.US_ASCII));
+            writeTextZipEntry(zipOutput, "META-INF/container.xml", buildContainerXml(source.opfPath));
+
+            for (FileHeader header : headers) {
+                ensureNotCancelled();
+                if (header == null || header.isDirectory()) continue;
+                String entryPath = normalizeZipPath(header.getFileName());
+                if (
+                    "mimetype".equals(entryPath)
+                    || "META-INF/container.xml".equals(entryPath)
+                    || source.opfPath.equals(entryPath)
+                    || navPath.equals(entryPath)
+                    || ncxPath.equals(entryPath)
+                    || !includedPaths.contains(entryPath)
+                ) {
+                    continue;
+                }
+                ZipEntry entry = new ZipEntry(entryPath);
+                zipOutput.putNextEntry(entry);
+                try (InputStream stream = new BufferedInputStream(sourceZip.getInputStream(header))) {
+                    copyStream(stream, zipOutput);
+                }
+                zipOutput.closeEntry();
+            }
+
+            writeTextZipEntry(zipOutput, source.opfPath, packageDocument);
+            writeTextZipEntry(zipOutput, navPath, buildSplitNavXhtml(output, source));
+            writeTextZipEntry(zipOutput, ncxPath, buildSplitNcx(output, source));
+        } catch (Exception error) {
+            deleteIfExists(output.outputPath);
+            throw error;
+        }
+    }
+
+    private String buildUniqueSplitNavigationPath(
+        List<FileHeader> headers,
+        String directory,
+        String baseName,
+        String extension
+    ) {
+        int suffix = 0;
+        while (true) {
+            String name = baseName + (suffix == 0 ? "" : "-" + suffix) + extension;
+            String candidate = CompatStrings.isBlank(directory) ? name : directory + "/" + name;
+            if (findHeader(headers, candidate) == null) return candidate;
+            suffix += 1;
+        }
+    }
+
+    private String buildSplitPackageDocument(
+        ZipFile sourceZip,
+        String opfPath,
+        SplitOutputRequest output,
+        String navPath,
+        String ncxPath,
+        java.util.Set<String> includedPaths
+    ) throws Exception {
+        FileHeader header = findHeader(sourceZip.getFileHeaders(), opfPath);
+        Document document = parseXmlUtf8(decodeXmlBytes(readEntryBytes(sourceZip, header)));
+        Element metadata = firstElementByName(document, "metadata");
+        Element manifest = firstElementByName(document, "manifest");
+        Element spine = firstElementByName(document, "spine");
+        if (metadata == null || manifest == null || spine == null) {
+            throw new PluginErrorException("SPLIT_STRUCTURE_INVALID", "package document is incomplete", "split_writing");
+        }
+
+        java.util.HashSet<String> selected = new java.util.HashSet<>(output.spineItemIds);
+        NodeList spineRefs = spine.getElementsByTagNameNS("*", "itemref");
+        java.util.ArrayList<Node> removedRefs = new java.util.ArrayList<>();
+        for (int index = 0; index < spineRefs.getLength(); index++) {
+            Node node = spineRefs.item(index);
+            if (!(node instanceof Element)) continue;
+            if (!selected.contains(((Element) node).getAttribute("idref"))) {
+                removedRefs.add(node);
+            }
+        }
+        for (Node node : removedRefs) {
+            spine.removeChild(node);
+        }
+
+        updateSplitMetadata(document, metadata, output.title);
+        removeExcludedSplitManifestItems(manifest, spine, opfPath, includedPaths);
+        String opfDirectory = parentZipPath(opfPath);
+        String namespace = document.getDocumentElement().getNamespaceURI();
+        String navId = buildUniqueManifestId(manifest, "emas-nav");
+        String ncxId = buildUniqueManifestId(manifest, "emas-ncx");
+        Element navItem = createPackageElement(document, namespace, "item");
+        navItem.setAttribute("id", navId);
+        navItem.setAttribute("href", relativizeZipPath(opfDirectory, navPath));
+        navItem.setAttribute("media-type", "application/xhtml+xml");
+        navItem.setAttribute("properties", "nav");
+        manifest.appendChild(navItem);
+        Element ncxItem = createPackageElement(document, namespace, "item");
+        ncxItem.setAttribute("id", ncxId);
+        ncxItem.setAttribute("href", relativizeZipPath(opfDirectory, ncxPath));
+        ncxItem.setAttribute("media-type", "application/x-dtbncx+xml");
+        manifest.appendChild(ncxItem);
+        spine.setAttribute("toc", ncxId);
+
+        return serializeXml(document);
+    }
+
+    private void updateSplitMetadata(Document document, Element metadata, String title) {
+        NodeList titles = metadata.getElementsByTagNameNS("*", "title");
+        if (titles.getLength() > 0) {
+            titles.item(0).setTextContent(title);
+        }
+        NodeList identifiers = metadata.getElementsByTagNameNS("*", "identifier");
+        if (identifiers.getLength() > 0) {
+            identifiers.item(0).setTextContent("urn:uuid:" + UUID.randomUUID());
+        }
+        NodeList metas = metadata.getElementsByTagNameNS("*", "meta");
+        for (int index = 0; index < metas.getLength(); index++) {
+            if (!(metas.item(index) instanceof Element)) continue;
+            Element meta = (Element) metas.item(index);
+            if ("dcterms:modified".equals(meta.getAttribute("property"))) {
+                meta.setTextContent(Instant.now().toString().replaceFirst("\\.\\d+Z$", "Z"));
+                return;
+            }
+        }
+        Element modified = createPackageElement(document, document.getDocumentElement().getNamespaceURI(), "meta");
+        modified.setAttribute("property", "dcterms:modified");
+        modified.setTextContent(Instant.now().toString().replaceFirst("\\.\\d+Z$", "Z"));
+        metadata.appendChild(modified);
+    }
+
+    private java.util.LinkedHashSet<String> collectSplitResourcePaths(
+        ZipFile sourceZip,
+        SplitSourceMetadata source,
+        SplitOutputRequest output
+    ) throws Exception {
+        java.util.LinkedHashSet<String> included = new java.util.LinkedHashSet<>();
+        java.util.ArrayDeque<String> pending = new java.util.ArrayDeque<>();
+        for (String id : output.spineItemIds) {
+            String path = source.spinePaths.get(id);
+            if (path != null && included.add(path)) pending.add(path);
+        }
+
+        String coverPath = findCoverEntryPath(sourceZip, sourceZip.getFileHeaders());
+        if (coverPath != null && included.add(coverPath)) pending.add(coverPath);
+
+        while (!pending.isEmpty()) {
+            ensureNotCancelled();
+            String resourcePath = pending.removeFirst();
+            FileHeader header = findHeader(sourceZip.getFileHeaders(), resourcePath);
+            if (header == null || !isSplitDependencyDocument(resourcePath)) continue;
+            String resourceText = decodeXmlBytes(readEntryBytes(sourceZip, header));
+            for (String dependency : extractSplitDependencies(resourcePath, resourceText)) {
+                if (findHeader(sourceZip.getFileHeaders(), dependency) != null && included.add(dependency)) {
+                    pending.add(dependency);
+                }
+            }
+        }
+        return included;
+    }
+
+    private boolean isSplitDependencyDocument(String path) {
+        String normalized = path.toLowerCase(Locale.US);
+        return normalized.endsWith(".xhtml")
+            || normalized.endsWith(".html")
+            || normalized.endsWith(".htm")
+            || normalized.endsWith(".css");
+    }
+
+    private java.util.List<String> extractSplitDependencies(String resourcePath, String content) {
+        java.util.LinkedHashSet<String> dependencies = new java.util.LinkedHashSet<>();
+        Matcher matcher = XHTML_RESOURCE_ATTRIBUTE_PATTERN.matcher(content);
+        while (matcher.find()) addSplitDependency(dependencies, resourcePath, matcher.group(2));
+
+        matcher = XHTML_STYLESHEET_PATTERN.matcher(content);
+        while (matcher.find()) addSplitDependency(dependencies, resourcePath, matcher.group(3));
+
+        if (resourcePath.toLowerCase(Locale.US).endsWith(".css")) {
+            matcher = CSS_RESOURCE_PATTERN.matcher(content);
+            while (matcher.find()) addSplitDependency(dependencies, resourcePath, matcher.group(1));
+        }
+        return new java.util.ArrayList<>(dependencies);
+    }
+
+    private void addSplitDependency(
+        java.util.Set<String> dependencies,
+        String sourcePath,
+        String reference
+    ) {
+        if (CompatStrings.isBlank(reference)) return;
+        String normalized = reference.trim();
+        if (
+            normalized.startsWith("data:")
+                || normalized.startsWith("http:")
+                || normalized.startsWith("https:")
+                || normalized.startsWith("mailto:")
+                || normalized.startsWith("#")
+        ) {
+            return;
+        }
+        dependencies.add(resolveRelativeZipPath(parentZipPath(sourcePath), normalized));
+    }
+
+    private void removeExcludedSplitManifestItems(
+        Element manifest,
+        Element spine,
+        String opfPath,
+        java.util.Set<String> includedPaths
+    ) {
+        String opfDirectory = parentZipPath(opfPath);
+        String tocId = spine.getAttribute("toc");
+        NodeList items = manifest.getElementsByTagNameNS("*", "item");
+        java.util.ArrayList<Node> removedItems = new java.util.ArrayList<>();
+        for (int index = 0; index < items.getLength(); index++) {
+            if (!(items.item(index) instanceof Element)) continue;
+            Element item = (Element) items.item(index);
+            String id = item.getAttribute("id");
+            String path = resolveRelativeZipPath(opfDirectory, item.getAttribute("href"));
+            if (
+                hasNavigationProperty(item.getAttribute("properties"))
+                    || id.equals(tocId)
+                    || !includedPaths.contains(path)
+            ) {
+                removedItems.add(item);
+            }
+        }
+        for (Node item : removedItems) manifest.removeChild(item);
+    }
+
+    private boolean hasNavigationProperty(String properties) {
+        if (CompatStrings.isBlank(properties)) return false;
+        for (String value : properties.split("\\s+")) {
+            if ("nav".equals(value)) return true;
+        }
+        return false;
+    }
+
+    private void clearExistingNavigationProperties(Element manifest) {
+        NodeList items = manifest.getElementsByTagNameNS("*", "item");
+        for (int index = 0; index < items.getLength(); index++) {
+            if (!(items.item(index) instanceof Element)) continue;
+            Element item = (Element) items.item(index);
+            String properties = item.getAttribute("properties");
+            if (CompatStrings.isBlank(properties)) continue;
+            StringBuilder next = new StringBuilder();
+            for (String value : properties.split("\\s+")) {
+                if ("nav".equals(value)) continue;
+                if (next.length() > 0) next.append(' ');
+                next.append(value);
+            }
+            if (next.length() == 0) item.removeAttribute("properties");
+            else item.setAttribute("properties", next.toString());
+        }
+    }
+
+    private String buildUniqueManifestId(Element manifest, String baseId) {
+        java.util.HashSet<String> ids = new java.util.HashSet<>();
+        NodeList items = manifest.getElementsByTagNameNS("*", "item");
+        for (int index = 0; index < items.getLength(); index++) {
+            if (items.item(index) instanceof Element) ids.add(((Element) items.item(index)).getAttribute("id"));
+        }
+        int suffix = 1;
+        String candidate = baseId;
+        while (ids.contains(candidate)) candidate = baseId + "-" + suffix++;
+        return candidate;
+    }
+
+    private Element createPackageElement(Document document, String namespace, String name) {
+        return CompatStrings.isBlank(namespace)
+            ? document.createElement(name)
+            : document.createElementNS(namespace, name);
+    }
+
+    private String buildSplitNavXhtml(SplitOutputRequest output, SplitSourceMetadata source) {
+        StringBuilder nav = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE html><html xmlns=\"http://www.w3.org/1999/xhtml\"><head><title>")
+            .append(escapeXml(output.title))
+            .append("</title></head><body><nav epub:type=\"toc\" xmlns:epub=\"http://www.idpf.org/2007/ops\"><h1>")
+            .append(escapeXml(output.title))
+            .append("</h1><ol>");
+        if (!output.tocEntries.isEmpty()) {
+            appendSplitNavEntries(nav, output.tocEntries, source);
+        } else {
+            int index = 1;
+            for (String id : output.spineItemIds) {
+            String path = source.spinePaths.get(id);
+            String href = relativizeZipPath(parentZipPath(source.opfPath), path);
+            nav.append("<li><a href=\"").append(escapeXml(href)).append("\">")
+                .append(escapeXml(output.tocTitleFor(id, "Chapter " + index++)))
+                .append("</a></li>");
+            }
+        }
+        return nav.append("</ol></nav></body></html>").toString();
+    }
+
+    private void appendSplitNavEntries(
+        StringBuilder nav,
+        java.util.List<SplitTocEntry> entries,
+        SplitSourceMetadata source
+    ) {
+        for (SplitTocEntry entry : entries) {
+            nav.append("<li><a href=\"")
+                .append(escapeXml(splitTocHref(entry, source)))
+                .append("\">")
+                .append(escapeXml(entry.title))
+                .append("</a>");
+            if (!entry.children.isEmpty()) {
+                nav.append("<ol>");
+                appendSplitNavEntries(nav, entry.children, source);
+                nav.append("</ol>");
+            }
+            nav.append("</li>");
+        }
+    }
+
+    private String buildSplitNcx(SplitOutputRequest output, SplitSourceMetadata source) {
+        StringBuilder ncx = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?><ncx xmlns=\"http://www.daisy.org/z3986/2005/ncx/\" version=\"2005-1\"><head/><docTitle><text>")
+            .append(escapeXml(output.title))
+            .append("</text></docTitle><navMap>");
+        if (!output.tocEntries.isEmpty()) {
+            appendSplitNcxEntries(ncx, output.tocEntries, source, 1);
+        } else {
+            int order = 1;
+            for (String id : output.spineItemIds) {
+            String path = source.spinePaths.get(id);
+            String href = relativizeZipPath(parentZipPath(source.opfPath), path);
+            ncx.append("<navPoint id=\"chapter-").append(order).append("\" playOrder=\"").append(order).append("\"><navLabel><text>")
+                .append(escapeXml(output.tocTitleFor(id, "Chapter " + order)))
+                .append("</text></navLabel><content src=\"").append(escapeXml(href)).append("\"/></navPoint>");
+            order += 1;
+            }
+        }
+        return ncx.append("</navMap></ncx>").toString();
+    }
+
+    private int appendSplitNcxEntries(
+        StringBuilder ncx,
+        java.util.List<SplitTocEntry> entries,
+        SplitSourceMetadata source,
+        int nextOrder
+    ) {
+        int order = nextOrder;
+        for (SplitTocEntry entry : entries) {
+            ncx.append("<navPoint id=\"toc-").append(order).append("\" playOrder=\"").append(order).append("\"><navLabel><text>")
+                .append(escapeXml(entry.title))
+                .append("</text></navLabel><content src=\"")
+                .append(escapeXml(splitTocHref(entry, source)))
+                .append("\"/>");
+            order += 1;
+            if (!entry.children.isEmpty()) {
+                order = appendSplitNcxEntries(ncx, entry.children, source, order);
+            }
+            ncx.append("</navPoint>");
+        }
+        return order;
+    }
+
+    private String splitTocHref(SplitTocEntry entry, SplitSourceMetadata source) {
+        String rawHref = CompatStrings.isBlank(entry.href)
+            ? source.spinePaths.get(entry.spineItemId)
+            : entry.href;
+        if (CompatStrings.isBlank(rawHref)) return "";
+
+        int fragmentIndex = rawHref.indexOf('#');
+        String path = fragmentIndex < 0 ? rawHref : rawHref.substring(0, fragmentIndex);
+        String fragment = fragmentIndex < 0 ? "" : rawHref.substring(fragmentIndex);
+        return relativizeZipPath(parentZipPath(source.opfPath), path) + fragment;
+    }
+
+    private void applySplitCover(Path outputPath, Path coverPath) throws Exception {
+        try (ZipFile outputZip = new ZipFile(outputPath.toFile())) {
+            List<FileHeader> headers = outputZip.getFileHeaders();
+            String opfPath = locateMergeOpfPath(outputZip);
+            String existingCoverPath = findCoverEntryPath(outputZip, headers);
+            String replacementCoverPath = existingCoverPath == null
+                ? buildDefaultCoverEntryPath(coverPath)
+                : existingCoverPath;
+            rewriteCoverToOutput(
+                outputPath,
+                outputPath,
+                coverPath,
+                existingCoverPath,
+                replacementCoverPath,
+                opfPath,
+                System.currentTimeMillis()
+            );
+        }
+    }
+
+    private void validateSplitEpub(Path outputPath, int expectedSpineItems) throws Exception {
+        try (ZipFile zip = new ZipFile(outputPath.toFile())) {
+            List<FileHeader> headers = zip.getFileHeaders();
+            if (findHeader(headers, "mimetype") == null || findHeader(headers, "META-INF/container.xml") == null) {
+                throw new PluginErrorException("SPLIT_VALIDATION_FAILED", "required EPUB files are missing", "split_validating");
+            }
+            String opfPath = locateMergeOpfPath(zip);
+            FileHeader opfHeader = findHeader(headers, opfPath);
+            Document document = parseXmlUtf8(decodeXmlBytes(readEntryBytes(zip, opfHeader)));
+            Element manifest = firstElementByName(document, "manifest");
+            Element spine = firstElementByName(document, "spine");
+            if (manifest == null || spine == null) {
+                throw new PluginErrorException("SPLIT_VALIDATION_FAILED", "package document is incomplete", "split_validating");
+            }
+            java.util.HashSet<String> manifestIds = new java.util.HashSet<>();
+            NodeList manifestItems = manifest.getElementsByTagNameNS("*", "item");
+            String opfDirectory = parentZipPath(opfPath);
+            String navDocumentPath = null;
+            String ncxDocumentPath = null;
+            for (int index = 0; index < manifestItems.getLength(); index++) {
+                if (!(manifestItems.item(index) instanceof Element)) continue;
+                Element item = (Element) manifestItems.item(index);
+                String id = item.getAttribute("id");
+                String href = item.getAttribute("href");
+                if (CompatStrings.isNotBlank(id)) manifestIds.add(id);
+                String resourcePath = resolveRelativeZipPath(opfDirectory, href);
+                if (CompatStrings.isNotBlank(href) && findHeader(headers, resourcePath) == null) {
+                    throw new PluginErrorException("SPLIT_RESOURCE_MISSING", href, "split_validating");
+                }
+                if (hasNavigationProperty(item.getAttribute("properties"))) navDocumentPath = resourcePath;
+                if ("application/x-dtbncx+xml".equals(item.getAttribute("media-type"))) ncxDocumentPath = resourcePath;
+            }
+            int spineCount = 0;
+            NodeList itemRefs = spine.getElementsByTagNameNS("*", "itemref");
+            for (int index = 0; index < itemRefs.getLength(); index++) {
+                if (!(itemRefs.item(index) instanceof Element)) continue;
+                String id = ((Element) itemRefs.item(index)).getAttribute("idref");
+                if (!manifestIds.contains(id)) {
+                    throw new PluginErrorException("SPLIT_SPINE_MANIFEST_MISSING", id, "split_validating");
+                }
+                spineCount += 1;
+            }
+            if (spineCount != expectedSpineItems) {
+                throw new PluginErrorException("SPLIT_SPINE_INVALID", "unexpected spine size", "split_validating");
+            }
+            validateSplitNavigationTargets(zip, headers, navDocumentPath, "href");
+            validateSplitNavigationTargets(zip, headers, ncxDocumentPath, "src");
+        }
+    }
+
+    private void validateSplitNavigationTargets(
+        ZipFile zip,
+        List<FileHeader> headers,
+        String navigationPath,
+        String attribute
+    ) throws Exception {
+        if (CompatStrings.isBlank(navigationPath)) {
+            throw new PluginErrorException("SPLIT_NAVIGATION_MISSING", attribute, "split_validating");
+        }
+        FileHeader header = findHeader(headers, navigationPath);
+        if (header == null) {
+            throw new PluginErrorException("SPLIT_NAVIGATION_MISSING", navigationPath, "split_validating");
+        }
+        Pattern targetPattern = Pattern.compile(
+            "\\b" + attribute + "\\s*=\\s*(['\\\"])([^'\\\"#?]+)\\1",
+            Pattern.CASE_INSENSITIVE
+        );
+        Matcher matcher = targetPattern.matcher(decodeXmlBytes(readEntryBytes(zip, header)));
+        while (matcher.find()) {
+            String target = resolveRelativeZipPath(parentZipPath(navigationPath), matcher.group(2));
+            if (findHeader(headers, target) == null) {
+                throw new PluginErrorException("SPLIT_NAVIGATION_TARGET_MISSING", target, "split_validating");
+            }
+        }
+    }
+
     private String locateMergeOpfPath(ZipFile zipFile) throws Exception {
         FileHeader container = findHeader(zipFile.getFileHeaders(), "META-INF/container.xml");
         if (container == null) throw new PluginErrorException("MERGE_CONTAINER_MISSING", "container.xml missing", "merge");
@@ -5631,6 +6703,7 @@ public class EpubRewritePlugin extends Plugin {
 
     private String buildMergeOpf(String title, java.util.List<MergeResource> resources, java.util.List<MergeSource> sources, String coverFileName, String coverMediaType) {
         StringBuilder opf = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?><package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\" unique-identifier=\"id\"><metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\"><dc:identifier id=\"id\">urn:uuid:").append(UUID.randomUUID()).append("</dc:identifier><dc:title>").append(escapeXml(title)).append("</dc:title><dc:language>und</dc:language><meta property=\"dcterms:modified\">").append(Instant.now().toString().replaceFirst("\\\\.\\\\d+Z$", "Z")).append("</meta></metadata><manifest><item id=\"nav\" href=\"nav.xhtml\" media-type=\"application/xhtml+xml\" properties=\"nav\"/><item id=\"ncx\" href=\"toc.ncx\" media-type=\"application/x-dtbncx+xml\"/><item id=\"cover-page\" href=\"cover/cover.xhtml\" media-type=\"application/xhtml+xml\"/><item id=\"cover-image\" href=\"cover/").append(escapeXml(coverFileName)).append("\" media-type=\"").append(escapeXml(coverMediaType)).append("\" properties=\"cover-image\"/>");
+        opf.insert(opf.indexOf("<meta property=\"dcterms:modified\">"), "<meta name=\"cover\" content=\"cover-image\"/>");
         java.util.HashMap<String, String> idsByHref = new java.util.HashMap<>();
         for (MergeResource resource : resources) { opf.append("<item id=\"").append(resource.id).append("\" href=\"").append(escapeXml(resource.href)).append("\" media-type=\"").append(escapeXml(resource.mediaType)).append("\"/>"); idsByHref.put(resource.href, resource.id); }
         opf.append("</manifest><spine toc=\"ncx\"><itemref idref=\"cover-page\"/>");
@@ -5653,13 +6726,33 @@ public class EpubRewritePlugin extends Plugin {
         outputStream.flush();
     }
 
+    static long copyStreamWithLongCount(
+        InputStream inputStream,
+        OutputStream outputStream,
+        AtomicBoolean cancellationSignal
+    ) throws IOException, CancelledRewriteException {
+        byte[] buffer = new byte[BUFFER_SIZE];
+        long copiedBytes = 0L;
+        int read;
+        while ((read = inputStream.read(buffer)) != -1) {
+            if (cancellationSignal != null && cancellationSignal.get()) {
+                throw new CancelledRewriteException();
+            }
+            outputStream.write(buffer, 0, read);
+            copiedBytes += (long) read;
+        }
+        outputStream.flush();
+        return copiedBytes;
+    }
+
     private byte[] rewriteCoverReferenceEntry(
         ZipFile sourceZip,
         FileHeader header,
         String entryPath,
         String originalCoverEntryPath,
         String replacementCoverEntryPath,
-        String primaryOpfPath
+        String primaryOpfPath,
+        String insertedCoverPageEntryPath
     ) throws IOException {
         if (entryPath.equals(replacementCoverEntryPath) || !isTextEntryPath(entryPath)) {
             return null;
@@ -5678,8 +6771,22 @@ public class EpubRewritePlugin extends Plugin {
                     replacementCoverEntryPath
                 );
             } else if (entryPath.equals(primaryOpfPath)) {
-                nextText = rewriteOpfForInsertedCover(nextText, entryPath, replacementCoverEntryPath);
+                nextText = rewriteOpfForInsertedCover(
+                    nextText,
+                    entryPath,
+                    replacementCoverEntryPath,
+                    insertedCoverPageEntryPath
+                );
             }
+        } else if (
+            entryPath.toLowerCase(Locale.US).endsWith(".ncx")
+                && CompatStrings.isNotBlank(insertedCoverPageEntryPath)
+        ) {
+            nextText = rewriteNcxForInsertedCover(
+                nextText,
+                entryPath,
+                insertedCoverPageEntryPath
+            );
         }
 
         if (CompatStrings.isNotBlank(originalCoverEntryPath)) {
@@ -5750,13 +6857,35 @@ public class EpubRewritePlugin extends Plugin {
         String entryPath,
         String replacementCoverEntryPath
     ) throws IOException {
+        String defaultCoverPagePath = parentZipPath(entryPath);
+        defaultCoverPagePath = CompatStrings.isBlank(defaultCoverPagePath)
+            ? "cover.xhtml"
+            : defaultCoverPagePath + "/cover.xhtml";
+        return rewriteOpfForInsertedCover(
+            xml,
+            entryPath,
+            replacementCoverEntryPath,
+            defaultCoverPagePath
+        );
+    }
+
+    private String rewriteOpfForInsertedCover(
+        String xml,
+        String entryPath,
+        String replacementCoverEntryPath,
+        String insertedCoverPageEntryPath
+    ) throws IOException {
         try {
             Document document = parseXmlUtf8(xml);
             String entryDir = parentZipPath(entryPath);
             String replacementHref = relativizeZipPath(entryDir, replacementCoverEntryPath);
+            String coverPageHref = relativizeZipPath(entryDir, insertedCoverPageEntryPath);
             String replacementMime = mimeFromPath(replacementCoverEntryPath);
 
             Element packageElement = document.getDocumentElement();
+            if (packageElement == null) {
+                throw new IOException("Unable to add OPF cover metadata: package element missing");
+            }
             String opfNs = packageElement == null ? null : packageElement.getNamespaceURI();
 
             Element manifest = firstElementByName(document, "manifest");
@@ -5776,7 +6905,7 @@ public class EpubRewritePlugin extends Plugin {
             }
 
             if (manifest == null || metadata == null) {
-                return xml;
+                throw new IOException("Unable to add OPF cover metadata: package sections missing");
             }
 
             String coverId = ensureManifestCoverItem(
@@ -5786,7 +6915,23 @@ public class EpubRewritePlugin extends Plugin {
                 replacementMime,
                 opfNs
             );
+            String coverPageId = ensureManifestCoverPageItem(
+                document,
+                manifest,
+                coverPageHref,
+                opfNs
+            );
             ensureCoverMetaTag(document, metadata, coverId, opfNs);
+            Element spine = firstElementByName(document, "spine");
+            if (spine == null) {
+                spine = ensureSpineElement(document, manifest);
+            }
+            ensureCoverPageSpineItem(document, spine, coverPageId);
+
+            String version = packageElement.getAttribute("version").trim();
+            if (version.startsWith("2")) {
+                ensureCoverGuideReference(document, spine, coverPageHref, opfNs);
+            }
 
             return serializeXml(document);
         } catch (ParserConfigurationException | SAXException | TransformerException ex) {
@@ -5892,6 +7037,205 @@ public class EpubRewritePlugin extends Plugin {
         metadata.appendChild(meta);
     }
 
+    private String ensureManifestCoverPageItem(
+        Document document,
+        Element manifest,
+        String coverPageHref,
+        String opfNs
+    ) {
+        NodeList items = manifest.getElementsByTagNameNS("*", "item");
+        if (items.getLength() == 0) {
+            items = manifest.getElementsByTagName("item");
+        }
+        Element coverPage = null;
+        for (int index = 0; index < items.getLength(); index++) {
+            if (!(items.item(index) instanceof Element)) {
+                continue;
+            }
+            Element item = (Element) items.item(index);
+            if (
+                coverPageHref.equals(item.getAttribute("href"))
+                    || item.getAttribute("id").startsWith("cover-page")
+                    || containsCoverPageProperty(item.getAttribute("properties"))
+            ) {
+                coverPage = item;
+                break;
+            }
+        }
+
+        if (coverPage == null) {
+            coverPage = opfNs == null
+                ? document.createElement("item")
+                : document.createElementNS(opfNs, "item");
+            manifest.appendChild(coverPage);
+        }
+
+        String coverPageId = coverPage.getAttribute("id");
+        if (CompatStrings.isBlank(coverPageId)) {
+            coverPageId = buildUniqueCoverId(manifest, "cover-page-generated");
+            coverPage.setAttribute("id", coverPageId);
+        }
+        coverPage.setAttribute("href", coverPageHref);
+        coverPage.setAttribute("media-type", "application/xhtml+xml");
+        String properties = coverPage.getAttribute("properties");
+        if (containsCoverPageProperty(properties)) {
+            coverPage.setAttribute(
+                "properties",
+                properties.replaceAll("(?i)(^|\\s)cover-page(?=\\s|$)", " ").trim()
+            );
+            if (CompatStrings.isBlank(coverPage.getAttribute("properties"))) {
+                coverPage.removeAttribute("properties");
+            }
+        }
+        return coverPageId;
+    }
+
+    private boolean containsCoverPageProperty(String properties) {
+        if (CompatStrings.isBlank(properties)) {
+            return false;
+        }
+        for (String part : properties.toLowerCase(Locale.US).split("\\s+")) {
+            if ("cover-page".equals(part.trim())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void ensureCoverPageSpineItem(
+        Document document,
+        Element spine,
+        String coverPageId
+    ) {
+        NodeList refs = spine.getElementsByTagNameNS("*", "itemref");
+        if (refs.getLength() == 0) {
+            refs = spine.getElementsByTagName("itemref");
+        }
+        for (int index = 0; index < refs.getLength(); index++) {
+            if (
+                refs.item(index) instanceof Element
+                    && coverPageId.equals(((Element) refs.item(index)).getAttribute("idref"))
+            ) {
+                return;
+            }
+        }
+
+        String namespace = spine.getNamespaceURI();
+        Element itemref = namespace == null
+            ? document.createElement("itemref")
+            : document.createElementNS(namespace, "itemref");
+        itemref.setAttribute("idref", coverPageId);
+        Node firstElement = spine.getFirstChild();
+        while (firstElement != null && firstElement.getNodeType() != Node.ELEMENT_NODE) {
+            firstElement = firstElement.getNextSibling();
+        }
+        if (firstElement == null) {
+            spine.appendChild(itemref);
+        } else {
+            spine.insertBefore(itemref, firstElement);
+        }
+    }
+
+    private void ensureCoverGuideReference(
+        Document document,
+        Element spine,
+        String coverPageHref,
+        String opfNs
+    ) {
+        Element packageElement = document.getDocumentElement();
+        if (packageElement == null) {
+            return;
+        }
+        Element guide = firstElementByName(document, "guide");
+        if (guide == null) {
+            guide = opfNs == null
+                ? document.createElement("guide")
+                : document.createElementNS(opfNs, "guide");
+            Node next = spine.getNextSibling();
+            while (next != null && next.getNodeType() != Node.ELEMENT_NODE) {
+                next = next.getNextSibling();
+            }
+            if (next == null) {
+                packageElement.appendChild(guide);
+            } else {
+                packageElement.insertBefore(guide, next);
+            }
+        }
+
+        NodeList refs = guide.getElementsByTagNameNS("*", "reference");
+        if (refs.getLength() == 0) {
+            refs = guide.getElementsByTagName("reference");
+        }
+        for (int index = 0; index < refs.getLength(); index++) {
+            if (
+                refs.item(index) instanceof Element
+                    && "cover".equalsIgnoreCase(((Element) refs.item(index)).getAttribute("type"))
+            ) {
+                return;
+            }
+        }
+
+        String namespace = guide.getNamespaceURI();
+        Element reference = namespace == null
+            ? document.createElement("reference")
+            : document.createElementNS(namespace, "reference");
+        reference.setAttribute("type", "cover");
+        reference.setAttribute("title", "Cover");
+        reference.setAttribute("href", coverPageHref);
+        guide.appendChild(reference);
+    }
+
+    private String rewriteNcxForInsertedCover(
+        String xml,
+        String entryPath,
+        String insertedCoverPageEntryPath
+    ) {
+        java.util.regex.Matcher navMapMatcher = java.util.regex.Pattern
+            .compile("<navMap\\b[^>]*>", java.util.regex.Pattern.CASE_INSENSITIVE)
+            .matcher(xml);
+        if (!navMapMatcher.find()) {
+            return xml;
+        }
+
+        java.util.regex.Matcher playOrderMatcher = java.util.regex.Pattern
+            .compile("(<navPoint\\b[^>]*\\bplayOrder\\s*=\\s*[\\\"'])(\\d+)([\\\"'])", java.util.regex.Pattern.CASE_INSENSITIVE)
+            .matcher(xml);
+        StringBuffer shifted = new StringBuffer();
+        while (playOrderMatcher.find()) {
+            int order = Integer.parseInt(playOrderMatcher.group(2));
+            playOrderMatcher.appendReplacement(
+                shifted,
+                java.util.regex.Matcher.quoteReplacement(
+                    playOrderMatcher.group(1) + (order + 1) + playOrderMatcher.group(3)
+                )
+            );
+        }
+        playOrderMatcher.appendTail(shifted);
+
+        String coverHref = relativizeZipPath(
+            parentZipPath(entryPath),
+            insertedCoverPageEntryPath
+        );
+        String baseId = "cover-generated";
+        String coverId = baseId;
+        int suffix = 2;
+        while (shifted.toString().contains("id=\"" + coverId + "\"")) {
+            coverId = baseId + "-" + suffix++;
+        }
+        String navPoint = "<navPoint id=\"" + escapeXml(coverId) + "\" playOrder=\"1\">"
+            + "<navLabel><text>Cover</text></navLabel>"
+            + "<content src=\"" + escapeXml(coverHref) + "\"/></navPoint>";
+        String shiftedXml = shifted.toString();
+        java.util.regex.Matcher shiftedNavMapMatcher = java.util.regex.Pattern
+            .compile("<navMap\\b[^>]*>", java.util.regex.Pattern.CASE_INSENSITIVE)
+            .matcher(shiftedXml);
+        if (!shiftedNavMapMatcher.find()) {
+            return xml;
+        }
+        int insertionPoint = shiftedNavMapMatcher.end();
+        return shiftedXml.substring(0, insertionPoint) + navPoint + shiftedXml.substring(insertionPoint);
+    }
+
     private String rewriteRelativeCoverRefs(
         String content,
         String entryPath,
@@ -5978,6 +7322,11 @@ public class EpubRewritePlugin extends Plugin {
         return coverLocator.findCoverEntryPath(zipFile, headers);
     }
 
+    private String findDeclaredCoverEntryPath(ZipFile zipFile, List<FileHeader> headers)
+        throws IOException {
+        return coverLocator.findDeclaredCoverEntryPath(zipFile, headers);
+    }
+
     private Path buildExtractedCoverPath(String coverEntryPath) throws IOException {
         Path cacheDir = getContext().getCacheDir().toPath().resolve("epub-rewrite");
         Files.createDirectories(cacheDir);
@@ -6062,6 +7411,13 @@ public class EpubRewritePlugin extends Plugin {
         List<String> candidates = collectValidOpfCandidates(zipFile, headers, containerPreferredPath);
         for (String candidate : candidates) {
             return candidate;
+        }
+
+        // A malformed OPF still needs a path so the repair flow can sanitize it.
+        for (String candidate : collectOpfCandidates(headers, containerPreferredPath)) {
+            if (findHeader(headers, candidate) != null) {
+                return candidate;
+            }
         }
 
         return null;
@@ -6273,11 +7629,43 @@ public class EpubRewritePlugin extends Plugin {
         return "OEBPS/images/cover." + ext;
     }
 
+    private String buildDefaultCoverEntryPath(Path newCoverPath, String primaryOpfPath) {
+        String ext = normalizeCoverExt(extensionFromPath(newCoverPath.getFileName().toString()));
+        String opfDir = parentZipPath(primaryOpfPath);
+        return CompatStrings.isBlank(opfDir)
+            ? "images/cover." + ext
+            : opfDir + "/images/cover." + ext;
+    }
+
     private String buildUniqueCoverEntryPath(List<FileHeader> headers, Path newCoverPath) {
         String ext = normalizeCoverExt(extensionFromPath(newCoverPath.getFileName().toString()));
         int suffix = 1;
         while (true) {
             String candidate = "OEBPS/images/cover-added-" + suffix + "." + ext;
+            if (findHeader(headers, candidate) == null) {
+                return candidate;
+            }
+            suffix += 1;
+        }
+    }
+
+    private String buildUniqueCoverPageEntryPath(
+        List<FileHeader> headers,
+        String primaryOpfPath
+    ) {
+        String opfDir = parentZipPath(primaryOpfPath);
+        String base = CompatStrings.isBlank(opfDir)
+            ? "cover.xhtml"
+            : opfDir + "/cover.xhtml";
+        if (findHeader(headers, base) == null) {
+            return base;
+        }
+
+        int suffix = 1;
+        while (true) {
+            String candidate = CompatStrings.isBlank(opfDir)
+                ? "cover-generated-" + suffix + ".xhtml"
+                : opfDir + "/cover-generated-" + suffix + ".xhtml";
             if (findHeader(headers, candidate) == null) {
                 return candidate;
             }
@@ -6460,9 +7848,18 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     private void emitProgress(int percent) {
+        emitOperationProgress(null, 0, 0, percent);
+    }
+
+    private void emitOperationProgress(String phase, int current, int total, int percent) {
         try {
             JSObject payload = new JSObject();
             payload.put("percent", Math.max(0, Math.min(100, percent)));
+            if (phase != null) {
+                payload.put("phase", phase);
+                payload.put("current", Math.max(0, current));
+                payload.put("total", Math.max(0, total));
+            }
             notifyListeners("rewriteProgress", payload);
         } catch (RuntimeException ex) {
             String message = ex.getMessage();
@@ -6590,6 +7987,84 @@ public class EpubRewritePlugin extends Plugin {
         return path;
     }
 
+    private Uri requirePublicDocumentUri(PluginCall call) throws IOException {
+        String folderName = requirePublicFolderName(call.getString("folderName"));
+        String filename = requirePublicFileName(call.getString("filename"));
+        Uri file = findPublicDocumentUri(folderName, filename);
+        if (file == null) {
+            throw new IOException("Public document is unavailable");
+        }
+        return file;
+    }
+
+    private Uri publicDownloadsCollection() {
+        return MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+    }
+
+    private String publicRelativePath(String folderName) {
+        return android.os.Environment.DIRECTORY_DOCUMENTS + "/" + folderName + "/";
+    }
+
+    private Uri findPublicDocumentUri(String folderName, String filename) {
+        try (Cursor cursor = getContext().getContentResolver().query(
+            publicDownloadsCollection(),
+            new String[] { MediaStore.MediaColumns._ID },
+            MediaStore.MediaColumns.RELATIVE_PATH + "=? AND " + MediaStore.MediaColumns.DISPLAY_NAME + "=?",
+            new String[] { publicRelativePath(folderName), filename },
+            null
+        )) {
+            if (cursor != null && cursor.moveToFirst()) {
+                return ContentUris.withAppendedId(publicDownloadsCollection(), cursor.getLong(0));
+            }
+        }
+        return null;
+    }
+
+    private String requirePublicFolderName(String value) throws IOException {
+        return requirePublicName(value, "folderName");
+    }
+
+    private String requirePublicFileName(String value) throws IOException {
+        return requirePublicName(value, "filename");
+    }
+
+    private String requirePublicName(String value, String field) throws IOException {
+        String normalized = value == null ? "" : value.trim();
+        if (
+            normalized.isEmpty()
+                || normalized.equals(".")
+                || normalized.equals("..")
+                || normalized.contains("/")
+                || normalized.contains("\\")
+        ) {
+            throw new IOException("Invalid " + field);
+        }
+        return normalized;
+    }
+
+    private JSObject publicDocumentResult(Uri file) {
+        long size = 0L;
+        String filename = null;
+        try (Cursor cursor = getContext().getContentResolver().query(
+            file,
+            new String[] { MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.SIZE },
+            null,
+            null,
+            null
+        )) {
+            if (cursor != null && cursor.moveToFirst()) {
+                filename = cursor.getString(0);
+                size = cursor.getLong(1);
+            }
+        }
+        JSObject result = new JSObject();
+        result.put("success", true);
+        result.put("uri", file.toString());
+        result.put("filename", filename);
+        result.put("size", size);
+        return result;
+    }
+
     private Path requireWritablePath(String rawPath) throws IOException {
         Path path = resolvePath(rawPath);
         Path parent = path.getParent();
@@ -6674,6 +8149,22 @@ public class EpubRewritePlugin extends Plugin {
         }
     }
 
+    private long safeFileSize(Path path) {
+        if (path == null) {
+            return -1L;
+        }
+        try {
+            return Files.exists(path) ? Files.size(path) : -1L;
+        } catch (Exception ex) {
+            debugIo(
+                "file size lookup failed path=" + path
+                    + " type=" + ex.getClass().getSimpleName()
+                    + " message=" + (ex.getMessage() == null ? "" : ex.getMessage())
+            );
+            return -1L;
+        }
+    }
+
     private JSObject errorResult(String error, String message, String stage) {
         return errorResult(error, message, stage, null, null, true);
     }
@@ -6696,6 +8187,13 @@ public class EpubRewritePlugin extends Plugin {
         Long availableBytes,
         boolean shouldReport
     ) {
+        debugIo(
+            "operation error code=" + error
+                + " stage=" + stage
+                + " message=" + (message == null ? "" : message)
+                + " requiredBytes=" + requiredBytes
+                + " availableBytes=" + availableBytes
+        );
         if (shouldReport) {
             reportNonFatalFailure(error, message, stage, null);
         }
@@ -7060,6 +8558,150 @@ public class EpubRewritePlugin extends Plugin {
             this.id = id;
             this.href = href;
             this.mediaType = mediaType;
+        }
+    }
+
+    private static final class SplitSourceMetadata {
+        final String opfPath;
+        final java.util.LinkedHashMap<String, String> spinePaths;
+
+        SplitSourceMetadata(
+            String opfPath,
+            java.util.LinkedHashMap<String, String> spinePaths
+        ) {
+            this.opfPath = opfPath;
+            this.spinePaths = spinePaths;
+        }
+    }
+
+    private static final class SplitTocEntry {
+        final String spineItemId;
+        final String title;
+        final String href;
+        final java.util.ArrayList<SplitTocEntry> children;
+
+        SplitTocEntry(
+            String spineItemId,
+            String title,
+            String href,
+            java.util.ArrayList<SplitTocEntry> children
+        ) {
+            this.spineItemId = spineItemId;
+            this.title = title;
+            this.href = href;
+            this.children = children;
+        }
+    }
+
+    private static final class SplitOutputRequest {
+        final String id;
+        final Path outputPath;
+        final String outputName;
+        final String title;
+        final java.util.ArrayList<String> spineItemIds;
+        final java.util.HashMap<String, String> tocTitles;
+        final java.util.ArrayList<SplitTocEntry> tocEntries;
+
+        SplitOutputRequest(
+            String id,
+            Path outputPath,
+            String outputName,
+            String title,
+            java.util.ArrayList<String> spineItemIds,
+            java.util.HashMap<String, String> tocTitles,
+            java.util.ArrayList<SplitTocEntry> tocEntries
+        ) {
+            this.id = id;
+            this.outputPath = outputPath;
+            this.outputName = outputName;
+            this.title = title;
+            this.spineItemIds = spineItemIds;
+            this.tocTitles = tocTitles;
+            this.tocEntries = tocEntries;
+        }
+
+        static SplitOutputRequest from(org.json.JSONObject raw) throws Exception {
+            if (raw == null) {
+                throw new PluginErrorException("SPLIT_OUTPUT_INVALID", "missing output", "split");
+            }
+            String id = raw.optString("id", "").trim();
+            String pathValue = raw.optString("outputPath", "").trim();
+            String outputName = raw.optString("outputName", "").trim();
+            String title = raw.optString("title", "").trim();
+            org.json.JSONArray spine = raw.optJSONArray("spineItemIds");
+            if (
+                CompatStrings.isBlank(id)
+                || CompatStrings.isBlank(pathValue)
+                || CompatStrings.isBlank(outputName)
+                || CompatStrings.isBlank(title)
+                || spine == null
+                || spine.length() == 0
+            ) {
+                throw new PluginErrorException("SPLIT_OUTPUT_INVALID", "missing split output fields", "split");
+            }
+
+            java.util.ArrayList<String> ids = new java.util.ArrayList<>();
+            for (int index = 0; index < spine.length(); index++) {
+                String spineId = spine.optString(index, "").trim();
+                if (CompatStrings.isBlank(spineId)) {
+                    throw new PluginErrorException("SPLIT_OUTPUT_INVALID", "invalid spine item", "split");
+                }
+                ids.add(spineId);
+            }
+            java.util.HashMap<String, String> tocTitles = new java.util.HashMap<>();
+            org.json.JSONArray tocEntriesJson = raw.optJSONArray("tocEntries");
+            if (tocEntriesJson != null) {
+                for (int index = 0; index < tocEntriesJson.length(); index++) {
+                    org.json.JSONObject entry = tocEntriesJson.optJSONObject(index);
+                    if (entry == null) continue;
+                    String spineItemId = entry.optString("spineItemId", "").trim();
+                    String tocTitle = entry.optString("title", "").trim();
+                    if (ids.contains(spineItemId) && CompatStrings.isNotBlank(tocTitle)) {
+                        tocTitles.put(spineItemId, tocTitle);
+                    }
+                }
+            }
+            java.util.ArrayList<SplitTocEntry> tocEntries = parseSplitTocEntries(tocEntriesJson, ids);
+            try {
+                return new SplitOutputRequest(id, Paths.get(pathValue), outputName, title, ids, tocTitles, tocEntries);
+            } catch (InvalidPathException invalidPath) {
+                throw new PluginErrorException("SPLIT_OUTPUT_INVALID", pathValue, "split");
+            }
+        }
+
+        String tocTitleFor(String spineItemId, String fallback) {
+            String title = tocTitles.get(spineItemId);
+            return CompatStrings.isBlank(title) ? fallback : title;
+        }
+
+        private static java.util.ArrayList<SplitTocEntry> parseSplitTocEntries(
+            org.json.JSONArray entries,
+            java.util.List<String> spineItemIds
+        ) {
+            java.util.ArrayList<SplitTocEntry> result = new java.util.ArrayList<>();
+            if (entries == null) return result;
+
+            for (int index = 0; index < entries.length(); index++) {
+                org.json.JSONObject raw = entries.optJSONObject(index);
+                if (raw == null) continue;
+                String spineItemId = raw.optString("spineItemId", "").trim();
+                String title = raw.optString("title", "").trim();
+                java.util.ArrayList<SplitTocEntry> children = parseSplitTocEntries(
+                    raw.optJSONArray("children"),
+                    spineItemIds
+                );
+                if (!spineItemIds.contains(spineItemId) || CompatStrings.isBlank(title)) {
+                    result.addAll(children);
+                    continue;
+                }
+                result.add(new SplitTocEntry(
+                    spineItemId,
+                    title,
+                    raw.optString("href", "").trim(),
+                    children
+                ));
+            }
+            return result;
         }
     }
 

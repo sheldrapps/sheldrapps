@@ -1,6 +1,106 @@
 {
+  "PUBLISHING_CATALOG": {
+    "PLATFORMS": { "AMAZON_KDP": "Amazon KDP", "KOBO_WRITING_LIFE": "Kobo Writing Life", "APPLE_BOOKS": "Apple Books", "GOOGLE_PLAY_BOOKS": "Google Play Books", "BARNES_NOBLE_PRESS": "Barnes & Noble Press", "TOLINO_MEDIA": "Tolino Media", "RIDI": "RIDI / RIDIBOOKS", "DRAFT2DIGITAL": "Draft2Digital", "INGRAMSPARK": "IngramSpark", "PUBLISHDRIVE": "PublishDrive", "STREETLIB": "StreetLib", "LULU": "Lulu" },
+    "GROUPS": { "STORE_COVER": "स्टोर कवर", "EBOOK_COVER": "ईबुक कवर", "EBOOK_AND_STORE_COVER": "ईबुक और स्टोर कवर", "DISTRIBUTION_COVER": "डिस्ट्रीब्यूशन कवर", "EMBEDDED_COVER": "एम्बेडेड कवर", "EXTERNAL_COVER": "बाहरी कवर" },
+    "BADGES": { "IDEAL": "आदर्श", "RECOMMENDED": "अनुशंसित", "COMPATIBLE": "संगत", "ALTERNATIVE": "वैकल्पिक", "MINIMUM": "न्यूनतम" },
+    "PRESETS": { "AMAZON_KDP_1600X2560": "1600 × 2560 px", "AMAZON_KDP_625X1000": "625 × 1000 px", "KOBO_WRITING_LIFE_1800X2400": "1800 × 2400 px", "APPLE_BOOKS_1600X2400": "1600 × 2400 px", "GOOGLE_PLAY_BOOKS_1600X2400": "1600 × 2400 px", "BARNES_NOBLE_PRESS_1600X2400": "1600 × 2400 px", "TOLINO_MEDIA_1600X2400": "1600 × 2400 px", "RIDI_1600X2560": "1600 × 2560 px", "RIDI_1200X1800": "1200 × 1800 px", "DRAFT2DIGITAL_1600X2400": "1600 × 2400 px", "INGRAMSPARK_1600X2560": "1600 × 2560 px", "PUBLISHDRIVE_EMBEDDED_1600X2400": "1600 × 2400 px", "PUBLISHDRIVE_STORE_1600X2560": "1600 × 2560 px", "STREETLIB_EMBEDDED_1200X1600": "1200 × 1600 px", "STREETLIB_EXTERNAL_1875X2500": "1875 × 2500 px", "LULU_1600X2560": "1600 × 2560 px", "LULU_625X1000": "625 × 1000 px" }
+  },
   "APP": {
     "TITLE": "EPUB Cover Changer"
+  },
+  "ECC": { "RATIO_CATEGORIES": { "E_READERS": "ई-रीडर", "PUBLISHING": "प्रकाशन", "PAPER": "काग़ज़", "ASPECT_RATIO": "आस्पेक्ट रेशियो" } },
+  "CROP_SELECTORS": { "BRAND": "ब्रांड", "FAMILY": "परिवार", "MODEL": "मॉडल", "PLATFORM": "प्लैटफ़ॉर्म", "COVER_TYPE": "कवर का प्रकार", "SIZE": "आकार", "STANDARD": "मानक", "SERIES": "श्रृंखला", "FORMAT": "फ़ॉर्मैट", "ORIENTATION": "दिशा", "PORTRAIT": "पोर्ट्रेट", "LANDSCAPE": "लैंडस्केप", "ASPECT_RATIO": "आस्पेक्ट रेशियो" },
+  "COMMON": { "RECOMMENDED": "अनुशंसित" },
+  "PUBLISHING_PLATFORMS": { "RIDI": "RIDI / RIDIBOOKS" },
+  "PUBLISHING_GROUPS": { "RIDI": { "EBOOK_COVER": "ईबुक कवर" } },
+  "PUBLISHING_PRESETS": { "RIDI_1600X2560": "1600 × 2560 px", "RIDI_1200X1800": "1200 × 1800 px" },
+  "PAPER_GROUPS": { "ISO_216": "ISO 216", "NORTH_AMERICAN": "उत्तर अमेरिका", "ISO_A_SERIES": "A श्रृंखला", "NORTH_AMERICAN_OFFICE": "उत्तर अमेरिकी कार्यालय" },
+  "PAPER_PRESETS": { "A3": "A3", "A4": "A4", "A5": "A5", "A6": "A6", "LETTER": "लेटर", "LEGAL": "लीगल", "TABLOID": "टैब्लॉइड" },
+  "RATIO_GROUPS": { "COMMON": "सामान्य अनुपात" },
+  "RATIO_PRESETS": { "1_1": "1:1", "2_3": "2:3", "3_4": "3:4", "4_5": "4:5", "5_7": "5:7", "5_8": "5:8", "9_16": "9:16", "CUSTOM": "कस्टम" },
+  "RATIO_CUSTOM": { "TITLE": "कस्टम आस्पेक्ट रेशियो", "WIDTH": "चौड़ाई", "HEIGHT": "ऊंचाई", "HELPER": "{{min}} से {{max}} तक पूर्णांक दर्ज करें।" },
+  "KINDLE_BRANDS": {
+    "KINDLE": "Kindle"
+  },
+  "KINDLE_GROUPS": {
+    "BASIC": "Basic",
+    "OASIS": "Oasis",
+    "PAPERWHITE": "Paperwhite",
+    "PAPERWHITE_SIGNATURE": "Paperwhite Signature",
+    "SCRIBE": "Scribe",
+    "VOYAGE": "Voyage",
+    "COLORSOFT": "Colorsoft",
+    "COLORSOFT_SIGNATURE": "Colorsoft Signature"
+  },
+  "KINDLE_MODELS": {
+    "BASIC_2010_2019": "2010-2019",
+    "BASIC_2022_2024": "2022-2024",
+    "OASIS_2016": "2016",
+    "OASIS_2017_2019": "2017-2019",
+    "PAPERWHITE_2012_2013": "2012-2013",
+    "PAPERWHITE_2015_2019": "2015-2019",
+    "PAPERWHITE_2021": "2021",
+    "PAPERWHITE_2024": "2024",
+    "PAPERWHITE_SIGNATURE_2021": "2021",
+    "PAPERWHITE_SIGNATURE_2024": "2024",
+    "SCRIBE_2022_2024": "2022-2024",
+    "VOYAGE_2014": "2014",
+    "COLORSOFT": "2025",
+    "COLORSOFT_SIGNATURE_EDITION": "2024"
+  },
+  "KOBO_BRANDS": {
+    "KOBO": "Kobo"
+  },
+  "KOBO_GROUPS": {
+    "CLARA": "Clara",
+    "ELIPSA": "Elipsa",
+    "LIBRA": "Libra",
+    "NIA": "Nia",
+    "SAGE": "Sage"
+  },
+  "KOBO_MODELS": {
+    "CLARA_ALL": "Kobo Clara (HD / 2E / BW / Colour)",
+    "ELIPSA_ALL": "Kobo Elipsa (Elipsa / 2E)",
+    "LIBRA_ALL": "Kobo Libra (H2O / 2 / Colour)",
+    "NIA": "Kobo Nia",
+    "SAGE": "Kobo Sage"
+  },
+  "NOOK_BRANDS": {
+    "NOOK": "Nook"
+  },
+  "NOOK_GROUPS": {
+    "GLOWLIGHT": "GlowLight"
+  },
+  "NOOK_MODELS": {
+    "GLOWLIGHT_2013_2015": "Nook GlowLight (2013-2015)",
+    "GLOWLIGHT_2019_2023": "Nook GlowLight (2019-2023)"
+  },
+  "POCKETBOOK_BRANDS": {
+    "POCKETBOOK": "PocketBook"
+  },
+  "POCKETBOOK_GROUPS": {
+    "ERA": "Era",
+    "INKPAD": "InkPad",
+    "VERSE": "Verse"
+  },
+  "POCKETBOOK_MODELS": {
+    "ERA": "PocketBook Era",
+    "INKPAD_ALL": "PocketBook InkPad (All models)",
+    "VERSE": "PocketBook Verse",
+    "VERSE_PRO": "PocketBook Verse Pro"
+  },
+  "TOLINO_BRANDS": {
+    "TOLINO": "Tolino"
+  },
+  "TOLINO_GROUPS": {
+    "SHINE": "Shine",
+    "VISION": "Vision"
+  },
+  "TOLINO_MODELS": {
+    "SHINE_2014_2018": "Tolino Shine (2014-2018)",
+    "SHINE_HD": "Tolino Shine HD",
+    "VISION_2015_2018": "Tolino Vision (2015-2018)",
+    "VISION_2021_2024": "Tolino Vision (2021-2024)"
   },
   "COMMON": {
     "BACK_AGAIN_TO_EXIT": "बाहर निकलने के लिए फिर से वापस जाएँ",
@@ -18,7 +118,8 @@
     "REMOVE_ADS_RESTORE": "खरीदारी पुनः प्राप्त करें",
     "REMOVE_ADS_RESTORED": "खरीदारी सफलतापूर्वक पुनः प्राप्त की गई।",
     "REMOVE_ADS_TITLE": "विज्ञापन हटाएँ",
-    "REMOVE_ADS_CTA_TITLE": "विज्ञापन हटाएँ",
+   "REMOVE_ADS_CTA_TITLE": "विज्ञापन हटाएँ",
+    "UPGRADE_TO_PRO": "प्रो में अपग्रेड करें",
     "REMOVE_ADS_CTA_SUBTITLE": "एकमुश्त भुगतान • हमेशा के लिए",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "एकमुश्त भुगतान • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "मूल्य: {{price}} • कोई सदस्यता नहीं",
@@ -65,7 +166,7 @@
     "IMAGE_WARN_INVALID_EPUB_COVER": "अमान्य EPUB कवर. नई छवि चुनने के लिए टैप करें.",
     "EPUB_ERROR_CORRUPT": "EPUB फ़ाइल पढ़ी नहीं जा सकी. कृपया दूसरी फ़ाइल आज़माएँ.",
     "EPUB_ERROR_NO_COVER": "इस EPUB फ़ाइल में बदली जा सकने वाली कवर नहीं है.",
-    "NO_COVER_DETECTED_ADDED": "कोई कवर नहीं मिला। इस EPUB में एक नया कवर जोड़ा गया।",
+    "RENAMED_OK": "EPUB का नाम बदला गया",
     "EPUB_ERROR_REWRITE": "EPUB फ़ाइल प्रोसेस नहीं की जा सकी. कृपया फिर से कोशिश करें.",
     "EPUB_ERROR_STORAGE": "पर्याप्त संग्रहण स्थान नहीं है। आवश्यक {{requiredMB}} MB, उपलब्ध {{availableMB}} MB।",
     "EPUB_ERROR_SIZE": "फ़ाइल बहुत बड़ी है. अधिकतम {{maxSize}} MB.",
@@ -202,8 +303,7 @@
     "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
     "EREADER_OPTIMIZATION_HINT": "कवर को बेहतर बनाने के लिए स्वचालित समायोजन लागू करता है",
     "EREADER_OPTIMIZATION_TOGGLE": "ऑप्टिमाइज़",
-    "TITLE": "सेटिंग्स",
-    "VIEW_TOUR": "टूर देखें"
+    "TITLE": "सेटिंग्स"
   },
   "TABS": {
     "COVERS": "मेरी EPUBs",

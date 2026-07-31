@@ -1,4 +1,6 @@
-﻿export type Locale =
+import { EDITOR_CROP_TARGET_TRANSLATIONS } from "./editor-crop-target.translations";
+
+export type Locale =
   | "es-419"
   | "en-US"
   | "de-DE"
@@ -2232,6 +2234,10 @@ const EDITOR_NEW_CROP_I18N: Record<Locale, FlatDict> = {
 for (const locale of Object.keys(EDITOR_TRANSLATIONS) as Locale[]) {
   const localized = EDITOR_NEW_CROP_I18N[locale];
   for (const [key, value] of Object.entries(localized)) {
+    EDITOR_TRANSLATIONS[locale][key] = value;
+  }
+
+  for (const [key, value] of Object.entries(EDITOR_CROP_TARGET_TRANSLATIONS[locale])) {
     EDITOR_TRANSLATIONS[locale][key] = value;
   }
 }

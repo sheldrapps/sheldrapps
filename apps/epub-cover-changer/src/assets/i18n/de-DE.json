@@ -1,6 +1,106 @@
 {
+  "PUBLISHING_CATALOG": {
+    "PLATFORMS": { "AMAZON_KDP": "Amazon KDP", "KOBO_WRITING_LIFE": "Kobo Writing Life", "APPLE_BOOKS": "Apple Books", "GOOGLE_PLAY_BOOKS": "Google Play Books", "BARNES_NOBLE_PRESS": "Barnes & Noble Press", "TOLINO_MEDIA": "Tolino Media", "RIDI": "RIDI / RIDIBOOKS", "DRAFT2DIGITAL": "Draft2Digital", "INGRAMSPARK": "IngramSpark", "PUBLISHDRIVE": "PublishDrive", "STREETLIB": "StreetLib", "LULU": "Lulu" },
+    "GROUPS": { "STORE_COVER": "Store-Cover", "EBOOK_COVER": "eBook-Cover", "EBOOK_AND_STORE_COVER": "eBook- und Store-Cover", "DISTRIBUTION_COVER": "Distributions-Cover", "EMBEDDED_COVER": "Eingebettetes Cover", "EXTERNAL_COVER": "Externes Cover" },
+    "BADGES": { "IDEAL": "Ideal", "RECOMMENDED": "Empfohlen", "COMPATIBLE": "Kompatibel", "ALTERNATIVE": "Alternative", "MINIMUM": "Minimum" },
+    "PRESETS": { "AMAZON_KDP_1600X2560": "1600 × 2560 px", "AMAZON_KDP_625X1000": "625 × 1000 px", "KOBO_WRITING_LIFE_1800X2400": "1800 × 2400 px", "APPLE_BOOKS_1600X2400": "1600 × 2400 px", "GOOGLE_PLAY_BOOKS_1600X2400": "1600 × 2400 px", "BARNES_NOBLE_PRESS_1600X2400": "1600 × 2400 px", "TOLINO_MEDIA_1600X2400": "1600 × 2400 px", "RIDI_1600X2560": "1600 × 2560 px", "RIDI_1200X1800": "1200 × 1800 px", "DRAFT2DIGITAL_1600X2400": "1600 × 2400 px", "INGRAMSPARK_1600X2560": "1600 × 2560 px", "PUBLISHDRIVE_EMBEDDED_1600X2400": "1600 × 2400 px", "PUBLISHDRIVE_STORE_1600X2560": "1600 × 2560 px", "STREETLIB_EMBEDDED_1200X1600": "1200 × 1600 px", "STREETLIB_EXTERNAL_1875X2500": "1875 × 2500 px", "LULU_1600X2560": "1600 × 2560 px", "LULU_625X1000": "625 × 1000 px" }
+  },
   "APP": {
     "TITLE": "EPUB Cover Changer"
+  },
+  "ECC": { "RATIO_CATEGORIES": { "E_READERS": "E-Reader", "PUBLISHING": "Veröffentlichung", "PAPER": "Papier", "ASPECT_RATIO": "Seitenverhältnis" } },
+  "CROP_SELECTORS": { "BRAND": "Marke", "FAMILY": "Familie", "MODEL": "Modell", "PLATFORM": "Plattform", "COVER_TYPE": "Covertyp", "SIZE": "Größe", "STANDARD": "Standard", "SERIES": "Serie", "FORMAT": "Format", "ORIENTATION": "Ausrichtung", "PORTRAIT": "Hochformat", "LANDSCAPE": "Querformat", "ASPECT_RATIO": "Seitenverhältnis" },
+  "COMMON": { "RECOMMENDED": "Empfohlen" },
+  "PUBLISHING_PLATFORMS": { "RIDI": "RIDI / RIDIBOOKS" },
+  "PUBLISHING_GROUPS": { "RIDI": { "EBOOK_COVER": "eBook-Cover" } },
+  "PUBLISHING_PRESETS": { "RIDI_1600X2560": "1600 × 2560 px", "RIDI_1200X1800": "1200 × 1800 px" },
+  "PAPER_GROUPS": { "ISO_216": "ISO 216", "NORTH_AMERICAN": "Nordamerika", "ISO_A_SERIES": "A-Reihe", "NORTH_AMERICAN_OFFICE": "Nordamerikanisches Büroformat" },
+  "PAPER_PRESETS": { "A3": "A3", "A4": "A4", "A5": "A5", "A6": "A6", "LETTER": "Letter", "LEGAL": "Legal", "TABLOID": "Tabloid" },
+  "RATIO_GROUPS": { "COMMON": "Gängige Seitenverhältnisse" },
+  "RATIO_PRESETS": { "1_1": "1:1", "2_3": "2:3", "3_4": "3:4", "4_5": "4:5", "5_7": "5:7", "5_8": "5:8", "9_16": "9:16", "CUSTOM": "Benutzerdefiniert" },
+  "RATIO_CUSTOM": { "TITLE": "Benutzerdefiniertes Seitenverhältnis", "WIDTH": "Breite", "HEIGHT": "Höhe", "HELPER": "Gib ganze Zahlen von {{min}} bis {{max}} ein." },
+  "KINDLE_BRANDS": {
+    "KINDLE": "Kindle"
+  },
+  "KINDLE_GROUPS": {
+    "BASIC": "Basic",
+    "OASIS": "Oasis",
+    "PAPERWHITE": "Paperwhite",
+    "PAPERWHITE_SIGNATURE": "Paperwhite Signature",
+    "SCRIBE": "Scribe",
+    "VOYAGE": "Voyage",
+    "COLORSOFT": "Colorsoft",
+    "COLORSOFT_SIGNATURE": "Colorsoft Signature"
+  },
+  "KINDLE_MODELS": {
+    "BASIC_2010_2019": "2010-2019",
+    "BASIC_2022_2024": "2022-2024",
+    "OASIS_2016": "2016",
+    "OASIS_2017_2019": "2017-2019",
+    "PAPERWHITE_2012_2013": "2012-2013",
+    "PAPERWHITE_2015_2019": "2015-2019",
+    "PAPERWHITE_2021": "2021",
+    "PAPERWHITE_2024": "2024",
+    "PAPERWHITE_SIGNATURE_2021": "2021",
+    "PAPERWHITE_SIGNATURE_2024": "2024",
+    "SCRIBE_2022_2024": "2022-2024",
+    "VOYAGE_2014": "2014",
+    "COLORSOFT": "2025",
+    "COLORSOFT_SIGNATURE_EDITION": "2024"
+  },
+  "KOBO_BRANDS": {
+    "KOBO": "Kobo"
+  },
+  "KOBO_GROUPS": {
+    "CLARA": "Clara",
+    "ELIPSA": "Elipsa",
+    "LIBRA": "Libra",
+    "NIA": "Nia",
+    "SAGE": "Sage"
+  },
+  "KOBO_MODELS": {
+    "CLARA_ALL": "Kobo Clara (HD / 2E / BW / Colour)",
+    "ELIPSA_ALL": "Kobo Elipsa (Elipsa / 2E)",
+    "LIBRA_ALL": "Kobo Libra (H2O / 2 / Colour)",
+    "NIA": "Kobo Nia",
+    "SAGE": "Kobo Sage"
+  },
+  "NOOK_BRANDS": {
+    "NOOK": "Nook"
+  },
+  "NOOK_GROUPS": {
+    "GLOWLIGHT": "GlowLight"
+  },
+  "NOOK_MODELS": {
+    "GLOWLIGHT_2013_2015": "Nook GlowLight (2013-2015)",
+    "GLOWLIGHT_2019_2023": "Nook GlowLight (2019-2023)"
+  },
+  "POCKETBOOK_BRANDS": {
+    "POCKETBOOK": "PocketBook"
+  },
+  "POCKETBOOK_GROUPS": {
+    "ERA": "Era",
+    "INKPAD": "InkPad",
+    "VERSE": "Verse"
+  },
+  "POCKETBOOK_MODELS": {
+    "ERA": "PocketBook Era",
+    "INKPAD_ALL": "PocketBook InkPad (All models)",
+    "VERSE": "PocketBook Verse",
+    "VERSE_PRO": "PocketBook Verse Pro"
+  },
+  "TOLINO_BRANDS": {
+    "TOLINO": "Tolino"
+  },
+  "TOLINO_GROUPS": {
+    "SHINE": "Shine",
+    "VISION": "Vision"
+  },
+  "TOLINO_MODELS": {
+    "SHINE_2014_2018": "Tolino Shine (2014-2018)",
+    "SHINE_HD": "Tolino Shine HD",
+    "VISION_2015_2018": "Tolino Vision (2015-2018)",
+    "VISION_2021_2024": "Tolino Vision (2021-2024)"
   },
   "COMMON": {
     "BACK_AGAIN_TO_EXIT": "Gehe erneut zurück, um zu beenden",
@@ -18,7 +118,8 @@
     "REMOVE_ADS_RESTORE": "Kauf wiederherstellen",
     "REMOVE_ADS_RESTORED": "Kauf erfolgreich wiederhergestellt.",
     "REMOVE_ADS_TITLE": "Werbung entfernen",
-    "REMOVE_ADS_CTA_TITLE": "Werbung entfernen",
+   "REMOVE_ADS_CTA_TITLE": "Werbung entfernen",
+    "UPGRADE_TO_PRO": "Auf Pro upgraden",
     "REMOVE_ADS_CTA_SUBTITLE": "Einmalzahlung ⬢ Für immer",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Einmalzahlung • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "Preis: {{price}} • Kein Abo",
@@ -62,7 +163,7 @@
     "IMAGE_ERROR_SIZE": "Die Datei ist zu groß. Maximal {{maxSize}} MB.",
     "IMAGE_ERROR_TYPE": "Nicht unterstütztes Format ({{type}}). Bitte wähle JPG, PNG oder WebP.",
     "IMAGE_WARN_SMALL": "Das Bild kann für einige Geräte zu klein sein.",
-    "NO_COVER_DETECTED_ADDED": "Kein Cover erkannt. Ein neues Cover wurde zu diesem EPUB hinzugefügt.",
+    "RENAMED_OK": "EPUB umbenannt",
     "EPUB_ERROR_STORAGE": "Nicht genug Speicherplatz. Benoetigt {{requiredMB}} MB, verfuegbar {{availableMB}} MB.",
     "LOADING_EPUB": "EPUB wird geladen…",
     "LOADING_IMAGE": "Bild wird geladen…",
@@ -202,7 +303,6 @@
     "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
     "EREADER_OPTIMIZATION_HINT": "Wendet automatische Anpassungen an, um das Cover zu verbessern",
     "EREADER_OPTIMIZATION_TOGGLE": "Optimieren",
-    "VIEW_TOUR": "Tour ansehen",
     "TITLE": "Einstellungen"
   },
   "TABS": {

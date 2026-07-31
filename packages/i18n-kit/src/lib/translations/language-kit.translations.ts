@@ -1,4 +1,4 @@
-﻿import type { SupportedLocale } from '../locale-detection.service';
+import type { SupportedLocale } from '../locale-detection.service';
 
 export type LanguageKitLocaleDictionary = {
   LANGUAGE_OPTIONS: {

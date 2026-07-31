@@ -20,7 +20,8 @@
     "REMOVE_ADS_RESTORE": "Восстановить покупку",
     "REMOVE_ADS_RESTORED": "Покупка успешно восстановлена.",
     "REMOVE_ADS_TITLE": "Убрать рекламу",
-    "REMOVE_ADS_CTA_TITLE": "Убрать рекламу",
+   "REMOVE_ADS_CTA_TITLE": "Убрать рекламу",
+    "UPGRADE_TO_PRO": "Перейти на Pro",
     "REMOVE_ADS_CTA_SUBTITLE": "Разовый платёж • Навсегда",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Разовый платёж • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "Цена: {{price}} • Без подписки",
@@ -316,7 +317,6 @@
     "REQUISITES_HINT": "Необходимые настройки для правильной работы обложек на Kindle",
     "REQUISITES_SECTION": "ТѬебования",
     "TITLE": "Настройки",
-    "VIEW_TOUR": "Смотреть тур",
     "HOW_TO_USE": "Как пользоваться?"
   },
   "TABS": {

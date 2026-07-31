@@ -2,6 +2,7 @@
   class="remove-ads-upgrade-modal"
   [attr.aria-label]="presentation.titleKey | translate"
 >
+  @if (showHeader) {
   <header class="remove-ads-upgrade-modal__header">
     <div class="remove-ads-upgrade-modal__header-copy">
       <h2 class="remove-ads-upgrade-modal__title">
@@ -24,6 +25,7 @@
       </ion-button>
     </ion-buttons>
   </header>
+  }
 
   <div class="remove-ads-upgrade-modal__body">
     <div class="remove-ads-upgrade-modal__benefits" role="list">
@@ -74,7 +76,11 @@
       [disabled]="purchaseDisabled || !billingReady"
       (click)="purchaseRequested.emit()"
     >
-      <ion-icon slot="start" name="sparkles-outline"></ion-icon>
+      @if (busy) {
+        <ion-spinner slot="start" name="crescent"></ion-spinner>
+      } @else {
+        <ion-icon slot="start" name="sparkles-outline"></ion-icon>
+      }
       {{ purchaseLabelKey | translate:purchaseLabelParams }}
     </ion-button>
 

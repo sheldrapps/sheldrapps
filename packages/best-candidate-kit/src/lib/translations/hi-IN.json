@@ -1,39 +1,39 @@
 {
   "BEST_CANDIDATE": {
     "ACTION": {
-      "DETECT_COVER": "Detect cover automatically"
+      "DETECT_COVER": "कवर स्वचालित रूप से पहचानें"
     },
     "LOADING": {
-      "TITLE": "Searching for candidate images..."
+      "TITLE": "उम्मीदवार छवियों की खोज की जा रही है..."
     },
     "EMPTY": {
-      "TITLE": "No cover candidates found",
-      "DESCRIPTION": "We could not find useful images inside this EPUB."
+      "TITLE": "कोई कवर उम्मीदवार नहीं मिला",
+      "DESCRIPTION": "हम इस EPUB के अंदर उपयोगी छवियां नहीं खोज सके।"
     },
     "PICKER": {
-      "TITLE": "Choose a possible cover",
-      "DESCRIPTION": "We found images that may work as the book cover.",
-      "LONG_PRESS_HINT": "Long press an image to preview it.",
-      "UNKNOWN_IMAGE": "Unknown image",
-      "CANDIDATE_ALT": "Candidate image {{index}}",
-      "NO_COVER_DETECTED": "No cover detected, tap to select one of the suggestions.",
-      "LONG_PRESS_TO_PREVIEW": "Long press to preview."
+      "TITLE": "एक संभावित कवर चुनें",
+      "DESCRIPTION": "हमें ऐसी छवियां मिलीं जो किताब के कवर के रूप में काम कर सकती हैं।",
+      "LONG_PRESS_HINT": "चुनने के लिए टैप करें",
+      "NO_COVER_DETECTED": "कोई कवर नहीं पहचाना गया, सुझावों में से किसी एक को चुनने के लिए टैप करें।",
+      "LONG_PRESS_TO_PREVIEW": "पूर्वावलोकन के लिए लंबे समय तक दबाएं",
+      "UNKNOWN_IMAGE": "अज्ञात छवि",
+      "CANDIDATE_ALT": "उम्मीदवार छवि {{index}}"
     },
     "REASON": {
-      "FIRST_LARGE_IMAGE": "First large image",
-      "COVER_RATIO": "Cover-like ratio",
-      "NEAR_BOOK_START": "Near the beginning",
-      "FILENAME_COVER": "Cover-like filename",
-      "LARGE_RESOLUTION": "Large image",
-      "METADATA_COVER": "Marked as cover metadata",
-      "SMALL_ICON_RISK": "May be icon-like",
-      "DECORATIVE_RISK": "May be decorative"
+      "FIRST_LARGE_IMAGE": "पहली बड़ी छवि",
+      "COVER_RATIO": "कवर जैसा अनुपात",
+      "NEAR_BOOK_START": "शुरुआत के पास",
+      "FILENAME_COVER": "कवर जैसा फाइल नाम",
+      "LARGE_RESOLUTION": "बड़ी छवि",
+      "METADATA_COVER": "मेटाडेटा में कवर के रूप में चिह्नित",
+      "SMALL_ICON_RISK": "आइकन जैसा हो सकता है",
+      "DECORATIVE_RISK": "सजावटी हो सकता है"
     },
     "PREVIEW": {
-      "TITLE": "Image preview",
-      "OPEN": "Preview",
-      "CLOSE": "Close",
-      "SELECT": "Use this image"
+      "TITLE": "छवि पूर्वावलोकन",
+      "OPEN": "पूर्वावलोकन",
+      "CLOSE": "बंद करें",
+      "SELECT": "इस छवि का उपयोग करें"
     }
   }
 }

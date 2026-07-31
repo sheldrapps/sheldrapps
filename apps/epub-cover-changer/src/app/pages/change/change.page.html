@@ -7,6 +7,7 @@
         variant="iconText"
         align="start"
         edge="end"
+        [disabled]="isResettingFlow"
         (selectItem)="onHeaderItemClick($event)"
       ></sh-scrollable-button-bar>
     </ion-buttons>
@@ -45,7 +46,6 @@
 
     <sh-action-card
       class="file-selector-section__card"
-      data-tour-id="epub-picker"
       (click)="openEpubPicker()"
       [title]="selectedEpubName || ('CHANGE.SELECT_EPUB_PLACEHOLDER' | translate)"
       [description]="
@@ -134,22 +134,8 @@
 
   @if (workflowStep >= 2) {
   <div class="primary-actions">
-    @if (workflowStep === 2 && canCrop()) {
-    <ion-button
-      expand="block"
-      fill="outline"
-      data-tour-id="adjust-button"
-      (click)="startCrop()"
-      aria-label="{{ 'CHANGE.ARIA_CROP' | translate }}"
-      [class.suggested-action--active]="suggestedStepId === 'adjust-button'"
-    >
-      <ion-icon slot="start" name="options-outline"></ion-icon>
-      {{ 'CHANGE.CROP_ACTION' | translate }}
-    </ion-button>
-    }
-
     @if (workflowStep === 3 && shouldShowExportOptions()) {
-    <div data-tour-id="export-quality">
+    <div>
       <sh-triple-button
         mode="export-quality-mode"
         [selectedValue]="getEffectiveExportQualityMode()"
@@ -178,7 +164,6 @@
       @if (workflowStep === 3 && canGenerate()) {
       <ion-button
         expand="block"
-        data-tour-id="create-button"
         (click)="onGenerate()"
         [class.suggested-action--active]="suggestedStepId === 'create-button'"
       >
@@ -194,7 +179,7 @@
   @if (workflowStep === 3) {
   <div class="secondary-actions">
     @if (canSaveShare()) {
-    <ion-grid class="app-action-grid" data-tour-id="result-actions">
+    <ion-grid class="app-action-grid">
       <ion-row>
         <ion-col size="6">
           <ion-button
@@ -230,7 +215,6 @@
     <ion-button
       expand="block"
       fill="outline"
-      data-tour-id="remove-ads-cta"
       class="premium-upgrade-cta"
       [class.premium-upgrade-cta--pulse]="removeAdsPulseActive"
       (click)="openPurchaseModal()"
@@ -286,26 +270,6 @@
     </ng-template>
   </ion-popover>
 
-  <ion-modal
-    [isOpen]="purchaseModalOpen"
-    (didDismiss)="closePurchaseModal()"
-    class="remove-ads-modal"
-  >
-    <ng-template>
-      <div class="app-modal-content remove-ads-modal__content">
-        <sh-remove-ads-upgrade-modal
-          variant="ECC"
-          [billingReady]="getRemoveAdsPurchaseState() === 'ready'"
-          [priceFormatted]="removeAdsPriceFormatted"
-          [purchaseDisabled]="!canPurchaseRemoveAds()"
-          [restoreDisabled]="!canRestoreRemoveAds()"
-          (closeRequested)="onPurchaseModalCloseClick()"
-          (purchaseRequested)="onPurchaseRemoveAds()"
-          (restoreRequested)="onRestorePurchases()"
-        ></sh-remove-ads-upgrade-modal>
-      </div>
-    </ng-template>
-  </ion-modal>
 
   @if (showNativeLoadOverlay) {
   <sh-loading-state
@@ -319,6 +283,13 @@
     <sh-loading-state
       variant="fullscreen"
       [label]="loadingMessage || ('COMMON.LOADING' | translate)"
+    ></sh-loading-state>
+  }
+
+  @if (isResettingFlow) {
+    <sh-loading-state
+      variant="fullscreen"
+      [label]="'UI_THEME.RESETTING' | translate"
     ></sh-loading-state>
   }
 

@@ -1,4 +1,4 @@
-﻿# Cover Creator für Kindle - de-DE Play Store Listing
+# Cover Creator für Kindle - de-DE Play Store Listing
 
 ## Purpose
 Localized Play Store listing for de-DE, regenerated from the updated strategy matrix and conversion audit.

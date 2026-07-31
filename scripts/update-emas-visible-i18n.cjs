@@ -813,7 +813,6 @@ const removedPaths = [
   'SETTINGS.INSTRUCTIONS',
   'SETTINGS.INSTRUCTIONS_SECTION',
   'SETTINGS.INSTRUCTIONS_HINT',
-  'SETTINGS.VIEW_TOUR',
 ];
 
 function setAtPath(root, keyPath, value) {

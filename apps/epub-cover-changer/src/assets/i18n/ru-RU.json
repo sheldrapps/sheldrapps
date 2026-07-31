@@ -1,33 +1,134 @@
 {
+  "PUBLISHING_CATALOG": {
+    "PLATFORMS": { "AMAZON_KDP": "Amazon KDP", "KOBO_WRITING_LIFE": "Kobo Writing Life", "APPLE_BOOKS": "Apple Books", "GOOGLE_PLAY_BOOKS": "Google Play Books", "BARNES_NOBLE_PRESS": "Barnes & Noble Press", "TOLINO_MEDIA": "Tolino Media", "RIDI": "RIDI / RIDIBOOKS", "DRAFT2DIGITAL": "Draft2Digital", "INGRAMSPARK": "IngramSpark", "PUBLISHDRIVE": "PublishDrive", "STREETLIB": "StreetLib", "LULU": "Lulu" },
+    "GROUPS": { "STORE_COVER": "Обложка для магазина", "EBOOK_COVER": "Обложка электронной книги", "EBOOK_AND_STORE_COVER": "Обложка электронной книги и магазина", "DISTRIBUTION_COVER": "Обложка для распространения", "EMBEDDED_COVER": "Встроенная обложка", "EXTERNAL_COVER": "Внешняя обложка" },
+    "BADGES": { "IDEAL": "Идеальный", "RECOMMENDED": "Рекомендуемый", "COMPATIBLE": "Совместимый", "ALTERNATIVE": "Альтернатива", "MINIMUM": "Минимальный" },
+    "PRESETS": { "AMAZON_KDP_1600X2560": "1600 × 2560 px", "AMAZON_KDP_625X1000": "625 × 1000 px", "KOBO_WRITING_LIFE_1800X2400": "1800 × 2400 px", "APPLE_BOOKS_1600X2400": "1600 × 2400 px", "GOOGLE_PLAY_BOOKS_1600X2400": "1600 × 2400 px", "BARNES_NOBLE_PRESS_1600X2400": "1600 × 2400 px", "TOLINO_MEDIA_1600X2400": "1600 × 2400 px", "RIDI_1600X2560": "1600 × 2560 px", "RIDI_1200X1800": "1200 × 1800 px", "DRAFT2DIGITAL_1600X2400": "1600 × 2400 px", "INGRAMSPARK_1600X2560": "1600 × 2560 px", "PUBLISHDRIVE_EMBEDDED_1600X2400": "1600 × 2400 px", "PUBLISHDRIVE_STORE_1600X2560": "1600 × 2560 px", "STREETLIB_EMBEDDED_1200X1600": "1200 × 1600 px", "STREETLIB_EXTERNAL_1875X2500": "1875 × 2500 px", "LULU_1600X2560": "1600 × 2560 px", "LULU_625X1000": "625 × 1000 px" }
+  },
   "APP": {
     "TITLE": "EPUB Cover Changer"
   },
+  "ECC": { "RATIO_CATEGORIES": { "E_READERS": "Ридеры", "PUBLISHING": "Публикация", "PAPER": "Бумага", "ASPECT_RATIO": "Соотношение сторон" } },
+  "CROP_SELECTORS": { "BRAND": "Бренд", "FAMILY": "Семейство", "MODEL": "Модель", "PLATFORM": "Платформа", "COVER_TYPE": "Тип обложки", "SIZE": "Размер", "STANDARD": "Стандарт", "SERIES": "Серия", "FORMAT": "Формат", "ORIENTATION": "Ориентация", "PORTRAIT": "Книжная", "LANDSCAPE": "Альбомная", "ASPECT_RATIO": "Соотношение сторон" },
+  "COMMON": { "RECOMMENDED": "Рекомендуется" },
+  "PUBLISHING_PLATFORMS": { "RIDI": "RIDI / RIDIBOOKS" },
+  "PUBLISHING_GROUPS": { "RIDI": { "EBOOK_COVER": "Обложка eBook" } },
+  "PUBLISHING_PRESETS": { "RIDI_1600X2560": "1600 × 2560 px", "RIDI_1200X1800": "1200 × 1800 px" },
+  "PAPER_GROUPS": { "ISO_216": "ISO 216", "NORTH_AMERICAN": "Северная Америка", "ISO_A_SERIES": "Серия A", "NORTH_AMERICAN_OFFICE": "Североамериканские офисные форматы" },
+  "PAPER_PRESETS": { "A3": "A3", "A4": "A4", "A5": "A5", "A6": "A6", "LETTER": "Letter", "LEGAL": "Legal", "TABLOID": "Tabloid" },
+  "RATIO_GROUPS": { "COMMON": "Распространённые соотношения" },
+  "RATIO_PRESETS": { "1_1": "1:1", "2_3": "2:3", "3_4": "3:4", "4_5": "4:5", "5_7": "5:7", "5_8": "5:8", "9_16": "9:16", "CUSTOM": "Пользовательская" },
+  "RATIO_CUSTOM": { "TITLE": "Пользовательское соотношение сторон", "WIDTH": "Ширина", "HEIGHT": "Высота", "HELPER": "Введите целые числа от {{min}} до {{max}}." },
+  "KINDLE_BRANDS": {
+    "KINDLE": "Kindle"
+  },
+  "KINDLE_GROUPS": {
+    "BASIC": "Basic",
+    "OASIS": "Oasis",
+    "PAPERWHITE": "Paperwhite",
+    "PAPERWHITE_SIGNATURE": "Paperwhite Signature",
+    "SCRIBE": "Scribe",
+    "VOYAGE": "Voyage",
+    "COLORSOFT": "Colorsoft",
+    "COLORSOFT_SIGNATURE": "Colorsoft Signature"
+  },
+  "KINDLE_MODELS": {
+    "BASIC_2010_2019": "2010-2019",
+    "BASIC_2022_2024": "2022-2024",
+    "OASIS_2016": "2016",
+    "OASIS_2017_2019": "2017-2019",
+    "PAPERWHITE_2012_2013": "2012-2013",
+    "PAPERWHITE_2015_2019": "2015-2019",
+    "PAPERWHITE_2021": "2021",
+    "PAPERWHITE_2024": "2024",
+    "PAPERWHITE_SIGNATURE_2021": "2021",
+    "PAPERWHITE_SIGNATURE_2024": "2024",
+    "SCRIBE_2022_2024": "2022-2024",
+    "VOYAGE_2014": "2014",
+    "COLORSOFT": "2025",
+    "COLORSOFT_SIGNATURE_EDITION": "2024"
+  },
+  "KOBO_BRANDS": {
+    "KOBO": "Kobo"
+  },
+  "KOBO_GROUPS": {
+    "CLARA": "Clara",
+    "ELIPSA": "Elipsa",
+    "LIBRA": "Libra",
+    "NIA": "Nia",
+    "SAGE": "Sage"
+  },
+  "KOBO_MODELS": {
+    "CLARA_ALL": "Kobo Clara (HD / 2E / BW / Colour)",
+    "ELIPSA_ALL": "Kobo Elipsa (Elipsa / 2E)",
+    "LIBRA_ALL": "Kobo Libra (H2O / 2 / Colour)",
+    "NIA": "Kobo Nia",
+    "SAGE": "Kobo Sage"
+  },
+  "NOOK_BRANDS": {
+    "NOOK": "Nook"
+  },
+  "NOOK_GROUPS": {
+    "GLOWLIGHT": "GlowLight"
+  },
+  "NOOK_MODELS": {
+    "GLOWLIGHT_2013_2015": "Nook GlowLight (2013-2015)",
+    "GLOWLIGHT_2019_2023": "Nook GlowLight (2019-2023)"
+  },
+  "POCKETBOOK_BRANDS": {
+    "POCKETBOOK": "PocketBook"
+  },
+  "POCKETBOOK_GROUPS": {
+    "ERA": "Era",
+    "INKPAD": "InkPad",
+    "VERSE": "Verse"
+  },
+  "POCKETBOOK_MODELS": {
+    "ERA": "PocketBook Era",
+    "INKPAD_ALL": "PocketBook InkPad (All models)",
+    "VERSE": "PocketBook Verse",
+    "VERSE_PRO": "PocketBook Verse Pro"
+  },
+  "TOLINO_BRANDS": {
+    "TOLINO": "Tolino"
+  },
+  "TOLINO_GROUPS": {
+    "SHINE": "Shine",
+    "VISION": "Vision"
+  },
+  "TOLINO_MODELS": {
+    "SHINE_2014_2018": "Tolino Shine (2014-2018)",
+    "SHINE_HD": "Tolino Shine HD",
+    "VISION_2015_2018": "Tolino Vision (2015-2018)",
+    "VISION_2021_2024": "Tolino Vision (2021-2024)"
+  },
   "COMMON": {
     "BACK_AGAIN_TO_EXIT": "Нажмите ещё раз для выхода",
-    "CANCEL": "ÐžÑ‚Ð¼ÐµÐ½Ð°",
-    "CLOSE": "Ð—Ð°ÐºÑ€Ñ‹Ñ‚ÑŒ",
+    "CANCEL": "Отмена",
+    "CLOSE": "Закрыть",
     "DELETE": "Удалить",
-    "DONE": "Ð“Ð¾Ñ‚Ð¾Ð²Ð¾",
-    "ERROR": "ÐžÑˆÐ¸Ð±ÐºÐ°",
+    "DONE": "Готово",
+    "ERROR": "Ошибка",
     "LOADING": "Загрузка…",
     "BILLING_UNAVAILABLE": "Покупки временно недоступны.",
     "PURCHASE_ERROR": "Не удалось завершить покупку. Попробуйте ещё раз.",
-    "REMOVE_ADS_BUY": "ÐšÑƒÐ¿Ð¸Ñ‚ÑŒ",
+    "REMOVE_ADS_BUY": "Купить",
     "REMOVE_ADS_DESCRIPTION": "Уберите рекламу навсегда и откройте выбор между экспортом без потерь и сжатием.",
     "REMOVE_ADS_PURCHASED": "Реклама ђбѬана навсегда.",
     "REMOVE_ADS_RESTORE": "Восстановить покупку",
     "REMOVE_ADS_RESTORED": "Покупка успешно восстановлена.",
-    "REMOVE_ADS_TITLE": "Ð£Ð±Ñ€Ð°Ñ‚ÑŒ Ñ€ÐµÐºÐ»Ð°Ð¼Ñƒ",
-    "REMOVE_ADS_CTA_TITLE": "Ð£Ð±Ñ€Ð°Ñ‚ÑŒ Ñ€ÐµÐºÐ»Ð°Ð¼Ñƒ",
+    "REMOVE_ADS_TITLE": "Убрать рекламу",
+   "REMOVE_ADS_CTA_TITLE": "Убрать рекламу",
+    "UPGRADE_TO_PRO": "Перейти на Pro",
     "REMOVE_ADS_CTA_SUBTITLE": "Разовый платёж • Навсегда",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Разовый платёж • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "Цена: {{price}} • Без подписки",
     "RESTORE_ERROR": "Не удалось восстановить покупку. Попробуйте ещё раз.",
     "PRO_ONLY": "PRO",
-    "WATCH_AD_SUBTITLE": "Ð¡Ð¼Ð¾Ñ‚Ñ€ÐµÑ‚ÑŒ Ñ€ÐµÐºÐ»Ð°Ð¼Ñƒ",
+    "WATCH_AD_SUBTITLE": "Смотреть рекламу",
     "SHARE": "Поделиться",
     "SHARE_KINDLE_HINT": "При отправке выберите приложение Kindle, чтобы передать файл на устройство.",
-    "WARNING": "ÐŸÑ€ÐµÐ´ÑƒÐ¿Ñ€ÐµÐ¶Ð´ÐµÐ½Ð¸Ðµ",
+    "WARNING": "Предупреждение",
     "EDIT_PROJECT_TITLE": "Как вы хотите редактировать этот файл?",
     "EDIT_PROJECT_MESSAGE": "Выберите, заменить ли текущий файл или работать с копией.",
     "EDIT_PROJECT_OVERWRITE": "Перезаписать",
@@ -37,14 +138,14 @@
   },
   "CHANGE": {
     "ADS_REQUIRED": "Не удалось загрузить рекламу. Проверьте сеть или блокировщик рекламы.",
-    "ARIA_CHANGE_EPUB": "Ð˜Ð·Ð¼ÐµÐ½Ð¸Ñ‚ÑŒ Ñ„Ð°Ð¹Ð» EPUB. Ð¢ÐµÐºÑƒÑ‰Ð¸Ð¹ Ñ„Ð°Ð¹Ð»: {{name}}",
-    "ARIA_CHANGE_IMAGE": "Ð˜Ð·Ð¼ÐµÐ½Ð¸Ñ‚ÑŒ Ð¸Ð·Ð¾Ð±Ñ€Ð°Ð¶ÐµÐ½Ð¸Ðµ Ð¾Ð±Ð»Ð¾Ð¶ÐºÐ¸. Ð¢ÐµÐºÑƒÑ‰ÐµÐµ Ð¸Ð·Ð¾Ð±Ñ€Ð°Ð¶ÐµÐ½Ð¸Ðµ: {{name}}",
+    "ARIA_CHANGE_EPUB": "Изменить файл EPUB. Текущий файл: {{name}}",
+    "ARIA_CHANGE_IMAGE": "Изменить изображение обложки. Текущее изображение: {{name}}",
     "ARIA_CROP": "Настроить выбранное изображение",
     "ARIA_SELECT_EPUB": "Выбрать файл EPUB",
     "ARIA_SELECT_IMAGE": "Выбрать изображение обложки",
     "CROP_ACTION": "Настроить",
     "COVER_CHANGED": "Обложка изменена. Теперь можно сохранить или поделиться",
-    "CHANGE_ACTION": "Ð˜Ð·Ð¼ÐµÐ½Ð¸Ñ‚ÑŒ Ð¾Ð±Ð»Ð¾Ð¶ÐºÑƒ",
+    "CHANGE_ACTION": "Изменить обложку",
     "CHANGE_ACTION_REWARDED": "Изменить обложку (смотреть рекламу)",
     "GENERATING": "Обновление обложки…",
     "HINT_SAVE_SHARE_EXPLAIN": "Изменение обложки не сохраняет её автоматически.",
@@ -52,7 +153,7 @@
     "INFO_ARIA": "Информация об изменении обложки",
     "INFO_TITLE": "Информация",
     "INFO_FLOW_LABEL": "Рекомендуемый порядок:",
-    "INFO_STEP_1": "Ð’Ñ‹Ð±ÐµÑ€Ð¸Ñ‚Ðµ EPUB.",
+    "INFO_STEP_1": "Выберите EPUB.",
     "INFO_STEP_1_1": "1.1. Оригинальная обложка будет предзагружена.",
     "INFO_STEP_1_2": "1.2. Замените изображение или оставьте оригинал.",
     "INFO_STEP_2": "Настройте изображение в редакторе.",
@@ -65,7 +166,7 @@
     "IMAGE_WARN_INVALID_EPUB_COVER": "Неверная обложка EPUB. Нажмите, чтобы выбрать новое изображение.",
     "EPUB_ERROR_CORRUPT": "Не удалось прочитать файл EPUB. Попробуйте другой файл.",
     "EPUB_ERROR_NO_COVER": "В этом файле EPUB нет заменяемой обложки.",
-    "NO_COVER_DETECTED_ADDED": "Обложка не обнаружена. В EPUB добавлена новая обложка.",
+    "RENAMED_OK": "Имя EPUB изменено",
     "EPUB_ERROR_REWRITE": "Не удалось обработать файл EPUB. Попробуйте еще раз.",
     "EPUB_ERROR_STORAGE": "Недостаточно места. Требуется {{requiredMB}} МБ, доступно {{availableMB}} МБ.",
     "EPUB_ERROR_SIZE": "Файл слишком большой. Максимум {{maxSize}} МБ.",
@@ -75,8 +176,8 @@
     "EPUB_LOADING_INSPECT": "Проверка структуры EPUB...",
     "LOADING_IMAGE": "Загрузка изображения…",
     "OPENING_EDITOR": "Открытие редактора…",
-    "CHANGING_COVER": "Ð˜Ð·Ð¼ÐµÐ½ÐµÐ½Ð¸Ðµ Ð¾Ð±Ð»Ð¾Ð¶ÐºÐ¸...",
-    "GETTING_COVER": "ÐŸÐ¾Ð»ÑƒÑ‡ÐµÐ½Ð¸Ðµ Ð¾Ð±Ð»Ð¾Ð¶ÐºÐ¸",
+    "CHANGING_COVER": "Изменение обложки...",
+    "GETTING_COVER": "Получение обложки",
     "SAVING": "Сохранение обложки…",
     "SELECT_EPUB_LABEL": "Файл EPUB",
     "SELECT_EPUB_TITLE": "С каким EPUB будем работать?",
@@ -85,7 +186,7 @@
     "COVER_SOURCE_TITLE": "Из чего создать обложку?",
     "EPUB_VALIDATION_HINT": "Только EPUB · .epub · максимум 2 ГБ",
     "PROCESSING_LARGE_EPUB": "Обработка большого файла EPUB...",
-    "PROCESS_CANCELLED": "ÐžÐ±Ñ€Ð°Ð±Ð¾Ñ‚ÐºÐ° Ð¾Ñ‚Ð¼ÐµÐ½ÐµÐ½Ð°",
+    "PROCESS_CANCELLED": "Обработка отменена",
     "SELECT_EPUB_PLACEHOLDER": "Выберите файл EPUB",
     "SAVE_ACTION": "Сохранить",
     "RENAME_ACTION": "Переименовать",
@@ -99,7 +200,7 @@
     "TAP_TO_CHANGE": "Нажмите для замены/сброса",
     "TAP_TO_CHANGE_IMAGE": "Нажмите для замены",
     "LONGPRESS_PREVIEW_HINT": "Удерживайте для предпросмотра",
-    "TITLE": "Ð˜Ð·Ð¼ÐµÐ½Ð¸Ñ‚ÑŒ Ð¾Ð±Ð»Ð¾Ð¶ÐºÑƒ",
+    "TITLE": "Изменить обложку",
     "PREVIEW_ORIGINAL_LABEL": "Исходная обложка",
     "PREVIEW_NEW_LABEL": "Проведите для сравнения",
     "PREVIEW_NEW_ONLY_LABEL": "Новая обложка",
@@ -117,13 +218,13 @@
     "LOADING_PREVIEW": "Загрузка предпросмотра...",
     "PLACEHOLDER": "EPUB",
     "PREVIEW_UNAVAILABLE": "Предпросмотр недоступен.",
-    "TITLE": "ÐœÐ¾Ð¸ EPUB",
+    "TITLE": "Мои EPUB",
     "DITHERED_THUMBNAIL_NOTICE": "Обложки с уменьшением артефактов могут выглядеть иначе в миниатюрах. Откройте предпросмотр, Ñ‡Ñ‚Ð¾Ð±Ñ‹ ÑƒÐ²Ð¸Ð´ÐµÑ‚ÑŒ Ð±Ð¾Ð»ÐµÐµ Ñ‚Ð¾Ñ‡Ð½Ñ‹Ð¹ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚.",
     "ACTIONS": {
       "DELETE": "Удалить",
       "SHARE": "Поделиться",
-      "OPEN": "ÐžÑ‚ÐºÑ€Ñ‹Ñ‚ÑŒ",
-      "EDIT_PROJECT": "Ð ÐµÐ´Ð°ÐºÑ‚Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ"
+      "OPEN": "Открыть",
+      "EDIT_PROJECT": "Редактировать"
     },
     "DELETE": {
       "MESSAGE": "Удалить этот файл EPUB?",
@@ -144,13 +245,13 @@
     }
   },
   "INSTRUCTIONS": {
-    "NOTE_TITLE": "ÐŸÑ€Ð¸Ð¼ÐµÑ‡Ð°Ð½Ð¸Ðµ",
+    "NOTE_TITLE": "Примечание",
     "STEP_1": "Выберите файл EPUB (текущая обложка загрузится заранее)",
     "STEP_2": "Настройте загруженную обложку или выберите новое изображение и настройте его",
     "STEP_3": "Просмотрите рекламу для замены обложки в EPUB",
     "STEP_4": "Сохраните или поделитесь обновлённым EPUB",
     "STEP_4_DESC": "После готовности сохраните файл на устройстве или поделитесь напрямую через приложение Kindle.",
-    "STEP_5": "ÐžÑ‚Ð¿Ñ€Ð°Ð²Ð¸Ñ‚ÑŒ Ñ‡ÐµÑ€ÐµÐ· Ð²ÐµÐ± (Send to Kindle)",
+    "STEP_5": "Отправить через веб (Send to Kindle)",
     "STEP_5_DESC": "Также можно отправить файл из браузера с помощью веб-инструмента Send to Kindle.",
     "TIP": "Для наилучшего результата используйте изображения высокого разрешения и убедитесь, что реклама отключена на устройстве Kindle.",
     "TITLE": "Инструкция"
@@ -158,16 +259,16 @@
   "HOME_TOUR": {
     "CONTROLS": {
       "BACK": "Назад",
-      "FINISH": "Ð—Ð°Ð²ÐµÑ€ÑˆÐ¸Ñ‚ÑŒ",
+      "FINISH": "Завершить",
       "INTERACT_HINT": "Нажмите на выделенный элемент, чтобы продолжить.",
-      "NEXT": "Ð”Ð°Ð»ÐµÐµ",
+      "NEXT": "Далее",
       "PROGRESS": "{{current}} из {{total}}",
       "SKIP": "Пропустить"
     },
     "STEPS": {
       "EPUB": {
         "TITLE": "Файл EPUB",
-        "DESCRIPTION": "Ð’Ñ‹Ð±ÐµÑ€Ð¸Ñ‚Ðµ Ñ„Ð°Ð¹Ð» EPUB, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ð¹ Ñ…Ð¾Ñ‚Ð¸Ñ‚Ðµ Ð¾Ð±Ð½Ð¾Ð²Ð¸Ñ‚ÑŒ."
+        "DESCRIPTION": "Выберите файл EPUB, который хотите обновить."
       },
       "IMAGE": {
         "TITLE": "Изображение обложки",
@@ -178,7 +279,7 @@
         "DESCRIPTION": "Настройте изображение в редакторе и нажмите «Готово»."
       },
       "CREATE": {
-        "TITLE": "Ð˜Ð·Ð¼ÐµÐ½Ð¸Ñ‚ÑŒ Ð¾Ð±Ð»Ð¾Ð¶ÐºÑƒ",
+        "TITLE": "Изменить обложку",
         "DESCRIPTION": "Создайте новую обложку здесь."
       },
       "RESULTS": {
@@ -190,7 +291,7 @@
         "DESCRIPTION": "Бесплатный экспорт использует Standard. Уберите рекламу, чтобы выбрать экспорт без потерь или сжатый."
       },
       "REMOVE_ADS_CLOSE": {
-        "TITLE": "Ð—Ð°ÐºÑ€Ñ‹Ñ‚ÑŒ Ð¿Ð¾ÐºÐ°",
+        "TITLE": "Закрыть пока",
         "DESCRIPTION": "Пока что пользуйтесь бесплатной версией. Покупка не обязательна."
       }
     }
@@ -202,17 +303,16 @@
     "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
     "EREADER_OPTIMIZATION_HINT": "Применяет автоматические настройки, чтобы улучшить обложку",
     "EREADER_OPTIMIZATION_TOGGLE": "Оптимизировать",
-    "TITLE": "Настройки",
-    "VIEW_TOUR": "Ð¡Ð¼Ð¾Ñ‚Ñ€ÐµÑ‚ÑŒ Ñ‚ÑƒÑ€"
+    "TITLE": "Настройки"
   },
   "TABS": {
-    "COVERS": "ÐœÐ¾Ð¸ EPUB",
-    "CHANGE": "Ð˜Ð·Ð¼ÐµÐ½Ð¸Ñ‚ÑŒ",
+    "COVERS": "Мои EPUB",
+    "CHANGE": "Изменить",
     "SETTINGS": "Настройки"
   },
   "ARR": {
     "TOOLS": {
-      "RECOMMENDED": "Ð ÐµÐºÐ¾Ð¼ÐµÐ½Ð´ÑƒÐµÐ¼",
+      "RECOMMENDED": "Рекомендуем",
       "INFO": "Информация",
       "APPS": "Приложения",
       "GUIDE": "Гид"

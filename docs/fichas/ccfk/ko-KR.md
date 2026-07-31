@@ -1,4 +1,4 @@
-﻿# Kindle용 커버 만들기 - ko-KR Play Store Listing
+# Kindle용 커버 만들기 - ko-KR Play Store Listing
 
 ## Purpose
 Localized Play Store listing for ko-KR, regenerated from the updated strategy matrix and conversion audit.

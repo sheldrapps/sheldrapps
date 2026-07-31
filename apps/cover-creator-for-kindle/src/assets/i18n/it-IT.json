@@ -20,7 +20,8 @@
     "REMOVE_ADS_RESTORE": "Ripristina acquisto",
     "REMOVE_ADS_RESTORED": "Acquisto ripristinato con successo.",
     "REMOVE_ADS_TITLE": "Rimuovi annunci",
-    "REMOVE_ADS_CTA_TITLE": "Rimuovi annunci",
+   "REMOVE_ADS_CTA_TITLE": "Rimuovi annunci",
+    "UPGRADE_TO_PRO": "Passa a Pro",
     "REMOVE_ADS_CTA_SUBTITLE": "Pagamento unico • Per sempre",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Pagamento unico • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "Prezzo: {{price}} • Nessun abbonamento",
@@ -316,7 +317,6 @@
     "REQUISITES_HINT": "Impostazioni necessarie per il corretto funzionamento delle copertine su Kindle",
     "REQUISITES_SECTION": "Requisiti",
     "TITLE": "Impostazioni",
-    "VIEW_TOUR": "Vedi il tour",
     "HOW_TO_USE": "Come si usa?"
   },
   "TABS": {

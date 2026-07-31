@@ -1,4 +1,4 @@
-﻿import 'zone.js/testing';
+import 'zone.js/testing';
 import { getTestBed } from '@angular/core/testing';
 import {
   BrowserTestingModule,

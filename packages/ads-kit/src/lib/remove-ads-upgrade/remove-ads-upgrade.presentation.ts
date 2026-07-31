@@ -4,17 +4,25 @@ import type {
 } from './remove-ads-upgrade.types';
 
 const BASE = 'REMOVE_ADS_UPGRADE';
+type RemoveAdsUpgradeCopyVariant = Exclude<RemoveAdsUpgradeVariant, 'EMAS'>;
+
+function getCopyVariant(
+  variant: RemoveAdsUpgradeVariant,
+): RemoveAdsUpgradeCopyVariant {
+  return variant === 'EMAS' ? 'ECC' : variant;
+}
 
 export function buildRemoveAdsUpgradePresentation(
   variant: RemoveAdsUpgradeVariant,
 ): RemoveAdsUpgradePresentation {
+  const copyVariant = getCopyVariant(variant);
   const introKey =
-    variant === 'CCFK' || variant === 'EF'
-      ? `${BASE}.TITLE.${variant}.INTRO`
+    copyVariant === 'CCFK' || copyVariant === 'EF'
+      ? `${BASE}.TITLE.${copyVariant}.INTRO`
       : `${BASE}.INTRO`;
 
   return {
-    titleKey: `${BASE}.TITLE.${variant}.TITLE`,
+    titleKey: `${BASE}.TITLE.${copyVariant}.TITLE`,
     introKey,
     trustLineKey: `${BASE}.TRUST_LINE`,
     offlineTitleKey: `${BASE}.OFFLINE_TITLE`,
@@ -23,12 +31,12 @@ export function buildRemoveAdsUpgradePresentation(
     purchaseFallbackKey: `${BASE}.PURCHASE.FALLBACK`,
     restorePromptKey: `${BASE}.RESTORE_PROMPT`,
     restoreLabelKey: `${BASE}.RESTORE_LABEL`,
-    benefits: buildBenefits(variant),
+    benefits: buildBenefits(copyVariant),
   };
 }
 
 function buildBenefits(
-  variant: RemoveAdsUpgradeVariant,
+  variant: RemoveAdsUpgradeCopyVariant,
 ): RemoveAdsUpgradePresentation['benefits'] {
   switch (variant) {
     case 'PCM':

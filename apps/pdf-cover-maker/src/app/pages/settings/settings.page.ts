@@ -14,7 +14,10 @@ import {
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
-import { colorPaletteOutline } from 'ionicons/icons';
+import { colorPaletteOutline, sparklesOutline } from 'ionicons/icons';
+import {
+  RemoveAdsPurchasePageService,
+} from '@sheldrapps/ads-kit';
 import {
   SelectableButtonListComponent,
   type SelectableButtonListItem,
@@ -68,6 +71,7 @@ export class SettingsPage {
 
   private settings = inject(SettingsStore<PcmSettings>);
   private router = inject(Router);
+  private removeAdsPurchasePage = inject(RemoveAdsPurchasePageService);
   private ratingService = inject(RatingService);
   readonly supportedLangs = LANG_OPTIONS;
   private isRestartingLanguage = false;
@@ -83,6 +87,7 @@ export class SettingsPage {
   constructor() {
     addIcons({
       colorPaletteOutline,
+      sparklesOutline,
     });
   }
 
@@ -136,6 +141,18 @@ export class SettingsPage {
         leadingIconName: 'color-palette-outline',
         trailingIconName: 'chevron-forward-outline',
         ariaLabel: this.uiThemeI18n.texts().UI_THEME.THEME_SETTINGS.TITLE,
+      },
+    ];
+  }
+
+  get removeAdsSettingsItems(): SelectableButtonListItem[] {
+    return [
+      {
+        value: 'remove-ads',
+        titleKey: 'COMMON.UPGRADE_TO_PRO',
+        leadingIconName: 'sparkles-outline',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'COMMON.UPGRADE_TO_PRO',
       },
     ];
   }
@@ -252,6 +269,14 @@ export class SettingsPage {
 
   onThemeSettingsAction(): void {
     this.openThemeSettings();
+  }
+
+  onRemoveAdsSettingsAction(): void {
+    this.removeAdsPurchasePage.open({
+      variant: 'PCM',
+      returnUrl: '/tabs/change',
+    });
+    void this.router.navigateByUrl('/remove-ads');
   }
 
   onPrivacyOptionsAction(): void {

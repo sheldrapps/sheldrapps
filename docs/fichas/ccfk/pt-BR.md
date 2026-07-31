@@ -1,4 +1,4 @@
-﻿# Criar Capas para Kindle - pt-BR Play Store Listing
+# Criar Capas para Kindle - pt-BR Play Store Listing
 
 ## Purpose
 Localized Play Store listing for pt-BR, regenerated from the updated strategy matrix and conversion audit.

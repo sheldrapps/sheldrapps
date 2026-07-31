@@ -6,6 +6,17 @@ export const routes: Routes = [
     loadChildren: () => import('./tabs/tabs.routes').then((m) => m.routes),
   },
   {
+    path: 'remove-ads',
+    data: {
+      removeAdsVariant: 'ECC',
+      removeAdsReturnUrl: '/tabs/change',
+    },
+    loadComponent: () =>
+      import('@sheldrapps/ads-kit').then(
+        (m) => m.RemoveAdsPurchasePageComponent,
+      ),
+  },
+  {
     path: 'settings',
     loadComponent: () =>
       import('./pages/settings/settings.page').then((m) => m.SettingsPage),

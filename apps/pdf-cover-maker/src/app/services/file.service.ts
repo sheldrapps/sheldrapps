@@ -1,9 +1,10 @@
-﻿import { Injectable, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import {
   PdfPublicStore,
   FileKitService,
   FileRef,
+  PUBLIC_FILESYSTEM,
   ensureDirectoriesExist,
   WebPdfCoverService,
   WEB_PDF_COVER_SERVICE_TOKEN,
@@ -82,7 +83,8 @@ export type CoverAssetsResult = {
 export type NativeDocumentOutputTarget = {
   filename: string;
   relativePath: string;
-  nativePath: string;
+  rewritePath: string;
+  rewriteNativePath: string;
 };
 
 export type GeneratedFileSaveOptions = {
@@ -130,6 +132,8 @@ export class FileService {
   private translate = inject(TranslateService);
 
   private readonly PDF_FOLDER = 'pdfcovermaker';
+  private readonly NATIVE_REWRITE_DATA_FOLDER = 'pdfcovermakerRewrite';
+  private readonly PUBLIC_WRITE_STAGING_FOLDER = 'pdfcovermakerPublicStaging';
   private readonly COVER_FOLDER = 'pdfcovermakerCovers';
   private readonly THUMB_FOLDER = 'pdfcovermakerThumbs';
   private readonly PROJECT_FOLDER = 'pdfcovermakerProjects';
@@ -140,6 +144,7 @@ export class FileService {
   private readonly APP_NAME = 'PDF Cover Maker';
   private readonly LEGACY_PDF_FOLDERS = ['CoverCreator'];
   private fileKit = inject(FileKitService);
+  private readonly publicFilesystem = inject(PUBLIC_FILESYSTEM);
   private pdfRewrite = inject(PdfRewriteService);
   private webPdfCover = inject(WEB_PDF_COVER_SERVICE_TOKEN, {
     optional: true,
@@ -162,6 +167,8 @@ export class FileService {
   private hasMigratedLegacyPdfFolders = false;
   private readonly pdfStore = new PdfPublicStore(this.fileKit, {
     pdfFolder: this.PDF_FOLDER,
+    useDocumentsDirectoryOnNative: true,
+    filesystem: this.publicFilesystem,
     debug: this.DEBUG_IO,
     logPrefix: 'ECC:file-kit',
   });
@@ -169,6 +176,8 @@ export class FileService {
     (legacyFolder) =>
       new PdfPublicStore(this.fileKit, {
         pdfFolder: legacyFolder,
+        useDocumentsDirectoryOnNative: true,
+        filesystem: this.publicFilesystem,
         debug: this.DEBUG_IO,
         logPrefix: `ECC:file-kit-legacy:${legacyFolder}`,
       }),
@@ -1584,14 +1593,62 @@ export class FileService {
       ? filename
       : await this.getUniqueDocumentFilename(filename);
     const relativePath = `${this.PDF_FOLDER}/${outputFilename}`;
-    await this.ensurpdflicDocumentsPdfFolderReady();
-    const nativePath = this.publicDocumentsPdfPath(outputFilename);
+    const rewritePath = `${this.NATIVE_REWRITE_DATA_FOLDER}/${Date.now()}_${Math.random()
+      .toString(36)
+      .slice(2, 8)}_${outputFilename}`;
+    await this.fileKit.writeBytes({
+      dir: 'Data',
+      path: rewritePath,
+      bytes: new Uint8Array(),
+      mimeType: 'application/pdf',
+    });
+    const rewriteNativePath = await this.fileKit.getUri({
+      dir: 'Data',
+      path: rewritePath,
+    });
 
     return {
       filename: outputFilename,
       relativePath,
-      nativePath,
+      rewritePath,
+      rewriteNativePath,
     };
+  }
+
+  async commitNativeDocumentOutput(
+    target: NativeDocumentOutputTarget,
+  ): Promise<{ uri: string; size: number }> {
+    if (this.pdfRewrite.isSupported()) {
+      const published = await this.pdfRewrite.publishPublicDocument({
+        folderName: this.PDF_FOLDER,
+        sourcePath: target.rewriteNativePath,
+        outputName: target.filename,
+        mimeType: 'application/pdf',
+      });
+      return { uri: published.uri, size: published.size };
+    }
+
+    const bytes = await this.readBytesFromSource(target.rewritePath, 'Data');
+    if (bytes.byteLength === 0) {
+      throw new Error(`Native rewrite output is empty: ${target.rewritePath}`);
+    }
+    await this.writpdflicPdf(target.filename, bytes);
+    const uri = await this.getPublicPdfFileUriOrThrow(target.filename);
+    return { uri, size: bytes.byteLength };
+  }
+
+  async cleanupNativeDocumentOutput(
+    target: NativeDocumentOutputTarget,
+  ): Promise<void> {
+    await Promise.all(
+      [
+        target.rewritePath,
+        `${target.rewritePath}.tmp`,
+        `${target.rewritePath}.insert.tmp`,
+      ].map((path) =>
+        this.fileKit.delete({ dir: 'Data', path }).catch(() => undefined),
+      ),
+    );
   }
 
   async persistCoverAssetsForGeneratedFilename(opts: {
@@ -2041,6 +2098,11 @@ export class FileService {
   }
 
   private async listPdfsFromPublicDocuments(): Promise<string[]> {
+    if (this.pdfRewrite.isSupported()) {
+      return (await this.pdfRewrite.listPublicDocuments(this.PDF_FOLDER))
+        .map((file) => file.name)
+        .sort((left, right) => left.localeCompare(right));
+    }
     this.debugLog('listPdfsFromPublicDocuments:start', {
       reloadAt: new Date().toISOString(),
       resolvedFolderPath: this.pdfStore.publicFolderPath,
@@ -2070,6 +2132,17 @@ export class FileService {
     filename: string,
     bytes: Uint8Array,
   ): Promise<void> {
+    if (this.pdfRewrite.isSupported()) {
+      const stagingPath = `${this.PUBLIC_WRITE_STAGING_FOLDER}/${Date.now()}_${filename}`;
+      try {
+        await this.fileKit.writeBytes({ dir: 'Data', path: stagingPath, bytes, mimeType: 'application/pdf' });
+        const sourcePath = await this.fileKit.getUri({ dir: 'Data', path: stagingPath });
+        await this.pdfRewrite.publishPublicDocument({ folderName: this.PDF_FOLDER, sourcePath, outputName: filename, mimeType: 'application/pdf' });
+      } finally {
+        try { await this.fileKit.delete({ dir: 'Data', path: stagingPath }); } catch {}
+      }
+      return;
+    }
     await this.pdfStore.writePdf(filename, bytes);
   }
 
@@ -2092,6 +2165,9 @@ export class FileService {
   }
 
   private async getPublicPdfFileUriOrThrow(filename: string): Promise<string> {
+    if (this.pdfRewrite.isSupported()) {
+      return (await this.pdfRewrite.getPublicDocument(this.PDF_FOLDER, filename)).uri;
+    }
     const uri = await this.pdfStore.getUriOrThrow(filename);
     this.debugLog('getPublicPdfFileUriOrThrow', { filename, uri });
     return uri;

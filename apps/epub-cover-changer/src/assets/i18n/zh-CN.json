@@ -1,11 +1,111 @@
 {
+  "PUBLISHING_CATALOG": {
+    "PLATFORMS": { "AMAZON_KDP": "Amazon KDP", "KOBO_WRITING_LIFE": "Kobo Writing Life", "APPLE_BOOKS": "Apple Books", "GOOGLE_PLAY_BOOKS": "Google Play Books", "BARNES_NOBLE_PRESS": "Barnes & Noble Press", "TOLINO_MEDIA": "Tolino Media", "RIDI": "RIDI / RIDIBOOKS", "DRAFT2DIGITAL": "Draft2Digital", "INGRAMSPARK": "IngramSpark", "PUBLISHDRIVE": "PublishDrive", "STREETLIB": "StreetLib", "LULU": "Lulu" },
+    "GROUPS": { "STORE_COVER": "商店封面", "EBOOK_COVER": "电子书封面", "EBOOK_AND_STORE_COVER": "电子书和商店封面", "DISTRIBUTION_COVER": "发行封面", "EMBEDDED_COVER": "内嵌封面", "EXTERNAL_COVER": "外部封面" },
+    "BADGES": { "IDEAL": "理想", "RECOMMENDED": "推荐", "COMPATIBLE": "兼容", "ALTERNATIVE": "替代", "MINIMUM": "最低" },
+    "PRESETS": { "AMAZON_KDP_1600X2560": "1600 × 2560 px", "AMAZON_KDP_625X1000": "625 × 1000 px", "KOBO_WRITING_LIFE_1800X2400": "1800 × 2400 px", "APPLE_BOOKS_1600X2400": "1600 × 2400 px", "GOOGLE_PLAY_BOOKS_1600X2400": "1600 × 2400 px", "BARNES_NOBLE_PRESS_1600X2400": "1600 × 2400 px", "TOLINO_MEDIA_1600X2400": "1600 × 2400 px", "RIDI_1600X2560": "1600 × 2560 px", "RIDI_1200X1800": "1200 × 1800 px", "DRAFT2DIGITAL_1600X2400": "1600 × 2400 px", "INGRAMSPARK_1600X2560": "1600 × 2560 px", "PUBLISHDRIVE_EMBEDDED_1600X2400": "1600 × 2400 px", "PUBLISHDRIVE_STORE_1600X2560": "1600 × 2560 px", "STREETLIB_EMBEDDED_1200X1600": "1200 × 1600 px", "STREETLIB_EXTERNAL_1875X2500": "1875 × 2500 px", "LULU_1600X2560": "1600 × 2560 px", "LULU_625X1000": "625 × 1000 px" }
+  },
   "APP": {
     "TITLE": "EPUB Cover Changer"
+  },
+  "ECC": { "RATIO_CATEGORIES": { "E_READERS": "电子书阅读器", "PUBLISHING": "出版", "PAPER": "纸张", "ASPECT_RATIO": "宽高比" } },
+  "CROP_SELECTORS": { "BRAND": "品牌", "FAMILY": "系列", "MODEL": "型号", "PLATFORM": "平台", "COVER_TYPE": "封面类型", "SIZE": "尺寸", "STANDARD": "标准", "SERIES": "系列", "FORMAT": "格式", "ORIENTATION": "方向", "PORTRAIT": "竖向", "LANDSCAPE": "横向", "ASPECT_RATIO": "宽高比" },
+  "COMMON": { "RECOMMENDED": "推荐" },
+  "PUBLISHING_PLATFORMS": { "RIDI": "RIDI / RIDIBOOKS" },
+  "PUBLISHING_GROUPS": { "RIDI": { "EBOOK_COVER": "电子书封面" } },
+  "PUBLISHING_PRESETS": { "RIDI_1600X2560": "1600 × 2560 px", "RIDI_1200X1800": "1200 × 1800 px" },
+  "PAPER_GROUPS": { "ISO_216": "ISO 216", "NORTH_AMERICAN": "北美", "ISO_A_SERIES": "A 系列", "NORTH_AMERICAN_OFFICE": "北美办公规格" },
+  "PAPER_PRESETS": { "A3": "A3", "A4": "A4", "A5": "A5", "A6": "A6", "LETTER": "Letter", "LEGAL": "Legal", "TABLOID": "Tabloid" },
+  "RATIO_GROUPS": { "COMMON": "常用比例" },
+  "RATIO_PRESETS": { "1_1": "1:1", "2_3": "2:3", "3_4": "3:4", "4_5": "4:5", "5_7": "5:7", "5_8": "5:8", "9_16": "9:16", "CUSTOM": "自定义" },
+  "RATIO_CUSTOM": { "TITLE": "自定义宽高比", "WIDTH": "宽度", "HEIGHT": "高度", "HELPER": "请输入 {{min}} 到 {{max}} 之间的整数。" },
+  "KINDLE_BRANDS": {
+    "KINDLE": "Kindle"
+  },
+  "KINDLE_GROUPS": {
+    "BASIC": "Basic",
+    "OASIS": "Oasis",
+    "PAPERWHITE": "Paperwhite",
+    "PAPERWHITE_SIGNATURE": "Paperwhite Signature",
+    "SCRIBE": "Scribe",
+    "VOYAGE": "Voyage",
+    "COLORSOFT": "Colorsoft",
+    "COLORSOFT_SIGNATURE": "Colorsoft Signature"
+  },
+  "KINDLE_MODELS": {
+    "BASIC_2010_2019": "2010-2019",
+    "BASIC_2022_2024": "2022-2024",
+    "OASIS_2016": "2016",
+    "OASIS_2017_2019": "2017-2019",
+    "PAPERWHITE_2012_2013": "2012-2013",
+    "PAPERWHITE_2015_2019": "2015-2019",
+    "PAPERWHITE_2021": "2021",
+    "PAPERWHITE_2024": "2024",
+    "PAPERWHITE_SIGNATURE_2021": "2021",
+    "PAPERWHITE_SIGNATURE_2024": "2024",
+    "SCRIBE_2022_2024": "2022-2024",
+    "VOYAGE_2014": "2014",
+    "COLORSOFT": "2025",
+    "COLORSOFT_SIGNATURE_EDITION": "2024"
+  },
+  "KOBO_BRANDS": {
+    "KOBO": "Kobo"
+  },
+  "KOBO_GROUPS": {
+    "CLARA": "Clara",
+    "ELIPSA": "Elipsa",
+    "LIBRA": "Libra",
+    "NIA": "Nia",
+    "SAGE": "Sage"
+  },
+  "KOBO_MODELS": {
+    "CLARA_ALL": "Kobo Clara (HD / 2E / BW / Colour)",
+    "ELIPSA_ALL": "Kobo Elipsa (Elipsa / 2E)",
+    "LIBRA_ALL": "Kobo Libra (H2O / 2 / Colour)",
+    "NIA": "Kobo Nia",
+    "SAGE": "Kobo Sage"
+  },
+  "NOOK_BRANDS": {
+    "NOOK": "Nook"
+  },
+  "NOOK_GROUPS": {
+    "GLOWLIGHT": "GlowLight"
+  },
+  "NOOK_MODELS": {
+    "GLOWLIGHT_2013_2015": "Nook GlowLight (2013-2015)",
+    "GLOWLIGHT_2019_2023": "Nook GlowLight (2019-2023)"
+  },
+  "POCKETBOOK_BRANDS": {
+    "POCKETBOOK": "PocketBook"
+  },
+  "POCKETBOOK_GROUPS": {
+    "ERA": "Era",
+    "INKPAD": "InkPad",
+    "VERSE": "Verse"
+  },
+  "POCKETBOOK_MODELS": {
+    "ERA": "PocketBook Era",
+    "INKPAD_ALL": "PocketBook InkPad (All models)",
+    "VERSE": "PocketBook Verse",
+    "VERSE_PRO": "PocketBook Verse Pro"
+  },
+  "TOLINO_BRANDS": {
+    "TOLINO": "Tolino"
+  },
+  "TOLINO_GROUPS": {
+    "SHINE": "Shine",
+    "VISION": "Vision"
+  },
+  "TOLINO_MODELS": {
+    "SHINE_2014_2018": "Tolino Shine (2014-2018)",
+    "SHINE_HD": "Tolino Shine HD",
+    "VISION_2015_2018": "Tolino Vision (2015-2018)",
+    "VISION_2021_2024": "Tolino Vision (2021-2024)"
   },
   "COMMON": {
     "BACK_AGAIN_TO_EXIT": "再次返回以退出",
     "CANCEL": "取消",
-    "CLOSE": "å…³é—­",
+    "CLOSE": "关闭",
     "DELETE": "删除",
     "DONE": "完成",
     "ERROR": "错误",
@@ -14,21 +114,22 @@
     "PURCHASE_ERROR": "无法完成购买，请重试。",
     "REMOVE_ADS_BUY": "购买",
     "REMOVE_ADS_DESCRIPTION": "一次性付款，永久去除广告，并启用无损/压缩导出选择。",
-    "REMOVE_ADS_PURCHASED": "å¹¿å‘Šå·²æ°¸ä¹…åŽ»é™¤ã€‚",
+    "REMOVE_ADS_PURCHASED": "广告已永久去除。",
     "REMOVE_ADS_RESTORE": "恢复购买",
     "REMOVE_ADS_RESTORED": "购买已成功恢复。",
-    "REMOVE_ADS_TITLE": "åŽ»é™¤å¹¿å‘Š",
-    "REMOVE_ADS_CTA_TITLE": "åŽ»é™¤å¹¿å‘Š",
+    "REMOVE_ADS_TITLE": "去除广告",
+   "REMOVE_ADS_CTA_TITLE": "去除广告",
+    "UPGRADE_TO_PRO": "升级到 Pro",
     "REMOVE_ADS_CTA_SUBTITLE": "一次性付款 • 永久有效",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "一次性付款 • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "价格：{{price}} • 无订阅",
     "RESTORE_ERROR": "无法恢复购买，请重试。",
-    "PRO_ONLY": "ä¸“ä¸šç‰ˆ",
-    "WATCH_AD_SUBTITLE": "è§‚çœ‹å¹¿å‘Š",
-    "SHARE": "åˆ†äº«",
+    "PRO_ONLY": "专业版",
+    "WATCH_AD_SUBTITLE": "观看广告",
+    "SHARE": "分享",
     "SHARE_KINDLE_HINT": "分享时，请选择 Kindle 应用以发送到您的设备。",
-    "WARNING": "è­¦å‘Š",
-    "EDIT_PROJECT_TITLE": "ä½ æƒ³å¦‚ä½•ç¼–è¾‘è¿™ä¸ªæ–‡ä»¶ï¼Ÿ",
+    "WARNING": "警告",
+    "EDIT_PROJECT_TITLE": "你想如何编辑这个文件？",
     "EDIT_PROJECT_MESSAGE": "请选择是替换当前文件，还是先保留一份副本。",
     "EDIT_PROJECT_OVERWRITE": "覆盖",
     "EDIT_PROJECT_OVERWRITE_DESC": "将更改直接保存到现有文件。",
@@ -36,7 +137,7 @@
     "EDIT_PROJECT_COPY_DESC": "保留原文件，并编辑一个新副本。"
   },
   "CHANGE": {
-    "ADS_REQUIRED": "å¹¿å‘ŠåŠ è½½å¤±è´¥ï¼Œè¯·æ£€æŸ¥ç½‘ç»œæˆ–å¹¿å‘Šæ‹¦æˆªå™¨ã€‚",
+    "ADS_REQUIRED": "广告加载失败，请检查网络或广告拦截器。",
     "ARIA_CHANGE_EPUB": "更换 EPUB 文件。当前文件：{{name}}",
     "ARIA_CHANGE_IMAGE": "更换封面图片。当前图片：{{name}}",
     "ARIA_CROP": "调整选中图片",
@@ -59,29 +160,29 @@
     "INFO_STEP_3": "观看广告以保存封面。",
     "INFO_STEP_4": "保存或分享。",
     "IMAGE_ERROR_CORRUPT": "无法读取图片，请尝试其他图片。",
-    "IMAGE_ERROR_SIZE": "æ–‡ä»¶è¿‡å¤§ï¼Œæœ€å¤§ {{maxSize}} MBã€‚",
+    "IMAGE_ERROR_SIZE": "文件过大，最大 {{maxSize}} MB。",
     "IMAGE_ERROR_TYPE": "不支持的格式（{{type}}），请选择 JPG、PNG 或 WebP。",
     "IMAGE_WARN_SMALL": "此图片对某些设备可能太小。",
     "IMAGE_WARN_INVALID_EPUB_COVER": "无效的 EPUB 封面。点击选择新图片。",
     "EPUB_ERROR_CORRUPT": "无法读取 EPUB 文件。请尝试其他文件。",
     "EPUB_ERROR_NO_COVER": "此 EPUB 文件不包含可替换的封面。",
-    "NO_COVER_DETECTED_ADDED": "未检测到封面，已为此 EPUB 添加新封面。",
+    "RENAMED_OK": "已重命名 EPUB",
     "EPUB_ERROR_REWRITE": "无法处理 EPUB 文件。请重试。",
     "EPUB_ERROR_STORAGE": "存储空间不足，需要 {{requiredMB}} MB，可用 {{availableMB}} MB。",
-    "EPUB_ERROR_SIZE": "æ–‡ä»¶å¤ªå¤§ã€‚æœ€å¤§ {{maxSize}} MBã€‚",
+    "EPUB_ERROR_SIZE": "文件太大。最大 {{maxSize}} MB。",
     "EPUB_ERROR_TYPE": "不受支持的 EPUB 文件。",
     "LOADING_EPUB": "正在加载 EPUB…",
     "EPUB_LOADING_COPY": "正在复制大型 EPUB 文件...",
-    "EPUB_LOADING_INSPECT": "æ­£åœ¨æ£€æŸ¥ EPUB ç»“æž„...",
+    "EPUB_LOADING_INSPECT": "正在检查 EPUB 结构...",
     "LOADING_IMAGE": "正在加载图片…",
     "OPENING_EDITOR": "正在打开编辑器…",
     "CHANGING_COVER": "正在更换封面...",
     "GETTING_COVER": "正在获取封面",
     "SAVING": "正在保存封面…",
-    "SELECT_EPUB_LABEL": "EPUB æ–‡ä»¶",
+    "SELECT_EPUB_LABEL": "EPUB 文件",
     "SELECT_EPUB_TITLE": "我们要使用哪个 EPUB？",
     "BEST_CANDIDATE_TITLE": "或者……从你自己的 EPUB 中选择一张。",
-    "EPUB_FILE_TITLE": "EPUB æ–‡ä»¶",
+    "EPUB_FILE_TITLE": "EPUB 文件",
     "COVER_SOURCE_TITLE": "您想从哪里创建封面？",
     "EPUB_VALIDATION_HINT": "仅支持 EPUB · .epub · 最大 2 GB",
     "PROCESSING_LARGE_EPUB": "正在处理大型 EPUB 文件...",
@@ -98,7 +199,7 @@
     "INVALID_COVER_TAP_TO_CHANGE": "无效封面，点击更换",
     "TAP_TO_CHANGE": "点击更换/重置",
     "TAP_TO_CHANGE_IMAGE": "点击更换",
-    "LONGPRESS_PREVIEW_HINT": "é•¿æŒ‰é¢„è§ˆ",
+    "LONGPRESS_PREVIEW_HINT": "长按预览",
     "TITLE": "更换封面",
     "PREVIEW_ORIGINAL_LABEL": "原始封面",
     "PREVIEW_NEW_LABEL": "滑动以比较",
@@ -114,16 +215,16 @@
     "DELETED": "EPUB 已删除",
     "EMPTY": "应用中未找到封面。重新安装前创建的文件可能因系统限制而无法显示。",
     "GENERATE_THUMB": "生成缩略图",
-    "LOADING_PREVIEW": "æ­£åœ¨åŠ è½½é¢„è§ˆ...",
+    "LOADING_PREVIEW": "正在加载预览...",
     "PLACEHOLDER": "EPUB",
     "PREVIEW_UNAVAILABLE": "预览不可用。",
-    "TITLE": "æˆ‘çš„ EPUB",
+    "TITLE": "我的 EPUB",
     "DITHERED_THUMBNAIL_NOTICE": "启用伪影减少的封面在缩略图中可能看起来不同。请打开预览查看更准确的效果。",
     "ACTIONS": {
       "DELETE": "删除",
-      "SHARE": "åˆ†äº«",
+      "SHARE": "分享",
       "OPEN": "打开",
-      "EDIT_PROJECT": "ç¼–è¾‘"
+      "EDIT_PROJECT": "编辑"
     },
     "DELETE": {
       "MESSAGE": "确定要删除此 EPUB 吗？",
@@ -132,7 +233,7 @@
     "ERROR": {
       "DELETE": "无法删除 EPUB，请重试。",
       "SHARE": "无法分享 EPUB，请重试。",
-      "LOAD": "æ— æ³•åŠ è½½æ‚¨çš„ EPUBï¼Œè¯·ä¸‹æ‹‰åˆ·æ–°ã€‚",
+      "LOAD": "无法加载您的 EPUB，请下拉刷新。",
       "PREVIEW": "无法加载预览，请重试。",
       "OPEN": "无法打开 EPUB。请重试。",
       "OPEN_PROJECT": "无法打开项目。请重试。"
@@ -157,16 +258,16 @@
   },
   "HOME_TOUR": {
     "CONTROLS": {
-      "BACK": "è¿”å›ž",
+      "BACK": "返回",
       "FINISH": "完成",
-      "INTERACT_HINT": "ä¸Žé«˜äº®å…ƒç´ äº’åŠ¨ä»¥ç»§ç»­ã€‚",
+      "INTERACT_HINT": "与高亮元素互动以继续。",
       "NEXT": "下一步",
       "PROGRESS": "{{current}} / {{total}}",
-      "SKIP": "è·³è¿‡"
+      "SKIP": "跳过"
     },
     "STEPS": {
       "EPUB": {
-        "TITLE": "EPUB æ–‡ä»¶",
+        "TITLE": "EPUB 文件",
         "DESCRIPTION": "选择您要更新的 EPUB 文件。"
       },
       "IMAGE": {
@@ -190,23 +291,22 @@
         "DESCRIPTION": "免费导出使用 Standard。移除广告后即可选择无损/压缩导出。"
       },
       "REMOVE_ADS_CLOSE": {
-        "TITLE": "æš‚æ—¶å…³é—­",
+        "TITLE": "暂时关闭",
         "DESCRIPTION": "目前先使用免费版即可。你不必购买。"
       }
     }
   },
   "SETTINGS": {
-    "INSTRUCTIONS": "æŸ¥çœ‹è¯´æ˜Ž",
+    "INSTRUCTIONS": "查看说明",
     "INSTRUCTIONS_HINT": "如何为 Kindle 更换并发送封面",
     "INSTRUCTIONS_SECTION": "说明",
     "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
     "EREADER_OPTIMIZATION_HINT": "应用自动调整以改善封面效果",
-    "EREADER_OPTIMIZATION_TOGGLE": "ä¼˜åŒ–",
-    "TITLE": "设置",
-    "VIEW_TOUR": "æŸ¥çœ‹å¯¼è§ˆ"
+    "EREADER_OPTIMIZATION_TOGGLE": "优化",
+    "TITLE": "设置"
   },
   "TABS": {
-    "COVERS": "æˆ‘çš„ EPUB",
+    "COVERS": "我的 EPUB",
     "CHANGE": "更换",
     "SETTINGS": "设置"
   },
@@ -214,7 +314,7 @@
     "TOOLS": {
       "RECOMMENDED": "推荐",
       "INFO": "信息",
-      "APPS": "åº”ç”¨",
+      "APPS": "应用",
       "GUIDE": "指南"
     }
   }

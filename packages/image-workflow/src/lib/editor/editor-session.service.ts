@@ -2,7 +2,14 @@ import { Injectable, Optional } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import type { EditorHistorySnapshot } from './editor-history.service';
-import type { CoverCropState, CropFormatOption, CropperResult } from '../types';
+import type {
+  CoverCropState,
+  CropFormatOption,
+  CropTarget,
+  CropperResult,
+  EditorRenderQuality,
+} from '../types';
+import type { CropTargetsConfig } from './editor-crop-target.types';
 
 /** Panel types available in the editor */
 export type ToolPanelType = "zoom" | "rotate" | "crop";
@@ -54,6 +61,12 @@ export interface EditorToolsConfig {
     selectedId?: string;
   };
 
+  /** Use the category/subpanel navigation for format selection. */
+  formatNavigation?: "categories";
+
+  /** Neutral crop target catalogs and per-category selections. */
+  cropTargets?: CropTargetsConfig;
+
   /** Kindle model selection (ccfk only) */
   kindle?: {
     /** Full catalog JSON (preferred) */
@@ -93,7 +106,7 @@ export type EditorSession = {
   sourceMode?: EditorSessionSourceMode;
 
   /** Initial target dimensions */
-  target: { width: number; height: number };
+  target: CropTarget;
 
   /** Tools configuration (controls available panels) */
   tools?: EditorToolsConfig;
@@ -109,6 +122,7 @@ export type EditorSession = {
   /** Optional output behavior for the apply action */
   output?: {
     includeRenderedBlob?: boolean;
+    exportQuality?: EditorRenderQuality;
   };
 
   /** Optional persisted project data for project-edit sessions. */

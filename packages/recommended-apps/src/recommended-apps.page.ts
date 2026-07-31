@@ -9,12 +9,11 @@ import {
   IonList,
   IonItem,
   IonLabel,
-  IonIcon,
-  IonButton,
   IonBackButton,
   IonButtons,
 } from '@ionic/angular/standalone';
 import { RecommendedAppsService } from './recommended-apps.service';
+import { RecommendedAppCardComponent } from './recommended-app-card.component';
 import { RecommendedApp, RecommendedAppCategory } from './types';
 import { openRecommendedApp } from './recommended-apps.runtime.js';
 import {
@@ -26,12 +25,6 @@ import {
   RecommendedAppsLocale,
   RecommendedAppsTranslations,
 } from './i18n/types';
-
-const LOGO_GOOGLE_PLAYSTORE_ICON = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <path fill="currentColor" d="M96 64l320 192-320 192V64z"></path>
-</svg>
-`;
 
 const APP_DESCRIPTION_KEYS: Record<string, keyof RecommendedAppsTranslations> = {
   'com.sheldrapps.covercreatorforkindle': 'APP_DESC_CCFK',
@@ -60,10 +53,9 @@ const APP_NAME_KEYS: Record<string, keyof RecommendedAppsTranslations> = {
     IonList,
     IonItem,
     IonLabel,
-    IonIcon,
-    IonButton,
     IonBackButton,
     IonButtons,
+    RecommendedAppCardComponent,
   ],
 })
 export class RecommendedAppsPage implements OnInit {
@@ -73,9 +65,6 @@ export class RecommendedAppsPage implements OnInit {
   t: RecommendedAppsTranslations = getRecommendedAppsTranslations('en-US');
   private locale: RecommendedAppsLocale = 'en-US';
   readonly backHref = this.resolveBackHref();
-  readonly playStoreIconSrc = `data:image/svg+xml;base64,${btoa(
-    LOGO_GOOGLE_PLAYSTORE_ICON
-  )}`;
 
   recommendedApps: RecommendedApp[] = [];
   readonly categories: readonly RecommendedAppCategory[] = ['EPUB', 'PDF'];

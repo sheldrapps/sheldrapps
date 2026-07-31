@@ -20,7 +20,7 @@
     "PURCHASE_ERROR": "購入を完了できませんでした。もう一度お試しください。",
     "RESTORE_ERROR": "購入を復元できませんでした。もう一度お試しください。",
     "PRO_ONLY": "PRO",
-    "WATCH_AD_SUBTITLE": "åºƒå‘Šã‚’è¦‹ã‚‹",
+    "WATCH_AD_SUBTITLE": "広告を見る",
     "SHARE": "共有",
     "SHARE_KINDLE_HINT": "共有時に Kindle アプリを選択してデバイスに送信してください。",
     "WARNING": "警告",
@@ -29,7 +29,8 @@
     "EDIT_PROJECT_OVERWRITE": "上書き",
     "EDIT_PROJECT_OVERWRITE_DESC": "既存のファイルに変更を保存します。",
     "EDIT_PROJECT_COPY": "コピーで作業",
-    "EDIT_PROJECT_COPY_DESC": "元のファイルを残して、新しいコピーを編集します。"
+    "EDIT_PROJECT_COPY_DESC": "元のファイルを残して、新しいコピーを編集します。",
+    "UPGRADE_TO_PRO": "Proにアップグレード"
   },
   "MY_EPUBS": {
     "TITLE": "マイ EPUB",
@@ -79,7 +80,15 @@
     "SETTINGS": "設定"
   },
   "HOME": {
-    "STEPPER": { "MERGE_SPLIT": "結合 / 分割", "SORT": "並べ替え", "TOC": "目次", "COVER": "表紙", "ADJUST": "調整", "JOIN": "結合" },
+    "STEPPER": {
+      "MERGE_SPLIT": "結合 / 分割",
+      "SORT": "並べ替え",
+      "TOC": "目次",
+      "COVER": "表紙",
+      "ADJUST": "調整",
+      "JOIN": "結合",
+      "CONFIRM": "確認"
+    },
     "WHAT_DO_YOU_WANT_TO_DO": "何をしますか？",
     "MERGE": "結合",
     "SPLIT": "分割",
@@ -103,7 +112,122 @@
     "COVER_SELECTOR_TITLE": "何から表紙を作成しますか？",
     "BEST_CANDIDATES_TITLE": "EPUB からのおすすめ",
     "ADJUST_COVER": "表紙を調整",
-    "PREVIEW_TITLE": "プレビュー"
+    "PREVIEW_TITLE": "プレビュー",
+    "OPERATION": {
+      "OUTPUTS_TITLE": "作成された EPUB",
+      "MERGE_SUCCESS_TITLE": "EPUB を結合しました",
+      "MERGE_SUCCESS_BODY": "選択した EPUB の内容を含む新しいコピーを作成しました。",
+      "SPLIT_SUCCESS_TITLE": "EPUB を分割しました",
+      "SPLIT_SUCCESS_BODY": "{{count}} 個の新しい EPUB を作成しました。",
+      "MERGE_FAILURE_TITLE": "EPUB を結合できませんでした",
+      "MERGE_FAILURE_BODY": "最終 EPUB を作成できませんでした。元のファイルは変更されていません。",
+      "SPLIT_FAILURE_TITLE": "EPUB を分割できませんでした",
+      "SPLIT_FAILURE_BODY": "すべての EPUB を作成できませんでした。元のファイルは変更されず、部分的な結果は保存されていません。",
+      "PROGRESS": {
+        "PREPARING": "EPUB を準備中",
+        "ANALYZING": "EPUB を解析中",
+        "WRITING": "EPUB を作成中",
+        "VALIDATING": "EPUB を検証中",
+        "COMPLETED": "完了",
+        "COUNT": "{{current}} / {{total}}"
+      }
+    },
+    "SPLIT_STEP": {
+      "TITLE": "分割",
+      "SUMMARY": "{{count}} 個の EPUB を作成します。",
+      "OUTPUTS_TITLE": "作成するファイル",
+      "BACK_TO_CONFIRM": "← 確認に戻る"
+    },
+    "SPLIT_COVER": {
+      "ECC_TITLE": "EPUB表紙チェンジャー",
+      "ECC_DESCRIPTION": "すべてのEPUBに同じ表紙が適用されます。個別にカスタマイズするにはアプリをご利用ください。",
+      "OPEN_ECC": "アプリを試す"
+    },
+    "SPLIT_HOW_TO": "分割方法",
+    "SPLIT_HOW_TO_TITLE": "このEPUBをどのように分割しますか？",
+    "SPLIT_OPTIONS": {
+      "BY_CHAPTERS_OR_SECTIONS": {
+        "TITLE": "章またはセクションごと",
+        "SUBLINE": "本の目次を使用します。"
+      },
+      "MANUAL_SPLIT_POINTS": {
+        "TITLE": "分割位置を選択",
+        "SUBLINE": "章を手動でグループ化します。"
+      },
+      "EQUAL_PARTS": {
+        "TITLE": "均等な分割",
+        "SUBLINE": "作成するEPUBの数を選択します。"
+      },
+      "MAXIMUM_FILE_SIZE": {
+        "TITLE": "最大サイズごと",
+        "SUBLINE": "おおよそのサイズ以内でファイルを作成します。"
+      }
+    },
+    "SPLIT_ANALYSIS_ERROR": "EPUBの目次を解析できませんでした。",
+    "SPLIT_EXPORT_NOT_AVAILABLE": "設定は完了しましたが、分割したEPUBの書き出しはまだ利用できません。",
+    "SPLIT_CONFIRM": {
+      "BY_CHAPTERS_TITLE": "このEPUBをどのように分割しますか？",
+      "MANUAL_TITLE": "分割位置を選択",
+      "EQUAL_TITLE": "均等な分割",
+      "MAXIMUM_SIZE_TITLE": "最大サイズごと",
+      "FILE_SUMMARY": "{{name}} · {{count}} · {{size}}",
+      "ANALYZING": "EPUBの目次を解析できませんでした。",
+      "BY_CHAPTER": "章ごと",
+      "BY_CHAPTER_SUBLINE": "本の目次を使用します。",
+      "BY_SECTION": "セクションごと",
+      "BY_SECTION_SUBLINE": "本の目次を使用します。",
+      "BOOK_START": "本の先頭",
+      "BOOK_START_SUBLINE": "本の先頭",
+      "BEFORE_CHAPTER": "{{title}}",
+      "BEFORE_CHAPTER_SUBLINE": "+ ここで分割",
+      "EQUAL_HELP": "作成するEPUBの数を選択します。",
+      "PART_COUNT": "{{count}}",
+      "PART_COUNT_SUBLINE": "パート",
+      "CUSTOM_PART_COUNT": "カスタム",
+      "CUSTOM_PART_COUNT_SUBLINE": "カスタム",
+      "INVALID_PART_COUNT": "カスタム",
+      "MAXIMUM_SIZE_HELP": "おおよそのサイズ以内でファイルを作成します。",
+      "MAXIMUM_SIZE_OPTION": "{{size}} MB",
+      "MAXIMUM_SIZE_OPTION_SUBLINE": "おおよそのサイズ以内でファイルを作成します。",
+      "CUSTOM_SIZE": "カスタム",
+      "CUSTOM_SIZE_SUBLINE": "カスタム",
+      "INVALID_MAXIMUM_SIZE": "カスタム",
+      "ESTIMATED_RESULT": "{{count}} EPUB",
+      "OUTPUT_NUMBER": "EPUB {{number}}",
+      "MORE_OUTPUTS": "{{count}}個のEPUBをすべて表示",
+      "SHOW_FEWER_OUTPUTS": "少なく表示",
+      "NEEDS_TWO_OUTPUTS": "作成するEPUBの数を選択します。",
+      "BACK_TO_HOW_TO": "← 分割方法",
+      "SPLIT_EPUB": "EPUBを分割 →",
+      "TITLE": "分割方法を確認",
+      "SAFE_SPLIT_HINT": "本の目次を使用します。",
+      "TREE_LABEL": "分割方法",
+      "VARIANT_LABEL": "分割方法",
+      "ONE_PER_CHAPTER": "章ごと",
+      "ONE_PER_SECTION": "セクションごと",
+      "MANUAL_HINT": "章を手動でグループ化します。",
+      "SPLIT_HERE": "+ ここで分割",
+      "DIVIDED": "✓ 分割済み",
+      "EQUAL_HINT": "作成するEPUBの数を選択します。",
+      "EQUAL_MODE_LABEL": "均等な分割",
+      "RESULT_COUNT": "均等な分割",
+      "PARTS_UNIT": "パート",
+      "MEGABYTES_UNIT": "MB",
+      "CHAPTERS_PER_FILE": "章またはセクションごと",
+      "SIZE_HINT": "おおよそのサイズ以内でファイルを作成します。",
+      "SIZE_LABEL": "最大サイズ",
+      "SIZE_10": "10 MB",
+      "SIZE_25": "25 MB",
+      "SIZE_50": "50 MB",
+      "SIZE_CUSTOM": "カスタム",
+      "APPROXIMATE_SIZE": "おおよそのサイズ以内でファイルを作成します。",
+      "EXAMPLE_PART_ONE": "パートI",
+      "EXAMPLE_CHAPTER_ONE": "第1章",
+      "EXAMPLE_CHAPTER_TWO": "第2章",
+      "EXAMPLE_PART_TWO": "パートII",
+      "EXAMPLE_CHAPTER_THREE": "第3章",
+      "EXAMPLE_CHAPTER_FOUR": "第4章"
+    }
   },
   "TOC_OPTIONS": {
     "TITLE": "目次をどうしますか？",

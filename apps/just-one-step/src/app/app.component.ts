@@ -1,4 +1,4 @@
-﻿import { Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { TranslateService } from '@ngx-translate/core';

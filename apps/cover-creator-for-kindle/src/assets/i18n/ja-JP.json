@@ -4,7 +4,7 @@
   },
   "COMMON": {
     "BACK_AGAIN_TO_EXIT": "もう一度戻るで終了",
-    "CANCEL": "ã‚­ãƒ£ãƒ³ã‚»ãƒ«",
+    "CANCEL": "キャンセル",
     "CLOSE": "閉じる",
     "EDIT": "編集",
     "CHANGE": "変更",
@@ -20,7 +20,8 @@
     "REMOVE_ADS_RESTORE": "購入を復元",
     "REMOVE_ADS_RESTORED": "購入を正常に復元しました。",
     "REMOVE_ADS_TITLE": "広告を削除",
-    "REMOVE_ADS_CTA_TITLE": "広告を削除",
+   "REMOVE_ADS_CTA_TITLE": "広告を削除",
+    "UPGRADE_TO_PRO": "Proにアップグレード",
     "REMOVE_ADS_CTA_SUBTITLE": "一回払い • 永久有効",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "一回払い • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "価格: {{price}} • サブスクなし",
@@ -74,11 +75,11 @@
     "SAVE_RENAME_PLACEHOLDER": "ファイル名",
     "SELECT_IMAGE_LABEL": "表紙画像",
     "SELECT_IMAGE_PLACEHOLDER": "画像を選択",
-    "SELECT_BRAND_LABEL": "ãƒ–ãƒ©ãƒ³ãƒ‰",
+    "SELECT_BRAND_LABEL": "ブランド",
     "SELECT_BRAND_PLACEHOLDER": "ブランドを選択",
     "SELECT_GROUP_LABEL": "グループ",
     "SELECT_GROUP_PLACEHOLDER": "グループを選択",
-    "SELECT_GENERATION_LABEL": "ãƒ¢ãƒ‡ãƒ«",
+    "SELECT_GENERATION_LABEL": "モデル",
     "SELECT_GENERATION_PLACEHOLDER": "モデルを選択",
     "SELECT_MODEL_LABEL": "お使いのデバイスは？",
     "SELECT_MODEL_PLACEHOLDER": "デバイスを選択",
@@ -240,7 +241,7 @@
     "APP_ANDROID": "Kindleアプリ（Android）",
     "APP_DESC": "デバイスに表紙を送信して表示するにはKindleアプリが必要です。",
     "APP_IOS": "Kindleアプリ（iOS）",
-    "APP_TITLE": "Kindleã‚¢ãƒ—ãƒª",
+    "APP_TITLE": "Kindleアプリ",
     "COVER_DESC": "ロック画面に現在の本の表紙を表示するオプションを有効にしてください。",
     "COVER_LINK": "表紙表示を設定",
     "COVER_TITLE": "本の表紙を表示",
@@ -256,7 +257,7 @@
       "INTERACT_HINT": "ハイライトされた要素を操作して続けてください。",
       "NEXT": "次へ",
       "PROGRESS": "{{current}} / {{total}}",
-      "SKIP": "ã‚¹ã‚­ãƒƒãƒ—"
+      "SKIP": "スキップ"
     },
     "STEPS": {
       "DEVICE": {
@@ -264,7 +265,7 @@
         "DESCRIPTION": "まず、デバイスを選択してください。\nこれにより、正しい解像度で表紙が作成されます。"
       },
       "BRAND": {
-        "TITLE": "ãƒ–ãƒ©ãƒ³ãƒ‰",
+        "TITLE": "ブランド",
         "DESCRIPTION": "eReaderのブランドを選択してください。"
       },
       "GROUP": {
@@ -272,7 +273,7 @@
         "DESCRIPTION": "デバイスのシリーズを選択してください。"
       },
       "MODEL": {
-        "TITLE": "ãƒ¢ãƒ‡ãƒ«",
+        "TITLE": "モデル",
         "DESCRIPTION": "正確なモデルを選択してください。"
       },
       "IMAGE": {
@@ -316,7 +317,6 @@
     "REQUISITES_HINT": "KindleでKindleが正しく動作するための必要な設定",
     "REQUISITES_SECTION": "必要条件",
     "TITLE": "設定",
-    "VIEW_TOUR": "ツアーを見る",
     "HOW_TO_USE": "使い方"
   },
   "TABS": {
@@ -328,7 +328,7 @@
     "TOOLS": {
       "RECOMMENDED": "おすすめ",
       "INFO": "情報",
-      "APPS": "ã‚¢ãƒ—ãƒª",
+      "APPS": "アプリ",
       "GUIDE": "ガイド"
     }
   }

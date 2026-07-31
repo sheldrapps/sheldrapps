@@ -3,7 +3,12 @@ import { NativePurchases, PURCHASE_TYPE } from '@capgo/native-purchases';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { BehaviorSubject } from 'rxjs';
 import { toDebugString } from './adapters/debug';
-import { isAndroid, isNative, isNativeDebugBuild } from './adapters/platform';
+import {
+  getPlatform,
+  isAndroid,
+  isNative,
+  isNativeDebugBuild,
+} from './adapters/platform';
 import { ADS_KIT_CONFIG } from './types';
 
 type BillingSettings = Record<string, unknown> & {
@@ -16,6 +21,22 @@ type BillingRuntimeState =
   | 'ready'
   | 'error'
   | 'unavailable';
+
+export const PURCHASE_INTENT_QUERY_PARAM = 'purchase';
+export const REMOVE_ADS_PURCHASE_INTENT = 'remove-ads';
+
+export type BillingPurchaseDiagnostics = {
+  state: BillingRuntimeState;
+  isReady: boolean;
+  billingAvailable: boolean;
+  canRunBillingOperations: boolean;
+  hasRemoveAdsEntitlement: boolean;
+  priceFormatted: string | null;
+  productId?: string;
+  platform: string;
+  native: boolean;
+  android: boolean;
+};
 
 @Injectable({ providedIn: 'root' })
 export class BillingService {
@@ -229,6 +250,36 @@ export class BillingService {
 
   getRemoveAdsPriceFormatted(): string | null {
     return this.removeAdsPriceFormatted;
+  }
+
+  getPurchaseDiagnostics(): BillingPurchaseDiagnostics {
+    return {
+      state: this.state,
+      isReady: this.isReady,
+      billingAvailable: this.billingAvailable,
+      canRunBillingOperations: this.canRunBillingOperations(),
+      hasRemoveAdsEntitlement: this.hasRemoveAdsEntitlement,
+      priceFormatted: this.removeAdsPriceFormatted,
+      ...(this.removeAdsProductId
+        ? { productId: this.removeAdsProductId }
+        : {}),
+      platform: getPlatform(),
+      native: isNative(),
+      android: isAndroid(),
+    };
+  }
+
+  logPurchaseUiState(
+    source: string,
+    context: Record<string, unknown> = {},
+  ): void {
+    console.info(
+      `[Billing] purchase-ui ${toDebugString({
+        source,
+        ...context,
+        ...this.getPurchaseDiagnostics(),
+      })}`,
+    );
   }
 
   isDevelopmentMode(): boolean {

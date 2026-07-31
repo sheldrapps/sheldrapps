@@ -18,7 +18,8 @@
     "REMOVE_ADS_RESTORE": "खरीदारी पुनः प्राप्त करें",
     "REMOVE_ADS_RESTORED": "खरीदारी सफलतापूर्वक पुनः प्राप्त की गई।",
     "REMOVE_ADS_TITLE": "विज्ञापन हटाएँ",
-    "REMOVE_ADS_CTA_TITLE": "विज्ञापन हटाएँ",
+   "REMOVE_ADS_CTA_TITLE": "विज्ञापन हटाएँ",
+    "UPGRADE_TO_PRO": "प्रो में अपग्रेड करें",
     "REMOVE_ADS_CTA_SUBTITLE": "एकमुश्त भुगतान • हमेशा के लिए",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "एकमुश्त भुगतान • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "मूल्य: {{price}} • कोई सदस्यता नहीं",
@@ -65,7 +66,7 @@
     "IMAGE_WARN_INVALID_PDF_COVER": "अमान्य PDF कवर. नई छवि चुनने के लिए टैप करें.",
     "PDF_ERROR_CORRUPT": "PDF फ़ाइल पढ़ी नहीं जा सकी. कृपया दूसरी फ़ाइल आज़माएँ.",
     "PDF_ERROR_NO_COVER": "इस PDF फ़ाइल में बदली जा सकने वाली कवर नहीं है.",
-    "NO_COVER_DETECTED_ADDED": "कोई कवर नहीं मिला। इस PDF में एक नया कवर जोड़ा गया।",
+    "RENAMED_OK": "PDF का नाम बदला गया",
     "PDF_ERROR_REWRITE": "PDF फ़ाइल प्रोसेस नहीं की जा सकी. कृपया फिर से कोशिश करें.",
     "PDF_ERROR_STORAGE": "पर्याप्त संग्रहण स्थान नहीं है। आवश्यक {{requiredMB}} MB, उपलब्ध {{availableMB}} MB।",
     "PDF_ERROR_SIZE": "फ़ाइल बहुत बड़ी है. अधिकतम {{maxSize}} MB.",
@@ -224,8 +225,7 @@
     "EREADER_OPTIMIZATION_SECTION": "Image enhancement",
     "EREADER_OPTIMIZATION_HINT": "कवर को बेहतर बनाने के लिए स्वचालित समायोजन लागू करता है",
     "EREADER_OPTIMIZATION_TOGGLE": "ऑप्टिमाइज़",
-    "TITLE": "सेटिंग्स",
-    "VIEW_TOUR": "टूर देखें"
+    "TITLE": "सेटिंग्स"
   },
   "TABS": {
     "COVERS": "मेरी PDFs",

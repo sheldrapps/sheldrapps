@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   ElementRef,
   OnDestroy,
@@ -8,14 +9,15 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { type PluginListenerHandle } from '@capacitor/core';
 import { NavigationEnd, Router } from '@angular/router';
 import {
-  IonBackButton,
   IonButtons,
   IonContent,
   IonHeader,
   IonButton,
   IonIcon,
+  IonInput,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
@@ -43,9 +45,11 @@ import {
   type CropFormatOption,
   type CropTarget,
   type CropperResult,
+  toEditorRenderQuality,
 } from '@sheldrapps/image-workflow';
 import {
   EditorSessionService,
+  EditorSessionExitService,
   consumeEditorResultSnapshot,
 } from '@sheldrapps/image-workflow/editor';
 import {
@@ -55,34 +59,79 @@ import {
   ScrollableButtonBarComponent,
   WorkflowStepperComponent,
   WorkflowNavigationComponent,
+  LoadingStateComponent,
   type WorkflowStep,
   type ScrollableBarItem,
   type FilePickerPanelItem,
   type FilePickerPanelRemoveEvent,
   type FilePickerPanelReorderEvent,
+  SelectableButtonListComponent,
+  type SelectableButtonListItem,
 } from '@sheldrapps/ui-theme';
 import { addIcons } from 'ionicons';
-import { appsOutline, sparklesOutline } from 'ionicons/icons';
+import {
+  appsOutline,
+  sparklesOutline,
+  refreshOutline,
+} from 'ionicons/icons';
 import {
   EpubRewriteError,
+  type EpubSplitTocEntry,
+  type EpubOperationProgress,
   EpubRewriteService,
   EpubWorkingCopyService,
   FileKitService,
 } from '@sheldrapps/file-kit';
 import { filter, Subscription } from 'rxjs';
 import { MergeCoverCandidateService } from '../../services/merge-cover-candidate.service';
-import { EpubLibraryService } from '../../services/epub-library.service';
+import {
+  EpubLibraryService,
+  type EpubLibraryRecord,
+} from '../../services/epub-library.service';
+import { CoversEventsService } from '../../services/covers-events.service';
+import {
+  SplitAnalysisService,
+  type SplitAnalysis,
+  type SplitAnalysisTocEntry,
+} from '../../services/split-analysis.service';
 import { EpubMergerAndSplitterSettings } from '../../settings/epub-merger-and-splitter-settings.schema';
 import {
   RecommendedAppsService,
+  RecommendedAppCardComponent,
   buildHomeHeaderItems,
   handleHomeHeaderAction,
+  openRecommendedApp,
+  type RecommendedApp,
 } from '@sheldrapps/recommended-apps';
 
 type HomeMode = 'merge' | 'split';
 type CoverSourceMode = 'candidate' | 'image' | 'scratch';
 type EditorSourceMode = 'image' | 'scratch';
+type EditorEntryMode = 'new-cover' | 'existing-cover';
 type TocMode = 'books-and-chapters' | 'books-only' | 'full-index';
+type SplitMethod =
+  | 'by-chapters-or-sections'
+  | 'manual-split-points'
+  | 'equal-parts'
+  | 'maximum-file-size';
+
+type SplitChapterMode = 'chapter' | 'section';
+
+type SplitOutputPreview = {
+  number: number;
+  title: string;
+  startUnit: number;
+  endUnit: number;
+  sizeBytes: number;
+};
+
+type EpubOperationFeedback = {
+  operation: HomeMode;
+  status: 'success' | 'error';
+  outputs: readonly EpubLibraryRecord[];
+  previewUrl?: string;
+  errorKey?: string;
+};
 
 type SelectedEpubInput = {
   id: string;
@@ -102,8 +151,13 @@ type SelectedEpubInput = {
 const EPUB_ACCEPT = '.epub,application/epub+zip';
 const IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp';
 const MAX_EPUB_SIZE_MB = 1024;
-const EPUB_COVER_TARGET = { width: 1236, height: 1648 };
 const COVER_THUMB_SIZE = 96;
+const SPLIT_METHOD_VALUES = new Set<SplitMethod>([
+  'by-chapters-or-sections',
+  'manual-split-points',
+  'equal-parts',
+  'maximum-file-size',
+]);
 
 @Component({
   selector: 'app-home',
@@ -112,12 +166,12 @@ const COVER_THUMB_SIZE = 96;
   styleUrls: ['./home.page.scss'],
   imports: [
     TranslateModule,
-    IonBackButton,
     IonButtons,
     IonContent,
     IonHeader,
     IonButton,
     IonIcon,
+    IonInput,
     IonTitle,
     IonToolbar,
     IonButtons,
@@ -129,20 +183,27 @@ const COVER_THUMB_SIZE = 96;
     ScrollableButtonBarComponent,
     WorkflowStepperComponent,
     WorkflowNavigationComponent,
+    LoadingStateComponent,
     FilePickerPanelComponent,
+    SelectableButtonListComponent,
+    RecommendedAppCardComponent,
   ],
 })
 export class HomePage implements OnInit, OnDestroy {
+  private readonly changeDetector = inject(ChangeDetectorRef);
   private readonly router = inject(Router);
   private readonly fileKit = inject(FileKitService);
   private readonly epubRewrite = inject(EpubRewriteService);
   private readonly epubWorkingCopy = inject(EpubWorkingCopyService);
   private readonly epubLibrary = inject(EpubLibraryService);
+  private readonly coversEvents = inject(CoversEventsService);
   private readonly imagePipeline = inject(ImagePipelineService);
   private readonly previewEditingPage = inject(PreviewEditingPageService);
   private readonly editorSession = inject(EditorSessionService);
+  private readonly editorSessionExit = inject(EditorSessionExitService);
   private readonly bestCandidate = inject(BestCandidateService);
   private readonly mergeCoverCandidate = inject(MergeCoverCandidateService);
+  private readonly splitAnalysisService = inject(SplitAnalysisService);
   private readonly settings = inject(
     SettingsStore<EpubMergerAndSplitterSettings>,
   );
@@ -152,21 +213,52 @@ export class HomePage implements OnInit, OnDestroy {
   private readonly recommendedAppsService = inject(RecommendedAppsService);
   private readonly candidateBlobUrls = new Set<string>();
   headerItems: ScrollableBarItem[] = [];
-  readonly workflowSteps: readonly WorkflowStep[] = [
-    { id: 'merge-split', label: this.translate.instant('HOME.STEPPER.MERGE_SPLIT') },
-    { id: 'sort', label: this.translate.instant('HOME.STEPPER.SORT') },
-    { id: 'toc', label: this.translate.instant('HOME.STEPPER.TOC') },
-    { id: 'cover', label: this.translate.instant('HOME.STEPPER.COVER') },
-    { id: 'adjust', label: this.translate.instant('HOME.STEPPER.ADJUST') },
-    { id: 'join', label: this.translate.instant('HOME.STEPPER.JOIN') },
-  ];
+  workflowSteps: WorkflowStep[] = [];
   workflowStep = 0;
 
   get visibleWorkflowSteps(): readonly WorkflowStep[] {
-    return this.selectedMode() === 'merge'
-      ? this.workflowSteps
-      : this.workflowSteps.slice(0, 1);
+    if (this.selectedMode() === 'merge') {
+      return this.workflowSteps;
+    }
+
+    if (this.selectedMode() === 'split') {
+      return [
+        this.workflowSteps[0],
+        this.splitWorkflowStep,
+        this.splitConfirmStep,
+        this.splitCoverStep,
+        this.splitAdjustStep,
+        this.splitExecutionStep,
+      ];
+    }
+
+    return this.workflowSteps.slice(0, 1);
   }
+
+  private splitWorkflowStep: WorkflowStep = {
+    id: 'split-method',
+    label: '',
+  };
+
+  private splitConfirmStep: WorkflowStep = {
+    id: 'split-confirm',
+    label: '',
+  };
+
+  private splitCoverStep: WorkflowStep = {
+    id: 'split-cover',
+    label: '',
+  };
+
+  private splitAdjustStep: WorkflowStep = {
+    id: 'split-adjust',
+    label: '',
+  };
+
+  private splitExecutionStep: WorkflowStep = {
+    id: 'split-execution',
+    label: '',
+  };
 
   get showWorkflowPrevious(): boolean {
     return this.workflowStep > 0;
@@ -174,6 +266,22 @@ export class HomePage implements OnInit, OnDestroy {
 
   get showWorkflowNext(): boolean {
     return this.workflowStep < this.visibleWorkflowSteps.length - 1;
+  }
+
+  get workflowNextDisabled(): boolean {
+    if (
+      this.selectedMode() === 'split' &&
+      this.workflowStep === 2 &&
+      !this.splitCanExecute()
+    ) {
+      return true;
+    }
+
+    return (
+      (this.selectedMode() === 'merge' || this.selectedMode() === 'split') &&
+      this.workflowStep === 3 &&
+      !this.canOpenMergeCoverEditor()
+    );
   }
 
   get workflowNextLabel(): string {
@@ -184,9 +292,192 @@ export class HomePage implements OnInit, OnDestroy {
     return this.visibleWorkflowSteps[this.workflowStep - 1]?.label ?? '';
   }
 
+  get operationFeedbackTitleKey(): string {
+    const feedback = this.operationFeedback();
+    if (!feedback) {
+      return '';
+    }
+    if (feedback.status === 'error') {
+      return feedback.operation === 'merge'
+        ? 'HOME.OPERATION.MERGE_FAILURE_TITLE'
+        : 'HOME.OPERATION.SPLIT_FAILURE_TITLE';
+    }
+    return feedback.operation === 'merge'
+      ? 'HOME.OPERATION.MERGE_SUCCESS_TITLE'
+      : 'HOME.OPERATION.SPLIT_SUCCESS_TITLE';
+  }
+
+  get operationFeedbackBodyKey(): string {
+    const feedback = this.operationFeedback();
+    if (!feedback) {
+      return '';
+    }
+    if (feedback.status === 'error') {
+      return feedback.errorKey ?? '';
+    }
+    return feedback.operation === 'merge'
+      ? 'HOME.OPERATION.MERGE_SUCCESS_BODY'
+      : 'HOME.OPERATION.SPLIT_SUCCESS_BODY';
+  }
+
+  get operationProgressLabelKey(): string {
+    const phase = this.operationProgress()?.phase;
+    if (phase === 'analyzing') return 'HOME.OPERATION.PROGRESS.ANALYZING';
+    if (phase === 'writing') return 'HOME.OPERATION.PROGRESS.WRITING';
+    if (phase === 'validating') return 'HOME.OPERATION.PROGRESS.VALIDATING';
+    if (phase === 'completed') return 'HOME.OPERATION.PROGRESS.COMPLETED';
+    return 'HOME.OPERATION.PROGRESS.PREPARING';
+  }
+
+  get operationProgressDetail(): string {
+    const progress = this.operationProgress();
+    if (!progress) {
+      return '';
+    }
+    if (progress.total && progress.current) {
+      return this.translate.instant('HOME.OPERATION.PROGRESS.COUNT', {
+        current: progress.current,
+        total: progress.total,
+      });
+    }
+    return progress.percent + '%';
+  }
+
+  get splitConfirmTitleKey(): string {
+    return {
+      'by-chapters-or-sections': 'HOME.SPLIT_CONFIRM.BY_CHAPTERS_TITLE',
+      'manual-split-points': 'HOME.SPLIT_CONFIRM.MANUAL_TITLE',
+      'equal-parts': 'HOME.SPLIT_CONFIRM.EQUAL_TITLE',
+      'maximum-file-size': 'HOME.SPLIT_CONFIRM.MAXIMUM_SIZE_TITLE',
+    }[this.splitMethod];
+  }
+
+  get splitSummaryLine(): string {
+    const analysis = this.splitAnalysis();
+    if (!analysis) return '';
+    return this.translate.instant('HOME.SPLIT_CONFIRM.FILE_SUMMARY', {
+      name: analysis.fileName,
+      count: analysis.units.length,
+      size: this.formatMegabytes(analysis.fileSizeBytes),
+    });
+  }
+
+  get splitUnitCount(): number {
+    return this.splitAnalysis()?.units.length ?? 1;
+  }
+
+  get splitHasSections(): boolean {
+    return this.splitAnalysis()?.sections.length ? this.splitAnalysis()!.sections.length > 1 : false;
+  }
+
+  get splitChapterModeItems(): readonly SelectableButtonListItem[] {
+    return [
+      {
+        value: 'chapter',
+        titleKey: 'HOME.SPLIT_CONFIRM.BY_CHAPTER',
+        sublineKey: 'HOME.SPLIT_CONFIRM.BY_CHAPTER_SUBLINE',
+        ariaLabelKey: 'HOME.SPLIT_CONFIRM.BY_CHAPTER',
+        leadingIconSrc: 'assets/icons/notebook2-outline.svg',
+      },
+      {
+        value: 'section',
+        titleKey: 'HOME.SPLIT_CONFIRM.BY_SECTION',
+        sublineKey: 'HOME.SPLIT_CONFIRM.BY_SECTION_SUBLINE',
+        ariaLabelKey: 'HOME.SPLIT_CONFIRM.BY_SECTION',
+        leadingIconSrc: 'assets/icons/widget-outline.svg',
+      },
+    ];
+  }
+
+  get splitEqualPartsItems(): readonly SelectableButtonListItem[] {
+    const max = this.splitAnalysis()?.units.length ?? 0;
+    const values = [2, 3, 4].filter((value) => value <= max);
+    return [
+      ...values.map((value) => ({
+        value: value.toString(),
+        title: this.translate.instant('HOME.SPLIT_CONFIRM.PART_COUNT', { count: value }),
+        subline: this.translate.instant('HOME.SPLIT_CONFIRM.PART_COUNT_SUBLINE', {
+          count: Math.ceil(max / value),
+        }),
+        ariaLabel: this.translate.instant('HOME.SPLIT_CONFIRM.PART_COUNT', { count: value }),
+        leadingIconSrc: 'assets/icons/widget-outline.svg',
+      })),
+      {
+        value: 'custom',
+        titleKey: 'HOME.SPLIT_CONFIRM.CUSTOM_PART_COUNT',
+        sublineKey: 'HOME.SPLIT_CONFIRM.CUSTOM_PART_COUNT_SUBLINE',
+        ariaLabelKey: 'HOME.SPLIT_CONFIRM.CUSTOM_PART_COUNT',
+        leadingIconSrc: 'assets/icons/check-list-square-outline.svg',
+        disabled: max < 2,
+      },
+    ];
+  }
+
+  get splitMaximumSizeItems(): readonly SelectableButtonListItem[] {
+    const fileSize = this.splitAnalysis()?.fileSizeBytes ?? 0;
+    const fileSizeMb = fileSize / (1024 * 1024);
+    const presets: SelectableButtonListItem[] = [5, 10, 15]
+      .filter((value) => value < fileSizeMb)
+      .map((value) => ({
+        value: value.toString(),
+        title: this.translate.instant('HOME.SPLIT_CONFIRM.MAXIMUM_SIZE_OPTION', { size: value }),
+        subline: this.translate.instant('HOME.SPLIT_CONFIRM.MAXIMUM_SIZE_OPTION_SUBLINE', { count: Math.ceil(fileSizeMb / value) }),
+        ariaLabel: this.translate.instant('HOME.SPLIT_CONFIRM.MAXIMUM_SIZE_OPTION', { size: value }),
+        leadingIconSrc: 'assets/icons/ruler2-outline.svg',
+      }));
+    return [
+      ...presets,
+      {
+        value: 'custom',
+        titleKey: 'HOME.SPLIT_CONFIRM.CUSTOM_SIZE',
+        sublineKey: 'HOME.SPLIT_CONFIRM.CUSTOM_SIZE_SUBLINE',
+        ariaLabelKey: 'HOME.SPLIT_CONFIRM.CUSTOM_SIZE',
+        leadingIconSrc: 'assets/icons/ruler2-outline.svg',
+      },
+    ];
+  }
+
+  get splitEqualPartsSelection(): string {
+    return this.splitEqualPartsSelectionValue;
+  }
+
+  get splitManualPointItems(): readonly SelectableButtonListItem[] {
+    const chapters = this.splitAnalysis()?.units ?? [];
+    return chapters.map((unit, index) => ({
+      value: unit.id,
+      kind: index === 0 ? 'static' : 'action',
+      title: index === 0
+        ? this.translate.instant('HOME.SPLIT_CONFIRM.BOOK_START')
+        : this.translate.instant('HOME.SPLIT_CONFIRM.BEFORE_CHAPTER', { title: unit.title }),
+      subline: index === 0
+        ? this.translate.instant('HOME.SPLIT_CONFIRM.BOOK_START_SUBLINE')
+        : this.translate.instant('HOME.SPLIT_CONFIRM.BEFORE_CHAPTER_SUBLINE', { title: unit.title }),
+      ariaLabel: index === 0
+        ? this.translate.instant('HOME.SPLIT_CONFIRM.BOOK_START')
+        : this.translate.instant('HOME.SPLIT_CONFIRM.BEFORE_CHAPTER', { title: unit.title }),
+      leadingIconSrc: 'assets/icons/check-list-square-outline.svg',
+    }));
+  }
+
+  get splitManualPointValues(): readonly string[] {
+    const first = this.splitAnalysis()?.units[0]?.id;
+    return first ? [first, ...this.splitManualPointIds()] : [];
+  }
+
   get selectableWorkflowSteps(): readonly number[] {
     if (this.selectedMode() !== 'merge') {
-      return [0];
+      if (!this.splitSelection()) {
+        return [0];
+      }
+
+      const steps = [0, 1, 2, 3];
+      if (this.canOpenMergeCoverEditor()) {
+        steps.push(4);
+      }
+      if (this.mergeCoverRenderedFile) {
+        steps.push(5);
+      }
+      return steps;
     }
 
     const steps = [0, 1, 2, 3];
@@ -207,6 +498,7 @@ export class HomePage implements OnInit, OnDestroy {
   readonly selectedMode = signal<HomeMode | null>(null);
   readonly mergeIconSvg = signal<string | null>(null);
   readonly splitIconSvg = signal<string | null>(null);
+  readonly epubCoverChanger = signal<RecommendedApp | null>(null);
   readonly mergeSelections = signal<readonly SelectedEpubInput[]>([]);
   readonly splitSelection = signal<SelectedEpubInput | null>(null);
   readonly coverCandidates = signal<BestCandidateResult[]>([]);
@@ -217,10 +509,33 @@ export class HomePage implements OnInit, OnDestroy {
   readonly mergeCoverPreviewRevision = signal(0);
   exportQualityMode: ExportQualityMode = 'compressed';
   tocMode: TocMode = 'books-and-chapters';
+  splitMethod: SplitMethod = 'by-chapters-or-sections';
+  splitChapterMode: SplitChapterMode = 'chapter';
+  splitEqualPartsValue = 2;
+  splitEqualPartsSelectionValue = '2';
+  splitMaximumSize = 10;
+  splitMaximumSizeSelection = '10';
+  readonly splitAnalysis = signal<SplitAnalysis | null>(null);
+  readonly splitAnalysisPending = signal(false);
+  readonly splitManualPointIds = signal<readonly string[]>([]);
+  readonly splitPreviewExpanded = signal(false);
+  readonly splitConfigurationRevision = signal(0);
+  readonly splitEqualPartsErrorKey = signal<string | null>(null);
+  readonly splitMaximumSizeErrorKey = signal<string | null>(null);
+  readonly splitOutputPreviews = computed(() => {
+    this.splitConfigurationRevision();
+    return this.buildSplitOutputPreviews();
+  });
+  readonly splitCanExecute = computed(
+    () => !this.splitAnalysisPending() && this.splitOutputPreviews().length >= 2,
+  );
   readonly pickerErrorKey = signal<string | null>(null);
   readonly isPicking = signal(false);
+  readonly isResettingFlow = signal(false);
   readonly isDetectingCoverCandidates = signal(false);
   readonly isMergeActionBusy = signal(false);
+  readonly operationProgress = signal<EpubOperationProgress | null>(null);
+  readonly operationFeedback = signal<EpubOperationFeedback | null>(null);
   adsRemoved = false;
   readonly epubAccept = EPUB_ACCEPT;
   readonly imageAccept = IMAGE_ACCEPT;
@@ -230,11 +545,45 @@ export class HomePage implements OnInit, OnDestroy {
       title: selection.selectedName,
     })),
   );
+  readonly splitMethodItems: readonly SelectableButtonListItem[] = [
+    {
+      value: 'by-chapters-or-sections',
+      titleKey: 'HOME.SPLIT_OPTIONS.BY_CHAPTERS_OR_SECTIONS.TITLE',
+      sublineKey: 'HOME.SPLIT_OPTIONS.BY_CHAPTERS_OR_SECTIONS.SUBLINE',
+      ariaLabelKey: 'HOME.SPLIT_OPTIONS.BY_CHAPTERS_OR_SECTIONS.TITLE',
+      leadingIconSrc: 'assets/icons/notebook2-outline.svg',
+    },
+    {
+      value: 'manual-split-points',
+      titleKey: 'HOME.SPLIT_OPTIONS.MANUAL_SPLIT_POINTS.TITLE',
+      sublineKey: 'HOME.SPLIT_OPTIONS.MANUAL_SPLIT_POINTS.SUBLINE',
+      ariaLabelKey: 'HOME.SPLIT_OPTIONS.MANUAL_SPLIT_POINTS.TITLE',
+      leadingIconSrc: 'assets/icons/check-list-square-outline.svg',
+    },
+    {
+      value: 'equal-parts',
+      titleKey: 'HOME.SPLIT_OPTIONS.EQUAL_PARTS.TITLE',
+      sublineKey: 'HOME.SPLIT_OPTIONS.EQUAL_PARTS.SUBLINE',
+      ariaLabelKey: 'HOME.SPLIT_OPTIONS.EQUAL_PARTS.TITLE',
+      leadingIconSrc: 'assets/icons/widget-outline.svg',
+    },
+    {
+      value: 'maximum-file-size',
+      titleKey: 'HOME.SPLIT_OPTIONS.MAXIMUM_FILE_SIZE.TITLE',
+      sublineKey: 'HOME.SPLIT_OPTIONS.MAXIMUM_FILE_SIZE.SUBLINE',
+      ariaLabelKey: 'HOME.SPLIT_OPTIONS.MAXIMUM_FILE_SIZE.TITLE',
+      leadingIconSrc: 'assets/icons/ruler2-outline.svg',
+    },
+  ];
   private readonly formatOptions = this.buildFormatOptions();
   private routerSub?: Subscription;
   private adsRemovedSub?: Subscription;
+  private languageSub?: Subscription;
+  private operationProgressListener?: PluginListenerHandle;
   private lastEditorSessionId?: string;
   private lastEditorSourceMode: EditorSourceMode = 'image';
+  private editorEntryMode: EditorEntryMode = 'new-cover';
+  private editorReturnStep: 3 | 5 = 3;
   private mergeCoverSourceFile?: File;
   private mergeCoverWorkingFile?: File;
   private mergeCoverRenderedBlob?: Blob;
@@ -279,6 +628,8 @@ export class HomePage implements OnInit, OnDestroy {
 
     await this.openEditor(
       this.lastEditorSourceMode === 'scratch' ? 'scratch' : 'image',
+      'existing-cover',
+      5,
     );
   }
 
@@ -294,23 +645,71 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
+    await this.clearFlowState();
+  }
+
+  async resetFlow(): Promise<void> {
+    if (this.isResettingFlow()) return;
+    if (!(await this.editorSessionExit.confirmResetFlow())) return;
+    this.isResettingFlow.set(true);
+    this.changeDetector?.detectChanges();
+    await this.yieldResetTurn();
+    try {
+      await this.clearFlowState();
+    } finally {
+      this.isResettingFlow.set(false);
+      this.changeDetector?.detectChanges();
+    }
+  }
+
+  private async yieldResetTurn(): Promise<void> {
+    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+      await Promise.resolve();
+      return;
+    }
+
+    await new Promise<void>((resolve) => {
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    });
+  }
+
+  private async clearFlowState(): Promise<void> {
+    const cleanupPromise = this.cleanupAllSelections();
     this.clearPickerError();
+    this.operationFeedback.set(null);
+    this.operationProgress.set(null);
+    this.isPicking.set(false);
+    this.isDetectingCoverCandidates.set(false);
+    this.isMergeActionBusy.set(false);
+    this.splitAnalysisPending.set(false);
+    this.splitAnalysis.set(null);
+    this.splitMethod = 'by-chapters-or-sections';
+    this.tocMode = 'books-and-chapters';
+    this.resetSplitConfiguration();
     this.closePreview();
     this.selectedMode.set(null);
     this.workflowStep = 0;
     this.resetFileInput(this.mergeInput?.nativeElement);
     this.resetFileInput(this.splitInput?.nativeElement);
     this.resetCoverSelection(true);
-    await this.cleanupAllSelections();
+    await cleanupPromise;
   }
 
   constructor() {
-    addIcons({ appsOutline, sparklesOutline });
+    addIcons({ appsOutline, sparklesOutline, refreshOutline });
+    this.refreshWorkflowStepLabels();
     void this.loadIcons();
   }
 
   ngOnInit(): void {
+    this.refreshWorkflowStepLabels();
+    this.languageSub = this.translate.onLangChange.subscribe(() => {
+      this.refreshWorkflowStepLabels();
+    });
     void this.hydrateAdsState();
+    void this.attachOperationProgressListener();
     void this.loadExportQualitySettings();
     this.routerSub = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
@@ -336,20 +735,49 @@ export class HomePage implements OnInit, OnDestroy {
       navigateToRecommended: async () => {
         await this.router.navigateByUrl('/tabs/recommended-apps');
       },
+      resetFlow: () => this.resetFlow(),
     });
   }
 
   private async refreshHeaderItems(): Promise<void> {
     const recommendedApps = await this.recommendedAppsService.getRecommendedApps();
+    this.epubCoverChanger.set(
+      recommendedApps.find(
+        (app) => app.packageName === 'com.sheldrapps.epubcoverchanger',
+      ) ?? null,
+    );
     this.headerItems = buildHomeHeaderItems(recommendedApps.length > 0, {
       appsLabel: this.translate.instant('ARR.TOOLS.APPS'),
+      resetLabel: this.translate.instant('UI_THEME.RESET'),
       includeGuide: false,
     });
   }
 
+  async openEpubCoverChanger(): Promise<void> {
+    const epubCoverChanger =
+      this.epubCoverChanger() ??
+      (await this.recommendedAppsService.getRecommendedApps()).find(
+        (app) => app.packageName === 'com.sheldrapps.epubcoverchanger',
+      );
+    if (!epubCoverChanger?.playStoreUrl) {
+      return;
+    }
+
+    await openRecommendedApp(epubCoverChanger.playStoreUrl);
+  }
+
   async onWorkflowPrevious(): Promise<void> {
-    if (this.workflowStep === 5 && this.canOpenMergeCoverEditor()) {
-      await this.openMergeCoverEditor();
+    if (
+      (this.selectedMode() === 'merge' || this.selectedMode() === 'split') &&
+      this.workflowStep === 5 &&
+      this.canOpenMergeCoverEditor()
+    ) {
+      await this.openMergeCoverEditor('existing-cover', 5);
+      return;
+    }
+
+    if (this.selectedMode() === 'split' && this.workflowStep === 2) {
+      this.onSplitBackToHowTo();
       return;
     }
 
@@ -359,8 +787,22 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   async onWorkflowNext(): Promise<void> {
-    if (this.workflowStep === 3 && this.canOpenMergeCoverEditor()) {
-      await this.openMergeCoverEditor();
+    if (
+      (this.selectedMode() === 'merge' || this.selectedMode() === 'split') &&
+      this.workflowStep === 3 &&
+      this.canOpenMergeCoverEditor()
+    ) {
+      await this.openMergeCoverEditor(
+        this.mergeCoverRenderedFile ? 'existing-cover' : 'new-cover',
+        3,
+      );
+      return;
+    }
+
+    if (
+      (this.selectedMode() === 'merge' || this.selectedMode() === 'split') &&
+      this.workflowStep === 3
+    ) {
       return;
     }
 
@@ -370,14 +812,232 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   async onWorkflowStepSelected(step: number): Promise<void> {
-    if (step === 4 && this.canOpenMergeCoverEditor()) {
-      await this.openMergeCoverEditor();
+    if (
+      (this.selectedMode() === 'merge' || this.selectedMode() === 'split') &&
+      step === 4 &&
+      this.canOpenMergeCoverEditor()
+    ) {
+      await this.openMergeCoverEditor(
+        this.mergeCoverRenderedFile ? 'existing-cover' : 'new-cover',
+        this.workflowStep === 5 ? 5 : 3,
+      );
       return;
     }
 
     if (this.selectableWorkflowSteps.includes(step)) {
+      if (this.selectedMode() === 'split' && this.workflowStep >= 2 && step === 1) {
+        this.resetSplitConfiguration();
+      }
       this.workflowStep = step;
     }
+  }
+
+  onSplitMethodChange(value: string): void {
+    if (!SPLIT_METHOD_VALUES.has(value as SplitMethod)) {
+      return;
+    }
+
+    this.splitMethod = value as SplitMethod;
+    this.resetSplitConfiguration();
+    if (this.splitMethod === 'equal-parts') {
+      const unitCount = typeof this.splitAnalysis === 'function'
+        ? this.splitAnalysis()?.units.length ?? 2
+        : 2;
+      this.splitEqualPartsValue = Math.min(2, unitCount);
+    }
+  }
+
+  onSplitChapterModeChange(value: string): void {
+    if (value === 'chapter' || value === 'section') {
+      this.splitChapterMode = value;
+      this.markSplitConfigurationChanged();
+    }
+  }
+
+  onSplitEqualPartsValueChange(value: number): void {
+    const max = this.splitAnalysis()?.units.length ?? 1;
+    if (!Number.isSafeInteger(value) || value < 2 || value > max) {
+      this.splitEqualPartsErrorKey.set('HOME.SPLIT_CONFIRM.INVALID_PART_COUNT');
+      return;
+    }
+
+    this.splitEqualPartsValue = value;
+    this.splitEqualPartsSelectionValue = 'custom';
+    this.splitEqualPartsErrorKey.set(null);
+    this.markSplitConfigurationChanged();
+  }
+
+  onSplitEqualPartsInput(value: string | number | null | undefined): void {
+    const rawValue = String(value ?? '').trim();
+    if (!/^\d+$/.test(rawValue)) {
+      this.splitEqualPartsErrorKey.set('HOME.SPLIT_CONFIRM.INVALID_PART_COUNT');
+      return;
+    }
+
+    this.onSplitEqualPartsValueChange(Number(rawValue));
+  }
+
+  onSplitEqualPartsChange(value: string): void {
+    if (value === 'custom') {
+      this.splitEqualPartsSelectionValue = 'custom';
+      this.splitEqualPartsErrorKey.set(null);
+      this.markSplitConfigurationChanged();
+      return;
+    }
+
+    if (/^\d+$/.test(value)) {
+      const max = this.splitAnalysis()?.units.length ?? 1;
+      const parsedValue = Number(value);
+      if (Number.isSafeInteger(parsedValue) && parsedValue >= 2 && parsedValue <= max) {
+        this.splitEqualPartsSelectionValue = value;
+        this.splitEqualPartsValue = parsedValue;
+        this.splitEqualPartsErrorKey.set(null);
+        this.markSplitConfigurationChanged();
+      }
+    }
+  }
+
+  onSplitMaximumSizeChange(value: string): void {
+    this.splitMaximumSizeSelection = value;
+    if (value !== 'custom') {
+      this.splitMaximumSize = Number(value);
+    }
+    this.splitMaximumSizeErrorKey.set(null);
+    this.markSplitConfigurationChanged();
+  }
+
+  onSplitMaximumSizeInput(value: string | number | null | undefined): void {
+    const rawValue = String(value ?? '').trim();
+    if (!/^\d+$/.test(rawValue)) {
+      this.splitMaximumSizeErrorKey.set('HOME.SPLIT_CONFIRM.INVALID_MAXIMUM_SIZE');
+      return;
+    }
+
+    const parsedValue = Number(rawValue);
+    if (!Number.isSafeInteger(parsedValue) || parsedValue < 1) {
+      this.splitMaximumSizeErrorKey.set('HOME.SPLIT_CONFIRM.INVALID_MAXIMUM_SIZE');
+      return;
+    }
+
+    this.splitMaximumSize = parsedValue;
+    this.splitMaximumSizeErrorKey.set(null);
+    this.markSplitConfigurationChanged();
+  }
+
+  onSplitIntegerKeydown(event: KeyboardEvent): void {
+    if (['e', 'E', '+', '-', '.', ','].includes(event.key)) {
+      event.preventDefault();
+    }
+  }
+
+  onSplitManualPointsChange(values: readonly string[]): void {
+    this.splitManualPointIds.set(values);
+  }
+
+  toggleSplitPreview(): void {
+    this.splitPreviewExpanded.update((expanded) => !expanded);
+  }
+
+  onSplitExecute(): void {
+    if (!this.splitCanExecute()) return;
+    this.pickerErrorKey.set(null);
+    this.workflowStep = 3;
+  }
+
+  async onSplitExport(): Promise<void> {
+    if (
+      !this.splitCanExecute() ||
+      this.isPicking() ||
+      this.isMergeActionBusy()
+    ) {
+      return;
+    }
+
+    this.isMergeActionBusy.set(true);
+    try {
+      if (!this.adsRemoved) {
+        const result = await this.ads.showRewarded();
+        if (!result.rewardEarned || !result.adClosed) return;
+      }
+
+      await this.runSplit();
+    } catch (error) {
+      console.error('[epub-merger-and-splitter] split failed', error);
+      this.markOperationFailure('split', error);
+    } finally {
+      this.isMergeActionBusy.set(false);
+      this.operationProgress.set(null);
+    }
+  }
+
+  onSplitBackToHowTo(): void {
+    this.resetSplitConfiguration();
+    this.workflowStep = 1;
+  }
+
+  private resetSplitConfiguration(): void {
+    this.splitChapterMode = 'chapter';
+    this.splitEqualPartsValue = 2;
+    this.splitEqualPartsSelectionValue = '2';
+    this.splitMaximumSize = 10;
+    this.splitMaximumSizeSelection = '10';
+    this.resetSplitSelections();
+    if (typeof this.splitEqualPartsErrorKey === 'function') {
+      this.splitEqualPartsErrorKey.set(null);
+    }
+    if (typeof this.splitMaximumSizeErrorKey === 'function') {
+      this.splitMaximumSizeErrorKey.set(null);
+    }
+    if (typeof this.splitPreviewExpanded === 'function') {
+      this.splitPreviewExpanded.set(false);
+    }
+    this.markSplitConfigurationChanged();
+  }
+
+  private resetSplitSelections(): void {
+    if (typeof this.splitManualPointIds === 'function') {
+      this.splitManualPointIds.set([]);
+    }
+  }
+
+  private markSplitConfigurationChanged(): void {
+    if (typeof this.splitConfigurationRevision === 'function') {
+      this.splitConfigurationRevision.update((revision) => revision + 1);
+    }
+  }
+
+  private refreshWorkflowStepLabels(): void {
+    this.workflowSteps = [
+      {
+        id: 'merge-split',
+        label: this.translate.instant('HOME.STEPPER.MERGE_SPLIT'),
+      },
+      { id: 'sort', label: this.translate.instant('HOME.STEPPER.SORT') },
+      { id: 'toc', label: this.translate.instant('HOME.STEPPER.TOC') },
+      { id: 'cover', label: this.translate.instant('HOME.STEPPER.COVER') },
+      { id: 'adjust', label: this.translate.instant('HOME.STEPPER.ADJUST') },
+      { id: 'join', label: this.translate.instant('HOME.STEPPER.JOIN') },
+    ];
+    this.splitWorkflowStep = {
+      id: 'split-method',
+      label: this.translate.instant('HOME.SPLIT_HOW_TO'),
+    };
+    this.splitConfirmStep = {
+      id: 'split-confirm',
+      label: this.translate.instant('HOME.STEPPER.CONFIRM'),
+    };
+    this.splitCoverStep = {
+      id: 'split-cover',
+      label: this.translate.instant('HOME.STEPPER.COVER'),
+    };
+    this.splitAdjustStep = {
+      id: 'split-adjust',
+      label: this.translate.instant('HOME.STEPPER.ADJUST'),
+    };
+    this.splitExecutionStep = {
+      id: 'split-execution',
+      label: this.translate.instant('HOME.SPLIT'),
+    };
   }
 
   private canOpenMergeCoverEditor(): boolean {
@@ -388,15 +1048,20 @@ export class HomePage implements OnInit, OnDestroy {
     );
   }
 
-  private async openMergeCoverEditor(): Promise<void> {
+  private async openMergeCoverEditor(
+    entryMode: EditorEntryMode,
+    returnStep: 3 | 5,
+  ): Promise<void> {
     const sourceMode: EditorSourceMode =
       this.coverSourceMode() === 'scratch' ? 'scratch' : 'image';
-    await this.openEditor(sourceMode);
+    await this.openEditor(sourceMode, entryMode, returnStep);
   }
 
   ngOnDestroy(): void {
     this.routerSub?.unsubscribe();
     this.adsRemovedSub?.unsubscribe();
+    this.languageSub?.unsubscribe();
+    void this.operationProgressListener?.remove();
     this.resetCoverSelection(true);
     void this.cleanupAllSelections();
   }
@@ -414,9 +1079,10 @@ export class HomePage implements OnInit, OnDestroy {
       await this.runMerge();
     } catch (error) {
       console.error('[epub-merger-and-splitter] merge failed', error);
-      this.pickerErrorKey.set('HOME.INPUT_ERROR_CORRUPT');
+      this.markOperationFailure('merge', error);
     } finally {
       this.isMergeActionBusy.set(false);
+      this.operationProgress.set(null);
     }
   }
 
@@ -427,6 +1093,19 @@ export class HomePage implements OnInit, OnDestroy {
     });
     await this.billing.hydrateCachedState();
     this.adsRemoved = this.billing.isAdsRemoved();
+  }
+
+  private async attachOperationProgressListener(): Promise<void> {
+    if (!this.epubRewrite.isSupported() || this.operationProgressListener) {
+      return;
+    }
+    this.operationProgressListener = await this.epubRewrite.addProgressListener(
+      (progress) => {
+        if (this.isMergeActionBusy()) {
+          this.operationProgress.set(progress);
+        }
+      },
+    );
   }
 
   private async runMerge(): Promise<void> {
@@ -461,17 +1140,130 @@ export class HomePage implements OnInit, OnDestroy {
         tocMode: this.tocMode,
         coverPath: coverTemp.nativePath,
       });
-      await this.epubLibrary.saveExportedEpub(
+      const saved = await this.epubLibrary.saveExportedEpub(
         merged.outputPath,
         merged.outputName,
       );
-      await this.router.navigateByUrl('/tabs/my-epubs');
+      this.completeOperation('merge', [saved]);
     } finally {
       await Promise.allSettled([
         this.epubWorkingCopy.cleanupWorkingCopy(output.path),
         this.epubWorkingCopy.cleanupWorkingCopy(coverTemp.path),
       ]);
     }
+  }
+
+  private async runSplit(): Promise<void> {
+    const selection = this.splitSelection();
+    const analysis = this.splitAnalysis();
+    const previews = this.splitOutputPreviews();
+    if (
+      !selection?.workingNativePath ||
+      !analysis ||
+      previews.length < 2 ||
+      !this.epubRewrite.isSupported()
+    ) {
+      throw new Error('SPLIT_UNAVAILABLE');
+    }
+
+    const operationId = this.createOperationId();
+    const outputBaseName = selection.outputBaseName || 'split';
+    const temporaryOutputs = await Promise.all(
+      previews.map((preview) =>
+        this.epubWorkingCopy.buildOutputFile(
+          outputBaseName + '_part_' + preview.number,
+        ),
+      ),
+    );
+    const cover = this.mergeCoverRenderedFile;
+    const coverTemp = cover
+      ? await this.epubWorkingCopy.writeTempCoverFile(cover, outputBaseName)
+      : null;
+
+    try {
+      const outputs = previews.map((preview, index) => ({
+        id: operationId + ':' + preview.number,
+        outputPath: temporaryOutputs[index].nativePath,
+        outputName:
+          selection.outputBaseName +
+          ' - ' +
+          preview.number +
+          '.epub',
+        title: preview.title,
+        spineItemIds: analysis.units
+          .slice(preview.startUnit, preview.endUnit + 1)
+          .map((unit) => unit.id),
+        tocEntries: this.buildSplitTocEntries(analysis, preview),
+      }));
+      const created = await this.epubRewrite.splitEpubs({
+        inputPath: selection.workingNativePath,
+        outputs,
+        coverPath: coverTemp?.nativePath,
+      });
+      const saved = await this.epubLibrary.saveExportedEpubs(
+        created.map((output, index) => ({
+          sourceUri: output.outputPath,
+          proposedFileName: output.outputName,
+          title: output.title,
+          operation: 'split',
+          operationId,
+          partIndex: index,
+        })),
+      );
+      this.completeOperation('split', saved);
+    } finally {
+      await Promise.allSettled([
+        ...temporaryOutputs.map((output) =>
+          this.epubWorkingCopy.cleanupWorkingCopy(output.path),
+        ),
+        this.epubWorkingCopy.cleanupWorkingCopy(coverTemp?.path),
+      ]);
+    }
+  }
+
+  private completeOperation(
+    operation: HomeMode,
+    outputs: readonly EpubLibraryRecord[],
+  ): void {
+    const previewUrl = outputs[0]?.thumbnailUri || this.mergeCoverPreviewUrl();
+    this.operationFeedback.set({
+      operation,
+      status: 'success',
+      outputs,
+      previewUrl,
+    });
+    this.pickerErrorKey.set(null);
+    this.workflowStep = 5;
+    outputs.forEach((output) => {
+      this.coversEvents.emit({ type: 'saved', filename: output.filename });
+    });
+  }
+
+  private markOperationFailure(operation: HomeMode, error: unknown): void {
+    if (error instanceof EpubRewriteError && error.code === 'CANCELLED') {
+      return;
+    }
+    this.operationFeedback.set({
+      operation,
+      status: 'error',
+      outputs: [],
+      errorKey:
+        operation === 'merge'
+          ? 'HOME.OPERATION.MERGE_FAILURE_BODY'
+          : 'HOME.OPERATION.SPLIT_FAILURE_BODY',
+    });
+    this.workflowStep = 5;
+  }
+
+  onOperationFeedbackDone(): void {
+    void this.router.navigateByUrl('/tabs/my-epubs');
+  }
+
+  private createOperationId(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    return 'operation-' + Date.now() + '-' + Math.random().toString(36).slice(2);
   }
 
   async openMergePicker(): Promise<void> {
@@ -607,7 +1399,7 @@ export class HomePage implements OnInit, OnDestroy {
 
       this.selectedCoverCandidateId.set(candidate.id);
       this.coverSourceMode.set('candidate');
-      await this.openEditor('image');
+      await this.openEditor('image', 'new-cover', 3);
     } finally {
       this.isPicking.set(false);
     }
@@ -665,7 +1457,7 @@ export class HomePage implements OnInit, OnDestroy {
     this.bestCandidateDismissed.set(true);
     this.coverSourceMode.set('scratch');
     this.selectedCoverCandidateId.set(undefined);
-    await this.openEditor('scratch');
+    await this.openEditor('scratch', 'new-cover', 3);
   }
 
   async onCoverImageFileSelected(event: Event): Promise<void> {
@@ -686,7 +1478,7 @@ export class HomePage implements OnInit, OnDestroy {
       this.coverSourceMode.set('image');
       this.bestCandidateDismissed.set(true);
       this.selectedCoverCandidateId.set(undefined);
-      await this.openEditor('image');
+      await this.openEditor('image', 'new-cover', 3);
     } finally {
       this.isPicking.set(false);
     }
@@ -699,7 +1491,11 @@ export class HomePage implements OnInit, OnDestroy {
     const previousCandidateId = this.selectedCoverCandidateId();
 
     try {
-      const sources = this.mergeSelections()
+      const selections =
+        this.selectedMode() === 'split'
+          ? (this.splitSelection() ? [this.splitSelection()!] : [])
+          : this.mergeSelections();
+      const sources = selections
         .map((selection, index) => ({
           epubId: selection.id,
           epubName: selection.selectedName,
@@ -760,6 +1556,8 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   private resetCoverSelection(revokeUrls: boolean): void {
+    this.editorEntryMode = 'new-cover';
+    this.editorReturnStep = 3;
     this.coverCandidates.set([]);
     this.selectedCoverCandidateId.set(undefined);
     this.coverSourceMode.set(null);
@@ -834,7 +1632,11 @@ export class HomePage implements OnInit, OnDestroy {
     };
   }
 
-  private async openEditor(sourceMode: EditorSourceMode): Promise<void> {
+  private async openEditor(
+    sourceMode: EditorSourceMode,
+    entryMode: EditorEntryMode,
+    returnStep: 3 | 5,
+  ): Promise<void> {
     const selected = this.getSelectedFormatOption();
     const sourceFile =
       sourceMode === 'image' ? this.mergeCoverWorkingFile : undefined;
@@ -848,6 +1650,13 @@ export class HomePage implements OnInit, OnDestroy {
       target: {
         width: selected.target.width,
         height: selected.target.height,
+        output: selected.target.output,
+        unit:
+          selected.target.unit ??
+          (selected.target.output === 'source' ? 'ratio' : 'px'),
+        outputMode:
+          selected.target.outputMode ??
+          (selected.target.output === 'source' ? 'aspect-only' : 'fixed-size'),
       },
       initialState:
         sourceMode === 'scratch'
@@ -864,6 +1673,7 @@ export class HomePage implements OnInit, OnDestroy {
       },
       output: {
         includeRenderedBlob: true,
+        exportQuality: toEditorRenderQuality(this.getEffectiveExportQualityMode()),
       },
       onResultApplied: async (result) => {
         await this.applyEditorResult(result);
@@ -887,6 +1697,8 @@ export class HomePage implements OnInit, OnDestroy {
     });
 
     this.lastEditorSourceMode = sourceMode;
+    this.editorEntryMode = entryMode;
+    this.editorReturnStep = returnStep;
     this.lastEditorSessionId = sid;
     this.workflowStep = 4;
     const entryPath = sourceMode === 'scratch' ? '/editor/tools' : '/editor';
@@ -909,11 +1721,16 @@ export class HomePage implements OnInit, OnDestroy {
     }
 
     if (session && !result) {
-      this.resetMergeCoverSelection(true);
-      this.coverSourceMode.set(null);
-      this.selectedCoverCandidateId.set(undefined);
-      this.bestCandidateDismissed.set(false);
-      this.workflowStep = 3;
+      const entryMode = this.editorEntryMode;
+      this.editorEntryMode = 'new-cover';
+      if (entryMode === 'new-cover') {
+        this.resetMergeCoverSelection(true);
+        this.coverSourceMode.set(null);
+        this.selectedCoverCandidateId.set(undefined);
+        this.bestCandidateDismissed.set(false);
+      }
+      this.workflowStep = this.editorReturnStep;
+      this.editorReturnStep = 3;
     }
   }
 
@@ -925,6 +1742,8 @@ export class HomePage implements OnInit, OnDestroy {
     this.coverSourceMode.set(this.lastEditorSourceMode);
     this.bestCandidateDismissed.set(true);
     this.selectedCoverCandidateId.set(undefined);
+    this.editorEntryMode = 'new-cover';
+    this.editorReturnStep = 3;
     this.workflowStep = 5;
 
     const renderedBlob = result.renderedBlob;
@@ -1086,27 +1905,51 @@ export class HomePage implements OnInit, OnDestroy {
 
   private buildFormatOptions(): CropFormatOption[] {
     const epubTarget: CropTarget = {
-      width: EPUB_COVER_TARGET.width,
-      height: EPUB_COVER_TARGET.height,
-      output: 'target',
+      formatId: 'epub',
+      width: 3,
+      height: 4,
+      output: 'source',
+      unit: 'ratio',
+      outputMode: 'aspect-only',
     };
 
     return [
-      { id: 'epub', label: 'Kindle', target: epubTarget },
+      { id: 'epub', label: 'EPUB', target: epubTarget },
       {
         id: 'kobo',
         label: 'Kobo',
-        target: { width: 1072, height: 1448, output: 'target' },
+        target: {
+          formatId: 'kobo',
+          width: 1072,
+          height: 1448,
+          output: 'target',
+          unit: 'px',
+          outputMode: 'fixed-size',
+        },
       },
       {
         id: 'three_four',
         label: '3:4',
-        target: { width: 3, height: 4, output: 'source' },
+        target: {
+          formatId: 'three_four',
+          width: 3,
+          height: 4,
+          output: 'source',
+          unit: 'ratio',
+          outputMode: 'aspect-only',
+        },
       },
       {
         id: 'nine_sixteen',
         label: '9:16',
-        target: { width: 9, height: 16, output: 'source' },
+        target: {
+          formatId: 'nine_sixteen',
+          width: 9,
+          height: 16,
+          output: 'source',
+          unit: 'ratio',
+          outputMode: 'aspect-only',
+        },
       },
     ];
   }
@@ -1204,10 +2047,181 @@ export class HomePage implements OnInit, OnDestroy {
     selection: SelectedEpubInput,
   ): Promise<void> {
     const previous = this.splitSelection();
+    this.resetCoverSelection(true);
     this.splitSelection.set(selection);
     this.selectedMode.set('split');
     this.workflowStep = 0;
+    this.splitAnalysisPending.set(true);
+    this.splitAnalysis.set(null);
+    this.resetSplitConfiguration();
+    try {
+      const analysis = await this.splitAnalysisService.analyze({
+        fileName: selection.selectedName,
+        fileSizeBytes: selection.sourceSize,
+        workingFile: selection.workingFile,
+        workingPath: selection.workingPath,
+      });
+      this.splitAnalysis.set(analysis);
+      await this.refreshMergeCoverCandidates();
+    } catch (error) {
+      console.error('[epub-merger-and-splitter] split analysis failed', error);
+      this.pickerErrorKey.set('HOME.SPLIT_ANALYSIS_ERROR');
+    } finally {
+      this.splitAnalysisPending.set(false);
+    }
     await this.cleanupSelection(previous);
+  }
+
+  private buildSplitOutputPreviews(): readonly SplitOutputPreview[] {
+    const units = this.splitAnalysis()?.units ?? [];
+    if (units.length === 0) return [];
+
+    let outputs: readonly SplitOutputPreview[];
+    if (this.splitMethod === 'by-chapters-or-sections') {
+      if (this.splitChapterMode === 'chapter') {
+        outputs = units.map((_, index) => this.buildOutput(units, index, index));
+      } else if (this.splitChapterMode === 'section' && this.splitHasSections) {
+        const sections = this.splitAnalysis()!.sections;
+        const leadingOutput =
+          sections[0].firstUnitOrder > 0
+            ? [
+                this.buildOutput(
+                  units,
+                  0,
+                  sections[0].firstUnitOrder - 1,
+                ),
+              ]
+            : [];
+        outputs = [
+          ...leadingOutput,
+          ...sections.map((section) =>
+            this.buildOutput(
+              units,
+              section.firstUnitOrder,
+              section.lastUnitOrder,
+              section.title,
+            ),
+          ),
+        ];
+      } else {
+        outputs = units.map((_, index) => this.buildOutput(units, index, index));
+      }
+    } else if (this.splitMethod === 'manual-split-points') {
+      outputs = this.buildOutputsFromBreakpoints(units, this.splitManualPointIds());
+    } else if (this.splitMethod === 'equal-parts') {
+      outputs = this.buildEqualOutputs(units, this.splitEqualPartsValue);
+    } else {
+      outputs = this.buildMaximumSizeOutputs(units, this.splitMaximumSize);
+    }
+    return outputs.map((output, index) => ({ ...output, number: index + 1 }));
+  }
+
+  private buildOutputsFromBreakpoints(
+    units: readonly SplitAnalysis['units'][number][],
+    breakpointIds: readonly string[],
+  ): readonly SplitOutputPreview[] {
+    const points = breakpointIds
+      .map((id) => units.findIndex((unit) => unit.id === id))
+      .filter((index) => index > 0)
+      .sort((left, right) => left - right);
+    const starts = [0, ...points];
+    return starts.map((start, index) =>
+      this.buildOutput(units, start, (starts[index + 1] ?? units.length) - 1),
+    );
+  }
+
+  private buildEqualOutputs(
+    units: readonly SplitAnalysis['units'][number][],
+    count: number,
+  ): readonly SplitOutputPreview[] {
+    const safeCount = Math.max(2, Math.min(count, units.length));
+    return Array.from({ length: safeCount }, (_, index) => {
+      const start = Math.floor((index * units.length) / safeCount);
+      const end = Math.floor(((index + 1) * units.length) / safeCount) - 1;
+      return this.buildOutput(units, start, end);
+    });
+  }
+
+  private buildMaximumSizeOutputs(
+    units: readonly SplitAnalysis['units'][number][],
+    maximumMegabytes: number,
+  ): readonly SplitOutputPreview[] {
+    const maximumBytes = Math.max(1, maximumMegabytes) * 1024 * 1024;
+    const outputs: SplitOutputPreview[] = [];
+    let start = 0;
+    let size = 0;
+    for (let index = 0; index < units.length; index += 1) {
+      const unitSize = units[index].sizeBytes;
+      if (index > start && size + unitSize > maximumBytes) {
+        outputs.push(this.buildOutput(units, start, index - 1));
+        start = index;
+        size = 0;
+      }
+      size += unitSize;
+    }
+    outputs.push(this.buildOutput(units, start, units.length - 1));
+    return outputs;
+  }
+
+  private buildOutput(
+    units: readonly SplitAnalysis['units'][number][],
+    startUnit: number,
+    endUnit: number,
+    title?: string,
+  ): SplitOutputPreview {
+    const first = units[startUnit];
+    const last = units[endUnit];
+    return {
+      number: 0,
+      title: title ?? this.rangeTitle(first.title, last.title, startUnit, endUnit),
+      startUnit,
+      endUnit,
+      sizeBytes: units
+        .slice(startUnit, endUnit + 1)
+        .reduce((total, unit) => total + unit.sizeBytes, 0),
+    };
+  }
+
+  private buildSplitTocEntries(
+    analysis: SplitAnalysis,
+    preview: SplitOutputPreview,
+  ): readonly EpubSplitTocEntry[] {
+    const selectedSpineItemIds = new Set(
+      analysis.units
+        .slice(preview.startUnit, preview.endUnit + 1)
+        .map((unit) => unit.id),
+    );
+
+    const filterEntries = (
+      entries: readonly SplitAnalysisTocEntry[],
+    ): EpubSplitTocEntry[] =>
+      entries.flatMap((entry) => {
+        const children = filterEntries(entry.children);
+        const spineItemId = entry.spineItemId;
+        const belongsToOutput =
+          spineItemId !== null && selectedSpineItemIds.has(spineItemId);
+        if (belongsToOutput) {
+          return [
+            {
+              spineItemId,
+              title: entry.title,
+              href: entry.href,
+              children,
+            },
+          ];
+        }
+        return children;
+      });
+
+    return filterEntries(analysis.tocEntries);
+  }
+
+  private rangeTitle(first: string, last: string, start: number, end: number): string {
+    return start === end ? first : `${first} – ${last}`;
+  }
+
+  formatMegabytes(bytes: number): string {
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
   private async prepareNativeSelection(): Promise<SelectedEpubInput> {

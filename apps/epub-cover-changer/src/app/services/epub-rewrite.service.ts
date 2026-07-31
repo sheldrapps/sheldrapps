@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Directory, Filesystem } from '@capacitor/filesystem';
 import {
   Capacitor,
   registerPlugin,
@@ -85,6 +86,29 @@ type OpenExternalFileResult = {
   stage?: string;
 };
 
+type ScanFileResult = {
+  success: boolean;
+  error?: string;
+  message?: string;
+};
+
+type PublicDocumentResult = {
+  success: boolean;
+  uri?: string;
+  filename?: string;
+  size?: number;
+  copiedBytes?: number;
+  error?: string;
+  message?: string;
+  stage?: string;
+};
+
+export type PublicDocumentEntry = {
+  name: string;
+  uri: string;
+  size: number;
+};
+
 type PickAndPrepareEpubOptions = {
   maxBytes?: number;
   requireCover?: boolean;
@@ -115,6 +139,42 @@ type RewriteProgressEvent = {
 };
 
 type EpubRewritePlugin = Plugin & {
+  ensurePublicExportFolder(options: { folderName: string }): Promise<{
+    success: boolean;
+    uri?: string;
+    error?: string;
+    message?: string;
+    stage?: string;
+  }>;
+  publishPublicDocument(options: {
+    folderName: string;
+    sourcePath: string;
+    outputName: string;
+    mimeType: string;
+  }): Promise<PublicDocumentResult>;
+  listPublicDocuments(options: {
+    folderName: string;
+    extension?: string;
+  }): Promise<{
+    success: boolean;
+    files?: PublicDocumentEntry[];
+    error?: string;
+    message?: string;
+    stage?: string;
+  }>;
+  getPublicDocument(options: {
+    folderName: string;
+    filename: string;
+  }): Promise<PublicDocumentResult>;
+  deletePublicDocument(options: {
+    folderName: string;
+    filename: string;
+  }): Promise<PublicDocumentResult>;
+  renamePublicDocument(options: {
+    folderName: string;
+    filename: string;
+    outputName: string;
+  }): Promise<PublicDocumentResult>;
   pickAndPrepareEpub(
     options: PickAndPrepareEpubOptions,
   ): Promise<PickAndPrepareEpubResult>;
@@ -129,6 +189,7 @@ type EpubRewritePlugin = Plugin & {
   openExternalFile(
     options: OpenExternalFileOptions,
   ): Promise<OpenExternalFileResult>;
+  scanFile(options: { path: string; mimeType?: string }): Promise<ScanFileResult>;
   cancelRewrite(): Promise<{ cancelled: boolean }>;
 };
 
@@ -157,6 +218,101 @@ export class EpubRewriteService {
       Capacitor.getPlatform() === 'android' &&
       Capacitor.isPluginAvailable('EpubRewritePlugin')
     );
+  }
+
+  async ensurePublicExportFolder(folderName: string): Promise<string> {
+    const result = await EpubRewrite.ensurePublicExportFolder({ folderName });
+    if (!result.success || !result.uri) {
+      throw new EpubRewriteError(result.error ?? 'EXPORT_FOLDER_REQUIRED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+    return result.uri;
+  }
+
+  async publishPublicDocument(options: {
+    folderName: string;
+    sourcePath: string;
+    outputName: string;
+    mimeType: string;
+  }): Promise<{ uri: string; filename: string; size: number; copiedBytes: number }> {
+    const result = await EpubRewrite.publishPublicDocument(options);
+    if (
+      !result.success ||
+      !result.uri ||
+      !result.filename ||
+      typeof result.size !== 'number' ||
+      typeof result.copiedBytes !== 'number'
+    ) {
+      throw new EpubRewriteError(result.error ?? 'PUBLIC_EXPORT_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+    return {
+      uri: result.uri,
+      filename: result.filename,
+      size: result.size,
+      copiedBytes: result.copiedBytes,
+    };
+  }
+
+  async listPublicDocuments(folderName: string): Promise<readonly PublicDocumentEntry[]> {
+    const result = await EpubRewrite.listPublicDocuments({
+      folderName,
+      extension: '.epub',
+    });
+    if (!result.success) {
+      throw new EpubRewriteError(result.error ?? 'PUBLIC_LIST_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+    return result.files ?? [];
+  }
+
+  async getPublicDocument(
+    folderName: string,
+    filename: string,
+  ): Promise<{ uri: string; filename: string; size: number }> {
+    const result = await EpubRewrite.getPublicDocument({ folderName, filename });
+    if (!result.success || !result.uri || !result.filename || typeof result.size !== 'number') {
+      throw new EpubRewriteError(result.error ?? 'PUBLIC_DOCUMENT_NOT_FOUND', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+    return { uri: result.uri, filename: result.filename, size: result.size };
+  }
+
+  async deletePublicDocument(folderName: string, filename: string): Promise<void> {
+    const result = await EpubRewrite.deletePublicDocument({ folderName, filename });
+    if (!result.success) {
+      throw new EpubRewriteError(result.error ?? 'PUBLIC_DELETE_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+  }
+
+  async renamePublicDocument(
+    folderName: string,
+    filename: string,
+    outputName: string,
+  ): Promise<{ uri: string; filename: string; size: number }> {
+    const result = await EpubRewrite.renamePublicDocument({
+      folderName,
+      filename,
+      outputName,
+    });
+    if (!result.success || !result.uri || !result.filename || typeof result.size !== 'number') {
+      throw new EpubRewriteError(result.error ?? 'PUBLIC_RENAME_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+    return { uri: result.uri, filename: result.filename, size: result.size };
   }
 
   addProgressListener(
@@ -302,6 +458,16 @@ export class EpubRewriteService {
     }
   }
 
+  async scanFile(options: { path: string; mimeType?: string }): Promise<void> {
+    const result = await EpubRewrite.scanFile(options);
+    if (!result.success) {
+      throw new EpubRewriteError(result.error ?? 'SCAN_FAILED', {
+        message: result.message,
+        stage: 'media_scan',
+      });
+    }
+  }
+
   async extractCoverFile(
     inputPath: string,
     epubName: string,
@@ -362,6 +528,28 @@ export class EpubRewriteService {
     epubName: string,
     fallbackMimeType?: string,
   ): Promise<File> {
+    const blob = await this.readExtractedCoverBlob(extractedCoverPath);
+    const mimeType = blob.type || fallbackMimeType || this.mimeFromPath(coverEntryPath);
+    const filename = this.buildCoverFilename(epubName, coverEntryPath);
+    return new File([blob], filename, { type: mimeType });
+  }
+
+  private async readExtractedCoverBlob(extractedCoverPath: string): Promise<Blob> {
+    const cachePath = this.toCacheRelativePath(extractedCoverPath);
+    if (cachePath) {
+      try {
+        const result = await Filesystem.readFile({
+          directory: Directory.Cache,
+          path: cachePath,
+        });
+        if (typeof result.data === 'string') {
+          return this.base64ToBlob(result.data);
+        }
+        return result.data;
+      } catch {
+      }
+    }
+
     const uri = Capacitor.convertFileSrc(this.toFileUri(extractedCoverPath));
     let response: Response;
     try {
@@ -379,18 +567,36 @@ export class EpubRewriteService {
       });
     }
 
-    let blob: Blob;
     try {
-      blob = await response.blob();
+      return await response.blob();
     } catch (error) {
       throw new EpubRewriteError('EXTRACT_READ_FAILED', {
         message: error instanceof Error ? error.message : String(error),
         stage: 'extract_read',
       });
     }
-    const mimeType = blob.type || fallbackMimeType || this.mimeFromPath(coverEntryPath);
-    const filename = this.buildCoverFilename(epubName, coverEntryPath);
-    return new File([blob], filename, { type: mimeType });
+  }
+
+  private toCacheRelativePath(extractedCoverPath: string): string | null {
+    const normalized = decodeURIComponent(extractedCoverPath || '')
+      .replace(/\\/g, '/')
+      .trim();
+    const marker = '/cache/';
+    const markerIndex = normalized.toLowerCase().indexOf(marker);
+    if (markerIndex < 0) return null;
+
+    const relative = normalized.slice(markerIndex + marker.length).replace(/^\/+/, '');
+    return relative || null;
+  }
+
+  private base64ToBlob(data: string): Blob {
+    const normalized = data.includes(',') ? data.slice(data.indexOf(',') + 1) : data;
+    const binary = atob(normalized);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+    return new Blob([bytes]);
   }
 
   private buildCoverFilename(epubName: string, coverEntryPath: string): string {

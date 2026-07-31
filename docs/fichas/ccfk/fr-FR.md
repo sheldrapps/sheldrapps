@@ -1,4 +1,4 @@
-﻿# Créer des Covers pour Kindle - fr-FR Play Store Listing
+# Créer des Covers pour Kindle - fr-FR Play Store Listing
 
 ## Purpose
 Localized Play Store listing for fr-FR, regenerated from the updated strategy matrix and conversion audit.

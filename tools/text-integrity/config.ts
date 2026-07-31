@@ -4,13 +4,13 @@ import type { TextIntegrityConfig } from "./types.ts";
 
 export const DEFAULT_TEXT_INTEGRITY_CONFIG: TextIntegrityConfig = {
   include: [
-    "apps/**/src/assets/i18n/*.json",
-    "packages/**/src/assets/i18n/*.json",
-    "packages/**/src/**/i18n/*.ts",
-    "packages/**/src/**/*.translations.ts",
-    "apps/**/android/app/src/main/res/values*/strings.xml",
-    "docs/fichas/**/*.md",
-    "docs/utilities/**/version-notes.xml",
+    "apps/**/*.{json,md,xml,ts,js,html,yml,yaml}",
+    "packages/**/*.{json,md,xml,ts,js,html,yml,yaml}",
+    "plugins/**/*.{json,md,xml,ts,js,html,yml,yaml}",
+    "scripts/**/*.{js,cjs,mjs}",
+    "tools/**/*.{json,md,xml,ts,js,html,yml,yaml,mjs,cjs}",
+    "docs/**/*.{md,xml,json,yml,yaml}",
+    "*.{md,json,yml,yaml}",
   ],
   excludeContains: [
     `${sep}node_modules${sep}`,
@@ -22,6 +22,8 @@ export const DEFAULT_TEXT_INTEGRITY_CONFIG: TextIntegrityConfig = {
     `${sep}.gradle${sep}`,
     `${sep}www${sep}`,
     `${sep}android${sep}app${sep}src${sep}main${sep}assets${sep}public${sep}`,
+    `${sep}tools${sep}text-integrity${sep}`,
+    `${sep}package-lock.json`,
   ],
   textExtensions: [".json", ".md", ".xml", ".ts", ".js", ".html", ".yml", ".yaml"],
   bomMode: "warn",

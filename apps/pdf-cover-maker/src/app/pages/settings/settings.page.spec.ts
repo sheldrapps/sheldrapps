@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import * as I18nKit from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
-import { ThemeService, type Theme } from '@sheldrapps/ui-theme';
+import { THEME_OPTIONS, ThemeService, type Theme } from '@sheldrapps/ui-theme';
 import { SettingsPage } from './settings.page';
 import { ConsentService } from 'src/app/services/consent.service';
 import { LanguageService } from 'src/app/services/language.service';
@@ -78,18 +78,10 @@ describe('SettingsPage', () => {
   });
 
   it('exposes the full shared theme catalog', () => {
-    expect(component.supportedThemes.map((option) => option.code)).toEqual([
-      'system',
-      'light',
-      'dark',
-      'warm-reading',
-      'pop-rose',
-      'nocturne-violet',
-      'obsidian-red',
-      'terminal-green',
-      'mint-fresh',
-      'silver-tech',
-      'gold-luxe',
+    expect(THEME_OPTIONS.map((option) => option.code)).toEqual([
+      'system', 'light', 'dark', 'warm-reading', 'pop-rose',
+      'nocturne-violet', 'obsidian-red', 'terminal-green', 'mint-fresh',
+      'silver-tech', 'gold-luxe',
     ]);
   });
 

@@ -1,4 +1,4 @@
-﻿# 创建Kindle封面 - zh-CN Play Store Listing
+# 创建Kindle封面 - zh-CN Play Store Listing
 
 ## Purpose
 Localized Play Store listing for zh-CN, regenerated from the updated strategy matrix and conversion audit.

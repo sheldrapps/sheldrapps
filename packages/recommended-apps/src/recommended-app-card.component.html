@@ -1,0 +1,28 @@
+<ion-item class="recommended-app-item" detail="false" lines="none">
+  <div class="recommended-item-content">
+    <h1 class="recommended-app-title">{{ appName }}</h1>
+    <div class="recommended-item-grid">
+      <div class="recommended-app-icon">
+        <img [src]="icon" [alt]="appName" />
+      </div>
+      <p class="recommended-app-description">{{ description }}</p>
+      @if (actionLabel) {
+        <div class="recommended-store-row">
+          <ion-button
+            class="recommended-store-action-button"
+            fill="clear"
+            size="small"
+            (click)="action.emit()"
+            [attr.aria-label]="actionAriaLabel || actionLabel"
+          >
+            <span class="recommended-store-action-label">{{ actionLabel }}:</span>
+            <ion-icon
+              class="recommended-store-icon"
+              [src]="actionIconSrc"
+            ></ion-icon>
+          </ion-button>
+        </div>
+      }
+    </div>
+  </div>
+</ion-item>

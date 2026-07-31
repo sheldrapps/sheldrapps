@@ -20,7 +20,8 @@
     "REMOVE_ADS_RESTORE": "استعادة الشراء",
     "REMOVE_ADS_RESTORED": "تمت استعادة الشراء بنجاح.",
     "REMOVE_ADS_TITLE": "إزالة الإعلانات",
-    "REMOVE_ADS_CTA_TITLE": "إزالة الإعلانات",
+   "REMOVE_ADS_CTA_TITLE": "إزالة الإعلانات",
+    "UPGRADE_TO_PRO": "الترقية إلى Pro",
     "REMOVE_ADS_CTA_SUBTITLE": "دفعة واحدة • للأبد",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "دفعة واحدة • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "السعر: {{price}} • بدون اشتراك",
@@ -316,7 +317,6 @@
     "REQUISITES_HINT": "الإعدادات المطلوبة لكي تعمل الأغلفة بشكل صحيح على Kindle",
     "REQUISITES_SECTION": "المتطلبات",
     "TITLE": "الإعدادات",
-    "VIEW_TOUR": "عرض الجولة",
     "HOW_TO_USE": "كيفية الاستخدام؟"
   },
   "TABS": {

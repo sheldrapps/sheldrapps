@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import {
   EpubPublicStore,
+  PUBLIC_FILESYSTEM,
   FileKitService,
   EpubRewriteService,
   WEB_EPUB_COVER_SERVICE_TOKEN,
@@ -25,36 +26,176 @@ export type LoadedGeneratedEpub = {
   size: number;
 };
 
+export type EpubLibraryOperation = 'merge' | 'split';
+
+export type EpubLibraryRecord = {
+  id: string;
+  filename: string;
+  title: string;
+  uri: string | null;
+  thumbnailUri?: string;
+  sizeBytes: number;
+  createdAt: string;
+  operation: EpubLibraryOperation;
+  operationId: string;
+  partIndex: number;
+};
+
+export type SaveExportedEpubRequest = {
+  sourceUri: string;
+  proposedFileName: string;
+  title: string;
+  operation: EpubLibraryOperation;
+  operationId: string;
+  partIndex: number;
+};
+
+type EpubLibraryIndex = {
+  schemaVersion: 1;
+  records: EpubLibraryRecord[];
+};
+
 @Injectable({ providedIn: 'root' })
 export class EpubLibraryService {
   private readonly fileKit = inject(FileKitService);
   private readonly epubRewrite = inject(EpubRewriteService);
+  private readonly nativeFilesystem = inject(PUBLIC_FILESYSTEM);
   private readonly webEpubCover = inject(WEB_EPUB_COVER_SERVICE_TOKEN, {
     optional: true,
   }) as WebEpubCoverService | null;
 
   private readonly epubStore = new EpubPublicStore(this.fileKit, {
     epubFolder: 'EpubMergerAndSplitter',
-    logPrefix: 'EF:library',
+    useDocumentsDirectoryOnNative: true,
+    filesystem: this.nativeFilesystem,
+    logPrefix: 'EMAS:library',
   });
   private readonly previewThumbFolder = 'EpubMergerAndSplitterThumbs';
+  private readonly libraryIndexPath = 'EpubMergerAndSplitter/library-index.json';
 
   private readonly previewCache = new Map<string, LibraryPreviewAsset>();
+  private readonly publicEpubFolder = 'EpubMergerAndSplitter';
 
   async listEpubs(): Promise<string[]> {
-    return this.epubStore.listEpubs();
+    return (await this.listRecords()).map((record) => record.filename);
+  }
+
+  async listRecords(): Promise<readonly EpubLibraryRecord[]> {
+    const [filenames, index] = await Promise.all([
+      this.listPublicEpubFilenames(),
+      this.readLibraryIndex(),
+    ]);
+    const currentNames = new Set(filenames);
+    const recordsByFilename = new Map(
+      index.records.map((record) => [record.filename, record]),
+    );
+    const records = filenames.map((filename) => {
+      const existing = recordsByFilename.get(filename);
+      return existing ?? this.createLegacyRecord(filename);
+    });
+    const nextRecords = index.records.filter((record) =>
+      currentNames.has(record.filename),
+    );
+    if (nextRecords.length !== index.records.length) {
+      await this.writeLibraryIndex({ schemaVersion: 1, records: nextRecords });
+    }
+
+    return records.sort((left, right) => this.compareRecords(left, right));
   }
 
   async saveExportedEpub(
     sourceUri: string,
     outputName: string,
-  ): Promise<void> {
-    const filename = this.ensureEpubFilename(outputName);
-    const bytes = await this.readExportBytes(sourceUri);
-    await this.epubStore.writeEpub(filename, bytes);
-    await this.deletePersistedPreviewAsset(filename);
-    this.previewCache.delete(filename);
-    await this.refreshPreviewAsset(filename).catch(() => void 0);
+  ): Promise<EpubLibraryRecord> {
+    const [saved] = await this.saveExportedEpubs([
+      {
+        sourceUri,
+        proposedFileName: outputName,
+        title: this.titleFromFilename(outputName),
+        operation: 'merge',
+        operationId: crypto.randomUUID(),
+        partIndex: 0,
+      },
+    ]);
+    return saved;
+  }
+
+  async saveExportedEpubs(
+    requests: readonly SaveExportedEpubRequest[],
+  ): Promise<readonly EpubLibraryRecord[]> {
+    if (requests.length === 0) {
+      return [];
+    }
+
+    const [existingFilenames, index] = await Promise.all([
+      this.listPublicEpubFilenames(),
+      this.readLibraryIndex(),
+    ]);
+    const usedNames = new Set(existingFilenames);
+    const createdAt = new Date().toISOString();
+    const pending = requests.map((request) => {
+      const filename = this.resolveUniqueFilename(request.proposedFileName, usedNames);
+      usedNames.add(filename);
+      return {
+        request,
+        record: {
+          id: crypto.randomUUID(),
+          filename,
+          title: request.title.trim() || this.titleFromFilename(filename),
+          uri: null,
+          sizeBytes: 0,
+          createdAt,
+          operation: request.operation,
+          operationId: request.operationId,
+          partIndex: request.partIndex,
+        } as EpubLibraryRecord,
+      };
+    });
+    const savedFilenames: string[] = [];
+
+    try {
+      for (const entry of pending) {
+        const published = this.epubRewrite.isSupported()
+          ? await this.epubRewrite.publishPublicDocument({
+              folderName: this.publicEpubFolder,
+              sourcePath: entry.request.sourceUri,
+              outputName: entry.record.filename,
+              mimeType: 'application/epub+zip',
+            })
+          : null;
+        if (!published) {
+          const bytes = await this.readExportBytes(entry.request.sourceUri);
+          await this.epubStore.writeEpub(entry.record.filename, bytes);
+          await this.scanPublicEpub(entry.record.filename);
+          entry.record.sizeBytes = bytes.byteLength;
+          entry.record.uri = await this.epubStore.getUriOrThrow(entry.record.filename);
+        } else {
+          entry.record.sizeBytes = published.size;
+          entry.record.uri = published.uri;
+        }
+        savedFilenames.push(entry.record.filename);
+        await this.deletePersistedPreviewAsset(entry.record.filename);
+        this.previewCache.delete(entry.record.filename);
+        const preview = this.epubRewrite.isSupported()
+          ? null
+          : await this.refreshPreviewAsset(entry.record.filename).catch(() => null);
+        entry.record.thumbnailUri = preview?.src || undefined;
+      }
+
+      const retainedRecords = index.records.filter(
+        (record) => !savedFilenames.includes(record.filename),
+      );
+      await this.writeLibraryIndex({
+        schemaVersion: 1,
+        records: [...retainedRecords, ...pending.map((entry) => entry.record)],
+      });
+      return pending.map((entry) => entry.record);
+    } catch (error) {
+      await Promise.allSettled(
+        savedFilenames.map((filename) => this.deleteByFilename(filename)),
+      );
+      throw error;
+    }
   }
 
   async loadGeneratedEpubByFilename(
@@ -89,9 +230,20 @@ export class EpubLibraryService {
 
   async deleteByFilename(filename: string): Promise<void> {
     const resolved = this.ensureEpubFilename(filename);
-    await this.epubStore.deleteEpub(resolved);
+    if (this.epubRewrite.isSupported()) {
+      await this.epubRewrite.deletePublicDocument(this.publicEpubFolder, resolved);
+    } else {
+      await this.epubStore.deleteEpub(resolved);
+    }
     await this.deletePersistedPreviewAsset(resolved);
     this.previewCache.delete(resolved);
+    const index = await this.readLibraryIndex();
+    const nextRecords = index.records.filter(
+      (record) => record.filename !== resolved,
+    );
+    if (nextRecords.length !== index.records.length) {
+      await this.writeLibraryIndex({ schemaVersion: 1, records: nextRecords });
+    }
   }
 
   async shareByFilename(filename: string): Promise<void> {
@@ -306,6 +458,30 @@ export class EpubLibraryService {
     return new Uint8Array(buffer);
   }
 
+  private async listPublicEpubFilenames(): Promise<string[]> {
+    if (this.epubRewrite.isSupported()) {
+      return (await this.epubRewrite.listPublicDocuments(this.publicEpubFolder, '.epub'))
+        .map((file) => file.name)
+        .sort((left, right) => left.localeCompare(right));
+    }
+    return this.epubStore.listEpubs();
+  }
+
+  private async scanPublicEpub(filename: string): Promise<void> {
+    if (!this.epubRewrite.isSupported()) {
+      return;
+    }
+
+    try {
+      await this.epubRewrite.scanFile({
+        path: await this.epubStore.nativePathFor(filename),
+        mimeType: 'application/epub+zip',
+      });
+    } catch {
+      return;
+    }
+  }
+
   private toFetchUrl(sourceUri: string): string {
     if (!sourceUri) {
       return sourceUri;
@@ -331,8 +507,96 @@ export class EpubLibraryService {
   }
 
   private ensureEpubFilename(name: string): string {
-    const trimmed = (name || 'book.epub').trim();
-    return /\.epub$/i.test(trimmed) ? trimmed : `${trimmed}.epub`;
+    return this.fileKit.makeSafeFilename(name || 'book', 'epub');
+  }
+
+  private resolveUniqueFilename(
+    requestedName: string,
+    usedNames: ReadonlySet<string>,
+  ): string {
+    const filename = this.ensureEpubFilename(requestedName);
+    if (!usedNames.has(filename)) {
+      return filename;
+    }
+    const baseName = filename.replace(/\.epub$/i, '');
+    let index = 1;
+    let candidate = filename;
+    while (usedNames.has(candidate)) {
+      candidate = baseName + ' (' + index + ').epub';
+      index += 1;
+    }
+    return candidate;
+  }
+
+  private async readLibraryIndex(): Promise<EpubLibraryIndex> {
+    try {
+      const bytes = await this.fileKit.readBytes({
+        dir: 'Data',
+        path: this.libraryIndexPath,
+      });
+      const parsed = JSON.parse(new TextDecoder().decode(bytes)) as Partial<EpubLibraryIndex>;
+      if (parsed?.schemaVersion !== 1 || !Array.isArray(parsed.records)) {
+        return { schemaVersion: 1, records: [] };
+      }
+      return {
+        schemaVersion: 1,
+        records: parsed.records.filter((record) => this.isValidRecord(record)),
+      };
+    } catch {
+      return { schemaVersion: 1, records: [] };
+    }
+  }
+
+  private async writeLibraryIndex(index: EpubLibraryIndex): Promise<void> {
+    await this.fileKit.writeBytes({
+      dir: 'Data',
+      path: this.libraryIndexPath,
+      bytes: new TextEncoder().encode(JSON.stringify(index)),
+      mimeType: 'application/json',
+    });
+  }
+
+  private isValidRecord(value: unknown): value is EpubLibraryRecord {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+    const record = value as Partial<EpubLibraryRecord>;
+    return (
+      typeof record.id === 'string' &&
+      typeof record.filename === 'string' &&
+      typeof record.title === 'string' &&
+      typeof record.sizeBytes === 'number' &&
+      typeof record.createdAt === 'string' &&
+      (record.operation === 'merge' || record.operation === 'split') &&
+      typeof record.operationId === 'string' &&
+      typeof record.partIndex === 'number'
+    );
+  }
+
+  private createLegacyRecord(filename: string): EpubLibraryRecord {
+    return {
+      id: 'legacy:' + filename,
+      filename,
+      title: this.titleFromFilename(filename),
+      uri: null,
+      sizeBytes: 0,
+      createdAt: new Date(0).toISOString(),
+      operation: 'merge',
+      operationId: 'legacy:' + filename,
+      partIndex: 0,
+    };
+  }
+
+  private titleFromFilename(filename: string): string {
+    return filename.replace(/\.epub$/i, '').trim() || 'EPUB';
+  }
+
+  private compareRecords(left: EpubLibraryRecord, right: EpubLibraryRecord): number {
+    if (left.operationId === right.operationId) {
+      return left.partIndex - right.partIndex;
+    }
+    const dateOrder = right.createdAt.localeCompare(left.createdAt);
+    return dateOrder || left.filename.localeCompare(right.filename);
   }
 
 }

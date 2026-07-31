@@ -1,39 +1,39 @@
 {
   "BEST_CANDIDATE": {
     "ACTION": {
-      "DETECT_COVER": "Detect cover automatically"
+      "DETECT_COVER": "Cover automatisch erkennen"
     },
     "LOADING": {
-      "TITLE": "Searching for candidate images..."
+      "TITLE": "Suche nach Kandidatenbildern..."
     },
     "EMPTY": {
-      "TITLE": "No cover candidates found",
-      "DESCRIPTION": "We could not find useful images inside this EPUB."
+      "TITLE": "Keine Cover-Kandidaten gefunden",
+      "DESCRIPTION": "Wir konnten keine nützlichen Bilder in diesem EPUB finden."
     },
     "PICKER": {
-      "TITLE": "Choose a possible cover",
-      "DESCRIPTION": "We found images that may work as the book cover.",
-      "LONG_PRESS_HINT": "Long press an image to preview it.",
-      "UNKNOWN_IMAGE": "Unknown image",
-      "CANDIDATE_ALT": "Candidate image {{index}}",
-      "NO_COVER_DETECTED": "No cover detected, tap to select one of the suggestions.",
-      "LONG_PRESS_TO_PREVIEW": "Long press to preview."
+      "TITLE": "Wähle ein mögliches Cover",
+      "DESCRIPTION": "Wir haben Bilder gefunden, die als Buchcover funktionieren könnten.",
+      "LONG_PRESS_HINT": "Tippen zum Auswählen",
+      "NO_COVER_DETECTED": "Kein Cover erkannt, tippe, um einen der Vorschläge auszuwählen.",
+      "LONG_PRESS_TO_PREVIEW": "Gedrückt halten für Vorschau",
+      "UNKNOWN_IMAGE": "Unbekanntes Bild",
+      "CANDIDATE_ALT": "Kandidatenbild {{index}}"
     },
     "REASON": {
-      "FIRST_LARGE_IMAGE": "First large image",
-      "COVER_RATIO": "Cover-like ratio",
-      "NEAR_BOOK_START": "Near the beginning",
-      "FILENAME_COVER": "Cover-like filename",
-      "LARGE_RESOLUTION": "Large image",
-      "METADATA_COVER": "Marked as cover metadata",
-      "SMALL_ICON_RISK": "May be icon-like",
-      "DECORATIVE_RISK": "May be decorative"
+      "FIRST_LARGE_IMAGE": "Erstes großes Bild",
+      "COVER_RATIO": "Cover-ähnliches Seitenverhältnis",
+      "NEAR_BOOK_START": "Nähe zum Anfang",
+      "FILENAME_COVER": "Dateiname ähnlich zu Cover",
+      "LARGE_RESOLUTION": "Großes Bild",
+      "METADATA_COVER": "Als Cover in Metadaten markiert",
+      "SMALL_ICON_RISK": "Kann ein Symbol sein",
+      "DECORATIVE_RISK": "Kann dekorativ sein"
     },
     "PREVIEW": {
-      "TITLE": "Image preview",
-      "OPEN": "Preview",
-      "CLOSE": "Close",
-      "SELECT": "Use this image"
+      "TITLE": "Bildvorschau",
+      "OPEN": "Vorschau",
+      "CLOSE": "Schließen",
+      "SELECT": "Dieses Bild verwenden"
     }
   }
 }

@@ -29,6 +29,22 @@ export { EditorUiStateService } from './editor-ui-state.service';
 export { EditorHistoryService } from "./editor-history.service";
 export type { EditorHistorySnapshot } from "./editor-history.service";
 export { EditorSessionService } from './editor-session.service';
+export { EditorCropTargetStateService } from './editor-crop-target-state.service';
+export type {
+  CropOrientation,
+  CropOutputMode,
+  CropTargetCategory,
+  CropTargetCategoryConfig,
+  CropTargetGroup,
+  CropTargetPreset,
+  PublishingCropPreset,
+  CropTargetSelection,
+  CropTargetUnit,
+  EditorCropTarget,
+  CropTargetsConfig,
+  EffectiveCropTarget,
+  PersistedCropTargetSelection,
+} from './editor-crop-target.types';
 export { ProjectSaveState } from './project-save-state';
 export { provideEditorI18n } from "./i18n/provide-editor-i18n";
 export { EDITOR_EREADER_OPTIMIZATION_PREF_KEY } from "./editor-ereader-optimization";

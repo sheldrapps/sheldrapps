@@ -1,4 +1,4 @@
-﻿# Cover Creator for Kindle - en-US Golden Play Store Listing
+# Cover Creator for Kindle - en-US Golden Play Store Listing
 
 ## Purpose
 

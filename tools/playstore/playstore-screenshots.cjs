@@ -71,7 +71,7 @@ async function captureLocale(browser, app, locale, fixtures) {
       }
 
       for (const action of scenario.actions ?? []) {
-        await runScenarioAction(action, page, app, fixtures);
+        await runScenarioAction(action, page, app, fixtures, locale);
         await dismissAnyTour(page);
       }
 
@@ -98,7 +98,7 @@ async function captureLocale(browser, app, locale, fixtures) {
   }
 }
 
-async function runScenarioAction(action, page, app, fixtures) {
+async function runScenarioAction(action, page, app, fixtures, locale) {
   if (typeof action === 'string') {
     switch (action) {
       case 'prepareAdjustContrastFlow':
@@ -127,6 +127,18 @@ async function runScenarioAction(action, page, app, fixtures) {
         return;
       case 'seedFixRepairResultState':
         await seedFixRepairResultState(page, app);
+        return;
+      case 'seedEmasMergeSortState':
+        await seedEmasMergeSortState(page, app, locale);
+        return;
+      case 'seedEmasSplitHowToState':
+        await seedEmasSplitHowToState(page, app, locale);
+        return;
+      case 'seedEmasSplitConfirmState':
+        await seedEmasSplitConfirmState(page, app, locale);
+        return;
+      case 'seedEmasSplitCoverState':
+        await seedEmasSplitCoverState(page, app, locale);
         return;
       case 'seedLibraryWithTwoCorrectedItems':
         await seedLibraryWithTwoCorrectedItems(page, app, fixtures);
@@ -188,12 +200,20 @@ async function applyAppLocale(page, locale) {
       const ngApi = window.ng;
       const appEl = document.querySelector('app-root');
       const component = ngApi?.getComponent?.(appEl);
-      if (!component?.lang?.set) {
+      if (component?.lang?.set) {
+        await component.lang.set(expected);
+      } else if (component?.translate?.use) {
+        const result = component.translate.use(expected);
+        if (result?.subscribe) {
+          await new Promise((resolve, reject) => {
+            result.subscribe({ next: resolve, error: reject });
+          });
+        }
+      } else {
         throw new Error('LanguageService is not available from AppComponent.');
       }
 
       document.documentElement.lang = expected;
-      await component.lang.set(expected);
       document.documentElement.lang = expected;
     },
     locale,
@@ -207,7 +227,8 @@ async function applyAppLocale(page, locale) {
       return (
         document.documentElement.lang === expected ||
         component?.lang?.lang === expected ||
-        component?.translate?.currentLang === expected
+        component?.translate?.currentLang === expected ||
+        component?.translate?.currentLang?.toString?.() === expected
       );
     },
     locale,
@@ -809,6 +830,203 @@ async function setFixPageState(page, app, state) {
   );
 }
 
+async function seedEmasMergeSortState(page, app, locale) {
+  await setEmasHomeState(page, app, {
+    selectedMode: 'merge',
+    workflowStep: 1,
+    mergeSelections: [
+      buildEmasSelection('merge-1', 'EPUB 01.epub'),
+      buildEmasSelection('merge-2', 'EPUB 02.epub'),
+      buildEmasSelection('merge-3', 'EPUB 03.epub'),
+    ],
+  });
+}
+
+async function seedEmasSplitHowToState(page, app, locale) {
+  await setEmasHomeState(page, app, {
+    selectedMode: 'split',
+    workflowStep: 1,
+    splitSelection: buildEmasSelection('split-1', 'EPUB.epub', 12 * 1024 * 1024),
+    splitMethod: 'by-chapters-or-sections',
+  });
+}
+
+async function seedEmasSplitConfirmState(page, app, locale) {
+  await setEmasHomeState(page, app, {
+    selectedMode: 'split',
+    workflowStep: 2,
+    splitSelection: buildEmasSelection('split-1', 'EPUB.epub', 12 * 1024 * 1024),
+    splitMethod: 'by-chapters-or-sections',
+    splitChapterMode: 'chapter',
+    splitAnalysis: buildEmasSplitAnalysis(locale),
+  });
+}
+
+async function seedEmasSplitCoverState(page, app, locale) {
+  const placeholder = buildEmasCoverPlaceholderDataUrl();
+  await setEmasHomeState(page, app, {
+    selectedMode: 'split',
+    workflowStep: 3,
+    splitSelection: buildEmasSelection('split-1', 'EPUB.epub', 12 * 1024 * 1024),
+    splitMethod: 'by-chapters-or-sections',
+    splitChapterMode: 'chapter',
+    splitAnalysis: buildEmasSplitAnalysis(locale),
+    coverCandidates: [1, 2, 3].map((index) => ({
+      image: {
+        id: `placeholder-${index}`,
+        src: placeholder,
+        fileName: '',
+        width: 1236,
+        height: 1648,
+        mimeType: 'image/svg+xml',
+        sizeBytes: 1024,
+        index,
+      },
+      score: 0,
+      reasons: [],
+    })),
+  });
+}
+
+function buildEmasSelection(id, selectedName, sourceSize = 4 * 1024 * 1024) {
+  return {
+    id,
+    sessionId: null,
+    selectedName,
+    sourceSize,
+    sourceLastModified: Date.now(),
+    sourceMimeType: 'application/epub+zip',
+    workingPath: '',
+    workingName: selectedName,
+    workingFile: null,
+    workingNativePath: null,
+    outputBaseName: selectedName.replace(/\.epub$/i, ''),
+    sourceKind: 'web',
+  };
+}
+
+function buildEmasSplitAnalysis(locale = 'en-US') {
+  const fixtureLabels = {
+    'en-US': ['Chapter 1 — Beginning', 'Chapter 2 — The Journey', 'Chapter 3 — New Paths', 'Chapter 4 — Turning Point', 'Chapter 5 — The Return', 'Chapter 6 — Afterword', 'Part One', 'Part Two'],
+    'es-MX': ['Capítulo 1 — Inicio', 'Capítulo 2 — El viaje', 'Capítulo 3 — Nuevos caminos', 'Capítulo 4 — Punto de giro', 'Capítulo 5 — El regreso', 'Capítulo 6 — Epílogo', 'Parte uno', 'Parte dos'],
+    'de-DE': ['Kapitel 1 — Anfang', 'Kapitel 2 — Die Reise', 'Kapitel 3 — Neue Wege', 'Kapitel 4 — Wendepunkt', 'Kapitel 5 — Die Rückkehr', 'Kapitel 6 — Nachwort', 'Teil eins', 'Teil zwei'],
+    'fr-FR': ['Chapitre 1 — Début', 'Chapitre 2 — Le voyage', 'Chapitre 3 — Nouveaux chemins', 'Chapitre 4 — Tournant', 'Chapitre 5 — Le retour', 'Chapitre 6 — Épilogue', 'Première partie', 'Deuxième partie'],
+    'it-IT': ['Capitolo 1 — Inizio', 'Capitolo 2 — Il viaggio', 'Capitolo 3 — Nuovi percorsi', 'Capitolo 4 — Svolta', 'Capitolo 5 — Il ritorno', 'Capitolo 6 — Postfazione', 'Parte prima', 'Parte seconda'],
+    'pt-BR': ['Capítulo 1 — Início', 'Capítulo 2 — A jornada', 'Capítulo 3 — Novos caminhos', 'Capítulo 4 — Ponto de virada', 'Capítulo 5 — O retorno', 'Capítulo 6 — Epílogo', 'Parte um', 'Parte dois'],
+    'ru-RU': ['Глава 1 — Начало', 'Глава 2 — Путешествие', 'Глава 3 — Новые пути', 'Глава 4 — Поворот', 'Глава 5 — Возвращение', 'Глава 6 — Послесловие', 'Часть первая', 'Часть вторая'],
+    'ja-JP': ['第1章 — 始まり', '第2章 — 旅', '第3章 — 新しい道', '第4章 — 転機', '第5章 — 帰還', '第6章 — あとがき', '第1部', '第2部'],
+    'ko-KR': ['챕터 1 — 시작', '챕터 2 — 여정', '챕터 3 — 새로운 길', '챕터 4 — 전환점', '챕터 5 — 귀환', '챕터 6 — 후기', '파트 1', '파트 2'],
+    'zh-CN': ['第1章 — 开始', '第2章 — 旅程', '第3章 — 新道路', '第4章 — 转折点', '第5章 — 归来', '第6章 — 后记', '第一部分', '第二部分'],
+    'zh-TW': ['第1章 — 開始', '第2章 — 旅程', '第3章 — 新道路', '第4章 — 轉折點', '第5章 — 歸來', '第6章 — 後記', '第一部分', '第二部分'],
+    'ar-SA': ['الفصل 1 — البداية', 'الفصل 2 — الرحلة', 'الفصل 3 — طرق جديدة', 'الفصل 4 — نقطة التحول', 'الفصل 5 — العودة', 'الفصل 6 — الخاتمة', 'الجزء الأول', 'الجزء الثاني'],
+    'hi-IN': ['अध्याय 1 — शुरुआत', 'अध्याय 2 — यात्रा', 'अध्याय 3 — नए रास्ते', 'अध्याय 4 — मोड़', 'अध्याय 5 — वापसी', 'अध्याय 6 — उपसंहार', 'भाग एक', 'भाग दो'],
+  }[locale] ?? [];
+  const titles = [
+    ...fixtureLabels.slice(0, 6),
+  ];
+  const units = titles.map((title, order) => ({
+    id: `unit-${order + 1}`,
+    title,
+    href: `chapter-${order + 1}.xhtml`,
+    sourcePath: `chapter-${order + 1}.xhtml`,
+    order,
+    sizeBytes: 2 * 1024 * 1024,
+    sectionId: order < 3 ? 'section-1' : 'section-2',
+  }));
+
+  return {
+    fileName: 'EPUB.epub',
+    fileSizeBytes: 12 * 1024 * 1024,
+    units,
+    sections: [
+      {
+        id: 'section-1',
+        title: fixtureLabels[6],
+        firstUnitOrder: 0,
+        lastUnitOrder: 2,
+      },
+      {
+        id: 'section-2',
+        title: fixtureLabels[7],
+        firstUnitOrder: 3,
+        lastUnitOrder: 5,
+      },
+    ],
+    tocEntries: [],
+    hasUsableToc: true,
+  };
+}
+
+function buildEmasCoverPlaceholderDataUrl() {
+  const svg = [
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1236 1648">',
+    '<rect width="1236" height="1648" fill="#ffffff"/>',
+    '<rect x="8" y="8" width="1220" height="1632" fill="none" stroke="#d9dfe6" stroke-width="16"/>',
+    '</svg>',
+  ].join('');
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+async function setEmasHomeState(page, app, state) {
+  await page.evaluate(
+    ({ selector, value }) => {
+      const ngApi = window.ng;
+      const appEl = document.querySelector(selector);
+      const component = ngApi?.getComponent?.(appEl);
+      if (!component) {
+        throw new Error('EMAS HomePage component is not available.');
+      }
+
+      component.selectedMode?.set(value.selectedMode ?? null);
+      component.mergeSelections?.set(value.mergeSelections ?? []);
+      component.splitSelection?.set(value.splitSelection ?? null);
+      component.splitAnalysis?.set(value.splitAnalysis ?? null);
+      component.splitAnalysisPending?.set(false);
+      component.coverCandidates?.set(value.coverCandidates ?? []);
+      component.selectedCoverCandidateId?.set(undefined);
+      component.coverSourceMode?.set(null);
+      component.bestCandidateDismissed?.set(false);
+      component.pickerErrorKey?.set(null);
+      component.operationFeedback?.set(null);
+      component.operationProgress?.set(null);
+      component.isPicking?.set(false);
+      component.isDetectingCoverCandidates?.set(false);
+      component.isResettingFlow?.set(false);
+      component.splitConfigurationRevision?.update((revision) => revision + 1);
+      component.workflowStep = value.workflowStep;
+      component.splitMethod = value.splitMethod ?? 'by-chapters-or-sections';
+      component.splitChapterMode = value.splitChapterMode ?? 'chapter';
+      component.splitEqualPartsValue = 2;
+      component.splitEqualPartsSelectionValue = '2';
+      component.splitMaximumSize = 10;
+      component.splitMaximumSizeSelection = '10';
+
+      if (ngApi?.applyChanges) {
+        ngApi.applyChanges(appEl);
+      }
+    },
+    {
+      selector: app.selectors.change,
+      value: state,
+    },
+  );
+
+  await page.waitForFunction(
+    ({ selector, selectedMode, workflowStep }) => {
+      const ngApi = window.ng;
+      const appEl = document.querySelector(selector);
+      const component = ngApi?.getComponent?.(appEl);
+      return component?.selectedMode?.() === selectedMode && component?.workflowStep === workflowStep;
+    },
+    {
+      selector: app.selectors.change,
+      selectedMode: state.selectedMode,
+      workflowStep: state.workflowStep,
+    },
+    { timeout: 12_000 },
+  );
+}
+
 async function hideEditorLoaderOverlay(page) {
   await page.addStyleTag({
     content:
@@ -821,10 +1039,37 @@ async function forcePlaystoreTheme(page, themeId) {
     const ngApi = window.ng;
     const app = document.querySelector('app-root');
     const component = ngApi?.getComponent?.(app);
-    if (!component?.theme?.previewTheme) {
-      throw new Error('ThemeService is not available from AppComponent.');
+    if (component?.theme?.previewTheme) {
+      await component.theme.previewTheme(resolvedThemeId);
+      return;
     }
-    await component.theme.previewTheme(resolvedThemeId);
+
+    const themeClasses = [
+      'theme-light',
+      'theme-dark',
+      'theme-warm-reading',
+      'theme-pop-rose',
+      'theme-nocturne-violet',
+      'theme-obsidian-red',
+      'theme-terminal-green',
+      'theme-mint-fresh',
+      'theme-silver-tech',
+      'theme-gold-luxe',
+      'app-theme-light',
+      'app-theme-dark',
+      'ion-palette-dark',
+    ];
+    const className = `theme-${resolvedThemeId}`;
+    const appearance = ['light', 'warm-reading', 'pop-rose', 'mint-fresh'].includes(resolvedThemeId)
+      ? 'light'
+      : 'dark';
+    const root = document.documentElement;
+    root.setAttribute('data-theme', resolvedThemeId);
+    root.classList.remove(...themeClasses);
+    root.classList.add(className);
+    root.style.colorScheme = appearance;
+    root.setAttribute('data-resolved-theme', resolvedThemeId);
+    root.setAttribute('data-resolved-appearance', appearance);
   }, themeId);
 
   await page.waitForFunction(

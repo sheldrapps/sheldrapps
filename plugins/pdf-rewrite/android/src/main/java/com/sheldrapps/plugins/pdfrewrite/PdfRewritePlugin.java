@@ -1,12 +1,15 @@
 package com.sheldrapps.plugins.pdfrewrite;
 
 import android.content.ActivityNotFoundException;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.OpenableColumns;
+import android.provider.MediaStore;
 
 import androidx.activity.result.ActivityResult;
 import androidx.core.content.FileProvider;
@@ -45,6 +48,9 @@ import com.tom_roush.pdfbox.io.MemoryUsageSetting;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.OutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -58,8 +64,63 @@ public class PdfRewritePlugin extends Plugin {
     private static final float PREVIEW_MIN_SCALE = 0.35f;
     private static final float PREVIEW_MAX_SCALE = 2.0f;
     private static final long PDFBOX_MAIN_MEMORY_BUDGET_BYTES = 24L * 1024L * 1024L;
+    private static final long STORAGE_MARGIN_BYTES = 16L * 1024L * 1024L;
     private final AtomicBoolean cancelRequested = new AtomicBoolean(false);
     private final AtomicBoolean pdfBoxInitialized = new AtomicBoolean(false);
+    private static final int PUBLIC_COPY_BUFFER_BYTES = 128 * 1024;
+
+    @PluginMethod
+    public void publishPublicDocument(PluginCall call) {
+        new Thread(() -> {
+            try {
+                String folder = requirePublicName(call.getString("folderName"));
+                String outputName = requirePublicName(call.getString("outputName"));
+                File source = resolvePathToFile(call.getString("sourcePath"));
+                if (!source.isFile()) throw new IOException("Source file is missing");
+                Uri collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.MediaColumns.DISPLAY_NAME, outputName);
+                values.put(MediaStore.MediaColumns.MIME_TYPE, call.getString("mimeType", "application/pdf"));
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOCUMENTS + "/" + folder + "/");
+                values.put(MediaStore.MediaColumns.IS_PENDING, 1);
+                Uri uri = getContext().getContentResolver().insert(collection, values);
+                if (uri == null) throw new IOException("Unable to create public document");
+                long copied = 0L;
+                try (InputStream input = new BufferedInputStream(new FileInputStream(source), PUBLIC_COPY_BUFFER_BYTES); OutputStream output = new BufferedOutputStream(getContext().getContentResolver().openOutputStream(uri, "w"), PUBLIC_COPY_BUFFER_BYTES)) {
+                    byte[] buffer = new byte[PUBLIC_COPY_BUFFER_BYTES];
+                    int read;
+                    while ((read = input.read(buffer)) != -1) { output.write(buffer, 0, read); copied += read; }
+                } catch (Exception error) { getContext().getContentResolver().delete(uri, null, null); throw error; }
+                ContentValues done = new ContentValues();
+                done.put(MediaStore.MediaColumns.IS_PENDING, 0);
+                if (getContext().getContentResolver().update(uri, done, null, null) != 1) throw new IOException("Unable to finalize public document");
+                JSObject result = new JSObject(); result.put("success", true); result.put("uri", uri.toString()); result.put("filename", outputName); result.put("size", copied); call.resolve(result);
+            } catch (Exception error) { call.resolve(errorResult("PUBLIC_EXPORT_FAILED", "public_export")); }
+        }).start();
+    }
+
+    @PluginMethod
+    public void getPublicDocument(PluginCall call) {
+        try {
+            String folder = requirePublicName(call.getString("folderName")); String filename = requirePublicName(call.getString("filename"));
+            Uri collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+            try (Cursor cursor = getContext().getContentResolver().query(collection, new String[] { MediaStore.MediaColumns._ID, MediaStore.MediaColumns.SIZE }, MediaStore.MediaColumns.RELATIVE_PATH + "=? AND " + MediaStore.MediaColumns.DISPLAY_NAME + "=?", new String[] { android.os.Environment.DIRECTORY_DOCUMENTS + "/" + folder + "/", filename }, null)) {
+                if (cursor == null || !cursor.moveToFirst()) { call.resolve(errorResult("PUBLIC_DOCUMENT_NOT_FOUND", "public_get")); return; }
+                JSObject result = new JSObject(); result.put("success", true); result.put("uri", ContentUris.withAppendedId(collection, cursor.getLong(0)).toString()); result.put("filename", filename); result.put("size", cursor.getLong(1)); call.resolve(result);
+            }
+        } catch (Exception error) { call.resolve(errorResult("PUBLIC_DOCUMENT_NOT_FOUND", "public_get")); }
+    }
+
+    @PluginMethod
+    public void listPublicDocuments(PluginCall call) {
+        try {
+            String folder = requirePublicName(call.getString("folderName")); Uri collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY); com.getcapacitor.JSArray files = new com.getcapacitor.JSArray();
+            try (Cursor cursor = getContext().getContentResolver().query(collection, new String[] { MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.SIZE }, MediaStore.MediaColumns.RELATIVE_PATH + "=?", new String[] { android.os.Environment.DIRECTORY_DOCUMENTS + "/" + folder + "/" }, MediaStore.MediaColumns.DISPLAY_NAME + " ASC")) {
+                while (cursor != null && cursor.moveToNext()) { String name = cursor.getString(1); if (name != null && name.toLowerCase(Locale.US).endsWith(".pdf")) { JSObject item = new JSObject(); item.put("name", name); item.put("uri", ContentUris.withAppendedId(collection, cursor.getLong(0)).toString()); item.put("size", cursor.getLong(2)); files.put(item); } }
+            }
+            JSObject result = new JSObject(); result.put("success", true); result.put("files", files); call.resolve(result);
+        } catch (Exception error) { call.resolve(errorResult("PUBLIC_LIST_FAILED", "public_list")); }
+    }
 
     @PluginMethod
     public void pickAndPreparePdf(PluginCall call) {
@@ -172,6 +233,11 @@ public class PdfRewritePlugin extends Plugin {
                     ? inputFile
                     : resolvePathToFile(outputPath);
                 ensureParentExists(outFile);
+                ensureSufficientSpace(
+                    outFile,
+                    requiredRewriteBytes(inputFile, coverFile),
+                    "rewrite"
+                );
 
                 if ("insert".equalsIgnoreCase(mode)) {
                     rewriteInsertedCoverSafely(inputFile, coverFile, outFile);
@@ -214,6 +280,11 @@ public class PdfRewritePlugin extends Plugin {
                 File outFile = resolvePathToFile(outputPath);
                 File coverFile = resolvePathToFile(coverPath);
                 ensureParentExists(outFile);
+                ensureSufficientSpace(
+                    outFile,
+                    safeAdd(coverFile.length(), STORAGE_MARGIN_BYTES),
+                    "create"
+                );
                 createPdfFromCoverInternal(coverFile, outFile);
 
                 JSObject out = new JSObject();
@@ -257,6 +328,7 @@ public class PdfRewritePlugin extends Plugin {
                 JSObject out = new JSObject();
                 out.put("success", true);
                 out.put("tempImagePath", previewFile.getAbsolutePath());
+                out.put("tempImageRelativePath", previewFile.getName());
                 out.put("mimeType", "image/png");
                 out.put("width", options.outWidth);
                 out.put("height", options.outHeight);
@@ -326,8 +398,13 @@ public class PdfRewritePlugin extends Plugin {
         }
 
         File workDir = new File(getContext().getFilesDir(), WORK_FOLDER);
+        long requiredBytes = safeAdd(
+            Math.max(1L, originalSize > 0 ? originalSize : 0L),
+            STORAGE_MARGIN_BYTES
+        );
+        ensureSufficientSpace(workDir, requiredBytes, "pick");
         if (!workDir.exists() && !workDir.mkdirs()) {
-            throw new PluginError("NO_SPACE", "pick");
+            throw new PluginError("NO_SPACE", "pick", requiredBytes, availableSpace(workDir));
         }
 
         String base = sanitizeBaseName(originalName);
@@ -357,7 +434,12 @@ public class PdfRewritePlugin extends Plugin {
             out.flush();
         } catch (IOException io) {
             if (looksNoSpace(io)) {
-                throw new PluginError("NO_SPACE", "pick");
+                throw new PluginError(
+                    "NO_SPACE",
+                    "pick",
+                    requiredBytes,
+                    availableSpace(outFile)
+                );
             }
             throw io;
         }
@@ -498,7 +580,12 @@ public class PdfRewritePlugin extends Plugin {
             throw new PluginError("PDF_PASSWORD_REQUIRED", "rewrite");
         } catch (IOException io) {
             if (looksNoSpace(io)) {
-                throw new PluginError("NO_SPACE", "rewrite");
+                throw new PluginError(
+                    "NO_SPACE",
+                    "rewrite",
+                    requiredRewriteBytes(inputPdf, coverImage),
+                    availableSpace(outputPdf)
+                );
             }
             throw io;
         } finally {
@@ -579,7 +666,12 @@ public class PdfRewritePlugin extends Plugin {
             throw new PluginError("PDF_PASSWORD_REQUIRED", "rewrite");
         } catch (IOException io) {
             if (looksNoSpace(io)) {
-                throw new PluginError("NO_SPACE", "rewrite");
+                throw new PluginError(
+                    "NO_SPACE",
+                    "rewrite",
+                    requiredRewriteBytes(inputPdf, coverImage),
+                    availableSpace(outputPdf)
+                );
             }
             throw io;
         } finally {
@@ -686,7 +778,12 @@ public class PdfRewritePlugin extends Plugin {
             notifyProgress(100);
         } catch (IOException io) {
             if (looksNoSpace(io)) {
-                throw new PluginError("NO_SPACE", "create");
+                throw new PluginError(
+                    "NO_SPACE",
+                    "create",
+                    safeAdd(coverImage.length(), STORAGE_MARGIN_BYTES),
+                    availableSpace(outputPdf)
+                );
             }
             throw io;
         }
@@ -743,8 +840,13 @@ public class PdfRewritePlugin extends Plugin {
                 if (bitmapToWrite == null) {
                     throw new PluginError("PDF_CORRUPT", "preview");
                 }
-                bitmapToWrite.compress(Bitmap.CompressFormat.PNG, 100, out);
+                if (!bitmapToWrite.compress(Bitmap.CompressFormat.PNG, 100, out)) {
+                    throw new PluginError("PDF_CORRUPT", "preview");
+                }
                 out.flush();
+            }
+            if (!previewFile.isFile() || previewFile.length() <= 0) {
+                throw new PluginError("PDF_CORRUPT", "preview");
             }
             return previewFile;
         } catch (InvalidPasswordException e) {
@@ -784,6 +886,12 @@ public class PdfRewritePlugin extends Plugin {
         return new File(value);
     }
 
+    private String requirePublicName(String value) throws IOException {
+        String normalized = value == null ? "" : value.trim();
+        if (normalized.isEmpty() || normalized.equals(".") || normalized.equals("..") || normalized.contains("/") || normalized.contains("\\")) throw new IOException("Invalid public name");
+        return normalized;
+    }
+
     private Uri resolvePathToOpenUri(String inputPath) {
         String value = inputPath.trim();
         if (value.startsWith("content://")) {
@@ -801,8 +909,38 @@ public class PdfRewritePlugin extends Plugin {
     private void ensureParentExists(File file) throws PluginError {
         File parent = file.getParentFile();
         if (parent != null && !parent.exists() && !parent.mkdirs()) {
-            throw new PluginError("NO_SPACE", "io");
+            throw new PluginError("NO_SPACE", "io", 1L, availableSpace(parent));
         }
+    }
+
+    private void ensureSufficientSpace(File target, long requiredBytes, String stage)
+        throws PluginError {
+        long available = availableSpace(target);
+        if (available < requiredBytes) {
+            throw new PluginError("NO_SPACE", stage, requiredBytes, available);
+        }
+    }
+
+    private long requiredRewriteBytes(File inputPdf, File coverImage) {
+        return safeAdd(
+            safeAdd(Math.max(1L, inputPdf.length()), coverImage.length()),
+            STORAGE_MARGIN_BYTES
+        );
+    }
+
+    private long availableSpace(File target) {
+        File probe = target;
+        while (probe != null && !probe.exists()) {
+            probe = probe.getParentFile();
+        }
+        return probe == null ? 0L : probe.getUsableSpace();
+    }
+
+    private long safeAdd(long left, long right) {
+        if (Long.MAX_VALUE - left < right) {
+            return Long.MAX_VALUE;
+        }
+        return left + right;
     }
 
     private String queryDisplayName(Uri uri) {
@@ -921,10 +1059,23 @@ public class PdfRewritePlugin extends Plugin {
     private static class PluginError extends Exception {
         final String code;
         final String stage;
+        final Long requiredBytes;
+        final Long availableBytes;
 
         PluginError(String code, String stage) {
+            this(code, stage, null, null);
+        }
+
+        PluginError(
+            String code,
+            String stage,
+            Long requiredBytes,
+            Long availableBytes
+        ) {
             this.code = code;
             this.stage = stage;
+            this.requiredBytes = requiredBytes;
+            this.availableBytes = availableBytes;
         }
 
         JSObject toResult() {
@@ -933,6 +1084,12 @@ public class PdfRewritePlugin extends Plugin {
             out.put("valid", false);
             out.put("error", code);
             out.put("stage", stage);
+            if (requiredBytes != null && requiredBytes >= 0) {
+                out.put("requiredBytes", requiredBytes);
+            }
+            if (availableBytes != null && availableBytes >= 0) {
+                out.put("availableBytes", availableBytes);
+            }
             return out;
         }
     }

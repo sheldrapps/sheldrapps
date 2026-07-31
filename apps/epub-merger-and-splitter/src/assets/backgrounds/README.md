@@ -1,4 +1,4 @@
-﻿# Backgrounds assets
+# Backgrounds assets
 
 Drop seamless background tiles here.
 

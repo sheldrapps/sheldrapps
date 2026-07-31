@@ -19,7 +19,7 @@ const REQUIRED_KEYS = [
 
 const EXPECTED = {
   "en-US": {
-    TITLE: "Recommended apps",
+    TITLE: "Our apps",
     OPEN_PLAY_STORE: "View on Play Store",
     EMPTY_STATE: "No recommended apps available",
     APP_NAME_CCFK: "E-Reader Cover Creator",
@@ -32,7 +32,7 @@ const EXPECTED = {
     APP_DESC_EF: "Diagnose and repair common EPUB file issues",
   },
   "es-MX": {
-    TITLE: "Apps recomendadas",
+    TITLE: "Nuestras apps",
     OPEN_PLAY_STORE: "Ver en Play Store",
     EMPTY_STATE: "No hay apps recomendadas disponibles",
     APP_NAME_CCFK: "Creador de portadas e-reader",
@@ -45,7 +45,7 @@ const EXPECTED = {
     APP_DESC_EF: "Detecta y repara problemas comunes en archivos EPUB",
   },
   "de-DE": {
-    TITLE: "Empfohlene Apps",
+    TITLE: "Unsere Apps",
     OPEN_PLAY_STORE: "Im Play Store ansehen",
     EMPTY_STATE: "Keine empfohlenen Apps verfügbar",
     APP_NAME_CCFK: "E-Reader Cover Creator",
@@ -58,7 +58,7 @@ const EXPECTED = {
     APP_DESC_EF: "Häufige EPUB-Probleme prüfen und reparierte Kopie speichern",
   },
   "fr-FR": {
-    TITLE: "Applications recommandées",
+    TITLE: "Nos applications",
     OPEN_PLAY_STORE: "Voir sur le Play Store",
     EMPTY_STATE: "Aucune application recommandée disponible",
     APP_NAME_CCFK: "Créateur couvertures e-reader",
@@ -74,7 +74,7 @@ const EXPECTED = {
     APP_DESC_EF: "Diagnostiquer et réparer les problèmes EPUB courants",
   },
   "it-IT": {
-    TITLE: "App consigliate",
+    TITLE: "Le nostre app",
     OPEN_PLAY_STORE: "Vedi nel Play Store",
     EMPTY_STATE: "Nessuna app consigliata disponibile",
     APP_NAME_CCFK: "Creatore copertine e-reader",
@@ -87,7 +87,7 @@ const EXPECTED = {
     APP_DESC_EF: "Diagnostica e ripara problemi comuni dei file EPUB",
   },
   "pt-BR": {
-    TITLE: "Apps recomendados",
+    TITLE: "Nossos apps",
     OPEN_PLAY_STORE: "Ver na Play Store",
     EMPTY_STATE: "Nenhum app recomendado disponível",
     APP_NAME_CCFK: "Criador de capas e-reader",
@@ -123,7 +123,7 @@ for (const locale of Object.keys(EXPECTED)) {
     }
   });
 
-  test(`i18n values match PRD for ${locale}`, () => {
+  test(`i18n values match the current product contract for ${locale}`, () => {
     const file = path.join(
       process.cwd(),
       "packages",

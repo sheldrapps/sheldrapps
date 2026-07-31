@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, Output } from "@angular/core";
+import { TranslateModule } from "@ngx-translate/core";
 
 import {
   buildImageValidationIssues,
@@ -15,7 +16,7 @@ const DEFAULT_SMALL_WARNING_KEY = "IMAGE_WARN_SMALL";
 @Component({
   selector: "sh-cover-image-state",
   standalone: true,
-  imports: [CurrentCoverPreviewComponent, ImageValidationIssuesComponent],
+  imports: [CurrentCoverPreviewComponent, ImageValidationIssuesComponent, TranslateModule],
   templateUrl: "./cover-image-state.component.html",
   styleUrls: ["./cover-image-state.component.scss"],
 })
@@ -25,6 +26,7 @@ export class CoverImageStateComponent {
   @Input() ariaLabelKey = "IMAGE_WORKFLOW.PREVIEW_TITLE";
   @Input() tourId: string | null = "cover-image-picker";
   @Input() previewUrl?: string;
+  @Input() fallbackLabelKey?: string | null;
   @Input() previewRevision = 0;
   @Input() errorKey?: string | null;
   @Input() errorParams: Record<string, unknown> = {};

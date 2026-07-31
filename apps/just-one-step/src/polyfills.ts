@@ -1,2 +1,2 @@
-﻿import './zone-flags';
+import './zone-flags';
 import 'zone.js';
