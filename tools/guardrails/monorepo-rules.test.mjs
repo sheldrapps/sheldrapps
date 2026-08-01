@@ -7,6 +7,7 @@ import {
   hasSemanticMojibake,
   hasSuspiciousQuestionMark,
 } from "../text-integrity/detect.ts";
+import { EDITOR_CROP_TARGET_TRANSLATIONS } from "../../packages/image-workflow/src/lib/editor/i18n/editor-crop-target.translations.ts";
 
 const repoRoot = process.cwd();
 const I18N_ALLOWLIST_VALUES = new Set([
@@ -765,6 +766,81 @@ test("guardrail: locale assets stay localized across the monorepo", () => {
       "\n"
     )}`
   );
+});
+
+test("guardrail: shared crop catalogs cover all supported locale labels", () => {
+  const english = EDITOR_CROP_TARGET_TRANSLATIONS["en-US"];
+  const translatableKeys = [
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.PDF_ORIGINAL.REFERENCE",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.PDF_ORIGINAL.FIRST_PAGE",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.PDF_ORIGINAL.PREDOMINANT_SIZE",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.PDF_ORIGINAL.SPECIFIC_PAGE",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.BOOK_GROUPS.COMPACT",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.BOOK_GROUPS.TRADE",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.BOOK_GROUPS.LARGE",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.BOOK_GROUPS.SQUARE",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.PRESENTATION_FORMATS.WIDESCREEN",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.PRESENTATION_FORMATS.STANDARD",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.PRESENTATION_FORMATS.ON_SCREEN_16_9",
+    "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.PRESENTATION_FORMATS.ON_SCREEN_16_10",
+  ];
+
+  for (const [locale, translations] of Object.entries(EDITOR_CROP_TARGET_TRANSLATIONS)) {
+    for (const key of translatableKeys) {
+      assert.equal(typeof translations[key], "string", `${locale} is missing crop label: ${key}`);
+      if (locale !== "en-US") {
+        assert.notEqual(
+          translations[key],
+          english[key],
+          `${locale} crop label still matches English: ${key}`,
+        );
+      }
+    }
+  }
+});
+
+test("guardrail: ECC crop catalog covers all supported locale labels", () => {
+  const localeRoot = "apps/epub-cover-changer/src/assets/i18n";
+  const english = flattenLeafStrings(
+    JSON.parse(readFileSync(`${localeRoot}/en-US.json`, "utf8")),
+  ).reduce((dict, entry) => ({ ...dict, [entry.path]: entry.value }), {});
+  const translatableKeys = [
+    "CROP_SELECTORS.SIZE",
+    "CROP_SELECTORS.FORMAT",
+    "PAPER_GROUPS.ISO_A_SERIES",
+    "PAPER_GROUPS.NORTH_AMERICAN_OFFICE",
+    "RATIO_GROUPS.COMMON",
+    "RATIO_CUSTOM.TITLE",
+    "PUBLISHING_CATALOG.GROUPS.STORE_COVER",
+    "PUBLISHING_CATALOG.GROUPS.EBOOK_COVER",
+  ];
+  const validSharedLabels = {
+    "de-DE": new Set(["CROP_SELECTORS.FORMAT"]),
+    "fr-FR": new Set(["CROP_SELECTORS.FORMAT"]),
+  };
+  const localeFiles = globSync(`${localeRoot}/*.json`, { cwd: repoRoot }).sort();
+
+  for (const file of localeFiles) {
+    const locale = basename(file, ".json");
+    if (locale === "en-US") {
+      continue;
+    }
+
+    const translations = flattenLeafStrings(
+      JSON.parse(readFileSync(file, "utf8")),
+    ).reduce((dict, entry) => ({ ...dict, [entry.path]: entry.value }), {});
+
+    for (const key of translatableKeys) {
+      assert.equal(typeof translations[key], "string", `${locale} is missing ECC crop label: ${key}`);
+      if (!validSharedLabels[locale]?.has(key)) {
+        assert.notEqual(
+          translations[key],
+          english[key],
+          `${locale} ECC crop label still matches English: ${key}`,
+        );
+      }
+    }
+  }
 });
 
 test("guardrail: app index.html declares utf-8 charset", () => {

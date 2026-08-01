@@ -654,6 +654,8 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         output: target.output,
         unit: target.unit,
         outputMode: target.outputMode,
+        sourcePageNumber: selection.sourcePageNumber,
+        sourcePageBox: selection.sourcePageBox,
       };
       this.aspectRatio = `${target.width} / ${target.height}`;
 

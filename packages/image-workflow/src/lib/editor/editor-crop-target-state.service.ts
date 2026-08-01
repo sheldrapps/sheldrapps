@@ -22,7 +22,10 @@ type SelectionMap = Partial<
 const CATEGORIES: CropTargetCategory[] = [
   "e-reader",
   "publishing",
+  "pdf-original",
   "paper",
+  "books",
+  "presentation",
   "ratio",
 ];
 
@@ -91,8 +94,10 @@ export class EditorCropTargetStateService {
       this.activeCategorySig() !== "publishing" &&
       preset.width !== preset.height;
     const swap = canRotate && orientation === "landscape";
-    const width = swap ? preset.height : preset.width;
-    const height = swap ? preset.width : preset.height;
+    const baseWidth = this.selectedPreset()?.width ?? preset.width;
+    const baseHeight = this.selectedPreset()?.height ?? preset.height;
+    const width = swap ? baseHeight : baseWidth;
+    const height = swap ? baseWidth : baseHeight;
 
     return {
       formatId: preset.presetId,
@@ -102,6 +107,8 @@ export class EditorCropTargetStateService {
       unit: preset.unit,
       outputMode: preset.outputMode,
       orientation,
+      sourcePageNumber: this.selectedPreset()?.sourcePageNumber,
+      sourcePageBox: this.selectedPreset()?.sourcePageBox,
     };
   });
 
@@ -185,6 +192,8 @@ export class EditorCropTargetStateService {
       unit: preset.unit,
       outputMode: preset.outputMode,
       orientation: this.resolveOrientation(config, preset),
+      sourcePageNumber: preset.sourcePageNumber,
+      sourcePageBox: preset.sourcePageBox,
     });
   }
 
@@ -204,9 +213,31 @@ export class EditorCropTargetStateService {
         unit: preset.unit,
         outputMode: preset.outputMode,
         orientation: this.resolveOrientation(config, preset),
+        sourcePageNumber: preset.sourcePageNumber,
+        sourcePageBox: preset.sourcePageBox,
       });
       return;
     }
+  }
+
+  setSourcePage(pageNumber: number): void {
+    if (this.activeCategorySig() !== "pdf-original") return;
+    const config = this.currentConfig();
+    const current = this.selectedPreset();
+    const pageTarget = config?.sourcePageTargets?.find(
+      (target) => target.sourcePageNumber === pageNumber,
+    );
+    if (!config || !current || !pageTarget) return;
+
+    this.setSelection("pdf-original", {
+      ...current,
+      width: pageTarget.width,
+      height: pageTarget.height,
+      unit: pageTarget.unit,
+      outputMode: pageTarget.outputMode,
+      sourcePageNumber: pageTarget.sourcePageNumber,
+      sourcePageBox: pageTarget.sourcePageBox,
+    });
   }
 
   updateCustomPresetDimensions(
@@ -283,6 +314,7 @@ export class EditorCropTargetStateService {
     if (requested && (requested === "e-reader" || configs[requested])) {
       return requested;
     }
+    if (configs["pdf-original"]) return "pdf-original";
     return configs.publishing ? "publishing" : configs.paper ? "paper" : "ratio";
   }
 
@@ -324,6 +356,9 @@ export class EditorCropTargetStateService {
         preset,
         persisted?.orientation,
       ),
+      sourcePageNumber:
+        persisted?.sourcePageNumber ?? preset.sourcePageNumber,
+      sourcePageBox: persisted?.sourcePageBox ?? preset.sourcePageBox,
     };
   }
 
@@ -343,7 +378,10 @@ export class EditorCropTargetStateService {
       ...(config.categories ?? {}),
       "e-reader": config.eReader,
       publishing: config.publishing,
+      "pdf-original": config.pdfOriginal,
       paper: config.paper,
+      books: config.books,
+      presentation: config.presentation,
       ratio: config.ratio,
     };
     const result: CategoryConfigMap = {};
@@ -390,6 +428,12 @@ export class EditorCropTargetStateService {
     if (!Number.isFinite(preset.width) || !Number.isFinite(preset.height)) return false;
     if (preset.width <= 0 || preset.height <= 0) return false;
     if (preset.outputMode === "fixed-size" && preset.unit !== "px") return false;
+    if (
+      preset.outputMode === "physical-size" &&
+      !["pt", "mm", "in"].includes(preset.unit)
+    ) {
+      return false;
+    }
     if (
       preset.outputMode === "aspect-only" &&
       !["mm", "in", "ratio"].includes(preset.unit)

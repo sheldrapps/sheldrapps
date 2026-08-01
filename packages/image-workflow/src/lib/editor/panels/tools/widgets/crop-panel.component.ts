@@ -47,7 +47,15 @@ import type {
 } from "../../../editor-crop-target.types";
 import type { CropFormatOption } from "../../../../types";
 
-type CropPanelView = "root" | "e-reader" | "publishing" | "paper" | "ratio";
+type CropPanelView =
+  | "root"
+  | "e-reader"
+  | "publishing"
+  | "pdf-original"
+  | "paper"
+  | "books"
+  | "presentation"
+  | "ratio";
 type CropSelectInteraction =
   | "brand"
   | "group"
@@ -215,6 +223,12 @@ export class CropPanelComponent {
         return "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CATEGORIES.E_READERS";
       case "publishing":
         return "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CATEGORIES.PUBLISHING";
+      case "pdf-original":
+        return "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CATEGORIES.PDF_ORIGINAL";
+      case "books":
+        return "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CATEGORIES.BOOKS";
+      case "presentation":
+        return "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CATEGORIES.PRESENTATION";
       case "paper":
         return "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CATEGORIES.PAPER";
       case "ratio":
@@ -256,6 +270,24 @@ export class CropPanelComponent {
     return this.targetPresets.find((preset) => preset.id === selection.presetId) ?? null;
   }
 
+  get sourcePageTargets(): CropTargetPreset[] {
+    return this.cropTargetState.catalogByCategory()["pdf-original"]?.sourcePageTargets ?? [];
+  }
+
+  get selectedSourcePage(): number | null {
+    return this.cropTargetState.selectedPreset()?.sourcePageNumber ?? null;
+  }
+
+  get isSpecificPdfPage(): boolean {
+    return this.targetCategory === "pdf-original" && this.selectedTargetPreset?.id === "pdf-specific-page";
+  }
+
+  get pdfDetectedSizeLabel(): string {
+    const selection = this.cropTargetState.selectedPreset();
+    if (!selection) return "";
+    return `${selection.width.toFixed(2)} × ${selection.height.toFixed(2)} pt`;
+  }
+
   get targetOrientation(): CropOrientation {
     return this.cropTargetState.orientation();
   }
@@ -295,7 +327,10 @@ export class CropPanelComponent {
     const badge = preset.badgeI18nKey
       ? ` · ${this.translate.instant(preset.badgeI18nKey)}`
       : "";
-    return `${label}${badge}`;
+    const description = preset.descriptionI18nKey
+      ? ` · ${this.translate.instant(preset.descriptionI18nKey)}`
+      : "";
+    return `${label}${description}${badge}`;
   }
 
   comparePresets(
@@ -310,7 +345,7 @@ export class CropPanelComponent {
   }
 
   openView(view: string): void {
-    if (["e-reader", "publishing", "paper", "ratio"].includes(view)) {
+    if (["e-reader", "publishing", "pdf-original", "paper", "books", "presentation", "ratio"].includes(view)) {
       const category = view as CropTargetCategory;
       this.cropTargetState.setActiveCategory(category);
       this.activeView.set(category);
@@ -460,6 +495,11 @@ export class CropPanelComponent {
   onTargetPresetChange(presetId: string): void {
     this.markSelectInteractionChanged("target-preset");
     this.cropTargetState.selectPreset(presetId);
+  }
+
+  onSourcePageChange(pageNumber: number): void {
+    this.markSelectInteractionChanged("target-preset");
+    this.cropTargetState.setSourcePage(Number(pageNumber));
   }
 
   onTargetOrientationChange(orientation: CropOrientation): void {
@@ -645,7 +685,16 @@ export class CropPanelComponent {
         "publishing",
         "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CATEGORIES.PUBLISHING",
       ],
+      [
+        "pdf-original",
+        "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CATEGORIES.PDF_ORIGINAL",
+      ],
       ["paper", "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CATEGORIES.PAPER"],
+      ["books", "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CATEGORIES.BOOKS"],
+      [
+        "presentation",
+        "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CATEGORIES.PRESENTATION",
+      ],
       ["ratio", "EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.CATEGORIES.RATIO"],
     ];
 
@@ -672,7 +721,7 @@ export class CropPanelComponent {
     );
     this.ratioFormatItems = toItems(
       this.formatOptions.filter((option) =>
-        ["three_four", "nine_sixteen"].includes(option.id),
+        ["three_four", "nine_sixteen", "sixteen_nine", "sixteen_ten"].includes(option.id),
       ),
     );
   }

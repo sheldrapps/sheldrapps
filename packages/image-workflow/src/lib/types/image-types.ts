@@ -102,10 +102,10 @@ export interface ImageSource {
 }
 
 /** Unit used by an editor crop target catalog. */
-export type CropTargetUnit = 'px' | 'mm' | 'in' | 'ratio';
+export type CropTargetUnit = 'px' | 'mm' | 'in' | 'pt' | 'ratio';
 
 /** Explicit output policy for a crop target. */
-export type CropOutputMode = 'fixed-size' | 'aspect-only';
+export type CropOutputMode = 'fixed-size' | 'aspect-only' | 'physical-size';
 
 /** Quality selected by the host for the editor result. */
 export type EditorRenderQuality =
@@ -117,6 +117,13 @@ export type EditorRenderWarningCode = 'FIXED_TARGET_UPSCALE';
 
 export interface EditorRenderInfo {
   outputMode: CropOutputMode;
+  pageWidthPt?: number;
+  pageHeightPt?: number;
+  physicalWidth?: number;
+  physicalHeight?: number;
+  physicalUnit?: 'pt' | 'mm' | 'in';
+  sourcePageNumber?: number;
+  sourcePageBox?: 'crop-box' | 'media-box';
   requestedWidth?: number;
   requestedHeight?: number;
   renderedWidth: number;
@@ -146,6 +153,8 @@ export interface CropTarget {
   /** Explicit policy. Missing values are adapted from the legacy `output`. */
   unit?: CropTargetUnit;
   outputMode?: CropOutputMode;
+  sourcePageNumber?: number;
+  sourcePageBox?: 'crop-box' | 'media-box';
 }
 
 /**

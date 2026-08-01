@@ -14,6 +14,7 @@ import android.provider.MediaStore;
 import androidx.activity.result.ActivityResult;
 import androidx.core.content.FileProvider;
 
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -218,6 +219,8 @@ public class PdfRewritePlugin extends Plugin {
         String outputPath = call.getString("outputPath");
         String newCoverPath = call.getString("newCoverPath");
         String mode = call.getString("mode", "replace");
+        Double pageWidthPt = call.getDouble("pageWidthPt");
+        Double pageHeightPt = call.getDouble("pageHeightPt");
 
         if (inputPath == null || newCoverPath == null) {
             call.resolve(errorResult("REWRITE_FAILED", "rewrite"));
@@ -242,7 +245,7 @@ public class PdfRewritePlugin extends Plugin {
                 if ("insert".equalsIgnoreCase(mode)) {
                     rewriteInsertedCoverSafely(inputFile, coverFile, outFile);
                 } else {
-                    rewriteWithReplacedCover(inputFile, coverFile, outFile);
+                    rewriteWithReplacedCover(inputFile, coverFile, outFile, pageWidthPt, pageHeightPt);
                 }
 
                 JSObject out = new JSObject();
@@ -268,6 +271,8 @@ public class PdfRewritePlugin extends Plugin {
         cancelRequested.set(false);
         String outputPath = call.getString("outputPath");
         String coverPath = call.getString("coverPath");
+        Double pageWidthPt = call.getDouble("pageWidthPt");
+        Double pageHeightPt = call.getDouble("pageHeightPt");
 
         if (outputPath == null || coverPath == null) {
             call.resolve(errorResult("REWRITE_FAILED", "create"));
@@ -285,7 +290,7 @@ public class PdfRewritePlugin extends Plugin {
                     safeAdd(coverFile.length(), STORAGE_MARGIN_BYTES),
                     "create"
                 );
-                createPdfFromCoverInternal(coverFile, outFile);
+                createPdfFromCoverInternal(coverFile, outFile, pageWidthPt, pageHeightPt);
 
                 JSObject out = new JSObject();
                 out.put("success", true);
@@ -485,6 +490,31 @@ public class PdfRewritePlugin extends Plugin {
             out.put("valid", true);
             out.put("pageCount", pageCount);
             out.put("fileSizeBytes", file.length());
+            JSArray pageDimensions = new JSArray();
+            for (int index = 0; index < pageCount; index++) {
+                PDPage page = doc.getPage(index);
+                boolean hasCropBox = page.getCOSObject().getDictionaryObject(COSName.CROP_BOX) != null;
+                PDRectangle pageBox = hasCropBox ? page.getCropBox() : page.getMediaBox();
+                if (pageBox == null) continue;
+
+                float widthPt = pageBox.getWidth();
+                float heightPt = pageBox.getHeight();
+                int rotation = Math.abs(page.getRotation()) % 180;
+                if (rotation == 90) {
+                    float rotatedWidth = widthPt;
+                    widthPt = heightPt;
+                    heightPt = rotatedWidth;
+                }
+
+                if (widthPt <= 0 || heightPt <= 0) continue;
+                JSObject pageDimension = new JSObject();
+                pageDimension.put("pageNumber", index + 1);
+                pageDimension.put("widthPt", widthPt);
+                pageDimension.put("heightPt", heightPt);
+                pageDimension.put("sourcePageBox", hasCropBox ? "crop-box" : "media-box");
+                pageDimensions.put(pageDimension);
+            }
+            out.put("pageDimensions", pageDimensions);
             if (info != null) {
                 if (info.getTitle() != null) out.put("title", info.getTitle());
                 if (info.getAuthor() != null) out.put("author", info.getAuthor());
@@ -629,7 +659,13 @@ public class PdfRewritePlugin extends Plugin {
         }
     }
 
-    private void rewriteWithReplacedCover(File inputPdf, File coverImage, File outputPdf) throws Exception {
+    private void rewriteWithReplacedCover(
+        File inputPdf,
+        File coverImage,
+        File outputPdf,
+        Double pageWidthPt,
+        Double pageHeightPt
+    ) throws Exception {
         notifyProgress(5);
         Bitmap bitmap = null;
         try (PDDocument source = openDocumentForRewrite(inputPdf)) {
@@ -649,7 +685,11 @@ public class PdfRewritePlugin extends Plugin {
                 throw new PluginError("REWRITE_FAILED", "rewrite");
             }
 
-            PDRectangle targetBox = source.getPage(0).getMediaBox();
+            PDRectangle targetBox = resolveTargetBox(
+                source.getPage(0).getMediaBox(),
+                pageWidthPt,
+                pageHeightPt
+            );
             PDPage coverPage = source.getPage(0);
             coverPage.setMediaBox(targetBox);
             PDImageXObject image = JPEGFactory.createFromImage(source, bitmap, 0.92f);
@@ -758,7 +798,12 @@ public class PdfRewritePlugin extends Plugin {
         }
     }
 
-    private void createPdfFromCoverInternal(File coverImage, File outputPdf) throws Exception {
+    private void createPdfFromCoverInternal(
+        File coverImage,
+        File outputPdf,
+        Double pageWidthPt,
+        Double pageHeightPt
+    ) throws Exception {
         try (PDDocument out = new PDDocument()) {
             ensureNotCancelled();
             Bitmap bitmap = BitmapFactory.decodeFile(coverImage.getAbsolutePath());
@@ -766,7 +811,11 @@ public class PdfRewritePlugin extends Plugin {
                 throw new PluginError("REWRITE_FAILED", "create");
             }
 
-            PDRectangle box = new PDRectangle(bitmap.getWidth(), bitmap.getHeight());
+            PDRectangle box = resolveTargetBox(
+                new PDRectangle(bitmap.getWidth(), bitmap.getHeight()),
+                pageWidthPt,
+                pageHeightPt
+            );
             PDPage page = new PDPage(box);
             out.addPage(page);
             PDImageXObject image = JPEGFactory.createFromImage(out, bitmap, 0.92f);
@@ -787,6 +836,20 @@ public class PdfRewritePlugin extends Plugin {
             }
             throw io;
         }
+    }
+
+    private PDRectangle resolveTargetBox(
+        PDRectangle fallback,
+        Double widthPt,
+        Double heightPt
+    ) {
+        if (widthPt == null || heightPt == null
+            || widthPt.isNaN() || widthPt.isInfinite()
+            || heightPt.isNaN() || heightPt.isInfinite()
+            || widthPt <= 0 || heightPt <= 0) {
+            return fallback;
+        }
+        return new PDRectangle(widthPt.floatValue(), heightPt.floatValue());
     }
 
     private File renderFirstPagePreview(File inputPdf, int maxDimension) throws Exception {

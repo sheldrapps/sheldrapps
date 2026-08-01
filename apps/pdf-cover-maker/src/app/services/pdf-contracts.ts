@@ -30,6 +30,12 @@ export interface PdfInspectionResult {
   fileSizeBytes?: number;
   title?: string;
   author?: string;
+  pageDimensions?: Array<{
+    pageNumber: number;
+    widthPt: number;
+    heightPt: number;
+    sourcePageBox: 'crop-box' | 'media-box';
+  }>;
   errorCode?: PdfRewriteNativeErrorCode;
 }
 
@@ -62,4 +68,3 @@ export function mapNativePdfErrorToValidation(
       return 'PDF_ERROR_CORRUPT';
   }
 }
-

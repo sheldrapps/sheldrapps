@@ -65,6 +65,7 @@ import {
 } from '@sheldrapps/image-workflow/editor';
 import type {
   CropTargetCategory,
+  CropTargetCategoryConfig,
   CropTargetPreset,
   CropTargetsConfig,
 } from '@sheldrapps/image-workflow/editor';
@@ -147,6 +148,7 @@ import {
 } from '@sheldrapps/recommended-apps';
 import { PcmSettings } from '../../settings/pcm-settings.schema';
 import { PdfCandidateImageService } from '../../services/pdf-candidate-image.service';
+import type { PdfPageDimension } from '../../services/pdf-candidate-image.service';
 import { TourService } from '../../shared/tour/tour.service';
 
 type EditorResult = {
@@ -338,6 +340,7 @@ export class ChangePage implements OnInit, OnDestroy {
   };
   selectedPdfName?: string;
   pdfFirstPageDims?: { width: number; height: number };
+  pdfPageTargets: PdfPageDimension[] = [];
   pdfErrorKey?: string;
   pdfErrorParams: Record<string, any> = {};
   isPickingPdf = false;
@@ -740,42 +743,52 @@ export class ChangePage implements OnInit, OnDestroy {
       {
         id: ChangePage.FORMAT_ID_A3,
         label: this.cropTargetLabel('PAPER.PRESETS.A3'),
-        target: this.buildAspectTarget('a3', 297, 420, 'mm'),
+        target: this.buildPhysicalTarget('a3', 297, 420, 'mm'),
       },
       {
         id: ChangePage.FORMAT_ID_A4,
         label: this.translate.instant('CHANGE.FORMAT_A4'),
-        target: this.buildAspectTarget('a4', 210, 297, 'mm'),
+        target: this.buildPhysicalTarget('a4', 210, 297, 'mm'),
       },
       {
         id: ChangePage.FORMAT_ID_A5,
         label: this.cropTargetLabel('PAPER.PRESETS.A5'),
-        target: this.buildAspectTarget('a5', 148, 210, 'mm'),
+        target: this.buildPhysicalTarget('a5', 148, 210, 'mm'),
       },
       {
         id: ChangePage.FORMAT_ID_A6,
         label: this.cropTargetLabel('PAPER.PRESETS.A6'),
-        target: this.buildAspectTarget('a6', 105, 148, 'mm'),
+        target: this.buildPhysicalTarget('a6', 105, 148, 'mm'),
       },
       {
         id: ChangePage.FORMAT_ID_LETTER,
         label: this.translate.instant('CHANGE.FORMAT_CARTA'),
-        target: this.buildAspectTarget('letter', 8.5, 11, 'in'),
+        target: this.buildPhysicalTarget('letter', 8.5, 11, 'in'),
       },
       {
         id: ChangePage.FORMAT_ID_LEGAL,
         label: this.translate.instant('CHANGE.FORMAT_OFICIO'),
-        target: this.buildAspectTarget('legal', 8.5, 14, 'in'),
+        target: this.buildPhysicalTarget('legal', 8.5, 14, 'in'),
       },
       {
         id: ChangePage.FORMAT_ID_TABLOID,
         label: this.cropTargetLabel('PAPER.PRESETS.TABLOID'),
-        target: this.buildAspectTarget('tabloid', 11, 17, 'in'),
+        target: this.buildPhysicalTarget('tabloid', 11, 17, 'in'),
       },
       {
         id: ChangePage.FORMAT_ID_NINE_SIXTEEN,
         label: this.translate.instant('CHANGE.FORMAT_NINE_SIXTEEN'),
         target: this.buildAspectTarget('nine_sixteen', 9, 16, 'ratio'),
+      },
+      {
+        id: 'sixteen_nine',
+        label: this.cropTargetLabel('RATIO.PRESETS.16_9'),
+        target: this.buildAspectTarget('sixteen_nine', 16, 9, 'ratio'),
+      },
+      {
+        id: 'sixteen_ten',
+        label: this.cropTargetLabel('RATIO.PRESETS.16_10'),
+        target: this.buildAspectTarget('sixteen_ten', 16, 10, 'ratio'),
       },
       {
         id: ChangePage.FORMAT_ID_THREE_FOUR,
@@ -855,12 +868,31 @@ export class ChangePage implements OnInit, OnDestroy {
     };
   }
 
+  private buildPhysicalTarget(
+    formatId: string,
+    width: number,
+    height: number,
+    unit: 'mm' | 'in' | 'pt',
+  ): CropTarget {
+    return {
+      formatId,
+      width,
+      height,
+      output: 'source',
+      unit,
+      outputMode: 'physical-size',
+    };
+  }
+
   private buildCropTargetsConfig(): CropTargetsConfig {
     const activeCategory = this.resolveCropTargetCategory(this.selectedFormatId);
     const prefix = ChangePage.CROP_TARGET_I18N_PREFIX;
 
     return {
       activeCategory,
+      pdfOriginal: this.hasValidPdf()
+        ? this.buildPdfOriginalConfig(prefix)
+        : undefined,
       paper: {
         catalog: [
           {
@@ -892,6 +924,8 @@ export class ChangePage implements OnInit, OnDestroy {
         supportsOrientation: true,
         defaultOrientation: 'portrait',
       },
+      books: this.buildBooksConfig(prefix),
+      presentation: this.buildPresentationConfig(prefix),
       ratio: {
         catalog: [
           {
@@ -907,6 +941,8 @@ export class ChangePage implements OnInit, OnDestroy {
               this.ratioPreset('two_three', `${prefix}.CATALOG.RATIO.PRESETS.2_3`, 2, 3),
               this.ratioPreset('five_eight', `${prefix}.CATALOG.RATIO.PRESETS.5_8`, 5, 8),
               this.ratioPreset('nine_sixteen', `${prefix}.CATALOG.RATIO.PRESETS.9_16`, 9, 16),
+              this.ratioPreset('sixteen_nine', `${prefix}.CATALOG.RATIO.PRESETS.16_9`, 16, 9),
+              this.ratioPreset('sixteen_ten', `${prefix}.CATALOG.RATIO.PRESETS.16_10`, 16, 10),
               this.ratioPreset('custom_ratio', `${prefix}.CATALOG.RATIO.PRESETS.CUSTOM`, 1, 1),
             ],
           },
@@ -926,7 +962,165 @@ export class ChangePage implements OnInit, OnDestroy {
     height: number,
     unit: 'mm' | 'in',
   ): CropTargetPreset {
-    return { id, i18nKey, width, height, unit, outputMode: 'aspect-only' };
+    return { id, i18nKey, width, height, unit, outputMode: 'physical-size' };
+  }
+
+  private buildPdfOriginalConfig(prefix: string): CropTargetCategoryConfig {
+    const pageTargets = this.pdfPageTargets.length
+      ? this.pdfPageTargets.map((target) => ({
+          id: `pdf-page-${target.pageNumber}`,
+          i18nKey: `${prefix}.PDF_ORIGINAL.PAGE`,
+          width: target.width,
+          height: target.height,
+          unit: 'pt' as const,
+          outputMode: 'physical-size' as const,
+          sourcePageNumber: target.pageNumber,
+          sourcePageBox: target.sourcePageBox,
+        }))
+      : [
+          {
+            id: 'pdf-page-1',
+            i18nKey: `${prefix}.PDF_ORIGINAL.PAGE`,
+            width: 595.2756,
+            height: 841.8898,
+            unit: 'pt' as const,
+            outputMode: 'physical-size' as const,
+            sourcePageNumber: 1,
+            sourcePageBox: 'media-box' as const,
+          },
+        ];
+    const first = pageTargets[0];
+    const predominant = this.findPredominantPdfTarget(pageTargets);
+    const makePreset = (
+      id: string,
+      key: string,
+      target: (typeof pageTargets)[number],
+    ): CropTargetPreset => ({
+      ...target,
+      id,
+      i18nKey: key,
+    });
+
+    return {
+      catalog: [
+        {
+          parentId: 'pdf-original',
+          id: 'pdf-reference',
+          i18nKey: `${prefix}.PDF_ORIGINAL.REFERENCE`,
+          items: [
+            makePreset('pdf-first-page', `${prefix}.PDF_ORIGINAL.FIRST_PAGE`, first),
+            makePreset('pdf-predominant-size', `${prefix}.PDF_ORIGINAL.PREDOMINANT_SIZE`, predominant),
+            makePreset('pdf-specific-page', `${prefix}.PDF_ORIGINAL.SPECIFIC_PAGE`, first),
+          ],
+        },
+      ],
+      selectedParentId: 'pdf-original',
+      selectedGroupId: 'pdf-reference',
+      selectedPreset: makePreset(
+        'pdf-first-page',
+        `${prefix}.PDF_ORIGINAL.FIRST_PAGE`,
+        first,
+      ),
+      sourcePageTargets: pageTargets,
+    };
+  }
+
+  private findPredominantPdfTarget<T extends CropTargetPreset>(
+    targets: T[],
+  ): T {
+    const groups: Array<{ target: CropTargetPreset; count: number }> = [];
+    for (const target of targets) {
+      const group = groups.find(
+        (entry) =>
+          Math.abs(entry.target.width - target.width) <= 1 &&
+          Math.abs(entry.target.height - target.height) <= 1,
+      );
+      if (group) {
+        group.count += 1;
+      } else {
+        groups.push({ target, count: 1 });
+      }
+    }
+    return (groups.sort((a, b) => b.count - a.count)[0]?.target ?? targets[0]) as T;
+  }
+
+  private buildBooksConfig(prefix: string): CropTargetCategoryConfig {
+    const group = (
+      id: string,
+      key: string,
+      items: CropTargetPreset[],
+    ) => ({ parentId: 'books', id, i18nKey: key, items });
+    const preset = (id: string, key: string, width: number, height: number, unit: 'in' | 'mm', badgeI18nKey?: string) => ({
+      id,
+      i18nKey: key,
+      width,
+      height,
+      unit,
+      outputMode: 'physical-size' as const,
+      ...(badgeI18nKey ? { badgeI18nKey } : {}),
+    });
+    return {
+      catalog: [
+        group('compact', `${prefix}.BOOK_GROUPS.COMPACT`, [
+          preset('book-4-25x6-87', `${prefix}.BOOK_FORMATS.4_25X6_87`, 4.25, 6.87, 'in'),
+          preset('book-5x8', `${prefix}.BOOK_FORMATS.5X8`, 5, 8, 'in'),
+          preset('book-5-25x8', `${prefix}.BOOK_FORMATS.5_25X8`, 5.25, 8, 'in'),
+          preset('book-a5', `${prefix}.BOOK_FORMATS.A5`, 148, 210, 'mm'),
+        ]),
+        group('trade', `${prefix}.BOOK_GROUPS.TRADE`, [
+          preset('book-5-5x8-5', `${prefix}.BOOK_FORMATS.5_5X8_5`, 5.5, 8.5, 'in'),
+          preset('book-6x9', `${prefix}.BOOK_FORMATS.6X9`, 6, 9, 'in', 'COMMON.POPULAR'),
+          preset('book-6-14x9-21', `${prefix}.BOOK_FORMATS.6_14X9_21`, 6.14, 9.21, 'in'),
+          preset('book-7x10', `${prefix}.BOOK_FORMATS.7X10`, 7, 10, 'in'),
+        ]),
+        group('large', `${prefix}.BOOK_GROUPS.LARGE`, [
+          preset('book-8x10', `${prefix}.BOOK_FORMATS.8X10`, 8, 10, 'in'),
+          preset('book-8-25x11', `${prefix}.BOOK_FORMATS.8_25X11`, 8.25, 11, 'in'),
+          preset('book-8-5x11', `${prefix}.BOOK_FORMATS.8_5X11`, 8.5, 11, 'in'),
+          preset('book-a4', `${prefix}.BOOK_FORMATS.A4`, 210, 297, 'mm'),
+        ]),
+        group('square', `${prefix}.BOOK_GROUPS.SQUARE`, [
+          preset('book-8x8', `${prefix}.BOOK_FORMATS.8X8`, 8, 8, 'in'),
+          preset('book-8-5x8-5', `${prefix}.BOOK_FORMATS.8_5X8_5`, 8.5, 8.5, 'in'),
+          preset('book-10x10', `${prefix}.BOOK_FORMATS.10X10`, 10, 10, 'in'),
+        ]),
+      ],
+      selectedParentId: 'books',
+      selectedGroupId: 'trade',
+      supportsOrientation: true,
+      defaultOrientation: 'portrait',
+    };
+  }
+
+  private buildPresentationConfig(prefix: string): CropTargetCategoryConfig {
+    const preset = (id: string, key: string, width: number, height: number, description: string) => ({
+      id,
+      i18nKey: key,
+      width,
+      height,
+      unit: 'in' as const,
+      outputMode: 'physical-size' as const,
+      descriptionI18nKey: description,
+    });
+    return {
+      catalog: [
+        {
+          parentId: 'presentation',
+          id: 'powerpoint',
+          i18nKey: `${prefix}.PRESENTATION_GROUPS.POWERPOINT`,
+          items: [
+            preset('presentation-widescreen', `${prefix}.PRESENTATION_FORMATS.WIDESCREEN`, 13.333, 7.5, `${prefix}.PRESENTATION_RATIOS.16_9`),
+            preset('presentation-standard', `${prefix}.PRESENTATION_FORMATS.STANDARD`, 10, 7.5, `${prefix}.PRESENTATION_RATIOS.4_3`),
+            preset('presentation-on-screen-16-9', `${prefix}.PRESENTATION_FORMATS.ON_SCREEN_16_9`, 10, 5.625, `${prefix}.PRESENTATION_RATIOS.16_9`),
+            preset('presentation-on-screen-16-10', `${prefix}.PRESENTATION_FORMATS.ON_SCREEN_16_10`, 10, 6.25, `${prefix}.PRESENTATION_RATIOS.16_10`),
+          ],
+        },
+      ],
+      selectedParentId: 'presentation',
+      selectedGroupId: 'powerpoint',
+      supportsOrientation: true,
+      defaultOrientation: 'landscape',
+    };
   }
 
   private ratioPreset(
@@ -945,11 +1139,11 @@ export class ChangePage implements OnInit, OnDestroy {
       return 'paper';
     }
     if (
-      ['one_one', 'two_three', 'three_four', 'four_five', 'five_seven', 'five_eight', 'nine_sixteen', 'custom_ratio'].includes(id ?? '')
+      ['one_one', 'two_three', 'three_four', 'four_five', 'five_seven', 'five_eight', 'nine_sixteen', 'sixteen_nine', 'sixteen_ten', 'custom_ratio'].includes(id ?? '')
     ) {
       return 'ratio';
     }
-    return 'paper';
+    return this.hasValidPdf() ? 'pdf-original' : 'paper';
   }
 
   private buildCustomFormatLabel(): string {
@@ -993,6 +1187,25 @@ export class ChangePage implements OnInit, OnDestroy {
 
   private async resolvePdfFirstPageDims(): Promise<void> {
     this.pdfFirstPageDims = undefined;
+    this.pdfPageTargets = [];
+
+    try {
+      this.pdfPageTargets = await this.candidateImageService.getPageDimensions({
+        pdfFile: this.workingPdfFile,
+        pdfNativePath: this.workingPdfNativePath,
+        pdfName: this.selectedPdfName || this.workingPdfName || 'pdf',
+      });
+      const firstTarget = this.pdfPageTargets[0];
+      if (firstTarget) {
+        const normalized = this.normalizeDims(firstTarget);
+        if (normalized) {
+          this.pdfFirstPageDims = normalized;
+          return;
+        }
+      }
+    } catch {
+      this.pdfPageTargets = [];
+    }
 
     try {
       const directDims = await this.candidateImageService.getFirstPageDimensions(
@@ -1005,6 +1218,14 @@ export class ChangePage implements OnInit, OnDestroy {
       const normalizedDirectDims = this.normalizeDims(directDims);
       if (normalizedDirectDims) {
         this.pdfFirstPageDims = normalizedDirectDims;
+        this.pdfPageTargets = [
+          {
+            pageNumber: 1,
+            width: normalizedDirectDims.width,
+            height: normalizedDirectDims.height,
+            sourcePageBox: 'media-box',
+          },
+        ];
         return;
       }
     } catch {
@@ -3821,6 +4042,8 @@ export class ChangePage implements OnInit, OnDestroy {
     const exportFile = await this.ensureExportImageFile();
     if (!exportFile) return false;
 
+    const pageTarget = this.resolveEditorPdfPageTarget();
+
     const preferredFilename = this.projectSaveState.getSuggestedBaseName(
       '.pdf',
       this.lastSavedFilename,
@@ -3833,6 +4056,7 @@ export class ChangePage implements OnInit, OnDestroy {
       const generated = await this.generateWithNativeRewrite(
         exportFile,
         preferredFilename,
+        pageTarget,
       );
       if (generated) {
         await this.homeTour.completeInteraction('cover-created');
@@ -3851,20 +4075,26 @@ export class ChangePage implements OnInit, OnDestroy {
           coverFile: exportFile,
           filename: preferredFilename,
           coverMode: this.coverPageMode,
+          pageWidthPt: pageTarget?.widthPt,
+          pageHeightPt: pageTarget?.heightPt,
         });
       } catch {
         res = await this.fileService.generatePdfBytes({
           modelId: this.baseModelId,
           coverFile: exportFile,
           title: 'PDF Cover',
+          pageWidthPt: pageTarget?.widthPt,
+          pageHeightPt: pageTarget?.heightPt,
         });
       }
     } else {
       res = await this.fileService.generatePdfBytes({
         modelId: this.baseModelId,
-        coverFile: exportFile,
-        title: 'PDF Cover',
-      });
+          coverFile: exportFile,
+          title: 'PDF Cover',
+          pageWidthPt: pageTarget?.widthPt,
+          pageHeightPt: pageTarget?.heightPt,
+        });
     }
 
     this.generatedPdfBytes = res.bytes;
@@ -4147,6 +4377,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private async generateWithNativeRewrite(
     exportFile: File,
     preferredFilename?: string,
+    pageTarget?: { widthPt: number; heightPt: number },
   ): Promise<boolean> {
     if (!this.workingPdfNativePath || !this.workingPdfPath) {
       throw new PdfRewriteError('REWRITE_UNAVAILABLE');
@@ -4178,6 +4409,8 @@ export class ChangePage implements OnInit, OnDestroy {
         outputPath: outputTarget.rewriteNativePath,
         newCoverPath: tempCover.nativePath,
         mode: this.coverPageMode,
+        pageWidthPt: pageTarget?.widthPt,
+        pageHeightPt: pageTarget?.heightPt,
       });
 
       if (!result.success) {
@@ -4764,6 +4997,24 @@ export class ChangePage implements OnInit, OnDestroy {
     }
 
     return options[0]?.id ?? ChangePage.FORMAT_ID_AUTO;
+  }
+
+  private resolveEditorPdfPageTarget(): { widthPt: number; heightPt: number } | undefined {
+    const info = this.lastEditorRenderInfo;
+    const widthPt = info?.pageWidthPt;
+    const heightPt = info?.pageHeightPt;
+    if (
+      info?.outputMode !== 'physical-size' ||
+      typeof widthPt !== 'number' ||
+      typeof heightPt !== 'number' ||
+      !Number.isFinite(widthPt) ||
+      !Number.isFinite(heightPt) ||
+      widthPt <= 0 ||
+      heightPt <= 0
+    ) {
+      return undefined;
+    }
+    return { widthPt, heightPt };
   }
 
   private async persistCropTargetId(formatId: string): Promise<void> {

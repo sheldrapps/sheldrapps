@@ -1,39 +1,39 @@
 <en-US>
-Fixed-size cover targets now render at the exact requested dimensions, while aspect ratios preserve available source detail. First-page cover rendering and storage feedback are more reliable, with clearer space information when an export needs more room.
+PDF covers now offer an Original PDF target with page-aware sizing, including first-page, predominant-size, and specific-page options. Fixed-size targets render at the requested dimensions, and crop labels for paper, book, presentation, and ratio formats are localized across supported languages.
 </en-US>
 <ar>
-تُعرض أهداف الغلاف ذات الحجم الثابت الآن بالأبعاد المطلوبة بدقة، بينما تحافظ نسب الأبعاد على التفاصيل المتاحة في المصدر. أصبح عرض الصفحة الأولى كغلاف ومعلومات التخزين أكثر موثوقية، مع توضيح المساحة المطلوبة عند الحاجة.
+يوفّر التطبيق الآن هدف «ملف PDF الأصلي» بأحجام تراعي الصفحات، مع خيارات للصفحة الأولى والحجم الأكثر شيوعًا وصفحة محددة. تُعرض الأهداف ذات الحجم الثابت بالأبعاد المطلوبة، كما تمت ترجمة تسميات القص الخاصة بالورق والكتب والعروض والنسب.
 </ar>
 <de-DE>
-Cover-Ziele mit fester Größe werden jetzt exakt in den gewünschten Abmessungen erstellt, während Seitenverhältnisse die verfügbaren Quelldetails bewahren. Die Darstellung der ersten Seite als Cover und die Speicherinformationen sind zuverlässiger und zeigen bei Bedarf den benötigten Platz klarer an.
+PDF-Cover bieten jetzt ein Ziel für das Original-PDF mit seitengerechter Größenanpassung, einschließlich Optionen für die erste Seite, die häufigste Größe und eine bestimmte Seite. Ziele mit fester Größe werden in den gewünschten Abmessungen gerendert, und die Beschriftungen für Papier-, Buch-, Präsentations- und Seitenverhältnisformate sind lokalisiert.
 </de-DE>
 <es-419>
-Los destinos de portada de tamaño fijo ahora se renderizan exactamente con las dimensiones solicitadas, mientras que las proporciones conservan el detalle disponible del origen. El renderizado de la primera página como portada y la información de almacenamiento son más confiables, con datos claros del espacio necesario cuando hace falta.
+Las portadas PDF ahora ofrecen un destino de PDF original con tamaños basados en las páginas, incluidos los modos de primera página, tamaño predominante y página específica. Los destinos de tamaño fijo se renderizan con las dimensiones solicitadas y se localizaron las etiquetas de recorte para formatos de papel, libros, presentaciones y proporciones.
 </es-419>
 <fr-FR>
-Les cibles de couverture à taille fixe sont désormais rendues exactement aux dimensions demandées, tandis que les proportions préservent les détails disponibles de la source. Le rendu de la première page comme couverture et les informations de stockage sont plus fiables, avec un espace requis clairement indiqué si nécessaire.
+Les couvertures PDF proposent désormais une cible PDF original avec un dimensionnement adapté aux pages, notamment pour la première page, la taille prédominante et une page précise. Les cibles à taille fixe sont rendues aux dimensions demandées et les libellés de recadrage des formats papier, livre, présentation et proportion sont localisés.
 </fr-FR>
 <hi-IN>
-निश्चित आकार वाले कवर लक्ष्य अब मांगे गए आयामों में सटीक रूप से रेंडर होते हैं, जबकि अनुपात स्रोत के उपलब्ध विवरण को बनाए रखते हैं। पहली पेज को कवर के रूप में रेंडर करना और स्टोरेज की जानकारी अधिक विश्वसनीय है, और जरूरत पड़ने पर आवश्यक स्थान स्पष्ट रूप से दिखाया जाता है।
+PDF कवर अब पेज के अनुसार आकार तय करने वाले Original PDF लक्ष्य के साथ पहली पेज, प्रमुख आकार और विशिष्ट पेज के विकल्प देते हैं। निश्चित आकार वाले लक्ष्य मांगे गए आयामों में रेंडर होते हैं और कागज़, पुस्तक, प्रस्तुति तथा अनुपात फ़ॉर्मैट के क्रॉप लेबल स्थानीयकृत हैं।
 </hi-IN>
 <it-IT>
-I target della copertina a dimensione fissa ora vengono renderizzati esattamente nelle dimensioni richieste, mentre le proporzioni preservano i dettagli disponibili della sorgente. Il rendering della prima pagina come copertina e le informazioni sullo spazio sono più affidabili, con una indicazione chiara dello spazio necessario quando serve.
+Le copertine PDF offrono ora una destinazione PDF originale con dimensionamento basato sulle pagine, inclusi i modi prima pagina, dimensione prevalente e pagina specifica. Le destinazioni a dimensione fissa vengono renderizzate nelle dimensioni richieste e le etichette di ritaglio per i formati carta, libro, presentazione e proporzioni sono localizzate.
 </it-IT>
 <ja-JP>
-固定サイズのカバーターゲットは指定した寸法で正確に生成され、比率指定では元画像の利用可能な詳細が保持されます。1ページ目をカバーとして表示する処理とストレージ情報の信頼性が向上し、容量が必要な場合は必要な空き容量も明確に表示されます。
+PDFカバーで、ページに応じてサイズを決める「元のPDF」ターゲットを利用できるようになりました。先頭ページ、最も多いサイズ、特定ページのオプションに対応しています。固定サイズのターゲットは指定した寸法で生成され、用紙・書籍・プレゼンテーション・比率フォーマットのトリミングラベルも各言語に対応しました。
 </ja-JP>
 <ko-KR>
-고정 크기 표지 대상은 요청한 크기로 정확하게 렌더링되고, 비율 설정에서는 원본의 사용 가능한 세부 정보가 유지됩니다. 첫 페이지를 표지로 렌더링하는 기능과 저장 공간 안내가 더 안정적이며, 필요한 경우 요구되는 공간도 명확하게 표시됩니다.
+이제 PDF 표지에서 페이지에 맞춰 크기를 결정하는 원본 PDF 대상을 사용할 수 있으며, 첫 페이지, 가장 많이 사용된 크기, 특정 페이지 옵션을 제공합니다. 고정 크기 대상은 요청한 치수로 렌더링되고 용지, 책, 프레젠테이션 및 비율 형식의 자르기 레이블도 지원 언어로 현지화되었습니다.
 </ko-KR>
 <pt-BR>
-Os destinos de capa com tamanho fixo agora são renderizados exatamente nas dimensões solicitadas, enquanto as proporções preservam os detalhes disponíveis da origem. A renderização da primeira página como capa e as informações de armazenamento estão mais confiáveis, mostrando claramente o espaço necessário quando preciso.
+As capas em PDF agora oferecem um destino de PDF original com dimensionamento por página, incluindo opções para a primeira página, o tamanho predominante e uma página específica. Os destinos de tamanho fixo são renderizados nas dimensões solicitadas, e os rótulos de corte para formatos de papel, livros, apresentações e proporções estão traduzidos.
 </pt-BR>
 <ru-RU>
-Цели обложки фиксированного размера теперь создаются точно в заданных размерах, а пропорции сохраняют доступные детали исходного изображения. Отображение первой страницы как обложки и сведения о хранилище стали надежнее, а при нехватке места ясно показывается требуемый объем.
+В PDF-обложках появился источник «Исходный PDF» с подбором размера по страницам, включая варианты для первой страницы, преобладающего размера и конкретной страницы. Цели фиксированного размера создаются с заданными параметрами, а подписи форматов бумаги, книг, презентаций и соотношений сторон переведены.
 </ru-RU>
 <zh-CN>
-固定尺寸的封面目标现在会严格按照请求的尺寸生成，而比例设置会保留源图像中可用的细节。将第一页渲染为封面以及存储空间提示更加可靠，需要更多空间时会清楚显示所需容量。
+PDF 封面现在提供按页面确定尺寸的“原始 PDF”目标，并支持首页、主要尺寸和指定页面选项。固定尺寸目标会按请求的尺寸生成，纸张、书籍、演示文稿和比例格式的裁剪标签也已完成本地化。
 </zh-CN>
 <zh-TW>
-固定尺寸的封面目標現在會依照要求的尺寸精確產生，而比例設定會保留來源影像中可用的細節。將第一頁轉換為封面以及儲存空間提示更加可靠，需要更多空間時會清楚顯示所需容量。
+PDF 封面現在提供依頁面決定尺寸的「原始 PDF」目標，並支援首頁、主要尺寸和指定頁面選項。固定尺寸目標會依要求的尺寸產生，紙張、書籍、簡報和比例格式的裁切標籤也已完成在地化。
 </zh-TW>

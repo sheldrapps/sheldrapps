@@ -5,7 +5,7 @@
     <sh-scrollable-button-bar
       class="crop-panel__bar"
       [items]="categoryItems"
-      [activeId]="null"
+      [activeId]="activeView() === 'root' ? targetCategory : activeView()"
       variant="text"
       align="start"
       (selectItem)="openView($event)"
@@ -53,7 +53,7 @@
       </div>
     </div>
   </div>
-  } @else if (activeView() === "publishing" || activeView() === "paper" || activeView() === "ratio") {
+  } @else if (activeView() === "publishing" || activeView() === "pdf-original" || activeView() === "paper" || activeView() === "books" || activeView() === "presentation" || activeView() === "ratio") {
   <div class="crop-target-selectors crop-subpanel app-panel-subpanel">
     @if (showTargetParentSelector) {
     <div class="selectors-grid__col">
@@ -105,7 +105,7 @@
 
     <div class="selectors-grid__col">
       <div class="selector-label">
-        {{ (targetCategory === 'ratio' ? 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.ASPECT_RATIO' : targetCategory === 'paper' ? 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.FORMAT' : 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.SIZE') | translate }}
+        {{ (targetCategory === 'ratio' ? 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.ASPECT_RATIO' : targetCategory === 'pdf-original' ? 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.REFERENCE' : targetCategory === 'paper' ? 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.FORMAT' : 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.SIZE') | translate }}
       </div>
       <ion-item class="selectors-grid__item">
         <ion-select
@@ -125,6 +125,29 @@
         </ion-select>
       </ion-item>
     </div>
+
+    @if (isSpecificPdfPage) {
+    <div class="selectors-grid__col">
+      <div class="selector-label">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.PAGE' | translate }}</div>
+      <ion-item class="selectors-grid__item">
+        <ion-select
+          class="selectors-grid__select"
+          [ngModel]="selectedSourcePage"
+          (ionChange)="onSourcePageChange($event.detail.value)"
+          interface="popover"
+        >
+          @for (page of sourcePageTargets; track page.id) {
+          <ion-select-option [value]="page.sourcePageNumber">{{ page.sourcePageNumber }}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
+    </div>
+
+    <div class="pdf-size-summary" aria-live="polite">
+      <div class="selector-label">{{ 'EDITOR.PANELS.TOOLS.WIDGETS.CROP_PANEL.SELECTORS.DETECTED_SIZE' | translate }}</div>
+      <div>{{ pdfDetectedSizeLabel }}</div>
+    </div>
+    }
 
     @if (showCustomRatioInputs) {
     <section class="custom-format ratio-custom-format" aria-labelledby="custom-ratio-title">

@@ -45,6 +45,12 @@ type InspectPdfResult = {
   fileSizeBytes?: number;
   title?: string;
   author?: string;
+  pageDimensions?: Array<{
+    pageNumber: number;
+    widthPt: number;
+    heightPt: number;
+    sourcePageBox: 'crop-box' | 'media-box';
+  }>;
   error?: PdfRewriteNativeErrorCode | string;
   message?: string;
   stage?: string;
@@ -57,6 +63,8 @@ type RewriteCoverOptions = {
   outputPath?: string;
   newCoverPath: string;
   mode?: 'replace' | 'insert';
+  pageWidthPt?: number;
+  pageHeightPt?: number;
 };
 
 type RewriteCoverResult = {
@@ -75,6 +83,8 @@ type CreatePdfFromCoverOptions = {
   title?: string;
   lang?: string;
   appName?: string;
+  pageWidthPt?: number;
+  pageHeightPt?: number;
 };
 
 type CreatePdfFromCoverResult = {
@@ -235,8 +245,30 @@ export class PdfRewriteService {
       fileSizeBytes: result.fileSizeBytes,
       title: result.title,
       author: result.author,
+      pageDimensions: result.pageDimensions,
       errorCode: result.error as PdfRewriteNativeErrorCode | undefined,
     };
+  }
+
+  async getPageDimensions(inputPath: string): Promise<
+    Array<{
+      pageNumber: number;
+      widthPt: number;
+      heightPt: number;
+      sourcePageBox: 'crop-box' | 'media-box';
+    }>
+  > {
+    const result = await PdfRewrite.inspectPdf({ inputPath });
+    if (!result.success || !result.pageDimensions) return [];
+    return result.pageDimensions.filter(
+      (page) =>
+        Number.isFinite(page.pageNumber) &&
+        page.pageNumber > 0 &&
+        Number.isFinite(page.widthPt) &&
+        page.widthPt > 0 &&
+        Number.isFinite(page.heightPt) &&
+        page.heightPt > 0,
+    );
   }
 
   async createPdfFromCover(options: CreatePdfFromCoverOptions): Promise<void> {

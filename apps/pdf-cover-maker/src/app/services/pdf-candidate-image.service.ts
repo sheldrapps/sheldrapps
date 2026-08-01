@@ -124,6 +124,13 @@ export type FirstPageDimensionsRequest = {
   pdfName?: string;
 };
 
+export type PdfPageDimension = {
+  pageNumber: number;
+  width: number;
+  height: number;
+  sourcePageBox: 'crop-box' | 'media-box';
+};
+
 @Injectable({ providedIn: 'root' })
 export class PdfCandidateImageService {
   private readonly pdfRewrite = inject(PdfRewriteService);
@@ -365,6 +372,69 @@ export class PdfCandidateImageService {
       } catch {
         // best effort
       }
+    }
+  }
+
+  async getPageDimensions(
+    params: FirstPageDimensionsRequest,
+  ): Promise<PdfPageDimension[]> {
+    if (!params.pdfFile && params.pdfNativePath && this.pdfRewrite.isSupported()) {
+      try {
+        const nativeTargets = await this.pdfRewrite.getPageDimensions(
+          params.pdfNativePath,
+        );
+        if (nativeTargets.length > 0) {
+          return nativeTargets.map((target) => ({
+            pageNumber: target.pageNumber,
+            width: target.widthPt,
+            height: target.heightPt,
+            sourcePageBox: target.sourcePageBox,
+          }));
+        }
+      } catch {
+        // Continue with the web renderer fallback.
+      }
+    }
+
+    const pdfBytes = await this.loadPdfBytes(params);
+    if (!pdfBytes) return [];
+
+    const handle = await this.loadPdfDocument(pdfBytes);
+    if (!handle?.document || handle.document.numPages < 1) return [];
+
+    try {
+      const targets: PdfPageDimension[] = [];
+      for (let pageNumber = 1; pageNumber <= handle.document.numPages; pageNumber += 1) {
+        const page = await handle.document.getPage(pageNumber);
+        try {
+          const viewport = page.getViewport({ scale: 1 });
+          if (
+            Number.isFinite(viewport.width) &&
+            Number.isFinite(viewport.height) &&
+            viewport.width > 0 &&
+            viewport.height > 0
+          ) {
+            targets.push({
+              pageNumber,
+              width: viewport.width,
+              height: viewport.height,
+              sourcePageBox: 'crop-box',
+            });
+          }
+        } finally {
+          try {
+            page.cleanup?.();
+          } catch {}
+        }
+      }
+      return targets;
+    } finally {
+      try {
+        await handle.document.destroy?.();
+      } catch {}
+      try {
+        await handle.loadingTask.destroy?.();
+      } catch {}
     }
   }
 

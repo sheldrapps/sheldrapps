@@ -9,7 +9,10 @@ export type CropTargetCategory =
   | "e-reader"
   | "publishing"
   | "paper"
-  | "ratio";
+  | "ratio"
+  | "pdf-original"
+  | "books"
+  | "presentation";
 
 export type CropOrientation = "portrait" | "landscape";
 
@@ -31,6 +34,14 @@ export interface CropTargetPreset {
   outputMode: CropOutputMode;
   badgeI18nKey?: string;
   descriptionI18nKey?: string;
+  sourcePageNumber?: number;
+  sourcePageBox?: "crop-box" | "media-box";
+  detectedName?: string;
+}
+
+export interface PdfDetectedPageTarget extends CropTargetPreset {
+  sourcePageNumber: number;
+  sourcePageBox: "crop-box" | "media-box";
 }
 
 export interface PublishingCropPreset extends CropTargetPreset {
@@ -59,6 +70,8 @@ export interface PersistedCropTargetSelection {
   unit: CropTargetUnit;
   outputMode: CropOutputMode;
   orientation?: CropOrientation;
+  sourcePageNumber?: number;
+  sourcePageBox?: "crop-box" | "media-box";
 }
 
 export interface CropTargetCategoryConfig {
@@ -68,6 +81,7 @@ export interface CropTargetCategoryConfig {
   selectedPreset?: CropTargetPreset;
   supportsOrientation?: boolean;
   defaultOrientation?: CropOrientation;
+  sourcePageTargets?: PdfDetectedPageTarget[];
 }
 
 export interface CropTargetsConfig {
@@ -77,6 +91,9 @@ export interface CropTargetsConfig {
   publishing?: CropTargetCategoryConfig;
   paper?: CropTargetCategoryConfig;
   ratio?: CropTargetCategoryConfig;
+  pdfOriginal?: CropTargetCategoryConfig;
+  books?: CropTargetCategoryConfig;
+  presentation?: CropTargetCategoryConfig;
   selections?: Partial<Record<CropTargetCategory, PersistedCropTargetSelection>>;
 }
 

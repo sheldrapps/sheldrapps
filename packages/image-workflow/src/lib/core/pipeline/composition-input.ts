@@ -47,6 +47,10 @@ export function isValidCompositionTarget(target: CropTarget): boolean {
     return resolved.unit === "px";
   }
 
+  if (resolved.outputMode === "physical-size") {
+    return ["pt", "mm", "in"].includes(resolved.unit);
+  }
+
   return (
     resolved.unit === "ratio" ||
     resolved.unit === "mm" ||

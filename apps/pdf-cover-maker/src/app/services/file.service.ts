@@ -16,6 +16,7 @@ import {
   type ArtifactReductionMode,
   type CoverColorMode,
   type CoverCropState,
+  toPdfPageTarget,
 } from '@sheldrapps/image-workflow';
 import { PdfRewriteError, PdfRewriteService } from './pdf-rewrite.service';
 
@@ -1276,6 +1277,8 @@ export class FileService {
     coverFile: File;
     title?: string;
     filename?: string;
+    pageWidthPt?: number;
+    pageHeightPt?: number;
   }): Promise<{ bytes: Uint8Array; filename: string }> {
     if (!this.pdfRewrite.isSupported()) {
       if (!this.webPdfCover) {
@@ -1290,6 +1293,7 @@ export class FileService {
         opts.coverFile,
         opts.title ?? 'PDF Cover',
         this.getPdfLang(),
+        this.resolvePageTarget(opts.pageWidthPt, opts.pageHeightPt),
       );
       return { bytes, filename };
     }
@@ -1354,6 +1358,8 @@ export class FileService {
     coverFile: File;
     filename?: string;
     coverMode?: 'replace' | 'insert';
+    pageWidthPt?: number;
+    pageHeightPt?: number;
   }): Promise<{ bytes: Uint8Array; filename: string }> {
     if (!this.pdfRewrite.isSupported()) {
       if (!this.webPdfCover) {
@@ -1369,6 +1375,7 @@ export class FileService {
         opts.coverFile,
         filename,
         opts.coverMode,
+        this.resolvePageTarget(opts.pageWidthPt, opts.pageHeightPt),
       );
       return { bytes, filename };
     }
@@ -1428,6 +1435,8 @@ export class FileService {
         outputPath: outputUri,
         newCoverPath: coverUri,
         mode: opts.coverMode,
+        pageWidthPt: opts.pageWidthPt,
+        pageHeightPt: opts.pageHeightPt,
       });
 
       if (!rewritten.success) {
@@ -1613,6 +1622,14 @@ export class FileService {
       rewritePath,
       rewriteNativePath,
     };
+  }
+
+  private resolvePageTarget(
+    widthPt?: number,
+    heightPt?: number,
+  ): { widthPt: number; heightPt: number } | undefined {
+    if (!Number.isFinite(widthPt) || !Number.isFinite(heightPt)) return undefined;
+    return toPdfPageTarget(widthPt as number, heightPt as number, 'pt') ?? undefined;
   }
 
   async commitNativeDocumentOutput(

@@ -8,6 +8,7 @@ import type {
   FitBackgroundConfig,
 } from "../../types";
 import { getBackgroundAssetPath } from "../../types";
+import { toPdfPageTarget } from "../../types";
 import { applyEditorAdjustments } from "./apply-editor-adjustments";
 import {
   getRotatedSourceDims,
@@ -428,6 +429,11 @@ export function buildEditorRenderInfo(args: {
         state: input.state,
       });
   const isFixedSize = target.outputMode === "fixed-size";
+  const physicalTarget =
+    target.outputMode === "physical-size" &&
+    (target.unit === "pt" || target.unit === "mm" || target.unit === "in")
+      ? toPdfPageTarget(target.width, target.height, target.unit)
+      : null;
   const requestedWidth = isFixedSize
     ? Math.max(1, Math.round(target.width))
     : undefined;
@@ -446,6 +452,19 @@ export function buildEditorRenderInfo(args: {
 
   return {
     outputMode: target.outputMode,
+    pageWidthPt: physicalTarget?.widthPt,
+    pageHeightPt: physicalTarget?.heightPt,
+    physicalWidth:
+      target.outputMode === "physical-size" ? target.width : undefined,
+    physicalHeight:
+      target.outputMode === "physical-size" ? target.height : undefined,
+    physicalUnit:
+      target.outputMode === "physical-size" &&
+      (target.unit === "pt" || target.unit === "mm" || target.unit === "in")
+        ? target.unit
+        : undefined,
+    sourcePageNumber: target.sourcePageNumber,
+    sourcePageBox: target.sourcePageBox,
     requestedWidth,
     requestedHeight,
     renderedWidth: Math.max(1, Math.round(renderedWidth)),

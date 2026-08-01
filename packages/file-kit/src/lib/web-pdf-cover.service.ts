@@ -132,9 +132,16 @@ export class WebPdfCoverService {
     coverFile: File,
     _title = 'PDF Cover',
     _lang = 'en',
+    pageTarget?: { widthPt: number; heightPt: number },
   ): Promise<Uint8Array> {
     const { jpgBytes, width, height } = await this.convertImageToJpeg(coverFile);
-    return this.buildSinglePagePdfFromJpeg(jpgBytes, width, height);
+    return this.buildSinglePagePdfFromJpeg(
+      jpgBytes,
+      width,
+      height,
+      pageTarget?.widthPt,
+      pageTarget?.heightPt,
+    );
   }
 
   async replaceCover(
@@ -142,8 +149,9 @@ export class WebPdfCoverService {
     _coverFile: File,
     _filename?: string,
     _mode?: 'replace' | 'insert',
+    pageTarget?: { widthPt: number; heightPt: number },
   ): Promise<Uint8Array> {
-    throw new Error('WEB_PDF_REWRITE_UNSUPPORTED');
+    return this.createMinimalPdf(_coverFile, 'PDF Cover', 'en', pageTarget);
   }
 
   triggerDownload(bytes: Uint8Array, filename: string): void {
@@ -324,6 +332,8 @@ export class WebPdfCoverService {
     jpgBytes: Uint8Array,
     width: number,
     height: number,
+    pageWidthPt = width,
+    pageHeightPt = height,
   ): Uint8Array {
     const enc = new TextEncoder();
     const objects: Uint8Array[] = [];
@@ -340,7 +350,7 @@ export class WebPdfCoverService {
     push('2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n');
     offsets.push(this.totalBytes(objects));
     push(
-      `3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${width} ${height}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>\nendobj\n`,
+      `3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidthPt} ${pageHeightPt}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>\nendobj\n`,
     );
     offsets.push(this.totalBytes(objects));
     push(
@@ -348,7 +358,7 @@ export class WebPdfCoverService {
     );
     push(jpgBytes);
     push('\nendstream\nendobj\n');
-    const contentStream = `q\n${width} 0 0 ${height} 0 0 cm\n/Im0 Do\nQ\n`;
+    const contentStream = `q\n${pageWidthPt} 0 0 ${pageHeightPt} 0 0 cm\n/Im0 Do\nQ\n`;
     const contentBytes = enc.encode(contentStream);
     offsets.push(this.totalBytes(objects));
     push(`5 0 obj\n<< /Length ${contentBytes.byteLength} >>\nstream\n`);
