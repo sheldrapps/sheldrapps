@@ -355,6 +355,7 @@ export interface CropperResult {
   state?: CoverCropState;
   formatId?: string;
   renderedBlob?: Blob;
+  editorMasterBlob?: Blob;
   renderedWidth?: number;
   renderedHeight?: number;
   renderedMimeType?: string;

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, NgZone, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import {
@@ -14,7 +14,7 @@ import {
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
-  LoadingStateComponent,
+  SpinnerComponent,
   THEME_ACCENT_BACKGROUND_FALLBACK,
   THEME_ACCENT_COLOR_FALLBACK,
   withThemeAlpha,
@@ -110,7 +110,7 @@ const REMINDER_YEARLY_PRESETS: readonly NotificationLeadTimePreset[] = [
     IonNote,
     RouterLink,
     TranslateModule,
-    LoadingStateComponent,
+    SpinnerComponent,
   ],
 })
 export class TaskPage {
@@ -125,7 +125,15 @@ export class TaskPage {
   readonly taskId = this.route.snapshot.paramMap.get('id') ?? 'unknown';
 
   task: PersistedTaskAggregate | null = null;
-  isLoading = false;
+  private readonly loadingState = signal(false);
+
+  get isLoading(): boolean {
+    return this.loadingState();
+  }
+
+  set isLoading(value: boolean) {
+    this.loadingState.set(value);
+  }
   loadFailed = false;
   updateFailed = false;
 

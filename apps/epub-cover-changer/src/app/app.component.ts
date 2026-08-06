@@ -10,6 +10,7 @@ import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
 import { Subscription } from 'rxjs';
 import { EccSettings } from './settings/ecc-settings.schema';
+import { EccLifecycleDiagnosticsService } from './services/ecc-lifecycle-diagnostics.service';
 
 @Component({
   standalone: true,
@@ -24,10 +25,12 @@ export class AppComponent implements OnDestroy {
   private edgeToEdge = inject(EdgeToEdgeService);
   private theme = inject(ThemeService);
   private settings = inject(SettingsStore<EccSettings>);
+  private lifecycle = inject(EccLifecycleDiagnosticsService);
 
   private langSub?: Subscription;
 
   constructor() {
+    this.lifecycle.start();
     void this.init();
   }
 

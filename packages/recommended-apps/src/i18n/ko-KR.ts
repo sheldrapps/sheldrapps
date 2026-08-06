@@ -12,4 +12,6 @@ export const KO_KR: RecommendedAppsTranslations = {
   APP_DESC_PCM: 'PDF 표지를 빠르게 만들기',
   APP_NAME_EF: 'EPUB 복구',
   APP_DESC_EF: '일반적인 EPUB 문제를 진단하고 복구',
+  APP_NAME_EMAS: 'EPUB 병합 및 분할',
+  APP_DESC_EMAS: 'EPUB을 합치고 원하는 방식으로 나누세요',
 };

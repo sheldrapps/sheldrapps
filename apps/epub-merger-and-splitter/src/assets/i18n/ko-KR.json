@@ -30,7 +30,8 @@
     "EDIT_PROJECT_OVERWRITE_DESC": "기존 파일 위에 변경 내용을 저장합니다.",
     "EDIT_PROJECT_COPY": "복사본으로 작업",
     "EDIT_PROJECT_COPY_DESC": "원본 파일을 유지하고 새 복사본을 편집합니다.",
-    "UPGRADE_TO_PRO": "Pro로 업그레이드"
+    "UPGRADE_TO_PRO": "Pro로 업그레이드",
+    "REMOVE_ADS_CTA_SUBTITLE": "일회 결제 • 영구 사용"
   },
   "MY_EPUBS": {
     "TITLE": "내 EPUB",
@@ -43,6 +44,11 @@
     "LOADING_PREVIEW": "미리보기 불러오는 중",
     "ACTION_OPEN": "EPUB 열기",
     "ACTION_EDIT": "EPUB 편집",
+    "ACTION_RENAME": "이름 변경",
+    "RENAME_TITLE": "EPUB 이름 변경",
+    "RENAME_MESSAGE": "EPUB의 새 이름을 입력하세요",
+    "RENAME_PLACEHOLDER": "파일 이름",
+    "RENAMED": "EPUB 이름이 변경되었습니다",
     "ACTION_SHARE": "EPUB 공유",
     "ACTION_DELETE": "EPUB 삭제",
     "DELETE_TITLE": "EPUB를 삭제할까요?",
@@ -119,6 +125,7 @@
       "MERGE_SUCCESS_BODY": "선택한 EPUB의 내용으로 새 사본을 만들었습니다.",
       "SPLIT_SUCCESS_TITLE": "EPUB를 성공적으로 나눴습니다",
       "SPLIT_SUCCESS_BODY": "새 EPUB {{count}}개를 만들었습니다.",
+      "FIDELITY_WARNINGS": "내보내기는 유효하지만 충실도 메모가 {{count}}개 기록되었습니다.",
       "MERGE_FAILURE_TITLE": "EPUB를 합칠 수 없습니다",
       "MERGE_FAILURE_BODY": "최종 EPUB를 만들 수 없습니다. 원본 파일은 변경되지 않았습니다.",
       "SPLIT_FAILURE_TITLE": "EPUB를 나눌 수 없습니다",

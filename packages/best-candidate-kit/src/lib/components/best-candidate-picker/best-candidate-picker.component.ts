@@ -5,9 +5,11 @@ import {
   EventEmitter,
   inject,
   Input,
+  input,
   Output,
 } from '@angular/core';
-import { IonCard, IonSpinner } from '@ionic/angular/standalone';
+import { IonCard } from '@ionic/angular/standalone';
+import { SpinnerComponent } from '@sheldrapps/ui-theme';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BestCandidateImage, BestCandidateHint } from '../../models/best-candidate-image.model';
 import { BestCandidateResult } from '../../models/best-candidate-score.model';
@@ -16,7 +18,7 @@ import { registerBestCandidateKitTranslations } from '../../translations/best-ca
 @Component({
   selector: 'best-candidate-picker',
   standalone: true,
-  imports: [CommonModule, TranslateModule, IonCard, IonSpinner],
+  imports: [CommonModule, TranslateModule, IonCard, SpinnerComponent],
   templateUrl: './best-candidate-picker.component.html',
   styleUrls: ['./best-candidate-picker.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,7 +27,7 @@ export class BestCandidatePickerComponent {
   private readonly translate = inject(TranslateService);
 
   @Input() candidates: BestCandidateResult[] = [];
-  @Input() loading = false;
+  readonly loading = input(false);
   @Input() disabled = false;
   @Input() selectedCandidateId?: string;
   @Input() showReasons = true;

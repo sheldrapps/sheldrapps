@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { IonButton, IonButtons, IonIcon, IonSpinner } from '@ionic/angular/standalone';
+import { Component, EventEmitter, Input, Output, input } from '@angular/core';
+import { IonButton, IonButtons, IonIcon } from '@ionic/angular/standalone';
+import { SpinnerComponent } from '@sheldrapps/ui-theme';
 import { addIcons } from 'ionicons';
 import {
   cloudOfflineOutline,
@@ -16,7 +17,7 @@ import type { RemoveAdsUpgradeVariant } from '../remove-ads-upgrade/remove-ads-u
 @Component({
   selector: 'sh-remove-ads-upgrade-modal',
   standalone: true,
-  imports: [CommonModule, TranslateModule, IonButton, IonButtons, IonIcon, IonSpinner],
+  imports: [CommonModule, TranslateModule, IonButton, IonButtons, IonIcon, SpinnerComponent],
   templateUrl: './remove-ads-upgrade-modal.component.html',
   styleUrls: ['./remove-ads-upgrade-modal.component.scss'],
 })
@@ -49,7 +50,7 @@ export class RemoveAdsUpgradeModalComponent {
   @Input() purchaseDisabled = false;
   @Input() restoreDisabled = false;
   @Input() showHeader = true;
-  @Input() busy = false;
+  readonly busy = input(false);
 
   @Output() closeRequested = new EventEmitter<void>();
   @Output() purchaseRequested = new EventEmitter<void>();

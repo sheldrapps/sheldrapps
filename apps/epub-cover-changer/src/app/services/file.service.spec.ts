@@ -103,6 +103,30 @@ describe('FileService', () => {
     expect(service).toBeTruthy();
   });
 
+  it('shares the library EPUB as a file even when its URI is content-based', async () => {
+    const fileKit = TestBed.inject(FileKitService) as jasmine.SpyObj<FileKitService>;
+    spyOn<any>(service, 'ensurePublicDocumentsEpubFolderReady').and.resolveTo();
+    spyOn<any>(service, 'getPublicEpubFileUriOrThrow').and.resolveTo(
+      'content://documents/book.epub',
+    );
+    fileKit.share.and.resolveTo(true);
+
+    await service.shareCoverByFilename('book.epub');
+
+    expect(fileKit.share).toHaveBeenCalledWith(
+      {
+        uri: 'content://documents/book.epub',
+        filename: 'book.epub',
+        mimeType: 'application/epub+zip',
+      },
+      {
+        title: 'book.epub',
+        text: 'EPUB cover generated with EPUB Cover Changer',
+        dialogTitle: 'Share EPUB',
+      },
+    );
+  });
+
   it('saveGeneratedEpub should persist internally on web and not trigger download', async () => {
     const bytes = new Uint8Array([1, 2, 3]);
     const coverFile = new File([new Uint8Array([7, 8, 9])], 'cover.jpg', {

@@ -9,6 +9,7 @@ import {
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
 import { CcfkSettings } from './settings/ccfk-settings.schema';
+import { LifecycleDiagnosticsService } from '@sheldrapps/lifecycle-kit';
 
 import { NavigationStart, Router } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
@@ -27,11 +28,13 @@ export class AppComponent implements OnDestroy {
   private t = inject(TranslateService);
   private title = inject(Title);
   private theme = inject(ThemeService);
+  private lifecycle = inject(LifecycleDiagnosticsService);
 
   private navSub?: Subscription;
   private langSub?: Subscription;
 
   constructor() {
+    this.lifecycle.start();
     // Release focus before Ionic hides the previous page with aria-hidden
     this.navSub = this.router.events
       .pipe(filter((e): e is NavigationStart => e instanceof NavigationStart))

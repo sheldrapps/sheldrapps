@@ -19,7 +19,10 @@ import { TranslateModule } from '@ngx-translate/core';
 import { EReaderPreviewFrameComponent } from '../e-reader-preview-frame/e-reader-preview-frame.component';
 import { PreviewEditingPageService } from './preview-editing-page.service';
 import { ImageWorkflowI18nService } from '../../e-reader-preview/i18n/image-workflow-i18n.service';
-import { ScrollableButtonBarComponent } from '@sheldrapps/ui-theme';
+import {
+  ScrollableButtonBarComponent,
+  SpinnerComponent,
+} from '@sheldrapps/ui-theme';
 import { TranslateService } from '@ngx-translate/core';
 
 @Component({
@@ -36,6 +39,7 @@ import { TranslateService } from '@ngx-translate/core';
     IonToolbar,
     EReaderPreviewFrameComponent,
     ScrollableButtonBarComponent,
+    SpinnerComponent,
   ],
   templateUrl: './preview-editing-page.component.html',
   styleUrls: ['./preview-editing-page.component.scss'],
@@ -73,6 +77,7 @@ export class PreviewEditingPageComponent implements OnDestroy {
         id: action.id,
         label: this.translate.instant(action.labelKey),
         icon: action.icon,
+        iconSvg: action.iconSvg,
       })),
   );
 

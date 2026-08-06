@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import {
@@ -14,6 +14,7 @@ import {
 } from '@ionic/angular/standalone';
 import { RecommendedAppsService } from './recommended-apps.service';
 import { RecommendedAppCardComponent } from './recommended-app-card.component';
+import { SpinnerComponent } from '@sheldrapps/ui-theme';
 import { RecommendedApp, RecommendedAppCategory } from './types';
 import { openRecommendedApp } from './recommended-apps.runtime.js';
 import {
@@ -30,12 +31,14 @@ const APP_DESCRIPTION_KEYS: Record<string, keyof RecommendedAppsTranslations> = 
   'com.sheldrapps.covercreatorforkindle': 'APP_DESC_CCFK',
   'com.sheldrapps.epubcoverchanger': 'APP_DESC_ECC',
   'com.sheldrapps.epubfixer': 'APP_DESC_EF',
+  'com.sheldrapps.epubmergersplitter': 'APP_DESC_EMAS',
   'com.sheldrapps.pdfcovermaker': 'APP_DESC_PCM',
 };
 const APP_NAME_KEYS: Record<string, keyof RecommendedAppsTranslations> = {
   'com.sheldrapps.covercreatorforkindle': 'APP_NAME_CCFK',
   'com.sheldrapps.epubcoverchanger': 'APP_NAME_ECC',
   'com.sheldrapps.epubfixer': 'APP_NAME_EF',
+  'com.sheldrapps.epubmergersplitter': 'APP_NAME_EMAS',
   'com.sheldrapps.pdfcovermaker': 'APP_NAME_PCM',
 };
 
@@ -56,6 +59,7 @@ const APP_NAME_KEYS: Record<string, keyof RecommendedAppsTranslations> = {
     IonBackButton,
     IonButtons,
     RecommendedAppCardComponent,
+    SpinnerComponent,
   ],
 })
 export class RecommendedAppsPage implements OnInit {
@@ -68,7 +72,15 @@ export class RecommendedAppsPage implements OnInit {
 
   recommendedApps: RecommendedApp[] = [];
   readonly categories: readonly RecommendedAppCategory[] = ['EPUB', 'PDF'];
-  loading = true;
+  private readonly loadingState = signal(true);
+
+  get loading(): boolean {
+    return this.loadingState();
+  }
+
+  set loading(value: boolean) {
+    this.loadingState.set(value);
+  }
   private hasLoaded = false;
   private isLoadingPage = false;
 

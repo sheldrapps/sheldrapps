@@ -30,7 +30,8 @@
     "EDIT_PROJECT_OVERWRITE_DESC": "Guarda los cambios encima del archivo existente.",
     "EDIT_PROJECT_COPY": "Trabajar con una copia",
     "EDIT_PROJECT_COPY_DESC": "Conserva el archivo original y edita una copia nueva.",
-    "UPGRADE_TO_PRO": "Actualizar a Pro"
+    "UPGRADE_TO_PRO": "Actualizar a Pro",
+    "REMOVE_ADS_CTA_SUBTITLE": "Pago único • Para siempre"
   },
   "MY_EPUBS": {
     "TITLE": "Mis EPUBs",
@@ -45,6 +46,11 @@
     "LOADING_PREVIEW": "Cargando vista previa",
     "ACTION_OPEN": "Abrir EPUB",
     "ACTION_EDIT": "Editar EPUB",
+    "ACTION_RENAME": "Renombrar",
+    "RENAME_TITLE": "Renombrar EPUB",
+    "RENAME_MESSAGE": "Ingresa un nuevo nombre para el EPUB",
+    "RENAME_PLACEHOLDER": "Nombre del archivo",
+    "RENAMED": "EPUB renombrado",
     "ACTION_SHARE": "Compartir EPUB",
     "ACTION_DELETE": "Eliminar EPUB",
     "DELETE_TITLE": "¿Eliminar EPUB?",
@@ -152,6 +158,7 @@
       "MERGE_SUCCESS_BODY": "Se creó una nueva copia con el contenido de los EPUB seleccionados.",
       "SPLIT_SUCCESS_TITLE": "EPUB dividido correctamente",
       "SPLIT_SUCCESS_BODY": "Se crearon {{count}} EPUBs nuevos.",
+      "FIDELITY_WARNINGS": "La exportación es válida, pero se registraron {{count}} avisos de fidelidad.",
       "MERGE_FAILURE_TITLE": "No se pudieron unir los EPUBs",
       "MERGE_FAILURE_BODY": "No fue posible crear el EPUB final. Tus archivos originales no se modificaron.",
       "SPLIT_FAILURE_TITLE": "No se pudo dividir el EPUB",

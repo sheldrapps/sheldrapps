@@ -23,6 +23,7 @@ import { provideFileKit } from '@sheldrapps/file-kit';
 import { provideRatingKit } from '@sheldrapps/rating-kit';
 import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
 import { provideUiThemeI18n } from '@sheldrapps/ui-theme';
+import { provideLifecycleDiagnostics, provideRecoveryStore } from '@sheldrapps/lifecycle-kit';
 import {
   ADS_UNITS_ANDROID_PROD,
   ADS_UNITS_ANDROID_TEST,
@@ -35,6 +36,8 @@ const CCFK_RATING_STORAGE_KEY = 'rating.cover-creator-for-kindle';
 
 export function createBootstrapProviders(): Array<Provider | EnvironmentProviders> {
   return [
+    provideLifecycleDiagnostics({ appId: 'ccfk' }),
+    provideRecoveryStore({ appId: 'ccfk', schemaVersion: 1 }),
     provideI18nKit(
       {
         defaultLang: 'en-US',

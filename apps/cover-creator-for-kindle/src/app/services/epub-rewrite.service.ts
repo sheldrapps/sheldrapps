@@ -129,6 +129,30 @@ export class EpubRewriteService {
     return { uri: result.uri, filename: result.filename, size: result.size };
   }
 
+  async renamePublicDocument(
+    folderName: string,
+    filename: string,
+    outputName: string,
+  ): Promise<{ uri: string; filename: string; size: number }> {
+    const result = await EpubRewrite.renamePublicDocument({
+      folderName,
+      filename,
+      outputName,
+    });
+    if (
+      !result.success ||
+      !result.uri ||
+      !result.filename ||
+      typeof result.size !== 'number'
+    ) {
+      throw new EpubRewriteError(result.error ?? 'PUBLIC_RENAME_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+    return { uri: result.uri, filename: result.filename, size: result.size };
+  }
+
   async deletePublicDocument(folderName: string, filename: string): Promise<void> {
     const result = await EpubRewrite.deletePublicDocument({ folderName, filename });
     if (!result.success) throw new EpubRewriteError(result.error ?? 'PUBLIC_DELETE_FAILED', { message: result.message, stage: result.stage });

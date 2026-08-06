@@ -114,12 +114,15 @@ export class ImagePipelineService {
 
       const outW = Math.max(1, Math.round(srcW * scale));
       const outH = Math.max(1, Math.round(srcH * scale));
+      const preserveAlpha =
+        file.type.toLowerCase() === 'image/png' || /\.png$/i.test(file.name);
+      const outputMimeType = preserveAlpha ? 'image/png' : 'image/jpeg';
 
       const canvas = document.createElement('canvas');
       canvas.width = outW;
       canvas.height = outH;
 
-      const ctx = canvas.getContext('2d', { alpha: false });
+      const ctx = canvas.getContext('2d', { alpha: preserveAlpha });
       if (!ctx) return file;
 
       ctx.imageSmoothingEnabled = true;
@@ -127,13 +130,18 @@ export class ImagePipelineService {
       ctx.drawImage(bitmap, 0, 0, outW, outH);
 
       const blob: Blob | null = await new Promise((resolve) =>
-        canvas.toBlob((b) => resolve(b), 'image/jpeg', this.workingJpegQuality)
+        canvas.toBlob(
+          (b) => resolve(b),
+          outputMimeType,
+          preserveAlpha ? undefined : this.workingJpegQuality,
+        )
       );
       if (!blob) return file;
 
       const baseName = file.name.replace(/\.(png|jpg|jpeg|webp)$/i, '');
-      return new File([blob], `${baseName}_working.jpg`, {
-        type: 'image/jpeg',
+      const extension = preserveAlpha ? 'png' : 'jpg';
+      return new File([blob], `${baseName}_working.${extension}`, {
+        type: outputMimeType,
       });
     } finally {
       bitmap.close?.();

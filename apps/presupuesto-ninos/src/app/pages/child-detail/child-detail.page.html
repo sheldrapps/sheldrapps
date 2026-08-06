@@ -14,10 +14,11 @@
     </ion-toolbar>
   </ion-header>
 
-  <ion-loading
-    [isOpen]="isOpeningCropper"
-    message="Abriendo editor..."
-  ></ion-loading>
+  <sh-spinner
+    [visible]="isOpeningCropper"
+    variant="fullscreen"
+    [label]="'COMMON.LOADING' | translate"
+  ></sh-spinner>
 
   <input
     #imageInput

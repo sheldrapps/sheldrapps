@@ -30,7 +30,8 @@
     "EDIT_PROJECT_OVERWRITE_DESC": "احفظ التغييرات فوق الملف الموجود.",
     "EDIT_PROJECT_COPY": "العمل على نسخة",
     "EDIT_PROJECT_COPY_DESC": "احتفظ بالملف الأصلي وعدّل نسخة جديدة.",
-    "UPGRADE_TO_PRO": "الترقية إلى Pro"
+    "UPGRADE_TO_PRO": "الترقية إلى Pro",
+    "REMOVE_ADS_CTA_SUBTITLE": "دفعة واحدة • للأبد"
   },
   "MY_EPUBS": {
     "TITLE": "ملفاتي EPUB",
@@ -43,6 +44,11 @@
     "LOADING_PREVIEW": "جارٍ تحميل المعاينة",
     "ACTION_OPEN": "فتح EPUB",
     "ACTION_EDIT": "تحرير EPUB",
+    "ACTION_RENAME": "إعادة التسمية",
+    "RENAME_TITLE": "إعادة تسمية EPUB",
+    "RENAME_MESSAGE": "أدخل اسمًا جديدًا لملف EPUB",
+    "RENAME_PLACEHOLDER": "اسم الملف",
+    "RENAMED": "تمت إعادة تسمية EPUB",
     "ACTION_SHARE": "مشاركة EPUB",
     "ACTION_DELETE": "حذف EPUB",
     "DELETE_TITLE": "حذف EPUB؟",
@@ -119,6 +125,7 @@
       "MERGE_SUCCESS_BODY": "تم إنشاء نسخة جديدة بمحتوى EPUB المحدد.",
       "SPLIT_SUCCESS_TITLE": "تم تقسيم EPUB بنجاح",
       "SPLIT_SUCCESS_BODY": "تم إنشاء {{count}} ملفات EPUB جديدة.",
+      "FIDELITY_WARNINGS": "التصدير صالح، لكن تم تسجيل {{count}} ملاحظة حول الأمانة.",
       "MERGE_FAILURE_TITLE": "تعذر دمج ملفات EPUB",
       "MERGE_FAILURE_BODY": "تعذر إنشاء EPUB النهائي. لم يتم تعديل ملفاتك الأصلية.",
       "SPLIT_FAILURE_TITLE": "تعذر تقسيم EPUB",

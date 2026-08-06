@@ -65,9 +65,8 @@
   color: var(--app-text-secondary);
 }
 
-:host .thumb-loader ion-spinner {
-  width: 28px;
-  height: 28px;
+:host .thumb-loader sh-spinner {
+  --size: var(--app-icon-md);
 }
 
 .preview-section {

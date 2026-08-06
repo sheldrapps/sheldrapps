@@ -12,4 +12,6 @@ export const EN_US: RecommendedAppsTranslations = {
   APP_DESC_PCM: 'Create PDF covers in seconds',
   APP_NAME_EF: 'EPUB Fixer',
   APP_DESC_EF: 'Diagnose and repair common EPUB file issues',
+  APP_NAME_EMAS: 'EPUB Merger & Splitter',
+  APP_DESC_EMAS: 'Merge, organize, and split EPUB files',
 };

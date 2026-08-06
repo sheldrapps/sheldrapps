@@ -30,7 +30,8 @@
     "EDIT_PROJECT_OVERWRITE_DESC": "Save changes on top of the existing file.",
     "EDIT_PROJECT_COPY": "Work on a copy",
     "EDIT_PROJECT_COPY_DESC": "Keep the original file and edit a new copy.",
-    "UPGRADE_TO_PRO": "Upgrade to Pro"
+    "UPGRADE_TO_PRO": "Upgrade to Pro",
+    "REMOVE_ADS_CTA_SUBTITLE": "One-time payment • Forever"
   },
   "MY_EPUBS": {
     "TITLE": "My EPUBs",
@@ -45,6 +46,11 @@
     "LOADING_PREVIEW": "Loading preview",
     "ACTION_OPEN": "Open EPUB",
     "ACTION_EDIT": "Edit EPUB",
+    "ACTION_RENAME": "Rename",
+    "RENAME_TITLE": "Rename EPUB",
+    "RENAME_MESSAGE": "Enter a new name for the EPUB",
+    "RENAME_PLACEHOLDER": "File name",
+    "RENAMED": "EPUB renamed",
     "ACTION_SHARE": "Share EPUB",
     "ACTION_DELETE": "Delete EPUB",
     "DELETE_TITLE": "Delete EPUB?",
@@ -152,6 +158,7 @@
       "MERGE_SUCCESS_BODY": "A new copy with the selected EPUB content was created.",
       "SPLIT_SUCCESS_TITLE": "EPUB split successfully",
       "SPLIT_SUCCESS_BODY": "{{count}} new EPUBs were created.",
+      "FIDELITY_WARNINGS": "The export is valid, but {{count}} fidelity note(s) were recorded.",
       "MERGE_FAILURE_TITLE": "Could not merge the EPUBs",
       "MERGE_FAILURE_BODY": "The final EPUB could not be created. Your original files were not changed.",
       "SPLIT_FAILURE_TITLE": "Could not split the EPUB",

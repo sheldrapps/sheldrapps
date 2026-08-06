@@ -12,4 +12,6 @@ export const HI_IN: RecommendedAppsTranslations = {
   APP_DESC_PCM: 'PDF कवर सेकंडों में बनाएं',
   APP_NAME_EF: 'EPUB रिपेयर',
   APP_DESC_EF: 'EPUB फ़ाइलों की आम समस्याएँ जाँचें और ठीक करें',
+  APP_NAME_EMAS: 'EPUB मर्ज और स्प्लिट',
+  APP_DESC_EMAS: 'कई EPUB मिलाएँ या एक को हिस्सों में बाँटें',
 };

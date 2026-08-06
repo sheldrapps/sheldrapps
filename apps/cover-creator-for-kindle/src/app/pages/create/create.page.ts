@@ -7,6 +7,7 @@ import {
   ViewChild,
   ElementRef,
   NgZone,
+  signal,
   inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -50,9 +51,9 @@ import {
   PreviewEditingPageService,
   ImageValidationError,
   buildCompositionInputForPurpose,
-  encodeRenderedBlob,
   isArtifactReductionEnabled,
   isDitheringEnabled,
+  encodeRenderedBlob,
   renderCompositionToCanvas,
   renderCompositionToFile,
   toEditorRenderQuality,
@@ -75,7 +76,6 @@ import {
   imageOutline,
   alertCircleOutline,
   checkmarkCircle,
-  saveOutline,
   shareSocialOutline,
   closeCircleOutline,
   helpCircleOutline,
@@ -114,7 +114,9 @@ import { CoversEventsService } from '../../services/covers-events.service';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastOptions } from '@ionic/angular';
 import {
-  LoadingStateComponent,
+  SpinnerComponent,
+  RenameIconComponent,
+  ProBadgeComponent,
   SaveCoverModalComponent,
   ScrollableBarItem,
   ScrollableButtonBarComponent,
@@ -139,12 +141,17 @@ import {
   type ExportQualityMode,
 } from '@sheldrapps/export-quality-kit';
 import { TourService } from '../../shared/tour/tour.service';
+import {
+  LifecycleDiagnosticsService,
+  WorkflowRecoveryCoordinator,
+} from '@sheldrapps/lifecycle-kit';
 
 type EditorResult = {
   file: File;
   state?: CoverCropState;
   formatId?: string;
   renderedBlob?: Blob;
+  editorMasterBlob?: Blob;
   renderedMimeType?: string;
   renderedWidth?: number;
   renderedHeight?: number;
@@ -153,6 +160,20 @@ type EditorResult = {
 };
 
 type EditorSourceMode = 'image' | 'scratch';
+
+type CcfkRecoverySnapshot = {
+  workflowStep: number;
+  brandId?: string;
+  groupId?: string;
+  modelId?: string;
+  exportQualityMode: ExportQualityMode;
+  selectedImageName?: string;
+  originalImageDims?: { width: number; height: number };
+  workingImageDims?: { width: number; height: number };
+  cropState?: CoverCropState;
+  activeProjectFilename?: string;
+  lastSavedFilename?: string;
+};
 
 @Component({
   selector: 'app-create',
@@ -178,7 +199,9 @@ type EditorSourceMode = 'image' | 'scratch';
     IonPopover,
     IonSelect,
     IonSelectOption,
-    LoadingStateComponent,
+    SpinnerComponent,
+    RenameIconComponent,
+    ProBadgeComponent,
     CoverImageStateComponent,
     CoverSourceActionsComponent,
     TripleButtonComponent,
@@ -213,6 +236,8 @@ export class CreatePage implements OnInit, OnDestroy {
   private homeTour = inject(TourService);
   private ratingService = inject(RatingService);
   private appInjector = inject(Injector);
+  private readonly lifecycle = inject(LifecycleDiagnosticsService);
+  private readonly recovery = inject(WorkflowRecoveryCoordinator);
 
   readonly workflowSteps: readonly WorkflowStep[] = [
     { id: 'device', label: this.translate.instant('CREATE.STEPPER.DEVICE') },
@@ -228,7 +253,6 @@ export class CreatePage implements OnInit, OnDestroy {
       checkmarkCircle,
       closeCircleOutline,
       alertCircleOutline,
-      saveOutline,
       shareSocialOutline,
       helpCircleOutline,
       appsOutline,
@@ -247,7 +271,15 @@ export class CreatePage implements OnInit, OnDestroy {
   removeAdsPriceFormatted: string | null = null;
   removeAdsPulseActive = false;
   purchaseModalOpen = false;
-  purchaseBusy = false;
+  private readonly purchaseBusyState = signal(false);
+
+  get purchaseBusy(): boolean {
+    return this.purchaseBusyState();
+  }
+
+  set purchaseBusy(value: boolean) {
+    this.purchaseBusyState.set(value);
+  }
   isOnline = true;
 
   brands: KindleBrand[] = [];
@@ -332,14 +364,49 @@ export class CreatePage implements OnInit, OnDestroy {
   pageErrorKey?: string | null = null;
   pageErrorParams: Record<string, any> | null = null;
 
-  isPickingImage = false;
-  isExporting = false;
-  isResettingFlow = false;
+  private readonly isPickingImageState = signal(false);
+  private readonly isExportingState = signal(false);
+  private readonly isRebuildingExportQualityState = signal(false);
+  private readonly isResettingFlowState = signal(false);
+
+  get isPickingImage(): boolean {
+    return this.isPickingImageState();
+  }
+
+  set isPickingImage(value: boolean) {
+    this.isPickingImageState.set(value);
+  }
+
+  get isExporting(): boolean {
+    return this.isExportingState();
+  }
+
+  set isExporting(value: boolean) {
+    this.isExportingState.set(value);
+  }
+
+  get isRebuildingExportQuality(): boolean {
+    return this.isRebuildingExportQualityState();
+  }
+
+  set isRebuildingExportQuality(value: boolean) {
+    this.isRebuildingExportQualityState.set(value);
+  }
+
+  get isResettingFlow(): boolean {
+    return this.isResettingFlowState();
+  }
+
+  set isResettingFlow(value: boolean) {
+    this.isResettingFlowState.set(value);
+  }
   loadingMessageKey?: string;
 
   workingImageFile?: File;
   exportImageFile?: File;
   private editorRenderedBlob?: Blob;
+  private previewGenerationToken = 0;
+  private exportQualityRevision = 0;
   private readonly projectSaveState = new ProjectSaveState();
   private activeProjectFilename?: string;
   private activeProjectHistory?: EditorHistorySnapshot | null;
@@ -446,9 +513,15 @@ export class CreatePage implements OnInit, OnDestroy {
         this.lastSavedFilename = undefined;
         this.wasAutoSaved = false;
       });
+
+    this.registerRecovery();
+    await this.recovery.restore();
   }
 
   ngOnDestroy() {
+    this.lifecycle.log('Ionic.CreatePage.ngOnDestroy', {
+      workflowStep: this.workflowStep,
+    });
     this.closeInfo();
     this.closePurchaseModal();
     this.revokePreviewUrl();
@@ -492,7 +565,6 @@ export class CreatePage implements OnInit, OnDestroy {
 
   private async clearBusyUi(): Promise<void> {
     this.setBusy('none');
-    await this.flushUi();
   }
 
   compareModels(m1: KindleModel, m2: KindleModel): boolean {
@@ -1940,9 +2012,9 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   async onExportQualityModeSelect(mode: ExportQualityMode): Promise<void> {
-    await this.homeTour.completeInteraction('export-quality-select');
     const normalized = normalizeExportQualityMode(mode, this.adsRemoved);
     if (normalized !== mode) {
+      await this.homeTour.completeInteraction('export-quality-select');
       await this.openPurchaseModal();
       return;
     }
@@ -1951,18 +2023,40 @@ export class CreatePage implements OnInit, OnDestroy {
       return;
     }
 
+    const revision = ++this.exportQualityRevision;
     this.exportQualityMode = mode;
-    this.exportImageFile = undefined;
-    if (this.lastEditorRenderInfo) {
-      this.lastEditorRenderInfo = updateEditorRenderQuality(
-        this.lastEditorRenderInfo,
-        toEditorRenderQuality(this.getEffectiveExportQualityMode()),
-      );
+    this.isRebuildingExportQuality = true;
+    try {
+      await this.homeTour.completeInteraction('export-quality-select');
+      await this.invalidateEditorRenderedOutput();
+      if (revision !== this.exportQualityRevision) return;
+      if (this.lastEditorRenderInfo) {
+        this.lastEditorRenderInfo = updateEditorRenderQuality(
+          this.lastEditorRenderInfo,
+          toEditorRenderQuality(this.getEffectiveExportQualityMode()),
+        );
+      }
+      void this.applySmallWarn('editor-apply', undefined, this.lastEditorRenderInfo);
+      await this.settings.setForScope('exportQuality', {
+        exportQualityMode: mode,
+      });
+    } finally {
+      this.isRebuildingExportQuality = false;
     }
-    void this.applySmallWarn('editor-apply', undefined, this.lastEditorRenderInfo);
-    await this.settings.setForScope('exportQuality', {
-      exportQualityMode: mode,
-    });
+  }
+
+  private async invalidateEditorRenderedOutput(): Promise<void> {
+    this.previewGenerationToken += 1;
+    this.exportImageFile = undefined;
+    this.invalidateGeneratedOutputState();
+    await this.updatePreviewFromComposition();
+  }
+
+  private invalidateGeneratedOutputState(): void {
+    this.generatedEpubBytes = undefined;
+    this.generatedEpubFilename = undefined;
+    this.lastSavedFilename = undefined;
+    this.wasAutoSaved = false;
   }
 
   async onGenerate() {
@@ -2230,10 +2324,17 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   ionViewWillLeave() {
+    this.lifecycle.log('Ionic.CreatePage.ionViewWillLeave', {
+      workflowStep: this.workflowStep,
+    });
     this.closeInfo();
+    void this.recovery.save();
   }
 
   async ionViewWillEnter() {
+    this.lifecycle.log('Ionic.CreatePage.ionViewWillEnter', {
+      workflowStep: this.workflowStep,
+    });
     const openedProject = await this.tryOpenProjectFromRoute();
     if (!openedProject) {
       await this.consumeEditorResult();
@@ -2254,6 +2355,9 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   async ionViewDidEnter() {
+    this.lifecycle.log('Ionic.CreatePage.ionViewDidEnter', {
+      workflowStep: this.workflowStep,
+    });
   }
 
   private async refreshHeaderItems(): Promise<void> {
@@ -2286,12 +2390,12 @@ export class CreatePage implements OnInit, OnDestroy {
       this.isResettingFlow = true;
       this.changeDetector.detectChanges();
     });
-    await this.yieldResetTurn();
     await this.runInZone(async () => {
       try {
         await this.clearBusyUi();
         this.closeInfo();
         this.resetSelectedImage();
+        await this.recovery.clear();
         this.clearImageError();
         this.clearImageWarn();
         if (this.imageInput?.nativeElement) {
@@ -2313,16 +2417,48 @@ export class CreatePage implements OnInit, OnDestroy {
     });
   }
 
-  private async yieldResetTurn(): Promise<void> {
-    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
-      await Promise.resolve();
-      return;
-    }
-
-    await new Promise<void>((resolve) => {
-      window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(() => resolve());
-      });
+  private registerRecovery(): void {
+    this.recovery.register<CcfkRecoverySnapshot>({
+      snapshot: () => ({
+        workflowStep: this.workflowStep,
+        brandId: this.selectedBrandId,
+        groupId: this.selectedGroupId,
+        modelId: this.selectedModel?.id,
+        exportQualityMode: this.exportQualityMode,
+        selectedImageName: this.selectedImageName,
+        originalImageDims: this.originalImageDims,
+        workingImageDims: this.workingImageDims,
+        cropState: this.cropState,
+        activeProjectFilename: this.activeProjectFilename,
+        lastSavedFilename: this.lastSavedFilename,
+      }),
+      assets: () => ({
+        originalImage: this.originalImageFile,
+        workingImage: this.workingImageFile,
+      }),
+      restore: async (snapshot, assets) => {
+        const selection = this.catalog.resolveSelection(this.brands, {
+          brandId: snapshot.brandId,
+          modelId: snapshot.modelId,
+        });
+        if (selection) this.applyResolvedSelection(selection);
+        this.workflowStep = Math.max(0, Math.min(3, snapshot.workflowStep));
+        this.exportQualityMode = snapshot.exportQualityMode;
+        this.cropState = snapshot.cropState;
+        this.originalImageDims = snapshot.originalImageDims;
+        this.workingImageDims = snapshot.workingImageDims;
+        this.activeProjectFilename = snapshot.activeProjectFilename;
+        this.lastSavedFilename = snapshot.lastSavedFilename;
+        const originalImage = assets['originalImage'];
+        const workingImage = assets['workingImage'] ?? originalImage;
+        if (workingImage) {
+          this.originalImageFile = originalImage ?? workingImage;
+          this.selectedImageFile = workingImage;
+          this.workingImageFile = workingImage;
+          this.selectedImageName = snapshot.selectedImageName ?? workingImage.name;
+          this.setPreviewUrl(URL.createObjectURL(workingImage));
+        }
+      },
     });
   }
 
@@ -2362,7 +2498,7 @@ export class CreatePage implements OnInit, OnDestroy {
     this.clearImageWarn();
 
     this.workingImageFile = newFile;
-    this.editorRenderedBlob = renderedBlob;
+    this.editorRenderedBlob = result.editorMasterBlob;
     this.exportImageFile = undefined;
 
     this.generatedEpubBytes = undefined;
@@ -2399,6 +2535,7 @@ export class CreatePage implements OnInit, OnDestroy {
 
     return buildCompositionInputForPurpose({
       purpose,
+      exportSource: 'working',
       sources: {
         working: {
           file: this.workingImageFile,
@@ -2431,16 +2568,28 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   private async updatePreviewFromComposition(): Promise<void> {
+    const token = ++this.previewGenerationToken;
+    const master = this.editorRenderedBlob;
+    if (master) {
+      const qualityFile = await this.ensureExportImageFile();
+      if (!qualityFile || token !== this.previewGenerationToken) return;
+      this.setPreviewUrl(URL.createObjectURL(qualityFile));
+      return;
+    }
+
     const input = this.buildCompositionInput('preview');
     if (!input) return;
 
     const fullCanvas = await renderCompositionToCanvas(input, {
       mode: 'preview',
       outputScale: 1,
+      includePreviewCheckerboard: false,
     });
     if (!fullCanvas) return;
 
     const isDithered = this.isPreviewDithered();
+    const isPngQuality =
+      this.getSelectedExportQualityOptions().mimeType === 'image/png';
     const modalCanvas = isDithered
       ? fullCanvas
       : this.downscaleCanvas(fullCanvas, 1280, false);
@@ -2448,11 +2597,12 @@ export class CreatePage implements OnInit, OnDestroy {
     const blob: Blob | null = await new Promise((resolve) =>
       modalCanvas.toBlob(
         (bb) => resolve(bb),
-        isDithered ? 'image/png' : 'image/jpeg',
-        isDithered ? undefined : 0.9,
+        isDithered || isPngQuality ? 'image/png' : 'image/jpeg',
+        isDithered || isPngQuality ? undefined : 0.9,
       ),
     );
     if (!blob) return;
+    if (token !== this.previewGenerationToken) return;
 
     this.setPreviewUrl(URL.createObjectURL(blob));
   }
@@ -2467,29 +2617,38 @@ export class CreatePage implements OnInit, OnDestroy {
 
   private async ensureExportImageFile(): Promise<File | null> {
     if (this.exportImageFile) return this.exportImageFile;
+    const revision = this.exportQualityRevision;
 
-    if (this.editorRenderedBlob) {
-      const rendered = await encodeRenderedBlob(
-        this.editorRenderedBlob,
-        this.selectedImageName || 'cover',
-        toEditorRenderQuality(this.getEffectiveExportQualityMode()),
+    const master = this.editorRenderedBlob;
+    if (master) {
+      const quality = toEditorRenderQuality(this.exportQualityMode);
+      const file = await encodeRenderedBlob(
+        master,
+        this.selectedImageName ?? this.workingImageFile?.name ?? 'cover.png',
+        quality,
+        quality === 'high-quality' ? undefined : '#ffffff',
       );
-      if (rendered) {
-        this.exportImageFile = rendered;
-        return rendered;
-      }
+      if (!file || revision !== this.exportQualityRevision) return null;
+      this.exportImageFile = file;
+      return file;
     }
 
     const input = this.buildCompositionInput('export');
     if (!input) return null;
 
+    const selectedExportOptions = this.getSelectedExportQualityOptions();
     const file = await renderCompositionToFile(input, {
       mode: 'export',
       mimeType: this.resolveExportMimeType(),
       quality: this.resolveExportQuality(),
-      maxDimension: this.resolveExportMaxDimension(),
+      maxDimension: selectedExportOptions.maxDimension,
+      backgroundFallbackColor:
+        selectedExportOptions.mimeType === 'image/jpeg'
+          ? '#ffffff'
+          : undefined,
     });
     if (!file) return null;
+    if (revision !== this.exportQualityRevision) return null;
 
     this.exportImageFile = file;
     return file;
@@ -2510,7 +2669,7 @@ export class CreatePage implements OnInit, OnDestroy {
   private getSelectedExportQualityOptions(): ReturnType<
     typeof getCoverExportOptions
   > {
-    return getCoverExportOptions(this.getEffectiveExportQualityMode());
+    return getCoverExportOptions(this.exportQualityMode);
   }
 
   private syncAuthorizedExportQualityMode(reason: string): void {
@@ -2523,6 +2682,8 @@ export class CreatePage implements OnInit, OnDestroy {
     }
 
     this.exportQualityMode = normalized;
+    this.exportQualityRevision += 1;
+    this.invalidateEditorRenderedOutput();
     void this.settings.setForScope('exportQuality', {
       exportQualityMode: normalized,
     });

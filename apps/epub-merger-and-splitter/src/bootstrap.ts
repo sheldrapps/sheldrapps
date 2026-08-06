@@ -15,6 +15,7 @@ import {
 } from '@sheldrapps/image-workflow';
 import { provideEditorI18n } from '@sheldrapps/image-workflow/editor';
 import { provideI18nKit } from '@sheldrapps/i18n-kit';
+import { provideLifecycleDiagnostics, provideRecoveryStore } from '@sheldrapps/lifecycle-kit';
 import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
 import { provideRatingKit } from '@sheldrapps/rating-kit';
 import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
@@ -49,6 +50,8 @@ export async function bootstrapEpubMergerAndSplitterApp(): Promise<void> {
     provideIonicAngular(),
     provideRouter(routes),
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    provideLifecycleDiagnostics({ appId: 'emas' }),
+    provideRecoveryStore({ appId: 'emas', schemaVersion: 1 }),
     provideI18nKit({
       defaultLang: 'en-US',
       fallbackLang: 'en-US',

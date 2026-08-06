@@ -6,6 +6,7 @@ import {
   NgZone,
   OnDestroy,
   OnInit,
+  signal,
   inject,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -55,7 +56,15 @@ export class RemoveAdsPurchasePageComponent implements OnInit, OnDestroy {
 
   readonly state = this.page.state;
   removeAdsPriceFormatted: string | null = null;
-  purchaseBusy = false;
+  private readonly purchaseBusyState = signal(false);
+
+  get purchaseBusy(): boolean {
+    return this.purchaseBusyState();
+  }
+
+  set purchaseBusy(value: boolean) {
+    this.purchaseBusyState.set(value);
+  }
   isOnline = true;
 
   private priceSubscription?: Subscription;

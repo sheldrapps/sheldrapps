@@ -1,0 +1,42 @@
+@if (visible()) {
+  <div
+    [class]="rootClass"
+    role="status"
+    aria-live="polite"
+    [attr.aria-hidden]="hasAccessibleStatus ? null : 'true'"
+  >
+    <div class="sh-spinner__card">
+      <ion-spinner class="sh-spinner__indicator" name="crescent" aria-hidden="true"></ion-spinner>
+
+      @if (label()) {
+        <div class="sh-spinner__label">
+          {{ label() }}
+        </div>
+      }
+
+      @if (displayNotice) {
+        <div class="sh-spinner__notice">
+          {{ displayNotice }}
+        </div>
+      }
+
+      @if (displayDetail) {
+        <div class="sh-spinner__detail">
+          {{ displayDetail }}
+        </div>
+      }
+
+      @if (normalizedProgress !== null) {
+        <div
+          class="sh-spinner__progress"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          [attr.aria-valuenow]="normalizedProgress"
+        >
+          {{ normalizedProgress }}%
+        </div>
+      }
+    </div>
+  </div>
+}

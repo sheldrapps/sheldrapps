@@ -12,4 +12,6 @@ export const AR_SA: RecommendedAppsTranslations = {
   APP_DESC_PCM: 'أنشئ غلاف PDF بسرعة وعلى جهازك',
   APP_NAME_EF: 'إصلاح EPUB',
   APP_DESC_EF: 'تشخيص وإصلاح مشاكل EPUB الشائعة',
+  APP_NAME_EMAS: 'دمج وتقسيم EPUB',
+  APP_DESC_EMAS: 'ادمج ملفات EPUB أو قسّمها على جهازك',
 };

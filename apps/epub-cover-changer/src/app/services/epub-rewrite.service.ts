@@ -121,6 +121,8 @@ type PickAndPrepareEpubResult = {
   sourceSize?: number;
   sourceLastModified?: number;
   sourceMimeType?: string;
+  sourceUri?: string;
+  sourceUriPermissionPersisted?: boolean;
   workingPath?: string;
   workingName?: string;
   workingNativePath?: string;
@@ -326,6 +328,8 @@ export class EpubRewriteService {
     sourceSize: number;
     sourceLastModified: number;
     sourceMimeType: string;
+    sourceUri?: string;
+    sourceUriPermissionPersisted?: boolean;
     workingPath: string;
     workingName: string;
     workingNativePath: string;
@@ -378,6 +382,8 @@ export class EpubRewriteService {
       sourceSize: result.sourceSize ?? 0,
       sourceLastModified: result.sourceLastModified ?? Date.now(),
       sourceMimeType: result.sourceMimeType || 'application/epub+zip',
+      sourceUri: result.sourceUri,
+      sourceUriPermissionPersisted: result.sourceUriPermissionPersisted,
       workingPath: result.workingPath,
       workingName: result.workingName,
       workingNativePath: result.workingNativePath,

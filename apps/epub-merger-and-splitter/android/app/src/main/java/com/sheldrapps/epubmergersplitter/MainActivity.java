@@ -14,9 +14,12 @@ import com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 public class MainActivity extends BridgeActivity {
-    private static final String LOG_TAG = "EPUBMergerSplitter";
+    private static final String LOG_TAG = "EMAS.Lifecycle";
+    private static final String PROCESS_SESSION_ID = UUID.randomUUID().toString();
+    private final String instanceId = UUID.randomUUID().toString();
     private boolean runtimeFlagsExposed = false;
     private static final String ALIAS_PREFIX = "com.sheldrapps.epubmergersplitter.MainActivityAlias_";
     private static final String DEFAULT_ALIAS_LOCALE = "system";
@@ -37,7 +40,7 @@ public class MainActivity extends BridgeActivity {
         "ru-RU"
     );
 
-    private static final class RuntimeBridge {
+    private final class RuntimeBridge {
         private final boolean debugBuild;
 
         private RuntimeBridge(boolean debugBuild) {
@@ -47,6 +50,16 @@ public class MainActivity extends BridgeActivity {
         @JavascriptInterface
         public boolean isDebugBuild() {
             return debugBuild;
+        }
+
+        @JavascriptInterface
+        public String getLifecycleSessionId() {
+            return PROCESS_SESSION_ID;
+        }
+
+        @JavascriptInterface
+        public String getLifecycleInstanceId() {
+            return instanceId;
         }
 
         @JavascriptInterface
@@ -79,6 +92,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        logLifecycle("onCreate savedInstanceState=" + (savedInstanceState != null));
         registerPlugin(EpubRewritePlugin.class);
         super.onCreate(savedInstanceState);
         normalizeWebViewTextZoom();
@@ -88,6 +102,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onStart() {
+        logLifecycle("onStart");
         super.onStart();
         normalizeWebViewTextZoom();
         exposeRuntimeFlags();
@@ -95,9 +110,57 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onResume() {
+        logLifecycle("onResume");
         super.onResume();
         normalizeWebViewTextZoom();
         exposeRuntimeFlags();
+    }
+
+    @Override
+    public void onPause() {
+        logLifecycle("onPause");
+        super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        logLifecycle("onStop");
+        super.onStop();
+    }
+
+    @Override
+    public void onDestroy() {
+        logLifecycle("onDestroy changingConfigurations=" + isChangingConfigurations());
+        super.onDestroy();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        logLifecycle("onSaveInstanceState keys=" + outState.keySet());
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        logLifecycle("onRestoreInstanceState keys=" + savedInstanceState.keySet());
+        super.onRestoreInstanceState(savedInstanceState);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        logLifecycle("onNewIntent action=" + intent.getAction()
+            + " data=" + intent.getData()
+            + " flags=0x" + Integer.toHexString(intent.getFlags()));
+        super.onNewIntent(intent);
+        setIntent(intent);
+    }
+
+    private void logLifecycle(String event) {
+        boolean debugBuild =
+            (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+        if (debugBuild) {
+            Log.d(LOG_TAG, "session=" + PROCESS_SESSION_ID + " instance=" + instanceId + " " + event);
+        }
     }
 
     private void exposeRuntimeFlags() {

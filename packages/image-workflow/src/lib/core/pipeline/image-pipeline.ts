@@ -183,12 +183,17 @@ export async function prepareWorkingImage(
 
     const outW = Math.max(1, Math.round(srcW * scale));
     const outH = Math.max(1, Math.round(srcH * scale));
+    const sourceName = source instanceof File ? source.name : '';
+    const sourceType = (source.type || '').toLowerCase();
+    const preserveAlpha =
+      sourceType === 'image/png' || /\.png$/i.test(sourceName);
+    const outputMimeType = preserveAlpha ? 'image/png' : opts.mimeType;
 
     const canvas = document.createElement('canvas');
     canvas.width = outW;
     canvas.height = outH;
 
-    const ctx = canvas.getContext('2d', { alpha: false });
+    const ctx = canvas.getContext('2d', { alpha: preserveAlpha });
     if (!ctx) {
       if (source instanceof File) return source;
       const name = `image_${Date.now()}.jpg`;
@@ -200,7 +205,11 @@ export async function prepareWorkingImage(
     ctx.drawImage(bitmap, 0, 0, outW, outH);
 
     const blob: Blob | null = await new Promise((resolve) =>
-      canvas.toBlob((b) => resolve(b), opts.mimeType, opts.quality)
+      canvas.toBlob(
+        (b) => resolve(b),
+        outputMimeType,
+        preserveAlpha ? undefined : opts.quality,
+      )
     );
 
     if (!blob) {
@@ -209,14 +218,13 @@ export async function prepareWorkingImage(
       return new File([source], name, { type: opts.mimeType });
     }
 
-    const baseName =
-      source instanceof File
-        ? source.name.replace(/\.(png|jpg|jpeg|webp)$/i, '')
-        : `image_${Date.now()}`;
+    const baseName = sourceName
+      ? sourceName.replace(/\.(png|jpg|jpeg|webp)$/i, '')
+      : `image_${Date.now()}`;
 
-    const ext = opts.mimeType === 'image/png' ? 'png' : 'jpg';
+    const ext = outputMimeType === 'image/png' ? 'png' : 'jpg';
     return new File([blob], `${baseName}_working.${ext}`, {
-      type: opts.mimeType,
+      type: outputMimeType,
     });
   } finally {
     bitmap.close?.();

@@ -112,7 +112,7 @@ export interface ShareOptions {
   title?: string;
 
   /**
-   * Text to share
+   * Optional text accompanying the shared file
    */
   text?: string;
 

@@ -19,12 +19,14 @@
     (valueChange)="onThemeSettingsAction()"
   ></sh-selectable-button-list>
 
-  <sh-selectable-button-list
-    [value]="null"
-    [items]="removeAdsSettingsItems"
-    [showSelectedIcon]="false"
-    (valueChange)="onRemoveAdsSettingsAction()"
-  ></sh-selectable-button-list>
+  @if (!adsRemoved()) {
+    <sh-selectable-button-list
+      [value]="null"
+      [items]="removeAdsSettingsItems"
+      [showSelectedIcon]="false"
+      (valueChange)="onRemoveAdsSettingsAction()"
+    ></sh-selectable-button-list>
+  }
 
   <sh-privacy-policy-section [url]="privacyPolicyUrl"></sh-privacy-policy-section>
 
@@ -44,11 +46,11 @@
     (valueChange)="onRatingSettingsAction($event)"
   ></sh-selectable-button-list>
 
-  <ion-loading
-    [isOpen]="isLanguageRestartLoading"
-    [message]="'LANGUAGE_SETTINGS.PREPARING_COUNTDOWN' | translate:{ count: languageRestartCountdown }"
-    backdropDismiss="false"
-  ></ion-loading>
+  <sh-spinner
+    [visible]="isLanguageRestartLoading"
+    variant="fullscreen"
+    [label]="'LANGUAGE_SETTINGS.PREPARING_COUNTDOWN' | translate:{ count: languageRestartCountdown }"
+  ></sh-spinner>
 
   <ion-modal [isOpen]="isLanguageModalOpen" (didDismiss)="closeLanguageModal()">
     <ng-template>

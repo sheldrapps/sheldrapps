@@ -29,6 +29,15 @@ export const RECOMMENDED_APPS_REGISTRY: RecommendedApp[] = [
     category: 'EPUB',
   },
   {
+    appName: "EPUB Merger & Splitter",
+    packageName: "com.sheldrapps.epubmergersplitter",
+    icon: "assets/apps/emas/icon.png",
+    playStoreUrl:
+      "https://play.google.com/store/apps/details?id=com.sheldrapps.epubmergersplitter",
+    description: "Merge, organize, and split EPUB files",
+    category: 'EPUB',
+  },
+  {
     appName: "PDF Cover Maker",
     packageName: "com.sheldrapps.pdfcovermaker",
     icon: "assets/apps/pcm/icon.png",

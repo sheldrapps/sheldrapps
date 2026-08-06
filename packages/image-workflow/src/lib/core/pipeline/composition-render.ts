@@ -46,6 +46,7 @@ export interface CompositionRenderOptions {
   quality?: number;
   maxDimension?: number;
   includeBackground?: boolean;
+  includePreviewCheckerboard?: boolean;
   includeTextLayers?: boolean;
   debug?: boolean;
   debugLabel?: string;
@@ -62,11 +63,16 @@ export interface EncodedCompositionCanvas {
 export async function encodeCompositionCanvas(
   canvas: HTMLCanvasElement,
   quality: EditorRenderQuality = "recommended",
+  backgroundFallbackColor?: string,
 ): Promise<EncodedCompositionCanvas | null> {
-  const outputCanvas = quality === "thumbnail"
+  const downscaledCanvas = quality === "thumbnail"
     ? downscaleCanvas(canvas, THUMBNAIL_EXPORT_MAX_DIMENSION)
     : canvas;
   const mimeType = quality === "high-quality" ? "image/png" : "image/jpeg";
+  const outputCanvas =
+    mimeType === "image/jpeg" && backgroundFallbackColor
+      ? renderCanvasWithBackground(downscaledCanvas, backgroundFallbackColor)
+      : downscaledCanvas;
   const encodingQuality = quality === "high-quality"
     ? undefined
     : quality === "thumbnail"
@@ -89,6 +95,7 @@ export async function encodeRenderedBlob(
   blob: Blob,
   filename: string,
   quality: EditorRenderQuality = "recommended",
+  backgroundFallbackColor?: string,
 ): Promise<File | null> {
   let bitmap: ImageBitmap | null = null;
   let image: HTMLImageElement | null = null;
@@ -122,13 +129,33 @@ export async function encodeRenderedBlob(
   context.drawImage(bitmap ?? image!, 0, 0);
   bitmap?.close();
 
-  const encoded = await encodeCompositionCanvas(canvas, quality);
+  const encoded = await encodeCompositionCanvas(
+    canvas,
+    quality,
+    backgroundFallbackColor,
+  );
   if (!encoded) return null;
   const base = filename.replace(/\.(png|jpg|jpeg|webp)$/i, "") || "rendered";
   const extension = encoded.mimeType === "image/png" ? "png" : "jpg";
   return new File([encoded.blob], `${base}.${extension}`, {
     type: encoded.mimeType,
   });
+}
+
+function renderCanvasWithBackground(
+  source: HTMLCanvasElement,
+  color: string,
+): HTMLCanvasElement {
+  const output = document.createElement("canvas");
+  output.width = source.width;
+  output.height = source.height;
+  const context = output.getContext("2d");
+  if (!context) return source;
+
+  context.fillStyle = color;
+  context.fillRect(0, 0, output.width, output.height);
+  context.drawImage(source, 0, 0);
+  return output;
 }
 
 type RasterSource = ImageBitmap | HTMLImageElement;
@@ -312,7 +339,10 @@ export async function renderCompositionToCanvas(
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 
-  const shouldDrawCheckerAfter = previewMode && backgroundMode === "transparent";
+  const shouldDrawCheckerAfter =
+    previewMode &&
+    backgroundMode === "transparent" &&
+    options.includePreviewCheckerboard !== false;
   const includeBackground = options.includeBackground !== false;
 
   if (includeBackground) {

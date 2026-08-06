@@ -30,13 +30,6 @@
   min-height: var(--app-control-min-height);
 }
 
-.workflow-navigation__primary ion-spinner {
-  width: var(--app-icon-md);
-  height: var(--app-icon-md);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .workflow-navigation__primary ion-spinner {
-    animation: none;
-  }
+.workflow-navigation__primary sh-spinner {
+  --size: var(--app-icon-md);
 }

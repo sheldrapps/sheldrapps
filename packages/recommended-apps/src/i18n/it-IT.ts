@@ -12,4 +12,6 @@ export const IT_IT: RecommendedAppsTranslations = {
   APP_DESC_PCM: 'Crea copertine PDF in pochi secondi',
   APP_NAME_EF: 'Ripara EPUB',
   APP_DESC_EF: 'Diagnostica e ripara problemi comuni dei file EPUB',
+  APP_NAME_EMAS: 'Unisci e dividi EPUB',
+  APP_DESC_EMAS: 'Unisci, ordina e dividi i tuoi EPUB',
 };

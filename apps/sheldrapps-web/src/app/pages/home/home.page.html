@@ -41,8 +41,8 @@
             <div class="app-row-content">
               <h3>
                 {{ app.nameKey | translate }}
-                @if (app.badgeKey) {
-                  <span class="app-status-badge">{{ app.badgeKey | translate }}</span>
+                @if (app.comingSoon) {
+                  <span class="app-status-badge">{{ 'COMMON.COMING_SOON' | translate }}</span>
                 }
               </h3>
               <p>{{ app.descriptionKey | translate }}</p>

@@ -6,9 +6,9 @@
   </header>
   }
 
-  @if (loading) {
+  @if (loading()) {
     <div class="best-candidate-picker__state" [class.best-candidate-picker__state--compact]="compact">
-      <ion-spinner name="crescent" aria-hidden="true"></ion-spinner>
+      <sh-spinner [visible]="true" variant="indicator"></sh-spinner>
       <span>{{ 'BEST_CANDIDATE.LOADING.TITLE' | translate }}</span>
     </div>
   } @else if (!limitedCandidates.length) {

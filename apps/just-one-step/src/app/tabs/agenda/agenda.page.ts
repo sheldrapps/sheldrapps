@@ -12,6 +12,7 @@ import {
   ViewContainerRef,
   ViewEncapsulation,
   inject,
+  signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import {
@@ -26,7 +27,7 @@ import {
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
-  LoadingStateComponent,
+  SpinnerComponent,
   THEME_ACCENT_BACKGROUND_FALLBACK,
   THEME_ACCENT_COLOR_FALLBACK,
   withThemeAlpha,
@@ -259,7 +260,7 @@ const CATEGORY_COLOR_FALLBACK_PALETTE = [
     IonIcon,
     IonNote,
     TranslateModule,
-    LoadingStateComponent,
+    SpinnerComponent,
     AgendaControlsComponent,
   ],
 })
@@ -330,7 +331,15 @@ export class AgendaPage implements AfterViewInit, OnDestroy {
   currentView: AgendaViewMode = 'day';
   selectedDate = this.dateAtLocalNoon(new Date());
   scheduledTasks: PersistedTaskAggregate[] = [];
-  isLoading = false;
+  private readonly loadingState = signal(false);
+
+  get isLoading(): boolean {
+    return this.loadingState();
+  }
+
+  set isLoading(value: boolean) {
+    this.loadingState.set(value);
+  }
   loadFailed = false;
   now = new Date();
   private nowTickerId: number | null = null;

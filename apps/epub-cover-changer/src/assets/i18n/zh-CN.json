@@ -17,7 +17,7 @@
   "PAPER_GROUPS": { "ISO_216": "ISO 216", "NORTH_AMERICAN": "北美", "ISO_A_SERIES": "A 系列", "NORTH_AMERICAN_OFFICE": "北美办公规格" },
   "PAPER_PRESETS": { "A3": "A3", "A4": "A4", "A5": "A5", "A6": "A6", "LETTER": "Letter", "LEGAL": "Legal", "TABLOID": "Tabloid" },
   "RATIO_GROUPS": { "COMMON": "常用比例" },
-  "RATIO_PRESETS": { "1_1": "1:1", "2_3": "2:3", "3_4": "3:4", "4_5": "4:5", "5_7": "5:7", "5_8": "5:8", "9_16": "9:16", "CUSTOM": "自定义" },
+  "RATIO_PRESETS": { "1_1": "1:1", "2_3": "2:3", "3_4": "3:4", "4_5": "4:5", "5_7": "5:7", "5_8": "5:8", "9_16": "9:16", "16_9": "16:9", "CUSTOM": "自定义" },
   "RATIO_CUSTOM": { "TITLE": "自定义宽高比", "WIDTH": "宽度", "HEIGHT": "高度", "HELPER": "请输入 {{min}} 到 {{max}} 之间的整数。" },
   "KINDLE_BRANDS": {
     "KINDLE": "Kindle"

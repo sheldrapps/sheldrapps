@@ -12,6 +12,7 @@
   "include": [
     "src/**/*.d.ts",
     "src/**/*.ts",
+    "../../packages/lifecycle-kit/src/**/*.ts",
     "../../packages/image-workflow/src/editor/**/*.ts",
     "../../packages/image-workflow/src/lib/types/**/*.ts",
     "../../packages/image-workflow/src/lib/core/**/*.ts",

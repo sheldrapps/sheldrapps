@@ -2,6 +2,7 @@ export type UiThemeTranslations = {
   UI_THEME: {
     RESET: string;
     RESETTING: string;
+    KEEP_APP_OPEN: string;
     RESET_CONFIRMATION: string;
     UNDER_CONSTRUCTION: {
       TITLE: string;
@@ -32,6 +33,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
     UI_THEME: {
       RESET: 'Restart',
       RESETTING: 'Restarting',
+      KEEP_APP_OPEN: 'Do not close the app or switch windows.',
       RESET_CONFIRMATION: 'All files and edits will be discarded, and you will return to the start of the workflow.',
       UNDER_CONSTRUCTION: {
         TITLE: 'Under construction',
@@ -60,6 +62,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
     UI_THEME: {
       RESET: 'Reiniciar',
       RESETTING: 'Reiniciando',
+      KEEP_APP_OPEN: 'No cierres la app ni cambies de ventana.',
       RESET_CONFIRMATION: 'Se descartarán todos los archivos y ediciones, volverás al inicio del flujo.',
       UNDER_CONSTRUCTION: {
         TITLE: 'En construcción',
@@ -88,6 +91,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
     UI_THEME: {
       RESET: 'Neu starten',
       RESETTING: 'Wird neu gestartet',
+      KEEP_APP_OPEN: 'Schließe die App nicht und wechsle nicht das Fenster.',
       RESET_CONFIRMATION: 'Alle Dateien und Bearbeitungen werden verworfen. Du kehrst zum Anfang des Ablaufs zurück.',
       UNDER_CONSTRUCTION: {
         TITLE: 'Im Aufbau',
@@ -116,6 +120,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
     UI_THEME: {
       RESET: 'Redémarrer',
       RESETTING: 'Redémarrage',
+      KEEP_APP_OPEN: 'Ne fermez pas l’application et ne changez pas de fenêtre.',
       RESET_CONFIRMATION: 'Tous les fichiers et toutes les modifications seront supprimés, et vous reviendrez au début du processus.',
       UNDER_CONSTRUCTION: {
         TITLE: 'En construction',
@@ -144,6 +149,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
     UI_THEME: {
       RESET: 'Riavviare',
       RESETTING: 'Riavvio in corso',
+      KEEP_APP_OPEN: 'Non chiudere l’app e non cambiare finestra.',
       RESET_CONFIRMATION: 'Tutti i file e le modifiche verranno eliminati e tornerai all’inizio del flusso.',
       UNDER_CONSTRUCTION: {
         TITLE: 'In costruzione',
@@ -172,6 +178,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
     UI_THEME: {
       RESET: 'Reiniciar',
       RESETTING: 'Reiniciando',
+      KEEP_APP_OPEN: 'Não feche o app nem troque de janela.',
       RESET_CONFIRMATION: 'Todos os arquivos e edições serão descartados, e você voltará ao início do fluxo.',
       UNDER_CONSTRUCTION: {
         TITLE: 'Em construção',
@@ -200,6 +207,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
     UI_THEME: {
       RESET: '重新啟動',
       RESETTING: '正在重新啟動',
+      KEEP_APP_OPEN: '請勿關閉應用程式或切換視窗。',
       RESET_CONFIRMATION: '所有檔案與編輯內容都會被捨棄，你將返回流程開始處。',
       UNDER_CONSTRUCTION: {
         TITLE: '建置中',
@@ -228,6 +236,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
     UI_THEME: {
       RESET: 'पुनः आरंभ करें',
       RESETTING: 'पुनः आरंभ हो रहा है',
+      KEEP_APP_OPEN: 'ऐप बंद न करें या विंडो न बदलें।',
       RESET_CONFIRMATION: 'सभी फ़ाइलें और संपादन हटाए जाएंगे और आप वर्कफ़्लो की शुरुआत पर लौट जाएंगे।',
       UNDER_CONSTRUCTION: {
         TITLE: 'निर्माणाधीन',
@@ -256,6 +265,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
     UI_THEME: {
       RESET: 'إعادة التشغيل',
       RESETTING: 'جارٍ إعادة التشغيل',
+      KEEP_APP_OPEN: 'لا تغلق التطبيق أو تنتقل إلى نافذة أخرى.',
       RESET_CONFIRMATION: 'سيتم تجاهل جميع الملفات والتعديلات، وستعود إلى بداية سير العمل.',
       UNDER_CONSTRUCTION: {
         TITLE: 'قيد الإنشاء',
@@ -284,6 +294,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
     UI_THEME: {
       RESET: '再起動',
       RESETTING: '再起動中',
+      KEEP_APP_OPEN: 'アプリを閉じたり、ウィンドウを切り替えたりしないでください。',
       RESET_CONFIRMATION: 'すべてのファイルと編集内容が破棄され、ワークフローの最初に戻ります。',
       UNDER_CONSTRUCTION: {
         TITLE: '構築中',
@@ -312,6 +323,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
     UI_THEME: {
       RESET: '다시 시작',
       RESETTING: '다시 시작하는 중',
+      KEEP_APP_OPEN: '앱을 닫거나 창을 전환하지 마세요.',
       RESET_CONFIRMATION: '모든 파일과 편집 내용이 삭제되고 워크플로 시작으로 돌아갑니다.',
       UNDER_CONSTRUCTION: {
         TITLE: '제작 중',
@@ -340,6 +352,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
     UI_THEME: {
       RESET: '重启',
       RESETTING: '正在重启',
+      KEEP_APP_OPEN: '请勿关闭应用或切换窗口。',
       RESET_CONFIRMATION: '所有文件和编辑内容都会被丢弃，你将返回工作流开始处。',
       UNDER_CONSTRUCTION: {
         TITLE: '建设中',
@@ -368,6 +381,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
     UI_THEME: {
       RESET: 'Перезапустить',
       RESETTING: 'Перезапуск',
+      KEEP_APP_OPEN: 'Не закрывайте приложение и не переключайте окна.',
       RESET_CONFIRMATION: 'Все файлы и изменения будут удалены, и вы вернётесь к началу рабочего процесса.',
       UNDER_CONSTRUCTION: {
         TITLE: 'В разработке',

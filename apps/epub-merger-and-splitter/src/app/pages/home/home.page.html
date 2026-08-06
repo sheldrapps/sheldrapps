@@ -40,9 +40,18 @@
                 | translate:
                     (feedback.operation === 'split'
                       ? { count: feedback.outputs.length }
-                      : undefined)
+                    : undefined)
             }}
           </p>
+
+          @if (feedback.warnings.length > 0) {
+            <p class="split-confirm__summary">
+              {{
+                'HOME.OPERATION.FIDELITY_WARNINGS'
+                  | translate: { count: feedback.warnings.length }
+              }}
+            </p>
+          }
 
           <div class="split-output-card app-surface">
             <div class="field-title">
@@ -200,7 +209,7 @@
         <sh-triple-button
           mode="export-quality-mode"
           [selectedValue]="getEffectiveExportQualityMode()"
-          [isPro]="false"
+          [isPro]="adsRemoved"
           [showProBadge]="true"
           (selectedValueChange)="onTripleExportQualityModeSelect($event)"
         ></sh-triple-button>
@@ -559,18 +568,25 @@
     ></sh-workflow-navigation>
   </div>
 
-  @if (isMergeActionBusy() && operationProgress()) {
-    <sh-loading-state
-      variant="fullscreen"
-      [label]="operationProgressLabelKey | translate"
-      [detail]="operationProgressDetail"
-    ></sh-loading-state>
-  }
+  <sh-spinner
+    [visible]="isMergeActionBusy() && !!operationProgress()"
+    variant="fullscreen"
+    [label]="operationProgressLabelKey | translate"
+    [notice]="'UI_THEME.KEEP_APP_OPEN' | translate"
+    [detail]="operationProgressDetail"
+    [progress]="operationProgress()?.percent ?? null"
+  ></sh-spinner>
 
-  @if (isResettingFlow()) {
-    <sh-loading-state
-      variant="fullscreen"
-      [label]="'UI_THEME.RESETTING' | translate"
-    ></sh-loading-state>
-  }
+  <sh-spinner
+    [visible]="isPicking() || isDetectingCoverCandidates() || splitAnalysisPending() || isRebuildingExportQuality()"
+    variant="fullscreen"
+    [label]="workflowLoadingLabelKey | translate"
+    [notice]="'UI_THEME.KEEP_APP_OPEN' | translate"
+  ></sh-spinner>
+
+  <sh-spinner
+    [visible]="isResettingFlow()"
+    variant="fullscreen"
+    [label]="'UI_THEME.RESETTING' | translate"
+  ></sh-spinner>
 </ion-content>

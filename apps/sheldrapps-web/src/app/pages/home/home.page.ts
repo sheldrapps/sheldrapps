@@ -9,7 +9,7 @@ interface FeaturedApp {
   icon: string;
   playStoreUrl?: string;
   privacyRoute: string;
-  badgeKey?: string;
+  comingSoon?: boolean;
   disabled?: boolean;
 }
 
@@ -61,7 +61,7 @@ export class HomePageComponent {
       descriptionKey: 'HOME.APPS.EMS.DESCRIPTION',
       icon: 'assets/apps/epub-merger-and-splitter/icon.png',
       privacyRoute: '/privacy-policies/epub-merger-and-splitter',
-      badgeKey: 'HOME.APPS.EMS.BADGE',
+      comingSoon: true,
       disabled: true,
     },
     {

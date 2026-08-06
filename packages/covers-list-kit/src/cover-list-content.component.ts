@@ -4,6 +4,7 @@ import {
   Component,
   EventEmitter,
   Input,
+  input,
   Output,
 } from '@angular/core';
 import {
@@ -21,7 +22,7 @@ import {
   IonRow,
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
-import { LoadingStateComponent } from '@sheldrapps/ui-theme';
+import { RenameIconComponent, SpinnerComponent } from '@sheldrapps/ui-theme';
 
 export interface CoverListItem {
   filename: string;
@@ -32,6 +33,7 @@ export interface CoverListAction {
   id: string;
   labelKey: string;
   icon?: string;
+  iconSvg?: 'rename';
   hidden?: boolean | ((item: CoverListItem) => boolean);
   disabled?: boolean | ((item: CoverListItem) => boolean);
 }
@@ -59,7 +61,8 @@ export interface CoverListActionEvent {
     IonRefresher,
     IonRefresherContent,
     IonRow,
-    LoadingStateComponent,
+    SpinnerComponent,
+    RenameIconComponent,
   ],
   templateUrl: './cover-list-content.component.html',
   styleUrls: ['./cover-list-content.component.scss'],
@@ -67,7 +70,7 @@ export interface CoverListActionEvent {
 })
 export class CoverListContentComponent {
   @Input() items: CoverListItem[] = [];
-  @Input() loading = false;
+  readonly loading = input(false);
   @Input() pageErrorKey: string | null = null;
   @Input() pageErrorParams: Record<string, any> | null = null;
   @Input() noticeKey: string | null = null;

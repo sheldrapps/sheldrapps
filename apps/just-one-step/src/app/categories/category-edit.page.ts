@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, NgZone, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -17,7 +17,7 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
-import { LoadingStateComponent } from '@sheldrapps/ui-theme';
+import { SpinnerComponent } from '@sheldrapps/ui-theme';
 import {
   CategoryNameValidationError,
   CategoryNameValidationException,
@@ -49,7 +49,7 @@ import {
     IonInput,
     IonNote,
     IonButton,
-    LoadingStateComponent,
+    SpinnerComponent,
   ],
 })
 export class CategoryEditPage {
@@ -68,7 +68,15 @@ export class CategoryEditPage {
   categories: TaskCategory[] = [];
   submitAttempted = false;
   nameTouched = false;
-  isLoading = false;
+  private readonly loadingState = signal(false);
+
+  get isLoading(): boolean {
+    return this.loadingState();
+  }
+
+  set isLoading(value: boolean) {
+    this.loadingState.set(value);
+  }
   loadFailed = false;
   saveFailed = false;
   notFound = false;

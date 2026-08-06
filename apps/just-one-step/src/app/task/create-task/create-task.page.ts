@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, ViewChild, inject } from '@angular/core';
+import { Component, DestroyRef, ViewChild, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -36,6 +36,7 @@ import {
   TimePickerComponent,
 } from '@sheldrapps/datetime-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
+import { SpinnerComponent } from '@sheldrapps/ui-theme';
 import {
   addDays as addCalendarDays,
   formatCalendarDate,
@@ -141,6 +142,7 @@ interface CategorySelectionState {
     IonPopover,
     DatePickerComponent,
     TimePickerComponent,
+    SpinnerComponent,
   ],
 })
 export class CreateTaskPage {
@@ -353,7 +355,15 @@ export class CreateTaskPage {
   submitAttempted = false;
   isSaving = false;
   saveFailed = false;
-  isTaskLoading = false;
+  private readonly taskLoadingState = signal(false);
+
+  get isTaskLoading(): boolean {
+    return this.taskLoadingState();
+  }
+
+  set isTaskLoading(value: boolean) {
+    this.taskLoadingState.set(value);
+  }
   loadFailed = false;
   screenMode: TaskFormScreenMode = 'create';
   editingTaskId: string | null = null;

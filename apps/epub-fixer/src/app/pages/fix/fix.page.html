@@ -355,7 +355,7 @@
                 fill="outline"
                 (click)="onSave()"
               >
-                <ion-icon slot="start" name="save-outline"></ion-icon>
+                <sh-rename-icon slot="start"></sh-rename-icon>
                 {{ 'FIX.RENAME_ACTION' | translate }}
               </ion-button>
             </ion-col>
@@ -384,8 +384,9 @@
           class="premium-upgrade-cta"
           (click)="openPurchaseModal()"
         >
+          <sh-pro-badge slot="start"></sh-pro-badge>
           <div class="app-cta-stack">
-            <span class="app-cta-stack__title">{{ 'COMMON.REMOVE_ADS_CTA_TITLE' | translate }}</span>
+            <span class="app-cta-stack__title">{{ 'COMMON.UPGRADE_TO_PRO' | translate }}</span>
             <span class="app-cta-stack__subtitle">{{
               getRemoveAdsCtaSubtitleKey() | translate:getRemoveAdsPriceParams()
             }}</span>
@@ -431,20 +432,20 @@
       </ng-template>
     </ion-popover>
 
-    @if (isBusy) {
-      <sh-loading-state
-        variant="fullscreen"
-        [label]="loadingLabelKey | translate"
-        [detail]="loadingProgressLabel"
-      ></sh-loading-state>
-    }
+    <sh-spinner
+      [visible]="isBusy"
+      variant="fullscreen"
+      [label]="loadingLabelKey | translate"
+      [notice]="'UI_THEME.KEEP_APP_OPEN' | translate"
+      [detail]="loadingProgressLabel"
+      [progress]="busyProgressPercent"
+    ></sh-spinner>
 
-    @if (isResettingFlow) {
-      <sh-loading-state
-        variant="fullscreen"
-        [label]="'UI_THEME.RESETTING' | translate"
-      ></sh-loading-state>
-    }
+    <sh-spinner
+      [visible]="isResettingFlow"
+      variant="fullscreen"
+      [label]="'UI_THEME.RESETTING' | translate"
+    ></sh-spinner>
 
     <input
       #epubInput

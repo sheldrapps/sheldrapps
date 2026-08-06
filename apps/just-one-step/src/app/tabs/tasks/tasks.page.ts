@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, NgZone, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import {
@@ -12,7 +12,7 @@ import {
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
-  LoadingStateComponent,
+  SpinnerComponent,
   THEME_ACCENT_BACKGROUND_FALLBACK,
   THEME_ACCENT_COLOR_FALLBACK,
   withThemeAlpha,
@@ -43,7 +43,7 @@ interface TaskListView extends TaskListItem {
     IonNote,
     RouterLink,
     TranslateModule,
-    LoadingStateComponent,
+    SpinnerComponent,
   ],
 })
 export class TasksPage {
@@ -59,7 +59,15 @@ export class TasksPage {
   }
 
   tasks: TaskListView[] = [];
-  isLoading = false;
+  private readonly loadingState = signal(false);
+
+  get isLoading(): boolean {
+    return this.loadingState();
+  }
+
+  set isLoading(value: boolean) {
+    this.loadingState.set(value);
+  }
   loadFailed = false;
   deleteFailed = false;
 

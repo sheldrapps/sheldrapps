@@ -14,6 +14,7 @@ import {
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { IonButton, IonIcon } from "@ionic/angular/standalone";
+import { RenameIconComponent } from "../rename-icon/rename-icon.component";
 
 export type ScrollableBarVariant = "text" | "iconText" | "iconOnly";
 export type ScrollableBarAlign = "start" | "center";
@@ -25,6 +26,7 @@ export interface ScrollableBarItem {
   label?: string;
   labelKey?: string;
   icon?: string; // ionicon name, e.g. 'crop-outline'
+  iconSvg?: "rename";
   svg?: string; // raw svg string for custom icons
   type?: "default" | "color";
   colorHex?: string;
@@ -34,7 +36,7 @@ export interface ScrollableBarItem {
 @Component({
   selector: "sh-scrollable-button-bar",
   standalone: true,
-  imports: [CommonModule, IonButton, IonIcon],
+  imports: [CommonModule, IonButton, IonIcon, RenameIconComponent],
   templateUrl: "./scrollable-button-bar.component.html",
   styleUrls: ["./scrollable-button-bar.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -372,6 +374,7 @@ export class ScrollableButtonBarComponent
           item.label,
           item.labelKey,
           item.icon,
+          item.iconSvg,
           item.svg,
           item.type,
           item.colorHex,

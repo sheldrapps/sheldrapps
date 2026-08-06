@@ -97,20 +97,20 @@
   opacity: 0.78;
 }
 
-.triple-button__badge {
+.triple-button__option--locked {
+  flex-direction: column;
+  gap: var(--app-space-1, 4px);
+  padding-block: var(--app-space-1, 4px);
+}
+
+.triple-button__option--locked .triple-button__option-text {
+  flex: 0 1 auto;
+}
+
+.triple-button__pro-badge {
   flex: 0 0 auto;
-  margin-left: auto;
-  padding: 2px 5px;
-  border-radius: 999px;
-  color: var(--app-button-outline-text, var(--ion-color-primary));
-  background: var(
-    --app-badge-surface,
-    color-mix(in srgb, var(--ion-color-primary) 12%, transparent)
-  );
-  font-size: 0.58rem;
-  font-weight: 800;
-  line-height: 1;
-  text-transform: uppercase;
+  width: calc(var(--app-icon-size-sm, 18px) * 2.25);
+  height: var(--app-icon-size-sm, 18px);
 }
 
 @media (max-width: 430px) {

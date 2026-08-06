@@ -196,12 +196,24 @@ export interface PickAndPrepareEpubResult {
   sourceSize?: number;
   sourceLastModified?: number;
   sourceMimeType?: string;
+  sourceUri?: string;
+  sourceUriPermissionPersisted?: boolean;
   workingPath?: string;
   workingName?: string;
   workingNativePath?: string;
   outputBaseName?: string;
   coverEntryPath?: string;
   extractedCoverPath?: string;
+  error?: string;
+  message?: string;
+  stage?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
+}
+
+export interface PickAndPrepareEpubsResult {
+  success: boolean;
+  items?: PickAndPrepareEpubResult[];
   error?: string;
   message?: string;
   stage?: string;
@@ -242,6 +254,7 @@ export interface EpubMergeResult {
   outputPath?: string;
   outputName?: string;
   size?: number;
+  warnings?: string[];
   error?: string;
   message?: string;
   stage?: string;
@@ -304,6 +317,9 @@ export interface EpubRewritePlugin extends Plugin {
   pickAndPrepareEpub(
     options: PickAndPrepareEpubOptions,
   ): Promise<PickAndPrepareEpubResult>;
+  pickAndPrepareEpubs(
+    options: PickAndPrepareEpubOptions,
+  ): Promise<PickAndPrepareEpubsResult>;
   inspectEpub(options: InspectEpubOptions): Promise<InspectEpubResult>;
   diagnoseEpub(options: { sessionId: string }): Promise<DiagnoseEpubResult>;
   repairEpub(options: {

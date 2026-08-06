@@ -73,6 +73,7 @@ describe('EpubLibraryService', () => {
         'listPublicDocuments',
         'publishPublicDocument',
         'deletePublicDocument',
+        'renamePublicDocument',
       ],
     );
     fileKit = jasmine.createSpyObj<FileKitService>('FileKitService', [
@@ -116,9 +117,13 @@ describe('EpubLibraryService', () => {
       size: 3,
       copiedBytes: 3,
     });
+    epubRewrite.extractCoverAssetFile.and.resolveTo({
+      file: new File(['cover'], 'cover.jpg', { type: 'image/jpeg' }),
+    } as never);
     fileKit.makeSafeFilename.and.callFake((name, extension) =>
       name.toLowerCase().endsWith(`.${extension}`) ? name : `${name}.${extension}`,
     );
+    fileKit.toBase64.and.returnValue('Y292ZXI=');
     fileKit.delete.and.resolveTo(undefined);
 
     let libraryIndex = JSON.stringify({ schemaVersion: 1, records: [] });
@@ -166,6 +171,7 @@ describe('EpubLibraryService', () => {
         sizeBytes: 3,
         operation: 'merge',
         partIndex: 0,
+        thumbnailUri: 'data:image/jpeg;base64,Y292ZXI=',
       }),
     );
 
@@ -174,5 +180,80 @@ describe('EpubLibraryService', () => {
       jasmine.objectContaining({ filename: 'merged.epub', sizeBytes: 3 }),
     ]);
     expect(await service.listEpubs()).toEqual(['merged.epub']);
+  });
+
+  it('does not cache a transient missing-cover result', async () => {
+    epubRewrite.isSupported.and.returnValue(true);
+    epubRewrite.extractCoverAssetFile.and.rejectWith(new Error('not ready'));
+    fileKit.exists.and.resolveTo(false);
+
+    const first = await service.resolvePreviewAsset('book.epub');
+
+    epubRewrite.extractCoverAssetFile.and.resolveTo({
+      file: new File(['cover'], 'cover.jpg', { type: 'image/jpeg' }),
+    } as never);
+    fileKit.toBase64.and.returnValue('Y292ZXI=');
+
+    const second = await service.resolvePreviewAsset('book.epub');
+
+    expect(first.src).toBe('');
+    expect(second.src).toBe('data:image/jpeg;base64,Y292ZXI=');
+    expect(epubRewrite.extractCoverAssetFile).toHaveBeenCalledTimes(2);
+  });
+
+  it('renames the public EPUB and updates its library record', async () => {
+    epubRewrite.isSupported.and.returnValue(true);
+    epubRewrite.listPublicDocuments.and.resolveTo([
+      {
+        name: 'old.epub',
+        uri: 'content://media/external/file/42',
+        size: 3,
+      },
+    ]);
+    epubRewrite.renamePublicDocument.and.resolveTo();
+    fileKit.makeSafeFilename.and.callFake((name, extension) =>
+      name.toLowerCase().endsWith(`.${extension}`) ? name : `${name}.${extension}`,
+    );
+    fileKit.exists.and.callFake(async ({ path }) =>
+      path === 'EpubMergerAndSplitter/library-index.json',
+    );
+    fileKit.readBytes.and.resolveTo(
+      new TextEncoder().encode(
+        JSON.stringify({
+          schemaVersion: 1,
+          records: [
+            {
+              id: 'record-1',
+              filename: 'old.epub',
+              title: 'Old',
+              uri: 'content://media/external/file/42',
+              sizeBytes: 3,
+              createdAt: '2026-01-01T00:00:00.000Z',
+              operation: 'merge',
+              operationId: 'operation-1',
+              partIndex: 0,
+            },
+          ],
+        }),
+      ),
+    );
+    fileKit.writeBytes.and.resolveTo({
+      uri: 'file:///data/library-index.json',
+      mimeType: 'application/json',
+      filename: 'library-index.json',
+      size: 0,
+    });
+
+    const renamed = await service.renameByFilename('old.epub', 'new');
+
+    expect(renamed).toBe('new.epub');
+    expect(epubRewrite.renamePublicDocument).toHaveBeenCalledWith(
+      'EpubMergerAndSplitter',
+      'old.epub',
+      'new.epub',
+    );
+    expect(fileKit.writeBytes).toHaveBeenCalledWith(
+      jasmine.objectContaining({ path: 'EpubMergerAndSplitter/library-index.json' }),
+    );
   });
 });

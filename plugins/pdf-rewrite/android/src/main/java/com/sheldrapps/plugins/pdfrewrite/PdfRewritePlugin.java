@@ -113,6 +113,58 @@ public class PdfRewritePlugin extends Plugin {
     }
 
     @PluginMethod
+    public void renamePublicDocument(PluginCall call) {
+        try {
+            String folder = requirePublicName(call.getString("folderName"));
+            String filename = requirePublicName(call.getString("filename"));
+            String outputName = requirePublicName(call.getString("outputName"));
+            Uri collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+            Uri file;
+            try (Cursor cursor = getContext().getContentResolver().query(
+                collection,
+                new String[] { MediaStore.MediaColumns._ID },
+                MediaStore.MediaColumns.RELATIVE_PATH + "=? AND " + MediaStore.MediaColumns.DISPLAY_NAME + "=?",
+                new String[] { android.os.Environment.DIRECTORY_DOCUMENTS + "/" + folder + "/", filename },
+                null
+            )) {
+                if (cursor == null || !cursor.moveToFirst()) {
+                    call.resolve(errorResult("PUBLIC_DOCUMENT_NOT_FOUND", "public_rename"));
+                    return;
+                }
+                file = ContentUris.withAppendedId(collection, cursor.getLong(0));
+            }
+
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, outputName);
+            if (getContext().getContentResolver().update(file, values, null, null) != 1) {
+                call.resolve(errorResult("PUBLIC_RENAME_FAILED", "public_rename"));
+                return;
+            }
+
+            try (Cursor cursor = getContext().getContentResolver().query(
+                file,
+                new String[] { MediaStore.MediaColumns.SIZE },
+                null,
+                null,
+                null
+            )) {
+                if (cursor == null || !cursor.moveToFirst()) {
+                    call.resolve(errorResult("PUBLIC_RENAME_FAILED", "public_rename"));
+                    return;
+                }
+                JSObject result = new JSObject();
+                result.put("success", true);
+                result.put("uri", file.toString());
+                result.put("filename", outputName);
+                result.put("size", cursor.getLong(0));
+                call.resolve(result);
+            }
+        } catch (Exception error) {
+            call.resolve(errorResult("PUBLIC_RENAME_FAILED", "public_rename"));
+        }
+    }
+
+    @PluginMethod
     public void listPublicDocuments(PluginCall call) {
         try {
             String folder = requirePublicName(call.getString("folderName")); Uri collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY); com.getcapacitor.JSArray files = new com.getcapacitor.JSArray();

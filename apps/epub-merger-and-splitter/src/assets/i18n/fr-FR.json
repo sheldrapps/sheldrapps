@@ -30,7 +30,8 @@
     "EDIT_PROJECT_OVERWRITE_DESC": "Enregistre les changements sur le fichier existant.",
     "EDIT_PROJECT_COPY": "Travailler sur une copie",
     "EDIT_PROJECT_COPY_DESC": "Conserve le fichier original et modifie une nouvelle copie.",
-    "UPGRADE_TO_PRO": "Passer à Pro"
+    "UPGRADE_TO_PRO": "Passer à Pro",
+    "REMOVE_ADS_CTA_SUBTITLE": "Paiement unique • Pour toujours"
   },
   "MY_EPUBS": {
     "TITLE": "Mes EPUBs",
@@ -45,6 +46,11 @@
     "LOADING_PREVIEW": "Chargement de l’aperçu",
     "ACTION_OPEN": "Ouvrir l’EPUB",
     "ACTION_EDIT": "Modifier l’EPUB",
+    "ACTION_RENAME": "Renommer",
+    "RENAME_TITLE": "Renommer l’EPUB",
+    "RENAME_MESSAGE": "Saisissez un nouveau nom pour l’EPUB",
+    "RENAME_PLACEHOLDER": "Nom du fichier",
+    "RENAMED": "EPUB renommé",
     "ACTION_SHARE": "Partager l’EPUB",
     "ACTION_DELETE": "Supprimer l’EPUB",
     "DELETE_TITLE": "Supprimer l’EPUB ?",
@@ -119,6 +125,7 @@
       "MERGE_SUCCESS_BODY": "Une nouvelle copie avec le contenu des EPUB sélectionnés a été créée.",
       "SPLIT_SUCCESS_TITLE": "EPUB divisé avec succès",
       "SPLIT_SUCCESS_BODY": "{{count}} nouveaux EPUB ont été créés.",
+      "FIDELITY_WARNINGS": "L’exportation est valide, mais {{count}} remarque(s) de fidélité ont été enregistrée(s).",
       "MERGE_FAILURE_TITLE": "Impossible de fusionner les EPUB",
       "MERGE_FAILURE_BODY": "L’EPUB final n’a pas pu être créé. Vos fichiers originaux n’ont pas été modifiés.",
       "SPLIT_FAILURE_TITLE": "Impossible de diviser l’EPUB",

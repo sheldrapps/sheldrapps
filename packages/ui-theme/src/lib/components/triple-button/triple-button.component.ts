@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import type { TripleButtonMode } from '../../translations/triple-button.translations';
+import { ProBadgeComponent } from '../pro-badge/pro-badge.component';
 
 export type { TripleButtonMode } from '../../translations/triple-button.translations';
 
@@ -20,7 +21,7 @@ type TripleButtonOption = {
 @Component({
   selector: 'sh-triple-button',
   standalone: true,
-  imports: [CommonModule, TranslateModule],
+  imports: [CommonModule, ProBadgeComponent, TranslateModule],
   templateUrl: './triple-button.component.html',
   styleUrls: ['./triple-button.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

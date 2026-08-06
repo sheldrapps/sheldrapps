@@ -188,7 +188,7 @@
             (click)="onSave()"
             [class.suggested-action--active]="suggestedStepId === 'result-actions'"
           >
-            <ion-icon slot="start" name="save-outline"></ion-icon>
+            <sh-rename-icon slot="start"></sh-rename-icon>
             {{ (wasAutoSaved ? 'CHANGE.RENAME_ACTION' : 'CHANGE.SAVE_ACTION') | translate }}
           </ion-button>
         </ion-col>
@@ -219,8 +219,9 @@
       [class.premium-upgrade-cta--pulse]="removeAdsPulseActive"
       (click)="openPurchaseModal()"
     >
+      <sh-pro-badge slot="start"></sh-pro-badge>
       <div class="app-cta-stack">
-        <span class="app-cta-stack__title">{{ 'COMMON.REMOVE_ADS_CTA_TITLE' | translate }}</span>
+        <span class="app-cta-stack__title">{{ 'COMMON.UPGRADE_TO_PRO' | translate }}</span>
         <span class="app-cta-stack__subtitle">{{
           getRemoveAdsCtaSubtitleKey() | translate:getRemoveAdsPriceParams()
         }}</span>
@@ -271,27 +272,27 @@
   </ion-popover>
 
 
-  @if (showNativeLoadOverlay) {
-  <sh-loading-state
+  <sh-spinner
+    [visible]="showNativeLoadOverlay"
     variant="fullscreen"
     [label]="nativeLoadTitleKey | translate"
+    [notice]="'UI_THEME.KEEP_APP_OPEN' | translate"
     [detail]="nativeLoadPercentLabel"
-  ></sh-loading-state>
-  }
+    [progress]="isNativeRewriteInProgress ? rewriteProgressPercent : epubLoadProgressPercent"
+  ></sh-spinner>
 
-  @if (isPickingImage || (isPickingEpub && !showNativeLoadOverlay) || (isExporting && !isNativeRewriteInProgress)) {
-    <sh-loading-state
-      variant="fullscreen"
-      [label]="loadingMessage || ('COMMON.LOADING' | translate)"
-    ></sh-loading-state>
-  }
+  <sh-spinner
+    [visible]="isPickingImage || (isPickingEpub && !showNativeLoadOverlay) || (isExporting && !isNativeRewriteInProgress) || isRebuildingExportQuality"
+    variant="fullscreen"
+    [label]="loadingMessage || ('COMMON.LOADING' | translate)"
+    [notice]="'UI_THEME.KEEP_APP_OPEN' | translate"
+  ></sh-spinner>
 
-  @if (isResettingFlow) {
-    <sh-loading-state
-      variant="fullscreen"
-      [label]="'UI_THEME.RESETTING' | translate"
-    ></sh-loading-state>
-  }
+  <sh-spinner
+    [visible]="isResettingFlow"
+    variant="fullscreen"
+    [label]="'UI_THEME.RESETTING' | translate"
+  ></sh-spinner>
 
   <input
     #epubInput

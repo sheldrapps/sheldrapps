@@ -11,6 +11,11 @@
 
 <ion-content class="preview-editing-page__content" [scrollY]="true">
   @if (state(); as preview) {
+    <sh-spinner
+      [visible]="preview.loading ?? false"
+      variant="fullscreen"
+      [label]="'COMMON.LOADING' | translate"
+    ></sh-spinner>
     @if (preview.metadata; as metadata) {
       @if (metadata.name || metadata.size) {
         <div class="preview-editing-page__metadata" aria-live="polite">

@@ -29,11 +29,9 @@
             (load)="onPreviewLoad()"
             (error)="onPreviewError()"
           />
-          @if (isPreviewLoading) {
           <div class="thumb-loader" aria-hidden="true">
-            <ion-spinner name="crescent"></ion-spinner>
+            <sh-spinner [visible]="isPreviewLoading" variant="indicator"></sh-spinner>
           </div>
-          }
         </div>
         <ion-icon class="thumb-check" name="checkmark-circle"></ion-icon>
       </div>

@@ -11,10 +11,12 @@ const REQUIRED_KEYS = [
   "APP_NAME_ECC",
   "APP_NAME_PCM",
   "APP_NAME_EF",
+  "APP_NAME_EMAS",
   "APP_DESC_CCFK",
   "APP_DESC_ECC",
   "APP_DESC_PCM",
   "APP_DESC_EF",
+  "APP_DESC_EMAS",
 ];
 
 const EXPECTED = {
@@ -26,6 +28,7 @@ const EXPECTED = {
     APP_NAME_ECC: "EPUB Cover Changer",
     APP_NAME_PCM: "PDF Cover Maker",
     APP_NAME_EF: "EPUB Fixer",
+    APP_NAME_EMAS: "EPUB Merger & Splitter",
     APP_DESC_CCFK: "Create e-reader covers from your images in just a few taps.",
     APP_DESC_ECC: "Replace EPUB covers and export updated files.",
     APP_DESC_PCM: "Replace PDF covers and export updated files.",
@@ -39,6 +42,7 @@ const EXPECTED = {
     APP_NAME_ECC: "Cambiar portada a EPUB",
     APP_NAME_PCM: "Creador de Portadas PDF",
     APP_NAME_EF: "Reparar EPUB",
+    APP_NAME_EMAS: "Unir y dividir EPUB",
     APP_DESC_CCFK: "Crea portadas para e-reader desde tus imágenes en solo unos pasos.",
     APP_DESC_ECC: "Reemplaza portadas EPUB y exporta archivos actualizados.",
     APP_DESC_PCM: "Reemplaza portadas PDF y exporta archivos actualizados.",
@@ -52,6 +56,7 @@ const EXPECTED = {
     APP_NAME_ECC: "EPUB Cover ändern",
     APP_NAME_PCM: "PDF-Cover erstellen",
     APP_NAME_EF: "EPUB reparieren",
+    APP_NAME_EMAS: "EPUB zusammenfügen und teilen",
     APP_DESC_CCFK: "Erstelle E-Reader-Cover aus deinen Bildern in nur wenigen Schritten.",
     APP_DESC_ECC: "Ersetze EPUB-Cover und exportiere aktualisierte Dateien.",
     APP_DESC_PCM: "Ersetze PDF-Cover und exportiere aktualisierte Dateien.",
@@ -65,6 +70,7 @@ const EXPECTED = {
     APP_NAME_ECC: "Changer couverture EPUB",
     APP_NAME_PCM: "Créer couverture PDF",
     APP_NAME_EF: "Réparer EPUB",
+    APP_NAME_EMAS: "Fusionner et diviser EPUB",
     APP_DESC_CCFK:
       "Créez des couvertures pour e-reader à partir de vos images en quelques étapes.",
     APP_DESC_ECC:
@@ -81,6 +87,7 @@ const EXPECTED = {
     APP_NAME_ECC: "Cambiare copertina EPUB",
     APP_NAME_PCM: "Crea copertina PDF",
     APP_NAME_EF: "Ripara EPUB",
+    APP_NAME_EMAS: "Unisci e dividi EPUB",
     APP_DESC_CCFK: "Crea copertine per e-reader dalle tue immagini in pochi passaggi.",
     APP_DESC_ECC: "Sostituisci le copertine EPUB ed esporta i file aggiornati.",
     APP_DESC_PCM: "Sostituisci le copertine PDF ed esporta i file aggiornati.",
@@ -94,6 +101,7 @@ const EXPECTED = {
     APP_NAME_ECC: "Alterar capa do EPUB",
     APP_NAME_PCM: "Criar capa para PDF",
     APP_NAME_EF: "Reparar EPUB",
+    APP_NAME_EMAS: "Juntar e dividir EPUB",
     APP_DESC_CCFK: "Crie capas para e-reader a partir das suas imagens em poucos passos.",
     APP_DESC_ECC: "Substitua capas EPUB e exporte arquivos atualizados.",
     APP_DESC_PCM: "Substitua capas de PDF e exporte arquivos atualizados.",
@@ -143,7 +151,7 @@ for (const locale of Object.keys(EXPECTED)) {
       assert.match(source, valueRegex);
     }
 
-    for (const key of ["APP_DESC_CCFK", "APP_DESC_ECC", "APP_DESC_PCM", "APP_DESC_EF"]) {
+    for (const key of ["APP_DESC_CCFK", "APP_DESC_ECC", "APP_DESC_PCM", "APP_DESC_EF", "APP_DESC_EMAS"]) {
       const match = source.match(new RegExp(`\\b${key}\\s*:\\s*['\"]([^'\"]+)['\"]`, "u"));
       assert.ok(match?.[1], `${key} must have localized text`);
       assert.ok(match[1].length <= 80, `${key} must stay within Play Store short-description limit`);

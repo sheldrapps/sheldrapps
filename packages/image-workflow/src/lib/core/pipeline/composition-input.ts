@@ -76,6 +76,7 @@ export type CompositionInputSourceSet = {
 export type CompositionInputForPurposeArgs = {
   sources: CompositionInputSourceSet;
   purpose: "preview" | "export";
+  exportSource?: "working" | "original";
   target: CropTarget;
   state: CoverCropState;
   frameFallback?: FrameFallback;
@@ -284,7 +285,7 @@ export function buildCompositionInputForPurpose(
   args: CompositionInputForPurposeArgs,
 ): Omit<CompositionRenderInput, "sourceBitmap" | "sourceBitmapPromise"> | null {
   const source =
-    args.purpose === "export"
+    args.purpose === "export" && args.exportSource !== "working"
       ? args.sources.original ?? args.sources.working
       : args.sources.working;
 

@@ -17,7 +17,7 @@
   "PAPER_GROUPS": { "ISO_216": "ISO 216", "NORTH_AMERICAN": "América do Norte", "ISO_A_SERIES": "Série A", "NORTH_AMERICAN_OFFICE": "Formatos de escritório norte-americanos" },
   "PAPER_PRESETS": { "A3": "A3", "A4": "A4", "A5": "A5", "A6": "A6", "LETTER": "Carta", "LEGAL": "Ofício", "TABLOID": "Tabloide" },
   "RATIO_GROUPS": { "COMMON": "Proporções comuns" },
-  "RATIO_PRESETS": { "1_1": "1:1", "2_3": "2:3", "3_4": "3:4", "4_5": "4:5", "5_7": "5:7", "5_8": "5:8", "9_16": "9:16", "CUSTOM": "Personalizada" },
+  "RATIO_PRESETS": { "1_1": "1:1", "2_3": "2:3", "3_4": "3:4", "4_5": "4:5", "5_7": "5:7", "5_8": "5:8", "9_16": "9:16", "16_9": "16:9", "CUSTOM": "Personalizada" },
   "RATIO_CUSTOM": { "TITLE": "Proporção personalizada", "WIDTH": "Largura", "HEIGHT": "Altura", "HELPER": "Digite números inteiros de {{min}} a {{max}}." },
   "KINDLE_BRANDS": {
     "KINDLE": "Kindle"
@@ -120,9 +120,9 @@
     "REMOVE_ADS_TITLE": "Remover anúncios",
    "REMOVE_ADS_CTA_TITLE": "Remover anúncios",
     "UPGRADE_TO_PRO": "Fazer upgrade para Pro",
-    "REMOVE_ADS_CTA_SUBTITLE": "Pagamento único ⬢ Para sempre",
-    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Pagamento único ⬢ {{price}}",
-    "REMOVE_ADS_MODAL_PRICE": "Preço: {{price}} ⬢ Sem assinatura",
+    "REMOVE_ADS_CTA_SUBTITLE": "Pagamento único • Para sempre",
+    "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Pagamento único • {{price}}",
+    "REMOVE_ADS_MODAL_PRICE": "Preço: {{price}} • Sem assinatura",
     "RESTORE_ERROR": "Não foi possível restaurar a compra. Tente novamente.",
     "PRO_ONLY": "PRO",
     "WATCH_AD_SUBTITLE": "Ver anúncio",

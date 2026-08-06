@@ -8,8 +8,10 @@ import {
   computed,
   effect,
   inject,
+  signal,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { TranslateModule } from "@ngx-translate/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
   ActionSheetController,
@@ -35,7 +37,6 @@ import {
   IonListHeader,
   IonTitle,
   IonToolbar,
-  IonLoading,
   ModalController,
   ToastController,
 } from "@ionic/angular/standalone";
@@ -45,6 +46,7 @@ import {
   type CropperResult,
   ImagePipelineService,
 } from "@sheldrapps/image-workflow";
+import { SpinnerComponent } from "@sheldrapps/ui-theme";
 import { EditorSessionService } from "@sheldrapps/image-workflow/editor";
 import { addIcons } from "ionicons";
 import {
@@ -89,6 +91,7 @@ const AVATAR_FORMAT: CropFormatOption = {
   imports: [
     CommonModule,
     FormsModule,
+    TranslateModule,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -110,7 +113,7 @@ const AVATAR_FORMAT: CropFormatOption = {
     IonInput,
     IonButton,
     IonIcon,
-    IonLoading,
+    SpinnerComponent,
   ],
 })
 export class ChildDetailPage {
@@ -134,7 +137,15 @@ export class ChildDetailPage {
       this.store.children().find((item) => item.id === this.childId) ?? null,
   );
 
-  isOpeningCropper = false;
+  private readonly openingCropperState = signal(false);
+
+  get isOpeningCropper(): boolean {
+    return this.openingCropperState();
+  }
+
+  set isOpeningCropper(value: boolean) {
+    this.openingCropperState.set(value);
+  }
   private lastEditorSessionId?: string;
   private workingImageFile?: File;
   private editorSourceFile?: File;
@@ -271,6 +282,10 @@ export class ChildDetailPage {
       target: {
         width: AVATAR_FORMAT.target.width,
         height: AVATAR_FORMAT.target.height,
+      },
+      output: {
+        includeRenderedBlob: true,
+        exportQuality: "high-quality",
       },
       initialState: this.cropState,
       tools: {

@@ -12,6 +12,7 @@ import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
 import { Subscription, filter } from 'rxjs';
 import { EpubFixerSettings } from './settings/epub-fixer-settings.schema';
+import { LifecycleDiagnosticsService } from '@sheldrapps/lifecycle-kit';
 
 @Component({
   selector: 'app-root',
@@ -26,11 +27,13 @@ export class AppComponent implements OnDestroy {
   private readonly translate = inject(TranslateService);
   private readonly title = inject(Title);
   private readonly theme = inject(ThemeService);
+  private readonly lifecycle = inject(LifecycleDiagnosticsService);
 
   private navSub?: Subscription;
   private langSub?: Subscription;
 
   constructor() {
+    this.lifecycle.start();
     // Release focus before Ionic hides the previous page with aria-hidden.
     this.navSub = this.router.events
       .pipe(filter((event): event is NavigationStart => event instanceof NavigationStart))

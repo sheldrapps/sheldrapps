@@ -30,7 +30,8 @@
     "EDIT_PROJECT_OVERWRITE_DESC": "既存のファイルに変更を保存します。",
     "EDIT_PROJECT_COPY": "コピーで作業",
     "EDIT_PROJECT_COPY_DESC": "元のファイルを残して、新しいコピーを編集します。",
-    "UPGRADE_TO_PRO": "Proにアップグレード"
+    "UPGRADE_TO_PRO": "Proにアップグレード",
+    "REMOVE_ADS_CTA_SUBTITLE": "一回払い • 永久有効"
   },
   "MY_EPUBS": {
     "TITLE": "マイ EPUB",
@@ -43,6 +44,11 @@
     "LOADING_PREVIEW": "プレビューを読み込み中",
     "ACTION_OPEN": "EPUB を開く",
     "ACTION_EDIT": "EPUB を編集",
+    "ACTION_RENAME": "名前を変更",
+    "RENAME_TITLE": "EPUB の名前を変更",
+    "RENAME_MESSAGE": "EPUB の新しい名前を入力してください",
+    "RENAME_PLACEHOLDER": "ファイル名",
+    "RENAMED": "EPUB の名前を変更しました",
     "ACTION_SHARE": "EPUB を共有",
     "ACTION_DELETE": "EPUB を削除",
     "DELETE_TITLE": "EPUB を削除しますか？",
@@ -119,6 +125,7 @@
       "MERGE_SUCCESS_BODY": "選択した EPUB の内容を含む新しいコピーを作成しました。",
       "SPLIT_SUCCESS_TITLE": "EPUB を分割しました",
       "SPLIT_SUCCESS_BODY": "{{count}} 個の新しい EPUB を作成しました。",
+      "FIDELITY_WARNINGS": "エクスポートは有効ですが、忠実性に関するメモが{{count}}件記録されました。",
       "MERGE_FAILURE_TITLE": "EPUB を結合できませんでした",
       "MERGE_FAILURE_BODY": "最終 EPUB を作成できませんでした。元のファイルは変更されていません。",
       "SPLIT_FAILURE_TITLE": "EPUB を分割できませんでした",

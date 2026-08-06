@@ -127,6 +127,7 @@ export class WebEpubCoverService {
             coverPagePath,
           );
           await this.injectCoverIntoNcx(zip, opfDoc, opfPath, coverPagePath);
+          await this.injectCoverIntoNav(zip, opfDoc, opfPath, coverPagePath);
           const newOpfXml = new XMLSerializer().serializeToString(opfDoc);
           zip.file(opfPath, newOpfXml);
         }
@@ -521,6 +522,78 @@ export class WebEpubCoverService {
       ncxPath,
       shifted.slice(0, insertionPoint) + navPoint + shifted.slice(insertionPoint),
     );
+  }
+
+  private async injectCoverIntoNav(
+    zip: JSZip,
+    opfDoc: XMLDocument,
+    opfPath: string,
+    coverPagePath: string,
+  ): Promise<void> {
+    const manifest = this.firstByTagName(opfDoc, 'manifest');
+    const navItem = manifest
+      ? Array.from(manifest.children).find((child) =>
+          child.localName === 'item' &&
+          (child.getAttribute('properties') ?? '')
+            .split(/\s+/)
+            .includes('nav'),
+        )
+      : null;
+    const navHref = navItem?.getAttribute('href');
+    if (!navHref) return;
+
+    const navPath = this.resolvePath(this.dirname(opfPath), navHref);
+    const navEntry = zip.file(navPath);
+    if (!navEntry) return;
+
+    const navDoc = this.parseXml(await navEntry.async('string'));
+    if (!navDoc) return;
+
+    const navElements = Array.from(navDoc.getElementsByTagNameNS('*', 'nav'));
+    if (navElements.length === 0) {
+      navElements.push(...Array.from(navDoc.getElementsByTagName('nav')));
+    }
+    const tocNav = navElements.find((nav) => {
+      const epubType =
+        nav.getAttributeNS('http://www.idpf.org/2007/ops', 'type') ||
+        nav.getAttribute('epub:type') ||
+        '';
+      const role = nav.getAttribute('role') || '';
+      return (
+        epubType.split(/\s+/).includes('toc') ||
+        role.split(/\s+/).includes('doc-toc')
+      );
+    });
+    if (!tocNav) return;
+
+    const coverHref = this.relativePath(this.dirname(navPath), coverPagePath);
+    const anchors = Array.from(navDoc.getElementsByTagNameNS('*', 'a'));
+    if (anchors.length === 0) {
+      anchors.push(...Array.from(navDoc.getElementsByTagName('a')));
+    }
+    const existingCover = anchors.some(
+      (anchor) => anchor.getAttribute('href') === coverHref,
+    );
+    if (existingCover) return;
+
+    const list =
+      tocNav.getElementsByTagNameNS('*', 'ol').item(0) ??
+      tocNav.getElementsByTagName('ol').item(0);
+    if (!list) return;
+
+    const namespace = list.namespaceURI;
+    const listItem = namespace
+      ? navDoc.createElementNS(namespace, 'li')
+      : navDoc.createElement('li');
+    const anchor = namespace
+      ? navDoc.createElementNS(namespace, 'a')
+      : navDoc.createElement('a');
+    anchor.setAttribute('href', coverHref);
+    anchor.textContent = 'Cover';
+    listItem.appendChild(anchor);
+    list.insertBefore(listItem, list.firstElementChild);
+
+    zip.file(navPath, new XMLSerializer().serializeToString(navDoc));
   }
 
   private buildCoverXhtml(imageHref: string): string {

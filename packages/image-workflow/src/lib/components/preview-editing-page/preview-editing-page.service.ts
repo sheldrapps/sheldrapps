@@ -6,6 +6,7 @@ export type PreviewEditingPageAction = {
   id: string;
   labelKey: string;
   icon?: string;
+  iconSvg?: 'rename';
   disabled?: boolean;
   hidden?: boolean;
 };
@@ -30,6 +31,7 @@ export type PreviewEditingPageState = {
   footerActions?: PreviewEditingPageAction[];
   actionHandler?: (actionId: string) => void;
   metadata?: PreviewEditingPageMetadata | null;
+  loading?: boolean;
   returnUrl: string;
 };
 
@@ -43,9 +45,30 @@ export class PreviewEditingPageService {
       mode: 'single',
       comparisonEnabled: true,
       isDithered: false,
+      loading: false,
       titleKey: 'IMAGE_WORKFLOW.PREVIEW_TITLE',
       ...state,
     });
+  }
+
+  updateMetadataName(name: string): void {
+    const current = this.pageState();
+    if (!current) return;
+
+    this.pageState.set({
+      ...current,
+      metadata: {
+        ...current.metadata,
+        name,
+      },
+    });
+  }
+
+  setLoading(loading: boolean): void {
+    const current = this.pageState();
+    if (!current) return;
+
+    this.pageState.set({ ...current, loading });
   }
 
   clear(): void {

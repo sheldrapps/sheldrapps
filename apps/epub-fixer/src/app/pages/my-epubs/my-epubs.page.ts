@@ -6,12 +6,13 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
+  signal,
   inject,
 } from '@angular/core';
 import { App } from '@capacitor/app';
 import { type PluginListenerHandle } from '@capacitor/core';
 import { Router } from '@angular/router';
-import { AlertController, IonContent, IonHeader, IonTitle, IonToolbar, ToastController } from '@ionic/angular/standalone';
+import { AlertController, IonContent, IonHeader, IonTitle, IonToolbar, ModalController, ToastController } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { addIcons } from 'ionicons';
@@ -32,6 +33,7 @@ import {
 import { PreviewEditingPageService } from '@sheldrapps/image-workflow';
 import { CoversEventsService } from '../../services/covers-events.service';
 import { EpubLibraryService } from '../../services/epub-library.service';
+import { SaveCoverModalComponent } from '@sheldrapps/ui-theme';
 
 type UiEpubItem = {
   filename: string;
@@ -57,6 +59,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   private readonly library = inject(EpubLibraryService);
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
+  private readonly modalCtrl = inject(ModalController);
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
   private readonly previewPage = inject(PreviewEditingPageService);
@@ -66,25 +69,39 @@ export class MyEpubsPage implements OnInit, OnDestroy {
 
   @ViewChild(CoverListContentComponent) listContent?: CoverListContentComponent;
 
-  loading = true;
+  private readonly loadingState = signal(true);
+
+  get loading(): boolean {
+    return this.loadingState();
+  }
+
+  set loading(value: boolean) {
+    this.loadingState.set(value);
+  }
   items: UiEpubItem[] = [];
+  private previewFilename: string | null = null;
   pageErrorKey: string | null = null;
   pageErrorParams: Record<string, unknown> | null = null;
 
   readonly listActions: CoverListAction[] = [
     {
       id: 'open',
-      labelKey: 'MY_EPUBS.ACTION_OPEN',
+      labelKey: 'UI_THEME.ACTIONS.OPEN',
       icon: 'open-outline',
     },
     {
+      id: 'rename',
+      labelKey: 'UI_THEME.ACTIONS.RENAME',
+      iconSvg: 'rename',
+    },
+    {
       id: 'share',
-      labelKey: 'MY_EPUBS.ACTION_SHARE',
+      labelKey: 'UI_THEME.ACTIONS.SHARE',
       icon: 'share-outline',
     },
     {
       id: 'delete',
-      labelKey: 'MY_EPUBS.ACTION_DELETE',
+      labelKey: 'UI_THEME.ACTIONS.DELETE',
       icon: 'trash-outline',
     },
   ];
@@ -178,6 +195,10 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       void this.openByFilename(event.item.filename);
       return;
     }
+    if (event.actionId === 'rename') {
+      void this.renameByFilename(event.item.filename);
+      return;
+    }
     if (event.actionId === 'share') {
       void this.shareByFilename(event.item.filename);
       return;
@@ -212,7 +233,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       this.loading = false;
       ev?.target && (ev.target as any).complete();
       await this.flushUi();
-      void this.loadThumbs(items, currentToken);
+      void this.loadThumbs(items, currentToken, !!ev);
     } catch (error) {
       this.logInfo('load:failed', { error: this.errorDetails(error) });
       this.items = [];
@@ -225,7 +246,11 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     }
   }
 
-  private async loadThumbs(items: UiEpubItem[], token: number): Promise<void> {
+  private async loadThumbs(
+    items: UiEpubItem[],
+    token: number,
+    forceRefresh: boolean,
+  ): Promise<void> {
     const concurrency = 4;
     let index = 0;
 
@@ -237,8 +262,14 @@ export class MyEpubsPage implements OnInit, OnDestroy {
 
         const currentIndex = index++;
         const item = items[currentIndex];
-        const preview = await this.library.resolvePreviewAsset(item.filename);
-        item.thumbDataUrl = preview.src || undefined;
+        try {
+          const preview = await this.library.resolvePreviewAsset(item.filename, {
+            forceRefresh,
+          });
+          item.thumbDataUrl = preview.src || undefined;
+        } catch {
+          item.thumbDataUrl = undefined;
+        }
 
         if (currentIndex % 4 === 0 && token === this.loadToken) {
           this.items = [...items];
@@ -278,16 +309,20 @@ export class MyEpubsPage implements OnInit, OnDestroy {
         titleKey: 'IMAGE_WORKFLOW.PREVIEW_TITLE',
         returnUrl: '/tabs/my-epubs',
         footerActions: [
-          { id: 'open', labelKey: 'MY_EPUBS.ACTION_OPEN', icon: 'open-outline' },
-          { id: 'share', labelKey: 'MY_EPUBS.ACTION_SHARE', icon: 'share-outline' },
-          { id: 'delete', labelKey: 'MY_EPUBS.ACTION_DELETE', icon: 'trash-outline' },
+          { id: 'open', labelKey: 'UI_THEME.ACTIONS.OPEN', icon: 'open-outline' },
+          { id: 'rename', labelKey: 'UI_THEME.ACTIONS.RENAME', iconSvg: 'rename' },
+          { id: 'share', labelKey: 'UI_THEME.ACTIONS.SHARE', icon: 'share-outline' },
+          { id: 'delete', labelKey: 'UI_THEME.ACTIONS.DELETE', icon: 'trash-outline' },
         ],
         actionHandler: (actionId) => {
-          if (actionId === 'open') void this.openByFilename(filename);
-          if (actionId === 'share') void this.shareByFilename(filename);
-          if (actionId === 'delete') void this.deletePreviewByFilename(filename);
+          const currentFilename = this.previewFilename ?? filename;
+          if (actionId === 'open') void this.openByFilename(currentFilename);
+          if (actionId === 'rename') void this.renameByFilename(currentFilename, true);
+          if (actionId === 'share') void this.shareByFilename(currentFilename);
+          if (actionId === 'delete') void this.deletePreviewByFilename(currentFilename);
         },
       });
+      this.previewFilename = filename;
       await this.router.navigateByUrl('/tabs/preview-editing');
     } catch (error) {
       this.logInfo('preview:failed', { error: this.errorDetails(error) });
@@ -319,7 +354,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     }
   }
 
-  private async deleteByFilename(filename: string): Promise<void> {
+  private async deleteByFilename(filename: string): Promise<boolean> {
     this.pageErrorKey = null;
     this.pageErrorParams = null;
 
@@ -330,9 +365,11 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       });
       await this.flushUi();
       void this.showToast('MY_EPUBS.DELETED');
+      return true;
     } catch (error) {
       this.logInfo('delete:failed', { error: this.errorDetails(error) });
       this.pageErrorKey = 'MY_EPUBS.ERROR.DELETE';
+      return false;
     }
   }
 
@@ -362,12 +399,70 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     }
   }
 
+  private async renameByFilename(
+    filename: string,
+    fromPreview = false,
+  ): Promise<void> {
+    this.pageErrorKey = null;
+    this.pageErrorParams = null;
+
+    const modal = await this.modalCtrl.create({
+      component: SaveCoverModalComponent,
+      componentProps: {
+        initialFilename: filename.replace(/\.epub$/i, ''),
+        title: this.translate.instant('FIX.SAVE_RENAME_TITLE'),
+        message: this.translate.instant('FIX.SAVE_RENAME_MESSAGE'),
+        placeholder: this.translate.instant('FIX.SAVE_RENAME_PLACEHOLDER'),
+        cancelText: this.translate.instant('COMMON.CANCEL'),
+        confirmText: this.translate.instant('COMMON.DONE'),
+      },
+      initialBreakpoint: 0.6,
+      breakpoints: [0, 0.6, 1],
+    });
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss();
+    if (role !== 'confirm' || typeof data !== 'string' || !data.trim()) return;
+
+    this.loading = true;
+    this.previewPage.setLoading(fromPreview);
+    await this.flushUi();
+
+    try {
+      const renamed = await this.library.renameByFilename(filename, data.trim());
+      ++this.loadToken;
+      this.runInZone(() => {
+        this.items = this.items.map((item) =>
+          item.filename === filename ? { ...item, filename: renamed } : item,
+        );
+        if (this.previewFilename === filename) {
+          this.previewFilename = renamed;
+        }
+      });
+      this.previewPage.updateMetadataName(this.displayFilename(renamed));
+      await this.flushUi();
+      this.loading = false;
+      this.previewPage.setLoading(false);
+      await this.flushUi();
+      await this.showToast('FIX.RENAMED_OK');
+    } catch (error) {
+      this.logInfo('rename:failed', { error: this.errorDetails(error) });
+      this.pageErrorKey = 'COMMON.ERROR';
+      await this.showErrorToast(error);
+    } finally {
+      this.loading = false;
+      this.previewPage.setLoading(false);
+    }
+  }
+
   private async deletePreviewByFilename(filename: string): Promise<void> {
     if (!(await this.confirmDelete())) {
       return;
     }
 
-    await this.deleteByFilename(filename);
+    const deleted = await this.deleteByFilename(filename);
+    if (!deleted) {
+      return;
+    }
     this.previewPage.clear();
     await this.router.navigateByUrl('/tabs/my-epubs');
   }
@@ -399,6 +494,27 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       animated: true,
       translucent: true,
       cssClass: ['cc-toast', 'cc-toast--success'],
+    });
+    await toast.present();
+  }
+
+  private async showErrorToast(error: unknown): Promise<void> {
+    const details = this.errorDetails(error);
+    const detail =
+      typeof details['code'] === 'string'
+        ? details['code']
+        : typeof details['message'] === 'string'
+          ? details['message']
+          : null;
+    const toast = await this.toastCtrl.create({
+      message: [this.translate.instant('COMMON.ERROR'), detail]
+        .filter(Boolean)
+        .join(': '),
+      duration: 3200,
+      position: 'middle',
+      animated: true,
+      translucent: true,
+      cssClass: ['cc-toast', 'cc-toast--error'],
     });
     await toast.present();
   }

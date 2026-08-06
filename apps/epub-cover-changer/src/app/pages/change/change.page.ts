@@ -7,6 +7,7 @@ import {
   ViewChild,
   ElementRef,
   NgZone,
+  signal,
   inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -42,9 +43,9 @@ import {
   PreviewEditingPageService,
   ImageValidationError,
   buildCompositionInputForPurpose,
-  encodeRenderedBlob,
   isArtifactReductionEnabled,
   isDitheringEnabled,
+  encodeRenderedBlob,
   renderCompositionToCanvas,
   renderCompositionToFile,
   toEditorRenderQuality,
@@ -75,7 +76,6 @@ import {
   imageOutline,
   alertCircleOutline,
   checkmarkCircle,
-  saveOutline,
   shareSocialOutline,
   closeCircleOutline,
   helpCircleOutline,
@@ -123,7 +123,9 @@ import { SettingsStore } from '@sheldrapps/settings-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
 import {
   ActionCardComponent,
-  LoadingStateComponent,
+  SpinnerComponent,
+  RenameIconComponent,
+  ProBadgeComponent,
   SaveCoverModalComponent,
   ScrollableBarItem,
   ScrollableButtonBarComponent,
@@ -147,12 +149,18 @@ import {
 import { EccSettings } from '../../settings/ecc-settings.schema';
 import { EpubCandidateImageService } from '../../services/epub-candidate-image.service';
 import { TourService } from '../../shared/tour/tour.service';
+import { EccLifecycleDiagnosticsService } from '../../services/ecc-lifecycle-diagnostics.service';
+import {
+  EccEditorRecoveryService,
+  type EccRecoverySnapshot,
+} from '../../services/ecc-editor-recovery.service';
 
 type EditorResult = {
   file: File;
   state?: CoverCropState;
   formatId?: string;
   renderedBlob?: Blob;
+  editorMasterBlob?: Blob;
   renderedWidth?: number;
   renderedHeight?: number;
   renderInfo?: EditorRenderInfo;
@@ -182,7 +190,9 @@ type EditorSourceMode = 'image' | 'scratch';
     IonGrid,
     IonPopover,
     ActionCardComponent,
-    LoadingStateComponent,
+    SpinnerComponent,
+    RenameIconComponent,
+    ProBadgeComponent,
     CoverImageStateComponent,
     CoverSourceActionsComponent,
     ScrollableButtonBarComponent,
@@ -233,6 +243,8 @@ export class ChangePage implements OnInit, OnDestroy {
   private bestCandidateService = inject(BestCandidateService);
   private candidateImageService = inject(EpubCandidateImageService);
   private homeTour = inject(TourService);
+  private lifecycle = inject(EccLifecycleDiagnosticsService);
+  private recovery = inject(EccEditorRecoveryService);
   private appInjector = inject(Injector);
   private readonly baseTarget = { width: 1236, height: 1648 };
   private readonly baseModelId = 'epub';
@@ -298,7 +310,6 @@ export class ChangePage implements OnInit, OnDestroy {
       checkmarkCircle,
       closeCircleOutline,
       alertCircleOutline,
-      saveOutline,
       shareSocialOutline,
       helpCircleOutline,
       imageOutline,
@@ -316,7 +327,15 @@ export class ChangePage implements OnInit, OnDestroy {
   removeAdsPriceFormatted: string | null = null;
   removeAdsPulseActive = false;
   purchaseModalOpen = false;
-  purchaseBusy = false;
+  private readonly purchaseBusyState = signal(false);
+
+  get purchaseBusy(): boolean {
+    return this.purchaseBusyState();
+  }
+
+  set purchaseBusy(value: boolean) {
+    this.purchaseBusyState.set(value);
+  }
   isOnline = true;
 
   // EPUB state
@@ -324,6 +343,8 @@ export class ChangePage implements OnInit, OnDestroy {
   workingEpubFile?: File;
   workingEpubPath?: string;
   workingEpubNativePath?: string;
+  sourceEpubUri?: string;
+  sourceEpubUriPermissionPersisted = false;
   workingEpubName?: string;
   coverEntryPath?: string;
   outputBaseName?: string;
@@ -336,8 +357,6 @@ export class ChangePage implements OnInit, OnDestroy {
   selectedEpubName?: string;
   epubErrorKey?: string;
   epubErrorParams: Record<string, any> = {};
-  isPickingEpub = false;
-
   // Image state
   originalImageFile?: File;
   selectedImageFile?: File;
@@ -361,9 +380,60 @@ export class ChangePage implements OnInit, OnDestroy {
   imageWarnKey?: string;
   imageWarnParams: Record<string, any> = {};
 
-  isPickingImage = false;
-  isExporting = false;
-  isResettingFlow = false;
+  private readonly isPickingImageState = signal(false);
+  private readonly isExportingState = signal(false);
+  private readonly isRebuildingExportQualityState = signal(false);
+  private readonly isResettingFlowState = signal(false);
+  private readonly isPickingEpubState = signal(false);
+  private readonly isNativeRewriteInProgressState = signal(false);
+
+  get isPickingImage(): boolean {
+    return this.isPickingImageState();
+  }
+
+  set isPickingImage(value: boolean) {
+    this.isPickingImageState.set(value);
+  }
+
+  get isExporting(): boolean {
+    return this.isExportingState();
+  }
+
+  set isExporting(value: boolean) {
+    this.isExportingState.set(value);
+  }
+
+  get isRebuildingExportQuality(): boolean {
+    return this.isRebuildingExportQualityState();
+  }
+
+  set isRebuildingExportQuality(value: boolean) {
+    this.isRebuildingExportQualityState.set(value);
+  }
+
+  get isResettingFlow(): boolean {
+    return this.isResettingFlowState();
+  }
+
+  set isResettingFlow(value: boolean) {
+    this.isResettingFlowState.set(value);
+  }
+
+  get isPickingEpub(): boolean {
+    return this.isPickingEpubState();
+  }
+
+  set isPickingEpub(value: boolean) {
+    this.isPickingEpubState.set(value);
+  }
+
+  get isNativeRewriteInProgress(): boolean {
+    return this.isNativeRewriteInProgressState();
+  }
+
+  set isNativeRewriteInProgress(value: boolean) {
+    this.isNativeRewriteInProgressState.set(value);
+  }
   loadingMessageKey?: string;
 
   workingImageFile?: File;
@@ -385,10 +455,25 @@ export class ChangePage implements OnInit, OnDestroy {
   lastSavedFilename?: string;
   wasAutoSaved = false;
   private readonly projectSaveState = new ProjectSaveState();
-  rewriteProgressPercent = 0;
-  isNativeRewriteInProgress = false;
+  private readonly rewriteProgressPercentState = signal(0);
+
+  get rewriteProgressPercent(): number {
+    return this.rewriteProgressPercentState();
+  }
+
+  set rewriteProgressPercent(value: number) {
+    this.rewriteProgressPercentState.set(value);
+  }
   isCancellingNativeRewrite = false;
-  epubLoadProgressPercent = 0;
+  private readonly epubLoadProgressPercentState = signal(0);
+
+  get epubLoadProgressPercent(): number {
+    return this.epubLoadProgressPercentState();
+  }
+
+  set epubLoadProgressPercent(value: number) {
+    this.epubLoadProgressPercentState.set(value);
+  }
   epubLoadStage: 'copy' | 'inspect' | null = null;
 
   infoOpen = false;
@@ -405,6 +490,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private isApplyingFromEditor = false;
   private editorOpenedFromCurrentCover = false;
   private previewGenerationToken = 0;
+  private exportQualityRevision = 0;
   private currentPreviewOrigin:
     | 'source-epub'
     | 'replacement'
@@ -575,6 +661,10 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    this.lifecycle.log('ChangePage.ngOnInit', {
+      workflowStep: this.workflowStep,
+      route: this.router.url,
+    });
     await this.loadKindleModelCatalog();
     await this.initializeNativeRewriteSafetyGate();
     await this.refreshHeaderItems();
@@ -627,13 +717,21 @@ export class ChangePage implements OnInit, OnDestroy {
     if (this.usesNativeRewrite()) {
       this.rewriteProgressSub = await this.epubRewrite.addProgressListener(
         ({ percent }) => {
-          if (!this.isNativeRewriteInProgress) return;
-          this.zone.run(() => {
-            this.rewriteProgressPercent = Math.max(
-              0,
-              Math.min(100, Math.round(percent ?? 0)),
-            );
-          });
+          const normalizedPercent = Math.max(
+            0,
+            Math.min(100, Math.round(percent ?? 0)),
+          );
+          if (this.isNativeRewriteInProgress) {
+            if (this.rewriteProgressPercentState() !== normalizedPercent) {
+              this.rewriteProgressPercentState.set(normalizedPercent);
+            }
+            return;
+          }
+          if (this.isPickingEpub) {
+            if (this.epubLoadProgressPercentState() !== normalizedPercent) {
+              this.epubLoadProgressPercentState.set(normalizedPercent);
+            }
+          }
         },
       );
     }
@@ -642,6 +740,7 @@ export class ChangePage implements OnInit, OnDestroy {
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event) => {
         const url = (event as NavigationEnd).urlAfterRedirects;
+        this.lifecycle.log('ChangePage.NavigationEnd', { url });
         if (url.startsWith('/tabs/change') || url === '/change') {
           void this.consumeEditorResult();
         }
@@ -661,6 +760,12 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.lifecycle.log('ChangePage.ngOnDestroy', {
+      workflowStep: this.workflowStep,
+      hasEpub: this.hasValidEpub(),
+      hasCrop: !!this.cropState,
+      hasOutput: !!this.generatedEpubFilename,
+    });
     this.closeInfo();
     this.closePurchaseModal();
     this.clearPreviewLongPress();
@@ -677,6 +782,185 @@ export class ChangePage implements OnInit, OnDestroy {
       window.removeEventListener('offline', this.offlineHandler);
     }
     void this.rewriteProgressSub?.remove();
+    void this.persistRecoveryState('ChangePage.ngOnDestroy');
+  }
+
+  private async persistRecoveryState(reason: string): Promise<void> {
+    if (!this.workingEpubPath || !this.workingEpubName) return;
+
+    const snapshot: Omit<EccRecoverySnapshot, 'schemaVersion' | 'savedAt'> = {
+      workflowStep: this.workflowStep,
+      lastEditorSourceMode: this.lastEditorSourceMode,
+      selectedFormatId: this.selectedFormatId,
+      exportQualityMode: this.exportQualityMode,
+      targetWidth: this.targetWidth,
+      targetHeight: this.targetHeight,
+      originalImageDims: this.originalImageDims,
+      workingImageDims: this.workingImageDims,
+      selectedImageName: this.selectedImageName,
+      cropState: this.cropState,
+      sourceEpub: {
+        selectedName: this.selectedEpubName,
+        workingPath: this.workingEpubPath,
+        workingNativePath: this.workingEpubNativePath,
+        workingName: this.workingEpubName,
+        outputBaseName: this.outputBaseName,
+        coverEntryPath: this.coverEntryPath,
+        sourceUri: this.sourceEpubUri,
+        sourceUriPermissionPersisted: this.sourceEpubUriPermissionPersisted,
+        meta: this.sourceEpubMeta,
+      },
+      output: {
+        filename: this.generatedEpubFilename,
+        tempPath: this.generatedEpubPath,
+        nativePath: this.generatedEpubNativePath,
+        tempNativePath: this.generatedEpubNativePath,
+        lastSavedFilename: this.lastSavedFilename,
+        wasAutoSaved: this.wasAutoSaved,
+      },
+      processing: {
+        kind: this.isNativeRewriteInProgress
+          ? 'rewrite'
+          : this.isExporting
+            ? 'export'
+            : this.isPickingEpub
+              ? 'pick'
+              : null,
+        active: this.isNativeRewriteInProgress || this.isExporting || this.isPickingEpub,
+      },
+    };
+
+    try {
+      await this.recovery.save(snapshot, {
+        originalImage: this.originalImageFile,
+        workingImage: this.workingImageFile,
+      });
+      this.lifecycle.log('ECC.recovery.saved', {
+        reason,
+        workflowStep: this.workflowStep,
+        hasCrop: !!this.cropState,
+        hasWorkingEpub: !!this.workingEpubPath,
+        hasOutput: !!this.generatedEpubFilename,
+      });
+    } catch (error) {
+      this.lifecycle.log('ECC.recovery.save-failed', {
+        reason,
+        error: String(error),
+      });
+    }
+  }
+
+  private async restoreRecoveryState(): Promise<boolean> {
+    const recovered = await this.recovery.load();
+    if (!recovered) return false;
+
+    const { snapshot, assets } = recovered;
+    const source = snapshot.sourceEpub;
+    if (!source?.workingPath || !source.workingName) {
+      await this.recovery.clear();
+      return false;
+    }
+    if (!(await this.workingCopy.hasWorkingCopy(source.workingPath))) {
+      this.lifecycle.log('ECC.recovery.discarded', {
+        reason: 'working-epub-missing',
+        workingPath: source.workingPath,
+      });
+      await this.recovery.clear();
+      return false;
+    }
+
+    let restoredWorkingEpub: File | null = null;
+    if (!this.usesNativeRewrite()) {
+      restoredWorkingEpub = await this.workingCopy.restoreWebWorkingCopy({
+        workingPath: source.workingPath,
+        workingName: source.workingName,
+        sourceMeta: source.meta ?? {
+          name: source.selectedName ?? source.workingName,
+          size: 0,
+          lastModified: Date.now(),
+          type: 'application/epub+zip',
+        },
+      });
+      if (!restoredWorkingEpub) {
+        await this.recovery.clear();
+        return false;
+      }
+    } else if (!source.workingNativePath) {
+      await this.recovery.clear();
+      return false;
+    }
+
+    if (snapshot.workflowStep > 0 && !assets.workingImage) {
+      this.lifecycle.log('ECC.recovery.discarded', {
+        reason: 'image-asset-missing',
+        workflowStep: snapshot.workflowStep,
+      });
+      await this.recovery.clear();
+      return false;
+    }
+
+    this.sourceEpubFile = restoredWorkingEpub ?? undefined;
+    this.sourceEpubMeta = source.meta;
+    this.workingEpubFile = restoredWorkingEpub ?? undefined;
+    this.workingEpubPath = source.workingPath;
+    this.workingEpubNativePath = source.workingNativePath;
+    this.workingEpubName = source.workingName;
+    this.outputBaseName = source.outputBaseName;
+    this.selectedEpubName = source.selectedName;
+    this.sourceEpubUri = source.sourceUri;
+    this.sourceEpubUriPermissionPersisted =
+      source.sourceUriPermissionPersisted === true;
+    this.coverEntryPath = source.coverEntryPath;
+    this.originalImageFile = assets.originalImage ?? assets.workingImage;
+    this.selectedImageFile = assets.workingImage ?? assets.originalImage;
+    this.workingImageFile = assets.workingImage ?? assets.originalImage;
+    this.editorSourceFile = this.originalImageFile ?? this.workingImageFile;
+    this.selectedImageName = snapshot.selectedImageName;
+    this.originalImageDims = snapshot.originalImageDims;
+    this.workingImageDims = snapshot.workingImageDims;
+    this.cropState = snapshot.cropState;
+    this.selectedFormatId = snapshot.selectedFormatId;
+    this.exportQualityMode = normalizeExportQualityMode(
+      snapshot.exportQualityMode as ExportQualityMode,
+      this.adsRemoved,
+    );
+    this.targetWidth = snapshot.targetWidth;
+    this.targetHeight = snapshot.targetHeight;
+    this.workflowStep = Math.max(0, Math.min(3, snapshot.workflowStep));
+    this.lastEditorSourceMode = snapshot.lastEditorSourceMode;
+    this.generatedEpubBytes = undefined;
+    this.generatedEpubPath = undefined;
+    this.generatedEpubNativePath = snapshot.output?.nativePath;
+    this.generatedEpubFilename = snapshot.output?.filename;
+    this.lastSavedFilename = snapshot.output?.lastSavedFilename;
+    this.wasAutoSaved = snapshot.output?.wasAutoSaved === true;
+    this.isPickingEpub = false;
+    this.isExporting = false;
+    this.isNativeRewriteInProgress = false;
+    this.rewriteProgressPercent = 0;
+    if (this.lastSavedFilename) {
+      this.projectSaveState.setCurrentFilename(this.lastSavedFilename);
+    }
+
+    this.revokePreviewUrl();
+    this.revokeOriginalEpubPreviewUrl();
+    if (this.originalImageFile) {
+      this.setOriginalEpubPreviewUrl(this.originalImageFile);
+    }
+    if (this.workingImageFile) {
+      this.setPreviewUrl(URL.createObjectURL(this.workingImageFile));
+      await this.updatePreviewFromComposition().catch(() => undefined);
+    }
+    this.currentPreviewOrigin = this.cropState ? 'edited' : 'source-epub';
+    this.lifecycle.log('ECC.recovery.restored', {
+      workflowStep: this.workflowStep,
+      hasCrop: !!this.cropState,
+      selectedEpubName: this.selectedEpubName,
+      sourceUri: this.sourceEpubUri,
+      sourceUriPermissionPersisted: this.sourceEpubUriPermissionPersisted,
+      output: this.lastSavedFilename,
+    });
+    return true;
   }
 
   private setBusy(
@@ -712,7 +996,6 @@ export class ChangePage implements OnInit, OnDestroy {
 
   private async clearBusyUi(): Promise<void> {
     this.setBusy('none');
-    await this.flushUi();
   }
 
   private async loadKindleModelCatalog(): Promise<void> {
@@ -998,6 +1281,7 @@ export class ChangePage implements OnInit, OnDestroy {
               this.ratioPreset('two_three', 'RATIO_PRESETS.2_3', 2, 3),
               this.ratioPreset('five_eight', 'RATIO_PRESETS.5_8', 5, 8),
               this.ratioPreset('nine_sixteen', 'RATIO_PRESETS.9_16', 9, 16),
+              this.ratioPreset('sixteen_nine', 'RATIO_PRESETS.16_9', 16, 9),
               this.ratioPreset('custom_ratio', 'RATIO_PRESETS.CUSTOM', 1, 1),
             ],
           },
@@ -1080,7 +1364,7 @@ export class ChangePage implements OnInit, OnDestroy {
     if (['a3', 'a4', 'a5', 'a6', 'letter', 'legal', 'tabloid'].includes(id ?? '')) {
       return 'paper';
     }
-    if (['one_one', 'two_three', 'three_four', 'four_five', 'five_seven', 'five_eight', 'nine_sixteen', 'custom_ratio'].includes(id ?? '')) {
+    if (['one_one', 'two_three', 'three_four', 'four_five', 'five_seven', 'five_eight', 'nine_sixteen', 'sixteen_nine', 'custom_ratio'].includes(id ?? '')) {
       return 'ratio';
     }
     return 'e-reader';
@@ -1124,6 +1408,8 @@ export class ChangePage implements OnInit, OnDestroy {
           return;
         }
         this.sourceEpubFile = file;
+        this.sourceEpubUri = undefined;
+        this.sourceEpubUriPermissionPersisted = false;
         this.sourceEpubMeta = cycle.sourceMeta;
         this.workingEpubFile = cycle.workingFile;
         this.workingEpubPath = cycle.workingPath;
@@ -1230,6 +1516,9 @@ export class ChangePage implements OnInit, OnDestroy {
     this.epubLoadProgressPercent = 92;
 
     this.sourceEpubFile = undefined;
+    this.sourceEpubUri = prepared.sourceUri;
+    this.sourceEpubUriPermissionPersisted =
+      prepared.sourceUriPermissionPersisted === true;
     this.sourceEpubMeta = {
       name: prepared.selectedName,
       size: prepared.sourceSize,
@@ -1263,6 +1552,7 @@ export class ChangePage implements OnInit, OnDestroy {
       await this.activateBestCandidateFallback();
       this.epubLoadProgressPercent = 100;
       await this.homeTour.completeInteraction('epub-selected');
+      void this.persistRecoveryState('native-epub-selected-no-cover');
       return;
     }
 
@@ -1281,6 +1571,7 @@ export class ChangePage implements OnInit, OnDestroy {
       await this.activateBestCandidateFallback();
       await this.homeTour.completeInteraction('epub-selected');
     }
+    void this.persistRecoveryState('native-epub-selected');
   }
 
   private failEpub(
@@ -1296,6 +1587,8 @@ export class ChangePage implements OnInit, OnDestroy {
         ...extraParams,
       };
       this.sourceEpubFile = undefined;
+      this.sourceEpubUri = undefined;
+      this.sourceEpubUriPermissionPersisted = false;
       this.sourceEpubMeta = undefined;
       this.workingEpubFile = undefined;
       this.workingEpubPath = undefined;
@@ -1371,6 +1664,10 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private async resetWorkflowForNewEpub(waitForCleanup = true) {
+    this.lifecycle.log('ChangePage.resetWorkflowForNewEpub', {
+      waitForCleanup,
+      route: this.router.url,
+    });
     const cleanupPromise = this.cleanupWorkingCopy();
     this.resetWorkflow();
     this.lastEditorSessionId = undefined;
@@ -1385,14 +1682,24 @@ export class ChangePage implements OnInit, OnDestroy {
     this.coverEntryPath = undefined;
     this.outputBaseName = undefined;
     this.selectedEpubName = undefined;
+    this.sourceEpubUri = undefined;
+    this.sourceEpubUriPermissionPersisted = false;
     this.workingMaxSideApplied = null;
-    if (waitForCleanup) await cleanupPromise;
+    if (waitForCleanup) {
+      await cleanupPromise;
+      await this.recovery.clear();
+      return;
+    }
+
+    void cleanupPromise.catch(() => undefined);
+    void this.recovery.clear().catch(() => undefined);
   }
 
   private async cleanupWorkingCopy() {
     const paths = [this.generatedEpubPath, this.workingEpubPath].filter(
       (path): path is string => !!path,
     );
+    this.lifecycle.log('ChangePage.cleanupWorkingCopy', { paths });
 
     for (const path of new Set(paths)) {
       try {
@@ -1631,6 +1938,7 @@ export class ChangePage implements OnInit, OnDestroy {
     }
 
     this.workflowStep = 1;
+    void this.persistRecoveryState('image-source-applied');
 
     return true;
   }
@@ -1780,6 +2088,7 @@ export class ChangePage implements OnInit, OnDestroy {
     this.lastEditorSourceMode = sourceMode;
     this.lastEditorSessionId = sid;
     this.workflowStep = 2;
+    void this.persistRecoveryState('editor-opened');
     await this.homeTour.completeInteraction('editor-apply');
 
     const entryPath = sourceMode === 'scratch' ? '/editor/tools' : '/editor';
@@ -1899,7 +2208,7 @@ export class ChangePage implements OnInit, OnDestroy {
         renderedInfo?.mimeType,
       );
       this.renderedImageFile = renderedFile;
-      this.renderedImageBlob = renderedBlob;
+      this.renderedImageBlob = result.editorMasterBlob;
       this.renderedImageInfo = renderedInfo;
 
       const url = URL.createObjectURL(renderedBlob);
@@ -1919,6 +2228,7 @@ export class ChangePage implements OnInit, OnDestroy {
     } finally {
       this.isApplyingFromEditor = false;
       await this.homeTour.completeInteraction('editor-apply');
+      void this.persistRecoveryState('editor-result-applied');
     }
   }
 
@@ -1940,6 +2250,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
     return buildCompositionInputForPurpose({
       purpose,
+      exportSource: 'working',
       sources: {
         working: {
           file: workingFile,
@@ -1979,19 +2290,33 @@ export class ChangePage implements OnInit, OnDestroy {
 
   private async updatePreviewFromComposition(): Promise<void> {
     if (this.isApplyingFromEditor) return;
-    if (this.renderedImageBlob) return;
     const token = ++this.previewGenerationToken;
+    const master = this.renderedImageBlob;
+    if (master) {
+      const qualityFile = await this.ensureExportImageFile();
+      if (!qualityFile || token !== this.previewGenerationToken) return;
+      const url = URL.createObjectURL(qualityFile);
+      this.setPreviewUrl(url);
+      const thumb = await this.buildThumbFromBlob(qualityFile, ChangePage.THUMB_SIZE);
+      if (token !== this.previewGenerationToken) return;
+      this.setPreviewThumbUrl(thumb ?? url);
+      return;
+    }
+
     const input = this.buildCompositionInput('preview');
     if (!input) return;
 
     const baseCanvas = await renderCompositionToCanvas(input, {
       mode: 'preview',
       outputScale: 1,
+      includePreviewCheckerboard: false,
       debugLabel: 'ECC_PREVIEW',
     });
     if (!baseCanvas) return;
 
     const isDithered = this.isPreviewDithered();
+    const isPngQuality =
+      this.getSelectedCoverExportOptions()?.mimeType === 'image/png';
     const modalCanvas = isDithered
       ? baseCanvas
       : this.downscaleCanvas(baseCanvas, ChangePage.PREVIEW_MAX_SIDE, false);
@@ -1999,8 +2324,8 @@ export class ChangePage implements OnInit, OnDestroy {
     const blob: Blob | null = await new Promise((resolve) =>
       modalCanvas.toBlob(
         (bb) => resolve(bb),
-        isDithered ? 'image/png' : 'image/jpeg',
-        isDithered ? undefined : 0.9,
+        isDithered || isPngQuality ? 'image/png' : 'image/jpeg',
+        isDithered || isPngQuality ? undefined : 0.9,
       ),
     );
     if (!blob) return;
@@ -2016,17 +2341,20 @@ export class ChangePage implements OnInit, OnDestroy {
 
   private async ensureExportImageFile(): Promise<File | null> {
     if (this.exportImageFile) return this.exportImageFile;
+    const revision = this.exportQualityRevision;
 
-    if (this.renderedImageBlob) {
-      const rendered = await encodeRenderedBlob(
-        this.renderedImageBlob,
-        this.selectedImageName || 'cover',
-        toEditorRenderQuality(this.getEffectiveExportQualityMode()),
+    const master = this.renderedImageBlob;
+    if (master) {
+      const quality = toEditorRenderQuality(this.exportQualityMode);
+      const file = await encodeRenderedBlob(
+        master,
+        this.selectedImageName ?? this.workingImageFile?.name ?? 'cover.png',
+        quality,
+        quality === 'high-quality' ? undefined : '#ffffff',
       );
-      if (rendered) {
-        this.exportImageFile = rendered;
-        return rendered;
-      }
+      if (!file || revision !== this.exportQualityRevision) return null;
+      this.exportImageFile = file;
+      return file;
     }
 
     const input = this.buildCompositionInput('export');
@@ -2045,6 +2373,7 @@ export class ChangePage implements OnInit, OnDestroy {
           : undefined,
     });
     if (!file) return null;
+    if (revision !== this.exportQualityRevision) return null;
 
     this.exportImageFile = file;
     return file;
@@ -2075,7 +2404,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private getSelectedCoverExportOptions(): ReturnType<
     typeof getCoverExportOptions
   > | null {
-    return getCoverExportOptions(this.getEffectiveExportQualityMode());
+    return getCoverExportOptions(this.exportQualityMode);
   }
 
   private resolveInputImageMimeType(): 'image/png' | 'image/jpeg' | null {
@@ -2508,7 +2837,12 @@ export class ChangePage implements OnInit, OnDestroy {
       const dy = (size - dh) / 2;
       ctx.clearRect(0, 0, size, size);
       ctx.drawImage(canvas, dx, dy, dw, dh);
-      return thumb.toDataURL('image/jpeg', 0.82);
+      return thumb.toDataURL(
+        this.getSelectedCoverExportOptions()?.mimeType === 'image/png'
+          ? 'image/png'
+          : 'image/jpeg',
+        0.82,
+      );
     } catch {
       return null;
     }
@@ -3275,7 +3609,7 @@ export class ChangePage implements OnInit, OnDestroy {
   canSaveShare(): boolean {
     const hasGeneratedOutput = this.usesNativeRewrite()
       ? !!(this.generatedEpubPath || this.lastSavedFilename)
-      : !!this.generatedEpubBytes;
+      : !!(this.generatedEpubBytes || this.lastSavedFilename);
 
     return (
       this.canExport() &&
@@ -3304,9 +3638,9 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   async onExportQualityModeSelect(mode: ExportQualityMode): Promise<void> {
-    await this.homeTour.completeInteraction('export-quality-select');
     const normalized = normalizeExportQualityMode(mode, this.adsRemoved);
     if (normalized !== mode) {
+      await this.homeTour.completeInteraction('export-quality-select');
       await this.openPurchaseModal();
       return;
     }
@@ -3315,19 +3649,36 @@ export class ChangePage implements OnInit, OnDestroy {
       return;
     }
 
+    const revision = ++this.exportQualityRevision;
     this.exportQualityMode = mode;
-    this.exportImageFile = undefined;
-    if (this.lastEditorRenderInfo) {
-      this.lastEditorRenderInfo = updateEditorRenderQuality(
-        this.lastEditorRenderInfo,
-        toEditorRenderQuality(this.getEffectiveExportQualityMode()),
-      );
+    this.isRebuildingExportQuality = true;
+    try {
+      await this.homeTour.completeInteraction('export-quality-select');
+      await this.invalidateEditorRenderedOutput();
+      if (revision !== this.exportQualityRevision) return;
+      if (this.lastEditorRenderInfo) {
+        this.lastEditorRenderInfo = updateEditorRenderQuality(
+          this.lastEditorRenderInfo,
+          toEditorRenderQuality(this.getEffectiveExportQualityMode()),
+        );
+      }
+      void this.applySmallWarn('editor-apply', undefined, this.lastEditorRenderInfo);
+      this.invalidateGeneratedOutputState();
+      await this.settings.setForScope('exportQuality', {
+        exportQualityMode: mode,
+      });
+      void this.persistRecoveryState('export-quality-changed');
+    } finally {
+      this.isRebuildingExportQuality = false;
     }
-    void this.applySmallWarn('editor-apply', undefined, this.lastEditorRenderInfo);
-    this.invalidateGeneratedOutputState();
-    await this.settings.setForScope('exportQuality', {
-      exportQualityMode: mode,
-    });
+  }
+
+  private async invalidateEditorRenderedOutput(): Promise<void> {
+    this.previewGenerationToken += 1;
+    this.renderedImageInfo = undefined;
+    this.renderedImageFile = undefined;
+    this.exportImageFile = undefined;
+    await this.updatePreviewFromComposition();
   }
 
   private syncAuthorizedExportQualityMode(reason: string): void {
@@ -3340,11 +3691,13 @@ export class ChangePage implements OnInit, OnDestroy {
     }
 
     this.exportQualityMode = normalized;
-    this.exportImageFile = undefined;
+    this.exportQualityRevision += 1;
+    this.invalidateEditorRenderedOutput();
     this.invalidateGeneratedOutputState();
     void this.settings.setForScope('exportQuality', {
       exportQualityMode: normalized,
     });
+    void this.persistRecoveryState(`export-quality-normalized:${reason}`);
   }
 
   shouldShowDitheringHint(): boolean {
@@ -3353,6 +3706,11 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async onGenerate() {
     if (!this.canGenerate()) return;
+    this.lifecycle.log('ChangePage.onGenerate', {
+      workflowStep: this.workflowStep,
+      hasEpub: this.hasValidEpub(),
+      hasCrop: !!this.cropState,
+    });
     this.setBusy('export', 'CHANGE.GENERATING');
     try {
       if (!this.adsRemoved) {
@@ -3387,7 +3745,9 @@ export class ChangePage implements OnInit, OnDestroy {
           }
 
           if (adsService) {
+            this.lifecycle.log('AdMob.rewarded.requested');
             const result: RewardedAdResult = await adsService.showRewarded();
+            this.lifecycle.log('AdMob.rewarded.resolved', result);
             const shouldFallback =
               result.failed || (!result.rewardEarned && !result.adClosed);
 
@@ -3540,6 +3900,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
     this.wasAutoSaved = true;
     this.lastSavedFilename = saved.filename;
+    void this.persistRecoveryState('web-output-saved');
 
     await this.zone.run(async () => {
       await this.showToast(
@@ -3948,6 +4309,7 @@ export class ChangePage implements OnInit, OnDestroy {
       this.wasAutoSaved = true;
       this.lastSavedFilename = outputTarget.filename;
       this.projectSaveState.setCurrentFilename(outputTarget.filename);
+      void this.persistRecoveryState('native-output-saved');
 
       await this.showToast(
         'CHANGE.COVER_CHANGED',
@@ -4300,16 +4662,45 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   ionViewWillLeave() {
+    this.lifecycle.log('ChangePage.ionViewWillLeave', {
+      workflowStep: this.workflowStep,
+      route: this.router.url,
+    });
     this.closeInfo();
+    void this.persistRecoveryState('ionViewWillLeave');
   }
 
   async ionViewWillEnter() {
+    this.lifecycle.log('ChangePage.ionViewWillEnter.before', {
+      workflowStep: this.workflowStep,
+      hasEpub: this.hasValidEpub(),
+      route: this.router.url,
+    });
     const openedProject = await this.tryOpenProjectFromRoute();
-    if (!openedProject) {
+    const restoredRecovery =
+      !openedProject && !this.hasValidEpub()
+        ? await this.restoreRecoveryState()
+        : false;
+    if (!openedProject && !restoredRecovery) {
       await this.consumeEditorResult();
     }
     await this.tryOpenPurchaseFromRoute();
     void this.refreshHeaderItems();
+    this.lifecycle.log('ChangePage.ionViewWillEnter.after', {
+      openedProject,
+      restoredRecovery,
+      workflowStep: this.workflowStep,
+      hasEpub: this.hasValidEpub(),
+      route: this.router.url,
+    });
+  }
+
+  ionViewDidEnter() {
+    this.lifecycle.log('ChangePage.ionViewDidEnter', {
+      workflowStep: this.workflowStep,
+      hasEpub: this.hasValidEpub(),
+      route: this.router.url,
+    });
   }
 
   private async tryOpenPurchaseFromRoute(): Promise<void> {
@@ -4352,13 +4743,13 @@ export class ChangePage implements OnInit, OnDestroy {
       this.isResettingFlow = true;
       this.changeDetector.detectChanges();
     });
-    await this.yieldResetTurn();
     await this.runInZone(async () => {
       try {
+        await this.clearBusyUi();
         if (this.isNativeRewriteInProgress && !this.isCancellingNativeRewrite) {
           await this.cancelNativeRewrite().catch(() => undefined);
         }
-        await this.resetWorkflowForNewEpub();
+        await this.resetWorkflowForNewEpub(false);
         if (this.epubInput?.nativeElement) {
           this.epubInput.nativeElement.value = '';
         }
@@ -4366,19 +4757,6 @@ export class ChangePage implements OnInit, OnDestroy {
         this.isResettingFlow = false;
         this.changeDetector.detectChanges();
       }
-    });
-  }
-
-  private async yieldResetTurn(): Promise<void> {
-    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
-      await Promise.resolve();
-      return;
-    }
-
-    await new Promise<void>((resolve) => {
-      window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(() => resolve());
-      });
     });
   }
 

@@ -30,7 +30,8 @@
     "EDIT_PROJECT_OVERWRITE_DESC": "Сохранить изменения поверх существующего файла.",
     "EDIT_PROJECT_COPY": "Работать с копией",
     "EDIT_PROJECT_COPY_DESC": "Оставить оригинал и редактировать новую копию.",
-    "UPGRADE_TO_PRO": "Перейти на Pro"
+    "UPGRADE_TO_PRO": "Перейти на Pro",
+    "REMOVE_ADS_CTA_SUBTITLE": "Разовый платёж • Навсегда"
   },
   "MY_EPUBS": {
     "TITLE": "Мои EPUB",
@@ -43,6 +44,11 @@
     "LOADING_PREVIEW": "Загрузка предпросмотра",
     "ACTION_OPEN": "Открыть EPUB",
     "ACTION_EDIT": "Редактировать EPUB",
+    "ACTION_RENAME": "Переименовать",
+    "RENAME_TITLE": "Переименовать EPUB",
+    "RENAME_MESSAGE": "Введите новое имя для EPUB",
+    "RENAME_PLACEHOLDER": "Имя файла",
+    "RENAMED": "EPUB переименован",
     "ACTION_SHARE": "Поделиться EPUB",
     "ACTION_DELETE": "Удалить EPUB",
     "DELETE_TITLE": "Удалить EPUB?",
@@ -119,6 +125,7 @@
       "MERGE_SUCCESS_BODY": "Создана новая копия с содержимым выбранных EPUB.",
       "SPLIT_SUCCESS_TITLE": "EPUB успешно разделён",
       "SPLIT_SUCCESS_BODY": "Создано новых EPUB: {{count}}.",
+      "FIDELITY_WARNINGS": "Экспорт корректен, но записано замечаний о сохранности: {{count}}.",
       "MERGE_FAILURE_TITLE": "Не удалось объединить EPUB",
       "MERGE_FAILURE_BODY": "Не удалось создать итоговый EPUB. Исходные файлы не были изменены.",
       "SPLIT_FAILURE_TITLE": "Не удалось разделить EPUB",

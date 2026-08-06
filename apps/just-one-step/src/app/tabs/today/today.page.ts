@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, NgZone, inject } from "@angular/core";
+import { ChangeDetectorRef, Component, NgZone, inject, signal } from "@angular/core";
 import { Router } from "@angular/router";
 import {
   IonButton,
@@ -11,7 +11,7 @@ import {
 } from "@ionic/angular/standalone";
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
 import {
-  LoadingStateComponent,
+  SpinnerComponent,
   THEME_ACCENT_BACKGROUND_FALLBACK,
   THEME_ACCENT_COLOR_FALLBACK,
   withThemeAlpha,
@@ -128,7 +128,7 @@ const TODAY_QUOTES: ReadonlyArray<readonly [string, string]> = [
     IonIcon,
     IonNote,
     TranslateModule,
-    LoadingStateComponent,
+    SpinnerComponent,
     TodayMotivationalCopyComponent,
     TodayNowSectionComponent,
     TodayTasksSectionComponent,
@@ -142,7 +142,15 @@ export class TodayPage {
   private readonly zone = inject(NgZone);
   private readonly changeDetector = inject(ChangeDetectorRef);
 
-  isLoading = false;
+  private readonly loadingState = signal(false);
+
+  get isLoading(): boolean {
+    return this.loadingState();
+  }
+
+  set isLoading(value: boolean) {
+    this.loadingState.set(value);
+  }
   loadFailed = false;
 
   nowCard: TodayNowCard | null = null;

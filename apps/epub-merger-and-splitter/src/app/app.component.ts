@@ -4,6 +4,7 @@ import { Title } from '@angular/platform-browser';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { TranslateService } from '@ngx-translate/core';
 import { Subscription, filter } from 'rxjs';
+import { LifecycleDiagnosticsService } from '@sheldrapps/lifecycle-kit';
 
 @Component({
   selector: 'app-root',
@@ -15,6 +16,7 @@ export class AppComponent implements OnDestroy {
   private readonly router: Router;
   private readonly translate: TranslateService;
   private readonly title: Title;
+  private readonly lifecycle: LifecycleDiagnosticsService;
 
   private navSub?: Subscription;
   private langSub?: Subscription;
@@ -23,6 +25,8 @@ export class AppComponent implements OnDestroy {
     this.router = inject(Router);
     this.translate = inject(TranslateService);
     this.title = inject(Title);
+    this.lifecycle = inject(LifecycleDiagnosticsService);
+    this.lifecycle.start();
     // Release focus before Ionic hides the previous page with aria-hidden.
     this.navSub = this.router.events
       .pipe(filter((event): event is NavigationStart => event instanceof NavigationStart))

@@ -26,6 +26,7 @@
     "@capacitor-community/admob": "^8.0.0",
     "@ionic/angular": "^8.8.14",
     "@ngx-translate/core": "^17.0.0",
+    "@sheldrapps/ui-theme": "workspace:*",
     "@sheldrapps/settings-kit": "workspace:*",
     "rxjs": "~7.8.0"
   },

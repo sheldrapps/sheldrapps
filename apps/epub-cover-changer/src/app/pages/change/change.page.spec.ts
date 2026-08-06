@@ -3,6 +3,57 @@ import { ChangePage } from './change.page';
 import { Capacitor } from '@capacitor/core';
 
 describe('ChangePage', () => {
+  it('keeps the selected best mode as PNG while billing state is reconciling', () => {
+    const ctx = {
+      exportQualityMode: 'best' as const,
+      adsRemoved: false,
+    };
+
+    const options = (
+      ChangePage as unknown as {
+        prototype: {
+          getSelectedCoverExportOptions: (this: typeof ctx) => {
+            mimeType: string;
+          } | null;
+        };
+      }
+    ).prototype.getSelectedCoverExportOptions.call(ctx);
+
+    expect(options?.mimeType).toBe('image/png');
+  });
+
+  it('rebuilds from the composition when changing export quality', () => {
+    const updatePreviewFromComposition = jasmine.createSpy(
+      'updatePreviewFromComposition',
+    );
+    const ctx = {
+      previewGenerationToken: 0,
+      renderedImageBlob: new Blob(['master'], { type: 'image/png' }),
+      renderedImageFile: new File(['rendered'], 'cover.jpg', {
+        type: 'image/jpeg',
+      }),
+      renderedImageInfo: { width: 100, height: 100, mimeType: 'image/jpeg' },
+      exportImageFile: new File(['export'], 'cover.jpg', {
+        type: 'image/jpeg',
+      }),
+      updatePreviewFromComposition,
+    };
+
+    (
+      ChangePage as unknown as {
+        prototype: {
+          invalidateEditorRenderedOutput: (this: typeof ctx) => void;
+        };
+      }
+    ).prototype.invalidateEditorRenderedOutput.call(ctx);
+
+    expect(ctx.renderedImageBlob?.type).toBe('image/png');
+    expect(ctx.renderedImageFile).toBeUndefined();
+    expect(ctx.renderedImageInfo).toBeUndefined();
+    expect(ctx.exportImageFile).toBeUndefined();
+    expect(updatePreviewFromComposition).toHaveBeenCalled();
+  });
+
   it('uses PNG export for premium lossless mode', () => {
     const ctx = {
       adsRemoved: true,

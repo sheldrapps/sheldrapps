@@ -27,9 +27,7 @@
       </ion-note>
     }
 
-    @if (isLoading) {
-      <sh-loading-state variant="inline" [label]="'COMMON.LOADING' | translate"></sh-loading-state>
-    }
+    <sh-spinner [visible]="isLoading" variant="inline" [label]="'COMMON.LOADING' | translate"></sh-spinner>
 
     @if (!isLoading && tasks.length === 0) {
       <ion-note class="tasks-state-note">{{ 'TASKS.PLACEHOLDER' | translate }}</ion-note>

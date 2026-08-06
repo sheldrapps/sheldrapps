@@ -12,9 +12,7 @@
     @if (notFound) {
       <ion-note color="danger">{{ 'CATEGORY_FORM.ERROR_NOT_FOUND' | translate }}</ion-note>
     } @else {
-      @if (isLoading) {
-        <sh-loading-state variant="inline" [label]="'COMMON.LOADING' | translate"></sh-loading-state>
-      }
+      <sh-spinner [visible]="isLoading" variant="inline" [label]="'COMMON.LOADING' | translate"></sh-spinner>
 
       @if (!isLoading) {
         <form [formGroup]="form" (ngSubmit)="submit()" novalidate>

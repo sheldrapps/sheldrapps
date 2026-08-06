@@ -16,6 +16,7 @@ import { provideAdsKit, provideAdsKitI18n } from '@sheldrapps/ads-kit';
 import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
 import { provideUiThemeI18n } from '@sheldrapps/ui-theme';
 import { provideEditorI18n } from '@sheldrapps/image-workflow/editor';
+import { provideLifecycleDiagnostics, provideRecoveryStore } from '@sheldrapps/lifecycle-kit';
 import { environment } from '../environments/environment';
 import {
   ADS_UNITS_ANDROID_PROD,
@@ -35,6 +36,8 @@ export async function createBootstrapProviders(): Promise<
   Array<EnvironmentProviders | Provider>
 > {
   const providers: Array<EnvironmentProviders | Provider> = [
+    provideLifecycleDiagnostics({ appId: 'ef' }),
+    provideRecoveryStore({ appId: 'ef', schemaVersion: 1 }),
     provideI18nKit({
       defaultLang: 'en-US',
       fallbackLang: 'en-US',

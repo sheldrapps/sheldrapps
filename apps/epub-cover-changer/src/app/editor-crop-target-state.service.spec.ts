@@ -59,6 +59,14 @@ const config: CropTargetsConfig = {
             outputMode: 'aspect-only',
           },
           {
+            id: 'sixteen_nine',
+            i18nKey: 'RATIO_PRESETS.16_9',
+            width: 16,
+            height: 9,
+            unit: 'ratio',
+            outputMode: 'aspect-only',
+          },
+          {
             id: 'custom_ratio',
             i18nKey: 'RATIO_PRESETS.CUSTOM',
             width: 1,
@@ -115,6 +123,22 @@ describe('EditorCropTargetStateService', () => {
     expect(service.effectiveTarget()?.width).toBe(1);
     expect(service.effectiveTarget()?.height).toBe(1);
     expect(service.orientation()).toBe('portrait');
+  });
+
+  it('supports the 16:9 ratio preset', () => {
+    const service = new EditorCropTargetStateService();
+    service.initFromTools({ cropTargets: config });
+    service.setActiveCategory('ratio');
+    service.selectPreset('sixteen_nine');
+
+    expect(service.effectiveTarget()).toEqual(
+      jasmine.objectContaining({
+        width: 16,
+        height: 9,
+        output: 'source',
+        outputMode: 'aspect-only',
+      }),
+    );
   });
 
   it('updates the custom ratio dimensions', () => {

@@ -20,7 +20,7 @@
     (click)="next.emit()"
   >
     @if (nextLoading()) {
-      <ion-spinner name="crescent" aria-hidden="true"></ion-spinner>
+      <sh-spinner [visible]="true" variant="indicator"></sh-spinner>
     } @else {
       {{ nextLabel() }}
       <ion-icon slot="end" [name]="nextIcon()" aria-hidden="true"></ion-icon>

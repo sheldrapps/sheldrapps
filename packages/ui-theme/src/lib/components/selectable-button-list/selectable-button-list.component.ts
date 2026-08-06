@@ -12,6 +12,7 @@ import { IonIcon, IonItem, IonLabel } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
 import { checkmark, chevronForwardOutline, radioButtonOn } from 'ionicons/icons';
+import { ProBadgeComponent } from '../pro-badge/pro-badge.component';
 
 export interface SelectableButtonListItem {
   value: string;
@@ -22,6 +23,7 @@ export interface SelectableButtonListItem {
   sublineKey?: string;
   leadingIconName?: string;
   leadingIconSrc?: string;
+  leadingIconSvg?: 'pro-badge';
   leadingIconClass?: string | readonly string[];
   trailingIconName?: string;
   trailingIconSrc?: string;
@@ -39,7 +41,7 @@ export type SelectableButtonListSelectionMode = 'single' | 'multiple';
 @Component({
   selector: 'sh-selectable-button-list',
   standalone: true,
-  imports: [CommonModule, TranslateModule, IonItem, IonLabel, IonIcon],
+  imports: [CommonModule, TranslateModule, IonItem, IonLabel, IonIcon, ProBadgeComponent],
   templateUrl: './selectable-button-list.component.html',
   styleUrls: ['./selectable-button-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -122,6 +124,7 @@ export class SelectableButtonListComponent {
       !item.sublineKey &&
       !item.leadingIconName &&
       !item.leadingIconSrc &&
+      !item.leadingIconSvg &&
       !item.trailingIconName &&
       !item.trailingIconSrc &&
       !item.trailingIconClass &&
@@ -134,6 +137,7 @@ export class SelectableButtonListComponent {
     return !!(
       item.leadingIconName ||
       item.leadingIconSrc ||
+      item.leadingIconSvg ||
       item.leadingIconClass
     );
   }

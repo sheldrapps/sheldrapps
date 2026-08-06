@@ -16,9 +16,7 @@
       </ion-button>
     }
 
-    @if (isLoading) {
-      <sh-loading-state variant="fullscreen" [label]="'COMMON.LOADING' | translate"></sh-loading-state>
-    }
+    <sh-spinner [visible]="isLoading" variant="fullscreen" [label]="'COMMON.LOADING' | translate"></sh-spinner>
 
     @if (!isLoading && !loadFailed) {
       <div class="app-sections-stack today-sections">

@@ -15,6 +15,11 @@ describe('image workflow contracts', () => {
     expect(getCoverExportOptions('best')?.maxDimension).toBeUndefined();
   });
 
+  it('keeps high-quality exports in PNG for alpha preservation', () => {
+    expect(getCoverExportOptions('best')?.mimeType).toBe('image/png');
+    expect(getCoverExportOptions('best')?.extension).toBe('png');
+  });
+
   it('uses working source for preview and original source for export', () => {
     const working = new File(['working'], 'working.jpg', {
       type: 'image/jpeg',

@@ -1,0 +1,26 @@
+{
+  "name": "@sheldrapps/lifecycle-kit",
+  "version": "0.0.0",
+  "description": "Shared lifecycle diagnostics and persistent workflow recovery for Sheldrapps",
+  "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
+  "main": "./src/public-api.ts",
+  "types": "./src/public-api.ts",
+  "exports": {
+    ".": "./src/public-api.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "peerDependencies": {
+    "@angular/core": "^22.0.7",
+    "@angular/router": "^22.0.7",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/preferences": "^8.0.0",
+    "@sheldrapps/file-kit": "workspace:*"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  }
+}

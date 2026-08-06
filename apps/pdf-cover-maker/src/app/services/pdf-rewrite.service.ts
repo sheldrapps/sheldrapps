@@ -129,6 +129,7 @@ type OpenExternalFileResult = {
 type PdfRewritePlugin = Plugin & {
   listPublicDocuments(options: { folderName: string }): Promise<{ success: boolean; files?: Array<{ name: string; uri: string; size: number }>; error?: string; message?: string; stage?: string }>;
   getPublicDocument(options: { folderName: string; filename: string }): Promise<{ success: boolean; uri?: string; filename?: string; size?: number; error?: string; message?: string; stage?: string }>;
+  renamePublicDocument(options: { folderName: string; filename: string; outputName: string }): Promise<{ success: boolean; uri?: string; filename?: string; size?: number; error?: string; message?: string; stage?: string }>;
   publishPublicDocument(options: { folderName: string; sourcePath: string; outputName: string; mimeType: string }): Promise<{ success: boolean; uri?: string; filename?: string; size?: number; error?: string; message?: string; stage?: string }>;
   pickAndPreparePdf(
     options: PickAndPreparePdfOptions,
@@ -182,6 +183,30 @@ export class PdfRewriteService {
   async getPublicDocument(folderName: string, filename: string): Promise<{ uri: string; filename: string; size: number }> {
     const result = await PdfRewrite.getPublicDocument({ folderName, filename });
     if (!result.success || !result.uri || !result.filename || typeof result.size !== 'number') throw new PdfRewriteError(result.error ?? 'PUBLIC_DOCUMENT_NOT_FOUND', { message: result.message, stage: result.stage });
+    return { uri: result.uri, filename: result.filename, size: result.size };
+  }
+
+  async renamePublicDocument(
+    folderName: string,
+    filename: string,
+    outputName: string,
+  ): Promise<{ uri: string; filename: string; size: number }> {
+    const result = await PdfRewrite.renamePublicDocument({
+      folderName,
+      filename,
+      outputName,
+    });
+    if (
+      !result.success ||
+      !result.uri ||
+      !result.filename ||
+      typeof result.size !== 'number'
+    ) {
+      throw new PdfRewriteError(result.error ?? 'PUBLIC_RENAME_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
     return { uri: result.uri, filename: result.filename, size: result.size };
   }
 

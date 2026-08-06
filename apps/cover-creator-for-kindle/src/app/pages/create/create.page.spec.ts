@@ -1,14 +1,106 @@
 import { CreatePage } from './create.page';
 
 describe('CreatePage', () => {
-  it('uses PNG export for premium users', () => {
-    const ctx = { adsRemoved: true };
+  it('keeps the selected best mode as PNG while billing state is reconciling', () => {
+    const ctx = {
+      exportQualityMode: 'best' as const,
+      adsRemoved: false,
+    };
+
+    const options = (
+      CreatePage as unknown as {
+        prototype: {
+          getSelectedExportQualityOptions: (this: typeof ctx) => {
+            mimeType: string;
+          };
+        };
+      }
+    ).prototype.getSelectedExportQualityOptions.call(ctx);
+
+    expect(options.mimeType).toBe('image/png');
+  });
+
+  it('rebuilds from the composition when changing export quality', () => {
+    const updatePreviewFromComposition = jasmine.createSpy(
+      'updatePreviewFromComposition',
+    );
+    const invalidateGeneratedOutputState = jasmine.createSpy(
+      'invalidateGeneratedOutputState',
+    );
+    const ctx = {
+      previewGenerationToken: 0,
+      editorRenderedBlob: new Blob(['master'], { type: 'image/png' }),
+      exportImageFile: new File(['export'], 'cover.jpg', {
+        type: 'image/jpeg',
+      }),
+      updatePreviewFromComposition,
+      invalidateGeneratedOutputState,
+    };
+
+    (
+      CreatePage as unknown as {
+        prototype: {
+          invalidateEditorRenderedOutput: (this: typeof ctx) => void;
+        };
+      }
+    ).prototype.invalidateEditorRenderedOutput.call(ctx);
+
+    expect(ctx.editorRenderedBlob?.type).toBe('image/png');
+    expect(ctx.exportImageFile).toBeUndefined();
+    expect(invalidateGeneratedOutputState).toHaveBeenCalled();
+    expect(updatePreviewFromComposition).toHaveBeenCalled();
+  });
+
+  it('uses the editor working source when rebuilding a quality export', () => {
+    const working = new File(['working'], 'working.png', {
+      type: 'image/png',
+    });
+    const original = new File(['original'], 'original.png', {
+      type: 'image/png',
+    });
+    const ctx = {
+      workingImageFile: working,
+      originalImageFile: original,
+      workingImageDims: { width: 1000, height: 1500 },
+      originalImageDims: { width: 2000, height: 3000 },
+      selectedModel: { id: 'kindle', width: 100, height: 150 },
+      cropState: {
+        scale: 0.8,
+        tx: 0,
+        ty: 0,
+        rot: 0,
+        brightness: 1,
+        contrast: 1,
+        saturation: 1,
+        bw: false,
+        dither: false,
+      },
+    };
+
+    const input = (
+      CreatePage as unknown as {
+        prototype: {
+          buildCompositionInput: (
+            this: typeof ctx,
+            purpose: 'preview' | 'export',
+          ) => { file: File } | null;
+        };
+      }
+    ).prototype.buildCompositionInput.call(ctx, 'export');
+
+    expect(input?.file).toBe(working);
+  });
+
+  it('uses PNG export for the selected best mode', () => {
+    const ctx = {
+      getSelectedExportQualityOptions: () => ({ mimeType: 'image/png' }),
+    };
 
     const mime = (
       CreatePage as unknown as {
         prototype: {
           resolveExportMimeType: (this: {
-            adsRemoved: boolean;
+            getSelectedExportQualityOptions: () => { mimeType: string };
           }) => string | undefined;
         };
       }
@@ -17,30 +109,34 @@ describe('CreatePage', () => {
     expect(mime).toBe('image/png');
   });
 
-  it('keeps default export MIME for non-premium users', () => {
-    const ctx = { adsRemoved: false };
+  it('uses JPEG export for the selected compressed mode', () => {
+    const ctx = {
+      getSelectedExportQualityOptions: () => ({ mimeType: 'image/jpeg' }),
+    };
 
     const mime = (
       CreatePage as unknown as {
         prototype: {
           resolveExportMimeType: (this: {
-            adsRemoved: boolean;
+            getSelectedExportQualityOptions: () => { mimeType: string };
           }) => string | undefined;
         };
       }
     ).prototype.resolveExportMimeType.call(ctx);
 
-    expect(mime).toBeUndefined();
+    expect(mime).toBe('image/jpeg');
   });
 
-  it('disables lossy quality override for premium users', () => {
-    const ctx = { adsRemoved: true };
+  it('disables lossy quality override for the selected best mode', () => {
+    const ctx = {
+      getSelectedExportQualityOptions: () => ({ quality: undefined }),
+    };
 
     const quality = (
       CreatePage as unknown as {
         prototype: {
           resolveExportQuality: (this: {
-            adsRemoved: boolean;
+            getSelectedExportQualityOptions: () => { quality?: number };
           }) => number | undefined;
         };
       }
@@ -49,20 +145,22 @@ describe('CreatePage', () => {
     expect(quality).toBeUndefined();
   });
 
-  it('uses quality override for non-premium users', () => {
-    const ctx = { adsRemoved: false };
+  it('uses quality override for the selected compressed mode', () => {
+    const ctx = {
+      getSelectedExportQualityOptions: () => ({ quality: 0.88 }),
+    };
 
     const quality = (
       CreatePage as unknown as {
         prototype: {
           resolveExportQuality: (this: {
-            adsRemoved: boolean;
+            getSelectedExportQualityOptions: () => { quality?: number };
           }) => number | undefined;
         };
       }
     ).prototype.resolveExportQuality.call(ctx);
 
-    expect(quality).toBe(1);
+    expect(quality).toBe(0.88);
   });
 
   it('requires an applied editor cover before generating', () => {

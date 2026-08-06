@@ -176,9 +176,9 @@ export class EpubLibraryService {
         savedFilenames.push(entry.record.filename);
         await this.deletePersistedPreviewAsset(entry.record.filename);
         this.previewCache.delete(entry.record.filename);
-        const preview = this.epubRewrite.isSupported()
-          ? null
-          : await this.refreshPreviewAsset(entry.record.filename).catch(() => null);
+        const preview = await this.refreshPreviewAsset(
+          entry.record.filename,
+        ).catch(() => null);
         entry.record.thumbnailUri = preview?.src || undefined;
       }
 
@@ -246,6 +246,59 @@ export class EpubLibraryService {
     }
   }
 
+  async renameByFilename(filename: string, requestedName: string): Promise<string> {
+    const resolved = this.ensureEpubFilename(filename);
+    const [existingFilenames, index] = await Promise.all([
+      this.listPublicEpubFilenames(),
+      this.readLibraryIndex(),
+    ]);
+    const usedNames = new Set(
+      existingFilenames.filter((candidate) => candidate !== resolved),
+    );
+    const nextFilename = this.resolveUniqueFilename(requestedName, usedNames);
+
+    if (resolved === nextFilename) {
+      return resolved;
+    }
+
+    if (this.epubRewrite.isSupported()) {
+      await this.epubRewrite.renamePublicDocument(
+        this.publicEpubFolder,
+        resolved,
+        nextFilename,
+      );
+    } else {
+      await this.epubStore.renameEpub(resolved, nextFilename);
+      await this.scanPublicEpub(nextFilename);
+    }
+
+    await this.movePersistedPreviewAsset(resolved, nextFilename);
+    const cached = this.previewCache.get(resolved);
+    this.previewCache.delete(resolved);
+    if (cached) {
+      this.previewCache.set(nextFilename, cached);
+    }
+
+    const previousRecord = index.records.find(
+      (record) => record.filename === resolved,
+    );
+    const uri = await this.epubStore.getUriOrThrow(nextFilename).catch(() => null);
+    const nextRecord: EpubLibraryRecord = {
+      ...(previousRecord ?? this.createLegacyRecord(resolved)),
+      filename: nextFilename,
+      title: this.titleFromFilename(nextFilename),
+      uri,
+    };
+    const replaced = index.records.map((record) =>
+      record.filename === resolved ? nextRecord : record,
+    );
+    const nextRecords = previousRecord
+      ? replaced
+      : [...replaced, nextRecord];
+    await this.writeLibraryIndex({ schemaVersion: 1, records: nextRecords });
+    return nextFilename;
+  }
+
   async shareByFilename(filename: string): Promise<void> {
     const resolved = this.ensureEpubFilename(filename);
     const uri = await this.epubStore.getUriOrThrow(resolved);
@@ -308,21 +361,23 @@ export class EpubLibraryService {
     if (!opts?.forceRefresh) {
       const cached = this.previewCache.get(cacheKey);
       if (cached) {
-        return cached;
+        if (cached.src) {
+          return cached;
+        }
+        this.previewCache.delete(cacheKey);
       }
 
-      const persisted = await this.readPersistedPreviewAsset(cacheKey);
-      if (persisted) {
-        this.previewCache.set(cacheKey, persisted);
-        return persisted;
-      }
+    }
+
+    const persisted = await this.readPersistedPreviewAsset(cacheKey);
+    if (persisted) {
+      this.previewCache.set(cacheKey, persisted);
+      return persisted;
     }
 
     const resolved = await this.refreshPreviewAsset(cacheKey);
     if (!resolved) {
-      const unavailable = { src: '', isDithered: false };
-      this.previewCache.set(cacheKey, unavailable);
-      return unavailable;
+      return { src: '', isDithered: false };
     }
     return resolved;
   }
@@ -377,15 +432,15 @@ export class EpubLibraryService {
     filename: string,
   ): Promise<LibraryPreviewAsset | null> {
     const path = this.previewThumbPath(filename);
-    const exists = await this.fileKit.exists({
-      dir: 'Data',
-      path,
-    });
-    if (!exists) {
-      return null;
-    }
-
     try {
+      const exists = await this.fileKit.exists({
+        dir: 'Data',
+        path,
+      });
+      if (!exists) {
+        return null;
+      }
+
       const raw = await this.fileKit.readBytes({
         dir: 'Data',
         path,
@@ -444,6 +499,29 @@ export class EpubLibraryService {
       });
     } catch {
       // best effort
+    }
+  }
+
+  private async movePersistedPreviewAsset(
+    fromFilename: string,
+    toFilename: string,
+  ): Promise<void> {
+    const fromPath = this.previewThumbPath(fromFilename);
+    const toPath = this.previewThumbPath(toFilename);
+    try {
+      if (!(await this.fileKit.exists({ dir: 'Data', path: fromPath }))) {
+        return;
+      }
+      const bytes = await this.fileKit.readBytes({ dir: 'Data', path: fromPath });
+      await this.fileKit.writeBytes({
+        dir: 'Data',
+        path: toPath,
+        bytes,
+        mimeType: 'application/json',
+      });
+      await this.fileKit.delete({ dir: 'Data', path: fromPath });
+    } catch {
+      // The preview can be regenerated from the renamed EPUB.
     }
   }
 

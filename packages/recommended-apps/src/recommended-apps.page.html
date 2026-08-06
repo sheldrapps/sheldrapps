@@ -11,7 +11,10 @@
   @if (loading && recommendedApps.length === 0) {
     <ion-list inset="true">
       <ion-item>
-        <ion-label>{{ t.LOADING || t.TITLE }}</ion-label>
+        <ion-label>
+          <sh-spinner [visible]="true" variant="indicator"></sh-spinner>
+          {{ t.LOADING || t.TITLE }}
+        </ion-label>
       </ion-item>
     </ion-list>
   } @else if (recommendedApps.length === 0) {

@@ -17,7 +17,7 @@
   "PAPER_GROUPS": { "ISO_216": "ISO 216", "NORTH_AMERICAN": "北米", "ISO_A_SERIES": "Aシリーズ", "NORTH_AMERICAN_OFFICE": "北米オフィス規格" },
   "PAPER_PRESETS": { "A3": "A3", "A4": "A4", "A5": "A5", "A6": "A6", "LETTER": "レター", "LEGAL": "リーガル", "TABLOID": "タブロイド" },
   "RATIO_GROUPS": { "COMMON": "一般的な比率" },
-  "RATIO_PRESETS": { "1_1": "1:1", "2_3": "2:3", "3_4": "3:4", "4_5": "4:5", "5_7": "5:7", "5_8": "5:8", "9_16": "9:16", "CUSTOM": "カスタム" },
+  "RATIO_PRESETS": { "1_1": "1:1", "2_3": "2:3", "3_4": "3:4", "4_5": "4:5", "5_7": "5:7", "5_8": "5:8", "9_16": "9:16", "16_9": "16:9", "CUSTOM": "カスタム" },
   "RATIO_CUSTOM": { "TITLE": "カスタムの縦横比", "WIDTH": "幅", "HEIGHT": "高さ", "HELPER": "{{min}}〜{{max}}の整数を入力してください。" },
   "KINDLE_BRANDS": {
     "KINDLE": "Kindle"

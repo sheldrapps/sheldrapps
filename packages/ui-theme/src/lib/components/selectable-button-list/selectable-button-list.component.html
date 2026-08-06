@@ -46,8 +46,12 @@
               class="app-language-option__leading-icon"
               [src]="item.leadingIconSrc"
             ></ion-icon>
+            <sh-pro-badge
+              *ngIf="!item.leadingIconName && !item.leadingIconSrc && item.leadingIconSvg === 'pro-badge'"
+              class="app-language-option__leading-icon"
+            ></sh-pro-badge>
             <span
-              *ngIf="!item.leadingIconName && !item.leadingIconSrc && item.leadingIconClass"
+              *ngIf="!item.leadingIconName && !item.leadingIconSrc && !item.leadingIconSvg && item.leadingIconClass"
               class="app-language-option__flag"
               [ngClass]="item.leadingIconClass"
             ></span>
@@ -165,8 +169,12 @@
                 class="app-language-option__leading-icon"
                 [src]="item.leadingIconSrc"
               ></ion-icon>
+              <sh-pro-badge
+                *ngIf="!item.leadingIconName && !item.leadingIconSrc && item.leadingIconSvg === 'pro-badge'"
+                class="app-language-option__leading-icon"
+              ></sh-pro-badge>
               <span
-                *ngIf="!item.leadingIconName && !item.leadingIconSrc && item.leadingIconClass"
+                *ngIf="!item.leadingIconName && !item.leadingIconSrc && !item.leadingIconSvg && item.leadingIconClass"
                 class="app-language-option__flag"
                 [ngClass]="item.leadingIconClass"
               ></span>

@@ -12,4 +12,6 @@ export const RU_RU: RecommendedAppsTranslations = {
   APP_DESC_PCM: 'Создавайте обложки PDF за секунды',
   APP_NAME_EF: 'Исправить EPUB',
   APP_DESC_EF: 'Диагностика и исправление частых проблем EPUB',
+  APP_NAME_EMAS: 'Объединить и разделить EPUB',
+  APP_DESC_EMAS: 'Объединяйте, упорядочивайте и разделяйте EPUB',
 };

@@ -146,6 +146,38 @@ export class EpubLibraryService {
     this.previewCache.delete(resolved);
   }
 
+  async renameByFilename(filename: string, requestedName: string): Promise<string> {
+    const resolved = this.ensureEpubFilename(filename);
+    const existingFilenames = await this.listEpubs();
+    const usedNames = new Set(
+      existingFilenames.filter((candidate) => candidate !== resolved),
+    );
+    const nextFilename = this.resolveUniqueFilename(requestedName, usedNames);
+
+    if (resolved === nextFilename) {
+      return resolved;
+    }
+
+    if (this.epubRewrite.isSupported()) {
+      await this.epubRewrite.renamePublicDocument(
+        this.publicEpubFolder,
+        resolved,
+        nextFilename,
+      );
+    } else {
+      await this.epubStore.renameEpub(resolved, nextFilename);
+      await this.scanPublicEpub(nextFilename);
+    }
+
+    await this.movePersistedPreviewAsset(resolved, nextFilename);
+    const cached = this.previewCache.get(resolved);
+    this.previewCache.delete(resolved);
+    if (cached) {
+      this.previewCache.set(nextFilename, cached);
+    }
+    return nextFilename;
+  }
+
   async shareByFilename(filename: string): Promise<void> {
     const resolved = this.ensureEpubFilename(filename);
     const uri = this.epubRewrite.isSupported()
@@ -226,26 +258,34 @@ export class EpubLibraryService {
       if (cached) {
         return cached;
       }
+    }
 
-      const persisted = await this.readPersistedPreviewAsset(cacheKey);
-      if (persisted) {
-        this.previewCache.set(cacheKey, persisted);
-        return persisted;
-      }
+    const persisted = await this.readPersistedPreviewAsset(cacheKey);
+    if (persisted) {
+      this.previewCache.set(cacheKey, persisted);
+      return persisted;
     }
 
     const resolved = await this.refreshPreviewAsset(cacheKey);
     if (!resolved) {
-      const unavailable = { src: '', isDithered: false };
-      this.previewCache.set(cacheKey, unavailable);
-      return unavailable;
+      return { src: '', isDithered: false };
     }
     return resolved;
   }
 
   private async extractCoverFile(filename: string): Promise<File | null> {
     if (this.epubRewrite.isSupported()) {
-      return null;
+      try {
+        const uri = await this.epubStore.getUriOrThrow(filename);
+        const extracted = await this.epubRewrite.extractCoverAssetFile({
+          epubPath: uri,
+          epubName: filename,
+          maxBytes: 30 * 1024 * 1024,
+        });
+        return extracted.file;
+      } catch {
+        return null;
+      }
     }
 
     if (!this.webEpubCover) {
@@ -383,6 +423,29 @@ export class EpubLibraryService {
     }
   }
 
+  private async movePersistedPreviewAsset(
+    fromFilename: string,
+    toFilename: string,
+  ): Promise<void> {
+    const fromPath = this.previewThumbPath(fromFilename);
+    const toPath = this.previewThumbPath(toFilename);
+    try {
+      if (!(await this.fileKit.exists({ dir: 'Data', path: fromPath }))) {
+        return;
+      }
+      const bytes = await this.fileKit.readBytes({ dir: 'Data', path: fromPath });
+      await this.fileKit.writeBytes({
+        dir: 'Data',
+        path: toPath,
+        bytes,
+        mimeType: 'application/json',
+      });
+      await this.fileKit.delete({ dir: 'Data', path: fromPath });
+    } catch {
+      // The preview can be regenerated from the renamed EPUB.
+    }
+  }
+
   private toFetchUrl(sourceUri: string): string {
     if (!sourceUri) {
       return sourceUri;
@@ -410,6 +473,24 @@ export class EpubLibraryService {
   private ensureEpubFilename(name: string): string {
     const trimmed = (name || 'book.epub').trim();
     return /\.epub$/i.test(trimmed) ? trimmed : `${trimmed}.epub`;
+  }
+
+  private resolveUniqueFilename(
+    requestedName: string,
+    usedNames: ReadonlySet<string>,
+  ): string {
+    const filename = this.ensureEpubFilename(requestedName);
+    if (!usedNames.has(filename)) {
+      return filename;
+    }
+    const baseName = filename.replace(/\.epub$/i, '');
+    let index = 1;
+    let candidate = filename;
+    while (usedNames.has(candidate)) {
+      candidate = `${baseName} (${index}).epub`;
+      index += 1;
+    }
+    return candidate;
   }
 
 }

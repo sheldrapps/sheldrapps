@@ -22,7 +22,7 @@
     "REMOVE_ADS_TITLE": "Werbung entfernen",
    "REMOVE_ADS_CTA_TITLE": "Werbung entfernen",
     "UPGRADE_TO_PRO": "Auf Pro upgraden",
-    "REMOVE_ADS_CTA_SUBTITLE": "Einmalzahlung ⬢ Für immer",
+    "REMOVE_ADS_CTA_SUBTITLE": "Einmalzahlung • Für immer",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Einmalzahlung • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "Preis: {{price}} • Kein Abo",
     "RESTORE_ERROR": "Der Kauf konnte nicht wiederhergestellt werden. Bitte versuche es erneut.",

@@ -4,6 +4,7 @@ import {
   Component,
   EventEmitter,
   Input,
+  input,
   Output,
   inject,
 } from '@angular/core';
@@ -21,7 +22,8 @@ import { addIcons } from 'ionicons';
 import { arrowBackOutline } from 'ionicons/icons';
 import { EReaderPreviewFrameComponent } from '@sheldrapps/image-workflow';
 import {
-  LoadingStateComponent,
+  SpinnerComponent,
+  RenameIconComponent,
   ScrollableBarItem,
   ScrollableButtonBarComponent,
 } from '@sheldrapps/ui-theme';
@@ -32,6 +34,7 @@ export interface PreviewAction {
   id: string;
   labelKey?: string;
   icon?: string;
+  iconSvg?: 'rename';
   layout?: 'text' | 'icon' | 'icon-text' | 'app-icon-text';
   fill?: 'clear' | 'outline' | 'solid' | 'default';
   size?: 'small' | 'default' | 'large';
@@ -72,7 +75,8 @@ export interface PreviewActionClickEvent {
     IonTitle,
     IonToolbar,
     EReaderPreviewFrameComponent,
-    LoadingStateComponent,
+    SpinnerComponent,
+    RenameIconComponent,
     ScrollableButtonBarComponent,
   ],
   templateUrl: './cover-preview-modal.component.html',
@@ -93,7 +97,7 @@ export class CoverPreviewModalComponent {
   @Input() imageDataUrl: string | null = null;
   @Input() isDithered = false;
   @Input() imageAlt = 'cover preview';
-  @Input() loading = false;
+  readonly loading = input(false);
   @Input() gettingCover = false;
   @Input() gettingCoverTextKey = 'COVERS.GETTING_COVER';
   @Input() loadingTextKey = 'COVERS.LOADING_PREVIEW';
@@ -159,6 +163,7 @@ export class CoverPreviewModalComponent {
         ? this.translate.instant(action.labelKey)
         : action.id,
       icon: action.icon,
+      iconSvg: action.iconSvg,
     }));
   }
 

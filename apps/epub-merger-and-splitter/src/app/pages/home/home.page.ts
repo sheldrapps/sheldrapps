@@ -2,6 +2,7 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -25,7 +26,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AdsService, BillingService } from '@sheldrapps/ads-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import {
-  getCoverExportOptions,
   normalizeExportQualityMode,
   type ExportQualityMode,
 } from '@sheldrapps/export-quality-kit';
@@ -41,6 +41,10 @@ import {
   ImagePipelineService,
   PreviewEditingPageService,
   buildDefaultCoverCropState,
+  buildCompositionInput,
+  encodeRenderedBlob,
+  getCoverExportOptions,
+  renderCompositionToFile,
   type CoverCropState,
   type CropFormatOption,
   type CropTarget,
@@ -59,7 +63,7 @@ import {
   ScrollableButtonBarComponent,
   WorkflowStepperComponent,
   WorkflowNavigationComponent,
-  LoadingStateComponent,
+  SpinnerComponent,
   type WorkflowStep,
   type ScrollableBarItem,
   type FilePickerPanelItem,
@@ -103,6 +107,10 @@ import {
   openRecommendedApp,
   type RecommendedApp,
 } from '@sheldrapps/recommended-apps';
+import {
+  LifecycleDiagnosticsService,
+  WorkflowRecoveryCoordinator,
+} from '@sheldrapps/lifecycle-kit';
 
 type HomeMode = 'merge' | 'split';
 type CoverSourceMode = 'candidate' | 'image' | 'scratch';
@@ -129,6 +137,7 @@ type EpubOperationFeedback = {
   operation: HomeMode;
   status: 'success' | 'error';
   outputs: readonly EpubLibraryRecord[];
+  warnings: readonly string[];
   previewUrl?: string;
   errorKey?: string;
 };
@@ -143,9 +152,24 @@ type SelectedEpubInput = {
   workingPath: string;
   workingName: string;
   workingFile: File | null;
+  coverFile?: File;
+  coverEntryPath?: string;
   workingNativePath: string | null;
   outputBaseName: string;
   sourceKind: 'native' | 'web';
+};
+
+type EmasRecoverySelection = Omit<SelectedEpubInput, 'workingFile' | 'coverFile'>;
+
+type EmasRecoverySnapshot = {
+  selectedMode: HomeMode | null;
+  workflowStep: number;
+  mergeSelections: EmasRecoverySelection[];
+  splitSelection: EmasRecoverySelection | null;
+  selectedCoverCandidateId?: string;
+  coverSourceMode: CoverSourceMode | null;
+  splitMethod: SplitMethod;
+  tocMode: TocMode;
 };
 
 const EPUB_ACCEPT = '.epub,application/epub+zip';
@@ -183,7 +207,7 @@ const SPLIT_METHOD_VALUES = new Set<SplitMethod>([
     ScrollableButtonBarComponent,
     WorkflowStepperComponent,
     WorkflowNavigationComponent,
-    LoadingStateComponent,
+    SpinnerComponent,
     FilePickerPanelComponent,
     SelectableButtonListComponent,
     RecommendedAppCardComponent,
@@ -191,6 +215,7 @@ const SPLIT_METHOD_VALUES = new Set<SplitMethod>([
 })
 export class HomePage implements OnInit, OnDestroy {
   private readonly changeDetector = inject(ChangeDetectorRef);
+  private readonly zone = inject(NgZone);
   private readonly router = inject(Router);
   private readonly fileKit = inject(FileKitService);
   private readonly epubRewrite = inject(EpubRewriteService);
@@ -211,6 +236,8 @@ export class HomePage implements OnInit, OnDestroy {
   private readonly billing = inject(BillingService);
   private readonly translate = inject(TranslateService);
   private readonly recommendedAppsService = inject(RecommendedAppsService);
+  private readonly lifecycle = inject(LifecycleDiagnosticsService);
+  private readonly recovery = inject(WorkflowRecoveryCoordinator);
   private readonly candidateBlobUrls = new Set<string>();
   headerItems: ScrollableBarItem[] = [];
   workflowSteps: WorkflowStep[] = [];
@@ -290,6 +317,12 @@ export class HomePage implements OnInit, OnDestroy {
 
   get workflowPreviousLabel(): string {
     return this.visibleWorkflowSteps[this.workflowStep - 1]?.label ?? '';
+  }
+
+  get workflowLoadingLabelKey(): string {
+    return this.splitAnalysisPending()
+      ? 'HOME.SPLIT_CONFIRM.ANALYZING'
+      : 'COMMON.LOADING';
   }
 
   get operationFeedbackTitleKey(): string {
@@ -532,6 +565,7 @@ export class HomePage implements OnInit, OnDestroy {
   readonly pickerErrorKey = signal<string | null>(null);
   readonly isPicking = signal(false);
   readonly isResettingFlow = signal(false);
+  readonly isRebuildingExportQuality = signal(false);
   readonly isDetectingCoverCandidates = signal(false);
   readonly isMergeActionBusy = signal(false);
   readonly operationProgress = signal<EpubOperationProgress | null>(null);
@@ -586,8 +620,9 @@ export class HomePage implements OnInit, OnDestroy {
   private editorReturnStep: 3 | 5 = 3;
   private mergeCoverSourceFile?: File;
   private mergeCoverWorkingFile?: File;
-  private mergeCoverRenderedBlob?: Blob;
+  private mergeCoverMasterBlob?: Blob;
   private mergeCoverRenderedFile?: File;
+  private mergeCoverQualityRevision = 0;
   private mergeCoverCropState?: CoverCropState;
   private mergeCoverFormatId = 'epub';
   private mergeCoverPreviewThumbUrl?: string;
@@ -653,26 +688,12 @@ export class HomePage implements OnInit, OnDestroy {
     if (!(await this.editorSessionExit.confirmResetFlow())) return;
     this.isResettingFlow.set(true);
     this.changeDetector?.detectChanges();
-    await this.yieldResetTurn();
     try {
       await this.clearFlowState();
     } finally {
       this.isResettingFlow.set(false);
       this.changeDetector?.detectChanges();
     }
-  }
-
-  private async yieldResetTurn(): Promise<void> {
-    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
-      await Promise.resolve();
-      return;
-    }
-
-    await new Promise<void>((resolve) => {
-      window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(() => resolve());
-      });
-    });
   }
 
   private async clearFlowState(): Promise<void> {
@@ -695,6 +716,7 @@ export class HomePage implements OnInit, OnDestroy {
     this.resetFileInput(this.splitInput?.nativeElement);
     this.resetCoverSelection(true);
     await cleanupPromise;
+    await this.recovery.clear();
   }
 
   constructor() {
@@ -703,7 +725,7 @@ export class HomePage implements OnInit, OnDestroy {
     void this.loadIcons();
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.refreshWorkflowStepLabels();
     this.languageSub = this.translate.onLangChange.subscribe(() => {
       this.refreshWorkflowStepLabels();
@@ -722,10 +744,22 @@ export class HomePage implements OnInit, OnDestroy {
 
     void this.consumeEditorResult();
     void this.refreshHeaderItems();
+    this.registerRecovery();
+    await this.recovery.restore();
   }
 
   async ionViewWillEnter(): Promise<void> {
+    this.lifecycle.log('Ionic.HomePage.ionViewWillEnter', {
+      workflowStep: this.workflowStep,
+    });
     await this.refreshHeaderItems();
+  }
+
+  ionViewWillLeave(): void {
+    this.lifecycle.log('Ionic.HomePage.ionViewWillLeave', {
+      workflowStep: this.workflowStep,
+    });
+    void this.recovery.save();
   }
 
   async onHeaderItemClick(id: string): Promise<void> {
@@ -1057,13 +1091,63 @@ export class HomePage implements OnInit, OnDestroy {
     await this.openEditor(sourceMode, entryMode, returnStep);
   }
 
+  private registerRecovery(): void {
+    this.recovery.register<EmasRecoverySnapshot>({
+      snapshot: () => ({
+        selectedMode: this.selectedMode(),
+        workflowStep: this.workflowStep,
+        mergeSelections: this.mergeSelections().map(({ workingFile, coverFile, ...selection }) => selection),
+        splitSelection: this.splitSelection()
+          ? (({ workingFile, coverFile, ...selection }) => selection)(this.splitSelection()!)
+          : null,
+        selectedCoverCandidateId: this.selectedCoverCandidateId(),
+        coverSourceMode: this.coverSourceMode(),
+        splitMethod: this.splitMethod,
+        tocMode: this.tocMode,
+      }),
+      assets: () => {
+        const assets: Record<string, File | undefined> = {
+          'merge-cover': this.mergeCoverRenderedFile,
+        };
+        this.mergeSelections().forEach((selection, index) => {
+          assets[`merge-${index}`] = selection.workingFile ?? undefined;
+          assets[`merge-cover-${index}`] = selection.coverFile;
+        });
+        const split = this.splitSelection();
+        if (split) {
+          assets['split'] = split.workingFile ?? undefined;
+          assets['split-cover'] = split.coverFile;
+        }
+        return assets;
+      },
+      restore: async (snapshot, assets) => {
+        const restoreSelection = (selection: EmasRecoverySelection, key: string): SelectedEpubInput => ({
+          ...selection,
+          workingFile: assets[key] ?? null,
+          coverFile: assets[`${key}-cover`],
+        });
+        this.selectedMode.set(snapshot.selectedMode);
+        this.workflowStep = snapshot.workflowStep;
+        this.selectedCoverCandidateId.set(snapshot.selectedCoverCandidateId);
+        this.coverSourceMode.set(snapshot.coverSourceMode);
+        this.splitMethod = snapshot.splitMethod;
+        this.tocMode = snapshot.tocMode;
+        this.mergeSelections.set(snapshot.mergeSelections.map((selection, index) => restoreSelection(selection, `merge-${index}`)));
+        this.splitSelection.set(snapshot.splitSelection ? restoreSelection(snapshot.splitSelection, 'split') : null);
+        this.mergeCoverRenderedFile = assets['merge-cover'];
+      },
+    });
+  }
+
   ngOnDestroy(): void {
+    this.lifecycle.log('Ionic.HomePage.ngOnDestroy', {
+      workflowStep: this.workflowStep,
+    });
     this.routerSub?.unsubscribe();
     this.adsRemovedSub?.unsubscribe();
     this.languageSub?.unsubscribe();
     void this.operationProgressListener?.remove();
-    this.resetCoverSelection(true);
-    void this.cleanupAllSelections();
+    void this.recovery.save();
   }
 
   async onMergeButtonClick(): Promise<void> {
@@ -1089,10 +1173,16 @@ export class HomePage implements OnInit, OnDestroy {
   private async hydrateAdsState(): Promise<void> {
     this.adsRemoved = this.billing.isAdsRemoved();
     this.adsRemovedSub = this.billing.adsRemoved$.subscribe((value) => {
-      this.adsRemoved = value;
+      this.zone.run(() => {
+        this.adsRemoved = value;
+        this.changeDetector.markForCheck();
+      });
     });
     await this.billing.hydrateCachedState();
-    this.adsRemoved = this.billing.isAdsRemoved();
+    this.zone.run(() => {
+      this.adsRemoved = this.billing.isAdsRemoved();
+      this.changeDetector.markForCheck();
+    });
   }
 
   private async attachOperationProgressListener(): Promise<void> {
@@ -1101,9 +1191,11 @@ export class HomePage implements OnInit, OnDestroy {
     }
     this.operationProgressListener = await this.epubRewrite.addProgressListener(
       (progress) => {
-        if (this.isMergeActionBusy()) {
-          this.operationProgress.set(progress);
-        }
+        if (!this.isMergeActionBusy()) return;
+        this.operationProgress.set({
+          ...progress,
+          percent: Math.max(0, Math.min(100, Math.round(progress.percent))),
+        });
       },
     );
   }
@@ -1144,7 +1236,11 @@ export class HomePage implements OnInit, OnDestroy {
         merged.outputPath,
         merged.outputName,
       );
-      this.completeOperation('merge', [saved]);
+      if (merged.warnings?.length) {
+        this.completeOperation('merge', [saved], merged.warnings);
+      } else {
+        this.completeOperation('merge', [saved]);
+      }
     } finally {
       await Promise.allSettled([
         this.epubWorkingCopy.cleanupWorkingCopy(output.path),
@@ -1210,7 +1306,11 @@ export class HomePage implements OnInit, OnDestroy {
           partIndex: index,
         })),
       );
-      this.completeOperation('split', saved);
+      this.completeOperation(
+        'split',
+        saved,
+        Array.from(new Set(created.flatMap((output) => output.warnings ?? []))),
+      );
     } finally {
       await Promise.allSettled([
         ...temporaryOutputs.map((output) =>
@@ -1224,12 +1324,14 @@ export class HomePage implements OnInit, OnDestroy {
   private completeOperation(
     operation: HomeMode,
     outputs: readonly EpubLibraryRecord[],
+    warnings: readonly string[] = [],
   ): void {
     const previewUrl = outputs[0]?.thumbnailUri || this.mergeCoverPreviewUrl();
     this.operationFeedback.set({
       operation,
       status: 'success',
       outputs,
+      warnings,
       previewUrl,
     });
     this.pickerErrorKey.set(null);
@@ -1247,6 +1349,7 @@ export class HomePage implements OnInit, OnDestroy {
       operation,
       status: 'error',
       outputs: [],
+      warnings: [],
       errorKey:
         operation === 'merge'
           ? 'HOME.OPERATION.MERGE_FAILURE_BODY'
@@ -1272,6 +1375,12 @@ export class HomePage implements OnInit, OnDestroy {
     }
 
     this.clearPickerError();
+
+    if (this.epubRewrite.isSupported()) {
+      await this.pickNativeEpubsForMerge();
+      return;
+    }
+
     this.mergeInput?.nativeElement.click();
   }
 
@@ -1422,7 +1531,7 @@ export class HomePage implements OnInit, OnDestroy {
       titleKey: 'BEST_CANDIDATE.PREVIEW.TITLE',
       returnUrl: '/tabs/home',
     });
-    void this.router.navigateByUrl('/preview-editing');
+    void this.router.navigateByUrl('/tabs/preview-editing');
   }
 
   onCoverImageSelected(): void {
@@ -1442,7 +1551,7 @@ export class HomePage implements OnInit, OnDestroy {
       imageSrc: this.mergeCoverPreviewUrl() ?? null,
       returnUrl: '/tabs/home',
     });
-    void this.router.navigateByUrl('/preview-editing');
+    void this.router.navigateByUrl('/tabs/preview-editing');
   }
 
   closePreview(): void {
@@ -1500,16 +1609,11 @@ export class HomePage implements OnInit, OnDestroy {
           epubId: selection.id,
           epubName: selection.selectedName,
           epubFile: selection.workingFile,
+          coverFile: selection.coverFile,
+          coverEntryPath: selection.coverEntryPath,
           order: index + 1,
         }))
-        .filter(
-          (source): source is {
-            epubId: string;
-            epubName: string;
-            epubFile: File;
-            order: number;
-          } => !!source.epubFile,
-        );
+        .filter((source) => !!source.epubFile || !!source.coverFile);
       const images = await this.mergeCoverCandidate.collectCandidates(sources);
 
       for (const image of images) {
@@ -1590,7 +1694,7 @@ export class HomePage implements OnInit, OnDestroy {
 
   private async applyMergeCoverSource(file: File): Promise<boolean> {
     this.mergeCoverCropState = undefined;
-    this.mergeCoverRenderedBlob = undefined;
+    this.mergeCoverMasterBlob = undefined;
     this.mergeCoverRenderedFile = undefined;
 
     const source = await this.prepareEditorImageSource(file);
@@ -1736,7 +1840,7 @@ export class HomePage implements OnInit, OnDestroy {
 
   private async applyEditorResult(result: CropperResult): Promise<void> {
     this.mergeCoverWorkingFile = result.file;
-    this.mergeCoverRenderedBlob = result.renderedBlob ?? result.file;
+    this.mergeCoverMasterBlob = result.editorMasterBlob;
     this.mergeCoverCropState = result.state;
     this.mergeCoverFormatId = this.resolveFormatId(result.formatId);
     this.coverSourceMode.set(this.lastEditorSourceMode);
@@ -1766,20 +1870,25 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   getEffectiveExportQualityMode(): ExportQualityMode {
-    return normalizeExportQualityMode(this.exportQualityMode, false);
+    return normalizeExportQualityMode(this.exportQualityMode, this.adsRemoved);
   }
 
   async onExportQualityModeSelect(mode: ExportQualityMode): Promise<void> {
-    const normalized = normalizeExportQualityMode(mode, false);
+    const normalized = normalizeExportQualityMode(mode, this.adsRemoved);
     if (normalized !== mode) {
       return;
     }
 
     this.exportQualityMode = normalized;
-    await this.settings.setForScope('exportQuality', {
-      exportQualityMode: normalized,
-    });
-    await this.applySelectedExportQuality();
+    this.isRebuildingExportQuality.set(true);
+    try {
+      await this.settings.setForScope('exportQuality', {
+        exportQualityMode: normalized,
+      });
+      await this.applySelectedExportQuality();
+    } finally {
+      this.isRebuildingExportQuality.set(false);
+    }
   }
 
   async onTripleExportQualityModeSelect(value: string): Promise<void> {
@@ -1804,53 +1913,58 @@ export class HomePage implements OnInit, OnDestroy {
     const settings = await this.settings.load();
     this.exportQualityMode = normalizeExportQualityMode(
       settings.exportQualityMode,
-      false,
+      this.adsRemoved,
     );
   }
 
   private async applySelectedExportQuality(): Promise<void> {
-    const source = this.mergeCoverRenderedBlob;
-    if (!source) {
+    const source = this.mergeCoverWorkingFile;
+    const state = this.mergeCoverCropState;
+    if (!source || !state) {
       return;
     }
 
-    const options = getCoverExportOptions(this.getEffectiveExportQualityMode());
-    const bitmap = await createImageBitmap(source);
-    try {
-      const scale = options.maxDimension
-        ? Math.min(1, options.maxDimension / Math.max(bitmap.width, bitmap.height))
-        : 1;
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-      const context = canvas.getContext('2d');
-      if (!context) {
-        return;
-      }
-
-      if (options.mimeType === 'image/jpeg') {
-        context.fillStyle = '#ffffff';
-        context.fillRect(0, 0, canvas.width, canvas.height);
-      }
-      context.imageSmoothingEnabled = true;
-      context.imageSmoothingQuality = 'high';
-      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-
-      const blob = await new Promise<Blob | null>((resolve) =>
-        canvas.toBlob(resolve, options.mimeType, options.quality),
+    const revision = ++this.mergeCoverQualityRevision;
+    const exportOptions = getCoverExportOptions(this.exportQualityMode);
+    const master = this.mergeCoverMasterBlob;
+    let rendered: File | null;
+    if (master) {
+      rendered = await encodeRenderedBlob(
+        master,
+        source.name,
+        toEditorRenderQuality(this.exportQualityMode),
+        exportOptions.mimeType === 'image/png' ? undefined : '#ffffff',
       );
-      if (!blob) {
-        return;
-      }
+    } else {
+      const dimensions = await this.imagePipeline.getDimensions(source);
+      if (!dimensions) return;
 
-      this.mergeCoverRenderedFile = new File(
-        [blob],
-        `cover.${options.extension}`,
-        { type: options.mimeType },
-      );
-    } finally {
-      bitmap.close();
+      const input = buildCompositionInput({
+        file: source,
+        target: this.getSelectedFormatOption().target,
+        state,
+        naturalWidth: dimensions.width,
+        naturalHeight: dimensions.height,
+      });
+      if (!input) return;
+
+      rendered = await renderCompositionToFile(input, {
+        mode: 'export',
+        outputScale: 1,
+        mimeType: exportOptions.mimeType,
+        quality: exportOptions.quality,
+        maxDimension: exportOptions.maxDimension,
+        backgroundFallbackColor:
+          exportOptions.mimeType === 'image/png' ? undefined : '#ffffff',
+      });
     }
+    if (!rendered || revision !== this.mergeCoverQualityRevision) return;
+
+    this.mergeCoverRenderedFile = rendered;
+    const url = URL.createObjectURL(rendered);
+    this.setMergeCoverPreviewUrl(url);
+    this.mergeCoverPreviewThumbUrl =
+      (await this.buildThumbFromBlob(rendered)) ?? url;
   }
 
   private buildRenderedFile(blob: Blob, mimeType?: string): File {
@@ -1874,7 +1988,7 @@ export class HomePage implements OnInit, OnDestroy {
   private resetMergeCoverSelection(revokeUrl: boolean): void {
     this.mergeCoverSourceFile = undefined;
     this.mergeCoverWorkingFile = undefined;
-    this.mergeCoverRenderedBlob = undefined;
+    this.mergeCoverMasterBlob = undefined;
     this.mergeCoverRenderedFile = undefined;
     this.mergeCoverCropState = undefined;
     this.mergeCoverFormatId = 'epub';
@@ -1904,52 +2018,123 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   private buildFormatOptions(): CropFormatOption[] {
-    const epubTarget: CropTarget = {
-      formatId: 'epub',
-      width: 3,
-      height: 4,
+    const fixedTarget = (
+      formatId: string,
+      width: number,
+      height: number,
+    ): CropTarget => ({
+      formatId,
+      width,
+      height,
+      output: 'target',
+      unit: 'px',
+      outputMode: 'fixed-size',
+    });
+    const aspectTarget = (
+      formatId: string,
+      width: number,
+      height: number,
+      unit: 'mm' | 'in' | 'ratio',
+    ): CropTarget => ({
+      formatId,
+      width,
+      height,
       output: 'source',
-      unit: 'ratio',
+      unit,
       outputMode: 'aspect-only',
-    };
+    });
 
     return [
-      { id: 'epub', label: 'EPUB', target: epubTarget },
+      { id: 'epub', label: 'Kindle', target: fixedTarget('epub', 1236, 1648) },
       {
         id: 'kobo',
         label: 'Kobo',
-        target: {
-          formatId: 'kobo',
-          width: 1072,
-          height: 1448,
-          output: 'target',
-          unit: 'px',
-          outputMode: 'fixed-size',
-        },
+        target: fixedTarget('kobo', 1072, 1448),
+      },
+      {
+        id: 'ridi-1600x2560',
+        label: '1600 × 2560 px',
+        target: fixedTarget('ridi-1600x2560', 1600, 2560),
+      },
+      {
+        id: 'ridi-1200x1800',
+        label: '1200 × 1800 px',
+        target: fixedTarget('ridi-1200x1800', 1200, 1800),
+      },
+      {
+        id: 'a3',
+        label: 'A3',
+        target: aspectTarget('a3', 297, 420, 'mm'),
+      },
+      {
+        id: 'a4',
+        label: 'A4',
+        target: aspectTarget('a4', 210, 297, 'mm'),
+      },
+      {
+        id: 'a5',
+        label: 'A5',
+        target: aspectTarget('a5', 148, 210, 'mm'),
+      },
+      {
+        id: 'a6',
+        label: 'A6',
+        target: aspectTarget('a6', 105, 148, 'mm'),
+      },
+      {
+        id: 'letter',
+        label: 'Letter',
+        target: aspectTarget('letter', 8.5, 11, 'in'),
+      },
+      {
+        id: 'legal',
+        label: 'Legal',
+        target: aspectTarget('legal', 8.5, 14, 'in'),
+      },
+      {
+        id: 'tabloid',
+        label: 'Tabloid',
+        target: aspectTarget('tabloid', 11, 17, 'in'),
+      },
+      {
+        id: 'one_one',
+        label: '1:1',
+        target: aspectTarget('one_one', 1, 1, 'ratio'),
+      },
+      {
+        id: 'two_three',
+        label: '2:3',
+        target: aspectTarget('two_three', 2, 3, 'ratio'),
       },
       {
         id: 'three_four',
         label: '3:4',
-        target: {
-          formatId: 'three_four',
-          width: 3,
-          height: 4,
-          output: 'source',
-          unit: 'ratio',
-          outputMode: 'aspect-only',
-        },
+        target: aspectTarget('three_four', 3, 4, 'ratio'),
+      },
+      {
+        id: 'four_five',
+        label: '4:5',
+        target: aspectTarget('four_five', 4, 5, 'ratio'),
+      },
+      {
+        id: 'five_seven',
+        label: '5:7',
+        target: aspectTarget('five_seven', 5, 7, 'ratio'),
+      },
+      {
+        id: 'five_eight',
+        label: '5:8',
+        target: aspectTarget('five_eight', 5, 8, 'ratio'),
       },
       {
         id: 'nine_sixteen',
         label: '9:16',
-        target: {
-          formatId: 'nine_sixteen',
-          width: 9,
-          height: 16,
-          output: 'source',
-          unit: 'ratio',
-          outputMode: 'aspect-only',
-        },
+        target: aspectTarget('nine_sixteen', 9, 16, 'ratio'),
+      },
+      {
+        id: 'sixteen_nine',
+        label: '16:9',
+        target: aspectTarget('sixteen_nine', 16, 9, 'ratio'),
       },
     ];
   }
@@ -2033,6 +2218,25 @@ export class HomePage implements OnInit, OnDestroy {
     try {
       const selection = await this.prepareNativeSelection();
       await this.replaceSplitSelection(selection);
+    } catch (error) {
+      if (this.isCancelledPick(error)) {
+        return;
+      }
+      this.handlePickerError(error);
+    } finally {
+      this.isPicking.set(false);
+    }
+  }
+
+  private async pickNativeEpubsForMerge(): Promise<void> {
+    this.isPicking.set(true);
+
+    try {
+      const selections = await this.prepareNativeSelections();
+      this.mergeSelections.update((current) => [...current, ...selections]);
+      this.selectedMode.set('merge');
+      this.workflowStep = 1;
+      await this.refreshMergeCoverCandidates();
     } catch (error) {
       if (this.isCancelledPick(error)) {
         return;
@@ -2228,9 +2432,35 @@ export class HomePage implements OnInit, OnDestroy {
     const prepared = await this.epubRewrite.pickAndPrepareEpub({
       maxBytes: MAX_EPUB_SIZE_MB * 1024 * 1024,
       requireCover: false,
-      includeCoverPreview: false,
+      includeCoverPreview: true,
     });
 
+    return this.toNativeSelection(prepared);
+  }
+
+  private async prepareNativeSelections(): Promise<SelectedEpubInput[]> {
+    const prepared = await this.epubRewrite.pickAndPrepareEpubs({
+      maxBytes: MAX_EPUB_SIZE_MB * 1024 * 1024,
+      requireCover: false,
+      includeCoverPreview: true,
+    });
+
+    return prepared.map((item) => this.toNativeSelection(item));
+  }
+
+  private toNativeSelection(prepared: {
+    sessionId: string;
+    selectedName: string;
+    sourceSize: number;
+    sourceLastModified: number;
+    sourceMimeType: string;
+    workingPath: string;
+    workingName: string;
+    workingNativePath: string;
+    outputBaseName: string;
+    file?: File;
+    coverEntryPath?: string;
+  }): SelectedEpubInput {
     return {
       id: this.createSelectionId(),
       sessionId: prepared.sessionId,
@@ -2241,6 +2471,8 @@ export class HomePage implements OnInit, OnDestroy {
       workingPath: prepared.workingPath,
       workingName: prepared.workingName,
       workingFile: null,
+      coverFile: prepared.file,
+      coverEntryPath: prepared.coverEntryPath,
       workingNativePath: prepared.workingNativePath,
       outputBaseName: prepared.outputBaseName,
       sourceKind: 'native',

@@ -12,4 +12,6 @@ export const DE_DE: RecommendedAppsTranslations = {
   APP_DESC_PCM: 'PDF-Cover schnell und lokal erstellen',
   APP_NAME_EF: 'EPUB reparieren',
   APP_DESC_EF: 'Häufige EPUB-Probleme prüfen und reparierte Kopie speichern',
+  APP_NAME_EMAS: 'EPUB zusammenfügen und teilen',
+  APP_DESC_EMAS: 'EPUBs ordnen, verbinden und gezielt aufteilen',
 };

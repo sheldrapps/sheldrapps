@@ -7,6 +7,7 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
+  signal,
   inject,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -42,7 +43,6 @@ import {
   closeOutline,
   documentOutline,
   helpCircleOutline,
-  saveOutline,
   shareSocialOutline,
   sparklesOutline,
   refreshOutline,
@@ -72,7 +72,9 @@ import {
 } from '@sheldrapps/ads-kit';
 import {
   ActionCardComponent,
-  LoadingStateComponent,
+  RenameIconComponent,
+  ProBadgeComponent,
+  SpinnerComponent,
   SectionCardComponent,
   SaveCoverModalComponent,
   ScrollableBarItem,
@@ -98,6 +100,10 @@ import {
   type LoadedGeneratedEpub,
 } from '../../services/epub-library.service';
 import { EpubFixerSettings } from '../../settings/epub-fixer-settings.schema';
+import {
+  LifecycleDiagnosticsService,
+  WorkflowRecoveryCoordinator,
+} from '@sheldrapps/lifecycle-kit';
 
 type DiagnosisSeverityLevel = 'critical' | 'high' | 'medium' | 'low';
 type IssueSectionKind = 'automatic' | 'confirmation' | 'manual' | 'blocked';
@@ -111,6 +117,18 @@ type IssueSectionView = {
 };
 
 const MAX_REPAIR_PASSES = 3;
+
+type EpubFixerRecoverySnapshot = {
+  selectedEpubName?: string;
+  sourceEpubMeta?: FixPage['sourceEpubMeta'];
+  workflowStep: number;
+  viewState: FixPage['viewState'];
+  epubErrorKey?: string;
+  epubErrorParams: Record<string, unknown>;
+  diagnosis?: EpubDiagnosticResult;
+  repairResult?: EpubRepairResult;
+  exportResult?: FixPage['exportResult'];
+};
 
 @Component({
   selector: 'app-fix-page',
@@ -137,8 +155,10 @@ const MAX_REPAIR_PASSES = 3;
     IonTitle,
     IonToolbar,
     ActionCardComponent,
+    RenameIconComponent,
+    ProBadgeComponent,
     CoverImageStateComponent,
-    LoadingStateComponent,
+    SpinnerComponent,
     SectionCardComponent,
     ScrollableButtonBarComponent,
     WorkflowNavigationComponent,
@@ -164,6 +184,9 @@ export class FixPage implements OnInit, OnDestroy {
   private readonly zone = inject(NgZone);
   private readonly changeDetector = inject(ChangeDetectorRef);
   private readonly editorSessionExit = inject(EditorSessionExitService);
+  private readonly lifecycle = inject(LifecycleDiagnosticsService);
+  private readonly recovery = inject(WorkflowRecoveryCoordinator);
+  private recoveryEpubFile?: File;
 
   @ViewChild('epubInput') epubInput!: ElementRef<HTMLInputElement>;
 
@@ -176,7 +199,6 @@ export class FixPage implements OnInit, OnDestroy {
       closeOutline,
       documentOutline,
       helpCircleOutline,
-      saveOutline,
       shareSocialOutline,
       sparklesOutline,
       refreshOutline,
@@ -205,7 +227,15 @@ export class FixPage implements OnInit, OnDestroy {
   };
   removeAdsPriceFormatted: string | null = null;
   purchaseModalOpen = false;
-  purchaseBusy = false;
+  private readonly purchaseBusyState = signal(false);
+
+  get purchaseBusy(): boolean {
+    return this.purchaseBusyState();
+  }
+
+  set purchaseBusy(value: boolean) {
+    this.purchaseBusyState.set(value);
+  }
   private readonly adFallbackApp = 'ef' as const;
   private readonly adFallbackTotal = 1;
   private adFallbackRemaining = this.adFallbackTotal;
@@ -232,9 +262,35 @@ export class FixPage implements OnInit, OnDestroy {
     | 'failed' = 'idle';
   epubErrorKey?: string;
   epubErrorParams: Record<string, unknown> = {};
-  busyAction?: 'prepare' | 'diagnose' | 'repair' | 'export';
-  busyProgressPercent = 0;
-  isResettingFlow = false;
+  private readonly busyActionState = signal<
+    'prepare' | 'diagnose' | 'repair' | 'export' | undefined
+  >(undefined);
+  private readonly busyProgressPercentState = signal(0);
+  private readonly isResettingFlowState = signal(false);
+
+  get busyAction(): 'prepare' | 'diagnose' | 'repair' | 'export' | undefined {
+    return this.busyActionState();
+  }
+
+  set busyAction(value: 'prepare' | 'diagnose' | 'repair' | 'export' | undefined) {
+    this.busyActionState.set(value);
+  }
+
+  get busyProgressPercent(): number {
+    return this.busyProgressPercentState();
+  }
+
+  set busyProgressPercent(value: number) {
+    this.busyProgressPercentState.set(value);
+  }
+
+  get isResettingFlow(): boolean {
+    return this.isResettingFlowState();
+  }
+
+  set isResettingFlow(value: boolean) {
+    this.isResettingFlowState.set(value);
+  }
   adsRemoved = false;
   private adsRemovedSub?: Subscription;
   private removeAdsPriceSub?: Subscription;
@@ -683,19 +739,27 @@ export class FixPage implements OnInit, OnDestroy {
         this.removeAdsPriceFormatted = value;
       });
     });
+    this.registerRecovery();
+    await this.recovery.restore();
   }
 
   ngOnDestroy(): void {
+    this.lifecycle.log('Ionic.FixPage.ngOnDestroy', {
+      workflowStep: this.workflowStep,
+    });
     this.closeInfo();
     this.closePurchaseModal();
     this.adsRemovedSub?.unsubscribe();
     this.removeAdsPriceSub?.unsubscribe();
     this.headerLangSub?.unsubscribe();
     this.headerTranslationSub?.unsubscribe();
-    void this.cleanupPreparedEpub();
+    void this.recovery.save();
   }
 
   async ionViewWillEnter(): Promise<void> {
+    this.lifecycle.log('Ionic.FixPage.ionViewWillEnter', {
+      workflowStep: this.workflowStep,
+    });
     await this.refreshHeaderItems();
     await this.tryOpenProjectFromRoute();
     await this.tryOpenPurchaseFromRoute();
@@ -713,7 +777,49 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   ionViewWillLeave(): void {
+    this.lifecycle.log('Ionic.FixPage.ionViewWillLeave', {
+      workflowStep: this.workflowStep,
+    });
+    void this.recovery.save();
     this.closeInfo();
+  }
+
+  private registerRecovery(): void {
+    this.recovery.register<EpubFixerRecoverySnapshot>({
+      snapshot: () => ({
+        selectedEpubName: this.selectedEpubName,
+        sourceEpubMeta: this.sourceEpubMeta,
+        workflowStep: this.workflowStep,
+        viewState: this.viewState,
+        epubErrorKey: this.epubErrorKey,
+        epubErrorParams: this.epubErrorParams,
+        diagnosis: this.diagnosis,
+        repairResult: this.repairResult,
+        exportResult: this.exportResult,
+      }),
+      assets: () => ({ epub: this.recoveryEpubFile }),
+      restore: async (snapshot, assets) => {
+        const epub = assets['epub'];
+        if (!epub) return;
+        const prepared = await this.workflow.prepareFromFile(epub);
+        this.recoveryEpubFile = epub;
+        this.preparedSessionId = prepared.sessionId;
+        this.selectedEpubName = snapshot.selectedEpubName ?? epub.name;
+        this.sourceEpubMeta = snapshot.sourceEpubMeta ?? {
+          name: epub.name,
+          size: epub.size,
+          lastModified: epub.lastModified,
+          type: epub.type,
+        };
+        this.epubErrorKey = snapshot.epubErrorKey;
+        this.epubErrorParams = snapshot.epubErrorParams ?? {};
+        this.diagnosis = snapshot.diagnosis;
+        this.repairResult = snapshot.repairResult;
+        this.exportResult = snapshot.exportResult;
+        this.viewState = snapshot.viewState;
+        this.workflowStep = Math.max(0, Math.min(2, snapshot.workflowStep));
+      },
+    });
   }
 
   openEpubPicker(): void {
@@ -748,6 +854,10 @@ export class FixPage implements OnInit, OnDestroy {
       this.busyAction = undefined;
       this.busyProgressPercent = 0;
     });
+  }
+
+  private async setBusyProgress(percent: number): Promise<void> {
+    this.busyProgressPercent = Math.max(0, Math.min(100, Math.round(percent)));
     await this.flushUi();
   }
 
@@ -756,14 +866,16 @@ export class FixPage implements OnInit, OnDestroy {
     const file = input.files?.[0];
     if (!file) return;
 
+    this.recoveryEpubFile = file;
+
     await this.runInZone(async () => {
       this.busyAction = 'prepare';
       this.busyProgressPercent = 0;
       try {
         await this.resetWorkflowForNewEpub();
-        this.busyProgressPercent = 12;
+        await this.setBusyProgress(12);
         const prepared = await this.workflow.prepareFromFile(file);
-        this.busyProgressPercent = 48;
+        await this.setBusyProgress(48);
 
         this.preparedSessionId = prepared.sessionId;
         this.selectedEpubName = file.name;
@@ -966,12 +1078,11 @@ export class FixPage implements OnInit, OnDestroy {
       this.isResettingFlow = true;
       this.changeDetector.detectChanges();
     });
-    await this.yieldResetTurn();
     await this.runInZone(async () => {
       try {
-        await this.resetWorkflowForNewEpub();
         this.busyAction = undefined;
         this.busyProgressPercent = 0;
+        await this.resetWorkflowForNewEpub();
         if (this.epubInput?.nativeElement) {
           this.epubInput.nativeElement.value = '';
         }
@@ -1240,8 +1351,9 @@ export class FixPage implements OnInit, OnDestroy {
       this.busyProgressPercent = 0;
 
       try {
+        this.recoveryEpubFile = project.file;
         await this.resetWorkflowForNewEpub();
-        this.busyProgressPercent = 12;
+        await this.setBusyProgress(12);
 
         if (this.workflow.usesNativePicker() && !project.uri) {
           throw new Error('Missing native EPUB URI for project load.');
@@ -1251,7 +1363,7 @@ export class FixPage implements OnInit, OnDestroy {
           ? await this.workflow.prepareFromUri(project.uri!, project.file.name)
           : await this.workflow.prepareFromFile(project.file);
 
-        this.busyProgressPercent = 48;
+        await this.setBusyProgress(48);
         this.preparedSessionId = prepared.sessionId;
         this.selectedEpubName = project.file.name;
         this.sourceEpubMeta = {
@@ -1488,13 +1600,17 @@ export class FixPage implements OnInit, OnDestroy {
       this.busyAction = 'export';
       try {
         this.exportResult = undefined;
+        await this.setBusyProgress(12);
         const outputName =
           this.workflow.buildFixedOutputName(this.selectedEpubName);
         const exported = await this.workflow.exportCurrentEpub(outputName);
+        await this.setBusyProgress(48);
         await this.library.saveExportedEpub(exported.outputUri, outputName);
+        await this.setBusyProgress(72);
         const preview = await this.library.resolvePreviewAsset(outputName, {
           forceRefresh: true,
         });
+        await this.setBusyProgress(90);
         this.coversEvents.emit({ type: 'saved', filename: outputName });
 
         this.exportResult = {
@@ -1505,6 +1621,7 @@ export class FixPage implements OnInit, OnDestroy {
         };
         this.clearEpubError();
         await this.consumeAdFallbackAttemptAfterSuccess();
+        await this.setBusyProgress(100);
       } finally {
         this.busyAction = previousBusyAction;
       }
@@ -1521,11 +1638,13 @@ export class FixPage implements OnInit, OnDestroy {
     this.busyAction = 'export';
 
     try {
+      await this.setBusyProgress(12);
       const previousFilename = this.exportResult.outputName;
       await this.library.saveExportedEpub(
         this.exportResult.outputUri,
         resolvedFilename,
       );
+      await this.setBusyProgress(72);
 
       if (
         previousFilename &&
@@ -1544,6 +1663,7 @@ export class FixPage implements OnInit, OnDestroy {
       };
       this.coversEvents.emit({ type: 'saved', filename: resolvedFilename });
       this.clearEpubError();
+      await this.setBusyProgress(100);
       await this.showToast('FIX.RENAMED_OK', { duration: 1600 }, 'success');
     } catch (error) {
       this.failWorkflow('EPUB_ERROR_REWRITE', error);
@@ -1554,19 +1674,6 @@ export class FixPage implements OnInit, OnDestroy {
         this.changeDetector.detectChanges();
       });
     }
-  }
-
-  private async yieldResetTurn(): Promise<void> {
-    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
-      await Promise.resolve();
-      return;
-    }
-
-    await new Promise<void>((resolve) => {
-      window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(() => resolve());
-      });
-    });
   }
 
   private async showToast(
@@ -1629,7 +1736,7 @@ export class FixPage implements OnInit, OnDestroy {
 
       try {
         await this.resetWorkflowForNewEpub();
-        this.busyProgressPercent = 12;
+        await this.setBusyProgress(12);
         const prepared = await this.workflow.pickAndPrepareNative();
         await this.applyPreparedNativeEpub(prepared);
       } catch (error) {
@@ -1655,7 +1762,7 @@ export class FixPage implements OnInit, OnDestroy {
   private async applyPreparedNativeEpub(
     prepared: Awaited<ReturnType<EpubFixerWorkflowService['pickAndPrepareNative']>>,
   ): Promise<void> {
-    this.busyProgressPercent = 48;
+    await this.setBusyProgress(48);
 
     this.preparedSessionId = prepared.sessionId;
     this.selectedEpubName = prepared.originalName;
@@ -1691,7 +1798,12 @@ export class FixPage implements OnInit, OnDestroy {
       this.workflowStep = 0;
       this.viewState = 'idle';
     });
-    if (waitForCleanup) await cleanupPromise;
+    if (waitForCleanup) {
+      await cleanupPromise;
+    } else {
+      void cleanupPromise.catch(() => undefined);
+    }
+    await this.recovery.clear();
   }
 
   private async cleanupPreparedEpub(): Promise<void> {
@@ -1746,7 +1858,7 @@ export class FixPage implements OnInit, OnDestroy {
 
     return this.runInZone(async () => {
       this.busyAction = 'diagnose';
-      this.busyProgressPercent = 72;
+      await this.setBusyProgress(72);
       this.viewState = 'diagnosing';
       this.repairResult = undefined;
       this.exportResult = undefined;
@@ -1756,7 +1868,7 @@ export class FixPage implements OnInit, OnDestroy {
         this.viewState = 'diagnosed';
         this.workflowStep = 1;
         this.clearEpubError();
-        this.busyProgressPercent = 100;
+        await this.setBusyProgress(100);
         return true;
       } catch (error) {
         this.failWorkflow('EPUB_ERROR_REWRITE', error);

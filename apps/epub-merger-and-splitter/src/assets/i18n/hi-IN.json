@@ -30,7 +30,8 @@
     "EDIT_PROJECT_OVERWRITE_DESC": "मौजूदा फ़ाइल के ऊपर बदलाव सहेजें।",
     "EDIT_PROJECT_COPY": "प्रति पर काम करें",
     "EDIT_PROJECT_COPY_DESC": "मूल फ़ाइल को रखें और एक नई प्रति संपादित करें।",
-    "UPGRADE_TO_PRO": "प्रो में अपग्रेड करें"
+    "UPGRADE_TO_PRO": "प्रो में अपग्रेड करें",
+    "REMOVE_ADS_CTA_SUBTITLE": "एकमुश्त भुगतान • हमेशा के लिए"
   },
   "MY_EPUBS": {
     "TITLE": "मेरे EPUBs",
@@ -43,6 +44,11 @@
     "LOADING_PREVIEW": "पूर्वावलोकन लोड हो रहा है",
     "ACTION_OPEN": "EPUB खोलें",
     "ACTION_EDIT": "EPUB संपादित करें",
+    "ACTION_RENAME": "नाम बदलें",
+    "RENAME_TITLE": "EPUB का नाम बदलें",
+    "RENAME_MESSAGE": "EPUB के लिए नया नाम दर्ज करें",
+    "RENAME_PLACEHOLDER": "फ़ाइल का नाम",
+    "RENAMED": "EPUB का नाम बदल दिया गया",
     "ACTION_SHARE": "EPUB साझा करें",
     "ACTION_DELETE": "EPUB हटाएँ",
     "DELETE_TITLE": "EPUB हटाएँ?",
@@ -119,6 +125,7 @@
       "MERGE_SUCCESS_BODY": "चुने गए EPUB की सामग्री के साथ एक नई कॉपी बनाई गई।",
       "SPLIT_SUCCESS_TITLE": "EPUB सफलतापूर्वक विभाजित किया गया",
       "SPLIT_SUCCESS_BODY": "{{count}} नए EPUB बनाए गए।",
+      "FIDELITY_WARNINGS": "निर्यात मान्य है, लेकिन निष्ठा से जुड़ी {{count}} सूचना दर्ज हुई।",
       "MERGE_FAILURE_TITLE": "EPUB जोड़े नहीं जा सके",
       "MERGE_FAILURE_BODY": "अंतिम EPUB नहीं बनाया जा सका। आपकी मूल फ़ाइलें नहीं बदली गईं।",
       "SPLIT_FAILURE_TITLE": "EPUB विभाजित नहीं किया जा सका",

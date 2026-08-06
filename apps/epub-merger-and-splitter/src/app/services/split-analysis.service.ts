@@ -119,7 +119,7 @@ export class SplitAnalysisService {
     }
 
     const document = new DOMParser().parseFromString(container, 'application/xml');
-    return document.querySelector('rootfile')?.getAttribute('full-path') ?? null;
+    return this.firstElementByLocalName(document, 'rootfile')?.getAttribute('full-path') ?? null;
   }
 
   private readManifest(
@@ -128,7 +128,8 @@ export class SplitAnalysisService {
     zip: JSZip,
   ): Map<string, ManifestEntry> {
     const result = new Map<string, ManifestEntry>();
-    for (const item of Array.from(document.querySelectorAll('manifest > item'))) {
+    const manifest = this.firstElementByLocalName(document, 'manifest');
+    for (const item of this.directChildrenByLocalName(manifest, 'item')) {
       const id = item.getAttribute('id');
       const href = item.getAttribute('href');
       if (!id || !href) {
@@ -147,7 +148,8 @@ export class SplitAnalysisService {
   }
 
   private readSpine(document: Document, manifest: Map<string, ManifestEntry>): Array<ManifestEntry & { sourcePath: string }> {
-    return Array.from(document.querySelectorAll('spine > itemref'))
+    const spine = this.firstElementByLocalName(document, 'spine');
+    return this.directChildrenByLocalName(spine, 'itemref')
       .map((itemref) => manifest.get(itemref.getAttribute('idref') ?? ''))
       .filter((item): item is ManifestEntry => !!item)
       .filter((item) => item.mediaType === 'application/xhtml+xml' || item.mediaType === 'text/html')
@@ -160,14 +162,17 @@ export class SplitAnalysisService {
     manifest: Map<string, ManifestEntry>,
     opfDirectory: string,
   ): Promise<{ entries: TocEntry[]; topLevelEntries: TocEntry[] }> {
-    const navItem = Array.from(manifest.values()).find((item) => item.properties.split(/\s+/).includes('nav'));
+    const navItem = Array.from(manifest.values()).find((item) => this.hasToken(item.properties, 'nav'));
     if (navItem) {
       const navText = await this.readText(zip, navItem.href);
       if (navText) {
         const document = new DOMParser().parseFromString(navText, 'application/xhtml+xml');
         const nav = this.findNavigationElement(document);
-        const topLevelEntries = nav ? this.readNavList(this.directChild(nav, ['ol', 'ul']), navItem.href) : [];
-        return { entries: this.flattenEntries(topLevelEntries), topLevelEntries };
+        const topLevelEntries = nav ? this.readNavList(this.findNavigationList(nav), navItem.href) : [];
+        const entries = this.flattenEntries(topLevelEntries);
+        if (entries.length > 0) {
+          return { entries, topLevelEntries };
+        }
       }
     }
 
@@ -176,8 +181,11 @@ export class SplitAnalysisService {
       const ncxText = await this.readText(zip, ncxItem.href);
       if (ncxText) {
         const document = new DOMParser().parseFromString(ncxText, 'application/xml');
-        const topLevelEntries = this.readNcxList(document.querySelector('navMap'), ncxItem.href);
-        return { entries: this.flattenEntries(topLevelEntries), topLevelEntries };
+        const topLevelEntries = this.readNcxList(this.firstElementByLocalName(document, 'navMap'), ncxItem.href);
+        const entries = this.flattenEntries(topLevelEntries);
+        if (entries.length > 0) {
+          return { entries, topLevelEntries };
+        }
       }
     }
 
@@ -188,14 +196,14 @@ export class SplitAnalysisService {
     if (!list) {
       return [];
     }
-    return Array.from(list.querySelectorAll(':scope > li')).map((item, index) => {
-      const link = this.directChild(item, ['a', 'span']);
+    return this.directChildrenByLocalName(list, 'li').map((item, index) => {
+      const link = this.findNavigationLink(item);
       const href = link?.getAttribute('href') ?? '';
       return {
         id: `toc-${index}-${href}`,
         title: link?.textContent?.trim() || `Section ${index + 1}`,
         href: this.resolvePath(sourcePath.slice(0, sourcePath.lastIndexOf('/') + 1), href),
-        children: this.readNavList(this.directChild(item, ['ol', 'ul']), sourcePath),
+        children: this.readNavList(this.findNavigationList(item), sourcePath),
       };
     });
   }
@@ -207,21 +215,27 @@ export class SplitAnalysisService {
   }
 
   private findNavigationElement(document: Document): Element | null {
-    return Array.from(document.querySelectorAll('nav')).find((candidate) => {
-      const epubType = candidate.getAttribute('epub:type') ?? candidate.getAttribute('type');
-      return epubType === 'toc' || candidate.getAttribute('role') === 'doc-toc';
-    }) ?? document.querySelector('nav');
+    const navigationElements = this.elementsByLocalName(document, 'nav');
+    const tocNavigation = navigationElements.find((candidate) => {
+      const epubType = candidate.getAttribute('epub:type')
+        ?? candidate.getAttributeNS('http://www.idpf.org/2007/ops', 'type')
+        ?? candidate.getAttribute('type');
+      return this.hasToken(epubType, 'toc') || this.hasToken(candidate.getAttribute('role'), 'doc-toc');
+    });
+    return tocNavigation ?? (navigationElements.length === 1 ? navigationElements[0] : null);
   }
 
   private readNcxList(navMap: Element | null, sourcePath: string): TocEntry[] {
     if (!navMap) {
       return [];
     }
-    return Array.from(navMap.querySelectorAll(':scope > navPoint')).map((item, index) => {
-      const content = item.querySelector(':scope > content')?.getAttribute('src') ?? '';
+    return this.directChildrenByLocalName(navMap, 'navPoint').map((item, index) => {
+      const content = this.directChildByLocalName(item, 'content')?.getAttribute('src') ?? '';
+      const label = this.directChildByLocalName(item, 'navLabel');
+      const text = label ? this.firstElementByLocalName(label, 'text')?.textContent?.trim() : '';
       return {
         id: item.getAttribute('id') ?? `ncx-${index}`,
-        title: item.querySelector(':scope > navLabel > text')?.textContent?.trim() || `Section ${index + 1}`,
+        title: text || `Section ${index + 1}`,
         href: this.resolvePath(sourcePath.slice(0, sourcePath.lastIndexOf('/') + 1), content),
         children: this.readNcxList(item, sourcePath),
       };
@@ -279,17 +293,78 @@ export class SplitAnalysisService {
   }
 
   private sameDocument(left: string, right: string): boolean {
-    return left.split('#')[0] === right.split('#')[0];
+    return this.documentPath(left) === this.documentPath(right);
   }
 
   private resolvePath(directory: string, href: string): string {
+    const rawHref = href.trim();
+    if (!rawHref || this.isExternalHref(rawHref)) {
+      return '';
+    }
+    const fragmentIndex = rawHref.indexOf('#');
+    const queryIndex = rawHref.indexOf('?');
+    const pathEnd = [fragmentIndex, queryIndex]
+      .filter((index) => index >= 0)
+      .sort((left, right) => left - right)[0] ?? rawHref.length;
+    const pathHref = rawHref.slice(0, pathEnd);
+    const fragment = fragmentIndex >= 0 ? rawHref.slice(fragmentIndex) : '';
     const base = directory.split('/').filter(Boolean);
-    for (const part of decodeURIComponent(href).split('/')) {
+    for (const part of decodeURIComponent(pathHref).split('/')) {
       if (!part || part === '.') continue;
       if (part === '..') base.pop();
       else base.push(part);
     }
-    return base.join('/');
+    return base.join('/') + fragment;
+  }
+
+  private documentPath(href: string): string {
+    const fragmentIndex = href.indexOf('#');
+    const queryIndex = href.indexOf('?');
+    const pathEnd = [fragmentIndex, queryIndex]
+      .filter((index) => index >= 0)
+      .sort((left, right) => left - right)[0] ?? href.length;
+    return href.slice(0, pathEnd);
+  }
+
+  private isExternalHref(href: string): boolean {
+    return /^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(href);
+  }
+
+  private hasToken(value: string | null, expected: string): boolean {
+    return value?.split(/\s+/).some((token) => token.toLowerCase() === expected.toLowerCase()) ?? false;
+  }
+
+  private findNavigationList(element: Element): Element | null {
+    return this.directChild(element, ['ol', 'ul'])
+      ?? this.elementsByLocalName(element, 'ol')[0]
+      ?? this.elementsByLocalName(element, 'ul')[0]
+      ?? null;
+  }
+
+  private findNavigationLink(element: Element): Element | null {
+    return this.directChild(element, ['a', 'span'])
+      ?? this.elementsByLocalName(element, 'a')[0]
+      ?? this.elementsByLocalName(element, 'span')[0]
+      ?? null;
+  }
+
+  private firstElementByLocalName(root: Document | Element, localName: string): Element | null {
+    return this.elementsByLocalName(root, localName)[0] ?? null;
+  }
+
+  private elementsByLocalName(root: Document | Element, localName: string): Element[] {
+    return Array.from(root.getElementsByTagNameNS('*', localName));
+  }
+
+  private directChildrenByLocalName(root: Element | null, localName: string): Element[] {
+    if (!root) {
+      return [];
+    }
+    return Array.from(root.children).filter((child) => child.localName.toLowerCase() === localName.toLowerCase());
+  }
+
+  private directChildByLocalName(root: Element, localName: string): Element | null {
+    return this.directChildrenByLocalName(root, localName)[0] ?? null;
   }
 
   private entrySize(entry: JSZipObject | undefined, totalSize: number, unitCount: number): number {

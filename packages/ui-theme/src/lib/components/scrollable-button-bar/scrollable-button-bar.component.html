@@ -25,14 +25,16 @@
           <ng-template #defaultItem>
             <ng-container [ngSwitch]="variant">
               <ng-container *ngSwitchCase="'iconOnly'">
+                <sh-rename-icon *ngIf="item.iconSvg === 'rename'" class="app-icon-text__icon"></sh-rename-icon>
                 <ion-icon *ngIf="item.svg" class="app-icon-text__icon" [src]="svgSrc(item)"></ion-icon>
-                <ion-icon *ngIf="!item.svg && item.icon" class="app-icon-text__icon" [name]="item.icon"></ion-icon>
+                <ion-icon *ngIf="!item.svg && !item.iconSvg && item.icon" class="app-icon-text__icon" [name]="item.icon"></ion-icon>
               </ng-container>
 
               <ng-container *ngSwitchCase="'iconText'">
                 <div class="app-icon-text">
+                  <sh-rename-icon *ngIf="item.iconSvg === 'rename'" class="app-icon-text__icon"></sh-rename-icon>
                   <ion-icon *ngIf="item.svg" class="app-icon-text__icon" [src]="svgSrc(item)"></ion-icon>
-                  <ion-icon *ngIf="!item.svg && item.icon" class="app-icon-text__icon" [name]="item.icon"></ion-icon>
+                  <ion-icon *ngIf="!item.svg && !item.iconSvg && item.icon" class="app-icon-text__icon" [name]="item.icon"></ion-icon>
                   <span class="app-icon-text__label" [style.fontFamily]="item.fontFamily || null">{{ item.label }}</span>
                 </div>
               </ng-container>

@@ -5,6 +5,7 @@ import {
   OnInit,
   OnDestroy,
   ViewChild,
+  signal,
   inject,
 } from '@angular/core';
 import { Subscription, filter } from 'rxjs';
@@ -37,7 +38,10 @@ import {
   FileService,
   ResolvedCoverPreviewAsset,
 } from '../../services/file.service';
-import { EditProjectChoiceModalComponent } from '@sheldrapps/ui-theme';
+import {
+  EditProjectChoiceModalComponent,
+  SaveCoverModalComponent,
+} from '@sheldrapps/ui-theme';
 import { CoversEventsService } from '../../services/covers-events.service';
 import {
   CoverListAction,
@@ -75,7 +79,15 @@ export class CoversPage implements OnInit, OnDestroy {
   private previewPage = inject(PreviewEditingPageService);
   @ViewChild(IonContent) content!: IonContent;
   @ViewChild(CoverListContentComponent) listContent?: CoverListContentComponent;
-  loading = true;
+  private readonly loadingState = signal(true);
+
+  get loading(): boolean {
+    return this.loadingState();
+  }
+
+  set loading(value: boolean) {
+    this.loadingState.set(value);
+  }
   items: UiCoverItem[] = [];
 
   pageErrorKey: string | null = null;
@@ -84,23 +96,28 @@ export class CoversPage implements OnInit, OnDestroy {
   readonly listActions: CoverListAction[] = [
     {
       id: 'open',
-      labelKey: 'COVERS.ACTIONS.OPEN',
+      labelKey: 'UI_THEME.ACTIONS.OPEN',
       icon: 'open-outline',
     },
     {
       id: 'project',
-      labelKey: 'COVERS.ACTIONS.EDIT_PROJECT',
+      labelKey: 'UI_THEME.ACTIONS.EDIT',
       icon: 'folder-open-outline',
       hidden: (item) => !this.hasProjectForFilename(item.filename),
     },
     {
+      id: 'rename',
+      labelKey: 'UI_THEME.ACTIONS.RENAME',
+      iconSvg: 'rename',
+    },
+    {
       id: 'share',
-      labelKey: 'COVERS.ACTIONS.SHARE',
+      labelKey: 'UI_THEME.ACTIONS.SHARE',
       icon: 'share-outline',
     },
     {
       id: 'delete',
-      labelKey: 'COVERS.ACTIONS.DELETE',
+      labelKey: 'UI_THEME.ACTIONS.DELETE',
       icon: 'trash-outline',
     },
   ];
@@ -236,7 +253,7 @@ export class CoversPage implements OnInit, OnDestroy {
       this.loading = false;
       ev?.target && (ev.target as any).complete();
       await this.flushUi();
-      void this.loadThumbsResilient(items, loadToken);
+      void this.loadThumbsResilient(items, loadToken, !!ev);
     } catch (error) {
       this.logInfo('libraryReload:failed', {
         triggeredAt: new Date().toISOString(),
@@ -251,7 +268,11 @@ export class CoversPage implements OnInit, OnDestroy {
     }
   }
 
-  private async loadThumbsResilient(items: UiCoverItem[], loadToken: number) {
+  private async loadThumbsResilient(
+    items: UiCoverItem[],
+    loadToken: number,
+    forceRebuild: boolean,
+  ) {
     const concurrency = 6;
     let i = 0;
 
@@ -262,6 +283,7 @@ export class CoversPage implements OnInit, OnDestroy {
         const item = items[idx];
         const dataUrl = await this.files.getOrBuildThumbDataUrlForFilename(
           item.filename,
+          { forceRebuild },
         );
         item.thumbDataUrl = dataUrl ?? undefined;
 
@@ -324,7 +346,7 @@ export class CoversPage implements OnInit, OnDestroy {
     return [
       {
         id: 'open',
-        labelKey: 'COVERS.ACTIONS.OPEN',
+        labelKey: 'UI_THEME.ACTIONS.OPEN',
         icon: 'open-outline',
         layout: 'icon-text',
         cssClass: 'ctrl',
@@ -332,7 +354,7 @@ export class CoversPage implements OnInit, OnDestroy {
       },
       {
         id: 'project',
-        labelKey: 'COVERS.ACTIONS.EDIT_PROJECT',
+        labelKey: 'UI_THEME.ACTIONS.EDIT',
         icon: 'folder-open-outline',
         layout: 'icon-text',
         cssClass: 'ctrl',
@@ -341,7 +363,7 @@ export class CoversPage implements OnInit, OnDestroy {
       },
       {
         id: 'share',
-        labelKey: 'COMMON.SHARE',
+        labelKey: 'UI_THEME.ACTIONS.SHARE',
         icon: 'share-outline',
         layout: 'icon-text',
         cssClass: 'ctrl',
@@ -349,7 +371,7 @@ export class CoversPage implements OnInit, OnDestroy {
       },
       {
         id: 'delete',
-        labelKey: 'COMMON.DELETE',
+        labelKey: 'UI_THEME.ACTIONS.DELETE',
         icon: 'trash-outline',
         layout: 'icon-text',
         cssClass: 'ctrl',
@@ -394,6 +416,10 @@ export class CoversPage implements OnInit, OnDestroy {
       this.closePreview();
       return;
     }
+    if (event.actionId === 'rename') {
+      void this.renameByFilename(this.previewFilename, true);
+      return;
+    }
     if (event.actionId === 'delete') {
       void this.deletePreview();
     }
@@ -418,6 +444,10 @@ export class CoversPage implements OnInit, OnDestroy {
     }
     if (event.actionId === 'project') {
       void this.openProjectByFilename(event.item.filename);
+      return;
+    }
+    if (event.actionId === 'rename') {
+      void this.renameByFilename(event.item.filename);
       return;
     }
     if (event.actionId === 'share') {
@@ -454,10 +484,11 @@ export class CoversPage implements OnInit, OnDestroy {
         titleKey: 'IMAGE_WORKFLOW.PREVIEW_TITLE',
         returnUrl: '/tabs/covers',
         footerActions: [
-          { id: 'open', labelKey: 'COVERS.ACTIONS.OPEN', icon: 'open-outline' },
-          { id: 'project', labelKey: 'COVERS.ACTIONS.EDIT_PROJECT', icon: 'folder-open-outline', hidden: !this.hasProjectForFilename(filename) },
-          { id: 'share', labelKey: 'COMMON.SHARE', icon: 'share-outline' },
-          { id: 'delete', labelKey: 'COMMON.DELETE', icon: 'trash-outline' },
+          { id: 'open', labelKey: 'UI_THEME.ACTIONS.OPEN', icon: 'open-outline' },
+          { id: 'project', labelKey: 'UI_THEME.ACTIONS.EDIT', icon: 'folder-open-outline', hidden: !this.hasProjectForFilename(filename) },
+          { id: 'rename', labelKey: 'UI_THEME.ACTIONS.RENAME', iconSvg: 'rename' },
+          { id: 'share', labelKey: 'UI_THEME.ACTIONS.SHARE', icon: 'share-outline' },
+          { id: 'delete', labelKey: 'UI_THEME.ACTIONS.DELETE', icon: 'trash-outline' },
         ],
         actionHandler: (actionId) => this.onPreviewAction({ actionId, region: 'footer' }),
       });
@@ -495,6 +526,66 @@ export class CoversPage implements OnInit, OnDestroy {
     const filename = this.previewFilename;
     if (!filename) return;
     await this.openByFilename(filename);
+  }
+
+  private async renameByFilename(
+    filename: string | null,
+    fromPreview = false,
+  ): Promise<void> {
+    if (!filename) return;
+    this.pageErrorKey = null;
+    this.pageErrorParams = null;
+
+    const modal = await this.modalCtrl.create({
+      component: SaveCoverModalComponent,
+      componentProps: {
+        initialFilename: filename.replace(/\.epub$/i, ''),
+        title: this.translate.instant('CREATE.SAVE_RENAME_TITLE'),
+        message: this.translate.instant('CREATE.SAVE_RENAME_MESSAGE'),
+        placeholder: this.translate.instant('CREATE.SAVE_RENAME_PLACEHOLDER'),
+        cancelText: this.translate.instant('COMMON.CANCEL'),
+        confirmText: this.translate.instant('COMMON.DONE'),
+      },
+      initialBreakpoint: 0.6,
+      breakpoints: [0, 0.6, 1],
+    });
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss();
+    if (role !== 'confirm' || typeof data !== 'string' || !data.trim()) return;
+
+    this.loading = true;
+    this.previewPage.setLoading(fromPreview);
+    await this.flushUi();
+
+    try {
+      const renamed = await this.files.renameGeneratedEpub({
+        from: filename,
+        to: data.trim(),
+      });
+      ++this.thumbsLoadToken;
+      this.runInZone(() => {
+        this.items = this.items.map((item) =>
+          item.filename === filename
+            ? { ...item, filename: renamed.filename }
+            : item,
+        );
+        if (this.previewFilename === filename) {
+          this.previewFilename = renamed.filename;
+        }
+      });
+      this.previewPage.updateMetadataName(this.displayFilename(renamed.filename));
+      await this.flushUi();
+      this.loading = false;
+      this.previewPage.setLoading(false);
+      await this.flushUi();
+      await this.showToast('CREATE.SAVED_OK');
+    } catch (error) {
+      this.pageErrorKey = 'COMMON.ERROR';
+      await this.showErrorToast(error);
+    } finally {
+      this.loading = false;
+      this.previewPage.setLoading(false);
+    }
   }
 
   async deletePreview() {
@@ -680,6 +771,27 @@ export class CoversPage implements OnInit, OnDestroy {
       duration,
       position: 'middle',
       cssClass: ['cc-toast', 'cc-toast--success'],
+    });
+    await toast.present();
+  }
+
+  private async showErrorToast(error: unknown): Promise<void> {
+    const details = this.errorDetails(error);
+    const detail =
+      typeof details['code'] === 'string'
+        ? details['code']
+        : typeof details['message'] === 'string'
+          ? details['message']
+          : null;
+    const toast = await this.toastCtrl.create({
+      message: [this.translate.instant('COMMON.ERROR'), detail]
+        .filter(Boolean)
+        .join(': '),
+      duration: 3200,
+      position: 'middle',
+      animated: true,
+      translucent: true,
+      cssClass: ['cc-toast', 'cc-toast--error'],
     });
     await toast.present();
   }

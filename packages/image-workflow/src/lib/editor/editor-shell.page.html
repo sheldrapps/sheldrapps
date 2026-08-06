@@ -152,7 +152,7 @@
           @if (!ready) {
             <div class="frame-loader" aria-hidden="true">
               <div class="frame-loader__card">
-                <ion-spinner name="crescent"></ion-spinner>
+                <sh-spinner [visible]="true" variant="indicator"></sh-spinner>
                 <div class="frame-loader__text">{{ 'EDITOR.SHELL.LABEL.LOADING' | translate }}</div>
               </div>
             </div>

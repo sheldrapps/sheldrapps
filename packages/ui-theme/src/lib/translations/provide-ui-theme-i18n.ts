@@ -5,6 +5,7 @@ import {
 } from '@angular/core';
 import { TranslateService, type TranslationObject } from '@ngx-translate/core';
 import { UI_THEME_TRANSLATIONS } from './ui-theme.translations';
+import { UI_THEME_ACTION_TRANSLATIONS } from './ui-theme-actions.translations';
 import { TRIPLE_BUTTON_TRANSLATIONS } from './triple-button.translations';
 
 export function provideUiThemeI18n() {
@@ -23,6 +24,9 @@ export function provideUiThemeI18n() {
             (TRIPLE_BUTTON_TRANSLATIONS as Record<string, TranslationObject>)[
               lang
             ] ?? TRIPLE_BUTTON_TRANSLATIONS['en-US'];
+          const actionDict =
+            UI_THEME_ACTION_TRANSLATIONS[lang] ??
+            UI_THEME_ACTION_TRANSLATIONS['en-US'];
 
           if (!dict || registered.has(lang)) {
             return;
@@ -32,6 +36,7 @@ export function provideUiThemeI18n() {
           registering = true;
           try {
             translate.setTranslation(lang, dict, true);
+            translate.setTranslation(lang, actionDict, true);
             translate.setTranslation(lang, tripleButtonDict, true);
           } finally {
             registering = false;

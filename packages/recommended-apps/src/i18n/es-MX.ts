@@ -12,4 +12,6 @@ export const ES_MX: RecommendedAppsTranslations = {
   APP_DESC_PCM: 'Crea portadas PDF en segundos',
   APP_NAME_EF: 'Reparar EPUB',
   APP_DESC_EF: 'Detecta y repara problemas comunes en archivos EPUB',
+  APP_NAME_EMAS: 'Unir y dividir EPUB',
+  APP_DESC_EMAS: 'Une, organiza y divide archivos EPUB',
 };

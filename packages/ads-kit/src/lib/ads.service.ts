@@ -145,14 +145,26 @@ export class AdsService {
         }
       };
 
-      // Listen for Rewarded event
+      // Listen for the complete native event sequence. The Capacitor AdMob
+      // plugin exposes shown/dismissed/reward/failure, but not click/open;
+      // an external click is correlated with MainActivity.onPause in ECC.
+      AdMob.addListener(RewardAdPluginEvents.Loaded, (info) => {
+        this.debugLog('callback=loaded', info);
+      }).then((handle) => this.listeners.push(handle));
+
+      AdMob.addListener(RewardAdPluginEvents.Showed, () => {
+        this.debugLog('callback=shown');
+      }).then((handle) => this.listeners.push(handle));
+
       AdMob.addListener(RewardAdPluginEvents.Rewarded, (_reward) => {
+        this.debugLog('callback=rewarded');
         rewardEarned = true;
         tryResolve();
       }).then((handle) => this.listeners.push(handle));
 
       // Listen for Dismissed event (ad closed)
       AdMob.addListener(RewardAdPluginEvents.Dismissed, () => {
+        this.debugLog('callback=dismissed');
         adClosed = true;
 
         // If ad closed without reward, resolve immediately with failure
@@ -208,6 +220,7 @@ export class AdsService {
       (async () => {
         try {
           await AdMob.prepareRewardVideoAd(opts);
+          this.debugLog('prepared; external click/open is observed through MainActivity lifecycle');
           await AdMob.showRewardVideoAd();
         } catch (e) {
           console.warn(`[Ads] rewarded failed ${toDebugString(e)}`);
@@ -235,6 +248,12 @@ export class AdsService {
       failureReason: reason,
       failureConfidence: confidence,
     };
+  }
+
+  private debugLog(message: string, details?: unknown): void {
+    if (!this.debugEnabled) return;
+    const suffix = details === undefined ? '' : ` ${toDebugString(details)}`;
+    console.info(`[Ads] ${message}${suffix}`);
   }
 
   private resolveFailureMetadata(error: unknown): {

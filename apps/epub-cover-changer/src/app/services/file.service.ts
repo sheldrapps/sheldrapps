@@ -519,8 +519,9 @@ export class FileService {
 
   async getOrBuildThumbDataUrlForFilename(
     filename: string,
+    opts?: { forceRebuild?: boolean },
   ): Promise<string | null> {
-    const cached = this.getThumbCache(filename);
+    const cached = opts?.forceRebuild ? null : this.getThumbCache(filename);
     if (cached) {
       return cached;
     }
@@ -529,7 +530,7 @@ export class FileService {
     if (await this.hasThumbForFilename(filename)) {
       const thumbBase64 = await this.tryReadBase64FromFilesystem(thumbPath);
       if (thumbBase64) {
-        const dataUrl = `data:image/jpeg;base64,${thumbBase64}`;
+        const dataUrl = this.buildThumbDataUrl(thumbBase64);
         this.setThumbCache(filename, dataUrl);
         return dataUrl;
       }
@@ -697,7 +698,7 @@ export class FileService {
     }
 
     const thumbDataUrl = thumbBase64
-      ? `data:image/jpeg;base64,${thumbBase64}`
+      ? this.buildThumbDataUrl(thumbBase64, cover?.filename)
       : null;
     const coverDataUrl = cover
       ? `data:${cover.mimeType};base64,${cover.base64}`
@@ -814,7 +815,7 @@ export class FileService {
       coverFile,
       epubFilename,
     );
-    const thumbBase64 = await this.arrayBufferToJpegThumbBase64(
+    const thumbBase64 = await this.arrayBufferToThumbBase64(
       this.toStrictArrayBuffer(cover.bytes),
       cover.filename,
       this.THUMB_MAX_WIDTH,
@@ -828,10 +829,13 @@ export class FileService {
       dir: 'Data',
       path: thumbPath,
       bytes: thumbBytes,
-      mimeType: 'image/jpeg',
+      mimeType: this.thumbMimeTypeFromFilename(cover.filename),
     });
     this.markThumbPresent(epubFilename);
-    this.setThumbCache(epubFilename, `data:image/jpeg;base64,${thumbBase64}`);
+    this.setThumbCache(
+      epubFilename,
+      this.buildThumbDataUrl(thumbBase64, cover.filename),
+    );
 
     return { thumbPath, thumbFilename };
   }
@@ -843,7 +847,7 @@ export class FileService {
     try {
       const coverBytes = this.base64ToUint8(cover.base64);
       const coverArrayBuffer = this.toStrictArrayBuffer(coverBytes);
-      const thumbBase64 = await this.arrayBufferToJpegThumbBase64(
+      const thumbBase64 = await this.arrayBufferToThumbBase64(
         coverArrayBuffer,
         cover.filename,
         this.THUMB_MAX_WIDTH,
@@ -857,10 +861,13 @@ export class FileService {
         dir: 'Data',
         path: thumbPath,
         bytes: thumbBytes,
-        mimeType: 'image/jpeg',
+        mimeType: this.thumbMimeTypeFromFilename(cover.filename),
       });
       this.markThumbPresent(epubFilename);
-      this.setThumbCache(epubFilename, `data:image/jpeg;base64,${thumbBase64}`);
+      this.setThumbCache(
+        epubFilename,
+        this.buildThumbDataUrl(thumbBase64, cover.filename),
+      );
 
       return thumbBase64;
     } catch {
@@ -1072,7 +1079,7 @@ export class FileService {
     return out.buffer;
   }
 
-  private async arrayBufferToJpegThumbBase64(
+  private async arrayBufferToThumbBase64(
     ab: ArrayBuffer,
     filename: string,
     maxWidth = 320,
@@ -1098,7 +1105,11 @@ export class FileService {
 
       ctx.drawImage(img, 0, 0, w, h);
 
-      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+      const mimeType = this.thumbMimeTypeFromFilename(filename);
+      const dataUrl = canvas.toDataURL(
+        mimeType,
+        mimeType === 'image/jpeg' ? quality : undefined,
+      );
       const b64 = dataUrl.split(',')[1] ?? '';
       if (!b64) throw new Error('Thumb encode failed');
       return b64;
@@ -1121,6 +1132,33 @@ export class FileService {
     if (ext === 'png') return 'image/png';
     if (ext === 'webp') return 'image/webp';
     return 'image/jpeg';
+  }
+
+  private thumbMimeTypeFromFilename(filename: string): 'image/png' | 'image/jpeg' {
+    return /\.png$/i.test(filename) ? 'image/png' : 'image/jpeg';
+  }
+
+  private thumbMimeTypeFromBytes(
+    bytes: Uint8Array,
+    filename = '',
+  ): 'image/png' | 'image/jpeg' {
+    const isPng =
+      bytes.length >= 8 &&
+      bytes[0] === 0x89 &&
+      bytes[1] === 0x50 &&
+      bytes[2] === 0x4e &&
+      bytes[3] === 0x47 &&
+      bytes[4] === 0x0d &&
+      bytes[5] === 0x0a &&
+      bytes[6] === 0x1a &&
+      bytes[7] === 0x0a;
+    return isPng ? 'image/png' : this.thumbMimeTypeFromFilename(filename);
+  }
+
+  private buildThumbDataUrl(base64: string, filename = ''): string {
+    const bytes = this.fileKit.fromBase64(base64);
+    const mimeType = this.thumbMimeTypeFromBytes(bytes, filename);
+    return `data:${mimeType};base64,${base64}`;
   }
 
   private resolveProjectSourceMimeType(
@@ -2709,7 +2747,7 @@ export class FileService {
           dir: 'Data',
           path: thumbToPath,
           bytes: thumbBytes,
-          mimeType: 'image/jpeg',
+          mimeType: this.thumbMimeTypeFromBytes(thumbBytes),
         });
         await this.fileKit.delete({
           dir: 'Data',
@@ -2725,7 +2763,7 @@ export class FileService {
     file: File,
     thumbPath: string,
   ): Promise<void> {
-    const thumbBase64 = await this.arrayBufferToJpegThumbBase64(
+    const thumbBase64 = await this.arrayBufferToThumbBase64(
       await file.arrayBuffer(),
       file.name,
       this.THUMB_MAX_WIDTH,
@@ -2735,7 +2773,7 @@ export class FileService {
       dir: 'Data',
       path: thumbPath,
       bytes: this.fileKit.fromBase64(thumbBase64),
-      mimeType: 'image/jpeg',
+      mimeType: this.thumbMimeTypeFromFilename(file.name),
     });
   }
 

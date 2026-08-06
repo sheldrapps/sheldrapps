@@ -17,7 +17,7 @@
   "PAPER_GROUPS": { "ISO_216": "ISO 216", "NORTH_AMERICAN": "أمريكا الشمالية", "ISO_A_SERIES": "سلسلة A", "NORTH_AMERICAN_OFFICE": "مقاسات المكاتب في أمريكا الشمالية" },
   "PAPER_PRESETS": { "A3": "A3", "A4": "A4", "A5": "A5", "A6": "A6", "LETTER": "Letter", "LEGAL": "Legal", "TABLOID": "Tabloid" },
   "RATIO_GROUPS": { "COMMON": "النسب الشائعة" },
-  "RATIO_PRESETS": { "1_1": "1:1", "2_3": "2:3", "3_4": "3:4", "4_5": "4:5", "5_7": "5:7", "5_8": "5:8", "9_16": "9:16", "CUSTOM": "مخصصة" },
+  "RATIO_PRESETS": { "1_1": "1:1", "2_3": "2:3", "3_4": "3:4", "4_5": "4:5", "5_7": "5:7", "5_8": "5:8", "9_16": "9:16", "16_9": "16:9", "CUSTOM": "مخصصة" },
   "RATIO_CUSTOM": { "TITLE": "نسبة أبعاد مخصصة", "WIDTH": "العرض", "HEIGHT": "الارتفاع", "HELPER": "أدخل أعدادًا صحيحة من {{min}} إلى {{max}}." },
   "KINDLE_BRANDS": {
     "KINDLE": "Kindle"

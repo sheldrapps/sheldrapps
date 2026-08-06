@@ -25,7 +25,6 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
-  IonSpinner,
   IonTitle,
   IonToolbar,
 } from "@ionic/angular/standalone";
@@ -33,6 +32,7 @@ import {
   EditorPanelComponent,
   ScrollableBarItem,
   ScrollableButtonBarComponent,
+  SpinnerComponent,
 } from "@sheldrapps/ui-theme";
 import { addIcons } from "ionicons";
 import {
@@ -253,7 +253,7 @@ function buildEditorTourSteps(
     IonContent,
     IonHeader,
     IonIcon,
-    IonSpinner,
+    SpinnerComponent,
     IonTitle,
     IonToolbar,
     EditorPanelComponent,
@@ -294,7 +294,15 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   readonly composedAdjustmentsPreviewState = signal<"none" | "active" | "fading">(
     "none",
   );
-  ready = false;
+  private readonly readyState = signal(false);
+
+  get ready(): boolean {
+    return this.readyState();
+  }
+
+  set ready(value: boolean) {
+    this.readyState.set(value);
+  }
   previewFrameSize = { width: 0, height: 0 };
   readonly cssFilter = computed(() =>
     buildCssFilter(this.editorState.adjustments()),
@@ -361,7 +369,15 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       ? "EDITOR.SHELL.HINT.GESTURES"
       : "EDITOR.SHELL.HINT.PREVIEW",
   );
-  private isExporting = false;
+  private readonly isExportingState = signal(false);
+
+  private get isExporting(): boolean {
+    return this.isExportingState();
+  }
+
+  private set isExporting(value: boolean) {
+    this.isExportingState.set(value);
+  }
   private composedPreviewRenderTimer: ReturnType<typeof setTimeout> | null = null;
   private composedPreviewFadeTimer: ReturnType<typeof setTimeout> | null = null;
   private composedPreviewRenderVersion = 0;
@@ -1684,6 +1700,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       }
       const target = session.target;
       let renderedBlob: Blob | undefined;
+      let editorMasterBlob: Blob | undefined;
       let renderedWidth: number | undefined;
       let renderedHeight: number | undefined;
       let renderedMimeType: string | undefined;
@@ -1701,15 +1718,18 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
           const canvas = await renderCompositionToCanvas(renderInput, {
             mode: "export",
             outputScale: 1,
-            backgroundFallbackColor:
-              session.output?.exportQuality === "high-quality"
-                ? undefined
-                : "#ffffff",
           });
           if (canvas) {
+            const master = await encodeCompositionCanvas(canvas, "high-quality");
+            if (master) {
+              editorMasterBlob = master.blob;
+            }
             const encoded = await encodeCompositionCanvas(
               canvas,
               session.output?.exportQuality,
+              session.output?.exportQuality === "high-quality"
+                ? undefined
+                : "#ffffff",
             );
             if (encoded) {
               renderedBlob = encoded.blob;
@@ -1728,7 +1748,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         }
       }
 
-      if (includeRenderedBlob && !renderedBlob) {
+      if (includeRenderedBlob && (!renderedBlob || !editorMasterBlob)) {
         console.warn("[EDITOR] final render did not produce a preview; keeping editor open");
         return;
       }
@@ -1738,6 +1758,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         state,
         formatId: session.tools?.formats?.selectedId,
         renderedBlob,
+        editorMasterBlob,
         renderedWidth,
         renderedHeight,
         renderedMimeType,

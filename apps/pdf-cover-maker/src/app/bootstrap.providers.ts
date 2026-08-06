@@ -24,6 +24,7 @@ import { provideRatingKit } from '@sheldrapps/rating-kit';
 import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
 import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
 import { provideUiThemeI18n } from '@sheldrapps/ui-theme';
+import { provideLifecycleDiagnostics, provideRecoveryStore } from '@sheldrapps/lifecycle-kit';
 import {
   ADS_UNITS_ANDROID_PROD,
   ADS_UNITS_ANDROID_TEST,
@@ -36,6 +37,8 @@ const PCM_RATING_STORAGE_KEY = 'rating.pdf-cover-maker';
 
 export function createBootstrapProviders(): Array<EnvironmentProviders | Provider> {
   return [
+    provideLifecycleDiagnostics({ appId: 'pcm' }),
+    provideRecoveryStore({ appId: 'pcm', schemaVersion: 1 }),
     provideI18nKit({
       defaultLang: 'en-US',
       fallbackLang: 'en-US',

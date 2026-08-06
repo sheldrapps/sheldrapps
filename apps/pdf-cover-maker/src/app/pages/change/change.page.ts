@@ -7,6 +7,7 @@ import {
   ViewChild,
   ElementRef,
   NgZone,
+  signal,
   inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -42,9 +43,9 @@ import {
   PreviewEditingPageService,
   ImageValidationError,
   buildCompositionInputForPurpose,
-  encodeRenderedBlob,
   isArtifactReductionEnabled,
   isDitheringEnabled,
+  encodeRenderedBlob,
   renderCompositionToCanvas,
   renderCompositionToFile,
   toEditorRenderQuality,
@@ -74,7 +75,6 @@ import {
   imageOutline,
   alertCircleOutline,
   checkmarkCircle,
-  saveOutline,
   shareSocialOutline,
   closeCircleOutline,
   helpCircleOutline,
@@ -124,8 +124,10 @@ import { ToastOptions } from '@ionic/angular';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
 import {
-  LoadingStateComponent,
+  SpinnerComponent,
   ActionCardComponent,
+  RenameIconComponent,
+  ProBadgeComponent,
   SaveCoverModalComponent,
   ScrollableBarItem,
   ScrollableButtonBarComponent,
@@ -150,12 +152,17 @@ import { PcmSettings } from '../../settings/pcm-settings.schema';
 import { PdfCandidateImageService } from '../../services/pdf-candidate-image.service';
 import type { PdfPageDimension } from '../../services/pdf-candidate-image.service';
 import { TourService } from '../../shared/tour/tour.service';
+import {
+  LifecycleDiagnosticsService,
+  WorkflowRecoveryCoordinator,
+} from '@sheldrapps/lifecycle-kit';
 
 type EditorResult = {
   file: File;
   state?: CoverCropState;
   formatId?: string;
   renderedBlob?: Blob;
+  editorMasterBlob?: Blob;
   renderedWidth?: number;
   renderedHeight?: number;
   renderInfo?: EditorRenderInfo;
@@ -166,6 +173,24 @@ type EditorSourceMode = 'image' | 'scratch';
 
 type FrameDetectionResult = {
   hasFrame: boolean;
+};
+
+type PcmRecoverySnapshot = {
+  workflowStep: number;
+  workingPdfPath?: string;
+  workingPdfNativePath?: string;
+  workingPdfName?: string;
+  outputBaseName?: string;
+  selectedPdfName?: string;
+  generatedPdfPath?: string;
+  generatedPdfFilename?: string;
+  lastSavedFilename?: string;
+  selectedFormatId: string;
+  exportQualityMode: ExportQualityMode;
+  originalImageDims?: { width: number; height: number };
+  workingImageDims?: { width: number; height: number };
+  selectedImageName?: string;
+  cropState?: CoverCropState;
 };
 
 @Component({
@@ -188,8 +213,10 @@ type FrameDetectionResult = {
     IonRow,
     IonGrid,
     IonPopover,
-    LoadingStateComponent,
+    SpinnerComponent,
     ActionCardComponent,
+    RenameIconComponent,
+    ProBadgeComponent,
     CoverImageStateComponent,
     CoverSourceActionsComponent,
     ScrollableButtonBarComponent,
@@ -241,6 +268,8 @@ export class ChangePage implements OnInit, OnDestroy {
   private candidateImageService = inject(PdfCandidateImageService);
   private homeTour = inject(TourService);
   private appInjector = inject(Injector);
+  private readonly lifecycle = inject(LifecycleDiagnosticsService);
+  private readonly recovery = inject(WorkflowRecoveryCoordinator);
   private readonly baseTarget = { width: 1236, height: 1648 };
   private readonly baseModelId = 'pdf';
   private readonly maxPdfSizeMB = 5120;
@@ -259,7 +288,6 @@ export class ChangePage implements OnInit, OnDestroy {
     'pcm_editor_artifact_reduction_info_seen';
   private readonly editorEReaderOptimizationFeatureEnabled = true;
   private projectEditReturnUrl: string | null = null;
-  private activeProjectFilename?: string;
   private lastHandledProjectRouteKey: string | null = null;
   private isOpeningProjectFromRoute = false;
   private adFallbackTrialActive = false;
@@ -303,7 +331,6 @@ export class ChangePage implements OnInit, OnDestroy {
       checkmarkCircle,
       closeCircleOutline,
       alertCircleOutline,
-      saveOutline,
       shareSocialOutline,
       helpCircleOutline,
       imageOutline,
@@ -321,7 +348,15 @@ export class ChangePage implements OnInit, OnDestroy {
   removeAdsPriceFormatted: string | null = null;
   removeAdsPulseActive = false;
   purchaseModalOpen = false;
-  purchaseBusy = false;
+  private readonly purchaseBusyState = signal(false);
+
+  get purchaseBusy(): boolean {
+    return this.purchaseBusyState();
+  }
+
+  set purchaseBusy(value: boolean) {
+    this.purchaseBusyState.set(value);
+  }
   isOnline = true;
 
   // PDF state
@@ -343,7 +378,15 @@ export class ChangePage implements OnInit, OnDestroy {
   pdfPageTargets: PdfPageDimension[] = [];
   pdfErrorKey?: string;
   pdfErrorParams: Record<string, any> = {};
-  isPickingPdf = false;
+  private readonly isPickingPdfState = signal(false);
+
+  get isPickingPdf(): boolean {
+    return this.isPickingPdfState();
+  }
+
+  set isPickingPdf(value: boolean) {
+    this.isPickingPdfState.set(value);
+  }
 
   // Image state
   originalImageFile?: File;
@@ -371,9 +414,42 @@ export class ChangePage implements OnInit, OnDestroy {
   imageWarnKey?: string;
   imageWarnParams: Record<string, any> = {};
 
-  isPickingImage = false;
-  isExporting = false;
-  isResettingFlow = false;
+  private readonly isPickingImageState = signal(false);
+  private readonly isExportingState = signal(false);
+  private readonly isRebuildingExportQualityState = signal(false);
+  private readonly isResettingFlowState = signal(false);
+
+  get isPickingImage(): boolean {
+    return this.isPickingImageState();
+  }
+
+  set isPickingImage(value: boolean) {
+    this.isPickingImageState.set(value);
+  }
+
+  get isExporting(): boolean {
+    return this.isExportingState();
+  }
+
+  set isExporting(value: boolean) {
+    this.isExportingState.set(value);
+  }
+
+  get isRebuildingExportQuality(): boolean {
+    return this.isRebuildingExportQualityState();
+  }
+
+  set isRebuildingExportQuality(value: boolean) {
+    this.isRebuildingExportQualityState.set(value);
+  }
+
+  get isResettingFlow(): boolean {
+    return this.isResettingFlowState();
+  }
+
+  set isResettingFlow(value: boolean) {
+    this.isResettingFlowState.set(value);
+  }
   loadingMessageKey?: string;
 
   workingImageFile?: File;
@@ -395,12 +471,35 @@ export class ChangePage implements OnInit, OnDestroy {
   lastSavedFilename?: string;
   wasAutoSaved = false;
   private readonly projectSaveState = new ProjectSaveState();
-  rewriteProgressPercent = 0;
-  isNativeRewriteInProgress = false;
+  private readonly rewriteProgressPercentState = signal(0);
+
+  get rewriteProgressPercent(): number {
+    return this.rewriteProgressPercentState();
+  }
+
+  set rewriteProgressPercent(value: number) {
+    this.rewriteProgressPercentState.set(value);
+  }
+  private readonly isNativeRewriteInProgressState = signal(false);
+
+  get isNativeRewriteInProgress(): boolean {
+    return this.isNativeRewriteInProgressState();
+  }
+
+  set isNativeRewriteInProgress(value: boolean) {
+    this.isNativeRewriteInProgressState.set(value);
+  }
   isCancellingNativeRewrite = false;
-  pdfLoadProgressPercent = 0;
+  private readonly pdfLoadProgressPercentState = signal(0);
+
+  get pdfLoadProgressPercent(): number {
+    return this.pdfLoadProgressPercentState();
+  }
+
+  set pdfLoadProgressPercent(value: number) {
+    this.pdfLoadProgressPercentState.set(value);
+  }
   pdfLoadStage: 'copy' | 'inspect' | null = null;
-  private projectEditFlowActive = false;
 
   infoOpen = false;
   infoEvent: Event | null = null;
@@ -415,6 +514,7 @@ export class ChangePage implements OnInit, OnDestroy {
   } | null = null;
   private isApplyingFromEditor = false;
   private previewGenerationToken = 0;
+  private exportQualityRevision = 0;
   private currentPreviewOrigin: 'source-pdf' | 'replacement' | 'edited' | null =
     null;
   private readonly invalidCoverWarnKey = 'CHANGE.IMAGE_WARN_INVALID_PDF_COVER';
@@ -505,10 +605,6 @@ export class ChangePage implements OnInit, OnDestroy {
       !this.imageErrorKey &&
       this.imageWarnKey === this.invalidCoverWarnKey
     );
-  }
-
-  get hasActiveProjectFilename(): boolean {
-    return this.projectEditFlowActive && !!this.activeProjectFilename;
   }
 
   get shouldShowBestCandidateAction(): boolean {
@@ -643,13 +739,21 @@ export class ChangePage implements OnInit, OnDestroy {
     if (this.usesNativeRewrite()) {
       this.rewriteProgressSub = await this.pdfRewrite.addProgressListener(
         ({ percent }: { percent: number }) => {
-          if (!this.isNativeRewriteInProgress) return;
-          this.zone.run(() => {
-            this.rewriteProgressPercent = Math.max(
-              0,
-              Math.min(100, Math.round(percent ?? 0)),
-            );
-          });
+          const normalizedPercent = Math.max(
+            0,
+            Math.min(100, Math.round(percent ?? 0)),
+          );
+          if (this.isNativeRewriteInProgress) {
+            if (this.rewriteProgressPercentState() !== normalizedPercent) {
+              this.rewriteProgressPercentState.set(normalizedPercent);
+            }
+            return;
+          }
+          if (this.isPickingPdf) {
+            if (this.pdfLoadProgressPercentState() !== normalizedPercent) {
+              this.pdfLoadProgressPercentState.set(normalizedPercent);
+            }
+          }
         },
       );
     }
@@ -674,9 +778,14 @@ export class ChangePage implements OnInit, OnDestroy {
         this.wasAutoSaved = false;
       });
 
+    this.registerRecovery();
+    await this.recovery.restore();
   }
 
   ngOnDestroy() {
+    this.lifecycle.log('Ionic.ChangePage.ngOnDestroy', {
+      workflowStep: this.workflowStep,
+    });
     this.closeInfo();
     this.closePurchaseModal();
     this.clearPreviewLongPress();
@@ -728,7 +837,6 @@ export class ChangePage implements OnInit, OnDestroy {
 
   private async clearBusyUi(): Promise<void> {
     this.setBusy('none');
-    await this.flushUi();
   }
 
   private getCurrentFormatOptions(): CropFormatOption[] {
@@ -1544,8 +1652,6 @@ export class ChangePage implements OnInit, OnDestroy {
     this.isFrameDetected = false;
     this.isDetectingFrame = false;
     this.coverPageMode = 'replace';
-    this.activeProjectFilename = undefined;
-    this.projectEditFlowActive = false;
     this.closeInfo();
     this.closePreview();
     this.clearPreviewLongPress();
@@ -1604,7 +1710,12 @@ export class ChangePage implements OnInit, OnDestroy {
     this.outputBaseName = undefined;
     this.selectedPdfName = undefined;
     this.workingMaxSideApplied = null;
-    if (waitForCleanup) await cleanupPromise;
+    if (waitForCleanup) {
+      await cleanupPromise;
+      return;
+    }
+
+    void cleanupPromise.catch(() => undefined);
   }
 
   private async cleanupWorkingCopy() {
@@ -2284,7 +2395,7 @@ export class ChangePage implements OnInit, OnDestroy {
         renderedInfo?.mimeType,
       );
       this.renderedImageFile = renderedFile;
-      this.renderedImageBlob = renderedBlob;
+      this.renderedImageBlob = result.editorMasterBlob;
       this.renderedImageInfo = renderedInfo;
 
       const url = URL.createObjectURL(renderedBlob);
@@ -2325,6 +2436,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
     return buildCompositionInputForPurpose({
       purpose,
+      exportSource: 'working',
       sources: {
         working: {
           file: workingFile,
@@ -2364,19 +2476,33 @@ export class ChangePage implements OnInit, OnDestroy {
 
   private async updatePreviewFromComposition(): Promise<void> {
     if (this.isApplyingFromEditor) return;
-    if (this.renderedImageBlob) return;
     const token = ++this.previewGenerationToken;
+    const master = this.renderedImageBlob;
+    if (master) {
+      const qualityFile = await this.ensureExportImageFile();
+      if (!qualityFile || token !== this.previewGenerationToken) return;
+      const url = URL.createObjectURL(qualityFile);
+      this.setPreviewUrl(url);
+      const thumb = await this.buildThumbFromBlob(qualityFile, ChangePage.THUMB_SIZE);
+      if (token !== this.previewGenerationToken) return;
+      this.setPreviewThumbUrl(thumb ?? url);
+      return;
+    }
+
     const input = this.buildCompositionInput('preview');
     if (!input) return;
 
     const baseCanvas = await renderCompositionToCanvas(input, {
       mode: 'preview',
       outputScale: 1,
+      includePreviewCheckerboard: false,
       debugLabel: 'ECC_PREVIEW',
     });
     if (!baseCanvas) return;
 
     const isDithered = this.isPreviewDithered();
+    const isPngQuality =
+      this.getSelectedCoverExportOptions()?.mimeType === 'image/png';
     const modalCanvas = isDithered
       ? baseCanvas
       : this.downscaleCanvas(baseCanvas, ChangePage.PREVIEW_MAX_SIDE, false);
@@ -2384,8 +2510,8 @@ export class ChangePage implements OnInit, OnDestroy {
     const blob: Blob | null = await new Promise((resolve) =>
       modalCanvas.toBlob(
         (bb) => resolve(bb),
-        isDithered ? 'image/png' : 'image/jpeg',
-        isDithered ? undefined : 0.9,
+        isDithered || isPngQuality ? 'image/png' : 'image/jpeg',
+        isDithered || isPngQuality ? undefined : 0.9,
       ),
     );
     if (!blob) return;
@@ -2401,17 +2527,20 @@ export class ChangePage implements OnInit, OnDestroy {
 
   private async ensureExportImageFile(): Promise<File | null> {
     if (this.exportImageFile) return this.exportImageFile;
+    const revision = this.exportQualityRevision;
 
-    if (this.renderedImageBlob) {
-      const rendered = await encodeRenderedBlob(
-        this.renderedImageBlob,
-        this.selectedImageName || 'cover',
-        toEditorRenderQuality(this.getEffectiveExportQualityMode()),
+    const master = this.renderedImageBlob;
+    if (master) {
+      const quality = toEditorRenderQuality(this.exportQualityMode);
+      const file = await encodeRenderedBlob(
+        master,
+        this.selectedImageName ?? this.workingImageFile?.name ?? 'cover.png',
+        quality,
+        quality === 'high-quality' ? undefined : '#ffffff',
       );
-      if (rendered) {
-        this.exportImageFile = rendered;
-        return rendered;
-      }
+      if (!file || revision !== this.exportQualityRevision) return null;
+      this.exportImageFile = file;
+      return file;
     }
 
     const input = this.buildCompositionInput('export');
@@ -2430,6 +2559,7 @@ export class ChangePage implements OnInit, OnDestroy {
           : undefined,
     });
     if (!file) return null;
+    if (revision !== this.exportQualityRevision) return null;
 
     this.exportImageFile = file;
     return file;
@@ -2460,7 +2590,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private getSelectedCoverExportOptions(): ReturnType<
     typeof getCoverExportOptions
   > | null {
-    return getCoverExportOptions(this.getEffectiveExportQualityMode());
+    return getCoverExportOptions(this.exportQualityMode);
   }
 
   private resolveInputImageMimeType(): 'image/png' | 'image/jpeg' | null {
@@ -2605,7 +2735,6 @@ export class ChangePage implements OnInit, OnDestroy {
           type: 'saved',
           filename: saved.filename,
         });
-        this.activateSavedProject(saved.filename);
         this.logSaveFlow('savedEventEmitted', {
           flow: 'performSave:edit-overwrite',
           filename: saved.filename,
@@ -2642,7 +2771,6 @@ export class ChangePage implements OnInit, OnDestroy {
             type: 'saved',
             filename: requestedFilename,
           });
-          this.activateSavedProject(requestedFilename);
           this.logSaveFlow('savedEventEmitted', {
             flow: 'performSave:auto-save',
             filename: requestedFilename,
@@ -2680,7 +2808,6 @@ export class ChangePage implements OnInit, OnDestroy {
           } catch (error) {
             console.warn('[PCM:change] project snapshot save failed', error);
           }
-          this.activateSavedProject(renamed.filename);
         } catch {
           const saved = this.usesNativeRewrite()
             ? this.generatedPdfPath
@@ -2721,7 +2848,6 @@ export class ChangePage implements OnInit, OnDestroy {
           this.generatedPdfFilename = saved.filename;
           this.lastSavedFilename = saved.filename;
           this.projectSaveState.setCurrentFilename(saved.filename);
-          this.activateSavedProject(saved.filename);
         }
       } else {
         const uniqueFilename =
@@ -2749,14 +2875,12 @@ export class ChangePage implements OnInit, OnDestroy {
         this.generatedPdfFilename = saved.filename;
         this.lastSavedFilename = saved.filename;
         this.projectSaveState.setCurrentFilename(saved.filename);
-        this.activateSavedProject(saved.filename);
       }
 
       this.coversEvents.emit({
         type: 'saved',
         filename: this.generatedPdfFilename,
       });
-      this.activateSavedProject(this.generatedPdfFilename);
       this.logSaveFlow('savedEventEmitted', {
         flow: 'performSave',
         filename: this.generatedPdfFilename,
@@ -2892,7 +3016,12 @@ export class ChangePage implements OnInit, OnDestroy {
       const dy = (size - dh) / 2;
       ctx.clearRect(0, 0, size, size);
       ctx.drawImage(canvas, dx, dy, dw, dh);
-      return thumb.toDataURL('image/jpeg', 0.82);
+      return thumb.toDataURL(
+        this.getSelectedCoverExportOptions()?.mimeType === 'image/png'
+          ? 'image/png'
+          : 'image/jpeg',
+        0.82,
+      );
     } catch {
       return null;
     }
@@ -3835,9 +3964,9 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   async onExportQualityModeSelect(mode: ExportQualityMode): Promise<void> {
-    await this.homeTour.completeInteraction('export-quality-select');
     const normalized = normalizeExportQualityMode(mode, this.adsRemoved);
     if (normalized !== mode) {
+      await this.homeTour.completeInteraction('export-quality-select');
       await this.openPurchaseModal();
       return;
     }
@@ -3846,26 +3975,38 @@ export class ChangePage implements OnInit, OnDestroy {
       return;
     }
 
+    const revision = ++this.exportQualityRevision;
     this.exportQualityMode = mode;
-    this.exportImageFile = undefined;
-    if (this.lastEditorRenderInfo) {
-      this.lastEditorRenderInfo = updateEditorRenderQuality(
-        this.lastEditorRenderInfo,
-        toEditorRenderQuality(this.getEffectiveExportQualityMode()),
-      );
+    this.isRebuildingExportQuality = true;
+    try {
+      await this.homeTour.completeInteraction('export-quality-select');
+      await this.invalidateEditorRenderedOutput();
+      if (revision !== this.exportQualityRevision) return;
+      if (this.lastEditorRenderInfo) {
+        this.lastEditorRenderInfo = updateEditorRenderQuality(
+          this.lastEditorRenderInfo,
+          toEditorRenderQuality(this.getEffectiveExportQualityMode()),
+        );
+      }
+      void this.applySmallWarn('editor-apply', undefined, this.lastEditorRenderInfo);
+      this.invalidateGeneratedOutputState();
+      await this.settings.setForScope('exportQuality', {
+        exportQualityMode: mode,
+      });
+    } finally {
+      this.isRebuildingExportQuality = false;
     }
-    void this.applySmallWarn('editor-apply', undefined, this.lastEditorRenderInfo);
-    this.invalidateGeneratedOutputState();
-    await this.settings.setForScope('exportQuality', {
-      exportQualityMode: mode,
-    });
+  }
+
+  private async invalidateEditorRenderedOutput(): Promise<void> {
+    this.previewGenerationToken += 1;
+    this.renderedImageInfo = undefined;
+    this.renderedImageFile = undefined;
+    this.exportImageFile = undefined;
+    await this.updatePreviewFromComposition();
   }
 
   onCoverPageModeChange(mode: CoverPageMode): void {
-    if (this.activeProjectFilename) {
-      this.coverPageMode = 'replace';
-      return;
-    }
     void this.homeTour.completeInteraction('cover-mode-selected');
     if (this.coverPageMode === mode) return;
     this.coverPageMode = mode;
@@ -3882,7 +4023,8 @@ export class ChangePage implements OnInit, OnDestroy {
     }
 
     this.exportQualityMode = normalized;
-    this.exportImageFile = undefined;
+    this.exportQualityRevision += 1;
+    this.invalidateEditorRenderedOutput();
     this.invalidateGeneratedOutputState();
     void this.settings.setForScope('exportQuality', {
       exportQualityMode: normalized,
@@ -4129,7 +4271,6 @@ export class ChangePage implements OnInit, OnDestroy {
       type: 'saved',
       filename: saved.filename,
     });
-    this.activateSavedProject(saved.filename);
     this.logSaveFlow('savedEventEmitted', {
       flow: 'onGenerate',
       filename: saved.filename,
@@ -4183,13 +4324,6 @@ export class ChangePage implements OnInit, OnDestroy {
         originalHeight: this.originalImageDims?.height ?? sourceDims?.height,
       },
     });
-  }
-
-  private activateSavedProject(filename: string): void {
-    this.activeProjectFilename = this.projectEditFlowActive
-      ? filename
-      : undefined;
-    this.coverPageMode = 'replace';
   }
 
   private async tryOpenProjectFromRoute(): Promise<boolean> {
@@ -4260,12 +4394,7 @@ export class ChangePage implements OnInit, OnDestroy {
       this.editorSourceFile = loaded.sourceFile;
       this.cropState = snapshot.cropState;
       this.exportImageFile = undefined;
-      this.activeProjectFilename =
-        editMode === 'overwrite' ? snapshot.coverFilename : undefined;
       this.projectSaveState.setProject(snapshot.coverFilename, editMode);
-      if (this.activeProjectFilename) {
-        this.coverPageMode = 'replace';
-      }
       this.generatedPdfFilename =
         editMode === 'overwrite' ? snapshot.coverFilename : undefined;
       this.lastSavedFilename =
@@ -4282,7 +4411,6 @@ export class ChangePage implements OnInit, OnDestroy {
       this.setPreviewUrl(URL.createObjectURL(loaded.sourceFile));
 
       this.projectEditReturnUrl = '/tabs/change';
-      this.projectEditFlowActive = true;
       try {
         await this.openEditor('image');
         return true;
@@ -4463,7 +4591,6 @@ export class ChangePage implements OnInit, OnDestroy {
         type: 'saved',
         filename: outputTarget.filename,
       });
-      this.activateSavedProject(outputTarget.filename);
       this.logSaveFlow('savedEventEmitted', {
         flow: 'nativeRewrite',
         filename: outputTarget.filename,
@@ -4788,11 +4915,78 @@ export class ChangePage implements OnInit, OnDestroy {
     }
   }
 
+  private registerRecovery(): void {
+    this.recovery.register<PcmRecoverySnapshot>({
+      snapshot: () => ({
+        workflowStep: this.workflowStep,
+        workingPdfPath: this.workingPdfPath,
+        workingPdfNativePath: this.workingPdfNativePath,
+        workingPdfName: this.workingPdfName,
+        outputBaseName: this.outputBaseName,
+        selectedPdfName: this.selectedPdfName,
+        generatedPdfPath: this.generatedPdfPath,
+        generatedPdfFilename: this.generatedPdfFilename,
+        lastSavedFilename: this.lastSavedFilename,
+        selectedFormatId: this.selectedFormatId,
+        exportQualityMode: this.exportQualityMode,
+        originalImageDims: this.originalImageDims,
+        workingImageDims: this.workingImageDims,
+        selectedImageName: this.selectedImageName,
+        cropState: this.cropState,
+      }),
+      assets: () => ({
+        sourcePdf: this.sourcePdfFile ?? this.workingPdfFile,
+        originalImage: this.originalImageFile,
+        workingImage: this.workingImageFile,
+      }),
+      restore: async (snapshot, assets) => {
+        const sourcePdf = assets['sourcePdf'];
+        if (sourcePdf) {
+          const cycle = await this.workingCopy.startCycle(sourcePdf);
+          this.sourcePdfFile = sourcePdf;
+          this.workingPdfFile = cycle.workingFile;
+          this.workingPdfPath = cycle.workingPath;
+          this.workingPdfNativePath = snapshot.workingPdfNativePath;
+          this.workingPdfName = cycle.workingName;
+        } else {
+          this.workingPdfPath = snapshot.workingPdfPath;
+          this.workingPdfNativePath = snapshot.workingPdfNativePath;
+          this.workingPdfName = snapshot.workingPdfName;
+        }
+        this.outputBaseName = snapshot.outputBaseName;
+        this.selectedPdfName = snapshot.selectedPdfName;
+        this.generatedPdfPath = snapshot.generatedPdfPath;
+        this.generatedPdfFilename = snapshot.generatedPdfFilename;
+        this.lastSavedFilename = snapshot.lastSavedFilename;
+        this.selectedFormatId = snapshot.selectedFormatId;
+        this.exportQualityMode = snapshot.exportQualityMode;
+        this.workflowStep = Math.max(0, Math.min(4, snapshot.workflowStep));
+        this.originalImageDims = snapshot.originalImageDims;
+        this.workingImageDims = snapshot.workingImageDims;
+        this.selectedImageName = snapshot.selectedImageName;
+        this.cropState = snapshot.cropState;
+        this.originalImageFile = assets['originalImage'];
+        this.workingImageFile = assets['workingImage'] ?? assets['originalImage'];
+        this.editorSourceFile = this.workingImageFile;
+        if (this.workingImageFile) {
+          this.setPreviewUrl(URL.createObjectURL(this.workingImageFile));
+        }
+      },
+    });
+  }
+
   ionViewWillLeave() {
+    this.lifecycle.log('Ionic.ChangePage.ionViewWillLeave', {
+      workflowStep: this.workflowStep,
+    });
+    void this.recovery.save();
     this.closeInfo();
   }
 
   async ionViewWillEnter() {
+    this.lifecycle.log('Ionic.ChangePage.ionViewWillEnter', {
+      workflowStep: this.workflowStep,
+    });
     const openedProject = await this.tryOpenProjectFromRoute();
     if (!openedProject) {
       await this.consumeEditorResult();
@@ -4841,13 +5035,14 @@ export class ChangePage implements OnInit, OnDestroy {
       this.isResettingFlow = true;
       this.changeDetector.detectChanges();
     });
-    await this.yieldResetTurn();
     await this.runInZone(async () => {
       try {
+        await this.clearBusyUi();
         if (this.isNativeRewriteInProgress && !this.isCancellingNativeRewrite) {
-          await this.cancelNativeRewrite().catch(() => undefined);
+          await this.cancelNativeRewrite();
         }
-        await this.resetWorkflowForNewPdf();
+        await this.resetWorkflowForNewPdf(false);
+        await this.recovery.clear();
         if (this.pdfInput?.nativeElement) {
           this.pdfInput.nativeElement.value = '';
         }
@@ -4855,19 +5050,6 @@ export class ChangePage implements OnInit, OnDestroy {
         this.isResettingFlow = false;
         this.changeDetector.detectChanges();
       }
-    });
-  }
-
-  private async yieldResetTurn(): Promise<void> {
-    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
-      await Promise.resolve();
-      return;
-    }
-
-    await new Promise<void>((resolve) => {
-      window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(() => resolve());
-      });
     });
   }
 

@@ -11,6 +11,7 @@ import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
 import { Subscription } from 'rxjs';
 import { PcmSettings } from './settings/pcm-settings.schema';
+import { LifecycleDiagnosticsService } from '@sheldrapps/lifecycle-kit';
 
 @Component({
   standalone: true,
@@ -26,10 +27,12 @@ export class AppComponent implements OnDestroy {
   private theme = inject(ThemeService);
   private settings = inject(SettingsStore<PcmSettings>);
   private rating = inject(RatingService);
+  private lifecycle = inject(LifecycleDiagnosticsService);
 
   private langSub?: Subscription;
 
   constructor() {
+    this.lifecycle.start();
     void this.init();
   }
 

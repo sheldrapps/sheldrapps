@@ -30,7 +30,8 @@
     "EDIT_PROJECT_OVERWRITE_DESC": "Änderungen direkt in der bestehenden Datei speichern.",
     "EDIT_PROJECT_COPY": "Mit Kopie arbeiten",
     "EDIT_PROJECT_COPY_DESC": "Die Originaldatei behalten und eine neue Kopie bearbeiten.",
-    "UPGRADE_TO_PRO": "Auf Pro upgraden"
+    "UPGRADE_TO_PRO": "Auf Pro upgraden",
+    "REMOVE_ADS_CTA_SUBTITLE": "Einmalzahlung • Für immer"
   },
   "MY_EPUBS": {
     "TITLE": "Meine EPUBs",
@@ -45,6 +46,11 @@
     "LOADING_PREVIEW": "Vorschau wird geladen",
     "ACTION_OPEN": "EPUB öffnen",
     "ACTION_EDIT": "EPUB bearbeiten",
+    "ACTION_RENAME": "Umbenennen",
+    "RENAME_TITLE": "EPUB umbenennen",
+    "RENAME_MESSAGE": "Gib einen neuen Namen für die EPUB ein",
+    "RENAME_PLACEHOLDER": "Dateiname",
+    "RENAMED": "EPUB umbenannt",
     "ACTION_SHARE": "EPUB teilen",
     "ACTION_DELETE": "EPUB löschen",
     "DELETE_TITLE": "EPUB löschen?",
@@ -119,6 +125,7 @@
       "MERGE_SUCCESS_BODY": "Eine neue Kopie mit dem Inhalt der ausgewählten EPUBs wurde erstellt.",
       "SPLIT_SUCCESS_TITLE": "EPUB erfolgreich geteilt",
       "SPLIT_SUCCESS_BODY": "{{count}} neue EPUBs wurden erstellt.",
+      "FIDELITY_WARNINGS": "Der Export ist gültig, aber es wurden {{count}} Hinweise zur Inhaltstreue aufgezeichnet.",
       "MERGE_FAILURE_TITLE": "Die EPUBs konnten nicht zusammengeführt werden",
       "MERGE_FAILURE_BODY": "Das endgültige EPUB konnte nicht erstellt werden. Deine Originaldateien wurden nicht geändert.",
       "SPLIT_FAILURE_TITLE": "Das EPUB konnte nicht geteilt werden",

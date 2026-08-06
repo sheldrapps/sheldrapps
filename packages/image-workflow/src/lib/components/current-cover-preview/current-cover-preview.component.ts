@@ -5,14 +5,16 @@ import {
   OnChanges,
   Output,
   SimpleChanges,
+  signal,
 } from "@angular/core";
 import { TranslateModule } from "@ngx-translate/core";
-import { IonIcon, IonItem, IonLabel, IonSpinner } from "@ionic/angular/standalone";
+import { IonIcon, IonItem, IonLabel } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
 import { checkmarkCircle } from "ionicons/icons";
 
 import { ImageValidationIssue } from "../../types";
 import { ImageValidationIssuesComponent } from "../image-validation-issues/image-validation-issues.component";
+import { SpinnerComponent } from "@sheldrapps/ui-theme";
 
 @Component({
   selector: "sh-current-cover-preview",
@@ -22,7 +24,7 @@ import { ImageValidationIssuesComponent } from "../image-validation-issues/image
     IonItem,
     IonLabel,
     IonIcon,
-    IonSpinner,
+    SpinnerComponent,
     ImageValidationIssuesComponent,
   ],
   templateUrl: "./current-cover-preview.component.html",
@@ -40,7 +42,15 @@ export class CurrentCoverPreviewComponent implements OnChanges {
   @Output() previewRequested = new EventEmitter<void>();
 
   private previewRenderNonce = 0;
-  isPreviewLoading = false;
+  private readonly previewLoadingState = signal(false);
+
+  get isPreviewLoading(): boolean {
+    return this.previewLoadingState();
+  }
+
+  set isPreviewLoading(value: boolean) {
+    this.previewLoadingState.set(value);
+  }
 
   get previewUrlWithNonce(): string | null {
     return this.previewUrl

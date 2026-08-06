@@ -9,7 +9,8 @@
     "@angular/common": "^22.0.7",
     "@angular/core": "^22.0.7",
     "@ionic/angular": "^8.8.14",
-    "@ngx-translate/core": "^17.0.0"
+    "@ngx-translate/core": "^17.0.0",
+    "@sheldrapps/ui-theme": "workspace:*"
   },
   "dependencies": {
     "tslib": "^2.3.0"

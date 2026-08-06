@@ -1,7 +1,53 @@
 import { signal } from '@angular/core';
 import { HomePage } from './home.page';
+import { MergeCoverCandidateService } from '../../services/merge-cover-candidate.service';
+import { awaitWithTimeout } from '@sheldrapps/lifecycle-kit';
 
 describe('HomePage', () => {
+  it('keeps cover format options aligned with ECC, including all ratios', () => {
+    const options = (
+      HomePage.prototype as unknown as {
+        buildFormatOptions: () => Array<{
+          id: string;
+          target: { width: number; height: number; output: string; outputMode: string };
+        }>;
+      }
+    ).buildFormatOptions.call(Object.create(HomePage.prototype));
+
+    expect(options.map((option) => option.id)).toEqual([
+      'epub',
+      'kobo',
+      'ridi-1600x2560',
+      'ridi-1200x1800',
+      'a3',
+      'a4',
+      'a5',
+      'a6',
+      'letter',
+      'legal',
+      'tabloid',
+      'one_one',
+      'two_three',
+      'three_four',
+      'four_five',
+      'five_seven',
+      'five_eight',
+      'nine_sixteen',
+      'sixteen_nine',
+    ]);
+
+    expect(options.find((option) => option.id === 'sixteen_nine')).toEqual(
+      jasmine.objectContaining({
+        target: jasmine.objectContaining({
+          width: 16,
+          height: 9,
+          output: 'source',
+          outputMode: 'aspect-only',
+        }),
+      }),
+    );
+  });
+
   it('starts without a selected mode', () => {
     const ctx = Object.assign(Object.create(HomePage.prototype), {
       selectedMode: signal<'merge' | 'split' | null>(null),
@@ -248,6 +294,7 @@ describe('HomePage', () => {
     const ctx = Object.assign(Object.create(HomePage.prototype), {
       selectedMode: signal<'merge' | 'split' | null>(null),
       isPicking: signal(false),
+      epubRewrite: { isSupported: () => false },
       mergeInput: {
         nativeElement: {
           click: jasmine.createSpy('click'),
@@ -261,6 +308,93 @@ describe('HomePage', () => {
     expect(ctx.mergeInput.nativeElement.click).toHaveBeenCalled();
     expect(ctx.selectedMode()).toBeNull();
     expect(ctx.clearPickerError).toHaveBeenCalled();
+  });
+
+  it('prepares multiple merge EPUBs with the native picker', async () => {
+    const firstSelection = {
+      sessionId: 'session-1',
+      selectedName: 'First.epub',
+      sourceSize: 10,
+      sourceLastModified: 1,
+      sourceMimeType: 'application/epub+zip',
+      workingPath: '/tmp/first',
+      workingName: 'first-working.epub',
+      workingNativePath: '/tmp/first/native.epub',
+      outputBaseName: 'first',
+    };
+    const secondSelection = {
+      ...firstSelection,
+      sessionId: 'session-2',
+      selectedName: 'Second.epub',
+      workingPath: '/tmp/second',
+      workingName: 'second-working.epub',
+      workingNativePath: '/tmp/second/native.epub',
+      outputBaseName: 'second',
+    };
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      isPicking: signal(false),
+      epubRewrite: {
+        isSupported: () => true,
+        pickAndPrepareEpubs: jasmine
+          .createSpy('pickAndPrepareEpubs')
+          .and.resolveTo([firstSelection, secondSelection]),
+      },
+      mergeSelections: signal<readonly unknown[]>([]),
+      selectedMode: signal<'merge' | 'split' | null>(null),
+      workflowStep: 0,
+      refreshMergeCoverCandidates: jasmine
+        .createSpy('refreshMergeCoverCandidates')
+        .and.resolveTo(undefined),
+      createSelectionId: jasmine
+        .createSpy('createSelectionId')
+        .and.returnValues('selection-1', 'selection-2'),
+      clearPickerError: jasmine.createSpy('clearPickerError'),
+      handlePickerError: jasmine.createSpy('handlePickerError'),
+    });
+
+    await HomePage.prototype.openMergePicker.call(ctx);
+
+    expect(ctx.epubRewrite.pickAndPrepareEpubs).toHaveBeenCalledOnceWith(
+      jasmine.objectContaining({
+        requireCover: false,
+        includeCoverPreview: true,
+      }),
+    );
+    expect(ctx.mergeSelections().map((item: any) => item.selectedName)).toEqual([
+      'First.epub',
+      'Second.epub',
+    ]);
+    expect(ctx.selectedMode()).toBe('merge');
+    expect(ctx.refreshMergeCoverCandidates).toHaveBeenCalled();
+  });
+
+  it('turns a native EPUB cover preview into a best-candidate image', async () => {
+    const service = new MergeCoverCandidateService();
+    spyOn(service as any, 'readImageDimensions').and.resolveTo({
+      width: 1236,
+      height: 1648,
+    });
+    const coverFile = new File(['cover'], 'native-cover.jpg', {
+      type: 'image/jpeg',
+    });
+
+    const candidates = await service.collectCandidates([
+      {
+        epubId: 'native-1',
+        epubName: 'Book.epub',
+        coverFile,
+        coverEntryPath: 'Images/cover.jpg',
+        order: 1,
+      },
+    ]);
+    const candidate = candidates[0];
+
+    expect(candidate).toBeDefined();
+    if (!candidate) return;
+    expect(candidate.id).toBe('native-1:cover');
+    expect(candidate.sourcePath).toBe('Images/cover.jpg');
+    expect(candidate.metadata?.['file']).toBe(coverFile);
+    expect(candidate.hints).toContain('metadata-cover');
   });
 
   it('preflights, merges, and registers the generated EPUB before showing feedback', async () => {
@@ -466,6 +600,52 @@ describe('HomePage', () => {
     ]);
   });
 
+  it('promotes valid children when a TOC container is not part of the selected spine', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {});
+    const buildSplitTocEntries = (
+      HomePage.prototype as unknown as {
+        buildSplitTocEntries: (analysis: unknown, preview: unknown) => unknown;
+      }
+    ).buildSplitTocEntries;
+
+    const entries = buildSplitTocEntries.call(ctx, {
+      units: [{ id: 'chapter-1', href: 'OPS/chapter.xhtml', order: 0 }],
+      tocEntries: [
+        {
+          id: 'part',
+          title: 'Part I',
+          href: 'OPS/part.xhtml',
+          spineItemId: null,
+          children: [
+            {
+              id: 'chapter',
+              title: 'Chapter 1',
+              href: 'OPS/chapter.xhtml#start',
+              spineItemId: 'chapter-1',
+              children: [],
+            },
+          ],
+        },
+        {
+          id: 'orphan',
+          title: 'Missing',
+          href: 'OPS/missing.xhtml',
+          spineItemId: null,
+          children: [],
+        },
+      ],
+    } as never, { startUnit: 0, endUnit: 0 } as never);
+
+    expect(entries).toEqual([
+      {
+        spineItemId: 'chapter-1',
+        title: 'Chapter 1',
+        href: 'OPS/chapter.xhtml#start',
+        children: [],
+      },
+    ]);
+  });
+
   it('opens the editing preview page only when a cover exists', () => {
     const ctx = Object.assign(Object.create(HomePage.prototype), {
       mergeCoverPreviewUrl: signal<string | undefined>(undefined),
@@ -489,7 +669,7 @@ describe('HomePage', () => {
         returnUrl: '/tabs/home',
       }),
     );
-    expect(ctx.router.navigateByUrl).toHaveBeenCalledWith('/preview-editing');
+    expect(ctx.router.navigateByUrl).toHaveBeenCalledWith('/tabs/preview-editing');
 
     HomePage.prototype.closePreview.call(ctx);
     expect(ctx.previewEditingPage.clear).toHaveBeenCalled();
@@ -498,10 +678,22 @@ describe('HomePage', () => {
   it('normalizes export quality to the free mode', () => {
     const ctx = Object.assign(Object.create(HomePage.prototype), {
       exportQualityMode: 'best',
+      adsRemoved: false,
     });
 
     expect(HomePage.prototype.getEffectiveExportQualityMode.call(ctx)).toBe(
       'compressed',
+    );
+  });
+
+  it('keeps best export quality for ad-free users', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      exportQualityMode: 'best',
+      adsRemoved: true,
+    });
+
+    expect(HomePage.prototype.getEffectiveExportQualityMode.call(ctx)).toBe(
+      'best',
     );
   });
 
@@ -611,6 +803,11 @@ describe('HomePage', () => {
     await resetPromise;
 
     expect(ctx.isResettingFlow()).toBeFalse();
+  });
+
+  it('does not wait forever when reset cleanup never settles', async () => {
+    await awaitWithTimeout(new Promise<void>(() => undefined), 1);
+    expect(true).toBeTrue();
   });
 
   it('prepares every EPUB returned by the merge input', async () => {
@@ -791,6 +988,50 @@ describe('HomePage', () => {
     expect(ctx.coverSourceMode()).toBe('image');
     expect(ctx.selectedCoverCandidateId()).toBeUndefined();
     expect(ctx.openEditor).toHaveBeenCalledOnceWith('image', 'new-cover', 3);
+  });
+
+  it('keeps the workflow loader active while the image editor opens', async () => {
+    const image = new File(['image'], 'cover.png', { type: 'image/png' });
+    let resolveEditor: () => void = () => undefined;
+    const editorOpening = new Promise<void>((resolve) => {
+      resolveEditor = resolve;
+    });
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      isPicking: signal(false),
+      bestCandidateDismissed: signal(false),
+      coverSourceMode: signal<'candidate' | 'image' | 'scratch' | null>(null),
+      selectedCoverCandidateId: signal<string | undefined>('candidate-1'),
+      applyMergeCoverSource: jasmine
+        .createSpy('applyMergeCoverSource')
+        .and.resolveTo(true),
+      openEditor: jasmine.createSpy('openEditor').and.returnValue(editorOpening),
+      resetFileInput: jasmine.createSpy('resetFileInput'),
+    });
+
+    const pending = HomePage.prototype.onCoverImageFileSelected.call(ctx, {
+      target: { files: [image] },
+    } as unknown as Event);
+
+    await Promise.resolve();
+    expect(ctx.isPicking()).toBeTrue();
+
+    resolveEditor();
+    await pending;
+    expect(ctx.isPicking()).toBeFalse();
+  });
+
+  it('uses the analysis label while an EPUB is being analyzed', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      splitAnalysisPending: signal(true),
+    });
+    const workflowLoadingLabelKey = Object.getOwnPropertyDescriptor(
+      HomePage.prototype,
+      'workflowLoadingLabelKey',
+    )?.get;
+
+    expect(workflowLoadingLabelKey?.call(ctx)).toBe(
+      'HOME.SPLIT_CONFIRM.ANALYZING',
+    );
   });
 
   it('shows the rewarded ad before merging for free users', async () => {

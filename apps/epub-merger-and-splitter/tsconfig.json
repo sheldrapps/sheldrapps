@@ -57,6 +57,7 @@
         "../../packages/image-workflow/src/editor/public-api.ts"
       ],
       "@sheldrapps/ui-theme": ["../../packages/ui-theme/src/index.ts"],
+      "@sheldrapps/lifecycle-kit": ["../../packages/lifecycle-kit/src/public-api.ts"],
       "@sheldrapps/ui-theme/styles/*": ["../../packages/ui-theme/styles/*"]
     }
   },

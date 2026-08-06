@@ -22,9 +22,10 @@
       <span class="triple-button__option-text">
         {{ option.labelKey | translate }}
       </span>
-      <span class="triple-button__badge" *ngIf="showLockedBadge(option)">
-        {{ proOnlyKey | translate }}
-      </span>
+      <sh-pro-badge
+        *ngIf="showLockedBadge(option)"
+        class="triple-button__pro-badge"
+      ></sh-pro-badge>
     </button>
   </div>
 </section>

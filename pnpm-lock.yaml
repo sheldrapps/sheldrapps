@@ -168,6 +168,9 @@ importers:
       '@sheldrapps/image-workflow':
         specifier: workspace:*
         version: link:../../packages/image-workflow
+      '@sheldrapps/lifecycle-kit':
+        specifier: workspace:*
+        version: link:../../packages/lifecycle-kit
       '@sheldrapps/rating-kit':
         specifier: workspace:*
         version: link:../../packages/rating-kit
@@ -370,6 +373,9 @@ importers:
       '@sheldrapps/image-workflow':
         specifier: workspace:*
         version: link:../../packages/image-workflow
+      '@sheldrapps/lifecycle-kit':
+        specifier: workspace:*
+        version: link:../../packages/lifecycle-kit
       '@sheldrapps/rating-kit':
         specifier: workspace:*
         version: link:../../packages/rating-kit
@@ -566,6 +572,9 @@ importers:
       '@sheldrapps/image-workflow':
         specifier: workspace:*
         version: link:../../packages/image-workflow
+      '@sheldrapps/lifecycle-kit':
+        specifier: workspace:*
+        version: link:../../packages/lifecycle-kit
       '@sheldrapps/rating-kit':
         specifier: workspace:*
         version: link:../../packages/rating-kit
@@ -768,6 +777,9 @@ importers:
       '@sheldrapps/image-workflow':
         specifier: workspace:*
         version: link:../../packages/image-workflow
+      '@sheldrapps/lifecycle-kit':
+        specifier: workspace:*
+        version: link:../../packages/lifecycle-kit
       '@sheldrapps/privacy-policy-kit':
         specifier: workspace:*
         version: link:../../packages/privacy-policy-kit
@@ -1139,6 +1151,9 @@ importers:
       '@sheldrapps/image-workflow':
         specifier: workspace:*
         version: link:../../packages/image-workflow
+      '@sheldrapps/lifecycle-kit':
+        specifier: workspace:*
+        version: link:../../packages/lifecycle-kit
       '@sheldrapps/rating-kit':
         specifier: workspace:*
         version: link:../../packages/rating-kit
@@ -1470,6 +1485,9 @@ importers:
       '@sheldrapps/settings-kit':
         specifier: workspace:*
         version: link:../settings-kit
+      '@sheldrapps/ui-theme':
+        specifier: workspace:*
+        version: link:../ui-theme
       rxjs:
         specifier: ~7.8.0
         version: 7.8.2
@@ -1491,6 +1509,9 @@ importers:
       '@ngx-translate/core':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@22.0.7(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))
+      '@sheldrapps/ui-theme':
+        specifier: workspace:*
+        version: link:../ui-theme
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
@@ -1675,6 +1696,27 @@ importers:
         specifier: workspace:*
         version: link:../ui-theme
 
+  packages/lifecycle-kit:
+    dependencies:
+      '@angular/core':
+        specifier: ^22.0.7
+        version: 22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1)
+      '@angular/router':
+        specifier: ^22.0.7
+        version: 22.0.7(@angular/common@22.0.7(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.0.7(@angular/animations@22.0.7(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@22.0.7(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
+      '@capacitor/app':
+        specifier: ^8.0.0
+        version: 8.1.0(@capacitor/core@8.4.1)
+      '@capacitor/preferences':
+        specifier: ^8.0.0
+        version: 8.0.1(@capacitor/core@8.4.1)
+      '@sheldrapps/file-kit':
+        specifier: workspace:*
+        version: link:../file-kit
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+
   packages/native-sqlite-kit:
     dependencies:
       '@angular/core':
@@ -1770,6 +1812,9 @@ importers:
       '@ionic/angular':
         specifier: ^8.8.14
         version: 8.8.14(6c105ec30268c080e890aad750574115)
+      '@sheldrapps/ui-theme':
+        specifier: workspace:*
+        version: link:../ui-theme
       ionicons:
         specifier: ^7.0.0
         version: 7.4.0

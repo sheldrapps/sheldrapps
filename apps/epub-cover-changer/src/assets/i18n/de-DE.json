@@ -17,7 +17,7 @@
   "PAPER_GROUPS": { "ISO_216": "ISO 216", "NORTH_AMERICAN": "Nordamerika", "ISO_A_SERIES": "A-Reihe", "NORTH_AMERICAN_OFFICE": "Nordamerikanisches Büroformat" },
   "PAPER_PRESETS": { "A3": "A3", "A4": "A4", "A5": "A5", "A6": "A6", "LETTER": "Letter", "LEGAL": "Legal", "TABLOID": "Tabloid" },
   "RATIO_GROUPS": { "COMMON": "Gängige Seitenverhältnisse" },
-  "RATIO_PRESETS": { "1_1": "1:1", "2_3": "2:3", "3_4": "3:4", "4_5": "4:5", "5_7": "5:7", "5_8": "5:8", "9_16": "9:16", "CUSTOM": "Benutzerdefiniert" },
+  "RATIO_PRESETS": { "1_1": "1:1", "2_3": "2:3", "3_4": "3:4", "4_5": "4:5", "5_7": "5:7", "5_8": "5:8", "9_16": "9:16", "16_9": "16:9", "CUSTOM": "Benutzerdefiniert" },
   "RATIO_CUSTOM": { "TITLE": "Benutzerdefiniertes Seitenverhältnis", "WIDTH": "Breite", "HEIGHT": "Höhe", "HELPER": "Gib ganze Zahlen von {{min}} bis {{max}} ein." },
   "KINDLE_BRANDS": {
     "KINDLE": "Kindle"
@@ -120,7 +120,7 @@
     "REMOVE_ADS_TITLE": "Werbung entfernen",
    "REMOVE_ADS_CTA_TITLE": "Werbung entfernen",
     "UPGRADE_TO_PRO": "Auf Pro upgraden",
-    "REMOVE_ADS_CTA_SUBTITLE": "Einmalzahlung ⬢ Für immer",
+    "REMOVE_ADS_CTA_SUBTITLE": "Einmalzahlung • Für immer",
     "REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE": "Einmalzahlung • {{price}}",
     "REMOVE_ADS_MODAL_PRICE": "Preis: {{price}} • Kein Abo",
     "RESTORE_ERROR": "Der Kauf konnte nicht wiederhergestellt werden. Bitte versuche es erneut.",

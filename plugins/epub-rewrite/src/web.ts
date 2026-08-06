@@ -15,6 +15,7 @@ import type {
   RepairEpubResult,
   PickAndPrepareEpubOptions,
   PickAndPrepareEpubResult,
+  PickAndPrepareEpubsResult,
   RewriteCoverOptions,
   RewriteCoverResult,
   ExportFixedResult,
@@ -55,6 +56,12 @@ export class EpubRewriteWeb
   async pickAndPrepareEpub(
     _options: PickAndPrepareEpubOptions,
   ): Promise<PickAndPrepareEpubResult> {
+    throw this.unimplemented('Epub rewrite is only available on Android.');
+  }
+
+  async pickAndPrepareEpubs(
+    _options: PickAndPrepareEpubOptions,
+  ): Promise<PickAndPrepareEpubsResult> {
     throw this.unimplemented('Epub rewrite is only available on Android.');
   }
 

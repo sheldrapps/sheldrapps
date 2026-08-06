@@ -136,6 +136,32 @@ export class EpubWorkingCopyService {
     }
   }
 
+  async restoreWebWorkingCopy(opts: {
+    workingPath: string;
+    workingName: string;
+    sourceMeta: EpubWorkingCopy['sourceMeta'];
+  }): Promise<File | null> {
+    try {
+      const bytes = await this.fileKit.readBytes({
+        dir: 'Data',
+        path: opts.workingPath,
+      });
+      const buffer = new ArrayBuffer(bytes.byteLength);
+      new Uint8Array(buffer).set(bytes);
+      return new File([buffer], opts.workingName, {
+        type: opts.sourceMeta.type || this.DEFAULT_MIME_TYPE,
+        lastModified: opts.sourceMeta.lastModified || Date.now(),
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  async hasWorkingCopy(path: string | undefined): Promise<boolean> {
+    if (!path) return false;
+    return this.fileKit.exists({ dir: 'Data', path }).catch(() => false);
+  }
+
   getWorkFolder(): string {
     return this.WORK_FOLDER;
   }

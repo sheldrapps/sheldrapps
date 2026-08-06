@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
+import android.util.Log;
 
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -18,8 +19,12 @@ import com.sheldrapps.plugins.pdfrewrite.PdfRewritePlugin;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 public class MainActivity extends BridgeActivity {
+    private static final String TAG = "PCM.Lifecycle";
+    private static final String PROCESS_SESSION_ID = UUID.randomUUID().toString();
+    private final String instanceId = UUID.randomUUID().toString();
     private boolean runtimeFlagsExposed = false;
     private static final String ALIAS_PREFIX = "com.sheldrapps.pdfcovermaker.MainActivityAlias_";
     private static final String DEFAULT_ALIAS_LOCALE = "system";
@@ -40,7 +45,7 @@ public class MainActivity extends BridgeActivity {
         "ru-RU"
     );
 
-    private static final class RuntimeBridge {
+    private final class RuntimeBridge {
         private final boolean debugBuild;
 
         private RuntimeBridge(boolean debugBuild) {
@@ -50,6 +55,16 @@ public class MainActivity extends BridgeActivity {
         @JavascriptInterface
         public boolean isDebugBuild() {
             return debugBuild;
+        }
+
+        @JavascriptInterface
+        public String getLifecycleSessionId() {
+            return PROCESS_SESSION_ID;
+        }
+
+        @JavascriptInterface
+        public String getLifecycleInstanceId() {
+            return instanceId;
         }
     }
 
@@ -77,6 +92,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        logLifecycle("onCreate savedInstanceState=" + (savedInstanceState != null));
         registerPlugin(PdfRewritePlugin.class);
         super.onCreate(savedInstanceState);
         exposeRuntimeFlags();
@@ -86,14 +102,63 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onStart() {
+        logLifecycle("onStart");
         super.onStart();
         exposeRuntimeFlags();
     }
 
     @Override
     public void onResume() {
+        logLifecycle("onResume");
         super.onResume();
         exposeRuntimeFlags();
+    }
+
+    @Override
+    public void onPause() {
+        logLifecycle("onPause");
+        super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        logLifecycle("onStop");
+        super.onStop();
+    }
+
+    @Override
+    public void onDestroy() {
+        logLifecycle("onDestroy changingConfigurations=" + isChangingConfigurations());
+        super.onDestroy();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        logLifecycle("onSaveInstanceState keys=" + outState.keySet());
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        logLifecycle("onRestoreInstanceState keys=" + savedInstanceState.keySet());
+        super.onRestoreInstanceState(savedInstanceState);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        logLifecycle("onNewIntent action=" + intent.getAction()
+            + " data=" + intent.getData()
+            + " flags=0x" + Integer.toHexString(intent.getFlags()));
+        super.onNewIntent(intent);
+        setIntent(intent);
+    }
+
+    private void logLifecycle(String event) {
+        boolean debugBuild =
+            (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+        if (debugBuild) {
+            Log.d(TAG, "session=" + PROCESS_SESSION_ID + " instance=" + instanceId + " " + event);
+        }
     }
 
     private void exposeRuntimeFlags() {

@@ -12,4 +12,6 @@ export const ZH_CN: RecommendedAppsTranslations = {
   APP_DESC_PCM: '快速制作 PDF 封面',
   APP_NAME_EF: 'EPUB修复',
   APP_DESC_EF: '诊断并修复常见 EPUB 文件问题',
+  APP_NAME_EMAS: 'EPUB合并与拆分',
+  APP_DESC_EMAS: '合并或拆分 EPUB，按需整理文件',
 };

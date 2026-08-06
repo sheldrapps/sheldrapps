@@ -1,5 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
@@ -7,7 +8,6 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
-  IonLoading,
   IonModal,
   IonTitle,
   IonToolbar,
@@ -16,10 +16,12 @@ import { TranslateModule } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
 import { colorPaletteOutline, sparklesOutline } from 'ionicons/icons';
 import {
+  BillingService,
   RemoveAdsPurchasePageService,
 } from '@sheldrapps/ads-kit';
 import {
   SelectableButtonListComponent,
+  SpinnerComponent,
   type SelectableButtonListItem,
   ThemeService,
   UiThemeI18nService,
@@ -54,7 +56,7 @@ import { RatingService } from '@sheldrapps/rating-kit';
     IonButtons,
     IonContent,
     IonHeader,
-    IonLoading,
+    SpinnerComponent,
     IonModal,
     IonTitle,
     IonToolbar,
@@ -71,14 +73,34 @@ export class SettingsPage {
 
   private settings = inject(SettingsStore<PcmSettings>);
   private router = inject(Router);
+  private readonly billing = inject(BillingService);
   private removeAdsPurchasePage = inject(RemoveAdsPurchasePageService);
   private ratingService = inject(RatingService);
   readonly supportedLangs = LANG_OPTIONS;
   private isRestartingLanguage = false;
   isLanguageModalOpen = false;
   private _languageDraft: Lang | null = null;
-  isLanguageRestartLoading = false;
-  languageRestartCountdown = 4;
+  private readonly languageRestartLoadingState = signal(false);
+  private readonly languageRestartCountdownState = signal(4);
+  readonly adsRemoved = toSignal(this.billing.adsRemoved$, {
+    initialValue: this.billing.isAdsRemoved(),
+  });
+
+  get isLanguageRestartLoading(): boolean {
+    return this.languageRestartLoadingState();
+  }
+
+  set isLanguageRestartLoading(value: boolean) {
+    this.languageRestartLoadingState.set(value);
+  }
+
+  get languageRestartCountdown(): number {
+    return this.languageRestartCountdownState();
+  }
+
+  set languageRestartCountdown(value: number) {
+    this.languageRestartCountdownState.set(value);
+  }
   private readonly languageRestartCountdownStart = 4;
 
   readonly privacyPolicyUrl =
@@ -150,7 +172,8 @@ export class SettingsPage {
       {
         value: 'remove-ads',
         titleKey: 'COMMON.UPGRADE_TO_PRO',
-        leadingIconName: 'sparkles-outline',
+        sublineKey: 'COMMON.REMOVE_ADS_CTA_SUBTITLE',
+        leadingIconSvg: 'pro-badge',
         trailingIconName: 'chevron-forward-outline',
         ariaLabelKey: 'COMMON.UPGRADE_TO_PRO',
       },

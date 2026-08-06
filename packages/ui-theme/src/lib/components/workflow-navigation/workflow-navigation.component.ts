@@ -7,15 +7,15 @@ import {
 import {
   IonButton,
   IonIcon,
-  IonSpinner,
 } from '@ionic/angular/standalone';
+import { SpinnerComponent } from '../spinner/spinner.component';
 import { addIcons } from 'ionicons';
 import { arrowBack, arrowForward } from 'ionicons/icons';
 
 @Component({
   selector: 'sh-workflow-navigation',
   standalone: true,
-  imports: [IonButton, IonIcon, IonSpinner],
+  imports: [IonButton, IonIcon, SpinnerComponent],
   templateUrl: './workflow-navigation.component.html',
   styleUrl: './workflow-navigation.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

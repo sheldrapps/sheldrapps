@@ -30,7 +30,8 @@
     "EDIT_PROJECT_OVERWRITE_DESC": "将更改直接保存到现有文件。",
     "EDIT_PROJECT_COPY": "使用副本",
     "EDIT_PROJECT_COPY_DESC": "保留原文件，并编辑一个新副本。",
-    "UPGRADE_TO_PRO": "升级到 Pro"
+    "UPGRADE_TO_PRO": "升级到 Pro",
+    "REMOVE_ADS_CTA_SUBTITLE": "一次性付款 • 永久有效"
   },
   "MY_EPUBS": {
     "TITLE": "我的 EPUB",
@@ -43,6 +44,11 @@
     "LOADING_PREVIEW": "正在加载预览",
     "ACTION_OPEN": "打开 EPUB",
     "ACTION_EDIT": "编辑 EPUB",
+    "ACTION_RENAME": "重命名",
+    "RENAME_TITLE": "重命名 EPUB",
+    "RENAME_MESSAGE": "请输入 EPUB 的新名称",
+    "RENAME_PLACEHOLDER": "文件名",
+    "RENAMED": "EPUB 已重命名",
     "ACTION_SHARE": "分享 EPUB",
     "ACTION_DELETE": "删除 EPUB",
     "DELETE_TITLE": "删除 EPUB？",
@@ -119,6 +125,7 @@
       "MERGE_SUCCESS_BODY": "已创建包含所选 EPUB 内容的新副本。",
       "SPLIT_SUCCESS_TITLE": "EPUB 拆分成功",
       "SPLIT_SUCCESS_BODY": "已创建 {{count}} 个新的 EPUB。",
+      "FIDELITY_WARNINGS": "导出有效，但记录了 {{count}} 条保真提示。",
       "MERGE_FAILURE_TITLE": "无法合并 EPUB",
       "MERGE_FAILURE_BODY": "无法创建最终 EPUB。原始文件未被修改。",
       "SPLIT_FAILURE_TITLE": "无法拆分 EPUB",

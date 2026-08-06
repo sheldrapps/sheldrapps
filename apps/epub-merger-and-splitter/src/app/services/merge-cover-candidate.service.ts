@@ -8,7 +8,9 @@ import JSZip from 'jszip';
 export type MergeCoverCandidateSource = {
   epubId: string;
   epubName: string;
-  epubFile: File;
+  epubFile?: File | null;
+  coverFile?: File;
+  coverEntryPath?: string;
   order: number;
 };
 
@@ -55,6 +57,10 @@ export class MergeCoverCandidateService {
   private async collectFromSource(
     source: MergeCoverCandidateSource,
   ): Promise<BestCandidateImage[]> {
+    if (!source.epubFile) {
+      return source.coverFile ? this.collectCoverFileCandidate(source) : [];
+    }
+
     const zip = await JSZip.loadAsync(await source.epubFile.arrayBuffer());
     const opfPath = await this.resolveOpfPath(zip);
     const manifestEntries = opfPath
@@ -108,6 +114,42 @@ export class MergeCoverCandidateService {
     }
 
     return candidates;
+  }
+
+  private async collectCoverFileCandidate(
+    source: MergeCoverCandidateSource,
+  ): Promise<BestCandidateImage[]> {
+    if (!source.coverFile) {
+      return [];
+    }
+
+    const dims = await this.readImageDimensions(source.coverFile);
+    if (!dims) {
+      return [];
+    }
+
+    return [
+      {
+        id: `${source.epubId}:cover`,
+        src: URL.createObjectURL(source.coverFile),
+        sourcePath: source.coverEntryPath || source.coverFile.name,
+        fileName: `${source.order}. ${source.coverFile.name}`,
+        width: dims.width,
+        height: dims.height,
+        mimeType: source.coverFile.type,
+        sizeBytes: source.coverFile.size,
+        index: source.order * 1000,
+        hints: this.mergeHints(
+          ['metadata-cover'],
+          this.inferHintsFromGeometry(dims),
+        ),
+        metadata: {
+          epubId: source.epubId,
+          epubName: source.epubName,
+          file: source.coverFile,
+        },
+      },
+    ];
   }
 
   private async resolveOpfPath(zip: JSZip): Promise<string | null> {

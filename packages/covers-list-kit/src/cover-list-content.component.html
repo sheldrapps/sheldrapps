@@ -18,9 +18,8 @@
   <ion-refresher-content></ion-refresher-content>
 </ion-refresher>
 
-@if (loading) {
-<sh-loading-state variant="inline" [label]="'COMMON.LOADING' | translate"></sh-loading-state>
-} @else {
+<sh-spinner [visible]="loading()" variant="inline" [label]="'COMMON.LOADING' | translate"></sh-spinner>
+@if (!loading()) {
 <ion-grid>
   <ion-row>
     @for (item of items; track trackByFilename($index, item)) {
@@ -84,8 +83,15 @@
   <ng-template>
     <ion-list lines="none">
       @for (action of activeActions; track action.id) {
-      <ion-item button [disabled]="isActionDisabled(action)" (click)="onActionSelect(action)">
-        @if (action.icon) {
+      <ion-item
+        button
+        class="cover-list-action"
+        [disabled]="isActionDisabled(action)"
+        (click)="onActionSelect(action)"
+      >
+        @if (action.iconSvg === 'rename') {
+        <sh-rename-icon slot="start"></sh-rename-icon>
+        } @else if (action.icon) {
         <ion-icon slot="start" [name]="action.icon"></ion-icon>
         }
         <ion-label>{{ action.labelKey | translate }}</ion-label>

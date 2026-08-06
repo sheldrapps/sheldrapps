@@ -118,6 +118,192 @@ public class EpubRewritePluginRewriteTest {
     }
 
     @Test
+    public void readableEpubIsNotRebuiltByRecoveryFallback() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        ZipFile zip = buildZip(orderedEntries(
+            "mimetype", utf8("application/epub+zip"),
+            "META-INF/container.xml", utf8(
+                "<container xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\"><rootfiles>"
+                    + "<rootfile full-path=\"OPS/package.opf\"/></rootfiles></container>"
+            ),
+            "OPS/package.opf", utf8(
+                "<package xmlns=\"http://www.idpf.org/2007/opf\"><metadata/><manifest/><spine/></package>"
+            )
+        ));
+        Path source = zip.getFile().toPath();
+        long originalSize = Files.size(source);
+
+        Path recovered = invokePath(
+            plugin,
+            "recoverReadableZipIfNeeded",
+            new Class<?>[] { Path.class },
+            source
+        );
+
+        assertEquals(null, recovered);
+        assertEquals(originalSize, Files.size(source));
+        assertTrue(invokeBoolean(
+            plugin,
+            "isReadableZip",
+            new Class<?>[] { Path.class },
+            source
+        ));
+        zip.close();
+    }
+
+    @Test
+    public void splitNavigationReferencesToExcludedDocumentsAreRemovedWithoutTouchingExternalLinks() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+
+        String rewritten = invokeString(
+            plugin,
+            "rewriteSplitInternalLinks",
+            new Class<?>[] { String.class, String.class, java.util.Set.class },
+            "<html><body>"
+                + "<a href=\"chapter-2.xhtml#part\">Next</a>"
+                + "<a href=\"https://example.com/book\">External</a>"
+                + "<a href=\"#local\">Local</a>"
+                + "</body></html>",
+            "OPS/text/chapter.xhtml",
+            new java.util.HashSet<String>(java.util.Arrays.asList("OPS/text/chapter.xhtml"))
+        );
+
+        assertFalse(rewritten.contains("href=\"chapter-2.xhtml#part\""));
+        assertTrue(rewritten.contains("href=\"https://example.com/book\""));
+        assertTrue(rewritten.contains("href=\"#local\""));
+        assertTrue(rewritten.contains(">Next</a>"));
+    }
+
+    @Test
+    public void splitNavigationRewriteReportsExternalizedInternalLinks() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        java.util.LinkedHashSet<String> warnings = new java.util.LinkedHashSet<>();
+
+        invokeString(
+            plugin,
+            "rewriteSplitInternalLinks",
+            new Class<?>[] { String.class, String.class, java.util.Set.class, java.util.Set.class },
+            "<html><body><a href=\"chapter-2.xhtml\">Next</a></body></html>",
+            "OPS/text/chapter.xhtml",
+            new java.util.HashSet<String>(java.util.Arrays.asList("OPS/text/chapter.xhtml")),
+            warnings
+        );
+
+        assertEquals(
+            java.util.Arrays.asList("SPLIT_INTERNAL_LINK_EXTERNALIZED:OPS/text/chapter.xhtml:chapter-2.xhtml"),
+            new ArrayList<>(warnings)
+        );
+    }
+
+    @Test
+    public void splitMetadataPreservesOriginalIdentifierAndMetadataFields() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Document document = invokeDocument(
+            plugin,
+            "parseXmlUtf8",
+            new Class<?>[] { String.class },
+            "<package xmlns=\"http://www.idpf.org/2007/opf\"><metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\">"
+                + "<dc:identifier id=\"book-id\">urn:isbn:9780000000000</dc:identifier>"
+                + "<dc:title>Original title</dc:title><dc:language>es</dc:language>"
+                + "<dc:creator>Author</dc:creator><dc:subject>Fiction</dc:subject>"
+                + "</metadata></package>"
+        );
+        Element metadata = (Element) document.getElementsByTagNameNS("*", "metadata").item(0);
+
+        invokeObject(
+            plugin,
+            "updateSplitMetadata",
+            new Class<?>[] { Document.class, Element.class, String.class },
+            document,
+            metadata,
+            "Part one"
+        );
+
+        String serialized = invokeString(
+            plugin,
+            "serializeXml",
+            new Class<?>[] { Document.class },
+            document
+        );
+
+        assertTrue(serialized.contains("urn:isbn:9780000000000"));
+        assertTrue(serialized.contains("<dc:language>es</dc:language>"));
+        assertTrue(serialized.contains("<dc:creator>Author</dc:creator>"));
+        assertTrue(serialized.contains("<dc:subject>Fiction</dc:subject>"));
+        assertTrue(serialized.contains("<dc:title>Part one</dc:title>"));
+    }
+
+    @Test
+    public void mergeChaptersUseSourceTocLabelsWhenBooksAndChaptersIsSelected() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Class<?> sourceClass = Class.forName(
+            "com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin$MergeSource"
+        );
+        Constructor<?> sourceConstructor = sourceClass.getDeclaredConstructor(Path.class, String.class, String.class);
+        sourceConstructor.setAccessible(true);
+        Object source = sourceConstructor.newInstance(
+            temporaryFolder.getRoot().toPath().resolve("book.epub"),
+            "book.epub",
+            "EPUB/books/b000001"
+        );
+        java.lang.reflect.Field titleField = sourceClass.getDeclaredField("title");
+        titleField.setAccessible(true);
+        titleField.set(source, "Book");
+        java.lang.reflect.Field spinePathsField = sourceClass.getDeclaredField("spinePaths");
+        spinePathsField.setAccessible(true);
+        ((List<String>) spinePathsField.get(source)).add("OPS/chapter.xhtml");
+
+        Class<?> tocClass = Class.forName(
+            "com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin$MergeTocEntry"
+        );
+        Constructor<?> tocConstructor = tocClass.getDeclaredConstructor(
+            String.class,
+            String.class,
+            String.class,
+            ArrayList.class
+        );
+        tocConstructor.setAccessible(true);
+        java.lang.reflect.Field tocEntriesField = sourceClass.getDeclaredField("tocEntries");
+        tocEntriesField.setAccessible(true);
+        ((List<Object>) tocEntriesField.get(source)).add(tocConstructor.newInstance(
+            "chapter",
+            "Source chapter",
+            "OPS/chapter.xhtml#part",
+            new ArrayList<>()
+        ));
+
+        String navigation = invokeString(
+            plugin,
+            "buildMergeNavXhtml",
+            new Class<?>[] { List.class, String.class },
+            new ArrayList<>(java.util.Arrays.asList(source)),
+            "books-and-chapters"
+        );
+
+        assertTrue(navigation.contains("Source chapter"));
+        assertFalse(navigation.contains("Chapter 1"));
+    }
+
+    @Test
+    public void splitDependencyExtractionIncludesMediaOverlayResources() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+
+        @SuppressWarnings("unchecked")
+        List<String> dependencies = (List<String>) invokeObject(
+            plugin,
+            "extractSplitManifestDependencies",
+            new Class<?>[] { String.class, String.class },
+            "OPS/package.opf",
+            "<package xmlns=\"http://www.idpf.org/2007/opf\"><manifest>"
+                + "<item id=\"chapter\" href=\"text/chapter.xhtml\" media-type=\"application/xhtml+xml\" media-overlay=\"overlay\"/>"
+                + "<item id=\"overlay\" href=\"audio/chapter.smil\" media-type=\"application/smil\"/>"
+                + "</manifest></package>"
+        );
+
+        assertEquals(java.util.Arrays.asList("OPS/audio/chapter.smil"), dependencies);
+    }
+
+    @Test
     public void splitFixtureValidatesAndPreservesNestedTocHierarchy() throws Exception {
         EpubRewritePlugin plugin = new EpubRewritePlugin();
         ZipFile sourceZip = buildZip(orderedEntries(
@@ -423,9 +609,16 @@ public class EpubRewritePluginRewriteTest {
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                     + "<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"2.0\">"
                     + "<metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\"><dc:title>Book</dc:title></metadata>"
-                    + "<manifest><item id=\"ncx\" href=\"toc.ncx\" media-type=\"application/x-dtbncx+xml\"/>"
+                    + "<manifest><item id=\"nav\" href=\"nav.xhtml\" media-type=\"application/xhtml+xml\" properties=\"nav\"/>"
+                    + "<item id=\"ncx\" href=\"toc.ncx\" media-type=\"application/x-dtbncx+xml\"/>"
                     + "<item id=\"chapter\" href=\"001.html\" media-type=\"application/xhtml+xml\"/></manifest>"
                     + "<spine toc=\"ncx\"><itemref idref=\"chapter\"/></spine></package>"
+            ));
+            addZipEntry(source, "OPS/nav.xhtml", utf8(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                    + "<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:epub=\"http://www.idpf.org/2007/ops\"><body>"
+                    + "<nav epub:type=\"toc\"><ol><li><a href=\"001.html\">Chapter</a></li></ol></nav>"
+                    + "</body></html>"
             ));
             addZipEntry(source, "OPS/toc.ncx", utf8(
                 "<?xml version=\"1.0\"?><!DOCTYPE ncx PUBLIC \"-//NISO//DTD ncx 2005-1//EN\""
@@ -486,9 +679,18 @@ public class EpubRewritePluginRewriteTest {
                 output,
                 "OPS/toc.ncx"
             );
+            String nav = invokeString(
+                plugin,
+                "readZipText",
+                new Class<?>[] { ZipFile.class, String.class },
+                output,
+                "OPS/nav.xhtml"
+            );
             assertTrue(opf.contains("idref=\"cover-page-generated\""));
             assertTrue(opf.contains("type=\"cover\""));
             assertTrue(ncx.contains("src=\"cover.xhtml\""));
+            assertTrue(nav.contains("href=\"cover.xhtml\""));
+            assertTrue(nav.indexOf("href=\"cover.xhtml\"") < nav.indexOf("href=\"001.html\""));
         }
     }
 
@@ -509,6 +711,326 @@ public class EpubRewritePluginRewriteTest {
 
         assertTrue(opf.contains("<meta name=\"cover\" content=\"cover-image\"/>"));
         assertTrue(opf.contains("properties=\"cover-image\""));
+    }
+
+    @Test
+    public void mergeMetadataFallsBackFromEmptyNavToNestedNcx() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        ZipFile sourceZip = buildZip(orderedEntries(
+            "OPS/package.opf", utf8(
+                "<package xmlns=\"http://www.idpf.org/2007/opf\"><metadata><dc:title xmlns:dc=\"http://purl.org/dc/elements/1.1/\">Book</dc:title></metadata><manifest>"
+                    + "<item id=\"nav\" href=\"nav.xhtml\" media-type=\"application/xhtml+xml\" properties=\"nav\"/>"
+                    + "<item id=\"ncx\" href=\"toc.ncx\" media-type=\"application/x-dtbncx+xml\"/>"
+                    + "<item id=\"chapter\" href=\"text/chapter.xhtml\" media-type=\"application/xhtml+xml\"/></manifest>"
+                    + "<spine><itemref idref=\"chapter\"/></spine></package>"
+            ),
+            "OPS/nav.xhtml", utf8("<html xmlns=\"http://www.w3.org/1999/xhtml\"><body><nav><ol/></nav></body></html>"),
+            "OPS/toc.ncx", utf8(
+                "<ncx xmlns=\"http://www.daisy.org/z3986/2005/ncx/\"><navMap><navPoint id=\"part\"><navLabel><text>Part I</text></navLabel><content src=\"text/chapter.xhtml#part\"/></navPoint></navMap></ncx>"
+            ),
+            "OPS/text/chapter.xhtml", simpleXhtml("Chapter")
+        ));
+
+        Object metadata = invokeObject(
+            plugin,
+            "readMergeBookMetadata",
+            new Class<?>[] { ZipFile.class, String.class, String.class },
+            sourceZip,
+            "OPS/package.opf",
+            "fallback"
+        );
+        java.lang.reflect.Field tocEntriesField = metadata.getClass().getDeclaredField("tocEntries");
+        tocEntriesField.setAccessible(true);
+        List<?> tocEntries = (List<?>) tocEntriesField.get(metadata);
+
+        assertEquals(1, tocEntries.size());
+        java.lang.reflect.Field titleField = tocEntries.get(0).getClass().getDeclaredField("title");
+        titleField.setAccessible(true);
+        assertEquals("Part I", titleField.get(tocEntries.get(0)));
+    }
+
+    @Test
+    public void mergeFullIndexPreservesSourceHierarchyWhileOtherModesUseDefinedFallbacks() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Class<?> sourceClass = Class.forName(
+            "com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin$MergeSource"
+        );
+        Constructor<?> sourceConstructor = sourceClass.getDeclaredConstructor(Path.class, String.class, String.class);
+        sourceConstructor.setAccessible(true);
+        Object source = sourceConstructor.newInstance(
+            temporaryFolder.getRoot().toPath().resolve("book.epub"),
+            "book.epub",
+            "EPUB/books/b000001"
+        );
+        java.lang.reflect.Field titleField = sourceClass.getDeclaredField("title");
+        titleField.setAccessible(true);
+        titleField.set(source, "Book");
+        java.lang.reflect.Field spinePathsField = sourceClass.getDeclaredField("spinePaths");
+        spinePathsField.setAccessible(true);
+        ((List<String>) spinePathsField.get(source)).add("OPS/chapter.xhtml");
+
+        Class<?> tocClass = Class.forName(
+            "com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin$MergeTocEntry"
+        );
+        Constructor<?> tocConstructor = tocClass.getDeclaredConstructor(
+            String.class,
+            String.class,
+            String.class,
+            ArrayList.class
+        );
+        tocConstructor.setAccessible(true);
+        Object tocEntry = tocConstructor.newInstance(
+            "chapter",
+            "Original chapter",
+            "OPS/chapter.xhtml#section",
+            new ArrayList<>()
+        );
+        java.lang.reflect.Field tocEntriesField = sourceClass.getDeclaredField("tocEntries");
+        tocEntriesField.setAccessible(true);
+        ((List<Object>) tocEntriesField.get(source)).add(tocEntry);
+
+        ArrayList<Object> sources = new ArrayList<>();
+        sources.add(source);
+        String fullIndex = invokeString(
+            plugin,
+            "buildMergeNavXhtml",
+            new Class<?>[] { List.class, String.class },
+            sources,
+            "full-index"
+        );
+        String booksAndChapters = invokeString(
+            plugin,
+            "buildMergeNavXhtml",
+            new Class<?>[] { List.class, String.class },
+            sources,
+            "books-and-chapters"
+        );
+        String booksOnly = invokeString(
+            plugin,
+            "buildMergeNavXhtml",
+            new Class<?>[] { List.class, String.class },
+            sources,
+            "books-only"
+        );
+
+        assertTrue(fullIndex.contains("Original chapter"));
+        assertTrue(fullIndex.contains("OPS/chapter.xhtml#section"));
+        assertTrue(booksAndChapters.contains("Original chapter"));
+        assertFalse(booksAndChapters.contains("Chapter 1"));
+        assertFalse(booksOnly.contains("Chapter 1"));
+    }
+
+    @Test
+    public void mergeMetadataRejectsAnEmptySpineBeforeWritingOutput() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        ZipFile sourceZip = buildZip(orderedEntries(
+            "OPS/package.opf", utf8(
+                "<package xmlns=\"http://www.idpf.org/2007/opf\"><metadata/><manifest/><spine/></package>"
+            )
+        ));
+
+        try {
+            invokeObject(
+                plugin,
+                "readMergeBookMetadata",
+                new Class<?>[] { ZipFile.class, String.class, String.class },
+                sourceZip,
+                "OPS/package.opf",
+                "fallback"
+            );
+        } catch (java.lang.reflect.InvocationTargetException error) {
+            assertEquals("MERGE_SPINE_EMPTY", pluginErrorCode(error.getCause()));
+            return;
+        }
+        throw new AssertionError("An empty spine must be rejected");
+    }
+
+    @Test
+    public void generatedNavigationValidationRejectsEmptyNavigationDocuments() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        ZipFile zip = buildZip(orderedEntries(
+            "EPUB/nav.xhtml", utf8("<html><body><nav><ol/></nav></body></html>"),
+            "EPUB/toc.ncx", utf8("<ncx><navMap/></ncx>")
+        ));
+
+        try {
+            invokeObject(
+                plugin,
+                "validateNavigationDocumentHasEntries",
+                new Class<?>[] { ZipFile.class, String.class, String.class, boolean.class, String.class },
+                zip,
+                "EPUB/nav.xhtml",
+                "href",
+                true,
+                "MERGE_NAVIGATION_EMPTY"
+            );
+        } catch (java.lang.reflect.InvocationTargetException error) {
+            assertEquals("MERGE_NAVIGATION_EMPTY", pluginErrorCode(error.getCause()));
+            return;
+        }
+        throw new AssertionError("An empty navigation document must be rejected");
+    }
+
+    @Test
+    public void mergeMetadataRejectsSpineReferencesToMissingResources() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        ZipFile sourceZip = buildZip(orderedEntries(
+            "OPS/package.opf", utf8(
+                "<package xmlns=\"http://www.idpf.org/2007/opf\"><metadata/><manifest>"
+                    + "<item id=\"chapter\" href=\"text/missing.xhtml\" media-type=\"application/xhtml+xml\"/></manifest>"
+                    + "<spine><itemref idref=\"chapter\"/></spine></package>"
+            )
+        ));
+
+        try {
+            invokeObject(
+                plugin,
+                "readMergeBookMetadata",
+                new Class<?>[] { ZipFile.class, String.class, String.class },
+                sourceZip,
+                "OPS/package.opf",
+                "fallback"
+            );
+        } catch (java.lang.reflect.InvocationTargetException error) {
+            assertEquals("MERGE_MANIFEST_RESOURCE_MISSING", pluginErrorCode(error.getCause()));
+            return;
+        }
+        throw new AssertionError("Missing spine resources must be rejected");
+    }
+
+    @Test
+    public void navigationValidationRejectsMissingTargets() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        ZipFile zip = buildZip(orderedEntries(
+            "OPS/nav.xhtml", utf8("<html><body><nav><ol><li><a href=\"text/missing.xhtml\">Missing</a></li></ol></nav></body></html>")
+        ));
+
+        try {
+            invokeObject(
+                plugin,
+                "validateSplitNavigationTargets",
+                new Class<?>[] { ZipFile.class, List.class, String.class, String.class },
+                zip,
+                zip.getFileHeaders(),
+                "OPS/nav.xhtml",
+                "href"
+            );
+        } catch (java.lang.reflect.InvocationTargetException error) {
+            assertEquals("SPLIT_NAVIGATION_TARGET_MISSING", pluginErrorCode(error.getCause()));
+            return;
+        }
+        throw new AssertionError("Missing navigation targets must be rejected");
+    }
+
+    @Test
+    public void ocfValidationRejectsCompressedMimetype() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        ZipFile zip = buildZip(orderedEntries(
+            "mimetype", utf8("application/epub+zip"),
+            "META-INF/container.xml", utf8(
+                "<container xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\"><rootfiles>"
+                    + "<rootfile full-path=\"OPS/package.opf\"/></rootfiles></container>"
+            ),
+            "OPS/package.opf", utf8("<package xmlns=\"http://www.idpf.org/2007/opf\"/>")
+        ));
+
+        try {
+            invokeObject(
+                plugin,
+                "validateOcfArchive",
+                new Class<?>[] { ZipFile.class, List.class, String.class, String.class },
+                zip,
+                zip.getFileHeaders(),
+                "EPUB_INVALID",
+                "test"
+            );
+        } catch (java.lang.reflect.InvocationTargetException error) {
+            assertEquals("EPUB_INVALID", pluginErrorCode(error.getCause()));
+            return;
+        }
+        throw new AssertionError("Compressed mimetype must be rejected");
+    }
+
+    @Test
+    public void ocfValidationRejectsUnsafeArchivePaths() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        ZipFile zip = buildZip(orderedEntries(
+            "mimetype", utf8("application/epub+zip"),
+            "../escape.txt", utf8("unsafe")
+        ));
+
+        try {
+            invokeObject(
+                plugin,
+                "validateOcfArchive",
+                new Class<?>[] { ZipFile.class, List.class, String.class, String.class },
+                zip,
+                zip.getFileHeaders(),
+                "EPUB_INVALID",
+                "test"
+            );
+        } catch (java.lang.reflect.InvocationTargetException error) {
+            assertEquals("EPUB_INVALID", pluginErrorCode(error.getCause()));
+            return;
+        }
+        throw new AssertionError("Unsafe archive paths must be rejected");
+    }
+
+    @Test
+    public void mergeOpfPreservesSourceMetadataAndResourceProperties() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Class<?> sourceClass = Class.forName(
+            "com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin$MergeSource"
+        );
+        Constructor<?> sourceConstructor = sourceClass.getDeclaredConstructor(Path.class, String.class, String.class);
+        sourceConstructor.setAccessible(true);
+        Object source = sourceConstructor.newInstance(
+            temporaryFolder.getRoot().toPath().resolve("book.epub"),
+            "book.epub",
+            "EPUB/books/b000001"
+        );
+        java.lang.reflect.Field languageField = sourceClass.getDeclaredField("language");
+        languageField.setAccessible(true);
+        languageField.set(source, "es");
+        java.lang.reflect.Field creatorsField = sourceClass.getDeclaredField("creators");
+        creatorsField.setAccessible(true);
+        ((List<String>) creatorsField.get(source)).add("Author");
+        java.lang.reflect.Field identifiersField = sourceClass.getDeclaredField("sourceIdentifiers");
+        identifiersField.setAccessible(true);
+        ((List<String>) identifiersField.get(source)).add("urn:isbn:123");
+
+        Class<?> resourceClass = Class.forName(
+            "com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin$MergeResource"
+        );
+        Constructor<?> resourceConstructor = resourceClass.getDeclaredConstructor(
+            String.class,
+            String.class,
+            String.class,
+            String.class
+        );
+        resourceConstructor.setAccessible(true);
+        Object resource = resourceConstructor.newInstance(
+            "r1",
+            "books/b000001/fonts/book.woff2",
+            "font/woff2",
+            "font obfuscated"
+        );
+
+        String opf = invokeString(
+            plugin,
+            "buildMergeOpf",
+            new Class<?>[] { String.class, List.class, List.class, String.class, String.class },
+            "Merged",
+            new ArrayList<>(java.util.Arrays.asList(resource)),
+            new ArrayList<>(java.util.Arrays.asList(source)),
+            "cover.jpg",
+            "image/jpeg"
+        );
+
+        assertTrue(opf.contains("<dc:language>es</dc:language>"));
+        assertTrue(opf.contains("<dc:creator>Author</dc:creator>"));
+        assertTrue(opf.contains("property=\"dcterms:source\">urn:isbn:123"));
+        assertTrue(opf.contains("properties=\"font obfuscated\""));
     }
 
     @Test
@@ -1725,6 +2247,12 @@ public class EpubRewritePluginRewriteTest {
         Method method = target.getClass().getDeclaredMethod(methodName, paramTypes);
         method.setAccessible(true);
         return method.invoke(target, args);
+    }
+
+    private String pluginErrorCode(Throwable error) throws Exception {
+        java.lang.reflect.Field codeField = error.getClass().getDeclaredField("code");
+        codeField.setAccessible(true);
+        return (String) codeField.get(error);
     }
 
     private Document invokeDocument(

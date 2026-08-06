@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import {
   LanguageRadioListComponent,
@@ -10,7 +11,6 @@ import {
   IonButton,
   IonContent,
   IonHeader,
-  IonLoading,
   IonModal,
   IonButtons,
   IonTitle,
@@ -26,12 +26,14 @@ import {
   sparklesOutline,
 } from 'ionicons/icons';
 import {
+  BillingService,
   RemoveAdsPurchasePageService,
 } from '@sheldrapps/ads-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
 import {
   SelectableButtonListComponent,
+  SpinnerComponent,
   type SelectableButtonListItem,
   ThemeService,
   UiThemeI18nService,
@@ -57,7 +59,7 @@ import { EpubFixerSettings } from 'src/app/settings/epub-fixer-settings.schema';
     IonButtons,
     IonContent,
     IonHeader,
-    IonLoading,
+    SpinnerComponent,
     IonModal,
     IonIcon,
     IonTitle,
@@ -69,12 +71,16 @@ import { EpubFixerSettings } from 'src/app/settings/epub-fixer-settings.schema';
 })
 export class SettingsPage {
   private readonly settings = inject(SettingsStore<EpubFixerSettings>);
+  private readonly billing = inject(BillingService);
   readonly lang = inject(LanguageService);
   private readonly router = inject(Router);
   private readonly removeAdsPurchasePage = inject(RemoveAdsPurchasePageService);
   private readonly theme = inject(ThemeService);
   private readonly uiThemeI18n = inject(UiThemeI18nService);
   private readonly ratingService = inject(RatingService);
+  readonly adsRemoved = toSignal(this.billing.adsRemoved$, {
+    initialValue: this.billing.isAdsRemoved(),
+  });
 
   constructor() {
     addIcons({
@@ -91,8 +97,24 @@ export class SettingsPage {
 
   isLanguageModalOpen = false;
   languageDraft: Lang = 'en-US';
-  isLanguageRestartLoading = false;
-  languageRestartCountdown = 4;
+  private readonly languageRestartLoadingState = signal(false);
+  private readonly languageRestartCountdownState = signal(4);
+
+  get isLanguageRestartLoading(): boolean {
+    return this.languageRestartLoadingState();
+  }
+
+  set isLanguageRestartLoading(value: boolean) {
+    this.languageRestartLoadingState.set(value);
+  }
+
+  get languageRestartCountdown(): number {
+    return this.languageRestartCountdownState();
+  }
+
+  set languageRestartCountdown(value: number) {
+    this.languageRestartCountdownState.set(value);
+  }
 
   private isRestartingLanguage = false;
   private readonly languageRestartCountdownStart = 4;
@@ -150,7 +172,8 @@ export class SettingsPage {
       {
         value: 'remove-ads',
         titleKey: 'COMMON.UPGRADE_TO_PRO',
-        leadingIconName: 'sparkles-outline',
+        sublineKey: 'COMMON.REMOVE_ADS_CTA_SUBTITLE',
+        leadingIconSvg: 'pro-badge',
         trailingIconName: 'chevron-forward-outline',
         ariaLabelKey: 'COMMON.UPGRADE_TO_PRO',
       },

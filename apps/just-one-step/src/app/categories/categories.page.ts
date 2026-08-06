@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, NgZone, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import {
@@ -15,7 +15,7 @@ import {
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
-  LoadingStateComponent,
+  SpinnerComponent,
   THEME_ACCENT_BACKGROUND_FALLBACK,
   withThemeAlpha,
 } from '@sheldrapps/ui-theme';
@@ -44,7 +44,7 @@ import {
     IonIcon,
     IonButton,
     IonNote,
-    LoadingStateComponent,
+    SpinnerComponent,
   ],
 })
 export class CategoriesPage {
@@ -59,7 +59,15 @@ export class CategoriesPage {
   }
 
   categories: TaskCategory[] = [];
-  isLoading = false;
+  private readonly loadingState = signal(false);
+
+  get isLoading(): boolean {
+    return this.loadingState();
+  }
+
+  set isLoading(value: boolean) {
+    this.loadingState.set(value);
+  }
   loadFailed = false;
   deleteFailed = false;
 

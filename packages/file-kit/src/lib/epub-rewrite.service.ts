@@ -164,6 +164,16 @@ type PickAndPrepareEpubResult = {
   availableBytes?: number;
 };
 
+type PickAndPrepareEpubsResult = {
+  success: boolean;
+  items?: PickAndPrepareEpubResult[];
+  error?: string;
+  message?: string;
+  stage?: string;
+  requiredBytes?: number;
+  availableBytes?: number;
+};
+
 export type EpubOperationPhase =
   | 'preparing'
   | 'analyzing'
@@ -206,6 +216,8 @@ export type EpubMergePreflight = {
   estimatedOutputBytes: number;
 };
 
+export type EpubRewriteWarning = string;
+
 export type EpubSplitOutput = {
   id: string;
   outputPath: string;
@@ -234,6 +246,7 @@ export type EpubSplitResult = {
   outputName: string;
   title: string;
   size: number;
+  warnings?: readonly EpubRewriteWarning[];
 };
 
 export type PublicEpubDocument = {
@@ -319,6 +332,9 @@ type EpubRewritePlugin = Plugin & {
   pickAndPrepareEpub(
     options: PickAndPrepareEpubOptions,
   ): Promise<PickAndPrepareEpubResult>;
+  pickAndPrepareEpubs(
+    options: PickAndPrepareEpubOptions,
+  ): Promise<PickAndPrepareEpubsResult>;
   inspectEpub(options: { inputPath: string }): Promise<InspectEpubResult>;
   diagnoseEpub(options: { sessionId: string }): Promise<DiagnoseEpubResult>;
   repairEpub(options: {
@@ -359,13 +375,14 @@ type EpubRewritePlugin = Plugin & {
     outputPath?: string;
     outputName?: string;
     size?: number;
+    warnings?: readonly EpubRewriteWarning[];
     error?: string;
     message?: string;
     stage?: string;
   }>;
   splitEpub(options: EpubSplitOptions): Promise<{
     success: boolean;
-    outputs?: EpubSplitResult[];
+    outputs?: Array<EpubSplitResult & { warnings?: readonly EpubRewriteWarning[] }>;
     error?: string;
     message?: string;
     stage?: string;
@@ -582,6 +599,55 @@ export class EpubRewriteService {
     };
   }
 
+  async pickAndPrepareEpubs(
+    options: PickAndPrepareEpubOptions,
+  ): Promise<Awaited<ReturnType<EpubRewriteService['pickAndPrepareEpub']>>[]> {
+    const result = await EpubRewrite.pickAndPrepareEpubs(options);
+    if (!result.success || !result.items?.length) {
+      throw new EpubRewriteError(result.error ?? 'PICK_FAILED', {
+        message: result.message,
+        stage: result.stage,
+        requiredBytes: result.requiredBytes,
+        availableBytes: result.availableBytes,
+      });
+    }
+
+    return Promise.all(
+      result.items.map(async (item) => {
+        const prepared = this.requirePreparedResult(
+          item,
+          item.selectedName ?? item.originalName,
+        );
+
+        let file: File | undefined;
+        if (item.extractedCoverPath && item.coverEntryPath) {
+          file = await this.readExtractedFile(
+            item.extractedCoverPath,
+            item.coverEntryPath,
+            item.selectedName || prepared.originalName,
+          );
+        }
+
+        return {
+          sessionId: prepared.sessionId,
+          originalName: prepared.originalName,
+          originalSize: prepared.originalSize,
+          isZipReadable: prepared.isZipReadable,
+          selectedName: item.selectedName || prepared.originalName,
+          sourceSize: item.sourceSize ?? 0,
+          sourceLastModified: item.sourceLastModified ?? Date.now(),
+          sourceMimeType: item.sourceMimeType || 'application/epub+zip',
+          workingPath: prepared.workingPath || '',
+          workingName: prepared.workingName || '',
+          workingNativePath: prepared.workingNativePath || '',
+          outputBaseName: prepared.outputBaseName || '',
+          coverEntryPath: item.coverEntryPath,
+          file,
+        };
+      }),
+    );
+  }
+
   async inspectEpub(inputPath: string): Promise<InspectEpubResult> {
     return EpubRewrite.inspectEpub({ inputPath });
   }
@@ -748,6 +814,7 @@ export class EpubRewriteService {
     outputPath: string;
     outputName: string;
     size: number;
+    warnings: readonly EpubRewriteWarning[];
   }> {
     const result = await EpubRewrite.mergeEpubs(options);
     if (
@@ -766,6 +833,7 @@ export class EpubRewriteService {
       outputPath: result.outputPath,
       outputName: result.outputName,
       size: result.size,
+      warnings: result.warnings ?? [],
     };
   }
 
@@ -784,6 +852,7 @@ export class EpubRewriteService {
       outputName: output.outputName,
       title: output.title,
       size: output.size,
+      warnings: output.warnings ?? [],
     }));
   }
 

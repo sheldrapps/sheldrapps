@@ -46,6 +46,7 @@
     "@sheldrapps/best-candidate-kit": "workspace:*",
     "@sheldrapps/file-kit": "workspace:*",
     "@sheldrapps/image-workflow": "workspace:*",
+    "@sheldrapps/lifecycle-kit": "workspace:*",
     "@sheldrapps/export-quality-kit": "workspace:*",
     "@sheldrapps/i18n-kit": "workspace:*",
     "@sheldrapps/privacy-policy-kit": "workspace:*",

@@ -11,6 +11,7 @@
   <div class="app-page">
     @if (isEditMode && isTaskLoading) {
       <ion-note class="app-state-note" color="medium">
+        <sh-spinner [visible]="true" variant="indicator"></sh-spinner>
         {{ 'COMMON.LOADING' | translate }}
       </ion-note>
     }

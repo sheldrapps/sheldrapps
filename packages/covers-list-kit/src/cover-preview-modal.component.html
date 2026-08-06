@@ -28,14 +28,20 @@
             (click)="onHeaderActionClick(action, $event)"
           >
             @if (action.layout === 'icon') {
+            @if (action.iconSvg === 'rename') {
+            <sh-rename-icon slot="icon-only"></sh-rename-icon>
+            } @else {
             <ion-icon [name]="action.icon ?? ''" slot="icon-only"></ion-icon>
+            }
             } @else if (action.layout === 'text') {
             @if (action.labelKey) {
             {{ action.labelKey | translate }}
             }
             } @else if (action.layout === 'app-icon-text') {
             <div class="app-icon-text">
-              @if (action.icon) {
+              @if (action.iconSvg === 'rename') {
+              <sh-rename-icon class="app-icon-text__icon"></sh-rename-icon>
+              } @else if (action.icon) {
               <ion-icon class="app-icon-text__icon" [name]="action.icon"></ion-icon>
               } @if (action.labelKey) {
               <span class="app-icon-text__label">{{ action.labelKey | translate }}</span>
@@ -43,7 +49,9 @@
             </div>
             } @else {
             <span class="app-icon-row">
-              @if (action.icon) {
+              @if (action.iconSvg === 'rename') {
+              <sh-rename-icon class="app-icon-row__icon"></sh-rename-icon>
+              } @else if (action.icon) {
               <ion-icon class="app-icon-row__icon" [name]="action.icon"></ion-icon>
               } @if (action.labelKey) {
               <span class="app-icon-row__label">{{ action.labelKey | translate }}</span>
@@ -80,7 +88,7 @@
               fit="contain"
               renderMode="eReader"
             ></app-e-reader-preview-frame>
-            } @else if (!loading && unavailableConfig && unavailableConfig.visible) {
+            } @else if (!loading() && unavailableConfig && unavailableConfig.visible) {
             <div class="preview-unavailable">
               <div class="preview-unavailable__text">
                 {{ unavailableConfig.textKey | translate }}
@@ -104,12 +112,12 @@
               </ion-button>
               }
             </div>
-            } @if (loading) {
-            <sh-loading-state
+            }
+            <sh-spinner
+              [visible]="loading()"
               variant="overlay"
               [label]="(gettingCover ? gettingCoverTextKey : loadingTextKey) | translate"
-            ></sh-loading-state>
-            }
+            ></sh-spinner>
           </div>
       </div>
 

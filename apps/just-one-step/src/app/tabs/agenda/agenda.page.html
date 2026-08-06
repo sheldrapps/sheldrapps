@@ -35,11 +35,10 @@
       <ng-template #agendaViewHost></ng-template>
     </div>
 
-    @if (isLoading) {
-      <sh-loading-state
-        variant="fullscreen"
-        [label]="'COMMON.LOADING' | translate"
-      ></sh-loading-state>
-    }
+    <sh-spinner
+      [visible]="isLoading"
+      variant="fullscreen"
+      [label]="'COMMON.LOADING' | translate"
+    ></sh-spinner>
   </div>
 </ion-content>

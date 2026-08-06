@@ -1,13 +1,12 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
-import { IonSpinner } from '@ionic/angular/standalone';
+import { SpinnerComponent } from '../spinner/spinner.component';
 
 export type LoadingStateVariant = 'inline' | 'overlay' | 'fullscreen';
 
 @Component({
   selector: 'sh-loading-state',
   standalone: true,
-  imports: [CommonModule, IonSpinner],
+  imports: [SpinnerComponent],
   templateUrl: './loading-state.component.html',
   styleUrls: ['./loading-state.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -18,10 +17,4 @@ export class LoadingStateComponent {
   @Input() detail: string | null = null;
   @Input() spinnerName: 'lines' | 'lines-small' | 'bubbles' | 'circles' | 'crescent' = 'crescent';
 
-  get rootClassMap(): Record<string, boolean> {
-    return {
-      'sh-loading-state': true,
-      [`sh-loading-state--${this.variant}`]: true,
-    };
-  }
 }
