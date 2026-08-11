@@ -4,7 +4,7 @@
     <div class="selector-control">
       <select [value]="selectedTheme" (change)="onThemeChange(($any($event.target)).value)">
         @for (option of themeOptions; track option.code) {
-          <option [value]="option.code">{{ option.labelKey | translate }}</option>
+          <option [value]="option.code">{{ getThemeLabelKey(option) | translate }}</option>
         }
       </select>
       <span class="selector-caret" aria-hidden="true"></span>

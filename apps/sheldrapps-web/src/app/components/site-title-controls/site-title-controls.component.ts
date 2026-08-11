@@ -33,6 +33,20 @@ type LanguageOption = {
   flagClass: string;
 };
 
+const THEME_LABEL_KEYS: Record<ThemeOption['code'], string> = {
+  system: 'SETTINGS.THEME_SYSTEM',
+  light: 'SETTINGS.THEME_LIGHT',
+  dark: 'SETTINGS.THEME_DARK',
+  'warm-reading': 'SETTINGS.THEME_WARM_READING',
+  'pop-rose': 'SETTINGS.THEME_POP_ROSE',
+  'nocturne-violet': 'SETTINGS.THEME_NOCTURNE_VIOLET',
+  'obsidian-red': 'SETTINGS.THEME_OBSIDIAN_RED',
+  'terminal-green': 'SETTINGS.THEME_TERMINAL_GREEN',
+  'mint-fresh': 'SETTINGS.THEME_MINT_FRESH',
+  'silver-tech': 'SETTINGS.THEME_SILVER_TECH',
+  'gold-luxe': 'SETTINGS.THEME_GOLD_LUXE',
+};
+
 @Component({
   selector: 'app-site-title-controls',
   standalone: true,
@@ -76,6 +90,10 @@ export class SiteTitleControlsComponent implements OnInit {
 
   get currentLanguageOption(): LanguageOption {
     return this.languageOptions.find((lang) => lang.code === this.selectedLanguage) ?? this.languageOptions[0];
+  }
+
+  getThemeLabelKey(theme: ThemeOption): string {
+    return THEME_LABEL_KEYS[theme.code];
   }
 
   ngOnInit(): void {
