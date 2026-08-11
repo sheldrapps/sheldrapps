@@ -8,6 +8,7 @@ import { LanguageService } from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
 import { AppComponent } from './app.component';
+import { LifecycleDiagnosticsService } from '@sheldrapps/lifecycle-kit';
 
 describe('AppComponent', () => {
   it('should create the app', async () => {
@@ -59,6 +60,10 @@ describe('AppComponent', () => {
           useValue: {
             setTitle: jasmine.createSpy('setTitle'),
           },
+        },
+        {
+          provide: LifecycleDiagnosticsService,
+          useValue: { start: jasmine.createSpy('start') },
         },
       ],
     }).compileComponents();

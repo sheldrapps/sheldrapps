@@ -60,9 +60,9 @@ export class HomePageComponent {
       nameKey: 'HOME.APPS.EMS.NAME',
       descriptionKey: 'HOME.APPS.EMS.DESCRIPTION',
       icon: 'assets/apps/epub-merger-and-splitter/icon.png',
+      playStoreUrl:
+        'https://play.google.com/store/apps/details?id=com.sheldrapps.epubmergersplitter',
       privacyRoute: '/privacy-policies/epub-merger-and-splitter',
-      comingSoon: true,
-      disabled: true,
     },
     {
       nameKey: 'HOME.APPS.PCM.NAME',
@@ -71,6 +71,14 @@ export class HomePageComponent {
       playStoreUrl:
         'https://play.google.com/store/apps/details?id=com.sheldrapps.pdfcovermaker',
       privacyRoute: '/privacy-policies/pdf-cover-maker',
+    },
+    {
+      nameKey: 'HOME.APPS.PMAS.NAME',
+      descriptionKey: 'HOME.APPS.PMAS.DESCRIPTION',
+      icon: 'assets/apps/pdf-merger-and-splitter/icon.png',
+      privacyRoute: '/privacy-policies/pdf-merger-and-splitter',
+      comingSoon: true,
+      disabled: true,
     },
   ];
 

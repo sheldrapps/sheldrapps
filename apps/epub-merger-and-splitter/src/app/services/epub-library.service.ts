@@ -20,12 +20,6 @@ type PersistedPreviewAsset = {
   isDithered: boolean;
 };
 
-export type LoadedGeneratedEpub = {
-  file: File;
-  uri: string | null;
-  size: number;
-};
-
 export type EpubLibraryOperation = 'merge' | 'split';
 
 export type EpubLibraryRecord = {
@@ -198,36 +192,6 @@ export class EpubLibraryService {
     }
   }
 
-  async loadGeneratedEpubByFilename(
-    filename: string,
-  ): Promise<LoadedGeneratedEpub | null> {
-    const resolved = this.ensureEpubFilename(filename);
-
-    try {
-      const bytes = await this.epubStore.readBytes(resolved);
-      const epubBuffer = bytes.buffer.slice(
-        bytes.byteOffset,
-        bytes.byteOffset + bytes.byteLength,
-      ) as ArrayBuffer;
-      let uri: string | null = null;
-      try {
-        uri = await this.epubStore.getUriOrThrow(resolved);
-      } catch {
-        uri = null;
-      }
-
-      return {
-        file: new File([epubBuffer], resolved, {
-          type: 'application/epub+zip',
-        }),
-        uri,
-        size: bytes.byteLength,
-      };
-    } catch {
-      return null;
-    }
-  }
-
   async deleteByFilename(filename: string): Promise<void> {
     const resolved = this.ensureEpubFilename(filename);
     if (this.epubRewrite.isSupported()) {
@@ -345,9 +309,7 @@ export class EpubLibraryService {
 
   async getFileSizeBytes(filename: string): Promise<number | null> {
     try {
-      return (
-        await this.epubStore.readBytes(this.ensureEpubFilename(filename))
-      ).byteLength;
+      return this.epubStore.getFileSizeOrThrow(this.ensureEpubFilename(filename));
     } catch {
       return null;
     }

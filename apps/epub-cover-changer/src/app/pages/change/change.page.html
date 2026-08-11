@@ -161,7 +161,12 @@
     }
 
     <div class="actions">
-      @if (workflowStep === 3 && canGenerate()) {
+      @if (workflowStep === 3 && operationCompleted()) {
+      <ion-button expand="block" [disabled]="isResettingFlow" (click)="onOperationDone()">
+        <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+        {{ 'COMMON.DONE' | translate }}
+      </ion-button>
+      } @else if (workflowStep === 3 && canGenerate()) {
       <ion-button
         expand="block"
         (click)="onGenerate()"
@@ -276,8 +281,8 @@
     [visible]="showNativeLoadOverlay"
     variant="fullscreen"
     [label]="nativeLoadTitleKey | translate"
-    [notice]="'UI_THEME.KEEP_APP_OPEN' | translate"
-    [detail]="nativeLoadPercentLabel"
+    [notice]="'UI_THEME.SCREEN_DIM_NOTICE' | translate"
+    [detail]="'UI_THEME.KEEP_APP_OPEN' | translate"
     [progress]="isNativeRewriteInProgress ? rewriteProgressPercent : epubLoadProgressPercent"
   ></sh-spinner>
 
@@ -285,7 +290,8 @@
     [visible]="isPickingImage || (isPickingEpub && !showNativeLoadOverlay) || (isExporting && !isNativeRewriteInProgress) || isRebuildingExportQuality"
     variant="fullscreen"
     [label]="loadingMessage || ('COMMON.LOADING' | translate)"
-    [notice]="'UI_THEME.KEEP_APP_OPEN' | translate"
+    [notice]="'UI_THEME.SCREEN_DIM_NOTICE' | translate"
+    [detail]="'UI_THEME.KEEP_APP_OPEN' | translate"
   ></sh-spinner>
 
   <sh-spinner

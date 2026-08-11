@@ -13,6 +13,7 @@
       "@sheldrapps/recommended-apps": ["../../packages/recommended-apps/src/public-api.ts"],
       "@sheldrapps/covers-list-kit": ["../../packages/covers-list-kit/src/public-api.ts"],
       "@sheldrapps/file-kit": ["../../packages/file-kit/src/public-api.ts"],
+      "@sheldrapps/lifecycle-kit": ["../../packages/lifecycle-kit/src/public-api.ts"],
       "@sheldrapps/export-quality-kit": [
         "../../packages/export-quality-kit/src/public-api.ts"
       ],

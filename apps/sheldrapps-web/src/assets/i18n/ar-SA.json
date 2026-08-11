@@ -55,7 +55,12 @@
     "APPS_SECTION_TITLE": "تطبيقات مميزة",
     "APPS_SECTION_BODY": "أدوات مركزة لتخصيص الأغلفة وملفات EPUB وقراءة سير العمل.",
     "APPS": {
-      "CCFK": {
+    "PMAS": {
+      "NAME": "PDF Merger & Splitter",
+      "DESCRIPTION": "ادمج ملفات PDF وقسّمها مع تحكم عملي في الصفحات.",
+      "BADGE": "Coming soon"
+    },
+     "CCFK": {
         "NAME": "إنشاء أغلفة لـ Kindle",
         "DESCRIPTION": "أنشئ أغلفة للقارئ الإلكتروني من صورك ببضع نقرات فقط."
       },
@@ -112,8 +117,17 @@
     "LEGAL_EPF_LINK": "سياسة الخصوصية - EPUB Fixer",
     "LEGAL_EMS_LINK": "سياسة الخصوصية - EPUB Merger & Splitter"
   },
-  "PRIVACY": {
-    "CCFK": {
+ "PRIVACY": {
+    "PMAS": {
+      "TITLE": "سياسة الخصوصية - PDF Merger & Splitter",
+      "LAST_UPDATED": "آخر تحديث: 2026-08-10",
+      "INTRO": "تم تطوير تطبيق PDF Merger & Splitter (<strong>التطبيق</strong>) وصيانته بواسطة <strong>Sheldrapps</strong>. تشرح سياسة الخصوصية هذه كيفية التعامل مع المعلومات عند استخدام التطبيق.",
+      "SECTION_2_TITLE": "2. ملفات PDF والمحتوى",
+      "SECTION_2_ITEM_1": "تتم معالجة ملفات PDF التي تختارها <strong>محليًا على جهازك</strong>.",
+      "SECTION_2_ITEM_2": "لا يقوم التطبيق <strong>برفع</strong> ملفات PDF الخاصة بك أو تخزينها على خوادم خارجية.",
+      "SECTION_2_ITEM_3": "تبقى ملفات PDF المُنشأة على جهازك ما لم تقم بمشاركتها صراحةً."
+    },
+     "CCFK": {
       "TITLE": "سياسة الخصوصية - إنشاء أغلفة لـ Kindle",
       "LAST_UPDATED": "آخر تحديث: 2026-01-19",
       "INTRO": "تم تطوير Cover Creator for Kindle (<strong>the App</strong>) بواسطة <strong>Sheldrapps</strong> وصيانته. تشرح سياسة الخصوصية هذه كيفية التعامل مع المعلومات عند استخدام التطبيق.",

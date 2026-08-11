@@ -18,7 +18,7 @@ describe('buildCompositionInput', () => {
 
   it('uses frameWidth/frameHeight from state when provided', () => {
     const file = new File([new Blob(['x'])], 'test.jpg', { type: 'image/jpeg' });
-    const state: CoverCropState = { ...baseState, frameWidth: 320, frameHeight: 480 };
+    const state: CoverCropState = { ...baseState, frameWidth: 300, frameHeight: 400 };
 
     const input = buildCompositionInput({
       file,
@@ -30,8 +30,8 @@ describe('buildCompositionInput', () => {
     });
 
     expect(input).toBeTruthy();
-    expect(input?.frameWidth).toBe(320);
-    expect(input?.frameHeight).toBe(480);
+    expect(input?.frameWidth).toBe(300);
+    expect(input?.frameHeight).toBe(400);
     expect(input?.target.width).toBe(1200);
     expect(input?.target.height).toBe(1600);
   });

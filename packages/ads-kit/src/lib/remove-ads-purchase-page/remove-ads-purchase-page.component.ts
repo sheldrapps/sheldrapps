@@ -104,6 +104,7 @@ export class RemoveAdsPurchasePageComponent implements OnInit, OnDestroy {
     return (
       this.billing.canShowRemoveAdsEntryPoint() &&
       this.billingReady &&
+      (this.billing.isDevelopmentMode() || !!this.removeAdsPriceFormatted) &&
       !this.purchaseBusy
     );
   }

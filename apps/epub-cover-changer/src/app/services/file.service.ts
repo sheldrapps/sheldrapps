@@ -731,6 +731,11 @@ export class FileService {
   async getCoverFileSizeBytes(filename: string): Promise<number | null> {
     await this.ensurePublicDocumentsEpubFolderReady();
     try {
+      if (this.epubRewrite.isSupported()) {
+        return (
+          await this.epubRewrite.getPublicDocument(this.EPUB_FOLDER, filename)
+        ).size;
+      }
       const bytes = await this.readPublicEpubBytes(filename);
       return bytes.byteLength;
     } catch {

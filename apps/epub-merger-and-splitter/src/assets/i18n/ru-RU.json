@@ -158,8 +158,8 @@
         "SUBLINE": "Используйте оглавление книги."
       },
       "MANUAL_SPLIT_POINTS": {
-        "TITLE": "Выбрать точки разделения",
-        "SUBLINE": "Группируйте главы вручную."
+        "TITLE": "Выбрать вручную",
+        "SUBLINE": "Выберите пункты оглавления вручную."
       },
       "EQUAL_PARTS": {
         "TITLE": "Равные части",
@@ -228,6 +228,7 @@
       "SIZE_50": "50 MB",
       "SIZE_CUSTOM": "Вручную",
       "APPROXIMATE_SIZE": "Создавайте файлы примерно заданного размера.",
+      "COVER_AND_BOOK_SIZE": "≈ Обложка → {{cover}} · остальная книга → {{book}}",
       "EXAMPLE_PART_ONE": "Часть I",
       "EXAMPLE_CHAPTER_ONE": "Глава 1",
       "EXAMPLE_CHAPTER_TWO": "Глава 2",

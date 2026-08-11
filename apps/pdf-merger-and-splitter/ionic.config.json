@@ -1,0 +1,7 @@
+{
+  "name": "pdf-merger-and-splitter",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

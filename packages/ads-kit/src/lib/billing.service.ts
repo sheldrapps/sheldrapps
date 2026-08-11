@@ -163,6 +163,17 @@ export class BillingService {
         return false;
       }
 
+      if (!this.removeAdsPriceFormatted) {
+        await this.performProductDetailsRefresh();
+      }
+
+      if (!this.removeAdsPriceFormatted) {
+        this.logDebug('purchase blocked because product offer is unavailable', {
+          productId: this.removeAdsProductId,
+        });
+        return false;
+      }
+
       try {
         const transaction = await NativePurchases.purchaseProduct({
           productIdentifier: this.removeAdsProductId!,

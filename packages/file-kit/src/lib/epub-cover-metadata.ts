@@ -1,6 +1,7 @@
 import JSZip, { type JSZipObject } from 'jszip';
 
 const EPUB_MIMETYPE = 'application/epub+zip';
+const WEB_EPUB_METADATA_MAX_BYTES = 128 * 1024 * 1024;
 const SHELDR_META_PREFIX = 'sheldrapps:cover-';
 const META_COLOR_MODE = `${SHELDR_META_PREFIX}color-mode`;
 const META_ARTIFACT_REDUCTION_ENABLED =
@@ -172,6 +173,9 @@ export async function writeSheldrCoverMetadata(
 async function readEpubXmlContext(
   bytes: Uint8Array,
 ): Promise<EpubXmlContext | null> {
+  if (bytes.byteLength > WEB_EPUB_METADATA_MAX_BYTES) {
+    return null;
+  }
   try {
     const zip = await JSZip.loadAsync(bytes);
     const containerText = await readZipText(zip, 'META-INF/container.xml');

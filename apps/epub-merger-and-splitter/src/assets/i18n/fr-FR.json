@@ -158,8 +158,8 @@
         "SUBLINE": "Utilisez la table des matières du livre."
       },
       "MANUAL_SPLIT_POINTS": {
-        "TITLE": "Choisir les points de division",
-        "SUBLINE": "Regroupez les chapitres manuellement."
+        "TITLE": "Choisir manuellement",
+        "SUBLINE": "Choisissez manuellement les entrées de la table des matières."
       },
       "EQUAL_PARTS": {
         "TITLE": "Parts égales",
@@ -228,6 +228,7 @@
       "SIZE_50": "50 MB",
       "SIZE_CUSTOM": "Personnalisé",
       "APPROXIMATE_SIZE": "Créez des fichiers sous une taille approximative.",
+      "COVER_AND_BOOK_SIZE": "≈ Couverture → {{cover}} · reste du livre → {{book}}",
       "EXAMPLE_PART_ONE": "Partie I",
       "EXAMPLE_CHAPTER_ONE": "Chapitre 1",
       "EXAMPLE_CHAPTER_TWO": "Chapitre 2",

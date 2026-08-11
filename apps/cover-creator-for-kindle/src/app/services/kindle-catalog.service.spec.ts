@@ -121,7 +121,7 @@ describe('KindleCatalogService', () => {
     expect(selection.modelId).toBe('clara_all');
   });
 
-  it('maps legacy model ids to the new consolidated catalog ids', () => {
+  it('maps the legacy 2019 id to the distinct 2015-2019 catalog model', () => {
     const selection = service.resolveSelection(brands, {
       brandId: DEFAULT_DEVICE_BRAND_ID,
       modelId: 'paperwhite_2019',
@@ -129,6 +129,6 @@ describe('KindleCatalogService', () => {
 
     expect(selection.brandId).toBe(DEFAULT_DEVICE_BRAND_ID);
     expect(selection.groupId).toBe('paperwhite');
-    expect(selection.modelId).toBe(DEFAULT_DEVICE_MODEL_ID);
+    expect(selection.modelId).toBe('paperwhite_2015_2019');
   });
 });

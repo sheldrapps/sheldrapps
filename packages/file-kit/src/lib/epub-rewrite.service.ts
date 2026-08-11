@@ -249,6 +249,29 @@ export type EpubSplitResult = {
   warnings?: readonly EpubRewriteWarning[];
 };
 
+export type EpubNativeSplitAnalysisUnit = {
+  id: string;
+  title: string;
+  href: string;
+  sourcePath: string;
+  order: number;
+  sizeBytes: number;
+};
+
+export type EpubNativeSplitAnalysisTocEntry = {
+  id: string;
+  title: string;
+  href: string;
+  spineItemId: string | null;
+  children: readonly EpubNativeSplitAnalysisTocEntry[];
+};
+
+export type EpubNativeSplitAnalysis = {
+  fileSizeBytes: number;
+  units: readonly EpubNativeSplitAnalysisUnit[];
+  tocEntries: readonly EpubNativeSplitAnalysisTocEntry[];
+};
+
 export type PublicEpubDocument = {
   name: string;
   uri: string;
@@ -303,16 +326,6 @@ type EpubRewritePlugin = Plugin & {
     filename: string;
     outputName: string;
   }): Promise<PublicEpubDocumentResult>;
-  openExternalFile(options: {
-    inputPath: string;
-    mimeType?: string;
-    chooserTitle?: string;
-  }): Promise<{
-    success: boolean;
-    error?: string;
-    message?: string;
-    stage?: string;
-  }>;
   prepare(options: PrepareEpubOptions): Promise<{
     success: boolean;
     sessionId?: string;
@@ -383,6 +396,15 @@ type EpubRewritePlugin = Plugin & {
   splitEpub(options: EpubSplitOptions): Promise<{
     success: boolean;
     outputs?: Array<EpubSplitResult & { warnings?: readonly EpubRewriteWarning[] }>;
+    error?: string;
+    message?: string;
+    stage?: string;
+  }>;
+  analyzeSplitEpub(options: { inputPath: string }): Promise<{
+    success: boolean;
+    fileSizeBytes?: number;
+    units?: EpubNativeSplitAnalysisUnit[];
+    tocEntries?: EpubNativeSplitAnalysisTocEntry[];
     error?: string;
     message?: string;
     stage?: string;
@@ -854,6 +876,27 @@ export class EpubRewriteService {
       size: output.size,
       warnings: output.warnings ?? [],
     }));
+  }
+
+  async analyzeSplitEpub(inputPath: string): Promise<EpubNativeSplitAnalysis> {
+    const result = await EpubRewrite.analyzeSplitEpub({ inputPath });
+    if (
+      !result.success ||
+      typeof result.fileSizeBytes !== 'number' ||
+      !Array.isArray(result.units) ||
+      !Array.isArray(result.tocEntries)
+    ) {
+      throw new EpubRewriteError(result.error ?? 'SPLIT_ANALYSIS_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+
+    return {
+      fileSizeBytes: result.fileSizeBytes,
+      units: result.units,
+      tocEntries: result.tocEntries,
+    };
   }
 
   async cleanup(sessionId: string): Promise<void> {

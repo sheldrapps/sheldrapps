@@ -2,6 +2,8 @@ import { Injectable, InjectionToken } from '@angular/core';
 
 const PDF_MIME = 'application/pdf';
 const COVER_MAX_DIMENSION = 1600;
+const WEB_PDF_MAX_BYTES = 128 * 1024 * 1024;
+const WEB_IMAGE_MAX_BYTES = 32 * 1024 * 1024;
 
 type PdfJsLoadingTask = {
   promise: Promise<PdfJsDocument>;
@@ -49,6 +51,7 @@ export class WebPdfCoverService {
     if (!file) return false;
     if (!/\.pdf$/i.test(file.name || '')) return false;
     if (file.size <= 0) return false;
+    if (file.size > WEB_PDF_MAX_BYTES) return false;
     const bytes = new Uint8Array(await file.slice(0, Math.min(file.size, 8192)).arrayBuffer());
     const text = this.asAscii(bytes);
     if (!text.startsWith('%PDF-')) return false;
@@ -56,7 +59,7 @@ export class WebPdfCoverService {
   }
 
   async extractCover(_file: File): Promise<File | null> {
-    if (!_file || _file.size <= 0) return null;
+    if (!_file || _file.size <= 0 || _file.size > WEB_PDF_MAX_BYTES) return null;
 
     let loadingTask: PdfJsLoadingTask | null = null;
     let pdfDocument: PdfJsDocument | null = null;
@@ -134,6 +137,7 @@ export class WebPdfCoverService {
     _lang = 'en',
     pageTarget?: { widthPt: number; heightPt: number },
   ): Promise<Uint8Array> {
+    if (coverFile.size > WEB_IMAGE_MAX_BYTES) throw new Error('COVER_TOO_LARGE');
     const { jpgBytes, width, height } = await this.convertImageToJpeg(coverFile);
     return this.buildSinglePagePdfFromJpeg(
       jpgBytes,
@@ -151,6 +155,7 @@ export class WebPdfCoverService {
     _mode?: 'replace' | 'insert',
     pageTarget?: { widthPt: number; heightPt: number },
   ): Promise<Uint8Array> {
+    if (!_sourcePdf || _sourcePdf.size > WEB_PDF_MAX_BYTES) throw new Error('PDF_TOO_LARGE');
     return this.createMinimalPdf(_coverFile, 'PDF Cover', 'en', pageTarget);
   }
 
@@ -302,6 +307,7 @@ export class WebPdfCoverService {
   }
 
   private fileToDataUrl(file: File): Promise<string> {
+    if (file.size > WEB_IMAGE_MAX_BYTES) return Promise.reject(new Error('COVER_TOO_LARGE'));
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve((reader.result as string) || '');

@@ -1,9 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { BillingService } from '@sheldrapps/ads-kit';
 import { provideRatingKit } from '@sheldrapps/rating-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { ThemeService, type Theme } from '@sheldrapps/ui-theme';
+import { of } from 'rxjs';
 import { SettingsPage } from './settings.page';
 import { LanguageService } from 'src/app/services/language.service';
 
@@ -56,6 +58,10 @@ describe('SettingsPage', () => {
         {
           provide: LanguageService,
           useValue: languageService,
+        },
+        {
+          provide: BillingService,
+          useValue: { adsRemoved$: of(false), isAdsRemoved: () => false },
         },
         { provide: ThemeService, useValue: themeService },
         ...provideRatingKit({

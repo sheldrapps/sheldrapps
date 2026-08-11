@@ -55,7 +55,12 @@
     "APPS_SECTION_TITLE": "Applications en vedette",
     "APPS_SECTION_BODY": "Des outils ciblés pour personnaliser les couvertures, les fichiers EPUB et les flux de travail de lecture.",
     "APPS": {
-      "CCFK": {
+    "PMAS": {
+      "NAME": "PDF Merger & Splitter",
+      "DESCRIPTION": "Fusionnez et divisez des fichiers PDF avec un contrôle pratique des pages.",
+      "BADGE": "Coming soon"
+    },
+     "CCFK": {
         "NAME": "Créer des Covers pour Kindle",
         "DESCRIPTION": "Créez des couvertures de liseuses électroniques à partir de vos images en quelques clics."
       },
@@ -112,8 +117,17 @@
     "LEGAL_EPF_LINK": "politique de confidentialité - EPUB Fixer",
     "LEGAL_EMS_LINK": "politique de confidentialité - EPUB Merger & Splitter"
   },
-  "PRIVACY": {
-    "CCFK": {
+ "PRIVACY": {
+    "PMAS": {
+      "TITLE": "Politique de confidentialité - PDF Merger & Splitter",
+      "LAST_UPDATED": "Dernière mise à jour : 2026-08-10",
+      "INTRO": "PDF Merger & Splitter (<strong>l’application</strong>) est développé et maintenu par <strong>Sheldrapps</strong>. Cette politique de confidentialité explique comment les informations sont traitées lorsque vous utilisez l’application.",
+      "SECTION_2_TITLE": "2. Fichiers PDF et contenu",
+      "SECTION_2_ITEM_1": "Les fichiers PDF que vous sélectionnez sont traités <strong>localement sur votre appareil</strong>.",
+      "SECTION_2_ITEM_2": "L’application ne <strong>télécharge</strong> ni ne stocke vos fichiers PDF sur des serveurs externes.",
+      "SECTION_2_ITEM_3": "Les fichiers PDF générés restent sur votre appareil, sauf si vous les partagez explicitement."
+    },
+     "CCFK": {
       "TITLE": "politique de confidentialité - Créer des Covers pour Kindle",
       "LAST_UPDATED": "Dernière mise à jour : 2026-01-19",
       "INTRO": "Cover Creator pour Kindle (<strong>l'application</strong>) est développé et maintenu par <strong>Sheldrapps</strong>. Cette politique de confidentialité explique comment les informations sont traitées lorsque vous utilisez l'application.",

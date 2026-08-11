@@ -158,8 +158,8 @@
         "SUBLINE": "पुस्तक की विषय-सूची का उपयोग करें।"
       },
       "MANUAL_SPLIT_POINTS": {
-        "TITLE": "विभाजन बिंदु चुनें",
-        "SUBLINE": "अध्यायों को मैन्युअल रूप से समूहित करें।"
+        "TITLE": "मैन्युअल रूप से चुनें",
+        "SUBLINE": "विषय-सूची की प्रविष्टियां मैन्युअल रूप से चुनें।"
       },
       "EQUAL_PARTS": {
         "TITLE": "समान भाग",
@@ -228,6 +228,7 @@
       "SIZE_50": "50 MB",
       "SIZE_CUSTOM": "कस्टम",
       "APPROXIMATE_SIZE": "लगभग निर्धारित आकार तक फ़ाइलें बनाएँ।",
+      "COVER_AND_BOOK_SIZE": "≈ कवर → {{cover}} · बाकी पुस्तक → {{book}}",
       "EXAMPLE_PART_ONE": "भाग I",
       "EXAMPLE_CHAPTER_ONE": "अध्याय 1",
       "EXAMPLE_CHAPTER_TWO": "अध्याय 2",

@@ -158,8 +158,8 @@
         "SUBLINE": "책의 목차를 사용합니다."
       },
       "MANUAL_SPLIT_POINTS": {
-        "TITLE": "분할 지점 선택",
-        "SUBLINE": "챕터를 직접 묶습니다."
+        "TITLE": "수동으로 선택",
+        "SUBLINE": "목차 항목을 직접 선택합니다."
       },
       "EQUAL_PARTS": {
         "TITLE": "같은 크기의 부분",
@@ -228,6 +228,7 @@
       "SIZE_50": "50 MB",
       "SIZE_CUSTOM": "사용자 지정",
       "APPROXIMATE_SIZE": "대략적인 크기 이하로 파일을 만듭니다.",
+      "COVER_AND_BOOK_SIZE": "≈ 표지 → {{cover}} · 나머지 책 → {{book}}",
       "EXAMPLE_PART_ONE": "파트 I",
       "EXAMPLE_CHAPTER_ONE": "챕터 1",
       "EXAMPLE_CHAPTER_TWO": "챕터 2",

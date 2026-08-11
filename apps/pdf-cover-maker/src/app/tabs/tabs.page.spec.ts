@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { TabsPage } from './tabs.page';
 
@@ -9,7 +10,7 @@ describe('TabsPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TabsPage],
+      imports: [TabsPage, TranslateModule.forRoot()],
       providers: [provideRouter([])]
     }).compileComponents();
   });

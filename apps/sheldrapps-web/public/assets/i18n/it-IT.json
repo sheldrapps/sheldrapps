@@ -55,7 +55,12 @@
     "APPS_SECTION_TITLE": "App in primo piano",
     "APPS_SECTION_BODY": "Strumenti mirati per personalizzare copertine, file EPUB e flussi di lavoro di lettura.",
     "APPS": {
-      "CCFK": {
+    "PMAS": {
+      "NAME": "PDF Merger & Splitter",
+      "DESCRIPTION": "Unisci e dividi file PDF con un controllo pratico delle pagine.",
+      "BADGE": "Coming soon"
+    },
+     "CCFK": {
         "NAME": "Crea Cover per Kindle",
         "DESCRIPTION": "Crea copertine per e-reader dalle tue immagini in pochi tocchi."
       },
@@ -112,8 +117,17 @@
     "LEGAL_EPF_LINK": "politica sulla riservatezza - EPUB Fixer",
     "LEGAL_EMS_LINK": "politica sulla riservatezza - EPUB Merger & Splitter"
   },
-  "PRIVACY": {
-    "CCFK": {
+ "PRIVACY": {
+    "PMAS": {
+      "TITLE": "Informativa sulla privacy - PDF Merger & Splitter",
+      "LAST_UPDATED": "Ultimo aggiornamento: 2026-08-10",
+      "INTRO": "PDF Merger & Splitter (<strong>l’app</strong>) è sviluppata e gestita da <strong>Sheldrapps</strong>. Questa informativa sulla privacy spiega come vengono gestite le informazioni quando utilizzi l’app.",
+      "SECTION_2_TITLE": "2. File PDF e contenuti",
+      "SECTION_2_ITEM_1": "I file PDF selezionati vengono elaborati <strong>localmente sul tuo dispositivo</strong>.",
+      "SECTION_2_ITEM_2": "L’app <strong>non</strong> carica né archivia i tuoi file PDF su server esterni.",
+      "SECTION_2_ITEM_3": "I file PDF generati rimangono sul tuo dispositivo, a meno che tu non li condivida esplicitamente."
+    },
+     "CCFK": {
       "TITLE": "politica sulla riservatezza - Crea Cover per Kindle",
       "LAST_UPDATED": "Ultimo aggiornamento: 2026-01-19",
       "INTRO": "Cover Creator per Kindle (<strong>l'app</strong>) è sviluppato e gestito da <strong>Sheldrapps</strong>. La presente Informativa sulla privacy spiega come vengono gestite le informazioni quando utilizzi l'App.",

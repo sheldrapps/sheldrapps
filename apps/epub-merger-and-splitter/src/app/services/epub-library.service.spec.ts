@@ -117,6 +117,7 @@ describe('EpubLibraryService', () => {
       size: 3,
       copiedBytes: 3,
     });
+    publicFiles.add('merged.epub');
     epubRewrite.extractCoverAssetFile.and.resolveTo({
       file: new File(['cover'], 'cover.jpg', { type: 'image/jpeg' }),
     } as never);
@@ -184,6 +185,7 @@ describe('EpubLibraryService', () => {
 
   it('does not cache a transient missing-cover result', async () => {
     epubRewrite.isSupported.and.returnValue(true);
+    publicFiles.add('book.epub');
     epubRewrite.extractCoverAssetFile.and.rejectWith(new Error('not ready'));
     fileKit.exists.and.resolveTo(false);
 

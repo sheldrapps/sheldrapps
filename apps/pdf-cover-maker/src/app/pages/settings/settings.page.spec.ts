@@ -1,12 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import * as I18nKit from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
+import { BillingService } from '@sheldrapps/ads-kit';
 import { THEME_OPTIONS, ThemeService, type Theme } from '@sheldrapps/ui-theme';
 import { SettingsPage } from './settings.page';
 import { ConsentService } from 'src/app/services/consent.service';
 import { LanguageService } from 'src/app/services/language.service';
+import { of } from 'rxjs';
 
 describe('SettingsPage', () => {
   let component: SettingsPage;
@@ -59,18 +60,30 @@ describe('SettingsPage', () => {
               .and.resolveTo(false),
           },
         },
+        {
+          provide: BillingService,
+          useValue: { adsRemoved$: of(false), isAdsRemoved: () => false },
+        },
         { provide: ThemeService, useValue: themeService },
       ],
     }).compileComponents();
 
-    restartForLanguageChangeSpy = spyOn(
-      I18nKit,
-      'restartForLanguageChange',
-    ).and.resolveTo();
+    restartForLanguageChangeSpy = jasmine.createSpy('restartForLocale');
+    (globalThis as typeof globalThis & {
+      SheldrappsAppControl?: { restartForLocale: jasmine.Spy };
+    }).SheldrappsAppControl = {
+      restartForLocale: restartForLanguageChangeSpy,
+    };
 
     fixture = TestBed.createComponent(SettingsPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    delete (globalThis as typeof globalThis & {
+      SheldrappsAppControl?: unknown;
+    }).SheldrappsAppControl;
   });
 
   it('should render', () => {
@@ -123,7 +136,7 @@ describe('SettingsPage', () => {
       'count:1',
       'restart:signal',
     ]);
-    expect(restartForLanguageChangeSpy).toHaveBeenCalledOnceWith('es-MX', 500);
+    expect(restartForLanguageChangeSpy).toHaveBeenCalledOnceWith('es-MX');
     expect(component.isLanguageRestartLoading).toBeFalse();
   });
 

@@ -158,8 +158,8 @@
         "SUBLINE": "Nutze das Inhaltsverzeichnis des Buchs."
       },
       "MANUAL_SPLIT_POINTS": {
-        "TITLE": "Teilungspunkte auswählen",
-        "SUBLINE": "Kapitel manuell gruppieren."
+        "TITLE": "Manuell auswählen",
+        "SUBLINE": "TOC-Einträge manuell auswählen."
       },
       "EQUAL_PARTS": {
         "TITLE": "Gleich große Teile",
@@ -228,6 +228,7 @@
       "SIZE_50": "50 MB",
       "SIZE_CUSTOM": "Benutzerdefiniert",
       "APPROXIMATE_SIZE": "Erstelle Dateien mit ungefähr begrenzter Größe.",
+      "COVER_AND_BOOK_SIZE": "≈ Cover → {{cover}} · übriges Buch → {{book}}",
       "EXAMPLE_PART_ONE": "Teil I",
       "EXAMPLE_CHAPTER_ONE": "Kapitel 1",
       "EXAMPLE_CHAPTER_TWO": "Kapitel 2",

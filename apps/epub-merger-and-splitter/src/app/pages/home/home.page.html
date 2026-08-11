@@ -79,6 +79,7 @@
         <ion-button
           class="app-btn"
           expand="block"
+          [disabled]="isResettingFlow()"
           (click)="onOperationFeedbackDone()"
         >
           {{ 'COMMON.DONE' | translate }}
@@ -97,7 +98,7 @@
           <sh-action-card
             [title]="'HOME.MERGE' | translate"
             [svg]="mergeIconSvg()"
-            [disabled]="isPicking()"
+            [disabled]="isPicking() || isMergeActionBusy()"
             [ariaLabel]="'HOME.MERGE' | translate"
             (click)="openMergePicker()"
           ></sh-action-card>
@@ -105,7 +106,7 @@
           <sh-action-card
             [title]="'HOME.SPLIT' | translate"
             [svg]="splitIconSvg()"
-            [disabled]="isPicking()"
+            [disabled]="isPicking() || isMergeActionBusy()"
             [ariaLabel]="'HOME.SPLIT' | translate"
             (click)="openSplitPicker()"
           ></sh-action-card>
@@ -118,7 +119,7 @@
       <sh-file-picker-panel
         [title]="'HOME.EPUB_FILES_TITLE' | translate"
         [selected]="mergeSelections().length > 0"
-        [disabled]="isPicking()"
+        [disabled]="isPicking() || isMergeActionBusy()"
         [invalid]="!!pickerErrorKey()"
         [actionLabel]="
           mergeSelections().length > 0
@@ -167,8 +168,8 @@
         <sh-cover-source-actions
           [titleKey]="null"
           [showTitle]="false"
-          [imageDisabled]="isPicking()"
-          [scratchDisabled]="isPicking()"
+          [imageDisabled]="isPicking() || isMergeActionBusy()"
+          [scratchDisabled]="isPicking() || isMergeActionBusy()"
           [suggestedAction]="getCoverSourceSuggestedAction()"
           (imageSelected)="onCoverImageSelected()"
           (scratchSelected)="onCoverScratchSelected()"
@@ -182,7 +183,7 @@
             aria-labelledby="best-candidate-title"
             [candidates]="coverCandidates()"
             [loading]="isDetectingCoverCandidates()"
-            [disabled]="isPicking() || isDetectingCoverCandidates()"
+            [disabled]="isPicking() || isDetectingCoverCandidates() || isMergeActionBusy()"
             [selectedCandidateId]="selectedCoverCandidateId()"
             [showReasons]="false"
             [showHeader]="false"
@@ -233,7 +234,7 @@
         <sh-file-picker-panel
           [title]="'HOME.EPUB_FILE_TITLE' | translate"
           [selected]="!!splitSelection()"
-          [disabled]="isPicking()"
+          [disabled]="isPicking() || isMergeActionBusy()"
           [invalid]="!!pickerErrorKey()"
           [actionLabel]="splitSelection()?.selectedName ?? null"
           [actionSubline]="
@@ -305,7 +306,7 @@
             <sh-selectable-button-list
               [items]="splitEqualPartsItems"
               [value]="splitEqualPartsSelection"
-              [expandedValue]="splitEqualPartsSelection"
+              [expandedValue]="splitEqualPartsSelection === 'custom' ? 'custom' : null"
               [ariaLabel]="'HOME.SPLIT_CONFIRM.EQUAL_TITLE' | translate"
               selectedIconName="radio-button-on"
               (valueChange)="onSplitEqualPartsChange($event)"
@@ -344,7 +345,7 @@
             <sh-selectable-button-list
               [items]="splitMaximumSizeItems"
               [value]="splitMaximumSizeSelection"
-              [expandedValue]="splitMaximumSizeSelection"
+              [expandedValue]="splitMaximumSizeSelection === 'custom' ? 'custom' : null"
               [ariaLabel]="'HOME.SPLIT_CONFIRM.MAXIMUM_SIZE_TITLE' | translate"
               selectedIconName="radio-button-on"
               (valueChange)="onSplitMaximumSizeChange($event)"
@@ -385,7 +386,9 @@
               @for (output of (splitPreviewExpanded() ? splitOutputPreviews() : splitOutputPreviews().slice(0, 3)); track output.number) {
                 <li class="split-output-card__item">
                   <span class="split-output-card__title">{{ output.title }}</span>
-                  @if (splitMethod === 'maximum-file-size') {
+                  @if (output.coverSizeBytes > 0) {
+                    <span class="split-output-card__size">{{ 'HOME.SPLIT_CONFIRM.COVER_AND_BOOK_SIZE' | translate: { cover: formatMegabytes(output.coverSizeBytes), book: formatMegabytes(output.bookSizeBytes) } }}</span>
+                  } @else if (splitMethod === 'maximum-file-size') {
                     <span class="split-output-card__size">≈ {{ formatMegabytes(output.sizeBytes) }}</span>
                   }
                 </li>
@@ -415,8 +418,8 @@
           <sh-cover-source-actions
             [titleKey]="null"
             [showTitle]="false"
-            [imageDisabled]="isPicking()"
-            [scratchDisabled]="isPicking()"
+            [imageDisabled]="isPicking() || isMergeActionBusy()"
+            [scratchDisabled]="isPicking() || isMergeActionBusy()"
             [suggestedAction]="getCoverSourceSuggestedAction()"
             (imageSelected)="onCoverImageSelected()"
             (scratchSelected)="onCoverScratchSelected()"
@@ -430,7 +433,7 @@
               aria-labelledby="split-best-candidate-title"
               [candidates]="coverCandidates()"
               [loading]="isDetectingCoverCandidates()"
-              [disabled]="isPicking() || isDetectingCoverCandidates()"
+              [disabled]="isPicking() || isDetectingCoverCandidates() || isMergeActionBusy()"
               [selectedCandidateId]="selectedCoverCandidateId()"
               [showReasons]="false"
               [showHeader]="false"
@@ -469,6 +472,16 @@
             (previewRequested)="openPreview()"
           ></sh-cover-image-state>
 
+          @if (mergeCoverPreviewUrl()) {
+            <sh-triple-button
+              mode="export-quality-mode"
+              [selectedValue]="getEffectiveExportQualityMode()"
+              [isPro]="adsRemoved"
+              [showProBadge]="true"
+              (selectedValueChange)="onTripleExportQualityModeSelect($event)"
+            ></sh-triple-button>
+          }
+
           <p class="split-confirm__summary">
             {{ 'HOME.SPLIT_STEP.SUMMARY' | translate: { count: splitOutputPreviews().length } }}
           </p>
@@ -482,7 +495,9 @@
               @for (output of splitOutputPreviews(); track output.number) {
                 <li class="split-output-card__item">
                   <span class="split-output-card__title">{{ output.title }}</span>
-                  @if (splitMethod === 'maximum-file-size') {
+                  @if (output.coverSizeBytes > 0) {
+                    <span class="split-output-card__size">{{ 'HOME.SPLIT_CONFIRM.COVER_AND_BOOK_SIZE' | translate: { cover: formatMegabytes(output.coverSizeBytes), book: formatMegabytes(output.bookSizeBytes) } }}</span>
+                  } @else if (splitMethod === 'maximum-file-size') {
                     <span class="split-output-card__size">{{ formatMegabytes(output.sizeBytes) }}</span>
                   }
                 </li>
@@ -559,8 +574,8 @@
     <sh-workflow-navigation
       [showPrevious]="!operationFeedback() && showWorkflowPrevious"
       [showNext]="!operationFeedback() && showWorkflowNext"
-      [previousDisabled]="false"
-      [nextDisabled]="workflowNextDisabled"
+      [previousDisabled]="isMergeActionBusy() || isResettingFlow()"
+      [nextDisabled]="workflowNextDisabled || isMergeActionBusy() || isResettingFlow()"
     [previousLabel]="workflowPreviousLabel"
     [nextLabel]="workflowNextLabel"
       (previous)="onWorkflowPrevious()"
@@ -569,11 +584,11 @@
   </div>
 
   <sh-spinner
-    [visible]="isMergeActionBusy() && !!operationProgress()"
+    [visible]="isMergeActionBusy()"
     variant="fullscreen"
     [label]="operationProgressLabelKey | translate"
-    [notice]="'UI_THEME.KEEP_APP_OPEN' | translate"
-    [detail]="operationProgressDetail"
+    [notice]="'UI_THEME.SCREEN_DIM_NOTICE' | translate"
+    [detail]="'UI_THEME.KEEP_APP_OPEN' | translate"
     [progress]="operationProgress()?.percent ?? null"
   ></sh-spinner>
 
@@ -581,7 +596,8 @@
     [visible]="isPicking() || isDetectingCoverCandidates() || splitAnalysisPending() || isRebuildingExportQuality()"
     variant="fullscreen"
     [label]="workflowLoadingLabelKey | translate"
-    [notice]="'UI_THEME.KEEP_APP_OPEN' | translate"
+    [notice]="'UI_THEME.SCREEN_DIM_NOTICE' | translate"
+    [detail]="'UI_THEME.KEEP_APP_OPEN' | translate"
   ></sh-spinner>
 
   <sh-spinner

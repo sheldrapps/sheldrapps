@@ -343,20 +343,15 @@ export class EpubPublicStore {
 
       try {
         const relativePath = this.relativePathFor(filename);
-        const bytes = await this.fileKit.readBytes({
-          dir: 'Documents',
-          path: relativePath,
-        });
-        await this.filesystem.writeFile({
-          path: this.pathFor(filename),
-          data: this.fileKit.toBase64(bytes),
-          recursive: true,
+        await this.filesystem.copy({
+          directory: Directory.Documents,
+          from: relativePath,
+          to: this.pathFor(filename),
         });
         await this.deleteDocumentEpubIfExists(relativePath);
         migrated.push(filename);
         this.debugLog('migrate:migrated', {
           filename,
-          bytes: bytes.byteLength,
           destinationPath: this.pathFor(filename),
         });
       } catch (error) {
@@ -465,17 +460,22 @@ export class EpubPublicStore {
         }
 
         try {
-          const source = await this.filesystem.readFile({
+          const sourcePath = this.relativePathFor(filename);
+          const destinationPath = this.useDocumentsDirectory
+            ? sourcePath
+            : this.pathFor(filename);
+          await this.filesystem.copy({
             directory,
-            path: this.relativePathFor(filename),
+            from: sourcePath,
+            to: destinationPath,
+            ...(this.useDocumentsDirectory
+              ? { toDirectory: this.storageDirectory }
+              : {}),
           });
-          const data =
-            typeof source.data === 'string'
-              ? this.normalizeBase64Data(source.data)
-              : this.fileKit.toBase64(
-                  new Uint8Array(await source.data.arrayBuffer()),
-                );
-          await this.writeTargetEpub(filename, data);
+          await this.filesystem.deleteFile({
+            directory,
+            path: sourcePath,
+          });
         } catch {
           continue;
         }

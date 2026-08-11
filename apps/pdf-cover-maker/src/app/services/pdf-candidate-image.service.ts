@@ -284,16 +284,8 @@ export class PdfCandidateImageService {
           sourcePath: 'first-page-render',
         };
       } catch {
-        const nativeWebFallback = await this.extractFromNativePathUsingWebRenderer(
-          params.pdfNativePath,
-          params.pdfName,
-        );
-        if (nativeWebFallback) {
-          return {
-            file: nativeWebFallback,
-            sourcePath: 'first-page-render',
-          };
-        }
+        // Do not load the complete native PDF into the WebView as a fallback.
+        // The native path is deliberately bounded to the PDFBox preview path.
       }
     }
 
@@ -441,6 +433,10 @@ export class PdfCandidateImageService {
   private async loadPdfBytes(
     params: ExtractCandidateImagesParams,
   ): Promise<Uint8Array | null> {
+    if (this.pdfRewrite.isSupported()) {
+      return null;
+    }
+
     if (params.pdfFile) {
       try {
         return new Uint8Array(await params.pdfFile.arrayBuffer());
@@ -888,33 +884,6 @@ export class PdfCandidateImageService {
       srcOffset += bytesPerRow;
     }
     return rgba;
-  }
-
-  private async extractFromNativePathUsingWebRenderer(
-    nativePath: string,
-    pdfName?: string,
-  ): Promise<File | null> {
-    if (!this.webPdfCover) {
-      return null;
-    }
-
-    try {
-      const fileUri = nativePath.startsWith('file://')
-        ? nativePath
-        : `file://${nativePath}`;
-      const url = Capacitor.convertFileSrc(fileUri);
-      const response = await fetch(url);
-      if (!response.ok) {
-        return null;
-      }
-      const blob = await response.blob();
-      const sourceFile = new File([blob], pdfName || 'pdf', {
-        type: blob.type || 'application/pdf',
-      });
-      return await this.extractUsingWebRenderer(sourceFile);
-    } catch {
-      return null;
-    }
   }
 
   private async extractUsingWebRenderer(file: File): Promise<File | null> {

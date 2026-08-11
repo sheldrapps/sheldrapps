@@ -158,8 +158,8 @@
         "SUBLINE": "Use o índice do livro."
       },
       "MANUAL_SPLIT_POINTS": {
-        "TITLE": "Escolher pontos de divisão",
-        "SUBLINE": "Agrupe os capítulos manualmente."
+        "TITLE": "Escolher manualmente",
+        "SUBLINE": "Escolha manualmente os itens do índice."
       },
       "EQUAL_PARTS": {
         "TITLE": "Partes iguais",
@@ -228,6 +228,7 @@
       "SIZE_50": "50 MB",
       "SIZE_CUSTOM": "Personalizado",
       "APPROXIMATE_SIZE": "Crie arquivos dentro de um tamanho aproximado.",
+      "COVER_AND_BOOK_SIZE": "≈ Capa → {{cover}} · restante do livro → {{book}}",
       "EXAMPLE_PART_ONE": "Parte I",
       "EXAMPLE_CHAPTER_ONE": "Capítulo 1",
       "EXAMPLE_CHAPTER_TWO": "Capítulo 2",

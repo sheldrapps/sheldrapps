@@ -1,4 +1,4 @@
-export type RemoveAdsUpgradeVariant = 'PCM' | 'ECC' | 'CCFK' | 'EF' | 'EMAS';
+export type RemoveAdsUpgradeVariant = 'PCM' | 'ECC' | 'CCFK' | 'EF' | 'EMAS' | 'PMAS';
 
 export type RemoveAdsUpgradeBenefit = {
   icon: string;

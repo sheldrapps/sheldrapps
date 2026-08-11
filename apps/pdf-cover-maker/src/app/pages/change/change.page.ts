@@ -272,7 +272,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private readonly recovery = inject(WorkflowRecoveryCoordinator);
   private readonly baseTarget = { width: 1236, height: 1648 };
   private readonly baseModelId = 'pdf';
-  private readonly maxPdfSizeMB = 5120;
+  private readonly maxPdfSizeMB = 2048;
   private routerSub?: Subscription;
   private coversEventsSub?: Subscription;
   private rewriteProgressSub?: PluginListenerHandle;
@@ -418,6 +418,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private readonly isExportingState = signal(false);
   private readonly isRebuildingExportQualityState = signal(false);
   private readonly isResettingFlowState = signal(false);
+  readonly operationCompleted = signal(false);
 
   get isPickingImage(): boolean {
     return this.isPickingImageState();
@@ -641,6 +642,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async onWorkflowPrevious(): Promise<void> {
     if (this.workflowStep <= 0 || this.isExporting) return;
+    this.operationCompleted.set(false);
     this.workflowStep -= 1;
   }
 
@@ -655,6 +657,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async onWorkflowStepSelected(step: number): Promise<void> {
     if (step < 0 || step > 4 || step === this.workflowStep) return;
+    this.operationCompleted.set(false);
     if (step === 0 && this.hasValidPdf()) this.workflowStep = step;
     if (step === 1 && this.hasValidPdf()) this.workflowStep = step;
     if (step === 2 && this.hasValidPdf()) this.workflowStep = step;
@@ -1647,6 +1650,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private resetWorkflow() {
+    this.operationCompleted.set(false);
     this.workflowStep = 0;
     this.selectedFormatId = this.persistedCropTargetId;
     this.isFrameDetected = false;
@@ -4037,6 +4041,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async onGenerate() {
     if (!this.canGenerate()) return;
+    this.operationCompleted.set(false);
 
     this.setBusy('export', 'CHANGE.GENERATING');
     try {
@@ -4202,6 +4207,7 @@ export class ChangePage implements OnInit, OnDestroy {
       );
       if (generated) {
         await this.homeTour.completeInteraction('cover-created');
+        this.operationCompleted.set(true);
       }
       return generated;
     }
@@ -4290,6 +4296,7 @@ export class ChangePage implements OnInit, OnDestroy {
     await this.maybeAskForRatingAfterSuccessfulSave('web');
     await this.consumeAdFallbackAttemptAfterSuccess('generate-web');
     await this.homeTour.completeInteraction('cover-created');
+    this.operationCompleted.set(true);
     return true;
   }
 
@@ -5041,11 +5048,35 @@ export class ChangePage implements OnInit, OnDestroy {
         if (this.isNativeRewriteInProgress && !this.isCancellingNativeRewrite) {
           await this.cancelNativeRewrite();
         }
-        await this.resetWorkflowForNewPdf(false);
+        await this.resetWorkflowForNewPdf(true);
         await this.recovery.clear();
         if (this.pdfInput?.nativeElement) {
           this.pdfInput.nativeElement.value = '';
         }
+      } finally {
+        this.isResettingFlow = false;
+        this.changeDetector.detectChanges();
+      }
+    });
+  }
+
+  async onOperationDone(): Promise<void> {
+    if (this.isResettingFlow) return;
+    this.runInZone(() => {
+      this.isResettingFlow = true;
+      this.changeDetector.detectChanges();
+    });
+    await this.runInZone(async () => {
+      try {
+        await this.clearBusyUi();
+        if (this.isNativeRewriteInProgress && !this.isCancellingNativeRewrite) {
+          await this.cancelNativeRewrite().catch(() => undefined);
+        }
+        await this.resetWorkflowForNewPdf(true);
+        if (this.pdfInput?.nativeElement) {
+          this.pdfInput.nativeElement.value = '';
+        }
+        await this.router.navigateByUrl('/tabs/my-pdfs');
       } finally {
         this.isResettingFlow = false;
         this.changeDetector.detectChanges();

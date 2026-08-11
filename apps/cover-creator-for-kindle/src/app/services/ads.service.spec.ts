@@ -187,17 +187,19 @@ describe('AdsService', () => {
       privacyOptionsRequirementStatus: 'NOT_REQUIRED',
       isConsentFormAvailable: false,
     } as never);
-    spyOn(AdMob, 'prepareRewardVideoAd').and.resolveTo(undefined as never);
+    const prepareRewardVideoAdSpy = spyOn(
+      AdMob,
+      'prepareRewardVideoAd',
+    ).and.resolveTo(undefined as never);
     spyOn(AdMob, 'showRewardVideoAd').and.resolveTo(undefined as never);
     spyOn(AdMob, 'addListener').and.resolveTo({
       remove: async () => undefined,
     } as never);
 
     void service.showRewarded();
-    await Promise.resolve();
-    await Promise.resolve();
+    await waitFor(() => prepareRewardVideoAdSpy.calls.any());
 
-    expect(AdMob.prepareRewardVideoAd).toHaveBeenCalledWith(
+    expect(prepareRewardVideoAdSpy).toHaveBeenCalledWith(
       jasmine.objectContaining({
         adId: 'android-prod-rewarded',
         isTesting: false,
@@ -237,3 +239,11 @@ describe('AdsService', () => {
     );
   });
 });
+
+async function waitFor(condition: () => boolean): Promise<void> {
+  const deadline = Date.now() + 1000;
+
+  while (!condition() && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+}

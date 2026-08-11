@@ -1,6 +1,6 @@
 import JSZip from 'jszip';
 
-import { SplitAnalysisService } from './split-analysis.service';
+import { SplitAnalysisService, type SplitAnalysisUnit } from './split-analysis.service';
 
 describe('SplitAnalysisService TOC parsing', () => {
   const service = Object.create(SplitAnalysisService.prototype) as SplitAnalysisService;
@@ -87,5 +87,139 @@ describe('SplitAnalysisService TOC parsing', () => {
       'OPS/chapter.xhtml#section',
     );
     expect(resolvePath.call(service, 'OPS/text/', 'https://example.com/chapter.xhtml')).toBe('');
+  });
+
+  it('selects the section level immediately above detailed TOC entries', () => {
+    const buildSections = (service as unknown as {
+      buildSections: (entries: readonly unknown[], units: readonly SplitAnalysisUnit[]) => unknown;
+    }).buildSections;
+    const units: SplitAnalysisUnit[] = [
+      { id: 'chapter-1', title: 'Chapter 1', href: 'OPS/chapter-1.xhtml', sourcePath: 'OPS/chapter-1.xhtml', order: 0, sizeBytes: 1, sectionId: null },
+      { id: 'chapter-2', title: 'Chapter 2', href: 'OPS/chapter-2.xhtml', sourcePath: 'OPS/chapter-2.xhtml', order: 1, sizeBytes: 1, sectionId: null },
+      { id: 'chapter-3', title: 'Chapter 3', href: 'OPS/chapter-3.xhtml', sourcePath: 'OPS/chapter-3.xhtml', order: 2, sizeBytes: 1, sectionId: null },
+    ];
+    const entries = [
+      {
+        id: 'book', title: 'Book', href: 'OPS/book.xhtml', children: [
+          {
+            id: 'section-1', title: 'Section 1', href: 'OPS/section-1.xhtml', children: [
+              { id: 'chapter-1-entry', title: 'Chapter 1', href: 'OPS/chapter-1.xhtml', children: [] },
+              { id: 'chapter-2-entry', title: 'Chapter 2', href: 'OPS/chapter-2.xhtml', children: [] },
+            ],
+          },
+          {
+            id: 'section-2', title: 'Section 2', href: 'OPS/section-2.xhtml', children: [
+              { id: 'chapter-3-entry', title: 'Chapter 3', href: 'OPS/chapter-3.xhtml', children: [] },
+            ],
+          },
+        ],
+      },
+    ];
+
+    expect(buildSections.call(service, entries, units)).toEqual([
+      { id: 'section-1', title: 'Section 1', firstUnitOrder: 0, lastUnitOrder: 1 },
+      { id: 'section-2', title: 'Section 2', firstUnitOrder: 2, lastUnitOrder: 2 },
+    ]);
+  });
+
+  it('uses native metadata without reading the EPUB through Filesystem', async () => {
+    const nativeService = Object.create(SplitAnalysisService.prototype) as SplitAnalysisService;
+    const analyzeSplitEpub = jasmine.createSpy('analyzeSplitEpub').and.resolveTo({
+      fileSizeBytes: 75 * 1024 * 1024,
+      units: [
+        {
+          id: 'chapter-1',
+          title: '',
+          href: 'OPS/chapter-1.xhtml',
+          sourcePath: 'OPS/chapter-1.xhtml',
+          order: 0,
+          sizeBytes: 1024,
+        },
+        {
+          id: 'chapter-2',
+          title: 'Chapter 2',
+          href: 'OPS/chapter-2.xhtml',
+          sourcePath: 'OPS/chapter-2.xhtml',
+          order: 1,
+          sizeBytes: 2048,
+        },
+      ],
+      tocEntries: [
+        {
+          id: 'section-1',
+          title: 'Section 1',
+          href: 'OPS/chapter-1.xhtml',
+          spineItemId: 'chapter-1',
+          children: [
+            {
+              id: 'chapter-1-entry',
+              title: 'Chapter 1',
+              href: 'OPS/chapter-1.xhtml',
+              spineItemId: 'chapter-1',
+              children: [],
+            },
+            {
+              id: 'chapter-2-entry',
+              title: 'Chapter 2',
+              href: 'OPS/chapter-2.xhtml',
+              spineItemId: 'chapter-2',
+              children: [],
+            },
+          ],
+        },
+      ],
+    });
+    Object.defineProperties(nativeService, {
+      epubRewrite: {
+        value: {
+          isSupported: () => true,
+          analyzeSplitEpub,
+        },
+      },
+      translate: {
+        value: {
+          instant: () => 'Chapter 1',
+        },
+      },
+    });
+
+    const analysis = await nativeService.analyze({
+      fileName: 'book.epub',
+      fileSizeBytes: 75 * 1024 * 1024,
+      workingFile: null,
+      workingPath: 'EpubWork/book.epub',
+      workingNativePath: '/data/user/0/app/files/book.epub',
+    });
+
+    expect(analyzeSplitEpub).toHaveBeenCalledWith('/data/user/0/app/files/book.epub');
+    expect(analysis.units).toEqual([
+      jasmine.objectContaining({ id: 'chapter-1', title: 'Chapter 1', sectionId: 'section-1' }),
+      jasmine.objectContaining({ id: 'chapter-2', title: 'Chapter 2', sectionId: 'section-1' }),
+    ]);
+    expect(analysis.hasUsableToc).toBeTrue();
+  });
+
+  it('does not fall back to an in-memory native EPUB read', async () => {
+    const nativeService = Object.create(SplitAnalysisService.prototype) as SplitAnalysisService;
+    Object.defineProperties(nativeService, {
+      epubRewrite: {
+        value: {
+          isSupported: () => false,
+        },
+      },
+      translate: {
+        value: {
+          instant: () => 'Chapter 1',
+        },
+      },
+    });
+
+    await expectAsync(nativeService.analyze({
+      fileName: 'book.epub',
+      fileSizeBytes: 75 * 1024 * 1024,
+      workingFile: null,
+      workingPath: 'EpubWork/book.epub',
+      workingNativePath: '/data/user/0/app/files/book.epub',
+    })).toBeRejectedWithError('NATIVE_SPLIT_ANALYSIS_UNAVAILABLE');
   });
 });

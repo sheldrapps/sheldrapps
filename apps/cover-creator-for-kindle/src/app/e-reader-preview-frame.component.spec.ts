@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { EReaderPreviewFrameComponent } from '@sheldrapps/image-workflow';
 
@@ -9,7 +10,7 @@ describe('EReaderPreviewFrameComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EReaderPreviewFrameComponent],
+      imports: [EReaderPreviewFrameComponent, TranslateModule.forRoot()],
     }).compileComponents();
   });
 

@@ -1,0 +1,20 @@
+<ion-tabs>
+  <ion-router-outlet></ion-router-outlet>
+
+  <ion-tab-bar slot="bottom">
+    <ion-tab-button tab="home">
+      <ion-icon name="home-outline"></ion-icon>
+      <ion-label>{{ 'TABS.HOME' | translate }}</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="my-pdfs">
+      <ion-icon name="library-outline"></ion-icon>
+      <ion-label>{{ 'TABS.MY_PDFS' | translate }}</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="settings">
+      <ion-icon name="settings-outline"></ion-icon>
+      <ion-label>{{ 'TABS.SETTINGS' | translate }}</ion-label>
+    </ion-tab-button>
+  </ion-tab-bar>
+</ion-tabs>

@@ -1,7 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import JSZip, { type JSZipObject } from 'jszip';
 import { TranslateService } from '@ngx-translate/core';
-import { FileKitService } from '@sheldrapps/file-kit';
+import {
+  EpubRewriteService,
+  type EpubNativeSplitAnalysisTocEntry,
+  type EpubNativeSplitAnalysisUnit,
+} from '@sheldrapps/file-kit';
 
 export type SplitAnalysisUnit = {
   id: string;
@@ -54,17 +58,25 @@ type ManifestEntry = {
 @Injectable({ providedIn: 'root' })
 export class SplitAnalysisService {
   private readonly translate = inject(TranslateService);
-  private readonly fileKit = inject(FileKitService);
+  private readonly epubRewrite = inject(EpubRewriteService);
 
   async analyze(input: {
     fileName: string;
     fileSizeBytes: number;
     workingFile: File | null;
     workingPath: string;
+    workingNativePath?: string | null;
   }): Promise<SplitAnalysis> {
-    const bytes = input.workingFile
-      ? new Uint8Array(await input.workingFile.arrayBuffer())
-      : await this.fileKit.readBytes({ dir: 'Data', path: input.workingPath });
+    const nativePath = input.workingNativePath;
+    if (nativePath && this.epubRewrite.isSupported()) {
+      return this.analyzeNative({ ...input, workingNativePath: nativePath });
+    }
+
+    if (!input.workingFile) {
+      throw new Error('NATIVE_SPLIT_ANALYSIS_UNAVAILABLE');
+    }
+
+    const bytes = new Uint8Array(await input.workingFile.arrayBuffer());
     const zip = await JSZip.loadAsync(bytes);
     const opfPath = await this.resolveOpfPath(zip);
 
@@ -110,6 +122,65 @@ export class SplitAnalysisService {
       tocEntries,
       hasUsableToc: navigation.entries.length > 0,
     };
+  }
+
+  private async analyzeNative(input: {
+    fileName: string;
+    fileSizeBytes: number;
+    workingNativePath: string;
+  }): Promise<SplitAnalysis> {
+    const nativeAnalysis = await this.epubRewrite.analyzeSplitEpub(
+      input.workingNativePath,
+    );
+    const units = nativeAnalysis.units.map((unit, order) => ({
+      ...this.toSplitUnit(unit, order),
+      sectionId: null,
+    }));
+    const entries = this.toTocEntries(nativeAnalysis.tocEntries);
+    const sections = this.buildSections(entries, units);
+    const unitsWithSections = units.map((unit) => ({
+      ...unit,
+      sectionId: sections.find(
+        (section) =>
+          unit.order >= section.firstUnitOrder
+          && unit.order <= section.lastUnitOrder,
+      )?.id ?? null,
+    }));
+
+    return {
+      fileName: input.fileName,
+      fileSizeBytes: nativeAnalysis.fileSizeBytes || input.fileSizeBytes,
+      units: unitsWithSections,
+      sections,
+      tocEntries: this.buildAnalysisTocEntries(entries, unitsWithSections),
+      hasUsableToc: entries.length > 0,
+    };
+  }
+
+  private toSplitUnit(
+    unit: EpubNativeSplitAnalysisUnit,
+    fallbackOrder: number,
+  ): Omit<SplitAnalysisUnit, 'sectionId'> {
+    const order = Number.isInteger(unit.order) ? unit.order : fallbackOrder;
+    return {
+      id: unit.id,
+      title: unit.title || this.fallbackUnitTitle(order),
+      href: unit.href,
+      sourcePath: unit.sourcePath || unit.href,
+      order,
+      sizeBytes: Math.max(1, unit.sizeBytes || 0),
+    };
+  }
+
+  private toTocEntries(
+    entries: readonly EpubNativeSplitAnalysisTocEntry[],
+  ): TocEntry[] {
+    return entries.map((entry) => ({
+      id: entry.id,
+      title: entry.title,
+      href: entry.href,
+      children: this.toTocEntries(entry.children),
+    }));
   }
 
   private async resolveOpfPath(zip: JSZip): Promise<string | null> {
@@ -243,8 +314,7 @@ export class SplitAnalysisService {
   }
 
   private buildSections(entries: readonly TocEntry[], units: readonly SplitAnalysisUnit[]): SplitAnalysisSection[] {
-    const hierarchicalEntries = entries.filter((entry) => entry.children.length > 0);
-    const sectionEntries = hierarchicalEntries.length > 0 ? hierarchicalEntries : entries;
+    const sectionEntries = this.findSectionEntries(entries, units);
 
     return sectionEntries
       .map((entry) => {
@@ -267,6 +337,20 @@ export class SplitAnalysisService {
       .filter((section, index, sections) => sections.findIndex((item) => item.firstUnitOrder === section.firstUnitOrder) === index);
   }
 
+  private findSectionEntries(entries: readonly TocEntry[], units: readonly SplitAnalysisUnit[]): readonly TocEntry[] {
+    const directSectionEntries = entries.filter((entry) =>
+      entry.children.some((child) => child.children.length === 0 && this.findUnitOrder(child, units) >= 0),
+    );
+    if (directSectionEntries.length > 0) return directSectionEntries;
+
+    const nestedSectionEntries = entries.flatMap((entry) => this.findSectionEntries(entry.children, units));
+    return nestedSectionEntries.length > 0 ? nestedSectionEntries : entries;
+  }
+
+  private findUnitOrder(entry: TocEntry, units: readonly SplitAnalysisUnit[]): number {
+    return units.findIndex((unit) => this.sameDocument(unit.href, entry.href));
+  }
+
   private buildAnalysisTocEntries(
     entries: readonly TocEntry[],
     units: readonly SplitAnalysisUnit[],
@@ -283,7 +367,11 @@ export class SplitAnalysisService {
 
   private titleForSpineItem(item: ManifestEntry, entries: readonly TocEntry[], order: number): string {
     const entry = entries.find((tocEntry) => this.sameDocument(tocEntry.href, item.href));
-    return entry?.title || this.translate
+    return entry?.title || this.fallbackUnitTitle(order);
+  }
+
+  private fallbackUnitTitle(order: number): string {
+    return this.translate
       .instant('HOME.SPLIT_CONFIRM.EXAMPLE_CHAPTER_ONE')
       .replace('1', String(order + 1));
   }

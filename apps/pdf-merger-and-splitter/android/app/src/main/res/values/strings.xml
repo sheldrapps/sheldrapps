@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PDF Merger &amp; Splitter</string>
+    <string name="title_activity_main">PDF Merger &amp; Splitter</string>
+
+    <string name="app_name_en_us">PDF Merger &amp; Splitter</string>
+    <string name="app_name_es_mx">Unir y dividir PDF</string>
+    <string name="app_name_de_de">PDF zusammenfügen und teilen</string>
+    <string name="app_name_fr_fr">Fusionner et diviser PDF</string>
+    <string name="app_name_it_it">Unisci e dividi PDF</string>
+    <string name="app_name_pt_br">Juntar e dividir PDF</string>
+    <string name="app_name_zh_tw">PDF合併與拆分</string>
+    <string name="app_name_hi_in">PDF मर्ज और स्प्लिट</string>
+    <string name="app_name_ar_sa">دمج وتقسيم PDF</string>
+    <string name="app_name_ja_jp">PDF結合・分割</string>
+    <string name="app_name_ko_kr">PDF 병합 및 분할</string>
+    <string name="app_name_zh_cn">PDF合并与拆分</string>
+    <string name="app_name_ru_ru">Объединить и разделить PDF</string>
+
+    <string name="package_name">com.sheldrapps.pdfmergerandsplitter</string>
+    <string name="custom_url_scheme">com.sheldrapps.pdfmergerandsplitter</string>
+</resources>

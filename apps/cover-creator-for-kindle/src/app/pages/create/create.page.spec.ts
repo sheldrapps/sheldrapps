@@ -168,6 +168,7 @@ describe('CreatePage', () => {
       selectedModel: { id: 'pw', width: 1072, height: 1448 },
       workingImageFile: new File(['x'], 'cover.jpg', { type: 'image/jpeg' }),
       imageErrorKey: undefined,
+      hasEditorAppliedCover: () => false,
     };
 
     const canExport = (
@@ -193,6 +194,7 @@ describe('CreatePage', () => {
       workingImageFile: new File(['x'], 'cover.jpg', { type: 'image/jpeg' }),
       imageErrorKey: undefined,
       cropState: {},
+      hasEditorAppliedCover: () => true,
     };
 
     const canExport = (
@@ -280,6 +282,7 @@ describe('CreatePage', () => {
       activeProjectFilename: 'book.epub',
       activeProjectHistory: { steps: [] },
       syncActiveProjectSourceInfo,
+      runInZone: <T>(fn: () => T) => fn(),
     };
     const input = {
       files: [new File(['picked'], 'picked.jpg', { type: 'image/jpeg' })],
@@ -335,6 +338,9 @@ describe('CreatePage', () => {
       workingImageFile: undefined,
       workingImageDims: undefined,
       applySmallWarn: jasmine.createSpy('applySmallWarn').and.resolveTo(undefined),
+      persistSelectionToSettings: jasmine
+        .createSpy('persistSelectionToSettings')
+        .and.resolveTo(undefined),
     };
 
     await (
@@ -507,6 +513,7 @@ describe('CreatePage', () => {
       consumeAdFallbackAttemptAfterSuccess,
       showToast,
       zone,
+      clearBusyUi: jasmine.createSpy('clearBusyUi'),
     };
 
     await (
@@ -609,6 +616,7 @@ describe('CreatePage', () => {
       },
       zone,
       resolveUniqueEpubFilename: jasmine.createSpy('resolveUniqueEpubFilename'),
+      ensureEpubExtension: (filename: string) => filename,
     };
 
     await (

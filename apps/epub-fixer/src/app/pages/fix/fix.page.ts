@@ -267,6 +267,7 @@ export class FixPage implements OnInit, OnDestroy {
   >(undefined);
   private readonly busyProgressPercentState = signal(0);
   private readonly isResettingFlowState = signal(false);
+  readonly operationCompleted = signal(false);
 
   get busyAction(): 'prepare' | 'diagnose' | 'repair' | 'export' | undefined {
     return this.busyActionState();
@@ -348,6 +349,7 @@ export class FixPage implements OnInit, OnDestroy {
 
   onWorkflowPrevious(): void {
     if (this.workflowStep > 0 && !this.isBusy) {
+      this.operationCompleted.set(false);
       this.workflowStep -= 1;
     }
   }
@@ -363,6 +365,7 @@ export class FixPage implements OnInit, OnDestroy {
       return;
     }
 
+    this.operationCompleted.set(false);
     this.workflowStep = step;
   }
 
@@ -1093,6 +1096,28 @@ export class FixPage implements OnInit, OnDestroy {
     });
   }
 
+  async onOperationDone(): Promise<void> {
+    if (this.isResettingFlow) return;
+    this.runInZone(() => {
+      this.isResettingFlow = true;
+      this.changeDetector.detectChanges();
+    });
+    await this.runInZone(async () => {
+      try {
+        this.busyAction = undefined;
+        this.busyProgressPercent = 0;
+        await this.resetWorkflowForNewEpub();
+        if (this.epubInput?.nativeElement) {
+          this.epubInput.nativeElement.value = '';
+        }
+        await this.router.navigateByUrl('/tabs/my-epubs');
+      } finally {
+        this.isResettingFlow = false;
+        this.changeDetector.detectChanges();
+      }
+    });
+  }
+
   async openPurchaseModal(): Promise<void> {
     this.logPurchaseUiState('open-before-guard');
     if (!this.canShowRemoveAdsEntryPoint() || this.purchaseBusy) {
@@ -1261,6 +1286,7 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   async onPrimaryAction(): Promise<void> {
+    this.operationCompleted.set(false);
     if (this.canRepair) {
       await this.runRepair(this.guidedRepairPreferredOpfPath);
       return;
@@ -1619,6 +1645,7 @@ export class FixPage implements OnInit, OnDestroy {
           outputUri: exported.outputUri,
           ...(preview.src ? { previewSrc: preview.src } : {}),
         };
+        this.operationCompleted.set(true);
         this.clearEpubError();
         await this.consumeAdFallbackAttemptAfterSuccess();
         await this.setBusyProgress(100);
@@ -1784,6 +1811,7 @@ export class FixPage implements OnInit, OnDestroy {
   private async resetWorkflowForNewEpub(waitForCleanup = true): Promise<void> {
     const cleanupPromise = this.cleanupPreparedEpub();
     this.runInZone(() => {
+      this.operationCompleted.set(false);
       this.clearEpubError();
       this.lastHandledProjectRouteKey = null;
       this.selectedConfirmationByIssueKey = {};

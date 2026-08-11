@@ -1,8 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import {
-  Directory,
-  Filesystem,
-} from '@capacitor/filesystem';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
 import { FileKitService } from '@sheldrapps/file-kit/pdf';
 
 export type PdfWorkingCopy = {
@@ -40,6 +38,7 @@ export type NativeTempFile = {
 export class PdfWorkingCopyService {
   private readonly WORK_FOLDER = 'pdfcovermakerWork';
   private readonly DEFAULT_MIME_TYPE = 'application/pdf';
+  private readonly NATIVE_COPY_CHUNK_BYTES = 256 * 1024;
   private fileKit = inject(FileKitService);
 
   async startCycle(sourceFile: File): Promise<PdfWorkingCopy> {
@@ -48,26 +47,35 @@ export class PdfWorkingCopyService {
     const outputBaseName = `${base}-${timestamp}`;
     const workingName = await this.getUniqueWorkingName(outputBaseName);
     const workingPath = `${this.WORK_FOLDER}/${workingName}`;
-    const bytes = new Uint8Array(await sourceFile.arrayBuffer());
     const mimeType = sourceFile.type || 'application/pdf';
 
-    await this.fileKit.writeBytes({
-      dir: 'Data',
-      path: workingPath,
-      bytes,
-      mimeType,
-    });
+    if (Capacitor.getPlatform() === 'web') {
+      const bytes = new Uint8Array(await sourceFile.arrayBuffer());
+      await this.fileKit.writeBytes({ dir: 'Data', path: workingPath, bytes, mimeType });
+      return {
+        workingPath,
+        workingName,
+        outputBaseName: workingName.replace(/\.pdf$/i, ''),
+        workingFile: new File([bytes], workingName, {
+          type: mimeType,
+          lastModified: sourceFile.lastModified || Date.now(),
+        }),
+        sourceMeta: {
+          name: sourceFile.name || 'working.pdf',
+          size: sourceFile.size,
+          lastModified: sourceFile.lastModified || Date.now(),
+          type: sourceFile.type || '',
+        },
+      };
+    }
 
-    const workingFile = new File([bytes], workingName, {
-      type: mimeType,
-      lastModified: sourceFile.lastModified || Date.now(),
-    });
+    await this.writeFileToDataPath(sourceFile, workingPath);
 
     return {
       workingPath,
       workingName,
       outputBaseName: workingName.replace(/\.pdf$/i, ''),
-      workingFile,
+      workingFile: sourceFile,
       sourceMeta: {
         name: sourceFile.name || 'working.pdf',
         size: sourceFile.size,
@@ -146,16 +154,42 @@ export class PdfWorkingCopyService {
     onProgress?: (percent: number) => void,
   ): Promise<void> {
     try {
-      onProgress?.(5);
-
-      const bytes = new Uint8Array(await file.arrayBuffer());
       const mimeType = file.type || this.DEFAULT_MIME_TYPE;
-      await this.fileKit.writeBytes({
-        dir: 'Data',
-        path,
-        bytes,
-        mimeType,
-      });
+      const totalBytes = Math.max(0, file.size);
+      let offset = 0;
+      let firstChunk = true;
+
+      onProgress?.(totalBytes === 0 ? 100 : 5);
+      while (offset < totalBytes) {
+        const end = Math.min(totalBytes, offset + this.NATIVE_COPY_CHUNK_BYTES);
+        const bytes = new Uint8Array(await file.slice(offset, end).arrayBuffer());
+        const encoded = this.fileKit.toBase64(bytes);
+        if (firstChunk) {
+          await Filesystem.writeFile({
+            directory: Directory.Data,
+            path,
+            data: encoded,
+            recursive: true,
+          });
+          firstChunk = false;
+        } else {
+          await Filesystem.appendFile({
+            directory: Directory.Data,
+            path,
+            data: encoded,
+          });
+        }
+        offset = end;
+        onProgress?.(Math.min(100, Math.max(5, Math.round((offset / totalBytes) * 100))));
+      }
+      if (firstChunk) {
+        await Filesystem.writeFile({
+          directory: Directory.Data,
+          path,
+          data: '',
+          recursive: true,
+        });
+      }
       onProgress?.(100);
     } catch (error) {
       await this.cleanupWorkingCopy(path);

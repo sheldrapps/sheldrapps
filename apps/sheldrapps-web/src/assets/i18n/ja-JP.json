@@ -55,7 +55,12 @@
     "APPS_SECTION_TITLE": "注目のアプリ",
     "APPS_SECTION_BODY": "表紙、EPUB ファイルのカスタマイズ、ワークフローの読み取りに特化したツール。",
     "APPS": {
-      "CCFK": {
+    "PMAS": {
+      "NAME": "PDF Merger & Splitter",
+      "DESCRIPTION": "実用的なページ管理でPDFファイルを結合・分割します。",
+      "BADGE": "Coming soon"
+    },
+     "CCFK": {
         "NAME": "Kindle用カバー作成",
         "DESCRIPTION": "数回タップするだけで、画像から電子書籍リーダーのカバーを作成できます。"
       },
@@ -112,8 +117,17 @@
     "LEGAL_EPF_LINK": "プライバシーポリシー - EPUB Fixer",
     "LEGAL_EMS_LINK": "プライバシーポリシー - EPUB Merger & Splitter"
   },
-  "PRIVACY": {
-    "CCFK": {
+ "PRIVACY": {
+    "PMAS": {
+      "TITLE": "プライバシーポリシー - PDF Merger & Splitter",
+      "LAST_UPDATED": "最終更新日: 2026-08-10",
+      "INTRO": "PDF Merger & Splitter（<strong>本アプリ</strong>）は<strong>Sheldrapps</strong>が開発・運営しています。このプライバシーポリシーでは、本アプリの使用時に情報がどのように扱われるかを説明します。",
+      "SECTION_2_TITLE": "2. PDFファイルとコンテンツ",
+      "SECTION_2_ITEM_1": "選択したPDFファイルは<strong>お使いのデバイス上でローカルに</strong>処理されます。",
+      "SECTION_2_ITEM_2": "本アプリがPDFファイルを外部サーバーに<strong>アップロード</strong>したり、保存したりすることはありません。",
+      "SECTION_2_ITEM_3": "作成されたPDFファイルは、明示的に共有しない限りデバイス上に残ります。"
+    },
+     "CCFK": {
       "TITLE": "プライバシーポリシー - Kindle用カバー作成",
       "LAST_UPDATED": "最終更新日: 2026-01-19",
       "INTRO": "Cover Creator for Kindle (<strong>アプリ</strong>) は、<strong>Sheldrapps</strong> によって開発および保守されています。このプライバシーポリシーでは、アプリを使用する際の情報の取り扱いについて説明します。",

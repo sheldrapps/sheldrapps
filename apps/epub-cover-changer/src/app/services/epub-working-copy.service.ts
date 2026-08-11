@@ -40,6 +40,7 @@ export type NativeTempFile = {
 export class EpubWorkingCopyService {
   private readonly WORK_FOLDER = 'EPUBCoverChangerWork';
   private readonly DEFAULT_MIME_TYPE = 'application/epub+zip';
+  private readonly NATIVE_COPY_CHUNK_BYTES = 1024 * 1024;
   private fileKit = inject(FileKitService);
 
   async startCycle(sourceFile: File): Promise<EpubWorkingCopy> {
@@ -172,16 +173,38 @@ export class EpubWorkingCopyService {
     onProgress?: (percent: number) => void,
   ): Promise<void> {
     try {
-      onProgress?.(5);
+      const totalBytes = Math.max(0, file.size);
+      let offset = 0;
+      let firstChunk = true;
+      onProgress?.(totalBytes === 0 ? 100 : 5);
 
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      const mimeType = file.type || this.DEFAULT_MIME_TYPE;
-      await this.fileKit.writeBytes({
-        dir: 'Data',
-        path,
-        bytes,
-        mimeType,
-      });
+      while (offset < totalBytes) {
+        const end = Math.min(totalBytes, offset + this.NATIVE_COPY_CHUNK_BYTES);
+        const bytes = new Uint8Array(await file.slice(offset, end).arrayBuffer());
+        const data = this.fileKit.toBase64(bytes);
+        if (firstChunk) {
+          await Filesystem.writeFile({
+            directory: Directory.Data,
+            path,
+            data,
+            recursive: true,
+          });
+          firstChunk = false;
+        } else {
+          await Filesystem.appendFile({ directory: Directory.Data, path, data });
+        }
+        offset = end;
+        onProgress?.(Math.min(100, Math.max(5, Math.round((offset / totalBytes) * 100))));
+      }
+
+      if (firstChunk) {
+        await Filesystem.writeFile({
+          directory: Directory.Data,
+          path,
+          data: '',
+          recursive: true,
+        });
+      }
       onProgress?.(100);
     } catch (error) {
       await this.cleanupWorkingCopy(path);

@@ -130,6 +130,8 @@ type SplitOutputPreview = {
   title: string;
   startUnit: number;
   endUnit: number;
+  bookSizeBytes: number;
+  coverSizeBytes: number;
   sizeBytes: number;
 };
 
@@ -164,6 +166,7 @@ type EmasRecoverySelection = Omit<SelectedEpubInput, 'workingFile' | 'coverFile'
 type EmasRecoverySnapshot = {
   selectedMode: HomeMode | null;
   workflowStep: number;
+  operationInProgress?: boolean;
   mergeSelections: EmasRecoverySelection[];
   splitSelection: EmasRecoverySelection | null;
   selectedCoverCandidateId?: string;
@@ -360,20 +363,6 @@ export class HomePage implements OnInit, OnDestroy {
     if (phase === 'validating') return 'HOME.OPERATION.PROGRESS.VALIDATING';
     if (phase === 'completed') return 'HOME.OPERATION.PROGRESS.COMPLETED';
     return 'HOME.OPERATION.PROGRESS.PREPARING';
-  }
-
-  get operationProgressDetail(): string {
-    const progress = this.operationProgress();
-    if (!progress) {
-      return '';
-    }
-    if (progress.total && progress.current) {
-      return this.translate.instant('HOME.OPERATION.PROGRESS.COUNT', {
-        current: progress.current,
-        total: progress.total,
-      });
-    }
-    return progress.percent + '%';
   }
 
   get splitConfirmTitleKey(): string {
@@ -801,6 +790,10 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   async onWorkflowPrevious(): Promise<void> {
+    if (this.isMergeActionBusy() || this.isResettingFlow()) {
+      return;
+    }
+
     if (
       (this.selectedMode() === 'merge' || this.selectedMode() === 'split') &&
       this.workflowStep === 5 &&
@@ -821,6 +814,10 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   async onWorkflowNext(): Promise<void> {
+    if (this.isMergeActionBusy() || this.isResettingFlow()) {
+      return;
+    }
+
     if (
       (this.selectedMode() === 'merge' || this.selectedMode() === 'split') &&
       this.workflowStep === 3 &&
@@ -846,6 +843,10 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   async onWorkflowStepSelected(step: number): Promise<void> {
+    if (this.isMergeActionBusy() || this.isResettingFlow()) {
+      return;
+    }
+
     if (
       (this.selectedMode() === 'merge' || this.selectedMode() === 'split') &&
       step === 4 &&
@@ -988,6 +989,7 @@ export class HomePage implements OnInit, OnDestroy {
     }
 
     this.isMergeActionBusy.set(true);
+    this.operationProgress.set({ phase: 'preparing', percent: 0 });
     try {
       if (!this.adsRemoved) {
         const result = await this.ads.showRewarded();
@@ -1096,6 +1098,7 @@ export class HomePage implements OnInit, OnDestroy {
       snapshot: () => ({
         selectedMode: this.selectedMode(),
         workflowStep: this.workflowStep,
+        operationInProgress: this.isMergeActionBusy(),
         mergeSelections: this.mergeSelections().map(({ workingFile, coverFile, ...selection }) => selection),
         splitSelection: this.splitSelection()
           ? (({ workingFile, coverFile, ...selection }) => selection)(this.splitSelection()!)
@@ -1121,6 +1124,12 @@ export class HomePage implements OnInit, OnDestroy {
         return assets;
       },
       restore: async (snapshot, assets) => {
+        if (snapshot.operationInProgress) {
+          await this.clearFlowState();
+          this.pickerErrorKey.set('HOME.INPUT_ERROR_CORRUPT');
+          return;
+        }
+
         const restoreSelection = (selection: EmasRecoverySelection, key: string): SelectedEpubInput => ({
           ...selection,
           workingFile: assets[key] ?? null,
@@ -1135,6 +1144,11 @@ export class HomePage implements OnInit, OnDestroy {
         this.mergeSelections.set(snapshot.mergeSelections.map((selection, index) => restoreSelection(selection, `merge-${index}`)));
         this.splitSelection.set(snapshot.splitSelection ? restoreSelection(snapshot.splitSelection, 'split') : null);
         this.mergeCoverRenderedFile = assets['merge-cover'];
+
+        if (await this.hasMissingRecoveredWorkingCopies()) {
+          await this.clearFlowState();
+          this.pickerErrorKey.set('HOME.INPUT_ERROR_CORRUPT');
+        }
       },
     });
   }
@@ -1154,6 +1168,7 @@ export class HomePage implements OnInit, OnDestroy {
     if (this.isMergeActionBusy() || this.isPicking()) return;
 
     this.isMergeActionBusy.set(true);
+    this.operationProgress.set({ phase: 'preparing', percent: 0 });
     try {
       if (!this.adsRemoved) {
         const result = await this.ads.showRewarded();
@@ -1358,8 +1373,17 @@ export class HomePage implements OnInit, OnDestroy {
     this.workflowStep = 5;
   }
 
-  onOperationFeedbackDone(): void {
-    void this.router.navigateByUrl('/tabs/my-epubs');
+  async onOperationFeedbackDone(): Promise<void> {
+    if (this.isResettingFlow()) return;
+    this.isResettingFlow.set(true);
+    this.changeDetector?.detectChanges();
+    try {
+      await this.clearFlowState();
+      await this.router.navigateByUrl('/tabs/my-epubs');
+    } finally {
+      this.isResettingFlow.set(false);
+      this.changeDetector?.detectChanges();
+    }
   }
 
   private createOperationId(): string {
@@ -1965,6 +1989,7 @@ export class HomePage implements OnInit, OnDestroy {
     this.setMergeCoverPreviewUrl(url);
     this.mergeCoverPreviewThumbUrl =
       (await this.buildThumbFromBlob(rendered)) ?? url;
+    this.markSplitConfigurationChanged();
   }
 
   private buildRenderedFile(blob: Blob, mimeType?: string): File {
@@ -2001,6 +2026,7 @@ export class HomePage implements OnInit, OnDestroy {
 
     this.mergeCoverPreviewUrl.set(undefined);
     this.mergeCoverPreviewRevision.update((revision) => revision + 1);
+    this.markSplitConfigurationChanged();
   }
 
   private revokeMergeCoverPreviewUrl(): void {
@@ -2264,6 +2290,7 @@ export class HomePage implements OnInit, OnDestroy {
         fileSizeBytes: selection.sourceSize,
         workingFile: selection.workingFile,
         workingPath: selection.workingPath,
+        workingNativePath: selection.workingNativePath,
       });
       this.splitAnalysis.set(analysis);
       await this.refreshMergeCoverCandidates();
@@ -2351,12 +2378,14 @@ export class HomePage implements OnInit, OnDestroy {
     maximumMegabytes: number,
   ): readonly SplitOutputPreview[] {
     const maximumBytes = Math.max(1, maximumMegabytes) * 1024 * 1024;
+    const coverSizeBytes = this.mergeCoverRenderedFile?.size ?? 0;
+    const maximumBookBytes = Math.max(1, maximumBytes - coverSizeBytes);
     const outputs: SplitOutputPreview[] = [];
     let start = 0;
     let size = 0;
     for (let index = 0; index < units.length; index += 1) {
       const unitSize = units[index].sizeBytes;
-      if (index > start && size + unitSize > maximumBytes) {
+      if (index > start && size + unitSize > maximumBookBytes) {
         outputs.push(this.buildOutput(units, start, index - 1));
         start = index;
         size = 0;
@@ -2375,14 +2404,18 @@ export class HomePage implements OnInit, OnDestroy {
   ): SplitOutputPreview {
     const first = units[startUnit];
     const last = units[endUnit];
+    const bookSizeBytes = units
+      .slice(startUnit, endUnit + 1)
+      .reduce((total, unit) => total + unit.sizeBytes, 0);
+    const coverSizeBytes = this.mergeCoverRenderedFile?.size ?? 0;
     return {
       number: 0,
       title: title ?? this.rangeTitle(first.title, last.title, startUnit, endUnit),
       startUnit,
       endUnit,
-      sizeBytes: units
-        .slice(startUnit, endUnit + 1)
-        .reduce((total, unit) => total + unit.sizeBytes, 0),
+      bookSizeBytes,
+      coverSizeBytes,
+      sizeBytes: bookSizeBytes + coverSizeBytes,
     };
   }
 
@@ -2572,6 +2605,29 @@ export class HomePage implements OnInit, OnDestroy {
     } catch {
       // best effort cleanup
     }
+  }
+
+  private async hasMissingRecoveredWorkingCopies(): Promise<boolean> {
+    const selections = [
+      ...this.mergeSelections(),
+      ...(this.splitSelection() ? [this.splitSelection()!] : []),
+    ];
+
+    const results = await Promise.all(
+      selections.map(async (selection) => {
+        if (
+          !selection.workingPath ||
+          (selection.sourceKind === 'native' && !selection.workingNativePath)
+        ) {
+          return false;
+        }
+        return this.fileKit
+          .exists({ dir: 'Data', path: selection.workingPath })
+          .catch(() => false);
+      }),
+    );
+
+    return results.some((exists) => !exists);
   }
 
   private resetFileInput(input: HTMLInputElement | null | undefined): void {

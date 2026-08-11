@@ -20,9 +20,13 @@ module.exports = {
       short: 'emas',
       slug: 'epub-merger-and-splitter',
     },
+    {
+      short: 'pmas',
+      slug: 'pdf-merger-and-splitter',
+    },
   ],
   groups: {
-    active: ['ecc', 'ccfk', 'pcm', 'ef', 'emas'],
-    editor: ['ecc', 'ccfk', 'pcm', 'emas'],
+    active: ['ecc', 'ccfk', 'pcm', 'ef', 'emas', 'pmas'],
+    editor: ['ecc', 'ccfk', 'pcm', 'emas', 'pmas'],
   },
 };

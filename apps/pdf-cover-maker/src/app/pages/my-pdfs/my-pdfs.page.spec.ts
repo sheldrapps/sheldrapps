@@ -1,11 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateModule } from '@ngx-translate/core';
 import { MyPdfsPage } from './my-pdfs.page';
 
 describe('MyPdfsPage', () => {
   let component: MyPdfsPage;
   let fixture: ComponentFixture<MyPdfsPage>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [MyPdfsPage, TranslateModule.forRoot()],
+    }).compileComponents();
     fixture = TestBed.createComponent(MyPdfsPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

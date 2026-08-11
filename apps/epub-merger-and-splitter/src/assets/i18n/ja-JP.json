@@ -158,8 +158,8 @@
         "SUBLINE": "本の目次を使用します。"
       },
       "MANUAL_SPLIT_POINTS": {
-        "TITLE": "分割位置を選択",
-        "SUBLINE": "章を手動でグループ化します。"
+        "TITLE": "手動で選択",
+        "SUBLINE": "目次の項目を手動で選択します。"
       },
       "EQUAL_PARTS": {
         "TITLE": "均等な分割",
@@ -228,6 +228,7 @@
       "SIZE_50": "50 MB",
       "SIZE_CUSTOM": "カスタム",
       "APPROXIMATE_SIZE": "おおよそのサイズ以内でファイルを作成します。",
+      "COVER_AND_BOOK_SIZE": "≈ 表紙 → {{cover}} · 本文 → {{book}}",
       "EXAMPLE_PART_ONE": "パートI",
       "EXAMPLE_CHAPTER_ONE": "第1章",
       "EXAMPLE_CHAPTER_TWO": "第2章",

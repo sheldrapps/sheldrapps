@@ -1,0 +1,28 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'MY_PDFS.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content
+  class="ion-padding my-pdfs"
+  [scrollEvents]="true"
+  (ionScrollStart)="onListScrollStart()"
+  (ionScrollEnd)="onListScrollEnd()"
+>
+  <sh-cover-list-content
+    #listContent
+    [items]="items"
+    [loading]="loading"
+    [pageErrorKey]="pageErrorKey"
+    [emptyKey]="'MY_PDFS.EMPTY'"
+    [placeholderKey]="'MY_PDFS.PLACEHOLDER'"
+    [showFileName]="true"
+    [filenameFormatter]="displayFilename"
+    [actions]="listActions"
+    thumbAlt="pdf cover"
+    (refreshRequested)="load($event)"
+    (itemClick)="onListItemClick($event)"
+    (actionClick)="onListAction($event)"
+  ></sh-cover-list-content>
+</ion-content>

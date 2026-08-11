@@ -55,7 +55,12 @@
     "APPS_SECTION_TITLE": "दिखाए गए ऐप्स",
     "APPS_SECTION_BODY": "कवर, ईपीयूबी फाइलों को अनुकूलित करने और वर्कफ़्लो पढ़ने के लिए केंद्रित उपकरण।",
     "APPS": {
-      "CCFK": {
+    "PMAS": {
+      "NAME": "PDF Merger & Splitter",
+      "DESCRIPTION": "व्यावहारिक पेज नियंत्रण के साथ PDF फ़ाइलों को मर्ज और विभाजित करें।",
+      "BADGE": "Coming soon"
+    },
+     "CCFK": {
         "NAME": "किंडल के लिए कवर क्रिएटर",
         "DESCRIPTION": "बस कुछ ही टैप में अपनी छवियों से ई-रीडर कवर बनाएं।"
       },
@@ -112,8 +117,17 @@
     "LEGAL_EPF_LINK": "गोपनीयता नीति - EPUB Fixer",
     "LEGAL_EMS_LINK": "गोपनीयता नीति - EPUB Merger & Splitter"
   },
-  "PRIVACY": {
-    "CCFK": {
+ "PRIVACY": {
+    "PMAS": {
+      "TITLE": "गोपनीयता नीति - PDF Merger & Splitter",
+      "LAST_UPDATED": "अंतिम अपडेट: 2026-08-10",
+      "INTRO": "PDF Merger & Splitter (<strong>ऐप</strong>) को <strong>Sheldrapps</strong> द्वारा विकसित और संचालित किया जाता है। यह गोपनीयता नीति बताती है कि ऐप का उपयोग करते समय जानकारी को कैसे संभाला जाता है।",
+      "SECTION_2_TITLE": "2. PDF फ़ाइलें और सामग्री",
+      "SECTION_2_ITEM_1": "आपके द्वारा चुनी गई PDF फ़ाइलों को <strong>आपके डिवाइस पर स्थानीय रूप से</strong> प्रोसेस किया जाता है।",
+      "SECTION_2_ITEM_2": "ऐप आपकी PDF फ़ाइलों को बाहरी सर्वर पर <strong>अपलोड</strong> या संग्रहीत नहीं करता।",
+      "SECTION_2_ITEM_3": "बनाई गई PDF फ़ाइलें आपके डिवाइस पर रहती हैं, जब तक कि आप उन्हें स्पष्ट रूप से साझा न करें।"
+    },
+     "CCFK": {
       "TITLE": "गोपनीयता नीति - Cover Creator for Kindle",
       "LAST_UPDATED": "अंतिम अद्यतन: 2026-01-19",
       "INTRO": "किंडल के लिए कवर क्रिएटर (<strong>एप्लिकेशन</strong>) का विकास और रखरखाव <strong>Sheldrapps</strong> द्वारा किया जाता है। यह गोपनीयता नीति बताती है कि जब आप ऐप का उपयोग करते हैं तो जानकारी को कैसे प्रबंधित किया जाता है।",

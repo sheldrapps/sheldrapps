@@ -4,12 +4,12 @@ import type {
 } from './remove-ads-upgrade.types';
 
 const BASE = 'REMOVE_ADS_UPGRADE';
-type RemoveAdsUpgradeCopyVariant = Exclude<RemoveAdsUpgradeVariant, 'EMAS'>;
+type RemoveAdsUpgradeCopyVariant = Exclude<RemoveAdsUpgradeVariant, 'EMAS' | 'PMAS'>;
 
 function getCopyVariant(
   variant: RemoveAdsUpgradeVariant,
 ): RemoveAdsUpgradeCopyVariant {
-  return variant === 'EMAS' ? 'ECC' : variant;
+  return variant === 'EMAS' || variant === 'PMAS' ? 'ECC' : variant;
 }
 
 export function buildRemoveAdsUpgradePresentation(

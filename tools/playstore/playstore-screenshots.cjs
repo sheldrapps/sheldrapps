@@ -56,7 +56,8 @@ async function captureLocale(browser, app, locale, fixtures) {
       console.log(`   [pageerror] ${error.message}`);
     });
 
-    for (const scenario of app.scenarios) {
+    const scenarios = app.scenariosByLocale?.[locale] ?? app.scenarios;
+    for (const scenario of scenarios) {
       const routeUrl = buildRouteUrl(app, scenario);
       console.log(`-> [${locale}] ${scenario.id}: ${routeUrl}`);
 
@@ -139,6 +140,21 @@ async function runScenarioAction(action, page, app, fixtures, locale) {
         return;
       case 'seedEmasSplitCoverState':
         await seedEmasSplitCoverState(page, app, locale);
+        return;
+      case 'seedPmasMergeOrderState':
+        await seedPmasMergeOrderState(page, app, locale);
+        return;
+      case 'seedPmasBookmarksPagesState':
+        await seedPmasBookmarksPagesState(page, app, locale);
+        return;
+      case 'seedPmasFlexibleSplitState':
+        await seedPmasFlexibleSplitState(page, app, locale);
+        return;
+      case 'seedPmasReviewResultState':
+        await seedPmasReviewResultState(page, app, locale);
+        return;
+      case 'seedPmasLibraryState':
+        await seedPmasLibraryState(page, app, fixtures);
         return;
       case 'seedLibraryWithTwoCorrectedItems':
         await seedLibraryWithTwoCorrectedItems(page, app, fixtures);
@@ -888,6 +904,144 @@ async function seedEmasSplitCoverState(page, app, locale) {
   });
 }
 
+async function seedPmasMergeOrderState(page, app) {
+  await setPmasHomeState(page, app, {
+    selectedMode: 'merge',
+    workflowStep: 1,
+    mergePdfs: [
+      buildPmasPdf('report-main.pdf', 12, 6 * 1024 * 1024),
+      buildPmasPdf('supporting-evidence.pdf', 8, 4 * 1024 * 1024),
+      buildPmasPdf('appendix.pdf', 6, 3 * 1024 * 1024),
+    ],
+    outputName: 'project-report.pdf',
+  });
+}
+
+async function seedPmasBookmarksPagesState(page, app, locale) {
+  const analysis = buildPmasAnalysis(locale);
+  await setPmasHomeState(page, app, {
+    selectedMode: 'split',
+    workflowStep: 2,
+    splitPdf: buildPmasPdf('project-report.pdf', analysis.pageCount, 18 * 1024 * 1024, analysis),
+    splitMethod: 'manual-cut-points',
+    splitManualMode: 'toc',
+    splitManualBookmarkIds: ['findings', 'appendix'],
+  });
+}
+
+async function seedPmasFlexibleSplitState(page, app, locale) {
+  const analysis = buildPmasAnalysis(locale);
+  await setPmasHomeState(page, app, {
+    selectedMode: 'split',
+    workflowStep: 1,
+    splitPdf: buildPmasPdf('project-report.pdf', analysis.pageCount, 18 * 1024 * 1024, analysis),
+    splitMethod: 'equal-number-of-parts',
+  });
+}
+
+async function seedPmasReviewResultState(page, app, locale) {
+  const analysis = buildPmasAnalysis(locale);
+  await setPmasHomeState(page, app, {
+    selectedMode: 'split',
+    workflowStep: 4,
+    splitPdf: buildPmasPdf('project-report.pdf', analysis.pageCount, 18 * 1024 * 1024, analysis),
+    splitMethod: 'equal-number-of-parts',
+    splitEqualPartsValue: 3,
+    splitEqualPartsSelection: '3',
+    cover: { source: 'image', fileName: 'report-cover.png' },
+  });
+
+  const coverDataUrl = buildPmasCoverPlaceholderDataUrl();
+  await page.evaluate(async (dataUrl) => {
+    const ngApi = window.ng;
+    const appEl = document.querySelector('app-home');
+    const component = ngApi?.getComponent?.(appEl);
+    if (!component) {
+      throw new Error('PMAS HomePage component is not available.');
+    }
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
+    const file = new File([blob], 'report-cover.png', { type: 'image/png' });
+    component.coverFile?.set(file);
+    component.coverImageUri?.set(dataUrl);
+    component.cover?.set({ source: 'image', fileName: file.name });
+    ngApi?.applyChanges?.(appEl);
+  }, coverDataUrl);
+}
+
+async function seedPmasLibraryState(page, app, fixtures) {
+  await ensureLibrarySeed(page, app, fixtures, [
+    'project-report.pdf',
+    'project-report-part-1.pdf',
+    'project-report-part-2.pdf',
+  ]);
+}
+
+function buildPmasPdf(displayName, pageCount, sizeBytes, analysis) {
+  return {
+    id: `pmas-${displayName}`,
+    sourceUri: '',
+    displayName,
+    sizeBytes,
+    pageCount,
+    nativePath: undefined,
+    thumbnailPath: undefined,
+    analysisStatus: analysis ? 'ready' : 'pending',
+    warnings: [],
+    analysis,
+  };
+}
+
+function buildPmasAnalysis(locale = 'en-US') {
+  const labels = {
+    'en-US': ['Executive summary', 'Findings', 'Appendix'],
+    'es-MX': ['Resumen ejecutivo', 'Hallazgos', 'Anexos'],
+    'de-DE': ['Zusammenfassung', 'Ergebnisse', 'Anhang'],
+    'fr-FR': ['Résumé', 'Résultats', 'Annexes'],
+    'it-IT': ['Riepilogo', 'Risultati', 'Allegati'],
+    'pt-BR': ['Resumo executivo', 'Resultados', 'Anexos'],
+    'ar-SA': ['الملخص التنفيذي', 'النتائج', 'الملاحق'],
+    'hi-IN': ['कार्यकारी सारांश', 'निष्कर्ष', 'परिशिष्ट'],
+    'ja-JP': ['概要', '結果', '付録'],
+    'ko-KR': ['요약', '결과', '부록'],
+    'ru-RU': ['Резюме', 'Результаты', 'Приложения'],
+    'zh-CN': ['执行摘要', '结果', '附录'],
+    'zh-TW': ['執行摘要', '結果', '附錄'],
+  }[locale] ?? ['Executive summary', 'Findings', 'Appendix'];
+
+  return {
+    pageCount: 36,
+    pages: [],
+    bookmarks: [
+      {
+        id: 'report',
+        title: locale === 'es-MX' ? 'Reporte del proyecto' : 'Project report',
+        destinationPageIndex: 0,
+        children: [
+          { id: 'summary', title: labels[0], destinationPageIndex: 0, children: [] },
+          { id: 'findings', title: labels[1], destinationPageIndex: 8, children: [] },
+          { id: 'appendix', title: labels[2], destinationPageIndex: 24, children: [] },
+        ],
+      },
+    ],
+  };
+}
+
+function buildPmasCoverPlaceholderDataUrl() {
+  const svg = [
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1600">',
+    '<rect width="1200" height="1600" fill="#f2f4f7"/>',
+    '<rect x="72" y="72" width="1056" height="1456" rx="28" fill="#ffffff" stroke="#d5dbe4" stroke-width="8"/>',
+    '<rect x="168" y="248" width="864" height="20" rx="10" fill="#4E6FD6"/>',
+    '<rect x="168" y="306" width="660" height="16" rx="8" fill="#c7d3ed"/>',
+    '<rect x="168" y="512" width="864" height="320" rx="18" fill="#242A31"/>',
+    '<text x="168" y="1010" fill="#15171B" font-family="Arial" font-size="76" font-weight="700">PDF</text>',
+    '<text x="168" y="1098" fill="#5D9B93" font-family="Arial" font-size="52">PROJECT REPORT</text>',
+    '</svg>',
+  ].join('');
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
 function buildEmasSelection(id, selectedName, sourceSize = 4 * 1024 * 1024) {
   return {
     id,
@@ -965,6 +1119,64 @@ function buildEmasCoverPlaceholderDataUrl() {
     '</svg>',
   ].join('');
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+async function setPmasHomeState(page, app, state) {
+  await page.evaluate(
+    ({ selector, value }) => {
+      const ngApi = window.ng;
+      const appEl = document.querySelector(selector);
+      const component = ngApi?.getComponent?.(appEl);
+      if (!component) {
+        throw new Error('PMAS HomePage component is not available.');
+      }
+
+      component.selectedMode?.set(value.selectedMode ?? null);
+      component.pendingMode?.set(null);
+      component.mergePdfs?.set(value.mergePdfs ?? []);
+      component.splitPdf?.set(value.splitPdf ?? null);
+      component.bookmarkMode?.set('documents-and-bookmarks');
+      component.splitMethod?.set(value.splitMethod ?? 'manual-cut-points');
+      component.splitBookmarkMode?.set('chapter');
+      component.splitManualMode?.set(value.splitManualMode ?? 'pages');
+      component.splitManualBookmarkIds?.set(value.splitManualBookmarkIds ?? []);
+      component.splitManualPageInput?.set(value.splitManualPageInput ?? '');
+      component.splitEqualPartsValue?.set(value.splitEqualPartsValue ?? 3);
+      component.splitEqualPartsSelection?.set(value.splitEqualPartsSelection ?? '3');
+      component.splitMaximumSize?.set(10);
+      component.splitMaximumSizeSelection?.set('10');
+      component.cover?.set(value.cover ?? { source: 'none' });
+      component.coverFile?.set(null);
+      component.coverImageUri?.set(null);
+      component.outputName?.set(value.outputName ?? 'project-report.pdf');
+      component.sessionId?.set('pmas-screenshot-session');
+      component.workflowStep?.set(value.workflowStep ?? 0);
+      component.isBusy?.set(false);
+      component.errorKey?.set(null);
+      component.pickerErrorKey?.set(null);
+
+      ngApi?.applyChanges?.(appEl);
+    },
+    {
+      selector: app.selectors.change,
+      value: state,
+    },
+  );
+
+  await page.waitForFunction(
+    ({ selector, selectedMode, workflowStep }) => {
+      const ngApi = window.ng;
+      const appEl = document.querySelector(selector);
+      const component = ngApi?.getComponent?.(appEl);
+      return component?.selectedMode?.() === selectedMode && component?.workflowStep?.() === workflowStep;
+    },
+    {
+      selector: app.selectors.change,
+      selectedMode: state.selectedMode,
+      workflowStep: state.workflowStep,
+    },
+    { timeout: 12_000 },
+  );
 }
 
 async function setEmasHomeState(page, app, state) {

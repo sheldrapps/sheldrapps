@@ -229,14 +229,10 @@ export class PdfPublicStore {
       if (alreadyInPublic) continue;
       try {
         const relativePath = this.relativePathFor(filename);
-        const bytes = await this.fileKit.readBytes({
-          dir: 'Documents',
-          path: relativePath,
-        });
-        await this.filesystem.writeFile({
-          path: this.pathFor(filename),
-          data: this.fileKit.toBase64(bytes),
-          recursive: true,
+        await this.filesystem.copy({
+          directory: Directory.Documents,
+          from: relativePath,
+          to: this.pathFor(filename),
         });
         await this.deleteDocumentPdfIfExists(relativePath);
       } catch {

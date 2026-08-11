@@ -1,0 +1,146 @@
+[
+  {
+    "id": "chalk-surface-tileable",
+    "label": "Chalk Surface",
+    "file": "chalk-surface-tileable.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  },
+  {
+    "id": "citrus-pattern-tileable",
+    "label": "Citrus Pattern",
+    "file": "citrus-pattern-tileable.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  },
+  {
+    "id": "cloud-pattern-tileable",
+    "label": "Cloud Pattern",
+    "file": "cloud-pattern-tileable.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  },
+  {
+    "id": "cloud-wash-tileable",
+    "label": "Cloud Wash",
+    "file": "cloud-wash-tileable.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  },
+  {
+    "id": "constellations-pattern-tileable",
+    "label": "Constellations Pattern",
+    "file": "constellations-pattern-tileable.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  },
+  {
+    "id": "doodles-dark-pattern-tileable",
+    "label": "Doodles Dark Pattern",
+    "file": "doodles-dark-pattern-tileable.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  },
+  {
+    "id": "doodles-pattern-tileable",
+    "label": "Doodles Pattern",
+    "file": "doodles-pattern-tileable.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  },
+  {
+    "id": "dust-fiber-tileable",
+    "label": "Dust Fiber",
+    "file": "dust-fiber-tileable.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  },
+  {
+    "id": "fine-linen",
+    "label": "Fine Linen",
+    "file": "fine-linen.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  },
+  {
+    "id": "hearts-pattern-tileable",
+    "label": "Hearts Pattern",
+    "file": "hearts-pattern-tileable.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  },
+  {
+    "id": "leaves-pattern-tileable",
+    "label": "Leaves Pattern",
+    "file": "leaves-pattern-tileable.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  },
+  {
+    "id": "light-parchment",
+    "label": "Light Parchment",
+    "file": "light-parchment.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  },
+  {
+    "id": "mist-stone-tileable",
+    "label": "Mist Stone Tileable",
+    "file": "mist-stone-tileable.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  },
+  {
+    "id": "mist-stone",
+    "label": "Mist Stone",
+    "file": "mist-stone.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  },
+  {
+    "id": "organic-grain",
+    "label": "Organic Grain",
+    "file": "organic-grain.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  },
+  {
+    "id": "soft-canvas-tileable",
+    "label": "Soft Canvas",
+    "file": "soft-canvas-tileable.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  },
+  {
+    "id": "soft-paper",
+    "label": "Soft Paper",
+    "file": "soft-paper.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  },
+  {
+    "id": "stars-pattern-tileable",
+    "label": "Stars Pattern",
+    "file": "stars-pattern-tileable.svg",
+    "defaultIntensity": 1,
+    "tileSize": 512,
+    "enabled": true
+  }
+]

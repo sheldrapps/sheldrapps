@@ -368,6 +368,7 @@ export class CreatePage implements OnInit, OnDestroy {
   private readonly isExportingState = signal(false);
   private readonly isRebuildingExportQualityState = signal(false);
   private readonly isResettingFlowState = signal(false);
+  readonly operationCompleted = signal(false);
 
   get isPickingImage(): boolean {
     return this.isPickingImageState();
@@ -765,7 +766,7 @@ export class CreatePage implements OnInit, OnDestroy {
 
   async onWorkflowPrevious(): Promise<void> {
     if (this.workflowStep <= 0) return;
-
+    this.operationCompleted.set(false);
     await this.navigateToWorkflowStep(this.workflowStep - 1);
   }
 
@@ -786,6 +787,7 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   async onWorkflowStepSelected(step: number): Promise<void> {
+    this.operationCompleted.set(false);
     if (step === 0 && this.hasCompleteModelSelection) {
       await this.navigateToWorkflowStep(0);
       return;
@@ -1531,6 +1533,7 @@ export class CreatePage implements OnInit, OnDestroy {
   private resetSelectedImage() {
     this.editorRenderedBlob = undefined;
     this.runInZone(() => {
+      this.operationCompleted.set(false);
       this.selectedImageFile = undefined;
       this.selectedImageName = undefined;
       this.originalImageDims = undefined;
@@ -2053,6 +2056,7 @@ export class CreatePage implements OnInit, OnDestroy {
   }
 
   private invalidateGeneratedOutputState(): void {
+    this.operationCompleted.set(false);
     this.generatedEpubBytes = undefined;
     this.generatedEpubFilename = undefined;
     this.lastSavedFilename = undefined;
@@ -2061,6 +2065,7 @@ export class CreatePage implements OnInit, OnDestroy {
 
   async onGenerate() {
     if (!this.canGenerate() || !this.selectedModel) return;
+    this.operationCompleted.set(false);
     this.setBusy('export', 'CREATE.GENERATING');
     try {
       if (!this.adsRemoved) {
@@ -2243,6 +2248,7 @@ export class CreatePage implements OnInit, OnDestroy {
     });
     await this.consumeAdFallbackAttemptAfterSuccess('generate-web');
     await this.homeTour.completeInteraction('cover-created');
+    this.operationCompleted.set(true);
   }
 
   private async showHintOnce(
@@ -2410,6 +2416,41 @@ export class CreatePage implements OnInit, OnDestroy {
         this.projectEditReturnUrl = null;
         this.lastHandledProjectRouteKey = null;
         this.workflowStep = this.hasCompleteModelSelection ? 1 : 0;
+      } finally {
+        this.isResettingFlow = false;
+        this.changeDetector.detectChanges();
+      }
+    });
+  }
+
+  async onOperationDone(): Promise<void> {
+    if (this.isResettingFlow) return;
+    this.runInZone(() => {
+      this.isResettingFlow = true;
+      this.changeDetector.detectChanges();
+    });
+    await this.runInZone(async () => {
+      try {
+        await this.clearBusyUi();
+        this.closeInfo();
+        this.resetSelectedImage();
+        await this.recovery.clear();
+        this.clearImageError();
+        this.clearImageWarn();
+        if (this.imageInput?.nativeElement) {
+          this.imageInput.nativeElement.value = '';
+        }
+        this.lastEditorSessionId = undefined;
+        this.editorSession.clearSessions();
+        this.projectSaveState.clear();
+        this.activeProjectFilename = undefined;
+        this.activeProjectHistory = null;
+        this.activeProjectSourceInfo = null;
+        this.projectEditReturnUrl = null;
+        this.lastHandledProjectRouteKey = null;
+        this.operationCompleted.set(false);
+        this.workflowStep = this.hasCompleteModelSelection ? 1 : 0;
+        await this.router.navigateByUrl('/tabs/covers');
       } finally {
         this.isResettingFlow = false;
         this.changeDetector.detectChanges();

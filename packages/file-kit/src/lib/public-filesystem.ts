@@ -9,6 +9,7 @@ export type PublicFilesystem = Pick<
   | 'getUri'
   | 'deleteFile'
   | 'rename'
+  | 'copy'
   | 'readFile'
   | 'stat'
 >;

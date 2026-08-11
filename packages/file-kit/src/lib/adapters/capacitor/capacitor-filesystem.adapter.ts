@@ -111,7 +111,6 @@ export class CapacitorFilesystemAdapter implements FilesystemAdapter {
   async readBytes(params: ReadParams): Promise<Uint8Array> {
     try {
       const directory = mapDirectory(params.dir);
-
       const result = await Filesystem.readFile({
         path: params.path,
         directory,

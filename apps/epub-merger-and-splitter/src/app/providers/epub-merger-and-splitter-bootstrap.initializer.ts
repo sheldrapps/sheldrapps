@@ -3,7 +3,6 @@ import { TranslateService } from '@ngx-translate/core';
 import {
   detectSupportedLocale,
   LanguageService,
-  syncLauncherAlias,
 } from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
@@ -34,7 +33,6 @@ export function provideEpubMergerAndSplitterBootstrapInitializer() {
           }
 
           await lang.set(language);
-          void syncLauncherAlias(language);
           await theme.initialize();
         };
       },

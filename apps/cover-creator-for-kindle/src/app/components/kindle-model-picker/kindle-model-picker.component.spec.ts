@@ -9,8 +9,7 @@ describe('KindleModelPickerComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ KindleModelPickerComponent ],
-      imports: [IonicModule.forRoot()]
+      imports: [IonicModule.forRoot(), KindleModelPickerComponent]
     }).compileComponents();
 
     fixture = TestBed.createComponent(KindleModelPickerComponent);

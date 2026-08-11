@@ -331,7 +331,14 @@
       </sh-section-card>
     }
 
-    @if (resultPrimaryActionKey) {
+    @if (operationCompleted()) {
+      <div class="fix-primary-action">
+        <ion-button expand="block" [disabled]="isResettingFlow" (click)="onOperationDone()">
+          <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+          {{ 'COMMON.DONE' | translate }}
+        </ion-button>
+      </div>
+    } @else if (resultPrimaryActionKey) {
       <div class="fix-primary-action">
         <ion-button
           expand="block"
@@ -436,8 +443,8 @@
       [visible]="isBusy"
       variant="fullscreen"
       [label]="loadingLabelKey | translate"
-      [notice]="'UI_THEME.KEEP_APP_OPEN' | translate"
-      [detail]="loadingProgressLabel"
+      [notice]="'UI_THEME.SCREEN_DIM_NOTICE' | translate"
+      [detail]="'UI_THEME.KEEP_APP_OPEN' | translate"
       [progress]="busyProgressPercent"
     ></sh-spinner>
 

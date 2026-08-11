@@ -8,6 +8,7 @@ import { LanguageService } from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
 import { AppComponent } from './app.component';
+import { RatingService } from '@sheldrapps/rating-kit';
 
 describe('AppComponent', () => {
   it('should create the app', async () => {
@@ -59,6 +60,10 @@ describe('AppComponent', () => {
           useValue: {
             setTitle: jasmine.createSpy('setTitle'),
           },
+        },
+        {
+          provide: RatingService,
+          useValue: { initialize: jasmine.createSpy('initialize').and.resolveTo() },
         },
       ],
     }).compileComponents();

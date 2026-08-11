@@ -18,7 +18,7 @@ type MatchMediaStub = MediaQueryList & {
 describe('ThemeService contract', () => {
   let service: ThemeService;
   let root: HTMLElement;
-  let settingsStore: jasmine.SpyObj<Pick<SettingsStore<ThemeSettings>, 'get' | 'load' | 'set'>>;
+  let settingsStore: jasmine.SpyObj<Pick<SettingsStore<ThemeSettings>, 'get' | 'load' | 'set' | 'setForScope'>>;
   let edgeToEdge: jasmine.SpyObj<Pick<EdgeToEdgeService, 'setSystemBarAppearance'>>;
   let mediaQuery: MatchMediaStub;
 
@@ -26,13 +26,14 @@ describe('ThemeService contract', () => {
     root = document.documentElement;
     resetRootThemeState(root);
 
-    settingsStore = jasmine.createSpyObj<Pick<SettingsStore<ThemeSettings>, 'get' | 'load' | 'set'>>(
+    settingsStore = jasmine.createSpyObj<Pick<SettingsStore<ThemeSettings>, 'get' | 'load' | 'set' | 'setForScope'>>(
       'SettingsStore',
-      ['get', 'load', 'set']
+      ['get', 'load', 'set', 'setForScope']
     );
     settingsStore.load.and.resolveTo({ theme: 'system' });
     settingsStore.get.and.returnValue({ theme: 'system' });
     settingsStore.set.and.resolveTo({ theme: 'system' });
+    settingsStore.setForScope.and.resolveTo({ theme: 'system' });
 
     edgeToEdge = jasmine.createSpyObj<Pick<EdgeToEdgeService, 'setSystemBarAppearance'>>(
       'EdgeToEdgeService',

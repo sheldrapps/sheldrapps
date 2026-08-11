@@ -1,6 +1,6 @@
 import type { RemoveAdsUpgradeVariant } from './remove-ads-upgrade.types';
 
-type RemoveAdsUpgradeCopyVariant = Exclude<RemoveAdsUpgradeVariant, 'EMAS'>;
+type RemoveAdsUpgradeCopyVariant = Exclude<RemoveAdsUpgradeVariant, 'EMAS' | 'PMAS'>;
 
 type VariantDictionary = Record<
   RemoveAdsUpgradeCopyVariant,

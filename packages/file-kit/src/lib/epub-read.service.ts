@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { Directory, Filesystem } from '@capacitor/filesystem';
 import { FileKitService } from './file-kit.service';
 import { EpubRewriteService } from './epub-rewrite.service';
 
@@ -6,6 +7,7 @@ import { EpubRewriteService } from './epub-rewrite.service';
 export class EpubReadService {
   private readonly TEMP_FOLDER = 'EpubReadTemp';
   private readonly COVER_EXTRACT_MAX_BYTES = 30 * 1024 * 1024;
+  private readonly NATIVE_COPY_CHUNK_BYTES = 1024 * 1024;
   private readonly fileKit = inject(FileKitService);
   private readonly epubRewrite = inject(EpubRewriteService);
 
@@ -20,13 +22,7 @@ export class EpubReadService {
 
     const tempPath = this.buildTempPath('validate', file.name || 'epub');
     try {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      await this.fileKit.writeBytes({
-        dir: 'Cache',
-        path: tempPath,
-        bytes,
-        mimeType: 'application/epub+zip',
-      });
+      await this.writeFileToCache(file, tempPath);
 
       const uri = await this.fileKit.getUri({
         dir: 'Cache',
@@ -51,13 +47,7 @@ export class EpubReadService {
 
     const tempPath = this.buildTempPath('extract', file.name || 'epub');
     try {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      await this.fileKit.writeBytes({
-        dir: 'Cache',
-        path: tempPath,
-        bytes,
-        mimeType: 'application/epub+zip',
-      });
+      await this.writeFileToCache(file, tempPath);
 
       const uri = await this.fileKit.getUri({
         dir: 'Cache',
@@ -78,6 +68,40 @@ export class EpubReadService {
 
   private buildTempPath(prefix: string, filename: string): string {
     return `${this.TEMP_FOLDER}/${prefix}_${Date.now()}_${filename}`;
+  }
+
+  private async writeFileToCache(file: File, path: string): Promise<void> {
+    let offset = 0;
+    let firstChunk = true;
+    while (offset < file.size) {
+      const end = Math.min(file.size, offset + this.NATIVE_COPY_CHUNK_BYTES);
+      const bytes = new Uint8Array(await file.slice(offset, end).arrayBuffer());
+      if (firstChunk) {
+        await this.fileKit.writeBytes({
+          dir: 'Cache',
+          path,
+          bytes,
+          mimeType: 'application/epub+zip',
+        });
+        firstChunk = false;
+      } else {
+        await Filesystem.appendFile({
+          directory: Directory.Cache,
+          path,
+          data: this.fileKit.toBase64(bytes),
+        });
+      }
+      offset = end;
+    }
+
+    if (firstChunk) {
+      await this.fileKit.writeBytes({
+        dir: 'Cache',
+        path,
+        bytes: new Uint8Array(),
+        mimeType: 'application/epub+zip',
+      });
+    }
   }
 
   private async cleanupTempPath(path: string): Promise<void> {

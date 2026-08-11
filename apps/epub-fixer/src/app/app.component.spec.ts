@@ -7,6 +7,7 @@ import { LanguageService } from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
 import { AppComponent } from './app.component';
+import { LifecycleDiagnosticsService } from '@sheldrapps/lifecycle-kit';
 
 describe('AppComponent', () => {
   let settingsState: { language?: string };
@@ -67,6 +68,10 @@ describe('AppComponent', () => {
           useValue: {
             setTitle: titleSetSpy,
           },
+        },
+        {
+          provide: LifecycleDiagnosticsService,
+          useValue: { start: jasmine.createSpy('start') },
         },
       ],
     }).compileComponents();
@@ -130,6 +135,10 @@ describe('AppComponent', () => {
           useValue: {
             setTitle: titleSetSpy,
           },
+        },
+        {
+          provide: LifecycleDiagnosticsService,
+          useValue: { start: jasmine.createSpy('start') },
         },
       ],
     }).compileComponents();

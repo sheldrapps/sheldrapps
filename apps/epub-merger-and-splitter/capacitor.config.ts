@@ -4,6 +4,9 @@ const config: CapacitorConfig = {
   appId: 'com.sheldrapps.epubmergersplitter',
   appName: 'EPUB Merger & Splitter',
   webDir: 'www',
+  android: {
+    resolveServiceWorkerRequests: false,
+  },
   plugins: {
     StatusBar: {
       overlaysWebView: false,

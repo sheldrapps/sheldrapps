@@ -1,12 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { RemoveAdsPurchasePageService } from '@sheldrapps/ads-kit';
+import {
+  BillingService,
+  RemoveAdsPurchasePageService,
+} from '@sheldrapps/ads-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { ThemeService, type Theme } from '@sheldrapps/ui-theme';
 import { SettingsPage } from './settings.page';
 import { LanguageService } from 'src/app/services/language.service';
+import { of } from 'rxjs';
 
 describe('SettingsPage', () => {
   let component: SettingsPage;
@@ -59,6 +63,10 @@ describe('SettingsPage', () => {
         {
           provide: LanguageService,
           useValue: languageService,
+        },
+        {
+          provide: BillingService,
+          useValue: { adsRemoved$: of(false), isAdsRemoved: () => false },
         },
         {
           provide: RatingService,

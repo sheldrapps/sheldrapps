@@ -265,6 +265,10 @@ public class MainActivity extends BridgeActivity {
         PackageManager pm = getPackageManager();
         String pkg = getPackageName();
 
+        if (isAliasEnabled(pm, pkg, targetLocale)) {
+            return targetLocale;
+        }
+
         for (String locale : ALL_ALIAS_LOCALES) {
             ComponentName component = new ComponentName(pkg, ALIAS_PREFIX + localeToAliasSuffix(locale));
             int state = locale.equals(targetLocale)
@@ -274,6 +278,21 @@ public class MainActivity extends BridgeActivity {
         }
 
         return targetLocale;
+    }
+
+    private boolean isAliasEnabled(PackageManager pm, String pkg, String locale) {
+        ComponentName component = new ComponentName(pkg, ALIAS_PREFIX + localeToAliasSuffix(locale));
+        int state = pm.getComponentEnabledSetting(component);
+        return state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+            || (state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT && isManifestAliasEnabled(pm, component));
+    }
+
+    private boolean isManifestAliasEnabled(PackageManager pm, ComponentName component) {
+        try {
+            return pm.getActivityInfo(component, PackageManager.GET_META_DATA).enabled;
+        } catch (PackageManager.NameNotFoundException ignored) {
+            return false;
+        }
     }
 
     private String resolveAliasLocale(String localeTag) {

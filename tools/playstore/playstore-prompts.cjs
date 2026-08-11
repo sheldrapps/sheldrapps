@@ -8,13 +8,15 @@ const { getAppSpec, getSupportedAppIds } = require('./playstore-specs.cjs');
 async function runPromptCli(appId, argv = process.argv.slice(2)) {
   const app = getAppSpec(appId ?? resolveAppId(argv));
   const locales = resolveLocales(argv, app.supportedLocales, app.id);
-  await generatePrompts(app, locales);
+  await generatePrompts(app, locales, resolveOutputDir(argv));
 }
 
-async function generatePrompts(app, locales) {
+async function generatePrompts(app, locales, outputDir = null) {
   const rootDir = path.resolve(__dirname, '../../');
   const fichasDir = path.join(rootDir, 'docs/fichas', app.id);
-  const promptsRootDir = path.join(fichasDir, 'prompts');
+  const promptsRootDir = outputDir
+    ? path.resolve(rootDir, outputDir)
+    : path.join(fichasDir, 'prompts');
 
   for (const locale of locales) {
     const sourcePath = path.join(fichasDir, `${locale}.md`);
@@ -23,14 +25,15 @@ async function generatePrompts(app, locales) {
     }
 
     const source = fs.readFileSync(sourcePath, 'utf8');
-    const fallbackSource = app.id === 'emas' && locale === 'en-US'
+    const fallbackSource = ['emas', 'pmas'].includes(app.id) && locale === 'en-US'
       ? fs.readFileSync(path.join(fichasDir, 'en-US.golden.md'), 'utf8')
       : null;
     fs.mkdirSync(promptsRootDir, { recursive: true });
     const outputPath = path.join(promptsRootDir, `${locale}.md`);
     const prompts = [];
 
-    for (const section of app.promptSections) {
+    const promptSections = app.promptSectionsByLocale?.[locale] ?? app.promptSections;
+    for (const section of promptSections) {
       const body = tryExtractSection(source, section.heading)
         ?? (fallbackSource ? extractSection(fallbackSource, section.heading) : null);
       if (body === null) {
@@ -303,6 +306,20 @@ function resolveAppId(argv) {
   }
 
   return rawArg.slice('--app='.length).trim();
+}
+
+function resolveOutputDir(argv) {
+  const rawArg = argv.find((arg) => arg.startsWith('--output-dir='));
+  if (!rawArg) {
+    return null;
+  }
+
+  const outputDir = rawArg.slice('--output-dir='.length).trim();
+  if (!outputDir) {
+    throw new Error('The --output-dir option requires a directory.');
+  }
+
+  return outputDir;
 }
 
 module.exports = {

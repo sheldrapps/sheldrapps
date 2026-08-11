@@ -86,6 +86,21 @@ type OpenExternalFileResult = {
   stage?: string;
 };
 
+type ExtractImageAssetsResult = {
+  success: boolean;
+  images?: Array<{
+    sourcePath?: string;
+    tempImagePath?: string;
+    mimeType?: string;
+    sizeBytes?: number;
+    index?: number;
+  }>;
+  zipImageCount?: number;
+  error?: string;
+  message?: string;
+  stage?: string;
+};
+
 type ScanFileResult = {
   success: boolean;
   error?: string;
@@ -188,6 +203,11 @@ type EpubRewritePlugin = Plugin & {
   extractCoverAsset(
     options: ExtractCoverAssetOptions,
   ): Promise<ExtractCoverAssetResult>;
+  extractImageAssets(options: {
+    inputPath: string;
+    maxImages?: number;
+    maxBytesPerImage?: number;
+  }): Promise<ExtractImageAssetsResult>;
   openExternalFile(
     options: OpenExternalFileOptions,
   ): Promise<OpenExternalFileResult>;
@@ -462,6 +482,56 @@ export class EpubRewriteService {
         stage: result.stage,
       });
     }
+  }
+
+  async extractImageAssets(options: {
+    inputPath: string;
+    maxImages?: number;
+    maxBytesPerImage?: number;
+  }): Promise<{
+    images: Array<{
+      sourcePath: string;
+      tempImagePath: string;
+      mimeType: string;
+      sizeBytes: number;
+      index: number;
+    }>;
+    zipImageCount: number;
+  }> {
+    const result = await EpubRewrite.extractImageAssets(options);
+    if (!result.success) {
+      throw new EpubRewriteError(result.error ?? 'EXTRACT_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+
+    const images = (result.images ?? []).flatMap((image) =>
+      image.sourcePath && image.tempImagePath && image.mimeType
+        ? [{
+            sourcePath: image.sourcePath,
+            tempImagePath: image.tempImagePath,
+            mimeType: image.mimeType,
+            sizeBytes: image.sizeBytes ?? 0,
+            index: image.index ?? 0,
+          }]
+        : [],
+    );
+    return { images, zipImageCount: result.zipImageCount ?? images.length };
+  }
+
+  async extractedImageFile(options: {
+    extractedPath: string;
+    sourcePath: string;
+    epubName: string;
+    mimeType?: string;
+  }): Promise<File> {
+    return this.readExtractedFile(
+      options.extractedPath,
+      options.sourcePath,
+      options.epubName,
+      options.mimeType,
+    );
   }
 
   async scanFile(options: { path: string; mimeType?: string }): Promise<void> {

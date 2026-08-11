@@ -26,6 +26,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/privacy-pcm/privacy-pcm.page').then((m) => m.PrivacyPcmPageComponent)
   },
   {
+    path: 'privacy-policies/pdf-merger-and-splitter',
+    loadComponent: () => import('./pages/privacy-pmas/privacy-pmas.page').then((m) => m.PrivacyPmasPageComponent)
+  },
+  {
     path: '**',
     redirectTo: ''
   }

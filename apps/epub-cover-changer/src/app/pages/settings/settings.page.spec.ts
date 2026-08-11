@@ -1,8 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import * as I18nKit from '@sheldrapps/i18n-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
+import { BillingService } from '@sheldrapps/ads-kit';
+import { RatingService } from '@sheldrapps/rating-kit';
 import {
   THEME_OPTIONS,
   ThemeService,
@@ -11,6 +12,7 @@ import {
 import { SettingsPage } from './settings.page';
 import { ConsentService } from 'src/app/services/consent.service';
 import { LanguageService } from 'src/app/services/language.service';
+import { of } from 'rxjs';
 
 describe('SettingsPage', () => {
   let component: SettingsPage;
@@ -63,14 +65,32 @@ describe('SettingsPage', () => {
               .and.resolveTo(false),
           },
         },
+        {
+          provide: BillingService,
+          useValue: { adsRemoved$: of(false), isAdsRemoved: () => false },
+        },
         { provide: ThemeService, useValue: themeService },
+        {
+          provide: RatingService,
+          useValue: {
+            previewPrompt: jasmine.createSpy('previewPrompt').and.resolveTo(),
+            previewSuggestionFlow: jasmine
+              .createSpy('previewSuggestionFlow')
+              .and.resolveTo(),
+            previewFeedbackFlow: jasmine
+              .createSpy('previewFeedbackFlow')
+              .and.resolveTo(),
+          },
+        },
       ],
     }).compileComponents();
 
-    restartForLanguageChangeSpy = spyOn(
-      I18nKit,
-      'restartForLanguageChange',
-    ).and.resolveTo();
+    restartForLanguageChangeSpy = jasmine.createSpy('restartForLocale');
+    (globalThis as typeof globalThis & {
+      SheldrappsAppControl?: { restartForLocale: jasmine.Spy };
+    }).SheldrappsAppControl = {
+      restartForLocale: restartForLanguageChangeSpy,
+    };
 
     fixture = TestBed.createComponent(SettingsPage);
     component = fixture.componentInstance;
@@ -115,7 +135,7 @@ describe('SettingsPage', () => {
       languageService.lang = 'es-MX';
     });
 
-    restartForLanguageChangeSpy.and.callFake(async () => {
+    restartForLanguageChangeSpy.and.callFake(() => {
       events.push('restart:signal');
     });
 
@@ -135,7 +155,7 @@ describe('SettingsPage', () => {
       'count:1',
       'restart:signal',
     ]);
-    expect(restartForLanguageChangeSpy).toHaveBeenCalledOnceWith('es-MX', 500);
+    expect(restartForLanguageChangeSpy).toHaveBeenCalledOnceWith('es-MX');
     expect(component.isLanguageRestartLoading).toBeFalse();
   });
 

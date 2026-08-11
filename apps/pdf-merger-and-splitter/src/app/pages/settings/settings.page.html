@@ -1,0 +1,76 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'SETTINGS.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding settings-page">
+  <sh-selectable-button-list
+    [value]="null"
+    [items]="languageSettingsItems"
+    [showSelectedIcon]="false"
+    (valueChange)="onLanguageSettingsAction()"
+  ></sh-selectable-button-list>
+
+  <sh-selectable-button-list
+    [value]="null"
+    [items]="themeSettingsItems"
+    [showSelectedIcon]="false"
+    (valueChange)="onThemeSettingsAction()"
+  ></sh-selectable-button-list>
+
+  @if (!adsRemoved()) {
+    <sh-selectable-button-list
+      [value]="null"
+      [items]="removeAdsSettingsItems"
+      [showSelectedIcon]="false"
+      (valueChange)="onRemoveAdsSettingsAction()"
+    ></sh-selectable-button-list>
+  }
+
+  <sh-privacy-policy-section [url]="privacyPolicyUrl"></sh-privacy-policy-section>
+
+  <sh-selectable-button-list
+    [value]="null"
+    [items]="ratingSettingsItems"
+    [showSelectedIcon]="false"
+    (valueChange)="onRatingSettingsAction($event)"
+  ></sh-selectable-button-list>
+
+  <sh-spinner
+    [visible]="isLanguageRestartLoading"
+    variant="fullscreen"
+    [label]="'SETTINGS.LANGUAGE_PREPARING_COUNTDOWN' | translate:{ count: languageRestartCountdown }"
+  ></sh-spinner>
+
+  <ion-modal [isOpen]="isLanguageModalOpen" (didDismiss)="closeLanguageModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar class="app-modal-toolbar">
+          <ion-buttons slot="start">
+            <ion-back-button
+              defaultHref="/tabs/settings"
+              (click)="closeLanguageModal()"
+              [text]="''"
+              [attr.aria-label]="'COMMON.CANCEL' | translate"
+            ></ion-back-button>
+          </ion-buttons>
+          <ion-title>{{ 'SETTINGS.LANGUAGE' | translate }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button fill="clear" (click)="confirmLanguageModal()">
+              {{ 'COMMON.DONE' | translate }}
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="app-modal-content">
+        <app-language-radio-list
+          [value]="languageDraft"
+          [options]="supportedLangs"
+          (valueChange)="onLanguageDraftChange($event)"
+        ></app-language-radio-list>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

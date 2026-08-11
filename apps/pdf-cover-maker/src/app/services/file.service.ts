@@ -130,6 +130,7 @@ type ResolvedDitherMetadata = {
 
 @Injectable({ providedIn: 'root' })
 export class FileService {
+  private readonly FILE_COPY_CHUNK_BYTES = 256 * 1024;
   private translate = inject(TranslateService);
 
   private readonly PDF_FOLDER = 'pdfcovermaker';
@@ -204,13 +205,7 @@ export class FileService {
     const tempName = `validate_${Date.now()}_${file.name || 'pdf'}`;
     const tempPath = `${this.PDF_FOLDER}/${tempName}`;
     try {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      await this.fileKit.writeBytes({
-        dir: 'Cache',
-        path: tempPath,
-        bytes,
-        mimeType: 'application/pdf',
-      });
+      await this.writeFileChunked(file, Directory.Cache, tempPath, 'application/pdf');
 
       const uri = await this.fileKit.getUri({
         dir: 'Cache',
@@ -239,13 +234,7 @@ export class FileService {
     const tempName = `extract_${Date.now()}_${file.name || 'pdf'}`;
     const tempPath = `${this.PDF_FOLDER}/${tempName}`;
     try {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      await this.fileKit.writeBytes({
-        dir: 'Cache',
-        path: tempPath,
-        bytes,
-        mimeType: 'application/pdf',
-      });
+      await this.writeFileChunked(file, Directory.Cache, tempPath, 'application/pdf');
       const uri = await this.fileKit.getUri({
         dir: 'Cache',
         path: tempPath,
@@ -726,6 +715,11 @@ export class FileService {
   async getCoverFileSizeBytes(filename: string): Promise<number | null> {
     await this.ensurpdflicDocumentsPdfFolderReady();
     try {
+      if (this.pdfRewrite.isSupported()) {
+        return (
+          await this.pdfRewrite.getPublicDocument(this.PDF_FOLDER, filename)
+        ).size;
+      }
       const bytes = await this.readPublicPdfBytes(filename);
       return bytes.byteLength;
     } catch {
@@ -777,13 +771,7 @@ export class FileService {
       sourceInfo: opts.sourceInfo,
     };
 
-    const sourceBytes = new Uint8Array(await opts.sourceFile.arrayBuffer());
-    await this.fileKit.writeBytes({
-      dir: 'Data',
-      path: sourcePath,
-      bytes: sourceBytes,
-      mimeType: sourceMimeType,
-    });
+    await this.writeFileChunked(opts.sourceFile, Directory.Data, sourcePath, sourceMimeType);
 
     await this.fileKit.writeBytes({
       dir: 'Data',
@@ -1348,13 +1336,12 @@ export class FileService {
     const tempOutputPath = `${this.PDF_FOLDER}/tmp_pdf_${nonce}.pdf`;
 
     try {
-      const coverBytes = new Uint8Array(await opts.coverFile.arrayBuffer());
-      await this.fileKit.writeBytes({
-        dir: 'Cache',
-        path: tempCoverPath,
-        bytes: coverBytes,
-        mimeType: this.coverMediaTypeFromMime(coverMime),
-      });
+      await this.writeFileChunked(
+        opts.coverFile,
+        Directory.Cache,
+        tempCoverPath,
+        this.coverMediaTypeFromMime(coverMime),
+      );
 
       await this.fileKit.writeBytes({
         dir: 'Cache',
@@ -2651,6 +2638,31 @@ export class FileService {
       bytes: this.fileKit.fromBase64(thumbBase64),
       mimeType: this.thumbMimeTypeFromFilename(file.name),
     });
+  }
+
+  private async writeFileChunked(
+    file: File,
+    directory: Directory,
+    path: string,
+    mimeType: string,
+  ): Promise<void> {
+    let offset = 0;
+    let firstChunk = true;
+    while (offset < file.size) {
+      const end = Math.min(file.size, offset + this.FILE_COPY_CHUNK_BYTES);
+      const bytes = new Uint8Array(await file.slice(offset, end).arrayBuffer());
+      const data = this.fileKit.toBase64(bytes);
+      if (firstChunk) {
+        await Filesystem.writeFile({ directory, path, data, recursive: true });
+        firstChunk = false;
+      } else {
+        await Filesystem.appendFile({ directory, path, data });
+      }
+      offset = end;
+    }
+    if (firstChunk) {
+      await Filesystem.writeFile({ directory, path, data: '', recursive: true });
+    }
   }
 
   private async ensureProjectFoldersReady(): Promise<void> {

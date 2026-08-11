@@ -82,7 +82,7 @@ type FragmentResolution = {
 };
 
 const EPUB_MIMETYPE = 'application/epub+zip';
-const WEB_SIZE_WARNING_BYTES = 50 * 1024 * 1024;
+const WEB_EPUB_MAX_BYTES = 128 * 1024 * 1024;
 const BLOCKING_CODES = new Set<EpubDiagnosticIssueCode>([
   'CONTAINER_MISSING',
   'OPF_MISSING',
@@ -110,8 +110,10 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
       throw new EpubFixerPortError('PREPARE_INPUT_INVALID');
     }
 
-    if (file.size > WEB_SIZE_WARNING_BYTES) {
-      // no-op
+    if (file.size > WEB_EPUB_MAX_BYTES) {
+      throw new EpubFixerPortError('ZIP_UNREADABLE', {
+        message: 'EPUB_WEB_SIZE_UNSUPPORTED',
+      });
     }
 
     try {

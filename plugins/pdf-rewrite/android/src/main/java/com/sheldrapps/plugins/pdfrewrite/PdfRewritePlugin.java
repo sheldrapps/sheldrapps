@@ -1,8 +1,10 @@
 package com.sheldrapps.plugins.pdfrewrite;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -10,6 +12,10 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.OpenableColumns;
 import android.provider.MediaStore;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 
 import androidx.activity.result.ActivityResult;
 import androidx.core.content.FileProvider;
@@ -44,7 +50,6 @@ import com.tom_roush.pdfbox.cos.COSBase;
 import com.tom_roush.pdfbox.cos.COSDictionary;
 import com.tom_roush.pdfbox.cos.COSInteger;
 import com.tom_roush.pdfbox.cos.COSName;
-import com.tom_roush.pdfbox.io.MemoryUsageSetting;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -57,6 +62,9 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @CapacitorPlugin(name = "PdfRewritePlugin")
@@ -64,15 +72,232 @@ public class PdfRewritePlugin extends Plugin {
     private static final String WORK_FOLDER = "pdfcovermakerWork";
     private static final float PREVIEW_MIN_SCALE = 0.35f;
     private static final float PREVIEW_MAX_SCALE = 2.0f;
-    private static final long PDFBOX_MAIN_MEMORY_BUDGET_BYTES = 24L * 1024L * 1024L;
-    private static final long STORAGE_MARGIN_BYTES = 16L * 1024L * 1024L;
+    private static final long STORAGE_MARGIN_BYTES = PdfResourceBudget.STORAGE_MARGIN_BYTES;
+    private static final float OPERATION_SCREEN_BRIGHTNESS = 0.10f;
+    private static final long OPERATION_SCREEN_DIM_DELAY_MS = 15_000L;
     private final AtomicBoolean cancelRequested = new AtomicBoolean(false);
     private final AtomicBoolean pdfBoxInitialized = new AtomicBoolean(false);
     private static final int PUBLIC_COPY_BUFFER_BYTES = 128 * 1024;
+    private TemporaryFileManager pmasFiles;
+    private PdfSessionManager pmasSessions;
+    private AndroidUriResolver pmasUris;
+    private PdfOutputPublisher pmasPublisher;
+    private final PdfValidator pmasValidator = new PdfValidator();
+    private final PdfDocumentInspector pmasInspector = new PdfDocumentInspector();
+    private final PdfMergeOperation pmasMerge = new PdfMergeOperation();
+    private final PdfSplitOperation pmasSplit = new PdfSplitOperation();
+    private final SampledBitmapDecoder coverDecoder = new SampledBitmapDecoder();
+    private boolean screenDimmingActive;
+    private boolean screenDimmingScheduled;
+    private float screenBrightnessBeforeOperation = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
+    private View screenInteractionView;
+    private Runnable screenDimmingRunnable;
+
+    @Override
+    public void load() {
+        super.load();
+        pmasFiles = new TemporaryFileManager(getContext());
+        pmasSessions = new PdfSessionManager(pmasFiles);
+        pmasUris = new AndroidUriResolver(getContext());
+        pmasPublisher = new PdfOutputPublisher(getContext());
+    }
+
+    @PluginMethod
+    public void createSession(PluginCall call) {
+        try {
+            PdfSessionManager.Session session = pmasSessions.create(call.getString("operation", "merge"));
+            JSObject result = new JSObject(); result.put("success", true); result.put("sessionId", session.id); result.put("operation", session.operation); result.put("temporaryDirectory", session.directory.getAbsolutePath()); call.resolve(result);
+        } catch (Exception error) { call.resolve(pmasError(error)); }
+    }
+
+    @PluginMethod
+    public void importPdf(PluginCall call) {
+        startProtectedThread(() -> {
+            try {
+                PdfSessionManager.Session session = pmasSessions.require(call.getString("sessionId"));
+                String sourceUri = call.getString("sourceUri");
+                if (sourceUri == null || sourceUri.trim().isEmpty()) throw new PdfOperationException("SOURCE_FILE_NOT_FOUND", "import");
+                long maximumBytes = Math.min(
+                    call.getLong("maxBytes", PdfResourceBudget.MAX_INPUT_BYTES),
+                    PdfResourceBudget.MAX_INPUT_BYTES
+                );
+                long announcedSize = pmasUris.size(sourceUri);
+                if (announcedSize > maximumBytes) throw new PdfOperationException("PDF_TOO_LARGE", "import");
+                long required = PdfResourceBudget.requiredStorage(Math.max(0L, announcedSize), 0L);
+                if (session.directory.getUsableSpace() < required) throw new PdfOperationException("NO_SPACE", "import");
+                String id = UUID.randomUUID().toString(); String name = sanitizeBaseName(pmasUris.displayName(sourceUri)) + ".pdf";
+                File destination = new File(session.directory, id + ".pdf"); long size = pmasUris.copyToPrivateFile(sourceUri, destination, maximumBytes);
+                try { pmasValidator.validate(destination); } catch (Exception error) { destination.delete(); throw error; }
+                session.inputs.put(id, destination);
+                JSObject result = new JSObject(); result.put("success", true); result.put("pdfId", id); result.put("displayName", name); result.put("sizeBytes", size); result.put("nativePath", destination.getAbsolutePath()); result.put("sourceUri", sourceUri); call.resolve(result);
+            } catch (Exception error) { call.resolve(pmasError(error)); }
+        }).start();
+    }
+
+    @PluginMethod
+    public void analyzePdf(PluginCall call) {
+        startProtectedThread(() -> {
+            try {
+                PdfSessionManager.Session session = pmasSessions.require(call.getString("sessionId")); File file = session.inputs.get(call.getString("pdfId"));
+                if (file == null) throw new PdfOperationException("SOURCE_FILE_NOT_FOUND", "analyze");
+                JSObject result = pmasInspector.analyze(file); result.put("success", true); call.resolve(result);
+            } catch (Exception error) { call.resolve(pmasError(error)); }
+        }).start();
+    }
+
+    @PluginMethod
+    public void mergePdf(PluginCall call) { startProtectedThread(() -> runMerge(call)).start(); }
+
+    @PluginMethod
+    public void splitPdf(PluginCall call) { startProtectedThread(() -> runSplit(call)).start(); }
+
+    @PluginMethod
+    public void cancelOperation(PluginCall call) { cancelRequested.set(true); JSObject result = new JSObject(); result.put("cancelled", true); call.resolve(result); }
+
+    @PluginMethod
+    public void cleanupSession(PluginCall call) { pmasSessions.cleanup(call.getString("sessionId")); JSObject result = new JSObject(); result.put("success", true); call.resolve(result); }
+
+    @Override
+    protected void handleOnDestroy() {
+        cancelRequested.set(true);
+        setScreenDimmedForOperation(false);
+        setKeepScreenOn(false);
+    }
+
+    private Thread startProtectedThread(Runnable work) {
+        return new Thread(() -> {
+            setKeepScreenOn(true);
+            setScreenDimmedForOperation(true);
+            try {
+                work.run();
+            } finally {
+                setScreenDimmedForOperation(false);
+                setKeepScreenOn(false);
+            }
+        });
+    }
+
+    private void setKeepScreenOn(boolean keepScreenOn) {
+        Context context = getContext();
+        if (!(context instanceof Activity)) return;
+        Activity activity = (Activity) context;
+        activity.runOnUiThread(() -> {
+            if (keepScreenOn) {
+                activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            } else {
+                activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            }
+        });
+    }
+
+    private void setScreenDimmedForOperation(boolean dimmed) {
+        Context context = getContext();
+        if (!(context instanceof Activity)) return;
+        Activity activity = (Activity) context;
+        activity.runOnUiThread(() -> {
+            if (dimmed) {
+                if (screenDimmingActive || screenDimmingScheduled) return;
+                Window window = activity.getWindow();
+                WindowManager.LayoutParams attributes = window.getAttributes();
+                screenBrightnessBeforeOperation = attributes.screenBrightness;
+                View interactionView = getBridge() == null ? null : getBridge().getWebView();
+                if (interactionView == null) {
+                    interactionView = window.getDecorView();
+                }
+                scheduleScreenDimming(activity, interactionView);
+                return;
+            }
+            restoreScreenBrightness(activity);
+        });
+    }
+
+    private void scheduleScreenDimming(Activity activity, View interactionView) {
+        Window window = activity.getWindow();
+        screenInteractionView = interactionView;
+        interactionView.setOnTouchListener((view, event) -> {
+            if (event != null && event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                restoreScreenBrightness(activity);
+                scheduleScreenDimming(activity, view);
+            }
+            return false;
+        });
+        screenDimmingScheduled = true;
+        screenDimmingRunnable = () -> {
+            screenDimmingRunnable = null;
+            screenDimmingScheduled = false;
+            if (screenDimmingActive) return;
+            screenDimmingActive = true;
+            WindowManager.LayoutParams attributes = window.getAttributes();
+            attributes.screenBrightness = attributes.screenBrightness >= 0f
+                ? Math.min(attributes.screenBrightness, OPERATION_SCREEN_BRIGHTNESS)
+                : OPERATION_SCREEN_BRIGHTNESS;
+            window.setAttributes(attributes);
+        };
+        window.getDecorView().postDelayed(screenDimmingRunnable, OPERATION_SCREEN_DIM_DELAY_MS);
+    }
+
+    private void restoreScreenBrightness(Activity activity) {
+        Window window = activity.getWindow();
+        if (screenDimmingRunnable != null) {
+            window.getDecorView().removeCallbacks(screenDimmingRunnable);
+            screenDimmingRunnable = null;
+        }
+        screenDimmingScheduled = false;
+        if (screenInteractionView != null) {
+            screenInteractionView.setOnTouchListener(null);
+            screenInteractionView = null;
+        }
+        if (!screenDimmingActive) return;
+        WindowManager.LayoutParams attributes = window.getAttributes();
+        attributes.screenBrightness = screenBrightnessBeforeOperation;
+        window.setAttributes(attributes);
+        screenDimmingActive = false;
+    }
+
+    private void runMerge(PluginCall call) {
+        cancelRequested.set(false);
+        try {
+            PdfSessionManager.Session session = pmasSessions.require(call.getString("sessionId"));
+            JSArray values = call.getArray("pdfIds"); if (values == null || values.length() < 2) throw new PdfOperationException("MERGE_REQUIRES_TWO_PDFS", "merge");
+            List<File> sources = new ArrayList<>(); List<String> names = new ArrayList<>();
+            for (int index=0; index<values.length(); index++) { String id = values.getString(index); File source=session.inputs.get(id); if(source==null) throw new PdfOperationException("SOURCE_FILE_NOT_FOUND", "merge"); sources.add(source); names.add(call.getArray("displayNames") != null ? call.getArray("displayNames").getString(index) : "Document " + (index+1)); }
+            File cover = resolveOptionalImage(session, call.getString("coverImageUri"));
+            String outputName = sanitizeBaseName(call.getString("outputName", "merged-document.pdf")) + ".pdf";
+            File temporary = pmasFiles.tempOutput(session.directory, outputName);
+            PdfMergeOperation.Result merge = pmasMerge.execute(sources, names, call.getString("bookmarkMode", "documents-and-bookmarks"), cover, call.getDouble("coverQuality", .92).floatValue(), temporary, pmasProgress("merge"));
+            PdfOutputPublisher.Published published = pmasPublisher.publish(temporary, outputName);
+            JSObject result = operationResult("merge", java.util.Collections.singletonList(published), merge.warnings); result.put("success", true); call.resolve(result);
+        } catch (Exception error) { call.resolve(pmasError(error)); }
+    }
+
+    private void runSplit(PluginCall call) {
+        cancelRequested.set(false);
+        List<PdfOutputPublisher.Published> published = new ArrayList<>();
+        try {
+            PdfSessionManager.Session session = pmasSessions.require(call.getString("sessionId")); File source = session.inputs.get(call.getString("pdfId")); if (source == null) throw new PdfOperationException("SOURCE_FILE_NOT_FOUND", "split");
+            JSArray outputs = call.getArray("outputs"); if (outputs == null || outputs.length() < 2) throw new PdfOperationException("SPLIT_REQUIRES_TWO_OUTPUTS", "split");
+            List<PdfSplitOperation.Plan> plans = new ArrayList<>();
+            for (int index=0; index<outputs.length(); index++) {
+                org.json.JSONObject raw = outputs.getJSONObject(index); String name=sanitizeBaseName(raw.optString("title", "part-"+(index+1)))+".pdf"; JSArray ranges = new JSArray(raw.optJSONArray("ranges")); List<PdfSplitOperation.Range> parsed = new ArrayList<>();
+                for (int rangeIndex=0; rangeIndex<ranges.length(); rangeIndex++) { org.json.JSONObject range=ranges.getJSONObject(rangeIndex); parsed.add(new PdfSplitOperation.Range(range.getInt("fromPageIndex"),range.getInt("toPageIndex"))); }
+                plans.add(new PdfSplitOperation.Plan(name, parsed));
+            }
+            File cover = resolveOptionalImage(session, call.getString("coverImageUri"));
+            PdfSplitOperation.Result split = pmasSplit.execute(source, plans, cover, call.getDouble("coverQuality", .92).floatValue(), session.directory, pmasProgress("split"));
+            for (File output : split.files) published.add(pmasPublisher.publish(output, output.getName()));
+            JSObject result = operationResult("split", published, split.warnings); result.put("success", true); call.resolve(result);
+        } catch (Exception error) { for (PdfOutputPublisher.Published item : published) pmasPublisher.rollback(item); call.resolve(pmasError(error)); }
+    }
+
+    private File resolveOptionalSessionFile(PdfSessionManager.Session session, String id) throws PdfOperationException { if (id == null || id.trim().isEmpty()) return null; File file=session.inputs.get(id); if(file==null) throw new PdfOperationException("SOURCE_FILE_NOT_FOUND", "cover"); return file; }
+    private File resolveOptionalImage(PdfSessionManager.Session session, String uri) throws Exception { if (uri == null || uri.trim().isEmpty()) return null; File image = new File(session.directory, "cover-" + UUID.randomUUID().toString() + ".img"); pmasUris.copyToPrivateFile(uri, image, 64L * 1024L * 1024L); return image; }
+    private PdfProgress pmasProgress(final String operation) { return new PdfProgress() { public void emit(String phase, int completed, int total) { JSObject event = new JSObject(); event.put("operation", operation); event.put("phase", phase); event.put("completed", completed); event.put("total", total); event.put("percent", total > 0 ? Math.min(100, Math.max(0, completed * 100 / total)) : 0); notifyListeners("pdfOperationProgress", event); } public void checkCancelled() throws PdfOperationException { if (cancelRequested.get()) throw new PdfOperationException("OPERATION_CANCELLED", operation); } }; }
+    private JSObject operationResult(String operation, List<PdfOutputPublisher.Published> outputs, List<String> warnings) { JSObject result=new JSObject(); JSArray entries=new JSArray(); JSArray uris=new JSArray(); JSArray warningValues=new JSArray(); for(String warning:warnings) warningValues.put(warning); for(PdfOutputPublisher.Published output:outputs){JSObject entry=new JSObject();entry.put("uri",output.uri);entry.put("fileName",output.name);entry.put("sizeBytes",output.size);entries.put(entry);uris.put(output.uri);} result.put("operationId",UUID.randomUUID().toString());result.put("operation",operation);result.put("outputs",entries);result.put("outputUris",uris);result.put("warnings",warningValues);return result; }
+    private JSObject pmasError(Exception error) { String code="REWRITE_FAILED",stage="operation"; if(error instanceof PdfOperationException){code=((PdfOperationException)error).code;stage=((PdfOperationException)error).stage;} JSObject result=new JSObject();result.put("success",false);result.put("error",code);result.put("stage",stage);result.put("message",error.getMessage());return result; }
 
     @PluginMethod
     public void publishPublicDocument(PluginCall call) {
-        new Thread(() -> {
+        startProtectedThread(() -> {
             try {
                 String folder = requirePublicName(call.getString("folderName"));
                 String outputName = requirePublicName(call.getString("outputName"));
@@ -202,7 +427,7 @@ public class PdfRewritePlugin extends Plugin {
             return;
         }
 
-        new Thread(() -> {
+        startProtectedThread(() -> {
             try {
                 ensurePdfBoxInitialized();
                 Long maxBytes = call.getLong("maxBytes");
@@ -248,7 +473,7 @@ public class PdfRewritePlugin extends Plugin {
             return;
         }
 
-        new Thread(() -> {
+        startProtectedThread(() -> {
             try {
                 ensurePdfBoxInitialized();
                 File inputFile = resolvePathToFile(inputPath);
@@ -279,11 +504,12 @@ public class PdfRewritePlugin extends Plugin {
             return;
         }
 
-        new Thread(() -> {
+        startProtectedThread(() -> {
             try {
                 ensurePdfBoxInitialized();
                 File inputFile = resolvePathToFile(inputPath);
                 File coverFile = resolvePathToFile(newCoverPath);
+                PdfResourceBudget.requireInput(inputFile, "rewrite");
                 File outFile = outputPath == null || outputPath.trim().isEmpty()
                     ? inputFile
                     : resolvePathToFile(outputPath);
@@ -331,7 +557,7 @@ public class PdfRewritePlugin extends Plugin {
             return;
         }
 
-        new Thread(() -> {
+        startProtectedThread(() -> {
             try {
                 ensurePdfBoxInitialized();
                 File outFile = resolvePathToFile(outputPath);
@@ -373,7 +599,7 @@ public class PdfRewritePlugin extends Plugin {
             return;
         }
 
-        new Thread(() -> {
+        startProtectedThread(() -> {
             try {
                 ensurePdfBoxInitialized();
                 File inputFile = resolvePathToFile(inputPath);
@@ -469,7 +695,7 @@ public class PdfRewritePlugin extends Plugin {
         File outFile = uniquePdfFile(workDir, base + "-" + timestamp);
 
         long copied = 0;
-        byte[] buffer = new byte[1024 * 64];
+        byte[] buffer = new byte[PdfResourceBudget.COPY_BUFFER_BYTES];
         try (InputStream in = getContext().getContentResolver().openInputStream(uri);
              FileOutputStream out = new FileOutputStream(outFile)) {
             if (in == null) {
@@ -519,7 +745,9 @@ public class PdfRewritePlugin extends Plugin {
             return out;
         }
 
-        try (PDDocument doc = openDocumentForRead(file)) {
+        try {
+            PdfResourceBudget.requireInput(file, "inspect");
+            try (PDDocument doc = openDocumentForRead(file)) {
             ensureNotCancelled();
             if (doc.isEncrypted()) {
                 out.put("success", false);
@@ -572,6 +800,7 @@ public class PdfRewritePlugin extends Plugin {
                 if (info.getAuthor() != null) out.put("author", info.getAuthor());
             }
             return out;
+            }
         } catch (InvalidPasswordException e) {
             out.put("success", false);
             out.put("valid", false);
@@ -630,7 +859,7 @@ public class PdfRewritePlugin extends Plugin {
                 throw new PluginError("PDF_ENCRYPTED", "rewrite");
             }
 
-            bitmap = BitmapFactory.decodeFile(coverImage.getAbsolutePath());
+            bitmap = coverDecoder.decode(coverImage);
             if (bitmap == null) {
                 throw new PluginError("REWRITE_FAILED", "rewrite");
             }
@@ -699,7 +928,7 @@ public class PdfRewritePlugin extends Plugin {
 
         try (FileInputStream in = new FileInputStream(tempFile);
              FileOutputStream out = new FileOutputStream(targetFile)) {
-            byte[] buffer = new byte[64 * 1024];
+            byte[] buffer = new byte[PdfResourceBudget.COPY_BUFFER_BYTES];
             int read;
             while ((read = in.read(buffer)) != -1) {
                 out.write(buffer, 0, read);
@@ -732,7 +961,7 @@ public class PdfRewritePlugin extends Plugin {
                 throw new PluginError("PDF_CORRUPT", "rewrite");
             }
 
-            bitmap = BitmapFactory.decodeFile(coverImage.getAbsolutePath());
+            bitmap = coverDecoder.decode(coverImage);
             if (bitmap == null) {
                 throw new PluginError("REWRITE_FAILED", "rewrite");
             }
@@ -858,7 +1087,7 @@ public class PdfRewritePlugin extends Plugin {
     ) throws Exception {
         try (PDDocument out = new PDDocument()) {
             ensureNotCancelled();
-            Bitmap bitmap = BitmapFactory.decodeFile(coverImage.getAbsolutePath());
+            Bitmap bitmap = coverDecoder.decode(coverImage);
             if (bitmap == null) {
                 throw new PluginError("REWRITE_FAILED", "create");
             }
@@ -977,17 +1206,11 @@ public class PdfRewritePlugin extends Plugin {
     }
 
     private PDDocument openDocumentForRead(File file) throws IOException {
-        return PDDocument.load(
-            file,
-            MemoryUsageSetting.setupMixed(PDFBOX_MAIN_MEMORY_BUDGET_BYTES)
-        );
+        return PDDocument.load(file, PdfMemoryPolicy.forFile(file));
     }
 
     private PDDocument openDocumentForRewrite(File file) throws IOException {
-        return PDDocument.load(
-            file,
-            MemoryUsageSetting.setupMixed(PDFBOX_MAIN_MEMORY_BUDGET_BYTES)
-        );
+        return PDDocument.load(file, PdfMemoryPolicy.forFile(file));
     }
 
     private File resolvePathToFile(String inputPath) {
@@ -1085,7 +1308,7 @@ public class PdfRewritePlugin extends Plugin {
     }
 
     private File uniquePdfFile(File dir, String baseName) {
-        String cleanBase = baseName.replaceAll("(?i)\\\\.pdf$", "");
+        String cleanBase = baseName.replaceAll("(?i)\\.pdf$", "");
         File candidate = new File(dir, cleanBase + ".pdf");
         int index = 1;
         while (candidate.exists()) {
@@ -1096,9 +1319,9 @@ public class PdfRewritePlugin extends Plugin {
     }
 
     private String sanitizeBaseName(String name) {
-        String base = (name == null ? "pdf" : name).replaceAll("(?i)\\\\.pdf$", "").trim();
+        String base = (name == null ? "pdf" : name).replaceAll("(?i)\\.pdf$", "").trim();
         base = base.replaceAll("[\\\\/:*?\"<>|]", " ");
-        base = base.replaceAll("\\\\s+", " ").trim();
+        base = base.replaceAll("\\s+", " ").trim();
         if (base.isEmpty()) {
             return "pdf";
         }

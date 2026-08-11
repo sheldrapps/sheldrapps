@@ -158,8 +158,8 @@
         "SUBLINE": "استخدم فهرس الكتاب."
       },
       "MANUAL_SPLIT_POINTS": {
-        "TITLE": "اختيار نقاط التقسيم",
-        "SUBLINE": "اجمع الفصول يدويًا."
+        "TITLE": "اختيار يدوي",
+        "SUBLINE": "اختر عناوين الفهرس يدويًا."
       },
       "EQUAL_PARTS": {
         "TITLE": "أجزاء متساوية",
@@ -228,6 +228,7 @@
       "SIZE_50": "50 MB",
       "SIZE_CUSTOM": "مخصص",
       "APPROXIMATE_SIZE": "أنشئ ملفات ضمن حجم تقريبي.",
+      "COVER_AND_BOOK_SIZE": "≈ الغلاف → {{cover}} · بقية الكتاب → {{book}}",
       "EXAMPLE_PART_ONE": "الجزء الأول",
       "EXAMPLE_CHAPTER_ONE": "الفصل 1",
       "EXAMPLE_CHAPTER_TWO": "الفصل 2",

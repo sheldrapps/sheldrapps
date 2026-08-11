@@ -138,8 +138,8 @@
         "SUBLINE": "Use the book's table of contents."
       },
       "MANUAL_SPLIT_POINTS": {
-        "TITLE": "Choose split points",
-        "SUBLINE": "Group chapters manually."
+        "TITLE": "Choose manually",
+        "SUBLINE": "Choose TOC entries manually."
       },
       "EQUAL_PARTS": {
         "TITLE": "Equal parts",
@@ -228,6 +228,7 @@
       "SIZE_50": "50 MB",
       "SIZE_CUSTOM": "Custom size",
       "APPROXIMATE_SIZE": "The size is approximate because images, fonts, and shared styles may be copied into several results.",
+      "COVER_AND_BOOK_SIZE": "≈ Cover → {{cover}} · rest of book → {{book}}",
       "EXAMPLE_PART_ONE": "Part I",
       "EXAMPLE_CHAPTER_ONE": "Chapter 1",
       "EXAMPLE_CHAPTER_TWO": "Chapter 2",

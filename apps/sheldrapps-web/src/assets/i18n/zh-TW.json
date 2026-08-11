@@ -55,7 +55,12 @@
     "APPS_SECTION_TITLE": "特色應用程式",
     "APPS_SECTION_BODY": "用於自訂封面、EPUB 檔案和閱讀工作流程的專用工具。",
     "APPS": {
-      "CCFK": {
+    "PMAS": {
+      "NAME": "PDF Merger & Splitter",
+      "DESCRIPTION": "使用實用的頁面控制合併與分割 PDF 檔案。",
+      "BADGE": "Coming soon"
+    },
+     "CCFK": {
         "NAME": "建立Kindle封面",
         "DESCRIPTION": "只需點擊幾下即可從您的圖像建立電子閱讀器封面。"
       },
@@ -112,8 +117,17 @@
     "LEGAL_EPF_LINK": "隱私權政策 - EPUB Fixer",
     "LEGAL_EMS_LINK": "隱私權政策 - EPUB Merger & Splitter"
   },
-  "PRIVACY": {
-    "CCFK": {
+ "PRIVACY": {
+    "PMAS": {
+      "TITLE": "隱私權政策 - PDF Merger & Splitter",
+      "LAST_UPDATED": "最後更新：2026-08-10",
+      "INTRO": "PDF Merger & Splitter（<strong>本應用程式</strong>）由<strong>Sheldrapps</strong>開發及維護。本隱私權政策說明您使用本應用程式時資訊的處理方式。",
+      "SECTION_2_TITLE": "2. PDF 檔案與內容",
+      "SECTION_2_ITEM_1": "您選取的 PDF 檔案會<strong>在您的裝置上本機</strong>處理。",
+      "SECTION_2_ITEM_2": "本應用程式<strong>不會</strong>將您的 PDF 檔案上傳或儲存在外部伺服器。",
+      "SECTION_2_ITEM_3": "產生的 PDF 檔案會保留在您的裝置上，除非您主動分享。"
+    },
+     "CCFK": {
       "TITLE": "隱私權政策 - 建立Kindle封面",
       "LAST_UPDATED": "最後更新: 2026-01-19",
       "INTRO": "Kindle 封面創建器（<strong> 應用程式</strong>）由 <strong>Sheldrapps</strong> 開發和維護。本隱私權政策解釋了您使用該應用程式時如何處理資訊。",

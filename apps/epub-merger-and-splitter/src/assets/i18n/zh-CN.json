@@ -158,8 +158,8 @@
         "SUBLINE": "使用书籍目录。"
       },
       "MANUAL_SPLIT_POINTS": {
-        "TITLE": "选择拆分点",
-        "SUBLINE": "手动组合章节。"
+        "TITLE": "手动选择",
+        "SUBLINE": "手动选择目录条目。"
       },
       "EQUAL_PARTS": {
         "TITLE": "均等分段",
@@ -228,6 +228,7 @@
       "SIZE_50": "50 MB",
       "SIZE_CUSTOM": "自定义",
       "APPROXIMATE_SIZE": "创建大致不超过指定大小的文件。",
+      "COVER_AND_BOOK_SIZE": "≈ 封面 → {{cover}} · 其余书籍 → {{book}}",
       "EXAMPLE_PART_ONE": "第一部分",
       "EXAMPLE_CHAPTER_ONE": "第1章",
       "EXAMPLE_CHAPTER_TWO": "第2章",

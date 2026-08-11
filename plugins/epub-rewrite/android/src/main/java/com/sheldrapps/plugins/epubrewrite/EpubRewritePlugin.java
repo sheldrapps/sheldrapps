@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ContentUris;
 import android.database.Cursor;
@@ -14,6 +15,11 @@ import android.os.StatFs;
 import android.provider.OpenableColumns;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.util.Xml;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import androidx.core.content.FileProvider;
 
 import com.getcapacitor.JSObject;
@@ -26,7 +32,6 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
-import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 
 import java.io.BufferedInputStream;
@@ -57,6 +62,7 @@ import java.util.Deque;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -64,12 +70,10 @@ import java.util.regex.Pattern;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.zip.CRC32;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 import java.util.stream.Stream;
 import androidx.activity.result.ActivityResult;
 import com.getcapacitor.JSArray;
@@ -87,12 +91,19 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import org.xmlpull.v1.XmlPullParser;
 
 @CapacitorPlugin(name = "EpubRewritePlugin")
 public class EpubRewritePlugin extends Plugin {
     private static final String TAG = "EpubRewritePlugin";
     private static final boolean DEBUG_IO = true;
     private static final int BUFFER_SIZE = 128 * 1024;
+    private static final int LARGE_TEXT_TAIL_CHARS = 64 * 1024;
+    private static final int PROGRESS_CHECKPOINT_PERCENT = 5;
+    private static final float OPERATION_SCREEN_BRIGHTNESS = 0.10f;
+    private static final long OPERATION_SCREEN_DIM_DELAY_MS = 15_000L;
+    private static final long MAX_IN_MEMORY_TEXT_ENTRY_BYTES = 4L * 1024L * 1024L;
+    private static final long MAX_EXTRACTED_CANDIDATE_IMAGE_BYTES = 30L * 1024L * 1024L;
     private static final long ZIP_LOCAL_FILE_HEADER_SIGNATURE = 0x04034b50L;
     private static final int ZIP_LOCAL_FILE_HEADER_REMAINDER_BYTES = 26;
     private static final int ZIP_DATA_DESCRIPTOR_FLAG = 0x0008;
@@ -121,6 +132,14 @@ public class EpubRewritePlugin extends Plugin {
         "(<(?:a|area)\\b[^>]*?)\\s+href\\s*=\\s*(['\\\"])([^'\\\"]+)\\2([^>]*>)",
         Pattern.CASE_INSENSITIVE | Pattern.DOTALL
     );
+    private static final Pattern LARGE_LINK_ATTRIBUTE_PATTERN = Pattern.compile(
+        "\\b(?:href|src|xlink:href)\\s*=\\s*(['\\\"])([^'\\\"]*)\\1",
+        Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern LARGE_ID_ATTRIBUTE_PATTERN = Pattern.compile(
+        "\\b(?:id|xml:id)\\s*=\\s*(['\\\"])([^'\\\"]+)\\1",
+        Pattern.CASE_INSENSITIVE
+    );
     private static final Pattern CSS_RESOURCE_PATTERN = Pattern.compile(
         "(?:url|@import)\\s*\\(?(?:\\s*['\\\"])?([^'\\\"()#?\\s]+)",
         Pattern.CASE_INSENSITIVE
@@ -132,6 +151,11 @@ public class EpubRewritePlugin extends Plugin {
     private final AtomicBoolean busy = new AtomicBoolean(false);
     private final AtomicBoolean cancelRequested = new AtomicBoolean(false);
     private final EpubCoverLocator coverLocator = new EpubCoverLocator();
+    private boolean screenDimmingActive;
+    private boolean screenDimmingScheduled;
+    private float screenBrightnessBeforeOperation = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
+    private View screenInteractionView;
+    private Runnable screenDimmingRunnable;
 
     @PluginMethod
     public void prepare(PluginCall call) {
@@ -169,6 +193,11 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     @PluginMethod
+    public void extractImageAssets(PluginCall call) {
+        runExclusive(call, "extract_images", this::extractImageAssetsInternal);
+    }
+
+    @PluginMethod
     public void createEpubFromCover(PluginCall call) {
         runExclusive(call, "create_epub", this::createEpubFromCoverInternal);
     }
@@ -186,6 +215,11 @@ public class EpubRewritePlugin extends Plugin {
     @PluginMethod
     public void splitEpub(PluginCall call) {
         runExclusive(call, "split", this::splitEpubInternal);
+    }
+
+    @PluginMethod
+    public void analyzeSplitEpub(PluginCall call) {
+        runExclusive(call, "split_analysis", this::analyzeSplitEpubInternal);
     }
 
     @PluginMethod
@@ -408,6 +442,8 @@ public class EpubRewritePlugin extends Plugin {
         }
 
         executor.execute(() -> {
+            setKeepScreenOn(true);
+            setScreenDimmedForOperation(true);
             try {
                 JSObject result = pickAndPrepareEpubInternal(call, selectedUri);
                 result.put("sourceUri", selectedUri.toString());
@@ -433,6 +469,8 @@ public class EpubRewritePlugin extends Plugin {
                 reportNonFatalFailure(errorCode, ex.getMessage(), "pick_prepare", ex);
                 call.resolve(errorResult(errorCode, ex.getMessage(), "pick_prepare", null, null, false));
             } finally {
+                setScreenDimmedForOperation(false);
+                setKeepScreenOn(false);
                 cancelRequested.set(false);
                 busy.set(false);
             }
@@ -500,6 +538,8 @@ public class EpubRewritePlugin extends Plugin {
         }
 
         executor.execute(() -> {
+            setKeepScreenOn(true);
+            setScreenDimmedForOperation(true);
             try {
                 JSArray items = new JSArray();
                 for (Uri selectedUri : selectedUris) {
@@ -527,6 +567,8 @@ public class EpubRewritePlugin extends Plugin {
                 reportNonFatalFailure(errorCode, ex.getMessage(), "pick_prepare", ex);
                 call.resolve(errorResult(errorCode, ex.getMessage(), "pick_prepare", null, null, false));
             } finally {
+                setScreenDimmedForOperation(false);
+                setKeepScreenOn(false);
                 cancelRequested.set(false);
                 busy.set(false);
             }
@@ -590,6 +632,8 @@ public class EpubRewritePlugin extends Plugin {
     @Override
     protected void handleOnDestroy() {
         cancelRequested.set(true);
+        setScreenDimmedForOperation(false);
+        setKeepScreenOn(false);
         executor.shutdownNow();
     }
 
@@ -601,6 +645,8 @@ public class EpubRewritePlugin extends Plugin {
 
         cancelRequested.set(false);
         debugIo("operation start stage=" + stage);
+        setKeepScreenOn(true);
+        setScreenDimmedForOperation(true);
 
         executor.execute(() -> {
             try {
@@ -623,11 +669,90 @@ public class EpubRewritePlugin extends Plugin {
                 reportNonFatalFailure(errorCode, ex.getMessage(), stage, ex);
                 call.resolve(errorResult(errorCode, ex.getMessage(), stage, null, null, false));
             } finally {
+                setScreenDimmedForOperation(false);
+                setKeepScreenOn(false);
                 cancelRequested.set(false);
                 busy.set(false);
                 debugIo("operation end stage=" + stage);
             }
         });
+    }
+
+    private void setKeepScreenOn(boolean keepScreenOn) {
+        Context context = getContext();
+        if (!(context instanceof Activity)) return;
+        Activity activity = (Activity) context;
+        activity.runOnUiThread(() -> {
+            if (keepScreenOn) {
+                activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            } else {
+                activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            }
+        });
+    }
+
+    private void setScreenDimmedForOperation(boolean dimmed) {
+        Context context = getContext();
+        if (!(context instanceof Activity)) return;
+        Activity activity = (Activity) context;
+        activity.runOnUiThread(() -> {
+            if (dimmed) {
+                if (screenDimmingActive || screenDimmingScheduled) return;
+                Window window = activity.getWindow();
+                WindowManager.LayoutParams attributes = window.getAttributes();
+                screenBrightnessBeforeOperation = attributes.screenBrightness;
+                View interactionView = getBridge() == null ? null : getBridge().getWebView();
+                if (interactionView == null) {
+                    interactionView = window.getDecorView();
+                }
+                scheduleScreenDimming(activity, interactionView);
+                return;
+            }
+            restoreScreenBrightness(activity);
+        });
+    }
+
+    private void scheduleScreenDimming(Activity activity, View interactionView) {
+        Window window = activity.getWindow();
+        screenInteractionView = interactionView;
+        interactionView.setOnTouchListener((view, event) -> {
+            if (event != null && event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                restoreScreenBrightness(activity);
+                scheduleScreenDimming(activity, view);
+            }
+            return false;
+        });
+        screenDimmingScheduled = true;
+        screenDimmingRunnable = () -> {
+            screenDimmingRunnable = null;
+            screenDimmingScheduled = false;
+            if (screenDimmingActive) return;
+            screenDimmingActive = true;
+            WindowManager.LayoutParams attributes = window.getAttributes();
+            attributes.screenBrightness = attributes.screenBrightness >= 0f
+                ? Math.min(attributes.screenBrightness, OPERATION_SCREEN_BRIGHTNESS)
+                : OPERATION_SCREEN_BRIGHTNESS;
+            window.setAttributes(attributes);
+        };
+        window.getDecorView().postDelayed(screenDimmingRunnable, OPERATION_SCREEN_DIM_DELAY_MS);
+    }
+
+    private void restoreScreenBrightness(Activity activity) {
+        Window window = activity.getWindow();
+        if (screenDimmingRunnable != null) {
+            window.getDecorView().removeCallbacks(screenDimmingRunnable);
+            screenDimmingRunnable = null;
+        }
+        screenDimmingScheduled = false;
+        if (screenInteractionView != null) {
+            screenInteractionView.setOnTouchListener(null);
+            screenInteractionView = null;
+        }
+        if (!screenDimmingActive) return;
+        WindowManager.LayoutParams attributes = window.getAttributes();
+        attributes.screenBrightness = screenBrightnessBeforeOperation;
+        window.setAttributes(attributes);
+        screenDimmingActive = false;
     }
 
     private void inspectEpubInternal(PluginCall call) throws Exception {
@@ -666,6 +791,63 @@ public class EpubRewritePlugin extends Plugin {
         }
     }
 
+    private void extractImageAssetsInternal(PluginCall call) throws Exception {
+        Path inputPath = requireReadablePath(call.getString("inputPath"));
+        int requestedMaxImages = call.getInt("maxImages", 64);
+        int maxImages = Math.max(1, Math.min(requestedMaxImages, 128));
+        long requestedMaxBytes = call.getLong(
+            "maxBytesPerImage",
+            MAX_EXTRACTED_CANDIDATE_IMAGE_BYTES
+        );
+        long maxBytesPerImage = Math.max(
+            1L,
+            Math.min(requestedMaxBytes, MAX_EXTRACTED_CANDIDATE_IMAGE_BYTES)
+        );
+
+        try (ZipFile zipFile = new ZipFile(inputPath.toFile())) {
+            JSArray images = new JSArray();
+            int zipImageCount = 0;
+            int imageIndex = 0;
+            for (FileHeader header : zipFile.getFileHeaders()) {
+                ensureNotCancelled();
+                String sourcePath = normalizeZipPath(header.getFileName());
+                if (!isCandidateImagePath(sourcePath)) {
+                    continue;
+                }
+                zipImageCount += 1;
+                if (images.length() >= maxImages) {
+                    continue;
+                }
+                long uncompressedSize = header.getUncompressedSize();
+                if (uncompressedSize > maxBytesPerImage) {
+                    imageIndex += 1;
+                    continue;
+                }
+
+                Path extractedPath = buildExtractedCandidateImagePath(sourcePath, imageIndex);
+                try {
+                    extractEntry(zipFile, header, extractedPath, maxBytesPerImage);
+                    JSObject image = new JSObject();
+                    image.put("sourcePath", sourcePath);
+                    image.put("tempImagePath", extractedPath.toString());
+                    image.put("mimeType", candidateImageMimeFromPath(sourcePath));
+                    image.put("sizeBytes", Files.size(extractedPath));
+                    image.put("index", imageIndex);
+                    images.put(image);
+                } catch (IOException ignored) {
+                    deleteIfExists(extractedPath);
+                }
+                imageIndex += 1;
+            }
+
+            JSObject result = new JSObject();
+            result.put("success", true);
+            result.put("images", images);
+            result.put("zipImageCount", zipImageCount);
+            call.resolve(result);
+        }
+    }
+
     private void rewriteCoverInternal(PluginCall call) throws Exception {
         String rawInputPath = call.getString("inputPath");
         String rawOutputPath = call.getString("outputPath");
@@ -700,7 +882,9 @@ public class EpubRewritePlugin extends Plugin {
 
         long inputBytes = Files.size(inputPath);
         long startedAt = System.currentTimeMillis();
-        long requiredBytes = safeAdd(inputBytes, STORAGE_MARGIN_BYTES);
+        long requiredBytes = inPlaceMode
+            ? safeAdd(safeAdd(inputBytes, inputBytes), STORAGE_MARGIN_BYTES)
+            : safeAdd(inputBytes, STORAGE_MARGIN_BYTES);
         ensureSufficientSpace(effectiveOutputPath, requiredBytes, "rewrite");
         debugIo(
             "rewriteCover start mode=" + (inPlaceMode ? "in_place" : "output")
@@ -810,22 +994,34 @@ public class EpubRewritePlugin extends Plugin {
         deleteIfExists(tempOutputPath);
 
         try {
-            try (ZipFile zipFile = new ZipFile(tempOutputPath.toFile())) {
-                addTextEntry(zipFile, "mimetype", "application/epub+zip", true);
-                addTextEntry(zipFile, "META-INF/container.xml", buildContainerXml(), false);
-                addTextEntry(
-                    zipFile,
-                    "OEBPS/content.opf",
-                    buildContentOpf(title, lang, coverId, coverFileName, coverMediaType),
-                    false
+            try (StreamingEpubArchiveWriter archiveWriter =
+                new StreamingEpubArchiveWriter(tempOutputPath)) {
+                archiveWriter.writeStoredBytes(
+                    "mimetype",
+                    "application/epub+zip".getBytes(StandardCharsets.US_ASCII)
                 );
-                addTextEntry(zipFile, "OEBPS/nav.xhtml", buildNavXhtml(), false);
-                addTextEntry(zipFile, "OEBPS/cover.xhtml", buildCoverXhtml(coverFileName), false);
-                addTextEntry(zipFile, "OEBPS/thanks.xhtml", buildThanksXhtml(appName, lang), false);
-
-                ZipParameters coverParams = new ZipParameters();
-                coverParams.setFileNameInZip("OEBPS/" + coverFileName);
-                zipFile.addFile(coverPath.toFile(), coverParams);
+                archiveWriter.writeDeflatedBytes(
+                    "META-INF/container.xml",
+                    buildContainerXml().getBytes(StandardCharsets.UTF_8)
+                );
+                archiveWriter.writeDeflatedBytes(
+                    "OEBPS/content.opf",
+                    buildContentOpf(title, lang, coverId, coverFileName, coverMediaType)
+                        .getBytes(StandardCharsets.UTF_8)
+                );
+                archiveWriter.writeDeflatedBytes(
+                    "OEBPS/nav.xhtml",
+                    buildNavXhtml().getBytes(StandardCharsets.UTF_8)
+                );
+                archiveWriter.writeDeflatedBytes(
+                    "OEBPS/cover.xhtml",
+                    buildCoverXhtml(coverFileName).getBytes(StandardCharsets.UTF_8)
+                );
+                archiveWriter.writeDeflatedBytes(
+                    "OEBPS/thanks.xhtml",
+                    buildThanksXhtml(appName, lang).getBytes(StandardCharsets.UTF_8)
+                );
+                archiveWriter.writeStoredFile("OEBPS/" + coverFileName, coverPath);
             }
 
             Files.move(
@@ -2015,6 +2211,23 @@ public class EpubRewritePlugin extends Plugin {
     ) throws Exception {
         java.util.ArrayList<EpubIssue> issues = new java.util.ArrayList<>();
         FileHeader header = findHeader(zipFile.getFileHeaders(), manifestItem.resolvedPath);
+        if (
+            header != null
+                && header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES
+        ) {
+            StreamingXmlSanitizer sanitizer = inspectLargeTextEntry(
+                zipFile,
+                header,
+                false
+            );
+            if (sanitizer.sawDoctype()) {
+                issues.add(issue("HIGH-XHTML-003", "warning", true, manifestItem.resolvedPath));
+            }
+            if (sanitizer.changed()) {
+                issues.add(issue("HIGH-XHTML-001", "warning", true, manifestItem.resolvedPath));
+            }
+            return issues;
+        }
         byte[] bytes = header == null ? null : readEntryBytes(zipFile, header);
         if (bytes == null) {
             return issues;
@@ -2069,14 +2282,20 @@ public class EpubRewritePlugin extends Plugin {
 
         try (
             ZipFile sourceZip = new ZipFile(sourceZipPath.toFile());
-            ZipFile outputZip = new ZipFile(outputZipPath.toFile())
+            org.apache.commons.compress.archivers.zip.ZipFile rawSource =
+                new org.apache.commons.compress.archivers.zip.ZipFile(sourceZipPath.toFile());
+            StreamingEpubArchiveWriter archiveWriter =
+                new StreamingEpubArchiveWriter(outputZipPath)
         ) {
             List<FileHeader> headers = sourceZip.getFileHeaders();
             if (headers == null || headers.isEmpty()) {
                 throw new IOException("Invalid EPUB: empty headers");
             }
 
-            addTextEntry(outputZip, "mimetype", "application/epub+zip", true);
+            archiveWriter.writeStoredBytes(
+                "mimetype",
+                "application/epub+zip".getBytes(StandardCharsets.US_ASCII)
+            );
             if (repairedIssues != null) {
                 if (analysis.mimetypeMissing) {
                     repairedIssues.add("MIMETYPE_MISSING");
@@ -2086,11 +2305,9 @@ public class EpubRewritePlugin extends Plugin {
                 }
             }
             if (rewriteContainerDocument && analysis.opfPath != null) {
-                addTextEntry(
-                    outputZip,
+                archiveWriter.writeDeflatedBytes(
                     "META-INF/container.xml",
-                    buildContainerXml(analysis.opfPath),
-                    false
+                    buildContainerXml(analysis.opfPath).getBytes(StandardCharsets.UTF_8)
                 );
                 if (repairedIssues != null) {
                     for (EpubIssue issue : analysis.issues) {
@@ -2140,7 +2357,6 @@ public class EpubRewritePlugin extends Plugin {
                     continue;
                 }
 
-                ZipParameters parameters = buildParametersFromHeader(header, entryPath, null);
                 if (
                     rewriteOpfDocument
                         && analysis.opfPath != null
@@ -2149,54 +2365,101 @@ public class EpubRewritePlugin extends Plugin {
                 ) {
                     String repairedOpf = rewritePackageDocument(analysis, repairedIssues);
                     byte[] repairedBytes = repairedOpf.getBytes(StandardCharsets.UTF_8);
-                    parameters = buildParametersFromBytes(header, entryPath, repairedBytes);
-                    try (InputStream entryInput = new ByteArrayInputStream(repairedBytes)) {
-                        outputZip.addStream(entryInput, parameters);
-                    }
+                    archiveWriter.writeDeflatedBytes(entryPath, repairedBytes);
                 } else {
                     ParsedManifestItem manifestItem = findManifestItemByResolvedPath(
                         analysis.manifestItems,
                         entryPath
                     );
-                    ContentDocumentRepairResult repairedDocument = repairInspectableContentDocument(
-                        sourceZip,
-                        manifestItem,
-                        false
+                    Path largeRepairPath = outputZipPath.resolveSibling(
+                        outputZipPath.getFileName().toString()
+                            + "." + UUID.randomUUID() + ".repair-text.tmp"
                     );
-                    byte[] repairedBytes = repairedDocument == null ? null : repairedDocument.content;
-                    String contentText = repairedBytes == null
-                        ? null
-                        : new String(repairedBytes, StandardCharsets.UTF_8);
-                    InternalLinkRepairResult repairedContent = tryRewriteInternalLinkContent(
-                        sourceZip,
-                        entryPath,
-                        analysis,
-                        guidedSelections,
-                        contentText
-                    );
-                    if (repairedContent != null) {
-                        repairedBytes = repairedContent.content;
-                    }
-
-                    if (repairedBytes != null) {
-                        parameters = buildParametersFromBytes(header, entryPath, repairedBytes);
-                        try (InputStream entryInput = new ByteArrayInputStream(repairedBytes)) {
-                            outputZip.addStream(entryInput, parameters);
-                        }
-                        if (repairedIssues != null) {
-                            if (repairedDocument != null) {
-                                repairedIssues.addAll(repairedDocument.repairedIssueCodes);
+                    LargeContentRepairResult largeRepair = null;
+                    try {
+                        largeRepair = repairLargeContentDocumentToFile(
+                            sourceZip,
+                            manifestItem,
+                            largeRepairPath,
+                            false
+                        );
+                        if (largeRepair != null) {
+                            Path largeLinkRepairPath = outputZipPath.resolveSibling(
+                                outputZipPath.getFileName().toString()
+                                    + "." + UUID.randomUUID() + ".repair-links.tmp"
+                            );
+                            try {
+                                LargeContentRepairResult largeLinkRepair =
+                                    rewriteLargeInternalLinksToFile(
+                                        sourceZip,
+                                        largeRepair.outputPath,
+                                        largeLinkRepairPath,
+                                        entryPath,
+                                        analysis,
+                                        guidedSelections
+                                    );
+                                Path selectedRepairPath = largeLinkRepair.changed
+                                    ? largeLinkRepair.outputPath
+                                    : largeRepair.outputPath;
+                                if (largeLinkRepair.changed || largeRepair.changed) {
+                                    try (InputStream repairedInput = Files.newInputStream(selectedRepairPath)) {
+                                        archiveWriter.writeDeflatedStream(entryPath, repairedInput);
+                                    }
+                                } else {
+                                    archiveWriter.writeRaw(
+                                        rawSource,
+                                        rawSource.getEntry(entryPath),
+                                        entryPath
+                                    );
+                                }
+                                if (repairedIssues != null) {
+                                    repairedIssues.addAll(largeRepair.repairedIssueCodes);
+                                    repairedIssues.addAll(largeLinkRepair.repairedIssueCodes);
+                                }
+                            } finally {
+                                deleteIfExists(largeLinkRepairPath);
                             }
+                        } else {
+                            ContentDocumentRepairResult repairedDocument = repairInspectableContentDocument(
+                                sourceZip,
+                                manifestItem,
+                                false
+                            );
+                            byte[] repairedBytes = repairedDocument == null ? null : repairedDocument.content;
+                            String contentText = repairedBytes == null
+                                ? null
+                                : new String(repairedBytes, StandardCharsets.UTF_8);
+                            InternalLinkRepairResult repairedContent = tryRewriteInternalLinkContent(
+                                sourceZip,
+                                entryPath,
+                                analysis,
+                                guidedSelections,
+                                contentText
+                            );
                             if (repairedContent != null) {
-                                repairedIssues.addAll(repairedContent.repairedIssueCodes);
+                                repairedBytes = repairedContent.content;
+                            }
+
+                            if (repairedBytes != null) {
+                                archiveWriter.writeDeflatedBytes(entryPath, repairedBytes);
+                                if (repairedIssues != null) {
+                                    if (repairedDocument != null) {
+                                        repairedIssues.addAll(repairedDocument.repairedIssueCodes);
+                                    }
+                                    if (repairedContent != null) {
+                                        repairedIssues.addAll(repairedContent.repairedIssueCodes);
+                                    }
+                                }
+                            } else {
+                                archiveWriter.writeRaw(
+                                    rawSource,
+                                    rawSource.getEntry(entryPath),
+                                    entryPath
+                                );
                             }
                         }
-                    } else {
-                        try (InputStream entryInput = new BufferedInputStream(
-                            sourceZip.getInputStream(header)
-                        )) {
-                            outputZip.addStream(entryInput, parameters);
-                        }
+                    } finally {
+                        deleteIfExists(largeRepairPath);
                     }
                 }
 
@@ -2212,25 +2475,74 @@ public class EpubRewritePlugin extends Plugin {
                     continue;
                 }
 
-                ContentDocumentRepairResult fallbackRepair = repairInspectableContentDocument(
-                    sourceZip,
-                    sourceItem,
-                    true
+                Path fallbackRepairPath = outputZipPath.resolveSibling(
+                    outputZipPath.getFileName().toString()
+                        + "." + UUID.randomUUID() + ".fallback-text.tmp"
                 );
-                if (fallbackRepair == null) {
-                    continue;
-                }
+                try {
+                    LargeContentRepairResult largeFallback = repairLargeContentDocumentToFile(
+                        sourceZip,
+                        sourceItem,
+                        fallbackRepairPath,
+                        true
+                    );
+                    if (largeFallback != null) {
+                        Path fallbackLinkRepairPath = outputZipPath.resolveSibling(
+                            outputZipPath.getFileName().toString()
+                                + "." + UUID.randomUUID() + ".fallback-links.tmp"
+                        );
+                        try {
+                            LargeContentRepairResult largeFallbackLinks =
+                                rewriteLargeInternalLinksToFile(
+                                    sourceZip,
+                                    largeFallback.outputPath,
+                                    fallbackLinkRepairPath,
+                                    sourceItem.resolvedPath,
+                                    analysis,
+                                    guidedSelections
+                                );
+                            Path selectedFallbackPath = largeFallbackLinks.changed
+                                ? largeFallbackLinks.outputPath
+                                : largeFallback.outputPath;
+                            try (InputStream fallbackInput = Files.newInputStream(selectedFallbackPath)) {
+                                archiveWriter.writeDeflatedStream(
+                                    fallbackPlan.fallbackResolvedPath,
+                                    fallbackInput
+                                );
+                            }
+                            if (repairedIssues != null) {
+                                repairedIssues.addAll(largeFallbackLinks.repairedIssueCodes);
+                            }
+                        } finally {
+                            deleteIfExists(fallbackLinkRepairPath);
+                        }
+                        if (repairedIssues != null) {
+                            repairedIssues.addAll(largeFallback.repairedIssueCodes);
+                            repairedIssues.add("HIGH-FALLBACK-001");
+                        }
+                        continue;
+                    }
 
-                ZipParameters parameters = new ZipParameters();
-                parameters.setFileNameInZip(fallbackPlan.fallbackResolvedPath);
-                parameters.setCompressionMethod(CompressionMethod.DEFLATE);
-                try (InputStream entryInput = new ByteArrayInputStream(fallbackRepair.content)) {
-                    outputZip.addStream(entryInput, parameters);
-                }
+                    ContentDocumentRepairResult fallbackRepair = repairInspectableContentDocument(
+                        sourceZip,
+                        sourceItem,
+                        true
+                    );
+                    if (fallbackRepair == null) {
+                        continue;
+                    }
 
-                if (repairedIssues != null) {
-                    repairedIssues.addAll(fallbackRepair.repairedIssueCodes);
-                    repairedIssues.add("HIGH-FALLBACK-001");
+                    archiveWriter.writeDeflatedBytes(
+                        fallbackPlan.fallbackResolvedPath,
+                        fallbackRepair.content
+                    );
+
+                    if (repairedIssues != null) {
+                        repairedIssues.addAll(fallbackRepair.repairedIssueCodes);
+                        repairedIssues.add("HIGH-FALLBACK-001");
+                    }
+                } finally {
+                    deleteIfExists(fallbackRepairPath);
                 }
             }
 
@@ -2675,6 +2987,25 @@ public class EpubRewritePlugin extends Plugin {
                 continue;
             }
 
+            FileHeader header = findHeader(zipFile.getFileHeaders(), manifestItem.resolvedPath);
+            if (
+                header != null
+                    && header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES
+            ) {
+                issues.addAll(
+                    collectLargeInternalLinkIssues(
+                        zipFile,
+                        header,
+                        manifestItem.resolvedPath,
+                        opfDir,
+                        manifestItems,
+                        documentIdCache,
+                        null
+                    )
+                );
+                continue;
+            }
+
             String sourceText = readZipText(zipFile, manifestItem.resolvedPath);
             if (sourceText == null) {
                 continue;
@@ -2706,6 +3037,49 @@ public class EpubRewritePlugin extends Plugin {
             );
         }
 
+        return issues;
+    }
+
+    private java.util.ArrayList<EpubIssue> collectLargeInternalLinkIssues(
+        ZipFile zipFile,
+        FileHeader header,
+        String entryPath,
+        String opfDir,
+        java.util.ArrayList<ParsedManifestItem> manifestItems,
+        java.util.HashMap<String, java.util.HashSet<String>> documentIdCache,
+        JSObject guidedSelections
+    ) throws IOException {
+        java.util.ArrayList<EpubIssue> issues = new java.util.ArrayList<>();
+        java.util.HashSet<String> sourceDocumentIds = collectLargeDocumentIds(zipFile, header);
+        inspectTextEntry(
+            zipFile,
+            header,
+            new StreamingTextTransform() {
+                @Override
+                public String transform(String chunk, boolean finalChunk) throws IOException {
+                    Matcher matcher = LARGE_LINK_ATTRIBUTE_PATTERN.matcher(chunk);
+                    while (matcher.find()) {
+                        try {
+                            InternalLinkEvaluation evaluation = evaluateInternalLinkReference(
+                                zipFile,
+                                entryPath,
+                                opfDir,
+                                manifestItems,
+                                sourceDocumentIds,
+                                matcher.group(2),
+                                documentIdCache,
+                                false,
+                                guidedSelections
+                            );
+                            issues.addAll(evaluation.issues);
+                        } catch (Exception error) {
+                            throw new IOException("Unable to inspect large EPUB link", error);
+                        }
+                    }
+                    return chunk;
+                }
+            }
+        );
         return issues;
     }
 
@@ -2792,6 +3166,11 @@ public class EpubRewritePlugin extends Plugin {
         }
 
         FileHeader header = findHeader(zipFile.getFileHeaders(), manifestItem.resolvedPath);
+        if (header != null && header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES) {
+            debugIo("repair large text preserved raw path=" + manifestItem.resolvedPath
+                + " bytes=" + header.getUncompressedSize());
+            return null;
+        }
         byte[] entryBytes = header == null ? null : readEntryBytes(zipFile, header);
         if (entryBytes == null) {
             return null;
@@ -3117,6 +3496,12 @@ public class EpubRewritePlugin extends Plugin {
 
         Document document = parsedDocument;
         if (document == null) {
+            FileHeader header = findHeader(zipFile.getFileHeaders(), normalizedPath);
+            if (header != null && header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES) {
+                java.util.HashSet<String> ids = collectLargeDocumentIds(zipFile, header);
+                documentIdCache.put(normalizedPath, ids);
+                return ids;
+            }
             String documentText = readZipText(zipFile, normalizedPath);
             if (documentText == null) {
                 java.util.HashSet<String> empty = new java.util.HashSet<>();
@@ -5111,8 +5496,8 @@ public class EpubRewritePlugin extends Plugin {
         try (
             InputStream inputStream = new BufferedInputStream(Files.newInputStream(sourcePath));
             ZipInputStream zipInputStream = new ZipInputStream(inputStream);
-            OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(recoveredPath));
-            ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)
+            StreamingEpubArchiveWriter archiveWriter =
+                new StreamingEpubArchiveWriter(recoveredPath)
         ) {
             while (true) {
                 ZipEntry entry;
@@ -5138,23 +5523,9 @@ public class EpubRewritePlugin extends Plugin {
 
                     if ("mimetype".equals(entryName)) {
                         byte[] mimetypeBytes = readStreamBytes(zipInputStream);
-                        ZipEntry recoveredEntry = new ZipEntry(entryName);
-                        recoveredEntry.setMethod(ZipEntry.STORED);
-                        recoveredEntry.setTime(entry.getTime());
-                        recoveredEntry.setSize(mimetypeBytes.length);
-                        recoveredEntry.setCompressedSize(mimetypeBytes.length);
-                        CRC32 crc32 = new CRC32();
-                        crc32.update(mimetypeBytes);
-                        recoveredEntry.setCrc(crc32.getValue());
-                        zipOutputStream.putNextEntry(recoveredEntry);
-                        zipOutputStream.write(mimetypeBytes);
-                        zipOutputStream.closeEntry();
+                        archiveWriter.writeStoredBytes(entryName, mimetypeBytes);
                     } else {
-                        ZipEntry recoveredEntry = new ZipEntry(entryName);
-                        recoveredEntry.setTime(entry.getTime());
-                        zipOutputStream.putNextEntry(recoveredEntry);
-                        copyStream(zipInputStream, zipOutputStream);
-                        zipOutputStream.closeEntry();
+                        archiveWriter.writeDeflatedStream(entryName, zipInputStream);
                     }
                     recoveredEntries += 1;
                 } catch (Exception ex) {
@@ -5185,8 +5556,8 @@ public class EpubRewritePlugin extends Plugin {
         int recoveredEntries = 0;
         try (
             InputStream inputStream = new BufferedInputStream(Files.newInputStream(sourcePath));
-            OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(recoveredPath));
-            ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)
+            StreamingEpubArchiveWriter archiveWriter =
+                new StreamingEpubArchiveWriter(recoveredPath)
         ) {
             byte[] signature = new byte[4];
             while (readFullyOrEnd(inputStream, signature)) {
@@ -5224,36 +5595,21 @@ public class EpubRewritePlugin extends Plugin {
                         return false;
                     }
                     byte[] mimetypeBytes = readExactBytes(entryInput, (int) compressedSize);
-                    ZipEntry mimetypeEntry = new ZipEntry(entryName);
-                    mimetypeEntry.setMethod(ZipEntry.STORED);
-                    mimetypeEntry.setSize(mimetypeBytes.length);
-                    mimetypeEntry.setCompressedSize(mimetypeBytes.length);
-                    CRC32 crc32 = new CRC32();
-                    crc32.update(mimetypeBytes);
-                    mimetypeEntry.setCrc(crc32.getValue());
-                    zipOutputStream.putNextEntry(mimetypeEntry);
-                    zipOutputStream.write(mimetypeBytes);
-                    zipOutputStream.closeEntry();
+                    archiveWriter.writeStoredBytes(entryName, mimetypeBytes);
                 } else if (compressionMethod == 0) {
-                    ZipEntry recoveredEntry = new ZipEntry(entryName);
-                    zipOutputStream.putNextEntry(recoveredEntry);
-                    copyStream(entryInput, zipOutputStream);
-                    zipOutputStream.closeEntry();
+                    archiveWriter.writeDeflatedStream(entryName, entryInput);
                 } else if (compressionMethod == 8) {
-                    ZipEntry recoveredEntry = new ZipEntry(entryName);
-                    zipOutputStream.putNextEntry(recoveredEntry);
                     Inflater inflater = new Inflater(true);
                     try (InflaterInputStream inflaterInput = new InflaterInputStream(
                         entryInput,
                         inflater,
                         BUFFER_SIZE
                     )) {
-                        copyStream(inflaterInput, zipOutputStream);
+                        archiveWriter.writeDeflatedStream(entryName, inflaterInput);
                     } finally {
                         inflater.end();
                     }
                     entryInput.drain();
-                    zipOutputStream.closeEntry();
                 } else {
                     return false;
                 }
@@ -5324,7 +5680,16 @@ public class EpubRewritePlugin extends Plugin {
 
     private byte[] readStreamBytes(InputStream inputStream) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        copyStream(inputStream, outputStream);
+        byte[] buffer = new byte[BUFFER_SIZE];
+        long totalBytes = 0L;
+        int read;
+        while ((read = inputStream.read(buffer)) != -1) {
+            totalBytes += read;
+            if (totalBytes > MAX_IN_MEMORY_TEXT_ENTRY_BYTES) {
+                throw new IOException("EPUB text entry exceeds the in-memory safety limit");
+            }
+            outputStream.write(buffer, 0, read);
+        }
         return outputStream.toByteArray();
     }
 
@@ -5490,7 +5855,10 @@ public class EpubRewritePlugin extends Plugin {
 
         try (
             ZipFile sourceZip = new ZipFile(sourceZipPath.toFile());
-            ZipFile outputZip = new ZipFile(outputZipPath.toFile())
+            org.apache.commons.compress.archivers.zip.ZipFile rawSource =
+                new org.apache.commons.compress.archivers.zip.ZipFile(sourceZipPath.toFile());
+            StreamingEpubArchiveWriter archiveWriter =
+                new StreamingEpubArchiveWriter(outputZipPath)
         ) {
             List<FileHeader> headers = sourceZip.getFileHeaders();
             if (headers == null || headers.isEmpty()) {
@@ -5531,16 +5899,29 @@ public class EpubRewritePlugin extends Plugin {
                 }
 
                 String entryPath = normalizeZipPath(header.getFileName());
-                ZipParameters parameters = buildParametersFromHeader(header, entryPath, null);
-
                 if (coverEntryPath != null && entryPath.equals(coverEntryPath)) {
-                    parameters = buildParametersFromHeader(
-                        header,
-                        replacementCoverEntryPath,
-                        newCoverPath
-                    );
-                    outputZip.addFile(newCoverPath.toFile(), parameters);
+                    archiveWriter.writeStoredFile(replacementCoverEntryPath, newCoverPath);
                     coverReplaced = true;
+                } else if (
+                    coverEntryPath != null
+                        && header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES
+                        && isTextEntryPath(entryPath)
+                ) {
+                    boolean changed = rewriteLargeCoverTextEntry(
+                        sourceZip,
+                        rawSource,
+                        archiveWriter,
+                        header,
+                        entryPath,
+                        coverEntryPath,
+                        replacementCoverEntryPath,
+                        outputZipPath
+                    );
+                    if (changed) {
+                        rewrittenEntries += 1;
+                    } else {
+                        copiedEntries += 1;
+                    }
                 } else {
                     byte[] rewrittenText = rewriteCoverReferenceEntry(
                         sourceZip,
@@ -5554,20 +5935,23 @@ public class EpubRewritePlugin extends Plugin {
                     );
                     if (rewrittenText != null) {
                         rewrittenEntries += 1;
-                        parameters = buildParametersFromBytes(header, entryPath, rewrittenText);
-                        try (InputStream entryInput = new ByteArrayInputStream(rewrittenText)) {
-                            outputZip.addStream(entryInput, parameters);
-                        }
+                        archiveWriter.writeDeflatedBytes(entryPath, rewrittenText);
                     } else {
                         copiedEntries += 1;
-                        try (InputStream entryInput = new BufferedInputStream(sourceZip.getInputStream(header))) {
-                            outputZip.addStream(entryInput, parameters);
-                        }
+                        archiveWriter.writeRaw(
+                            rawSource,
+                            rawSource.getEntry(entryPath),
+                            entryPath
+                        );
                     }
                 }
 
                 processedBytes += Math.max(1L, header.getUncompressedSize());
-                emitProgress(interpolate(progressStart, progressEnd, processedBytes, totalBytes));
+                int progress = interpolate(progressStart, progressEnd, processedBytes, totalBytes);
+                int checkpoint = (progress / PROGRESS_CHECKPOINT_PERCENT) * PROGRESS_CHECKPOINT_PERCENT;
+                if (checkpoint > progressStart && checkpoint < progressEnd) {
+                    emitProgress(checkpoint);
+                }
             }
 
             if (!coverReplaced) {
@@ -5575,19 +5959,15 @@ public class EpubRewritePlugin extends Plugin {
                     throw new IOException("Cover entry not found in source archive");
                 }
 
-                ZipParameters addCoverParams = new ZipParameters();
-                addCoverParams.setFileNameInZip(replacementCoverEntryPath);
-                outputZip.addFile(newCoverPath.toFile(), addCoverParams);
+                archiveWriter.writeStoredFile(replacementCoverEntryPath, newCoverPath);
 
                 String imageHref = relativizeZipPath(
                     parentZipPath(insertedCoverPageEntryPath),
                     replacementCoverEntryPath
                 );
-                addTextEntry(
-                    outputZip,
+                archiveWriter.writeDeflatedBytes(
                     insertedCoverPageEntryPath,
-                    buildCoverXhtml(imageHref),
-                    false
+                    buildCoverXhtml(imageHref).getBytes(StandardCharsets.UTF_8)
                 );
             }
 
@@ -5599,10 +5979,65 @@ public class EpubRewritePlugin extends Plugin {
             );
         }
 
-        debugIo(
-            "rewrite archive outputClosed output=" + outputZipPath
-                + " outputBytes=" + safeFileSize(outputZipPath)
+        debugIo("rewrite archive outputClosed output=" + outputZipPath
+            + " outputBytes=" + safeFileSize(outputZipPath));
+    }
+
+    private boolean rewriteLargeCoverTextEntry(
+        ZipFile sourceZip,
+        org.apache.commons.compress.archivers.zip.ZipFile rawSource,
+        StreamingEpubArchiveWriter archiveWriter,
+        FileHeader header,
+        String entryPath,
+        String originalCoverEntryPath,
+        String replacementCoverEntryPath,
+        Path outputZipPath
+    ) throws IOException {
+        String oldRef = relativizeZipPath(
+            parentZipPath(entryPath),
+            originalCoverEntryPath
         );
+        String newRef = relativizeZipPath(
+            parentZipPath(entryPath),
+            replacementCoverEntryPath
+        );
+        if (oldRef.equals(newRef)) {
+            archiveWriter.writeRaw(rawSource, rawSource.getEntry(entryPath), entryPath);
+            return false;
+        }
+
+        Path transformedPath = outputZipPath.resolveSibling(
+            outputZipPath.getFileName().toString()
+                + "." + UUID.randomUUID() + ".cover-text.tmp"
+        );
+        AtomicBoolean changed = new AtomicBoolean(false);
+        try {
+            streamTextEntryToFile(
+                sourceZip,
+                header,
+                transformedPath,
+                new StreamingTextTransform() {
+                    @Override
+                    public String transform(String chunk, boolean finalChunk) {
+                        String rewritten = chunk.replace(oldRef, newRef);
+                        if (!rewritten.equals(chunk)) {
+                            changed.set(true);
+                        }
+                        return rewritten;
+                    }
+                }
+            );
+            if (changed.get()) {
+                try (InputStream transformedInput = Files.newInputStream(transformedPath)) {
+                    archiveWriter.writeDeflatedStream(entryPath, transformedInput);
+                }
+                return true;
+            }
+            archiveWriter.writeRaw(rawSource, rawSource.getEntry(entryPath), entryPath);
+            return false;
+        } finally {
+            deleteIfExists(transformedPath);
+        }
     }
 
     private void validateInsertedCoverArchive(
@@ -5726,9 +6161,8 @@ public class EpubRewritePlugin extends Plugin {
                     if (ncxHeader == null) {
                         throw new IOException("EPUB spine TOC entry is missing");
                     }
-                    String ncxText = decodeXmlBytes(readEntryBytes(zip, ncxHeader));
                     String coverHref = relativizeZipPath(parentZipPath(ncxPath), coverPagePath);
-                    if (!ncxText.contains("src=\"" + coverHref + "\"")) {
+                    if (!streamTextContains(zip, ncxHeader, "src=\"" + coverHref + "\"", "src='" + coverHref + "'")) {
                         throw new IOException("Inserted cover page is missing from EPUB TOC");
                     }
                 }
@@ -5741,71 +6175,29 @@ public class EpubRewritePlugin extends Plugin {
         }
     }
 
-    private ZipParameters buildParametersFromHeader(
-        FileHeader header,
-        String fileNameInZip,
-        Path sourceFilePathForStored
-    ) throws IOException {
-        ZipParameters parameters = new ZipParameters();
-        parameters.setFileNameInZip(fileNameInZip);
-        parameters.setCompressionMethod(header.getCompressionMethod());
-        parameters.setLastModifiedFileTime(header.getLastModifiedTime());
-        parameters.setFileComment(header.getFileComment());
-
-        if (header.getCompressionMethod() == CompressionMethod.STORE) {
-            long entrySize = sourceFilePathForStored == null
-                ? Math.max(0L, header.getUncompressedSize())
-                : Math.max(0L, Files.size(sourceFilePathForStored));
-            long entryCrc = sourceFilePathForStored == null
-                ? header.getCrc()
-                : computeCrc(sourceFilePathForStored);
-
-            parameters.setEntrySize(entrySize);
-            parameters.setEntryCRC(entryCrc);
-            parameters.setWriteExtendedLocalFileHeader(false);
-        }
-
-        return parameters;
-    }
-
-    private ZipParameters buildParametersFromBytes(
-        FileHeader header,
-        String fileNameInZip,
-        byte[] contentBytes
-    ) {
-        ZipParameters parameters = new ZipParameters();
-        parameters.setFileNameInZip(fileNameInZip);
-        parameters.setCompressionMethod(header.getCompressionMethod());
-        parameters.setLastModifiedFileTime(header.getLastModifiedTime());
-        parameters.setFileComment(header.getFileComment());
-
-        if (header.getCompressionMethod() == CompressionMethod.STORE) {
-            parameters.setEntrySize(Math.max(0, contentBytes.length));
-            parameters.setEntryCRC(computeCrc(contentBytes));
-            parameters.setWriteExtendedLocalFileHeader(false);
-        }
-
-        return parameters;
-    }
-
-    private long computeCrc(Path filePath) throws IOException {
-        CRC32 crc = new CRC32();
-        byte[] buffer = new byte[BUFFER_SIZE];
-
-        try (InputStream inputStream = new BufferedInputStream(Files.newInputStream(filePath))) {
-            int read;
-            while ((read = inputStream.read(buffer)) != -1) {
-                crc.update(buffer, 0, read);
+    private boolean streamTextContains(ZipFile zip, FileHeader header, String... needles) throws IOException {
+        AtomicBoolean found = new AtomicBoolean(false);
+        StringBuilder tail = new StringBuilder();
+        new StreamingEpubEntryReader(zip).transformText(
+            header,
+            (chunk, finalChunk) -> {
+                if (found.get()) {
+                    return chunk;
+                }
+                String searchable = tail + chunk;
+                for (String needle : needles) {
+                    if (searchable.contains(needle)) {
+                        found.set(true);
+                        break;
+                    }
+                }
+                int keep = Math.min(StreamingEpubEntryReader.TEXT_TAIL_CHARS, searchable.length());
+                tail.setLength(0);
+                tail.append(searchable, searchable.length() - keep, searchable.length());
+                return chunk;
             }
-        }
-
-        return crc.getValue();
-    }
-
-    private long computeCrc(byte[] contentBytes) {
-        CRC32 crc = new CRC32();
-        crc.update(contentBytes, 0, contentBytes.length);
-        return crc.getValue();
+        );
+        return found.get();
     }
 
     private long totalProcessableBytes(List<FileHeader> headers) {
@@ -5851,24 +6243,22 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     private void extractEntry(ZipFile zipFile, FileHeader fileHeader, Path outputPath) throws IOException {
+        extractEntry(zipFile, fileHeader, outputPath, Long.MAX_VALUE);
+    }
+
+    private void extractEntry(
+        ZipFile zipFile,
+        FileHeader fileHeader,
+        Path outputPath,
+        long maxBytes
+    ) throws IOException {
         Files.createDirectories(outputPath.getParent());
 
         try (
             InputStream inputStream = new BufferedInputStream(zipFile.getInputStream(fileHeader));
             OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(outputPath))
         ) {
-            copyStream(inputStream, outputStream);
-        }
-    }
-
-    private void addTextEntry(ZipFile zipFile, String pathInZip, String content, boolean stored)
-        throws IOException {
-        ZipParameters parameters = new ZipParameters();
-        parameters.setFileNameInZip(pathInZip);
-        parameters.setCompressionMethod(stored ? CompressionMethod.STORE : CompressionMethod.DEFLATE);
-
-        try (InputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))) {
-            zipFile.addStream(inputStream, parameters);
+            copyStreamWithLimit(inputStream, outputStream, maxBytes);
         }
     }
 
@@ -5997,6 +6387,7 @@ public class EpubRewritePlugin extends Plugin {
 
         long totalBytes = 0L;
         Path storageProbe = null;
+        emitPhaseProgress("analyzing", 0);
         for (int index = 0; index < inputs.length(); index++) {
             org.json.JSONObject input = inputs.getJSONObject(index);
             Path path = requireReadablePath(input == null ? null : input.getString("path"));
@@ -6004,7 +6395,10 @@ public class EpubRewritePlugin extends Plugin {
             if (!isReadableZip(path)) {
                 throw new PluginErrorException("MERGE_SOURCE_INVALID", path.getFileName().toString(), "merge_preflight");
             }
-            validateMergeSource(path);
+            int analysisStart = interpolate(0, 100, index, inputs.length());
+            int analysisEnd = interpolate(0, 100, index + 1L, inputs.length());
+            emitPhaseProgress("analyzing", analysisStart);
+            validateMergeSource(path, analysisStart, analysisEnd);
             totalBytes += Files.size(path);
         }
 
@@ -6050,19 +6444,52 @@ public class EpubRewritePlugin extends Plugin {
         Files.createDirectories(outputPath.getParent());
         deleteIfExists(outputPath);
 
+        long totalWriteBytes = 0L;
+        for (MergeSource source : sources) {
+            try (ZipFile sourceZip = new ZipFile(source.path.toFile())) {
+                for (FileHeader header : sourceZip.getFileHeaders()) {
+                    if (
+                        header != null
+                            && !header.isDirectory()
+                            && isMergeCopyablePath(normalizeZipPath(header.getFileName()))
+                    ) {
+                        totalWriteBytes = safeAdd(
+                            totalWriteBytes,
+                            Math.max(1L, header.getUncompressedSize())
+                        );
+                    }
+                }
+            }
+        }
+        if (coverPath != null) {
+            totalWriteBytes = safeAdd(totalWriteBytes, Math.max(1L, Files.size(coverPath)));
+        }
+        emitPhaseProgress("writing", 0);
+        long processedWriteBytes = 0L;
+        int lastWritingCheckpoint = 0;
+
         java.util.ArrayList<MergeResource> resources = new java.util.ArrayList<>();
         try (
-            OutputStream rawOutput = new BufferedOutputStream(Files.newOutputStream(outputPath));
-            ZipOutputStream zipOutput = new ZipOutputStream(rawOutput)
+            StreamingEpubArchiveWriter archiveWriter = new StreamingEpubArchiveWriter(outputPath)
         ) {
-            writeStoredZipEntry(zipOutput, "mimetype", "application/epub+zip".getBytes(StandardCharsets.US_ASCII));
-            writeTextZipEntry(zipOutput, "META-INF/container.xml", buildContainerXml("EPUB/package.opf"));
+            archiveWriter.writeStoredBytes(
+                "mimetype",
+                "application/epub+zip".getBytes(StandardCharsets.US_ASCII)
+            );
+            archiveWriter.writeDeflatedBytes(
+                "META-INF/container.xml",
+                buildContainerXml("EPUB/package.opf").getBytes(StandardCharsets.UTF_8)
+            );
 
             int resourceIndex = 1;
             for (int sourceIndex = 0; sourceIndex < sources.size(); sourceIndex++) {
                 ensureNotCancelled();
                 MergeSource source = sources.get(sourceIndex);
-                try (ZipFile sourceZip = new ZipFile(source.path.toFile())) {
+                try (
+                    ZipFile sourceZip = new ZipFile(source.path.toFile());
+                    org.apache.commons.compress.archivers.zip.ZipFile rawSource =
+                        new org.apache.commons.compress.archivers.zip.ZipFile(source.path.toFile())
+                ) {
                     String sourceOpfPath = locateMergeOpfPath(sourceZip);
                     MergeBookMetadata book = readMergeBookMetadata(sourceZip, sourceOpfPath, source.name);
                     source.title = book.title;
@@ -6087,18 +6514,26 @@ public class EpubRewritePlugin extends Plugin {
                         String originalPath = normalizeZipPath(header.getFileName());
                         if (!isMergeCopyablePath(originalPath)) continue;
                         String outputEntryPath = source.prefix + "/" + originalPath;
-                        ZipEntry outputEntry = new ZipEntry(outputEntryPath);
-                        zipOutput.putNextEntry(outputEntry);
-                        try (InputStream entryStream = new BufferedInputStream(sourceZip.getInputStream(header))) {
-                            copyStream(entryStream, zipOutput);
-                        }
-                        zipOutput.closeEntry();
+                        org.apache.commons.compress.archivers.zip.ZipArchiveEntry rawEntry =
+                            rawSource.getEntry(originalPath);
+                        archiveWriter.writeRaw(rawSource, rawEntry, outputEntryPath);
+                        processedWriteBytes = safeAdd(
+                            processedWriteBytes,
+                            Math.max(1L, header.getUncompressedSize())
+                        );
                         resources.add(new MergeResource(
                             "r" + resourceIndex++,
                             outputEntryPath.substring("EPUB/".length()),
                             resourceMediaTypeFor(source.resourceMediaTypes.get(originalPath), originalPath),
                             sanitizeMergedResourceProperties(source.resourceProperties.get(originalPath))
                         ));
+                        int writingProgress = interpolate(0, 95, processedWriteBytes, Math.max(1L, totalWriteBytes));
+                        int writingCheckpoint =
+                            (writingProgress / PROGRESS_CHECKPOINT_PERCENT) * PROGRESS_CHECKPOINT_PERCENT;
+                        if (writingCheckpoint > lastWritingCheckpoint) {
+                            lastWritingCheckpoint = writingCheckpoint;
+                            emitPhaseProgress("writing", writingCheckpoint);
+                        }
                     }
                 }
             }
@@ -6108,24 +6543,42 @@ public class EpubRewritePlugin extends Plugin {
             if (coverPath != null) {
                 coverFileName = "cover." + extensionForMergeCover(coverPath);
                 coverMediaType = mediaTypeForPath(coverFileName);
-                ZipEntry coverEntry = new ZipEntry("EPUB/cover/" + coverFileName);
-                zipOutput.putNextEntry(coverEntry);
-                try (InputStream coverStream = new BufferedInputStream(Files.newInputStream(coverPath))) {
-                    copyStream(coverStream, zipOutput);
-                }
-                zipOutput.closeEntry();
+                archiveWriter.writeStoredFile("EPUB/cover/" + coverFileName, coverPath);
+                processedWriteBytes = safeAdd(processedWriteBytes, Files.size(coverPath));
             }
 
-            writeTextZipEntry(zipOutput, "EPUB/cover/cover.xhtml", buildCoverXhtml(coverFileName));
-            writeTextZipEntry(zipOutput, "EPUB/nav.xhtml", buildMergeNavXhtml(sources, tocMode));
-            writeTextZipEntry(zipOutput, "EPUB/toc.ncx", buildMergeNcx(sources, tocMode));
-            writeTextZipEntry(zipOutput, "EPUB/package.opf", buildMergeOpf(outputName, resources, sources, coverFileName, coverMediaType));
+            archiveWriter.writeDeflatedBytes(
+                "EPUB/cover/cover.xhtml",
+                buildCoverXhtml(coverFileName).getBytes(StandardCharsets.UTF_8)
+            );
+            archiveWriter.writeDeflatedBytes(
+                "EPUB/nav.xhtml",
+                buildMergeNavXhtml(sources, tocMode).getBytes(StandardCharsets.UTF_8)
+            );
+            archiveWriter.writeDeflatedBytes(
+                "EPUB/toc.ncx",
+                buildMergeNcx(sources, tocMode).getBytes(StandardCharsets.UTF_8)
+            );
+            archiveWriter.writeDeflatedBytes(
+                "EPUB/package.opf",
+                buildMergeOpf(outputName, resources, sources, coverFileName, coverMediaType)
+                    .getBytes(StandardCharsets.UTF_8)
+            );
         } catch (Exception error) {
             deleteIfExists(outputPath);
             throw error;
         }
 
+        emitPhaseProgress("writing", 100);
+        emitPhaseProgress("validating", 0);
+        long validationStart = System.currentTimeMillis();
         validateMergedEpub(outputPath);
+        debugIo(
+            "merge validation complete validationMs="
+                + (System.currentTimeMillis() - validationStart)
+                + " outputBytes=" + safeFileSize(outputPath)
+        );
+        emitPhaseProgress("completed", 100);
         JSObject result = new JSObject();
         result.put("success", true);
         result.put("outputPath", outputPath.toString());
@@ -6134,11 +6587,13 @@ public class EpubRewritePlugin extends Plugin {
         call.resolve(result);
     }
 
-    private void validateMergeSource(Path sourcePath) throws Exception {
+    private void validateMergeSource(Path sourcePath, int progressStart, int progressEnd) throws Exception {
         try (ZipFile sourceZip = new ZipFile(sourcePath.toFile())) {
             validateOcfArchive(sourceZip, sourceZip.getFileHeaders(), "MERGE_SOURCE_INVALID", "merge_preflight");
+            emitPhaseProgress("analyzing", interpolate(progressStart, progressEnd, 1, 2));
             String opfPath = locateMergeOpfPath(sourceZip);
             readMergeBookMetadata(sourceZip, opfPath, sourcePath.getFileName().toString());
+            emitPhaseProgress("analyzing", progressEnd);
         }
     }
 
@@ -6181,19 +6636,35 @@ public class EpubRewritePlugin extends Plugin {
             SplitSourceMetadata source = readSplitSourceMetadata(sourceZip, opfPath);
             validateSplitPlan(source, outputs);
 
-            emitOperationProgress("preparing", 0, outputs.size(), 2);
+            emitPhaseProgress("writing", 0);
             for (int index = 0; index < outputs.size(); index++) {
                 ensureNotCancelled();
                 SplitOutputRequest output = outputs.get(index);
-                emitOperationProgress("writing", index, outputs.size(), interpolate(5, 78, index, outputs.size()));
                 writeSplitOutput(sourceZip, source, output, warnings);
 
                 if (coverPath != null) {
                     applySplitCover(output.outputPath, coverPath);
                 }
 
-                emitOperationProgress("validating", index + 1, outputs.size(), interpolate(80, 96, index + 1, outputs.size()));
+                emitPhaseProgress(
+                    "writing",
+                    interpolate(0, 100, index + 1L, outputs.size())
+                );
+                emitPhaseProgress(
+                    "validating",
+                    interpolate(0, 100, index, outputs.size())
+                );
+                long validationStart = System.currentTimeMillis();
                 validateSplitEpub(output.outputPath, output.spineItemIds.size());
+                debugIo(
+                    "split validation complete output=" + output.outputPath
+                        + " validationMs=" + (System.currentTimeMillis() - validationStart)
+                        + " outputBytes=" + safeFileSize(output.outputPath)
+                );
+                emitPhaseProgress(
+                    "validating",
+                    interpolate(0, 100, index + 1L, outputs.size())
+                );
 
                 JSObject saved = new JSObject();
                 saved.put("id", output.id);
@@ -6210,7 +6681,7 @@ public class EpubRewritePlugin extends Plugin {
             throw error;
         }
 
-        emitOperationProgress("completed", outputs.size(), outputs.size(), 100);
+        emitPhaseProgress("completed", 100);
         JSObject result = new JSObject();
         result.put("success", true);
         result.put("outputs", completedOutputs);
@@ -6218,6 +6689,94 @@ public class EpubRewritePlugin extends Plugin {
         for (String warning : warnings) warningValues.put(warning);
         result.put("warnings", warningValues);
         call.resolve(result);
+    }
+
+    private void analyzeSplitEpubInternal(PluginCall call) throws Exception {
+        Path inputPath = requireReadablePath(call.getString("inputPath"));
+        long fileSizeBytes = Files.size(inputPath);
+
+        try (ZipFile sourceZip = new ZipFile(inputPath.toFile())) {
+            List<FileHeader> headers = sourceZip.getFileHeaders();
+            validateOcfArchive(sourceZip, headers, "SPLIT_SOURCE_INVALID", "split_analysis");
+            String opfPath = locateMergeOpfPath(sourceZip);
+            SplitSourceMetadata source = readSplitSourceMetadata(sourceZip, opfPath);
+            MergeBookMetadata metadata = readMergeBookMetadata(
+                sourceZip,
+                opfPath,
+                inputPath.getFileName().toString()
+            );
+            java.util.HashMap<String, String> titlesByPath = new java.util.HashMap<>();
+            collectSplitAnalysisTocTitles(metadata.tocEntries, titlesByPath);
+            long fallbackUnitSize = Math.max(
+                1L,
+                fileSizeBytes / Math.max(1, source.spinePaths.size())
+            );
+            JSArray units = new JSArray();
+            int order = 0;
+            for (java.util.Map.Entry<String, String> spineEntry : source.spinePaths.entrySet()) {
+                String spineItemId = spineEntry.getKey();
+                String sourcePath = spineEntry.getValue();
+                FileHeader header = findHeader(headers, sourcePath);
+                long sizeBytes = header == null ? fallbackUnitSize : header.getUncompressedSize();
+                JSObject unit = new JSObject();
+                unit.put("id", spineItemId);
+                unit.put("title", titlesByPath.getOrDefault(pathWithoutFragment(sourcePath), ""));
+                unit.put("href", sourcePath);
+                unit.put("sourcePath", sourcePath);
+                unit.put("order", order++);
+                unit.put("sizeBytes", sizeBytes > 0L ? sizeBytes : fallbackUnitSize);
+                units.put(unit);
+            }
+
+            java.util.HashMap<String, String> spineIdsByPath = new java.util.HashMap<>();
+            for (java.util.Map.Entry<String, String> spineEntry : source.spinePaths.entrySet()) {
+                spineIdsByPath.put(pathWithoutFragment(spineEntry.getValue()), spineEntry.getKey());
+            }
+            JSArray tocEntries = splitAnalysisTocEntries(
+                metadata.tocEntries,
+                spineIdsByPath,
+                new int[] { 0 }
+            );
+
+            JSObject result = new JSObject();
+            result.put("success", true);
+            result.put("fileSizeBytes", fileSizeBytes);
+            result.put("units", units);
+            result.put("tocEntries", tocEntries);
+            call.resolve(result);
+        }
+    }
+
+    private void collectSplitAnalysisTocTitles(
+        List<MergeTocEntry> entries,
+        java.util.Map<String, String> titlesByPath
+    ) {
+        for (MergeTocEntry entry : entries) {
+            String path = pathWithoutFragment(entry.href);
+            if (CompatStrings.isNotBlank(path) && CompatStrings.isNotBlank(entry.title)) {
+                titlesByPath.putIfAbsent(path, entry.title);
+            }
+            collectSplitAnalysisTocTitles(entry.children, titlesByPath);
+        }
+    }
+
+    private JSArray splitAnalysisTocEntries(
+        List<MergeTocEntry> entries,
+        java.util.Map<String, String> spineIdsByPath,
+        int[] nextId
+    ) {
+        JSArray result = new JSArray();
+        for (MergeTocEntry entry : entries) {
+            JSObject value = new JSObject();
+            value.put("id", "toc-" + nextId[0]++);
+            value.put("title", entry.title);
+            value.put("href", entry.href);
+            String spineItemId = spineIdsByPath.get(pathWithoutFragment(entry.href));
+            value.put("spineItemId", spineItemId == null ? org.json.JSONObject.NULL : spineItemId);
+            value.put("children", splitAnalysisTocEntries(entry.children, spineIdsByPath, nextId));
+            result.put(value);
+        }
+        return result;
     }
 
     private SplitSourceMetadata readSplitSourceMetadata(ZipFile sourceZip, String opfPath) throws Exception {
@@ -6333,11 +6892,19 @@ public class EpubRewritePlugin extends Plugin {
         );
 
         try (
-            OutputStream rawOutput = new BufferedOutputStream(Files.newOutputStream(output.outputPath));
-            ZipOutputStream zipOutput = new ZipOutputStream(rawOutput)
+            org.apache.commons.compress.archivers.zip.ZipFile rawSource =
+                new org.apache.commons.compress.archivers.zip.ZipFile(sourceZip.getFile());
+            StreamingEpubArchiveWriter archiveWriter =
+                new StreamingEpubArchiveWriter(output.outputPath)
         ) {
-            writeStoredZipEntry(zipOutput, "mimetype", "application/epub+zip".getBytes(StandardCharsets.US_ASCII));
-            writeTextZipEntry(zipOutput, "META-INF/container.xml", buildContainerXml(source.opfPath));
+            archiveWriter.writeStoredBytes(
+                "mimetype",
+                "application/epub+zip".getBytes(StandardCharsets.US_ASCII)
+            );
+            archiveWriter.writeDeflatedBytes(
+                "META-INF/container.xml",
+                buildContainerXml(source.opfPath).getBytes(StandardCharsets.UTF_8)
+            );
 
             for (FileHeader header : headers) {
                 ensureNotCancelled();
@@ -6353,23 +6920,78 @@ public class EpubRewritePlugin extends Plugin {
                 ) {
                     continue;
                 }
-                ZipEntry entry = new ZipEntry(entryPath);
-                zipOutput.putNextEntry(entry);
                 if (isSplitNavigationContent(entryPath)) {
+                    if (header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES) {
+                        Path transformedPath = output.outputPath.resolveSibling(
+                            output.outputPath.getFileName().toString()
+                                + "." + UUID.randomUUID() + ".text.tmp"
+                        );
+                        AtomicBoolean changed = new AtomicBoolean(false);
+                        try {
+                            streamTextEntryToFile(
+                                sourceZip,
+                                header,
+                                transformedPath,
+                                new StreamingTextTransform() {
+                                    @Override
+                                    public String transform(String chunk, boolean finalChunk) {
+                                        String rewritten = rewriteSplitInternalLinks(
+                                            chunk,
+                                            entryPath,
+                                            includedPaths,
+                                            warnings
+                                        );
+                                        if (!rewritten.equals(chunk)) {
+                                            changed.set(true);
+                                        }
+                                        return rewritten;
+                                    }
+                                }
+                            );
+                            if (changed.get()) {
+                                try (InputStream transformedInput =
+                                    Files.newInputStream(transformedPath)) {
+                                    archiveWriter.writeDeflatedStream(entryPath, transformedInput);
+                                }
+                            } else {
+                                org.apache.commons.compress.archivers.zip.ZipArchiveEntry rawEntry =
+                                    rawSource.getEntry(entryPath);
+                                archiveWriter.writeRaw(rawSource, rawEntry, entryPath);
+                            }
+                        } finally {
+                            deleteIfExists(transformedPath);
+                        }
+                        continue;
+                    }
                     String content = decodeXmlBytes(readEntryBytes(sourceZip, header));
                     String rewritten = rewriteSplitInternalLinks(content, entryPath, includedPaths, warnings);
-                    zipOutput.write(rewritten.getBytes(StandardCharsets.UTF_8));
-                } else {
-                    try (InputStream stream = new BufferedInputStream(sourceZip.getInputStream(header))) {
-                        copyStream(stream, zipOutput);
+                    byte[] rewrittenBytes = rewritten.getBytes(StandardCharsets.UTF_8);
+                    if (rewritten.equals(content)) {
+                        org.apache.commons.compress.archivers.zip.ZipArchiveEntry rawEntry =
+                            rawSource.getEntry(entryPath);
+                        archiveWriter.writeRaw(rawSource, rawEntry, entryPath);
+                    } else {
+                        archiveWriter.writeDeflatedBytes(entryPath, rewrittenBytes);
                     }
+                } else {
+                    org.apache.commons.compress.archivers.zip.ZipArchiveEntry rawEntry =
+                        rawSource.getEntry(entryPath);
+                    archiveWriter.writeRaw(rawSource, rawEntry, entryPath);
                 }
-                zipOutput.closeEntry();
             }
 
-            writeTextZipEntry(zipOutput, source.opfPath, packageDocument);
-            writeTextZipEntry(zipOutput, navPath, buildSplitNavXhtml(output, source));
-            writeTextZipEntry(zipOutput, ncxPath, buildSplitNcx(output, source));
+            archiveWriter.writeDeflatedBytes(
+                source.opfPath,
+                packageDocument.getBytes(StandardCharsets.UTF_8)
+            );
+            archiveWriter.writeDeflatedBytes(
+                navPath,
+                buildSplitNavXhtml(output, source).getBytes(StandardCharsets.UTF_8)
+            );
+            archiveWriter.writeDeflatedBytes(
+                ncxPath,
+                buildSplitNcx(output, source).getBytes(StandardCharsets.UTF_8)
+            );
         } catch (Exception error) {
             deleteIfExists(output.outputPath);
             throw error;
@@ -6487,8 +7109,7 @@ public class EpubRewritePlugin extends Plugin {
             String resourcePath = pending.removeFirst();
             FileHeader header = findHeader(sourceZip.getFileHeaders(), resourcePath);
             if (header == null || !isSplitDependencyDocument(resourcePath)) continue;
-            String resourceText = decodeXmlBytes(readEntryBytes(sourceZip, header));
-            for (String dependency : extractSplitDependencies(resourcePath, resourceText)) {
+            for (String dependency : extractSplitDependenciesStreaming(sourceZip, header, resourcePath)) {
                 if (findHeader(sourceZip.getFileHeaders(), dependency) != null && included.add(dependency)) {
                     pending.add(dependency);
                 }
@@ -6571,18 +7192,40 @@ public class EpubRewritePlugin extends Plugin {
             || normalized.startsWith("data:");
     }
 
-    private java.util.List<String> extractSplitDependencies(String resourcePath, String content) {
+    private java.util.List<String> extractSplitDependenciesStreaming(
+        ZipFile sourceZip,
+        FileHeader header,
+        String resourcePath
+    ) throws IOException {
         java.util.LinkedHashSet<String> dependencies = new java.util.LinkedHashSet<>();
-        Matcher matcher = XHTML_RESOURCE_ATTRIBUTE_PATTERN.matcher(content);
-        while (matcher.find()) addSplitDependency(dependencies, resourcePath, matcher.group(2));
+        new StreamingEpubEntryReader(sourceZip).transformText(
+            header,
+            new StreamingEpubEntryReader.TextTransform() {
+                @Override
+                public String transform(String chunk, boolean finalChunk) {
+                    if (dependencies.size() >= 100_000) {
+                        return chunk;
+                    }
+                    Matcher matcher = XHTML_RESOURCE_ATTRIBUTE_PATTERN.matcher(chunk);
+                    while (matcher.find() && dependencies.size() < 100_000) {
+                        addSplitDependency(dependencies, resourcePath, matcher.group(2));
+                    }
 
-        matcher = XHTML_STYLESHEET_PATTERN.matcher(content);
-        while (matcher.find()) addSplitDependency(dependencies, resourcePath, matcher.group(3));
+                    matcher = XHTML_STYLESHEET_PATTERN.matcher(chunk);
+                    while (matcher.find() && dependencies.size() < 100_000) {
+                        addSplitDependency(dependencies, resourcePath, matcher.group(3));
+                    }
 
-        if (resourcePath.toLowerCase(Locale.US).endsWith(".css")) {
-            matcher = CSS_RESOURCE_PATTERN.matcher(content);
-            while (matcher.find()) addSplitDependency(dependencies, resourcePath, matcher.group(1));
-        }
+                    if (resourcePath.toLowerCase(Locale.US).endsWith(".css")) {
+                        matcher = CSS_RESOURCE_PATTERN.matcher(chunk);
+                        while (matcher.find() && dependencies.size() < 100_000) {
+                            addSplitDependency(dependencies, resourcePath, matcher.group(1));
+                        }
+                    }
+                    return chunk;
+                }
+            }
+        );
         return new java.util.ArrayList<>(dependencies);
     }
 
@@ -6820,12 +7463,13 @@ public class EpubRewritePlugin extends Plugin {
     private void validateSplitEpub(Path outputPath, int expectedSpineItems) throws Exception {
         try (ZipFile zip = new ZipFile(outputPath.toFile())) {
             List<FileHeader> headers = zip.getFileHeaders();
+            Map<String, FileHeader> headerIndex = buildHeaderIndex(headers);
             validateOcfArchive(zip, headers, "SPLIT_VALIDATION_FAILED", "split_validating");
-            if (findHeader(headers, "mimetype") == null || findHeader(headers, "META-INF/container.xml") == null) {
+            if (findHeader(headerIndex, "mimetype") == null || findHeader(headerIndex, "META-INF/container.xml") == null) {
                 throw new PluginErrorException("SPLIT_VALIDATION_FAILED", "required EPUB files are missing", "split_validating");
             }
             String opfPath = locateMergeOpfPath(zip);
-            FileHeader opfHeader = findHeader(headers, opfPath);
+            FileHeader opfHeader = findHeader(headerIndex, opfPath);
             Document document = parseXmlUtf8(decodeXmlBytes(readEntryBytes(zip, opfHeader)));
             Element manifest = firstElementByName(document, "manifest");
             Element spine = firstElementByName(document, "spine");
@@ -6844,7 +7488,7 @@ public class EpubRewritePlugin extends Plugin {
                 String href = item.getAttribute("href");
                 if (CompatStrings.isNotBlank(id)) manifestIds.add(id);
                 String resourcePath = resolveRelativeZipPath(opfDirectory, href);
-                if (CompatStrings.isNotBlank(href) && findHeader(headers, resourcePath) == null) {
+                if (CompatStrings.isNotBlank(href) && findHeader(headerIndex, resourcePath) == null) {
                     throw new PluginErrorException("SPLIT_RESOURCE_MISSING", href, "split_validating");
                 }
                 if (hasNavigationProperty(item.getAttribute("properties"))) navDocumentPath = resourcePath;
@@ -6865,9 +7509,9 @@ public class EpubRewritePlugin extends Plugin {
             }
             validateNavigationDocumentHasEntries(zip, navDocumentPath, "href", expectedSpineItems > 0, "SPLIT_NAVIGATION_EMPTY");
             validateNavigationDocumentHasEntries(zip, ncxDocumentPath, "src", expectedSpineItems > 0, "SPLIT_NAVIGATION_EMPTY");
-            validateSplitNavigationTargets(zip, headers, navDocumentPath, "href");
-            validateSplitNavigationTargets(zip, headers, ncxDocumentPath, "src");
-            validateInternalDocumentLinks(zip, headers, "SPLIT_INTERNAL_LINK_MISSING", "split_validating");
+            validateSplitNavigationTargets(zip, headerIndex, navDocumentPath, "href");
+            validateSplitNavigationTargets(zip, headerIndex, ncxDocumentPath, "src");
+            validateInternalDocumentLinks(zip, headerIndex, "SPLIT_INTERNAL_LINK_MISSING", "split_validating");
         }
     }
 
@@ -6877,15 +7521,95 @@ public class EpubRewritePlugin extends Plugin {
         String errorCode,
         String stage
     ) throws Exception {
-        for (FileHeader header : headers) {
-            if (header == null || header.isDirectory() || !isSplitNavigationContent(header.getFileName())) continue;
+        validateInternalDocumentLinks(zip, buildHeaderIndex(headers), errorCode, stage, null, 0, 0);
+    }
+
+    private void validateInternalDocumentLinks(
+        ZipFile zip,
+        Map<String, FileHeader> headers,
+        String errorCode,
+        String stage
+    ) throws Exception {
+        validateInternalDocumentLinks(zip, headers, errorCode, stage, null, 0, 0);
+    }
+
+    private void validateInternalDocumentLinks(
+        ZipFile zip,
+        Map<String, FileHeader> headers,
+        String errorCode,
+        String stage,
+        String progressPhase,
+        int progressStart,
+        int progressEnd
+    ) throws Exception {
+        int contentEntryCount = 0;
+        for (FileHeader header : headers.values()) {
+            if (header != null
+                && !header.isDirectory()
+                && isSplitNavigationContent(header.getFileName())) {
+                contentEntryCount += 1;
+            }
+        }
+        int processedContentEntries = 0;
+        int lastProgressCheckpoint = progressStart;
+        if (progressPhase != null) {
+            emitPhaseProgress(progressPhase, progressStart);
+        }
+        for (FileHeader header : headers.values()) {
+            if (header == null
+                || header.isDirectory()
+                || !isSplitNavigationContent(header.getFileName())) continue;
+            ensureNotCancelled();
             String entryPath = normalizeZipPath(header.getFileName());
-            Matcher matcher = XHTML_ANCHOR_HREF_PATTERN.matcher(decodeXmlBytes(readEntryBytes(zip, header)));
-            while (matcher.find()) {
-                String reference = matcher.group(3).trim();
-                if (isExternalLinkReference(reference) || reference.startsWith("#")) continue;
-                String target = resolveRelativeZipPath(parentZipPath(entryPath), pathWithoutFragment(reference));
-                if (findHeader(headers, target) == null) throw new PluginErrorException(errorCode, target, stage);
+            final PluginErrorException[] failure = new PluginErrorException[1];
+            new StreamingEpubEntryReader(zip).transformText(
+                header,
+                new StreamingEpubEntryReader.TextTransform() {
+                    @Override
+                    public String transform(String chunk, boolean finalChunk) throws IOException {
+                        if (failure[0] != null) {
+                            return chunk;
+                        }
+                        Matcher matcher = XHTML_ANCHOR_HREF_PATTERN.matcher(chunk);
+                        try {
+                            while (matcher.find()) {
+                                String reference = matcher.group(3).trim();
+                                if (isExternalLinkReference(reference) || reference.startsWith("#")) continue;
+                                String target = resolveRelativeZipPath(
+                                    parentZipPath(entryPath),
+                                    pathWithoutFragment(reference)
+                                );
+                                if (findHeader(headers, target) == null) {
+                                    throw new PluginErrorException(errorCode, target, stage);
+                                }
+                            }
+                        } catch (PluginErrorException error) {
+                            failure[0] = error;
+                        }
+                        return chunk;
+                    }
+                }
+            );
+            if (failure[0] != null) {
+                throw failure[0];
+            }
+            processedContentEntries += 1;
+            if (progressPhase != null) {
+                int progress = interpolate(
+                    progressStart,
+                    progressEnd,
+                    processedContentEntries,
+                    Math.max(1, contentEntryCount)
+                );
+                int checkpoint =
+                    (progress / PROGRESS_CHECKPOINT_PERCENT) * PROGRESS_CHECKPOINT_PERCENT;
+                if (processedContentEntries == contentEntryCount) {
+                    checkpoint = progressEnd;
+                }
+                if (checkpoint > lastProgressCheckpoint) {
+                    lastProgressCheckpoint = checkpoint;
+                    emitPhaseProgress(progressPhase, checkpoint);
+                }
             }
         }
     }
@@ -6900,11 +7624,24 @@ public class EpubRewritePlugin extends Plugin {
         if (CompatStrings.isBlank(navigationPath) || !required) return;
         FileHeader header = findHeader(zip.getFileHeaders(), navigationPath);
         if (header == null) throw new PluginErrorException(errorCode, navigationPath, "navigation_validating");
-        String content = decodeXmlBytes(readEntryBytes(zip, header));
         String pattern = attribute.equals("href")
             ? "<a\\b[^>]*\\bhref\\s*=\\s*(['\\\"])([^'\\\"]+)\\1"
             : "<content\\b[^>]*\\bsrc\\s*=\\s*(['\\\"])([^'\\\"]+)\\1";
-        if (!Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(content).find()) {
+        Pattern entryPattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
+        AtomicBoolean found = new AtomicBoolean(false);
+        new StreamingEpubEntryReader(zip).transformText(
+            header,
+            new StreamingEpubEntryReader.TextTransform() {
+                @Override
+                public String transform(String chunk, boolean finalChunk) {
+                    if (entryPattern.matcher(chunk).find()) {
+                        found.set(true);
+                    }
+                    return chunk;
+                }
+            }
+        );
+        if (!found.get()) {
             throw new PluginErrorException(errorCode, navigationPath, "navigation_validating");
         }
     }
@@ -6912,6 +7649,15 @@ public class EpubRewritePlugin extends Plugin {
     private void validateSplitNavigationTargets(
         ZipFile zip,
         List<FileHeader> headers,
+        String navigationPath,
+        String attribute
+    ) throws Exception {
+        validateSplitNavigationTargets(zip, buildHeaderIndex(headers), navigationPath, attribute);
+    }
+
+    private void validateSplitNavigationTargets(
+        ZipFile zip,
+        Map<String, FileHeader> headers,
         String navigationPath,
         String attribute
     ) throws Exception {
@@ -6926,12 +7672,36 @@ public class EpubRewritePlugin extends Plugin {
             "\\b" + attribute + "\\s*=\\s*(['\\\"])([^'\\\"#?]+)\\1",
             Pattern.CASE_INSENSITIVE
         );
-        Matcher matcher = targetPattern.matcher(decodeXmlBytes(readEntryBytes(zip, header)));
-        while (matcher.find()) {
-            String target = resolveRelativeZipPath(parentZipPath(navigationPath), matcher.group(2));
-            if (findHeader(headers, target) == null) {
-                throw new PluginErrorException("SPLIT_NAVIGATION_TARGET_MISSING", target, "split_validating");
+        final PluginErrorException[] failure = new PluginErrorException[1];
+        new StreamingEpubEntryReader(zip).transformText(
+            header,
+            new StreamingEpubEntryReader.TextTransform() {
+                @Override
+                public String transform(String chunk, boolean finalChunk) throws IOException {
+                    if (failure[0] != null) {
+                        return chunk;
+                    }
+                    Matcher matcher = targetPattern.matcher(chunk);
+                    try {
+                        while (matcher.find()) {
+                            String target = resolveRelativeZipPath(parentZipPath(navigationPath), matcher.group(2));
+                            if (findHeader(headers, target) == null) {
+                                throw new PluginErrorException(
+                                    "SPLIT_NAVIGATION_TARGET_MISSING",
+                                    target,
+                                    "split_validating"
+                                );
+                            }
+                        }
+                    } catch (PluginErrorException error) {
+                        failure[0] = error;
+                    }
+                    return chunk;
+                }
             }
+        );
+        if (failure[0] != null) {
+            throw failure[0];
         }
     }
 
@@ -7040,26 +7810,230 @@ public class EpubRewritePlugin extends Plugin {
         if (CompatStrings.isNotBlank(navPath)) {
             FileHeader navHeader = findHeader(zipFile.getFileHeaders(), navPath);
             if (navHeader != null) {
-                java.util.ArrayList<MergeTocEntry> entries = readMergeNavEntries(
-                    parseXmlUtf8(decodeXmlBytes(readEntryBytes(zipFile, navHeader))),
-                    navPath,
-                    zipFile
-                );
-                if (!entries.isEmpty()) return entries;
+                if (navHeader.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES) {
+                    java.util.ArrayList<MergeTocEntry> entries = readMergeNavEntriesStreaming(
+                        zipFile,
+                        navHeader,
+                        navPath
+                    );
+                    if (!entries.isEmpty()) return entries;
+                } else {
+                    java.util.ArrayList<MergeTocEntry> entries = readMergeNavEntries(
+                        parseXmlUtf8(decodeXmlBytes(readEntryBytes(zipFile, navHeader))),
+                        navPath,
+                        zipFile
+                    );
+                    if (!entries.isEmpty()) return entries;
+                }
             }
         }
         if (CompatStrings.isNotBlank(ncxPath)) {
             FileHeader ncxHeader = findHeader(zipFile.getFileHeaders(), ncxPath);
             if (ncxHeader != null) {
-                java.util.ArrayList<MergeTocEntry> entries = readMergeNcxEntries(
-                    parseXmlUtf8(decodeXmlBytes(readEntryBytes(zipFile, ncxHeader))),
-                    ncxPath,
-                    zipFile
-                );
-                if (!entries.isEmpty()) return entries;
+                if (ncxHeader.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES) {
+                    java.util.ArrayList<MergeTocEntry> entries = readMergeNcxEntriesStreaming(
+                        zipFile,
+                        ncxHeader,
+                        ncxPath
+                    );
+                    if (!entries.isEmpty()) return entries;
+                } else {
+                    java.util.ArrayList<MergeTocEntry> entries = readMergeNcxEntries(
+                        parseXmlUtf8(decodeXmlBytes(readEntryBytes(zipFile, ncxHeader))),
+                        ncxPath,
+                        zipFile
+                    );
+                    if (!entries.isEmpty()) return entries;
+                }
             }
         }
         return new java.util.ArrayList<>();
+    }
+
+    private java.util.ArrayList<MergeTocEntry> readMergeNavEntriesStreaming(
+        ZipFile zipFile,
+        FileHeader header,
+        String sourcePath
+    ) throws Exception {
+        java.util.ArrayList<MergeTocEntry> roots = new java.util.ArrayList<>();
+        java.util.ArrayDeque<StreamingTocFrame> stack = new java.util.ArrayDeque<>();
+        java.util.concurrent.atomic.AtomicInteger nextId = new java.util.concurrent.atomic.AtomicInteger();
+        boolean[] seenNav = new boolean[] { false };
+        boolean[] activeNav = new boolean[] { false };
+        boolean[] tocNav = new boolean[] { false };
+        StreamingTocFrame[] capturedFrame = new StreamingTocFrame[1];
+        String[] capturedElement = new String[1];
+        try (
+            InputStream input = new BufferedInputStream(zipFile.getInputStream(header))
+        ) {
+            XmlPullParser parser = Xml.newPullParser();
+            parser.setInput(input, null);
+            int event;
+            while ((event = parser.next()) != XmlPullParser.END_DOCUMENT) {
+                if (event == XmlPullParser.START_TAG) {
+                    String name = parser.getName();
+                    if ("nav".equalsIgnoreCase(name)) {
+                        String type = parser.getAttributeValue(
+                            "http://www.idpf.org/2007/ops",
+                            "type"
+                        );
+                        if (CompatStrings.isBlank(type)) {
+                            type = parser.getAttributeValue(null, "epub:type");
+                        }
+                        if (CompatStrings.isBlank(type)) {
+                            type = parser.getAttributeValue(null, "type");
+                        }
+                        boolean isToc = containsToken(type, "toc")
+                            || containsToken(parser.getAttributeValue(null, "role"), "doc-toc");
+                        if (isToc || !seenNav[0]) {
+                            if (isToc && seenNav[0] && !tocNav[0]) {
+                                roots.clear();
+                                stack.clear();
+                            }
+                            activeNav[0] = true;
+                            tocNav[0] = isToc || tocNav[0];
+                            seenNav[0] = true;
+                        }
+                    } else if (activeNav[0] && "li".equalsIgnoreCase(name)) {
+                        if (stack.size() < 100_000) {
+                            stack.push(new StreamingTocFrame(
+                                "toc-" + nextId.getAndIncrement(),
+                                ""
+                            ));
+                        }
+                    } else if (activeNav[0]
+                        && !stack.isEmpty()
+                        && ("a".equalsIgnoreCase(name) || "span".equalsIgnoreCase(name))
+                        && CompatStrings.isBlank(stack.peek().href)
+                        && capturedFrame[0] == null
+                    ) {
+                        StreamingTocFrame frame = stack.peek();
+                        frame.href = parser.getAttributeValue(null, "href");
+                        capturedFrame[0] = frame;
+                        capturedElement[0] = name;
+                    }
+                } else if (event == XmlPullParser.TEXT && capturedFrame[0] != null) {
+                    capturedFrame[0].titleBuilder.append(parser.getText());
+                } else if (event == XmlPullParser.END_TAG) {
+                    String name = parser.getName();
+                    if (capturedFrame[0] != null && name.equalsIgnoreCase(capturedElement[0])) {
+                        capturedFrame[0] = null;
+                        capturedElement[0] = null;
+                    }
+                    if (activeNav[0] && "li".equalsIgnoreCase(name) && !stack.isEmpty()) {
+                        StreamingTocFrame frame = stack.pop();
+                        MergeTocEntry entry = buildStreamingTocEntry(
+                            frame,
+                            sourcePath,
+                            zipFile,
+                            frame.id
+                        );
+                        if (entry == null) {
+                            continue;
+                        }
+                        if (stack.isEmpty()) {
+                            roots.add(entry);
+                        } else {
+                            stack.peek().children.add(entry);
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+            return new java.util.ArrayList<>();
+        }
+        return roots;
+    }
+
+    private java.util.ArrayList<MergeTocEntry> readMergeNcxEntriesStreaming(
+        ZipFile zipFile,
+        FileHeader header,
+        String sourcePath
+    ) throws Exception {
+        java.util.ArrayList<MergeTocEntry> roots = new java.util.ArrayList<>();
+        java.util.ArrayDeque<StreamingTocFrame> stack = new java.util.ArrayDeque<>();
+        java.util.concurrent.atomic.AtomicInteger nextId = new java.util.concurrent.atomic.AtomicInteger();
+        StreamingTocFrame[] capturedFrame = new StreamingTocFrame[1];
+        String[] capturedElement = new String[1];
+        try (
+            InputStream input = new BufferedInputStream(zipFile.getInputStream(header))
+        ) {
+            XmlPullParser parser = Xml.newPullParser();
+            parser.setInput(input, null);
+            int event;
+            while ((event = parser.next()) != XmlPullParser.END_DOCUMENT) {
+                if (event == XmlPullParser.START_TAG) {
+                    String name = parser.getName();
+                    if ("navPoint".equalsIgnoreCase(name)) {
+                        if (stack.size() < 100_000) {
+                            String id = parser.getAttributeValue(null, "id");
+                            stack.push(new StreamingTocFrame(
+                                CompatStrings.isBlank(id) ? "toc-" + nextId.getAndIncrement() : id,
+                                ""
+                            ));
+                        }
+                    } else if (!stack.isEmpty() && "content".equalsIgnoreCase(name)) {
+                        stack.peek().href = parser.getAttributeValue(null, "src");
+                    } else if (!stack.isEmpty() && "text".equalsIgnoreCase(name)) {
+                        capturedFrame[0] = stack.peek();
+                        capturedElement[0] = name;
+                    }
+                } else if (event == XmlPullParser.TEXT && capturedFrame[0] != null) {
+                    capturedFrame[0].titleBuilder.append(parser.getText());
+                } else if (event == XmlPullParser.END_TAG) {
+                    String name = parser.getName();
+                    if (capturedFrame[0] != null && name.equalsIgnoreCase(capturedElement[0])) {
+                        capturedFrame[0] = null;
+                        capturedElement[0] = null;
+                    }
+                    if ("navPoint".equalsIgnoreCase(name) && !stack.isEmpty()) {
+                        StreamingTocFrame frame = stack.pop();
+                        MergeTocEntry entry = buildStreamingTocEntry(
+                            frame,
+                            sourcePath,
+                            zipFile,
+                            frame.id
+                        );
+                        if (entry == null) {
+                            continue;
+                        }
+                        if (stack.isEmpty()) {
+                            roots.add(entry);
+                        } else {
+                            stack.peek().children.add(entry);
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+            return new java.util.ArrayList<>();
+        }
+        return roots;
+    }
+
+    private MergeTocEntry buildStreamingTocEntry(
+        StreamingTocFrame frame,
+        String sourcePath,
+        ZipFile zipFile,
+        String id
+    ) throws Exception {
+        String resolvedHref = resolveMergeNavigationHref(sourcePath, frame.href);
+        if (
+            CompatStrings.isBlank(resolvedHref)
+                || findHeader(zipFile.getFileHeaders(), pathWithoutFragment(resolvedHref)) == null
+        ) {
+            return null;
+        }
+        String title = frame.titleBuilder.toString().trim();
+        if (CompatStrings.isBlank(title)) {
+            title = "Section " + (id == null ? "" : id);
+        }
+        return new MergeTocEntry(
+            id,
+            title,
+            resolvedHref,
+            frame.children
+        );
     }
 
     private java.util.ArrayList<MergeTocEntry> readMergeNavEntries(
@@ -7183,26 +8157,6 @@ public class EpubRewritePlugin extends Plugin {
         if (lower.endsWith(".woff2")) return "font/woff2";
         if (lower.endsWith(".ncx")) return "application/x-dtbncx+xml";
         return "application/octet-stream";
-    }
-
-    private void writeTextZipEntry(ZipOutputStream output, String name, String content) throws IOException {
-        ZipEntry entry = new ZipEntry(name);
-        output.putNextEntry(entry);
-        output.write(content.getBytes(StandardCharsets.UTF_8));
-        output.closeEntry();
-    }
-
-    private void writeStoredZipEntry(ZipOutputStream output, String name, byte[] bytes) throws IOException {
-        CRC32 crc = new CRC32();
-        crc.update(bytes);
-        ZipEntry entry = new ZipEntry(name);
-        entry.setMethod(ZipEntry.STORED);
-        entry.setSize(bytes.length);
-        entry.setCompressedSize(bytes.length);
-        entry.setCrc(crc.getValue());
-        output.putNextEntry(entry);
-        output.write(bytes);
-        output.closeEntry();
     }
 
     private String buildMergeNavXhtml(java.util.List<MergeSource> sources, String tocMode) {
@@ -7373,9 +8327,12 @@ public class EpubRewritePlugin extends Plugin {
     private void validateMergedEpub(Path outputPath) throws Exception {
         try (ZipFile zip = new ZipFile(outputPath.toFile())) {
             List<FileHeader> headers = zip.getFileHeaders();
+            Map<String, FileHeader> headerIndex = buildHeaderIndex(headers);
             validateOcfArchive(zip, headers, "MERGE_VALIDATION_FAILED", "merge_validate");
-            if (findHeader(headers, "mimetype") == null || findHeader(headers, "META-INF/container.xml") == null || findHeader(headers, "EPUB/package.opf") == null) throw new PluginErrorException("MERGE_VALIDATION_FAILED", "Generated EPUB structure is incomplete", "merge_validate");
-            Document document = parseXmlUtf8(decodeXmlBytes(readEntryBytes(zip, findHeader(headers, "EPUB/package.opf"))));
+            emitPhaseProgress("validating", 15);
+            if (findHeader(headerIndex, "mimetype") == null || findHeader(headerIndex, "META-INF/container.xml") == null || findHeader(headerIndex, "EPUB/package.opf") == null) throw new PluginErrorException("MERGE_VALIDATION_FAILED", "Generated EPUB structure is incomplete", "merge_validate");
+            emitPhaseProgress("validating", 25);
+            Document document = parseXmlUtf8(decodeXmlBytes(readEntryBytes(zip, findHeader(headerIndex, "EPUB/package.opf"))));
             Element manifest = firstElementByName(document, "manifest");
             Element spine = firstElementByName(document, "spine");
             if (manifest == null || spine == null) throw new PluginErrorException("MERGE_VALIDATION_FAILED", "Generated package document is incomplete", "merge_validate");
@@ -7387,21 +8344,32 @@ public class EpubRewritePlugin extends Plugin {
                 String href = item.getAttribute("href");
                 if (CompatStrings.isNotBlank(id)) manifestIds.add(id);
                 String resolvedPath = resolveRelativeZipPath("EPUB", href);
-                if (findHeader(headers, resolvedPath) == null) throw new PluginErrorException("MERGE_RESOURCE_MISSING", href, "merge_validate");
+                if (findHeader(headerIndex, resolvedPath) == null) throw new PluginErrorException("MERGE_RESOURCE_MISSING", href, "merge_validate");
                 if (hasNavigationProperty(item.getAttribute("properties"))) navPath = resolvedPath;
                 if ("application/x-dtbncx+xml".equals(item.getAttribute("media-type"))) ncxPath = resolvedPath;
             }
+            emitPhaseProgress("validating", 55);
             NodeList itemrefs = spine.getElementsByTagNameNS("*", "itemref");
             if (itemrefs.getLength() == 0) throw new PluginErrorException("MERGE_SPINE_EMPTY", "EPUB/package.opf", "merge_validate");
             for (int index = 0; index < itemrefs.getLength(); index++) {
                 String idref = ((Element) itemrefs.item(index)).getAttribute("idref");
                 if (!manifestIds.contains(idref)) throw new PluginErrorException("MERGE_SPINE_MANIFEST_MISSING", idref, "merge_validate");
             }
+            emitPhaseProgress("validating", 65);
             validateNavigationDocumentHasEntries(zip, navPath, "href", true, "MERGE_NAVIGATION_EMPTY");
             validateNavigationDocumentHasEntries(zip, ncxPath, "src", true, "MERGE_NAVIGATION_EMPTY");
-            validateSplitNavigationTargets(zip, headers, navPath, "href");
-            validateSplitNavigationTargets(zip, headers, ncxPath, "src");
-            validateInternalDocumentLinks(zip, headers, "MERGE_INTERNAL_LINK_MISSING", "merge_validate");
+            emitPhaseProgress("validating", 75);
+            validateSplitNavigationTargets(zip, headerIndex, navPath, "href");
+            validateSplitNavigationTargets(zip, headerIndex, ncxPath, "src");
+            validateInternalDocumentLinks(
+                zip,
+                headerIndex,
+                "MERGE_INTERNAL_LINK_MISSING",
+                "merge_validate",
+                "validating",
+                80,
+                100
+            );
         }
     }
 
@@ -7415,6 +8383,7 @@ public class EpubRewritePlugin extends Plugin {
             throw new PluginErrorException(errorCode, "empty archive", stage);
         }
 
+        Map<String, FileHeader> headerIndex = buildHeaderIndex(headers);
         java.util.HashSet<String> paths = new java.util.HashSet<>();
         for (FileHeader header : headers) {
             if (header == null || header.isDirectory()) continue;
@@ -7428,7 +8397,7 @@ public class EpubRewritePlugin extends Plugin {
             }
         }
 
-        FileHeader mimetype = findHeader(headers, "mimetype");
+        FileHeader mimetype = findHeader(headerIndex, "mimetype");
         if (mimetype == null || headers.get(0) != mimetype) {
             throw new PluginErrorException(errorCode, "mimetype must be first", stage);
         }
@@ -7439,11 +8408,11 @@ public class EpubRewritePlugin extends Plugin {
             throw new PluginErrorException(errorCode, "invalid mimetype", stage);
         }
 
-        FileHeader container = findHeader(headers, "META-INF/container.xml");
+        FileHeader container = findHeader(headerIndex, "META-INF/container.xml");
         if (container == null) throw new PluginErrorException(errorCode, "container.xml missing", stage);
         String containerText = decodeXmlBytes(readEntryBytes(zip, container));
         String opfPath = extractDeclaredOpfPathFromContainerText(containerText);
-        if (CompatStrings.isBlank(opfPath) || findHeader(headers, opfPath) == null) {
+        if (CompatStrings.isBlank(opfPath) || findHeader(headerIndex, opfPath) == null) {
             throw new PluginErrorException(errorCode, "container rootfile missing", stage);
         }
     }
@@ -7455,10 +8424,504 @@ public class EpubRewritePlugin extends Plugin {
         return false;
     }
 
-    private void copyStream(InputStream inputStream, OutputStream outputStream) throws IOException {
+    private interface StreamingTextTransform {
+        String transform(String chunk, boolean finalChunk) throws IOException;
+    }
+
+    private final class StreamingXmlSanitizer {
+        private final boolean stripScripts;
+        private final Deque<String> openTags = new ArrayDeque<>();
+        private String suppressedTag;
+        private int suppressedDepth;
+        private boolean changed;
+        private boolean sawDoctype;
+
+        StreamingXmlSanitizer(boolean stripScripts) {
+            this.stripScripts = stripScripts;
+        }
+
+        String transform(String input, boolean finalChunk) {
+            StringBuilder output = new StringBuilder(input.length() + 64);
+            int index = 0;
+            while (index < input.length()) {
+                if (suppressedTag != null) {
+                    int tagStart = input.indexOf('<', index);
+                    if (tagStart < 0) {
+                        index = input.length();
+                        break;
+                    }
+                    int tagEnd = findTagEnd(input, tagStart + 1);
+                    if (tagEnd < 0) {
+                        index = input.length();
+                        break;
+                    }
+                    String tagContent = input.substring(tagStart + 1, tagEnd).trim();
+                    String tagName = tagContent.startsWith("/")
+                        ? extractTagName(tagContent.substring(1))
+                        : extractTagName(tagContent);
+                    if (suppressedTag.equalsIgnoreCase(tagName)) {
+                        if (tagContent.startsWith("/")) {
+                            suppressedDepth -= 1;
+                        } else if (!tagContent.endsWith("/")) {
+                            suppressedDepth += 1;
+                        }
+                        if (suppressedDepth <= 0) {
+                            suppressedTag = null;
+                            suppressedDepth = 0;
+                        }
+                    }
+                    changed = true;
+                    index = tagEnd + 1;
+                    continue;
+                }
+
+                int tagStart = input.indexOf('<', index);
+                if (tagStart < 0) {
+                    appendText(output, input.substring(index));
+                    break;
+                }
+                if (tagStart > index) {
+                    appendText(output, input.substring(index, tagStart));
+                }
+
+                if (input.regionMatches(true, tagStart, "<!--", 0, 4)) {
+                    int commentEnd = input.indexOf("-->", tagStart + 4);
+                    if (commentEnd < 0) {
+                        if (finalChunk) {
+                            appendText(output, input.substring(tagStart));
+                        }
+                        break;
+                    }
+                    output.append(input, tagStart, commentEnd + 3);
+                    index = commentEnd + 3;
+                    continue;
+                }
+                if (input.regionMatches(true, tagStart, "<?", 0, 2)) {
+                    int processingEnd = input.indexOf("?>", tagStart + 2);
+                    if (processingEnd < 0) {
+                        if (finalChunk) {
+                            appendText(output, input.substring(tagStart));
+                        }
+                        break;
+                    }
+                    output.append(input, tagStart, processingEnd + 2);
+                    index = processingEnd + 2;
+                    continue;
+                }
+                if (startsWithIgnoreCase(input, tagStart, "<![cdata[")) {
+                    int cdataEnd = input.toLowerCase(Locale.US).indexOf("]]>", tagStart + 9);
+                    if (cdataEnd < 0) {
+                        if (finalChunk) {
+                            appendText(output, input.substring(tagStart));
+                        }
+                        break;
+                    }
+                    output.append(input, tagStart, cdataEnd + 3);
+                    index = cdataEnd + 3;
+                    continue;
+                }
+
+                int tagEnd = findTagEnd(input, tagStart + 1);
+                if (tagEnd < 0) {
+                    if (finalChunk) {
+                        appendText(output, input.substring(tagStart));
+                    }
+                    break;
+                }
+                String tagContent = input.substring(tagStart + 1, tagEnd).trim();
+                index = tagEnd + 1;
+                if (tagContent.isEmpty()) {
+                    changed = true;
+                    continue;
+                }
+                if (startsWithIgnoreCase(tagContent, 0, "!doctype")) {
+                    sawDoctype = true;
+                    changed = true;
+                    continue;
+                }
+                if (tagContent.startsWith("!")) {
+                    changed = true;
+                    continue;
+                }
+                if (tagContent.startsWith("/")) {
+                    String closeName = extractTagName(tagContent.substring(1));
+                    closeOpenTags(output, openTags, closeName);
+                    continue;
+                }
+
+                boolean selfClosing = tagContent.endsWith("/");
+                if (selfClosing) {
+                    tagContent = tagContent.substring(0, tagContent.length() - 1).trim();
+                }
+                String tagName = extractTagName(tagContent);
+                if (CompatStrings.isBlank(tagName)) {
+                    changed = true;
+                    continue;
+                }
+                if (
+                    stripScripts
+                        && ("script".equalsIgnoreCase(tagName)
+                            || "object".equalsIgnoreCase(tagName)
+                            || "embed".equalsIgnoreCase(tagName))
+                ) {
+                    suppressedTag = selfClosing ? null : tagName.toLowerCase(Locale.US);
+                    suppressedDepth = selfClosing ? 0 : 1;
+                    changed = true;
+                    continue;
+                }
+
+                String remainder = tagContent.substring(tagName.length()).trim();
+                if ("body".equalsIgnoreCase(tagName)) {
+                    closeOpenTagIfPresent(output, openTags, "head");
+                }
+                if (isVoidElement(tagName)) {
+                    selfClosing = true;
+                }
+                output.append('<').append(tagName);
+                String sanitizedAttributes = sanitizeAttributeList(remainder);
+                if (CompatStrings.isNotBlank(sanitizedAttributes)) {
+                    output.append(' ').append(sanitizedAttributes);
+                }
+                if (selfClosing) {
+                    output.append("/>");
+                } else {
+                    output.append('>');
+                    openTags.push(tagName);
+                }
+            }
+
+            if (finalChunk) {
+                while (!openTags.isEmpty()) {
+                    output.append("</").append(openTags.pop()).append('>');
+                    changed = true;
+                }
+            }
+
+            String result = output.toString();
+            if (!result.equals(input)) {
+                changed = true;
+            }
+            return result;
+        }
+
+        boolean changed() {
+            return changed;
+        }
+
+        boolean sawDoctype() {
+            return sawDoctype;
+        }
+
+        private void appendText(StringBuilder output, String text) {
+            String sanitized = removeInvalidXmlCharacters(
+                replaceUnknownEntityReferences(text.replace("\r\n", "\n").replace('\r', '\n'))
+            );
+            output.append(sanitized);
+            if (!sanitized.equals(text)) {
+                changed = true;
+            }
+        }
+    }
+
+    private static final class LargeContentRepairResult {
+        final Path outputPath;
+        final java.util.ArrayList<String> repairedIssueCodes;
+        final boolean changed;
+
+        LargeContentRepairResult(
+            Path outputPath,
+            java.util.ArrayList<String> repairedIssueCodes,
+            boolean changed
+        ) {
+            this.outputPath = outputPath;
+            this.repairedIssueCodes = repairedIssueCodes;
+            this.changed = changed;
+        }
+    }
+
+    private LargeContentRepairResult repairLargeContentDocumentToFile(
+        ZipFile zipFile,
+        ParsedManifestItem manifestItem,
+        Path outputPath,
+        boolean stripScripts
+    ) throws IOException {
+        if (manifestItem == null || !shouldInspectContentDocument(manifestItem)) {
+            return null;
+        }
+        FileHeader header = findHeader(zipFile.getFileHeaders(), manifestItem.resolvedPath);
+        if (header == null || header.getUncompressedSize() <= MAX_IN_MEMORY_TEXT_ENTRY_BYTES) {
+            return null;
+        }
+
+        StreamingXmlSanitizer sanitizer = new StreamingXmlSanitizer(stripScripts);
+        streamTextEntryToFile(
+            zipFile,
+            header,
+            outputPath,
+            new StreamingTextTransform() {
+                @Override
+                public String transform(String chunk, boolean finalChunk) {
+                    return sanitizer.transform(chunk, finalChunk);
+                }
+            }
+        );
+
+        java.util.ArrayList<String> repairedIssueCodes = new java.util.ArrayList<>();
+        if (sanitizer.sawDoctype()) {
+            repairedIssueCodes.add("HIGH-XHTML-003");
+        }
+        if (sanitizer.changed()) {
+            repairedIssueCodes.add("HIGH-XHTML-001");
+        }
+        return new LargeContentRepairResult(
+            outputPath,
+            repairedIssueCodes,
+            sanitizer.changed()
+        );
+    }
+
+    private LargeContentRepairResult rewriteLargeInternalLinksToFile(
+        ZipFile zipFile,
+        Path inputPath,
+        Path outputPath,
+        String entryPath,
+        EpubAnalysis analysis,
+        JSObject guidedSelections
+    ) throws Exception {
+        java.util.HashMap<String, java.util.HashSet<String>> documentIdCache =
+            new java.util.HashMap<>();
+        java.util.HashSet<String> sourceDocumentIds = collectLargeDocumentIds(inputPath);
+        java.util.ArrayList<String> repairedIssueCodes = new java.util.ArrayList<>();
+        AtomicBoolean changed = new AtomicBoolean(false);
+
+        streamTextFileToFile(
+            inputPath,
+            outputPath,
+            new StreamingTextTransform() {
+                @Override
+                public String transform(String chunk, boolean finalChunk) throws IOException {
+                    Matcher matcher = LARGE_LINK_ATTRIBUTE_PATTERN.matcher(chunk);
+                    StringBuffer rewritten = new StringBuffer();
+                    while (matcher.find()) {
+                        String rawValue = matcher.group(2);
+                        InternalLinkEvaluation evaluation;
+                        try {
+                            evaluation = evaluateInternalLinkReference(
+                                zipFile,
+                                entryPath,
+                                analysis.opfDir,
+                                analysis.manifestItems,
+                                sourceDocumentIds,
+                                rawValue,
+                                documentIdCache,
+                                true,
+                                guidedSelections
+                            );
+                        } catch (Exception error) {
+                            throw new IOException("Unable to repair large EPUB link", error);
+                        }
+                        repairedIssueCodes.addAll(evaluation.repairedIssueCodes);
+                        String replacement = matcher.group();
+                        if (evaluation.removeAttribute) {
+                            replacement = "";
+                            changed.set(true);
+                        } else if (
+                            evaluation.changed
+                                && CompatStrings.isNotBlank(evaluation.repairedValue)
+                        ) {
+                            replacement = matcher.group().replace(
+                                rawValue,
+                                evaluation.repairedValue
+                            );
+                            changed.set(true);
+                        }
+                        matcher.appendReplacement(
+                            rewritten,
+                            Matcher.quoteReplacement(replacement)
+                        );
+                    }
+                    matcher.appendTail(rewritten);
+                    return rewritten.toString();
+                }
+            }
+        );
+
+        return new LargeContentRepairResult(outputPath, repairedIssueCodes, changed.get());
+    }
+
+    private java.util.HashSet<String> collectLargeDocumentIds(Path inputPath) throws IOException {
+        try (
+            java.io.Reader reader = new java.io.BufferedReader(
+                Files.newBufferedReader(inputPath, StandardCharsets.UTF_8),
+                BUFFER_SIZE
+            )
+        ) {
+            return collectLargeDocumentIds(reader);
+        }
+    }
+
+    private java.util.HashSet<String> collectLargeDocumentIds(
+        ZipFile zipFile,
+        FileHeader header
+    ) throws IOException {
+        try (
+            InputStream input = new BufferedInputStream(zipFile.getInputStream(header));
+            java.io.Reader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(input, StandardCharsets.UTF_8),
+                BUFFER_SIZE
+            )
+        ) {
+            return collectLargeDocumentIds(reader);
+        }
+    }
+
+    private java.util.HashSet<String> collectLargeDocumentIds(
+        java.io.Reader reader
+    ) throws IOException {
+        java.util.HashSet<String> ids = new java.util.HashSet<>();
+        char[] buffer = new char[BUFFER_SIZE];
+        StringBuilder pending = new StringBuilder();
+        int read;
+        while ((read = reader.read(buffer)) != -1 && ids.size() < 100_000) {
+            pending.append(buffer, 0, read);
+            int stableLength = pending.length() - LARGE_TEXT_TAIL_CHARS;
+            if (stableLength <= 0) {
+                continue;
+            }
+            collectLargeDocumentIdsFromChunk(
+                pending.substring(0, stableLength),
+                ids
+            );
+            pending.delete(0, stableLength);
+        }
+        collectLargeDocumentIdsFromChunk(pending.toString(), ids);
+        return ids;
+    }
+
+    private void collectLargeDocumentIdsFromChunk(
+        String chunk,
+        java.util.Set<String> ids
+    ) {
+        Matcher matcher = LARGE_ID_ATTRIBUTE_PATTERN.matcher(chunk);
+        while (matcher.find() && ids.size() < 100_000) {
+            String value = matcher.group(2).trim();
+            if (CompatStrings.isNotBlank(value)) {
+                ids.add(value);
+            }
+        }
+    }
+
+    private void streamTextEntryToFile(
+        ZipFile zipFile,
+        FileHeader header,
+        Path outputPath,
+        StreamingTextTransform transform
+    ) throws IOException {
+        try (InputStream input = new BufferedInputStream(zipFile.getInputStream(header))) {
+            streamTextInputToFile(input, outputPath, transform);
+        }
+    }
+
+    private StreamingXmlSanitizer inspectLargeTextEntry(
+        ZipFile zipFile,
+        FileHeader header,
+        boolean stripScripts
+    ) throws IOException {
+        StreamingXmlSanitizer sanitizer = new StreamingXmlSanitizer(stripScripts);
+        inspectTextEntry(
+            zipFile,
+            header,
+            new StreamingTextTransform() {
+                @Override
+                public String transform(String chunk, boolean finalChunk) {
+                    return sanitizer.transform(chunk, finalChunk);
+                }
+            }
+        );
+        return sanitizer;
+    }
+
+    private void inspectTextEntry(
+        ZipFile zipFile,
+        FileHeader header,
+        StreamingTextTransform transform
+    ) throws IOException {
+        new StreamingEpubEntryReader(zipFile).transformText(
+            header,
+            new StreamingEpubEntryReader.TextTransform() {
+                @Override
+                public String transform(String chunk, boolean finalChunk) throws IOException {
+                    return transform.transform(chunk, finalChunk);
+                }
+            }
+        );
+    }
+
+    private void streamTextFileToFile(
+        Path inputPath,
+        Path outputPath,
+        StreamingTextTransform transform
+    ) throws IOException {
+        try (InputStream input = new BufferedInputStream(Files.newInputStream(inputPath))) {
+            streamTextInputToFile(input, outputPath, transform);
+        }
+    }
+
+    private void streamTextInputToFile(
+        InputStream input,
+        Path outputPath,
+        StreamingTextTransform transform
+    ) throws IOException {
+        Files.createDirectories(outputPath.getParent());
+        try (
+            java.io.Reader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(input, StandardCharsets.UTF_8),
+                BUFFER_SIZE
+            );
+            OutputStream output = new BufferedOutputStream(Files.newOutputStream(outputPath));
+            java.io.Writer writer = new java.io.BufferedWriter(
+                new java.io.OutputStreamWriter(output, StandardCharsets.UTF_8),
+                BUFFER_SIZE
+            )
+        ) {
+            char[] buffer = new char[BUFFER_SIZE];
+            StringBuilder pending = new StringBuilder();
+            int read;
+            while ((read = reader.read(buffer)) != -1) {
+                pending.append(buffer, 0, read);
+                int stableLength = pending.length() - LARGE_TEXT_TAIL_CHARS;
+                if (stableLength <= 0) {
+                    continue;
+                }
+                int lastOpenTag = pending.lastIndexOf("<", stableLength - 1);
+                int lastClosedTag = pending.lastIndexOf(">", stableLength - 1);
+                if (lastOpenTag > lastClosedTag) {
+                    stableLength = lastOpenTag;
+                }
+                if (stableLength <= 0) {
+                    continue;
+                }
+                String stableChunk = pending.substring(0, stableLength);
+                pending.delete(0, stableLength);
+                writer.write(transform.transform(stableChunk, false));
+            }
+            writer.write(transform.transform(pending.toString(), true));
+        }
+    }
+
+    private void copyStreamWithLimit(
+        InputStream inputStream,
+        OutputStream outputStream,
+        long maxBytes
+    ) throws IOException {
         byte[] buffer = new byte[BUFFER_SIZE];
+        long copied = 0L;
         int read;
         while ((read = inputStream.read(buffer)) != -1) {
+            copied += read;
+            if (copied > maxBytes) {
+                throw new IOException("EPUB candidate image exceeds the extraction limit");
+            }
             outputStream.write(buffer, 0, read);
         }
         outputStream.flush();
@@ -7494,6 +8957,11 @@ public class EpubRewritePlugin extends Plugin {
         String insertedCoverPageEntryPath
     ) throws IOException {
         if (entryPath.equals(replacementCoverEntryPath) || !isTextEntryPath(entryPath)) {
+            return null;
+        }
+        if (header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES) {
+            debugIo("cover rewrite large text preserved raw path=" + entryPath
+                + " bytes=" + header.getUncompressedSize());
             return null;
         }
 
@@ -7553,12 +9021,13 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     private byte[] readEntryBytes(ZipFile zipFile, FileHeader header) throws IOException {
+        if (header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES) {
+            throw new IOException("EPUB text entry exceeds the in-memory safety limit");
+        }
         try (
-            InputStream inputStream = new BufferedInputStream(zipFile.getInputStream(header));
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream()
+            InputStream inputStream = new BufferedInputStream(zipFile.getInputStream(header))
         ) {
-            copyStream(inputStream, outputStream);
-            return outputStream.toByteArray();
+            return readStreamBytes(inputStream);
         }
     }
 
@@ -8236,6 +9705,47 @@ public class EpubRewritePlugin extends Plugin {
         return cacheDir.resolve(baseName + "_" + System.currentTimeMillis() + "." + ext);
     }
 
+    private Path buildExtractedCandidateImagePath(String sourcePath, int index) throws IOException {
+        Path cacheDir = getContext().getCacheDir().toPath().resolve("epub-rewrite");
+        Files.createDirectories(cacheDir);
+        String ext = extensionFromPath(sourcePath);
+        if (CompatStrings.isBlank(ext)) {
+            ext = "jpg";
+        }
+        String baseName = stripExtension(Paths.get(sourcePath).getFileName().toString());
+        if (CompatStrings.isBlank(baseName)) {
+            baseName = "image";
+        }
+        return cacheDir.resolve(
+            baseName + "_candidate_" + index + "_" + System.currentTimeMillis() + "." + ext
+        );
+    }
+
+    private boolean isCandidateImagePath(String path) {
+        String ext = extensionFromPath(path);
+        return "png".equals(ext)
+            || "jpg".equals(ext)
+            || "jpeg".equals(ext)
+            || "webp".equals(ext)
+            || "gif".equals(ext)
+            || "bmp".equals(ext)
+            || "avif".equals(ext)
+            || "heic".equals(ext)
+            || "heif".equals(ext);
+    }
+
+    private String candidateImageMimeFromPath(String path) {
+        String ext = extensionFromPath(path);
+        if ("png".equals(ext)) return "image/png";
+        if ("webp".equals(ext)) return "image/webp";
+        if ("gif".equals(ext)) return "image/gif";
+        if ("bmp".equals(ext)) return "image/bmp";
+        if ("avif".equals(ext)) return "image/avif";
+        if ("heic".equals(ext)) return "image/heic";
+        if ("heif".equals(ext)) return "image/heif";
+        return "image/jpeg";
+    }
+
     private FileHeader findHeader(List<FileHeader> headers, String fileName) {
         if (headers == null || fileName == null) {
             return null;
@@ -8251,6 +9761,30 @@ public class EpubRewritePlugin extends Plugin {
             }
         }
         return null;
+    }
+
+    private Map<String, FileHeader> buildHeaderIndex(List<FileHeader> headers) {
+        Map<String, FileHeader> index = new java.util.HashMap<>();
+        if (headers == null) {
+            return index;
+        }
+        for (FileHeader header : headers) {
+            if (header == null) {
+                continue;
+            }
+            String path = normalizeZipPath(header.getFileName());
+            if (CompatStrings.isNotBlank(path) && !index.containsKey(path)) {
+                index.put(path, header);
+            }
+        }
+        return index;
+    }
+
+    private FileHeader findHeader(Map<String, FileHeader> headers, String fileName) {
+        if (headers == null || fileName == null) {
+            return null;
+        }
+        return headers.get(normalizeZipPath(fileName));
     }
 
     private Element firstElementByName(Document document, String localName) {
@@ -8811,6 +10345,10 @@ public class EpubRewritePlugin extends Plugin {
 
     private void emitProgress(int percent) {
         emitOperationProgress(null, 0, 0, percent);
+    }
+
+    private void emitPhaseProgress(String phase, int percent) {
+        emitOperationProgress(phase, 0, 0, percent);
     }
 
     private void emitOperationProgress(String phase, int current, int total, int percent) {
@@ -9597,6 +11135,18 @@ public class EpubRewritePlugin extends Plugin {
             this.href = href;
             this.mediaType = mediaType;
             this.properties = properties;
+        }
+    }
+
+    private static final class StreamingTocFrame {
+        final String id;
+        final StringBuilder titleBuilder = new StringBuilder();
+        final java.util.ArrayList<MergeTocEntry> children = new java.util.ArrayList<>();
+        String href;
+
+        StreamingTocFrame(String id, String href) {
+            this.id = id;
+            this.href = href;
         }
     }
 

@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { Capacitor } from '@capacitor/core';
+import { Injectable, inject } from '@angular/core';
 import JSZip from 'jszip';
 import { BestCandidateHint, BestCandidateImage } from '@sheldrapps/best-candidate-kit';
+import { EpubRewriteService } from './epub-rewrite.service';
 
 type ExtractCandidateImagesParams = {
   epubFile?: File;
@@ -51,6 +51,7 @@ type ZipImageEntry = {
 export class EpubCandidateImageService {
   private readonly COVER_WORDS = ['cover', 'front', 'title', 'portada', 'cubierta'];
   private readonly PENALTY_WORDS = ['logo', 'icon', 'avatar', 'separator', 'ornament', 'bullet'];
+  private readonly epubRewrite = inject(EpubRewriteService);
 
   async extractCandidateImages(
     params: ExtractCandidateImagesParams,
@@ -63,6 +64,14 @@ export class EpubCandidateImageService {
     params: ExtractCandidateImagesParams,
   ): Promise<CandidateDiscoveryResult> {
     const maxImages = Math.max(1, params.maxImages ?? Number.MAX_SAFE_INTEGER);
+    if (
+      !params.epubFile &&
+      params.epubNativePath &&
+      this.epubRewrite.isSupported()
+    ) {
+      return this.discoverNativeImages(params.epubNativePath, params.epubName, maxImages);
+    }
+
     const bytes = await this.readEpubBytes(params);
     if (!bytes) {
       return {
@@ -170,6 +179,26 @@ export class EpubCandidateImageService {
   async resolveStrictCover(
     params: ExtractCandidateImagesParams,
   ): Promise<StrictCoverResolution | null> {
+    if (
+      !params.epubFile &&
+      params.epubNativePath &&
+      this.epubRewrite.isSupported()
+    ) {
+      try {
+        const extracted = await this.epubRewrite.extractCoverAssetFile({
+          epubPath: params.epubNativePath,
+          epubName: params.epubName || 'epub',
+          maxBytes: 30 * 1024 * 1024,
+        });
+        return {
+          file: extracted.file,
+          sourcePath: extracted.coverEntryPath || extracted.file.name,
+        };
+      } catch {
+        return null;
+      }
+    }
+
     const bytes = await this.readEpubBytes(params);
     if (!bytes) return null;
 
@@ -211,16 +240,79 @@ export class EpubCandidateImageService {
     if (params.epubFile) {
       return new Uint8Array(await params.epubFile.arrayBuffer());
     }
-    if (!params.epubNativePath) return null;
+    return null;
+  }
 
-    const fileUri = params.epubNativePath.startsWith('file://')
-      ? params.epubNativePath
-      : `file://${params.epubNativePath}`;
-    const url = Capacitor.convertFileSrc(fileUri);
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    const buffer = await response.arrayBuffer();
-    return new Uint8Array(buffer);
+  private async discoverNativeImages(
+    epubNativePath: string,
+    epubName: string | undefined,
+    maxImages: number,
+  ): Promise<CandidateDiscoveryResult> {
+    const extracted = await this.epubRewrite.extractImageAssets({
+      inputPath: epubNativePath,
+      maxImages: Math.min(maxImages, 128),
+      maxBytesPerImage: 30 * 1024 * 1024,
+    });
+    const candidates: BestCandidateImage[] = [];
+    const rejectedImages: CandidateDiscoveryRejection[] = [];
+
+    for (const entry of extracted.images) {
+      if (!this.isSupportedImageMime(entry.mimeType)) {
+        rejectedImages.push({ path: entry.sourcePath, reason: 'unsupported-mime' });
+        continue;
+      }
+
+      try {
+        const file = await this.epubRewrite.extractedImageFile({
+          extractedPath: entry.tempImagePath,
+          sourcePath: entry.sourcePath,
+          epubName: epubName || 'epub',
+          mimeType: entry.mimeType,
+        });
+        const dims = await this.readImageDimensions(file);
+        if (!dims) {
+          rejectedImages.push({ path: entry.sourcePath, reason: 'unreadable-image' });
+          continue;
+        }
+
+        const fileName = this.fileNameFromPath(entry.sourcePath);
+        const hints = this.mergeHints(
+          this.inferHintsFromFileName(fileName, entry.index),
+          this.inferHintsFromGeometry(dims),
+        );
+        candidates.push({
+          id: `${entry.sourcePath}#${entry.index}`,
+          src: URL.createObjectURL(file),
+          sourcePath: entry.sourcePath,
+          fileName,
+          width: dims.width,
+          height: dims.height,
+          mimeType: entry.mimeType,
+          sizeBytes: entry.sizeBytes,
+          index: entry.index,
+          hints,
+          metadata: { file },
+        });
+      } catch {
+        rejectedImages.push({ path: entry.sourcePath, reason: 'unreadable-image' });
+      }
+    }
+
+    const firstLarge = candidates.find((candidate) => candidate.width * candidate.height >= 160000);
+    if (firstLarge) {
+      firstLarge.hints = this.mergeHints(firstLarge.hints, ['first-large-image']);
+    }
+
+    return {
+      images: candidates,
+      diagnostics: {
+        manifestImageCount: 0,
+        zipImageCount: extracted.zipImageCount,
+        mergedImageCount: extracted.images.length,
+        candidatesAfterFilters: candidates.length,
+        rejectedImages,
+      },
+    };
   }
 
   private async resolveOpfPath(zip: JSZip): Promise<string | null> {

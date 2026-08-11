@@ -55,7 +55,12 @@
     "APPS_SECTION_TITLE": "Aplicaciones destacadas",
     "APPS_SECTION_BODY": "Herramientas enfocadas para personalizar portadas, archivos EPUB y flujos de trabajo de lectura.",
     "APPS": {
-      "CCFK": {
+    "PMAS": {
+      "NAME": "PDF Merger & Splitter",
+      "DESCRIPTION": "Une y divide archivos PDF con un control práctico de las páginas.",
+      "BADGE": "Coming soon"
+    },
+     "CCFK": {
         "NAME": "Crear Portadas para Kindle",
         "DESCRIPTION": "Crea portadas para lectores electrónicos a partir de tus imágenes con solo unos pocos toques."
       },
@@ -112,8 +117,17 @@
     "LEGAL_EPF_LINK": "Política de privacidad - EPUB Fixer",
     "LEGAL_EMS_LINK": "Política de privacidad - EPUB Merger & Splitter"
   },
-  "PRIVACY": {
-    "CCFK": {
+ "PRIVACY": {
+    "PMAS": {
+      "TITLE": "Política de privacidad - PDF Merger & Splitter",
+      "LAST_UPDATED": "Última actualización: 2026-08-10",
+      "INTRO": "PDF Merger & Splitter (<strong>la aplicación</strong>) es desarrollada y mantenida por <strong>Sheldrapps</strong>. Esta Política de privacidad explica cómo se maneja la información cuando utiliza la aplicación.",
+      "SECTION_2_TITLE": "2. Archivos PDF y contenido",
+      "SECTION_2_ITEM_1": "Los archivos PDF que seleccione se procesan <strong>localmente en su dispositivo</strong>.",
+      "SECTION_2_ITEM_2": "La aplicación <strong>no</strong> carga ni almacena sus archivos PDF en servidores externos.",
+      "SECTION_2_ITEM_3": "Los archivos PDF generados permanecen en su dispositivo a menos que los comparta explícitamente."
+    },
+     "CCFK": {
       "TITLE": "Política de privacidad - Crear Portadas para Kindle",
       "LAST_UPDATED": "Última actualización: 2026-01-19",
       "INTRO": "Crear Portadas para Kindle (<strong>la aplicación</strong>) es desarrollada y mantenida por <strong>Sheldrapps</strong>. Esta Política de Privacidad explica cómo se maneja la información cuando utiliza la Aplicación.",

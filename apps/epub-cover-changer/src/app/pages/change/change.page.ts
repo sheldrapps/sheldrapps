@@ -384,6 +384,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private readonly isExportingState = signal(false);
   private readonly isRebuildingExportQualityState = signal(false);
   private readonly isResettingFlowState = signal(false);
+  readonly operationCompleted = signal(false);
   private readonly isPickingEpubState = signal(false);
   private readonly isNativeRewriteInProgressState = signal(false);
 
@@ -620,6 +621,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async onWorkflowPrevious(): Promise<void> {
     if (this.workflowStep <= 0 || this.isExporting) return;
+    this.operationCompleted.set(false);
     await this.navigateToWorkflowStep(this.workflowStep - 1);
   }
 
@@ -636,6 +638,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async onWorkflowStepSelected(step: number): Promise<void> {
     if (step < 0 || step > 3 || step === this.workflowStep) return;
+    this.operationCompleted.set(false);
     if (step === 0 && this.hasValidEpub()) {
       await this.navigateToWorkflowStep(step);
       return;
@@ -1620,6 +1623,7 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private resetWorkflow() {
+    this.operationCompleted.set(false);
     this.workflowStep = 0;
     this.selectedFormatId = this.persistedCropTargetId;
     this.closeInfo();
@@ -2459,6 +2463,7 @@ export class ChangePage implements OnInit, OnDestroy {
       '.epub',
       this.lastSavedFilename,
       this.generatedEpubFilename,
+      this.projectSaveState.getOriginalFilename(),
       'epub_cover',
     );
 
@@ -3706,6 +3711,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async onGenerate() {
     if (!this.canGenerate()) return;
+    this.operationCompleted.set(false);
     this.lifecycle.log('ChangePage.onGenerate', {
       workflowStep: this.workflowStep,
       hasEpub: this.hasValidEpub(),
@@ -3824,12 +3830,14 @@ export class ChangePage implements OnInit, OnDestroy {
       this.lastSavedFilename,
       this.outputBaseName,
       this.selectedEpubName,
+      this.projectSaveState.getOriginalFilename(),
       'epub_cover',
     );
 
     if (this.usesNativeRewrite()) {
       await this.generateWithNativeRewrite(exportFile, preferredFilename);
       await this.homeTour.completeInteraction('cover-created');
+      this.operationCompleted.set(true);
       return;
     }
 
@@ -3912,6 +3920,7 @@ export class ChangePage implements OnInit, OnDestroy {
     await this.maybeAskForRatingAfterSuccessfulSave('web');
     await this.consumeAdFallbackAttemptAfterSuccess('generate-web');
     await this.homeTour.completeInteraction('cover-created');
+    this.operationCompleted.set(true);
   }
 
   private async saveLocalProjectSnapshot(
@@ -4749,10 +4758,34 @@ export class ChangePage implements OnInit, OnDestroy {
         if (this.isNativeRewriteInProgress && !this.isCancellingNativeRewrite) {
           await this.cancelNativeRewrite().catch(() => undefined);
         }
-        await this.resetWorkflowForNewEpub(false);
+        await this.resetWorkflowForNewEpub(true);
         if (this.epubInput?.nativeElement) {
           this.epubInput.nativeElement.value = '';
         }
+      } finally {
+        this.isResettingFlow = false;
+        this.changeDetector.detectChanges();
+      }
+    });
+  }
+
+  async onOperationDone(): Promise<void> {
+    if (this.isResettingFlow) return;
+    this.runInZone(() => {
+      this.isResettingFlow = true;
+      this.changeDetector.detectChanges();
+    });
+    await this.runInZone(async () => {
+      try {
+        await this.clearBusyUi();
+        if (this.isNativeRewriteInProgress && !this.isCancellingNativeRewrite) {
+          await this.cancelNativeRewrite().catch(() => undefined);
+        }
+        await this.resetWorkflowForNewEpub(true);
+        if (this.epubInput?.nativeElement) {
+          this.epubInput.nativeElement.value = '';
+        }
+        await this.router.navigateByUrl('/tabs/my-epubs');
       } finally {
         this.isResettingFlow = false;
         this.changeDetector.detectChanges();

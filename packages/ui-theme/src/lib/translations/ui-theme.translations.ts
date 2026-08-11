@@ -3,6 +3,7 @@ export type UiThemeTranslations = {
     RESET: string;
     RESETTING: string;
     KEEP_APP_OPEN: string;
+    SCREEN_DIM_NOTICE: string;
     RESET_CONFIRMATION: string;
     UNDER_CONSTRUCTION: {
       TITLE: string;
@@ -34,6 +35,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
       RESET: 'Restart',
       RESETTING: 'Restarting',
       KEEP_APP_OPEN: 'Do not close the app or switch windows.',
+      SCREEN_DIM_NOTICE: 'The screen will dim to protect your device.',
       RESET_CONFIRMATION: 'All files and edits will be discarded, and you will return to the start of the workflow.',
       UNDER_CONSTRUCTION: {
         TITLE: 'Under construction',
@@ -63,6 +65,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
       RESET: 'Reiniciar',
       RESETTING: 'Reiniciando',
       KEEP_APP_OPEN: 'No cierres la app ni cambies de ventana.',
+      SCREEN_DIM_NOTICE: 'La pantalla se atenuará para proteger tu dispositivo.',
       RESET_CONFIRMATION: 'Se descartarán todos los archivos y ediciones, volverás al inicio del flujo.',
       UNDER_CONSTRUCTION: {
         TITLE: 'En construcción',
@@ -92,6 +95,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
       RESET: 'Neu starten',
       RESETTING: 'Wird neu gestartet',
       KEEP_APP_OPEN: 'Schließe die App nicht und wechsle nicht das Fenster.',
+      SCREEN_DIM_NOTICE: 'Der Bildschirm wird zum Schutz deines Geräts abgedunkelt.',
       RESET_CONFIRMATION: 'Alle Dateien und Bearbeitungen werden verworfen. Du kehrst zum Anfang des Ablaufs zurück.',
       UNDER_CONSTRUCTION: {
         TITLE: 'Im Aufbau',
@@ -121,6 +125,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
       RESET: 'Redémarrer',
       RESETTING: 'Redémarrage',
       KEEP_APP_OPEN: 'Ne fermez pas l’application et ne changez pas de fenêtre.',
+      SCREEN_DIM_NOTICE: 'L’écran sera assombri pour protéger votre appareil.',
       RESET_CONFIRMATION: 'Tous les fichiers et toutes les modifications seront supprimés, et vous reviendrez au début du processus.',
       UNDER_CONSTRUCTION: {
         TITLE: 'En construction',
@@ -150,6 +155,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
       RESET: 'Riavviare',
       RESETTING: 'Riavvio in corso',
       KEEP_APP_OPEN: 'Non chiudere l’app e non cambiare finestra.',
+      SCREEN_DIM_NOTICE: 'Lo schermo si oscurerà per proteggere il dispositivo.',
       RESET_CONFIRMATION: 'Tutti i file e le modifiche verranno eliminati e tornerai all’inizio del flusso.',
       UNDER_CONSTRUCTION: {
         TITLE: 'In costruzione',
@@ -179,6 +185,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
       RESET: 'Reiniciar',
       RESETTING: 'Reiniciando',
       KEEP_APP_OPEN: 'Não feche o app nem troque de janela.',
+      SCREEN_DIM_NOTICE: 'A tela será escurecida para proteger seu dispositivo.',
       RESET_CONFIRMATION: 'Todos os arquivos e edições serão descartados, e você voltará ao início do fluxo.',
       UNDER_CONSTRUCTION: {
         TITLE: 'Em construção',
@@ -208,6 +215,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
       RESET: '重新啟動',
       RESETTING: '正在重新啟動',
       KEEP_APP_OPEN: '請勿關閉應用程式或切換視窗。',
+      SCREEN_DIM_NOTICE: '螢幕將變暗，以保護你的裝置。',
       RESET_CONFIRMATION: '所有檔案與編輯內容都會被捨棄，你將返回流程開始處。',
       UNDER_CONSTRUCTION: {
         TITLE: '建置中',
@@ -237,6 +245,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
       RESET: 'पुनः आरंभ करें',
       RESETTING: 'पुनः आरंभ हो रहा है',
       KEEP_APP_OPEN: 'ऐप बंद न करें या विंडो न बदलें।',
+      SCREEN_DIM_NOTICE: 'आपके डिवाइस की सुरक्षा के लिए स्क्रीन की चमक कम की जाएगी।',
       RESET_CONFIRMATION: 'सभी फ़ाइलें और संपादन हटाए जाएंगे और आप वर्कफ़्लो की शुरुआत पर लौट जाएंगे।',
       UNDER_CONSTRUCTION: {
         TITLE: 'निर्माणाधीन',
@@ -266,6 +275,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
       RESET: 'إعادة التشغيل',
       RESETTING: 'جارٍ إعادة التشغيل',
       KEEP_APP_OPEN: 'لا تغلق التطبيق أو تنتقل إلى نافذة أخرى.',
+      SCREEN_DIM_NOTICE: 'سيتم تعتيم الشاشة لحماية جهازك.',
       RESET_CONFIRMATION: 'سيتم تجاهل جميع الملفات والتعديلات، وستعود إلى بداية سير العمل.',
       UNDER_CONSTRUCTION: {
         TITLE: 'قيد الإنشاء',
@@ -295,6 +305,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
       RESET: '再起動',
       RESETTING: '再起動中',
       KEEP_APP_OPEN: 'アプリを閉じたり、ウィンドウを切り替えたりしないでください。',
+      SCREEN_DIM_NOTICE: 'デバイスを保護するため、画面が暗くなります。',
       RESET_CONFIRMATION: 'すべてのファイルと編集内容が破棄され、ワークフローの最初に戻ります。',
       UNDER_CONSTRUCTION: {
         TITLE: '構築中',
@@ -324,6 +335,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
       RESET: '다시 시작',
       RESETTING: '다시 시작하는 중',
       KEEP_APP_OPEN: '앱을 닫거나 창을 전환하지 마세요.',
+      SCREEN_DIM_NOTICE: '기기를 보호하기 위해 화면이 어두워집니다.',
       RESET_CONFIRMATION: '모든 파일과 편집 내용이 삭제되고 워크플로 시작으로 돌아갑니다.',
       UNDER_CONSTRUCTION: {
         TITLE: '제작 중',
@@ -353,6 +365,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
       RESET: '重启',
       RESETTING: '正在重启',
       KEEP_APP_OPEN: '请勿关闭应用或切换窗口。',
+      SCREEN_DIM_NOTICE: '屏幕将变暗，以保护你的设备。',
       RESET_CONFIRMATION: '所有文件和编辑内容都会被丢弃，你将返回工作流开始处。',
       UNDER_CONSTRUCTION: {
         TITLE: '建设中',
@@ -382,6 +395,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
       RESET: 'Перезапустить',
       RESETTING: 'Перезапуск',
       KEEP_APP_OPEN: 'Не закрывайте приложение и не переключайте окна.',
+      SCREEN_DIM_NOTICE: 'Экран будет затемнён для защиты устройства.',
       RESET_CONFIRMATION: 'Все файлы и изменения будут удалены, и вы вернётесь к началу рабочего процесса.',
       UNDER_CONSTRUCTION: {
         TITLE: 'В разработке',

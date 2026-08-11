@@ -1,9 +1,11 @@
 package com.sheldrapps.plugins.epubrewrite;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import com.getcapacitor.JSObject;
 
@@ -28,6 +30,8 @@ import java.util.zip.ZipOutputStream;
 
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.model.ZipParameters;
+
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,6 +58,224 @@ public class EpubRewritePluginRewriteTest {
         assertEquals(expectedBytes, copiedBytes);
         assertEquals(expectedBytes, output.writtenBytes);
         assertTrue(input.maximumRequestedBuffer <= 128 * 1024);
+    }
+
+    @Test
+    public void rawArchiveWriterPreservesCompressedPayloadWithoutInflatingIt() throws Exception {
+        Path sourcePath = temporaryFolder.newFile("raw-source-" + System.nanoTime() + ".epub").toPath();
+        Path outputPath = temporaryFolder.newFile("raw-output-" + System.nanoTime() + ".epub").toPath();
+        byte[] payload = new byte[512 * 1024];
+        for (int index = 0; index < payload.length; index++) {
+            payload[index] = (byte) (index % 31);
+        }
+
+        try (ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(sourcePath))) {
+            ZipEntry mimetype = new ZipEntry("mimetype");
+            byte[] mimetypeBytes = "application/epub+zip".getBytes(StandardCharsets.US_ASCII);
+            mimetype.setMethod(ZipEntry.STORED);
+            mimetype.setSize(mimetypeBytes.length);
+            CRC32 mimetypeCrc = new CRC32();
+            mimetypeCrc.update(mimetypeBytes);
+            mimetype.setCrc(mimetypeCrc.getValue());
+            output.putNextEntry(mimetype);
+            output.write(mimetypeBytes);
+            output.closeEntry();
+
+            ZipEntry chapter = new ZipEntry("OPS/chapter.xhtml");
+            output.putNextEntry(chapter);
+            output.write(payload);
+            output.closeEntry();
+        }
+
+        byte[] sourceRaw;
+        long sourceCompressedSize;
+        try (org.apache.commons.compress.archivers.zip.ZipFile source =
+            new org.apache.commons.compress.archivers.zip.ZipFile(sourcePath.toFile())) {
+            ZipArchiveEntry sourceEntry = source.getEntry("OPS/chapter.xhtml");
+            sourceCompressedSize = sourceEntry.getCompressedSize();
+            try (InputStream raw = source.getRawInputStream(sourceEntry)) {
+                sourceRaw = readAll(raw);
+            }
+            try (StreamingEpubArchiveWriter writer = new StreamingEpubArchiveWriter(outputPath)) {
+                writer.writeRaw(source, source.getEntry("mimetype"), "mimetype");
+                writer.writeRaw(source, sourceEntry, "OPS/chapter.xhtml");
+            }
+        }
+
+        try (org.apache.commons.compress.archivers.zip.ZipFile output =
+            new org.apache.commons.compress.archivers.zip.ZipFile(outputPath.toFile())) {
+            ZipArchiveEntry outputEntry = output.getEntry("OPS/chapter.xhtml");
+            assertEquals(sourceCompressedSize, outputEntry.getCompressedSize());
+            try (InputStream raw = output.getRawInputStream(outputEntry)) {
+                assertArrayEquals(sourceRaw, readAll(raw));
+            }
+            try (InputStream decoded = output.getInputStream(outputEntry)) {
+                assertArrayEquals(payload, readAll(decoded));
+            }
+        }
+    }
+
+    @Test
+    public void rawArchiveWriterRejectsDuplicateAndOversizedTransformedEntries() throws Exception {
+        Path outputPath = temporaryFolder.newFile("raw-safety-" + System.nanoTime() + ".epub").toPath();
+        try (StreamingEpubArchiveWriter writer = new StreamingEpubArchiveWriter(outputPath)) {
+            writer.writeStoredBytes("mimetype", "application/epub+zip".getBytes(StandardCharsets.US_ASCII));
+            try {
+                writer.writeDeflatedBytes("mimetype", new byte[] { 1 });
+                fail("Expected duplicate output entry to be rejected");
+            } catch (IOException error) {
+                assertTrue(error.getMessage().contains("Duplicate EPUB output entry"));
+            }
+            try {
+                writer.writeDeflatedBytes(
+                    "OPS/large.xhtml",
+                    new byte[(int) StreamingEpubArchiveWriter.MAX_IN_MEMORY_ENTRY_BYTES + 1]
+                );
+                fail("Expected oversized transformed entry to be rejected");
+            } catch (IOException error) {
+                assertTrue(error.getMessage().contains("in-memory safety limit"));
+            }
+        }
+    }
+
+    @Test
+    public void streamingEntryReaderHonorsDeclaredEncodingWithoutLoadingTheEntry() throws Exception {
+        StringBuilder xml = new StringBuilder(256 * 1024);
+        xml.append("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><root>");
+        while (xml.length() < (4 * 1024 * 1024) + 128) {
+            xml.append("<item>Señor</item>");
+        }
+        xml.append("</root>");
+
+        try (ZipFile zip = buildZip(orderedEntries("OPS/large.xml", encoded(xml.toString(), java.nio.charset.StandardCharsets.ISO_8859_1)))) {
+            StringBuilder decoded = new StringBuilder();
+            new StreamingEpubEntryReader(zip).transformText(
+                zip.getFileHeader("OPS/large.xml"),
+                (chunk, finalChunk) -> {
+                    decoded.append(chunk);
+                    return chunk;
+                }
+            );
+            assertTrue(decoded.toString().contains("<item>Señor</item>"));
+        }
+    }
+
+    @Test
+    public void streamingXmlSanitizerRepairsAcrossChunkBoundariesWithoutDom() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Class<?> sanitizerClass = Class.forName(
+            "com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin$StreamingXmlSanitizer"
+        );
+        Constructor<?> constructor = sanitizerClass.getDeclaredConstructor(
+            EpubRewritePlugin.class,
+            boolean.class
+        );
+        constructor.setAccessible(true);
+        Object sanitizer = constructor.newInstance(plugin, true);
+        Method transform = sanitizerClass.getDeclaredMethod(
+            "transform",
+            String.class,
+            boolean.class
+        );
+        transform.setAccessible(true);
+
+        String first = "<!DOCTYPE html><html><head><script>remove()</script><title>Large";
+        String second = " document</title></head><body><p>Content</p></body></html>";
+        String repaired = (String) transform.invoke(sanitizer, first, false)
+            + (String) transform.invoke(sanitizer, second, true);
+
+        assertFalse(repaired.toLowerCase(java.util.Locale.US).contains("doctype"));
+        assertFalse(repaired.toLowerCase(java.util.Locale.US).contains("<script"));
+        assertFalse(repaired.toLowerCase(java.util.Locale.US).contains("remove()"));
+        assertTrue(repaired.contains("<title>Large document</title>"));
+        assertTrue(repaired.contains("<body><p>Content</p></body>"));
+    }
+
+    @Test
+    public void largeContentRepairStreamsAndRemovesDoctypeWithoutBuildingEntryBytes() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        StringBuilder content = new StringBuilder(5 * 1024 * 1024);
+        content.append("<!DOCTYPE html><html xmlns=\"http://www.w3.org/1999/xhtml\">");
+        content.append("<head><title>Large</title></head><body><p>");
+        while (content.length() < (4 * 1024 * 1024) + 128) {
+            content.append("text ");
+        }
+        content.append("</p></body></html>");
+
+        ZipFile zipFile = buildZip(orderedEntries(
+            "OPS/text/chapter.xhtml", utf8(content.toString())
+        ));
+        try {
+            Class<?> itemClass = Class.forName(
+                "com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin$ParsedManifestItem"
+            );
+            Constructor<?> itemConstructor = itemClass.getDeclaredConstructor(
+                String.class,
+                String.class,
+                String.class,
+                String.class,
+                boolean.class,
+                String.class,
+                String.class,
+                String.class,
+                String.class,
+                String.class,
+                boolean.class,
+                Element.class
+            );
+            itemConstructor.setAccessible(true);
+            Object item = itemConstructor.newInstance(
+                "chapter",
+                "text/chapter.xhtml",
+                "text/chapter.xhtml",
+                "OPS/text/chapter.xhtml",
+                true,
+                "application/xhtml+xml",
+                "",
+                "",
+                "",
+                "",
+                false,
+                null
+            );
+            Path output = temporaryFolder.getRoot().toPath().resolve("large-repaired.xhtml");
+            Object result = invokeObject(
+                plugin,
+                "repairLargeContentDocumentToFile",
+                new Class<?>[] { ZipFile.class, itemClass, Path.class, boolean.class },
+                zipFile,
+                item,
+                output,
+                false
+            );
+
+            assertNotNull(result);
+            String repaired = new String(Files.readAllBytes(output), StandardCharsets.UTF_8);
+            assertFalse(repaired.toLowerCase(java.util.Locale.US).contains("<!doctype"));
+            assertTrue(repaired.contains("text text text"));
+            assertTrue(Files.size(output) > 4 * 1024 * 1024);
+        } finally {
+            zipFile.close();
+        }
+    }
+
+    @Test
+    public void inMemoryEntryReadRejectsOversizedTextBeforeExhaustingHeap() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        byte[] oversizedText = new byte[(4 * 1024 * 1024) + 1];
+
+        try {
+            invokeObject(
+                plugin,
+                "readStreamBytes",
+                new Class<?>[] { InputStream.class },
+                new ByteArrayInputStream(oversizedText)
+            );
+            fail("Expected oversized text entry to be rejected");
+        } catch (java.lang.reflect.InvocationTargetException error) {
+            assertTrue(error.getCause() instanceof IOException);
+            assertTrue(error.getCause().getMessage().contains("in-memory safety limit"));
+        }
     }
 
     @Test
@@ -84,37 +306,6 @@ public class EpubRewritePluginRewriteTest {
         );
 
         assertEquals("OEBPS/images/cover.png", resolved);
-    }
-
-    @Test
-    public void splitDependencyExtractionFollowsXhtmlAndCssResources() throws Exception {
-        EpubRewritePlugin plugin = new EpubRewritePlugin();
-
-        @SuppressWarnings("unchecked")
-        List<String> xhtmlDependencies = (List<String>) invokeObject(
-            plugin,
-            "extractSplitDependencies",
-            new Class<?>[] { String.class, String.class },
-            "OEBPS/text/chapter.xhtml",
-            "<link rel=\"stylesheet\" href=\"../styles/book.css\"/><img src=\"../images/cover.jpg\"/>"
-        );
-        @SuppressWarnings("unchecked")
-        List<String> cssDependencies = (List<String>) invokeObject(
-            plugin,
-            "extractSplitDependencies",
-            new Class<?>[] { String.class, String.class },
-            "OEBPS/styles/book.css",
-            "@import \"theme.css\"; body { background: url('../images/bg.png'); }"
-        );
-
-        assertEquals(
-            java.util.Arrays.asList("OEBPS/images/cover.jpg", "OEBPS/styles/book.css"),
-            new java.util.ArrayList<>(new java.util.TreeSet<>(xhtmlDependencies))
-        );
-        assertEquals(
-            java.util.Arrays.asList("OEBPS/images/bg.png", "OEBPS/styles/theme.css"),
-            new java.util.ArrayList<>(new java.util.TreeSet<>(cssDependencies))
-        );
     }
 
     @Test
@@ -2428,6 +2619,16 @@ public class EpubRewritePluginRewriteTest {
 
     private byte[] encoded(String value, java.nio.charset.Charset charset) {
         return value.getBytes(charset);
+    }
+
+    private byte[] readAll(InputStream input) throws IOException {
+        java.io.ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
+        byte[] buffer = new byte[64 * 1024];
+        int read;
+        while ((read = input.read(buffer)) != -1) {
+            output.write(buffer, 0, read);
+        }
+        return output.toByteArray();
     }
 
     private static final class CountingInputStream extends InputStream {

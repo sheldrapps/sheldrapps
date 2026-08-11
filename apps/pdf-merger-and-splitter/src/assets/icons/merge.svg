@@ -1,0 +1,11 @@
+<svg width="100%" height="100%" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
+<path d="M174 167H278L326 215V367C326 373.365 323.471 379.47 318.971 383.971C314.47 388.471 308.365 391 302 391H174C167.635 391 161.53 388.471 157.029 383.971C152.529 379.47 150 373.365 150 367V191C150 184.635 152.529 178.53 157.029 174.029C161.53 169.529 167.635 167 174 167Z" stroke="currentColor" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M326 327H342C348.365 327 354.47 324.471 358.971 319.971C363.471 315.47 366 309.365 366 303V151L318 103H214C207.635 103 201.53 105.529 197.029 110.029C192.529 114.53 190 120.635 190 127V167.5" stroke="currentColor" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M278 167V215H326" stroke="currentColor" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M318 103V151H366" stroke="currentColor" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M202 247H270" stroke="currentColor" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M202 287H270" stroke="currentColor" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M202 327H270" stroke="currentColor" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M128.303 261.303C131.232 258.374 131.232 253.626 128.303 250.697L80.5736 202.967C77.6447 200.038 72.8959 200.038 69.967 202.967C67.0381 205.896 67.0381 210.645 69.967 213.574L112.393 256L69.967 298.426C67.0381 301.355 67.0381 306.104 69.967 309.033C72.8959 311.962 77.6447 311.962 80.5736 309.033L128.303 261.303ZM23 256L23 263.5H123V256V248.5L23 248.5L23 256Z" fill="currentColor"/>
+<path d="M383.697 250.697C380.768 253.626 380.768 258.374 383.697 261.303L431.426 309.033C434.355 311.962 439.104 311.962 442.033 309.033C444.962 306.104 444.962 301.355 442.033 298.426L399.607 256L442.033 213.574C444.962 210.645 444.962 205.896 442.033 202.967C439.104 200.038 434.355 200.038 431.426 202.967L383.697 250.697ZM489 256V248.5L389 248.5V256V263.5H489V256Z" fill="currentColor"/>
+</svg>

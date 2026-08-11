@@ -1,14 +1,35 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateModule } from '@ngx-translate/core';
+import { provideRouter } from '@angular/router';
+import {
+  AlertController,
+  ModalController,
+  ToastController,
+} from '@ionic/angular/standalone';
 import { MyEpubsPage } from './my-epubs.page';
+import { FileService } from '../../services/file.service';
+import { CoversEventsService } from '../../services/covers-events.service';
+import { PreviewEditingPageService } from '@sheldrapps/image-workflow';
 
 describe('MyEpubsPage', () => {
   let component: MyEpubsPage;
   let fixture: ComponentFixture<MyEpubsPage>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [MyEpubsPage, TranslateModule.forRoot()],
+      providers: [
+        provideRouter([]),
+        { provide: FileService, useValue: {} },
+        { provide: AlertController, useValue: {} },
+        { provide: CoversEventsService, useValue: {} },
+        { provide: ToastController, useValue: {} },
+        { provide: ModalController, useValue: {} },
+        { provide: PreviewEditingPageService, useValue: {} },
+      ],
+    }).compileComponents();
     fixture = TestBed.createComponent(MyEpubsPage);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
   it('should render', () => {

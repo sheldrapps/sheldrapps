@@ -239,82 +239,37 @@ describe('ChangePage', () => {
     );
   });
 
-  it('persists premium export mode selection to settings-kit', async () => {
-    const invalidateGeneratedOutputState = jasmine.createSpy(
-      'invalidateGeneratedOutputState',
-    );
-    const set = jasmine.createSpy('set').and.resolveTo(undefined);
-    const ctx = {
-      adsRemoved: true,
-      coverExportMode: 'compressed' as const,
-      exportImageFile: undefined as File | undefined,
-      invalidateGeneratedOutputState,
-      settings: { set },
-    };
+  it('forwards valid export quality selections from the triple button', async () => {
+    const onExportQualityModeSelect = jasmine
+      .createSpy('onExportQualityModeSelect')
+      .and.resolveTo(undefined);
+    const ctx = { onExportQualityModeSelect };
 
     await (
       ChangePage as unknown as {
         prototype: {
-          onCoverExportModeChange: (
-            this: {
-              adsRemoved: boolean;
-              coverExportMode: 'lossless' | 'compressed';
-              exportImageFile: File | undefined;
-              invalidateGeneratedOutputState: () => void;
-              settings: {
-                set: (value: {
-                  coverExportMode: 'lossless' | 'compressed';
-                }) => Promise<void>;
-              };
-            },
-            mode: 'lossless' | 'compressed',
+          onTripleExportQualityModeSelect: (
+            this: typeof ctx,
+            value: string,
           ) => Promise<void>;
         };
       }
-    ).prototype.onCoverExportModeChange.call(ctx, 'lossless');
+    ).prototype.onTripleExportQualityModeSelect.call(ctx, 'best');
 
-    expect(ctx.coverExportMode).toBe('lossless');
-    expect(invalidateGeneratedOutputState).toHaveBeenCalled();
-    expect(set).toHaveBeenCalledWith({ coverExportMode: 'lossless' });
-  });
-
-  it('does not overwrite stored premium export preference for non-premium users', async () => {
-    const invalidateGeneratedOutputState = jasmine.createSpy(
-      'invalidateGeneratedOutputState',
-    );
-    const set = jasmine.createSpy('set').and.resolveTo(undefined);
-    const ctx = {
-      adsRemoved: false,
-      coverExportMode: 'lossless' as const,
-      exportImageFile: undefined as File | undefined,
-      invalidateGeneratedOutputState,
-      settings: { set },
-    };
+    expect(onExportQualityModeSelect).toHaveBeenCalledOnceWith('best');
 
     await (
       ChangePage as unknown as {
         prototype: {
-          onCoverExportModeChange: (
-            this: {
-              adsRemoved: boolean;
-              coverExportMode: 'lossless' | 'compressed';
-              exportImageFile: File | undefined;
-              invalidateGeneratedOutputState: () => void;
-              settings: {
-                set: (value: {
-                  coverExportMode: 'lossless' | 'compressed';
-                }) => Promise<void>;
-              };
-            },
-            mode: 'lossless' | 'compressed',
+          onTripleExportQualityModeSelect: (
+            this: typeof ctx,
+            value: string,
           ) => Promise<void>;
         };
       }
-    ).prototype.onCoverExportModeChange.call(ctx, 'compressed');
+    ).prototype.onTripleExportQualityModeSelect.call(ctx, 'lossless');
 
-    expect(ctx.coverExportMode).toBe('lossless');
-    expect(invalidateGeneratedOutputState).not.toHaveBeenCalled();
-    expect(set).not.toHaveBeenCalled();
+    expect(onExportQualityModeSelect).toHaveBeenCalledOnceWith('best');
   });
 
   it('targets PNG rewrite extension for premium lossless mode', () => {
@@ -630,6 +585,7 @@ describe('ChangePage', () => {
       resolveProjectCoverEntryPath,
       projectSaveState: { setProject },
       revokePreviewUrl,
+      setPreviewUrl: jasmine.createSpy('setPreviewUrl'),
       openEditor,
       activeProjectFilename: undefined as string | undefined,
       generatedEpubFilename: undefined as string | undefined,

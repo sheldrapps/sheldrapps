@@ -10,6 +10,7 @@ import { Injectable, InjectionToken } from '@angular/core';
 import JSZip, { type JSZipObject } from 'jszip';
 
 const EPUB_MIME = 'application/epub+zip';
+const WEB_EPUB_MAX_BYTES = 128 * 1024 * 1024;
 
 export const WEB_EPUB_COVER_SERVICE_TOKEN = new InjectionToken<WebEpubCoverService>(
   'WEB_EPUB_COVER_SERVICE',
@@ -22,6 +23,7 @@ export class WebEpubCoverService {
    * Used to replace the native validateEpubStructure check on web.
    */
   async isReadableEpub(file: File): Promise<boolean> {
+    if (file.size > WEB_EPUB_MAX_BYTES) return false;
     try {
       const zip = await JSZip.loadAsync(file);
       return !!zip.file('META-INF/container.xml');
@@ -35,6 +37,7 @@ export class WebEpubCoverService {
    * Returns null if no cover can be found or the file is not a valid EPUB.
    */
   async extractCover(file: File): Promise<File | null> {
+    if (file.size > WEB_EPUB_MAX_BYTES) return null;
     try {
       const zip = await JSZip.loadAsync(file);
       const opfPath = await this.readOpfPath(zip);
@@ -67,6 +70,9 @@ export class WebEpubCoverService {
     coverFile: File,
     _outputName?: string,
   ): Promise<Uint8Array> {
+    if (sourceEpub.size > WEB_EPUB_MAX_BYTES) {
+      throw new Error('EPUB_WEB_SIZE_UNSUPPORTED');
+    }
     const zip = await JSZip.loadAsync(sourceEpub);
     const opfPath = await this.readOpfPath(zip);
 

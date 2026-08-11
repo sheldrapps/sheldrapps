@@ -1230,16 +1230,40 @@ test("regression: language service must not sync launcher alias during startup/i
   );
 });
 
-test("regression: EMAS syncs the native launcher alias after resolving its initial language", () => {
-  const source = readFileSync(
+test("regression: EMAS and PMAS do not switch launcher aliases during bootstrap", () => {
+  const initializerPaths = [
     "apps/epub-merger-and-splitter/src/app/providers/epub-merger-and-splitter-bootstrap.initializer.ts",
-    "utf8",
-  );
-  assert.match(
-    source,
-    /await\s+lang\.set\(language\);\s*void\s+syncLauncherAlias\(language\);/s,
-    "EMAS must synchronize its native launcher alias after applying the detected or persisted language",
-  );
+    "apps/pdf-merger-and-splitter/src/app/providers/pdf-merger-and-splitter-bootstrap.initializer.ts",
+  ];
+
+  for (const initializerPath of initializerPaths) {
+    const source = readFileSync(initializerPath, "utf8");
+    assert.match(
+      source,
+      /await\s+lang\.set\(language\);/s,
+      `${initializerPath} must apply the resolved language during bootstrap`,
+    );
+    assert.ok(
+      !source.includes("syncLauncherAlias("),
+      `${initializerPath} must not switch launcher aliases during bootstrap`,
+    );
+  }
+});
+
+test("regression: EMAS and PMAS launcher alias switching is idempotent", () => {
+  const activityPaths = [
+    "apps/epub-merger-and-splitter/android/app/src/main/java/com/sheldrapps/epubmergersplitter/MainActivity.java",
+    "apps/pdf-merger-and-splitter/android/app/src/main/java/com/sheldrapps/pdfmergersplitter/MainActivity.java",
+  ];
+
+  for (const activityPath of activityPaths) {
+    const source = readFileSync(activityPath, "utf8");
+    assert.match(
+      source,
+      /if\s*\(isAliasEnabled\([^)]*\)\)\s*\{\s*return\s+(?:targetLocale|target);/s,
+      `${activityPath} must avoid reconfiguring an already active launcher alias`,
+    );
+  }
 });
 
 test("regression: EMAS system launcher label is localized before web startup", () => {

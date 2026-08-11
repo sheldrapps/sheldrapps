@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { Subject } from 'rxjs';
 import { AppComponent } from './app.component';
+import { LifecycleDiagnosticsService } from '@sheldrapps/lifecycle-kit';
 
 describe('AppComponent', () => {
   let onLangChange: Subject<unknown>;
@@ -35,6 +36,10 @@ describe('AppComponent', () => {
           useValue: {
             setTitle: titleSetSpy,
           },
+        },
+        {
+          provide: LifecycleDiagnosticsService,
+          useValue: { start: jasmine.createSpy('start') },
         },
       ],
     }).compileComponents();

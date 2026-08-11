@@ -1,0 +1,355 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title class="home-page-title">{{ getPageTitleKey() | translate }}</ion-title>
+    <ion-buttons slot="end" class="app-header-tools">
+      <sh-scrollable-button-bar
+        [items]="headerItems"
+        variant="iconText"
+        align="start"
+        edge="end"
+        [disabled]="isResettingFlow()"
+        (selectItem)="onHeaderItemClick($event)"
+      ></sh-scrollable-button-bar>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="home">
+  <div class="home__stepper">
+    <sh-workflow-stepper
+      [steps]="workflowUiSteps()"
+      [currentStep]="workflowStep()"
+      [selectableSteps]="selectableWorkflowSteps()"
+      (stepSelected)="onWorkflowStepSelected($event)"
+    ></sh-workflow-stepper>
+  </div>
+
+  <div class="home__stack">
+    @if (!selectedMode() && workflowStep() === 0) {
+      <section class="home-action-section" aria-labelledby="home-action-title">
+        <div class="field-title" id="home-action-title">
+          {{ 'HOME.WHAT_DO_YOU_WANT_TO_DO' | translate }}
+        </div>
+        <div class="home-action-grid">
+          <sh-action-card
+            [title]="'HOME.MERGE' | translate"
+            [svg]="mergeIconSvg()"
+            [ariaLabel]="'HOME.MERGE' | translate"
+            (click)="selectMode('merge')"
+          ></sh-action-card>
+          <sh-action-card
+            [title]="'HOME.SPLIT' | translate"
+            [svg]="splitIconSvg()"
+            [ariaLabel]="'HOME.SPLIT' | translate"
+            (click)="selectMode('split')"
+          ></sh-action-card>
+        </div>
+      </section>
+    }
+
+    @if (selectedMode() === 'merge' && workflowStep() === 1) {
+      <sh-file-picker-panel
+        [title]="'HOME.PDF_FILES_TITLE' | translate"
+        [selected]="mergePdfs().length > 0"
+        [disabled]="isBusy()"
+        [invalid]="!!pickerErrorKey()"
+        [actionLabel]="mergePdfs().length > 0 ? ('HOME.ADD_ANOTHER_PDF_FILE' | translate) : null"
+        [actionSubline]="mergePdfs().length > 0 ? ('HOME.FILES_SELECTED' | translate: { count: mergePdfs().length }) : null"
+        [actionPlaceholder]="'HOME.SELECT_PDF_FILES_PLACEHOLDER' | translate"
+        [actionAriaLabel]="mergePdfs().length > 0 ? ('HOME.ARIA_ADD_PDF_FILE' | translate) : ('HOME.ARIA_SELECT_PDF_FILES' | translate)"
+        [items]="mergePickerItems()"
+        [itemsTitle]="'HOME.EXPORT_ORDER_TITLE' | translate"
+        [removeEnabled]="true"
+        [removeActionAriaLabel]="'COMMON.DELETE' | translate"
+        [reorderEnabled]="mergePdfs().length > 1"
+        (actionSelected)="openPdfPicker()"
+        (itemRemoved)="removeMergePdf($event.id)"
+        (itemsReordered)="onMergeItemsReordered($event)"
+      ></sh-file-picker-panel>
+    }
+
+    @if (selectedMode() === 'merge' && workflowStep() === 2) {
+      <section class="toc-selector-section">
+        <sh-triple-button
+          mode="toc-mode"
+          [selectedValue]="tocMode()"
+          (selectedValueChange)="onBookmarkModeChange($event)"
+        ></sh-triple-button>
+      </section>
+    }
+
+    @if (selectedMode() === 'split' && workflowStep() === 0) {
+      <sh-file-picker-panel
+        [title]="'HOME.PDF_FILE_TITLE' | translate"
+        [selected]="!!splitPdf()"
+        [disabled]="isBusy()"
+        [invalid]="!!pickerErrorKey()"
+        [actionLabel]="splitPdf()?.displayName ?? null"
+        [actionSubline]="splitPdf() ? ('HOME.TAP_TO_CHANGE' | translate) : null"
+        [actionPlaceholder]="'HOME.SELECT_PDF_PLACEHOLDER' | translate"
+        [actionAriaLabel]="splitPdf() ? ('HOME.ARIA_CHANGE_PDF' | translate: { name: splitPdf()?.displayName }) : ('HOME.ARIA_SELECT_PDF' | translate)"
+        (actionSelected)="openPdfPicker()"
+      ></sh-file-picker-panel>
+    }
+
+    @if (selectedMode() === 'split' && workflowStep() === 1) {
+      <section class="split-method-section" aria-labelledby="split-method-title">
+        <div class="field-title" id="split-method-title">
+          {{ 'HOME.SPLIT_HOW_TO_TITLE' | translate }}
+        </div>
+        <sh-selectable-button-list
+          [items]="splitMethodItems()"
+          [value]="splitMethod()"
+          [ariaLabel]="'HOME.SPLIT_HOW_TO_TITLE' | translate"
+          (valueChange)="onSplitMethodChange($any($event))"
+        ></sh-selectable-button-list>
+      </section>
+    }
+
+    @if (selectedMode() === 'split' && workflowStep() === 2) {
+      <section class="split-confirm-section app-surface" aria-labelledby="output-title">
+        <div class="field-title" id="output-title">
+          {{ 'HOME.SPLIT_CONFIRM.TITLE' | translate }}
+        </div>
+        @if (splitMethod() === 'bookmarks') {
+          <sh-selectable-button-list
+            [items]="splitChapterModeItems()"
+            [value]="splitBookmarkMode()"
+            [ariaLabel]="'HOME.SPLIT_CONFIRM.VARIANT_LABEL' | translate"
+            selectedIconName="radio-button-on"
+            (valueChange)="onSplitBookmarkModeChange($any($event))"
+          ></sh-selectable-button-list>
+        }
+
+        @if (splitMethod() === 'manual-cut-points') {
+          <p class="split-confirm__summary">{{ 'HOME.SPLIT_CONFIRM.MANUAL_HINT' | translate }}</p>
+          <sh-selectable-button-list
+            [items]="splitManualModeItems()"
+            [value]="splitManualMode()"
+            [expandedValue]="splitManualMode() === 'pages' ? 'pages' : null"
+            [ariaLabel]="'HOME.SPLIT_CONFIRM.MANUAL_TITLE' | translate"
+            selectedIconName="radio-button-on"
+            (valueChange)="onSplitManualModeChange($any($event))"
+          >
+            <ng-template>
+              <div class="split-custom-option">
+                <ion-input
+                  class="split-custom-control__input"
+                  type="number"
+                  inputmode="numeric"
+                  min="1"
+                  step="1"
+                  [value]="splitManualPageInput()"
+                  [label]="'HOME.SPLIT_CONFIRM.PAGES_PER_PDF' | translate"
+                  labelPlacement="stacked"
+                  [helperText]="'HOME.SPLIT_CONFIRM.PAGES_PER_PDF_HINT' | translate"
+                  [attr.aria-label]="'HOME.SPLIT_CONFIRM.PAGES_PER_PDF' | translate"
+                  (keydown)="onSplitIntegerKeydown($event)"
+                  (ionInput)="onSplitManualPageInput($any($event).detail.value)"
+                ></ion-input>
+                @if (splitManualPageErrorKey()) {
+                  <p class="split-confirm__validation">{{ splitManualPageErrorKey()! | translate }}</p>
+                }
+              </div>
+            </ng-template>
+          </sh-selectable-button-list>
+
+          @if (splitManualMode() === 'toc') {
+            <sh-selectable-button-list
+              [items]="splitBookmarkItems()"
+              [value]="null"
+              [values]="splitManualBookmarkIds()"
+              selectionMode="multiple"
+              [ariaLabel]="'HOME.SPLIT_CONFIRM.MANUAL_TITLE' | translate"
+              (valuesChange)="onSplitManualBookmarksChange($event)"
+            ></sh-selectable-button-list>
+          }
+        }
+
+        @if (splitMethod() === 'equal-number-of-parts') {
+          <p class="split-confirm__summary">{{ 'HOME.SPLIT_CONFIRM.EQUAL_HELP' | translate }}</p>
+          <sh-selectable-button-list
+            [items]="splitEqualPartsItems()"
+            [value]="splitEqualPartsSelection()"
+            [expandedValue]="splitEqualPartsSelection() === 'custom' ? 'custom' : null"
+            [ariaLabel]="'HOME.SPLIT_CONFIRM.EQUAL_TITLE' | translate"
+            selectedIconName="radio-button-on"
+            (valueChange)="onSplitEqualPartsChange($any($event))"
+          >
+            <ng-template>
+              <div class="split-custom-option">
+                <ion-input
+                  class="split-custom-control__input"
+                  type="number"
+                  inputmode="numeric"
+                  min="2"
+                  step="1"
+                  [max]="splitPageCount()"
+                  [value]="splitEqualPartsValue()"
+                  [attr.aria-label]="'HOME.SPLIT_CONFIRM.RESULT_COUNT' | translate"
+                  (keydown)="onSplitIntegerKeydown($event)"
+                  (ionInput)="onSplitEqualPartsInput($any($event).detail.value)"
+                ></ion-input>
+                <span class="split-custom-control__suffix">{{ 'HOME.SPLIT_CONFIRM.PARTS_UNIT' | translate }}</span>
+              </div>
+              @if (splitEqualPartsErrorKey()) {
+                <p class="split-confirm__validation">{{ splitEqualPartsErrorKey()! | translate: { max: splitPageCount() } }}</p>
+              }
+            </ng-template>
+          </sh-selectable-button-list>
+        }
+
+        @if (splitMethod() === 'maximum-file-size') {
+          <p class="split-confirm__summary">{{ 'HOME.SPLIT_CONFIRM.MAXIMUM_SIZE_HELP' | translate }}</p>
+          <sh-selectable-button-list
+            [items]="splitMaximumSizeItems()"
+            [value]="splitMaximumSizeSelection()"
+            [expandedValue]="splitMaximumSizeSelection() === 'custom' ? 'custom' : null"
+            [ariaLabel]="'HOME.SPLIT_CONFIRM.MAXIMUM_SIZE_TITLE' | translate"
+            selectedIconName="radio-button-on"
+            (valueChange)="onSplitMaximumSizeChange($any($event))"
+          >
+            <ng-template>
+              <div class="split-custom-option">
+                <ion-input
+                  class="split-custom-control__input"
+                  type="number"
+                  inputmode="numeric"
+                  min="1"
+                  step="1"
+                  [value]="splitMaximumSize()"
+                  [attr.aria-label]="'HOME.SPLIT_CONFIRM.CUSTOM_SIZE' | translate"
+                  (keydown)="onSplitIntegerKeydown($event)"
+                  (ionInput)="onSplitMaximumSizeInput($any($event).detail.value)"
+                ></ion-input>
+                <span class="split-custom-control__suffix">{{ 'HOME.SPLIT_CONFIRM.MEGABYTES_UNIT' | translate }}</span>
+              </div>
+              @if (splitMaximumSizeErrorKey()) {
+                <p class="split-confirm__validation">{{ splitMaximumSizeErrorKey()! | translate }}</p>
+              }
+            </ng-template>
+          </sh-selectable-button-list>
+        }
+
+        @if (splitOutputs().length > 0) {
+          <ul class="split-output-card__list">
+            @for (output of splitOutputs(); track output.id) {
+              <li class="split-output-card__item">
+                <span class="split-output-card__title">{{ output.title }}</span>
+                <span class="split-output-card__size">
+                  @if (cover().source !== 'none') {
+                    {{ 'HOME.SPLIT_CONFIRM.PAGES_WITH_COVER' | translate: { count: output.pageCount } }}
+                  } @else {
+                    {{ output.pageCount }} {{ 'PDF_WORKFLOW.PAGES' | translate }}
+                  }
+                </span>
+                @if (output.estimatedSizeBytes) {
+                  <span class="split-output-card__size">
+                    @if (output.coverSizeBytes) {
+                      {{ 'HOME.SPLIT_CONFIRM.COVER_AND_BOOK_SIZE' | translate: { cover: formatMegabytes(output.coverSizeBytes), book: formatMegabytes(output.bookSizeBytes ?? 0) } }}
+                    } @else {
+                      ≈ {{ formatMegabytes(output.estimatedSizeBytes) }}
+                    }
+                  </span>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
+
+    @if ((selectedMode() === 'merge' && workflowStep() === 3) || (selectedMode() === 'split' && workflowStep() === 3)) {
+      <section class="cover-selector-section" aria-labelledby="cover-title">
+        <div class="field-title" id="cover-title">{{ 'HOME.COVER_SELECTOR_TITLE' | translate }}</div>
+        <sh-cover-source-actions
+          [titleKey]="null"
+          [showTitle]="false"
+          [imageDisabled]="isBusy()"
+          [scratchDisabled]="isBusy()"
+          (imageSelected)="openCoverPicker()"
+          (scratchSelected)="createCover()"
+        ></sh-cover-source-actions>
+        @if (cover().source !== 'none') {
+          <p class="split-confirm__summary">{{ cover().fileName ?? ('HOME.COVER_SELECTOR_TITLE' | translate) }}</p>
+        }
+      </section>
+    }
+
+    @if ((selectedMode() === 'merge' && workflowStep() === 4) || (selectedMode() === 'split' && workflowStep() === 4)) {
+      <section class="merge-result-section" aria-labelledby="review-title">
+        <div class="field-title" id="review-title">
+          {{ selectedMode() === 'merge' ? ('HOME.STEPPER.JOIN' | translate) : ('HOME.SPLIT' | translate) }}
+        </div>
+        <sh-cover-image-state
+          [titleKey]="'HOME.PREVIEW_TITLE'"
+          [ariaLabelKey]="'HOME.PREVIEW_TITLE'"
+          [previewUrl]="coverImageUri() ?? undefined"
+        ></sh-cover-image-state>
+        @if (cover().source !== 'none') {
+          <sh-triple-button
+            mode="export-quality-mode"
+            [selectedValue]="getEffectiveExportQualityMode()"
+            [isPro]="adsRemoved()"
+            [showProBadge]="true"
+            (selectedValueChange)="onTripleExportQualityModeSelect($event)"
+          ></sh-triple-button>
+        }
+        <p class="split-confirm__summary">{{ selectedMode() === 'merge' ? ('HOME.MERGING_TITLE' | translate) : ('HOME.SPLITTING_TITLE' | translate) }}</p>
+        @if (operationCompleted()) {
+          <ion-button expand="block" [disabled]="isResettingFlow()" (click)="onOperationDone()">
+            {{ 'COMMON.DONE' | translate }}
+          </ion-button>
+        } @else {
+          <ion-button expand="block" [disabled]="isBusy()" (click)="execute()">
+            {{ selectedMode() === 'merge' ? ('HOME.STEPPER.JOIN' | translate) : ('HOME.SPLIT' | translate) }}
+          </ion-button>
+        }
+      </section>
+    }
+
+    @if (errorKey(); as error) {
+      <p class="split-confirm__validation" role="alert">{{ error | translate }}</p>
+    }
+
+    @if (pickerErrorKey(); as pickerError) {
+      <div class="app-callout app-callout--error" aria-live="polite" role="status">
+        <ion-icon class="app-callout__icon" name="close-circle-outline" aria-hidden="true"></ion-icon>
+        <div>
+          <div class="app-callout__title">{{ 'COMMON.ERROR' | translate }}</div>
+          <div class="app-callout__body">{{ pickerError | translate }}</div>
+        </div>
+      </div>
+    }
+
+    @if (selectedMode()) {
+      <sh-workflow-navigation
+        [showPrevious]="workflowStep() > 0"
+        [showNext]="workflowStep() > 0 && workflowStep() < steps().length - 1"
+        [previousDisabled]="isBusy()"
+        [nextDisabled]="!canContinue() || isBusy()"
+        [previousLabel]="previousStepLabel()"
+        [nextLabel]="nextStepLabel()"
+        (previous)="previous()"
+        (next)="next()"
+      ></sh-workflow-navigation>
+    }
+  </div>
+
+  <input #pdfInput type="file" [accept]="pdfAccept" [multiple]="(pendingMode() ?? selectedMode()) === 'merge'" hidden (change)="onPdfFilesSelected($event)" />
+  <input #coverInput type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="onCoverSelected($event)" />
+
+  <sh-spinner
+    [visible]="isBusy() || isRebuildingExportQuality()"
+    variant="fullscreen"
+    [label]="getPageTitleKey() | translate"
+    [notice]="'UI_THEME.SCREEN_DIM_NOTICE' | translate"
+    [detail]="'UI_THEME.KEEP_APP_OPEN' | translate"
+  ></sh-spinner>
+
+  <sh-spinner
+    [visible]="isResettingFlow()"
+    variant="fullscreen"
+    [label]="'UI_THEME.RESETTING' | translate"
+  ></sh-spinner>
+</ion-content>
