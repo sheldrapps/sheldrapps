@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ContentUris;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.StatFs;
@@ -60,6 +61,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -99,10 +102,14 @@ public class EpubRewritePlugin extends Plugin {
     private static final boolean DEBUG_IO = true;
     private static final int BUFFER_SIZE = 128 * 1024;
     private static final int LARGE_TEXT_TAIL_CHARS = 64 * 1024;
+    private static final int DIAGNOSIS_PREVIEW_LIMIT = 100;
+    private static final int DIAGNOSIS_PAGE_DEFAULT_SIZE = 100;
+    private static final int DIAGNOSIS_PAGE_MAX_SIZE = 250;
     private static final int PROGRESS_CHECKPOINT_PERCENT = 5;
     private static final float OPERATION_SCREEN_BRIGHTNESS = 0.10f;
     private static final long OPERATION_SCREEN_DIM_DELAY_MS = 15_000L;
     private static final long MAX_IN_MEMORY_TEXT_ENTRY_BYTES = 4L * 1024L * 1024L;
+    private static final long MAX_DIAGNOSE_INLINE_TEXT_ENTRY_BYTES = 1L * 1024L * 1024L;
     private static final long MAX_EXTRACTED_CANDIDATE_IMAGE_BYTES = 30L * 1024L * 1024L;
     private static final long ZIP_LOCAL_FILE_HEADER_SIGNATURE = 0x04034b50L;
     private static final int ZIP_LOCAL_FILE_HEADER_REMAINDER_BYTES = 26;
@@ -132,6 +139,10 @@ public class EpubRewritePlugin extends Plugin {
         "(<(?:a|area)\\b[^>]*?)\\s+href\\s*=\\s*(['\\\"])([^'\\\"]+)\\2([^>]*>)",
         Pattern.CASE_INSENSITIVE | Pattern.DOTALL
     );
+    private static final Pattern XHTML_ANCHOR_CLOSE_PATTERN = Pattern.compile(
+        "</a\\s*>",
+        Pattern.CASE_INSENSITIVE
+    );
     private static final Pattern LARGE_LINK_ATTRIBUTE_PATTERN = Pattern.compile(
         "\\b(?:href|src|xlink:href)\\s*=\\s*(['\\\"])([^'\\\"]*)\\1",
         Pattern.CASE_INSENSITIVE
@@ -144,12 +155,26 @@ public class EpubRewritePlugin extends Plugin {
         "(?:url|@import)\\s*\\(?(?:\\s*['\\\"])?([^'\\\"()#?\\s]+)",
         Pattern.CASE_INSENSITIVE
     );
+    private static final Pattern EPUB_COVER_TYPE_PATTERN = Pattern.compile(
+        "(?:epub:)?type\\s*=\\s*(['\\\"])[^'\\\"]*\\bcover\\b[^'\\\"]*\\1",
+        Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern COVER_IMAGE_PROPERTY_PATTERN = Pattern.compile(
+        "\\bproperties\\s*=\\s*(['\\\"])[^'\\\"]*\\bcover-image\\b[^'\\\"]*\\1",
+        Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern COVER_META_PATTERN = Pattern.compile(
+        "\\bname\\s*=\\s*(['\\\"])cover\\1",
+        Pattern.CASE_INSENSITIVE
+    );
     private static final DateTimeFormatter WORK_TIMESTAMP_FORMAT =
         DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss", Locale.US);
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final AtomicBoolean busy = new AtomicBoolean(false);
     private final AtomicBoolean cancelRequested = new AtomicBoolean(false);
+    private final ThreadLocal<DiagnosticStats> activeDiagnostic = new ThreadLocal<>();
+    private final ThreadLocal<DiagnosticStats> activeRepairProgress = new ThreadLocal<>();
     private final EpubCoverLocator coverLocator = new EpubCoverLocator();
     private boolean screenDimmingActive;
     private boolean screenDimmingScheduled;
@@ -170,6 +195,11 @@ public class EpubRewritePlugin extends Plugin {
     @PluginMethod
     public void diagnoseEpub(PluginCall call) {
         runExclusive(call, "diagnose", this::diagnoseEpubInternal);
+    }
+
+    @PluginMethod
+    public void getDiagnosisIssues(PluginCall call) {
+        runExclusive(call, "diagnosis_page", this::getDiagnosisIssuesInternal);
     }
 
     @PluginMethod
@@ -619,9 +649,19 @@ public class EpubRewritePlugin extends Plugin {
     @PluginMethod
     public void cancelRewrite(PluginCall call) {
         cancelRequested.set(true);
-        JSObject result = new JSObject();
-        result.put("cancelled", true);
-        call.resolve(result);
+        try {
+            executor.execute(() -> {
+                JSObject result = new JSObject();
+                result.put("cancelled", true);
+                call.resolve(result);
+            });
+        } catch (RuntimeException rejected) {
+            // The executor is already shutting down; there is no operation left
+            // for the caller to wait for.
+            JSObject result = new JSObject();
+            result.put("cancelled", true);
+            call.resolve(result);
+        }
     }
 
     @PluginMethod
@@ -1106,114 +1146,160 @@ public class EpubRewritePlugin extends Plugin {
     private void diagnoseEpubInternal(PluginCall call) throws Exception {
         String sessionId = requireString(call, "sessionId").trim();
         validateSessionId(sessionId);
+        String mode = "quick".equalsIgnoreCase(call.getString("mode", "deep"))
+            ? "quick"
+            : "deep";
 
         Path workingPath = resolveSessionWorkingPath(sessionId);
         debugIo("diagnose start sessionId=" + sessionId + " workingPath=" + workingPath);
-        EpubAnalysis analysis = analyzeEpub(workingPath, null);
+        String diagnosisId = UUID.randomUUID().toString();
+        deleteDiagnosisStores(workingPath.getParent());
+        DiagnosticStats stats = new DiagnosticStats(mode, diagnosisId);
+        stats.openFindingStore(workingPath.getParent());
+        activeDiagnostic.set(stats);
+        EpubAnalysis analysis;
+        JSObject diagnosisSummary;
+        JSObject diagnosisPage;
+        try {
+            analysis = analyzeEpub(workingPath, null);
+            if ("deep".equals(mode) && !stats.isLimited()) {
+                stats.writeRepairPlan(buildRepairPlan(workingPath, analysis, stats));
+            }
+            diagnosisSummary = stats.readSummary();
+            diagnosisPage = stats.readPage(null, DIAGNOSIS_PAGE_DEFAULT_SIZE);
+        } finally {
+            activeDiagnostic.remove();
+            stats.closeFindingStore();
+        }
+
+        java.util.ArrayList<EpubIssue> resultIssues = new java.util.ArrayList<>(analysis.issues);
+        String resultStatus = stats.isLimited() ? "limited" : stats.resolveStatus(analysis.status);
         debugIo(
             "diagnose result sessionId=" + sessionId
-                + " status=" + analysis.status
-                + " issues=" + issueCodes(analysis.issues)
+                + " mode=" + mode
+                + " status=" + resultStatus
+                + " issues=" + issueCodes(resultIssues)
+                + " elapsedMs=" + stats.elapsedMs()
         );
 
         JSObject result = new JSObject();
         result.put("success", true);
         result.put("sessionId", sessionId);
-        result.put("status", analysis.status);
-        result.put("issues", toIssueArray(analysis.issues));
+        result.put("diagnosisId", diagnosisId);
+        result.put("status", resultStatus);
+        result.put("mode", mode);
+        result.put("coverage", "quick".equals(mode) || stats.isLimited() ? "limited" : "complete");
+        result.put("issues", toIssueArray(resultIssues));
+        result.put("summary", diagnosisSummary);
+        result.put("page", diagnosisPage);
+        JSObject metrics = new JSObject();
+        metrics.put("elapsedMs", stats.elapsedMs());
+        metrics.put("inspectedEntries", stats.getInspectedEntries());
+        metrics.put("totalEntries", stats.getTotalEntries());
+        metrics.put("inspectedTextBytes", stats.getInspectedTextBytes());
+        metrics.put("scannedLinks", stats.getScannedLinks());
+        metrics.put("reusedCache", false);
+        result.put("metrics", metrics);
+        if (stats.isLimited()) {
+            JSObject limit = new JSObject();
+            limit.put("code", stats.getLimitCode());
+            limit.put("message", stats.getLimitMessage());
+            result.put("limit", limit);
+        }
         call.resolve(result);
+    }
+
+    private void getDiagnosisIssuesInternal(PluginCall call) throws Exception {
+        String sessionId = requireString(call, "sessionId").trim();
+        String diagnosisId = requireString(call, "diagnosisId").trim();
+        validateSessionId(sessionId);
+        validateDiagnosisId(diagnosisId);
+
+        Integer requestedPageSize = call.getInt("pageSize");
+        int pageSize = requestedPageSize == null
+            ? DIAGNOSIS_PAGE_DEFAULT_SIZE
+            : Math.max(1, Math.min(DIAGNOSIS_PAGE_MAX_SIZE, requestedPageSize));
+        String cursor = call.getString("cursor");
+        Path sessionDir = resolveSessionDir(sessionId);
+        Path storePath = sessionDir.resolve(diagnosisStoreFileName(diagnosisId));
+        if (!Files.isRegularFile(storePath)) {
+            throw new IOException("Diagnosis session not found");
+        }
+
+        try (DiagnosticFindingStore store = DiagnosticFindingStore.open(storePath, true)) {
+            JSObject result = store.readPage(cursor, pageSize);
+            result.put("success", true);
+            result.put("diagnosisId", diagnosisId);
+            call.resolve(result);
+        }
     }
 
     private void repairEpubInternal(PluginCall call) throws Exception {
         String sessionId = requireString(call, "sessionId").trim();
         validateSessionId(sessionId);
+        String diagnosisId = requireString(call, "diagnosisId").trim();
+        validateDiagnosisId(diagnosisId);
         String preferredOpfPath = normalizeZipPath(call.getString("preferredOpfPath"));
-        if (CompatStrings.isBlank(preferredOpfPath)) {
-            preferredOpfPath = null;
-        }
         JSObject guidedSelections = call.getObject("guidedSelections");
 
         Path workingPath = resolveSessionWorkingPath(sessionId);
+        Path sessionDir = resolveSessionDir(sessionId);
         java.util.LinkedHashSet<String> repairedIssues = new java.util.LinkedHashSet<>();
-        java.util.HashSet<String> visitedAnalyses = new java.util.HashSet<>();
-        debugIo("repair start sessionId=" + sessionId + " workingPath=" + workingPath);
-
-        EpubAnalysis analysis = analyzeWorkingCopyForRepair(
-            workingPath,
-            preferredOpfPath,
-            guidedSelections,
-            repairedIssues
-        );
-        debugIo(
-            "repair initial analysis sessionId=" + sessionId
-                + " status=" + analysis.status
-                + " issues=" + issueCodes(analysis.issues)
-                + " repairedIssues=" + repairedIssues
-        );
-
-        if ("failed".equals(analysis.status) || "unsupported".equals(analysis.status)) {
-            JSObject result = new JSObject();
-            result.put("success", false);
-            result.put("error", "REPAIR_UNAVAILABLE");
-            result.put("status", analysis.status);
-            result.put("issues", toIssueArray(analysis.issues));
-            debugIo(
-                "repair unavailable sessionId=" + sessionId
-                    + " status=" + analysis.status
-                    + " issues=" + issueCodes(analysis.issues)
-            );
-            call.resolve(result);
-            return;
-        }
-
         Path backupPath = workingPath.resolveSibling(workingPath.getFileName() + ".bak");
         Path tempOutputPath = workingPath.resolveSibling(workingPath.getFileName() + ".tmp");
 
-        try {
-            while (true) {
-                String analysisSignature = buildAnalysisSignature(analysis);
-                if (!visitedAnalyses.add(analysisSignature)) {
-                    debugIo("repair loop repeated analysis sessionId=" + sessionId);
-                    break;
-                }
+        try (DiagnosticFindingStore store = DiagnosticFindingStore.open(
+            sessionDir.resolve(diagnosisStoreFileName(diagnosisId)),
+            true
+        )) {
+            RepairPlan plan = store.readRepairPlan();
+            if (plan == null || !plan.matches(workingPath)) {
+                throw new IOException("Diagnosis plan is missing or stale");
+            }
+            if (!plan.canRepair()) {
+                throw new IOException("Diagnosis does not contain a repairable plan");
+            }
 
-                if (!hasRepairableIssues(analysis)) {
-                    debugIo("repair loop complete sessionId=" + sessionId);
-                    break;
-                }
-
-                boolean shouldRewritePackageDocument = shouldRewritePackageDocument(analysis);
-                boolean shouldRewriteContainerDocument = shouldRewriteContainerDocument(analysis);
-
+            DiagnosticStats repairContext = new DiagnosticStats("deep");
+            repairContext.attachFindingStore(store);
+            activeRepairProgress.set(repairContext);
+            try {
+                emitOperationProgress(
+                    "writing",
+                    0,
+                    (int) Math.min(Integer.MAX_VALUE, Math.max(1L, plan.inputSize)),
+                    1
+                );
                 deleteIfExists(backupPath);
                 deleteIfExists(tempOutputPath);
-
                 moveFileAtomicWithFallback(workingPath, backupPath);
-                repairArchiveToOutput(
-                    backupPath,
-                    tempOutputPath,
-                    analysis,
-                    shouldRewritePackageDocument,
-                    shouldRewriteContainerDocument,
-                    guidedSelections,
-                    repairedIssues
-                );
+                try (ZipFile sourceZip = new ZipFile(backupPath.toFile())) {
+                    RepairPlan selectedPlan = applyPreferredOpfPath(
+                        plan,
+                        preferredOpfPath,
+                        sourceZip
+                    );
+                    EpubAnalysis analysis = materializeRepairAnalysis(selectedPlan, sourceZip);
+                    repairContext.setEntryIndex(buildHeaderIndex(sourceZip.getFileHeaders()));
+                    repairContext.setManifestIndex(analysis.manifestItems);
+                    repairArchiveToOutput(
+                        backupPath,
+                        tempOutputPath,
+                        analysis,
+                        selectedPlan,
+                        guidedSelections,
+                        repairedIssues
+                    );
+                }
                 ensureNotCancelled();
+                validateRepairedArchive(tempOutputPath, plan.opfPath);
+                emitOperationProgress("finalizing", 1, 1, 98);
                 moveFileAtomicWithFallback(tempOutputPath, workingPath);
                 deleteIfExists(backupPath);
                 scanPathForMediaStore(workingPath);
-                debugIo(
-                    "repair rewrite committed sessionId=" + sessionId
-                        + " rewritePackage=" + shouldRewritePackageDocument
-                        + " rewriteContainer=" + shouldRewriteContainerDocument
-                );
-
-                analysis = analyzeWorkingCopyForRepair(
-                    workingPath,
-                    preferredOpfPath,
-                    guidedSelections,
-                    repairedIssues
-                );
+                emitOperationProgress("finalizing", 1, 1, 100);
+            } finally {
+                activeRepairProgress.remove();
             }
 
             JSObject result = new JSObject();
@@ -1221,6 +1307,7 @@ public class EpubRewritePlugin extends Plugin {
             result.put("repairedIssues", new java.util.ArrayList<>(repairedIssues));
             debugIo(
                 "repair success sessionId=" + sessionId
+                    + " diagnosisId=" + diagnosisId
                     + " repairedIssues=" + repairedIssues
             );
             call.resolve(result);
@@ -1242,39 +1329,151 @@ public class EpubRewritePlugin extends Plugin {
         validateSessionId(sessionId);
 
         Path workingPath = resolveSessionWorkingPath(sessionId);
-        Path sessionDir = resolveSessionDir(sessionId);
-        String requestedName = call.getString("outputName");
-        String outputFileName = buildExportFileName(workingPath.getFileName().toString(), requestedName);
-        Path outputPath = sessionDir.resolve(outputFileName);
         debugIo(
             "export start sessionId=" + sessionId
                 + " workingPath=" + workingPath
-                + " outputPath=" + outputPath
         );
-
-        if (workingPath.equals(outputPath)) {
-            JSObject result = new JSObject();
-            result.put("success", true);
-            result.put("outputUri", workingPath.toUri().toString());
-            result.put("size", Files.size(workingPath));
-            debugIo("export reused working copy sessionId=" + sessionId);
-            call.resolve(result);
-            return;
-        }
-
-        Files.createDirectories(outputPath.getParent());
-        Files.copy(workingPath, outputPath, StandardCopyOption.REPLACE_EXISTING);
-        scanPathForMediaStore(outputPath);
 
         JSObject result = new JSObject();
         result.put("success", true);
-        result.put("outputUri", outputPath.toUri().toString());
-        result.put("size", Files.size(outputPath));
+        result.put("outputUri", workingPath.toUri().toString());
+        result.put("size", Files.size(workingPath));
         debugIo(
-            "export success sessionId=" + sessionId
-                + " size=" + Files.size(outputPath)
+            "export reused repaired working copy sessionId=" + sessionId
+                + " size=" + Files.size(workingPath)
         );
         call.resolve(result);
+    }
+
+    private RepairPlan buildRepairPlan(
+        Path workingPath,
+        EpubAnalysis analysis,
+        DiagnosticStats diagnostic
+    ) throws Exception {
+        java.util.ArrayList<RepairFallbackPlan> fallbackPlans = new java.util.ArrayList<>();
+        for (FallbackRepairPlan fallbackPlan : analysis.fallbackPlans) {
+            if (fallbackPlan == null || fallbackPlan.sourceItem == null) {
+                continue;
+            }
+            fallbackPlans.add(new RepairFallbackPlan(
+                fallbackPlan.sourceItem.resolvedPath,
+                fallbackPlan.fallbackId,
+                fallbackPlan.fallbackHref,
+                fallbackPlan.fallbackResolvedPath
+            ));
+        }
+        return new RepairPlan(
+            Files.size(workingPath),
+            Files.getLastModifiedTime(workingPath).toMillis(),
+            analysis.status,
+            analysis.opfPath,
+            analysis.opfDocument == null ? null : serializeXml(analysis.opfDocument),
+            analysis.reconstructibleSpineItemIds,
+            analysis.promotableOrphanResources,
+            fallbackPlans,
+            diagnostic.repairCodes,
+            diagnostic.contentTransformPaths,
+            diagnostic.linkTransformPaths,
+            diagnostic.orphanEntries,
+            analysis.mimetypeMissing,
+            analysis.mimetypeInvalid
+        );
+    }
+
+    private EpubAnalysis materializeRepairAnalysis(RepairPlan plan, ZipFile zipFile) throws Exception {
+        if (CompatStrings.isBlank(plan.opfPath) || CompatStrings.isBlank(plan.opfXml)) {
+            throw new IOException("Repair plan does not contain a package document");
+        }
+        Document opfDocument = parseXmlUtf8(plan.opfXml);
+        if (opfDocument == null) {
+            throw new IOException("Repair plan package document is invalid");
+        }
+        List<FileHeader> headers = zipFile.getFileHeaders();
+        String opfDir = parentZipPath(plan.opfPath);
+        Element manifestElement = firstElementByName(opfDocument, "manifest");
+        Element spineElement = firstElementByName(opfDocument, "spine");
+        java.util.ArrayList<ParsedManifestItem> manifestItems = manifestElement == null
+            ? new java.util.ArrayList<>()
+            : parseManifestItems(headers, manifestElement, opfDir);
+        java.util.ArrayList<ParsedSpineItem> spineItems = spineElement == null
+            ? new java.util.ArrayList<>()
+            : parseSpineItems(spineElement, manifestItems);
+        java.util.ArrayList<FallbackRepairPlan> fallbackPlans = new java.util.ArrayList<>();
+        for (RepairFallbackPlan persisted : plan.fallbackPlans) {
+            ParsedManifestItem source = findManifestItemByResolvedPath(
+                manifestItems,
+                persisted.sourcePath
+            );
+            if (source != null) {
+                fallbackPlans.add(new FallbackRepairPlan(
+                    source,
+                    persisted.fallbackId,
+                    persisted.fallbackHref,
+                    persisted.fallbackResolvedPath
+                ));
+            }
+        }
+        java.util.ArrayList<EpubIssue> issues = new java.util.ArrayList<>();
+        for (String code : plan.repairCodes) {
+            issues.add(issue(code, "warning", true));
+        }
+        return new EpubAnalysis(
+            plan.status,
+            issues,
+            plan.opfPath,
+            opfDir,
+            opfDocument,
+            manifestItems,
+            spineItems,
+            new java.util.ArrayList<>(plan.reconstructibleSpineItemIds),
+            new java.util.ArrayList<>(plan.promotableOrphanResources),
+            fallbackPlans,
+            plan.mimetypeMissing,
+            plan.mimetypeInvalid
+        );
+    }
+
+    private RepairPlan applyPreferredOpfPath(
+        RepairPlan plan,
+        String preferredOpfPath,
+        ZipFile zipFile
+    ) throws Exception {
+        if (CompatStrings.isBlank(preferredOpfPath) || preferredOpfPath.equals(plan.opfPath)) {
+            return plan;
+        }
+        FileHeader selectedHeader = findHeader(zipFile.getFileHeaders(), preferredOpfPath);
+        if (selectedHeader == null) {
+            throw new IOException("Selected package document is missing");
+        }
+        String selectedOpf = readZipText(zipFile, preferredOpfPath);
+        if (selectedOpf == null) {
+            throw new IOException("Selected package document is unreadable");
+        }
+        Document selectedDocument = parseXmlUtf8(selectedOpf);
+        if (selectedDocument == null) {
+            throw new IOException("Selected package document is invalid");
+        }
+        return plan.withPackageDocument(preferredOpfPath, serializeXml(selectedDocument));
+    }
+
+    private void validateRepairedArchive(Path archivePath, String opfPath) throws IOException {
+        try (ZipFile zipFile = new ZipFile(archivePath.toFile())) {
+            List<FileHeader> headers = zipFile.getFileHeaders();
+            FileHeader mimetype = headers == null || headers.isEmpty() ? null : headers.get(0);
+            if (
+                mimetype == null
+                    || !"mimetype".equals(normalizeZipPath(mimetype.getFileName()))
+                    || mimetype.getCompressionMethod() != CompressionMethod.STORE
+            ) {
+                throw new IOException("Repaired EPUB mimetype is invalid");
+            }
+            if (findHeader(headers, "META-INF/container.xml") == null) {
+                throw new IOException("Repaired EPUB container is missing");
+            }
+            if (CompatStrings.isNotBlank(opfPath) && findHeader(headers, opfPath) == null) {
+                throw new IOException("Repaired EPUB package document is missing");
+            }
+        }
     }
 
     private void publishPublicDocumentInternal(PluginCall call) throws Exception {
@@ -1282,15 +1481,20 @@ public class EpubRewritePlugin extends Plugin {
         String outputName = requirePublicFileName(call.getString("outputName"));
         String mimeType = call.getString("mimeType", "application/octet-stream");
         Path sourcePath = requireReadablePath(call.getString("sourcePath"));
-        Uri partial = null;
+        Uri pendingDocument = null;
         try {
+            Uri existing = findPublicDocumentUri(folderName, outputName);
+            if (existing != null) {
+                getContext().getContentResolver().delete(existing, null, null);
+            }
+
             ContentValues values = new ContentValues();
-            values.put(MediaStore.MediaColumns.DISPLAY_NAME, outputName + ".partial");
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, outputName);
             values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
             values.put(MediaStore.MediaColumns.RELATIVE_PATH, publicRelativePath(folderName));
             values.put(MediaStore.MediaColumns.IS_PENDING, 1);
-            partial = getContext().getContentResolver().insert(publicDownloadsCollection(), values);
-            if (partial == null) {
+            pendingDocument = getContext().getContentResolver().insert(publicDownloadsCollection(), values);
+            if (pendingDocument == null) {
                 throw new IOException("Unable to create public partial document");
             }
 
@@ -1298,7 +1502,7 @@ public class EpubRewritePlugin extends Plugin {
             long copiedBytes;
             try (
                 InputStream input = new BufferedInputStream(Files.newInputStream(sourcePath), BUFFER_SIZE);
-                OutputStream rawOutput = getContext().getContentResolver().openOutputStream(partial, "w");
+                OutputStream rawOutput = getContext().getContentResolver().openOutputStream(pendingDocument, "w");
                 OutputStream output = rawOutput == null ? null : new BufferedOutputStream(rawOutput, BUFFER_SIZE)
             ) {
                 if (output == null) {
@@ -1311,24 +1515,21 @@ public class EpubRewritePlugin extends Plugin {
                 throw new IOException("Public export size mismatch");
             }
 
-            Uri existing = findPublicDocumentUri(folderName, outputName);
-            if (existing != null) getContext().getContentResolver().delete(existing, null, null);
             ContentValues finalValues = new ContentValues();
-            finalValues.put(MediaStore.MediaColumns.DISPLAY_NAME, outputName);
             finalValues.put(MediaStore.MediaColumns.IS_PENDING, 0);
-            if (getContext().getContentResolver().update(partial, finalValues, null, null) != 1) throw new IOException("Unable to finalize public document");
-            JSObject result = publicDocumentResult(partial);
+            if (getContext().getContentResolver().update(pendingDocument, finalValues, null, null) != 1) throw new IOException("Unable to finalize public document");
+            JSObject result = publicDocumentResult(pendingDocument);
             result.put("mimeType", mimeType);
             result.put("copiedBytes", copiedBytes);
             call.resolve(result);
         } catch (CancelledRewriteException cancelled) {
-            if (partial != null) {
-                getContext().getContentResolver().delete(partial, null, null);
+            if (pendingDocument != null) {
+                getContext().getContentResolver().delete(pendingDocument, null, null);
             }
             throw cancelled;
         } catch (Exception ex) {
-            if (partial != null) {
-                getContext().getContentResolver().delete(partial, null, null);
+            if (pendingDocument != null) {
+                getContext().getContentResolver().delete(pendingDocument, null, null);
             }
             throw ex;
         }
@@ -1350,7 +1551,22 @@ public class EpubRewritePlugin extends Plugin {
                 throw new IOException("Invalid EPUB: empty headers");
             }
 
-            java.util.ArrayList<EpubIssue> issues = new java.util.ArrayList<>();
+            DiagnosticStats diagnostic = activeDiagnostic.get();
+            DiagnosticStats progress = diagnostic != null ? diagnostic : activeRepairProgress.get();
+            if (progress != null) {
+                progress.setTotalEntries(headers.size());
+                progress.setEntryIndex(buildHeaderIndex(headers));
+                emitOperationProgress(
+                    "diagnosing",
+                    0,
+                    headers.size(),
+                    1
+                );
+            }
+
+            java.util.ArrayList<EpubIssue> issues = diagnostic == null
+                ? new java.util.ArrayList<>()
+                : new DiagnosticIssuePreviewList(diagnostic, DIAGNOSIS_PREVIEW_LIMIT);
             FileHeader mimetypeHeader = findHeader(headers, "mimetype");
             boolean mimetypeMissing = mimetypeHeader == null;
             boolean mimetypeInvalid = false;
@@ -1473,7 +1689,7 @@ public class EpubRewritePlugin extends Plugin {
             if (validOpfCandidates.size() > 1) {
                 String preferredCandidate = preferredOpfPath != null
                     ? normalizeZipPath(preferredOpfPath)
-                    : null;
+                    : normalizeZipPath(declaredOpfPath);
                 if (!hasClearOpfWinner(zipFile, headers, validOpfCandidates, preferredCandidate)) {
                     issues.add(
                         issue(
@@ -1569,6 +1785,9 @@ public class EpubRewritePlugin extends Plugin {
                 manifestElement == null
                     ? new java.util.ArrayList<>()
                     : parseManifestItems(headers, manifestElement, opfDir);
+            if (progress != null) {
+                progress.setManifestIndex(manifestItems);
+            }
             java.util.ArrayList<String> reconstructibleSpineItemIds =
                 collectReconstructibleSpineItemIds(manifestItems);
             java.util.ArrayList<ParsedSpineItem> spineItems =
@@ -1633,18 +1852,67 @@ public class EpubRewritePlugin extends Plugin {
                 issues.add(issue("HIGH-MAN-001", "warning", true, orphanResource));
             }
 
-            for (ParsedManifestItem manifestItem : manifestItems) {
-                if (!manifestItem.exists || !shouldInspectContentDocument(manifestItem)) {
-                    continue;
+            if (diagnostic == null || !diagnostic.isQuick()) {
+                java.util.HashMap<String, java.util.HashSet<String>> documentIdCache =
+                    new java.util.HashMap<>();
+                for (ParsedManifestItem manifestItem : manifestItems) {
+                    ensureNotCancelled();
+                    if (
+                        !manifestItem.exists
+                            || !shouldInspectContentDocument(manifestItem)
+                            || diagnostic != null && !diagnostic.canInspectNextEntry()
+                    ) {
+                        continue;
+                    }
+
+                    issues.addAll(
+                        collectContentDocumentIssues(
+                            zipFile,
+                            manifestItem,
+                            spineManifestIds.contains(manifestItem.id),
+                            manifestItems,
+                            opfDir,
+                            documentIdCache
+                        )
+                    );
+                    if (progress != null) {
+                        progress.recordEntry(manifestItem.resolvedPath);
+                        int progressPercent = interpolate(
+                            5,
+                            90,
+                            progress.getInspectedEntries(),
+                            Math.max(1, manifestItems.size())
+                        );
+                        if (progress.shouldEmitProgress(progressPercent)) {
+                            emitOperationProgress(
+                                "diagnosing",
+                                (int) Math.min(Integer.MAX_VALUE, progress.getInspectedEntries()),
+                                headers.size(),
+                                progressPercent
+                            );
+                        }
+                    }
                 }
 
-                issues.addAll(
-                    collectContentDocumentIssues(
-                        zipFile,
-                        manifestItem,
-                        spineManifestIds.contains(manifestItem.id)
-                    )
-                );
+                if (diagnostic != null) {
+                    for (ParsedManifestItem manifestItem : manifestItems) {
+                        ensureNotCancelled();
+                        if (
+                            manifestItem.exists
+                                && shouldInspectContentDocument(manifestItem)
+                        ) {
+                            collectStoredInternalLinkIssues(
+                                zipFile,
+                                manifestItem.resolvedPath,
+                                opfDir,
+                                manifestItems,
+                                documentIdCache,
+                                null,
+                                issues
+                            );
+                        }
+                    }
+                }
             }
 
             if (spineItems.isEmpty()) {
@@ -1704,12 +1972,13 @@ public class EpubRewritePlugin extends Plugin {
                 }
             }
 
-            java.util.ArrayList<EpubIssue> linkIssues = collectInternalLinkIssues(
-                zipFile,
-                manifestItems,
-                opfDir
-            );
-            issues.addAll(linkIssues);
+            if (progress != null) {
+                emitOperationProgress("diagnosing", headers.size(), headers.size(), 95);
+            }
+
+            if (progress != null && !progress.isLimited()) {
+                emitOperationProgress("finalizing", headers.size(), headers.size(), 100);
+            }
 
             return finishAnalysis(
                 issues,
@@ -1813,35 +2082,41 @@ public class EpubRewritePlugin extends Plugin {
             }
         }
 
-        analysis = analyzeEpub(workingPath, preferredOpfPath, guidedSelections);
-        debugIo(
-            "repair analysis result workingPath=" + workingPath
-                + " status=" + analysis.status
-                + " issues=" + issueCodes(analysis.issues)
-        );
-        String recoverableIssueCode = findRecoverableZipIssueCode(analysis.issues);
-        if (recoverableIssueCode != null) {
-            Path recoveredPath = recoverReadableZip(workingPath);
+        DiagnosticStats repairProgress = new DiagnosticStats("deep");
+        activeRepairProgress.set(repairProgress);
+        try {
+            analysis = analyzeEpub(workingPath, preferredOpfPath, guidedSelections);
             debugIo(
-                "repair recovery after analysis code=" + recoverableIssueCode
-                    + " success=" + (recoveredPath != null)
+                "repair analysis result workingPath=" + workingPath
+                    + " status=" + analysis.status
+                    + " issues=" + issueCodes(analysis.issues)
             );
-            if (recoveredPath != null) {
-                moveFileAtomicWithFallback(recoveredPath, workingPath);
-                if (repairedIssues != null) {
-                    repairedIssues.add(recoverableIssueCode);
-                }
-                analysis = analyzeEpub(workingPath, preferredOpfPath, guidedSelections);
+            String recoverableIssueCode = findRecoverableZipIssueCode(analysis.issues);
+            if (recoverableIssueCode != null) {
+                Path recoveredPath = recoverReadableZip(workingPath);
                 debugIo(
-                    "repair analysis after recovery status=" + analysis.status
-                        + " issues=" + issueCodes(analysis.issues)
+                    "repair recovery after analysis code=" + recoverableIssueCode
+                        + " success=" + (recoveredPath != null)
                 );
+                if (recoveredPath != null) {
+                    moveFileAtomicWithFallback(recoveredPath, workingPath);
+                    if (repairedIssues != null) {
+                        repairedIssues.add(recoverableIssueCode);
+                    }
+                    analysis = analyzeEpub(workingPath, preferredOpfPath, guidedSelections);
+                    debugIo(
+                        "repair analysis after recovery status=" + analysis.status
+                            + " issues=" + issueCodes(analysis.issues)
+                    );
+                }
             }
+            if (containsIssue(analysis.issues, "OPF_AMBIGUOUS") && repairedIssues != null) {
+                repairedIssues.add("OPF_AMBIGUOUS");
+            }
+            return analysis;
+        } finally {
+            activeRepairProgress.remove();
         }
-        if (containsIssue(analysis.issues, "OPF_AMBIGUOUS") && repairedIssues != null) {
-            repairedIssues.add("OPF_AMBIGUOUS");
-        }
-        return analysis;
     }
 
     private boolean isRecoveredArchivePath(Path epubPath) {
@@ -2207,18 +2482,37 @@ public class EpubRewritePlugin extends Plugin {
     private java.util.ArrayList<EpubIssue> collectContentDocumentIssues(
         ZipFile zipFile,
         ParsedManifestItem manifestItem,
-        boolean isSpineItem
+        boolean isSpineItem,
+        java.util.ArrayList<ParsedManifestItem> manifestItems,
+        String opfDir,
+        java.util.HashMap<String, java.util.HashSet<String>> documentIdCache
     ) throws Exception {
         java.util.ArrayList<EpubIssue> issues = new java.util.ArrayList<>();
-        FileHeader header = findHeader(zipFile.getFileHeaders(), manifestItem.resolvedPath);
+        FileHeader header = findHeaderForActiveDiagnostic(
+            zipFile.getFileHeaders(),
+            manifestItem.resolvedPath
+        );
+        DiagnosticStats diagnostic = activeDiagnostic.get();
+        if (header == null) {
+            return issues;
+        }
+        if (
+            diagnostic != null
+                && !diagnostic.tryConsumeText(
+                    manifestItem.resolvedPath,
+                    header.getUncompressedSize()
+                )
+        ) {
+            return issues;
+        }
         if (
             header != null
-                && header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES
+                && header.getUncompressedSize() > MAX_DIAGNOSE_INLINE_TEXT_ENTRY_BYTES
         ) {
-            StreamingXmlSanitizer sanitizer = inspectLargeTextEntry(
+            StreamingXmlSanitizer sanitizer = inspectLargeDiagnosticEntry(
                 zipFile,
                 header,
-                false
+                manifestItem.resolvedPath
             );
             if (sanitizer.sawDoctype()) {
                 issues.add(issue("HIGH-XHTML-003", "warning", true, manifestItem.resolvedPath));
@@ -2228,7 +2522,7 @@ public class EpubRewritePlugin extends Plugin {
             }
             return issues;
         }
-        byte[] bytes = header == null ? null : readEntryBytes(zipFile, header);
+        byte[] bytes = readEntryBytes(zipFile, header);
         if (bytes == null) {
             return issues;
         }
@@ -2237,7 +2531,8 @@ public class EpubRewritePlugin extends Plugin {
         String text = decoded.text;
         String normalized = text == null ? "" : text;
         String sanitized = sanitizeXmlText(normalized);
-        boolean reparable = canParseAsXml(sanitized);
+        Document document = parseXmlUtf8(sanitized);
+        boolean reparable = document != null;
 
         if (decoded.usedFallbackEncoding) {
             issues.add(issue("HIGH-ENC-001", "warning", true, manifestItem.resolvedPath));
@@ -2266,19 +2561,78 @@ public class EpubRewritePlugin extends Plugin {
             issues.add(issue("HIGH-XHTML-001", "warning", true, manifestItem.resolvedPath));
         }
 
+        if (document != null && manifestItems != null) {
+            java.util.HashSet<String> sourceDocumentIds = collectDocumentIds(
+                zipFile,
+                manifestItem.resolvedPath,
+                document,
+                documentIdCache
+            );
+            if (diagnostic != null) {
+                storeDocumentLinkReferences(
+                    document,
+                    manifestItem.resolvedPath,
+                    diagnostic
+                );
+            } else {
+                issues.addAll(
+                    inspectInternalLinksInDocument(
+                        zipFile,
+                        document,
+                        manifestItem.resolvedPath,
+                        opfDir,
+                        manifestItems,
+                        sourceDocumentIds,
+                        false,
+                        documentIdCache,
+                        null
+                    ).issues
+                );
+            }
+        }
+
         return issues;
+    }
+
+    private void storeDocumentLinkReferences(
+        Document document,
+        String entryPath,
+        DiagnosticStats diagnostic
+    ) {
+        diagnostic.resetLinkReferences(entryPath);
+        diagnostic.beginDocumentIdBatch();
+        try {
+            for (Element element : collectElements(document)) {
+                org.w3c.dom.NamedNodeMap attributes = element.getAttributes();
+                for (int index = 0; index < attributes.getLength(); index++) {
+                    Node attribute = attributes.item(index);
+                    if (
+                        attribute != null
+                            && isInternalLinkAttribute(attribute.getNodeName())
+                            && CompatStrings.isNotBlank(attribute.getNodeValue())
+                    ) {
+                        if (diagnostic.tryScanLink()) {
+                            diagnostic.storeLinkReference(entryPath, attribute.getNodeValue());
+                        }
+                    }
+                }
+            }
+        } finally {
+            diagnostic.endDocumentIdBatch();
+        }
     }
 
     private void repairArchiveToOutput(
         Path sourceZipPath,
         Path outputZipPath,
         EpubAnalysis analysis,
-        boolean rewriteOpfDocument,
-        boolean rewriteContainerDocument,
+        RepairPlan plan,
         JSObject guidedSelections,
         java.util.Set<String> repairedIssues
     ) throws Exception {
         deleteIfExists(outputZipPath);
+        boolean rewriteOpfDocument = plan.rewriteOpfDocument;
+        boolean rewriteContainerDocument = plan.rewriteContainerDocument;
 
         try (
             ZipFile sourceZip = new ZipFile(sourceZipPath.toFile());
@@ -2320,9 +2674,7 @@ public class EpubRewritePlugin extends Plugin {
 
             long totalBytes = totalProcessableBytes(headers);
             long processedBytes = 0L;
-            java.util.Set<String> orphanEntries = new java.util.HashSet<>(
-                collectOrphanResources(headers, analysis.manifestItems, analysis.opfPath)
-            );
+            java.util.Set<String> orphanEntries = new java.util.HashSet<>(plan.orphanEntries);
             java.util.Set<String> promotableOrphanEntries = new java.util.HashSet<>(
                 analysis.promotableOrphanResources
             );
@@ -2366,6 +2718,12 @@ public class EpubRewritePlugin extends Plugin {
                     String repairedOpf = rewritePackageDocument(analysis, repairedIssues);
                     byte[] repairedBytes = repairedOpf.getBytes(StandardCharsets.UTF_8);
                     archiveWriter.writeDeflatedBytes(entryPath, repairedBytes);
+                } else if (!plan.requiresContentTransform(entryPath)) {
+                    archiveWriter.writeRaw(
+                        rawSource,
+                        rawSource.getEntry(entryPath),
+                        entryPath
+                    );
                 } else {
                     ParsedManifestItem manifestItem = findManifestItemByResolvedPath(
                         analysis.manifestItems,
@@ -2573,6 +2931,69 @@ public class EpubRewritePlugin extends Plugin {
                 }
             }
         }
+    }
+
+    private void repairArchiveToOutput(
+        Path sourceZipPath,
+        Path outputZipPath,
+        EpubAnalysis analysis,
+        boolean rewriteOpfDocument,
+        boolean rewriteContainerDocument,
+        JSObject guidedSelections,
+        java.util.Set<String> repairedIssues
+    ) throws Exception {
+        java.util.LinkedHashSet<String> repairCodes = new java.util.LinkedHashSet<>();
+        java.util.LinkedHashSet<String> contentPaths = new java.util.LinkedHashSet<>();
+        java.util.LinkedHashSet<String> orphanEntries = new java.util.LinkedHashSet<>();
+        for (EpubIssue issue : analysis.issues) {
+            if (issue != null && issue.fixable) {
+                repairCodes.add(issue.code);
+            }
+        }
+        for (ParsedManifestItem manifestItem : analysis.manifestItems) {
+            if (shouldInspectContentDocument(manifestItem)) {
+                contentPaths.add(manifestItem.resolvedPath);
+            }
+        }
+        if (rewriteOpfDocument) {
+            repairCodes.add("OPF_VERSION_INVALID");
+        }
+        if (rewriteContainerDocument) {
+            repairCodes.add("CONTAINER_MISSING");
+        }
+        try (ZipFile sourceZip = new ZipFile(sourceZipPath.toFile())) {
+            orphanEntries.addAll(
+                collectOrphanResources(
+                    sourceZip.getFileHeaders(),
+                    analysis.manifestItems,
+                    analysis.opfPath
+                )
+            );
+        }
+        RepairPlan compatibilityPlan = new RepairPlan(
+            0L,
+            0L,
+            analysis.status,
+            analysis.opfPath,
+            analysis.opfDocument == null ? null : serializeXml(analysis.opfDocument),
+            analysis.reconstructibleSpineItemIds,
+            analysis.promotableOrphanResources,
+            new java.util.ArrayList<RepairFallbackPlan>(),
+            repairCodes,
+            contentPaths,
+            contentPaths,
+            orphanEntries,
+            analysis.mimetypeMissing,
+            analysis.mimetypeInvalid
+        );
+        repairArchiveToOutput(
+            sourceZipPath,
+            outputZipPath,
+            analysis,
+            compatibilityPlan,
+            guidedSelections,
+            repairedIssues
+        );
     }
 
     private String rewritePackageDocument(EpubAnalysis analysis) throws Exception {
@@ -2987,7 +3408,10 @@ public class EpubRewritePlugin extends Plugin {
                 continue;
             }
 
-            FileHeader header = findHeader(zipFile.getFileHeaders(), manifestItem.resolvedPath);
+            FileHeader header = findHeaderForActiveDiagnostic(
+                zipFile.getFileHeaders(),
+                manifestItem.resolvedPath
+            );
             if (
                 header != null
                     && header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES
@@ -3050,7 +3474,14 @@ public class EpubRewritePlugin extends Plugin {
         JSObject guidedSelections
     ) throws IOException {
         java.util.ArrayList<EpubIssue> issues = new java.util.ArrayList<>();
-        java.util.HashSet<String> sourceDocumentIds = collectLargeDocumentIds(zipFile, header);
+        DiagnosticStats diagnostic = activeDiagnostic.get();
+        java.util.HashSet<String> sourceDocumentIds;
+        if (diagnostic != null) {
+            collectLargeDocumentIdsToStore(zipFile, header, entryPath, diagnostic);
+            sourceDocumentIds = new java.util.HashSet<>();
+        } else {
+            sourceDocumentIds = collectLargeDocumentIds(zipFile, header);
+        }
         inspectTextEntry(
             zipFile,
             header,
@@ -3059,6 +3490,10 @@ public class EpubRewritePlugin extends Plugin {
                 public String transform(String chunk, boolean finalChunk) throws IOException {
                     Matcher matcher = LARGE_LINK_ATTRIBUTE_PATTERN.matcher(chunk);
                     while (matcher.find()) {
+                        DiagnosticStats diagnostic = activeDiagnostic.get();
+                        if (diagnostic != null && !diagnostic.tryScanLink()) {
+                            return chunk;
+                        }
                         try {
                             InternalLinkEvaluation evaluation = evaluateInternalLinkReference(
                                 zipFile,
@@ -3242,6 +3677,7 @@ public class EpubRewritePlugin extends Plugin {
 
         java.util.ArrayList<Element> elements = collectElements(document);
         for (Element element : elements) {
+            ensureNotCancelled();
             org.w3c.dom.NamedNodeMap attributes = element.getAttributes();
             for (int i = 0; i < attributes.getLength(); i++) {
                 Node attributeNode = attributes.item(i);
@@ -3253,6 +3689,10 @@ public class EpubRewritePlugin extends Plugin {
                 String rawValue = attributeNode.getNodeValue();
                 if (!isInternalLinkAttribute(attributeName) || CompatStrings.isBlank(rawValue)) {
                     continue;
+                }
+                DiagnosticStats diagnostic = activeDiagnostic.get();
+                if (diagnostic != null && !diagnostic.tryScanLink()) {
+                    return result;
                 }
 
                 InternalLinkEvaluation evaluation = evaluateInternalLinkReference(
@@ -3363,9 +3803,10 @@ public class EpubRewritePlugin extends Plugin {
                 zipFile,
                 targetPath,
                 null,
-                documentIdCache
+                documentIdCache,
+                parts.fragmentPart
             );
-            if (targetIds.isEmpty()) {
+            if (targetIds.isEmpty() && targetPath.equals(sourcePath)) {
                 targetIds = sourceDocumentIds;
             }
 
@@ -3424,8 +3865,11 @@ public class EpubRewritePlugin extends Plugin {
             }
         }
 
+        String repairedTargetPath = CompatStrings.isBlank(parts.pathPart)
+            ? ""
+            : relativizeZipPath(sourceDir, targetPath);
         String repairedValue = buildInternalLinkValue(
-            targetPath,
+            repairedTargetPath,
             parts.queryPart,
             canonicalFragment
         );
@@ -3484,9 +3928,39 @@ public class EpubRewritePlugin extends Plugin {
         Document parsedDocument,
         java.util.HashMap<String, java.util.HashSet<String>> documentIdCache
     ) throws Exception {
+        return collectDocumentIds(
+            zipFile,
+            documentPath,
+            parsedDocument,
+            documentIdCache,
+            null
+        );
+    }
+
+    private java.util.HashSet<String> collectDocumentIds(
+        ZipFile zipFile,
+        String documentPath,
+        Document parsedDocument,
+        java.util.HashMap<String, java.util.HashSet<String>> documentIdCache,
+        String requestedFragment
+    ) throws Exception {
         String normalizedPath = normalizeZipPath(documentPath);
         if (CompatStrings.isBlank(normalizedPath)) {
             return new java.util.HashSet<>();
+        }
+
+        DiagnosticStats diagnostic = activeDiagnostic.get();
+        if (diagnostic == null) {
+            diagnostic = activeRepairProgress.get();
+        }
+        if (diagnostic != null) {
+            java.util.HashSet<String> stored = diagnostic.readDocumentIds(
+                normalizedPath,
+                requestedFragment
+            );
+            if (stored != null) {
+                return stored;
+            }
         }
 
         java.util.HashSet<String> cached = documentIdCache.get(normalizedPath);
@@ -3496,8 +3970,34 @@ public class EpubRewritePlugin extends Plugin {
 
         Document document = parsedDocument;
         if (document == null) {
-            FileHeader header = findHeader(zipFile.getFileHeaders(), normalizedPath);
-            if (header != null && header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES) {
+            FileHeader header = findHeaderForActiveDiagnostic(
+                zipFile.getFileHeaders(),
+                normalizedPath
+            );
+            if (
+                diagnostic != null
+                    && header != null
+                    && !diagnostic.tryConsumeText(normalizedPath, header.getUncompressedSize())
+            ) {
+                return new java.util.HashSet<>();
+            }
+            long inlineLimit = diagnostic == null
+                ? MAX_IN_MEMORY_TEXT_ENTRY_BYTES
+                : MAX_DIAGNOSE_INLINE_TEXT_ENTRY_BYTES;
+            if (header != null && header.getUncompressedSize() > inlineLimit) {
+                if (diagnostic != null) {
+                    collectLargeDocumentIdsToStore(
+                        zipFile,
+                        header,
+                        normalizedPath,
+                        diagnostic
+                    );
+                    java.util.HashSet<String> stored = diagnostic.readDocumentIds(
+                        normalizedPath,
+                        requestedFragment
+                    );
+                    return stored == null ? new java.util.HashSet<>() : stored;
+                }
                 java.util.HashSet<String> ids = collectLargeDocumentIds(zipFile, header);
                 documentIdCache.put(normalizedPath, ids);
                 return ids;
@@ -3505,12 +4005,34 @@ public class EpubRewritePlugin extends Plugin {
             String documentText = readZipText(zipFile, normalizedPath);
             if (documentText == null) {
                 java.util.HashSet<String> empty = new java.util.HashSet<>();
+                if (diagnostic != null) {
+                    diagnostic.storeDocumentIds(normalizedPath, empty);
+                    return empty;
+                }
                 documentIdCache.put(normalizedPath, empty);
                 return empty;
             }
-            document = parseXmlUtf8(documentText);
+            String parseText = containsDoctypeDeclaration(documentText)
+                ? sanitizeXmlText(documentText)
+                : documentText;
+            try {
+                document = parseXmlUtf8(parseText);
+            } catch (Exception ignored) {
+                document = null;
+            }
+            if (document == null) {
+                try {
+                    document = parseXmlUtf8(sanitizeXmlText(documentText));
+                } catch (Exception ignored) {
+                    document = null;
+                }
+            }
             if (document == null) {
                 java.util.HashSet<String> empty = new java.util.HashSet<>();
+                if (diagnostic != null) {
+                    diagnostic.storeDocumentIds(normalizedPath, empty);
+                    return empty;
+                }
                 documentIdCache.put(normalizedPath, empty);
                 return empty;
             }
@@ -3534,8 +4056,68 @@ public class EpubRewritePlugin extends Plugin {
             }
         }
 
+        if (diagnostic != null) {
+            diagnostic.storeDocumentIds(normalizedPath, ids);
+            return diagnostic.filterDocumentIds(ids, requestedFragment);
+        }
+
         documentIdCache.put(normalizedPath, ids);
         return ids;
+    }
+
+    private void collectLargeDocumentIdsToStore(
+        ZipFile zipFile,
+        FileHeader header,
+        String documentPath,
+        DiagnosticStats diagnostic
+    ) throws IOException {
+        if (diagnostic != null) {
+            diagnostic.beginDocumentIdBatch();
+        }
+        try (
+            InputStream input = new BufferedInputStream(zipFile.getInputStream(header));
+            java.io.Reader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(input, StandardCharsets.UTF_8),
+                BUFFER_SIZE
+            )
+        ) {
+            char[] buffer = new char[BUFFER_SIZE];
+            StringBuilder pending = new StringBuilder();
+            int read;
+            while ((read = reader.read(buffer)) != -1) {
+                pending.append(buffer, 0, read);
+                int stableLength = pending.length() - LARGE_TEXT_TAIL_CHARS;
+                if (stableLength <= 0) {
+                    continue;
+                }
+                collectLargeDocumentIdsFromChunkToStore(
+                    pending.substring(0, stableLength),
+                    documentPath,
+                    diagnostic
+                );
+                pending.delete(0, stableLength);
+            }
+            collectLargeDocumentIdsFromChunkToStore(pending.toString(), documentPath, diagnostic);
+            diagnostic.markDocumentIdsScanned(documentPath);
+        } finally {
+            if (diagnostic != null) {
+                diagnostic.endDocumentIdBatch();
+            }
+        }
+    }
+
+    private void collectLargeDocumentIdsFromChunkToStore(
+        String chunk,
+        String documentPath,
+        DiagnosticStats diagnostic
+    ) {
+        Matcher matcher = LARGE_ID_ATTRIBUTE_PATTERN.matcher(chunk);
+        while (matcher.find()) {
+            String value = matcher.group(2).trim();
+            if (CompatStrings.isNotBlank(value)) {
+                diagnostic.storeDocumentId(documentPath, value);
+            }
+        }
     }
 
     private ParsedManifestItem findManifestItemByResolvedPath(
@@ -3640,6 +4222,17 @@ public class EpubRewritePlugin extends Plugin {
         String normalizedResolvedPath = normalizeZipPath(resolvedPath);
         if (CompatStrings.isBlank(normalizedResolvedPath)) {
             return new PathResolution(null, null, false);
+        }
+
+        DiagnosticStats diagnostic = activeDiagnostic.get();
+        if (diagnostic == null) {
+            diagnostic = activeRepairProgress.get();
+        }
+        if (diagnostic != null) {
+            PathResolution indexedResolution = diagnostic.resolveIndexedPath(normalizedResolvedPath);
+            if (indexedResolution != null) {
+                return indexedResolution;
+            }
         }
 
         String exactMatch = null;
@@ -4053,7 +4646,7 @@ public class EpubRewritePlugin extends Plugin {
     private String readZipText(ZipFile zipFile, String path) throws IOException {
         try {
             List<FileHeader> headers = zipFile.getFileHeaders();
-            FileHeader header = findHeader(headers, path);
+            FileHeader header = findHeaderForActiveDiagnostic(headers, path);
             if (header == null) {
                 return null;
             }
@@ -5006,6 +5599,40 @@ public class EpubRewritePlugin extends Plugin {
                 .sorted(Comparator.comparing(path -> path.getFileName().toString()))
                 .findFirst()
                 .orElseThrow(() -> new IOException("Session not found"));
+        }
+    }
+
+    private void deleteDiagnosisStores(Path sessionDir) throws IOException {
+        if (sessionDir == null || !Files.isDirectory(sessionDir)) {
+            return;
+        }
+
+        try (Stream<Path> stream = Files.list(sessionDir)) {
+            stream
+                .filter(Files::isRegularFile)
+                .filter(path -> {
+                    String name = path.getFileName().toString();
+                    return name.startsWith(".diagnosis-") && name.endsWith(".db");
+                })
+                .forEach(this::deleteDiagnosisStoreQuietly);
+        }
+    }
+
+    private void deleteDiagnosisStoreQuietly(Path path) {
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException ignored) {
+            debugIo("diagnosis store cleanup skipped path=" + path);
+        }
+    }
+
+    private String diagnosisStoreFileName(String diagnosisId) {
+        return ".diagnosis-" + diagnosisId + ".db";
+    }
+
+    private void validateDiagnosisId(String diagnosisId) throws IOException {
+        if (!diagnosisId.matches("[0-9a-fA-F-]{36}")) {
+            throw new IOException("Invalid diagnosis id");
         }
     }
 
@@ -6418,6 +7045,10 @@ public class EpubRewritePlugin extends Plugin {
         String outputName = sanitizeBaseName(call.getString("outputName", "merged"));
         String tocMode = call.getString("tocMode", "books-and-chapters");
         String coverPathValue = call.getString("coverPath");
+        boolean removeSourceCover = call.getBoolean(
+            "removeSourceCover",
+            CompatStrings.isBlank(coverPathValue)
+        );
 
         if (inputs == null || inputs.length() < 2) {
             throw new PluginErrorException("MERGE_MINIMUM_SOURCES", "At least two EPUBs are required", "merge");
@@ -6429,6 +7060,7 @@ public class EpubRewritePlugin extends Plugin {
         Path outputPath = Paths.get(outputPathValue);
         Path coverPath = CompatStrings.isBlank(coverPathValue) ? null : requireReadablePath(coverPathValue);
         java.util.ArrayList<MergeSource> sources = new java.util.ArrayList<>();
+        java.util.LinkedHashSet<String> warnings = new java.util.LinkedHashSet<>();
         long totalBytes = 0L;
         for (int index = 0; index < inputs.length(); index++) {
             org.json.JSONObject input = inputs.getJSONObject(index);
@@ -6491,7 +7123,12 @@ public class EpubRewritePlugin extends Plugin {
                         new org.apache.commons.compress.archivers.zip.ZipFile(source.path.toFile())
                 ) {
                     String sourceOpfPath = locateMergeOpfPath(sourceZip);
-                    MergeBookMetadata book = readMergeBookMetadata(sourceZip, sourceOpfPath, source.name);
+                    MergeBookMetadata book = readMergeBookMetadata(
+                        sourceZip,
+                        sourceOpfPath,
+                        source.name,
+                        removeSourceCover
+                    );
                     source.title = book.title;
                     source.language = book.language;
                     source.creators.addAll(book.creators);
@@ -6506,17 +7143,82 @@ public class EpubRewritePlugin extends Plugin {
                     source.resourceProperties.putAll(book.resourceProperties);
                     source.spinePaths.addAll(book.spinePaths);
                     source.tocEntries.addAll(book.tocEntries);
+                    if (removeSourceCover) {
+                        source.noCoverPaths.addAll(book.noCoverPaths);
+                        source.noCoverPaths.add(sourceOpfPath);
+                        if (book.navPath != null) source.noCoverPaths.add(book.navPath);
+                        if (book.ncxPath != null) source.noCoverPaths.add(book.ncxPath);
+                    }
 
                     List<FileHeader> headers = sourceZip.getFileHeaders();
+                    Map<String, FileHeader> sourceHeaderIndex = buildHeaderIndex(headers);
                     for (FileHeader header : headers) {
                         ensureNotCancelled();
                         if (header.isDirectory()) continue;
                         String originalPath = normalizeZipPath(header.getFileName());
                         if (!isMergeCopyablePath(originalPath)) continue;
+                        if (source.noCoverPaths.contains(originalPath)) continue;
                         String outputEntryPath = source.prefix + "/" + originalPath;
                         org.apache.commons.compress.archivers.zip.ZipArchiveEntry rawEntry =
                             rawSource.getEntry(originalPath);
-                        archiveWriter.writeRaw(rawSource, rawEntry, outputEntryPath);
+                        if (isSplitNavigationContent(originalPath)) {
+                            if (header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES) {
+                                Path transformedPath = outputPath.resolveSibling(
+                                    outputPath.getFileName().toString()
+                                        + "." + UUID.randomUUID() + ".text.tmp"
+                                );
+                                AtomicBoolean changed = new AtomicBoolean(false);
+                                try {
+                                    streamTextEntryToFile(
+                                        sourceZip,
+                                        header,
+                                        transformedPath,
+                                        new StreamingTextTransform() {
+                                            @Override
+                                            public String transform(String chunk, boolean finalChunk) {
+                                                String rewritten = rewriteMergeInternalLinks(
+                                                    chunk,
+                                                    originalPath,
+                                                    mergeIncludedPaths(sourceHeaderIndex.keySet(), source.noCoverPaths),
+                                                    source.noCoverPaths,
+                                                    warnings
+                                                );
+                                                if (!rewritten.equals(chunk)) changed.set(true);
+                                                return rewritten;
+                                            }
+                                        }
+                                    );
+                                    if (changed.get()) {
+                                        try (InputStream transformedInput = Files.newInputStream(transformedPath)) {
+                                            archiveWriter.writeDeflatedStream(outputEntryPath, transformedInput);
+                                        }
+                                    } else {
+                                        archiveWriter.writeRaw(rawSource, rawEntry, outputEntryPath);
+                                    }
+                                } finally {
+                                    deleteIfExists(transformedPath);
+                                }
+                            } else {
+                                String content = decodeXmlBytes(readEntryBytes(sourceZip, header));
+                                String rewritten = rewriteMergeInternalLinks(
+                                    content,
+                                    originalPath,
+                                    mergeIncludedPaths(sourceHeaderIndex.keySet(), source.noCoverPaths),
+                                    source.noCoverPaths,
+                                    warnings
+                                );
+                                if (rewritten.equals(content)) {
+                                    archiveWriter.writeRaw(rawSource, rawEntry, outputEntryPath);
+                                } else {
+                                    archiveWriter.writeDeflatedBytes(
+                                        outputEntryPath,
+                                        rewritten.getBytes(StandardCharsets.UTF_8)
+                                    );
+                                }
+                            }
+                        } else {
+                            archiveWriter.writeRaw(rawSource, rawEntry, outputEntryPath);
+                        }
                         processedWriteBytes = safeAdd(
                             processedWriteBytes,
                             Math.max(1L, header.getUncompressedSize())
@@ -6538,19 +7240,19 @@ public class EpubRewritePlugin extends Plugin {
                 }
             }
 
-            String coverFileName = "cover.jpg";
-            String coverMediaType = "image/jpeg";
+            String coverFileName = null;
+            String coverMediaType = null;
             if (coverPath != null) {
                 coverFileName = "cover." + extensionForMergeCover(coverPath);
                 coverMediaType = mediaTypeForPath(coverFileName);
                 archiveWriter.writeStoredFile("EPUB/cover/" + coverFileName, coverPath);
                 processedWriteBytes = safeAdd(processedWriteBytes, Files.size(coverPath));
+                archiveWriter.writeDeflatedBytes(
+                    "EPUB/cover/cover.xhtml",
+                    buildCoverXhtml(coverFileName).getBytes(StandardCharsets.UTF_8)
+                );
             }
 
-            archiveWriter.writeDeflatedBytes(
-                "EPUB/cover/cover.xhtml",
-                buildCoverXhtml(coverFileName).getBytes(StandardCharsets.UTF_8)
-            );
             archiveWriter.writeDeflatedBytes(
                 "EPUB/nav.xhtml",
                 buildMergeNavXhtml(sources, tocMode).getBytes(StandardCharsets.UTF_8)
@@ -6573,6 +7275,7 @@ public class EpubRewritePlugin extends Plugin {
         emitPhaseProgress("validating", 0);
         long validationStart = System.currentTimeMillis();
         validateMergedEpub(outputPath);
+        if (removeSourceCover) validateNoCoverArchive(outputPath);
         debugIo(
             "merge validation complete validationMs="
                 + (System.currentTimeMillis() - validationStart)
@@ -6584,6 +7287,9 @@ public class EpubRewritePlugin extends Plugin {
         result.put("outputPath", outputPath.toString());
         result.put("outputName", outputName + ".epub");
         result.put("size", Files.size(outputPath));
+        JSArray warningValues = new JSArray();
+        for (String warning : warnings) warningValues.put(warning);
+        result.put("warnings", warningValues);
         call.resolve(result);
     }
 
@@ -6601,6 +7307,10 @@ public class EpubRewritePlugin extends Plugin {
         Path inputPath = requireReadablePath(call.getString("inputPath"));
         JSArray outputValues = call.getArray("outputs");
         String coverPathValue = call.getString("coverPath");
+        boolean removeSourceCover = call.getBoolean(
+            "removeSourceCover",
+            CompatStrings.isBlank(coverPathValue)
+        );
         Path coverPath = CompatStrings.isBlank(coverPathValue)
             ? null
             : requireReadablePath(coverPathValue);
@@ -6633,7 +7343,11 @@ public class EpubRewritePlugin extends Plugin {
         java.util.LinkedHashSet<String> warnings = new java.util.LinkedHashSet<>();
         try (ZipFile sourceZip = new ZipFile(inputPath.toFile())) {
             String opfPath = locateMergeOpfPath(sourceZip);
-            SplitSourceMetadata source = readSplitSourceMetadata(sourceZip, opfPath);
+            SplitSourceMetadata source = readSplitSourceMetadata(
+                sourceZip,
+                opfPath,
+                removeSourceCover
+            );
             validateSplitPlan(source, outputs);
 
             emitPhaseProgress("writing", 0);
@@ -6656,6 +7370,7 @@ public class EpubRewritePlugin extends Plugin {
                 );
                 long validationStart = System.currentTimeMillis();
                 validateSplitEpub(output.outputPath, output.spineItemIds.size());
+                if (removeSourceCover) validateNoCoverArchive(output.outputPath);
                 debugIo(
                     "split validation complete output=" + output.outputPath
                         + " validationMs=" + (System.currentTimeMillis() - validationStart)
@@ -6780,6 +7495,14 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     private SplitSourceMetadata readSplitSourceMetadata(ZipFile sourceZip, String opfPath) throws Exception {
+        return readSplitSourceMetadata(sourceZip, opfPath, false);
+    }
+
+    private SplitSourceMetadata readSplitSourceMetadata(
+        ZipFile sourceZip,
+        String opfPath,
+        boolean removeSourceCover
+    ) throws Exception {
         FileHeader opfHeader = findHeader(sourceZip.getFileHeaders(), opfPath);
         if (opfHeader == null) {
             throw new PluginErrorException("SPLIT_OPF_MISSING", "package document missing", "split_analyzing");
@@ -6791,6 +7514,15 @@ public class EpubRewritePlugin extends Plugin {
         if (manifest == null || spine == null) {
             throw new PluginErrorException("SPLIT_STRUCTURE_INVALID", "manifest or spine missing", "split_analyzing");
         }
+
+        java.util.Set<String> noCoverPaths = removeSourceCover
+            ? readMergeBookMetadata(
+                sourceZip,
+                opfPath,
+                "split",
+                true
+            ).noCoverPaths
+            : java.util.Collections.emptySet();
 
         java.util.LinkedHashMap<String, String> spinePaths = new java.util.LinkedHashMap<>();
         String opfDirectory = parentZipPath(opfPath);
@@ -6809,15 +7541,6 @@ public class EpubRewritePlugin extends Plugin {
                 if (CompatStrings.isNotBlank(mediaOverlayId)) {
                     mediaOverlayPaths.put(id, mediaOverlayId.trim());
                 }
-                if (!isRemoteResourceReference(href) && findHeader(sourceZip.getFileHeaders(), resolvedPath) == null) {
-                    throw new PluginErrorException("SPLIT_MANIFEST_RESOURCE_MISSING", resolvedPath, "split_analyzing");
-                }
-            }
-        }
-        for (String mediaOverlayId : mediaOverlayPaths.values()) {
-            String mediaOverlayPath = manifestPaths.get(mediaOverlayId);
-            if (CompatStrings.isBlank(mediaOverlayPath) || findHeader(sourceZip.getFileHeaders(), mediaOverlayPath) == null) {
-                throw new PluginErrorException("SPLIT_MEDIA_OVERLAY_MISSING", mediaOverlayId, "split_analyzing");
             }
         }
         NodeList itemRefs = spine.getElementsByTagNameNS("*", "itemref");
@@ -6826,6 +7549,9 @@ public class EpubRewritePlugin extends Plugin {
             String id = ((Element) itemRefs.item(index)).getAttribute("idref");
             String path = manifestPaths.get(id);
             if (CompatStrings.isNotBlank(id) && CompatStrings.isNotBlank(path)) {
+                if (findHeader(sourceZip.getFileHeaders(), path) == null) {
+                    throw new PluginErrorException("SPLIT_SPINE_RESOURCE_MISSING", path, "split_analyzing");
+                }
                 spinePaths.put(id, path);
             }
         }
@@ -6833,7 +7559,14 @@ public class EpubRewritePlugin extends Plugin {
             throw new PluginErrorException("SPLIT_SPINE_EMPTY", "source EPUB has no readable spine items", "split_analyzing");
         }
 
-        return new SplitSourceMetadata(opfPath, spinePaths, manifestPaths, mediaOverlayPaths);
+        return new SplitSourceMetadata(
+            opfPath,
+            spinePaths,
+            manifestPaths,
+            mediaOverlayPaths,
+            noCoverPaths,
+            removeSourceCover
+        );
     }
 
     private void validateSplitPlan(
@@ -6884,7 +7617,7 @@ public class EpubRewritePlugin extends Plugin {
         java.util.LinkedHashSet<String> includedPaths = collectSplitResourcePaths(sourceZip, source, output);
         String packageDocument = buildSplitPackageDocument(
             sourceZip,
-            source.opfPath,
+            source,
             output,
             navPath,
             ncxPath,
@@ -7015,12 +7748,13 @@ public class EpubRewritePlugin extends Plugin {
 
     private String buildSplitPackageDocument(
         ZipFile sourceZip,
-        String opfPath,
+        SplitSourceMetadata source,
         SplitOutputRequest output,
         String navPath,
         String ncxPath,
         java.util.Set<String> includedPaths
     ) throws Exception {
+        String opfPath = source.opfPath;
         FileHeader header = findHeader(sourceZip.getFileHeaders(), opfPath);
         Document document = parseXmlUtf8(decodeXmlBytes(readEntryBytes(sourceZip, header)));
         Element metadata = firstElementByName(document, "metadata");
@@ -7046,6 +7780,16 @@ public class EpubRewritePlugin extends Plugin {
 
         updateSplitMetadata(document, metadata, output.title);
         removeExcludedSplitManifestItems(manifest, spine, opfPath, includedPaths);
+        if (source.removeSourceCover) {
+            removeNoCoverPackageReferences(
+                document,
+                metadata,
+                manifest,
+                spine,
+                opfPath,
+                source.noCoverPaths
+            );
+        }
         String opfDirectory = parentZipPath(opfPath);
         String namespace = document.getDocumentElement().getNamespaceURI();
         String navId = buildUniqueManifestId(manifest, "emas-nav");
@@ -7095,14 +7839,24 @@ public class EpubRewritePlugin extends Plugin {
         java.util.ArrayDeque<String> pending = new java.util.ArrayDeque<>();
         for (String id : output.spineItemIds) {
             String path = source.spinePaths.get(id);
-            if (path != null && included.add(path)) pending.add(path);
+            if (
+                path != null
+                    && !source.noCoverPaths.contains(path)
+                    && included.add(path)
+            ) pending.add(path);
             String mediaOverlayId = source.mediaOverlayIds.get(id);
             String mediaOverlayPath = source.manifestPaths.get(mediaOverlayId);
-            if (mediaOverlayPath != null && included.add(mediaOverlayPath)) pending.add(mediaOverlayPath);
+            if (
+                mediaOverlayPath != null
+                    && !source.noCoverPaths.contains(mediaOverlayPath)
+                    && included.add(mediaOverlayPath)
+            ) pending.add(mediaOverlayPath);
         }
 
-        String coverPath = findCoverEntryPath(sourceZip, sourceZip.getFileHeaders());
-        if (coverPath != null && included.add(coverPath)) pending.add(coverPath);
+        if (!source.removeSourceCover) {
+            String coverPath = findCoverEntryPath(sourceZip, sourceZip.getFileHeaders());
+            if (coverPath != null && included.add(coverPath)) pending.add(coverPath);
+        }
 
         while (!pending.isEmpty()) {
             ensureNotCancelled();
@@ -7110,7 +7864,11 @@ public class EpubRewritePlugin extends Plugin {
             FileHeader header = findHeader(sourceZip.getFileHeaders(), resourcePath);
             if (header == null || !isSplitDependencyDocument(resourcePath)) continue;
             for (String dependency : extractSplitDependenciesStreaming(sourceZip, header, resourcePath)) {
-                if (findHeader(sourceZip.getFileHeaders(), dependency) != null && included.add(dependency)) {
+                if (
+                    !source.noCoverPaths.contains(dependency)
+                        && findHeader(sourceZip.getFileHeaders(), dependency) != null
+                        && included.add(dependency)
+                ) {
                     pending.add(dependency);
                 }
             }
@@ -7149,6 +7907,91 @@ public class EpubRewritePlugin extends Plugin {
         java.util.Set<String> includedPaths,
         java.util.Set<String> warnings
     ) {
+        return rewriteInternalLinks(
+            content,
+            sourcePath,
+            includedPaths,
+            warnings,
+            "SPLIT_INTERNAL_LINK_EXTERNALIZED"
+        );
+    }
+
+    private String rewriteMergeInternalLinks(
+        String content,
+        String sourcePath,
+        java.util.Set<String> sourcePaths,
+        java.util.Set<String> noCoverPaths,
+        java.util.Set<String> warnings
+    ) {
+        String plainTextLinks = removeNoCoverAnchorLinks(
+            content,
+            sourcePath,
+            noCoverPaths,
+            warnings
+        );
+        return rewriteInternalLinks(
+            plainTextLinks,
+            sourcePath,
+            sourcePaths,
+            warnings,
+            "MERGE_INTERNAL_LINK_EXTERNALIZED"
+        );
+    }
+
+    private String removeNoCoverAnchorLinks(
+        String content,
+        String sourcePath,
+        java.util.Set<String> noCoverPaths,
+        java.util.Set<String> warnings
+    ) {
+        Matcher matcher = XHTML_ANCHOR_HREF_PATTERN.matcher(content);
+        StringBuffer rewritten = new StringBuffer();
+        int cursor = 0;
+        boolean changed = false;
+        while (matcher.find()) {
+            String reference = matcher.group(3).trim();
+            if (isExternalLinkReference(reference) || reference.startsWith("#")) continue;
+            String targetPath = pathWithoutFragment(reference);
+            String resolvedTarget = resolveRelativeZipPath(parentZipPath(sourcePath), targetPath);
+            if (!noCoverPaths.contains(resolvedTarget)) continue;
+
+            rewritten.append(content, cursor, matcher.start());
+            if (matcher.group(1).toLowerCase(Locale.US).startsWith("<area")) {
+                cursor = matcher.end();
+            } else {
+                Matcher closeMatcher = XHTML_ANCHOR_CLOSE_PATTERN.matcher(content);
+                closeMatcher.region(matcher.end(), content.length());
+                if (closeMatcher.find()) {
+                    rewritten.append(content, matcher.end(), closeMatcher.start());
+                    cursor = closeMatcher.end();
+                } else {
+                    cursor = matcher.end();
+                }
+            }
+            warnings.add("MERGE_INTERNAL_LINK_COVER_TEXT:" + sourcePath + ":" + targetPath);
+            changed = true;
+        }
+        if (!changed) return content;
+        rewritten.append(content, cursor, content.length());
+        return rewritten.toString();
+    }
+
+    private java.util.Set<String> mergeIncludedPaths(
+        java.util.Set<String> sourcePaths,
+        java.util.Set<String> noCoverPaths
+    ) {
+        java.util.HashSet<String> included = new java.util.HashSet<>(sourcePaths);
+        included.removeAll(noCoverPaths);
+        return included;
+    }
+
+    private String rewriteInternalLinks(
+        String content,
+        String sourcePath,
+        java.util.Set<String> includedPaths,
+        java.util.Set<String> warnings,
+        String warningCode
+    ) {
         Matcher matcher = XHTML_ANCHOR_HREF_PATTERN.matcher(content);
         StringBuffer rewritten = new StringBuffer();
         while (matcher.find()) {
@@ -7169,7 +8012,7 @@ public class EpubRewritePlugin extends Plugin {
                 rewritten,
                 Matcher.quoteReplacement(matcher.group(1) + matcher.group(4))
             );
-            warnings.add("SPLIT_INTERNAL_LINK_EXTERNALIZED:" + sourcePath + ":" + targetPath);
+            warnings.add(warningCode + ":" + sourcePath + ":" + targetPath);
         }
         matcher.appendTail(rewritten);
         return rewritten.toString();
@@ -7285,6 +8128,7 @@ public class EpubRewritePlugin extends Plugin {
         String tocId = spine.getAttribute("toc");
         NodeList items = manifest.getElementsByTagNameNS("*", "item");
         java.util.ArrayList<Node> removedItems = new java.util.ArrayList<>();
+        java.util.HashSet<String> removedIds = new java.util.HashSet<>();
         for (int index = 0; index < items.getLength(); index++) {
             if (!(items.item(index) instanceof Element)) continue;
             Element item = (Element) items.item(index);
@@ -7296,9 +8140,94 @@ public class EpubRewritePlugin extends Plugin {
                     || !includedPaths.contains(path)
             ) {
                 removedItems.add(item);
+                if (CompatStrings.isNotBlank(id)) removedIds.add(id);
             }
         }
         for (Node item : removedItems) manifest.removeChild(item);
+
+        NodeList itemRefs = spine.getElementsByTagNameNS("*", "itemref");
+        java.util.ArrayList<Node> removedRefs = new java.util.ArrayList<>();
+        for (int index = 0; index < itemRefs.getLength(); index++) {
+            if (!(itemRefs.item(index) instanceof Element)) continue;
+            if (removedIds.contains(((Element) itemRefs.item(index)).getAttribute("idref"))) {
+                removedRefs.add(itemRefs.item(index));
+            }
+        }
+        for (Node itemRef : removedRefs) spine.removeChild(itemRef);
+    }
+
+    private void removeNoCoverPackageReferences(
+        Document document,
+        Element metadata,
+        Element manifest,
+        Element spine,
+        String opfPath,
+        java.util.Set<String> noCoverPaths
+    ) {
+        NodeList metas = metadata.getElementsByTagNameNS("*", "meta");
+        java.util.ArrayList<Node> removedMetas = new java.util.ArrayList<>();
+        for (int index = 0; index < metas.getLength(); index++) {
+            if (!(metas.item(index) instanceof Element)) continue;
+            Element meta = (Element) metas.item(index);
+            if ("cover".equalsIgnoreCase(meta.getAttribute("name"))) removedMetas.add(meta);
+        }
+        for (Node meta : removedMetas) metadata.removeChild(meta);
+
+        NodeList items = manifest.getElementsByTagNameNS("*", "item");
+        java.util.ArrayList<Node> removedItems = new java.util.ArrayList<>();
+        for (int index = 0; index < items.getLength(); index++) {
+            if (!(items.item(index) instanceof Element)) continue;
+            Element item = (Element) items.item(index);
+            String path = resolveRelativeZipPath(
+                parentZipPath(opfPath),
+                item.getAttribute("href")
+            );
+            if (noCoverPaths.contains(path)) {
+                removedItems.add(item);
+                continue;
+            }
+            String properties = item.getAttribute("properties");
+            if (containsToken(properties, "cover-image")) {
+                java.util.ArrayList<String> retained = new java.util.ArrayList<>();
+                for (String value : properties.split("\\s+")) {
+                    if (!"cover-image".equalsIgnoreCase(value) && CompatStrings.isNotBlank(value)) {
+                        retained.add(value);
+                    }
+                }
+                if (retained.isEmpty()) item.removeAttribute("properties");
+                else item.setAttribute("properties", String.join(" ", retained));
+            }
+        }
+        for (Node item : removedItems) manifest.removeChild(item);
+
+        Element guide = firstElementByName(document, "guide");
+        if (guide != null) {
+            NodeList references = guide.getElementsByTagNameNS("*", "reference");
+            java.util.ArrayList<Node> removedReferences = new java.util.ArrayList<>();
+            for (int index = 0; index < references.getLength(); index++) {
+                if (!(references.item(index) instanceof Element)) continue;
+                if (containsToken(((Element) references.item(index)).getAttribute("type"), "cover")) {
+                    removedReferences.add(references.item(index));
+                }
+            }
+            for (Node reference : removedReferences) guide.removeChild(reference);
+            if (elementsByName(guide, "reference").isEmpty()) {
+                Node parent = guide.getParentNode();
+                if (parent != null) parent.removeChild(guide);
+            }
+        }
+
+        NodeList itemRefs = spine.getElementsByTagNameNS("*", "itemref");
+        java.util.ArrayList<Node> orphanRefs = new java.util.ArrayList<>();
+        java.util.HashSet<String> manifestIds = new java.util.HashSet<>();
+        for (Element item : elementsByName(manifest, "item")) manifestIds.add(item.getAttribute("id"));
+        for (int index = 0; index < itemRefs.getLength(); index++) {
+            if (!(itemRefs.item(index) instanceof Element)) continue;
+            if (!manifestIds.contains(((Element) itemRefs.item(index)).getAttribute("idref"))) {
+                orphanRefs.add(itemRefs.item(index));
+            }
+        }
+        for (Node itemRef : orphanRefs) spine.removeChild(itemRef);
     }
 
     private boolean hasNavigationProperty(String properties) {
@@ -7357,6 +8286,7 @@ public class EpubRewritePlugin extends Plugin {
             int index = 1;
             for (String id : output.spineItemIds) {
             String path = source.spinePaths.get(id);
+            if (source.noCoverPaths.contains(path)) continue;
             String href = relativizeZipPath(parentZipPath(source.opfPath), path);
             nav.append("<li><a href=\"").append(escapeXml(href)).append("\">")
                 .append(escapeXml(output.tocTitleFor(id, "Chapter " + index++)))
@@ -7372,6 +8302,10 @@ public class EpubRewritePlugin extends Plugin {
         SplitSourceMetadata source
     ) {
         for (SplitTocEntry entry : entries) {
+            if (isSplitTocEntryExcluded(entry, source)) {
+                appendSplitNavEntries(nav, entry.children, source);
+                continue;
+            }
             nav.append("<li><a href=\"")
                 .append(escapeXml(splitTocHref(entry, source)))
                 .append("\">")
@@ -7396,6 +8330,7 @@ public class EpubRewritePlugin extends Plugin {
             int order = 1;
             for (String id : output.spineItemIds) {
             String path = source.spinePaths.get(id);
+            if (source.noCoverPaths.contains(path)) continue;
             String href = relativizeZipPath(parentZipPath(source.opfPath), path);
             ncx.append("<navPoint id=\"chapter-").append(order).append("\" playOrder=\"").append(order).append("\"><navLabel><text>")
                 .append(escapeXml(output.tocTitleFor(id, "Chapter " + order)))
@@ -7414,6 +8349,10 @@ public class EpubRewritePlugin extends Plugin {
     ) {
         int order = nextOrder;
         for (SplitTocEntry entry : entries) {
+            if (isSplitTocEntryExcluded(entry, source)) {
+                order = appendSplitNcxEntries(ncx, entry.children, source, order);
+                continue;
+            }
             ncx.append("<navPoint id=\"toc-").append(order).append("\" playOrder=\"").append(order).append("\"><navLabel><text>")
                 .append(escapeXml(entry.title))
                 .append("</text></navLabel><content src=\"")
@@ -7426,6 +8365,22 @@ public class EpubRewritePlugin extends Plugin {
             ncx.append("</navPoint>");
         }
         return order;
+    }
+
+    private boolean isSplitTocEntryExcluded(
+        SplitTocEntry entry,
+        SplitSourceMetadata source
+    ) {
+        String rawHref = CompatStrings.isBlank(entry.href)
+            ? source.spinePaths.get(entry.spineItemId)
+            : entry.href;
+        if (CompatStrings.isBlank(rawHref)) return true;
+        return source.noCoverPaths.contains(
+            resolveRelativeZipPath(
+                parentZipPath(source.opfPath),
+                pathWithoutFragment(rawHref)
+            )
+        );
     }
 
     private String splitTocHref(SplitTocEntry entry, SplitSourceMetadata source) {
@@ -7478,21 +8433,11 @@ public class EpubRewritePlugin extends Plugin {
             }
             java.util.HashSet<String> manifestIds = new java.util.HashSet<>();
             NodeList manifestItems = manifest.getElementsByTagNameNS("*", "item");
-            String opfDirectory = parentZipPath(opfPath);
-            String navDocumentPath = null;
-            String ncxDocumentPath = null;
             for (int index = 0; index < manifestItems.getLength(); index++) {
                 if (!(manifestItems.item(index) instanceof Element)) continue;
                 Element item = (Element) manifestItems.item(index);
                 String id = item.getAttribute("id");
-                String href = item.getAttribute("href");
                 if (CompatStrings.isNotBlank(id)) manifestIds.add(id);
-                String resourcePath = resolveRelativeZipPath(opfDirectory, href);
-                if (CompatStrings.isNotBlank(href) && findHeader(headerIndex, resourcePath) == null) {
-                    throw new PluginErrorException("SPLIT_RESOURCE_MISSING", href, "split_validating");
-                }
-                if (hasNavigationProperty(item.getAttribute("properties"))) navDocumentPath = resourcePath;
-                if ("application/x-dtbncx+xml".equals(item.getAttribute("media-type"))) ncxDocumentPath = resourcePath;
             }
             int spineCount = 0;
             NodeList itemRefs = spine.getElementsByTagNameNS("*", "itemref");
@@ -7507,11 +8452,6 @@ public class EpubRewritePlugin extends Plugin {
             if (spineCount != expectedSpineItems) {
                 throw new PluginErrorException("SPLIT_SPINE_INVALID", "unexpected spine size", "split_validating");
             }
-            validateNavigationDocumentHasEntries(zip, navDocumentPath, "href", expectedSpineItems > 0, "SPLIT_NAVIGATION_EMPTY");
-            validateNavigationDocumentHasEntries(zip, ncxDocumentPath, "src", expectedSpineItems > 0, "SPLIT_NAVIGATION_EMPTY");
-            validateSplitNavigationTargets(zip, headerIndex, navDocumentPath, "href");
-            validateSplitNavigationTargets(zip, headerIndex, ncxDocumentPath, "src");
-            validateInternalDocumentLinks(zip, headerIndex, "SPLIT_INTERNAL_LINK_MISSING", "split_validating");
         }
     }
 
@@ -7715,9 +8655,23 @@ public class EpubRewritePlugin extends Plugin {
         return path;
     }
 
-    private MergeBookMetadata readMergeBookMetadata(ZipFile zipFile, String opfPath, String fallbackTitle) throws Exception {
+    private MergeBookMetadata readMergeBookMetadata(
+        ZipFile zipFile,
+        String opfPath,
+        String fallbackTitle
+    ) throws Exception {
+        return readMergeBookMetadata(zipFile, opfPath, fallbackTitle, false);
+    }
+
+    private MergeBookMetadata readMergeBookMetadata(
+        ZipFile zipFile,
+        String opfPath,
+        String fallbackTitle,
+        boolean removeSourceCover
+    ) throws Exception {
         FileHeader header = findHeader(zipFile.getFileHeaders(), opfPath);
         Document document = parseXmlUtf8(decodeXmlBytes(readEntryBytes(zipFile, header)));
+        String packageVersion = document.getDocumentElement().getAttribute("version");
         String title = fallbackTitle;
         NodeList titles = document.getElementsByTagNameNS("*", "title");
         if (titles.getLength() > 0 && CompatStrings.isNotBlank(titles.item(0).getTextContent())) title = titles.item(0).getTextContent().trim();
@@ -7746,12 +8700,25 @@ public class EpubRewritePlugin extends Plugin {
             manifest.put(id, resolvedPath);
             resourceMediaTypes.put(resolvedPath, item.getAttribute("media-type"));
             resourceProperties.put(resolvedPath, item.getAttribute("properties"));
-            if (!isRemoteResourceReference(href) && findHeader(zipFile.getFileHeaders(), resolvedPath) == null) {
-                throw new PluginErrorException("MERGE_MANIFEST_RESOURCE_MISSING", resolvedPath, "merge_analyzing");
-            }
             if (hasNavigationProperty(item.getAttribute("properties"))) navPath = resolvedPath;
             if ("application/x-dtbncx+xml".equals(item.getAttribute("media-type"))) ncxPath = resolvedPath;
         }
+        java.util.LinkedHashSet<String> noCoverPaths = new java.util.LinkedHashSet<>();
+        if (removeSourceCover) {
+            noCoverPaths.addAll(
+                collectNoCoverPaths(
+                    zipFile,
+                    document,
+                    opfPath,
+                    packageVersion,
+                    manifest,
+                    resourceMediaTypes,
+                    navPath,
+                    ncxPath
+                )
+            );
+        }
+
         java.util.ArrayList<String> spinePaths = new java.util.ArrayList<>();
         NodeList itemrefs = document.getElementsByTagNameNS("*", "itemref");
         for (int index = 0; index < itemrefs.getLength(); index++) {
@@ -7762,12 +8729,21 @@ public class EpubRewritePlugin extends Plugin {
             if (findHeader(zipFile.getFileHeaders(), path) == null) {
                 throw new PluginErrorException("MERGE_SPINE_RESOURCE_MISSING", path, "merge_analyzing");
             }
-            spinePaths.add(path);
+            if (!noCoverPaths.contains(path)) spinePaths.add(path);
         }
         if (spinePaths.isEmpty()) {
             throw new PluginErrorException("MERGE_SPINE_EMPTY", opfPath, "merge_analyzing");
         }
         java.util.ArrayList<MergeTocEntry> tocEntries = readMergeTocEntries(zipFile, navPath, ncxPath);
+        if (!noCoverPaths.isEmpty()) {
+            tocEntries = filterMergeTocEntries(tocEntries, noCoverPaths);
+            for (String path : new java.util.ArrayList<>(resourceMediaTypes.keySet())) {
+                if (noCoverPaths.contains(path)) {
+                    resourceMediaTypes.remove(path);
+                    resourceProperties.remove(path);
+                }
+            }
+        }
         return new MergeBookMetadata(
             title,
             spinePaths,
@@ -7782,7 +8758,10 @@ public class EpubRewritePlugin extends Plugin {
             contributors,
             dates,
             resourceMediaTypes,
-            resourceProperties
+            resourceProperties,
+            navPath,
+            ncxPath,
+            noCoverPaths
         );
     }
 
@@ -7800,6 +8779,220 @@ public class EpubRewritePlugin extends Plugin {
             if (CompatStrings.isNotBlank(value) && !values.contains(value.trim())) values.add(value.trim());
         }
         return values;
+    }
+
+    private java.util.Set<String> collectNoCoverPaths(
+        ZipFile zipFile,
+        Document document,
+        String opfPath,
+        String packageVersion,
+        java.util.Map<String, String> manifest,
+        java.util.Map<String, String> resourceMediaTypes,
+        String navPath,
+        String ncxPath
+    ) throws Exception {
+        boolean epub3 = !packageVersion.trim().startsWith("2");
+        String opfDirectory = parentZipPath(opfPath);
+        java.util.LinkedHashSet<String> coverImagePaths = new java.util.LinkedHashSet<>();
+        java.util.LinkedHashSet<String> coverDocumentPaths = new java.util.LinkedHashSet<>();
+
+        for (Element item : elementsByName(document, "item")) {
+            String id = item.getAttribute("id");
+            String path = manifest.get(id);
+            if (CompatStrings.isBlank(path)) continue;
+            if (containsToken(item.getAttribute("properties"), "cover-image")) {
+                coverImagePaths.add(path);
+            }
+            String mediaType = resourceMediaTypes.get(path);
+            if (
+                mediaType != null
+                    && mediaType.toLowerCase(Locale.US).startsWith("image/")
+                    && looksLikeCoverImagePath(path)
+            ) {
+                coverImagePaths.add(path);
+            }
+        }
+
+        for (Element meta : elementsByName(document, "meta")) {
+            if (!"cover".equalsIgnoreCase(meta.getAttribute("name"))) continue;
+            String coverId = meta.getAttribute("content");
+            String path = manifest.get(coverId);
+            if (CompatStrings.isNotBlank(path)) coverImagePaths.add(path);
+        }
+
+        Element guide = firstElementByName(document, "guide");
+        if (guide != null) {
+            for (Element reference : elementsByName(guide, "reference")) {
+                if (!containsToken(reference.getAttribute("type"), "cover")) continue;
+                String href = pathWithoutFragment(reference.getAttribute("href"));
+                if (CompatStrings.isNotBlank(href)) {
+                    coverDocumentPaths.add(resolveRelativeZipPath(opfDirectory, href));
+                }
+            }
+        }
+
+        if (epub3 && CompatStrings.isNotBlank(navPath)) {
+            collectCoverDocumentsFromNavigation(zipFile, navPath, coverDocumentPaths);
+        }
+
+        for (java.util.Map.Entry<String, String> entry : manifest.entrySet()) {
+            String mediaType = resourceMediaTypes.get(entry.getKey());
+            if (mediaType == null || !mediaType.toLowerCase(Locale.US).contains("xhtml")) continue;
+            if (containsCoverSemanticMarker(zipFile, entry.getValue())) {
+                coverDocumentPaths.add(entry.getValue());
+            }
+        }
+
+        collectDedicatedCoverDocuments(
+            zipFile,
+            document,
+            manifest,
+            resourceMediaTypes,
+            coverImagePaths,
+            coverDocumentPaths
+        );
+        collectCoverImagesFromDocuments(
+            zipFile,
+            coverDocumentPaths,
+            resourceMediaTypes,
+            coverImagePaths
+        );
+
+        java.util.LinkedHashSet<String> noCoverPaths = new java.util.LinkedHashSet<>(coverDocumentPaths);
+        for (String coverImagePath : coverImagePaths) {
+            noCoverPaths.add(coverImagePath);
+        }
+        return noCoverPaths;
+    }
+
+    private void collectDedicatedCoverDocuments(
+        ZipFile zipFile,
+        Document document,
+            java.util.Map<String, String> manifest,
+        java.util.Map<String, String> resourceMediaTypes,
+        java.util.Set<String> coverImagePaths,
+        java.util.Set<String> coverDocumentPaths
+    ) throws IOException {
+        for (Element itemRef : elementsByName(document, "itemref")) {
+            String path = manifest.get(itemRef.getAttribute("idref"));
+            if (CompatStrings.isBlank(path) || coverDocumentPaths.contains(path)) continue;
+            String mediaType = resourceMediaTypes.get(path);
+            if (mediaType == null || !mediaType.toLowerCase(Locale.US).contains("xhtml")) continue;
+            FileHeader header = findHeader(zipFile.getFileHeaders(), path);
+            if (header == null || header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES) continue;
+            String content = decodeXmlBytes(readEntryBytes(zipFile, header));
+            boolean referencesCoverImage = false;
+            for (String coverImagePath : coverImagePaths) {
+                String relative = relativizeZipPath(parentZipPath(path), coverImagePath);
+                if (
+                    content.contains(relative)
+                        || content.contains(normalizeZipPath(coverImagePath))
+                ) {
+                    referencesCoverImage = true;
+                    break;
+                }
+            }
+            if (!referencesCoverImage || !looksLikeDedicatedCoverDocument(content, path)) continue;
+            coverDocumentPaths.add(path);
+        }
+    }
+
+    private boolean looksLikeDedicatedCoverDocument(String content, String path) {
+        String body = content
+            .replaceAll("(?is)<head\\b[^>]*>.*?</head>", " ")
+            .replaceAll("(?is)<script\\b[^>]*>.*?</script>", " ")
+            .replaceAll("(?is)<style\\b[^>]*>.*?</style>", " ")
+            .replaceAll("(?s)<[^>]+>", " ")
+            .replaceAll("\\s+", " ")
+            .trim();
+        String lowerPath = path.toLowerCase(Locale.US);
+        return body.length() <= 240
+            || lowerPath.contains("cover")
+            || lowerPath.contains("title-page");
+    }
+
+    private boolean looksLikeCoverImagePath(String path) {
+        String normalized = normalizeZipPath(path).toLowerCase(Locale.US);
+        int slashIndex = normalized.lastIndexOf('/');
+        String fileName = slashIndex < 0 ? normalized : normalized.substring(slashIndex + 1);
+        return fileName.equals("cover")
+            || fileName.startsWith("cover.")
+            || fileName.startsWith("cover-")
+            || fileName.startsWith("cover_");
+    }
+
+    private void collectCoverImagesFromDocuments(
+        ZipFile zipFile,
+        java.util.Set<String> coverDocumentPaths,
+        java.util.Map<String, String> resourceMediaTypes,
+        java.util.Set<String> coverImagePaths
+    ) throws IOException {
+        for (String coverDocumentPath : coverDocumentPaths) {
+            FileHeader header = findHeader(zipFile.getFileHeaders(), coverDocumentPath);
+            if (header == null || header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES) continue;
+            Matcher matcher = XHTML_RESOURCE_ATTRIBUTE_PATTERN.matcher(
+                decodeXmlBytes(readEntryBytes(zipFile, header))
+            );
+            while (matcher.find()) {
+                String href = pathWithoutFragment(matcher.group(2));
+                if (CompatStrings.isBlank(href)) continue;
+                String resolvedPath = resolveRelativeZipPath(parentZipPath(coverDocumentPath), href);
+                if (findHeader(zipFile.getFileHeaders(), resolvedPath) == null) continue;
+                String mediaType = resourceMediaTypes.get(resolvedPath);
+                if (CompatStrings.isBlank(mediaType)) {
+                    mediaType = detectMediaTypeFromPath(resolvedPath);
+                }
+                if (mediaType != null && mediaType.toLowerCase(Locale.US).startsWith("image/")) {
+                    coverImagePaths.add(resolvedPath);
+                }
+            }
+        }
+    }
+
+    private void collectCoverDocumentsFromNavigation(
+        ZipFile zipFile,
+        String navPath,
+        java.util.Set<String> coverDocumentPaths
+    ) throws Exception {
+        FileHeader header = findHeader(zipFile.getFileHeaders(), navPath);
+        if (header == null || header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES) return;
+        Document document = parseXmlUtf8(decodeXmlBytes(readEntryBytes(zipFile, header)));
+        for (Element anchor : elementsByName(document, "a")) {
+            String type = anchor.getAttributeNS("http://www.idpf.org/2007/ops", "type");
+            if (CompatStrings.isBlank(type)) type = anchor.getAttribute("epub:type");
+            if (!containsToken(type, "cover")) continue;
+            String href = pathWithoutFragment(anchor.getAttribute("href"));
+            if (CompatStrings.isNotBlank(href)) {
+                coverDocumentPaths.add(resolveRelativeZipPath(parentZipPath(navPath), href));
+            }
+        }
+    }
+
+    private boolean containsCoverSemanticMarker(ZipFile zipFile, String path) throws IOException {
+        FileHeader header = findHeader(zipFile.getFileHeaders(), path);
+        if (header == null || header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES) return false;
+        return EPUB_COVER_TYPE_PATTERN.matcher(
+            decodeXmlBytes(readEntryBytes(zipFile, header))
+        ).find();
+    }
+
+    private java.util.ArrayList<MergeTocEntry> filterMergeTocEntries(
+        java.util.List<MergeTocEntry> entries,
+        java.util.Set<String> noCoverPaths
+    ) {
+        java.util.ArrayList<MergeTocEntry> filtered = new java.util.ArrayList<>();
+        for (MergeTocEntry entry : entries) {
+            if (noCoverPaths.contains(pathWithoutFragment(entry.href))) continue;
+            filtered.add(
+                new MergeTocEntry(
+                    entry.id,
+                    entry.title,
+                    entry.href,
+                    filterMergeTocEntries(entry.children, noCoverPaths)
+                )
+            );
+        }
+        return filtered;
     }
 
     private java.util.ArrayList<MergeTocEntry> readMergeTocEntries(
@@ -8277,14 +9470,19 @@ public class EpubRewritePlugin extends Plugin {
         for (String contributor : contributors) opf.append("<dc:contributor>").append(escapeXml(contributor)).append("</dc:contributor>");
         for (String date : dates) opf.append("<dc:date>").append(escapeXml(date)).append("</dc:date>");
         for (String identifier : sourceIdentifiers) opf.append("<meta property=\"dcterms:source\">").append(escapeXml(identifier)).append("</meta>");
-        opf.append("<meta name=\"cover\" content=\"cover-image\"/><meta property=\"dcterms:modified\">")
+        boolean hasCover = CompatStrings.isNotBlank(coverFileName)
+            && CompatStrings.isNotBlank(coverMediaType);
+        if (hasCover) opf.append("<meta name=\"cover\" content=\"cover-image\"/>");
+        opf.append("<meta property=\"dcterms:modified\">")
             .append(Instant.now().toString().replaceFirst("\\.\\d+Z$", "Z"))
             .append("</meta></metadata><manifest>")
             .append("<item id=\"nav\" href=\"nav.xhtml\" media-type=\"application/xhtml+xml\" properties=\"nav\"/>")
-            .append("<item id=\"ncx\" href=\"toc.ncx\" media-type=\"application/x-dtbncx+xml\"/>")
-            .append("<item id=\"cover-page\" href=\"cover/cover.xhtml\" media-type=\"application/xhtml+xml\"/>")
-            .append("<item id=\"cover-image\" href=\"cover/").append(escapeXml(coverFileName))
-            .append("\" media-type=\"").append(escapeXml(coverMediaType)).append("\" properties=\"cover-image\"/>");
+            .append("<item id=\"ncx\" href=\"toc.ncx\" media-type=\"application/x-dtbncx+xml\"/>");
+        if (hasCover) {
+            opf.append("<item id=\"cover-page\" href=\"cover/cover.xhtml\" media-type=\"application/xhtml+xml\"/>")
+                .append("<item id=\"cover-image\" href=\"cover/").append(escapeXml(coverFileName))
+                .append("\" media-type=\"").append(escapeXml(coverMediaType)).append("\" properties=\"cover-image\"/>");
+        }
         java.util.HashMap<String, String> idsByHref = new java.util.HashMap<>();
         for (MergeResource resource : resources) {
             opf.append("<item id=\"").append(resource.id).append("\" href=\"")
@@ -8294,7 +9492,8 @@ public class EpubRewritePlugin extends Plugin {
             opf.append("/>");
             idsByHref.put(resource.href, resource.id);
         }
-        opf.append("</manifest><spine toc=\"ncx\"><itemref idref=\"cover-page\"/>");
+        opf.append("</manifest><spine toc=\"ncx\">");
+        if (hasCover) opf.append("<itemref idref=\"cover-page\"/>");
         for (MergeSource source : sources) {
             for (String spinePath : source.spinePaths) {
                 String id = idsByHref.get(source.prefix.substring("EPUB/".length()) + "/" + spinePath);
@@ -8337,16 +9536,9 @@ public class EpubRewritePlugin extends Plugin {
             Element spine = firstElementByName(document, "spine");
             if (manifest == null || spine == null) throw new PluginErrorException("MERGE_VALIDATION_FAILED", "Generated package document is incomplete", "merge_validate");
             java.util.HashSet<String> manifestIds = new java.util.HashSet<>();
-            String navPath = null;
-            String ncxPath = null;
             for (Element item : elementsByName(document, "item")) {
                 String id = item.getAttribute("id");
-                String href = item.getAttribute("href");
                 if (CompatStrings.isNotBlank(id)) manifestIds.add(id);
-                String resolvedPath = resolveRelativeZipPath("EPUB", href);
-                if (findHeader(headerIndex, resolvedPath) == null) throw new PluginErrorException("MERGE_RESOURCE_MISSING", href, "merge_validate");
-                if (hasNavigationProperty(item.getAttribute("properties"))) navPath = resolvedPath;
-                if ("application/x-dtbncx+xml".equals(item.getAttribute("media-type"))) ncxPath = resolvedPath;
             }
             emitPhaseProgress("validating", 55);
             NodeList itemrefs = spine.getElementsByTagNameNS("*", "itemref");
@@ -8356,20 +9548,35 @@ public class EpubRewritePlugin extends Plugin {
                 if (!manifestIds.contains(idref)) throw new PluginErrorException("MERGE_SPINE_MANIFEST_MISSING", idref, "merge_validate");
             }
             emitPhaseProgress("validating", 65);
-            validateNavigationDocumentHasEntries(zip, navPath, "href", true, "MERGE_NAVIGATION_EMPTY");
-            validateNavigationDocumentHasEntries(zip, ncxPath, "src", true, "MERGE_NAVIGATION_EMPTY");
-            emitPhaseProgress("validating", 75);
-            validateSplitNavigationTargets(zip, headerIndex, navPath, "href");
-            validateSplitNavigationTargets(zip, headerIndex, ncxPath, "src");
-            validateInternalDocumentLinks(
-                zip,
-                headerIndex,
-                "MERGE_INTERNAL_LINK_MISSING",
-                "merge_validate",
-                "validating",
-                80,
-                100
-            );
+        }
+    }
+
+    private void validateNoCoverArchive(Path outputPath) throws Exception {
+        try (ZipFile zip = new ZipFile(outputPath.toFile())) {
+            Map<String, FileHeader> headerIndex = buildHeaderIndex(zip.getFileHeaders());
+            String[] activePackageDocuments = { "EPUB/package.opf", "EPUB/nav.xhtml", "EPUB/toc.ncx" };
+            for (String path : activePackageDocuments) {
+                FileHeader header = findHeader(headerIndex, path);
+                if (header == null) continue;
+                if (
+                    header.isDirectory()
+                        || header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES
+                        || !isTextEntryPath(normalizeZipPath(header.getFileName()))
+                ) continue;
+                String content = decodeXmlBytes(readEntryBytes(zip, header)).toLowerCase(Locale.US);
+                if (
+                    COVER_IMAGE_PROPERTY_PATTERN.matcher(content).find()
+                        || COVER_META_PATTERN.matcher(content).find()
+                        || EPUB_COVER_TYPE_PATTERN.matcher(content).find()
+                ) {
+                    throw new PluginErrorException(
+                        "NO_COVER_VALIDATION_FAILED",
+                        "Active package document still contains a cover reference: "
+                            + normalizeZipPath(header.getFileName()),
+                        "no_cover_validate"
+                    );
+                }
+            }
         }
     }
 
@@ -8426,6 +9633,11 @@ public class EpubRewritePlugin extends Plugin {
 
     private interface StreamingTextTransform {
         String transform(String chunk, boolean finalChunk) throws IOException;
+    }
+
+    @FunctionalInterface
+    private interface DiagnosticLinkConsumer {
+        void accept(String rawValue) throws Exception;
     }
 
     private final class StreamingXmlSanitizer {
@@ -8839,6 +10051,105 @@ public class EpubRewritePlugin extends Plugin {
             }
         );
         return sanitizer;
+    }
+
+    private StreamingXmlSanitizer inspectLargeDiagnosticEntry(
+        ZipFile zipFile,
+        FileHeader header,
+        String entryPath
+    ) throws IOException {
+        DiagnosticStats diagnostic = activeDiagnostic.get();
+        StreamingXmlSanitizer sanitizer = new StreamingXmlSanitizer(false);
+        if (diagnostic == null) {
+            return inspectLargeTextEntry(zipFile, header, false);
+        }
+
+        diagnostic.resetLinkReferences(entryPath);
+        diagnostic.beginDocumentIdBatch();
+        StringBuilder pending = new StringBuilder();
+        try {
+            inspectTextEntry(
+                zipFile,
+                header,
+                new StreamingTextTransform() {
+                    @Override
+                    public String transform(String chunk, boolean finalChunk) {
+                        String transformed = sanitizer.transform(chunk, finalChunk);
+                        pending.append(chunk);
+                        int stableLength = pending.length() - LARGE_TEXT_TAIL_CHARS;
+                        if (finalChunk) {
+                            stableLength = pending.length();
+                        }
+                        if (stableLength > 0) {
+                            scanDiagnosticChunk(
+                                pending.substring(0, stableLength),
+                                entryPath,
+                                diagnostic
+                            );
+                            pending.delete(0, stableLength);
+                        }
+                        return transformed;
+                    }
+                }
+            );
+            if (pending.length() > 0) {
+                scanDiagnosticChunk(pending.toString(), entryPath, diagnostic);
+            }
+            diagnostic.markDocumentIdsScanned(entryPath);
+            return sanitizer;
+        } finally {
+            diagnostic.endDocumentIdBatch();
+        }
+    }
+
+    private void scanDiagnosticChunk(
+        String chunk,
+        String entryPath,
+        DiagnosticStats diagnostic
+    ) {
+        Matcher idMatcher = LARGE_ID_ATTRIBUTE_PATTERN.matcher(chunk);
+        while (idMatcher.find()) {
+            String value = idMatcher.group(2).trim();
+            if (CompatStrings.isNotBlank(value)) {
+                diagnostic.storeDocumentId(entryPath, value);
+            }
+        }
+
+        Matcher linkMatcher = LARGE_LINK_ATTRIBUTE_PATTERN.matcher(chunk);
+        while (linkMatcher.find()) {
+            if (diagnostic.tryScanLink()) {
+                diagnostic.storeLinkReference(entryPath, linkMatcher.group(2));
+            }
+        }
+    }
+
+    private void collectStoredInternalLinkIssues(
+        ZipFile zipFile,
+        String entryPath,
+        String opfDir,
+        java.util.ArrayList<ParsedManifestItem> manifestItems,
+        java.util.HashMap<String, java.util.HashSet<String>> documentIdCache,
+        JSObject guidedSelections,
+        java.util.ArrayList<EpubIssue> issues
+    ) throws Exception {
+        DiagnosticStats diagnostic = activeDiagnostic.get();
+        if (diagnostic == null) {
+            return;
+        }
+        diagnostic.forEachLinkReference(entryPath, rawValue -> {
+            InternalLinkEvaluation evaluation = evaluateInternalLinkReference(
+                zipFile,
+                entryPath,
+                opfDir,
+                manifestItems,
+                new java.util.HashSet<>(),
+                rawValue,
+                documentIdCache,
+                false,
+                guidedSelections
+            );
+            issues.addAll(evaluation.issues);
+        });
     }
 
     private void inspectTextEntry(
@@ -9763,6 +11074,23 @@ public class EpubRewritePlugin extends Plugin {
         return null;
     }
 
+    private FileHeader findHeaderForActiveDiagnostic(
+        List<FileHeader> headers,
+        String fileName
+    ) {
+        DiagnosticStats diagnostic = activeDiagnostic.get();
+        if (diagnostic == null) {
+            diagnostic = activeRepairProgress.get();
+        }
+        if (diagnostic != null) {
+            FileHeader indexed = diagnostic.findEntry(fileName);
+            if (indexed != null) {
+                return indexed;
+            }
+        }
+        return findHeader(headers, fileName);
+    }
+
     private Map<String, FileHeader> buildHeaderIndex(List<FileHeader> headers) {
         Map<String, FileHeader> index = new java.util.HashMap<>();
         if (headers == null) {
@@ -9815,6 +11143,24 @@ public class EpubRewritePlugin extends Plugin {
             return elements;
         }
         NodeList directMatches = document.getElementsByTagName(localName);
+        for (int i = 0; i < directMatches.getLength(); i++) {
+            if (directMatches.item(i) instanceof Element) {
+                elements.add((Element) directMatches.item(i));
+            }
+        }
+        return elements;
+    }
+
+    private List<Element> elementsByName(Element parent, String localName) {
+        List<Element> elements = new ArrayList<>();
+        NodeList wildcardMatches = parent.getElementsByTagNameNS("*", localName);
+        for (int i = 0; i < wildcardMatches.getLength(); i++) {
+            if (wildcardMatches.item(i) instanceof Element) {
+                elements.add((Element) wildcardMatches.item(i));
+            }
+        }
+        if (!elements.isEmpty()) return elements;
+        NodeList directMatches = parent.getElementsByTagName(localName);
         for (int i = 0; i < directMatches.getLength(); i++) {
             if (directMatches.item(i) instanceof Element) {
                 elements.add((Element) directMatches.item(i));
@@ -10821,6 +12167,1061 @@ public class EpubRewritePlugin extends Plugin {
         void run(PluginCall call) throws Exception;
     }
 
+    private static final class DiagnosticStats {
+        private final String mode;
+        private final String diagnosisId;
+        private final long startedAt = System.currentTimeMillis();
+        private long totalEntries;
+        private long inspectedEntries;
+        private long inspectedTextBytes;
+        private long scannedLinks;
+        private long findingCount;
+        private boolean hasRepairableFinding;
+        private boolean hasFinding;
+        private DiagnosticFindingStore findingStore;
+        private boolean findingStoreReadOnly;
+        private final java.util.LinkedHashSet<String> repairCodes = new java.util.LinkedHashSet<>();
+        private final java.util.LinkedHashSet<String> contentTransformPaths = new java.util.LinkedHashSet<>();
+        private final java.util.LinkedHashSet<String> linkTransformPaths = new java.util.LinkedHashSet<>();
+        private final java.util.LinkedHashSet<String> orphanEntries = new java.util.LinkedHashSet<>();
+        private Map<String, FileHeader> entryIndex;
+        private Map<String, String> exactManifestIndex;
+        private Map<String, List<String>> caseManifestIndex;
+        private Map<String, List<String>> unicodeManifestIndex;
+        private Map<String, List<String>> basenameManifestIndex;
+        private long lastProgressAt;
+        private int lastProgressPercent = -1;
+        private String limitCode;
+        private String limitMessage;
+
+        DiagnosticStats(String mode) {
+            this(mode, null);
+        }
+
+        DiagnosticStats(String mode, String diagnosisId) {
+            this.mode = mode;
+            this.diagnosisId = diagnosisId;
+        }
+
+        boolean isQuick() {
+            return "quick".equals(mode);
+        }
+
+        void setTotalEntries(long totalEntries) {
+            this.totalEntries = Math.max(0L, totalEntries);
+        }
+
+        void setEntryIndex(Map<String, FileHeader> entryIndex) {
+            this.entryIndex = entryIndex;
+        }
+
+        void setManifestIndex(List<ParsedManifestItem> manifestItems) {
+            Map<String, String> exact = new HashMap<>();
+            Map<String, List<String>> byCase = new HashMap<>();
+            Map<String, List<String>> byUnicode = new HashMap<>();
+            Map<String, List<String>> byBasename = new HashMap<>();
+            if (manifestItems != null) {
+                for (ParsedManifestItem item : manifestItems) {
+                    if (item == null || !item.exists || item.resolvedPath == null) {
+                        continue;
+                    }
+                    String path = item.resolvedPath.replace('\\', '/');
+                    exact.put(path, path);
+                    appendIndexValue(byCase, path.toLowerCase(Locale.US), path);
+                    appendIndexValue(byUnicode, unicodeKey(path), path);
+                    appendIndexValue(byBasename, basenameKeyForIndex(path), path);
+                }
+            }
+            exactManifestIndex = exact;
+            caseManifestIndex = byCase;
+            unicodeManifestIndex = byUnicode;
+            basenameManifestIndex = byBasename;
+        }
+
+        PathResolution resolveIndexedPath(String normalizedPath) {
+            if (exactManifestIndex == null) {
+                return null;
+            }
+            String exact = exactManifestIndex.get(normalizedPath);
+            if (exact != null) {
+                return new PathResolution(exact, null, true);
+            }
+            PathResolution resolution = resolveIndexedCandidates(
+                caseManifestIndex.get(normalizedPath.toLowerCase(Locale.US)),
+                "LINK_PATH_CASE_MISMATCH"
+            );
+            if (resolution != null) {
+                return resolution;
+            }
+            resolution = resolveIndexedCandidates(
+                unicodeManifestIndex.get(unicodeKey(normalizedPath)),
+                "LINK_PATH_UNICODE_MISMATCH"
+            );
+            if (resolution != null) {
+                return resolution;
+            }
+            return resolveIndexedCandidates(
+                basenameManifestIndex.get(basenameKeyForIndex(normalizedPath)),
+                "LINK_TARGET_MISSING"
+            );
+        }
+
+        private PathResolution resolveIndexedCandidates(List<String> candidates, String code) {
+            if (candidates == null || candidates.isEmpty()) {
+                return null;
+            }
+            ArrayList<String> unique = new ArrayList<>(new java.util.TreeSet<>(candidates));
+            if (unique.size() == 1) {
+                return new PathResolution(unique.get(0), code, true);
+            }
+            return new PathResolution(null, code, true, unique);
+        }
+
+        private void appendIndexValue(Map<String, List<String>> index, String key, String value) {
+            if (key == null || value == null) {
+                return;
+            }
+            List<String> values = index.get(key);
+            if (values == null) {
+                values = new ArrayList<>();
+                index.put(key, values);
+            }
+            if (!values.contains(value)) {
+                values.add(value);
+            }
+        }
+
+        private String unicodeKey(String value) {
+            return Normalizer.normalize(value == null ? "" : value, Normalizer.Form.NFC)
+                .toLowerCase(Locale.US);
+        }
+
+        private String basenameKeyForIndex(String value) {
+            String normalized = value == null ? "" : value.toLowerCase(Locale.US);
+            int lastSlash = normalized.lastIndexOf('/');
+            return lastSlash >= 0 ? normalized.substring(lastSlash + 1) : normalized;
+        }
+
+        FileHeader findEntry(String path) {
+            if (entryIndex == null || path == null) {
+                return null;
+            }
+            return entryIndex.get(path.replace('\\', '/'));
+        }
+
+        void openFindingStore(Path sessionDir) throws IOException {
+            if (sessionDir == null || diagnosisId == null) {
+                return;
+            }
+            findingStore = DiagnosticFindingStore.open(
+                sessionDir.resolve(".diagnosis-" + diagnosisId + ".db"),
+                false
+            );
+            findingStoreReadOnly = false;
+        }
+
+        void attachFindingStore(DiagnosticFindingStore store) {
+            findingStore = store;
+            findingStoreReadOnly = true;
+        }
+
+        void closeFindingStore() {
+            if (findingStore == null) {
+                return;
+            }
+            findingStore.close();
+            findingStore = null;
+            findingStoreReadOnly = false;
+        }
+
+        void recordIssue(EpubIssue issue) {
+            if (issue == null) {
+                return;
+            }
+            findingCount += 1L;
+            hasFinding = true;
+            hasRepairableFinding = hasRepairableFinding || issue.fixable;
+            if (issue.fixable) {
+                repairCodes.add(issue.code);
+                recordRepairTarget(issue);
+            }
+            if (findingStore != null && !findingStoreReadOnly) {
+                findingStore.add(issue);
+            }
+        }
+
+        private void recordRepairTarget(EpubIssue issue) {
+            if (issue == null || issue.details == null) {
+                return;
+            }
+            String code = issue.code == null ? "" : issue.code;
+            String details = issue.details.trim();
+            if (
+                "HIGH-XHTML-001".equals(code)
+                    || "HIGH-XHTML-002".equals(code)
+                    || "HIGH-XHTML-003".equals(code)
+                    || "HIGH-ENC-001".equals(code)
+                    || "HIGH-ENC-002".equals(code)
+                    || "CRIT-XHTML-001".equals(code)
+            ) {
+                contentTransformPaths.add(details);
+                return;
+            }
+            if (
+                "LINK_TARGET_MISSING".equals(code)
+                    || "LINK_FRAGMENT_MISSING".equals(code)
+                    || "LINK_PATH_CASE_MISMATCH".equals(code)
+                    || "LINK_PATH_UNICODE_MISMATCH".equals(code)
+            ) {
+                int separator = details.indexOf(':');
+                if (separator > 0) {
+                    linkTransformPaths.add(details.substring(0, separator).trim());
+                }
+                return;
+            }
+            if ("ORPHAN_RESOURCE_UNUSED".equals(code)) {
+                orphanEntries.add(details);
+            }
+        }
+
+        boolean canInspectNextEntry() {
+            return !isLimited();
+        }
+
+        boolean tryConsumeText(String path, long bytes) {
+            if (isLimited()) return false;
+            long safeBytes = Math.max(0L, bytes);
+            inspectedTextBytes = safeAdd(inspectedTextBytes, safeBytes);
+            return true;
+        }
+
+        boolean tryScanLink() {
+            if (isLimited()) return false;
+            scannedLinks += 1L;
+            return true;
+        }
+
+        void recordEntry(String path) {
+            inspectedEntries += 1L;
+        }
+
+        boolean shouldEmitProgress(int percent) {
+            long now = System.currentTimeMillis();
+            if (lastProgressAt == 0L || percent <= 1 || percent >= 90) {
+                lastProgressAt = now;
+                lastProgressPercent = percent;
+                return true;
+            }
+            if (percent == lastProgressPercent || now - lastProgressAt < 200L) {
+                return false;
+            }
+            lastProgressAt = now;
+            lastProgressPercent = percent;
+            return true;
+        }
+
+        void storeDocumentIds(String path, java.util.Set<String> ids) {
+            if (findingStore != null && !findingStoreReadOnly) {
+                findingStore.replaceDocumentIds(path, ids);
+            }
+        }
+
+        void storeDocumentId(String path, String id) {
+            if (findingStore != null && !findingStoreReadOnly) {
+                findingStore.addDocumentId(path, id);
+            }
+        }
+
+        void beginDocumentIdBatch() {
+            if (findingStore != null && !findingStoreReadOnly) {
+                findingStore.beginDocumentIdBatch();
+            }
+        }
+
+        void endDocumentIdBatch() {
+            if (findingStore != null && !findingStoreReadOnly) {
+                findingStore.endDocumentIdBatch();
+            }
+        }
+
+        void resetLinkReferences(String path) {
+            if (findingStore != null && !findingStoreReadOnly) {
+                findingStore.resetLinkReferences(path);
+            }
+        }
+
+        void storeLinkReference(String path, String rawValue) {
+            if (findingStore != null && !findingStoreReadOnly) {
+                findingStore.addLinkReference(path, rawValue);
+            }
+        }
+
+        void forEachLinkReference(String path, DiagnosticLinkConsumer consumer) throws Exception {
+            if (findingStore != null) {
+                findingStore.forEachLinkReference(path, consumer);
+            }
+        }
+
+        void markDocumentIdsScanned(String path) {
+            if (findingStore != null && !findingStoreReadOnly) {
+                findingStore.markDocumentIdsScanned(path);
+            }
+        }
+
+        java.util.HashSet<String> readDocumentIds(String path, String requestedFragment) {
+            return findingStore == null
+                ? null
+                : findingStore.readDocumentIds(path, requestedFragment);
+        }
+
+        java.util.HashSet<String> filterDocumentIds(
+            java.util.Set<String> ids,
+            String requestedFragment
+        ) {
+            if (requestedFragment == null || requestedFragment.trim().isEmpty()) {
+                return new java.util.HashSet<>(ids);
+            }
+            String exact = requestedFragment.trim();
+            String lower = exact.toLowerCase(Locale.US);
+            String unicode = Normalizer.normalize(exact, Normalizer.Form.NFC).toLowerCase(Locale.US);
+            java.util.HashSet<String> matches = new java.util.HashSet<>();
+            for (String id : ids) {
+                if (id == null) {
+                    continue;
+                }
+                if (
+                    id.equals(exact)
+                        || id.toLowerCase(Locale.US).equals(lower)
+                        || Normalizer.normalize(id, Normalizer.Form.NFC)
+                            .toLowerCase(Locale.US)
+                            .equals(unicode)
+                ) {
+                    matches.add(id);
+                }
+            }
+            return matches;
+        }
+
+        boolean isLimited() {
+            return limitCode != null;
+        }
+
+        void limit(String code, String message) {
+            if (limitCode == null) {
+                limitCode = code;
+                limitMessage = message;
+            }
+        }
+
+        long elapsedMs() {
+            return Math.max(0L, System.currentTimeMillis() - startedAt);
+        }
+
+        long getTotalEntries() {
+            return totalEntries;
+        }
+
+        long getInspectedEntries() {
+            return inspectedEntries;
+        }
+
+        long getInspectedTextBytes() {
+            return inspectedTextBytes;
+        }
+
+        long getScannedLinks() {
+            return scannedLinks;
+        }
+
+        String getLimitCode() {
+            return limitCode;
+        }
+
+        String getLimitMessage() {
+            return limitMessage;
+        }
+
+        String resolveStatus(String fallback) {
+            if (!hasFinding) {
+                return "valid";
+            }
+            return hasRepairableFinding ? "repairable" : "unsupported";
+        }
+
+        JSObject readSummary() {
+            return findingStore == null
+                ? emptySummary(findingCount, hasRepairableFinding)
+                : findingStore.readSummary();
+        }
+
+        JSObject readPage(String cursor, int pageSize) {
+            return findingStore == null
+                ? emptyPage()
+                : findingStore.readPage(cursor, pageSize);
+        }
+
+        void writeRepairPlan(RepairPlan plan) {
+            if (findingStore != null) {
+                findingStore.writeRepairPlan(plan);
+            }
+        }
+
+        private JSObject emptySummary(long total, boolean hasRepairable) {
+            JSObject summary = new JSObject();
+            summary.put("totalFindings", total);
+            summary.put("fixableFindings", hasRepairable ? total : 0L);
+            summary.put("byCode", new JSObject());
+            summary.put("bySeverity", new JSObject());
+            return summary;
+        }
+
+        private JSObject emptyPage() {
+            JSObject page = new JSObject();
+            page.put("items", new JSArray());
+            page.put("total", findingCount);
+            return page;
+        }
+
+        private static long safeAdd(long left, long right) {
+            return Long.MAX_VALUE - left < right ? Long.MAX_VALUE : left + right;
+        }
+    }
+
+    private static final class DiagnosticIssuePreviewList extends java.util.ArrayList<EpubIssue> {
+        private final DiagnosticStats diagnostic;
+        private final int previewLimit;
+
+        DiagnosticIssuePreviewList(DiagnosticStats diagnostic, int previewLimit) {
+            this.diagnostic = diagnostic;
+            this.previewLimit = Math.max(1, previewLimit);
+        }
+
+        @Override
+        public boolean add(EpubIssue issue) {
+            diagnostic.recordIssue(issue);
+            if (size() >= previewLimit) {
+                return true;
+            }
+            return super.add(issue);
+        }
+
+        @Override
+        public boolean addAll(java.util.Collection<? extends EpubIssue> issues) {
+            boolean changed = false;
+            if (issues == null) {
+                return false;
+            }
+            for (EpubIssue issue : issues) {
+                changed = add(issue) || changed;
+            }
+            return changed;
+        }
+
+        @Override
+        public boolean addAll(
+            int index,
+            java.util.Collection<? extends EpubIssue> issues
+        ) {
+            boolean changed = false;
+            if (issues == null) {
+                return false;
+            }
+            for (EpubIssue issue : issues) {
+                changed = add(issue) || changed;
+            }
+            return changed;
+        }
+    }
+
+    private static final class DiagnosticFindingStore implements AutoCloseable {
+        private final SQLiteDatabase database;
+
+        private DiagnosticFindingStore(SQLiteDatabase database) {
+            this.database = database;
+        }
+
+        static DiagnosticFindingStore open(Path path, boolean readOnly) throws IOException {
+            try {
+                SQLiteDatabase database = readOnly
+                    ? SQLiteDatabase.openDatabase(
+                        path.toString(),
+                        null,
+                        SQLiteDatabase.OPEN_READONLY
+                    )
+                    : SQLiteDatabase.openOrCreateDatabase(path.toString(), null);
+                DiagnosticFindingStore store = new DiagnosticFindingStore(database);
+                if (!readOnly) {
+                    store.ensureSchema();
+                }
+                return store;
+            } catch (RuntimeException error) {
+                throw new IOException("Unable to open diagnosis store", error);
+            }
+        }
+
+        void add(EpubIssue issue) {
+            ContentValues values = new ContentValues();
+            values.put("code", issue.code);
+            values.put("severity", issue.severity);
+            values.put("fixable", issue.fixable ? 1 : 0);
+            values.put("details", issue.details);
+            values.put(
+                "options_json",
+                issue.options == null ? null : new org.json.JSONArray(issue.options).toString()
+            );
+            database.insertOrThrow("findings", null, values);
+        }
+
+        void writeRepairPlan(RepairPlan plan) {
+            if (plan == null) {
+                return;
+            }
+            ContentValues values = new ContentValues();
+            values.put("id", 1);
+            values.put("payload_json", plan.toJson());
+            database.insertWithOnConflict(
+                "repair_plan",
+                null,
+                values,
+                SQLiteDatabase.CONFLICT_REPLACE
+            );
+        }
+
+        RepairPlan readRepairPlan() throws IOException {
+            Cursor rows = database.rawQuery(
+                "SELECT payload_json FROM repair_plan WHERE id = 1",
+                null
+            );
+            try {
+                if (!rows.moveToFirst()) {
+                    return null;
+                }
+                return RepairPlan.fromJson(rows.getString(0));
+            } catch (org.json.JSONException error) {
+                throw new IOException("Diagnosis repair plan is invalid", error);
+            } finally {
+                rows.close();
+            }
+        }
+
+        void replaceDocumentIds(String path, java.util.Set<String> ids) {
+            if (path == null) {
+                return;
+            }
+            database.beginTransaction();
+            try {
+                database.delete("document_ids", "path = ?", new String[] { path });
+                if (ids != null) {
+                    for (String id : ids) {
+                        addDocumentId(path, id);
+                    }
+                }
+                markDocumentIdsScanned(path);
+                database.setTransactionSuccessful();
+            } finally {
+                database.endTransaction();
+            }
+        }
+
+        void addDocumentId(String path, String id) {
+            if (path == null || id == null || id.trim().isEmpty()) {
+                return;
+            }
+            String value = id.trim();
+            ContentValues values = new ContentValues();
+            values.put("path", path);
+            values.put("value", value);
+            values.put("lower_value", value.toLowerCase(Locale.US));
+            values.put(
+                "unicode_value",
+                Normalizer.normalize(value, Normalizer.Form.NFC).toLowerCase(Locale.US)
+            );
+            database.insertWithOnConflict(
+                "document_ids",
+                null,
+                values,
+                SQLiteDatabase.CONFLICT_IGNORE
+            );
+        }
+
+        void markDocumentIdsScanned(String path) {
+            if (path == null) {
+                return;
+            }
+            ContentValues values = new ContentValues();
+            values.put("path", path);
+            database.insertWithOnConflict(
+                "document_id_scans",
+                null,
+                values,
+                SQLiteDatabase.CONFLICT_REPLACE
+            );
+        }
+
+        void resetLinkReferences(String path) {
+            if (path != null) {
+                database.delete("link_references", "path = ?", new String[] { path });
+            }
+        }
+
+        void addLinkReference(String path, String rawValue) {
+            if (path == null || rawValue == null || rawValue.trim().isEmpty()) {
+                return;
+            }
+            ContentValues values = new ContentValues();
+            values.put("path", path);
+            values.put("value", rawValue);
+            database.insert("link_references", null, values);
+        }
+
+        void forEachLinkReference(String path, DiagnosticLinkConsumer consumer) throws Exception {
+            Cursor rows = database.rawQuery(
+                "SELECT value FROM link_references WHERE path = ? ORDER BY sequence",
+                new String[] { path }
+            );
+            try {
+                while (rows.moveToNext()) {
+                    consumer.accept(rows.getString(0));
+                }
+            } finally {
+                rows.close();
+            }
+        }
+
+        void beginDocumentIdBatch() {
+            if (!database.inTransaction()) {
+                database.beginTransaction();
+            }
+        }
+
+        void endDocumentIdBatch() {
+            if (database.inTransaction()) {
+                database.setTransactionSuccessful();
+                database.endTransaction();
+            }
+        }
+
+        java.util.HashSet<String> readDocumentIds(String path, String requestedFragment) {
+            if (path == null) {
+                return new java.util.HashSet<>();
+            }
+            Cursor scan = database.rawQuery(
+                "SELECT 1 FROM document_id_scans WHERE path = ? LIMIT 1",
+                new String[] { path }
+            );
+            boolean scanned;
+            try {
+                scanned = scan.moveToFirst();
+            } finally {
+                scan.close();
+            }
+            if (!scanned) {
+                return null;
+            }
+
+            String sql = "SELECT value FROM document_ids WHERE path = ?";
+            ArrayList<String> args = new ArrayList<>();
+            args.add(path);
+            if (requestedFragment != null && !requestedFragment.trim().isEmpty()) {
+                String value = requestedFragment.trim();
+                sql += " AND (value = ? OR lower_value = ? OR unicode_value = ?)";
+                args.add(value);
+                args.add(value.toLowerCase(Locale.US));
+                args.add(Normalizer.normalize(value, Normalizer.Form.NFC).toLowerCase(Locale.US));
+            }
+            Cursor rows = database.rawQuery(sql, args.toArray(new String[0]));
+            java.util.HashSet<String> ids = new java.util.HashSet<>();
+            try {
+                while (rows.moveToNext()) {
+                    ids.add(rows.getString(0));
+                }
+            } finally {
+                rows.close();
+            }
+            return ids;
+        }
+
+        JSObject readSummary() {
+            JSObject summary = new JSObject();
+            summary.put("totalFindings", queryLong("SELECT COUNT(*) FROM findings"));
+            summary.put(
+                "fixableFindings",
+                queryLong("SELECT COUNT(*) FROM findings WHERE fixable = 1")
+            );
+            summary.put("byCode", readGroupedCounts("code"));
+            summary.put("bySeverity", readGroupedCounts("severity"));
+            return summary;
+        }
+
+        JSObject readPage(String cursor, int requestedPageSize) {
+            int pageSize = Math.max(1, Math.min(DIAGNOSIS_PAGE_MAX_SIZE, requestedPageSize));
+            long afterSequence = parseCursor(cursor);
+            Cursor rows = database.rawQuery(
+                "SELECT sequence, code, severity, fixable, details, options_json "
+                    + "FROM findings WHERE sequence > ? ORDER BY sequence LIMIT ?",
+                new String[] { String.valueOf(afterSequence), String.valueOf(pageSize + 1) }
+            );
+            JSArray items = new JSArray();
+            long lastSequence = afterSequence;
+            boolean hasMore = false;
+            int count = 0;
+            try {
+                while (rows.moveToNext()) {
+                    if (count >= pageSize) {
+                        hasMore = true;
+                        break;
+                    }
+                    lastSequence = rows.getLong(0);
+                    items.put(toIssueObject(rows));
+                    count += 1;
+                }
+            } finally {
+                rows.close();
+            }
+
+            JSObject page = new JSObject();
+            page.put("items", items);
+            page.put("total", queryLong("SELECT COUNT(*) FROM findings"));
+            if (hasMore) {
+                page.put("nextCursor", String.valueOf(lastSequence));
+            }
+            return page;
+        }
+
+        private void ensureSchema() {
+            database.execSQL("PRAGMA synchronous=NORMAL");
+            database.execSQL(
+                "CREATE TABLE IF NOT EXISTS findings ("
+                    + "sequence INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + "code TEXT NOT NULL,"
+                    + "severity TEXT NOT NULL,"
+                    + "fixable INTEGER NOT NULL,"
+                    + "details TEXT,"
+                    + "options_json TEXT"
+                    + ")"
+            );
+            database.execSQL(
+                "CREATE TABLE IF NOT EXISTS document_id_scans ("
+                    + "path TEXT PRIMARY KEY"
+                    + ")"
+            );
+            database.execSQL(
+                "CREATE TABLE IF NOT EXISTS document_ids ("
+                    + "path TEXT NOT NULL,"
+                    + "value TEXT NOT NULL,"
+                    + "lower_value TEXT NOT NULL,"
+                    + "unicode_value TEXT NOT NULL,"
+                    + "PRIMARY KEY(path, value)"
+                    + ")"
+            );
+            database.execSQL("CREATE INDEX IF NOT EXISTS document_ids_lower ON document_ids(path, lower_value)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS document_ids_unicode ON document_ids(path, unicode_value)");
+            database.execSQL(
+                "CREATE TABLE IF NOT EXISTS link_references ("
+                    + "sequence INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + "path TEXT NOT NULL,"
+                    + "value TEXT NOT NULL"
+                    + ")"
+            );
+            database.execSQL(
+                "CREATE TABLE IF NOT EXISTS repair_plan ("
+                    + "id INTEGER PRIMARY KEY,"
+                    + "payload_json TEXT NOT NULL"
+                    + ")"
+            );
+            database.execSQL("CREATE INDEX IF NOT EXISTS link_references_path ON link_references(path, sequence)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS findings_code ON findings(code)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS findings_severity ON findings(severity)");
+        }
+
+        private JSObject readGroupedCounts(String column) {
+            JSObject counts = new JSObject();
+            Cursor rows = database.rawQuery(
+                "SELECT " + column + ", COUNT(*) FROM findings GROUP BY " + column,
+                null
+            );
+            try {
+                while (rows.moveToNext()) {
+                    counts.put(rows.getString(0), rows.getLong(1));
+                }
+            } finally {
+                rows.close();
+            }
+            return counts;
+        }
+
+        private long queryLong(String sql) {
+            Cursor rows = database.rawQuery(sql, null);
+            try {
+                return rows.moveToFirst() ? rows.getLong(0) : 0L;
+            } finally {
+                rows.close();
+            }
+        }
+
+        private JSObject toIssueObject(Cursor row) {
+            JSObject issue = new JSObject();
+            String code = row.getString(1);
+            issue.put("code", code);
+            issue.put("severity", row.getString(2));
+            issue.put("fixable", row.getInt(3) == 1);
+            issue.put("messageKey", "FIX.ISSUE_" + code);
+            if (!row.isNull(4)) {
+                issue.put("details", row.getString(4));
+            }
+            if (!row.isNull(5)) {
+                try {
+                    org.json.JSONArray options = new org.json.JSONArray(row.getString(5));
+                    JSArray optionValues = new JSArray();
+                    for (int index = 0; index < options.length(); index++) {
+                        optionValues.put(options.optString(index));
+                    }
+                    issue.put("options", optionValues);
+                } catch (org.json.JSONException ignored) {
+                    issue.put("options", new JSArray());
+                }
+            }
+            return issue;
+        }
+
+        private long parseCursor(String cursor) {
+            if (cursor == null || cursor.trim().isEmpty()) {
+                return 0L;
+            }
+            try {
+                return Math.max(0L, Long.parseLong(cursor.trim()));
+            } catch (NumberFormatException ignored) {
+                return 0L;
+            }
+        }
+
+        @Override
+        public void close() {
+            database.close();
+        }
+    }
+
+    private static final class RepairPlan {
+        final long inputSize;
+        final long inputModifiedAt;
+        final String status;
+        final String opfPath;
+        final String opfXml;
+        final java.util.ArrayList<String> reconstructibleSpineItemIds;
+        final java.util.ArrayList<String> promotableOrphanResources;
+        final java.util.ArrayList<RepairFallbackPlan> fallbackPlans;
+        final java.util.LinkedHashSet<String> repairCodes;
+        final java.util.LinkedHashSet<String> contentTransformPaths;
+        final java.util.LinkedHashSet<String> linkTransformPaths;
+        final java.util.LinkedHashSet<String> orphanEntries;
+        final boolean mimetypeMissing;
+        final boolean mimetypeInvalid;
+        final boolean rewriteOpfDocument;
+        final boolean rewriteContainerDocument;
+
+        RepairPlan(
+            long inputSize,
+            long inputModifiedAt,
+            String status,
+            String opfPath,
+            String opfXml,
+            java.util.Collection<String> reconstructibleSpineItemIds,
+            java.util.Collection<String> promotableOrphanResources,
+            java.util.Collection<RepairFallbackPlan> fallbackPlans,
+            java.util.Collection<String> repairCodes,
+            java.util.Collection<String> contentTransformPaths,
+            java.util.Collection<String> linkTransformPaths,
+            java.util.Collection<String> orphanEntries,
+            boolean mimetypeMissing,
+            boolean mimetypeInvalid
+        ) {
+            this.inputSize = inputSize;
+            this.inputModifiedAt = inputModifiedAt;
+            this.status = status;
+            this.opfPath = opfPath;
+            this.opfXml = opfXml;
+            this.reconstructibleSpineItemIds = copyList(reconstructibleSpineItemIds);
+            this.promotableOrphanResources = copyList(promotableOrphanResources);
+            this.fallbackPlans = fallbackPlans == null
+                ? new java.util.ArrayList<>()
+                : new java.util.ArrayList<>(fallbackPlans);
+            this.repairCodes = copySet(repairCodes);
+            this.contentTransformPaths = copySet(contentTransformPaths);
+            this.linkTransformPaths = copySet(linkTransformPaths);
+            this.orphanEntries = copySet(orphanEntries);
+            this.mimetypeMissing = mimetypeMissing;
+            this.mimetypeInvalid = mimetypeInvalid;
+            this.rewriteOpfDocument = hasPackageAction(this.repairCodes);
+            this.rewriteContainerDocument = this.opfPath != null && (
+                this.repairCodes.contains("CONTAINER_MISSING")
+                    || this.repairCodes.contains("OPF_MISSING")
+            );
+        }
+
+        boolean canRepair() {
+            return !repairCodes.isEmpty() && opfPath != null && opfXml != null;
+        }
+
+        boolean matches(Path workingPath) throws IOException {
+            return Files.size(workingPath) == inputSize
+                && Files.getLastModifiedTime(workingPath).toMillis() == inputModifiedAt;
+        }
+
+        boolean requiresContentTransform(String path) {
+            return contentTransformPaths.contains(path) || linkTransformPaths.contains(path);
+        }
+
+        RepairPlan withPackageDocument(String selectedOpfPath, String selectedOpfXml) {
+            return new RepairPlan(
+                inputSize,
+                inputModifiedAt,
+                status,
+                selectedOpfPath,
+                selectedOpfXml,
+                reconstructibleSpineItemIds,
+                promotableOrphanResources,
+                fallbackPlans,
+                repairCodes,
+                contentTransformPaths,
+                linkTransformPaths,
+                orphanEntries,
+                mimetypeMissing,
+                mimetypeInvalid
+            );
+        }
+
+        String toJson() {
+            org.json.JSONObject value = new org.json.JSONObject();
+            try {
+                value.put("inputSize", inputSize);
+                value.put("inputModifiedAt", inputModifiedAt);
+                value.put("status", status);
+                value.put("opfPath", opfPath);
+                value.put("opfXml", opfXml);
+                value.put("reconstructibleSpineItemIds", new org.json.JSONArray(reconstructibleSpineItemIds));
+                value.put("promotableOrphanResources", new org.json.JSONArray(promotableOrphanResources));
+                value.put("repairCodes", new org.json.JSONArray(repairCodes));
+                value.put("contentTransformPaths", new org.json.JSONArray(contentTransformPaths));
+                value.put("linkTransformPaths", new org.json.JSONArray(linkTransformPaths));
+                value.put("orphanEntries", new org.json.JSONArray(orphanEntries));
+                value.put("mimetypeMissing", mimetypeMissing);
+                value.put("mimetypeInvalid", mimetypeInvalid);
+                org.json.JSONArray fallbacks = new org.json.JSONArray();
+                for (RepairFallbackPlan fallback : fallbackPlans) {
+                    fallbacks.put(fallback.toJson());
+                }
+                value.put("fallbackPlans", fallbacks);
+                return value.toString();
+            } catch (org.json.JSONException error) {
+                throw new IllegalStateException("Unable to serialize repair plan", error);
+            }
+        }
+
+        static RepairPlan fromJson(String raw) throws org.json.JSONException {
+            org.json.JSONObject value = new org.json.JSONObject(raw);
+            java.util.ArrayList<RepairFallbackPlan> fallbacks = new java.util.ArrayList<>();
+            org.json.JSONArray fallbackValues = value.optJSONArray("fallbackPlans");
+            if (fallbackValues != null) {
+                for (int index = 0; index < fallbackValues.length(); index++) {
+                    org.json.JSONObject fallback = fallbackValues.optJSONObject(index);
+                    if (fallback != null) {
+                        fallbacks.add(RepairFallbackPlan.fromJson(fallback));
+                    }
+                }
+            }
+            return new RepairPlan(
+                value.optLong("inputSize", -1L),
+                value.optLong("inputModifiedAt", -1L),
+                value.optString("status", "failed"),
+                value.optString("opfPath", null),
+                value.optString("opfXml", null),
+                jsonStrings(value.optJSONArray("reconstructibleSpineItemIds")),
+                jsonStrings(value.optJSONArray("promotableOrphanResources")),
+                fallbacks,
+                jsonStrings(value.optJSONArray("repairCodes")),
+                jsonStrings(value.optJSONArray("contentTransformPaths")),
+                jsonStrings(value.optJSONArray("linkTransformPaths")),
+                jsonStrings(value.optJSONArray("orphanEntries")),
+                value.optBoolean("mimetypeMissing", false),
+                value.optBoolean("mimetypeInvalid", false)
+            );
+        }
+
+        private static boolean hasPackageAction(java.util.Set<String> codes) {
+            return codes.contains("OPF_VERSION_INVALID")
+                || codes.contains("OPF_UNIQUE_IDENTIFIER_MISSING")
+                || codes.contains("OPF_UNIQUE_IDENTIFIER_INVALID")
+                || codes.contains("MANIFEST_ITEM_MISSING")
+                || codes.contains("SMIL_MISSING")
+                || codes.contains("SPINE_EMPTY")
+                || codes.contains("SPINE_ITEM_INVALID")
+                || codes.contains("HIGH-MAN-001")
+                || codes.contains("HIGH-FALLBACK-001")
+                || codes.contains("OPF_MISSING");
+        }
+
+        private static java.util.ArrayList<String> copyList(java.util.Collection<String> values) {
+            return values == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(values);
+        }
+
+        private static java.util.LinkedHashSet<String> copySet(java.util.Collection<String> values) {
+            return values == null
+                ? new java.util.LinkedHashSet<>()
+                : new java.util.LinkedHashSet<>(values);
+        }
+
+        private static java.util.ArrayList<String> jsonStrings(org.json.JSONArray values) {
+            java.util.ArrayList<String> result = new java.util.ArrayList<>();
+            if (values == null) {
+                return result;
+            }
+            for (int index = 0; index < values.length(); index++) {
+                String value = values.optString(index, "").trim();
+                if (!value.isEmpty()) {
+                    result.add(value);
+                }
+            }
+            return result;
+        }
+    }
+
+    private static final class RepairFallbackPlan {
+        final String sourcePath;
+        final String fallbackId;
+        final String fallbackHref;
+        final String fallbackResolvedPath;
+
+        RepairFallbackPlan(
+            String sourcePath,
+            String fallbackId,
+            String fallbackHref,
+            String fallbackResolvedPath
+        ) {
+            this.sourcePath = sourcePath;
+            this.fallbackId = fallbackId;
+            this.fallbackHref = fallbackHref;
+            this.fallbackResolvedPath = fallbackResolvedPath;
+        }
+
+        org.json.JSONObject toJson() throws org.json.JSONException {
+            org.json.JSONObject value = new org.json.JSONObject();
+            value.put("sourcePath", sourcePath);
+            value.put("fallbackId", fallbackId);
+            value.put("fallbackHref", fallbackHref);
+            value.put("fallbackResolvedPath", fallbackResolvedPath);
+            return value;
+        }
+
+        static RepairFallbackPlan fromJson(org.json.JSONObject value) {
+            return new RepairFallbackPlan(
+                value.optString("sourcePath", ""),
+                value.optString("fallbackId", ""),
+                value.optString("fallbackHref", ""),
+                value.optString("fallbackResolvedPath", "")
+            );
+        }
+    }
+
     private static final class EpubIssue {
         final String code;
         final String severity;
@@ -11040,6 +13441,7 @@ public class EpubRewritePlugin extends Plugin {
         final java.util.ArrayList<String> dates = new java.util.ArrayList<>();
         final java.util.LinkedHashMap<String, String> resourceMediaTypes = new java.util.LinkedHashMap<>();
         final java.util.LinkedHashMap<String, String> resourceProperties = new java.util.LinkedHashMap<>();
+        final java.util.LinkedHashSet<String> noCoverPaths = new java.util.LinkedHashSet<>();
         String language;
         String title;
 
@@ -11067,6 +13469,9 @@ public class EpubRewritePlugin extends Plugin {
         final java.util.ArrayList<String> dates;
         final java.util.HashMap<String, String> resourceMediaTypes;
         final java.util.HashMap<String, String> resourceProperties;
+        final String navPath;
+        final String ncxPath;
+        final java.util.Set<String> noCoverPaths;
 
         MergeBookMetadata(
             String title,
@@ -11082,7 +13487,10 @@ public class EpubRewritePlugin extends Plugin {
             java.util.ArrayList<String> contributors,
             java.util.ArrayList<String> dates,
             java.util.HashMap<String, String> resourceMediaTypes,
-            java.util.HashMap<String, String> resourceProperties
+            java.util.HashMap<String, String> resourceProperties,
+            String navPath,
+            String ncxPath,
+            java.util.Set<String> noCoverPaths
         ) {
             this.title = title;
             this.spinePaths = spinePaths;
@@ -11098,6 +13506,9 @@ public class EpubRewritePlugin extends Plugin {
             this.dates = dates;
             this.resourceMediaTypes = resourceMediaTypes;
             this.resourceProperties = resourceProperties;
+            this.navPath = navPath;
+            this.ncxPath = ncxPath;
+            this.noCoverPaths = noCoverPaths;
         }
     }
 
@@ -11155,17 +13566,23 @@ public class EpubRewritePlugin extends Plugin {
         final java.util.LinkedHashMap<String, String> spinePaths;
         final java.util.HashMap<String, String> manifestPaths;
         final java.util.HashMap<String, String> mediaOverlayIds;
+        final java.util.Set<String> noCoverPaths;
+        final boolean removeSourceCover;
 
         SplitSourceMetadata(
             String opfPath,
             java.util.LinkedHashMap<String, String> spinePaths,
             java.util.HashMap<String, String> manifestPaths,
-            java.util.HashMap<String, String> mediaOverlayIds
+            java.util.HashMap<String, String> mediaOverlayIds,
+            java.util.Set<String> noCoverPaths,
+            boolean removeSourceCover
         ) {
             this.opfPath = opfPath;
             this.spinePaths = spinePaths;
             this.manifestPaths = manifestPaths;
             this.mediaOverlayIds = mediaOverlayIds;
+            this.noCoverPaths = noCoverPaths;
+            this.removeSourceCover = removeSourceCover;
         }
     }
 

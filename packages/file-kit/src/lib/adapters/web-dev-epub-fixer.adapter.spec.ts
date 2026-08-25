@@ -113,4 +113,57 @@ describe('WebDevEpubFixerAdapter', () => {
       fixable: true,
     });
   });
+
+  it('removes an unresolvable internal link so it does not reappear after repair', async () => {
+    const adapter = new WebDevEpubFixerAdapter();
+    const zip = new JSZip();
+    zip.file('mimetype', 'application/epub+zip', { compression: 'STORE' });
+    zip.file(
+      'META-INF/container.xml',
+      `<?xml version="1.0" encoding="UTF-8"?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+  <rootfiles>
+    <rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/>
+  </rootfiles>
+</container>`,
+    );
+    zip.file(
+      'OPS/package.opf',
+      `<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0">
+  <manifest>
+    <item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"/>
+  </manifest>
+  <spine>
+    <itemref idref="chapter"/>
+  </spine>
+</package>`,
+    );
+    zip.file(
+      'OPS/chapter.xhtml',
+      '<html xmlns="http://www.w3.org/1999/xhtml"><body><a href="missing.xhtml">Read more</a></body></html>',
+    );
+
+    const file = new File(
+      [await zip.generateAsync({ type: 'uint8array' })],
+      'broken-link.epub',
+      { type: 'application/epub+zip' },
+    );
+    const prepared = await adapter.prepare({ file });
+
+    const diagnosis = await adapter.diagnose({ sessionId: prepared.sessionId });
+    expect(diagnosis.issues).toEqual([
+      jasmine.objectContaining({
+        code: 'LINK_TARGET_MISSING',
+        fixable: true,
+      }),
+    ]);
+
+    const repair = await adapter.repair({ sessionId: prepared.sessionId });
+    const rediagnosis = await adapter.diagnose({ sessionId: prepared.sessionId });
+
+    expect(repair.success).toBeTrue();
+    expect(repair.repairedIssues).toContain('LINK_TARGET_MISSING');
+    expect(rediagnosis.status).toBe('valid');
+  });
 });

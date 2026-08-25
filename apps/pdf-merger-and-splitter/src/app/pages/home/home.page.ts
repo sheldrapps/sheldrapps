@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  OnDestroy,
   OnInit,
   ViewChild,
   computed,
@@ -48,6 +49,7 @@ import {
   type PdfSplitBookmarkMode,
 } from '../../pdf/pdf-split-planner.service';
 import { PdfLibraryService } from '../../services/pdf-library.service';
+import { mergedPdfOutputName, splitPdfOutputName } from '../../pdf/pdf-output-naming';
 import {
   ActionCardComponent,
   FilePickerPanelComponent,
@@ -63,7 +65,8 @@ import {
   type WorkflowStep,
   type ScrollableBarItem,
 } from '@sheldrapps/ui-theme';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter, Subscription } from 'rxjs';
 import {
   RecommendedAppsService,
   buildHomeHeaderItems,
@@ -85,10 +88,16 @@ import {
 import {
   CoverImageStateComponent,
   CoverSourceActionsComponent,
+  type CropperResult,
 } from '@sheldrapps/image-workflow';
 import { PdfMergerAndSplitterSettings } from '../../settings/pdf-merger-and-splitter-settings.schema';
 
-type WorkflowStepId = 'merge-split' | 'select' | 'order' | 'bookmarks' | 'method' | 'ranges' | 'cover' | 'review';
+type WorkflowStepId = 'merge-split' | 'select' | 'order' | 'bookmarks' | 'method' | 'ranges' | 'cover' | 'adjust' | 'review';
+
+type PdfOutputSummary = {
+  fileName: string;
+  sizeBytes: number;
+};
 
 @Component({
   selector: 'app-home',
@@ -119,7 +128,7 @@ type WorkflowStepId = 'merge-split' | 'select' | 'order' | 'bookmarks' | 'method
     SpinnerComponent,
   ],
 })
-export class HomePage implements OnInit {
+export class HomePage implements OnDestroy, OnInit {
   private readonly rewrite = inject(PdfRewriteNativeService);
   private readonly splitPlanner = inject(PdfSplitPlannerService);
   private readonly library = inject(PdfLibraryService);
@@ -159,12 +168,13 @@ export class HomePage implements OnInit {
   readonly splitEqualPartsValue = signal(2);
   readonly splitEqualPartsSelection = signal('2');
   readonly splitEqualPartsErrorKey = signal<string | null>(null);
-  readonly splitMaximumSize = signal(10);
-  readonly splitMaximumSizeSelection = signal('10');
-  readonly splitMaximumSizeErrorKey = signal<string | null>(null);
+  readonly splitMaximumPages = signal(10);
+  readonly splitMaximumPagesSelection = signal('10');
+  readonly splitMaximumPagesErrorKey = signal<string | null>(null);
   readonly cover = signal<PdfCoverDraft>({ source: 'none' });
   readonly coverFile = signal<File | null>(null);
   readonly coverImageUri = signal<string | null>(null);
+  readonly coverPreviewUri = signal<string | null>(null);
   readonly isRebuildingExportQuality = signal(false);
   readonly adsRemoved = toSignal(this.billing.adsRemoved$, {
     initialValue: this.billing.isAdsRemoved(),
@@ -173,12 +183,16 @@ export class HomePage implements OnInit {
   readonly workflowStep = signal(0);
   readonly isBusy = signal(false);
   readonly errorKey = signal<string | null>(null);
+  readonly fidelityWarningsAcknowledged = signal(false);
+  readonly resultWarnings = signal<readonly string[]>([]);
   readonly pickerErrorKey = signal<string | null>(null);
-  readonly outputName = signal('merged-document.pdf');
   readonly sessionId = signal<string | null>(null);
   readonly isResettingFlow = signal(false);
   readonly operationCompleted = signal(false);
+  readonly operationOutputs = signal<readonly PdfOutputSummary[]>([]);
   private lastEditorSessionId: string | undefined;
+  private routerSub?: Subscription;
+  private editorReturnStep = 0;
   private coverMasterBlob: Blob | undefined;
   readonly mergeIconSvg = signal<string | null>(null);
   readonly splitIconSvg = signal<string | null>(null);
@@ -189,19 +203,25 @@ export class HomePage implements OnInit {
     { id: 'select' as WorkflowStepId, key: 'HOME.STEPPER.SORT' },
     { id: 'bookmarks' as WorkflowStepId, key: 'HOME.STEPPER.TOC' },
     { id: 'cover' as WorkflowStepId, key: 'HOME.STEPPER.COVER' },
+    { id: 'adjust' as WorkflowStepId, key: 'HOME.STEPPER.ADJUST' },
     { id: 'review' as WorkflowStepId, key: 'HOME.STEPPER.JOIN' },
   ];
   readonly splitSteps = [
     { id: 'merge-split' as WorkflowStepId, key: 'HOME.STEPPER.MERGE_SPLIT' },
     { id: 'method' as WorkflowStepId, key: 'HOME.SPLIT_HOW_TO' },
+    { id: 'bookmarks' as WorkflowStepId, key: 'HOME.STEPPER.TOC' },
     { id: 'ranges' as WorkflowStepId, key: 'HOME.STEPPER.CONFIRM' },
     { id: 'cover' as WorkflowStepId, key: 'HOME.STEPPER.COVER' },
+    { id: 'adjust' as WorkflowStepId, key: 'HOME.STEPPER.ADJUST' },
     { id: 'review' as WorkflowStepId, key: 'HOME.SPLIT' },
   ];
 
-  readonly steps = computed(() =>
-    this.selectedMode() === 'split' ? this.splitSteps : this.mergeSteps,
-  );
+  readonly steps = computed(() => {
+    const steps = this.selectedMode() === 'split' ? this.splitSteps : this.mergeSteps;
+    return this.hasCurrentToc()
+      ? steps
+      : steps.filter((step) => step.id !== 'bookmarks');
+  });
 
   readonly workflowUiSteps = computed<WorkflowStep[]>(() =>
     this.steps().map((step) => ({
@@ -210,8 +230,23 @@ export class HomePage implements OnInit {
     })),
   );
 
-  readonly selectableWorkflowSteps = computed(() =>
-    Array.from({ length: this.workflowStep() + 1 }, (_, index) => index),
+  readonly selectableWorkflowSteps = computed(() => {
+    const currentStep = this.workflowStep();
+    const adjustStep = this.adjustWorkflowStep;
+    const reviewStep = this.reviewWorkflowStep;
+    const selectableSteps = Array.from({ length: currentStep + 1 }, (_, index) => index);
+    if (this.canContinue() && currentStep < this.steps().length - 1) {
+      const nextStep = this.workflowStepId() === 'cover' && !this.canAdjustCover()
+        ? reviewStep
+        : currentStep + 1;
+      selectableSteps.push(nextStep);
+    }
+    return Array.from(new Set(selectableSteps))
+      .filter((index) => index !== adjustStep || this.canAdjustCover());
+  });
+
+  readonly workflowStepId = computed<WorkflowStepId | null>(
+    () => this.steps()[this.workflowStep()]?.id ?? null,
   );
 
   readonly previousStepLabel = computed(
@@ -233,7 +268,17 @@ export class HomePage implements OnInit {
   );
 
   readonly splitPageCount = computed(() => this.splitPdf()?.analysis?.pageCount ?? this.splitPdf()?.pageCount ?? 0);
+  readonly fidelityWarnings = computed(() => {
+    const sources = this.selectedMode() === 'split'
+      ? [this.splitPdf()]
+      : this.mergePdfs();
+    return Array.from(new Set(sources.flatMap((pdf) => pdf?.warnings ?? pdf?.analysis?.warnings ?? [])));
+  });
   readonly splitHasBookmarks = computed(() => this.splitPlanner.flattenBookmarks(this.splitPdf()?.analysis).length > 0);
+  readonly hasCurrentToc = computed(() => {
+    if (this.selectedMode() === 'split') return this.splitHasBookmarks();
+    return this.mergePdfs().some((pdf) => (pdf.analysis?.bookmarks?.length ?? 0) > 0);
+  });
   readonly splitBookmarkItems = computed<readonly SelectableButtonListItem[]>(() =>
     this.splitPlanner.flattenBookmarks(this.splitPdf()?.analysis).map((bookmark) => ({
       value: bookmark.id,
@@ -244,7 +289,7 @@ export class HomePage implements OnInit {
     })),
   );
   readonly splitMethodItems = computed<readonly SelectableButtonListItem[]>(() => [
-    ...(['bookmarks', 'manual-cut-points', 'equal-number-of-parts', 'maximum-file-size'] as const).map((value) => ({
+    ...(['bookmarks', 'manual-cut-points', 'equal-number-of-parts', 'maximum-pages-per-file'] as const).map((value) => ({
       value,
       titleKey: value === 'bookmarks'
         ? 'HOME.SPLIT_OPTIONS.BY_CHAPTERS_OR_SECTIONS.TITLE'
@@ -252,14 +297,14 @@ export class HomePage implements OnInit {
           ? 'HOME.SPLIT_OPTIONS.MANUAL_SPLIT_POINTS.TITLE'
           : value === 'equal-number-of-parts'
           ? 'HOME.SPLIT_OPTIONS.EQUAL_PARTS.TITLE'
-            : 'HOME.SPLIT_OPTIONS.MAXIMUM_FILE_SIZE.TITLE',
+            : 'HOME.SPLIT_OPTIONS.MAXIMUM_PAGES.TITLE',
       sublineKey: value === 'bookmarks'
         ? 'HOME.SPLIT_OPTIONS.BY_CHAPTERS_OR_SECTIONS.SUBLINE'
         : value === 'manual-cut-points'
           ? 'HOME.SPLIT_OPTIONS.MANUAL_SPLIT_POINTS.SUBLINE'
           : value === 'equal-number-of-parts'
             ? 'HOME.SPLIT_OPTIONS.EQUAL_PARTS.SUBLINE'
-            : 'HOME.SPLIT_OPTIONS.MAXIMUM_FILE_SIZE.SUBLINE',
+            : 'HOME.SPLIT_OPTIONS.MAXIMUM_PAGES.SUBLINE',
       leadingIconSrc: value === 'bookmarks'
         ? 'assets/icons/notebook2-outline.svg'
         : value === 'manual-cut-points'
@@ -323,23 +368,23 @@ export class HomePage implements OnInit {
     ];
   });
 
-  readonly splitMaximumSizeItems = computed<readonly SelectableButtonListItem[]>(() => {
-    const sizeMb = (this.splitPdf()?.sizeBytes ?? 0) / (1024 * 1024);
-    const presets = [5, 10, 15]
-      .filter((value) => value < sizeMb + (this.coverFile()?.size ?? 0) / (1024 * 1024))
+  readonly splitMaximumPagesItems = computed<readonly SelectableButtonListItem[]>(() => {
+    const pageCount = this.splitPageCount();
+    const presets = [5, 10, 20]
+      .filter((value) => value < pageCount)
       .map((value) => ({
         value: value.toString(),
-        title: this.translate.instant('HOME.SPLIT_CONFIRM.MAXIMUM_SIZE_OPTION', { size: value }),
-        subline: this.translate.instant('HOME.SPLIT_CONFIRM.MAXIMUM_SIZE_OPTION_SUBLINE', { count: this.estimateMaximumSizeOutputCount(value) }),
-        ariaLabel: this.translate.instant('HOME.SPLIT_CONFIRM.MAXIMUM_SIZE_OPTION', { size: value }),
+        title: this.translate.instant('HOME.SPLIT_CONFIRM.MAXIMUM_PAGES_OPTION', { pages: value }),
+        subline: this.translate.instant('HOME.SPLIT_CONFIRM.MAXIMUM_PAGES_OPTION_SUBLINE', { count: Math.ceil(pageCount / value) }),
+        ariaLabel: this.translate.instant('HOME.SPLIT_CONFIRM.MAXIMUM_PAGES_OPTION', { pages: value }),
       }));
     return [
       ...presets,
       {
         value: 'custom',
-        titleKey: 'HOME.SPLIT_CONFIRM.CUSTOM_SIZE',
-        sublineKey: 'HOME.SPLIT_CONFIRM.CUSTOM_SIZE_SUBLINE',
-        ariaLabelKey: 'HOME.SPLIT_CONFIRM.CUSTOM_SIZE',
+        titleKey: 'HOME.SPLIT_CONFIRM.CUSTOM_PAGES',
+        sublineKey: 'HOME.SPLIT_CONFIRM.CUSTOM_PAGES_SUBLINE',
+        ariaLabelKey: 'HOME.SPLIT_CONFIRM.CUSTOM_PAGES',
       },
     ];
   });
@@ -350,15 +395,13 @@ export class HomePage implements OnInit {
     const pageCount = source.pageCount ?? 12;
     return this.splitPlanner.buildOutputs({
       analysis: this.splitPdf()?.analysis,
-      sourceSizeBytes: source.sizeBytes,
-      coverSizeBytes: this.coverFile()?.size ?? 0,
       method: this.splitMethod(),
       bookmarkMode: this.splitBookmarkMode(),
       manualMode: this.splitManualMode(),
       manualBookmarkIds: this.splitManualBookmarkIds(),
       manualPageInput: this.splitManualPageInput(),
       equalParts: this.splitEqualPartsValue(),
-      maximumSizeMb: this.splitMaximumSize(),
+      maximumPagesPerFile: this.splitMaximumPages(),
     });
   });
 
@@ -378,7 +421,19 @@ export class HomePage implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    this.routerSub = this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event) => {
+        const url = (event as NavigationEnd).urlAfterRedirects;
+        if (url.startsWith('/tabs/home')) {
+          void this.consumeEditorResult();
+        }
+      });
     await Promise.all([this.refreshHeaderItems(), this.loadExportQualitySettings()]);
+  }
+
+  ngOnDestroy(): void {
+    this.routerSub?.unsubscribe();
   }
 
   async ionViewWillEnter(): Promise<void> {
@@ -454,12 +509,16 @@ export class HomePage implements OnInit {
     this.cover.set({ source: 'none' });
     this.coverFile.set(null);
     this.coverImageUri.set(null);
+    this.coverPreviewUri.set(null);
     this.coverMasterBlob = undefined;
     this.lastEditorSessionId = undefined;
     this.sessionId.set(null);
     this.workflowStep.set(0);
     this.errorKey.set(null);
+    this.fidelityWarningsAcknowledged.set(false);
+    this.resultWarnings.set([]);
     this.operationCompleted.set(false);
+    this.operationOutputs.set([]);
   }
 
   selectMode(mode: PdfOperation): void {
@@ -468,9 +527,12 @@ export class HomePage implements OnInit {
     this.selectedMode.set(null);
     this.workflowStep.set(0);
     this.errorKey.set(null);
+    this.fidelityWarningsAcknowledged.set(false);
+    this.resultWarnings.set([]);
     this.cover.set({ source: 'none' });
     this.coverFile.set(null);
     this.coverImageUri.set(null);
+    this.coverPreviewUri.set(null);
     this.coverMasterBlob = undefined;
     this.sessionId.set(null);
     if (mode === 'merge') this.splitPdf.set(null);
@@ -481,7 +543,14 @@ export class HomePage implements OnInit {
     this.openPdfPicker();
   }
 
-  onWorkflowStepSelected(step: number): void {
+  async onWorkflowStepSelected(step: number): Promise<void> {
+    if (step === this.adjustWorkflowStep) {
+      if (!this.canAdjustCover()) return;
+      this.operationCompleted.set(false);
+      await this.openExistingCoverEditor(this.workflowStep());
+      return;
+    }
+
     if (step <= this.workflowStep() || this.canContinue()) {
       this.operationCompleted.set(false);
       this.workflowStep.set(step);
@@ -529,15 +598,17 @@ export class HomePage implements OnInit {
         ? { id: this.sessionId()! }
         : await this.rewrite.createSession(mode);
       this.sessionId.set(session.id);
-      const imported = await this.rewrite.pickAndImportPdf(session.id);
       this.selectedMode.set(mode);
       if (mode === 'split') {
+        const imported = await this.rewrite.pickAndImportPdf(session.id);
         this.splitPdf.set(imported);
         this.splitMethod.set(this.splitHasBookmarks() ? 'bookmarks' : 'manual-cut-points');
         this.resetSplitConfiguration();
       } else {
-        this.mergePdfs.set([...this.mergePdfs(), imported]);
+        const imported = await this.rewrite.pickAndImportPdfs(session.id);
+        this.mergePdfs.set([...this.mergePdfs(), ...imported]);
       }
+      this.fidelityWarningsAcknowledged.set(false);
       this.workflowStep.set(1);
     } catch (error) {
       if (!(error instanceof PdfRewriteError && error.code === 'PICK_CANCELLED')) {
@@ -577,6 +648,7 @@ export class HomePage implements OnInit {
       } else {
         this.mergePdfs.set([...this.mergePdfs(), ...imported]);
       }
+      this.fidelityWarningsAcknowledged.set(false);
       this.workflowStep.set(1);
     } catch (error) {
       this.pickerErrorKey.set(this.pickerErrorKeyFor(error));
@@ -591,6 +663,7 @@ export class HomePage implements OnInit {
     input.value = '';
     this.coverFile.set(file);
     this.coverImageUri.set(file ? await this.rewrite.stageCoverImage(file) : null);
+    this.coverPreviewUri.set(file ? await this.createPreviewUri(file) : null);
     this.cover.set(file ? { source: 'image', fileName: file.name } : { source: 'none' });
     this.coverMasterBlob = undefined;
     if (file) await this.openCoverEditor('image', file);
@@ -599,37 +672,90 @@ export class HomePage implements OnInit {
   skipCover(): void {
     this.coverFile.set(null);
     this.coverImageUri.set(null);
+    this.coverPreviewUri.set(null);
     this.cover.set({ source: 'none' });
     this.coverMasterBlob = undefined;
+    this.workflowStep.set(this.reviewWorkflowStep);
   }
 
   async createCover(): Promise<void> {
     await this.openCoverEditor('scratch');
   }
 
-  private async openCoverEditor(sourceMode: 'image' | 'scratch', file?: File): Promise<void> {
+  private async openCoverEditor(
+    sourceMode: 'image' | 'scratch',
+    file?: File,
+    returnStep = this.coverWorkflowStep,
+  ): Promise<void> {
     if (sourceMode === 'image' && !file) return;
+    this.editorReturnStep = returnStep;
     const sessionId = this.editorSession.createSession({
       file,
       sourceMode,
       target: { width: 600, height: 800, output: 'target', unit: 'px', outputMode: 'fixed-size' },
       output: { includeRenderedBlob: true },
+      onResultApplied: async (result) => {
+        const appliedSessionId = this.lastEditorSessionId;
+        await this.applyEditorResult(result);
+        if (appliedSessionId) this.editorSession.consumeResult(appliedSessionId);
+        if (this.lastEditorSessionId === appliedSessionId) {
+          this.lastEditorSessionId = undefined;
+        }
+      },
       returnUrl: '/tabs/home',
     });
     this.lastEditorSessionId = sessionId;
+    this.workflowStep.set(this.adjustWorkflowStep);
     await this.router.navigate(sourceMode === 'scratch' ? ['/editor/tools'] : ['/editor'], { queryParams: { sid: sessionId } });
+  }
+
+  private async openExistingCoverEditor(returnStep = this.workflowStep()): Promise<void> {
+    const file = this.coverFile();
+    if (!file) return;
+    await this.openCoverEditor('image', file, returnStep);
+  }
+
+  private get coverWorkflowStep(): number {
+    return this.steps().findIndex((step) => step.id === 'cover');
+  }
+
+  private get adjustWorkflowStep(): number {
+    return this.steps().findIndex((step) => step.id === 'adjust');
+  }
+
+  private get reviewWorkflowStep(): number {
+    return this.steps().findIndex((step) => step.id === 'review');
+  }
+
+  private canAdjustCover(): boolean {
+    return this.cover().source !== 'none' && !!this.coverFile();
   }
 
   private async consumeEditorResult(): Promise<void> {
     const snapshot = consumeEditorResultSnapshot(this.editorSession, this.lastEditorSessionId);
-    if (!snapshot.result?.file) return;
-    const result = snapshot.result;
-    const file = result.file;
-    this.coverMasterBlob = result.editorMasterBlob ?? result.renderedBlob ?? file;
-    this.cover.set({ source: 'editor', fileName: file.name });
-    await this.applySelectedExportQuality();
+    if (!snapshot.result?.file) {
+      if (snapshot.session) {
+        this.workflowStep.set(this.editorReturnStep);
+        this.editorReturnStep = this.coverWorkflowStep;
+      }
+      return;
+    }
+
+    await this.applyEditorResult(snapshot.result);
     if (this.lastEditorSessionId) this.editorSession.consumeResult(this.lastEditorSessionId);
     this.lastEditorSessionId = undefined;
+  }
+
+  private async applyEditorResult(result: CropperResult): Promise<void> {
+    const file = result.file;
+    this.coverMasterBlob = result.editorMasterBlob ?? result.renderedBlob ?? file;
+    this.coverFile.set(file);
+    this.coverImageUri.set(await this.rewrite.stageCoverImage(file));
+    this.coverPreviewUri.set(await this.createPreviewUri(file));
+    this.cover.set({ source: 'editor', fileName: file.name });
+    await this.applySelectedExportQuality();
+    this.editorReturnStep = this.coverWorkflowStep;
+    this.workflowStep.set(this.reviewWorkflowStep);
   }
 
   getEffectiveExportQualityMode(): ExportQualityMode {
@@ -680,11 +806,22 @@ export class HomePage implements OnInit {
 
     this.coverFile.set(rendered);
     this.coverImageUri.set(await this.rewrite.stageCoverImage(rendered));
+    this.coverPreviewUri.set(await this.createPreviewUri(rendered));
     this.cover.update((current) => ({ ...current, fileName: rendered.name }));
+  }
+
+  private async createPreviewUri(file: File): Promise<string> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+      reader.onerror = () => resolve(URL.createObjectURL(file));
+      reader.readAsDataURL(file);
+    });
   }
 
   removeMergePdf(id: string): void {
     this.mergePdfs.set(this.mergePdfs().filter((pdf) => pdf.id !== id));
+    this.fidelityWarningsAcknowledged.set(false);
   }
 
   moveMergePdf(index: number, direction: -1 | 1): void {
@@ -696,7 +833,7 @@ export class HomePage implements OnInit {
   }
 
   onSplitMethodChange(value: string): void {
-    if (!['bookmarks', 'manual-cut-points', 'equal-number-of-parts', 'maximum-file-size'].includes(value)) return;
+    if (!['bookmarks', 'manual-cut-points', 'equal-number-of-parts', 'maximum-pages-per-file'].includes(value)) return;
     if (value === 'bookmarks' && !this.splitHasBookmarks()) return;
     this.splitMethod.set(value as PdfSplitMethod);
     this.resetSplitConfiguration();
@@ -754,28 +891,28 @@ export class HomePage implements OnInit {
     this.splitEqualPartsErrorKey.set(null);
   }
 
-  onSplitMaximumSizeChange(value: string): void {
+  onSplitMaximumPagesChange(value: string): void {
     if (value === 'custom') {
-      this.splitMaximumSizeSelection.set('custom');
+      this.splitMaximumPagesSelection.set('custom');
       return;
     }
     const parsed = Number(value);
-    if (Number.isSafeInteger(parsed) && parsed > 0) {
-      this.splitMaximumSize.set(parsed);
-      this.splitMaximumSizeSelection.set(value);
-      this.splitMaximumSizeErrorKey.set(null);
+    if (Number.isSafeInteger(parsed) && parsed > 0 && parsed <= this.splitPageCount()) {
+      this.splitMaximumPages.set(parsed);
+      this.splitMaximumPagesSelection.set(value);
+      this.splitMaximumPagesErrorKey.set(null);
     }
   }
 
-  onSplitMaximumSizeInput(value: string | number | null | undefined): void {
+  onSplitMaximumPagesInput(value: string | number | null | undefined): void {
     const parsed = Number(String(value ?? '').trim());
-    if (!Number.isSafeInteger(parsed) || parsed < 1) {
-      this.splitMaximumSizeErrorKey.set('HOME.SPLIT_CONFIRM.INVALID_MAXIMUM_SIZE');
+    if (!Number.isSafeInteger(parsed) || parsed < 1 || parsed > this.splitPageCount()) {
+      this.splitMaximumPagesErrorKey.set('HOME.SPLIT_CONFIRM.INVALID_MAXIMUM_PAGES');
       return;
     }
-    this.splitMaximumSize.set(parsed);
-    this.splitMaximumSizeSelection.set('custom');
-    this.splitMaximumSizeErrorKey.set(null);
+    this.splitMaximumPages.set(parsed);
+    this.splitMaximumPagesSelection.set('custom');
+    this.splitMaximumPagesErrorKey.set(null);
   }
 
   onSplitIntegerKeydown(event: KeyboardEvent): void {
@@ -784,23 +921,55 @@ export class HomePage implements OnInit {
 
   canContinue(): boolean {
     if (!this.selectedMode()) return false;
+    const stepId = this.workflowStepId();
     if (this.selectedMode() === 'merge') {
-      if (this.workflowStep() === 1) return this.mergePdfs().length >= 2;
+      if (stepId === 'select') return this.mergePdfs().length >= 2;
       return true;
     }
-    if (this.workflowStep() === 0) return !!this.splitPdf();
-    if (this.workflowStep() === 1) return this.splitMethod() !== 'bookmarks' || this.splitHasBookmarks();
-    if (this.workflowStep() === 2) return this.splitOutputs().length >= 2;
+    if (stepId === 'merge-split') return !!this.splitPdf();
+    if (stepId === 'method') return this.splitMethod() !== 'bookmarks' || this.splitHasBookmarks();
+    if (stepId === 'ranges') return this.splitOutputs().length >= 2;
+    if (stepId === 'review') {
+      return this.fidelityWarnings().length === 0 || this.fidelityWarningsAcknowledged();
+    }
     return true;
   }
 
-  next(): void {
+  acknowledgeFidelityWarnings(): void {
+    this.fidelityWarningsAcknowledged.set(true);
+  }
+
+  async next(): Promise<void> {
     if (!this.canContinue() || this.workflowStep() >= this.steps().length - 1) return;
+
+    if (this.workflowStep() === this.coverWorkflowStep) {
+      if (!this.canAdjustCover()) {
+        this.workflowStep.set(this.reviewWorkflowStep);
+        return;
+      }
+      await this.openExistingCoverEditor();
+      return;
+    }
+
+    if (this.workflowStep() === this.adjustWorkflowStep) {
+      return;
+    }
+
     this.workflowStep.update((step) => step + 1);
   }
 
-  previous(): void {
+  async previous(): Promise<void> {
     this.operationCompleted.set(false);
+
+    if (this.workflowStep() === this.reviewWorkflowStep && this.canAdjustCover()) {
+      await this.openExistingCoverEditor(this.reviewWorkflowStep);
+      return;
+    }
+
+    if (this.workflowStep() === this.adjustWorkflowStep) {
+      return;
+    }
+
     this.workflowStep.update((step) => Math.max(0, step - 1));
   }
 
@@ -809,10 +978,12 @@ export class HomePage implements OnInit {
     if (!mode || !this.canContinue()) return;
     this.isBusy.set(true);
     this.operationCompleted.set(false);
+    this.operationOutputs.set([]);
     this.errorKey.set(null);
     try {
       const sessionId = this.sessionId();
       if (!sessionId) throw new PdfRewriteError('SESSION_NOT_FOUND');
+      const outputNames = this.outputNamesFor(mode);
       let result;
       if (mode === 'merge') {
         result = await this.rewrite.mergePdf({
@@ -820,7 +991,7 @@ export class HomePage implements OnInit {
           pdfs: this.mergePdfs(),
           bookmarkMode: this.bookmarkMode(),
           cover: this.cover(),
-          outputName: this.outputName(),
+          outputName: outputNames[0],
           coverImageUri: this.coverImageUri() ?? undefined,
           coverQuality: this.getCoverPdfQuality(),
         });
@@ -829,13 +1000,26 @@ export class HomePage implements OnInit {
           sessionId,
           source: this.splitPdf()!,
           method: this.splitMethod(),
-          outputs: this.splitOutputs(),
+          outputs: this.splitOutputs().map((output, index) => ({
+            ...output,
+            title: outputNames[index] ?? output.title,
+          })),
           cover: this.cover(),
           coverImageUri: this.coverImageUri() ?? undefined,
           coverQuality: this.getCoverPdfQuality(),
         });
       }
-      if (result) await this.saveOutputs(mode, result);
+      if (result) {
+        this.resultWarnings.set(result.warnings ?? []);
+        await this.saveOutputs(mode, result, outputNames);
+        this.operationOutputs.set(
+          (result.outputs ?? result.outputUris.map((uri, index) => ({
+            uri,
+            fileName: outputNames[index] ?? splitPdfOutputName(undefined, index + 1),
+            sizeBytes: 0,
+          }))).map(({ fileName, sizeBytes }) => ({ fileName, sizeBytes })),
+        );
+      }
       await this.rewrite.cleanupSession(sessionId);
       this.sessionId.set(null);
       this.operationCompleted.set(true);
@@ -859,24 +1043,9 @@ export class HomePage implements OnInit {
     this.splitEqualPartsValue.set(Math.min(2, Math.max(1, this.splitPageCount())));
     this.splitEqualPartsSelection.set(this.splitPageCount() >= 2 ? '2' : 'custom');
     this.splitEqualPartsErrorKey.set(null);
-    this.splitMaximumSize.set(10);
-    this.splitMaximumSizeSelection.set('10');
-    this.splitMaximumSizeErrorKey.set(null);
-  }
-
-  private estimateMaximumSizeOutputCount(maximumSizeMb: number): number {
-    return this.splitPlanner.buildOutputs({
-      analysis: this.splitPdf()?.analysis,
-      sourceSizeBytes: this.splitPdf()?.sizeBytes ?? 0,
-      coverSizeBytes: this.coverFile()?.size ?? 0,
-      method: 'maximum-file-size',
-      bookmarkMode: 'chapter',
-      manualMode: 'pages',
-      manualBookmarkIds: [],
-      manualPageInput: '',
-      equalParts: 2,
-      maximumSizeMb,
-    }).length;
+    this.splitMaximumPages.set(10);
+    this.splitMaximumPagesSelection.set('10');
+    this.splitMaximumPagesErrorKey.set(null);
   }
 
   private errorKeyFor(error: unknown): string {
@@ -909,8 +1078,19 @@ export class HomePage implements OnInit {
     return 'HOME.INPUT_ERROR_CORRUPT';
   }
 
-  private async saveOutputs(mode: PdfOperation, result: { operationId: string; outputUris: string[]; outputs?: Array<{ uri: string; fileName: string; sizeBytes: number }> }): Promise<void> {
-    const outputs = result.outputs ?? result.outputUris.map((uri, index) => ({ uri, fileName: `document-${index + 1}.pdf`, sizeBytes: 0 }));
+  private outputNamesFor(mode: PdfOperation): string[] {
+    if (mode === 'merge') {
+      return [mergedPdfOutputName(this.mergePdfs()[0]?.displayName)];
+    }
+    return this.splitOutputs().map((_, index) => splitPdfOutputName(this.splitPdf()?.displayName, index + 1));
+  }
+
+  private async saveOutputs(mode: PdfOperation, result: { operationId: string; outputUris: string[]; outputs?: Array<{ uri: string; fileName: string; sizeBytes: number }> }, outputNames: readonly string[]): Promise<void> {
+    const outputs = result.outputs ?? result.outputUris.map((uri, index) => ({
+      uri,
+      fileName: outputNames[index] ?? splitPdfOutputName(undefined, index + 1),
+      sizeBytes: 0,
+    }));
     await Promise.all(outputs.map((output, index) => this.library.saveRecord({
       id: `${result.operationId}:${index}`,
       operationId: result.operationId,
@@ -923,6 +1103,7 @@ export class HomePage implements OnInit {
       createdAt: new Date().toISOString(),
       partIndex: mode === 'split' ? index + 1 : undefined,
       totalParts: mode === 'split' ? outputs.length : undefined,
+      thumbnailUri: this.coverPreviewUri() ?? undefined,
     })));
   }
 }

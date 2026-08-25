@@ -24,25 +24,82 @@
     ></sh-workflow-stepper>
 
     @if (workflowStep === 0) {
-    <section class="fix-file-section">
-      <div class="field-title">
-        {{ 'FIX.EPUB_FILE_TITLE' | translate }}
+    <section class="fix-mode-section" aria-labelledby="fix-mode-title">
+      <div class="field-title" id="fix-mode-title">
+        {{ 'FIX.MODE_TITLE' | translate }}
       </div>
 
-      <sh-action-card
-        class="fix-file-section__card"
-        (click)="openEpubPicker()"
-        [title]="selectedEpubName || ('FIX.SELECT_EPUB_PLACEHOLDER' | translate)"
-        [description]="fileCardDescription"
-        icon="document-outline"
-        [selected]="!!selectedEpubName && !epubErrorKey"
-        [disabled]="isBusy"
-        [ariaLabel]="
-          selectedEpubName
-            ? ('FIX.ARIA_CHANGE_EPUB' | translate:{ name: selectedEpubName })
-            : ('FIX.ARIA_SELECT_EPUB' | translate)
-        "
-      ></sh-action-card>
+      <div class="fix-mode-grid">
+        <sh-action-card
+          [title]="'FIX.MODE_SINGLE_FILE' | translate"
+          [description]="'FIX.MODE_SINGLE_FILE_DESCRIPTION' | translate"
+          icon="file-tray-outline"
+          [disabled]="isBusy"
+          [ariaLabel]="'FIX.MODE_SINGLE_FILE' | translate"
+          (click)="selectFixMode('single')"
+        ></sh-action-card>
+
+        <div
+          class="fix-mode-card"
+          [class.fix-mode-card--locked]="!canUseMultipleFiles"
+        >
+          <sh-action-card
+            [title]="'FIX.MODE_MULTIPLE_FILES' | translate"
+            [description]="'FIX.MODE_MULTIPLE_FILES_DESCRIPTION' | translate"
+            icon="file-tray-stacked-outline"
+            [disabled]="isBusy || !canUseMultipleFiles"
+            [ariaLabel]="'FIX.MODE_MULTIPLE_FILES' | translate"
+            (click)="selectFixMode('multiple')"
+          ></sh-action-card>
+          @if (!canUseMultipleFiles) {
+            <sh-pro-badge class="fix-mode-card__badge"></sh-pro-badge>
+          }
+        </div>
+      </div>
+    </section>
+    }
+
+    @if (workflowStep === 1) {
+    <section class="fix-file-section">
+      @if (fixMode === 'multiple') {
+        <sh-file-picker-panel
+          [title]="'FIX.EPUB_FILE_TITLE' | translate"
+          [selected]="multipleEpubDiagnoses.length > 0"
+          [disabled]="isBusy"
+          [invalid]="!!epubErrorKey"
+          [actionLabel]="'FIX.ADD_ANOTHER_EPUB' | translate"
+          [actionSubline]="
+            'FIX.FILES_SELECTED' | translate: { count: multipleEpubDiagnoses.length }
+          "
+          [actionPlaceholder]="'FIX.SELECT_EPUB_FILES_PLACEHOLDER' | translate"
+          [actionAriaLabel]="'FIX.ARIA_SELECT_EPUB_FILES' | translate"
+          [items]="multipleFilePickerItems"
+          [itemsTitle]="'FIX.SELECTED_FILES_TITLE' | translate"
+          [removeEnabled]="true"
+          [removeActionAriaLabel]="'COMMON.DELETE' | translate"
+          (actionSelected)="openEpubPicker()"
+          (itemRemoved)="onMultipleEpubRemoved($event)"
+        ></sh-file-picker-panel>
+      } @else {
+        <div class="field-title">
+          {{ 'FIX.EPUB_FILE_TITLE' | translate }}
+        </div>
+
+        <sh-action-card
+          class="fix-file-section__card"
+          (click)="openEpubPicker()"
+          [title]="selectedEpubName || ('FIX.SELECT_EPUB_PLACEHOLDER' | translate)"
+          [description]="fileCardDescription"
+          icon="document-outline"
+          [selected]="!!selectedEpubName && !epubErrorKey"
+          [disabled]="isBusy"
+          [ariaLabel]="
+            selectedEpubName
+              ? ('FIX.ARIA_CHANGE_EPUB' | translate:{ name: selectedEpubName })
+              : ('FIX.ARIA_SELECT_EPUB' | translate)
+          "
+        ></sh-action-card>
+      }
     </section>
 
     @if (epubErrorKey) {
@@ -123,7 +180,158 @@
     }
     }
 
-    @if (workflowStep === 1) {
+    @if (workflowStep === 2) {
+    @if (fixMode === 'multiple') {
+      @for (item of multipleEpubDiagnoses; track item.id) {
+        <sh-section-card [title]="item.selectedName">
+          <div class="fix-diagnosis-summary">
+            <p class="fix-diagnosis-summary__headline">
+              <span class="fix-diagnosis-summary__count fix-diagnosis-summary__count--lead">
+                {{ multipleDiagnosisSeveritySummary(item).totalIssues }}
+              </span>
+              <span class="fix-diagnosis-summary__text">
+                {{ 'FIX.DIAGNOSIS_ISSUES_FOUND' | translate }}
+              </span>
+            </p>
+
+            @if (multipleDiagnosisSeveritySummary(item).totalIssues > 0) {
+              <div class="fix-diagnosis-summary__severity-grid">
+                @for (segment of multipleDiagnosisSeveritySegments(item); track segment.level) {
+                  <div
+                    class="fix-diagnosis-summary__severity-chip"
+                    [class.fix-diagnosis-summary__severity-chip--critical]="segment.level === 'critical'"
+                    [class.fix-diagnosis-summary__severity-chip--high]="segment.level === 'high'"
+                    [class.fix-diagnosis-summary__severity-chip--medium]="segment.level === 'medium'"
+                    [class.fix-diagnosis-summary__severity-chip--low]="segment.level === 'low'"
+                  >
+                    <span class="fix-diagnosis-summary__severity-mark" aria-hidden="true"></span>
+                    <span class="fix-diagnosis-summary__severity-count">{{ segment.count }}</span>
+                    <span class="fix-diagnosis-summary__severity-label">
+                      {{ diagnosisSeverityLabelKey(segment.level) | translate }}
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          @if (multipleDiagnosisIssues(item).length > 0) {
+            <div class="fix-issue-sections">
+              @for (section of multipleIssueSections(item); track section.key) {
+                <section
+                  class="fix-issue-section"
+                  [attr.aria-labelledby]="'fix-issue-section-' + item.id + '-' + section.key"
+                >
+                  <h3
+                    class="fix-issue-section__label"
+                    [id]="'fix-issue-section-' + item.id + '-' + section.key"
+                  >
+                    {{ section.count }} {{ section.labelKey | translate }}
+                  </h3>
+
+                  <ul class="fix-issue-list">
+                    @for (group of issueGroups(section.issues, item.id + ':' + section.key); track group.key) {
+                      @if (group.issues.length > 1) {
+                        <li
+                          class="fix-issue-list__group"
+                          [attr.data-severity]="issueSeverityLevel(group.primaryIssue)"
+                        >
+                          <div class="fix-issue-list__group-summary">
+                            <ion-button
+                              class="fix-issue-list__toggle"
+                              fill="clear"
+                              size="small"
+                              [attr.aria-expanded]="isIssueGroupExpanded(group)"
+                              [attr.aria-label]="issueGroupToggleAriaLabel(group)"
+                              (click)="toggleIssueGroup(group)"
+                            >
+                              <ion-icon [name]="issueGroupChevronName(group)" aria-hidden="true"></ion-icon>
+                            </ion-button>
+                            <div class="fix-issue-list__copy">
+                              <div class="fix-issue-list__title">
+                                <span class="fix-issue-list__count">{{ group.issues.length }}</span>
+                                {{ issueMessageLabel(group.primaryIssue) }}
+                              </div>
+                            </div>
+                          </div>
+
+                          @if (isIssueGroupExpanded(group)) {
+                            <ul class="fix-issue-list__children">
+                              @for (issue of group.issues; track $index) {
+                                <li
+                                  class="fix-issue-list__child"
+                                  [attr.data-severity]="issueSeverityLevel(issue)"
+                                >
+                                  <span class="fix-issue-list__bullet" aria-hidden="true"></span>
+                                  <div class="fix-issue-list__copy">
+                                    <div class="fix-issue-list__detail">
+                                      {{ issueDetailsLabel(issue) || issueMessageLabel(issue) }}
+                                    </div>
+                                    <ng-container
+                                      *ngTemplateOutlet="issueControls; context: { issue: issue, sectionKind: section.kind }"
+                                    ></ng-container>
+                                  </div>
+                                </li>
+                              }
+                            </ul>
+                          }
+                        </li>
+                      } @else {
+                        <li
+                          class="fix-issue-list__item"
+                          [attr.data-severity]="issueSeverityLevel(group.primaryIssue)"
+                        >
+                          <span class="fix-issue-list__bullet" aria-hidden="true"></span>
+                          <div class="fix-issue-list__copy">
+                            <div class="fix-issue-list__title">
+                              {{ issueMessageLabel(group.primaryIssue) }}
+                            </div>
+                            @if (group.primaryIssue.details) {
+                              <div class="fix-issue-list__detail">
+                                {{ issueDetailsLabel(group.primaryIssue) }}
+                              </div>
+                            }
+                            <ng-container
+                              *ngTemplateOutlet="issueControls; context: { issue: group.primaryIssue, sectionKind: section.kind }"
+                            ></ng-container>
+                          </div>
+                        </li>
+                      }
+                    }
+                  </ul>
+                </section>
+              }
+            </div>
+          }
+        </sh-section-card>
+      }
+
+      @if (confirmationIssues.length > 0) {
+        <div class="app-choice-stack">
+          <ion-item
+            class="app-choice-row app-choice-row--checkbox fix-confirm-all-row"
+            button
+            detail="false"
+            lines="none"
+            (click)="toggleAllConfirmations(confirmationIssues)"
+          >
+            <ion-checkbox
+              slot="start"
+              class="app-choice-row__control"
+              [checked]="areAllConfirmationsChecked(confirmationIssues)"
+              [indeterminate]="hasPartialConfirmations(confirmationIssues)"
+              (click)="$event.stopPropagation()"
+              (ionChange)="onAllConfirmationsChange(confirmationIssues, $event.detail.checked)"
+            ></ion-checkbox>
+            <ion-label class="app-choice-row__label ion-text-wrap">
+              {{ 'FIX.CONFIRM_ALL' | translate }}
+            </ion-label>
+          </ion-item>
+        </div>
+      }
+    }
+
+    @if (fixMode !== 'multiple') {
     @if (showDiagnosisOverview) {
       <sh-section-card [title]="'FIX.DIAGNOSIS_OVERVIEW_TITLE' | translate">
         <div class="fix-diagnosis-summary">
@@ -163,90 +371,121 @@
 
     @if (showIssuesList) {
       <sh-section-card [title]="'FIX.ISSUES_TITLE' | translate">
-        <div class="fix-issue-cluster-list">
+        <div class="fix-issue-sections">
           @for (section of issueSections; track section.key) {
-            <div class="fix-issue-cluster">
-              <div class="fix-issue-cluster__label">
+            <section
+              class="fix-issue-section"
+              [attr.aria-labelledby]="'fix-issue-section-' + section.key"
+            >
+              <h3 class="fix-issue-section__label" [id]="'fix-issue-section-' + section.key">
                 {{ section.count }}
                 {{ section.labelKey | translate }}
-              </div>
+              </h3>
 
               <ul class="fix-issue-list">
-                @for (issue of section.issues; track $index) {
-                  <li
-                    class="fix-issue-list__item"
-                    [attr.data-severity]="issueSeverityLevel(issue)"
-                  >
-                    <span class="fix-issue-list__bullet" aria-hidden="true"></span>
-                    <div class="fix-issue-list__copy">
-                      <div class="fix-issue-list__title">
-                        {{ issueMessageLabel(issue) }}
+                @for (group of issueGroups(section.issues, section.key); track group.key) {
+                  @if (group.issues.length > 1) {
+                    <li
+                      class="fix-issue-list__group"
+                      [attr.data-severity]="issueSeverityLevel(group.primaryIssue)"
+                    >
+                      <div class="fix-issue-list__group-summary">
+                        <ion-button
+                          class="fix-issue-list__toggle"
+                          fill="clear"
+                          size="small"
+                          [attr.aria-expanded]="isIssueGroupExpanded(group)"
+                          [attr.aria-label]="issueGroupToggleAriaLabel(group)"
+                          (click)="toggleIssueGroup(group)"
+                        >
+                          <ion-icon
+                            [name]="issueGroupChevronName(group)"
+                            aria-hidden="true"
+                          ></ion-icon>
+                        </ion-button>
+                        <div class="fix-issue-list__copy">
+                          <div class="fix-issue-list__title">
+                            <span class="fix-issue-list__count">{{ group.issues.length }}</span>
+                            {{ issueMessageLabel(group.primaryIssue) }}
+                          </div>
+                        </div>
                       </div>
-                      @if (issue.details) {
-                        <div class="fix-issue-list__detail">
-                          {{ issueDetailsLabel(issue) }}
-                        </div>
+
+                      @if (isIssueGroupExpanded(group)) {
+                        <ul class="fix-issue-list__children">
+                          @for (issue of group.issues; track $index) {
+                            <li
+                              class="fix-issue-list__child"
+                              [attr.data-severity]="issueSeverityLevel(issue)"
+                            >
+                              <span class="fix-issue-list__bullet" aria-hidden="true"></span>
+                              <div class="fix-issue-list__copy">
+                                <div class="fix-issue-list__detail">
+                                  {{ issueDetailsLabel(issue) || issueMessageLabel(issue) }}
+                                </div>
+                                <ng-container
+                                  *ngTemplateOutlet="issueControls; context: { issue: issue, sectionKind: section.kind }"
+                                ></ng-container>
+                              </div>
+                            </li>
+                          }
+                        </ul>
                       }
-                      @if (section.kind === 'confirmation') {
-                        <div class="app-choice-stack">
-                          <ion-item
-                            class="app-choice-row app-choice-row--checkbox"
-                            button
-                            detail="false"
-                            lines="none"
-                            (click)="toggleConfirmation(issue)"
-                          >
-                            <ion-checkbox
-                              slot="start"
-                              class="app-choice-row__control"
-                              [checked]="isConfirmationChecked(issue)"
-                              (click)="$event.stopPropagation()"
-                              (ionChange)="onConfirmationChange(issue, $event.detail.checked)"
-                            ></ion-checkbox>
-                            <ion-label class="app-choice-row__label ion-text-wrap">
-                              {{ 'FIX.CONFIRMATION_CHECKBOX' | translate }}
-                            </ion-label>
-                          </ion-item>
+                    </li>
+                  } @else {
+                    <li
+                      class="fix-issue-list__item"
+                      [attr.data-severity]="issueSeverityLevel(group.primaryIssue)"
+                    >
+                      <span class="fix-issue-list__bullet" aria-hidden="true"></span>
+                      <div class="fix-issue-list__copy">
+                        <div class="fix-issue-list__title">
+                          {{ issueMessageLabel(group.primaryIssue) }}
                         </div>
-                      } @else if (
-                        section.kind === 'manual' && issueOptions(issue).length > 0
-                      ) {
-                        <div class="app-choice-stack">
-                          <ion-radio-group
-                            [attr.aria-label]="issueMessageLabel(issue)"
-                            [value]="selectedGuidedOption(issue)"
-                            (ionChange)="onGuidedOptionChange(issue, $event.detail.value)"
-                          >
-                            @for (option of issueOptions(issue); track option) {
-                              <ion-item
-                                class="app-choice-row app-choice-row--radio"
-                                button
-                                detail="false"
-                                lines="none"
-                                (click)="onGuidedOptionChange(issue, option)"
-                              >
-                                <ion-radio
-                                  slot="start"
-                                  class="app-choice-row__control"
-                                  [value]="option"
-                                  (click)="$event.stopPropagation()"
-                                ></ion-radio>
-                                <ion-label class="app-choice-row__label ion-text-wrap">
-                                  {{ option }}
-                                </ion-label>
-                              </ion-item>
-                            }
-                          </ion-radio-group>
-                        </div>
-                      }
-                    </div>
-                  </li>
+                        @if (group.primaryIssue.details) {
+                          <div class="fix-issue-list__detail">
+                            {{ issueDetailsLabel(group.primaryIssue) }}
+                          </div>
+                        }
+                        <ng-container
+                          *ngTemplateOutlet="issueControls; context: { issue: group.primaryIssue, sectionKind: section.kind }"
+                        ></ng-container>
+                      </div>
+                    </li>
+                  }
                 }
               </ul>
+
+            </section>
+          }
+
+          @if (confirmationIssues.length > 0) {
+            <div class="app-choice-stack">
+              <ion-item
+                class="app-choice-row app-choice-row--checkbox fix-confirm-all-row"
+                button
+                detail="false"
+                lines="none"
+                (click)="toggleAllConfirmations(confirmationIssues)"
+              >
+                <ion-checkbox
+                  slot="start"
+                  class="app-choice-row__control"
+                  [checked]="areAllConfirmationsChecked(confirmationIssues)"
+                  [indeterminate]="hasPartialConfirmations(confirmationIssues)"
+                  (click)="$event.stopPropagation()"
+                  (ionChange)="onAllConfirmationsChange(confirmationIssues, $event.detail.checked)"
+                ></ion-checkbox>
+                <ion-label class="app-choice-row__label ion-text-wrap">
+                  {{ 'FIX.CONFIRM_ALL' | translate }}
+                </ion-label>
+              </ion-item>
             </div>
           }
         </div>
       </sh-section-card>
+    }
+
     }
 
     @if (showReviewChecklist) {
@@ -262,7 +501,60 @@
     }
     }
 
-    @if (workflowStep === 2) {
+    <ng-template #issueControls let-issue="issue" let-sectionKind="sectionKind">
+      @if (sectionKind === 'confirmation') {
+        <div class="app-choice-stack">
+          <ion-item
+            class="app-choice-row app-choice-row--checkbox"
+            button
+            detail="false"
+            lines="none"
+            (click)="toggleConfirmation(issue)"
+          >
+            <ion-checkbox
+              slot="start"
+              class="app-choice-row__control"
+              [checked]="isConfirmationChecked(issue)"
+              (click)="$event.stopPropagation()"
+              (ionChange)="onConfirmationChange(issue, $event.detail.checked)"
+            ></ion-checkbox>
+            <ion-label class="app-choice-row__label ion-text-wrap">
+              {{ 'FIX.CONFIRMATION_CHECKBOX' | translate }}
+            </ion-label>
+          </ion-item>
+        </div>
+      } @else if (sectionKind === 'manual' && issueOptions(issue).length > 0) {
+        <div class="app-choice-stack">
+          <ion-radio-group
+            [attr.aria-label]="issueMessageLabel(issue)"
+            [value]="selectedGuidedOption(issue)"
+            (ionChange)="onGuidedOptionChange(issue, $event.detail.value)"
+          >
+            @for (option of issueOptions(issue); track option) {
+              <ion-item
+                class="app-choice-row app-choice-row--radio"
+                button
+                detail="false"
+                lines="none"
+                (click)="onGuidedOptionChange(issue, option)"
+              >
+                <ion-radio
+                  slot="start"
+                  class="app-choice-row__control"
+                  [value]="option"
+                  (click)="$event.stopPropagation()"
+                ></ion-radio>
+                <ion-label class="app-choice-row__label ion-text-wrap">
+                  {{ option }}
+                </ion-label>
+              </ion-item>
+            }
+          </ion-radio-group>
+        </div>
+      }
+    </ng-template>
+
+    @if (workflowStep === 3) {
     @if (viewState === 'repaired' && exportResult) {
       <sh-cover-image-state
         [previewUrl]="exportResult.previewSrc"
@@ -460,6 +752,15 @@
       accept=".epub,application/epub+zip"
       hidden
       (change)="onEpubSelected($event)"
+    />
+
+    <input
+      #multipleEpubInput
+      type="file"
+      accept=".epub,application/epub+zip"
+      multiple
+      hidden
+      (change)="onMultipleEpubsSelected($event)"
     />
   </div>
 </ion-content>

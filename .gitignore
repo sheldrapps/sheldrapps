@@ -65,3 +65,13 @@ Thumbs.db
 .env
 .env.*
 **/google-services.json
+**/keystores/
+**/*.jks
+**/*.keystore
+**/*.p12
+**/*.pfx
+**/*.pem
+**/*.key
+**/gradle.properties.local
+**/signing.properties
+**/release-signing.properties

@@ -117,6 +117,10 @@ import {
   EpubRewriteError,
   EpubRewriteService,
 } from '../../services/epub-rewrite.service';
+import {
+  WebDevEpubFixerAdapter,
+  type EpubDiagnosticIssue,
+} from '@sheldrapps/file-kit';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastOptions } from '@ionic/angular';
 import { SettingsStore } from '@sheldrapps/settings-kit';
@@ -132,8 +136,12 @@ import {
   WorkflowNavigationComponent,
   WorkflowStepperComponent,
   TripleButtonComponent,
+  EpubDiagnosticIssuesComponent,
 } from '@sheldrapps/ui-theme';
-import type { WorkflowStep } from '@sheldrapps/ui-theme';
+import type {
+  EpubDiagnosticIssueView,
+  WorkflowStep,
+} from '@sheldrapps/ui-theme';
 import {
   BestCandidateImage,
   BestCandidatePickerComponent,
@@ -143,8 +151,11 @@ import {
 import {
   RecommendedApp,
   RecommendedAppsService,
+  RecommendedAppCardComponent,
   buildHomeHeaderItems,
   handleHomeHeaderAction,
+  getRecommendedAppsTranslations,
+  openRecommendedApp,
 } from '@sheldrapps/recommended-apps';
 import { EccSettings } from '../../settings/ecc-settings.schema';
 import { EpubCandidateImageService } from '../../services/epub-candidate-image.service';
@@ -200,6 +211,8 @@ type EditorSourceMode = 'image' | 'scratch';
     WorkflowNavigationComponent,
     WorkflowStepperComponent,
     BestCandidatePickerComponent,
+    RecommendedAppCardComponent,
+    EpubDiagnosticIssuesComponent,
   ],
 })
 export class ChangePage implements OnInit, OnDestroy {
@@ -240,6 +253,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private settings = inject(SettingsStore<EccSettings>);
   private ratingService = inject(RatingService);
   private recommendedAppsService = inject(RecommendedAppsService);
+  private readonly webEpubFixer = inject(WebDevEpubFixerAdapter);
   private bestCandidateService = inject(BestCandidateService);
   private candidateImageService = inject(EpubCandidateImageService);
   private homeTour = inject(TourService);
@@ -292,14 +306,24 @@ export class ChangePage implements OnInit, OnDestroy {
   private removeAdsCtaImpressionTracked = false;
   private nativeRewriteSessionDisabled = false;
   private nativeRewriteSdkBlocked = false;
+  private epubRepairableDetected = false;
+  private nativeEpubSessionId?: string;
+  epubDiagnosticIssues: EpubDiagnosticIssue[] = [];
+  epubDiagnosticName?: string;
   private candidateBlobUrls = new Set<string>();
 
-  readonly workflowSteps: readonly WorkflowStep[] = [
-    { id: 'epub', label: this.translate.instant('CHANGE.STEPPER.EPUB') },
-    { id: 'cover', label: this.translate.instant('CHANGE.STEPPER.COVER') },
-    { id: 'adjust', label: this.translate.instant('CHANGE.STEPPER.ADJUST') },
-    { id: 'create', label: this.translate.instant('CHANGE.STEPPER.CREATE') },
-  ];
+  get epubFixerCopy() {
+    return getRecommendedAppsTranslations(this.translate.currentLang);
+  }
+
+  get workflowSteps(): readonly WorkflowStep[] {
+    return [
+      { id: 'epub', label: this.translate.instant('CHANGE.STEPPER.EPUB') },
+      { id: 'cover', label: this.translate.instant('CHANGE.STEPPER.COVER') },
+      { id: 'adjust', label: this.translate.instant('CHANGE.STEPPER.ADJUST') },
+      { id: 'create', label: this.translate.instant('CHANGE.STEPPER.CREATE') },
+    ];
+  }
   workflowStep = 0;
 
   @ViewChild('epubInput') epubInput!: ElementRef<HTMLInputElement>;
@@ -322,6 +346,11 @@ export class ChangePage implements OnInit, OnDestroy {
 
   headerItems: ScrollableBarItem[] = [];
   recommendedApps: RecommendedApp[] = [];
+  readonly epubFixerRecommendation = signal<RecommendedApp | null>(null);
+  readonly issueMessageResolver = (issue: EpubDiagnosticIssueView): string =>
+    this.issueMessageLabel(issue);
+  readonly issueDetailsResolver = (issue: EpubDiagnosticIssueView): string =>
+    this.issueDetailsLabel(issue);
   showRecommended = false;
   adsRemoved = false;
   removeAdsPriceFormatted: string | null = null;
@@ -591,7 +620,13 @@ export class ChangePage implements OnInit, OnDestroy {
     | 'create-button'
     | 'result-actions'
     | null {
-    if (!this.hasValidEpub() || this.epubErrorKey) return 'epub-picker';
+    if (
+      !this.hasValidEpub() ||
+      this.epubErrorKey ||
+      this.epubRepairRequired()
+    ) {
+      return 'epub-picker';
+    }
     if (!this.previewUrl || this.imageErrorKey) return 'cover-source-image';
     if (this.canSaveShare()) return 'result-actions';
     if (this.canGenerate()) return 'create-button';
@@ -603,13 +638,40 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   get workflowNextLabel(): string {
-    return this.translate.instant('CHANGE.WORKFLOW_CONTINUE');
+    return (
+      this.workflowSteps[this.workflowStep + 1]?.label ??
+      this.translate.instant('CHANGE.WORKFLOW_CONTINUE')
+    );
+  }
+
+  get selectableWorkflowSteps(): readonly number[] {
+    if (this.epubRepairRequired()) {
+      return this.hasValidEpub() ? [0, 1] : [0];
+    }
+
+    if (!this.hasValidEpub()) {
+      return [0];
+    }
+
+    if (this.canSaveShare() || this.canExport()) {
+      return [0, 1, 2, 3];
+    }
+
+    return this.canCrop() ? [0, 1] : [0];
+  }
+
+  epubRepairRequired(): boolean {
+    return this.epubRepairableDetected || this.epubDiagnosticIssues.length > 0;
   }
 
   canContinueWorkflow(): boolean {
     switch (this.workflowStep) {
       case 0:
-        return this.hasValidEpub();
+        return (
+          this.hasValidEpub() ||
+          !!this.epubErrorKey ||
+          this.epubRepairRequired()
+        );
       case 1:
         return this.canCrop();
       case 2:
@@ -627,6 +689,10 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async onWorkflowNext(): Promise<void> {
     if (!this.canContinueWorkflow()) return;
+    if (this.epubErrorKey && !this.epubRepairRequired()) {
+      this.workflowStep = 0;
+      return;
+    }
 
     if (this.workflowStep === 1) {
       await this.startCrop();
@@ -638,6 +704,7 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async onWorkflowStepSelected(step: number): Promise<void> {
     if (step < 0 || step > 3 || step === this.workflowStep) return;
+    if (this.epubErrorKey && !this.epubRepairRequired()) return;
     this.operationCompleted.set(false);
     if (step === 0 && this.hasValidEpub()) {
       await this.navigateToWorkflowStep(step);
@@ -1410,6 +1477,13 @@ export class ChangePage implements OnInit, OnDestroy {
           this.failEpub('EPUB_ERROR_CORRUPT', file);
           return;
         }
+        try {
+          await this.validateWebEpubForReading(file, file.name);
+        } catch {
+          this.failEpub('EPUB_ERROR_CORRUPT', file);
+          await this.workingCopy.cleanupWorkingCopy(cycle.workingPath);
+          return;
+        }
         this.sourceEpubFile = file;
         this.sourceEpubUri = undefined;
         this.sourceEpubUriPermissionPersisted = false;
@@ -1419,6 +1493,11 @@ export class ChangePage implements OnInit, OnDestroy {
         this.workingEpubName = cycle.workingName;
         this.outputBaseName = cycle.outputBaseName;
         this.selectedEpubName = file.name;
+
+        if (this.keepRepairableEpubOnInitialStep()) {
+          await this.homeTour.completeInteraction('epub-selected');
+          return;
+        }
 
         const hasValidStructure = await this.fileService.validateEpubStructure(
           this.workingEpubFile,
@@ -1532,10 +1611,22 @@ export class ChangePage implements OnInit, OnDestroy {
     this.workingEpubPath = prepared.workingPath;
     this.workingEpubNativePath = prepared.workingNativePath;
     this.workingEpubName = prepared.workingName;
+    this.nativeEpubSessionId = prepared.sessionId;
     this.outputBaseName = prepared.outputBaseName;
     this.selectedEpubName = prepared.selectedName;
     this.coverEntryPath = undefined;
     this.clearEpubError();
+
+    await this.validateNativeEpubForReading(
+      prepared.sessionId,
+      prepared.selectedName,
+    );
+    if (this.keepRepairableEpubOnInitialStep()) {
+      this.epubLoadProgressPercent = 100;
+      await this.homeTour.completeInteraction('epub-selected');
+      void this.persistRecoveryState('native-epub-selected-repairable');
+      return;
+    }
 
     const strictCover = prepared.file && prepared.coverEntryPath
       ? {
@@ -1575,6 +1666,133 @@ export class ChangePage implements OnInit, OnDestroy {
       await this.homeTour.completeInteraction('epub-selected');
     }
     void this.persistRecoveryState('native-epub-selected');
+  }
+
+  private async validateNativeEpubForReading(
+    sessionId: string,
+    displayName?: string,
+  ): Promise<void> {
+    if (!sessionId) {
+      throw new EpubRewriteError('EPUB_DIAGNOSE_FAILED');
+    }
+
+    try {
+      const diagnosis = await this.epubRewrite.diagnose(sessionId);
+      if (
+        diagnosis.status === 'unsupported' ||
+        diagnosis.status === 'failed' ||
+        diagnosis.status === 'limited'
+      ) {
+        this.setEpubDiagnosisState(
+          diagnosis.status,
+          diagnosis.issues,
+          displayName,
+        );
+        throw new EpubRewriteError('EPUB_UNSUPPORTED');
+      }
+      this.setEpubDiagnosisState(diagnosis.status, diagnosis.issues, displayName);
+    } catch (error) {
+      await this.epubRewrite.cleanup(sessionId).catch(() => undefined);
+      throw error;
+    }
+  }
+
+  private async validateWebEpubForReading(
+    file: File,
+    displayName = file.name,
+  ): Promise<void> {
+    const prepared = await this.webEpubFixer.prepare({
+      file,
+      displayName: file.name,
+      maxBytes: this.maxEpubSizeMB * 1024 * 1024,
+    });
+
+    try {
+      const diagnosis = await this.webEpubFixer.diagnose({
+        sessionId: prepared.sessionId,
+      });
+      if (
+        diagnosis.status === 'unsupported' ||
+        diagnosis.status === 'failed' ||
+        diagnosis.status === 'limited'
+      ) {
+        this.setEpubDiagnosisState(
+          diagnosis.status,
+          diagnosis.issues,
+          displayName,
+        );
+        throw new EpubRewriteError('EPUB_UNSUPPORTED');
+      }
+      this.setEpubDiagnosisState(diagnosis.status, diagnosis.issues, displayName);
+    } finally {
+      await this.webEpubFixer.cleanup({ sessionId: prepared.sessionId });
+    }
+  }
+
+  issueMessageLabel(issue: EpubDiagnosticIssueView): string {
+    const normalizedKey = issue.messageKey.startsWith('FIX.ISSUE_')
+      ? `FIX.ISSUE_${issue.code.replace(/-/g, '_')}`
+      : issue.messageKey;
+    const normalizedLabel = this.translate.instant(normalizedKey);
+    return normalizedLabel !== normalizedKey
+      ? normalizedLabel
+      : this.translate.instant(issue.messageKey);
+  }
+
+  issueDetailsLabel(issue: EpubDiagnosticIssueView): string {
+    const details = issue.details?.trim();
+    if (!details) return '';
+
+    switch (details) {
+      case 'container.xml is missing':
+        return this.translate.instant('FIX.ISSUE_DETAIL_CONTAINER_MISSING');
+      case 'container.xml is not parseable':
+        return this.translate.instant(
+          'FIX.ISSUE_DETAIL_CONTAINER_NOT_PARSEABLE',
+        );
+      case 'container.xml does not declare a rootfile':
+        return this.translate.instant('FIX.ISSUE_DETAIL_CONTAINER_NO_ROOTFILE');
+      case 'Multiple package documents were found':
+        return this.translate.instant('FIX.ISSUE_DETAIL_OPF_AMBIGUOUS');
+      case 'No valid spine entries remain':
+        return this.translate.instant('FIX.ISSUE_DETAIL_SPINE_EMPTY');
+      case 'missing idref':
+        return this.translate.instant('FIX.ISSUE_DETAIL_MISSING_IDREF');
+    }
+
+    const notParseableMatch = details.match(/^(.*) is not parseable$/);
+    return notParseableMatch
+      ? this.translate.instant('FIX.ISSUE_DETAIL_FILE_NOT_PARSEABLE', {
+          path: notParseableMatch[1],
+        })
+      : details;
+  }
+
+  private setEpubDiagnosisState(
+    status: 'valid' | 'repairable' | 'unsupported' | 'failed' | 'limited',
+    issues: EpubDiagnosticIssue[] = [],
+    displayName?: string,
+  ): void {
+    this.epubRepairableDetected =
+      status === 'repairable' || (status === 'valid' && issues.length > 0);
+    this.epubDiagnosticIssues = issues;
+    this.epubDiagnosticName = displayName;
+    this.epubFixerRecommendation.set(
+      this.epubRepairableDetected
+        ? this.recommendedApps.find(
+            (app) => app.packageName === 'com.sheldrapps.epubfixer',
+          ) ?? null
+        : null,
+    );
+  }
+
+  private keepRepairableEpubOnInitialStep(): boolean {
+    if (!this.epubRepairRequired()) {
+      return false;
+    }
+
+    this.workflowStep = 0;
+    return true;
   }
 
   private failEpub(
@@ -1624,6 +1842,10 @@ export class ChangePage implements OnInit, OnDestroy {
 
   private resetWorkflow() {
     this.operationCompleted.set(false);
+    this.epubRepairableDetected = false;
+    this.epubDiagnosticIssues = [];
+    this.epubDiagnosticName = undefined;
+    this.epubFixerRecommendation.set(null);
     this.workflowStep = 0;
     this.selectedFormatId = this.persistedCropTargetId;
     this.closeInfo();
@@ -4386,6 +4608,12 @@ export class ChangePage implements OnInit, OnDestroy {
         }
       }
     }
+
+    const sessionId = this.nativeEpubSessionId;
+    this.nativeEpubSessionId = undefined;
+    if (sessionId) {
+      await this.epubRewrite.cleanup(sessionId).catch(() => undefined);
+    }
   }
 
   private describeNativeRewriteError(error: unknown): Record<string, unknown> {
@@ -4484,6 +4712,7 @@ export class ChangePage implements OnInit, OnDestroy {
       if (
         error.code === 'PICK_CANCELLED' ||
         error.code === 'CANCELLED' ||
+        error.code === 'EPUB_UNSUPPORTED' ||
         error.code === 'EPUB_TOO_LARGE' ||
         error.code === 'NO_SPACE' ||
         error.code === 'NO_COVER' ||
@@ -4726,12 +4955,30 @@ export class ChangePage implements OnInit, OnDestroy {
   private async refreshHeaderItems(): Promise<void> {
     this.recommendedApps =
       await this.recommendedAppsService.getRecommendedApps();
+    if (this.epubRepairableDetected) {
+      this.epubFixerRecommendation.set(
+        this.recommendedApps.find(
+          (app) => app.packageName === 'com.sheldrapps.epubfixer',
+        ) ?? null,
+      );
+    }
     this.showRecommended = this.recommendedApps.length > 0;
     this.headerItems = buildHomeHeaderItems(this.showRecommended, {
       appsLabel: this.translate.instant('ARR.TOOLS.APPS'),
       resetLabel: this.translate.instant('UI_THEME.RESET'),
       includeGuide: false,
     });
+  }
+
+  async openEpubFixer(): Promise<void> {
+    const epubFixer =
+      this.epubFixerRecommendation() ??
+      (await this.recommendedAppsService.getRecommendedApps()).find(
+        (app) => app.packageName === 'com.sheldrapps.epubfixer',
+      );
+    if (epubFixer?.playStoreUrl) {
+      await openRecommendedApp(epubFixer.playStoreUrl);
+    }
   }
 
   async onHeaderItemClick(id: string): Promise<void> {

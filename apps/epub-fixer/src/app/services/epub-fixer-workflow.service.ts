@@ -4,6 +4,9 @@ import {
   EPUB_FIXER_PORT,
   EpubFixerNativeService,
   type EpubDiagnosticResult,
+  type EpubDiagnosticMode,
+  type EpubDiagnosticPage,
+  type EpubOperationProgress,
   type EpubExportResult,
   type EpubRepairResult,
 } from '@sheldrapps/file-kit';
@@ -17,7 +20,7 @@ type PreparedEpubSession = {
 
 @Injectable({ providedIn: 'root' })
 export class EpubFixerWorkflowService {
-  readonly maxNativeSizeMB = 1024;
+  readonly maxNativeSizeMB = 2048;
   readonly recommendedWebSizeMB = 50;
 
   private readonly port = inject(EPUB_FIXER_PORT);
@@ -50,6 +53,14 @@ export class EpubFixerWorkflowService {
     };
   }
 
+  pickAndPrepareNativeMultiple(): ReturnType<
+    EpubFixerNativeService['pickAndPrepareMultiple']
+  > {
+    return this.nativePicker.pickAndPrepareMultiple({
+      maxBytes: this.maxNativeSizeMB * 1024 * 1024,
+    });
+  }
+
   prepareFromFile(file: File): Promise<PreparedEpubSession> {
     return this.port.prepare({
       file,
@@ -73,28 +84,59 @@ export class EpubFixerWorkflowService {
     });
   }
 
-  diagnose(sessionId: string): Promise<EpubDiagnosticResult> {
-    return this.port.diagnose({ sessionId });
+  diagnose(
+    sessionId: string,
+    mode: EpubDiagnosticMode = 'deep',
+  ): Promise<EpubDiagnosticResult> {
+    return this.port.diagnose({ sessionId, mode });
   }
 
   diagnoseCurrentEpub(): Promise<EpubDiagnosticResult> {
     return this.diagnose(this.requireCurrentSessionId());
   }
 
+  getDiagnosisIssues(
+    sessionId: string,
+    diagnosisId: string,
+    cursor?: string,
+    pageSize?: number,
+  ): Promise<EpubDiagnosticPage & { diagnosisId: string }> {
+    return this.port.getDiagnosisIssues({
+      sessionId,
+      diagnosisId,
+      cursor,
+      pageSize,
+    });
+  }
+
+  addProgressListener(
+    listener: (progress: EpubOperationProgress) => void,
+  ): Promise<{ remove: () => Promise<void> }> {
+    return this.nativePicker.addProgressListener(listener);
+  }
+
   repair(
     sessionId: string,
+    diagnosisId?: string,
     preferredOpfPath?: string,
     guidedSelections?: Record<string, string>,
   ): Promise<EpubRepairResult> {
-    return this.port.repair({ sessionId, preferredOpfPath, guidedSelections });
+    return this.port.repair({
+      sessionId,
+      diagnosisId,
+      preferredOpfPath,
+      guidedSelections,
+    });
   }
 
   repairCurrentEpub(
+    diagnosisId?: string,
     preferredOpfPath?: string,
     guidedSelections?: Record<string, string>,
   ): Promise<EpubRepairResult> {
     return this.repair(
       this.requireCurrentSessionId(),
+      diagnosisId,
       preferredOpfPath,
       guidedSelections,
     );

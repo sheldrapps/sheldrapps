@@ -1,51 +1,51 @@
 <en-US>
-Long PDF cover exports now show clearer progress, reduce screen brightness while the device stays awake, and recover more reliably after interruptions.
+PDF cover creation and export are now more reliable, with clearer progress and a smoother recovery path when a long operation is interrupted.
 </en-US>
 
 <ar>
-أصبح تصدير أغلفة PDF الطويل أكثر وضوحًا، مع خفض سطوع الشاشة وإبقائها نشطة، واستعادة أكثر موثوقية بعد المقاطعات.
+أصبح إنشاء أغلفة PDF وتصديرها أكثر موثوقية، مع تقدم أوضح واستعادة أسهل عند مقاطعة العمليات الطويلة.
 </ar>
 
 <de-DE>
-Lange PDF-Cover-Exporte zeigen jetzt einen klareren Fortschritt, senken bei aktivem Bildschirm die Helligkeit und lassen sich nach Unterbrechungen zuverlässiger fortsetzen.
+Die Erstellung und der Export von PDF-Covern sind jetzt zuverlässiger, mit klarerem Fortschritt und einer reibungsloseren Wiederherstellung nach Unterbrechungen langer Vorgänge.
 </de-DE>
 
 <es-419>
-Las exportaciones largas de portadas PDF ahora muestran un progreso más claro, reducen el brillo mientras la pantalla permanece activa y se recuperan mejor tras interrupciones.
+La creación y exportación de portadas PDF ahora son más confiables, con un progreso más claro y una recuperación más fluida si se interrumpe una operación larga.
 </es-419>
 
 <fr-FR>
-Les exportations de couvertures PDF longues affichent désormais une progression plus claire, réduisent la luminosité tout en gardant l’écran actif et récupèrent mieux après une interruption.
+La création et l’exportation de couvertures PDF sont désormais plus fiables, avec une progression plus claire et une reprise plus fluide après l’interruption d’une longue opération.
 </fr-FR>
 
 <hi-IN>
-लंबे PDF कवर एक्सपोर्ट में अब प्रगति अधिक स्पष्ट दिखती है, स्क्रीन सक्रिय रहते हुए चमक कम होती है और रुकावट के बाद प्रक्रिया अधिक विश्वसनीय रूप से बहाल होती है।
+PDF कवर बनाना और एक्सपोर्ट करना अब अधिक विश्वसनीय है, प्रगति अधिक स्पष्ट है और लंबी प्रक्रिया रुकने पर उसे बहाल करना आसान है।
 </hi-IN>
 
 <it-IT>
-Le esportazioni lunghe delle copertine PDF mostrano ora un avanzamento più chiaro, riducono la luminosità mantenendo attivo lo schermo e recuperano meglio dopo le interruzioni.
+La creazione e l’esportazione delle copertine PDF sono ora più affidabili, con un avanzamento più chiaro e un recupero più fluido se un’operazione lunga viene interrotta.
 </it-IT>
 
 <ja-JP>
-長時間のPDF表紙エクスポートで進行状況がより分かりやすくなり、画面を点灯したまま明るさを下げ、処理が中断された後もより確実に復旧できるようになりました。
+PDF表紙の作成と書き出しの信頼性が向上し、進行状況が分かりやすくなりました。長い処理が中断された場合も、よりスムーズに復旧できます。
 </ja-JP>
 
 <ko-KR>
-긴 PDF 표지 내보내기의 진행 상황이 더 명확해졌고, 화면을 켠 상태에서 밝기를 낮추며, 중단 후에도 더 안정적으로 복구됩니다.
+PDF 표지 생성 및 내보내기가 더 안정적이 되었고, 진행 상황이 명확해졌으며 긴 작업이 중단되어도 더 원활하게 복구할 수 있습니다.
 </ko-KR>
 
 <pt-BR>
-As exportações longas de capas PDF agora mostram um progresso mais claro, reduzem o brilho enquanto a tela permanece ativa e se recuperam melhor após interrupções.
+A criação e a exportação de capas PDF estão mais confiáveis, com progresso mais claro e recuperação mais fluida quando uma operação longa é interrompida.
 </pt-BR>
 
 <ru-RU>
-В длительном экспорте обложек PDF теперь понятнее отображается прогресс, снижается яркость при активном экране и надёжнее выполняется восстановление после прерываний.
+Создание и экспорт обложек PDF стали надёжнее: прогресс отображается понятнее, а после прерывания длительной операции восстановление проходит проще.
 </ru-RU>
 
 <zh-CN>
-长时间导出 PDF 封面时，进度显示更加清晰；屏幕保持唤醒的同时会降低亮度，并能更可靠地从中断中恢复。
+PDF 封面创建和导出现在更加可靠，进度显示更清晰，长时间操作中断后也能更顺畅地恢复。
 </zh-CN>
 
 <zh-TW>
-長時間匯出 PDF 封面時，進度顯示更加清楚；螢幕保持喚醒的同時會降低亮度，並能更可靠地從中斷中恢復。
+PDF 封面建立與匯出現在更加可靠，進度顯示更清楚，長時間操作中斷後也能更順暢地恢復。
 </zh-TW>

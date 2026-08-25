@@ -43,7 +43,13 @@
     "EDIT_PROJECT_COPY_DESC": "Conserve le fichier original et modifie une nouvelle copie."
   },
   "FIX": {
+    "MODE_TITLE": "Choisissez un mode",
+    "MODE_SINGLE_FILE": "Un seul fichier",
+    "MODE_SINGLE_FILE_DESCRIPTION": "Un seul fichier à la fois.",
+    "MODE_MULTIPLE_FILES": "Plusieurs fichiers",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "Choisissez plusieurs fichiers pour une réparation simultanée.",
     "STEPPER": {
+      "MODE": "Mode",
       "LOAD": "Charger",
       "CONFIRM": "Confirmer",
       "FIX": "Corriger"
@@ -51,6 +57,16 @@
     "TITLE": "Réparer",
     "SELECT_EPUB_LABEL": "Fichier EPUB",
     "EPUB_FILE_TITLE": "Fichier EPUB",
+    "ADD_ANOTHER_EPUB": "Ajouter un autre EPUB",
+    "FILES_SELECTED": "{{count}} fichiers sélectionnés",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "Choisissez un ou plusieurs fichiers EPUB à inspecter",
+    "ARIA_SELECT_EPUB_FILES": "Sélectionner plusieurs fichiers EPUB",
+    "SELECTED_FILES_TITLE": "Fichiers sélectionnés",
+    "ADD_ANOTHER_EPUB": "Ajouter un autre EPUB",
+    "FILES_SELECTED": "{{count}} fichiers sélectionnés",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "Choisissez un ou plusieurs fichiers EPUB à inspecter",
+    "ARIA_SELECT_EPUB_FILES": "Sélectionner plusieurs fichiers EPUB",
+    "SELECTED_FILES_TITLE": "Fichiers sélectionnés",
     "EPUB_FILE_LIMITS": "Format EPUB (.epub) · Maximum {{maxSize}} Mo",
     "SELECT_EPUB_PLACEHOLDER": "Choisissez un EPUB à inspecter",
     "ACTION_SELECT_EPUB": "Sélectionner un EPUB",
@@ -78,6 +94,7 @@
     "ACTION_REPAIR": "Réparer",
     "ACTION_RESOLVE": "Résoudre",
     "CONFIRMATION_CHECKBOX": "Confirmer cette correction",
+    "CONFIRM_ALL": "Tout confirmer",
     "ACTION_EXPORT": "Réparer",
     "RENAME_ACTION": "Renommer",
     "RENAMED_OK": "EPUB renommé",

@@ -43,7 +43,13 @@
     "EDIT_PROJECT_COPY_DESC": "元のファイルを残して、新しいコピーを編集します。"
   },
   "FIX": {
+    "MODE_TITLE": "モードを選択",
+    "MODE_SINGLE_FILE": "単一ファイル",
+    "MODE_SINGLE_FILE_DESCRIPTION": "一度に1つのファイル。",
+    "MODE_MULTIPLE_FILES": "複数ファイル",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "複数のファイルを選択して同時に修復します。",
     "STEPPER": {
+      "MODE": "モード",
       "LOAD": "読み込み",
       "CONFIRM": "確認",
       "FIX": "修復"
@@ -51,6 +57,11 @@
     "TITLE": "修復",
     "SELECT_EPUB_LABEL": "EPUBファイル",
     "EPUB_FILE_TITLE": "EPUBファイル",
+    "ADD_ANOTHER_EPUB": "別のEPUBを追加",
+    "FILES_SELECTED": "{{count}}個のファイルを選択済み",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "検査するEPUBファイルを1つ以上選択",
+    "ARIA_SELECT_EPUB_FILES": "複数のEPUBファイルを選択",
+    "SELECTED_FILES_TITLE": "選択したファイル",
     "EPUB_FILE_LIMITS": "EPUB 形式（.epub） · 最大 {{maxSize}} MB",
     "SELECT_EPUB_PLACEHOLDER": "確認する EPUB を選択",
     "ACTION_SELECT_EPUB": "EPUBを選択",
@@ -77,6 +88,7 @@
     "ACTION_DIAGNOSE": "EPUBを診断",
     "ACTION_REPAIR": "修復",
     "CONFIRMATION_CHECKBOX": "この修正を確認する",
+    "CONFIRM_ALL": "すべて確認",
     "ACTION_EXPORT": "修復",
     "RENAME_ACTION": "名前を変更",
     "RENAMED_OK": "EPUB の名前を変更しました",

@@ -70,6 +70,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @CapacitorPlugin(name = "PdfRewritePlugin")
 public class PdfRewritePlugin extends Plugin {
     private static final String WORK_FOLDER = "pdfcovermakerWork";
+    private static final String LOCAL_PDF_FOLDER = "PdfMergerAndSplitter";
     private static final float PREVIEW_MIN_SCALE = 0.35f;
     private static final float PREVIEW_MAX_SCALE = 2.0f;
     private static final long STORAGE_MARGIN_BYTES = PdfResourceBudget.STORAGE_MARGIN_BYTES;
@@ -401,12 +402,173 @@ public class PdfRewritePlugin extends Plugin {
     }
 
     @PluginMethod
+    public void listLocalPdfs(PluginCall call) {
+        try {
+            Uri collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+            JSArray files = new JSArray();
+            String relativePath = android.os.Environment.DIRECTORY_DOCUMENTS + "/" + LOCAL_PDF_FOLDER + "/";
+            String selection = MediaStore.MediaColumns.RELATIVE_PATH + "=? AND "
+                + MediaStore.MediaColumns.MIME_TYPE + "=? AND "
+                + MediaStore.MediaColumns.IS_PENDING + "=?";
+            String[] selectionArgs = new String[] { relativePath, "application/pdf", "0" };
+            String[] projection = new String[] {
+                MediaStore.MediaColumns._ID,
+                MediaStore.MediaColumns.DISPLAY_NAME,
+                MediaStore.MediaColumns.SIZE,
+                MediaStore.MediaColumns.DATE_MODIFIED,
+            };
+            try (Cursor cursor = getContext().getContentResolver().query(
+                collection,
+                projection,
+                selection,
+                selectionArgs,
+                MediaStore.MediaColumns.DATE_MODIFIED + " DESC"
+            )) {
+                while (cursor != null && cursor.moveToNext()) {
+                    JSObject item = new JSObject();
+                    item.put("uri", ContentUris.withAppendedId(collection, cursor.getLong(0)).toString());
+                    item.put("displayName", cursor.getString(1));
+                    item.put("sizeBytes", cursor.getLong(2));
+                    item.put("modifiedAtMillis", cursor.getLong(3) * 1000L);
+                    files.put(item);
+                }
+            }
+            JSObject result = new JSObject();
+            result.put("success", true);
+            result.put("files", files);
+            call.resolve(result);
+        } catch (Exception error) {
+            call.resolve(errorResult("LOCAL_LIST_FAILED", "local_list"));
+        }
+    }
+
+    @PluginMethod
+    public void renameLocalPdf(PluginCall call) {
+        try {
+            Uri file = requireLocalPdfUri(call.getString("uri"));
+            String displayName = requirePdfDisplayName(call.getString("displayName"));
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, displayName);
+            if (getContext().getContentResolver().update(file, values, null, null) != 1) {
+                call.resolve(errorResult("LOCAL_RENAME_FAILED", "local_rename"));
+                return;
+            }
+            call.resolve(localPdfResult(file, displayName));
+        } catch (Exception error) {
+            call.resolve(errorResult(error.getMessage() != null ? error.getMessage() : "LOCAL_RENAME_FAILED", "local_rename"));
+        }
+    }
+
+    @PluginMethod
+    public void deleteLocalPdf(PluginCall call) {
+        try {
+            Uri file = requireLocalPdfUri(call.getString("uri"));
+            if (getContext().getContentResolver().delete(file, null, null) != 1) {
+                call.resolve(errorResult("LOCAL_DELETE_FAILED", "local_delete"));
+                return;
+            }
+            JSObject result = new JSObject();
+            result.put("success", true);
+            result.put("uri", file.toString());
+            call.resolve(result);
+        } catch (Exception error) {
+            call.resolve(errorResult(error.getMessage() != null ? error.getMessage() : "LOCAL_DELETE_FAILED", "local_delete"));
+        }
+    }
+
+    @PluginMethod
+    public void openLocalPdf(PluginCall call) {
+        try {
+            Uri file = requireLocalPdfUri(call.getString("uri"));
+            Intent intent = new Intent(Intent.ACTION_VIEW, file);
+            intent.setDataAndType(file, "application/pdf");
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+            JSObject result = new JSObject();
+            result.put("success", true);
+            call.resolve(result);
+        } catch (ActivityNotFoundException error) {
+            call.resolve(errorResult("LOCAL_OPEN_UNAVAILABLE", "local_open"));
+        } catch (Exception error) {
+            call.resolve(errorResult("LOCAL_OPEN_FAILED", "local_open"));
+        }
+    }
+
+    @PluginMethod
+    public void shareLocalPdf(PluginCall call) {
+        try {
+            Uri file = requireLocalPdfUri(call.getString("uri"));
+            Intent send = new Intent(Intent.ACTION_SEND);
+            send.setType("application/pdf");
+            send.putExtra(Intent.EXTRA_STREAM, file);
+            send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+            send.setClipData(android.content.ClipData.newRawUri("PDF", file));
+            getContext().startActivity(Intent.createChooser(send, call.getString("title", "Share PDF")));
+            JSObject result = new JSObject();
+            result.put("success", true);
+            call.resolve(result);
+        } catch (ActivityNotFoundException error) {
+            call.resolve(errorResult("LOCAL_SHARE_UNAVAILABLE", "local_share"));
+        } catch (Exception error) {
+            call.resolve(errorResult("LOCAL_SHARE_FAILED", "local_share"));
+        }
+    }
+
+    private Uri requireLocalPdfUri(String value) throws IOException {
+        if (value == null || value.trim().isEmpty()) throw new IOException("LOCAL_DOCUMENT_NOT_FOUND");
+        Uri uri = Uri.parse(value);
+        Uri collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+        if (!collection.getAuthority().equals(uri.getAuthority())) throw new IOException("LOCAL_DOCUMENT_NOT_FOUND");
+        String relativePath = android.os.Environment.DIRECTORY_DOCUMENTS + "/" + LOCAL_PDF_FOLDER + "/";
+        String selection = MediaStore.MediaColumns.RELATIVE_PATH + "=? AND "
+            + MediaStore.MediaColumns.MIME_TYPE + "=? AND "
+            + MediaStore.MediaColumns.IS_PENDING + "=?";
+        try (Cursor cursor = getContext().getContentResolver().query(
+            uri,
+            new String[] { MediaStore.MediaColumns.RELATIVE_PATH, MediaStore.MediaColumns.MIME_TYPE, MediaStore.MediaColumns.IS_PENDING },
+            selection,
+            new String[] { relativePath, "application/pdf", "0" },
+            null
+        )) {
+            if (cursor == null || !cursor.moveToFirst()) throw new IOException("LOCAL_DOCUMENT_NOT_FOUND");
+        }
+        return uri;
+    }
+
+    private String requirePdfDisplayName(String value) throws IOException {
+        String normalized = requirePublicName(value);
+        if (!normalized.toLowerCase(Locale.US).endsWith(".pdf")) normalized += ".pdf";
+        return normalized;
+    }
+
+    private JSObject localPdfResult(Uri uri, String displayName) throws IOException {
+        try (Cursor cursor = getContext().getContentResolver().query(
+            uri,
+            new String[] { MediaStore.MediaColumns.SIZE, MediaStore.MediaColumns.DATE_MODIFIED },
+            null,
+            null,
+            null
+        )) {
+            if (cursor == null || !cursor.moveToFirst()) throw new IOException("LOCAL_DOCUMENT_NOT_FOUND");
+            JSObject result = new JSObject();
+            result.put("success", true);
+            result.put("uri", uri.toString());
+            result.put("displayName", displayName);
+            result.put("sizeBytes", cursor.getLong(0));
+            result.put("modifiedAtMillis", cursor.getLong(1) * 1000L);
+            return result;
+        }
+    }
+
+    @PluginMethod
     public void pickAndPreparePdf(PluginCall call) {
         cancelRequested.set(false);
+        boolean allowMultiple = call.getBoolean("multiple", false);
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/pdf");
         intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"application/pdf"});
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, allowMultiple);
         startActivityForResult(call, intent, "handlePickPdfResult");
     }
 
@@ -421,8 +583,16 @@ public class PdfRewritePlugin extends Plugin {
         }
 
         Intent data = result.getData();
-        Uri sourceUri = data != null ? data.getData() : null;
-        if (sourceUri == null) {
+        List<Uri> sourceUris = new ArrayList<>();
+        if (data != null && data.getClipData() != null) {
+            for (int index = 0; index < data.getClipData().getItemCount(); index++) {
+                Uri uri = data.getClipData().getItemAt(index).getUri();
+                if (uri != null) sourceUris.add(uri);
+            }
+        } else if (data != null && data.getData() != null) {
+            sourceUris.add(data.getData());
+        }
+        if (sourceUris.isEmpty()) {
             call.resolve(errorResult("PICK_CANCELLED", "pick"));
             return;
         }
@@ -431,24 +601,32 @@ public class PdfRewritePlugin extends Plugin {
             try {
                 ensurePdfBoxInitialized();
                 Long maxBytes = call.getLong("maxBytes");
-                PreparedFile prepared = copyUriToWorkingFile(sourceUri, maxBytes);
-                JSObject inspection = inspectFile(prepared.file);
-                boolean valid = Boolean.TRUE.equals(inspection.getBool("valid"));
-                if (!valid) {
-                    call.resolve(inspection);
+                if (sourceUris.size() == 1 && !call.getBoolean("multiple", false)) {
+                    PreparedFile prepared = copyUriToWorkingFile(sourceUris.get(0), maxBytes);
+                    JSObject inspection = inspectFile(prepared.file);
+                    boolean valid = Boolean.TRUE.equals(inspection.getBool("valid"));
+                    if (!valid) {
+                        call.resolve(inspection);
+                        return;
+                    }
+                    call.resolve(preparedFileResult(prepared));
                     return;
                 }
 
+                JSArray files = new JSArray();
+                for (Uri sourceUri : sourceUris) {
+                    PreparedFile prepared = copyUriToWorkingFile(sourceUri, maxBytes);
+                    JSObject inspection = inspectFile(prepared.file);
+                    boolean valid = Boolean.TRUE.equals(inspection.getBool("valid"));
+                    if (!valid) {
+                        call.resolve(inspection);
+                        return;
+                    }
+                    files.put(preparedFileResult(prepared));
+                }
                 JSObject out = new JSObject();
                 out.put("success", true);
-                out.put("selectedName", prepared.originalName);
-                out.put("sourceSize", prepared.originalSize);
-                out.put("sourceLastModified", prepared.lastModified);
-                out.put("sourceMimeType", "application/pdf");
-                out.put("workingPath", prepared.workingPath);
-                out.put("workingName", prepared.file.getName());
-                out.put("workingNativePath", prepared.file.getAbsolutePath());
-                out.put("outputBaseName", prepared.file.getName().replaceFirst("(?i)\\\\.pdf$", ""));
+                out.put("files", files);
                 call.resolve(out);
             } catch (CancelledException cancelled) {
                 call.resolve(errorResult("CANCELLED", "pick"));
@@ -462,6 +640,19 @@ public class PdfRewritePlugin extends Plugin {
                 call.resolve(errorResult("REWRITE_FAILED", "pick"));
             }
         }).start();
+    }
+
+    private JSObject preparedFileResult(PreparedFile prepared) {
+        JSObject out = new JSObject();
+        out.put("selectedName", prepared.originalName);
+        out.put("sourceSize", prepared.originalSize);
+        out.put("sourceLastModified", prepared.lastModified);
+        out.put("sourceMimeType", "application/pdf");
+        out.put("workingPath", prepared.workingPath);
+        out.put("workingName", prepared.file.getName());
+        out.put("workingNativePath", prepared.file.getAbsolutePath());
+        out.put("outputBaseName", prepared.file.getName().replaceFirst("(?i)\\\\.pdf$", ""));
+        return out;
     }
 
     @PluginMethod

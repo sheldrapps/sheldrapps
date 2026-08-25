@@ -905,6 +905,26 @@ public class EpubRewritePluginRewriteTest {
     }
 
     @Test
+    public void buildMergeOpfOmitsCoverEntriesWhenNoCoverWasSelected() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+
+        String opf = invokeString(
+            plugin,
+            "buildMergeOpf",
+            new Class<?>[] { String.class, List.class, List.class, String.class, String.class },
+            "Merged",
+            new ArrayList<>(),
+            new ArrayList<>(),
+            null,
+            null
+        );
+
+        assertFalse(opf.contains("cover-image"));
+        assertFalse(opf.contains("cover-page"));
+        assertFalse(opf.contains("cover/cover.xhtml"));
+    }
+
+    @Test
     public void mergeMetadataFallsBackFromEmptyNavToNestedNcx() throws Exception {
         EpubRewritePlugin plugin = new EpubRewritePlugin();
         ZipFile sourceZip = buildZip(orderedEntries(
@@ -1083,7 +1103,7 @@ public class EpubRewritePluginRewriteTest {
                 "fallback"
             );
         } catch (java.lang.reflect.InvocationTargetException error) {
-            assertEquals("MERGE_MANIFEST_RESOURCE_MISSING", pluginErrorCode(error.getCause()));
+            assertEquals("MERGE_SPINE_RESOURCE_MISSING", pluginErrorCode(error.getCause()));
             return;
         }
         throw new AssertionError("Missing spine resources must be rejected");
@@ -1165,6 +1185,118 @@ public class EpubRewritePluginRewriteTest {
             return;
         }
         throw new AssertionError("Unsafe archive paths must be rejected");
+    }
+
+    @Test
+    public void noCoverValidationIgnoresEmbeddedPackageDocuments() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Path outputPath = temporaryFolder.newFile("merged-no-cover.epub").toPath();
+        try (ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(outputPath))) {
+            writeZipEntry(
+                output,
+                "EPUB/package.opf",
+                utf8(
+                    "<package xmlns=\"http://www.idpf.org/2007/opf\"><metadata/>"
+                        + "<manifest/><spine><itemref idref=\"chapter\"/></spine></package>"
+                )
+            );
+            writeZipEntry(
+                output,
+                "EPUB/nav.xhtml",
+                utf8("<html xmlns=\"http://www.w3.org/1999/xhtml\"><body><nav/></body></html>")
+            );
+            writeZipEntry(output, "EPUB/toc.ncx", utf8("<ncx/>"));
+            writeZipEntry(
+                output,
+                "EPUB/books/b000001/OEBPS/content.opf",
+                utf8(
+                    "<package xmlns=\"http://www.idpf.org/2007/opf\"><metadata>"
+                        + "<meta name=\"cover\" content=\"cover-image\"/></metadata></package>"
+                )
+            );
+        }
+
+        invokeObject(
+            plugin,
+            "validateNoCoverArchive",
+            new Class<?>[] { Path.class },
+            outputPath
+        );
+    }
+
+    @Test
+    public void noCoverRemovalIgnoresReferencesFromEmbeddedPackageDocuments() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        ZipFile source = buildZip(orderedEntries(
+            "META-INF/container.xml",
+            utf8(
+                "<container xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\"><rootfiles>"
+                    + "<rootfile full-path=\"OEBPS/content.opf\" media-type=\"application/oebps-package+xml\"/>"
+                    + "</rootfiles></container>"
+            ),
+            "OEBPS/content.opf",
+            utf8(
+                "<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\"><metadata/>"
+                    + "<manifest>"
+                    + "<item id=\"cover-page\" href=\"cover.xhtml\" media-type=\"application/xhtml+xml\"/>"
+                    + "<item id=\"cover-image\" href=\"cover.png\" media-type=\"image/png\"/>"
+                    + "<item id=\"chapter\" href=\"chapter.xhtml\" media-type=\"application/xhtml+xml\"/>"
+                    + "</manifest><spine><itemref idref=\"cover-page\"/><itemref idref=\"chapter\"/></spine></package>"
+            ),
+            "OEBPS/cover.xhtml",
+            utf8("<html xmlns=\"http://www.w3.org/1999/xhtml\"><body><img src=\"cover.png\"/></body></html>"),
+            "OEBPS/chapter.xhtml",
+            utf8("<html xmlns=\"http://www.w3.org/1999/xhtml\"><body><p>Chapter</p></body></html>"),
+            "OEBPS/cover.png",
+            new byte[] { 1, 2, 3 },
+            "embedded/content.opf",
+            utf8(
+                "<package xmlns=\"http://www.idpf.org/2007/opf\"><manifest>"
+                    + "<item id=\"cover\" href=\"../OEBPS/cover.png\" media-type=\"image/png\"/>"
+                    + "</manifest></package>"
+            )
+        ));
+
+        try {
+            Object metadata = invokeObject(
+                plugin,
+                "readMergeBookMetadata",
+                new Class<?>[] { ZipFile.class, String.class, String.class, boolean.class },
+                source,
+                "OEBPS/content.opf",
+                "book",
+                true
+            );
+            java.lang.reflect.Field noCoverPathsField = metadata.getClass().getDeclaredField("noCoverPaths");
+            noCoverPathsField.setAccessible(true);
+            java.util.Set<?> noCoverPaths = (java.util.Set<?>) noCoverPathsField.get(metadata);
+            assertTrue(noCoverPaths.contains("OEBPS/cover.png"));
+        } finally {
+            source.close();
+        }
+    }
+
+    @Test
+    public void noCoverLinksBecomePlainTextWithoutRemovingVisibleLabel() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        String result = invokeString(
+            plugin,
+            "rewriteMergeInternalLinks",
+            new Class<?>[] {
+                String.class,
+                String.class,
+                java.util.Set.class,
+                java.util.Set.class,
+                java.util.Set.class
+            },
+            "<p><a href=\"cover.xhtml\">Portada</a></p>",
+            "OEBPS/chapter.xhtml",
+            new java.util.HashSet<String>(java.util.Arrays.asList("OEBPS/chapter.xhtml")),
+            new java.util.HashSet<String>(java.util.Arrays.asList("OEBPS/cover.xhtml")),
+            new java.util.LinkedHashSet<String>()
+        );
+
+        assertEquals("<p>Portada</p>", result);
     }
 
     @Test
@@ -1673,6 +1805,88 @@ public class EpubRewritePluginRewriteTest {
         java.lang.reflect.Field removeAttributeField = evaluation.getClass().getDeclaredField("removeAttribute");
         removeAttributeField.setAccessible(true);
         assertTrue((Boolean) removeAttributeField.get(evaluation));
+    }
+
+    @Test
+    public void repairKeepsSameDocumentFragmentRelative() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        ZipFile zipFile = buildZip(orderedEntries(
+            "OPS/text/chapter.xhtml",
+            utf8("<html xmlns=\"http://www.w3.org/1999/xhtml\"><body><p id=\"section-1\"/></body></html>")
+        ));
+        Document document = invokeDocument(
+            plugin,
+            "parseXmlUtf8",
+            new Class<?>[] { String.class },
+            "<html xmlns=\"http://www.w3.org/1999/xhtml\"><body><a href=\"#section-1\">Read more</a></body></html>"
+        );
+
+        Class<?> itemClass = Class.forName(
+            "com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin$ParsedManifestItem"
+        );
+        Constructor<?> itemConstructor = itemClass.getDeclaredConstructor(
+            String.class,
+            String.class,
+            String.class,
+            String.class,
+            boolean.class,
+            String.class,
+            String.class,
+            String.class,
+            String.class,
+            String.class,
+            boolean.class,
+            Element.class
+        );
+        itemConstructor.setAccessible(true);
+        Object item = itemConstructor.newInstance(
+            "chapter",
+            "text/chapter.xhtml",
+            "text/chapter.xhtml",
+            "OPS/text/chapter.xhtml",
+            true,
+            "application/xhtml+xml",
+            "",
+            "",
+            "",
+            "",
+            false,
+            null
+        );
+        java.util.ArrayList<Object> manifestItems = new java.util.ArrayList<>();
+        manifestItems.add(item);
+
+        Object evaluation = invokeObject(
+            plugin,
+            "evaluateInternalLinkReference",
+            new Class<?>[] {
+                ZipFile.class,
+                String.class,
+                String.class,
+                java.util.ArrayList.class,
+                java.util.HashSet.class,
+                String.class,
+                java.util.HashMap.class,
+                boolean.class,
+                JSObject.class,
+            },
+            zipFile,
+            "OPS/text/chapter.xhtml",
+            "OPS",
+            manifestItems,
+            new java.util.HashSet<String>(java.util.Collections.singleton("section-1")),
+            "#section-1",
+            new java.util.HashMap<>(),
+            true,
+            null
+        );
+
+        java.lang.reflect.Field repairedValueField = evaluation.getClass().getDeclaredField("repairedValue");
+        repairedValueField.setAccessible(true);
+        java.lang.reflect.Field changedField = evaluation.getClass().getDeclaredField("changed");
+        changedField.setAccessible(true);
+        assertEquals("#section-1", repairedValueField.get(evaluation));
+        assertFalse((Boolean) changedField.get(evaluation));
     }
 
     @Test
@@ -2593,6 +2807,12 @@ public class EpubRewritePluginRewriteTest {
         ZipParameters parameters = new ZipParameters();
         parameters.setFileNameInZip(path);
         zipFile.addStream(new ByteArrayInputStream(bytes), parameters);
+    }
+
+    private void writeZipEntry(ZipOutputStream output, String path, byte[] bytes) throws Exception {
+        output.putNextEntry(new ZipEntry(path));
+        output.write(bytes);
+        output.closeEntry();
     }
 
     private Map<String, byte[]> orderedEntries(Object... values) {

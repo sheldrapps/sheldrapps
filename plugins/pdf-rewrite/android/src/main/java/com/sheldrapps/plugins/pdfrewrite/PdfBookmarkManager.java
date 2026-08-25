@@ -4,6 +4,7 @@ import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitDestination;
 import com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
+import java.util.List;
 
 /** Rebuilds navigable top-level bookmarks; unsupported actions are reported by caller as warnings. */
 public final class PdfBookmarkManager {
@@ -28,6 +29,28 @@ public final class PdfBookmarkManager {
             sourceItem = sourceItem.getNextSibling();
         }
         targetOutline.openNode();
+    }
+    public List<BookmarkEntry> collectOriginalTopLevel(PDDocument source, int offset) {
+        java.util.ArrayList<BookmarkEntry> entries = new java.util.ArrayList<>();
+        PDDocumentOutline sourceOutline = source.getDocumentCatalog().getDocumentOutline();
+        if (sourceOutline == null) return entries;
+        PDOutlineItem sourceItem = sourceOutline.getFirstChild();
+        while (sourceItem != null) {
+            try {
+                int sourcePage = pageIndex(source, sourceItem.findDestinationPage(source));
+                if (sourcePage >= 0) entries.add(new BookmarkEntry(sourceItem.getTitle(), offset + sourcePage));
+            } catch (Exception ignored) { }
+            sourceItem = sourceItem.getNextSibling();
+        }
+        return entries;
+    }
+    public void addEntries(PDDocument target, List<BookmarkEntry> entries) {
+        for (BookmarkEntry entry : entries) addDocumentBookmark(target, entry.title, entry.pageIndex);
+    }
+    public static final class BookmarkEntry {
+        public final String title;
+        public final int pageIndex;
+        public BookmarkEntry(String title, int pageIndex) { this.title = title; this.pageIndex = pageIndex; }
     }
     private int pageIndex(PDDocument document, com.tom_roush.pdfbox.pdmodel.PDPage wanted) {
         for (int index = 0; index < document.getNumberOfPages(); index++) if (document.getPage(index) == wanted) return index;

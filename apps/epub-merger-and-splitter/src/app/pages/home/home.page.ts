@@ -64,6 +64,8 @@ import {
   WorkflowStepperComponent,
   WorkflowNavigationComponent,
   SpinnerComponent,
+  EpubDiagnosticIssuesComponent,
+  type EpubDiagnosticIssueView,
   type WorkflowStep,
   type ScrollableBarItem,
   type FilePickerPanelItem,
@@ -80,11 +82,15 @@ import {
 } from 'ionicons/icons';
 import {
   EpubRewriteError,
+  WebDevEpubFixerAdapter,
+  buildCoverOnlyEpubBytes,
+  type EpubDiagnosticIssue,
   type EpubSplitTocEntry,
   type EpubOperationProgress,
   EpubRewriteService,
   EpubWorkingCopyService,
   FileKitService,
+  type NativeTempFile,
 } from '@sheldrapps/file-kit';
 import { filter, Subscription } from 'rxjs';
 import { MergeCoverCandidateService } from '../../services/merge-cover-candidate.service';
@@ -103,6 +109,7 @@ import {
   RecommendedAppsService,
   RecommendedAppCardComponent,
   buildHomeHeaderItems,
+  getRecommendedAppsTranslations,
   handleHomeHeaderAction,
   openRecommendedApp,
   type RecommendedApp,
@@ -113,7 +120,7 @@ import {
 } from '@sheldrapps/lifecycle-kit';
 
 type HomeMode = 'merge' | 'split';
-type CoverSourceMode = 'candidate' | 'image' | 'scratch';
+type CoverSourceMode = 'candidate' | 'image' | 'scratch' | 'none';
 type EditorSourceMode = 'image' | 'scratch';
 type EditorEntryMode = 'new-cover' | 'existing-cover';
 type TocMode = 'books-and-chapters' | 'books-only' | 'full-index';
@@ -142,6 +149,7 @@ type EpubOperationFeedback = {
   warnings: readonly string[];
   previewUrl?: string;
   errorKey?: string;
+  errorDetails?: string;
 };
 
 type SelectedEpubInput = {
@@ -159,6 +167,10 @@ type SelectedEpubInput = {
   workingNativePath: string | null;
   outputBaseName: string;
   sourceKind: 'native' | 'web';
+  diagnosisStatus?: 'valid' | 'repairable';
+  diagnosisIssues?: EpubDiagnosticIssue[];
+  diagnosisMode?: 'quick' | 'deep';
+  diagnosisCoverage?: 'complete' | 'limited';
 };
 
 type EmasRecoverySelection = Omit<SelectedEpubInput, 'workingFile' | 'coverFile'>;
@@ -177,7 +189,7 @@ type EmasRecoverySnapshot = {
 
 const EPUB_ACCEPT = '.epub,application/epub+zip';
 const IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp';
-const MAX_EPUB_SIZE_MB = 1024;
+const MAX_EPUB_SIZE_MB = 2048;
 const COVER_THUMB_SIZE = 96;
 const SPLIT_METHOD_VALUES = new Set<SplitMethod>([
   'by-chapters-or-sections',
@@ -185,6 +197,12 @@ const SPLIT_METHOD_VALUES = new Set<SplitMethod>([
   'equal-parts',
   'maximum-file-size',
 ]);
+
+const MERGE_FILE_SELECTION_STEP = 0;
+const MERGE_COVER_STEP = 3;
+const MERGE_EDITOR_STEP = 4;
+const MERGE_RESULT_STEP = 5;
+const WEB_DUMMY_EPUB_CREATOR = 'EPUB Merger & Splitter';
 
 @Component({
   selector: 'app-home',
@@ -211,6 +229,7 @@ const SPLIT_METHOD_VALUES = new Set<SplitMethod>([
     WorkflowStepperComponent,
     WorkflowNavigationComponent,
     SpinnerComponent,
+    EpubDiagnosticIssuesComponent,
     FilePickerPanelComponent,
     SelectableButtonListComponent,
     RecommendedAppCardComponent,
@@ -222,6 +241,7 @@ export class HomePage implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly fileKit = inject(FileKitService);
   private readonly epubRewrite = inject(EpubRewriteService);
+  private readonly webEpubFixer = inject(WebDevEpubFixerAdapter);
   private readonly epubWorkingCopy = inject(EpubWorkingCopyService);
   private readonly epubLibrary = inject(EpubLibraryService);
   private readonly coversEvents = inject(CoversEventsService);
@@ -242,9 +262,30 @@ export class HomePage implements OnInit, OnDestroy {
   private readonly lifecycle = inject(LifecycleDiagnosticsService);
   private readonly recovery = inject(WorkflowRecoveryCoordinator);
   private readonly candidateBlobUrls = new Set<string>();
+
+  get epubFixerCopy() {
+    return getRecommendedAppsTranslations(this.translate.currentLang);
+  }
   headerItems: ScrollableBarItem[] = [];
   workflowSteps: WorkflowStep[] = [];
-  workflowStep = 0;
+  private _workflowStep = 0;
+
+  get workflowStep(): number {
+    return this._workflowStep;
+  }
+
+  set workflowStep(value: number) {
+    if (this.hasWorkflowErrorState()) {
+      this._workflowStep = this.selectedMode?.() === 'merge'
+        ? MERGE_FILE_SELECTION_STEP
+        : 0;
+      this.scrollWorkflowToTop();
+      return;
+    }
+
+    this._workflowStep = value;
+    this.scrollWorkflowToTop();
+  }
 
   get visibleWorkflowSteps(): readonly WorkflowStep[] {
     if (this.selectedMode() === 'merge') {
@@ -298,7 +339,15 @@ export class HomePage implements OnInit, OnDestroy {
     return this.workflowStep < this.visibleWorkflowSteps.length - 1;
   }
 
+  get workflowNavigationBlocked(): boolean {
+    return this.hasWorkflowErrorState();
+  }
+
   get workflowNextDisabled(): boolean {
+    if (this.workflowNavigationBlocked) {
+      return true;
+    }
+
     if (
       this.selectedMode() === 'split' &&
       this.workflowStep === 2 &&
@@ -309,9 +358,21 @@ export class HomePage implements OnInit, OnDestroy {
 
     return (
       (this.selectedMode() === 'merge' || this.selectedMode() === 'split') &&
-      this.workflowStep === 3 &&
+      this.workflowStep === this.coverWorkflowStep &&
       !this.canOpenMergeCoverEditor()
     );
+  }
+
+  private get coverWorkflowStep(): number {
+    return this.selectedMode() === 'merge' ? MERGE_COVER_STEP : 3;
+  }
+
+  private get editorWorkflowStep(): number {
+    return this.selectedMode() === 'merge' ? MERGE_EDITOR_STEP : 4;
+  }
+
+  private get resultWorkflowStep(): number {
+    return this.selectedMode() === 'merge' ? MERGE_RESULT_STEP : 5;
   }
 
   get workflowNextLabel(): string {
@@ -487,6 +548,10 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   get selectableWorkflowSteps(): readonly number[] {
+    if (this.workflowNavigationBlocked) {
+      return [this.fileSelectionWorkflowStep];
+    }
+
     if (this.selectedMode() !== 'merge') {
       if (!this.splitSelection()) {
         return [0];
@@ -496,7 +561,7 @@ export class HomePage implements OnInit, OnDestroy {
       if (this.canOpenMergeCoverEditor()) {
         steps.push(4);
       }
-      if (this.mergeCoverRenderedFile) {
+      if (this.mergeCoverRenderedFile || this.coverSourceMode() === 'none') {
         steps.push(5);
       }
       return steps;
@@ -506,7 +571,7 @@ export class HomePage implements OnInit, OnDestroy {
     if (this.canOpenMergeCoverEditor()) {
       steps.push(4);
     }
-    if (this.mergeCoverRenderedFile) {
+    if (this.mergeCoverRenderedFile || this.coverSourceMode() === 'none') {
       steps.push(5);
     }
     return steps;
@@ -514,6 +579,7 @@ export class HomePage implements OnInit, OnDestroy {
 
   @ViewChild('mergeInput') private mergeInput?: ElementRef<HTMLInputElement>;
   @ViewChild('splitInput') private splitInput?: ElementRef<HTMLInputElement>;
+  @ViewChild(IonContent) private homeContent?: IonContent;
   @ViewChild('coverImageInput')
   private coverImageInput?: ElementRef<HTMLInputElement>;
 
@@ -521,6 +587,7 @@ export class HomePage implements OnInit, OnDestroy {
   readonly mergeIconSvg = signal<string | null>(null);
   readonly splitIconSvg = signal<string | null>(null);
   readonly epubCoverChanger = signal<RecommendedApp | null>(null);
+  readonly epubFixer = signal<RecommendedApp | null>(null);
   readonly mergeSelections = signal<readonly SelectedEpubInput[]>([]);
   readonly splitSelection = signal<SelectedEpubInput | null>(null);
   readonly coverCandidates = signal<BestCandidateResult[]>([]);
@@ -552,13 +619,47 @@ export class HomePage implements OnInit, OnDestroy {
     () => !this.splitAnalysisPending() && this.splitOutputPreviews().length >= 2,
   );
   readonly pickerErrorKey = signal<string | null>(null);
+  readonly pickerErrorIssues = signal<EpubDiagnosticIssue[]>([]);
+  readonly pickerErrorDiagnosisName = signal<string | null>(null);
   readonly isPicking = signal(false);
   readonly isResettingFlow = signal(false);
   readonly isRebuildingExportQuality = signal(false);
   readonly isDetectingCoverCandidates = signal(false);
   readonly isMergeActionBusy = signal(false);
   readonly operationProgress = signal<EpubOperationProgress | null>(null);
+  readonly diagnosisProgress = signal<EpubOperationProgress | null>(null);
   readonly operationFeedback = signal<EpubOperationFeedback | null>(null);
+  readonly epubRepairRequired = computed(
+    () =>
+      this.mergeSelections().some(
+        (selection) => this.hasEpubDiagnosticErrors(selection),
+      ) ||
+      (this.splitSelection()
+        ? this.hasEpubDiagnosticErrors(this.splitSelection()!)
+        : false),
+  );
+  readonly repairableEpubSelections = computed(() => [
+    ...this.mergeSelections(),
+    ...(this.splitSelection() ? [this.splitSelection()!] : []),
+  ].filter((selection) => this.hasEpubDiagnosticErrors(selection)));
+  readonly epubRepairMessageKey = computed(() =>
+    this.repairableEpubSelections().length > 1
+      ? 'FIX.REPAIR_REQUIRED_MULTIPLE'
+      : 'FIX.REPAIR_REQUIRED_SINGLE',
+  );
+  readonly epubFixerRecommendation = computed(() => {
+    return this.epubRepairRequired() ? this.epubFixer() : null;
+  });
+  readonly issueMessageResolver = (issue: EpubDiagnosticIssueView): string =>
+    this.issueMessageLabel(issue);
+  readonly issueDetailsResolver = (issue: EpubDiagnosticIssueView): string =>
+    this.issueDetailsLabel(issue);
+
+  get fileSelectionWorkflowStep(): 0 | 1 {
+    return this.selectedMode() === 'merge'
+      ? MERGE_FILE_SELECTION_STEP
+      : 0;
+  }
   adsRemoved = false;
   readonly epubAccept = EPUB_ACCEPT;
   readonly imageAccept = IMAGE_ACCEPT;
@@ -603,10 +704,11 @@ export class HomePage implements OnInit, OnDestroy {
   private adsRemovedSub?: Subscription;
   private languageSub?: Subscription;
   private operationProgressListener?: PluginListenerHandle;
+  private flowEpoch = 0;
   private lastEditorSessionId?: string;
   private lastEditorSourceMode: EditorSourceMode = 'image';
   private editorEntryMode: EditorEntryMode = 'new-cover';
-  private editorReturnStep: 3 | 5 = 3;
+  private editorReturnStep = 3;
   private mergeCoverSourceFile?: File;
   private mergeCoverWorkingFile?: File;
   private mergeCoverMasterBlob?: Blob;
@@ -653,7 +755,7 @@ export class HomePage implements OnInit, OnDestroy {
     await this.openEditor(
       this.lastEditorSourceMode === 'scratch' ? 'scratch' : 'image',
       'existing-cover',
-      5,
+      this.resultWorkflowStep,
     );
   }
 
@@ -686,12 +788,16 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   private async clearFlowState(): Promise<void> {
+    this.invalidateFlowEpoch();
+    await this.cancelNativeRewrite();
     const cleanupPromise = this.cleanupAllSelections();
     this.clearPickerError();
     this.operationFeedback.set(null);
     this.operationProgress.set(null);
+    this.diagnosisProgress?.set(null);
     this.isPicking.set(false);
     this.isDetectingCoverCandidates.set(false);
+    this.isRebuildingExportQuality?.set(false);
     this.isMergeActionBusy.set(false);
     this.splitAnalysisPending.set(false);
     this.splitAnalysis.set(null);
@@ -704,6 +810,9 @@ export class HomePage implements OnInit, OnDestroy {
     this.resetFileInput(this.mergeInput?.nativeElement);
     this.resetFileInput(this.splitInput?.nativeElement);
     this.resetCoverSelection(true);
+    this.mergeCoverQualityRevision =
+      (this.mergeCoverQualityRevision ?? 0) + 1;
+    this.editorSession?.clearSessions?.();
     await cleanupPromise;
     await this.recovery.clear();
   }
@@ -734,7 +843,11 @@ export class HomePage implements OnInit, OnDestroy {
     void this.consumeEditorResult();
     void this.refreshHeaderItems();
     this.registerRecovery();
+    const restoreEpoch = this.currentFlowEpoch();
     await this.recovery.restore();
+    if (!this.isFlowEpochCurrent(restoreEpoch)) {
+      return;
+    }
   }
 
   async ionViewWillEnter(): Promise<void> {
@@ -769,6 +882,11 @@ export class HomePage implements OnInit, OnDestroy {
         (app) => app.packageName === 'com.sheldrapps.epubcoverchanger',
       ) ?? null,
     );
+    this.epubFixer.set(
+      recommendedApps.find(
+        (app) => app.packageName === 'com.sheldrapps.epubfixer',
+      ) ?? null,
+    );
     this.headerItems = buildHomeHeaderItems(recommendedApps.length > 0, {
       appsLabel: this.translate.instant('ARR.TOOLS.APPS'),
       resetLabel: this.translate.instant('UI_THEME.RESET'),
@@ -789,17 +907,35 @@ export class HomePage implements OnInit, OnDestroy {
     await openRecommendedApp(epubCoverChanger.playStoreUrl);
   }
 
+  async openEpubFixer(): Promise<void> {
+    const epubFixer =
+      this.epubFixer() ??
+      (await this.recommendedAppsService.getRecommendedApps()).find(
+        (app) => app.packageName === 'com.sheldrapps.epubfixer',
+      );
+    if (epubFixer?.playStoreUrl) {
+      await openRecommendedApp(epubFixer.playStoreUrl);
+    }
+  }
+
   async onWorkflowPrevious(): Promise<void> {
     if (this.isMergeActionBusy() || this.isResettingFlow()) {
       return;
     }
 
+    if (this.workflowNavigationBlocked) {
+      this.returnToFileSelectionStep();
+      return;
+    }
+
     if (
-      (this.selectedMode() === 'merge' || this.selectedMode() === 'split') &&
-      this.workflowStep === 5 &&
+      this.workflowStep === this.resultWorkflowStep &&
       this.canOpenMergeCoverEditor()
     ) {
-      await this.openMergeCoverEditor('existing-cover', 5);
+      await this.openMergeCoverEditor(
+        'existing-cover',
+        this.resultWorkflowStep,
+      );
       return;
     }
 
@@ -818,21 +954,24 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.workflowNavigationBlocked) {
+      this.returnToFileSelectionStep();
+      return;
+    }
+
     if (
-      (this.selectedMode() === 'merge' || this.selectedMode() === 'split') &&
-      this.workflowStep === 3 &&
+      this.workflowStep === this.coverWorkflowStep &&
       this.canOpenMergeCoverEditor()
     ) {
       await this.openMergeCoverEditor(
         this.mergeCoverRenderedFile ? 'existing-cover' : 'new-cover',
-        3,
+        this.coverWorkflowStep,
       );
       return;
     }
 
     if (
-      (this.selectedMode() === 'merge' || this.selectedMode() === 'split') &&
-      this.workflowStep === 3
+      this.workflowStep === this.coverWorkflowStep
     ) {
       return;
     }
@@ -847,14 +986,15 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
-    if (
-      (this.selectedMode() === 'merge' || this.selectedMode() === 'split') &&
-      step === 4 &&
-      this.canOpenMergeCoverEditor()
-    ) {
+    if (this.workflowNavigationBlocked) {
+      this.returnToFileSelectionStep();
+      return;
+    }
+
+    if (step === this.editorWorkflowStep && this.canOpenMergeCoverEditor()) {
       await this.openMergeCoverEditor(
         this.mergeCoverRenderedFile ? 'existing-cover' : 'new-cover',
-        this.workflowStep === 5 ? 5 : 3,
+        this.resultWorkflowStep,
       );
       return;
     }
@@ -872,14 +1012,20 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
-    this.splitMethod = value as SplitMethod;
-    this.resetSplitConfiguration();
-    if (this.splitMethod === 'equal-parts') {
-      const unitCount = typeof this.splitAnalysis === 'function'
-        ? this.splitAnalysis()?.units.length ?? 2
-        : 2;
-      this.splitEqualPartsValue = Math.min(2, unitCount);
+    const nextMethod = value as SplitMethod;
+    const analysis = typeof this.splitAnalysis === 'function'
+      ? this.splitAnalysis()
+      : null;
+    const unitCount = analysis?.units.length ?? 0;
+
+    this.resetSplitConfiguration(false);
+    this.splitMethod = nextMethod;
+    if (nextMethod === 'equal-parts' && unitCount >= 2) {
+      this.splitEqualPartsValue = 2;
+      this.splitEqualPartsSelectionValue = '2';
     }
+    this.markSplitConfigurationChanged();
+    this.changeDetector?.markForCheck();
   }
 
   onSplitChapterModeChange(value: string): void {
@@ -988,6 +1134,7 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
+    const flowEpoch = this.currentFlowEpoch();
     this.isMergeActionBusy.set(true);
     this.operationProgress.set({ phase: 'preparing', percent: 0 });
     try {
@@ -996,13 +1143,16 @@ export class HomePage implements OnInit, OnDestroy {
         if (!result.rewardEarned || !result.adClosed) return;
       }
 
-      await this.runSplit();
+      await this.runSplit(flowEpoch);
     } catch (error) {
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
       console.error('[epub-merger-and-splitter] split failed', error);
       this.markOperationFailure('split', error);
     } finally {
-      this.isMergeActionBusy.set(false);
-      this.operationProgress.set(null);
+      if (this.isFlowEpochCurrent(flowEpoch)) {
+        this.isMergeActionBusy.set(false);
+        this.operationProgress.set(null);
+      }
     }
   }
 
@@ -1011,7 +1161,7 @@ export class HomePage implements OnInit, OnDestroy {
     this.workflowStep = 1;
   }
 
-  private resetSplitConfiguration(): void {
+  private resetSplitConfiguration(markRevision = true): void {
     this.splitChapterMode = 'chapter';
     this.splitEqualPartsValue = 2;
     this.splitEqualPartsSelectionValue = '2';
@@ -1027,7 +1177,9 @@ export class HomePage implements OnInit, OnDestroy {
     if (typeof this.splitPreviewExpanded === 'function') {
       this.splitPreviewExpanded.set(false);
     }
-    this.markSplitConfigurationChanged();
+    if (markRevision) {
+      this.markSplitConfigurationChanged();
+    }
   }
 
   private resetSplitSelections(): void {
@@ -1086,7 +1238,7 @@ export class HomePage implements OnInit, OnDestroy {
 
   private async openMergeCoverEditor(
     entryMode: EditorEntryMode,
-    returnStep: 3 | 5,
+    returnStep: number,
   ): Promise<void> {
     const sourceMode: EditorSourceMode =
       this.coverSourceMode() === 'scratch' ? 'scratch' : 'image';
@@ -1124,9 +1276,18 @@ export class HomePage implements OnInit, OnDestroy {
         return assets;
       },
       restore: async (snapshot, assets) => {
+        const restoreEpoch = this.currentFlowEpoch();
+        if (!this.isFlowEpochCurrent(restoreEpoch)) {
+          return;
+        }
         if (snapshot.operationInProgress) {
           await this.clearFlowState();
-          this.pickerErrorKey.set('HOME.INPUT_ERROR_CORRUPT');
+          if (
+            this.currentFlowEpoch() === restoreEpoch + 1 &&
+            !this.isResettingFlow()
+          ) {
+            this.pickerErrorKey.set('HOME.INPUT_ERROR_CORRUPT');
+          }
           return;
         }
 
@@ -1145,9 +1306,50 @@ export class HomePage implements OnInit, OnDestroy {
         this.splitSelection.set(snapshot.splitSelection ? restoreSelection(snapshot.splitSelection, 'split') : null);
         this.mergeCoverRenderedFile = assets['merge-cover'];
 
+        if (!this.isFlowEpochCurrent(restoreEpoch)) {
+          return;
+        }
+
+        if (this.workflowNavigationBlocked) {
+          this.returnToFileSelectionStep();
+        }
+
+        const recoveredSplit = this.splitSelection();
+        if (this.selectedMode() === 'split' && recoveredSplit) {
+          this.splitAnalysisPending.set(true);
+          this.splitAnalysis.set(null);
+          try {
+            const analysis = await this.analyzeSplitSelection(recoveredSplit);
+            if (!this.isFlowEpochCurrent(restoreEpoch)) {
+              return;
+            }
+            this.splitAnalysis.set(analysis);
+            await this.refreshMergeCoverCandidates();
+          } catch {
+            if (!this.isFlowEpochCurrent(restoreEpoch)) {
+              return;
+            }
+            this.pickerErrorKey.set('HOME.SPLIT_ANALYSIS_ERROR');
+            this.returnToFileSelectionStep();
+          } finally {
+            if (this.isFlowEpochCurrent(restoreEpoch)) {
+              this.splitAnalysisPending.set(false);
+            }
+          }
+        }
+
         if (await this.hasMissingRecoveredWorkingCopies()) {
+          if (!this.isFlowEpochCurrent(restoreEpoch)) {
+            return;
+          }
+          const clearEpoch = this.currentFlowEpoch();
           await this.clearFlowState();
-          this.pickerErrorKey.set('HOME.INPUT_ERROR_CORRUPT');
+          if (
+            this.currentFlowEpoch() === clearEpoch + 1 &&
+            !this.isResettingFlow()
+          ) {
+            this.pickerErrorKey.set('HOME.INPUT_ERROR_CORRUPT');
+          }
         }
       },
     });
@@ -1167,6 +1369,7 @@ export class HomePage implements OnInit, OnDestroy {
   async onMergeButtonClick(): Promise<void> {
     if (this.isMergeActionBusy() || this.isPicking()) return;
 
+    const flowEpoch = this.currentFlowEpoch();
     this.isMergeActionBusy.set(true);
     this.operationProgress.set({ phase: 'preparing', percent: 0 });
     try {
@@ -1175,13 +1378,16 @@ export class HomePage implements OnInit, OnDestroy {
         if (!result.rewardEarned || !result.adClosed) return;
       }
 
-      await this.runMerge();
+      await this.runMerge(flowEpoch);
     } catch (error) {
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
       console.error('[epub-merger-and-splitter] merge failed', error);
       this.markOperationFailure('merge', error);
     } finally {
-      this.isMergeActionBusy.set(false);
-      this.operationProgress.set(null);
+      if (this.isFlowEpochCurrent(flowEpoch)) {
+        this.isMergeActionBusy.set(false);
+        this.operationProgress.set(null);
+      }
     }
   }
 
@@ -1206,21 +1412,34 @@ export class HomePage implements OnInit, OnDestroy {
     }
     this.operationProgressListener = await this.epubRewrite.addProgressListener(
       (progress) => {
-        if (!this.isMergeActionBusy()) return;
-        this.operationProgress.set({
+        const normalizedProgress = {
           ...progress,
           percent: Math.max(0, Math.min(100, Math.round(progress.percent))),
-        });
+        };
+        if (progress.phase === 'diagnosing' && this.isPicking()) {
+          this.diagnosisProgress.set(normalizedProgress);
+          return;
+        }
+        if (!this.isMergeActionBusy()) return;
+        this.operationProgress.set(normalizedProgress);
       },
     );
   }
 
-  private async runMerge(): Promise<void> {
+  private async runMerge(flowEpoch = this.currentFlowEpoch()): Promise<void> {
+    if (!this.isFlowEpochCurrent(flowEpoch)) return;
     const selections = this.mergeSelections();
     const cover = this.mergeCoverRenderedFile;
-    if (selections.length < 2 || !cover || !this.epubRewrite.isSupported()) {
+    if (selections.length < 2) {
       throw new Error('MERGE_UNAVAILABLE');
     }
+    if (!this.epubRewrite.isSupported()) {
+      await this.runWebDummyMerge(selections, flowEpoch);
+      return;
+    }
+
+    await this.ensureNativeDeepDiagnosis(selections);
+    if (!this.isFlowEpochCurrent(flowEpoch)) return;
 
     const inputs = selections.map((selection) => {
       if (!selection.workingNativePath) {
@@ -1233,24 +1452,31 @@ export class HomePage implements OnInit, OnDestroy {
       };
     });
     const outputBaseName = `${selections[0]?.outputBaseName ?? 'merged'}_merged`;
-    const [output, coverTemp] = await Promise.all([
-      this.epubWorkingCopy.buildOutputFile(outputBaseName),
-      this.epubWorkingCopy.writeTempCoverFile(cover, outputBaseName),
-    ]);
+    const output = await this.epubWorkingCopy.buildOutputFile(outputBaseName);
+    let coverTemp: NativeTempFile | null = null;
 
     try {
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
+      coverTemp = cover
+        ? await this.epubWorkingCopy.writeTempCoverFile(cover, outputBaseName)
+        : null;
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
       await this.epubRewrite.preflightMerge(inputs);
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
       const merged = await this.epubRewrite.mergeEpubs({
         inputs,
         outputPath: output.nativePath,
         outputName: outputBaseName,
         tocMode: this.tocMode,
-        coverPath: coverTemp.nativePath,
+        removeSourceCover: !cover,
+        ...(coverTemp ? { coverPath: coverTemp.nativePath } : {}),
       });
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
       const saved = await this.epubLibrary.saveExportedEpub(
         merged.outputPath,
         merged.outputName,
       );
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
       if (merged.warnings?.length) {
         this.completeOperation('merge', [saved], merged.warnings);
       } else {
@@ -1259,39 +1485,49 @@ export class HomePage implements OnInit, OnDestroy {
     } finally {
       await Promise.allSettled([
         this.epubWorkingCopy.cleanupWorkingCopy(output.path),
-        this.epubWorkingCopy.cleanupWorkingCopy(coverTemp.path),
+        this.epubWorkingCopy.cleanupWorkingCopy(coverTemp?.path),
       ]);
     }
   }
 
-  private async runSplit(): Promise<void> {
+  private async runSplit(flowEpoch = this.currentFlowEpoch()): Promise<void> {
+    if (!this.isFlowEpochCurrent(flowEpoch)) return;
     const selection = this.splitSelection();
     const analysis = this.splitAnalysis();
     const previews = this.splitOutputPreviews();
-    if (
-      !selection?.workingNativePath ||
-      !analysis ||
-      previews.length < 2 ||
-      !this.epubRewrite.isSupported()
-    ) {
+    if (!selection || previews.length < 2) {
+      throw new Error('SPLIT_UNAVAILABLE');
+    }
+    if (!this.epubRewrite.isSupported()) {
+      await this.runWebDummySplit(selection, previews, flowEpoch);
+      return;
+    }
+    if (!selection.workingNativePath || !analysis) {
       throw new Error('SPLIT_UNAVAILABLE');
     }
 
+    await this.ensureNativeDeepDiagnosis([selection]);
+    if (!this.isFlowEpochCurrent(flowEpoch)) return;
+
     const operationId = this.createOperationId();
     const outputBaseName = selection.outputBaseName || 'split';
-    const temporaryOutputs = await Promise.all(
-      previews.map((preview) =>
-        this.epubWorkingCopy.buildOutputFile(
-          outputBaseName + '_part_' + preview.number,
-        ),
-      ),
-    );
+    let temporaryOutputs: NativeTempFile[] = [];
     const cover = this.mergeCoverRenderedFile;
-    const coverTemp = cover
-      ? await this.epubWorkingCopy.writeTempCoverFile(cover, outputBaseName)
-      : null;
+    let coverTemp: NativeTempFile | null = null;
 
     try {
+      temporaryOutputs = await Promise.all(
+        previews.map((preview) =>
+          this.epubWorkingCopy.buildOutputFile(
+            outputBaseName + '_part_' + preview.number,
+          ),
+        ),
+      );
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
+      coverTemp = cover
+        ? await this.epubWorkingCopy.writeTempCoverFile(cover, outputBaseName)
+        : null;
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
       const outputs = previews.map((preview, index) => ({
         id: operationId + ':' + preview.number,
         outputPath: temporaryOutputs[index].nativePath,
@@ -1309,8 +1545,10 @@ export class HomePage implements OnInit, OnDestroy {
       const created = await this.epubRewrite.splitEpubs({
         inputPath: selection.workingNativePath,
         outputs,
+        removeSourceCover: !cover,
         coverPath: coverTemp?.nativePath,
       });
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
       const saved = await this.epubLibrary.saveExportedEpubs(
         created.map((output, index) => ({
           sourceUri: output.outputPath,
@@ -1321,6 +1559,7 @@ export class HomePage implements OnInit, OnDestroy {
           partIndex: index,
         })),
       );
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
       this.completeOperation(
         'split',
         saved,
@@ -1334,6 +1573,81 @@ export class HomePage implements OnInit, OnDestroy {
         this.epubWorkingCopy.cleanupWorkingCopy(coverTemp?.path),
       ]);
     }
+  }
+
+  private async runWebDummyMerge(
+    selections: readonly SelectedEpubInput[],
+    flowEpoch: number,
+  ): Promise<void> {
+    const cover = this.resolveWebDummyCover(selections);
+    if (!cover) {
+      throw new Error('WEB_DUMMY_COVER_REQUIRED');
+    }
+    const outputBaseName = `${selections[0]?.outputBaseName ?? 'merged'}_merged`;
+    const bytes = await buildCoverOnlyEpubBytes({
+      coverFile: cover,
+      title: outputBaseName,
+      lang: this.translate.currentLang,
+      creator: WEB_DUMMY_EPUB_CREATOR,
+    });
+    if (!this.isFlowEpochCurrent(flowEpoch)) return;
+    const saved = await this.epubLibrary.saveGeneratedEpubs([
+      {
+        bytes,
+        coverFile: cover,
+        proposedFileName: `${outputBaseName}.epub`,
+        title: outputBaseName,
+        operation: 'merge',
+        operationId: this.createOperationId(),
+        partIndex: 0,
+      },
+    ]);
+    if (!this.isFlowEpochCurrent(flowEpoch)) return;
+    this.completeOperation('merge', saved);
+  }
+
+  private async runWebDummySplit(
+    selection: SelectedEpubInput,
+    previews: readonly SplitOutputPreview[],
+    flowEpoch: number,
+  ): Promise<void> {
+    const cover = this.resolveWebDummyCover([selection]);
+    if (!cover) {
+      throw new Error('WEB_DUMMY_COVER_REQUIRED');
+    }
+    const operationId = this.createOperationId();
+    const outputBaseName = selection.outputBaseName || 'split';
+    const requests = await Promise.all(
+      previews.map(async (preview, index) => ({
+        bytes: await buildCoverOnlyEpubBytes({
+          coverFile: cover,
+          title: preview.title || `${outputBaseName} - ${preview.number}`,
+          lang: this.translate.currentLang,
+          creator: WEB_DUMMY_EPUB_CREATOR,
+        }),
+        coverFile: cover,
+        proposedFileName: `${outputBaseName} - ${preview.number}.epub`,
+        title: preview.title,
+        operation: 'split' as const,
+        operationId,
+        partIndex: index,
+      })),
+    );
+    if (!this.isFlowEpochCurrent(flowEpoch)) return;
+    const saved = await this.epubLibrary.saveGeneratedEpubs(requests);
+    if (!this.isFlowEpochCurrent(flowEpoch)) return;
+    this.completeOperation('split', saved);
+  }
+
+  private resolveWebDummyCover(
+    selections: readonly SelectedEpubInput[],
+  ): File | null {
+    return (
+      this.mergeCoverRenderedFile ??
+      this.mergeCoverWorkingFile ??
+      selections.find((selection) => selection.coverFile)?.coverFile ??
+      null
+    );
   }
 
   private completeOperation(
@@ -1350,7 +1664,7 @@ export class HomePage implements OnInit, OnDestroy {
       previewUrl,
     });
     this.pickerErrorKey.set(null);
-    this.workflowStep = 5;
+    this.workflowStep = this.resultWorkflowStep;
     outputs.forEach((output) => {
       this.coversEvents.emit({ type: 'saved', filename: output.filename });
     });
@@ -1360,6 +1674,7 @@ export class HomePage implements OnInit, OnDestroy {
     if (error instanceof EpubRewriteError && error.code === 'CANCELLED') {
       return;
     }
+    const errorDetails = this.operationFailureDetails(error);
     this.operationFeedback.set({
       operation,
       status: 'error',
@@ -1369,8 +1684,20 @@ export class HomePage implements OnInit, OnDestroy {
         operation === 'merge'
           ? 'HOME.OPERATION.MERGE_FAILURE_BODY'
           : 'HOME.OPERATION.SPLIT_FAILURE_BODY',
+      errorDetails,
     });
-    this.workflowStep = 5;
+    this.workflowStep = this.resultWorkflowStep;
+  }
+
+  private operationFailureDetails(error: unknown): string | undefined {
+    if (error instanceof EpubRewriteError) {
+      const parts = [error.code];
+      if (error.details?.stage) parts.push(`stage=${error.details.stage}`);
+      if (error.details?.message) parts.push(error.details.message);
+      return parts.join(' — ');
+    }
+    if (error instanceof Error && error.message.trim()) return error.message;
+    return typeof error === 'string' && error.trim() ? error : undefined;
   }
 
   async onOperationFeedbackDone(): Promise<void> {
@@ -1398,6 +1725,7 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
+    this.selectedMode.set('merge');
     this.clearPickerError();
 
     if (this.epubRewrite.isSupported()) {
@@ -1413,6 +1741,7 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
+    this.selectedMode.set('split');
     this.clearPickerError();
 
     if (this.epubRewrite.isSupported()) {
@@ -1432,22 +1761,34 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
+    const flowEpoch = this.currentFlowEpoch();
     this.clearPickerError();
+    this.diagnosisProgress.set(null);
     this.isPicking.set(true);
 
     try {
       const selections: SelectedEpubInput[] = [];
       for (const file of files) {
-        selections.push(await this.prepareWebSelection(file));
+        selections.push(await this.prepareWebSelection(file, flowEpoch));
+      }
+      if (!this.isFlowEpochCurrent(flowEpoch)) {
+        await Promise.all(
+          selections.map((selection) => this.cleanupSelection(selection)),
+        );
+        return;
       }
       this.mergeSelections.update((current) => [...current, ...selections]);
       this.selectedMode.set('merge');
-      this.workflowStep = 1;
+      this.updateWorkflowAfterEpubSelection(1);
       await this.refreshMergeCoverCandidates();
     } catch (error) {
-      this.handlePickerError(error);
+      if (this.isFlowEpochCurrent(flowEpoch)) {
+        this.handlePickerError(error);
+      }
     } finally {
-      this.isPicking.set(false);
+      if (this.isFlowEpochCurrent(flowEpoch)) {
+        this.isPicking.set(false);
+      }
     }
   }
 
@@ -1460,16 +1801,22 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
+    const flowEpoch = this.currentFlowEpoch();
     this.clearPickerError();
+    this.diagnosisProgress.set(null);
     this.isPicking.set(true);
 
     try {
-      const selection = await this.prepareWebSelection(file);
-      await this.replaceSplitSelection(selection);
+      const selection = await this.prepareWebSelection(file, flowEpoch);
+      await this.replaceSplitSelection(selection, flowEpoch);
     } catch (error) {
-      this.handlePickerError(error);
+      if (this.isFlowEpochCurrent(flowEpoch)) {
+        this.handlePickerError(error);
+      }
     } finally {
-      this.isPicking.set(false);
+      if (this.isFlowEpochCurrent(flowEpoch)) {
+        this.isPicking.set(false);
+      }
     }
   }
 
@@ -1512,6 +1859,7 @@ export class HomePage implements OnInit, OnDestroy {
       this.resetCoverSelection(true);
     } else {
       await this.refreshMergeCoverCandidates();
+      this.updateWorkflowAfterEpubSelection(1);
     }
 
     await this.cleanupSelection(selection);
@@ -1522,19 +1870,24 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
+    const flowEpoch = this.currentFlowEpoch();
+    this.diagnosisProgress.set(null);
     this.isPicking.set(true);
     try {
-      const loaded = await this.applyCandidateCover(candidate);
+      const loaded = await this.applyCandidateCover(candidate, flowEpoch);
       if (!loaded) {
         this.bestCandidateDismissed.set(false);
         return;
       }
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
 
       this.selectedCoverCandidateId.set(candidate.id);
       this.coverSourceMode.set('candidate');
-      await this.openEditor('image', 'new-cover', 3);
+      await this.openEditor('image', 'new-cover', 3, flowEpoch);
     } finally {
-      this.isPicking.set(false);
+      if (this.isFlowEpochCurrent(flowEpoch)) {
+        this.isPicking.set(false);
+      }
     }
   }
 
@@ -1587,10 +1940,25 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
+    const flowEpoch = this.currentFlowEpoch();
     this.bestCandidateDismissed.set(true);
     this.coverSourceMode.set('scratch');
     this.selectedCoverCandidateId.set(undefined);
-    await this.openEditor('scratch', 'new-cover', 3);
+    if (this.isFlowEpochCurrent(flowEpoch)) {
+      await this.openEditor('scratch', 'new-cover', 3, flowEpoch);
+    }
+  }
+
+  onCoverNoneSelected(): void {
+    if (this.isPicking() || this.isMergeActionBusy()) {
+      return;
+    }
+
+    this.bestCandidateDismissed.set(true);
+    this.coverSourceMode.set('none');
+    this.selectedCoverCandidateId.set(undefined);
+    this.resetMergeCoverSelection(true);
+    this.workflowStep = this.resultWorkflowStep;
   }
 
   async onCoverImageFileSelected(event: Event): Promise<void> {
@@ -1602,22 +1970,30 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
+    const flowEpoch = this.currentFlowEpoch();
+    this.diagnosisProgress.set(null);
     this.isPicking.set(true);
     try {
-      const loaded = await this.applyMergeCoverSource(file);
+      const loaded = await this.applyMergeCoverSource(file, flowEpoch);
       if (!loaded) {
         return;
       }
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
       this.coverSourceMode.set('image');
       this.bestCandidateDismissed.set(true);
       this.selectedCoverCandidateId.set(undefined);
-      await this.openEditor('image', 'new-cover', 3);
+      await this.openEditor('image', 'new-cover', 3, flowEpoch);
     } finally {
-      this.isPicking.set(false);
+      if (this.isFlowEpochCurrent(flowEpoch)) {
+        this.isPicking.set(false);
+      }
     }
   }
 
-  private async refreshMergeCoverCandidates(): Promise<void> {
+  private async refreshMergeCoverCandidates(
+    flowEpoch = this.currentFlowEpoch(),
+  ): Promise<void> {
+    if (!this.isFlowEpochCurrent(flowEpoch)) return;
     this.isDetectingCoverCandidates.set(true);
     this.resetCandidateBlobUrls();
     const previousCoverMode = this.coverSourceMode();
@@ -1639,6 +2015,7 @@ export class HomePage implements OnInit, OnDestroy {
         }))
         .filter((source) => !!source.epubFile || !!source.coverFile);
       const images = await this.mergeCoverCandidate.collectCandidates(sources);
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
 
       for (const image of images) {
         if (image.src.startsWith('blob:')) {
@@ -1649,9 +2026,14 @@ export class HomePage implements OnInit, OnDestroy {
       const ranked = this.bestCandidate.rankCandidates(images, {
         maxCandidates: 3,
       });
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
       this.coverCandidates.set(ranked);
 
-      if (previousCoverMode === 'image' || previousCoverMode === 'scratch') {
+      if (
+        previousCoverMode === 'image' ||
+        previousCoverMode === 'scratch' ||
+        previousCoverMode === 'none'
+      ) {
         this.selectedCoverCandidateId.set(undefined);
         return;
       }
@@ -1663,29 +2045,37 @@ export class HomePage implements OnInit, OnDestroy {
       this.selectedCoverCandidateId.set(selectedCandidate?.id);
       this.coverSourceMode.set(selectedCandidate ? 'candidate' : null);
       if (selectedCandidate) {
-        await this.applyCandidateCover(selectedCandidate);
+        await this.applyCandidateCover(selectedCandidate, flowEpoch);
+        if (!this.isFlowEpochCurrent(flowEpoch)) return;
       } else {
         this.resetMergeCoverSelection(true);
       }
     } catch (error) {
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
       console.warn(
         '[epub-merger-and-splitter] failed to detect merge cover candidates',
         error,
       );
       this.coverCandidates.set([]);
       this.selectedCoverCandidateId.set(undefined);
-      if (previousCoverMode !== 'image' && previousCoverMode !== 'scratch') {
+      if (
+        previousCoverMode !== 'image' &&
+        previousCoverMode !== 'scratch' &&
+        previousCoverMode !== 'none'
+      ) {
         this.coverSourceMode.set(null);
         this.resetMergeCoverSelection(true);
       }
     } finally {
-      this.isDetectingCoverCandidates.set(false);
+      if (this.isFlowEpochCurrent(flowEpoch)) {
+        this.isDetectingCoverCandidates.set(false);
+      }
     }
   }
 
   private resetCoverSelection(revokeUrls: boolean): void {
     this.editorEntryMode = 'new-cover';
-    this.editorReturnStep = 3;
+    this.editorReturnStep = this.coverWorkflowStep;
     this.coverCandidates.set([]);
     this.selectedCoverCandidateId.set(undefined);
     this.coverSourceMode.set(null);
@@ -1707,22 +2097,28 @@ export class HomePage implements OnInit, OnDestroy {
 
   private async applyCandidateCover(
     candidate: BestCandidateImage,
+    flowEpoch = this.currentFlowEpoch(),
   ): Promise<boolean> {
+    if (!this.isFlowEpochCurrent(flowEpoch)) return false;
     const file = this.candidateFileFromMetadata(candidate);
     if (!file) {
       return false;
     }
 
-    return this.applyMergeCoverSource(file);
+    return this.applyMergeCoverSource(file, flowEpoch);
   }
 
-  private async applyMergeCoverSource(file: File): Promise<boolean> {
+  private async applyMergeCoverSource(
+    file: File,
+    flowEpoch = this.currentFlowEpoch(),
+  ): Promise<boolean> {
+    if (!this.isFlowEpochCurrent(flowEpoch)) return false;
     this.mergeCoverCropState = undefined;
     this.mergeCoverMasterBlob = undefined;
     this.mergeCoverRenderedFile = undefined;
 
-    const source = await this.prepareEditorImageSource(file);
-    if (!source) {
+    const source = await this.prepareEditorImageSource(file, flowEpoch);
+    if (!source || !this.isFlowEpochCurrent(flowEpoch)) {
       return false;
     }
 
@@ -1735,18 +2131,26 @@ export class HomePage implements OnInit, OnDestroy {
 
   private async prepareEditorImageSource(
     file: File,
+    flowEpoch = this.currentFlowEpoch(),
   ): Promise<{ source: File; workingFile: File } | null> {
-    if (this.imagePipeline.validateBasic(file)) {
+    if (
+      !this.isFlowEpochCurrent(flowEpoch) ||
+      this.imagePipeline.validateBasic(file)
+    ) {
       return null;
     }
 
     let source = await this.imagePipeline.materializeFile(file);
+    if (!this.isFlowEpochCurrent(flowEpoch)) return null;
     let sourceDims = await this.imagePipeline.getDimensions(source);
+    if (!this.isFlowEpochCurrent(flowEpoch)) return null;
     if (!sourceDims) {
       const normalized = await this.imagePipeline.normalizeFile(source);
+      if (!this.isFlowEpochCurrent(flowEpoch)) return null;
       if (normalized) {
         source = normalized;
         sourceDims = await this.imagePipeline.getDimensions(source);
+        if (!this.isFlowEpochCurrent(flowEpoch)) return null;
       }
     }
 
@@ -1763,8 +2167,10 @@ export class HomePage implements OnInit, OnDestroy {
   private async openEditor(
     sourceMode: EditorSourceMode,
     entryMode: EditorEntryMode,
-    returnStep: 3 | 5,
+    returnStep: number,
+    flowEpoch = this.currentFlowEpoch(),
   ): Promise<void> {
+    if (!this.isFlowEpochCurrent(flowEpoch)) return;
     const selected = this.getSelectedFormatOption();
     const sourceFile =
       sourceMode === 'image' ? this.mergeCoverWorkingFile : undefined;
@@ -1804,10 +2210,13 @@ export class HomePage implements OnInit, OnDestroy {
         exportQuality: toEditorRenderQuality(this.getEffectiveExportQualityMode()),
       },
       onResultApplied: async (result) => {
-        await this.applyEditorResult(result);
         const appliedSessionId = this.lastEditorSessionId;
+        await this.applyEditorResult(result, flowEpoch);
+        if (!this.isFlowEpochCurrent(flowEpoch)) return;
         if (appliedSessionId) this.editorSession.consumeResult(appliedSessionId);
-        this.lastEditorSessionId = undefined;
+        if (this.lastEditorSessionId === appliedSessionId) {
+          this.lastEditorSessionId = undefined;
+        }
       },
       preferences: {
         artifactReductionInfo: {
@@ -1824,31 +2233,37 @@ export class HomePage implements OnInit, OnDestroy {
       returnUrl: '/tabs/home',
     });
 
+    if (!this.isFlowEpochCurrent(flowEpoch)) {
+      this.editorSession.consumeSession(sid);
+      return;
+    }
+
     this.lastEditorSourceMode = sourceMode;
     this.editorEntryMode = entryMode;
     this.editorReturnStep = returnStep;
     this.lastEditorSessionId = sid;
-    this.workflowStep = 4;
+    this.workflowStep = this.editorWorkflowStep;
     const entryPath = sourceMode === 'scratch' ? '/editor/tools' : '/editor';
     await this.router.navigate([entryPath], { queryParams: { sid } });
   }
 
   private async consumeEditorResult(sessionId?: string): Promise<void> {
+    const flowEpoch = this.currentFlowEpoch();
     const { session, result } = consumeEditorResultSnapshot(
       this.editorSession,
       sessionId ?? this.lastEditorSessionId,
     );
 
-    if (result) {
+    if (result && this.isFlowEpochCurrent(flowEpoch)) {
       this.lastEditorSessionId = undefined;
     }
 
-    if (result?.file) {
-      await this.applyEditorResult(result);
+    if (result?.file && session) {
+      await this.applyEditorResult(result, flowEpoch);
       return;
     }
 
-    if (session && !result) {
+    if (session && !result && this.isFlowEpochCurrent(flowEpoch)) {
       const entryMode = this.editorEntryMode;
       this.editorEntryMode = 'new-cover';
       if (entryMode === 'new-cover') {
@@ -1858,11 +2273,15 @@ export class HomePage implements OnInit, OnDestroy {
         this.bestCandidateDismissed.set(false);
       }
       this.workflowStep = this.editorReturnStep;
-      this.editorReturnStep = 3;
+      this.editorReturnStep = this.coverWorkflowStep;
     }
   }
 
-  private async applyEditorResult(result: CropperResult): Promise<void> {
+  private async applyEditorResult(
+    result: CropperResult,
+    flowEpoch = this.currentFlowEpoch(),
+  ): Promise<void> {
+    if (!this.isFlowEpochCurrent(flowEpoch)) return;
     this.mergeCoverWorkingFile = result.file;
     this.mergeCoverMasterBlob = result.editorMasterBlob;
     this.mergeCoverCropState = result.state;
@@ -1871,8 +2290,8 @@ export class HomePage implements OnInit, OnDestroy {
     this.bestCandidateDismissed.set(true);
     this.selectedCoverCandidateId.set(undefined);
     this.editorEntryMode = 'new-cover';
-    this.editorReturnStep = 3;
-    this.workflowStep = 5;
+    this.editorReturnStep = this.coverWorkflowStep;
+    this.workflowStep = this.resultWorkflowStep;
 
     const renderedBlob = result.renderedBlob;
     if (renderedBlob) {
@@ -1884,13 +2303,17 @@ export class HomePage implements OnInit, OnDestroy {
       this.mergeCoverPreviewThumbUrl =
         (await this.buildThumbFromBlob(renderedBlob)) ??
         this.mergeCoverPreviewUrl();
-      await this.applySelectedExportQuality();
+      if (this.isFlowEpochCurrent(flowEpoch)) {
+        await this.applySelectedExportQuality(flowEpoch);
+      }
       return;
     }
 
     this.setMergeCoverPreviewUrl(URL.createObjectURL(result.file));
     this.mergeCoverPreviewThumbUrl = this.mergeCoverPreviewUrl();
-    await this.applySelectedExportQuality();
+    if (this.isFlowEpochCurrent(flowEpoch)) {
+      await this.applySelectedExportQuality(flowEpoch);
+    }
   }
 
   getEffectiveExportQualityMode(): ExportQualityMode {
@@ -1903,15 +2326,20 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
+    const flowEpoch = this.currentFlowEpoch();
     this.exportQualityMode = normalized;
     this.isRebuildingExportQuality.set(true);
     try {
       await this.settings.setForScope('exportQuality', {
         exportQualityMode: normalized,
       });
-      await this.applySelectedExportQuality();
+      if (this.isFlowEpochCurrent(flowEpoch)) {
+        await this.applySelectedExportQuality(flowEpoch);
+      }
     } finally {
-      this.isRebuildingExportQuality.set(false);
+      if (this.isFlowEpochCurrent(flowEpoch)) {
+        this.isRebuildingExportQuality.set(false);
+      }
     }
   }
 
@@ -1941,7 +2369,10 @@ export class HomePage implements OnInit, OnDestroy {
     );
   }
 
-  private async applySelectedExportQuality(): Promise<void> {
+  private async applySelectedExportQuality(
+    flowEpoch = this.currentFlowEpoch(),
+  ): Promise<void> {
+    if (!this.isFlowEpochCurrent(flowEpoch)) return;
     const source = this.mergeCoverWorkingFile;
     const state = this.mergeCoverCropState;
     if (!source || !state) {
@@ -1959,6 +2390,7 @@ export class HomePage implements OnInit, OnDestroy {
         toEditorRenderQuality(this.exportQualityMode),
         exportOptions.mimeType === 'image/png' ? undefined : '#ffffff',
       );
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
     } else {
       const dimensions = await this.imagePipeline.getDimensions(source);
       if (!dimensions) return;
@@ -1981,15 +2413,24 @@ export class HomePage implements OnInit, OnDestroy {
         backgroundFallbackColor:
           exportOptions.mimeType === 'image/png' ? undefined : '#ffffff',
       });
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
     }
-    if (!rendered || revision !== this.mergeCoverQualityRevision) return;
+    if (
+      !rendered ||
+      revision !== this.mergeCoverQualityRevision ||
+      !this.isFlowEpochCurrent(flowEpoch)
+    ) {
+      return;
+    }
 
     this.mergeCoverRenderedFile = rendered;
     const url = URL.createObjectURL(rendered);
     this.setMergeCoverPreviewUrl(url);
     this.mergeCoverPreviewThumbUrl =
       (await this.buildThumbFromBlob(rendered)) ?? url;
-    this.markSplitConfigurationChanged();
+    if (this.isFlowEpochCurrent(flowEpoch)) {
+      this.markSplitConfigurationChanged();
+    }
   }
 
   private buildRenderedFile(blob: Blob, mimeType?: string): File {
@@ -2239,43 +2680,70 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   private async pickNativeEpubForSplit(): Promise<void> {
+    const flowEpoch = this.currentFlowEpoch();
+    this.diagnosisProgress.set(null);
     this.isPicking.set(true);
 
     try {
-      const selection = await this.prepareNativeSelection();
-      await this.replaceSplitSelection(selection);
+      const selection = await this.prepareNativeSelection(flowEpoch);
+      if (!this.isFlowEpochCurrent(flowEpoch)) {
+        await this.cleanupSelection(selection);
+        return;
+      }
+      await this.replaceSplitSelection(selection, flowEpoch);
     } catch (error) {
       if (this.isCancelledPick(error)) {
         return;
       }
-      this.handlePickerError(error);
+      if (this.isFlowEpochCurrent(flowEpoch)) {
+        this.handlePickerError(error);
+      }
     } finally {
-      this.isPicking.set(false);
+      if (this.isFlowEpochCurrent(flowEpoch)) {
+        this.isPicking.set(false);
+      }
     }
   }
 
   private async pickNativeEpubsForMerge(): Promise<void> {
+    const flowEpoch = this.currentFlowEpoch();
+    this.diagnosisProgress.set(null);
     this.isPicking.set(true);
 
     try {
-      const selections = await this.prepareNativeSelections();
+      const selections = await this.prepareNativeSelections(flowEpoch);
+      if (!this.isFlowEpochCurrent(flowEpoch)) {
+        await Promise.all(
+          selections.map((selection) => this.cleanupSelection(selection)),
+        );
+        return;
+      }
       this.mergeSelections.update((current) => [...current, ...selections]);
       this.selectedMode.set('merge');
-      this.workflowStep = 1;
+      this.updateWorkflowAfterEpubSelection(1);
       await this.refreshMergeCoverCandidates();
     } catch (error) {
       if (this.isCancelledPick(error)) {
         return;
       }
-      this.handlePickerError(error);
+      if (this.isFlowEpochCurrent(flowEpoch)) {
+        this.handlePickerError(error);
+      }
     } finally {
-      this.isPicking.set(false);
+      if (this.isFlowEpochCurrent(flowEpoch)) {
+        this.isPicking.set(false);
+      }
     }
   }
 
   private async replaceSplitSelection(
     selection: SelectedEpubInput,
+    flowEpoch = this.currentFlowEpoch(),
   ): Promise<void> {
+    if (!this.isFlowEpochCurrent(flowEpoch)) {
+      await this.cleanupSelection(selection);
+      return;
+    }
     const previous = this.splitSelection();
     this.resetCoverSelection(true);
     this.splitSelection.set(selection);
@@ -2285,22 +2753,37 @@ export class HomePage implements OnInit, OnDestroy {
     this.splitAnalysis.set(null);
     this.resetSplitConfiguration();
     try {
-      const analysis = await this.splitAnalysisService.analyze({
-        fileName: selection.selectedName,
-        fileSizeBytes: selection.sourceSize,
-        workingFile: selection.workingFile,
-        workingPath: selection.workingPath,
-        workingNativePath: selection.workingNativePath,
-      });
+      const analysis = await this.analyzeSplitSelection(selection);
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
       this.splitAnalysis.set(analysis);
       await this.refreshMergeCoverCandidates();
+      if (!this.isFlowEpochCurrent(flowEpoch)) return;
+      this.updateWorkflowAfterEpubSelection(1);
     } catch (error) {
+      if (!this.isFlowEpochCurrent(flowEpoch)) {
+        return;
+      }
       console.error('[epub-merger-and-splitter] split analysis failed', error);
       this.pickerErrorKey.set('HOME.SPLIT_ANALYSIS_ERROR');
+      this.returnToFileSelectionStep();
     } finally {
-      this.splitAnalysisPending.set(false);
+      if (this.isFlowEpochCurrent(flowEpoch)) {
+        this.splitAnalysisPending.set(false);
+      }
     }
     await this.cleanupSelection(previous);
+  }
+
+  private analyzeSplitSelection(
+    selection: SelectedEpubInput,
+  ): Promise<SplitAnalysis> {
+    return this.splitAnalysisService.analyze({
+      fileName: selection.selectedName,
+      fileSizeBytes: selection.sourceSize,
+      workingFile: selection.workingFile,
+      workingPath: selection.workingPath,
+      workingNativePath: selection.workingNativePath,
+    });
   }
 
   private buildSplitOutputPreviews(): readonly SplitOutputPreview[] {
@@ -2461,24 +2944,78 @@ export class HomePage implements OnInit, OnDestroy {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
-  private async prepareNativeSelection(): Promise<SelectedEpubInput> {
+  private async ensureNativeDeepDiagnosis(
+    selections: readonly SelectedEpubInput[],
+  ): Promise<void> {
+    for (const selection of selections) {
+      if (!selection.sessionId) {
+        continue;
+      }
+      if (
+        selection.diagnosisMode === 'deep' &&
+        selection.diagnosisCoverage === 'complete'
+      ) {
+        continue;
+      }
+      const diagnosis = await this.epubRewrite.diagnose(
+        selection.sessionId,
+        'deep',
+      );
+      if (
+        diagnosis.status === 'unsupported' ||
+        diagnosis.status === 'failed' ||
+        diagnosis.status === 'limited'
+      ) {
+        throw new EpubRewriteError('EPUB_DIAGNOSE_FAILED');
+      }
+    }
+  }
+
+  private async prepareNativeSelection(
+    flowEpoch = this.currentFlowEpoch(),
+  ): Promise<SelectedEpubInput> {
     const prepared = await this.epubRewrite.pickAndPrepareEpub({
       maxBytes: MAX_EPUB_SIZE_MB * 1024 * 1024,
       requireCover: false,
       includeCoverPreview: true,
     });
 
-    return this.toNativeSelection(prepared);
+    const diagnosis = await this.validateNativeEpubForReading(
+      prepared.sessionId,
+      prepared.selectedName,
+      'deep',
+      flowEpoch,
+    );
+    return this.toNativeSelection(prepared, diagnosis);
   }
 
-  private async prepareNativeSelections(): Promise<SelectedEpubInput[]> {
+  private async prepareNativeSelections(
+    flowEpoch = this.currentFlowEpoch(),
+  ): Promise<SelectedEpubInput[]> {
     const prepared = await this.epubRewrite.pickAndPrepareEpubs({
       maxBytes: MAX_EPUB_SIZE_MB * 1024 * 1024,
       requireCover: false,
       includeCoverPreview: true,
     });
 
-    return prepared.map((item) => this.toNativeSelection(item));
+    try {
+      const selections: SelectedEpubInput[] = [];
+      for (const item of prepared) {
+        const diagnosis = await this.validateNativeEpubForReading(
+          item.sessionId,
+          item.selectedName,
+          'deep',
+          flowEpoch,
+        );
+        selections.push(this.toNativeSelection(item, diagnosis));
+      }
+      return selections;
+    } catch (error) {
+      for (const item of prepared) {
+        await this.epubRewrite.cleanup(item.sessionId).catch(() => undefined);
+      }
+      throw error;
+    }
   }
 
   private toNativeSelection(prepared: {
@@ -2493,7 +3030,14 @@ export class HomePage implements OnInit, OnDestroy {
     outputBaseName: string;
     file?: File;
     coverEntryPath?: string;
-  }): SelectedEpubInput {
+  },
+    diagnosis: {
+      status: 'valid' | 'repairable';
+      issues: EpubDiagnosticIssue[];
+      mode: 'quick' | 'deep';
+      coverage: 'complete' | 'limited';
+    },
+  ): SelectedEpubInput {
     return {
       id: this.createSelectionId(),
       sessionId: prepared.sessionId,
@@ -2509,10 +3053,17 @@ export class HomePage implements OnInit, OnDestroy {
       workingNativePath: prepared.workingNativePath,
       outputBaseName: prepared.outputBaseName,
       sourceKind: 'native',
+      diagnosisStatus: diagnosis.status,
+      diagnosisIssues: diagnosis.issues,
+      diagnosisMode: diagnosis.mode,
+      diagnosisCoverage: diagnosis.coverage,
     };
   }
 
-  private async prepareWebSelection(file: File): Promise<SelectedEpubInput> {
+  private async prepareWebSelection(
+    file: File,
+    flowEpoch = this.currentFlowEpoch(),
+  ): Promise<SelectedEpubInput> {
     const validation = this.fileKit.validateEpub(file, MAX_EPUB_SIZE_MB);
     if (!validation.valid) {
       throw new Error(validation.errorKey ?? 'EPUB_ERROR_CORRUPT');
@@ -2521,6 +3072,17 @@ export class HomePage implements OnInit, OnDestroy {
     const cycle = this.epubRewrite.isSupported()
       ? await this.epubWorkingCopy.startStreamingCycle(file)
       : await this.epubWorkingCopy.startCycle(file);
+
+    let diagnosis: {
+      status: 'valid' | 'repairable';
+      issues: EpubDiagnosticIssue[];
+    };
+    try {
+      diagnosis = await this.validateWebEpubForReading(file, flowEpoch);
+    } catch (error) {
+      await this.epubWorkingCopy.cleanupWorkingCopy(cycle.workingPath);
+      throw error;
+    }
 
     return {
       id: this.createSelectionId(),
@@ -2536,15 +3098,202 @@ export class HomePage implements OnInit, OnDestroy {
         'workingNativePath' in cycle ? cycle.workingNativePath : null,
       outputBaseName: cycle.outputBaseName,
       sourceKind: this.epubRewrite.isSupported() ? 'native' : 'web',
+      diagnosisStatus: diagnosis.status,
+      diagnosisIssues: diagnosis.issues,
+      diagnosisMode: 'deep',
+      diagnosisCoverage: 'complete',
     };
+  }
+
+  private async validateNativeEpubForReading(
+    sessionId: string,
+    displayName?: string,
+    mode: 'quick' | 'deep' = 'deep',
+    flowEpoch = this.currentFlowEpoch(),
+  ): Promise<{
+    status: 'valid' | 'repairable';
+    issues: EpubDiagnosticIssue[];
+    mode: 'quick' | 'deep';
+    coverage: 'complete' | 'limited';
+  }> {
+    try {
+      const diagnosis = await this.epubRewrite.diagnose(sessionId, mode);
+      if (!this.isFlowEpochCurrent(flowEpoch)) {
+        throw new EpubRewriteError('CANCELLED');
+      }
+      if (
+        diagnosis.status === 'unsupported' ||
+        diagnosis.status === 'failed' ||
+        diagnosis.status === 'limited'
+      ) {
+        this.setPickerDiagnosisFailure(diagnosis.issues, displayName);
+        throw new EpubRewriteError('EPUB_UNSUPPORTED');
+      }
+      return {
+        status: diagnosis.status,
+        issues: diagnosis.issues,
+        mode: diagnosis.mode ?? mode,
+        coverage: diagnosis.coverage ?? (mode === 'deep' ? 'complete' : 'limited'),
+      };
+    } catch (error) {
+      await this.epubRewrite.cleanup(sessionId).catch(() => undefined);
+      throw error;
+    }
+  }
+
+  private async validateWebEpubForReading(
+    file: File,
+    flowEpoch = this.currentFlowEpoch(),
+  ): Promise<{
+    status: 'valid' | 'repairable';
+    issues: EpubDiagnosticIssue[];
+  }> {
+    const prepared = await this.webEpubFixer.prepare({
+      file,
+      displayName: file.name,
+      maxBytes: MAX_EPUB_SIZE_MB * 1024 * 1024,
+    });
+    try {
+      const diagnosis = await this.webEpubFixer.diagnose({
+        sessionId: prepared.sessionId,
+      });
+      if (!this.isFlowEpochCurrent(flowEpoch)) {
+        throw new EpubRewriteError('CANCELLED');
+      }
+      if (
+        diagnosis.status === 'unsupported' ||
+        diagnosis.status === 'failed' ||
+        diagnosis.status === 'limited'
+      ) {
+        this.setPickerDiagnosisFailure(diagnosis.issues, file.name);
+        throw new EpubRewriteError('EPUB_UNSUPPORTED');
+      }
+      return { status: diagnosis.status, issues: diagnosis.issues };
+    } finally {
+      await this.webEpubFixer.cleanup({ sessionId: prepared.sessionId });
+    }
+  }
+
+  issueMessageLabel(issue: EpubDiagnosticIssueView): string {
+    const normalizedKey = issue.messageKey.startsWith('FIX.ISSUE_')
+      ? `FIX.ISSUE_${issue.code.replace(/-/g, '_')}`
+      : issue.messageKey;
+    const normalizedLabel = this.translate.instant(normalizedKey);
+    return normalizedLabel !== normalizedKey
+      ? normalizedLabel
+      : this.translate.instant(issue.messageKey);
+  }
+
+  issueDetailsLabel(issue: EpubDiagnosticIssueView): string {
+    const details = issue.details?.trim();
+    if (!details) return '';
+
+    switch (details) {
+      case 'container.xml is missing':
+        return this.translate.instant('FIX.ISSUE_DETAIL_CONTAINER_MISSING');
+      case 'container.xml is not parseable':
+        return this.translate.instant(
+          'FIX.ISSUE_DETAIL_CONTAINER_NOT_PARSEABLE',
+        );
+      case 'container.xml does not declare a rootfile':
+        return this.translate.instant('FIX.ISSUE_DETAIL_CONTAINER_NO_ROOTFILE');
+      case 'Multiple package documents were found':
+        return this.translate.instant('FIX.ISSUE_DETAIL_OPF_AMBIGUOUS');
+      case 'No valid spine entries remain':
+        return this.translate.instant('FIX.ISSUE_DETAIL_SPINE_EMPTY');
+      case 'missing idref':
+        return this.translate.instant('FIX.ISSUE_DETAIL_MISSING_IDREF');
+    }
+
+    const notParseableMatch = details.match(/^(.*) is not parseable$/);
+    return notParseableMatch
+      ? this.translate.instant('FIX.ISSUE_DETAIL_FILE_NOT_PARSEABLE', {
+          path: notParseableMatch[1],
+        })
+      : details;
+  }
+
+  private hasEpubDiagnosticErrors(
+    selection: Pick<SelectedEpubInput, 'diagnosisStatus' | 'diagnosisIssues'>,
+  ): boolean {
+    return (
+      selection.diagnosisStatus === 'repairable' ||
+      (selection.diagnosisIssues?.length ?? 0) > 0
+    );
+  }
+
+  private hasWorkflowErrorState(): boolean {
+    return !!this.pickerErrorKey?.();
+  }
+
+  private updateWorkflowAfterEpubSelection(nextStep: number): void {
+    if (this.epubRepairRequired?.()) {
+      this.workflowStep = this.fileSelectionWorkflowStep;
+      return;
+    }
+
+    this.workflowStep = nextStep;
+  }
+
+  private currentFlowEpoch(): number {
+    return this.flowEpoch ?? 0;
+  }
+
+  private isFlowEpochCurrent(flowEpoch: number): boolean {
+    return (
+      flowEpoch === this.currentFlowEpoch() &&
+      !(this.isResettingFlow?.() ?? false)
+    );
+  }
+
+  private invalidateFlowEpoch(): void {
+    this.flowEpoch = this.currentFlowEpoch() + 1;
+  }
+
+  private async cancelNativeRewrite(): Promise<void> {
+    if (!this.epubRewrite?.isSupported?.()) {
+      return;
+    }
+
+    await Promise.resolve(this.epubRewrite.cancelRewrite?.()).catch(
+      () => undefined,
+    );
+  }
+
+  private returnToFileSelectionStep(): void {
+    if (this.selectedMode() === 'merge') {
+      this.workflowStep = MERGE_FILE_SELECTION_STEP;
+    } else if (this.selectedMode() === 'split') {
+      this.workflowStep = 0;
+    }
+  }
+
+  private scrollWorkflowToTop(): void {
+    const content = this.homeContent;
+    if (!content) {
+      return;
+    }
+
+    void content.scrollToTop(0).catch(() => undefined);
   }
 
   private handlePickerError(error: unknown): void {
     this.pickerErrorKey.set(this.mapPickerError(error));
+    this.returnToFileSelectionStep();
   }
 
   private clearPickerError(): void {
     this.pickerErrorKey.set(null);
+    this.pickerErrorIssues?.set([]);
+    this.pickerErrorDiagnosisName?.set(null);
+  }
+
+  private setPickerDiagnosisFailure(
+    issues: EpubDiagnosticIssue[],
+    displayName?: string,
+  ): void {
+    this.pickerErrorIssues.set(issues);
+    this.pickerErrorDiagnosisName.set(displayName ?? null);
   }
 
   private mapPickerError(error: unknown): string {

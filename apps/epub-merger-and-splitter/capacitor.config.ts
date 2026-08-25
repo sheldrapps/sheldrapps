@@ -7,11 +7,6 @@ const config: CapacitorConfig = {
   android: {
     resolveServiceWorkerRequests: false,
   },
-  plugins: {
-    StatusBar: {
-      overlaysWebView: false,
-    },
-  },
 };
 
 export default config;

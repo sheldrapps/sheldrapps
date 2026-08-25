@@ -85,6 +85,9 @@ describe('EpubLibraryService', () => {
       'exists',
       'makeSafeFilename',
     ]);
+    fileKit.makeSafeFilename.and.callFake((name, extension) =>
+      name.toLowerCase().endsWith(`.${extension}`) ? name : `${name}.${extension}`,
+    );
 
     TestBed.configureTestingModule({
       providers: [
@@ -201,6 +204,55 @@ describe('EpubLibraryService', () => {
     expect(first.src).toBe('');
     expect(second.src).toBe('data:image/jpeg;base64,Y292ZXI=');
     expect(epubRewrite.extractCoverAssetFile).toHaveBeenCalledTimes(2);
+  });
+
+  it('saves web-generated EPUB bytes and persists the supplied cover preview', async () => {
+    (Capacitor.isNativePlatform as jasmine.Spy).and.returnValue(false);
+    epubRewrite.isSupported.and.returnValue(false);
+    fileKit.makeSafeFilename.and.callFake((name, extension) =>
+      name.toLowerCase().endsWith(`.${extension}`) ? name : `${name}.${extension}`,
+    );
+    fileKit.toBase64.and.returnValue('Y292ZXI=');
+    fileKit.delete.and.resolveTo(undefined);
+    fileKit.readBytes.and.rejectWith(new Error('missing library index'));
+    fileKit.writeBytes.and.resolveTo({
+      uri: 'file:///data/library-index.json',
+      mimeType: 'application/json',
+      filename: 'library-index.json',
+      size: 0,
+    });
+
+    const coverFile = new File(['cover'], 'cover.jpg', { type: 'image/jpeg' });
+    const [saved] = await service.saveGeneratedEpubs([
+      {
+        bytes: new Uint8Array([1, 2, 3]),
+        coverFile,
+        proposedFileName: 'merged.epub',
+        title: 'Merged',
+        operation: 'merge',
+        operationId: 'operation-1',
+        partIndex: 0,
+      },
+    ]);
+
+    expect(filesystem.writeFile).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        path: 'EpubMergerAndSplitter/merged.epub',
+      }),
+    );
+    expect(fileKit.writeBytes).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        path: 'EpubMergerAndSplitterThumbs/merged.epub.json',
+      }),
+    );
+    expect(saved).toEqual(
+      jasmine.objectContaining({
+        filename: 'merged.epub',
+        sizeBytes: 3,
+        operation: 'merge',
+        thumbnailUri: 'data:image/jpeg;base64,Y292ZXI=',
+      }),
+    );
   });
 
   it('renames the public EPUB and updates its library record', async () => {

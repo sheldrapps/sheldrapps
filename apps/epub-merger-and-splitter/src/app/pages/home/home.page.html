@@ -74,6 +74,9 @@
             [selected]="true"
             [ariaLabel]="operationFeedbackTitleKey | translate"
           ></sh-action-card>
+          @if (feedback.errorDetails) {
+            <p class="operation-feedback__details">{{ feedback.errorDetails }}</p>
+          }
         }
 
         <ion-button
@@ -86,7 +89,7 @@
         </ion-button>
       </section>
     } @else {
-    @if (!hasLoadedFiles()) {
+    @if (!hasLoadedFiles() && !selectedMode()) {
       <section class="home-action-section" aria-labelledby="home-action-title">
         <div class="field-title">
           <span id="home-action-title">
@@ -115,7 +118,7 @@
     }
 
     @if (selectedMode() === 'merge') {
-      @if (workflowStep === 1) {
+      @if (workflowStep === 0) {
       <sh-file-picker-panel
         [title]="'HOME.EPUB_FILES_TITLE' | translate"
         [selected]="mergeSelections().length > 0"
@@ -140,6 +143,119 @@
         "
         [items]="mergePickerItems()"
         [itemsTitle]="'HOME.EXPORT_ORDER_TITLE' | translate"
+        [removeEnabled]="true"
+        [removeActionAriaLabel]="'COMMON.DELETE' | translate"
+        [reorderEnabled]="false"
+        (actionSelected)="openMergePicker()"
+        (itemRemoved)="onMergeItemRemoved($event)"
+        (itemsReordered)="onMergeItemsReordered($event)"
+      ></sh-file-picker-panel>
+
+      @if (pickerErrorKey() || epubRepairRequired()) {
+        @if (pickerErrorKey()) {
+          <div
+            class="app-callout app-callout--error"
+            aria-live="polite"
+            role="status"
+          >
+            <ion-icon
+              class="app-callout__icon"
+              name="close-circle-outline"
+              aria-hidden="true"
+            ></ion-icon>
+
+            <div>
+              <div class="app-callout__title">{{ 'COMMON.ERROR' | translate }}</div>
+              <div class="app-callout__body">{{ pickerErrorKey()! | translate }}</div>
+              @if (pickerErrorIssues().length) {
+                <div class="app-callout__group-list">
+                  <div class="app-callout__group">
+                    @if (pickerErrorDiagnosisName()) {
+                      <div class="app-callout__group-title">{{ pickerErrorDiagnosisName() }}</div>
+                    }
+                    <sh-epub-diagnostic-issues
+                      [issues]="pickerErrorIssues()"
+                      [messageResolver]="issueMessageResolver"
+                      [detailsResolver]="issueDetailsResolver"
+                    ></sh-epub-diagnostic-issues>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (epubRepairRequired()) {
+          <div class="field-title">{{ 'FIX.ERRORS_FOUND_TITLE' | translate }}</div>
+          <div
+            class="app-callout app-callout--error"
+            aria-live="polite"
+            role="status"
+          >
+            <ion-icon
+              class="app-callout__icon"
+              name="close-circle-outline"
+              aria-hidden="true"
+            ></ion-icon>
+
+            <div class="app-callout__content">
+              <div class="app-callout__body app-callout__body--stacked">
+                {{ epubRepairMessageKey() | translate }}
+
+                <div class="app-callout__group-list">
+                  @for (selection of repairableEpubSelections(); track selection.id) {
+                    @if (selection.diagnosisIssues?.length) {
+                      <div class="app-callout__group">
+                        <div class="app-callout__group-title">{{ selection.selectedName }}</div>
+                        <sh-epub-diagnostic-issues
+                          [issues]="selection.diagnosisIssues!"
+                          [messageResolver]="issueMessageResolver"
+                          [detailsResolver]="issueDetailsResolver"
+                        ></sh-epub-diagnostic-issues>
+                      </div>
+                    }
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (epubFixerRecommendation(); as epubFixer) {
+          <div class="field-title field-title--separated">
+            {{ 'FIX.RECOMMEND_APP_TITLE' | translate }}
+          </div>
+          <sh-recommended-app-card
+            [appName]="epubFixerCopy.APP_NAME_EF"
+            [icon]="epubFixer.icon"
+            [description]="epubFixerCopy.APP_DESC_EF"
+            [actionLabel]="epubFixerCopy.OPEN_PLAY_STORE"
+            [actionAriaLabel]="epubFixerCopy.OPEN_PLAY_STORE"
+            (action)="openEpubFixer()"
+          ></sh-recommended-app-card>
+        }
+      }
+      }
+
+      @if (workflowStep === 1) {
+      <sh-file-picker-panel
+        [title]="'HOME.EXPORT_ORDER_TITLE' | translate"
+        [selected]="mergeSelections().length > 0"
+        [disabled]="isPicking() || isMergeActionBusy()"
+        [actionLabel]="
+          mergeSelections().length > 0
+            ? ('HOME.ADD_ANOTHER_EPUB_FILE' | translate)
+            : null
+        "
+        [actionSubline]="
+          mergeSelections().length > 0
+            ? ('HOME.FILES_SELECTED'
+              | translate: { count: mergeSelections().length })
+            : null
+        "
+        [actionPlaceholder]="null"
+        [actionAriaLabel]="'HOME.ARIA_ADD_EPUB_FILE' | translate"
+        [items]="mergePickerItems()"
         [removeEnabled]="true"
         [removeActionAriaLabel]="'COMMON.DELETE' | translate"
         [reorderEnabled]="mergeSelections().length > 1"
@@ -170,9 +286,12 @@
           [showTitle]="false"
           [imageDisabled]="isPicking() || isMergeActionBusy()"
           [scratchDisabled]="isPicking() || isMergeActionBusy()"
+          [noneDisabled]="isPicking() || isMergeActionBusy()"
+          [noneHidden]="false"
           [suggestedAction]="getCoverSourceSuggestedAction()"
           (imageSelected)="onCoverImageSelected()"
           (scratchSelected)="onCoverScratchSelected()"
+          (noneSelected)="onCoverNoneSelected()"
         ></sh-cover-source-actions>
 
         @if (shouldShowBestCandidatePicker()) {
@@ -199,21 +318,23 @@
 
       @if (workflowStep === 5) {
       <section class="merge-result-section" aria-labelledby="merge-result-title">
-        <sh-cover-image-state
-          [titleKey]="'HOME.PREVIEW_TITLE'"
-          [ariaLabelKey]="'HOME.PREVIEW_TITLE'"
-          [previewUrl]="mergeCoverPreviewUrl()"
-          [previewRevision]="mergeCoverPreviewRevision()"
-          (previewRequested)="openPreview()"
-        ></sh-cover-image-state>
+        @if (mergeCoverPreviewUrl()) {
+          <sh-cover-image-state
+            [titleKey]="'HOME.PREVIEW_TITLE'"
+            [ariaLabelKey]="'HOME.PREVIEW_TITLE'"
+            [previewUrl]="mergeCoverPreviewUrl()"
+            [previewRevision]="mergeCoverPreviewRevision()"
+            (previewRequested)="openPreview()"
+          ></sh-cover-image-state>
 
-        <sh-triple-button
-          mode="export-quality-mode"
-          [selectedValue]="getEffectiveExportQualityMode()"
-          [isPro]="adsRemoved"
-          [showProBadge]="true"
-          (selectedValueChange)="onTripleExportQualityModeSelect($event)"
-        ></sh-triple-button>
+          <sh-triple-button
+            mode="export-quality-mode"
+            [selectedValue]="getEffectiveExportQualityMode()"
+            [isPro]="adsRemoved"
+            [showProBadge]="true"
+            (selectedValueChange)="onTripleExportQualityModeSelect($event)"
+          ></sh-triple-button>
+        }
 
         <ion-button
           expand="block"
@@ -249,6 +370,91 @@
           "
           (actionSelected)="openSplitPicker()"
         ></sh-file-picker-panel>
+
+        @if (pickerErrorKey() || epubRepairRequired()) {
+          @if (pickerErrorKey()) {
+            <div
+              class="app-callout app-callout--error"
+              aria-live="polite"
+              role="status"
+            >
+              <ion-icon
+                class="app-callout__icon"
+                name="close-circle-outline"
+                aria-hidden="true"
+              ></ion-icon>
+
+              <div>
+                <div class="app-callout__title">{{ 'COMMON.ERROR' | translate }}</div>
+                <div class="app-callout__body">{{ pickerErrorKey()! | translate }}</div>
+                @if (pickerErrorIssues().length) {
+                  <div class="app-callout__group-list">
+                    <div class="app-callout__group">
+                      @if (pickerErrorDiagnosisName()) {
+                        <div class="app-callout__group-title">{{ pickerErrorDiagnosisName() }}</div>
+                      }
+                      <sh-epub-diagnostic-issues
+                        [issues]="pickerErrorIssues()"
+                        [messageResolver]="issueMessageResolver"
+                        [detailsResolver]="issueDetailsResolver"
+                      ></sh-epub-diagnostic-issues>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          @if (epubRepairRequired()) {
+            <div class="field-title">{{ 'FIX.ERRORS_FOUND_TITLE' | translate }}</div>
+            <div
+              class="app-callout app-callout--error"
+              aria-live="polite"
+              role="status"
+            >
+              <ion-icon
+                class="app-callout__icon"
+                name="close-circle-outline"
+                aria-hidden="true"
+              ></ion-icon>
+
+              <div class="app-callout__content">
+                <div class="app-callout__body app-callout__body--stacked">
+                  {{ epubRepairMessageKey() | translate }}
+
+                  <div class="app-callout__group-list">
+                    @for (selection of repairableEpubSelections(); track selection.id) {
+                      @if (selection.diagnosisIssues?.length) {
+                        <div class="app-callout__group">
+                          <div class="app-callout__group-title">{{ selection.selectedName }}</div>
+                          <sh-epub-diagnostic-issues
+                            [issues]="selection.diagnosisIssues!"
+                            [messageResolver]="issueMessageResolver"
+                            [detailsResolver]="issueDetailsResolver"
+                          ></sh-epub-diagnostic-issues>
+                        </div>
+                      }
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (epubFixerRecommendation(); as epubFixer) {
+            <div class="field-title field-title--separated">
+              {{ 'FIX.RECOMMEND_APP_TITLE' | translate }}
+            </div>
+            <sh-recommended-app-card
+              [appName]="epubFixerCopy.APP_NAME_EF"
+              [icon]="epubFixer.icon"
+              [description]="epubFixerCopy.APP_DESC_EF"
+              [actionLabel]="epubFixerCopy.OPEN_PLAY_STORE"
+              [actionAriaLabel]="epubFixerCopy.OPEN_PLAY_STORE"
+              (action)="openEpubFixer()"
+            ></sh-recommended-app-card>
+          }
+        }
       }
 
       @if (workflowStep === 1) {
@@ -420,9 +626,12 @@
             [showTitle]="false"
             [imageDisabled]="isPicking() || isMergeActionBusy()"
             [scratchDisabled]="isPicking() || isMergeActionBusy()"
+            [noneDisabled]="isPicking() || isMergeActionBusy()"
+            [noneHidden]="false"
             [suggestedAction]="getCoverSourceSuggestedAction()"
             (imageSelected)="onCoverImageSelected()"
             (scratchSelected)="onCoverScratchSelected()"
+            (noneSelected)="onCoverNoneSelected()"
           ></sh-cover-source-actions>
 
           @if (shouldShowBestCandidatePicker()) {
@@ -464,15 +673,15 @@
             {{ 'HOME.SPLIT_STEP.TITLE' | translate }}
           </div>
 
-          <sh-cover-image-state
-            [titleKey]="'HOME.PREVIEW_TITLE'"
-            [ariaLabelKey]="'HOME.PREVIEW_TITLE'"
-            [previewUrl]="mergeCoverPreviewUrl()"
-            [previewRevision]="mergeCoverPreviewRevision()"
-            (previewRequested)="openPreview()"
-          ></sh-cover-image-state>
-
           @if (mergeCoverPreviewUrl()) {
+            <sh-cover-image-state
+              [titleKey]="'HOME.PREVIEW_TITLE'"
+              [ariaLabelKey]="'HOME.PREVIEW_TITLE'"
+              [previewUrl]="mergeCoverPreviewUrl()"
+              [previewRevision]="mergeCoverPreviewRevision()"
+              (previewRequested)="openPreview()"
+            ></sh-cover-image-state>
+
             <sh-triple-button
               mode="export-quality-mode"
               [selectedValue]="getEffectiveExportQualityMode()"
@@ -507,7 +716,7 @@
           }
 
           <ion-button expand="block" fill="outline" (click)="onWorkflowPrevious()">
-            {{ 'HOME.SPLIT_STEP.BACK_TO_CONFIRM' | translate }}
+            ← {{ 'HOME.STEPPER.ADJUST' | translate }}
           </ion-button>
           <ion-button
             expand="block"
@@ -524,7 +733,7 @@
       }
     }
 
-    @if (pickerErrorKey()) {
+    @if (!selectedMode() && pickerErrorKey()) {
       <div
         class="app-callout app-callout--error"
         aria-live="polite"
@@ -539,9 +748,24 @@
         <div>
           <div class="app-callout__title">{{ 'COMMON.ERROR' | translate }}</div>
           <div class="app-callout__body">{{ pickerErrorKey()! | translate }}</div>
+          @if (pickerErrorIssues().length) {
+            <div class="app-callout__group-list">
+              <div class="app-callout__group">
+                @if (pickerErrorDiagnosisName()) {
+                  <div class="app-callout__group-title">{{ pickerErrorDiagnosisName() }}</div>
+                }
+                <sh-epub-diagnostic-issues
+                  [issues]="pickerErrorIssues()"
+                  [messageResolver]="issueMessageResolver"
+                  [detailsResolver]="issueDetailsResolver"
+                ></sh-epub-diagnostic-issues>
+              </div>
+            </div>
+          }
         </div>
       </div>
     }
+
     }
   </div>
 
@@ -576,8 +800,8 @@
       [showNext]="!operationFeedback() && showWorkflowNext"
       [previousDisabled]="isMergeActionBusy() || isResettingFlow()"
       [nextDisabled]="workflowNextDisabled || isMergeActionBusy() || isResettingFlow()"
-    [previousLabel]="workflowPreviousLabel"
-    [nextLabel]="workflowNextLabel"
+      [previousLabel]="workflowPreviousLabel"
+      [nextLabel]="workflowNextLabel"
       (previous)="onWorkflowPrevious()"
       (next)="onWorkflowNext()"
     ></sh-workflow-navigation>
@@ -598,6 +822,7 @@
     [label]="workflowLoadingLabelKey | translate"
     [notice]="'UI_THEME.SCREEN_DIM_NOTICE' | translate"
     [detail]="'UI_THEME.KEEP_APP_OPEN' | translate"
+    [progress]="diagnosisProgress()?.percent ?? null"
   ></sh-spinner>
 
   <sh-spinner

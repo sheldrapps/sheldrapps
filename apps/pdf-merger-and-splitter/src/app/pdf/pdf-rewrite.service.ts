@@ -15,19 +15,31 @@ import {
 } from './pdf-domain';
 
 type NativeResult = { success: boolean; error?: string; message?: string; stage?: string };
+type NativePreparedPdf = {
+  selectedName?: string;
+  sourceSize?: number;
+  workingNativePath?: string;
+};
+export interface NativeLocalPdf {
+  uri: string;
+  displayName: string;
+  sizeBytes: number;
+  modifiedAtMillis: number;
+}
 type NativePdfPlugin = Plugin & {
   createSession(options: { operation: PdfOperation }): Promise<NativeResult & { sessionId?: string }>;
-  pickAndPreparePdf(options: { maxBytes: number }): Promise<NativeResult & {
-    selectedName?: string;
-    sourceSize?: number;
-    workingNativePath?: string;
-  }>;
+  pickAndPreparePdf(options: { maxBytes: number; multiple?: boolean }): Promise<NativeResult & NativePreparedPdf & { files?: NativePreparedPdf[] }>;
   importPdf(options: { sessionId: string; sourceUri: string; maxBytes: number }): Promise<NativeResult & { pdfId?: string; displayName?: string; sizeBytes?: number; nativePath?: string }>;
   analyzePdf(options: { sessionId: string; pdfId: string }): Promise<NativeResult & PdfAnalysis>;
   mergePdf(options: { sessionId: string; pdfIds: string[]; displayNames: string[]; bookmarkMode: string; outputName: string; coverImageUri?: string; coverQuality?: number }): Promise<NativeResult & PdfOperationResult>;
   splitPdf(options: { sessionId: string; pdfId: string; outputs: unknown[]; coverImageUri?: string; coverQuality?: number }): Promise<NativeResult & PdfOperationResult>;
   cancelOperation(): Promise<NativeResult>;
   cleanupSession(options: { sessionId: string }): Promise<NativeResult>;
+  listLocalPdfs(): Promise<NativeResult & { files?: NativeLocalPdf[] }>;
+  renameLocalPdf(options: { uri: string; displayName: string }): Promise<NativeResult & NativeLocalPdf>;
+  deleteLocalPdf(options: { uri: string }): Promise<NativeResult & { uri?: string }>;
+  openLocalPdf(options: { uri: string }): Promise<NativeResult>;
+  shareLocalPdf(options: { uri: string; title: string }): Promise<NativeResult>;
 };
 
 const PdfRewrite = registerPlugin<NativePdfPlugin>('PdfRewritePlugin');
@@ -85,6 +97,32 @@ export class PdfRewriteNativeService implements PdfRewriteService {
     };
   }
 
+  async pickAndImportPdfs(sessionId: string): Promise<SelectedPdf[]> {
+    if (!this.isNativeSupported()) {
+      throw new PdfRewriteError('NATIVE_PICK_REQUIRED');
+    }
+    const prepared = await PdfRewrite.pickAndPreparePdf({
+      maxBytes: MAX_PDF_SIZE_BYTES,
+      multiple: true,
+    });
+    if (!prepared.success || !prepared.files?.length) {
+      this.throwResult(prepared);
+    }
+
+    const imported: SelectedPdf[] = [];
+    for (const file of prepared.files) {
+      if (!file.workingNativePath) {
+        throw new PdfRewriteError('PDF_CORRUPT');
+      }
+      const pdf = await this.importNativePdf(sessionId, file.workingNativePath);
+      imported.push({
+        ...pdf,
+        displayName: file.selectedName || pdf.displayName,
+      });
+    }
+    return imported;
+  }
+
   async analyzePdf(sessionId: string, pdfId: string): Promise<PdfAnalysis> {
     if (Capacitor.getPlatform() === 'web') {
       const file = this.webSessions.get(sessionId)?.files.get(pdfId);
@@ -98,7 +136,12 @@ export class PdfRewriteNativeService implements PdfRewriteService {
     }
     const result = await PdfRewrite.analyzePdf({ sessionId, pdfId });
     if (!result.success) this.throwResult(result);
-    return { pageCount: result.pageCount, pages: result.pages ?? [], bookmarks: result.bookmarks ?? [] };
+    return {
+      pageCount: result.pageCount,
+      pages: result.pages ?? [],
+      bookmarks: result.bookmarks ?? [],
+      warnings: result.warnings ?? [],
+    };
   }
 
   async mergePdf(request: MergePdfRequest): Promise<PdfOperationResult> {
@@ -131,6 +174,53 @@ export class PdfRewriteNativeService implements PdfRewriteService {
       return;
     }
     const result = await PdfRewrite.cleanupSession({ sessionId });
+    if (!result.success) this.throwResult(result);
+  }
+
+  async listLocalPdfs(): Promise<NativeLocalPdf[]> {
+    if (!this.isNativeSupported()) return [];
+    const result = await PdfRewrite.listLocalPdfs();
+    if (!result.success) this.throwResult(result);
+    return result.files ?? [];
+  }
+
+  async renameLocalPdf(uri: string, displayName: string): Promise<NativeLocalPdf> {
+    if (!this.isNativeSupported()) throw new PdfRewriteError('NATIVE_PDF_LIBRARY_REQUIRED');
+    const result = await PdfRewrite.renameLocalPdf({ uri, displayName });
+    if (!result.success || !result.uri || !result.displayName || typeof result.sizeBytes !== 'number') {
+      this.throwResult(result);
+    }
+    return {
+      uri: result.uri,
+      displayName: result.displayName,
+      sizeBytes: result.sizeBytes,
+      modifiedAtMillis: result.modifiedAtMillis ?? Date.now(),
+    };
+  }
+
+  async deleteLocalPdf(uri: string): Promise<void> {
+    if (!this.isNativeSupported()) throw new PdfRewriteError('NATIVE_PDF_LIBRARY_REQUIRED');
+    const result = await PdfRewrite.deleteLocalPdf({ uri });
+    if (!result.success) this.throwResult(result);
+  }
+
+  async openLocalPdf(uri: string): Promise<void> {
+    if (!this.isNativeSupported()) {
+      if (typeof window !== 'undefined') window.open(uri, '_blank');
+      return;
+    }
+    const result = await PdfRewrite.openLocalPdf({ uri });
+    if (!result.success) this.throwResult(result);
+  }
+
+  async shareLocalPdf(uri: string, title: string): Promise<void> {
+    if (!this.isNativeSupported()) {
+      if (typeof navigator !== 'undefined' && 'share' in navigator) {
+        await navigator.share({ title, url: uri });
+      }
+      return;
+    }
+    const result = await PdfRewrite.shareLocalPdf({ uri, title });
     if (!result.success) this.throwResult(result);
   }
   addProgressListener(listener: (event: { phase: string; percent: number; completed: number; total: number }) => void): Promise<PluginListenerHandle> {
@@ -181,7 +271,7 @@ export class PdfRewriteNativeService implements PdfRewriteService {
       pageCount: analysis.pageCount,
       analysis,
       analysisStatus: 'ready',
-      warnings: [],
+      warnings: analysis.warnings ?? [],
     };
   }
 

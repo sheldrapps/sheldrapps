@@ -8,8 +8,13 @@ import {
 import {
   normalizeEpubDiagnosticIssue,
   type EpubDiagnosticIssue,
+  type EpubDiagnosticMode,
+  type EpubDiagnosticPage,
+  type EpubDiagnosticResult,
+  type EpubDiagnosticSummary,
   type EpubDiagnosticStatus,
 } from './epub-fixer.port';
+import { EpubDiagnosticQueue } from './epub-diagnostic-queue';
 
 type InspectEpubResult = {
   success: boolean;
@@ -24,8 +29,19 @@ type InspectEpubResult = {
 
 type DiagnoseEpubResult = {
   success: boolean;
+  diagnosisId?: string;
   status?: EpubDiagnosticStatus;
   issues?: EpubDiagnosticIssue[];
+  summary?: EpubDiagnosticSummary;
+  page?: {
+    items?: EpubDiagnosticIssue[];
+    total?: number;
+    nextCursor?: string;
+  };
+  mode?: EpubDiagnosticMode;
+  coverage?: 'complete' | 'limited';
+  metrics?: EpubDiagnosticResult['metrics'];
+  limit?: EpubDiagnosticResult['limit'];
   error?: string;
   message?: string;
   stage?: string;
@@ -176,7 +192,11 @@ type PickAndPrepareEpubsResult = {
 
 export type EpubOperationPhase =
   | 'preparing'
+  | 'diagnosing'
   | 'analyzing'
+  | 'content'
+  | 'links'
+  | 'finalizing'
   | 'writing'
   | 'validating'
   | 'completed';
@@ -208,6 +228,7 @@ export type EpubMergeOptions = {
   outputName: string;
   tocMode: 'books-and-chapters' | 'books-only' | 'full-index';
   coverPath?: string;
+  removeSourceCover?: boolean;
 };
 
 export type EpubMergePreflight = {
@@ -238,6 +259,7 @@ export type EpubSplitOptions = {
   inputPath: string;
   outputs: readonly EpubSplitOutput[];
   coverPath?: string;
+  removeSourceCover?: boolean;
 };
 
 export type EpubSplitResult = {
@@ -349,9 +371,28 @@ type EpubRewritePlugin = Plugin & {
     options: PickAndPrepareEpubOptions,
   ): Promise<PickAndPrepareEpubsResult>;
   inspectEpub(options: { inputPath: string }): Promise<InspectEpubResult>;
-  diagnoseEpub(options: { sessionId: string }): Promise<DiagnoseEpubResult>;
+  diagnoseEpub(options: {
+    sessionId: string;
+    mode?: EpubDiagnosticMode;
+  }): Promise<DiagnoseEpubResult>;
+  getDiagnosisIssues(options: {
+    sessionId: string;
+    diagnosisId: string;
+    cursor?: string;
+    pageSize?: number;
+  }): Promise<{
+    success: boolean;
+    diagnosisId?: string;
+    items?: EpubDiagnosticIssue[];
+    total?: number;
+    nextCursor?: string;
+    error?: string;
+    message?: string;
+    stage?: string;
+  }>;
   repairEpub(options: {
     sessionId: string;
+    diagnosisId?: string;
     preferredOpfPath?: string;
     guidedSelections?: Record<string, string>;
   }): Promise<RepairEpubResult>;
@@ -431,6 +472,8 @@ export class EpubRewriteError extends Error {
 
 @Injectable({ providedIn: 'root' })
 export class EpubRewriteService {
+  private readonly diagnoseQueue = new EpubDiagnosticQueue();
+
   isSupported(): boolean {
     return (
       Capacitor.getPlatform() === 'android' &&
@@ -634,8 +677,8 @@ export class EpubRewriteService {
       });
     }
 
-    return Promise.all(
-      result.items.map(async (item) => {
+    const preparedItems: Awaited<ReturnType<EpubRewriteService['pickAndPrepareEpub']>>[] = [];
+    for (const item of result.items) {
         const prepared = this.requirePreparedResult(
           item,
           item.selectedName ?? item.originalName,
@@ -650,7 +693,7 @@ export class EpubRewriteService {
           );
         }
 
-        return {
+        preparedItems.push({
           sessionId: prepared.sessionId,
           originalName: prepared.originalName,
           originalSize: prepared.originalSize,
@@ -665,21 +708,28 @@ export class EpubRewriteService {
           outputBaseName: prepared.outputBaseName || '',
           coverEntryPath: item.coverEntryPath,
           file,
-        };
-      }),
-    );
+        });
+    }
+
+    return preparedItems;
   }
 
   async inspectEpub(inputPath: string): Promise<InspectEpubResult> {
     return EpubRewrite.inspectEpub({ inputPath });
   }
 
-  async diagnose(sessionId: string): Promise<{
-    sessionId: string;
-    status: 'valid' | 'repairable' | 'unsupported' | 'failed';
-    issues: NonNullable<DiagnoseEpubResult['issues']>;
-  }> {
-    const result = await EpubRewrite.diagnoseEpub({ sessionId });
+  async diagnose(
+    sessionId: string,
+    mode: EpubDiagnosticMode = 'deep',
+  ): Promise<EpubDiagnosticResult> {
+    return this.diagnoseQueue.run(() => this.runDiagnosis(sessionId, mode));
+  }
+
+  private async runDiagnosis(
+    sessionId: string,
+    mode: EpubDiagnosticMode,
+  ): Promise<EpubDiagnosticResult> {
+    const result = await EpubRewrite.diagnoseEpub({ sessionId, mode });
     if (!result.success || !result.status || !result.issues) {
       throw new EpubRewriteError(result.error ?? 'DIAGNOSE_FAILED', {
         message: result.message,
@@ -689,13 +739,57 @@ export class EpubRewriteService {
 
     return {
       sessionId,
+      diagnosisId: result.diagnosisId,
       status: result.status,
       issues: result.issues.map((issue) => normalizeEpubDiagnosticIssue(issue)),
+      summary: result.summary,
+      page: result.page
+        ? {
+            items: (result.page.items ?? []).map((issue) =>
+              normalizeEpubDiagnosticIssue(issue),
+            ),
+            total: result.page.total ?? 0,
+            nextCursor: result.page.nextCursor,
+          }
+        : undefined,
+      mode: result.mode ?? mode,
+      coverage: result.coverage ?? 'complete',
+      metrics: result.metrics,
+      limit: result.limit,
     };
+  }
+
+  async getDiagnosisIssues(
+    sessionId: string,
+    diagnosisId: string,
+    cursor?: string,
+    pageSize?: number,
+  ): Promise<EpubDiagnosticPage & { diagnosisId: string }> {
+    return this.diagnoseQueue.run(async () => {
+      const result = await EpubRewrite.getDiagnosisIssues({
+        sessionId,
+        diagnosisId,
+        cursor,
+        pageSize,
+      });
+      if (!result.success || !result.diagnosisId || !result.items) {
+        throw new EpubRewriteError(result.error ?? 'DIAGNOSE_PAGE_FAILED', {
+          message: result.message,
+          stage: result.stage,
+        });
+      }
+      return {
+        diagnosisId: result.diagnosisId,
+        items: result.items.map((issue) => normalizeEpubDiagnosticIssue(issue)),
+        total: result.total ?? 0,
+        nextCursor: result.nextCursor,
+      };
+    });
   }
 
   async repair(
     sessionId: string,
+    diagnosisId?: string,
     preferredOpfPath?: string,
     guidedSelections?: Record<string, string>,
   ): Promise<{
@@ -704,6 +798,7 @@ export class EpubRewriteService {
   }> {
     const result = await EpubRewrite.repairEpub({
       sessionId,
+      diagnosisId,
       preferredOpfPath,
       guidedSelections,
     });

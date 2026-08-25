@@ -43,7 +43,13 @@
     "EDIT_PROJECT_COPY_DESC": "Keep the original file and edit a new copy."
   },
   "FIX": {
+    "MODE_TITLE": "Choose a mode",
+    "MODE_SINGLE_FILE": "Single file",
+    "MODE_SINGLE_FILE_DESCRIPTION": "Work with one file at a time.",
+    "MODE_MULTIPLE_FILES": "Multiple files",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "Choose multiple files for simultaneous repair.",
     "STEPPER": {
+      "MODE": "Mode",
       "LOAD": "Load",
       "CONFIRM": "Confirm",
       "FIX": "Fix"
@@ -51,6 +57,16 @@
     "TITLE": "Fix",
     "SELECT_EPUB_LABEL": "EPUB file",
     "EPUB_FILE_TITLE": "EPUB file",
+    "ADD_ANOTHER_EPUB": "Add another EPUB",
+    "FILES_SELECTED": "{{count}} files selected",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "Choose one or more EPUB files to inspect",
+    "ARIA_SELECT_EPUB_FILES": "Select multiple EPUB files",
+    "SELECTED_FILES_TITLE": "Selected files",
+    "ADD_ANOTHER_EPUB": "Add another EPUB",
+    "FILES_SELECTED": "{{count}} files selected",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "Choose one or more EPUB files to inspect",
+    "ARIA_SELECT_EPUB_FILES": "Select multiple EPUB files",
+    "SELECTED_FILES_TITLE": "Selected files",
     "EPUB_FILE_LIMITS": "EPUB format (.epub) · Maximum {{maxSize}} MB",
     "SELECT_EPUB_PLACEHOLDER": "Choose an EPUB to inspect",
     "ACTION_SELECT_EPUB": "Select EPUB",
@@ -78,6 +94,7 @@
     "ACTION_REPAIR": "Fix",
     "ACTION_RESOLVE": "Resolve",
     "CONFIRMATION_CHECKBOX": "Confirm this fix",
+    "CONFIRM_ALL": "Confirm all",
     "ACTION_EXPORT": "Fix",
     "RENAME_ACTION": "Rename",
     "RENAMED_OK": "EPUB renamed",

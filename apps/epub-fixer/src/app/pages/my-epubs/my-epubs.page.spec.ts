@@ -1,6 +1,14 @@
+import { signal } from '@angular/core';
+
 import { MyEpubsPage } from './my-epubs.page';
 
 describe('MyEpubsPage', () => {
+  beforeEach(() => {
+    Object.assign(MyEpubsPage.prototype, {
+      loadingState: signal(true),
+    });
+  });
+
   it('treats an empty EPUB library as an empty state', async () => {
     const listEpubs = jasmine.createSpy('listEpubs').and.resolveTo([]);
 

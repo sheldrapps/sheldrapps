@@ -24,15 +24,13 @@ interface PdfSplitBookmarkNode extends PdfSplitBookmarkOption {
 
 export interface PdfSplitPlanRequest {
   analysis: PdfAnalysis | null | undefined;
-  sourceSizeBytes: number;
-  coverSizeBytes?: number;
   method: PdfSplitMethod;
   bookmarkMode: PdfSplitBookmarkMode;
   manualMode: PdfManualSplitMode;
   manualBookmarkIds: readonly string[];
   manualPageInput: string;
   equalParts: number;
-  maximumSizeMb: number;
+  maximumPagesPerFile: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -80,7 +78,6 @@ export class PdfSplitPlannerService {
     const pageCount = request.analysis?.pageCount ?? 0;
     if (pageCount < 1) return [];
 
-    const coverSizeBytes = Math.max(0, request.coverSizeBytes ?? 0);
     const outputs = (() => {
     switch (request.method) {
       case 'bookmarks':
@@ -89,20 +86,12 @@ export class PdfSplitPlannerService {
         return this.buildManualOutputs(pageCount, request);
       case 'equal-number-of-parts':
         return this.buildEqualOutputs(pageCount, request.equalParts);
-      case 'maximum-file-size':
-        return this.buildMaximumSizeOutputs(pageCount, request.sourceSizeBytes, request.maximumSizeMb, coverSizeBytes);
+      case 'maximum-pages-per-file':
+        return this.buildMaximumPagesOutputs(pageCount, request.maximumPagesPerFile);
     }
     })();
 
-    return outputs.map((output) => {
-      const bookSizeBytes = Math.max(0, Math.round(request.sourceSizeBytes * output.pageCount / pageCount));
-      return {
-        ...output,
-        bookSizeBytes,
-        coverSizeBytes,
-        estimatedSizeBytes: bookSizeBytes + coverSizeBytes,
-      };
-    });
+    return outputs;
   }
 
   parseManualPageSize(input: string, pageCount: number): number | null {
@@ -208,30 +197,16 @@ export class PdfSplitPlannerService {
     });
   }
 
-  private buildMaximumSizeOutputs(
+  private buildMaximumPagesOutputs(
     pageCount: number,
-    sourceSizeBytes: number,
-    maximumSizeMb: number,
-    coverSizeBytes: number,
+    maximumPagesPerFile: number,
   ): PdfSplitOutputPlan[] {
-    const maximumBytes = Math.max(1, maximumSizeMb) * 1024 * 1024;
-    const estimatedPageBytes = Math.max(1, sourceSizeBytes / pageCount);
-    const maximumBookBytes = Math.max(1, maximumBytes - coverSizeBytes);
-    const outputs: PdfSplitOutputPlan[] = [];
-    let start = 0;
-    let accumulatedBytes = 0;
-
-    for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
-      if (pageIndex > start && accumulatedBytes + estimatedPageBytes > maximumBookBytes) {
-        outputs.push(this.outputFromRange(outputs.length + 1, start, pageIndex - 1));
-        start = pageIndex;
-        accumulatedBytes = 0;
-      }
-      accumulatedBytes += estimatedPageBytes;
-    }
-
-    outputs.push(this.outputFromRange(outputs.length + 1, start, pageCount - 1));
-    return outputs;
+    const pagesPerFile = Math.max(1, Math.min(Math.floor(maximumPagesPerFile), pageCount));
+    return Array.from({ length: Math.ceil(pageCount / pagesPerFile) }, (_, index) => {
+      const start = index * pagesPerFile;
+      const end = Math.min(pageCount - 1, start + pagesPerFile - 1);
+      return this.outputFromRange(index + 1, start, end);
+    });
   }
 
   private outputFromRange(

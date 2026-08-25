@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 
@@ -9,8 +10,8 @@ android {
         applicationId "com.sheldrapps.pdfcovermaker"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 30
-        versionName "Reliable PDF covers"
+        versionCode 31
+        versionName "PDF cover export reliability"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -18,22 +19,37 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    def signingKeystore = new File(System.getProperty('user.home'), '.sheldrapps/android-signing/pcm/upload.keystore')
+    def signingPassword = providers.gradleProperty('PCM_SIGNING_PASSWORD').orNull
     signingConfigs {
         release {
-            storeFile file(MYAPP_UPLOAD_STORE_FILE)
-            storePassword MYAPP_UPLOAD_STORE_PASSWORD
-            keyAlias MYAPP_UPLOAD_KEY_ALIAS
-            keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+            storeFile signingKeystore
+            storePassword signingPassword
+            keyAlias 'pdfcovermaker'
+            keyPassword signingPassword
         }
     }
     buildTypes {
         release {
             minifyEnabled false
-            signingConfig = signingConfigs.release
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             ndk {
                 debugSymbolLevel = 'FULL'
             }
+        }
+    }
+}
+
+tasks.matching { task -> task.name == 'preReleaseBuild' }.configureEach {
+    doFirst {
+        def password = project.providers.gradleProperty('PCM_SIGNING_PASSWORD').orNull
+        def keystore = new File(System.getProperty('user.home'), '.sheldrapps/android-signing/pcm/upload.keystore')
+        if (password == null || password.toString().trim().isEmpty() || !keystore.isFile()) {
+            def missing = []
+            if (password == null || password.toString().trim().isEmpty()) missing << 'PCM_SIGNING_PASSWORD in ~/.gradle/gradle.properties'
+            if (!keystore.isFile()) missing << keystore.path
+            throw new GradleException("PCM release signing is not configured: ${missing.join(', ')}")
         }
     }
 }

@@ -26,7 +26,8 @@ public final class PdfDocumentInspector {
             for (int index=0; index<document.getNumberOfPages(); index++) { PDPage page=document.getPage(index); PDRectangle box=page.getCropBox()==null?page.getMediaBox():page.getCropBox(); JSObject p=new JSObject(); p.put("pageIndex", index); p.put("widthPoints", box.getWidth()); p.put("heightPoints", box.getHeight()); p.put("rotation", page.getRotation()); pages.put(p); }
             result.put("pages", pages);
             result.put("bookmarks", readBookmarks(document));
-            result.put("pageLabels", document.getDocumentCatalog().getCOSObject().getDictionaryObject(COSName.PAGE_LABELS) != null);
+            boolean hasPageLabels = document.getDocumentCatalog().getCOSObject().getDictionaryObject(COSName.PAGE_LABELS) != null;
+            result.put("pageLabels", hasPageLabels);
             result.put("hasAcroForm", document.getDocumentCatalog().getAcroForm() != null);
             COSDictionary catalog = document.getDocumentCatalog().getCOSObject();
             result.put("hasSignatures", catalog.getDictionaryObject(COSName.ACRO_FORM) != null && document.getSignatureDictionaries().size() > 0);
@@ -34,6 +35,7 @@ public final class PdfDocumentInspector {
             AccessPermission permissions = document.getCurrentAccessPermission(); JSObject rights = new JSObject(); rights.put("canPrint", permissions.canPrint()); rights.put("canModify", permissions.canModify()); rights.put("canExtract", permissions.canExtractContent()); result.put("permissions", rights);
             if (document.getDocumentCatalog().getAcroForm() != null) warnings.put("ACROFORM_NOT_RECONSTRUCTED");
             if (document.getSignatureDictionaries().size() > 0) warnings.put("SIGNATURES_INVALIDATED_BY_REWRITE");
+            if (hasPageLabels) warnings.put("PAGE_LABELS_REQUIRE_MANUAL_REBUILD");
             result.put("warnings", warnings);
             return result;
         } catch (InvalidPasswordException error) { throw new PdfOperationException("PDF_PASSWORD_REQUIRED", "analyze", error); }

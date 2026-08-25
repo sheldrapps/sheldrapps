@@ -1,51 +1,51 @@
 <en-US>
-Merge and split EPUB files with clearer phase progress, safer handling for long jobs, and a clean reset when returning to the library.
+Web merge and split now create cover-only EPUBs with the expected names, and the library keeps the final cards clear of the tab bar.
 </en-US>
 
 <ar>
-ادمج ملفات EPUB وقسّمها مع تقدم أوضح لكل مرحلة، ومعالجة أكثر أمانًا للعمليات الطويلة، وإعادة ضبط كاملة عند العودة إلى المكتبة.
+ينشئ الدمج والتقسيم على الويب الآن ملفات EPUB تحتوي على الغلاف فقط وبالأسماء المتوقعة، كما تبقي المكتبة البطاقات الأخيرة واضحة فوق شريط التبويب.
 </ar>
 
 <de-DE>
-EPUB-Dateien lassen sich mit klarerem Fortschritt pro Phase und sichererem Umgang mit langen Vorgängen zusammenführen und teilen. Beim Zurückkehren zur Bibliothek wird der Ablauf vollständig zurückgesetzt.
+Zusammenführen und Teilen im Web erzeugen jetzt EPUBs nur mit dem Cover und den erwarteten Namen. Die letzten Karten bleiben dabei über der Tab-Leiste sichtbar.
 </de-DE>
 
 <es-419>
-Une y divide archivos EPUB con progreso más claro por etapa, mayor seguridad en procesos largos y un reinicio completo al volver a la biblioteca.
+Merge y split en la web ahora generan EPUB con solo la portada y los nombres esperados, mientras la biblioteca mantiene visibles las últimas tarjetas sobre las tabs.
 </es-419>
 
 <fr-FR>
-Fusionnez et divisez des fichiers EPUB avec une progression plus claire par étape, une gestion plus sûre des opérations longues et une réinitialisation complète au retour dans la bibliothèque.
+La fusion et la division sur le web créent désormais des EPUB contenant uniquement la couverture avec les noms attendus, tandis que les dernières cartes restent visibles au-dessus de la barre d’onglets.
 </fr-FR>
 
 <hi-IN>
-हर चरण की अधिक स्पष्ट प्रगति के साथ EPUB फ़ाइलों को मर्ज और स्प्लिट करें, लंबे कार्यों को अधिक सुरक्षित रूप से संभालें और लाइब्रेरी पर लौटते समय पूरा प्रवाह रीसेट करें।
+वेब पर मर्ज और स्प्लिट अब अपेक्षित नामों के साथ केवल कवर वाले EPUB बनाते हैं, और लाइब्रेरी में आखिरी कार्ड टैब बार के ऊपर स्पष्ट दिखाई देते हैं।
 </hi-IN>
 
 <it-IT>
-Unisci e dividi file EPUB con un avanzamento più chiaro per ogni fase, una gestione più sicura delle operazioni lunghe e un ripristino completo tornando alla libreria.
+Sul web, unione e divisione ora creano EPUB con la sola copertina e i nomi previsti, mentre nella libreria le ultime schede restano visibili sopra la barra delle schede.
 </it-IT>
 
 <ja-JP>
-各段階の進行状況がより分かりやすくなり、長時間の処理をより安全に実行できます。ライブラリに戻るとフロー全体が完全にリセットされます。
+Webでの結合と分割が、期待される名前で表紙だけを含むEPUBを生成するようになりました。ライブラリの最後のカードもタブバーに隠れず表示されます。
 </ja-JP>
 
 <ko-KR>
-단계별 진행 상황이 더 명확해졌고, 긴 작업을 더 안전하게 처리하며, 라이브러리로 돌아갈 때 전체 흐름이 완전히 초기화됩니다.
+웹 병합 및 분할이 이제 예상된 이름으로 표지만 포함한 EPUB을 생성하며, 라이브러리의 마지막 카드도 탭 바에 가려지지 않고 표시됩니다.
 </ko-KR>
 
 <pt-BR>
-Una e divida arquivos EPUB com progresso mais claro em cada etapa, maior segurança em operações longas e redefinição completa ao voltar para a biblioteca.
+No navegador, mesclar e dividir agora criam EPUBs somente com a capa e os nomes esperados, enquanto os últimos cards da biblioteca ficam visíveis acima da barra de abas.
 </pt-BR>
 
 <ru-RU>
-Объединяйте и разделяйте EPUB с более понятным прогрессом по этапам, безопасной обработкой длительных операций и полной очисткой процесса при возврате в библиотеку.
+В веб-версии объединение и разделение теперь создают EPUB только с обложкой и ожидаемыми именами, а последние карточки библиотеки остаются видимыми над панелью вкладок.
 </ru-RU>
 
 <zh-CN>
-合并和拆分 EPUB 文件时，每个阶段的进度更加清晰，长时间操作更加安全；返回书库时会完整重置流程。
+网页版的合并和拆分现在会按预期名称生成仅包含封面的 EPUB，同时书库中的最后几张卡片也不会被标签栏遮挡。
 </zh-CN>
 
 <zh-TW>
-合併與分割 EPUB 檔案時，每個階段的進度更加清楚，長時間操作更加安全；返回圖書館時會完整重設流程。
+網頁版的合併與分割現在會依預期名稱產生僅包含封面的 EPUB，同時書庫中的最後幾張卡片也不會被分頁列遮擋。
 </zh-TW>

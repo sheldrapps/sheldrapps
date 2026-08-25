@@ -8,6 +8,9 @@
 
 .fix-page__stack {
   width: min(100%, 680px);
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   margin-inline: auto;
   display: grid;
   gap: var(--fix-page-stack-gap);
@@ -17,9 +20,42 @@
     calc(var(--app-space-10) + var(--app-space-9));
 }
 
+.fix-page__stack > *,
+.fix-file-section,
+.fix-issue-sections,
+.fix-issue-section,
+sh-section-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .fix-file-section {
   display: grid;
   gap: var(--app-space-3);
+}
+
+.fix-mode-section {
+  display: grid;
+  gap: var(--app-space-4);
+}
+
+.fix-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--app-space-4);
+}
+
+.fix-mode-card {
+  position: relative;
+  min-width: 0;
+}
+
+.fix-mode-card__badge {
+  position: absolute;
+  z-index: 1;
+  top: var(--app-space-3);
+  inset-inline-end: var(--app-space-3);
+  pointer-events: none;
 }
 
 .fix-file-section .app-file-selector-surface {
@@ -27,6 +63,8 @@
 }
 
 sh-section-card {
+  display: block;
+  width: 100%;
   --sh-section-card-gap: var(--app-space-4);
   --sh-section-card-surface-gap: var(--app-space-5);
   --sh-section-card-surface-padding-x: var(--app-space-9);
@@ -177,6 +215,7 @@ sh-section-card {
   border-radius: var(--app-radius-md);
   border: 1px solid var(--app-divider);
   background: rgba(var(--ion-color-step-50-rgb), 0.3);
+  min-width: 0;
 }
 
 .fix-diagnosis-summary__severity-chip--critical {
@@ -235,6 +274,8 @@ sh-section-card {
   font-size: var(--app-text-sm);
   line-height: 1.25;
   color: var(--app-text-secondary);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .fix-primary-action {
@@ -242,21 +283,23 @@ sh-section-card {
   gap: var(--app-space-3);
 }
 
-.fix-issue-cluster {
-  display: grid;
-  gap: var(--app-space-4);
-  padding: var(--app-space-5);
-  border-radius: var(--app-radius-lg);
-  border: 1px solid var(--app-divider);
-  background: rgba(var(--ion-color-step-50-rgb), 0.28);
+.fix-confirm-all-row:focus-within::part(native),
+.fix-confirm-all-row.ion-focused::part(native) {
+  box-shadow: none;
 }
 
-.fix-issue-cluster-list {
+.fix-issue-section {
   display: grid;
   gap: var(--app-space-4);
 }
 
-.fix-issue-cluster__label {
+.fix-issue-sections {
+  display: grid;
+  gap: var(--app-space-6);
+}
+
+.fix-issue-section__label {
+  margin: 0;
   font-size: var(--app-text-sm);
   font-weight: var(--app-font-semibold);
   line-height: 1.25;
@@ -279,6 +322,59 @@ sh-section-card {
   gap: var(--app-space-3);
   align-items: start;
   padding: 0;
+}
+
+.fix-issue-list__group {
+  display: grid;
+  gap: var(--app-space-3);
+  padding: 0;
+}
+
+.fix-issue-list__group-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--app-space-2);
+  align-items: center;
+}
+
+.fix-issue-list__toggle {
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: 0;
+  color: var(--app-text-secondary);
+}
+
+.fix-issue-list__toggle ion-icon {
+  font-size: 1.1rem;
+}
+
+.fix-issue-list__count {
+  display: inline-flex;
+  min-width: 1.6em;
+  margin-inline-end: var(--app-space-1);
+  justify-content: center;
+  color: var(--app-text-primary);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--app-font-semibold);
+}
+
+.fix-issue-list__children {
+  display: grid;
+  gap: var(--app-space-3);
+  margin: 0;
+  padding: 0 0 0 calc(1.75rem + var(--app-space-2));
+  list-style: none;
+}
+
+.fix-issue-list__child {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--app-space-3);
+  align-items: start;
 }
 
 .fix-issue-list__item[data-severity='critical'] {

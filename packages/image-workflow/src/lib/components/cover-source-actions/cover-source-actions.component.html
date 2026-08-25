@@ -49,6 +49,20 @@
       ></sh-action-card>
     </ion-col>
     }
+
+    @if (!noneHidden) {
+    <ion-col>
+      <sh-action-card
+        [title]="'COVER_SOURCE.ACTIONS.NONE' | translate"
+        [description]="'COVER_SOURCE.DESCRIPTIONS.NONE' | translate"
+        icon="close-circle-outline"
+        [disabled]="noneDisabled"
+        [suggested]="isSuggestedAction('none')"
+        (click)="onSelectNone()"
+        [ariaLabel]="'COVER_SOURCE.ARIA.SELECT_NONE' | translate"
+      ></sh-action-card>
+    </ion-col>
+    }
   </ion-row>
 </ion-grid>
 }

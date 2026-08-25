@@ -5,6 +5,8 @@ import {
   EpubFixerPort,
   EpubFixerPortError,
   type EpubDiagnosticResult,
+  type EpubDiagnosticMode,
+  type EpubDiagnosticPage,
   type EpubExportResult,
   type EpubRepairResult,
   type PrepareEpubInput,
@@ -40,17 +42,36 @@ export class NativeEpubFixerAdapter implements EpubFixerPort {
     };
   }
 
-  diagnose(_input: { sessionId: string }): Promise<EpubDiagnosticResult> {
-    return this.native.diagnose(_input.sessionId);
+  diagnose(_input: {
+    sessionId: string;
+    mode?: EpubDiagnosticMode;
+  }): Promise<EpubDiagnosticResult> {
+    return this.native.diagnose(_input.sessionId, _input.mode);
+  }
+
+  getDiagnosisIssues(_input: {
+    sessionId: string;
+    diagnosisId: string;
+    cursor?: string;
+    pageSize?: number;
+  }): Promise<EpubDiagnosticPage & { diagnosisId: string }> {
+    return this.native.getDiagnosisIssues(
+      _input.sessionId,
+      _input.diagnosisId,
+      _input.cursor,
+      _input.pageSize,
+    );
   }
 
   repair(_input: {
     sessionId: string;
+    diagnosisId?: string;
     preferredOpfPath?: string;
     guidedSelections?: Record<string, string>;
   }): Promise<EpubRepairResult> {
     return this.native.repair(
       _input.sessionId,
+      _input.diagnosisId,
       _input.preferredOpfPath,
       _input.guidedSelections,
     );

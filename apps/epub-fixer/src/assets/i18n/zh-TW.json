@@ -43,7 +43,13 @@
     "EDIT_PROJECT_COPY_DESC": "保留原始檔案，並編輯一份新副本。"
   },
   "FIX": {
+    "MODE_TITLE": "選擇模式",
+    "MODE_SINGLE_FILE": "單一檔案",
+    "MODE_SINGLE_FILE_DESCRIPTION": "一次處理一個檔案。",
+    "MODE_MULTIPLE_FILES": "多個檔案",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "選擇多個檔案，同時進行修復。",
     "STEPPER": {
+      "MODE": "模式",
       "LOAD": "載入",
       "CONFIRM": "確認",
       "FIX": "修復"
@@ -51,6 +57,11 @@
     "TITLE": "修復",
     "SELECT_EPUB_LABEL": "EPUB 檔案",
     "EPUB_FILE_TITLE": "EPUB 檔案",
+    "ADD_ANOTHER_EPUB": "新增另一個 EPUB",
+    "FILES_SELECTED": "已選取 {{count}} 個檔案",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "選擇一個或多個要檢查的 EPUB 檔案",
+    "ARIA_SELECT_EPUB_FILES": "選取多個 EPUB 檔案",
+    "SELECTED_FILES_TITLE": "已選檔案",
     "EPUB_FILE_LIMITS": "EPUB 格式（.epub）· 最大 {{maxSize}} MB",
     "SELECT_EPUB_PLACEHOLDER": "選擇要檢查的 EPUB",
     "ACTION_SELECT_EPUB": "選擇 EPUB",
@@ -77,6 +88,7 @@
     "ACTION_DIAGNOSE": "診斷 EPUB",
     "ACTION_REPAIR": "修復",
     "CONFIRMATION_CHECKBOX": "確認此修正",
+    "CONFIRM_ALL": "全部確認",
     "ACTION_EXPORT": "修復",
     "RENAME_ACTION": "重新命名",
     "RENAMED_OK": "EPUB 已重新命名",

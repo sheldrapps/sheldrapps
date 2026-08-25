@@ -1,8 +1,82 @@
 import { ProjectSaveState } from '@sheldrapps/image-workflow/editor';
+import { signal } from '@angular/core';
 import { ChangePage } from './change.page';
 import { Capacitor } from '@capacitor/core';
 
 describe('ChangePage', () => {
+  it('allows continuing from repairable EPUB diagnostics to the cover step', async () => {
+    const ctx = Object.assign(Object.create(ChangePage.prototype), {
+      epubRepairableDetected: true,
+      epubDiagnosticIssues: [
+        {
+          code: 'CONTAINER_MISSING',
+          severity: 'error',
+          fixable: true,
+          messageKey: 'FIX.ISSUE_CONTAINER_MISSING',
+        },
+      ],
+      workflowStep: 0,
+      hasValidEpub: () => true,
+      canSaveShare: () => false,
+      canExport: () => false,
+      canCrop: () => true,
+      operationCompleted: signal(false),
+    });
+
+    expect(ctx.epubRepairRequired()).toBeTrue();
+    expect(ctx.canContinueWorkflow()).toBeTrue();
+    expect(ctx.selectableWorkflowSteps).toEqual([0, 1]);
+
+    await ChangePage.prototype.onWorkflowNext.call(ctx);
+
+    expect(ctx.workflowStep).toBe(1);
+  });
+
+  it('keeps a file error on the initial step without disabling continue', async () => {
+    const ctx = Object.assign(Object.create(ChangePage.prototype), {
+      epubErrorKey: 'CHANGE.EPUB_ERROR_CORRUPT',
+      epubRepairableDetected: false,
+      epubDiagnosticIssues: [],
+      workflowStep: 0,
+      hasValidEpub: () => false,
+      canSaveShare: () => false,
+      canExport: () => false,
+      canCrop: () => false,
+      operationCompleted: signal(false),
+    });
+
+    expect(ctx.canContinueWorkflow()).toBeTrue();
+
+    await ChangePage.prototype.onWorkflowNext.call(ctx);
+
+    expect(ctx.workflowStep).toBe(0);
+  });
+
+  it('uses localized labels for the stepper and the next workflow destination', () => {
+    const translations: Record<string, string> = {
+      'CHANGE.STEPPER.EPUB': 'EPUB',
+      'CHANGE.STEPPER.COVER': 'Portada',
+      'CHANGE.STEPPER.ADJUST': 'Ajustar',
+      'CHANGE.STEPPER.CREATE': 'Crear',
+      'CHANGE.WORKFLOW_CONTINUE': 'Siguiente',
+    };
+    const ctx = Object.assign(Object.create(ChangePage.prototype), {
+      translate: { instant: (key: string) => translations[key] ?? key },
+      workflowStep: 0,
+    });
+
+    expect(ctx.workflowSteps.map((step: { label: string }) => step.label)).toEqual([
+      'EPUB',
+      'Portada',
+      'Ajustar',
+      'Crear',
+    ]);
+    expect(ctx.workflowNextLabel).toBe('Portada');
+
+    ctx.workflowStep = 1;
+    expect(ctx.workflowNextLabel).toBe('Ajustar');
+  });
+
   it('keeps the selected best mode as PNG while billing state is reconciling', () => {
     const ctx = {
       exportQualityMode: 'best' as const,

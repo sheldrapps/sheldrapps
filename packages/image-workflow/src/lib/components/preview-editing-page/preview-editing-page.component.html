@@ -28,24 +28,34 @@
         </div>
       }
     }
-    <app-e-reader-preview-frame
-      [mode]="preview.mode || 'single'"
-      [imageSrc]="preview.imageSrc"
-      [imageWidth]="preview.imageWidth"
-      [imageHeight]="preview.imageHeight"
-      [beforeSrc]="preview.beforeSrc"
-      [afterSrc]="preview.afterSrc"
-      [beforeLabel]="preview.beforeLabel"
-      [afterLabel]="preview.afterLabel"
-      [comparisonEnabled]="preview.comparisonEnabled ?? true"
-      [isDithered]="preview.isDithered ?? false"
-      [maxFrameWidth]="maxFrameWidth"
-      [maxFrameHeight]="maxFrameHeight"
-      alt="cover preview"
-      fit="contain"
-      renderMode="eReader"
-      [zoomEnabled]="false"
-    ></app-e-reader-preview-frame>
+    @if (preview.imageSrc) {
+      <app-e-reader-preview-frame
+        [mode]="preview.mode || 'single'"
+        [imageSrc]="preview.imageSrc"
+        [imageWidth]="preview.imageWidth"
+        [imageHeight]="preview.imageHeight"
+        [beforeSrc]="preview.beforeSrc"
+        [afterSrc]="preview.afterSrc"
+        [beforeLabel]="preview.beforeLabel"
+        [afterLabel]="preview.afterLabel"
+        [comparisonEnabled]="preview.comparisonEnabled ?? true"
+        [isDithered]="preview.isDithered ?? false"
+        [maxFrameWidth]="maxFrameWidth"
+        [maxFrameHeight]="maxFrameHeight"
+        alt="cover preview"
+        fit="contain"
+        renderMode="eReader"
+        [zoomEnabled]="false"
+      ></app-e-reader-preview-frame>
+    } @else if (preview.fallbackLabelKey) {
+      <div
+        class="preview-editing-page__fallback"
+        role="img"
+        [attr.aria-label]="preview.fallbackLabelKey | translate"
+      >
+        {{ preview.fallbackLabelKey | translate }}
+      </div>
+    }
   }
 </ion-content>
 

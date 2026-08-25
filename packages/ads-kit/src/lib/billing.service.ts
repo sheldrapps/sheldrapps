@@ -550,7 +550,11 @@ export class BillingService {
   }
 
   private isDevelopmentPremiumMode(): boolean {
-    return !isNative() && this.config.isTesting === true;
+    return (
+      this.config.billing?.developmentPremiumMode !== false &&
+      !isNative() &&
+      this.config.isTesting === true
+    );
   }
 
   private get removeAdsProductId(): string | undefined {

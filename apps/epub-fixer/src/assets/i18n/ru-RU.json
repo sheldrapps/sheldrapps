@@ -43,7 +43,13 @@
     "EDIT_PROJECT_COPY_DESC": "Оставить оригинал и редактировать новую копию."
   },
   "FIX": {
+    "MODE_TITLE": "Выберите режим",
+    "MODE_SINGLE_FILE": "Один файл",
+    "MODE_SINGLE_FILE_DESCRIPTION": "По одному файлу за раз.",
+    "MODE_MULTIPLE_FILES": "Несколько файлов",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "Выберите несколько файлов для одновременного исправления.",
     "STEPPER": {
+      "MODE": "Режим",
       "LOAD": "Загрузка",
       "CONFIRM": "Подтвердить",
       "FIX": "Исправить"
@@ -51,6 +57,11 @@
     "TITLE": "Исправить",
     "SELECT_EPUB_LABEL": "Файл EPUB",
     "EPUB_FILE_TITLE": "Файл EPUB",
+    "ADD_ANOTHER_EPUB": "Добавить ещё один EPUB",
+    "FILES_SELECTED": "Выбрано файлов: {{count}}",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "Выберите один или несколько EPUB-файлов для проверки",
+    "ARIA_SELECT_EPUB_FILES": "Выбрать несколько EPUB-файлов",
+    "SELECTED_FILES_TITLE": "Выбранные файлы",
     "EPUB_FILE_LIMITS": "Формат EPUB (.epub) · Максимум {{maxSize}} МБ",
     "SELECT_EPUB_PLACEHOLDER": "Выберите EPUB для проверки",
     "ACTION_SELECT_EPUB": "Выбрать EPUB",
@@ -77,6 +88,7 @@
     "ACTION_DIAGNOSE": "Диагностировать EPUB",
     "ACTION_REPAIR": "Исправить",
     "CONFIRMATION_CHECKBOX": "Подтвердить это исправление",
+    "CONFIRM_ALL": "Подтвердить все",
     "ACTION_EXPORT": "Исправить",
     "RENAME_ACTION": "Переименовать",
     "RENAMED_OK": "EPUB переименован",

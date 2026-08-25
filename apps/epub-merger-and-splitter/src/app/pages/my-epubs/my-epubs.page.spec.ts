@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { MyEpubsPage } from './my-epubs.page';
 
 describe('MyEpubsPage', () => {
@@ -5,6 +6,7 @@ describe('MyEpubsPage', () => {
     const listRecords = jasmine.createSpy('listRecords').and.resolveTo([]);
 
     const ctx = Object.assign(Object.create(MyEpubsPage.prototype), {
+      loadingState: signal(true),
       loading: true,
       items: [],
       pageErrorKey: 'stale-error',
@@ -68,6 +70,7 @@ describe('MyEpubsPage', () => {
   it('renders thumbnails already registered in the library index immediately', async () => {
     const loadThumbs = jasmine.createSpy('loadThumbs');
     const ctx = Object.assign(Object.create(MyEpubsPage.prototype), {
+      loadingState: signal(true),
       loading: true,
       items: [],
       pageErrorKey: null,
@@ -101,5 +104,39 @@ describe('MyEpubsPage', () => {
       },
     ]);
     expect(loadThumbs).toHaveBeenCalled();
+  });
+
+  it('opens a fallback preview when the EPUB has no cover', async () => {
+    const ctx = Object.assign(Object.create(MyEpubsPage.prototype), {
+      items: [{ filename: 'book.epub' }],
+      displayFilename: (filename: string) => filename.replace(/\.epub$/i, ''),
+      pageErrorKey: 'stale-error',
+      pageErrorParams: { reason: 'old' },
+      library: {
+        resolvePreviewAsset: jasmine.createSpy('resolvePreviewAsset').and.resolveTo({
+          src: '',
+          isDithered: false,
+        }),
+        getFileSizeBytes: jasmine.createSpy('getFileSizeBytes').and.resolveTo(2048),
+      },
+      previewPage: {
+        open: jasmine.createSpy('open'),
+      },
+      router: {
+        navigateByUrl: jasmine.createSpy('navigateByUrl').and.resolveTo(true),
+      },
+    });
+
+    await MyEpubsPage.prototype.openPreview.call(ctx, 'book.epub');
+
+    expect(ctx.previewPage.open).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        imageSrc: null,
+        fallbackLabelKey: 'MY_EPUBS.PLACEHOLDER',
+        returnUrl: '/tabs/my-epubs',
+      }),
+    );
+    expect(ctx.router.navigateByUrl).toHaveBeenCalledWith('/tabs/preview-editing');
+    expect(ctx.pageErrorKey).toBeNull();
   });
 });

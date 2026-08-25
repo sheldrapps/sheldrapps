@@ -1,5 +1,9 @@
 apply plugin: 'com.android.application'
 
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
+
+
 android {
     namespace = "com.sheldrapps.pdfmergerandsplitter"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -10,8 +14,8 @@ android {
         applicationId "com.sheldrapps.pdfmergerandsplitter"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 16
-        versionName "Reliable PDF processing"
+        versionCode 17
+        versionName "Smooth PDF workflows"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -19,19 +23,34 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    def signingKeystore = new File(System.getProperty('user.home'), '.sheldrapps/android-signing/pmas/upload.keystore')
+    def signingPassword = providers.gradleProperty('PMAS_SIGNING_PASSWORD').orNull
     signingConfigs {
         release {
-            storeFile file(MYAPP_UPLOAD_STORE_FILE)
-            storePassword MYAPP_UPLOAD_STORE_PASSWORD
-            keyAlias MYAPP_UPLOAD_KEY_ALIAS
-            keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+            storeFile signingKeystore
+            storePassword signingPassword
+            keyAlias 'upload'
+            keyPassword signingPassword
         }
     }
     buildTypes {
         release {
             minifyEnabled false
-            signingConfig = signingConfigs.release
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+tasks.matching { task -> task.name == 'preReleaseBuild' }.configureEach {
+    doFirst {
+        def password = project.providers.gradleProperty('PMAS_SIGNING_PASSWORD').orNull
+        def keystore = new File(System.getProperty('user.home'), '.sheldrapps/android-signing/pmas/upload.keystore')
+        if (password == null || password.toString().trim().isEmpty() || !keystore.isFile()) {
+            def missing = []
+            if (password == null || password.toString().trim().isEmpty()) missing << 'PMAS_SIGNING_PASSWORD in ~/.gradle/gradle.properties'
+            if (!keystore.isFile()) missing << keystore.path
+            throw new GradleException("PMAS release signing is not configured: ${missing.join(', ')}")
         }
     }
 }
@@ -39,6 +58,8 @@ android {
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.5'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation platform('com.google.firebase:firebase-bom:34.10.0')
+    implementation 'com.google.firebase:firebase-crashlytics'
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"

@@ -56,6 +56,181 @@ describe('HomePage', () => {
     expect(ctx.selectedMode()).toBeNull();
   });
 
+  it('keeps repairable EPUBs on the initial step after selection', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      workflowStep: 0,
+      epubRepairRequired: () => true,
+    });
+
+    (HomePage.prototype as any).updateWorkflowAfterEpubSelection.call(ctx, 1);
+
+    expect(ctx.workflowStep).toBe(0);
+  });
+
+  it('advances manually from the initial step when an EPUB is repairable', async () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      epubRepairRequired: () => true,
+      pickerErrorKey: signal<string | null>(null),
+      selectedMode: signal<'merge' | 'split' | null>('split'),
+      splitSelection: signal({}),
+      workflowStep: 0,
+      isMergeActionBusy: () => false,
+      isResettingFlow: () => false,
+    });
+
+    await HomePage.prototype.onWorkflowNext.call(ctx);
+
+    expect(ctx.workflowStep).toBe(1);
+  });
+
+  it('skips cover adjustment and opens the final merge step when no cover is selected', () => {
+    const resetMergeCoverSelection = jasmine.createSpy('resetMergeCoverSelection');
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      workflowStep: 3,
+      selectedMode: signal<'merge' | 'split' | null>('merge'),
+      pickerErrorKey: signal<string | null>(null),
+      isPicking: () => false,
+      isMergeActionBusy: () => false,
+      bestCandidateDismissed: signal(false),
+      coverSourceMode: signal(null),
+      selectedCoverCandidateId: signal(undefined),
+      resetMergeCoverSelection,
+    });
+
+    HomePage.prototype.onCoverNoneSelected.call(ctx);
+
+    expect(resetMergeCoverSelection).toHaveBeenCalledOnceWith(true);
+    expect(ctx.coverSourceMode()).toBe('none');
+    expect(ctx.workflowStep).toBe(5);
+  });
+
+  it('skips cover adjustment and opens the final split step when no cover is selected', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      workflowStep: 3,
+      selectedMode: signal<'merge' | 'split' | null>('split'),
+      pickerErrorKey: signal<string | null>(null),
+      isPicking: () => false,
+      isMergeActionBusy: () => false,
+      bestCandidateDismissed: signal(false),
+      coverSourceMode: signal(null),
+      selectedCoverCandidateId: signal(undefined),
+      resetMergeCoverSelection: jasmine.createSpy('resetMergeCoverSelection'),
+    });
+
+    HomePage.prototype.onCoverNoneSelected.call(ctx);
+
+    expect(ctx.coverSourceMode()).toBe('none');
+    expect(ctx.workflowStep).toBe(5);
+  });
+
+  it('allows navigation when an EPUB has repairable issues', async () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      epubRepairRequired: () => true,
+      pickerErrorKey: signal<string | null>(null),
+      selectedMode: signal<'merge' | 'split' | null>('merge'),
+      workflowSteps: [
+        { id: 'merge-split', label: 'Join / Split' },
+        { id: 'sort', label: 'Order' },
+      ],
+      workflowStep: 0,
+      isMergeActionBusy: () => false,
+      isResettingFlow: () => false,
+    });
+
+    const workflowNextDisabled = Object.getOwnPropertyDescriptor(
+      HomePage.prototype,
+      'workflowNextDisabled',
+    )?.get;
+    expect(workflowNextDisabled?.call(ctx)).toBeFalse();
+
+    await HomePage.prototype.onWorkflowNext.call(ctx);
+
+    expect(ctx.workflowStep).toBe(1);
+  });
+
+  it('allows split stepper navigation when an EPUB has repairable issues', async () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      epubRepairRequired: () => true,
+      pickerErrorKey: signal<string | null>(null),
+      selectedMode: signal<'merge' | 'split' | null>('split'),
+      splitSelection: signal({}),
+      coverSourceMode: signal<'candidate' | 'image' | 'scratch' | 'none' | null>('none'),
+      mergeCoverPreviewUrl: signal<string | undefined>(undefined),
+      mergeCoverWorkingFile: undefined,
+      workflowStep: 3,
+      isMergeActionBusy: () => false,
+      isResettingFlow: () => false,
+    });
+
+    await HomePage.prototype.onWorkflowStepSelected.call(ctx, 1);
+    expect(ctx.workflowStep).toBe(1);
+
+    ctx.workflowStep = 3;
+    await HomePage.prototype.onWorkflowStepSelected.call(ctx, 2);
+
+    expect(ctx.workflowStep).toBe(2);
+  });
+
+  it('keeps the workflow on file selection when the picker reports an error', async () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      epubRepairRequired: () => false,
+      pickerErrorKey: signal<string | null>('HOME.INPUT_ERROR_CORRUPT'),
+      selectedMode: signal<'merge' | 'split' | null>('merge'),
+      isMergeActionBusy: () => false,
+      isResettingFlow: () => false,
+      workflowStep: 0,
+    });
+
+    const workflowNextDisabled = Object.getOwnPropertyDescriptor(
+      HomePage.prototype,
+      'workflowNextDisabled',
+    )?.get;
+    expect(workflowNextDisabled?.call(ctx)).toBeTrue();
+    expect(ctx.selectableWorkflowSteps).toEqual([0]);
+
+    await HomePage.prototype.onWorkflowNext.call(ctx);
+    await HomePage.prototype.onWorkflowStepSelected.call(ctx, 2);
+
+    expect(ctx.workflowStep).toBe(0);
+  });
+
+  it('returns to file selection if an error is raised after the workflow advanced', async () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      epubRepairRequired: () => false,
+      pickerErrorKey: signal<string | null>('HOME.INPUT_ERROR_CORRUPT'),
+      selectedMode: signal<'merge' | 'split' | null>('merge'),
+      isMergeActionBusy: () => false,
+      isResettingFlow: () => false,
+      workflowStep: 2,
+    });
+
+    await HomePage.prototype.onWorkflowNext.call(ctx);
+
+    expect(ctx.workflowStep).toBe(0);
+  });
+
+  it('treats diagnosed issues as blocking even when the status is valid', () => {
+    const hasEpubDiagnosticErrors = (
+      HomePage.prototype as unknown as {
+        hasEpubDiagnosticErrors: (selection: unknown) => boolean;
+      }
+    ).hasEpubDiagnosticErrors;
+
+    expect(
+      hasEpubDiagnosticErrors.call(Object.create(HomePage.prototype), {
+        diagnosisStatus: 'valid',
+        diagnosisIssues: [
+          {
+            code: 'CONTAINER_MISSING',
+            severity: 'error',
+            fixable: true,
+            messageKey: 'FIX.ISSUE_CONTAINER_MISSING',
+          },
+        ],
+      }),
+    ).toBeTrue();
+  });
+
   it('exposes the split method as the second workflow step after file selection', () => {
     const ctx = Object.assign(Object.create(HomePage.prototype), {
       selectedMode: signal<'merge' | 'split' | null>('split'),
@@ -79,6 +254,51 @@ describe('HomePage', () => {
       { id: 'split-execution', label: 'Split' },
     ]);
     expect(ctx.selectableWorkflowSteps).toEqual([0, 1, 2, 3]);
+  });
+
+  it('exposes merge selection as step one and ordering as step two', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      selectedMode: signal<'merge' | 'split' | null>('merge'),
+      workflowSteps: [
+        { id: 'merge-split', label: 'Join / Split' },
+        { id: 'sort', label: 'Order' },
+        { id: 'toc', label: 'Index' },
+        { id: 'cover', label: 'Cover' },
+        { id: 'adjust', label: 'Adjust' },
+        { id: 'join', label: 'Join' },
+      ],
+    });
+
+    expect(ctx.visibleWorkflowSteps.map((step: { label: string }) => step.label)).toEqual([
+      'Join / Split',
+      'Order',
+      'Index',
+      'Cover',
+      'Adjust',
+      'Join',
+    ]);
+  });
+
+  it('uses destination step labels for split navigation', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      selectedMode: signal<'merge' | 'split' | null>('split'),
+      workflowStep: 1,
+      workflowSteps: [
+        { id: 'merge-split', label: 'Unir / dividir' },
+      ],
+      splitWorkflowStep: { id: 'split-method', label: 'Cómo dividir' },
+      splitConfirmStep: { id: 'split-confirm', label: 'Confirmar' },
+      splitCoverStep: { id: 'split-cover', label: 'Portada' },
+      splitAdjustStep: { id: 'split-adjust', label: 'Ajustar' },
+      splitExecutionStep: { id: 'split-execution', label: 'Dividir' },
+    });
+
+    expect(ctx.workflowPreviousLabel).toBe('Unir / dividir');
+    expect(ctx.workflowNextLabel).toBe('Confirmar');
+
+    ctx.workflowStep = 2;
+    expect(ctx.workflowPreviousLabel).toBe('Cómo dividir');
+    expect(ctx.workflowNextLabel).toBe('Portada');
   });
 
   it('accepts only supported split methods', () => {
@@ -113,6 +333,28 @@ describe('HomePage', () => {
     expect(ctx.splitMaximumSizeSelection).toBe('10');
     expect(ctx.splitManualPointIds()).toEqual([]);
     expect(ctx.splitPreviewExpanded()).toBeFalse();
+  });
+
+  it('keeps equal-parts selection valid when split analysis is available', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      splitMethod: 'by-chapters-or-sections',
+      splitAnalysis: signal({ units: new Array(6).fill({}), sections: [], tocEntries: [] }),
+      splitChapterMode: 'section',
+      splitEqualPartsValue: 4,
+      splitEqualPartsSelectionValue: '4',
+      splitMaximumSize: 50,
+      splitMaximumSizeSelection: 'custom',
+      splitManualPointIds: signal<readonly string[]>(['chapter-2']),
+      splitPreviewExpanded: signal(true),
+      splitConfigurationRevision: signal(0),
+    });
+
+    HomePage.prototype.onSplitMethodChange.call(ctx, 'equal-parts');
+
+    expect(ctx.splitMethod).toBe('equal-parts');
+    expect(ctx.splitEqualPartsValue).toBe(2);
+    expect(ctx.splitEqualPartsSelectionValue).toBe('2');
+    expect(ctx.splitConfigurationRevision()).toBe(1);
   });
 
   it('resets split configuration when returning from confirm to How to', () => {
@@ -306,7 +548,7 @@ describe('HomePage', () => {
     await HomePage.prototype.openMergePicker.call(ctx);
 
     expect(ctx.mergeInput.nativeElement.click).toHaveBeenCalled();
-    expect(ctx.selectedMode()).toBeNull();
+    expect(ctx.selectedMode()).toBe('merge');
     expect(ctx.clearPickerError).toHaveBeenCalled();
   });
 
@@ -333,14 +575,18 @@ describe('HomePage', () => {
     };
     const ctx = Object.assign(Object.create(HomePage.prototype), {
       isPicking: signal(false),
+      diagnosisProgress: signal(null),
+      selectedMode: signal<'merge' | 'split' | null>(null),
       epubRewrite: {
         isSupported: () => true,
         pickAndPrepareEpubs: jasmine
           .createSpy('pickAndPrepareEpubs')
           .and.resolveTo([firstSelection, secondSelection]),
+        diagnose: jasmine
+          .createSpy('diagnose')
+          .and.resolveTo({ status: 'valid', issues: [] }),
       },
       mergeSelections: signal<readonly unknown[]>([]),
-      selectedMode: signal<'merge' | 'split' | null>(null),
       workflowStep: 0,
       refreshMergeCoverCandidates: jasmine
         .createSpy('refreshMergeCoverCandidates')
@@ -366,6 +612,44 @@ describe('HomePage', () => {
     ]);
     expect(ctx.selectedMode()).toBe('merge');
     expect(ctx.refreshMergeCoverCandidates).toHaveBeenCalled();
+  });
+
+  it('keeps the diagnosed issues attached to each selected EPUB', () => {
+    const issue = {
+      code: 'CONTAINER_MISSING',
+      severity: 'error' as const,
+      fixable: true,
+      messageKey: 'FIX.ISSUE_CONTAINER_MISSING',
+    };
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      createSelectionId: jasmine.createSpy('createSelectionId').and.returnValue(
+        'selection-1',
+      ),
+    });
+
+    const toNativeSelection = (
+      HomePage.prototype as unknown as {
+        toNativeSelection: (prepared: unknown, diagnosis: unknown) => unknown;
+      }
+    ).toNativeSelection;
+    const selection = toNativeSelection.call(
+      ctx,
+      {
+        sessionId: 'session-1',
+        selectedName: 'Broken.epub',
+        sourceSize: 10,
+        sourceLastModified: 1,
+        sourceMimeType: 'application/epub+zip',
+        workingPath: '/tmp/broken',
+        workingName: 'broken-working.epub',
+        workingNativePath: '/tmp/broken/native.epub',
+        outputBaseName: 'broken',
+      },
+      { status: 'repairable', issues: [issue] },
+    ) as { selectedName: string; diagnosisIssues: readonly unknown[] };
+
+    expect(selection.selectedName).toBe('Broken.epub');
+    expect(selection.diagnosisIssues).toEqual([issue]);
   });
 
   it('turns a native EPUB cover preview into a best-candidate image', async () => {
@@ -471,6 +755,91 @@ describe('HomePage', () => {
     expect(cleanupWorkingCopy).toHaveBeenCalledTimes(2);
   });
 
+  it('generates a cover-only EPUB for web merge', async () => {
+    const saveGeneratedEpubs = jasmine
+      .createSpy('saveGeneratedEpubs')
+      .and.resolveTo([{ id: 'saved', filename: 'one_merged.epub' }]);
+    const coverFile = new File(['cover'], 'cover.jpg', { type: 'image/jpeg' });
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      mergeSelections: signal([
+        { id: 'one', selectedName: 'One.epub', outputBaseName: 'one' },
+        { id: 'two', selectedName: 'Two.epub', outputBaseName: 'two' },
+      ]),
+      mergeCoverRenderedFile: coverFile,
+      epubRewrite: { isSupported: () => false },
+      epubLibrary: { saveGeneratedEpubs },
+      translate: { currentLang: 'es-MX' },
+      completeOperation: jasmine.createSpy('completeOperation'),
+    });
+
+    await (HomePage.prototype as unknown as { runMerge: (epoch: number) => Promise<void> })
+      .runMerge.call(ctx, 0);
+
+    expect(saveGeneratedEpubs).toHaveBeenCalledWith([
+      jasmine.objectContaining({
+        coverFile,
+        proposedFileName: 'one_merged.epub',
+        operation: 'merge',
+        partIndex: 0,
+      }),
+    ]);
+    expect(saveGeneratedEpubs.calls.mostRecent().args[0][0].bytes.byteLength).toBeGreaterThan(0);
+    expect(ctx.completeOperation).toHaveBeenCalledWith(
+      'merge',
+      [{ id: 'saved', filename: 'one_merged.epub' }],
+    );
+  });
+
+  it('merges without adding a cover when no cover is selected', async () => {
+    const mergeEpubs = jasmine.createSpy('mergeEpubs').and.resolveTo({
+      outputPath: '/tmp/merged.epub',
+      outputName: 'merged.epub',
+    });
+    const writeTempCoverFile = jasmine.createSpy('writeTempCoverFile');
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      mergeSelections: signal([
+        { id: 'one', selectedName: 'One.epub', workingNativePath: '/tmp/one.epub', outputBaseName: 'one' },
+        { id: 'two', selectedName: 'Two.epub', workingNativePath: '/tmp/two.epub', outputBaseName: 'two' },
+      ]),
+      mergeCoverRenderedFile: undefined,
+      tocMode: 'books-and-chapters',
+      epubRewrite: {
+        isSupported: () => true,
+        preflightMerge: jasmine.createSpy('preflightMerge').and.resolveTo({}),
+        mergeEpubs,
+      },
+      epubWorkingCopy: {
+        buildOutputFile: jasmine.createSpy('buildOutputFile').and.resolveTo({
+          path: 'EpubWork/output.epub',
+          nativePath: '/tmp/output.epub',
+        }),
+        writeTempCoverFile,
+        cleanupWorkingCopy: jasmine.createSpy('cleanupWorkingCopy').and.resolveTo(undefined),
+      },
+      epubLibrary: {
+        saveExportedEpub: jasmine.createSpy('saveExportedEpub').and.resolveTo({
+          id: 'saved',
+          filename: 'merged.epub',
+        }),
+      },
+      completeOperation: jasmine.createSpy('completeOperation'),
+    });
+
+    const runMerge = (
+      HomePage.prototype as unknown as { runMerge: () => Promise<void> }
+    ).runMerge;
+    await runMerge.call(ctx);
+
+    expect(writeTempCoverFile).not.toHaveBeenCalled();
+    expect(mergeEpubs).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        outputPath: '/tmp/output.epub',
+      }),
+    );
+    expect(mergeEpubs.calls.mostRecent().args[0].coverPath).toBeUndefined();
+    expect(mergeEpubs.calls.mostRecent().args[0].removeSourceCover).toBeTrue();
+  });
+
   it('normalizes the selected split plan and persists all generated EPUBs together', async () => {
     const splitEpubs = jasmine.createSpy('splitEpubs').and.resolveTo([
       {
@@ -549,6 +918,49 @@ describe('HomePage', () => {
     ]);
     expect(ctx.completeOperation).toHaveBeenCalled();
     expect(cleanupWorkingCopy).toHaveBeenCalledTimes(3);
+  });
+
+  it('generates one cover-only EPUB per web split output', async () => {
+    const saveGeneratedEpubs = jasmine
+      .createSpy('saveGeneratedEpubs')
+      .and.resolveTo([
+        { id: 'saved-1', filename: 'Book - 1.epub' },
+        { id: 'saved-2', filename: 'Book - 2.epub' },
+      ]);
+    const coverFile = new File(['cover'], 'cover.jpg', { type: 'image/jpeg' });
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      splitSelection: signal({
+        selectedName: 'Book.epub',
+        outputBaseName: 'Book',
+      }),
+      splitOutputPreviews: signal([
+        { number: 1, title: 'Chapter 1' },
+        { number: 2, title: 'Chapter 2' },
+      ]),
+      mergeCoverRenderedFile: coverFile,
+      epubRewrite: { isSupported: () => false },
+      epubLibrary: { saveGeneratedEpubs },
+      translate: { currentLang: 'es-MX' },
+      completeOperation: jasmine.createSpy('completeOperation'),
+    });
+
+    await (HomePage.prototype as unknown as { runSplit: (epoch: number) => Promise<void> })
+      .runSplit.call(ctx, 0);
+
+    expect(saveGeneratedEpubs).toHaveBeenCalledWith([
+      jasmine.objectContaining({ proposedFileName: 'Book - 1.epub', partIndex: 0 }),
+      jasmine.objectContaining({ proposedFileName: 'Book - 2.epub', partIndex: 1 }),
+    ]);
+    expect(saveGeneratedEpubs.calls.mostRecent().args[0].every(
+      (request: { bytes: Uint8Array }) => request.bytes.byteLength > 0,
+    )).toBeTrue();
+    expect(ctx.completeOperation).toHaveBeenCalledWith(
+      'split',
+      [
+        { id: 'saved-1', filename: 'Book - 1.epub' },
+        { id: 'saved-2', filename: 'Book - 2.epub' },
+      ],
+    );
   });
 
   it('keeps nested TOC entries and fragment targets in each split output', () => {
@@ -700,6 +1112,7 @@ describe('HomePage', () => {
   it('opens the split native picker when supported', async () => {
     const ctx = Object.assign(Object.create(HomePage.prototype), {
       isPicking: signal(false),
+      selectedMode: signal<'merge' | 'split' | null>(null),
       epubRewrite: {
         isSupported: () => true,
       },
@@ -750,6 +1163,9 @@ describe('HomePage', () => {
       candidateBlobUrls: new Set<string>(),
       previewEditingPage: { clear: jasmine.createSpy('clear') },
       pickerErrorKey: signal<string | null>('HOME.INPUT_ERROR_CORRUPT'),
+      recovery: {
+        clear: jasmine.createSpy('clear').and.resolveTo(undefined),
+      },
       isPicking: signal(false),
       operationFeedback: signal(null),
       operationProgress: signal(null),
@@ -805,6 +1221,81 @@ describe('HomePage', () => {
     expect(ctx.isResettingFlow()).toBeFalse();
   });
 
+  it('does not commit a merge result after the flow is reset', async () => {
+    let resolveMerge!: (result: {
+      outputPath: string;
+      outputName: string;
+      size: number;
+    }) => void;
+    const mergeFinished = new Promise<{
+      outputPath: string;
+      outputName: string;
+      size: number;
+    }>((resolve) => {
+      resolveMerge = resolve;
+    });
+    const saveExportedEpub = jasmine
+      .createSpy('saveExportedEpub')
+      .and.resolveTo({ id: 'saved', filename: 'merged.epub' });
+    const completeOperation = jasmine.createSpy('completeOperation');
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      flowEpoch: 0,
+      isResettingFlow: signal(false),
+      mergeSelections: signal([
+        {
+          id: 'one',
+          selectedName: 'One.epub',
+          workingNativePath: '/tmp/one.epub',
+          outputBaseName: 'one',
+        },
+        {
+          id: 'two',
+          selectedName: 'Two.epub',
+          workingNativePath: '/tmp/two.epub',
+          outputBaseName: 'two',
+        },
+      ]),
+      mergeCoverRenderedFile: undefined,
+      mergeCoverPreviewUrl: signal<string | undefined>(undefined),
+      tocMode: 'books-and-chapters',
+      epubRewrite: {
+        isSupported: () => true,
+        preflightMerge: jasmine.createSpy('preflightMerge').and.resolveTo({}),
+        mergeEpubs: jasmine.createSpy('mergeEpubs').and.returnValue(mergeFinished),
+      },
+      epubWorkingCopy: {
+        buildOutputFile: jasmine.createSpy('buildOutputFile').and.resolveTo({
+          path: 'EpubWork/output.epub',
+          nativePath: '/tmp/output.epub',
+        }),
+        cleanupWorkingCopy: jasmine
+          .createSpy('cleanupWorkingCopy')
+          .and.resolveTo(undefined),
+      },
+      epubLibrary: { saveExportedEpub },
+      completeOperation,
+    });
+
+    const runMerge = (
+      HomePage.prototype as unknown as { runMerge: (flowEpoch: number) => Promise<void> }
+    ).runMerge;
+    const pending = runMerge.call(ctx, 0);
+    await Promise.resolve();
+    ctx.flowEpoch = 1;
+    resolveMerge({
+      outputPath: '/tmp/merged.epub',
+      outputName: 'merged.epub',
+      size: 42,
+    });
+    await pending;
+
+    expect(saveExportedEpub).not.toHaveBeenCalled();
+    expect(completeOperation).not.toHaveBeenCalled();
+    expect(ctx.epubWorkingCopy.cleanupWorkingCopy).toHaveBeenCalledOnceWith(
+      'EpubWork/output.epub',
+    );
+  });
+
   it('does not wait forever when reset cleanup never settles', async () => {
     await awaitWithTimeout(new Promise<void>(() => undefined), 1);
     expect(true).toBeTrue();
@@ -824,6 +1315,7 @@ describe('HomePage', () => {
       ),
       pickerErrorKey: signal<string | null>(null),
       isPicking: signal(false),
+      diagnosisProgress: signal(null),
       refreshMergeCoverCandidates: jasmine
         .createSpy('refreshMergeCoverCandidates')
         .and.resolveTo(undefined),
@@ -951,6 +1443,7 @@ describe('HomePage', () => {
   it('opens the editor in scratch mode from the cover selector', async () => {
     const ctx = Object.assign(Object.create(HomePage.prototype), {
       isPicking: signal(false),
+      diagnosisProgress: signal(null),
       bestCandidateDismissed: signal(false),
       coverSourceMode: signal<'candidate' | 'image' | 'scratch' | null>(null),
       selectedCoverCandidateId: signal<string | undefined>('candidate-1'),
@@ -968,6 +1461,7 @@ describe('HomePage', () => {
     const image = new File(['image'], 'cover.png', { type: 'image/png' });
     const ctx = Object.assign(Object.create(HomePage.prototype), {
       isPicking: signal(false),
+      diagnosisProgress: signal(null),
       bestCandidateDismissed: signal(false),
       coverSourceMode: signal<'candidate' | 'image' | 'scratch' | null>(null),
       selectedCoverCandidateId: signal<string | undefined>('candidate-1'),

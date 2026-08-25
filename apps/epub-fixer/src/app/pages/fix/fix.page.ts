@@ -39,9 +39,12 @@ import {
   alertCircleOutline,
   checkmarkCircle,
   chevronDownOutline,
+  chevronForwardOutline,
   appsOutline,
   closeOutline,
   documentOutline,
+  fileTrayOutline,
+  fileTrayStackedOutline,
   helpCircleOutline,
   shareSocialOutline,
   sparklesOutline,
@@ -57,6 +60,7 @@ import {
   EpubRewriteError,
   EpubRepairResult,
   EpubRepairingService,
+  type EpubOperationProgress,
 } from '@sheldrapps/file-kit';
 import {
   AdFallbackService,
@@ -79,12 +83,17 @@ import {
   SaveCoverModalComponent,
   ScrollableBarItem,
   ScrollableButtonBarComponent,
+  FilePickerPanelComponent,
   WorkflowNavigationComponent,
   WorkflowStepperComponent,
 } from '@sheldrapps/ui-theme';
 import { CoverImageStateComponent } from '@sheldrapps/image-workflow';
 import { EditorSessionExitService } from '@sheldrapps/image-workflow/editor';
-import type { WorkflowStep } from '@sheldrapps/ui-theme';
+import type {
+  FilePickerPanelItem,
+  FilePickerPanelRemoveEvent,
+  WorkflowStep,
+} from '@sheldrapps/ui-theme';
 import {
   RecommendedApp,
   RecommendedAppsService,
@@ -106,6 +115,7 @@ import {
 } from '@sheldrapps/lifecycle-kit';
 
 type DiagnosisSeverityLevel = 'critical' | 'high' | 'medium' | 'low';
+type FixMode = 'single' | 'multiple';
 type IssueSectionKind = 'automatic' | 'confirmation' | 'manual' | 'blocked';
 
 type IssueSectionView = {
@@ -116,9 +126,23 @@ type IssueSectionView = {
   count: number;
 };
 
-const MAX_REPAIR_PASSES = 3;
+type IssueGroupView = {
+  key: string;
+  primaryIssue: EpubDiagnosticIssue;
+  issues: EpubDiagnosticIssue[];
+};
+
+type MultipleEpubDiagnosis = {
+  id: string;
+  sessionId: string;
+  file: File | null;
+  selectedName: string;
+  sourceSize: number;
+  diagnosis: EpubDiagnosticResult;
+};
 
 type EpubFixerRecoverySnapshot = {
+  fixMode?: FixMode | null;
   selectedEpubName?: string;
   sourceEpubMeta?: FixPage['sourceEpubMeta'];
   workflowStep: number;
@@ -161,6 +185,7 @@ type EpubFixerRecoverySnapshot = {
     SpinnerComponent,
     SectionCardComponent,
     ScrollableButtonBarComponent,
+    FilePickerPanelComponent,
     WorkflowNavigationComponent,
     WorkflowStepperComponent,
   ],
@@ -189,15 +214,19 @@ export class FixPage implements OnInit, OnDestroy {
   private recoveryEpubFile?: File;
 
   @ViewChild('epubInput') epubInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('multipleEpubInput') multipleEpubInput!: ElementRef<HTMLInputElement>;
 
   constructor() {
     addIcons({
       alertCircleOutline,
       checkmarkCircle,
       chevronDownOutline,
+      chevronForwardOutline,
       appsOutline,
       closeOutline,
       documentOutline,
+      fileTrayOutline,
+      fileTrayStackedOutline,
       helpCircleOutline,
       shareSocialOutline,
       sparklesOutline,
@@ -210,6 +239,8 @@ export class FixPage implements OnInit, OnDestroy {
   showRecommended = false;
 
   preparedSessionId?: string;
+  fixMode: FixMode | null = null;
+  multipleEpubDiagnoses: MultipleEpubDiagnosis[] = [];
   selectedEpubName?: string;
   sourceEpubMeta?: {
     name: string;
@@ -245,6 +276,7 @@ export class FixPage implements OnInit, OnDestroy {
 
   get workflowSteps(): readonly WorkflowStep[] {
     return [
+      { id: 'mode', label: this.translate.instant('FIX.STEPPER.MODE') },
       { id: 'load', label: this.translate.instant('FIX.STEPPER.LOAD') },
       { id: 'confirm', label: this.translate.instant('FIX.STEPPER.CONFIRM') },
       { id: 'fix', label: this.translate.instant('FIX.STEPPER.FIX') },
@@ -297,9 +329,11 @@ export class FixPage implements OnInit, OnDestroy {
   private removeAdsPriceSub?: Subscription;
   private headerLangSub?: Subscription;
   private headerTranslationSub?: Subscription;
+  private diagnosisProgressListener?: { remove: () => Promise<void> };
   private lastHandledProjectRouteKey: string | null = null;
   private selectedConfirmationByIssueKey: Record<string, boolean> = {};
   private selectedGuidedOptionByIssueKey: Record<string, string> = {};
+  private readonly expandedIssueGroupKeys = new Set<string>();
 
   infoOpen = false;
   infoEvent: Event | null = null;
@@ -318,21 +352,27 @@ export class FixPage implements OnInit, OnDestroy {
 
   get selectableWorkflowSteps(): readonly number[] {
     const steps = [0];
-    if (this.hasValidEpub() && !!this.diagnosis) {
+    if (this.fixMode) {
       steps.push(1);
     }
-    if (this.canRepair || this.canExport || this.viewState === 'repaired') {
+    if (this.hasValidEpub() && !!this.diagnosis) {
       steps.push(2);
+    }
+    if (this.canRepair || this.canExport || this.viewState === 'repaired') {
+      steps.push(3);
     }
     return steps;
   }
 
   get canContinueWorkflow(): boolean {
     if (this.workflowStep === 0) {
-      return this.hasValidEpub() && !!this.diagnosis && !this.isBusy;
+      return !!this.fixMode && !this.isBusy;
     }
 
-    if (this.workflowStep === 1) {
+    if (this.workflowStep === 1 || this.workflowStep === 2) {
+      if (this.workflowStep === 1 && this.fixMode === 'multiple') {
+        return this.multipleEpubDiagnoses.length > 0 && !this.isBusy;
+      }
       return (this.canRepair || this.canExport) && !this.isBusy;
     }
 
@@ -352,6 +392,19 @@ export class FixPage implements OnInit, OnDestroy {
       this.operationCompleted.set(false);
       this.workflowStep -= 1;
     }
+  }
+
+  selectFixMode(mode: FixMode): void {
+    if (
+      this.isBusy ||
+      (mode === 'multiple' && !this.canUseMultipleFiles)
+    ) {
+      return;
+    }
+
+    this.fixMode = mode;
+    this.operationCompleted.set(false);
+    this.workflowStep = 1;
   }
 
   onWorkflowStepSelected(step: number): void {
@@ -404,6 +457,7 @@ export class FixPage implements OnInit, OnDestroy {
 
   get canDiagnose(): boolean {
     return (
+      this.fixMode !== 'multiple' &&
       !!this.preparedSessionId &&
       !this.isBusy &&
       this.viewState === 'prepared'
@@ -411,6 +465,18 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   get canRepair(): boolean {
+    if (this.fixMode === 'multiple') {
+      return (
+        this.multipleEpubDiagnoses.some(
+          (item) => item.diagnosis.status === 'repairable',
+        ) &&
+        !this.isBusy &&
+        this.viewState === 'diagnosed' &&
+        !this.hasPendingConfirmationSelection &&
+        !this.hasPendingGuidedSelection
+      );
+    }
+
     return (
       !!this.preparedSessionId &&
       !this.isBusy &&
@@ -421,7 +487,22 @@ export class FixPage implements OnInit, OnDestroy {
     );
   }
 
+  get canUseMultipleFiles(): boolean {
+    return this.adsRemoved;
+  }
+
   get canExport(): boolean {
+    if (this.fixMode === 'multiple') {
+      return (
+        this.multipleEpubDiagnoses.length > 0 &&
+        this.multipleEpubDiagnoses.every(
+          (item) => item.diagnosis.status === 'valid',
+        ) &&
+        !this.isBusy &&
+        this.viewState === 'diagnosed'
+      );
+    }
+
     return (
       !!this.preparedSessionId &&
       !this.isBusy &&
@@ -432,7 +513,7 @@ export class FixPage implements OnInit, OnDestroy {
 
   get canSaveShare(): boolean {
     return (
-      !!this.preparedSessionId &&
+      (!!this.preparedSessionId || this.fixMode === 'multiple') &&
       !this.isBusy &&
       !this.epubErrorKey &&
       !!this.exportResult
@@ -460,6 +541,103 @@ export class FixPage implements OnInit, OnDestroy {
 
   get showDiagnosisOverview(): boolean {
     return this.hasValidEpub() && !!this.diagnosis;
+  }
+
+  get multipleFilePickerItems(): readonly FilePickerPanelItem[] {
+    return this.multipleEpubDiagnoses.map((item) => ({
+      id: item.id,
+      title: item.selectedName,
+      subtitle: this.formatFileSize(item.sourceSize),
+      ariaLabel: item.selectedName,
+    }));
+  }
+
+  multipleDiagnosisIssues(item: MultipleEpubDiagnosis): EpubDiagnosticIssue[] {
+    return item.diagnosis.issues.map((issue) =>
+      this.withMultipleSource(issue, item),
+    );
+  }
+
+  multipleDiagnosisSeveritySummary(item: MultipleEpubDiagnosis): {
+    totalIssues: number;
+    criticalIssues: number;
+    highIssues: number;
+    mediumIssues: number;
+    lowIssues: number;
+  } {
+    const summary = {
+      totalIssues: 0,
+      criticalIssues: 0,
+      highIssues: 0,
+      mediumIssues: 0,
+      lowIssues: 0,
+    };
+
+    for (const issue of this.multipleDiagnosisIssues(item)) {
+      summary.totalIssues += 1;
+      switch (this.issueSeverityLevel(issue)) {
+        case 'critical':
+          summary.criticalIssues += 1;
+          break;
+        case 'high':
+          summary.highIssues += 1;
+          break;
+        case 'medium':
+          summary.mediumIssues += 1;
+          break;
+        case 'low':
+          summary.lowIssues += 1;
+          break;
+      }
+    }
+
+    return summary;
+  }
+
+  multipleDiagnosisSeveritySegments(item: MultipleEpubDiagnosis): Array<{
+    level: DiagnosisSeverityLevel;
+    count: number;
+  }> {
+    const summary = this.multipleDiagnosisSeveritySummary(item);
+    return [
+      { level: 'critical', count: summary.criticalIssues },
+      { level: 'high', count: summary.highIssues },
+      { level: 'medium', count: summary.mediumIssues },
+      { level: 'low', count: summary.lowIssues },
+    ];
+  }
+
+  multipleIssueSections(item: MultipleEpubDiagnosis): IssueSectionView[] {
+    return this.buildIssueSections(this.multipleDiagnosisIssues(item));
+  }
+
+  multipleConfirmationIssues(item: MultipleEpubDiagnosis): EpubDiagnosticIssue[] {
+    return this.multipleDiagnosisIssues(item).filter(
+      (issue) => this.issueRepairMode(issue) === 'review',
+    );
+  }
+
+  async onMultipleEpubRemoved(event: FilePickerPanelRemoveEvent): Promise<void> {
+    const removed = this.multipleEpubDiagnoses.find(
+      (item) => item.id === event.id,
+    );
+    if (!removed) {
+      return;
+    }
+
+    this.multipleEpubDiagnoses = this.multipleEpubDiagnoses.filter(
+      (item) => item.id !== event.id,
+    );
+    await this.workflow.cleanup(removed.sessionId).catch(() => undefined);
+
+    if (this.multipleEpubDiagnoses.length === 0) {
+      this.diagnosis = undefined;
+      this.workflowStep = 1;
+      this.viewState = 'prepared';
+      return;
+    }
+
+    this.diagnosis = this.aggregateMultipleDiagnosis();
   }
 
   get diagnosisSeveritySummary(): {
@@ -514,34 +692,44 @@ export class FixPage implements OnInit, OnDestroy {
     return this.issuesByMode('guided');
   }
 
+  get confirmationIssues(): EpubDiagnosticIssue[] {
+    return this.issuesByMode('review');
+  }
+
   get issueSections(): IssueSectionView[] {
+    return this.buildIssueSections(this.diagnosis?.issues ?? []);
+  }
+
+  private buildIssueSections(
+    issues: EpubDiagnosticIssue[],
+  ): IssueSectionView[] {
     const sections: IssueSectionView[] = [
       {
         key: 'automatic',
         labelKey: 'FIX.DIAGNOSIS_FIXABLE',
         kind: 'automatic',
-        issues: this.issuesByMode('automatic'),
+        issues: this.issuesByModeFrom(issues, 'automatic'),
         count: 0,
       },
       {
         key: 'confirmation',
         labelKey: 'FIX.DIAGNOSIS_REVIEW',
         kind: 'confirmation',
-        issues: this.issuesByMode('review'),
+        issues: this.issuesByModeFrom(issues, 'review'),
         count: 0,
       },
       {
         key: 'manual',
         labelKey: 'FIX.DIAGNOSIS_GUIDED',
         kind: 'manual',
-        issues: this.issuesByMode('guided'),
+        issues: this.issuesByModeFrom(issues, 'guided'),
         count: 0,
       },
       {
         key: 'blocked',
         labelKey: 'FIX.DIAGNOSIS_BLOCKED',
         kind: 'blocked',
-        issues: this.issuesByMode('not_repairable'),
+        issues: this.issuesByModeFrom(issues, 'not_repairable'),
         count: 0,
       },
     ];
@@ -552,6 +740,59 @@ export class FixPage implements OnInit, OnDestroy {
         count: section.issues.length,
       }))
       .filter((section) => section.count > 0);
+  }
+
+  issueGroups(issues: EpubDiagnosticIssue[], sectionKey: string): IssueGroupView[] {
+    const groups = new Map<string, IssueGroupView>();
+
+    for (const issue of issues) {
+      const key = `${sectionKey}:${issue.code}`;
+      const group = groups.get(key);
+
+      if (group) {
+        group.issues.push(issue);
+        continue;
+      }
+
+      groups.set(key, {
+        key,
+        primaryIssue: issue,
+        issues: [issue],
+      });
+    }
+
+    return Array.from(groups.values());
+  }
+
+  isIssueGroupExpanded(group: IssueGroupView): boolean {
+    return this.expandedIssueGroupKeys?.has(group.key) ?? false;
+  }
+
+  toggleIssueGroup(group: IssueGroupView): void {
+    if (group.issues.length < 2) {
+      return;
+    }
+
+    if (!this.expandedIssueGroupKeys) {
+      return;
+    }
+
+    if (this.expandedIssueGroupKeys.has(group.key)) {
+      this.expandedIssueGroupKeys.delete(group.key);
+      return;
+    }
+
+    this.expandedIssueGroupKeys.add(group.key);
+  }
+
+  issueGroupChevronName(group: IssueGroupView): string {
+    return this.isIssueGroupExpanded(group)
+      ? 'chevron-down-outline'
+      : 'chevron-forward-outline';
+  }
+
+  issueGroupToggleAriaLabel(group: IssueGroupView): string {
+    return `${group.issues.length}: ${this.issueMessageLabel(group.primaryIssue)}`;
   }
 
   get diagnosisSummary(): {
@@ -723,6 +964,25 @@ export class FixPage implements OnInit, OnDestroy {
       }
     });
     await this.refreshHeaderItems();
+    if (this.workflow.usesNativePicker()) {
+      this.diagnosisProgressListener = await this.workflow.addProgressListener(
+        (progress: EpubOperationProgress) => {
+          const isDiagnosisProgress =
+            this.busyAction === 'diagnose' && progress.phase === 'diagnosing';
+          const isRepairProgress =
+            this.busyAction === 'repair' &&
+            (progress.phase === undefined ||
+              progress.phase === 'diagnosing' ||
+              progress.phase === 'writing');
+          if (!isDiagnosisProgress && !isRepairProgress) {
+            return;
+          }
+          this.runInZone(() => {
+            this.busyProgressPercent = progress.percent;
+          });
+        },
+      );
+    }
     await this.billing.hydrateCachedState();
     const settings = await this.settings.load();
     this.hydrateAdFallbackState(settings.preferences);
@@ -756,6 +1016,7 @@ export class FixPage implements OnInit, OnDestroy {
     this.removeAdsPriceSub?.unsubscribe();
     this.headerLangSub?.unsubscribe();
     this.headerTranslationSub?.unsubscribe();
+    void this.diagnosisProgressListener?.remove();
     void this.recovery.save();
   }
 
@@ -799,6 +1060,7 @@ export class FixPage implements OnInit, OnDestroy {
         diagnosis: this.diagnosis,
         repairResult: this.repairResult,
         exportResult: this.exportResult,
+        fixMode: this.fixMode,
       }),
       assets: () => ({ epub: this.recoveryEpubFile }),
       restore: async (snapshot, assets) => {
@@ -819,13 +1081,28 @@ export class FixPage implements OnInit, OnDestroy {
         this.diagnosis = snapshot.diagnosis;
         this.repairResult = snapshot.repairResult;
         this.exportResult = snapshot.exportResult;
+        const hasModeSnapshot = Object.prototype.hasOwnProperty.call(
+          snapshot,
+          'fixMode',
+        );
+        this.fixMode = hasModeSnapshot ? snapshot.fixMode ?? null : 'single';
         this.viewState = snapshot.viewState;
-        this.workflowStep = Math.max(0, Math.min(2, snapshot.workflowStep));
+        this.workflowStep = hasModeSnapshot
+          ? Math.max(0, Math.min(3, snapshot.workflowStep))
+          : Math.min(3, snapshot.workflowStep + 1);
       },
     });
   }
 
   openEpubPicker(): void {
+    if (this.fixMode === 'multiple') {
+      if (this.usesNativePrepare()) {
+        void this.pickNativeEpubs();
+      } else {
+        this.multipleEpubInput.nativeElement.click();
+      }
+      return;
+    }
     if (this.usesNativePrepare()) {
       void this.pickNativeEpub();
       return;
@@ -906,8 +1183,76 @@ export class FixPage implements OnInit, OnDestroy {
     });
   }
 
+  async onMultipleEpubsSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    input.value = '';
+
+    if (files.length === 0 || this.isBusy) {
+      return;
+    }
+
+    await this.runInZone(async () => {
+      this.busyAction = 'prepare';
+      this.busyProgressPercent = 0;
+      try {
+        await this.resetWorkflowForNewEpub();
+        this.multipleEpubDiagnoses = [];
+
+        for (const [index, file] of files.entries()) {
+          this.busyAction = 'prepare';
+          await this.setBusyProgress((index / files.length) * 100);
+          const prepared = await this.workflow.prepareFromFile(file);
+          this.busyAction = 'diagnose';
+          const diagnosis = await this.workflow.diagnose(
+            prepared.sessionId,
+            'deep',
+          );
+
+          if (
+            diagnosis.status === 'unsupported' ||
+            diagnosis.status === 'failed' ||
+            diagnosis.status === 'limited'
+          ) {
+            throw new EpubRewriteError('EPUB_UNSUPPORTED');
+          }
+
+          this.multipleEpubDiagnoses.push({
+            id: `${prepared.sessionId}:${index}`,
+            sessionId: prepared.sessionId,
+            file,
+            selectedName: prepared.originalName,
+            sourceSize: prepared.originalSize,
+            diagnosis,
+          });
+          await this.flushUi();
+        }
+
+        this.diagnosis = this.aggregateMultipleDiagnosis();
+        this.preparedSessionId = undefined;
+        this.selectedEpubName = undefined;
+        this.sourceEpubMeta = undefined;
+        this.viewState = 'diagnosed';
+        this.workflowStep = 2;
+        this.clearEpubError();
+        await this.setBusyProgress(100);
+      } catch (error) {
+        await this.cleanupMultipleEpubs();
+        this.multipleEpubDiagnoses = [];
+        this.diagnosis = undefined;
+        this.failWorkflow('EPUB_ERROR_REWRITE', error);
+      } finally {
+        await this.clearBusyState();
+      }
+    });
+  }
+
   hasValidEpub(): boolean {
-    return !!this.preparedSessionId && !this.epubErrorKey;
+    return (
+      (this.fixMode === 'multiple'
+        ? this.multipleEpubDiagnoses.length > 0
+        : !!this.preparedSessionId) && !this.epubErrorKey
+    );
   }
 
   formatFileSize(bytes?: number): string {
@@ -945,6 +1290,11 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   async runRepair(preferredOpfPath?: string): Promise<void> {
+    if (this.fixMode === 'multiple') {
+      await this.runMultipleRepair();
+      return;
+    }
+
     const guidedSelections = this.guidedRepairSelections;
     if (
       !this.preparedSessionId ||
@@ -965,44 +1315,22 @@ export class FixPage implements OnInit, OnDestroy {
         return;
       }
 
-      let repairedSomething = false;
-      for (let pass = 0; pass < MAX_REPAIR_PASSES; pass += 1) {
-        this.repairResult = await this.workflow.repairCurrentEpub(
-          preferredOpfPath,
-          guidedSelections,
-        );
-        if (!this.repairResult.success) {
-          if (repairedSomething) {
-            break;
-          }
-          this.workflowStep = 2;
-          this.failWorkflow('EPUB_ERROR_REWRITE');
-          return;
-        }
-        repairedSomething =
-          repairedSomething || this.repairResult.repairedIssues.length > 0;
-
-        this.clearEpubError();
-        this.diagnosis = await this.workflow.diagnoseCurrentEpub();
-        if (this.diagnosis.status === 'valid') {
-          break;
-        }
-
-        if (pass === MAX_REPAIR_PASSES - 1) {
-          break;
-        }
+      this.repairResult = await this.workflow.repairCurrentEpub(
+        this.diagnosis?.diagnosisId,
+        preferredOpfPath,
+        guidedSelections,
+      );
+      if (!this.repairResult.success) {
+        this.workflowStep = 3;
+        this.failWorkflow('EPUB_ERROR_REWRITE');
+        return;
       }
 
-      const finalDiagnosis = this.diagnosis;
-      if (finalDiagnosis?.status === 'valid' || repairedSomething) {
-        await this.exportCurrentCopy();
-        this.viewState = 'repaired';
-        this.workflowStep = 2;
-      } else {
-        this.viewState = 'diagnosed';
-      }
+      await this.exportCurrentCopy();
+      this.viewState = 'repaired';
+      this.workflowStep = 3;
     } catch (error) {
-      this.workflowStep = 2;
+      this.workflowStep = 3;
       this.failWorkflow('EPUB_ERROR_REWRITE', error);
     } finally {
       await this.clearBusyState();
@@ -1010,6 +1338,11 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   async exportFixed(): Promise<void> {
+    if (this.fixMode === 'multiple') {
+      await this.exportMultipleFixed();
+      return;
+    }
+
     if (!this.preparedSessionId || !this.canExport) {
       return;
     }
@@ -1018,9 +1351,9 @@ export class FixPage implements OnInit, OnDestroy {
     try {
       await this.exportCurrentCopy();
       this.viewState = 'repaired';
-      this.workflowStep = 2;
+      this.workflowStep = 3;
     } catch (error) {
-      this.workflowStep = 2;
+      this.workflowStep = 3;
       this.failWorkflow('EPUB_ERROR_REWRITE', error);
     } finally {
       await this.clearBusyState();
@@ -1085,7 +1418,7 @@ export class FixPage implements OnInit, OnDestroy {
       try {
         this.busyAction = undefined;
         this.busyProgressPercent = 0;
-        await this.resetWorkflowForNewEpub();
+        await this.resetWorkflowForNewEpub(true, true);
         if (this.epubInput?.nativeElement) {
           this.epubInput.nativeElement.value = '';
         }
@@ -1106,7 +1439,7 @@ export class FixPage implements OnInit, OnDestroy {
       try {
         this.busyAction = undefined;
         this.busyProgressPercent = 0;
-        await this.resetWorkflowForNewEpub();
+        await this.resetWorkflowForNewEpub(true, true);
         if (this.epubInput?.nativeElement) {
           this.epubInput.nativeElement.value = '';
         }
@@ -1311,7 +1644,13 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   private issuesByMode(...modes: EpubDiagnosticRepairMode[]): EpubDiagnosticIssue[] {
-    const issues = this.diagnosis?.issues ?? [];
+    return this.issuesByModeFrom(this.diagnosis?.issues ?? [], ...modes);
+  }
+
+  private issuesByModeFrom(
+    issues: EpubDiagnosticIssue[],
+    ...modes: EpubDiagnosticRepairMode[]
+  ): EpubDiagnosticIssue[] {
     if (issues.length === 0) {
       return [];
     }
@@ -1786,6 +2125,55 @@ export class FixPage implements OnInit, OnDestroy {
     });
   }
 
+  private async pickNativeEpubs(): Promise<void> {
+    await this.runInZone(async () => {
+      this.busyAction = 'prepare';
+      this.busyProgressPercent = 0;
+
+      try {
+        await this.resetWorkflowForNewEpub();
+        const preparedItems = await this.workflow.pickAndPrepareNativeMultiple();
+        for (const [index, prepared] of preparedItems.entries()) {
+          this.busyAction = 'diagnose';
+          await this.setBusyProgress((index / preparedItems.length) * 100);
+          const diagnosis = await this.workflow.diagnose(
+            prepared.sessionId,
+            'deep',
+          );
+          if (
+            diagnosis.status === 'unsupported' ||
+            diagnosis.status === 'failed' ||
+            diagnosis.status === 'limited'
+          ) {
+            throw new EpubRewriteError('EPUB_UNSUPPORTED');
+          }
+
+          this.multipleEpubDiagnoses.push({
+            id: `${prepared.sessionId}:${index}`,
+            sessionId: prepared.sessionId,
+            file: prepared.file ?? null,
+            selectedName: prepared.originalName,
+            sourceSize: prepared.originalSize,
+            diagnosis,
+          });
+          await this.flushUi();
+        }
+
+        this.diagnosis = this.aggregateMultipleDiagnosis();
+        this.viewState = 'diagnosed';
+        this.workflowStep = 2;
+        this.clearEpubError();
+        await this.setBusyProgress(100);
+      } catch (error) {
+        await this.cleanupMultipleEpubs();
+        this.diagnosis = undefined;
+        this.failWorkflow('EPUB_ERROR_REWRITE', error);
+      } finally {
+        await this.clearBusyState();
+      }
+    });
+  }
+
   private async applyPreparedNativeEpub(
     prepared: Awaited<ReturnType<EpubFixerWorkflowService['pickAndPrepareNative']>>,
   ): Promise<void> {
@@ -1808,14 +2196,55 @@ export class FixPage implements OnInit, OnDestroy {
     }
   }
 
-  private async resetWorkflowForNewEpub(waitForCleanup = true): Promise<void> {
+  private aggregateMultipleDiagnosis(): EpubDiagnosticResult {
+    const issues = this.multipleEpubDiagnoses.flatMap((item) =>
+      item.diagnosis.issues.map((issue) => ({
+        ...issue,
+        sourceId: item.id,
+        sourceName: item.selectedName,
+      })),
+    );
+    const hasRepairableFile = this.multipleEpubDiagnoses.some(
+      (item) => item.diagnosis.status === 'repairable',
+    );
+
+    return {
+      sessionId: this.multipleEpubDiagnoses[0]?.sessionId ?? '',
+      status: hasRepairableFile ? 'repairable' : 'valid',
+      issues,
+    };
+  }
+
+  private async cleanupMultipleEpubs(): Promise<void> {
+    const sessionIds = this.multipleEpubDiagnoses.map(
+      (item) => item.sessionId,
+    );
+    this.multipleEpubDiagnoses = [];
+
+    await Promise.all(
+      sessionIds.map((sessionId) =>
+        this.workflow.cleanup(sessionId).catch(() => undefined),
+      ),
+    );
+    await this.workflow.cleanupCurrentEpub().catch(() => undefined);
+  }
+
+  private async resetWorkflowForNewEpub(
+    waitForCleanup = true,
+    resetMode = false,
+  ): Promise<void> {
     const cleanupPromise = this.cleanupPreparedEpub();
+    const multipleCleanupPromise = this.cleanupMultipleEpubs();
     this.runInZone(() => {
       this.operationCompleted.set(false);
       this.clearEpubError();
       this.lastHandledProjectRouteKey = null;
+      if (resetMode) {
+        this.fixMode = null;
+      }
       this.selectedConfirmationByIssueKey = {};
       this.selectedGuidedOptionByIssueKey = {};
+      this.expandedIssueGroupKeys?.clear();
 
       this.preparedSessionId = undefined;
       this.selectedEpubName = undefined;
@@ -1828,8 +2257,10 @@ export class FixPage implements OnInit, OnDestroy {
     });
     if (waitForCleanup) {
       await cleanupPromise;
+      await multipleCleanupPromise;
     } else {
       void cleanupPromise.catch(() => undefined);
+      void multipleCleanupPromise.catch(() => undefined);
     }
     await this.recovery.clear();
   }
@@ -1888,13 +2319,14 @@ export class FixPage implements OnInit, OnDestroy {
       this.busyAction = 'diagnose';
       await this.setBusyProgress(72);
       this.viewState = 'diagnosing';
+      this.expandedIssueGroupKeys?.clear();
       this.repairResult = undefined;
       this.exportResult = undefined;
 
       try {
         this.diagnosis = await this.workflow.diagnoseCurrentEpub();
         this.viewState = 'diagnosed';
-        this.workflowStep = 1;
+        this.workflowStep = 2;
         this.clearEpubError();
         await this.setBusyProgress(100);
         return true;
@@ -1905,16 +2337,167 @@ export class FixPage implements OnInit, OnDestroy {
     });
   }
 
+  private async runMultipleRepair(): Promise<void> {
+    if (!this.canRepair) {
+      return;
+    }
+
+    this.busyAction = 'repair';
+    this.viewState = 'repairing';
+    try {
+      this.clearEpubError();
+      const canContinue = await this.requestRewardedAdForFix();
+      if (!canContinue) {
+        this.viewState = 'diagnosed';
+        return;
+      }
+
+      for (const item of this.multipleEpubDiagnoses) {
+        if (item.diagnosis.status !== 'repairable') {
+          continue;
+        }
+
+        const repairResult = await this.workflow.repair(
+          item.sessionId,
+          item.diagnosis.diagnosisId,
+          this.guidedRepairPreferredOpfPathFor(item),
+          this.guidedRepairSelectionsFor(item),
+        );
+        if (!repairResult.success) {
+          throw new EpubRewriteError('EPUB_REPAIR_FAILED');
+        }
+        item.diagnosis = {
+          ...item.diagnosis,
+          status: 'valid',
+        };
+      }
+
+      await this.exportMultipleSessions();
+      this.viewState = 'repaired';
+      this.workflowStep = 3;
+    } catch (error) {
+      this.workflowStep = 3;
+      this.failWorkflow('EPUB_ERROR_REWRITE', error);
+    } finally {
+      await this.clearBusyState();
+    }
+  }
+
+  private async exportMultipleFixed(): Promise<void> {
+    if (!this.canExport) {
+      return;
+    }
+
+    this.busyAction = 'export';
+    try {
+      this.clearEpubError();
+      await this.exportMultipleSessions();
+      this.viewState = 'repaired';
+      this.workflowStep = 3;
+    } catch (error) {
+      this.workflowStep = 3;
+      this.failWorkflow('EPUB_ERROR_REWRITE', error);
+    } finally {
+      await this.clearBusyState();
+    }
+  }
+
+  private async exportMultipleSessions(): Promise<void> {
+    let firstExport: FixPage['exportResult'] | undefined;
+
+    for (const [index, item] of this.multipleEpubDiagnoses.entries()) {
+      const outputName = this.buildMultipleOutputName(item.selectedName, index);
+      const exported = await this.workflow.exportFixed(
+        item.sessionId,
+        outputName,
+      );
+      await this.library.saveExportedEpub(exported.outputUri, outputName);
+
+      if (!firstExport) {
+        const preview = await this.library.resolvePreviewAsset(outputName, {
+          forceRefresh: true,
+        });
+        firstExport = {
+          size: exported.size,
+          outputName,
+          outputUri: exported.outputUri,
+          ...(preview.src ? { previewSrc: preview.src } : {}),
+        };
+      }
+
+      this.coversEvents.emit({ type: 'saved', filename: outputName });
+      await this.setBusyProgress(((index + 1) / this.multipleEpubDiagnoses.length) * 100);
+    }
+
+    this.exportResult = firstExport;
+    this.operationCompleted.set(true);
+    await this.consumeAdFallbackAttemptAfterSuccess();
+  }
+
+  private buildMultipleOutputName(selectedName: string, index: number): string {
+    const outputName = this.workflow.buildFixedOutputName(selectedName);
+    if (index === 0) {
+      return outputName;
+    }
+
+    return outputName.replace(/\.epub$/i, `_${index + 1}.epub`);
+  }
+
+  private guidedRepairPreferredOpfPathFor(
+    item: MultipleEpubDiagnosis,
+  ): string | undefined {
+    const issue = item.diagnosis.issues.find(
+      (candidate) =>
+        candidate.code === 'OPF_AMBIGUOUS' &&
+        this.issueOptions(this.withMultipleSource(candidate, item)).length > 0,
+    );
+    return issue
+      ? this.selectedGuidedOption(this.withMultipleSource(issue, item))
+      : undefined;
+  }
+
+  private guidedRepairSelectionsFor(
+    item: MultipleEpubDiagnosis,
+  ): Record<string, string> | undefined {
+    const selections: Record<string, string> = {};
+    for (const issue of item.diagnosis.issues) {
+      const contextualIssue = this.withMultipleSource(issue, item);
+      if (this.issueRepairMode(contextualIssue) !== 'guided') {
+        continue;
+      }
+
+      const selected = this.selectedGuidedOption(contextualIssue);
+      if (selected) {
+        selections[this.issueSelectionKey(contextualIssue)] = selected;
+      }
+    }
+    return Object.keys(selections).length > 0 ? selections : undefined;
+  }
+
+  private withMultipleSource(
+    issue: EpubDiagnosticIssue,
+    item: MultipleEpubDiagnosis,
+  ): EpubDiagnosticIssue {
+    return {
+      ...issue,
+      sourceId: item.id,
+      sourceName: item.selectedName,
+    } as EpubDiagnosticIssue;
+  }
+
   issueOptions(issue: EpubDiagnosticIssue): string[] {
     return (issue.options ?? []).map((option) => option.trim()).filter(Boolean);
   }
 
   issueSelectionKey(issue: EpubDiagnosticIssue): string {
-    return buildEpubIssueSelectionKey({
+    const key = buildEpubIssueSelectionKey({
       code: issue.code,
       details: issue.details,
       options: this.issueOptions(issue),
     });
+    const sourceId = (issue as EpubDiagnosticIssue & { sourceId?: string })
+      .sourceId;
+    return sourceId ? `${sourceId}:${key}` : key;
   }
 
   issueMessageLabel(
@@ -1931,35 +2514,46 @@ export class FixPage implements OnInit, OnDestroy {
 
   issueDetailsLabel(issue: EpubDiagnosticIssue): string {
     const details = issue.details?.trim();
+    const sourceName = (
+      issue as EpubDiagnosticIssue & { sourceName?: string }
+    ).sourceName;
     if (!details) {
-      return '';
+      return sourceName ?? '';
     }
 
+    let label: string;
     switch (details) {
       case 'container.xml is missing':
-        return this.translate.instant('FIX.ISSUE_DETAIL_CONTAINER_MISSING');
+        label = this.translate.instant('FIX.ISSUE_DETAIL_CONTAINER_MISSING');
+        break;
       case 'container.xml is not parseable':
-        return this.translate.instant(
+        label = this.translate.instant(
           'FIX.ISSUE_DETAIL_CONTAINER_NOT_PARSEABLE',
         );
+        break;
       case 'container.xml does not declare a rootfile':
-        return this.translate.instant('FIX.ISSUE_DETAIL_CONTAINER_NO_ROOTFILE');
+        label = this.translate.instant('FIX.ISSUE_DETAIL_CONTAINER_NO_ROOTFILE');
+        break;
       case 'Multiple package documents were found':
-        return this.translate.instant('FIX.ISSUE_DETAIL_OPF_AMBIGUOUS');
+        label = this.translate.instant('FIX.ISSUE_DETAIL_OPF_AMBIGUOUS');
+        break;
       case 'No valid spine entries remain':
-        return this.translate.instant('FIX.ISSUE_DETAIL_SPINE_EMPTY');
+        label = this.translate.instant('FIX.ISSUE_DETAIL_SPINE_EMPTY');
+        break;
       case 'missing idref':
-        return this.translate.instant('FIX.ISSUE_DETAIL_MISSING_IDREF');
+        label = this.translate.instant('FIX.ISSUE_DETAIL_MISSING_IDREF');
+        break;
+      default: {
+        const notParseableMatch = details.match(/^(.*) is not parseable$/);
+        label = notParseableMatch
+          ? this.translate.instant('FIX.ISSUE_DETAIL_FILE_NOT_PARSEABLE', {
+              path: notParseableMatch[1],
+            })
+          : details;
+      }
     }
 
-    const notParseableMatch = details.match(/^(.*) is not parseable$/);
-    if (notParseableMatch) {
-      return this.translate.instant('FIX.ISSUE_DETAIL_FILE_NOT_PARSEABLE', {
-        path: notParseableMatch[1],
-      });
-    }
-
-    return details;
+    return sourceName ? `${sourceName} · ${label}` : label;
   }
 
   selectedGuidedOption(issue: EpubDiagnosticIssue): string | undefined {
@@ -2020,6 +2614,37 @@ export class FixPage implements OnInit, OnDestroy {
 
   toggleConfirmation(issue: EpubDiagnosticIssue): void {
     this.onConfirmationChange(issue, !this.isConfirmationChecked(issue));
+  }
+
+  areAllConfirmationsChecked(issues: EpubDiagnosticIssue[]): boolean {
+    return (
+      issues.length > 0 &&
+      issues.every((issue) => this.isConfirmationChecked(issue))
+    );
+  }
+
+  hasPartialConfirmations(issues: EpubDiagnosticIssue[]): boolean {
+    const checkedCount = issues.filter((issue) =>
+      this.isConfirmationChecked(issue),
+    ).length;
+    return checkedCount > 0 && checkedCount < issues.length;
+  }
+
+  onAllConfirmationsChange(
+    issues: EpubDiagnosticIssue[],
+    checked?: boolean | null,
+  ): void {
+    const shouldCheck = checked === true;
+    for (const issue of issues) {
+      this.onConfirmationChange(issue, shouldCheck);
+    }
+  }
+
+  toggleAllConfirmations(issues: EpubDiagnosticIssue[]): void {
+    this.onAllConfirmationsChange(
+      issues,
+      !this.areAllConfirmationsChecked(issues),
+    );
   }
 
   private clearEpubError(): void {

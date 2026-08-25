@@ -10,6 +10,7 @@ const ALIASES = {
   ecc: 'epub-cover-changer',
   jos: 'just-one-step',
   ef: 'epub-fixer',
+  emas: 'epub-merger-and-splitter',
   pn: 'presupuesto-ninos',
 };
 
@@ -66,7 +67,7 @@ function parseArgs(argv) {
 function resolveProject(target) {
   const normalized = (target || '').trim().toLowerCase();
   if (!normalized) {
-    fail('Uso: pnpm increment:collect <ccfk|ecc|jos|ef|pn|app-name> [--delta-from-anchor] [--dry-run]');
+    fail('Uso: pnpm increment:collect <ccfk|ecc|jos|ef|emas|pn|app-name> [--delta-from-anchor] [--dry-run]');
   }
 
   if (ALIASES[normalized]) {

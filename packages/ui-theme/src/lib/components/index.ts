@@ -4,6 +4,7 @@ export * from "./editor-panel/editor-panel.component";
 export * from "./save-cover-modal/save-cover-modal.component";
 export * from "./edit-project-choice-modal/edit-project-choice-modal.component";
 export * from "./section-card/section-card.component";
+export * from "./epub-diagnostic-issues/epub-diagnostic-issues.component";
 export * from "./action-card/action-card.component";
 export * from "./rename-icon/rename-icon.component";
 export * from "./pro-badge/pro-badge.component";

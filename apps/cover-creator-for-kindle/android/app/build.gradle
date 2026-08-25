@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 
@@ -21,22 +22,37 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    def signingKeystore = new File(System.getProperty('user.home'), '.sheldrapps/android-signing/ccfk/upload.keystore')
+    def signingPassword = providers.gradleProperty('CCFK_SIGNING_PASSWORD').orNull
     signingConfigs {
         release {
-            storeFile file(MYAPP_UPLOAD_STORE_FILE)
-            storePassword MYAPP_UPLOAD_STORE_PASSWORD
-            keyAlias MYAPP_UPLOAD_KEY_ALIAS
-            keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+            storeFile signingKeystore
+            storePassword signingPassword
+            keyAlias 'covercreatorforkindle'
+            keyPassword signingPassword
         }
     }
     buildTypes {
         release {
             minifyEnabled false
-            signingConfig = signingConfigs.release
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             ndk {
                 debugSymbolLevel = 'FULL'
             }
+        }
+    }
+}
+
+tasks.matching { task -> task.name == 'preReleaseBuild' }.configureEach {
+    doFirst {
+        def password = project.providers.gradleProperty('CCFK_SIGNING_PASSWORD').orNull
+        def keystore = new File(System.getProperty('user.home'), '.sheldrapps/android-signing/ccfk/upload.keystore')
+        if (password == null || password.toString().trim().isEmpty() || !keystore.isFile()) {
+            def missing = []
+            if (password == null || password.toString().trim().isEmpty()) missing << 'CCFK_SIGNING_PASSWORD in ~/.gradle/gradle.properties'
+            if (!keystore.isFile()) missing << keystore.path
+            throw new GradleException("CCFK release signing is not configured: ${missing.join(', ')}")
         }
     }
 }

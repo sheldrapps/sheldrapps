@@ -36,6 +36,24 @@ app-e-reader-preview-frame {
   flex: 0 0 auto;
 }
 
+.preview-editing-page__fallback {
+  width: min(520px, 100%);
+  aspect-ratio: 3 / 4;
+  min-height: 220px;
+  margin: 0 auto;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  padding: var(--app-space-8);
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-lg);
+  background: var(--app-surface);
+  color: var(--app-body-text-color);
+  font-size: var(--app-text-xl);
+  font-weight: var(--app-font-semibold);
+  letter-spacing: 0.08em;
+}
+
 .preview-editing-page__metadata {
   width: min(420px, 100%);
   display: grid;

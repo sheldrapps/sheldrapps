@@ -1,7 +1,0 @@
-ion-tabs > ion-router-outlet {
-  pointer-events: none;
-}
-
-ion-tabs > ion-router-outlet > * {
-  pointer-events: auto;
-}

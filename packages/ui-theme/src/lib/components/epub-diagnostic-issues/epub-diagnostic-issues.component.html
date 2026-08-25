@@ -1,0 +1,67 @@
+@if (issues.length) {
+  <ul class="epub-diagnostic-issues">
+    @for (group of issueGroups(); track trackGroup($index, group)) {
+      @if (group.issues.length > 1) {
+        <li
+          class="epub-diagnostic-issues__group"
+          [attr.data-severity]="issueSeverity(group.primaryIssue)"
+        >
+          <div class="epub-diagnostic-issues__group-summary">
+            <ion-button
+              class="epub-diagnostic-issues__toggle"
+              fill="clear"
+              size="small"
+              [attr.aria-expanded]="isIssueGroupExpanded(group)"
+              [attr.aria-label]="issueGroupToggleAriaLabel(group)"
+              (click)="toggleIssueGroup(group)"
+            >
+              <ion-icon
+                [name]="issueGroupChevronName(group)"
+                aria-hidden="true"
+              ></ion-icon>
+            </ion-button>
+            <div class="epub-diagnostic-issues__copy">
+              <div class="epub-diagnostic-issues__title">
+                <span class="epub-diagnostic-issues__count">{{ group.issues.length }}</span>
+                {{ messageResolver(group.primaryIssue) }}
+              </div>
+            </div>
+          </div>
+
+          @if (isIssueGroupExpanded(group)) {
+            <ul class="epub-diagnostic-issues__children">
+              @for (issue of group.issues; track trackIssue($index, issue)) {
+                <li
+                  class="epub-diagnostic-issues__child"
+                  [attr.data-severity]="issueSeverity(issue)"
+                >
+                  <span class="epub-diagnostic-issues__bullet" aria-hidden="true"></span>
+                  <div class="epub-diagnostic-issues__copy">
+                    <div class="epub-diagnostic-issues__detail">
+                      {{ detailsResolver(issue) || messageResolver(issue) }}
+                    </div>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </li>
+      } @else {
+        <li
+          class="epub-diagnostic-issues__item"
+          [attr.data-severity]="issueSeverity(group.primaryIssue)"
+        >
+          <span class="epub-diagnostic-issues__bullet" aria-hidden="true"></span>
+          <div class="epub-diagnostic-issues__copy">
+            <div class="epub-diagnostic-issues__title">
+              {{ messageResolver(group.primaryIssue) }}
+            </div>
+            @if (detailsResolver(group.primaryIssue); as details) {
+              <div class="epub-diagnostic-issues__detail">{{ details }}</div>
+            }
+          </div>
+        </li>
+      }
+    }
+  </ul>
+}

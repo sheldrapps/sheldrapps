@@ -80,6 +80,12 @@ export interface BillingKitConfig {
   removeAdsProductId?: string;
 
   /**
+   * Whether web development should simulate an already purchased entitlement.
+   * Defaults to true for backwards compatibility.
+   */
+  developmentPremiumMode?: boolean;
+
+  /**
    * Optional debug logging
    */
   debug?: boolean;

@@ -27,7 +27,24 @@ export type EpubDiagnosticStatus =
   | 'valid'
   | 'repairable'
   | 'unsupported'
-  | 'failed';
+  | 'failed'
+  | 'limited';
+
+export type EpubDiagnosticMode = 'quick' | 'deep';
+export type EpubDiagnosticCoverage = 'complete' | 'limited';
+
+export type EpubDiagnosticSummary = {
+  totalFindings: number;
+  fixableFindings: number;
+  byCode: Record<string, number>;
+  bySeverity: Record<string, number>;
+};
+
+export type EpubDiagnosticPage = {
+  items: EpubDiagnosticIssue[];
+  total: number;
+  nextCursor?: string;
+};
 
 export type EpubDiagnosticRepairMode =
   | 'automatic'
@@ -211,8 +228,25 @@ export function normalizeEpubDiagnosticIssue(
 
 export type EpubDiagnosticResult = {
   sessionId: string;
+  diagnosisId?: string;
   status: EpubDiagnosticStatus;
   issues: EpubDiagnosticIssue[];
+  summary?: EpubDiagnosticSummary;
+  page?: EpubDiagnosticPage;
+  mode?: EpubDiagnosticMode;
+  coverage?: EpubDiagnosticCoverage;
+  metrics?: {
+    elapsedMs: number;
+    inspectedEntries: number;
+    totalEntries: number;
+    inspectedTextBytes: number;
+    scannedLinks: number;
+    reusedCache: boolean;
+  };
+  limit?: {
+    code: 'TIME' | 'TEXT_BYTES' | 'ENTRY_COUNT' | 'LINK_COUNT' | 'MEMORY';
+    message: string;
+  };
 };
 
 export type EpubRepairResult = {
@@ -232,10 +266,19 @@ export interface EpubFixerPort {
 
   diagnose(input: {
     sessionId: string;
+    mode?: EpubDiagnosticMode;
   }): Promise<EpubDiagnosticResult>;
+
+  getDiagnosisIssues(input: {
+    sessionId: string;
+    diagnosisId: string;
+    cursor?: string;
+    pageSize?: number;
+  }): Promise<EpubDiagnosticPage & { diagnosisId: string }>;
 
   repair(input: {
     sessionId: string;
+    diagnosisId?: string;
     preferredOpfPath?: string;
     guidedSelections?: Record<string, string>;
   }): Promise<EpubRepairResult>;

@@ -11,15 +11,19 @@
 .sh-section-card {
   display: grid;
   gap: var(--sh-section-card-gap);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .sh-section-card__title {
   margin: 0;
+  min-width: 0;
   font-size: var(--app-text-xl);
   font-weight: var(--sh-section-card-title-weight);
   line-height: 1.25;
   letter-spacing: -0.01em;
   color: var(--app-section-title-color);
+  overflow-wrap: anywhere;
 }
 
 .sh-section-card__surface {

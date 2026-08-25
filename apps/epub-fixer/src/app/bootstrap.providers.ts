@@ -131,6 +131,7 @@ export async function createBootstrapProviders(): Promise<
       },
       billing: {
         removeAdsProductId: 'epub_fixer_pro',
+        developmentPremiumMode: environment.production,
       },
     }),
     {

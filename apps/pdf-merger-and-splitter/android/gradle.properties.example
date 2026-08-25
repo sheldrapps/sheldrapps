@@ -1,0 +1,5 @@
+# Copy these values into a local, ignored Gradle properties file or export PMAS_UPLOAD_* variables.
+MYAPP_UPLOAD_STORE_FILE=../keystores/pmas-upload.jks
+MYAPP_UPLOAD_STORE_PASSWORD=replace-with-secret
+MYAPP_UPLOAD_KEY_ALIAS=replace-with-alias
+MYAPP_UPLOAD_KEY_PASSWORD=replace-with-secret

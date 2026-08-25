@@ -26,7 +26,11 @@ export {
   provideEpubFixerPort,
   type EpubDiagnosticIssue,
   type EpubDiagnosticIssueCode,
+  type EpubDiagnosticMode,
+  type EpubDiagnosticCoverage,
+  type EpubDiagnosticPage,
   type EpubDiagnosticResult,
+  type EpubDiagnosticSummary,
   type EpubDiagnosticRepairMode,
   type EpubDiagnosticStatus,
   type EpubExportResult,
@@ -44,6 +48,7 @@ export * from './lib/epub-public-store';
 export * from './lib/pdf-public-store';
 export * from './lib/epub-read.service';
 export * from './lib/epub-rewrite.service';
+export * from './lib/epub-diagnostic-queue';
 export * from './lib/epub-repairing.service';
 export * from './lib/epub-working-copy.service';
 

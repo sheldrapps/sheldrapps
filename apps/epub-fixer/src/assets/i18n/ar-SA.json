@@ -43,7 +43,13 @@
     "EDIT_PROJECT_COPY_DESC": "احتفظ بالملف الأصلي وعدّل نسخة جديدة."
   },
   "FIX": {
+    "MODE_TITLE": "اختر وضعًا",
+    "MODE_SINGLE_FILE": "ملف واحد",
+    "MODE_SINGLE_FILE_DESCRIPTION": "ملف واحد في كل مرة.",
+    "MODE_MULTIPLE_FILES": "ملفات متعددة",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "اختر ملفات متعددة لإصلاحها في الوقت نفسه.",
     "STEPPER": {
+      "MODE": "الوضع",
       "LOAD": "تحميل",
       "CONFIRM": "تأكيد",
       "FIX": "إصلاح"
@@ -51,6 +57,11 @@
     "TITLE": "إصلاح",
     "SELECT_EPUB_LABEL": "ملف EPUB",
     "EPUB_FILE_TITLE": "ملف EPUB",
+    "ADD_ANOTHER_EPUB": "إضافة EPUB آخر",
+    "FILES_SELECTED": "تم اختيار {{count}} من الملفات",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "اختر ملف EPUB واحدًا أو أكثر لفحصه",
+    "ARIA_SELECT_EPUB_FILES": "اختيار ملفات EPUB متعددة",
+    "SELECTED_FILES_TITLE": "الملفات المحددة",
     "EPUB_FILE_LIMITS": "تنسيق EPUB (.epub) · الحد الأقصى {{maxSize}} ميجابايت",
     "SELECT_EPUB_PLACEHOLDER": "اختر EPUB للفحص",
     "ACTION_SELECT_EPUB": "اختيار EPUB",
@@ -77,6 +88,7 @@
     "ACTION_DIAGNOSE": "تشخيص EPUB",
     "ACTION_REPAIR": "إصلاح",
     "CONFIRMATION_CHECKBOX": "تأكيد هذا الإصلاح",
+    "CONFIRM_ALL": "تأكيد الكل",
     "ACTION_EXPORT": "إصلاح",
     "RENAME_ACTION": "إعادة التسمية",
     "RENAMED_OK": "تمت إعادة تسمية EPUB",

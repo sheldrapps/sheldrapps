@@ -43,7 +43,13 @@
     "EDIT_PROJECT_COPY_DESC": "保留原文件，并编辑一个新副本。"
   },
   "FIX": {
+    "MODE_TITLE": "选择模式",
+    "MODE_SINGLE_FILE": "单个文件",
+    "MODE_SINGLE_FILE_DESCRIPTION": "一次处理一个文件。",
+    "MODE_MULTIPLE_FILES": "多个文件",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "选择多个文件，同时进行修复。",
     "STEPPER": {
+      "MODE": "模式",
       "LOAD": "加载",
       "CONFIRM": "确认",
       "FIX": "修复"
@@ -51,6 +57,11 @@
     "TITLE": "修复",
     "SELECT_EPUB_LABEL": "EPUB 文件",
     "EPUB_FILE_TITLE": "EPUB 文件",
+    "ADD_ANOTHER_EPUB": "添加另一个 EPUB",
+    "FILES_SELECTED": "已选择 {{count}} 个文件",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "选择一个或多个要检查的 EPUB 文件",
+    "ARIA_SELECT_EPUB_FILES": "选择多个 EPUB 文件",
+    "SELECTED_FILES_TITLE": "已选文件",
     "EPUB_FILE_LIMITS": "EPUB 格式（.epub）· 最大 {{maxSize}} MB",
     "SELECT_EPUB_PLACEHOLDER": "选择要检查的 EPUB",
     "ACTION_SELECT_EPUB": "选择 EPUB",
@@ -77,6 +88,7 @@
     "ACTION_DIAGNOSE": "诊断 EPUB",
     "ACTION_REPAIR": "修复",
     "CONFIRMATION_CHECKBOX": "确认此修复",
+    "CONFIRM_ALL": "全部确认",
     "ACTION_EXPORT": "修复",
     "RENAME_ACTION": "重命名",
     "RENAMED_OK": "EPUB 已重命名",

@@ -43,7 +43,13 @@
     "EDIT_PROJECT_COPY_DESC": "मूल फ़ाइल को रखें और एक नई प्रति संपादित करें।"
   },
   "FIX": {
+    "MODE_TITLE": "मोड चुनें",
+    "MODE_SINGLE_FILE": "एक फ़ाइल",
+    "MODE_SINGLE_FILE_DESCRIPTION": "एक बार में एक फ़ाइल।",
+    "MODE_MULTIPLE_FILES": "कई फ़ाइलें",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "एक साथ सुधार के लिए कई फ़ाइलें चुनें।",
     "STEPPER": {
+      "MODE": "मोड",
       "LOAD": "लोड",
       "CONFIRM": "पुष्टि करें",
       "FIX": "ठीक करें"
@@ -51,6 +57,11 @@
     "TITLE": "ठीक करें",
     "SELECT_EPUB_LABEL": "EPUB फ़ाइल",
     "EPUB_FILE_TITLE": "EPUB फ़ाइल",
+    "ADD_ANOTHER_EPUB": "एक और EPUB जोड़ें",
+    "FILES_SELECTED": "{{count}} फ़ाइलें चुनी गईं",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "जांचने के लिए एक या अधिक EPUB फ़ाइलें चुनें",
+    "ARIA_SELECT_EPUB_FILES": "कई EPUB फ़ाइलें चुनें",
+    "SELECTED_FILES_TITLE": "चुनी गई फ़ाइलें",
     "EPUB_FILE_LIMITS": "EPUB फ़ॉर्मैट (.epub) · अधिकतम {{maxSize}} MB",
     "SELECT_EPUB_PLACEHOLDER": "जांच के लिए EPUB चुनें",
     "ACTION_SELECT_EPUB": "EPUB चुनें",
@@ -77,6 +88,7 @@
     "ACTION_DIAGNOSE": "EPUB का निदान करें",
     "ACTION_REPAIR": "रिपेयर",
     "CONFIRMATION_CHECKBOX": "इस सुधार की पुष्टि करें",
+    "CONFIRM_ALL": "सभी की पुष्टि करें",
     "ACTION_EXPORT": "रिपेयर",
     "RENAME_ACTION": "नाम बदलें",
     "RENAMED_OK": "EPUB का नाम बदल दिया गया",

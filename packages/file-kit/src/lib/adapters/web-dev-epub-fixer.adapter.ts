@@ -8,6 +8,7 @@ import {
   classifyEpubDiagnosticRepairMode,
   type EpubDiagnosticIssue,
   type EpubDiagnosticIssueCode,
+  type EpubDiagnosticPage,
   type EpubDiagnosticResult,
   type EpubDiagnosticStatus,
   type EpubExportResult,
@@ -64,6 +65,7 @@ type InternalLinkEvaluation = {
   issues: EpubDiagnosticIssue[];
   repairedValue: string;
   changed: boolean;
+  removeAttribute: boolean;
   repairedIssueCodes: string[];
 };
 
@@ -153,8 +155,32 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     };
   }
 
+  async getDiagnosisIssues(input: {
+    sessionId: string;
+    diagnosisId: string;
+    cursor?: string;
+    pageSize?: number;
+  }): Promise<EpubDiagnosticPage & { diagnosisId: string }> {
+    const session = this.requireSession(input.sessionId);
+    const analysis = await this.analyze(session.zip);
+    const pageSize = Math.max(1, Math.min(250, input.pageSize ?? 100));
+    const parsedCursor = Number.parseInt(input.cursor ?? '0', 10);
+    const start = Number.isFinite(parsedCursor) ? Math.max(0, parsedCursor) : 0;
+    const items = analysis.issues.slice(start, start + pageSize);
+    const nextCursor = start + items.length < analysis.issues.length
+      ? String(start + items.length)
+      : undefined;
+    return {
+      diagnosisId: input.diagnosisId,
+      items,
+      total: analysis.issues.length,
+      nextCursor,
+    };
+  }
+
   async repair(input: {
     sessionId: string;
+    diagnosisId?: string;
     preferredOpfPath?: string;
     guidedSelections?: Record<string, string>;
   }): Promise<EpubRepairResult> {
@@ -1112,7 +1138,12 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
           issues.push(...evaluation.issues);
         }
 
-        if (applyFix && evaluation.changed) {
+        if (applyFix && evaluation.removeAttribute) {
+          element.removeAttribute(attributeName);
+          for (const issueCode of evaluation.repairedIssueCodes) {
+            repairedIssues.add(issueCode);
+          }
+        } else if (applyFix && evaluation.changed) {
           attributeNode.nodeValue = evaluation.repairedValue;
           for (const issueCode of evaluation.repairedIssueCodes) {
             repairedIssues.add(issueCode);
@@ -1142,6 +1173,7 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
       issues: [],
       repairedValue: rawValue,
       changed: false,
+      removeAttribute: false,
       repairedIssueCodes: [],
     };
     const parts = this.splitInternalLink(rawValue);
@@ -1202,6 +1234,15 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
           targetPath = selected;
           evaluation.repairedIssueCodes.push(pathResolution.issueCode);
         }
+      } else if (
+        applyFix &&
+        pathResolution.issueCode === 'LINK_TARGET_MISSING' &&
+        (pathResolution.options?.length ?? 0) === 0
+      ) {
+        evaluation.removeAttribute = true;
+        evaluation.changed = true;
+        evaluation.repairedIssueCodes.push(pathResolution.issueCode);
+        return evaluation;
       }
     }
 
@@ -1273,8 +1314,11 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
       }
     }
 
+    const repairedTargetPath = parts.pathPart.trim()
+      ? this.relativePath(sourceDir, targetPath)
+      : '';
     const repairedValue = this.buildInternalLinkValue(
-      targetPath,
+      repairedTargetPath,
       parts.queryPart,
       canonicalFragment,
     );
@@ -1545,7 +1589,7 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
 
     return {
       issueCode: 'LINK_TARGET_MISSING',
-      fixable: false,
+      fixable: true,
     };
   }
 
@@ -1863,6 +1907,26 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     const normalized = this.normalizePath(path);
     const index = normalized.lastIndexOf('/');
     return index === -1 ? '' : normalized.slice(0, index);
+  }
+
+  private relativePath(fromDir: string, toPath: string): string {
+    const fromParts = this.normalizePath(fromDir).split('/').filter(Boolean);
+    const toParts = this.normalizePath(toPath).split('/').filter(Boolean);
+    let common = 0;
+
+    while (
+      common < fromParts.length &&
+      common < toParts.length &&
+      fromParts[common] === toParts[common]
+    ) {
+      common += 1;
+    }
+
+    const relativeParts = [
+      ...Array.from({ length: fromParts.length - common }, () => '..'),
+      ...toParts.slice(common),
+    ];
+    return relativeParts.join('/');
   }
 
   private buildOutputName(originalName: string, outputName?: string): string {

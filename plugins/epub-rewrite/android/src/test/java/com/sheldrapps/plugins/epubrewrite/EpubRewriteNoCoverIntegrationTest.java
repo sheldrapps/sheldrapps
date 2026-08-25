@@ -7,8 +7,17 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import java.lang.reflect.Method;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.xml.parsers.DocumentBuilderFactory;
 
 /**
  * Integration tests for EPUB no-cover insertion workflow.
@@ -184,6 +193,95 @@ public class EpubRewriteNoCoverIntegrationTest {
         assertFalse("Result should not be empty", result.isEmpty());
         assertTrue("Result should contain package element", result.contains("package"));
         assertTrue("Result should contain cover entry", result.contains("cover"));
+    }
+
+    @Test
+    public void removesEpub2CoverMetadataGuideManifestAndSpineReferences() throws Exception {
+        Document document = parse(
+            "<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"2.0\">"
+                + "<metadata><meta name=\"cover\" content=\"cover-image\"/></metadata>"
+                + "<manifest>"
+                + "<item id=\"cover-image\" href=\"images/cover.jpg\" media-type=\"image/jpeg\"/>"
+                + "<item id=\"cover-page\" href=\"cover.xhtml\" media-type=\"application/xhtml+xml\"/>"
+                + "<item id=\"chapter\" href=\"chapter.xhtml\" media-type=\"application/xhtml+xml\"/>"
+                + "</manifest>"
+                + "<spine><itemref idref=\"cover-page\"/><itemref idref=\"chapter\"/></spine>"
+                + "<guide><reference type=\"cover\" href=\"cover.xhtml\"/></guide>"
+                + "</package>"
+        );
+
+        invokeNoCoverRemoval(
+            document,
+            new HashSet<>(Arrays.asList("OEBPS/cover.xhtml", "OEBPS/images/cover.jpg"))
+        );
+
+        assertEquals(0, document.getElementsByTagNameNS("*", "guide").getLength());
+        assertEquals(0, findItem(document, "cover-image"));
+        assertEquals(0, findItem(document, "cover-page"));
+        assertEquals(1, document.getElementsByTagNameNS("*", "itemref").getLength());
+        assertEquals(0, document.getElementsByTagNameNS("*", "meta").getLength());
+    }
+
+    @Test
+    public void keepsSharedEpub3ImageButRemovesCoverImageProperty() throws Exception {
+        Document document = parse(
+            "<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\">"
+                + "<metadata/>"
+                + "<manifest>"
+                + "<item id=\"shared-image\" href=\"images/front.svg\" media-type=\"image/svg+xml\" properties=\"svg cover-image\"/>"
+                + "<item id=\"cover-page\" href=\"cover.xhtml\" media-type=\"application/xhtml+xml\"/>"
+                + "<item id=\"chapter\" href=\"chapter.xhtml\" media-type=\"application/xhtml+xml\"/>"
+                + "</manifest>"
+                + "<spine><itemref idref=\"cover-page\"/><itemref idref=\"chapter\"/></spine>"
+                + "</package>"
+        );
+
+        invokeNoCoverRemoval(
+            document,
+            new HashSet<>(Arrays.asList("OEBPS/cover.xhtml"))
+        );
+
+        Element sharedImage = findItemElement(document, "shared-image");
+        assertNotNull(sharedImage);
+        assertEquals("svg", sharedImage.getAttribute("properties"));
+        assertEquals(0, findItem(document, "cover-page"));
+        assertEquals(1, document.getElementsByTagNameNS("*", "itemref").getLength());
+    }
+
+    private Document parse(String xml) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        return factory.newDocumentBuilder()
+            .parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    private void invokeNoCoverRemoval(Document document, Set<String> noCoverPaths) throws Exception {
+        Method method = plugin.getClass().getDeclaredMethod(
+            "removeNoCoverPackageReferences",
+            Document.class,
+            Element.class,
+            Element.class,
+            Element.class,
+            String.class,
+            Set.class
+        );
+        method.setAccessible(true);
+        Element metadata = (Element) document.getElementsByTagNameNS("*", "metadata").item(0);
+        Element manifest = (Element) document.getElementsByTagNameNS("*", "manifest").item(0);
+        Element spine = (Element) document.getElementsByTagNameNS("*", "spine").item(0);
+        method.invoke(plugin, document, metadata, manifest, spine, "OEBPS/package.opf", noCoverPaths);
+    }
+
+    private int findItem(Document document, String id) {
+        return findItemElement(document, id) == null ? 0 : 1;
+    }
+
+    private Element findItemElement(Document document, String id) {
+        for (int index = 0; index < document.getElementsByTagNameNS("*", "item").getLength(); index++) {
+            Element item = (Element) document.getElementsByTagNameNS("*", "item").item(index);
+            if (id.equals(item.getAttribute("id"))) return item;
+        }
+        return null;
     }
 
     /**

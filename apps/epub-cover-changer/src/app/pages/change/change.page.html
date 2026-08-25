@@ -23,17 +23,7 @@
   <sh-workflow-stepper
     [steps]="workflowSteps"
     [currentStep]="workflowStep"
-    [selectableSteps]="
-      hasValidEpub()
-        ? canSaveShare()
-          ? [0, 1, 2, 3]
-          : canExport()
-            ? [0, 1, 2, 3]
-            : canCrop()
-              ? [0, 1]
-              : [0]
-        : []
-    "
+    [selectableSteps]="selectableWorkflowSteps"
     (stepSelected)="onWorkflowStepSelected($event)"
   ></sh-workflow-stepper>
 
@@ -59,7 +49,10 @@
     ></sh-action-card>
   </div>
 
-  @if (epubErrorKey) {
+  @if (epubErrorKey || epubRepairRequired()) {
+  @if (epubRepairRequired()) {
+  <div class="field-title">{{ 'FIX.ERRORS_FOUND_TITLE' | translate }}</div>
+  }
   <div class="app-callout app-callout--error" aria-live="polite" role="status" id="epub-error">
     <ion-icon
       class="app-callout__icon"
@@ -67,14 +60,48 @@
       aria-hidden="true"
     ></ion-icon>
 
-    <div>
-      <div class="app-callout__title">{{ "COMMON.ERROR" | translate }}</div>
-
+    <div class="app-callout__content">
+      @if (epubRepairRequired()) {
+      <div class="app-callout__body app-callout__body--stacked">
+        {{ 'FIX.REPAIR_REQUIRED_SINGLE' | translate }}
+      </div>
+      } @else {
+      <div class="app-callout__title">{{ 'COMMON.ERROR' | translate }}</div>
       <div class="app-callout__body">
         {{ epubErrorKey | translate:epubErrorParams }}
       </div>
+      }
+
+      @if (epubDiagnosticIssues.length) {
+        <div class="app-callout__group-list">
+          <div class="app-callout__group">
+            @if (epubDiagnosticName) {
+            <div class="app-callout__group-title">{{ epubDiagnosticName }}</div>
+            }
+            <sh-epub-diagnostic-issues
+              [issues]="epubDiagnosticIssues"
+              [messageResolver]="issueMessageResolver"
+              [detailsResolver]="issueDetailsResolver"
+            ></sh-epub-diagnostic-issues>
+          </div>
+        </div>
+      }
     </div>
   </div>
+  }
+
+  @if (epubFixerRecommendation(); as epubFixer) {
+  <div class="field-title field-title--separated">
+    {{ 'FIX.RECOMMEND_APP_TITLE' | translate }}
+  </div>
+  <sh-recommended-app-card
+    [appName]="epubFixerCopy.APP_NAME_EF"
+    [icon]="epubFixer.icon"
+    [description]="epubFixerCopy.APP_DESC_EF"
+    [actionLabel]="epubFixerCopy.OPEN_PLAY_STORE"
+    [actionAriaLabel]="epubFixerCopy.OPEN_PLAY_STORE"
+    (action)="openEpubFixer()"
+  ></sh-recommended-app-card>
   }
 
   }

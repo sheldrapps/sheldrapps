@@ -318,13 +318,13 @@ export class SplitAnalysisService {
 
     return sectionEntries
       .map((entry) => {
-        const firstUnitOrder = units.findIndex((unit) => this.sameDocument(unit.href, entry.href));
+        const firstUnitOrder = this.findFirstUnitOrder(entry, units);
         if (firstUnitOrder < 0) {
           return null;
         }
         const nextSectionOrder = sectionEntries
           .slice(sectionEntries.indexOf(entry) + 1)
-          .map((next) => units.findIndex((unit) => this.sameDocument(unit.href, next.href)))
+          .map((next) => this.findFirstUnitOrder(next, units))
           .find((order) => order > firstUnitOrder);
         return {
           id: entry.id,
@@ -349,6 +349,21 @@ export class SplitAnalysisService {
 
   private findUnitOrder(entry: TocEntry, units: readonly SplitAnalysisUnit[]): number {
     return units.findIndex((unit) => this.sameDocument(unit.href, entry.href));
+  }
+
+  private findFirstUnitOrder(
+    entry: TocEntry,
+    units: readonly SplitAnalysisUnit[],
+  ): number {
+    const directOrder = this.findUnitOrder(entry, units);
+    if (directOrder >= 0) {
+      return directOrder;
+    }
+
+    const childOrders = entry.children
+      .map((child) => this.findFirstUnitOrder(child, units))
+      .filter((order) => order >= 0);
+    return childOrders.length > 0 ? Math.min(...childOrders) : -1;
   }
 
   private buildAnalysisTocEntries(

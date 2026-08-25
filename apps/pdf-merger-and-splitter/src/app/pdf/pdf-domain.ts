@@ -28,7 +28,7 @@ export interface SelectedPdf {
   pageCount?: number;
   thumbnailPath?: string;
   analysisStatus: PdfAnalysisStatus;
-  warnings: PdfWarning[];
+  warnings: string[];
   analysis?: PdfAnalysis;
 }
 
@@ -41,7 +41,7 @@ export type PdfSplitMethod =
   | 'bookmarks'
   | 'manual-cut-points'
   | 'equal-number-of-parts'
-  | 'maximum-file-size';
+  | 'maximum-pages-per-file';
 
 export interface PdfPageRange {
   fromPageIndex: number;
@@ -53,9 +53,6 @@ export interface PdfSplitOutputPlan {
   title: string;
   ranges: PdfPageRange[];
   pageCount: number;
-  bookSizeBytes?: number;
-  coverSizeBytes?: number;
-  estimatedSizeBytes?: number;
 }
 
 export interface PdfSession {
@@ -67,6 +64,7 @@ export interface PdfAnalysis {
   pageCount: number;
   bookmarks: PdfBookmark[];
   pages: PdfPageInfo[];
+  warnings?: string[];
 }
 
 export interface PdfCoverDraft {

@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { globSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { basename, dirname, sep } from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -860,6 +861,63 @@ test("guardrail: app index.html declares utf-8 charset", () => {
     missing,
     [],
     `Missing UTF-8 charset declaration in index.html:\n${missing.join("\n")}`
+  );
+});
+
+test("guardrail: signing artifacts and Android credentials never enter Git", () => {
+  const gitignore = readFileSync(".gitignore", "utf8");
+  const requiredIgnoreRules = [
+    "**/keystores/",
+    "**/*.jks",
+    "**/*.keystore",
+    "**/*.p12",
+    "**/*.pfx",
+    "**/*.pem",
+    "**/*.key",
+    "**/gradle.properties.local",
+    "**/signing.properties",
+    "**/release-signing.properties",
+  ];
+
+  for (const rule of requiredIgnoreRules) {
+    assert.match(
+      gitignore,
+      new RegExp(`^${escapeRegExp(rule)}$`, "m"),
+      `.gitignore must protect ${rule}`,
+    );
+  }
+
+  const trackedFiles = execFileSync("git", ["ls-files"], {
+    encoding: "utf8",
+  })
+    .split(/\r?\n/u)
+    .filter(Boolean);
+  const trackedSecretArtifacts = trackedFiles.filter((file) =>
+    /(^|\/)(?:keystores?\/|[^/]+\.(?:jks|keystore|p12|pfx|pem|key))$/iu.test(file),
+  );
+
+  assert.deepEqual(
+    trackedSecretArtifacts,
+    [],
+    `Signing artifacts must not be tracked by Git:\n${trackedSecretArtifacts.join("\n")}`,
+  );
+
+  const trackedAndroidProperties = trackedFiles.filter((file) =>
+    /(?:^|\/)android\/gradle\.properties$/iu.test(file),
+  );
+  const trackedCredentialAssignments = [];
+
+  for (const file of trackedAndroidProperties) {
+    const source = readFileSync(file, "utf8");
+    for (const match of source.matchAll(/^\s*MYAPP_UPLOAD_[A-Z0-9_]+\s*=.+$/gim)) {
+      trackedCredentialAssignments.push(`${file}:${match[0].trim().split("=")[0]}`);
+    }
+  }
+
+  assert.deepEqual(
+    trackedCredentialAssignments,
+    [],
+    `Android signing credentials must not be assigned in tracked gradle.properties files:\n${trackedCredentialAssignments.join("\n")}`,
   );
 });
 

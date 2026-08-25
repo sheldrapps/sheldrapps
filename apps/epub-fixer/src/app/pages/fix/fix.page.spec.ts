@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import {
   EpubRepairingService,
   type EpubDiagnosticIssue,
@@ -6,6 +7,87 @@ import {
 import { FixPage } from './fix.page';
 
 describe('FixPage', () => {
+  beforeEach(() => {
+    Object.assign(FixPage.prototype, {
+      purchaseBusyState: signal(false),
+      busyActionState: signal(undefined),
+      busyProgressPercentState: signal(0),
+      isResettingFlowState: signal(false),
+      operationCompleted: signal(false),
+      recovery: { clear: jasmine.createSpy('clear').and.resolveTo(undefined) },
+    });
+  });
+
+  it('groups repeated diagnosis issues by code and keeps groups collapsed by default', () => {
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      expandedIssueGroupKeys: new Set<string>(),
+    });
+    const issues: EpubDiagnosticIssue[] = [
+      {
+        code: 'MANIFEST_ITEM_MISSING',
+        severity: 'error',
+        fixable: true,
+        messageKey: 'FIX.ISSUE_MANIFEST_ITEM_MISSING',
+        details: 'Text/chapter-1.xhtml',
+      },
+      {
+        code: 'MANIFEST_ITEM_MISSING',
+        severity: 'error',
+        fixable: true,
+        messageKey: 'FIX.ISSUE_MANIFEST_ITEM_MISSING',
+        details: 'Images/cover.jpg',
+      },
+      {
+        code: 'SPINE_EMPTY',
+        severity: 'error',
+        fixable: true,
+        messageKey: 'FIX.ISSUE_SPINE_EMPTY',
+      },
+    ];
+
+    const groups = FixPage.prototype.issueGroups.call(ctx, issues, 'automatic');
+
+    expect(groups).toHaveSize(2);
+    expect(groups[0].issues).toHaveSize(2);
+    expect(groups[1].issues).toHaveSize(1);
+    expect(FixPage.prototype.isIssueGroupExpanded.call(ctx, groups[0])).toBeFalse();
+    expect(FixPage.prototype.issueGroupChevronName.call(ctx, groups[0])).toBe(
+      'chevron-forward-outline',
+    );
+
+    FixPage.prototype.toggleIssueGroup.call(ctx, groups[0]);
+
+    expect(FixPage.prototype.isIssueGroupExpanded.call(ctx, groups[0])).toBeTrue();
+    expect(FixPage.prototype.issueGroupChevronName.call(ctx, groups[0])).toBe(
+      'chevron-down-outline',
+    );
+  });
+
+  it('selects single-file mode and advances to the load step', () => {
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      fixMode: null,
+      workflowStep: 0,
+    });
+
+    FixPage.prototype.selectFixMode.call(ctx, 'single');
+
+    expect(ctx.fixMode).toBe('single');
+    expect(ctx.workflowStep).toBe(1);
+  });
+
+  it('selects multiple-file mode for Pro users', () => {
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      adsRemoved: true,
+      fixMode: null,
+      workflowStep: 0,
+    });
+
+    FixPage.prototype.selectFixMode.call(ctx, 'multiple');
+
+    expect(ctx.fixMode).toBe('multiple');
+    expect(ctx.workflowStep).toBe(1);
+  });
+
   it('diagnoses automatically after preparing an EPUB', async () => {
     const file = new File(['epub'], 'book.epub', {
       type: 'application/epub+zip',
@@ -58,32 +140,11 @@ describe('FixPage', () => {
     expect(input.value).toBe('');
   });
 
-  it('fixes and saves a copy after a rewarded ad on the free flow', async () => {
+  it('writes and saves a copy from the completed diagnosis plan after a rewarded ad', async () => {
     const repair = jasmine.createSpy('repair').and.resolveTo({
       success: true,
       repairedIssues: ['SPINE_EMPTY'],
     });
-    const diagnose = jasmine
-      .createSpy('diagnose')
-      .and.returnValues(
-        Promise.resolve({
-          sessionId: 'session-1',
-          status: 'repairable' as const,
-          issues: [
-            {
-              code: 'LINK_FRAGMENT_MISSING' as const,
-              severity: 'warning' as const,
-              fixable: true,
-              messageKey: 'FIX.ISSUE_LINK_FRAGMENT_MISSING',
-            },
-          ],
-        }),
-        Promise.resolve({
-          sessionId: 'session-1',
-          status: 'valid' as const,
-          issues: [],
-        }),
-      );
     const exportCurrentEpub = jasmine.createSpy('exportCurrentEpub').and.resolveTo(
       {
         outputUri: 'blob:fixed',
@@ -110,6 +171,7 @@ describe('FixPage', () => {
       selectedEpubName: 'book.epub',
       repairing: new EpubRepairingService(),
       diagnosis: {
+        diagnosisId: 'diagnosis-1',
         status: 'repairable',
         issues: [
           {
@@ -137,7 +199,6 @@ describe('FixPage', () => {
       },
       workflow: {
         repairCurrentEpub: repair,
-        diagnoseCurrentEpub: diagnose,
         exportCurrentEpub,
         buildFixedOutputName: jasmine
           .createSpy('buildFixedOutputName')
@@ -158,8 +219,7 @@ describe('FixPage', () => {
     await FixPage.prototype.runRepair.call(ctx);
 
     expect(showRewarded).toHaveBeenCalled();
-    expect(repair).toHaveBeenCalledTimes(2);
-    expect(diagnose).toHaveBeenCalledTimes(2);
+    expect(repair).toHaveBeenCalledOnceWith('diagnosis-1', undefined, undefined);
     expect(toastCreate).not.toHaveBeenCalled();
     expect(exportCurrentEpub).toHaveBeenCalledWith('book_fixed.epub');
     expect(saveExportedEpub).toHaveBeenCalledWith(
@@ -531,6 +591,95 @@ describe('FixPage', () => {
     ).toBeTrue();
   });
 
+  it('selects and clears every confirmation issue from the bulk control', () => {
+    const issues: EpubDiagnosticIssue[] = [
+      {
+        code: 'LINK_FRAGMENT_MISSING',
+        severity: 'warning',
+        fixable: true,
+        messageKey: 'FIX.ISSUE_LINK_FRAGMENT_MISSING',
+      },
+      {
+        code: 'SPINE_EMPTY',
+        severity: 'error',
+        fixable: true,
+        messageKey: 'FIX.ISSUE_SPINE_EMPTY',
+      },
+    ];
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      selectedConfirmationByIssueKey: {},
+    });
+
+    expect(
+      FixPage.prototype.areAllConfirmationsChecked.call(ctx, issues),
+    ).toBeFalse();
+    expect(
+      FixPage.prototype.hasPartialConfirmations.call(ctx, issues),
+    ).toBeFalse();
+
+    FixPage.prototype.onAllConfirmationsChange.call(ctx, issues, true);
+
+    expect(
+      issues.every((issue) =>
+        FixPage.prototype.isConfirmationChecked.call(ctx, issue),
+      ),
+    ).toBeTrue();
+    expect(
+      FixPage.prototype.areAllConfirmationsChecked.call(ctx, issues),
+    ).toBeTrue();
+
+    FixPage.prototype.onConfirmationChange.call(ctx, issues[0], false);
+
+    expect(
+      FixPage.prototype.hasPartialConfirmations.call(ctx, issues),
+    ).toBeTrue();
+
+    FixPage.prototype.toggleAllConfirmations.call(ctx, issues);
+
+    expect(
+      issues.every((issue) =>
+        FixPage.prototype.isConfirmationChecked.call(ctx, issue),
+      ),
+    ).toBeTrue();
+
+    FixPage.prototype.toggleAllConfirmations.call(ctx, issues);
+
+    expect(
+      issues.every((issue) =>
+        !FixPage.prototype.isConfirmationChecked.call(ctx, issue),
+      ),
+    ).toBeTrue();
+  });
+
+  it('advances from confirmation after bulk confirmation', async () => {
+    const issue = {
+      code: 'ORPHAN_RESOURCE_UNUSED',
+      severity: 'warning',
+      fixable: true,
+      messageKey: 'FIX.ISSUE_ORPHAN_RESOURCE_UNUSED',
+      repairMode: 'review',
+    } satisfies EpubDiagnosticIssue;
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      busyAction: undefined,
+      preparedSessionId: 'session-1',
+      workflowStep: 2,
+      viewState: 'diagnosed' as const,
+      selectedConfirmationByIssueKey: {},
+      selectedGuidedOptionByIssueKey: {},
+      diagnosis: {
+        status: 'repairable',
+        issues: [issue],
+      },
+    });
+
+    expect(ctx.canContinueWorkflow).toBeFalse();
+
+    FixPage.prototype.toggleAllConfirmations.call(ctx, [issue]);
+    await FixPage.prototype.onWorkflowNext.call(ctx);
+
+    expect(ctx.workflowStep).toBe(3);
+  });
+
   it('shows save/share actions after an export result exists', () => {
     const ctx = Object.assign(Object.create(FixPage.prototype), {
       busyAction: undefined,
@@ -574,35 +723,30 @@ describe('FixPage', () => {
     expect(billing.canShowRemoveAdsEntryPoint).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the remove ads modal after preparing the billing UI', async () => {
-    const preparePurchaseUi = jasmine
-      .createSpy('preparePurchaseUi')
-      .and.resolveTo(undefined);
+  it('opens the shared remove ads purchase page', async () => {
+    const openPurchasePage = jasmine.createSpy('open');
+    const navigateByUrl = jasmine.createSpy('navigateByUrl').and.resolveTo(true);
     const billing = {
       canShowRemoveAdsEntryPoint: jasmine
         .createSpy('canShowRemoveAdsEntryPoint')
-        .and.returnValue(true),
-      logPurchaseUiState: jasmine.createSpy('logPurchaseUiState'),
-      preparePurchaseUi,
-      isDevelopmentMode: jasmine
-        .createSpy('isDevelopmentMode')
-        .and.returnValue(false),
-      isBillingAvailable: jasmine
-        .createSpy('isBillingAvailable')
         .and.returnValue(true),
     };
     const ctx = Object.assign(Object.create(FixPage.prototype), {
       adsRemoved: false,
       purchaseBusy: false,
-      purchaseModalOpen: false,
       billing,
+      removeAdsPurchasePage: { open: openPurchasePage },
+      router: { navigateByUrl },
+      logPurchaseUiState: jasmine.createSpy('logPurchaseUiState'),
     });
 
     await FixPage.prototype.openPurchaseModal.call(ctx);
 
-    expect(preparePurchaseUi).toHaveBeenCalled();
-    expect(ctx.purchaseModalOpen).toBeTrue();
-    expect(ctx.purchaseBusy).toBeFalse();
+    expect(openPurchasePage).toHaveBeenCalledWith({
+      variant: 'EF',
+      returnUrl: '/tabs/fix-page',
+    });
+    expect(navigateByUrl).toHaveBeenCalledWith('/remove-ads');
   });
 
   it('forwards a preferred OPF path to the repair workflow', async () => {
@@ -616,6 +760,7 @@ describe('FixPage', () => {
       preparedSessionId: 'session-1',
       selectedEpubName: 'book.epub',
       diagnosis: {
+        diagnosisId: 'diagnosis-1',
         status: 'repairable',
         issues: [
           {
@@ -677,7 +822,11 @@ describe('FixPage', () => {
 
     await FixPage.prototype.runRepair.call(ctx, 'OPS/package.opf');
 
-    expect(repair).toHaveBeenCalledWith('OPS/package.opf', undefined);
+    expect(repair).toHaveBeenCalledWith(
+      'diagnosis-1',
+      'OPS/package.opf',
+      undefined,
+    );
   });
 
   it('uses the guided OPF selection when fixing an ambiguous package', async () => {
@@ -692,6 +841,7 @@ describe('FixPage', () => {
       selectedEpubName: 'book.epub',
       selectedGuidedOptionByIssueKey: {},
       diagnosis: {
+        diagnosisId: 'diagnosis-1',
         status: 'repairable',
         issues: [
           {
@@ -765,9 +915,11 @@ describe('FixPage', () => {
       issue,
     );
 
-    expect(repair).toHaveBeenCalledWith('OPS/alt.opf', {
-      [selectionKey]: 'OPS/alt.opf',
-    });
+    expect(repair).toHaveBeenCalledWith(
+      'diagnosis-1',
+      'OPS/alt.opf',
+      { [selectionKey]: 'OPS/alt.opf' },
+    );
   });
 
   it('forwards guided selections for internal link repairs', async () => {
@@ -791,6 +943,7 @@ describe('FixPage', () => {
       selectedEpubName: 'book.epub',
       selectedGuidedOptionByIssueKey: {},
       diagnosis: {
+        diagnosisId: 'diagnosis-1',
         status: 'repairable',
         issues: [issue],
       },
@@ -847,9 +1000,11 @@ describe('FixPage', () => {
 
     const selectionKey = FixPage.prototype.issueSelectionKey.call(ctx, issue);
 
-    expect(repair).toHaveBeenCalledWith(undefined, {
-      [selectionKey]: 'OPS/img/cover.png',
-    });
+    expect(repair).toHaveBeenCalledWith(
+      'diagnosis-1',
+      undefined,
+      { [selectionKey]: 'OPS/img/cover.png' },
+    );
   });
 
   it('localizes known issue details while keeping technical paths intact', () => {

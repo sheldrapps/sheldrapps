@@ -6,6 +6,13 @@ import {
   type Plugin,
   type PluginListenerHandle,
 } from '@capacitor/core';
+import { EpubDiagnosticQueue } from '@sheldrapps/file-kit';
+import type {
+  EpubDiagnosticIssue,
+  EpubDiagnosticPage,
+  EpubDiagnosticSummary,
+  EpubDiagnosticStatus,
+} from '@sheldrapps/file-kit';
 
 type InspectEpubResult = {
   success: boolean;
@@ -132,6 +139,7 @@ type PickAndPrepareEpubOptions = {
 
 type PickAndPrepareEpubResult = {
   success: boolean;
+  sessionId?: string;
   selectedName?: string;
   sourceSize?: number;
   sourceLastModified?: number;
@@ -195,6 +203,45 @@ type EpubRewritePlugin = Plugin & {
   pickAndPrepareEpub(
     options: PickAndPrepareEpubOptions,
   ): Promise<PickAndPrepareEpubResult>;
+  diagnoseEpub(options: {
+    sessionId: string;
+    mode?: 'quick' | 'deep';
+  }): Promise<{
+    success: boolean;
+    status?: EpubDiagnosticStatus;
+    issues?: EpubDiagnosticIssue[];
+    diagnosisId?: string;
+    summary?: {
+      totalFindings?: number;
+      fixableFindings?: number;
+      byCode?: Record<string, number>;
+      bySeverity?: Record<string, number>;
+    };
+    page?: {
+      items?: EpubDiagnosticIssue[];
+      total?: number;
+      nextCursor?: string;
+    };
+    error?: string;
+    message?: string;
+    stage?: string;
+  }>;
+  getDiagnosisIssues(options: {
+    sessionId: string;
+    diagnosisId: string;
+    cursor?: string;
+    pageSize?: number;
+  }): Promise<{
+    success: boolean;
+    diagnosisId?: string;
+    items?: EpubDiagnosticIssue[];
+    total?: number;
+    nextCursor?: string;
+    error?: string;
+    message?: string;
+    stage?: string;
+  }>;
+  cleanup(options: { sessionId: string }): Promise<void>;
   inspectEpub(options: { inputPath: string }): Promise<InspectEpubResult>;
   rewriteCover(options: RewriteCoverOptions): Promise<RewriteCoverResult>;
   createEpubFromCover(
@@ -235,6 +282,8 @@ export class EpubRewriteError extends Error {
 
 @Injectable({ providedIn: 'root' })
 export class EpubRewriteService {
+  private readonly diagnoseQueue = new EpubDiagnosticQueue();
+
   isSupported(): boolean {
     return (
       Capacitor.getPlatform() === 'android' &&
@@ -344,6 +393,7 @@ export class EpubRewriteService {
   }
 
   async pickAndPrepareEpub(options: PickAndPrepareEpubOptions): Promise<{
+    sessionId: string;
     selectedName: string;
     sourceSize: number;
     sourceLastModified: number;
@@ -398,6 +448,7 @@ export class EpubRewriteService {
     }
 
     return {
+      sessionId: result.sessionId || '',
       selectedName: result.selectedName || result.workingName,
       sourceSize: result.sourceSize ?? 0,
       sourceLastModified: result.sourceLastModified ?? Date.now(),
@@ -415,6 +466,10 @@ export class EpubRewriteService {
 
   async inspectEpub(inputPath: string): Promise<InspectEpubResult> {
     return EpubRewrite.inspectEpub({ inputPath });
+  }
+
+  async cleanup(sessionId: string): Promise<void> {
+    await EpubRewrite.cleanup({ sessionId });
   }
 
   async createEpubFromCover(options: CreateEpubFromCoverOptions): Promise<void> {
@@ -482,6 +537,84 @@ export class EpubRewriteService {
         stage: result.stage,
       });
     }
+  }
+
+  async diagnose(sessionId: string, mode: 'quick' | 'deep' = 'deep'): Promise<{
+    status: EpubDiagnosticStatus;
+    issues: EpubDiagnosticIssue[];
+    diagnosisId?: string;
+    page?: EpubDiagnosticPage;
+    summary?: EpubDiagnosticSummary;
+  }> {
+    return this.diagnoseQueue.run(() => this.runDiagnosis(sessionId, mode));
+  }
+
+  private async runDiagnosis(
+    sessionId: string,
+    mode: 'quick' | 'deep',
+  ): Promise<{
+    status: EpubDiagnosticStatus;
+    issues: EpubDiagnosticIssue[];
+    diagnosisId?: string;
+    page?: EpubDiagnosticPage;
+    summary?: EpubDiagnosticSummary;
+  }> {
+    const result = await EpubRewrite.diagnoseEpub({ sessionId, mode });
+    if (!result.success || !result.status || !result.issues) {
+      throw new EpubRewriteError(result.error ?? 'DIAGNOSE_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+
+    return {
+      status: result.status,
+      issues: result.issues,
+      diagnosisId: result.diagnosisId,
+      summary: result.summary
+        ? {
+            totalFindings: result.summary.totalFindings ?? 0,
+            fixableFindings: result.summary.fixableFindings ?? 0,
+            byCode: result.summary.byCode ?? {},
+            bySeverity: result.summary.bySeverity ?? {},
+          }
+        : undefined,
+      page: result.page
+        ? {
+            items: result.page.items ?? [],
+            total: result.page.total ?? 0,
+            nextCursor: result.page.nextCursor,
+          }
+        : undefined,
+    };
+  }
+
+  async getDiagnosisIssues(
+    sessionId: string,
+    diagnosisId: string,
+    cursor?: string,
+    pageSize?: number,
+  ): Promise<EpubDiagnosticPage & { diagnosisId: string }> {
+    return this.diagnoseQueue.run(async () => {
+      const result = await EpubRewrite.getDiagnosisIssues({
+        sessionId,
+        diagnosisId,
+        cursor,
+        pageSize,
+      });
+      if (!result.success || !result.diagnosisId || !result.items) {
+        throw new EpubRewriteError(result.error ?? 'DIAGNOSE_PAGE_FAILED', {
+          message: result.message,
+          stage: result.stage,
+        });
+      }
+      return {
+        diagnosisId: result.diagnosisId,
+        items: result.items,
+        total: result.total ?? 0,
+        nextCursor: result.nextCursor,
+      };
+    });
   }
 
   async extractImageAssets(options: {

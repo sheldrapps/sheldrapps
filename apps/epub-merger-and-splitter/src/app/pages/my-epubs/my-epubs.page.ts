@@ -301,14 +301,10 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     try {
       const preview = await this.library.resolvePreviewAsset(filename);
       const imageSrc = preview.src || fallbackThumb;
-      if (!imageSrc) {
-        this.pageErrorKey = 'MY_EPUBS.ERROR.PREVIEW';
-        return;
-      }
-
       const fileSizeLabel = await this.resolvePreviewFileSizeLabel(filename);
       this.previewPage.open({
         imageSrc,
+        fallbackLabelKey: imageSrc ? null : 'MY_EPUBS.PLACEHOLDER',
         isDithered: preview.isDithered,
         metadata: {
           name: this.displayFilename(filename),

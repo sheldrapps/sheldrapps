@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 
@@ -12,8 +13,8 @@ android {
         applicationId "com.sheldrapps.epubfixer"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 29
-        versionName "Reliable EPUB repair"
+        versionCode 32
+        versionName "Contained EPUB library"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -21,19 +22,34 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    def signingKeystore = new File(System.getProperty('user.home'), '.sheldrapps/android-signing/ef/upload.keystore')
+    def signingPassword = providers.gradleProperty('EF_SIGNING_PASSWORD').orNull
     signingConfigs {
         release {
-            storeFile file(MYAPP_UPLOAD_STORE_FILE)
-            storePassword MYAPP_UPLOAD_STORE_PASSWORD
-            keyAlias MYAPP_UPLOAD_KEY_ALIAS
-            keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+            storeFile signingKeystore
+            storePassword signingPassword
+            keyAlias 'epubfixer'
+            keyPassword signingPassword
         }
     }
     buildTypes {
         release {
             minifyEnabled false
-            signingConfig = signingConfigs.release
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+tasks.matching { task -> task.name == 'preReleaseBuild' }.configureEach {
+    doFirst {
+        def password = project.providers.gradleProperty('EF_SIGNING_PASSWORD').orNull
+        def keystore = new File(System.getProperty('user.home'), '.sheldrapps/android-signing/ef/upload.keystore')
+        if (password == null || password.toString().trim().isEmpty() || !keystore.isFile()) {
+            def missing = []
+            if (password == null || password.toString().trim().isEmpty()) missing << 'EF_SIGNING_PASSWORD in ~/.gradle/gradle.properties'
+            if (!keystore.isFile()) missing << keystore.path
+            throw new GradleException("EF release signing is not configured: ${missing.join(', ')}")
         }
     }
 }

@@ -18,6 +18,7 @@ export type PreviewEditingPageMetadata = {
 
 export type PreviewEditingPageState = {
   imageSrc: string | null;
+  fallbackLabelKey?: string | null;
   imageWidth?: number | null;
   imageHeight?: number | null;
   beforeSrc?: string | null;

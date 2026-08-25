@@ -43,7 +43,13 @@
     "EDIT_PROJECT_COPY_DESC": "원본 파일을 유지하고 새 복사본을 편집합니다."
   },
   "FIX": {
+    "MODE_TITLE": "모드 선택",
+    "MODE_SINGLE_FILE": "단일 파일",
+    "MODE_SINGLE_FILE_DESCRIPTION": "한 번에 하나의 파일.",
+    "MODE_MULTIPLE_FILES": "여러 파일",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "여러 파일을 선택해 동시에 복구합니다.",
     "STEPPER": {
+      "MODE": "모드",
       "LOAD": "로드",
       "CONFIRM": "확인",
       "FIX": "복구"
@@ -51,6 +57,11 @@
     "TITLE": "복구",
     "SELECT_EPUB_LABEL": "EPUB 파일",
     "EPUB_FILE_TITLE": "EPUB 파일",
+    "ADD_ANOTHER_EPUB": "다른 EPUB 추가",
+    "FILES_SELECTED": "{{count}}개 파일 선택됨",
+    "SELECT_EPUB_FILES_PLACEHOLDER": "검사할 EPUB 파일을 하나 이상 선택하세요",
+    "ARIA_SELECT_EPUB_FILES": "여러 EPUB 파일 선택",
+    "SELECTED_FILES_TITLE": "선택한 파일",
     "EPUB_FILE_LIMITS": "EPUB 형식(.epub) · 최대 {{maxSize}}MB",
     "SELECT_EPUB_PLACEHOLDER": "검사할 EPUB 선택",
     "ACTION_SELECT_EPUB": "EPUB 선택",
@@ -77,6 +88,7 @@
     "ACTION_DIAGNOSE": "EPUB 진단",
     "ACTION_REPAIR": "복구",
     "CONFIRMATION_CHECKBOX": "이 수정을 확인합니다",
+    "CONFIRM_ALL": "모두 확인",
     "ACTION_EXPORT": "복구",
     "RENAME_ACTION": "이름 변경",
     "RENAMED_OK": "EPUB 이름이 변경되었습니다",

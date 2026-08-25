@@ -1,51 +1,51 @@
 <en-US>
-Long EPUB repairs now show clearer progress, reduce screen brightness while the device stays awake, and recover more reliably after interruptions.
+The EPUB library now keeps its scroll area contained, while multi-file repair feedback stays clearer from one file to the next.
 </en-US>
 
 <ar>
-أصبحت عمليات إصلاح EPUB الطويلة أوضح، مع خفض سطوع الشاشة وإبقائها نشطة، واستعادة أكثر موثوقية بعد المقاطعات.
+تحافظ مكتبة EPUB الآن على احتواء منطقة التمرير، بينما تبقى ملاحظات إصلاح الملفات المتعددة أوضح من ملف إلى آخر.
 </ar>
 
 <de-DE>
-Lange EPUB-Reparaturen zeigen jetzt einen klareren Fortschritt, senken bei aktivem Bildschirm die Helligkeit und lassen sich nach Unterbrechungen zuverlässiger fortsetzen.
+Die EPUB-Bibliothek hält den Scrollbereich jetzt innerhalb des verfügbaren Bereichs, während die Rückmeldungen bei der Reparatur mehrerer Dateien klarer bleiben.
 </de-DE>
 
 <es-419>
-Las reparaciones largas de EPUB ahora muestran un progreso más claro, reducen el brillo mientras la pantalla permanece activa y se recuperan mejor tras interrupciones.
+La biblioteca de EPUB ahora mantiene contenido su espacio de desplazamiento y ofrece comentarios más claros al reparar varios archivos.
 </es-419>
 
 <fr-FR>
-Les réparations EPUB longues affichent désormais une progression plus claire, réduisent la luminosité tout en gardant l’écran actif et récupèrent mieux après une interruption.
+La bibliothèque EPUB maintient désormais sa zone de défilement dans l’espace disponible, avec des retours plus clairs lors de la réparation de plusieurs fichiers.
 </fr-FR>
 
 <hi-IN>
-लंबी EPUB मरम्मत में अब प्रगति अधिक स्पष्ट दिखती है, स्क्रीन सक्रिय रहते हुए चमक कम होती है और रुकावट के बाद प्रक्रिया अधिक विश्वसनीय रूप से बहाल होती है।
+EPUB लाइब्रेरी अब स्क्रॉल क्षेत्र को उपलब्ध स्थान के भीतर रखती है, जबकि कई फ़ाइलों की मरम्मत का फीडबैक अधिक स्पष्ट रहता है।
 </hi-IN>
 
 <it-IT>
-Le riparazioni lunghe degli EPUB mostrano ora un avanzamento più chiaro, riducono la luminosità mantenendo attivo lo schermo e recuperano meglio dopo le interruzioni.
+La libreria EPUB mantiene ora l’area di scorrimento nello spazio disponibile, mentre i messaggi della riparazione di più file restano più chiari.
 </it-IT>
 
 <ja-JP>
-長時間のEPUB修復で進行状況がより分かりやすくなり、画面を点灯したまま明るさを下げ、処理が中断された後もより確実に復旧できるようになりました。
+EPUBライブラリのスクロール領域が利用可能な範囲に収まり、複数ファイルの修復フィードバックもファイルごとに分かりやすくなりました。
 </ja-JP>
 
 <ko-KR>
-긴 EPUB 복구의 진행 상황이 더 명확해졌고, 화면을 켠 상태에서 밝기를 낮추며, 중단 후에도 더 안정적으로 복구됩니다.
+EPUB 라이브러리의 스크롤 영역이 사용 가능한 공간 안에 유지되며, 여러 파일을 복구할 때의 피드백도 파일별로 더 명확해졌습니다.
 </ko-KR>
 
 <pt-BR>
-Os reparos longos de EPUB agora mostram um progresso mais claro, reduzem o brilho enquanto a tela permanece ativa e se recuperam melhor após interrupções.
+A biblioteca EPUB agora mantém a área de rolagem dentro do espaço disponível, com feedback mais claro ao reparar vários arquivos.
 </pt-BR>
 
 <ru-RU>
-При длительном восстановлении EPUB теперь понятнее отображается прогресс, снижается яркость при активном экране и надёжнее выполняется восстановление после прерываний.
+Область прокрутки библиотеки EPUB теперь остаётся в пределах доступного пространства, а сообщения при восстановлении нескольких файлов стали понятнее.
 </ru-RU>
 
 <zh-CN>
-长时间修复 EPUB 时，进度显示更加清晰；屏幕保持唤醒的同时会降低亮度，并能更可靠地从中断中恢复。
+EPUB 书库现在会将滚动区域保持在可用空间内，同时让多文件修复过程中的反馈更加清晰。
 </zh-CN>
 
 <zh-TW>
-長時間修復 EPUB 時，進度顯示更加清楚；螢幕保持喚醒的同時會降低亮度，並能更可靠地從中斷中恢復。
+EPUB 書庫現在會將捲動區域維持在可用空間內，同時讓多檔案修復過程中的回饋更加清楚。
 </zh-TW>

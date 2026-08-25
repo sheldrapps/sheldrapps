@@ -1,30 +1,33 @@
 :host {
   --home-stack-gap: var(--app-space-7);
   --home-action-gap: var(--app-space-4);
-  display: block;
 }
 
 ion-title.home-page-title {
   font-weight: 700;
 }
 
-.home__stepper,
 .home__stack {
   width: min(100%, 680px);
   margin-inline: auto;
-}
-
-.home__stepper {
-  padding: var(--app-space-5) var(--app-space-7) 0;
-}
-
-.home__stack {
   display: grid;
   gap: var(--home-stack-gap);
   padding:
     var(--app-space-5)
     var(--app-space-7)
     calc(var(--app-space-10) + var(--app-space-9));
+}
+
+.home__stepper {
+  width: min(100%, 680px);
+  margin-inline: auto;
+  padding: var(--app-space-5) var(--app-space-7) 0;
+}
+
+.home__workflow-navigation {
+  margin-inline: auto;
+  width: min(100%, 680px);
+  padding: 0 var(--app-space-7) var(--app-space-7);
 }
 
 .home-action-section,

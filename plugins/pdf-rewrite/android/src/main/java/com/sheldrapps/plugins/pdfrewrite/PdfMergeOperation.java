@@ -17,7 +17,7 @@ public final class PdfMergeOperation {
     public Result execute(List<File> sources, List<String> names, String bookmarkMode, File coverImage, float coverQuality, File output, PdfProgress progress) throws Exception {
         if (sources.size() < 2) throw new PdfOperationException("MERGE_REQUIRES_TWO_PDFS", "merge");
         if (sequential.shouldUse(sources)) {
-            PdfSequentialMergeOperation.Result result = sequential.execute(sources, coverImage, coverQuality, output, progress);
+            PdfSequentialMergeOperation.Result result = sequential.execute(sources, names, bookmarkMode, coverImage, coverQuality, output, progress);
             return new Result(result.file, result.warnings);
         }
         List<String> warnings = new ArrayList<>();
@@ -40,9 +40,10 @@ public final class PdfMergeOperation {
                 if (source.getDocumentCatalog().getAcroForm() != null) warnings.add("ACROFORM_NOT_RECONSTRUCTED");
                 if (source.getSignatureDictionaries().size() > 0) warnings.add("SIGNATURES_INVALIDATED_BY_REWRITE");
                 if (labels.hasLabels(source)) warnings.add("PAGE_LABELS_REQUIRE_MANUAL_REBUILD");
-                if ("documents-and-bookmarks".equals(bookmarkMode) || "documents-only".equals(bookmarkMode)) bookmarks.addDocumentBookmark(target, names.get(index), offset);
-                if ("documents-and-bookmarks".equals(bookmarkMode) || "original-bookmarks".equals(bookmarkMode)) bookmarks.copyOriginalTopLevel(source, target, offset, 0, source.getNumberOfPages()-1);
+                int sourceOffset = offset;
                 int copied = copier.copy(source, target, 0, source.getNumberOfPages()-1, completed, new PhaseProgress(progress, total));
+                if ("documents-and-bookmarks".equals(bookmarkMode) || "documents-only".equals(bookmarkMode)) bookmarks.addDocumentBookmark(target, names.get(index), sourceOffset);
+                if ("documents-and-bookmarks".equals(bookmarkMode) || "original-bookmarks".equals(bookmarkMode)) bookmarks.copyOriginalTopLevel(source, target, sourceOffset, 0, source.getNumberOfPages()-1);
                 completed += copied; offset += copied;
             }
             progress.checkCancelled(); target.save(output); progress.emit("validate", total, total);

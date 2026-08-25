@@ -25,7 +25,7 @@
   </div>
 
   <div class="home__stack">
-    @if (!selectedMode() && workflowStep() === 0) {
+    @if (!selectedMode() && workflowStepId() === 'merge-split') {
       <section class="home-action-section" aria-labelledby="home-action-title">
         <div class="field-title" id="home-action-title">
           {{ 'HOME.WHAT_DO_YOU_WANT_TO_DO' | translate }}
@@ -47,7 +47,7 @@
       </section>
     }
 
-    @if (selectedMode() === 'merge' && workflowStep() === 1) {
+    @if (selectedMode() === 'merge' && workflowStepId() === 'select') {
       <sh-file-picker-panel
         [title]="'HOME.PDF_FILES_TITLE' | translate"
         [selected]="mergePdfs().length > 0"
@@ -68,7 +68,7 @@
       ></sh-file-picker-panel>
     }
 
-    @if (selectedMode() === 'merge' && workflowStep() === 2) {
+    @if (selectedMode() === 'merge' && workflowStepId() === 'bookmarks') {
       <section class="toc-selector-section">
         <sh-triple-button
           mode="toc-mode"
@@ -78,7 +78,7 @@
       </section>
     }
 
-    @if (selectedMode() === 'split' && workflowStep() === 0) {
+    @if (selectedMode() === 'split' && workflowStepId() === 'merge-split') {
       <sh-file-picker-panel
         [title]="'HOME.PDF_FILE_TITLE' | translate"
         [selected]="!!splitPdf()"
@@ -92,7 +92,7 @@
       ></sh-file-picker-panel>
     }
 
-    @if (selectedMode() === 'split' && workflowStep() === 1) {
+    @if (selectedMode() === 'split' && workflowStepId() === 'method') {
       <section class="split-method-section" aria-labelledby="split-method-title">
         <div class="field-title" id="split-method-title">
           {{ 'HOME.SPLIT_HOW_TO_TITLE' | translate }}
@@ -106,10 +106,10 @@
       </section>
     }
 
-    @if (selectedMode() === 'split' && workflowStep() === 2) {
-      <section class="split-confirm-section app-surface" aria-labelledby="output-title">
-        <div class="field-title" id="output-title">
-          {{ 'HOME.SPLIT_CONFIRM.TITLE' | translate }}
+    @if (selectedMode() === 'split' && workflowStepId() === 'bookmarks') {
+      <section class="split-confirm-section app-surface" aria-labelledby="split-bookmarks-title">
+        <div class="field-title" id="split-bookmarks-title">
+          {{ 'HOME.SPLIT_CONFIRM.VARIANT_LABEL' | translate }}
         </div>
         @if (splitMethod() === 'bookmarks') {
           <sh-selectable-button-list
@@ -119,8 +119,26 @@
             selectedIconName="radio-button-on"
             (valueChange)="onSplitBookmarkModeChange($any($event))"
           ></sh-selectable-button-list>
+        } @else if (splitMethod() === 'manual-cut-points' && splitManualMode() === 'toc') {
+          <sh-selectable-button-list
+            [items]="splitBookmarkItems()"
+            [value]="null"
+            [values]="splitManualBookmarkIds()"
+            selectionMode="multiple"
+            [ariaLabel]="'HOME.SPLIT_CONFIRM.MANUAL_TITLE' | translate"
+            (valuesChange)="onSplitManualBookmarksChange($event)"
+          ></sh-selectable-button-list>
+        } @else {
+          <p class="split-confirm__summary">{{ splitMethodLabel(splitMethod()) }}</p>
         }
+      </section>
+    }
 
+    @if (selectedMode() === 'split' && workflowStepId() === 'ranges') {
+      <section class="split-confirm-section app-surface" aria-labelledby="output-title">
+        <div class="field-title" id="output-title">
+          {{ 'HOME.SPLIT_CONFIRM.TITLE' | translate }}
+        </div>
         @if (splitMethod() === 'manual-cut-points') {
           <p class="split-confirm__summary">{{ 'HOME.SPLIT_CONFIRM.MANUAL_HINT' | translate }}</p>
           <sh-selectable-button-list
@@ -154,16 +172,6 @@
             </ng-template>
           </sh-selectable-button-list>
 
-          @if (splitManualMode() === 'toc') {
-            <sh-selectable-button-list
-              [items]="splitBookmarkItems()"
-              [value]="null"
-              [values]="splitManualBookmarkIds()"
-              selectionMode="multiple"
-              [ariaLabel]="'HOME.SPLIT_CONFIRM.MANUAL_TITLE' | translate"
-              (valuesChange)="onSplitManualBookmarksChange($event)"
-            ></sh-selectable-button-list>
-          }
         }
 
         @if (splitMethod() === 'equal-number-of-parts') {
@@ -199,15 +207,15 @@
           </sh-selectable-button-list>
         }
 
-        @if (splitMethod() === 'maximum-file-size') {
-          <p class="split-confirm__summary">{{ 'HOME.SPLIT_CONFIRM.MAXIMUM_SIZE_HELP' | translate }}</p>
+        @if (splitMethod() === 'maximum-pages-per-file') {
+          <p class="split-confirm__summary">{{ 'HOME.SPLIT_CONFIRM.MAXIMUM_PAGES_HELP' | translate }}</p>
           <sh-selectable-button-list
-            [items]="splitMaximumSizeItems()"
-            [value]="splitMaximumSizeSelection()"
-            [expandedValue]="splitMaximumSizeSelection() === 'custom' ? 'custom' : null"
-            [ariaLabel]="'HOME.SPLIT_CONFIRM.MAXIMUM_SIZE_TITLE' | translate"
+            [items]="splitMaximumPagesItems()"
+            [value]="splitMaximumPagesSelection()"
+            [expandedValue]="splitMaximumPagesSelection() === 'custom' ? 'custom' : null"
+            [ariaLabel]="'HOME.SPLIT_CONFIRM.MAXIMUM_PAGES_TITLE' | translate"
             selectedIconName="radio-button-on"
-            (valueChange)="onSplitMaximumSizeChange($any($event))"
+            (valueChange)="onSplitMaximumPagesChange($any($event))"
           >
             <ng-template>
               <div class="split-custom-option">
@@ -217,15 +225,15 @@
                   inputmode="numeric"
                   min="1"
                   step="1"
-                  [value]="splitMaximumSize()"
-                  [attr.aria-label]="'HOME.SPLIT_CONFIRM.CUSTOM_SIZE' | translate"
+                  [value]="splitMaximumPages()"
+                  [attr.aria-label]="'HOME.SPLIT_CONFIRM.CUSTOM_PAGES' | translate"
                   (keydown)="onSplitIntegerKeydown($event)"
-                  (ionInput)="onSplitMaximumSizeInput($any($event).detail.value)"
+                  (ionInput)="onSplitMaximumPagesInput($any($event).detail.value)"
                 ></ion-input>
-                <span class="split-custom-control__suffix">{{ 'HOME.SPLIT_CONFIRM.MEGABYTES_UNIT' | translate }}</span>
+                <span class="split-custom-control__suffix">{{ 'HOME.SPLIT_CONFIRM.PAGES_UNIT' | translate }}</span>
               </div>
-              @if (splitMaximumSizeErrorKey()) {
-                <p class="split-confirm__validation">{{ splitMaximumSizeErrorKey()! | translate }}</p>
+              @if (splitMaximumPagesErrorKey()) {
+                <p class="split-confirm__validation">{{ splitMaximumPagesErrorKey()! | translate: { max: splitPageCount() } }}</p>
               }
             </ng-template>
           </sh-selectable-button-list>
@@ -243,15 +251,6 @@
                     {{ output.pageCount }} {{ 'PDF_WORKFLOW.PAGES' | translate }}
                   }
                 </span>
-                @if (output.estimatedSizeBytes) {
-                  <span class="split-output-card__size">
-                    @if (output.coverSizeBytes) {
-                      {{ 'HOME.SPLIT_CONFIRM.COVER_AND_BOOK_SIZE' | translate: { cover: formatMegabytes(output.coverSizeBytes), book: formatMegabytes(output.bookSizeBytes ?? 0) } }}
-                    } @else {
-                      ≈ {{ formatMegabytes(output.estimatedSizeBytes) }}
-                    }
-                  </span>
-                }
               </li>
             }
           </ul>
@@ -259,7 +258,7 @@
       </section>
     }
 
-    @if ((selectedMode() === 'merge' && workflowStep() === 3) || (selectedMode() === 'split' && workflowStep() === 3)) {
+    @if (workflowStepId() === 'cover') {
       <section class="cover-selector-section" aria-labelledby="cover-title">
         <div class="field-title" id="cover-title">{{ 'HOME.COVER_SELECTOR_TITLE' | translate }}</div>
         <sh-cover-source-actions
@@ -267,8 +266,11 @@
           [showTitle]="false"
           [imageDisabled]="isBusy()"
           [scratchDisabled]="isBusy()"
+          [noneDisabled]="isBusy()"
+          [noneHidden]="false"
           (imageSelected)="openCoverPicker()"
           (scratchSelected)="createCover()"
+          (noneSelected)="skipCover()"
         ></sh-cover-source-actions>
         @if (cover().source !== 'none') {
           <p class="split-confirm__summary">{{ cover().fileName ?? ('HOME.COVER_SELECTOR_TITLE' | translate) }}</p>
@@ -276,17 +278,18 @@
       </section>
     }
 
-    @if ((selectedMode() === 'merge' && workflowStep() === 4) || (selectedMode() === 'split' && workflowStep() === 4)) {
+    @if (workflowStepId() === 'review') {
       <section class="merge-result-section" aria-labelledby="review-title">
         <div class="field-title" id="review-title">
           {{ selectedMode() === 'merge' ? ('HOME.STEPPER.JOIN' | translate) : ('HOME.SPLIT' | translate) }}
         </div>
-        <sh-cover-image-state
-          [titleKey]="'HOME.PREVIEW_TITLE'"
-          [ariaLabelKey]="'HOME.PREVIEW_TITLE'"
-          [previewUrl]="coverImageUri() ?? undefined"
-        ></sh-cover-image-state>
         @if (cover().source !== 'none') {
+          <sh-cover-image-state
+            [titleKey]="'HOME.PREVIEW_TITLE'"
+            [ariaLabelKey]="'HOME.PREVIEW_TITLE'"
+            [previewUrl]="coverPreviewUri() ?? undefined"
+          ></sh-cover-image-state>
+
           <sh-triple-button
             mode="export-quality-mode"
             [selectedValue]="getEffectiveExportQualityMode()"
@@ -295,7 +298,56 @@
             (selectedValueChange)="onTripleExportQualityModeSelect($event)"
           ></sh-triple-button>
         }
-        <p class="split-confirm__summary">{{ selectedMode() === 'merge' ? ('HOME.MERGING_TITLE' | translate) : ('HOME.SPLITTING_TITLE' | translate) }}</p>
+        @if (operationCompleted()) {
+          @if (cover().source === 'none') {
+            <sh-cover-image-state
+              [titleKey]="'MY_PDFS.PREVIEW_TITLE'"
+              [ariaLabelKey]="'MY_PDFS.PREVIEW_TITLE'"
+              [fallbackLabelKey]="'MY_PDFS.PLACEHOLDER'"
+            ></sh-cover-image-state>
+          }
+          <p class="split-confirm__summary">
+            {{
+              selectedMode() === 'merge'
+                ? ('HOME.OPERATION.MERGE_SUCCESS_BODY' | translate)
+                : ('HOME.OPERATION.SPLIT_SUCCESS_BODY' | translate: { count: operationOutputs().length })
+            }}
+          </p>
+          <div class="split-output-card app-surface" aria-live="polite">
+            <div class="field-title">{{ 'HOME.OPERATION.OUTPUTS_TITLE' | translate }}</div>
+            <ul class="split-output-card__list">
+              @for (output of operationOutputs(); track output.fileName) {
+                <li class="split-output-card__item">
+                  <span class="split-output-card__title">{{ output.fileName }}</span>
+                  @if (output.sizeBytes > 0) {
+                    <span class="split-output-card__size">{{ formatMegabytes(output.sizeBytes) }}</span>
+                  }
+                </li>
+              }
+            </ul>
+          </div>
+        } @else {
+          <p class="split-confirm__summary">{{ selectedMode() === 'merge' ? ('HOME.MERGING_TITLE' | translate) : ('HOME.SPLITTING_TITLE' | translate) }}</p>
+        }
+        @if (!operationCompleted() && fidelityWarnings().length > 0 && !fidelityWarningsAcknowledged()) {
+          <div class="app-callout app-callout--warning" role="alert">
+            <div>
+              <div class="app-callout__title">{{ 'HOME.FIDELITY_WARNING_TITLE' | translate }}</div>
+              <div class="app-callout__body">{{ 'HOME.FIDELITY_WARNING_BODY' | translate }}</div>
+            </div>
+            <ion-button class="app-btn" expand="block" fill="outline" (click)="acknowledgeFidelityWarnings()">
+              {{ 'HOME.FIDELITY_WARNING_CONTINUE' | translate }}
+            </ion-button>
+          </div>
+        }
+        @if (operationCompleted() && resultWarnings().length > 0) {
+          <div class="app-callout app-callout--warning" role="status">
+            <div>
+              <div class="app-callout__title">{{ 'HOME.FIDELITY_WARNING_RESULT_TITLE' | translate }}</div>
+              <div class="app-callout__body">{{ 'HOME.FIDELITY_WARNING_RESULT_BODY' | translate }}</div>
+            </div>
+          </div>
+        }
         @if (operationCompleted()) {
           <ion-button expand="block" [disabled]="isResettingFlow()" (click)="onOperationDone()">
             {{ 'COMMON.DONE' | translate }}
@@ -322,22 +374,23 @@
       </div>
     }
 
-    @if (selectedMode()) {
-      <sh-workflow-navigation
-        [showPrevious]="workflowStep() > 0"
-        [showNext]="workflowStep() > 0 && workflowStep() < steps().length - 1"
-        [previousDisabled]="isBusy()"
-        [nextDisabled]="!canContinue() || isBusy()"
-        [previousLabel]="previousStepLabel()"
-        [nextLabel]="nextStepLabel()"
-        (previous)="previous()"
-        (next)="next()"
-      ></sh-workflow-navigation>
-    }
   </div>
 
   <input #pdfInput type="file" [accept]="pdfAccept" [multiple]="(pendingMode() ?? selectedMode()) === 'merge'" hidden (change)="onPdfFilesSelected($event)" />
   <input #coverInput type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="onCoverSelected($event)" />
+
+  <div class="home__workflow-navigation">
+    <sh-workflow-navigation
+      [showPrevious]="workflowStep() > 0 && workflowStepId() !== 'adjust'"
+      [showNext]="workflowStepId() !== 'adjust' && workflowStep() < steps().length - 1"
+      [previousDisabled]="isBusy()"
+      [nextDisabled]="!canContinue() || isBusy()"
+      [previousLabel]="previousStepLabel()"
+      [nextLabel]="nextStepLabel()"
+      (previous)="previous()"
+      (next)="next()"
+    ></sh-workflow-navigation>
+  </div>
 
   <sh-spinner
     [visible]="isBusy() || isRebuildingExportQuality()"

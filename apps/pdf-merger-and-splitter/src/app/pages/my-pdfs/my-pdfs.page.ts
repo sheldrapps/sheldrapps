@@ -1,7 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ViewChild, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild, inject, signal } from '@angular/core';
 import { IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { addIcons } from 'ionicons';
+import {
+  closeCircleOutline,
+  ellipsisVertical,
+  openOutline,
+  shareOutline,
+  trashOutline,
+} from 'ionicons/icons';
 import {
   CoverListAction,
   CoverListActionEvent,
@@ -34,7 +42,16 @@ export class MyPdfsPage {
   @ViewChild(CoverListContentComponent) listContent?: CoverListContentComponent;
 
   items: CoverListItem[] = [];
-  loading = true;
+  private readonly loadingState = signal(true);
+
+  get loading(): boolean {
+    return this.loadingState();
+  }
+
+  set loading(value: boolean) {
+    this.loadingState.set(value);
+  }
+
   pageErrorKey: string | null = null;
   private records: PdfLibraryEntry[] = [];
 
@@ -44,6 +61,16 @@ export class MyPdfsPage {
     { id: 'share', labelKey: 'UI_THEME.ACTIONS.SHARE', icon: 'share-outline' },
     { id: 'delete', labelKey: 'UI_THEME.ACTIONS.DELETE', icon: 'trash-outline' },
   ];
+
+  constructor() {
+    addIcons({
+      closeCircleOutline,
+      ellipsisVertical,
+      openOutline,
+      shareOutline,
+      trashOutline,
+    });
+  }
 
   async ionViewWillEnter(): Promise<void> {
     await this.load();
@@ -58,13 +85,14 @@ export class MyPdfsPage {
   }
 
   onListItemClick(item: CoverListItem): void {
-    void this.openRecord(item.filename);
+    const record = this.records.find((candidate) => candidate.fileName === item.filename);
+    if (record) void this.openRecord(record);
   }
 
   onListAction(event: CoverListActionEvent): void {
     const record = this.records.find((item) => item.fileName === event.item.filename);
     if (!record) return;
-    if (event.actionId === 'open') void this.openRecord(record.fileName);
+    if (event.actionId === 'open') void this.openRecord(record);
     if (event.actionId === 'share') void this.shareRecord(record);
     if (event.actionId === 'rename') void this.renameRecord(record);
     if (event.actionId === 'delete') void this.deleteRecord(record);
@@ -92,14 +120,19 @@ export class MyPdfsPage {
     }
   }
 
-  private async openRecord(fileName: string): Promise<void> {
-    const record = this.records.find((item) => item.fileName === fileName);
-    if (record && typeof window !== 'undefined') window.open(record.uri, '_blank');
+  private async openRecord(record: PdfLibraryEntry): Promise<void> {
+    try {
+      await this.library.openRecord(record);
+    } catch {
+      this.pageErrorKey = 'MY_PDFS.ERROR.OPEN';
+    }
   }
 
   private async shareRecord(record: PdfLibraryEntry): Promise<void> {
-    if (typeof navigator !== 'undefined' && 'share' in navigator) {
-      await navigator.share({ title: record.title, url: record.uri });
+    try {
+      await this.library.shareRecord(record);
+    } catch {
+      this.pageErrorKey = 'MY_PDFS.ERROR.SHARE';
     }
   }
 
@@ -110,16 +143,20 @@ export class MyPdfsPage {
       record.title,
     )?.trim();
     if (!nextTitle) return;
-    await this.library.saveRecord({
-      ...record,
-      title: nextTitle,
-      fileName: `${nextTitle.replace(/\.pdf$/i, '')}.pdf`,
-    });
-    await this.load();
+    try {
+      await this.library.renameRecord(record, nextTitle);
+      await this.load();
+    } catch {
+      this.pageErrorKey = 'MY_PDFS.ERROR.RENAME';
+    }
   }
 
   private async deleteRecord(record: PdfLibraryEntry): Promise<void> {
-    await this.library.deleteRecord(record.id);
-    await this.load();
+    try {
+      await this.library.deleteRecord(record);
+      await this.load();
+    } catch {
+      this.pageErrorKey = 'MY_PDFS.ERROR.DELETE';
+    }
   }
 }
