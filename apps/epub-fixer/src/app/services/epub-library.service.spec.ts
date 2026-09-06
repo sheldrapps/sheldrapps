@@ -9,7 +9,10 @@ import {
   WEB_EPUB_COVER_SERVICE_TOKEN,
 } from '@sheldrapps/file-kit';
 
-import { EpubLibraryService } from './epub-library.service';
+import {
+  EPUB_EMPTY_COVER_DATA_URL,
+  EpubLibraryService,
+} from './epub-library.service';
 
 describe('EpubLibraryService', () => {
   let service: EpubLibraryService;
@@ -65,12 +68,16 @@ describe('EpubLibraryService', () => {
         'deletePublicDocument',
         'scanFile',
         'extractCoverAssetFile',
+        'readPublicEpubMetadata',
+        'rewritePublicEpubMetadata',
       ],
     );
     fileKit = jasmine.createSpyObj<FileKitService>('FileKitService', [
       'fromBase64',
       'toBase64',
       'delete',
+      'exists',
+      'makeSafeFilename',
     ]);
 
     TestBed.configureTestingModule({
@@ -160,5 +167,53 @@ describe('EpubLibraryService', () => {
       'EPUBFixer',
       '.epub',
     );
+  });
+  it('uses public native metadata APIs for exported EPUBs', async () => {
+    epubRewrite.isSupported.and.returnValue(true);
+    const metadata = {
+      title: 'Updated title',
+      creators: [],
+      language: 'en',
+      identifier: { value: 'book-id' },
+      subjects: [],
+      contributors: [],
+    };
+    const document = {
+      version: 'epub3' as const,
+      detectedVersion: '3',
+      metadata,
+    };
+    epubRewrite.readPublicEpubMetadata.and.resolveTo(document);
+
+    await expectAsync(service.readPublicationMetadata('book.epub')).toBeResolvedTo(document);
+    expect(epubRewrite.readPublicEpubMetadata).toHaveBeenCalledWith('EPUBFixer', 'book.epub');
+    expect(filesystem.getUri).not.toHaveBeenCalled();
+
+    epubRewrite.rewritePublicEpubMetadata.and.resolveTo({
+      uri: 'content://documents/EPUBFixer/book.epub',
+      filename: 'book.epub',
+      size: 42,
+    });
+
+    await service.updatePublicationMetadata('book.epub', metadata);
+
+    expect(epubRewrite.rewritePublicEpubMetadata).toHaveBeenCalledWith(
+      'EPUBFixer',
+      'book.epub',
+      metadata,
+    );
+    expect(filesystem.getUri).not.toHaveBeenCalled();
+  });
+
+  it('returns the EPUB placeholder when a library item has no cover', async () => {
+    epubRewrite.isSupported.and.returnValue(false);
+    fileKit.exists.and.resolveTo(false);
+
+    const preview = await service.resolvePreviewAsset('book.epub');
+
+    expect(preview).toEqual({
+      src: EPUB_EMPTY_COVER_DATA_URL,
+      isDithered: false,
+    });
   });
 });

@@ -2,6 +2,8 @@ param(
   [Parameter(Mandatory = $true)]
   [string]$AppName,
   [string]$DeviceId,
+  [ValidateSet('Debug', 'Release')]
+  [string]$BuildType = 'Debug',
   [switch]$UninstallFirst
 )
 
@@ -14,7 +16,9 @@ $appDirName = switch ($AppName) {
 }
 $appPath = Join-Path $repoRoot (Join-Path 'apps' $appDirName)
 $androidPath = Join-Path $appPath 'android'
-$apkPath = Join-Path $androidPath 'app\build\outputs\apk\debug\app-debug.apk'
+$buildTypeLower = $BuildType.ToLowerInvariant()
+$apkDirectory = Join-Path $androidPath (Join-Path 'app\build\outputs\apk' $buildTypeLower)
+$apkPath = Join-Path $apkDirectory "app-$buildTypeLower.apk"
 
 function Resolve-AppId {
   param(
@@ -118,17 +122,41 @@ Invoke-Step -Name 'patch cordova flatDir' -Action { node scripts/patch-cordova-f
 Pop-Location
 Pop-Location
 
-Write-Host '[3/4] .\\gradlew.bat clean :app:assembleDebug'
+Write-Host "[3/4] .\\gradlew.bat clean :app:assemble$BuildType"
 Push-Location $androidPath
-Invoke-Step -Name 'gradlew assembleDebug' -Action { .\gradlew.bat clean :app:assembleDebug }
+Invoke-Step -Name "gradlew assemble$BuildType" -Action { .\gradlew.bat clean ":app:assemble$BuildType" }
 Pop-Location
+
+if (-not (Test-Path $apkPath)) {
+  if ($BuildType -eq 'Release') {
+    $releaseCandidates = @(Get-ChildItem -Path $apkDirectory -Filter 'app-release*.apk' -File -ErrorAction SilentlyContinue)
+    if ($releaseCandidates.Count -eq 1) {
+      $apkPath = $releaseCandidates[0].FullName
+    }
+  }
+}
 
 if (-not (Test-Path $apkPath)) {
   throw "APK not found at: $apkPath"
 }
 
-Write-Host '[4/4] adb install -r app-debug.apk'
-Invoke-Step -Name 'adb install' -Action { adb -s $DeviceId install -r $apkPath }
+Write-Host "[4/4] adb install -r $([System.IO.Path]::GetFileName($apkPath))"
+$previousErrorActionPreference = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+$installOutput = @(& adb -s $DeviceId install --no-streaming -r $apkPath 2>&1)
+$installExitCode = $LASTEXITCODE
+$ErrorActionPreference = $previousErrorActionPreference
+$installOutputText = $installOutput -join [Environment]::NewLine
+
+if ($installExitCode -ne 0 -and $BuildType -eq 'Release' -and $installOutputText -match 'INSTALL_FAILED_UPDATE_INCOMPATIBLE') {
+  Write-Warning 'The installed APK has a different signing key. Uninstalling it and retrying the release installation.'
+  $resolvedAppId = Resolve-AppId -Name $AppName
+  Invoke-Step -Name 'adb uninstall after signing mismatch' -Action { adb -s $DeviceId uninstall $resolvedAppId }
+  Invoke-Step -Name 'adb install release APK after uninstall' -Action { adb -s $DeviceId install --no-streaming $apkPath }
+}
+elseif ($installExitCode -ne 0) {
+  throw "Step failed: adb install (exit code $installExitCode): $installOutputText"
+}
 
 Write-Host ''
-Write-Host 'Done: install completed.'
+Write-Host "Done: $BuildType install completed."

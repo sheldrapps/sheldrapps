@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
+import { ModalController } from '@ionic/angular/standalone';
+import { PUBLIC_FILESYSTEM, providePdfFileKit } from '@sheldrapps/file-kit/pdf';
 import { MyPdfsPage } from './my-pdfs.page';
 
 describe('MyPdfsPage', () => {
@@ -9,6 +11,28 @@ describe('MyPdfsPage', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [MyPdfsPage, TranslateModule.forRoot()],
+      providers: [
+        ...providePdfFileKit({
+          enableWebDevAdapters: false,
+          filesystemAdapter: {
+            writeBytes: async () => ({
+              uri: 'memory://file',
+              filename: 'file',
+              mimeType: 'application/octet-stream',
+              size: 0,
+            }),
+            readBytes: async () => new Uint8Array(),
+            delete: async () => undefined,
+            exists: async () => false,
+            getUri: async () => 'memory://file',
+          },
+          shareAdapter: {
+            share: async () => false,
+          },
+        }),
+        { provide: ModalController, useValue: {} },
+        { provide: PUBLIC_FILESYSTEM, useValue: {} },
+      ],
     }).compileComponents();
     fixture = TestBed.createComponent(MyPdfsPage);
     component = fixture.componentInstance;
@@ -55,5 +79,19 @@ describe('MyPdfsPage', () => {
     });
     expect(ctx.pageErrorKey).toBeNull();
     expect(ctx.pageErrorParams).toBeNull();
+  });
+
+  it('requires confirmation before deleting', async () => {
+    const confirmDelete = jasmine.createSpy('confirmDelete').and.resolveTo(false);
+    const deleteByFilename = jasmine.createSpy('deleteByFilename');
+    const ctx = { confirmDelete, deleteByFilename };
+
+    await ((MyPdfsPage.prototype as unknown as { deleteFromList: Function }).deleteFromList).call(
+      ctx,
+      { fileName: 'book.pdf' },
+    );
+
+    expect(confirmDelete).toHaveBeenCalled();
+    expect(deleteByFilename).not.toHaveBeenCalled();
   });
 });

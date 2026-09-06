@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ViewChild, inject, signal } from '@angular/core';
-import { IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular/standalone';
+import { AlertController, IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
 import {
@@ -38,6 +38,7 @@ import type { PdfLibraryEntry } from '../../pdf/pdf-library.types';
 export class MyPdfsPage {
   private readonly library = inject(PdfLibraryService);
   private readonly translate = inject(TranslateService);
+  private readonly alertCtrl = inject(AlertController);
 
   @ViewChild(CoverListContentComponent) listContent?: CoverListContentComponent;
 
@@ -152,11 +153,36 @@ export class MyPdfsPage {
   }
 
   private async deleteRecord(record: PdfLibraryEntry): Promise<void> {
+    if (!(await this.confirmDelete())) {
+      return;
+    }
+
+    this.loading = true;
     try {
       await this.library.deleteRecord(record);
       await this.load();
     } catch {
       this.pageErrorKey = 'MY_PDFS.ERROR.DELETE';
+    } finally {
+      this.loading = false;
     }
+  }
+
+  private async confirmDelete(): Promise<boolean> {
+    const alert = await this.alertCtrl.create({
+      header: this.translate.instant('MY_PDFS.DELETE_TITLE'),
+      message: this.translate.instant('MY_PDFS.DELETE_MESSAGE'),
+      buttons: [
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        {
+          text: this.translate.instant('COMMON.DELETE'),
+          role: 'destructive',
+        },
+      ],
+    });
+
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    return role === 'destructive';
   }
 }

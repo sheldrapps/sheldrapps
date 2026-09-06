@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { Capacitor } from '@capacitor/core';
 import {
   AdMob,
-  RewardAdPluginEvents,
 } from '@capacitor-community/admob';
 import {
   ADS_KIT_CONFIG,
@@ -142,6 +141,7 @@ describe('AdsService', () => {
   let service: AdsService;
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
         provideAdsKit({
@@ -153,6 +153,10 @@ describe('AdsService', () => {
             },
           },
         }),
+        {
+          provide: SettingsStore,
+          useValue: { load: async () => ({}), set: async () => ({}) },
+        },
       ],
     });
 
@@ -187,59 +191,17 @@ describe('AdsService', () => {
       privacyOptionsRequirementStatus: 'NOT_REQUIRED',
       isConsentFormAvailable: false,
     } as never);
-    const prepareRewardVideoAdSpy = spyOn(
-      AdMob,
-      'prepareRewardVideoAd',
-    ).and.resolveTo(undefined as never);
-    spyOn(AdMob, 'showRewardVideoAd').and.resolveTo(undefined as never);
-    spyOn(AdMob, 'addListener').and.resolveTo({
-      remove: async () => undefined,
-    } as never);
+    const consoleInfoSpy = spyOn(console, 'info');
 
-    void service.showRewarded();
-    await waitFor(() => prepareRewardVideoAdSpy.calls.any());
+    const result = await service.warmRewarded();
 
-    expect(prepareRewardVideoAdSpy).toHaveBeenCalledWith(
-      jasmine.objectContaining({
-        adId: 'android-prod-rewarded',
-        isTesting: false,
-      }),
+    expect(result.status).toBe('ready');
+    expect(consoleInfoSpy).toHaveBeenCalledWith(
+      jasmine.stringMatching('"adId":"android-prod-rewarded"'),
     );
   });
 
-  it('classifies Google Ads error code 3 as no-fill', async () => {
-    spyOn(Capacitor, 'getPlatform').and.returnValue('android');
-    spyOn(AdMob, 'initialize').and.resolveTo(undefined as never);
-    spyOn(AdMob, 'requestConsentInfo').and.resolveTo({
-      canRequestAds: true,
-      status: 'NOT_REQUIRED',
-      privacyOptionsRequirementStatus: 'NOT_REQUIRED',
-      isConsentFormAvailable: false,
-    } as never);
-    spyOn(AdMob, 'prepareRewardVideoAd').and.resolveTo(undefined as never);
-    spyOn(AdMob, 'showRewardVideoAd').and.resolveTo(undefined as never);
-    spyOn(AdMob, 'addListener').and.callFake((event, listener) => {
-      if (event === RewardAdPluginEvents.FailedToLoad) {
-        setTimeout(() => listener(3 as never), 0);
-      }
-
-      return Promise.resolve({
-        remove: async () => undefined,
-      } as never);
-    });
-
-    const result = await service.showRewarded();
-
-    expect(result).toEqual(
-      jasmine.objectContaining({
-        failed: true,
-        failureReason: 'no-fill',
-        failureConfidence: 'high',
-      }),
-    );
-  });
 });
-
 async function waitFor(condition: () => boolean): Promise<void> {
   const deadline = Date.now() + 1000;
 

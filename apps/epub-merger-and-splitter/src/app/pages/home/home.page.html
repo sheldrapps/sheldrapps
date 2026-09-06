@@ -79,6 +79,18 @@
           }
         }
 
+        @if (feedback.status === 'success' && feedback.outputs[0]; as output) {
+          <ion-button
+            class="app-btn"
+            expand="block"
+            [disabled]="isResettingFlow()"
+            (click)="onEditMetadata(output.filename)"
+          >
+            <ion-icon slot="start" name="code-working-outline"></ion-icon>
+            {{ 'UI_THEME.ACTIONS.EDIT_METADATA' | translate }}
+          </ion-button>
+        }
+
         <ion-button
           class="app-btn"
           expand="block"

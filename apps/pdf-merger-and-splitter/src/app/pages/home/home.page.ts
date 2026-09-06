@@ -22,7 +22,7 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { BillingService } from '@sheldrapps/ads-kit';
+import { AdsService, BillingService, ExportAccessService } from '@sheldrapps/ads-kit';
 import {
   DEFAULT_EXPORT_QUALITY_MODE,
   getCoverExportOptions,
@@ -135,6 +135,8 @@ export class HomePage implements OnDestroy, OnInit {
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
   private readonly billing = inject(BillingService);
+  private readonly ads = inject(AdsService);
+  private readonly exportAccess = inject(ExportAccessService);
   private readonly settings = inject(SettingsStore<PdfMergerAndSplitterSettings>);
   private readonly recommendedApps = inject(RecommendedAppsService);
   private readonly editorSessionExit = inject(EditorSessionExitService);
@@ -216,12 +218,19 @@ export class HomePage implements OnDestroy, OnInit {
     { id: 'review' as WorkflowStepId, key: 'HOME.SPLIT' },
   ];
 
-  readonly steps = computed(() => {
-    const steps = this.selectedMode() === 'split' ? this.splitSteps : this.mergeSteps;
+  readonly steps = computed(() => this.getWorkflowSteps());
+
+  private getWorkflowSteps() {
+    const selectedMode = this.selectedMode();
+    if (!selectedMode) {
+      return this.mergeSteps.slice(0, 1);
+    }
+
+    const steps = selectedMode === 'split' ? this.splitSteps : this.mergeSteps;
     return this.hasCurrentToc()
       ? steps
       : steps.filter((step) => step.id !== 'bookmarks');
-  });
+  }
 
   readonly workflowUiSteps = computed<WorkflowStep[]>(() =>
     this.steps().map((step) => ({
@@ -945,6 +954,7 @@ export class HomePage implements OnDestroy, OnInit {
     if (this.workflowStep() === this.coverWorkflowStep) {
       if (!this.canAdjustCover()) {
         this.workflowStep.set(this.reviewWorkflowStep);
+        void this.ads.warmRewarded().catch(() => undefined);
         return;
       }
       await this.openExistingCoverEditor();
@@ -956,6 +966,9 @@ export class HomePage implements OnDestroy, OnInit {
     }
 
     this.workflowStep.update((step) => step + 1);
+    if (this.workflowStepId() === 'review') {
+      void this.ads.warmRewarded().catch(() => undefined);
+    }
   }
 
   async previous(): Promise<void> {
@@ -984,6 +997,10 @@ export class HomePage implements OnDestroy, OnInit {
       const sessionId = this.sessionId();
       if (!sessionId) throw new PdfRewriteError('SESSION_NOT_FOUND');
       const outputNames = this.outputNamesFor(mode);
+      const access = await this.exportAccess.authorize({
+        onAdFailure: () => false,
+      });
+      if (!access.granted) return;
       let result;
       if (mode === 'merge') {
         result = await this.rewrite.mergePdf({

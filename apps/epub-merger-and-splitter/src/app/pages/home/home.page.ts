@@ -23,7 +23,7 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { AdsService, BillingService } from '@sheldrapps/ads-kit';
+import { AdsService, BillingService, ExportAccessService } from '@sheldrapps/ads-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import {
   normalizeExportQualityMode,
@@ -72,13 +72,17 @@ import {
   type FilePickerPanelRemoveEvent,
   type FilePickerPanelReorderEvent,
   SelectableButtonListComponent,
+  EpubMetadataEditorPageService,
+  createEpubMetadataEditorDraft,
   type SelectableButtonListItem,
+  EpubMetadataFormValue,
 } from '@sheldrapps/ui-theme';
 import { addIcons } from 'ionicons';
 import {
   appsOutline,
   sparklesOutline,
   refreshOutline,
+  codeWorkingOutline,
 } from 'ionicons/icons';
 import {
   EpubRewriteError,
@@ -199,6 +203,7 @@ const SPLIT_METHOD_VALUES = new Set<SplitMethod>([
 ]);
 
 const MERGE_FILE_SELECTION_STEP = 0;
+const MERGE_TOC_STEP = 2;
 const MERGE_COVER_STEP = 3;
 const MERGE_EDITOR_STEP = 4;
 const MERGE_RESULT_STEP = 5;
@@ -232,6 +237,7 @@ const WEB_DUMMY_EPUB_CREATOR = 'EPUB Merger & Splitter';
     EpubDiagnosticIssuesComponent,
     FilePickerPanelComponent,
     SelectableButtonListComponent,
+
     RecommendedAppCardComponent,
   ],
 })
@@ -247,6 +253,7 @@ export class HomePage implements OnInit, OnDestroy {
   private readonly coversEvents = inject(CoversEventsService);
   private readonly imagePipeline = inject(ImagePipelineService);
   private readonly previewEditingPage = inject(PreviewEditingPageService);
+  private readonly metadataEditorPage = inject(EpubMetadataEditorPageService);
   private readonly editorSession = inject(EditorSessionService);
   private readonly editorSessionExit = inject(EditorSessionExitService);
   private readonly bestCandidate = inject(BestCandidateService);
@@ -257,6 +264,7 @@ export class HomePage implements OnInit, OnDestroy {
   );
   private readonly ads = inject(AdsService);
   private readonly billing = inject(BillingService);
+  private readonly exportAccess = inject(ExportAccessService);
   private readonly translate = inject(TranslateService);
   private readonly recommendedAppsService = inject(RecommendedAppsService);
   private readonly lifecycle = inject(LifecycleDiagnosticsService);
@@ -629,6 +637,7 @@ export class HomePage implements OnInit, OnDestroy {
   readonly operationProgress = signal<EpubOperationProgress | null>(null);
   readonly diagnosisProgress = signal<EpubOperationProgress | null>(null);
   readonly operationFeedback = signal<EpubOperationFeedback | null>(null);
+  private metadataEditorValue?: EpubMetadataFormValue;
   readonly epubRepairRequired = computed(
     () =>
       this.mergeSelections().some(
@@ -818,7 +827,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   constructor() {
-    addIcons({ appsOutline, sparklesOutline, refreshOutline });
+    addIcons({ appsOutline, sparklesOutline, refreshOutline, codeWorkingOutline });
     this.refreshWorkflowStepLabels();
     void this.loadIcons();
   }
@@ -960,6 +969,14 @@ export class HomePage implements OnInit, OnDestroy {
     }
 
     if (
+      this.selectedMode() === 'merge' &&
+      this.workflowStep === MERGE_TOC_STEP
+    ) {
+      this.workflowStep = MERGE_COVER_STEP;
+      return;
+    }
+
+    if (
       this.workflowStep === this.coverWorkflowStep &&
       this.canOpenMergeCoverEditor()
     ) {
@@ -978,6 +995,9 @@ export class HomePage implements OnInit, OnDestroy {
 
     if (this.workflowStep < this.visibleWorkflowSteps.length - 1) {
       this.workflowStep += 1;
+      if (this.workflowStep === this.resultWorkflowStep) {
+        void this.ads?.warmRewarded().catch(() => undefined);
+      }
     }
   }
 
@@ -1123,6 +1143,7 @@ export class HomePage implements OnInit, OnDestroy {
     if (!this.splitCanExecute()) return;
     this.pickerErrorKey.set(null);
     this.workflowStep = 3;
+    void this.ads?.warmRewarded().catch(() => undefined);
   }
 
   async onSplitExport(): Promise<void> {
@@ -1138,10 +1159,10 @@ export class HomePage implements OnInit, OnDestroy {
     this.isMergeActionBusy.set(true);
     this.operationProgress.set({ phase: 'preparing', percent: 0 });
     try {
-      if (!this.adsRemoved) {
-        const result = await this.ads.showRewarded();
-        if (!result.rewardEarned || !result.adClosed) return;
-      }
+      const access = await this.exportAccess.authorize({
+        onAdFailure: () => false,
+      });
+      if (!access.granted) return;
 
       await this.runSplit(flowEpoch);
     } catch (error) {
@@ -1373,10 +1394,10 @@ export class HomePage implements OnInit, OnDestroy {
     this.isMergeActionBusy.set(true);
     this.operationProgress.set({ phase: 'preparing', percent: 0 });
     try {
-      if (!this.adsRemoved) {
-        const result = await this.ads.showRewarded();
-        if (!result.rewardEarned || !result.adClosed) return;
-      }
+      const access = await this.exportAccess.authorize({
+        onAdFailure: () => false,
+      });
+      if (!access.granted) return;
 
       await this.runMerge(flowEpoch);
     } catch (error) {
@@ -1700,6 +1721,27 @@ export class HomePage implements OnInit, OnDestroy {
     return typeof error === 'string' && error.trim() ? error : undefined;
   }
 
+  async onEditMetadata(fileName?: string): Promise<void> {
+    if (!fileName) return;
+
+    const current = await this.epubLibrary.readPublicationMetadata(fileName);
+    this.metadataEditorPage.open({
+      input: current
+        ? {
+            version: current.version,
+            detectedVersion: current.detectedVersion,
+            fileName,
+            metadata: current.metadata,
+          }
+        : createEpubMetadataEditorDraft(fileName),
+      returnUrl: '/tabs/home',
+      saveHandler: async (metadata) => {
+        await this.epubLibrary.updatePublicationMetadata(fileName, metadata);
+        this.metadataEditorValue = metadata;
+      },
+    });
+    await this.router.navigateByUrl('/metadata-editor');
+  }
   async onOperationFeedbackDone(): Promise<void> {
     if (this.isResettingFlow()) return;
     this.isResettingFlow.set(true);
@@ -2848,12 +2890,27 @@ export class HomePage implements OnInit, OnDestroy {
     units: readonly SplitAnalysis['units'][number][],
     count: number,
   ): readonly SplitOutputPreview[] {
-    const safeCount = Math.max(2, Math.min(count, units.length));
-    return Array.from({ length: safeCount }, (_, index) => {
-      const start = Math.floor((index * units.length) / safeCount);
-      const end = Math.floor(((index + 1) * units.length) / safeCount) - 1;
-      return this.buildOutput(units, start, end);
-    });
+    if (units.length < 2) return [];
+
+    // Keep this boundary defensive because the value is also fed by a native
+    // number input. An invalid/non-finite value must never become an array
+    // length or produce an empty range that can later reach the native plugin.
+    const safeCount = Number.isSafeInteger(count)
+      ? Math.min(Math.max(count, 2), units.length)
+      : 2;
+    const baseSize = Math.floor(units.length / safeCount);
+    const remainder = units.length % safeCount;
+    const outputs: SplitOutputPreview[] = [];
+    let start = 0;
+
+    for (let index = 0; index < safeCount; index += 1) {
+      const size = baseSize + (index < remainder ? 1 : 0);
+      const end = start + size - 1;
+      outputs.push(this.buildOutput(units, start, end));
+      start = end + 1;
+    }
+
+    return outputs;
   }
 
   private buildMaximumSizeOutputs(

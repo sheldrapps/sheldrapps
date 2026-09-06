@@ -81,6 +81,7 @@ import {
   helpCircleOutline,
   documentOutline,
   refreshOutline,
+  codeWorkingOutline,
   appsOutline,
   informationCircleOutline,
 } from 'ionicons/icons';
@@ -106,6 +107,7 @@ import {
   PURCHASE_INTENT_QUERY_PARAM,
   REMOVE_ADS_PURCHASE_INTENT,
   RemoveAdsPurchasePageService,
+  ExportAccessService,
 } from '@sheldrapps/ads-kit';
 import {
   AdsService,
@@ -119,6 +121,9 @@ import {
 } from '../../services/epub-rewrite.service';
 import {
   WebDevEpubFixerAdapter,
+  areEpubPackageMetadataEqual,
+  readEpubMetadata,
+  writeEpubMetadata,
   type EpubDiagnosticIssue,
 } from '@sheldrapps/file-kit';
 import { TranslateService } from '@ngx-translate/core';
@@ -137,10 +142,13 @@ import {
   WorkflowStepperComponent,
   TripleButtonComponent,
   EpubDiagnosticIssuesComponent,
+  EpubMetadataEditorPageService,
+  createEpubMetadataEditorDraft,
 } from '@sheldrapps/ui-theme';
 import type {
   EpubDiagnosticIssueView,
   WorkflowStep,
+  EpubMetadataFormValue,
 } from '@sheldrapps/ui-theme';
 import {
   BestCandidateImage,
@@ -213,6 +221,7 @@ type EditorSourceMode = 'image' | 'scratch';
     BestCandidatePickerComponent,
     RecommendedAppCardComponent,
     EpubDiagnosticIssuesComponent,
+
   ],
 })
 export class ChangePage implements OnInit, OnDestroy {
@@ -239,6 +248,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private imagePipe = inject(ImagePipelineService);
   private readonly previewEditingPage = inject(PreviewEditingPageService);
   private billing = inject(BillingService);
+  private readonly exportAccess = inject(ExportAccessService);
   private removeAdsPurchasePage = inject(RemoveAdsPurchasePageService);
   private toastCtrl = inject(ToastController);
   private popoverCtrl = inject(PopoverController);
@@ -247,6 +257,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private zone = inject(NgZone);
   private changeDetector = inject(ChangeDetectorRef);
   private router = inject(Router);
+  private readonly metadataEditorPage = inject(EpubMetadataEditorPageService);
   private route = inject(ActivatedRoute);
   private editorSession = inject(EditorSessionService);
   private editorSessionExit = inject(EditorSessionExitService);
@@ -339,6 +350,7 @@ export class ChangePage implements OnInit, OnDestroy {
       imageOutline,
       documentOutline,
       refreshOutline,
+      codeWorkingOutline,
       appsOutline,
       informationCircleOutline,
     });
@@ -482,6 +494,7 @@ export class ChangePage implements OnInit, OnDestroy {
   generatedEpubPath?: string;
   generatedEpubNativePath?: string;
   generatedEpubFilename?: string;
+  private metadataEditorValue?: EpubMetadataFormValue;
   lastSavedFilename?: string;
   wasAutoSaved = false;
   private readonly projectSaveState = new ProjectSaveState();
@@ -725,6 +738,10 @@ export class ChangePage implements OnInit, OnDestroy {
 
   private async navigateToWorkflowStep(step: number): Promise<void> {
     this.workflowStep = step;
+    if (step === 3) {
+      const adsService = this.appInjector.get(AdsService, null);
+      void adsService?.warmRewarded().catch(() => undefined);
+    }
     if (step === 2 && this.canCrop()) {
       await this.startCrop();
     }
@@ -3941,92 +3958,23 @@ export class ChangePage implements OnInit, OnDestroy {
     });
     this.setBusy('export', 'CHANGE.GENERATING');
     try {
-      if (!this.adsRemoved) {
-        if (this.adFallbackTrialActive && this.resolveAdFallbackRemaining() > 0) {
-          const accepted = await this.confirmActiveAdFallbackTrial();
-          if (!accepted) {
-            await this.showToast(
-              'CHANGE.ADS_REQUIRED',
-              { duration: 1800 },
-              'error',
-            );
-            return;
-          }
-        } else {
-          const adsService = this.appInjector.get(AdsService, null);
-          if (!adsService) {
-            const accepted = await this.openAdFallbackFromFailure({
-              rewardEarned: false,
-              adClosed: false,
-              failed: true,
-              failureReason: 'unknown',
-              failureConfidence: 'low',
-            });
-            if (!accepted) {
-              await this.showToast(
-                'CHANGE.ADS_REQUIRED',
-                { duration: 1800 },
-                'error',
-              );
-              return;
-            }
-          }
-
-          if (adsService) {
-            this.lifecycle.log('AdMob.rewarded.requested');
-            const result: RewardedAdResult = await adsService.showRewarded();
-            this.lifecycle.log('AdMob.rewarded.resolved', result);
-            const shouldFallback =
-              result.failed || (!result.rewardEarned && !result.adClosed);
-
-            if (shouldFallback) {
-              const accepted = await this.openAdFallbackFromFailure(
-                result.failed
-                  ? result
-                  : {
-                      rewardEarned: false,
-                      adClosed: false,
-                      failed: true,
-                      failureReason: 'unknown',
-                      failureConfidence: 'low',
-                    },
-              );
-              if (!accepted) {
-                await this.showToast(
-                  'CHANGE.ADS_REQUIRED',
-                  { duration: 1800 },
-                  'error',
-                );
-                return;
-              }
-            } else if (result.adClosed && !result.rewardEarned) {
-              await this.showToast(
-                'CHANGE.ADS_REQUIRED',
-                { duration: 1800 },
-                'error',
-              );
-              return;
-            } else if (result.rewardEarned && result.adClosed) {
-              this.trackRemoveAdsEvent('rewarded_generate_completed');
-            } else {
-              const accepted = await this.openAdFallbackFromFailure({
-                rewardEarned: false,
-                adClosed: false,
-                failed: true,
-                failureReason: 'unknown',
-                failureConfidence: 'low',
-              });
-              if (!accepted) {
-                await this.showToast(
-                  'CHANGE.ADS_REQUIRED',
-                  { duration: 1800 },
-                  'error',
-                );
-                return;
-              }
-            }
-          }
-        }
+      const access = await this.exportAccess.authorize({
+        onActiveFallbackTrial: () =>
+          this.adFallbackTrialActive && this.resolveAdFallbackRemaining() > 0
+            ? this.confirmActiveAdFallbackTrial()
+            : false,
+        onAdFailure: (result) => this.openAdFallbackFromFailure(result),
+      });
+      if (!access.granted) {
+        await this.showToast(
+          'CHANGE.ADS_REQUIRED',
+          { duration: 1800 },
+          'error',
+        );
+        return;
+      }
+      if (access.source === 'rewarded') {
+        this.trackRemoveAdsEvent('rewarded_generate_completed');
       }
 
       await this.generateChangedCover();
@@ -5016,6 +4964,63 @@ export class ChangePage implements OnInit, OnDestroy {
     });
   }
 
+  async onEditMetadata(): Promise<void> {
+    const savedFilename = this.lastSavedFilename;
+    const fileName = savedFilename ?? this.generatedEpubFilename;
+    const sourcePath = this.generatedEpubPath;
+    const sourceBytes = this.generatedEpubBytes;
+    if (!fileName || (!savedFilename && !sourcePath && !sourceBytes)) return;
+
+    let current;
+    try {
+      current = savedFilename
+        ? await this.fileService.readPublicationMetadata(savedFilename)
+        : sourcePath
+          ? await this.fileService.readSourcePublicationMetadata(sourcePath, 'Data')
+          : await readEpubMetadata(sourceBytes!);
+      if (!current) {
+        throw new Error('EPUB_METADATA_UNAVAILABLE');
+      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      this.logSaveFlow('metadataRead:error', { fileName, reason });
+      console.error('[ECC:change:metadata-read]', error);
+      await this.showToast(
+        'EPUB_METADATA.READ_ERROR',
+        { duration: 3200 },
+        'error',
+        { reason },
+      );
+      return;
+    }
+    this.metadataEditorPage.open({
+      input: current
+        ? {
+            version: current.version,
+            detectedVersion: current.detectedVersion,
+            fileName,
+            metadata: current.metadata,
+          }
+        : createEpubMetadataEditorDraft(fileName),
+      returnUrl: '/tabs/change',
+      saveHandler: async (metadata) => {
+        if (savedFilename) {
+          await this.fileService.updatePublicationMetadata(savedFilename, metadata);
+        } else if (sourcePath) {
+          await this.fileService.updateSourcePublicationMetadata(sourcePath, 'Data', metadata);
+        } else {
+          const updatedBytes = await writeEpubMetadata(this.generatedEpubBytes!, metadata);
+          const persisted = await readEpubMetadata(updatedBytes);
+          if (!persisted || !areEpubPackageMetadataEqual(persisted.metadata, metadata)) {
+            throw new Error('EPUB_METADATA_READ_AFTER_WRITE_MISMATCH');
+          }
+          this.generatedEpubBytes = updatedBytes;
+        }
+        this.metadataEditorValue = metadata;
+      },
+    });
+    await this.router.navigateByUrl('/metadata-editor');
+  }
   async onOperationDone(): Promise<void> {
     if (this.isResettingFlow) return;
     this.runInZone(() => {

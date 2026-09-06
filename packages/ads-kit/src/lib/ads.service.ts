@@ -6,12 +6,15 @@ import {
 } from "@capacitor-community/admob";
 import type { PluginListenerHandle } from "@capacitor/core";
 import { ConsentService } from "./consent.service";
+import { BillingService } from "./billing.service";
 import {
   ADS_KIT_CONFIG,
   type AdFailureConfidence,
   type AdFailureReason,
   type AdsUnits,
   type RewardedAdResult,
+  type RewardedAdStatus,
+  type RewardedAdWarmResult,
 } from "./types";
 import {
   isNative,
@@ -21,16 +24,30 @@ import {
 } from "./adapters/platform";
 import { toDebugString } from "./adapters/debug";
 
-@Injectable({ providedIn: "root" })
+type RewardedEventListener = (
+  eventName: RewardAdPluginEvents,
+  listener: (payload?: unknown) => void,
+) => Promise<PluginListenerHandle>;
+
+@Injectable()
 export class AdsService {
   private initialized = false;
+  private initPromise: Promise<boolean> | null = null;
+  private warmPromise: Promise<RewardedAdWarmResult> | null = null;
+  private rewardedReady = false;
+  private rewardedPreparedAt = 0;
+  private rewardedRequestId: string | null = null;
+  private rewardedAttemptSequence = 0;
+  private rewardShowing = false;
+  private rewardedStatus: RewardedAdStatus = 'idle';
+  private rewardedFailureRetryAt = 0;
+  private readonly rewardedCacheTtlMs = 50 * 60 * 1000;
+  private readonly rewardedFailureCooldownMs = 10 * 1000;
+  private readonly rewardedShowTimeoutMs = 15 * 1000;
   private readonly config = inject(ADS_KIT_CONFIG);
   private readonly consent = inject(ConsentService);
+  private readonly billing = inject(BillingService);
   private readonly zone = inject(NgZone);
-
-  // Listeners to clean up
-  private listeners: PluginListenerHandle[] = [];
-
   private get platform() {
     return getPlatform();
   }
@@ -66,177 +83,500 @@ export class AdsService {
     return c.umpReady && c.canRequestAds;
   }
 
+  get rewardedAdStatus(): RewardedAdStatus {
+    return this.rewardedStatus;
+  }
+
   async init(): Promise<void> {
-    if (this.initialized) return;
-    if (!this.isNative) return;
+    const eligibility = await this.checkAdEligibility();
+    if (eligibility !== 'eligible' || !this.isNative) {
+      return;
+    }
 
-    await AdMob.initialize();
-    this.initialized = true;
+    await this.ensureInitialized();
+    await this.consent.gatherConsent().catch(() => undefined);
+    if (!this.canShowAds()) {
+      return;
+    }
+  }
 
-    if (this.debugEnabled) {
-      console.info(
-        `[Ads] initialized ${toDebugString({
+  async warmRewarded(): Promise<RewardedAdWarmResult> {
+    if (!this.isNative) {
+      return { status: 'unavailable' };
+    }
+    if (this.rewardShowing) {
+      return { status: 'showing' };
+    }
+    const eligibility = await this.checkAdEligibility();
+    if (eligibility === 'premium') {
+      return { status: 'premium' };
+    }
+    if (eligibility !== 'eligible') {
+      return { status: 'unavailable' };
+    }
+
+    if (
+      this.rewardedReady &&
+      Date.now() - this.rewardedPreparedAt < this.rewardedCacheTtlMs
+    ) {
+      this.setRewardedStatus('ready');
+      return { status: 'ready' };
+    }
+
+    if (this.rewardedFailureRetryAt > Date.now()) {
+      this.setRewardedStatus('unavailable');
+      return {
+        status: 'unavailable',
+        failureReason: 'network',
+        failureConfidence: 'low',
+      };
+    }
+
+    if (this.warmPromise) {
+      return this.warmPromise;
+    }
+
+    this.warmPromise = this.doWarmRewarded().finally(() => {
+      this.warmPromise = null;
+    });
+
+    return this.warmPromise;
+  }
+
+  async showRewarded(): Promise<RewardedAdResult> {
+    if (!this.isNative && this.isTesting) {
+      return {
+        rewardEarned: true,
+        adClosed: true,
+        failed: false,
+      };
+    }
+
+    if (!this.isNative) {
+      return this.failedResult('unknown', 'low');
+    }
+
+    if (this.rewardShowing) {
+      return {
+        rewardEarned: false,
+        adClosed: false,
+        failed: false,
+        skippedReason: 'busy',
+      };
+    }
+
+    const eligibility = await this.checkAdEligibility();
+    if (eligibility === 'premium') {
+      return {
+        rewardEarned: true,
+        adClosed: true,
+        failed: false,
+        skippedReason: 'premium',
+      };
+    }
+    if (eligibility !== 'eligible') {
+      return this.failedResult('unknown', 'low');
+    }
+
+    const initialized = await this.ensureInitialized();
+    if (!initialized) {
+      return this.failedResult('unknown', 'low');
+    }
+
+    await this.consent.gatherConsent().catch(() => undefined);
+    if (!this.canShowAds()) {
+      return this.failedResult('unknown', 'low');
+    }
+
+    const warmed = await this.warmRewarded();
+    if (warmed.status !== 'ready') {
+      return this.failedResult(
+        warmed.failureReason ?? 'unknown',
+        warmed.failureConfidence ?? 'low',
+      );
+    }
+
+    const finalEligibility = await this.checkAdEligibility();
+    if (finalEligibility === 'premium') {
+      return {
+        rewardEarned: true,
+        adClosed: true,
+        failed: false,
+        skippedReason: 'premium',
+      };
+    }
+    if (finalEligibility !== 'eligible') {
+      return this.failedResult('unknown', 'low');
+    }
+
+    if (this.rewardShowing) {
+      return this.failedResult('unknown', 'low');
+    }
+
+    this.rewardShowing = true;
+    this.setRewardedStatus('showing');
+
+    const listeners: PluginListenerHandle[] = [];
+    let rewardEarned = false;
+    let adClosed = false;
+    let adWasShown = false;
+    let showRequested = false;
+    let resolved = false;
+    let showTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    return new Promise<RewardedAdResult>((resolve) => {
+      const cleanup = () => {
+        if (showTimeout) {
+          clearTimeout(showTimeout);
+          showTimeout = null;
+        }
+        listeners.splice(0).forEach((listener) => {
+          void listener.remove();
+        });
+      };
+
+      const finish = (
+        result: RewardedAdResult,
+        shouldWarmNext = false,
+      ): void => {
+        if (resolved) return;
+        if (result.failed && rewardEarned) {
+          result = { rewardEarned: true, adClosed: true, failed: false };
+          shouldWarmNext = true;
+        }
+        resolved = true;
+        this.rewardShowing = false;
+        this.rewardedReady = false;
+        this.rewardedPreparedAt = 0;
+        this.rewardedRequestId = null;
+        this.setRewardedStatus('idle');
+        cleanup();
+        this.zone.run(() => resolve(result));
+        if (shouldWarmNext && typeof globalThis.setTimeout === 'function') {
+          setTimeout(() => {
+            void this.warmRewarded().catch(() => undefined);
+          }, 0);
+        }
+      };
+
+      const track = (
+        promise: Promise<PluginListenerHandle>,
+      ): Promise<void> =>
+        promise
+          .then((listener) => {
+            if (resolved) {
+              void listener.remove();
+            } else {
+              listeners.push(listener);
+            }
+          })
+          .catch(() => undefined);
+
+      showTimeout = setTimeout(() => {
+        if (showRequested) {
+          this.setRewardedStatus('settling');
+          this.logRewardedFailure('show-watchdog', {
+            timeoutMs: this.rewardedShowTimeoutMs,
+          });
+          return;
+        }
+        this.logRewardedFailure('show-timeout', {
+          timeoutMs: this.rewardedShowTimeoutMs,
+        });
+        finish(this.failedResult('network', 'low'));
+      }, this.rewardedShowTimeoutMs);
+
+      void Promise.all([
+        track(
+          Promise.resolve().then(() =>
+            AdMob.addListener(RewardAdPluginEvents.Loaded, (info) => {
+              if (!this.isCurrentRewardedEvent(info)) return;
+              this.debugLog('callback=loaded', info);
+            }),
+          ),
+        ),
+        track(
+          Promise.resolve().then(() =>
+            this.addRewardedListener(RewardAdPluginEvents.Showed, (info) => {
+              if (!this.isCurrentRewardedEvent(info)) return;
+              adWasShown = true;
+              this.debugLog('callback=shown');
+            }),
+          ),
+        ),
+        track(
+          Promise.resolve().then(() =>
+            AdMob.addListener(RewardAdPluginEvents.Rewarded, (info) => {
+              if (!this.isCurrentRewardedEvent(info)) return;
+              this.debugLog('callback=rewarded');
+              rewardEarned = true;
+              if (adClosed) {
+                finish(
+                  { rewardEarned: true, adClosed: true, failed: false },
+                  true,
+                );
+              }
+            }),
+          ),
+        ),
+        track(
+          Promise.resolve().then(() =>
+            this.addRewardedListener(RewardAdPluginEvents.Dismissed, (info) => {
+              if (!this.isCurrentRewardedEvent(info)) return;
+              this.debugLog('callback=dismissed');
+              adClosed = true;
+              if (!rewardEarned) {
+                finish(
+                  { rewardEarned: false, adClosed: true, failed: false },
+                  true,
+                );
+              } else {
+                finish(
+                  { rewardEarned: true, adClosed: true, failed: false },
+                  true,
+                );
+              }
+            }),
+          ),
+        ),
+        track(
+          Promise.resolve().then(() =>
+            AdMob.addListener(RewardAdPluginEvents.FailedToLoad, (error) => {
+              if (!this.isCurrentRewardedEvent(error)) return;
+              if (showRequested || adWasShown || rewardEarned) return;
+              this.logRewardedFailure('load', error);
+              const failure = this.resolveFailureMetadata(error);
+              finish(this.failedResult(failure.reason, failure.confidence));
+            }),
+          ),
+        ),
+        track(
+          Promise.resolve().then(() =>
+            AdMob.addListener(RewardAdPluginEvents.FailedToShow, (error) => {
+              if (!this.isCurrentRewardedEvent(error)) return;
+              if (rewardEarned) {
+                finish({ rewardEarned: true, adClosed: true, failed: false }, true);
+                return;
+              }
+              this.logRewardedFailure('show', error);
+              const failure = this.resolveFailureMetadata(error);
+              finish(this.failedResult(failure.reason, failure.confidence));
+            }),
+          ),
+        ),
+      ]).then(() => {
+        if (resolved) return;
+
+        showRequested = true;
+        this.setRewardedStatus('showing');
+        void AdMob.showRewardVideoAd().catch((error) => {
+          if (adWasShown || rewardEarned) return;
+          this.logRewardedFailure('show', error);
+          const failure = this.resolveFailureMetadata(error);
+          finish(this.failedResult(failure.reason, failure.confidence));
+        });
+      });
+    });
+  }
+
+  private async doWarmRewarded(): Promise<RewardedAdWarmResult> {
+    const eligibility = await this.checkAdEligibility();
+    if (eligibility === 'premium') {
+      return { status: 'premium' };
+    }
+    if (eligibility !== 'eligible') {
+      return { status: 'unavailable' };
+    }
+
+    this.setRewardedStatus('initializing');
+    if (!(await this.ensureInitialized())) {
+      this.setRewardedStatus('unavailable');
+      return {
+        status: 'unavailable',
+        failureReason: 'unknown',
+        failureConfidence: 'low',
+      };
+    }
+
+    this.setRewardedStatus('awaiting-consent');
+    await this.consent.gatherConsent().catch(() => undefined);
+    if (!this.canShowAds()) {
+      this.setRewardedStatus('unavailable');
+      return {
+        status: 'unavailable',
+        failureReason: 'unknown',
+        failureConfidence: 'low',
+      };
+    }
+
+    const finalEligibility = await this.checkAdEligibility();
+    if (finalEligibility !== 'eligible') {
+      this.setRewardedStatus(
+        finalEligibility === 'premium' ? 'premium' : 'unavailable',
+      );
+      return {
+        status: finalEligibility === 'premium' ? 'premium' : 'unavailable',
+      };
+    }
+
+    this.setRewardedStatus('loading');
+    const requestId = this.createRewardedRequestId();
+    const opts = {
+      adId: this.units.rewarded,
+      isTesting: this.isTesting,
+      requestId,
+    } as RewardAdOptions & { requestId: string };
+    this.rewardedRequestId = requestId;
+
+    try {
+      await this.prepareRewardedAd(opts);
+      this.rewardedReady = true;
+      this.rewardedPreparedAt = Date.now();
+      this.rewardedFailureRetryAt = 0;
+      this.setRewardedStatus('ready');
+      this.debugLog('rewarded prepared', {
+        adId: opts.adId,
+        effectiveTesting: opts.isTesting,
+      });
+      return { status: 'ready' };
+    } catch (error) {
+      this.logRewardedFailure('load', error);
+      const failure = this.resolveFailureMetadata(error);
+      this.rewardedReady = false;
+      this.rewardedPreparedAt = 0;
+      this.rewardedRequestId = null;
+      this.rewardedFailureRetryAt =
+        Date.now() + this.rewardedFailureCooldownMs;
+      this.setRewardedStatus('unavailable');
+      return {
+        status: 'unavailable',
+        failureReason: failure.reason,
+        failureConfidence: failure.confidence,
+      };
+    }
+  }
+
+  private async prepareRewardedAd(opts: RewardAdOptions): Promise<void> {
+    let rejectFailure!: (error: unknown) => void;
+    const failureEvent = new Promise<never>((_, reject) => {
+      rejectFailure = reject;
+    });
+
+    let listener: PluginListenerHandle | null = null;
+    try {
+      listener = await AdMob.addListener(
+        RewardAdPluginEvents.FailedToLoad,
+        (error) => {
+          if (this.isCurrentRewardedEvent(error)) {
+            rejectFailure(error);
+          }
+        },
+      );
+    } catch {
+      // The prepare call remains the source of truth if the event listener
+      // cannot be registered on a plugin version/device.
+    }
+
+    try {
+      await Promise.race([AdMob.prepareRewardVideoAd(opts), failureEvent]);
+    } finally {
+      if (listener) {
+        await listener.remove().catch(() => undefined);
+      }
+    }
+  }
+  private async checkAdEligibility(): Promise<'eligible' | 'premium' | 'unavailable'> {
+    this.setRewardedStatus('checking-entitlement');
+    const entitlement = await this.billing.ensureAdsEntitlement().catch(() => 'unavailable' as const);
+    if (entitlement === 'pro') {
+      this.setRewardedStatus('premium');
+      this.rewardedReady = false;
+      this.rewardedPreparedAt = 0;
+      this.rewardedRequestId = null;
+      return 'premium';
+    }
+
+    if (entitlement !== 'free') {
+      this.setRewardedStatus('unavailable');
+      return 'unavailable';
+    }
+
+    return 'eligible';
+  }
+
+  private createRewardedRequestId(): string {
+    this.rewardedAttemptSequence += 1;
+    return `rewarded-${Date.now()}-${this.rewardedAttemptSequence}`;
+  }
+
+  private addRewardedListener(
+    eventName: RewardAdPluginEvents,
+    listener: (payload?: unknown) => void,
+  ): Promise<PluginListenerHandle> {
+    return (AdMob.addListener as unknown as RewardedEventListener)(
+      eventName,
+      listener,
+    );
+  }
+
+  private isCurrentRewardedEvent(payload: unknown): boolean {
+    if (!payload || typeof payload !== 'object') {
+      return true;
+    }
+
+    const requestId = (payload as Record<string, unknown>)['requestId'];
+    return (
+      typeof requestId !== 'string' ||
+      !this.rewardedRequestId ||
+      requestId === this.rewardedRequestId
+    );
+  }
+
+  private async ensureInitialized(): Promise<boolean> {
+    if (this.initialized) {
+      return true;
+    }
+
+    if (!this.isNative) {
+      return false;
+    }
+
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
+    this.initPromise = AdMob.initialize()
+      .then(() => {
+        this.initialized = true;
+        this.debugLog('initialized', {
           platform: this.platform,
           native: this.isNative,
           nativeDebugBuild: isNativeDebugBuild(),
           configuredTesting: this.config.isTesting,
           effectiveTesting: this.isTesting,
-        })}`
-      );
-    }
+        });
+        return true;
+      })
+      .catch((error) => {
+        this.logRewardedFailure('initialize', error);
+        return false;
+      })
+      .finally(() => {
+        this.initPromise = null;
+      });
+
+    return this.initPromise;
   }
 
-  async showRewarded(): Promise<RewardedAdResult> {
-    if (!this.isNative && this.isTesting) {
-      // Browser/web mode runs as premium: no ads are shown but reward-gated
-      // flows should continue as successful.
-      return { rewardEarned: true, adClosed: true, failed: false };
-    }
+  private setRewardedStatus(status: RewardedAdStatus): void {
+    this.rewardedStatus = status;
+  }
 
-    await this.init();
-    if (!this.initialized) {
-      return this.failedResult("unknown", "low");
-    }
-
-    // Gather consent lazily at first ad use to avoid native init during app startup.
-    await this.consent.gatherConsent().catch(() => undefined);
-    await this.consent.ready.catch(() => undefined);
-    if (!this.canShowAds()) {
-      return this.failedResult("unknown", "low");
-    }
-
-    const opts: RewardAdOptions = {
-      adId: this.units.rewarded,
-      isTesting: this.isTesting,
-    };
-
+  private logRewardedFailure(stage: string, error: unknown): void {
     if (this.debugEnabled) {
-      console.info(
-        `[Ads] showRewarded ${toDebugString({
-          adId: opts.adId,
-          effectiveTesting: opts.isTesting,
-          consent: this.consent.state,
-        })}`
-      );
+      console.warn('[Ads] rewarded ' + stage + ' failed ' + toDebugString(error));
     }
-
-    // Reset flags for this new ad attempt
-    let rewardEarned = false;
-    let adClosed = false;
-    let resolved = false;
-
-    return new Promise<RewardedAdResult>((resolve) => {
-      const cleanup = () => {
-        // Remove all listeners
-        this.listeners.forEach((l) => l.remove());
-        this.listeners = [];
-      };
-
-      const tryResolve = () => {
-        if (resolved) return;
-
-        // Only resolve when BOTH events have occurred
-        if (rewardEarned && adClosed) {
-          resolved = true;
-          cleanup();
-          this.zone.run(() => {
-            resolve({ rewardEarned: true, adClosed: true, failed: false });
-          });
-        }
-      };
-
-      // Listen for the complete native event sequence. The Capacitor AdMob
-      // plugin exposes shown/dismissed/reward/failure, but not click/open;
-      // an external click is correlated with MainActivity.onPause in ECC.
-      AdMob.addListener(RewardAdPluginEvents.Loaded, (info) => {
-        this.debugLog('callback=loaded', info);
-      }).then((handle) => this.listeners.push(handle));
-
-      AdMob.addListener(RewardAdPluginEvents.Showed, () => {
-        this.debugLog('callback=shown');
-      }).then((handle) => this.listeners.push(handle));
-
-      AdMob.addListener(RewardAdPluginEvents.Rewarded, (_reward) => {
-        this.debugLog('callback=rewarded');
-        rewardEarned = true;
-        tryResolve();
-      }).then((handle) => this.listeners.push(handle));
-
-      // Listen for Dismissed event (ad closed)
-      AdMob.addListener(RewardAdPluginEvents.Dismissed, () => {
-        this.debugLog('callback=dismissed');
-        adClosed = true;
-
-        // If ad closed without reward, resolve immediately with failure
-        if (!rewardEarned) {
-          if (!resolved) {
-            resolved = true;
-            cleanup();
-            this.zone.run(() => {
-              resolve({ rewardEarned: false, adClosed: true, failed: false });
-            });
-          }
-        } else {
-          // Otherwise, try to resolve (will succeed if reward already earned)
-          tryResolve();
-        }
-      }).then((handle) => this.listeners.push(handle));
-
-      // Listen for FailedToLoad
-      AdMob.addListener(RewardAdPluginEvents.FailedToLoad, (error) => {
-        if (this.debugEnabled) {
-          console.warn(
-            `[Ads] Failed to load rewarded ad ${toDebugString(error)}`
-          );
-        }
-        if (!resolved) {
-          resolved = true;
-          cleanup();
-          const failure = this.resolveFailureMetadata(error);
-          this.zone.run(() => {
-            resolve(this.failedResult(failure.reason, failure.confidence));
-          });
-        }
-      }).then((handle) => this.listeners.push(handle));
-
-      // Listen for FailedToShow
-      AdMob.addListener(RewardAdPluginEvents.FailedToShow, (error) => {
-        if (this.debugEnabled) {
-          console.warn(
-            `[Ads] Failed to show rewarded ad ${toDebugString(error)}`
-          );
-        }
-        if (!resolved) {
-          resolved = true;
-          cleanup();
-          const failure = this.resolveFailureMetadata(error);
-          this.zone.run(() => {
-            resolve(this.failedResult(failure.reason, failure.confidence));
-          });
-        }
-      }).then((handle) => this.listeners.push(handle));
-
-      // Now prepare and show the ad
-      (async () => {
-        try {
-          await AdMob.prepareRewardVideoAd(opts);
-          this.debugLog('prepared; external click/open is observed through MainActivity lifecycle');
-          await AdMob.showRewardVideoAd();
-        } catch (e) {
-          console.warn(`[Ads] rewarded failed ${toDebugString(e)}`);
-          if (!resolved) {
-            resolved = true;
-            cleanup();
-            const failure = this.resolveFailureMetadata(e);
-            this.zone.run(() => {
-              resolve(this.failedResult(failure.reason, failure.confidence));
-            });
-          }
-        }
-      })();
-    });
   }
-
   private failedResult(
     reason: AdFailureReason,
     confidence: AdFailureConfidence,

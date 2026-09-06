@@ -1,0 +1,407 @@
+<form
+  class="epub-metadata-editor"
+  [formGroup]="metadataForm"
+  (ngSubmit)="saveMetadata()"
+>
+  <header class="epub-metadata-editor__header">
+    <div class="epub-metadata-editor__heading">
+      <p class="epub-metadata-editor__eyebrow">
+        {{ 'EPUB_METADATA.SCREEN_TITLE' | translate }}
+      </p>
+      <h1 class="epub-metadata-editor__title">
+        {{ 'EPUB_METADATA.EDIT_METADATA' | translate }}
+      </h1>
+    </div>
+
+    <div class="epub-metadata-editor__summary" [attr.aria-label]="'EPUB_METADATA.FORMAT' | translate">
+      @if (editorInput().fileName; as fileName) {
+        <span class="epub-metadata-editor__file-name" [title]="fileName">
+          {{ fileName }}
+        </span>
+      }
+      <span class="epub-metadata-editor__version">
+        <span>{{ 'EPUB_METADATA.VERSION' | translate }} {{ detectedVersion() }}</span>
+        <ion-badge color="primary">{{ familyLabelKey() | translate }}</ion-badge>
+      </span>
+    </div>
+  </header>
+
+  <div class="epub-metadata-editor__sections">
+    <sh-section-card [title]="'EPUB_METADATA.BASIC_INFO' | translate">
+      <div class="epub-metadata-editor__field-grid">
+        <div class="epub-metadata-editor__field epub-metadata-editor__field--wide">
+          <label class="form-label" id="epub-metadata-title-label" for="epub-metadata-title">
+            {{ 'EPUB_METADATA.TITLE' | translate }}
+          </label>
+          <ion-input
+            id="epub-metadata-title"
+            class="form-control-text"
+            formControlName="title"
+            type="text"
+            [attr.aria-labelledby]="'epub-metadata-title-label'"
+          ></ion-input>
+        </div>
+
+        <div class="epub-metadata-editor__field">
+          <sh-language-tag-select
+            formControlName="language"
+            [label]="'EPUB_METADATA.LANGUAGE' | translate"
+            [placeholder]="'EPUB_METADATA.LANGUAGE_PLACEHOLDER' | translate"
+            [customOptionLabel]="'EPUB_METADATA.LANGUAGE_CUSTOM' | translate"
+            [helperText]="'EPUB_METADATA.LANGUAGE_HELP' | translate"
+          ></sh-language-tag-select>
+          @if (isInvalid(metadataForm.controls.language)) {
+            <span class="form-error">{{ 'EPUB_METADATA.LANGUAGE_INVALID' | translate }}</span>
+          }
+        </div>
+
+        <div class="epub-metadata-editor__field">
+          <div formGroupName="identifier" class="epub-metadata-editor__identifier">
+            <div class="epub-metadata-editor__subfield">
+              <label class="form-label" for="epub-metadata-identifier-value">
+                {{ 'EPUB_METADATA.IDENTIFIER' | translate }}
+              </label>
+              <ion-input
+                id="epub-metadata-identifier-value"
+                class="form-control-text"
+                formControlName="value"
+                type="text"
+              ></ion-input>
+            </div>
+            @if (capabilities().identifierScheme) {
+              <div class="epub-metadata-editor__subfield">
+                <label class="form-label" for="epub-metadata-identifier-scheme">
+                  {{ 'EPUB_METADATA.IDENTIFIER_SCHEME' | translate }}
+                </label>
+                <ion-input
+                  id="epub-metadata-identifier-scheme"
+                  class="form-control-text"
+                  formControlName="scheme"
+                  type="text"
+                  [helperText]="'EPUB_METADATA.IDENTIFIER_SCHEME_HINT' | translate"
+                ></ion-input>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="epub-metadata-editor__field">
+          <label class="form-label" for="epub-metadata-publisher">
+            {{ 'EPUB_METADATA.PUBLISHER' | translate }}
+          </label>
+          <ion-input
+            id="epub-metadata-publisher"
+            class="form-control-text"
+            formControlName="publisher"
+            type="text"
+          ></ion-input>
+        </div>
+
+        <div class="epub-metadata-editor__field">
+          <label class="form-label" for="epub-metadata-date">
+            {{ 'EPUB_METADATA.DATE' | translate }}
+          </label>
+          <ion-input
+            id="epub-metadata-date"
+            class="form-control-text"
+            formControlName="date"
+            type="text"
+          ></ion-input>
+        </div>
+
+        <div class="epub-metadata-editor__field epub-metadata-editor__field--wide">
+          <label class="form-label" for="epub-metadata-description">
+            {{ 'EPUB_METADATA.DESCRIPTION' | translate }}
+          </label>
+          <ion-textarea
+            id="epub-metadata-description"
+            class="form-control-text"
+            formControlName="description"
+            autoGrow="true"
+          ></ion-textarea>
+        </div>
+      </div>
+    </sh-section-card>
+
+    <sh-section-card [title]="'EPUB_METADATA.AUTHORS' | translate">
+      <div formArrayName="creators" class="epub-metadata-editor__repeatable-list">
+        @for (creator of creators.controls; track $index) {
+          <div class="epub-metadata-editor__repeatable-row" [formGroupName]="$index">
+            <div class="epub-metadata-editor__repeatable-main">
+              <label class="form-label" [attr.for]="'epub-metadata-creator-name-' + $index">
+                {{ 'EPUB_METADATA.AUTHOR' | translate }}
+              </label>
+              <ion-input
+                [id]="'epub-metadata-creator-name-' + $index"
+                class="form-control-text"
+                formControlName="name"
+                type="text"
+                [attr.aria-invalid]="isPersonNameInvalid(creator)"
+              >
+                <ion-button
+                  slot="end"
+                  type="button"
+                  fill="clear"
+                  class="epub-metadata-editor__remove-button"
+                  [disabled]="!canRemoveCreator($index)"
+                  [attr.aria-label]="'EPUB_METADATA.REMOVE_AUTHOR' | translate"
+                  (click)="removeCreator($index)"
+                >
+                  <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+                </ion-button>
+              </ion-input>
+              @if (isPersonNameInvalid(creator)) {
+                <span class="form-error">{{ 'EPUB_METADATA.REQUIRED' | translate }}</span>
+              }
+            </div>
+
+            <details class="epub-metadata-editor__advanced-row">
+              <summary>{{ 'EPUB_METADATA.AUTHOR_ADVANCED' | translate }}</summary>
+              <div class="epub-metadata-editor__advanced-grid">
+                @if (capabilities().personRole) {
+                  <div class="epub-metadata-editor__field">
+                    <label class="form-label" [attr.for]="'epub-metadata-creator-role-' + $index">
+                      {{ 'EPUB_METADATA.ROLE' | translate }}
+                    </label>
+                    <ion-input
+                      [id]="'epub-metadata-creator-role-' + $index"
+                      class="form-control-text"
+                      formControlName="role"
+                      type="text"
+                    ></ion-input>
+                  </div>
+                }
+                @if (capabilities().personFileAs) {
+                  <div class="epub-metadata-editor__field">
+                    <label class="form-label" [attr.for]="'epub-metadata-creator-file-as-' + $index">
+                      {{ 'EPUB_METADATA.FILE_AS' | translate }}
+                    </label>
+                    <ion-input
+                      [id]="'epub-metadata-creator-file-as-' + $index"
+                      class="form-control-text"
+                      formControlName="fileAs"
+                      type="text"
+                    ></ion-input>
+                  </div>
+                }
+              </div>
+            </details>
+          </div>
+        }
+      </div>
+
+      <ion-button
+        type="button"
+        fill="outline"
+        class="app-btn app-btn--icon-row epub-metadata-editor__add-button"
+        (click)="addCreator()"
+      >
+        {{ 'EPUB_METADATA.ADD_AUTHOR' | translate }}
+      </ion-button>
+    </sh-section-card>
+
+    <sh-section-card [title]="'EPUB_METADATA.SUBJECTS' | translate">
+      <div formArrayName="subjects" class="epub-metadata-editor__repeatable-list">
+        @for (subject of subjects.controls; track $index) {
+          <div class="epub-metadata-editor__repeatable-row epub-metadata-editor__repeatable-row--subject">
+            <div class="epub-metadata-editor__repeatable-main">
+              <label class="form-label" [attr.for]="'epub-metadata-subject-' + $index">
+                {{ 'EPUB_METADATA.SUBJECT' | translate }}
+              </label>
+              <ion-input
+                [id]="'epub-metadata-subject-' + $index"
+                class="form-control-text"
+                [formControlName]="$index"
+                type="text"
+              >
+                <ion-button
+                  slot="end"
+                  type="button"
+                  fill="clear"
+                  class="epub-metadata-editor__remove-button"
+                  [attr.aria-label]="'EPUB_METADATA.REMOVE_SUBJECT' | translate"
+                  (click)="removeSubject($index)"
+                >
+                  <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+                </ion-button>
+              </ion-input>
+            </div>
+          </div>
+        }
+      </div>
+
+      <ion-button
+        type="button"
+        fill="outline"
+        class="app-btn app-btn--icon-row epub-metadata-editor__add-button"
+        (click)="addSubject()"
+      >
+        {{ 'EPUB_METADATA.ADD_SUBJECT' | translate }}
+      </ion-button>
+    </sh-section-card>
+
+    <sh-section-card [title]="'EPUB_METADATA.CONTRIBUTORS' | translate">
+      <div formArrayName="contributors" class="epub-metadata-editor__repeatable-list">
+        @for (contributor of contributors.controls; track $index) {
+          <div class="epub-metadata-editor__repeatable-row" [formGroupName]="$index">
+            <div class="epub-metadata-editor__repeatable-main">
+              <label class="form-label" [attr.for]="'epub-metadata-contributor-name-' + $index">
+                {{ 'EPUB_METADATA.CONTRIBUTOR' | translate }}
+              </label>
+              <ion-input
+                [id]="'epub-metadata-contributor-name-' + $index"
+                class="form-control-text"
+                formControlName="name"
+                type="text"
+                [attr.aria-invalid]="isPersonNameInvalid(contributor)"
+              >
+                <ion-button
+                  slot="end"
+                  type="button"
+                  fill="clear"
+                  class="epub-metadata-editor__remove-button"
+                  [attr.aria-label]="'EPUB_METADATA.REMOVE_CONTRIBUTOR' | translate"
+                  (click)="removeContributor($index)"
+                >
+                  <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+                </ion-button>
+              </ion-input>
+              @if (isPersonNameInvalid(contributor)) {
+                <span class="form-error">{{ 'EPUB_METADATA.REQUIRED' | translate }}</span>
+              }
+            </div>
+
+            <details class="epub-metadata-editor__advanced-row">
+              <summary>{{ 'EPUB_METADATA.AUTHOR_ADVANCED' | translate }}</summary>
+              <div class="epub-metadata-editor__advanced-grid">
+                @if (capabilities().personRole) {
+                  <div class="epub-metadata-editor__field">
+                    <label class="form-label" [attr.for]="'epub-metadata-contributor-role-' + $index">
+                      {{ 'EPUB_METADATA.ROLE' | translate }}
+                    </label>
+                    <ion-input
+                      [id]="'epub-metadata-contributor-role-' + $index"
+                      class="form-control-text"
+                      formControlName="role"
+                      type="text"
+                    ></ion-input>
+                  </div>
+                }
+                @if (capabilities().personFileAs) {
+                  <div class="epub-metadata-editor__field">
+                    <label class="form-label" [attr.for]="'epub-metadata-contributor-file-as-' + $index">
+                      {{ 'EPUB_METADATA.FILE_AS' | translate }}
+                    </label>
+                    <ion-input
+                      [id]="'epub-metadata-contributor-file-as-' + $index"
+                      class="form-control-text"
+                      formControlName="fileAs"
+                      type="text"
+                    ></ion-input>
+                  </div>
+                }
+              </div>
+            </details>
+          </div>
+        }
+      </div>
+
+      <ion-button
+        type="button"
+        fill="outline"
+        class="app-btn app-btn--icon-row epub-metadata-editor__add-button"
+        (click)="addContributor()"
+      >
+        {{ 'EPUB_METADATA.ADD_CONTRIBUTOR' | translate }}
+      </ion-button>
+    </sh-section-card>
+
+    <sh-section-card [title]="'EPUB_METADATA.RIGHTS' | translate">
+      <div class="epub-metadata-editor__field-grid">
+        <div class="epub-metadata-editor__field epub-metadata-editor__field--wide">
+          <label class="form-label" for="epub-metadata-rights">
+            {{ 'EPUB_METADATA.RIGHTS' | translate }}
+          </label>
+          <ion-input
+            id="epub-metadata-rights"
+            class="form-control-text"
+            formControlName="rights"
+            type="text"
+          ></ion-input>
+        </div>
+      </div>
+
+      <details class="epub-metadata-editor__advanced-section">
+        <summary>{{ 'EPUB_METADATA.ADVANCED' | translate }}</summary>
+        <div class="epub-metadata-editor__field-grid">
+          <div class="epub-metadata-editor__field">
+            <label class="form-label" for="epub-metadata-type">
+              {{ 'EPUB_METADATA.TYPE' | translate }}
+            </label>
+            <ion-input
+              id="epub-metadata-type"
+              class="form-control-text"
+              formControlName="type"
+              type="text"
+            ></ion-input>
+          </div>
+          <div class="epub-metadata-editor__field">
+            <label class="form-label" for="epub-metadata-format">
+              {{ 'EPUB_METADATA.FORMAT' | translate }}
+            </label>
+            <ion-input
+              id="epub-metadata-format"
+              class="form-control-text"
+              formControlName="format"
+              type="text"
+            ></ion-input>
+          </div>
+          <div class="epub-metadata-editor__field">
+            <label class="form-label" for="epub-metadata-source">
+              {{ 'EPUB_METADATA.SOURCE' | translate }}
+            </label>
+            <ion-input
+              id="epub-metadata-source"
+              class="form-control-text"
+              formControlName="source"
+              type="text"
+            ></ion-input>
+          </div>
+          <div class="epub-metadata-editor__field">
+            <label class="form-label" for="epub-metadata-relation">
+              {{ 'EPUB_METADATA.RELATION' | translate }}
+            </label>
+            <ion-input
+              id="epub-metadata-relation"
+              class="form-control-text"
+              formControlName="relation"
+              type="text"
+            ></ion-input>
+          </div>
+          <div class="epub-metadata-editor__field">
+            <label class="form-label" for="epub-metadata-coverage">
+              {{ 'EPUB_METADATA.COVERAGE' | translate }}
+            </label>
+            <ion-input
+              id="epub-metadata-coverage"
+              class="form-control-text"
+              formControlName="coverage"
+              type="text"
+            ></ion-input>
+          </div>
+        </div>
+
+        @if (capabilities().modifiedDate) {
+          <p class="epub-metadata-editor__note">
+            {{ 'EPUB_METADATA.EPUB3_MODIFIED_AUTOMATICALLY' | translate }}
+          </p>
+        }
+        @if (capabilities().epub3Refinements) {
+          <p class="epub-metadata-editor__note">
+            {{ 'EPUB_METADATA.EPUB3_REFINEMENTS' | translate }}
+          </p>
+        }
+      </details>
+    </sh-section-card>
+  </div>
+</form>

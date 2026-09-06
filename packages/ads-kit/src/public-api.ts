@@ -6,6 +6,7 @@
 export * from './lib/types';
 export * from './lib/ads.service';
 export * from './lib/billing.service';
+export * from './lib/export-access.service';
 export * from './lib/consent.service';
 export * from './lib/ads.providers';
 export * from './lib/provide-ads-kit-i18n';

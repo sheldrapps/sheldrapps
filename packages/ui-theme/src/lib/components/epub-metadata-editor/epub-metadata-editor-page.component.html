@@ -1,0 +1,29 @@
+<ion-header>
+  <ion-toolbar class="safe-top-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="backHref()"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ 'EPUB_METADATA.EDIT_METADATA' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button type="button" fill="clear" [disabled]="isSaving()" (click)="onDone()">
+        {{ 'COMMON.DONE' | translate }}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="epub-metadata-editor-page__content">
+  @if (saveError(); as saveReason) {
+    <div class="app-callout app-callout--error epub-metadata-editor-page__error" role="alert">
+      <p>{{ 'EPUB_METADATA.SAVE_ERROR' | translate }}</p>
+      <p>{{ 'EPUB_METADATA.SAVE_ERROR_DETAILS' | translate: { reason: saveReason } }}</p>
+    </div>
+  }
+  @if (state(); as pageState) {
+    <app-epub-metadata-editor #metadataEditor
+      [editorInput]="pageState.input"
+      (save)="onSave($event)"
+    ></app-epub-metadata-editor>
+  }
+</ion-content>
+

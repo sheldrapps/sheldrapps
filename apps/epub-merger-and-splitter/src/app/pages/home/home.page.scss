@@ -1,6 +1,24 @@
 :host {
   --home-stack-gap: var(--app-space-7);
   --home-action-gap: var(--app-space-4);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  max-width: 100%;
+}
+
+ion-content.home {
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+}
+
+ion-content.home::part(scroll) {
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-x: clip;
+  overflow-y: auto;
 }
 
 ion-title.home-page-title {
@@ -17,6 +35,8 @@ ion-title.home-page-title::part(native) {
 
 .home__stack {
   width: min(100%, 680px);
+  max-width: 100%;
+  min-width: 0;
   margin-inline: auto;
   display: grid;
   gap: var(--home-stack-gap);
@@ -24,18 +44,36 @@ ion-title.home-page-title::part(native) {
     var(--app-space-5)
     var(--app-space-7)
     calc(var(--app-space-10) + var(--app-space-9));
+  box-sizing: border-box;
 }
 
 .home__stepper {
   width: min(100%, 680px);
+  max-width: 100%;
+  min-width: 0;
   margin-inline: auto;
   padding: var(--app-space-5) var(--app-space-7) 0;
+  box-sizing: border-box;
 }
 
 .home__workflow-navigation {
   margin-inline: auto;
   width: min(100%, 680px);
+  max-width: 100%;
+  min-width: 0;
   padding: 0 var(--app-space-7) var(--app-space-7);
+  box-sizing: border-box;
+}
+
+.home__stepper > *,
+.home__stack > *,
+.home__workflow-navigation > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.home__workflow-navigation sh-workflow-navigation {
+  --sh-workflow-navigation-padding-inline: 0px;
 }
 
 .home-action-section {
@@ -80,11 +118,13 @@ ion-title.home-page-title::part(native) {
 .split-method-section {
   display: grid;
   gap: var(--app-space-4);
+  min-width: 0;
 }
 
 .split-confirm-section {
   display: grid;
   gap: var(--app-space-4);
+  min-width: 0;
 }
 
 .split-confirm__hint {
@@ -113,6 +153,8 @@ ion-title.home-page-title::part(native) {
   display: grid;
   gap: var(--app-space-3);
   padding: var(--app-surface-padding);
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .split-output-card__list {
@@ -190,6 +232,7 @@ ion-title.home-page-title::part(native) {
 .split-custom-option {
   display: grid;
   gap: var(--app-space-2);
+  min-width: 0;
 }
 
 .split-custom-control {
@@ -197,6 +240,7 @@ ion-title.home-page-title::part(native) {
   align-items: center;
   gap: var(--app-space-3);
   min-height: var(--app-control-min-height);
+  min-width: 0;
 }
 
 .split-custom-control__input {
@@ -218,6 +262,7 @@ ion-title.home-page-title::part(native) {
 }
 
 .split-custom-control__suffix {
+  min-width: 0;
   min-height: var(--app-touch-target);
   display: inline-flex;
   align-items: center;
@@ -226,6 +271,7 @@ ion-title.home-page-title::part(native) {
   color: var(--app-text-secondary);
   font-size: var(--app-text-md);
   font-weight: var(--app-font-medium);
+  overflow-wrap: anywhere;
 }
 
 .split-custom-option__validation {
@@ -243,5 +289,10 @@ ion-title.home-page-title::part(native) {
       var(--app-space-5)
       var(--app-space-7)
       calc(var(--app-space-10) + var(--app-space-9));
+  }
+
+  .home__workflow-navigation sh-workflow-navigation {
+    --sh-workflow-navigation-primary-min-width: 0px;
+    --app-btn-pad-x: var(--app-space-3);
   }
 }

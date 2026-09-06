@@ -1,4 +1,17 @@
+import { isDevMode } from '@angular/core';
 import { Routes } from '@angular/router';
+
+const developmentRoutes: Routes = isDevMode()
+  ? [
+      {
+        path: 'metadata-editor-playground',
+        loadComponent: () =>
+          import('@sheldrapps/ui-theme').then(
+            (m) => m.EpubMetadataEditorPlaygroundPageComponent,
+          ),
+      },
+    ]
+  : [];
 
 export const routes: Routes = [
   {
@@ -57,4 +70,12 @@ export const routes: Routes = [
         (m) => m.InstructionsPage,
       ),
   },
+  {
+    path: 'metadata-editor',
+    loadComponent: () =>
+      import('@sheldrapps/ui-theme').then(
+        (m) => m.EpubMetadataEditorPageComponent,
+      ),
+  },
+  ...developmentRoutes,
 ];

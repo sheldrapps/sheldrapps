@@ -26,4 +26,11 @@ export const routes: Routes = [
         (m) => m.RECOMMENDED_APPS_ROUTES,
       ),
   },
+  {
+    path: 'metadata-editor',
+    loadComponent: () =>
+      import('@sheldrapps/ui-theme').then(
+        (m) => m.EpubMetadataEditorPageComponent,
+      ),
+  },
 ];

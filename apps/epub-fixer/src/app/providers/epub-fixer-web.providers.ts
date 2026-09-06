@@ -5,19 +5,19 @@ import { Capacitor } from '@capacitor/core';
 import {
   EPUB_FIXER_PORT,
   NativeEpubFixerAdapter,
-  WebDevEpubFixerAdapter,
 } from '@sheldrapps/file-kit';
+import { EpubFixerWebMockAdapter } from '../services/epub-fixer-web-mock.adapter';
 
 export function provideWebDevEpubFixerPort(): Provider[] {
   return [
     NativeEpubFixerAdapter,
-    WebDevEpubFixerAdapter,
+    EpubFixerWebMockAdapter,
     {
       provide: EPUB_FIXER_PORT,
       useFactory: () =>
         Capacitor.isNativePlatform()
           ? inject(NativeEpubFixerAdapter)
-          : inject(WebDevEpubFixerAdapter),
+          : inject(EpubFixerWebMockAdapter),
     },
   ];
 }

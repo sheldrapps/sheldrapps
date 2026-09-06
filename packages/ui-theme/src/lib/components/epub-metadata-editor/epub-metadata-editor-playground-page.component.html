@@ -1,0 +1,21 @@
+<ion-header>
+  <ion-toolbar class="safe-top-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ 'EPUB_METADATA.EDIT_METADATA' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button type="button" fill="clear" (click)="onDone()">
+        {{ 'COMMON.DONE' | translate }}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="epub-metadata-editor-playground__content">
+  <app-epub-metadata-editor
+    #metadataEditor
+    [editorInput]="editorInput()"
+    (save)="onSave($event)"
+  ></app-epub-metadata-editor>
+</ion-content>

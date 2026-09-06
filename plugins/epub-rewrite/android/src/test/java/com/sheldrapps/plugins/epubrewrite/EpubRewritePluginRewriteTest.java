@@ -1277,6 +1277,82 @@ public class EpubRewritePluginRewriteTest {
     }
 
     @Test
+    public void noCoverRemovalUsesTheFirstImageWhenSourceOmitsCoverMetadata() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        ZipFile source = buildZip(orderedEntries(
+            "META-INF/container.xml",
+            utf8(
+                "<container xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\"><rootfiles>"
+                    + "<rootfile full-path=\"OPS/package.opf\" media-type=\"application/oebps-package+xml\"/>"
+                    + "</rootfiles></container>"
+            ),
+            "OPS/package.opf",
+            utf8(
+                "<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\"><metadata/>"
+                    + "<manifest>"
+                    + "<item id=\"cover-page\" href=\"cover.xhtml\" media-type=\"application/xhtml+xml\"/>"
+                    + "<item id=\"chapter\" href=\"chapter.xhtml\" media-type=\"application/xhtml+xml\"/>"
+                    + "<item id=\"image-1\" href=\"images/image-1.jpg\" media-type=\"image/jpeg\"/>"
+                    + "</manifest><spine><itemref idref=\"cover-page\"/><itemref idref=\"chapter\"/></spine></package>"
+            ),
+            "OPS/cover.xhtml",
+            utf8("<html xmlns=\"http://www.w3.org/1999/xhtml\"><body><img src=\"images/image-1.jpg\"/></body></html>"),
+            "OPS/chapter.xhtml",
+            utf8("<html xmlns=\"http://www.w3.org/1999/xhtml\"><body><p>Chapter</p></body></html>"),
+            "OPS/images/image-1.jpg",
+            new byte[] { 1, 2, 3 },
+            "OPS/cover-generated-1.xhtml",
+            utf8("<html xmlns=\"http://www.w3.org/1999/xhtml\"><body><img src=\"images/cover-added-1.jpg\"/></body></html>"),
+            "OPS/images/cover-added-1.jpg",
+            new byte[] { 4, 5, 6 }
+        ));
+
+        try {
+            Object metadata = invokeObject(
+                plugin,
+                "readMergeBookMetadata",
+                new Class<?>[] { ZipFile.class, String.class, String.class, boolean.class },
+                source,
+                "OPS/package.opf",
+                "book",
+                true
+            );
+            java.lang.reflect.Field noCoverPathsField = metadata.getClass().getDeclaredField("noCoverPaths");
+            noCoverPathsField.setAccessible(true);
+            java.util.Set<?> noCoverPaths = (java.util.Set<?>) noCoverPathsField.get(metadata);
+
+            assertTrue(noCoverPaths.contains("OPS/images/image-1.jpg"));
+            assertTrue(noCoverPaths.contains("OPS/cover.xhtml"));
+            assertTrue(noCoverPaths.contains("OPS/images/cover-added-1.jpg"));
+            assertTrue(noCoverPaths.contains("OPS/cover-generated-1.xhtml"));
+
+            java.lang.reflect.Field resourceMediaTypesField = metadata.getClass().getDeclaredField("resourceMediaTypes");
+            resourceMediaTypesField.setAccessible(true);
+            java.util.Map<?, ?> resourceMediaTypes =
+                (java.util.Map<?, ?>) resourceMediaTypesField.get(metadata);
+            assertFalse(resourceMediaTypes.containsKey("OPS/images/image-1.jpg"));
+
+            Object splitMetadata = invokeObject(
+                plugin,
+                "readSplitSourceMetadata",
+                new Class<?>[] { ZipFile.class, String.class, boolean.class },
+                source,
+                "OPS/package.opf",
+                true
+            );
+            java.lang.reflect.Field splitNoCoverPathsField =
+                splitMetadata.getClass().getDeclaredField("noCoverPaths");
+            splitNoCoverPathsField.setAccessible(true);
+            java.util.Set<?> splitNoCoverPaths =
+                (java.util.Set<?>) splitNoCoverPathsField.get(splitMetadata);
+            assertTrue(splitNoCoverPaths.contains("OPS/images/image-1.jpg"));
+            assertTrue(splitNoCoverPaths.contains("OPS/cover.xhtml"));
+        } finally {
+            source.close();
+        }
+    }
+
+    @Test
     public void noCoverLinksBecomePlainTextWithoutRemovingVisibleLabel() throws Exception {
         EpubRewritePlugin plugin = new EpubRewritePlugin();
         String result = invokeString(

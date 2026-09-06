@@ -1,51 +1,51 @@
 <en-US>
-Web merge and split now create cover-only EPUBs with the expected names, and the library keeps the final cards clear of the tab bar.
+EPUB merge and split exports are now more reliable, and Pro users can export without loading ads.
 </en-US>
 
 <ar>
-ينشئ الدمج والتقسيم على الويب الآن ملفات EPUB تحتوي على الغلاف فقط وبالأسماء المتوقعة، كما تبقي المكتبة البطاقات الأخيرة واضحة فوق شريط التبويب.
+أصبح تصدير ملفات EPUB بعد الدمج والتقسيم أكثر موثوقية، ويمكن لمستخدمي Pro التصدير دون تحميل الإعلانات.
 </ar>
 
 <de-DE>
-Zusammenführen und Teilen im Web erzeugen jetzt EPUBs nur mit dem Cover und den erwarteten Namen. Die letzten Karten bleiben dabei über der Tab-Leiste sichtbar.
+Exporte nach dem Zusammenführen und Teilen von EPUB-Dateien sind jetzt zuverlässiger, und Pro-Nutzer können ohne geladene Werbung exportieren.
 </de-DE>
 
 <es-419>
-Merge y split en la web ahora generan EPUB con solo la portada y los nombres esperados, mientras la biblioteca mantiene visibles las últimas tarjetas sobre las tabs.
+Las exportaciones de EPUB al unir o dividir son más confiables; quienes tienen Pro exportan sin cargar anuncios.
 </es-419>
 
 <fr-FR>
-La fusion et la division sur le web créent désormais des EPUB contenant uniquement la couverture avec les noms attendus, tandis que les dernières cartes restent visibles au-dessus de la barre d’onglets.
+Les exportations EPUB après fusion ou séparation sont maintenant plus fiables, et les utilisateurs Pro exportent sans charger de publicités.
 </fr-FR>
 
 <hi-IN>
-वेब पर मर्ज और स्प्लिट अब अपेक्षित नामों के साथ केवल कवर वाले EPUB बनाते हैं, और लाइब्रेरी में आखिरी कार्ड टैब बार के ऊपर स्पष्ट दिखाई देते हैं।
+EPUB को मर्ज और स्प्लिट करने के बाद एक्सपोर्ट अब अधिक भरोसेमंद है, और Pro उपयोगकर्ता विज्ञापन लोड किए बिना एक्सपोर्ट कर सकते हैं।
 </hi-IN>
 
 <it-IT>
-Sul web, unione e divisione ora creano EPUB con la sola copertina e i nomi previsti, mentre nella libreria le ultime schede restano visibili sopra la barra delle schede.
+Le esportazioni EPUB dopo l’unione o la divisione sono ora più affidabili, e gli utenti Pro possono esportare senza caricare annunci.
 </it-IT>
 
 <ja-JP>
-Webでの結合と分割が、期待される名前で表紙だけを含むEPUBを生成するようになりました。ライブラリの最後のカードもタブバーに隠れず表示されます。
+EPUBの結合・分割後の書き出しがより安定し、Proユーザーは広告を読み込まずに書き出せるようになりました。
 </ja-JP>
 
 <ko-KR>
-웹 병합 및 분할이 이제 예상된 이름으로 표지만 포함한 EPUB을 생성하며, 라이브러리의 마지막 카드도 탭 바에 가려지지 않고 표시됩니다.
+EPUB 병합 및 분할 후 내보내기가 더 안정적이며, Pro 사용자는 광고를 로드하지 않고 내보낼 수 있습니다.
 </ko-KR>
 
 <pt-BR>
-No navegador, mesclar e dividir agora criam EPUBs somente com a capa e os nomes esperados, enquanto os últimos cards da biblioteca ficam visíveis acima da barra de abas.
+As exportações de EPUB após mesclar ou dividir estão mais confiáveis, e usuários Pro podem exportar sem carregar anúncios.
 </pt-BR>
 
 <ru-RU>
-В веб-версии объединение и разделение теперь создают EPUB только с обложкой и ожидаемыми именами, а последние карточки библиотеки остаются видимыми над панелью вкладок.
+Экспорт EPUB после объединения и разделения стал надёжнее, а пользователи Pro могут экспортировать файлы без загрузки рекламы.
 </ru-RU>
 
 <zh-CN>
-网页版的合并和拆分现在会按预期名称生成仅包含封面的 EPUB，同时书库中的最后几张卡片也不会被标签栏遮挡。
+EPUB 合并和拆分后的导出更加可靠，Pro 用户无需加载广告即可导出。
 </zh-CN>
 
 <zh-TW>
-網頁版的合併與分割現在會依預期名稱產生僅包含封面的 EPUB，同時書庫中的最後幾張卡片也不會被分頁列遮擋。
+EPUB 合併與分割後的匯出更加可靠，Pro 使用者無需載入廣告即可匯出。
 </zh-TW>

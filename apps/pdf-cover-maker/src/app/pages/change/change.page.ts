@@ -106,6 +106,7 @@ import {
   PURCHASE_INTENT_QUERY_PARAM,
   REMOVE_ADS_PURCHASE_INTENT,
   RemoveAdsPurchasePageService,
+  ExportAccessService,
 } from '@sheldrapps/ads-kit';
 import { CoverPageMode } from '@sheldrapps/cover-page-mode-kit';
 import { PdfWorkingCopyService } from '../../services/pdf-working-copy.service';
@@ -250,6 +251,7 @@ export class ChangePage implements OnInit, OnDestroy {
   private imagePipe = inject(ImagePipelineService);
   private readonly previewEditingPage = inject(PreviewEditingPageService);
   private billing = inject(BillingService);
+  private readonly exportAccess = inject(ExportAccessService);
   private removeAdsPurchasePage = inject(RemoveAdsPurchasePageService);
   private toastCtrl = inject(ToastController);
   private popoverCtrl = inject(PopoverController);
@@ -653,6 +655,10 @@ export class ChangePage implements OnInit, OnDestroy {
       return;
     }
     this.workflowStep += 1;
+    if (this.workflowStep === 4) {
+      const adsService = this.appInjector.get(AdsService, null);
+      void adsService?.warmRewarded().catch(() => undefined);
+    }
   }
 
   async onWorkflowStepSelected(step: number): Promise<void> {
@@ -4051,100 +4057,23 @@ export class ChangePage implements OnInit, OnDestroy {
           trialActive: this.adFallbackTrialActive,
         })}`,
       );
-      if (!this.billing.isAdsRemoved()) {
-        if (this.adFallbackTrialActive && this.resolveAdFallbackRemaining() > 0) {
-          console.info('[PCM:ads] active fallback trial requires explicit accept');
-          const accepted = await this.confirmActiveAdFallbackTrial();
-          if (!accepted) {
-            await this.showToast(
-              'CHANGE.ADS_REQUIRED',
-              { duration: 1800 },
-              'error',
-            );
-            return;
-          }
-          console.info('[PCM:ads-gate] active-trial accepted');
-        } else {
-          const adsService = this.appInjector.get(AdsService, null);
-          if (!adsService) {
-            const accepted = await this.openAdFallbackFromFailure({
-              rewardEarned: false,
-              adClosed: false,
-              failed: true,
-              failureReason: 'unknown',
-              failureConfidence: 'low',
-            });
-            if (!accepted) {
-              await this.showToast(
-                'CHANGE.ADS_REQUIRED',
-                { duration: 1800 },
-                'error',
-              );
-              return;
-            }
-            console.info('[PCM:ads-gate] no-ads-service fallback accepted');
-          }
-
-          if (adsService) {
-            const result: RewardedAdResult = await adsService.showRewarded();
-            console.info(
-              `[PCM:ads] rewarded result ${JSON.stringify(result)}`,
-            );
-            const shouldFallback =
-              result.failed || (!result.rewardEarned && !result.adClosed);
-
-            if (shouldFallback) {
-              const fallbackPayload: RewardedAdResult = result.failed
-                ? result
-                : {
-                    rewardEarned: false,
-                    adClosed: false,
-                    failed: true,
-                    failureReason: 'unknown',
-                    failureConfidence: 'low',
-                  };
-              const accepted = await this.openAdFallbackFromFailure(
-                fallbackPayload,
-              );
-              if (!accepted) {
-                await this.showToast(
-                  'CHANGE.ADS_REQUIRED',
-                  { duration: 1800 },
-                  'error',
-                );
-                return;
-              }
-              console.info('[PCM:ads-gate] ad-failed fallback accepted');
-            } else if (result.adClosed && !result.rewardEarned) {
-              await this.showToast(
-                'CHANGE.ADS_REQUIRED',
-                { duration: 1800 },
-                'error',
-              );
-              return;
-            } else if (result.rewardEarned && result.adClosed) {
-              console.info('[PCM:ads-gate] rewarded');
-              this.trackRemoveAdsEvent('rewarded_generate_completed');
-            } else {
-              const accepted = await this.openAdFallbackFromFailure({
-                rewardEarned: false,
-                adClosed: false,
-                failed: true,
-                failureReason: 'unknown',
-                failureConfidence: 'low',
-              });
-              if (!accepted) {
-                await this.showToast(
-                  'CHANGE.ADS_REQUIRED',
-                  { duration: 1800 },
-                  'error',
-                );
-                return;
-              }
-              console.info('[PCM:ads-gate] inconclusive fallback accepted');
-            }
-          }
-        }
+      const access = await this.exportAccess.authorize({
+        onActiveFallbackTrial: () =>
+          this.adFallbackTrialActive && this.resolveAdFallbackRemaining() > 0
+            ? this.confirmActiveAdFallbackTrial()
+            : false,
+        onAdFailure: (result) => this.openAdFallbackFromFailure(result),
+      });
+      if (!access.granted) {
+        await this.showToast(
+          'CHANGE.ADS_REQUIRED',
+          { duration: 1800 },
+          'error',
+        );
+        return;
+      }
+      if (access.source === 'rewarded') {
+        this.trackRemoveAdsEvent('rewarded_generate_completed');
       }
 
       console.info('[PCM:ads-gate] completed, start generation');

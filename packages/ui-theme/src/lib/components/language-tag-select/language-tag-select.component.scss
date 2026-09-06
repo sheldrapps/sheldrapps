@@ -1,0 +1,37 @@
+:host {
+  display: block;
+}
+
+.language-tag-select {
+  display: grid;
+  gap: var(--app-form-space-label-control);
+}
+
+.language-tag-select__control {
+  display: grid;
+  gap: var(--app-form-space-control-helper);
+  min-width: 0;
+}
+
+.language-tag-select ion-select,
+.language-tag-select__custom-input {
+  width: 100%;
+  min-height: var(--app-control-min-height);
+  padding-inline: var(--app-space-4);
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-md);
+  background: var(--app-control-background);
+}
+
+.language-tag-select ion-select:focus-within,
+.language-tag-select__custom-input:focus-within {
+  box-shadow: var(--app-focus-ring);
+}
+
+.language-tag-select__custom-input {
+  margin-top: 0;
+}
+
+.language-tag-select__helper {
+  margin: 0 var(--app-space-4);
+}

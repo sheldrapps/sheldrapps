@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Capacitor, registerPlugin, type Plugin } from '@capacitor/core';
+import type { EpubMetadataDocument, EpubPackageMetadata } from '@sheldrapps/file-kit';
 
 type CreateEpubFromCoverOptions = {
   outputPath: string;
@@ -45,11 +46,40 @@ type OpenExternalFileResult = {
   stage?: string;
 };
 
+type EpubMetadataResult = {
+  success: boolean;
+  version?: EpubMetadataDocument['version'];
+  detectedVersion?: string;
+  metadata?: EpubPackageMetadata;
+  outputPath?: string;
+  size?: number;
+  uri?: string;
+  filename?: string;
+  error?: string;
+  message?: string;
+  stage?: string;
+};
+
 type EpubRewritePlugin = Plugin & {
   listPublicDocuments(options: { folderName: string; extension?: string }): Promise<{ success: boolean; files?: Array<{ name: string; uri: string; size: number }>; error?: string; message?: string; stage?: string }>;
   getPublicDocument(options: { folderName: string; filename: string }): Promise<{ success: boolean; uri?: string; filename?: string; size?: number; error?: string; message?: string; stage?: string }>;
   deletePublicDocument(options: { folderName: string; filename: string }): Promise<{ success: boolean; error?: string; message?: string; stage?: string }>;
   renamePublicDocument(options: { folderName: string; filename: string; outputName: string }): Promise<{ success: boolean; uri?: string; filename?: string; size?: number; error?: string; message?: string; stage?: string }>;
+  readEpubMetadata(options: { inputPath: string }): Promise<EpubMetadataResult>;
+  rewriteEpubMetadata(options: {
+    inputPath: string;
+    outputPath?: string;
+    metadata: EpubPackageMetadata;
+  }): Promise<EpubMetadataResult>;
+  readPublicEpubMetadata(options: {
+    folderName: string;
+    filename: string;
+  }): Promise<EpubMetadataResult>;
+  rewritePublicEpubMetadata(options: {
+    folderName: string;
+    filename: string;
+    metadata: EpubPackageMetadata;
+  }): Promise<EpubMetadataResult>;
   publishPublicDocument(options: {
     folderName: string;
     sourcePath: string;
@@ -153,6 +183,48 @@ export class EpubRewriteService {
     return { uri: result.uri, filename: result.filename, size: result.size };
   }
 
+  async readEpubMetadata(inputPath: string): Promise<EpubMetadataDocument> {
+    const result = await EpubRewrite.readEpubMetadata({ inputPath });
+    if (!result.success || !result.version || !result.detectedVersion || !result.metadata) {
+      throw new EpubRewriteError(result.error ?? 'METADATA_READ_FAILED', { message: result.message, stage: result.stage });
+    }
+    return { version: result.version, detectedVersion: result.detectedVersion, metadata: result.metadata };
+  }
+
+  async rewriteEpubMetadata(
+    inputPath: string,
+    metadata: EpubPackageMetadata,
+    outputPath?: string,
+  ): Promise<{ outputPath: string; size: number }> {
+    const result = await EpubRewrite.rewriteEpubMetadata({ inputPath, outputPath, metadata });
+    if (!result.success || !result.outputPath || typeof result.size !== 'number') {
+      throw new EpubRewriteError(result.error ?? 'METADATA_REWRITE_FAILED', { message: result.message, stage: result.stage });
+    }
+    return { outputPath: result.outputPath, size: result.size };
+  }
+
+  async readPublicEpubMetadata(
+    folderName: string,
+    filename: string,
+  ): Promise<EpubMetadataDocument> {
+    const result = await EpubRewrite.readPublicEpubMetadata({ folderName, filename });
+    if (!result.success || !result.version || !result.detectedVersion || !result.metadata) {
+      throw new EpubRewriteError(result.error ?? 'METADATA_PUBLIC_READ_FAILED', { message: result.message, stage: result.stage });
+    }
+    return { version: result.version, detectedVersion: result.detectedVersion, metadata: result.metadata };
+  }
+
+  async rewritePublicEpubMetadata(
+    folderName: string,
+    filename: string,
+    metadata: EpubPackageMetadata,
+  ): Promise<{ uri: string; filename: string; size: number }> {
+    const result = await EpubRewrite.rewritePublicEpubMetadata({ folderName, filename, metadata });
+    if (!result.success || !result.uri || !result.filename || typeof result.size !== 'number') {
+      throw new EpubRewriteError(result.error ?? 'METADATA_PUBLIC_REWRITE_FAILED', { message: result.message, stage: result.stage });
+    }
+    return { uri: result.uri, filename: result.filename, size: result.size };
+  }
   async deletePublicDocument(folderName: string, filename: string): Promise<void> {
     const result = await EpubRewrite.deletePublicDocument({ folderName, filename });
     if (!result.success) throw new EpubRewriteError(result.error ?? 'PUBLIC_DELETE_FAILED', { message: result.message, stage: result.stage });

@@ -51,6 +51,7 @@ export * from './lib/epub-rewrite.service';
 export * from './lib/epub-diagnostic-queue';
 export * from './lib/epub-repairing.service';
 export * from './lib/epub-working-copy.service';
+export * from './lib/epub-metadata.service';
 
 // Providers
 export * from './lib/providers';

@@ -83,6 +83,7 @@ import {
   informationCircleOutline,
   sparklesOutline,
   refreshOutline,
+  codeWorkingOutline,
 } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
@@ -90,6 +91,7 @@ import {
   FileService,
   type CoverProcessingMetadataInput,
 } from '../../services/file.service';
+import { areEpubPackageMetadataEqual, readEpubMetadata, writeEpubMetadata } from '@sheldrapps/file-kit';
 import {
   KindleBrand,
   KindleCatalogService,
@@ -104,6 +106,7 @@ import {
   PURCHASE_INTENT_QUERY_PARAM,
   REMOVE_ADS_PURCHASE_INTENT,
   RemoveAdsPurchasePageService,
+  ExportAccessService,
 } from '@sheldrapps/ads-kit';
 import {
   AdsService,
@@ -123,6 +126,8 @@ import {
   WorkflowNavigationComponent,
   TripleButtonComponent,
   WorkflowStepperComponent,
+  EpubMetadataEditorPageService,
+  createEpubMetadataEditorDraft,
 } from '@sheldrapps/ui-theme';
 import type { WorkflowStep } from '@sheldrapps/ui-theme';
 import { SettingsStore } from '@sheldrapps/settings-kit';
@@ -218,7 +223,9 @@ export class CreatePage implements OnInit, OnDestroy {
   private catalog = inject(KindleCatalogService);
   private imagePipe = inject(ImagePipelineService);
   private readonly previewEditingPage = inject(PreviewEditingPageService);
+  private readonly metadataEditorPage = inject(EpubMetadataEditorPageService);
   private billing = inject(BillingService);
+  private readonly exportAccess = inject(ExportAccessService);
   private removeAdsPurchasePage = inject(RemoveAdsPurchasePageService);
   private toastCtrl = inject(ToastController);
   private popoverCtrl = inject(PopoverController);
@@ -260,6 +267,7 @@ export class CreatePage implements OnInit, OnDestroy {
       imageOutline,
       sparklesOutline,
       refreshOutline,
+      codeWorkingOutline,
     });
   }
 
@@ -805,6 +813,10 @@ export class CreatePage implements OnInit, OnDestroy {
 
   private async navigateToWorkflowStep(step: number): Promise<void> {
     this.workflowStep = step;
+    if (step === 3) {
+      const adsService = this.appInjector.get(AdsService, null);
+      void adsService?.warmRewarded().catch(() => undefined);
+    }
 
     if (step === 2 && this.previewUrl) {
       await this.onAdjustWithEditor();
@@ -1223,6 +1235,62 @@ export class CreatePage implements OnInit, OnDestroy {
     }
   }
 
+  async onEditMetadata(): Promise<void> {
+    const fileName = this.lastSavedFilename ?? this.generatedEpubFilename;
+    const sourceBytes = this.generatedEpubBytes;
+    if (!fileName || (!this.lastSavedFilename && !sourceBytes)) return;
+
+    let current;
+    try {
+      current = this.lastSavedFilename
+        ? await this.fileService.readPublicationMetadata(this.lastSavedFilename)
+        : await readEpubMetadata(sourceBytes!);
+      if (!current) {
+        throw new Error('EPUB_METADATA_UNAVAILABLE');
+      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      console.error('[CCFK:create:metadata-read]', error);
+      await this.showToast(
+        'EPUB_METADATA.READ_ERROR',
+        { duration: 3200 },
+        'error',
+        { reason },
+      );
+      return;
+    }
+
+    this.metadataEditorPage.open({
+      input: current
+        ? {
+            version: current.version,
+            detectedVersion: current.detectedVersion,
+            fileName,
+            metadata: current.metadata,
+          }
+        : createEpubMetadataEditorDraft(fileName),
+      returnUrl: '/tabs/create',
+      saveHandler: async (metadata) => {
+        if (this.lastSavedFilename) {
+          await this.fileService.updatePublicationMetadata(
+            this.lastSavedFilename,
+            metadata,
+          );
+        } else {
+          const updatedBytes = await writeEpubMetadata(
+            this.generatedEpubBytes!,
+            metadata,
+          );
+          const persisted = await readEpubMetadata(updatedBytes);
+          if (!persisted || !areEpubPackageMetadataEqual(persisted.metadata, metadata)) {
+            throw new Error('EPUB_METADATA_READ_AFTER_WRITE_MISMATCH');
+          }
+          this.generatedEpubBytes = updatedBytes;
+        }
+      },
+    });
+    await this.router.navigateByUrl('/metadata-editor');
+  }
   async onShare() {
     if (!this.canSaveShare()) {
       if (this.canGenerate()) {
@@ -1232,6 +1300,11 @@ export class CreatePage implements OnInit, OnDestroy {
           2200,
         );
       }
+      return;
+    }
+
+    if (this.lastSavedFilename) {
+      await this.fileService.shareCoverByFilename(this.lastSavedFilename);
       return;
     }
 
@@ -2068,93 +2141,23 @@ export class CreatePage implements OnInit, OnDestroy {
     this.operationCompleted.set(false);
     this.setBusy('export', 'CREATE.GENERATING');
     try {
-      if (!this.adsRemoved) {
-        if (
-          this.adFallbackTrialActive &&
-          this.resolveAdFallbackRemaining() > 0
-        ) {
-          const accepted = await this.confirmActiveAdFallbackTrial();
-          if (!accepted) {
-            await this.showToast(
-              'CREATE.ADS_REQUIRED',
-              { duration: 1800 },
-              'error',
-            );
-            return;
-          }
-        } else {
-          const adsService = this.appInjector.get(AdsService, null);
-          if (!adsService) {
-            const accepted = await this.openAdFallbackFromFailure({
-              rewardEarned: false,
-              adClosed: false,
-              failed: true,
-              failureReason: 'unknown',
-              failureConfidence: 'low',
-            });
-            if (!accepted) {
-              await this.showToast(
-                'CREATE.ADS_REQUIRED',
-                { duration: 1800 },
-                'error',
-              );
-              return;
-            }
-          }
-
-          if (adsService) {
-            const result: RewardedAdResult = await adsService.showRewarded();
-            const shouldFallback =
-              result.failed || (!result.rewardEarned && !result.adClosed);
-
-            if (shouldFallback) {
-              const accepted = await this.openAdFallbackFromFailure(
-                result.failed
-                  ? result
-                  : {
-                      rewardEarned: false,
-                      adClosed: false,
-                      failed: true,
-                      failureReason: 'unknown',
-                      failureConfidence: 'low',
-                    },
-              );
-              if (!accepted) {
-                await this.showToast(
-                  'CREATE.ADS_REQUIRED',
-                  { duration: 1800 },
-                  'error',
-                );
-                return;
-              }
-            } else if (result.adClosed && !result.rewardEarned) {
-              await this.showToast(
-                'CREATE.ADS_REQUIRED',
-                { duration: 1800 },
-                'error',
-              );
-              return;
-            } else if (result.rewardEarned && result.adClosed) {
-              this.trackRemoveAdsEvent('rewarded_generate_completed');
-            } else {
-              const accepted = await this.openAdFallbackFromFailure({
-                rewardEarned: false,
-                adClosed: false,
-                failed: true,
-                failureReason: 'unknown',
-                failureConfidence: 'low',
-              });
-              if (!accepted) {
-                await this.showToast(
-                  'CREATE.ADS_REQUIRED',
-                  { duration: 1800 },
-                  'error',
-                );
-                return;
-              }
-            }
-          }
-        }
+      const access = await this.exportAccess.authorize({
+        onActiveFallbackTrial: () =>
+          this.adFallbackTrialActive && this.resolveAdFallbackRemaining() > 0
+            ? this.confirmActiveAdFallbackTrial()
+            : false,
+        onAdFailure: (result) => this.openAdFallbackFromFailure(result),
+      });
+      if (!access.granted) {
+        await this.showToast(
+          'CREATE.ADS_REQUIRED',
+          { duration: 1800 },
+          'error',
+        );
+        return;
+      }
+      if (access.source === 'rewarded') {
+        this.trackRemoveAdsEvent('rewarded_generate_completed');
       }
 
       await this.generateCoverWithCurrentSelection();
@@ -2507,6 +2510,7 @@ export class CreatePage implements OnInit, OnDestroy {
     messageKey: string,
     opts: Partial<ToastOptions> = {},
     variant: 'success' | 'error' | 'info' = 'success',
+    params?: Record<string, unknown>,
   ) {
     const extra = opts.cssClass
       ? Array.isArray(opts.cssClass)
@@ -2516,7 +2520,7 @@ export class CreatePage implements OnInit, OnDestroy {
 
     const toast = await this.toastCtrl.create({
       ...opts,
-      message: this.translate.instant(messageKey),
+      message: this.translate.instant(messageKey, params),
       position: 'middle',
       duration: opts.duration ?? 1800,
       animated: true,

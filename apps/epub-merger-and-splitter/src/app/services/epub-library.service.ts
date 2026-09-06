@@ -5,6 +5,9 @@ import {
   PUBLIC_FILESYSTEM,
   FileKitService,
   EpubRewriteService,
+  readEpubMetadata,
+  writeEpubMetadata,
+  type EpubPackageMetadata,
   WEB_EPUB_COVER_SERVICE_TOKEN,
   type WebEpubCoverService,
 } from '@sheldrapps/file-kit';
@@ -265,6 +268,53 @@ export class EpubLibraryService {
       );
       throw error;
     }
+  }
+
+  async readPublicationMetadata(filename: string) {
+    if (this.epubRewrite.isSupported()) {
+      return this.epubRewrite.readPublicEpubMetadata(this.publicEpubFolder, filename);
+    }
+    const bytes = await this.readPublicEpubBytes(filename);
+    return readEpubMetadata(bytes);
+  }
+
+  async updatePublicationMetadata(
+    filename: string,
+    metadata: EpubPackageMetadata,
+  ): Promise<void> {
+    let updatedSize: number;
+    if (this.epubRewrite.isSupported()) {
+      const rewritten = await this.epubRewrite.rewritePublicEpubMetadata(
+        this.publicEpubFolder,
+        filename,
+        metadata,
+      );
+      updatedSize = rewritten.size;
+    } else {
+      const bytes = await this.readPublicEpubBytes(filename);
+      const updated = await writeEpubMetadata(bytes, metadata);
+      await this.writePublicEpub(filename, updated);
+      updatedSize = updated.byteLength;
+    }
+
+    const index = await this.readLibraryIndex();
+    const record = index.records.find((candidate) => candidate.filename === filename);
+    if (!record) return;
+
+    const uri = await this.getPublicEpubUri(filename);
+    await this.writeLibraryIndex({
+      schemaVersion: 1,
+      records: index.records.map((candidate) =>
+        candidate.filename === filename
+          ? {
+              ...candidate,
+              title: metadata.title.trim() || candidate.title,
+              uri,
+              sizeBytes: updatedSize,
+            }
+          : candidate,
+      ),
+    });
   }
 
   async deleteByFilename(filename: string): Promise<void> {
@@ -573,6 +623,52 @@ export class EpubLibraryService {
     return new Uint8Array(buffer);
   }
 
+  private async readPublicEpubBytes(filename: string): Promise<Uint8Array> {
+    if (this.epubRewrite.isSupported()) {
+      const document = await this.epubRewrite.getPublicDocument(
+        this.publicEpubFolder,
+        filename,
+      );
+      return this.readExportBytes(document.uri);
+    }
+    return this.epubStore.readBytes(filename);
+  }
+
+  private async writePublicEpub(
+    filename: string,
+    bytes: Uint8Array,
+  ): Promise<void> {
+    if (!this.epubRewrite.isSupported()) {
+      await this.epubStore.writeEpub(filename, bytes);
+      return;
+    }
+
+    const stagingPath = `${this.publicEpubFolder}/.metadata_${Date.now()}_${filename}`;
+    try {
+      await this.fileKit.writeBytes({
+        dir: 'Data',
+        path: stagingPath,
+        bytes,
+        mimeType: 'application/epub+zip',
+      });
+      const sourceUri = await this.fileKit.getUri({ dir: 'Data', path: stagingPath });
+      await this.epubRewrite.publishPublicDocument({
+        folderName: this.publicEpubFolder,
+        sourcePath: sourceUri,
+        outputName: filename,
+        mimeType: 'application/epub+zip',
+      });
+    } finally {
+      await this.fileKit.delete({ dir: 'Data', path: stagingPath }).catch(() => undefined);
+    }
+  }
+
+  private async getPublicEpubUri(filename: string): Promise<string> {
+    if (this.epubRewrite.isSupported()) {
+      return (await this.epubRewrite.getPublicDocument(this.publicEpubFolder, filename)).uri;
+    }
+    return this.epubStore.getUriOrThrow(filename);
+  }
   private async listPublicEpubFilenames(): Promise<string[]> {
     if (this.epubRewrite.isSupported()) {
       return (await this.epubRewrite.listPublicDocuments(this.publicEpubFolder, '.epub'))
@@ -653,9 +749,19 @@ export class EpubLibraryService {
       if (parsed?.schemaVersion !== 1 || !Array.isArray(parsed.records)) {
         return { schemaVersion: 1, records: [] };
       }
+
+      const records = parsed.records.filter((record) => this.isValidRecord(record));
+      const normalizedRecords = this.stripThumbnailUris(records);
+      if (records.some((record) => typeof record.thumbnailUri === 'string')) {
+        await this.writeLibraryIndex({
+          schemaVersion: 1,
+          records: normalizedRecords,
+        });
+      }
+
       return {
         schemaVersion: 1,
-        records: parsed.records.filter((record) => this.isValidRecord(record)),
+        records: normalizedRecords,
       };
     } catch {
       return { schemaVersion: 1, records: [] };
@@ -663,14 +769,27 @@ export class EpubLibraryService {
   }
 
   private async writeLibraryIndex(index: EpubLibraryIndex): Promise<void> {
+    const persistedIndex: EpubLibraryIndex = {
+      schemaVersion: index.schemaVersion,
+      records: this.stripThumbnailUris(index.records),
+    };
     await this.fileKit.writeBytes({
       dir: 'Data',
       path: this.libraryIndexPath,
-      bytes: new TextEncoder().encode(JSON.stringify(index)),
+      bytes: new TextEncoder().encode(JSON.stringify(persistedIndex)),
       mimeType: 'application/json',
     });
   }
 
+  private stripThumbnailUris(
+    records: readonly EpubLibraryRecord[],
+  ): EpubLibraryRecord[] {
+    return records.map((record) => {
+      const normalizedRecord = { ...record };
+      delete normalizedRecord.thumbnailUri;
+      return normalizedRecord;
+    });
+  }
   private isValidRecord(value: unknown): value is EpubLibraryRecord {
     if (!value || typeof value !== 'object') {
       return false;

@@ -8,9 +8,12 @@ import type { ConsentResult } from './types';
 @Injectable({ providedIn: 'root' })
 export class ConsentService {
   private canRequestAds = false;
+  private gatherConsentPromise: Promise<ConsentResult> | null = null;
+  private consentAttempted = false;
   private privacyOptionsRequired = false;
   private umpReady = false;
-  private readonly config = inject(ADS_KIT_CONFIG);
+  private readonly config =
+    inject(ADS_KIT_CONFIG, { optional: true }) ?? { debug: false };
 
   private readyResolve!: () => void;
   readonly ready = new Promise<void>(
@@ -30,9 +33,26 @@ export class ConsentService {
   }
 
   /**
-   * Call once on app launch (or before initializing ads).
+   * Called lazily before initializing or warming ads; safe to call repeatedly.
    */
   async gatherConsent(): Promise<ConsentResult> {
+    if (this.consentAttempted) {
+      return this.state;
+    }
+
+    if (this.gatherConsentPromise) {
+      return this.gatherConsentPromise;
+    }
+
+    this.gatherConsentPromise = this.gatherConsentOnce().finally(() => {
+      this.consentAttempted = true;
+      this.gatherConsentPromise = null;
+    });
+
+    return this.gatherConsentPromise;
+  }
+
+  private async gatherConsentOnce(): Promise<ConsentResult> {
     try {
       const info = await AdMob.requestConsentInfo({});
 

@@ -54,6 +54,7 @@ import {
   buildEpubIssueSelectionKey,
   classifyEpubDiagnosticRepairMode,
   EpubDiagnosticResult,
+  type EpubDiagnosticPage,
   type EpubDiagnosticRepairMode,
   type EpubDiagnosticIssue,
   EpubFixerPortError,
@@ -70,6 +71,7 @@ import {
 import {
   AdsService,
   BillingService,
+  ExportAccessService,
   PURCHASE_INTENT_QUERY_PARAM,
   REMOVE_ADS_PURCHASE_INTENT,
   RemoveAdsPurchasePageService,
@@ -125,6 +127,8 @@ type IssueSectionView = {
   issues: EpubDiagnosticIssue[];
   count: number;
 };
+
+const ISSUE_GROUP_BATCH_SIZE = 50;
 
 type IssueGroupView = {
   key: string;
@@ -197,6 +201,7 @@ export class FixPage implements OnInit, OnDestroy {
   private readonly toastCtrl = inject(ToastController);
   private readonly library = inject(EpubLibraryService);
   private readonly ads = inject(AdsService);
+  private readonly exportAccess = inject(ExportAccessService);
   private readonly adFallback = inject(AdFallbackService);
   private readonly billing = inject(BillingService);
   private readonly removeAdsPurchasePage = inject(RemoveAdsPurchasePageService);
@@ -334,6 +339,8 @@ export class FixPage implements OnInit, OnDestroy {
   private selectedConfirmationByIssueKey: Record<string, boolean> = {};
   private selectedGuidedOptionByIssueKey: Record<string, string> = {};
   private readonly expandedIssueGroupKeys = new Set<string>();
+  private readonly issueGroupVisibleCounts = new Map<string, number>();
+  private readonly issueGroupLoadingKeys = new Set<string>();
 
   infoOpen = false;
   infoEvent: Event | null = null;
@@ -385,6 +392,9 @@ export class FixPage implements OnInit, OnDestroy {
     }
 
     this.workflowStep += 1;
+    if (this.workflowStep === 3) {
+      void this.ads?.warmRewarded().catch(() => undefined);
+    }
   }
 
   onWorkflowPrevious(): void {
@@ -533,6 +543,7 @@ export class FixPage implements OnInit, OnDestroy {
 
   get showIssuesList(): boolean {
     return (
+      this.workflowStep === 2 &&
       this.hasValidEpub() &&
       !!this.diagnosis &&
       this.diagnosis.issues.length > 0
@@ -648,6 +659,7 @@ export class FixPage implements OnInit, OnDestroy {
     lowIssues: number;
   } {
     const issues = this.diagnosis?.issues ?? [];
+    const totalFindings = this.diagnosis?.summary?.totalFindings ?? issues.length;
     const summary = {
       criticalIssues: 0,
       highIssues: 0,
@@ -672,8 +684,31 @@ export class FixPage implements OnInit, OnDestroy {
       }
     }
 
+    if (this.hasTruncatedDiagnosisPreview(issues, totalFindings)) {
+      const visibleLevels = new Set(
+        issues.map((issue) => this.issueSeverityLevel(issue)),
+      );
+      if (visibleLevels.size === 1) {
+        const [level] = visibleLevels;
+        switch (level) {
+          case 'critical':
+            summary.criticalIssues = totalFindings;
+            break;
+          case 'high':
+            summary.highIssues = totalFindings;
+            break;
+          case 'medium':
+            summary.mediumIssues = totalFindings;
+            break;
+          case 'low':
+            summary.lowIssues = totalFindings;
+            break;
+        }
+      }
+    }
+
     return {
-      totalIssues: issues.length,
+      totalIssues: totalFindings,
       ...summary,
     };
   }
@@ -697,11 +732,19 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   get issueSections(): IssueSectionView[] {
-    return this.buildIssueSections(this.diagnosis?.issues ?? []);
+    const issues = this.diagnosis?.issues ?? [];
+    const summary = this.diagnosisSummary;
+    return this.buildIssueSections(issues, {
+      automatic: summary.automaticIssues,
+      confirmation: summary.reviewIssues,
+      manual: summary.guidedIssues,
+      blocked: summary.blockedIssues,
+    });
   }
 
   private buildIssueSections(
     issues: EpubDiagnosticIssue[],
+    sectionCountOverrides?: Partial<Record<IssueSectionKind, number>>,
   ): IssueSectionView[] {
     const sections: IssueSectionView[] = [
       {
@@ -737,7 +780,7 @@ export class FixPage implements OnInit, OnDestroy {
     return sections
       .map((section) => ({
         ...section,
-        count: section.issues.length,
+        count: sectionCountOverrides?.[section.kind] ?? section.issues.length,
       }))
       .filter((section) => section.count > 0);
   }
@@ -768,12 +811,11 @@ export class FixPage implements OnInit, OnDestroy {
     return this.expandedIssueGroupKeys?.has(group.key) ?? false;
   }
 
-  toggleIssueGroup(group: IssueGroupView): void {
-    if (group.issues.length < 2) {
-      return;
-    }
-
-    if (!this.expandedIssueGroupKeys) {
+  toggleIssueGroup(
+    group: IssueGroupView,
+    diagnosis: EpubDiagnosticResult | undefined = this.diagnosis,
+  ): void {
+    if (this.issueGroupCount(group, diagnosis) < 2) {
       return;
     }
 
@@ -791,10 +833,121 @@ export class FixPage implements OnInit, OnDestroy {
       : 'chevron-forward-outline';
   }
 
-  issueGroupToggleAriaLabel(group: IssueGroupView): string {
-    return `${group.issues.length}: ${this.issueMessageLabel(group.primaryIssue)}`;
+  issueGroupCount(
+    group: IssueGroupView,
+    diagnosis: EpubDiagnosticResult | undefined = this.diagnosis,
+  ): number {
+    const count = diagnosis?.summary?.byCode?.[group.primaryIssue.code];
+    return typeof count === 'number' ? count : group.issues.length;
   }
 
+  issueGroupToggleAriaLabel(
+    group: IssueGroupView,
+    diagnosis: EpubDiagnosticResult | undefined = this.diagnosis,
+  ): string {
+    return this.issueGroupCount(group, diagnosis) + ': ' + this.issueMessageLabel(group.primaryIssue);
+  }
+
+  visibleIssueGroupIssues(group: IssueGroupView): EpubDiagnosticIssue[] {
+    const visibleCount = this.issueGroupVisibleCounts.get(group.key) ?? ISSUE_GROUP_BATCH_SIZE;
+    return group.issues.slice(0, visibleCount);
+  }
+
+  canLoadMoreIssueGroup(
+    group: IssueGroupView,
+    diagnosis: EpubDiagnosticResult | undefined = this.diagnosis,
+  ): boolean {
+    const visibleCount = this.issueGroupVisibleCounts.get(group.key) ?? ISSUE_GROUP_BATCH_SIZE;
+    return visibleCount < this.issueGroupCount(group, diagnosis);
+  }
+
+  isIssueGroupLoading(group: IssueGroupView): boolean {
+    return this.issueGroupLoadingKeys.has(group.key);
+  }
+
+  async loadMoreIssueGroup(
+    group: IssueGroupView,
+    diagnosis: EpubDiagnosticResult | undefined = this.diagnosis,
+  ): Promise<void> {
+    if (!diagnosis?.diagnosisId || this.issueGroupLoadingKeys.has(group.key)) {
+      return;
+    }
+
+    const visibleCount = this.issueGroupVisibleCounts.get(group.key) ?? ISSUE_GROUP_BATCH_SIZE;
+    if (visibleCount < group.issues.length) {
+      this.issueGroupVisibleCounts.set(
+        group.key,
+        Math.min(visibleCount + ISSUE_GROUP_BATCH_SIZE, group.issues.length),
+      );
+      await this.flushUi();
+      return;
+    }
+
+    if (group.issues.length >= this.issueGroupCount(group, diagnosis)) {
+      return;
+    }
+
+    const cursor = diagnosis.page?.nextCursor ?? String(diagnosis.issues.length);
+
+    this.issueGroupLoadingKeys.add(group.key);
+    try {
+      const page = await this.workflow.getDiagnosisIssues(
+        diagnosis.sessionId,
+        diagnosis.diagnosisId,
+        cursor,
+        ISSUE_GROUP_BATCH_SIZE,
+      );
+      if (page.items.length === 0) {
+        return;
+      }
+
+      this.updateDiagnosisWithPage(diagnosis, page);
+      this.issueGroupVisibleCounts.set(
+        group.key,
+        Math.min(
+          visibleCount + page.items.length,
+          this.issueGroupCount(group, diagnosis),
+        ),
+      );
+    } finally {
+      this.issueGroupLoadingKeys.delete(group.key);
+      await this.flushUi();
+    }
+  }
+
+  private updateDiagnosisWithPage(
+    diagnosis: EpubDiagnosticResult,
+    page: EpubDiagnosticPage & { diagnosisId: string },
+  ): void {
+    const issues = [...diagnosis.issues, ...page.items];
+    const updatedDiagnosis: EpubDiagnosticResult = {
+      ...diagnosis,
+      issues,
+      page: {
+        items: issues,
+        total: page.total,
+        nextCursor: page.nextCursor,
+      },
+    };
+    const multipleIndex = this.multipleEpubDiagnoses.findIndex(
+      (item) => item.diagnosis === diagnosis,
+    );
+
+    if (multipleIndex >= 0) {
+      this.multipleEpubDiagnoses = this.multipleEpubDiagnoses.map(
+        (item, index) =>
+          index === multipleIndex
+            ? { ...item, diagnosis: updatedDiagnosis }
+            : item,
+      );
+      this.diagnosis = this.aggregateMultipleDiagnosis();
+      return;
+    }
+
+    if (this.diagnosis === diagnosis) {
+      this.diagnosis = updatedDiagnosis;
+    }
+  }
   get diagnosisSummary(): {
     totalIssues: number;
     automaticIssues: number;
@@ -803,6 +956,8 @@ export class FixPage implements OnInit, OnDestroy {
     blockedIssues: number;
   } {
     const issues = this.diagnosis?.issues ?? [];
+    const totalFindings = this.diagnosis?.summary?.totalFindings ?? issues.length;
+    const fixableFindings = this.diagnosis?.summary?.fixableFindings;
     const summary = {
       automaticIssues: 0,
       reviewIssues: 0,
@@ -827,12 +982,32 @@ export class FixPage implements OnInit, OnDestroy {
       }
     }
 
+    if (
+      this.hasTruncatedDiagnosisPreview(issues, totalFindings) &&
+      typeof fixableFindings === 'number'
+    ) {
+      const visibleModes = new Set(
+        issues.map((issue) => this.issueRepairMode(issue)),
+      );
+      if (visibleModes.size === 1 && visibleModes.has('automatic')) {
+        summary.automaticIssues = fixableFindings;
+      } else if (visibleModes.size === 1 && visibleModes.has('review')) {
+        summary.reviewIssues = fixableFindings;
+      }
+    }
+
     return {
-      totalIssues: issues.length,
+      totalIssues: totalFindings,
       ...summary,
     };
   }
 
+  private hasTruncatedDiagnosisPreview(
+    issues: EpubDiagnosticIssue[],
+    totalFindings: number,
+  ): boolean {
+    return issues.length > 0 && totalFindings > issues.length;
+  }
   get diagnosisSeveritySegments(): Array<{
     level: DiagnosisSeverityLevel;
     count: number;
@@ -1762,57 +1937,19 @@ export class FixPage implements OnInit, OnDestroy {
   }
 
   private async requestRewardedAdForFix(): Promise<boolean> {
-    if (this.adsRemoved) {
-      return true;
-    }
-
-    if (this.adFallbackTrialActive && this.resolveAdFallbackRemaining() > 0) {
-      const accepted = await this.confirmActiveAdFallbackTrial();
-      if (!accepted) {
-        this.epubErrorKey = 'FIX.ADS_REQUIRED';
-        this.epubErrorParams = {};
-        return false;
-      }
-
-      return true;
-    }
-
     try {
-      const result = await this.ads.showRewarded();
-      if (result.rewardEarned) {
+      const access = await this.exportAccess.authorize({
+        onActiveFallbackTrial: () =>
+          this.adFallbackTrialActive && this.resolveAdFallbackRemaining() > 0
+            ? this.confirmActiveAdFallbackTrial()
+            : false,
+        onAdFailure: (result) => this.openAdFallbackFromFailure(result),
+      });
+      if (access.granted) {
         return true;
-      }
-
-      const shouldFallback =
-        result.failed || (!result.rewardEarned && !result.adClosed);
-      if (shouldFallback) {
-        const accepted = await this.openAdFallbackFromFailure(
-          result.failed
-            ? result
-            : {
-                rewardEarned: false,
-                adClosed: false,
-                failed: true,
-                failureReason: 'unknown',
-                failureConfidence: 'low',
-              },
-        );
-        if (accepted) {
-          return true;
-        }
       }
     } catch (error) {
       console.warn('[epub-fixer] rewarded ad gate failed', error);
-      const accepted = await this.openAdFallbackFromFailure({
-        rewardEarned: false,
-        adClosed: false,
-        failed: true,
-        failureReason: 'unknown',
-        failureConfidence: 'low',
-      });
-      if (accepted) {
-        return true;
-      }
     }
 
     this.epubErrorKey = 'FIX.ADS_REQUIRED';
@@ -2245,6 +2382,8 @@ export class FixPage implements OnInit, OnDestroy {
       this.selectedConfirmationByIssueKey = {};
       this.selectedGuidedOptionByIssueKey = {};
       this.expandedIssueGroupKeys?.clear();
+      this.issueGroupVisibleCounts?.clear();
+      this.issueGroupLoadingKeys?.clear();
 
       this.preparedSessionId = undefined;
       this.selectedEpubName = undefined;
@@ -2320,6 +2459,8 @@ export class FixPage implements OnInit, OnDestroy {
       await this.setBusyProgress(72);
       this.viewState = 'diagnosing';
       this.expandedIssueGroupKeys?.clear();
+      this.issueGroupVisibleCounts?.clear();
+      this.issueGroupLoadingKeys?.clear();
       this.repairResult = undefined;
       this.exportResult = undefined;
 

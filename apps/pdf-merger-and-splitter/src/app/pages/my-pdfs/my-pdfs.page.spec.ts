@@ -12,4 +12,18 @@ describe('MyPdfsPage', () => {
 
     expect(page.loading).toBeFalse();
   });
+
+  it('requires confirmation before deleting', async () => {
+    const confirmDelete = jasmine.createSpy('confirmDelete').and.resolveTo(false);
+    const deleteRecord = jasmine.createSpy('deleteRecord');
+    const ctx = { confirmDelete, deleteRecord };
+
+    await ((MyPdfsPage.prototype as unknown as { deleteRecord: Function }).deleteRecord).call(
+      ctx,
+      { fileName: 'book.pdf' },
+    );
+
+    expect(confirmDelete).toHaveBeenCalled();
+    expect(deleteRecord).not.toHaveBeenCalled();
+  });
 });

@@ -85,6 +85,7 @@ type FragmentResolution = {
 
 const EPUB_MIMETYPE = 'application/epub+zip';
 const WEB_EPUB_MAX_BYTES = 128 * 1024 * 1024;
+const WEB_DIAGNOSIS_PAGE_DEFAULT_SIZE = 50;
 const BLOCKING_CODES = new Set<EpubDiagnosticIssueCode>([
   'CONTAINER_MISSING',
   'OPF_MISSING',
@@ -163,7 +164,7 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
   }): Promise<EpubDiagnosticPage & { diagnosisId: string }> {
     const session = this.requireSession(input.sessionId);
     const analysis = await this.analyze(session.zip);
-    const pageSize = Math.max(1, Math.min(250, input.pageSize ?? 100));
+    const pageSize = Math.max(1, Math.min(250, input.pageSize ?? WEB_DIAGNOSIS_PAGE_DEFAULT_SIZE));
     const parsedCursor = Number.parseInt(input.cursor ?? '0', 10);
     const start = Number.isFinite(parsedCursor) ? Math.max(0, parsedCursor) : 0;
     const items = analysis.issues.slice(start, start + pageSize);

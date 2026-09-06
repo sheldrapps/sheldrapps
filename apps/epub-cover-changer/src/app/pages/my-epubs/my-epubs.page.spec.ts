@@ -73,4 +73,35 @@ describe('MyEpubsPage', () => {
     expect(ctx.pageErrorKey).toBeNull();
     expect(ctx.pageErrorParams).toBeNull();
   });
+
+  it('routes metadata actions from the library and preview', () => {
+    const editMetadataByFilename = jasmine.createSpy('editMetadataByFilename');
+    const ctx = { editMetadataByFilename, previewFilename: 'book.epub' };
+
+    (MyEpubsPage.prototype.onListAction as unknown as Function).call(ctx, {
+      actionId: 'metadata',
+      item: { filename: 'book.epub' },
+    });
+    (MyEpubsPage.prototype.onPreviewAction as unknown as Function).call(ctx, {
+      actionId: 'metadata',
+      region: 'footer',
+    });
+
+    expect(editMetadataByFilename).toHaveBeenCalledWith('book.epub');
+    expect(editMetadataByFilename).toHaveBeenCalledWith('book.epub', true);
+  });
+
+  it('requires confirmation before deleting from the list', async () => {
+    const confirmDelete = jasmine.createSpy('confirmDelete').and.resolveTo(false);
+    const deleteByFilename = jasmine.createSpy('deleteByFilename');
+    const ctx = { confirmDelete, deleteByFilename };
+
+    await ((MyEpubsPage.prototype as unknown as { deleteFromList: Function }).deleteFromList).call(
+      ctx,
+      'book.epub',
+    );
+
+    expect(confirmDelete).toHaveBeenCalled();
+    expect(deleteByFilename).not.toHaveBeenCalled();
+  });
 });

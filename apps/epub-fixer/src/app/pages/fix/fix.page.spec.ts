@@ -88,6 +88,38 @@ describe('FixPage', () => {
     expect(ctx.workflowStep).toBe(1);
   });
 
+  it('continues loading an issue group after 100 items', async () => {
+    const createIssue = (index: number): EpubDiagnosticIssue => ({
+      code: 'MANIFEST_ITEM_MISSING', severity: 'warning', fixable: true,
+      messageKey: 'FIX.ISSUE_MANIFEST_ITEM_MISSING',
+      details: 'chapter-' + (index + 1) + '.xhtml',
+    });
+    const loadedIssues = Array.from({ length: 100 }, (_, index) => createIssue(index));
+    const nextIssues = Array.from({ length: 50 }, (_, index) => createIssue(index + 100));
+    const diagnosis = {
+      sessionId: 'session-1', diagnosisId: 'diagnosis-1', status: 'repairable' as const,
+      issues: loadedIssues,
+      summary: { totalFindings: 532, fixableFindings: 532, byCode: { MANIFEST_ITEM_MISSING: 532 }, bySeverity: { warning: 532 } },
+      page: { items: loadedIssues, total: 532 },
+    };
+    const getDiagnosisIssues = jasmine.createSpy('getDiagnosisIssues').and.resolveTo({
+      diagnosisId: 'diagnosis-1', items: nextIssues, total: 532, nextCursor: '150',
+    });
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      diagnosis, multipleEpubDiagnoses: [], issueGroupVisibleCounts: new Map<string, number>(),
+      issueGroupLoadingKeys: new Set<string>(), workflow: { getDiagnosisIssues },
+    });
+    const group = FixPage.prototype.issueGroups.call(ctx, loadedIssues, 'automatic')[0];
+    ctx.issueGroupVisibleCounts.set(group.key, 100);
+
+    await FixPage.prototype.loadMoreIssueGroup.call(ctx, group, diagnosis);
+
+    const updatedGroup = FixPage.prototype.issueGroups.call(ctx, ctx.diagnosis.issues, 'automatic')[0];
+    expect(getDiagnosisIssues).toHaveBeenCalledWith('session-1', 'diagnosis-1', '100', 50);
+    expect(FixPage.prototype.visibleIssueGroupIssues.call(ctx, updatedGroup)).toHaveSize(150);
+    expect(FixPage.prototype.canLoadMoreIssueGroup.call(ctx, updatedGroup, ctx.diagnosis)).toBeTrue();
+  });
+
   it('diagnoses automatically after preparing an EPUB', async () => {
     const file = new File(['epub'], 'book.epub', {
       type: 'application/epub+zip',

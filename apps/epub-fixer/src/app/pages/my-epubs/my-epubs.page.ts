@@ -23,6 +23,7 @@ import {
   openOutline,
   shareOutline,
   trashOutline,
+  codeWorkingOutline,
 } from 'ionicons/icons';
 import {
   CoverListAction,
@@ -33,7 +34,11 @@ import {
 import { PreviewEditingPageService } from '@sheldrapps/image-workflow';
 import { CoversEventsService } from '../../services/covers-events.service';
 import { EpubLibraryService } from '../../services/epub-library.service';
-import { SaveCoverModalComponent } from '@sheldrapps/ui-theme';
+import {
+  createEpubMetadataEditorDraft,
+  EpubMetadataEditorPageService,
+  SaveCoverModalComponent,
+} from '@sheldrapps/ui-theme';
 
 type UiEpubItem = {
   filename: string;
@@ -63,6 +68,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
   private readonly previewPage = inject(PreviewEditingPageService);
+  private readonly metadataEditorPage = inject(EpubMetadataEditorPageService);
   private readonly coversEvents = inject(CoversEventsService);
   private readonly zone = inject(NgZone);
   private readonly changeDetector = inject(ChangeDetectorRef);
@@ -95,6 +101,11 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       iconSvg: 'rename',
     },
     {
+      id: 'metadata',
+      labelKey: 'UI_THEME.ACTIONS.EDIT_METADATA',
+      icon: 'code-working-outline',
+    },
+    {
       id: 'share',
       labelKey: 'UI_THEME.ACTIONS.SHARE',
       icon: 'share-outline',
@@ -122,6 +133,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       openOutline,
       shareOutline,
       trashOutline,
+      codeWorkingOutline,
     });
   }
 
@@ -199,12 +211,16 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       void this.renameByFilename(event.item.filename);
       return;
     }
+    if (event.actionId === 'metadata') {
+      void this.editMetadataByFilename(event.item.filename);
+      return;
+    }
     if (event.actionId === 'share') {
       void this.shareByFilename(event.item.filename);
       return;
     }
     if (event.actionId === 'delete') {
-      void this.deleteByFilename(event.item.filename);
+      void this.deleteFromList(event.item.filename);
       return;
     }
   }
@@ -311,6 +327,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
         footerActions: [
           { id: 'open', labelKey: 'UI_THEME.ACTIONS.OPEN', icon: 'open-outline' },
           { id: 'rename', labelKey: 'UI_THEME.ACTIONS.RENAME', iconSvg: 'rename' },
+          { id: 'metadata', labelKey: 'UI_THEME.ACTIONS.EDIT_METADATA', icon: 'code-working-outline' },
           { id: 'share', labelKey: 'UI_THEME.ACTIONS.SHARE', icon: 'share-outline' },
           { id: 'delete', labelKey: 'UI_THEME.ACTIONS.DELETE', icon: 'trash-outline' },
         ],
@@ -318,6 +335,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
           const currentFilename = this.previewFilename ?? filename;
           if (actionId === 'open') void this.openByFilename(currentFilename);
           if (actionId === 'rename') void this.renameByFilename(currentFilename, true);
+          if (actionId === 'metadata') void this.editMetadataByFilename(currentFilename, true);
           if (actionId === 'share') void this.shareByFilename(currentFilename);
           if (actionId === 'delete') void this.deletePreviewByFilename(currentFilename);
         },
@@ -354,9 +372,46 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     }
   }
 
-  private async deleteByFilename(filename: string): Promise<boolean> {
+  private async editMetadataByFilename(
+    filename: string,
+    fromPreview = false,
+  ): Promise<void> {
     this.pageErrorKey = null;
     this.pageErrorParams = null;
+
+    try {
+      const current = await this.library.readPublicationMetadata(filename);
+      this.metadataEditorPage.open({
+        input: current
+          ? {
+              version: current.version,
+              detectedVersion: current.detectedVersion,
+              fileName: filename,
+              metadata: current.metadata,
+            }
+          : createEpubMetadataEditorDraft(filename),
+        returnUrl: fromPreview ? '/tabs/preview-editing' : '/tabs/my-epubs',
+        saveHandler: async (metadata) => {
+          await this.library.updatePublicationMetadata(filename, metadata);
+        },
+      });
+      await this.router.navigateByUrl('/metadata-editor');
+    } catch (error) {
+      this.logInfo('metadata:failed', { error: this.errorDetails(error) });
+      this.pageErrorKey = 'COMMON.ERROR';
+      await this.showErrorToast(error);
+    }
+  }
+  private async deleteByFilename(
+    filename: string,
+    opts?: { fromPreview?: boolean },
+  ): Promise<boolean> {
+    this.pageErrorKey = null;
+    this.pageErrorParams = null;
+
+    this.loading = true;
+    this.previewPage.setLoading(Boolean(opts?.fromPreview));
+    await this.flushUi();
 
     try {
       await this.library.deleteByFilename(filename);
@@ -370,6 +425,9 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       this.logInfo('delete:failed', { error: this.errorDetails(error) });
       this.pageErrorKey = 'MY_EPUBS.ERROR.DELETE';
       return false;
+    } finally {
+      this.loading = false;
+      this.previewPage.setLoading(false);
     }
   }
 
@@ -389,6 +447,14 @@ export class MyEpubsPage implements OnInit, OnDestroy {
     await alert.present();
     const { role } = await alert.onDidDismiss();
     return role === 'destructive';
+  }
+
+  private async deleteFromList(filename: string): Promise<void> {
+    if (!(await this.confirmDelete())) {
+      return;
+    }
+
+    await this.deleteByFilename(filename);
   }
 
   private async resolvePreviewFileSizeLabel(filename: string): Promise<string | null> {
@@ -459,7 +525,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       return;
     }
 
-    const deleted = await this.deleteByFilename(filename);
+    const deleted = await this.deleteByFilename(filename, { fromPreview: true });
     if (!deleted) {
       return;
     }

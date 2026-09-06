@@ -644,6 +644,7 @@ public class PdfRewritePlugin extends Plugin {
 
     private JSObject preparedFileResult(PreparedFile prepared) {
         JSObject out = new JSObject();
+        out.put("success", true);
         out.put("selectedName", prepared.originalName);
         out.put("sourceSize", prepared.originalSize);
         out.put("sourceLastModified", prepared.lastModified);

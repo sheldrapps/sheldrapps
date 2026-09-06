@@ -33,13 +33,16 @@ import {
   trashOutline,
   closeCircleOutline,
   alertCircleOutline,
+  codeWorkingOutline,
 } from 'ionicons/icons';
 import {
   FileService,
   ResolvedCoverPreviewAsset,
 } from '../../services/file.service';
 import {
+  createEpubMetadataEditorDraft,
   EditProjectChoiceModalComponent,
+  EpubMetadataEditorPageService,
   SaveCoverModalComponent,
 } from '@sheldrapps/ui-theme';
 import { CoversEventsService } from '../../services/covers-events.service';
@@ -111,6 +114,11 @@ export class CoversPage implements OnInit, OnDestroy {
       iconSvg: 'rename',
     },
     {
+      id: 'metadata',
+      labelKey: 'UI_THEME.ACTIONS.EDIT_METADATA',
+      icon: 'code-working-outline',
+    },
+    {
       id: 'share',
       labelKey: 'UI_THEME.ACTIONS.SHARE',
       icon: 'share-outline',
@@ -142,6 +150,7 @@ export class CoversPage implements OnInit, OnDestroy {
   infoOpen = false;
   showPreviewGuideButton = true;
   private files = inject(FileService);
+  private readonly metadataEditorPage = inject(EpubMetadataEditorPageService);
   private alertCtrl = inject(AlertController);
   private translate = inject(TranslateService);
   private coversEvents = inject(CoversEventsService);
@@ -161,6 +170,7 @@ export class CoversPage implements OnInit, OnDestroy {
       shareOutline,
       trashOutline,
       alertCircleOutline,
+      codeWorkingOutline,
     });
   }
 
@@ -420,6 +430,10 @@ export class CoversPage implements OnInit, OnDestroy {
       void this.renameByFilename(this.previewFilename, true);
       return;
     }
+    if (event.actionId === 'metadata') {
+      void this.editMetadataByFilename(this.previewFilename, true);
+      return;
+    }
     if (event.actionId === 'delete') {
       void this.deletePreview();
     }
@@ -448,6 +462,10 @@ export class CoversPage implements OnInit, OnDestroy {
     }
     if (event.actionId === 'rename') {
       void this.renameByFilename(event.item.filename);
+      return;
+    }
+    if (event.actionId === 'metadata') {
+      void this.editMetadataByFilename(event.item.filename);
       return;
     }
     if (event.actionId === 'share') {
@@ -487,6 +505,7 @@ export class CoversPage implements OnInit, OnDestroy {
           { id: 'open', labelKey: 'UI_THEME.ACTIONS.OPEN', icon: 'open-outline' },
           { id: 'project', labelKey: 'UI_THEME.ACTIONS.EDIT', icon: 'folder-open-outline', hidden: !this.hasProjectForFilename(filename) },
           { id: 'rename', labelKey: 'UI_THEME.ACTIONS.RENAME', iconSvg: 'rename' },
+          { id: 'metadata', labelKey: 'UI_THEME.ACTIONS.EDIT_METADATA', icon: 'code-working-outline' },
           { id: 'share', labelKey: 'UI_THEME.ACTIONS.SHARE', icon: 'share-outline' },
           { id: 'delete', labelKey: 'UI_THEME.ACTIONS.DELETE', icon: 'trash-outline' },
         ],
@@ -528,6 +547,32 @@ export class CoversPage implements OnInit, OnDestroy {
     await this.openByFilename(filename);
   }
 
+  private async editMetadataByFilename(filename: string | null, fromPreview = false): Promise<void> {
+    if (!filename) return;
+
+    let current;
+    try {
+      current = await this.files.readPublicationMetadata(filename);
+    } catch {
+      current = null;
+    }
+
+    this.metadataEditorPage.open({
+      input: current
+        ? {
+            version: current.version,
+            detectedVersion: current.detectedVersion,
+            fileName: filename,
+            metadata: current.metadata,
+          }
+        : createEpubMetadataEditorDraft(filename),
+      returnUrl: fromPreview ? '/tabs/preview-editing' : '/tabs/covers',
+      saveHandler: async (metadata) => {
+        await this.files.updatePublicationMetadata(filename, metadata);
+      },
+    });
+    await this.router.navigateByUrl('/metadata-editor');
+  }
   private async renameByFilename(
     filename: string | null,
     fromPreview = false,
@@ -592,6 +637,20 @@ export class CoversPage implements OnInit, OnDestroy {
     const filename = this.previewFilename;
     if (!filename) return;
 
+    if (!(await this.confirmDelete())) {
+      return;
+    }
+
+    const deleted = await this.deleteByFilename(filename, { fromPreview: true });
+    if (!deleted) {
+      return;
+    }
+
+    this.previewPage.clear();
+    await this.router.navigateByUrl('/tabs/covers');
+  }
+
+  private async confirmDelete(): Promise<boolean> {
     const alert = await this.alertCtrl.create({
       header: this.translate.instant('COVERS.DELETE.TITLE'),
       message: this.translate.instant('COVERS.DELETE.MESSAGE'),
@@ -600,15 +659,13 @@ export class CoversPage implements OnInit, OnDestroy {
         {
           text: this.translate.instant('COMMON.DELETE'),
           role: 'destructive',
-          handler: async () => {
-            await this.deleteByFilename(filename);
-            this.closePreview();
-          },
         },
       ],
     });
 
     await alert.present();
+    const { role } = await alert.onDidDismiss();
+    return role === 'destructive';
   }
 
   closePreview() {
@@ -622,26 +679,14 @@ export class CoversPage implements OnInit, OnDestroy {
     void this.flushUi();
   }
 
-  async deleteFromList(filename: string) {
+  async deleteFromList(filename: string): Promise<void> {
+    if (!(await this.confirmDelete())) {
+      return;
+    }
+
     const scrollTop = await this.getScrollTop();
-
-    const alert = await this.alertCtrl.create({
-      header: this.translate.instant('COVERS.DELETE.TITLE'),
-      message: this.translate.instant('COVERS.DELETE.MESSAGE'),
-      buttons: [
-        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
-        {
-          text: this.translate.instant('COMMON.DELETE'),
-          role: 'destructive',
-          handler: async () => {
-            await this.deleteByFilename(filename, { markLocalDelete: true });
-            await this.restoreScrollTop(scrollTop);
-          },
-        },
-      ],
-    });
-
-    await alert.present();
+    await this.deleteByFilename(filename, { markLocalDelete: true });
+    await this.restoreScrollTop(scrollTop);
   }
 
   async ionViewWillEnter() {
@@ -744,10 +789,14 @@ export class CoversPage implements OnInit, OnDestroy {
 
   private async deleteByFilename(
     filename: string,
-    opts?: { markLocalDelete?: boolean },
-  ): Promise<void> {
+    opts?: { markLocalDelete?: boolean; fromPreview?: boolean },
+  ): Promise<boolean> {
     this.pageErrorKey = null;
     this.pageErrorParams = null;
+
+    this.loading = true;
+    this.previewPage.setLoading(Boolean(opts?.fromPreview));
+    await this.flushUi();
 
     try {
       await this.files.deleteCoverByFilename(filename);
@@ -760,8 +809,13 @@ export class CoversPage implements OnInit, OnDestroy {
       this.coversEvents.emit({ type: 'deleted', filename });
       await this.flushUi();
       await this.showToast('COVERS.DELETED');
+      return true;
     } catch {
       this.pageErrorKey = 'COVERS.ERROR.DELETE';
+      return false;
+    } finally {
+      this.loading = false;
+      this.previewPage.setLoading(false);
     }
   }
 

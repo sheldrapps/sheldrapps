@@ -9,7 +9,7 @@ import {
   isNative,
   isNativeDebugBuild,
 } from './adapters/platform';
-import { ADS_KIT_CONFIG } from './types';
+import { ADS_KIT_CONFIG, type AdsEntitlementStatus } from './types';
 
 type BillingSettings = Record<string, unknown> & {
   adsRemoved?: boolean;
@@ -38,11 +38,12 @@ export type BillingPurchaseDiagnostics = {
   android: boolean;
 };
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class BillingService {
   private readonly developmentRemoveAdsPriceFormatted = '$1.00';
   private initPromise: Promise<void> | null = null;
-  private hydrateCachedStatePromise: Promise<void> | null = null;
+  private hydrateCachedStatePromise: Promise<boolean> | null = null;
+  private ensureAdsEntitlementPromise: Promise<AdsEntitlementStatus> | null = null;
   private operationQueue: Promise<void> = Promise.resolve();
   private refreshRetryHandle: ReturnType<typeof setTimeout> | null = null;
   private hasHydratedCachedState = false;
@@ -50,6 +51,8 @@ export class BillingService {
   private state: BillingRuntimeState = 'idle';
   private billingAvailable = false;
   private hasRemoveAdsEntitlement = false;
+  private entitlementStatus: AdsEntitlementStatus = 'unknown';
+  private entitlementRefreshSucceeded = false;
   private removeAdsPriceFormatted: string | null = null;
   private readonly config = inject(ADS_KIT_CONFIG);
   private readonly settings = inject(SettingsStore<BillingSettings>);
@@ -79,9 +82,9 @@ export class BillingService {
     });
   }
 
-  async hydrateCachedState(): Promise<void> {
+  async hydrateCachedState(): Promise<boolean> {
     if (this.hasHydratedCachedState) {
-      return;
+      return true;
     }
 
     if (this.hydrateCachedStatePromise) {
@@ -99,15 +102,64 @@ export class BillingService {
           this.setRemoveAdsPrice(this.developmentRemoveAdsPriceFormatted);
         }
         this.hasHydratedCachedState = true;
+        return true;
       })
       .catch((error) => {
         this.logDebug('load cached entitlement failed', error);
+        return false;
       })
       .finally(() => {
         this.hydrateCachedStatePromise = null;
       });
 
     return this.hydrateCachedStatePromise;
+  }
+
+  async ensureAdsEntitlement(): Promise<AdsEntitlementStatus> {
+    if (this.entitlementStatus === 'pro' || this.entitlementStatus === 'free') {
+      return this.entitlementStatus;
+    }
+
+    if (this.ensureAdsEntitlementPromise) {
+      return this.ensureAdsEntitlementPromise;
+    }
+
+    this.ensureAdsEntitlementPromise = (async () => {
+      const hydrated = await this.hydrateCachedState().catch(() => false);
+      if (!hydrated) {
+        this.entitlementStatus = 'unavailable';
+        return this.entitlementStatus;
+      }
+
+      if (this.isDevelopmentPremiumMode() || this.hasRemoveAdsEntitlement) {
+        this.entitlementStatus = 'pro';
+        return this.entitlementStatus;
+      }
+
+      if (!this.removeAdsProductId) {
+        this.entitlementStatus = 'free';
+        return this.entitlementStatus;
+      }
+
+      await this.initializeSafe();
+      if (!this.canRunBillingOperations()) {
+        this.entitlementStatus = 'unavailable';
+        return this.entitlementStatus;
+      }
+
+      this.entitlementRefreshSucceeded = false;
+      await this.refreshEntitlement().catch(() => undefined);
+      this.entitlementStatus = this.entitlementRefreshSucceeded
+        ? this.hasRemoveAdsEntitlement
+          ? 'pro'
+          : 'free'
+        : 'unavailable';
+      return this.entitlementStatus;
+    })().finally(() => {
+      this.ensureAdsEntitlementPromise = null;
+    });
+
+    return this.ensureAdsEntitlementPromise;
   }
 
   async initialize(): Promise<void> {
@@ -259,6 +311,10 @@ export class BillingService {
     return this.hasRemoveAdsEntitlement;
   }
 
+  getAdsEntitlementStatus(): AdsEntitlementStatus {
+    return this.entitlementStatus;
+  }
+
   getRemoveAdsPriceFormatted(): string | null {
     return this.removeAdsPriceFormatted;
   }
@@ -396,8 +452,10 @@ export class BillingService {
 
       await this.performProductDetailsRefresh();
       this.clearRefreshRetry();
+      this.entitlementRefreshSucceeded = true;
       return this.hasRemoveAdsEntitlement;
     } catch (error) {
+      this.entitlementRefreshSucceeded = false;
       this.logDebug('refresh entitlement failed', error);
       this.scheduleRefreshRetry();
       return this.hasRemoveAdsEntitlement;
@@ -476,13 +534,8 @@ export class BillingService {
   }
 
   private async readCachedEntitlement(): Promise<boolean> {
-    try {
-      const settings = await this.settings.load();
-      return settings.adsRemoved === true;
-    } catch (error) {
-      this.logDebug('load persisted state failed', error);
-      return false;
-    }
+    const settings = await this.settings.load();
+    return settings.adsRemoved === true;
   }
 
   private async persistCachedEntitlement(value: boolean): Promise<void> {
@@ -498,6 +551,11 @@ export class BillingService {
 
   private setEntitlement(value: boolean): void {
     this.hasRemoveAdsEntitlement = value;
+    this.entitlementStatus = value
+      ? 'pro'
+      : this.isDevelopmentPremiumMode()
+        ? 'pro'
+        : 'unknown';
     this.adsRemoved$.next(value);
   }
 

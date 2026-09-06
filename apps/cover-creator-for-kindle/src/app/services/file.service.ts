@@ -5,10 +5,14 @@ import {
   EpubPublicStore,
   FileKitService,
   FileRef,
+  areEpubPackageMetadataEqual,
+  readEpubMetadata,
+  writeEpubMetadata,
   PUBLIC_FILESYSTEM,
   ensureDirectoriesExist,
   readSheldrCoverMetadata,
   type SheldrCoverMetadata,
+  type EpubPackageMetadata,
   writeSheldrCoverMetadata,
 } from '@sheldrapps/file-kit';
 import { TranslateService } from '@ngx-translate/core';
@@ -830,6 +834,46 @@ export class FileService {
       thumbPath,
       filename: projectFilename,
     };
+  }
+
+  async readPublicationMetadata(filename: string) {
+    if (this.epubRewrite.isSupported()) {
+      return this.epubRewrite.readPublicEpubMetadata(this.EPUB_FOLDER, filename);
+    }
+    const bytes = await this.readPublicEpubBytes(filename);
+    const metadata = await readEpubMetadata(bytes);
+    if (!metadata) throw new Error('EPUB metadata is unavailable');
+    return metadata;
+  }
+
+  async updatePublicationMetadata(
+    filename: string,
+    metadata: EpubPackageMetadata,
+  ): Promise<void> {
+    if (this.epubRewrite.isSupported()) {
+      await this.epubRewrite.rewritePublicEpubMetadata(
+        this.EPUB_FOLDER,
+        filename,
+        metadata,
+      );
+      await this.verifyPublicationMetadata(filename, metadata);
+      return;
+    }
+    await this.ensurePublicDocumentsEpubFolderReady();
+    const bytes = await this.readPublicEpubBytes(filename);
+    const updated = await writeEpubMetadata(bytes, metadata);
+    await this.epubStore.writeEpub(filename, updated);
+    await this.verifyPublicationMetadata(filename, metadata);
+  }
+
+  private async verifyPublicationMetadata(
+    filename: string,
+    metadata: EpubPackageMetadata,
+  ): Promise<void> {
+    const persisted = await this.readPublicationMetadata(filename);
+    if (!persisted || !areEpubPackageMetadataEqual(persisted.metadata, metadata)) {
+      throw new Error('EPUB_METADATA_READ_AFTER_WRITE_MISMATCH');
+    }
   }
 
   async renameGeneratedEpub(opts: { from: string; to: string }) {

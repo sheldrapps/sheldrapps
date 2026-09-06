@@ -668,7 +668,7 @@ export class MyPdfsPage implements OnInit, OnDestroy {
       return;
     }
 
-    const deleted = await this.deleteByFilename(filename);
+    const deleted = await this.deleteByFilename(filename, { fromPreview: true });
     if (!deleted) {
       return;
     }
@@ -707,26 +707,14 @@ export class MyPdfsPage implements OnInit, OnDestroy {
     void this.flushUi();
   }
 
-  async deleteFromList(filename: string) {
+  async deleteFromList(filename: string): Promise<void> {
+    if (!(await this.confirmDelete())) {
+      return;
+    }
+
     const scrollTop = await this.getScrollTop();
-
-    const alert = await this.alertCtrl.create({
-      header: this.translate.instant('COVERS.DELETE.TITLE'),
-      message: this.translate.instant('COVERS.DELETE.MESSAGE'),
-      buttons: [
-        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
-        {
-          text: this.translate.instant('COMMON.DELETE'),
-          role: 'destructive',
-          handler: async () => {
-            await this.deleteByFilename(filename, { markLocalDelete: true });
-            await this.restoreScrollTop(scrollTop);
-          },
-        },
-      ],
-    });
-
-    await alert.present();
+    await this.deleteByFilename(filename, { markLocalDelete: true });
+    await this.restoreScrollTop(scrollTop);
   }
 
   async ionViewWillEnter() {
@@ -825,10 +813,14 @@ export class MyPdfsPage implements OnInit, OnDestroy {
 
   private async deleteByFilename(
     filename: string,
-    opts?: { markLocalDelete?: boolean },
+    opts?: { markLocalDelete?: boolean; fromPreview?: boolean },
   ): Promise<boolean> {
     this.pageErrorKey = null;
     this.pageErrorParams = null;
+
+    this.loading = true;
+    this.previewPage.setLoading(Boolean(opts?.fromPreview));
+    await this.flushUi();
 
     try {
       await this.files.deleteCoverByFilename(filename);
@@ -845,6 +837,9 @@ export class MyPdfsPage implements OnInit, OnDestroy {
     } catch {
       this.pageErrorKey = 'COVERS.ERROR.DELETE';
       return false;
+    } finally {
+      this.loading = false;
+      this.previewPage.setLoading(false);
     }
   }
 

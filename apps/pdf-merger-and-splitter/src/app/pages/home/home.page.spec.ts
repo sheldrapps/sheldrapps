@@ -5,6 +5,25 @@ import { HomePage } from './home.page';
 import { mergedPdfOutputName, splitPdfOutputName } from '../../pdf/pdf-output-naming';
 
 describe('HomePage', () => {
+  it('shows only the operation step before merge or split is selected', () => {
+    const mergeSteps = [
+      { id: 'merge-split', key: 'HOME.STEPPER.MERGE_SPLIT' },
+      { id: 'select', key: 'HOME.STEPPER.SORT' },
+    ];
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      selectedMode: signal(null),
+      mergeSteps,
+      splitSteps: [],
+      hasCurrentToc: signal(false),
+    });
+
+    const getWorkflowSteps = (HomePage.prototype as unknown as {
+      getWorkflowSteps(): readonly typeof mergeSteps[number][];
+    }).getWorkflowSteps;
+
+    expect(getWorkflowSteps.call(ctx)).toEqual([mergeSteps[0]]);
+  });
+
   it('derives PDF output names from the source document like EMAS', () => {
     expect(mergedPdfOutputName('Book.pdf')).toBe('Book_merged.pdf');
     expect(splitPdfOutputName('Book.pdf', 2)).toBe('Book - 2.pdf');

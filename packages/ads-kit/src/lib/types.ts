@@ -8,6 +8,22 @@ export type AdsUnits = {
   // Future: banner, interstitial, etc.
 };
 
+export type RewardedAdStatus =
+  | 'idle'
+  | 'checking-entitlement'
+  | 'awaiting-consent'
+  | 'initializing'
+  | 'loading'
+  | 'ready'
+  | 'showing'
+  | 'settling'
+  | 'premium'
+  | 'unavailable';
+export type RewardedAdWarmResult = {
+  status: RewardedAdStatus;
+  failureReason?: AdFailureReason;
+  failureConfidence?: AdFailureConfidence;
+};
 /**
  * Result of showing a rewarded ad
  */
@@ -22,7 +38,14 @@ export type RewardedAdResult = {
   failureReason?: AdFailureReason;
   /** Confidence level for failureReason when failed=true */
   failureConfidence?: AdFailureConfidence;
+  skippedReason?:
+    | 'premium'
+    | 'web-testing'
+    | 'busy'
+    | 'entitlement-unavailable';
 };
+
+export type AdsEntitlementStatus = 'unknown' | 'free' | 'pro' | 'unavailable';
 
 export type AdFailureReason =
   | 'network'

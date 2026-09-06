@@ -18,6 +18,32 @@ import com.google.android.gms.common.util.BiConsumer;
 public class AdRewardExecutor extends Executor {
 
     public static RewardedAd mRewardedAd;
+    public static String mRewardedAdRequestId;
+
+    public static synchronized boolean setRewardedAd(String requestId, RewardedAd rewardedAd) {
+        if (!sameRequest(requestId)) {
+            return false;
+        }
+
+        mRewardedAd = rewardedAd;
+        return true;
+    }
+
+    public static synchronized void clearRewardedAd(String requestId, RewardedAd rewardedAd) {
+        if (!sameRequest(requestId)) {
+            return;
+        }
+        if (rewardedAd != null && mRewardedAd != rewardedAd) {
+            return;
+        }
+
+        mRewardedAd = null;
+        mRewardedAdRequestId = null;
+    }
+
+    private static boolean sameRequest(String requestId) {
+        return requestId != null && requestId.equals(mRewardedAdRequestId);
+    }
 
     public AdRewardExecutor(
         Supplier<Context> contextSupplier,
@@ -36,7 +62,10 @@ public class AdRewardExecutor extends Executor {
             .get()
             .runOnUiThread(() -> {
                 try {
-                    mRewardedAd = null;
+                    synchronized (AdRewardExecutor.class) {
+                        mRewardedAd = null;
+                        mRewardedAdRequestId = call.getString("requestId");
+                    }
 
                     final AdRequest adRequest = RequestHelper.createRequest(adOptions);
                     final String id = AdViewIdHelper.getFinalAdId(adOptions, adRequest, logTag, contextSupplier.get());
@@ -44,10 +73,10 @@ public class AdRewardExecutor extends Executor {
                         contextSupplier.get(),
                         id,
                         adRequest,
-                        RewardedAdCallbackAndListeners.INSTANCE.getRewardedAdLoadCallback(call, notifyListenersFunction, adOptions)
+                        RewardedAdCallbackAndListeners.INSTANCE.getRewardedAdLoadCallback(call, notifyListenersFunction, adOptions, call.getString("requestId"))
                     );
                 } catch (Exception ex) {
-                    mRewardedAd = null;
+                    clearRewardedAd(call.getString("requestId"), null);
                     call.reject(ex.getLocalizedMessage(), ex);
                 }
             });
@@ -55,16 +84,22 @@ public class AdRewardExecutor extends Executor {
 
     @PluginMethod
     public void showRewardVideoAd(final PluginCall call, BiConsumer<String, JSObject> notifyListenersFunction) {
-        final RewardedAd rewardedAd = mRewardedAd;
+        final String requestId;
+        final RewardedAd rewardedAd;
+        synchronized (AdRewardExecutor.class) {
+            requestId = mRewardedAdRequestId;
+            rewardedAd = mRewardedAd;
+            mRewardedAd = null;
+            mRewardedAdRequestId = null;
+        }
         if (rewardedAd == null) {
             String errorMessage = "No Reward Video Ad can be shown. It was not prepared or maybe it failed to be prepared.";
             call.reject(errorMessage);
             AdMobPluginError errorObject = new AdMobPluginError(-1, errorMessage);
+            errorObject.put("requestId", requestId);
             notifyListenersFunction.accept(RewardAdPluginEvents.FailedToLoad, errorObject);
             return;
         }
-
-        mRewardedAd = null;
 
         try {
             activitySupplier
@@ -72,11 +107,10 @@ public class AdRewardExecutor extends Executor {
                 .runOnUiThread(() -> {
                     rewardedAd.show(
                         activitySupplier.get(),
-                        RewardedAdCallbackAndListeners.INSTANCE.getOnUserEarnedRewardListener(call, notifyListenersFunction)
+                        RewardedAdCallbackAndListeners.INSTANCE.getOnUserEarnedRewardListener(call, notifyListenersFunction, requestId)
                     );
                 });
         } catch (Exception ex) {
-            mRewardedAd = null;
             call.reject(ex.getLocalizedMessage(), ex);
         }
     }

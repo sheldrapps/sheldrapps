@@ -6,6 +6,9 @@ import {
   PUBLIC_FILESYSTEM,
   FileKitService,
   EpubRewriteService,
+  readEpubMetadata,
+  writeEpubMetadata,
+  type EpubPackageMetadata,
   WEB_EPUB_COVER_SERVICE_TOKEN,
   type WebEpubCoverService,
 } from '@sheldrapps/file-kit';
@@ -14,6 +17,15 @@ export type LibraryPreviewAsset = {
   src: string;
   isDithered: boolean;
 };
+
+/** Shared visual fallback for EPUBs that do not contain a cover image. */
+export const EPUB_EMPTY_COVER_DATA_URL = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400" role="img" aria-label="EPUB">
+    <rect width="300" height="400" fill="#eef1f4"/>
+    <rect x="24" y="24" width="252" height="352" rx="8" fill="none" stroke="#cbd2d9" stroke-width="4"/>
+    <text x="150" y="215" fill="#26313b" font-family="Arial, sans-serif" font-size="42" font-weight="700" letter-spacing="2" text-anchor="middle">EPUB</text>
+  </svg>
+`)}`;
 
 type PersistedPreviewAsset = {
   mimeType: string;
@@ -248,6 +260,31 @@ export class EpubLibraryService {
     }
   }
 
+  async readPublicationMetadata(filename: string) {
+    if (this.epubRewrite.isSupported()) {
+      return this.epubRewrite.readPublicEpubMetadata(this.publicEpubFolder, filename);
+    }
+    const bytes = await this.readPublicEpubBytes(filename);
+    return readEpubMetadata(bytes);
+  }
+
+  async updatePublicationMetadata(
+    filename: string,
+    metadata: EpubPackageMetadata,
+  ): Promise<void> {
+    if (this.epubRewrite.isSupported()) {
+      await this.epubRewrite.rewritePublicEpubMetadata(
+        this.publicEpubFolder,
+        filename,
+        metadata,
+      );
+      return;
+    }
+
+    const bytes = await this.readPublicEpubBytes(filename);
+    const updated = await writeEpubMetadata(bytes, metadata);
+    await this.writePublicEpub(filename, updated);
+  }
   async resolvePreviewAsset(
     filename: string,
     opts?: { forceRefresh?: boolean },
@@ -268,11 +305,58 @@ export class EpubLibraryService {
 
     const resolved = await this.refreshPreviewAsset(cacheKey);
     if (!resolved) {
-      return { src: '', isDithered: false };
+      const emptyCover: LibraryPreviewAsset = {
+        src: EPUB_EMPTY_COVER_DATA_URL,
+        isDithered: false,
+      };
+      this.previewCache.set(cacheKey, emptyCover);
+      return emptyCover;
     }
     return resolved;
   }
 
+  private async readPublicEpubBytes(filename: string): Promise<Uint8Array> {
+    if (this.epubRewrite.isSupported()) {
+      const document = await this.epubRewrite.getPublicDocument(
+        this.publicEpubFolder,
+        filename,
+      );
+      return this.readExportBytes(document.uri);
+    }
+    return this.epubStore.readBytes(filename);
+  }
+
+  private async writePublicEpub(
+    filename: string,
+    bytes: Uint8Array,
+  ): Promise<void> {
+    if (!this.epubRewrite.isSupported()) {
+      await this.epubStore.writeEpub(filename, bytes);
+      return;
+    }
+
+    const stagingPath = `${this.publicEpubFolder}/.metadata_${Date.now()}_${filename}`;
+    try {
+      await this.fileKit.writeBytes({
+        dir: 'Data',
+        path: stagingPath,
+        bytes,
+        mimeType: 'application/epub+zip',
+      });
+      const sourceUri = await this.fileKit.getUri({
+        dir: 'Data',
+        path: stagingPath,
+      });
+      await this.epubRewrite.publishPublicDocument({
+        folderName: this.publicEpubFolder,
+        sourcePath: sourceUri,
+        outputName: filename,
+        mimeType: 'application/epub+zip',
+      });
+    } finally {
+      await this.fileKit.delete({ dir: 'Data', path: stagingPath }).catch(() => undefined);
+    }
+  }
   private async extractCoverFile(filename: string): Promise<File | null> {
     if (this.epubRewrite.isSupported()) {
       try {

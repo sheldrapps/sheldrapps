@@ -93,14 +93,14 @@ final class StreamingEpubArchiveWriter implements Closeable {
             return;
         }
         if (!source.canReadEntryData(sourceEntry)) {
-            throw new IOException("Unsupported EPUB entry: " + sourceEntry.getName());
+            throw new UnsupportedZipLayoutException("Unsupported EPUB entry: " + sourceEntry.getName());
         }
         if (sourceEntry.getGeneralPurposeBit().usesEncryption()) {
-            throw new IOException("Encrypted EPUB entries are not supported");
+            throw new UnsupportedZipLayoutException("Encrypted EPUB entries are not supported");
         }
         int method = sourceEntry.getMethod();
         if (method != ZipEntry.STORED && method != ZipEntry.DEFLATED) {
-            throw new IOException("Unsupported EPUB compression method: " + method);
+            throw new UnsupportedZipLayoutException("Unsupported EPUB compression method: " + method);
         }
 
         try (InputStream rawInput = source.getRawInputStream(sourceEntry)) {
@@ -126,7 +126,7 @@ final class StreamingEpubArchiveWriter implements Closeable {
         InputStream rawInput
     ) throws IOException {
         if (method != ZipEntry.STORED && method != ZipEntry.DEFLATED) {
-            throw new IOException("Unsupported EPUB compression method: " + method);
+            throw new UnsupportedZipLayoutException("Unsupported EPUB compression method: " + method);
         }
         ZipArchiveEntry target = new ZipArchiveEntry(requireNewName(outputName));
         target.setMethod(method);
@@ -159,6 +159,12 @@ final class StreamingEpubArchiveWriter implements Closeable {
     private void requireMemorySize(long size) throws IOException {
         if (size > MAX_IN_MEMORY_ENTRY_BYTES) {
             throw new IOException("EPUB transformed entry exceeds the in-memory safety limit");
+        }
+    }
+
+    static final class UnsupportedZipLayoutException extends IOException {
+        UnsupportedZipLayoutException(String message) {
+            super(message);
         }
     }
 

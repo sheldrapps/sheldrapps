@@ -2,6 +2,8 @@ import { Provider } from '@angular/core';
 import { ADS_KIT_CONFIG, type AdsKitConfig } from './types';
 import { AdsService } from './ads.service';
 import { ConsentService } from './consent.service';
+import { BillingService } from './billing.service';
+import { ExportAccessService } from './export-access.service';
 
 /**
  * Main provider factory for ads-kit
@@ -33,5 +35,7 @@ export function provideAdsKit(config: AdsKitConfig): Provider[] {
     // Provide services
     AdsService,
     ConsentService,
+    BillingService,
+    ExportAccessService,
   ];
 }

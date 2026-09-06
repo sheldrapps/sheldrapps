@@ -1,51 +1,51 @@
 <en-US>
-The EPUB library now keeps its scroll area contained, while multi-file repair feedback stays clearer from one file to the next.
+Saving repaired EPUB files is now more reliable, and Pro users can export without loading ads.
 </en-US>
 
 <ar>
-تحافظ مكتبة EPUB الآن على احتواء منطقة التمرير، بينما تبقى ملاحظات إصلاح الملفات المتعددة أوضح من ملف إلى آخر.
+أصبح حفظ ملفات EPUB التي تم إصلاحها أكثر موثوقية، ويمكن لمستخدمي Pro التصدير دون تحميل الإعلانات.
 </ar>
 
 <de-DE>
-Die EPUB-Bibliothek hält den Scrollbereich jetzt innerhalb des verfügbaren Bereichs, während die Rückmeldungen bei der Reparatur mehrerer Dateien klarer bleiben.
+Reparierte EPUB-Dateien lassen sich jetzt zuverlässiger speichern, und Pro-Nutzer können ohne geladene Werbung exportieren.
 </de-DE>
 
 <es-419>
-La biblioteca de EPUB ahora mantiene contenido su espacio de desplazamiento y ofrece comentarios más claros al reparar varios archivos.
+Guardar EPUB reparados es ahora más confiable; quienes tienen Pro exportan sin cargar anuncios.
 </es-419>
 
 <fr-FR>
-La bibliothèque EPUB maintient désormais sa zone de défilement dans l’espace disponible, avec des retours plus clairs lors de la réparation de plusieurs fichiers.
+L’enregistrement des fichiers EPUB réparés est maintenant plus fiable, et les utilisateurs Pro exportent sans charger de publicités.
 </fr-FR>
 
 <hi-IN>
-EPUB लाइब्रेरी अब स्क्रॉल क्षेत्र को उपलब्ध स्थान के भीतर रखती है, जबकि कई फ़ाइलों की मरम्मत का फीडबैक अधिक स्पष्ट रहता है।
+ठीक की गई EPUB फ़ाइलों को सहेजना अब अधिक भरोसेमंद है, और Pro उपयोगकर्ता विज्ञापन लोड किए बिना एक्सपोर्ट कर सकते हैं।
 </hi-IN>
 
 <it-IT>
-La libreria EPUB mantiene ora l’area di scorrimento nello spazio disponibile, mentre i messaggi della riparazione di più file restano più chiari.
+Il salvataggio dei file EPUB riparati è ora più affidabile, e gli utenti Pro possono esportare senza caricare annunci.
 </it-IT>
 
 <ja-JP>
-EPUBライブラリのスクロール領域が利用可能な範囲に収まり、複数ファイルの修復フィードバックもファイルごとに分かりやすくなりました。
+修復したEPUBファイルをより安定して保存でき、Proユーザーは広告を読み込まずに書き出せるようになりました。
 </ja-JP>
 
 <ko-KR>
-EPUB 라이브러리의 스크롤 영역이 사용 가능한 공간 안에 유지되며, 여러 파일을 복구할 때의 피드백도 파일별로 더 명확해졌습니다.
+수정된 EPUB 파일을 더 안정적으로 저장할 수 있으며, Pro 사용자는 광고를 로드하지 않고 내보낼 수 있습니다.
 </ko-KR>
 
 <pt-BR>
-A biblioteca EPUB agora mantém a área de rolagem dentro do espaço disponível, com feedback mais claro ao reparar vários arquivos.
+Agora é mais confiável salvar EPUBs reparados, e usuários Pro podem exportar sem carregar anúncios.
 </pt-BR>
 
 <ru-RU>
-Область прокрутки библиотеки EPUB теперь остаётся в пределах доступного пространства, а сообщения при восстановлении нескольких файлов стали понятнее.
+Сохранение исправленных EPUB-файлов стало надёжнее, а пользователи Pro могут экспортировать файлы без загрузки рекламы.
 </ru-RU>
 
 <zh-CN>
-EPUB 书库现在会将滚动区域保持在可用空间内，同时让多文件修复过程中的反馈更加清晰。
+保存修复后的 EPUB 文件更加可靠，Pro 用户无需加载广告即可导出。
 </zh-CN>
 
 <zh-TW>
-EPUB 書庫現在會將捲動區域維持在可用空間內，同時讓多檔案修復過程中的回饋更加清楚。
+儲存修復後的 EPUB 檔案更加可靠，Pro 使用者無需載入廣告即可匯出。
 </zh-TW>

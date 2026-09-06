@@ -279,6 +279,28 @@ describe('HomePage', () => {
     ]);
   });
 
+  it('advances merge from the index step to cover', async () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      selectedMode: signal<'merge' | 'split' | null>('merge'),
+      pickerErrorKey: signal<string | null>(null),
+      workflowStep: 2,
+      isMergeActionBusy: () => false,
+      isResettingFlow: () => false,
+      workflowSteps: [
+        { id: 'merge-split', label: 'Join / Split' },
+        { id: 'sort', label: 'Order' },
+        { id: 'toc', label: 'Index' },
+        { id: 'cover', label: 'Cover' },
+        { id: 'adjust', label: 'Adjust' },
+        { id: 'join', label: 'Join' },
+      ],
+    });
+
+    await HomePage.prototype.onWorkflowNext.call(ctx);
+
+    expect(ctx.workflowStep).toBe(3);
+  });
+
   it('uses destination step labels for split navigation', () => {
     const ctx = Object.assign(Object.create(HomePage.prototype), {
       selectedMode: signal<'merge' | 'split' | null>('split'),
@@ -417,6 +439,31 @@ describe('HomePage', () => {
     expect(ctx.splitEqualPartsValue).toBe(3);
     expect(ctx.splitEqualPartsErrorKey()).toBeNull();
     expect(ctx.splitConfigurationRevision()).toBe(2);
+  });
+
+  it('builds balanced, contiguous equal-part ranges for valid and invalid counts', () => {
+    const units = Array.from({ length: 7 }, (_, index) => ({
+      title: `Chapter ${index + 1}`,
+      sizeBytes: index + 1,
+    }));
+    const buildEqualOutputs = (HomePage.prototype as any).buildEqualOutputs;
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      mergeCoverRenderedFile: undefined,
+    });
+
+    const outputs = buildEqualOutputs.call(ctx, units, 3);
+    expect(outputs.map((output: { startUnit: number; endUnit: number }) => [output.startUnit, output.endUnit])).toEqual([
+      [0, 2],
+      [3, 4],
+      [5, 6],
+    ]);
+
+    const fallback = buildEqualOutputs.call(ctx, units, Number.POSITIVE_INFINITY);
+    expect(fallback).toHaveSize(2);
+    expect(fallback[0].startUnit).toBe(0);
+    expect(fallback[1].endUnit).toBe(6);
+
+    expect(buildEqualOutputs.call(ctx, units.slice(0, 1), 2)).toEqual([]);
   });
 
   it('blocks scientific notation and signs in integer inputs', () => {

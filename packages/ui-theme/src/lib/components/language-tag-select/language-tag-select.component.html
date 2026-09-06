@@ -1,0 +1,47 @@
+<div class="language-tag-select">
+  <label class="form-label" [attr.for]="'language-tag-select'">
+    {{ label() }}
+  </label>
+
+  <div class="language-tag-select__control">
+    <ion-select
+      id="language-tag-select"
+      class="form-control-text"
+      interface="popover"
+      [value]="selectedOption"
+      [placeholder]="placeholder()"
+      [disabled]="disabled"
+      [attr.aria-label]="label()"
+      [attr.aria-describedby]="helperText() ? 'language-tag-select-help' : null"
+      (ionChange)="onOptionChange($event)"
+      (ionBlur)="markAsTouched()"
+    >
+      @for (tag of languageTags; track tag) {
+        <ion-select-option [value]="tag">{{ tag }}</ion-select-option>
+      }
+      <ion-select-option [value]="'__custom__'">
+        {{ customOptionLabel() }}
+      </ion-select-option>
+    </ion-select>
+
+    @if (selectedOption === '__custom__') {
+      <ion-input
+        class="form-control-text language-tag-select__custom-input"
+        type="text"
+        [value]="customValue"
+        [placeholder]="placeholder()"
+        [disabled]="disabled"
+        [attr.aria-label]="label()"
+        [attr.aria-describedby]="helperText() ? 'language-tag-select-help' : null"
+        (ionInput)="onCustomValueChange($event)"
+        (ionBlur)="markAsTouched()"
+      ></ion-input>
+    }
+
+    @if (helperText(); as helper) {
+      <span id="language-tag-select-help" class="form-helper language-tag-select__helper">
+        {{ helper }}
+      </span>
+    }
+  </div>
+</div>

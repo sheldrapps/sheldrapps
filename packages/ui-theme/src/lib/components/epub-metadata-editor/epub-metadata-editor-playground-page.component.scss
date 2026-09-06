@@ -1,0 +1,11 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.epub-metadata-editor-playground__content {
+  flex: 1 1 auto;
+  min-height: 0;
+  --background: var(--app-background, var(--app-bg));
+}

@@ -6,8 +6,11 @@ import {
   FileRef,
   PUBLIC_FILESYSTEM,
   ensureDirectoriesExist,
+  areEpubPackageMetadataEqual,
+  readEpubMetadata,
   readSheldrCoverMetadata,
   type SheldrCoverMetadata,
+  writeEpubMetadata,
   writeSheldrCoverMetadata,
   WebEpubCoverService,
   WEB_EPUB_COVER_SERVICE_TOKEN,
@@ -2434,6 +2437,89 @@ export class FileService {
       bytes,
       this.toSheldrCoverMetadata(metadata),
     );
+  }
+
+  async readPublicationMetadata(filename: string) {
+    if (this.epubRewrite.isSupported()) {
+      return this.epubRewrite.readPublicEpubMetadata(this.EPUB_FOLDER, filename);
+    }
+    const bytes = await this.readPublicEpubBytes(filename);
+    return readEpubMetadata(bytes);
+  }
+
+  async updatePublicationMetadata(
+    filename: string,
+    metadata: Parameters<typeof writeEpubMetadata>[1],
+  ): Promise<void> {
+    if (this.epubRewrite.isSupported()) {
+      await this.epubRewrite.rewritePublicEpubMetadata(
+        this.EPUB_FOLDER,
+        filename,
+        metadata,
+      );
+      await this.verifyPublicationMetadata(filename, metadata);
+      return;
+    }
+    await this.ensurePublicDocumentsEpubFolderReady();
+    const bytes = await this.readPublicEpubBytes(filename);
+    const updated = await writeEpubMetadata(bytes, metadata);
+    await this.writePublicEpub(filename, updated);
+    await this.verifyPublicationMetadata(filename, metadata);
+  }
+
+  async readSourcePublicationMetadata(
+    sourcePath: string,
+    sourceDir: 'Data' | 'Documents' | 'Cache',
+  ) {
+    if (this.epubRewrite.isSupported()) {
+      const sourceUri = await this.fileKit.getUri({ dir: sourceDir, path: sourcePath });
+      return this.epubRewrite.readEpubMetadata(sourceUri);
+    }
+    const bytes = await this.readBytesFromSource(sourcePath, sourceDir);
+    return readEpubMetadata(bytes);
+  }
+
+  async updateSourcePublicationMetadata(
+    sourcePath: string,
+    sourceDir: 'Data' | 'Documents' | 'Cache',
+    metadata: Parameters<typeof writeEpubMetadata>[1],
+  ): Promise<void> {
+    if (this.epubRewrite.isSupported()) {
+      const sourceUri = await this.fileKit.getUri({ dir: sourceDir, path: sourcePath });
+      await this.epubRewrite.rewriteEpubMetadata(sourceUri, metadata);
+      await this.verifySourcePublicationMetadata(sourcePath, sourceDir, metadata);
+      return;
+    }
+    const bytes = await this.readBytesFromSource(sourcePath, sourceDir);
+    const updated = await writeEpubMetadata(bytes, metadata);
+    await this.fileKit.writeBytes({
+      dir: sourceDir,
+      path: sourcePath,
+      bytes: updated,
+      mimeType: 'application/epub+zip',
+    });
+    await this.verifySourcePublicationMetadata(sourcePath, sourceDir, metadata);
+  }
+
+  private async verifyPublicationMetadata(
+    filename: string,
+    metadata: Parameters<typeof writeEpubMetadata>[1],
+  ): Promise<void> {
+    const persisted = await this.readPublicationMetadata(filename);
+    if (!persisted || !areEpubPackageMetadataEqual(persisted.metadata, metadata)) {
+      throw new Error('EPUB_METADATA_READ_AFTER_WRITE_MISMATCH');
+    }
+  }
+
+  private async verifySourcePublicationMetadata(
+    sourcePath: string,
+    sourceDir: 'Data' | 'Documents' | 'Cache',
+    metadata: Parameters<typeof writeEpubMetadata>[1],
+  ): Promise<void> {
+    const persisted = await this.readSourcePublicationMetadata(sourcePath, sourceDir);
+    if (!persisted || !areEpubPackageMetadataEqual(persisted.metadata, metadata)) {
+      throw new Error('EPUB_METADATA_READ_AFTER_WRITE_MISMATCH');
+    }
   }
 
   private async updateGeneratedEpubMetadata(

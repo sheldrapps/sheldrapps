@@ -74,6 +74,8 @@ describe('EpubLibraryService', () => {
         'publishPublicDocument',
         'deletePublicDocument',
         'renamePublicDocument',
+        'readPublicEpubMetadata',
+        'rewritePublicEpubMetadata',
       ],
     );
     fileKit = jasmine.createSpyObj<FileKitService>('FileKitService', [
@@ -309,5 +311,47 @@ describe('EpubLibraryService', () => {
     expect(fileKit.writeBytes).toHaveBeenCalledWith(
       jasmine.objectContaining({ path: 'EpubMergerAndSplitter/library-index.json' }),
     );
+  });
+  it('uses public native metadata APIs for exported EPUBs', async () => {
+    epubRewrite.isSupported.and.returnValue(true);
+    const metadata = {
+      title: 'Updated title',
+      creators: [],
+      language: 'en',
+      identifier: { value: 'book-id' },
+      subjects: [],
+      contributors: [],
+    };
+    const document = {
+      version: 'epub3' as const,
+      detectedVersion: '3',
+      metadata,
+    };
+    epubRewrite.readPublicEpubMetadata.and.resolveTo(document);
+
+    await expectAsync(service.readPublicationMetadata('book.epub')).toBeResolvedTo(document);
+    expect(epubRewrite.readPublicEpubMetadata).toHaveBeenCalledWith(
+      'EpubMergerAndSplitter',
+      'book.epub',
+    );
+    expect(filesystem.getUri).not.toHaveBeenCalled();
+
+    epubRewrite.rewritePublicEpubMetadata.and.resolveTo({
+      uri: 'content://media/external/file/42',
+      filename: 'book.epub',
+      size: 42,
+    });
+    fileKit.readBytes.and.resolveTo(
+      new TextEncoder().encode(JSON.stringify({ schemaVersion: 1, records: [] })),
+    );
+
+    await service.updatePublicationMetadata('book.epub', metadata);
+
+    expect(epubRewrite.rewritePublicEpubMetadata).toHaveBeenCalledWith(
+      'EpubMergerAndSplitter',
+      'book.epub',
+      metadata,
+    );
+    expect(filesystem.getUri).not.toHaveBeenCalled();
   });
 });

@@ -102,8 +102,7 @@ public class EpubRewritePlugin extends Plugin {
     private static final boolean DEBUG_IO = true;
     private static final int BUFFER_SIZE = 128 * 1024;
     private static final int LARGE_TEXT_TAIL_CHARS = 64 * 1024;
-    private static final int DIAGNOSIS_PREVIEW_LIMIT = 100;
-    private static final int DIAGNOSIS_PAGE_DEFAULT_SIZE = 100;
+    private static final int DIAGNOSIS_PAGE_DEFAULT_SIZE = 50;
     private static final int DIAGNOSIS_PAGE_MAX_SIZE = 250;
     private static final int PROGRESS_CHECKPOINT_PERCENT = 5;
     private static final float OPERATION_SCREEN_BRIGHTNESS = 0.10f;
@@ -215,6 +214,26 @@ public class EpubRewritePlugin extends Plugin {
     @PluginMethod
     public void rewriteCover(PluginCall call) {
         runExclusive(call, "rewrite", this::rewriteCoverInternal);
+    }
+
+    @PluginMethod
+    public void readEpubMetadata(PluginCall call) {
+        runExclusive(call, "metadata_read", this::readEpubMetadataInternal);
+    }
+
+    @PluginMethod
+    public void rewriteEpubMetadata(PluginCall call) {
+        runExclusive(call, "metadata_rewrite", this::rewriteEpubMetadataInternal);
+    }
+
+    @PluginMethod
+    public void readPublicEpubMetadata(PluginCall call) {
+        runExclusive(call, "metadata_public_read", this::readPublicEpubMetadataInternal);
+    }
+
+    @PluginMethod
+    public void rewritePublicEpubMetadata(PluginCall call) {
+        runExclusive(call, "metadata_public_rewrite", this::rewritePublicEpubMetadataInternal);
     }
 
     @PluginMethod
@@ -888,6 +907,99 @@ public class EpubRewritePlugin extends Plugin {
         }
     }
 
+    private void readEpubMetadataInternal(PluginCall call) throws Exception {
+        Path inputPath = requireReadablePath(call.getString("inputPath"));
+        try {
+            JSObject result = SelectiveEpubMetadataIo.read(inputPath, cancelRequested::get);
+            result.put("success", true);
+            call.resolve(result);
+        } catch (IOException error) {
+            if (cancelRequested.get()) throw new CancelledRewriteException();
+            throw error;
+        }
+    }
+
+    private void rewriteEpubMetadataInternal(PluginCall call) throws Exception {
+        Path inputPath = requireReadablePath(call.getString("inputPath"));
+        String rawOutputPath = call.getString("outputPath");
+        Path outputPath = CompatStrings.isBlank(rawOutputPath)
+            ? inputPath
+            : requireWritablePath(rawOutputPath);
+        JSObject metadata = call.getObject("metadata");
+        if (metadata == null) throw new IOException("Metadata payload is required");
+
+        try {
+            SelectiveEpubMetadataIo.rewrite(inputPath, outputPath, metadata, cancelRequested::get);
+            JSObject result = new JSObject();
+            result.put("success", true);
+            result.put("outputPath", outputPath.toString());
+            result.put("size", Files.size(outputPath));
+            call.resolve(result);
+        } catch (IOException error) {
+            if (cancelRequested.get()) throw new CancelledRewriteException();
+            throw error;
+        }
+    }
+
+    private void readPublicEpubMetadataInternal(PluginCall call) throws Exception {
+        String folderName = requirePublicFolderName(call.getString("folderName"));
+        String filename = requirePublicFileName(call.getString("filename"));
+        Path stagedInput = stagePublicMetadataInput(folderName, filename);
+        try {
+            JSObject result = SelectiveEpubMetadataIo.read(stagedInput, cancelRequested::get);
+            result.put("success", true);
+            call.resolve(result);
+        } catch (IOException error) {
+            if (cancelRequested.get()) throw new CancelledRewriteException();
+            throw error;
+        } finally {
+            Files.deleteIfExists(stagedInput);
+        }
+    }
+
+    private void rewritePublicEpubMetadataInternal(PluginCall call) throws Exception {
+        String folderName = requirePublicFolderName(call.getString("folderName"));
+        String filename = requirePublicFileName(call.getString("filename"));
+        JSObject metadata = call.getObject("metadata");
+        if (metadata == null) throw new IOException("Metadata payload is required");
+
+        Path stagedInput = stagePublicMetadataInput(folderName, filename);
+        Path stagedOutput = stagedInput.resolveSibling(stagedInput.getFileName() + ".rewritten");
+        try {
+            SelectiveEpubMetadataIo.rewrite(
+                stagedInput,
+                stagedOutput,
+                metadata,
+                cancelRequested::get
+            );
+            JSObject result = publishPublicDocumentFromPath(
+                folderName,
+                filename,
+                "application/epub+zip",
+                stagedOutput
+            );
+            result.put("metadataIo", "native-selective");
+            call.resolve(result);
+        } catch (IOException error) {
+            if (cancelRequested.get()) throw new CancelledRewriteException();
+            throw error;
+        } finally {
+            Files.deleteIfExists(stagedInput);
+            Files.deleteIfExists(stagedOutput);
+        }
+    }
+
+    private Path stagePublicMetadataInput(String folderName, String filename) throws Exception {
+        Uri publicFile = findPublicDocumentUri(folderName, filename);
+        if (publicFile == null) throw new IOException("Public document is unavailable");
+        Path directory = getContext().getCacheDir().toPath()
+            .resolve(WORK_FOLDER)
+            .resolve("metadata");
+        Files.createDirectories(directory);
+        Path stagedInput = directory.resolve(UUID.randomUUID() + "-" + filename);
+        copyUriToPath(publicFile, stagedInput, 0L);
+        return stagedInput;
+    }
     private void rewriteCoverInternal(PluginCall call) throws Exception {
         String rawInputPath = call.getString("inputPath");
         String rawOutputPath = call.getString("outputPath");
@@ -1476,6 +1588,63 @@ public class EpubRewritePlugin extends Plugin {
         }
     }
 
+    private JSObject publishPublicDocumentFromPath(
+        String folderName,
+        String outputName,
+        String mimeType,
+        Path sourcePath
+    ) throws Exception {
+        Uri existing = findPublicDocumentUri(folderName, outputName);
+        Uri pendingDocument = null;
+        try {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, ".metadata-" + UUID.randomUUID() + "-" + outputName);
+            values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
+            values.put(MediaStore.MediaColumns.RELATIVE_PATH, publicRelativePath(folderName));
+            values.put(MediaStore.MediaColumns.IS_PENDING, 1);
+            pendingDocument = getContext().getContentResolver().insert(publicDownloadsCollection(), values);
+            if (pendingDocument == null) throw new IOException("Unable to create public metadata document");
+
+            long expectedBytes = Files.size(sourcePath);
+            long copiedBytes;
+            try (
+                InputStream input = new BufferedInputStream(Files.newInputStream(sourcePath), BUFFER_SIZE);
+                OutputStream rawOutput = getContext().getContentResolver().openOutputStream(pendingDocument, "w");
+                OutputStream output = rawOutput == null ? null : new BufferedOutputStream(rawOutput, BUFFER_SIZE)
+            ) {
+                if (output == null) throw new IOException("Unable to open public metadata document");
+                copiedBytes = copyStreamWithLongCount(input, output, cancelRequested);
+            }
+            if (copiedBytes != expectedBytes) throw new IOException("Public metadata size mismatch");
+
+            ContentValues nameValues = new ContentValues();
+            nameValues.put(MediaStore.MediaColumns.DISPLAY_NAME, outputName);
+            if (getContext().getContentResolver().update(pendingDocument, nameValues, null, null) != 1) {
+                throw new IOException("Unable to name public metadata document");
+            }
+
+            if (existing != null && getContext().getContentResolver().delete(existing, null, null) != 1) {
+                throw new IOException("Unable to replace public metadata document");
+            }
+
+            ContentValues finalValues = new ContentValues();
+            finalValues.put(MediaStore.MediaColumns.IS_PENDING, 0);
+            if (getContext().getContentResolver().update(pendingDocument, finalValues, null, null) != 1) {
+                throw new IOException("Unable to finalize public metadata document");
+            }
+
+            JSObject result = publicDocumentResult(pendingDocument);
+            result.put("mimeType", mimeType);
+            result.put("copiedBytes", copiedBytes);
+            return result;
+        } catch (CancelledRewriteException cancelled) {
+            if (pendingDocument != null) getContext().getContentResolver().delete(pendingDocument, null, null);
+            throw cancelled;
+        } catch (Exception error) {
+            if (pendingDocument != null) getContext().getContentResolver().delete(pendingDocument, null, null);
+            throw error;
+        }
+    }
     private void publishPublicDocumentInternal(PluginCall call) throws Exception {
         String folderName = requirePublicFolderName(call.getString("folderName"));
         String outputName = requirePublicFileName(call.getString("outputName"));
@@ -1566,7 +1735,7 @@ public class EpubRewritePlugin extends Plugin {
 
             java.util.ArrayList<EpubIssue> issues = diagnostic == null
                 ? new java.util.ArrayList<>()
-                : new DiagnosticIssuePreviewList(diagnostic, DIAGNOSIS_PREVIEW_LIMIT);
+                : new DiagnosticIssueList(diagnostic);
             FileHeader mimetypeHeader = findHeader(headers, "mimetype");
             boolean mimetypeMissing = mimetypeHeader == null;
             boolean mimetypeInvalid = false;
@@ -8820,6 +8989,25 @@ public class EpubRewritePlugin extends Plugin {
             if (CompatStrings.isNotBlank(path)) coverImagePaths.add(path);
         }
 
+        // Cover-changing tools can leave previous generated cover files in the
+        // archive without manifest entries. They must not survive an explicit
+        // no-cover merge just because the source OPF forgot to reference them.
+        for (FileHeader header : zipFile.getFileHeaders()) {
+            if (header == null || header.isDirectory()) continue;
+            String path = normalizeZipPath(header.getFileName());
+            String mediaType = resourceMediaTypes.get(path);
+            if (CompatStrings.isBlank(mediaType)) mediaType = detectMediaTypeFromPath(path);
+            String lowerMediaType = mediaType == null ? "" : mediaType.toLowerCase(Locale.US);
+            if (lowerMediaType.startsWith("image/") && looksLikeCoverImagePath(path)) {
+                coverImagePaths.add(path);
+            } else if (
+                "application/xhtml+xml".equals(lowerMediaType)
+                    && looksLikeCoverDocumentPath(path)
+            ) {
+                coverDocumentPaths.add(path);
+            }
+        }
+
         Element guide = firstElementByName(document, "guide");
         if (guide != null) {
             for (Element reference : elementsByName(guide, "reference")) {
@@ -8840,6 +9028,16 @@ public class EpubRewritePlugin extends Plugin {
             if (mediaType == null || !mediaType.toLowerCase(Locale.US).contains("xhtml")) continue;
             if (containsCoverSemanticMarker(zipFile, entry.getValue())) {
                 coverDocumentPaths.add(entry.getValue());
+            }
+        }
+
+        // Some downloaders omit every EPUB cover marker and only place the cover
+        // image first in the archive. Keep no-cover merge behavior aligned with
+        // the cover locator used by the rest of the plugin in that case.
+        if (coverImagePaths.isEmpty() && coverDocumentPaths.isEmpty()) {
+            String fallbackCoverPath = findCoverEntryPath(zipFile, zipFile.getFileHeaders());
+            if (CompatStrings.isNotBlank(fallbackCoverPath)) {
+                coverImagePaths.add(fallbackCoverPath);
             }
         }
 
@@ -8895,6 +9093,16 @@ public class EpubRewritePlugin extends Plugin {
             if (!referencesCoverImage || !looksLikeDedicatedCoverDocument(content, path)) continue;
             coverDocumentPaths.add(path);
         }
+    }
+
+    private boolean looksLikeCoverDocumentPath(String path) {
+        String normalized = normalizeZipPath(path).toLowerCase(Locale.US);
+        int slashIndex = normalized.lastIndexOf('/');
+        String fileName = slashIndex < 0 ? normalized : normalized.substring(slashIndex + 1);
+        return fileName.startsWith("cover.")
+            || fileName.startsWith("cover-")
+            || fileName.startsWith("cover_")
+            || fileName.startsWith("title-page.");
     }
 
     private boolean looksLikeDedicatedCoverDocument(String content, String path) {
@@ -11852,20 +12060,30 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     private Uri findPublicDocumentUri(String folderName, String filename) {
+        List<Uri> documents = findPublicDocumentUris(folderName, filename);
+        return documents.isEmpty() ? null : documents.get(0);
+    }
+
+    private List<Uri> findPublicDocumentUris(String folderName, String filename) {
+        List<Uri> documents = new ArrayList<>();
         try (Cursor cursor = getContext().getContentResolver().query(
             publicDownloadsCollection(),
             new String[] { MediaStore.MediaColumns._ID },
             MediaStore.MediaColumns.RELATIVE_PATH + "=? AND " + MediaStore.MediaColumns.DISPLAY_NAME + "=?",
             new String[] { publicRelativePath(folderName), filename },
-            null
+            MediaStore.MediaColumns.DATE_ADDED + " DESC"
         )) {
-            if (cursor != null && cursor.moveToFirst()) {
-                return ContentUris.withAppendedId(publicDownloadsCollection(), cursor.getLong(0));
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    documents.add(ContentUris.withAppendedId(
+                        publicDownloadsCollection(),
+                        cursor.getLong(0)
+                    ));
+                }
             }
         }
-        return null;
+        return documents;
     }
-
     private String requirePublicFolderName(String value) throws IOException {
         return requirePublicName(value, "folderName");
     }
@@ -12132,6 +12350,9 @@ public class EpubRewritePlugin extends Plugin {
     private String normalizeError(Exception ex) {
         if (ex instanceof CancelledRewriteException) {
             return "CANCELLED";
+        }
+        if (ex instanceof StreamingEpubArchiveWriter.UnsupportedZipLayoutException) {
+            return "UNSUPPORTED_ZIP_LAYOUT";
         }
         if (ex instanceof ZipException) {
             return "ZIP_ERROR";
@@ -12587,21 +12808,16 @@ public class EpubRewritePlugin extends Plugin {
         }
     }
 
-    private static final class DiagnosticIssuePreviewList extends java.util.ArrayList<EpubIssue> {
+    private static final class DiagnosticIssueList extends java.util.ArrayList<EpubIssue> {
         private final DiagnosticStats diagnostic;
-        private final int previewLimit;
 
-        DiagnosticIssuePreviewList(DiagnosticStats diagnostic, int previewLimit) {
+        DiagnosticIssueList(DiagnosticStats diagnostic) {
             this.diagnostic = diagnostic;
-            this.previewLimit = Math.max(1, previewLimit);
         }
 
         @Override
         public boolean add(EpubIssue issue) {
             diagnostic.recordIssue(issue);
-            if (size() >= previewLimit) {
-                return true;
-            }
             return super.add(issue);
         }
 

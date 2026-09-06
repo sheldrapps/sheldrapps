@@ -15,6 +15,7 @@ import {
   type EpubDiagnosticStatus,
 } from './epub-fixer.port';
 import { EpubDiagnosticQueue } from './epub-diagnostic-queue';
+import type { EpubMetadataDocument, EpubPackageMetadata } from './epub-metadata.service';
 
 type InspectEpubResult = {
   success: boolean;
@@ -311,6 +312,19 @@ type PublicEpubDocumentResult = {
   stage?: string;
 };
 
+type EpubMetadataResult = {
+  success: boolean;
+  version?: EpubMetadataDocument['version'];
+  detectedVersion?: string;
+  metadata?: EpubPackageMetadata;
+  outputPath?: string;
+  size?: number;
+  uri?: string;
+  filename?: string;
+  error?: string;
+  message?: string;
+  stage?: string;
+};
 type EpubRewritePlugin = Plugin & {
   ensurePublicExportFolder(options: { folderName: string }): Promise<{
     success: boolean;
@@ -348,6 +362,21 @@ type EpubRewritePlugin = Plugin & {
     filename: string;
     outputName: string;
   }): Promise<PublicEpubDocumentResult>;
+  readEpubMetadata(options: { inputPath: string }): Promise<EpubMetadataResult>;
+  rewriteEpubMetadata(options: {
+    inputPath: string;
+    outputPath?: string;
+    metadata: EpubPackageMetadata;
+  }): Promise<EpubMetadataResult>;
+  readPublicEpubMetadata(options: {
+    folderName: string;
+    filename: string;
+  }): Promise<EpubMetadataResult>;
+  rewritePublicEpubMetadata(options: {
+    folderName: string;
+    filename: string;
+    metadata: EpubPackageMetadata;
+  }): Promise<EpubMetadataResult>;
   prepare(options: PrepareEpubOptions): Promise<{
     success: boolean;
     sessionId?: string;
@@ -576,6 +605,76 @@ export class EpubRewriteService {
     return { uri: result.uri, filename: result.filename, size: result.size };
   }
 
+  async readEpubMetadata(inputPath: string): Promise<EpubMetadataDocument> {
+    const result = await EpubRewrite.readEpubMetadata({ inputPath });
+    if (!result.success || !result.version || !result.detectedVersion || !result.metadata) {
+      throw new EpubRewriteError(result.error ?? 'METADATA_READ_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+    return {
+      version: result.version,
+      detectedVersion: result.detectedVersion,
+      metadata: result.metadata,
+    };
+  }
+
+  async rewriteEpubMetadata(
+    inputPath: string,
+    metadata: EpubPackageMetadata,
+    outputPath?: string,
+  ): Promise<{ outputPath: string; size: number }> {
+    const result = await EpubRewrite.rewriteEpubMetadata({
+      inputPath,
+      outputPath,
+      metadata,
+    });
+    if (!result.success || !result.outputPath || typeof result.size !== 'number') {
+      throw new EpubRewriteError(result.error ?? 'METADATA_REWRITE_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+    return { outputPath: result.outputPath, size: result.size };
+  }
+
+  async readPublicEpubMetadata(
+    folderName: string,
+    filename: string,
+  ): Promise<EpubMetadataDocument> {
+    const result = await EpubRewrite.readPublicEpubMetadata({ folderName, filename });
+    if (!result.success || !result.version || !result.detectedVersion || !result.metadata) {
+      throw new EpubRewriteError(result.error ?? 'METADATA_PUBLIC_READ_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+    return {
+      version: result.version,
+      detectedVersion: result.detectedVersion,
+      metadata: result.metadata,
+    };
+  }
+
+  async rewritePublicEpubMetadata(
+    folderName: string,
+    filename: string,
+    metadata: EpubPackageMetadata,
+  ): Promise<{ uri: string; filename: string; size: number }> {
+    const result = await EpubRewrite.rewritePublicEpubMetadata({
+      folderName,
+      filename,
+      metadata,
+    });
+    if (!result.success || !result.uri || !result.filename || typeof result.size !== 'number') {
+      throw new EpubRewriteError(result.error ?? 'METADATA_PUBLIC_REWRITE_FAILED', {
+        message: result.message,
+        stage: result.stage,
+      });
+    }
+    return { uri: result.uri, filename: result.filename, size: result.size };
+  }
   addProgressListener(
     listener: (event: EpubOperationProgress) => void,
   ): Promise<PluginListenerHandle> {
