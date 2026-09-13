@@ -8,6 +8,7 @@ import {
   ensureDirectoriesExist,
   WebPdfCoverService,
   WEB_PDF_COVER_SERVICE_TOKEN,
+  reportFileWriteFailure,
 } from '@sheldrapps/file-kit/pdf';
 import { TranslateService } from '@ngx-translate/core';
 import {
@@ -2646,22 +2647,31 @@ export class FileService {
     path: string,
     mimeType: string,
   ): Promise<void> {
-    let offset = 0;
-    let firstChunk = true;
-    while (offset < file.size) {
-      const end = Math.min(file.size, offset + this.FILE_COPY_CHUNK_BYTES);
-      const bytes = new Uint8Array(await file.slice(offset, end).arrayBuffer());
-      const data = this.fileKit.toBase64(bytes);
-      if (firstChunk) {
-        await Filesystem.writeFile({ directory, path, data, recursive: true });
-        firstChunk = false;
-      } else {
-        await Filesystem.appendFile({ directory, path, data });
+    try {
+      let offset = 0;
+      let firstChunk = true;
+      while (offset < file.size) {
+        const end = Math.min(file.size, offset + this.FILE_COPY_CHUNK_BYTES);
+        const bytes = new Uint8Array(await file.slice(offset, end).arrayBuffer());
+        const data = this.fileKit.toBase64(bytes);
+        if (firstChunk) {
+          await Filesystem.writeFile({ directory, path, data, recursive: true });
+          firstChunk = false;
+        } else {
+          await Filesystem.appendFile({ directory, path, data });
+        }
+        offset = end;
       }
-      offset = end;
-    }
-    if (firstChunk) {
-      await Filesystem.writeFile({ directory, path, data: '', recursive: true });
+      if (firstChunk) {
+        await Filesystem.writeFile({ directory, path, data: '', recursive: true });
+      }
+    } catch (error) {
+      reportFileWriteFailure({
+        format: 'pdf',
+        stage: 'filesystem_copy',
+        sizeBytes: file.size,
+      });
+      throw error;
     }
   }
 

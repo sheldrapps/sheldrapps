@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
-import { FileKitService } from '@sheldrapps/file-kit/pdf';
+import { FileKitService, reportFileWriteFailure } from '@sheldrapps/file-kit/pdf';
 
 export type PdfWorkingCopy = {
   workingPath: string;
@@ -192,6 +192,11 @@ export class PdfWorkingCopyService {
       }
       onProgress?.(100);
     } catch (error) {
+      reportFileWriteFailure({
+        format: 'pdf',
+        stage: 'filesystem_copy',
+        sizeBytes: file.size,
+      });
       await this.cleanupWorkingCopy(path);
       throw error;
     }

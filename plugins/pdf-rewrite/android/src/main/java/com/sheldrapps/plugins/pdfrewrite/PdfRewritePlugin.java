@@ -94,6 +94,24 @@ public class PdfRewritePlugin extends Plugin {
     private View screenInteractionView;
     private Runnable screenDimmingRunnable;
 
+    @PluginMethod
+    public void reportFileFailure(PluginCall call) {
+        String errorCode = call.getString("errorCode", "WRITE_FAILED");
+        String stage = call.getString("stage", "filesystem_write");
+        String sizeBucket = call.getString("sizeBucket", "unknown");
+        reportNonFatalFailure(errorCode, "size_bucket=" + sizeBucket, stage, null);
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void reportTelemetryFailure(PluginCall call) {
+        String errorCode = call.getString("errorCode", "ADS_FAILURE");
+        String stage = call.getString("stage", "ads");
+        String message = call.getString("message", "");
+        reportNonFatalFailure(errorCode, message, stage, null);
+        call.resolve();
+    }
+
     @Override
     public void load() {
         super.load();
@@ -115,6 +133,7 @@ public class PdfRewritePlugin extends Plugin {
     public void importPdf(PluginCall call) {
         startProtectedThread(() -> {
             try {
+                ensurePdfBoxInitialized();
                 PdfSessionManager.Session session = pmasSessions.require(call.getString("sessionId"));
                 String sourceUri = call.getString("sourceUri");
                 if (sourceUri == null || sourceUri.trim().isEmpty()) throw new PdfOperationException("SOURCE_FILE_NOT_FOUND", "import");
@@ -139,6 +158,7 @@ public class PdfRewritePlugin extends Plugin {
     public void analyzePdf(PluginCall call) {
         startProtectedThread(() -> {
             try {
+                ensurePdfBoxInitialized();
                 PdfSessionManager.Session session = pmasSessions.require(call.getString("sessionId")); File file = session.inputs.get(call.getString("pdfId"));
                 if (file == null) throw new PdfOperationException("SOURCE_FILE_NOT_FOUND", "analyze");
                 JSObject result = pmasInspector.analyze(file); result.put("success", true); call.resolve(result);
@@ -258,6 +278,7 @@ public class PdfRewritePlugin extends Plugin {
     private void runMerge(PluginCall call) {
         cancelRequested.set(false);
         try {
+            ensurePdfBoxInitialized();
             PdfSessionManager.Session session = pmasSessions.require(call.getString("sessionId"));
             JSArray values = call.getArray("pdfIds"); if (values == null || values.length() < 2) throw new PdfOperationException("MERGE_REQUIRES_TWO_PDFS", "merge");
             List<File> sources = new ArrayList<>(); List<String> names = new ArrayList<>();
@@ -275,11 +296,12 @@ public class PdfRewritePlugin extends Plugin {
         cancelRequested.set(false);
         List<PdfOutputPublisher.Published> published = new ArrayList<>();
         try {
+            ensurePdfBoxInitialized();
             PdfSessionManager.Session session = pmasSessions.require(call.getString("sessionId")); File source = session.inputs.get(call.getString("pdfId")); if (source == null) throw new PdfOperationException("SOURCE_FILE_NOT_FOUND", "split");
             JSArray outputs = call.getArray("outputs"); if (outputs == null || outputs.length() < 2) throw new PdfOperationException("SPLIT_REQUIRES_TWO_OUTPUTS", "split");
             List<PdfSplitOperation.Plan> plans = new ArrayList<>();
             for (int index=0; index<outputs.length(); index++) {
-                org.json.JSONObject raw = outputs.getJSONObject(index); String name=sanitizeBaseName(raw.optString("title", "part-"+(index+1)))+".pdf"; JSArray ranges = new JSArray(raw.optJSONArray("ranges")); List<PdfSplitOperation.Range> parsed = new ArrayList<>();
+                org.json.JSONObject raw = outputs.getJSONObject(index); String name=sanitizeBaseName(raw.optString("title", "part-"+(index+1)))+".pdf"; org.json.JSONArray ranges = raw.optJSONArray("ranges"); if (ranges == null || ranges.length() == 0) throw new PdfOperationException("INVALID_SPLIT_PLAN", "split"); List<PdfSplitOperation.Range> parsed = new ArrayList<>();
                 for (int rangeIndex=0; rangeIndex<ranges.length(); rangeIndex++) { org.json.JSONObject range=ranges.getJSONObject(rangeIndex); parsed.add(new PdfSplitOperation.Range(range.getInt("fromPageIndex"),range.getInt("toPageIndex"))); }
                 plans.add(new PdfSplitOperation.Plan(name, parsed));
             }
@@ -294,7 +316,52 @@ public class PdfRewritePlugin extends Plugin {
     private File resolveOptionalImage(PdfSessionManager.Session session, String uri) throws Exception { if (uri == null || uri.trim().isEmpty()) return null; File image = new File(session.directory, "cover-" + UUID.randomUUID().toString() + ".img"); pmasUris.copyToPrivateFile(uri, image, 64L * 1024L * 1024L); return image; }
     private PdfProgress pmasProgress(final String operation) { return new PdfProgress() { public void emit(String phase, int completed, int total) { JSObject event = new JSObject(); event.put("operation", operation); event.put("phase", phase); event.put("completed", completed); event.put("total", total); event.put("percent", total > 0 ? Math.min(100, Math.max(0, completed * 100 / total)) : 0); notifyListeners("pdfOperationProgress", event); } public void checkCancelled() throws PdfOperationException { if (cancelRequested.get()) throw new PdfOperationException("OPERATION_CANCELLED", operation); } }; }
     private JSObject operationResult(String operation, List<PdfOutputPublisher.Published> outputs, List<String> warnings) { JSObject result=new JSObject(); JSArray entries=new JSArray(); JSArray uris=new JSArray(); JSArray warningValues=new JSArray(); for(String warning:warnings) warningValues.put(warning); for(PdfOutputPublisher.Published output:outputs){JSObject entry=new JSObject();entry.put("uri",output.uri);entry.put("fileName",output.name);entry.put("sizeBytes",output.size);entries.put(entry);uris.put(output.uri);} result.put("operationId",UUID.randomUUID().toString());result.put("operation",operation);result.put("outputs",entries);result.put("outputUris",uris);result.put("warnings",warningValues);return result; }
-    private JSObject pmasError(Exception error) { String code="REWRITE_FAILED",stage="operation"; if(error instanceof PdfOperationException){code=((PdfOperationException)error).code;stage=((PdfOperationException)error).stage;} JSObject result=new JSObject();result.put("success",false);result.put("error",code);result.put("stage",stage);result.put("message",error.getMessage());return result; }
+    private JSObject pmasError(Exception error) { String code="REWRITE_FAILED",stage="operation"; if(error instanceof PdfOperationException){code=((PdfOperationException)error).code;stage=((PdfOperationException)error).stage;} else if(error instanceof PluginError){code=((PluginError)error).code;stage=((PluginError)error).stage;} reportNonFatalFailure(code, error.getMessage(), stage, error); JSObject result=new JSObject();result.put("success",false);result.put("error",code);result.put("stage",stage);result.put("message",error.getMessage());return result; }
+
+    private boolean shouldReportNonFatal(String error) {
+        if (error == null) return false;
+        switch (error) {
+            case "BUSY":
+            case "CANCELLED":
+            case "OPERATION_CANCELLED":
+            case "PICK_CANCELLED":
+            case "SOURCE_FILE_NOT_FOUND":
+            case "MERGE_REQUIRES_TWO_PDFS":
+            case "SPLIT_REQUIRES_TWO_OUTPUTS":
+                return false;
+            default:
+                return true;
+        }
+    }
+
+    private void reportNonFatalFailure(String error, String message, String stage, Throwable throwable) {
+        if (!shouldReportNonFatal(error)) return;
+        try {
+            Class<?> crashlyticsClass = Class.forName(
+                "com.google.firebase.crashlytics.FirebaseCrashlytics"
+            );
+            Object crashlytics = crashlyticsClass.getMethod("getInstance").invoke(null);
+            String safeError = error == null ? "UNKNOWN" : error;
+            String safeStage = stage == null ? "unknown_stage" : stage;
+            String safeMessage = message == null ? "" : message;
+            crashlyticsClass
+                .getMethod("setCustomKey", String.class, String.class)
+                .invoke(crashlytics, "pdf_error_code", safeError);
+            crashlyticsClass
+                .getMethod("setCustomKey", String.class, String.class)
+                .invoke(crashlytics, "pdf_error_stage", safeStage);
+            crashlyticsClass
+                .getMethod("log", String.class)
+                .invoke(crashlytics, "pdf-rewrite failure code=" + safeError + " stage=" + safeStage + " message=" + safeMessage);
+            Throwable reportThrowable = throwable == null
+                ? new RuntimeException("pdf-rewrite non-fatal code=" + safeError + " stage=" + safeStage)
+                : throwable;
+            crashlyticsClass
+                .getMethod("recordException", Throwable.class)
+                .invoke(crashlytics, reportThrowable);
+        } catch (Exception ignored) {
+        }
+    }
 
     @PluginMethod
     public void publishPublicDocument(PluginCall call) {
@@ -1559,6 +1626,7 @@ public class PdfRewritePlugin extends Plugin {
     }
 
     private JSObject errorResult(String code, String stage) {
+        reportNonFatalFailure(code, null, stage, null);
         JSObject out = new JSObject();
         out.put("success", false);
         out.put("valid", false);

@@ -182,6 +182,24 @@ public class EpubRewritePlugin extends Plugin {
     private Runnable screenDimmingRunnable;
 
     @PluginMethod
+    public void reportFileFailure(PluginCall call) {
+        String errorCode = call.getString("errorCode", "WRITE_FAILED");
+        String stage = call.getString("stage", "filesystem_write");
+        String sizeBucket = call.getString("sizeBucket", "unknown");
+        reportNonFatalFailure(errorCode, "size_bucket=" + sizeBucket, stage, null);
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void reportTelemetryFailure(PluginCall call) {
+        String errorCode = call.getString("errorCode", "ADS_FAILURE");
+        String stage = call.getString("stage", "ads");
+        String message = call.getString("message", "");
+        reportNonFatalFailure(errorCode, message, stage, null);
+        call.resolve();
+    }
+
+    @PluginMethod
     public void prepare(PluginCall call) {
         runExclusive(call, "prepare", this::prepareInternal);
     }
@@ -1286,6 +1304,11 @@ public class EpubRewritePlugin extends Plugin {
 
         java.util.ArrayList<EpubIssue> resultIssues = new java.util.ArrayList<>(analysis.issues);
         String resultStatus = stats.isLimited() ? "limited" : stats.resolveStatus(analysis.status);
+        if ("valid".equals(resultStatus)) {
+            writeExportVerificationMarker(workingPath, "validated", diagnosisId, 0);
+        } else {
+            deleteExportVerificationMarker(workingPath);
+        }
         debugIo(
             "diagnose result sessionId=" + sessionId
                 + " mode=" + mode
@@ -1359,6 +1382,7 @@ public class EpubRewritePlugin extends Plugin {
         java.util.LinkedHashSet<String> repairedIssues = new java.util.LinkedHashSet<>();
         Path backupPath = workingPath.resolveSibling(workingPath.getFileName() + ".bak");
         Path tempOutputPath = workingPath.resolveSibling(workingPath.getFileName() + ".tmp");
+        deleteExportVerificationMarker(workingPath);
 
         try (DiagnosticFindingStore store = DiagnosticFindingStore.open(
             sessionDir.resolve(diagnosisStoreFileName(diagnosisId)),
@@ -1405,8 +1429,28 @@ public class EpubRewritePlugin extends Plugin {
                 }
                 ensureNotCancelled();
                 validateRepairedArchive(tempOutputPath, plan.opfPath);
+                EpubAnalysis verification = verifyRepairedArchive(tempOutputPath);
+                if (!verification.issues.isEmpty()) {
+                    rollbackInPlace(workingPath, backupPath, tempOutputPath);
+                    JSObject incomplete = new JSObject();
+                    incomplete.put("success", false);
+                    incomplete.put("status", "incomplete");
+                    incomplete.put("error", "REPAIR_INCOMPLETE");
+                    incomplete.put("beforeFindings", plan.diagnosedFindings.size());
+                    incomplete.put("afterFindings", verification.issues.size());
+                    incomplete.put("repairedIssues", new java.util.ArrayList<>(repairedIssues));
+                    incomplete.put("remainingIssues", toIssueArray(verification.issues));
+                    call.resolve(incomplete);
+                    return;
+                }
                 emitOperationProgress("finalizing", 1, 1, 98);
                 moveFileAtomicWithFallback(tempOutputPath, workingPath);
+                writeExportVerificationMarker(
+                    workingPath,
+                    "repaired",
+                    diagnosisId,
+                    plan.diagnosedFindings.size()
+                );
                 deleteIfExists(backupPath);
                 scanPathForMediaStore(workingPath);
                 emitOperationProgress("finalizing", 1, 1, 100);
@@ -1416,6 +1460,9 @@ public class EpubRewritePlugin extends Plugin {
 
             JSObject result = new JSObject();
             result.put("success", true);
+            result.put("status", "verified");
+            result.put("beforeFindings", plan.diagnosedFindings.size());
+            result.put("afterFindings", 0);
             result.put("repairedIssues", new java.util.ArrayList<>(repairedIssues));
             debugIo(
                 "repair success sessionId=" + sessionId
@@ -1429,6 +1476,7 @@ public class EpubRewritePlugin extends Plugin {
                     + " message=" + (ex.getMessage() == null ? "" : ex.getMessage())
             );
             rollbackInPlace(workingPath, backupPath, tempOutputPath);
+            deleteExportVerificationMarker(workingPath);
             throw ex;
         } finally {
             deleteIfExists(tempOutputPath);
@@ -1441,6 +1489,13 @@ public class EpubRewritePlugin extends Plugin {
         validateSessionId(sessionId);
 
         Path workingPath = resolveSessionWorkingPath(sessionId);
+        if (!hasValidExportVerification(workingPath)) {
+            throw new PluginErrorException(
+                "EXPORT_NOT_VERIFIED",
+                "The EPUB can only be exported after a valid diagnosis or verified repair",
+                "export_fixed"
+            );
+        }
         debugIo(
             "export start sessionId=" + sessionId
                 + " workingPath=" + workingPath
@@ -1483,6 +1538,7 @@ public class EpubRewritePlugin extends Plugin {
             analysis.reconstructibleSpineItemIds,
             analysis.promotableOrphanResources,
             fallbackPlans,
+            diagnostic.repairFindings,
             diagnostic.repairCodes,
             diagnostic.contentTransformPaths,
             diagnostic.linkTransformPaths,
@@ -1526,8 +1582,13 @@ public class EpubRewritePlugin extends Plugin {
             }
         }
         java.util.ArrayList<EpubIssue> issues = new java.util.ArrayList<>();
-        for (String code : plan.repairCodes) {
-            issues.add(issue(code, "warning", true));
+        for (RepairFindingPlan finding : plan.diagnosedFindings) {
+            issues.add(finding.toIssue());
+        }
+        if (issues.isEmpty()) {
+            for (String code : plan.repairCodes) {
+                issues.add(issue(code, "warning", true));
+            }
         }
         return new EpubAnalysis(
             plan.status,
@@ -1585,6 +1646,77 @@ public class EpubRewritePlugin extends Plugin {
             if (CompatStrings.isNotBlank(opfPath) && findHeader(headers, opfPath) == null) {
                 throw new IOException("Repaired EPUB package document is missing");
             }
+        }
+    }
+
+    private EpubAnalysis verifyRepairedArchive(Path archivePath) throws Exception {
+        DiagnosticStats verificationStats = new DiagnosticStats("deep");
+        activeDiagnostic.set(verificationStats);
+        try {
+            EpubAnalysis analysis = analyzeEpub(archivePath, null);
+            if (verificationStats.isLimited()) {
+                throw new IOException("Repair verification reached a diagnostic limit");
+            }
+            return analysis;
+        } finally {
+            activeDiagnostic.remove();
+        }
+    }
+
+    private Path exportVerificationMarker(Path workingPath) {
+        return workingPath.resolveSibling(".repair-verification.json");
+    }
+
+    private void writeExportVerificationMarker(
+        Path workingPath,
+        String mode,
+        String diagnosisId,
+        int repairedFindingCount
+    ) throws IOException {
+        org.json.JSONObject marker = new org.json.JSONObject();
+        try {
+            marker.put("mode", mode);
+            marker.put("diagnosisId", diagnosisId);
+            marker.put("workingName", workingPath.getFileName().toString());
+            marker.put("size", Files.size(workingPath));
+            marker.put("modifiedAt", Files.getLastModifiedTime(workingPath).toMillis());
+            marker.put("repairedFindingCount", repairedFindingCount);
+            Files.write(
+                exportVerificationMarker(workingPath),
+                marker.toString().getBytes(StandardCharsets.UTF_8)
+            );
+        } catch (org.json.JSONException error) {
+            throw new IOException("Unable to write export verification marker", error);
+        }
+    }
+
+    private void deleteExportVerificationMarker(Path workingPath) {
+        if (workingPath != null) {
+            try {
+                deleteIfExists(exportVerificationMarker(workingPath));
+            } catch (IOException ignored) {
+                debugIo("export verification marker cleanup skipped path=" + workingPath);
+            }
+        }
+    }
+
+    private boolean hasValidExportVerification(Path workingPath) throws IOException {
+        Path markerPath = exportVerificationMarker(workingPath);
+        if (!Files.isRegularFile(markerPath)) {
+            return false;
+        }
+        try {
+            org.json.JSONObject marker = new org.json.JSONObject(
+                new String(Files.readAllBytes(markerPath), StandardCharsets.UTF_8)
+            );
+            return workingPath.getFileName().toString().equals(marker.optString("workingName"))
+                && Files.size(workingPath) == marker.optLong("size", -1L)
+                && Files.getLastModifiedTime(workingPath).toMillis()
+                    == marker.optLong("modifiedAt", -1L)
+                && ("validated".equals(marker.optString("mode"))
+                    || "repaired".equals(marker.optString("mode")));
+        } catch (org.json.JSONException error) {
+            return false;
         }
     }
 
@@ -7517,12 +7649,15 @@ public class EpubRewritePlugin extends Plugin {
                 opfPath,
                 removeSourceCover
             );
-            validateSplitPlan(source, outputs);
+            java.util.ArrayList<SplitOutputRequest> effectiveOutputs = removeSourceCover
+                ? removeNoCoverSpineItems(source, outputs)
+                : outputs;
+            validateSplitPlan(source, effectiveOutputs);
 
             emitPhaseProgress("writing", 0);
-            for (int index = 0; index < outputs.size(); index++) {
+            for (int index = 0; index < effectiveOutputs.size(); index++) {
                 ensureNotCancelled();
-                SplitOutputRequest output = outputs.get(index);
+                SplitOutputRequest output = effectiveOutputs.get(index);
                 writeSplitOutput(sourceZip, source, output, warnings);
 
                 if (coverPath != null) {
@@ -7531,11 +7666,11 @@ public class EpubRewritePlugin extends Plugin {
 
                 emitPhaseProgress(
                     "writing",
-                    interpolate(0, 100, index + 1L, outputs.size())
+                    interpolate(0, 100, index + 1L, effectiveOutputs.size())
                 );
                 emitPhaseProgress(
                     "validating",
-                    interpolate(0, 100, index, outputs.size())
+                    interpolate(0, 100, index, effectiveOutputs.size())
                 );
                 long validationStart = System.currentTimeMillis();
                 validateSplitEpub(output.outputPath, output.spineItemIds.size());
@@ -7547,7 +7682,7 @@ public class EpubRewritePlugin extends Plugin {
                 );
                 emitPhaseProgress(
                     "validating",
-                    interpolate(0, 100, index + 1L, outputs.size())
+                    interpolate(0, 100, index + 1L, effectiveOutputs.size())
                 );
 
                 JSObject saved = new JSObject();
@@ -7573,6 +7708,44 @@ public class EpubRewritePlugin extends Plugin {
         for (String warning : warnings) warningValues.put(warning);
         result.put("warnings", warningValues);
         call.resolve(result);
+    }
+
+    private java.util.ArrayList<SplitOutputRequest> removeNoCoverSpineItems(
+        SplitSourceMetadata source,
+        java.util.List<SplitOutputRequest> outputs
+    ) throws PluginErrorException {
+        java.util.ArrayList<SplitOutputRequest> effectiveOutputs = new java.util.ArrayList<>();
+        for (SplitOutputRequest output : outputs) {
+            java.util.ArrayList<String> retainedSpineItemIds = new java.util.ArrayList<>();
+            for (String spineItemId : output.spineItemIds) {
+                String spinePath = source.spinePaths.get(spineItemId);
+                if (!source.noCoverPaths.contains(spinePath)) {
+                    retainedSpineItemIds.add(spineItemId);
+                }
+            }
+            if (retainedSpineItemIds.isEmpty()) {
+                continue;
+            }
+            effectiveOutputs.add(
+                new SplitOutputRequest(
+                    output.id,
+                    output.outputPath,
+                    output.outputName,
+                    output.title,
+                    retainedSpineItemIds,
+                    output.tocTitles,
+                    output.tocEntries
+                )
+            );
+        }
+        if (effectiveOutputs.size() < 2) {
+            throw new PluginErrorException(
+                "SPLIT_MINIMUM_OUTPUTS",
+                "Removing the source cover leaves fewer than two EPUB outputs",
+                "split_analyzing"
+            );
+        }
+        return effectiveOutputs;
     }
 
     private void analyzeSplitEpubInternal(PluginCall call) throws Exception {
@@ -12405,6 +12578,7 @@ public class EpubRewritePlugin extends Plugin {
         private final java.util.LinkedHashSet<String> contentTransformPaths = new java.util.LinkedHashSet<>();
         private final java.util.LinkedHashSet<String> linkTransformPaths = new java.util.LinkedHashSet<>();
         private final java.util.LinkedHashSet<String> orphanEntries = new java.util.LinkedHashSet<>();
+        private final java.util.ArrayList<RepairFindingPlan> repairFindings = new java.util.ArrayList<>();
         private Map<String, FileHeader> entryIndex;
         private Map<String, String> exactManifestIndex;
         private Map<String, List<String>> caseManifestIndex;
@@ -12562,6 +12736,7 @@ public class EpubRewritePlugin extends Plugin {
             findingCount += 1L;
             hasFinding = true;
             hasRepairableFinding = hasRepairableFinding || issue.fixable;
+            repairFindings.add(RepairFindingPlan.fromIssue(issue));
             if (issue.fixable) {
                 repairCodes.add(issue.code);
                 recordRepairTarget(issue);
@@ -12766,7 +12941,12 @@ public class EpubRewritePlugin extends Plugin {
             if (!hasFinding) {
                 return "valid";
             }
-            return hasRepairableFinding ? "repairable" : "unsupported";
+            return allFindingsRepairable() ? "repairable" : "unsupported";
+        }
+
+        private boolean allFindingsRepairable() {
+            return hasFinding && !repairFindings.isEmpty()
+                && repairFindings.stream().allMatch(finding -> finding.fixable);
         }
 
         JSObject readSummary() {
@@ -13217,6 +13397,86 @@ public class EpubRewritePlugin extends Plugin {
         }
     }
 
+    private static final class RepairFindingPlan {
+        final String code;
+        final String severity;
+        final boolean fixable;
+        final String details;
+        final java.util.ArrayList<String> options;
+
+        RepairFindingPlan(
+            String code,
+            String severity,
+            boolean fixable,
+            String details,
+            java.util.Collection<String> options
+        ) {
+            this.code = code;
+            this.severity = severity;
+            this.fixable = fixable;
+            this.details = details;
+            this.options = options == null
+                ? new java.util.ArrayList<>()
+                : new java.util.ArrayList<>(options);
+        }
+
+        static RepairFindingPlan fromIssue(EpubIssue issue) {
+            return new RepairFindingPlan(
+                issue.code,
+                issue.severity,
+                issue.fixable,
+                issue.details,
+                issue.options
+            );
+        }
+
+        EpubIssue toIssue() {
+            return new EpubIssue(
+                code,
+                severity,
+                fixable,
+                "FIX.ISSUE_" + code,
+                details,
+                options
+            );
+        }
+
+        org.json.JSONObject toJson() throws org.json.JSONException {
+            org.json.JSONObject value = new org.json.JSONObject();
+            value.put("code", code);
+            value.put("severity", severity);
+            value.put("fixable", fixable);
+            value.put("details", details);
+            value.put("options", new org.json.JSONArray(options));
+            return value;
+        }
+
+        static RepairFindingPlan fromJson(org.json.JSONObject value) {
+            java.util.ArrayList<String> options = jsonStrings(value.optJSONArray("options"));
+            return new RepairFindingPlan(
+                value.optString("code", ""),
+                value.optString("severity", "warning"),
+                value.optBoolean("fixable", false),
+                value.optString("details", null),
+                options
+            );
+        }
+
+        private static java.util.ArrayList<String> jsonStrings(org.json.JSONArray values) {
+            java.util.ArrayList<String> result = new java.util.ArrayList<>();
+            if (values == null) {
+                return result;
+            }
+            for (int index = 0; index < values.length(); index++) {
+                String value = values.optString(index, "").trim();
+                if (!value.isEmpty()) {
+                    result.add(value);
+                }
+            }
+            return result;
+        }
+    }
+
     private static final class RepairPlan {
         final long inputSize;
         final long inputModifiedAt;
@@ -13226,6 +13486,7 @@ public class EpubRewritePlugin extends Plugin {
         final java.util.ArrayList<String> reconstructibleSpineItemIds;
         final java.util.ArrayList<String> promotableOrphanResources;
         final java.util.ArrayList<RepairFallbackPlan> fallbackPlans;
+        final java.util.ArrayList<RepairFindingPlan> diagnosedFindings;
         final java.util.LinkedHashSet<String> repairCodes;
         final java.util.LinkedHashSet<String> contentTransformPaths;
         final java.util.LinkedHashSet<String> linkTransformPaths;
@@ -13244,6 +13505,7 @@ public class EpubRewritePlugin extends Plugin {
             java.util.Collection<String> reconstructibleSpineItemIds,
             java.util.Collection<String> promotableOrphanResources,
             java.util.Collection<RepairFallbackPlan> fallbackPlans,
+            java.util.Collection<RepairFindingPlan> diagnosedFindings,
             java.util.Collection<String> repairCodes,
             java.util.Collection<String> contentTransformPaths,
             java.util.Collection<String> linkTransformPaths,
@@ -13261,6 +13523,9 @@ public class EpubRewritePlugin extends Plugin {
             this.fallbackPlans = fallbackPlans == null
                 ? new java.util.ArrayList<>()
                 : new java.util.ArrayList<>(fallbackPlans);
+            this.diagnosedFindings = diagnosedFindings == null
+                ? new java.util.ArrayList<>()
+                : new java.util.ArrayList<>(diagnosedFindings);
             this.repairCodes = copySet(repairCodes);
             this.contentTransformPaths = copySet(contentTransformPaths);
             this.linkTransformPaths = copySet(linkTransformPaths);
@@ -13274,8 +13539,47 @@ public class EpubRewritePlugin extends Plugin {
             );
         }
 
+        RepairPlan(
+            long inputSize,
+            long inputModifiedAt,
+            String status,
+            String opfPath,
+            String opfXml,
+            java.util.Collection<String> reconstructibleSpineItemIds,
+            java.util.Collection<String> promotableOrphanResources,
+            java.util.Collection<RepairFallbackPlan> fallbackPlans,
+            java.util.Collection<String> repairCodes,
+            java.util.Collection<String> contentTransformPaths,
+            java.util.Collection<String> linkTransformPaths,
+            java.util.Collection<String> orphanEntries,
+            boolean mimetypeMissing,
+            boolean mimetypeInvalid
+        ) {
+            this(
+                inputSize,
+                inputModifiedAt,
+                status,
+                opfPath,
+                opfXml,
+                reconstructibleSpineItemIds,
+                promotableOrphanResources,
+                fallbackPlans,
+                null,
+                repairCodes,
+                contentTransformPaths,
+                linkTransformPaths,
+                orphanEntries,
+                mimetypeMissing,
+                mimetypeInvalid
+            );
+        }
+
         boolean canRepair() {
-            return !repairCodes.isEmpty() && opfPath != null && opfXml != null;
+            return !repairCodes.isEmpty()
+                && !diagnosedFindings.isEmpty()
+                && diagnosedFindings.stream().allMatch(finding -> finding.fixable)
+                && opfPath != null
+                && opfXml != null;
         }
 
         boolean matches(Path workingPath) throws IOException {
@@ -13297,6 +13601,7 @@ public class EpubRewritePlugin extends Plugin {
                 reconstructibleSpineItemIds,
                 promotableOrphanResources,
                 fallbackPlans,
+                diagnosedFindings,
                 repairCodes,
                 contentTransformPaths,
                 linkTransformPaths,
@@ -13327,6 +13632,11 @@ public class EpubRewritePlugin extends Plugin {
                     fallbacks.put(fallback.toJson());
                 }
                 value.put("fallbackPlans", fallbacks);
+                org.json.JSONArray findings = new org.json.JSONArray();
+                for (RepairFindingPlan finding : diagnosedFindings) {
+                    findings.put(finding.toJson());
+                }
+                value.put("diagnosedFindings", findings);
                 return value.toString();
             } catch (org.json.JSONException error) {
                 throw new IllegalStateException("Unable to serialize repair plan", error);
@@ -13345,6 +13655,16 @@ public class EpubRewritePlugin extends Plugin {
                     }
                 }
             }
+            java.util.ArrayList<RepairFindingPlan> findings = new java.util.ArrayList<>();
+            org.json.JSONArray findingValues = value.optJSONArray("diagnosedFindings");
+            if (findingValues != null) {
+                for (int index = 0; index < findingValues.length(); index++) {
+                    org.json.JSONObject finding = findingValues.optJSONObject(index);
+                    if (finding != null) {
+                        findings.add(RepairFindingPlan.fromJson(finding));
+                    }
+                }
+            }
             return new RepairPlan(
                 value.optLong("inputSize", -1L),
                 value.optLong("inputModifiedAt", -1L),
@@ -13354,6 +13674,7 @@ public class EpubRewritePlugin extends Plugin {
                 jsonStrings(value.optJSONArray("reconstructibleSpineItemIds")),
                 jsonStrings(value.optJSONArray("promotableOrphanResources")),
                 fallbacks,
+                findings,
                 jsonStrings(value.optJSONArray("repairCodes")),
                 jsonStrings(value.optJSONArray("contentTransformPaths")),
                 jsonStrings(value.optJSONArray("linkTransformPaths")),

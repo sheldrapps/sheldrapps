@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { FileKitService } from './file-kit.service';
+import { reportFileWriteFailure } from './file-telemetry';
 
 export type EpubWorkingCopy = {
   workingPath: string;
@@ -193,6 +194,11 @@ export class EpubWorkingCopyService {
 
       onProgress?.(100);
     } catch (error) {
+      reportFileWriteFailure({
+        format: 'epub',
+        stage: 'filesystem_copy',
+        sizeBytes: file.size,
+      });
       await this.cleanupWorkingCopy(path);
       throw error;
     }

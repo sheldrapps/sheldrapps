@@ -350,6 +350,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
     return `${Math.round(x)}px ${Math.round(y)}px`;
   });
   readonly canDone = computed(() => {
+    if (this.isExporting()) return false;
     if (!this.session) return false;
     if (this.session.sourceMode !== "scratch") return true;
     return this.history.mode() === "global" && this.hasValidBackgroundSelection();
@@ -370,14 +371,7 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
       : "EDITOR.SHELL.HINT.PREVIEW",
   );
   private readonly isExportingState = signal(false);
-
-  private get isExporting(): boolean {
-    return this.isExportingState();
-  }
-
-  private set isExporting(value: boolean) {
-    this.isExportingState.set(value);
-  }
+  readonly isExporting = this.isExportingState.asReadonly();
   private composedPreviewRenderTimer: ReturnType<typeof setTimeout> | null = null;
   private composedPreviewFadeTimer: ReturnType<typeof setTimeout> | null = null;
   private composedPreviewRenderVersion = 0;
@@ -1651,136 +1645,17 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async done(): Promise<void> {
-    if (this.isExporting) return;
-    if (this.textEdit.isEditing()) {
-      this.textEdit.apply();
-    }
+    if (this.isExporting()) return;
+    this.isExportingState.set(true);
 
-    const session = this.session;
-    if (!session) {
-      this.stopEditorTour();
-      this.sessionExit.exitAfterDone();
-      return;
-    }
-
-    const sourceFile = session.file ?? (await this.resolveSessionFile());
-    if (!sourceFile) {
-      this.stopEditorTour();
-      this.sessionExit.exitAfterDone();
-      return;
-    }
-
-    await this.ensureExportDimensions(session, sourceFile);
-
-    this.isExporting = true;
     const wasReady = this.ready;
     this.ready = false;
     let shouldExit = false;
 
     try {
-      await this.waitForNextPaint();
-      this.history.flushPendingChanges();
-      const state: CoverCropState = {
-        ...this.editorState.getState(),
-      };
-      const ctx = this.editorState.constraintsContext();
-      const frameSize = this.getFrameSize();
-      const frameEl = this.frameRef?.nativeElement;
-      const fw =
-        (Number.isFinite(ctx?.frameW) ? ctx?.frameW : undefined) ??
-        frameSize?.width ??
-        frameEl?.clientWidth;
-      const fh =
-        (Number.isFinite(ctx?.frameH) ? ctx?.frameH : undefined) ??
-        frameSize?.height ??
-        frameEl?.clientHeight;
-      if (fw && fh) {
-        state.frameWidth = fw;
-        state.frameHeight = fh;
-      }
-      const target = session.target;
-      let renderedBlob: Blob | undefined;
-      let editorMasterBlob: Blob | undefined;
-      let renderedWidth: number | undefined;
-      let renderedHeight: number | undefined;
-      let renderedMimeType: string | undefined;
-
-      const includeRenderedBlob = session.output?.includeRenderedBlob ?? true;
-      let renderInput = this.buildRenderInput(state);
-      for (let attempt = 0; attempt < 3 && includeRenderedBlob; attempt += 1) {
-        if (!renderInput) {
-          await this.waitForNextPaint();
-          renderInput = this.buildRenderInput(state);
-          continue;
-        }
-
-        try {
-          const canvas = await renderCompositionToCanvas(renderInput, {
-            mode: "export",
-            outputScale: 1,
-          });
-          if (canvas) {
-            const master = await encodeCompositionCanvas(canvas, "high-quality");
-            if (master) {
-              editorMasterBlob = master.blob;
-            }
-            const encoded = await encodeCompositionCanvas(
-              canvas,
-              session.output?.exportQuality,
-              session.output?.exportQuality === "high-quality"
-                ? undefined
-                : "#ffffff",
-            );
-            if (encoded) {
-              renderedBlob = encoded.blob;
-              renderedMimeType = encoded.mimeType;
-              renderedWidth = encoded.width;
-              renderedHeight = encoded.height;
-            }
-          }
-        } catch (error) {
-          console.warn("[EDITOR] render export failed", error);
-        }
-
-        if (!renderedBlob && attempt < 2) {
-          await this.waitForNextPaint();
-          renderInput = this.buildRenderInput(state);
-        }
-      }
-
-      if (includeRenderedBlob && (!renderedBlob || !editorMasterBlob)) {
-        console.warn("[EDITOR] final render did not produce a preview; keeping editor open");
-        return;
-      }
-
-      const result: CropperResult = {
-        file: sourceFile,
-        state,
-        formatId: session.tools?.formats?.selectedId,
-        renderedBlob,
-        editorMasterBlob,
-        renderedWidth,
-        renderedHeight,
-        renderedMimeType,
-        renderInfo: renderInput
-          ? buildEditorRenderInfo({
-              input: renderInput,
-              renderedWidth: renderedWidth ?? 1,
-              renderedHeight: renderedHeight ?? 1,
-              exportQuality: session.output?.exportQuality,
-            })
-          : undefined,
-        history: this.history.captureProjectSnapshot(),
-      };
-      this.editorSession.setResult(this.sid, result);
-      await applyEditorResultBeforeExit(
-        result,
-        session.onResultApplied,
-        session.project?.persist,
-      );
-      shouldExit = true;
+      shouldExit = await this.completeDoneExport();
     } finally {
-      this.isExporting = false;
+      this.isExportingState.set(false);
       this.ready = wasReady;
       if (shouldExit) {
         this.stopEditorTour();
@@ -1790,6 +1665,125 @@ export class EditorShellPage implements OnInit, AfterViewInit, OnDestroy {
         this.sessionExit.exitAfterDone();
       }
     }
+  }
+
+  private async completeDoneExport(): Promise<boolean> {
+    if (this.textEdit.isEditing()) {
+      this.textEdit.apply();
+    }
+
+    const session = this.session;
+    if (!session) {
+      return true;
+    }
+
+    const sourceFile = session.file ?? (await this.resolveSessionFile());
+    if (!sourceFile) {
+      return true;
+    }
+
+    await this.ensureExportDimensions(session, sourceFile);
+
+    await this.waitForNextPaint();
+    this.history.flushPendingChanges();
+    const state: CoverCropState = {
+      ...this.editorState.getState(),
+    };
+    const ctx = this.editorState.constraintsContext();
+    const frameSize = this.getFrameSize();
+    const frameEl = this.frameRef?.nativeElement;
+    const fw =
+      (Number.isFinite(ctx?.frameW) ? ctx?.frameW : undefined) ??
+      frameSize?.width ??
+      frameEl?.clientWidth;
+    const fh =
+      (Number.isFinite(ctx?.frameH) ? ctx?.frameH : undefined) ??
+      frameSize?.height ??
+      frameEl?.clientHeight;
+    if (fw && fh) {
+      state.frameWidth = fw;
+      state.frameHeight = fh;
+    }
+    let renderedBlob: Blob | undefined;
+    let editorMasterBlob: Blob | undefined;
+    let renderedWidth: number | undefined;
+    let renderedHeight: number | undefined;
+    let renderedMimeType: string | undefined;
+
+    const includeRenderedBlob = session.output?.includeRenderedBlob ?? true;
+    let renderInput = this.buildRenderInput(state);
+    for (let attempt = 0; attempt < 3 && includeRenderedBlob; attempt += 1) {
+      if (!renderInput) {
+        await this.waitForNextPaint();
+        renderInput = this.buildRenderInput(state);
+        continue;
+      }
+
+      try {
+        const canvas = await renderCompositionToCanvas(renderInput, {
+          mode: "export",
+          outputScale: 1,
+        });
+        if (canvas) {
+          const master = await encodeCompositionCanvas(canvas, "high-quality");
+          if (master) {
+            editorMasterBlob = master.blob;
+          }
+          const encoded = await encodeCompositionCanvas(
+            canvas,
+            session.output?.exportQuality,
+            session.output?.exportQuality === "high-quality"
+              ? undefined
+              : "#ffffff",
+          );
+          if (encoded) {
+            renderedBlob = encoded.blob;
+            renderedMimeType = encoded.mimeType;
+            renderedWidth = encoded.width;
+            renderedHeight = encoded.height;
+          }
+        }
+      } catch (error) {
+        console.warn("[EDITOR] render export failed", error);
+      }
+
+      if (!renderedBlob && attempt < 2) {
+        await this.waitForNextPaint();
+        renderInput = this.buildRenderInput(state);
+      }
+    }
+
+    if (includeRenderedBlob && (!renderedBlob || !editorMasterBlob)) {
+      console.warn("[EDITOR] final render did not produce a preview; keeping editor open");
+      return false;
+    }
+
+    const result: CropperResult = {
+      file: sourceFile,
+      state,
+      formatId: session.tools?.formats?.selectedId,
+      renderedBlob,
+      editorMasterBlob,
+      renderedWidth,
+      renderedHeight,
+      renderedMimeType,
+      renderInfo: renderInput
+        ? buildEditorRenderInfo({
+            input: renderInput,
+            renderedWidth: renderedWidth ?? 1,
+            renderedHeight: renderedHeight ?? 1,
+            exportQuality: session.output?.exportQuality,
+          })
+        : undefined,
+      history: this.history.captureProjectSnapshot(),
+    };
+    this.editorSession.setResult(this.sid, result);
+    await applyEditorResultBeforeExit(
+      result,
+      session.onResultApplied,
+      session.project?.persist,
+    );
+    return true;
   }
 
   undo(): void {

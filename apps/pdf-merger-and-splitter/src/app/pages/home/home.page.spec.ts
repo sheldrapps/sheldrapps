@@ -3,6 +3,7 @@ import { signal } from '@angular/core';
 import { type CropperResult } from '@sheldrapps/image-workflow';
 import { HomePage } from './home.page';
 import { mergedPdfOutputName, splitPdfOutputName } from '../../pdf/pdf-output-naming';
+import { PdfRewriteError } from '../../pdf/pdf-rewrite.service';
 
 describe('HomePage', () => {
   it('shows only the operation step before merge or split is selected', () => {
@@ -67,6 +68,7 @@ describe('HomePage', () => {
       coverImageUri: signal<string | null>(null),
       coverPreviewUri: signal<string | null>(null),
       coverMasterBlob: undefined,
+      editorFlowEpoch: 0,
       steps: () => [{ id: 'cover' }, { id: 'adjust' }, { id: 'review' }],
       workflowStep: signal(1),
       applySelectedExportQuality: async () => undefined,
@@ -81,6 +83,131 @@ describe('HomePage', () => {
     expect(ctx.coverImageUri()).toBe('file:///adjusted-cover.jpg');
     expect(ctx.coverPreviewUri()).toContain('data:image/jpeg');
     expect(ctx.workflowStep()).toBe(2);
+  });
+
+  it('stages the rendered editor image instead of the original source image', async () => {
+    const sourceFile = new File(['source'], 'cover.jpg', { type: 'image/jpeg' });
+    const renderedBlob = new Blob(['rendered'], { type: 'image/png' });
+    const stageCoverImage = jasmine
+      .createSpy('stageCoverImage')
+      .and.resolveTo('file:///rendered-cover.png');
+    const renderedFilePreview = 'data:image/png;base64,cmVuZGVyZWQ=';
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      rewrite: { stageCoverImage },
+      cover: signal({ source: 'image' }),
+      coverFile: signal<File | null>(sourceFile),
+      coverImageUri: signal<string | null>(null),
+      coverPreviewUri: signal<string | null>(null),
+      coverMasterBlob: undefined,
+      steps: () => [{ id: 'cover' }, { id: 'adjust' }, { id: 'review' }],
+      workflowStep: signal(1),
+      applySelectedExportQuality: async () => undefined,
+      createPreviewUri: async () => renderedFilePreview,
+    });
+
+    const applyEditorResult = (HomePage.prototype as unknown as {
+      applyEditorResult(result: CropperResult): Promise<void>;
+    }).applyEditorResult;
+    await applyEditorResult.call(ctx, {
+      file: sourceFile,
+      renderedBlob,
+      renderedMimeType: 'image/png',
+      editorMasterBlob: new Blob(['master'], { type: 'image/png' }),
+    });
+
+    const stagedFile = stageCoverImage.calls.mostRecent().args[0] as File;
+    expect(stagedFile.name).toBe('cover_rendered.png');
+    expect(await stagedFile.text()).toBe('rendered');
+    expect(ctx.coverFile()!.name).toBe('cover_rendered.png');
+    expect(ctx.coverPreviewUri()).toBe(renderedFilePreview);
+  });
+
+  it('does not start a second export while the first one is busy', async () => {
+    const canContinue = jasmine.createSpy('canContinue').and.returnValue(true);
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      isBusy: signal(true),
+      selectedMode: signal('split'),
+      canContinue,
+    });
+
+    const execute = (HomePage.prototype as unknown as {
+      execute(): Promise<void>;
+    }).execute;
+    await execute.call(ctx);
+
+    expect(canContinue).not.toHaveBeenCalled();
+    expect(ctx.isBusy()).toBeTrue();
+  });
+
+  it('does not report a split export failure as an unavailable native engine', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      selectedMode: signal('split'),
+    });
+
+    const errorKeyFor = (HomePage.prototype as unknown as {
+      errorKeyFor(error: unknown): string;
+    }).errorKeyFor;
+
+    expect(errorKeyFor.call(ctx, new PdfRewriteError('PUBLIC_EXPORT_FAILED'))).toBe(
+      'HOME.OPERATION.SPLIT_FAILURE_BODY',
+    );
+    expect(errorKeyFor.call(ctx, new PdfRewriteError('NATIVE_ENGINE_UNAVAILABLE'))).toBe(
+      'PDF_WORKFLOW.NATIVE_ENGINE_NOTICE',
+    );
+  });
+
+  it('returns the flow to its initial state and releases transient resources', async () => {
+    const cleanupSession = jasmine.createSpy('cleanupSession').and.resolveTo(undefined);
+    const releaseStagedCoverImage = jasmine.createSpy('releaseStagedCoverImage').and.resolveTo(undefined);
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      editorFlowEpoch: 0,
+      sessionId: signal('pdf-session'),
+      coverImageUri: signal<string | null>('staged-cover'),
+      selectedMode: signal('split'),
+      pendingMode: signal('split'),
+      mergePdfs: signal([{ id: 'pdf' }]),
+      splitPdf: signal({ id: 'pdf' }),
+      cover: signal({ source: 'editor' }),
+      coverFile: signal<File | null>(new File(['cover'], 'cover.jpg')),
+      coverPreviewUri: signal<string | null>('data:image/jpeg;base64,Y292ZXI='),
+      coverMasterBlob: new Blob(['cover']),
+      lastEditorSessionId: 'editor-session',
+      editorSession: {
+        consumeResult: jasmine.createSpy('consumeResult'),
+        consumeSession: jasmine.createSpy('consumeSession'),
+      },
+      rewrite: { cleanupSession, releaseStagedCoverImage },
+      resetSplitConfiguration: jasmine.createSpy('resetSplitConfiguration'),
+      workflowStep: signal(4),
+      errorKey: signal('error'),
+      pickerErrorKey: signal('picker-error'),
+      fidelityWarningsAcknowledged: signal(true),
+      resultWarnings: signal(['warning']),
+      operationCompleted: signal(true),
+      operationOutputs: signal([{ fileName: 'part.pdf', sizeBytes: 1 }]),
+      isRebuildingExportQuality: signal(true),
+      isBusy: signal(true),
+      previewObjectUrls: new Set<string>(),
+    });
+
+    const clearFlowState = (HomePage.prototype as unknown as {
+      clearFlowState(): Promise<void>;
+    }).clearFlowState;
+    await clearFlowState.call(ctx);
+
+    expect(cleanupSession).toHaveBeenCalledOnceWith('pdf-session');
+    expect(releaseStagedCoverImage).toHaveBeenCalledOnceWith('staged-cover');
+    expect(ctx.editorSession.consumeResult).toHaveBeenCalledOnceWith('editor-session');
+    expect(ctx.editorSession.consumeSession).toHaveBeenCalledOnceWith('editor-session');
+    expect(ctx.sessionId()).toBeNull();
+    expect(ctx.selectedMode()).toBeNull();
+    expect(ctx.coverImageUri()).toBeNull();
+    expect(ctx.coverPreviewUri()).toBeNull();
+    expect(ctx.errorKey()).toBeNull();
+    expect(ctx.pickerErrorKey()).toBeNull();
+    expect(ctx.operationCompleted()).toBeFalse();
+    expect(ctx.isRebuildingExportQuality()).toBeFalse();
+    expect(ctx.isBusy()).toBeFalse();
   });
 
   it('marks the adjust step while the cover editor is open', async () => {
@@ -120,6 +247,7 @@ describe('HomePage', () => {
       coverImageUri: signal<string | null>(null),
       coverPreviewUri: signal<string | null>(null),
       coverMasterBlob: undefined,
+      editorFlowEpoch: 0,
       steps: () => [{ id: 'cover' }, { id: 'adjust' }, { id: 'review' }],
       workflowStep: signal(0),
       editorSession: {

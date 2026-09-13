@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { FileKitService } from './file-kit.service';
 import { EpubRewriteService } from './epub-rewrite.service';
+import { reportFileReadFailure } from './file-telemetry';
 
 @Injectable({ providedIn: 'root' })
 export class EpubReadService {
@@ -73,34 +74,43 @@ export class EpubReadService {
   private async writeFileToCache(file: File, path: string): Promise<void> {
     let offset = 0;
     let firstChunk = true;
-    while (offset < file.size) {
-      const end = Math.min(file.size, offset + this.NATIVE_COPY_CHUNK_BYTES);
-      const bytes = new Uint8Array(await file.slice(offset, end).arrayBuffer());
+    try {
+      while (offset < file.size) {
+        const end = Math.min(file.size, offset + this.NATIVE_COPY_CHUNK_BYTES);
+        const bytes = new Uint8Array(await file.slice(offset, end).arrayBuffer());
+        if (firstChunk) {
+          await this.fileKit.writeBytes({
+            dir: 'Cache',
+            path,
+            bytes,
+            mimeType: 'application/epub+zip',
+          });
+          firstChunk = false;
+        } else {
+          await Filesystem.appendFile({
+            directory: Directory.Cache,
+            path,
+            data: this.fileKit.toBase64(bytes),
+          });
+        }
+        offset = end;
+      }
+
       if (firstChunk) {
         await this.fileKit.writeBytes({
           dir: 'Cache',
           path,
-          bytes,
+          bytes: new Uint8Array(),
           mimeType: 'application/epub+zip',
         });
-        firstChunk = false;
-      } else {
-        await Filesystem.appendFile({
-          directory: Directory.Cache,
-          path,
-          data: this.fileKit.toBase64(bytes),
-        });
       }
-      offset = end;
-    }
-
-    if (firstChunk) {
-      await this.fileKit.writeBytes({
-        dir: 'Cache',
-        path,
-        bytes: new Uint8Array(),
-        mimeType: 'application/epub+zip',
+    } catch (error) {
+      reportFileReadFailure({
+        format: 'epub',
+        stage: 'filesystem_read_copy',
+        sizeBytes: file.size,
       });
+      throw error;
     }
   }
 

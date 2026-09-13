@@ -141,6 +141,7 @@ describe('FixPage', () => {
       busyAction: undefined,
       busyProgressPercent: 0,
       preparedSessionId: undefined,
+      multipleEpubDiagnoses: [],
       selectedEpubName: undefined,
       sourceEpubMeta: undefined,
       diagnosis: undefined,
@@ -172,10 +173,15 @@ describe('FixPage', () => {
     expect(input.value).toBe('');
   });
 
-  it('writes and saves a copy from the completed diagnosis plan after a rewarded ad', async () => {
-    const repair = jasmine.createSpy('repair').and.resolveTo({
-      success: true,
-      repairedIssues: ['SPINE_EMPTY'],
+  it('repairs and verifies before requesting access to export', async () => {
+    const callOrder: string[] = [];
+    const repair = jasmine.createSpy('repair').and.callFake(async () => {
+      callOrder.push('repair');
+      return {
+        success: true,
+        status: 'verified' as const,
+        repairedIssues: ['SPINE_EMPTY'],
+      };
     });
     const exportCurrentEpub = jasmine.createSpy('exportCurrentEpub').and.resolveTo(
       {
@@ -191,6 +197,11 @@ describe('FixPage', () => {
       rewardEarned: true,
       adClosed: true,
       failed: false,
+    });
+    const authorize = jasmine.createSpy('authorize').and.callFake(async () => {
+      callOrder.push('authorize');
+      await showRewarded();
+      return { granted: true };
     });
     const toastCreate = jasmine.createSpy('create').and.resolveTo({
       present: jasmine.createSpy('present').and.resolveTo(undefined),
@@ -223,6 +234,9 @@ describe('FixPage', () => {
       ads: {
         showRewarded,
       },
+      exportAccess: {
+        authorize,
+      },
       toastCtrl: {
         create: toastCreate,
       },
@@ -252,6 +266,7 @@ describe('FixPage', () => {
 
     expect(showRewarded).toHaveBeenCalled();
     expect(repair).toHaveBeenCalledOnceWith('diagnosis-1', undefined, undefined);
+    expect(callOrder).toEqual(['repair', 'authorize']);
     expect(toastCreate).not.toHaveBeenCalled();
     expect(exportCurrentEpub).toHaveBeenCalledWith('book_fixed.epub');
     expect(saveExportedEpub).toHaveBeenCalledWith(
@@ -300,6 +315,9 @@ describe('FixPage', () => {
       epubErrorKey: undefined,
       epubErrorParams: {},
       adsRemoved: true,
+      exportAccess: {
+        authorize: jasmine.createSpy('authorize').and.resolveTo({ granted: true }),
+      },
       toastCtrl: { create: toastCreate },
       translate: {
         instant: jasmine.createSpy('instant').and.callFake((key: string) => key),
@@ -307,6 +325,7 @@ describe('FixPage', () => {
       workflow: {
         repairCurrentEpub: jasmine.createSpy('repair').and.resolveTo({
           success: true,
+          status: 'verified' as const,
           repairedIssues: ['SPINE_EMPTY'],
         }),
         diagnoseCurrentEpub: jasmine.createSpy('diagnose').and.resolveTo({
@@ -342,6 +361,7 @@ describe('FixPage', () => {
   it('falls back to one ad-free repair attempt when rewarded loading fails', async () => {
     const repair = jasmine.createSpy('repair').and.resolveTo({
       success: true,
+      status: 'verified' as const,
       repairedIssues: ['SPINE_EMPTY'],
     });
     const diagnose = jasmine.createSpy('diagnose').and.resolveTo({
@@ -373,6 +393,20 @@ describe('FixPage', () => {
     const toastCreate = jasmine.createSpy('create').and.resolveTo({
       present: jasmine.createSpy('present').and.resolveTo(undefined),
     });
+    const authorize = jasmine.createSpy('authorize').and.callFake(
+      async (options: {
+        onAdFailure?: (result: {
+          rewardEarned: boolean;
+          adClosed: boolean;
+          failed: boolean;
+          failureReason?: string;
+          failureConfidence?: 'low' | 'medium' | 'high';
+        }) => Promise<boolean> | boolean;
+      }) => {
+        const adResult = await showRewarded();
+        return { granted: (await options.onAdFailure?.(adResult)) === true };
+      },
+    );
 
     const ctx = Object.assign(Object.create(FixPage.prototype), {
       busyAction: undefined,
@@ -403,6 +437,9 @@ describe('FixPage', () => {
       adFallbackTrialActive: false,
       ads: {
         showRewarded,
+      },
+      exportAccess: {
+        authorize,
       },
       adFallback: {
         handleAdFailure,
@@ -784,6 +821,7 @@ describe('FixPage', () => {
   it('forwards a preferred OPF path to the repair workflow', async () => {
     const repair = jasmine.createSpy('repair').and.resolveTo({
       success: true,
+      status: 'verified' as const,
       repairedIssues: ['OPF_AMBIGUOUS'],
     });
     const ctx = Object.assign(Object.create(FixPage.prototype), {
@@ -864,6 +902,7 @@ describe('FixPage', () => {
   it('uses the guided OPF selection when fixing an ambiguous package', async () => {
     const repair = jasmine.createSpy('repair').and.resolveTo({
       success: true,
+      status: 'verified' as const,
       repairedIssues: ['OPF_AMBIGUOUS'],
     });
     const ctx = Object.assign(Object.create(FixPage.prototype), {
@@ -957,6 +996,7 @@ describe('FixPage', () => {
   it('forwards guided selections for internal link repairs', async () => {
     const repair = jasmine.createSpy('repair').and.resolveTo({
       success: true,
+      status: 'verified' as const,
       repairedIssues: ['LINK_TARGET_MISSING'],
     });
     const issue = {
@@ -1405,6 +1445,7 @@ describe('FixPage', () => {
       busyAction: undefined,
       busyProgressPercent: 0,
       preparedSessionId: undefined,
+      multipleEpubDiagnoses: [],
       selectedEpubName: undefined,
       sourceEpubMeta: undefined,
       diagnosis: undefined,

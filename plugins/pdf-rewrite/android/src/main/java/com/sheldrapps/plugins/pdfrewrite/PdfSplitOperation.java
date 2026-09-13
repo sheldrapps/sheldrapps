@@ -67,44 +67,61 @@ public final class PdfSplitOperation {
         Map<Integer, Integer> sourceToOutput,
         Map<Integer, Integer> outputToSource,
         List<String> warnings
-    ) throws Exception {
+    ) {
         Map<Object, Integer> sourcePages = new HashMap<>();
-        for (int index = 0; index < source.getNumberOfPages(); index++) sourcePages.put(source.getPage(index).getCOSObject(), index);
+        try {
+            for (int index = 0; index < source.getNumberOfPages(); index++) sourcePages.put(source.getPage(index).getCOSObject(), index);
+        } catch (Exception ignored) {
+            addWarning(warnings, "INTERNAL_LINKS_NOT_REWRITTEN");
+            return;
+        }
         for (int pageIndex = 0; pageIndex < target.getNumberOfPages(); pageIndex++) {
-            Integer originalPageIndex = outputToSource.get(pageIndex);
-            List<PDAnnotation> targetAnnotations = target.getPage(pageIndex).getAnnotations();
-            List<PDAnnotation> sourceAnnotations = originalPageIndex == null ? null : source.getPage(originalPageIndex).getAnnotations();
-            for (int annotationIndex = 0; annotationIndex < targetAnnotations.size(); annotationIndex++) {
-                PDAnnotation annotation = targetAnnotations.get(annotationIndex);
-                if (!(annotation instanceof PDAnnotationLink)) continue;
-                PDAnnotationLink link = (PDAnnotationLink) annotation;
-                PDAnnotationLink originalLink = sourceAnnotations != null && annotationIndex < sourceAnnotations.size() && sourceAnnotations.get(annotationIndex) instanceof PDAnnotationLink
-                    ? (PDAnnotationLink) sourceAnnotations.get(annotationIndex) : link;
-                PDDestination destination = originalLink.getDestination();
-                PDAction action = originalLink.getAction();
-                if (action instanceof PDActionGoTo) destination = ((PDActionGoTo) action).getDestination();
-                if (!(destination instanceof PDPageDestination)) {
-                    if (action instanceof PDActionGoTo) removeInternalTarget(link, warnings);
-                    continue;
+            try {
+                Integer originalPageIndex = outputToSource.get(pageIndex);
+                List<PDAnnotation> targetAnnotations = target.getPage(pageIndex).getAnnotations();
+                List<PDAnnotation> sourceAnnotations = originalPageIndex == null ? null : source.getPage(originalPageIndex).getAnnotations();
+                for (int annotationIndex = 0; annotationIndex < targetAnnotations.size(); annotationIndex++) {
+                    try {
+                        PDAnnotation annotation = targetAnnotations.get(annotationIndex);
+                        if (!(annotation instanceof PDAnnotationLink)) continue;
+                        PDAnnotationLink link = (PDAnnotationLink) annotation;
+                        PDAnnotationLink originalLink = sourceAnnotations != null && annotationIndex < sourceAnnotations.size() && sourceAnnotations.get(annotationIndex) instanceof PDAnnotationLink
+                            ? (PDAnnotationLink) sourceAnnotations.get(annotationIndex) : link;
+                        PDDestination destination = originalLink.getDestination();
+                        PDAction action = originalLink.getAction();
+                        if (action instanceof PDActionGoTo) destination = ((PDActionGoTo) action).getDestination();
+                        if (!(destination instanceof PDPageDestination)) {
+                            if (action instanceof PDActionGoTo) removeInternalTarget(link, warnings);
+                            continue;
+                        }
+                        PDPageDestination pageDestination = (PDPageDestination) destination;
+                        Integer sourceIndex = null;
+                        PDPage sourcePage = pageDestination.getPage();
+                        if (sourcePage != null) sourceIndex = sourcePages.get(sourcePage.getCOSObject());
+                        if (sourceIndex == null) {
+                            int numbered = pageDestination.retrievePageNumber();
+                            if (numbered >= 0 && numbered < source.getNumberOfPages()) sourceIndex = numbered;
+                        }
+                        Integer outputIndex = sourceIndex == null ? null : sourceToOutput.get(sourceIndex);
+                        if (outputIndex == null) {
+                            removeInternalTarget(link, warnings);
+                        } else {
+                            pageDestination.setPage(target.getPage(outputIndex));
+                            if (link.getAction() instanceof PDActionGoTo) ((PDActionGoTo) link.getAction()).setDestination(pageDestination);
+                            else link.setDestination(pageDestination);
+                        }
+                    } catch (Exception ignored) {
+                        addWarning(warnings, "INTERNAL_LINKS_NOT_REWRITTEN");
+                    }
                 }
-                PDPageDestination pageDestination = (PDPageDestination) destination;
-                Integer sourceIndex = null;
-                PDPage sourcePage = pageDestination.getPage();
-                if (sourcePage != null) sourceIndex = sourcePages.get(sourcePage.getCOSObject());
-                if (sourceIndex == null) {
-                    int numbered = pageDestination.retrievePageNumber();
-                    if (numbered >= 0 && numbered < source.getNumberOfPages()) sourceIndex = numbered;
-                }
-                Integer outputIndex = sourceIndex == null ? null : sourceToOutput.get(sourceIndex);
-                if (outputIndex == null) {
-                    removeInternalTarget(link, warnings);
-                } else {
-                    pageDestination.setPage(target.getPage(outputIndex));
-                    if (link.getAction() instanceof PDActionGoTo) ((PDActionGoTo) link.getAction()).setDestination(pageDestination);
-                    else link.setDestination(pageDestination);
-                }
+            } catch (Exception ignored) {
+                addWarning(warnings, "INTERNAL_LINKS_NOT_REWRITTEN");
             }
         }
+    }
+
+    private void addWarning(List<String> warnings, String warning) {
+        if (!warnings.contains(warning)) warnings.add(warning);
     }
 
     private void removeInternalTarget(PDAnnotationLink link, List<String> warnings) {

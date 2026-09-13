@@ -25,6 +25,8 @@ const EN_BASE: AdFallbackLocaleDictionary = {
     MESSAGE: {
       CCFK: 'We could not load an ad right now. You can use a trial export to create a cover.',
       ECC: 'We could not load an ad right now. You can use a trial export to change a cover.',
+      EMAS: 'We could not load an ad right now. You can use a trial export to merge or split EPUBs.',
+      PMAS: 'We could not load an ad right now. You can use a trial export to merge or split PDFs.',
       EF: 'We could not load an ad right now. You can use a trial repair to continue.',
       PCM: 'We could not load an ad right now. You can use a trial export to create a cover.',
     },
@@ -49,6 +51,8 @@ const ES_BASE: AdFallbackLocaleDictionary = {
     MESSAGE: {
       CCFK: 'No pudimos cargar anuncio ahora. Puedes usar una exportacion de prueba para crear portada.',
       ECC: 'No pudimos cargar anuncio ahora. Puedes usar una exportacion de prueba para cambiar portada.',
+      EMAS: 'No pudimos cargar anuncio ahora. Puedes usar una exportacion de prueba para unir o dividir EPUBs.',
+      PMAS: 'No pudimos cargar anuncio ahora. Puedes usar una exportacion de prueba para unir o dividir PDFs.',
       EF: 'No pudimos cargar anuncio ahora. Puedes usar una reparacion de prueba para continuar.',
       PCM: 'No pudimos cargar anuncio ahora. Puedes usar una exportacion de prueba para crear portada.',
     },

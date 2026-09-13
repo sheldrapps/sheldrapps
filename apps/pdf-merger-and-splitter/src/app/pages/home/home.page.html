@@ -7,7 +7,7 @@
         variant="iconText"
         align="start"
         edge="end"
-        [disabled]="isResettingFlow()"
+        [disabled]="isResettingFlow() || isBusy()"
         (selectItem)="onHeaderItemClick($event)"
       ></sh-scrollable-button-bar>
     </ion-buttons>

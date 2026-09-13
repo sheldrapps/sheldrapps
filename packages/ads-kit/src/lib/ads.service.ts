@@ -23,6 +23,7 @@ import {
   isNativeDebugBuild,
 } from "./adapters/platform";
 import { toDebugString } from "./adapters/debug";
+import { reportAdsFailure } from './ad-telemetry';
 
 type RewardedEventListener = (
   eventName: RewardAdPluginEvents,
@@ -94,7 +95,9 @@ export class AdsService {
     }
 
     await this.ensureInitialized();
-    await this.consent.gatherConsent().catch(() => undefined);
+    await this.consent.gatherConsent().catch((error) => {
+      this.logRewardedFailure('consent', error);
+    });
     if (!this.canShowAds()) {
       return;
     }
@@ -183,7 +186,9 @@ export class AdsService {
       return this.failedResult('unknown', 'low');
     }
 
-    await this.consent.gatherConsent().catch(() => undefined);
+    await this.consent.gatherConsent().catch((error) => {
+      this.logRewardedFailure('consent', error);
+    });
     if (!this.canShowAds()) {
       return this.failedResult('unknown', 'low');
     }
@@ -270,7 +275,9 @@ export class AdsService {
               listeners.push(listener);
             }
           })
-          .catch(() => undefined);
+          .catch((error) => {
+            this.logRewardedFailure('listener', error);
+          });
 
       showTimeout = setTimeout(() => {
         if (showRequested) {
@@ -399,7 +406,9 @@ export class AdsService {
     }
 
     this.setRewardedStatus('awaiting-consent');
-    await this.consent.gatherConsent().catch(() => undefined);
+    await this.consent.gatherConsent().catch((error) => {
+      this.logRewardedFailure('consent', error);
+    });
     if (!this.canShowAds()) {
       this.setRewardedStatus('unavailable');
       return {
@@ -472,7 +481,8 @@ export class AdsService {
           }
         },
       );
-    } catch {
+    } catch (error) {
+      this.logRewardedFailure('listener', error);
       // The prepare call remains the source of truth if the event listener
       // cannot be registered on a plugin version/device.
     }
@@ -575,6 +585,38 @@ export class AdsService {
   private logRewardedFailure(stage: string, error: unknown): void {
     if (this.debugEnabled) {
       console.warn('[Ads] rewarded ' + stage + ' failed ' + toDebugString(error));
+    }
+
+    const failure = this.resolveFailureMetadata(error);
+    const failureSpec = this.rewardedFailureSpec(stage);
+    reportAdsFailure({
+      stage: failureSpec.stage,
+      errorCode: failureSpec.errorCode,
+      reason: failure.reason,
+      confidence: failure.confidence,
+    });
+  }
+
+  private rewardedFailureSpec(stage: string): {
+    stage: string;
+    errorCode: string;
+  } {
+    switch (stage) {
+      case 'initialize':
+        return { stage: 'ads_initialize', errorCode: 'ADS_INITIALIZE_FAILED' };
+      case 'consent':
+        return { stage: 'ads_consent', errorCode: 'ADS_CONSENT_FAILED' };
+      case 'load':
+        return { stage: 'rewarded_load', errorCode: 'ADS_REWARDED_LOAD_FAILED' };
+      case 'listener':
+        return { stage: 'rewarded_listener', errorCode: 'ADS_REWARDED_LISTENER_FAILED' };
+      case 'show-watchdog':
+        return { stage: 'rewarded_show', errorCode: 'ADS_REWARDED_SHOW_WATCHDOG' };
+      case 'show-timeout':
+        return { stage: 'rewarded_show', errorCode: 'ADS_REWARDED_SHOW_TIMEOUT' };
+      case 'show':
+      default:
+        return { stage: 'rewarded_show', errorCode: 'ADS_REWARDED_SHOW_FAILED' };
     }
   }
   private failedResult(

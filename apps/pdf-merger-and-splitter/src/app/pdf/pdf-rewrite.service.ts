@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { Capacitor, registerPlugin, type Plugin, type PluginListenerHandle } from '@capacitor/core';
 import { PDFDocument } from 'pdf-lib';
+import { reportFileWriteFailure } from '@sheldrapps/file-kit';
 import {
   MAX_PDF_SIZE_BYTES,
   type MergePdfRequest,
@@ -56,6 +57,7 @@ export class PdfRewriteNativeService implements PdfRewriteService {
   private readonly NATIVE_COPY_CHUNK_BYTES = 256 * 1024;
   private readonly WEB_MAX_PDF_BYTES = 128 * 1024 * 1024;
   private readonly webSessions = new Map<string, { operation: PdfOperation; files: Map<string, File> }>();
+  private readonly stagedCoverFiles = new Map<string, string | null>();
 
   async createSession(operation: PdfOperation): Promise<PdfSession> {
     if (Capacitor.getPlatform() === 'web') {
@@ -167,7 +169,31 @@ export class PdfRewriteNativeService implements PdfRewriteService {
     const result = await PdfRewrite.cancelOperation();
     if (!result.success) this.throwResult(result);
   }
-  async stageCoverImage(file: File): Promise<string> { return this.privateUri(file, URL.createObjectURL(file)); }
+  async stageCoverImage(file: File): Promise<string> {
+    if (Capacitor.getPlatform() === 'web') {
+      const uri = URL.createObjectURL(file);
+      this.stagedCoverFiles.set(uri, null);
+      return uri;
+    }
+    return this.privateUri(file);
+  }
+
+  async releaseStagedCoverImage(uri: string | null | undefined): Promise<void> {
+    if (!uri) return;
+    const path = this.stagedCoverFiles.get(uri);
+    this.stagedCoverFiles.delete(uri);
+    if (Capacitor.getPlatform() === 'web') {
+      URL.revokeObjectURL(uri);
+      return;
+    }
+    if (!path) return;
+    try {
+      await Filesystem.deleteFile({ path, directory: Directory.Cache });
+    } catch {
+      return;
+    }
+  }
+
   async cleanupSession(sessionId: string): Promise<void> {
     if (Capacitor.getPlatform() === 'web') {
       this.webSessions.delete(sessionId);
@@ -369,25 +395,40 @@ export class PdfRewriteNativeService implements PdfRewriteService {
     return `web-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   }
 
-  private async privateUri(file: File, fallback: string): Promise<string> {
-    if (Capacitor.getPlatform() === 'web') return fallback;
+  private async privateUri(file: File): Promise<string> {
     const path = `PdfMergerAndSplitter/${crypto.randomUUID()}-${file.name}`;
-    let offset = 0;
-    let firstChunk = true;
-    while (offset < file.size) {
-      const end = Math.min(file.size, offset + this.NATIVE_COPY_CHUNK_BYTES);
-      const bytes = new Uint8Array(await file.slice(offset, end).arrayBuffer());
-      const data = this.toBase64(bytes);
-      if (firstChunk) {
-        await Filesystem.writeFile({ path, data, directory: Directory.Cache, recursive: true });
-        firstChunk = false;
-      } else {
-        await Filesystem.appendFile({ path, data, directory: Directory.Cache });
+    try {
+      let offset = 0;
+      let firstChunk = true;
+      while (offset < file.size) {
+        const end = Math.min(file.size, offset + this.NATIVE_COPY_CHUNK_BYTES);
+        const bytes = new Uint8Array(await file.slice(offset, end).arrayBuffer());
+        const data = this.toBase64(bytes);
+        if (firstChunk) {
+          await Filesystem.writeFile({ path, data, directory: Directory.Cache, recursive: true });
+          firstChunk = false;
+        } else {
+          await Filesystem.appendFile({ path, data, directory: Directory.Cache });
+        }
+        offset = end;
       }
-      offset = end;
+      if (firstChunk) await Filesystem.writeFile({ path, data: '', directory: Directory.Cache, recursive: true });
+      const uri = (await Filesystem.getUri({ path, directory: Directory.Cache })).uri;
+      this.stagedCoverFiles.set(uri, path);
+      return uri;
+    } catch (error) {
+      reportFileWriteFailure({
+        format: 'pdf',
+        stage: 'filesystem_cover_copy',
+        sizeBytes: file.size,
+      });
+      try {
+        await Filesystem.deleteFile({ path, directory: Directory.Cache });
+      } catch {
+        return Promise.reject(error);
+      }
+      throw error;
     }
-    if (firstChunk) await Filesystem.writeFile({ path, data: '', directory: Directory.Cache, recursive: true });
-    return (await Filesystem.getUri({ path, directory: Directory.Cache })).uri;
   }
   private toBase64(bytes: Uint8Array): string {
     let binary = '';

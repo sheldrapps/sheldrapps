@@ -441,7 +441,7 @@ describe('HomePage', () => {
     expect(ctx.splitConfigurationRevision()).toBe(2);
   });
 
-  it('builds balanced, contiguous equal-part ranges for valid and invalid counts', () => {
+  it('builds content-balanced, contiguous equal-part ranges for valid and invalid counts', () => {
     const units = Array.from({ length: 7 }, (_, index) => ({
       title: `Chapter ${index + 1}`,
       sizeBytes: index + 1,
@@ -453,9 +453,9 @@ describe('HomePage', () => {
 
     const outputs = buildEqualOutputs.call(ctx, units, 3);
     expect(outputs.map((output: { startUnit: number; endUnit: number }) => [output.startUnit, output.endUnit])).toEqual([
-      [0, 2],
-      [3, 4],
-      [5, 6],
+      [0, 3],
+      [4, 5],
+      [6, 6],
     ]);
 
     const fallback = buildEqualOutputs.call(ctx, units, Number.POSITIVE_INFINITY);
@@ -466,19 +466,61 @@ describe('HomePage', () => {
     expect(buildEqualOutputs.call(ctx, units.slice(0, 1), 2)).toEqual([]);
   });
 
-  it('blocks scientific notation and signs in integer inputs', () => {
+  it('explains why equal parts cannot split a single reading document', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      splitAnalysis: signal({
+        units: [{ title: 'Book', sizeBytes: 1024 }],
+        sections: [],
+        tocEntries: [],
+      }),
+      splitMethod: 'equal-parts',
+      splitOutputPreviews: () => [],
+    });
+
+    const splitOutputValidationKey = Object.getOwnPropertyDescriptor(
+      HomePage.prototype,
+      'splitOutputValidationKey',
+    )?.get;
+
+    expect(splitOutputValidationKey?.call(ctx)).toBe(
+      'HOME.SPLIT_CONFIRM.EQUAL_SINGLE_DOCUMENT',
+    );
+  });
+
+  it('blocks scientific notation and signs in maximum-size inputs', () => {
     const preventDefault = jasmine.createSpy('preventDefault');
 
-    HomePage.prototype.onSplitIntegerKeydown.call(
+    HomePage.prototype.onSplitMaximumSizeKeydown.call(
       Object.create(HomePage.prototype),
       { key: 'e', preventDefault } as unknown as KeyboardEvent,
     );
-    HomePage.prototype.onSplitIntegerKeydown.call(
+    HomePage.prototype.onSplitMaximumSizeKeydown.call(
       Object.create(HomePage.prototype),
       { key: '+', preventDefault } as unknown as KeyboardEvent,
     );
 
     expect(preventDefault).toHaveBeenCalledTimes(2);
+  });
+
+  it('accepts decimal maximum sizes with either decimal separator', () => {
+    const ctx = Object.assign(Object.create(HomePage.prototype), {
+      splitMaximumSize: 10,
+      splitMaximumSizeErrorKey: signal<string | null>(null),
+      splitConfigurationRevision: signal(0),
+    });
+
+    HomePage.prototype.onSplitMaximumSizeInput.call(ctx, '0.5');
+    expect(ctx.splitMaximumSize).toBe(0.5);
+    expect(ctx.splitMaximumSizeErrorKey()).toBeNull();
+
+    HomePage.prototype.onSplitMaximumSizeInput.call(ctx, '0,25');
+    expect(ctx.splitMaximumSize).toBe(0.25);
+    expect(ctx.splitMaximumSizeErrorKey()).toBeNull();
+
+    HomePage.prototype.onSplitMaximumSizeInput.call(ctx, '0.2');
+    expect(ctx.splitMaximumSizeErrorKey()).toBe(
+      'HOME.SPLIT_CONFIRM.INVALID_MAXIMUM_SIZE',
+    );
   });
 
   it('exposes only chapter and section variants', () => {

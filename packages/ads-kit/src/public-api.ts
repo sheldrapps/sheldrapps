@@ -5,6 +5,7 @@
 // Core exports
 export * from './lib/types';
 export * from './lib/ads.service';
+export * from './lib/ad-telemetry';
 export * from './lib/billing.service';
 export * from './lib/export-access.service';
 export * from './lib/consent.service';

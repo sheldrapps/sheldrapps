@@ -2,6 +2,10 @@ import { Capacitor } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { FileKitService } from './file-kit.service';
 import { type PublicFilesystem } from './public-filesystem';
+import {
+  reportFileReadFailure,
+  reportFileWriteFailure,
+} from './file-telemetry';
 
 const DEFAULT_PUBLIC_DOCUMENTS_ROOTS = [
   '/storage/emulated/0/Documents',
@@ -122,7 +126,16 @@ export class PdfPublicStore {
 
   async writePdf(filename: string, bytes: Uint8Array): Promise<void> {
     await this.ensureReady();
-    await this.writeTargetPdf(filename, this.fileKit.toBase64(bytes));
+    try {
+      await this.writeTargetPdf(filename, this.fileKit.toBase64(bytes));
+    } catch (error) {
+      reportFileWriteFailure({
+        format: 'pdf',
+        stage: 'public_write',
+        sizeBytes: bytes.byteLength,
+      });
+      throw error;
+    }
   }
 
   async deletePdf(filename: string): Promise<void> {
@@ -162,12 +175,17 @@ export class PdfPublicStore {
     if (!path) {
       throw new Error(`File not found: ${filename}`);
     }
-    const raw = await this.filesystem.readFile(this.buildFilesystemPath(path));
-    const base64 =
-      typeof raw.data === 'string'
-        ? raw.data
-        : this.fileKit.toBase64(new Uint8Array(await raw.data.arrayBuffer()));
-    return this.fileKit.fromBase64(this.normalizeBase64Data(base64));
+    try {
+      const raw = await this.filesystem.readFile(this.buildFilesystemPath(path));
+      const base64 =
+        typeof raw.data === 'string'
+          ? raw.data
+          : this.fileKit.toBase64(new Uint8Array(await raw.data.arrayBuffer()));
+      return this.fileKit.fromBase64(this.normalizeBase64Data(base64));
+    } catch (error) {
+      reportFileReadFailure({ format: 'pdf', stage: 'public_read' });
+      throw error;
+    }
   }
 
   async getUriOrThrow(filename: string): Promise<string> {

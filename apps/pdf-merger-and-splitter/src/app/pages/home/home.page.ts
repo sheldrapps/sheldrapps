@@ -18,11 +18,20 @@ import {
   IonHeader,
   IonIcon,
   IonInput,
+  ModalController,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { AdsService, BillingService, ExportAccessService } from '@sheldrapps/ads-kit';
+import {
+  AdsService,
+  BillingService,
+  ExportAccessService,
+  type AdFailureConfidence,
+  type AdFailureReason,
+  type RewardedAdResult,
+} from '@sheldrapps/ads-kit';
+import { AdFallbackService } from '@sheldrapps/ad-fallback-kit';
 import {
   DEFAULT_EXPORT_QUALITY_MODE,
   getCoverExportOptions,
@@ -137,10 +146,18 @@ export class HomePage implements OnDestroy, OnInit {
   private readonly billing = inject(BillingService);
   private readonly ads = inject(AdsService);
   private readonly exportAccess = inject(ExportAccessService);
+  private readonly adFallback = inject(AdFallbackService);
+  private readonly modalController = inject(ModalController);
   private readonly settings = inject(SettingsStore<PdfMergerAndSplitterSettings>);
   private readonly recommendedApps = inject(RecommendedAppsService);
   private readonly editorSessionExit = inject(EditorSessionExitService);
   private readonly editorSession = inject(EditorSessionService);
+  private readonly adFallbackTotal = 2;
+  private adFallbackRemaining = this.adFallbackTotal;
+  private adFallbackTrialActive = false;
+  private readonly adFallbackApp = 'pmas' as const;
+  private readonly adFallbackRemainingPreference = 'pmas_ad_fallback_remaining';
+  private readonly adFallbackTrialPreference = 'pmas_ad_fallback_trial_active';
 
   @ViewChild('pdfInput') private pdfInput?: ElementRef<HTMLInputElement>;
   @ViewChild('coverInput') private coverInput?: ElementRef<HTMLInputElement>;
@@ -193,9 +210,11 @@ export class HomePage implements OnDestroy, OnInit {
   readonly operationCompleted = signal(false);
   readonly operationOutputs = signal<readonly PdfOutputSummary[]>([]);
   private lastEditorSessionId: string | undefined;
+  private editorFlowEpoch = 0;
   private routerSub?: Subscription;
   private editorReturnStep = 0;
   private coverMasterBlob: Blob | undefined;
+  private previewObjectUrls = new Set<string>();
   readonly mergeIconSvg = signal<string | null>(null);
   readonly splitIconSvg = signal<string | null>(null);
   headerItems: ScrollableBarItem[] = [];
@@ -306,14 +325,14 @@ export class HomePage implements OnDestroy, OnInit {
           ? 'HOME.SPLIT_OPTIONS.MANUAL_SPLIT_POINTS.TITLE'
           : value === 'equal-number-of-parts'
           ? 'HOME.SPLIT_OPTIONS.EQUAL_PARTS.TITLE'
-            : 'HOME.SPLIT_OPTIONS.MAXIMUM_PAGES.TITLE',
+            : 'HOME.SPLIT_OPTIONS.MAXIMUM_FILE_SIZE.TITLE',
       sublineKey: value === 'bookmarks'
         ? 'HOME.SPLIT_OPTIONS.BY_CHAPTERS_OR_SECTIONS.SUBLINE'
         : value === 'manual-cut-points'
           ? 'HOME.SPLIT_OPTIONS.MANUAL_SPLIT_POINTS.SUBLINE'
           : value === 'equal-number-of-parts'
             ? 'HOME.SPLIT_OPTIONS.EQUAL_PARTS.SUBLINE'
-            : 'HOME.SPLIT_OPTIONS.MAXIMUM_PAGES.SUBLINE',
+            : 'HOME.SPLIT_OPTIONS.MAXIMUM_FILE_SIZE.SUBLINE',
       leadingIconSrc: value === 'bookmarks'
         ? 'assets/icons/notebook2-outline.svg'
         : value === 'manual-cut-points'
@@ -438,7 +457,11 @@ export class HomePage implements OnDestroy, OnInit {
           void this.consumeEditorResult();
         }
       });
-    await Promise.all([this.refreshHeaderItems(), this.loadExportQualitySettings()]);
+    await Promise.all([
+      this.hydrateAdFallbackState(),
+      this.refreshHeaderItems(),
+      this.loadExportQualitySettings(),
+    ]);
   }
 
   ngOnDestroy(): void {
@@ -486,7 +509,7 @@ export class HomePage implements OnDestroy, OnInit {
   }
 
   async resetFlow(): Promise<void> {
-    if (this.isResettingFlow()) return;
+    if (this.isResettingFlow() || this.isBusy()) return;
     if (!(await this.editorSessionExit.confirmResetFlow())) return;
     this.isResettingFlow.set(true);
     try {
@@ -497,7 +520,7 @@ export class HomePage implements OnDestroy, OnInit {
   }
 
   async onOperationDone(): Promise<void> {
-    if (this.isResettingFlow()) return;
+    if (this.isResettingFlow() || this.isBusy()) return;
     this.isResettingFlow.set(true);
     try {
       await this.clearFlowState();
@@ -507,30 +530,78 @@ export class HomePage implements OnDestroy, OnInit {
     }
   }
 
-  private async clearFlowState(): Promise<void> {
-    const sessionId = this.sessionId();
-    if (sessionId) await this.rewrite.cleanupSession(sessionId);
-    this.selectedMode.set(null);
-    this.pendingMode.set(null);
-    this.mergePdfs.set([]);
-    this.splitPdf.set(null);
-    this.resetSplitConfiguration();
-    this.cover.set({ source: 'none' });
-    this.coverFile.set(null);
-    this.coverImageUri.set(null);
-    this.coverPreviewUri.set(null);
-    this.coverMasterBlob = undefined;
+  private disposeEditorSession(): void {
+    const sessionId = this.lastEditorSessionId;
+    if (!sessionId) return;
+    this.disposeEditorSessionById(sessionId);
     this.lastEditorSessionId = undefined;
-    this.sessionId.set(null);
-    this.workflowStep.set(0);
-    this.errorKey.set(null);
-    this.fidelityWarningsAcknowledged.set(false);
-    this.resultWarnings.set([]);
-    this.operationCompleted.set(false);
-    this.operationOutputs.set([]);
+  }
+
+  private disposeEditorSessionById(sessionId: string): void {
+    this.editorSession.consumeResult?.(sessionId);
+    this.editorSession.consumeSession?.(sessionId);
+  }
+
+  private async releaseStagedCoverImage(uri: string | null): Promise<void> {
+    if (!uri || !this.rewrite || typeof this.rewrite.releaseStagedCoverImage !== 'function') return;
+    await this.rewrite.releaseStagedCoverImage(uri);
+  }
+
+  private async replaceStagedCoverImage(uri: string | null): Promise<void> {
+    const previousUri = this.coverImageUri();
+    if (previousUri && previousUri !== uri) await this.releaseStagedCoverImage(previousUri);
+    this.coverImageUri.set(uri);
+  }
+
+  private releasePreviewObjectUrls(): void {
+    if (!this.previewObjectUrls) return;
+    for (const uri of this.previewObjectUrls) URL.revokeObjectURL(uri);
+    this.previewObjectUrls.clear();
+  }
+
+  private async clearFlowState(): Promise<void> {
+    this.editorFlowEpoch += 1;
+    const sessionId = this.sessionId();
+    const stagedCoverUri = this.coverImageUri();
+    this.disposeEditorSession();
+    try {
+      await Promise.allSettled([
+        sessionId ? this.rewrite.cleanupSession(sessionId) : Promise.resolve(),
+        this.releaseStagedCoverImage(stagedCoverUri),
+      ]);
+    } finally {
+      this.selectedMode.set(null);
+      this.pendingMode.set(null);
+      this.mergePdfs.set([]);
+      this.splitPdf.set(null);
+      this.resetSplitConfiguration();
+      this.cover.set({ source: 'none' });
+      this.coverFile.set(null);
+      this.coverImageUri.set(null);
+      this.coverPreviewUri.set(null);
+      this.coverMasterBlob = undefined;
+      this.sessionId.set(null);
+      this.workflowStep.set(0);
+      this.errorKey.set(null);
+      this.pickerErrorKey.set(null);
+      this.fidelityWarningsAcknowledged.set(false);
+      this.resultWarnings.set([]);
+      this.operationCompleted.set(false);
+      this.operationOutputs.set([]);
+      this.isRebuildingExportQuality.set(false);
+      this.isBusy.set(false);
+      this.editorReturnStep = 0;
+      this.releasePreviewObjectUrls();
+    }
   }
 
   selectMode(mode: PdfOperation): void {
+    const sessionId = this.sessionId();
+    const stagedCoverUri = this.coverImageUri();
+    this.disposeEditorSession();
+    if (sessionId) void this.rewrite.cleanupSession(sessionId);
+    void this.releaseStagedCoverImage(stagedCoverUri);
+    this.editorFlowEpoch += 1;
     this.operationCompleted.set(false);
     this.pendingMode.set(mode);
     this.selectedMode.set(null);
@@ -646,7 +717,7 @@ export class HomePage implements OnDestroy, OnInit {
       this.sessionId.set(session.id);
       const imported = await Promise.all(
         (mode === 'split' ? files.slice(0, 1) : files).map((file) =>
-          this.rewrite.importPdf(session.id, URL.createObjectURL(file), file),
+          this.rewrite.importPdf(session.id, file.name, file),
         ),
       );
       this.selectedMode.set(mode);
@@ -667,23 +738,36 @@ export class HomePage implements OnDestroy, OnInit {
   }
 
   async onCoverSelected(event: Event): Promise<void> {
+    if (this.isBusy()) return;
+
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
     input.value = '';
-    this.coverFile.set(file);
-    this.coverImageUri.set(file ? await this.rewrite.stageCoverImage(file) : null);
-    this.coverPreviewUri.set(file ? await this.createPreviewUri(file) : null);
-    this.cover.set(file ? { source: 'image', fileName: file.name } : { source: 'none' });
-    this.coverMasterBlob = undefined;
-    if (file) await this.openCoverEditor('image', file);
+
+    this.isBusy.set(true);
+    try {
+      this.coverFile.set(file);
+      const stagedCoverUri = file ? await this.rewrite.stageCoverImage(file) : null;
+      await this.replaceStagedCoverImage(stagedCoverUri);
+      this.releasePreviewObjectUrls();
+      this.coverPreviewUri.set(file ? await this.createPreviewUri(file) : null);
+      this.cover.set(file ? { source: 'image', fileName: file.name } : { source: 'none' });
+      this.coverMasterBlob = undefined;
+      if (file) await this.openCoverEditor('image', file);
+    } finally {
+      this.isBusy.set(false);
+    }
   }
 
   skipCover(): void {
+    const stagedCoverUri = this.coverImageUri();
     this.coverFile.set(null);
     this.coverImageUri.set(null);
     this.coverPreviewUri.set(null);
     this.cover.set({ source: 'none' });
     this.coverMasterBlob = undefined;
+    void this.releaseStagedCoverImage(stagedCoverUri);
+    this.releasePreviewObjectUrls();
     this.workflowStep.set(this.reviewWorkflowStep);
   }
 
@@ -697,6 +781,7 @@ export class HomePage implements OnDestroy, OnInit {
     returnStep = this.coverWorkflowStep,
   ): Promise<void> {
     if (sourceMode === 'image' && !file) return;
+    const flowEpoch = ++this.editorFlowEpoch;
     this.editorReturnStep = returnStep;
     const sessionId = this.editorSession.createSession({
       file,
@@ -704,9 +789,11 @@ export class HomePage implements OnDestroy, OnInit {
       target: { width: 600, height: 800, output: 'target', unit: 'px', outputMode: 'fixed-size' },
       output: { includeRenderedBlob: true },
       onResultApplied: async (result) => {
+        if (flowEpoch !== this.editorFlowEpoch) return;
         const appliedSessionId = this.lastEditorSessionId;
-        await this.applyEditorResult(result);
-        if (appliedSessionId) this.editorSession.consumeResult(appliedSessionId);
+        const applied = await this.applyEditorResult(result, flowEpoch);
+        if (!applied || flowEpoch !== this.editorFlowEpoch) return;
+        if (appliedSessionId) this.disposeEditorSessionById(appliedSessionId);
         if (this.lastEditorSessionId === appliedSessionId) {
           this.lastEditorSessionId = undefined;
         }
@@ -741,30 +828,55 @@ export class HomePage implements OnDestroy, OnInit {
   }
 
   private async consumeEditorResult(): Promise<void> {
+    const flowEpoch = this.editorFlowEpoch;
     const snapshot = consumeEditorResultSnapshot(this.editorSession, this.lastEditorSessionId);
     if (!snapshot.result?.file) {
       if (snapshot.session) {
+        if (this.lastEditorSessionId) this.disposeEditorSessionById(this.lastEditorSessionId);
         this.workflowStep.set(this.editorReturnStep);
         this.editorReturnStep = this.coverWorkflowStep;
       }
       return;
     }
 
-    await this.applyEditorResult(snapshot.result);
-    if (this.lastEditorSessionId) this.editorSession.consumeResult(this.lastEditorSessionId);
+    const applied = await this.applyEditorResult(snapshot.result, flowEpoch);
+    if (!applied || flowEpoch !== this.editorFlowEpoch) return;
+    if (this.lastEditorSessionId) {
+      this.disposeEditorSessionById(this.lastEditorSessionId);
+    }
     this.lastEditorSessionId = undefined;
   }
 
-  private async applyEditorResult(result: CropperResult): Promise<void> {
-    const file = result.file;
-    this.coverMasterBlob = result.editorMasterBlob ?? result.renderedBlob ?? file;
-    this.coverFile.set(file);
-    this.coverImageUri.set(await this.rewrite.stageCoverImage(file));
-    this.coverPreviewUri.set(await this.createPreviewUri(file));
-    this.cover.set({ source: 'editor', fileName: file.name });
-    await this.applySelectedExportQuality();
+  private async applyEditorResult(result: CropperResult, flowEpoch: number): Promise<boolean> {
+    if (flowEpoch !== this.editorFlowEpoch) return false;
+    const renderedFile = this.buildRenderedCoverFile(result);
+    this.coverMasterBlob = result.editorMasterBlob ?? result.renderedBlob ?? renderedFile;
+    this.coverFile.set(renderedFile);
+    const stagedCoverUri = await this.rewrite.stageCoverImage(renderedFile);
+    if (flowEpoch !== this.editorFlowEpoch) {
+      await this.releaseStagedCoverImage(stagedCoverUri);
+      return false;
+    }
+    await this.replaceStagedCoverImage(stagedCoverUri);
+    if (flowEpoch !== this.editorFlowEpoch) return false;
+    this.releasePreviewObjectUrls();
+    this.coverPreviewUri.set(await this.createPreviewUri(renderedFile));
+    if (flowEpoch !== this.editorFlowEpoch) return false;
+    this.cover.set({ source: 'editor', fileName: renderedFile.name });
+    await this.applySelectedExportQuality(flowEpoch);
+    if (flowEpoch !== this.editorFlowEpoch) return false;
     this.editorReturnStep = this.coverWorkflowStep;
     this.workflowStep.set(this.reviewWorkflowStep);
+    return true;
+  }
+
+  private buildRenderedCoverFile(result: CropperResult): File {
+    if (!result.renderedBlob) return result.file;
+
+    const type = result.renderedMimeType ?? result.renderedBlob.type ?? 'image/jpeg';
+    const extension = type === 'image/png' ? 'png' : 'jpg';
+    const baseName = result.file.name.replace(/\.(png|jpg|jpeg|webp)$/i, '') || 'cover';
+    return new File([result.renderedBlob], `${baseName}_rendered.${extension}`, { type });
   }
 
   getEffectiveExportQualityMode(): ExportQualityMode {
@@ -803,7 +915,7 @@ export class HomePage implements OnDestroy, OnInit {
     this.exportQualityMode = normalizeExportQualityMode(settings.exportQualityMode, this.adsRemoved());
   }
 
-  private async applySelectedExportQuality(): Promise<void> {
+  private async applySelectedExportQuality(expectedEpoch?: number): Promise<void> {
     if (!this.coverMasterBlob) return;
     const rendered = await encodeRenderedBlob(
       this.coverMasterBlob,
@@ -812,9 +924,16 @@ export class HomePage implements OnDestroy, OnInit {
       '#ffffff',
     );
     if (!rendered) return;
+    if (expectedEpoch !== undefined && expectedEpoch !== this.editorFlowEpoch) return;
 
     this.coverFile.set(rendered);
-    this.coverImageUri.set(await this.rewrite.stageCoverImage(rendered));
+    const stagedCoverUri = await this.rewrite.stageCoverImage(rendered);
+    if (expectedEpoch !== undefined && expectedEpoch !== this.editorFlowEpoch) {
+      await this.releaseStagedCoverImage(stagedCoverUri);
+      return;
+    }
+    await this.replaceStagedCoverImage(stagedCoverUri);
+    this.releasePreviewObjectUrls();
     this.coverPreviewUri.set(await this.createPreviewUri(rendered));
     this.cover.update((current) => ({ ...current, fileName: rendered.name }));
   }
@@ -823,7 +942,11 @@ export class HomePage implements OnDestroy, OnInit {
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
-      reader.onerror = () => resolve(URL.createObjectURL(file));
+      reader.onerror = () => {
+        const uri = URL.createObjectURL(file);
+        this.previewObjectUrls.add(uri);
+        resolve(uri);
+      };
       reader.readAsDataURL(file);
     });
   }
@@ -987,6 +1110,8 @@ export class HomePage implements OnDestroy, OnInit {
   }
 
   async execute(): Promise<void> {
+    if (this.isBusy()) return;
+
     const mode = this.selectedMode();
     if (!mode || !this.canContinue()) return;
     this.isBusy.set(true);
@@ -998,7 +1123,11 @@ export class HomePage implements OnDestroy, OnInit {
       if (!sessionId) throw new PdfRewriteError('SESSION_NOT_FOUND');
       const outputNames = this.outputNamesFor(mode);
       const access = await this.exportAccess.authorize({
-        onAdFailure: () => false,
+        onActiveFallbackTrial: () =>
+          this.adFallbackTrialActive && this.resolveAdFallbackRemaining() > 0
+            ? this.confirmActiveAdFallbackTrial()
+            : false,
+        onAdFailure: (result) => this.openAdFallbackFromFailure(result),
       });
       if (!access.granted) return;
       let result;
@@ -1036,6 +1165,9 @@ export class HomePage implements OnDestroy, OnInit {
             sizeBytes: 0,
           }))).map(({ fileName, sizeBytes }) => ({ fileName, sizeBytes })),
         );
+        if (access.source === 'fallback') {
+          await this.consumeAdFallbackAttemptAfterSuccess(mode);
+        }
       }
       await this.rewrite.cleanupSession(sessionId);
       this.sessionId.set(null);
@@ -1073,10 +1205,18 @@ export class HomePage implements OnDestroy, OnInit {
       if (error.code === 'PDF_TOO_LARGE') {
         return 'HOME.INPUT_ERROR_SIZE';
       }
-      if (error.code === 'WEB_PDF_REWRITE_UNAVAILABLE' || error.code === 'PUBLIC_EXPORT_FAILED') {
+      if (error.code === 'NO_SPACE') {
+        return 'HOME.INPUT_ERROR_STORAGE';
+      }
+      if (error.code === 'OPERATION_CANCELLED') {
+        return 'PDF_WORKFLOW.ERRORS.OPERATION_CANCELLED';
+      }
+      if (error.code === 'NATIVE_ENGINE_UNAVAILABLE' || error.code === 'WEB_PDF_REWRITE_UNAVAILABLE') {
         return 'PDF_WORKFLOW.NATIVE_ENGINE_NOTICE';
       }
-      return `PDF_WORKFLOW.ERRORS.${error.code}`;
+      return this.selectedMode() === 'split'
+        ? 'HOME.OPERATION.SPLIT_FAILURE_BODY'
+        : 'HOME.OPERATION.MERGE_FAILURE_BODY';
     }
     return 'PDF_WORKFLOW.ERRORS.INVALID_PDF';
   }
@@ -1088,7 +1228,7 @@ export class HomePage implements OnDestroy, OnInit {
       if (error.code === 'EMPTY_PDF' || error.code === 'PDF_CORRUPT' || error.code === 'INVALID_PDF') {
         return 'HOME.INPUT_ERROR_CORRUPT';
       }
-      if (error.code === 'WEB_PDF_REWRITE_UNAVAILABLE' || error.code === 'PUBLIC_EXPORT_FAILED') {
+      if (error.code === 'NATIVE_ENGINE_UNAVAILABLE' || error.code === 'WEB_PDF_REWRITE_UNAVAILABLE') {
         return 'PDF_WORKFLOW.NATIVE_ENGINE_NOTICE';
       }
     }
@@ -1122,5 +1262,130 @@ export class HomePage implements OnDestroy, OnInit {
       totalParts: mode === 'split' ? outputs.length : undefined,
       thumbnailUri: this.coverPreviewUri() ?? undefined,
     })));
+  }
+
+  private async openAdFallbackFromFailure(
+    result: RewardedAdResult,
+  ): Promise<boolean> {
+    try {
+      const decision = await this.adFallback.handleAdFailure(
+        {
+          app: this.adFallbackApp,
+          reason: this.normalizeFailureReason(result.failureReason),
+          confidence: this.normalizeFailureConfidence(result.failureConfidence),
+          remaining: this.resolveAdFallbackRemaining(),
+          total: this.adFallbackTotal,
+          countdownSeconds: 5,
+        },
+        this.modalController,
+      );
+
+      if (decision !== 'accepted') {
+        return false;
+      }
+
+      this.adFallbackTrialActive = true;
+      await this.persistAdFallbackState();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async confirmActiveAdFallbackTrial(): Promise<boolean> {
+    try {
+      const decision = await this.adFallback.handleAdFailure(
+        {
+          app: this.adFallbackApp,
+          reason: 'unknown',
+          confidence: 'low',
+          remaining: this.resolveAdFallbackRemaining(),
+          total: this.adFallbackTotal,
+          countdownSeconds: 5,
+        },
+        this.modalController,
+      );
+
+      return decision === 'accepted';
+    } catch {
+      return false;
+    }
+  }
+
+  private resolveAdFallbackRemaining(): number {
+    return this.adFallbackRemaining;
+  }
+
+  private async hydrateAdFallbackState(): Promise<void> {
+    const settings = await this.settings.load();
+    const rawRemaining = settings.preferences?.[this.adFallbackRemainingPreference];
+    const parsedRemaining =
+      typeof rawRemaining === 'number' && Number.isFinite(rawRemaining)
+        ? Math.floor(rawRemaining)
+        : this.adFallbackTotal;
+    this.adFallbackRemaining = Math.max(
+      0,
+      Math.min(this.adFallbackTotal, parsedRemaining),
+    );
+
+    const rawActive = settings.preferences?.[this.adFallbackTrialPreference];
+    this.adFallbackTrialActive =
+      rawActive === true && this.adFallbackRemaining > 0;
+  }
+
+  private async persistAdFallbackState(): Promise<void> {
+    const remaining = Math.max(
+      0,
+      Math.min(this.adFallbackTotal, Math.floor(this.adFallbackRemaining)),
+    );
+    this.adFallbackRemaining = remaining;
+    this.adFallbackTrialActive = this.adFallbackTrialActive && remaining > 0;
+
+    await this.settings.set((previous) => ({
+      ...previous,
+      preferences: {
+        ...(previous.preferences ?? {}),
+        [this.adFallbackRemainingPreference]: remaining,
+        [this.adFallbackTrialPreference]: this.adFallbackTrialActive,
+      },
+    }));
+  }
+
+  private async consumeAdFallbackAttemptAfterSuccess(
+    operation: PdfOperation,
+  ): Promise<void> {
+    if (!this.adFallbackTrialActive) {
+      return;
+    }
+
+    this.adFallbackRemaining = Math.max(
+      0,
+      this.resolveAdFallbackRemaining() - 1,
+    );
+    this.adFallbackTrialActive = false;
+    await this.persistAdFallbackState();
+    console.info(
+      `[pdf-merger-and-splitter:ad-fallback] consumed on ${operation} ${JSON.stringify({
+        remaining: this.adFallbackRemaining,
+        total: this.adFallbackTotal,
+      })}`,
+    );
+  }
+
+  private normalizeFailureReason(value: unknown): AdFailureReason {
+    switch (value) {
+      case 'network':
+      case 'dns':
+      case 'no-fill':
+      case 'blocked':
+      case 'region':
+        return value;
+      default:
+        return 'unknown';
+    }
+  }
+
+  private normalizeFailureConfidence(value: unknown): AdFailureConfidence {
+    return value === 'high' ? 'high' : 'low';
   }
 }

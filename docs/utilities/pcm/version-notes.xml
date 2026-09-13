@@ -1,51 +1,51 @@
 <en-US>
-PDF cover exports are now more reliable, and Pro users can export without loading ads.
+PDF cover exports now handle file reading and rewarded ads more reliably, with better recovery when an ad cannot finish.
 </en-US>
 
 <ar>
-أصبح تصدير أغلفة PDF أكثر موثوقية، ويمكن لمستخدمي Pro التصدير دون تحميل الإعلانات.
+أصبح تصدير أغلفة PDF يتعامل مع قراءة الملفات والإعلانات بمكافآت بشكل أكثر موثوقية، مع استرداد أفضل عند تعذر إكمال الإعلان.
 </ar>
 
 <de-DE>
-PDF-Cover werden jetzt zuverlässiger exportiert, und Pro-Nutzer können ohne geladene Werbung exportieren.
+Der Export von PDF-Covern verarbeitet das Lesen von Dateien und Rewarded-Anzeigen jetzt zuverlässiger und erholt sich besser, wenn eine Anzeige nicht abgeschlossen werden kann.
 </de-DE>
 
 <es-419>
-La exportación de portadas PDF es más confiable; quienes tienen Pro exportan sin cargar anuncios.
+Las exportaciones de portadas PDF gestionan con mayor confiabilidad la lectura de archivos y los anuncios recompensados, incluso si un anuncio no termina.
 </es-419>
 
 <fr-FR>
-L’exportation des couvertures PDF est maintenant plus fiable, et les utilisateurs Pro exportent sans charger de publicités.
+Les exports de couvertures PDF gèrent désormais plus fiablement la lecture des fichiers et les annonces récompensées, même lorsqu’une annonce ne se termine pas.
 </fr-FR>
 
 <hi-IN>
-PDF कवर का एक्सपोर्ट अब अधिक भरोसेमंद है, और Pro उपयोगकर्ता विज्ञापन लोड किए बिना एक्सपोर्ट कर सकते हैं।
+अब PDF कवर एक्सपोर्ट फ़ाइल पढ़ने और रिवॉर्डेड विज्ञापनों को अधिक भरोसेमंद तरीके से संभालते हैं, भले ही कोई विज्ञापन पूरा न हो।
 </hi-IN>
 
 <it-IT>
-L’esportazione delle copertine PDF è ora più affidabile, e gli utenti Pro possono esportare senza caricare annunci.
+Le esportazioni delle copertine PDF gestiscono ora in modo più affidabile la lettura dei file e gli annunci con ricompensa, anche se un annuncio non termina.
 </it-IT>
 
 <ja-JP>
-PDF表紙の書き出しがより安定し、Proユーザーは広告を読み込まずに書き出せるようになりました。
+PDF表紙の書き出しでファイルの読み取りとリワード広告がより安定し、広告が完了しない場合も適切に復旧できるようになりました。
 </ja-JP>
 
 <ko-KR>
-PDF 표지 내보내기가 더 안정적이며, Pro 사용자는 광고를 로드하지 않고 내보낼 수 있습니다.
+PDF 표지 내보내기에서 파일 읽기와 리워드 광고를 더 안정적으로 처리하며, 광고가 완료되지 않아도 더 잘 복구합니다.
 </ko-KR>
 
 <pt-BR>
-A exportação de capas PDF está mais confiável, e usuários Pro podem exportar sem carregar anúncios.
+As exportações de capas PDF agora lidam com a leitura de arquivos e anúncios recompensados com mais confiabilidade, mesmo quando um anúncio não é concluído.
 </pt-BR>
 
 <ru-RU>
-Экспорт обложек PDF стал надёжнее, а пользователи Pro могут экспортировать файлы без загрузки рекламы.
+Экспорт обложек PDF теперь надёжнее обрабатывает чтение файлов и рекламу с вознаграждением, даже если объявление не завершается.
 </ru-RU>
 
 <zh-CN>
-PDF 封面导出更加可靠，Pro 用户无需加载广告即可导出。
+PDF 封面导出现在能更可靠地处理文件读取和激励广告，即使广告未能完成也能更好地恢复。
 </zh-CN>
 
 <zh-TW>
-PDF 封面匯出更加可靠，Pro 使用者無需載入廣告即可匯出。
+PDF 封面匯出現在能更可靠地處理檔案讀取與獎勵廣告，即使廣告未完成也能更妥善地復原。
 </zh-TW>

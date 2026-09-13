@@ -23,6 +23,7 @@ type WebSession = {
   zip: JSZip;
   originalName: string;
   originalSize: number;
+  exportVerified: boolean;
   exportUrls: Set<string>;
 };
 
@@ -86,21 +87,6 @@ type FragmentResolution = {
 const EPUB_MIMETYPE = 'application/epub+zip';
 const WEB_EPUB_MAX_BYTES = 128 * 1024 * 1024;
 const WEB_DIAGNOSIS_PAGE_DEFAULT_SIZE = 50;
-const BLOCKING_CODES = new Set<EpubDiagnosticIssueCode>([
-  'CONTAINER_MISSING',
-  'OPF_MISSING',
-  'SPINE_EMPTY',
-  'CRIT-XHTML-001',
-  'CRIT-SEC-001',
-  'HIGH-MAN-001',
-  'HIGH-XHTML-001',
-  'HIGH-XHTML-002',
-  'HIGH-XHTML-003',
-  'HIGH-ENC-001',
-  'HIGH-ENC-002',
-  'HIGH-FALLBACK-001',
-]);
-
 @Injectable({ providedIn: 'root' })
 export class WebDevEpubFixerAdapter implements EpubFixerPort {
   readonly environment = 'web-dev' as const;
@@ -129,6 +115,7 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
         zip,
         originalName: input.displayName || file.name,
         originalSize: file.size,
+        exportVerified: false,
         exportUrls: new Set<string>(),
       });
 
@@ -148,6 +135,7 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
   async diagnose(input: { sessionId: string }): Promise<EpubDiagnosticResult> {
     const session = this.requireSession(input.sessionId);
     const analysis = await this.analyze(session.zip);
+    session.exportVerified = analysis.issues.length === 0;
 
     return {
       sessionId: input.sessionId,
@@ -186,6 +174,29 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     guidedSelections?: Record<string, string>;
   }): Promise<EpubRepairResult> {
     const session = this.requireSession(input.sessionId);
+    const originalZip = await JSZip.loadAsync(session.file);
+    session.exportVerified = false;
+    try {
+      const result = await this.repairInSession(input, session);
+      if (!result.success) {
+        session.zip = originalZip;
+      }
+      return result;
+    } catch (error) {
+      session.zip = originalZip;
+      throw error;
+    }
+  }
+
+  private async repairInSession(
+    input: {
+      sessionId: string;
+      diagnosisId?: string;
+      preferredOpfPath?: string;
+      guidedSelections?: Record<string, string>;
+    },
+    session: WebSession,
+  ): Promise<EpubRepairResult> {
     const analysis = await this.analyze(
       session.zip,
       input.preferredOpfPath,
@@ -199,6 +210,7 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     if (analysis.status === 'failed') {
       return {
         success: false,
+        status: 'failed',
         repairedIssues: [],
       };
     }
@@ -206,6 +218,7 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     if (analysis.status === 'unsupported') {
       return {
         success: false,
+        status: 'failed',
         repairedIssues: [],
       };
     }
@@ -230,17 +243,11 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     }
 
     if (!this.shouldRewritePackageDocument(analysis)) {
-      return {
-        success: repairedIssues.size > 0,
-        repairedIssues: [...repairedIssues],
-      };
+      return this.verifyRepairResult(session, analysis.issues.length, repairedIssues);
     }
 
     if (!analysis.opfPath || !analysis.opfDocument) {
-      return {
-        success: repairedIssues.size > 0,
-        repairedIssues: [...repairedIssues],
-      };
+      return this.verifyRepairResult(session, analysis.issues.length, repairedIssues);
     }
 
     await this.normalizeSafeCaseVariantResources(session.zip, analysis);
@@ -259,10 +266,7 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     );
 
     if (analysis.spineItems.length > 0 && validSpineItems.length === 0) {
-      return {
-        success: repairedIssues.size > 0,
-        repairedIssues: [...repairedIssues],
-      };
+      return this.verifyRepairResult(session, analysis.issues.length, repairedIssues);
     }
 
     for (const item of analysis.manifestItems) {
@@ -333,9 +337,34 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     const xml = new XMLSerializer().serializeToString(analysis.opfDocument);
     session.zip.file(analysis.opfPath, xml);
 
+    return this.verifyRepairResult(session, analysis.issues.length, repairedIssues);
+  }
+
+  private async verifyRepairResult(
+    session: WebSession,
+    beforeFindings: number,
+    repairedIssues: Set<string>,
+  ): Promise<EpubRepairResult> {
+    const verification = await this.analyze(session.zip);
+    if (verification.issues.length > 0) {
+      session.exportVerified = false;
+      return {
+        success: false,
+        status: 'incomplete',
+        repairedIssues: [...repairedIssues],
+        beforeFindings,
+        afterFindings: verification.issues.length,
+        remainingIssues: verification.issues,
+      };
+    }
+
+    session.exportVerified = true;
     return {
       success: true,
+      status: 'verified',
       repairedIssues: [...repairedIssues],
+      beforeFindings,
+      afterFindings: 0,
     };
   }
 
@@ -344,6 +373,9 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
     outputName?: string;
   }): Promise<EpubExportResult> {
     const session = this.requireSession(input.sessionId);
+    if (!session.exportVerified) {
+      throw new EpubFixerPortError('EXPORT_NOT_VERIFIED');
+    }
     const blob = await this.buildExportBlob(session.zip);
     const outputUri = URL.createObjectURL(blob);
 
@@ -787,11 +819,7 @@ export class WebDevEpubFixerAdapter implements EpubFixerPort {
       return 'failed';
     }
 
-    if (
-      issues.some(
-        (issue) => BLOCKING_CODES.has(issue.code) && !issue.fixable,
-      )
-    ) {
+    if (issues.some((issue) => !issue.fixable)) {
       return 'unsupported';
     }
 

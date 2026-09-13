@@ -26,6 +26,7 @@ export type PrepareEpubResult = {
 export type EpubDiagnosticStatus =
   | 'valid'
   | 'repairable'
+  | 'incomplete'
   | 'unsupported'
   | 'failed'
   | 'limited';
@@ -251,7 +252,12 @@ export type EpubDiagnosticResult = {
 
 export type EpubRepairResult = {
   success: boolean;
+  status: 'verified' | 'incomplete' | 'failed';
   repairedIssues: string[];
+  beforeFindings?: number;
+  afterFindings?: number;
+  remainingIssues?: EpubDiagnosticIssue[];
+  error?: string;
 };
 
 export type EpubExportResult = {

@@ -101,7 +101,11 @@ type RewriteCoverResult = {
 
 type RepairEpubResult = {
   success: boolean;
+  status?: 'verified' | 'incomplete' | 'failed';
   repairedIssues?: string[];
+  beforeFindings?: number;
+  afterFindings?: number;
+  remainingIssues?: EpubDiagnosticIssue[];
   outputPath?: string;
   error?: string;
   message?: string;
@@ -893,7 +897,12 @@ export class EpubRewriteService {
     guidedSelections?: Record<string, string>,
   ): Promise<{
     success: boolean;
+    status: 'verified' | 'incomplete' | 'failed';
     repairedIssues: string[];
+    beforeFindings?: number;
+    afterFindings?: number;
+    remainingIssues?: EpubDiagnosticIssue[];
+    error?: string;
   }> {
     const result = await EpubRewrite.repairEpub({
       sessionId,
@@ -902,6 +911,19 @@ export class EpubRewriteService {
       guidedSelections,
     });
     if (!result.success) {
+      if (result.status === 'incomplete') {
+        return {
+          success: false,
+          status: 'incomplete',
+          repairedIssues: result.repairedIssues ?? [],
+          beforeFindings: result.beforeFindings,
+          afterFindings: result.afterFindings,
+          remainingIssues: result.remainingIssues?.map((issue) =>
+            normalizeEpubDiagnosticIssue(issue),
+          ),
+          error: result.error,
+        };
+      }
       throw new EpubRewriteError(result.error ?? 'REPAIR_FAILED', {
         message: result.message,
         stage: result.stage,
@@ -912,7 +934,13 @@ export class EpubRewriteService {
 
     return {
       success: true,
+      status: 'verified',
       repairedIssues: result.repairedIssues ?? [],
+      beforeFindings: result.beforeFindings,
+      afterFindings: result.afterFindings,
+      remainingIssues: result.remainingIssues?.map((issue) =>
+        normalizeEpubDiagnosticIssue(issue),
+      ),
     };
   }
 

@@ -4,6 +4,7 @@ import {
   detectSupportedLocale,
   LanguageService,
 } from '@sheldrapps/i18n-kit';
+import { BillingService } from '@sheldrapps/ads-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { EdgeToEdgeService, ThemeService } from '@sheldrapps/ui-theme';
 import { PdfMergerAndSplitterSettings } from '../settings/pdf-merger-and-splitter-settings.schema';
@@ -15,6 +16,7 @@ export function providePdfMergerAndSplitterBootstrapInitializer() {
       multi: true,
       useFactory: () => {
         const settings = inject(SettingsStore<PdfMergerAndSplitterSettings>);
+        const billing = inject(BillingService);
         const lang = inject(LanguageService);
         const edgeToEdge = inject(EdgeToEdgeService);
         const theme = inject(ThemeService);
@@ -22,6 +24,7 @@ export function providePdfMergerAndSplitterBootstrapInitializer() {
 
         return async () => {
           await edgeToEdge.initEdgeToEdge();
+          await billing.hydrateCachedState();
           const currentSettings = await settings.load();
           const storedLanguage = currentSettings.language;
           const language = storedLanguage ?? (await detectSupportedLocale());

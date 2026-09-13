@@ -6,7 +6,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "prebuild": "node ../../scripts/ensure-stencil-entry.cjs && node ../../scripts/patch-capacitor-status-bar.cjs && node ../../scripts/patch-capacitor-admob.cjs && node ../../scripts/patch-capacitor-filesystem.cjs",
+    "prebuild": "node ../../scripts/ensure-stencil-entry.cjs && node ../../scripts/patch-capacitor-status-bar.cjs && node ../../scripts/patch-capacitor-admob.cjs && node ../../scripts/patch-capacitor-filesystem.cjs && node ../../scripts/patch-capacitor-android.cjs",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",

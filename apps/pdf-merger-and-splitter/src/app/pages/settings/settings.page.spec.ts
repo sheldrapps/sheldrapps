@@ -1,7 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { ADS_KIT_CONFIG, RemoveAdsPurchasePageService } from '@sheldrapps/ads-kit';
+import {
+  ADS_KIT_CONFIG,
+  BillingService,
+  RemoveAdsPurchasePageService,
+} from '@sheldrapps/ads-kit';
+import { BehaviorSubject } from 'rxjs';
 import { RatingService } from '@sheldrapps/rating-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { ThemeService, type Theme } from '@sheldrapps/ui-theme';
@@ -16,6 +21,7 @@ describe('SettingsPage', () => {
   let languageService: { lang: string; set: jasmine.Spy };
   let restartForLocaleSpy: jasmine.Spy;
   let removeAdsPurchasePageOpenSpy: jasmine.Spy;
+  let adsRemoved$: BehaviorSubject<boolean>;
   let themeService: {
     currentTheme: Theme;
     setTheme: jasmine.Spy<(theme: Theme) => Promise<void>>;
@@ -37,6 +43,7 @@ describe('SettingsPage', () => {
     };
     restartForLocaleSpy = jasmine.createSpy('restartForLocale');
     removeAdsPurchasePageOpenSpy = jasmine.createSpy('open');
+    adsRemoved$ = new BehaviorSubject(false);
     (globalThis as typeof globalThis & {
       SheldrappsAppControl?: { restartForLocale: jasmine.Spy };
     }).SheldrappsAppControl = {
@@ -53,6 +60,13 @@ describe('SettingsPage', () => {
             isTesting: true,
             units: { android: { rewarded: 'test' } },
             billing: { removeAdsProductId: 'pmas_test' },
+          },
+        },
+        {
+          provide: BillingService,
+          useValue: {
+            adsRemoved$,
+            isAdsRemoved: () => adsRemoved$.value,
           },
         },
         {

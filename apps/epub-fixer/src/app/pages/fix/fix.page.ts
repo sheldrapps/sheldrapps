@@ -155,6 +155,8 @@ type EpubFixerRecoverySnapshot = {
   epubErrorParams: Record<string, unknown>;
   diagnosis?: EpubDiagnosticResult;
   repairResult?: EpubRepairResult;
+  repairExportUnlocked?: boolean;
+  hasVerifiedRepair?: boolean;
   exportResult?: FixPage['exportResult'];
 };
 
@@ -255,6 +257,8 @@ export class FixPage implements OnInit, OnDestroy {
   };
   diagnosis?: EpubDiagnosticResult;
   repairResult?: EpubRepairResult;
+  private repairExportUnlocked = false;
+  private hasVerifiedRepair = false;
   exportResult?: {
     size: number;
     outputName: string;
@@ -1234,6 +1238,8 @@ export class FixPage implements OnInit, OnDestroy {
         epubErrorParams: this.epubErrorParams,
         diagnosis: this.diagnosis,
         repairResult: this.repairResult,
+        repairExportUnlocked: this.repairExportUnlocked,
+        hasVerifiedRepair: this.hasVerifiedRepair,
         exportResult: this.exportResult,
         fixMode: this.fixMode,
       }),
@@ -1255,6 +1261,8 @@ export class FixPage implements OnInit, OnDestroy {
         this.epubErrorParams = snapshot.epubErrorParams ?? {};
         this.diagnosis = snapshot.diagnosis;
         this.repairResult = snapshot.repairResult;
+        this.repairExportUnlocked = snapshot.repairExportUnlocked === true;
+        this.hasVerifiedRepair = snapshot.hasVerifiedRepair === true;
         this.exportResult = snapshot.exportResult;
         const hasModeSnapshot = Object.prototype.hasOwnProperty.call(
           snapshot,
@@ -1484,23 +1492,30 @@ export class FixPage implements OnInit, OnDestroy {
       this.clearEpubError();
       this.repairResult = undefined;
       this.exportResult = undefined;
-      const canContinue = await this.requestRewardedAdForFix();
-      if (!canContinue) {
-        this.viewState = 'diagnosed';
-        return;
-      }
-
       this.repairResult = await this.workflow.repairCurrentEpub(
         this.diagnosis?.diagnosisId,
         preferredOpfPath,
         guidedSelections,
       );
-      if (!this.repairResult.success) {
+      if (
+        !this.repairResult.success ||
+        this.repairResult.status !== 'verified'
+      ) {
         this.workflowStep = 3;
         this.failWorkflow('EPUB_ERROR_REWRITE');
         return;
       }
 
+      this.markCurrentDiagnosisAsVerified();
+      this.hasVerifiedRepair = true;
+      const canContinue = await this.requestRewardedAdForFix();
+      if (!canContinue) {
+        this.viewState = 'diagnosed';
+        this.workflowStep = 3;
+        return;
+      }
+
+      this.repairExportUnlocked = true;
       await this.exportCurrentCopy();
       this.viewState = 'repaired';
       this.workflowStep = 3;
@@ -1524,6 +1539,13 @@ export class FixPage implements OnInit, OnDestroy {
 
     this.busyAction = 'export';
     try {
+      if (this.hasVerifiedRepair && !this.repairExportUnlocked) {
+        const canContinue = await this.requestRewardedAdForFix();
+        if (!canContinue) {
+          return;
+        }
+        this.repairExportUnlocked = true;
+      }
       await this.exportCurrentCopy();
       this.viewState = 'repaired';
       this.workflowStep = 3;
@@ -2092,6 +2114,28 @@ export class FixPage implements OnInit, OnDestroy {
     return `FIX.ISSUE_${issue.code.replace(/-/g, '_')}`;
   }
 
+  private markCurrentDiagnosisAsVerified(): void {
+    if (!this.diagnosis) {
+      return;
+    }
+
+    this.diagnosis = {
+      ...this.diagnosis,
+      status: 'valid',
+      issues: [],
+      summary: {
+        totalFindings: 0,
+        fixableFindings: 0,
+        byCode: {},
+        bySeverity: {},
+      },
+      page: {
+        items: [],
+        total: 0,
+      },
+    };
+  }
+
   private async exportCurrentCopy(): Promise<void> {
     if (!this.preparedSessionId) {
       return;
@@ -2390,6 +2434,8 @@ export class FixPage implements OnInit, OnDestroy {
       this.sourceEpubMeta = undefined;
       this.diagnosis = undefined;
       this.repairResult = undefined;
+      this.repairExportUnlocked = false;
+      this.hasVerifiedRepair = false;
       this.exportResult = undefined;
       this.workflowStep = 0;
       this.viewState = 'idle';
@@ -2441,6 +2487,8 @@ export class FixPage implements OnInit, OnDestroy {
       this.selectedEpubName = undefined;
       this.diagnosis = undefined;
       this.repairResult = undefined;
+      this.repairExportUnlocked = false;
+      this.hasVerifiedRepair = false;
       this.exportResult = undefined;
       this.selectedGuidedOptionByIssueKey = {};
       this.selectedConfirmationByIssueKey = {};
@@ -2462,6 +2510,8 @@ export class FixPage implements OnInit, OnDestroy {
       this.issueGroupVisibleCounts?.clear();
       this.issueGroupLoadingKeys?.clear();
       this.repairResult = undefined;
+      this.repairExportUnlocked = false;
+      this.hasVerifiedRepair = false;
       this.exportResult = undefined;
 
       try {
@@ -2487,11 +2537,6 @@ export class FixPage implements OnInit, OnDestroy {
     this.viewState = 'repairing';
     try {
       this.clearEpubError();
-      const canContinue = await this.requestRewardedAdForFix();
-      if (!canContinue) {
-        this.viewState = 'diagnosed';
-        return;
-      }
 
       for (const item of this.multipleEpubDiagnoses) {
         if (item.diagnosis.status !== 'repairable') {
@@ -2504,15 +2549,32 @@ export class FixPage implements OnInit, OnDestroy {
           this.guidedRepairPreferredOpfPathFor(item),
           this.guidedRepairSelectionsFor(item),
         );
-        if (!repairResult.success) {
+        if (!repairResult.success || repairResult.status !== 'verified') {
           throw new EpubRewriteError('EPUB_REPAIR_FAILED');
         }
         item.diagnosis = {
           ...item.diagnosis,
           status: 'valid',
+          issues: [],
+          summary: {
+            totalFindings: 0,
+            fixableFindings: 0,
+            byCode: {},
+            bySeverity: {},
+          },
         };
       }
 
+      this.hasVerifiedRepair = true;
+      const canContinue = await this.requestRewardedAdForFix();
+      if (!canContinue) {
+        this.diagnosis = this.aggregateMultipleDiagnosis();
+        this.viewState = 'diagnosed';
+        this.workflowStep = 3;
+        return;
+      }
+
+      this.repairExportUnlocked = true;
       await this.exportMultipleSessions();
       this.viewState = 'repaired';
       this.workflowStep = 3;
@@ -2532,6 +2594,13 @@ export class FixPage implements OnInit, OnDestroy {
     this.busyAction = 'export';
     try {
       this.clearEpubError();
+      if (this.hasVerifiedRepair && !this.repairExportUnlocked) {
+        const canContinue = await this.requestRewardedAdForFix();
+        if (!canContinue) {
+          return;
+        }
+        this.repairExportUnlocked = true;
+      }
       await this.exportMultipleSessions();
       this.viewState = 'repaired';
       this.workflowStep = 3;

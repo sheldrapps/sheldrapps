@@ -3,7 +3,7 @@ import {
   Directory,
   Filesystem,
 } from '@capacitor/filesystem';
-import { FileKitService } from '@sheldrapps/file-kit';
+import { FileKitService, reportFileWriteFailure } from '@sheldrapps/file-kit';
 
 export type EpubWorkingCopy = {
   workingPath: string;
@@ -207,6 +207,11 @@ export class EpubWorkingCopyService {
       }
       onProgress?.(100);
     } catch (error) {
+      reportFileWriteFailure({
+        format: 'epub',
+        stage: 'filesystem_copy',
+        sizeBytes: file.size,
+      });
       await this.cleanupWorkingCopy(path);
       throw error;
     }

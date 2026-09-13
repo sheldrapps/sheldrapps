@@ -574,12 +574,12 @@
                     <ion-input
                       class="split-custom-control__input"
                       type="number"
-                      inputmode="numeric"
-                      min="1"
-                      step="1"
+                      inputmode="decimal"
+                      min="0.25"
+                      step="any"
                       [value]="splitMaximumSize"
                       [attr.aria-label]="'HOME.SPLIT_CONFIRM.CUSTOM_SIZE' | translate"
-                      (keydown)="onSplitIntegerKeydown($event)"
+                      (keydown)="onSplitMaximumSizeKeydown($event)"
                       (ionInput)="onSplitMaximumSizeInput($any($event).detail.value)"
                     ></ion-input>
                     <span class="split-custom-control__suffix">
@@ -620,8 +620,8 @@
             </div>
           }
 
-          @if (splitAnalysis() && splitOutputPreviews().length < 2) {
-            <p class="split-confirm__validation">{{ 'HOME.SPLIT_CONFIRM.NEEDS_TWO_OUTPUTS' | translate }}</p>
+          @if (splitOutputValidationKey; as validationKey) {
+            <p class="split-confirm__validation">{{ validationKey | translate }}</p>
           }
 
         </section>

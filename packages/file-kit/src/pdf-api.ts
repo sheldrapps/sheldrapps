@@ -1,5 +1,6 @@
 export * from './lib/types';
 export * from './lib/errors';
+export * from './lib/file-telemetry';
 export { guessMimeType } from './lib/mime';
 export { makeSafeFilename } from './lib/name';
 export { ensureDirectoriesExist } from './lib/ensure-directories';

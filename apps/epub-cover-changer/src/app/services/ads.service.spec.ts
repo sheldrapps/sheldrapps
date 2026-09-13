@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideAdsKit } from '@sheldrapps/ads-kit';
+import { SettingsStore } from '@sheldrapps/settings-kit';
 
 import { AdsService } from './ads.service';
 
@@ -18,6 +19,10 @@ describe('AdsService', () => {
             },
           },
         }),
+        {
+          provide: SettingsStore,
+          useValue: {},
+        },
       ],
     });
     service = TestBed.inject(AdsService);

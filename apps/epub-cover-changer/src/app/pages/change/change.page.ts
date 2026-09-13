@@ -1786,7 +1786,13 @@ export class ChangePage implements OnInit, OnDestroy {
   }
 
   private setEpubDiagnosisState(
-    status: 'valid' | 'repairable' | 'unsupported' | 'failed' | 'limited',
+    status:
+      | 'valid'
+      | 'repairable'
+      | 'incomplete'
+      | 'unsupported'
+      | 'failed'
+      | 'limited',
     issues: EpubDiagnosticIssue[] = [],
     displayName?: string,
   ): void {

@@ -149,7 +149,7 @@
             </div>
           }
 
-          @if (!ready) {
+          @if (!ready || isExporting()) {
             <div class="frame-loader" aria-hidden="true">
               <div class="frame-loader__card">
                 <sh-spinner [visible]="true" variant="indicator"></sh-spinner>
@@ -160,7 +160,7 @@
         </div>
       </div>
     </div>
-    @if (ready) {
+    @if (ready && !isExporting()) {
       <div class="hint">{{ hintKey() | translate }}</div>
     }
   </div>

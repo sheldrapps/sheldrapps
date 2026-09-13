@@ -17,6 +17,10 @@ import {
   ExistsParams,
 } from '../../types';
 import { FileKitError } from '../../errors';
+import {
+  reportFileReadFailure,
+  reportFileWriteFailure,
+} from '../../file-telemetry';
 
 /**
  * Map FileDirectory to Capacitor Directory
@@ -100,6 +104,14 @@ export class CapacitorFilesystemAdapter implements FilesystemAdapter {
         size: params.bytes.length,
       };
     } catch (error) {
+      const format = inferFileFormat(params.path, params.mimeType);
+      if (format) {
+        reportFileWriteFailure({
+          format,
+          stage: 'filesystem_write',
+          sizeBytes: params.bytes.length,
+        });
+      }
       throw new FileKitError(
         'WRITE_FAILED',
         `Failed to write file: ${params.path}`,
@@ -127,6 +139,13 @@ export class CapacitorFilesystemAdapter implements FilesystemAdapter {
       }
     } catch (error) {
       const code = String(error).includes('ENOENT') ? 'NOT_FOUND' : 'READ_FAILED';
+      const format = inferFileFormat(params.path, '');
+      if (format) {
+        reportFileReadFailure({
+          format,
+          stage: 'filesystem_read',
+        });
+      }
       throw new FileKitError(code, `Failed to read file: ${params.path}`, error);
     }
   }
@@ -176,4 +195,11 @@ export class CapacitorFilesystemAdapter implements FilesystemAdapter {
       );
     }
   }
+}
+
+function inferFileFormat(path: string, mimeType: string): 'epub' | 'pdf' | null {
+  const value = `${path} ${mimeType}`.toLowerCase();
+  if (value.includes('epub')) return 'epub';
+  if (value.includes('pdf')) return 'pdf';
+  return null;
 }

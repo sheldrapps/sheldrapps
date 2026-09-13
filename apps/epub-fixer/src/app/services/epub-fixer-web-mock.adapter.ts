@@ -17,6 +17,8 @@ type WebMockSession = {
   id: string;
   file: File;
   diagnosisId?: string;
+  repaired: boolean;
+  exportVerified: boolean;
   exportUrls: Set<string>;
 };
 
@@ -39,6 +41,8 @@ export class EpubFixerWebMockAdapter implements EpubFixerPort {
     this.sessions.set(sessionId, {
       id: sessionId,
       file: input.file,
+      repaired: false,
+      exportVerified: false,
       exportUrls: new Set<string>(),
     });
 
@@ -54,6 +58,7 @@ export class EpubFixerWebMockAdapter implements EpubFixerPort {
     const session = this.requireSession(input.sessionId);
     const diagnosisId = this.createId('diagnosis');
     session.diagnosisId = diagnosisId;
+    session.exportVerified = session.repaired;
     return this.buildDiagnosis(session.id, diagnosisId);
   }
 
@@ -65,7 +70,8 @@ export class EpubFixerWebMockAdapter implements EpubFixerPort {
   }): Promise<EpubDiagnosticPage & { diagnosisId: string }> {
     const pageSize = Math.max(1, Math.min(250, input.pageSize ?? MOCK_PAGE_SIZE));
     const start = this.parseCursor(input.cursor);
-    const issues = this.buildMockIssues();
+    const session = this.sessions.get(input.sessionId);
+    const issues = session?.repaired ? [] : this.buildMockIssues();
     const items = issues.slice(start, start + pageSize);
     const nextCursor = start + items.length < issues.length
       ? String(start + items.length)
@@ -89,10 +95,15 @@ export class EpubFixerWebMockAdapter implements EpubFixerPort {
     if (input.diagnosisId) {
       this.requireDiagnosis(session, input.diagnosisId);
     }
+    session.repaired = true;
+    session.exportVerified = true;
 
     return {
       success: true,
+      status: 'verified',
       repairedIssues: [MOCK_ISSUE_CODE],
+      beforeFindings: MOCK_ISSUE_COUNT,
+      afterFindings: 0,
     };
   }
 
@@ -101,6 +112,9 @@ export class EpubFixerWebMockAdapter implements EpubFixerPort {
     outputName?: string;
   }): Promise<EpubExportResult> {
     const session = this.requireSession(input.sessionId);
+    if (!session.exportVerified) {
+      throw new EpubFixerPortError('EXPORT_NOT_VERIFIED');
+    }
     const outputUri = URL.createObjectURL(session.file);
     session.exportUrls.add(outputUri);
 
@@ -126,7 +140,33 @@ export class EpubFixerWebMockAdapter implements EpubFixerPort {
     sessionId: string,
     diagnosisId: string,
   ): EpubDiagnosticResult {
+    const session = this.requireSession(sessionId);
     const allIssues = this.buildMockIssues();
+    if (session.repaired) {
+      return {
+        sessionId,
+        diagnosisId,
+        status: 'valid',
+        issues: [],
+        summary: {
+          totalFindings: 0,
+          fixableFindings: 0,
+          byCode: {},
+          bySeverity: {},
+        },
+        page: { items: [], total: 0 },
+        mode: 'deep',
+        coverage: 'complete',
+        metrics: {
+          elapsedMs: 0,
+          inspectedEntries: 0,
+          totalEntries: 0,
+          inspectedTextBytes: 0,
+          scannedLinks: 0,
+          reusedCache: false,
+        },
+      };
+    }
     const firstPage = allIssues.slice(0, MOCK_PAGE_SIZE);
 
     return {

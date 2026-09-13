@@ -19,11 +19,20 @@ import {
   IonButton,
   IonIcon,
   IonInput,
+  ModalController,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { AdsService, BillingService, ExportAccessService } from '@sheldrapps/ads-kit';
+import {
+  AdsService,
+  BillingService,
+  ExportAccessService,
+  type AdFailureConfidence,
+  type AdFailureReason,
+  type RewardedAdResult,
+} from '@sheldrapps/ads-kit';
+import { AdFallbackService } from '@sheldrapps/ad-fallback-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import {
   normalizeExportQualityMode,
@@ -171,7 +180,7 @@ type SelectedEpubInput = {
   workingNativePath: string | null;
   outputBaseName: string;
   sourceKind: 'native' | 'web';
-  diagnosisStatus?: 'valid' | 'repairable';
+  diagnosisStatus?: 'valid' | 'repairable' | 'incomplete';
   diagnosisIssues?: EpubDiagnosticIssue[];
   diagnosisMode?: 'quick' | 'deep';
   diagnosisCoverage?: 'complete' | 'limited';
@@ -194,6 +203,7 @@ type EmasRecoverySnapshot = {
 const EPUB_ACCEPT = '.epub,application/epub+zip';
 const IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp';
 const MAX_EPUB_SIZE_MB = 2048;
+const MIN_SPLIT_MAXIMUM_SIZE_MB = 0.25;
 const COVER_THUMB_SIZE = 96;
 const SPLIT_METHOD_VALUES = new Set<SplitMethod>([
   'by-chapters-or-sections',
@@ -265,11 +275,19 @@ export class HomePage implements OnInit, OnDestroy {
   private readonly ads = inject(AdsService);
   private readonly billing = inject(BillingService);
   private readonly exportAccess = inject(ExportAccessService);
+  private readonly modalCtrl = inject(ModalController);
+  private readonly adFallback = inject(AdFallbackService);
   private readonly translate = inject(TranslateService);
   private readonly recommendedAppsService = inject(RecommendedAppsService);
   private readonly lifecycle = inject(LifecycleDiagnosticsService);
   private readonly recovery = inject(WorkflowRecoveryCoordinator);
   private readonly candidateBlobUrls = new Set<string>();
+  private readonly adFallbackTotal = 2;
+  private adFallbackRemaining = this.adFallbackTotal;
+  private adFallbackTrialActive = false;
+  private readonly adFallbackApp = 'emas' as const;
+  private readonly adFallbackRemainingPrefKey = 'emas_ad_fallback_remaining';
+  private readonly adFallbackTrialActivePrefKey = 'emas_ad_fallback_trial_active';
 
   get epubFixerCopy() {
     return getRecommendedAppsTranslations(this.translate.currentLang);
@@ -461,6 +479,29 @@ export class HomePage implements OnInit, OnDestroy {
     return this.splitAnalysis()?.sections.length ? this.splitAnalysis()!.sections.length > 1 : false;
   }
 
+  get splitOutputValidationKey(): string | null {
+    const analysis = this.splitAnalysis();
+    if (!analysis || this.splitOutputPreviews().length >= 2) {
+      return null;
+    }
+
+    if (analysis.units.length < 2) {
+      return this.splitMethod === 'equal-parts'
+        ? 'HOME.SPLIT_CONFIRM.EQUAL_SINGLE_DOCUMENT'
+        : 'HOME.SPLIT_CONFIRM.SINGLE_DOCUMENT';
+    }
+
+    if (this.splitMethod === 'manual-split-points') {
+      return 'HOME.SPLIT_CONFIRM.MANUAL_NO_BREAKPOINTS';
+    }
+
+    if (this.splitMethod === 'maximum-file-size') {
+      return 'HOME.SPLIT_CONFIRM.MAXIMUM_SIZE_ONE_OUTPUT';
+    }
+
+    return 'HOME.SPLIT_CONFIRM.NEEDS_TWO_OUTPUTS';
+  }
+
   get splitChapterModeItems(): readonly SelectableButtonListItem[] {
     return [
       {
@@ -487,9 +528,7 @@ export class HomePage implements OnInit, OnDestroy {
       ...values.map((value) => ({
         value: value.toString(),
         title: this.translate.instant('HOME.SPLIT_CONFIRM.PART_COUNT', { count: value }),
-        subline: this.translate.instant('HOME.SPLIT_CONFIRM.PART_COUNT_SUBLINE', {
-          count: Math.ceil(max / value),
-        }),
+        subline: this.translate.instant('HOME.SPLIT_CONFIRM.PART_COUNT_SUBLINE'),
         ariaLabel: this.translate.instant('HOME.SPLIT_CONFIRM.PART_COUNT', { count: value }),
         leadingIconSrc: 'assets/icons/widget-outline.svg',
       })),
@@ -507,7 +546,7 @@ export class HomePage implements OnInit, OnDestroy {
   get splitMaximumSizeItems(): readonly SelectableButtonListItem[] {
     const fileSize = this.splitAnalysis()?.fileSizeBytes ?? 0;
     const fileSizeMb = fileSize / (1024 * 1024);
-    const presets: SelectableButtonListItem[] = [5, 10, 15]
+    const presets: SelectableButtonListItem[] = [0.25, 0.5, 1, 2, 5, 10, 15]
       .filter((value) => value < fileSizeMb)
       .map((value) => ({
         value: value.toString(),
@@ -838,6 +877,7 @@ export class HomePage implements OnInit, OnDestroy {
       this.refreshWorkflowStepLabels();
     });
     void this.hydrateAdsState();
+    void this.hydrateAdFallbackState();
     void this.attachOperationProgressListener();
     void this.loadExportQualitySettings();
     this.routerSub = this.router.events
@@ -1109,13 +1149,17 @@ export class HomePage implements OnInit, OnDestroy {
 
   onSplitMaximumSizeInput(value: string | number | null | undefined): void {
     const rawValue = String(value ?? '').trim();
-    if (!/^\d+$/.test(rawValue)) {
+    const normalizedValue = rawValue.replace(',', '.');
+    if (!/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(normalizedValue)) {
       this.splitMaximumSizeErrorKey.set('HOME.SPLIT_CONFIRM.INVALID_MAXIMUM_SIZE');
       return;
     }
 
-    const parsedValue = Number(rawValue);
-    if (!Number.isSafeInteger(parsedValue) || parsedValue < 1) {
+    const parsedValue = Number(normalizedValue);
+    if (
+      !Number.isFinite(parsedValue) ||
+      parsedValue < MIN_SPLIT_MAXIMUM_SIZE_MB
+    ) {
       this.splitMaximumSizeErrorKey.set('HOME.SPLIT_CONFIRM.INVALID_MAXIMUM_SIZE');
       return;
     }
@@ -1123,6 +1167,12 @@ export class HomePage implements OnInit, OnDestroy {
     this.splitMaximumSize = parsedValue;
     this.splitMaximumSizeErrorKey.set(null);
     this.markSplitConfigurationChanged();
+  }
+
+  onSplitMaximumSizeKeydown(event: KeyboardEvent): void {
+    if (['e', 'E', '+', '-'].includes(event.key)) {
+      event.preventDefault();
+    }
   }
 
   onSplitIntegerKeydown(event: KeyboardEvent): void {
@@ -1160,11 +1210,15 @@ export class HomePage implements OnInit, OnDestroy {
     this.operationProgress.set({ phase: 'preparing', percent: 0 });
     try {
       const access = await this.exportAccess.authorize({
-        onAdFailure: () => false,
+        onActiveFallbackTrial: () =>
+          this.adFallbackTrialActive && this.resolveAdFallbackRemaining() > 0
+            ? this.confirmActiveAdFallbackTrial()
+            : false,
+        onAdFailure: (result) => this.openAdFallbackFromFailure(result),
       });
       if (!access.granted) return;
 
-      await this.runSplit(flowEpoch);
+      await this.runSplit(flowEpoch, access.source === 'fallback');
     } catch (error) {
       if (!this.isFlowEpochCurrent(flowEpoch)) return;
       console.error('[epub-merger-and-splitter] split failed', error);
@@ -1395,11 +1449,15 @@ export class HomePage implements OnInit, OnDestroy {
     this.operationProgress.set({ phase: 'preparing', percent: 0 });
     try {
       const access = await this.exportAccess.authorize({
-        onAdFailure: () => false,
+        onActiveFallbackTrial: () =>
+          this.adFallbackTrialActive && this.resolveAdFallbackRemaining() > 0
+            ? this.confirmActiveAdFallbackTrial()
+            : false,
+        onAdFailure: (result) => this.openAdFallbackFromFailure(result),
       });
       if (!access.granted) return;
 
-      await this.runMerge(flowEpoch);
+      await this.runMerge(flowEpoch, access.source === 'fallback');
     } catch (error) {
       if (!this.isFlowEpochCurrent(flowEpoch)) return;
       console.error('[epub-merger-and-splitter] merge failed', error);
@@ -1417,6 +1475,10 @@ export class HomePage implements OnInit, OnDestroy {
     this.adsRemovedSub = this.billing.adsRemoved$.subscribe((value) => {
       this.zone.run(() => {
         this.adsRemoved = value;
+        if (value) {
+          this.adFallbackTrialActive = false;
+          void this.persistAdFallbackState();
+        }
         this.changeDetector.markForCheck();
       });
     });
@@ -1447,7 +1509,10 @@ export class HomePage implements OnInit, OnDestroy {
     );
   }
 
-  private async runMerge(flowEpoch = this.currentFlowEpoch()): Promise<void> {
+  private async runMerge(
+    flowEpoch = this.currentFlowEpoch(),
+    fallbackGrant = false,
+  ): Promise<void> {
     if (!this.isFlowEpochCurrent(flowEpoch)) return;
     const selections = this.mergeSelections();
     const cover = this.mergeCoverRenderedFile;
@@ -1503,6 +1568,9 @@ export class HomePage implements OnInit, OnDestroy {
       } else {
         this.completeOperation('merge', [saved]);
       }
+      if (fallbackGrant) {
+        await this.consumeAdFallbackAttemptAfterSuccess('merge');
+      }
     } finally {
       await Promise.allSettled([
         this.epubWorkingCopy.cleanupWorkingCopy(output.path),
@@ -1511,7 +1579,10 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  private async runSplit(flowEpoch = this.currentFlowEpoch()): Promise<void> {
+  private async runSplit(
+    flowEpoch = this.currentFlowEpoch(),
+    fallbackGrant = false,
+  ): Promise<void> {
     if (!this.isFlowEpochCurrent(flowEpoch)) return;
     const selection = this.splitSelection();
     const analysis = this.splitAnalysis();
@@ -1586,6 +1657,9 @@ export class HomePage implements OnInit, OnDestroy {
         saved,
         Array.from(new Set(created.flatMap((output) => output.warnings ?? []))),
       );
+      if (fallbackGrant) {
+        await this.consumeAdFallbackAttemptAfterSuccess('split');
+      }
     } finally {
       await Promise.allSettled([
         ...temporaryOutputs.map((output) =>
@@ -1594,6 +1668,134 @@ export class HomePage implements OnInit, OnDestroy {
         this.epubWorkingCopy.cleanupWorkingCopy(coverTemp?.path),
       ]);
     }
+  }
+
+  private async openAdFallbackFromFailure(
+    result: RewardedAdResult,
+  ): Promise<boolean> {
+    try {
+      const decision = await this.adFallback.handleAdFailure(
+        {
+          app: this.adFallbackApp,
+          reason: this.normalizeFailureReason(result.failureReason),
+          confidence: this.normalizeFailureConfidence(result.failureConfidence),
+          remaining: this.resolveAdFallbackRemaining(),
+          total: this.adFallbackTotal,
+          countdownSeconds: 5,
+        },
+        this.modalCtrl,
+      );
+
+      if (decision === 'accepted') {
+        this.adFallbackTrialActive = true;
+        await this.persistAdFallbackState();
+        return true;
+      }
+
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  private async confirmActiveAdFallbackTrial(): Promise<boolean> {
+    try {
+      const decision = await this.adFallback.handleAdFailure(
+        {
+          app: this.adFallbackApp,
+          reason: 'unknown',
+          confidence: 'low',
+          remaining: this.resolveAdFallbackRemaining(),
+          total: this.adFallbackTotal,
+          countdownSeconds: 5,
+        },
+        this.modalCtrl,
+      );
+
+      return decision === 'accepted';
+    } catch {
+      return false;
+    }
+  }
+
+  private resolveAdFallbackRemaining(): number {
+    return this.adFallbackRemaining;
+  }
+
+  private async hydrateAdFallbackState(): Promise<void> {
+    const settings = await this.settings.load();
+    const rawRemaining = settings.preferences?.[this.adFallbackRemainingPrefKey];
+    const parsedRemaining =
+      typeof rawRemaining === 'number' && Number.isFinite(rawRemaining)
+        ? Math.floor(rawRemaining)
+        : this.adFallbackTotal;
+    this.adFallbackRemaining = Math.max(
+      0,
+      Math.min(this.adFallbackTotal, parsedRemaining),
+    );
+
+    const rawActive = settings.preferences?.[this.adFallbackTrialActivePrefKey];
+    this.adFallbackTrialActive =
+      rawActive === true && this.adFallbackRemaining > 0;
+  }
+
+  private async persistAdFallbackState(): Promise<void> {
+    const clampedRemaining = Math.max(
+      0,
+      Math.min(this.adFallbackTotal, Math.floor(this.adFallbackRemaining)),
+    );
+    this.adFallbackRemaining = clampedRemaining;
+    const active = this.adFallbackTrialActive && clampedRemaining > 0;
+    this.adFallbackTrialActive = active;
+
+    await this.settings.set((previous) => ({
+      ...previous,
+      preferences: {
+        ...(previous.preferences ?? {}),
+        [this.adFallbackRemainingPrefKey]: clampedRemaining,
+        [this.adFallbackTrialActivePrefKey]: active,
+      },
+    }));
+  }
+
+  private async consumeAdFallbackAttemptAfterSuccess(
+    operation: HomeMode,
+  ): Promise<void> {
+    if (!this.adFallbackTrialActive) return;
+
+    const remaining = this.resolveAdFallbackRemaining();
+    if (remaining <= 0) {
+      this.adFallbackTrialActive = false;
+      await this.persistAdFallbackState();
+      return;
+    }
+
+    this.adFallbackRemaining = remaining - 1;
+    this.adFallbackTrialActive = false;
+    await this.persistAdFallbackState();
+    console.info(
+      `[epub-merger-and-splitter:ad-fallback] consumed on ${operation} ${JSON.stringify({
+        remaining: this.adFallbackRemaining,
+        total: this.adFallbackTotal,
+      })}`,
+    );
+  }
+
+  private normalizeFailureReason(value: unknown): AdFailureReason {
+    switch (value) {
+      case 'network':
+      case 'dns':
+      case 'no-fill':
+      case 'blocked':
+      case 'region':
+        return value;
+      default:
+        return 'unknown';
+    }
+  }
+
+  private normalizeFailureConfidence(value: unknown): AdFailureConfidence {
+    return value === 'high' ? 'high' : 'low';
   }
 
   private async runWebDummyMerge(
@@ -2892,32 +3094,64 @@ export class HomePage implements OnInit, OnDestroy {
   ): readonly SplitOutputPreview[] {
     if (units.length < 2) return [];
 
-    // Keep this boundary defensive because the value is also fed by a native
-    // number input. An invalid/non-finite value must never become an array
-    // length or produce an empty range that can later reach the native plugin.
     const safeCount = Number.isSafeInteger(count)
       ? Math.min(Math.max(count, 2), units.length)
       : 2;
-    const baseSize = Math.floor(units.length / safeCount);
-    const remainder = units.length % safeCount;
-    const outputs: SplitOutputPreview[] = [];
-    let start = 0;
-
-    for (let index = 0; index < safeCount; index += 1) {
-      const size = baseSize + (index < remainder ? 1 : 0);
-      const end = start + size - 1;
-      outputs.push(this.buildOutput(units, start, end));
-      start = end + 1;
+    const prefixContentSizes = [0];
+    for (const unit of units) {
+      const size = Number.isFinite(unit.sizeBytes) ? Math.max(1, unit.sizeBytes) : 1;
+      prefixContentSizes.push(
+        prefixContentSizes[prefixContentSizes.length - 1] + size,
+      );
     }
 
-    return outputs;
+    const targetContentSize =
+      prefixContentSizes[prefixContentSizes.length - 1] / safeCount;
+    const costs = Array.from({ length: safeCount + 1 }, () =>
+      Array<number>(units.length + 1).fill(Number.POSITIVE_INFINITY),
+    );
+    const previousStarts = Array.from({ length: safeCount + 1 }, () =>
+      Array<number>(units.length + 1).fill(-1),
+    );
+    costs[0][0] = 0;
+
+    for (let part = 1; part <= safeCount; part += 1) {
+      for (let end = part; end <= units.length; end += 1) {
+        for (let start = part - 1; start < end; start += 1) {
+          if (!Number.isFinite(costs[part - 1][start])) continue;
+          const contentSize = prefixContentSizes[end] - prefixContentSizes[start];
+          const deviation = contentSize - targetContentSize;
+          const candidateCost = costs[part - 1][start] + deviation * deviation;
+          if (candidateCost < costs[part][end]) {
+            costs[part][end] = candidateCost;
+            previousStarts[part][end] = start;
+          }
+        }
+      }
+    }
+
+    const ranges: Array<[number, number]> = [];
+    let end = units.length;
+    for (let part = safeCount; part >= 1; part -= 1) {
+      const start = previousStarts[part][end];
+      if (start < 0) return [];
+      ranges.unshift([start, end - 1]);
+      end = start;
+    }
+
+    return ranges.map(([start, rangeEnd]) =>
+      this.buildOutput(units, start, rangeEnd),
+    );
   }
 
   private buildMaximumSizeOutputs(
     units: readonly SplitAnalysis['units'][number][],
     maximumMegabytes: number,
   ): readonly SplitOutputPreview[] {
-    const maximumBytes = Math.max(1, maximumMegabytes) * 1024 * 1024;
+    const maximumBytes = Math.max(
+      MIN_SPLIT_MAXIMUM_SIZE_MB,
+      maximumMegabytes,
+    ) * 1024 * 1024;
     const coverSizeBytes = this.mergeCoverRenderedFile?.size ?? 0;
     const maximumBookBytes = Math.max(1, maximumBytes - coverSizeBytes);
     const outputs: SplitOutputPreview[] = [];
@@ -3089,7 +3323,7 @@ export class HomePage implements OnInit, OnDestroy {
     coverEntryPath?: string;
   },
     diagnosis: {
-      status: 'valid' | 'repairable';
+      status: 'valid' | 'repairable' | 'incomplete';
       issues: EpubDiagnosticIssue[];
       mode: 'quick' | 'deep';
       coverage: 'complete' | 'limited';
@@ -3131,7 +3365,7 @@ export class HomePage implements OnInit, OnDestroy {
       : await this.epubWorkingCopy.startCycle(file);
 
     let diagnosis: {
-      status: 'valid' | 'repairable';
+      status: 'valid' | 'repairable' | 'incomplete';
       issues: EpubDiagnosticIssue[];
     };
     try {
@@ -3168,7 +3402,7 @@ export class HomePage implements OnInit, OnDestroy {
     mode: 'quick' | 'deep' = 'deep',
     flowEpoch = this.currentFlowEpoch(),
   ): Promise<{
-    status: 'valid' | 'repairable';
+    status: 'valid' | 'repairable' | 'incomplete';
     issues: EpubDiagnosticIssue[];
     mode: 'quick' | 'deep';
     coverage: 'complete' | 'limited';
@@ -3202,7 +3436,7 @@ export class HomePage implements OnInit, OnDestroy {
     file: File,
     flowEpoch = this.currentFlowEpoch(),
   ): Promise<{
-    status: 'valid' | 'repairable';
+    status: 'valid' | 'repairable' | 'incomplete';
     issues: EpubDiagnosticIssue[];
   }> {
     const prepared = await this.webEpubFixer.prepare({

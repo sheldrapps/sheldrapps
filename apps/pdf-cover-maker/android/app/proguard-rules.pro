@@ -23,3 +23,8 @@
 # Optional JPEG 2000 codec referenced by PDFBox.
 -dontwarn com.gemalto.jp2.JP2Decoder
 -dontwarn com.gemalto.jp2.JP2Encoder
+
+# Capacitor permission metadata must survive R8 in release builds.
+-keepattributes RuntimeVisibleAnnotations,AnnotationDefault
+-keep @interface com.getcapacitor.annotation.CapacitorPlugin { *; }
+-keep @interface com.getcapacitor.annotation.Permission { *; }

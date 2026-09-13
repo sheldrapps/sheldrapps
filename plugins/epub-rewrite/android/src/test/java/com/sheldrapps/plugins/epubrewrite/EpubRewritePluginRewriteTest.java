@@ -1353,6 +1353,97 @@ public class EpubRewritePluginRewriteTest {
     }
 
     @Test
+    public void noCoverSplitDropsCoverOnlyOutputsBeforeValidation() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Class<?> sourceClass = Class.forName(
+            "com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin$SplitSourceMetadata"
+        );
+        Constructor<?> sourceConstructor = sourceClass.getDeclaredConstructor(
+            String.class,
+            LinkedHashMap.class,
+            java.util.HashMap.class,
+            java.util.HashMap.class,
+            java.util.Set.class,
+            boolean.class
+        );
+        sourceConstructor.setAccessible(true);
+        LinkedHashMap<String, String> spinePaths = new LinkedHashMap<>();
+        spinePaths.put("cover-page", "OPS/cover.xhtml");
+        spinePaths.put("chapter-1", "OPS/chapter-1.xhtml");
+        spinePaths.put("chapter-2", "OPS/chapter-2.xhtml");
+        Object source = sourceConstructor.newInstance(
+            "OPS/package.opf",
+            spinePaths,
+            new java.util.HashMap<String, String>(),
+            new java.util.HashMap<String, String>(),
+            new java.util.HashSet<String>(java.util.Arrays.asList("OPS/cover.xhtml")),
+            true
+        );
+
+        Class<?> requestClass = Class.forName(
+            "com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin$SplitOutputRequest"
+        );
+        Constructor<?> requestConstructor = requestClass.getDeclaredConstructor(
+            String.class,
+            Path.class,
+            String.class,
+            String.class,
+            ArrayList.class,
+            java.util.HashMap.class,
+            ArrayList.class
+        );
+        requestConstructor.setAccessible(true);
+        ArrayList<Object> outputs = new ArrayList<>();
+        outputs.add(requestConstructor.newInstance(
+            "cover",
+            temporaryFolder.getRoot().toPath().resolve("cover.epub"),
+            "cover.epub",
+            "Cover",
+            new ArrayList<String>(java.util.Arrays.asList("cover-page")),
+            new java.util.HashMap<String, String>(),
+            new ArrayList<>()
+        ));
+        outputs.add(requestConstructor.newInstance(
+            "chapter-1",
+            temporaryFolder.getRoot().toPath().resolve("chapter-1.epub"),
+            "chapter-1.epub",
+            "Chapter 1",
+            new ArrayList<String>(java.util.Arrays.asList("chapter-1")),
+            new java.util.HashMap<String, String>(),
+            new ArrayList<>()
+        ));
+        outputs.add(requestConstructor.newInstance(
+            "chapter-2",
+            temporaryFolder.getRoot().toPath().resolve("chapter-2.epub"),
+            "chapter-2.epub",
+            "Chapter 2",
+            new ArrayList<String>(java.util.Arrays.asList("chapter-2")),
+            new java.util.HashMap<String, String>(),
+            new ArrayList<>()
+        ));
+
+        ArrayList<?> effectiveOutputs = (ArrayList<?>) invokeObject(
+            plugin,
+            "removeNoCoverSpineItems",
+            new Class<?>[] { sourceClass, java.util.List.class },
+            source,
+            outputs
+        );
+
+        assertEquals(2, effectiveOutputs.size());
+        java.lang.reflect.Field idsField = requestClass.getDeclaredField("spineItemIds");
+        idsField.setAccessible(true);
+        assertEquals(
+            java.util.Arrays.asList("chapter-1"),
+            idsField.get(effectiveOutputs.get(0))
+        );
+        assertEquals(
+            java.util.Arrays.asList("chapter-2"),
+            idsField.get(effectiveOutputs.get(1))
+        );
+    }
+
+    @Test
     public void noCoverLinksBecomePlainTextWithoutRemovingVisibleLabel() throws Exception {
         EpubRewritePlugin plugin = new EpubRewritePlugin();
         String result = invokeString(

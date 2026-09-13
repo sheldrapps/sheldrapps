@@ -25,3 +25,13 @@
 -dontwarn org.tukaani.xz.MemoryLimitException
 -dontwarn org.tukaani.xz.SingleXZInputStream
 -dontwarn org.tukaani.xz.XZInputStream
+
+# Capacitor permission metadata must survive R8 in release builds.
+-keepattributes RuntimeVisibleAnnotations,AnnotationDefault
+-keep @interface com.getcapacitor.annotation.CapacitorPlugin { *; }
+-keep @interface com.getcapacitor.annotation.Permission { *; }
+
+# Capacitor permission metadata must survive R8 in release builds.
+-keepattributes RuntimeVisibleAnnotations,AnnotationDefault
+-keep @interface com.getcapacitor.annotation.CapacitorPlugin { *; }
+-keep @interface com.getcapacitor.annotation.Permission { *; }

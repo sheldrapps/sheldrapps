@@ -2,6 +2,10 @@ import { Capacitor } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { FileKitService } from './file-kit.service';
 import { PUBLIC_FILESYSTEM, type PublicFilesystem } from './public-filesystem';
+import {
+  reportFileReadFailure,
+  reportFileWriteFailure,
+} from './file-telemetry';
 
 const DEFAULT_PUBLIC_DOCUMENTS_ROOTS = [
   '/storage/emulated/0/Documents',
@@ -186,7 +190,16 @@ export class EpubPublicStore {
 
   async writeEpub(filename: string, bytes: Uint8Array): Promise<void> {
     await this.ensureReady();
-    await this.writeTargetEpub(filename, this.fileKit.toBase64(bytes));
+    try {
+      await this.writeTargetEpub(filename, this.fileKit.toBase64(bytes));
+    } catch (error) {
+      reportFileWriteFailure({
+        format: 'epub',
+        stage: 'public_write',
+        sizeBytes: bytes.byteLength,
+      });
+      throw error;
+    }
     this.debugLog('writeEpub', {
       filename,
       bytes: bytes.byteLength,
@@ -249,12 +262,17 @@ export class EpubPublicStore {
       throw new Error(`File not found: ${filename}`);
     }
 
-    const raw = await this.filesystem.readFile(this.buildFilesystemPath(path));
-    const base64 = typeof raw.data === 'string'
-      ? raw.data
-      : this.fileKit.toBase64(new Uint8Array(await raw.data.arrayBuffer()));
-    this.debugLog('readBytes', { filename, path });
-    return this.fileKit.fromBase64(this.normalizeBase64Data(base64));
+    try {
+      const raw = await this.filesystem.readFile(this.buildFilesystemPath(path));
+      const base64 = typeof raw.data === 'string'
+        ? raw.data
+        : this.fileKit.toBase64(new Uint8Array(await raw.data.arrayBuffer()));
+      this.debugLog('readBytes', { filename, path });
+      return this.fileKit.fromBase64(this.normalizeBase64Data(base64));
+    } catch (error) {
+      reportFileReadFailure({ format: 'epub', stage: 'public_read' });
+      throw error;
+    }
   }
 
   async getUriOrThrow(filename: string): Promise<string> {

@@ -7,6 +7,7 @@ export * from './lib/types';
 
 // Errors
 export * from './lib/errors';
+export * from './lib/file-telemetry';
 
 // Utilities
 export { guessMimeType } from './lib/mime';
