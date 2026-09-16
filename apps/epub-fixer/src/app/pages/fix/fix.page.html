@@ -667,6 +667,14 @@
           @if (!epubErrorKey) {
             <li>{{ 'FIX.REPAIR_FAILURE_REASON_GENERIC' | translate }}</li>
           }
+          @for (issue of repairFailureIssues; track issue.code + ':' + (issue.details || '')) {
+            <li>
+              <span>{{ issueMessageLabel(issue) }}</span>
+              @if (issueDetailsLabel(issue)) {
+                <span>{{ issueDetailsLabel(issue) }}</span>
+              }
+            </li>
+          }
         </ul>
         <p class="fix-error-details__email">
           {{

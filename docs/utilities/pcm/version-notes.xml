@@ -1,51 +1,51 @@
 <en-US>
-PDF cover exports now handle file reading and rewarded ads more reliably, with better recovery when an ad cannot finish.
+PDF cover exports now keep Pro access in sync after restoring purchases or returning to the app, with improved stability when working with saved documents.
 </en-US>
 
 <ar>
-أصبح تصدير أغلفة PDF يتعامل مع قراءة الملفات والإعلانات بمكافآت بشكل أكثر موثوقية، مع استرداد أفضل عند تعذر إكمال الإعلان.
+تحافظ صادرات أغلفة PDF الآن على مزامنة وصول Pro بعد استعادة المشتريات أو العودة إلى التطبيق، مع تحسين الاستقرار عند العمل مع المستندات المحفوظة.
 </ar>
 
 <de-DE>
-Der Export von PDF-Covern verarbeitet das Lesen von Dateien und Rewarded-Anzeigen jetzt zuverlässiger und erholt sich besser, wenn eine Anzeige nicht abgeschlossen werden kann.
+PDF-Cover-Exporte halten den Pro-Zugriff nach der Wiederherstellung von Käufen oder der Rückkehr zur App jetzt synchron und sind beim Arbeiten mit gespeicherten Dokumenten stabiler.
 </de-DE>
 
 <es-419>
-Las exportaciones de portadas PDF gestionan con mayor confiabilidad la lectura de archivos y los anuncios recompensados, incluso si un anuncio no termina.
+Las exportaciones de portadas PDF ahora mantienen sincronizado el acceso a Pro después de restaurar compras o volver a la app, con mayor estabilidad al trabajar con documentos guardados.
 </es-419>
 
 <fr-FR>
-Les exports de couvertures PDF gèrent désormais plus fiablement la lecture des fichiers et les annonces récompensées, même lorsqu’une annonce ne se termine pas.
+Les exports de couvertures PDF maintiennent désormais l’accès Pro synchronisé après la restauration des achats ou le retour dans l’application, avec une meilleure stabilité lors de l’utilisation de documents enregistrés.
 </fr-FR>
 
 <hi-IN>
-अब PDF कवर एक्सपोर्ट फ़ाइल पढ़ने और रिवॉर्डेड विज्ञापनों को अधिक भरोसेमंद तरीके से संभालते हैं, भले ही कोई विज्ञापन पूरा न हो।
+PDF कवर एक्सपोर्ट अब खरीदारी बहाल करने या ऐप पर लौटने के बाद Pro एक्सेस को समन्वयित रखते हैं और सेव किए गए दस्तावेज़ों के साथ काम करते समय अधिक स्थिर हैं।
 </hi-IN>
 
 <it-IT>
-Le esportazioni delle copertine PDF gestiscono ora in modo più affidabile la lettura dei file e gli annunci con ricompensa, anche se un annuncio non termina.
+Le esportazioni delle copertine PDF mantengono ora sincronizzato l’accesso Pro dopo il ripristino degli acquisti o il ritorno nell’app, con maggiore stabilità durante l’uso dei documenti salvati.
 </it-IT>
 
 <ja-JP>
-PDF表紙の書き出しでファイルの読み取りとリワード広告がより安定し、広告が完了しない場合も適切に復旧できるようになりました。
+PDF表紙の書き出しで、購入の復元後やアプリに戻った後もProアクセスが同期され、保存したドキュメントの操作時の安定性も向上しました。
 </ja-JP>
 
 <ko-KR>
-PDF 표지 내보내기에서 파일 읽기와 리워드 광고를 더 안정적으로 처리하며, 광고가 완료되지 않아도 더 잘 복구합니다.
+구매를 복원하거나 앱으로 돌아온 후에도 PDF 표지 내보내기에서 Pro 이용 권한이 동기화되며, 저장된 문서 작업의 안정성이 향상되었습니다.
 </ko-KR>
 
 <pt-BR>
-As exportações de capas PDF agora lidam com a leitura de arquivos e anúncios recompensados com mais confiabilidade, mesmo quando um anúncio não é concluído.
+As exportações de capas PDF agora mantêm o acesso Pro sincronizado após restaurar compras ou voltar ao app, com mais estabilidade ao trabalhar com documentos salvos.
 </pt-BR>
 
 <ru-RU>
-Экспорт обложек PDF теперь надёжнее обрабатывает чтение файлов и рекламу с вознаграждением, даже если объявление не завершается.
+Экспорт обложек PDF теперь синхронизирует доступ Pro после восстановления покупок или возвращения в приложение и работает стабильнее с сохранёнными документами.
 </ru-RU>
 
 <zh-CN>
-PDF 封面导出现在能更可靠地处理文件读取和激励广告，即使广告未能完成也能更好地恢复。
+PDF 封面导出现在会在恢复购买或返回应用后保持 Pro 权限同步，并提升了处理已保存文档时的稳定性。
 </zh-CN>
 
 <zh-TW>
-PDF 封面匯出現在能更可靠地處理檔案讀取與獎勵廣告，即使廣告未完成也能更妥善地復原。
+PDF 封面匯出現在會在還原購買或返回應用程式後保持 Pro 權限同步，並提升了處理已儲存文件時的穩定性。
 </zh-TW>

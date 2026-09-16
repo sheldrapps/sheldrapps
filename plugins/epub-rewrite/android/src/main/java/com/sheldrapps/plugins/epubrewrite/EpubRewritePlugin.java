@@ -344,8 +344,11 @@ public class EpubRewritePlugin extends Plugin {
     public void getPublicDocument(PluginCall call) {
         try {
             call.resolve(publicDocumentResult(requirePublicDocumentUri(call)));
+        } catch (PublicDocumentNotFoundException ex) {
+            // Missing files are expected during existence checks and cleanup races.
+            call.resolve(errorResult("PUBLIC_DOCUMENT_NOT_FOUND", ex.getMessage(), "public_get", null, null, false));
         } catch (Exception ex) {
-            call.resolve(errorResult("PUBLIC_DOCUMENT_NOT_FOUND", ex.getMessage(), "public_get"));
+            call.resolve(errorResult("PUBLIC_GET_FAILED", ex.getMessage(), "public_get"));
         }
     }
 
@@ -1432,6 +1435,12 @@ public class EpubRewritePlugin extends Plugin {
                 EpubAnalysis verification = verifyRepairedArchive(tempOutputPath);
                 if (!verification.issues.isEmpty()) {
                     rollbackInPlace(workingPath, backupPath, tempOutputPath);
+                    debugIo(
+                        "repair incomplete sessionId=" + sessionId
+                            + " diagnosisId=" + diagnosisId
+                            + " repairedIssues=" + repairedIssues
+                            + " remainingIssues=" + issueCodes(verification.issues)
+                    );
                     JSObject incomplete = new JSObject();
                     incomplete.put("success", false);
                     incomplete.put("status", "incomplete");
@@ -2806,10 +2815,7 @@ public class EpubRewritePlugin extends Plugin {
         ) {
             return issues;
         }
-        if (
-            header != null
-                && header.getUncompressedSize() > MAX_DIAGNOSE_INLINE_TEXT_ENTRY_BYTES
-        ) {
+        if (shouldUseStreamingContentPath(header)) {
             StreamingXmlSanitizer sanitizer = inspectLargeDiagnosticEntry(
                 zipFile,
                 header,
@@ -3902,7 +3908,7 @@ public class EpubRewritePlugin extends Plugin {
         }
 
         FileHeader header = findHeader(zipFile.getFileHeaders(), manifestItem.resolvedPath);
-        if (header != null && header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES) {
+        if (shouldUseStreamingContentPath(header)) {
             debugIo("repair large text preserved raw path=" + manifestItem.resolvedPath
                 + " bytes=" + header.getUncompressedSize());
             return null;
@@ -4472,6 +4478,11 @@ public class EpubRewritePlugin extends Plugin {
             || normalizedHref.endsWith(".html")
             || normalizedHref.endsWith(".htm")
             || normalizedHref.endsWith(".svg");
+    }
+
+    private boolean shouldUseStreamingContentPath(FileHeader header) {
+        return header != null
+            && header.getUncompressedSize() > MAX_IN_MEMORY_TEXT_ENTRY_BYTES;
     }
 
     private boolean isInspectableDocumentMediaType(String mediaType) {
@@ -5459,7 +5470,7 @@ public class EpubRewritePlugin extends Plugin {
             }
             output.append(name);
             if (value != null) {
-                output.append("=\"").append(escapeXml(value)).append('"');
+                output.append("=\"").append(escapeXmlAttributeValue(value)).append('"');
             }
         }
 
@@ -5496,13 +5507,13 @@ public class EpubRewritePlugin extends Plugin {
         }
     }
 
-    private void closeOpenTagIfPresent(
+    private boolean closeOpenTagIfPresent(
         StringBuilder output,
         Deque<String> openTags,
         String tagName
     ) {
         if (CompatStrings.isBlank(tagName) || openTags.isEmpty()) {
-            return;
+            return false;
         }
 
         java.util.ArrayList<String> closedTags = new java.util.ArrayList<>();
@@ -5518,21 +5529,22 @@ public class EpubRewritePlugin extends Plugin {
 
         if (!matched) {
             restoreOpenTags(openTags, closedTags);
-            return;
+            return false;
         }
 
         for (String closeTag : closedTags) {
             output.append("</").append(closeTag).append('>');
         }
+        return true;
     }
 
-    private void closeOpenTags(
+    private boolean closeOpenTags(
         StringBuilder output,
         Deque<String> openTags,
         String tagName
     ) {
         if (CompatStrings.isBlank(tagName)) {
-            return;
+            return false;
         }
 
         java.util.ArrayList<String> closedTags = new java.util.ArrayList<>();
@@ -5548,12 +5560,13 @@ public class EpubRewritePlugin extends Plugin {
 
         if (!matched) {
             restoreOpenTags(openTags, closedTags);
-            return;
+            return true;
         }
 
         for (String closeTag : closedTags) {
             output.append("</").append(closeTag).append('>');
         }
+        return closedTags.size() > 1;
     }
 
     private void restoreOpenTags(
@@ -5600,7 +5613,7 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     private String removeInvalidXmlCharacters(String text) {
-        if (CompatStrings.isBlank(text)) {
+        if (text == null || text.isEmpty()) {
             return "";
         }
 
@@ -5621,7 +5634,7 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     private String replaceUnknownEntityReferences(String text) {
-        if (CompatStrings.isBlank(text)) {
+        if (text == null || text.isEmpty()) {
             return "";
         }
 
@@ -10129,7 +10142,6 @@ public class EpubRewritePlugin extends Plugin {
                 }
                 if (startsWithIgnoreCase(tagContent, 0, "!doctype")) {
                     sawDoctype = true;
-                    changed = true;
                     continue;
                 }
                 if (tagContent.startsWith("!")) {
@@ -10138,7 +10150,9 @@ public class EpubRewritePlugin extends Plugin {
                 }
                 if (tagContent.startsWith("/")) {
                     String closeName = extractTagName(tagContent.substring(1));
-                    closeOpenTags(output, openTags, closeName);
+                    if (closeOpenTags(output, openTags, closeName)) {
+                        changed = true;
+                    }
                     continue;
                 }
 
@@ -10165,13 +10179,21 @@ public class EpubRewritePlugin extends Plugin {
 
                 String remainder = tagContent.substring(tagName.length()).trim();
                 if ("body".equalsIgnoreCase(tagName)) {
-                    closeOpenTagIfPresent(output, openTags, "head");
+                    if (closeOpenTagIfPresent(output, openTags, "head")) {
+                        changed = true;
+                    }
                 }
                 if (isVoidElement(tagName)) {
+                    if (!selfClosing) {
+                        changed = true;
+                    }
                     selfClosing = true;
                 }
                 output.append('<').append(tagName);
                 String sanitizedAttributes = sanitizeAttributeList(remainder);
+                if (containsBareXmlAttributeValue(remainder)) {
+                    changed = true;
+                }
                 if (CompatStrings.isNotBlank(sanitizedAttributes)) {
                     output.append(' ').append(sanitizedAttributes);
                 }
@@ -10190,11 +10212,7 @@ public class EpubRewritePlugin extends Plugin {
                 }
             }
 
-            String result = output.toString();
-            if (!result.equals(input)) {
-                changed = true;
-            }
-            return result;
+            return output.toString();
         }
 
         boolean changed() {
@@ -10206,11 +10224,12 @@ public class EpubRewritePlugin extends Plugin {
         }
 
         private void appendText(StringBuilder output, String text) {
+            String normalizedText = text.replace("\r\n", "\n").replace('\r', '\n');
             String sanitized = removeInvalidXmlCharacters(
-                replaceUnknownEntityReferences(text.replace("\r\n", "\n").replace('\r', '\n'))
+                replaceUnknownEntityReferences(normalizedText)
             );
             output.append(sanitized);
-            if (!sanitized.equals(text)) {
+            if (!sanitized.equals(normalizedText)) {
                 changed = true;
             }
         }
@@ -12065,6 +12084,51 @@ public class EpubRewritePlugin extends Plugin {
             .replace("'", "&apos;");
     }
 
+    private String escapeXmlAttributeValue(String input) {
+        if (input == null || input.isEmpty()) return "";
+
+        StringBuilder output = new StringBuilder(input.length() + 16);
+        int index = 0;
+        while (index < input.length()) {
+            char current = input.charAt(index);
+            if (current == '&') {
+                int semicolonIndex = input.indexOf(';', index + 1);
+                if (
+                    semicolonIndex > index + 1
+                        && isKnownXmlEntityReference(
+                            input.substring(index + 1, semicolonIndex)
+                        )
+                ) {
+                    output.append(input, index, semicolonIndex + 1);
+                    index = semicolonIndex + 1;
+                    continue;
+                }
+                output.append("&amp;");
+            } else if (current == '<') {
+                output.append("&lt;");
+            } else if (current == '>') {
+                output.append("&gt;");
+            } else if (current == '"') {
+                output.append("&quot;");
+            } else if (current == '\'') {
+                output.append("&apos;");
+            } else {
+                output.append(current);
+            }
+            index += 1;
+        }
+        return output.toString();
+    }
+
+    private boolean isKnownXmlEntityReference(String entityName) {
+        return "amp".equals(entityName)
+            || "lt".equals(entityName)
+            || "gt".equals(entityName)
+            || "apos".equals(entityName)
+            || "quot".equals(entityName)
+            || entityName.startsWith("#");
+    }
+
     private String stripExtension(String fileName) {
         int dotIndex = fileName.lastIndexOf('.');
         return dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
@@ -12219,9 +12283,15 @@ public class EpubRewritePlugin extends Plugin {
         String filename = requirePublicFileName(call.getString("filename"));
         Uri file = findPublicDocumentUri(folderName, filename);
         if (file == null) {
-            throw new IOException("Public document is unavailable");
+            throw new PublicDocumentNotFoundException();
         }
         return file;
+    }
+
+    private static final class PublicDocumentNotFoundException extends IOException {
+        private PublicDocumentNotFoundException() {
+            super("Public document is unavailable");
+        }
     }
 
     private Uri publicDownloadsCollection() {
@@ -12461,6 +12531,8 @@ public class EpubRewritePlugin extends Plugin {
             case "BUSY":
             case "CANCELLED":
             case "PICK_CANCELLED":
+            case "PUBLIC_DOCUMENT_NOT_FOUND":
+            case "NO_COVER":
                 return false;
             default:
                 return true;

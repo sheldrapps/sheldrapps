@@ -139,8 +139,8 @@ importers:
         specifier: 8.0.2
         version: 8.0.2(@capacitor/core@8.4.1)
       '@capgo/native-purchases':
-        specifier: ^8.6.4
-        version: 8.6.4(@capacitor/core@8.4.1)
+        specifier: ^8.7.0
+        version: 8.7.0(@capacitor/core@8.4.1)
       '@ionic/angular':
         specifier: ^8.8.14
         version: 8.8.14(6c105ec30268c080e890aad750574115)
@@ -341,8 +341,8 @@ importers:
         specifier: 8.0.2
         version: 8.0.2(@capacitor/core@8.4.1)
       '@capgo/native-purchases':
-        specifier: ^8.6.4
-        version: 8.6.4(@capacitor/core@8.4.1)
+        specifier: ^8.7.0
+        version: 8.7.0(@capacitor/core@8.4.1)
       '@ionic/angular':
         specifier: ^8.8.14
         version: 8.8.14(6c105ec30268c080e890aad750574115)
@@ -546,8 +546,8 @@ importers:
         specifier: 8.0.2
         version: 8.0.2(@capacitor/core@8.4.1)
       '@capgo/native-purchases':
-        specifier: ^8.6.4
-        version: 8.6.4(@capacitor/core@8.4.1)
+        specifier: ^8.7.0
+        version: 8.7.0(@capacitor/core@8.4.1)
       '@ionic/angular':
         specifier: ^8.8.14
         version: 8.8.14(6c105ec30268c080e890aad750574115)
@@ -745,8 +745,8 @@ importers:
         specifier: 8.0.2
         version: 8.0.2(@capacitor/core@8.4.1)
       '@capgo/native-purchases':
-        specifier: ^8.6.4
-        version: 8.6.4(@capacitor/core@8.4.1)
+        specifier: ^8.7.0
+        version: 8.7.0(@capacitor/core@8.4.1)
       '@ionic/angular':
         specifier: 8.8.14
         version: 8.8.14(6c105ec30268c080e890aad750574115)
@@ -889,6 +889,163 @@ importers:
       karma-jasmine-html-reporter:
         specifier: ~2.1.0
         version: 2.1.0(jasmine-core@5.1.2)(karma-jasmine@5.1.0(karma@6.4.4))(karma@6.4.4)
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+
+  apps/epub-metadata-editor:
+    dependencies:
+      '@angular/common':
+        specifier: ^22.0.7
+        version: 22.0.7(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@angular/compiler':
+        specifier: ^22.0.7
+        version: 22.0.7
+      '@angular/core':
+        specifier: ^22.0.7
+        version: 22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1)
+      '@angular/forms':
+        specifier: ^22.0.7
+        version: 22.0.7(@angular/common@22.0.7(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.0.7(@angular/animations@22.0.7(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@22.0.7(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
+      '@angular/platform-browser':
+        specifier: ^22.0.7
+        version: 22.0.7(@angular/animations@22.0.7(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@22.0.7(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))
+      '@angular/router':
+        specifier: ^22.0.7
+        version: 22.0.7(@angular/common@22.0.7(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.0.7(@angular/animations@22.0.7(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@22.0.7(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
+      '@capacitor-community/admob':
+        specifier: 8.0.0
+        version: 8.0.0
+      '@capacitor/android':
+        specifier: ^8.4.1
+        version: 8.4.2(@capacitor/core@8.4.1)
+      '@capacitor/app':
+        specifier: 8.1.0
+        version: 8.1.0(@capacitor/core@8.4.1)
+      '@capacitor/core':
+        specifier: 8.4.1
+        version: 8.4.1
+      '@capacitor/haptics':
+        specifier: 8.0.2
+        version: 8.0.2(@capacitor/core@8.4.1)
+      '@capacitor/keyboard':
+        specifier: 8.0.5
+        version: 8.0.5(@capacitor/core@8.4.1)
+      '@capacitor/preferences':
+        specifier: ^8.0.1
+        version: 8.0.1(@capacitor/core@8.4.1)
+      '@capacitor/status-bar':
+        specifier: 8.0.2
+        version: 8.0.2(@capacitor/core@8.4.1)
+      '@ionic/angular':
+        specifier: 8.8.14
+        version: 8.8.14(6c105ec30268c080e890aad750574115)
+      '@ngx-translate/core':
+        specifier: ^17.0.0
+        version: 17.0.0(@angular/common@22.0.7(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))
+      '@ngx-translate/http-loader':
+        specifier: ^17.0.0
+        version: 17.0.0(@angular/common@22.0.7(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))
+      '@sheldrapps/ads-kit':
+        specifier: workspace:*
+        version: link:../../packages/ads-kit
+      '@sheldrapps/i18n-kit':
+        specifier: workspace:*
+        version: link:../../packages/i18n-kit
+      '@sheldrapps/rating-kit':
+        specifier: workspace:*
+        version: link:../../packages/rating-kit
+      '@sheldrapps/settings-kit':
+        specifier: workspace:*
+        version: link:../../packages/settings-kit
+      '@sheldrapps/ui-theme':
+        specifier: workspace:*
+        version: link:../../packages/ui-theme
+      ionicons:
+        specifier: ^7.0.0
+        version: 7.4.0
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
+      tslib:
+        specifier: ^2.8.1
+        version: 2.8.1
+    devDependencies:
+      '@angular-eslint/builder':
+        specifier: ^22.1.0
+        version: 22.1.0(@angular/cli@22.0.7(@types/node@25.0.10)(chokidar@5.0.0))(chokidar@5.0.0)(eslint@9.39.2(jiti@2.7.0))(typescript@6.0.3)
+      '@angular-eslint/eslint-plugin':
+        specifier: ^22.1.0
+        version: 22.1.0(@typescript-eslint/utils@8.64.0(eslint@9.39.2(jiti@2.7.0))(typescript@6.0.3))(eslint@9.39.2(jiti@2.7.0))(typescript@6.0.3)
+      '@angular-eslint/eslint-plugin-template':
+        specifier: ^22.1.0
+        version: 22.1.0(@angular-eslint/template-parser@22.1.0(eslint@9.39.2(jiti@2.7.0))(typescript@6.0.3))(@typescript-eslint/types@8.64.0)(@typescript-eslint/utils@8.64.0(eslint@9.39.2(jiti@2.7.0))(typescript@6.0.3))(eslint@9.39.2(jiti@2.7.0))(typescript@6.0.3)
+      '@angular-eslint/schematics':
+        specifier: ^22.1.0
+        version: 22.1.0(@angular-eslint/template-parser@22.1.0(eslint@9.39.2(jiti@2.7.0))(typescript@6.0.3))(@angular/cli@22.0.7(@types/node@25.0.10)(chokidar@5.0.0))(@typescript-eslint/types@8.64.0)(@typescript-eslint/utils@8.64.0(eslint@9.39.2(jiti@2.7.0))(typescript@6.0.3))(chokidar@5.0.0)(eslint@9.39.2(jiti@2.7.0))(typescript@6.0.3)
+      '@angular-eslint/template-parser':
+        specifier: ^22.1.0
+        version: 22.1.0(eslint@9.39.2(jiti@2.7.0))(typescript@6.0.3)
+      '@angular/build':
+        specifier: ^22.0.7
+        version: 22.0.7(@angular/compiler-cli@22.0.7(@angular/compiler@22.0.7)(typescript@6.0.3))(@angular/compiler@22.0.7)(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.0.7(@angular/animations@22.0.7(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@22.0.7(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.0.7(@angular/compiler@22.0.7)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@25.0.10)(chokidar@5.0.0)(istanbul-lib-instrument@6.0.3)(jiti@2.7.0)(karma@6.4.4)(less@4.6.4)(ng-packagr@20.3.2(@angular/compiler-cli@22.0.7(@angular/compiler@22.0.7)(typescript@6.0.3))(tslib@2.8.1)(typescript@6.0.3))(postcss@8.5.13)(terser@5.46.2)(tslib@2.8.1)(typescript@6.0.3)(vitest@4.1.7(@types/node@25.0.10)(jsdom@28.1.0(@noble/hashes@1.8.0))(vite@7.3.5(@types/node@25.0.10)(jiti@2.7.0)(less@4.6.4)(sass@1.99.0)(terser@5.46.2)))
+      '@angular/cli':
+        specifier: 22.0.7
+        version: 22.0.7(@types/node@25.0.10)(chokidar@5.0.0)
+      '@angular/compiler-cli':
+        specifier: ^22.0.7
+        version: 22.0.7(@angular/compiler@22.0.7)(typescript@6.0.3)
+      '@angular/language-service':
+        specifier: ^22.0.7
+        version: 22.0.7
+      '@capacitor/cli':
+        specifier: 8.4.2
+        version: 8.4.2
+      '@ionic/angular-toolkit':
+        specifier: ^12.3.0
+        version: 12.3.0(chokidar@5.0.0)
+      '@types/jasmine':
+        specifier: ~5.1.0
+        version: 5.1.15
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.64.0
+        version: 8.64.0(@typescript-eslint/parser@8.64.0(eslint@9.39.2(jiti@2.7.0))(typescript@6.0.3))(eslint@9.39.2(jiti@2.7.0))(typescript@6.0.3)
+      '@typescript-eslint/parser':
+        specifier: ^8.64.0
+        version: 8.64.0(eslint@9.39.2(jiti@2.7.0))(typescript@6.0.3)
+      eslint:
+        specifier: ^9.16.0
+        version: 9.39.2(jiti@2.7.0)
+      eslint-plugin-import:
+        specifier: ^2.29.0
+        version: 2.32.0(@typescript-eslint/parser@8.64.0(eslint@9.39.2(jiti@2.7.0))(typescript@6.0.3))(eslint@9.39.2(jiti@2.7.0))
+      eslint-plugin-jsdoc:
+        specifier: ^48.2.0
+        version: 48.11.0(eslint@9.39.2(jiti@2.7.0))
+      eslint-plugin-prefer-arrow:
+        specifier: 1.2.3
+        version: 1.2.3(eslint@9.39.2(jiti@2.7.0))
+      jasmine-core:
+        specifier: ~5.1.0
+        version: 5.1.2
+      jasmine-spec-reporter:
+        specifier: ~5.0.0
+        version: 5.0.2
+      karma:
+        specifier: ~6.4.0
+        version: 6.4.4
+      karma-chrome-launcher:
+        specifier: ~3.2.0
+        version: 3.2.0
+      karma-coverage:
+        specifier: ~2.2.0
+        version: 2.2.1
+      karma-jasmine:
+        specifier: ~5.1.0
+        version: 5.1.0(karma@6.4.4)
+      karma-jasmine-html-reporter:
+        specifier: ~2.2.0
+        version: 2.2.0(jasmine-core@5.1.2)(karma-jasmine@5.1.0(karma@6.4.4))(karma@6.4.4)
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -1116,8 +1273,8 @@ importers:
         specifier: 8.0.2
         version: 8.0.2(@capacitor/core@8.4.1)
       '@capgo/native-purchases':
-        specifier: ^8.6.4
-        version: 8.6.4(@capacitor/core@8.4.1)
+        specifier: ^8.7.0
+        version: 8.7.0(@capacitor/core@8.4.1)
       '@ionic/angular':
         specifier: ^8.8.14
         version: 8.8.14(6c105ec30268c080e890aad750574115)
@@ -1321,8 +1478,8 @@ importers:
         specifier: 8.0.2
         version: 8.0.2(@capacitor/core@8.4.1)
       '@capgo/native-purchases':
-        specifier: ^8.6.4
-        version: 8.6.4(@capacitor/core@8.4.1)
+        specifier: ^8.7.0
+        version: 8.7.0(@capacitor/core@8.4.1)
       '@ionic/angular':
         specifier: 8.8.14
         version: 8.8.14(6c105ec30268c080e890aad750574115)
@@ -1675,12 +1832,15 @@ importers:
       '@capacitor-community/admob':
         specifier: ^8.0.0
         version: 8.0.0
+      '@capacitor/app':
+        specifier: ^8.0.0
+        version: 8.1.0(@capacitor/core@8.0.0)
       '@capacitor/core':
         specifier: ^8.0.0
         version: 8.0.0
       '@capgo/native-purchases':
-        specifier: ^8.0.0
-        version: 8.2.5(@capacitor/core@8.0.0)
+        specifier: ^8.7.0
+        version: 8.7.0(@capacitor/core@8.0.0)
       '@ionic/angular':
         specifier: ^8.8.14
         version: 8.8.14(6c105ec30268c080e890aad750574115)
@@ -2638,13 +2798,8 @@ packages:
   '@capacitor/synapse@1.0.4':
     resolution: {integrity: sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw==}
 
-  '@capgo/native-purchases@8.2.5':
-    resolution: {integrity: sha512-gzUpSf6/4+J38Ry+JbnaOcnr4JE62UnXWjMtwM9BYwkti3K1u65900T0aOmKpspExPS038ZYqgM42UV4d2uP/w==}
-    peerDependencies:
-      '@capacitor/core': '>=8.0.0'
-
-  '@capgo/native-purchases@8.6.4':
-    resolution: {integrity: sha512-7kGNvK7EiPiSbn+LVzc2GzR2Zcx2uxV4N457s84tsIV42ZccJmmsJpIvit6AOCFoUky8mLbcDsMhQvHCDivWhQ==}
+  '@capgo/native-purchases@8.7.0':
+    resolution: {integrity: sha512-sfnV5rZZOeUx/a/IVFX98HdEQX8f7/h9/oLyeo23QuTRnltVb6PxJhvmBOqIl02R7Pp5BaafNIEStvcacxLgnA==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
@@ -5639,6 +5794,11 @@ packages:
     peerDependencies:
       eslint: '>=2.0.0'
 
+  eslint-plugin-prefer-arrow@1.2.3:
+    resolution: {integrity: sha512-J9I5PKCOJretVuiZRGvPQxCbllxGAV/viI20JO3LYblAodofBxyMnZAJ+WGeClHgANnSJberTNoFWWjrWKBuXQ==}
+    peerDependencies:
+      eslint: '>=2.0.0'
+
   eslint-scope@8.4.0:
     resolution: {integrity: sha512-sNXOfKCn74rt8RICKMvJS7XKV/Xk9kA7DyJr8mJik3S7Cwgy3qlkkmyS2uQB3jiJg6VNdZd/pDBJu0nvG2NlTg==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
@@ -5662,6 +5822,7 @@ packages:
   eslint@9.39.2:
     resolution: {integrity: sha512-LEyamqS7W5HB3ujJyvi0HQK/dtVINZvd5mAAp9eT5S/ujByGjiZLCzPcHVzuXbpJDJF/cxwHlfceVUDZ2lnSTw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -6497,6 +6658,13 @@ packages:
     resolution: {integrity: sha512-sPQE1+nlsn6Hwb5t+HHwyy0A1FNCVKuL1192b+XNauMYWThz2kweiBVW1DqloRpVvZIJkIoHVB7XRpK78n1xbQ==}
     peerDependencies:
       jasmine-core: ^4.0.0 || ^5.0.0
+      karma: ^6.0.0
+      karma-jasmine: ^5.0.0
+
+  karma-jasmine-html-reporter@2.2.0:
+    resolution: {integrity: sha512-J0laEC43Oy2RdR5V5R3bqmdo7yRIYySq6XHKbA+e5iSAgLjhR1oICLGeSREPlJXpeyNcdJf3J17YcdhD0mRssQ==}
+    peerDependencies:
+      jasmine-core: ^4.0.0 || ^5.0.0 || ^6.0.0
       karma: ^6.0.0
       karma-jasmine: ^5.0.0
 
@@ -9018,6 +9186,10 @@ snapshots:
     dependencies:
       '@capacitor/core': 8.0.0
 
+  '@capacitor/app@8.1.0(@capacitor/core@8.0.0)':
+    dependencies:
+      '@capacitor/core': 8.0.0
+
   '@capacitor/app@8.1.0(@capacitor/core@8.4.1)':
     dependencies:
       '@capacitor/core': 8.4.1
@@ -9171,11 +9343,11 @@ snapshots:
 
   '@capacitor/synapse@1.0.4': {}
 
-  '@capgo/native-purchases@8.2.5(@capacitor/core@8.0.0)':
+  '@capgo/native-purchases@8.7.0(@capacitor/core@8.0.0)':
     dependencies:
       '@capacitor/core': 8.0.0
 
-  '@capgo/native-purchases@8.6.4(@capacitor/core@8.4.1)':
+  '@capgo/native-purchases@8.7.0(@capacitor/core@8.4.1)':
     dependencies:
       '@capacitor/core': 8.4.1
 
@@ -11979,6 +12151,10 @@ snapshots:
     dependencies:
       eslint: 9.39.2(jiti@2.7.0)
 
+  eslint-plugin-prefer-arrow@1.2.3(eslint@9.39.2(jiti@2.7.0)):
+    dependencies:
+      eslint: 9.39.2(jiti@2.7.0)
+
   eslint-scope@8.4.0:
     dependencies:
       esrecurse: 4.3.0
@@ -12913,6 +13089,12 @@ snapshots:
       - supports-color
 
   karma-jasmine-html-reporter@2.1.0(jasmine-core@5.1.2)(karma-jasmine@5.1.0(karma@6.4.4))(karma@6.4.4):
+    dependencies:
+      jasmine-core: 5.1.2
+      karma: 6.4.4
+      karma-jasmine: 5.1.0(karma@6.4.4)
+
+  karma-jasmine-html-reporter@2.2.0(jasmine-core@5.1.2)(karma-jasmine@5.1.0(karma@6.4.4))(karma@6.4.4):
     dependencies:
       jasmine-core: 5.1.2
       karma: 6.4.4

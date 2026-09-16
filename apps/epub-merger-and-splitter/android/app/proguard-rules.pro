@@ -30,3 +30,8 @@
 -keepattributes RuntimeVisibleAnnotations,AnnotationDefault
 -keep @interface com.getcapacitor.annotation.CapacitorPlugin { *; }
 -keep @interface com.getcapacitor.annotation.Permission { *; }
+
+# Google Play Billing 9.1.0 uses API 34 ActivityOptions calls behind SDK checks.
+# Keep the proxy activities intact so R8 cannot optimize away those compatibility guards.
+-keep class com.android.billingclient.api.ProxyBillingActivity { *; }
+-keep class com.android.billingclient.api.ProxyBillingActivityV2 { *; }

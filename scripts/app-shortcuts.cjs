@@ -1,6 +1,10 @@
 module.exports = {
   shortcuts: [
     {
+      short: 'eme',
+      slug: 'epub-metadata-editor',
+    },
+    {
       short: 'ef',
       slug: 'epub-fixer',
     },

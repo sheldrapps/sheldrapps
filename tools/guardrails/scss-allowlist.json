@@ -54,6 +54,8 @@
     "apps/epub-fixer/src/app/tabs/tabs.page.scss",
     "apps/epub-fixer/src/global.scss",
     "apps/epub-fixer/src/theme/variables.scss",
+    "apps/epub-metadata-editor/src/global.scss",
+    "apps/epub-metadata-editor/src/theme/variables.scss",
     "apps/pdf-merger-and-splitter/src/app/pages/home/home.page.scss",
     "apps/pdf-merger-and-splitter/src/app/pages/my-pdfs/my-pdfs.page.scss",
     "apps/pdf-merger-and-splitter/src/app/pages/settings/settings.page.scss",

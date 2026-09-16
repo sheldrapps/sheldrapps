@@ -230,11 +230,14 @@ export class AdsService {
     let showTimeout: ReturnType<typeof setTimeout> | null = null;
 
     return new Promise<RewardedAdResult>((resolve) => {
+      const clearShowTimeout = (): void => {
+        if (!showTimeout) return;
+        clearTimeout(showTimeout);
+        showTimeout = null;
+      };
+
       const cleanup = () => {
-        if (showTimeout) {
-          clearTimeout(showTimeout);
-          showTimeout = null;
-        }
+        clearShowTimeout();
         listeners.splice(0).forEach((listener) => {
           void listener.remove();
         });
@@ -307,6 +310,7 @@ export class AdsService {
             this.addRewardedListener(RewardAdPluginEvents.Showed, (info) => {
               if (!this.isCurrentRewardedEvent(info)) return;
               adWasShown = true;
+              clearShowTimeout();
               this.debugLog('callback=shown');
             }),
           ),

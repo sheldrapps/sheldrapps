@@ -27,6 +27,7 @@ import {
   AdsService,
   BillingService,
   ExportAccessService,
+  RemoveAdsPurchasePageService,
   type AdFailureConfidence,
   type AdFailureReason,
   type RewardedAdResult,
@@ -65,6 +66,7 @@ import {
   SelectableButtonListComponent,
   ScrollableButtonBarComponent,
   TripleButtonComponent,
+  ProBadgeComponent,
   WorkflowStepperComponent,
   WorkflowNavigationComponent,
   SpinnerComponent,
@@ -130,6 +132,7 @@ type PdfOutputSummary = {
     TripleButtonComponent,
     CoverSourceActionsComponent,
     CoverImageStateComponent,
+    ProBadgeComponent,
     IonInput,
     WorkflowStepperComponent,
     ScrollableButtonBarComponent,
@@ -144,6 +147,7 @@ export class HomePage implements OnDestroy, OnInit {
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
   private readonly billing = inject(BillingService);
+  private readonly removeAdsPurchasePage = inject(RemoveAdsPurchasePageService);
   private readonly ads = inject(AdsService);
   private readonly exportAccess = inject(ExportAccessService);
   private readonly adFallback = inject(AdFallbackService);
@@ -197,6 +201,9 @@ export class HomePage implements OnDestroy, OnInit {
   readonly isRebuildingExportQuality = signal(false);
   readonly adsRemoved = toSignal(this.billing.adsRemoved$, {
     initialValue: this.billing.isAdsRemoved(),
+  });
+  readonly removeAdsPriceFormatted = toSignal(this.billing.removeAdsPrice$, {
+    initialValue: this.billing.getRemoveAdsPriceFormatted(),
   });
   exportQualityMode: ExportQualityMode = DEFAULT_EXPORT_QUALITY_MODE;
   readonly workflowStep = signal(0);
@@ -881,6 +888,31 @@ export class HomePage implements OnDestroy, OnInit {
 
   getEffectiveExportQualityMode(): ExportQualityMode {
     return normalizeExportQualityMode(this.exportQualityMode, this.adsRemoved());
+  }
+
+  canShowRemoveAdsEntryPoint(): boolean {
+    return !this.adsRemoved() && this.billing.canShowRemoveAdsEntryPoint();
+  }
+
+  getRemoveAdsCtaSubtitleKey(): string {
+    return this.removeAdsPriceFormatted()
+      ? 'COMMON.REMOVE_ADS_CTA_SUBTITLE_WITH_PRICE'
+      : 'COMMON.REMOVE_ADS_CTA_SUBTITLE';
+  }
+
+  getRemoveAdsPriceParams(): Record<string, string> {
+    const price = this.removeAdsPriceFormatted();
+    return price ? { price } : {};
+  }
+
+  async openPurchaseModal(): Promise<void> {
+    if (!this.canShowRemoveAdsEntryPoint()) return;
+
+    this.removeAdsPurchasePage.open({
+      variant: 'PMAS',
+      returnUrl: '/tabs/home',
+    });
+    await this.router.navigateByUrl('/remove-ads');
   }
 
   async onExportQualityModeSelect(mode: ExportQualityMode): Promise<void> {

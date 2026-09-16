@@ -326,6 +326,7 @@ public class PdfRewritePlugin extends Plugin {
             case "OPERATION_CANCELLED":
             case "PICK_CANCELLED":
             case "SOURCE_FILE_NOT_FOUND":
+            case "PUBLIC_DOCUMENT_NOT_FOUND":
             case "MERGE_REQUIRES_TWO_PDFS":
             case "SPLIT_REQUIRES_TWO_OUTPUTS":
                 return false;

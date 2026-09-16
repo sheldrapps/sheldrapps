@@ -1,51 +1,51 @@
 <en-US>
-EPUB merge and split exports now handle file access and rewarded ads more reliably, with better recovery when an ad cannot finish.
+EPUB merge and split exports now keep Pro access in sync after restoring purchases or returning to the app, with improved stability on newer Android versions.
 </en-US>
 
 <ar>
-أصبحت عمليات دمج وتقسيم EPUB تتعامل مع الوصول إلى الملفات والإعلانات بمكافآت بشكل أكثر موثوقية، مع استرداد أفضل عند تعذر إكمال الإعلان.
+تحافظ صادرات دمج وتقسيم EPUB الآن على مزامنة وصول Pro بعد استعادة المشتريات أو العودة إلى التطبيق، مع تحسين الاستقرار على إصدارات Android الأحدث.
 </ar>
 
 <de-DE>
-Beim Zusammenführen und Teilen von EPUBs werden Dateizugriff und Rewarded-Anzeigen jetzt zuverlässiger verarbeitet, mit besserer Wiederherstellung, wenn eine Anzeige nicht abgeschlossen werden kann.
+EPUB-Exporte nach dem Zusammenführen und Teilen halten den Pro-Zugriff nach der Wiederherstellung von Käufen oder der Rückkehr zur App jetzt synchron und sind auf neueren Android-Versionen stabiler.
 </de-DE>
 
 <es-419>
-Las exportaciones al unir y dividir EPUB ahora gestionan con mayor confiabilidad el acceso a archivos y los anuncios recompensados, incluso si un anuncio no termina.
+Las exportaciones al unir y dividir EPUB ahora mantienen sincronizado el acceso a Pro después de restaurar compras o volver a la app, con mayor estabilidad en versiones recientes de Android.
 </es-419>
 
 <fr-FR>
-Les exports après fusion ou séparation d’EPUB gèrent désormais plus fiablement l’accès aux fichiers et les annonces récompensées, même lorsqu’une annonce ne se termine pas.
+Les exports après fusion ou séparation d’EPUB maintiennent désormais l’accès Pro synchronisé après la restauration des achats ou le retour dans l’application, avec une meilleure stabilité sur les versions récentes d’Android.
 </fr-FR>
 
 <hi-IN>
-EPUB मर्ज और स्प्लिट एक्सपोर्ट अब फ़ाइल एक्सेस और रिवॉर्डेड विज्ञापनों को अधिक भरोसेमंद तरीके से संभालते हैं, भले ही कोई विज्ञापन पूरा न हो।
+EPUB मर्ज और स्प्लिट एक्सपोर्ट अब खरीदारी बहाल करने या ऐप पर लौटने के बाद Pro एक्सेस को समन्वयित रखते हैं और नए Android संस्करणों पर अधिक स्थिर हैं।
 </hi-IN>
 
 <it-IT>
-Le esportazioni dopo l’unione o la divisione degli EPUB gestiscono ora in modo più affidabile l’accesso ai file e gli annunci con ricompensa, anche se un annuncio non termina.
+Le esportazioni dopo l’unione o la divisione degli EPUB mantengono ora sincronizzato l’accesso Pro dopo il ripristino degli acquisti o il ritorno nell’app, con maggiore stabilità sulle versioni recenti di Android.
 </it-IT>
 
 <ja-JP>
-EPUBの結合・分割書き出しでファイルアクセスとリワード広告がより安定し、広告が完了しない場合も適切に復旧できるようになりました。
+EPUBの結合・分割書き出しで、購入の復元後やアプリに戻った後もProアクセスが同期され、新しいAndroidバージョンでの安定性も向上しました。
 </ja-JP>
 
 <ko-KR>
-EPUB 병합 및 분할 내보내기에서 파일 액세스와 리워드 광고를 더 안정적으로 처리하며, 광고가 완료되지 않아도 더 잘 복구합니다.
+구매를 복원하거나 앱으로 돌아온 후에도 EPUB 병합 및 분할 내보내기에서 Pro 이용 권한이 동기화되며, 최신 Android 버전에서 안정성이 향상되었습니다.
 </ko-KR>
 
 <pt-BR>
-As exportações após mesclar ou dividir EPUBs agora lidam com o acesso a arquivos e anúncios recompensados com mais confiabilidade, mesmo quando um anúncio não é concluído.
+As exportações após mesclar ou dividir EPUBs agora mantêm o acesso Pro sincronizado após restaurar compras ou voltar ao app, com mais estabilidade nas versões recentes do Android.
 </pt-BR>
 
 <ru-RU>
-Экспорт после объединения или разделения EPUB теперь надёжнее обрабатывает доступ к файлам и рекламу с вознаграждением, даже если объявление не завершается.
+Экспорт после объединения или разделения EPUB теперь синхронизирует доступ Pro после восстановления покупок или возвращения в приложение и работает стабильнее на новых версиях Android.
 </ru-RU>
 
 <zh-CN>
-EPUB 合并和拆分导出现在能更可靠地处理文件访问和激励广告，即使广告未能完成也能更好地恢复。
+EPUB 合并和拆分导出现在会在恢复购买或返回应用后保持 Pro 权限同步，并提升了在新版 Android 上的稳定性。
 </zh-CN>
 
 <zh-TW>
-EPUB 合併與分割匯出現在能更可靠地處理檔案存取與獎勵廣告，即使廣告未完成也能更妥善地復原。
+EPUB 合併與分割匯出現在會在還原購買或返回應用程式後保持 Pro 權限同步，並提升了新版 Android 的穩定性。
 </zh-TW>

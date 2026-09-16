@@ -47,6 +47,29 @@ export type RewardedAdResult = {
 
 export type AdsEntitlementStatus = 'unknown' | 'free' | 'pro' | 'unavailable';
 
+export type BillingProductType = 'inapp' | 'subs';
+
+export type BillingProductKind =
+  | 'non-consumable'
+  | 'consumable'
+  | 'subscription';
+
+export type BillingPurchaseRecord = {
+  productIdentifier?: string;
+  productType?: string;
+  purchaseState?: unknown;
+  isAcknowledged?: boolean;
+  purchaseToken?: string;
+};
+
+export interface BillingProductConfig {
+  productId: string;
+  productType: BillingProductType;
+  kind: BillingProductKind;
+  entitlement?: 'remove-ads';
+  onPurchased?: (purchase: BillingPurchaseRecord) => Promise<void> | void;
+}
+
 export type AdFailureReason =
   | 'network'
   | 'dns'
@@ -101,6 +124,11 @@ export interface BillingKitConfig {
    * Android product identifier for the non-consumable remove-ads purchase.
    */
   removeAdsProductId?: string;
+
+  /**
+   * Optional product catalog for billing flows beyond remove-ads.
+   */
+  products?: readonly BillingProductConfig[];
 
   /**
    * Whether web development should simulate an already purchased entitlement.

@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/app",
+    "types": []
+  },
+  "files": ["src/main.ts", "src/main.native.ts"],
+  "include": [
+    "src/**/*.d.ts",
+    "src/**/*.ts",
+    "../../packages/ads-kit/src/**/*.ts",
+    "../../packages/i18n-kit/src/**/*.ts",
+    "../../packages/rating-kit/src/**/*.ts",
+    "../../packages/settings-kit/src/**/*.ts",
+    "../../packages/ui-theme/src/**/*.ts"
+  ],
+  "exclude": ["src/**/*.spec.ts", "../../packages/**/*.spec.ts"]
+}

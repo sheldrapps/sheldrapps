@@ -2766,6 +2766,10 @@ export class FixPage implements OnInit, OnDestroy {
     return sourceName ? `${sourceName} · ${label}` : label;
   }
 
+  get repairFailureIssues(): EpubDiagnosticIssue[] {
+    return this.repairResult?.remainingIssues ?? [];
+  }
+
   selectedGuidedOption(issue: EpubDiagnosticIssue): string | undefined {
     const options = this.issueOptions(issue);
     const selected = (this.selectedGuidedOptionByIssueKey ?? {})[

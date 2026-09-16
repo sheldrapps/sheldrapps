@@ -1,51 +1,51 @@
 <en-US>
-PDF merge and split exports now handle file access and rewarded ads more reliably, with better recovery when an ad cannot finish.
+PDF merge and split exports now keep Pro access accurate after restore and update access correctly when a purchase is no longer active.
 </en-US>
 
 <ar>
-أصبحت عمليات دمج وتقسيم PDF تتعامل مع الوصول إلى الملفات والإعلانات بمكافآت بشكل أكثر موثوقية، مع استرداد أفضل عند تعذر إكمال الإعلان.
+تحافظ عمليات دمج وتقسيم PDF الآن على دقة وصول Pro بعد الاستعادة، وتحدّث الوصول بشكل صحيح عند انتهاء صلاحية الشراء.
 </ar>
 
 <de-DE>
-Beim Zusammenführen und Teilen von PDFs werden Dateizugriff und Rewarded-Anzeigen jetzt zuverlässiger verarbeitet, mit besserer Wiederherstellung, wenn eine Anzeige nicht abgeschlossen werden kann.
+PDF-Exporte nach dem Zusammenführen und Teilen halten den Pro-Zugriff nach einer Wiederherstellung jetzt korrekt und aktualisieren ihn richtig, wenn ein Kauf nicht mehr aktiv ist.
 </de-DE>
 
 <es-419>
-Las exportaciones al unir y dividir PDF ahora gestionan con mayor confiabilidad el acceso a archivos y los anuncios recompensados, incluso si un anuncio no termina.
+Las exportaciones al unir y dividir PDF ahora mantienen correctamente el acceso a Pro después de restaurar compras y lo actualizan si una compra deja de estar activa.
 </es-419>
 
 <fr-FR>
-Les exports après fusion ou séparation de PDF gèrent désormais plus fiablement l’accès aux fichiers et les annonces récompensées, même lorsqu’une annonce ne se termine pas.
+Les exports après fusion ou séparation de PDF maintiennent désormais correctement l’accès Pro après une restauration et le mettent à jour lorsqu’un achat n’est plus actif.
 </fr-FR>
 
 <hi-IN>
-PDF मर्ज और स्प्लिट एक्सपोर्ट अब फ़ाइल एक्सेस और रिवॉर्डेड विज्ञापनों को अधिक भरोसेमंद तरीके से संभालते हैं, भले ही कोई विज्ञापन पूरा न हो।
+PDF मर्ज और स्प्लिट एक्सपोर्ट अब खरीदारी बहाल करने के बाद Pro एक्सेस को सही रखते हैं और खरीदारी सक्रिय न रहने पर इसे सही तरीके से अपडेट करते हैं।
 </hi-IN>
 
 <it-IT>
-Le esportazioni dopo l’unione o la divisione dei PDF gestiscono ora in modo più affidabile l’accesso ai file e gli annunci con ricompensa, anche se un annuncio non termina.
+Le esportazioni dopo l’unione o la divisione dei PDF mantengono ora corretto l’accesso Pro dopo il ripristino e lo aggiornano quando un acquisto non è più attivo.
 </it-IT>
 
 <ja-JP>
-PDFの結合・分割書き出しでファイルアクセスとリワード広告がより安定し、広告が完了しない場合も適切に復旧できるようになりました。
+PDFの結合・分割書き出しで購入の復元後もProアクセスが正しく維持され、購入が有効でなくなった場合も適切に更新されるようになりました。
 </ja-JP>
 
 <ko-KR>
-PDF 병합 및 분할 내보내기에서 파일 액세스와 리워드 광고를 더 안정적으로 처리하며, 광고가 완료되지 않아도 더 잘 복구합니다.
+PDF 병합 및 분할 내보내기에서 구매 복원 후에도 Pro 이용 권한을 정확하게 유지하고, 구매가 더 이상 활성 상태가 아니면 올바르게 업데이트합니다.
 </ko-KR>
 
 <pt-BR>
-As exportações após mesclar ou dividir PDFs agora lidam com o acesso a arquivos e anúncios recompensados com mais confiabilidade, mesmo quando um anúncio não é concluído.
+As exportações após mesclar ou dividir PDFs agora mantêm o acesso Pro correto após restaurar compras e o atualizam quando uma compra deixa de estar ativa.
 </pt-BR>
 
 <ru-RU>
-Экспорт после объединения или разделения PDF теперь надёжнее обрабатывает доступ к файлам и рекламу с вознаграждением, даже если объявление не завершается.
+Экспорт после объединения или разделения PDF теперь правильно сохраняет доступ Pro после восстановления покупок и обновляет его, если покупка больше не активна.
 </ru-RU>
 
 <zh-CN>
-PDF 合并和拆分导出现在能更可靠地处理文件访问和激励广告，即使广告未能完成也能更好地恢复。
+PDF 合并和拆分导出现在会在恢复购买后准确保持 Pro 权限，并在购买不再有效时正确更新权限。
 </zh-CN>
 
 <zh-TW>
-PDF 合併與分割匯出現在能更可靠地處理檔案存取與獎勵廣告，即使廣告未完成也能更妥善地復原。
+PDF 合併與分割匯出現在會在還原購買後準確保留 Pro 權限，並在購買不再有效時正確更新權限。
 </zh-TW>

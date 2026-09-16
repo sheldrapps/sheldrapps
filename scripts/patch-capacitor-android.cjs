@@ -36,6 +36,41 @@ const targets = [
     find: "        CapacitorPlugin annotation = handle.getPluginAnnotation();\n        HashSet<String> perms = new HashSet<>();\n        for (Permission perm : annotation.permissions()) {\n",
     replace: "        CapacitorPlugin annotation = handle.getPluginAnnotation();\n        HashSet<String> perms = new HashSet<>();\n        if (annotation == null) {\n            return new String[0];\n        }\n        for (Permission perm : annotation.permissions()) {\n",
   },
+  {
+    relativePath: path.join(
+      "node_modules",
+      "@capacitor",
+      "android",
+      "capacitor",
+      "src",
+      "main",
+      "java",
+      "com",
+      "getcapacitor",
+      "plugin",
+      "SystemBars.java",
+    ),
+    find: "    private Insets calcSafeAreaInsets(WindowInsetsCompat insets) {\n",
+    replace: "    private int getSafeSystemBarsType() {\n        // Avoid Type.systemBars(): some API 34+ firmwares lack systemOverlays().\n        return WindowInsetsCompat.Type.statusBars()\n            | WindowInsetsCompat.Type.navigationBars()\n            | WindowInsetsCompat.Type.captionBar();\n    }\n\n    private Insets calcSafeAreaInsets(WindowInsetsCompat insets) {\n",
+  },
+  {
+    relativePath: path.join(
+      "node_modules",
+      "@capacitor",
+      "android",
+      "capacitor",
+      "src",
+      "main",
+      "java",
+      "com",
+      "getcapacitor",
+      "plugin",
+      "SystemBars.java",
+    ),
+    find: "WindowInsetsCompat.Type.systemBars()",
+    replace: "getSafeSystemBarsType()",
+    replaceAll: true,
+  },
 ];
 
 function patchFile(filePath, target) {
@@ -44,6 +79,15 @@ function patchFile(filePath, target) {
   }
 
   const current = fs.readFileSync(filePath, "utf8");
+  if (target.replaceAll) {
+    if (!current.includes(target.find)) {
+      return false;
+    }
+
+    fs.writeFileSync(filePath, current.replaceAll(target.find, target.replace), "utf8");
+    return true;
+  }
+
   if (current.includes(target.replace)) {
     return false;
   }

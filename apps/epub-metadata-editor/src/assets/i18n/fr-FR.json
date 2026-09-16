@@ -1,0 +1,25 @@
+{
+  "APP": {
+    "TITLE": "Éditeur de métadonnées EPUB"
+  },
+  "TABS": {
+    "HOME": "Accueil",
+    "MY_EPUBS": "Mes EPUB",
+    "SETTINGS": "Réglages"
+  },
+  "HOME": {
+    "TITLE": "Accueil",
+    "EMPTY": "Les services seront connectés ici plus tard."
+  },
+  "MY_EPUBS": {
+    "TITLE": "Mes EPUB",
+    "EMPTY": "Votre bibliothèque EPUB apparaîtra ici plus tard."
+  },
+  "SETTINGS": {
+    "TITLE": "Réglages"
+  },
+  "COMMON": {
+    "CANCEL": "Annuler",
+    "DONE": "Terminé"
+  }
+}

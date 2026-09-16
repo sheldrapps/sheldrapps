@@ -1259,6 +1259,34 @@ describe('FixPage', () => {
     });
   });
 
+  it('exposes remaining native repair findings for the failure details', () => {
+    const remainingIssues: EpubDiagnosticIssue[] = [
+      {
+        code: 'HIGH-XHTML-001',
+        severity: 'warning',
+        fixable: true,
+        messageKey: 'FIX.ISSUE_HIGH_XHTML_001',
+        details: 'GoogleDoc/Thewinterking.xhtml',
+      },
+    ];
+    const ctx = Object.assign(Object.create(FixPage.prototype), {
+      repairResult: {
+        success: false,
+        status: 'incomplete',
+        error: 'REPAIR_INCOMPLETE',
+        repairedIssues: [],
+        remainingIssues,
+      },
+    });
+
+    const issuesDescriptor = Object.getOwnPropertyDescriptor(
+      FixPage.prototype,
+      'repairFailureIssues',
+    );
+
+    expect(issuesDescriptor?.get?.call(ctx)).toEqual(remainingIssues);
+  });
+
   it('orders auto-fixable issues by severity first', () => {
     const ctx = Object.assign(Object.create(FixPage.prototype), {
       diagnosis: {

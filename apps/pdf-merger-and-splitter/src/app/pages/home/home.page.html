@@ -348,6 +348,24 @@
             </div>
           </div>
         }
+        @if (canShowRemoveAdsEntryPoint()) {
+          <div class="upgrade-actions">
+            <ion-button
+              expand="block"
+              fill="outline"
+              class="premium-upgrade-cta"
+              (click)="openPurchaseModal()"
+            >
+              <sh-pro-badge slot="start"></sh-pro-badge>
+              <div class="app-cta-stack">
+                <span class="app-cta-stack__title">{{ 'COMMON.UPGRADE_TO_PRO' | translate }}</span>
+                <span class="app-cta-stack__subtitle">
+                  {{ getRemoveAdsCtaSubtitleKey() | translate:getRemoveAdsPriceParams() }}
+                </span>
+              </div>
+            </ion-button>
+          </div>
+        }
         @if (operationCompleted()) {
           <ion-button expand="block" [disabled]="isResettingFlow()" (click)="onOperationDone()">
             {{ 'COMMON.DONE' | translate }}

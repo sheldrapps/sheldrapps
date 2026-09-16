@@ -1,0 +1,25 @@
+{
+  "APP": {
+    "TITLE": "EPUB 中繼資料編輯器"
+  },
+  "TABS": {
+    "HOME": "首頁",
+    "MY_EPUBS": "我的 EPUB",
+    "SETTINGS": "設定"
+  },
+  "HOME": {
+    "TITLE": "首頁",
+    "EMPTY": "服務稍後會在這裡接入。"
+  },
+  "MY_EPUBS": {
+    "TITLE": "我的 EPUB",
+    "EMPTY": "你的 EPUB 書庫稍後會顯示在這裡。"
+  },
+  "SETTINGS": {
+    "TITLE": "設定"
+  },
+  "COMMON": {
+    "CANCEL": "取消",
+    "DONE": "完成"
+  }
+}

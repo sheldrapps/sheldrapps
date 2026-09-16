@@ -44,6 +44,20 @@ public class EpubRewritePluginRewriteTest {
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Test
+    public void missingPublicDocumentIsNotReportedAsNonFatal() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Method method = EpubRewritePlugin.class.getDeclaredMethod(
+            "shouldReportNonFatal",
+            String.class
+        );
+        method.setAccessible(true);
+
+        assertFalse((Boolean) method.invoke(plugin, "PUBLIC_DOCUMENT_NOT_FOUND"));
+        assertFalse((Boolean) method.invoke(plugin, "NO_COVER"));
+        assertTrue((Boolean) method.invoke(plugin, "PUBLIC_GET_FAILED"));
+    }
+
+    @Test
     public void publicExportCopyCountsTwoGiBWithoutBufferingTheDocument() throws Exception {
         long expectedBytes = 2_147_483_648L;
         CountingInputStream input = new CountingInputStream(expectedBytes);
@@ -189,6 +203,40 @@ public class EpubRewritePluginRewriteTest {
         assertFalse(repaired.toLowerCase(java.util.Locale.US).contains("remove()"));
         assertTrue(repaired.contains("<title>Large document</title>"));
         assertTrue(repaired.contains("<body><p>Content</p></body>"));
+    }
+
+    @Test
+    public void streamingXmlSanitizerIgnoresEquivalentFormattingChanges() throws Exception {
+        EpubRewritePlugin plugin = new EpubRewritePlugin();
+        Class<?> sanitizerClass = Class.forName(
+            "com.sheldrapps.plugins.epubrewrite.EpubRewritePlugin$StreamingXmlSanitizer"
+        );
+        Constructor<?> constructor = sanitizerClass.getDeclaredConstructor(
+            EpubRewritePlugin.class,
+            boolean.class
+        );
+        constructor.setAccessible(true);
+        Method transform = sanitizerClass.getDeclaredMethod(
+            "transform",
+            String.class,
+            boolean.class
+        );
+        Method changed = sanitizerClass.getDeclaredMethod("changed");
+        transform.setAccessible(true);
+        changed.setAccessible(true);
+
+        Object valid = constructor.newInstance(plugin, false);
+        String formatted = "<html>\r\n<body><p class = 'text' data-url=\"a&amp;b\">Content</p></body></html>";
+        String normalized = (String) transform.invoke(valid, formatted, true);
+
+        assertFalse(normalized.equals(formatted));
+        assertTrue(normalized.contains("data-url=\"a&amp;b\""));
+        assertFalse((Boolean) changed.invoke(valid));
+
+        Object malformed = constructor.newInstance(plugin, false);
+        transform.invoke(malformed, "<html><body><p class=text>Content</p></body></html>", true);
+
+        assertTrue((Boolean) changed.invoke(malformed));
     }
 
     @Test

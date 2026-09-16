@@ -1,0 +1,25 @@
+{
+  "APP": {
+    "TITLE": "EPUB 元数据编辑器"
+  },
+  "TABS": {
+    "HOME": "首页",
+    "MY_EPUBS": "我的 EPUB",
+    "SETTINGS": "设置"
+  },
+  "HOME": {
+    "TITLE": "首页",
+    "EMPTY": "服务稍后会在这里接入。"
+  },
+  "MY_EPUBS": {
+    "TITLE": "我的 EPUB",
+    "EMPTY": "你的 EPUB 书库稍后会显示在这里。"
+  },
+  "SETTINGS": {
+    "TITLE": "设置"
+  },
+  "COMMON": {
+    "CANCEL": "取消",
+    "DONE": "完成"
+  }
+}

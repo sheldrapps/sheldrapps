@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { App } from '@capacitor/app';
 import { NativePurchases, PURCHASE_TYPE } from '@capgo/native-purchases';
 import { SettingsStore } from '@sheldrapps/settings-kit';
 import { BehaviorSubject } from 'rxjs';
@@ -9,7 +10,18 @@ import {
   isNative,
   isNativeDebugBuild,
 } from './adapters/platform';
-import { ADS_KIT_CONFIG, type AdsEntitlementStatus } from './types';
+import {
+  getBillingPurchaseState,
+  reconcileOwnedEntitlement,
+  processBillingPurchase,
+} from './billing-purchase';
+import {
+  ADS_KIT_CONFIG,
+  type AdsEntitlementStatus,
+  type BillingProductConfig,
+  type BillingProductType,
+  type BillingPurchaseRecord,
+} from './types';
 
 type BillingSettings = Record<string, unknown> & {
   adsRemoved?: boolean;
@@ -46,6 +58,10 @@ export class BillingService {
   private ensureAdsEntitlementPromise: Promise<AdsEntitlementStatus> | null = null;
   private operationQueue: Promise<void> = Promise.resolve();
   private refreshRetryHandle: ReturnType<typeof setTimeout> | null = null;
+  private reconciliationRetryAttempt = 0;
+  private lastSuccessfulReconciliationAt = 0;
+  private hasPendingPurchaseWork = false;
+  private hasProductDetailsRefreshFailed = false;
   private hasHydratedCachedState = false;
   private isReady = false;
   private state: BillingRuntimeState = 'idle';
@@ -58,6 +74,19 @@ export class BillingService {
   private readonly settings = inject(SettingsStore<BillingSettings>);
   readonly adsRemoved$ = new BehaviorSubject<boolean>(false);
   readonly removeAdsPrice$ = new BehaviorSubject<string | null>(null);
+
+  constructor() {
+    if (!this.isBillingSupportedByPlatform()) {
+      return;
+    }
+
+    void App.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) {
+        void this.reconcileOwnedPurchases('resume');
+      }
+    });
+    void this.reconcileOwnedPurchases('startup');
+  }
 
   async initializeSafe(): Promise<void> {
     try {
@@ -116,10 +145,6 @@ export class BillingService {
   }
 
   async ensureAdsEntitlement(): Promise<AdsEntitlementStatus> {
-    if (this.entitlementStatus === 'pro' || this.entitlementStatus === 'free') {
-      return this.entitlementStatus;
-    }
-
     if (this.ensureAdsEntitlementPromise) {
       return this.ensureAdsEntitlementPromise;
     }
@@ -131,13 +156,20 @@ export class BillingService {
         return this.entitlementStatus;
       }
 
-      if (this.isDevelopmentPremiumMode() || this.hasRemoveAdsEntitlement) {
+      if (this.isDevelopmentPremiumMode()) {
         this.entitlementStatus = 'pro';
         return this.entitlementStatus;
       }
 
       if (!this.removeAdsProductId) {
         this.entitlementStatus = 'free';
+        return this.entitlementStatus;
+      }
+
+      if (
+        this.entitlementRefreshSucceeded &&
+        Date.now() - this.lastSuccessfulReconciliationAt < 30_000
+      ) {
         return this.entitlementStatus;
       }
 
@@ -215,46 +247,53 @@ export class BillingService {
         return false;
       }
 
-      if (!this.removeAdsPriceFormatted) {
-        await this.performProductDetailsRefresh();
-      }
+      return this.purchaseConfiguredProduct(this.removeAdsProduct!);
+    });
+  }
 
-      if (!this.removeAdsPriceFormatted) {
-        this.logDebug('purchase blocked because product offer is unavailable', {
-          productId: this.removeAdsProductId,
-        });
+  private async purchaseConfiguredProduct(
+    product: BillingProductConfig,
+  ): Promise<boolean> {
+    if (!this.canRunBillingOperations()) {
+      return false;
+    }
+
+    if (!this.removeAdsPriceFormatted) {
+      await this.performProductDetailsRefresh();
+    }
+
+    if (!this.removeAdsPriceFormatted) {
+      this.logDebug('purchase blocked because product offer is unavailable', {
+        productId: product.productId,
+      });
+      return false;
+    }
+
+    try {
+      const transaction = await NativePurchases.purchaseProduct({
+        productIdentifier: product.productId,
+        productType: this.toNativeProductType(product.productType),
+        isConsumable: product.kind === 'consumable',
+        autoAcknowledgePurchases: false,
+      });
+
+      await this.processPurchase(transaction, 'new-purchase');
+      await this.performEntitlementRefresh();
+      return this.hasRemoveAdsEntitlement;
+    } catch (error) {
+      if (this.isPurchaseCancelled(error)) {
+        this.logDebug('purchase cancelled', error);
         return false;
       }
 
-      try {
-        const transaction = await NativePurchases.purchaseProduct({
-          productIdentifier: this.removeAdsProductId!,
-          productType: PURCHASE_TYPE.INAPP,
-        });
-
-        if (!this.isPurchasedTransaction(transaction)) {
-          return false;
-        }
-
-        this.setEntitlement(true);
-        await this.persistCachedEntitlement(true);
-        await this.performEntitlementRefresh();
-        return this.hasRemoveAdsEntitlement;
-      } catch (error) {
-        if (this.isPurchaseCancelled(error)) {
-          this.logDebug('purchase cancelled', error);
-          return false;
-        }
-
-        if (this.isPurchaseAlreadyOwned(error)) {
-          this.logDebug('purchase already owned, running restore flow', error);
-          return this.restoreAndRefreshEntitlement();
-        }
-
-        this.logDebug('purchase failed', error);
-        throw error;
+      if (this.isPurchaseAlreadyOwned(error)) {
+        this.logDebug('purchase already owned, running restore flow', error);
+        return this.restoreAndRefreshEntitlement();
       }
-    });
+
+      this.logDebug('purchase failed', this.describeBillingError(error));
+      throw error;
+    }
   }
 
   async restorePurchases(): Promise<boolean> {
@@ -436,27 +475,76 @@ export class BillingService {
   }
 
   private async performEntitlementRefresh(): Promise<boolean> {
-    const productId = this.removeAdsProductId;
-    if (!productId || !this.canRunBillingOperations()) {
+    const product = this.removeAdsProduct;
+    if (!product || !this.canRunBillingOperations()) {
       return this.hasRemoveAdsEntitlement;
     }
 
-    try {
-      const purchasedProductIds = await this.getPurchasedProductIds();
-      const hasPurchase = purchasedProductIds.includes(productId);
+    this.hasPendingPurchaseWork = false;
+    this.logBillingEvent('BILLING_RECONCILIATION_STARTED', {
+      source: 'ownership-query',
+    });
 
+    try {
+      const query = await this.queryAndProcessPurchases();
+      const querySucceeded = query.successfulProductTypes.has(product.productType);
+
+      if (!querySucceeded) {
+        this.entitlementRefreshSucceeded = false;
+        this.logBillingEvent('ENTITLEMENT_CACHE_RETAINED_ON_FAILURE', {
+          productId: product.productId,
+        });
+        this.logBillingEvent('BILLING_RECONCILIATION_COMPLETE', {
+          status: 'unavailable',
+        });
+        this.scheduleRefreshRetry();
+        return this.hasRemoveAdsEntitlement;
+      }
+
+      const hasPurchase = reconcileOwnedEntitlement(
+        product.productId,
+        querySucceeded,
+        query.purchasedProductIds,
+      );
+
+      if (hasPurchase === undefined) {
+        return this.hasRemoveAdsEntitlement;
+      }
+
+      await this.persistCachedEntitlement(hasPurchase);
       if (hasPurchase !== this.hasRemoveAdsEntitlement) {
         this.setEntitlement(hasPurchase);
-        await this.persistCachedEntitlement(hasPurchase);
+        if (!hasPurchase) {
+          this.logBillingEvent('BILLING_ENTITLEMENT_REVOKED', {
+            productId: product.productId,
+          });
+        }
       }
 
       await this.performProductDetailsRefresh();
-      this.clearRefreshRetry();
+      if (this.hasPendingPurchaseWork || this.hasProductDetailsRefreshFailed) {
+        this.scheduleRefreshRetry();
+      } else {
+        this.clearRefreshRetry();
+      }
       this.entitlementRefreshSucceeded = true;
+      this.lastSuccessfulReconciliationAt = Date.now();
+      this.reconciliationRetryAttempt = 0;
+      this.entitlementStatus = hasPurchase ? 'pro' : 'free';
+      this.logBillingEvent(
+        hasPurchase ? 'ENTITLEMENT_CONFIRMED_PRO' : 'ENTITLEMENT_CONFIRMED_FREE',
+        { productId: product.productId },
+      );
+      this.logBillingEvent('BILLING_RECONCILIATION_COMPLETE', {
+        status: hasPurchase ? 'owned' : 'not-owned',
+      });
       return this.hasRemoveAdsEntitlement;
     } catch (error) {
       this.entitlementRefreshSucceeded = false;
-      this.logDebug('refresh entitlement failed', error);
+      this.logBillingEvent('ENTITLEMENT_CACHE_RETAINED_ON_FAILURE', {
+        productId: product.productId,
+      });
+      this.logDebug('refresh entitlement failed', this.describeBillingError(error));
       this.scheduleRefreshRetry();
       return this.hasRemoveAdsEntitlement;
     }
@@ -477,8 +565,8 @@ export class BillingService {
     waitMsBetweenAttempts = 900,
   ): Promise<boolean> {
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-      const restored = await this.performEntitlementRefresh();
-      if (restored) {
+      await this.performEntitlementRefresh();
+      if (this.entitlementRefreshSucceeded) {
         return true;
       }
 
@@ -490,20 +578,198 @@ export class BillingService {
     return this.hasRemoveAdsEntitlement;
   }
 
-  private async getPurchasedProductIds(): Promise<string[]> {
-    const { purchases } = await NativePurchases.getPurchases({
-      productType: PURCHASE_TYPE.INAPP,
+  private async queryAndProcessPurchases(): Promise<{
+    purchasedProductIds: Set<string>;
+    successfulProductTypes: Set<BillingProductType>;
+  }> {
+    const purchasedProductIds = new Set<string>();
+    const successfulProductTypes = new Set<BillingProductType>();
+
+    for (const productType of this.configuredProductTypes) {
+      try {
+        const { purchases } = await NativePurchases.getPurchases({
+          productType: this.toNativeProductType(productType),
+        });
+        if (!Array.isArray(purchases)) {
+          throw new Error('Billing purchases query returned an invalid response');
+        }
+        successfulProductTypes.add(productType);
+        this.logBillingEvent(
+          purchases.length > 0 ? 'GET_PURCHASES_SUCCESS' : 'GET_PURCHASES_EMPTY',
+          { productType, purchaseCount: purchases.length },
+        );
+
+        for (const purchase of purchases) {
+          const productId = this.getPurchaseProductId(purchase);
+          if (productId && this.isCompletedTransaction(purchase)) {
+            purchasedProductIds.add(productId);
+          }
+          await this.processPurchase(purchase, 'reconciliation');
+        }
+      } catch (error) {
+        this.logBillingEvent('GET_PURCHASES_FAILURE', {
+          productType,
+          error: this.describeBillingError(error),
+        });
+        this.logDebug('purchase ownership query failed', {
+          productType,
+          error: this.describeBillingError(error),
+        });
+      }
+    }
+
+    return { purchasedProductIds, successfulProductTypes };
+  }
+
+  private async reconcileOwnedPurchases(source: 'startup' | 'resume'): Promise<void> {
+    await this.enqueue(async () => {
+      this.logBillingEvent('BILLING_RECONCILIATION_STARTED', { source });
+      await this.ensureReady();
+      if (!this.canRunBillingOperations()) {
+        return;
+      }
+
+      await this.performEntitlementRefresh();
+    });
+  }
+
+  private async processPurchase(
+    transaction: unknown,
+    source: 'new-purchase' | 'reconciliation',
+  ): Promise<void> {
+    const purchase = this.toBillingPurchaseRecord(transaction);
+    const product = this.findProduct(purchase.productIdentifier);
+    if (!product) {
+      return;
+    }
+
+    this.logBillingEvent('BILLING_PURCHASE_DETECTED', {
+      productId: product.productId,
+      source,
     });
 
-    return purchases
-      .filter((purchase) => this.isCompletedTransaction(purchase))
-      .map((purchase) =>
-        this.pickString(
-          this.asRecord(purchase)?.['productIdentifier'],
-          this.asRecord(purchase)?.['productId'],
-        ),
-      )
-      .filter((productId): productId is string => !!productId);
+    const state = getBillingPurchaseState(purchase.purchaseState);
+    if (state === 'pending') {
+      this.logBillingEvent('BILLING_PURCHASE_PENDING', {
+        productId: product.productId,
+        source,
+      });
+      return;
+    }
+
+    if (state !== 'purchased') {
+      return;
+    }
+
+    this.logBillingEvent('BILLING_PURCHASE_PROCESSING', {
+      productId: product.productId,
+      source,
+    });
+
+    try {
+      const result = await processBillingPurchase(product, purchase, {
+        grantEntitlement: () => this.grantEntitlementForProduct(product, purchase),
+        acknowledgePurchase: async () => {
+          this.logBillingEvent('BILLING_ACK_REQUIRED', {
+            productId: product.productId,
+            source,
+          });
+          await this.acknowledgePurchaseWithRetry(product, purchase);
+        },
+        consumePurchase: async () => {
+          await this.consumePurchaseWithRetry(product, purchase);
+        },
+      });
+      if (source === 'reconciliation' && result === 'processed') {
+        this.logBillingEvent('BILLING_PURCHASE_RESTORED', {
+          productId: product.productId,
+        });
+      }
+    } catch (error) {
+      this.hasPendingPurchaseWork = this.isRetryableBillingError(error);
+      this.logBillingEvent('BILLING_ACK_FAILURE', {
+        productId: product.productId,
+        source,
+        category: this.classifyBillingError(error),
+      });
+    }
+  }
+
+  private async grantEntitlementForProduct(
+    product: BillingProductConfig,
+    purchase: BillingPurchaseRecord,
+  ): Promise<void> {
+    await product.onPurchased?.(purchase);
+
+    if (product.entitlement !== 'remove-ads' || product.kind === 'consumable') {
+      return;
+    }
+
+    if (this.hasRemoveAdsEntitlement) {
+      return;
+    }
+
+    this.setEntitlement(true);
+    await this.persistCachedEntitlement(true);
+    this.logBillingEvent('BILLING_ENTITLEMENT_GRANTED', {
+      productId: product.productId,
+    });
+  }
+
+  private async acknowledgePurchaseWithRetry(
+    product: BillingProductConfig,
+    purchase: BillingPurchaseRecord,
+  ): Promise<void> {
+    if (!purchase.purchaseToken) {
+      throw new Error('Missing purchase token');
+    }
+
+    const delays = [0, 500, 1500];
+    let lastError: unknown;
+    for (const delay of delays) {
+      await this.wait(delay);
+      try {
+        await NativePurchases.acknowledgePurchase({
+          purchaseToken: purchase.purchaseToken,
+        });
+        this.logBillingEvent('BILLING_ACK_SUCCESS', {
+          productId: product.productId,
+        });
+        return;
+      } catch (error) {
+        lastError = error;
+        if (!this.isRetryableBillingError(error)) {
+          throw error;
+        }
+      }
+    }
+
+    throw lastError ?? new Error('Purchase acknowledgement failed');
+  }
+
+  private async consumePurchaseWithRetry(
+    product: BillingProductConfig,
+    purchase: BillingPurchaseRecord,
+  ): Promise<void> {
+    if (!purchase.purchaseToken) {
+      throw new Error('Missing purchase token');
+    }
+
+    try {
+      await NativePurchases.consumePurchase({
+        purchaseToken: purchase.purchaseToken,
+      });
+    } catch (error) {
+      if (this.isRetryableBillingError(error)) {
+        this.hasPendingPurchaseWork = true;
+      }
+      this.logBillingEvent('BILLING_ACK_FAILURE', {
+        productId: product.productId,
+        category: this.classifyBillingError(error),
+        operation: 'consume',
+      });
+      throw error;
+    }
   }
 
   private async performProductDetailsRefresh(): Promise<void> {
@@ -525,8 +791,12 @@ export class BillingService {
         product?.['localizedPriceString'],
       );
       this.setRemoveAdsPrice(price ?? null);
-      this.clearRefreshRetry();
+      this.hasProductDetailsRefreshFailed = false;
+      if (!this.hasPendingPurchaseWork) {
+        this.clearRefreshRetry();
+      }
     } catch (error) {
+      this.hasProductDetailsRefreshFailed = true;
       // Keep billing as available; product lookup can fail transiently/offline.
       this.logDebug('getProduct failed', error);
       this.scheduleRefreshRetry();
@@ -550,6 +820,10 @@ export class BillingService {
   }
 
   private setEntitlement(value: boolean): void {
+    if (this.hasRemoveAdsEntitlement === value) {
+      return;
+    }
+
     this.hasRemoveAdsEntitlement = value;
     this.entitlementStatus = value
       ? 'pro'
@@ -579,10 +853,13 @@ export class BillingService {
       return;
     }
 
+    const delays = [5_000, 30_000, 120_000, 600_000, 1_800_000, 7_200_000];
+    const delay = delays[Math.min(this.reconciliationRetryAttempt, delays.length - 1)];
+    this.reconciliationRetryAttempt += 1;
     this.refreshRetryHandle = setTimeout(() => {
       this.refreshRetryHandle = null;
       void this.refreshEntitlement();
-    }, 5000);
+    }, delay);
   }
 
   private clearRefreshRetry(): void {
@@ -592,6 +869,7 @@ export class BillingService {
 
     clearTimeout(this.refreshRetryHandle);
     this.refreshRetryHandle = null;
+    this.reconciliationRetryAttempt = 0;
   }
 
   private isBillingSupportedByPlatform(): boolean {
@@ -625,21 +903,82 @@ export class BillingService {
     return trimmed.length > 0 ? trimmed : undefined;
   }
 
-  private isPurchasedTransaction(transaction: unknown): boolean {
-    const tx = this.asRecord(transaction);
-    if (!tx) {
-      return false;
+  private get removeAdsProduct(): BillingProductConfig | undefined {
+    const productId = this.removeAdsProductId;
+    if (!productId) {
+      return undefined;
     }
 
-    const productIdentifier = this.pickString(
-      tx['productIdentifier'],
-      tx['productId'],
+    return (
+      this.configuredProducts.find((product) => product.productId === productId) ?? {
+        productId,
+        productType: 'inapp',
+        kind: 'non-consumable',
+        entitlement: 'remove-ads',
+      }
     );
-    if (productIdentifier && productIdentifier !== this.removeAdsProductId) {
-      return false;
+  }
+
+  private get configuredProducts(): BillingProductConfig[] {
+    const configured = (this.config.billing?.products ?? [])
+      .map((product) => ({
+        ...product,
+        productId: product.productId.trim(),
+      }))
+      .filter((product) => product.productId.length > 0);
+    const removeAdsProduct = this.removeAdsProductId;
+
+    if (
+      removeAdsProduct &&
+      !configured.some((product) => product.productId === removeAdsProduct)
+    ) {
+      configured.push({
+        productId: removeAdsProduct,
+        productType: 'inapp',
+        kind: 'non-consumable',
+        entitlement: 'remove-ads',
+      });
     }
 
-    return this.isCompletedTransaction(transaction);
+    return configured;
+  }
+
+  private get configuredProductTypes(): BillingProductType[] {
+    return [...new Set(this.configuredProducts.map((product) => product.productType))];
+  }
+
+  private findProduct(productId: string | undefined): BillingProductConfig | undefined {
+    if (!productId) {
+      return undefined;
+    }
+
+    return this.configuredProducts.find((product) => product.productId === productId);
+  }
+
+  private toNativeProductType(productType: BillingProductType): PURCHASE_TYPE {
+    return productType === 'subs' ? PURCHASE_TYPE.SUBS : PURCHASE_TYPE.INAPP;
+  }
+
+  private getPurchaseProductId(transaction: unknown): string | undefined {
+    const record = this.asRecord(transaction);
+    return this.pickString(record?.['productIdentifier'], record?.['productId']);
+  }
+
+  private toBillingPurchaseRecord(transaction: unknown): BillingPurchaseRecord {
+    const record = this.asRecord(transaction);
+    return {
+      productIdentifier: this.getPurchaseProductId(transaction),
+      productType: this.pickString(record?.['productType']),
+      purchaseState: record?.['purchaseState'],
+      isAcknowledged:
+        typeof record?.['isAcknowledged'] === 'boolean'
+          ? record['isAcknowledged']
+          : undefined,
+      purchaseToken: this.pickString(
+        record?.['purchaseToken'],
+        record?.['transactionId'],
+      ),
+    };
   }
 
   private isCompletedTransaction(transaction: unknown): boolean {
@@ -727,6 +1066,106 @@ export class BillingService {
     }
 
     return undefined;
+  }
+
+  private classifyBillingError(error: unknown):
+    | 'SERVICE_DISCONNECTED'
+    | 'SERVICE_UNAVAILABLE'
+    | 'NETWORK_ERROR'
+    | 'DEVELOPER_ERROR'
+    | 'ITEM_NOT_OWNED'
+    | 'OTHER' {
+    const normalized = this.describeBillingError(error).toLowerCase();
+    if (
+      normalized.includes('service_disconnected') ||
+      normalized.includes('service disconnected') ||
+      this.hasBillingResponseCode(normalized, -1)
+    ) {
+      return 'SERVICE_DISCONNECTED';
+    }
+    if (
+      normalized.includes('service_unavailable') ||
+      normalized.includes('service unavailable') ||
+      this.hasBillingResponseCode(normalized, 2)
+    ) {
+      return 'SERVICE_UNAVAILABLE';
+    }
+    if (
+      normalized.includes('network_error') ||
+      normalized.includes('network error') ||
+      normalized.includes('timeout') ||
+      this.hasBillingResponseCode(normalized, 12)
+    ) {
+      return 'NETWORK_ERROR';
+    }
+    if (
+      normalized.includes('developer_error') ||
+      normalized.includes('developer error') ||
+      this.hasBillingResponseCode(normalized, 5)
+    ) {
+      return 'DEVELOPER_ERROR';
+    }
+    if (
+      normalized.includes('item_not_owned') ||
+      normalized.includes('item not owned') ||
+      this.hasBillingResponseCode(normalized, 8)
+    ) {
+      return 'ITEM_NOT_OWNED';
+    }
+    return 'OTHER';
+  }
+
+  private hasBillingResponseCode(message: string, code: number): boolean {
+    return new RegExp(String.raw`(?:response\s+)?code[:\s]+${code}\b`).test(message);
+  }
+
+  private isRetryableBillingError(error: unknown): boolean {
+    const category = this.classifyBillingError(error);
+    return (
+      category === 'SERVICE_DISCONNECTED' ||
+      category === 'SERVICE_UNAVAILABLE' ||
+      category === 'NETWORK_ERROR'
+    );
+  }
+
+  private describeBillingError(error: unknown): string {
+    if (error instanceof Error) {
+      return `${error.name}: ${error.message}`;
+    }
+
+    if (typeof error === 'string') {
+      return error;
+    }
+
+    return 'Unknown billing error';
+  }
+
+  private logBillingEvent(
+    event:
+      | 'BILLING_PURCHASE_DETECTED'
+      | 'BILLING_PURCHASE_PENDING'
+      | 'BILLING_PURCHASE_PROCESSING'
+      | 'BILLING_ENTITLEMENT_GRANTED'
+      | 'BILLING_ACK_REQUIRED'
+      | 'BILLING_ACK_SUCCESS'
+      | 'BILLING_ACK_FAILURE'
+      | 'BILLING_PURCHASE_RESTORED'
+      | 'BILLING_RECONCILIATION_STARTED'
+      | 'BILLING_RECONCILIATION_COMPLETE'
+      | 'BILLING_ENTITLEMENT_REVOKED'
+      | 'GET_PURCHASES_SUCCESS'
+      | 'GET_PURCHASES_EMPTY'
+      | 'GET_PURCHASES_FAILURE'
+      | 'ENTITLEMENT_CONFIRMED_PRO'
+      | 'ENTITLEMENT_CONFIRMED_FREE'
+      | 'ENTITLEMENT_CACHE_RETAINED_ON_FAILURE',
+    payload: Record<string, unknown> = {},
+  ): void {
+    if (!this.debugEnabled) {
+      return;
+    }
+
+    console.info(`[Billing] ${event} ${toDebugString(payload)}`);
   }
 
   private logDebug(message: string, payload: unknown): void {

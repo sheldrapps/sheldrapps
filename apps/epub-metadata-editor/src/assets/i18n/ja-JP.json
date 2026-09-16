@@ -1,0 +1,25 @@
+{
+  "APP": {
+    "TITLE": "EPUB メタデータエディター"
+  },
+  "TABS": {
+    "HOME": "ホーム",
+    "MY_EPUBS": "マイ EPUB",
+    "SETTINGS": "設定"
+  },
+  "HOME": {
+    "TITLE": "ホーム",
+    "EMPTY": "サービスは後でここに接続されます。"
+  },
+  "MY_EPUBS": {
+    "TITLE": "マイ EPUB",
+    "EMPTY": "EPUB ライブラリは後でここに表示されます。"
+  },
+  "SETTINGS": {
+    "TITLE": "設定"
+  },
+  "COMMON": {
+    "CANCEL": "キャンセル",
+    "DONE": "完了"
+  }
+}

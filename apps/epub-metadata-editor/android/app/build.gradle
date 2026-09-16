@@ -1,0 +1,77 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace = "com.sheldrapps.epubmetadataeditor"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.sheldrapps.epubmetadataeditor"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    def signingKeystore = file(providers.gradleProperty('EME_SIGNING_KEYSTORE').orElse('../keystores/eme-upload.keystore').get())
+    def signingPassword = providers.gradleProperty('EME_SIGNING_PASSWORD').orNull
+    def signingAlias = providers.gradleProperty('EME_SIGNING_KEY_ALIAS').orNull
+    signingConfigs {
+        release {
+            storeFile signingKeystore
+            storePassword signingPassword
+            keyAlias signingAlias
+            keyPassword signingPassword
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+tasks.matching { task -> task.name == 'preReleaseBuild' }.configureEach {
+    doFirst {
+        def password = project.providers.gradleProperty('EME_SIGNING_PASSWORD').orNull
+        def alias = project.providers.gradleProperty('EME_SIGNING_KEY_ALIAS').orNull
+        def keystore = file(project.providers.gradleProperty('EME_SIGNING_KEYSTORE').orElse('../keystores/eme-upload.keystore').get())
+        if (password == null || password.toString().trim().isEmpty() || alias == null || alias.toString().trim().isEmpty() || !keystore.isFile()) {
+            throw new GradleException('EME release signing is not configured: EME_SIGNING_PASSWORD, EME_SIGNING_KEY_ALIAS, and android/keystores/eme-upload.keystore are required')
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

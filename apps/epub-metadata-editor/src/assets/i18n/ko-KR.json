@@ -1,0 +1,25 @@
+{
+  "APP": {
+    "TITLE": "EPUB 메타데이터 편집기"
+  },
+  "TABS": {
+    "HOME": "홈",
+    "MY_EPUBS": "내 EPUB",
+    "SETTINGS": "설정"
+  },
+  "HOME": {
+    "TITLE": "홈",
+    "EMPTY": "서비스는 나중에 여기에 연결됩니다."
+  },
+  "MY_EPUBS": {
+    "TITLE": "내 EPUB",
+    "EMPTY": "EPUB 라이브러리가 나중에 여기에 표시됩니다."
+  },
+  "SETTINGS": {
+    "TITLE": "설정"
+  },
+  "COMMON": {
+    "CANCEL": "취소",
+    "DONE": "완료"
+  }
+}

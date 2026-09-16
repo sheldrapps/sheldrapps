@@ -37,7 +37,7 @@
     "@capacitor/preferences": "^8.0.1",
     "@capacitor/share": "^8.0.1",
     "@capacitor/status-bar": "8.0.2",
-    "@capgo/native-purchases": "^8.6.4",
+    "@capgo/native-purchases": "^8.7.0",
     "@ionic/angular": "8.8.14",
     "@ngx-translate/core": "^17.0.0",
     "@ngx-translate/http-loader": "^17.0.0",

@@ -5,7 +5,7 @@
   "packageManager": "pnpm@11.13.1",
   "scripts": {
     "i": "pnpm install",
-    "postinstall": "node scripts/ensure-stencil-entry.cjs && node scripts/patch-capacitor-status-bar.cjs && node scripts/patch-capacitor-admob.cjs && node scripts/patch-capacitor-filesystem.cjs && node scripts/patch-capgo-native-purchases.cjs",
+    "postinstall": "node scripts/ensure-stencil-entry.cjs && node scripts/patch-capacitor-status-bar.cjs && node scripts/patch-capacitor-admob.cjs && node scripts/patch-capacitor-filesystem.cjs && node scripts/patch-capacitor-android.cjs && node scripts/patch-capgo-native-purchases.cjs",
     "sync:short-scripts": "node scripts/sync-short-scripts.cjs",
     "text-integrity": "node --experimental-strip-types tools/text-integrity/cli.ts",
     "text-integrity:staged": "node --experimental-strip-types tools/text-integrity/cli.ts --staged",
@@ -184,7 +184,20 @@
     "serve:pmas": "pnpm --filter pdf-merger-and-splitter start",
     "serve:pmas:no-open": "pnpm --filter pdf-merger-and-splitter exec ionic serve --no-open",
     "debugApk:pmas": "pnpm --filter pdf-merger-and-splitter debugApk",
-    "releaseApk:pmas": "pnpm --filter pdf-merger-and-splitter releaseApk"
+    "releaseApk:pmas": "pnpm --filter pdf-merger-and-splitter releaseApk",
+    "dev:eme": "pnpm --filter epub-metadata-editor start",
+    "build:eme": "pnpm --filter epub-metadata-editor build",
+    "lint:eme": "pnpm --filter epub-metadata-editor lint",
+    "resources:eme": "pnpm --filter epub-metadata-editor assets:android",
+    "android:install:eme": "powershell -ExecutionPolicy Bypass -File scripts/install-android-debug.ps1 -AppName epub-metadata-editor",
+    "android:clean-install:eme": "powershell -ExecutionPolicy Bypass -File scripts/install-android-debug.ps1 -AppName epub-metadata-editor -UninstallFirst",
+    "phone:eme": "pnpm android:install:eme",
+    "clean-phone:eme": "pnpm android:clean-install:eme",
+    "bundleRelease:eme": "pnpm --filter epub-metadata-editor bundleRelease",
+    "serve:eme": "pnpm --filter epub-metadata-editor start",
+    "serve:eme:no-open": "pnpm --filter epub-metadata-editor exec ionic serve --no-open",
+    "debugApk:eme": "pnpm --filter epub-metadata-editor debugApk",
+    "releaseApk:eme": "pnpm --filter epub-metadata-editor releaseApk"
   },
   "devDependencies": {
     "@angular/build": "^22.0.7",

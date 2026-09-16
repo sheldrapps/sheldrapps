@@ -1,0 +1,7 @@
+{
+  "name": "apps/epub-metadata-editor",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

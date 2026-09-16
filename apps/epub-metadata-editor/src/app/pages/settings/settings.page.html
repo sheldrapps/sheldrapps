@@ -1,0 +1,65 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>{{ 'SETTINGS.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <sh-selectable-button-list
+    [value]="null"
+    [items]="languageItems"
+    [showSelectedIcon]="false"
+    (valueChange)="openLanguageModal()"
+  ></sh-selectable-button-list>
+
+  <sh-selectable-button-list
+    [value]="null"
+    [items]="themeItems"
+    [showSelectedIcon]="false"
+    (valueChange)="openTheme()"
+  ></sh-selectable-button-list>
+
+  <sh-selectable-button-list
+    [value]="null"
+    [items]="ratingItems"
+    [showSelectedIcon]="false"
+    (valueChange)="onRatingAction($event)"
+  ></sh-selectable-button-list>
+
+  <sh-spinner
+    [visible]="languageLoading()"
+    variant="fullscreen"
+    [label]="'LANGUAGE_SETTINGS.PREPARING_COUNTDOWN' | translate: { count: languageCountdown() }"
+  ></sh-spinner>
+
+  <ion-modal [isOpen]="languageModalOpen" (didDismiss)="closeLanguageModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button
+              fill="clear"
+              (click)="closeLanguageModal()"
+              [attr.aria-label]="'COMMON.CANCEL' | translate"
+            >
+              <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title>{{ 'LANGUAGE_SETTINGS.TITLE' | translate }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button fill="clear" (click)="confirmLanguage()">
+              {{ 'COMMON.DONE' | translate }}
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>
+        <app-language-radio-list
+          [value]="languageDraft"
+          [options]="supportedLanguages"
+          (valueChange)="onLanguageDraftChange($event)"
+        ></app-language-radio-list>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>
