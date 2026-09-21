@@ -4,7 +4,7 @@ import { TabsPage } from './tabs.page';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/tabs/home',
+    redirectTo: '/tabs/edit',
     pathMatch: 'full',
   },
   {
@@ -12,9 +12,9 @@ export const routes: Routes = [
     component: TabsPage,
     children: [
       {
-        path: 'home',
+        path: 'edit',
         loadComponent: () =>
-          import('../pages/home/home.page').then((module) => module.HomePage),
+          import('../pages/edit/edit.page').then((module) => module.EditPage),
       },
       {
         path: 'my-epubs',
@@ -43,8 +43,16 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'recommended-apps',
+        data: { backHref: '/tabs/edit' },
+        loadChildren: () =>
+          import('@sheldrapps/recommended-apps').then(
+            (module) => module.RECOMMENDED_APPS_ROUTES,
+          ),
+      },
+      {
         path: '',
-        redirectTo: 'home',
+        redirectTo: 'edit',
         pathMatch: 'full',
       },
     ],

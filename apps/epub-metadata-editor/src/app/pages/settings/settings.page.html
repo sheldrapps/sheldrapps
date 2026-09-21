@@ -19,6 +19,26 @@
     (valueChange)="openTheme()"
   ></sh-selectable-button-list>
 
+  @if (!adsRemoved()) {
+    <sh-selectable-button-list
+      [value]="null"
+      [items]="removeAdsItems"
+      [showSelectedIcon]="false"
+      (valueChange)="onRemoveAdsAction()"
+    ></sh-selectable-button-list>
+  }
+
+  <sh-privacy-policy-section [url]="privacyPolicyUrl"></sh-privacy-policy-section>
+
+  @if (consent.state.umpReady && consent.state.privacyOptionsRequired) {
+    <sh-selectable-button-list
+      [value]="null"
+      [items]="privacyItems"
+      [showSelectedIcon]="false"
+      (valueChange)="onPrivacyAction()"
+    ></sh-selectable-button-list>
+  }
+
   <sh-selectable-button-list
     [value]="null"
     [items]="ratingItems"

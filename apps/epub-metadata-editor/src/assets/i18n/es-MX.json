@@ -3,20 +3,49 @@
     "TITLE": "Editor de metadatos EPUB"
   },
   "TABS": {
-    "HOME": "Inicio",
+    "EDIT": "Editar",
     "MY_EPUBS": "Mis EPUBs",
     "SETTINGS": "Ajustes"
   },
-  "HOME": {
-    "TITLE": "Inicio",
-    "EMPTY": "Aquí se conectarán los servicios después."
+  "EDIT": {
+    "TITLE": "Editar",
+    "STEPPER": { "MODE": "Modo", "FILE": "Archivos EPUB" },
+    "MODE_TITLE": "¿Cómo quieres editar?",
+    "MODE_SINGLE_FILE": "Un archivo",
+    "MODE_SINGLE_FILE_DESCRIPTION": "Edita un archivo EPUB a la vez.",
+    "MODE_MULTIPLE_FILES": "Varios archivos",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "Edita varios archivos EPUB en una sola sesión.",
+    "FILE_TITLE": "Selecciona archivos EPUB",
+  "FILE_SINGLE_PENDING": "La edición de un archivo comenzará aquí.",
+  "FILE_MULTIPLE_PENDING": "La edición de varios archivos comenzará aquí.",
+  "FILE_SINGLE_HINT": "Selecciona un EPUB para abrir el editor de metadatos compartido.",
+  "FILE_MULTIPLE_HINT": "Selecciona varios EPUB. El editor compartido los abrirá uno por uno.",
+  "SELECT_FILE": "Seleccionar archivo EPUB",
+  "SELECT_FILES": "Seleccionar archivos EPUB",
+  "SELECTED_FILES_COUNT": "{{count}} archivos EPUB seleccionados",
+  "SELECTION_ERROR": "No se pudieron abrir los archivos EPUB seleccionados."
   },
   "MY_EPUBS": {
     "TITLE": "Mis EPUBs",
-    "EMPTY": "Tu biblioteca EPUB aparecerá aquí después."
+    "EMPTY": "Tu biblioteca EPUB está vacía.",
+    "PLACEHOLDER": "EPUB",
+    "THUMB_ALT": "Portada del EPUB",
+    "DELETED": "EPUB eliminado.",
+    "RENAMED": "EPUB renombrado.",
+    "DELETE_TITLE": "¿Eliminar EPUB?",
+    "DELETE_MESSAGE": "Este EPUB se quitará de tu biblioteca.",
+    "ERROR": {
+      "LOAD": "No se pudo cargar la biblioteca EPUB.",
+      "OPEN": "No se pudo abrir el EPUB.",
+      "SHARE": "No se pudo compartir el EPUB.",
+      "METADATA": "No se pudo editar el metadata del EPUB.",
+      "RENAME": "No se pudo renombrar el EPUB.",
+      "DELETE": "No se pudo eliminar el EPUB."
+    }
   },
   "SETTINGS": {
-    "TITLE": "Ajustes"
+    "TITLE": "Ajustes",
+    "PRIVACY_OPTIONS": "Opciones de privacidad"
   },
   "COMMON": {
     "CANCEL": "Cancelar",

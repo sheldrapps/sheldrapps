@@ -108,6 +108,132 @@ const FONT_PRESETS: FontPreset[] = [
     weight: 400,
   },
   {
+    id: "cloude",
+    label: "Cloude",
+    family: "'Cloude', sans-serif",
+    asset: "assets/fonts/Cloude.otf",
+    weight: 400,
+  },
+  {
+    id: "cloude-outline",
+    label: "Cloude Outline",
+    family: "'Cloude Outline', sans-serif",
+    asset: "assets/fonts/Cloude Outline.otf",
+    weight: 400,
+  },
+  {
+    id: "creaking-crypt",
+    label: "Creaking Crypt",
+    family: "'Creaking Crypt', serif",
+    asset: "assets/fonts/CreakingCrypt-Regular.woff2",
+    weight: 400,
+  },
+  {
+    id: "love-is-amour",
+    label: "Love Is Amour",
+    family: "'Love Is Amour', cursive",
+    asset: "assets/fonts/Love Is Amour.otf",
+    weight: 400,
+  },
+  {
+    id: "melted-ideas",
+    label: "Melted Ideas",
+    family: "'Melted Ideas', sans-serif",
+    asset: "assets/fonts/Melted Ideas.otf",
+    weight: 400,
+  },
+  {
+    id: "north-kids",
+    label: "North Kids",
+    family: "'North Kids', sans-serif",
+    asset: "assets/fonts/North Kids.otf",
+    weight: 400,
+  },
+  {
+    id: "paper-scratch",
+    label: "Paper Scratch",
+    family: "'Paper Scratch', sans-serif",
+    asset: "assets/fonts/Paper Scratch.otf",
+    weight: 400,
+  },
+  {
+    id: "quick-winter",
+    label: "Quick Winter",
+    family: "'Quick Winter', sans-serif",
+    asset: "assets/fonts/Quick Winter.otf",
+    weight: 400,
+  },
+  {
+    id: "witchwoode",
+    label: "Witchwoode",
+    family: "'Witchwoode', serif",
+    asset: "assets/fonts/Witchwoode-Regular.woff2",
+    weight: 400,
+  },
+  {
+    id: "blackcraft",
+    label: "Blackcraft",
+    family: "'Blackcraft', sans-serif",
+    asset: "assets/fonts/Blackcraft.woff2",
+    weight: 400,
+  },
+  {
+    id: "chainsaw-carnage",
+    label: "Chainsaw Carnage",
+    family: "'Chainsaw Carnage', sans-serif",
+    asset: "assets/fonts/ChainsawCarnage.woff2",
+    weight: 400,
+  },
+  {
+    id: "glitch-goblin",
+    label: "Glitch Goblin",
+    family: "'Glitch Goblin', sans-serif",
+    asset: "assets/fonts/GlitchGoblin.woff2",
+    weight: 400,
+  },
+  {
+    id: "help-me",
+    label: "Help Me",
+    family: "'Help Me', sans-serif",
+    asset: "assets/fonts/HelpMe.woff2",
+    weight: 400,
+  },
+  {
+    id: "quinque-five",
+    label: "QuinqueFive",
+    family: "'QuinqueFive', monospace",
+    asset: "assets/fonts/QuinqueFive.woff2",
+    weight: 400,
+  },
+  {
+    id: "x-typewriter",
+    label: "X Typewriter",
+    family: "'X Typewriter', monospace",
+    asset: "assets/fonts/XTypewriter-Regular.woff2",
+    weight: 400,
+  },
+  {
+    id: "x-typewriter-bold",
+    label: "X Typewriter Bold",
+    family: "'X Typewriter Bold', monospace",
+    asset: "assets/fonts/XTypewriter-Bold.woff2",
+    weight: 400,
+  },
+  {
+    id: "kingthings-christmas",
+    label: "Kingthings Christmas",
+    family: "'Kingthings Christmas', cursive",
+    asset: "assets/fonts/Kingthings Christmas.ttf",
+    weight: 400,
+  },
+  {
+    id: "kingthings-spike",
+    label: "Kingthings Spike",
+    family: "'Kingthings Spike', serif",
+    asset: "assets/fonts/Kingthings Spike.ttf",
+    weight: 400,
+  },
+  {
     id: "caveat",
     label: "Caveat",
     family: "'Caveat', cursive",
@@ -515,10 +641,14 @@ export class TextPanelComponent {
 
       try {
         const src = new URL(font.asset, document.baseURI).toString();
-        const face = new (globalThis as any).FontFace(primary, `url(${src})`, {
-          weight: String(font.weight ?? 400),
-          style: "normal",
-        });
+        const face = new (globalThis as any).FontFace(
+          primary,
+          `url(${JSON.stringify(src)})`,
+          {
+            weight: String(font.weight ?? 400),
+            style: "normal",
+          },
+        );
         const loaded = await face.load();
         try {
           fontSet.add(loaded);

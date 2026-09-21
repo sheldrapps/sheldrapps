@@ -65,6 +65,14 @@ export class HomePageComponent {
       privacyRoute: '/privacy-policies/epub-merger-and-splitter',
     },
     {
+      nameKey: 'HOME.APPS.EME.NAME',
+      descriptionKey: 'HOME.APPS.EME.DESCRIPTION',
+      icon: 'assets/apps/eme/icon.png',
+      privacyRoute: '/privacy-policies/epub-metadata-editor',
+      comingSoon: true,
+      disabled: true,
+    },
+    {
       nameKey: 'HOME.APPS.PCM.NAME',
       descriptionKey: 'HOME.APPS.PCM.DESCRIPTION',
       icon: 'assets/apps/pcm/icon.png',

@@ -8,9 +8,15 @@
   "include": [
     "src/**/*.d.ts",
     "src/**/*.ts",
+    "../../packages/ad-fallback-kit/src/**/*.ts",
     "../../packages/ads-kit/src/**/*.ts",
+    "../../packages/covers-list-kit/src/cover-list-content.component.ts",
+    "../../packages/file-kit/src/**/*.ts",
     "../../packages/i18n-kit/src/**/*.ts",
+    "../../packages/lifecycle-kit/src/**/*.ts",
+    "../../packages/privacy-policy-kit/src/**/*.ts",
     "../../packages/rating-kit/src/**/*.ts",
+    "../../packages/recommended-apps/src/**/*.ts",
     "../../packages/settings-kit/src/**/*.ts",
     "../../packages/ui-theme/src/**/*.ts"
   ],

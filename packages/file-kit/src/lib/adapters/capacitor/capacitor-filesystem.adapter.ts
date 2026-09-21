@@ -7,6 +7,7 @@ import {
   Directory,
   GetUriResult,
 } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
 import { FilesystemAdapter } from '../filesystem.adapter';
 import {
   FileDirectory,
@@ -21,6 +22,10 @@ import {
   reportFileReadFailure,
   reportFileWriteFailure,
 } from '../../file-telemetry';
+import {
+  CapacitorFileReadLimitError,
+  readCapacitorFileByUri,
+} from './read-capacitor-file-by-uri';
 
 /**
  * Map FileDirectory to Capacitor Directory
@@ -123,6 +128,12 @@ export class CapacitorFilesystemAdapter implements FilesystemAdapter {
   async readBytes(params: ReadParams): Promise<Uint8Array> {
     try {
       const directory = mapDirectory(params.dir);
+      if (Capacitor.isNativePlatform()) {
+        return await readCapacitorFileByUri(Filesystem, {
+          path: params.path,
+          directory,
+        }, params.maxBytes);
+      }
       const result = await Filesystem.readFile({
         path: params.path,
         directory,
@@ -138,7 +149,11 @@ export class CapacitorFilesystemAdapter implements FilesystemAdapter {
         throw new Error('Unexpected data format');
       }
     } catch (error) {
-      const code = String(error).includes('ENOENT') ? 'NOT_FOUND' : 'READ_FAILED';
+      const code = error instanceof CapacitorFileReadLimitError
+        ? 'FILE_TOO_LARGE'
+        : String(error).includes('ENOENT')
+          ? 'NOT_FOUND'
+          : 'READ_FAILED';
       const format = inferFileFormat(params.path, '');
       if (format) {
         reportFileReadFailure({

@@ -263,10 +263,17 @@ Rules:
 1. If the answer is yes:
    - include `@sheldrapps/ads-kit` in the app scaffold
    - create an app-local `ads.config.ts`
-   - ask for the rewarded ad unit IDs that belong to this app, not another app
+   - ask for the native AdMob application IDs separately from ad unit IDs, explicitly explaining the separators:
+     - App ID: the one with `~` (tilde), for example `ca-app-pub-123...~456...`; this goes in `APPLICATION_ID`
+     - rewarded ad unit ID: the one with `/` (slash), for example `ca-app-pub-123.../456...`; this goes in `ads.config.ts`
+     - both values contain the `ca-app-pub-...` prefix with hyphens (`-`); do not identify them only as “the one with hyphens”
+     - request the equivalent iOS App ID with `~` and iOS rewarded ad unit IDs with `/` when iOS ads are enabled
    - at minimum, request Android `test.rewarded` and `prod.rewarded`
    - if the app will also wire iOS ads, request iOS `test.rewarded` and `prod.rewarded` too
    - wire `provideAdsKitI18n()` and `provideAdsKit(...)` in bootstrap using those app-specific units
+   - add the Android App ID to `android/app/src/main/AndroidManifest.xml` as `com.google.android.gms.ads.APPLICATION_ID`
+   - because `ads-kit` initializes AdMob explicitly, remove the manifest `com.google.android.gms.ads.MobileAdsInitProvider` with `tools:node="remove"` and declare `xmlns:tools` on the manifest element
+   - validate that an App ID uses `~`; never put a rewarded ad unit ID (which uses `/`) in `APPLICATION_ID`
    - do not reuse rewarded unit IDs from any other app
 2. If the answer is no:
    - do not import or wire `ads-kit`
@@ -303,7 +310,7 @@ Question sequence:
 4. `Dime el enlace de la politica de privacidad. Si no existe, responde no.`
 5. `Dime si esta app usara calificar / reportar un problema. Si si, dime el correo de soporte.`
 6. `Si respondiste no, dime si quieres crear una nueva incoming app en la web de Sheldrapps y, si si, en cual app actual debe basarse.`
-7. `Dime si esta app usara ads. Si si, dame los rewarded ad unit IDs de esta app para Android test y prod, y tambien iOS si aplica.`
+7. `Dime si esta app usara ads. Si si, necesito dos tipos de ID: el AdMob App ID nativo, que es el que lleva tilde (~) y va en el manifest (ca-app-pub-...~...), y los rewarded ad unit IDs, que llevan diagonal (/) y van en ads.config.ts (ca-app-pub-.../...); dame Android test y prod, y tambien App ID y rewarded IDs de iOS si aplica.`
 
 If any locale name is over 30 characters, stop and ask for a corrected name before continuing.
 
@@ -352,6 +359,7 @@ Example:
    - `android/app/src/main/res/values-v31/styles.xml`
    - launch drawable no negro
    - `postSplashScreenTheme` apuntando al tema real
+   - si ads está habilitado, validar en el manifest el `com.google.android.gms.ads.APPLICATION_ID` y la eliminación del `MobileAdsInitProvider`
 11. Agregar scripts root si aplica (`dev:*`, `build:*`, `lint:*`).
     - Siempre agregar también los aliases del short name nuevo en el `package.json` raíz:
       - `dev:<short>`

@@ -19,6 +19,13 @@ const pluginRootRelativePath = path.join(
 
 const filesystemPluginPath = path.join(pluginRootRelativePath, "FilesystemPlugin.kt");
 const legacyFilesystemPath = path.join(pluginRootRelativePath, "LegacyFilesystemImplementation.kt");
+const filesystemBuildGradlePath = path.join(
+  "node_modules",
+  "@capacitor",
+  "filesystem",
+  "android",
+  "build.gradle",
+);
 
 const replacements = [
   {
@@ -58,8 +65,51 @@ function patchFile(filePath, operations) {
   return changed;
 }
 
+function patchFilesystemBuildGradle(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return false;
+  }
+
+  const original = fs.readFileSync(filePath, "utf8");
+  const updated = original
+    .replace(
+      "classpath 'com.android.tools.build:gradle:8.13.0'",
+      "classpath 'com.android.tools.build:gradle:9.0.1'",
+    )
+    .replace(
+      /^\s*classpath "org\.jetbrains\.kotlin:kotlin-gradle-plugin:\$kotlin_version"\r?\n/m,
+      "",
+    )
+    .replace(/^apply plugin: 'kotlin-android'\r?\n/m, "");
+
+  if (updated === original) {
+    return false;
+  }
+
+  fs.writeFileSync(filePath, updated, "utf8");
+  return true;
+}
+
 function main() {
   let patchedCount = 0;
+
+  const directBuildGradlePath = path.join(workspaceRoot, filesystemBuildGradlePath);
+  if (patchFilesystemBuildGradle(directBuildGradlePath)) {
+    patchedCount += 1;
+  }
+
+  if (fs.existsSync(pnpmStorePath)) {
+    for (const entry of fs.readdirSync(pnpmStorePath, { withFileTypes: true })) {
+      if (!entry.isDirectory() || !entry.name.startsWith("@capacitor+filesystem@")) {
+        continue;
+      }
+
+      const candidate = path.join(pnpmStorePath, entry.name, filesystemBuildGradlePath);
+      if (patchFilesystemBuildGradle(candidate)) {
+        patchedCount += 1;
+      }
+    }
+  }
 
   for (const replacement of replacements) {
     const directInstallPath = path.join(workspaceRoot, replacement.filePath);

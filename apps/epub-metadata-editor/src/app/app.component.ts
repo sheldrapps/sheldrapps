@@ -4,6 +4,7 @@ import { NavigationStart, Router } from '@angular/router';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { TranslateService } from '@ngx-translate/core';
 import { Subscription, filter } from 'rxjs';
+import { EmeLifecycleDiagnosticsService } from './services/eme-lifecycle-diagnostics.service';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +15,7 @@ export class AppComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly title = inject(Title);
   private readonly translate = inject(TranslateService);
+  private readonly lifecycle = inject(EmeLifecycleDiagnosticsService);
   private readonly navigationSubscription = this.router.events
     .pipe(filter((event): event is NavigationStart => event instanceof NavigationStart))
     .subscribe(() => {
@@ -26,6 +28,7 @@ export class AppComponent implements OnDestroy {
   });
 
   constructor() {
+    this.lifecycle.start();
     this.title.setTitle(this.translate.instant('APP.TITLE'));
   }
 

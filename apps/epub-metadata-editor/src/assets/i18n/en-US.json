@@ -3,20 +3,49 @@
     "TITLE": "EPUB Metadata Editor"
   },
   "TABS": {
-    "HOME": "Home",
+    "EDIT": "Edit",
     "MY_EPUBS": "My EPUBs",
     "SETTINGS": "Settings"
   },
-  "HOME": {
-    "TITLE": "Home",
-    "EMPTY": "Services will be connected here later."
+  "EDIT": {
+    "TITLE": "Edit",
+    "STEPPER": { "MODE": "Mode", "FILE": "EPUB files" },
+    "MODE_TITLE": "How do you want to edit?",
+    "MODE_SINGLE_FILE": "Single file",
+    "MODE_SINGLE_FILE_DESCRIPTION": "Edit one EPUB file at a time.",
+    "MODE_MULTIPLE_FILES": "Multiple files",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "Edit several EPUB files in one session.",
+    "FILE_TITLE": "Choose EPUB files",
+  "FILE_SINGLE_PENDING": "Single-file editing will start here.",
+  "FILE_MULTIPLE_PENDING": "Multiple-file editing will start here.",
+  "FILE_SINGLE_HINT": "Choose an EPUB to open the shared metadata editor.",
+  "FILE_MULTIPLE_HINT": "Choose several EPUBs. The shared metadata editor will open them one at a time.",
+  "SELECT_FILE": "Choose EPUB file",
+  "SELECT_FILES": "Choose EPUB files",
+  "SELECTED_FILES_COUNT": "{{count}} EPUB files selected",
+  "SELECTION_ERROR": "The selected EPUB files could not be opened."
   },
   "MY_EPUBS": {
     "TITLE": "My EPUBs",
-    "EMPTY": "Your EPUB library will appear here later."
+    "EMPTY": "Your EPUB library is empty.",
+    "PLACEHOLDER": "EPUB",
+    "THUMB_ALT": "EPUB cover",
+    "DELETED": "EPUB deleted.",
+    "RENAMED": "EPUB renamed.",
+    "DELETE_TITLE": "Delete EPUB?",
+    "DELETE_MESSAGE": "This EPUB will be removed from your library.",
+    "ERROR": {
+      "LOAD": "Could not load the EPUB library.",
+      "OPEN": "Could not open the EPUB.",
+      "SHARE": "Could not share the EPUB.",
+      "METADATA": "Could not edit the EPUB metadata.",
+      "RENAME": "Could not rename the EPUB.",
+      "DELETE": "Could not delete the EPUB."
+    }
   },
   "SETTINGS": {
-    "TITLE": "Settings"
+    "TITLE": "Settings",
+    "PRIVACY_OPTIONS": "Privacy options"
   },
   "COMMON": {
     "CANCEL": "Cancel",

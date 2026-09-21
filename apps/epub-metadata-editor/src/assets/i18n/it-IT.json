@@ -3,20 +3,49 @@
     "TITLE": "Editor metadati EPUB"
   },
   "TABS": {
-    "HOME": "Home",
+    "EDIT": "Modifica",
     "MY_EPUBS": "I miei EPUB",
     "SETTINGS": "Impostazioni"
   },
-  "HOME": {
-    "TITLE": "Home",
-    "EMPTY": "I servizi verranno collegati qui in seguito."
+  "EDIT": {
+    "TITLE": "Modifica",
+    "STEPPER": { "MODE": "Modalità", "FILE": "File EPUB" },
+    "MODE_TITLE": "Come vuoi modificare?",
+    "MODE_SINGLE_FILE": "Un file",
+    "MODE_SINGLE_FILE_DESCRIPTION": "Modifica un file EPUB alla volta.",
+    "MODE_MULTIPLE_FILES": "Più file",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "Modifica più file EPUB in un'unica sessione.",
+    "FILE_TITLE": "Scegli file EPUB",
+  "FILE_SINGLE_PENDING": "La modifica di un file inizierà qui.",
+  "FILE_MULTIPLE_PENDING": "La modifica di più file inizierà qui.",
+  "FILE_SINGLE_HINT": "Scegli un EPUB per aprire l’editor dei metadati condiviso.",
+  "FILE_MULTIPLE_HINT": "Scegli più EPUB. L’editor condiviso li aprirà uno alla volta.",
+  "SELECT_FILE": "Scegli file EPUB",
+  "SELECT_FILES": "Scegli file EPUB",
+  "SELECTED_FILES_COUNT": "{{count}} file EPUB selezionati",
+  "SELECTION_ERROR": "Non è stato possibile aprire i file EPUB selezionati."
   },
   "MY_EPUBS": {
     "TITLE": "I miei EPUB",
-    "EMPTY": "La tua libreria EPUB apparirà qui in seguito."
+    "EMPTY": "La tua libreria EPUB è vuota.",
+    "PLACEHOLDER": "EPUB",
+    "THUMB_ALT": "Copertina EPUB",
+    "DELETED": "EPUB eliminato.",
+    "RENAMED": "EPUB rinominato.",
+    "DELETE_TITLE": "Eliminare l’EPUB?",
+    "DELETE_MESSAGE": "Questo EPUB verrà rimosso dalla libreria.",
+    "ERROR": {
+      "LOAD": "Impossibile caricare la libreria EPUB.",
+      "OPEN": "Impossibile aprire l’EPUB.",
+      "SHARE": "Impossibile condividere l’EPUB.",
+      "METADATA": "Impossibile modificare i metadati EPUB.",
+      "RENAME": "Impossibile rinominare l’EPUB.",
+      "DELETE": "Impossibile eliminare l’EPUB."
+    }
   },
   "SETTINGS": {
-    "TITLE": "Impostazioni"
+    "TITLE": "Impostazioni",
+    "PRIVACY_OPTIONS": "Opzioni sulla privacy"
   },
   "COMMON": {
     "CANCEL": "Annulla",

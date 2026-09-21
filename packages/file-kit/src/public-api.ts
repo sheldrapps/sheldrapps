@@ -8,10 +8,16 @@ export * from './lib/types';
 // Errors
 export * from './lib/errors';
 export * from './lib/file-telemetry';
+export * from './lib/capacitor-plugin';
 
 // Utilities
 export { guessMimeType } from './lib/mime';
 export { PUBLIC_FILESYSTEM, type PublicFilesystem } from './lib/public-filesystem';
+export {
+  MAX_NATIVE_JS_READ_BYTES,
+  CapacitorFileReadLimitError,
+  readCapacitorFileByUri,
+} from './lib/adapters/capacitor/read-capacitor-file-by-uri';
 export { makeSafeFilename } from './lib/name';
 export { ensureDirectoriesExist } from './lib/ensure-directories';
 export { normalizeFilenameKey } from './lib/filename-keys';

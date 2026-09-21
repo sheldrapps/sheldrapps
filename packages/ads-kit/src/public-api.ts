@@ -17,6 +17,7 @@ export * from './lib/remove-ads-upgrade/remove-ads-upgrade.presentation';
 export * from './lib/remove-ads-upgrade-modal/remove-ads-upgrade-modal.component';
 export * from './lib/remove-ads-purchase-page/remove-ads-purchase-page.component';
 export * from './lib/remove-ads-purchase-page/remove-ads-purchase-page.service';
+export * from './lib/pro-purchase-analytics.service';
 
 // Adapter exports
 export * from './lib/adapters/platform';

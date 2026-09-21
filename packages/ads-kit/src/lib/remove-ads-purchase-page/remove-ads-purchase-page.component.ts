@@ -25,6 +25,7 @@ import { getPlatform } from '../adapters/platform';
 import { buildRemoveAdsUpgradePresentation } from '../remove-ads-upgrade/remove-ads-upgrade.presentation';
 import type { RemoveAdsUpgradeVariant } from '../remove-ads-upgrade/remove-ads-upgrade.types';
 import { RemoveAdsUpgradeModalComponent } from '../remove-ads-upgrade-modal/remove-ads-upgrade-modal.component';
+import { ProPurchaseAnalyticsService } from '../pro-purchase-analytics.service';
 import { RemoveAdsPurchasePageService } from './remove-ads-purchase-page.service';
 
 @Component({
@@ -53,6 +54,8 @@ export class RemoveAdsPurchasePageComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly zone = inject(NgZone);
   private readonly changeDetector = inject(ChangeDetectorRef);
+  private readonly purchaseAnalytics = inject(ProPurchaseAnalyticsService);
+  private purchaseOutcome: 'purchased' | 'restored' | 'dismissed' = 'dismissed';
 
   readonly state = this.page.state;
   removeAdsPriceFormatted: string | null = null;
@@ -120,6 +123,12 @@ export class RemoveAdsPurchasePageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.purchaseAnalytics.trackScreenView({
+      app: this.variant,
+      productId: this.billing.getRemoveAdsProductId(),
+      entryPoint: 'remove_ads_route',
+      priceAvailable: !!this.billing.getRemoveAdsPriceFormatted(),
+    });
     this.removeAdsPriceFormatted = this.billing.getRemoveAdsPriceFormatted();
     this.priceSubscription = this.billing.removeAdsPrice$.subscribe((price) => {
       this.runInZone(() => {
@@ -137,6 +146,10 @@ export class RemoveAdsPurchasePageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.purchaseAnalytics.trackScreenClosed({
+      app: this.variant,
+      reason: this.purchaseOutcome,
+    });
     this.priceSubscription?.unsubscribe();
     this.page.clear();
     if (typeof window !== 'undefined') {
@@ -156,6 +169,7 @@ export class RemoveAdsPurchasePageComponent implements OnInit, OnDestroy {
         return;
       }
 
+      this.purchaseOutcome = 'purchased';
       await this.showToast('COMMON.REMOVE_ADS_PURCHASED', 'success');
       this.closePage();
     });
@@ -173,6 +187,7 @@ export class RemoveAdsPurchasePageComponent implements OnInit, OnDestroy {
         return;
       }
 
+      this.purchaseOutcome = 'restored';
       await this.showToast('COMMON.REMOVE_ADS_RESTORED', 'success');
       this.closePage();
     });

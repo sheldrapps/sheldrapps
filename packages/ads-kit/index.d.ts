@@ -22,7 +22,7 @@ type RewardedAdResult = {
  * Platform-specific ad units
  */
 type PlatformUnits = {
-    test: AdsUnits;
+    test?: AdsUnits;
     prod: AdsUnits;
 };
 /**
@@ -30,7 +30,7 @@ type PlatformUnits = {
  */
 interface AdsKitConfig {
     /**
-     * Whether to use test ads (equivalent to !environment.production)
+     * Whether web development should use the deterministic rewarded-ad fallback.
      */
     isTesting: boolean;
     /**
@@ -57,6 +57,18 @@ type ConsentResult = {
     privacyOptionsRequired: boolean;
     umpReady: boolean;
 };
+type AdsFailureTelemetry = {
+    stage: string;
+    errorCode: string;
+    reason?: string;
+    confidence?: string;
+    nativeCode?: string | number;
+    nativeMessage?: string;
+    requestId?: string;
+    adUnit?: string;
+    elapsedMs?: number;
+};
+declare function reportAdsFailure(options: AdsFailureTelemetry): void;
 
 declare class AdsService {
     private initialized;
@@ -106,7 +118,6 @@ declare class ConsentService {
  *       isTesting: !environment.production,
  *       units: {
  *         android: {
- *           test: { rewarded: 'ca-app-pub-3940256099942544/5224354917' },
  *           prod: { rewarded: 'ca-app-pub-1676607690625695/8384333921' }
  *         }
  *       }
@@ -137,5 +148,5 @@ declare function isIOS(): boolean;
  */
 declare function isWeb(): boolean;
 
-export { ADS_KIT_CONFIG, AdsService, ConsentService, getPlatform, isAndroid, isIOS, isNative, isWeb, provideAdsKit };
-export type { AdsKitConfig, AdsUnits, ConsentResult, PlatformUnits, RewardedAdResult };
+export { ADS_KIT_CONFIG, AdsService, ConsentService, getPlatform, isAndroid, isIOS, isNative, isWeb, provideAdsKit, reportAdsFailure };
+export type { AdsFailureTelemetry, AdsKitConfig, AdsUnits, ConsentResult, PlatformUnits, RewardedAdResult };

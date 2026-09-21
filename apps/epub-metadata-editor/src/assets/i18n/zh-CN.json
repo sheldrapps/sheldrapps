@@ -3,20 +3,49 @@
     "TITLE": "EPUB 元数据编辑器"
   },
   "TABS": {
-    "HOME": "首页",
+    "EDIT": "编辑",
     "MY_EPUBS": "我的 EPUB",
     "SETTINGS": "设置"
   },
-  "HOME": {
-    "TITLE": "首页",
-    "EMPTY": "服务稍后会在这里接入。"
+  "EDIT": {
+    "TITLE": "编辑",
+    "STEPPER": { "MODE": "模式", "FILE": "EPUB 文件" },
+    "MODE_TITLE": "你想如何编辑？",
+    "MODE_SINGLE_FILE": "单个文件",
+    "MODE_SINGLE_FILE_DESCRIPTION": "一次编辑一个 EPUB 文件。",
+    "MODE_MULTIPLE_FILES": "多个文件",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "在同一会话中编辑多个 EPUB 文件。",
+    "FILE_TITLE": "选择 EPUB 文件",
+  "FILE_SINGLE_PENDING": "单文件编辑将在这里开始。",
+  "FILE_MULTIPLE_PENDING": "多文件编辑将在这里开始。",
+  "FILE_SINGLE_HINT": "选择一个 EPUB 以打开共享元数据编辑器。",
+  "FILE_MULTIPLE_HINT": "选择多个 EPUB。共享编辑器会依次打开它们。",
+  "SELECT_FILE": "选择 EPUB 文件",
+  "SELECT_FILES": "选择 EPUB 文件",
+  "SELECTED_FILES_COUNT": "已选择 {{count}} 个 EPUB 文件",
+  "SELECTION_ERROR": "无法打开所选 EPUB 文件。"
   },
   "MY_EPUBS": {
     "TITLE": "我的 EPUB",
-    "EMPTY": "你的 EPUB 书库稍后会显示在这里。"
+    "EMPTY": "你的 EPUB 书库为空。",
+    "PLACEHOLDER": "EPUB",
+    "THUMB_ALT": "EPUB 封面",
+    "DELETED": "EPUB 已删除。",
+    "RENAMED": "EPUB 已重命名。",
+    "DELETE_TITLE": "删除 EPUB？",
+    "DELETE_MESSAGE": "此 EPUB 将从你的书库中移除。",
+    "ERROR": {
+      "LOAD": "无法加载 EPUB 书库。",
+      "OPEN": "无法打开 EPUB。",
+      "SHARE": "无法分享 EPUB。",
+      "METADATA": "无法编辑 EPUB 元数据。",
+      "RENAME": "无法重命名 EPUB。",
+      "DELETE": "无法删除 EPUB。"
+    }
   },
   "SETTINGS": {
-    "TITLE": "设置"
+    "TITLE": "设置",
+    "PRIVACY_OPTIONS": "隐私选项"
   },
   "COMMON": {
     "CANCEL": "取消",

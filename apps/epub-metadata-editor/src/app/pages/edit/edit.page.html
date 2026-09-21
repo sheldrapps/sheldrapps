@@ -1,0 +1,143 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>{{ 'EDIT.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <main class="app-page">
+    <sh-workflow-stepper
+      [steps]="workflowSteps"
+      [currentStep]="workflowStep"
+      [selectableSteps]="selectableWorkflowSteps"
+      (stepSelected)="onWorkflowStepSelected($event)"
+    ></sh-workflow-stepper>
+
+    @if (workflowStep === 0) {
+      <section aria-labelledby="edit-mode-title">
+        <h2 class="field-title" id="edit-mode-title">
+          {{ 'EDIT.MODE_TITLE' | translate }}
+        </h2>
+
+        <ion-grid class="app-action-grid">
+          <ion-row>
+            <ion-col size="6">
+              <div class="app-action-card-shell" (click)="selectEditMode('single')">
+                <sh-action-card
+                  [title]="'EDIT.MODE_SINGLE_FILE' | translate"
+                  [description]="'EDIT.MODE_SINGLE_FILE_DESCRIPTION' | translate"
+                  icon="file-tray-outline"
+                  [selected]="editMode === 'single'"
+                  [ariaLabel]="'EDIT.MODE_SINGLE_FILE' | translate"
+                ></sh-action-card>
+              </div>
+            </ion-col>
+            <ion-col size="6">
+              <div
+                class="app-action-card-shell"
+                (click)="selectEditMode('multiple')"
+              >
+                <sh-action-card
+                  [title]="'EDIT.MODE_MULTIPLE_FILES' | translate"
+                  [description]="'EDIT.MODE_MULTIPLE_FILES_DESCRIPTION' | translate"
+                  icon="file-tray-stacked-outline"
+                  [selected]="editMode === 'multiple'"
+                  [disabled]="!canUseMultipleFiles"
+                  [ariaLabel]="'EDIT.MODE_MULTIPLE_FILES' | translate"
+                ></sh-action-card>
+                @if (!canUseMultipleFiles) {
+                  <sh-pro-badge class="app-action-card-shell__badge"></sh-pro-badge>
+                }
+              </div>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </section>
+    }
+
+    @if (workflowStep === 1) {
+      <section aria-live="polite">
+        <h2>{{ 'EDIT.FILE_TITLE' | translate }}</h2>
+        <p class="field-subtle">
+          {{
+            (editMode === 'multiple'
+              ? 'EDIT.FILE_MULTIPLE_HINT'
+              : 'EDIT.FILE_SINGLE_HINT') | translate
+          }}
+        </p>
+
+        <sh-file-picker-panel
+          [title]="'EDIT.FILE_TITLE' | translate"
+          [actionPlaceholder]="
+            (editMode === 'multiple'
+              ? 'EDIT.SELECT_FILES'
+              : 'EDIT.SELECT_FILE') | translate
+          "
+          [actionLabel]="filePickerActionLabel"
+          [actionAriaLabel]="
+            (editMode === 'multiple'
+              ? 'EDIT.SELECT_FILES'
+              : 'EDIT.SELECT_FILE') | translate
+          "
+          [items]="filePickerItems"
+          [selected]="selectedFileNames.length > 0"
+          [disabled]="isSelectingFiles"
+          (actionSelected)="selectFiles()"
+        ></sh-file-picker-panel>
+
+        @if (selectionErrorKey) {
+          <p class="app-callout app-callout--error" role="alert">
+            {{ selectionErrorKey | translate }}
+          </p>
+        }
+
+      </section>
+    }
+
+    @if (workflowStep === 2) {
+      <section aria-labelledby="edit-summary-title" aria-live="polite">
+        <h2 class="field-title" id="edit-summary-title">
+          {{ 'TABS.EDIT' | translate }}
+        </h2>
+
+        @for (file of completedMetadata; track file.filename) {
+          <sh-section-card [title]="file.filename">
+            <dl class="app-metadata-summary">
+              @for (row of metadataSummaryRows(file.metadata); track row.labelKey) {
+                <div class="app-metadata-summary__row">
+                  <dt>{{ row.labelKey | translate }}</dt>
+                  <dd>{{ row.value }}</dd>
+                </div>
+              }
+            </dl>
+          </sh-section-card>
+        }
+      </section>
+    }
+
+    <input
+      #singleEpubInput
+      class="app-file-input"
+      type="file"
+      accept=".epub,application/epub+zip"
+      (change)="onBrowserFilesSelected($event)"
+    />
+    <input
+      #multipleEpubInput
+      class="app-file-input"
+      type="file"
+      accept=".epub,application/epub+zip"
+      multiple
+      (change)="onBrowserFilesSelected($event)"
+    />
+
+    <sh-workflow-navigation
+      [showPrevious]="workflowStep > 0"
+      [showNext]="false"
+      [previousLabel]="workflowPreviousLabel"
+      [nextLabel]="workflowNextLabel"
+      [nextDisabled]="!canContinueWorkflow"
+      (previous)="onWorkflowPrevious()"
+    ></sh-workflow-navigation>
+  </main>
+</ion-content>

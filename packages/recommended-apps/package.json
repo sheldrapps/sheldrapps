@@ -6,16 +6,16 @@
   "sideEffects": false,
   "type": "module",
   "peerDependencies": {
-    "@angular/common": "^22.0.7",
-    "@angular/core": "^22.0.7",
-    "@angular/router": "^22.0.7",
+    "@angular/common": "^22.1.7",
+    "@angular/core": "^22.1.7",
+    "@angular/router": "^22.1.7",
     "@capacitor/app": "^8.0.0",
     "@capacitor/browser": "^8.0.0",
     "@ionic/angular": "^8.8.14",
-    "ionicons": "^7.0.0",
-    "@sheldrapps/ui-theme": "workspace:*"
+    "@sheldrapps/ui-theme": "workspace:*",
+    "ionicons": "^7.0.0"
   },
   "dependencies": {
-    "tslib": "^2.3.0"
+    "tslib": "^2.8.1"
   }
 }

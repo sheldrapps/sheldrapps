@@ -1,13 +1,15 @@
 import { CommonModule } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
+  BillingService,
+  RemoveAdsPurchasePageService,
+} from '@sheldrapps/ads-kit';
+import { PrivacyPolicySectionComponent } from '@sheldrapps/privacy-policy-kit';
+import {
   LanguageRadioListComponent,
-  LANG_OPTIONS,
   restartForLanguageChange,
-  type LangOption,
-  type SupportedLocale,
-  LanguageService,
 } from '@sheldrapps/i18n-kit';
 import { RatingService } from '@sheldrapps/rating-kit';
 import { SettingsStore } from '@sheldrapps/settings-kit';
@@ -33,6 +35,13 @@ import { TranslateModule } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
 import { chevronBackOutline, chevronForwardOutline, colorPaletteOutline } from 'ionicons/icons';
 import type { EpubMetadataEditorSettings } from '../../settings/epub-metadata-editor-settings.schema';
+import { ConsentService } from '../../services/consent.service';
+import {
+  LANG_OPTIONS,
+  LanguageService,
+  type LangOption,
+  type SupportedLocale,
+} from '../../services/language.service';
 
 @Component({
   selector: 'app-settings-page',
@@ -49,17 +58,24 @@ import type { EpubMetadataEditorSettings } from '../../settings/epub-metadata-ed
     IonTitle,
     IonToolbar,
     LanguageRadioListComponent,
+    PrivacyPolicySectionComponent,
     SelectableButtonListComponent,
     SpinnerComponent,
   ],
 })
 export class SettingsPage {
   private readonly settings = inject(SettingsStore<EpubMetadataEditorSettings>);
+  private readonly billing = inject(BillingService);
+  readonly consent = inject(ConsentService);
+  private readonly removeAdsPurchasePage = inject(RemoveAdsPurchasePageService);
   private readonly rating = inject(RatingService);
   private readonly router = inject(Router);
   private readonly theme = inject(ThemeService);
   private readonly themeI18n = inject(UiThemeI18nService);
   readonly language = inject(LanguageService);
+  readonly adsRemoved = toSignal(this.billing.adsRemoved$, {
+    initialValue: this.billing.isAdsRemoved(),
+  });
 
   readonly supportedLanguages = LANG_OPTIONS;
   readonly languageLoading = signal(false);
@@ -67,6 +83,8 @@ export class SettingsPage {
   languageModalOpen = false;
   languageDraft: SupportedLocale = 'en-US';
   private restartingLanguage = false;
+  readonly privacyPolicyUrl =
+    'https://sheldrapps.com/privacy-policies/epub-metadata-editor';
 
   constructor() {
     addIcons({ chevronBackOutline, chevronForwardOutline, colorPaletteOutline });
@@ -135,6 +153,30 @@ export class SettingsPage {
     ];
   }
 
+  get removeAdsItems(): SelectableButtonListItem[] {
+    return [
+      {
+        value: 'remove-ads',
+        titleKey: 'COMMON.UPGRADE_TO_PRO',
+        sublineKey: 'COMMON.REMOVE_ADS_CTA_SUBTITLE',
+        leadingIconSvg: 'pro-badge',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'COMMON.UPGRADE_TO_PRO',
+      },
+    ];
+  }
+
+  get privacyItems(): SelectableButtonListItem[] {
+    return [
+      {
+        value: 'privacy-options',
+        titleKey: 'SETTINGS.PRIVACY_OPTIONS',
+        trailingIconName: 'chevron-forward-outline',
+        ariaLabelKey: 'SETTINGS.PRIVACY_OPTIONS',
+      },
+    ];
+  }
+
   openLanguageModal(): void {
     this.languageDraft = this.selectedLanguage;
     this.languageModalOpen = true;
@@ -173,6 +215,18 @@ export class SettingsPage {
     if (value === 'feedback') {
       await this.rating.previewFeedbackFlow();
     }
+  }
+
+  onRemoveAdsAction(): void {
+    this.removeAdsPurchasePage.open({
+      variant: 'ECC',
+      returnUrl: '/tabs/edit',
+    });
+    void this.router.navigateByUrl('/remove-ads');
+  }
+
+  async onPrivacyAction(): Promise<void> {
+    await this.consent.showPrivacyOptionsIfAvailable();
   }
 
   private async changeLanguage(nextLanguage: SupportedLocale): Promise<void> {

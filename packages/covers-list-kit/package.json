@@ -5,17 +5,18 @@
   "main": "./src/public-api.ts",
   "types": "./src/public-api.ts",
   "exports": {
-    ".": "./src/public-api.ts"
+    ".": "./src/public-api.ts",
+    "./list": "./src/cover-list-content.component.ts"
   },
   "files": [
     "src"
   ],
   "dependencies": {
-    "tslib": "^2.3.0"
+    "tslib": "^2.8.1"
   },
   "peerDependencies": {
-    "@angular/common": "^22.0.7",
-    "@angular/core": "^22.0.7",
+    "@angular/common": "^22.1.7",
+    "@angular/core": "^22.1.7",
     "@ionic/angular": "^8.8.14",
     "@ngx-translate/core": "^17.0.0",
     "@sheldrapps/image-workflow": "workspace:*",

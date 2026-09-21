@@ -70,6 +70,8 @@ export interface ReadParams {
    * Relative path
    */
   path: string;
+
+  maxBytes?: number;
 }
 
 /**

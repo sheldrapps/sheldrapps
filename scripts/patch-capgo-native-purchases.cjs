@@ -30,6 +30,42 @@ const billingVersion = "9.1.0";
 
 const replacements = [
   {
+    find: `import android.content.pm.PackageInfo;`,
+    replace: `import android.app.Activity;\nimport android.content.pm.PackageInfo;`,
+  },
+  {
+    find: `    private BillingClient billingClient;`,
+    replace: `    private BillingClient billingClient;\n    private final AtomicBoolean purchaseFlowInProgress = new AtomicBoolean(false);`,
+  },
+  {
+    find: `                .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())\n                .build();`,
+    replace: `                .enableAutoServiceReconnection()\n                .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())\n                .build();`,
+  },
+  {
+    find: `                            if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && purchases != null) {\n                                Log.d(TAG, "Purchase update successful, processing first purchase");\n                                handlePurchase(purchases.get(0), purchaseCall);\n                            } else {\n                                Log.d(TAG, "Purchase update failed or purchases is null");\n                                Log.i(NativePurchasesPlugin.TAG, "onPurchasesUpdated" + billingResult);\n                                if (purchaseCall != null) {\n                                    purchaseCall.reject("Purchase is not purchased");\n                                }\n                            }\n                            closeBillingClient();`,
+    replace: `                            if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && purchases != null && !purchases.isEmpty()) {\n                                Log.d(TAG, "Purchase update successful, processing first purchase");\n                                handlePurchase(purchases.get(0), purchaseCall);\n                            } else {\n                                Log.d(TAG, "Purchase update failed or purchases is null or empty");\n                                Log.i(NativePurchasesPlugin.TAG, "onPurchasesUpdated" + billingResult);\n                                if (purchaseCall != null) {\n                                    String errorCode = purchases == null || purchases.isEmpty()\n                                        ? "EMPTY_PURCHASE_RESULT"\n                                        : "BILLING_RESPONSE_" + billingResult.getResponseCode();\n                                    purchaseCall.reject("Purchase is not purchased", errorCode);\n                                }\n                            }\n                            purchaseFlowInProgress.set(false);\n                            closeBillingClient();`,
+  },
+  {
+    find: `    private void handlePurchase(Purchase purchase, PluginCall purchaseCall) {\n        Log.d(TAG, "handlePurchase() called");`,
+    replace: `    private void handlePurchase(Purchase purchase, PluginCall purchaseCall) {\n        if (purchase == null || purchase.getProducts() == null || purchase.getProducts().isEmpty()) {\n            Log.e(TAG, "Purchase update did not contain a product");\n            if (purchaseCall != null) {\n                purchaseCall.reject("Purchase response did not contain a product", "INVALID_PURCHASE_RESULT");\n            }\n            return;\n        }\n        Log.d(TAG, "handlePurchase() called");`,
+  },
+  {
+    find: `                            if (productType.equals("inapp") && productDetailsItem.getOneTimePurchaseOfferDetails() == null) {\n                                closeBillingClient();\n                                call.reject("No one-time purchase offer available");\n                                return;\n                            }\n`,
+    replace: ``,
+  },
+  {
+    find: `                                List<ProductDetails.OneTimePurchaseOfferDetails> oneTimeOffers =\n                                    ProductPayloadMapper.resolveOneTimePurchaseOffers(productDetailsItem);\n                                if (offerToken != null && !offerToken.isEmpty()) {`,
+    replace: `                                List<ProductDetails.OneTimePurchaseOfferDetails> oneTimeOffers =\n                                    ProductPayloadMapper.resolveOneTimePurchaseOffers(productDetailsItem);\n                                if (oneTimeOffers.isEmpty()) {\n                                    closeBillingClient();\n                                    call.reject("No one-time purchase offer available");\n                                    return;\n                                }\n                                if (offerToken != null && !offerToken.isEmpty()) {`,
+  },
+  {
+    find: `                                } else if (productDetailsItem.getOneTimePurchaseOfferDetails() == null && !oneTimeOffers.isEmpty()) {\n                                    productDetailsParams.setOfferToken(oneTimeOffers.get(0).getOfferToken());\n                                    Log.d(TAG, "Set default one-time offer token: " + oneTimeOffers.get(0).getOfferToken());\n                                }`,
+    replace: `                                } else if (oneTimeOffers.size() > 1 || productDetailsItem.getOneTimePurchaseOfferDetails() == null) {\n                                    productDetailsParams.setOfferToken(oneTimeOffers.get(0).getOfferToken());\n                                    Log.d(TAG, "Set default one-time offer token: " + oneTimeOffers.get(0).getOfferToken());\n                                }`,
+  },
+  {
+    find: `                                assert productDetailsItem.getSubscriptionOfferDetails() != null;\n                                Log.d(TAG, "Available offer details count: " + productDetailsItem.getSubscriptionOfferDetails().size());`,
+    replace: `                                if (productDetailsItem.getSubscriptionOfferDetails() == null || productDetailsItem.getSubscriptionOfferDetails().isEmpty()) {\n                                    closeBillingClient();\n                                    call.reject("No subscription offer available");\n                                    return;\n                                }\n                                Log.d(TAG, "Available offer details count: " + productDetailsItem.getSubscriptionOfferDetails().size());`,
+  },
+  {
     find: `        Log.d(TAG, "Purchase token: " + purchase.getPurchaseToken());`,
     replace: `        Log.d(TAG, "Purchase token present: " + (purchase.getPurchaseToken() != null && !purchase.getPurchaseToken().isEmpty()));`,
   },
@@ -322,11 +358,123 @@ import org.json.JSONArray;
   }
 
   for (const replacement of replacements) {
-    if (!current.includes(replacement.find)) {
+    if (
+      !current.includes(replacement.find) ||
+      (replacement.replace.length > 0 && current.includes(replacement.replace))
+    ) {
       continue;
     }
 
     current = current.replaceAll(replacement.find, replacement.replace);
+    changed = true;
+  }
+
+  const billingResponseCodeWithoutHelper = "billingResponseCodeName(billingResult.getResponseCode())";
+  if (current.includes(billingResponseCodeWithoutHelper)) {
+    current = current.replaceAll(
+      billingResponseCodeWithoutHelper,
+      "\"BILLING_RESPONSE_\" + billingResult.getResponseCode()",
+    );
+    changed = true;
+  }
+
+  const activityGuard = [
+    "    private boolean isActivityReadyForBilling(Activity activity) {",
+    "        if (activity == null || activity.isFinishing()) {",
+    "            return false;",
+    "        }",
+    "        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed()) {",
+    "            return false;",
+    "        }",
+    "        return activity.hasWindowFocus();",
+    "    }",
+    "",
+  ].join("\n");
+  if (!current.includes("private boolean isActivityReadyForBilling(Activity activity)")) {
+    const handlePurchaseMarker = "    private void handlePurchase(Purchase purchase, PluginCall purchaseCall) {";
+    if (current.includes(handlePurchaseMarker)) {
+      current = current.replace(handlePurchaseMarker, activityGuard + handlePurchaseMarker);
+      changed = true;
+    }
+  }
+
+  const oldPurchaseLaunch = [
+    "                        BillingFlowParams billingFlowParams = billingFlowBuilder.build();",
+    "                        getActivity().runOnUiThread(() -> {",
+    "                            if (billingClient == null || !billingClient.isReady()) {",
+    "                                closeBillingClient();",
+    "                                call.reject(\"Billing service disconnected before purchase\");",
+    "                                return;",
+    "                            }",
+    "",
+    "                            // Google Play Billing requires this call on the app's main thread.",
+    "                            Log.d(TAG, \"Launching billing flow\");",
+    "                            BillingResult billingResult2 = billingClient.launchBillingFlow(getActivity(), billingFlowParams);",
+    "                            Log.d(",
+    "                                TAG,",
+    "                                \"Billing flow launch result: \" + billingResult2.getResponseCode() + \" - \" + billingResult2.getDebugMessage()",
+    "                            );",
+    "                            Log.i(NativePurchasesPlugin.TAG, \"onProductDetailsResponse2\" + billingResult2);",
+    "                            if (billingResult2.getResponseCode() != BillingClient.BillingResponseCode.OK) {",
+    "                                closeBillingClient();",
+    "                                call.reject(\"Billing flow could not be launched: \" + billingResult2.getDebugMessage());",
+    "                            }",
+    "                        });",
+  ].join("\n");
+  const newPurchaseLaunch = [
+    "                        BillingFlowParams billingFlowParams = billingFlowBuilder.build();",
+    "                        Activity activity = getActivity();",
+    "                        if (!isActivityReadyForBilling(activity)) {",
+    "                            closeBillingClient();",
+    "                            call.reject(\"Billing activity is not in the foreground\", \"BILLING_ACTIVITY_UNAVAILABLE\");",
+    "                            return;",
+    "                        }",
+    "                        activity.runOnUiThread(() -> {",
+    "                            if (!isActivityReadyForBilling(activity) || billingClient == null || !billingClient.isReady()) {",
+    "                                closeBillingClient();",
+    "                                call.reject(\"Billing service is not ready for purchase\", \"BILLING_FLOW_UNAVAILABLE\");",
+    "                                return;",
+    "                            }",
+    "                            if (!purchaseFlowInProgress.compareAndSet(false, true)) {",
+    "                                closeBillingClient();",
+    "                                call.reject(\"Another purchase is already in progress\", \"PURCHASE_IN_PROGRESS\");",
+    "                                return;",
+    "                            }",
+    "",
+    "                            Log.d(TAG, \"Launching billing flow\");",
+    "                            BillingResult billingResult2;",
+    "                            try {",
+    "                                billingResult2 = billingClient.launchBillingFlow(activity, billingFlowParams);",
+    "                            } catch (RuntimeException error) {",
+    "                                purchaseFlowInProgress.set(false);",
+    "                                closeBillingClient();",
+    "                                Log.e(TAG, \"Billing flow threw before launch: \" + error.getMessage());",
+    "                                call.reject(\"Billing flow could not be launched\", \"BILLING_FLOW_EXCEPTION\");",
+    "                                return;",
+    "                            }",
+    "                            Log.d(",
+    "                                TAG,",
+    "                                \"Billing flow launch result: \" + (billingResult2 != null ? billingResult2.getResponseCode() : \"null\") +",
+    "                                    \" - \" + (billingResult2 != null ? billingResult2.getDebugMessage() : \"missing billing result\")",
+    "                            );",
+    "                            Log.i(NativePurchasesPlugin.TAG, \"onProductDetailsResponse2\" + billingResult2);",
+    "                            if (billingResult2 == null || billingResult2.getResponseCode() != BillingClient.BillingResponseCode.OK) {",
+    "                                purchaseFlowInProgress.set(false);",
+    "                                closeBillingClient();",
+    "                                String debugMessage = billingResult2 != null ? billingResult2.getDebugMessage() : \"missing billing result\";",
+    "                                call.reject(\"Billing flow could not be launched: \" + debugMessage, \"BILLING_FLOW_REJECTED\");",
+    "                            }",
+    "                        });",
+  ].join("\n");
+  if (current.includes(oldPurchaseLaunch)) {
+    current = current.replace(oldPurchaseLaunch, newPurchaseLaunch);
+    changed = true;
+  }
+
+  const obsoleteOneTimeOfferGuard = /\n\s+if \(productType\.equals\("inapp"\) && productDetailsItem\.getOneTimePurchaseOfferDetails\(\) == null\) \{\s+closeBillingClient\(\);\s+call\.reject\("No one-time purchase offer available"\);\s+return;\s+\}\n/;
+  const withoutObsoleteOneTimeOfferGuard = current.replace(obsoleteOneTimeOfferGuard, "\n");
+  if (withoutObsoleteOneTimeOfferGuard !== current) {
+    current = withoutObsoleteOneTimeOfferGuard;
     changed = true;
   }
 

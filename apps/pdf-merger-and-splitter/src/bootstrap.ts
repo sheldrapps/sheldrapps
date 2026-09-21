@@ -31,7 +31,6 @@ import { environment } from './environments/environment';
 import { providePdfMergerAndSplitterBootstrapInitializer } from './app/providers/pdf-merger-and-splitter-bootstrap.initializer';
 import {
   ADS_UNITS_ANDROID_PROD,
-  ADS_UNITS_ANDROID_TEST,
 } from './app/services/ads.config';
 import {
   PDF_MERGER_AND_SPLITTER_RATING_FEEDBACK_OPTIONS,
@@ -142,7 +141,6 @@ export async function bootstrapPdfMergerAndSplitterApp(): Promise<void> {
       isTesting: !environment.production,
       units: {
         android: {
-          test: ADS_UNITS_ANDROID_TEST,
           prod: ADS_UNITS_ANDROID_PROD,
         },
       },

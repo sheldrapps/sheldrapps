@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import {
   Capacitor,
-  registerPlugin,
   type Plugin,
   type PluginListenerHandle,
 } from '@capacitor/core';
+import { readCapacitorFileByUri } from '@sheldrapps/file-kit';
+import { registerCapacitorPluginOnce } from '@sheldrapps/file-kit/pdf';
 import type {
   PdfInspectionResult,
   PdfRewriteNativeErrorCode,
@@ -148,7 +149,7 @@ type PdfRewritePlugin = Plugin & {
   cancelRewrite(): Promise<{ cancelled: boolean }>;
 };
 
-const PdfRewrite = registerPlugin<PdfRewritePlugin>('PdfRewritePlugin');
+const PdfRewrite = registerCapacitorPluginOnce<PdfRewritePlugin>('PdfRewritePlugin');
 
 export class PdfRewriteError extends Error {
   constructor(
@@ -415,27 +416,13 @@ export class PdfRewriteService {
 
   private async readCacheFile(path: string): Promise<Uint8Array | null> {
     try {
-      const result = await Filesystem.readFile({
+      return await readCapacitorFileByUri(Filesystem, {
         directory: Directory.Cache,
         path,
       });
-      if (typeof result.data === 'string') {
-        return this.decodeBase64(result.data);
-      }
-      return new Uint8Array(await result.data.arrayBuffer());
     } catch {
       return null;
     }
-  }
-
-  private decodeBase64(value: string): Uint8Array {
-    const normalized = value.includes(',') ? value.split(',').pop() || '' : value;
-    const binary = atob(normalized);
-    const bytes = new Uint8Array(binary.length);
-    for (let index = 0; index < binary.length; index += 1) {
-      bytes[index] = binary.charCodeAt(index);
-    }
-    return bytes;
   }
 
   private toFileUri(path: string): string {

@@ -5,6 +5,7 @@
 export type FileKitErrorCode =
   | 'WRITE_FAILED'
   | 'READ_FAILED'
+  | 'FILE_TOO_LARGE'
   | 'DELETE_FAILED'
   | 'SHARE_FAILED'
   | 'NOT_FOUND'

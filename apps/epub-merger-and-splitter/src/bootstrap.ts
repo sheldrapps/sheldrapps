@@ -32,7 +32,6 @@ import { routes } from './app/app.routes';
 import { provideEpubMergerAndSplitterBootstrapInitializer } from './app/providers/epub-merger-and-splitter-bootstrap.initializer';
 import {
   ADS_UNITS_ANDROID_PROD,
-  ADS_UNITS_ANDROID_TEST,
 } from './app/services/ads.config';
 import {
   EPUB_MERGER_AND_SPLITTER_RATING_FEEDBACK_OPTIONS,
@@ -149,7 +148,6 @@ export async function bootstrapEpubMergerAndSplitterApp(): Promise<void> {
       isTesting: !environment.production,
       units: {
         android: {
-          test: ADS_UNITS_ANDROID_TEST,
           prod: ADS_UNITS_ANDROID_PROD,
         },
       },

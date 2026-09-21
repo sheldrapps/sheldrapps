@@ -3,20 +3,49 @@
     "TITLE": "EPUB Metadaten-Editor"
   },
   "TABS": {
-    "HOME": "Start",
+    "EDIT": "Bearbeiten",
     "MY_EPUBS": "Meine EPUBs",
     "SETTINGS": "Einstellungen"
   },
-  "HOME": {
-    "TITLE": "Start",
-    "EMPTY": "Hier werden später Dienste verbunden."
+  "EDIT": {
+    "TITLE": "Bearbeiten",
+    "STEPPER": { "MODE": "Modus", "FILE": "EPUB-Dateien" },
+    "MODE_TITLE": "Wie möchtest du bearbeiten?",
+    "MODE_SINGLE_FILE": "Eine Datei",
+    "MODE_SINGLE_FILE_DESCRIPTION": "Bearbeite jeweils eine EPUB-Datei.",
+    "MODE_MULTIPLE_FILES": "Mehrere Dateien",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "Bearbeite mehrere EPUB-Dateien in einer Sitzung.",
+    "FILE_TITLE": "EPUB-Dateien auswählen",
+  "FILE_SINGLE_PENDING": "Die Bearbeitung einer Datei beginnt hier.",
+  "FILE_MULTIPLE_PENDING": "Die Bearbeitung mehrerer Dateien beginnt hier.",
+  "FILE_SINGLE_HINT": "Wähle eine EPUB-Datei für den gemeinsamen Metadaten-Editor.",
+  "FILE_MULTIPLE_HINT": "Wähle mehrere EPUB-Dateien. Der gemeinsame Editor öffnet sie nacheinander.",
+  "SELECT_FILE": "EPUB-Datei auswählen",
+  "SELECT_FILES": "EPUB-Dateien auswählen",
+  "SELECTED_FILES_COUNT": "{{count}} EPUB-Dateien ausgewählt",
+  "SELECTION_ERROR": "Die ausgewählten EPUB-Dateien konnten nicht geöffnet werden."
   },
   "MY_EPUBS": {
     "TITLE": "Meine EPUBs",
-    "EMPTY": "Deine EPUB-Bibliothek erscheint später hier."
+    "EMPTY": "Deine EPUB-Bibliothek ist leer.",
+    "PLACEHOLDER": "EPUB",
+    "THUMB_ALT": "EPUB-Cover",
+    "DELETED": "EPUB gelöscht.",
+    "RENAMED": "EPUB umbenannt.",
+    "DELETE_TITLE": "EPUB löschen?",
+    "DELETE_MESSAGE": "Dieses EPUB wird aus deiner Bibliothek entfernt.",
+    "ERROR": {
+      "LOAD": "Die EPUB-Bibliothek konnte nicht geladen werden.",
+      "OPEN": "Das EPUB konnte nicht geöffnet werden.",
+      "SHARE": "Das EPUB konnte nicht geteilt werden.",
+      "METADATA": "Die EPUB-Metadaten konnten nicht bearbeitet werden.",
+      "RENAME": "Das EPUB konnte nicht umbenannt werden.",
+      "DELETE": "Das EPUB konnte nicht gelöscht werden."
+    }
   },
   "SETTINGS": {
-    "TITLE": "Einstellungen"
+    "TITLE": "Einstellungen",
+    "PRIVACY_OPTIONS": "Datenschutzoptionen"
   },
   "COMMON": {
     "CANCEL": "Abbrechen",

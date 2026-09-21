@@ -14,6 +14,8 @@ export const EPUB_METADATA_EDITOR_PACKAGE_ID =
   'com.sheldrapps.epubmetadataeditor';
 export const EPUB_METADATA_EDITOR_RATING_STORAGE_KEY =
   'rating.epub-metadata-editor';
+export const EPUB_METADATA_EDITOR_REMOVE_ADS_PRODUCT_ID =
+  'eme_remove_ads_forever';
 
 export const EPUB_METADATA_EDITOR_SETTINGS_SCHEMA: SettingsSchema<EpubMetadataEditorSettings> = {
   version: 1,

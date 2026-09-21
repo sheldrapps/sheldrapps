@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import {
   Capacitor,
-  registerPlugin,
   type Plugin,
   type PluginListenerHandle,
 } from '@capacitor/core';
@@ -15,6 +14,7 @@ import {
   type EpubDiagnosticStatus,
 } from './epub-fixer.port';
 import { EpubDiagnosticQueue } from './epub-diagnostic-queue';
+import { registerCapacitorPluginOnce } from './capacitor-plugin';
 import type { EpubMetadataDocument, EpubPackageMetadata } from './epub-metadata.service';
 
 type InspectEpubResult = {
@@ -485,7 +485,7 @@ type EpubRewritePlugin = Plugin & {
   }>;
 };
 
-const EpubRewrite = registerPlugin<EpubRewritePlugin>('EpubRewritePlugin');
+const EpubRewrite = registerCapacitorPluginOnce<EpubRewritePlugin>('EpubRewritePlugin');
 
 export class EpubRewriteError extends Error {
   constructor(

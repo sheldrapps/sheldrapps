@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
-import { Capacitor, registerPlugin, type Plugin, type PluginListenerHandle } from '@capacitor/core';
+import { Capacitor, type Plugin, type PluginListenerHandle } from '@capacitor/core';
 import { PDFDocument } from 'pdf-lib';
-import { reportFileWriteFailure } from '@sheldrapps/file-kit';
+import {
+  registerCapacitorPluginOnce,
+  reportFileWriteFailure,
+} from '@sheldrapps/file-kit';
 import {
   MAX_PDF_SIZE_BYTES,
   type MergePdfRequest,
@@ -43,7 +46,7 @@ type NativePdfPlugin = Plugin & {
   shareLocalPdf(options: { uri: string; title: string }): Promise<NativeResult>;
 };
 
-const PdfRewrite = registerPlugin<NativePdfPlugin>('PdfRewritePlugin');
+const PdfRewrite = registerCapacitorPluginOnce<NativePdfPlugin>('PdfRewritePlugin');
 
 export class PdfRewriteError extends Error {
   constructor(public readonly code: string, message?: string) {

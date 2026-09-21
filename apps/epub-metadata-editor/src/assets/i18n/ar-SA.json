@@ -3,20 +3,49 @@
     "TITLE": "محرر بيانات EPUB الوصفية"
   },
   "TABS": {
-    "HOME": "الرئيسية",
+    "EDIT": "تحرير",
     "MY_EPUBS": "ملفات EPUB الخاصة بي",
     "SETTINGS": "الإعدادات"
   },
-  "HOME": {
-    "TITLE": "الرئيسية",
-    "EMPTY": "ستتم إضافة الخدمات هنا لاحقًا."
+  "EDIT": {
+    "TITLE": "تحرير",
+    "STEPPER": { "MODE": "الوضع", "FILE": "ملفات EPUB" },
+    "MODE_TITLE": "كيف تريد التحرير؟",
+    "MODE_SINGLE_FILE": "ملف واحد",
+    "MODE_SINGLE_FILE_DESCRIPTION": "حرّر ملف EPUB واحدًا في كل مرة.",
+    "MODE_MULTIPLE_FILES": "ملفات متعددة",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "حرّر عدة ملفات EPUB في جلسة واحدة.",
+    "FILE_TITLE": "اختر ملفات EPUB",
+  "FILE_SINGLE_PENDING": "سيبدأ تحرير ملف واحد هنا.",
+  "FILE_MULTIPLE_PENDING": "سيبدأ تحرير عدة ملفات هنا.",
+  "FILE_SINGLE_HINT": "اختر EPUB لفتح محرر بيانات التعريف المشترك.",
+  "FILE_MULTIPLE_HINT": "اختر عدة ملفات EPUB. سيفتحها المحرر المشترك واحدًا تلو الآخر.",
+  "SELECT_FILE": "اختيار ملف EPUB",
+  "SELECT_FILES": "اختيار ملفات EPUB",
+  "SELECTED_FILES_COUNT": "تم اختيار {{count}} من ملفات EPUB",
+  "SELECTION_ERROR": "تعذر فتح ملفات EPUB المحددة."
   },
   "MY_EPUBS": {
     "TITLE": "ملفات EPUB الخاصة بي",
-    "EMPTY": "ستظهر مكتبة EPUB هنا لاحقًا."
+    "EMPTY": "مكتبة EPUB فارغة.",
+    "PLACEHOLDER": "EPUB",
+    "THUMB_ALT": "غلاف EPUB",
+    "DELETED": "تم حذف EPUB.",
+    "RENAMED": "تمت إعادة تسمية EPUB.",
+    "DELETE_TITLE": "حذف EPUB؟",
+    "DELETE_MESSAGE": "ستتم إزالة EPUB هذا من مكتبتك.",
+    "ERROR": {
+      "LOAD": "تعذر تحميل مكتبة EPUB.",
+      "OPEN": "تعذر فتح EPUB.",
+      "SHARE": "تعذر مشاركة EPUB.",
+      "METADATA": "تعذر تعديل بيانات EPUB الوصفية.",
+      "RENAME": "تعذرت إعادة تسمية EPUB.",
+      "DELETE": "تعذر حذف EPUB."
+    }
   },
   "SETTINGS": {
-    "TITLE": "الإعدادات"
+    "TITLE": "الإعدادات",
+    "PRIVACY_OPTIONS": "خيارات الخصوصية"
   },
   "COMMON": {
     "CANCEL": "إلغاء",

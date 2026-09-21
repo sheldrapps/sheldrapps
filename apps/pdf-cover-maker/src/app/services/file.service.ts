@@ -1016,25 +1016,14 @@ export class FileService {
     dir: 'Data' | 'Documents' | 'Cache' = 'Data',
   ): Promise<string | null> {
     try {
-      const { data } = await Filesystem.readFile({
+      const bytes = await this.fileKit.readBytes({
+        dir,
         path,
-        directory: this.mapDirectory(dir),
+        maxBytes: 8 * 1024 * 1024,
       });
-      if (typeof data === 'string') {
-        return this.normalizeBase64Data(data);
-      }
-      const ab = await data.arrayBuffer();
-      return this.arrayBufferToBase64(ab);
+      return this.fileKit.toBase64(bytes);
     } catch {
-      try {
-        const bytes = await this.fileKit.readBytes({
-          dir,
-          path,
-        });
-        return this.fileKit.toBase64(bytes);
-      } catch {
-        return null;
-      }
+      return null;
     }
   }
 
@@ -1928,6 +1917,12 @@ export class FileService {
     } catch {
       // cache file may not exist yet
     }
+
+    await Filesystem.mkdir({
+      path: this.PDF_FOLDER,
+      directory: Directory.Cache,
+      recursive: true,
+    });
 
     await Filesystem.copy({
       from: opts.sourcePath,

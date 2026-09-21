@@ -19,7 +19,6 @@ import { ExportAccessService } from './export-access.service';
  *       isTesting: !environment.production,
  *       units: {
  *         android: {
- *           test: { rewarded: 'ca-app-pub-3940256099942544/5224354917' },
  *           prod: { rewarded: 'ca-app-pub-1676607690625695/8384333921' }
  *         }
  *       }

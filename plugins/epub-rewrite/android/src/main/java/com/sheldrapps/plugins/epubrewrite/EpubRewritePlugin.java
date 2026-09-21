@@ -7686,7 +7686,11 @@ public class EpubRewritePlugin extends Plugin {
                     interpolate(0, 100, index, effectiveOutputs.size())
                 );
                 long validationStart = System.currentTimeMillis();
-                validateSplitEpub(output.outputPath, output.spineItemIds.size());
+                validateSplitEpub(
+                    output.outputPath,
+                    output.spineItemIds.size(),
+                    source.removeSourceCover
+                );
                 if (removeSourceCover) validateNoCoverArchive(output.outputPath);
                 debugIo(
                     "split validation complete output=" + output.outputPath
@@ -8770,7 +8774,11 @@ public class EpubRewritePlugin extends Plugin {
         }
     }
 
-    private void validateSplitEpub(Path outputPath, int expectedSpineItems) throws Exception {
+    private void validateSplitEpub(
+        Path outputPath,
+        int expectedSpineItems,
+        boolean allowFilteredSpine
+    ) throws Exception {
         try (ZipFile zip = new ZipFile(outputPath.toFile())) {
             List<FileHeader> headers = zip.getFileHeaders();
             Map<String, FileHeader> headerIndex = buildHeaderIndex(headers);
@@ -8804,7 +8812,14 @@ public class EpubRewritePlugin extends Plugin {
                 }
                 spineCount += 1;
             }
-            if (spineCount != expectedSpineItems) {
+            if (spineCount == 0) {
+                throw new PluginErrorException(
+                    "SPLIT_SPINE_EMPTY",
+                    "output EPUB has no readable spine items",
+                    "split_validating"
+                );
+            }
+            if (!allowFilteredSpine && spineCount != expectedSpineItems) {
                 throw new PluginErrorException("SPLIT_SPINE_INVALID", "unexpected spine size", "split_validating");
             }
         }

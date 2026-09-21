@@ -8,17 +8,22 @@
 }
 
 .file-picker-panel__action {
-  --padding-start: var(--app-space-5);
-  --padding-end: var(--app-space-5);
-  --inner-padding-end: var(--app-space-3);
-  --min-height: var(--app-control-min-height);
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
   width: 100%;
+  min-height: var(--app-control-min-height);
+  padding: var(--app-space-3) var(--app-space-3) var(--app-space-3) var(--app-space-5);
+  border: 2px solid var(--app-button-outline-border);
+  border-radius: var(--app-radius-md);
+  background: var(--app-surface);
+  color: var(--app-text-primary);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
   margin: 0;
   overflow: hidden;
-}
-
-.file-picker-panel__action::part(native) {
-  border-radius: var(--app-radius-md);
   box-shadow: var(--app-button-outline-shadow);
   transition:
     border-color var(--app-dur-fast) var(--app-ease),
@@ -27,19 +32,34 @@
     transform 180ms ease-out;
 }
 
-.file-picker-panel__action:focus-within::part(native) {
+.file-picker-panel__action:hover:not(:disabled) {
+  border-color: var(--ion-color-primary);
+}
+
+.file-picker-panel__action:focus-visible {
+  outline: none;
   border-color: var(--ion-color-primary);
   box-shadow:
     var(--app-focus-ring),
     var(--app-button-outline-shadow);
 }
 
-.file-picker-panel__action:active:not(.item-disabled)::part(native) {
+.file-picker-panel__action:active:not(:disabled) {
   transform: scale(0.995);
 }
 
-.file-picker-panel__action--invalid::part(native) {
+.file-picker-panel__action:disabled {
+  cursor: not-allowed;
+  opacity: 0.64;
+}
+
+.file-picker-panel__action--invalid {
   border-color: rgba(var(--ion-color-danger-rgb), 0.42);
+}
+
+.file-picker-panel__action-label {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .file-picker-panel__selected-copy,
@@ -55,6 +75,7 @@
 
 .file-picker-panel__action-end {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
 }
@@ -210,14 +231,13 @@ ion-reorder-group {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .file-picker-panel__action::part(native),
   .file-picker-panel__list-item::part(native),
   .file-picker-panel__remove-icon,
   .file-picker-panel__reorder-icon {
     transition: none;
   }
 
-  .file-picker-panel__action:active:not(.item-disabled)::part(native),
+  .file-picker-panel__action:active:not(:disabled),
   .file-picker-panel__list-item.reorder-selected::part(native),
   .file-picker-panel__remove:active .file-picker-panel__remove-icon,
   .file-picker-panel__list-item.reorder-selected .file-picker-panel__reorder-icon {

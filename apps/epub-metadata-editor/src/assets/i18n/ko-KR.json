@@ -3,20 +3,49 @@
     "TITLE": "EPUB 메타데이터 편집기"
   },
   "TABS": {
-    "HOME": "홈",
+    "EDIT": "편집",
     "MY_EPUBS": "내 EPUB",
     "SETTINGS": "설정"
   },
-  "HOME": {
-    "TITLE": "홈",
-    "EMPTY": "서비스는 나중에 여기에 연결됩니다."
+  "EDIT": {
+    "TITLE": "편집",
+    "STEPPER": { "MODE": "모드", "FILE": "EPUB 파일" },
+    "MODE_TITLE": "어떻게 편집하시겠어요?",
+    "MODE_SINGLE_FILE": "단일 파일",
+    "MODE_SINGLE_FILE_DESCRIPTION": "한 번에 하나의 EPUB 파일을 편집합니다.",
+    "MODE_MULTIPLE_FILES": "여러 파일",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "한 세션에서 여러 EPUB 파일을 편집합니다.",
+    "FILE_TITLE": "EPUB 파일 선택",
+  "FILE_SINGLE_PENDING": "단일 파일 편집이 여기에서 시작됩니다.",
+  "FILE_MULTIPLE_PENDING": "여러 파일 편집이 여기에서 시작됩니다.",
+  "FILE_SINGLE_HINT": "공유 메타데이터 편집기를 열 EPUB를 선택하세요.",
+  "FILE_MULTIPLE_HINT": "여러 EPUB를 선택하세요. 공유 편집기가 하나씩 엽니다.",
+  "SELECT_FILE": "EPUB 파일 선택",
+  "SELECT_FILES": "EPUB 파일 선택",
+  "SELECTED_FILES_COUNT": "EPUB 파일 {{count}}개 선택됨",
+  "SELECTION_ERROR": "선택한 EPUB 파일을 열 수 없습니다."
   },
   "MY_EPUBS": {
     "TITLE": "내 EPUB",
-    "EMPTY": "EPUB 라이브러리가 나중에 여기에 표시됩니다."
+    "EMPTY": "EPUB 라이브러리가 비어 있습니다.",
+    "PLACEHOLDER": "EPUB",
+    "THUMB_ALT": "EPUB 표지",
+    "DELETED": "EPUB가 삭제되었습니다.",
+    "RENAMED": "EPUB 이름이 변경되었습니다.",
+    "DELETE_TITLE": "EPUB를 삭제할까요?",
+    "DELETE_MESSAGE": "이 EPUB가 라이브러리에서 제거됩니다.",
+    "ERROR": {
+      "LOAD": "EPUB 라이브러리를 불러올 수 없습니다.",
+      "OPEN": "EPUB를 열 수 없습니다.",
+      "SHARE": "EPUB를 공유할 수 없습니다.",
+      "METADATA": "EPUB 메타데이터를 편집할 수 없습니다.",
+      "RENAME": "EPUB 이름을 변경할 수 없습니다.",
+      "DELETE": "EPUB를 삭제할 수 없습니다."
+    }
   },
   "SETTINGS": {
-    "TITLE": "설정"
+    "TITLE": "설정",
+    "PRIVACY_OPTIONS": "개인정보 보호 옵션"
   },
   "COMMON": {
     "CANCEL": "취소",

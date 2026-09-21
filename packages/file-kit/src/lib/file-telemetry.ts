@@ -1,4 +1,5 @@
-import { Capacitor, registerPlugin, type Plugin } from '@capacitor/core';
+import { Capacitor, type Plugin } from '@capacitor/core';
+import { registerCapacitorPluginOnce } from './capacitor-plugin';
 
 type FileTelemetryPlugin = Plugin & {
   reportFileFailure(options: {
@@ -10,8 +11,8 @@ type FileTelemetryPlugin = Plugin & {
 
 export type FileTelemetryFormat = 'epub' | 'pdf';
 
-const epubTelemetry = registerPlugin<FileTelemetryPlugin>('EpubRewritePlugin');
-const pdfTelemetry = registerPlugin<FileTelemetryPlugin>('PdfRewritePlugin');
+const epubTelemetry = registerCapacitorPluginOnce<FileTelemetryPlugin>('EpubRewritePlugin');
+const pdfTelemetry = registerCapacitorPluginOnce<FileTelemetryPlugin>('PdfRewritePlugin');
 
 export function reportFileWriteFailure(options: {
   format: FileTelemetryFormat;
@@ -48,6 +49,17 @@ export function reportFileReadFailure(options: {
     stage: options.stage,
     errorCode: 'READ_FAILED',
     sizeBytes: options.sizeBytes,
+  });
+}
+
+export function reportFileShareFailure(options: {
+  format: FileTelemetryFormat;
+  stage: string;
+}): void {
+  reportFileWriteFailure({
+    format: options.format,
+    stage: options.stage,
+    errorCode: 'SHARE_FAILED',
   });
 }
 

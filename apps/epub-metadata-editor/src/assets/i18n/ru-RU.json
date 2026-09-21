@@ -3,20 +3,49 @@
     "TITLE": "Редактор метаданных EPUB"
   },
   "TABS": {
-    "HOME": "Главная",
+    "EDIT": "Редактировать",
     "MY_EPUBS": "Мои EPUB",
     "SETTINGS": "Настройки"
   },
-  "HOME": {
-    "TITLE": "Главная",
-    "EMPTY": "Сервисы будут подключены здесь позже."
+  "EDIT": {
+    "TITLE": "Редактировать",
+    "STEPPER": { "MODE": "Режим", "FILE": "Файлы EPUB" },
+    "MODE_TITLE": "Как вы хотите редактировать?",
+    "MODE_SINGLE_FILE": "Один файл",
+    "MODE_SINGLE_FILE_DESCRIPTION": "Редактируйте один файл EPUB за раз.",
+    "MODE_MULTIPLE_FILES": "Несколько файлов",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "Редактируйте несколько файлов EPUB за один сеанс.",
+    "FILE_TITLE": "Выберите файлы EPUB",
+  "FILE_SINGLE_PENDING": "Редактирование одного файла начнётся здесь.",
+  "FILE_MULTIPLE_PENDING": "Редактирование нескольких файлов начнётся здесь.",
+  "FILE_SINGLE_HINT": "Выберите EPUB, чтобы открыть общий редактор метаданных.",
+  "FILE_MULTIPLE_HINT": "Выберите несколько EPUB. Общий редактор откроет их по очереди.",
+  "SELECT_FILE": "Выбрать файл EPUB",
+  "SELECT_FILES": "Выбрать файлы EPUB",
+  "SELECTED_FILES_COUNT": "Выбрано файлов EPUB: {{count}}",
+  "SELECTION_ERROR": "Не удалось открыть выбранные файлы EPUB."
   },
   "MY_EPUBS": {
     "TITLE": "Мои EPUB",
-    "EMPTY": "Ваша библиотека EPUB появится здесь позже."
+    "EMPTY": "Ваша библиотека EPUB пуста.",
+    "PLACEHOLDER": "EPUB",
+    "THUMB_ALT": "Обложка EPUB",
+    "DELETED": "EPUB удалён.",
+    "RENAMED": "EPUB переименован.",
+    "DELETE_TITLE": "Удалить EPUB?",
+    "DELETE_MESSAGE": "Этот EPUB будет удалён из библиотеки.",
+    "ERROR": {
+      "LOAD": "Не удалось загрузить библиотеку EPUB.",
+      "OPEN": "Не удалось открыть EPUB.",
+      "SHARE": "Не удалось поделиться EPUB.",
+      "METADATA": "Не удалось изменить метаданные EPUB.",
+      "RENAME": "Не удалось переименовать EPUB.",
+      "DELETE": "Не удалось удалить EPUB."
+    }
   },
   "SETTINGS": {
-    "TITLE": "Настройки"
+    "TITLE": "Настройки",
+    "PRIVACY_OPTIONS": "Настройки конфиденциальности"
   },
   "COMMON": {
     "CANCEL": "Отмена",

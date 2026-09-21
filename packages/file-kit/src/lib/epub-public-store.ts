@@ -6,6 +6,7 @@ import {
   reportFileReadFailure,
   reportFileWriteFailure,
 } from './file-telemetry';
+import { readCapacitorFileByUri } from './adapters/capacitor/read-capacitor-file-by-uri';
 
 const DEFAULT_PUBLIC_DOCUMENTS_ROOTS = [
   '/storage/emulated/0/Documents',
@@ -263,6 +264,14 @@ export class EpubPublicStore {
     }
 
     try {
+      if (Capacitor.isNativePlatform()) {
+        const bytes = await readCapacitorFileByUri(
+          this.filesystem,
+          this.buildFilesystemPath(path),
+        );
+        this.debugLog('readBytes', { filename, path });
+        return bytes;
+      }
       const raw = await this.filesystem.readFile(this.buildFilesystemPath(path));
       const base64 = typeof raw.data === 'string'
         ? raw.data

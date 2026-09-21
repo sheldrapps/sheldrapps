@@ -13,6 +13,11 @@ import {
 } from '@sheldrapps/i18n-kit';
 import { provideAdsKit, provideAdsKitI18n } from '@sheldrapps/ads-kit';
 import { provideRatingKit } from '@sheldrapps/rating-kit';
+import { provideAdFallbackKitI18n } from '@sheldrapps/ad-fallback-kit';
+import { provideFileKit } from '@sheldrapps/file-kit';
+import { provideLifecycleDiagnostics, provideRecoveryStore } from '@sheldrapps/lifecycle-kit';
+import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
+import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
 import {
   CapacitorPreferencesAdapter,
   CompositeStorageAdapter,
@@ -27,9 +32,10 @@ import {
   provideUiThemeI18n,
 } from '@sheldrapps/ui-theme';
 import { environment } from '../environments/environment';
-import { ADS_UNITS_ANDROID_PROD, ADS_UNITS_ANDROID_TEST } from './services/ads.config';
+import { ADS_UNITS_ANDROID_PROD } from './services/ads.config';
 import {
   EPUB_METADATA_EDITOR_PACKAGE_ID,
+  EPUB_METADATA_EDITOR_REMOVE_ADS_PRODUCT_ID,
   EPUB_METADATA_EDITOR_RATING_STORAGE_KEY,
   EPUB_METADATA_EDITOR_SETTINGS_SCHEMA,
   type EpubMetadataEditorSettings,
@@ -53,6 +59,8 @@ const supportedLangs = [
 
 export function createBootstrapProviders(): Array<EnvironmentProviders | Provider> {
   return [
+    provideLifecycleDiagnostics({ appId: 'eme' }),
+    provideRecoveryStore({ appId: 'eme', schemaVersion: 1, folder: 'EPUBMetadataEditorRecovery' }),
     provideI18nKit({
       defaultLang: 'en-US',
       fallbackLang: 'en-US',
@@ -76,6 +84,8 @@ export function createBootstrapProviders(): Array<EnvironmentProviders | Provide
       },
     }),
     provideUiThemeI18n(),
+    providePrivacyPolicyKitI18n(),
+    provideAdFallbackKitI18n(),
     provideAdsKitI18n(),
     provideSettingsKit({
       appId: 'epub-metadata-editor',
@@ -108,15 +118,25 @@ export function createBootstrapProviders(): Array<EnvironmentProviders | Provide
         fallbackAdapter: new WebLocalStorageAdapter(),
       }),
     }),
+    provideFileKit({
+      enableWebDevAdapters: environment.enableWebDevAdapters,
+    }),
     provideAdsKit({
       isTesting: !environment.production,
       units: {
         android: {
-          test: ADS_UNITS_ANDROID_TEST,
           prod: ADS_UNITS_ANDROID_PROD,
         },
       },
+      billing: {
+        removeAdsProductId: EPUB_METADATA_EDITOR_REMOVE_ADS_PRODUCT_ID,
+        developmentPremiumMode: environment.production,
+      },
     }),
+    {
+      provide: RECOMMENDED_APPS_CURRENT_PACKAGE,
+      useValue: EPUB_METADATA_EDITOR_PACKAGE_ID,
+    },
     provideAppInitializer(async () => {
       const edgeToEdge = inject(EdgeToEdgeService);
       const theme = inject(ThemeService);

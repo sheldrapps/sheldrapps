@@ -78,6 +78,11 @@
         "DESCRIPTION": "诊断并修复常见 EPUB 文件问题",
         "BADGE": "即将推出"
       },
+      "EME": {
+        "NAME": "EPUB 元数据编辑器",
+        "DESCRIPTION": "编辑 EPUB 元数据，为下一步工作流程准备书籍。",
+        "BADGE": "Coming soon"
+      },
       "EMS": {
         "NAME": "EPUB Merger & Splitter",
         "DESCRIPTION": "诊断并修复常见 EPUB 文件问题",

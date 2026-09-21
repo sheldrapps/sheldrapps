@@ -9,7 +9,7 @@ import {
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
-import { homeOutline, libraryOutline, settingsOutline } from 'ionicons/icons';
+import { createOutline, libraryOutline, settingsOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-tabs',
@@ -26,6 +26,6 @@ import { homeOutline, libraryOutline, settingsOutline } from 'ionicons/icons';
 })
 export class TabsPage {
   constructor() {
-    addIcons({ homeOutline, libraryOutline, settingsOutline });
+    addIcons({ createOutline, libraryOutline, settingsOutline });
   }
 }

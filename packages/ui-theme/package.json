@@ -19,11 +19,11 @@
     "assets"
   ],
   "dependencies": {
-    "tslib": "^2.3.0"
+    "tslib": "^2.8.1"
   },
   "peerDependencies": {
-    "@angular/common": "^22.0.7",
-    "@angular/core": "^22.0.7",
+    "@angular/common": "^22.1.7",
+    "@angular/core": "^22.1.7",
     "@capacitor/core": "^8.0.0",
     "@capacitor/keyboard": "^8.0.0",
     "@capacitor/status-bar": "^8.0.0",
@@ -38,15 +38,15 @@
     }
   },
   "devDependencies": {
-    "@angular/common": "^22.0.7",
-    "@angular/core": "^22.0.7",
+    "@angular/common": "^22.1.7",
+    "@angular/core": "^22.1.7",
     "@capacitor/core": "^8.0.0",
     "@capacitor/keyboard": "^8.0.0",
     "@capacitor/status-bar": "^8.0.0",
     "@ionic/angular": "^8.8.14",
     "@ngx-translate/core": "^17.0.0",
     "@sheldrapps/settings-kit": "workspace:*",
-    "ionicons": "^7.0.0"
+    "ionicons": "^7.4.0"
   },
   "keywords": [
     "design-system",

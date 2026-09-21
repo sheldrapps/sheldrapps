@@ -78,6 +78,11 @@
         "DESCRIPTION": "Häufige EPUB-Probleme prüfen und reparierte Kopie speichern",
         "BADGE": "Kommt bald"
       },
+      "EME": {
+        "NAME": "EPUB Metadaten-Editor",
+        "DESCRIPTION": "Bearbeite EPUB-Metadaten und bereite deine Bücher für den nächsten Workflow vor.",
+        "BADGE": "Coming soon"
+      },
       "EMS": {
         "NAME": "EPUB Merger & Splitter",
         "DESCRIPTION": "Häufige EPUB-Probleme prüfen und reparierte Kopie speichern",

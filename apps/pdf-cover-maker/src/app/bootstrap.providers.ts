@@ -27,7 +27,6 @@ import { provideUiThemeI18n } from '@sheldrapps/ui-theme';
 import { provideLifecycleDiagnostics, provideRecoveryStore } from '@sheldrapps/lifecycle-kit';
 import {
   ADS_UNITS_ANDROID_PROD,
-  ADS_UNITS_ANDROID_TEST,
 } from '../app/services/ads.config';
 import { environment } from '../environments/environment';
 import { PCM_SETTINGS_SCHEMA } from './settings/pcm-settings.schema';
@@ -201,7 +200,6 @@ export function createBootstrapProviders(): Array<EnvironmentProviders | Provide
       isTesting: !environment.production,
       units: {
         android: {
-          test: ADS_UNITS_ANDROID_TEST,
           prod: ADS_UNITS_ANDROID_PROD,
         },
       },

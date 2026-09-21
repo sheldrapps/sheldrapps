@@ -3,20 +3,49 @@
     "TITLE": "EPUB メタデータエディター"
   },
   "TABS": {
-    "HOME": "ホーム",
+    "EDIT": "編集",
     "MY_EPUBS": "マイ EPUB",
     "SETTINGS": "設定"
   },
-  "HOME": {
-    "TITLE": "ホーム",
-    "EMPTY": "サービスは後でここに接続されます。"
+  "EDIT": {
+    "TITLE": "編集",
+    "STEPPER": { "MODE": "モード", "FILE": "EPUBファイル" },
+    "MODE_TITLE": "どのように編集しますか？",
+    "MODE_SINGLE_FILE": "1つのファイル",
+    "MODE_SINGLE_FILE_DESCRIPTION": "一度に1つのEPUBファイルを編集します。",
+    "MODE_MULTIPLE_FILES": "複数のファイル",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "1回のセッションで複数のEPUBファイルを編集します。",
+    "FILE_TITLE": "EPUBファイルを選択",
+  "FILE_SINGLE_PENDING": "1つのファイルの編集はここから始まります。",
+  "FILE_MULTIPLE_PENDING": "複数ファイルの編集はここから始まります。",
+  "FILE_SINGLE_HINT": "共有メタデータエディターを開くEPUBを選択します。",
+  "FILE_MULTIPLE_HINT": "複数のEPUBを選択します。共有エディターで1つずつ開きます。",
+  "SELECT_FILE": "EPUBファイルを選択",
+  "SELECT_FILES": "EPUBファイルを選択",
+  "SELECTED_FILES_COUNT": "{{count}}個のEPUBファイルを選択",
+  "SELECTION_ERROR": "選択したEPUBファイルを開けませんでした。"
   },
   "MY_EPUBS": {
     "TITLE": "マイ EPUB",
-    "EMPTY": "EPUB ライブラリは後でここに表示されます。"
+    "EMPTY": "EPUB ライブラリは空です。",
+    "PLACEHOLDER": "EPUB",
+    "THUMB_ALT": "EPUB の表紙",
+    "DELETED": "EPUB を削除しました。",
+    "RENAMED": "EPUB の名前を変更しました。",
+    "DELETE_TITLE": "EPUB を削除しますか？",
+    "DELETE_MESSAGE": "この EPUB はライブラリから削除されます。",
+    "ERROR": {
+      "LOAD": "EPUB ライブラリを読み込めませんでした。",
+      "OPEN": "EPUB を開けませんでした。",
+      "SHARE": "EPUB を共有できませんでした。",
+      "METADATA": "EPUB メタデータを編集できませんでした。",
+      "RENAME": "EPUB の名前を変更できませんでした。",
+      "DELETE": "EPUB を削除できませんでした。"
+    }
   },
   "SETTINGS": {
-    "TITLE": "設定"
+    "TITLE": "設定",
+    "PRIVACY_OPTIONS": "プライバシー設定"
   },
   "COMMON": {
     "CANCEL": "キャンセル",

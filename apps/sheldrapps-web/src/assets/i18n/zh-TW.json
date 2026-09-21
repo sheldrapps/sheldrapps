@@ -78,6 +78,11 @@
         "DESCRIPTION": "診斷並修復常見 EPUB 檔案問題",
         "BADGE": "即將推出"
       },
+      "EME": {
+        "NAME": "EPUB 中繼資料編輯器",
+        "DESCRIPTION": "編輯 EPUB 中繼資料，為下一個工作流程準備書籍。",
+        "BADGE": "Coming soon"
+      },
       "EMS": {
         "NAME": "EPUB Merger & Splitter",
         "DESCRIPTION": "診斷並修復常見 EPUB 檔案問題",

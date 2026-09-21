@@ -82,6 +82,11 @@
         "NAME": "EPUB Merger & Splitter",
         "DESCRIPTION": "Detecta y repara problemas comunes en archivos EPUB",
         "BADGE": "Coming soon"
+      },
+      "EME": {
+        "NAME": "Editor de metadatos EPUB",
+        "DESCRIPTION": "Edita los metadatos EPUB y prepara tus libros para el próximo flujo.",
+        "BADGE": "Coming soon"
       }
     },
     "VALUES_TITLE": "Nuestros valores",

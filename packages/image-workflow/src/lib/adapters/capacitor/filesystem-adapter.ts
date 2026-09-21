@@ -4,7 +4,10 @@
  */
 
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
 import type { IFileWriter, IFileReader } from '../../types';
+
+const MAX_NATIVE_READ_BYTES = 32 * 1024 * 1024;
 
 export class CapacitorFileWriter implements IFileWriter {
   async write(
@@ -37,9 +40,27 @@ export class CapacitorFileReader implements IFileReader {
     path: string,
     options?: { directory?: string }
   ): Promise<Uint8Array> {
+    const directory = (options?.directory as any) || Directory.Documents;
+    if (Capacitor.isNativePlatform()) {
+      const stat = await Filesystem.stat({ path, directory });
+      if (
+        typeof stat.size === 'number' &&
+        Number.isFinite(stat.size) &&
+        stat.size > MAX_NATIVE_READ_BYTES
+      ) {
+        throw new Error('FILE_TOO_LARGE');
+      }
+      const { uri } = await Filesystem.getUri({ path, directory });
+      const response = await fetch(Capacitor.convertFileSrc(uri));
+      if (!response.ok) {
+        throw new Error(`Failed to read file: ${response.status}`);
+      }
+      return new Uint8Array(await response.arrayBuffer());
+    }
+
     const res = await Filesystem.readFile({
       path,
-      directory: (options?.directory as any) || Directory.Documents,
+      directory,
     });
 
     return this.base64ToUint8(typeof res.data === 'string' ? res.data : '');

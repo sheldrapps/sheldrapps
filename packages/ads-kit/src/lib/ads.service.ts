@@ -38,7 +38,10 @@ export class AdsService {
   private rewardedReady = false;
   private rewardedPreparedAt = 0;
   private rewardedRequestId: string | null = null;
+  private rewardedAttemptStartedAt = 0;
   private rewardedAttemptSequence = 0;
+  private lastReportedFailureKey = '';
+  private lastReportedFailureAt = 0;
   private rewardShowing = false;
   private rewardedStatus: RewardedAdStatus = 'idle';
   private rewardedFailureRetryAt = 0;
@@ -71,12 +74,10 @@ export class AdsService {
 
   private get units(): AdsUnits {
     if (this.isAndroid) {
-      const androidUnits = this.config.units.android;
-      return this.isTesting ? androidUnits.test : androidUnits.prod;
+      return this.config.units.android.prod;
     }
     // Fallback to iOS or Android if iOS not configured
-    const iosUnits = this.config.units.ios || this.config.units.android;
-    return this.isTesting ? iosUnits.test : iosUnits.prod;
+    return (this.config.units.ios || this.config.units.android).prod;
   }
 
   private canShowAds(): boolean {
@@ -95,10 +96,7 @@ export class AdsService {
     }
 
     await this.ensureInitialized();
-    await this.consent.gatherConsent().catch((error) => {
-      this.logRewardedFailure('consent', error);
-    });
-    if (!this.canShowAds()) {
+    if (!(await this.ensureConsentReadyForAds())) {
       return;
     }
   }
@@ -186,10 +184,7 @@ export class AdsService {
       return this.failedResult('unknown', 'low');
     }
 
-    await this.consent.gatherConsent().catch((error) => {
-      this.logRewardedFailure('consent', error);
-    });
-    if (!this.canShowAds()) {
+    if (!(await this.ensureConsentReadyForAds())) {
       return this.failedResult('unknown', 'low');
     }
 
@@ -288,6 +283,10 @@ export class AdsService {
           this.logRewardedFailure('show-watchdog', {
             timeoutMs: this.rewardedShowTimeoutMs,
           });
+          // If the SDK never confirms that the ad was shown, close the
+          // attempt so the caller can execute its failure fallback instead
+          // of waiting forever on a callback that will not arrive.
+          finish(this.failedResult('network', 'low'));
           return;
         }
         this.logRewardedFailure('show-timeout', {
@@ -410,10 +409,7 @@ export class AdsService {
     }
 
     this.setRewardedStatus('awaiting-consent');
-    await this.consent.gatherConsent().catch((error) => {
-      this.logRewardedFailure('consent', error);
-    });
-    if (!this.canShowAds()) {
+    if (!(await this.ensureConsentReadyForAds())) {
       this.setRewardedStatus('unavailable');
       return {
         status: 'unavailable',
@@ -440,6 +436,7 @@ export class AdsService {
       requestId,
     } as RewardAdOptions & { requestId: string };
     this.rewardedRequestId = requestId;
+    this.rewardedAttemptStartedAt = Date.now();
 
     try {
       await this.prepareRewardedAd(opts);
@@ -458,6 +455,7 @@ export class AdsService {
       this.rewardedReady = false;
       this.rewardedPreparedAt = 0;
       this.rewardedRequestId = null;
+      this.rewardedAttemptStartedAt = 0;
       this.rewardedFailureRetryAt =
         Date.now() + this.rewardedFailureCooldownMs;
       this.setRewardedStatus('unavailable');
@@ -516,6 +514,23 @@ export class AdsService {
     }
 
     return 'eligible';
+  }
+
+  private async ensureConsentReadyForAds(): Promise<boolean> {
+    let consentRequestFailed = false;
+    await this.consent.gatherConsent().catch((error) => {
+      consentRequestFailed = true;
+      this.logRewardedFailure('consent', error);
+    });
+
+    if (!this.canShowAds() && !consentRequestFailed) {
+      this.logRewardedFailure('consent-state', {
+        code: 'CONSENT_NOT_READY',
+        message: toDebugString(this.consent.state),
+      });
+    }
+
+    return this.canShowAds();
   }
 
   private createRewardedRequestId(): string {
@@ -587,18 +602,86 @@ export class AdsService {
   }
 
   private logRewardedFailure(stage: string, error: unknown): void {
+    const failure = this.resolveFailureMetadata(error);
+    const failureSpec = this.rewardedFailureSpec(stage);
+    const nativeCode = this.extractNativeFailureCode(error);
+    const nativeMessage = this.extractNativeFailureMessage(error);
+    const requestId = this.rewardedRequestId ?? undefined;
+    const dedupeKey = [
+      failureSpec.stage,
+      failureSpec.errorCode,
+      failure.reason,
+      nativeCode ?? '',
+      nativeMessage,
+      requestId ?? '',
+    ].join('|');
+    const now = Date.now();
+    if (
+      dedupeKey === this.lastReportedFailureKey &&
+      now - this.lastReportedFailureAt < 1000
+    ) {
+      return;
+    }
+    this.lastReportedFailureKey = dedupeKey;
+    this.lastReportedFailureAt = now;
+
     if (this.debugEnabled) {
       console.warn('[Ads] rewarded ' + stage + ' failed ' + toDebugString(error));
     }
 
-    const failure = this.resolveFailureMetadata(error);
-    const failureSpec = this.rewardedFailureSpec(stage);
     reportAdsFailure({
       stage: failureSpec.stage,
       errorCode: failureSpec.errorCode,
       reason: failure.reason,
       confidence: failure.confidence,
+      nativeCode,
+      nativeMessage,
+      requestId,
+      adUnit: this.units.rewarded,
+      elapsedMs: this.rewardedAttemptStartedAt
+        ? Math.max(0, now - this.rewardedAttemptStartedAt)
+        : undefined,
     });
+  }
+
+  private extractNativeFailureCode(error: unknown): string | number | undefined {
+    if (typeof error === 'number' || typeof error === 'string') {
+      return this.extractGoogleAdsErrorCode(error) ?? error;
+    }
+    if (!error || typeof error !== 'object') {
+      return undefined;
+    }
+
+    const record = error as Record<string, unknown>;
+    for (const key of ['code', 'errorCode', 'nativeErrorCode']) {
+      const value = record[key];
+      if (typeof value === 'number' || typeof value === 'string') {
+        return value;
+      }
+    }
+    return this.extractGoogleAdsErrorCode(error) ?? undefined;
+  }
+
+  private extractNativeFailureMessage(error: unknown): string {
+    if (typeof error === 'string') {
+      return error;
+    }
+    if (!error) {
+      return '';
+    }
+    if (typeof error !== 'object') {
+      return String(error);
+    }
+
+    const record = error as Record<string, unknown>;
+    for (const key of ['message', 'error', 'description', 'reason']) {
+      const value = record[key];
+      if (typeof value === 'string' && value.trim()) {
+        return value;
+      }
+    }
+
+    return toDebugString(error);
   }
 
   private rewardedFailureSpec(stage: string): {
@@ -610,6 +693,8 @@ export class AdsService {
         return { stage: 'ads_initialize', errorCode: 'ADS_INITIALIZE_FAILED' };
       case 'consent':
         return { stage: 'ads_consent', errorCode: 'ADS_CONSENT_FAILED' };
+      case 'consent-state':
+        return { stage: 'ads_consent', errorCode: 'ADS_CONSENT_NOT_READY' };
       case 'load':
         return { stage: 'rewarded_load', errorCode: 'ADS_REWARDED_LOAD_FAILED' };
       case 'listener':

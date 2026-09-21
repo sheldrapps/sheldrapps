@@ -82,6 +82,11 @@
         "NAME": "EPUB Merger & Splitter",
         "DESCRIPTION": "Merge and split EPUB files.",
         "BADGE": "Coming soon"
+      },
+      "EME": {
+        "NAME": "EPUB Metadata Editor",
+        "DESCRIPTION": "Edit EPUB metadata and prepare your books for the next workflow.",
+        "BADGE": "Coming soon"
       }
     },
     "VALUES_TITLE": "Our values",

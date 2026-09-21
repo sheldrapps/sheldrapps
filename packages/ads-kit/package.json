@@ -19,20 +19,22 @@
     }
   },
   "peerDependencies": {
-    "@angular/common": "^22.0.7",
-    "@capacitor/app": "^8.0.0",
-    "@capgo/native-purchases": "^8.7.0",
-    "@angular/core": "^22.0.7",
-    "@capacitor/core": "^8.0.0",
+    "@angular/common": "^22.1.7",
+    "@angular/core": "^22.1.7",
     "@capacitor-community/admob": "^8.0.0",
+    "@capacitor-firebase/analytics": "^8.3.0",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capgo/native-purchases": "^8.7.0",
     "@ionic/angular": "^8.8.14",
     "@ngx-translate/core": "^17.0.0",
-    "@sheldrapps/ui-theme": "workspace:*",
     "@sheldrapps/settings-kit": "workspace:*",
+    "@sheldrapps/ui-theme": "workspace:*",
+    "firebase": "^12.6.0",
     "rxjs": "~7.8.0"
   },
   "dependencies": {
-    "tslib": "^2.3.0"
+    "tslib": "^2.8.1"
   },
   "typings": "index.d.ts"
 }

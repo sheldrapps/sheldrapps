@@ -252,9 +252,9 @@ export class EpubLibraryService {
       }
     }
     try {
-      return (
-        await this.epubStore.readBytes(this.ensureEpubFilename(filename))
-      ).byteLength;
+      return await this.epubStore.getFileSizeOrThrow(
+        this.ensureEpubFilename(filename),
+      );
     } catch {
       return null;
     }

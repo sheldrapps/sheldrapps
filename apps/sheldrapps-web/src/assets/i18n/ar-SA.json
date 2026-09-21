@@ -78,6 +78,11 @@
         "DESCRIPTION": "تشخيص وإصلاح مشاكل EPUB الشائعة",
         "BADGE": "قريباً"
       },
+      "EME": {
+        "NAME": "محرر بيانات EPUB الوصفية",
+        "DESCRIPTION": "حرّر بيانات EPUB الوصفية وجهّز كتبك لسير العمل التالي.",
+        "BADGE": "Coming soon"
+      },
       "EMS": {
         "NAME": "EPUB Merger & Splitter",
         "DESCRIPTION": "تشخيص وإصلاح مشاكل EPUB الشائعة",

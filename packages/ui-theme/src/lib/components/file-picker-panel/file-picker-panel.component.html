@@ -1,18 +1,16 @@
 <div class="file-picker-panel">
   <div class="field-title">{{ title }}</div>
 
-  <ion-item
-    button
-    detail="false"
-    lines="none"
-    class="file-picker-panel__action app-outline-surface"
+  <button
+    type="button"
+    class="file-picker-panel__action"
     [disabled]="disabled"
     [class.file-picker-panel__action--invalid]="invalid"
     [attr.aria-invalid]="invalid ? 'true' : 'false'"
     [attr.aria-label]="actionAriaLabel"
     (click)="onActionSelected()"
   >
-    <ion-label>
+    <div class="file-picker-panel__action-label">
       @if (selected && actionLabel && !invalid) {
         <div class="file-picker-panel__selected-copy">
           <div class="field-filename">{{ actionLabel }}</div>
@@ -26,9 +24,9 @@
           {{ actionPlaceholder }}
         </div>
       }
-    </ion-label>
+    </div>
 
-    <div class="file-picker-panel__action-end" slot="end" aria-hidden="true">
+    <div class="file-picker-panel__action-end" aria-hidden="true">
       @if (selected && !invalid) {
         <ion-icon
           class="file-picker-panel__status-icon file-picker-panel__status-icon--success"
@@ -43,7 +41,7 @@
         </div>
       }
     </div>
-  </ion-item>
+  </button>
 
   @if (hasItems()) {
     @if (itemsTitle) {

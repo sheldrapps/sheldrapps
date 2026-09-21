@@ -50,8 +50,8 @@ const targets = [
       "plugin",
       "SystemBars.java",
     ),
-    find: "    private Insets calcSafeAreaInsets(WindowInsetsCompat insets) {\n",
-    replace: "    private int getSafeSystemBarsType() {\n        // Avoid Type.systemBars(): some API 34+ firmwares lack systemOverlays().\n        return WindowInsetsCompat.Type.statusBars()\n            | WindowInsetsCompat.Type.navigationBars()\n            | WindowInsetsCompat.Type.captionBar();\n    }\n\n    private Insets calcSafeAreaInsets(WindowInsetsCompat insets) {\n",
+    find: "    private void setStyle(String style, String bar) {\n",
+    replace: "    private int getSafeSystemBarsType() {\n        // Avoid Type.systemBars(): some API 34+ firmwares lack systemOverlays().\n        return WindowInsetsCompat.Type.statusBars()\n            | WindowInsetsCompat.Type.navigationBars()\n            | WindowInsetsCompat.Type.captionBar();\n    }\n\n    private void setStyle(String style, String bar) {\n",
   },
   {
     relativePath: path.join(

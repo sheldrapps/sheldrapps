@@ -78,6 +78,11 @@
         "DESCRIPTION": "일반적인 EPUB 문제를 진단하고 복구",
         "BADGE": "곧 출시 예정"
       },
+      "EME": {
+        "NAME": "EPUB 메타데이터 편집기",
+        "DESCRIPTION": "EPUB 메타데이터를 편집하고 다음 워크플로를 위해 책을 준비하세요.",
+        "BADGE": "Coming soon"
+      },
       "EMS": {
         "NAME": "EPUB Merger & Splitter",
         "DESCRIPTION": "일반적인 EPUB 문제를 진단하고 복구",

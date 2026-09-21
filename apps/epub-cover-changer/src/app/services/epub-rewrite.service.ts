@@ -2,11 +2,14 @@ import { Injectable } from '@angular/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import {
   Capacitor,
-  registerPlugin,
   type Plugin,
   type PluginListenerHandle,
 } from '@capacitor/core';
-import { EpubDiagnosticQueue } from '@sheldrapps/file-kit';
+import {
+  EpubDiagnosticQueue,
+  readCapacitorFileByUri,
+  registerCapacitorPluginOnce,
+} from '@sheldrapps/file-kit';
 import type { EpubMetadataDocument, EpubPackageMetadata } from '@sheldrapps/file-kit';
 import type {
   EpubDiagnosticIssue,
@@ -291,7 +294,7 @@ type EpubRewritePlugin = Plugin & {
   cancelRewrite(): Promise<{ cancelled: boolean }>;
 };
 
-const EpubRewrite = registerPlugin<EpubRewritePlugin>('EpubRewritePlugin');
+const EpubRewrite = registerCapacitorPluginOnce<EpubRewritePlugin>('EpubRewritePlugin');
 
 export class EpubRewriteError extends Error {
   constructor(
@@ -830,14 +833,15 @@ export class EpubRewriteService {
     const cachePath = this.toCacheRelativePath(extractedCoverPath);
     if (cachePath) {
       try {
-        const result = await Filesystem.readFile({
+        const bytes = await readCapacitorFileByUri(Filesystem, {
           directory: Directory.Cache,
           path: cachePath,
         });
-        if (typeof result.data === 'string') {
-          return this.base64ToBlob(result.data);
-        }
-        return result.data;
+        const buffer = bytes.buffer.slice(
+          bytes.byteOffset,
+          bytes.byteOffset + bytes.byteLength,
+        ) as ArrayBuffer;
+        return new Blob([buffer]);
       } catch {
       }
     }
@@ -879,16 +883,6 @@ export class EpubRewriteService {
 
     const relative = normalized.slice(markerIndex + marker.length).replace(/^\/+/, '');
     return relative || null;
-  }
-
-  private base64ToBlob(data: string): Blob {
-    const normalized = data.includes(',') ? data.slice(data.indexOf(',') + 1) : data;
-    const binary = atob(normalized);
-    const bytes = new Uint8Array(binary.length);
-    for (let index = 0; index < binary.length; index += 1) {
-      bytes[index] = binary.charCodeAt(index);
-    }
-    return new Blob([bytes]);
   }
 
   private buildCoverFilename(epubName: string, coverEntryPath: string): string {

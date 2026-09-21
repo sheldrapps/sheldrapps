@@ -6,13 +6,13 @@
   "sideEffects": false,
   "type": "module",
   "peerDependencies": {
-    "@angular/common": "^22.0.7",
-    "@angular/core": "^22.0.7",
+    "@angular/common": "^22.1.7",
+    "@angular/core": "^22.1.7",
     "@ngx-translate/core": "^17.0.0",
     "@sheldrapps/image-workflow": "workspace:*"
   },
   "dependencies": {
-    "tslib": "^2.3.0"
+    "tslib": "^2.8.1"
   },
   "keywords": [
     "export-quality",

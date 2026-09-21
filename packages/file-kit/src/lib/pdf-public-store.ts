@@ -6,6 +6,7 @@ import {
   reportFileReadFailure,
   reportFileWriteFailure,
 } from './file-telemetry';
+import { readCapacitorFileByUri } from './adapters/capacitor/read-capacitor-file-by-uri';
 
 const DEFAULT_PUBLIC_DOCUMENTS_ROOTS = [
   '/storage/emulated/0/Documents',
@@ -176,6 +177,12 @@ export class PdfPublicStore {
       throw new Error(`File not found: ${filename}`);
     }
     try {
+      if (Capacitor.isNativePlatform()) {
+        return readCapacitorFileByUri(
+          this.filesystem,
+          this.buildFilesystemPath(path),
+        );
+      }
       const raw = await this.filesystem.readFile(this.buildFilesystemPath(path));
       const base64 =
         typeof raw.data === 'string'

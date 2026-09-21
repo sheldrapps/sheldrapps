@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Capacitor, registerPlugin, type Plugin } from '@capacitor/core';
-import type { EpubMetadataDocument, EpubPackageMetadata } from '@sheldrapps/file-kit';
+import { Capacitor, type Plugin } from '@capacitor/core';
+import {
+  registerCapacitorPluginOnce,
+  type EpubMetadataDocument,
+  type EpubPackageMetadata,
+} from '@sheldrapps/file-kit';
 
 type CreateEpubFromCoverOptions = {
   outputPath: string;
@@ -106,7 +110,7 @@ type EpubRewritePlugin = Plugin & {
   ): Promise<OpenExternalFileResult>;
 };
 
-const EpubRewrite = registerPlugin<EpubRewritePlugin>('EpubRewritePlugin');
+const EpubRewrite = registerCapacitorPluginOnce<EpubRewritePlugin>('EpubRewritePlugin');
 
 export class EpubRewriteError extends Error {
   constructor(

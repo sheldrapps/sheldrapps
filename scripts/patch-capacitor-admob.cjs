@@ -47,6 +47,13 @@ const bannerExecutorRelativePath = path.join(
 );
 const bannerExecutorSingle = "@SuppressWarnings(\"deprecation\")\npublic class BannerExecutor extends Executor {\n";
 const bannerExecutorDuplicate = "@SuppressWarnings(\"deprecation\")\n@SuppressWarnings(\"deprecation\")\npublic class BannerExecutor extends Executor {\n";
+const admobBuildGradleRelativePath = path.join(
+  "node_modules",
+  "@capacitor-community",
+  "admob",
+  "android",
+  "build.gradle",
+);
 
 function patchIfPresent(filePath, contents) {
   if (!fs.existsSync(filePath)) {
@@ -108,8 +115,59 @@ function patchBannerExecutor(filePath) {
   return true;
 }
 
+function patchAdmobBuildGradle(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return false;
+  }
+
+  const current = fs.readFileSync(filePath, "utf8");
+  let updated = current
+    .replace(
+      "classpath 'com.android.tools.build:gradle:8.13.0'",
+      "classpath 'com.android.tools.build:gradle:9.0.1'",
+    )
+    .replace(
+      /^\s*classpath "org\.jetbrains\.kotlin:kotlin-gradle-plugin:\$kotlin_version"\r?\n/m,
+      "",
+    )
+    .replace(/^apply plugin: 'kotlin-android'\r?\n/m, "")
+    .replace(
+      "getDefaultProguardFile('proguard-android.txt')",
+      "getDefaultProguardFile('proguard-android-optimize.txt')",
+    )
+    .replace(
+      /\r?\n    kotlinOptions\s*\{\s*jvmTarget\s*=\s*JavaVersion\.VERSION_\d+\s*\}\s*/m,
+      "\n",
+    );
+
+  if (updated === current) {
+    return false;
+  }
+
+  fs.writeFileSync(filePath, updated, "utf8");
+  return true;
+}
+
 function main() {
   let patchedCount = 0;
+
+  const directAdmobBuildGradle = path.join(workspaceRoot, admobBuildGradleRelativePath);
+  if (patchAdmobBuildGradle(directAdmobBuildGradle)) {
+    patchedCount += 1;
+  }
+
+  if (fs.existsSync(pnpmStorePath)) {
+    for (const entry of fs.readdirSync(pnpmStorePath, { withFileTypes: true })) {
+      if (!entry.isDirectory() || !entry.name.startsWith("@capacitor-community+admob@")) {
+        continue;
+      }
+
+      const candidate = path.join(pnpmStorePath, entry.name, admobBuildGradleRelativePath);
+      if (patchAdmobBuildGradle(candidate)) {
+        patchedCount += 1;
+      }
+    }
+  }
 
   for (const target of patchTargets) {
     const templatePath = path.join(

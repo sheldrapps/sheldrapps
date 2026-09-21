@@ -3,20 +3,49 @@
     "TITLE": "EPUB मेटाडेटा एडिटर"
   },
   "TABS": {
-    "HOME": "होम",
+    "EDIT": "संपादित करें",
     "MY_EPUBS": "मेरे EPUB",
     "SETTINGS": "सेटिंग्स"
   },
-  "HOME": {
-    "TITLE": "होम",
-    "EMPTY": "सेवाएँ बाद में यहाँ जोड़ी जाएँगी।"
+  "EDIT": {
+    "TITLE": "संपादित करें",
+    "STEPPER": { "MODE": "मोड", "FILE": "EPUB फ़ाइलें" },
+    "MODE_TITLE": "आप कैसे संपादित करना चाहते हैं?",
+    "MODE_SINGLE_FILE": "एक फ़ाइल",
+    "MODE_SINGLE_FILE_DESCRIPTION": "एक बार में एक EPUB फ़ाइल संपादित करें।",
+    "MODE_MULTIPLE_FILES": "एकाधिक फ़ाइलें",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "एक ही सत्र में कई EPUB फ़ाइलें संपादित करें।",
+    "FILE_TITLE": "EPUB फ़ाइलें चुनें",
+  "FILE_SINGLE_PENDING": "एकल-फ़ाइल संपादन यहां शुरू होगा।",
+  "FILE_MULTIPLE_PENDING": "एकाधिक-फ़ाइल संपादन यहां शुरू होगा।",
+  "FILE_SINGLE_HINT": "साझा मेटाडेटा संपादक खोलने के लिए EPUB चुनें।",
+  "FILE_MULTIPLE_HINT": "कई EPUB चुनें। साझा संपादक उन्हें एक-एक करके खोलेगा।",
+  "SELECT_FILE": "EPUB फ़ाइल चुनें",
+  "SELECT_FILES": "EPUB फ़ाइलें चुनें",
+  "SELECTED_FILES_COUNT": "{{count}} EPUB फ़ाइलें चुनी गईं",
+  "SELECTION_ERROR": "चुनी गई EPUB फ़ाइलें खोली नहीं जा सकीं।"
   },
   "MY_EPUBS": {
     "TITLE": "मेरे EPUB",
-    "EMPTY": "आपकी EPUB लाइब्रेरी बाद में यहाँ दिखाई देगी।"
+    "EMPTY": "आपकी EPUB लाइब्रेरी खाली है।",
+    "PLACEHOLDER": "EPUB",
+    "THUMB_ALT": "EPUB कवर",
+    "DELETED": "EPUB हटाया गया।",
+    "RENAMED": "EPUB का नाम बदला गया।",
+    "DELETE_TITLE": "EPUB हटाएं?",
+    "DELETE_MESSAGE": "यह EPUB आपकी लाइब्रेरी से हटा दिया जाएगा।",
+    "ERROR": {
+      "LOAD": "EPUB लाइब्रेरी लोड नहीं हो सकी।",
+      "OPEN": "EPUB खोला नहीं जा सका।",
+      "SHARE": "EPUB साझा नहीं किया जा सका।",
+      "METADATA": "EPUB मेटाडेटा संपादित नहीं किया जा सका।",
+      "RENAME": "EPUB का नाम नहीं बदला जा सका।",
+      "DELETE": "EPUB हटाया नहीं जा सका।"
+    }
   },
   "SETTINGS": {
-    "TITLE": "सेटिंग्स"
+    "TITLE": "सेटिंग्स",
+    "PRIVACY_OPTIONS": "गोपनीयता विकल्प"
   },
   "COMMON": {
     "CANCEL": "रद्द करें",

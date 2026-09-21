@@ -3,20 +3,49 @@
     "TITLE": "Éditeur de métadonnées EPUB"
   },
   "TABS": {
-    "HOME": "Accueil",
+    "EDIT": "Modifier",
     "MY_EPUBS": "Mes EPUB",
     "SETTINGS": "Réglages"
   },
-  "HOME": {
-    "TITLE": "Accueil",
-    "EMPTY": "Les services seront connectés ici plus tard."
+  "EDIT": {
+    "TITLE": "Modifier",
+    "STEPPER": { "MODE": "Mode", "FILE": "Fichiers EPUB" },
+    "MODE_TITLE": "Comment voulez-vous modifier ?",
+    "MODE_SINGLE_FILE": "Un fichier",
+    "MODE_SINGLE_FILE_DESCRIPTION": "Modifiez un fichier EPUB à la fois.",
+    "MODE_MULTIPLE_FILES": "Plusieurs fichiers",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "Modifiez plusieurs fichiers EPUB dans une seule session.",
+    "FILE_TITLE": "Choisir des fichiers EPUB",
+  "FILE_SINGLE_PENDING": "La modification d’un fichier commencera ici.",
+  "FILE_MULTIPLE_PENDING": "La modification de plusieurs fichiers commencera ici.",
+  "FILE_SINGLE_HINT": "Choisissez un fichier EPUB pour ouvrir l’éditeur de métadonnées partagé.",
+  "FILE_MULTIPLE_HINT": "Choisissez plusieurs EPUB. L’éditeur partagé les ouvrira une par une.",
+  "SELECT_FILE": "Choisir un fichier EPUB",
+  "SELECT_FILES": "Choisir des fichiers EPUB",
+  "SELECTED_FILES_COUNT": "{{count}} fichiers EPUB sélectionnés",
+  "SELECTION_ERROR": "Les fichiers EPUB sélectionnés n’ont pas pu être ouverts."
   },
   "MY_EPUBS": {
     "TITLE": "Mes EPUB",
-    "EMPTY": "Votre bibliothèque EPUB apparaîtra ici plus tard."
+    "EMPTY": "Votre bibliothèque EPUB est vide.",
+    "PLACEHOLDER": "EPUB",
+    "THUMB_ALT": "Couverture EPUB",
+    "DELETED": "EPUB supprimé.",
+    "RENAMED": "EPUB renommé.",
+    "DELETE_TITLE": "Supprimer l’EPUB ?",
+    "DELETE_MESSAGE": "Cet EPUB sera retiré de votre bibliothèque.",
+    "ERROR": {
+      "LOAD": "La bibliothèque EPUB n’a pas pu être chargée.",
+      "OPEN": "L’EPUB n’a pas pu être ouvert.",
+      "SHARE": "L’EPUB n’a pas pu être partagé.",
+      "METADATA": "Les métadonnées EPUB n’ont pas pu être modifiées.",
+      "RENAME": "L’EPUB n’a pas pu être renommé.",
+      "DELETE": "L’EPUB n’a pas pu être supprimé."
+    }
   },
   "SETTINGS": {
-    "TITLE": "Réglages"
+    "TITLE": "Réglages",
+    "PRIVACY_OPTIONS": "Options de confidentialité"
   },
   "COMMON": {
     "CANCEL": "Annuler",

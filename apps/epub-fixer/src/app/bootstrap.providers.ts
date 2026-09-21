@@ -20,7 +20,6 @@ import { provideLifecycleDiagnostics, provideRecoveryStore } from '@sheldrapps/l
 import { environment } from '../environments/environment';
 import {
   ADS_UNITS_ANDROID_PROD,
-  ADS_UNITS_ANDROID_TEST,
 } from '../app/services/ads.config';
 import {
   EPUB_FIXER_RATING_FEEDBACK_OPTIONS,
@@ -125,7 +124,6 @@ export async function createBootstrapProviders(): Promise<
       isTesting: !environment.production,
       units: {
         android: {
-          test: ADS_UNITS_ANDROID_TEST,
           prod: ADS_UNITS_ANDROID_PROD,
         },
       },

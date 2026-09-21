@@ -57,6 +57,11 @@
                 "glob": "icon.png",
                 "input": "apps/pdf-merger-and-splitter/resources",
                 "output": "assets/apps/pdf-merger-and-splitter"
+              },
+              {
+                "glob": "icon.png",
+                "input": "apps/epub-metadata-editor/resources",
+                "output": "assets/apps/eme"
               }
             ],
             "styles": [

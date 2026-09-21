@@ -22,6 +22,7 @@ import {
   type BillingProductType,
   type BillingPurchaseRecord,
 } from './types';
+import { ProPurchaseAnalyticsService } from './pro-purchase-analytics.service';
 
 type BillingSettings = Record<string, unknown> & {
   adsRemoved?: boolean;
@@ -72,6 +73,7 @@ export class BillingService {
   private removeAdsPriceFormatted: string | null = null;
   private readonly config = inject(ADS_KIT_CONFIG);
   private readonly settings = inject(SettingsStore<BillingSettings>);
+  private readonly purchaseAnalytics = inject(ProPurchaseAnalyticsService);
   readonly adsRemoved$ = new BehaviorSubject<boolean>(false);
   readonly removeAdsPrice$ = new BehaviorSubject<string | null>(null);
 
@@ -225,26 +227,44 @@ export class BillingService {
     }
 
     await this.enqueue(async () => {
-      await this.ensureReady();
-      if (!this.canRunBillingOperations()) {
-        return;
-      }
+      try {
+        await this.ensureReady();
+        if (!this.canRunBillingOperations()) {
+          this.trackPurchaseFailure('prepare', 'billing_unavailable');
+          return;
+        }
 
-      await this.performEntitlementRefresh();
+        await this.performEntitlementRefresh();
+      } catch (error) {
+        this.trackPurchaseFailure('prepare', this.classifyBillingError(error));
+        throw error;
+      }
     });
   }
 
   async purchaseRemoveAds(): Promise<boolean> {
+    this.purchaseAnalytics.trackPurchaseStarted(this.purchaseAnalyticsContext());
+
     if (this.isDevelopmentPremiumMode()) {
       this.setEntitlement(true);
       this.setRemoveAdsPrice(this.developmentRemoveAdsPriceFormatted);
+      this.purchaseAnalytics.trackPurchaseSuccess({
+        ...this.purchaseAnalyticsContext(),
+        source: 'new_purchase',
+      });
       return true;
     }
 
     return this.enqueue(async () => {
-      await this.ensureReady();
-      if (!this.canRunBillingOperations()) {
-        return false;
+      try {
+        await this.ensureReady();
+        if (!this.canRunBillingOperations()) {
+          this.trackPurchaseFailure('prepare', 'billing_unavailable');
+          return false;
+        }
+      } catch (error) {
+        this.trackPurchaseFailure('prepare', this.classifyBillingError(error));
+        throw error;
       }
 
       return this.purchaseConfiguredProduct(this.removeAdsProduct!);
@@ -266,6 +286,7 @@ export class BillingService {
       this.logDebug('purchase blocked because product offer is unavailable', {
         productId: product.productId,
       });
+      this.trackPurchaseFailure('purchase', 'offer_unavailable');
       return false;
     }
 
@@ -279,19 +300,40 @@ export class BillingService {
 
       await this.processPurchase(transaction, 'new-purchase');
       await this.performEntitlementRefresh();
-      return this.hasRemoveAdsEntitlement;
+      if (!this.hasRemoveAdsEntitlement) {
+        this.trackPurchaseFailure('confirmation', 'entitlement_not_confirmed');
+        return false;
+      }
+
+      this.purchaseAnalytics.trackPurchaseSuccess({
+        ...this.purchaseAnalyticsContext(),
+        source: 'new_purchase',
+      });
+      return true;
     } catch (error) {
       if (this.isPurchaseCancelled(error)) {
         this.logDebug('purchase cancelled', error);
+        this.purchaseAnalytics.trackPurchaseCancelled(this.purchaseAnalyticsContext());
         return false;
       }
 
       if (this.isPurchaseAlreadyOwned(error)) {
         this.logDebug('purchase already owned, running restore flow', error);
-        return this.restoreAndRefreshEntitlement();
+        this.purchaseAnalytics.trackPurchaseAlreadyOwned(this.purchaseAnalyticsContext());
+        const restored = await this.restoreAndRefreshEntitlement();
+        if (restored) {
+          this.purchaseAnalytics.trackPurchaseSuccess({
+            ...this.purchaseAnalyticsContext(),
+            source: 'restored',
+          });
+        } else {
+          this.trackPurchaseFailure('restore', 'entitlement_not_restored');
+        }
+        return restored;
       }
 
       this.logDebug('purchase failed', this.describeBillingError(error));
+      this.trackPurchaseFailure('purchase', this.classifyBillingError(error));
       throw error;
     }
   }
@@ -300,16 +342,35 @@ export class BillingService {
     if (this.isDevelopmentPremiumMode()) {
       this.setEntitlement(true);
       this.setRemoveAdsPrice(this.developmentRemoveAdsPriceFormatted);
+      this.purchaseAnalytics.trackPurchaseSuccess({
+        ...this.purchaseAnalyticsContext(),
+        source: 'restored',
+      });
       return this.hasRemoveAdsEntitlement;
     }
 
     return this.enqueue(async () => {
-      await this.ensureReady();
-      if (!this.canRunBillingOperations()) {
-        return this.hasRemoveAdsEntitlement;
-      }
+      try {
+        await this.ensureReady();
+        if (!this.canRunBillingOperations()) {
+          this.trackPurchaseFailure('restore', 'billing_unavailable');
+          return this.hasRemoveAdsEntitlement;
+        }
 
-      return this.restoreAndRefreshEntitlement();
+        const restored = await this.restoreAndRefreshEntitlement();
+        if (restored) {
+          this.purchaseAnalytics.trackPurchaseSuccess({
+            ...this.purchaseAnalyticsContext(),
+            source: 'restored',
+          });
+        } else {
+          this.trackPurchaseFailure('restore', 'entitlement_not_restored');
+        }
+        return restored;
+      } catch (error) {
+        this.trackPurchaseFailure('restore', this.classifyBillingError(error));
+        throw error;
+      }
     });
   }
 
@@ -358,6 +419,10 @@ export class BillingService {
     return this.removeAdsPriceFormatted;
   }
 
+  getRemoveAdsProductId(): string | undefined {
+    return this.removeAdsProductId;
+  }
+
   getPurchaseDiagnostics(): BillingPurchaseDiagnostics {
     return {
       state: this.state,
@@ -403,6 +468,27 @@ export class BillingService {
 
     // Keep the entry point visible on web during dev/test so it can be reviewed in ionic serve.
     return !isNative() && this.config.isTesting === true;
+  }
+
+  private purchaseAnalyticsContext(): {
+    productId?: string;
+    priceAvailable: boolean;
+  } {
+    return {
+      ...(this.removeAdsProductId ? { productId: this.removeAdsProductId } : {}),
+      priceAvailable: !!this.removeAdsPriceFormatted,
+    };
+  }
+
+  private trackPurchaseFailure(
+    stage: 'prepare' | 'purchase' | 'confirmation' | 'restore',
+    reason: string,
+  ): void {
+    this.purchaseAnalytics.trackPurchaseFailed({
+      ...this.purchaseAnalyticsContext(),
+      stage,
+      reason: reason.toLowerCase(),
+    });
   }
 
   isBillingAvailable(): boolean {
@@ -797,7 +883,7 @@ export class BillingService {
       }
     } catch (error) {
       this.hasProductDetailsRefreshFailed = true;
-      // Keep billing as available; product lookup can fail transiently/offline.
+      this.setRemoveAdsPrice(null);
       this.logDebug('getProduct failed', error);
       this.scheduleRefreshRetry();
     }

@@ -22,7 +22,6 @@ import { routes } from './app/app.routes';
 import { JUST_ONE_STEP_SETTINGS_SCHEMA } from './app/settings/just-one-step-settings.schema';
 import {
   ADS_UNITS_ANDROID_PROD,
-  ADS_UNITS_ANDROID_TEST,
 } from './app/services/ads.config';
 import { justOneStepMigrations } from './app/database/migrations/just-one-step-sqlite.migrations';
 import { ConfigService } from './config/config.service';
@@ -73,7 +72,6 @@ bootstrapApplication(AppComponent, {
       isTesting: !environment.production,
       units: {
         android: {
-          test: ADS_UNITS_ANDROID_TEST,
           prod: ADS_UNITS_ANDROID_PROD,
         },
       },

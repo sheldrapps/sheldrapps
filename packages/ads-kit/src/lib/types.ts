@@ -84,7 +84,7 @@ export type AdFailureConfidence = 'high' | 'low';
  * Platform-specific ad units
  */
 export type PlatformUnits = {
-  test: AdsUnits;
+  test?: AdsUnits;
   prod: AdsUnits;
 };
 
@@ -93,7 +93,7 @@ export type PlatformUnits = {
  */
 export interface AdsKitConfig {
   /**
-   * Whether to use test ads (equivalent to !environment.production)
+   * Whether web development should use the deterministic rewarded-ad fallback.
    */
   isTesting: boolean;
 

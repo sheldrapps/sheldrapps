@@ -78,6 +78,11 @@
         "DESCRIPTION": "Diagnostiquer et réparer les problèmes EPUB courants",
         "BADGE": "À venir"
       },
+      "EME": {
+        "NAME": "Éditeur de métadonnées EPUB",
+        "DESCRIPTION": "Modifiez les métadonnées EPUB et préparez vos livres pour la prochaine étape.",
+        "BADGE": "Coming soon"
+      },
       "EMS": {
         "NAME": "EPUB Merger & Splitter",
         "DESCRIPTION": "Diagnostiquer et réparer les problèmes EPUB courants",

@@ -78,6 +78,11 @@
         "DESCRIPTION": "Диагностика и исправление частых проблем EPUB",
         "BADGE": "Вскоре"
       },
+      "EME": {
+        "NAME": "Редактор метаданных EPUB",
+        "DESCRIPTION": "Редактируйте метаданные EPUB и готовьте книги к следующему рабочему процессу.",
+        "BADGE": "Coming soon"
+      },
       "EMS": {
         "NAME": "EPUB Merger & Splitter",
         "DESCRIPTION": "Диагностика и исправление частых проблем EPUB",

@@ -5,7 +5,19 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div class="ion-padding">
-    <p>{{ 'MY_EPUBS.EMPTY' | translate }}</p>
-  </div>
+  <sh-cover-list-content
+    [items]="items"
+    [loading]="loading"
+    [pageErrorKey]="pageErrorKey"
+    [pageErrorParams]="pageErrorParams"
+    [emptyKey]="'MY_EPUBS.EMPTY'"
+    [placeholderKey]="'MY_EPUBS.PLACEHOLDER'"
+    [showFileName]="true"
+    [filenameFormatter]="displayFilename"
+    [actions]="listActions"
+    [thumbAlt]="'MY_EPUBS.THUMB_ALT' | translate"
+    (refreshRequested)="load($event)"
+    (itemClick)="onItemClick($event)"
+    (actionClick)="onListAction($event)"
+  ></sh-cover-list-content>
 </ion-content>

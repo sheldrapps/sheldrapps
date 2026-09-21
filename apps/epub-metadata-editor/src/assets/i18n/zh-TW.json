@@ -3,20 +3,49 @@
     "TITLE": "EPUB 中繼資料編輯器"
   },
   "TABS": {
-    "HOME": "首頁",
+    "EDIT": "編輯",
     "MY_EPUBS": "我的 EPUB",
     "SETTINGS": "設定"
   },
-  "HOME": {
-    "TITLE": "首頁",
-    "EMPTY": "服務稍後會在這裡接入。"
+  "EDIT": {
+    "TITLE": "編輯",
+    "STEPPER": { "MODE": "模式", "FILE": "EPUB 檔案" },
+    "MODE_TITLE": "你想如何編輯？",
+    "MODE_SINGLE_FILE": "單一檔案",
+    "MODE_SINGLE_FILE_DESCRIPTION": "一次編輯一個 EPUB 檔案。",
+    "MODE_MULTIPLE_FILES": "多個檔案",
+    "MODE_MULTIPLE_FILES_DESCRIPTION": "在同一個工作階段中編輯多個 EPUB 檔案。",
+    "FILE_TITLE": "選擇 EPUB 檔案",
+  "FILE_SINGLE_PENDING": "單一檔案編輯將從這裡開始。",
+  "FILE_MULTIPLE_PENDING": "多個檔案編輯將從這裡開始。",
+  "FILE_SINGLE_HINT": "選擇 EPUB 以開啟共用中繼資料編輯器。",
+  "FILE_MULTIPLE_HINT": "選擇多個 EPUB。共用編輯器會依序開啟檔案。",
+  "SELECT_FILE": "選擇 EPUB 檔案",
+  "SELECT_FILES": "選擇 EPUB 檔案",
+  "SELECTED_FILES_COUNT": "已選擇 {{count}} 個 EPUB 檔案",
+  "SELECTION_ERROR": "無法開啟選取的 EPUB 檔案。"
   },
   "MY_EPUBS": {
     "TITLE": "我的 EPUB",
-    "EMPTY": "你的 EPUB 書庫稍後會顯示在這裡。"
+    "EMPTY": "你的 EPUB 書庫是空的。",
+    "PLACEHOLDER": "EPUB",
+    "THUMB_ALT": "EPUB 封面",
+    "DELETED": "EPUB 已刪除。",
+    "RENAMED": "EPUB 已重新命名。",
+    "DELETE_TITLE": "刪除 EPUB？",
+    "DELETE_MESSAGE": "這個 EPUB 將從你的書庫中移除。",
+    "ERROR": {
+      "LOAD": "無法載入 EPUB 書庫。",
+      "OPEN": "無法開啟 EPUB。",
+      "SHARE": "無法分享 EPUB。",
+      "METADATA": "無法編輯 EPUB 中繼資料。",
+      "RENAME": "無法重新命名 EPUB。",
+      "DELETE": "無法刪除 EPUB。"
+    }
   },
   "SETTINGS": {
-    "TITLE": "設定"
+    "TITLE": "設定",
+    "PRIVACY_OPTIONS": "隱私選項"
   },
   "COMMON": {
     "CANCEL": "取消",
