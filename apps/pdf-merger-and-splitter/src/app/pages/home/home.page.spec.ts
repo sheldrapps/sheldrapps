@@ -2,7 +2,11 @@ import { signal } from '@angular/core';
 
 import { type CropperResult } from '@sheldrapps/image-workflow';
 import { HomePage } from './home.page';
-import { mergedPdfOutputName, splitPdfOutputName } from '../../pdf/pdf-output-naming';
+import {
+  mergedPdfOutputName,
+  pdfOutputTimestamp,
+  splitPdfOutputName,
+} from '../../pdf/pdf-output-naming';
 import { PdfRewriteError } from '../../pdf/pdf-rewrite.service';
 
 describe('HomePage', () => {
@@ -26,10 +30,15 @@ describe('HomePage', () => {
   });
 
   it('derives PDF output names from the source document like EMAS', () => {
-    expect(mergedPdfOutputName('Book.pdf')).toBe('Book_merged.pdf');
-    expect(splitPdfOutputName('Book.pdf', 2)).toBe('Book - 2.pdf');
-    expect(mergedPdfOutputName(undefined)).toBe('merged_merged.pdf');
-    expect(splitPdfOutputName(undefined, 1)).toBe('split - 1.pdf');
+    const timestamp = '20260921_053000';
+    expect(mergedPdfOutputName('Book.pdf', timestamp)).toBe('Book_20260921_053000_merged.pdf');
+    expect(splitPdfOutputName('Book.pdf', 2, timestamp)).toBe('Book_20260921_053000 - 2.pdf');
+    expect(mergedPdfOutputName(undefined, timestamp)).toBe('merged_20260921_053000_merged.pdf');
+    expect(splitPdfOutputName(undefined, 1, timestamp)).toBe('split_20260921_053000 - 1.pdf');
+  });
+
+  it('formats output timestamps like the other merger and splitter app', () => {
+    expect(pdfOutputTimestamp(new Date(2026, 8, 21, 5, 3, 0))).toBe('20260921_050300');
   });
 
   it('skips directly to review without adding a cover page', () => {

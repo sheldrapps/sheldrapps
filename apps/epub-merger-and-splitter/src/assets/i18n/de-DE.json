@@ -131,6 +131,8 @@
       "MERGE_FAILURE_BODY": "Das endgültige EPUB konnte nicht erstellt werden. Deine Originaldateien wurden nicht geändert.",
       "SPLIT_FAILURE_TITLE": "Das EPUB konnte nicht geteilt werden",
       "SPLIT_FAILURE_BODY": "Nicht alle EPUBs konnten erstellt werden. Die Originaldatei wurde nicht geändert und keine Teilergebnisse wurden gespeichert.",
+      "SPLIT_SPINE_INVALID": "Die interne Struktur des aufgeteilten EPUB konnte nicht erhalten werden. Versuche es ohne zusätzliches Cover.",
+      "SPLIT_SPINE_EMPTY": "Das aufgeteilte EPUB enthält keinen lesbaren Inhalt.",
       "PROGRESS": {
         "PREPARING": "EPUB wird vorbereitet",
         "ANALYZING": "EPUB wird analysiert",

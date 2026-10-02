@@ -131,6 +131,8 @@
       "MERGE_FAILURE_BODY": "최종 EPUB를 만들 수 없습니다. 원본 파일은 변경되지 않았습니다.",
       "SPLIT_FAILURE_TITLE": "EPUB를 나눌 수 없습니다",
       "SPLIT_FAILURE_BODY": "모든 EPUB를 만들 수 없습니다. 원본 파일은 변경되지 않았고 부분 결과는 저장되지 않았습니다.",
+      "SPLIT_SPINE_INVALID": "분할된 EPUB의 내부 구조를 유지할 수 없습니다. 표지를 추가하지 않고 다시 분할해 보세요.",
+      "SPLIT_SPINE_EMPTY": "분할된 EPUB에 읽을 수 있는 콘텐츠가 없습니다.",
       "PROGRESS": {
         "PREPARING": "EPUB 준비 중",
         "ANALYZING": "EPUB 분석 중",

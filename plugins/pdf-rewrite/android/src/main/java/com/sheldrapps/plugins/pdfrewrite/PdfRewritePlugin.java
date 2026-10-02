@@ -63,7 +63,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -109,6 +111,18 @@ public class PdfRewritePlugin extends Plugin {
         String stage = call.getString("stage", "ads");
         String message = call.getString("message", "");
         reportNonFatalFailure(errorCode, message, stage, null);
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void logCrashlyticsEvent(PluginCall call) {
+        String event = call.getString("event", "unknown_event");
+        String stage = call.getString("stage", "unknown_stage");
+        Long elapsedMs = call.getLong("elapsedMs");
+        Integer attempt = call.getInt("attempt");
+        String code = call.getString("code", "");
+        String detail = call.getString("detail", "");
+        logCrashlyticsEvent(event, stage, elapsedMs, attempt, code, detail);
         call.resolve();
     }
 
@@ -300,8 +314,9 @@ public class PdfRewritePlugin extends Plugin {
             PdfSessionManager.Session session = pmasSessions.require(call.getString("sessionId")); File source = session.inputs.get(call.getString("pdfId")); if (source == null) throw new PdfOperationException("SOURCE_FILE_NOT_FOUND", "split");
             JSArray outputs = call.getArray("outputs"); if (outputs == null || outputs.length() < 2) throw new PdfOperationException("SPLIT_REQUIRES_TWO_OUTPUTS", "split");
             List<PdfSplitOperation.Plan> plans = new ArrayList<>();
+            Set<String> usedNames = new HashSet<>();
             for (int index=0; index<outputs.length(); index++) {
-                org.json.JSONObject raw = outputs.getJSONObject(index); String name=sanitizeBaseName(raw.optString("title", "part-"+(index+1)))+".pdf"; org.json.JSONArray ranges = raw.optJSONArray("ranges"); if (ranges == null || ranges.length() == 0) throw new PdfOperationException("INVALID_SPLIT_PLAN", "split"); List<PdfSplitOperation.Range> parsed = new ArrayList<>();
+                org.json.JSONObject raw = outputs.getJSONObject(index); String name=uniqueSplitOutputName(raw.optString("title", "part-"+(index+1)), index, usedNames); org.json.JSONArray ranges = raw.optJSONArray("ranges"); if (ranges == null || ranges.length() == 0) throw new PdfOperationException("INVALID_SPLIT_PLAN", "split"); List<PdfSplitOperation.Range> parsed = new ArrayList<>();
                 for (int rangeIndex=0; rangeIndex<ranges.length(); rangeIndex++) { org.json.JSONObject range=ranges.getJSONObject(rangeIndex); parsed.add(new PdfSplitOperation.Range(range.getInt("fromPageIndex"),range.getInt("toPageIndex"))); }
                 plans.add(new PdfSplitOperation.Plan(name, parsed));
             }
@@ -360,6 +375,49 @@ public class PdfRewritePlugin extends Plugin {
             crashlyticsClass
                 .getMethod("recordException", Throwable.class)
                 .invoke(crashlytics, reportThrowable);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void logCrashlyticsEvent(
+        String event,
+        String stage,
+        Long elapsedMs,
+        Integer attempt,
+        String code,
+        String detail
+    ) {
+        try {
+            Class<?> crashlyticsClass = Class.forName(
+                "com.google.firebase.crashlytics.FirebaseCrashlytics"
+            );
+            Object crashlytics = crashlyticsClass.getMethod("getInstance").invoke(null);
+            crashlyticsClass.getMethod("setCustomKey", String.class, String.class)
+                .invoke(crashlytics, "last_diagnostic_event", event);
+            crashlyticsClass.getMethod("setCustomKey", String.class, String.class)
+                .invoke(crashlytics, "last_diagnostic_stage", stage);
+            if (elapsedMs != null) {
+                crashlyticsClass.getMethod("setCustomKey", String.class, long.class)
+                    .invoke(crashlytics, "last_diagnostic_elapsed_ms", elapsedMs);
+            }
+            if (attempt != null) {
+                crashlyticsClass.getMethod("setCustomKey", String.class, int.class)
+                    .invoke(crashlytics, "last_diagnostic_attempt", attempt);
+            }
+            if (code != null && !code.isEmpty()) {
+                crashlyticsClass.getMethod("setCustomKey", String.class, String.class)
+                    .invoke(crashlytics, "last_diagnostic_code", code);
+            }
+            String safeDetail = detail == null ? "" : detail;
+            crashlyticsClass.getMethod("log", String.class).invoke(
+                crashlytics,
+                "diagnostic event=" + event
+                    + " stage=" + stage
+                    + (elapsedMs == null ? "" : " elapsed_ms=" + elapsedMs)
+                    + (attempt == null ? "" : " attempt=" + attempt)
+                    + (code == null || code.isEmpty() ? "" : " code=" + code)
+                    + (safeDetail.isEmpty() ? "" : " detail=" + safeDetail)
+            );
         } catch (Exception ignored) {
         }
     }
@@ -1589,6 +1647,17 @@ public class PdfRewritePlugin extends Plugin {
             return base.substring(0, 80).trim();
         }
         return base;
+    }
+
+    private String uniqueSplitOutputName(String requestedName, int index, Set<String> usedNames) {
+        String base = sanitizeBaseName(requestedName);
+        String candidate = base + ".pdf";
+        int suffix = index + 1;
+        while (!usedNames.add(candidate.toLowerCase(Locale.US))) {
+            candidate = base + " - " + suffix + ".pdf";
+            suffix++;
+        }
+        return candidate;
     }
 
     private void notifyProgress(int percent) {

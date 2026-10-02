@@ -131,6 +131,8 @@
       "MERGE_FAILURE_BODY": "無法建立最終 EPUB。原始檔案未被修改。",
       "SPLIT_FAILURE_TITLE": "無法分割 EPUB",
       "SPLIT_FAILURE_BODY": "無法建立所有 EPUB。原始檔案未被修改，未儲存部分結果。",
+      "SPLIT_SPINE_INVALID": "無法保留分割後 EPUB 的內部結構。請嘗試不要新增封面再分割。",
+      "SPLIT_SPINE_EMPTY": "分割後的 EPUB 不包含可讀取的內容。",
       "PROGRESS": {
         "PREPARING": "正在準備 EPUB",
         "ANALYZING": "正在分析 EPUB",

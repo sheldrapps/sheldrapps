@@ -5,10 +5,8 @@ describe('EpubMetadataWorkflowService', () => {
     const context = Object.assign(Object.create(EpubMetadataWorkflowService.prototype), {
       pendingFiles: [],
       currentFile: null,
-      epubRewrite: { isSupported: () => false },
     }) as EpubMetadataWorkflowService;
 
     expect(context.hasPendingFiles).toBeFalse();
-    expect(context.isNativeSupported).toBeFalse();
   });
 });

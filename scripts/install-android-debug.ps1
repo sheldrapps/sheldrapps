@@ -33,6 +33,7 @@ function Resolve-AppId {
     'cover-creator-for-kindle' { return 'com.sheldrapps.covercreatorforkindle' }
     'epub-fixer' { return 'com.sheldrapps.epubfixer' }
     'epub-merger-and-splitter' { return 'com.sheldrapps.epubmergersplitter' }
+    'epub-metadata-editor' { return 'com.sheldrapps.epubmetadataeditor' }
     'pdf-merger-and-splitter' { return 'com.sheldrapps.pdfmergerandsplitter' }
     'just-one-step' { return 'com.sheldrapps.justonestep' }
     default { throw "Unsupported AppName for uninstall flow: $Name" }

@@ -6,6 +6,7 @@ type FileTelemetryPlugin = Plugin & {
     errorCode: string;
     stage: string;
     sizeBucket: string;
+    message?: string;
   }): Promise<void>;
 };
 
@@ -19,6 +20,8 @@ export function reportFileWriteFailure(options: {
   stage: string;
   errorCode?: string;
   sizeBytes?: number;
+  message?: string;
+  uriScheme?: string;
 }): void {
   if (!Capacitor.isNativePlatform()) {
     return;
@@ -36,6 +39,7 @@ export function reportFileWriteFailure(options: {
     errorCode: options.errorCode ?? 'WRITE_FAILED',
     stage: options.stage,
     sizeBucket: classifyFileSize(options.sizeBytes),
+    message: buildTelemetryMessage(options.message, options.uriScheme),
   }).catch(() => undefined);
 }
 
@@ -55,12 +59,31 @@ export function reportFileReadFailure(options: {
 export function reportFileShareFailure(options: {
   format: FileTelemetryFormat;
   stage: string;
+  sizeBytes?: number;
+  message?: string;
+  uriScheme?: string;
 }): void {
   reportFileWriteFailure({
     format: options.format,
     stage: options.stage,
     errorCode: 'SHARE_FAILED',
+    sizeBytes: options.sizeBytes,
+    message: options.message,
+    uriScheme: options.uriScheme,
   });
+}
+
+function buildTelemetryMessage(message?: string, uriScheme?: string): string {
+  const safeMessage = typeof message === 'string'
+    ? message.replace(/\s+/g, ' ').trim().slice(0, 180)
+    : '';
+  const safeUriScheme = typeof uriScheme === 'string' && uriScheme
+    ? uriScheme.slice(0, 24)
+    : '';
+  return [
+    safeMessage ? `error=${safeMessage}` : '',
+    safeUriScheme ? `uri_scheme=${safeUriScheme}` : '',
+  ].filter(Boolean).join(' ');
 }
 
 export function classifyFileSize(sizeBytes?: number): string {

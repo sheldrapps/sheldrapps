@@ -1,5 +1,7 @@
 include ':app'
 include ':capacitor-cordova-android-plugins'
 project(':capacitor-cordova-android-plugins').projectDir = new File('./capacitor-cordova-android-plugins/')
+include ':epub-rewrite'
+project(':epub-rewrite').projectDir = new File('../../../plugins/epub-rewrite/android')
 
 apply from: 'capacitor.settings.gradle'

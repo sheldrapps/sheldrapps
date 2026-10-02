@@ -6,12 +6,17 @@ apply plugin: 'com.google.firebase.crashlytics'
 android {
     namespace = "com.sheldrapps.pdfcovermaker"
     compileSdk = rootProject.ext.compileSdkVersion
+    packagingOptions {
+        jniLibs {
+            excludes += ['**/libdatastore_shared_counter.so']
+        }
+    }
     defaultConfig {
         applicationId "com.sheldrapps.pdfcovermaker"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 37
-        versionName "PDF export stability"
+        versionCode 41
+        versionName "Share and 16 KB reliability"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

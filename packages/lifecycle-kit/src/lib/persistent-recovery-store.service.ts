@@ -1,6 +1,6 @@
 import { Injectable, InjectionToken, inject } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
-import { FileKitService } from '@sheldrapps/file-kit';
+import { FileKitService } from '@sheldrapps/file-kit/core';
 
 export type RecoveryAssetMeta = {
   path: string;

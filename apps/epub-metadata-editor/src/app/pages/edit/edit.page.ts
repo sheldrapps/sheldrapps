@@ -1,7 +1,8 @@
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Component, ElementRef, ViewChild, inject } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import {
   IonCol,
+  IonButton,
   IonContent,
   IonGrid,
   IonHeader,
@@ -12,25 +13,32 @@ import {
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
 import { fileTrayOutline, fileTrayStackedOutline } from 'ionicons/icons';
-import { BillingService } from '@sheldrapps/ads-kit';
+import { BillingService, ExportAccessService } from '@sheldrapps/ads-kit';
 import {
   ActionCardComponent,
-  FilePickerPanelComponent,
   ProBadgeComponent,
   SectionCardComponent,
   WorkflowNavigationComponent,
   WorkflowStepperComponent,
   type WorkflowStep,
 } from '@sheldrapps/ui-theme';
-import type { FilePickerPanelItem } from '@sheldrapps/ui-theme';
 import { EpubMetadataWorkflowService } from '../../services/epub-metadata-workflow.service';
-import type { CompletedMetadataFile } from '../../services/epub-metadata-workflow.service';
+import type {
+  CompletedMetadataFile,
+  PendingMetadataReview,
+} from '../../services/epub-metadata-workflow.service';
 
 type EditMode = 'single' | 'multiple';
 
 type MetadataSummaryRow = {
   labelKey: string;
   value: string;
+};
+
+type MetadataChangeRow = {
+  labelKey: string;
+  before: string;
+  after: string;
 };
 
 @Component({
@@ -42,12 +50,12 @@ type MetadataSummaryRow = {
     IonToolbar,
     IonTitle,
     IonContent,
+    IonButton,
     IonCol,
     IonGrid,
     IonRow,
     TranslateModule,
     ActionCardComponent,
-    FilePickerPanelComponent,
     ProBadgeComponent,
     SectionCardComponent,
     WorkflowNavigationComponent,
@@ -56,13 +64,9 @@ type MetadataSummaryRow = {
 })
 export class EditPage {
   private readonly billing = inject(BillingService);
+  private readonly exportAccess = inject(ExportAccessService);
   private readonly i18n = inject(TranslateService);
   private readonly metadataWorkflow = inject(EpubMetadataWorkflowService);
-
-  @ViewChild('singleEpubInput')
-  private singleEpubInput?: ElementRef<HTMLInputElement>;
-  @ViewChild('multipleEpubInput')
-  private multipleEpubInput?: ElementRef<HTMLInputElement>;
 
   readonly adsRemoved = toSignal(this.billing.adsRemoved$, {
     initialValue: this.billing.isAdsRemoved(),
@@ -72,17 +76,25 @@ export class EditPage {
   workflowStep = 0;
   isSelectingFiles = false;
   selectionErrorKey: string | null = null;
-  selectedFileNames: string[] = [];
+  editErrorKey: string | null = null;
+  applyErrorKey: string | null = null;
+  isApplyingChanges = false;
+  isAuthorizingEdit = false;
 
   constructor() {
     addIcons({ fileTrayOutline, fileTrayStackedOutline });
+    effect(() => {
+      if (this.pendingReview) {
+        this.workflowStep = 2;
+      }
+    });
   }
 
   get workflowSteps(): readonly WorkflowStep[] {
     return [
       { id: 'mode', label: 'EDIT.STEPPER.MODE' },
-      { id: 'file', label: 'EDIT.STEPPER.FILE' },
-      { id: 'edit', label: 'TABS.EDIT' },
+      { id: 'form', label: 'EDIT.STEPPER.FORM' },
+      { id: 'summary', label: 'EDIT.STEPPER.SUMMARY' },
     ].map((step) => ({
       ...step,
       label: this.i18n.instant(step.label),
@@ -90,8 +102,8 @@ export class EditPage {
   }
 
   get selectableWorkflowSteps(): readonly number[] {
-    if (!this.editMode) return [0];
-    return this.completedMetadata.length > 0 ? [0, 1, 2] : [0, 1];
+    if (!this.editMode) return this.pendingReview ? [0, 1] : [0];
+    return this.pendingReview ? [0, 1] : [0];
   }
 
   get canUseMultipleFiles(): boolean {
@@ -114,50 +126,27 @@ export class EditPage {
     return this.metadataWorkflow.completedMetadata();
   }
 
+  get pendingReview(): PendingMetadataReview | null {
+    return this.metadataWorkflow.pendingReview();
+  }
+
   metadataSummaryRows(metadata: CompletedMetadataFile['metadata']): readonly MetadataSummaryRow[] {
-    const rows: MetadataSummaryRow[] = [];
-    this.addSummaryRow(rows, 'EPUB_METADATA.TITLE', metadata.title);
-    this.addSummaryRow(rows, 'EPUB_METADATA.LANGUAGE', metadata.language);
-    this.addSummaryRow(
-      rows,
-      'EPUB_METADATA.IDENTIFIER',
-      [metadata.identifier.value, metadata.identifier.scheme]
-        .filter((value): value is string => !!value?.trim())
-        .join(' · '),
-    );
-    this.addSummaryRow(rows, 'EPUB_METADATA.PUBLISHER', metadata.publisher);
-    this.addSummaryRow(rows, 'EPUB_METADATA.DATE', metadata.date);
-    this.addSummaryRow(rows, 'EPUB_METADATA.DESCRIPTION', metadata.description);
-    this.addSummaryRow(rows, 'EPUB_METADATA.AUTHORS', this.formatPeople(metadata.creators));
-    this.addSummaryRow(rows, 'EPUB_METADATA.SUBJECTS', this.formatList(metadata.subjects));
-    this.addSummaryRow(
-      rows,
-      'EPUB_METADATA.CONTRIBUTORS',
-      this.formatPeople(metadata.contributors),
-    );
-    this.addSummaryRow(rows, 'EPUB_METADATA.RIGHTS', metadata.rights);
-    this.addSummaryRow(rows, 'EPUB_METADATA.TYPE', metadata.type);
-    this.addSummaryRow(rows, 'EPUB_METADATA.FORMAT', metadata.format);
-    this.addSummaryRow(rows, 'EPUB_METADATA.SOURCE', metadata.source);
-    this.addSummaryRow(rows, 'EPUB_METADATA.RELATION', metadata.relation);
-    this.addSummaryRow(rows, 'EPUB_METADATA.COVERAGE', metadata.coverage);
-    return rows;
+    return this.metadataValues(metadata).filter((row) => row.value.length > 0);
   }
 
-  get filePickerItems(): FilePickerPanelItem[] {
-    return this.selectedFileNames.map((filename, index) => ({
-      id: `${index}-${filename}`,
-      title: filename,
-    }));
-  }
+  metadataChangeRows(
+    original: CompletedMetadataFile['metadata'],
+    updated: CompletedMetadataFile['metadata'],
+  ): readonly MetadataChangeRow[] {
+    const originalRows = this.metadataValues(original);
+    const updatedRows = this.metadataValues(updated);
 
-  get filePickerActionLabel(): string | null {
-    if (this.selectedFileNames.length === 0) return null;
-    return this.editMode === 'multiple'
-      ? this.i18n.instant('EDIT.SELECTED_FILES_COUNT', {
-          count: this.selectedFileNames.length,
-        })
-      : this.selectedFileNames[0];
+    return originalRows.flatMap((row, index) => {
+      const after = updatedRows[index].value;
+      return row.value === after
+        ? []
+        : [{ labelKey: row.labelKey, before: row.value, after }];
+    });
   }
 
   selectEditMode(mode: EditMode): void {
@@ -165,56 +154,54 @@ export class EditPage {
       return;
     }
 
-    this.editMode = mode;
-    this.workflowStep = 1;
-    this.selectionErrorKey = null;
-    this.selectedFileNames = [];
+    this.prepareEditMode(mode);
     void this.selectFiles();
+  }
+
+  prepareEditMode(mode: EditMode): void {
+    this.selectionErrorKey = null;
+    this.editMode = mode;
   }
 
   async selectFiles(): Promise<void> {
     if (!this.editMode || this.isSelectingFiles) return;
     this.selectionErrorKey = null;
 
-    if (this.metadataWorkflow.isNativeSupported) {
-      await this.runFileSelection(() =>
-        this.metadataWorkflow.startFromNativePicker(this.editMode === 'multiple'),
-      );
-      return;
-    }
-
-    const input =
-      this.editMode === 'multiple'
-        ? this.multipleEpubInput?.nativeElement
-        : this.singleEpubInput?.nativeElement;
-    if (!input) {
-      this.selectionErrorKey = 'EDIT.SELECTION_ERROR';
-      return;
-    }
-
-    input.click();
-  }
-
-  async onBrowserFilesSelected(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const files = Array.from(input.files ?? []);
-    input.value = '';
-    if (files.length === 0) return;
-
-    this.selectedFileNames = files.map((file) => file.name);
     await this.runFileSelection(() =>
-      this.metadataWorkflow.startFromBrowserFiles(files),
+      this.metadataWorkflow.startFromNativePicker(this.editMode === 'multiple'),
     );
   }
 
   async ionViewWillEnter(): Promise<void> {
-    if (this.workflowStep === 1 && this.metadataWorkflow.hasPendingFiles) {
-      await this.runFileSelection(() => this.metadataWorkflow.resumePending());
+    if (this.pendingReview) {
+      this.applyErrorKey = null;
+      this.workflowStep = 2;
+      this.metadataWorkflow.clearFormReturnIntent();
+      return;
+    }
+
+    if (this.metadataWorkflow.consumeFormReturnIntent()) {
+      await this.metadataWorkflow.returnToModeSelection();
+      this.workflowStep = 0;
       return;
     }
 
     if (this.completedMetadata.length > 0) {
       this.workflowStep = 2;
+    }
+  }
+
+  async applyMetadataChanges(): Promise<void> {
+    if (this.isApplyingChanges || !this.pendingReview) return;
+
+    this.isApplyingChanges = true;
+    this.applyErrorKey = null;
+    try {
+      await this.metadataWorkflow.applyPendingChanges();
+    } catch {
+      this.applyErrorKey = 'EDIT.APPLY_ERROR';
+    } finally {
+      this.isApplyingChanges = false;
     }
   }
 
@@ -238,8 +225,42 @@ export class EditPage {
   }
 
   onWorkflowPrevious(): void {
+    if (this.workflowStep === 2 && this.pendingReview) {
+      void this.metadataWorkflow.reopenPendingReview().catch(() => {
+        this.editErrorKey = 'EDIT.OPEN_ERROR';
+      });
+      return;
+    }
+
     if (this.workflowStep > 0) {
-      this.workflowStep -= 1;
+      this.workflowStep = 0;
+    }
+  }
+
+  async editCompletedFile(filename: string): Promise<void> {
+    if (this.isAuthorizingEdit) return;
+
+    this.editErrorKey = null;
+    this.isAuthorizingEdit = true;
+    try {
+      let granted: boolean;
+      try {
+        const access = await this.exportAccess.authorize({ onAdFailure: () => false });
+        granted = access.granted;
+      } catch {
+        this.editErrorKey = 'EDIT.AD_UNAVAILABLE';
+        return;
+      }
+      if (!granted) {
+        this.editErrorKey = 'EDIT.AD_REQUIRED';
+        return;
+      }
+
+      await this.metadataWorkflow.editCompleted(filename);
+    } catch {
+      this.editErrorKey = 'EDIT.OPEN_ERROR';
+    } finally {
+      this.isAuthorizingEdit = false;
     }
   }
 
@@ -253,18 +274,50 @@ export class EditPage {
       return;
     }
 
+    if (step === 1 && this.pendingReview) {
+      void this.metadataWorkflow.reopenPendingReview().catch(() => {
+        this.editErrorKey = 'EDIT.OPEN_ERROR';
+      });
+      return;
+    }
+
     this.workflowStep = step;
   }
 
-  private addSummaryRow(
-    rows: MetadataSummaryRow[],
-    labelKey: string,
-    value: string | undefined,
-  ): void {
-    const normalizedValue = value?.trim();
-    if (normalizedValue) {
-      rows.push({ labelKey, value: normalizedValue });
-    }
+  private metadataValues(
+    metadata: CompletedMetadataFile['metadata'],
+  ): MetadataSummaryRow[] {
+    return [
+      { labelKey: 'EPUB_METADATA.TITLE', value: metadata.title },
+      { labelKey: 'EPUB_METADATA.LANGUAGE', value: metadata.language },
+      {
+        labelKey: 'EPUB_METADATA.IDENTIFIER',
+        value: [metadata.identifier.value, metadata.identifier.scheme]
+          .filter((value): value is string => !!value?.trim())
+          .join(' · '),
+      },
+      { labelKey: 'EPUB_METADATA.PUBLISHER', value: metadata.publisher ?? '' },
+      { labelKey: 'EPUB_METADATA.DATE', value: metadata.date ?? '' },
+      { labelKey: 'EPUB_METADATA.DESCRIPTION', value: metadata.description ?? '' },
+      {
+        labelKey: 'EPUB_METADATA.AUTHORS',
+        value: this.formatPeople(metadata.creators) ?? '',
+      },
+      {
+        labelKey: 'EPUB_METADATA.SUBJECTS',
+        value: this.formatList(metadata.subjects) ?? '',
+      },
+      {
+        labelKey: 'EPUB_METADATA.CONTRIBUTORS',
+        value: this.formatPeople(metadata.contributors) ?? '',
+      },
+      { labelKey: 'EPUB_METADATA.RIGHTS', value: metadata.rights ?? '' },
+      { labelKey: 'EPUB_METADATA.TYPE', value: metadata.type ?? '' },
+      { labelKey: 'EPUB_METADATA.FORMAT', value: metadata.format ?? '' },
+      { labelKey: 'EPUB_METADATA.SOURCE', value: metadata.source ?? '' },
+      { labelKey: 'EPUB_METADATA.RELATION', value: metadata.relation ?? '' },
+      { labelKey: 'EPUB_METADATA.COVERAGE', value: metadata.coverage ?? '' },
+    ].map((row) => ({ ...row, value: row.value.trim() }));
   }
 
   private formatList(values: readonly string[]): string | undefined {

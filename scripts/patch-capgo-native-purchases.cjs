@@ -318,6 +318,79 @@ import org.json.JSONArray;
   },
 ];
 
+const billingDiagnosticReplacements = [
+  {
+    find: `        final AtomicBoolean setupSettled = new AtomicBoolean(false);`,
+    replace: `        final AtomicBoolean setupSettled = new AtomicBoolean(false);
+        final long setupStartedAt = System.currentTimeMillis();
+        logBillingDiagnostic("BILLING_SETUP_STARTED", attempt, 0L, null);`,
+  },
+  {
+    find: `        Log.d(TAG, "Starting billing client connection");`,
+    replace: `        Log.d(TAG, "Starting billing client connection");
+        logBillingDiagnostic("BILLING_CONNECTION_STARTED", attempt, System.currentTimeMillis() - setupStartedAt, null);`,
+  },
+  {
+    find: `                    if (!setupSettled.compareAndSet(false, true)) {
+                        Log.d(TAG, "Ignoring stale onBillingSetupFinished callback");
+                        return;`,
+    replace: `                    if (!setupSettled.compareAndSet(false, true)) {
+                        Log.d(TAG, "Ignoring stale onBillingSetupFinished callback");
+                        logBillingDiagnostic("BILLING_SETUP_STALE_CALLBACK", attempt, System.currentTimeMillis() - setupStartedAt, null);
+                        return;`,
+  },
+  {
+    find: `                    Log.d(TAG, "Setup result: " + billingResult.getResponseCode() + " - " + billingResult.getDebugMessage());`,
+    replace: `                    Log.d(TAG, "Setup result: " + billingResult.getResponseCode() + " - " + billingResult.getDebugMessage());
+                    logBillingDiagnostic(
+                        "BILLING_SETUP_CALLBACK",
+                        attempt,
+                        System.currentTimeMillis() - setupStartedAt,
+                        "response_code=" + billingResult.getResponseCode() + " message=" + billingResult.getDebugMessage()
+                    );`,
+  },
+  {
+    find: `                    Log.d(TAG, "onBillingServiceDisconnected() called");`,
+    replace: `                    Log.d(TAG, "onBillingServiceDisconnected() called");
+                    logBillingDiagnostic("BILLING_SERVICE_DISCONNECTED", attempt, System.currentTimeMillis() - setupStartedAt, null);`,
+  },
+  {
+    find: `            Log.d(TAG, "Waiting for billing client setup to finish");`,
+    replace: `            Log.d(TAG, "Waiting for billing client setup to finish");
+            logBillingDiagnostic("BILLING_SETUP_WAIT_STARTED", attempt, System.currentTimeMillis() - setupStartedAt, null);`,
+  },
+  {
+    find: `                Log.e(TAG, "Billing client setup timed out after " + BILLING_SETUP_TIMEOUT_SECONDS + " seconds");`,
+    replace: `                Log.e(TAG, "Billing client setup timed out after " + BILLING_SETUP_TIMEOUT_SECONDS + " seconds");
+                logBillingDiagnostic("BILLING_SETUP_TIMEOUT", attempt, System.currentTimeMillis() - setupStartedAt, "timeout_seconds=" + BILLING_SETUP_TIMEOUT_SECONDS);`,
+  },
+  {
+    find: `            Log.d(TAG, "Billing client setup wait completed");`,
+    replace: `            Log.d(TAG, "Billing client setup wait completed");
+            logBillingDiagnostic("BILLING_SETUP_WAIT_COMPLETED", attempt, System.currentTimeMillis() - setupStartedAt, null);`,
+  },
+  {
+    find: `                Log.e(TAG, "Billing setup failed, throwing exception");`,
+    replace: `                Log.e(TAG, "Billing setup failed, throwing exception");
+                logBillingDiagnostic("BILLING_SETUP_RESULT_FAILED", attempt, System.currentTimeMillis() - setupStartedAt, getBillingSetupErrorMessage(setupError[0]));`,
+  },
+  {
+    find: `                    throw new RuntimeException("Billing service disconnected. Please try again.");`,
+    replace: `                    logBillingDiagnostic("BILLING_CLIENT_NOT_READY", attempt, System.currentTimeMillis() - setupStartedAt, null);
+                    throw new RuntimeException("Billing service disconnected. Please try again.");`,
+  },
+  {
+    find: `            Log.d(TAG, "Billing client setup completed successfully");`,
+    replace: `            Log.d(TAG, "Billing client setup completed successfully");
+            logBillingDiagnostic("BILLING_SETUP_SUCCEEDED", attempt, System.currentTimeMillis() - setupStartedAt, null);`,
+  },
+  {
+    find: `            Log.e(TAG, "InterruptedException while waiting for billing setup: " + e.getMessage());`,
+    replace: `            Log.e(TAG, "InterruptedException while waiting for billing setup: " + e.getMessage());
+            logBillingDiagnostic("BILLING_SETUP_INTERRUPTED", attempt, System.currentTimeMillis() - setupStartedAt, e.getMessage());`,
+  },
+];
+
 function patchFile(filePath) {
   if (!fs.existsSync(filePath)) {
     return false;
@@ -367,6 +440,42 @@ import org.json.JSONArray;
 
     current = current.replaceAll(replacement.find, replacement.replace);
     changed = true;
+  }
+
+  for (const replacement of billingDiagnosticReplacements) {
+    if (
+      !current.includes(replacement.find) ||
+      current.includes(replacement.replace)
+    ) {
+      continue;
+    }
+
+    current = current.replaceAll(replacement.find, replacement.replace);
+    changed = true;
+  }
+
+  const billingDiagnosticHelper = [
+    "    private void logBillingDiagnostic(String event, int attempt, long elapsedMs, String detail) {",
+    "        String safeDetail = detail == null ? \"\" : detail.replace('\\n', ' ').replace('\\r', ' ');",
+    "        Log.i(TAG, \"billing_diagnostic event=\" + event + \" attempt=\" + attempt + \" elapsed_ms=\" + elapsedMs + (safeDetail.isEmpty() ? \"\" : \" detail=\" + safeDetail));",
+    "        try {",
+    "            Class<?> crashlyticsClass = Class.forName(\"com.google.firebase.crashlytics.FirebaseCrashlytics\");",
+    "            Object crashlytics = crashlyticsClass.getMethod(\"getInstance\").invoke(null);",
+    "            crashlyticsClass.getMethod(\"setCustomKey\", String.class, String.class).invoke(crashlytics, \"last_billing_native_event\", event);",
+    "            crashlyticsClass.getMethod(\"setCustomKey\", String.class, String.class).invoke(crashlytics, \"last_billing_native_attempt\", String.valueOf(attempt));",
+    "            crashlyticsClass.getMethod(\"setCustomKey\", String.class, String.class).invoke(crashlytics, \"last_billing_native_elapsed_ms\", String.valueOf(elapsedMs));",
+    "            crashlyticsClass.getMethod(\"log\", String.class).invoke(crashlytics, \"billing_diagnostic event=\" + event + \" attempt=\" + attempt + \" elapsed_ms=\" + elapsedMs + (safeDetail.isEmpty() ? \"\" : \" detail=\" + safeDetail));",
+    "        } catch (Exception ignored) {",
+    "        }",
+    "    }",
+    "",
+  ].join("\n");
+  if (!current.includes("private void logBillingDiagnostic(")) {
+    const activityGuardMarker = "    private boolean isActivityReadyForBilling(Activity activity) {";
+    if (current.includes(activityGuardMarker)) {
+      current = current.replace(activityGuardMarker, billingDiagnosticHelper + activityGuardMarker);
+      changed = true;
+    }
   }
 
   const billingResponseCodeWithoutHelper = "billingResponseCodeName(billingResult.getResponseCode())";

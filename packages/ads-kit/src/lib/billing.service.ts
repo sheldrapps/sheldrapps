@@ -23,6 +23,7 @@ import {
   type BillingPurchaseRecord,
 } from './types';
 import { ProPurchaseAnalyticsService } from './pro-purchase-analytics.service';
+import { reportCrashlyticsDiagnostic } from './ad-telemetry';
 
 type BillingSettings = Record<string, unknown> & {
   adsRemoved?: boolean;
@@ -54,6 +55,7 @@ export type BillingPurchaseDiagnostics = {
 @Injectable()
 export class BillingService {
   private readonly developmentRemoveAdsPriceFormatted = '$1.00';
+  private readonly serviceStartedAt = Date.now();
   private initPromise: Promise<void> | null = null;
   private hydrateCachedStatePromise: Promise<boolean> | null = null;
   private ensureAdsEntitlementPromise: Promise<AdsEntitlementStatus> | null = null;
@@ -78,6 +80,7 @@ export class BillingService {
   readonly removeAdsPrice$ = new BehaviorSubject<string | null>(null);
 
   constructor() {
+    this.logBillingEvent('BILLING_SERVICE_CREATED', { stage: 'startup' });
     if (!this.isBillingSupportedByPlatform()) {
       return;
     }
@@ -94,6 +97,9 @@ export class BillingService {
     try {
       await this.initialize();
     } catch (error) {
+      this.logBillingEvent('BILLING_INITIALIZE_FAILED', {
+        error: this.describeBillingError(error),
+      });
       this.state = 'unavailable';
       this.isReady = false;
       this.billingAvailable = false;
@@ -496,6 +502,7 @@ export class BillingService {
   }
 
   private async doInitialize(): Promise<void> {
+    this.logBillingEvent('BILLING_INITIALIZE_STARTED', { stage: 'startup' });
     await this.hydrateCachedState();
     const cachedEntitlement = this.hasRemoveAdsEntitlement;
 
@@ -514,6 +521,9 @@ export class BillingService {
     }
 
     if (!this.isBillingSupportedByPlatform() || !this.removeAdsProductId) {
+      this.logBillingEvent('BILLING_UNAVAILABLE', {
+        reason: !this.isBillingSupportedByPlatform() ? 'platform' : 'product_id',
+      });
       this.state = 'unavailable';
       this.isReady = false;
       this.billingAvailable = false;
@@ -523,8 +533,21 @@ export class BillingService {
 
     this.state = 'initializing';
 
-    const support = await NativePurchases.isBillingSupported();
-    this.billingAvailable = support.isBillingSupported === true;
+    const supportStartedAt = Date.now();
+    try {
+      const support = await NativePurchases.isBillingSupported();
+      this.logBillingEvent('BILLING_SUPPORT_RESULT', {
+        supported: support.isBillingSupported === true,
+        elapsedMs: Date.now() - supportStartedAt,
+      });
+      this.billingAvailable = support.isBillingSupported === true;
+    } catch (error) {
+      this.logBillingEvent('BILLING_SUPPORT_FAILED', {
+        elapsedMs: Date.now() - supportStartedAt,
+        error: this.describeBillingError(error),
+      });
+      throw error;
+    }
     if (!this.billingAvailable) {
       this.state = 'unavailable';
       this.isReady = false;
@@ -672,6 +695,7 @@ export class BillingService {
     const successfulProductTypes = new Set<BillingProductType>();
 
     for (const productType of this.configuredProductTypes) {
+      const queryStartedAt = Date.now();
       try {
         const { purchases } = await NativePurchases.getPurchases({
           productType: this.toNativeProductType(productType),
@@ -682,7 +706,11 @@ export class BillingService {
         successfulProductTypes.add(productType);
         this.logBillingEvent(
           purchases.length > 0 ? 'GET_PURCHASES_SUCCESS' : 'GET_PURCHASES_EMPTY',
-          { productType, purchaseCount: purchases.length },
+          {
+            productType,
+            purchaseCount: purchases.length,
+            elapsedMs: Date.now() - queryStartedAt,
+          },
         );
 
         for (const purchase of purchases) {
@@ -695,6 +723,7 @@ export class BillingService {
       } catch (error) {
         this.logBillingEvent('GET_PURCHASES_FAILURE', {
           productType,
+          elapsedMs: Date.now() - queryStartedAt,
           error: this.describeBillingError(error),
         });
         this.logDebug('purchase ownership query failed', {
@@ -876,7 +905,13 @@ export class BillingService {
         product?.['formattedPrice'],
         product?.['localizedPriceString'],
       );
-      this.setRemoveAdsPrice(price ?? null);
+      const currencyCode = this.pickString(product?.['currencyCode']);
+      const formattedPrice = price
+        ? currencyCode
+          ? `${price} ${currencyCode}`
+          : price
+        : null;
+      this.setRemoveAdsPrice(formattedPrice);
       this.hasProductDetailsRefreshFailed = false;
       if (!this.hasPendingPurchaseWork) {
         this.clearRefreshRetry();
@@ -1228,6 +1263,12 @@ export class BillingService {
 
   private logBillingEvent(
     event:
+      | 'BILLING_SERVICE_CREATED'
+      | 'BILLING_INITIALIZE_STARTED'
+      | 'BILLING_INITIALIZE_FAILED'
+      | 'BILLING_SUPPORT_RESULT'
+      | 'BILLING_SUPPORT_FAILED'
+      | 'BILLING_UNAVAILABLE'
       | 'BILLING_PURCHASE_DETECTED'
       | 'BILLING_PURCHASE_PENDING'
       | 'BILLING_PURCHASE_PROCESSING'
@@ -1247,11 +1288,41 @@ export class BillingService {
       | 'ENTITLEMENT_CACHE_RETAINED_ON_FAILURE',
     payload: Record<string, unknown> = {},
   ): void {
-    if (!this.debugEnabled) {
-      return;
-    }
+    reportCrashlyticsDiagnostic({
+      event,
+      stage: 'billing',
+      elapsedMs: this.getElapsedMs(payload),
+      detail: this.billingDiagnosticDetail(payload),
+    });
 
-    console.info(`[Billing] ${event} ${toDebugString(payload)}`);
+    if (this.debugEnabled) {
+      console.info(`[Billing] ${event} ${toDebugString(payload)}`);
+    }
+  }
+
+  private getElapsedMs(payload: Record<string, unknown>): number {
+    return typeof payload['elapsedMs'] === 'number'
+      ? payload['elapsedMs']
+      : Date.now() - this.serviceStartedAt;
+  }
+
+  private billingDiagnosticDetail(payload: Record<string, unknown>): string {
+    const diagnosticKeys = [
+      'stage',
+      'source',
+      'status',
+      'reason',
+      'productType',
+      'purchaseCount',
+      'supported',
+      'category',
+      'operation',
+      'error',
+    ];
+    return diagnosticKeys
+      .filter((key) => payload[key] !== undefined && payload[key] !== null)
+      .map((key) => `${key}=${String(payload[key])}`)
+      .join(' ');
   }
 
   private logDebug(message: string, payload: unknown): void {

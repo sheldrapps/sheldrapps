@@ -9,21 +9,37 @@
   },
   "EDIT": {
     "TITLE": "تحرير",
-    "STEPPER": { "MODE": "الوضع", "FILE": "ملفات EPUB" },
+    "STEPPER": {
+      "MODE": "الوضع",
+      "FORM": "تحرير البيانات الوصفية",
+      "SUMMARY": "الملخص"
+    },
     "MODE_TITLE": "كيف تريد التحرير؟",
     "MODE_SINGLE_FILE": "ملف واحد",
     "MODE_SINGLE_FILE_DESCRIPTION": "حرّر ملف EPUB واحدًا في كل مرة.",
     "MODE_MULTIPLE_FILES": "ملفات متعددة",
     "MODE_MULTIPLE_FILES_DESCRIPTION": "حرّر عدة ملفات EPUB في جلسة واحدة.",
     "FILE_TITLE": "اختر ملفات EPUB",
-  "FILE_SINGLE_PENDING": "سيبدأ تحرير ملف واحد هنا.",
-  "FILE_MULTIPLE_PENDING": "سيبدأ تحرير عدة ملفات هنا.",
-  "FILE_SINGLE_HINT": "اختر EPUB لفتح محرر بيانات التعريف المشترك.",
-  "FILE_MULTIPLE_HINT": "اختر عدة ملفات EPUB. سيفتحها المحرر المشترك واحدًا تلو الآخر.",
-  "SELECT_FILE": "اختيار ملف EPUB",
-  "SELECT_FILES": "اختيار ملفات EPUB",
-  "SELECTED_FILES_COUNT": "تم اختيار {{count}} من ملفات EPUB",
-  "SELECTION_ERROR": "تعذر فتح ملفات EPUB المحددة."
+    "FILE_SINGLE_PENDING": "سيبدأ تحرير ملف واحد هنا.",
+    "FILE_MULTIPLE_PENDING": "سيبدأ تحرير عدة ملفات هنا.",
+    "FILE_SINGLE_HINT": "اختر EPUB لفتح محرر بيانات التعريف المشترك.",
+    "FILE_MULTIPLE_HINT": "اختر عدة ملفات EPUB. سيفتحها المحرر المشترك واحدًا تلو الآخر.",
+    "SELECT_FILE": "اختيار ملف EPUB",
+    "SELECT_FILES": "اختيار ملفات EPUB",
+    "SELECTED_FILES_COUNT": "تم اختيار {{count}} من ملفات EPUB",
+    "SELECTION_ERROR": "تعذر فتح ملفات EPUB المحددة.",
+    "SUMMARY_TITLE": "ملخص التغييرات",
+    "REVIEW_HINT": "راجع تغييرات البيانات الوصفية قبل تطبيقها.",
+    "APPLY_CHANGES": "تطبيق التغييرات",
+    "APPLYING_CHANGES": "جارٍ تطبيق التغييرات…",
+    "APPLY_ERROR": "تعذر تطبيق التغييرات. تأكد من توفر ملف EPUB ثم حاول مرة أخرى.",
+    "APPLY_SUCCESS": "تم تطبيق تغييرات البيانات الوصفية.",
+    "NO_CHANGES": "لم يتم إجراء أي تغييرات على البيانات الوصفية.",
+    "EMPTY_VALUE": "فارغ",
+    "EDIT_FILE": "تعديل",
+    "AD_REQUIRED": "شاهد إعلانًا بمكافأة لتعديل EPUB في الإصدار المجاني.",
+    "OPEN_ERROR": "تعذر فتح EPUB للتعديل.",
+    "AD_UNAVAILABLE": "الإعلان بمكافأة غير متاح الآن. يُرجى المحاولة مرة أخرى."
   },
   "MY_EPUBS": {
     "TITLE": "ملفات EPUB الخاصة بي",
@@ -49,6 +65,14 @@
   },
   "COMMON": {
     "CANCEL": "إلغاء",
-    "DONE": "تم"
+    "DONE": "تم",
+    "DELETE": "حذف",
+    "UPGRADE_TO_PRO": "الترقية إلى Pro",
+    "REMOVE_ADS_CTA_SUBTITLE": "دفعة واحدة • للأبد"
+  },
+  "FIX": {
+    "SAVE_RENAME_TITLE": "إعادة تسمية EPUB",
+    "SAVE_RENAME_MESSAGE": "اختر اسمًا جديدًا لهذا EPUB.",
+    "SAVE_RENAME_PLACEHOLDER": "اسم الملف"
   }
 }

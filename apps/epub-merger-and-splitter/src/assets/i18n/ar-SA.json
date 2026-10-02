@@ -131,6 +131,8 @@
       "MERGE_FAILURE_BODY": "تعذر إنشاء EPUB النهائي. لم يتم تعديل ملفاتك الأصلية.",
       "SPLIT_FAILURE_TITLE": "تعذر تقسيم EPUB",
       "SPLIT_FAILURE_BODY": "تعذر إنشاء جميع ملفات EPUB. لم يتم تعديل الملف الأصلي ولم يتم حفظ نتائج جزئية.",
+      "SPLIT_SPINE_INVALID": "تعذر الحفاظ على بنية ملف EPUB المقسّم. حاول تقسيمه دون إضافة غلاف.",
+      "SPLIT_SPINE_EMPTY": "ملف EPUB المقسّم لا يحتوي على محتوى قابل للقراءة.",
       "PROGRESS": {
         "PREPARING": "جارٍ تحضير EPUB",
         "ANALYZING": "جارٍ تحليل EPUB",

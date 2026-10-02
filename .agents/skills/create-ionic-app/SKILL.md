@@ -132,8 +132,9 @@ Rules:
 6. Set `windowSplashScreenBackground` explicitly.
 7. Set `windowSplashScreenAnimatedIcon` explicitly.
 8. Keep the launch drawable non-black by default unless the product brief explicitly wants a dark splash.
-9. If the scaffold generates tabs, include the `ion-router-outlet` inside the tabs shell template from the beginning.
+9. If the scaffold generates tabs with `ion-tab-button`, do not declare an `ion-router-outlet` inside the `ion-tabs` template. The Ionic Angular `IonTabs` component creates its own outlet when there are no projected `ion-tab` components; adding another outlet creates a full-screen hit layer that intercepts page controls while the tab bar remains clickable.
 10. Do not treat a black first frame as acceptable startup noise; if a cold launch screenshot is black before the UI appears, fix the splash/theme before closing the scaffold.
+11. When a native plugin returns a relative file path, preserve the plugin's storage-directory contract when reading or writing it through Capacitor Filesystem; never infer `Directory.Cache` from a temporary workflow name. Confirm the relative path resolves under the same native root as the plugin's absolute path.
 
 ## Standard page safe area
 
@@ -144,6 +145,15 @@ For normal pages that use `ion-header` plus a custom content shell:
 3. If the page has a centered hero or under-construction block, add top spacing in the scroll shell using `env(safe-area-inset-top)` or `--ion-safe-area-top`.
 4. Do not scaffold those pages as edge-to-edge fullscreen screens unless the product brief explicitly asks for that layout.
 5. Treat any hero/content block that touches the status bar as a bug, not as a styling preference.
+
+## Android native file workflows
+
+When an app is native Android only and handles user files:
+
+1. Use native picker and processing APIs; do not add browser file-input fallbacks or web-only ZIP libraries such as `jszip` to the app.
+2. Publish final user files through the native public-document API into `Documents/<app-folder>`; list, reopen, rename, share, and delete them through that same public-document API.
+3. Never treat `Directory.Data` or `Directory.Cache` as the destination for the final EPUB/PDF. Any internal rewrite copy must be temporary and cleaned after publication; keep derived thumbnails separate from the user document.
+4. Preserve the native plugin's storage-root contract for temporary relative paths and absolute URIs. Verify they resolve to the same file before passing paths between Capacitor Filesystem and the plugin.
 
 ## Native Bootstrap Pattern
 
@@ -339,7 +349,8 @@ Example:
 5. Crear tabs base:
    - `src/app/tabs/tabs.page.html`
    - `src/app/tabs/tabs.routes.ts`
-   - `tabs.page.html` debe incluir `ion-router-outlet` dentro de `ion-tabs`.
+   - `tabs.page.html` debe incluir `ion-tabs` y el `ion-tab-bar` con sus `ion-tab-button`; no agregar un `ion-router-outlet` explícito para este patrón.
+   - confirmar que el template no declare ningún `ion-router-outlet` dentro de `ion-tabs`; `IonTabs` proporciona el outlet para las rutas hijas.
    - cada tab nueva debe iniciar con una page vacia y sin logica de dominio
 6. Si hay 3+ tabs, Settings debe ser el último.
 7. Definir schema settings en:

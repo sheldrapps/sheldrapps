@@ -41,6 +41,7 @@
         "../../packages/covers-list-kit/src/public-api.ts"
       ],
       "@sheldrapps/file-kit": ["../../packages/file-kit/src/public-api.ts"],
+      "@sheldrapps/file-kit/core": ["../../packages/file-kit/src/core-public-api.ts"],
       "@sheldrapps/file-kit/pdf": ["../../packages/file-kit/src/pdf-api.ts"],
       "@sheldrapps/image-workflow": [
         "../../packages/image-workflow/src/public-api.ts"

@@ -1903,17 +1903,37 @@ export class HomePage implements OnInit, OnDestroy {
       status: 'error',
       outputs: [],
       warnings: [],
-      errorKey:
-        operation === 'merge'
-          ? 'HOME.OPERATION.MERGE_FAILURE_BODY'
-          : 'HOME.OPERATION.SPLIT_FAILURE_BODY',
+      errorKey: this.operationFailureKey(operation, error),
       errorDetails,
     });
     this.workflowStep = this.resultWorkflowStep;
   }
 
+  private operationFailureKey(operation: HomeMode, error: unknown): string {
+    if (operation === 'split' && error instanceof EpubRewriteError) {
+      switch (error.code) {
+        case 'SPLIT_SPINE_INVALID':
+          return 'HOME.OPERATION.SPLIT_SPINE_INVALID';
+        case 'SPLIT_SPINE_EMPTY':
+          return 'HOME.OPERATION.SPLIT_SPINE_EMPTY';
+        default:
+          break;
+      }
+    }
+
+    return operation === 'merge'
+      ? 'HOME.OPERATION.MERGE_FAILURE_BODY'
+      : 'HOME.OPERATION.SPLIT_FAILURE_BODY';
+  }
+
   private operationFailureDetails(error: unknown): string | undefined {
     if (error instanceof EpubRewriteError) {
+      if (
+        error.code === 'SPLIT_SPINE_INVALID' ||
+        error.code === 'SPLIT_SPINE_EMPTY'
+      ) {
+        return undefined;
+      }
       const parts = [error.code];
       if (error.details?.stage) parts.push(`stage=${error.details.stage}`);
       if (error.details?.message) parts.push(error.details.message);

@@ -106,7 +106,7 @@ export const UI_THEME_TRANSLATIONS: Record<string, UiThemeTranslations> = {
         DONE: 'Fertig',
       },
       THEME: {
-        SYSTEM: 'System',
+        SYSTEM: 'Systemstandard',
         LIGHT: 'Hell',
         DARK: 'Dunkel',
         WARM_READING: 'Warme Lektüre',

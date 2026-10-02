@@ -12,6 +12,9 @@ description: "Bumps a mobile app version and updates `build.gradle` plus release
 - `incrementa la version de <short_name>`
 - `sube version <short_name>`
 - `actualiza version <short_name>`
+- `Incrementa la versión de active`
+- `incrementa la version de active`
+- `sube version active`
 - `actualiza solo version notes para <short_name>`
 - `genera solo version notes para <short_name>`
 
@@ -25,12 +28,21 @@ Ejemplos:
 
 Alias soportados:
 
-- `ccfk` -> `cover-creator-for-kindle`
-- `ecc` -> `epub-cover-changer`
-- `jos` -> `just-one-step`
+- `eme` -> `epub-metadata-editor`
 - `ef` -> `epub-fixer`
+- `ecc` -> `epub-cover-changer`
+- `pcm` -> `pdf-cover-maker`
+- `ccfk` -> `cover-creator-for-kindle`
 - `emas` -> `epub-merger-and-splitter`
-- `pn` -> `presupuesto-ninos`
+- `pmas` -> `pdf-merger-and-splitter`
+
+Conjunto `active`:
+
+- Fuente de verdad: grupo `active` en `scripts/app-shortcuts.cjs`, reflejado en `pnpm bundleRelease:active`.
+- Apps actuales: `ecc`, `ccfk`, `pcm`, `ef`, `emas`, `pmas`, `eme`.
+- Al recibir `active`, ejecutar el flujo completo para cada alias en ese grupo, en orden, y validar el resultado de cada app.
+- `active` siempre expande a las siete apps actuales. No incluir `pn`, `jos` ni apps fuera del grupo.
+- Antes de cerrar, comprobar que cada app del grupo tenga `build.gradle` y su carpeta `docs/utilities/<short-name>` con `version-notes.xml`.
 
 ## Source of truth
 

@@ -14,7 +14,7 @@ import {
 import { provideAdsKit, provideAdsKitI18n } from '@sheldrapps/ads-kit';
 import { provideRatingKit } from '@sheldrapps/rating-kit';
 import { provideAdFallbackKitI18n } from '@sheldrapps/ad-fallback-kit';
-import { provideFileKit } from '@sheldrapps/file-kit';
+import { provideNativeFileKit } from '@sheldrapps/file-kit/native';
 import { provideLifecycleDiagnostics, provideRecoveryStore } from '@sheldrapps/lifecycle-kit';
 import { providePrivacyPolicyKitI18n } from '@sheldrapps/privacy-policy-kit';
 import { RECOMMENDED_APPS_CURRENT_PACKAGE } from '@sheldrapps/recommended-apps';
@@ -118,9 +118,7 @@ export function createBootstrapProviders(): Array<EnvironmentProviders | Provide
         fallbackAdapter: new WebLocalStorageAdapter(),
       }),
     }),
-    provideFileKit({
-      enableWebDevAdapters: environment.enableWebDevAdapters,
-    }),
+    provideNativeFileKit(),
     provideAdsKit({
       isTesting: !environment.production,
       units: {

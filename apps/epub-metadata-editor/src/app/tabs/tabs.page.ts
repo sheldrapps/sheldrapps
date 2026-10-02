@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import {
   IonIcon,
   IonLabel,
-  IonRouterOutlet,
   IonTabBar,
   IonTabButton,
   IonTabs,
@@ -16,7 +15,6 @@ import { createOutline, libraryOutline, settingsOutline } from 'ionicons/icons';
   templateUrl: './tabs.page.html',
   imports: [
     IonTabs,
-    IonRouterOutlet,
     IonTabBar,
     IonTabButton,
     IonIcon,

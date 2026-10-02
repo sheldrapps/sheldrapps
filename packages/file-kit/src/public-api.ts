@@ -48,7 +48,6 @@ export {
 } from './lib/epub-fixer.port';
 export * from './lib/epub-fixer-native.service';
 export * from './lib/adapters/native-epub-fixer.adapter';
-export * from './lib/adapters/web-dev-epub-fixer.adapter';
 export * from "./lib/epub-cover-metadata";
 export * from "./lib/epub-cover-generator";
 export * from './lib/epub-public-store';
@@ -59,7 +58,10 @@ export * from './lib/epub-diagnostic-queue';
 export * from './lib/epub-repairing.service';
 export * from './lib/epub-working-copy.service';
 export * from './lib/epub-metadata.service';
+export { areEpubPackageMetadataEqual } from './lib/epub-metadata-equality';
 
 // Providers
 export * from './lib/providers';
+export * from './lib/native-providers';
+export * from './lib/adapters/web-dev-epub-fixer.adapter';
 export * from "./lib/web-epub-cover.service";

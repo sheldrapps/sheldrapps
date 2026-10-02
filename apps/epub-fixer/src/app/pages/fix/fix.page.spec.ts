@@ -63,29 +63,37 @@ describe('FixPage', () => {
     );
   });
 
-  it('selects single-file mode and advances to the load step', () => {
+  it('opens the single-file picker without advancing to the load step', () => {
     const ctx = Object.assign(Object.create(FixPage.prototype), {
       fixMode: null,
       workflowStep: 0,
+      busyActionState: signal(undefined),
+      operationCompleted: signal(false),
+      openEpubPicker: jasmine.createSpy('openEpubPicker'),
     });
 
-    FixPage.prototype.selectFixMode.call(ctx, 'single');
+    FixPage.prototype.selectSingleFile.call(ctx);
 
     expect(ctx.fixMode).toBe('single');
-    expect(ctx.workflowStep).toBe(1);
+    expect(ctx.workflowStep).toBe(0);
+    expect(ctx.openEpubPicker).toHaveBeenCalled();
   });
 
-  it('selects multiple-file mode for Pro users', () => {
+  it('opens the multiple-file picker without advancing to the load step', () => {
     const ctx = Object.assign(Object.create(FixPage.prototype), {
       adsRemoved: true,
       fixMode: null,
       workflowStep: 0,
+      busyActionState: signal(undefined),
+      operationCompleted: signal(false),
+      openEpubPicker: jasmine.createSpy('openEpubPicker'),
     });
 
-    FixPage.prototype.selectFixMode.call(ctx, 'multiple');
+    FixPage.prototype.selectMultipleFiles.call(ctx);
 
     expect(ctx.fixMode).toBe('multiple');
-    expect(ctx.workflowStep).toBe(1);
+    expect(ctx.workflowStep).toBe(0);
+    expect(ctx.openEpubPicker).toHaveBeenCalled();
   });
 
   it('continues loading an issue group after 100 items', async () => {

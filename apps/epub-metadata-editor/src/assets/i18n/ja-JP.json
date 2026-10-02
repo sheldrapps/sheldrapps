@@ -9,21 +9,37 @@
   },
   "EDIT": {
     "TITLE": "編集",
-    "STEPPER": { "MODE": "モード", "FILE": "EPUBファイル" },
+    "STEPPER": {
+      "MODE": "モード",
+      "FORM": "メタデータを編集",
+      "SUMMARY": "概要"
+    },
     "MODE_TITLE": "どのように編集しますか？",
     "MODE_SINGLE_FILE": "1つのファイル",
     "MODE_SINGLE_FILE_DESCRIPTION": "一度に1つのEPUBファイルを編集します。",
     "MODE_MULTIPLE_FILES": "複数のファイル",
     "MODE_MULTIPLE_FILES_DESCRIPTION": "1回のセッションで複数のEPUBファイルを編集します。",
     "FILE_TITLE": "EPUBファイルを選択",
-  "FILE_SINGLE_PENDING": "1つのファイルの編集はここから始まります。",
-  "FILE_MULTIPLE_PENDING": "複数ファイルの編集はここから始まります。",
-  "FILE_SINGLE_HINT": "共有メタデータエディターを開くEPUBを選択します。",
-  "FILE_MULTIPLE_HINT": "複数のEPUBを選択します。共有エディターで1つずつ開きます。",
-  "SELECT_FILE": "EPUBファイルを選択",
-  "SELECT_FILES": "EPUBファイルを選択",
-  "SELECTED_FILES_COUNT": "{{count}}個のEPUBファイルを選択",
-  "SELECTION_ERROR": "選択したEPUBファイルを開けませんでした。"
+    "FILE_SINGLE_PENDING": "1つのファイルの編集はここから始まります。",
+    "FILE_MULTIPLE_PENDING": "複数ファイルの編集はここから始まります。",
+    "FILE_SINGLE_HINT": "共有メタデータエディターを開くEPUBを選択します。",
+    "FILE_MULTIPLE_HINT": "複数のEPUBを選択します。共有エディターで1つずつ開きます。",
+    "SELECT_FILE": "EPUBファイルを選択",
+    "SELECT_FILES": "EPUBファイルを選択",
+    "SELECTED_FILES_COUNT": "{{count}}個のEPUBファイルを選択",
+    "SELECTION_ERROR": "選択したEPUBファイルを開けませんでした。",
+    "SUMMARY_TITLE": "変更内容の概要",
+    "REVIEW_HINT": "メタデータの変更内容を確認してから適用してください。",
+    "APPLY_CHANGES": "変更を適用",
+    "APPLYING_CHANGES": "変更を適用しています…",
+    "APPLY_ERROR": "メタデータの変更を適用できませんでした。EPUBが利用可能か確認して、もう一度お試しください。",
+    "APPLY_SUCCESS": "メタデータの変更を適用しました。",
+    "NO_CHANGES": "メタデータに変更はありません。",
+    "EMPTY_VALUE": "空",
+    "EDIT_FILE": "編集",
+    "AD_REQUIRED": "無料版でこの EPUB を編集するには、リワード広告をご覧ください。",
+    "OPEN_ERROR": "編集用に EPUB を開けませんでした。",
+    "AD_UNAVAILABLE": "現在リワード広告を利用できません。もう一度お試しください。"
   },
   "MY_EPUBS": {
     "TITLE": "マイ EPUB",
@@ -49,6 +65,14 @@
   },
   "COMMON": {
     "CANCEL": "キャンセル",
-    "DONE": "完了"
+    "DONE": "完了",
+    "DELETE": "削除",
+    "UPGRADE_TO_PRO": "Proにアップグレード",
+    "REMOVE_ADS_CTA_SUBTITLE": "一回払い • 永久有効"
+  },
+  "FIX": {
+    "SAVE_RENAME_TITLE": "EPUB の名前を変更",
+    "SAVE_RENAME_MESSAGE": "この EPUB の新しい名前を選択してください。",
+    "SAVE_RENAME_PLACEHOLDER": "ファイル名"
   }
 }

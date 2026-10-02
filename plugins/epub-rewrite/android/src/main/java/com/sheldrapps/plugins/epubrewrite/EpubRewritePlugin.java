@@ -186,8 +186,66 @@ public class EpubRewritePlugin extends Plugin {
         String errorCode = call.getString("errorCode", "WRITE_FAILED");
         String stage = call.getString("stage", "filesystem_write");
         String sizeBucket = call.getString("sizeBucket", "unknown");
-        reportNonFatalFailure(errorCode, "size_bucket=" + sizeBucket, stage, null);
+        String message = call.getString("message", "");
+        reportNonFatalFailure(
+            errorCode,
+            "size_bucket=" + sizeBucket
+                + (message == null || message.trim().isEmpty() ? "" : " " + message.trim()),
+            stage,
+            null
+        );
         call.resolve();
+    }
+
+    @PluginMethod
+    public void shareFile(PluginCall call) {
+        try {
+            Uri file = resolveShareUri(requireString(call, "uri"));
+            String mimeType = call.getString("mimeType", "application/epub+zip");
+            String title = call.getString("title", "");
+            String dialogTitle = call.getString("dialogTitle", "Share EPUB");
+            String text = call.getString("text");
+
+            Intent send = new Intent(Intent.ACTION_SEND);
+            send.setType(mimeType);
+            send.putExtra(Intent.EXTRA_STREAM, file);
+            if (title != null && !title.trim().isEmpty()) {
+                send.putExtra(Intent.EXTRA_SUBJECT, title);
+            }
+            if (text != null && !text.trim().isEmpty()) {
+                send.putExtra(Intent.EXTRA_TEXT, text);
+            }
+            send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+            send.setClipData(ClipData.newRawUri("EPUB", file));
+
+            Intent chooser = Intent.createChooser(send, dialogTitle);
+            chooser.addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK
+            );
+            getContext().startActivity(chooser);
+
+            JSObject result = new JSObject();
+            result.put("success", true);
+            call.resolve(result);
+        } catch (ActivityNotFoundException error) {
+            call.resolve(errorResult(
+                "SHARE_UNAVAILABLE",
+                error.getMessage(),
+                "share_dialog",
+                null,
+                null,
+                false
+            ));
+        } catch (Exception error) {
+            call.resolve(errorResult(
+                "SHARE_FAILED",
+                error.getMessage(),
+                "share_dialog",
+                null,
+                null,
+                false
+            ));
+        }
     }
 
     @PluginMethod
@@ -196,6 +254,18 @@ public class EpubRewritePlugin extends Plugin {
         String stage = call.getString("stage", "ads");
         String message = call.getString("message", "");
         reportNonFatalFailure(errorCode, message, stage, null);
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void logCrashlyticsEvent(PluginCall call) {
+        String event = call.getString("event", "unknown_event");
+        String stage = call.getString("stage", "unknown_stage");
+        Long elapsedMs = call.getLong("elapsedMs");
+        Integer attempt = call.getInt("attempt");
+        String code = call.getString("code", "");
+        String detail = call.getString("detail", "");
+        logCrashlyticsEvent(event, stage, elapsedMs, attempt, code, detail);
         call.resolve();
     }
 
@@ -7687,9 +7757,7 @@ public class EpubRewritePlugin extends Plugin {
                 );
                 long validationStart = System.currentTimeMillis();
                 validateSplitEpub(
-                    output.outputPath,
-                    output.spineItemIds.size(),
-                    source.removeSourceCover
+                    output.outputPath
                 );
                 if (removeSourceCover) validateNoCoverArchive(output.outputPath);
                 debugIo(
@@ -8775,9 +8843,7 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     private void validateSplitEpub(
-        Path outputPath,
-        int expectedSpineItems,
-        boolean allowFilteredSpine
+        Path outputPath
     ) throws Exception {
         try (ZipFile zip = new ZipFile(outputPath.toFile())) {
             List<FileHeader> headers = zip.getFileHeaders();
@@ -8818,9 +8884,6 @@ public class EpubRewritePlugin extends Plugin {
                     "output EPUB has no readable spine items",
                     "split_validating"
                 );
-            }
-            if (!allowFilteredSpine && spineCount != expectedSpineItems) {
-                throw new PluginErrorException("SPLIT_SPINE_INVALID", "unexpected spine size", "split_validating");
             }
         }
     }
@@ -12451,6 +12514,26 @@ public class EpubRewritePlugin extends Plugin {
         return FileProvider.getUriForFile(getContext(), authority, path.toFile());
     }
 
+    private Uri resolveShareUri(String inputPath) throws Exception {
+        String value = inputPath == null ? "" : inputPath.trim();
+        if (CompatStrings.isBlank(value)) {
+            throw new IOException("Path is required");
+        }
+
+        Uri uri = Uri.parse(value);
+        if ("content".equalsIgnoreCase(uri.getScheme())) {
+            return uri;
+        }
+
+        Path path = resolvePath(value);
+        if (!Files.exists(path) || !Files.isRegularFile(path)) {
+            throw new IOException("Missing file: " + value);
+        }
+
+        String authority = getContext().getPackageName() + ".fileprovider";
+        return FileProvider.getUriForFile(getContext(), authority, path.toFile());
+    }
+
     private String requireString(PluginCall call, String key) throws IOException {
         String value = call.getString(key);
         if (value == null || value.trim().isEmpty()) {
@@ -12604,6 +12687,49 @@ public class EpubRewritePlugin extends Plugin {
                 .invoke(crashlytics, reportThrowable);
         } catch (Exception ignored) {
             // Best effort: keep plugin behavior unchanged if Crashlytics is unavailable.
+        }
+    }
+
+    private void logCrashlyticsEvent(
+        String event,
+        String stage,
+        Long elapsedMs,
+        Integer attempt,
+        String code,
+        String detail
+    ) {
+        try {
+            Class<?> crashlyticsClass = Class.forName(
+                "com.google.firebase.crashlytics.FirebaseCrashlytics"
+            );
+            Object crashlytics = crashlyticsClass.getMethod("getInstance").invoke(null);
+            crashlyticsClass.getMethod("setCustomKey", String.class, String.class)
+                .invoke(crashlytics, "last_diagnostic_event", event);
+            crashlyticsClass.getMethod("setCustomKey", String.class, String.class)
+                .invoke(crashlytics, "last_diagnostic_stage", stage);
+            if (elapsedMs != null) {
+                crashlyticsClass.getMethod("setCustomKey", String.class, long.class)
+                    .invoke(crashlytics, "last_diagnostic_elapsed_ms", elapsedMs);
+            }
+            if (attempt != null) {
+                crashlyticsClass.getMethod("setCustomKey", String.class, int.class)
+                    .invoke(crashlytics, "last_diagnostic_attempt", attempt);
+            }
+            if (code != null && !code.isEmpty()) {
+                crashlyticsClass.getMethod("setCustomKey", String.class, String.class)
+                    .invoke(crashlytics, "last_diagnostic_code", code);
+            }
+            String safeDetail = detail == null ? "" : detail;
+            crashlyticsClass.getMethod("log", String.class).invoke(
+                crashlytics,
+                "diagnostic event=" + event
+                    + " stage=" + stage
+                    + (elapsedMs == null ? "" : " elapsed_ms=" + elapsedMs)
+                    + (attempt == null ? "" : " attempt=" + attempt)
+                    + (code == null || code.isEmpty() ? "" : " code=" + code)
+                    + (safeDetail.isEmpty() ? "" : " detail=" + safeDetail)
+            );
+        } catch (Exception ignored) {
         }
     }
 

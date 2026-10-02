@@ -36,7 +36,7 @@
           icon="file-tray-outline"
           [disabled]="isBusy"
           [ariaLabel]="'FIX.MODE_SINGLE_FILE' | translate"
-          (click)="selectFixMode('single')"
+          (click)="selectSingleFile()"
         ></sh-action-card>
 
         <div
@@ -49,7 +49,7 @@
             icon="file-tray-stacked-outline"
             [disabled]="isBusy || !canUseMultipleFiles"
             [ariaLabel]="'FIX.MODE_MULTIPLE_FILES' | translate"
-            (click)="selectFixMode('multiple')"
+            (click)="selectMultipleFiles()"
           ></sh-action-card>
           @if (!canUseMultipleFiles) {
             <sh-pro-badge class="fix-mode-card__badge"></sh-pro-badge>

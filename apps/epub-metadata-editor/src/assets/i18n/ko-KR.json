@@ -9,21 +9,37 @@
   },
   "EDIT": {
     "TITLE": "편집",
-    "STEPPER": { "MODE": "모드", "FILE": "EPUB 파일" },
+    "STEPPER": {
+      "MODE": "모드",
+      "FORM": "메타데이터 편집",
+      "SUMMARY": "요약"
+    },
     "MODE_TITLE": "어떻게 편집하시겠어요?",
     "MODE_SINGLE_FILE": "단일 파일",
     "MODE_SINGLE_FILE_DESCRIPTION": "한 번에 하나의 EPUB 파일을 편집합니다.",
     "MODE_MULTIPLE_FILES": "여러 파일",
     "MODE_MULTIPLE_FILES_DESCRIPTION": "한 세션에서 여러 EPUB 파일을 편집합니다.",
     "FILE_TITLE": "EPUB 파일 선택",
-  "FILE_SINGLE_PENDING": "단일 파일 편집이 여기에서 시작됩니다.",
-  "FILE_MULTIPLE_PENDING": "여러 파일 편집이 여기에서 시작됩니다.",
-  "FILE_SINGLE_HINT": "공유 메타데이터 편집기를 열 EPUB를 선택하세요.",
-  "FILE_MULTIPLE_HINT": "여러 EPUB를 선택하세요. 공유 편집기가 하나씩 엽니다.",
-  "SELECT_FILE": "EPUB 파일 선택",
-  "SELECT_FILES": "EPUB 파일 선택",
-  "SELECTED_FILES_COUNT": "EPUB 파일 {{count}}개 선택됨",
-  "SELECTION_ERROR": "선택한 EPUB 파일을 열 수 없습니다."
+    "FILE_SINGLE_PENDING": "단일 파일 편집이 여기에서 시작됩니다.",
+    "FILE_MULTIPLE_PENDING": "여러 파일 편집이 여기에서 시작됩니다.",
+    "FILE_SINGLE_HINT": "공유 메타데이터 편집기를 열 EPUB를 선택하세요.",
+    "FILE_MULTIPLE_HINT": "여러 EPUB를 선택하세요. 공유 편집기가 하나씩 엽니다.",
+    "SELECT_FILE": "EPUB 파일 선택",
+    "SELECT_FILES": "EPUB 파일 선택",
+    "SELECTED_FILES_COUNT": "EPUB 파일 {{count}}개 선택됨",
+    "SELECTION_ERROR": "선택한 EPUB 파일을 열 수 없습니다.",
+    "SUMMARY_TITLE": "변경 사항 요약",
+    "REVIEW_HINT": "메타데이터 변경 사항을 적용하기 전에 확인하세요.",
+    "APPLY_CHANGES": "변경 사항 적용",
+    "APPLYING_CHANGES": "변경 사항 적용 중…",
+    "APPLY_ERROR": "메타데이터 변경 사항을 적용하지 못했습니다. EPUB을 사용할 수 있는지 확인한 후 다시 시도하세요.",
+    "APPLY_SUCCESS": "메타데이터 변경 사항을 적용했습니다.",
+    "NO_CHANGES": "메타데이터 변경 사항이 없습니다.",
+    "EMPTY_VALUE": "비어 있음",
+    "EDIT_FILE": "편집",
+    "AD_REQUIRED": "무료 버전에서 이 EPUB을 편집하려면 보상형 광고를 시청하세요.",
+    "OPEN_ERROR": "편집할 EPUB을 열지 못했습니다.",
+    "AD_UNAVAILABLE": "현재 보상형 광고를 사용할 수 없습니다. 다시 시도하세요."
   },
   "MY_EPUBS": {
     "TITLE": "내 EPUB",
@@ -49,6 +65,14 @@
   },
   "COMMON": {
     "CANCEL": "취소",
-    "DONE": "완료"
+    "DONE": "완료",
+    "DELETE": "삭제",
+    "UPGRADE_TO_PRO": "Pro로 업그레이드",
+    "REMOVE_ADS_CTA_SUBTITLE": "일회 결제 • 영구 사용"
+  },
+  "FIX": {
+    "SAVE_RENAME_TITLE": "EPUB 이름 변경",
+    "SAVE_RENAME_MESSAGE": "이 EPUB의 새 이름을 선택하세요.",
+    "SAVE_RENAME_PLACEHOLDER": "파일 이름"
   }
 }

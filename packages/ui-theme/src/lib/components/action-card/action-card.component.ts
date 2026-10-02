@@ -1,5 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  inject,
+} from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { IonIcon } from '@ionic/angular/standalone';
 
@@ -26,6 +33,7 @@ export class ActionCardComponent {
   @Input() type: 'button' | 'submit' | 'reset' = 'button';
   @Input() iconFlip: ActionCardIconFlip = 'none';
   @Input() ariaLabel: string | null = null;
+  @Output() readonly activated = new EventEmitter<void>();
 
   svgMarkup(): SafeHtml | null {
     if (!this.svg) {

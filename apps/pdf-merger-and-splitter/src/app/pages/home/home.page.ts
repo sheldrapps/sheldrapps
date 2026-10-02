@@ -59,7 +59,11 @@ import {
   type PdfSplitBookmarkMode,
 } from '../../pdf/pdf-split-planner.service';
 import { PdfLibraryService } from '../../services/pdf-library.service';
-import { mergedPdfOutputName, splitPdfOutputName } from '../../pdf/pdf-output-naming';
+import {
+  mergedPdfOutputName,
+  pdfOutputTimestamp,
+  splitPdfOutputName,
+} from '../../pdf/pdf-output-naming';
 import {
   ActionCardComponent,
   FilePickerPanelComponent,
@@ -1268,10 +1272,13 @@ export class HomePage implements OnDestroy, OnInit {
   }
 
   private outputNamesFor(mode: PdfOperation): string[] {
+    const timestamp = pdfOutputTimestamp();
     if (mode === 'merge') {
-      return [mergedPdfOutputName(this.mergePdfs()[0]?.displayName)];
+      return [mergedPdfOutputName(this.mergePdfs()[0]?.displayName, timestamp)];
     }
-    return this.splitOutputs().map((_, index) => splitPdfOutputName(this.splitPdf()?.displayName, index + 1));
+    return this.splitOutputs().map((_, index) =>
+      splitPdfOutputName(this.splitPdf()?.displayName, index + 1, timestamp),
+    );
   }
 
   private async saveOutputs(mode: PdfOperation, result: { operationId: string; outputUris: string[]; outputs?: Array<{ uri: string; fileName: string; sizeBytes: number }> }, outputNames: readonly string[]): Promise<void> {

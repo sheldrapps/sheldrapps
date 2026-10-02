@@ -137,7 +137,7 @@
     "re-phone": "pnpm re-phone:active",
     "bundleRelease:active": "pnpm bundleRelease:ecc && pnpm bundleRelease:ccfk && pnpm bundleRelease:pcm && pnpm bundleRelease:ef && pnpm bundleRelease:emas && pnpm bundleRelease:pmas && pnpm bundleRelease:eme",
     "serve:active": "pnpm serve:ecc && pnpm serve:ccfk && pnpm serve:pcm && pnpm serve:ef && pnpm serve:emas && pnpm serve:pmas && pnpm serve:eme",
-    "serve:active:no-open": "pnpm serve:ecc:no-open && pnpm serve:ccfk:no-open && pnpm serve:pcm:no-open && pnpm serve:ef:no-open && pnpm serve:emas:no-open && pnpm serve:pmas:no-open",
+    "serve:active:no-open": "pnpm serve:ecc:no-open && pnpm serve:ccfk:no-open && pnpm serve:pcm:no-open && pnpm serve:ef:no-open && pnpm serve:emas:no-open && pnpm serve:pmas:no-open && pnpm serve:eme:no-open",
     "debugApk:active": "pnpm debugApk:ecc && pnpm debugApk:ccfk && pnpm debugApk:pcm && pnpm debugApk:ef && pnpm debugApk:emas && pnpm debugApk:pmas && pnpm debugApk:eme",
     "releaseApk:active": "pnpm releaseApk:ecc && pnpm releaseApk:ccfk && pnpm releaseApk:pcm && pnpm releaseApk:ef && pnpm releaseApk:emas && pnpm releaseApk:pmas && pnpm releaseApk:eme",
     "dev:editor": "pnpm dev:ecc && pnpm dev:ccfk && pnpm dev:pcm && pnpm dev:emas && pnpm dev:pmas",

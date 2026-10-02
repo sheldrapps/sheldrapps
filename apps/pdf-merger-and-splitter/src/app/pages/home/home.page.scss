@@ -8,7 +8,9 @@ ion-title.home-page-title {
 }
 
 .home__stack {
+  box-sizing: border-box;
   width: min(100%, 680px);
+  min-width: 0;
   margin-inline: auto;
   display: grid;
   gap: var(--home-stack-gap);
@@ -19,14 +21,18 @@ ion-title.home-page-title {
 }
 
 .home__stepper {
+  box-sizing: border-box;
   width: min(100%, 680px);
+  min-width: 0;
   margin-inline: auto;
   padding: var(--app-space-5) var(--app-space-7) 0;
 }
 
 .home__workflow-navigation {
+  box-sizing: border-box;
   margin-inline: auto;
   width: min(100%, 680px);
+  min-width: 0;
   padding: 0 var(--app-space-7) var(--app-space-7);
 }
 
@@ -38,6 +44,7 @@ ion-title.home-page-title {
 .merge-result-section {
   display: grid;
   gap: var(--app-space-3);
+  min-width: 0;
 }
 
 .home-action-grid {
@@ -87,21 +94,27 @@ ion-title.home-page-title {
 .split-output-card__list {
   display: grid;
   gap: var(--app-space-2);
+  min-width: 0;
   padding-inline-start: var(--app-space-4);
 }
 
 .split-output-card__item {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: var(--app-space-3);
+  min-width: 0;
 }
 
 .split-output-card__title {
+  flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .split-output-card__size {
+  flex: 0 0 auto;
   color: var(--ion-color-medium);
   white-space: nowrap;
 }

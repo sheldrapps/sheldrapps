@@ -9,21 +9,37 @@
   },
   "EDIT": {
     "TITLE": "Редактировать",
-    "STEPPER": { "MODE": "Режим", "FILE": "Файлы EPUB" },
+    "STEPPER": {
+      "MODE": "Режим",
+      "FORM": "Редактирование метаданных",
+      "SUMMARY": "Сводка"
+    },
     "MODE_TITLE": "Как вы хотите редактировать?",
     "MODE_SINGLE_FILE": "Один файл",
     "MODE_SINGLE_FILE_DESCRIPTION": "Редактируйте один файл EPUB за раз.",
     "MODE_MULTIPLE_FILES": "Несколько файлов",
     "MODE_MULTIPLE_FILES_DESCRIPTION": "Редактируйте несколько файлов EPUB за один сеанс.",
     "FILE_TITLE": "Выберите файлы EPUB",
-  "FILE_SINGLE_PENDING": "Редактирование одного файла начнётся здесь.",
-  "FILE_MULTIPLE_PENDING": "Редактирование нескольких файлов начнётся здесь.",
-  "FILE_SINGLE_HINT": "Выберите EPUB, чтобы открыть общий редактор метаданных.",
-  "FILE_MULTIPLE_HINT": "Выберите несколько EPUB. Общий редактор откроет их по очереди.",
-  "SELECT_FILE": "Выбрать файл EPUB",
-  "SELECT_FILES": "Выбрать файлы EPUB",
-  "SELECTED_FILES_COUNT": "Выбрано файлов EPUB: {{count}}",
-  "SELECTION_ERROR": "Не удалось открыть выбранные файлы EPUB."
+    "FILE_SINGLE_PENDING": "Редактирование одного файла начнётся здесь.",
+    "FILE_MULTIPLE_PENDING": "Редактирование нескольких файлов начнётся здесь.",
+    "FILE_SINGLE_HINT": "Выберите EPUB, чтобы открыть общий редактор метаданных.",
+    "FILE_MULTIPLE_HINT": "Выберите несколько EPUB. Общий редактор откроет их по очереди.",
+    "SELECT_FILE": "Выбрать файл EPUB",
+    "SELECT_FILES": "Выбрать файлы EPUB",
+    "SELECTED_FILES_COUNT": "Выбрано файлов EPUB: {{count}}",
+    "SELECTION_ERROR": "Не удалось открыть выбранные файлы EPUB.",
+    "SUMMARY_TITLE": "Сводка изменений",
+    "REVIEW_HINT": "Проверьте изменения метаданных перед применением.",
+    "APPLY_CHANGES": "Применить изменения",
+    "APPLYING_CHANGES": "Применение изменений…",
+    "APPLY_ERROR": "Не удалось применить изменения метаданных. Убедитесь, что EPUB доступен, и повторите попытку.",
+    "APPLY_SUCCESS": "Изменения метаданных применены.",
+    "NO_CHANGES": "Метаданные не изменены.",
+    "EMPTY_VALUE": "Пусто",
+    "EDIT_FILE": "Изменить",
+    "AD_REQUIRED": "Посмотрите рекламу с вознаграждением, чтобы изменить EPUB в бесплатной версии.",
+    "OPEN_ERROR": "Не удалось открыть EPUB для редактирования.",
+    "AD_UNAVAILABLE": "Реклама с вознаграждением сейчас недоступна. Попробуйте ещё раз."
   },
   "MY_EPUBS": {
     "TITLE": "Мои EPUB",
@@ -49,6 +65,14 @@
   },
   "COMMON": {
     "CANCEL": "Отмена",
-    "DONE": "Готово"
+    "DONE": "Готово",
+    "DELETE": "Удалить",
+    "UPGRADE_TO_PRO": "Перейти на Pro",
+    "REMOVE_ADS_CTA_SUBTITLE": "Разовый платёж • Навсегда"
+  },
+  "FIX": {
+    "SAVE_RENAME_TITLE": "Переименовать EPUB",
+    "SAVE_RENAME_MESSAGE": "Выберите новое имя для этого EPUB.",
+    "SAVE_RENAME_PLACEHOLDER": "Имя файла"
   }
 }

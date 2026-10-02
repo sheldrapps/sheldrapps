@@ -10,13 +10,13 @@ describe('EditPage', () => {
     }) as EditPage;
   }
 
-  it('advances to the file step after selecting single-file mode', () => {
+  it('opens single-file selection without advancing before a file is chosen', () => {
     const context = createContext();
 
     context.selectEditMode('single');
 
     expect(context.editMode).toBe('single');
-    expect(context.workflowStep).toBe(1);
+    expect(context.workflowStep).toBe(0);
     expect(context.selectFiles).toHaveBeenCalledTimes(1);
   });
 
@@ -36,41 +36,70 @@ describe('EditPage', () => {
     context.selectEditMode('multiple');
 
     expect(context.editMode).toBe('multiple');
-    expect(context.workflowStep).toBe(1);
+    expect(context.workflowStep).toBe(0);
     expect(context.canUseMultipleFiles).toBeTrue();
     expect(context.selectFiles).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the single-file input when selecting one EPUB on web', async () => {
-    const singleInputClick = jasmine.createSpy('singleInputClick');
+  it('advances to the file step only after selection succeeds', async () => {
+    const context = Object.assign(createContext(), {
+      isSelectingFiles: false,
+      selectionErrorKey: null,
+    }) as EditPage;
+
+    await (EditPage.prototype as any).runFileSelection.call(
+      context,
+      async () => undefined,
+    );
+
+    expect(context.workflowStep).toBe(1);
+    expect(context.isSelectingFiles).toBeFalse();
+  });
+
+  it('reports a picker failure without hiding it on the mode step', async () => {
+    const context = Object.assign(createContext(), {
+      isSelectingFiles: false,
+      selectionErrorKey: null,
+    }) as EditPage;
+
+    await (EditPage.prototype as any).runFileSelection.call(
+      context,
+      async () => {
+        throw new Error('PICKER_UNAVAILABLE');
+      },
+    );
+
+    expect(context.workflowStep).toBe(0);
+    expect(context.selectionErrorKey).toBe('EDIT.SELECTION_ERROR');
+    expect(context.isSelectingFiles).toBeFalse();
+  });
+
+  it('opens the native picker when selecting one EPUB', async () => {
+    const startFromNativePicker = jasmine.createSpy('startFromNativePicker').and.resolveTo();
     const context = Object.assign(createContext(), {
       editMode: 'single',
       isSelectingFiles: false,
       selectionErrorKey: null,
-      metadataWorkflow: { isNativeSupported: false },
-      singleEpubInput: { nativeElement: { click: singleInputClick } },
-      multipleEpubInput: { nativeElement: { click: jasmine.createSpy('multipleInputClick') } },
+      metadataWorkflow: { startFromNativePicker },
     }) as EditPage;
 
-    await context.selectFiles();
+    await EditPage.prototype.selectFiles.call(context);
 
-    expect(singleInputClick).toHaveBeenCalledTimes(1);
+    expect(startFromNativePicker).toHaveBeenCalledOnceWith(false);
   });
 
-  it('opens the multiple-file input when selecting several EPUBs on web', async () => {
-    const multipleInputClick = jasmine.createSpy('multipleInputClick');
+  it('opens the native picker when selecting several EPUBs', async () => {
+    const startFromNativePicker = jasmine.createSpy('startFromNativePicker').and.resolveTo();
     const context = Object.assign(createContext(true), {
       editMode: 'multiple',
       isSelectingFiles: false,
       selectionErrorKey: null,
-      metadataWorkflow: { isNativeSupported: false },
-      singleEpubInput: { nativeElement: { click: jasmine.createSpy('singleInputClick') } },
-      multipleEpubInput: { nativeElement: { click: multipleInputClick } },
+      metadataWorkflow: { startFromNativePicker },
     }) as EditPage;
 
-    await context.selectFiles();
+    await EditPage.prototype.selectFiles.call(context);
 
-    expect(multipleInputClick).toHaveBeenCalledTimes(1);
+    expect(startFromNativePicker).toHaveBeenCalledOnceWith(true);
   });
 
   it('omits empty metadata fields from the completed summary', () => {

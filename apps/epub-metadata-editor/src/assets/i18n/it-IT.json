@@ -9,21 +9,37 @@
   },
   "EDIT": {
     "TITLE": "Modifica",
-    "STEPPER": { "MODE": "Modalità", "FILE": "File EPUB" },
+    "STEPPER": {
+      "MODE": "Modalità",
+      "FORM": "Modifica metadati",
+      "SUMMARY": "Riepilogo"
+    },
     "MODE_TITLE": "Come vuoi modificare?",
     "MODE_SINGLE_FILE": "Un file",
     "MODE_SINGLE_FILE_DESCRIPTION": "Modifica un file EPUB alla volta.",
     "MODE_MULTIPLE_FILES": "Più file",
     "MODE_MULTIPLE_FILES_DESCRIPTION": "Modifica più file EPUB in un'unica sessione.",
     "FILE_TITLE": "Scegli file EPUB",
-  "FILE_SINGLE_PENDING": "La modifica di un file inizierà qui.",
-  "FILE_MULTIPLE_PENDING": "La modifica di più file inizierà qui.",
-  "FILE_SINGLE_HINT": "Scegli un EPUB per aprire l’editor dei metadati condiviso.",
-  "FILE_MULTIPLE_HINT": "Scegli più EPUB. L’editor condiviso li aprirà uno alla volta.",
-  "SELECT_FILE": "Scegli file EPUB",
-  "SELECT_FILES": "Scegli file EPUB",
-  "SELECTED_FILES_COUNT": "{{count}} file EPUB selezionati",
-  "SELECTION_ERROR": "Non è stato possibile aprire i file EPUB selezionati."
+    "FILE_SINGLE_PENDING": "La modifica di un file inizierà qui.",
+    "FILE_MULTIPLE_PENDING": "La modifica di più file inizierà qui.",
+    "FILE_SINGLE_HINT": "Scegli un EPUB per aprire l’editor dei metadati condiviso.",
+    "FILE_MULTIPLE_HINT": "Scegli più EPUB. L’editor condiviso li aprirà uno alla volta.",
+    "SELECT_FILE": "Scegli file EPUB",
+    "SELECT_FILES": "Scegli file EPUB",
+    "SELECTED_FILES_COUNT": "{{count}} file EPUB selezionati",
+    "SELECTION_ERROR": "Non è stato possibile aprire i file EPUB selezionati.",
+    "SUMMARY_TITLE": "Riepilogo delle modifiche",
+    "REVIEW_HINT": "Controlla le modifiche ai metadati prima di applicarle.",
+    "APPLY_CHANGES": "Applica modifiche",
+    "APPLYING_CHANGES": "Applicazione delle modifiche…",
+    "APPLY_ERROR": "Impossibile applicare le modifiche. Verifica che il file EPUB sia disponibile e riprova.",
+    "APPLY_SUCCESS": "Modifiche ai metadati applicate.",
+    "NO_CHANGES": "Nessuna modifica ai metadati.",
+    "EMPTY_VALUE": "Vuoto",
+    "EDIT_FILE": "Modifica",
+    "AD_REQUIRED": "Guarda un annuncio con premio per modificare questo EPUB nella versione gratuita.",
+    "OPEN_ERROR": "Impossibile aprire l’EPUB per modificarlo.",
+    "AD_UNAVAILABLE": "Un annuncio con premio non è disponibile al momento. Riprova."
   },
   "MY_EPUBS": {
     "TITLE": "I miei EPUB",
@@ -49,6 +65,14 @@
   },
   "COMMON": {
     "CANCEL": "Annulla",
-    "DONE": "Fine"
+    "DONE": "Fine",
+    "DELETE": "Elimina",
+    "UPGRADE_TO_PRO": "Passa a Pro",
+    "REMOVE_ADS_CTA_SUBTITLE": "Pagamento unico • Per sempre"
+  },
+  "FIX": {
+    "SAVE_RENAME_TITLE": "Rinomina EPUB",
+    "SAVE_RENAME_MESSAGE": "Scegli un nuovo nome per questo EPUB.",
+    "SAVE_RENAME_PLACEHOLDER": "Nome file"
   }
 }

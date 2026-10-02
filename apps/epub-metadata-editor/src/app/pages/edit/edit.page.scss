@@ -27,3 +27,15 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+.app-metadata-change {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--app-space-2);
+}
+
+.app-metadata-change__before,
+.app-metadata-change__arrow {
+  color: var(--app-text-secondary);
+}

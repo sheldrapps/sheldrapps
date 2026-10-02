@@ -4,14 +4,53 @@
 
 import { Share } from '@capacitor/share';
 import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Capacitor, type Plugin } from '@capacitor/core';
 import { ShareAdapter } from '../share.adapter';
 import { FileRef, ShareOptions } from '../../types';
 import { FileKitError } from '../../errors';
 import { reportFileShareFailure } from '../../file-telemetry';
+import { registerCapacitorPluginOnce } from '../../capacitor-plugin';
+
+type NativeShareResult = {
+  success?: boolean;
+  error?: string;
+  message?: string;
+};
+
+type EpubSharePlugin = Plugin & {
+  shareFile(options: {
+    uri: string;
+    filename: string;
+    mimeType: string;
+    title?: string;
+    text?: string;
+    dialogTitle?: string;
+  }): Promise<NativeShareResult>;
+};
+
+const epubShare = registerCapacitorPluginOnce<EpubSharePlugin>('EpubRewritePlugin');
 
 export class CapacitorShareAdapter implements ShareAdapter {
   async share(ref: FileRef, options?: ShareOptions): Promise<boolean> {
     try {
+      if (this.canUseNativeEpubShare(ref)) {
+        const result = await epubShare.shareFile({
+          uri: ref.uri,
+          filename: ref.filename,
+          mimeType: ref.mimeType || 'application/epub+zip',
+          ...(options?.title ? { title: options.title } : {}),
+          ...(options?.text ? { text: options.text } : {}),
+          ...(options?.dialogTitle ? { dialogTitle: options.dialogTitle } : {}),
+        });
+
+        if (result?.success === false) {
+          throw new Error(
+            result.message || result.error || 'Native EPUB share failed',
+          );
+        }
+        return true;
+      }
+
       const { value: canShare } = await Share.canShare();
       if (!canShare) {
         return false;
@@ -31,17 +70,27 @@ export class CapacitorShareAdapter implements ShareAdapter {
       if (String(error).includes('canceled')) {
         return false;
       }
+      const details = this.getErrorDetails(error);
       reportFileShareFailure({
         format: this.getFileFormat(ref),
         stage: this.getShareFailureStage(error),
+        sizeBytes: ref.size,
+        message: details.message,
+        uriScheme: this.getUriScheme(ref.uri),
       });
       console.error('[file-kit:share] failed', JSON.stringify({
         filename: ref.filename,
         uriScheme: this.getUriScheme(ref.uri),
-        error: this.getErrorDetails(error),
+        error: details,
       }));
       throw new FileKitError('SHARE_FAILED', 'Failed to share file', error);
     }
+  }
+
+  private canUseNativeEpubShare(ref: FileRef): boolean {
+    return this.getFileFormat(ref) === 'epub'
+      && Capacitor.isNativePlatform()
+      && Capacitor.isPluginAvailable('EpubRewritePlugin');
   }
 
   private async toShareableFileUri(ref: FileRef): Promise<string> {

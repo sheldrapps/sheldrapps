@@ -6,6 +6,11 @@ apply plugin: 'com.google.firebase.crashlytics'
 android {
     namespace = "com.sheldrapps.epubmergersplitter"
     compileSdk = rootProject.ext.compileSdkVersion
+    packagingOptions {
+        jniLibs {
+            excludes += ['**/libdatastore_shared_counter.so']
+        }
+    }
     compileOptions {
         coreLibraryDesugaringEnabled true
     }
@@ -13,8 +18,8 @@ android {
         applicationId "com.sheldrapps.epubmergersplitter"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 28
-        versionName "Export stability and access"
+        versionCode 32
+        versionName "Share and 16 KB reliability"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

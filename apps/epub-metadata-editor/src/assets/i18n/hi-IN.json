@@ -9,21 +9,37 @@
   },
   "EDIT": {
     "TITLE": "संपादित करें",
-    "STEPPER": { "MODE": "मोड", "FILE": "EPUB फ़ाइलें" },
+    "STEPPER": {
+      "MODE": "मोड",
+      "FORM": "मेटाडेटा संपादित करें",
+      "SUMMARY": "सारांश"
+    },
     "MODE_TITLE": "आप कैसे संपादित करना चाहते हैं?",
     "MODE_SINGLE_FILE": "एक फ़ाइल",
     "MODE_SINGLE_FILE_DESCRIPTION": "एक बार में एक EPUB फ़ाइल संपादित करें।",
     "MODE_MULTIPLE_FILES": "एकाधिक फ़ाइलें",
     "MODE_MULTIPLE_FILES_DESCRIPTION": "एक ही सत्र में कई EPUB फ़ाइलें संपादित करें।",
     "FILE_TITLE": "EPUB फ़ाइलें चुनें",
-  "FILE_SINGLE_PENDING": "एकल-फ़ाइल संपादन यहां शुरू होगा।",
-  "FILE_MULTIPLE_PENDING": "एकाधिक-फ़ाइल संपादन यहां शुरू होगा।",
-  "FILE_SINGLE_HINT": "साझा मेटाडेटा संपादक खोलने के लिए EPUB चुनें।",
-  "FILE_MULTIPLE_HINT": "कई EPUB चुनें। साझा संपादक उन्हें एक-एक करके खोलेगा।",
-  "SELECT_FILE": "EPUB फ़ाइल चुनें",
-  "SELECT_FILES": "EPUB फ़ाइलें चुनें",
-  "SELECTED_FILES_COUNT": "{{count}} EPUB फ़ाइलें चुनी गईं",
-  "SELECTION_ERROR": "चुनी गई EPUB फ़ाइलें खोली नहीं जा सकीं।"
+    "FILE_SINGLE_PENDING": "एकल-फ़ाइल संपादन यहां शुरू होगा।",
+    "FILE_MULTIPLE_PENDING": "एकाधिक-फ़ाइल संपादन यहां शुरू होगा।",
+    "FILE_SINGLE_HINT": "साझा मेटाडेटा संपादक खोलने के लिए EPUB चुनें।",
+    "FILE_MULTIPLE_HINT": "कई EPUB चुनें। साझा संपादक उन्हें एक-एक करके खोलेगा।",
+    "SELECT_FILE": "EPUB फ़ाइल चुनें",
+    "SELECT_FILES": "EPUB फ़ाइलें चुनें",
+    "SELECTED_FILES_COUNT": "{{count}} EPUB फ़ाइलें चुनी गईं",
+    "SELECTION_ERROR": "चुनी गई EPUB फ़ाइलें खोली नहीं जा सकीं।",
+    "SUMMARY_TITLE": "बदलावों का सारांश",
+    "REVIEW_HINT": "मेटाडेटा बदलाव लागू करने से पहले उनकी समीक्षा करें।",
+    "APPLY_CHANGES": "बदलाव लागू करें",
+    "APPLYING_CHANGES": "बदलाव लागू हो रहे हैं…",
+    "APPLY_ERROR": "मेटाडेटा बदलाव लागू नहीं हो सके। EPUB उपलब्ध है या नहीं जाँचें और फिर कोशिश करें।",
+    "APPLY_SUCCESS": "मेटाडेटा बदलाव लागू हो गए।",
+    "NO_CHANGES": "मेटाडेटा में कोई बदलाव नहीं किया गया।",
+    "EMPTY_VALUE": "खाली",
+    "EDIT_FILE": "संपादित करें",
+    "AD_REQUIRED": "मुफ़्त संस्करण में इस EPUB को संपादित करने के लिए पुरस्कृत विज्ञापन देखें।",
+    "OPEN_ERROR": "संपादन के लिए EPUB नहीं खोला जा सका।",
+    "AD_UNAVAILABLE": "अभी कोई पुरस्कृत विज्ञापन उपलब्ध नहीं है। कृपया फिर से कोशिश करें।"
   },
   "MY_EPUBS": {
     "TITLE": "मेरे EPUB",
@@ -49,6 +65,14 @@
   },
   "COMMON": {
     "CANCEL": "रद्द करें",
-    "DONE": "हो गया"
+    "DONE": "हो गया",
+    "DELETE": "हटाएँ",
+    "UPGRADE_TO_PRO": "प्रो में अपग्रेड करें",
+    "REMOVE_ADS_CTA_SUBTITLE": "एकमुश्त भुगतान • हमेशा के लिए"
+  },
+  "FIX": {
+    "SAVE_RENAME_TITLE": "EPUB का नाम बदलें",
+    "SAVE_RENAME_MESSAGE": "इस EPUB के लिए नया नाम चुनें।",
+    "SAVE_RENAME_PLACEHOLDER": "फ़ाइल का नाम"
   }
 }

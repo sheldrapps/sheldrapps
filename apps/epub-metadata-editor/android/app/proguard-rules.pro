@@ -19,3 +19,7 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# WorkManager is initialized by App Startup and Room creates WorkDatabase_Impl reflectively.
+# AGP 9/R8 can otherwise remove or change the reflective implementation in release builds.
+-keep class androidx.work.** { *; }

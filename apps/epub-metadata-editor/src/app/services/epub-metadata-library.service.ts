@@ -1,15 +1,10 @@
-import { Directory } from '@capacitor/filesystem';
 import { Injectable, inject } from '@angular/core';
 import {
-  EpubPublicStore,
+  areEpubPackageMetadataEqual,
   EpubRewriteService,
   FileKitService,
-  PUBLIC_FILESYSTEM,
-  areEpubPackageMetadataEqual,
-  readEpubMetadata,
-  writeEpubMetadata,
   type EpubPackageMetadata,
-} from '@sheldrapps/file-kit';
+} from '@sheldrapps/file-kit/native';
 
 const EME_PUBLIC_FOLDER = 'EPUBMetadataEditor';
 const EPUB_MIME_TYPE = 'application/epub+zip';
@@ -18,121 +13,81 @@ const EPUB_MIME_TYPE = 'application/epub+zip';
 export class EpubMetadataLibraryService {
   private readonly fileKit = inject(FileKitService);
   private readonly epubRewrite = inject(EpubRewriteService);
-  private readonly publicFilesystem = inject(PUBLIC_FILESYSTEM);
-  private readonly epubStore = new EpubPublicStore(this.fileKit, {
-    epubFolder: EME_PUBLIC_FOLDER,
-    useDocumentsDirectoryOnNative: true,
-    nativeDirectory: Directory.Documents,
-    legacyNativeDirectories: [Directory.Data],
-    filesystem: this.publicFilesystem,
-    logPrefix: 'EME:library',
-  });
 
   async listEpubs(): Promise<string[]> {
-    if (this.epubRewrite.isSupported()) {
-      const files = await this.epubRewrite.listPublicDocuments(EME_PUBLIC_FOLDER, '.epub');
-      return files.map((file) => file.name).sort((left, right) => left.localeCompare(right));
-    }
-    return this.epubStore.listEpubs();
+    this.requireNativeSupport();
+    const files = await this.epubRewrite.listPublicDocuments(EME_PUBLIC_FOLDER, '.epub');
+    return files.map((file) => file.name).sort((left, right) => left.localeCompare(right));
   }
 
-  async saveEpub(filename: string, bytes: Uint8Array): Promise<void> {
+  async publishWorkingEpub(filename: string, sourcePath: string): Promise<string> {
+    this.requireNativeSupport();
     const resolved = this.ensureEpubFilename(filename);
-    if (!this.epubRewrite.isSupported()) {
-      await this.epubStore.writeEpub(resolved, bytes);
-      return;
-    }
-
-    const stagingPath = `${EME_PUBLIC_FOLDER}/.metadata_${Date.now()}_${resolved}`;
-    try {
-      await this.fileKit.writeBytes({
-        dir: 'Data',
-        path: stagingPath,
-        bytes,
-        mimeType: EPUB_MIME_TYPE,
-      });
-      const sourceUri = await this.fileKit.getUri({ dir: 'Data', path: stagingPath });
-      await this.epubRewrite.ensurePublicExportFolder(EME_PUBLIC_FOLDER);
-      await this.epubRewrite.publishPublicDocument({
-        folderName: EME_PUBLIC_FOLDER,
-        sourcePath: sourceUri,
-        outputName: resolved,
-        mimeType: EPUB_MIME_TYPE,
-      });
-    } finally {
-      await this.fileKit.delete({ dir: 'Data', path: stagingPath }).catch(() => undefined);
-    }
-  }
-
-  async readBytes(filename: string): Promise<Uint8Array> {
-    const resolved = this.ensureEpubFilename(filename);
-    if (this.epubRewrite.isSupported()) {
-      const document = await this.epubRewrite.getPublicDocument(EME_PUBLIC_FOLDER, resolved);
-      return this.readUriBytes(document.uri);
-    }
-    return this.epubStore.readBytes(resolved);
+    await this.epubRewrite.ensurePublicExportFolder(EME_PUBLIC_FOLDER);
+    const published = await this.epubRewrite.publishPublicDocument({
+      folderName: EME_PUBLIC_FOLDER,
+      sourcePath,
+      outputName: resolved,
+      mimeType: EPUB_MIME_TYPE,
+    });
+    return published.filename;
   }
 
   async readMetadata(filename: string) {
-    const bytes = await this.readBytes(filename);
-    return readEpubMetadata(bytes);
+    this.requireNativeSupport();
+    return this.epubRewrite.readPublicEpubMetadata(
+      EME_PUBLIC_FOLDER,
+      this.ensureEpubFilename(filename),
+    );
   }
 
   async updateMetadata(filename: string, metadata: EpubPackageMetadata): Promise<void> {
+    this.requireNativeSupport();
     const resolved = this.ensureEpubFilename(filename);
-    if (this.epubRewrite.isSupported()) {
-      await this.epubRewrite.rewritePublicEpubMetadata(EME_PUBLIC_FOLDER, resolved, metadata);
-      await this.verifyMetadata(resolved, metadata);
-      return;
-    }
-
-    const bytes = await this.readBytes(resolved);
-    const updated = await writeEpubMetadata(bytes, metadata);
-    await this.saveEpub(resolved, updated);
+    await this.epubRewrite.rewritePublicEpubMetadata(
+      EME_PUBLIC_FOLDER,
+      resolved,
+      metadata,
+    );
     await this.verifyMetadata(resolved, metadata);
   }
 
   async deleteByFilename(filename: string): Promise<void> {
-    const resolved = this.ensureEpubFilename(filename);
-    if (this.epubRewrite.isSupported()) {
-      await this.epubRewrite.deletePublicDocument(EME_PUBLIC_FOLDER, resolved);
-      return;
-    }
-    await this.epubStore.deleteEpub(resolved);
+    this.requireNativeSupport();
+    await this.epubRewrite.deletePublicDocument(
+      EME_PUBLIC_FOLDER,
+      this.ensureEpubFilename(filename),
+    );
   }
 
   async renameByFilename(filename: string, requestedName: string): Promise<string> {
+    this.requireNativeSupport();
     const resolved = this.ensureEpubFilename(filename);
     const usedNames = new Set((await this.listEpubs()).filter((item) => item !== resolved));
     const nextFilename = this.resolveUniqueFilename(requestedName, usedNames);
     if (resolved === nextFilename) return resolved;
 
-    if (this.epubRewrite.isSupported()) {
-      await this.epubRewrite.renamePublicDocument(EME_PUBLIC_FOLDER, resolved, nextFilename);
-    } else {
-      await this.epubStore.renameEpub(resolved, nextFilename);
-    }
+    await this.epubRewrite.renamePublicDocument(
+      EME_PUBLIC_FOLDER,
+      resolved,
+      nextFilename,
+    );
     return nextFilename;
   }
 
   async openByFilename(filename: string): Promise<void> {
+    this.requireNativeSupport();
     const resolved = this.ensureEpubFilename(filename);
     const uri = await this.resolveUri(resolved);
-    if (this.epubRewrite.isSupported()) {
-      await this.epubRewrite.openExternalFile({
-        inputPath: uri,
-        mimeType: EPUB_MIME_TYPE,
-        chooserTitle: resolved,
-      });
-      return;
-    }
-    await this.fileKit.share(
-      { uri, filename: resolved, mimeType: EPUB_MIME_TYPE },
-      { title: resolved, dialogTitle: 'Open EPUB' },
-    );
+    await this.epubRewrite.openExternalFile({
+      inputPath: uri,
+      mimeType: EPUB_MIME_TYPE,
+      chooserTitle: resolved,
+    });
   }
 
   async shareByFilename(filename: string): Promise<void> {
+    this.requireNativeSupport();
     const resolved = this.ensureEpubFilename(filename);
     const uri = await this.resolveUri(resolved);
     await this.fileKit.share(
@@ -142,22 +97,19 @@ export class EpubMetadataLibraryService {
   }
 
   private async resolveUri(filename: string): Promise<string> {
-    if (this.epubRewrite.isSupported()) {
-      return (await this.epubRewrite.getPublicDocument(EME_PUBLIC_FOLDER, filename)).uri;
-    }
-    return this.epubStore.getUriOrThrow(filename);
-  }
-
-  private async readUriBytes(uri: string): Promise<Uint8Array> {
-    const response = await fetch(uri);
-    if (!response.ok) throw new Error('EPUB_METADATA_READ_FAILED');
-    return new Uint8Array(await response.arrayBuffer());
+    return (await this.epubRewrite.getPublicDocument(EME_PUBLIC_FOLDER, filename)).uri;
   }
 
   private async verifyMetadata(filename: string, metadata: EpubPackageMetadata): Promise<void> {
     const persisted = await this.readMetadata(filename);
-    if (!persisted || !areEpubPackageMetadataEqual(persisted.metadata, metadata)) {
+    if (!areEpubPackageMetadataEqual(persisted.metadata, metadata)) {
       throw new Error('EPUB_METADATA_READ_AFTER_WRITE_MISMATCH');
+    }
+  }
+
+  private requireNativeSupport(): void {
+    if (!this.epubRewrite.isSupported()) {
+      throw new Error('EPUB_METADATA_NATIVE_UNAVAILABLE');
     }
   }
 

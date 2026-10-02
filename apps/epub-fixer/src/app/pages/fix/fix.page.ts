@@ -408,17 +408,24 @@ export class FixPage implements OnInit, OnDestroy {
     }
   }
 
-  selectFixMode(mode: FixMode): void {
-    if (
-      this.isBusy ||
-      (mode === 'multiple' && !this.canUseMultipleFiles)
-    ) {
+  selectSingleFile(): void {
+    if (this.isBusy) {
       return;
     }
 
-    this.fixMode = mode;
+    this.fixMode = 'single';
     this.operationCompleted.set(false);
-    this.workflowStep = 1;
+    this.openEpubPicker();
+  }
+
+  selectMultipleFiles(): void {
+    if (this.isBusy || !this.canUseMultipleFiles) {
+      return;
+    }
+
+    this.fixMode = 'multiple';
+    this.operationCompleted.set(false);
+    this.openEpubPicker();
   }
 
   onWorkflowStepSelected(step: number): void {

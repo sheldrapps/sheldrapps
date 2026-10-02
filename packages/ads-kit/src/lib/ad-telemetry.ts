@@ -6,6 +6,23 @@ type AdsTelemetryPlugin = Plugin & {
     stage: string;
     message: string;
   }): Promise<void>;
+  logCrashlyticsEvent(options: {
+    event: string;
+    stage: string;
+    elapsedMs?: number;
+    attempt?: number;
+    code?: string;
+    detail?: string;
+  }): Promise<void>;
+};
+
+export type CrashlyticsDiagnostic = {
+  event: string;
+  stage: string;
+  elapsedMs?: number;
+  attempt?: number;
+  code?: string;
+  detail?: string;
 };
 
 export type AdsFailureTelemetry = {
@@ -92,6 +109,43 @@ export function reportAdsFailure(options: AdsFailureTelemetry): void {
     console.error('[Ads] failure telemetry bridge rejected', {
       stage: options.stage,
       errorCode: options.errorCode,
+      message: error instanceof Error ? error.message : String(error),
+    });
+  });
+}
+
+export function reportCrashlyticsDiagnostic(options: CrashlyticsDiagnostic): void {
+  if (!Capacitor.isNativePlatform()) {
+    return;
+  }
+
+  const pluginName = Capacitor.isPluginAvailable('EpubRewritePlugin')
+    ? 'EpubRewritePlugin'
+    : Capacitor.isPluginAvailable('PdfRewritePlugin')
+      ? 'PdfRewritePlugin'
+      : null;
+  if (!pluginName) {
+    return;
+  }
+
+  const plugin = pluginName === 'EpubRewritePlugin'
+    ? epubTelemetry
+    : pdfTelemetry;
+  void plugin.logCrashlyticsEvent({
+    event: compactValue(options.event),
+    stage: compactValue(options.stage),
+    ...(options.elapsedMs === undefined
+      ? {}
+      : { elapsedMs: Math.max(0, Math.round(options.elapsedMs)) }),
+    ...(options.attempt === undefined
+      ? {}
+      : { attempt: Math.max(0, Math.round(options.attempt)) }),
+    ...(options.code ? { code: compactValue(options.code) } : {}),
+    ...(options.detail ? { detail: compactValue(options.detail) } : {}),
+  }).catch((error) => {
+    console.error('[Crashlytics] diagnostic bridge rejected', {
+      event: options.event,
+      stage: options.stage,
       message: error instanceof Error ? error.message : String(error),
     });
   });

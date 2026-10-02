@@ -131,6 +131,8 @@
       "MERGE_FAILURE_BODY": "最終 EPUB を作成できませんでした。元のファイルは変更されていません。",
       "SPLIT_FAILURE_TITLE": "EPUB を分割できませんでした",
       "SPLIT_FAILURE_BODY": "すべての EPUB を作成できませんでした。元のファイルは変更されず、部分的な結果は保存されていません。",
+      "SPLIT_SPINE_INVALID": "分割したEPUBの内部構造を維持できませんでした。表紙を追加せずに分割してください。",
+      "SPLIT_SPINE_EMPTY": "分割したEPUBに読み取り可能なコンテンツがありません。",
       "PROGRESS": {
         "PREPARING": "EPUB を準備中",
         "ANALYZING": "EPUB を解析中",

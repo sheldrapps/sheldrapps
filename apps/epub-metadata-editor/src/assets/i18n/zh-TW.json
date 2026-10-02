@@ -9,21 +9,37 @@
   },
   "EDIT": {
     "TITLE": "編輯",
-    "STEPPER": { "MODE": "模式", "FILE": "EPUB 檔案" },
+    "STEPPER": {
+      "MODE": "模式",
+      "FORM": "編輯中繼資料",
+      "SUMMARY": "摘要"
+    },
     "MODE_TITLE": "你想如何編輯？",
     "MODE_SINGLE_FILE": "單一檔案",
     "MODE_SINGLE_FILE_DESCRIPTION": "一次編輯一個 EPUB 檔案。",
     "MODE_MULTIPLE_FILES": "多個檔案",
     "MODE_MULTIPLE_FILES_DESCRIPTION": "在同一個工作階段中編輯多個 EPUB 檔案。",
     "FILE_TITLE": "選擇 EPUB 檔案",
-  "FILE_SINGLE_PENDING": "單一檔案編輯將從這裡開始。",
-  "FILE_MULTIPLE_PENDING": "多個檔案編輯將從這裡開始。",
-  "FILE_SINGLE_HINT": "選擇 EPUB 以開啟共用中繼資料編輯器。",
-  "FILE_MULTIPLE_HINT": "選擇多個 EPUB。共用編輯器會依序開啟檔案。",
-  "SELECT_FILE": "選擇 EPUB 檔案",
-  "SELECT_FILES": "選擇 EPUB 檔案",
-  "SELECTED_FILES_COUNT": "已選擇 {{count}} 個 EPUB 檔案",
-  "SELECTION_ERROR": "無法開啟選取的 EPUB 檔案。"
+    "FILE_SINGLE_PENDING": "單一檔案編輯將從這裡開始。",
+    "FILE_MULTIPLE_PENDING": "多個檔案編輯將從這裡開始。",
+    "FILE_SINGLE_HINT": "選擇 EPUB 以開啟共用中繼資料編輯器。",
+    "FILE_MULTIPLE_HINT": "選擇多個 EPUB。共用編輯器會依序開啟檔案。",
+    "SELECT_FILE": "選擇 EPUB 檔案",
+    "SELECT_FILES": "選擇 EPUB 檔案",
+    "SELECTED_FILES_COUNT": "已選擇 {{count}} 個 EPUB 檔案",
+    "SELECTION_ERROR": "無法開啟選取的 EPUB 檔案。",
+    "SUMMARY_TITLE": "變更摘要",
+    "REVIEW_HINT": "套用前請檢查中繼資料變更。",
+    "APPLY_CHANGES": "套用變更",
+    "APPLYING_CHANGES": "正在套用變更…",
+    "APPLY_ERROR": "無法套用中繼資料變更。請確認 EPUB 仍可使用，然後再試一次。",
+    "APPLY_SUCCESS": "中繼資料變更已套用。",
+    "NO_CHANGES": "中繼資料沒有變更。",
+    "EMPTY_VALUE": "空白",
+    "EDIT_FILE": "編輯",
+    "AD_REQUIRED": "免費版需要觀看獎勵廣告才能編輯此 EPUB。",
+    "OPEN_ERROR": "無法開啟 EPUB 進行編輯。",
+    "AD_UNAVAILABLE": "獎勵廣告目前無法使用，請再試一次。"
   },
   "MY_EPUBS": {
     "TITLE": "我的 EPUB",
@@ -49,6 +65,14 @@
   },
   "COMMON": {
     "CANCEL": "取消",
-    "DONE": "完成"
+    "DONE": "完成",
+    "DELETE": "刪除",
+    "UPGRADE_TO_PRO": "升級至 Pro",
+    "REMOVE_ADS_CTA_SUBTITLE": "一次性付款 • 永久有效"
+  },
+  "FIX": {
+    "SAVE_RENAME_TITLE": "重新命名 EPUB",
+    "SAVE_RENAME_MESSAGE": "為此 EPUB 選擇新名稱。",
+    "SAVE_RENAME_PLACEHOLDER": "檔案名稱"
   }
 }

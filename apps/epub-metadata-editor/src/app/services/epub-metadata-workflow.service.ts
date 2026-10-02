@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   EpubMetadataEditorPageService,
@@ -7,19 +7,14 @@ import {
 import {
   areEpubPackageMetadataEqual,
   EpubRewriteService,
-  FileKitService,
-  readEpubMetadata,
-  writeEpubMetadata,
   type EpubMetadataDocument,
   type EpubPackageMetadata,
-} from '@sheldrapps/file-kit';
+} from '@sheldrapps/file-kit/native';
 import { EpubMetadataLibraryService } from './epub-metadata-library.service';
 
 type MetadataFile = {
   filename: string;
-  file?: File;
   sessionId?: string;
-  workingPath?: string;
   workingNativePath?: string;
 };
 
@@ -28,9 +23,25 @@ export interface CompletedMetadataFile {
   metadata: EpubMetadataFormValue;
 }
 
+export interface PendingMetadataReview {
+  filename: string;
+  original: EpubMetadataFormValue;
+  updated: EpubMetadataFormValue;
+}
+
+type PendingMetadataCommit =
+  | {
+      kind: 'working-file';
+      file: MetadataFile;
+      review: PendingMetadataReview;
+    }
+  | {
+      kind: 'library-file';
+      review: PendingMetadataReview;
+    };
+
 @Injectable({ providedIn: 'root' })
 export class EpubMetadataWorkflowService {
-  private readonly fileKit = inject(FileKitService);
   private readonly epubRewrite = inject(EpubRewriteService);
   private readonly metadataPage = inject(EpubMetadataEditorPageService);
   private readonly router = inject(Router);
@@ -38,34 +49,19 @@ export class EpubMetadataWorkflowService {
 
   private pendingFiles: MetadataFile[] = [];
   private currentFile: MetadataFile | null = null;
+  private formReturnIntent = false;
   private readonly completedFiles = signal<readonly CompletedMetadataFile[]>([]);
+  private readonly pendingCommit = signal<PendingMetadataCommit | null>(null);
 
   readonly completedMetadata = this.completedFiles.asReadonly();
-
-  get isNativeSupported(): boolean {
-    return this.epubRewrite.isSupported();
-  }
+  readonly pendingReview = computed(() => this.pendingCommit()?.review ?? null);
 
   get hasPendingFiles(): boolean {
     return this.pendingFiles.length > 0;
   }
 
-  async startFromBrowserFiles(files: readonly File[]): Promise<void> {
-    const validFiles = files.filter((file) => this.fileKit.validateEpub(file).valid);
-    if (validFiles.length !== files.length || validFiles.length === 0) {
-      throw new Error('EPUB_METADATA_INVALID_FILE');
-    }
-
-    await this.resetSelection();
-    this.pendingFiles = validFiles.map((file) => ({
-      filename: file.name,
-      file,
-    }));
-    await this.openNext();
-  }
-
   async startFromNativePicker(multiple: boolean): Promise<void> {
-    if (!this.isNativeSupported) {
+    if (!this.epubRewrite.isSupported()) {
       throw new Error('EPUB_METADATA_NATIVE_PICKER_UNAVAILABLE');
     }
 
@@ -85,7 +81,6 @@ export class EpubMetadataWorkflowService {
     this.pendingFiles = prepared.map((item) => ({
       filename: item.selectedName,
       sessionId: item.sessionId,
-      workingPath: item.workingPath,
       workingNativePath: item.workingNativePath,
     }));
     await this.openNext();
@@ -97,12 +92,86 @@ export class EpubMetadataWorkflowService {
     }
   }
 
+  async editCompleted(filename: string): Promise<void> {
+    const current = await this.library.readMetadata(filename);
+    if (!current) throw new Error('EPUB_METADATA_READ_FAILED');
+
+    this.metadataPage.open({
+      input: {
+        version: current.version,
+        detectedVersion: current.detectedVersion,
+        fileName: filename,
+        metadata: current.metadata,
+      },
+      returnUrl: '/tabs/edit',
+      saveHandler: (metadata) =>
+        this.stageLibraryMetadata(filename, current.metadata, metadata),
+    });
+    await this.router.navigateByUrl('/metadata-editor');
+  }
+
   async cancel(): Promise<void> {
     await this.cleanupFile(this.currentFile);
     this.currentFile = null;
+    this.pendingCommit.set(null);
+    this.formReturnIntent = false;
     await this.clearPendingFiles();
     this.completedFiles.set([]);
     this.metadataPage.clear();
+  }
+
+  clearFormReturnIntent(): void {
+    this.formReturnIntent = false;
+  }
+
+  consumeFormReturnIntent(): boolean {
+    const shouldReturn = this.formReturnIntent;
+    this.formReturnIntent = false;
+    return shouldReturn;
+  }
+
+  async returnToModeSelection(): Promise<void> {
+    await this.cleanupFile(this.currentFile);
+    this.currentFile = null;
+    this.pendingCommit.set(null);
+    await this.clearPendingFiles();
+    this.metadataPage.clear();
+  }
+
+  async reopenPendingReview(): Promise<void> {
+    const pending = this.pendingCommit();
+    if (!pending) return;
+
+    const current =
+      pending.kind === 'working-file'
+        ? await this.readMetadata(pending.file)
+        : await this.library.readMetadata(pending.review.filename);
+    if (!current) throw new Error('EPUB_METADATA_READ_FAILED');
+
+    this.pendingCommit.set(null);
+    this.formReturnIntent = true;
+    this.metadataPage.open({
+      input: {
+        version: current.version,
+        detectedVersion: current.detectedVersion,
+        fileName: pending.review.filename,
+        metadata: pending.review.updated,
+      },
+      returnUrl: '/tabs/edit',
+      saveHandler: (metadata) =>
+        pending.kind === 'working-file'
+          ? this.stageCurrentMetadata(
+              pending.file,
+              pending.review.original,
+              metadata,
+            )
+          : this.stageLibraryMetadata(
+              pending.review.filename,
+              pending.review.original,
+              metadata,
+            ),
+    });
+    await this.router.navigateByUrl('/metadata-editor');
   }
 
   private async openNext(): Promise<void> {
@@ -120,9 +189,10 @@ export class EpubMetadataWorkflowService {
           metadata: current.metadata,
         },
         returnUrl: '/tabs/edit',
-        saveHandler: (metadata) => this.saveCurrent(metadata),
+        saveHandler: (metadata) => this.stageCurrentMetadata(next, current.metadata, metadata),
         cancelHandler: () => this.cancel(),
       });
+      this.formReturnIntent = true;
       await this.router.navigateByUrl('/metadata-editor');
     } catch (error) {
       await this.cleanupFile(next);
@@ -133,13 +203,6 @@ export class EpubMetadataWorkflowService {
   }
 
   private async readMetadata(file: MetadataFile): Promise<EpubMetadataDocument> {
-    if (file.file) {
-      const bytes = new Uint8Array(await file.file.arrayBuffer());
-      const metadata = await readEpubMetadata(bytes);
-      if (!metadata) throw new Error('EPUB_METADATA_READ_FAILED');
-      return metadata;
-    }
-
     if (!file.workingNativePath) {
       throw new Error('EPUB_METADATA_INPUT_UNAVAILABLE');
     }
@@ -147,39 +210,85 @@ export class EpubMetadataWorkflowService {
     return this.epubRewrite.readEpubMetadata(file.workingNativePath);
   }
 
-  private async saveCurrent(metadata: EpubMetadataFormValue): Promise<void> {
-    const file = this.currentFile;
-    if (!file) throw new Error('EPUB_METADATA_INPUT_UNAVAILABLE');
+  private stageCurrentMetadata(
+    file: MetadataFile,
+    original: EpubMetadataFormValue,
+    updated: EpubMetadataFormValue,
+  ): void {
+    if (this.currentFile !== file) throw new Error('EPUB_METADATA_INPUT_UNAVAILABLE');
+    this.formReturnIntent = false;
+    this.pendingCommit.set({
+      kind: 'working-file',
+      file,
+      review: { filename: file.filename, original, updated },
+    });
+  }
 
-    if (file.file) {
-      const bytes = new Uint8Array(await file.file.arrayBuffer());
-      const updated = await writeEpubMetadata(bytes, metadata as EpubPackageMetadata);
-      const persisted = await readEpubMetadata(updated);
-      if (!persisted || !areEpubPackageMetadataEqual(persisted.metadata, metadata)) {
-        throw new Error('EPUB_METADATA_READ_AFTER_WRITE_MISMATCH');
-      }
-      await this.library.saveEpub(file.filename, updated);
-    } else {
-      await this.epubRewrite.rewriteEpubMetadata(
-        file.workingNativePath!,
-        metadata as EpubPackageMetadata,
+  private stageLibraryMetadata(
+    filename: string,
+    original: EpubMetadataFormValue,
+    updated: EpubMetadataFormValue,
+  ): void {
+    this.formReturnIntent = false;
+    this.pendingCommit.set({
+      kind: 'library-file',
+      review: { filename, original, updated },
+    });
+  }
+
+  async applyPendingChanges(): Promise<void> {
+    const pending = this.pendingCommit();
+    if (!pending) return;
+
+    if (pending.kind === 'library-file') {
+      await this.library.updateMetadata(
+        pending.review.filename,
+        pending.review.updated as EpubPackageMetadata,
       );
-      const persisted = await this.epubRewrite.readEpubMetadata(file.workingNativePath!);
-      if (!areEpubPackageMetadataEqual(persisted.metadata, metadata)) {
-        throw new Error('EPUB_METADATA_READ_AFTER_WRITE_MISMATCH');
+      this.completedFiles.update((completed) =>
+        completed.map((file) =>
+          file.filename === pending.review.filename
+            ? { ...file, metadata: pending.review.updated }
+            : file,
+        ),
+      );
+    } else {
+      await this.applyWorkingFileChanges(pending);
+    }
+
+    this.pendingCommit.set(null);
+    if (pending.kind === 'working-file') {
+      await this.cleanupFile(pending.file);
+      this.currentFile = null;
+      if (this.pendingFiles.length > 0) {
+        await this.openNext();
       }
-      if (!file.workingPath) throw new Error('EPUB_METADATA_OUTPUT_UNAVAILABLE');
-      const bytes = await this.fileKit.readBytes({ dir: 'Cache', path: file.workingPath });
-      await this.library.saveEpub(file.filename, bytes);
+    }
+  }
+
+  private async applyWorkingFileChanges(
+    pending: Extract<PendingMetadataCommit, { kind: 'working-file' }>,
+  ): Promise<void> {
+    const { file, review } = pending;
+    if (!file.workingNativePath) throw new Error('EPUB_METADATA_INPUT_UNAVAILABLE');
+
+    await this.epubRewrite.rewriteEpubMetadata(
+      file.workingNativePath,
+      review.updated as EpubPackageMetadata,
+    );
+    const publishedFilename = await this.library.publishWorkingEpub(
+      review.filename,
+      file.workingNativePath,
+    );
+    const persisted = await this.library.readMetadata(publishedFilename);
+    if (!areEpubPackageMetadataEqual(persisted.metadata, review.updated)) {
+      throw new Error('EPUB_METADATA_READ_AFTER_WRITE_MISMATCH');
     }
 
     this.completedFiles.update((completed) => [
       ...completed,
-      { filename: file.filename, metadata },
+      { filename: publishedFilename, metadata: review.updated },
     ]);
-
-    await this.cleanupFile(file);
-    this.currentFile = null;
   }
 
   private async clearPendingFiles(): Promise<void> {
@@ -189,6 +298,10 @@ export class EpubMetadataWorkflowService {
   }
 
   private async resetSelection(): Promise<void> {
+    await this.cleanupFile(this.currentFile);
+    this.currentFile = null;
+    this.pendingCommit.set(null);
+    this.formReturnIntent = false;
     await this.clearPendingFiles();
     this.completedFiles.set([]);
   }

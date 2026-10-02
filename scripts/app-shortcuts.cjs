@@ -30,7 +30,7 @@ module.exports = {
     },
   ],
   groups: {
-    active: ['ecc', 'ccfk', 'pcm', 'ef', 'emas', 'pmas'],
+    active: ['ecc', 'ccfk', 'pcm', 'ef', 'emas', 'pmas', 'eme'],
     editor: ['ecc', 'ccfk', 'pcm', 'emas', 'pmas'],
   },
 };

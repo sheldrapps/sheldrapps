@@ -9,21 +9,37 @@
   },
   "EDIT": {
     "TITLE": "Modifier",
-    "STEPPER": { "MODE": "Mode", "FILE": "Fichiers EPUB" },
+    "STEPPER": {
+      "MODE": "Mode",
+      "FORM": "Modifier les métadonnées",
+      "SUMMARY": "Résumé"
+    },
     "MODE_TITLE": "Comment voulez-vous modifier ?",
     "MODE_SINGLE_FILE": "Un fichier",
     "MODE_SINGLE_FILE_DESCRIPTION": "Modifiez un fichier EPUB à la fois.",
     "MODE_MULTIPLE_FILES": "Plusieurs fichiers",
     "MODE_MULTIPLE_FILES_DESCRIPTION": "Modifiez plusieurs fichiers EPUB dans une seule session.",
     "FILE_TITLE": "Choisir des fichiers EPUB",
-  "FILE_SINGLE_PENDING": "La modification d’un fichier commencera ici.",
-  "FILE_MULTIPLE_PENDING": "La modification de plusieurs fichiers commencera ici.",
-  "FILE_SINGLE_HINT": "Choisissez un fichier EPUB pour ouvrir l’éditeur de métadonnées partagé.",
-  "FILE_MULTIPLE_HINT": "Choisissez plusieurs EPUB. L’éditeur partagé les ouvrira une par une.",
-  "SELECT_FILE": "Choisir un fichier EPUB",
-  "SELECT_FILES": "Choisir des fichiers EPUB",
-  "SELECTED_FILES_COUNT": "{{count}} fichiers EPUB sélectionnés",
-  "SELECTION_ERROR": "Les fichiers EPUB sélectionnés n’ont pas pu être ouverts."
+    "FILE_SINGLE_PENDING": "La modification d’un fichier commencera ici.",
+    "FILE_MULTIPLE_PENDING": "La modification de plusieurs fichiers commencera ici.",
+    "FILE_SINGLE_HINT": "Choisissez un fichier EPUB pour ouvrir l’éditeur de métadonnées partagé.",
+    "FILE_MULTIPLE_HINT": "Choisissez plusieurs EPUB. L’éditeur partagé les ouvrira une par une.",
+    "SELECT_FILE": "Choisir un fichier EPUB",
+    "SELECT_FILES": "Choisir des fichiers EPUB",
+    "SELECTED_FILES_COUNT": "{{count}} fichiers EPUB sélectionnés",
+    "SELECTION_ERROR": "Les fichiers EPUB sélectionnés n’ont pas pu être ouverts.",
+    "SUMMARY_TITLE": "Résumé des modifications",
+    "REVIEW_HINT": "Vérifiez les modifications des métadonnées avant de les appliquer.",
+    "APPLY_CHANGES": "Appliquer les modifications",
+    "APPLYING_CHANGES": "Application des modifications…",
+    "APPLY_ERROR": "Impossible d’appliquer les modifications. Vérifiez que le fichier EPUB est disponible, puis réessayez.",
+    "APPLY_SUCCESS": "Modifications des métadonnées appliquées.",
+    "NO_CHANGES": "Aucune modification des métadonnées.",
+    "EMPTY_VALUE": "Vide",
+    "EDIT_FILE": "Modifier",
+    "AD_REQUIRED": "Regardez une publicité récompensée pour modifier cet EPUB dans la version gratuite.",
+    "OPEN_ERROR": "Impossible d’ouvrir cet EPUB pour le modifier.",
+    "AD_UNAVAILABLE": "Aucune publicité récompensée n’est disponible pour le moment. Réessayez."
   },
   "MY_EPUBS": {
     "TITLE": "Mes EPUB",
@@ -49,6 +65,14 @@
   },
   "COMMON": {
     "CANCEL": "Annuler",
-    "DONE": "Terminé"
+    "DONE": "Terminé",
+    "DELETE": "Supprimer",
+    "UPGRADE_TO_PRO": "Passer à Pro",
+    "REMOVE_ADS_CTA_SUBTITLE": "Paiement unique • Pour toujours"
+  },
+  "FIX": {
+    "SAVE_RENAME_TITLE": "Renommer l’EPUB",
+    "SAVE_RENAME_MESSAGE": "Choisissez un nouveau nom pour cet EPUB.",
+    "SAVE_RENAME_PLACEHOLDER": "Nom du fichier"
   }
 }

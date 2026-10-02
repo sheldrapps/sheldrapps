@@ -6,6 +6,11 @@ apply plugin: 'com.google.firebase.crashlytics'
 android {
     namespace = "com.sheldrapps.covercreatorforkindle"
     compileSdk = rootProject.ext.compileSdkVersion
+    packagingOptions {
+        jniLibs {
+            excludes += ['**/libdatastore_shared_counter.so']
+        }
+    }
     compileOptions {
         coreLibraryDesugaringEnabled true
     }
@@ -13,8 +18,8 @@ android {
         applicationId "com.sheldrapps.covercreatorforkindle"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 76
-        versionName "Pro access and stability"
+        versionCode 80
+        versionName "Share and 16 KB reliability"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

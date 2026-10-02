@@ -8,6 +8,7 @@
   [type]="type"
   [attr.aria-pressed]="selected ? 'true' : 'false'"
   [attr.aria-label]="ariaLabel"
+  (click)="activated.emit()"
 >
   <span class="sh-action-card__title">{{ title }}</span>
 
