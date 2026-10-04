@@ -5,7 +5,6 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
-  IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule } from '@ngx-translate/core';
@@ -63,7 +62,6 @@ const PLAYGROUND_INPUT: EpubMetadataEditorInput = {
     IonButtons,
     IonContent,
     IonHeader,
-    IonTitle,
     IonToolbar,
     EpubMetadataEditorComponent,
   ],

@@ -223,6 +223,8 @@ export class HomePage implements OnDestroy, OnInit {
   private lastEditorSessionId: string | undefined;
   private editorFlowEpoch = 0;
   private routerSub?: Subscription;
+  private headerLangSub?: Subscription;
+  private headerTranslationSub?: Subscription;
   private editorReturnStep = 0;
   private coverMasterBlob: Blob | undefined;
   private previewObjectUrls = new Set<string>();
@@ -460,6 +462,14 @@ export class HomePage implements OnDestroy, OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    this.headerLangSub = this.translate.onLangChange.subscribe(() => {
+      void this.refreshHeaderItems();
+    });
+    this.headerTranslationSub = this.translate.onTranslationChange.subscribe((event) => {
+      if (event.lang) {
+        void this.refreshHeaderItems();
+      }
+    });
     this.routerSub = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event) => {
@@ -477,6 +487,8 @@ export class HomePage implements OnDestroy, OnInit {
 
   ngOnDestroy(): void {
     this.routerSub?.unsubscribe();
+    this.headerLangSub?.unsubscribe();
+    this.headerTranslationSub?.unsubscribe();
   }
 
   async ionViewWillEnter(): Promise<void> {

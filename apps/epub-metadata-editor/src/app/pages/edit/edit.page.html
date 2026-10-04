@@ -1,6 +1,16 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>{{ 'EDIT.TITLE' | translate }}</ion-title>
+    <ion-buttons slot="end" class="app-header-tools">
+      <sh-scrollable-button-bar
+        [items]="headerItems"
+        variant="iconText"
+        align="start"
+        edge="end"
+        [disabled]="isBusy"
+        (selectItem)="onHeaderItemClick($event)"
+      ></sh-scrollable-button-bar>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -46,7 +56,7 @@
                 ></sh-action-card>
                 @if (!canUseMultipleFiles) {
                   <sh-pro-badge class="app-action-card-shell__badge"></sh-pro-badge>
-                }
+              }
               </div>
             </ion-col>
           </ion-row>
@@ -68,7 +78,9 @@
 
         @if (pendingReview; as review) {
           @let changes = metadataChangeRows(review.original, review.updated);
-          <p class="field-subtle">{{ 'EDIT.REVIEW_HINT' | translate }}</p>
+          @if (changes.length > 0) {
+            <p class="field-subtle">{{ 'EDIT.REVIEW_HINT' | translate }}</p>
+          }
           <sh-section-card [title]="review.filename">
             <dl class="app-metadata-summary">
               @for (row of changes; track row.labelKey) {
@@ -99,7 +111,7 @@
           <ion-button
             class="app-btn"
             expand="block"
-            [disabled]="isApplyingChanges"
+            [disabled]="isApplyingChanges || isAuthorizingWrite"
             (click)="applyMetadataChanges()"
           >
             {{ (isApplyingChanges ? 'EDIT.APPLYING_CHANGES' : 'EDIT.APPLY_CHANGES') | translate }}
@@ -114,10 +126,10 @@
               <ion-button
                 fill="outline"
                 size="small"
-                [disabled]="isAuthorizingEdit"
+                [disabled]="isOpeningEditor"
                 (click)="editCompletedFile(file.filename)"
               >
-                {{ 'EDIT.EDIT_FILE' | translate }}
+                {{ 'UI_THEME.ACTIONS.EDIT_METADATA' | translate }}
               </ion-button>
               <dl class="app-metadata-summary">
                 @for (row of metadataSummaryRows(file.metadata); track row.labelKey) {

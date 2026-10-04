@@ -14,4 +14,6 @@ export const DE_DE: RecommendedAppsTranslations = {
   APP_DESC_EF: 'Häufige EPUB-Probleme prüfen und reparierte Kopie speichern',
   APP_NAME_EMAS: 'EPUB zusammenfügen und teilen',
   APP_DESC_EMAS: 'EPUBs ordnen, verbinden und gezielt aufteilen',
+  APP_NAME_PMAS: 'PDF zusammenfügen und teilen',
+  APP_DESC_PMAS: 'PDFs ordnen, verbinden und nach Seiten aufteilen',
 };

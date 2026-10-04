@@ -2,6 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   EpubMetadataEditorPageService,
+  type EpubMetadataEditorLoadMoreAction,
   type EpubMetadataFormValue,
 } from '@sheldrapps/ui-theme';
 import {
@@ -49,7 +50,9 @@ export class EpubMetadataWorkflowService {
 
   private pendingFiles: MetadataFile[] = [];
   private currentFile: MetadataFile | null = null;
+  private sessionGeneration = 0;
   private formReturnIntent = false;
+  private multipleMode = false;
   private readonly completedFiles = signal<readonly CompletedMetadataFile[]>([]);
   private readonly pendingCommit = signal<PendingMetadataCommit | null>(null);
 
@@ -60,12 +63,19 @@ export class EpubMetadataWorkflowService {
     return this.pendingFiles.length > 0;
   }
 
+  get hasActiveFiles(): boolean {
+    return this.currentFile !== null || this.pendingFiles.length > 0;
+  }
+
   async startFromNativePicker(multiple: boolean): Promise<void> {
     if (!this.epubRewrite.isSupported()) {
       throw new Error('EPUB_METADATA_NATIVE_PICKER_UNAVAILABLE');
     }
 
+    const generation = ++this.sessionGeneration;
     await this.resetSelection();
+    if (generation !== this.sessionGeneration) return;
+
     const prepared = multiple
       ? await this.epubRewrite.pickAndPrepareEpubs({
           requireCover: false,
@@ -78,12 +88,44 @@ export class EpubMetadataWorkflowService {
           }),
         ];
 
-    this.pendingFiles = prepared.map((item) => ({
+    const files = prepared.map((item) => ({
       filename: item.selectedName,
       sessionId: item.sessionId,
       workingNativePath: item.workingNativePath,
     }));
+    if (generation !== this.sessionGeneration) {
+      await this.cleanupFiles(files);
+      return;
+    }
+
+    this.pendingFiles = files;
+    this.multipleMode = multiple;
     await this.openNext();
+  }
+
+  async loadMoreFromNativePicker(): Promise<void> {
+    if (!this.multipleMode || !this.epubRewrite.isSupported()) {
+      throw new Error('EPUB_METADATA_NATIVE_PICKER_UNAVAILABLE');
+    }
+
+    const generation = this.sessionGeneration;
+    const prepared = await this.epubRewrite.pickAndPrepareEpubs({
+      requireCover: false,
+      includeCoverPreview: false,
+    });
+    const files = prepared.map((item) => ({
+      filename: item.selectedName,
+      sessionId: item.sessionId,
+      workingNativePath: item.workingNativePath,
+    }));
+    if (generation !== this.sessionGeneration || !this.multipleMode) {
+      await this.cleanupFiles(files);
+      return;
+    }
+
+    this.pendingFiles.push(
+      ...files,
+    );
   }
 
   async resumePending(): Promise<void> {
@@ -111,10 +153,12 @@ export class EpubMetadataWorkflowService {
   }
 
   async cancel(): Promise<void> {
+    this.sessionGeneration += 1;
     await this.cleanupFile(this.currentFile);
     this.currentFile = null;
     this.pendingCommit.set(null);
     this.formReturnIntent = false;
+    this.multipleMode = false;
     await this.clearPendingFiles();
     this.completedFiles.set([]);
     this.metadataPage.clear();
@@ -131,9 +175,11 @@ export class EpubMetadataWorkflowService {
   }
 
   async returnToModeSelection(): Promise<void> {
+    this.sessionGeneration += 1;
     await this.cleanupFile(this.currentFile);
     this.currentFile = null;
     this.pendingCommit.set(null);
+    this.multipleMode = false;
     await this.clearPendingFiles();
     this.metadataPage.clear();
   }
@@ -170,6 +216,8 @@ export class EpubMetadataWorkflowService {
               pending.review.original,
               metadata,
             ),
+      cancelHandler: () => this.cancel(),
+      ...this.multipleEditorOptions(),
     });
     await this.router.navigateByUrl('/metadata-editor');
   }
@@ -191,6 +239,7 @@ export class EpubMetadataWorkflowService {
         returnUrl: '/tabs/edit',
         saveHandler: (metadata) => this.stageCurrentMetadata(next, current.metadata, metadata),
         cancelHandler: () => this.cancel(),
+        ...this.multipleEditorOptions(),
       });
       this.formReturnIntent = true;
       await this.router.navigateByUrl('/metadata-editor');
@@ -200,6 +249,22 @@ export class EpubMetadataWorkflowService {
       await this.clearPendingFiles();
       throw error;
     }
+  }
+
+  private multipleEditorOptions(): {
+    loadMore?: EpubMetadataEditorLoadMoreAction;
+  } {
+    if (!this.multipleMode) return {};
+
+    return {
+      loadMore: {
+        handler: () => this.loadMoreFromNativePicker(),
+        labelKey: 'EDIT.LOAD_MORE',
+        loadingLabelKey: 'EDIT.LOADING_MORE',
+        descriptionKey: 'EDIT.FILE_MULTIPLE_HINT',
+        errorKey: 'EDIT.SELECTION_ERROR',
+      },
+    };
   }
 
   private async readMetadata(file: MetadataFile): Promise<EpubMetadataDocument> {
@@ -294,7 +359,11 @@ export class EpubMetadataWorkflowService {
   private async clearPendingFiles(): Promise<void> {
     const pending = this.pendingFiles;
     this.pendingFiles = [];
-    await Promise.all(pending.map((file) => this.cleanupFile(file)));
+    await this.cleanupFiles(pending);
+  }
+
+  private async cleanupFiles(files: readonly MetadataFile[]): Promise<void> {
+    await Promise.all(files.map((file) => this.cleanupFile(file)));
   }
 
   private async resetSelection(): Promise<void> {
@@ -302,6 +371,7 @@ export class EpubMetadataWorkflowService {
     this.currentFile = null;
     this.pendingCommit.set(null);
     this.formReturnIntent = false;
+    this.multipleMode = false;
     await this.clearPendingFiles();
     this.completedFiles.set([]);
   }

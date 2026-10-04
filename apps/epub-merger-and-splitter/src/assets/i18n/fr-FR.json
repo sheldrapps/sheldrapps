@@ -4,7 +4,7 @@
   },
   "ARR": {
     "TOOLS": {
-      "APPS": "Applications",
+      "APPS": "Nos applications",
       "GUIDE": "Guide"
     }
   },
@@ -61,6 +61,9 @@
     "ERROR.OPEN": "Impossible d'ouvrir l'EPUB.",
     "ERROR.SHARE": "Impossible de partager l'EPUB.",
     "ERROR.DELETE": "Impossible de supprimer l'EPUB.",
+    "METADATA_UNEDITABLE_TITLE": "Impossible de modifier les métadonnées",
+    "METADATA_UNEDITABLE_BODY": "Ce fichier EPUB présente un problème dans sa structure interne. Utilisez EPUB Fixer pour l’examiner et le réparer avant de modifier ses métadonnées.",
+    "OPEN_EPUB_FIXER": "Ouvrir EPUB Fixer",
     "ERROR": "Erreur"
   },
   "SETTINGS": {

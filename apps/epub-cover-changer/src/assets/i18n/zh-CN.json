@@ -237,7 +237,10 @@
       "LOAD": "无法加载您的 EPUB，请下拉刷新。",
       "PREVIEW": "无法加载预览，请重试。",
       "OPEN": "无法打开 EPUB。请重试。",
-      "OPEN_PROJECT": "无法打开项目。请重试。"
+      "OPEN_PROJECT": "无法打开项目。请重试。",
+      "METADATA_UNEDITABLE_TITLE": "无法编辑元数据",
+      "METADATA_UNEDITABLE_BODY": "此 EPUB 的内部结构有问题。请先使用 EPUB Fixer 检查并修复文件，再编辑元数据。",
+      "OPEN_EPUB_FIXER": "打开 EPUB Fixer"
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "缩小电子阅读器预览",
@@ -315,7 +318,7 @@
     "TOOLS": {
       "RECOMMENDED": "推荐",
       "INFO": "信息",
-      "APPS": "应用",
+      "APPS": "我们的应用",
       "GUIDE": "指南"
     }
   },

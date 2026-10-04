@@ -1,0 +1,44 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'EDIT.MODE_MULTIPLE_FILES' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button type="button" fill="clear" (click)="onDone()">
+        {{ 'COMMON.DONE' | translate }}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <main class="app-page metadata-editor-preview">
+    <p class="field-subtle metadata-editor-preview__selected-count">
+      {{ 'EDIT.SELECTED_FILES_COUNT' | translate: { count: files().length } }}
+    </p>
+
+    <sh-action-card
+      class="metadata-editor-preview__load-more"
+      [compact]="true"
+      [title]="'EDIT.LOAD_MORE' | translate"
+      [description]="'EDIT.FILE_MULTIPLE_HINT' | translate"
+      icon="document-outline"
+      [ariaLabel]="'EDIT.LOAD_MORE' | translate"
+      (activated)="loadMore()"
+    ></sh-action-card>
+
+    <section class="metadata-editor-preview__files">
+      @for (file of files(); track file.id) {
+        <article class="metadata-editor-preview__file">
+          <app-epub-metadata-editor
+            #metadataEditor
+            [editorInput]="file.input"
+            [compactLayout]="true"
+            [idPrefix]="'epub-metadata-file-' + file.id"
+            [contextTitle]="fileDisplayName(file)"
+            [showFileName]="false"
+            (save)="onSave(file.id, $event)"
+          ></app-epub-metadata-editor>
+        </article>
+      }
+    </section>
+  </main>
+</ion-content>

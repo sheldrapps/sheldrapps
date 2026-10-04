@@ -46,4 +46,13 @@ export const RECOMMENDED_APPS_REGISTRY: RecommendedApp[] = [
     description: "Replace PDF covers and export updated files.",
     category: 'PDF',
   },
+  {
+    appName: "PDF Merger & Splitter",
+    packageName: "com.sheldrapps.pdfmergerandsplitter",
+    icon: "assets/apps/pmas/icon.png",
+    playStoreUrl:
+      "https://play.google.com/store/apps/details?id=com.sheldrapps.pdfmergerandsplitter",
+    description: "Merge, organize, and split PDF files",
+    category: 'PDF',
+  },
 ];

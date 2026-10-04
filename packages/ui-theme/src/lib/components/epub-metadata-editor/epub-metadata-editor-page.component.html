@@ -3,9 +3,13 @@
     <ion-buttons slot="start">
       <ion-back-button [defaultHref]="backHref()"></ion-back-button>
     </ion-buttons>
-    <ion-title>{{ 'EPUB_METADATA.EDIT_METADATA' | translate }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button type="button" fill="clear" [disabled]="isSaving()" (click)="onDone()">
+      <ion-button
+        type="button"
+        fill="clear"
+        [disabled]="isSaving() || isLoadingMore()"
+        (click)="onDone()"
+      >
         {{ 'COMMON.DONE' | translate }}
       </ion-button>
     </ion-buttons>
@@ -20,6 +24,23 @@
     </div>
   }
   @if (state(); as pageState) {
+    @if (pageState.loadMore; as loadMore) {
+      <div class="epub-metadata-editor-page__load-more">
+        <sh-action-card
+          class="epub-metadata-editor-page__load-more-card"
+          [compact]="true"
+          [title]="(isLoadingMore() ? loadMore.loadingLabelKey : loadMore.labelKey) | translate"
+          [description]="loadMore.descriptionKey | translate"
+          icon="document-outline"
+          [disabled]="isLoadingMore() || isSaving()"
+          [ariaLabel]="loadMore.labelKey | translate"
+          (activated)="onLoadMore()"
+        ></sh-action-card>
+        @if (loadMoreError(); as errorKey) {
+          <p class="app-callout app-callout--error" role="alert">{{ errorKey | translate }}</p>
+        }
+      </div>
+    }
     <app-epub-metadata-editor #metadataEditor
       [editorInput]="pageState.input"
       (save)="onSave($event)"

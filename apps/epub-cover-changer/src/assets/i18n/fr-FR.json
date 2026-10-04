@@ -234,7 +234,10 @@
       "LOAD": "Impossible de charger vos EPUB. Fais glisser vers le bas pour réessayer.",
       "PREVIEW": "Impossible de charger l'aperçu. Réessaye.",
       "OPEN": "Impossible d'ouvrir l'EPUB. Veuillez réessayer.",
-      "OPEN_PROJECT": "Impossible d'ouvrir le projet. Veuillez réessayer."
+      "OPEN_PROJECT": "Impossible d'ouvrir le projet. Veuillez réessayer.",
+      "METADATA_UNEDITABLE_TITLE": "Impossible de modifier les métadonnées",
+      "METADATA_UNEDITABLE_BODY": "Ce fichier EPUB présente un problème dans sa structure interne. Utilisez EPUB Fixer pour l’examiner et le réparer avant de modifier ses métadonnées.",
+      "OPEN_EPUB_FIXER": "Ouvrir EPUB Fixer"
     },
     "GENERATE_THUMB": "Generate thumbnail",
     "PREVIEW_UNAVAILABLE": "Preview unavailable.",
@@ -315,7 +318,7 @@
     "TOOLS": {
       "RECOMMENDED": "Recommandées",
       "INFO": "Infos",
-      "APPS": "Apps",
+      "APPS": "Nos applications",
       "GUIDE": "Guide"
     }
   },

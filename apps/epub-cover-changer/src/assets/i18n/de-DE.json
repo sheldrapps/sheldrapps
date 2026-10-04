@@ -234,7 +234,10 @@
       "LOAD": "Cover konnten nicht geladen werden. Zum Aktualisieren nach unten ziehen.",
       "PREVIEW": "Vorschau konnte nicht geladen werden. Versuche es erneut.",
       "OPEN": "Die EPUB-Datei konnte nicht geöffnet werden. Bitte versuchen Sie es erneut.",
-      "OPEN_PROJECT": "Das Projekt konnte nicht geöffnet werden. Bitte versuche es erneut."
+      "OPEN_PROJECT": "Das Projekt konnte nicht geöffnet werden. Bitte versuche es erneut.",
+      "METADATA_UNEDITABLE_TITLE": "Metadaten können nicht bearbeitet werden",
+      "METADATA_UNEDITABLE_BODY": "Dieses EPUB hat ein Problem in seiner internen Struktur. Verwende EPUB Fixer, um es vor dem Bearbeiten der Metadaten zu prüfen und zu reparieren.",
+      "OPEN_EPUB_FIXER": "EPUB Fixer öffnen"
     },
     "GENERATE_THUMB": "Generate thumbnail",
     "PREVIEW_UNAVAILABLE": "Preview unavailable.",
@@ -315,7 +318,7 @@
     "TOOLS": {
       "RECOMMENDED": "Empfohlen",
       "INFO": "Info",
-      "APPS": "Apps",
+      "APPS": "Unsere Apps",
       "GUIDE": "Anleitung"
     }
   },

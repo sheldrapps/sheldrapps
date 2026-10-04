@@ -1,8 +1,11 @@
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Component, effect, inject } from '@angular/core';
+import { Component, effect, inject, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
 import {
+  AlertController,
   IonCol,
   IonButton,
+  IonButtons,
   IonContent,
   IonGrid,
   IonHeader,
@@ -11,15 +14,30 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
 import { addIcons } from 'ionicons';
-import { fileTrayOutline, fileTrayStackedOutline } from 'ionicons/icons';
-import { BillingService, ExportAccessService } from '@sheldrapps/ads-kit';
+import {
+  appsOutline,
+  fileTrayOutline,
+  fileTrayStackedOutline,
+  refreshOutline,
+} from 'ionicons/icons';
+import { AdsService, BillingService, ExportAccessService } from '@sheldrapps/ads-kit';
+import {
+  RecommendedAppsService,
+  buildHomeHeaderItems,
+  getRecommendedAppsTranslations,
+  handleHomeHeaderAction,
+} from '@sheldrapps/recommended-apps';
+import type { RecommendedApp } from '@sheldrapps/recommended-apps';
 import {
   ActionCardComponent,
   ProBadgeComponent,
+  ScrollableButtonBarComponent,
   SectionCardComponent,
   WorkflowNavigationComponent,
   WorkflowStepperComponent,
+  type ScrollableBarItem,
   type WorkflowStep,
 } from '@sheldrapps/ui-theme';
 import { EpubMetadataWorkflowService } from '../../services/epub-metadata-workflow.service';
@@ -29,6 +47,8 @@ import type {
 } from '../../services/epub-metadata-workflow.service';
 
 type EditMode = 'single' | 'multiple';
+
+const MULTIPLE_FILES_REQUIRES_PRO = false;
 
 type MetadataSummaryRow = {
   labelKey: string;
@@ -46,6 +66,7 @@ type MetadataChangeRow = {
   templateUrl: './edit.page.html',
   styleUrls: ['./edit.page.scss'],
   imports: [
+    IonButtons,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -58,15 +79,20 @@ type MetadataChangeRow = {
     ActionCardComponent,
     ProBadgeComponent,
     SectionCardComponent,
+    ScrollableButtonBarComponent,
     WorkflowNavigationComponent,
     WorkflowStepperComponent,
   ],
 })
-export class EditPage {
+export class EditPage implements OnDestroy {
+  private readonly alertController = inject(AlertController);
+  private readonly ads = inject(AdsService);
   private readonly billing = inject(BillingService);
   private readonly exportAccess = inject(ExportAccessService);
   private readonly i18n = inject(TranslateService);
   private readonly metadataWorkflow = inject(EpubMetadataWorkflowService);
+  private readonly recommendedAppsService = inject(RecommendedAppsService);
+  private readonly router = inject(Router);
 
   readonly adsRemoved = toSignal(this.billing.adsRemoved$, {
     initialValue: this.billing.isAdsRemoved(),
@@ -79,10 +105,30 @@ export class EditPage {
   editErrorKey: string | null = null;
   applyErrorKey: string | null = null;
   isApplyingChanges = false;
-  isAuthorizingEdit = false;
+  isAuthorizingWrite = false;
+  isOpeningEditor = false;
+  private writeAccessGranted = false;
+  headerItems: ScrollableBarItem[] = [];
+  recommendedApps: RecommendedApp[] = [];
+  isResettingFlow = false;
+  private headerLangSub?: Subscription;
+  private headerTranslationSub?: Subscription;
 
   constructor() {
-    addIcons({ fileTrayOutline, fileTrayStackedOutline });
+    addIcons({
+      appsOutline,
+      fileTrayOutline,
+      fileTrayStackedOutline,
+      refreshOutline,
+    });
+    this.headerLangSub = this.i18n.onLangChange.subscribe(() => {
+      void this.refreshHeaderItems();
+    });
+    this.headerTranslationSub = this.i18n.onTranslationChange.subscribe((event) => {
+      if (event.lang) {
+        void this.refreshHeaderItems();
+      }
+    });
     effect(() => {
       if (this.pendingReview) {
         this.workflowStep = 2;
@@ -102,12 +148,21 @@ export class EditPage {
   }
 
   get selectableWorkflowSteps(): readonly number[] {
-    if (!this.editMode) return this.pendingReview ? [0, 1] : [0];
     return this.pendingReview ? [0, 1] : [0];
   }
 
   get canUseMultipleFiles(): boolean {
-    return this.adsRemoved();
+    return !MULTIPLE_FILES_REQUIRES_PRO || this.adsRemoved();
+  }
+
+  get isBusy(): boolean {
+    return (
+      this.isResettingFlow ||
+      this.isSelectingFiles ||
+      this.isApplyingChanges ||
+      this.isAuthorizingWrite ||
+      this.isOpeningEditor
+    );
   }
 
   get workflowPreviousLabel(): string {
@@ -154,6 +209,7 @@ export class EditPage {
       return;
     }
 
+    this.writeAccessGranted = false;
     this.prepareEditMode(mode);
     void this.selectFiles();
   }
@@ -173,10 +229,13 @@ export class EditPage {
   }
 
   async ionViewWillEnter(): Promise<void> {
+    await this.refreshHeaderItems();
+
     if (this.pendingReview) {
       this.applyErrorKey = null;
       this.workflowStep = 2;
       this.metadataWorkflow.clearFormReturnIntent();
+      void this.ads.warmRewarded().catch(() => undefined);
       return;
     }
 
@@ -191,24 +250,108 @@ export class EditPage {
     }
   }
 
-  async applyMetadataChanges(): Promise<void> {
-    if (this.isApplyingChanges || !this.pendingReview) return;
+  ngOnDestroy(): void {
+    this.headerLangSub?.unsubscribe();
+    this.headerTranslationSub?.unsubscribe();
+  }
 
-    this.isApplyingChanges = true;
+  async applyMetadataChanges(): Promise<void> {
+    if (this.isApplyingChanges || this.isAuthorizingWrite || !this.pendingReview) return;
+
     this.applyErrorKey = null;
+    this.isAuthorizingWrite = true;
     try {
+      if (!this.writeAccessGranted) {
+        let access: Awaited<ReturnType<ExportAccessService['authorize']>>;
+        try {
+          access = await this.exportAccess.authorize({ onAdFailure: () => false });
+        } catch {
+          this.applyErrorKey = 'EDIT.AD_UNAVAILABLE';
+          return;
+        }
+        if (!access.granted) {
+          this.applyErrorKey = 'EDIT.AD_REQUIRED';
+          return;
+        }
+        this.writeAccessGranted = true;
+      }
+
+      this.isApplyingChanges = true;
       await this.metadataWorkflow.applyPendingChanges();
+      if (!this.metadataWorkflow.hasActiveFiles) this.writeAccessGranted = false;
     } catch {
       this.applyErrorKey = 'EDIT.APPLY_ERROR';
     } finally {
+      this.isAuthorizingWrite = false;
       this.isApplyingChanges = false;
     }
+  }
+
+  async onHeaderItemClick(id: string): Promise<void> {
+    await handleHomeHeaderAction(id, {
+      closeInfo: () => undefined,
+      toggleInfo: () => undefined,
+      navigateToRecommended: async () => {
+        await this.router.navigateByUrl('/tabs/recommended-apps');
+      },
+      resetFlow: () => this.resetFlow(),
+    });
+  }
+
+  async resetFlow(): Promise<void> {
+    if (this.isBusy) return;
+
+    this.isResettingFlow = true;
+    try {
+      if (!(await this.confirmResetFlow())) return;
+
+      await this.metadataWorkflow.cancel();
+      this.resetLocalSessionState();
+    } finally {
+      this.isResettingFlow = false;
+    }
+  }
+
+  private resetLocalSessionState(): void {
+    this.editMode = null;
+    this.workflowStep = 0;
+    this.isSelectingFiles = false;
+    this.selectionErrorKey = null;
+    this.editErrorKey = null;
+    this.applyErrorKey = null;
+    this.isApplyingChanges = false;
+    this.isAuthorizingWrite = false;
+    this.isOpeningEditor = false;
+    this.writeAccessGranted = false;
+  }
+
+  private async refreshHeaderItems(): Promise<void> {
+    this.recommendedApps = await this.recommendedAppsService.getRecommendedApps();
+    this.headerItems = buildHomeHeaderItems(this.recommendedApps.length > 0, {
+      appsLabel: getRecommendedAppsTranslations(this.i18n.currentLang).TITLE,
+      resetLabel: this.i18n.instant('UI_THEME.RESET'),
+      includeGuide: false,
+    });
+  }
+
+  private async confirmResetFlow(): Promise<boolean> {
+    const alert = await this.alertController.create({
+      message: this.i18n.instant('UI_THEME.RESET_CONFIRMATION'),
+      buttons: [
+        { text: this.i18n.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.i18n.instant('UI_THEME.RESET'), role: 'confirm' },
+      ],
+    });
+    await alert.present();
+    const { role } = await alert.onWillDismiss();
+    return role === 'confirm';
   }
 
   private async runFileSelection(action: () => Promise<void>): Promise<void> {
     this.isSelectingFiles = true;
     try {
       await action();
+      this.workflowStep = 1;
     } catch (error) {
       const code =
         error && typeof error === 'object' && 'code' in error
@@ -226,41 +369,25 @@ export class EditPage {
 
   onWorkflowPrevious(): void {
     if (this.workflowStep === 2 && this.pendingReview) {
-      void this.metadataWorkflow.reopenPendingReview().catch(() => {
-        this.editErrorKey = 'EDIT.OPEN_ERROR';
-      });
+      void this.reopenPendingReview();
       return;
     }
 
-    if (this.workflowStep > 0) {
-      this.workflowStep = 0;
-    }
+    if (this.workflowStep > 0) this.workflowStep = 0;
   }
 
   async editCompletedFile(filename: string): Promise<void> {
-    if (this.isAuthorizingEdit) return;
+    if (this.isOpeningEditor) return;
 
+    this.writeAccessGranted = false;
     this.editErrorKey = null;
-    this.isAuthorizingEdit = true;
+    this.isOpeningEditor = true;
     try {
-      let granted: boolean;
-      try {
-        const access = await this.exportAccess.authorize({ onAdFailure: () => false });
-        granted = access.granted;
-      } catch {
-        this.editErrorKey = 'EDIT.AD_UNAVAILABLE';
-        return;
-      }
-      if (!granted) {
-        this.editErrorKey = 'EDIT.AD_REQUIRED';
-        return;
-      }
-
       await this.metadataWorkflow.editCompleted(filename);
     } catch {
       this.editErrorKey = 'EDIT.OPEN_ERROR';
     } finally {
-      this.isAuthorizingEdit = false;
+      this.isOpeningEditor = false;
     }
   }
 
@@ -275,9 +402,7 @@ export class EditPage {
     }
 
     if (step === 1 && this.pendingReview) {
-      void this.metadataWorkflow.reopenPendingReview().catch(() => {
-        this.editErrorKey = 'EDIT.OPEN_ERROR';
-      });
+      void this.reopenPendingReview();
       return;
     }
 
@@ -318,6 +443,19 @@ export class EditPage {
       { labelKey: 'EPUB_METADATA.RELATION', value: metadata.relation ?? '' },
       { labelKey: 'EPUB_METADATA.COVERAGE', value: metadata.coverage ?? '' },
     ].map((row) => ({ ...row, value: row.value.trim() }));
+  }
+
+  private async reopenPendingReview(): Promise<void> {
+    if (this.isOpeningEditor) return;
+
+    this.isOpeningEditor = true;
+    try {
+      await this.metadataWorkflow.reopenPendingReview();
+    } catch {
+      this.editErrorKey = 'EDIT.OPEN_ERROR';
+    } finally {
+      this.isOpeningEditor = false;
+    }
   }
 
   private formatList(values: readonly string[]): string | undefined {

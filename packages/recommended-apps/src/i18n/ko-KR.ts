@@ -14,4 +14,6 @@ export const KO_KR: RecommendedAppsTranslations = {
   APP_DESC_EF: '일반적인 EPUB 문제를 진단하고 복구',
   APP_NAME_EMAS: 'EPUB 병합 및 분할',
   APP_DESC_EMAS: 'EPUB을 합치고 원하는 방식으로 나누세요',
+  APP_NAME_PMAS: 'PDF 병합 및 분할',
+  APP_DESC_PMAS: 'PDF를 합치고 원하는 방식으로 나누세요',
 };

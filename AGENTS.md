@@ -41,6 +41,6 @@ Skills viven en `.agents/skills/`.
 - UI ya construida: usar `impeccable` para limpiar, auditar y pulir
 - Animaciones: usar `emil-design-eng` para validar decisiones de motion
 - Versionado de apps moviles: usar `apps/<app>/android/app/build.gradle` como fuente de `versionCode` y `versionName`
-- Si se incrementa `versionCode`, actualizar tambien `docs/utilities/<short-name>/utility.md`, `state.json` y `version-notes.xml`
+- Al incrementar una versión, actualizar `build.gradle` y `docs/utilities/<short-name>/version-notes.xml`; no modificar `utility.md`, `state.json`, `delta.json` ni artefactos de fichas.
 - Layouts con botones + cards/lists: mantener alineacion horizontal exacta y usar `class="app-btn" expand="block"` en botones full-width
 - En workflows/status screens con patron JOS, evitar `ion-list` como contenedor generico de card

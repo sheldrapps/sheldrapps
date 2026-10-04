@@ -237,7 +237,10 @@
       "LOAD": "Could not load your EPUBs. Pull down to refresh.",
       "PREVIEW": "Could not load preview. Try again.",
       "OPEN": "Could not open the EPUB. Please try again.",
-      "OPEN_PROJECT": "Could not open the project. Please try again."
+      "OPEN_PROJECT": "Could not open the project. Please try again.",
+      "METADATA_UNEDITABLE_TITLE": "Metadata can’t be edited",
+      "METADATA_UNEDITABLE_BODY": "This EPUB has a problem in its internal structure. Use EPUB Fixer to inspect and repair it before editing its metadata.",
+      "OPEN_EPUB_FIXER": "Open EPUB Fixer"
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "Zoom out e-reader preview",
@@ -315,7 +318,7 @@
     "TOOLS": {
       "RECOMMENDED": "Recommended",
       "INFO": "Info",
-      "APPS": "Apps",
+      "APPS": "Our apps",
       "GUIDE": "Guide"
     }
   },

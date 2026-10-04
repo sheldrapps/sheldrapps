@@ -24,6 +24,7 @@ import {
 } from './types';
 import { ProPurchaseAnalyticsService } from './pro-purchase-analytics.service';
 import { reportCrashlyticsDiagnostic } from './ad-telemetry';
+import { BillingFlowGate } from './billing-flow-gate';
 
 type BillingSettings = Record<string, unknown> & {
   adsRemoved?: boolean;
@@ -50,6 +51,11 @@ export type BillingPurchaseDiagnostics = {
   platform: string;
   native: boolean;
   android: boolean;
+  purchaseFlow: {
+    appActive: boolean;
+    inProgress: boolean;
+    blocked: boolean;
+  };
 };
 
 @Injectable()
@@ -73,6 +79,7 @@ export class BillingService {
   private entitlementStatus: AdsEntitlementStatus = 'unknown';
   private entitlementRefreshSucceeded = false;
   private removeAdsPriceFormatted: string | null = null;
+  private readonly purchaseFlowGate = new BillingFlowGate();
   private readonly config = inject(ADS_KIT_CONFIG);
   private readonly settings = inject(SettingsStore<BillingSettings>);
   private readonly purchaseAnalytics = inject(ProPurchaseAnalyticsService);
@@ -86,6 +93,7 @@ export class BillingService {
     }
 
     void App.addListener('appStateChange', ({ isActive }) => {
+      this.purchaseFlowGate.setAppActive(isActive);
       if (isActive) {
         void this.reconcileOwnedPurchases('resume');
       }
@@ -249,32 +257,41 @@ export class BillingService {
   }
 
   async purchaseRemoveAds(): Promise<boolean> {
-    this.purchaseAnalytics.trackPurchaseStarted(this.purchaseAnalyticsContext());
-
-    if (this.isDevelopmentPremiumMode()) {
-      this.setEntitlement(true);
-      this.setRemoveAdsPrice(this.developmentRemoveAdsPriceFormatted);
-      this.purchaseAnalytics.trackPurchaseSuccess({
-        ...this.purchaseAnalyticsContext(),
-        source: 'new_purchase',
-      });
-      return true;
+    if (!this.purchaseFlowGate.begin(true)) {
+      this.trackPurchaseFailure('prepare', 'billing_flow_unavailable');
+      return false;
     }
 
-    return this.enqueue(async () => {
-      try {
-        await this.ensureReady();
-        if (!this.canRunBillingOperations()) {
-          this.trackPurchaseFailure('prepare', 'billing_unavailable');
-          return false;
-        }
-      } catch (error) {
-        this.trackPurchaseFailure('prepare', this.classifyBillingError(error));
-        throw error;
+    try {
+      this.purchaseAnalytics.trackPurchaseStarted(this.purchaseAnalyticsContext());
+
+      if (this.isDevelopmentPremiumMode()) {
+        this.setEntitlement(true);
+        this.setRemoveAdsPrice(this.developmentRemoveAdsPriceFormatted);
+        this.purchaseAnalytics.trackPurchaseSuccess({
+          ...this.purchaseAnalyticsContext(),
+          source: 'new_purchase',
+        });
+        return true;
       }
 
-      return this.purchaseConfiguredProduct(this.removeAdsProduct!);
-    });
+      return await this.enqueue(async () => {
+        try {
+          await this.ensureReady();
+          if (!this.canRunBillingOperations()) {
+            this.trackPurchaseFailure('prepare', 'billing_unavailable');
+            return false;
+          }
+        } catch (error) {
+          this.trackPurchaseFailure('prepare', this.classifyBillingError(error));
+          throw error;
+        }
+
+        return this.purchaseConfiguredProduct(this.removeAdsProduct!);
+      });
+    } finally {
+      this.purchaseFlowGate.complete();
+    }
   }
 
   private async purchaseConfiguredProduct(
@@ -336,6 +353,13 @@ export class BillingService {
           this.trackPurchaseFailure('restore', 'entitlement_not_restored');
         }
         return restored;
+      }
+
+      if (this.isBillingFlowLaunchFailure(error)) {
+        this.purchaseFlowGate.block();
+        this.logBillingEvent('BILLING_FLOW_BLOCKED', {
+          error: this.describeBillingError(error),
+        });
       }
 
       this.logDebug('purchase failed', this.describeBillingError(error));
@@ -443,6 +467,7 @@ export class BillingService {
       platform: getPlatform(),
       native: isNative(),
       android: isAndroid(),
+      purchaseFlow: this.purchaseFlowGate.getState(),
     };
   }
 
@@ -469,7 +494,7 @@ export class BillingService {
     }
 
     if (this.isBillingSupportedByPlatform()) {
-      return true;
+      return this.purchaseFlowGate.canRunBillingOperations();
     }
 
     // Keep the entry point visible on web during dev/test so it can be reviewed in ionic serve.
@@ -1002,7 +1027,18 @@ export class BillingService {
       this.isBillingSupportedByPlatform() &&
       !!this.removeAdsProductId &&
       this.billingAvailable &&
-      this.isReady
+      this.isReady &&
+      this.purchaseFlowGate.canRunBillingOperations()
+    );
+  }
+
+  private isBillingFlowLaunchFailure(error: unknown): boolean {
+    const normalized = this.describeBillingError(error).toLowerCase();
+    return (
+      normalized.includes('billing_flow_exception') ||
+      normalized.includes('billing_flow_unavailable') ||
+      normalized.includes('billing_flow_rejected') ||
+      normalized.includes('billing flow could not be launched')
     );
   }
 
@@ -1268,6 +1304,7 @@ export class BillingService {
       | 'BILLING_INITIALIZE_FAILED'
       | 'BILLING_SUPPORT_RESULT'
       | 'BILLING_SUPPORT_FAILED'
+      | 'BILLING_FLOW_BLOCKED'
       | 'BILLING_UNAVAILABLE'
       | 'BILLING_PURCHASE_DETECTED'
       | 'BILLING_PURCHASE_PENDING'

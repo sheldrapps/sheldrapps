@@ -124,6 +124,10 @@ const personNameValidator: ValidatorFn = (
 })
 export class EpubMetadataEditorComponent {
   readonly editorInput = input.required<EpubMetadataEditorInput>();
+  readonly idPrefix = input('epub-metadata');
+  readonly contextTitle = input<string | null>(null);
+  readonly showFileName = input(true);
+  readonly compactLayout = input(false);
   readonly save = output<EpubMetadataFormValue>();
 
 

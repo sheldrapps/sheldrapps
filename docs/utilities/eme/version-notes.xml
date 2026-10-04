@@ -1,51 +1,51 @@
 <en-US>
-Review metadata changes before applying them. Return to the form to adjust them, or go back to choose one or multiple EPUBs.
+Review metadata changes before applying them to one or more EPUBs. Header actions also follow your selected language.
 </en-US>
 
 <ar>
-راجع تغييرات البيانات الوصفية قبل تطبيقها. عُد إلى النموذج لتعديلها، أو ارجع لاختيار ملف EPUB واحد أو عدة ملفات.
+راجع تغييرات البيانات الوصفية قبل تطبيقها على ملف EPUB واحد أو أكثر. كما تتبع إجراءات الرأس اللغة المحددة.
 </ar>
 
 <de-DE>
-Prüfe Änderungen an den Metadaten, bevor du sie übernimmst. Kehre zum Formular zurück, um sie anzupassen, oder wähle erneut eine oder mehrere EPUB-Dateien aus.
+Prüfe Metadatenänderungen, bevor du sie auf eine oder mehrere EPUB-Dateien anwendest. Die Aktionen in der Kopfzeile passen sich außerdem der ausgewählten Sprache an.
 </de-DE>
 
 <es-419>
-Revisa los cambios en los metadatos antes de aplicarlos. Vuelve al formulario para ajustarlos o regresa para elegir uno o varios EPUB.
+Revisa los cambios de metadatos antes de aplicarlos a uno o varios EPUB. Las acciones del encabezado también usan el idioma seleccionado.
 </es-419>
 
 <fr-FR>
-Vérifiez les modifications des métadonnées avant de les appliquer. Revenez au formulaire pour les ajuster ou choisissez à nouveau un ou plusieurs fichiers EPUB.
+Vérifiez les modifications des métadonnées avant de les appliquer à un ou plusieurs EPUB. Les actions de l’en-tête suivent aussi la langue sélectionnée.
 </fr-FR>
 
 <hi-IN>
-मेटाडेटा बदलाव लागू करने से पहले उनकी समीक्षा करें। बदलाव करने के लिए फ़ॉर्म पर लौटें या एक अथवा कई EPUB चुनने के लिए वापस जाएँ।
+एक या अधिक EPUB पर बदलाव लागू करने से पहले मेटाडेटा में हुए बदलावों की समीक्षा करें। हेडर के विकल्प चुनी गई भाषा के अनुसार भी बदलेंगे।
 </hi-IN>
 
 <it-IT>
-Controlla le modifiche ai metadati prima di applicarle. Torna al modulo per modificarle oppure scegli di nuovo uno o più file EPUB.
+Rivedi le modifiche ai metadati prima di applicarle a uno o più EPUB. Anche le azioni nell’intestazione seguono la lingua selezionata.
 </it-IT>
 
 <ja-JP>
-メタデータの変更内容を確認してから適用できます。フォームに戻って修正したり、戻って EPUB を 1 つまたは複数選び直したりできます。
+1 冊以上の EPUB に反映する前に、メタデータの変更内容を確認できます。ヘッダーの操作項目も選択中の言語に合わせて切り替わります。
 </ja-JP>
 
 <ko-KR>
-메타데이터 변경 사항을 적용하기 전에 확인하세요. 양식으로 돌아가 수정하거나 이전 단계에서 EPUB 파일을 하나 또는 여러 개 다시 선택할 수 있습니다.
+하나 이상의 EPUB에 적용하기 전에 메타데이터 변경 사항을 확인하세요. 헤더 작업 항목도 선택한 언어에 맞게 바뀝니다.
 </ko-KR>
 
 <pt-BR>
-Revise as alterações nos metadados antes de aplicá-las. Volte ao formulário para ajustá-las ou retorne para escolher um ou vários EPUBs.
+Revise as alterações de metadados antes de aplicá-las a um ou mais EPUBs. As ações do cabeçalho também acompanham o idioma selecionado.
 </pt-BR>
 
 <ru-RU>
-Проверьте изменения метаданных перед применением. Вернитесь к форме, чтобы внести правки, или выберите один или несколько файлов EPUB заново.
+Просматривайте изменения метаданных перед применением к одному или нескольким EPUB. Действия в заголовке также будут соответствовать выбранному языку.
 </ru-RU>
 
 <zh-CN>
-应用前可先检查元数据更改。返回表单进行调整，或返回上一步重新选择一个或多个 EPUB 文件。
+将元数据更改应用到一个或多个 EPUB 前，可以先进行检查。页眉操作也会随所选语言切换。
 </zh-CN>
 
 <zh-TW>
-套用前可先檢查中繼資料變更。返回表單進行調整，或返回上一步重新選擇一個或多個 EPUB 檔案。
+將中繼資料變更套用至一個或多個 EPUB 前，可以先進行檢查。頁首操作也會配合所選語言切換。
 </zh-TW>

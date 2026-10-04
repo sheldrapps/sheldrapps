@@ -14,4 +14,6 @@ export const AR_SA: RecommendedAppsTranslations = {
   APP_DESC_EF: 'تشخيص وإصلاح مشاكل EPUB الشائعة',
   APP_NAME_EMAS: 'دمج وتقسيم EPUB',
   APP_DESC_EMAS: 'ادمج ملفات EPUB أو قسّمها على جهازك',
+  APP_NAME_PMAS: 'دمج وتقسيم PDF',
+  APP_DESC_PMAS: 'ادمج ملفات PDF أو قسّمها على جهازك',
 };

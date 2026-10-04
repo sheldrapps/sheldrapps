@@ -20,14 +20,15 @@ describe('EditPage', () => {
     expect(context.selectFiles).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps multiple-file mode locked without Pro', () => {
+  it('allows multiple-file mode without Pro while the temporary lock is disabled', () => {
     const context = createContext();
 
     context.selectEditMode('multiple');
 
-    expect(context.editMode).toBeNull();
+    expect(context.editMode).toBe('multiple');
     expect(context.workflowStep).toBe(0);
-    expect(context.canUseMultipleFiles).toBeFalse();
+    expect(context.canUseMultipleFiles).toBeTrue();
+    expect(context.selectFiles).toHaveBeenCalledTimes(1);
   });
 
   it('allows multiple-file mode for Pro users', () => {
@@ -100,6 +101,58 @@ describe('EditPage', () => {
     await EditPage.prototype.selectFiles.call(context);
 
     expect(startFromNativePicker).toHaveBeenCalledOnceWith(true);
+  });
+
+  it('clears all edit-session flags and state when restarting', async () => {
+    const context = Object.assign(createContext(), {
+      editMode: 'multiple',
+      workflowStep: 2,
+      isSelectingFiles: false,
+      selectionErrorKey: 'EDIT.SELECTION_ERROR',
+      editErrorKey: 'EDIT.OPEN_ERROR',
+      applyErrorKey: 'EDIT.APPLY_ERROR',
+      isApplyingChanges: false,
+      isAuthorizingWrite: false,
+      isOpeningEditor: false,
+      isResettingFlow: false,
+      writeAccessGranted: true,
+      metadataWorkflow: { cancel: jasmine.createSpy('cancel').and.resolveTo() },
+      confirmResetFlow: jasmine.createSpy('confirmResetFlow').and.resolveTo(true),
+    }) as EditPage;
+    const internal = context as any;
+
+    await EditPage.prototype.resetFlow.call(context);
+
+    expect(internal.metadataWorkflow.cancel).toHaveBeenCalledTimes(1);
+    expect(context.editMode).toBeNull();
+    expect(context.workflowStep).toBe(0);
+    expect(context.isSelectingFiles).toBeFalse();
+    expect(context.selectionErrorKey).toBeNull();
+    expect(context.editErrorKey).toBeNull();
+    expect(context.applyErrorKey).toBeNull();
+    expect(context.isApplyingChanges).toBeFalse();
+    expect(context.isAuthorizingWrite).toBeFalse();
+    expect(context.isOpeningEditor).toBeFalse();
+    expect(internal.writeAccessGranted).toBeFalse();
+    expect(context.isResettingFlow).toBeFalse();
+  });
+
+  it('does not reset while an edit operation is active', async () => {
+    const context = Object.assign(createContext(), {
+      isResettingFlow: false,
+      isSelectingFiles: false,
+      isApplyingChanges: true,
+      isAuthorizingWrite: false,
+      isOpeningEditor: false,
+      metadataWorkflow: { cancel: jasmine.createSpy('cancel').and.resolveTo() },
+      confirmResetFlow: jasmine.createSpy('confirmResetFlow').and.resolveTo(true),
+    }) as EditPage;
+    const internal = context as any;
+
+    await EditPage.prototype.resetFlow.call(context);
+
+    expect(internal.confirmResetFlow).not.toHaveBeenCalled();
+    expect(internal.metadataWorkflow.cancel).not.toHaveBeenCalled();
   });
 
   it('omits empty metadata fields from the completed summary', () => {

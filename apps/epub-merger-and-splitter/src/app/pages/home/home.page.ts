@@ -751,6 +751,7 @@ export class HomePage implements OnInit, OnDestroy {
   private routerSub?: Subscription;
   private adsRemovedSub?: Subscription;
   private languageSub?: Subscription;
+  private headerTranslationSub?: Subscription;
   private operationProgressListener?: PluginListenerHandle;
   private flowEpoch = 0;
   private lastEditorSessionId?: string;
@@ -875,6 +876,12 @@ export class HomePage implements OnInit, OnDestroy {
     this.refreshWorkflowStepLabels();
     this.languageSub = this.translate.onLangChange.subscribe(() => {
       this.refreshWorkflowStepLabels();
+      void this.refreshHeaderItems();
+    });
+    this.headerTranslationSub = this.translate.onTranslationChange.subscribe((event) => {
+      if (event.lang) {
+        void this.refreshHeaderItems();
+      }
     });
     void this.hydrateAdsState();
     void this.hydrateAdFallbackState();
@@ -1437,6 +1444,7 @@ export class HomePage implements OnInit, OnDestroy {
     this.routerSub?.unsubscribe();
     this.adsRemovedSub?.unsubscribe();
     this.languageSub?.unsubscribe();
+    this.headerTranslationSub?.unsubscribe();
     void this.operationProgressListener?.remove();
     void this.recovery.save();
   }

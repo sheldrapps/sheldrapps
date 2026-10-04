@@ -18,8 +18,8 @@ android {
         applicationId "com.sheldrapps.epubmergersplitter"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 32
-        versionName "Share and 16 KB reliability"
+        versionCode 35
+        versionName "Clearer EPUB errors"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

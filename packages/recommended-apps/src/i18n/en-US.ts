@@ -14,4 +14,6 @@ export const EN_US: RecommendedAppsTranslations = {
   APP_DESC_EF: 'Diagnose and repair common EPUB file issues',
   APP_NAME_EMAS: 'EPUB Merger & Splitter',
   APP_DESC_EMAS: 'Merge, organize, and split EPUB files',
+  APP_NAME_PMAS: 'PDF Merger & Splitter',
+  APP_DESC_PMAS: 'Merge, organize, and split PDF files',
 };

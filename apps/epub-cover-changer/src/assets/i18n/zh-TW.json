@@ -237,7 +237,10 @@
       "LOAD": "無法載入您的 EPUB，請下拉以重新整理。",
       "PREVIEW": "無法載入預覽，請再試一次。",
       "OPEN": "無法開啟 EPUB。請再試一次。",
-      "OPEN_PROJECT": "無法開啟專案。請再試一次。"
+      "OPEN_PROJECT": "無法開啟專案。請再試一次。",
+      "METADATA_UNEDITABLE_TITLE": "無法編輯中繼資料",
+      "METADATA_UNEDITABLE_BODY": "此 EPUB 的內部結構有問題。請先使用 EPUB Fixer 檢查並修復檔案，再編輯中繼資料。",
+      "OPEN_EPUB_FIXER": "開啟 EPUB Fixer"
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "縮小電子閱讀器預覽",
@@ -315,7 +318,7 @@
     "TOOLS": {
       "RECOMMENDED": "推薦",
       "INFO": "資訊",
-      "APPS": "應用程式",
+      "APPS": "我們的應用程式",
       "GUIDE": "指南"
     }
   },

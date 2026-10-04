@@ -84,9 +84,9 @@ export class HomePageComponent {
       nameKey: 'HOME.APPS.PMAS.NAME',
       descriptionKey: 'HOME.APPS.PMAS.DESCRIPTION',
       icon: 'assets/apps/pdf-merger-and-splitter/icon.png',
+      playStoreUrl:
+        'https://play.google.com/store/apps/details?id=com.sheldrapps.pdfmergerandsplitter',
       privacyRoute: '/privacy-policies/pdf-merger-and-splitter',
-      comingSoon: true,
-      disabled: true,
     },
   ];
 

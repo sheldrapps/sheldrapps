@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { environment } from '../environments/environment';
 
 export const routes: Routes = [
   {
@@ -23,6 +24,17 @@ export const routes: Routes = [
         (module) => module.EpubMetadataEditorPageComponent,
       ),
   },
+  ...(!environment.production
+    ? [
+        {
+          path: 'metadata-editor-preview',
+          loadComponent: () =>
+            import('./pages/metadata-editor-preview/metadata-editor-preview.page').then(
+              (module) => module.MetadataEditorPreviewPage,
+            ),
+        },
+      ]
+    : []),
   {
     path: '**',
     redirectTo: '/tabs/edit',

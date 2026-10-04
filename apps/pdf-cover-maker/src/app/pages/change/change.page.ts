@@ -277,6 +277,8 @@ export class ChangePage implements OnInit, OnDestroy {
   private readonly maxPdfSizeMB = 2048;
   private routerSub?: Subscription;
   private coversEventsSub?: Subscription;
+  private headerLangSub?: Subscription;
+  private headerTranslationSub?: Subscription;
   private rewriteProgressSub?: PluginListenerHandle;
   private lastEditorSessionId?: string;
   private editorTargetOverride?: CropTarget;
@@ -699,6 +701,14 @@ export class ChangePage implements OnInit, OnDestroy {
 
   async ngOnInit() {
     await this.initializeNativeRewriteSafetyGate();
+    this.headerLangSub = this.translate.onLangChange.subscribe(() => {
+      void this.refreshHeaderItems();
+    });
+    this.headerTranslationSub = this.translate.onTranslationChange.subscribe((event) => {
+      if (event.lang) {
+        void this.refreshHeaderItems();
+      }
+    });
     await this.refreshHeaderItems();
     this.isOnline = typeof navigator === 'undefined' ? true : navigator.onLine;
     if (typeof window !== 'undefined') {
@@ -803,6 +813,8 @@ export class ChangePage implements OnInit, OnDestroy {
     this.revokeOriginalPdfPreviewUrl();
     this.routerSub?.unsubscribe();
     this.coversEventsSub?.unsubscribe();
+    this.headerLangSub?.unsubscribe();
+    this.headerTranslationSub?.unsubscribe();
     this.adsRemovedSub?.unsubscribe();
     this.removeAdsPriceSub?.unsubscribe();
     this.clearRemoveAdsPulse();

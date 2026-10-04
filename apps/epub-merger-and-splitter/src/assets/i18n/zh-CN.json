@@ -4,7 +4,7 @@
   },
   "ARR": {
     "TOOLS": {
-      "APPS": "应用",
+      "APPS": "我们的应用",
       "GUIDE": "指南"
     }
   },
@@ -59,6 +59,9 @@
     "ERROR.OPEN": "无法打开 EPUB。",
     "ERROR.SHARE": "无法分享 EPUB。",
     "ERROR.DELETE": "无法删除 EPUB。",
+    "METADATA_UNEDITABLE_TITLE": "无法编辑元数据",
+    "METADATA_UNEDITABLE_BODY": "此 EPUB 的内部结构有问题。请先使用 EPUB Fixer 检查并修复文件，再编辑元数据。",
+    "OPEN_EPUB_FIXER": "打开 EPUB Fixer",
     "ERROR": "错误",
     "EMPTY_TITLE": "还没有 EPUB",
     "EMPTY_BODY": "添加后，你的 EPUB 会显示在这里。"

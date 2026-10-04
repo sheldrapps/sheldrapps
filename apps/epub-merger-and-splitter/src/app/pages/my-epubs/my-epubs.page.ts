@@ -31,7 +31,12 @@ import {
   CoverListContentComponent,
   CoverListItem,
 } from '@sheldrapps/covers-list-kit';
+import { EpubRewriteError } from '@sheldrapps/file-kit';
 import { PreviewEditingPageService } from '@sheldrapps/image-workflow';
+import {
+  RecommendedAppsService,
+  openRecommendedApp,
+} from '@sheldrapps/recommended-apps';
 import { CoversEventsService } from '../../services/covers-events.service';
 import { EpubLibraryService } from '../../services/epub-library.service';
 import {
@@ -69,6 +74,7 @@ export class MyEpubsPage implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly previewPage = inject(PreviewEditingPageService);
   private readonly metadataEditorPage = inject(EpubMetadataEditorPageService);
+  private readonly recommendedAppsService = inject(RecommendedAppsService);
   private readonly coversEvents = inject(CoversEventsService);
   private readonly zone = inject(NgZone);
   private readonly changeDetector = inject(ChangeDetectorRef);
@@ -460,10 +466,43 @@ export class MyEpubsPage implements OnInit, OnDestroy {
       await this.router.navigateByUrl('/metadata-editor');
     } catch (error) {
       this.logInfo('metadata:failed', { error: this.errorDetails(error) });
+      if (this.isMetadataArchiveFailure(error)) {
+        await this.showMetadataArchiveFailure();
+        return;
+      }
       this.pageErrorKey = 'COMMON.ERROR';
       await this.showErrorToast(error);
     }
   }
+
+  private isMetadataArchiveFailure(error: unknown): error is EpubRewriteError {
+    return (
+      error instanceof EpubRewriteError &&
+      error.details?.stage === 'metadata_public_read' &&
+      (error.code === 'ZIP_ERROR' || error.code === 'IO_ERROR')
+    );
+  }
+
+  private async showMetadataArchiveFailure(): Promise<void> {
+    const epubFixer = (await this.recommendedAppsService.getRecommendedApps()).find(
+      (app) => app.packageName === 'com.sheldrapps.epubfixer',
+    );
+    const alert = await this.alertCtrl.create({
+      header: this.translate.instant('MY_EPUBS.METADATA_UNEDITABLE_TITLE'),
+      message: this.translate.instant('MY_EPUBS.METADATA_UNEDITABLE_BODY'),
+      buttons: epubFixer?.playStoreUrl
+        ? [
+            {
+              text: this.translate.instant('MY_EPUBS.OPEN_EPUB_FIXER'),
+              handler: () => void openRecommendedApp(epubFixer.playStoreUrl),
+            },
+            { text: this.translate.instant('COMMON.CLOSE'), role: 'cancel' },
+          ]
+        : [{ text: this.translate.instant('COMMON.CLOSE'), role: 'cancel' }],
+    });
+    await alert.present();
+  }
+
   private async deleteByFilename(
     filename: string,
     opts?: { fromPreview?: boolean },

@@ -14,4 +14,6 @@ export const ZH_CN: RecommendedAppsTranslations = {
   APP_DESC_EF: '诊断并修复常见 EPUB 文件问题',
   APP_NAME_EMAS: 'EPUB合并与拆分',
   APP_DESC_EMAS: '合并或拆分 EPUB，按需整理文件',
+  APP_NAME_PMAS: 'PDF合并与拆分',
+  APP_DESC_PMAS: '合并或拆分 PDF，按需整理文档',
 };

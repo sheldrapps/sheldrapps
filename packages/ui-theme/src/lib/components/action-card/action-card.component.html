@@ -2,6 +2,7 @@
   class="sh-action-card"
   [class.sh-action-card--selected]="selected"
   [class.sh-action-card--suggested]="suggested"
+  [class.sh-action-card--compact]="compact"
   [class.sh-action-card--disabled]="disabled"
   [class.sh-action-card--has-image]="!!imageUrl"
   [disabled]="disabled"
@@ -10,7 +11,12 @@
   [attr.aria-label]="ariaLabel"
   (click)="activated.emit()"
 >
-  <span class="sh-action-card__title">{{ title }}</span>
+  <span class="sh-action-card__copy">
+    <span class="sh-action-card__title">{{ title }}</span>
+    @if (description) {
+      <small class="sh-action-card__description">{{ description }}</small>
+    }
+  </span>
 
   <span class="sh-action-card__icon" aria-hidden="true">
     <img
@@ -39,7 +45,4 @@
     </ng-template>
   </span>
 
-  @if (description) {
-    <small class="sh-action-card__description">{{ description }}</small>
-  }
 </button>

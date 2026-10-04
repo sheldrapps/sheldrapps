@@ -12734,14 +12734,16 @@ public class EpubRewritePlugin extends Plugin {
     }
 
     private String normalizeError(Exception ex) {
-        if (ex instanceof CancelledRewriteException) {
-            return "CANCELLED";
-        }
-        if (ex instanceof StreamingEpubArchiveWriter.UnsupportedZipLayoutException) {
-            return "UNSUPPORTED_ZIP_LAYOUT";
-        }
-        if (ex instanceof ZipException) {
-            return "ZIP_ERROR";
+        for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
+            if (cause instanceof CancelledRewriteException) {
+                return "CANCELLED";
+            }
+            if (cause instanceof StreamingEpubArchiveWriter.UnsupportedZipLayoutException) {
+                return "UNSUPPORTED_ZIP_LAYOUT";
+            }
+            if (cause instanceof ZipException) {
+                return "ZIP_ERROR";
+            }
         }
         return "IO_ERROR";
     }

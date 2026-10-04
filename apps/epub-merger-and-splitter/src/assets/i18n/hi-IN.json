@@ -4,7 +4,7 @@
   },
   "ARR": {
     "TOOLS": {
-      "APPS": "ऐप्स",
+      "APPS": "हमारे ऐप्स",
       "GUIDE": "गाइड"
     }
   },
@@ -59,6 +59,9 @@
     "ERROR.OPEN": "EPUB खोला नहीं जा सका।",
     "ERROR.SHARE": "EPUB साझा नहीं किया जा सका।",
     "ERROR.DELETE": "EPUB हटाया नहीं जा सका।",
+    "METADATA_UNEDITABLE_TITLE": "मेटाडेटा संपादित नहीं किया जा सकता",
+    "METADATA_UNEDITABLE_BODY": "इस EPUB की आंतरिक संरचना में समस्या है। इसके मेटाडेटा संपादित करने से पहले जाँचने और सुधारने के लिए EPUB Fixer का उपयोग करें।",
+    "OPEN_EPUB_FIXER": "EPUB Fixer खोलें",
     "ERROR": "त्रुटि",
     "EMPTY_TITLE": "अभी कोई EPUB नहीं",
     "EMPTY_BODY": "आपके EPUBs यहाँ दिखेंगे जब आप उन्हें जोड़ेंगे।"

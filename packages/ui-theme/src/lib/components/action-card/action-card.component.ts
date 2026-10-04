@@ -19,6 +19,9 @@ type ActionCardIconFlip = 'none' | 'horizontal' | 'vertical';
   templateUrl: './action-card.component.html',
   styleUrls: ['./action-card.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[class.sh-action-card-host--compact]': 'compact',
+  },
 })
 export class ActionCardComponent {
   private readonly sanitizer = inject(DomSanitizer);
@@ -29,6 +32,7 @@ export class ActionCardComponent {
   @Input() svg: string | null = null;
   @Input() selected = false;
   @Input() suggested = false;
+  @Input() compact = false;
   @Input() disabled = false;
   @Input() type: 'button' | 'submit' | 'reset' = 'button';
   @Input() iconFlip: ActionCardIconFlip = 'none';

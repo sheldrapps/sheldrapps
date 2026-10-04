@@ -25,7 +25,7 @@
     "@capacitor-firebase/analytics": "^8.3.0",
     "@capacitor/app": "^8.0.0",
     "@capacitor/core": "^8.0.0",
-    "@capgo/native-purchases": "^8.7.0",
+    "@capgo/native-purchases": "^8.8.1",
     "@ionic/angular": "^8.8.14",
     "@ngx-translate/core": "^17.0.0",
     "@sheldrapps/settings-kit": "workspace:*",

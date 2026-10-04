@@ -4,7 +4,7 @@
   },
   "ARR": {
     "TOOLS": {
-      "APPS": "Anwendungen",
+      "APPS": "Unsere Apps",
       "GUIDE": "Anleitung"
     }
   },
@@ -61,6 +61,9 @@
     "ERROR.OPEN": "Das EPUB konnte nicht geöffnet werden.",
     "ERROR.SHARE": "Das EPUB konnte nicht geteilt werden.",
     "ERROR.DELETE": "Das EPUB konnte nicht gelöscht werden.",
+    "METADATA_UNEDITABLE_TITLE": "Metadaten können nicht bearbeitet werden",
+    "METADATA_UNEDITABLE_BODY": "Dieses EPUB hat ein Problem in seiner internen Struktur. Verwende EPUB Fixer, um es vor dem Bearbeiten der Metadaten zu prüfen und zu reparieren.",
+    "OPEN_EPUB_FIXER": "EPUB Fixer öffnen",
     "ERROR": "Fehler"
   },
   "SETTINGS": {

@@ -6,6 +6,11 @@
   --sh-action-card-icon-color: var(--ion-color-primary);
 }
 
+:host(.sh-action-card-host--compact) {
+  height: auto;
+  min-height: var(--app-control-min-height);
+}
+
 .sh-action-card {
   appearance: none;
   width: 100%;
@@ -34,6 +39,10 @@
     transform var(--app-dur-fast) var(--app-ease),
     border-color var(--app-dur-fast) var(--app-ease),
     background-color var(--app-dur-fast) var(--app-ease);
+}
+
+.sh-action-card__copy {
+  display: contents;
 }
 
 .sh-action-card:hover:not(:disabled),
@@ -145,6 +154,43 @@
   transform: scaleY(-1);
 }
 
+.sh-action-card--compact {
+  min-height: var(--app-control-min-height);
+  padding: var(--app-space-3) var(--app-space-4);
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--app-space-4);
+  text-align: start;
+}
+
+.sh-action-card--compact .sh-action-card__copy {
+  display: grid;
+  flex: 1 1 auto;
+  order: 1;
+  gap: var(--app-space-1);
+  min-width: 0;
+}
+
+.sh-action-card--compact .sh-action-card__title {
+  min-height: 0;
+  justify-content: flex-start;
+  font-size: var(--app-text-lg);
+  text-align: start;
+}
+
+.sh-action-card--compact .sh-action-card__description {
+  max-width: none;
+  align-self: stretch;
+  text-align: start;
+}
+
+.sh-action-card--compact .sh-action-card__icon {
+  order: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
 @media (max-width: 540px) {
   .sh-action-card {
     padding: var(--app-space-4) var(--app-space-3);
@@ -167,6 +213,17 @@
 
   .sh-action-card__icon ion-icon {
     font-size: var(--app-action-card-icon-size);
+  }
+
+  .sh-action-card--compact {
+    padding: var(--app-space-3) var(--app-space-4);
+    flex-direction: row;
+    gap: var(--app-space-3);
+  }
+
+  .sh-action-card--compact .sh-action-card__icon {
+    width: 2.5rem;
+    height: 2.5rem;
   }
 }
 

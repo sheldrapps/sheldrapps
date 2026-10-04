@@ -234,7 +234,10 @@
       "LOAD": "Não foi possível carregar suas capas. Arraste para baixo para tentar novamente.",
       "PREVIEW": "Não foi possível carregar a pré-visualização. Tente novamente.",
       "OPEN": "Não foi possível abrir o EPUB. Tente novamente.",
-      "OPEN_PROJECT": "Não foi possível abrir o projeto. Tente novamente."
+      "OPEN_PROJECT": "Não foi possível abrir o projeto. Tente novamente.",
+      "METADATA_UNEDITABLE_TITLE": "Não é possível editar os metadados",
+      "METADATA_UNEDITABLE_BODY": "Este EPUB tem um problema na estrutura interna. Use o EPUB Fixer para verificá-lo e repará-lo antes de editar os metadados.",
+      "OPEN_EPUB_FIXER": "Abrir EPUB Fixer"
     },
     "GENERATE_THUMB": "Generate thumbnail",
     "PREVIEW_UNAVAILABLE": "Preview unavailable.",
@@ -315,7 +318,7 @@
     "TOOLS": {
       "RECOMMENDED": "Recomendados",
       "INFO": "Info",
-      "APPS": "Apps",
+      "APPS": "Nossos apps",
       "GUIDE": "Guia"
     }
   },

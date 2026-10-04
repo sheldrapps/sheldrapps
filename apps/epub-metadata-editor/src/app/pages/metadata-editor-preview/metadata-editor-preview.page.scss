@@ -1,0 +1,30 @@
+.metadata-editor-preview {
+  display: grid;
+  gap: var(--app-space-4);
+}
+
+.metadata-editor-preview__selected-count {
+  margin: 0;
+}
+
+.metadata-editor-preview__files {
+  display: grid;
+  gap: 0;
+}
+
+.metadata-editor-preview__file {
+  display: grid;
+  gap: var(--app-space-3);
+}
+
+.metadata-editor-preview__file + .metadata-editor-preview__file {
+  margin-top: var(--app-space-6);
+  padding-top: var(--app-space-6);
+  border-top: 1px solid var(--ion-color-step-250);
+}
+
+.metadata-editor-preview__load-more {
+  display: block;
+  width: 100%;
+  min-height: var(--app-control-min-height);
+}

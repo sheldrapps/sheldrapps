@@ -4,7 +4,7 @@
   },
   "ARR": {
     "TOOLS": {
-      "APPS": "앱",
+      "APPS": "우리 앱",
       "GUIDE": "가이드"
     }
   },
@@ -59,6 +59,9 @@
     "ERROR.OPEN": "EPUB을 열 수 없습니다.",
     "ERROR.SHARE": "EPUB을 공유할 수 없습니다.",
     "ERROR.DELETE": "EPUB을 삭제할 수 없습니다.",
+    "METADATA_UNEDITABLE_TITLE": "메타데이터를 수정할 수 없습니다",
+    "METADATA_UNEDITABLE_BODY": "이 EPUB의 내부 구조에 문제가 있습니다. 메타데이터를 수정하기 전에 EPUB Fixer로 확인하고 복구하세요.",
+    "OPEN_EPUB_FIXER": "EPUB Fixer 열기",
     "ERROR": "오류",
     "EMPTY_TITLE": "아직 EPUB가 없습니다",
     "EMPTY_BODY": "추가하면 EPUB가 여기에 표시됩니다."

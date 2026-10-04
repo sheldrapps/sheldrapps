@@ -4,178 +4,54 @@ user-invocable: true
 description: "Bumps a mobile app version and updates `build.gradle` plus release notes from the current delta. Use when the user asks to increase version, update release notes, publish a mobile release, or says 'sube version'."
 ---
 
-# Incrementa Version Utilidades
+# Incrementa versión de utilidades
 
-## Trigger
+## Alcance
 
-- `Incrementa la versión de <short_name>`
-- `incrementa la version de <short_name>`
-- `sube version <short_name>`
-- `actualiza version <short_name>`
-- `Incrementa la versión de active`
-- `incrementa la version de active`
-- `sube version active`
-- `actualiza solo version notes para <short_name>`
-- `genera solo version notes para <short_name>`
-
-`<short_name>` siempre es el alias corto formado por la primera letra de cada palabra del nombre de la app.
-
-Ejemplos:
-
-- `EPUB FIXER` -> `ef`
-- `Cover Creator for Kindle` -> `ccfk`
-- `Presupuesto Niños` -> `pn`
-
-Alias soportados:
-
-- `eme` -> `epub-metadata-editor`
-- `ef` -> `epub-fixer`
-- `ecc` -> `epub-cover-changer`
-- `pcm` -> `pdf-cover-maker`
-- `ccfk` -> `cover-creator-for-kindle`
-- `emas` -> `epub-merger-and-splitter`
-- `pmas` -> `pdf-merger-and-splitter`
-
-Conjunto `active`:
-
-- Fuente de verdad: grupo `active` en `scripts/app-shortcuts.cjs`, reflejado en `pnpm bundleRelease:active`.
-- Apps actuales: `ecc`, `ccfk`, `pcm`, `ef`, `emas`, `pmas`, `eme`.
-- Al recibir `active`, ejecutar el flujo completo para cada alias en ese grupo, en orden, y validar el resultado de cada app.
-- `active` siempre expande a las siete apps actuales. No incluir `pn`, `jos` ni apps fuera del grupo.
-- Antes de cerrar, comprobar que cada app del grupo tenga `build.gradle` y su carpeta `docs/utilities/<short-name>` con `version-notes.xml`.
-
-## Source of truth
-
-- Version source only: `apps/<project>/android/app/build.gradle`
-- Release copy only: `docs/utilities/<short-name>/version-notes.xml`
-- Delta is derived each run from the current working tree vs last published version; do not treat it as immutable.
-- Scope de evidencia: `apps/<project>/**` + `packages/**`
-- Cuando haya cambios en archivos compartidos, revisar si el proyecto los consume directa o indirectamente y reflejar el impacto visible en la app.
-- El orden correcto siempre es: primero `build.gradle`, luego `version-notes.xml`.
-- Nunca usar archivos de `docs/utilities/<short-name>` para decidir el `versionCode` real.
-
-## Skill-first contract
-
-La skill hace la inteligencia:
-
-1. Decide `versionName` descriptivo (<= 30 chars) con base en delta user-facing.
-2. Redacta `version-notes.xml` por locale con contenido real (no placeholder si hay cambios visibles).
-3. Si hay cambios en elementos compartidos que la app usa, conviértelos en beneficios observables para esa app y redacta las notas como experiencia de usuario, no como detalle interno.
-4. Redacta siempre las notas desde el delta actual. No copies ni arrastres texto de notas anteriores salvo que siga siendo estrictamente cierto para el cambio nuevo.
-5. Verifica que `build.gradle` y `version-notes.xml` coinciden en el `currentVersionCode` final y en el siguiente valor esperado.
-6. Si materializas evidencia intermedia, `delta.json` es temporal y no se conserva como artefacto de release.
-
-## Required outputs
-
-Siempre actualizar:
+Actualiza únicamente:
 
 1. `apps/<project>/android/app/build.gradle`
 2. `docs/utilities/<short-name>/version-notes.xml`
 
-### Modo `solo version-notes`
+No crear, leer ni actualizar `utility.md`, `state.json`, `delta.json` u otro artefacto de fichas. La gestión de fichas no forma parte de esta skill.
 
-Si el usuario pide explicitamente ejecutar solo version notes:
+## Apps
 
-- Actualizar unicamente `docs/utilities/<short-name>/version-notes.xml`.
-- No modificar `versionCode`/`versionName` en `build.gradle`.
-- Basar el texto en cambios user-facing reales del delta actual.
+| Alias | Proyecto |
+| --- | --- |
+| `eme` | `epub-metadata-editor` |
+| `ef` | `epub-fixer` |
+| `ecc` | `epub-cover-changer` |
+| `pcm` | `pdf-cover-maker` |
+| `ccfk` | `cover-creator-for-kindle` |
+| `emas` | `epub-merger-and-splitter` |
+| `pmas` | `pdf-merger-and-splitter` |
 
-## Version-notes format
+`active` resuelve el grupo definido en `scripts/app-shortcuts.cjs`; no copies esa lista aquí.
 
-Archivo: `docs/utilities/<short-name>/version-notes.xml` (overwrite each run).
+## Flujo
 
-Locales obligatorios:
+1. Lee `versionCode` y `versionName` desde `build.gradle`; es la única fuente de versión.
+2. Calcula el delta actual de `apps/<project>/**` y `packages/**` desde la versión publicada.
+3. Incrementa `versionCode` y asigna un `versionName` descriptivo de hasta 30 caracteres.
+4. Sobrescribe `version-notes.xml` con notas reales del delta, centradas en lo que ve la persona usuaria.
+5. Mantén el `versionCode` de las notas alineado con el valor final de `build.gradle`.
 
-- `en-US`
-- `ar`
-- `de-DE`
-- `es-419`
-- `fr-FR`
-- `hi-IN`
-- `it-IT`
-- `ja-JP`
-- `ko-KR`
-- `pt-BR`
-- `ru-RU`
-- `zh-CN`
-- `zh-TW`
+### Solo notas
 
-Formato:
+Si el usuario pide solo release notes, actualiza únicamente `version-notes.xml` y conserva la versión de `build.gradle`.
 
-```xml
-<en-US>
-...
-</en-US>
+## Release notes
 
-<ar>
-...
-</ar>
+Incluye siempre `en-US`, `ar`, `de-DE`, `es-419`, `fr-FR`, `hi-IN`, `it-IT`, `ja-JP`, `ko-KR`, `pt-BR`, `ru-RU`, `zh-CN` y `zh-TW`.
 
-<de-DE>
-...
-</de-DE>
+- Escribe UTF-8 y conserva la escritura propia de cada idioma.
+- No uses placeholders, mojibake ni texto de infraestructura.
+- Resume el delta actual; no arrastres notas de una versión anterior.
 
-<es-419>
-...
-</es-419>
+## Validación
 
-<fr-FR>
-...
-</fr-FR>
-
-<hi-IN>
-...
-</hi-IN>
-
-<it-IT>
-...
-</it-IT>
-
-<ja-JP>
-...
-</ja-JP>
-
-<ko-KR>
-...
-</ko-KR>
-
-<pt-BR>
-...
-</pt-BR>
-
-<ru-RU>
-...
-</ru-RU>
-
-<zh-CN>
-...
-</zh-CN>
-
-<zh-TW>
-...
-</zh-TW>
-```
-
-## Encoding y anti-artifacts (obligatorio)
-
-- Escribir siempre `version-notes.xml` en `UTF-8`.
-- No dejar mojibake ni reemplazos de caracteres.
-- Bloquear salida si aparece cualquiera de estos patrones:
-  - `\\u00C3|\\u00C2|\\uFFFD`
-  - `\?{2,}`
-  - `[A-Za-z]\?[A-Za-z]`
-- Si el entorno rompe scripts no latinos, usa el script nativo correcto del idioma o apóyate en las traducciones existentes de la app. Nunca transliteres idiomas no latinos a ASCII dentro de `version-notes.xml`.
-- Para `ar`, `ru-RU`, `zh-CN`, `zh-TW`, `ja-JP`, `ko-KR`, `hi-IN` y cualquier otro locale no latino, escribe siempre en su escritura local.
-- Si no puedes garantizar la escritura correcta de un locale no latino, detén la generación y revisa las traducciones fuente antes de cerrar.
-- Nunca cerrar la tarea con `?` dentro de palabras en `version-notes.xml`.
-
-## Validation before close
-
-- `versionCode` incrementado cuando el usuario lo pide.
-- `versionCode` incrementado en `build.gradle` antes de cerrar.
-- `versionName` <= 30 y descriptivo.
-- El delta se recalcula desde el working tree actual, no desde una captura inmutable.
-- `version-notes.xml` en los 13 locales obligatorios y sin placeholders si hay cambios visibles.
-- `version-notes.xml` sin mojibake ni artifacts `?`.
-- Si los cambios vienen de piezas compartidas, las notas deben describir el resultado que ve el usuario en la app, evitando mencionar infraestructura, kits, paquetes o términos técnicos.
-- Las notas no deben repetir literalmente el release anterior. Deben resumir el cambio actual, aunque el alcance sea pequeño.
+- `versionCode` aumentó cuando se solicitó incremento.
+- `versionName` es descriptivo y tiene hasta 30 caracteres.
+- `version-notes.xml` incluye los 13 locales y coincide con el cambio actual.
+- No se modificaron `utility.md`, `state.json`, `delta.json` ni artefactos de fichas.

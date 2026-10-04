@@ -25,8 +25,7 @@ const pluginBuildFileRelativePath = path.join(
 );
 const billingVersion = "9.1.0";
 
-// The shared plugin still declares Billing 8.3.0. Keep its native dependency
-// aligned with the Billing version used by every active app after install.
+// Keep the native purchase safeguards available for older plugin packages.
 
 const replacements = [
   {
@@ -36,6 +35,10 @@ const replacements = [
   {
     find: `    private BillingClient billingClient;`,
     replace: `    private BillingClient billingClient;\n    private final AtomicBoolean purchaseFlowInProgress = new AtomicBoolean(false);`,
+  },
+  {
+    find: `    private final AtomicBoolean purchaseFlowInProgress = new AtomicBoolean(false);`,
+    replace: `    private final AtomicBoolean purchaseFlowInProgress = new AtomicBoolean(false);\n    private final AtomicInteger purchaseFlowDiagnosticAttempt = new AtomicInteger(0);`,
   },
   {
     find: `                .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())\n                .build();`,
@@ -400,6 +403,17 @@ function patchFile(filePath) {
   let current = original.replaceAll("\r\n", "\n");
   let changed = false;
 
+  if (
+    current.includes("enableAutoServiceReconnection()") &&
+    current.includes('"BILLING_FLOW_EXCEPTION"') &&
+    current.includes("No one-time purchase offer available") &&
+    current.includes('"BILLING_PURCHASE_LAUNCH_REQUESTED"') &&
+    current.includes('"BILLING_PURCHASE_UPDATED"') &&
+    current.includes('"BILLING_PRODUCT_DETAILS_RESULT"')
+  ) {
+    return false;
+  }
+
   const duplicateGuards = [
     {
       pattern: /(\s+if \(productType\.equals\("inapp"\) && productDetailsItem\.getOneTimePurchaseOfferDetails\(\) == null\) \{\s+closeBillingClient\(\);\s+call\.reject\("No one-time purchase offer available"\);\s+return;\s+\})\s+\1/g,
@@ -454,6 +468,16 @@ import org.json.JSONArray;
     changed = true;
   }
 
+  const billingDiagnosticAccessors = [
+    "    private int getPurchaseDiagnosticAttempt(PluginCall call) {",
+    "        return call == null || call.getData() == null ? 0 : call.getData().optInt(\"billingDiagnosticAttempt\", 0);",
+    "    }",
+    "",
+    "    private long getPurchaseDiagnosticStartedAt(PluginCall call) {",
+    "        return call == null || call.getData() == null ? 0L : call.getData().optLong(\"billingDiagnosticStartedAt\", 0L);",
+    "    }",
+    "",
+  ].join("\n");
   const billingDiagnosticHelper = [
     "    private void logBillingDiagnostic(String event, int attempt, long elapsedMs, String detail) {",
     "        String safeDetail = detail == null ? \"\" : detail.replace('\\n', ' ').replace('\\r', ' ');",
@@ -470,10 +494,21 @@ import org.json.JSONArray;
     "    }",
     "",
   ].join("\n");
+  if (!current.includes("private int getPurchaseDiagnosticAttempt(")) {
+    const diagnosticHelperMarker = "    private void logBillingDiagnostic(";
+    const handlePurchaseMarker = "    private void handlePurchase(Purchase purchase, PluginCall purchaseCall) {";
+    if (current.includes(diagnosticHelperMarker)) {
+      current = current.replace(diagnosticHelperMarker, billingDiagnosticAccessors + diagnosticHelperMarker);
+      changed = true;
+    } else if (current.includes(handlePurchaseMarker)) {
+      current = current.replace(handlePurchaseMarker, billingDiagnosticAccessors + handlePurchaseMarker);
+      changed = true;
+    }
+  }
   if (!current.includes("private void logBillingDiagnostic(")) {
-    const activityGuardMarker = "    private boolean isActivityReadyForBilling(Activity activity) {";
-    if (current.includes(activityGuardMarker)) {
-      current = current.replace(activityGuardMarker, billingDiagnosticHelper + activityGuardMarker);
+    const handlePurchaseMarker = "    private void handlePurchase(Purchase purchase, PluginCall purchaseCall) {";
+    if (current.includes(handlePurchaseMarker)) {
+      current = current.replace(handlePurchaseMarker, billingDiagnosticHelper + handlePurchaseMarker);
       changed = true;
     }
   }
@@ -577,6 +612,45 @@ import org.json.JSONArray;
   ].join("\n");
   if (current.includes(oldPurchaseLaunch)) {
     current = current.replace(oldPurchaseLaunch, newPurchaseLaunch);
+    changed = true;
+  }
+
+  const purchaseFlowDiagnosticReplacements = [
+    {
+      find: `        call.getData().put("isConsumable", isConsumable);`,
+      replace: `        final int billingDiagnosticAttempt = purchaseFlowDiagnosticAttempt.incrementAndGet();\n        final long billingDiagnosticStartedAt = System.currentTimeMillis();\n        call.getData().put("billingDiagnosticAttempt", billingDiagnosticAttempt);\n        call.getData().put("billingDiagnosticStartedAt", billingDiagnosticStartedAt);\n        logBillingDiagnostic("BILLING_PURCHASE_STARTED", billingDiagnosticAttempt, 0L, "product_id=" + productIdentifier + " product_type=" + productType);\n        call.getData().put("isConsumable", isConsumable);`,
+    },
+    {
+      find: `                            Log.d(TAG, "Purchases count: " + (purchases != null ? purchases.size() : 0));\n                            Log.i(NativePurchasesPlugin.TAG, "onPurchasesUpdated" + billingResult);`,
+      replace: `                            Log.d(TAG, "Purchases count: " + (purchases != null ? purchases.size() : 0));\n                            int billingDiagnosticAttempt = getPurchaseDiagnosticAttempt(purchaseCall);\n                            long billingDiagnosticStartedAt = getPurchaseDiagnosticStartedAt(purchaseCall);\n                            if (billingDiagnosticAttempt > 0) {\n                                logBillingDiagnostic("BILLING_PURCHASE_UPDATED", billingDiagnosticAttempt, billingDiagnosticStartedAt > 0L ? System.currentTimeMillis() - billingDiagnosticStartedAt : 0L, "response_code=" + billingResult.getResponseCode() + " purchase_count=" + (purchases != null ? purchases.size() : 0));\n                            }\n                            Log.i(NativePurchasesPlugin.TAG, "onPurchasesUpdated" + billingResult);`,
+    },
+    {
+      find: `                            Log.d(TAG, "Launching billing flow");\n                            BillingResult billingResult2;`,
+      replace: `                            Log.d(TAG, "Launching billing flow");\n                            logBillingDiagnostic("BILLING_PURCHASE_LAUNCH_REQUESTED", billingDiagnosticAttempt, System.currentTimeMillis() - billingDiagnosticStartedAt, "product_id=" + productIdentifier + " product_type=" + productType + " offer_token_provided=" + (offerToken != null && !offerToken.isEmpty()) + " product_details_count=" + productDetailsList.size() + " flow_product_count=" + productDetailsParamsList.size());\n                            BillingResult billingResult2;`,
+    },
+    {
+      find: `                        Log.d(TAG, "onProductDetailsResponse() called for purchase");\n                        Log.d(TAG, "Query result: " + billingResult.getResponseCode() + " - " + billingResult.getDebugMessage());\n                        Log.d(TAG, "Product details count: " + productDetailsList.size());`,
+      replace: `                        Log.d(TAG, "onProductDetailsResponse() called for purchase");\n                        Log.d(TAG, "Query result: " + billingResult.getResponseCode() + " - " + billingResult.getDebugMessage());\n                        Log.d(TAG, "Product details count: " + productDetailsList.size());\n                        logBillingDiagnostic("BILLING_PRODUCT_DETAILS_RESULT", billingDiagnosticAttempt, System.currentTimeMillis() - billingDiagnosticStartedAt, "response_code=" + billingResult.getResponseCode() + " product_details_count=" + productDetailsList.size() + " debug_message=" + billingResult.getDebugMessage());`,
+    },
+    {
+      find: `                                Log.e(TAG, "Billing flow threw before launch: " + error.getMessage());`,
+      replace: `                                Log.e(TAG, "Billing flow threw before launch: " + error.getMessage());\n                                logBillingDiagnostic("BILLING_PURCHASE_LAUNCH_EXCEPTION", billingDiagnosticAttempt, System.currentTimeMillis() - billingDiagnosticStartedAt, "error_type=" + error.getClass().getSimpleName() + " message=" + error.getMessage());`,
+    },
+    {
+      find: `                            Log.i(NativePurchasesPlugin.TAG, "onProductDetailsResponse2" + billingResult2);`,
+      replace: `                            Log.i(NativePurchasesPlugin.TAG, "onProductDetailsResponse2" + billingResult2);\n                            logBillingDiagnostic("BILLING_PURCHASE_LAUNCH_RESULT", billingDiagnosticAttempt, System.currentTimeMillis() - billingDiagnosticStartedAt, "response_code=" + (billingResult2 != null ? billingResult2.getResponseCode() : "null") + " debug_message=" + (billingResult2 != null ? billingResult2.getDebugMessage() : "missing billing result"));`,
+    },
+  ];
+
+  for (const replacement of purchaseFlowDiagnosticReplacements) {
+    if (
+      !current.includes(replacement.find) ||
+      current.includes(replacement.replace)
+    ) {
+      continue;
+    }
+
+    current = current.replace(replacement.find, replacement.replace);
     changed = true;
   }
 

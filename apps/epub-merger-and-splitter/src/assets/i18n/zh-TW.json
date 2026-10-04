@@ -4,7 +4,7 @@
   },
   "ARR": {
     "TOOLS": {
-      "APPS": "應用程式",
+      "APPS": "我們的應用程式",
       "GUIDE": "指南"
     }
   },
@@ -59,6 +59,9 @@
     "ERROR.OPEN": "無法開啟 EPUB。",
     "ERROR.SHARE": "無法分享 EPUB。",
     "ERROR.DELETE": "無法刪除 EPUB。",
+    "METADATA_UNEDITABLE_TITLE": "無法編輯中繼資料",
+    "METADATA_UNEDITABLE_BODY": "此 EPUB 的內部結構有問題。請先使用 EPUB Fixer 檢查並修復檔案，再編輯中繼資料。",
+    "OPEN_EPUB_FIXER": "開啟 EPUB Fixer",
     "ERROR": "錯誤",
     "EMPTY_TITLE": "還沒有 EPUB",
     "EMPTY_BODY": "加入後，你的 EPUB 會顯示在這裡。"

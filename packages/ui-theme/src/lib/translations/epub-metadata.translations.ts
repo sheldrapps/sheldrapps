@@ -12,7 +12,7 @@ const ENGLISH_EPUB_METADATA = {
   AUTHOR: 'Author',
   ADD_AUTHOR: 'Add author',
   REMOVE_AUTHOR: 'Remove author',
-  AUTHOR_ADVANCED: 'Author details',
+  AUTHOR_ADVANCED: 'Details',
   ROLE: 'Role',
   FILE_AS: 'Sort name',
   LANGUAGE: 'Language tag',
@@ -78,7 +78,7 @@ export const EPUB_METADATA_TRANSLATIONS: Record<string, TranslationObject> = {
     AUTHOR: 'Autor',
     ADD_AUTHOR: 'Agregar autor',
     REMOVE_AUTHOR: 'Quitar autor',
-    AUTHOR_ADVANCED: 'Detalles del autor',
+    AUTHOR_ADVANCED: 'Detalles',
     ROLE: 'Rol',
     FILE_AS: 'Nombre para ordenar',
     LANGUAGE: 'Etiqueta de idioma',
@@ -133,7 +133,7 @@ const EPUB_METADATA_TRANSLATION_COMPLETIONS: Record<
   Partial<EpubMetadataText>
 > = {
   'de-DE': {
-    AUTHOR_ADVANCED: 'Autorendetails',
+    AUTHOR_ADVANCED: 'Details',
     ROLE: 'Rolle',
     FILE_AS: 'Sortiername',
     LANGUAGE_PLACEHOLDER: 'Sprach-Tag auswählen oder eingeben',
@@ -159,7 +159,7 @@ const EPUB_METADATA_TRANSLATION_COMPLETIONS: Record<
     REMOVE: 'Entfernen',
   },
   'fr-FR': {
-    AUTHOR_ADVANCED: 'Détails de l’auteur',
+    AUTHOR_ADVANCED: 'Détails',
     ROLE: 'Rôle',
     FILE_AS: 'Nom de tri',
     LANGUAGE_PLACEHOLDER: 'Choisissez ou saisissez une balise',
@@ -185,7 +185,7 @@ const EPUB_METADATA_TRANSLATION_COMPLETIONS: Record<
     REMOVE: 'Retirer',
   },
   'it-IT': {
-    AUTHOR_ADVANCED: 'Dettagli dell’autore',
+    AUTHOR_ADVANCED: 'Dettagli',
     ROLE: 'Ruolo',
     FILE_AS: 'Nome per ordinamento',
     LANGUAGE_PLACEHOLDER: 'Scegli o inserisci un tag',
@@ -211,7 +211,7 @@ const EPUB_METADATA_TRANSLATION_COMPLETIONS: Record<
     REMOVE: 'Rimuovi',
   },
   'pt-BR': {
-    AUTHOR_ADVANCED: 'Detalhes do autor',
+    AUTHOR_ADVANCED: 'Detalhes',
     ROLE: 'Função',
     FILE_AS: 'Nome para classificação',
     LANGUAGE_PLACEHOLDER: 'Escolha ou digite uma tag',
@@ -237,7 +237,7 @@ const EPUB_METADATA_TRANSLATION_COMPLETIONS: Record<
     REMOVE: 'Remover',
   },
   'zh-TW': {
-    AUTHOR_ADVANCED: '作者詳細資料',
+    AUTHOR_ADVANCED: '詳細資料',
     ROLE: '角色',
     FILE_AS: '排序名稱',
     LANGUAGE_PLACEHOLDER: '選擇或輸入語言標籤',
@@ -263,7 +263,7 @@ const EPUB_METADATA_TRANSLATION_COMPLETIONS: Record<
     REMOVE: '移除',
   },
   'hi-IN': {
-    AUTHOR_ADVANCED: 'लेखक का विवरण',
+    AUTHOR_ADVANCED: 'विवरण',
     ROLE: 'भूमिका',
     FILE_AS: 'क्रमबद्ध करने का नाम',
     LANGUAGE_PLACEHOLDER: 'भाषा टैग चुनें या दर्ज करें',
@@ -289,7 +289,7 @@ const EPUB_METADATA_TRANSLATION_COMPLETIONS: Record<
     REMOVE: 'हटाएँ',
   },
   'ar-SA': {
-    AUTHOR_ADVANCED: 'تفاصيل المؤلف',
+    AUTHOR_ADVANCED: 'تفاصيل',
     ROLE: 'الدور',
     FILE_AS: 'اسم الترتيب',
     LANGUAGE_PLACEHOLDER: 'اختر وسم اللغة أو أدخله',
@@ -315,7 +315,7 @@ const EPUB_METADATA_TRANSLATION_COMPLETIONS: Record<
     REMOVE: 'إزالة',
   },
   'ja-JP': {
-    AUTHOR_ADVANCED: '著者の詳細',
+    AUTHOR_ADVANCED: '詳細',
     ROLE: '役割',
     FILE_AS: '並べ替え名',
     LANGUAGE_PLACEHOLDER: '言語タグを選択または入力',
@@ -341,7 +341,7 @@ const EPUB_METADATA_TRANSLATION_COMPLETIONS: Record<
     REMOVE: '削除',
   },
   'ko-KR': {
-    AUTHOR_ADVANCED: '저자 세부 정보',
+    AUTHOR_ADVANCED: '세부 정보',
     ROLE: '역할',
     FILE_AS: '정렬 이름',
     LANGUAGE_PLACEHOLDER: '언어 태그를 선택하거나 입력하세요',
@@ -367,7 +367,7 @@ const EPUB_METADATA_TRANSLATION_COMPLETIONS: Record<
     REMOVE: '삭제',
   },
   'zh-CN': {
-    AUTHOR_ADVANCED: '作者详细信息',
+    AUTHOR_ADVANCED: '详细信息',
     ROLE: '角色',
     FILE_AS: '排序名称',
     LANGUAGE_PLACEHOLDER: '选择或输入语言标签',
@@ -393,7 +393,7 @@ const EPUB_METADATA_TRANSLATION_COMPLETIONS: Record<
     REMOVE: '移除',
   },
   'ru-RU': {
-    AUTHOR_ADVANCED: 'Сведения об авторе',
+    AUTHOR_ADVANCED: 'Детали',
     ROLE: 'Роль',
     FILE_AS: 'Имя для сортировки',
     LANGUAGE_PLACEHOLDER: 'Выберите или введите языковой тег',

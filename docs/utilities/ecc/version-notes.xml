@@ -1,51 +1,51 @@
 <en-US>
-More reliable file sharing and better compatibility with newer Android devices, including 16 KB memory pages.
+If EPUB metadata can't be read, you'll now see a clearer message recommending EPUB Fixer. Header actions also follow your selected language.
 </en-US>
 
 <ar>
-أصبحت مشاركة الملفات أكثر موثوقية، وتحسنت التوافقية مع أجهزة Android الأحدث، بما في ذلك أحجام صفحات الذاكرة 16 كيلوبايت.
+إذا تعذرت قراءة بيانات EPUB الوصفية، ستظهر الآن رسالة أوضح توصي باستخدام EPUB Fixer. كما تتبع إجراءات الرأس اللغة المحددة.
 </ar>
 
 <de-DE>
-Das Teilen von Dateien funktioniert zuverlässiger. Außerdem wurde die Kompatibilität mit neueren Android-Geräten, einschließlich 16-KB-Speicherseiten, verbessert.
+Wenn EPUB-Metadaten nicht gelesen werden können, erscheint jetzt eine verständlichere Meldung mit einer Empfehlung für EPUB Fixer. Die Aktionen in der Kopfzeile passen sich außerdem der ausgewählten Sprache an.
 </de-DE>
 
 <es-419>
-Mejoramos la confiabilidad al compartir archivos y la compatibilidad con dispositivos Android recientes, incluidos los que usan páginas de memoria de 16 KB.
+Si no se pueden leer los metadatos de un EPUB, verás un mensaje más claro que recomienda usar EPUB Fixer. Las acciones del encabezado también usan el idioma seleccionado.
 </es-419>
 
 <fr-FR>
-Le partage des fichiers est plus fiable et la compatibilité avec les appareils Android récents, y compris ceux utilisant des pages mémoire de 16 Ko, a été améliorée.
+Si les métadonnées d’un EPUB ne peuvent pas être lues, un message plus clair vous recommande maintenant EPUB Fixer. Les actions de l’en-tête suivent aussi la langue sélectionnée.
 </fr-FR>
 
 <hi-IN>
-फ़ाइलें साझा करना अधिक भरोसेमंद हुआ है और 16 KB मेमोरी पेज वाले नए Android डिवाइसों के साथ संगतता बेहतर की गई है।
+अगर EPUB का मेटाडेटा नहीं पढ़ा जा सके, तो अब EPUB Fixer इस्तेमाल करने की सलाह देने वाला स्पष्ट संदेश दिखेगा। हेडर के विकल्प चुनी गई भाषा के अनुसार भी बदलेंगे।
 </hi-IN>
 
 <it-IT>
-La condivisione dei file è ora più affidabile e la compatibilità con i dispositivi Android più recenti, inclusi quelli con pagine di memoria da 16 KB, è stata migliorata.
+Se non è possibile leggere i metadati di un EPUB, ora appare un messaggio più chiaro che consiglia EPUB Fixer. Anche le azioni nell’intestazione seguono la lingua selezionata.
 </it-IT>
 
 <ja-JP>
-ファイル共有をより安定させ、16 KBのメモリページを使用する端末を含む新しいAndroid端末との互換性を改善しました。
+EPUB のメタデータを読み取れない場合、EPUB Fixer の利用を案内する分かりやすいメッセージが表示されます。ヘッダーの操作項目も選択中の言語に合わせて切り替わります。
 </ja-JP>
 
 <ko-KR>
-파일 공유를 더 안정적으로 개선하고 16KB 메모리 페이지를 사용하는 기기를 포함한 최신 Android 기기와의 호환성을 높였습니다.
+EPUB 메타데이터를 읽을 수 없으면 이제 EPUB Fixer 사용을 안내하는 더 명확한 메시지가 표시됩니다. 헤더 작업 항목도 선택한 언어에 맞게 바뀝니다.
 </ko-KR>
 
 <pt-BR>
-Aprimoramos o compartilhamento de arquivos e a compatibilidade com dispositivos Android mais recentes, incluindo os que usam páginas de memória de 16 KB.
+Se não for possível ler os metadados de um EPUB, uma mensagem mais clara recomendará o EPUB Fixer. As ações do cabeçalho também acompanham o idioma selecionado.
 </pt-BR>
 
 <ru-RU>
-Обмен файлами стал надёжнее. Также улучшена совместимость с новыми устройствами Android, включая устройства с размером страницы памяти 16 КБ.
+Если метаданные EPUB не удаётся прочитать, появится более понятное сообщение с рекомендацией использовать EPUB Fixer. Действия в заголовке также будут соответствовать выбранному языку.
 </ru-RU>
 
 <zh-CN>
-我们提升了文件分享的稳定性，并改进了与较新 Android 设备的兼容性，包括使用 16 KB 内存页的设备。
+如果无法读取 EPUB 元数据，现在会显示更清晰的提示，并建议使用 EPUB Fixer。页眉操作也会随所选语言切换。
 </zh-CN>
 
 <zh-TW>
-我們提升了檔案分享的穩定性，並改善了與較新 Android 裝置的相容性，包括使用 16 KB 記憶體頁面的裝置。
+如果無法讀取 EPUB 中繼資料，現在會顯示更清楚的訊息，並建議使用 EPUB Fixer。頁首操作也會配合所選語言切換。
 </zh-TW>

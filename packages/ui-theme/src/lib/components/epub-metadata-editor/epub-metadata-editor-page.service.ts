@@ -4,11 +4,20 @@ import type {
   EpubMetadataFormValue,
 } from './epub-metadata-editor.types';
 
+export interface EpubMetadataEditorLoadMoreAction {
+  handler: () => void | Promise<void>;
+  labelKey: string;
+  loadingLabelKey: string;
+  descriptionKey: string;
+  errorKey: string;
+}
+
 export interface EpubMetadataEditorPageState {
   input: EpubMetadataEditorInput;
   returnUrl: string;
   saveHandler?: (metadata: EpubMetadataFormValue) => void | Promise<void>;
   cancelHandler?: () => void | Promise<void>;
+  loadMore?: EpubMetadataEditorLoadMoreAction;
 }
 
 @Injectable({ providedIn: 'root' })

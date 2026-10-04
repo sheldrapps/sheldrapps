@@ -57,15 +57,21 @@ test('shared native purchases plugin uses the upgraded Billing version', () => {
 
 test('purchase flow launches Billing from the Android main thread', () => {
   for (const source of findNativePurchasesSources()) {
-    assert.match(source, /getActivity\(\)\.runOnUiThread\(\(\) -> \{/);
-    assert.match(source, /billingClient\.launchBillingFlow\(getActivity\(\), billingFlowParams\)/);
+    assert.match(source, /(?:getActivity\(\)|activity)\.runOnUiThread\(\(\) -> \{/);
+    assert.match(source, /billingClient\.launchBillingFlow\((?:getActivity\(\)|activity), billingFlowParams\)/);
   }
 });
 
 test('native ownership query rejects failed BillingClient responses', () => {
   for (const source of findNativePurchasesSources()) {
-    assert.match(source, /AtomicBoolean queryFailed = new AtomicBoolean\(false\)/);
-    assert.match(source, /call\.reject\(failure != null \? failure : "Billing purchases query failed"\)/);
+    assert.match(
+      source,
+      /(?:AtomicBoolean queryFailed = new AtomicBoolean\(false\)|AtomicReference<String> queryFailure = new AtomicReference<>\(null\))/,
+    );
+    assert.match(
+      source,
+      /(?:call\.reject\(failure != null \? failure : "Billing purchases query failed"\)|call\.reject\("Failed to query purchases: " \+ failure)/,
+    );
     assert.match(source, /response code/);
   }
 });
@@ -73,8 +79,8 @@ test('native ownership query rejects failed BillingClient responses', () => {
 test('native ownership query resolves an empty array only after successful callbacks', () => {
   for (const source of findNativePurchasesSources()) {
     assert.match(source, /result\.put\("purchases", allPurchases\)/);
-    assert.match(source, /if \(queryFailed\.get\(\)\)/);
-    assert.match(source, /Billing purchases query failed while processing/);
+    assert.match(source, /(?:if \(queryFailed\.get\(\)\)|String failure = queryFailure\.get\(\))/);
+    assert.match(source, /(?:Billing purchases query failed while processing|describeQueryFailure\("inapp"|describeQueryFailure\("subs")/);
   }
 });
 

@@ -33,6 +33,7 @@ const APP_DESCRIPTION_KEYS: Record<string, keyof RecommendedAppsTranslations> = 
   'com.sheldrapps.epubfixer': 'APP_DESC_EF',
   'com.sheldrapps.epubmergersplitter': 'APP_DESC_EMAS',
   'com.sheldrapps.pdfcovermaker': 'APP_DESC_PCM',
+  'com.sheldrapps.pdfmergerandsplitter': 'APP_DESC_PMAS',
 };
 const APP_NAME_KEYS: Record<string, keyof RecommendedAppsTranslations> = {
   'com.sheldrapps.covercreatorforkindle': 'APP_NAME_CCFK',
@@ -40,6 +41,7 @@ const APP_NAME_KEYS: Record<string, keyof RecommendedAppsTranslations> = {
   'com.sheldrapps.epubfixer': 'APP_NAME_EF',
   'com.sheldrapps.epubmergersplitter': 'APP_NAME_EMAS',
   'com.sheldrapps.pdfcovermaker': 'APP_NAME_PCM',
+  'com.sheldrapps.pdfmergerandsplitter': 'APP_NAME_PMAS',
 };
 
 @Component({

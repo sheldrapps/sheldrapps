@@ -14,4 +14,6 @@ export const FR_FR: RecommendedAppsTranslations = {
   APP_DESC_EF: 'Diagnostiquer et réparer les problèmes EPUB courants',
   APP_NAME_EMAS: 'Fusionner et diviser EPUB',
   APP_DESC_EMAS: 'Fusionnez, organisez et divisez vos EPUB',
+  APP_NAME_PMAS: 'Fusionner et diviser PDF',
+  APP_DESC_PMAS: 'Fusionnez, organisez et divisez vos PDF',
 };

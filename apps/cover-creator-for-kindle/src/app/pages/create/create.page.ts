@@ -349,6 +349,8 @@ export class CreatePage implements OnInit, OnDestroy {
   private lastEditorSourceMode: EditorSourceMode = 'image';
   private routerSub?: Subscription;
   private coversEventsSub?: Subscription;
+  private headerLangSub?: Subscription;
+  private headerTranslationSub?: Subscription;
   private adsRemovedSub?: Subscription;
   private removeAdsPriceSub?: Subscription;
   private readonly onlineHandler = () => {
@@ -454,6 +456,14 @@ export class CreatePage implements OnInit, OnDestroy {
     'ccfk_ad_fallback_trial_active';
 
   async ngOnInit() {
+    this.headerLangSub = this.translate.onLangChange.subscribe(() => {
+      void this.refreshHeaderItems();
+    });
+    this.headerTranslationSub = this.translate.onTranslationChange.subscribe((event) => {
+      if (event.lang) {
+        void this.refreshHeaderItems();
+      }
+    });
     await this.refreshHeaderItems();
     this.isOnline = typeof navigator === 'undefined' ? true : navigator.onLine;
     if (typeof window !== 'undefined') {
@@ -536,6 +546,8 @@ export class CreatePage implements OnInit, OnDestroy {
     this.revokePreviewUrl();
     this.routerSub?.unsubscribe();
     this.coversEventsSub?.unsubscribe();
+    this.headerLangSub?.unsubscribe();
+    this.headerTranslationSub?.unsubscribe();
     this.adsRemovedSub?.unsubscribe();
     this.removeAdsPriceSub?.unsubscribe();
     this.clearRemoveAdsPulse();

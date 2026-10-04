@@ -14,4 +14,6 @@ export const ES_MX: RecommendedAppsTranslations = {
   APP_DESC_EF: 'Detecta y repara problemas comunes en archivos EPUB',
   APP_NAME_EMAS: 'Unir y dividir EPUB',
   APP_DESC_EMAS: 'Une, organiza y divide archivos EPUB',
+  APP_NAME_PMAS: 'Unir y dividir PDF',
+  APP_DESC_PMAS: 'Une, organiza y divide archivos PDF',
 };

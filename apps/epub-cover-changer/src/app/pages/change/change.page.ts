@@ -282,6 +282,8 @@ export class ChangePage implements OnInit, OnDestroy {
   private persistedCropTargetOrientation?: CropOrientation;
   private routerSub?: Subscription;
   private coversEventsSub?: Subscription;
+  private languageSub?: Subscription;
+  private headerTranslationSub?: Subscription;
   private rewriteProgressSub?: PluginListenerHandle;
   private lastEditorSessionId?: string;
   private lastEditorRenderInfo?: EditorRenderInfo;
@@ -755,6 +757,14 @@ export class ChangePage implements OnInit, OnDestroy {
     await this.loadKindleModelCatalog();
     await this.initializeNativeRewriteSafetyGate();
     await this.refreshHeaderItems();
+    this.languageSub = this.translate.onLangChange.subscribe(() => {
+      void this.refreshHeaderItems();
+    });
+    this.headerTranslationSub = this.translate.onTranslationChange.subscribe((event) => {
+      if (event.lang) {
+        void this.refreshHeaderItems();
+      }
+    });
     this.isOnline = typeof navigator === 'undefined' ? true : navigator.onLine;
     if (typeof window !== 'undefined') {
       window.addEventListener('online', this.onlineHandler);
@@ -861,6 +871,8 @@ export class ChangePage implements OnInit, OnDestroy {
     this.revokeOriginalEpubPreviewUrl();
     this.routerSub?.unsubscribe();
     this.coversEventsSub?.unsubscribe();
+    this.languageSub?.unsubscribe();
+    this.headerTranslationSub?.unsubscribe();
     this.adsRemovedSub?.unsubscribe();
     this.removeAdsPriceSub?.unsubscribe();
     this.clearRemoveAdsPulse();

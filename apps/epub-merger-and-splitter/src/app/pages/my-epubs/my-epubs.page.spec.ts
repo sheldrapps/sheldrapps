@@ -1,4 +1,5 @@
 import { signal } from '@angular/core';
+import { EpubRewriteError } from '@sheldrapps/file-kit';
 import { MyEpubsPage } from './my-epubs.page';
 
 describe('MyEpubsPage', () => {
@@ -179,6 +180,46 @@ describe('MyEpubsPage', () => {
 
     expect(editMetadataByFilename).toHaveBeenCalledWith('book.epub');
     expect(editMetadataByFilename).toHaveBeenCalledWith('book.epub', true);
+  });
+
+  it('recommends EPUB Fixer when metadata cannot be read from a damaged archive', async () => {
+    const archiveError = new EpubRewriteError('ZIP_ERROR', {
+      stage: 'metadata_public_read',
+    });
+    const showMetadataArchiveFailure = jasmine
+      .createSpy('showMetadataArchiveFailure')
+      .and.resolveTo();
+    const showErrorToast = jasmine.createSpy('showErrorToast').and.resolveTo();
+    const ctx = {
+      cancelThumbnailLoading: jasmine.createSpy('cancelThumbnailLoading'),
+      pageErrorKey: null,
+      pageErrorParams: null,
+      library: {
+        readPublicationMetadata: jasmine
+          .createSpy('readPublicationMetadata')
+          .and.rejectWith(archiveError),
+      },
+      logInfo: jasmine.createSpy('logInfo'),
+      errorDetails: jasmine.createSpy('errorDetails').and.returnValue({
+        code: archiveError.code,
+      }),
+      isMetadataArchiveFailure: (
+        MyEpubsPage.prototype as unknown as {
+          isMetadataArchiveFailure: (error: unknown) => boolean;
+        }
+      ).isMetadataArchiveFailure,
+      showMetadataArchiveFailure,
+      showErrorToast,
+    };
+
+    await (
+      MyEpubsPage.prototype as unknown as {
+        editMetadataByFilename: Function;
+      }
+    ).editMetadataByFilename.call(ctx, 'book.epub');
+
+    expect(showMetadataArchiveFailure).toHaveBeenCalled();
+    expect(showErrorToast).not.toHaveBeenCalled();
   });
 
   it('requires confirmation before deleting from the list', async () => {

@@ -14,4 +14,6 @@ export const RU_RU: RecommendedAppsTranslations = {
   APP_DESC_EF: 'Диагностика и исправление частых проблем EPUB',
   APP_NAME_EMAS: 'Объединить и разделить EPUB',
   APP_DESC_EMAS: 'Объединяйте, упорядочивайте и разделяйте EPUB',
+  APP_NAME_PMAS: 'Объединить и разделить PDF',
+  APP_DESC_PMAS: 'Объединяйте, упорядочивайте и разделяйте PDF',
 };

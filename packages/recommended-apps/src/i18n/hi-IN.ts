@@ -14,4 +14,6 @@ export const HI_IN: RecommendedAppsTranslations = {
   APP_DESC_EF: 'EPUB फ़ाइलों की आम समस्याएँ जाँचें और ठीक करें',
   APP_NAME_EMAS: 'EPUB मर्ज और स्प्लिट',
   APP_DESC_EMAS: 'कई EPUB मिलाएँ या एक को हिस्सों में बाँटें',
+  APP_NAME_PMAS: 'PDF मर्ज और स्प्लिट',
+  APP_DESC_PMAS: 'PDF फ़ाइलें जोड़ें, व्यवस्थित करें और बाँटें',
 };

@@ -14,4 +14,6 @@ export const JA_JP: RecommendedAppsTranslations = {
   APP_DESC_EF: 'EPUBの一般的な問題を診断して修復',
   APP_NAME_EMAS: 'EPUB結合・分割',
   APP_DESC_EMAS: 'EPUBを結合・分割。順番や分け方も自由に設定',
+  APP_NAME_PMAS: 'PDF結合・分割',
+  APP_DESC_PMAS: 'PDFを結合・分割。順番や分け方も自由に設定',
 };

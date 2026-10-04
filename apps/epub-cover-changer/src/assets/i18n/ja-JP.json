@@ -237,7 +237,10 @@
       "LOAD": "EPUBを読み込めませんでした。下に引っ張って更新してください。",
       "PREVIEW": "プレビューを読み込めませんでした。もう一度お試しください。",
       "OPEN": "EPUBを開けませんでした。もう一度お試しください。",
-      "OPEN_PROJECT": "プロジェクトを開けませんでした。もう一度お試しください。"
+      "OPEN_PROJECT": "プロジェクトを開けませんでした。もう一度お試しください。",
+      "METADATA_UNEDITABLE_TITLE": "メタデータを編集できません",
+      "METADATA_UNEDITABLE_BODY": "このEPUBの内部構造に問題があります。メタデータを編集する前に、EPUB Fixerで確認・修復してください。",
+      "OPEN_EPUB_FIXER": "EPUB Fixerを開く"
     },
     "EREADER": {
       "ZOOM_OUT_ARIA": "電子書籍リーダープレビューを縮小",
@@ -315,7 +318,7 @@
     "TOOLS": {
       "RECOMMENDED": "おすすめ",
       "INFO": "情報",
-      "APPS": "アプリ",
+      "APPS": "私たちのアプリ",
       "GUIDE": "ガイド"
     }
   },

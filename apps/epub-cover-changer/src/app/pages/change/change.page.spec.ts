@@ -4,6 +4,36 @@ import { ChangePage } from './change.page';
 import { Capacitor } from '@capacitor/core';
 
 describe('ChangePage', () => {
+  it('uses the active language for the header action labels', async () => {
+    const headerLabels: Record<string, string> = {
+      'ARR.TOOLS.APPS': 'Nuestras apps',
+      'UI_THEME.RESET': 'Reiniciar',
+    };
+    const ctx = {
+      recommendedAppsService: {
+        getRecommendedApps: async () => [{}],
+      },
+      epubRepairableDetected: false,
+      recommendedApps: [],
+      showRecommended: false,
+      headerItems: [] as Array<{ id: string; label: string; icon: string }>,
+      translate: {
+        instant: (key: string) => headerLabels[key] ?? key,
+      },
+    };
+
+    await (
+      ChangePage.prototype as unknown as {
+        refreshHeaderItems: (this: typeof ctx) => Promise<void>;
+      }
+    ).refreshHeaderItems.call(ctx);
+
+    expect(ctx.headerItems).toEqual([
+      { id: 'recommended', label: 'Nuestras apps', icon: 'apps-outline' },
+      { id: 'reset', label: 'Reiniciar', icon: 'refresh-outline' },
+    ]);
+  });
+
   it('allows continuing from repairable EPUB diagnostics to the cover step', async () => {
     const ctx = Object.assign(Object.create(ChangePage.prototype), {
       epubRepairableDetected: true,

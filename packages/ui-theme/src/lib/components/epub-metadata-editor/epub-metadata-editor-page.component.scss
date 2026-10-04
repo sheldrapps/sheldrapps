@@ -10,6 +10,25 @@
   --background: var(--app-background, var(--app-bg));
 }
 
+.epub-metadata-editor-page__load-more {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 76rem;
+  padding-inline: var(--app-space-7);
+  margin: var(--app-space-7) auto 0;
+}
+
+.epub-metadata-editor-page__load-more-card {
+  display: block;
+  width: 100%;
+  min-height: var(--app-control-min-height);
+}
+
+.epub-metadata-editor-page__load-more .app-callout {
+  margin-top: var(--app-space-3);
+}
+
 .epub-metadata-editor-page__error {
   display: grid;
   gap: var(--app-space-2);
